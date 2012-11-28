@@ -1,0 +1,5 @@
+.DS_Store
+*.pyc
+pptx-old.py
+pptx/scrap.py
+python-pptx.tmproj
