@@ -11,33 +11,38 @@
 Open XML.'''
 
 import os
+import re
 
 # utility function for calculating EMUs from inches
 def emu(inches):
     return int(inches * 914400)
 
-
 # utility sequential integer generator, suitable for generating unique ids.
-def intsequence():
-    num = 1
+def intsequence(start=1):
+    num = start
     while True:
         yield num
         num += 1
 
-
+# indents second and later attributes on the root element so namespace
+# declarations don't spread off the page in the text editor and can be more
+# easily inspected
 def prettify_nsdecls(xml):
     lines = xml.splitlines()
-    if len(lines) < 2:         # if XML is all on one line, don't mess with it
-        return xml
+    if len(lines) < 2                   : return xml  # if XML is all on one line, don't mess with it
+    if not lines[0].startswith('<?xml') : return xml  # if don't find xml declaration on first line, pass
+    if not lines[1].startswith('<')     : return xml  # if don't find an unindented opening element on line 2, pass
     rootline = lines[1]
-    parts = rootline.split()
-    if len(parts) < 2:
+    # split rootline into element tag part and attributes parts
+    attrib_re = re.compile(r'([-a-zA-Z0-9_:.]+="[^"]*" *>?)')
+    substrings = [substring.strip() for substring in attrib_re.split(rootline) if substring]
+    # substrings looks something like ['<p:sld', 'xmlns:p="html://..."', 'name="Office Theme>"']
+    if len(substrings) < 3: # means there's at most one attributes so no need to indent
         return xml
-    root_tag = parts[0]
-    indent = len(root_tag) + 1
-    newrootline = parts[0] + ' ' + parts[1]
-    for part in parts[2:]:
-        newrootline += ('\n' + ' '*indent + part)
+    indent = ' ' * (len(substrings[0])+1)
+    newrootline = ' '.join(substrings[:2])  # join element tag and first attribute onto same line
+    for substring in substrings[2:]:        # indent remaining attributes on following lines
+        newrootline += '\n%s%s' % (indent, substring)
     lines[1] = newrootline
     return '\n'.join(lines)
 
@@ -57,12 +62,6 @@ def sortedtemplatefilepaths(templatedir, searchdir, filenameroot, ext):
         filenamenumber = name[len(filenameroot):-(len(ext)+1)]
         sortkey = int(filenamenumber) if filenamenumber else 0
         filepaths[sortkey] = fqname
-
-    #DELETEME:
-    # singledigitones = [fqname for fqname in slidelayoutpaths if len(os.path.basename(fqname)) == 16]
-    # doubledigitones = [fqname for fqname in slidelayoutpaths if len(os.path.basename(fqname)) == 17]
-    # return sorted(singledigitones) + sorted(doubledigitones)
-
     # return file paths sorted in numerical order (not lexicographic order)
     return [filepaths[key] for key in sorted(filepaths.keys())]
 
