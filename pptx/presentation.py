@@ -96,6 +96,7 @@ class Presentation(object):
     
     def __init__(self, templatedir=None):
         self.templatedir  = self.__normalizedtemplatedir(templatedir)
+        self._element     = None
         # initialize collections
         self.images       = Images       ()
         self.themes       = Themes       ()
@@ -108,11 +109,11 @@ class Presentation(object):
     
     def __applytemplate(self, template):
         # add parts
-#REFACTOR: Seems like there should be a way to add collection parts directly
-#          from a template rather than having to reconstruct them from
-#          scratch. Maybe even do it above transferring the template part
-#          collections directly and then adding in the presentation-specific
-#          items like slides.
+#REFACTOR: Seems like the template's part collections should be added directly
+#          rather than reconstructing them from scratch. Maybe even do it
+#          in __init__() and then initializing the presentation-specific
+#          collections like slides. E.g.:
+#          self.images = template.images if template.images else ImageCollection()
         for image       in template.images       : self.images       .additem(image       .path)
         for theme       in template.themes       : self.themes       .additem(theme       .path)
         for slidemaster in template.slidemasters : self.slidemasters .additem(slidemaster .path)
@@ -185,6 +186,64 @@ class Presentation(object):
         assert os.path.isdir(templatedir)
         return os.path.abspath(templatedir)
     
+    @property
+    def element(self):
+        rId_iter     = util.intsequence(start=1)
+        presentation = self._element  # NOTE: this is presentation element, not presentation instance
+        
+        # rewrite the sldMasterIdLst subelement ______________________________
+        sldMasterId_iter = util.intsequence(start=2147483660)   # This starting number is a bit of a hack based on sldMasterId values found in files saved by PowerPoint
+        
+        # create the new sldMasterIdLst element
+        sldMasterIdLst = Element(qname('p','sldMasterIdLst'))
+        for slidemaster in self.slidemasters:
+            id  = str(sldMasterId_iter.next())
+            rId = 'rId%d' % rId_iter.next()
+            sldMasterId = SubElement(sldMasterIdLst, qname('p','sldMasterId'))
+            sldMasterId.set('id', id)
+            sldMasterId.set(qname('r','id'), rId)
+            sldMasterIdLst.append(sldMasterId)
+        
+        # get the old sldMasterIdLst element
+        old_sldMasterIdLst = presentation.find(qname('p','sldMasterIdLst'))
+        # put new sldMasterIdLst element in place
+        if old_sldMasterIdLst is None:
+            presentation.insert(0, sldMasterIdLst)
+        else:
+            presentation.replace(old_sldMasterIdLst, sldMasterIdLst)
+        
+        # rewrite the sldIdLst subelement ____________________________________
+        sldId_iter = util.intsequence(start=256)   # This starting number is also based on observed values in PowerPoint files, no idea where it comes from.
+        
+        # create the new sldIdLst element
+        sldIdLst = Element(qname('p','sldIdLst'))
+        for slide in self.slides:
+            id = str(sldId_iter.next())
+            rId = 'rId%d' % rId_iter.next()
+            sldId = SubElement(sldIdLst, qname('p','sldId'))
+            sldId.set('id', id)
+            sldId.set(qname('r','id'), rId)
+            sldIdLst.append(sldId)
+        
+        # get the old sldIdLst element
+        old_sldIdLst = presentation.find(qname('p','sldIdLst'))
+        # put new sldIdLst element in place
+        if old_sldIdLst is None:
+            #TECHDEBT: Won't need these next three lines once notesMasters and handoutMasters support is added
+            idx = 1
+            if presentation.find(qname('p','notesMasterIdLst'  )) : idx += 1
+            if presentation.find(qname('p','handoutMasterIdLst')) : idx += 1
+            presentation.insert(idx, sldIdLst)
+        else:
+            presentation.replace(old_sldIdLst, sldIdLst)
+        
+        return self._element
+        
+    
+    @element.setter
+    def element(self, element):
+        self._element = element
+    
     def save(self, filename):
         Package(self).save(filename)
     
@@ -227,7 +286,8 @@ class Template(object):
         # self.notesmaster   = NotesMaster   (templatefiles.viewpropsfile.path)
         
         # load presentation.xml into element property
-        self.element = etree.parse(templatefiles.presentationfile.path).getroot()
+        parser = etree.XMLParser(remove_blank_text=True)  # need to remove indentation whitespace so pretty_print will work later
+        self.element = etree.parse(templatefiles.presentationfile.path, parser).getroot()
         
         # load package relationships (file-path oriented)
         self.relationships = templatepackage.relationships

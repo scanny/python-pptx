@@ -80,6 +80,35 @@ from pptx.exceptions import CorruptedTemplateError
 # ============================================================================
 # Package
 # ============================================================================
+# Start with media parts (they don't have a relationship item)
+# -------------------------------------------------------------------
+# (/) image parts  #TECHDEBT: Need to distinguish images from other media by extension in ext2mime_map
+# audio parts
+# video parts
+
+# Then template parts
+# -------------------------------------------------------------------
+# (/) theme parts
+# (/) slide master parts
+# (/) slide layout parts
+# (/) table styles part
+# (/) view properties part
+# handout master part
+# notes master part
+# theme override parts
+
+# Then document property parts
+# -------------------------------------------------------------------
+# file property parts
+# thumbnail part?
+
+# Then presentation parts
+# -------------------------------------------------------------------
+# (/) slide parts
+# notes slide parts
+# (/) presentation properties part
+# (/) presentation part
+# ============================================================================
 
 class Package(object):
     
@@ -130,38 +159,8 @@ class Package(object):
         self.parts.extend(self.slideparts)
         self.parts.extend(self.themeparts)
         
-        
-        
         # relationships are implemented by individual Part classes
         
-        # Start with media parts (they don't have a relationship item)
-        # -------------------------------------------------------------------
-        # (/) image parts  #TECHDEBT: Need to distinguish images from other media by extension in ext2mime_map
-        # audio parts
-        # video parts
-        
-        # Then template parts
-        # -------------------------------------------------------------------
-        # (/) theme parts
-        # theme override parts
-        # (/) slide master parts
-        # (/) slide layout parts
-        # table styles part
-        # view properties part
-        # handout master part
-        # notes master part
-        
-        # Then document property parts
-        # -------------------------------------------------------------------
-        # file property parts
-        # thumbnail part?
-        
-        # Then presentation parts
-        # -------------------------------------------------------------------
-        # (/) slide parts
-        # notes slide parts
-        # ( ) presentation properties part
-        # ( ) presentation part
     
     def __normalizedfilename(self, filename):
         # add .pptx extension to filename if it doesn't have one
@@ -174,10 +173,11 @@ class Package(object):
         items.extend(self.parts)              # parts (every part is a package item)
         for part in self.parts:               # Part relationship items
             if part.relationshipitem:
-                print "%s for %s" % (part.relationshipitem.__class__.__name__, part.filename)
+                # print "%s for %s" % (part.relationshipitem.__class__.__name__, part.filename)
                 items.append(part.relationshipitem)
             else:
-                print "No relationship item for %s" % part.filename
+                pass  # just need this when logging line below is commented out
+                # print "No relationship item for %s" % part.filename
         items.append(self.relationshipitem)   # package relationship item
         items.append(self.contenttypesitem)   # content types item
         return items
@@ -209,9 +209,9 @@ class Package(object):
         items = self.items
         # create the zip file to hold the presentation package
         pptxfile = zipfile.ZipFile(filename, mode='w', compression=zipfile.ZIP_DEFLATED)
-        print 'Package contains %d items.' % len(items)
+        # print 'Package contains %d items.' % len(items)
         for package_item in items:
-            print package_item.__class__
+            # print package_item.__class__
             package_item.write(pptxfile)
         pptxfile.close()
     
@@ -356,10 +356,6 @@ class PackageItem(object):
         element = self.element
         if element is None:
             return None
-#TECHDEBT: This screws up XML root element if it has an attribute that
-#          contains a space. Make it more sophisticated, to use regular
-#          expressions to work out where to break the lines between namespace
-#          declarations.
         return util.prettify_nsdecls(etree.tostring(element, encoding='UTF-8', pretty_print=True, standalone=True))
     
     @property
@@ -783,10 +779,10 @@ class PresentationPart(Part):
     @property
     def relatedparts(self):
         relatedparts = []
-        relatedparts.extend(self.slidemasterparts)
-        relatedparts.extend(self.handoutmasterparts)
-        relatedparts.extend(self.notesmasterparts)
-        relatedparts.extend(self.slideparts)
+        relatedparts.extend(self.slidemasterparts)     # --+-- being first and maintaining sequence of these
+        relatedparts.extend(self.notesmasterparts)     #   |   four part collections is critical to making
+        relatedparts.extend(self.handoutmasterparts)   #   |   rIds in presentation.xml sync with those
+        relatedparts.extend(self.slideparts)           # --+   in presentation.xml.rels
         relatedparts.extend(self.printersettingsparts)
         relatedparts.extend(self.prespropspart)
         relatedparts.extend(self.viewpropspart)
