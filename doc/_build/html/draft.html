@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Presentation objects &mdash; python-pptx 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="python-pptx 0.1.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">python-pptx 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="presentation-objects">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">Presentation</span></tt> objects<a class="headerlink" href="#presentation-objects" title="Permalink to this headline">¶</a></h1>
+<p>A presentation is a programmer-friendly interface to an Open XML PowerPoint
+presentation. ... hides the complexity of the XML and packaging ...
+operations correspond roughly to actions on the PowerPoint user interface,
+e.g. add slide, set font size, etc.</p>
+<dl class="class">
+<dt id="pptx.Presentation">
+<em class="property">class </em><tt class="descclassname">pptx.</tt><tt class="descname">Presentation</tt><big>(</big><em>template=None</em><big>)</big><a class="headerlink" href="#pptx.Presentation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an instance of an Open XML PresentationML package. ... knows how
+to parse a Presentation object to form the package.</p>
+<p><em>template</em> is a path to a directory containing the presentation template to
+be used to format the presentation ... if <em>template</em> is None, the default
+template is used.</p>
+<dl class="method">
+<dt id="pptx.Presentation.addslide">
+<tt class="descname">addslide</tt><big>(</big><em>filepath</em><big>)</big><a class="headerlink" href="#pptx.Presentation.addslide" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the package zip file to <em>filepath</em>. If <em>filepath</em> does not end in
+&#8221;.pptx&#8221;, that extension will be added.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pptx.Presentation.write">
+<tt class="descname">write</tt><big>(</big><em>filepath</em><big>)</big><a class="headerlink" href="#pptx.Presentation.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the package zip file to <em>filepath</em>. If <em>filepath</em> does not end in
+&#8221;.pptx&#8221;, that extension will be added.</p>
+</dd></dl>
+
+</dd></dl>
+
+<ul class="simple">
+<li>... presentation instantiates a Package when it needs to save (or later perhaps
+read) a package ...</li>
+</ul>
+</div>
+<div class="section" id="slidecollection-objects">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">SlideCollection</span></tt> objects<a class="headerlink" href="#slidecollection-objects" title="Permalink to this headline">¶</a></h1>
+<p>... A collection of all the Slide objects in the specified presentation.</p>
+<dl class="class">
+<dt id="pptx.Slides">
+<em class="property">class </em><tt class="descclassname">pptx.</tt><tt class="descname">Slides</tt><big>(</big><em>presentation</em><big>)</big><a class="headerlink" href="#pptx.Slides" title="Permalink to this definition">¶</a></dt>
+<dd><p>... not typically instantiated except internally by <tt class="xref py py-class docutils literal"><span class="pre">Presentation</span></tt>.</p>
+<p>... inherits from <tt class="xref py py-class docutils literal"><span class="pre">list</span></tt> (maybe). If so has all those methods except
+for those overridden.</p>
+<dl class="method">
+<dt id="pptx.Slides.addslide">
+<tt class="descname">addslide</tt><big>(</big><em>filepath</em><big>)</big><a class="headerlink" href="#pptx.Slides.addslide" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new slide, adds it to the <tt class="xref py py-class docutils literal"><span class="pre">Slides</span></tt> collection, and
+returns the slide.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.Slides.presentation">
+<tt class="descname">presentation</tt><a class="headerlink" href="#pptx.Slides.presentation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Presentation instance this slide collection belongs to.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="slide-objects">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">Slide</span></tt> objects<a class="headerlink" href="#slide-objects" title="Permalink to this headline">¶</a></h1>
+<p>... a PowerPoint slide.</p>
+<dl class="class">
+<dt id="pptx.Slide">
+<em class="property">class </em><tt class="descclassname">pptx.</tt><tt class="descname">Slide</tt><big>(</big><span class="optional">[</span><em>slidelayoutidx=None</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#pptx.Slide" title="Permalink to this definition">¶</a></dt>
+<dd><p>... inherits from Part (I think) ... might have multiple inheritance, perhaps Part
+and maybe one or two others</p>
+<p>... not typically instantiated except internally by <tt class="xref py py-class docutils literal"><span class="pre">Slides</span></tt>.</p>
+<dl class="attribute">
+<dt id="pptx.Slide.shapes">
+<tt class="descname">shapes</tt><a class="headerlink" href="#pptx.Slide.shapes" title="Permalink to this definition">¶</a></dt>
+<dd><p>A collection of all the <tt class="xref py py-class docutils literal"><span class="pre">Shape</span></tt> instances on this slide.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="package-objects">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">Package</span></tt> objects<a class="headerlink" href="#package-objects" title="Permalink to this headline">¶</a></h1>
+<p>A package is ... .</p>
+<dl class="class">
+<dt id="pptx.packaging.Package">
+<em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">Package</tt><big>(</big><em>presentation</em><big>)</big><a class="headerlink" href="#pptx.packaging.Package" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an instance of an Open XML PresentationML package. ... knows how
+to parse a Presentation object to form the package.</p>
+<dl class="method">
+<dt id="pptx.packaging.Package.write">
+<tt class="descname">write</tt><big>(</big><em>filepath</em><big>)</big><a class="headerlink" href="#pptx.packaging.Package.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the package zip (.pptx) file to <em>filepath</em>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="packageitem-objects">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">PackageItem</span></tt> objects<a class="headerlink" href="#packageitem-objects" title="Permalink to this headline">¶</a></h1>
+<p>Package items are the top-level components of a package. In general, they
+correspond to a file in the package directory hierarchy, such as
+/ppt/presentation.xml.</p>
+<p>A package item may be a part (e.g. slide1.xml), a relationships-item (e.g.
+slide1.xml.rels), or a Content-types item (e.g. [Content_Types].xml). The
+corresponding classes inherit from <tt class="xref py py-class docutils literal"><span class="pre">PackageItem</span></tt>.</p>
+<dl class="class">
+<dt id="pptx.packaging.PackageItem">
+<em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">PackageItem</tt><big>(</big><em>package</em><big>)</big><a class="headerlink" href="#pptx.packaging.PackageItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new instance of the <tt class="xref py py-class docutils literal"><span class="pre">PackageItem</span></tt> class.</p>
+<dl class="method">
+<dt id="pptx.packaging.PackageItem.zipwrite">
+<tt class="descname">zipwrite</tt><big>(</big><em>zipfile</em><big>)</big><a class="headerlink" href="#pptx.packaging.PackageItem.zipwrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write rendered package item file to zip archive using either
+<a href="#id1"><span class="problematic" id="id2">:method:`ZipFile.writestr`</span></a> (for generated text files such as
+presentation.xml) or <a href="#id3"><span class="problematic" id="id4">:method:`ZipFile.write`</span></a> (for binary resource files
+such as image1.png)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.packaging.PackageItem.package">
+<tt class="descname">package</tt><a class="headerlink" href="#pptx.packaging.PackageItem.package" title="Permalink to this definition">¶</a></dt>
+<dd><p>The package instance this package item belongs to.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="part-objects">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">Part</span></tt> objects<a class="headerlink" href="#part-objects" title="Permalink to this headline">¶</a></h1>
+<p>A part is a particular type of Open XML package item. A part is defined in
+ECMA-376, Part 1, Section 8.1 as a component of an Open XML document. Other
+items that are not considered a part are also contained in the package, most
+prominently including relationship ZIP items, XML files that describe
+relationships between parts, such as the slide parts that are included in the
+presentation and therefore related to the presentation part.</p>
+<p><tt class="xref py py-class docutils literal"><span class="pre">Part</span></tt> inherits from <tt class="xref py py-class docutils literal"><span class="pre">PackageItem</span></tt>.</p>
+<p>NOTE: Might want to have a Part factory so calling classes don&#8217;t need to understand the implementation details of the various specific part types.</p>
+<dl class="class">
+<dt id="pptx.packaging.Part">
+<em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">Part</tt><big>(</big><em>package</em><big>)</big><a class="headerlink" href="#pptx.packaging.Part" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new instance of the <tt class="xref py py-class docutils literal"><span class="pre">Part</span></tt> class.</p>
+<dl class="attribute">
+<dt id="pptx.packaging.Part.relpath">
+<tt class="descname">relpath</tt><a class="headerlink" href="#pptx.packaging.Part.relpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path for this part, relative to the package root, e.g.
+/ppt/slides/slide1.xml.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.packaging.Part.type">
+<tt class="descname">type</tt><a class="headerlink" href="#pptx.packaging.Part.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the type of this part, e.g. &#8216;app&#8217;, &#8216;presentation&#8217;,
+&#8216;slideLayout&#8217;, etc. Corresponds to the standard naming for the part type
+files and relationship schema element.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="relationshipitem-objects">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">RelationshipItem</span></tt> objects<a class="headerlink" href="#relationshipitem-objects" title="Permalink to this headline">¶</a></h1>
+<p><tt class="xref py py-class docutils literal"><span class="pre">RelationshipItem</span></tt> inherits from <tt class="xref py py-class docutils literal"><span class="pre">PackageItem</span></tt>.</p>
+<p>Relationship items specify the relationships between parts of the package,
+although they are not themselves a part. All relationship items are XML
+documents having a filename with the extension &#8216;.rels&#8217; located in a directory
+named &#8216;_rels&#8217; located in the same directory as the part. The package
+relationship item has the package-relative path &#8216;/_rels/.rels&#8217;. Part
+relationship items have the same filename as the part whose relationships they
+describe, with the &#8216;.rels&#8217; extension appended as a suffix. For example, the
+relationship item for a part named &#8216;slide1.xml&#8217; would have the
+package-relative path &#8216;/ppt/slides/_rels/slide1.xml.rels&#8217;</p>
+</div>
+<div class="section" id="contenttypesitem-objects">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">ContentTypesItem</span></tt> objects<a class="headerlink" href="#contenttypesitem-objects" title="Permalink to this headline">¶</a></h1>
+<p><tt class="xref py py-class docutils literal"><span class="pre">ContentTypesItem</span></tt> inherits from <tt class="xref py py-class docutils literal"><span class="pre">PackageItem</span></tt>.</p>
+<p>The Content Types package item appears in every package exactly once with the
+name &#8216;[Content_Types].xml&#8217;. Its purpose is to specify the content types (MIME
+or MIME-like types) of each of the other files in the package so they can be
+processed appropriately.</p>
+<p>There need only be one <tt class="xref py py-class docutils literal"><span class="pre">ContentTypesItem</span></tt> instance for each package and
+this class would not normally need to be either instantiated or directly
+accessed by user program code. It it instantiated and called internally by
+<tt class="xref py py-class docutils literal"><span class="pre">Package</span></tt> for all common purposes, but may be interesting to call
+directly for testing or learning purposes.</p>
+</div>
+<div class="section" id="parttype-objects">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">PartType</span></tt> objects<a class="headerlink" href="#parttype-objects" title="Permalink to this headline">¶</a></h1>
+<p>There are tens of different types of <tt class="xref py py-class docutils literal"><span class="pre">Part</span></tt>, including presentation,
+slideLayout, slide, handoutMaster, image, etc. <tt class="xref py py-class docutils literal"><span class="pre">PartType</span></tt> objects are
+used to store the various metadata associated with a part type, including the
+filename pattern, directory the part(s) are located in, and what relationships
+are possible to and from that part type.</p>
+<dl class="class">
+<dt id="pptx.packaging.PartType">
+<em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">PartType</tt><big>(</big><em>keyname</em><big>)</big><a class="headerlink" href="#pptx.packaging.PartType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an instance of the <tt class="xref py py-class docutils literal"><span class="pre">PartType</span></tt> class corresponding to the
+<em>keyname</em> provided. The <em>keyname</em> of a part type is with one or two
+exceptions the root portion of the filename for that part type, for example
+&#8216;notesSlide&#8217;, &#8216;slideLayout&#8217;, &#8216;slide&#8217;, and &#8216;image&#8217;.</p>
+<dl class="attribute">
+<dt id="pptx.packaging.PartType.keyname">
+<tt class="descname">keyname</tt><a class="headerlink" href="#pptx.packaging.PartType.keyname" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the type of this part, e.g. &#8216;app&#8217;, &#8216;presentation&#8217;,
+&#8216;slideLayout&#8217;, etc. Corresponds to the standard naming for the part type
+files and relationship schema element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.packaging.PartType.dirpath">
+<tt class="descname">dirpath</tt><a class="headerlink" href="#pptx.packaging.PartType.dirpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Package-relative path to the directory parts of this type are stored in.
+<em>dirpath</em> always begin with a slash, representing the &#8220;root&#8221; of the
+package.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.packaging.PartType.filenametemplate">
+<tt class="descname">filenametemplate</tt><a class="headerlink" href="#pptx.packaging.PartType.filenametemplate" title="Permalink to this definition">¶</a></dt>
+<dd><p>String containing a template for the root portion of the filename for
+parts of this type. The extension for the filename is determined
+separately, sometimes by the part itself. <em>filenametemplate</em> is either
+the name itself e.g. &#8216;presentation.xml&#8217; (for parts that appear at most
+once in a package) or a printf-style template with a single decimal
+substitution element for types whose parts can appear more than once in
+a package, e.g. &#8216;slide%d.xml&#8217;.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">Presentation</span></tt> objects</a></li>
+<li><a class="reference internal" href="#slidecollection-objects"><tt class="docutils literal"><span class="pre">SlideCollection</span></tt> objects</a></li>
+<li><a class="reference internal" href="#slide-objects"><tt class="docutils literal"><span class="pre">Slide</span></tt> objects</a></li>
+<li><a class="reference internal" href="#package-objects"><tt class="docutils literal"><span class="pre">Package</span></tt> objects</a></li>
+<li><a class="reference internal" href="#packageitem-objects"><tt class="docutils literal"><span class="pre">PackageItem</span></tt> objects</a></li>
+<li><a class="reference internal" href="#part-objects"><tt class="docutils literal"><span class="pre">Part</span></tt> objects</a></li>
+<li><a class="reference internal" href="#relationshipitem-objects"><tt class="docutils literal"><span class="pre">RelationshipItem</span></tt> objects</a></li>
+<li><a class="reference internal" href="#contenttypesitem-objects"><tt class="docutils literal"><span class="pre">ContentTypesItem</span></tt> objects</a></li>
+<li><a class="reference internal" href="#parttype-objects"><tt class="docutils literal"><span class="pre">PartType</span></tt> objects</a></li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/draft.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">python-pptx 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Steve Canny.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

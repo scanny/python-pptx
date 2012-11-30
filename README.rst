@@ -16,7 +16,7 @@ capability accomplished by the end of the calendar year. That would be:
 
 This initial push doesn't do much of a practical nature, I've been focused on
 getting the scaffolding code sound so I could build out some real
-functionality without getting lost in my own code :)
+functionality without getting lost in my own code :).
 
 One or two folks wanted to see what I had so far, so here it is. Expect to see
 some actual useful functionality in the next month or so, I've got some time
@@ -26,21 +26,28 @@ off coming up I'll be using to add some useful end-user features.
 Vision
 ======
 
-A robust, full-featured, general-purpose library for manipulating Open XML
-PowerPoint files.
+A robust, full-featured, and well-documented general-purpose library for
+manipulating Open XML PowerPoint files.
 
-* *robust* - High reliability driven by a full test suite.
+* **robust** - High reliability driven by a full test suite.
 
-* *full-featured* - Anything that the file format will allow can be
+* **full-featured** - Anything that the file format will allow can be
   accomplished via the API. (Note that visions often take some time to fulfill
   completely :).
 
-* *general-purpose* - Applicability to all conceivable purposes is valued over
+* **well-documented** - I don't know about you, but I find it hard to remember
+  what I was thinking yesterday if I don't write it down. That's not a problem
+  for most of my thinking, but when it comes to how I set up an object
+  hierarchy to interact, it can be a big time-waster. So I like it when things
+  are nicely laid out in black-and-white. Other folks seem to like that too
+  :).
+
+* **general-purpose** - Applicability to all conceivable purposes is valued over
   being especially well-suited to any particular purpose. Particular purposes
   can always be accomplished by building a wrapper library of your own.
   Serving general purposes from a particularized library is not so easy.
 
-* *manipulate* - Initially I expect this library to be primarily for purposes
+* **manipulate** - Initially I expect this library to be primarily for purposes
   of *writing* .pptx files. But since we're talking about vision here, I think
   it's not to much to envision that it could be developed to also be able to
   *read* .pptx files and manipulate their contents. I could see that coming

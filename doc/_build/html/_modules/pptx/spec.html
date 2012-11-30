@@ -1,0 +1,443 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pptx.spec &mdash; python-pptx 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="python-pptx 0.1.0 documentation" href="../../index.html" />
+    <link rel="up" title="pptx" href="../pptx.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">python-pptx 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pptx.html" accesskey="U">pptx</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pptx.spec</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c">#</span>
+<span class="c"># spec.py</span>
+<span class="c">#</span>
+<span class="c"># Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com</span>
+<span class="c">#</span>
+<span class="c"># This module is part of python-pptx and is released under</span>
+<span class="c"># the MIT License: http://www.opensource.org/licenses/mit-license.php</span>
+
+<span class="sd">&#39;&#39;&#39;Constant values from the ECMA-376 spec that are needed for XML generation</span>
+<span class="sd">and packaging, and a utility function or two for accessing some of them.&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">pptx.packaging</span> <span class="kn">import</span> <span class="n">PartType</span>
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># Part Type specs</span>
+<span class="c"># ============================================================================</span>
+<span class="c"># Not yet included:</span>
+<span class="c"># * Font Part (font1.fntdata) 15.2.13</span>
+<span class="c"># * chart         : &#39;application/vnd.openxmlformats-officedocument.drawingml.chart+xml&#39;</span>
+<span class="c"># * themeOverride : &#39;application/vnd.openxmlformats-officedocument.themeOverride+xml&#39;</span>
+<span class="c"># * several others, especially DrawingML parts ...</span>
+<span class="c"># ============================================================================</span>
+
+<span class="c">#TODO: Add Printer Settings Part (ECMA-376-1 Section 15.2.15). Also check out</span>
+<span class="c">#      other shared parts in section 15.</span>
+
+<span class="n">parttypes</span> <span class="o">=</span>\
+    <span class="p">[</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;app&#39;</span>                         <span class="c"># ECMA-376-1 15.2.12.3 (Extended File Properties Part)</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Application-Defined File Properties Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;single&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>                         <span class="c"># optional according to spec, don&#39;t know if package will load without one though</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/docProps&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;never&#39;</span>                       <span class="c"># has_rel_item should be construed as &quot;can have a relationship item&quot; rather than &quot;always has a relationship item&quot;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;package&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.extended-properties+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/extendedProperties&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/extendedProperties&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;core&#39;</span>                        <span class="c"># ECMA-376-1 15.2.12.1</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Core File Properties Part&#39;</span>   <span class="c"># &#39;Core&#39; as in Dublin Core</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;single&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/docProps&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;never&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;package&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-package.core-properties+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/package/2006/metadata/core-properties&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;custom&#39;</span>                      <span class="c"># ECMA-376-1 15.2.12.2</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Custom File Properties Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;single&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/docProps&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;never&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;package&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.custom-properties+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/customProperties&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/customProperties&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;commentAuthors&#39;</span>              <span class="c"># ECMA-376-1 13.3.1</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Comment Authors Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;single&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;never&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;presentation&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.commentAuthors+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/commentAuthors&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;presentation&#39;</span>                <span class="c"># ECMA-376-1 13.3.6</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Presentation Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;single&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">True</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;always&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;package&#39;</span><span class="p">]</span>
+              <span class="c"># there are three possible Content Type values for the</span>
+              <span class="c"># presentation part, this one below for presentations, then one</span>
+              <span class="c"># for slideshows (present-only decks) and a third one for</span>
+              <span class="c"># PowerPoint template files (.potx files) see spec for more</span>
+              <span class="c"># details if needed (ECMA-376 13.3.6).</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;presProps&#39;</span>                   <span class="c"># ECMA-376-1 13.3.7</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Presentation Properties Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;single&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">True</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;never&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;presentation&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.presProps+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;tableStyles&#39;</span>                 <span class="c"># ECMA-376-1 14.2.9</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Table Styles Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;single&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;never&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;presentation&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/drawingml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;viewProps&#39;</span>                   <span class="c"># ECMA-376-1 13.3.13</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;View Properties Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;single&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;never&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;presentation&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps&#39;</span>
+              <span class="p">)</span>
+
+    <span class="c"># Part Collections</span>
+    <span class="c"># =======================================================================</span>
+    
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;comment&#39;</span>                     <span class="c"># ECMA-376-1 13.3.2</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Comments Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;multiple&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt/comments&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;never&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;slide&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.comments+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;handoutMaster&#39;</span>               <span class="c"># ECMA-376-1 13.3.3</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Handout Master Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;multiple&#39;</span>                    <span class="c"># actually can only be one according to spec, but behaves like part collection (handoutMasters folder, handoutMaster1.xml, etc.)</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt/handoutMasters&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;always&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;presentation&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.handoutMaster+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;image&#39;</span>                       <span class="c"># ECMA-376-1 15.2.14</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;&#39;</span>                            <span class="c"># n/a, various extensions and they&#39;re handled with &lt;Default&gt; elements in [Content_Types].xml</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Image Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;multiple&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt/media&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;never&#39;</span>
+              <span class="c"># allowing relationships to image from notesSlide might be an error in the spec, UI doesn&#39;t allow it</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;handoutMaster&#39;</span><span class="p">,</span> <span class="s">&#39;notesSlide&#39;</span><span class="p">,</span> <span class="s">&#39;notesMaster&#39;</span><span class="p">,</span> <span class="s">&#39;slide&#39;</span><span class="p">,</span> <span class="s">&#39;slideLayout&#39;</span><span class="p">,</span> <span class="s">&#39;slideMaster&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>                            <span class="c"># n/a, various MIME types and they&#39;re handled with &lt;Default&gt; elements in [Content_Types].xml</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;&#39;</span>                            <span class="c"># n/a, not an XML format</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/image&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;notesMaster&#39;</span>                 <span class="c"># ECMA-376-1 13.3.4</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Notes Master Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;multiple&#39;</span>                    <span class="c"># actually can only be one according to spec, but behaves like part collection (notesMasters folder, notesMaster1.xml, etc.)</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt/notesMasters&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;always&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;presentation&#39;</span><span class="p">,</span> <span class="s">&#39;notesSlide&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;notesSlide&#39;</span>                  <span class="c"># ECMA-376-1 13.3.5</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Notes Slide Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;multiple&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt/notesSlides&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;always&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;slide&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;slide&#39;</span>                       <span class="c"># ECMA-376-1 13.3.8</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Slide Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;multiple&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">True</span>                          <span class="c"># spec is ambiguous, should check to see if a deck with no slides will load.</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt/slides&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;always&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;presentation&#39;</span><span class="p">,</span> <span class="s">&#39;notesSlide&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.slide+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;slideLayout&#39;</span>                 <span class="c"># ECMA-376-1 13.3.9</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Slide Layout Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;multiple&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">True</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt/slideLayouts&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;always&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;slide&#39;</span><span class="p">,</span> <span class="s">&#39;slideMaster&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;slideMaster&#39;</span>                 <span class="c"># ECMA-376-1 13.3.10</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Slide Master Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;multiple&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">True</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt/slideMasters&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;always&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;presentation&#39;</span><span class="p">,</span> <span class="s">&#39;slideLayout&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;tag&#39;</span>                         <span class="c"># ECMA-376-1 13.3.12</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;User-Defined Tags Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;multiple&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">False</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt/tags&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;never&#39;</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;presentation&#39;</span><span class="p">,</span> <span class="s">&#39;slide&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.tags+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/tags&#39;</span>
+              <span class="p">)</span>
+    <span class="p">,</span> <span class="n">PartType</span><span class="p">(</span> <span class="n">rootname</span>     <span class="o">=</span> <span class="s">&#39;theme&#39;</span>                       <span class="c"># ECMA-376-1 14.2.7</span>
+              <span class="p">,</span> <span class="n">file_ext</span>     <span class="o">=</span> <span class="s">&#39;xml&#39;</span>
+              <span class="p">,</span> <span class="n">name</span>         <span class="o">=</span> <span class="s">&#39;Theme Part&#39;</span>
+              <span class="p">,</span> <span class="n">cardinality</span>  <span class="o">=</span> <span class="s">&#39;multiple&#39;</span>
+              <span class="p">,</span> <span class="n">required</span>     <span class="o">=</span> <span class="bp">True</span>                          <span class="c"># spec indicates theme part is optional, but I&#39;ve never seen a .pptx without one</span>
+              <span class="p">,</span> <span class="n">location</span>     <span class="o">=</span> <span class="s">&#39;/ppt/theme&#39;</span>
+              <span class="p">,</span> <span class="n">has_rel_item</span> <span class="o">=</span> <span class="s">&#39;optional&#39;</span>                    <span class="c"># can have _rels items, but only if the theme contains one or more images</span>
+              <span class="p">,</span> <span class="n">rels_from</span>    <span class="o">=</span> <span class="p">[</span><span class="s">&#39;presentation&#39;</span><span class="p">,</span> <span class="s">&#39;handoutMaster&#39;</span><span class="p">,</span> <span class="s">&#39;notesMaster&#39;</span><span class="p">,</span> <span class="s">&#39;slideMaster&#39;</span><span class="p">]</span>
+              <span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.theme+xml&#39;</span>
+              <span class="p">,</span> <span class="n">namespace</span>    <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/drawingml/2006/main&#39;</span>
+              <span class="p">,</span> <span class="n">relationship</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme&#39;</span>
+              <span class="p">)</span>
+    <span class="p">]</span>
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># ext2mime_map</span>
+<span class="c"># ============================================================================</span>
+<span class="c"># Default file extension to MIME type mapping. This is used as a reference for</span>
+<span class="c"># adding &lt;Default&gt; elements to [Content_Types].xml for parts like media files.</span>
+<span class="c">#     TODO: I&#39;ve seen .wmv elements in the media folder of at least one</span>
+<span class="c"># presentation, might need to add an entry for that and perhaps other rich</span>
+<span class="c"># media PowerPoint allows to be embedded (e.g. audio, movie, object, ...).</span>
+<span class="c"># ============================================================================</span>
+
+<span class="n">ext2mime_map</span> <span class="o">=</span>\
+    <span class="p">{</span> <span class="s">&#39;bin&#39;</span>     <span class="p">:</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.presentationml.printerSettings&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;emf&#39;</span>     <span class="p">:</span> <span class="s">&#39;image/x-emf&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;fntdata&#39;</span> <span class="p">:</span> <span class="s">&#39;application/x-fontdata&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;gif&#39;</span>     <span class="p">:</span> <span class="s">&#39;image/gif&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;jpe&#39;</span>     <span class="p">:</span> <span class="s">&#39;image/jpeg&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;jpeg&#39;</span>    <span class="p">:</span> <span class="s">&#39;image/jpeg&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;jpg&#39;</span>     <span class="p">:</span> <span class="s">&#39;image/jpeg&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;png&#39;</span>     <span class="p">:</span> <span class="s">&#39;image/png&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;rels&#39;</span>    <span class="p">:</span> <span class="s">&#39;application/vnd.openxmlformats-package.relationships+xml&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;tif&#39;</span>     <span class="p">:</span> <span class="s">&#39;image/tiff&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;tiff&#39;</span>    <span class="p">:</span> <span class="s">&#39;image/tiff&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;wmf&#39;</span>     <span class="p">:</span> <span class="s">&#39;image/x-wmf&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;xlsx&#39;</span>    <span class="p">:</span> <span class="s">&#39;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&#39;</span>
+    <span class="p">,</span> <span class="s">&#39;xml&#39;</span>     <span class="p">:</span> <span class="s">&#39;application/xml&#39;</span>
+    <span class="p">}</span>
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># nsmap</span>
+<span class="c"># ============================================================================</span>
+<span class="c"># namespace prefix to namespace name map</span>
+<span class="c"># ============================================================================</span>
+
+<span class="n">nsmap</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="c"># Text Content</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;mv&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;urn:schemas-microsoft-com:mac:vml&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;mo&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.microsoft.com/office/mac/office/2008/main&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;ve&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/markup-compatibility/2006&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;o&#39;</span>       <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;urn:schemas-microsoft-com:office:office&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;r&#39;</span>       <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;m&#39;</span>       <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/math&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;v&#39;</span>       <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;urn:schemas-microsoft-com:vml&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;w&#39;</span>       <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/wordprocessingml/2006/main&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;p&#39;</span>       <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/presentationml/2006/main&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;sl&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;w10&#39;</span>     <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;urn:schemas-microsoft-com:office:word&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;wne&#39;</span>     <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.microsoft.com/office/word/2006/wordml&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;i&#39;</span>       <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/relationships/image&#39;</span>
+<span class="c"># Drawing</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;wp&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;pd&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/drawingml/2006/presentationDrawing&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;a&#39;</span>       <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/drawingml/2006/main&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;pic&#39;</span>     <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/drawingml/2006/picture&#39;</span>
+<span class="c"># Properties (core and extended)</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;cp&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/package/2006/metadata/core-properties&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;dc&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://purl.org/dc/elements/1.1/&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;dcterms&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://purl.org/dc/terms/&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;dcmitype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://purl.org/dc/dcmitype/&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;xsi&#39;</span>     <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://www.w3.org/2001/XMLSchema-instance&#39;</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;ep&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/officeDocument/2006/extended-properties&#39;</span>
+<span class="c"># Content Types (Note: the ct prefix is not actually used anywhere in .pptx files)</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;ct&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/package/2006/content-types&#39;</span>
+<span class="c"># Package Relationships (Note: the pr prefix is not actually used anywhere in .pptx files)</span>
+<span class="n">nsmap</span><span class="p">[</span><span class="s">&#39;pr&#39;</span>      <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://schemas.openxmlformats.org/package/2006/relationships&#39;</span>
+
+
+<span class="c"># generate a subset of the complete namespace map suitable for using in an</span>
+<span class="c"># Element call (to specify which namespaces will be used in that XML document)</span>
+<div class="viewcode-block" id="nsmap_subset"><a class="viewcode-back" href="../../pptx.html#pptx.spec.nsmap_subset">[docs]</a><span class="k">def</span> <span class="nf">nsmap_subset</span><span class="p">(</span><span class="n">prefixes</span><span class="p">):</span>
+    <span class="n">nsmap_subset</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">prefixes</span><span class="p">:</span>
+        <span class="n">nsmap_subset</span><span class="p">[</span><span class="n">prefix</span><span class="p">]</span> <span class="o">=</span> <span class="n">nsmap</span><span class="p">[</span><span class="n">prefix</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">nsmap_subset</span>
+
+
+<span class="c"># Return a qualified name (QName) for an XML element or attribute in Clark</span>
+<span class="c"># notation (e.g. &quot;{http://www.w3.org/1999/xhtml}body instead of &quot;html:body&quot;)</span>
+<span class="c"># by looking up the specified namespace prefix in the overall namespace map</span>
+<span class="c"># (nsmap) above. Google on &quot;xml clark notation&quot; for more on that topic.</span></div>
+<div class="viewcode-block" id="qname"><a class="viewcode-back" href="../../pptx.html#pptx.spec.qname">[docs]</a><span class="k">def</span> <span class="nf">qname</span><span class="p">(</span><span class="n">nsprefix</span><span class="p">,</span> <span class="n">localtagname</span><span class="p">):</span>
+    <span class="n">uri</span> <span class="o">=</span> <span class="n">nsmap</span><span class="p">[</span><span class="n">nsprefix</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s">&#39;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">localtagname</span><span class="p">)</span>
+
+
+<span class="c"># # valid values for &lt;p:ph&gt; type attribute (ST_PlaceholderType)</span>
+<span class="c"># placeholder_types = (&#39;title&#39;, &#39;body&#39;, &#39;ctrTitle&#39;, &#39;subTitle&#39;, &#39;dt&#39;, &#39;sldNum&#39;,</span>
+<span class="c">#                      &#39;ftr&#39;, &#39;hdr&#39;, &#39;obj&#39;, &#39;chart&#39;, &#39;tbl&#39;, &#39;clipArt&#39;, &#39;dgm&#39;,</span>
+<span class="c">#                      &#39;media&#39;, &#39;sldImg&#39;, &#39;pic&#39;)</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">python-pptx 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pptx.html" >pptx</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Steve Canny.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

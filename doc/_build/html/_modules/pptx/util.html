@@ -1,0 +1,184 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pptx.util &mdash; python-pptx 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="python-pptx 0.1.0 documentation" href="../../index.html" />
+    <link rel="up" title="pptx" href="../pptx.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">python-pptx 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pptx.html" accesskey="U">pptx</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pptx.util</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c">#</span>
+<span class="c"># util.py</span>
+<span class="c">#</span>
+<span class="c"># Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com</span>
+<span class="c">#</span>
+<span class="c"># This module is part of python-pptx and is released under</span>
+<span class="c"># the MIT License: http://www.opensource.org/licenses/mit-license.php</span>
+
+<span class="sd">&#39;&#39;&#39;Utility functions that come in handy when working with PowerPoint and</span>
+<span class="sd">Open XML.&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="c"># utility function for calculating EMUs from inches</span>
+<div class="viewcode-block" id="emu"><a class="viewcode-back" href="../../pptx.html#pptx.util.emu">[docs]</a><span class="k">def</span> <span class="nf">emu</span><span class="p">(</span><span class="n">inches</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">inches</span> <span class="o">*</span> <span class="mi">914400</span><span class="p">)</span>
+
+<span class="c"># utility sequential integer generator, suitable for generating unique ids.</span></div>
+<div class="viewcode-block" id="intsequence"><a class="viewcode-back" href="../../pptx.html#pptx.util.intsequence">[docs]</a><span class="k">def</span> <span class="nf">intsequence</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">start</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">num</span>
+        <span class="n">num</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="c"># indents second and later attributes on the root element so namespace</span>
+<span class="c"># declarations don&#39;t spread off the page in the text editor and can be more</span>
+<span class="c"># easily inspected</span></div>
+<div class="viewcode-block" id="prettify_nsdecls"><a class="viewcode-back" href="../../pptx.html#pptx.util.prettify_nsdecls">[docs]</a><span class="k">def</span> <span class="nf">prettify_nsdecls</span><span class="p">(</span><span class="n">xml</span><span class="p">):</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span>                   <span class="p">:</span> <span class="k">return</span> <span class="n">xml</span>  <span class="c"># if XML is all on one line, don&#39;t mess with it</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;&lt;?xml&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="k">return</span> <span class="n">xml</span>  <span class="c"># if don&#39;t find xml declaration on first line, pass</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;&lt;&#39;</span><span class="p">)</span>     <span class="p">:</span> <span class="k">return</span> <span class="n">xml</span>  <span class="c"># if don&#39;t find an unindented opening element on line 2, pass</span>
+    <span class="n">rootline</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c"># split rootline into element tag part and attributes parts</span>
+    <span class="n">attrib_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;([-a-zA-Z0-9_:.]+=&quot;[^&quot;]*&quot; *&gt;?)&#39;</span><span class="p">)</span>
+    <span class="n">substrings</span> <span class="o">=</span> <span class="p">[</span><span class="n">substring</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">substring</span> <span class="ow">in</span> <span class="n">attrib_re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">rootline</span><span class="p">)</span> <span class="k">if</span> <span class="n">substring</span><span class="p">]</span>
+    <span class="c"># substrings looks something like [&#39;&lt;p:sld&#39;, &#39;xmlns:p=&quot;html://...&quot;&#39;, &#39;name=&quot;Office Theme&gt;&quot;&#39;]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">substrings</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span> <span class="c"># means there&#39;s at most one attributes so no need to indent</span>
+        <span class="k">return</span> <span class="n">xml</span>
+    <span class="n">indent</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">substrings</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">newrootline</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">substrings</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>  <span class="c"># join element tag and first attribute onto same line</span>
+    <span class="k">for</span> <span class="n">substring</span> <span class="ow">in</span> <span class="n">substrings</span><span class="p">[</span><span class="mi">2</span><span class="p">:]:</span>        <span class="c"># indent remaining attributes on following lines</span>
+        <span class="n">newrootline</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="si">%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">indent</span><span class="p">,</span> <span class="n">substring</span><span class="p">)</span>
+    <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">newrootline</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="sortedtemplatefilepaths"><a class="viewcode-back" href="../../pptx.html#pptx.util.sortedtemplatefilepaths">[docs]</a><span class="k">def</span> <span class="nf">sortedtemplatefilepaths</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="n">searchdir</span><span class="p">,</span> <span class="n">filenameroot</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+    <span class="c"># trim leading slash off of searchdir if present</span>
+    <span class="n">searchdir</span> <span class="o">=</span> <span class="n">searchdir</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="n">searchdir</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">searchdir</span>
+    <span class="c"># form fully qualified path to search directory</span>
+    <span class="n">dirpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="n">searchdir</span><span class="p">)</span>
+    <span class="c"># form list of all files in the directory</span>
+    <span class="n">filepaths</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">dirpath</span><span class="p">):</span>
+        <span class="n">fqname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fqname</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">filenameroot</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">ext</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;&#39;&#39;Unexpected file &#39;</span><span class="si">%s</span><span class="s">&#39; found in template.&#39;&#39;&#39;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">searchdir</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+        <span class="n">filenamenumber</span> <span class="o">=</span> <span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">filenameroot</span><span class="p">):</span><span class="o">-</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+        <span class="n">sortkey</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">filenamenumber</span><span class="p">)</span> <span class="k">if</span> <span class="n">filenamenumber</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">filepaths</span><span class="p">[</span><span class="n">sortkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">fqname</span>
+    <span class="c"># return file paths sorted in numerical order (not lexicographic order)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">filepaths</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">filepaths</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+
+
+<span class="c">#TECHDEBT: Not all files in the media directory are necessarily image files.</span>
+<span class="c">#          Audio and Video media can show up there too, although are perhaps</span>
+<span class="c">#          less likely to appear in a presentation template.</span></div>
+<div class="viewcode-block" id="templatemediafilepaths"><a class="viewcode-back" href="../../pptx.html#pptx.util.templatemediafilepaths">[docs]</a><span class="k">def</span> <span class="nf">templatemediafilepaths</span><span class="p">(</span><span class="n">templatedir</span><span class="p">):</span>
+    <span class="c"># form fully qualified path to search directory</span>
+    <span class="n">dirpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="s">&#39;ppt/media&#39;</span><span class="p">)</span>
+    <span class="c"># if directory doesn&#39;t exist, it means the template doesn&#39;t contain any media files</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dirpath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="c"># form list of all files in the directory</span>
+    <span class="n">filepaths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">dirpath</span><span class="p">):</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">filepaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">filepaths</span>
+
+
+    </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">python-pptx 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pptx.html" >pptx</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Steve Canny.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

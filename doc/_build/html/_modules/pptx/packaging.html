@@ -1,0 +1,1312 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pptx.packaging &mdash; python-pptx 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="python-pptx 0.1.0 documentation" href="../../index.html" />
+    <link rel="up" title="pptx" href="../pptx.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">python-pptx 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pptx.html" accesskey="U">pptx</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pptx.packaging</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c">#</span>
+<span class="c"># packaging.py</span>
+<span class="c">#</span>
+<span class="c"># Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com</span>
+<span class="c">#</span>
+<span class="c"># This module is part of python-pptx and is released under</span>
+<span class="c"># the MIT License: http://www.opensource.org/licenses/mit-license.php</span>
+
+<span class="sd">&#39;&#39;&#39;Code that deals with packaging the various parts of the PowerPoint</span>
+<span class="sd">presentation into a .pptx file.&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+
+<span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
+
+<span class="kn">import</span> <span class="nn">pptx.spec</span>
+
+<span class="kn">from</span> <span class="nn">pptx</span>            <span class="kn">import</span> <span class="n">util</span>
+<span class="kn">from</span> <span class="nn">pptx.exceptions</span> <span class="kn">import</span> <span class="n">CorruptedTemplateError</span>
+
+<span class="c"># ============================================================================</span>
+<span class="c"># Class catalog</span>
+<span class="c"># ============================================================================</span>
+
+<span class="c"># API Classes</span>
+<span class="c"># ----------------------------------------------------------------------------</span>
+<span class="c"># Package</span>
+<span class="c"># PartType</span>
+<span class="c"># PartTypes</span>
+<span class="c"># TemplatePackage</span>
+
+<span class="c"># Package Items</span>
+<span class="c"># ----------------------------------------------------------------------------</span>
+<span class="c"># PackageItem</span>
+<span class="c"># ContentTypesItem</span>
+<span class="c"># RelationshipItem</span>
+<span class="c"># PackageRelationshipItem</span>
+<span class="c"># PartRelationshipItem</span>
+
+<span class="c"># Part Collections</span>
+<span class="c"># ----------------------------------------------------------------------------</span>
+<span class="c"># PartCollection</span>
+<span class="c"># ImageParts</span>
+<span class="c"># SlideLayoutParts</span>
+<span class="c"># SlideMasterParts</span>
+<span class="c"># SlideParts</span>
+<span class="c"># ThemeParts</span>
+
+<span class="c"># Parts</span>
+<span class="c"># ----------------------------------------------------------------------------</span>
+<span class="c"># Part</span>
+<span class="c"># ImagePart</span>
+<span class="c"># PresentationPart</span>
+<span class="c"># PresPropsPart</span>
+<span class="c"># SlideLayoutPart</span>
+<span class="c"># SlideMasterPart</span>
+<span class="c"># SlidePart</span>
+<span class="c"># TableStylesPart</span>
+<span class="c"># ThemePart</span>
+<span class="c"># ViewPropsPart</span>
+
+<span class="c"># Relationships</span>
+<span class="c"># ----------------------------------------------------------------------------</span>
+<span class="c"># PartRelationship</span>
+<span class="c"># RelationshipElement</span>
+ 
+<span class="c"># Files</span>
+<span class="c"># ----------------------------------------------------------------------------</span>
+<span class="c"># TemplateFiles</span>
+<span class="c"># PackageItemFile</span>
+<span class="c"># PackageItemFileCollection</span>
+<span class="c"># PartFile</span>
+<span class="c"># PartFiles</span>
+<span class="c"># PartRelsFiles</span>
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># Package</span>
+<span class="c"># ============================================================================</span>
+<span class="c"># Start with media parts (they don&#39;t have a relationship item)</span>
+<span class="c"># -------------------------------------------------------------------</span>
+<span class="c"># (/) image parts  #TECHDEBT: Need to distinguish images from other media by extension in ext2mime_map</span>
+<span class="c"># audio parts</span>
+<span class="c"># video parts</span>
+
+<span class="c"># Then template parts</span>
+<span class="c"># -------------------------------------------------------------------</span>
+<span class="c"># (/) theme parts</span>
+<span class="c"># (/) slide master parts</span>
+<span class="c"># (/) slide layout parts</span>
+<span class="c"># (/) table styles part</span>
+<span class="c"># (/) view properties part</span>
+<span class="c"># handout master part</span>
+<span class="c"># notes master part</span>
+<span class="c"># theme override parts</span>
+
+<span class="c"># Then document property parts</span>
+<span class="c"># -------------------------------------------------------------------</span>
+<span class="c"># file property parts</span>
+<span class="c"># thumbnail part?</span>
+
+<span class="c"># Then presentation parts</span>
+<span class="c"># -------------------------------------------------------------------</span>
+<span class="c"># (/) slide parts</span>
+<span class="c"># notes slide parts</span>
+<span class="c"># (/) presentation properties part</span>
+<span class="c"># (/) presentation part</span>
+<span class="c"># ============================================================================</span>
+
+<div class="viewcode-block" id="Package"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Package">[docs]</a><span class="k">class</span> <span class="nc">Package</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presentation</span><span class="p">):</span>
+        
+        <span class="c"># initialize part collections</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imageparts</span>       <span class="o">=</span> <span class="n">ImageParts</span>       <span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">themeparts</span>       <span class="o">=</span> <span class="n">ThemeParts</span>       <span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slidemasterparts</span> <span class="o">=</span> <span class="n">SlideMasterParts</span> <span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slidelayoutparts</span> <span class="o">=</span> <span class="n">SlideLayoutParts</span> <span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slideparts</span>       <span class="o">=</span> <span class="n">SlideParts</span>       <span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+        <span class="c"># initialize relationship item</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relationshipitem</span> <span class="o">=</span> <span class="n">PackageRelationshipItem</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contenttypesitem</span> <span class="o">=</span> <span class="n">ContentTypesItem</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+<span class="c">#TECHDEBT: Add images using their references from other parts so that only</span>
+<span class="c">#          referenced ones are written to the package</span>
+        <span class="c"># load collections from presentation</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">presentation</span><span class="o">.</span><span class="n">images</span>       <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageparts</span>       <span class="o">.</span><span class="n">additem</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">presentation</span><span class="o">.</span><span class="n">themes</span>       <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">themeparts</span>       <span class="o">.</span><span class="n">additem</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">presentation</span><span class="o">.</span><span class="n">slidemasters</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">slidemasterparts</span> <span class="o">.</span><span class="n">additem</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">presentation</span><span class="o">.</span><span class="n">slidelayouts</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">slidelayoutparts</span> <span class="o">.</span><span class="n">additem</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">presentation</span><span class="o">.</span><span class="n">slides</span>       <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">slideparts</span>       <span class="o">.</span><span class="n">additem</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="c"># load non-collection parts from presentation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">presentationpart</span>  <span class="o">=</span> <span class="n">PresentationPart</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presentation</span><span class="p">)</span>
+<span class="c">#TECHDEBT: Need to make these two parts work when no file exists for them in the template</span>
+        <span class="c"># self.handoutmasterpart = HandoutMasterPart(self, presentation.presprops)</span>
+        <span class="c"># self.notesmasterpart   = NotesMasterPart(self, presentation.presprops)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prespropspart</span>     <span class="o">=</span> <span class="n">PresPropsPart</span>    <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presentation</span><span class="o">.</span><span class="n">presprops</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tablestylespart</span>   <span class="o">=</span> <span class="n">TableStylesPart</span>  <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presentation</span><span class="o">.</span><span class="n">tablestyles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">viewpropspart</span>     <span class="o">=</span> <span class="n">ViewPropsPart</span>    <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presentation</span><span class="o">.</span><span class="n">viewprops</span><span class="p">)</span>
+        
+        <span class="c"># compile list of all the package parts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># singleton parts</span>
+<span class="c">#TECHDEBT: Need to make these two parts work when no file exists for them in the template</span>
+        <span class="c"># self.parts.append(self.handoutmasterpart)</span>
+        <span class="c"># self.parts.append(self.notesmasterpart)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">presentationpart</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prespropspart</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tablestylespart</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">viewpropspart</span><span class="p">)</span>
+        <span class="c"># collection parts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageparts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slidemasterparts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slidelayoutparts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slideparts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">themeparts</span><span class="p">)</span>
+        
+        <span class="c"># relationships are implemented by individual Part classes</span>
+        
+    
+    <span class="k">def</span> <span class="nf">__normalizedfilename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="c"># add .pptx extension to filename if it doesn&#39;t have one</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="k">if</span> <span class="n">filename</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">:]</span> <span class="o">==</span> <span class="s">&#39;.pptx&#39;</span> <span class="k">else</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&#39;.pptx&#39;</span>
+        <span class="k">return</span> <span class="n">filename</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Package.items"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Package.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">items</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="p">)</span>              <span class="c"># parts (every part is a package item)</span>
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="p">:</span>               <span class="c"># Part relationship items</span>
+            <span class="k">if</span> <span class="n">part</span><span class="o">.</span><span class="n">relationshipitem</span><span class="p">:</span>
+                <span class="c"># print &quot;%s for %s&quot; % (part.relationshipitem.__class__.__name__, part.filename)</span>
+                <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">relationshipitem</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>  <span class="c"># just need this when logging line below is commented out</span>
+                <span class="c"># print &quot;No relationship item for %s&quot; % part.filename</span>
+        <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relationshipitem</span><span class="p">)</span>   <span class="c"># package relationship item</span>
+        <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contenttypesitem</span><span class="p">)</span>   <span class="c"># content types item</span>
+        <span class="k">return</span> <span class="n">items</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Package.relatedparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Package.relatedparts">[docs]</a>    <span class="k">def</span> <span class="nf">relatedparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">relatedparts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># relatedparts.append(self.coredocpropspart)</span>
+        <span class="c"># relatedparts.append(self.appdocpropspart)</span>
+        <span class="c"># relatedparts.append(self.thumbnailpart)</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">presentationpart</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">relatedparts</span>
+    
+    <span class="c">#REFACTOR: Consider renaming this property to relationshipelements to</span>
+    <span class="c">#          make clear it&#39;s a list of etree.Element</span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Package.relationships"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Package.relationships">[docs]</a>    <span class="k">def</span> <span class="nf">relationships</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">relationships</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">relatedpart</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relatedparts</span><span class="p">):</span>
+            <span class="n">rId</span>              <span class="o">=</span> <span class="n">idx</span><span class="o">+</span><span class="mi">1</span>
+            <span class="n">relationshiptype</span> <span class="o">=</span> <span class="n">relatedpart</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">relationshiptype</span>
+            <span class="n">targetdir</span>        <span class="o">=</span> <span class="n">relatedpart</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">pkgreldir</span>
+            <span class="n">targetfilename</span>   <span class="o">=</span> <span class="n">relatedpart</span><span class="o">.</span><span class="n">filename</span>
+            <span class="n">targetpath</span>       <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">targetdir</span><span class="p">,</span> <span class="n">targetfilename</span><span class="p">)</span>
+            <span class="n">relationships</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RelationshipElement</span><span class="p">(</span><span class="n">rId</span><span class="p">,</span> <span class="n">relationshiptype</span><span class="p">,</span> <span class="n">targetpath</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">relationships</span>
+    </div>
+<div class="viewcode-block" id="Package.save"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Package.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span>
+        <span class="c"># create the zip file to hold the presentation package</span>
+        <span class="n">pptxfile</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span><span class="p">)</span>
+        <span class="c"># print &#39;Package contains %d items.&#39; % len(items)</span>
+        <span class="k">for</span> <span class="n">package_item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="c"># print package_item.__class__</span>
+            <span class="n">package_item</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pptxfile</span><span class="p">)</span>
+        <span class="n">pptxfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PartType</span>
+<span class="c"># ============================================================================</span>
+<span class="c">#REFACTOR: Refactor this and spec.parttypes so spec doesn&#39;t call PartType</span>
+<span class="c">#          (it leads to a circular import problem). Make spec.parttypes a list</span>
+<span class="c">#          of dictionary, and have PartType read it into a class variable when</span>
+<span class="c">#          the class is initialized (on module load).</span>
+</div></div>
+<div class="viewcode-block" id="PartType"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartType">[docs]</a><span class="k">class</span> <span class="nc">PartType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> 
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rootname</span><span class="p">,</span> <span class="n">file_ext</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cardinality</span><span class="p">,</span> <span class="n">required</span><span class="p">,</span>
+                 <span class="n">location</span><span class="p">,</span> <span class="n">has_rel_item</span><span class="p">,</span> <span class="n">rels_from</span><span class="p">,</span> <span class="n">content_type</span><span class="p">,</span>
+                 <span class="n">namespace</span><span class="p">,</span> <span class="n">relationship</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rootname</span>         <span class="o">=</span> <span class="n">rootname</span>       <span class="c"># e.g. &#39;core&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span>         <span class="o">=</span> <span class="n">file_ext</span>       <span class="c"># e.g. &#39;xml&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span>             <span class="o">=</span> <span class="n">name</span>           <span class="c"># e.g. &#39;Core File Properties Part&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cardinality</span>      <span class="o">=</span> <span class="n">cardinality</span>    <span class="c"># e.g. &#39;single&#39; or &#39;multiple&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required</span>         <span class="o">=</span> <span class="n">required</span>       <span class="c"># e.g. False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span>         <span class="o">=</span> <span class="n">location</span>       <span class="c"># e.g. &#39;/docProps&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_rel_item</span>     <span class="o">=</span> <span class="n">has_rel_item</span>   <span class="c"># e.g. &#39;always&#39;, &#39;never&#39;, or &#39;optional&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rels_from</span>        <span class="o">=</span> <span class="n">rels_from</span>      <span class="c"># e.g. [&#39;package&#39;]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span>     <span class="o">=</span> <span class="n">content_type</span>   <span class="c"># e.g. &#39;application/vnd.openxmlformats-package.core-properties+xml&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span>        <span class="o">=</span> <span class="n">namespace</span>      <span class="c"># e.g. &#39;http://schemas.openxmlformats.org/package/2006/metadata/core-properties&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relationshiptype</span> <span class="o">=</span> <span class="n">relationship</span>   <span class="c"># e.g. &#39;http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties&#39;</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PartType.key"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartType.key">[docs]</a>    <span class="k">def</span> <span class="nf">key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootname</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PartType.pkgreldir"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartType.pkgreldir">[docs]</a>    <span class="k">def</span> <span class="nf">pkgreldir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span>
+    
+    <span class="c"># NOTE: This doesn&#39;t work for the package relationships item, only for</span>
+    <span class="c"># part relationship items!</span>
+    <span class="c"># Return the part path format used in part relationship items (files),</span>
+    <span class="c"># a path that is relative to the directory containing the frompart.</span></div>
+<div class="viewcode-block" id="PartType.reltargetdir"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartType.reltargetdir">[docs]</a>    <span class="k">def</span> <span class="nf">reltargetdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fromlocation</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">fromlocation</span> <span class="o">==</span> <span class="s">&#39;/ppt&#39;</span><span class="p">:</span>  <span class="c"># that means this is the presentation part, the only part with that path that has a relationship item</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">==</span> <span class="s">&#39;/ppt&#39;</span><span class="p">:</span>              <span class="c"># means topart is a singleton part</span>
+                <span class="k">return</span> <span class="s">&#39;&#39;</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;/ppt/&#39;</span><span class="p">):</span>  <span class="c"># means topart is a collection part</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;&#39;&#39;Unrecognized fromlocation &#39;</span><span class="si">%s</span><span class="s">&#39; received by PartType.reltargetdir()&#39;&#39;&#39;</span> <span class="o">%</span> <span class="n">fromlocation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;/ppt/&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s">&#39;../</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;&quot;&quot;PartType.reltargetdir() is not yet implemented for part type &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootname</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PartType.zipdir"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartType.zipdir">[docs]</a>    <span class="k">def</span> <span class="nf">zipdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PartTypes</span>
+<span class="c"># ============================================================================</span>
+<span class="c">#REFACTOR: See if PartTypes and PartType can be combined into a single class.</span>
+</div></div>
+<div class="viewcode-block" id="PartTypes"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartTypes">[docs]</a><span class="k">class</span> <span class="nc">PartTypes</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;&#39;&#39;The PartTypes class is not meant to be instantiated, only used for class methods&#39;&#39;&#39;</span><span class="p">)</span>
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="PartTypes.classparttype"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartTypes.classparttype">[docs]</a>    <span class="k">def</span> <span class="nf">classparttype</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">classname</span><span class="p">):</span>
+        <span class="nb">map</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&#39;Image&#39;</span>        <span class="p">:</span> <span class="s">&#39;image&#39;</span>
+              <span class="p">,</span> <span class="s">&#39;Presentation&#39;</span> <span class="p">:</span> <span class="s">&#39;presentation&#39;</span>
+              <span class="p">,</span> <span class="s">&#39;PresProps&#39;</span>    <span class="p">:</span> <span class="s">&#39;presProps&#39;</span>
+              <span class="p">,</span> <span class="s">&#39;Slide&#39;</span>        <span class="p">:</span> <span class="s">&#39;slide&#39;</span>
+              <span class="p">,</span> <span class="s">&#39;SlideLayout&#39;</span>  <span class="p">:</span> <span class="s">&#39;slideLayout&#39;</span>
+              <span class="p">,</span> <span class="s">&#39;SlideMaster&#39;</span>  <span class="p">:</span> <span class="s">&#39;slideMaster&#39;</span>
+              <span class="p">,</span> <span class="s">&#39;TableStyles&#39;</span>  <span class="p">:</span> <span class="s">&#39;tableStyles&#39;</span>
+              <span class="p">,</span> <span class="s">&#39;Theme&#39;</span>        <span class="p">:</span> <span class="s">&#39;theme&#39;</span>
+              <span class="p">,</span> <span class="s">&#39;ViewProps&#39;</span>    <span class="p">:</span> <span class="s">&#39;viewProps&#39;</span>
+              <span class="p">}</span>
+        <span class="k">if</span> <span class="n">classname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s">&quot;&quot;&quot;PartTypes.classparttype() lookup failed with key &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classname</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">PartTypes</span><span class="o">.</span><span class="n">parttype</span><span class="p">(</span><span class="nb">map</span><span class="p">[</span><span class="n">classname</span><span class="p">])</span>
+    </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="PartTypes.parttype"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartTypes.parttype">[docs]</a>    <span class="k">def</span> <span class="nf">parttype</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">parttypekeyname</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">parttype</span> <span class="ow">in</span> <span class="n">pptx</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">parttypes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">parttype</span><span class="o">.</span><span class="n">rootname</span> <span class="o">==</span> <span class="n">parttypekeyname</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">parttype</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s">&quot;&quot;&quot;PartTypes.parttype() lookup failed with key &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parttypekeyname</span><span class="p">))</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># TemplatePackage</span>
+<span class="c"># ============================================================================</span>
+<span class="c"># #TODO: Enhance this so it can read a template from a zip archive without</span>
+<span class="c">#        requiring it to be expanded out into a directory.</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="TemplatePackage"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.TemplatePackage">[docs]</a><span class="k">class</span> <span class="nc">TemplatePackage</span><span class="p">(</span><span class="n">Package</span><span class="p">):</span>
+    
+    <span class="c"># NOTE: Not sure why this doesn&#39;t call Package.__init__(), might need to</span>
+    <span class="c">#       distinguish between PresentationPackage and TemplatePackage, with</span>
+    <span class="c">#       Package being the superclass for each of them.</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">templatedir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">templatedir</span>   <span class="o">=</span> <span class="n">templatedir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">templatefiles</span> <span class="o">=</span> <span class="n">TemplateFiles</span><span class="p">(</span><span class="n">templatedir</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TemplatePackage.relationships"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.TemplatePackage.relationships">[docs]</a>    <span class="k">def</span> <span class="nf">relationships</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">relationships</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">relsfile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">templatefiles</span><span class="o">.</span><span class="n">relsfiles</span><span class="p">:</span>
+            <span class="n">relationships</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__parserelsfile</span><span class="p">(</span><span class="n">relsfile</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">relationships</span>
+    </div>
+    <span class="k">def</span> <span class="nf">__parserelsfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relsfile</span><span class="p">):</span>
+        <span class="n">relationships</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">relsfile</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">relationshipelements</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">pptx</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">qname</span><span class="p">(</span><span class="s">&#39;pr&#39;</span><span class="p">,</span><span class="s">&#39;Relationship&#39;</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">relationshipelement</span> <span class="ow">in</span> <span class="n">relationshipelements</span><span class="p">:</span>
+            <span class="n">relationships</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PartRelationship</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">relsfile</span><span class="o">.</span><span class="n">partfile</span><span class="p">,</span> <span class="n">relationshipelement</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">relationships</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PackageItem</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="PackageItem"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PackageItem">[docs]</a><span class="k">class</span> <span class="nc">PackageItem</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="c"># must be overridden by items that are not XML-based</span>
+<div class="viewcode-block" id="PackageItem.write"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PackageItem.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pptx_zipfile</span><span class="p">):</span>
+        <span class="n">pptx_zipfile</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zipfilepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlstring</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PackageItem.xmlstring"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PackageItem.xmlstring">[docs]</a>    <span class="k">def</span> <span class="nf">xmlstring</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="c">#TECHDEBT: Maybe should check to see if item content is XML or not and throw exception if not XML</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span>
+        <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">util</span><span class="o">.</span><span class="n">prettify_nsdecls</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="n">pretty_print</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">standalone</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PackageItem.zipfilepath"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PackageItem.zipfilepath">[docs]</a>    <span class="k">def</span> <span class="nf">zipfilepath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zipdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># ContentTypesItem</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="ContentTypesItem"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ContentTypesItem">[docs]</a><span class="k">class</span> <span class="nc">ContentTypesItem</span><span class="p">(</span><span class="n">PackageItem</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
+        <span class="n">PackageItem</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">package</span>  <span class="o">=</span> <span class="n">package</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;[Content_Types].xml&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zipdir</span>   <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ContentTypesItem.element"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ContentTypesItem.element">[docs]</a>    <span class="k">def</span> <span class="nf">element</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c">#TECHDEBT: Look this up from lookup table in pptx.spec</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="s">&#39;&#39;&#39;&lt;Types xmlns=&quot;http://schemas.openxmlformats.org/package/2006/content-types&quot;&gt;&lt;/Types&gt;&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__defaultcontenttypes</span><span class="p">)</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__overrides</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">element</span>
+    
+<span class="c">#TODO: account for possible thumbnail.jpeg image in /docProps</span>
+<span class="c">#TODO: account for possible printerSettings[1-9][0-9]*.bin files in ppt/printerSettings/</span>
+<span class="c">#TODO: account for possible fntdata parts (handled by fntdata Default element) in /ppt/fonts directory</span></div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__defaultcontenttypes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">defaults</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__mediatypedefaultelements</span><span class="p">)</span>
+        <span class="n">defaults</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__defaultelement</span><span class="p">(</span><span class="s">&#39;rels&#39;</span><span class="p">))</span>
+        <span class="n">defaults</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__defaultelement</span><span class="p">(</span><span class="s">&#39;xml&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">defaults</span>
+    
+    <span class="k">def</span> <span class="nf">__defaultelement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+        <span class="c">#REFACTOR: Work out a more elegant access method to this ext2mime_map.</span>
+        <span class="n">mimetype</span> <span class="o">=</span> <span class="n">pptx</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">ext2mime_map</span><span class="p">[</span><span class="n">ext</span><span class="p">]</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Default&#39;</span><span class="p">)</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;Extension&#39;</span>   <span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;ContentType&#39;</span> <span class="p">,</span> <span class="n">mimetype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">element</span>
+    
+<span class="c">#TECHDEBT: Need to accomodate audio and video content types as well as images</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__mediatypedefaultelements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">exts</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">imagepart</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">imageparts</span><span class="p">:</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">imagepart</span><span class="o">.</span><span class="n">filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>  <span class="c"># extension is second item in returned tuple and need to strip off &#39;.&#39; from the front</span>
+            <span class="n">exts</span><span class="p">[</span><span class="n">ext</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__defaultelement</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span> <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">exts</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+    
+    <span class="k">def</span> <span class="nf">__override_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">part</span><span class="p">):</span>
+        <span class="n">partname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">location</span><span class="p">,</span> <span class="n">part</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Override&#39;</span><span class="p">)</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;PartName&#39;</span>    <span class="p">,</span> <span class="n">partname</span><span class="p">)</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;ContentType&#39;</span> <span class="p">,</span> <span class="n">part</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">content_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">element</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__overrides</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__override_element</span><span class="p">(</span><span class="n">part</span><span class="p">)</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">parts</span> <span class="k">if</span> <span class="n">part</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.xml&#39;</span><span class="p">)]</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># RelationshipItem</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="RelationshipItem"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.RelationshipItem">[docs]</a><span class="k">class</span> <span class="nc">RelationshipItem</span><span class="p">(</span><span class="n">PackageItem</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fromitem</span><span class="p">):</span>
+        <span class="n">PackageItem</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fromitem</span> <span class="o">=</span> <span class="n">fromitem</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RelationshipItem.element"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.RelationshipItem.element">[docs]</a>    <span class="k">def</span> <span class="nf">element</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">relationships</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fromitem</span><span class="o">.</span><span class="n">relationships</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">relationships</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+<span class="c">#TECHDEBT: Root element and namespace should be lookups in ItemTypes (ItemTypes.itemtype(&#39;relationship&#39;))</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="s">&#39;&#39;&#39;&lt;Relationships xmlns=&quot;http://schemas.openxmlformats.org/package/2006/relationships&quot;&gt;&lt;/Relationships&gt;&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">relationship</span> <span class="ow">in</span> <span class="n">relationships</span><span class="p">:</span>
+            <span class="n">element</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">relationship</span><span class="o">.</span><span class="n">element</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">element</span>
+    
+
+
+<span class="c"># ============================================================================z</span>
+<span class="c"># PackageRelationshipItem</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="PackageRelationshipItem"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PackageRelationshipItem">[docs]</a><span class="k">class</span> <span class="nc">PackageRelationshipItem</span><span class="p">(</span><span class="n">RelationshipItem</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
+        <span class="n">RelationshipItem</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;.rels&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zipdir</span>   <span class="o">=</span> <span class="s">&#39;_rels&#39;</span>
+    
+
+
+<span class="c"># ============================================================================z</span>
+<span class="c"># PartRelationshipItem</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="PartRelationshipItem"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartRelationshipItem">[docs]</a><span class="k">class</span> <span class="nc">PartRelationshipItem</span><span class="p">(</span><span class="n">RelationshipItem</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">part</span><span class="p">):</span>
+        <span class="n">RelationshipItem</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">part</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">part</span> <span class="o">=</span> <span class="n">part</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PartRelationshipItem.filename"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartRelationshipItem.filename">[docs]</a>    <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.rels&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">part</span><span class="o">.</span><span class="n">filename</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PartRelationshipItem.zipdir"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartRelationshipItem.zipdir">[docs]</a>    <span class="k">def</span> <span class="nf">zipdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">part</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">zipdir</span><span class="p">,</span> <span class="s">&#39;_rels&#39;</span><span class="p">)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PartCollection</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="PartCollection"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartCollection">[docs]</a><span class="k">class</span> <span class="nc">PartCollection</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
+        <span class="nb">list</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">package</span> <span class="o">=</span> <span class="n">package</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict</span> <span class="o">=</span> <span class="p">{}</span>
+    
+<div class="viewcode-block" id="PartCollection.additem"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartCollection.additem">[docs]</a>    <span class="k">def</span> <span class="nf">additem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict</span><span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">part</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memberclass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict</span><span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">part</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">part</span>
+    
+    <span class="c"># Can implement a __contains__(self, value) method if anyone needs to test</span>
+    <span class="c"># whether something is already in the collection.</span></div>
+<div class="viewcode-block" id="PartCollection.getitem"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartCollection.getitem">[docs]</a>    <span class="k">def</span> <span class="nf">getitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s">&quot;&quot;&quot;getitem() lookup in </span><span class="si">%s</span><span class="s"> failed with key &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># ImageParts</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="ImageParts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ImageParts">[docs]</a><span class="k">class</span> <span class="nc">ImageParts</span><span class="p">(</span><span class="n">PartCollection</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
+        <span class="n">PartCollection</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memberclass</span> <span class="o">=</span> <span class="n">ImagePart</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># SlideLayoutParts</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="SlideLayoutParts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlideLayoutParts">[docs]</a><span class="k">class</span> <span class="nc">SlideLayoutParts</span><span class="p">(</span><span class="n">PartCollection</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
+        <span class="n">PartCollection</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memberclass</span> <span class="o">=</span> <span class="n">SlideLayoutPart</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># SlideMasterParts</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="SlideMasterParts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlideMasterParts">[docs]</a><span class="k">class</span> <span class="nc">SlideMasterParts</span><span class="p">(</span><span class="n">PartCollection</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
+        <span class="n">PartCollection</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memberclass</span> <span class="o">=</span> <span class="n">SlideMasterPart</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># SlideParts</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="SlideParts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlideParts">[docs]</a><span class="k">class</span> <span class="nc">SlideParts</span><span class="p">(</span><span class="n">PartCollection</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
+        <span class="n">PartCollection</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memberclass</span> <span class="o">=</span> <span class="n">SlidePart</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># ThemeParts</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="ThemeParts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ThemeParts">[docs]</a><span class="k">class</span> <span class="nc">ThemeParts</span><span class="p">(</span><span class="n">PartCollection</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
+        <span class="n">PartCollection</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memberclass</span> <span class="o">=</span> <span class="n">ThemePart</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># Part</span>
+<span class="c"># ============================================================================</span>
+<span class="c">#REFACTOR: Also some inconsistency here between (plain-old) parts and</span>
+<span class="c">#          collection parts, in particular having parent being assigned by the</span>
+<span class="c">#          Part super class. [Update]: I&#39;m not so sure, I&#39;m thinking all Parts</span>
+<span class="c">#          need access to the package in order to look up their possible</span>
+<span class="c">#          relationships. idx method might be the only difference between the</span>
+<span class="c">#          po parts and collection parts.</span>
+</div>
+<div class="viewcode-block" id="Part"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part">[docs]</a><span class="k">class</span> <span class="nc">Part</span><span class="p">(</span><span class="n">PackageItem</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span> <span class="o">=</span> <span class="n">PartTypes</span><span class="o">.</span><span class="n">classparttype</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>   <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">package</span>  <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">package</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item</span>     <span class="o">=</span> <span class="n">item</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span>     <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">path</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.filename"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.filename">[docs]</a>    <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cardinality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">cardinality</span>
+        <span class="k">if</span> <span class="n">cardinality</span> <span class="o">==</span> <span class="s">&#39;single&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">rootname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">file_ext</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">cardinality</span> <span class="o">==</span> <span class="s">&#39;multiple&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s%d</span><span class="s">.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">rootname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">file_ext</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;&#39;&#39;Invalid value for PartType.cardinality in Part.filename call. Expected &#39;single&#39; or &#39;multiple&#39;, got </span><span class="si">%s</span><span class="s">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="n">cardinality</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.idx"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.idx">[docs]</a>    <span class="k">def</span> <span class="nf">idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">cardinality</span> <span class="o">==</span> <span class="s">&#39;multiple&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;&#39;&#39;Part.idx is not defined for parts with cardinality!=&#39;multiple&#39;. Called on class &#39;</span><span class="si">%s</span><span class="s">&#39;.&#39;&#39;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.imageparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.imageparts">[docs]</a>    <span class="k">def</span> <span class="nf">imageparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">imageparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">images</span><span class="p">]</span>
+    
+    <span class="c"># default is the part has no outward relationships</span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.relatedparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.relatedparts">[docs]</a>    <span class="k">def</span> <span class="nf">relatedparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.relationshipitem"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.relationshipitem">[docs]</a>    <span class="k">def</span> <span class="nf">relationshipitem</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">PartRelationshipItem</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">relationships</span> <span class="k">else</span> <span class="bp">None</span>
+    
+    <span class="c">#REFACTOR: Consider renaming this property to relationshipelements to</span>
+    <span class="c">#          make clear it&#39;s a list of etree.Element</span>
+    <span class="c">#REFACTOR: See if this can be factored up to a higher-level class. There&#39;s</span>
+    <span class="c">#          a very similar property method by the same name in Package used</span>
+    <span class="c">#          for the package relationship item.</span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.relationships"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.relationships">[docs]</a>    <span class="k">def</span> <span class="nf">relationships</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">relationships</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">relatedpart</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relatedparts</span><span class="p">):</span>
+            <span class="n">rId</span>              <span class="o">=</span> <span class="n">idx</span><span class="o">+</span><span class="mi">1</span>
+            <span class="n">relationshiptype</span> <span class="o">=</span> <span class="n">relatedpart</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">relationshiptype</span>
+            <span class="n">targetdir</span>        <span class="o">=</span> <span class="n">relatedpart</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">reltargetdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+            <span class="n">targetfilename</span>   <span class="o">=</span> <span class="n">relatedpart</span><span class="o">.</span><span class="n">filename</span>
+            <span class="n">targetpath</span>       <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">targetdir</span><span class="p">,</span> <span class="n">targetfilename</span><span class="p">)</span>
+            <span class="n">relationships</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RelationshipElement</span><span class="p">(</span><span class="n">rId</span><span class="p">,</span> <span class="n">relationshiptype</span><span class="p">,</span> <span class="n">targetpath</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">relationships</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.handoutmasterparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.handoutmasterparts">[docs]</a>    <span class="k">def</span> <span class="nf">handoutmasterparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">handoutmaster</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">handoutmaster</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">handoutmasterparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">handoutmaster</span><span class="o">.</span><span class="n">key</span><span class="p">)]</span> <span class="k">if</span> <span class="n">handoutmaster</span> <span class="k">else</span> <span class="p">[]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.notesmasterparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.notesmasterparts">[docs]</a>    <span class="k">def</span> <span class="nf">notesmasterparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">notesmaster</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">notesmaster</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">notesmasterparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">notesmaster</span><span class="o">.</span><span class="n">key</span><span class="p">)]</span> <span class="k">if</span> <span class="n">notesmaster</span> <span class="k">else</span> <span class="p">[]</span>
+    
+    <span class="c"># presProps.xml is not optional, so leaving this to throw an exception if</span>
+    <span class="c"># for some reason it&#39;s not found.</span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.prespropspart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.prespropspart">[docs]</a>    <span class="k">def</span> <span class="nf">prespropspart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">prespropspart</span><span class="p">]</span>
+    
+    <span class="c"># NOTE: Careful, the singular and plural form of this part are the same</span>
+    <span class="c">#       i.e. printersettings refers to both a printersettings part as well</span>
+    <span class="c">#       as a list of printersettings parts. Hoping this doesn&#39;t screw us</span>
+    <span class="c">#       up later but waiting for it to become a problem before inventing a</span>
+    <span class="c">#       solution.</span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.printersettingsparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.printersettingsparts">[docs]</a>    <span class="k">def</span> <span class="nf">printersettingsparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">printersettings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">printersettings</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">printersettingsparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">printersettings</span><span class="o">.</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">printersettings</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">printersettings</span><span class="p">]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.slidelayoutpart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.slidelayoutpart">[docs]</a>    <span class="k">def</span> <span class="nf">slidelayoutpart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">slidelayoutparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">slidelayout</span><span class="o">.</span><span class="n">key</span><span class="p">)]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">slidelayout</span> <span class="k">else</span> <span class="p">[]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.slidelayoutparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.slidelayoutparts">[docs]</a>    <span class="k">def</span> <span class="nf">slidelayoutparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">slidelayoutparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">slidelayout</span><span class="o">.</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">slidelayout</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">slidelayouts</span><span class="p">]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.slidemasterpart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.slidemasterpart">[docs]</a>    <span class="k">def</span> <span class="nf">slidemasterpart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">slidemasterparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">slidemaster</span><span class="o">.</span><span class="n">key</span><span class="p">)]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">slidemaster</span> <span class="k">else</span> <span class="p">[]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.slidemasterparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.slidemasterparts">[docs]</a>    <span class="k">def</span> <span class="nf">slidemasterparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">slidemasterparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">slidemaster</span><span class="o">.</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">slidemaster</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">slidemasters</span><span class="p">]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.slideparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.slideparts">[docs]</a>    <span class="k">def</span> <span class="nf">slideparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">slides</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">slides</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">slideparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">slide</span><span class="o">.</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">slide</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">slides</span><span class="p">]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.tablestylespart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.tablestylespart">[docs]</a>    <span class="k">def</span> <span class="nf">tablestylespart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">tablestylespart</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">tablestyles</span> <span class="k">else</span> <span class="p">[]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.themepart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.themepart">[docs]</a>    <span class="k">def</span> <span class="nf">themepart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">themeparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">slidemaster</span><span class="o">.</span><span class="n">theme</span><span class="o">.</span><span class="n">key</span><span class="p">)]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">theme</span> <span class="k">else</span> <span class="p">[]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.themeparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.themeparts">[docs]</a>    <span class="k">def</span> <span class="nf">themeparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">themes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">themes</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">themeparts</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">theme</span><span class="o">.</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">theme</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">themes</span><span class="p">]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.viewpropspart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.viewpropspart">[docs]</a>    <span class="k">def</span> <span class="nf">viewpropspart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">viewpropspart</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">viewprops</span> <span class="k">else</span> <span class="p">[]</span>
+    
+<span class="c">#TECHDEBT: Not sure the writing bit is all squared away, check it out.</span>
+    <span class="c"># must be overridden by XML-based items that are not part of the template</span>
+    <span class="c"># and so therefore need to be written from the XML provided by the</span>
+    <span class="c"># presentation</span></div>
+<div class="viewcode-block" id="Part.write"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pptx_zipfile</span><span class="p">):</span>
+        <span class="n">pptx_zipfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipfilepath</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Part.zipfilepath"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.Part.zipfilepath">[docs]</a>    <span class="k">def</span> <span class="nf">zipfilepath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">zipdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># ImagePart</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="ImagePart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ImagePart">[docs]</a><span class="k">class</span> <span class="nc">ImagePart</span><span class="p">(</span><span class="n">Part</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">Part</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+<span class="c">#TECHDEBT: These aren&#39;t populated yet, not sure they need to be unless we want</span>
+<span class="c">#          to cull image files that don&#39;t have any references from other</span>
+<span class="c">#          parts. In any case, if they are implemented it needs to be with</span>
+<span class="c">#          property methods so any possible infinite recursion is avoided on</span>
+<span class="c">#          package load (all other parts need to be loaded before setting</span>
+<span class="c">#          these relationships).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">themes</span>       <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slidemasters</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slidelayouts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slides</span>       <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ImagePart.filename"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ImagePart.filename">[docs]</a>    <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s%d%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">rootname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="ImagePart.write"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ImagePart.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pptx_zipfile</span><span class="p">):</span>
+        <span class="n">pptx_zipfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipfilepath</span><span class="p">)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PresentationPart</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="PresentationPart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PresentationPart">[docs]</a><span class="k">class</span> <span class="nc">PresentationPart</span><span class="p">(</span><span class="n">Part</span><span class="p">):</span>
+    
+    <span class="c"># NOTE: Inherits from Part but doesn&#39;t call Part.__init__(), pending refactoring of Part into Part and CollectionPart</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="c"># Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span> <span class="o">=</span> <span class="n">PartTypes</span><span class="o">.</span><span class="n">classparttype</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="c"># self.parent       = parent      # don&#39;t think we have any takers for this property since it&#39;s not a collection part</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">package</span>      <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item</span>         <span class="o">=</span> <span class="n">item</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">presentation</span> <span class="o">=</span> <span class="n">item</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PresentationPart.element"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PresentationPart.element">[docs]</a>    <span class="k">def</span> <span class="nf">element</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">presentation</span><span class="o">.</span><span class="n">element</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PresentationPart.relatedparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PresentationPart.relatedparts">[docs]</a>    <span class="k">def</span> <span class="nf">relatedparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">relatedparts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slidemasterparts</span><span class="p">)</span>     <span class="c"># --+-- being first and maintaining sequence of these</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">notesmasterparts</span><span class="p">)</span>     <span class="c">#   |   four part collections is critical to making</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handoutmasterparts</span><span class="p">)</span>   <span class="c">#   |   rIds in presentation.xml sync with those</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slideparts</span><span class="p">)</span>           <span class="c"># --+   in presentation.xml.rels</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">printersettingsparts</span><span class="p">)</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prespropspart</span><span class="p">)</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">viewpropspart</span><span class="p">)</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">themeparts</span><span class="p">)</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tablestylespart</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">relatedparts</span>
+    
+<span class="c">#TECHDEBT: Check this out to make sure, was very sleepy when I did this ...</span>
+    <span class="c"># overridden to write source XML</span></div>
+<div class="viewcode-block" id="PresentationPart.write"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PresentationPart.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pptx_zipfile</span><span class="p">):</span>
+        <span class="n">pptx_zipfile</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zipfilepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlstring</span><span class="p">)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PresPropsPart</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="PresPropsPart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PresPropsPart">[docs]</a><span class="k">class</span> <span class="nc">PresPropsPart</span><span class="p">(</span><span class="n">Part</span><span class="p">):</span>
+    
+    <span class="c"># NOTE: Inherits from Part but doesn&#39;t call Part.__init__(), pending refactoring of Part into Part and CollectionPart</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="c"># Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span> <span class="o">=</span> <span class="n">PartTypes</span><span class="o">.</span><span class="n">classparttype</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="c"># self.parent   = parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item</span>      <span class="o">=</span> <span class="n">item</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">presprops</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">package</span>   <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span>      <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">path</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># SlideLayoutPart</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="SlideLayoutPart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlideLayoutPart">[docs]</a><span class="k">class</span> <span class="nc">SlideLayoutPart</span><span class="p">(</span><span class="n">Part</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">Part</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slidelayout</span> <span class="o">=</span> <span class="n">item</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SlideLayoutPart.relatedparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlideLayoutPart.relatedparts">[docs]</a>    <span class="k">def</span> <span class="nf">relatedparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">relatedparts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slidemasterpart</span><span class="p">)</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageparts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">relatedparts</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># SlideMasterPart</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="SlideMasterPart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlideMasterPart">[docs]</a><span class="k">class</span> <span class="nc">SlideMasterPart</span><span class="p">(</span><span class="n">Part</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">Part</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slidemaster</span> <span class="o">=</span> <span class="n">item</span>
+    
+<span class="c">#REFACTOR: make relatedparts a list of properties and let high-level code work</span>
+<span class="c">#          out what&#39;s a list and what&#39;s a scalar value or None.</span>
+<span class="c">#          e.g. return [self.imageparts, self.slidelayoutparts, self.themepart]</span>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SlideMasterPart.relatedparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlideMasterPart.relatedparts">[docs]</a>    <span class="k">def</span> <span class="nf">relatedparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">relatedparts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageparts</span><span class="p">)</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slidelayoutparts</span><span class="p">)</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">themepart</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">relatedparts</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># SlidePart</span>
+<span class="c"># ============================================================================</span>
+
+<span class="c"># ----------------------------------------------------------------------------</span>
+<span class="c">#REFACTOR: Might want to create a superclass PresentationPart for this to</span>
+<span class="c">#          inherit from to give it some of the automatic behaviors that</span>
+<span class="c">#          TemplatePart subclasses have. Will be more useful when additional</span>
+<span class="c">#          presentation parts such as notesSlide and perhaps comment are</span>
+<span class="c">#          added.</span>
+<span class="c"># ----------------------------------------------------------------------------</span>
+</div></div>
+<div class="viewcode-block" id="SlidePart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlidePart">[docs]</a><span class="k">class</span> <span class="nc">SlidePart</span><span class="p">(</span><span class="n">Part</span><span class="p">):</span>
+    
+    <span class="c"># NOTE: SlidePart inherits from Part, but does not call __init__() on it.</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="c"># Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span> <span class="o">=</span> <span class="n">PartTypes</span><span class="o">.</span><span class="n">parttype</span><span class="p">(</span><span class="s">&#39;slide&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>   <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">package</span>  <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">package</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item</span>     <span class="o">=</span> <span class="n">item</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slide</span>    <span class="o">=</span> <span class="n">item</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SlidePart.element"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlidePart.element">[docs]</a>    <span class="k">def</span> <span class="nf">element</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">slide</span><span class="o">.</span><span class="n">element</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SlidePart.relatedparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlidePart.relatedparts">[docs]</a>    <span class="k">def</span> <span class="nf">relatedparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">relatedparts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageparts</span><span class="p">)</span>
+        <span class="n">relatedparts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slidelayoutpart</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">relatedparts</span>
+    
+<span class="c">#TECHDEBT: Check this out to make sure, was very sleepy when I did this ...</span>
+    <span class="c"># overridden to write source XML</span></div>
+<div class="viewcode-block" id="SlidePart.write"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SlidePart.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pptx_zipfile</span><span class="p">):</span>
+        <span class="n">pptx_zipfile</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zipfilepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlstring</span><span class="p">)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># TableStylesPart</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="TableStylesPart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.TableStylesPart">[docs]</a><span class="k">class</span> <span class="nc">TableStylesPart</span><span class="p">(</span><span class="n">Part</span><span class="p">):</span>
+    
+    <span class="c"># NOTE: Inherits from Part but doesn&#39;t call Part.__init__(), pending refactoring of Part into Part and CollectionPart</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="c"># Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span> <span class="o">=</span> <span class="n">PartTypes</span><span class="o">.</span><span class="n">classparttype</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="c"># self.parent   = parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tablestyles</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">package</span>     <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span>        <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">path</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># ThemePart</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="ThemePart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ThemePart">[docs]</a><span class="k">class</span> <span class="nc">ThemePart</span><span class="p">(</span><span class="n">Part</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">Part</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theme</span> <span class="o">=</span> <span class="n">item</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ThemePart.relatedparts"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ThemePart.relatedparts">[docs]</a>    <span class="k">def</span> <span class="nf">relatedparts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageparts</span>
+    </div>
+<div class="viewcode-block" id="ThemePart.write"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ThemePart.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pptx_zipfile</span><span class="p">):</span>
+        <span class="n">pptx_zipfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipfilepath</span><span class="p">)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># ViewPropsPart</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="ViewPropsPart"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.ViewPropsPart">[docs]</a><span class="k">class</span> <span class="nc">ViewPropsPart</span><span class="p">(</span><span class="n">Part</span><span class="p">):</span>
+    
+    <span class="c"># NOTE: Inherits from Part but doesn&#39;t call Part.__init__(), pending refactoring of Part into Part and CollectionPart</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="c"># Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span> <span class="o">=</span> <span class="n">PartTypes</span><span class="o">.</span><span class="n">classparttype</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="c"># self.parent   = parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">viewprops</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">package</span>   <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span>      <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">path</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PartRelationship</span>
+<span class="c"># ============================================================================</span>
+<span class="c"># Relationship between two package parts</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="PartRelationship"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartRelationship">[docs]</a><span class="k">class</span> <span class="nc">PartRelationship</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frompartfile</span><span class="p">,</span> <span class="n">relationshiptype</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fromtype</span> <span class="o">=</span> <span class="n">frompartfile</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frompath</span> <span class="o">=</span> <span class="n">frompartfile</span><span class="o">.</span><span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">totype</span>   <span class="o">=</span> <span class="n">relationshiptype</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topath</span>   <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">frompartfile</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+        
+        <span class="c"># self.__frompartfile     = frompartfile</span>
+        <span class="c"># self.__relationshiptype = relationshiptype</span>
+        <span class="c"># self.__target           = target</span>
+        <span class="c"># self.fromparttype       = frompartfile.parttype</span>
+        <span class="c"># self.toparttype         = PartTypes.parttype(self.totype)</span>
+        <span class="c"># print &#39;Relationship:  %-12s ===&gt;  %-12s  %s&#39; % (self.fromtype, self.totype, self.topath)</span>
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="PartRelationship.parse"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartRelationship.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">frompartfile</span><span class="p">,</span> <span class="n">relationshipelement</span><span class="p">):</span>
+        <span class="n">reltype</span> <span class="o">=</span> <span class="n">relationshipelement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Type&#39;</span>  <span class="p">)</span>
+        <span class="n">target</span>  <span class="o">=</span> <span class="n">relationshipelement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Target&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">PartRelationship</span><span class="p">(</span><span class="n">frompartfile</span><span class="p">,</span> <span class="n">reltype</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># RelationshipElement</span>
+<span class="c"># ============================================================================</span>
+<span class="c"># Relationship element found in package and part relationship items.</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="RelationshipElement"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.RelationshipElement">[docs]</a><span class="k">class</span> <span class="nc">RelationshipElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idnumber</span><span class="p">,</span> <span class="n">relationshiptype</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idnumber</span>         <span class="o">=</span> <span class="n">idnumber</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relationshiptype</span> <span class="o">=</span> <span class="n">relationshiptype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span>           <span class="o">=</span> <span class="n">target</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RelationshipElement.element"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.RelationshipElement.element">[docs]</a>    <span class="k">def</span> <span class="nf">element</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Relationship&#39;</span><span class="p">)</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;Id&#39;</span>     <span class="p">,</span> <span class="s">&#39;rId</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">idnumber</span> <span class="p">)</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;Type&#39;</span>   <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">relationshiptype</span>   <span class="p">)</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;Target&#39;</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span>             <span class="p">)</span>
+        <span class="k">return</span> <span class="n">element</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># TemplateFiles</span>
+<span class="c"># ============================================================================</span>
+<span class="c"># Discover all the template files in the specified package directory tree</span>
+<span class="c"># and make them available with a high-level interface. Essential role is to</span>
+<span class="c"># hide complexities of the package directory layout and file system access.</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="TemplateFiles"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.TemplateFiles">[docs]</a><span class="k">class</span> <span class="nc">TemplateFiles</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">templatedir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">templatedir</span> <span class="o">=</span> <span class="n">templatedir</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">imagefiles</span>       <span class="o">=</span> <span class="n">PartFiles</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="s">&#39;image&#39;</span>       <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">themefiles</span>       <span class="o">=</span> <span class="n">PartFiles</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="s">&#39;theme&#39;</span>       <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slidemasterfiles</span> <span class="o">=</span> <span class="n">PartFiles</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="s">&#39;slideMaster&#39;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slidelayoutfiles</span> <span class="o">=</span> <span class="n">PartFiles</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="s">&#39;slideLayout&#39;</span> <span class="p">)</span>
+        
+<span class="c">#TECHDEBT: Need a way to make these two Part files optional</span>
+        <span class="c"># self.handoutmasterfile = SinglePartFile(templatedir, &#39;handoutMaster&#39;)</span>
+        <span class="c"># self.notesmasterfile   = SinglePartFile(templatedir, &#39;notesMaster&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">presentationfile</span>  <span class="o">=</span> <span class="n">SinglePartFile</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="s">&#39;presentation&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prespropsfile</span>     <span class="o">=</span> <span class="n">SinglePartFile</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="s">&#39;presProps&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tablestylesfile</span>   <span class="o">=</span> <span class="n">SinglePartFile</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="s">&#39;tableStyles&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">viewpropsfile</span>     <span class="o">=</span> <span class="n">SinglePartFile</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="s">&#39;viewProps&#39;</span><span class="p">)</span>
+        
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TemplateFiles.relsfiles"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.TemplateFiles.relsfiles">[docs]</a>    <span class="k">def</span> <span class="nf">relsfiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">partfile</span><span class="o">.</span><span class="n">relsfile</span> <span class="k">for</span> <span class="n">partfile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">partfiles</span> <span class="k">if</span> <span class="n">partfile</span><span class="o">.</span><span class="n">relsfile</span><span class="p">]</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TemplateFiles.partfiles"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.TemplateFiles.partfiles">[docs]</a>    <span class="k">def</span> <span class="nf">partfiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">partfiles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">partfiles</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imagefiles</span><span class="p">)</span>
+        <span class="n">partfiles</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">themefiles</span><span class="p">)</span>
+        <span class="n">partfiles</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slidemasterfiles</span><span class="p">)</span>
+        <span class="n">partfiles</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slidelayoutfiles</span><span class="p">)</span>
+        <span class="n">partfiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prespropsfile</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">partfiles</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PackageItemFile</span>
+<span class="c"># ============================================================================</span>
+</div></div>
+<div class="viewcode-block" id="PackageItemFile"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PackageItemFile">[docs]</a><span class="k">class</span> <span class="nc">PackageItemFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">pass</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PackageItemFileCollection</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="PackageItemFileCollection"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PackageItemFileCollection">[docs]</a><span class="k">class</span> <span class="nc">PackageItemFileCollection</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">list</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PartFile</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="PartFile"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartFile">[docs]</a><span class="k">class</span> <span class="nc">PartFile</span><span class="p">(</span><span class="n">PackageItemFile</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">partfiles</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">PackageItemFile</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span>  <span class="o">=</span> <span class="n">partfiles</span><span class="o">.</span><span class="n">parttype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partfiles</span> <span class="o">=</span> <span class="n">partfiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>    <span class="o">=</span> <span class="n">partfiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span>      <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirpath</span>   <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relsfile</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadrelsfile</span><span class="p">()</span>
+    
+<div class="viewcode-block" id="PartFile.loadrelsfile"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartFile.loadrelsfile">[docs]</a>    <span class="k">def</span> <span class="nf">loadrelsfile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">has_rel_item</span> <span class="o">==</span> <span class="s">&#39;never&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">dirpath</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">rootname</span><span class="p">,</span> <span class="n">ext</span>     <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">relsdirpath</span>       <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s">&#39;_rels&#39;</span><span class="p">)</span>
+        <span class="n">relsfilename</span>      <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.rels&#39;</span> <span class="o">%</span> <span class="n">filename</span>
+        <span class="n">relsfilepath</span>      <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">relsdirpath</span><span class="p">,</span> <span class="n">relsfilename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">relsfilepath</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">has_rel_item</span> <span class="o">==</span> <span class="s">&#39;optional&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CorruptedTemplateError</span><span class="p">(</span><span class="s">&#39;&#39;&#39;No relationships file &#39;</span><span class="si">%s</span><span class="s">&#39; found for part &#39;</span><span class="si">%s</span><span class="s">&#39; in template </span><span class="si">%s</span><span class="s">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">relsfilename</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">partfiles</span><span class="o">.</span><span class="n">templatedir</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">PartRelsFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relsfilepath</span><span class="p">)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># SinglePartFile</span>
+<span class="c"># ============================================================================</span>
+<span class="c">#REFACTOR: Either rename this to SingletonPartFile or probably better just</span>
+<span class="c">#          make it PartFile and create a subclass CollectionPartFile.</span>
+<span class="c">#          Actually, should probably just refactor loading functionality into</span>
+<span class="c">#          Parts and get rid of separate PartFile class hierarchy.</span>
+</div></div>
+<div class="viewcode-block" id="SinglePartFile"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.SinglePartFile">[docs]</a><span class="k">class</span> <span class="nc">SinglePartFile</span><span class="p">(</span><span class="n">PartFile</span><span class="p">):</span>
+    
+    <span class="c"># NOTE: Although PresPropsPartFile inherits from PartFile, it doesn&#39;t call</span>
+    <span class="c">#       PartFile.__init__(). Probably their roles should be reversed, like</span>
+    <span class="c">#       PartFile becomes GroupPartFile, this becomes PartFile, and</span>
+    <span class="c">#       GroupPartFile inherits from PartFile. Then PartFiles should become</span>
+    <span class="c">#       PartFileGroup.</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">templatedir</span><span class="p">,</span> <span class="n">parttypekey</span><span class="p">):</span>
+        <span class="n">PackageItemFile</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span> <span class="o">=</span> <span class="n">PartTypes</span><span class="o">.</span><span class="n">parttype</span><span class="p">(</span><span class="n">parttypekey</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">rootname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">file_ext</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span>     <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">pkgreldir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="c"># self.dirpath     = os.path.split(path)[0]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relsfile</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadrelsfile</span><span class="p">()</span>
+    
+<span class="c">#HACKALERT: This doesn&#39;t work properly, need separate part file for handoutMaster</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theme</span>  <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relateditems</span> <span class="o">=</span> <span class="p">[]</span>
+        
+    <span class="c"># # This is now inherited from PartFile, but later the roles will be</span>
+    <span class="c"># # reversed. Either way, only one copy needed.</span>
+    <span class="c"># def __loadrelsfile(self):</span>
+    <span class="c">#     if self.parttype.has_rel_item == &#39;never&#39;:</span>
+    <span class="c">#         return None</span>
+    <span class="c">#     dirpath, filename = os.path.split(self.path)</span>
+    <span class="c">#     rootname, ext     = os.path.splitext(filename)</span>
+    <span class="c">#     relsdirpath       = os.path.join(dirpath, &#39;_rels&#39;)</span>
+    <span class="c">#     relsfilename      = &#39;%s.rels&#39; % filename</span>
+    <span class="c">#     relsfilepath      = os.path.join(relsdirpath, relsfilename)</span>
+    <span class="c">#     if not os.path.isfile(relsfilepath):</span>
+    <span class="c">#         if self.parttype.has_rel_item == &#39;optional&#39;:</span>
+    <span class="c">#             return None</span>
+    <span class="c">#         else:</span>
+    <span class="c">#             raise CorruptedTemplateError(&#39;&#39;&#39;No relationships file &#39;%s&#39; found for part &#39;%s&#39; in template %s&#39;&#39;&#39; % (relsfilename, filename, self.partfiles.templatedir))</span>
+    <span class="c">#     return PartRelsFile(self, relsfilepath)</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PartFiles</span>
+<span class="c"># ============================================================================</span>
+<span class="c">#TECHDEBT: Refactor &#39;ext&#39; throughout to include the leading period. That&#39;s</span>
+<span class="c">#          consistent with ext returned from os.path.splitext(), and also</span>
+<span class="c">#          allows for empty extensions (as in &#39;python&#39;), which I&#39;m sure is</span>
+<span class="c">#          why they designed splitext that way :).</span>
+</div>
+<div class="viewcode-block" id="PartFiles"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartFiles">[docs]</a><span class="k">class</span> <span class="nc">PartFiles</span><span class="p">(</span><span class="n">PackageItemFileCollection</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">templatedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parttypekey</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">PackageItemFileCollection</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">templatedir</span> <span class="o">=</span> <span class="n">templatedir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttypekey</span> <span class="o">=</span> <span class="n">parttypekey</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span>    <span class="o">=</span> <span class="n">PartTypes</span><span class="o">.</span><span class="n">parttype</span><span class="p">(</span><span class="n">parttypekey</span><span class="p">)</span> <span class="k">if</span> <span class="n">parttypekey</span> <span class="k">else</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">templatedir</span> <span class="ow">and</span> <span class="n">parttypekey</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">templatedir</span><span class="p">,</span> <span class="n">parttypekey</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="PartFiles.load"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartFiles.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">templatedir</span><span class="p">,</span> <span class="n">parttypekey</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">templatedir</span> <span class="o">=</span> <span class="n">templatedir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttypekey</span> <span class="o">=</span> <span class="n">parttypekey</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span>    <span class="o">=</span> <span class="n">PartTypes</span><span class="o">.</span><span class="n">parttype</span><span class="p">(</span><span class="n">parttypekey</span><span class="p">)</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">:]</span>
+        <span class="k">for</span> <span class="n">partfilepath</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__partfilepaths</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PartFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">partfilepath</span><span class="p">))</span>
+    
+    <span class="c"># Return list of fully qualified part file paths, sorted in numerical</span>
+    <span class="c"># order (not lexicographic order), e.g. [slideLayout1, slideLayout2 ...]</span>
+    <span class="c"># rather than [slideLayout1, slideLayout10 ...]</span>
+    <span class="c"># -----------------------------------------------------------------------</span></div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__partfilepaths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">pkgreldir</span>       <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">pkgreldir</span>
+        <span class="n">filenameroot</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">rootname</span>
+        <span class="n">ext</span>             <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">file_ext</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">file_ext</span> <span class="k">else</span> <span class="s">&#39;.+&#39;</span>  <span class="c"># empty extension means extension can vary, like .jpg, .png, .wmf</span>
+        <span class="n">searchdirpath</span>   <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">templatedir</span><span class="p">,</span> <span class="n">pkgreldir</span><span class="p">)</span>
+        <span class="n">filenamepattern</span> <span class="o">=</span> <span class="s">r&#39;</span><span class="si">%s</span><span class="s">([1-9][0-9]*)?\.(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filenameroot</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+        <span class="n">regexp</span>          <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">filenamepattern</span><span class="p">)</span>
+        <span class="n">partfilepaths</span>   <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">searchdirpath</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">searchdirpath</span><span class="p">):</span>
+            <span class="n">fqname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">searchdirpath</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fqname</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">regexp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+<span class="c">#TECHDEBT: Should probably remove this after this class is debugged because it&#39;s not really an error to find an unexpected file, it just gets skipped.</span>
+                <span class="k">raise</span> <span class="n">CorruptedTemplateError</span><span class="p">(</span><span class="s">&#39;&#39;&#39;Unexpected file &#39;</span><span class="si">%s</span><span class="s">&#39; found in template&#39;&#39;&#39;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parttype</span><span class="o">.</span><span class="n">location</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+                <span class="k">continue</span>
+            <span class="n">filenamenumber</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">sortkey</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">filenamenumber</span><span class="p">)</span> <span class="k">if</span> <span class="n">filenamenumber</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">partfilepaths</span><span class="p">[</span><span class="n">sortkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">fqname</span>
+        <span class="c"># return file paths sorted in numerical order (not lexicographic order)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">partfilepaths</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">partfilepaths</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+    
+
+
+<span class="c"># ============================================================================</span>
+<span class="c"># PartRelsFiles</span>
+<span class="c"># ============================================================================</span>
+</div>
+<div class="viewcode-block" id="PartRelsFile"><a class="viewcode-back" href="../../pptx.html#pptx.packaging.PartRelsFile">[docs]</a><span class="k">class</span> <span class="nc">PartRelsFile</span><span class="p">(</span><span class="n">PackageItemFile</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">partfile</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">PackageItemFile</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partfile</span> <span class="o">=</span> <span class="n">partfile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span>     <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">python-pptx 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pptx.html" >pptx</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Steve Canny.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
