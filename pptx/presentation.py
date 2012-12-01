@@ -36,6 +36,7 @@ class Presentation(object):
     """
     def __init__(self, templatedir=None):
         self.templatedir  = self.__normalizedtemplatedir(templatedir)
+        self.parttypekey  = 'presentation'
         self._element     = None
         # initialize collections
         self.images       = Images       ()
@@ -605,7 +606,8 @@ class TemplatePart(object):
     everything a regular part has and just need to add a bit more. Also
     'collection' is what they're a part of. SOLD!
     """
-    def __init__(self, path):
+    def __init__(self, parttypekey, path):
+        self.parttypekey = parttypekey
         self.path        = path
         self.key         = path
         self.cardinality = 'multiple'
@@ -651,7 +653,7 @@ class Image(TemplatePart):
     printerSettings1.bin is another example of a binary part.
     """
     def __init__(self, parent, path):
-        TemplatePart.__init__(self, path)
+        TemplatePart.__init__(self, 'image', path)
         self.parent       = parent
         self.slidemasters = []
         self.slidelayouts = []
@@ -667,7 +669,7 @@ class Image(TemplatePart):
 class HandoutMaster(TemplatePart):
     """**NOT YET FULLY IMPLEMENTED**. This class is currently a stub."""
     def __init__(self, path):
-        TemplatePart.__init__(self, path)
+        TemplatePart.__init__(self, 'handoutMaster', path)
         self.cardinality = 'single'
     
 
@@ -679,7 +681,7 @@ class HandoutMaster(TemplatePart):
 class NotesMaster(TemplatePart):
     """**NOT YET FULLY IMPLEMENTED**. This class is currently a stub."""
     def __init__(self, path):
-        TemplatePart.__init__(self, path)
+        TemplatePart.__init__(self, 'notesMaster', path)
         self.cardinality = 'single'
     
 
@@ -694,7 +696,7 @@ class PresProps(TemplatePart):
     ppt/presProps.xml.
     """
     def __init__(self, path):
-        TemplatePart.__init__(self, path)
+        TemplatePart.__init__(self, 'presProps', path)
         self.cardinality = 'single'
     
 
@@ -709,7 +711,7 @@ class SlideLayout(TemplatePart):
     ppt/slideLayouts/slideLayout[1-9][0-9]*.xml.
     """
     def __init__(self, parent, path):
-        TemplatePart.__init__(self, path)
+        TemplatePart.__init__(self, 'slideLayout', path)
         self.parent      = parent
         self.slidemaster = None
         self.images      = []
@@ -731,7 +733,7 @@ class SlideMaster(TemplatePart):
     various masters a bit later.
     """
     def __init__(self, parent, path):
-        TemplatePart.__init__(self, path)
+        TemplatePart.__init__(self, 'slideMaster', path)
         self.parent       = parent
         self.element      = etree.parse(path).getroot()
         self.theme        = None
@@ -750,7 +752,7 @@ class TableStyles(TemplatePart):
     ppt/tableStyles.xml.
     """
     def __init__(self, path):
-        TemplatePart.__init__(self, path)
+        TemplatePart.__init__(self, 'tableStyles', path)
         self.cardinality = 'single'
     
 
@@ -764,7 +766,7 @@ class Theme(TemplatePart):
     Theme part. Corresponds to package files ppt/theme/theme[1-9][0-9]*.xml.
     """
     def __init__(self, parent, path):
-        TemplatePart.__init__(self, path)
+        TemplatePart.__init__(self, 'theme', path)
         self.parent = parent
         self.images = []
     
@@ -780,7 +782,7 @@ class ViewProps(TemplatePart):
     ppt/viewProps.xml.
     """
     def __init__(self, path):
-        TemplatePart.__init__(self, path)
+        TemplatePart.__init__(self, 'viewProps', path)
         self.cardinality = 'single'
     
 

@@ -7,8 +7,14 @@
 # This module is part of python-pptx and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-'''Code that deals with packaging the various parts of the PowerPoint
-presentation into a .pptx file.'''
+'''
+Code that deals with packaging the various parts of the PowerPoint
+presentation into a .pptx file.
+
+... general principle, packaging module understands files, package directory
+structure, zip files, relationship files, package items, and Presentation
+API of presentation module only.
+'''
 
 import os
 import re
@@ -16,10 +22,10 @@ import zipfile
 
 from lxml import etree
 
-import pptx.spec
-
+from pptx            import spec
 from pptx            import util
 from pptx.exceptions import CorruptedTemplateError
+from pptx.spec       import PartType
 
 # ============================================================================
 # Class catalog
@@ -218,96 +224,6 @@ class Package(object):
 
 
 # ============================================================================
-# PartType
-# ============================================================================
-#REFACTOR: Refactor this and spec.parttypes so spec doesn't call PartType
-#          (it leads to a circular import problem). Make spec.parttypes a list
-#          of dictionary, and have PartType read it into a class variable when
-#          the class is initialized (on module load).
-
-class PartType(object): 
-    
-    def __init__(self, rootname, file_ext, name, cardinality, required,
-                 location, has_rel_item, rels_from, content_type,
-                 namespace, relationship):
-        self.rootname         = rootname       # e.g. 'core'
-        self.file_ext         = file_ext       # e.g. 'xml'
-        self.name             = name           # e.g. 'Core File Properties Part'
-        self.cardinality      = cardinality    # e.g. 'single' or 'multiple'
-        self.required         = required       # e.g. False
-        self.location         = location       # e.g. '/docProps'
-        self.has_rel_item     = has_rel_item   # e.g. 'always', 'never', or 'optional'
-        self.rels_from        = rels_from      # e.g. ['package']
-        self.content_type     = content_type   # e.g. 'application/vnd.openxmlformats-package.core-properties+xml'
-        self.namespace        = namespace      # e.g. 'http://schemas.openxmlformats.org/package/2006/metadata/core-properties'
-        self.relationshiptype = relationship   # e.g. 'http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties'
-    
-    @property
-    def key(self):
-        return self.rootname
-    
-    @property
-    def pkgreldir(self):
-        return self.location[1:] if self.location.startswith('/') else self.location
-    
-    # NOTE: This doesn't work for the package relationships item, only for
-    # part relationship items!
-    # Return the part path format used in part relationship items (files),
-    # a path that is relative to the directory containing the frompart.
-    def reltargetdir(self, fromlocation):
-        if fromlocation == '/ppt':  # that means this is the presentation part, the only part with that path that has a relationship item
-            if self.location == '/ppt':              # means topart is a singleton part
-                return ''
-            elif self.location.startswith('/ppt/'):  # means topart is a collection part
-                return self.location[5:]
-            else:
-                raise NotImplementedError('''Unrecognized fromlocation '%s' received by PartType.reltargetdir()''' % fromlocation)
-        if self.location.startswith('/ppt/'):
-            return '../%s' % self.location[5:]
-        raise NotImplementedError("""PartType.reltargetdir() is not yet implemented for part type '%s'""" % self.rootname)
-    
-    @property
-    def zipdir(self):
-        return self.location[1:] if self.location.startswith('/') else self.location
-    
-
-
-# ============================================================================
-# PartTypes
-# ============================================================================
-#REFACTOR: See if PartTypes and PartType can be combined into a single class.
-
-class PartTypes(object):
-    
-    def __init__(self):
-        raise NotImplementedError('''The PartTypes class is not meant to be instantiated, only used for class methods''')
-    
-    @classmethod
-    def classparttype(klass, classname):
-        map = { 'Image'        : 'image'
-              , 'Presentation' : 'presentation'
-              , 'PresProps'    : 'presProps'
-              , 'Slide'        : 'slide'
-              , 'SlideLayout'  : 'slideLayout'
-              , 'SlideMaster'  : 'slideMaster'
-              , 'TableStyles'  : 'tableStyles'
-              , 'Theme'        : 'theme'
-              , 'ViewProps'    : 'viewProps'
-              }
-        if classname not in map:
-            raise KeyError("""PartTypes.classparttype() lookup failed with key '%s'""" % (classname))
-        return PartTypes.parttype(map[classname])
-    
-    @classmethod
-    def parttype(klass, parttypekeyname):
-        for parttype in pptx.spec.parttypes:
-            if parttype.rootname == parttypekeyname:
-                return parttype
-        raise KeyError("""PartTypes.parttype() lookup failed with key '%s'""" % (parttypekeyname))
-    
-
-
-# ============================================================================
 # TemplatePackage
 # ============================================================================
 # #TODO: Enhance this so it can read a template from a zip archive without
@@ -333,7 +249,7 @@ class TemplatePackage(Package):
     def __parserelsfile(self, relsfile):
         relationships = []
         tree = etree.parse(relsfile.path)
-        relationshipelements = tree.getroot().findall(pptx.spec.qname('pr','Relationship'))
+        relationshipelements = tree.getroot().findall(spec.qname('pr','Relationship'))
         for relationshipelement in relationshipelements:
             relationships.append(PartRelationship.parse(relsfile.partfile, relationshipelement))
         return relationships
@@ -397,7 +313,7 @@ class ContentTypesItem(PackageItem):
     
     def __defaultelement(self, ext):
         #REFACTOR: Work out a more elegant access method to this ext2mime_map.
-        mimetype = pptx.spec.ext2mime_map[ext]
+        mimetype = spec.ext2mime_map[ext]
         element = etree.Element('Default')
         element.set('Extension'   , ext)
         element.set('ContentType' , mimetype)
@@ -583,7 +499,7 @@ class ThemeParts(PartCollection):
 class Part(PackageItem):
     
     def __init__(self, parent, item):
-        self.parttype = PartTypes.classparttype(item.__class__.__name__)
+        self.parttype = PartType.lookup(item.parttypekey)
         self.parent   = parent
         self.package  = parent.package
         self.item     = item
@@ -766,7 +682,7 @@ class PresentationPart(Part):
     # NOTE: Inherits from Part but doesn't call Part.__init__(), pending refactoring of Part into Part and CollectionPart
     def __init__(self, parent, item):
         # Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts
-        self.parttype = PartTypes.classparttype(item.__class__.__name__)
+        self.parttype = PartType.lookup(item.parttypekey)
         # self.parent       = parent      # don't think we have any takers for this property since it's not a collection part
         self.package      = parent
         self.item         = item
@@ -806,7 +722,7 @@ class PresPropsPart(Part):
     # NOTE: Inherits from Part but doesn't call Part.__init__(), pending refactoring of Part into Part and CollectionPart
     def __init__(self, parent, item):
         # Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts
-        self.parttype = PartTypes.classparttype(item.__class__.__name__)
+        self.parttype = PartType.lookup(item.parttypekey)
         # self.parent   = parent
         self.item      = item
         self.presprops = item
@@ -874,7 +790,7 @@ class SlidePart(Part):
     # NOTE: SlidePart inherits from Part, but does not call __init__() on it.
     def __init__(self, parent, item):
         # Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts
-        self.parttype = PartTypes.parttype('slide')
+        self.parttype = PartType.lookup('slide')
         self.parent   = parent
         self.package  = parent.package
         self.item     = item
@@ -907,7 +823,7 @@ class TableStylesPart(Part):
     # NOTE: Inherits from Part but doesn't call Part.__init__(), pending refactoring of Part into Part and CollectionPart
     def __init__(self, parent, item):
         # Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts
-        self.parttype = PartTypes.classparttype(item.__class__.__name__)
+        self.parttype = PartType.lookup(item.parttypekey)
         # self.parent   = parent
         self.tablestyles = item
         self.package     = parent
@@ -943,7 +859,7 @@ class ViewPropsPart(Part):
     # NOTE: Inherits from Part but doesn't call Part.__init__(), pending refactoring of Part into Part and CollectionPart
     def __init__(self, parent, item):
         # Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts
-        self.parttype = PartTypes.classparttype(item.__class__.__name__)
+        self.parttype = PartType.lookup(item.parttypekey)
         # self.parent   = parent
         self.viewprops = item
         self.package   = parent
@@ -969,7 +885,7 @@ class PartRelationship(object):
         # self.__relationshiptype = relationshiptype
         # self.__target           = target
         # self.fromparttype       = frompartfile.parttype
-        # self.toparttype         = PartTypes.parttype(self.totype)
+        # self.toparttype         = PartType.lookup(self.totype)
         # print 'Relationship:  %-12s ===>  %-12s  %s' % (self.fromtype, self.totype, self.topath)
     
     @classmethod
@@ -1114,7 +1030,7 @@ class SinglePartFile(PartFile):
     #       PartFileGroup.
     def __init__(self, templatedir, parttypekey):
         PackageItemFile.__init__(self)
-        self.parttype = PartTypes.parttype(parttypekey)
+        self.parttype = PartType.lookup(parttypekey)
         self.filename = "%s.%s" % (self.parttype.rootname, self.parttype.file_ext)
         self.path     = os.path.join(templatedir, self.parttype.pkgreldir, self.filename)
         # self.dirpath     = os.path.split(path)[0]
@@ -1158,14 +1074,14 @@ class PartFiles(PackageItemFileCollection):
         PackageItemFileCollection.__init__(self)
         self.templatedir = templatedir
         self.parttypekey = parttypekey
-        self.parttype    = PartTypes.parttype(parttypekey) if parttypekey else None
+        self.parttype    = PartType.lookup(parttypekey) if parttypekey else None
         if templatedir and parttypekey:
             self.load(templatedir, parttypekey)
     
     def load(self, templatedir, parttypekey):
         self.templatedir = templatedir
         self.parttypekey = parttypekey
-        self.parttype    = PartTypes.parttype(parttypekey)
+        self.parttype    = PartType.lookup(parttypekey)
         del self[0:]
         for partfilepath in self.__partfilepaths:
             self.append(PartFile(self, partfilepath))

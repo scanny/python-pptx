@@ -119,6 +119,9 @@ in &#8216;.pptx&#8217;, that extension will be appended.</p>
 <span id="packaging-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">packaging</span></tt> Module<a class="headerlink" href="#module-pptx.packaging" title="Permalink to this headline">¶</a></h2>
 <p>Code that deals with packaging the various parts of the PowerPoint
 presentation into a .pptx file.</p>
+<p>... general principle, packaging module understands files, package directory
+structure, zip files, relationship files, package items, and Presentation
+API of presentation module only.</p>
 <dl class="class">
 <dt id="pptx.packaging.ContentTypesItem">
 <em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">ContentTypesItem</tt><big>(</big><em>package</em><big>)</big><a class="reference internal" href="_modules/pptx/packaging.html#ContentTypesItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.ContentTypesItem" title="Permalink to this definition">¶</a></dt>
@@ -397,48 +400,6 @@ presentation into a .pptx file.</p>
 <dt id="pptx.packaging.PartRelsFile">
 <em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">PartRelsFile</tt><big>(</big><em>partfile</em>, <em>path</em><big>)</big><a class="reference internal" href="_modules/pptx/packaging.html#PartRelsFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PartRelsFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pptx.packaging.PackageItemFile" title="pptx.packaging.PackageItemFile"><tt class="xref py py-class docutils literal"><span class="pre">pptx.packaging.PackageItemFile</span></tt></a></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="pptx.packaging.PartType">
-<em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">PartType</tt><big>(</big><em>rootname</em>, <em>file_ext</em>, <em>name</em>, <em>cardinality</em>, <em>required</em>, <em>location</em>, <em>has_rel_item</em>, <em>rels_from</em>, <em>content_type</em>, <em>namespace</em>, <em>relationship</em><big>)</big><a class="reference internal" href="_modules/pptx/packaging.html#PartType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PartType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<dl class="attribute">
-<dt id="pptx.packaging.PartType.key">
-<tt class="descname">key</tt><a class="reference internal" href="_modules/pptx/packaging.html#PartType.key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PartType.key" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pptx.packaging.PartType.pkgreldir">
-<tt class="descname">pkgreldir</tt><a class="reference internal" href="_modules/pptx/packaging.html#PartType.pkgreldir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PartType.pkgreldir" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pptx.packaging.PartType.reltargetdir">
-<tt class="descname">reltargetdir</tt><big>(</big><em>fromlocation</em><big>)</big><a class="reference internal" href="_modules/pptx/packaging.html#PartType.reltargetdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PartType.reltargetdir" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pptx.packaging.PartType.zipdir">
-<tt class="descname">zipdir</tt><a class="reference internal" href="_modules/pptx/packaging.html#PartType.zipdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PartType.zipdir" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="pptx.packaging.PartTypes">
-<em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">PartTypes</tt><a class="reference internal" href="_modules/pptx/packaging.html#PartTypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PartTypes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<dl class="classmethod">
-<dt id="pptx.packaging.PartTypes.classparttype">
-<em class="property">classmethod </em><tt class="descname">classparttype</tt><big>(</big><em>klass</em>, <em>classname</em><big>)</big><a class="reference internal" href="_modules/pptx/packaging.html#PartTypes.classparttype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PartTypes.classparttype" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="pptx.packaging.PartTypes.parttype">
-<em class="property">classmethod </em><tt class="descname">parttype</tt><big>(</big><em>klass</em>, <em>parttypekeyname</em><big>)</big><a class="reference internal" href="_modules/pptx/packaging.html#PartTypes.parttype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PartTypes.parttype" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -896,7 +857,7 @@ the sake of future enhancement opportunities.</p>
 
 <dl class="class">
 <dt id="pptx.presentation.TemplatePart">
-<em class="property">class </em><tt class="descclassname">pptx.presentation.</tt><tt class="descname">TemplatePart</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/pptx/presentation.html#TemplatePart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.presentation.TemplatePart" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pptx.presentation.</tt><tt class="descname">TemplatePart</tt><big>(</big><em>parttypekey</em>, <em>path</em><big>)</big><a class="reference internal" href="_modules/pptx/presentation.html#TemplatePart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.presentation.TemplatePart" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Superclass that parts imported from the template inherit from. Its primary
 purpose is to contain code that is common to those parts. Template parts
@@ -969,6 +930,146 @@ ppt/viewProps.xml.</p>
 <span id="spec-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">spec</span></tt> Module<a class="headerlink" href="#module-pptx.spec" title="Permalink to this headline">¶</a></h2>
 <p>Constant values from the ECMA-376 spec that are needed for XML generation
 and packaging, and a utility function or two for accessing some of them.</p>
+<dl class="class">
+<dt id="pptx.spec.PartType">
+<em class="property">class </em><tt class="descclassname">pptx.spec.</tt><tt class="descname">PartType</tt><big>(</big><em>key</em>, <em>ptdict</em><big>)</big><a class="headerlink" href="#pptx.spec.PartType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Reference to the characteristics of the various package parts, as defined
+in ECMA-376.</p>
+<dl class="attribute">
+<dt id="pptx.spec.PartType.rootname">
+<tt class="descname">rootname</tt><a class="headerlink" href="#pptx.spec.PartType.rootname" title="Permalink to this definition">¶</a></dt>
+<dd><p>The root of the part&#8217;s filename within the package. For example,
+rootname for slideLayout1.xml is &#8216;slideLayout&#8217;. Note that the part&#8217;s
+rootname is also used as its key value.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.file_ext">
+<tt class="descname">file_ext</tt><a class="headerlink" href="#pptx.spec.PartType.file_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>The extension of the part&#8217;s filename within the package. For example,
+file_ext for the presentation part (presentation.xml) is &#8216;xml&#8217;.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.name">
+<tt class="descname">name</tt><a class="headerlink" href="#pptx.spec.PartType.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Full name of the part type, as inferred from prose in ECMA-376. This
+attribute is not formally specified, so there may be some variation in
+actual usage.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.cardinality">
+<tt class="descname">cardinality</tt><a class="headerlink" href="#pptx.spec.PartType.cardinality" title="Permalink to this definition">¶</a></dt>
+<dd><p>One of &#8216;single&#8217; or &#8216;multiple&#8217;, specifying whether the part is a
+singleton or tuple within the package. <tt class="docutils literal"><span class="pre">presentation.xml</span></tt> is an
+example of a singleton part. <tt class="docutils literal"><span class="pre">slideLayout4.xml</span></tt> is an example of a
+tuple part. The term <em>tuple</em> in this context is drawn from set theory
+in math and has no direct relationship to the Python tuple class.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.required">
+<tt class="descname">required</tt><a class="headerlink" href="#pptx.spec.PartType.required" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean expressing whether at least one instance of this part type must
+appear in the package. <tt class="docutils literal"><span class="pre">presentation</span></tt> is an example of a required
+part type. <tt class="docutils literal"><span class="pre">notesMaster</span></tt> is an example of a part type that is
+optional.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.location">
+<tt class="descname">location</tt><a class="headerlink" href="#pptx.spec.PartType.location" title="Permalink to this definition">¶</a></dt>
+<dd><p>The package-relative path of the directory in which part files for this
+type are stored. For example, location for <tt class="docutils literal"><span class="pre">slideLayout</span></tt> is
+&#8216;/ppt/slideLayout&#8217;. The leading slash corresponds to the root of the
+package (zip file). Note that directories in the actual package zip
+file do not contain this leading slash (otherwise they would be
+placed in the root directory when the zip file was expanded).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.has_rel_item">
+<tt class="descname">has_rel_item</tt><a class="headerlink" href="#pptx.spec.PartType.has_rel_item" title="Permalink to this definition">¶</a></dt>
+<dd><p>One of &#8216;always&#8217;, &#8216;never&#8217;, or &#8216;optional&#8217;, indicating whether parts of
+this type have a corresponding relationship item, or &#8220;rels file&#8221;.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.rels_from">
+<tt class="descname">rels_from</tt><a class="headerlink" href="#pptx.spec.PartType.rels_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of part type keys for parts that may have relationships to this
+part type.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.static">
+<tt class="descname">static</tt><a class="headerlink" href="#pptx.spec.PartType.static" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean indicating whether the contents of this part can be changed.
+Currently typically used to indicate template items for which
+python-pptx currently lacks manipulation code. Static items are copied
+back to a saved presentation package unchanged from when they were
+loaded from the template.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.content_type">
+<tt class="descname">content_type</tt><a class="headerlink" href="#pptx.spec.PartType.content_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>MIME-type-like string that distinguishes the content of parts of this
+type from simple XML. For example, the content_type of a theme part is
+<tt class="docutils literal"><span class="pre">application/vnd.openxmlformats-officedocument.theme+xml</span></tt>. Each
+part&#8217;s content type is written in the content types item located in the
+root directory of the package ([Content_Types].xml).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.namespace">
+<tt class="descname">namespace</tt><a class="headerlink" href="#pptx.spec.PartType.namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>The XML namespace of the root element for this part.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.relationshiptype">
+<tt class="descname">relationshiptype</tt><a class="headerlink" href="#pptx.spec.PartType.relationshiptype" title="Permalink to this definition">¶</a></dt>
+<dd><p>A URL that identifies this part type in rels files. For example,
+relationshiptype for <tt class="docutils literal"><span class="pre">slides/slide1.xml</span></tt> is
+<tt class="docutils literal"><span class="pre">http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.format">
+<tt class="descname">format</tt><a class="headerlink" href="#pptx.spec.PartType.format" title="Permalink to this definition">¶</a></dt>
+<dd><p>One of &#8216;xml&#8217; or &#8216;binary&#8217;.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.key">
+<tt class="descname">key</tt><a class="headerlink" href="#pptx.spec.PartType.key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="pptx.spec.PartType.lookup">
+<em class="property">classmethod </em><tt class="descname">lookup</tt><big>(</big><em>klass</em>, <em>parttypekeyname</em><big>)</big><a class="headerlink" href="#pptx.spec.PartType.lookup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.pkgreldir">
+<tt class="descname">pkgreldir</tt><a class="headerlink" href="#pptx.spec.PartType.pkgreldir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pptx.spec.PartType.reltargetdir">
+<tt class="descname">reltargetdir</tt><big>(</big><em>fromlocation</em><big>)</big><a class="headerlink" href="#pptx.spec.PartType.reltargetdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.spec.PartType.zipdir">
+<tt class="descname">zipdir</tt><a class="headerlink" href="#pptx.spec.PartType.zipdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="pptx.spec.nsmap_subset">
 <tt class="descclassname">pptx.spec.</tt><tt class="descname">nsmap_subset</tt><big>(</big><em>prefixes</em><big>)</big><a class="reference internal" href="_modules/pptx/spec.html#nsmap_subset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.spec.nsmap_subset" title="Permalink to this definition">¶</a></dt>
