@@ -4,3 +4,4 @@ python-pptx.tmproj
 README.html
 doc/_build/doctrees
 doc/_build/html/.buildinfo
+.coverage
