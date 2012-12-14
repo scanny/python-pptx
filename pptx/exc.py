@@ -13,7 +13,16 @@ class PythonPptxError(Exception):
     """Generic error class."""
 
 
-class CorruptedTemplateError(PythonPptxError):
-    """Raised when a package-part in a PowerPoint Open XML presentation template cannot be found or is invalid."""
+class CorruptedPackageError(PythonPptxError):
+    """Raised when a package item in an Open XML package cannot be found or is invalid."""
+
+class DuplicateKeyError(PythonPptxError):
+    """Raised by a unique collection when an attempt is made to add an item with a key already in the collection."""
+
+class NotXMLError(PythonPptxError):
+    """Raised when an XML operation (such as parsing) is attempted on a binary package item."""
+
+class PackageNotFoundError(PythonPptxError):
+    """Raised when a package cannot be found at the specified path."""
 
 

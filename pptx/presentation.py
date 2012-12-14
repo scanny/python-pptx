@@ -13,18 +13,16 @@ encounters as an end-user of the PowerPoint user interface.'''
 import os
 import zipfile
 
-from StringIO   import StringIO
 from lxml       import etree
 from lxml.etree import ElementTree, Element, SubElement
 
-from pptx           import spec
 from pptx           import util
-from pptx.packaging import Package, TemplatePackage
-from pptx.spec      import qname
-
+from pptx.packaging import Package
+# from pptx.spec      import PartType, nsmap_subset, qname
+from pptx.spec      import nsmap_subset, qname
 
 # ============================================================================
-# Presentation
+# API Classes
 # ============================================================================
 
 class Presentation(object):
@@ -33,110 +31,44 @@ class Presentation(object):
     directory of a .pptx file. I'm thinking there's a higher-level construct,
     perhaps an OfficeDocument class that holds things like the document
     properties and thumbnail image.
+    
+    REFACTOR: Inherit from Part.
+    
     """
     def __init__(self, templatedir=None):
         self.templatedir  = self.__normalizedtemplatedir(templatedir)
         self.parttypekey  = 'presentation'
         self._element     = None
+        self.path         = None  # need this default value until inherit from Part
         # initialize collections
-        self.images       = Images       ()
-        self.themes       = Themes       ()
-        self.slidemasters = SlideMasters ()
-        self.slidelayouts = SlideLayouts ()
-        self.slides       = Slides       (self)
-        # apply template
-        template = Template(self.templatedir)
-        self.__applytemplate(template)
+        self.images       = ImageCollection       (self)
+        self.themes       = ThemeCollection       (self)
+        self.slidemasters = SlideMasterCollection (self)
+        self.slidelayouts = SlideLayoutCollection (self)
+        self.slides       = SlideCollection       (self)
+        # load template parts
+        self.__loadtemplate(templatedir)
     
-    def __applytemplate(self, template):
+    def __loadtemplate(self, templatedir):
         """
-        CAUTION: Currently __applytemplate assumes all the presentation
-        collections are empty, so it should only be called from the __init__()
-        method. It might make sense later to add it to the API and make it
-        smart enough to be applied to a presentation that already has some
-        content in it, but that's for a future effort.
+        Load the template parts of the package unzipped in *templatedir*.
         
-        REFACTOR: Seems like the template's part collections should be added
-        directly rather than reconstructing them from scratch. Maybe even do
-        it in __init__() and then initializing the presentation-specific
-        collections like slides. E.g.: self.images = template.images if
-        template.images else ImageCollection()
         """
-        # add parts
-        for image       in template.images       : self.images       .additem(image       .path)
-        for theme       in template.themes       : self.themes       .additem(theme       .path)
-        for slidemaster in template.slidemasters : self.slidemasters .additem(slidemaster .path)
-        for slidelayout in template.slidelayouts : self.slidelayouts .additem(slidelayout .path)
-        # set singleton parts
-        self.element       = template.element      # this part is different because it's the presentation root item rather than a part belonging to the presentation
-        self.presprops     = template.presprops
-        self.tablestyles   = template.tablestyles
-        self.viewprops     = template.viewprops
-#TECHDEBT: Need to make this work when either of these two files don't exist in the template
-        # self.handoutmaster = template.handoutmaster
-        # self.notesmaster   = template.viewprops
-        
-        # add relationships
-        for relationship in template.relationships:
-            self.applyrelationship(relationship)
-    
-    def applyrelationship(self, relationship):
-        """
-        REFACTOR: Eliminate this method and refactor relationships so they are
-        owned and maintained by their "frompart". A "from-part" has a
-        relationship to a "to-part" as a slide has a relationship to a
-        slideLayout, or a slideMaster has a relationship to an image it
-        contains. Keyed relationships should be passed to a part when it is
-        loaded so it can properly maintain them until it is time to save, when
-        it will pass them to the package in good order.
-        """
-        # print 'Relationship %s  ==>  %s' % (relationship.fromtype, relationship.totype)
-        
-        collections = {'image': self.images, 'slideLayout': self.slidelayouts, 'slideMaster': self.slidemasters, 'theme': self.themes}
-        fromtype    = relationship.fromtype
-        frompath    = relationship.frompath
-        fromitem    = collections[fromtype].getitem(path=frompath)
-        if not fromitem: raise Exception("""Lookup of %s failed on relationship %s ==> %s""" % (fromtype, fromtype, totype))   # remove after debugging
-        totype      = relationship.totype
-        topath      = relationship.topath
-        toitem      = collections[totype].getitem(path=topath)
-        if not toitem: raise Exception("""Lookup of %s failed on relationship %s ==> %s""" % (totype, fromtype, totype))       # remove after debugging
-        
-        if fromtype == 'slideMaster':
-            if totype == 'slideLayout':
-                fromitem.slidelayouts.append(toitem) # slideLayout provides backreference
-            elif totype == 'theme':
-                fromitem.theme = toitem              # no backreference required
-            elif totype == 'image':
-                fromitem.images.append(toitem)       # add image reference to slideMaster
-                toitem.slidemasters.append(fromitem) # add backreference
-            else:
-                raise NotImplementedError("""Relationship from %s to %s not implemented.""" % (fromtype, totype))
-        elif fromtype == 'slideLayout':
-            if totype == 'slideMaster':
-                fromitem.slidemaster = toitem        # slideMaster provides backreference
-            elif totype == 'image':
-                fromitem.images.append(toitem)       # add image reference to slideLayout
-                toitem.slidelayouts.append(fromitem) # and add backreference from image
-            # elif totype == 'theme':
-            #     fromitem.theme = toitem              # no backreference required
-            else:
-                raise NotImplementedError("""Relationship from %s to %s not implemented.""" % (fromtype, totype))
-        elif fromtype == 'theme':
-            if totype == 'image':
-                raise NotImplementedError("""Relationship from %s to %s not implemented.""" % (fromtype, totype))
-                # lookup the image in question
-                # add a reference to the image to the theme
-                # add a reference to the theme to the image
-            else:
-                raise NotImplementedError("""Relationship from %s to %s not implemented.""" % (fromtype, totype))
-        else:
-            raise NotImplementedError("""Relationship from %s to %s not implemented.""" % (fromtype, totype))
-            
-        # print "collections[fromtype] is class '%s'" % collections[fromtype].__class__.__name__
-        # print "fromitem is class '%s'" % fromitem.__class__.__name__
-        # print 'Presentation contains %d slidemaster(s).' % len(self.slidemasters)
-        # print
+        # tp = TemplatePackage(templatedir)
+        for part in tp.imageparts:
+            self.images.additem(part)
+        for part in tp.slidelayoutparts:
+            self.slidelayouts .additem(part)
+        for part in tp.themeparts:
+            self.themes.additem(part)
+        for part in tp.slidemasterparts:
+            self.slidemasters.additem(part)
+        self.presprops = PresProps(self).load(tp.prespropspart)
+        self.tablestyles = TableStyles(self).load(tp.tablestylespart)
+        self.viewprops = ViewProps(self).load(tp.viewpropspart)
+        # load presentation-level element and relationships
+        self.element = tp.presentationpart.element
+        self.relationships = tp.presentationpart.relationships
     
     def __normalizedtemplatedir(self, templatedir):
         """
@@ -210,103 +142,276 @@ class Presentation(object):
         self._element = element
     
     def save(self, filename):
-        """Save this presentation as a .pptx file. If *filename* does not end
-        in '.pptx', that extension will be appended."""
-        Package(self).save(filename)
+        """
+        Save this presentation as a .pptx file. If *filename* does not end in
+        '.pptx', that extension will be appended.
+        
+        """
+        Package().save(self, filename)
     
 
 
 # ============================================================================
-# Template
+# Part Collections
 # ============================================================================
 
-class Template(object):
+class PartCollection(list):
     """
-    Assemble a presentation that contains only template parts (essentially a
-    presentation without any slides or slide sub-parts like notesSlides or
-    comments) from the unzipped presentation package in the specified
-    directory.
+    Base class for collections of presentation parts.
     
-    DEVNOTE: This is a bit overkill just for applying a template to a new
-    presentation, but I'm thinking maybe later features will work on templates
-    as a first-class citizen, so happy to leave this implemented this way for
-    the sake of future enhancement opportunities.
+    Subclasses of :class:`PartCollection` must implement :attr:`parttype` to
+    provide access to metadata about the member parts of the collection.
+    
     """
-    def __init__(self, templatedir):
-        # initialize collections
-        self.images       = Images       ()
-        self.themes       = Themes       ()
-        self.slidemasters = SlideMasters ()
-        self.slidelayouts = SlideLayouts ()
-        # load template files from templatedir
-        templatepackage = TemplatePackage(templatedir)
-        templatefiles = templatepackage.templatefiles
-        for imagefile       in templatefiles.imagefiles       : self.images       .additem(imagefile       .path)
-        for themefile       in templatefiles.themefiles       : self.themes       .additem(themefile       .path)
-        for slidemasterfile in templatefiles.slidemasterfiles : self.slidemasters .additem(slidemasterfile .path)
-        for slidelayoutfile in templatefiles.slidelayoutfiles : self.slidelayouts .additem(slidelayoutfile .path)
-        self.presprops     = PresProps     (templatefiles.prespropsfile.path)
-        self.tablestyles   = TableStyles   (templatefiles.tablestylesfile.path)
-        self.viewprops     = ViewProps     (templatefiles.viewpropsfile.path)
-#TECHDEBT: Need to make these two files optional
-        # self.handoutmaster = HandoutMaster (templatefiles.handoutmasterfile.path)
-        # self.notesmaster   = NotesMaster   (templatefiles.viewpropsfile.path)
-        #
-        # load presentation.xml into element property
-        parser = etree.XMLParser(remove_blank_text=True)  # need to remove indentation whitespace so pretty_print will work later
-        self.element = etree.parse(templatefiles.presentationfile.path, parser).getroot()
-        # load package relationships (file-path oriented)
-        self.relationships = templatepackage.relationships
+    def __init__(self, presentation):
+        super(PartCollection, self).__init__()
+        self.presentation = presentation
+        self._dict = {}
+    
+    def additem(self, partitem):
+        key = partitem.key
+        if key in self._dict:
+            return self._dict[key]
+        part = self.memberclass(self).load(partitem)
+        self._dict[key] = part
+        self.append(part)
+        return part
+    
+    # Can implement a __contains__(self, value) method if anyone needs to test
+    # whether something is already in the collection.
+    def getitem(self, key=None, idx=None):
+        if key:
+            if key in self._dict:
+                return self._dict[key]
+            raise KeyError("""getitem() lookup in %s failed with key '%s'""" % (self.__class__.__name__, key))
+        if idx:
+            return self[idx]
+        raise Exception('''%s.getitem() called without a lookup key (either path or idx)''' % self.__class__.__name__)
+    
+
+class ImageCollection(PartCollection):
+    """
+    Collection of all the images used in this presentation. Each image is
+    stored only once, regardless of how often it is used.
+    
+    """
+    def __init__(self, presentation):
+        super(ImageCollection, self).__init__(presentation)
+        self.parttype    = PartType.lookup('image')
+        self.memberclass = Image
+    
+
+class SlideCollection(PartCollection):
+    """
+    Collection of slides in a presentation.
+    
+    """
+    def __init__(self, presentation):
+        super(SlideCollection, self).__init__(presentation)
+        self.parttype  = PartType.lookup('slide')
+        self.__id_iter = util.intsequence()
+        self._dict     = {}
+    
+    def addslide(self, slidelayoutidx=0, name=None, xml=None):
+        """
+        Add a new slide to the presentation and return the new slide.
+        
+        **TODO:** Add an optional *idx=None* parameter that allows the
+        position of the new slide within the collection to be specified.
+        Default behavior will be to append the new slide to the end of the
+        presentation's slide collection.
+        
+        **REFACTOR:** Add *element* property with a corresponding setter and
+        allow element of slide to be set using API. Then set that element if
+        XML is passed in to the constructor, like when a slide is being formed
+        from a template. Note that any images referred to in the XML would
+        need to get synced up somehow.
+        """
+        id          = self.__id_iter.next()
+#TECHDEBT: Quick hack on next line to get this to work while I'm debugging elsewhere
+        print "SlideCollection.presentation ==> %s" % self.presentation
+        slidelayout = self.presentation.slidelayouts[slidelayoutidx]
+        name        = name if name else 'Slide %d' % len(self.presentation.slides)+1  # Note: more than one slide could end up with same name
+        slide       = Slide(id, self, slidelayout, name)
+# ----------------------------------------------------------------------------
+#TECHDEBT: Not sure exactly how to implement a setxml() method of determining
+#          a slide's content. Would cause a round-tripping challenge unless
+#          the XML was parsed and all the properties of the slide set from
+#          its contents. Or perhaps it could set a flag that the slide's
+#          contents were static and no properties could be set. Or perhaps
+#          the properties we knew how to change would be updated without
+#          generating the slide from scratch. So the provided XML would be
+#          used as "starting" XML instead of minimalxml(). Opens question
+#          of whether XML is updated with each property set call or only
+#          generated when the slide XML is rendered.
+# ----------------------------------------------------------------------------
+        if xml:
+            slide.setxml(xml)
+        self._dict[slide.key] = slide
+        self.append(slide)
+        return slide
+    
+
+class SlideLayoutCollection(PartCollection):
+    
+    def __init__(self, presentation):
+        super(SlideLayoutCollection, self).__init__(presentation)
+        self.parttype    = PartType.lookup('slideLayout')
+        self.memberclass = SlideLayout
+    
+
+class SlideMasterCollection(PartCollection):
+    
+    def __init__(self, presentation):
+        super(SlideMasterCollection, self).__init__(presentation)
+        self.parttype    = PartType.lookup('slideMaster')
+        self.memberclass = SlideMaster
+    
+
+class ThemeCollection(PartCollection):
+    
+    def __init__(self, presentation):
+        super(ThemeCollection, self).__init__(presentation)
+        self.parttype    = PartType.lookup('theme')
+        self.memberclass = Theme
     
 
 
 # ============================================================================
-# Shape
+# Parts
 # ============================================================================
 
-class Shape(object):
+class Part(object):
     """
-    Base class for the various permutations of shape (not including pic, which
-    is a distinct element type). This is actually an abstract class. Adding a
-    raw Shape directly to a slide will likely cause a load error in
-    PowerPoint. Use one of the fully fleshed-out subclasses such as
-    PlaceholderText instead or modify the element directly to add the required
-    bits for a complete shape.
+    Base class that presentation parts inherit from. Its primary purpose is to
+    contain code common to those parts.
     
-    **TECHDEBT:** need to account for hierarchy of GroupShape, cSld/spTree is
-    type GroupShape and GroupShape can contain other GroupShape elements in a
-    hierarchy
+    REFACTOR: Check construction signature, doesn't seem quite right.
+    
+    REFACTOR: Load and carry parttype for the type, not just the parttypekey.
+    
+    .. attribute:: parent
+       
+       PartCollection instance containing this part.
+    
+    .. attribute:: parttype
+       
+       :class:`pptx.spec.PartType` instance containing metadata about the
+       part type contained in this collection.
+    
     """
-    def __init__(self, name):
-        self.name    = name
-        self.element = self.__minimalelement
+    def __init__(self, presentation, parttype):
+        self.presentation = presentation
+        self.parttype     = parttype
+        self._element     = None
+    
+    def load(self, part):
+        """
+        Load this part from an object that implements the attributes *key*,
+        *element*, *path*, and *relationships*. *key* is an identifier for
+        this part that is unique within its presentation context. *element* is
+        an ElementTree element containing the XML for this part. If
+        ``parttype.format`` for this part is 'binary', *element* will be None
+        and *path* should be used to store a reference to the file containing
+        the part. If ``parttype.format`` for this part is 'xml', *path* may be
+        None. *relationships* is a list of :class:`Relationship` instances
+        corresponding to the relationships this part maintains with other
+        parts in the package. Returns a reference to self so a generative call
+        is supported (e.g. ``newpart = Part(partcollection).load(partitem)``.
+        
+        """
+        self.key           = part.key
+        self.element       = part.element
+        self.path          = part.path
+        self.relationships = part.relationships
+        return self
+    
+
+class CollectionPart(Part):
+    """
+    Parts that appear in groups, e.g. slides, slideLayouts, and others,
+    require certain attributes that singleton parts do not. Those collection
+    part specific attributes are implemented by this class.
+    
+    ... access to the presentation is required in order to reference the other
+    parts in the presentation this part has relationships to.
+    
+    Inherits:
+       :meth:`Part.load()`
+    
+    REFACTOR: Check construction signature, doesn't seem quite right.
+    
+    REFACTOR: Load and carry parttype for the type, not just the parttypekey.
+    
+    """
+    def __init__(self, parent):
+        super(CollectionPart, self).__init__(parent.presentation, parent.parttype)
+        self.parent       = parent
+        self.presentation = parent.presentation
+        self.parttype     = parent.parttype
+        self.path         = None  # this default will be overwritten on load by template parts
     
     @property
-    def __minimalelement(self):
-        """
-        Return an ElementTree element that contains all the elements and
-        attributes of a shape required by the schema, initialized with default
-        values where necessary or appropriate.
-        """
-        sp      = Element(qname('p', 'sp'))
-        nvSpPr  = SubElement(sp     , qname('p', 'nvSpPr'  ) )
-        cNvPr   = SubElement(nvSpPr , qname('p', 'cNvPr'   ) , id='None', name=self.name)
-        cNvSpPr = SubElement(nvSpPr , qname('p', 'cNvSpPr' ) )
-        spPr    = SubElement(sp     , qname('p', 'spPr'    ) )
-        return sp
+    def idx(self):
+        """Return the index of this part in its parent collection."""
+        return self.parent.index(self)
     
 
+class HandoutMaster(CollectionPart):
+    """**NOT YET FULLY IMPLEMENTED**. This class is currently a stub."""
+    def __init__(self, parent):
+        super(HandoutMaster, self).__init__(parent)
+    
 
-# ============================================================================
-# Slide
-# ============================================================================
-# Superclass to take care of all base slide functionality.
-# ============================================================================
-
-class Slide(object):
+class Image(CollectionPart):
     """
-    Slide part. Should not be constructed externally, use
-    ``presentation.add_slide()`` to create new slides.
+    An image part. Note that an image part is distinct from a picture element
+    that appears on a slide or other part. An image part corresponds to a
+    distinct image file such as image1.png. A picture element is a placement
+    of that image on one or more visual parts such as a slide, slide master,
+    or slide layout. A theme can also include a picture (although I've yet to
+    discover just how :).
+    
+    Also note that a single image part can appear on multiple visual parts
+    while the image part (and therefore its image file) is stored only once in
+    the package.
+    
+    **REFACTOR:** An image is not a TemplatePart strictly speaking. Images may
+    be imported from the template, but they can also be added to slides using
+    the API, so not all images are static and the images collection certainly
+    needs to be dynamic. I'm thinking what this points up is that there's a
+    distinction between *binary* and *XML* as well as between *static* and
+    *dynamic*. Binary parts cannot be manipulated while static parts are
+    simply not manipulated as a matter of convenience. All dynamic parts must
+    be XML, so perhaps only three distinctions are strictly required. But I'm
+    thinking it makes better sense for each part to have two new properties,
+    format ('binary' | 'xml') and static (boolean).
+    
+    printerSettings1.bin is another example of a binary part.
+    """
+    def __init__(self, parent):
+        super(Image, self).__init__(parent)
+    
+
+class NotesMaster(CollectionPart):
+    """**NOT YET FULLY IMPLEMENTED**. This class is currently a stub."""
+    def __init__(self, parent):
+        super(NotesMaster, self).__init__(parent)
+    
+
+class PresProps(Part):
+    """
+    Presentation Properties part. Corresponds to package file
+    ppt/presProps.xml.
+    """
+    def __init__(self, presentation):
+        super(PresProps, self).__init__(presentation, PartType.lookup('presProps'))
+    
+
+class Slide(CollectionPart):
+    """
+    Slide part. Provides base slide functionality. Should not be constructed
+    externally, use ``presentation.add_slide()`` to create new slides.
     
     :param id:          a unique id for the new slide
     :param slides:      parent collection
@@ -320,24 +425,18 @@ class Slide(object):
     :class:`object`.
     """
     def __init__(self, id, slides, slidelayout, name):
+        super(Slide, self).__init__(slides)
         self.id          = id
         self.key         = id
         self.slides      = slides
         self.parent      = slides
         self.slidelayout = slidelayout
         self.name        = name
-        self.nsmap       = spec.nsmap_subset(['a', 'p', 'r'])  # keep this here so remaining init can use it
-        self.__id_iter   = util.intsequence()                  # this one too ...
+        self.nsmap       = nsmap_subset(['a', 'p', 'r'])  # keep this here so remaining init can use it
+        self.__id_iter   = util.intsequence()             # this one too ...
         self.element     = self.minimalelement
-        self.shapes      = Shapes(self)
+        self.shapes      = ShapeCollection(self)
         self.images      = []
-    
-    @property
-    def idx(self):
-        """
-        Return the index of this slide in the presentation's slide collection.
-        """
-        return self.slides.index(self)
     
     def setxml(self, xml):
         """
@@ -391,73 +490,61 @@ class Slide(object):
         return etree.tostring(self.element, pretty_print=True)
     
 
-
-# ============================================================================
-# Slides
-# ============================================================================
-
-class Slides(list):
+class SlideLayout(CollectionPart):
     """
-    Collection of slides in a presentation.
+    Slide layout part. Corresponds to package files
+    ppt/slideLayouts/slideLayout[1-9][0-9]*.xml.
+    """
+    def __init__(self, parent):
+        super(SlideLayout, self).__init__(parent)
     
-    **REFACTOR:** Rename to SlideCollection, same with all other part
-    collection classes.
+
+class SlideMaster(CollectionPart):
+    """
+    Slide master part. Corresponds to package files
+    ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     
-    **REFACTOR:** Inherit from :class:`Collection` rather than ``list``.
+    TECHNOTE: In the Microsoft API, Master is a general type that all of
+    SlideMaster, SlideLayout (CustomLayout), HandoutMaster, and NotesMaster
+    inherit from. So might look into why that is and consider refactoring the
+    various masters a bit later.
+    """
+    def __init__(self, parent):
+        super(SlideMaster, self).__init__(parent)
+    
+
+class TableStyles(Part):
+    """
+    Optional table styles part. Corresponds to package file
+    ppt/tableStyles.xml.
     """
     def __init__(self, presentation):
-        list.__init__(self)
-        self.presentation = presentation
-        self.__id_iter    = util.intsequence()
-        self.__dict       = {}
+        super(TableStyles, self).__init__(presentation, PartType.lookup('tableStyles'))
     
-    def addslide(self, slidelayoutidx=0, name=None, xml=None):
-        """
-        Add a new slide to the presentation and return the new slide.
-        
-        **TODO:** Add an optional *idx=None* parameter that allows the
-        position of the new slide within the collection to be specified.
-        Default behavior will be to append the new slide to the end of the
-        presentation's slide collection.
-        
-        **REFACTOR:** Add *element* property with a corresponding setter and
-        allow element of slide to be set using API. Then set that element if
-        XML is passed in to the constructor, like when a slide is being formed
-        from a template. Note that any images referred to in the XML would
-        need to get synced up somehow.
-        """
-        id          = self.__id_iter.next()
-        slidelayout = self.presentation.slidelayouts.getitem(idx=slidelayoutidx)
-        name        = name if name else 'Slide %d' % len(self.presentation.slides)+1  # Note: more than one slide could end up with same name
-        slide       = Slide(id, self, slidelayout, name)
-# ----------------------------------------------------------------------------
-#TECHDEBT: Not sure exactly how to implement a setxml() method of determining
-#          a slide's content. Would cause a round-tripping challenge unless
-#          the XML was parsed and all the properties of the slide set from
-#          its contents. Or perhaps it could set a flag that the slide's
-#          contents were static and no properties could be set. Or perhaps
-#          the properties we knew how to change would be updated without
-#          generating the slide from scratch. So the provided XML would be
-#          used as "starting" XML instead of minimalxml(). Opens question
-#          of whether XML is updated with each property set call or only
-#          generated when the slide XML is rendered.
-# ----------------------------------------------------------------------------
-        if xml:
-            slide.setxml(xml)
-        self.__dict[slide.key] = slide
-        self.append(slide)
-        return slide
+
+class Theme(CollectionPart):
+    """
+    Theme part. Corresponds to package files ppt/theme/theme[1-9][0-9]*.xml.
+    """
+    def __init__(self, parent):
+        super(Theme, self).__init__(parent)
+    
+
+class ViewProps(Part):
+    """
+    Optional view properties part. Corresponds to package file
+    ppt/viewProps.xml.
+    """
+    def __init__(self, presentation):
+        super(ViewProps, self).__init__(presentation, PartType.lookup('viewProps'))
     
 
 
 # ============================================================================
 # Shapes
 # ============================================================================
-# Inherits from list so additional methods and behaviors can be added to
-# shapes member of Slide.
-# ============================================================================
 
-class Shapes(list):
+class ShapeCollection(list):
     """
     Collection of all the Shapes in a slide. It can also serve for the shapes
     in SlideMaster and SlideLayout, and perhaps HandoutMaster, although
@@ -476,7 +563,7 @@ class Shapes(list):
     code that's general to all collections up there.
     """
     def __init__(self, parent):
-        list.__init__(self)
+        super(ShapeCollection, self).__init__()
         self.parent = parent
     
     def append(self, shape):
@@ -486,388 +573,119 @@ class Shapes(list):
         self.slide._append_shape(shape)
     
 
-
-# ============================================================================
-# TemplatePartCollection
-# ============================================================================
-
-class TemplatePartCollection(list):
+class Shape(object):
     """
-    Base class for collections of static parts.
+    Base class for the various permutations of shape (not including pic, which
+    is a distinct element type). This is actually an abstract class. Adding a
+    raw Shape directly to a slide will likely cause a load error in
+    PowerPoint. Use one of the fully fleshed-out subclasses such as
+    PlaceholderText instead or modify the element directly to add the required
+    bits for a complete shape.
     
-    **REFACTOR:** Pretty sure we don't need this anymore once we have format
-    and static(T/F) attributes on PartType.
+    **TECHDEBT:** need to account for hierarchy of GroupShape, cSld/spTree is
+    type GroupShape and GroupShape can contain other GroupShape elements in a
+    hierarchy
     """
-    def __init__(self):
-        list.__init__(self)
-        self.__dict = {}
-    
-    def additem(self, path):
-        key = path
-        if key in self.__dict:
-            return self.__dict[key]
-        part = self.memberclass(self, path)
-        self.__dict[key] = part
-        self.append(part)
-        return part
-    
-    # Can implement a __contains__(self, value) method if anyone needs to test
-    # whether something is already in the collection.
-    def getitem(self, path=None, idx=None):
-        if path:
-            key = path
-            if key in self.__dict:
-                return self.__dict[key]
-            raise KeyError("""getitem() lookup in %s failed with key '%s'""" % (self.__class__.__name__, key))
-        if idx:
-            return self[idx]
-        raise Exception('''%s.getitem() called without a lookup key (either path or idx)''' % self.__class__.__name__)
-    
-
-
-# ============================================================================
-# Images
-# ============================================================================
-
-class Images(TemplatePartCollection):
-    """
-    Collection of all the images used in this presentation. Each image is
-    stored only once, regardless of how often it is used.
-    
-    **REFACTOR:** Should inherit from PartCollection, not
-    TemplatePartCollection. Consider whether TemplatePartCollection is
-    required after format and static attributes are available in PartType.
-    """
-    def __init__(self):
-        TemplatePartCollection.__init__(self)
-        self.memberclass = Image
-    
-
-
-# ============================================================================
-# SlideLayouts
-# ============================================================================
-
-class SlideLayouts(TemplatePartCollection):
-    
-    def __init__(self):
-        TemplatePartCollection.__init__(self)
-        self.memberclass = SlideLayout
-    
-
-
-# ============================================================================
-# SlideMasters
-# ============================================================================
-
-class SlideMasters(TemplatePartCollection):
-    
-    def __init__(self):
-        TemplatePartCollection.__init__(self)
-        self.memberclass = SlideMaster
-    
-
-
-# ============================================================================
-# Themes
-# ============================================================================
-
-class Themes(TemplatePartCollection):
-    
-    def __init__(self):
-        TemplatePartCollection.__init__(self)
-        self.memberclass = Theme
-    
-
-
-# ============================================================================
-# TemplatePart
-# ============================================================================
-
-class TemplatePart(object):
-    """
-    Superclass that parts imported from the template inherit from. Its primary
-    purpose is to contain code that is common to those parts. Template parts
-    include slide masters, slide layouts, presentation properties, and others.
-    The primary reason for distinguishing template parts at the moment is that
-    they cannot be manipulated and need to be written back to the package just
-    as they were found. This leads to certain of the methods of "active" parts
-    being replicated here as relative stubs.
-    
-    **REFACTOR**: Needs some cleanup here to account for differences between
-    single parts and those that are part of a collection (group parts?). The
-    inheritance of properties is too distributed between super class and
-    subclass, and it's weird that they have to keep track of their own
-    cardinality. Using the modifiers "scalar" vs. "vector" might be something
-    to use in elaborating the class hierarchy by one level e.g.
-    ScalarTemplatePart and VectorTemplatePart. Also consider single vs group,
-    scalar vs tuple, scalar vs list, scalar vs array, (plain old) part vs
-    collectionPart. That last one is interesting because collection parts need
-    everything a regular part has and just need to add a bit more. Also
-    'collection' is what they're a part of. SOLD!
-    """
-    def __init__(self, parttypekey, path):
-        self.parttypekey = parttypekey
-        self.path        = path
-        self.key         = path
-        self.cardinality = 'multiple'
+    def __init__(self, name):
+        self.name    = name
+        self.element = self.__minimalelement
     
     @property
-    def idx(self):
-        """Return the index of this part in its parent collection."""
-        if self.cardinality == 'multiple':
-            return self.parent.index(self)
-        else:
-            raise NotImplementedError('''TemplatePart.idx is not defined for parts with cardinality!='multiple'. Called on class '%s'.''' % self.__class__.__name__)
+    def __minimalelement(self):
+        """
+        Return an ElementTree element that contains all the elements and
+        attributes of a shape required by the schema, initialized with default
+        values where necessary or appropriate.
+        """
+        sp      = Element(qname('p', 'sp'))
+        nvSpPr  = SubElement(sp     , qname('p', 'nvSpPr'  ) )
+        cNvPr   = SubElement(nvSpPr , qname('p', 'cNvPr'   ) , id='None', name=self.name)
+        cNvSpPr = SubElement(nvSpPr , qname('p', 'cNvSpPr' ) )
+        spPr    = SubElement(sp     , qname('p', 'spPr'    ) )
+        return sp
     
 
-
-# ============================================================================
-# Image
-# ============================================================================
-
-class Image(TemplatePart):
+class PlaceholderText(Shape):
     """
-    An image part. Note that an image part is distinct from a picture element
-    that appears on a slide or other part. An image part corresponds to a
-    distinct image file such as image1.png. A picture element is a placement
-    of that image on one or more visual parts such as a slide, slide master,
-    or slide layout. A theme can also include a picture (although I've yet to
-    discover just how :).
+    REFACTOR: This is just scrap code, this class needs to be re-implemented
+    or at least reconsidered from first principles, it was initially written
+    before any of the scaffolding class hierarchies were set up.
     
-    Also note that a single image part can appear on multiple visual parts
-    while the image part (and therefore its image file) is stored only once in
-    the package.
+    Shape that holds text to be displayed in a placeholder specified by the
+    slide layout.
     
-    **REFACTOR:** An image is not a TemplatePart strictly speaking. Images may
-    be imported from the template, but they can also be added to slides using
-    the API, so not all images are static and the images collection certainly
-    needs to be dynamic. I'm thinking what this points up is that there's a
-    distinction between *binary* and *XML* as well as between *static* and
-    *dynamic*. Binary parts cannot be manipulated while static parts are
-    simply not manipulated as a matter of convenience. All dynamic parts must
-    be XML, so perhaps only three distinctions are strictly required. But I'm
-    thinking it makes better sense for each part to have two new properties,
-    format ('binary' | 'xml') and static (boolean).
+    The placeholder_type provided must be one of ST_PlaceholderType defined in
+    the PresentationML schema.
     
-    printerSettings1.bin is another example of a binary part.
-    """
-    def __init__(self, parent, path):
-        TemplatePart.__init__(self, 'image', path)
-        self.parent       = parent
-        self.slidemasters = []
-        self.slidelayouts = []
-        self.slides       = []
-        self.themes       = []
+    The string supplied as the text parameter may contain carriage returns
+    ('\\r') and or line feeds ('\\n'). Carriage returns will cause a new run
+    to be created with a break (<a:br/>) intervening between it and the prior
+    run. Line feeds will cause a new paragraph to be created to contain the
+    text that follows the line feed.
     
-
-
-# ============================================================================
-# HandoutMaster
-# ============================================================================
-
-class HandoutMaster(TemplatePart):
-    """**NOT YET FULLY IMPLEMENTED**. This class is currently a stub."""
-    def __init__(self, path):
-        TemplatePart.__init__(self, 'handoutMaster', path)
-        self.cardinality = 'single'
+    The index parameter is important for matching up the text with the right
+    placeholder. I don't fully understand the logic used, but in one pptx file
+    I've seen the <p:ph> idx attribute matched with that of the proper
+    placeholder. The default is 0 and that seems to match the title
+    placeholder.
     
-
-
-# ============================================================================
-# NotesMaster
-# ============================================================================
-
-class NotesMaster(TemplatePart):
-    """**NOT YET FULLY IMPLEMENTED**. This class is currently a stub."""
-    def __init__(self, path):
-        TemplatePart.__init__(self, 'notesMaster', path)
-        self.cardinality = 'single'
+    """
+    pass
     
-
-
-# ============================================================================
-# PresProps
-# ============================================================================
-
-class PresProps(TemplatePart):
-    """
-    Presentation Properties part. Corresponds to package file
-    ppt/presProps.xml.
-    """
-    def __init__(self, path):
-        TemplatePart.__init__(self, 'presProps', path)
-        self.cardinality = 'single'
-    
-
-
-# ============================================================================
-# SlideLayout
-# ============================================================================
-
-class SlideLayout(TemplatePart):
-    """
-    Slide layout part. Corresponds to package files
-    ppt/slideLayouts/slideLayout[1-9][0-9]*.xml.
-    """
-    def __init__(self, parent, path):
-        TemplatePart.__init__(self, 'slideLayout', path)
-        self.parent      = parent
-        self.slidemaster = None
-        self.images      = []
-    
-
-
-# ============================================================================
-# SlideMaster
-# ============================================================================
-
-class SlideMaster(TemplatePart):
-    """
-    Slide master part. Corresponds to package files
-    ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
-    
-    TECHNOTE: In the Microsoft API, Master is a general type that all of
-    SlideMaster, SlideLayout (CustomLayout), HandoutMaster, and NotesMaster
-    inherit from. So might look into why that is and consider refactoring the
-    various masters a bit later.
-    """
-    def __init__(self, parent, path):
-        TemplatePart.__init__(self, 'slideMaster', path)
-        self.parent       = parent
-        self.element      = etree.parse(path).getroot()
-        self.theme        = None
-        self.slidelayouts = []
-        self.images       = []
-    
-
-
-# ============================================================================
-# TableStyles
-# ============================================================================
-
-class TableStyles(TemplatePart):
-    """
-    Optional table styles part. Corresponds to package file
-    ppt/tableStyles.xml.
-    """
-    def __init__(self, path):
-        TemplatePart.__init__(self, 'tableStyles', path)
-        self.cardinality = 'single'
-    
-
-
-# ============================================================================
-# Theme
-# ============================================================================
-
-class Theme(TemplatePart):
-    """
-    Theme part. Corresponds to package files ppt/theme/theme[1-9][0-9]*.xml.
-    """
-    def __init__(self, parent, path):
-        TemplatePart.__init__(self, 'theme', path)
-        self.parent = parent
-        self.images = []
-    
-
-
-# ============================================================================
-# ViewProps
-# ============================================================================
-
-class ViewProps(TemplatePart):
-    """
-    Optional view properties part. Corresponds to package file
-    ppt/viewProps.xml.
-    """
-    def __init__(self, path):
-        TemplatePart.__init__(self, 'viewProps', path)
-        self.cardinality = 'single'
-    
-
-
-# # ============================================================================
-# # PlaceholderText
-# # ============================================================================
-# # Shape that holds text to be displayed in a placeholder specified by the
-# # slide layout.
-# #     The placeholder_type provided must be one of ST_PlaceholderType defined
-# # in the PresentationML schema.
-# #     The string supplied as the text parameter may contain carriage returns
-# # ('\r') and or line feeds ('\n'). Carriage returns will cause a new run to
-# # be created with a break (<a:br/>) intervening between it and the prior run.
-# # Line feeds will cause a new paragraph to be created to contain the text
-# # that follows the line feed.
-# #     The index parameter is important for matching up the text with the
-# # right placeholder. I don't fully understand the logic used, but in one
-# # pptx file I've seen the <p:ph> idx attribute matched with that of the
-# # proper placeholder. The default is 0 and that seems to match the title
-# # placeholder.
-# # ============================================================================
-#
-# class PlaceholderText(Shape):
-#
-#     def __init__(self, name, placeholder_type, text, placeholder_index=None):
-#         if placeholder_type not in placeholder_types:
-#             raise TypeError("placeholder_type must be one of %s, got '%s'." % (placeholder_types, placeholder_type))
-#         Shape.__init__(self, name)
-#         self.placeholder_type  = placeholder_type
-#         self.placeholder_index = placeholder_index
-#         self.text = text
-#
-#         # locate nodes we need to have handy (these are all required elements so we're assured they're present)
-#         sp      = self.element
-#         nvSpPr  = sp.find(qname('p', 'nvSpPr'))
-#         spPr    = sp.find(qname('p', 'spPr'))
-#         cNvSpPr = nvSpPr.find(qname('p', 'cNvSpPr'))
-#
-#         # add shape lock to prevent grouping the placeholder element with others
-#         node = cNvSpPr.find(qname('a', 'spLocks'))
-#         spLocks = node if node else SubElement(cNvSpPr, qname('a', 'spLocks'))
-#         spLocks.attrib['noGrp'] = 'true'
-#
-#         # add placeholder type so text can find its home on slide layout
-#         node = nvSpPr.find(qname('p', 'nvPr'))
-#         nvPr = node if node else SubElement(nvSpPr, qname('p', 'nvPr'))
-#         node = nvPr.find(qname('p', 'ph'))
-#         ph   = node if node else SubElement(nvPr, qname('p', 'ph'))
-#         ph.attrib['type'] = placeholder_type
-#         if placeholder_index:
-#             ph.attrib['idx'] = str(placeholder_index)
-#
-#         # add txBody to hold text
-#         txBody = sp.find(qname('p', 'txBody'))
-#         if not node:
-#             txBody = Element(qname('p', 'txBody'))
-#             sp.insert(sp.index(spPr)+1, txBody)
-#         bodyPr = txBody.find(qname('a', 'bodyPr'))
-#         if not bodyPr:
-#             bodyPr = Element(qname('a', 'bodyPr'))
-#             txBody.insert(0, bodyPr)
-#
-#         # get rid of any text that might be there already
-#         del txBody[1:]
-#
-#         # insert the provided text
-#         lines = text.split('\n')
-#         for line in lines:
-#             p = SubElement(txBody, qname('a', 'p'))
-#             runs = line.split('\r')
-#             for run in runs:
-#                 br = SubElement(p, qname('a', 'br')) if runs.index(run) > 0 else None
-#                 r = SubElement(p, qname('a', 'r'))
-#                 t = SubElement(r, qname('a', 't'))
-#                 t.text = run
-#
-#
-#     @property
-#     def minimalelement(self):
-#         sp      = Element(qname('p', 'sp'))
-#         nvSpPr  = SubElement(sp     , qname('p', 'nvSpPr'  ) )
-#         cNvPr   = SubElement(nvSpPr , qname('p', 'cNvPr'   ) , id='None', name=self.name)
-#         cNvSpPr = SubElement(nvSpPr , qname('p', 'cNvSpPr' ) )
-#         spPr    = SubElement(sp     , qname('p', 'spPr'    ) )
-#         return sp
+    # def __init__(self, name, placeholder_type, text, placeholder_index=None):
+    #     if placeholder_type not in placeholder_types:
+    #         raise TypeError("placeholder_type must be one of %s, got '%s'." % (placeholder_types, placeholder_type))
+    #     super(PlaceholderText, self).__init__(name)
+    #     self.placeholder_type  = placeholder_type
+    #     self.placeholder_index = placeholder_index
+    #     self.text = text
+    #     # locate nodes we need to have handy (these are all required elements so we're assured they're present)
+    #     sp      = self.element
+    #     nvSpPr  = sp.find(qname('p', 'nvSpPr'))
+    #     spPr    = sp.find(qname('p', 'spPr'))
+    #     cNvSpPr = nvSpPr.find(qname('p', 'cNvSpPr'))
+    #     # add shape lock to prevent grouping the placeholder element with others
+    #     node = cNvSpPr.find(qname('a', 'spLocks'))
+    #     spLocks = node if node else SubElement(cNvSpPr, qname('a', 'spLocks'))
+    #     spLocks.attrib['noGrp'] = 'true'
+    #     # add placeholder type so text can find its home on slide layout
+    #     node = nvSpPr.find(qname('p', 'nvPr'))
+    #     nvPr = node if node else SubElement(nvSpPr, qname('p', 'nvPr'))
+    #     node = nvPr.find(qname('p', 'ph'))
+    #     ph   = node if node else SubElement(nvPr, qname('p', 'ph'))
+    #     ph.attrib['type'] = placeholder_type
+    #     if placeholder_index:
+    #         ph.attrib['idx'] = str(placeholder_index)
+    #     # add txBody to hold text
+    #     txBody = sp.find(qname('p', 'txBody'))
+    #     if not node:
+    #         txBody = Element(qname('p', 'txBody'))
+    #         sp.insert(sp.index(spPr)+1, txBody)
+    #     bodyPr = txBody.find(qname('a', 'bodyPr'))
+    #     if not bodyPr:
+    #         bodyPr = Element(qname('a', 'bodyPr'))
+    #         txBody.insert(0, bodyPr)
+    #     # get rid of any text that might be there already
+    #     del txBody[1:]
+    #     # insert the provided text
+    #     lines = text.split('\n')
+    #     for line in lines:
+    #         p = SubElement(txBody, qname('a', 'p'))
+    #         runs = line.split('\r')
+    #         for run in runs:
+    #             br = SubElement(p, qname('a', 'br')) if runs.index(run) > 0 else None
+    #             r = SubElement(p, qname('a', 'r'))
+    #             t = SubElement(r, qname('a', 't'))
+    #             t.text = run
+    # 
+    # @property
+    # def minimalelement(self):
+    #     sp      = Element(qname('p', 'sp'))
+    #     nvSpPr  = SubElement(sp     , qname('p', 'nvSpPr'  ) )
+    #     cNvPr   = SubElement(nvSpPr , qname('p', 'cNvPr'   ) , id='None', name=self.name)
+    #     cNvSpPr = SubElement(nvSpPr , qname('p', 'cNvSpPr' ) )
+    #     spPr    = SubElement(sp     , qname('p', 'spPr'    ) )
+    #     return sp
+    # 
 
 

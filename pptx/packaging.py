@@ -8,12 +8,19 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 '''
-Code that deals with packaging the various parts of the PowerPoint
-presentation into a .pptx file.
+Code that deals with reading and writing presentations to and from a .pptx file.
 
-... general principle, packaging module understands files, package directory
-structure, zip files, relationship files, package items, and Presentation
-API of presentation module only.
+As a general principle, this module hides the complexity of the package
+directory structure, file reading and writing, zip file manipulation, and
+relationship items, needing only an understanding of the high-level
+Presentation API to do its work.
+
+REFACTOR: Consider generalizing such that specific classes for part types and
+part type collections are no longer required, and can be delivered by factory
+functions as parameter driven or perhaps table driven. If that were possible,
+this module might be easily adapted to WordprocessingML and SpreadsheetML
+without code specific to either of those package formats.
+
 '''
 
 import os
@@ -21,118 +28,100 @@ import re
 import zipfile
 
 from lxml import etree
+from StringIO import StringIO
 
-from pptx            import spec
+import pptx.spec
+
 from pptx            import util
-from pptx.exceptions import CorruptedTemplateError
-from pptx.spec       import PartType
+from pptx.exceptions import CorruptedPackageError, DuplicateKeyError, NotXMLError, PackageNotFoundError
+from pptx.spec       import qname
+
+import logging
+log = logging.getLogger('pptx.packaging')
+log.setLevel(logging.DEBUG)
+# log.setLevel(logging.INFO)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+log.addHandler(ch)
+
 
 # ============================================================================
-# Class catalog
-# ============================================================================
-
 # API Classes
-# ----------------------------------------------------------------------------
-# Package
-# PartType
-# PartTypes
-# TemplatePackage
-
-# Package Items
-# ----------------------------------------------------------------------------
-# PackageItem
-# ContentTypesItem
-# RelationshipItem
-# PackageRelationshipItem
-# PartRelationshipItem
-
-# Part Collections
-# ----------------------------------------------------------------------------
-# PartCollection
-# ImageParts
-# SlideLayoutParts
-# SlideMasterParts
-# SlideParts
-# ThemeParts
-
-# Parts
-# ----------------------------------------------------------------------------
-# Part
-# ImagePart
-# PresentationPart
-# PresPropsPart
-# SlideLayoutPart
-# SlideMasterPart
-# SlidePart
-# TableStylesPart
-# ThemePart
-# ViewPropsPart
-
-# Relationships
-# ----------------------------------------------------------------------------
-# PartRelationship
-# RelationshipElement
- 
-# Files
-# ----------------------------------------------------------------------------
-# TemplateFiles
-# PackageItemFile
-# PackageItemFileCollection
-# PartFile
-# PartFiles
-# PartRelsFiles
-
-
-# ============================================================================
-# Package
-# ============================================================================
-# Start with media parts (they don't have a relationship item)
-# -------------------------------------------------------------------
-# (/) image parts  #TECHDEBT: Need to distinguish images from other media by extension in ext2mime_map
-# audio parts
-# video parts
-
-# Then template parts
-# -------------------------------------------------------------------
-# (/) theme parts
-# (/) slide master parts
-# (/) slide layout parts
-# (/) table styles part
-# (/) view properties part
-# handout master part
-# notes master part
-# theme override parts
-
-# Then document property parts
-# -------------------------------------------------------------------
-# file property parts
-# thumbnail part?
-
-# Then presentation parts
-# -------------------------------------------------------------------
-# (/) slide parts
-# notes slide parts
-# (/) presentation properties part
-# (/) presentation part
 # ============================================================================
 
 class Package(object):
+    """
+    Load or save an Open XML package.
     
-    def __init__(self, presentation):
+    Hides packaging complexities.
+    
+    """
+    def __init__(self):
+        """
+        Construct and initialize a new package instance. Package is initially
+        empty, call ``open()`` to open an on-disk package or ``save()`` to
+        save an in-memory Office document.
         
+        """
+        super(Package, self).__init__()
+        self.__parts = PartCollection(self)
+    
+    def loadparts(self, fs, cti, rels):
+        """
+        Load package parts by walking the relationship graph. If called with
+        the package relationships, all parts in the package will be loaded.
+        
+        rels
+           List of :class:`Relationship`. If not already loaded, the target
+           part of each relationship is loaded and :meth:`loadparts()` called
+           recursively with that part's relationships.
+        """
+        for r in rels:
+            partname = r.target_partname
+            # only visit each part once, graph is cyclical
+            if partname in self.parts:
+                continue
+            ct = cti[partname]
+            part = self.parts.loadpart(fs, partname, ct)
+            # recurse on new part's relationships
+            if part.relationships:
+                self.loadparts(fs, cti, part.relationships)
+    
+    def open(self, path):
+        """
+        Load the on-disk package located at *path*.
+        
+        """
+        fs = FileSystem(path)
+        cti = ContentTypesItem().load(fs)
+        pri = PackageRelationshipsItem().load(fs)
+        # test Package.loadparts() part count
+        # ----
+        # self.loadparts(fs, cti, pri.relationships)
+        return self
+    
+    @property
+    def parts(self):
+        """
+        Return instance of :class:`pptx.packaging.PartCollection` in which
+        this package's parts are contained.
+        
+        """
+        return self.__parts
+    
+    def save(self, presentation, filename):
+        """
+        ... DOCME ...
+        
+        """
         # initialize part collections
         self.imageparts       = ImageParts       (self)
         self.themeparts       = ThemeParts       (self)
         self.slidemasterparts = SlideMasterParts (self)
         self.slidelayoutparts = SlideLayoutParts (self)
         self.slideparts       = SlideParts       (self)
-        
-        # initialize relationship item
-        self.relationshipitem = PackageRelationshipItem(self)
-        self.contenttypesitem = ContentTypesItem(self)
-        
-#TECHDEBT: Add images using their references from other parts so that only
-#          referenced ones are written to the package
         # load collections from presentation
         for item in presentation.images       : self.imageparts       .additem(item)
         for item in presentation.themes       : self.themeparts       .additem(item)
@@ -140,78 +129,13 @@ class Package(object):
         for item in presentation.slidelayouts : self.slidelayoutparts .additem(item)
         for item in presentation.slides       : self.slideparts       .additem(item)
         # load non-collection parts from presentation
-        self.presentationpart  = PresentationPart (self, presentation)
-#TECHDEBT: Need to make these two parts work when no file exists for them in the template
-        # self.handoutmasterpart = HandoutMasterPart(self, presentation.presprops)
-        # self.notesmasterpart   = NotesMasterPart(self, presentation.presprops)
-        self.prespropspart     = PresPropsPart    (self, presentation.presprops)
-        self.tablestylespart   = TableStylesPart  (self, presentation.tablestyles)
-        self.viewpropspart     = ViewPropsPart    (self, presentation.viewprops)
-        
-        # compile list of all the package parts
-        self.parts = []
-        # singleton parts
-#TECHDEBT: Need to make these two parts work when no file exists for them in the template
-        # self.parts.append(self.handoutmasterpart)
-        # self.parts.append(self.notesmasterpart)
-        self.parts.append(self.presentationpart)
-        self.parts.append(self.prespropspart)
-        self.parts.append(self.tablestylespart)
-        self.parts.append(self.viewpropspart)
-        # collection parts
-        self.parts.extend(self.imageparts)
-        self.parts.extend(self.slidemasterparts)
-        self.parts.extend(self.slidelayoutparts)
-        self.parts.extend(self.slideparts)
-        self.parts.extend(self.themeparts)
-        
-        # relationships are implemented by individual Part classes
-        
-    
-    def __normalizedfilename(self, filename):
-        # add .pptx extension to filename if it doesn't have one
-        filename = filename if filename[-5:] == '.pptx' else filename + '.pptx'
-        return filename
-    
-    @property
-    def items(self):
-        items = []
-        items.extend(self.parts)              # parts (every part is a package item)
-        for part in self.parts:               # Part relationship items
-            if part.relationshipitem:
-                # print "%s for %s" % (part.relationshipitem.__class__.__name__, part.filename)
-                items.append(part.relationshipitem)
-            else:
-                pass  # just need this when logging line below is commented out
-                # print "No relationship item for %s" % part.filename
-        items.append(self.relationshipitem)   # package relationship item
-        items.append(self.contenttypesitem)   # content types item
-        return items
-    
-    @property
-    def relatedparts(self):
-        relatedparts = []
-        # relatedparts.append(self.coredocpropspart)
-        # relatedparts.append(self.appdocpropspart)
-        # relatedparts.append(self.thumbnailpart)
-        relatedparts.append(self.presentationpart)
-        return relatedparts
-    
-    #REFACTOR: Consider renaming this property to relationshipelements to
-    #          make clear it's a list of etree.Element
-    @property
-    def relationships(self):
-        relationships = []
-        for idx, relatedpart in enumerate(self.relatedparts):
-            rId              = idx+1
-            relationshiptype = relatedpart.parttype.relationshiptype
-            targetdir        = relatedpart.parttype.pkgreldir
-            targetfilename   = relatedpart.filename
-            targetpath       = os.path.join(targetdir, targetfilename)
-            relationships.append(RelationshipElement(rId, relationshiptype, targetpath))
-        return relationships
-    
-    def save(self, filename):
+        self.presentationpart  = PresentationPart (self).load(item=presentation)
+        self.prespropspart     = PresPropsPart    (self).load(item=presentation.presprops)
+        self.tablestylespart   = TableStylesPart  (self).load(item=presentation.tablestyles)
+        self.viewpropspart     = ViewPropsPart    (self).load(item=presentation.viewprops)
+        # initialize relationship item
+        self.relationshipitem = OldPackageRelationshipItem(self)
+        self.contenttypesitem = ContentTypesItem(self)
         items = self.items
         # create the zip file to hold the presentation package
         pptxfile = zipfile.ZipFile(filename, mode='w', compression=zipfile.ZIP_DEFLATED)
@@ -221,51 +145,766 @@ class Package(object):
             package_item.write(pptxfile)
         pptxfile.close()
     
-
-
-# ============================================================================
-# TemplatePackage
-# ============================================================================
-# #TODO: Enhance this so it can read a template from a zip archive without
-#        requiring it to be expanded out into a directory.
-# ============================================================================
-
-class TemplatePackage(Package):
+    def __normalizedfilename(self, filename):
+        """
+        ... DOCME ...
+        
+        """
+        # add .pptx extension to filename if it doesn't have one
+        filename = filename if filename[-5:] == '.pptx' else filename + '.pptx'
+        return filename
     
-    # NOTE: Not sure why this doesn't call Package.__init__(), might need to
-    #       distinguish between PresentationPackage and TemplatePackage, with
-    #       Package being the superclass for each of them.
-    def __init__(self, templatedir):
-        self.templatedir   = templatedir
-        self.templatefiles = TemplateFiles(templatedir)
+
+
+# ============================================================================
+# FileSystem Classes
+# ============================================================================
+
+class FileSystem(object):
+    """
+    Factory for filesystem interface instances.
+    
+    A FileSystem object provides access to on-disk package items via their URI
+    (e.g. ``/_rels/.rels`` or ``/ppt/presentation.xml``). This allows parts to
+    be accessed directly by part name, which for a part is identical to its
+    item URI. The complexities of translating URIs into file paths or zip item
+    names, and file and zip file access specifics are all hidden by the
+    filesystem class. :class:`FileSystem` acts as the Factory, returning the
+    appropriate concrete filesystem class depending on what it finds at
+    *path*.
+    
+    """
+    def __new__(cls, path):
+        # if path is a directory, return instance of DirectoryFileSystem
+        if os.path.isdir(path):
+            instance = DirectoryFileSystem(path)
+        # if path is a zip file, return instance of ZipFileSystem
+        elif os.path.isfile(path) and zipfile.is_zipfile(path):
+            instance = ZipFileSystem(path)
+        # otherwise, something's not right, throw exception
+        else:
+            raise PackageNotFoundError("""Package not found at %s""" % (path))
+        return instance
+    
+
+class BaseFileSystem(object):
+    """
+    Base class for FileSystem classes, providing common methods.
+    
+    """
+    def __init__(self, path):
+        self.__path = os.path.abspath(path)
+    
+    def __contains__(self, itemURI):
+        """
+        Allows use of 'in' operator to test whether an item with the specified
+        URI exists in this filesystem.
+        
+        """
+        return itemURI in self.itemURIs
+    
+    def getelement(self, itemURI):
+        """
+        Return ElementTree element of XML item identified by *itemURI*.
+        
+        """
+        if itemURI not in self:
+            raise LookupError("No package item with URI '%s'" % itemURI)
+        stream = self.getstream(itemURI)
+        try:
+            parser = etree.XMLParser(remove_blank_text=True)
+            element = etree.parse(stream, parser).getroot()
+        except etree.XMLSyntaxError:
+            raise NotXMLError("package item %s is not XML" % itemURI)
+        stream.close()
+        return element
+    
+    @property
+    def path(self):
+        """
+        Path property is read-only. Need to instantiate a new FileSystem
+        object to access a different package.
+        """
+        return self.__path
+    
+
+class DirectoryFileSystem(BaseFileSystem):
+    """
+    Provides access to package members that have been expanded into an on-disk
+    directory structure.
+    
+    Inherits __contains__(), getelement(), and path from BaseFileSystem.
+    
+    """
+    def __init__(self, path):
+        """
+        path
+           Path to directory containing expanded package.
+        
+        """
+        super(DirectoryFileSystem, self).__init__(path)
+    
+    def getstream(self, itemURI):
+        """
+        Return file-like object containing package item identified by
+        *itemURI*. Remember to call close() on the stream when you're done
+        with it to free up the memory it uses.
+        
+        """
+        if itemURI not in self:
+            raise LookupError("No package item with URI '%s'" % itemURI)
+        path = os.path.join(self.path, itemURI[1:])
+        with open(path) as f:
+            stream = StringIO(f.read())
+        return stream
+    
+    @property
+    def itemURIs(self):
+        """
+        Return list of all filenames under filesystem root directory,
+        formatted as item URIs. Each URI is the relative path of that file
+        with a leading slash added, e.g. '/ppt/slides/slide1.xml'. Although
+        not strictly necessary, the results are sorted for neatness' sake.
+        
+        """
+        itemURIs = []
+        for dirpath, dirnames, filenames in os.walk(self.path):
+            for filename in filenames:
+                item_path = os.path.join(dirpath, filename)
+                itemURI = item_path[len(self.path):]  # leaves a leading slash on
+                itemURIs.append(itemURI)
+        return sorted(itemURIs)
+    
+
+class ZipFileSystem(BaseFileSystem):
+    """
+    FileSystem interface for zip-based packages (i.e. regular Office files).
+    Provides standard access methods to hide complexity of dealing with
+    varied package formats.
+    
+    Inherits __contains__(), getelement(), and path from BaseFileSystem.
+    
+    """
+    def __init__(self, path):
+        """
+        path
+           Path to directory containing expanded package.
+        
+        """
+        super(ZipFileSystem, self).__init__(path)
+    
+    def getstream(self, itemURI):
+        """
+        Return file-like object containing package item identified by
+        *itemURI*. Remember to call close() on the stream when you're done
+        with it to free up the memory it uses.
+        
+        """
+        if itemURI not in self:
+            raise LookupError("No package item with URI '%s'" % itemURI)
+        membername = itemURI[1:]  # trim off leading slash
+        zip = zipfile.ZipFile(self.path)
+        stream = StringIO(zip.read(membername))
+        zip.close()
+        return stream
+    
+    @property
+    def itemURIs(self):
+        """
+        Return list of archive members formatted as item URIs. Each member
+        name is the archive-relative path of that file. A forward-slash is
+        prepended to form the URI, e.g. '/ppt/slides/slide1.xml'. Although
+        not strictly necessary, the results are sorted for neatness' sake.
+        
+        """
+        zip = zipfile.ZipFile(self.path)
+        namelist = zip.namelist()
+        zip.close()
+        # zip archive can contain entries for directories, so get rid of those
+        itemURIs = [('/%s' % name) for name in namelist if not name.endswith('/')]
+        return sorted(itemURIs)
+    
+
+
+# ============================================================================
+# Part Type Specs
+# ============================================================================
+
+class PartTypeSpec(object):
+    """
+    Reference to the characteristics of the various part types, as defined in
+    ECMA-376.
+    
+    Entries are keyed by content type, a MIME type-like string that
+    distinguishes parts of different types. The content type of each part in a
+    package is indicated in the [Content_Types].xml stream located in the root
+    of the package.
+    
+    Instances are cached, so no more than one instance for a particular
+    content type is in memory.
+    
+    .. attribute:: basename
+       
+       The root of the part's filename within the package. For example,
+       rootname for slideLayout1.xml is 'slideLayout'. Note that the part's
+       rootname is also used as its key value.
+    
+    .. attribute:: ext
+       
+       The extension of the part's filename within the package. For example,
+       file_ext for the presentation part (presentation.xml) is 'xml'.
+    
+    .. attribute:: cardinality
+       
+       One of 'single' or 'multiple', specifying whether the part is a
+       singleton or tuple within the package. ``presentation.xml`` is an
+       example of a singleton part. ``slideLayout4.xml`` is an example of a
+       tuple part. The term *tuple* in this context is drawn from set theory
+       in math and has no direct relationship to the Python tuple class.
+    
+    .. attribute:: required
+       
+       Boolean expressing whether at least one instance of this part type must
+       appear in the package. ``presentation`` is an example of a required
+       part type. ``notesMaster`` is an example of a optional part type.
+    
+    .. attribute:: baseURI
+       
+       The package-relative path of the directory in which part files for this
+       type are stored. For example, location for ``slideLayout`` is
+       '/ppt/slideLayout'. The leading slash corresponds to the root of the
+       package (zip file). Note that directories in the actual package zip
+       file do not contain this leading slash (otherwise they would be
+       placed in the root directory when the zip file was expanded).
+    
+    .. attribute:: has_rels
+       
+       One of 'always', 'never', or 'optional', indicating whether parts of
+       this type have a corresponding relationship item, or "rels file".
+    
+    .. attribute:: rel_type
+       
+       A URL that identifies this part type in rels files. For example,
+       relationshiptype for ``slides/slide1.xml`` is
+       ``http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide``
+    
+    .. attribute:: format
+       
+       One of 'xml' or 'binary'.
+    
+    """
+    __instances = {}
+    __loadclassmap = {}
+    
+    def __new__(cls, content_type):
+        """
+        Only create new instance on first call for content_type. After that,
+        use cached instance.
+        
+        """
+        # if there's not an matching instance in the cache, create one
+        if content_type not in cls.__instances:
+            inst = super(PartTypeSpec, cls).__new__(cls)
+            cls.__instances[content_type] = inst
+        # return the instance; note that __init__() gets called either way
+        return cls.__instances[content_type]
+    
+    def __init__(self, content_type):
+        """
+        Initialize spec attributes from constant values in pptx.spec.
+        
+        """
+        # skip loading if this instance is from the cache
+        if hasattr(self, '_loaded'):
+            return
+        # otherwise initialize new instance
+        self._loaded = True
+        if content_type not in pptx.spec.pml_parttypes:
+            tmpl = "no content type '%s' in pptx.spec.pml_parttypes"
+            raise KeyError(tmpl % content_type)
+        ptsdict = pptx.spec.pml_parttypes[content_type]
+        # load attributes from spec constants dictionary
+        self.basename    = ptsdict['basename']     # e.g. 'slideMaster'
+        self.ext         = ptsdict['ext']          # e.g. '.xml'
+        self.cardinality = ptsdict['cardinality']  # e.g. 'single' or 'multiple'
+        self.required    = ptsdict['required']     # e.g. False
+        self.baseURI     = ptsdict['baseURI']      # e.g. '/ppt/slideMasters'
+        self.has_rels    = ptsdict['has_rels']     # e.g. 'always', 'never', or 'optional'
+        self.rel_type    = ptsdict['rel_type']     # e.g. 'http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties'
+        # set class to load parts of this type
+        if content_type in PartTypeSpec.__loadclassmap:
+            self.loadclass = PartTypeSpec.__loadclassmap[content_type]
+        else:
+            self.loadclass = None
+    
+    @classmethod
+    def register(cls, loadclassmap):
+        for content_type, loadclass in loadclassmap.items():
+            cls.__loadclassmap[content_type] = loadclass
+    
+    @property
+    def format(self):
+        """
+        One of 'xml' or 'binary'.
+        
+        """
+        return 'xml' if self.ext == 'xml' else 'binary'
+    
+
+
+# ============================================================================
+# Package Items
+# ============================================================================
+
+class ContentTypesItem(object):
+    """
+    Development content types item, planned to merge with OldContentTypesItem
+    once it's further along and its test suite is reasonably well-developed.
+    
+    Lookup content type by part name using dictionary syntax, e.g.
+    ``content_type = cti['/ppt/presentation.xml']``.
+    
+    """
+    def __init__(self):
+        super(ContentTypesItem, self).__init__()
+        self.__defaults = None
+        self.__overrides = None
+    
+    def __getitem__(self, partname):
+        """
+        Return the content type for the part with *partname*.
+        
+        """
+        # throw exception if called before load()
+        if self.__defaults is None or self.__overrides is None:
+            raise LookupError("""No part name '%s' in [Content_Types].xml""" % (partname))
+        # first look for an explicit content type
+        if partname in self.__overrides:
+            return self.__overrides[partname]
+        # if not, look for a default based on the extension
+        ext = os.path.splitext(partname)[1]            # get extension of partname
+        ext = ext[1:] if ext.startswith('.') else ext  # with leading dot trimmed off
+        if ext in self.__defaults:
+            return self.__defaults[ext]
+        # if neither of those work, throw an exception
+        raise LookupError("""No part name '%s' in package content types item""" % (partname))
+    
+    def load(self, fs):
+        """
+        Retrieve [Content_Types].xml from specified file system and load it.
+        Returns a reference to this ContentTypesItem instance to allow
+        generative call, e.g. ``cti = ContentTypesItem().load(fs)``.
+        
+        """
+        element = fs.getelement('/[Content_Types].xml')
+        defaults = element.findall(qname('ct','Default'))
+        overrides = element.findall(qname('ct','Override'))
+        self.__defaults = {d.get('Extension'): d.get('ContentType') for d in defaults}
+        self.__overrides = {o.get('PartName'): o.get('ContentType') for o in overrides}
+        return self
+    
+
+
+# ============================================================================
+# Relationship-related Classes
+# ============================================================================
+
+class Relationship(object):
+    """
+    In-memory relationship between a source item (usually a part) and a target
+    part.
+    
+    Requires access to a parent object which must provide certain properties
+    Relationship needs to form proper URIs. The source part (from-part) in the
+    relationship is implictly the part that's keeping track of this instance,
+    generally the part having the RelationshipCollection this Relationship
+    stores a reference to in its *parent* attribute.
+    
+    """
+    def __init__(self, parent, element):
+        super(Relationship, self).__init__()
+        self.parent = parent  # parent is generally a RelationshipCollection instance
+        self.rId = element.get('Id')
+        self.reltype = element.get('Type')
+        self.__target = element.get('Target')
+    
+    @property
+    def target(self):
+        """
+        Return relative URI to target part, suitable for use in a rels file.
+        
+        This attribute is read-only on :class:`Relationship`.
+        
+        """
+        return self.__target
+    
+    @property
+    def target_partname(self):
+        """
+        Return part name of target part.
+        
+        In rels files, the relationship target is expressed as a relative URI,
+        essentially a relative path to the target part from the source part's
+        directory. This method performs the calculations to translate that
+        relative URI into an absolute one, which is what the part name is.
+        
+        """
+        return os.path.abspath(os.path.join(self.parent.baseURI, self.__target))
+    
+
+class RelationshipCollection(list):
+    """
+    Provides collection and convenience methods and properties to the list of
+    relationships belonging to a package or part.
+    
+    Each relationship has a local id (rId), source, target, and relationship
+    type. The source is implicitly the part or package the relationship
+    collection belongs to, so the RelationshipCollection needs a reference to
+    the source on construction.
+    
+    """
+    def __init__(self, parent):
+        """
+        parent
+           So far, an instance of a subclass of :class:`RelationshipsItem`
+           that can provide delegated attributes such as *baseURI*.
+        
+        """
+        super(RelationshipCollection, self).__init__()
+        self.__parent = parent
+        self._id_dict = {}
+    
+    def __repr__(self):
+        mod = self.__class__.__module__
+        cls = self.__class__.__name__
+        mem = '0x' + hex(id(self))[2:].zfill(8).upper()
+        return '<{0}.{1} instance at {2}>'.format(mod, cls, mem)
+    
+    def additem(self, rel_elm):
+        """
+        Construct a new Relationship instance from *rel_elm* and append it to
+        the collection.
+        
+        """
+        rel = Relationship(self, rel_elm)
+        if rel.rId in self._id_dict:
+            msg = "cannot add relationship with duplicate key ('%s')" % rel.rId
+            raise DuplicateKeyError(msg)
+        self._id_dict[rel.rId] = rel
+        self.append(rel)
+        return rel
+    
+    @property
+    def baseURI(self):
+        """
+        Return the baseURI used to resolve target URIs in this collection into
+        partnames.
+        
+        """
+        return self.__parent.baseURI
+    
+    def getitem(self, key):
+        """
+        Return the Relationship instance corresponding to *key*, the rId value
+        of the relationship to return.
+        
+        """
+        if key in self._id_dict:
+            return self._id_dict[key]
+        raise LookupError("""getitem() lookup in %s failed with key '%s'""" % (self.__class__.__name__, key))
+    
+
+class RelationshipsItem(object):
+    """
+    Relationships items specify the relationships between parts of the
+    package, although they are not themselves a part. All relationship items
+    are XML documents having a filename with the extension '.rels' located in
+    a directory named '_rels' located in the same directory as the part. The
+    package relationship item has the URI '/_rels/.rels'. Part relationship
+    items have the same filename as the part whose relationships they
+    describe, with the '.rels' extension appended as a suffix. For example,
+    the relationship item for a part named 'slide1.xml' would have the URI
+    '/ppt/slides/_rels/slide1.xml.rels'.
+    
+    """
+    def __init__(self):
+        super(RelationshipsItem, self).__init__()
+        self.__relationships = RelationshipCollection(self)
+    
+    def load(self, fs, itemURI):
+        """
+        Load contents of rels file specified by *itemURI* from filesystem
+        provided. Returns a reference to this RelationshipsItem instance to
+        enable generative call, e.g.
+        ``ri = RelationshipsItem().load(stream)``. Discards any existing
+        relationships before loading.
+        
+        """
+        element = fs.getelement(itemURI)
+        relationships = element.findall(qname('pr','Relationship'))
+        # discard relationships from any prior load
+        self.__relationships = RelationshipCollection(self)
+        for r in relationships:
+            self.__relationships.additem(r)
+        return self
     
     @property
     def relationships(self):
-        relationships = []
-        for relsfile in self.templatefiles.relsfiles:
-            relationships.extend(self.__parserelsfile(relsfile))
-        return relationships
+        """
+        Return instance of :class:`RelationshipsCollection` containing the
+        relationships in this :class:`RelationshipsItem`.
+        
+        """
+        return self.__relationships
     
-    def __parserelsfile(self, relsfile):
-        relationships = []
-        tree = etree.parse(relsfile.path)
-        relationshipelements = tree.getroot().findall(spec.qname('pr','Relationship'))
-        for relationshipelement in relationshipelements:
-            relationships.append(PartRelationship.parse(relsfile.partfile, relationshipelement))
-        return relationships
+
+class PackageRelationshipsItem(RelationshipsItem):
+    """
+    Differentiated behaviors for the package relationships item. The package
+    relationship item is a singleton, and has other differences from part
+    relationships items.
+    
+    """
+    def __init__(self):
+        super(PackageRelationshipsItem, self).__init__()
+    
+    @property
+    def baseURI(self):
+        """
+        Return the baseURI used to resolve target URIs into partnames for
+        relationships in the package relationships item.
+        
+        """
+        return '/'
+    
+    @property
+    def itemURI(self):
+        """
+        Return the package item URI of this relationships item.
+        
+        """
+        return '/_rels/.rels'
+    
+    def load(self, fs):
+        """
+        Load contents of rels file specified by *itemURI* from filesystem
+        provided. Returns a reference to this RelationshipsItem instance to
+        enable generative call, e.g.
+        ``ri = RelationshipsItem().load(stream)``. Discards any existing
+        relationships before loading.
+        
+        """
+        return super(PackageRelationshipsItem, self).load(fs, self.itemURI)
+    
+
+class PartRelationshipsItem(RelationshipsItem):
+    """
+    Differentiated behaviors for part relationships items.
+    
+    .. attribute:: baseURI
+       
+       baseURI used to resolve target URIs into partnames for this
+       relationships item.
+    
+    """
+    def __init__(self):
+        super(PartRelationshipsItem, self).__init__()
+        self.__part = None
+        self.baseURI = None
+        self.__itemURI = None
+    
+    @property
+    def itemURI(self):
+        """
+        Return the package item URI of this relationships item.
+        
+        """
+        return self.__itemURI
+    
+    def load(self, part, fs, itemURI):
+        """
+        Load contents of rels file specified by *itemURI* from filesystem
+        provided. Returns a reference to this RelationshipsItem instance to
+        enable generative call, e.g.
+        ``ri = RelationshipsItem().load(stream)``. Discards any existing
+        relationships before loading.
+        
+        """
+        if not isinstance(part, Part):
+            msg = "'part' parameter of invalid type; expected 'Part', "\
+                  "got '%s'" % (type(part).__name__)
+            raise TypeError(msg)
+        self.__part = part
+        self.baseURI = os.path.split(part.itemURI)[0]
+        self.__itemURI = itemURI
+        return super(PartRelationshipsItem, self).load(fs, itemURI)
     
 
 
 # ============================================================================
-# PackageItem
+# Parts
 # ============================================================================
+
+class PartCollection(list):
+    """
+    Provides collection and convenience methods and properties for list of
+    package parts.
+    
+    """
+    def __init__(self, package):
+        super(PartCollection, self).__init__()
+        self.__partname_dict = {}
+        self.__package = package
+    
+    def __contains__(self, partname):
+        """
+        Return True if part with *partname* is member of collection.
+        
+        """
+        return partname in self.__partname_dict
+    
+    def __repr__(self):
+        mod = self.__class__.__module__
+        cls = self.__class__.__name__
+        mem = '0x' + hex(id(self))[2:].zfill(8).upper()
+        return '<{0}.{1} instance at {2}>'.format(mod, cls, mem)
+    
+    def getitem(self, partname):
+        """
+        Return the part with URI *partname*.
+        
+        """
+        if partname in self.__partname_dict:
+            return self.__partname_dict[partname]
+        raise LookupError("getitem() lookup in %s failed with partname '%s'"
+                           % (self.__class__.__name__, partname))
+    
+    def loadpart(self, fs, partname, content_type):
+        """
+        Create new part and add it to collection.
+        
+        :param fs: Filesystem from which to load part
+        :type  fs: :class:`FileSystem`
+        :param partname: Package item URI (part name) of part to be loaded.
+        :param typespec: Metadata for parts of this type
+        :type  typespec: :class:`PartTypeSpec`
+        :param content_type: content type of part identified by *partname*
+        
+        """
+        if partname in self.__partname_dict:
+            msg = "cannot add part with duplicate key ('%s')" % partname
+            raise DuplicateKeyError(msg)
+        part = Part().load(fs, partname, content_type)
+        self.__partname_dict[partname] = part
+        self.append(part)
+        return part
+    
+    @property
+    def package(self):
+        """
+        Package this part collection belongs to.
+        
+        """
+        return self.__package
+    
+
+class Part(object):
+    """
+    Package Part.
+    
+    """
+    def __init__(self):
+        super(Part, self).__init__()
+        self.__partname = None
+        self.__relsitem = None
+        self.__typespec = None
+    
+    def __relsitemURI(self, typespec, partname, fs):
+        """
+        Return package URI for this part's relationships item. Returns None if
+        a part of this type never has relationships. Also returns None if a
+        part of this type has only optional relationships and the package
+        contains no rels item for this part.
+        
+        """
+        if typespec.has_rels == 'never':
+            return None
+        head, tail = os.path.split(partname)
+        relsitemURI = '%s/_rels/%s.rels' % (head, tail)
+        present = relsitemURI in fs
+        if typespec.has_rels == 'optional':
+            return relsitemURI if present else None
+        return relsitemURI
+    
+    @property
+    def itemURI(self):
+        """
+        Return item URI for this part. For a part, the item URI is equivalent
+        to its part name.
+        
+        """
+        return self.__partname
+    
+    def load(self, fs, partname, content_type):
+        """
+        Load part from filesystem.
+        
+        :param fs: Filesystem from which to load part
+        :type  fs: :class:`FileSystem`
+        :param partname: Package item URI (part name) of part to be loaded.
+        :param typespec: Metadata from spec on type of part to be loaded.
+        :type  typespec: :class:`PartTypeSpec`
+        :param content_type: content type of part identified by *partname*
+        
+        """
+        self.__partname = partname
+        self.__typespec = PartTypeSpec(content_type)
+        self.__relsitem = None  # discard any from last load
+        relsitemURI = self.__relsitemURI(self.__typespec, partname, fs)
+        if relsitemURI:
+            if relsitemURI not in fs:
+                tmpl = "required relationships item '%s' not found in package"
+                raise CorruptedPackageError(tmpl % relsitemURI)
+            self.__relsitem = PartRelationshipsItem()
+            self.__relsitem.load(self, fs, relsitemURI)
+        return self
+    
+    @property
+    def partname(self):
+        """
+        Package item URI for this part, commonly known as its part name.
+        
+        """
+        return self.__partname
+    
+    @property
+    def relationshipsitem(self):
+        """
+        Return reference to this part's relationships item, or None if it
+        doesn't have one. A part with no relationships has no relationships
+        item.
+        
+        """
+        return self.__relsitem
+    
+    @property
+    def relationships(self):
+        """
+        Return instance of :class:`RelationshipCollection` containing the
+        relationships for this part.
+        
+        """
+        if self.__relsitem is None:
+            return None
+        return self.__relsitem.relationships
+    
+
+
+# ############################################################################
+# legacy classes
+# ############################################################################
 
 class PackageItem(object):
-    
-    # must be overridden by items that are not XML-based
-    def write(self, pptx_zipfile):
-        pptx_zipfile.writestr(self.zipfilepath, self.xmlstring)
-    
     @property
     def xmlstring(self):
 #TECHDEBT: Maybe should check to see if item content is XML or not and throw exception if not XML
@@ -279,15 +918,21 @@ class PackageItem(object):
         return os.path.join(self.zipdir, self.filename)
     
 
-
-# ============================================================================
-# ContentTypesItem
-# ============================================================================
-
-class ContentTypesItem(PackageItem):
+class OldContentTypesItem(PackageItem):
+    """
+    The Content Types package item appears in every package exactly once with
+    the name '[Content_Types].xml'. Its purpose is to specify the content
+    types (MIME or MIME-like types) of each of the other files in the package
+    so they can be processed appropriately.
     
+    There need only be one :class:`ContentTypesItem` instance for each package
+    and this class would not normally need to be either instantiated or
+    directly accessed by user program code. It is instantiated and called
+    internally by :class:`Package` for all common purposes, but may be
+    interesting to call directly for testing or learning purposes.
+    """
     def __init__(self, package):
-        PackageItem.__init__(self)
+        super(ContentTypesItem, self).__init__()
         self.package  = package
         self.filename = '[Content_Types].xml'
         self.zipdir   = ''
@@ -313,7 +958,7 @@ class ContentTypesItem(PackageItem):
     
     def __defaultelement(self, ext):
         #REFACTOR: Work out a more elegant access method to this ext2mime_map.
-        mimetype = spec.ext2mime_map[ext]
+        mimetype = ext2mime_map[ext]
         element = etree.Element('Default')
         element.set('Extension'   , ext)
         element.set('ContentType' , mimetype)
@@ -340,795 +985,4 @@ class ContentTypesItem(PackageItem):
     def __overrides(self):
         return [self.__override_element(part) for part in self.package.parts if part.filename.endswith('.xml')]
     
-
-
-# ============================================================================
-# RelationshipItem
-# ============================================================================
-
-class RelationshipItem(PackageItem):
-    
-    def __init__(self, fromitem):
-        PackageItem.__init__(self)
-        self.fromitem = fromitem
-    
-    @property
-    def element(self):
-        relationships = self.fromitem.relationships
-        if not relationships:
-            return None
-#TECHDEBT: Root element and namespace should be lookups in ItemTypes (ItemTypes.itemtype('relationship'))
-        element = etree.fromstring('''<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>''')
-        for relationship in relationships:
-            element.append(relationship.element)
-        return element
-    
-
-
-# ============================================================================z
-# PackageRelationshipItem
-# ============================================================================
-
-class PackageRelationshipItem(RelationshipItem):
-    
-    def __init__(self, package):
-        RelationshipItem.__init__(self, package)
-        self.filename = '.rels'
-        self.zipdir   = '_rels'
-    
-
-
-# ============================================================================z
-# PartRelationshipItem
-# ============================================================================
-
-class PartRelationshipItem(RelationshipItem):
-    
-    def __init__(self, part):
-        RelationshipItem.__init__(self, part)
-        self.part = part
-    
-    @property
-    def filename(self):
-        return '%s.rels' % self.part.filename
-    
-    @property
-    def zipdir(self):
-        return os.path.join(self.part.parttype.zipdir, '_rels')
-    
-
-
-# ============================================================================
-# PartCollection
-# ============================================================================
-
-class PartCollection(list):
-    
-    def __init__(self, package):
-        list.__init__(self)
-        self.package = package
-        self.__dict = {}
-    
-    def additem(self, item):
-        if item.key in self.__dict:
-            return self.__dict[item.key]
-        part = self.memberclass(self, item)
-        self.__dict[item.key] = part
-        self.append(part)
-        return part
-    
-    # Can implement a __contains__(self, value) method if anyone needs to test
-    # whether something is already in the collection.
-    def getitem(self, key):
-        if key in self.__dict:
-            return self.__dict[key]
-        raise KeyError("""getitem() lookup in %s failed with key '%s'""" % (self.__class__.__name__, key))
-    
-
-
-# ============================================================================
-# ImageParts
-# ============================================================================
-
-class ImageParts(PartCollection):
-    
-    def __init__(self, package):
-        PartCollection.__init__(self, package)
-        self.memberclass = ImagePart
-    
-
-
-# ============================================================================
-# SlideLayoutParts
-# ============================================================================
-
-class SlideLayoutParts(PartCollection):
-    
-    def __init__(self, package):
-        PartCollection.__init__(self, package)
-        self.memberclass = SlideLayoutPart
-    
-
-
-# ============================================================================
-# SlideMasterParts
-# ============================================================================
-
-class SlideMasterParts(PartCollection):
-    
-    def __init__(self, package):
-        PartCollection.__init__(self, package)
-        self.memberclass = SlideMasterPart
-    
-
-
-# ============================================================================
-# SlideParts
-# ============================================================================
-
-class SlideParts(PartCollection):
-    
-    def __init__(self, package):
-        PartCollection.__init__(self, package)
-        self.memberclass = SlidePart
-    
-
-
-# ============================================================================
-# ThemeParts
-# ============================================================================
-
-class ThemeParts(PartCollection):
-    
-    def __init__(self, package):
-        PartCollection.__init__(self, package)
-        self.memberclass = ThemePart
-    
-
-
-# ============================================================================
-# Part
-# ============================================================================
-#REFACTOR: Also some inconsistency here between (plain-old) parts and
-#          collection parts, in particular having parent being assigned by the
-#          Part super class. [Update]: I'm not so sure, I'm thinking all Parts
-#          need access to the package in order to look up their possible
-#          relationships. idx method might be the only difference between the
-#          po parts and collection parts.
-
-class Part(PackageItem):
-    
-    def __init__(self, parent, item):
-        self.parttype = PartType.lookup(item.parttypekey)
-        self.parent   = parent
-        self.package  = parent.package
-        self.item     = item
-        self.path     = item.path
-    
-    @property
-    def filename(self):
-        cardinality = self.parttype.cardinality
-        if cardinality == 'single':
-            return "%s.%s" % (self.parttype.rootname, self.parttype.file_ext)
-        elif cardinality == 'multiple':
-            return "%s%d.%s" % (self.parttype.rootname, self.idx+1, self.parttype.file_ext)
-        else:
-            raise ValueError('''Invalid value for PartType.cardinality in Part.filename call. Expected 'single' or 'multiple', got %s''' % cardinality)
-    
-    @property
-    def idx(self):
-        if self.parttype.cardinality == 'multiple':
-            return self.parent.index(self)
-        else:
-            raise NotImplementedError('''Part.idx is not defined for parts with cardinality!='multiple'. Called on class '%s'.''' % self.__class__.__name__)
-    
-    @property
-    def imageparts(self):
-        return [self.package.imageparts.getitem(key=image.key) for image in self.item.images]
-    
-    # default is the part has no outward relationships
-    @property
-    def relatedparts(self):
-        return []
-    
-    @property
-    def relationshipitem(self):
-        return PartRelationshipItem(self) if self.relationships else None
-    
-    #REFACTOR: Consider renaming this property to relationshipelements to
-    #          make clear it's a list of etree.Element
-    #REFACTOR: See if this can be factored up to a higher-level class. There's
-    #          a very similar property method by the same name in Package used
-    #          for the package relationship item.
-    @property
-    def relationships(self):
-        relationships = []
-        for idx, relatedpart in enumerate(self.relatedparts):
-            rId              = idx+1
-            relationshiptype = relatedpart.parttype.relationshiptype
-            targetdir        = relatedpart.parttype.reltargetdir(self.parttype.location)
-            targetfilename   = relatedpart.filename
-            targetpath       = os.path.join(targetdir, targetfilename)
-            relationships.append(RelationshipElement(rId, relationshiptype, targetpath))
-        return relationships
-    
-    @property
-    def handoutmasterparts(self):
-        try:
-            handoutmaster = self.item.handoutmaster
-        except AttributeError:
-            return []
-        return [self.package.handoutmasterparts.getitem(key=handoutmaster.key)] if handoutmaster else []
-    
-    @property
-    def notesmasterparts(self):
-        try:
-            notesmaster = self.item.notesmaster
-        except AttributeError:
-            return []
-        return [self.package.notesmasterparts.getitem(key=notesmaster.key)] if notesmaster else []
-    
-    # presProps.xml is not optional, so leaving this to throw an exception if
-    # for some reason it's not found.
-    @property
-    def prespropspart(self):
-        return [self.package.prespropspart]
-    
-    # NOTE: Careful, the singular and plural form of this part are the same
-    #       i.e. printersettings refers to both a printersettings part as well
-    #       as a list of printersettings parts. Hoping this doesn't screw us
-    #       up later but waiting for it to become a problem before inventing a
-    #       solution.
-    @property
-    def printersettingsparts(self):
-        try:
-            printersettings = self.item.printersettings
-        except AttributeError:
-            return []
-        return [self.package.printersettingsparts.getitem(key=printersettings.key) for printersettings in self.item.printersettings]
-    
-    @property
-    def slidelayoutpart(self):
-        return [self.package.slidelayoutparts.getitem(key=self.item.slidelayout.key)] if self.item.slidelayout else []
-    
-    @property
-    def slidelayoutparts(self):
-        return [self.package.slidelayoutparts.getitem(key=slidelayout.key) for slidelayout in self.item.slidelayouts]
-    
-    @property
-    def slidemasterpart(self):
-        return [self.package.slidemasterparts.getitem(key=self.item.slidemaster.key)] if self.item.slidemaster else []
-    
-    @property
-    def slidemasterparts(self):
-        return [self.package.slidemasterparts.getitem(key=slidemaster.key) for slidemaster in self.item.slidemasters]
-    
-    @property
-    def slideparts(self):
-        try:
-            slides = self.item.slides
-        except AttributeError:
-            return []
-        return [self.package.slideparts.getitem(key=slide.key) for slide in self.item.slides]
-    
-    @property
-    def tablestylespart(self):
-        return [self.package.tablestylespart] if self.item.tablestyles else []
-    
-    @property
-    def themepart(self):
-        return [self.package.themeparts.getitem(key=self.slidemaster.theme.key)] if self.item.theme else []
-    
-    @property
-    def themeparts(self):
-        try:
-            themes = self.item.themes
-        except AttributeError:
-            return []
-        return [self.package.themeparts.getitem(key=theme.key) for theme in self.item.themes]
-    
-    @property
-    def viewpropspart(self):
-        return [self.package.viewpropspart] if self.item.viewprops else []
-    
-#TECHDEBT: Not sure the writing bit is all squared away, check it out.
-    # must be overridden by XML-based items that are not part of the template
-    # and so therefore need to be written from the XML provided by the
-    # presentation
-    def write(self, pptx_zipfile):
-        pptx_zipfile.write(self.path, self.zipfilepath)
-    
-    @property
-    def zipfilepath(self):
-        return os.path.join(self.parttype.zipdir, self.filename)
-    
-
-
-# ============================================================================
-# ImagePart
-# ============================================================================
-
-class ImagePart(Part):
-    
-    def __init__(self, parent, item):
-        Part.__init__(self, parent, item)
-#TECHDEBT: These aren't populated yet, not sure they need to be unless we want
-#          to cull image files that don't have any references from other
-#          parts. In any case, if they are implemented it needs to be with
-#          property methods so any possible infinite recursion is avoided on
-#          package load (all other parts need to be loaded before setting
-#          these relationships).
-        self.themes       = []
-        self.slidemasters = []
-        self.slidelayouts = []
-        self.slides       = []
-    
-    @property
-    def filename(self):
-        ext = os.path.splitext(os.path.basename(self.path))[1]
-        return "%s%d%s" % (self.parttype.rootname, self.idx+1, ext)
-    
-    def write(self, pptx_zipfile):
-        pptx_zipfile.write(self.path, self.zipfilepath)
-    
-
-
-# ============================================================================
-# PresentationPart
-# ============================================================================
-
-class PresentationPart(Part):
-    
-    # NOTE: Inherits from Part but doesn't call Part.__init__(), pending refactoring of Part into Part and CollectionPart
-    def __init__(self, parent, item):
-        # Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts
-        self.parttype = PartType.lookup(item.parttypekey)
-        # self.parent       = parent      # don't think we have any takers for this property since it's not a collection part
-        self.package      = parent
-        self.item         = item
-        self.presentation = item
-    
-    @property
-    def element(self):
-        return self.presentation.element
-    
-    @property
-    def relatedparts(self):
-        relatedparts = []
-        relatedparts.extend(self.slidemasterparts)     # --+-- being first and maintaining sequence of these
-        relatedparts.extend(self.notesmasterparts)     #   |   four part collections is critical to making
-        relatedparts.extend(self.handoutmasterparts)   #   |   rIds in presentation.xml sync with those
-        relatedparts.extend(self.slideparts)           # --+   in presentation.xml.rels
-        relatedparts.extend(self.printersettingsparts)
-        relatedparts.extend(self.prespropspart)
-        relatedparts.extend(self.viewpropspart)
-        relatedparts.extend(self.themeparts)
-        relatedparts.extend(self.tablestylespart)
-        return relatedparts
-    
-#TECHDEBT: Check this out to make sure, was very sleepy when I did this ...
-    # overridden to write source XML
-    def write(self, pptx_zipfile):
-        pptx_zipfile.writestr(self.zipfilepath, self.xmlstring)
-    
-
-
-# ============================================================================
-# PresPropsPart
-# ============================================================================
-
-class PresPropsPart(Part):
-    
-    # NOTE: Inherits from Part but doesn't call Part.__init__(), pending refactoring of Part into Part and CollectionPart
-    def __init__(self, parent, item):
-        # Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts
-        self.parttype = PartType.lookup(item.parttypekey)
-        # self.parent   = parent
-        self.item      = item
-        self.presprops = item
-        self.package   = parent
-        self.path      = item.path
-    
-
-
-# ============================================================================
-# SlideLayoutPart
-# ============================================================================
-
-class SlideLayoutPart(Part):
-    
-    def __init__(self, parent, item):
-        Part.__init__(self, parent, item)
-        self.slidelayout = item
-    
-    @property
-    def relatedparts(self):
-        relatedparts = []
-        relatedparts.extend(self.slidemasterpart)
-        relatedparts.extend(self.imageparts)
-        return relatedparts
-    
-
-
-# ============================================================================
-# SlideMasterPart
-# ============================================================================
-
-class SlideMasterPart(Part):
-    
-    def __init__(self, parent, item):
-        Part.__init__(self, parent, item)
-        self.slidemaster = item
-    
-#REFACTOR: make relatedparts a list of properties and let high-level code work
-#          out what's a list and what's a scalar value or None.
-#          e.g. return [self.imageparts, self.slidelayoutparts, self.themepart]
-    @property
-    def relatedparts(self):
-        relatedparts = []
-        relatedparts.extend(self.imageparts)
-        relatedparts.extend(self.slidelayoutparts)
-        relatedparts.extend(self.themepart)
-        return relatedparts
-    
-
-
-# ============================================================================
-# SlidePart
-# ============================================================================
-
-# ----------------------------------------------------------------------------
-#REFACTOR: Might want to create a superclass PresentationPart for this to
-#          inherit from to give it some of the automatic behaviors that
-#          TemplatePart subclasses have. Will be more useful when additional
-#          presentation parts such as notesSlide and perhaps comment are
-#          added.
-# ----------------------------------------------------------------------------
-
-class SlidePart(Part):
-    
-    # NOTE: SlidePart inherits from Part, but does not call __init__() on it.
-    def __init__(self, parent, item):
-        # Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts
-        self.parttype = PartType.lookup('slide')
-        self.parent   = parent
-        self.package  = parent.package
-        self.item     = item
-        self.slide    = item
-    
-    @property
-    def element(self):
-        return self.slide.element
-    
-    @property
-    def relatedparts(self):
-        relatedparts = []
-        relatedparts.extend(self.imageparts)
-        relatedparts.extend(self.slidelayoutpart)
-        return relatedparts
-    
-#TECHDEBT: Check this out to make sure, was very sleepy when I did this ...
-    # overridden to write source XML
-    def write(self, pptx_zipfile):
-        pptx_zipfile.writestr(self.zipfilepath, self.xmlstring)
-    
-
-
-# ============================================================================
-# TableStylesPart
-# ============================================================================
-
-class TableStylesPart(Part):
-    
-    # NOTE: Inherits from Part but doesn't call Part.__init__(), pending refactoring of Part into Part and CollectionPart
-    def __init__(self, parent, item):
-        # Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts
-        self.parttype = PartType.lookup(item.parttypekey)
-        # self.parent   = parent
-        self.tablestyles = item
-        self.package     = parent
-        self.path        = item.path
-    
-
-
-# ============================================================================
-# ThemePart
-# ============================================================================
-
-class ThemePart(Part):
-    
-    def __init__(self, parent, item):
-        Part.__init__(self, parent, item)
-        self.theme = item
-    
-    @property
-    def relatedparts(self):
-        return self.imageparts
-    
-    def write(self, pptx_zipfile):
-        pptx_zipfile.write(self.path, self.zipfilepath)
-    
-
-
-# ============================================================================
-# ViewPropsPart
-# ============================================================================
-
-class ViewPropsPart(Part):
-    
-    # NOTE: Inherits from Part but doesn't call Part.__init__(), pending refactoring of Part into Part and CollectionPart
-    def __init__(self, parent, item):
-        # Part.__init__(self, parent, item)  # superclass needs refactoring because it only understands collection parts
-        self.parttype = PartType.lookup(item.parttypekey)
-        # self.parent   = parent
-        self.viewprops = item
-        self.package   = parent
-        self.path      = item.path
-    
-
-
-# ============================================================================
-# PartRelationship
-# ============================================================================
-# Relationship between two package parts
-# ============================================================================
-
-class PartRelationship(object):
-    
-    def __init__(self, frompartfile, relationshiptype, target):
-        self.fromtype = frompartfile.parttype.key
-        self.frompath = frompartfile.path
-        self.totype   = relationshiptype.split('/')[-1]
-        self.topath   = os.path.normpath(os.path.join(frompartfile.dirpath, target))
-        
-        # self.__frompartfile     = frompartfile
-        # self.__relationshiptype = relationshiptype
-        # self.__target           = target
-        # self.fromparttype       = frompartfile.parttype
-        # self.toparttype         = PartType.lookup(self.totype)
-        # print 'Relationship:  %-12s ===>  %-12s  %s' % (self.fromtype, self.totype, self.topath)
-    
-    @classmethod
-    def parse(klass, frompartfile, relationshipelement):
-        reltype = relationshipelement.get('Type'  )
-        target  = relationshipelement.get('Target')
-        return PartRelationship(frompartfile, reltype, target)
-    
-
-
-# ============================================================================
-# RelationshipElement
-# ============================================================================
-# Relationship element found in package and part relationship items.
-# ============================================================================
-
-class RelationshipElement(object):
-    
-    def __init__(self, idnumber, relationshiptype, target):
-        self.idnumber         = idnumber
-        self.relationshiptype = relationshiptype
-        self.target           = target
-    
-    @property
-    def element(self):
-        element = etree.Element('Relationship')
-        element.set('Id'     , 'rId%d' % self.idnumber )
-        element.set('Type'   , self.relationshiptype   )
-        element.set('Target' , self.target             )
-        return element
-    
-
-
-# ============================================================================
-# TemplateFiles
-# ============================================================================
-# Discover all the template files in the specified package directory tree
-# and make them available with a high-level interface. Essential role is to
-# hide complexities of the package directory layout and file system access.
-# ============================================================================
-
-class TemplateFiles(object):
-    
-    def __init__(self, templatedir):
-        self.templatedir = templatedir
-        
-        self.imagefiles       = PartFiles(templatedir, 'image'       )
-        self.themefiles       = PartFiles(templatedir, 'theme'       )
-        self.slidemasterfiles = PartFiles(templatedir, 'slideMaster' )
-        self.slidelayoutfiles = PartFiles(templatedir, 'slideLayout' )
-        
-#TECHDEBT: Need a way to make these two Part files optional
-        # self.handoutmasterfile = SinglePartFile(templatedir, 'handoutMaster')
-        # self.notesmasterfile   = SinglePartFile(templatedir, 'notesMaster')
-        self.presentationfile  = SinglePartFile(templatedir, 'presentation')
-        self.prespropsfile     = SinglePartFile(templatedir, 'presProps')
-        self.tablestylesfile   = SinglePartFile(templatedir, 'tableStyles')
-        self.viewpropsfile     = SinglePartFile(templatedir, 'viewProps')
-        
-    @property
-    def relsfiles(self):
-        return [partfile.relsfile for partfile in self.partfiles if partfile.relsfile]
-    
-    @property
-    def partfiles(self):
-        partfiles = []
-        partfiles.extend(self.imagefiles)
-        partfiles.extend(self.themefiles)
-        partfiles.extend(self.slidemasterfiles)
-        partfiles.extend(self.slidelayoutfiles)
-        partfiles.append(self.prespropsfile)
-        return partfiles
-    
-
-
-# ============================================================================
-# PackageItemFile
-# ============================================================================
-
-class PackageItemFile(object):
-    pass
-    
-
-
-# ============================================================================
-# PackageItemFileCollection
-# ============================================================================
-
-class PackageItemFileCollection(list):
-    
-    def __init__(self):
-        list.__init__(self)
-    
-
-
-# ============================================================================
-# PartFile
-# ============================================================================
-
-class PartFile(PackageItemFile):
-    
-    def __init__(self, partfiles, path):
-        PackageItemFile.__init__(self)
-        self.parttype  = partfiles.parttype
-        self.partfiles = partfiles
-        self.parent    = partfiles
-        self.path      = path
-        self.dirpath   = os.path.split(path)[0]
-        self.relsfile  = self.loadrelsfile()
-    
-    def loadrelsfile(self):
-        if self.parttype.has_rel_item == 'never':
-            return None
-        dirpath, filename = os.path.split(self.path)
-        rootname, ext     = os.path.splitext(filename)
-        relsdirpath       = os.path.join(dirpath, '_rels')
-        relsfilename      = '%s.rels' % filename
-        relsfilepath      = os.path.join(relsdirpath, relsfilename)
-        if not os.path.isfile(relsfilepath):
-            if self.parttype.has_rel_item == 'optional':
-                return None
-            else:
-                raise CorruptedTemplateError('''No relationships file '%s' found for part '%s' in template %s''' % (relsfilename, filename, self.partfiles.templatedir))
-        return PartRelsFile(self, relsfilepath)
-    
-
-
-# ============================================================================
-# SinglePartFile
-# ============================================================================
-#REFACTOR: Either rename this to SingletonPartFile or probably better just
-#          make it PartFile and create a subclass CollectionPartFile.
-#          Actually, should probably just refactor loading functionality into
-#          Parts and get rid of separate PartFile class hierarchy.
-
-class SinglePartFile(PartFile):
-    
-    # NOTE: Although PresPropsPartFile inherits from PartFile, it doesn't call
-    #       PartFile.__init__(). Probably their roles should be reversed, like
-    #       PartFile becomes GroupPartFile, this becomes PartFile, and
-    #       GroupPartFile inherits from PartFile. Then PartFiles should become
-    #       PartFileGroup.
-    def __init__(self, templatedir, parttypekey):
-        PackageItemFile.__init__(self)
-        self.parttype = PartType.lookup(parttypekey)
-        self.filename = "%s.%s" % (self.parttype.rootname, self.parttype.file_ext)
-        self.path     = os.path.join(templatedir, self.parttype.pkgreldir, self.filename)
-        # self.dirpath     = os.path.split(path)[0]
-        self.relsfile    = self.loadrelsfile()
-    
-#HACKALERT: This doesn't work properly, need separate part file for handoutMaster
-        self.images = []
-        self.theme  = []
-        self.relateditems = []
-        
-    # # This is now inherited from PartFile, but later the roles will be
-    # # reversed. Either way, only one copy needed.
-    # def __loadrelsfile(self):
-    #     if self.parttype.has_rel_item == 'never':
-    #         return None
-    #     dirpath, filename = os.path.split(self.path)
-    #     rootname, ext     = os.path.splitext(filename)
-    #     relsdirpath       = os.path.join(dirpath, '_rels')
-    #     relsfilename      = '%s.rels' % filename
-    #     relsfilepath      = os.path.join(relsdirpath, relsfilename)
-    #     if not os.path.isfile(relsfilepath):
-    #         if self.parttype.has_rel_item == 'optional':
-    #             return None
-    #         else:
-    #             raise CorruptedTemplateError('''No relationships file '%s' found for part '%s' in template %s''' % (relsfilename, filename, self.partfiles.templatedir))
-    #     return PartRelsFile(self, relsfilepath)
-    
-
-
-# ============================================================================
-# PartFiles
-# ============================================================================
-#TECHDEBT: Refactor 'ext' throughout to include the leading period. That's
-#          consistent with ext returned from os.path.splitext(), and also
-#          allows for empty extensions (as in 'python'), which I'm sure is
-#          why they designed splitext that way :).
-
-class PartFiles(PackageItemFileCollection):
-    
-    def __init__(self, templatedir=None, parttypekey=None):
-        PackageItemFileCollection.__init__(self)
-        self.templatedir = templatedir
-        self.parttypekey = parttypekey
-        self.parttype    = PartType.lookup(parttypekey) if parttypekey else None
-        if templatedir and parttypekey:
-            self.load(templatedir, parttypekey)
-    
-    def load(self, templatedir, parttypekey):
-        self.templatedir = templatedir
-        self.parttypekey = parttypekey
-        self.parttype    = PartType.lookup(parttypekey)
-        del self[0:]
-        for partfilepath in self.__partfilepaths:
-            self.append(PartFile(self, partfilepath))
-    
-    # Return list of fully qualified part file paths, sorted in numerical
-    # order (not lexicographic order), e.g. [slideLayout1, slideLayout2 ...]
-    # rather than [slideLayout1, slideLayout10 ...]
-    # -----------------------------------------------------------------------
-    @property
-    def __partfilepaths(self):
-        pkgreldir       = self.parttype.pkgreldir
-        filenameroot    = self.parttype.rootname
-        ext             = self.parttype.file_ext if self.parttype.file_ext else '.+'  # empty extension means extension can vary, like .jpg, .png, .wmf
-        searchdirpath   = os.path.join(self.templatedir, pkgreldir)
-        filenamepattern = r'%s([1-9][0-9]*)?\.(%s)' % (filenameroot, ext)
-        regexp          = re.compile(filenamepattern)
-        partfilepaths   = {}
-        if not os.path.isdir(searchdirpath):
-            return []
-        for name in os.listdir(searchdirpath):
-            fqname = os.path.join(searchdirpath, name)
-            if not os.path.isfile(fqname):
-                continue
-            match = regexp.match(name)
-            if not match:
-#TECHDEBT: Should probably remove this after this class is debugged because it's not really an error to find an unexpected file, it just gets skipped.
-                raise CorruptedTemplateError('''Unexpected file '%s' found in template''' % os.path.join(self.parttype.location, name))
-                continue
-            filenamenumber = match.group(1)
-            sortkey = int(filenamenumber) if filenamenumber else 0
-            partfilepaths[sortkey] = fqname
-        # return file paths sorted in numerical order (not lexicographic order)
-        return [partfilepaths[key] for key in sorted(partfilepaths.keys())]
-    
-
-
-# ============================================================================
-# PartRelsFiles
-# ============================================================================
-
-class PartRelsFile(PackageItemFile):
-    
-    def __init__(self, partfile, path):
-        PackageItemFile.__init__(self)
-        self.partfile = partfile
-        self.path     = path
-        self.filename = os.path.split(self.path)[1]
-    
-
 
