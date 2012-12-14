@@ -4,6 +4,10 @@ pptx Package
 :mod:`pptx` Package
 -------------------
 
+..  .. inheritance-diagram:: packaging
+
+
+
 .. automodule:: pptx
     :members:
     :undoc-members:

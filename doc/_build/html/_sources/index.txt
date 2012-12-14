@@ -12,7 +12,56 @@ Contents:
    :maxdepth: 2
 
    modules
-   draft
+   packaging
+   relationships
+   resources
+
+.. ... inheritance-diagram:: pptx.packaging
+
+.. ... inheritance-diagram:: pptx.presentation
+
+.. .. graphviz::
+.. 
+..    digraph hierarchy_of_D {
+.. 
+..    node [color=Blue,fontcolor=Black,font=Courier]
+.. 
+..     B -> D
+..     C -> D
+.. 
+..     {rank=same; B C }
+.. 
+..     Part -> PresentationPart
+.. 
+..     Part -> CollectionPart
+.. 
+..     packaging -> Part
+.. 
+..    }
+
+
+   .. digraph hierarchy_of_D {
+   .. 
+   .. node [color=Blue,fontcolor=Black,font=Courier]
+   .. 
+   ..  Part -> PresentationPart
+   ..  Part -> CollectionPart
+   .. 
+   ..  {rank=same; PresentationPart CollectionPart }
+   .. 
+   ..  PartCollection -> ImageParts
+   ..  PartCollection -> SlideLayoutParts
+   .. 
+   ..  pptx.packaging -> Part
+   ..  pptx.packaging -> PartCollection
+   .. 
+   .. }
+
+
+   .. digraph foo {
+   ..    "bar" -> "baz";
+   .. }
+
 
 Indices and tables
 ==================

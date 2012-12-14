@@ -1,0 +1,474 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>About Part Relationships &mdash; python-pptx 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="python-pptx 0.1.0 documentation" href="index.html" />
+    <link rel="next" title="Resources" href="resources.html" />
+    <link rel="prev" title="About Open XML Packaging" href="packaging.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="resources.html" title="Resources"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="packaging.html" title="About Open XML Packaging"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">python-pptx 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="about-part-relationships">
+<h1>About Part Relationships<a class="headerlink" href="#about-part-relationships" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="understanding-part-relationships">
+<h2>Understanding Part Relationships<a class="headerlink" href="#understanding-part-relationships" title="Permalink to this headline">¶</a></h2>
+<p>An Open XML package part can have one or more relationships to other parts in
+the package. For example, a slide layout has a relationship to the slide
+master it inherits properties from. And if the slide layout includes an image,
+such as a company logo, it will also have a relationship to the image part
+corresponding to that logo&#8217;s image file.</p>
+<p>Conceptually, a part relationship might be stated:</p>
+<div class="highlight-python"><pre>Part x is related to part y of type z.</pre>
+</div>
+<p>While these relationships are reciprocal in a way of thinking (e.g. part y is
+also related to part x), in Open XML they are generally defined in one
+direction only. For example, a slide may have a relationship to an image it
+contains, but an image never has a stated relationships to a slide. One
+exception to this is slide masters and slide layouts. A slide layout has a
+relationship to the slide master it inherits from at the same time the slide
+master has a relationship to each of the slide layouts that inherit from it.</p>
+<p>In the example above, part x can be referred to as the <em>source part</em> or <em>from-part</em>, part y as the <em>target part</em> or <em>to-part</em>, and type z as the
+<em>relationship type</em>. The relationship type essentially ends up being the part type of the target part (e.g. image, slide master, etc.).</p>
+<div class="section" id="inbound-and-outbound-relationships">
+<h3>Inbound and outbound relationships<a class="headerlink" href="#inbound-and-outbound-relationships" title="Permalink to this headline">¶</a></h3>
+<p>Each relationship is <em>outbound</em> for its source part and <em>inbound</em> for its
+target part. The <em>outbound</em> relationships of a part are those found in its
+<em>part relationship item</em>, commonly referred to as its &#8220;rels file&#8221;. Only
+outbound relationships are recorded in the package. Inbound relationships are
+purely abstract, although they can be inferred from outbound relationships if
+an application had a need for them.</p>
+<p>Not all parts can have outbound relationships. For example, image and presentation properties parts never have outbound relationships. All parts,
+however, participate in at least one inbound relationship. Any part with no inbound relationships could be removed from the package without consequence,
+and probably should be. For example, if upon saving it was noticed that a
+particular image had no inbound relationships, that image would be better not
+written to the package. <em>(Makes me wonder whether loading a package by walking
+its relationship graph might be a good idea in some instances.)</em></p>
+</div>
+<div class="section" id="direct-and-indirect-relationship-references">
+<h3>Direct and indirect relationship references<a class="headerlink" href="#direct-and-indirect-relationship-references" title="Permalink to this headline">¶</a></h3>
+<p>Each relationship is recorded as a relationship element in the rels file
+belonging to a specific part. (The package relationship item <tt class="docutils literal"><span class="pre">/_rels/.rels</span></tt>
+is the only exception, it belongs to the package, not to any part). Each
+relationship entry specifies a part-local relationship id (rId) for the
+relationship, the relationship type (essentially the part type of the target,
+e.g. slide, image), and a path the target part file. The source part is not
+explicitly stated in the relationship entry, it is implicitly the part
+the .rels file belongs to.</p>
+<p>These can be thought of as <em>external relationship references</em> in that the rels
+file is a separate package item, external to the part itself. However, in
+certain cases, a relationship may be referenced within the XML of the
+from-part. These can be thought of as <em>internal relationship references</em>.</p>
+<p>As an example of where an internal relationship reference is required, consider a slide containing images of three different products. Each picture has a corresponding &lt;p:pic&gt; element in the slide&#8217;s shape tree, each of which must specify the particular image file it displays, distinguishing it from the other two image files related to the slide.</p>
+<p>The picture elements specify which of the related images to display using the part-local relationship id (rId) matching the required image, &#8216;rId2&#8217; in the example below:</p>
+<div class="highlight-python"><pre>&lt;p:blipFill&gt;
+  &lt;a:blip r:embed="rId2"&gt;
+    ...
+  &lt;/a:blip&gt;
+&lt;/p:blipFill&gt;</pre>
+</div>
+<p>Which is an indirect reference to <tt class="docutils literal"><span class="pre">image1.png</span></tt> specified as the target of &#8216;rId2&#8217; in the slide&#8217;s rels file:</p>
+<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;
+&lt;Relationships xmlns="http://.../relationships"&gt;
+  &lt;Relationship Id="rId1" Type="http://.../slideLayout" Target=".../slideLayout2.xml"/&gt;
+  &lt;Relationship Id="rId2" Type="http://.../image" Target=".../image1.png"/&gt;
+&lt;/Relationships&gt;</pre>
+</div>
+<p>This indirection makes sense as a way to limit the coupling of presentation
+parts to the mechanics of package composition. For example, when the XML for
+the slide part in the example above is being composed, the slide can determine
+the reference to the image it&#8217;s displaying without reference outside its own
+natural scope. In contrast, determining the eventual location and filename of
+that image in any particular package that was saved would require the slide
+code to have visibility into the packaging process, which would prevent
+packaging being delegated to a separate, black-box module.</p>
+</div>
+<div class="section" id="implicit-and-explicit-relationships">
+<h3>Implicit and explicit relationships<a class="headerlink" href="#implicit-and-explicit-relationships" title="Permalink to this headline">¶</a></h3>
+<p>There is also a distinction between implicit and explicit relationships which
+is described in the spec (ECMA-376-1) in section 9.2. I haven&#8217;t encountered
+those yet in the context of PresentationML (the spec uses an example of
+footnotes from WordprocessingML), so I do not discuss them here.</p>
+</div>
+</div>
+<div class="section" id="relationship-mechanics">
+<h2>Relationship Mechanics<a class="headerlink" href="#relationship-mechanics" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="relationship-life-cycle">
+<h3>Relationship life-cycle<a class="headerlink" href="#relationship-life-cycle" title="Permalink to this headline">¶</a></h3>
+<p>A representation of a relationship must operate effectively in two distinct
+situations, in-package and in-memory. They must also support lifecycle
+transitions from in-package to in-memory and from in-memory back to
+in-package.</p>
+</div>
+<div class="section" id="abstract-model">
+<h3>Abstract model<a class="headerlink" href="#abstract-model" title="Permalink to this headline">¶</a></h3>
+<p>Each relationship has the following abstract attributes</p>
+<dl class="attribute">
+<dt id="source">
+<tt class="descname">source</tt><a class="headerlink" href="#source" title="Permalink to this definition">¶</a></dt>
+<dd><p>The &#8220;from-part&#8221; of the relationship.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="id">
+<tt class="descname">id</tt><a class="headerlink" href="#id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Source-local unique identifier for this relationship. Each source part&#8217;s
+relationship ids should be a sequence of consecutive integers starting from
+1.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="target_type">
+<tt class="descname">target_type</tt><a class="headerlink" href="#target_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The content type of the relationship&#8217;s to-part.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="target">
+<tt class="descname">target</tt><a class="headerlink" href="#target" title="Permalink to this definition">¶</a></dt>
+<dd><p>A direct reference to the relationship&#8217;s to-part.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="implementing-relationship-life-cycle-transitions">
+<h3>Implementing relationship life-cycle transitions<a class="headerlink" href="#implementing-relationship-life-cycle-transitions" title="Permalink to this headline">¶</a></h3>
+<p>There are two types of transition in the relationship life-cycle, the
+transition from in-package to in-memory and the transition back from in-memory
+to in-package. During these transitions, part references, in particular target
+part references, must be transformed from one type to the other. The term
+<em>relationship resolution</em> is used here to refer to this transformation of
+relationship target references during life-cycle transitions.</p>
+<p>Because each relationship targets an arbitrary to-part, relationship
+resolution cannot begin until all parts have been loaded into the new state.
+Because there is at least one instance of circular relationships (slideLayout
+&#8211;&gt; slideMaster and slideMaster &#8211;&gt; slideLayout), there is no sequence of part
+loading that will guarantee that all relationship targets for the current part
+have already been loaded.</p>
+<p>Consequently, relationship resolution is undertaken all in one step and
+immediately after parts have been loaded into each new state (presentation and
+package).</p>
+<div class="section" id="general-strategy-for-relationship-resolution">
+<h4>General strategy for relationship resolution<a class="headerlink" href="#general-strategy-for-relationship-resolution" title="Permalink to this headline">¶</a></h4>
+<p><em>REFACTOR:</em> Consider keeping all the relationship writing up in Presentation
+rather than letting new-state parts do copy things over on load. That keeps
+all the relationship resolution in one place. Members can be added to <tt class="xref py py-class docutils literal"><span class="pre">PackagePart</span></tt> to store the needful:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">pkgpart</span> <span class="ow">in</span> <span class="n">tp</span><span class="o">.</span><span class="n">imageparts</span><span class="p">:</span>
+    <span class="n">prspart</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">additem</span><span class="p">(</span><span class="n">pkgpart</span><span class="p">)</span>
+    <span class="n">pkgpart</span><span class="o">.</span><span class="n">prspart</span> <span class="o">=</span> <span class="n">prspart</span>
+<span class="o">...</span>
+<span class="n">partkeymap</span> <span class="o">=</span> <span class="p">{</span><span class="n">pkgpart</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="n">pkgpart</span><span class="o">.</span><span class="n">prspart</span> <span class="k">for</span> <span class="n">pkgpart</span> <span class="ow">in</span> <span class="n">tp</span><span class="o">.</span><span class="n">parts</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">pkgpart</span> <span class="ow">in</span> <span class="n">tp</span><span class="o">.</span><span class="n">parts</span><span class="p">:</span>
+    <span class="n">prspart</span> <span class="o">=</span> <span class="n">pkgpart</span><span class="o">.</span><span class="n">prspart</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">pkgpart</span><span class="o">.</span><span class="n">relationships</span><span class="p">:</span>
+        <span class="n">prspart</span><span class="o">.</span><span class="n">relationships</span><span class="o">.</span><span class="n">additem</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">partkeymap</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">key</span><span class="p">])</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When packaged, relationships are resolved to the location of the
+target part file in the package (path within zip file) ... implies a
+first step in package to map from path to pkgpart reference.</p>
+</div>
+<p>First part might look something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Package.relationship has member targetpath which is set by .loadrels()</span>
+<span class="n">relationship</span><span class="o">.</span><span class="n">targetpath</span> <span class="o">=</span> <span class="n">fqpath</span><span class="p">(</span><span class="n">rel_element</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+
+<span class="c"># in Package, after parts and relationships are loaded from template</span>
+<span class="n">path2part</span> <span class="o">=</span> <span class="p">{</span><span class="n">part</span><span class="o">.</span><span class="n">path</span><span class="p">:</span> <span class="n">part</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">relationship</span> <span class="ow">in</span> <span class="n">part</span><span class="o">.</span><span class="n">relationships</span><span class="p">:</span>
+        <span class="n">relationship</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">path2part</span><span class="p">[</span><span class="n">relationship</span><span class="o">.</span><span class="n">targetpath</span><span class="p">]</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li>Determine the prior-state target part for each relationship and store its
+part key in the relationship object.</li>
+<li>When a new-state part is constructed from a prior-state part, store a
+reference to the new-state part keyed by the prior-state part key. In
+this way, the new-state part can be looked up using the prior-state part
+key.</li>
+<li>During new-state part construction, when the prior state&#8217;s relationships
+are being used to construct new relationships, copy over the prior-state
+target part key (as pkgtargetkey or prstargetkey for package and
+presentation respectively).</li>
+<li>During relationship resolution, set the target part for each relationship
+by looking up the new-state part reference using the relationship&#8217;s
+prior-state part key.</li>
+</ol>
+<p>This is probably more easily understood by means of an example. This sample
+outlines relationship resolution in the transition from package to
+presentation (load):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># 1. in pptx.packaging.PartRelationship</span>
+<span class="nd">@property</span>
+<span class="k">def</span> <span class="nf">pkgpartkey</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">key</span>
+
+<span class="c"># 2. in pptx.presentation.Presentation.loadtemplate()</span>
+<span class="o">...</span>
+<span class="n">partmap</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">TemplatePackage</span><span class="p">(</span><span class="n">templatedir</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">pkgpart</span> <span class="ow">in</span> <span class="n">tp</span><span class="o">.</span><span class="n">imageparts</span><span class="p">:</span>
+    <span class="n">prspart</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">additem</span><span class="p">(</span><span class="n">pkgpart</span><span class="p">)</span>
+    <span class="n">partmap</span><span class="p">[</span><span class="n">part</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">prspart</span>
+<span class="o">...</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">presprops</span> <span class="o">=</span> <span class="n">PresProps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">prespropspart</span><span class="p">)</span>
+<span class="n">partmap</span><span class="p">[</span><span class="n">tp</span><span class="o">.</span><span class="n">prespropspart</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">presprops</span>
+<span class="o">...</span>
+
+<span class="c"># 3. Relationships loading happens in the part construction code and the</span>
+<span class="c">#    pkgpartkey must be copied over when the new relationship is being</span>
+<span class="c">#    constructed from the prior-state relationship instance.</span>
+
+<span class="c"># 4. later in pptx.presentation.Presentation.loadtemplate()</span>
+<span class="o">...</span>
+<span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parts</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">relationship</span> <span class="ow">in</span> <span class="n">part</span><span class="o">.</span><span class="n">relationships</span><span class="p">:</span>
+        <span class="n">relationship</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">partmap</span><span class="p">[</span><span class="n">relationship</span><span class="o">.</span><span class="n">pkgpartkey</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="save-transition">
+<h4>Save transition<a class="headerlink" href="#save-transition" title="Permalink to this headline">¶</a></h4>
+<p>And conversely for the package save transition (in-memory to package), the code might look roughly like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">package</span><span class="o">.</span><span class="n">parts</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">relationship</span> <span class="ow">in</span> <span class="n">part</span><span class="o">.</span><span class="n">relationships</span><span class="p">:</span>
+        <span class="n">relationship</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">partmap</span><span class="p">[</span><span class="n">relationship</span><span class="o">.</span><span class="n">pkgpartkey</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="part-key-requirements">
+<h3>Part key requirements<a class="headerlink" href="#part-key-requirements" title="Permalink to this headline">¶</a></h3>
+<p>In order to resolve relationships, parts must have a key by which they can be
+looked up. These are the main requirements for those keys.</p>
+<ul>
+<li><p class="first">Part keys must be unique within presentation or package scope</p>
+</li>
+<li><p class="first">There is no need or want to use a natural key (such as package path), as it
+might encourage re-use for other purposes and thereby limit the flexibility
+to change the key format.</p>
+</li>
+<li><p class="first">Part keys shall be consistent in format, e.g. all integers or all strings.</p>
+</li>
+<li><p class="first">The format of keys shall be arbitrary, requiring only the matching of one
+key to another. No comparison operations (e.g. for sorting) are required and
+no notion of sequence is applicable to part keys.</p>
+</li>
+<li><p class="first">Generating new keys should be provided as a service at the presentation or
+package level. While this is not required to ensure uniqueness (e.g.
+uuid.uuid4() could be called locally), a centralized implementation allows
+implementation details to be changed without affecting other parts of the
+code. E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">newpart</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">presentation</span><span class="o">.</span><span class="n">nextpartkey</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Part keys should be assigned immediately at construction time such that its
+id is available to all code that might access the part throughout its
+lifetime.</p>
+</li>
+<li><p class="first">No lookup capabilities beyond partmap discussed above are currently
+required, although the same part id might turn out to be useful in future.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p>This seems like a sensible sequence of steps for implementing all this while
+not breaking the build (for very long at least :).</p>
+<ul class="simple">
+<li>Create a part key generator method on both presentation and package.</li>
+<li>Assign a key to each part immediately on construction, first line in
+__init__().</li>
+<li>Add before-state target key property to PartRelationship in both
+package and presentation.</li>
+<li>Work out partmap implementation. Might be able to be local to top-level load
+function (consider renaming _applytemplate to _loadtemplate).</li>
+<li>Add relationship resolution step to top-level load methods in both package
+and presentation.</li>
+</ul>
+<div class="section" id="unique-ids-for-part-instances">
+<h3>Unique ids for Part instances<a class="headerlink" href="#unique-ids-for-part-instances" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="unique-ids-for-pptx-presentation-part-instances">
+<h4>Unique ids for <a class="reference internal" href="pptx.html#pptx.presentation.Part" title="pptx.presentation.Part"><tt class="xref py py-class docutils literal"><span class="pre">pptx.presentation.Part</span></tt></a> instances<a class="headerlink" href="#unique-ids-for-pptx-presentation-part-instances" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="unique-ids-for-pptx-packaging-part-instances">
+<h4>Unique ids for <a class="reference internal" href="pptx.html#pptx.packaging.Part" title="pptx.packaging.Part"><tt class="xref py py-class docutils literal"><span class="pre">pptx.packaging.Part</span></tt></a> instances<a class="headerlink" href="#unique-ids-for-pptx-packaging-part-instances" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<p>...</p>
+</div>
+</div>
+</div>
+<div class="section" id="new-topic-maintaining-relationships-by-dynamic-parts-e-g-slides">
+<h1>NEW TOPIC: MAINTAINING RELATIONSHIPS BY DYNAMIC PARTS (e.g. Slides)<a class="headerlink" href="#new-topic-maintaining-relationships-by-dynamic-parts-e-g-slides" title="Permalink to this headline">¶</a></h1>
+<p>How will dynamic parts (like Slide) interact with its relationship list?</p>
+<p>? Should it just add items to the relationship list when it creates new things?</p>
+<p>? Does it need some sort of lookup capability in order to delete? Or just have a delete relationship method on RelationshipCollection or something like that.</p>
+<p>Need to come up with a plausible set of use cases to think about a design.
+Right now the only use case is loading a template into a presentation and
+saving a presentation.</p>
+<ul class="simple">
+<li>Add an image to a slide.</li>
+<li>Change a slide&#8217;s slide layout</li>
+<li>comment, notesSlide, tag, image, and slideLayout are the only outbound
+relationship types for a slide, although I expect there are some other
+DrawingML bits I haven&#8217;t accounted for yet.</li>
+</ul>
+<p>On reflection I&#8217;m thinking there&#8217;s not too much urgency on noodling this out
+too far, the present construction should work fine for now and be able to be
+extended without disrupting other code too much.</p>
+</div>
+<div class="section" id="scrap">
+<h1>SCRAP<a class="headerlink" href="#scrap" title="Permalink to this headline">¶</a></h1>
+<p>When loaded into memory, each relationship target must be a reference to an
+active part object (or at least a part key that can be resolved to a
+reference, but why do this lookup multiple times?). This is both because those
+relationships can change and also because the package path, while it can be
+calculated at runtime, is not guaranteed to be stable (e.g. a new slide can be
+inserted between two existing ones) and is not finally resolved until the
+presentation is saved.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">About Part Relationships</a><ul>
+<li><a class="reference internal" href="#understanding-part-relationships">Understanding Part Relationships</a><ul>
+<li><a class="reference internal" href="#inbound-and-outbound-relationships">Inbound and outbound relationships</a></li>
+<li><a class="reference internal" href="#direct-and-indirect-relationship-references">Direct and indirect relationship references</a></li>
+<li><a class="reference internal" href="#implicit-and-explicit-relationships">Implicit and explicit relationships</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#relationship-mechanics">Relationship Mechanics</a><ul>
+<li><a class="reference internal" href="#relationship-life-cycle">Relationship life-cycle</a></li>
+<li><a class="reference internal" href="#abstract-model">Abstract model</a></li>
+<li><a class="reference internal" href="#implementing-relationship-life-cycle-transitions">Implementing relationship life-cycle transitions</a><ul>
+<li><a class="reference internal" href="#general-strategy-for-relationship-resolution">General strategy for relationship resolution</a></li>
+<li><a class="reference internal" href="#save-transition">Save transition</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#part-key-requirements">Part key requirements</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation">Implementation</a><ul>
+<li><a class="reference internal" href="#unique-ids-for-part-instances">Unique ids for Part instances</a><ul>
+<li><a class="reference internal" href="#unique-ids-for-pptx-presentation-part-instances">Unique ids for <tt class="docutils literal"><span class="pre">pptx.presentation.Part</span></tt> instances</a></li>
+<li><a class="reference internal" href="#unique-ids-for-pptx-packaging-part-instances">Unique ids for <tt class="docutils literal"><span class="pre">pptx.packaging.Part</span></tt> instances</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#new-topic-maintaining-relationships-by-dynamic-parts-e-g-slides">NEW TOPIC: MAINTAINING RELATIONSHIPS BY DYNAMIC PARTS (e.g. Slides)</a></li>
+<li><a class="reference internal" href="#scrap">SCRAP</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="packaging.html"
+                        title="previous chapter">About Open XML Packaging</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="resources.html"
+                        title="next chapter">Resources</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/relationships.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="resources.html" title="Resources"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="packaging.html" title="About Open XML Packaging"
+             >previous</a> |</li>
+        <li><a href="index.html">python-pptx 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Steve Canny.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
