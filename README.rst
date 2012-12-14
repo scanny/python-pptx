@@ -2,25 +2,29 @@
 python-pptx
 ###########
 
-STATUS (as of Nov 29 2012)
+STATUS (as of Dec 14 2012)
 ==========================
 
-Under active development, but just starting out. Expect new pushes once a week
-or so for the next several weeks. Hoping to get baseline .pptx writing
-capability accomplished by the end of the calendar year. That would be:
+Under active development, but still starting out. Code doesn't do anything
+very interesting yet except pass the unit tests.
+
+Latest push is broad refactoring of packaging module and addition of unit
+tests. Interim documentation is also substantially updated. At present it
+loads a .pptx file into memory in good order. Next step is to get it to save
+it back uncorrupted.
+
+Continue to expect new pushes once a week or so for the next several weeks.
+Hoping to get baseline .pptx writing capability accomplished by the end of the
+calendar year. That would be:
 
 * creating new presentations from default or arbitrary template (.potx)
 * adding new slides
 * adding placeholder text (title, bullets, etc.)
 * adding shapes and images to slides
 
-This initial push doesn't do much of a practical nature, I've been focused on
-getting the scaffolding code sound so I could build out some real
-functionality without getting lost in my own code :).
-
 One or two folks wanted to see what I had so far, so here it is. Expect to see
 some actual useful functionality in the next month or so, I've got some time
-off coming up I'll be using to add some useful end-user features.
+off coming up over the holidys I'll be using to add some useful end-user features.
 
 
 Vision
