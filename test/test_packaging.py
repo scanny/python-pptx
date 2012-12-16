@@ -12,6 +12,7 @@
 import inspect
 import os
 import unittest
+import zipfile
 
 from lxml import etree
 from StringIO import StringIO
@@ -21,6 +22,7 @@ import pptx.packaging
 from pptx.exceptions import CorruptedPackageError, DuplicateKeyError,\
                             NotXMLError
 
+from testing import TestCase
 
 # ============================================================================
 # Utility Items
@@ -43,7 +45,7 @@ class MockParent(object):
 # Test Classes
 # ============================================================================
 
-class TestContentTypesItem(unittest.TestCase):
+class TestContentTypesItem(TestCase):
     """
     Test pptx.packaging.ContentTypesItem
     
@@ -52,37 +54,82 @@ class TestContentTypesItem(unittest.TestCase):
         # construct ContentTypesItem instance
         self.cti = pptx.packaging.ContentTypesItem()
     
-    def test_class_exists(self):
+    def test_class_present(self):
         """
-        ContentTypesItem class exists.
+        ContentTypesItem class present in packaging module.
         
         """
         # verify ----------------------
-        try:
-            issubclass(pptx.packaging.ContentTypesItem,
-                       pptx.packaging.ContentTypesItem)
-        except AttributeError:
-            msg = "ContentTypesItem class not found"
-            self.fail(msg)
-        except TypeError:
-            msg = "ContentTypesItem is not a class"
-            self.fail(msg)
+        self.assertClassInModule(pptx.packaging, 'ContentTypesItem')
     
-    def test_getitem_method_exists(self):
+    def test_compose_method_present(self):
+        """
+        ContentTypesItem class has method 'compose'.
+        
+        NOTE: This test will fail if method throws an exception.
+        
+        """
+        self.assertClassHasMethod(pptx.packaging.ContentTypesItem, 'compose')
+    
+    def test_compose_returns_self(self):
+        """
+        ContentTypesItem.compose() returns self-reference.
+        
+        """
+        # setup -----------------------
+        pkg = pptx.packaging.Package().open(zip_pkg_path)
+        # exercise --------------------
+        retval = self.cti.compose(pkg.parts)
+        # verify ----------------------
+        expected = self.cti
+        actual = retval
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_compose_correct_count(self):
+        """
+        ContentTypesItem.compose() produces expected element count.
+        
+        """
+        # setup -----------------------
+        pkg = pptx.packaging.Package().open(zip_pkg_path)
+        # exercise --------------------
+        self.cti.compose(pkg.parts)
+        # verify ----------------------
+        expected = 23
+        actual = len(self.cti)
+        msg = "expected %d elements, got %d" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_element_attribute_present(self):
+        """
+        ContentTypesItem instance has attribute 'element'.
+        
+        """
+        self.assertInstHasAttr(self.cti, 'element')
+    
+    def test_element_correct_length(self):
+        """
+        ContentTypesItem.element() has expected element count.
+        
+        """
+        # setup -----------------------
+        pkg = pptx.packaging.Package().open(zip_pkg_path)
+        # exercise --------------------
+        self.cti.compose(pkg.parts)
+        # verify ----------------------
+        expected = 23
+        actual = len(self.cti.element)
+        msg = "expected %d elements, got %d" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_getitem_method_present(self):
         """
         ContentTypesItem class has method '__getitem__'.
         
-        NOTE: This test will fail if attribute is an @property method that
-        throws an exception.
         """
-        # setup -----------------------
-        cls = pptx.packaging.ContentTypesItem
-        method_name = '__getitem__'
-        methods = inspect.getmembers(cls, inspect.ismethod)
-        # verify ----------------------
-        actual = method_name in [name for name, value in methods]
-        msg = "no method %s.%s()" % (cls.__name__, method_name)
-        self.assertTrue(actual, msg)
+        self.assertClassHasMethod(pptx.packaging.ContentTypesItem,
+                                  '__getitem__')
     
     def test_getitem_throws_on_bad_partname(self):
         """
@@ -111,7 +158,7 @@ class TestContentTypesItem(unittest.TestCase):
             self.assertEqual(expected, actual, msg)
     
 
-class TestFileSystem(unittest.TestCase):
+class TestFileSystem(TestCase):
     """
     Test pptx.packaging.FileSystem
     
@@ -119,6 +166,14 @@ class TestFileSystem(unittest.TestCase):
     def setUp(self):
         self.dir_fs = pptx.packaging.FileSystem(dir_pkg_path)
         self.zip_fs = pptx.packaging.FileSystem(zip_pkg_path)
+    
+    def test_class_present(self):
+        """
+        FileSystem class present in packaging module.
+        
+        """
+        # verify ----------------------
+        self.assertClassInModule(pptx.packaging, 'FileSystem')
     
     def test_construction(self):
         """
@@ -150,14 +205,14 @@ class TestFileSystem(unittest.TestCase):
             for uri in expected_URIs:
                 self.assertIn(uri, fs)
     
-    def test_getelement(self):
+    def test_getelement_return_count(self):
         """
         ElementTree element for specified package item is returned.
         
         """
         for fs in (self.dir_fs, self.zip_fs):
             elm = fs.getelement('/[Content_Types].xml')
-            expected = 24
+            expected = 23
             actual = len(elm)
             msg = "expected %d elements, got %d" % (expected, actual)
             self.assertEqual(expected, actual, msg)
@@ -172,7 +227,7 @@ class TestFileSystem(unittest.TestCase):
             with self.assertRaises(NotXMLError):
                 fs.getelement('/docProps/thumbnail.jpeg')
     
-    def test_getstream(self):
+    def test_getstream_correct_length(self):
         """
         StringIO instance for specified package item is returned.
         
@@ -180,14 +235,14 @@ class TestFileSystem(unittest.TestCase):
         for fs in (self.dir_fs, self.zip_fs):
             stream = fs.getstream('/[Content_Types].xml')
             elm = etree.parse(stream).getroot()
-            expected = 24
+            expected = 23
             actual = len(elm)
             msg = "expected %d elements, got %d" % (expected, actual)
             self.assertEqual(expected, actual, msg)
     
     def test_getstream_throws_on_bad_URI(self):
         """
-        LookupError thrown on bad URI to getstream().
+        FileSystem.getstream() throws on bad URI.
         
         """
         for fs in (self.dir_fs, self.zip_fs):
@@ -200,10 +255,10 @@ class TestFileSystem(unittest.TestCase):
         
         """
         # verify ----------------------
-        for fs in (self.dir_fs, self.zip_fs):
+        for fs, fsname in ((self.dir_fs, 'dir_fs'), (self.zip_fs, 'zip_fs')):
             expected = 37
             actual = len(fs.itemURIs)
-            msg = "expected %d filesystem members, got %d" % (expected, actual)
+            msg = "expected %d members in %s, got %d" % (expected, fsname, actual)
             self.assertEqual(expected, actual, msg)
     
     def test_itemURIs_plausible(self):
@@ -226,7 +281,7 @@ class TestFileSystem(unittest.TestCase):
                 self.assertTrue(itemURI.startswith('/'), msg)
     
 
-class TestPackage(unittest.TestCase):
+class TestPackage(TestCase):
     """
     Test pptx.packaging.Package
     
@@ -234,22 +289,19 @@ class TestPackage(unittest.TestCase):
     def setUp(self):
         # construct Package
         self.pkg = pptx.packaging.Package()
+        self.test_pptx_path = os.path.join(basepath, 'test_python-pptx.pptx')
     
-    def test_class_exists(self):
+    def tearDown(self):
+        if os.path.isfile(self.test_pptx_path):
+            os.remove(self.test_pptx_path)
+    
+    def test_class_present(self):
         """
-        Package class exists.
+        Package class present in packaging module.
         
         """
         # verify ----------------------
-        try:
-            issubclass(pptx.packaging.Package,
-                       pptx.packaging.Package)
-        except AttributeError:
-            msg = "Package class not found"
-            self.fail(msg)
-        except TypeError:
-            msg = "Package is not a class"
-            self.fail(msg)
+        self.assertClassInModule(pptx.packaging, 'Package')
     
     def test_loadparts_part_count(self):
         """
@@ -280,18 +332,25 @@ class TestPackage(unittest.TestCase):
             msg = "expected class name '%s', got '%s'" % (expected, actual)
             self.assertEqual(expected, actual, msg)
     
-    def test_parts_attribute(self):
+    def test_open_part_count(self):
+        """
+        Package.open() produces expected part count.
+        
+        """
+        # exercise --------------------
+        self.pkg.open(zip_pkg_path)
+        # verify ----------------------
+        expected = 21
+        actual = len(self.pkg.parts)
+        msg = "expected part count %d, got %d" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_parts_attribute_present(self):
         """
         Package instance has attribute 'parts'.
         
         """
-        # setup -----------------------
-        obj = self.pkg
-        name = 'parts'
-        # verify ----------------------
-        actual = hasattr(obj, name)
-        msg = "expected %s to have attribute '%s'" % (obj, name)
-        self.assertTrue(actual, msg)
+        self.assertInstHasAttr(self.pkg, 'parts')
     
     def test_parts_empty_on_construction(self):
         """
@@ -311,8 +370,66 @@ class TestPackage(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.pkg.parts = None
     
+    def test_save_method_present(self):
+        """
+        Package class has method 'save'.
+        
+        """
+        self.assertClassHasMethod(pptx.packaging.Package, 'save')
+    
+    def test_save_writes_pptx_zipfile(self):
+        """
+        Package.save() writes .pptx file.
+        
+        """
+        # setup -----------------------
+        self.pkg.open(dir_pkg_path)
+        save_path = self.test_pptx_path
+        # exercise --------------------
+        self.pkg.save(save_path)
+        # verify ----------------------
+        actual = zipfile.is_zipfile(save_path)
+        msg = "no zipfile at %s" % (save_path)
+        self.assertTrue(actual, msg)
+    
+    def test_save_adds_pptx_ext(self):
+        """
+        Package.save() adds .pptx extension if not supplied.
+        
+        """
+        # setup -----------------------
+        self.pkg.open(dir_pkg_path)
+        save_path = self.test_pptx_path[:-5]  # trim off .pptx extension
+        exp_path = self.test_pptx_path
+        # exercise --------------------
+        self.pkg.save(save_path)
+        # verify ----------------------
+        actual = zipfile.is_zipfile(exp_path)
+        msg = "no zipfile at %s" % (exp_path)
+        self.assertTrue(actual, msg)
+    
+    def test_save_member_count(self):
+        """
+        Package.save() produces expected zip member count.
+        
+        """
+        # setup -----------------------
+        self.pkg.open(dir_pkg_path)
+        save_path = self.test_pptx_path
+        # exercise --------------------
+        self.pkg.save(save_path)
+        # verify ----------------------
+        zip = zipfile.ZipFile(save_path)
+        names = zip.namelist()
+        zip.close()
+        partnames = [name for name in names if not name.endswith('/')]
+        expected = 37
+        actual = len(partnames)
+        msg = "expected %d parts, got %d" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
 
-class TestPackageRelationshipsItem(unittest.TestCase):
+class TestPackageRelationshipsItem(TestCase):
     """
     Test pptx.packaging.PackageRelationshipsItem
     
@@ -331,21 +448,20 @@ class TestPackageRelationshipsItem(unittest.TestCase):
         """
         pass
     
-    def test_baseuri_attribute(self):
+    def test_class_present(self):
         """
-        PackageRelationshipsItem instances have attribute 'baseURI'.
-        
-        NOTE: This test will fail if attribute is a method that throws an
-        exception.
+        PackageRelationshipsItem class present in packaging module.
         
         """
-        # setup -----------------------
-        obj = self.pri
-        name = 'baseURI'
         # verify ----------------------
-        actual = hasattr(obj, name)
-        msg = "expected %s to have attribute '%s'" % (obj, name)
-        self.assertTrue(actual, msg)
+        self.assertClassInModule(pptx.packaging, 'PackageRelationshipsItem')
+    
+    def test_baseuri_attribute_present(self):
+        """
+        PackageRelationshipsItem instance has attribute 'baseURI'.
+        
+        """
+        self.assertInstHasAttr(self.pri, 'baseURI')
     
     def test_baseuri_is_readonly(self):
         """
@@ -375,20 +491,12 @@ class TestPackageRelationshipsItem(unittest.TestCase):
         msg = "expected classname '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
-    def test_itemuri_attribute(self):
+    def test_itemuri_attribute_present(self):
         """
-        PackageRelationshipsItem instances have attribute 'itemURI'.
+        PackageRelationshipsItem instance has attribute 'itemURI'.
         
-        NOTE: This test will fail if attribute is an @property method that
-        throws an exception.
         """
-        # setup -----------------------
-        obj = self.pri
-        name = 'itemURI'
-        # verify ----------------------
-        actual = hasattr(obj, name)
-        msg = "expected %s to have attribute '%s'" % (obj, name)
-        self.assertTrue(actual, msg)
+        self.assertInstHasAttr(self.pri, 'itemURI')
     
     def test_itemuri_is_readonly(self):
         """
@@ -435,7 +543,7 @@ class TestPackageRelationshipsItem(unittest.TestCase):
             self.assertEqual(expected, actual, msg)
     
 
-class TestPart(unittest.TestCase):
+class TestPart(TestCase):
     """
     Test pptx.packaging.Part
     
@@ -443,39 +551,97 @@ class TestPart(unittest.TestCase):
     def setUp(self):
         # create Part instance and ancestors
         self.fs = pptx.packaging.FileSystem(dir_pkg_path)
+        self.partname = '/ppt/slideMasters/slideMaster1.xml'
         self.content_type = 'application/vnd.openxmlformats-officedocument'\
                             '.presentationml.slideMaster+xml'
         self.part = pptx.packaging.Part()
-        self.partname = '/ppt/slideMasters/slideMaster1.xml'
+        self.test_pptx_path = os.path.join(basepath, 'test_python-pptx.pptx')
     
-    def test_class_exists(self):
+    def tearDown(self):
+        if os.path.isfile(self.test_pptx_path):
+            os.remove(self.test_pptx_path)
+    
+    def test_class_present(self):
         """
-        Part class exists.
+        Part class present in packaging module.
         
         """
         # verify ----------------------
-        try:
-            issubclass(pptx.packaging.Part,
-                       pptx.packaging.Part)
-        except AttributeError:
-            msg = "Part class not found"
-            self.fail(msg)
-        except TypeError:
-            msg = "Part is not a class"
-            self.fail(msg)
+        self.assertClassInModule(pptx.packaging, 'Part')
     
-    def test_itemuri_attribute(self):
+    def test_blob_attribute_present(self):
         """
-        Part instances have attribute 'itemURI'.
+        Part instance has attribute 'blob'.
+        
+        """
+        self.assertInstHasAttr(self.part, 'blob')
+    
+    def test_blob_none_on_construction(self):
+        """
+        Part.blob is None on construction.
+        
+        """
+        expected = None
+        actual = self.part.blob
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_blob_correct_length_after_load_binary_part(self):
+        """
+        Part.blob correct length after load binary part.
         
         """
         # setup -----------------------
-        obj = self.part
-        name = 'itemURI'
+        partname = '/docProps/thumbnail.jpeg'
+        content_type = 'image/jpeg'
+        self.part.load(self.fs, partname, content_type)
+        # exercise --------------------
+        blob = self.part.blob
         # verify ----------------------
-        actual = hasattr(obj, name)
-        msg = "expected %s to have attribute '%s'" % (obj, name)
+        expected = 21138
+        actual = len(blob)
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_element_attribute_present(self):
+        """
+        Part instance has attribute 'element'.
+        
+        """
+        self.assertInstHasAttr(self.part, 'element')
+    
+    def test_element_none_on_construction(self):
+        """
+        Part.element is None on construction.
+        
+        """
+        expected = None
+        actual = self.part.element
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_element_elm_after_load_xml_part(self):
+        """
+        Part.element instance of etree._Element after load XML part.
+        
+        """
+        # setup -----------------------
+        cls = etree._Element
+        self.part.load(self.fs, self.partname, self.content_type)
+        # exercise --------------------
+        obj = self.part.element
+        # verify ----------------------
+        actual = isinstance(obj, cls)
+        msg = ("expected instance of '%s', got type '%s'"
+               % (cls.__name__, type(obj).__name__))
         self.assertTrue(actual, msg)
+    
+    def test_itemuri_attribute_present(self):
+        """
+        Part instance has attribute 'itemURI'.
+        
+        """
+        self.assertInstHasAttr(self.part, 'itemURI')
     
     def test_itemuri_equals_partname(self):
         """
@@ -524,14 +690,25 @@ class TestPart(unittest.TestCase):
         """
         Part.load() throws exception on missing rels file.
         
+        Strategy: create a zip archive that has a part but not its rels file.
         """
         # setup -----------------------
-        partname = '/ppt/slides/slide99.xml'
+        # get a valid xml part from filesystem
+        partname = '/ppt/presentation.xml'
+        fs = pptx.packaging.FileSystem(dir_pkg_path)
+        elm = fs.getelement(partname)
+        xml = etree.tostring(fs.getelement(partname))
+        # use it to make a part in a new zip file
+        zip = zipfile.ZipFile(self.test_pptx_path, 'w')
+        zip.writestr('ppt/presentation.xml', xml)
+        zip.close()
+        # open new zip as FileSystem with part but no corresponding rels file
+        fs = pptx.packaging.FileSystem(self.test_pptx_path)
         content_type = 'application/vnd.openxmlformats-officedocument'\
-                       '.presentationml.slide+xml'
+                       '.presentationml.presentation.main+xml'
         # verify ----------------------
         with self.assertRaises(CorruptedPackageError):
-            self.part.load(self.fs, partname, content_type)
+            self.part.load(fs, partname, content_type)
     
     def test_partname_none_on_construction(self):
         """
@@ -551,18 +728,12 @@ class TestPart(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.part.partname = None
     
-    def test_relationshipsitem_attribute(self):
+    def test_relationshipsitem_attribute_present(self):
         """
-        Part instances have attribute 'relationshipsitem'.
+        Part instance has attribute 'relationshipsitem'.
         
         """
-        # setup -----------------------
-        obj = self.part
-        name = 'relationshipsitem'
-        # verify ----------------------
-        actual = hasattr(obj, name)
-        msg = "expected %s to have attribute '%s'" % (obj, name)
-        self.assertTrue(actual, msg)
+        self.assertInstHasAttr(self.part, 'relationshipsitem')
     
     def test_relationshipsitem_is_readonly(self):
         """
@@ -616,18 +787,12 @@ class TestPart(unittest.TestCase):
                % (cls.__name__, type(obj).__name__))
         self.assertTrue(actual, msg)
     
-    def test_relationships_attribute(self):
+    def test_relationships_attribute_present(self):
         """
-        Part instances have attribute 'relationships'.
+        Part instance has attribute 'relationships'.
         
         """
-        # setup -----------------------
-        obj = self.part
-        name = 'relationships'
-        # verify ----------------------
-        actual = hasattr(obj, name)
-        msg = "expected %s to have attribute '%s'" % (obj, name)
-        self.assertTrue(actual, msg)
+        self.assertInstHasAttr(self.part, 'relationships')
     
     def test_relationships_is_readonly(self):
         """
@@ -679,8 +844,45 @@ class TestPart(unittest.TestCase):
                % (cls.__name__, type(obj).__name__))
         self.assertTrue(actual, msg)
     
+    def test_typespec_attribute_present(self):
+        """
+        Part instance has attribute 'typespec'.
+        
+        """
+        self.assertInstHasAttr(self.part, 'typespec')
+    
+    def test_typespec_none_on_construction(self):
+        """
+        Part.typespec is None on construction.
+        
+        """
+        expected = None
+        actual = self.part.typespec
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_typespec_correct_after_load(self):
+        """
+        Part.typespec is correct after load.
+        
+        """
+        # setup -----------------------
+        self.part.load(self.fs, self.partname, self.content_type)
+        # exercise --------------------
+        typespec = self.part.typespec
+        test_cases =\
+            ( (typespec.basename    , 'slideMaster')
+            , (typespec.cardinality , 'multiple'   )
+            , (typespec.has_rels    , 'always'     )
+            , (typespec.format      , 'xml'        )
+            )
+        # verify ----------------------
+        for actual, expected in test_cases:
+            msg = "expected '%s', got '%s'" % (expected, actual)
+            self.assertEqual(expected, actual, msg)
+    
 
-class TestPartCollection(unittest.TestCase):
+class TestPartCollection(TestCase):
     """
     Test pptx.packaging.PartCollection
     
@@ -694,21 +896,13 @@ class TestPartCollection(unittest.TestCase):
         pkg = pptx.packaging.Package()
         self.parts = pkg.parts
     
-    def test_class_exists(self):
+    def test_class_present(self):
         """
-        PartCollection class exists.
+        PartCollection class present in packaging module.
         
         """
         # verify ----------------------
-        try:
-            issubclass(pptx.packaging.PartCollection,
-                       pptx.packaging.PartCollection)
-        except AttributeError:
-            msg = "PartCollection class not found"
-            self.fail(msg)
-        except TypeError:
-            msg = "PartCollection is not a class"
-            self.fail(msg)
+        self.assertClassInModule(pptx.packaging, 'PartCollection')
     
     def test_contains(self):
         """
@@ -801,18 +995,12 @@ class TestPartCollection(unittest.TestCase):
         with self.assertRaises(LookupError):
             self.parts.getitem(partname2)
     
-    def test_package_attribute(self):
+    def test_package_attribute_present(self):
         """
         PartCollection instance has attribute 'package'.
         
         """
-        # setup -----------------------
-        obj = self.parts
-        name = 'package'
-        # verify ----------------------
-        actual = hasattr(obj, name)
-        msg = "expected %s to have attribute '%s'" % (obj, name)
-        self.assertTrue(actual, msg)
+        self.assertInstHasAttr(self.parts, 'package')
     
     def test_package_ispackage_on_construction(self):
         """
@@ -837,7 +1025,7 @@ class TestPartCollection(unittest.TestCase):
             self.parts.package = None
     
 
-class TestPartRelationshipsItem(unittest.TestCase):
+class TestPartRelationshipsItem(TestCase):
     """
     Test pptx.packaging.PartRelationshipsItem
     
@@ -853,34 +1041,20 @@ class TestPartRelationshipsItem(unittest.TestCase):
         self.part = part.load(self.fs, self.partname, self.content_type)
         self.ri = pptx.packaging.PartRelationshipsItem()
     
-    def test_class_exists(self):
+    def test_class_present(self):
         """
-        pptx.packaging.PartRelationshipsItem class exists.
+        PartRelationshipsItem class present in packaging module.
         
         """
         # verify ----------------------
-        try:
-            issubclass(pptx.packaging.PartRelationshipsItem,
-                       pptx.packaging.PartRelationshipsItem)
-        except AttributeError:
-            msg = "PartRelationshipsItem class not found"
-            self.fail(msg)
-        except TypeError:
-            msg = "PartRelationshipsItem is not a class"
-            self.fail(msg)
+        self.assertClassInModule(pptx.packaging, 'PartRelationshipsItem')
     
-    def test_baseuri_attribute(self):
+    def test_baseuri_attribute_present(self):
         """
         PartRelationshipsItem instance has attribute 'baseURI'.
         
         """
-        # setup -----------------------
-        obj = self.ri
-        name = 'baseURI'
-        # verify ----------------------
-        actual = hasattr(obj, name)
-        msg = "expected %s to have attribute '%s'" % (obj, name)
-        self.assertTrue(actual, msg)
+        self.assertInstHasAttr(self.ri, 'baseURI')
     
     def test_baseuri_correct(self):
         """
@@ -904,20 +1078,12 @@ class TestPartRelationshipsItem(unittest.TestCase):
         with self.assertRaises(TypeError):
             pptx.packaging.PartRelationshipsItem(None)
     
-    def test_itemuri_attribute(self):
+    def test_itemuri_attribute_present(self):
         """
-        PartRelationshipsItem instances have attribute 'itemURI'.
+        PartRelationshipsItem instance has attribute 'itemURI'.
         
-        NOTE: This test will fail if attribute is an @property method that
-        throws an exception.
         """
-        # setup -----------------------
-        obj = self.ri
-        name = 'itemURI'
-        # verify ----------------------
-        actual = hasattr(obj, name)
-        msg = "expected %s to have attribute '%s'" % (obj, name)
-        self.assertTrue(actual, msg)
+        self.assertInstHasAttr(self.ri, 'itemURI')
     
     def test_itemuri_calculation(self):
         """
@@ -988,26 +1154,18 @@ class TestPartRelationshipsItem(unittest.TestCase):
         self.assertEqual(expected, actual, msg)
     
 
-class TestPartTypeSpec(unittest.TestCase):
+class TestPartTypeSpec(TestCase):
     """
     Test pptx.packaging.PartTypeSpec
     
     """
-    def test_class_exists(self):
+    def test_class_present(self):
         """
-        PartTypeSpec class exists.
+        PartTypeSpec class present in packaging module.
         
         """
         # verify ----------------------
-        try:
-            issubclass(pptx.packaging.PartTypeSpec,
-                       pptx.packaging.PartTypeSpec)
-        except AttributeError:
-            msg = "PartTypeSpec class not found"
-            self.fail(msg)
-        except TypeError:
-            msg = "PartTypeSpec is not a class"
-            self.fail(msg)
+        self.assertClassInModule(pptx.packaging, 'PartTypeSpec')
     
     def test_construction_returns_correct_parttypespec(self):
         """
@@ -1041,8 +1199,36 @@ class TestPartTypeSpec(unittest.TestCase):
         with self.assertRaises(KeyError):
             pptx.packaging.PartTypeSpec(content_type)
     
+    def test_format_correct(self):
+        """
+        PartTypeSpec.format returns correct value.
+        
+        """
+        # setup -----------------------
+        ct_slideMaster = 'application/vnd.openxmlformats-officedocument'\
+            '.presentationml.slideLayout+xml'
+        ct_jpeg = 'image/jpeg'
+        ct_printerSettings = 'application/vnd.openxmlformats-officedocument'\
+            '.presentationml.printerSettings'
+        ct_slide = 'application/vnd.openxmlformats-officedocument'\
+            '.presentationml.slide+xml'
+        test_cases =\
+            ( ( ct_slideMaster     , 'xml'    )
+            , ( ct_jpeg            , 'binary' )
+            , ( ct_printerSettings , 'binary' )
+            , ( ct_slide           , 'xml'    )
+            )
+        # exercise --------------------
+        for ct, exp_format in test_cases:
+            pts = pptx.packaging.PartTypeSpec(ct)
+            # verify ----------------------
+            expected = exp_format
+            actual = pts.format
+            msg = "expected '%s', got '%s'" % (expected, actual)
+            self.assertEqual(expected, actual, msg)
+    
 
-class TestRelationship(unittest.TestCase):
+class TestRelationship(TestCase):
     """
     Test pptx.packaging.Relationship
     
@@ -1052,26 +1238,58 @@ class TestRelationship(unittest.TestCase):
         Create a new relationship from a string.
         
         """
-        rel_xml =\
-            '<Relationship Id="rId1"'\
-            ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"'\
-            ' Target="ppt/presentation.xml"/>'
+        rId = 'rId1'
+        self.reltype = 'http://schemas.openxmlformats.org/officeDocument/'\
+                       '2006/relationships/officeDocument'
+        target = 'ppt/presentation.xml'
+        tmpl = '<Relationship Id="%s" Type="%s" Target="%s"/>'
+        self.rel_xml = tmpl % (rId, self.reltype, target)
+        self.rel_elm = etree.fromstring(self.rel_xml)
         # temporarily using None for parent reference
-        self.relationship = pptx.packaging.Relationship(None, etree.fromstring(rel_xml))
+        self.rel = pptx.packaging.Relationship(None, self.rel_elm)
+    
+    def test_class_present(self):
+        """
+        Relationship class present in packaging module.
+        
+        """
+        # verify ----------------------
+        self.assertClassInModule(pptx.packaging, 'Relationship')
+    
+    def test_element_attribute_present(self):
+        """
+        Relationship instance has attribute 'element'.
+        
+        """
+        self.assertInstHasAttr(self.rel, 'element')
+    
+    def test_element_correct_xml(self):
+        """
+        Relationship.element produces expected XML.
+        
+        """
+        # exercise --------------------
+        elm_out = self.rel.element
+        # verify ----------------------
+        xml_out = etree.tostring(elm_out)
+        expected = self.rel_xml
+        actual = xml_out
+        msg = "expected '%s'\n%sgot '%s'" % (expected, ' '*21, actual)
+        self.assertEqual(expected, actual, msg)
     
     def test_load(self):
         """
         Base attributes present after loading from ElementTree.Element.
         
         """
-        rel = self.relationship
+        rel = self.rel
         
         expected = 'rId1'
         actual = rel.rId
         msg = "expected Relationship.rId '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
         
-        expected = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument'
+        expected = self.reltype
         actual = rel.reltype
         msg = "expected Relationship.reltype '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
@@ -1111,7 +1329,7 @@ class TestRelationship(unittest.TestCase):
             self.assertEqual(expected, actual, msg)
     
 
-class TestRelationshipCollection(unittest.TestCase):
+class TestRelationshipCollection(TestCase):
     """
     Test pptx.packaging.RelationshipCollection
     
@@ -1131,6 +1349,14 @@ class TestRelationshipCollection(unittest.TestCase):
         # construct a relationship element
         rel_xml = '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/>'
         self.rel_elm = etree.fromstring(rel_xml)
+    
+    def test_class_present(self):
+        """
+        RelationshipCollection class present in packaging module.
+        
+        """
+        # verify ----------------------
+        self.assertClassInModule(pptx.packaging, 'RelationshipCollection')
     
     def test_additem(self):
         """
@@ -1158,18 +1384,12 @@ class TestRelationshipCollection(unittest.TestCase):
         with self.assertRaises(DuplicateKeyError):
             self.relationships.additem(self.rel_elm)
     
-    def test_baseuri_attribute(self):
+    def test_baseuri_attribute_present(self):
         """
-        RelationshipsCollection instances have attribute 'baseURI'.
+        RelationshipsCollection instance has attribute 'baseURI'.
         
         """
-        # setup -----------------------
-        obj = self.relationships
-        name = 'baseURI'
-        # verify ----------------------
-        actual = hasattr(obj, name)
-        msg = "expected %s to have attribute '%s'" % (obj, name)
-        self.assertTrue(actual, msg)
+        self.assertInstHasAttr(self.relationships, 'baseURI')
     
     def test_baseuri_is_readonly(self):
         """
@@ -1211,7 +1431,7 @@ class TestRelationshipCollection(unittest.TestCase):
             self.relationships.getitem('rId9')
     
 
-class TestRelationshipsItem(unittest.TestCase):
+class TestRelationshipsItem(TestCase):
     """
     Test pptx.packaging.RelationshipsItem
     
@@ -1221,22 +1441,59 @@ class TestRelationshipsItem(unittest.TestCase):
         Load package relationships item from default filesystem.
         
         """
-        ri = pptx.packaging.RelationshipsItem()
+        self.ri = pptx.packaging.RelationshipsItem()
         self.fs = pptx.packaging.FileSystem(dir_pkg_path)
         self.relsitemURI = '/_rels/.rels'
-        self.ri = ri.load(self.fs, self.relsitemURI)
     
-    def test_construction(self):
+    def loaded_ri(self):
+        ri = pptx.packaging.RelationshipsItem()
+        return ri.load(self.fs, self.relsitemURI)
+    
+    def test_class_present(self):
         """
-        RelationshipsItem instance can be constructed.
+        RelationshipsItem class present in packaging module.
         
         """
-        # exercise --------------------
-        ri = pptx.packaging.RelationshipsItem()
         # verify ----------------------
-        expected = 'RelationshipsItem'
-        actual = ri.__class__.__name__
-        msg = "expected classname '%s', got '%s'" % (expected, actual)
+        self.assertClassInModule(pptx.packaging, 'RelationshipsItem')
+    
+    def test_element_attribute_present(self):
+        """
+        RelationshipsItem instance has attribute 'element'.
+        
+        """
+        self.assertInstHasAttr(self.ri, 'element')
+    
+    def test_element_correct_length(self):
+        """
+        RelationshipsItem.element contains expected count of elements.
+        
+        """
+        # setup -----------------------
+        loaded_ri = self.loaded_ri()
+        # exercise --------------------
+        elm = loaded_ri.element
+        # verify ----------------------
+        expected = 4
+        actual = len(elm)
+        msg = "expected %d elements, got %d" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_element_correct_xml(self):
+        """
+        RelationshipsItem.element produces expected XML.
+        
+        """
+        # setup -----------------------
+        ns = 'http://schemas.openxmlformats.org/package/2006/relationships'
+        exp_xml = '<Relationships xmlns="%s"/>' % ns
+        # exercise --------------------
+        elm = self.ri.element
+        # verify ----------------------
+        xml_out = etree.tostring(elm)
+        expected = exp_xml
+        actual = xml_out
+        msg = "expected '%s'\n%sgot '%s'" % (expected, ' '*21, actual)
         self.assertEqual(expected, actual, msg)
     
     def test_load_discards_prior_rels(self):
@@ -1245,15 +1502,17 @@ class TestRelationshipsItem(unittest.TestCase):
         
         Tries loading /_rels/.rels twice.
         """
+        # setup -----------------------
+        loaded_ri = self.loaded_ri()
         # exercise --------------------
-        try:  # setUp loads self.ri, so this is second time
-            self.ri.load(self.fs, self.relsitemURI)
+        try:  # try loading a second time
+            loaded_ri.load(self.fs, self.relsitemURI)
         # verify ----------------------
         except DuplicateKeyError:
             msg = "prior load relationship(s) not discarded"
             self.fail(msg)
         expected = 4
-        actual = len(self.ri.relationships)
+        actual = len(loaded_ri.relationships)
         msg = "expected %d relationships, got %d" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
@@ -1262,8 +1521,11 @@ class TestRelationshipsItem(unittest.TestCase):
         Expected number of relationships loaded from rels item.
         
         """
+        # setup -----------------------
+        loaded_ri = self.loaded_ri()
+        # verify ----------------------
         expected = 4
-        actual = len(self.ri.relationships)
+        actual = len(loaded_ri.relationships)
         msg = "expected %d relationships, got %d" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
@@ -1272,9 +1534,9 @@ class TestRelationshipsItem(unittest.TestCase):
         RelationshipsItem.relationships empty on construction.
         
         """
-        ri = pptx.packaging.RelationshipsItem()
-        actual = len(ri.relationships)
+        # verify ----------------------
         expected = 0
+        actual = len(self.ri.relationships)
         msg = "expected %d relationships, got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
@@ -1285,6 +1547,191 @@ class TestRelationshipsItem(unittest.TestCase):
         """
         with self.assertRaises(AttributeError):
             self.ri.relationships = None
+    
+
+class TestZipFileSystem(TestCase):
+    """
+    Test pptx.packaging.ZipFileSystem (writing aspect)
+    
+    """
+    def setUp(self):
+        self.test_pptx_path = os.path.join(basepath, 'test_python-pptx.pptx')
+        self.xml_in =\
+            """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>"""\
+            """<p:presentationPr xmlns:a="http://main" """\
+            """xmlns:r="http://relationships" """\
+            """xmlns:p="http://presentationml">"""\
+            """<p:extLst>"""\
+            """<p:ext uri="{E76CE94A-603C-4142-B9EB-6D1370010A27}">"""\
+            """<r:discardImageEditData val="0"/>"""\
+            """</p:ext>"""\
+            """</p:extLst>"""\
+            """</p:presentationPr>"""
+        self.xml_out =\
+            """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"""\
+            """<p:presentationPr xmlns:a="http://main"\n"""\
+            """                  xmlns:r="http://relationships"\n"""\
+            """                  xmlns:p="http://presentationml">\n"""\
+            """  <p:extLst>\n"""\
+            """    <p:ext uri="{E76CE94A-603C-4142-B9EB-6D1370010A27}">\n"""\
+            """      <r:discardImageEditData val="0"/>\n"""\
+            """    </p:ext>\n"""\
+            """  </p:extLst>\n"""\
+            """</p:presentationPr>"""
+    
+    def tearDown(self):
+        if os.path.isfile(self.test_pptx_path):
+            os.remove(self.test_pptx_path)
+    
+    def test_class_present(self):
+        """
+        ZipFileSystem class present in packaging module.
+        
+        """
+        # verify ----------------------
+        self.assertClassInModule(pptx.packaging, 'ZipFileSystem')
+    
+    def test_getblob_method_present(self):
+        """
+        ZipFileSystem class has method 'getblob'.
+        
+        """
+        self.assertClassHasMethod(pptx.packaging.ZipFileSystem,
+                                  'getblob')
+    
+    def test_getblob_correct_length(self):
+        """
+        ZipFileSystem.getblob() returns object of expected length.
+        
+        """
+        # setup -----------------------
+        partname = '/docProps/thumbnail.jpeg'
+        fs = pptx.packaging.FileSystem(zip_pkg_path)
+        # exercise --------------------
+        blob = fs.getblob(partname)
+        # verify ----------------------
+        expected = 21138
+        actual = len(blob)
+        msg = "expected %d bytes, got %d" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_getblob_throws_on_bad_URI(self):
+        """
+        ZipFileSystem.getblob() throws on bad URI.
+        
+        """
+        # setup -----------------------
+        fs = pptx.packaging.FileSystem(zip_pkg_path)
+        # verify ----------------------
+        with self.assertRaises(LookupError):
+            fs.getstream('!blat/rhumba.xml')
+    
+    def test_new_method_present(self):
+        """
+        ZipFileSystem class has method 'new'.
+        
+        """
+        self.assertClassHasMethod(pptx.packaging.ZipFileSystem, 'new')
+    
+    def test_new_returns_self(self):
+        """
+        ZipFileSystem.new() returns self-reference.
+        
+        """
+        # exercise --------------------
+        zipfs = pptx.packaging.ZipFileSystem(self.test_pptx_path)
+        retval = zipfs.new()
+        # verify ----------------------
+        expected = zipfs
+        actual = retval
+        msg = "expected %s, got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_write_blob_method_present(self):
+        """
+        ZipFileSystem class has method 'write_blob'.
+        
+        """
+        self.assertClassHasMethod(pptx.packaging.ZipFileSystem,
+                                  'write_blob')
+    
+    def test_write_blob_round_trips(self):
+        """
+        ZipFileSystem.write_blob() round-trips intact.
+        
+        """
+        # setup -----------------------
+        partname = '/docProps/thumbnail.jpeg'
+        fs = pptx.packaging.FileSystem(zip_pkg_path)
+        in_blob = fs.getblob(partname)
+        test_fs = pptx.packaging.ZipFileSystem(self.test_pptx_path).new()
+        # exercise --------------------
+        test_fs.write_blob(in_blob, partname)
+        # verify ----------------------
+        out_blob = test_fs.getblob(partname)
+        expected = in_blob
+        actual = out_blob
+        msg = "retrived blob (len %d) differs from original (len %d)"\
+               % (len(actual), len(expected))
+        self.assertEqual(expected, actual, msg)
+    
+    def test_write_blob_throws_on_dup_itemuri(self):
+        """
+        ZipFileSystem.write_blob() throws on duplicate itemURI.
+        
+        """
+        # setup -----------------------
+        partname = '/docProps/thumbnail.jpeg'
+        fs = pptx.packaging.FileSystem(zip_pkg_path)
+        blob = fs.getblob(partname)
+        test_fs = pptx.packaging.ZipFileSystem(self.test_pptx_path).new()
+        test_fs.write_blob(blob, partname)
+        # verify ----------------------
+        with self.assertRaises(DuplicateKeyError):
+            test_fs.write_blob(blob, partname)
+    
+    def test_write_element_method_present(self):
+        """
+        ZipFileSystem class has method 'write_element'.
+        
+        """
+        self.assertClassHasMethod(pptx.packaging.ZipFileSystem,
+                                  'write_element')
+    
+    def test_write_element_round_trips(self):
+        """
+        ZipFileSystem.write_element() round-trips intact.
+        
+        """
+        # setup -----------------------
+        elm = etree.fromstring(self.xml_in)
+        itemURI = '/ppt/test.xml'
+        zipfs = pptx.packaging.ZipFileSystem(self.test_pptx_path).new()
+        # exercise --------------------
+        zipfs.write_element(elm, itemURI)
+        # verify ----------------------
+        stream = zipfs.getstream(itemURI)
+        xml_out = stream.read()
+        stream.close()
+        expected = self.xml_out
+        actual = xml_out
+        msg = "expected \n%s\n, got\n%s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_write_element_throws_on_dup_itemuri(self):
+        """
+        ZipFileSystem.write_element() throws on duplicate itemURI.
+        
+        """
+        # setup -----------------------
+        elm = etree.fromstring(self.xml_in)
+        itemURI = '/ppt/test.xml'
+        zipfs = pptx.packaging.ZipFileSystem(self.test_pptx_path).new()
+        # exercise --------------------
+        zipfs.write_element(elm, itemURI)
+        # verify ----------------------
+        with self.assertRaises(DuplicateKeyError):
+            zipfs.write_element(elm, itemURI)
     
 
 

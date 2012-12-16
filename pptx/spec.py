@@ -444,7 +444,7 @@ pml_parttypes =\
 
 
 # ============================================================================
-# ext2mime_map
+# default_content_types
 # ============================================================================
 # Default file extension to MIME type mapping. This is used as a reference for
 # adding <Default> elements to [Content_Types].xml for parts like media files.
@@ -453,21 +453,21 @@ pml_parttypes =\
 # media PowerPoint allows to be embedded (e.g. audio, movie, object, ...).
 # ============================================================================
 
-ext2mime_map =\
-    { 'bin'     : 'application/vnd.openxmlformats-officedocument.presentationml.printerSettings'
-    , 'emf'     : 'image/x-emf'
-    , 'fntdata' : 'application/x-fontdata'
-    , 'gif'     : 'image/gif'
-    , 'jpe'     : 'image/jpeg'
-    , 'jpeg'    : 'image/jpeg'
-    , 'jpg'     : 'image/jpeg'
-    , 'png'     : 'image/png'
-    , 'rels'    : 'application/vnd.openxmlformats-package.relationships+xml'
-    , 'tif'     : 'image/tiff'
-    , 'tiff'    : 'image/tiff'
-    , 'wmf'     : 'image/x-wmf'
-    , 'xlsx'    : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    , 'xml'     : 'application/xml'
+default_content_types =\
+    { '.bin'     : 'application/vnd.openxmlformats-officedocument.presentationml.printerSettings'
+    , '.emf'     : 'image/x-emf'
+    , '.fntdata' : 'application/x-fontdata'
+    , '.gif'     : 'image/gif'
+    , '.jpe'     : 'image/jpeg'
+    , '.jpeg'    : 'image/jpeg'
+    , '.jpg'     : 'image/jpeg'
+    , '.png'     : 'image/png'
+    , '.rels'    : 'application/vnd.openxmlformats-package.relationships+xml'
+    , '.tif'     : 'image/tiff'
+    , '.tiff'    : 'image/tiff'
+    , '.wmf'     : 'image/x-wmf'
+    , '.xlsx'    : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    , '.xml'     : 'application/xml'
     }
 
 

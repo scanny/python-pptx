@@ -143,6 +143,12 @@ without code specific to either of those package formats.</p>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Base class for FileSystem classes, providing common methods.</p>
 <dl class="method">
+<dt id="pptx.packaging.BaseFileSystem.getblob">
+<tt class="descname">getblob</tt><big>(</big><em>itemURI</em><big>)</big><a class="headerlink" href="#pptx.packaging.BaseFileSystem.getblob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return byte string of item identified by <em>itemURI</em>.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="pptx.packaging.BaseFileSystem.getelement">
 <tt class="descname">getelement</tt><big>(</big><em>itemURI</em><big>)</big><a class="headerlink" href="#pptx.packaging.BaseFileSystem.getelement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return ElementTree element of XML item identified by <em>itemURI</em>.</p>
@@ -165,6 +171,17 @@ object to access a different package.</p>
 once it&#8217;s further along and its test suite is reasonably well-developed.</p>
 <p>Lookup content type by part name using dictionary syntax, e.g.
 <tt class="docutils literal"><span class="pre">content_type</span> <span class="pre">=</span> <span class="pre">cti['/ppt/presentation.xml']</span></tt>.</p>
+<dl class="method">
+<dt id="pptx.packaging.ContentTypesItem.compose">
+<tt class="descname">compose</tt><big>(</big><em>parts</em><big>)</big><a class="headerlink" href="#pptx.packaging.ContentTypesItem.compose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assemble a [Content_Types].xml item based on the contents of <em>parts</em>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pptx.packaging.ContentTypesItem.element">
+<tt class="descname">element</tt><a class="reference internal" href="_modules/pptx/packaging.html#ContentTypesItem.element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.ContentTypesItem.element" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pptx.packaging.ContentTypesItem.load">
 <tt class="descname">load</tt><big>(</big><em>fs</em><big>)</big><a class="headerlink" href="#pptx.packaging.ContentTypesItem.load" title="Permalink to this definition">¶</a></dt>
@@ -217,26 +234,6 @@ appropriate concrete filesystem class depending on what it finds at
 </dd></dl>
 
 <dl class="class">
-<dt id="pptx.packaging.OldContentTypesItem">
-<em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">OldContentTypesItem</tt><big>(</big><em>package</em><big>)</big><a class="headerlink" href="#pptx.packaging.OldContentTypesItem" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pptx.packaging.PackageItem" title="pptx.packaging.PackageItem"><tt class="xref py py-class docutils literal"><span class="pre">pptx.packaging.PackageItem</span></tt></a></p>
-<p>The Content Types package item appears in every package exactly once with
-the name &#8216;[Content_Types].xml&#8217;. Its purpose is to specify the content
-types (MIME or MIME-like types) of each of the other files in the package
-so they can be processed appropriately.</p>
-<p>There need only be one <a class="reference internal" href="#pptx.packaging.ContentTypesItem" title="pptx.packaging.ContentTypesItem"><tt class="xref py py-class docutils literal"><span class="pre">ContentTypesItem</span></tt></a> instance for each package
-and this class would not normally need to be either instantiated or
-directly accessed by user program code. It is instantiated and called
-internally by <a class="reference internal" href="#pptx.packaging.Package" title="pptx.packaging.Package"><tt class="xref py py-class docutils literal"><span class="pre">Package</span></tt></a> for all common purposes, but may be
-interesting to call directly for testing or learning purposes.</p>
-<dl class="attribute">
-<dt id="pptx.packaging.OldContentTypesItem.element">
-<tt class="descname">element</tt><a class="headerlink" href="#pptx.packaging.OldContentTypesItem.element" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="pptx.packaging.Package">
 <em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">Package</tt><a class="reference internal" href="_modules/pptx/packaging.html#Package"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.Package" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
@@ -270,25 +267,9 @@ this package&#8217;s parts are contained.</p>
 
 <dl class="method">
 <dt id="pptx.packaging.Package.save">
-<tt class="descname">save</tt><big>(</big><em>presentation</em>, <em>filename</em><big>)</big><a class="reference internal" href="_modules/pptx/packaging.html#Package.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.Package.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>... DOCME ...</p>
+<tt class="descname">save</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/pptx/packaging.html#Package.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.Package.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save this package at <em>path</em>.</p>
 </dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="pptx.packaging.PackageItem">
-<em class="property">class </em><tt class="descclassname">pptx.packaging.</tt><tt class="descname">PackageItem</tt><a class="reference internal" href="_modules/pptx/packaging.html#PackageItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PackageItem" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<dl class="attribute">
-<dt id="pptx.packaging.PackageItem.xmlstring">
-<tt class="descname">xmlstring</tt><a class="reference internal" href="_modules/pptx/packaging.html#PackageItem.xmlstring"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PackageItem.xmlstring" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pptx.packaging.PackageItem.zipfilepath">
-<tt class="descname">zipfilepath</tt><a class="reference internal" href="_modules/pptx/packaging.html#PackageItem.zipfilepath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pptx.packaging.PackageItem.zipfilepath" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 
@@ -462,6 +443,16 @@ of the package.</p>
 <p>Instances are cached, so no more than one instance for a particular
 content type is in memory.</p>
 <dl class="attribute">
+<dt id="pptx.packaging.PartTypeSpec.content_type">
+<tt class="descname">content_type</tt><a class="headerlink" href="#pptx.packaging.PartTypeSpec.content_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>MIME-type-like string that distinguishes the content of parts of this
+type from simple XML. For example, the content_type of a theme part is
+<tt class="docutils literal"><span class="pre">application/vnd.openxmlformats-officedocument.theme+xml</span></tt>. Each
+part&#8217;s content type is written in the content types item located in the
+root directory of the package ([Content_Types].xml).</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pptx.packaging.PartTypeSpec.basename">
 <tt class="descname">basename</tt><a class="headerlink" href="#pptx.packaging.PartTypeSpec.basename" title="Permalink to this definition">¶</a></dt>
 <dd><p>The root of the part&#8217;s filename within the package. For example,
@@ -537,6 +528,11 @@ relationshiptype for <tt class="docutils literal"><span class="pre">slides/slide
 <em class="property">classmethod </em><tt class="descname">register</tt><big>(</big><em>loadclassmap</em><big>)</big><a class="headerlink" href="#pptx.packaging.PartTypeSpec.register" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="classmethod">
+<dt id="pptx.packaging.PartTypeSpec.register_def_loadclass">
+<em class="property">classmethod </em><tt class="descname">register_def_loadclass</tt><big>(</big><em>defloadclass</em><big>)</big><a class="headerlink" href="#pptx.packaging.PartTypeSpec.register_def_loadclass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -550,6 +546,11 @@ Relationship needs to form proper URIs. The source part (from-part) in the
 relationship is implictly the part that&#8217;s keeping track of this instance,
 generally the part having the RelationshipCollection this Relationship
 stores a reference to in its <em>parent</em> attribute.</p>
+<dl class="attribute">
+<dt id="pptx.packaging.Relationship.element">
+<tt class="descname">element</tt><a class="headerlink" href="#pptx.packaging.Relationship.element" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="pptx.packaging.Relationship.target">
 <tt class="descname">target</tt><a class="headerlink" href="#pptx.packaging.Relationship.target" title="Permalink to this definition">¶</a></dt>
@@ -615,6 +616,11 @@ items have the same filename as the part whose relationships they
 describe, with the &#8216;.rels&#8217; extension appended as a suffix. For example,
 the relationship item for a part named &#8216;slide1.xml&#8217; would have the URI
 &#8216;/ppt/slides/_rels/slide1.xml.rels&#8217;.</p>
+<dl class="attribute">
+<dt id="pptx.packaging.RelationshipsItem.element">
+<tt class="descname">element</tt><a class="headerlink" href="#pptx.packaging.RelationshipsItem.element" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pptx.packaging.RelationshipsItem.load">
 <tt class="descname">load</tt><big>(</big><em>fs</em>, <em>itemURI</em><big>)</big><a class="headerlink" href="#pptx.packaging.RelationshipsItem.load" title="Permalink to this definition">¶</a></dt>
@@ -657,6 +663,26 @@ with it to free up the memory it uses.</p>
 name is the archive-relative path of that file. A forward-slash is
 prepended to form the URI, e.g. &#8216;/ppt/slides/slide1.xml&#8217;. Although
 not strictly necessary, the results are sorted for neatness&#8217; sake.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pptx.packaging.ZipFileSystem.new">
+<tt class="descname">new</tt><big>(</big><big>)</big><a class="headerlink" href="#pptx.packaging.ZipFileSystem.new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new zip archive at <tt class="docutils literal"><span class="pre">self.path</span></tt>. If a file by that name
+already exists, it is truncated. Returns self reference to allow
+generative call.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pptx.packaging.ZipFileSystem.write_blob">
+<tt class="descname">write_blob</tt><big>(</big><em>blob</em>, <em>itemURI</em><big>)</big><a class="headerlink" href="#pptx.packaging.ZipFileSystem.write_blob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write <em>blob</em> to zip file as binary stream named <em>itemURI</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pptx.packaging.ZipFileSystem.write_element">
+<tt class="descname">write_element</tt><big>(</big><em>element</em>, <em>itemURI</em><big>)</big><a class="headerlink" href="#pptx.packaging.ZipFileSystem.write_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write <em>element</em> to zip file as an XML document named <em>itemURI</em>.</p>
 </dd></dl>
 
 </dd></dl>

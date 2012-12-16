@@ -24,7 +24,6 @@ without code specific to either of those package formats.
 '''
 
 import os
-import re
 import zipfile
 
 from lxml import etree
@@ -33,7 +32,8 @@ from StringIO import StringIO
 import pptx.spec
 
 from pptx            import util
-from pptx.exceptions import CorruptedPackageError, DuplicateKeyError, NotXMLError, PackageNotFoundError
+from pptx.exceptions import CorruptedPackageError, DuplicateKeyError,\
+                            NotXMLError, PackageNotFoundError
 from pptx.spec       import qname
 
 import logging
@@ -67,6 +67,7 @@ class Package(object):
         """
         super(Package, self).__init__()
         self.__parts = PartCollection(self)
+        self.__relsitem = None
     
     def loadparts(self, fs, cti, rels):
         """
@@ -96,10 +97,8 @@ class Package(object):
         """
         fs = FileSystem(path)
         cti = ContentTypesItem().load(fs)
-        pri = PackageRelationshipsItem().load(fs)
-        # test Package.loadparts() part count
-        # ----
-        # self.loadparts(fs, cti, pri.relationships)
+        self.__relsitem = PackageRelationshipsItem().load(fs)
+        self.loadparts(fs, cti, self.__relsitem.relationships)
         return self
     
     @property
@@ -111,48 +110,36 @@ class Package(object):
         """
         return self.__parts
     
-    def save(self, presentation, filename):
+    def save(self, path):
         """
-        ... DOCME ...
+        Save this package at *path*.
         
         """
-        # initialize part collections
-        self.imageparts       = ImageParts       (self)
-        self.themeparts       = ThemeParts       (self)
-        self.slidemasterparts = SlideMasterParts (self)
-        self.slidelayoutparts = SlideLayoutParts (self)
-        self.slideparts       = SlideParts       (self)
-        # load collections from presentation
-        for item in presentation.images       : self.imageparts       .additem(item)
-        for item in presentation.themes       : self.themeparts       .additem(item)
-        for item in presentation.slidemasters : self.slidemasterparts .additem(item)
-        for item in presentation.slidelayouts : self.slidelayoutparts .additem(item)
-        for item in presentation.slides       : self.slideparts       .additem(item)
-        # load non-collection parts from presentation
-        self.presentationpart  = PresentationPart (self).load(item=presentation)
-        self.prespropspart     = PresPropsPart    (self).load(item=presentation.presprops)
-        self.tablestylespart   = TableStylesPart  (self).load(item=presentation.tablestyles)
-        self.viewpropspart     = ViewPropsPart    (self).load(item=presentation.viewprops)
-        # initialize relationship item
-        self.relationshipitem = OldPackageRelationshipItem(self)
-        self.contenttypesitem = ContentTypesItem(self)
-        items = self.items
-        # create the zip file to hold the presentation package
-        pptxfile = zipfile.ZipFile(filename, mode='w', compression=zipfile.ZIP_DEFLATED)
-        # print 'Package contains %d items.' % len(items)
-        for package_item in items:
-            # print package_item.__class__
-            package_item.write(pptxfile)
-        pptxfile.close()
+        # NOTE: In real save, first step might be to walk actual parts to make
+        #       sure pkg part collection isn't out of date
+        # --------------------------------------------------------------------
+        path = self.__normalizedpath(path)
+        zipfs = ZipFileSystem(path).new()
+        cti = ContentTypesItem().compose(self.parts)
+        zipfs.write_element(cti.element, '/[Content_Types].xml')
+        zipfs.write_element(self.__relsitem.element, '/_rels/.rels')
+        for part in self.parts:
+            # write part item
+            if part.typespec.format == 'xml':
+                zipfs.write_element(part.element, part.partname)
+            else:
+                zipfs.write_blob(part.blob, part.partname)
+            # write rels item if part has one
+            relsitem = part.relationshipsitem
+            if relsitem:
+                zipfs.write_element(relsitem.element, relsitem.itemURI)
     
-    def __normalizedfilename(self, filename):
+    def __normalizedpath(self, path):
         """
-        ... DOCME ...
+        Add '.pptx' extension to path if not already there.
         
         """
-        # add .pptx extension to filename if it doesn't have one
-        filename = filename if filename[-5:] == '.pptx' else filename + '.pptx'
-        return filename
+        return path if path.endswith('.pptx') else '%s.pptx' % path
     
 
 
@@ -202,6 +189,18 @@ class BaseFileSystem(object):
         
         """
         return itemURI in self.itemURIs
+    
+    def getblob(self, itemURI):
+        """
+        Return byte string of item identified by *itemURI*.
+        
+        """
+        if itemURI not in self:
+            raise LookupError("No package item with URI '%s'" % itemURI)
+        stream = self.getstream(itemURI)
+        blob = stream.read()
+        stream.close()
+        return blob
     
     def getelement(self, itemURI):
         """
@@ -324,6 +323,49 @@ class ZipFileSystem(BaseFileSystem):
         itemURIs = [('/%s' % name) for name in namelist if not name.endswith('/')]
         return sorted(itemURIs)
     
+    def new(self):
+        """
+        Create a new zip archive at ``self.path``. If a file by that name
+        already exists, it is truncated. Returns self reference to allow
+        generative call.
+        
+        """
+        zip = zipfile.ZipFile(self.path, 'w',
+                              compression=zipfile.ZIP_DEFLATED)
+        zip.close()
+        return self
+    
+    def write_blob(self, blob, itemURI):
+        """
+        Write *blob* to zip file as binary stream named *itemURI*.
+        
+        """
+        if itemURI in self:
+            tmpl = "Item with URI '%s' already in package"
+            raise DuplicateKeyError(tmpl % itemURI)
+        membername = itemURI[1:]  # trim off leading slash
+        zip = zipfile.ZipFile(self.path, 'a',
+                              compression=zipfile.ZIP_DEFLATED)
+        zip.writestr(membername, blob)
+        zip.close()
+    
+    def write_element(self, element, itemURI):
+        """
+        Write *element* to zip file as an XML document named *itemURI*.
+        
+        """
+        if itemURI in self:
+            tmpl = "Item with URI '%s' already in package"
+            raise DuplicateKeyError(tmpl % itemURI)
+        membername = itemURI[1:]  # trim off leading slash
+        xml = etree.tostring(element, encoding='UTF-8', pretty_print=True,
+                             standalone=True)
+        xml = util.prettify_nsdecls(xml)
+        zip = zipfile.ZipFile(self.path, 'a',
+                              compression=zipfile.ZIP_DEFLATED)
+        zip.writestr(membername, xml)
+        zip.close()
+    
 
 
 # ============================================================================
@@ -342,6 +384,14 @@ class PartTypeSpec(object):
     
     Instances are cached, so no more than one instance for a particular
     content type is in memory.
+    
+    .. attribute:: content_type
+       
+       MIME-type-like string that distinguishes the content of parts of this
+       type from simple XML. For example, the content_type of a theme part is
+       ``application/vnd.openxmlformats-officedocument.theme+xml``. Each
+       part's content type is written in the content types item located in the
+       root directory of the package ([Content_Types].xml).
     
     .. attribute:: basename
        
@@ -395,6 +445,7 @@ class PartTypeSpec(object):
     """
     __instances = {}
     __loadclassmap = {}
+    __defloadclass = None
     
     def __new__(cls, content_type):
         """
@@ -424,23 +475,28 @@ class PartTypeSpec(object):
             raise KeyError(tmpl % content_type)
         ptsdict = pptx.spec.pml_parttypes[content_type]
         # load attributes from spec constants dictionary
-        self.basename    = ptsdict['basename']     # e.g. 'slideMaster'
-        self.ext         = ptsdict['ext']          # e.g. '.xml'
-        self.cardinality = ptsdict['cardinality']  # e.g. 'single' or 'multiple'
-        self.required    = ptsdict['required']     # e.g. False
-        self.baseURI     = ptsdict['baseURI']      # e.g. '/ppt/slideMasters'
-        self.has_rels    = ptsdict['has_rels']     # e.g. 'always', 'never', or 'optional'
-        self.rel_type    = ptsdict['rel_type']     # e.g. 'http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties'
+        self.content_type = content_type            # e.g. 'application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml'
+        self.basename     = ptsdict['basename']     # e.g. 'slideMaster'
+        self.ext          = ptsdict['ext']          # e.g. '.xml'
+        self.cardinality  = ptsdict['cardinality']  # e.g. 'single' or 'multiple'
+        self.required     = ptsdict['required']     # e.g. False
+        self.baseURI      = ptsdict['baseURI']      # e.g. '/ppt/slideMasters'
+        self.has_rels     = ptsdict['has_rels']     # e.g. 'always', 'never', or 'optional'
+        self.rel_type     = ptsdict['rel_type']     # e.g. 'http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties'
         # set class to load parts of this type
         if content_type in PartTypeSpec.__loadclassmap:
             self.loadclass = PartTypeSpec.__loadclassmap[content_type]
         else:
-            self.loadclass = None
+            self.loadclass = PartTypeSpec.__defloadclass
     
     @classmethod
     def register(cls, loadclassmap):
         for content_type, loadclass in loadclassmap.items():
             cls.__loadclassmap[content_type] = loadclass
+    
+    @classmethod
+    def register_def_loadclass(cls, defloadclass):
+        cls.__defloadclass = defloadclass
     
     @property
     def format(self):
@@ -448,7 +504,7 @@ class PartTypeSpec(object):
         One of 'xml' or 'binary'.
         
         """
-        return 'xml' if self.ext == 'xml' else 'binary'
+        return 'xml' if self.ext == '.xml' else 'binary'
     
 
 
@@ -489,6 +545,56 @@ class ContentTypesItem(object):
         # if neither of those work, throw an exception
         raise LookupError("""No part name '%s' in package content types item""" % (partname))
     
+    def __len__(self):
+        """
+        Return sum count of Default and Override elements.
+        
+        """
+        count = len(self.__defaults) if self.__defaults is not None else 0
+        count += len(self.__overrides) if self.__overrides is not None else 0
+        return count
+    
+    def compose(self, parts):
+        """
+        Assemble a [Content_Types].xml item based on the contents of *parts*.
+        
+        """
+        # extensions in this dict includes leading '.'
+        def_cts = pptx.spec.default_content_types
+        # initialize working dictionaries for defaults and overrides
+        self.__defaults = {ext[1:]: def_cts[ext] for ext in ('.rels', '.xml')}
+        self.__overrides = {}
+        # compose appropriate element for each part
+        for part in parts:
+            ext = os.path.splitext(part.partname)[1]
+            # if extension is '.xml', assume an override. There might be a
+            # fancier way to do this, otherwise I don't know what 'xml'
+            # Default entry is for.
+            if ext == '.xml':
+                self.__overrides[part.partname] = part.typespec.content_type
+            elif ext in def_cts:
+                self.__defaults[ext[1:]] = def_cts[ext]
+            else:
+                tmpl = "extension '%s' not found in default_content_types"
+                raise LookupError(tmpl % (ext))
+        return self
+    
+    @property
+    def element(self):
+        nsmap = {None: pptx.spec.nsmap['ct']}
+        element = etree.Element(qname('ct', 'Types'), nsmap=nsmap)
+        if self.__defaults:
+            for ext in sorted(self.__defaults.keys()):
+                subelm = etree.SubElement(element, qname('ct', 'Default'))
+                subelm.set('Extension', ext)
+                subelm.set('ContentType', self.__defaults[ext])
+        if self.__overrides:
+            for partname in sorted(self.__overrides.keys()):
+                subelm = etree.SubElement(element, qname('ct', 'Override'))
+                subelm.set('PartName', partname)
+                subelm.set('ContentType', self.__overrides[partname])
+        return element
+    
     def load(self, fs):
         """
         Retrieve [Content_Types].xml from specified file system and load it.
@@ -527,6 +633,14 @@ class Relationship(object):
         self.rId = element.get('Id')
         self.reltype = element.get('Type')
         self.__target = element.get('Target')
+    
+    @property
+    def element(self):
+        element = etree.Element('Relationship')
+        element.set('Id', self.rId)
+        element.set('Type', self.reltype)
+        element.set('Target', self.__target)
+        return element
     
     @property
     def target(self):
@@ -630,6 +744,14 @@ class RelationshipsItem(object):
     def __init__(self):
         super(RelationshipsItem, self).__init__()
         self.__relationships = RelationshipCollection(self)
+    
+    @property
+    def element(self):
+        nsmap = {None: pptx.spec.nsmap['pr']}
+        element = etree.Element(qname('pr', 'Relationships'), nsmap=nsmap)
+        for rel in self.__relationships:
+            element.append(rel.element)
+        return element
     
     def load(self, fs, itemURI):
         """
@@ -817,7 +939,9 @@ class Part(object):
         super(Part, self).__init__()
         self.__partname = None
         self.__relsitem = None
-        self.__typespec = None
+        self.blob = None
+        self.element = None
+        self.typespec = None
     
     def __relsitemURI(self, typespec, partname, fs):
         """
@@ -857,17 +981,36 @@ class Part(object):
         :param content_type: content type of part identified by *partname*
         
         """
+        # set persisted attributes
+        self.typespec = PartTypeSpec(content_type)
         self.__partname = partname
-        self.__typespec = PartTypeSpec(content_type)
+        
+        # load element if part is xml, blob otherwise
+        self.blob = None     # discard from any prior load
+        self.element = None  # discard from any prior load
+        if self.typespec.format == 'xml':
+            self.element = fs.getelement(partname)
+        else:
+            # REFACTOR: add DirFileSystem.getblob() and use fs.getblob instead
+            stream = fs.getstream(partname)
+            self.blob = stream.read()
+            stream.close()
+        
+        # load relationships item if part has one
         self.__relsitem = None  # discard any from last load
-        relsitemURI = self.__relsitemURI(self.__typespec, partname, fs)
+        relsitemURI = self.__relsitemURI(self.typespec, partname, fs)
         if relsitemURI:
             if relsitemURI not in fs:
                 tmpl = "required relationships item '%s' not found in package"
                 raise CorruptedPackageError(tmpl % relsitemURI)
             self.__relsitem = PartRelationshipsItem()
             self.__relsitem.load(self, fs, relsitemURI)
+        
         return self
+        
+        # # load the model class for this part if one is specified
+        # if self.typespec.loadclass:
+        #     self.typespec.loadclass(self)
     
     @property
     def partname(self):
@@ -899,90 +1042,4 @@ class Part(object):
         return self.__relsitem.relationships
     
 
-
-# ############################################################################
-# legacy classes
-# ############################################################################
-
-class PackageItem(object):
-    @property
-    def xmlstring(self):
-#TECHDEBT: Maybe should check to see if item content is XML or not and throw exception if not XML
-        element = self.element
-        if element is None:
-            return None
-        return util.prettify_nsdecls(etree.tostring(element, encoding='UTF-8', pretty_print=True, standalone=True))
-    
-    @property
-    def zipfilepath(self):
-        return os.path.join(self.zipdir, self.filename)
-    
-
-class OldContentTypesItem(PackageItem):
-    """
-    The Content Types package item appears in every package exactly once with
-    the name '[Content_Types].xml'. Its purpose is to specify the content
-    types (MIME or MIME-like types) of each of the other files in the package
-    so they can be processed appropriately.
-    
-    There need only be one :class:`ContentTypesItem` instance for each package
-    and this class would not normally need to be either instantiated or
-    directly accessed by user program code. It is instantiated and called
-    internally by :class:`Package` for all common purposes, but may be
-    interesting to call directly for testing or learning purposes.
-    """
-    def __init__(self, package):
-        super(ContentTypesItem, self).__init__()
-        self.package  = package
-        self.filename = '[Content_Types].xml'
-        self.zipdir   = ''
-    
-    @property
-    def element(self):
-        #TECHDEBT: Look this up from lookup table in pptx.spec
-        element = etree.fromstring('''<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>''')
-        element.extend(self.__defaultcontenttypes)
-        element.extend(self.__overrides)
-        return element
-    
-#TODO: account for possible thumbnail.jpeg image in /docProps
-#TODO: account for possible printerSettings[1-9][0-9]*.bin files in ppt/printerSettings/
-#TODO: account for possible fntdata parts (handled by fntdata Default element) in /ppt/fonts directory
-    @property
-    def __defaultcontenttypes(self):
-        defaults = []
-        defaults.extend(self.__mediatypedefaultelements)
-        defaults.append(self.__defaultelement('rels'))
-        defaults.append(self.__defaultelement('xml'))
-        return defaults
-    
-    def __defaultelement(self, ext):
-        #REFACTOR: Work out a more elegant access method to this ext2mime_map.
-        mimetype = ext2mime_map[ext]
-        element = etree.Element('Default')
-        element.set('Extension'   , ext)
-        element.set('ContentType' , mimetype)
-        return element
-    
-#TECHDEBT: Need to accomodate audio and video content types as well as images
-    @property
-    def __mediatypedefaultelements(self):
-        defaults = []
-        exts = {}
-        for imagepart in self.package.imageparts:
-            ext = os.path.splitext(imagepart.filename)[1][1:]  # extension is second item in returned tuple and need to strip off '.' from the front
-            exts[ext] = ''
-        return [self.__defaultelement(ext) for ext in sorted(exts.keys())]
-    
-    def __override_element(self, part):
-        partname = os.path.join(part.parttype.location, part.filename)
-        element = etree.Element('Override')
-        element.set('PartName'    , partname)
-        element.set('ContentType' , part.parttype.content_type)
-        return element
-    
-    @property
-    def __overrides(self):
-        return [self.__override_element(part) for part in self.package.parts if part.filename.endswith('.xml')]
-    
 

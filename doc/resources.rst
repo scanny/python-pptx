@@ -19,6 +19,8 @@ Microsoft PowerPoint API documentation
 
 * `Different MSDN PowerPoint API reference <http://msdn.microsoft.com/en-us/library/documentformat.openxml.presentation.presentation_members.aspx>`_
 
+* `OpenXML Content Types as an XML Document <http://blogs.msdn.com/b/ericwhite/archive/2007/12/11/openxml-content-types-as-an-xml-document.aspx>`_
+
 
 Documentation Guides
 ====================
@@ -31,6 +33,8 @@ Documentation Guides
 * `Read The Docs (readthedocs.org) <https://docs.readthedocs.org/en/latest/index.html>`_
 
 * `OpenComparison documetation on readthedocs.org <http://opencomparison.readthedocs.org/en/latest/contributing.html>`_
+
+* `The Hitchhiker’s Guide to Packaging <http://guide.python-distribute.org/index.html>`_
 
 
 Other Resources
