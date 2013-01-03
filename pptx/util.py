@@ -7,14 +7,64 @@
 # This module is part of python-pptx and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-'''Utility functions that come in handy when working with PowerPoint and
-Open XML.'''
+"""
+Utility functions and classes that come in handy when working with PowerPoint
+and Open XML.
+"""
 
 import os
 import re
 
-# utility function for calculating EMUs from inches
+class Partname(object):
+    """
+    Provides access to partname components such as the baseURI and the part
+    index.
+    """
+    __filename_re = re.compile('([a-zA-Z]+)([1-9][0-9]*)?')
+    
+    def __init__(self, partname):
+        super(Partname, self).__init__()
+        self.__partname = partname
+    
+    @property
+    def baseURI(self):
+        return os.path.split(self.__partname)[0]
+    
+    @property
+    def filename(self):
+        return os.path.split(self.__partname)[1]
+    
+    @property
+    def ext(self):
+        return os.path.splitext(self.__partname)[1]
+    
+    @property
+    def partname(self):
+        return self.__partname
+    
+    @property
+    def basename(self):
+        """
+        Return basename of partname, e.g. ``slide`` for
+        ``/ppt/slides/slide1.xml``.
+        """
+        name = os.path.splitext(self.filename)[0]  # filename with ext removed
+        match = self.__filename_re.match(name)
+        return match.group(1)
+    
+    @property
+    def idx(self):
+        """
+        Return partname index as integer for tuple partname or None for
+        singleton partname.
+        """
+        name = os.path.splitext(self.filename)[0]  # filename with ext removed
+        match = self.__filename_re.match(name)
+        return int(match.group(2)) if match.group(2) else None
+    
+
 def emu(inches):
+    """Return *inches* converted to English Metric Units (EMU)."""
     return int(inches * 914400)
 
 # utility sequential integer generator, suitable for generating unique ids.
