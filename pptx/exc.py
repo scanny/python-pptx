@@ -14,15 +14,32 @@ class PythonPptxError(Exception):
 
 
 class CorruptedPackageError(PythonPptxError):
-    """Raised when a package item in an Open XML package cannot be found or is invalid."""
+    """
+    Raised when a package item in an Open XML package cannot be found or is
+    invalid.
+    """
 
 class DuplicateKeyError(PythonPptxError):
-    """Raised by a unique collection when an attempt is made to add an item with a key already in the collection."""
+    """
+    Raised by a unique collection when an attempt is made to add an item with
+    a key already in the collection.
+    """
+
+class InvalidPackageError(PythonPptxError):
+    """
+    Raised when a package does not contain a valid presentation part (possibly
+    because it's a Word or Excel package).
+    """
 
 class NotXMLError(PythonPptxError):
-    """Raised when an XML operation (such as parsing) is attempted on a binary package item."""
+    """
+    Raised when an XML operation (such as parsing) is attempted on a binary
+    package item.
+    """
 
 class PackageNotFoundError(PythonPptxError):
-    """Raised when a package cannot be found at the specified path."""
+    """
+    Raised when a package cannot be found at the specified path.
+    """
 
 
