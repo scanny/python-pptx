@@ -11,10 +11,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   modules
-   packaging
-   relationships
-   resources
+   modules/index
+   resources/index
 
 .. ... inheritance-diagram:: pptx.packaging
 

@@ -2,20 +2,6 @@
 About Open XML Packaging
 ========================
 
-Design Notes
-============
-
-Relationships Items
-===================
-
-* Part.relationshipitem returns None for a part with no relationships.
-
-* Part.relationships also returns None for a part with no relationships. This
-  has the consequence that code that calls this attribute has to first check
-  whether it has any contents. That could make the code a bit more complex
-  than strictly necessary.
-
-
 About Packages
 ==============
 
@@ -40,7 +26,7 @@ one special relationship item, the **package relationship item**
 (``/_rels/.rels``) which contains relationships between the package and
 certain parts rather than relationships between parts.
 
-The only other package item is the **content type item**
+The only other package item is the **content types item**
 (``/[Content_Types].xml``) which contains mappings of the parts to their
 content types (roughly MIME types).
 
