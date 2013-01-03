@@ -24,423 +24,318 @@ and packaging, and a utility function or two for accessing some of them.'''
 # TODO: Also check out other shared parts in section 15.
 # ============================================================================
 
+PTS_CARDINALITY_SINGLETON = 'singleton'
+PTS_CARDINALITY_TUPLE     = 'tuple'
+PTS_HASRELS_ALWAYS        = 'always'
+PTS_HASRELS_NEVER         = 'never'
+PTS_HASRELS_OPTIONAL      = 'optional'
+
+CT_PRESENTATION = 'application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml'
+CT_SLIDE        = 'application/vnd.openxmlformats-officedocument.presentationml.slide+xml'
+CT_SLIDELAYOUT  = 'application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml'
+CT_SLIDEMASTER  = 'application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml'
+CT_SLIDESHOW    = 'application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml'
+CT_TEMPLATE     = 'application/vnd.openxmlformats-officedocument.presentationml.template.main+xml'
+
+RT_OFFICEDOCUMENT = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument'
+RT_SLIDE          = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide'
+RT_SLIDELAYOUT    = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout'
+RT_SLIDEMASTER    = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster'
+
 pml_parttypes =\
     { 'application/vnd.openxmlformats-officedocument.presentationml.commentAuthors+xml':
        # ECMA-376-1 13.3.1
        { 'basename'     : 'commentAuthors'
        , 'ext'          : '.xml'
        , 'name'         : 'Comment Authors Part'
-       , 'cardinality'  : 'single'
+       , 'cardinality'  : PTS_CARDINALITY_SINGLETON
        , 'required'     : False
        , 'baseURI'      : '/ppt'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['presentation']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/commentAuthors'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/commentAuthors'
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.comments+xml':
        # ECMA-376-1 13.3.2
        { 'basename'     : 'comment'
        , 'ext'          : '.xml'
        , 'name'         : 'Comments Part'
-       , 'cardinality'  : 'multiple'
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
        , 'required'     : False
        , 'baseURI'      : '/ppt/comments'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['slide']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments'
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.handoutMaster+xml':
        # ECMA-376-1 13.3.3
        { 'basename'     : 'handoutMaster'
        , 'ext'          : '.xml'
        , 'name'         : 'Handout Master Part'
-       , 'cardinality'  : 'multiple'  # actually can only be one according to spec, but behaves like part collection (handoutMasters folder, handoutMaster1.xml, etc.)
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE  # actually can only be one according to spec, but behaves like part collection (handoutMasters folder, handoutMaster1.xml, etc.)
        , 'required'     : False
        , 'baseURI'      : '/ppt/handoutMasters'
-       , 'has_rels'     : 'always'
+       , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['presentation']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster'
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml':
        # ECMA-376-1 13.3.4
        { 'basename'     : 'notesMaster'
        , 'ext'          : '.xml'
        , 'name'         : 'Notes Master Part'
-       , 'cardinality'  : 'multiple'  # actually can only be one according to spec, but behaves like part collection (notesMasters folder, notesMaster1.xml, etc.)
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE  # actually can only be one according to spec, but behaves like part collection (notesMasters folder, notesMaster1.xml, etc.)
        , 'required'     : False
        , 'baseURI'      : '/ppt/notesMasters'
-       , 'has_rels'     : 'always'
+       , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['presentation', 'notesSlide']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster'
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml':
        # ECMA-376-1 13.3.5
        { 'basename'     : 'notesSlide'
        , 'ext'          : '.xml'
        , 'name'         : 'Notes Slide Part'
-       , 'cardinality'  : 'multiple'
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
        , 'required'     : False
        , 'baseURI'      : '/ppt/notesSlides'
-       , 'has_rels'     : 'always'
+       , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['slide']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide'
        }
-    , 'application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml':
+    , CT_PRESENTATION:
        # ECMA-376-1 13.3.6
        # one of three possible Content Type values for presentation part
        { 'basename'     : 'presentation'
        , 'ext'          : '.xml'
        , 'name'         : 'Presentation Part'
-       , 'cardinality'  : 'single'
+       , 'cardinality'  : PTS_CARDINALITY_SINGLETON
        , 'required'     : True
        , 'baseURI'      : '/ppt'
-       , 'has_rels'     : 'always'
+       , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['package']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument'
+       , 'reltype'      : RT_OFFICEDOCUMENT
        }
-    , 'application/vnd.openxmlformats-officedocument.presentationml.template.main+xml':
+    , CT_TEMPLATE:
        # ECMA-376-1 13.3.6
        # one of three possible Content Type values for presentation part
        { 'basename'     : 'presentation'
        , 'ext'          : '.xml'
        , 'name'         : 'Presentation Part'
-       , 'cardinality'  : 'single'
+       , 'cardinality'  : PTS_CARDINALITY_SINGLETON
        , 'required'     : True
        , 'baseURI'      : '/ppt'
-       , 'has_rels'     : 'always'
+       , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['package']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument'
        }
-    , 'application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml':
+    , CT_SLIDESHOW:
        # ECMA-376-1 13.3.6
        # one of three possible Content Type values for presentation part
        { 'basename'     : 'presentation'
        , 'ext'          : '.xml'
        , 'name'         : 'Presentation Part'
-       , 'cardinality'  : 'single'
+       , 'cardinality'  : PTS_CARDINALITY_SINGLETON
        , 'required'     : True
        , 'baseURI'      : '/ppt'
-       , 'has_rels'     : 'always'
+       , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['package']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument'
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.presProps+xml':
        # ECMA-376-1 13.3.7
        { 'basename'     : 'presProps'
        , 'ext'          : '.xml'
        , 'name'         : 'Presentation Properties Part'
-       , 'cardinality'  : 'single'
+       , 'cardinality'  : PTS_CARDINALITY_SINGLETON
        , 'required'     : True
        , 'baseURI'      : '/ppt'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['presentation']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps'
        }
-    , 'application/vnd.openxmlformats-officedocument.presentationml.slide+xml':
+    , CT_SLIDE:
        # ECMA-376-1 13.3.8
        { 'basename'     : 'slide'
        , 'ext'          : '.xml'
        , 'name'         : 'Slide Part'
-       , 'cardinality'  : 'multiple'
-       , 'required'     : True  # spec is ambiguous, should check to see if a deck with no slides will load.
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
+       , 'required'     : False
        , 'baseURI'      : '/ppt/slides'
-       , 'has_rels'     : 'always'
+       , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['presentation', 'notesSlide']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide'
+       , 'reltype'      : RT_SLIDE
        }
-    , 'application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml':
+    , CT_SLIDELAYOUT:
        # ECMA-376-1 13.3.9
        { 'basename'     : 'slideLayout'
        , 'ext'          : '.xml'
        , 'name'         : 'Slide Layout Part'
-       , 'cardinality'  : 'multiple'
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
        , 'required'     : True
        , 'baseURI'      : '/ppt/slideLayouts'
-       , 'has_rels'     : 'always'
+       , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['slide', 'slideMaster']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout'
+       , 'reltype'      : RT_SLIDELAYOUT
        }
-    , 'application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml':
+    , CT_SLIDEMASTER:
        # ECMA-376-1 13.3.10
        { 'basename'     : 'slideMaster'
        , 'ext'          : '.xml'
        , 'name'         : 'Slide Master Part'
-       , 'cardinality'  : 'multiple'
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
        , 'required'     : True
        , 'baseURI'      : '/ppt/slideMasters'
-       , 'has_rels'     : 'always'
+       , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['presentation', 'slideLayout']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster'
+       , 'reltype'      : RT_SLIDEMASTER
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.tags+xml':
        # ECMA-376-1 13.3.12
        { 'basename'     : 'tag'
        , 'ext'          : '.xml'
        , 'name'         : 'User-Defined Tags Part'
-       , 'cardinality'  : 'multiple'
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
        , 'required'     : False
        , 'baseURI'      : '/ppt/tags'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['presentation', 'slide']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/tags'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/tags'
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml':
        # ECMA-376-1 13.3.13
        { 'basename'     : 'viewProps'
        , 'ext'          : '.xml'
        , 'name'         : 'View Properties Part'
-       , 'cardinality'  : 'single'
+       , 'cardinality'  : PTS_CARDINALITY_SINGLETON
        , 'required'     : False
        , 'baseURI'      : '/ppt'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['presentation']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps'
        }
     , 'application/vnd.openxmlformats-officedocument.theme+xml':
        # ECMA-376-1 14.2.7
        { 'basename'     : 'theme'
        , 'ext'          : '.xml'
        , 'name'         : 'Theme Part'
-       , 'cardinality'  : 'multiple'
-       , 'required'     : True        # spec indicates theme part is optional, but I've never seen a .pptx without one
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
+       , 'required'     : True  # spec indicates theme part is optional, but I've never seen a .pptx without one
        , 'baseURI'      : '/ppt/theme'
-       , 'has_rels'     : 'optional'  # can have _rels items, but only if the theme contains one or more images
+       , 'has_rels'     : PTS_HASRELS_OPTIONAL  # can have _rels items, but only if the theme contains one or more images
        , 'rels_from'    : ['presentation', 'handoutMaster', 'notesMaster', 'slideMaster']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme'
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml':
        # ECMA-376-1 14.2.9
        { 'basename'     : 'tableStyles'
        , 'ext'          : '.xml'
        , 'name'         : 'Table Styles Part'
-       , 'cardinality'  : 'single'
+       , 'cardinality'  : PTS_CARDINALITY_SINGLETON
        , 'required'     : False
        , 'baseURI'      : '/ppt'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['presentation']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles'
        }
     , 'application/vnd.openxmlformats-package.core-properties+xml':
        # ECMA-376-1 15.2.12.1
        { 'basename'     : 'core'
        , 'ext'          : '.xml'
        , 'name'         : 'Core File Properties Part'  # 'Core' as in Dublin Core
-       , 'cardinality'  : 'single'
+       , 'cardinality'  : PTS_CARDINALITY_SINGLETON
        , 'required'     : False
        , 'baseURI'      : '/docProps'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['package']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties'
        }
     , 'application/vnd.openxmlformats-officedocument.custom-properties+xml':
        # ECMA-376-1 15.2.12.2
        { 'basename'     : 'custom'
        , 'ext'          : '.xml'
        , 'name'         : 'Custom File Properties Part'
-       , 'cardinality'  : 'single'
+       , 'cardinality'  : PTS_CARDINALITY_SINGLETON
        , 'required'     : False
        , 'baseURI'      : '/docProps'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['package']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/customProperties'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/customProperties'
        }
     , 'application/vnd.openxmlformats-officedocument.extended-properties+xml':
        # ECMA-376-1 15.2.12.3 (Extended File Properties Part)
        { 'basename'     : 'app'
        , 'ext'          : '.xml'
        , 'name'         : 'Application-Defined File Properties Part'
-       , 'cardinality'  : 'single'
+       , 'cardinality'  : PTS_CARDINALITY_SINGLETON
        , 'required'     : False
        , 'baseURI'      : '/docProps'
-       , 'has_rels'     : 'never'      # has_rel_item should be construed as "can have a relationship item" rather than "always has a relationship item"
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['package']
        , 'content_type' : 'application/vnd.openxmlformats-officedocument.extended-properties+xml'
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/extendedProperties'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/extendedProperties'
        }
     ,  'image/gif':
        # ECMA-376-1 15.2.14
        { 'basename'     : 'image'
        , 'ext'          : '.gif'
        , 'name'         : 'Image Part'
-       , 'cardinality'  : 'multiple'
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
        , 'required'     : False
        , 'baseURI'      : '/ppt/media'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['handoutMaster', 'notesSlide', 'notesMaster', 'slide', 'slideLayout', 'slideMaster']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
        }
     ,  'image/jpeg':
        # ECMA-376-1 15.2.14
        { 'basename'     : 'image'
        , 'ext'          : '.jpeg'
        , 'name'         : 'Image Part'
-       , 'cardinality'  : 'multiple'
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
        , 'required'     : False
        , 'baseURI'      : '/ppt/media'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['handoutMaster', 'notesSlide', 'notesMaster', 'slide', 'slideLayout', 'slideMaster']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
        }
     ,  'image/png':
        # ECMA-376-1 15.2.14
        { 'basename'     : 'image'
        , 'ext'          : '.png'
        , 'name'         : 'Image Part'
-       , 'cardinality'  : 'multiple'
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
        , 'required'     : False
        , 'baseURI'      : '/ppt/media'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['handoutMaster', 'notesSlide', 'notesMaster', 'slide', 'slideLayout', 'slideMaster']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+       }
+    ,  'image/x-emf':
+       # ECMA-376-1 15.2.14
+       { 'basename'     : 'image'
+       , 'ext'          : '.emf'
+       , 'name'         : 'Image Part'
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
+       , 'required'     : False
+       , 'baseURI'      : '/ppt/media'
+       , 'has_rels'     : PTS_HASRELS_NEVER
+       , 'rels_from'    : ['handoutMaster', 'notesSlide', 'notesMaster', 'slide', 'slideLayout', 'slideMaster']
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
        }
     ,  'application/vnd.openxmlformats-officedocument.presentationml.printerSettings':
        # ECMA-376-1 15.2.15
        { 'basename'     : 'printerSettings'
        , 'ext'          : '.bin'
        , 'name'         : 'Printer Settings Part'
-       , 'cardinality'  : 'multiple'
+       , 'cardinality'  : PTS_CARDINALITY_TUPLE
        , 'required'     : False
        , 'baseURI'      : '/ppt/printerSettings'
-       , 'has_rels'     : 'never'
+       , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['presentation']
-       , 'rel_type'     : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/printerSettings'
+       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/printerSettings'
        }
     }
-
-
-# class PartType(object):
-#     """
-#     Reference to the characteristics of the various package parts, as defined
-#     in ECMA-376.
-#     
-#     .. attribute:: rootname
-#        
-#        The root of the part's filename within the package. For example,
-#        rootname for slideLayout1.xml is 'slideLayout'. Note that the part's
-#        rootname is also used as its key value.
-#     
-#     .. attribute:: file_ext
-#        
-#        The extension of the part's filename within the package. For example,
-#        file_ext for the presentation part (presentation.xml) is 'xml'.
-#     
-#     .. attribute:: name
-#        
-#        Full name of the part type, as inferred from prose in ECMA-376. This
-#        attribute is not formally specified, so there may be some variation in
-#        actual usage.
-#     
-#     .. attribute:: cardinality
-#        
-#        One of 'single' or 'multiple', specifying whether the part is a
-#        singleton or tuple within the package. ``presentation.xml`` is an
-#        example of a singleton part. ``slideLayout4.xml`` is an example of a
-#        tuple part. The term *tuple* in this context is drawn from set theory
-#        in math and has no direct relationship to the Python tuple class.
-#     
-#     .. attribute:: required
-#        
-#        Boolean expressing whether at least one instance of this part type must
-#        appear in the package. ``presentation`` is an example of a required
-#        part type. ``notesMaster`` is an example of a part type that is
-#        optional.
-#     
-#     .. attribute:: location
-#        
-#        The package-relative path of the directory in which part files for this
-#        type are stored. For example, location for ``slideLayout`` is
-#        '/ppt/slideLayout'. The leading slash corresponds to the root of the
-#        package (zip file). Note that directories in the actual package zip
-#        file do not contain this leading slash (otherwise they would be
-#        placed in the root directory when the zip file was expanded).
-#     
-#     .. attribute:: has_rel_item
-#        
-#        One of 'always', 'never', or 'optional', indicating whether parts of
-#        this type have a corresponding relationship item, or "rels file".
-#     
-#     .. attribute:: rels_from
-#        
-#        List of part type keys for parts that may have relationships to this
-#        part type.
-#     
-#     .. attribute:: content_type
-#        
-#        MIME-type-like string that distinguishes the content of parts of this
-#        type from simple XML. For example, the content_type of a theme part is
-#        ``application/vnd.openxmlformats-officedocument.theme+xml``. Each
-#        part's content type is written in the content types item located in the
-#        root directory of the package ([Content_Types].xml).
-#     
-#     .. attribute:: namespace
-#        
-#        The XML namespace of the root element for this part.
-#     
-#     .. attribute:: relationshiptype
-#        
-#        A URL that identifies this part type in rels files. For example,
-#        relationshiptype for ``slides/slide1.xml`` is
-#        ``http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide``
-#     
-#     .. attribute:: format
-#        
-#        One of 'xml' or 'binary'.
-#     """
-#     
-#     _dict = {}
-#     
-#     def __init__(self, key, ptdict):
-#         self.rootname         = key                     # e.g. 'slideMaster'
-#         self.ext              = ptdict['ext'         ]  # e.g. 'xml'
-#         self.name             = ptdict['name'        ]  # e.g. 'Core File Properties Part'
-#         self.cardinality      = ptdict['cardinality' ]  # e.g. 'single' or 'multiple'
-#         self.required         = ptdict['required'    ]  # e.g. False
-#         self.baseURI          = ptdict['baseURI'     ]  # e.g. '/ppt/slideMasters'
-#         self.has_rel_item     = ptdict['has_rel_item']  # e.g. 'always', 'never', or 'optional'
-#         self.rels_from        = ptdict['rels_from'   ]  # e.g. ['package']
-#         self.namespace        = ptdict['namespace'   ]  # e.g. 'http://schemas.openxmlformats.org/package/2006/metadata/core-properties'
-#         self.relationshiptype = ptdict['relationship']  # e.g. 'http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties'
-#         self.format           = 'xml' if self.file_ext == 'xml' else 'binary'
-#     
-#     @property
-#     def key(self):
-#         return self.rootname
-#     
-#     @classmethod
-#     def lookup(cls, parttypekeyname):
-#         if parttypekeyname not in cls._dict:
-#             raise KeyError("""PartType.lookup() lookup failed with key '%s'""" % (parttypekeyname))
-#         return cls._dict[parttypekeyname]
-#     
-#     @property
-#     def pkgreldir(self):
-#         return self.location[1:] if self.location.startswith('/') else self.location
-#     
-#     # NOTE: This doesn't work for the package relationships item, only for
-#     # part relationship items!
-#     # Return the part path format used in part relationship items (files),
-#     # a path that is relative to the directory containing the frompart.
-#     def reltargetdir(self, fromlocation):
-#         if fromlocation == '/ppt':  # that means this is the presentation part, the only part with that path that has a relationship item
-#             if self.location == '/ppt':              # means topart is a singleton part
-#                 return ''
-#             elif self.location.startswith('/ppt/'):  # means topart is a collection part
-#                 return self.location[5:]
-#             else:
-#                 raise NotImplementedError('''Unrecognized fromlocation '%s' received by PartType.reltargetdir()''' % fromlocation)
-#         if self.location.startswith('/ppt/'):
-#             return '../%s' % self.location[5:]
-#         raise NotImplementedError("""PartType.reltargetdir() is not yet implemented for part type '%s'""" % self.rootname)
-#     
-#     @property
-#     def zipdir(self):
-#         return self.location[1:] if self.location.startswith('/') else self.location
-#     
-# 
-# # This short code passage initializes PartType with all the defined part types
-# for key in iter(pml_parttypes):
-#     PartType._dict[key] = PartType(key, pml_parttypes[key])
-# del key
 
 
 # ============================================================================
@@ -510,13 +405,16 @@ nsmap['ct'      ] = 'http://schemas.openxmlformats.org/package/2006/content-type
 nsmap['pr'      ] = 'http://schemas.openxmlformats.org/package/2006/relationships'
 
 
-# generate a subset of the complete namespace map suitable for using in an
-# Element call (to specify which namespaces will be used in that XML document)
-def nsmap_subset(prefixes):
-    nsmap_subset = {}
+def namespaces(*prefixes):
+    """
+    Return a dict containing the subset namespace prefix mappings specified by
+    *prefixes*. Any number of namespace prefixes can be supplied, e.g.
+    namespaces('a', 'r', 'p').
+    """
+    namespaces = {}
     for prefix in prefixes:
-        nsmap_subset[prefix] = nsmap[prefix]
-    return nsmap_subset
+        namespaces[prefix] = nsmap[prefix]
+    return namespaces
 
 
 # Return a qualified name (QName) for an XML element or attribute in Clark
