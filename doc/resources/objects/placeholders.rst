@@ -126,3 +126,76 @@ Resources
    http://msdn.microsoft.com/en-us/library/office/ff744297(v=office.14).aspx
 
 
+Scrap Code
+==========
+
+::
+
+   class PlaceholderText(Shape):
+       """
+       Shape that holds text to be displayed in a placeholder specified by the
+       slide layout.
+       
+       The placeholder_type provided must be one of ST_PlaceholderType defined in
+       the PresentationML schema.
+       
+       The string supplied as the text parameter may contain carriage returns
+       ('\\r') and or line feeds ('\\n'). Carriage returns will cause a new run
+       to be created with a break (<a:br/>) intervening between it and the prior
+       run. Line feeds will cause a new paragraph to be created to contain the
+       text that follows the line feed.
+       
+       The index parameter is important for matching up the text with the right
+       placeholder. I don't fully understand the logic used, but in one pptx file
+       I've seen the <p:ph> idx attribute matched with that of the proper
+       placeholder. The default is 0 and that seems to match the title
+       placeholder.
+       """
+       def __init__(self, name, placeholder_type, text, placeholder_index=None):
+           if placeholder_type not in placeholder_types:
+               raise TypeError("placeholder_type must be one of %s, got '%s'." % (placeholder_types, placeholder_type))
+           super(PlaceholderText, self).__init__(name)
+           self.placeholder_type  = placeholder_type
+           self.placeholder_index = placeholder_index
+           self.text = text
+           # locate nodes we need to have handy (these are all required elements so we're assured they're present)
+           sp      = self.element
+           nvSpPr  = sp.find(qname('p', 'nvSpPr'))
+           spPr    = sp.find(qname('p', 'spPr'))
+           cNvSpPr = nvSpPr.find(qname('p', 'cNvSpPr'))
+           # add shape lock to prevent grouping the placeholder element with others
+           node = cNvSpPr.find(qname('a', 'spLocks'))
+           spLocks = node if node else SubElement(cNvSpPr, qname('a', 'spLocks'))
+           spLocks.attrib['noGrp'] = 'true'
+           # add placeholder type so text can find its home on slide layout
+           node = nvSpPr.find(qname('p', 'nvPr'))
+           nvPr = node if node else SubElement(nvSpPr, qname('p', 'nvPr'))
+           node = nvPr.find(qname('p', 'ph'))
+           ph   = node if node else SubElement(nvPr, qname('p', 'ph'))
+           ph.attrib['type'] = placeholder_type
+           if placeholder_index:
+               ph.attrib['idx'] = str(placeholder_index)
+           # add txBody to hold text
+           txBody = sp.find(qname('p', 'txBody'))
+           if not node:
+               txBody = Element(qname('p', 'txBody'))
+               sp.insert(sp.index(spPr)+1, txBody)
+           bodyPr = txBody.find(qname('a', 'bodyPr'))
+           if not bodyPr:
+               bodyPr = Element(qname('a', 'bodyPr'))
+               txBody.insert(0, bodyPr)
+           # get rid of any text that might be there already
+           del txBody[1:]
+           # insert the provided text
+           lines = text.split('\n')
+           for line in lines:
+               p = SubElement(txBody, qname('a', 'p'))
+               runs = line.split('\r')
+               for run in runs:
+                   br = SubElement(p, qname('a', 'br')) if runs.index(run) > 0 else None
+                   r = SubElement(p, qname('a', 'r'))
+                   t = SubElement(r, qname('a', 't'))
+                   t.text = run
+    
+
+
