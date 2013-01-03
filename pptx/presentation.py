@@ -162,7 +162,6 @@ class Collection(object):
 
 class _RelationshipCollection(Collection):
     """
-
     Sequence of relationships maintained in rId order. Maintaining the
     relationships in sorted order makes the .rels files both repeatable and
     more readable which is very helpful for debugging.
@@ -170,7 +169,6 @@ class _RelationshipCollection(Collection):
     is a sequence (tuple) of reltypes. If *_reltype_ordering* contains one or
     more reltype, they are used to automatically reorder relationships when
     they are added to the collection.
-
     """
     def __init__(self):
         super(_RelationshipCollection, self).__init__()
@@ -793,6 +791,20 @@ class Shape(BaseShape):
     def __init__(self, shape_element):
         super(Shape, self).__init__(shape_element)
     
+    # @property
+    # def __minimalelement(self):
+    #     """
+    #     Return an ElementTree element that contains all the elements and
+    #     attributes of a shape required by the schema, initialized with default
+    #     values where necessary or appropriate.
+    #     """
+    #     sp      = Element(qname('p', 'sp'))
+    #     nvSpPr  = SubElement(sp     , qname('p', 'nvSpPr'  ) )
+    #     cNvPr   = SubElement(nvSpPr , qname('p', 'cNvPr'   ) , id='None', name=self.name)
+    #     cNvSpPr = SubElement(nvSpPr , qname('p', 'cNvSpPr' ) )
+    #     spPr    = SubElement(sp     , qname('p', 'spPr'    ) )
+    #     return sp
+    # 
 
 
 # ============================================================================

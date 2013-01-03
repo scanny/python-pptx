@@ -108,14 +108,14 @@ class Package(object):
         part_dict = {}  # keep track of marshaled parts, graph is cyclic
         for rel in model_pkg._relationships:
             # unpack working values for target part and relationship
-            model_part = rel.target
+            model_part = rel._target
             partname = model_part._partname
             # create package-part for target
             part = Part()
             part_dict[partname] = part
             part._marshal(model_part, part_dict)
             # create marshalled version of relationship
-            marshalled_rel = Relationship(rel.rId, self, part)
+            marshalled_rel = Relationship(rel._rId, self, part)
             self.__relationships.append(marshalled_rel)
         return self
     
@@ -278,8 +278,8 @@ class Part(object):
         # load relationships and propagate marshal to target parts
         for rel in model_part._relationships:
             # unpack working values for target part and relationship
-            reltype = rel.reltype
-            model_target_part = rel.target
+            reltype = rel._reltype
+            model_target_part = rel._target
             partname = model_target_part._partname
             # create package-part for target
             if partname in part_dict:
@@ -289,7 +289,7 @@ class Part(object):
                 part_dict[partname] = part
                 part._marshal(model_target_part, part_dict)
             # create marshalled version of relationship
-            marshalled_rel = Relationship(rel.rId, self, part)
+            marshalled_rel = Relationship(rel._rId, self, part)
             self.__relationships.append(marshalled_rel)
     
     @property
