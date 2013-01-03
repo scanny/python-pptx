@@ -10,270 +10,263 @@
 '''API classes for dealing with presentations and other objects one typically
 encounters as an end-user of the PowerPoint user interface.'''
 
-import os
-import zipfile
+from lxml import etree
 
-from lxml       import etree
-from lxml.etree import ElementTree, Element, SubElement
+import pptx.packaging
+import pptx.util as util
 
-from pptx           import util
-from pptx.packaging import Package
-# from pptx.spec      import PartType, nsmap_subset, qname
-from pptx.spec      import nsmap_subset, qname
+from pptx.exceptions import InvalidPackageError
 
-# ============================================================================
-# API Classes
-# ============================================================================
+from pptx.spec import namespaces, qname
+from pptx.spec import ( CT_PRESENTATION
+                      , CT_SLIDE
+                      , CT_SLIDELAYOUT
+                      , CT_SLIDEMASTER
+                      , CT_SLIDESHOW
+                      , CT_TEMPLATE
+                      )
+from pptx.spec import ( RT_OFFICEDOCUMENT
+                      , RT_SLIDE
+                      , RT_SLIDELAYOUT
+                      , RT_SLIDEMASTER
+                      )
 
-class Presentation(object):
+
+import logging
+log = logging.getLogger('pptx.presentation')
+log.setLevel(logging.DEBUG)
+# log.setLevel(logging.INFO)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - '
+                              '%(message)s')
+ch.setFormatter(formatter)
+log.addHandler(ch)
+
+
+class Package(object):
     """
-    Top level class in object model, represents the contents of the /ppt
-    directory of a .pptx file. I'm thinking there's a higher-level construct,
-    perhaps an OfficeDocument class that holds things like the document
-    properties and thumbnail image.
-    
-    REFACTOR: Inherit from Part.
-    
+    Root class of presentation object hierarchy.
     """
-    def __init__(self, templatedir=None):
-        self.templatedir  = self.__normalizedtemplatedir(templatedir)
-        self.parttypekey  = 'presentation'
-        self._element     = None
-        self.path         = None  # need this default value until inherit from Part
-        # initialize collections
-        self.images       = ImageCollection       (self)
-        self.themes       = ThemeCollection       (self)
-        self.slidemasters = SlideMasterCollection (self)
-        self.slidelayouts = SlideLayoutCollection (self)
-        self.slides       = SlideCollection       (self)
-        # load template parts
-        self.__loadtemplate(templatedir)
-    
-    def __loadtemplate(self, templatedir):
-        """
-        Load the template parts of the package unzipped in *templatedir*.
-        
-        """
-        # tp = TemplatePackage(templatedir)
-        for part in tp.imageparts:
-            self.images.additem(part)
-        for part in tp.slidelayoutparts:
-            self.slidelayouts .additem(part)
-        for part in tp.themeparts:
-            self.themes.additem(part)
-        for part in tp.slidemasterparts:
-            self.slidemasters.additem(part)
-        self.presprops = PresProps(self).load(tp.prespropspart)
-        self.tablestyles = TableStyles(self).load(tp.tablestylespart)
-        self.viewprops = ViewProps(self).load(tp.viewpropspart)
-        # load presentation-level element and relationships
-        self.element = tp.presentationpart.element
-        self.relationships = tp.presentationpart.relationships
-    
-    def __normalizedtemplatedir(self, templatedir):
-        """
-        Return an absolute path to the directory containing the specified
-        template. If *templatedir* is ``None``, return an absolute path to the
-        default template.
-        """
-        if not templatedir:  # if templatedir is not provided, the default template is used
-            return os.path.join(os.path.dirname(__file__),'pptx_template')
-        assert os.path.isdir(templatedir)
-        return os.path.abspath(templatedir)
+    def __init__(self):
+        super(Package, self).__init__()
+        self.__presentation = None
+        self.__relationships = _RelationshipCollection()
     
     @property
-    def element(self):
-        """
-        Return XML for the presentation part as an ElementTree element.
-        """
-        rId_iter     = util.intsequence(start=1)
-        presentation = self._element  # NOTE: this is presentation element, not presentation instance
-        
-        # rewrite the sldMasterIdLst subelement ______________________________
-        sldMasterId_iter = util.intsequence(start=2147483660)   # This starting number is a bit of a hack based on sldMasterId values found in files saved by PowerPoint
-        
-        # create the new sldMasterIdLst element
-        sldMasterIdLst = Element(qname('p','sldMasterIdLst'))
-        for slidemaster in self.slidemasters:
-            id  = str(sldMasterId_iter.next())
-            rId = 'rId%d' % rId_iter.next()
-            sldMasterId = SubElement(sldMasterIdLst, qname('p','sldMasterId'))
-            sldMasterId.set('id', id)
-            sldMasterId.set(qname('r','id'), rId)
-            sldMasterIdLst.append(sldMasterId)
-        
-        # get the old sldMasterIdLst element
-        old_sldMasterIdLst = presentation.find(qname('p','sldMasterIdLst'))
-        # put new sldMasterIdLst element in place
-        if old_sldMasterIdLst is None:
-            presentation.insert(0, sldMasterIdLst)
-        else:
-            presentation.replace(old_sldMasterIdLst, sldMasterIdLst)
-        
-        # rewrite the sldIdLst subelement ____________________________________
-        sldId_iter = util.intsequence(start=256)   # This starting number is also based on observed values in PowerPoint files, no idea where it comes from.
-        
-        # create the new sldIdLst element
-        sldIdLst = Element(qname('p','sldIdLst'))
-        for slide in self.slides:
-            id = str(sldId_iter.next())
-            rId = 'rId%d' % rId_iter.next()
-            sldId = SubElement(sldIdLst, qname('p','sldId'))
-            sldId.set('id', id)
-            sldId.set(qname('r','id'), rId)
-            sldIdLst.append(sldId)
-        
-        # get the old sldIdLst element
-        old_sldIdLst = presentation.find(qname('p','sldIdLst'))
-        # put new sldIdLst element in place
-        if old_sldIdLst is None:
-            #TECHDEBT: Won't need these next three lines once notesMasters and handoutMasters support is added
-            idx = 1
-            if presentation.find(qname('p','notesMasterIdLst'  )) : idx += 1
-            if presentation.find(qname('p','handoutMasterIdLst')) : idx += 1
-            presentation.insert(idx, sldIdLst)
-        else:
-            presentation.replace(old_sldIdLst, sldIdLst)
-        
-        return self._element
+    def presentation(self):
+        return self.__presentation
     
-    @element.setter
-    def element(self, element):
-        self._element = element
-    
-    def save(self, filename):
+    def open(self, path):
         """
-        Save this presentation as a .pptx file. If *filename* does not end in
-        '.pptx', that extension will be appended.
+        Open presentation file located at *path*. Returns self-reference to
+        allow generative calling structure, e.g.
+        ``pkg = Package().open(path)``.
+        """
+        pkg = pptx.packaging.Package().open(path)
+        self.__load(pkg.relationships)
+        # unmarshal relationships selectively for now
+        for rel in self.__relationships:
+            if rel._reltype == RT_OFFICEDOCUMENT:
+                self.__presentation = rel._target
+        return self
+    
+    @property
+    def _relationships(self):
+        return self.__relationships
+    
+    def __load(self, pkgrels):
+        """
+        Load all the model-side parts and relationships from the on-disk
+        package by loading package-level relationship parts and propagating
+        the load down the relationship graph.
         
         """
-        Package().save(self, filename)
+        # keep track of which parts are already loaded
+        part_dict = {}
+        
+        # discard any previously loaded relationships
+        self.__relationships = _RelationshipCollection()
+        
+        # add model-side rel for each pkg-side one, and load target parts
+        for pkgrel in pkgrels:
+            # unpack working values for part to be loaded
+            reltype = pkgrel.reltype
+            pkgpart = pkgrel.target
+            partname = pkgpart.partname
+            content_type = pkgpart.content_type
+            # log.debug("%s -- %s", reltype, partname)
+            
+            # create target part
+            part = Part(reltype, content_type)
+            part_dict[partname] = part
+            part._load(pkgpart, part_dict)
+            
+            # create model-side package relationship
+            model_rel = _Relationship(pkgrel.rId, reltype, part)
+            self.__relationships._additem(model_rel)
     
 
 
 # ============================================================================
-# Part Collections
+# Collection
 # ============================================================================
 
-class PartCollection(list):
+class Collection(object):
     """
-    Base class for collections of presentation parts.
+    Base class for collection classes. May also be used for part collections
+    that don't yet have any custom methods.
     
-    Subclasses of :class:`PartCollection` must implement :attr:`parttype` to
-    provide access to metadata about the member parts of the collection.
+    Has the following characteristics.:
     
+    * Container (implements __contains__)
+    * Iterable (implements __iter__)
+    * Sized (implements __len__)
+    * Sequence (implements __getitem__)
     """
-    def __init__(self, presentation):
-        super(PartCollection, self).__init__()
-        self.presentation = presentation
-        self._dict = {}
+    def __init__(self):
+        # log.debug('Collection.__init__() called')
+        super(Collection, self).__init__()
+        self.__values = []
     
-    def additem(self, partitem):
-        key = partitem.key
-        if key in self._dict:
-            return self._dict[key]
-        part = self.memberclass(self).load(partitem)
-        self._dict[key] = part
-        self.append(part)
-        return part
+    @property
+    def _values(self):
+        """Return read-only reference to collection values (list)."""
+        return self.__values
     
-    # Can implement a __contains__(self, value) method if anyone needs to test
-    # whether something is already in the collection.
-    def getitem(self, key=None, idx=None):
-        if key:
-            if key in self._dict:
-                return self._dict[key]
-            raise KeyError("""getitem() lookup in %s failed with key '%s'""" % (self.__class__.__name__, key))
-        if idx:
-            return self[idx]
-        raise Exception('''%s.getitem() called without a lookup key (either path or idx)''' % self.__class__.__name__)
+    def __contains__(self, item):  # __iter__ would do this job by itself
+        """Supports 'in' operator (e.g. 'x in collection')."""
+        return (item in self.__values)
+    
+    def __getitem__(self, key):
+        """Provides indexed access, (e.g. 'collection[0]')."""
+        return self.__values.__getitem__(key)
+    
+    def __iter__(self):
+        """Supports iteration (e.g. 'for x in collection: pass')."""
+        return self.__values.__iter__()
+    
+    def __len__(self):
+        """Supports len() function (e.g. 'len(collection) == 1')."""
+        return len(self.__values)
+    
+    def index(self, item):
+        """Supports index method (e.g. '[1, 2, 3].index(2) == 1')."""
+        return self.__values.index(item)
     
 
-class ImageCollection(PartCollection):
-    """
-    Collection of all the images used in this presentation. Each image is
-    stored only once, regardless of how often it is used.
-    
-    """
-    def __init__(self, presentation):
-        super(ImageCollection, self).__init__(presentation)
-        self.parttype    = PartType.lookup('image')
-        self.memberclass = Image
-    
 
-class SlideCollection(PartCollection):
+# ============================================================================
+# Relationships
+# ============================================================================
+
+class _RelationshipCollection(Collection):
     """
-    Collection of slides in a presentation.
-    
+
+    Sequence of relationships maintained in rId order. Maintaining the
+    relationships in sorted order makes the .rels files both repeatable and
+    more readable which is very helpful for debugging.
+    :class"`RelationshipCollection` has an attribute *_reltype_ordering* which
+    is a sequence (tuple) of reltypes. If *_reltype_ordering* contains one or
+    more reltype, they are used to automatically reorder relationships when
+    they are added to the collection.
+
     """
-    def __init__(self, presentation):
-        super(SlideCollection, self).__init__(presentation)
-        self.parttype  = PartType.lookup('slide')
-        self.__id_iter = util.intsequence()
-        self._dict     = {}
+    def __init__(self):
+        super(_RelationshipCollection, self).__init__()
+        self.__reltype_ordering = ()
     
-    def addslide(self, slidelayoutidx=0, name=None, xml=None):
+    def _additem(self, relationship):
         """
-        Add a new slide to the presentation and return the new slide.
-        
-        **TODO:** Add an optional *idx=None* parameter that allows the
-        position of the new slide within the collection to be specified.
-        Default behavior will be to append the new slide to the end of the
-        presentation's slide collection.
-        
-        **REFACTOR:** Add *element* property with a corresponding setter and
-        allow element of slide to be set using API. Then set that element if
-        XML is passed in to the constructor, like when a slide is being formed
-        from a template. Note that any images referred to in the XML would
-        need to get synced up somehow.
+        Insert *relationship* in logical rId order, e.g. rId10 comes after
+        rId9.
         """
-        id          = self.__id_iter.next()
-#TECHDEBT: Quick hack on next line to get this to work while I'm debugging elsewhere
-        print "SlideCollection.presentation ==> %s" % self.presentation
-        slidelayout = self.presentation.slidelayouts[slidelayoutidx]
-        name        = name if name else 'Slide %d' % len(self.presentation.slides)+1  # Note: more than one slide could end up with same name
-        slide       = Slide(id, self, slidelayout, name)
-# ----------------------------------------------------------------------------
-#TECHDEBT: Not sure exactly how to implement a setxml() method of determining
-#          a slide's content. Would cause a round-tripping challenge unless
-#          the XML was parsed and all the properties of the slide set from
-#          its contents. Or perhaps it could set a flag that the slide's
-#          contents were static and no properties could be set. Or perhaps
-#          the properties we knew how to change would be updated without
-#          generating the slide from scratch. So the provided XML would be
-#          used as "starting" XML instead of minimalxml(). Opens question
-#          of whether XML is updated with each property set call or only
-#          generated when the slide XML is rendered.
-# ----------------------------------------------------------------------------
-        if xml:
-            slide.setxml(xml)
-        self._dict[slide.key] = slide
-        self.append(slide)
-        return slide
+        rIds = [rel._rId for rel in self._values]
+        if relationship._rId in rIds:
+            tmpl = "cannot add relationship with duplicate rId '%s'"
+            raise ValueError(tmpl % relationship._rId)
+        self._values.append(relationship)
+        self.__resequence()
+    
+    @property
+    def _next_rId(self):
+        """
+        Next available rId in collection, starting from 'rId1' and making use
+        of any gaps in numbering, e.g. 'rId2' for rIds ['rId1', 'rId3'].
+        """
+        tmpl = 'rId%d'
+        next_rId_num = 1
+        for relationship in self._values:
+            if relationship._num > next_rId_num:
+                return tmpl % next_rId_num
+            next_rId_num += 1
+        return tmpl % next_rId_num
+    
+    @property
+    def _reltype_ordering(self):
+        """Current sorting sequence of reltypes. If empty, sort on rId."""
+        return self.__reltype_ordering
+    
+    @_reltype_ordering.setter
+    def _reltype_ordering(self, ordering):
+        """
+        Set reltype sort order and begin maintaining relationships in reltype
+        + partname.idx order, with the sequence of reltype specified by
+        *ordering*. *ordering* is a sequence of relationship types (e.g.
+        RT_SLIDE, RT_IMAGE). Maintain this sorted ordering as relationships
+        are added or removed.
+        """
+        self.__reltype_ordering = tuple(ordering)
+        self.__resequence()
+    
+    def __resequence(self):
+        """
+        Sort relationships and renumber if necessary to maintain values in rId
+        order.
+        """
+        if self.__reltype_ordering:
+            def reltype_key(rel):
+                reltype = rel._reltype
+                if reltype in self.__reltype_ordering:
+                    return self.__reltype_ordering.index(reltype)
+                return len(self.__reltype_ordering)
+            def partname_idx_key(rel):
+                partname = util.Partname(rel._target._partname)
+                if partname.idx is None:
+                    return 0
+                return partname.idx
+            self._values.sort(key=lambda rel: partname_idx_key(rel))
+            self._values.sort(key=lambda rel: reltype_key(rel))
+            # renumber consistent with new sort order
+            for idx, relationship in enumerate(self._values):
+                relationship._rId = 'rId%d' % (idx+1)
+        else:
+            self._values.sort(key=lambda rel: rel._num)
     
 
-class SlideLayoutCollection(PartCollection):
+class _Relationship(object):
+    """
+    Relationship to part from package or part.
+    """
+    def __init__(self, rId, reltype, target):
+        super(_Relationship, self).__init__()
+        # can't get _num right if rId is non-standard form
+        assert rId.startswith('rId'), "rId in non-standard form: '%s'" % rId
+        self.__rId = rId
+        self._reltype = reltype
+        self._target = target
     
-    def __init__(self, presentation):
-        super(SlideLayoutCollection, self).__init__(presentation)
-        self.parttype    = PartType.lookup('slideLayout')
-        self.memberclass = SlideLayout
+    @property
+    def _num(self):
+        return int(self.__rId[3:])
     
-
-class SlideMasterCollection(PartCollection):
+    @property
+    def _rId(self):
+        return self.__rId
     
-    def __init__(self, presentation):
-        super(SlideMasterCollection, self).__init__(presentation)
-        self.parttype    = PartType.lookup('slideMaster')
-        self.memberclass = SlideMaster
-    
-
-class ThemeCollection(PartCollection):
-    
-    def __init__(self, presentation):
-        super(ThemeCollection, self).__init__(presentation)
-        self.parttype    = PartType.lookup('theme')
-        self.memberclass = Theme
+    @_rId.setter
+    def _rId(self, value):
+        self.__rId = value
     
 
 
@@ -281,225 +274,357 @@ class ThemeCollection(PartCollection):
 # Parts
 # ============================================================================
 
+class PartCollection(Collection):
+    """
+    Sequence of parts. Sensitive to partname index when ordering parts added
+    via _loadpart(), e.g. ``/ppt/slide/slide2.xml`` appears before
+    ``/ppt/slide/slide10.xml`` rather than after it as it does in a
+    lexicographical sort.
+    """
+    def __init__(self):
+        super(PartCollection, self).__init__()
+    
+    def _loadpart(self, part):
+        """
+        Insert a new part loaded from a package, such that list remains
+        sorted in logical partname order (e.g. slide10.xml comes after
+        slide9.xml).
+        """
+        # part needs ref to this collection to compute its partname
+        part._collection = self
+        new_partidx = util.Partname(part._load_partname).idx
+        for idx, seq_part in enumerate(self._values):
+            partidx = util.Partname(seq_part._load_partname).idx
+            if partidx > new_partidx:
+                self._values.insert(idx, part)
+                return
+        self._values.append(part)
+    
+
 class Part(object):
     """
-    Base class that presentation parts inherit from. Its primary purpose is to
-    contain code common to those parts.
-    
-    REFACTOR: Check construction signature, doesn't seem quite right.
-    
-    REFACTOR: Load and carry parttype for the type, not just the parttypekey.
-    
-    .. attribute:: parent
-       
-       PartCollection instance containing this part.
-    
-    .. attribute:: parttype
-       
-       :class:`pptx.spec.PartType` instance containing metadata about the
-       part type contained in this collection.
-    
+    Part factory. Returns an instance of the appropriate custom part type for
+    part types that have them, BasePart otherwise.
     """
-    def __init__(self, presentation, parttype):
-        self.presentation = presentation
-        self.parttype     = parttype
-        self._element     = None
+    def __new__(cls, reltype, content_type):
+        # log.debug("Creating Part for %s", reltype)
+        if reltype == RT_OFFICEDOCUMENT:
+            if content_type in (CT_PRESENTATION, CT_TEMPLATE, CT_SLIDESHOW):
+                return Presentation()
+            else:
+                tmpl = "Not a presentation content type, got '%s'"
+                raise InvalidPackageError(tmpl % content_type)
+        elif reltype == RT_SLIDE:
+            return Slide()
+        elif reltype == RT_SLIDELAYOUT:
+            return SlideLayout()
+        elif reltype == RT_SLIDEMASTER:
+            return SlideMaster()
+        return BasePart()
     
-    def load(self, part):
+
+class BasePart(object):
+    """
+    Base class for presentation model parts. Provides common code to all parts
+    and is the class we instantiate for parts we don't unmarshal or manipulate
+    yet.
+    """
+    def __init__(self, content_type=None):
         """
-        Load this part from an object that implements the attributes *key*,
-        *element*, *path*, and *relationships*. *key* is an identifier for
-        this part that is unique within its presentation context. *element* is
-        an ElementTree element containing the XML for this part. If
-        ``parttype.format`` for this part is 'binary', *element* will be None
-        and *path* should be used to store a reference to the file containing
-        the part. If ``parttype.format`` for this part is 'xml', *path* may be
-        None. *relationships* is a list of :class:`Relationship` instances
-        corresponding to the relationships this part maintains with other
-        parts in the package. Returns a reference to self so a generative call
-        is supported (e.g. ``newpart = Part(partcollection).load(partitem)``.
+        Needs content_type parameter so newly created parts (not loaded from
+        package) can register their content type.
+        """
+        super(BasePart, self).__init__()
+        self.__content_type = content_type
+        self._element = None
+        self._load_blob = None
+        self._load_partname = None
+        self._relationships = _RelationshipCollection()
+    
+    @property
+    def _blob(self):
+        """
+        Default is to return unchanged _load_blob. Dynamic parts will
+        override. Raises ValueError if _load_blob is None.
+        """
+        if self._partname.endswith('.xml'):
+            assert self._element is not None, 'BasePart._blob is undefined '\
+                                 'for xml parts when part.__element is None'
+            xml = etree.tostring(self._element, encoding='UTF-8',
+                                 pretty_print=True, standalone=True)
+            return xml
+        # default for binary parts is to return _load_blob unchanged
+        assert self._load_blob, "BasePart._blob called on part with no "\
+               "_load_blob; perhaps _blob not overridden by sub-class?"
+        return self._load_blob
+    
+    @property
+    def _content_type(self):
+        """
+        Return content type of this part, e.g.
+        'application/vnd.openxmlformats-officedocument.theme+xml'. Throws on
+        access before content type is set (by load or otherwise).
+        """
+        if self.__content_type is None:
+            msg = "_content_type called on part with no content type"
+            raise ValueError(msg)
+        return self.__content_type
+    
+    @property
+    def _partname(self):
+        """
+        Return part name for this part, e.g. '/ppt/slides/slide1.xml'.
+        Intended to be implemented by custom sub-classes if they manipulate
+        their part such that its load partname may change.
+        """
+        assert self._load_partname, "BasePart._partname called when "\
+            " _load_partname is None; ._partname not overridden by sub-class?"
+        return self._load_partname
+    
+    def _load(self, pkgpart, part_dict):
+        """
+        Load part and relationships from package part, and propagate load
+        process down the relationship graph. *pkgpart* is an instance of
+        :class:`pptx.packaging.Part` containing the part contents read from
+        the on-disk package. *part_dict* is a dictionary of already-loaded
+        parts, keyed by partname.
+        """
+        # log.debug("loading part %s", pkgpart.partname)
         
-        """
-        self.key           = part.key
-        self.element       = part.element
-        self.path          = part.path
-        self.relationships = part.relationships
+        # # set attributes from package part
+        self.__content_type = pkgpart.content_type
+        self._load_partname = pkgpart.partname
+        if pkgpart.partname.endswith('.xml'):
+            self._element = etree.fromstring(pkgpart.blob)
+        else:
+            self._load_blob = pkgpart.blob
+        
+        # discard any previously loaded relationships
+        self._relationships = _RelationshipCollection()
+        
+        # load relationships and propagate load for related parts
+        for pkgrel in pkgpart.relationships:
+            # unpack working values for part to be loaded
+            reltype = pkgrel.reltype
+            target_pkgpart = pkgrel.target
+            partname = target_pkgpart.partname
+            content_type = target_pkgpart.content_type
+            
+            # create target part
+            if partname in part_dict:
+                part = part_dict[partname]
+            else:
+                part = Part(reltype, content_type)
+                part_dict[partname] = part
+                part._load(target_pkgpart, part_dict)
+            
+            # create model-side package relationship
+            model_rel = _Relationship(pkgrel.rId, reltype, part)
+            self._relationships._additem(model_rel)
         return self
     
 
-class CollectionPart(Part):
+class Presentation(BasePart):
     """
-    Parts that appear in groups, e.g. slides, slideLayouts, and others,
-    require certain attributes that singleton parts do not. Those collection
-    part specific attributes are implemented by this class.
-    
-    ... access to the presentation is required in order to reference the other
-    parts in the presentation this part has relationships to.
-    
-    Inherits:
-       :meth:`Part.load()`
-    
-    REFACTOR: Check construction signature, doesn't seem quite right.
-    
-    REFACTOR: Load and carry parttype for the type, not just the parttypekey.
-    
+    Top level class in object model, represents the contents of the /ppt
+    directory of a .pptx file.
     """
-    def __init__(self, parent):
-        super(CollectionPart, self).__init__(parent.presentation, parent.parttype)
-        self.parent       = parent
-        self.presentation = parent.presentation
-        self.parttype     = parent.parttype
-        self.path         = None  # this default will be overwritten on load by template parts
+    def __init__(self):
+        super(Presentation, self).__init__()
+        self.__slidemasters = PartCollection()
+        self.__slides = SlideCollection()
     
     @property
-    def idx(self):
-        """Return the index of this part in its parent collection."""
-        return self.parent.index(self)
-    
-
-class HandoutMaster(CollectionPart):
-    """**NOT YET FULLY IMPLEMENTED**. This class is currently a stub."""
-    def __init__(self, parent):
-        super(HandoutMaster, self).__init__(parent)
-    
-
-class Image(CollectionPart):
-    """
-    An image part. Note that an image part is distinct from a picture element
-    that appears on a slide or other part. An image part corresponds to a
-    distinct image file such as image1.png. A picture element is a placement
-    of that image on one or more visual parts such as a slide, slide master,
-    or slide layout. A theme can also include a picture (although I've yet to
-    discover just how :).
-    
-    Also note that a single image part can appear on multiple visual parts
-    while the image part (and therefore its image file) is stored only once in
-    the package.
-    
-    **REFACTOR:** An image is not a TemplatePart strictly speaking. Images may
-    be imported from the template, but they can also be added to slides using
-    the API, so not all images are static and the images collection certainly
-    needs to be dynamic. I'm thinking what this points up is that there's a
-    distinction between *binary* and *XML* as well as between *static* and
-    *dynamic*. Binary parts cannot be manipulated while static parts are
-    simply not manipulated as a matter of convenience. All dynamic parts must
-    be XML, so perhaps only three distinctions are strictly required. But I'm
-    thinking it makes better sense for each part to have two new properties,
-    format ('binary' | 'xml') and static (boolean).
-    
-    printerSettings1.bin is another example of a binary part.
-    """
-    def __init__(self, parent):
-        super(Image, self).__init__(parent)
-    
-
-class NotesMaster(CollectionPart):
-    """**NOT YET FULLY IMPLEMENTED**. This class is currently a stub."""
-    def __init__(self, parent):
-        super(NotesMaster, self).__init__(parent)
-    
-
-class PresProps(Part):
-    """
-    Presentation Properties part. Corresponds to package file
-    ppt/presProps.xml.
-    """
-    def __init__(self, presentation):
-        super(PresProps, self).__init__(presentation, PartType.lookup('presProps'))
-    
-
-class Slide(CollectionPart):
-    """
-    Slide part. Provides base slide functionality. Should not be constructed
-    externally, use ``presentation.add_slide()`` to create new slides.
-    
-    :param id:          a unique id for the new slide
-    :param slides:      parent collection
-    :param slidelayout: instance of slide layout to inherit properties from
-    :type  slidelayout: :class:`SlideLayout`
-    :param name:        name property for slide, not used as a key
-    :type  name:        string
-    :rtype:             :class:`Slide`
-    
-    **REFACTOR:** See about inheriting from :class:`Part` rather than
-    :class:`object`.
-    """
-    def __init__(self, id, slides, slidelayout, name):
-        super(Slide, self).__init__(slides)
-        self.id          = id
-        self.key         = id
-        self.slides      = slides
-        self.parent      = slides
-        self.slidelayout = slidelayout
-        self.name        = name
-        self.nsmap       = nsmap_subset(['a', 'p', 'r'])  # keep this here so remaining init can use it
-        self.__id_iter   = util.intsequence()             # this one too ...
-        self.element     = self.minimalelement
-        self.shapes      = ShapeCollection(self)
-        self.images      = []
-    
-    def setxml(self, xml):
+    def slidemasters(self):
         """
-        **REFACTOR:** Not sure about this one, just trying it to get the first
-        clean package build working. This should be replace with
-        slide.element = ..., also add slide.xml read/write property to do the
-        same thing but with the XML as a string instead of an ElementTree
-        element.
+        List of :class:`SlideMaster` objects belonging to this presentation.
         """
-        self.element = etree.fromstring(xml)
+        return tuple(self.__slidemasters)
     
     @property
-    def _nextid(self):
+    def slides(self):
         """
-        ... iterator used for generating unique ids for the slide's shapes
+        :class:`SlideCollection` object containing the slides in this
+        presentation.
         """
-        return self.__id_iter.next()
+        return self.__slides
     
-    # def _append_shape(self, shape):
-    #     # assign the new shape an id that's unique within this Slide
-    #     sp_cNvPr = shape.element.xpath('/p:sp/p:nvSpPr/p:cNvPr', namespaces=nsmap)[0]
-    #     sp_cNvPr.attrib['id'] = str(self._nextid)
-    #     # append shape to spTree element of Slide
-    #     sld_spTree = self.element.xpath('/p:sld/p:cSld/p:spTree', namespaces=nsmap)[0]
-    #     sld_spTree.append(shape.element)
-    
-    @property
-    def minimalelement(self):
+    def _load(self, pkgpart, part_dict):
         """
-        Return element containing the minimal XML for a slide, based on what
-        is required by the XMLSchema. Note that in general, schema-minimal
-        elements in the XML are not guaranteed to be loadable by PowerPoint,
-        so test accordingly.
+        Load presentation from package part.
         """
-        sld        = Element(qname('p', 'sld'), nsmap=self.nsmap)
-        cSld       = SubElement(sld       , qname('p', 'cSld'       ) )
-        spTree     = SubElement(cSld      , qname('p', 'spTree'     ) )
-        nvGrpSpPr  = SubElement(spTree    , qname('p', 'nvGrpSpPr'  ) )
-        cNvPr      = SubElement(nvGrpSpPr , qname('p', 'cNvPr'      ) , id=str(self._nextid), name=self.name)
-        cNvGrpSpPr = SubElement(nvGrpSpPr , qname('p', 'cNvGrpSpPr' ) )
-        nvPr       = SubElement(nvGrpSpPr , qname('p', 'nvPr'       ) )
-        grpSpPr    = SubElement(spTree    , qname('p', 'grpSpPr'    ) )
-        return sld
-    
-    @property
-    def xmlstring(self):
-        """
-        Return the XML for the slide as a string. Used by the package to get
-        the contents of the partfile for the slide during ``Package.save()``.
-        """
-        return etree.tostring(self.element, pretty_print=True)
+        # call parent to do generic aspects of load
+        super(Presentation, self)._load(pkgpart, part_dict)
+        
+        # selectively unmarshal relationships for now
+        for rel in self._relationships:
+            # log.debug("Presentation Relationship %s", rel._reltype)
+            if rel._reltype == RT_SLIDEMASTER:
+                self.__slidemasters._loadpart(rel._target)
+            elif rel._reltype == RT_SLIDE:
+                self.__slides._loadpart(rel._target)
+        return self
     
 
-class SlideLayout(CollectionPart):
+
+# ============================================================================
+# Slide Parts
+# ============================================================================
+
+class SlideCollection(PartCollection):
+    """
+    Immutable sequence of slides, typically belonging to an instance of
+    :class:`Presentation`, with model-domain methods for manipulating the
+    slides in the presentation.
+    """
+    def __init__(self):
+        super(SlideCollection, self).__init__()
+    
+    def add_slide(self, slidelayout):
+        """Add a new slide that inherits layout from *slidelayout*."""
+        slide = Slide(collection=self, slidelayout=slidelayout)
+        self._values.append(slide)
+        return slide
+    
+
+class BaseSlide(BasePart):
+    """
+    Base class for slide parts, e.g. slide, slideLayout, slideMaster,
+    notesSlide, notesMaster, and handoutMaster.
+    """
+    def __init__(self, content_type=None):
+        """
+        Needs content_type parameter so newly created parts (not loaded from
+        package) can register their content type.
+        """
+        super(BaseSlide, self).__init__(content_type)
+        self.__shapes = None
+    
+    @property
+    def name(self):
+        """Internal name of this slide-like object."""
+        root = self._element
+        nsmap = namespaces('a', 'p', 'r')
+        cSld = root.xpath('./p:cSld', namespaces=nsmap)[0]
+        name = cSld.get('name', default='')
+        return name
+    
+    @property
+    def shapes(self):
+        """Collection of shape objects belonging to this slide."""
+        assert self.__shapes is not None, ("BaseSlide.shapes referenced"
+                                                      " before assigned")
+        return self.__shapes
+    
+    def _load(self, pkgpart, part_dict):
+        """Handle aspects of loading that are general to slide types."""
+        # call parent to do generic aspects of load
+        super(BaseSlide, self)._load(pkgpart, part_dict)
+        
+        # unmarshal shapes
+        nsmap = namespaces('a', 'p', 'r')
+        spTree = self._element.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
+        self.__shapes = ShapeCollection(spTree)
+        
+        # return self-reference to allow generative calling
+        return self
+    
+
+class Slide(BaseSlide):
+    """
+    Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
+    """
+    def __init__(self, collection=None, slidelayout=None):
+        super(Slide, self).__init__(CT_SLIDE)
+        self.__slidelayout = slidelayout
+        self._collection = collection
+    
+    @property
+    def slidelayout(self):
+        """
+        :class:`SlideLayout` object this slide inherits appearance from.
+        """
+        return self.__slidelayout
+    
+    @property
+    def _partname(self):
+        """
+        Return part name for this slide, e.g. '/ppt/slides/slide1.xml'.
+        """
+        assert self._collection is not None, 'Slide._partname is undefined '\
+                                             'when Slide._collection is None'
+        sldnum = self._collection.index(self) + 1
+        return '/ppt/slides/slide%d.xml' % sldnum
+    
+    def _load(self, pkgpart, part_dict):
+        """
+        Load slide from package part.
+        """
+        # call parent to do generic aspects of load
+        super(Slide, self)._load(pkgpart, part_dict)
+        # selectively unmarshal relationships for now
+        for rel in self._relationships:
+            # log.debug("SlideMaster Relationship %s", rel._reltype)
+            if rel._reltype == RT_SLIDELAYOUT:
+                self.__slidelayout = rel._target
+        return self
+    
+    # @property
+    # def minimalelement(self):
+    #     """
+    #     Return element containing the minimal XML for a slide, based on what
+    #     is required by the XMLSchema. Note that in general, schema-minimal
+    #     elements in the XML are not guaranteed to be loadable by PowerPoint,
+    #     so test accordingly.
+    #     """
+    #     sld        = Element(qname('p', 'sld'), nsmap=self.nsmap)
+    #     cSld       = SubElement(sld       , qname('p', 'cSld'       ) )
+    #     spTree     = SubElement(cSld      , qname('p', 'spTree'     ) )
+    #     nvGrpSpPr  = SubElement(spTree    , qname('p', 'nvGrpSpPr'  ) )
+    #     cNvPr      = SubElement(nvGrpSpPr , qname('p', 'cNvPr'      ) ,
+    #                               id=str(self._nextid), name=self.name)
+    #     cNvGrpSpPr = SubElement(nvGrpSpPr , qname('p', 'cNvGrpSpPr' ) )
+    #     nvPr       = SubElement(nvGrpSpPr , qname('p', 'nvPr'       ) )
+    #     grpSpPr    = SubElement(spTree    , qname('p', 'grpSpPr'    ) )
+    #     return sld
+    # 
+
+class SlideLayout(BaseSlide):
     """
     Slide layout part. Corresponds to package files
     ppt/slideLayouts/slideLayout[1-9][0-9]*.xml.
     """
-    def __init__(self, parent):
-        super(SlideLayout, self).__init__(parent)
+    def __init__(self, collection=None, slidemaster=None):
+        super(SlideLayout, self).__init__(CT_SLIDELAYOUT)
+        self._collection = collection
+        self.__slidemaster = slidemaster
+    
+    @property
+    def slidemaster(self):
+        """Slide master from which this slide layout inherits properties."""
+        assert self.__slidemaster is not None, ("SlideLayout.slidemaster "
+                                                "referenced before assigned")
+        return self.__slidemaster
+    
+    def _load(self, pkgpart, part_dict):
+        """
+        Load slide layout from package part.
+        """
+        # call parent to do generic aspects of load
+        super(SlideLayout, self)._load(pkgpart, part_dict)
+        
+        # selectively unmarshal relationships we need
+        for rel in self._relationships:
+            # log.debug("SlideLayout Relationship %s", rel._reltype)
+            # get slideMaster from which this slideLayout inherits properties
+            if rel._reltype == RT_SLIDEMASTER:
+                self.__slidemaster = rel._target
+        
+        # return self-reference to allow generative calling
+        return self
     
 
-class SlideMaster(CollectionPart):
+class SlideMaster(BaseSlide):
     """
     Slide master part. Corresponds to package files
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
@@ -509,34 +634,30 @@ class SlideMaster(CollectionPart):
     inherit from. So might look into why that is and consider refactoring the
     various masters a bit later.
     """
-    def __init__(self, parent):
-        super(SlideMaster, self).__init__(parent)
+    def __init__(self):
+        super(SlideMaster, self).__init__(CT_SLIDEMASTER)
+        self.__slidelayouts = PartCollection()
     
-
-class TableStyles(Part):
-    """
-    Optional table styles part. Corresponds to package file
-    ppt/tableStyles.xml.
-    """
-    def __init__(self, presentation):
-        super(TableStyles, self).__init__(presentation, PartType.lookup('tableStyles'))
+    @property
+    def slidelayouts(self):
+        """
+        Collection of slide layout objects belonging to this slide master.
+        """
+        return self.__slidelayouts
     
-
-class Theme(CollectionPart):
-    """
-    Theme part. Corresponds to package files ppt/theme/theme[1-9][0-9]*.xml.
-    """
-    def __init__(self, parent):
-        super(Theme, self).__init__(parent)
-    
-
-class ViewProps(Part):
-    """
-    Optional view properties part. Corresponds to package file
-    ppt/viewProps.xml.
-    """
-    def __init__(self, presentation):
-        super(ViewProps, self).__init__(presentation, PartType.lookup('viewProps'))
+    def _load(self, pkgpart, part_dict):
+        """
+        Load slide master from package part.
+        """
+        # call parent to do generic aspects of load
+        super(SlideMaster, self)._load(pkgpart, part_dict)
+        
+        # selectively unmarshal relationships for now
+        for rel in self._relationships:
+            # log.debug("SlideMaster Relationship %s", rel._reltype)
+            if rel._reltype == RT_SLIDELAYOUT:
+                self.__slidelayouts._loadpart(rel._target)
+        return self
     
 
 
@@ -544,148 +665,213 @@ class ViewProps(Part):
 # Shapes
 # ============================================================================
 
-class ShapeCollection(list):
+class BaseShape(object):
     """
-    Collection of all the Shapes in a slide. It can also serve for the shapes
-    in SlideMaster and SlideLayout, and perhaps HandoutMaster, although
-    dynamic behavior for those parts is not yet implemented so there's no need
-    yet.
-    
-    **REFACTOR:** This should actually become GroupShape. A slide's shape tree
-    (<spTree> element) is actually of type ``CT_GroupShape`` which can contain
-    shapes and pictures, but can also contain other group shapes. So it needs
-    to be modeled as an object hierarcy, a list won't do the trick by itself.
-    Good news is that the GroupShape class will be able to be reused a fair
-    amount, so should be worth the implementation effort.
-    
-    **REFACTOR:** Create Collection base class and inherit from that. Also
-    have PartCollection and any other collections inherit from it. Place all
-    code that's general to all collections up there.
+    Base class for shape objects.
     """
-    def __init__(self, parent):
-        super(ShapeCollection, self).__init__()
-        self.parent = parent
+    __nsmap = namespaces('a', 'p', 'r')
     
-    def append(self, shape):
-        if not isinstance(shape, Shape):
-            raise TypeError("Slide.shapes.append() called with incorrect type, (expected Shape, got %s)" % shape.__class__.__name__)
-        list.append(self, shape)
-        self.slide._append_shape(shape)
-    
-
-class Shape(object):
-    """
-    Base class for the various permutations of shape (not including pic, which
-    is a distinct element type). This is actually an abstract class. Adding a
-    raw Shape directly to a slide will likely cause a load error in
-    PowerPoint. Use one of the fully fleshed-out subclasses such as
-    PlaceholderText instead or modify the element directly to add the required
-    bits for a complete shape.
-    
-    **TECHDEBT:** need to account for hierarchy of GroupShape, cSld/spTree is
-    type GroupShape and GroupShape can contain other GroupShape elements in a
-    hierarchy
-    """
-    def __init__(self, name):
-        self.name    = name
-        self.element = self.__minimalelement
+    def __init__(self, shape_element):
+        # log.debug('BaseShape.__init__() called w/element 0x%X',
+        #            id(shape_element))
+        super(BaseShape, self).__init__()
+        self.__element = shape_element
+        self.__cNvPr = shape_element.xpath('./*[1]/p:cNvPr',
+                                           namespaces=self.__nsmap)[0]
     
     @property
-    def __minimalelement(self):
+    def has_textframe(self):
         """
-        Return an ElementTree element that contains all the elements and
-        attributes of a shape required by the schema, initialized with default
-        values where necessary or appropriate.
+        True if this shape has a txBody element and can support text.
         """
-        sp      = Element(qname('p', 'sp'))
-        nvSpPr  = SubElement(sp     , qname('p', 'nvSpPr'  ) )
-        cNvPr   = SubElement(nvSpPr , qname('p', 'cNvPr'   ) , id='None', name=self.name)
-        cNvSpPr = SubElement(nvSpPr , qname('p', 'cNvSpPr' ) )
-        spPr    = SubElement(sp     , qname('p', 'spPr'    ) )
-        return sp
+        xpath = './p:txBody'
+        elements = self.__element.xpath(xpath, namespaces=self.__nsmap)
+        return len(elements) > 0
+    
+    @property
+    def id(self):
+        """
+        Id of this shape. Note that ids are constrained to positive integers.
+        """
+        return int(self.__cNvPr.get('id'))
+    
+    @property
+    def is_placeholder(self):
+        """
+        True if this shape is a placeholder. A shape is a placeholder if it
+        has a <p:ph> element.
+        """
+        xpath = './*[1]/p:nvPr/p:ph'
+        ph_elms = self.__element.xpath(xpath, namespaces=self.__nsmap)
+        return len(ph_elms) > 0
+    
+    @property
+    def name(self):
+        """Name of this shape."""
+        return self.__cNvPr.get('name', default='')
+    
+    @property
+    def textframe(self):
+        """
+        TextFrame instance for this shape. Raises :class:`ValueError` if shape
+        has no text frame. Use :meth:`has_textframe` to check whether a shape
+        has a text frame.
+        """
+        xpath = './p:txBody'
+        elements = self.__element.xpath(xpath, namespaces=self.__nsmap)
+        if len(elements) == 0:
+            raise ValueError('shape has no text frame')
+        txBody = elements[0]
+        return TextFrame(txBody)
+    
+    @property
+    def _is_title(self):
+        """
+        True if this shape is a title placeholder.
+        """
+        xpath = './*[1]/p:nvPr/p:ph'
+        ph_elms = self.__element.xpath(xpath, namespaces=self.__nsmap)
+        if len(ph_elms)==0:
+            return False
+        idx = ph_elms[0].get('idx', '0')
+        return idx=='0'
     
 
-class PlaceholderText(Shape):
+class ShapeCollection(BaseShape, Collection):
     """
-    REFACTOR: This is just scrap code, this class needs to be re-implemented
-    or at least reconsidered from first principles, it was initially written
-    before any of the scaffolding class hierarchies were set up.
-    
-    Shape that holds text to be displayed in a placeholder specified by the
-    slide layout.
-    
-    The placeholder_type provided must be one of ST_PlaceholderType defined in
-    the PresentationML schema.
-    
-    The string supplied as the text parameter may contain carriage returns
-    ('\\r') and or line feeds ('\\n'). Carriage returns will cause a new run
-    to be created with a break (<a:br/>) intervening between it and the prior
-    run. Line feeds will cause a new paragraph to be created to contain the
-    text that follows the line feed.
-    
-    The index parameter is important for matching up the text with the right
-    placeholder. I don't fully understand the logic used, but in one pptx file
-    I've seen the <p:ph> idx attribute matched with that of the proper
-    placeholder. The default is 0 and that seems to match the title
-    placeholder.
-    
+    Sequence of shapes. Corresponds to CT_GroupShape in pml schema. Note that
+    while spTree in a slide is a group shape, the group shape is recursive in
+    that a group shape can include other group shapes within it.
     """
-    pass
+    NVGRPSPPR    = qname('p', 'nvGrpSpPr')
+    GRPSPPR      = qname('p', 'grpSpPr')
+    SP           = qname('p', 'sp')
+    GRPSP        = qname('p', 'grpSp')
+    GRAPHICFRAME = qname('p', 'graphicFrame')
+    CXNSP        = qname('p', 'cxnSp')
+    PIC          = qname('p', 'pic')
+    CONTENTPART  = qname('p', 'contentPart')
+    EXTLST       = qname('p', 'extLst')
     
-    # def __init__(self, name, placeholder_type, text, placeholder_index=None):
-    #     if placeholder_type not in placeholder_types:
-    #         raise TypeError("placeholder_type must be one of %s, got '%s'." % (placeholder_types, placeholder_type))
-    #     super(PlaceholderText, self).__init__(name)
-    #     self.placeholder_type  = placeholder_type
-    #     self.placeholder_index = placeholder_index
-    #     self.text = text
-    #     # locate nodes we need to have handy (these are all required elements so we're assured they're present)
-    #     sp      = self.element
-    #     nvSpPr  = sp.find(qname('p', 'nvSpPr'))
-    #     spPr    = sp.find(qname('p', 'spPr'))
-    #     cNvSpPr = nvSpPr.find(qname('p', 'cNvSpPr'))
-    #     # add shape lock to prevent grouping the placeholder element with others
-    #     node = cNvSpPr.find(qname('a', 'spLocks'))
-    #     spLocks = node if node else SubElement(cNvSpPr, qname('a', 'spLocks'))
-    #     spLocks.attrib['noGrp'] = 'true'
-    #     # add placeholder type so text can find its home on slide layout
-    #     node = nvSpPr.find(qname('p', 'nvPr'))
-    #     nvPr = node if node else SubElement(nvSpPr, qname('p', 'nvPr'))
-    #     node = nvPr.find(qname('p', 'ph'))
-    #     ph   = node if node else SubElement(nvPr, qname('p', 'ph'))
-    #     ph.attrib['type'] = placeholder_type
-    #     if placeholder_index:
-    #         ph.attrib['idx'] = str(placeholder_index)
-    #     # add txBody to hold text
-    #     txBody = sp.find(qname('p', 'txBody'))
-    #     if not node:
-    #         txBody = Element(qname('p', 'txBody'))
-    #         sp.insert(sp.index(spPr)+1, txBody)
-    #     bodyPr = txBody.find(qname('a', 'bodyPr'))
-    #     if not bodyPr:
-    #         bodyPr = Element(qname('a', 'bodyPr'))
-    #         txBody.insert(0, bodyPr)
-    #     # get rid of any text that might be there already
-    #     del txBody[1:]
-    #     # insert the provided text
-    #     lines = text.split('\n')
-    #     for line in lines:
-    #         p = SubElement(txBody, qname('a', 'p'))
-    #         runs = line.split('\r')
-    #         for run in runs:
-    #             br = SubElement(p, qname('a', 'br')) if runs.index(run) > 0 else None
-    #             r = SubElement(p, qname('a', 'r'))
-    #             t = SubElement(r, qname('a', 't'))
-    #             t.text = run
-    # 
-    # @property
-    # def minimalelement(self):
-    #     sp      = Element(qname('p', 'sp'))
-    #     nvSpPr  = SubElement(sp     , qname('p', 'nvSpPr'  ) )
-    #     cNvPr   = SubElement(nvSpPr , qname('p', 'cNvPr'   ) , id='None', name=self.name)
-    #     cNvSpPr = SubElement(nvSpPr , qname('p', 'cNvSpPr' ) )
-    #     spPr    = SubElement(sp     , qname('p', 'spPr'    ) )
-    #     return sp
-    # 
+    def __init__(self, spTree):
+        # log.debug('ShapeCollect.__init__() called w/element 0x%X', id(spTree))
+        super(ShapeCollection, self).__init__(spTree)
+        # unmarshal shapes
+        nsmap = namespaces('a', 'p', 'r')
+        for elm in spTree:
+            # log.debug('elm.tag == %s', elm.tag[60:])
+            if elm.tag in (self.NVGRPSPPR, self.GRPSPPR, self.EXTLST):
+                continue
+            elif elm.tag == self.SP:
+                shape = Shape(elm)
+            elif elm.tag == self.GRPSP:
+                shape = ShapeCollection(elm)
+            elif elm.tag == self.CONTENTPART:
+                msg = "first time 'contentPart' shape encountered in the "\
+                      "wild, please let developer know and send example"
+                raise ValueError(msg)
+            else:
+                shape = BaseShape(elm)
+            
+            self._values.append(shape)
+    
+    @property
+    def title(self):
+        """The title shape in collection or None if no title placeholder."""
+        for shape in self._values:
+            if shape._is_title:
+                return shape
+        return None
+    
+
+class Shape(BaseShape):
+    """
+    A shape that can appear on a slide. Corresponds to the ``<p:sp>`` element
+    that can appear in any of the slide-type parts (slide, slideLayout, 
+    slideMaster, notesPage, notesMaster, handoutMaster).
+    """
+    def __init__(self, shape_element):
+        super(Shape, self).__init__(shape_element)
+    
+
+
+# ============================================================================
+# Text-related classes
+# ============================================================================
+
+class TextFrame(object):
+    """
+    The part of a shape that contains its text. Not all shapes have a text
+    frame. Corresponds to the ``<p:txBody>`` element that can appear as a
+    chile element of ``<p:sp>``.
+    """
+    __nsmap = namespaces('a', 'p', 'r')
+    
+    def __init__(self, txBody):
+        super(TextFrame, self).__init__()
+        self.__txBody = txBody
+    
+    @property
+    def paragraphs(self):
+        """
+        Immutable sequence of :class:`Paragraph` instances corresponding to
+        the paragraphs in this text frame.
+        """
+        xpath = './a:p'
+        p_elms = self.__txBody.xpath(xpath, namespaces=self.__nsmap)
+        paragraphs = []
+        for p in p_elms:
+            paragraphs.append(Paragraph(p))
+        return tuple(paragraphs)
+    
+
+class Paragraph(object):
+    """
+    Paragraph object.
+    """
+    __nsmap = namespaces('a', 'p', 'r')
+    
+    def __init__(self, p):
+        super(Paragraph, self).__init__()
+        self.__p = p
+    
+    @property
+    def runs(self):
+        """
+        Immutable sequence of :class:`Run` instances corresponding to the runs
+        in this paragraph.
+        """
+        xpath = './a:r'
+        r_elms = self.__p.xpath(xpath, namespaces=self.__nsmap)
+        runs = []
+        for r in r_elms:
+            runs.append(Run(r))
+        return tuple(runs)
+    
+
+class Run(object):
+    """
+    Text run object. Corresponds to ``<a:r>`` child element in a paragraph.
+    """
+    __nsmap = namespaces('a', 'p', 'r')
+    
+    def __init__(self, r):
+        super(Run, self).__init__()
+        self.__r = r
+        self.__t = r.xpath('./a:t', namespaces=self.__nsmap)[0]
+    
+    @property
+    def text(self):
+        """
+        Text contained in this run. A regular text run is required to contain
+        exactly one ``<a:t>`` (text) element.
+        """
+        return self.__t.text
+    
+    @text.setter
+    def text(self, str):
+        """Set the text of this run to *str*."""
+        self.__t.text = str
+    
 
 
