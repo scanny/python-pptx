@@ -1,8 +1,11 @@
 :mod:`presentation` Module
 --------------------------
 
+The status of this page is **ROUGH DRAFT**.
+
 .. automodule:: pptx.presentation
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members: Package, Presentation, SlideCollection, SlideMaster,
+      SlideLayout, Slide, ShapeCollection, Shape, TextFrame, Paragraph, Run
+   :undoc-members:
+   :show-inheritance:
 

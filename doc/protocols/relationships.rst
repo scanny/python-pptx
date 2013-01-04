@@ -1,10 +1,11 @@
-=============================
-:mod:`presentation` internals
-=============================
+=====================================
+Relationships protocol and interfaces
+=====================================
 
-For now, this page documents the Relationship-related protocol, others will be
-added as development proceeds.
+... the relationship-related protocol ...
 
+
+.. _relationship-related-protocol:
 
 Relationship-related protocol
 =============================

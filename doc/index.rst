@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    modules/index
+   protocols/index
    resources/index
 
 .. ... inheritance-diagram:: pptx.packaging

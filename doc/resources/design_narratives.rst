@@ -3,6 +3,39 @@ Design Narratives
 =================
 
 
+Design Narrative -- Model-side relationships
+============================================
+
+**always up-to-date principle**
+
+  Model-side relationships are maintained as new parts are added or existing
+  parts are deleted. Relationships for generic parts are maintained from load
+  and delivered back for save without change.
+
+The :doc:`../protocols/relationships` page contains documentation for
+the :ref:`relationship-related-protocol`.
+
+Interface
+---------
+
+=======  ============  =======================================================
+attr     client        purpose
+=======  ============  =======================================================
+rId      presentation  part association during unmarshaling
+reltype  presentation  allow relationships to be selected by type
+target   presentation  get specifics and content
+-------  ------------  -------------------------------------------------------
+element  packaging     Package needs this to save pptx
+=======  ============  =======================================================
+
+* Unlikely to need .source attribute in interface because only way to get to
+  the relationships is by traversing the source.
+
+* All the business of baseURI and target like a relative URI are things
+  Relationship can safely hide from clients.
+
+
+
 Design Narrative --- Text API
 =============================
 
@@ -160,33 +193,6 @@ You don’t include it at all, only the docstring for the object is brought in:
 You just use :members: with no arguments, then all public functions, classes,
 and methods are brought it that have docstring. If you explictly list the
 members like :members: fn0, class0, _fn1 those explict members are brought.
-
-
-
-Design Narrative -- Refactoring pptx.packaging.Relationship
-===========================================================
-
-* Relationship(source, rId, target)
-
-
-Interface
----------
-
-=======  ============  =======================================================
-attr     client        purpose
-=======  ============  =======================================================
-rId      presentation  part association during unmarshaling
-reltype  presentation  choose unmarshaling Part subclass
-target   presentation  get specifics and content
--------  ------------  -------------------------------------------------------
-element  packaging     Package needs this to save pptx
-=======  ============  =======================================================
-
-* Unlikely to need .source attribute in interface because only way to get the
-  relationships is from the source.
-
-* All the business of baseURI and target like a relative URI are things
-  Relationship can safely hide from clients.
 
 
 
