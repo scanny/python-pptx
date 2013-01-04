@@ -164,11 +164,12 @@ class _RelationshipCollection(Collection):
     """
     Sequence of relationships maintained in rId order. Maintaining the
     relationships in sorted order makes the .rels files both repeatable and
-    more readable which is very helpful for debugging.
-    :class"`RelationshipCollection` has an attribute *_reltype_ordering* which
+    more readable, which is very helpful for debugging. 
+    :class:`RelationshipCollection` has an attribute *_reltype_ordering* which
     is a sequence (tuple) of reltypes. If *_reltype_ordering* contains one or
-    more reltype, they are used to automatically reorder relationships when
-    they are added to the collection.
+    more reltype, the collection is maintained in reltype + partname.idx
+    order and relationship ids (rIds) are renumbered to match that sequence
+    and any numbering gaps are filled in.
     """
     def __init__(self):
         super(_RelationshipCollection, self).__init__()
@@ -176,8 +177,8 @@ class _RelationshipCollection(Collection):
     
     def _additem(self, relationship):
         """
-        Insert *relationship* in logical rId order, e.g. rId10 comes after
-        rId9.
+        Insert *relationship* into the appropriate position in this ordered
+        collection.
         """
         rIds = [rel._rId for rel in self._values]
         if relationship._rId in rIds:
@@ -202,20 +203,34 @@ class _RelationshipCollection(Collection):
     
     @property
     def _reltype_ordering(self):
-        """Current sorting sequence of reltypes. If empty, sort on rId."""
+        """
+        Tuple of relationship types, e.g. ``(RT_SLIDE, RT_SLIDELAYOUT)``. If
+        present, relationships of those types are grouped, and those groups
+        are ordered in the same sequence they appear in the tuple. In
+        addition, relationships of the same type are sequenced in order of
+        partname number (e.g. 16 for /ppt/slides/slide16.xml). If empty, the
+        collection is maintained in existing rId order; rIds are not
+        renumbered and any gaps in numbering are left to remain. Specifying
+        this value for a collection with members causes it to be immediately
+        reordered. The ordering is maintained as relationships are added or
+        removed, renumbering rIds whenever necessary to also maintain the
+        sequence in rId order.
+        """
         return self.__reltype_ordering
     
     @_reltype_ordering.setter
     def _reltype_ordering(self, ordering):
-        """
-        Set reltype sort order and begin maintaining relationships in reltype
-        + partname.idx order, with the sequence of reltype specified by
-        *ordering*. *ordering* is a sequence of relationship types (e.g.
-        RT_SLIDE, RT_IMAGE). Maintain this sorted ordering as relationships
-        are added or removed.
-        """
         self.__reltype_ordering = tuple(ordering)
         self.__resequence()
+    
+    def rels_of_reltype(self, reltype):
+        """
+        Return a :class:`list` containing the subset of relationships in this
+        collection of type *reltype*. The returned list is ordered by rId.
+        Returns an empty list if there are no relationships of type *reltype*
+        in the collection.
+        """
+        return [rel for rel in self._values if rel._reltype == reltype]
     
     def __resequence(self):
         """
@@ -244,23 +259,50 @@ class _RelationshipCollection(Collection):
 
 class _Relationship(object):
     """
-    Relationship to part from package or part.
+    Relationship to a part from a package or part. *rId* must be unique in any
+    |_RelationshipCollection| this relationship is added to; use
+    :attr:`_RelationshipCollection._next_rId` to get a unique rId.
     """
     def __init__(self, rId, reltype, target):
         super(_Relationship, self).__init__()
         # can't get _num right if rId is non-standard form
         assert rId.startswith('rId'), "rId in non-standard form: '%s'" % rId
         self.__rId = rId
-        self._reltype = reltype
-        self._target = target
-    
-    @property
-    def _num(self):
-        return int(self.__rId[3:])
+        self.__reltype = reltype
+        self.__target = target
     
     @property
     def _rId(self):
+        """
+        Relationship id for this relationship. Must be of the form
+        ``rId[1-9][0-9]*``.
+        """
         return self.__rId
+    
+    @property
+    def _reltype(self):
+        """
+        Relationship type URI for this relationship. Corresponds roughly to
+        the part type of the target part.
+        """
+        return self.__reltype
+    
+    @property
+    def _target(self):
+        """
+        Target part of this relationship. Relationships are directed, from a
+        source and a target. The target is always a part.
+        """
+        return self.__target
+    
+    @property
+    def _num(self):
+        """
+        The numeric portion of the rId of this |_Relationship|, expressed as
+        an :class:`int`. For example, :attr:`_num` for a relationship with an
+        rId of ``'rId12'`` would be ``12``.
+        """
+        return int(self.__rId[3:])
     
     @_rId.setter
     def _rId(self, value):

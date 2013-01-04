@@ -603,6 +603,18 @@ class Test_RelationshipCollection(TestCase):
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
+    def test_rels_of_reltype_return_value(self):
+        """RelationshipCollection._rels_of_reltype returns correct rels"""
+        # setup -----------------------
+        relationships, partnames = self.__reltype_ordering_mock()
+        # exercise --------------------
+        retval = relationships.rels_of_reltype(RT_SLIDE)
+        # verify ordering -------------
+        expected = ['rId1', 'rId4']
+        actual = [rel._rId for rel in retval]
+        msg = "expected %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
     def test__reltype_ordering_sorts_rels(self):
         """RelationshipCollection._reltype_ordering sorts rels"""
         # setup -----------------------

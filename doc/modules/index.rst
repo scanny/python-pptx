@@ -11,6 +11,7 @@ documented here as a convenience for developers.
    :maxdepth: 4
 
    presentation
+   presentation_internals
    packaging
    spec
    util
