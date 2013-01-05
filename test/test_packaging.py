@@ -470,7 +470,7 @@ class TestPart(TestCase):
         self.assertEqual(expected, actual, msg)
     
     def test_content_type_correct(self):
-        """Slide._partname returns correct value."""
+        """Part.content_type returns correct value."""
         # setup -----------------------
         self.part.typespec = Mock()
         self.part.typespec.content_type = self.content_type

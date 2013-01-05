@@ -18,18 +18,11 @@ import pptx.util as util
 from pptx.exceptions import InvalidPackageError
 
 from pptx.spec import namespaces, qname
-from pptx.spec import ( CT_PRESENTATION
-                      , CT_SLIDE
-                      , CT_SLIDELAYOUT
-                      , CT_SLIDEMASTER
-                      , CT_SLIDESHOW
-                      , CT_TEMPLATE
-                      )
-from pptx.spec import ( RT_OFFICEDOCUMENT
-                      , RT_SLIDE
-                      , RT_SLIDELAYOUT
-                      , RT_SLIDEMASTER
-                      )
+from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
+    CT_SLIDEMASTER, CT_SLIDESHOW, CT_TEMPLATE)
+from pptx.spec import (RT_HANDOUTMASTER, RT_NOTESMASTER, RT_OFFICEDOCUMENT,
+    RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER, RT_TABLESTYLES,
+    RT_THEME, RT_VIEWPROPS)
 
 
 import logging
@@ -244,7 +237,7 @@ class _RelationshipCollection(Collection):
                     return self.__reltype_ordering.index(reltype)
                 return len(self.__reltype_ordering)
             def partname_idx_key(rel):
-                partname = util.Partname(rel._target._partname)
+                partname = util.Partname(rel._target.partname)
                 if partname.idx is None:
                     return 0
                 return partname.idx
@@ -330,11 +323,9 @@ class PartCollection(Collection):
         sorted in logical partname order (e.g. slide10.xml comes after
         slide9.xml).
         """
-        # part needs ref to this collection to compute its partname
-        part._collection = self
-        new_partidx = util.Partname(part._load_partname).idx
+        new_partidx = util.Partname(part.partname).idx
         for idx, seq_part in enumerate(self._values):
-            partidx = util.Partname(seq_part._load_partname).idx
+            partidx = util.Partname(seq_part.partname).idx
             if partidx > new_partidx:
                 self._values.insert(idx, part)
                 return
@@ -347,6 +338,12 @@ class Part(object):
     part types that have them, BasePart otherwise.
     """
     def __new__(cls, reltype, content_type):
+        """
+        *reltype* is the relationship type, e.g. ``RT_SLIDE``, corresponding
+        to the type of part to be created. For at least one part type, in
+        particular the presentation part type, *content_type* is also required
+        in order to fully specify the part to be created.
+        """
         # log.debug("Creating Part for %s", reltype)
         if reltype == RT_OFFICEDOCUMENT:
             if content_type in (CT_PRESENTATION, CT_TEMPLATE, CT_SLIDESHOW):
@@ -368,6 +365,22 @@ class BasePart(object):
     Base class for presentation model parts. Provides common code to all parts
     and is the class we instantiate for parts we don't unmarshal or manipulate
     yet.
+    
+    .. attribute:: _element
+    
+       ElementTree element for XML parts. ``None`` for binary parts.
+    
+    .. attribute:: _load_blob
+    
+       Contents of part as a byte string extracted from the package file. May
+       be set to ``None`` by subclasses that override ._blob after content is
+       unmarshaled, to free up memory.
+    
+    .. attribute:: _relationships
+    
+       :class:`RelationshipCollection` instance containing the relationships
+       for this part.
+    
     """
     def __init__(self, content_type=None):
         """
@@ -376,18 +389,18 @@ class BasePart(object):
         """
         super(BasePart, self).__init__()
         self.__content_type = content_type
+        self.__partname = None
         self._element = None
         self._load_blob = None
-        self._load_partname = None
         self._relationships = _RelationshipCollection()
     
     @property
     def _blob(self):
         """
         Default is to return unchanged _load_blob. Dynamic parts will
-        override. Raises ValueError if _load_blob is None.
+        override. Raises :class:`ValueError` if _load_blob is None.
         """
-        if self._partname.endswith('.xml'):
+        if self.partname.endswith('.xml'):
             assert self._element is not None, 'BasePart._blob is undefined '\
                                  'for xml parts when part.__element is None'
             xml = etree.tostring(self._element, encoding='UTF-8',
@@ -411,15 +424,14 @@ class BasePart(object):
         return self.__content_type
     
     @property
-    def _partname(self):
-        """
-        Return part name for this part, e.g. '/ppt/slides/slide1.xml'.
-        Intended to be implemented by custom sub-classes if they manipulate
-        their part such that its load partname may change.
-        """
-        assert self._load_partname, "BasePart._partname called when "\
-            " _load_partname is None; ._partname not overridden by sub-class?"
-        return self._load_partname
+    def partname(self):
+        """Part name of this part, e.g. '/ppt/slides/slide1.xml'."""
+        assert self.__partname, "BasePart.partname referenced before assigned"
+        return self.__partname
+    
+    @partname.setter
+    def partname(self, partname):
+        self.__partname = partname
     
     def _load(self, pkgpart, part_dict):
         """
@@ -433,7 +445,7 @@ class BasePart(object):
         
         # # set attributes from package part
         self.__content_type = pkgpart.content_type
-        self._load_partname = pkgpart.partname
+        self.__partname = pkgpart.partname
         if pkgpart.partname.endswith('.xml'):
             self._element = etree.fromstring(pkgpart.blob)
         else:
@@ -496,6 +508,11 @@ class Presentation(BasePart):
         # call parent to do generic aspects of load
         super(Presentation, self)._load(pkgpart, part_dict)
         
+        # set reltype ordering so rels file ordering is readable
+        self._relationships._reltype_ordering = (RT_SLIDEMASTER,
+            RT_NOTESMASTER, RT_HANDOUTMASTER, RT_SLIDE, RT_PRESPROPS,
+            RT_VIEWPROPS, RT_TABLESTYLES, RT_THEME)
+        
         # selectively unmarshal relationships for now
         for rel in self._relationships:
             # log.debug("Presentation Relationship %s", rel._reltype)
@@ -522,7 +539,7 @@ class SlideCollection(PartCollection):
     
     def add_slide(self, slidelayout):
         """Add a new slide that inherits layout from *slidelayout*."""
-        slide = Slide(collection=self, slidelayout=slidelayout)
+        slide = Slide(slidelayout)
         self._values.append(slide)
         return slide
     
@@ -574,10 +591,9 @@ class Slide(BaseSlide):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
-    def __init__(self, collection=None, slidelayout=None):
+    def __init__(self, slidelayout=None):
         super(Slide, self).__init__(CT_SLIDE)
         self.__slidelayout = slidelayout
-        self._collection = collection
     
     @property
     def slidelayout(self):
@@ -585,16 +601,6 @@ class Slide(BaseSlide):
         :class:`SlideLayout` object this slide inherits appearance from.
         """
         return self.__slidelayout
-    
-    @property
-    def _partname(self):
-        """
-        Return part name for this slide, e.g. '/ppt/slides/slide1.xml'.
-        """
-        assert self._collection is not None, 'Slide._partname is undefined '\
-                                             'when Slide._collection is None'
-        sldnum = self._collection.index(self) + 1
-        return '/ppt/slides/slide%d.xml' % sldnum
     
     def _load(self, pkgpart, part_dict):
         """
@@ -634,10 +640,9 @@ class SlideLayout(BaseSlide):
     Slide layout part. Corresponds to package files
     ppt/slideLayouts/slideLayout[1-9][0-9]*.xml.
     """
-    def __init__(self, collection=None, slidemaster=None):
+    def __init__(self):
         super(SlideLayout, self).__init__(CT_SLIDELAYOUT)
-        self._collection = collection
-        self.__slidemaster = slidemaster
+        self.__slidemaster = None
     
     @property
     def slidemaster(self):

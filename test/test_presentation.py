@@ -19,16 +19,11 @@ import pptx.presentation
 
 from pptx.exceptions import InvalidPackageError
 from pptx.spec import namespaces
-from pptx.spec import ( CT_PRESENTATION
-                      , CT_SLIDE
-                      , CT_SLIDELAYOUT
-                      , CT_SLIDEMASTER
-                      )
-from pptx.spec import ( RT_OFFICEDOCUMENT
-                      , RT_SLIDE
-                      , RT_SLIDELAYOUT
-                      , RT_SLIDEMASTER
-                      )
+from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
+    CT_SLIDEMASTER)
+from pptx.spec import (RT_HANDOUTMASTER, RT_NOTESMASTER, RT_OFFICEDOCUMENT,
+    RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER, RT_TABLESTYLES,
+    RT_THEME, RT_VIEWPROPS)
 from testing import TestCase
 
 # module globals -------------------------------------------------------------
@@ -50,7 +45,7 @@ class TestBasePart(TestCase):
         # setup -----------------------
         blob = '0123456789'
         self.basepart._load_blob = blob
-        self.basepart._load_partname = '/docProps/thumbnail.jpeg'
+        self.basepart.partname = '/docProps/thumbnail.jpeg'
         # exercise --------------------
         retval = self.basepart._blob
         # verify ----------------------
@@ -64,7 +59,7 @@ class TestBasePart(TestCase):
         # setup -----------------------
         elm = etree.fromstring('<root><elm1 attr="one"/></root>')
         self.basepart._element = elm
-        self.basepart._load_partname = '/ppt/presentation.xml'
+        self.basepart.partname = '/ppt/presentation.xml'
         # exercise --------------------
         retval = self.basepart._blob
         # verify ----------------------
@@ -95,20 +90,15 @@ class TestBasePart(TestCase):
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
-    def test__load_partname_attribute_present(self):
-        """BasePart instance has attribute '_load_partname'"""
-        self.assertInstHasAttr(self.basepart, '_load_partname')
-    
-    def test__partname_value(self):
-        """BasePart._partname value is correct"""
+    def test_partname_setter(self):
+        """BasePart.partname setter stores passed value"""
         # setup -----------------------
         partname = '/ppt/presentation.xml'
-        self.basepart._load_partname = partname
-        # exercise --------------------
-        retval = self.basepart._partname
-        # verify ----------------------
+        # exercise ----------------
+        self.basepart.partname = partname
+        # verify ------------------
         expected = partname
-        actual = retval
+        actual = self.basepart.partname
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
@@ -417,34 +407,18 @@ class TestPartCollection(TestCase):
         partname1 = '/ppt/slides/slide1.xml'
         partname2 = '/ppt/slides/slide2.xml'
         partname3 = '/ppt/slides/slide3.xml'
-        part1 = Mock(name='part1'); part1._load_partname = partname1
-        part2 = Mock(name='part2'); part2._load_partname = partname2
-        part3 = Mock(name='part3'); part3._load_partname = partname3
+        part1 = Mock(name='part1'); part1.partname = partname1
+        part2 = Mock(name='part2'); part2.partname = partname2
+        part3 = Mock(name='part3'); part3.partname = partname3
         parts = pptx.presentation.PartCollection()
         # exercise --------------------
         parts._loadpart(part2)
         parts._loadpart(part3)
         parts._loadpart(part1)
         # verify ----------------------
-        expected = (partname1, partname2, partname3)
-        actual = (parts[0]._load_partname,
-                  parts[1]._load_partname,
-                  parts[2]._load_partname)
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-    
-    def test__loadpart_sets_part__collection(self):
-        """PartCollection._loadpart sets Part._collection"""
-        # setup -----------------------
-        part = Mock(name='part')
-        part._load_partname = '/ppt/slides/slide1.xml'
-        parts = pptx.presentation.PartCollection()
-        # exercise --------------------
-        parts._loadpart(part)
-        # verify ----------------------
-        expected = parts
-        actual = part._collection
-        msg = "expected '%s', got '%s'" % (expected, actual)
+        expected = [partname1, partname2, partname3]
+        actual = [part.partname for part in parts]
+        msg = "expected %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
 
@@ -569,10 +543,10 @@ class Test_RelationshipCollection(TestCase):
             , '/ppt/slideMasters/slideMaster1.xml'
             , '/ppt/slides/slide1.xml'
             ]
-        part1 = Mock(name='part1'); part1._partname = partnames[0]
-        part2 = Mock(name='part2'); part2._partname = partnames[1]
-        part3 = Mock(name='part3'); part3._partname = partnames[2]
-        part4 = Mock(name='part4'); part4._partname = partnames[3]
+        part1 = Mock(name='part1'); part1.partname = partnames[0]
+        part2 = Mock(name='part2'); part2.partname = partnames[1]
+        part3 = Mock(name='part3'); part3.partname = partnames[2]
+        part4 = Mock(name='part4'); part4.partname = partnames[3]
         rel1 = pptx.presentation._Relationship('rId1', RT_SLIDE,       part1)
         rel2 = pptx.presentation._Relationship('rId2', RT_SLIDELAYOUT, part2)
         rel3 = pptx.presentation._Relationship('rId3', RT_SLIDEMASTER, part3)
@@ -591,7 +565,7 @@ class Test_RelationshipCollection(TestCase):
         ordering = (RT_SLIDEMASTER, RT_SLIDELAYOUT, RT_SLIDE)
         relationships._reltype_ordering = ordering
         partname = '/ppt/slides/slide2.xml'
-        part = Mock(name='new_part'); part._partname = partname
+        part = Mock(name='new_part'); part.partname = partname
         rId = relationships._next_rId
         rel = pptx.presentation._Relationship(rId, RT_SLIDE, part)
         # exercise --------------------
@@ -599,7 +573,7 @@ class Test_RelationshipCollection(TestCase):
         # verify ordering -------------
         expected = [partnames[2], partnames[1], partnames[3],
                     partname, partnames[0]]
-        actual = [rel._target._partname for rel in relationships]
+        actual = [rel._target.partname for rel in relationships]
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
@@ -624,7 +598,7 @@ class Test_RelationshipCollection(TestCase):
         relationships._reltype_ordering = ordering
         # verify ordering -------------
         expected = [partnames[2], partnames[1], partnames[3], partnames[0]]
-        actual = [rel._target._partname for rel in relationships]
+        actual = [rel._target.partname for rel in relationships]
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
@@ -777,24 +751,6 @@ class TestSlide(TestCase):
         # verify ----------------------
         self.assertIsProperty(self.sld, 'slidelayout', None)
     
-    def test__collection_property_none_on_construction(self):
-        """Slide._collection property None on construction"""
-        # verify ----------------------
-        self.assertIsProperty(self.sld, '_collection', None, read_only=False)
-    
-    def test__collection_implements_index_after_add_slide(self):
-        """Slide._collection implements index method after add_slide"""
-        # setup -----------------------
-        slides = pptx.presentation.SlideCollection()
-        # exercise --------------------
-        slide = slides.add_slide(None)
-        # verify ----------------------
-        try:
-            slides.index(slide)
-        except AttributeError, TypeError:
-            msg = "Slide._collection object does not implement index method"
-            self.fail(msg)
-    
     def test__load_sets_slidelayout(self):
         """Slide._load() sets slidelayout"""
         # setup -----------------------
@@ -817,21 +773,6 @@ class TestSlide(TestCase):
         expected = slidelayout
         actual = retval
         msg = "expected: %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-    
-    def test__partname_correct(self):
-        """Slide._partname returns correct value"""
-        # setup -----------------------
-        slides = pptx.presentation.SlideCollection()
-        slide1 = slides.add_slide(None)
-        slide2 = slides.add_slide(None)
-        slide3 = slides.add_slide(None)
-        # exercise --------------------
-        partname = slide2._partname
-        # verify ----------------------
-        expected = '/ppt/slides/slide2.xml'
-        actual = partname
-        msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
 

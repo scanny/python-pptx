@@ -69,7 +69,7 @@ The following code sample illustrates the protocol::
     parts._loadpart(part)
     
     # access part attributes
-    partname = part._partname
+    partname = part.partname
     content_type = part._content_type
     blob = part._blob
     
@@ -93,7 +93,7 @@ The following code sample illustrates the protocol::
     rels = part._relationships
     
     # access partname
-    partname = part._partname
+    partname = part.partname
     
     # access content type
     content_type = part._content_type

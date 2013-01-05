@@ -109,7 +109,7 @@ class Package(object):
         for rel in model_pkg._relationships:
             # unpack working values for target part and relationship
             model_part = rel._target
-            partname = model_part._partname
+            partname = model_part.partname
             # create package-part for target
             part = Part()
             part_dict[partname] = part
@@ -265,13 +265,13 @@ class Part(object):
         Load the contents of model-side part such that it can be saved to
         disk. Propagate marshalling to related parts.
         """
-        # log.debug("marshalling %s", model_part._partname)
+        # log.debug("marshalling %s", model_part.partname)
         
         # unpack working values
         content_type = model_part._content_type
-        baseURI = os.path.split(model_part._partname)[0]
+        baseURI = os.path.split(model_part.partname)[0]
         # assign persisted attributes from model part
-        self.__partname = model_part._partname
+        self.__partname = model_part.partname
         self.blob = model_part._blob
         self.typespec = PartTypeSpec(content_type)
         
@@ -280,7 +280,7 @@ class Part(object):
             # unpack working values for target part and relationship
             reltype = rel._reltype
             model_target_part = rel._target
-            partname = model_target_part._partname
+            partname = model_target_part.partname
             # create package-part for target
             if partname in part_dict:
                 part = part_dict[partname]

@@ -37,10 +37,16 @@ CT_SLIDEMASTER  = 'application/vnd.openxmlformats-officedocument.presentationml.
 CT_SLIDESHOW    = 'application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml'
 CT_TEMPLATE     = 'application/vnd.openxmlformats-officedocument.presentationml.template.main+xml'
 
+RT_HANDOUTMASTER  = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster'
+RT_NOTESMASTER    = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster'
 RT_OFFICEDOCUMENT = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument'
+RT_PRESPROPS      = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps'
 RT_SLIDE          = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide'
 RT_SLIDELAYOUT    = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout'
 RT_SLIDEMASTER    = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster'
+RT_TABLESTYLES    = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles'
+RT_THEME          = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme'
+RT_VIEWPROPS      = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps'
 
 pml_parttypes =\
     { 'application/vnd.openxmlformats-officedocument.presentationml.commentAuthors+xml':
@@ -77,7 +83,7 @@ pml_parttypes =\
        , 'baseURI'      : '/ppt/handoutMasters'
        , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['presentation']
-       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster'
+       , 'reltype'      : RT_HANDOUTMASTER
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml':
        # ECMA-376-1 13.3.4
@@ -89,7 +95,7 @@ pml_parttypes =\
        , 'baseURI'      : '/ppt/notesMasters'
        , 'has_rels'     : PTS_HASRELS_ALWAYS
        , 'rels_from'    : ['presentation', 'notesSlide']
-       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster'
+       , 'reltype'      : RT_NOTESMASTER
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml':
        # ECMA-376-1 13.3.5
@@ -152,7 +158,7 @@ pml_parttypes =\
        , 'baseURI'      : '/ppt'
        , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['presentation']
-       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps'
+       , 'reltype'      : RT_PRESPROPS
        }
     , CT_SLIDE:
        # ECMA-376-1 13.3.8
@@ -212,7 +218,7 @@ pml_parttypes =\
        , 'baseURI'      : '/ppt'
        , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['presentation']
-       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps'
+       , 'reltype'      : RT_VIEWPROPS
        }
     , 'application/vnd.openxmlformats-officedocument.theme+xml':
        # ECMA-376-1 14.2.7
@@ -224,7 +230,7 @@ pml_parttypes =\
        , 'baseURI'      : '/ppt/theme'
        , 'has_rels'     : PTS_HASRELS_OPTIONAL  # can have _rels items, but only if the theme contains one or more images
        , 'rels_from'    : ['presentation', 'handoutMaster', 'notesMaster', 'slideMaster']
-       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme'
+       , 'reltype'      : RT_THEME
        }
     , 'application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml':
        # ECMA-376-1 14.2.9
@@ -236,7 +242,7 @@ pml_parttypes =\
        , 'baseURI'      : '/ppt'
        , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['presentation']
-       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles'
+       , 'reltype'      : RT_TABLESTYLES
        }
     , 'application/vnd.openxmlformats-package.core-properties+xml':
        # ECMA-376-1 15.2.12.1
