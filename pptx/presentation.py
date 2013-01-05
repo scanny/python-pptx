@@ -102,7 +102,7 @@ class Package(object):
 
 
 # ============================================================================
-# Collection
+# Base classes
 # ============================================================================
 
 class Collection(object):
@@ -148,6 +148,41 @@ class Collection(object):
         return self.__values.index(item)
     
 
+class Observable(object):
+    """
+    Simple observer pattern mixin. Limitations:
+    
+    * observers get all message types from subject (Observable), subscription
+      is on subject basis, not subject + event_type.
+    
+    * notifications are oriented toward "value has been updated", which seems
+      like only one possible event, could also be something like "load has
+      completed" or "preparing to load".
+    
+    """
+    def __init__(self):
+        super(Observable, self).__init__()
+        self._observers = []
+    
+    def _notify_observers(self, name, value):
+        # value = getattr(self, name)
+        for observer in self._observers:
+            observer.notify(self, name, value)
+    
+    def add_observer(self, observer):
+        """
+        Begin notifying *observer* of events. *observer* must implement method
+        ``notify(observed, name, new_value)``
+        """
+        if observer not in self._observers:
+            self._observers.append(observer)
+    
+    def remove_observer(self, observer):
+        """Remove *observer* from notification list."""
+        assert observer in self._observers, "remove_observer called for"\
+                                            "unsubscribed object"
+        self._observers.remove(observer)
+
 
 # ============================================================================
 # Relationships
@@ -179,6 +214,8 @@ class _RelationshipCollection(Collection):
             raise ValueError(tmpl % relationship._rId)
         self._values.append(relationship)
         self.__resequence()
+        # register as observer of partname changes
+        relationship._target.add_observer(self)
     
     @property
     def _next_rId(self):
@@ -224,6 +261,13 @@ class _RelationshipCollection(Collection):
         in the collection.
         """
         return [rel for rel in self._values if rel._reltype == reltype]
+    
+    def notify(self, subject, name, value):
+        """RelationshipCollection implements the Observer interface"""
+        self.__resequence()
+        if isinstance(subject, BasePart):
+            if name == 'partname':
+                self.__resequence()
     
     def __resequence(self):
         """
@@ -360,7 +404,7 @@ class Part(object):
         return BasePart()
     
 
-class BasePart(object):
+class BasePart(Observable):
     """
     Base class for presentation model parts. Provides common code to all parts
     and is the class we instantiate for parts we don't unmarshal or manipulate
@@ -432,6 +476,7 @@ class BasePart(object):
     @partname.setter
     def partname(self, partname):
         self.__partname = partname
+        self._notify_observers('partname', self.__partname)
     
     def _load(self, pkgpart, part_dict):
         """

@@ -90,6 +90,20 @@ class TestBasePart(TestCase):
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
+    def test_observable_on_partname(self):
+        """BasePart observable on partname value change"""
+        # setup -----------------------
+        old_partname = '/ppt/slides/slide1.xml'
+        new_partname = '/ppt/slides/slide2.xml'
+        observer = Mock()
+        self.basepart.partname = old_partname
+        self.basepart.add_observer(observer)
+        # exercise --------------------
+        self.basepart.partname = new_partname
+        # verify ----------------------
+        observer.notify.assert_called_with(self.basepart, 'partname',
+                                           new_partname)
+    
     def test_partname_setter(self):
         """BasePart.partname setter stores passed value"""
         # setup -----------------------
@@ -508,8 +522,10 @@ class Test_RelationshipCollection(TestCase):
     def test__additem_raises_on_dup_rId(self):
         """_RelationshipCollection._additem raises on duplicate rId"""
         # setup -----------------------
-        rel1 = pptx.presentation._Relationship('rId9', None, None)
-        rel2 = pptx.presentation._Relationship('rId9', None, None)
+        part1 = pptx.presentation.BasePart()
+        part2 = pptx.presentation.BasePart()
+        rel1 = pptx.presentation._Relationship('rId9', None, part1)
+        rel2 = pptx.presentation._Relationship('rId9', None, part2)
         self.relationships._additem(rel1)
         # verify ----------------------
         with self.assertRaises(ValueError):
@@ -518,9 +534,12 @@ class Test_RelationshipCollection(TestCase):
     def test__additem_maintains_rId_ordering(self):
         """_RelationshipCollection maintains rId ordering on additem()"""
         # setup -----------------------
-        rel1 = pptx.presentation._Relationship('rId1', None, None)
-        rel2 = pptx.presentation._Relationship('rId2', None, None)
-        rel3 = pptx.presentation._Relationship('rId3', None, None)
+        part1 = pptx.presentation.BasePart()
+        part2 = pptx.presentation.BasePart()
+        part3 = pptx.presentation.BasePart()
+        rel1 = pptx.presentation._Relationship('rId1', None, part1)
+        rel2 = pptx.presentation._Relationship('rId2', None, part2)
+        rel3 = pptx.presentation._Relationship('rId3', None, part3)
         # exercise --------------------
         self.relationships._additem(rel2)
         self.relationships._additem(rel1)
@@ -618,10 +637,14 @@ class Test_RelationshipCollection(TestCase):
     def test__next_rId_fills_gap(self):
         """_RelationshipCollection._next_rId fills gap in rId sequence"""
         # setup -----------------------
-        rel1 = pptx.presentation._Relationship('rId1', None, None)
-        rel2 = pptx.presentation._Relationship('rId2', None, None)
-        rel3 = pptx.presentation._Relationship('rId3', None, None)
-        rel4 = pptx.presentation._Relationship('rId4', None, None)
+        part1 = pptx.presentation.BasePart()
+        part2 = pptx.presentation.BasePart()
+        part3 = pptx.presentation.BasePart()
+        part4 = pptx.presentation.BasePart()
+        rel1 = pptx.presentation._Relationship('rId1', None, part1)
+        rel2 = pptx.presentation._Relationship('rId2', None, part2)
+        rel3 = pptx.presentation._Relationship('rId3', None, part3)
+        rel4 = pptx.presentation._Relationship('rId4', None, part4)
         cases =\
             ( ('rId1', (rel2, rel3, rel4))
             , ('rId2', (rel1, rel3, rel4))
@@ -641,6 +664,28 @@ class Test_RelationshipCollection(TestCase):
         expected = expected_rIds
         actual = actual_rIds
         msg = "expected rIds %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_reorders_on_partname_change(self):
+        """RelationshipCollection reorders on partname change"""
+        # setup -----------------------
+        partname1 = '/ppt/slides/slide1.xml'
+        partname2 = '/ppt/slides/slide2.xml'
+        partname3 = '/ppt/slides/slide3.xml'
+        part1 = pptx.presentation.BasePart(); part1.partname = partname1
+        part2 = pptx.presentation.BasePart(); part2.partname = partname2
+        rel1 = pptx.presentation._Relationship('rId1', RT_SLIDE, part1)
+        rel2 = pptx.presentation._Relationship('rId2', RT_SLIDE, part2)
+        relationships = pptx.presentation._RelationshipCollection()
+        relationships._reltype_ordering = (RT_SLIDE)
+        relationships._additem(rel1)
+        relationships._additem(rel2)
+        # exercise --------------------
+        part1.partname = partname3
+        # verify ----------------------
+        expected = [partname2, partname3]
+        actual = [rel._target.partname for rel in relationships]
+        msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
 
