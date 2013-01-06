@@ -18,7 +18,7 @@ from mock import Mock
 import pptx.presentation
 
 from pptx.exceptions import InvalidPackageError
-from pptx.spec import namespaces
+from pptx.spec import namespaces, qname
 from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
     CT_SLIDEMASTER)
 from pptx.spec import (RT_HANDOUTMASTER, RT_NOTESMASTER, RT_OFFICEDOCUMENT,
@@ -26,9 +26,98 @@ from pptx.spec import (RT_HANDOUTMASTER, RT_NOTESMASTER, RT_OFFICEDOCUMENT,
     RT_THEME, RT_VIEWPROPS)
 from testing import TestCase
 
+import logging
+log = logging.getLogger('pptx.test.presentation')
+log.setLevel(logging.DEBUG)
+# log.setLevel(logging.INFO)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - '
+                              '%(message)s')
+ch.setFormatter(formatter)
+log.addHandler(ch)
+
+
+
 # module globals -------------------------------------------------------------
 thisdir = os.path.abspath(os.path.split(__file__)[0])
 test_pptx_path = os.path.join(thisdir, 'test_files/test.pptx')
+
+class PartBuilder(object):
+    """Builder class for test Parts"""
+    def __init__(self):
+        self.partname = '/ppt/slides/slide1.xml'
+    
+    def with_partname(self, partname):
+        self.partname = partname
+        return self
+    
+    def build(self):
+        p = pptx.presentation.BasePart()
+        p.partname = self.partname
+        return p
+    
+
+class RelationshipCollectionBuilder(object):
+    """Builder class for test RelationshipCollections"""
+    partname_tmpls =\
+        { RT_SLIDEMASTER : '/ppt/slideMasters/slideMaster%d.xml'
+        , RT_SLIDE       : '/ppt/slides/slide%d.xml'
+        }
+    
+    def __init__(self):
+        self.relationships = []
+        self.next_rel_num = 1
+        self.next_partnums = {}
+        self.reltype_ordering = None
+    
+    def with_ordering(self, *reltypes):
+        self.reltype_ordering = tuple(reltypes)
+        return self
+    
+    def with_tuple_targets(self, count, reltype):
+        for i in range(count):
+            rId = self.__next_rId
+            partname = self.__next_tuple_partname(reltype)
+            target = PartBuilder().with_partname(partname).build()
+            rel = pptx.presentation._Relationship(rId, reltype, target)
+            self.relationships.append(rel)
+        return self
+    
+    # def with_singleton_target(self, reltype):
+    #     rId = self.__next_rId
+    #     partname = self.__singleton_partname(reltype)
+    #     target = PartBuilder().with_partname(partname).build()
+    #     rel = pptx.presentation._Relationship(rId, reltype, target)
+    #     self.relationships.append(rel)
+    #     return self
+    # 
+    def __next_partnum(self, reltype):
+        if reltype not in self.next_partnums:
+            self.next_partnums[reltype] = 1
+        partnum = self.next_partnums[reltype]
+        self.next_partnums[reltype] = partnum + 1
+        return partnum
+    
+    @property
+    def __next_rId(self):
+        rId = 'rId%d' % self.next_rel_num
+        self.next_rel_num += 1
+        return rId
+    
+    def __next_tuple_partname(self, reltype):
+        partname_tmpl = self.partname_tmpls[reltype]
+        partnum = self.__next_partnum(reltype)
+        return partname_tmpl % partnum
+    
+    def build(self):
+        rels = pptx.presentation._RelationshipCollection()
+        for rel in self.relationships:
+            rels._additem(rel)
+        if self.reltype_ordering:
+            rels._reltype_ordering = self.reltype_ordering
+        return rels
+    
 
 class TestBasePart(TestCase):
     """Test pptx.presentation.BasePart"""
@@ -441,9 +530,29 @@ class TestPresentation(TestCase):
     def setUp(self):
         self.prs = pptx.presentation.Presentation()
     
-    def test_class_present(self):
-        """Presentation class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'Presentation')
+    def test__blob_rewrites_sldIdLst(self):
+        """Presentation._blob rewrites sldIdLst"""
+        # setup -----------------------
+        relationships = RelationshipCollectionBuilder()\
+                       .with_tuple_targets(2, RT_SLIDEMASTER)\
+                       .with_tuple_targets(3, RT_SLIDE)\
+                       .with_ordering(RT_SLIDEMASTER, RT_SLIDE)\
+                       .build()
+        prs = pptx.presentation.Presentation()
+        prs._relationships = relationships
+        prs.partname = '/ppt/presentation.xml'
+        path = os.path.join(thisdir, 'test_files/presentation.xml')
+        prs._element = etree.parse(path).getroot()
+        # exercise --------------------
+        blob = prs._blob
+        # verify ----------------------
+        presentation = etree.fromstring(blob)
+        nsmap = namespaces('a', 'r', 'p')
+        sldIds = presentation.xpath('./p:sldIdLst/p:sldId', namespaces=nsmap)
+        expected = ['rId3', 'rId4', 'rId5']
+        actual = [sldId.get(qname('r', 'id')) for sldId in sldIds]
+        msg = "expected ordering %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
     
     def test_slidemasters_property_empty_on_construction(self):
         """Presentation.slidemasters property empty on construction"""
@@ -672,8 +781,8 @@ class Test_RelationshipCollection(TestCase):
         partname1 = '/ppt/slides/slide1.xml'
         partname2 = '/ppt/slides/slide2.xml'
         partname3 = '/ppt/slides/slide3.xml'
-        part1 = pptx.presentation.BasePart(); part1.partname = partname1
-        part2 = pptx.presentation.BasePart(); part2.partname = partname2
+        part1 = PartBuilder().with_partname(partname1).build()
+        part2 = PartBuilder().with_partname(partname2).build()
         rel1 = pptx.presentation._Relationship('rId1', RT_SLIDE, part1)
         rel2 = pptx.presentation._Relationship('rId2', RT_SLIDE, part2)
         relationships = pptx.presentation._RelationshipCollection()

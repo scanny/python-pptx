@@ -182,6 +182,7 @@ class Observable(object):
         assert observer in self._observers, "remove_observer called for"\
                                             "unsubscribed object"
         self._observers.remove(observer)
+    
 
 
 # ============================================================================
@@ -264,7 +265,6 @@ class _RelationshipCollection(Collection):
     
     def notify(self, subject, name, value):
         """RelationshipCollection implements the Observer interface"""
-        self.__resequence()
         if isinstance(subject, BasePart):
             if name == 'partname':
                 self.__resequence()
@@ -545,6 +545,22 @@ class Presentation(BasePart):
         presentation.
         """
         return self.__slides
+    
+    @property
+    def _blob(self):
+        """
+        Rewrite sldId elements in sldIdLst before handing over to super for
+        transformation of _element into a blob.
+        """
+        nsmap = namespaces('a', 'r', 'p')
+        sldIdLst = self._element.xpath('./p:sldIdLst', namespaces=nsmap)[0]
+        sldIdLst.clear()
+        sld_rels = self._relationships.rels_of_reltype(RT_SLIDE)
+        for idx, rel in enumerate(sld_rels):
+            sldId = etree.SubElement(sldIdLst, qname('p', 'sldId'))
+            sldId.set('id', str(256+idx))
+            sldId.set(qname('r', 'id'), rel._rId)
+        return super(Presentation, self)._blob
     
     def _load(self, pkgpart, part_dict):
         """
