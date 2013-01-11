@@ -10,6 +10,7 @@ Resources
    objects/index
    schema_analysis
    schema/index
+   experiments/index
    about_packaging
    about_relationships
    design_narratives

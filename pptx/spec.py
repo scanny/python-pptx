@@ -12,6 +12,61 @@ and packaging, and a utility function or two for accessing some of them.'''
 
 
 # ============================================================================
+# Placeholder constants
+# ============================================================================
+
+# valid values for <p:ph> type attribute (ST_PlaceholderType)
+# -----------------------------------------------------------
+PH_TYPE_TITLE    = 'title'
+PH_TYPE_BODY     = 'body'
+PH_TYPE_CTRTITLE = 'ctrTitle'
+PH_TYPE_SUBTITLE = 'subTitle'
+PH_TYPE_DT       = 'dt'
+PH_TYPE_SLDNUM   = 'sldNum'
+PH_TYPE_FTR      = 'ftr'
+PH_TYPE_HDR      = 'hdr'
+PH_TYPE_OBJ      = 'obj'
+PH_TYPE_CHART    = 'chart'
+PH_TYPE_TBL      = 'tbl'
+PH_TYPE_CLIPART  = 'clipArt'
+PH_TYPE_DGM      = 'dgm'
+PH_TYPE_MEDIA    = 'media'
+PH_TYPE_SLDIMG   = 'sldImg'
+PH_TYPE_PIC      = 'pic'
+
+# valid values for <p:ph> orient attribute
+# ----------------------------------------
+PH_ORIENT_HORZ = 'horz'
+PH_ORIENT_VERT = 'vert'
+
+# valid values for <p:ph> sz (size) attribute
+# -------------------------------------------
+PH_SZ_FULL    = 'full'
+PH_SZ_HALF    = 'half'
+PH_SZ_QUARTER = 'quarter'
+
+# mapping of type to rootname (part of auto-generated placeholder shape name)
+slide_ph_basenames =\
+    { PH_TYPE_TITLE    : 'Title'
+    # this next one is named 'Notes Placeholder' in a notes master
+    , PH_TYPE_BODY     : 'Text Placeholder'
+    , PH_TYPE_CTRTITLE : 'Title'
+    , PH_TYPE_SUBTITLE : 'Subtitle'
+    , PH_TYPE_DT       : 'Date Placeholder'
+    , PH_TYPE_SLDNUM   : 'Slide Number Placeholder'
+    , PH_TYPE_FTR      : 'Footer Placeholder'
+    , PH_TYPE_HDR      : 'Header Placeholder'
+    , PH_TYPE_OBJ      : 'Content Placeholder'
+    , PH_TYPE_CHART    : 'Chart Placeholder'
+    , PH_TYPE_TBL      : 'Table Placeholder'
+    , PH_TYPE_CLIPART  : 'ClipArt Placeholder'
+    , PH_TYPE_DGM      : 'SmartArt Placeholder'
+    , PH_TYPE_MEDIA    : 'Media Placeholder'
+    , PH_TYPE_SLDIMG   : 'Slide Image Placeholder'
+    , PH_TYPE_PIC      : 'Picture Placeholder'
+    }
+
+# ============================================================================
 # PresentationML Part Type specs
 # ============================================================================
 # Keyed by content type
@@ -431,10 +486,5 @@ def qname(nsprefix, localtagname):
     uri = nsmap[nsprefix]
     return '{%s}%s' % (uri, localtagname)
 
-
-# # valid values for <p:ph> type attribute (ST_PlaceholderType)
-# placeholder_types = ('title', 'body', 'ctrTitle', 'subTitle', 'dt', 'sldNum',
-#                      'ftr', 'hdr', 'obj', 'chart', 'tbl', 'clipArt', 'dgm',
-#                      'media', 'sldImg', 'pic')
 
 

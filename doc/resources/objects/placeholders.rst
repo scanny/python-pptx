@@ -42,6 +42,20 @@ From the `Shape Object MSDN page`_:
 Behaviors
 =========
 
+Automatic Naming
+----------------
+
+* Most placeholders are automatically named '{root_name} Placeholder {num}'
+  where *root_name* is something like ``Chart`` and num is a positive integer.
+  A typical example is ``Table Placeholder 3``.
+
+* A placeholder with vertical orientation, i.e. ``<p:ph orient="vert">``, is
+  prefixed with ``'Vertical '``, e.g. ``Vertical Text Placeholder 2``.
+
+* The word ``'Placeholder'`` is omitted when the type is 'title', 'ctrTitle',
+  or 'subTitle'.
+
+
 On slide creation
 -----------------
 

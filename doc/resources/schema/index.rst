@@ -8,6 +8,7 @@ Collected bits and pieces from the XML Schema docs, MSDN web pages, and the ISO/
    :maxdepth: 1
 
    ct_presentation
+   ct_slide
    ct_placeholder
    ct_textbody
 

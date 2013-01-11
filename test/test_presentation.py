@@ -24,6 +24,9 @@ from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
 from pptx.spec import (RT_HANDOUTMASTER, RT_NOTESMASTER, RT_OFFICEDOCUMENT,
     RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER, RT_TABLESTYLES,
     RT_THEME, RT_VIEWPROPS)
+from pptx.spec import (PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ,
+    PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE,
+    PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER)
 from testing import TestCase
 
 import logging
@@ -42,6 +45,26 @@ log.addHandler(ch)
 # module globals -------------------------------------------------------------
 thisdir = os.path.abspath(os.path.split(__file__)[0])
 test_pptx_path = os.path.join(thisdir, 'test_files/test.pptx')
+nsmap = namespaces('a', 'p', 'r')
+
+def _empty_spTree():
+    xml = ('<p:spTree xmlns:p="http://schemas.openxmlformats.org/'
+           'presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.'
+           'org/drawingml/2006/main"><p:nvGrpSpPr><p:cNvPr id="1" name=""/>'
+           '<p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree>')
+    return etree.fromstring(xml)
+
+def _sldLayout1():
+    path = os.path.join(thisdir, 'test_files/slideLayout1.xml')
+    sldLayout = etree.parse(path).getroot()
+    return sldLayout
+
+def _sldLayout1_shapes():
+    sldLayout = _sldLayout1()
+    spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
+    shapes = pptx.presentation.ShapeCollection(spTree)
+    return shapes
+
 
 class PartBuilder(object):
     """Builder class for test Parts"""
@@ -211,9 +234,8 @@ class TestBaseShape(TestCase):
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = etree.parse(path).getroot()
-        self.nsmap = namespaces('a', 'p', 'r')
         xpath = './p:cSld/p:spTree/p:pic'
-        pic = self.sld.xpath(xpath, namespaces=self.nsmap)[0]
+        pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = pptx.presentation.BaseShape(pic)
     
     def test_class_present(self):
@@ -223,7 +245,7 @@ class TestBaseShape(TestCase):
     def test_has_textframe_value(self):
         """BaseShape.has_textframe value correct"""
         # setup -----------------------
-        spTree = self.sld.xpath('./p:cSld/p:spTree', namespaces=self.nsmap)[0]
+        spTree = self.sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
         shapes = pptx.presentation.ShapeCollection(spTree)
         indexes = []
         # exercise --------------------
@@ -251,7 +273,7 @@ class TestBaseShape(TestCase):
         """BaseShape.is_placeholder True for placeholder shape"""
         # setup -----------------------
         xpath = './p:cSld/p:spTree/p:sp'
-        sp = self.sld.xpath(xpath, namespaces=self.nsmap)[0]
+        sp = self.sld.xpath(xpath, namespaces=nsmap)[0]
         base_shape = pptx.presentation.BaseShape(sp)
         # verify ----------------------
         actual = base_shape.is_placeholder
@@ -269,7 +291,7 @@ class TestBaseShape(TestCase):
         """BaseShape._is_title True for title placeholder shape"""
         # setup -----------------------
         xpath = './p:cSld/p:spTree/p:sp'
-        title_placeholder_sp = self.sld.xpath(xpath, namespaces=self.nsmap)[0]
+        title_placeholder_sp = self.sld.xpath(xpath, namespaces=nsmap)[0]
         base_shape = pptx.presentation.BaseShape(title_placeholder_sp)
         # verify ----------------------
         actual = base_shape._is_title
@@ -300,10 +322,7 @@ class TestBaseSlide(TestCase):
     def test_name_value(self):
         """BaseSlide.name value is correct"""
         # setup -----------------------
-        relpath = ('../pptx/pptx_template/default/ppt/slideLayouts/'
-                   'slideLayout1.xml')
-        path = os.path.abspath(os.path.join(thisdir, relpath))
-        self.base_slide._element = etree.parse(path)
+        self.base_slide._element = _sldLayout1()
         # exercise --------------------
         name = self.base_slide.name
         # verify ----------------------
@@ -435,9 +454,8 @@ class TestParagraph(TestCase):
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = etree.parse(path).getroot()
-        self.nsmap = namespaces('a', 'p', 'r')
         xpath = './p:cSld/p:spTree/p:sp/p:txBody/a:p'
-        self.pList = self.sld.xpath(xpath, namespaces=self.nsmap)
+        self.pList = self.sld.xpath(xpath, namespaces=nsmap)
     
     def test_runs_size(self):
         """Paragraph.runs is expected size"""
@@ -525,6 +543,32 @@ class TestPartCollection(TestCase):
         self.assertEqual(expected, actual, msg)
     
 
+class TestPlaceholder(TestCase):
+    """Test pptx.presentation.Placeholder"""
+    def test_property_values(self):
+        """Placeholder property values are correct"""
+        # setup -----------------------
+        expected_values =\
+            ( (PH_TYPE_CTRTITLE, PH_ORIENT_HORZ, PH_SZ_FULL,     0)
+            , (PH_TYPE_DT,       PH_ORIENT_HORZ, PH_SZ_HALF,    10)
+            , (PH_TYPE_SUBTITLE, PH_ORIENT_VERT, PH_SZ_FULL,     1)
+            , (PH_TYPE_TBL,      PH_ORIENT_HORZ, PH_SZ_QUARTER, 14)
+            , (PH_TYPE_SLDNUM,   PH_ORIENT_HORZ, PH_SZ_QUARTER, 12)
+            , (PH_TYPE_FTR,      PH_ORIENT_HORZ, PH_SZ_QUARTER, 11)
+            )
+        shapes = _sldLayout1_shapes()
+        # exercise --------------------
+        for idx, sp in enumerate(shapes):
+            ph = pptx.presentation.Placeholder(sp)
+            values = (ph.type, ph.orient, ph.sz, ph.idx)
+            # verify ----------------------
+            expected = expected_values[idx]
+            actual = values
+            msg = "expected shapes[%d] values %s, got %s"\
+                   % (idx, expected, actual)
+            self.assertEqual(expected, actual, msg)
+    
+
 class TestPresentation(TestCase):
     """Test pptx.presentation.Presentation"""
     def setUp(self):
@@ -547,7 +591,6 @@ class TestPresentation(TestCase):
         blob = prs._blob
         # verify ----------------------
         presentation = etree.fromstring(blob)
-        nsmap = namespaces('a', 'r', 'p')
         sldIds = presentation.xpath('./p:sldIdLst/p:sldId', namespaces=nsmap)
         expected = ['rId3', 'rId4', 'rId5']
         actual = [sldId.get(qname('r', 'id')) for sldId in sldIds]
@@ -803,9 +846,8 @@ class TestRun(TestCase):
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = etree.parse(path).getroot()
-        self.nsmap = namespaces('a', 'p', 'r')
         xpath = './p:cSld/p:spTree/p:sp/p:txBody/a:p/a:r'
-        self.rList = self.sld.xpath(xpath, namespaces=self.nsmap)
+        self.rList = self.sld.xpath(xpath, namespaces=nsmap)
     
     def test_class_present(self):
         """Run class present in presentation module"""
@@ -843,11 +885,7 @@ class TestShape(TestCase):
         """
         Return Shape instance loaded from test file.
         """
-        relpath = ('../pptx/pptx_template/default/ppt/slideLayouts/'
-                   'slideLayout1.xml')
-        slidelayout_path = os.path.abspath(os.path.join(thisdir, relpath))
-        sldLayout = etree.parse(slidelayout_path)
-        nsmap = namespaces('a', 'p', 'r')
+        sldLayout = _slideLayout1()
         sp = sldLayout.xpath('p:cSld/p:spTree/p:sp', namespaces=nsmap)[0]
         return pptx.presentation.Shape(sp)
     
@@ -861,7 +899,6 @@ class TestShapeCollection(TestCase):
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         sld = etree.parse(path).getroot()
-        nsmap = namespaces('a', 'p', 'r')
         spTree = sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
         self.shapes = pptx.presentation.ShapeCollection(spTree)
     
@@ -878,6 +915,121 @@ class TestShapeCollection(TestCase):
         expected = 0
         actual = self.shapes.index(title_shape)
         msg = "expected shapes[%d], got shapes[%d]" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_placeholders_values(self):
+        """ShapeCollection.placeholders values are correct and sorted"""
+        # setup -----------------------
+        expected_values =\
+            ( ('Title 1',                    PH_TYPE_CTRTITLE,  0)
+            , ('Vertical Subtitle 2',        PH_TYPE_SUBTITLE,  1)
+            , ('Date Placeholder 7',         PH_TYPE_DT,       10)
+            , ('Footer Placeholder 4',       PH_TYPE_FTR,      11)
+            , ('Slide Number Placeholder 5', PH_TYPE_SLDNUM,   12)
+            , ('Table Placeholder 3',        PH_TYPE_TBL,      14)
+            )
+        shapes = _sldLayout1_shapes()
+        # exercise --------------------
+        placeholders = shapes.placeholders
+        # verify ----------------------
+        for idx, ph in enumerate(placeholders):
+            values = (ph.name, ph.type, ph.idx)
+            expected = expected_values[idx]
+            actual = values
+            msg = "expected placeholders[%d] values %s, got %s"\
+                   % (idx, expected, actual)
+            self.assertEqual(expected, actual, msg)
+    
+    def test__clone_layout_placeholders_shapes(self):
+        """ShapeCollection._clone_layout_placeholders clones shapes"""
+        # setup -----------------------
+        expected_values =\
+            ( [2, 'Title 1',                    PH_TYPE_CTRTITLE,  0]
+            , [3, 'Vertical Subtitle 2',        PH_TYPE_SUBTITLE,  1]
+            , [4, 'Table Placeholder 3',        PH_TYPE_TBL,      14]
+            )
+        slidelayout = pptx.presentation.SlideLayout()
+        slidelayout._shapes = _sldLayout1_shapes()
+        shapes = pptx.presentation.ShapeCollection(_empty_spTree())
+        # exercise --------------------
+        shapes._clone_layout_placeholders(slidelayout)
+        # verify ----------------------
+        for idx, sp in enumerate(shapes):
+            # verify is placeholder ---
+            is_placeholder = sp.is_placeholder
+            msg = ("expected shapes[%d].is_placeholder == True %r"
+                   % (idx, sp))
+            self.assertTrue(is_placeholder, msg)
+            # verify values -----------
+            ph = pptx.presentation.Placeholder(sp)
+            expected = expected_values[idx]
+            actual = [ph.id, ph.name, ph.type, ph.idx]
+            msg = ("expected placeholder[%d] values %s, got %s"
+                   % (idx, expected, actual))
+            self.assertEqual(expected, actual, msg)
+    
+    def test___clone_layout_placeholder_values(self):
+        """ShapeCollection.__clone_layout_placeholder() values correct"""
+        # setup -----------------------
+        layout_shapes = _sldLayout1_shapes()
+        layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
+        shapes = pptx.presentation.ShapeCollection(_empty_spTree())
+        expected_values =\
+            ( [2, 'Title 1',                    PH_TYPE_CTRTITLE,  0]
+            , [3, 'Date Placeholder 2',         PH_TYPE_DT,       10]
+            , [4, 'Vertical Subtitle 3',        PH_TYPE_SUBTITLE,  1]
+            , [5, 'Table Placeholder 4',        PH_TYPE_TBL,      14]
+            , [6, 'Slide Number Placeholder 5', PH_TYPE_SLDNUM,   12]
+            , [7, 'Footer Placeholder 6',       PH_TYPE_FTR,      11]
+            )
+        # exercise --------------------
+        for idx, layout_ph_sp in enumerate(layout_ph_shapes):
+            layout_ph = pptx.presentation.Placeholder(layout_ph_sp)
+            sp = shapes._ShapeCollection__clone_layout_placeholder(layout_ph)
+            # verify ----------------------
+            ph = pptx.presentation.Placeholder(sp)
+            expected = expected_values[idx]
+            actual = [ph.id, ph.name, ph.type, ph.idx]
+            msg = "expected placeholder values %s, got %s" % (expected, actual)
+            self.assertEqual(expected, actual, msg)
+    
+    def test___next_ph_name_return_value(self):
+        """
+        ShapeCollection.__next_ph_name() returns correct value
+        
+        * basename + 'Placeholder' + num, e.g. 'Table Placeholder 8'
+        * numpart of name defaults to id-1, but increments until unique
+        * prefix 'Vertical' if orient="vert"
+        
+        """
+        cases =\
+            ( (PH_TYPE_OBJ,   3, PH_ORIENT_HORZ, 'Content Placeholder 2')
+            , (PH_TYPE_TBL,   4, PH_ORIENT_HORZ, 'Table Placeholder 4')
+            , (PH_TYPE_TBL,   7, PH_ORIENT_VERT, 'Vertical Table Placeholder 6')
+            , (PH_TYPE_TITLE, 2, PH_ORIENT_HORZ, 'Title 2')
+            )
+        # setup -----------------------
+        shapes = _sldLayout1_shapes()
+        for ph_type, id, orient, expected_name in cases:
+            # exercise --------------------
+            name = shapes._ShapeCollection__next_ph_name(ph_type, id, orient)
+            # verify ----------------------
+            expected = expected_name
+            actual = name
+            msg = "expected placeholder name '%s', got '%s'"\
+                  % (expected, actual)
+            self.assertEqual(expected, actual, msg)
+    
+    def test___next_shape_id_value(self):
+        """ShapeCollection.__next_shape_id value is correct"""
+        # setup -----------------------
+        shapes = _sldLayout1_shapes()
+        # exercise --------------------
+        next_id = shapes._ShapeCollection__next_shape_id
+        # verify ----------------------
+        expected = 4
+        actual = next_id
+        msg = "expected %d, got %d" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
 
@@ -898,6 +1050,20 @@ class TestSlide(TestCase):
         expected = CT_SLIDE
         actual = content_type
         msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test__element_minimal_sld_on_construction(self):
+        """Slide._element is minimal sld on construction"""
+        # setup -----------------------
+        path = os.path.join(thisdir, 'test_files/minimal_slide.xml')
+        # exercise --------------------
+        elm = self.sld._element
+        # verify ----------------------
+        with open(path, 'r') as f:
+            expected = f.read()
+        actual = etree.tostring(elm, encoding='UTF-8', pretty_print=True,
+                                                         standalone=True)
+        msg = "expected:\n%s\n, got\n%s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
     def test_slidelayout_property_none_on_construction(self):
@@ -946,6 +1112,7 @@ class TestSlideCollection(TestCase):
         """SlideCollection.add_slide() sets Slide.slidelayout"""
         # setup -----------------------
         slidelayout = Mock(name='slideLayout')
+        slidelayout.shapes = []
         slide = self.slides.add_slide(slidelayout)
         # exercise --------------------
         retval = slide.slidelayout
@@ -1052,9 +1219,8 @@ class TestTextFrame(TestCase):
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = etree.parse(path).getroot()
-        self.nsmap = namespaces('a', 'p', 'r')
         xpath = './p:cSld/p:spTree/p:sp/p:txBody'
-        self.txBodyList = self.sld.xpath(xpath, namespaces=self.nsmap)
+        self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)
     
     def test_class_present(self):
         """TextFrame class present in presentation module"""

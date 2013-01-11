@@ -23,7 +23,10 @@ from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
 from pptx.spec import (RT_HANDOUTMASTER, RT_NOTESMASTER, RT_OFFICEDOCUMENT,
     RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER, RT_TABLESTYLES,
     RT_THEME, RT_VIEWPROPS)
-
+from pptx.spec import (PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_DT,
+    PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TBL,
+    PH_TYPE_TITLE, PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL)
+from pptx.spec import slide_ph_basenames
 
 import logging
 log = logging.getLogger('pptx.presentation')
@@ -426,6 +429,8 @@ class BasePart(Observable):
        for this part.
     
     """
+    _nsmap = namespaces('a', 'r', 'p')
+    
     def __init__(self, content_type=None):
         """
         Needs content_type parameter so newly created parts (not loaded from
@@ -552,8 +557,8 @@ class Presentation(BasePart):
         Rewrite sldId elements in sldIdLst before handing over to super for
         transformation of _element into a blob.
         """
-        nsmap = namespaces('a', 'r', 'p')
-        sldIdLst = self._element.xpath('./p:sldIdLst', namespaces=nsmap)[0]
+        xpath = './p:sldIdLst'
+        sldIdLst = self._element.xpath(xpath, namespaces=self._nsmap)[0]
         sldIdLst.clear()
         sld_rels = self._relationships.rels_of_reltype(RT_SLIDE)
         for idx, rel in enumerate(sld_rels):
@@ -616,34 +621,31 @@ class BaseSlide(BasePart):
         package) can register their content type.
         """
         super(BaseSlide, self).__init__(content_type)
-        self.__shapes = None
+        self._shapes = None
     
     @property
     def name(self):
         """Internal name of this slide-like object."""
         root = self._element
-        nsmap = namespaces('a', 'p', 'r')
-        cSld = root.xpath('./p:cSld', namespaces=nsmap)[0]
+        cSld = root.xpath('./p:cSld', namespaces=self._nsmap)[0]
         name = cSld.get('name', default='')
         return name
     
     @property
     def shapes(self):
         """Collection of shape objects belonging to this slide."""
-        assert self.__shapes is not None, ("BaseSlide.shapes referenced"
+        assert self._shapes is not None, ("BaseSlide.shapes referenced"
                                                       " before assigned")
-        return self.__shapes
+        return self._shapes
     
     def _load(self, pkgpart, part_dict):
         """Handle aspects of loading that are general to slide types."""
         # call parent to do generic aspects of load
         super(BaseSlide, self)._load(pkgpart, part_dict)
-        
         # unmarshal shapes
-        nsmap = namespaces('a', 'p', 'r')
-        spTree = self._element.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-        self.__shapes = ShapeCollection(spTree)
-        
+        xpath = './p:cSld/p:spTree'
+        spTree = self._element.xpath(xpath, namespaces=self._nsmap)[0]
+        self._shapes = ShapeCollection(spTree)
         # return self-reference to allow generative calling
         return self
     
@@ -655,6 +657,12 @@ class Slide(BaseSlide):
     def __init__(self, slidelayout=None):
         super(Slide, self).__init__(CT_SLIDE)
         self.__slidelayout = slidelayout
+        self._element = self.__minimal_element
+        spTree = self._element.xpath('//p:spTree', namespaces=self._nsmap)[0]
+        self._shapes = ShapeCollection(spTree)
+        # if slidelayout, this is a slide being added, not one being loaded
+        if slidelayout:
+            self._shapes._clone_layout_placeholders(slidelayout)
     
     @property
     def slidelayout(self):
@@ -676,25 +684,24 @@ class Slide(BaseSlide):
                 self.__slidelayout = rel._target
         return self
     
-    # @property
-    # def minimalelement(self):
-    #     """
-    #     Return element containing the minimal XML for a slide, based on what
-    #     is required by the XMLSchema. Note that in general, schema-minimal
-    #     elements in the XML are not guaranteed to be loadable by PowerPoint,
-    #     so test accordingly.
-    #     """
-    #     sld        = Element(qname('p', 'sld'), nsmap=self.nsmap)
-    #     cSld       = SubElement(sld       , qname('p', 'cSld'       ) )
-    #     spTree     = SubElement(cSld      , qname('p', 'spTree'     ) )
-    #     nvGrpSpPr  = SubElement(spTree    , qname('p', 'nvGrpSpPr'  ) )
-    #     cNvPr      = SubElement(nvGrpSpPr , qname('p', 'cNvPr'      ) ,
-    #                               id=str(self._nextid), name=self.name)
-    #     cNvGrpSpPr = SubElement(nvGrpSpPr , qname('p', 'cNvGrpSpPr' ) )
-    #     nvPr       = SubElement(nvGrpSpPr , qname('p', 'nvPr'       ) )
-    #     grpSpPr    = SubElement(spTree    , qname('p', 'grpSpPr'    ) )
-    #     return sld
-    # 
+    @property
+    def __minimal_element(self):
+        """
+        Return element containing the minimal XML for a slide, based on what
+        is required by the XMLSchema.
+        """
+        sld = etree.Element(qname('p', 'sld'), nsmap=self._nsmap)
+        cSld = etree.SubElement(sld, qname('p', 'cSld'))
+        spTree = etree.SubElement(cSld, qname('p', 'spTree'))
+        nvGrpSpPr = etree.SubElement(spTree, qname('p', 'nvGrpSpPr'))
+        cNvPr = etree.SubElement(nvGrpSpPr, qname('p', 'cNvPr'))
+        cNvPr.set('id', '1')
+        cNvPr.set('name', '')
+        cNvGrpSpPr = etree.SubElement(nvGrpSpPr, qname('p', 'cNvGrpSpPr'))
+        nvPr = etree.SubElement(nvGrpSpPr, qname('p', 'nvPr'))
+        grpSpPr = etree.SubElement(spTree, qname('p', 'grpSpPr'))
+        return sld
+    
 
 class SlideLayout(BaseSlide):
     """
@@ -775,15 +782,15 @@ class BaseShape(object):
     """
     Base class for shape objects.
     """
-    __nsmap = namespaces('a', 'p', 'r')
+    _nsmap = namespaces('a', 'r', 'p')
     
     def __init__(self, shape_element):
         # log.debug('BaseShape.__init__() called w/element 0x%X',
         #            id(shape_element))
         super(BaseShape, self).__init__()
-        self.__element = shape_element
+        self._element = shape_element
         self.__cNvPr = shape_element.xpath('./*[1]/p:cNvPr',
-                                           namespaces=self.__nsmap)[0]
+                                           namespaces=self._nsmap)[0]
     
     @property
     def has_textframe(self):
@@ -791,7 +798,7 @@ class BaseShape(object):
         True if this shape has a txBody element and can support text.
         """
         xpath = './p:txBody'
-        elements = self.__element.xpath(xpath, namespaces=self.__nsmap)
+        elements = self._element.xpath(xpath, namespaces=self._nsmap)
         return len(elements) > 0
     
     @property
@@ -808,7 +815,7 @@ class BaseShape(object):
         has a <p:ph> element.
         """
         xpath = './*[1]/p:nvPr/p:ph'
-        ph_elms = self.__element.xpath(xpath, namespaces=self.__nsmap)
+        ph_elms = self._element.xpath(xpath, namespaces=self._nsmap)
         return len(ph_elms) > 0
     
     @property
@@ -824,7 +831,7 @@ class BaseShape(object):
         has a text frame.
         """
         xpath = './p:txBody'
-        elements = self.__element.xpath(xpath, namespaces=self.__nsmap)
+        elements = self._element.xpath(xpath, namespaces=self._nsmap)
         if len(elements) == 0:
             raise ValueError('shape has no text frame')
         txBody = elements[0]
@@ -836,7 +843,7 @@ class BaseShape(object):
         True if this shape is a title placeholder.
         """
         xpath = './*[1]/p:nvPr/p:ph'
-        ph_elms = self.__element.xpath(xpath, namespaces=self.__nsmap)
+        ph_elms = self._element.xpath(xpath, namespaces=self._nsmap)
         if len(ph_elms)==0:
             return False
         idx = ph_elms[0].get('idx', '0')
@@ -862,8 +869,8 @@ class ShapeCollection(BaseShape, Collection):
     def __init__(self, spTree):
         # log.debug('ShapeCollect.__init__() called w/element 0x%X', id(spTree))
         super(ShapeCollection, self).__init__(spTree)
+        self.__spTree = spTree
         # unmarshal shapes
-        nsmap = namespaces('a', 'p', 'r')
         for elm in spTree:
             # log.debug('elm.tag == %s', elm.tag[60:])
             if elm.tag in (self.NVGRPSPPR, self.GRPSPPR, self.EXTLST):
@@ -878,8 +885,18 @@ class ShapeCollection(BaseShape, Collection):
                 raise ValueError(msg)
             else:
                 shape = BaseShape(elm)
-            
             self._values.append(shape)
+    
+    @property
+    def placeholders(self):
+        """
+        Immutable sequence containing the placeholder shapes in this shape
+        collection, sorted in *idx* order.
+        """
+        placeholders =\
+            [Placeholder(sp) for sp in self._values if sp.is_placeholder]
+        placeholders.sort(key=lambda ph: ph.idx)
+        return tuple(placeholders)
     
     @property
     def title(self):
@@ -888,6 +905,164 @@ class ShapeCollection(BaseShape, Collection):
             if shape._is_title:
                 return shape
         return None
+    
+    def _clone_layout_placeholders(self, slidelayout):
+        """
+        Add placeholder shapes based on those in *slidelayout*. Z-order of
+        placeholders is preserved. Latent placeholders (date, slide number,
+        and footer) are not cloned.
+        """
+        latent_ph_types = (PH_TYPE_DT, PH_TYPE_SLDNUM, PH_TYPE_FTR)
+        for sp in slidelayout.shapes:
+            # log.debug("considering clone of sp.id == %d  %r", sp.id, sp)
+            if not sp.is_placeholder:
+                continue
+            ph = Placeholder(sp)
+            if ph.type in latent_ph_types:
+                continue
+            self.__clone_layout_placeholder(ph)
+    
+    def __clone_layout_placeholder(self, layout_ph):
+        """
+        Add a new placeholder shape based on the slide layout placeholder
+        *layout_ph*.
+        """
+        id = self.__next_shape_id
+        ph_type = layout_ph.type
+        orient = layout_ph.orient
+        name = self.__next_ph_name(ph_type, id, orient)
+        # <p:sp>
+        sp = etree.SubElement(self.__spTree, qname('p', 'sp'))
+        #   <p:nvSpPr>
+        nvSpPr = etree.SubElement(sp, qname('p', 'nvSpPr'))
+        #     <p:cNvPr id="9" name="Thing Placeholder 8"/>
+        cNvPr = etree.SubElement(nvSpPr, qname('p', 'cNvPr'))
+        cNvPr.set('id', str(id))
+        cNvPr.set('name', name)
+        #     <p:cNvSpPr>
+        cNvSpPr = etree.SubElement(nvSpPr, qname('p', 'cNvSpPr'))
+        #       <a:spLocks noGrp="1"/>
+        spLocks = etree.SubElement(cNvSpPr, qname('a', 'spLocks'))
+        spLocks.set('noGrp', '1')
+        #     </p:cNvSpPr>
+        #     <p:nvPr>
+        nvPr = etree.SubElement(nvSpPr, qname('p', 'nvPr'))
+        #       <p:ph type="body" orient="vert" sz="half" idx="9"/>
+        ph = etree.SubElement(nvPr, qname('p', 'ph'))
+        if ph_type != PH_TYPE_OBJ:
+            ph.set('type', ph_type)
+        if layout_ph.orient != PH_ORIENT_HORZ:
+            ph.set('orient', layout_ph.orient)
+        if layout_ph.sz != PH_SZ_FULL:
+            ph.set('sz', layout_ph.sz)
+        if layout_ph.idx != 0:
+            ph.set('idx', str(layout_ph.idx))
+        #     </p:nvPr>
+        #   </p:nvSpPr>
+        #   <p:spPr/>
+        spPr = etree.SubElement(sp, qname('p', 'spPr'))
+        #   <p:txBody>
+        if ph_type in (PH_TYPE_TITLE, PH_TYPE_CTRTITLE, PH_TYPE_SUBTITLE,
+                       PH_TYPE_BODY, PH_TYPE_OBJ):
+            txBody = etree.SubElement(sp, qname('p', 'txBody'))
+            bodyPr = etree.SubElement(txBody, qname('a', 'bodyPr'))
+            lstStyle = etree.SubElement(txBody, qname('a', 'lstStyle'))
+            p = etree.SubElement(txBody, qname('a', 'p'))
+        #   </p:txBody>
+        # </p:sp>
+        shape = Shape(sp)
+        self._values.append(shape)
+        # log.debug("\n%s", etree.tostring(sp, pretty_print=True))
+        return shape
+    
+    def __next_ph_name(self, ph_type, id, orient):
+        """
+        Next unique placeholder name for placeholder shape of type *ph_type*,
+        with id number *id* and orientation *orient*. Usually will be standard
+        placeholder root name suffixed with id-1, e.g.
+        __next_ph_name(PH_TYPE_TBL, 4, 'horz') ==> 'Table Placeholder 3'. The
+        number is incremented as necessary to make the name unique within the
+        collection. If *orient* is ``'vert'``, the placeholder name is
+        prefixed with ``'Vertical '``.
+        """
+        basename = slide_ph_basenames[ph_type]
+        # prefix rootname with 'Vertical ' if orient is 'vert'
+        if orient == PH_ORIENT_VERT:
+            basename = 'Vertical %s' % basename
+        # increment numpart as necessary to make name unique
+        numpart = id - 1
+        names = self.__spTree.xpath('//p:cNvPr/@name', namespaces=self._nsmap)
+        while True:
+            name = '%s %d' % (basename, numpart)
+            if name not in names:
+                break
+            numpart += 1
+        # log.debug("assigned placeholder name '%s'" % name)
+        return name
+    
+    @property
+    def __next_shape_id(self):
+        """
+        Next available drawing object id number in collection, starting from 1
+        and making use of any gaps in numbering.
+        """
+        cNvPrs = self.__spTree.xpath('//p:cNvPr', namespaces=self._nsmap)
+        ids = [int(cNvPr.get('id')) for cNvPr in cNvPrs]
+        ids.sort()
+        # first gap in sequence wins, or falls off the end as max(ids)+1
+        next_id = 1
+        for id in ids:
+            if id > next_id:
+                break
+            next_id += 1
+        return next_id
+    
+
+class Placeholder(object):
+    """
+    Decorator (pattern) class for adding placeholder properties to a shape
+    that contains a placeholder element, e.g. ``<p:ph>``.
+    """
+    def __new__(cls, shape):
+        cls = type('PlaceholderDecorator',(Placeholder, shape.__class__), {})
+        return object.__new__(cls)
+    
+    def __init__(self, shape):
+        self.__decorated = shape
+        xpath = './*[1]/p:nvPr/p:ph'
+        self.__ph = self._element.xpath(xpath, namespaces=self._nsmap)[0]
+    
+    def __getattr__(self, name):
+        """
+        Called when *name* is not found in ``self`` or in class tree. In this
+        case, delegate attribute lookup to decorated (it's probably in its
+        instance namespace).
+        """
+        return getattr(self.__decorated, name)
+    
+    @property
+    def type(self):
+        """Placeholder type, e.g. PH_TYPE_CTRTITLE"""
+        type = self.__ph.get('type')
+        return type if type else PH_TYPE_OBJ
+    
+    @property
+    def orient(self):
+        """Placeholder 'orient' attribute, e.g. PH_ORIENT_HORZ"""
+        orient = self.__ph.get('orient')
+        return orient if orient else PH_ORIENT_HORZ
+    
+    @property
+    def sz(self):
+        """Placeholder 'sz' attribute, e.g. PH_SZ_FULL"""
+        sz = self.__ph.get('sz')
+        return sz if sz else PH_SZ_FULL
+    
+    @property
+    def idx(self):
+        """Placeholder 'idx' attribute, e.g. '0'"""
+        idx = self.__ph.get('idx')
+        return int(idx) if idx else 0
     
 
 class Shape(BaseShape):
@@ -907,10 +1082,10 @@ class Shape(BaseShape):
     #     values where necessary or appropriate.
     #     """
     #     sp      = Element(qname('p', 'sp'))
-    #     nvSpPr  = SubElement(sp     , qname('p', 'nvSpPr'  ) )
-    #     cNvPr   = SubElement(nvSpPr , qname('p', 'cNvPr'   ) , id='None', name=self.name)
-    #     cNvSpPr = SubElement(nvSpPr , qname('p', 'cNvSpPr' ) )
-    #     spPr    = SubElement(sp     , qname('p', 'spPr'    ) )
+    #     nvSpPr  = etree.SubElement(sp     , qname('p', 'nvSpPr'  ) )
+    #     cNvPr   = etree.SubElement(nvSpPr , qname('p', 'cNvPr'   ) , id='None', name=self.name)
+    #     cNvSpPr = etree.SubElement(nvSpPr , qname('p', 'cNvSpPr' ) )
+    #     spPr    = etree.SubElement(sp     , qname('p', 'spPr'    ) )
     #     return sp
     # 
 
@@ -925,7 +1100,7 @@ class TextFrame(object):
     frame. Corresponds to the ``<p:txBody>`` element that can appear as a
     chile element of ``<p:sp>``.
     """
-    __nsmap = namespaces('a', 'p', 'r')
+    __nsmap = namespaces('a', 'r', 'p')
     
     def __init__(self, txBody):
         super(TextFrame, self).__init__()
@@ -949,7 +1124,7 @@ class Paragraph(object):
     """
     Paragraph object.
     """
-    __nsmap = namespaces('a', 'p', 'r')
+    __nsmap = namespaces('a', 'r', 'p')
     
     def __init__(self, p):
         super(Paragraph, self).__init__()
@@ -973,7 +1148,7 @@ class Run(object):
     """
     Text run object. Corresponds to ``<a:r>`` child element in a paragraph.
     """
-    __nsmap = namespaces('a', 'p', 'r')
+    __nsmap = namespaces('a', 'r', 'p')
     
     def __init__(self, r):
         super(Run, self).__init__()

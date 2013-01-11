@@ -5,7 +5,7 @@ Protocols and Interfaces
 ... internals, in particular the protocols and interfaces ...
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    relationships
    parts
