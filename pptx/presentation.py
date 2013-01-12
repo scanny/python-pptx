@@ -534,7 +534,7 @@ class Presentation(BasePart):
     def __init__(self):
         super(Presentation, self).__init__()
         self.__slidemasters = PartCollection()
-        self.__slides = SlideCollection()
+        self.__slides = SlideCollection(self)
     
     @property
     def slidemasters(self):
@@ -600,13 +600,24 @@ class SlideCollection(PartCollection):
     :class:`Presentation`, with model-domain methods for manipulating the
     slides in the presentation.
     """
-    def __init__(self):
+    def __init__(self, presentation):
         super(SlideCollection, self).__init__()
+        self.__presentation = presentation
     
     def add_slide(self, slidelayout):
         """Add a new slide that inherits layout from *slidelayout*."""
+        # 1. construct new slide
         slide = Slide(slidelayout)
+        # 2. add it to this collection
         self._values.append(slide)
+        # 3. assign its partname
+        slide_nmbr = self._values.index(slide) + 1
+        slide.partname = '/ppt/slides/slide%d.xml' % slide_nmbr
+        # 3. add presentation->slide relationship 
+        rId = self.__presentation._relationships._next_rId
+        rel = _Relationship(rId, RT_SLIDE, slide)
+        self.__presentation._relationships._additem(rel)
+        # 4. return reference to new slide
         return slide
     
 
@@ -663,6 +674,10 @@ class Slide(BaseSlide):
         # if slidelayout, this is a slide being added, not one being loaded
         if slidelayout:
             self._shapes._clone_layout_placeholders(slidelayout)
+            # add relationship to slideLayout part
+            rId = self._relationships._next_rId
+            rel = _Relationship(rId, RT_SLIDELAYOUT, slidelayout)
+            self._relationships._additem(rel)
     
     @property
     def slidelayout(self):

@@ -17,6 +17,11 @@ from mock import Mock
 
 import pptx.presentation
 
+from pptx.presentation import (Package, Collection, _RelationshipCollection,
+    _Relationship, Presentation, PartCollection, BasePart, Part,
+    SlideCollection, BaseSlide, Slide, SlideLayout, SlideMaster,
+    ShapeCollection, BaseShape, Shape, Placeholder, TextFrame, Paragraph, Run)
+
 from pptx.exceptions import InvalidPackageError
 from pptx.spec import namespaces, qname
 from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
@@ -62,7 +67,7 @@ def _sldLayout1():
 def _sldLayout1_shapes():
     sldLayout = _sldLayout1()
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-    shapes = pptx.presentation.ShapeCollection(spTree)
+    shapes = ShapeCollection(spTree)
     return shapes
 
 
@@ -76,7 +81,7 @@ class PartBuilder(object):
         return self
     
     def build(self):
-        p = pptx.presentation.BasePart()
+        p = BasePart()
         p.partname = self.partname
         return p
     
@@ -103,7 +108,7 @@ class RelationshipCollectionBuilder(object):
             rId = self.__next_rId
             partname = self.__next_tuple_partname(reltype)
             target = PartBuilder().with_partname(partname).build()
-            rel = pptx.presentation._Relationship(rId, reltype, target)
+            rel = _Relationship(rId, reltype, target)
             self.relationships.append(rel)
         return self
     
@@ -111,7 +116,7 @@ class RelationshipCollectionBuilder(object):
     #     rId = self.__next_rId
     #     partname = self.__singleton_partname(reltype)
     #     target = PartBuilder().with_partname(partname).build()
-    #     rel = pptx.presentation._Relationship(rId, reltype, target)
+    #     rel = _Relationship(rId, reltype, target)
     #     self.relationships.append(rel)
     #     return self
     # 
@@ -134,7 +139,7 @@ class RelationshipCollectionBuilder(object):
         return partname_tmpl % partnum
     
     def build(self):
-        rels = pptx.presentation._RelationshipCollection()
+        rels = _RelationshipCollection()
         for rel in self.relationships:
             rels._additem(rel)
         if self.reltype_ordering:
@@ -143,10 +148,10 @@ class RelationshipCollectionBuilder(object):
     
 
 class TestBasePart(TestCase):
-    """Test pptx.presentation.BasePart"""
+    """Test BasePart"""
     def setUp(self):
-        self.basepart = pptx.presentation.BasePart()
-        self.cls = pptx.presentation.BasePart
+        self.basepart = BasePart()
+        self.cls = BasePart
     
     def test_class_present(self):
         """BasePart class present in presentation module"""
@@ -230,13 +235,13 @@ class TestBasePart(TestCase):
     
 
 class TestBaseShape(TestCase):
-    """Test pptx.presentation.BaseShape"""
+    """Test BaseShape"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = etree.parse(path).getroot()
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        self.base_shape = pptx.presentation.BaseShape(pic)
+        self.base_shape = BaseShape(pic)
     
     def test_class_present(self):
         """BaseShape class present in presentation module"""
@@ -246,7 +251,7 @@ class TestBaseShape(TestCase):
         """BaseShape.has_textframe value correct"""
         # setup -----------------------
         spTree = self.sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-        shapes = pptx.presentation.ShapeCollection(spTree)
+        shapes = ShapeCollection(spTree)
         indexes = []
         # exercise --------------------
         for idx, shape in enumerate(shapes):
@@ -274,7 +279,7 @@ class TestBaseShape(TestCase):
         # setup -----------------------
         xpath = './p:cSld/p:spTree/p:sp'
         sp = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        base_shape = pptx.presentation.BaseShape(sp)
+        base_shape = BaseShape(sp)
         # verify ----------------------
         actual = base_shape.is_placeholder
         msg = "expected True, got %s" % (actual)
@@ -292,7 +297,7 @@ class TestBaseShape(TestCase):
         # setup -----------------------
         xpath = './p:cSld/p:spTree/p:sp'
         title_placeholder_sp = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        base_shape = pptx.presentation.BaseShape(title_placeholder_sp)
+        base_shape = BaseShape(title_placeholder_sp)
         # verify ----------------------
         actual = base_shape._is_title
         msg = "expected True, got %s" % (actual)
@@ -315,9 +320,9 @@ class TestBaseShape(TestCase):
     
 
 class TestBaseSlide(TestCase):
-    """Test pptx.presentation.BaseSlide"""
+    """Test BaseSlide"""
     def setUp(self):
-        self.base_slide = pptx.presentation.BaseSlide()
+        self.base_slide = BaseSlide()
     
     def test_name_value(self):
         """BaseSlide.name value is correct"""
@@ -349,9 +354,9 @@ class TestBaseSlide(TestCase):
     
 
 class TestCollection(TestCase):
-    """Test pptx.presentation.Collection"""
+    """Test Collection"""
     def setUp(self):
-        self.collection = pptx.presentation.Collection()
+        self.collection = Collection()
     
     def test_class_present(self):
         """Collection class present in presentation module"""
@@ -403,9 +408,9 @@ class TestCollection(TestCase):
     
 
 class TestPackage(TestCase):
-    """Test pptx.presentation.Package"""
+    """Test Package"""
     def setUp(self):
-        self.pkg = pptx.presentation.Package()
+        self.pkg = Package()
     
     def test_class_present(self):
         """Package class present in presentation module"""
@@ -413,7 +418,7 @@ class TestPackage(TestCase):
     
     def test_open_method_present(self):
         """Package class has method 'open'"""
-        self.assertClassHasMethod(pptx.presentation.Package, 'open')
+        self.assertClassHasMethod(Package, 'open')
     
     def test_open_returns_self(self):
         """Package.open() returns self-reference"""
@@ -433,7 +438,7 @@ class TestPackage(TestCase):
     def test_presentation_presentation_after_open(self):
         """Package.presentation Presentation after open()"""
         # setup -----------------------
-        cls = pptx.presentation.Presentation
+        cls = Presentation
         self.pkg.open(test_pptx_path)
         # exercise --------------------
         obj = self.pkg.presentation
@@ -450,7 +455,7 @@ class TestPackage(TestCase):
     
 
 class TestParagraph(TestCase):
-    """Test pptx.presentation.Paragraph"""
+    """Test Paragraph"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = etree.parse(path).getroot()
@@ -462,7 +467,7 @@ class TestParagraph(TestCase):
         # setup -----------------------
         actual_lengths = []
         for p in self.pList:
-            paragraph = pptx.presentation.Paragraph(p)
+            paragraph = Paragraph(p)
             # exercise ----------------
             actual_lengths.append(len(paragraph.runs))
         # verify ------------------
@@ -473,7 +478,7 @@ class TestParagraph(TestCase):
     
 
 class TestPart(TestCase):
-    """Test pptx.presentation.Part"""
+    """Test Part"""
     def test_class_present(self):
         """Part class present in presentation module"""
         self.assertClassInModule(pptx.presentation, 'Part')
@@ -481,47 +486,47 @@ class TestPart(TestCase):
     def test_constructs_presentation_for_rt_officedocument(self):
         """Part() returns Presentation for RT_OFFICEDOCUMENT"""
         # setup -----------------------
-        cls = pptx.presentation.Presentation
+        cls = Presentation
         # exercise --------------------
-        obj = pptx.presentation.Part(RT_OFFICEDOCUMENT, CT_PRESENTATION)
+        obj = Part(RT_OFFICEDOCUMENT, CT_PRESENTATION)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
     
     def test_constructs_slide_for_rt_slide(self):
         """Part() returns Slide for RT_SLIDE"""
         # setup -----------------------
-        cls = pptx.presentation.Slide
+        cls = Slide
         # exercise --------------------
-        obj = pptx.presentation.Part(RT_SLIDE, CT_SLIDE)
+        obj = Part(RT_SLIDE, CT_SLIDE)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
     
     def test_constructs_slidelayout_for_rt_slidelayout(self):
         """Part() returns SlideLayout for RT_SLIDELAYOUT"""
         # setup -----------------------
-        cls = pptx.presentation.SlideLayout
+        cls = SlideLayout
         # exercise --------------------
-        obj = pptx.presentation.Part(RT_SLIDELAYOUT, CT_SLIDELAYOUT)
+        obj = Part(RT_SLIDELAYOUT, CT_SLIDELAYOUT)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
     
     def test_constructs_slidemaster_for_rt_slidemaster(self):
         """Part() returns SlideMaster for RT_SLIDEMASTER"""
         # setup -----------------------
-        cls = pptx.presentation.SlideMaster
+        cls = SlideMaster
         # exercise --------------------
-        obj = pptx.presentation.Part(RT_SLIDEMASTER, CT_SLIDEMASTER)
+        obj = Part(RT_SLIDEMASTER, CT_SLIDEMASTER)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
     
     def test_contructor_raises_on_invalid_prs_content_type(self):
         """Part() raises on invalid presentation content type"""
         with self.assertRaises(InvalidPackageError):
-            pptx.presentation.Part(RT_OFFICEDOCUMENT, CT_SLIDEMASTER)
+            Part(RT_OFFICEDOCUMENT, CT_SLIDEMASTER)
     
 
 class TestPartCollection(TestCase):
-    """Test pptx.presentation.PartCollection"""
+    """Test PartCollection"""
     def test__loadpart_sorts_loaded_parts(self):
         """PartCollection._loadpart sorts loaded parts"""
         # setup -----------------------
@@ -531,7 +536,7 @@ class TestPartCollection(TestCase):
         part1 = Mock(name='part1'); part1.partname = partname1
         part2 = Mock(name='part2'); part2.partname = partname2
         part3 = Mock(name='part3'); part3.partname = partname3
-        parts = pptx.presentation.PartCollection()
+        parts = PartCollection()
         # exercise --------------------
         parts._loadpart(part2)
         parts._loadpart(part3)
@@ -544,7 +549,7 @@ class TestPartCollection(TestCase):
     
 
 class TestPlaceholder(TestCase):
-    """Test pptx.presentation.Placeholder"""
+    """Test Placeholder"""
     def test_property_values(self):
         """Placeholder property values are correct"""
         # setup -----------------------
@@ -559,7 +564,7 @@ class TestPlaceholder(TestCase):
         shapes = _sldLayout1_shapes()
         # exercise --------------------
         for idx, sp in enumerate(shapes):
-            ph = pptx.presentation.Placeholder(sp)
+            ph = Placeholder(sp)
             values = (ph.type, ph.orient, ph.sz, ph.idx)
             # verify ----------------------
             expected = expected_values[idx]
@@ -570,9 +575,9 @@ class TestPlaceholder(TestCase):
     
 
 class TestPresentation(TestCase):
-    """Test pptx.presentation.Presentation"""
+    """Test Presentation"""
     def setUp(self):
-        self.prs = pptx.presentation.Presentation()
+        self.prs = Presentation()
     
     def test__blob_rewrites_sldIdLst(self):
         """Presentation._blob rewrites sldIdLst"""
@@ -582,7 +587,7 @@ class TestPresentation(TestCase):
                        .with_tuple_targets(3, RT_SLIDE)\
                        .with_ordering(RT_SLIDEMASTER, RT_SLIDE)\
                        .build()
-        prs = pptx.presentation.Presentation()
+        prs = Presentation()
         prs._relationships = relationships
         prs.partname = '/ppt/presentation.xml'
         path = os.path.join(thisdir, 'test_files/presentation.xml')
@@ -605,7 +610,7 @@ class TestPresentation(TestCase):
     def test_slidemasters_correct_length_after_pkg_open(self):
         """Presentation.slidemasters correct length after load"""
         # setup -----------------------
-        pkg = pptx.presentation.Package().open(test_pptx_path)
+        pkg = Package().open(test_pptx_path)
         prs = pkg.presentation
         # exercise --------------------
         slidemasters = prs.slidemasters
@@ -620,7 +625,7 @@ class TestPresentation(TestCase):
     def test_slides_correct_length_after_pkg_open(self):
         """Presentation.slides correct length after load"""
         # setup -----------------------
-        pkg = pptx.presentation.Package().open(test_pptx_path)
+        pkg = Package().open(test_pptx_path)
         prs = pkg.presentation
         # exercise --------------------
         slides = prs.slides
@@ -629,24 +634,24 @@ class TestPresentation(TestCase):
     
 
 class Test_Relationship(TestCase):
-    """Test pptx.presentation._Relationship"""
+    """Test _Relationship"""
     def setUp(self):
         rId = 'rId1'
         reltype = RT_SLIDE
         target_part = None
-        self.rel = pptx.presentation._Relationship(rId, reltype, target_part)
+        self.rel = _Relationship(rId, reltype, target_part)
     
     def test_constructor_raises_on_bad_rId(self):
         """_Relationship constructor raises on non-standard rId"""
         with self.assertRaises(AssertionError):
-            pptx.presentation._Relationship('Non-std14', None, None)
+            _Relationship('Non-std14', None, None)
     
     def test__num_value(self):
         """_Relationship._num value is correct"""
         # setup -----------------------
         num = 91
         rId = 'rId%d' % num
-        rel = pptx.presentation._Relationship(rId, None, None)
+        rel = _Relationship(rId, None, None)
         # verify ----------------------
         expected = num
         actual = rel._num
@@ -667,17 +672,17 @@ class Test_Relationship(TestCase):
     
 
 class Test_RelationshipCollection(TestCase):
-    """Test pptx.presentation._RelationshipCollection"""
+    """Test _RelationshipCollection"""
     def setUp(self):
-        self.relationships = pptx.presentation._RelationshipCollection()
+        self.relationships = _RelationshipCollection()
     
     def test__additem_raises_on_dup_rId(self):
         """_RelationshipCollection._additem raises on duplicate rId"""
         # setup -----------------------
-        part1 = pptx.presentation.BasePart()
-        part2 = pptx.presentation.BasePart()
-        rel1 = pptx.presentation._Relationship('rId9', None, part1)
-        rel2 = pptx.presentation._Relationship('rId9', None, part2)
+        part1 = BasePart()
+        part2 = BasePart()
+        rel1 = _Relationship('rId9', None, part1)
+        rel2 = _Relationship('rId9', None, part2)
         self.relationships._additem(rel1)
         # verify ----------------------
         with self.assertRaises(ValueError):
@@ -686,12 +691,12 @@ class Test_RelationshipCollection(TestCase):
     def test__additem_maintains_rId_ordering(self):
         """_RelationshipCollection maintains rId ordering on additem()"""
         # setup -----------------------
-        part1 = pptx.presentation.BasePart()
-        part2 = pptx.presentation.BasePart()
-        part3 = pptx.presentation.BasePart()
-        rel1 = pptx.presentation._Relationship('rId1', None, part1)
-        rel2 = pptx.presentation._Relationship('rId2', None, part2)
-        rel3 = pptx.presentation._Relationship('rId3', None, part3)
+        part1 = BasePart()
+        part2 = BasePart()
+        part3 = BasePart()
+        rel1 = _Relationship('rId1', None, part1)
+        rel2 = _Relationship('rId2', None, part2)
+        rel3 = _Relationship('rId3', None, part3)
         # exercise --------------------
         self.relationships._additem(rel2)
         self.relationships._additem(rel1)
@@ -718,11 +723,11 @@ class Test_RelationshipCollection(TestCase):
         part2 = Mock(name='part2'); part2.partname = partnames[1]
         part3 = Mock(name='part3'); part3.partname = partnames[2]
         part4 = Mock(name='part4'); part4.partname = partnames[3]
-        rel1 = pptx.presentation._Relationship('rId1', RT_SLIDE,       part1)
-        rel2 = pptx.presentation._Relationship('rId2', RT_SLIDELAYOUT, part2)
-        rel3 = pptx.presentation._Relationship('rId3', RT_SLIDEMASTER, part3)
-        rel4 = pptx.presentation._Relationship('rId4', RT_SLIDE,       part4)
-        relationships = pptx.presentation._RelationshipCollection()
+        rel1 = _Relationship('rId1', RT_SLIDE,       part1)
+        rel2 = _Relationship('rId2', RT_SLIDELAYOUT, part2)
+        rel3 = _Relationship('rId3', RT_SLIDEMASTER, part3)
+        rel4 = _Relationship('rId4', RT_SLIDE,       part4)
+        relationships = _RelationshipCollection()
         relationships._additem(rel1)
         relationships._additem(rel2)
         relationships._additem(rel3)
@@ -738,7 +743,7 @@ class Test_RelationshipCollection(TestCase):
         partname = '/ppt/slides/slide2.xml'
         part = Mock(name='new_part'); part.partname = partname
         rId = relationships._next_rId
-        rel = pptx.presentation._Relationship(rId, RT_SLIDE, part)
+        rel = _Relationship(rId, RT_SLIDE, part)
         # exercise --------------------
         relationships._additem(rel)
         # verify ordering -------------
@@ -789,14 +794,14 @@ class Test_RelationshipCollection(TestCase):
     def test__next_rId_fills_gap(self):
         """_RelationshipCollection._next_rId fills gap in rId sequence"""
         # setup -----------------------
-        part1 = pptx.presentation.BasePart()
-        part2 = pptx.presentation.BasePart()
-        part3 = pptx.presentation.BasePart()
-        part4 = pptx.presentation.BasePart()
-        rel1 = pptx.presentation._Relationship('rId1', None, part1)
-        rel2 = pptx.presentation._Relationship('rId2', None, part2)
-        rel3 = pptx.presentation._Relationship('rId3', None, part3)
-        rel4 = pptx.presentation._Relationship('rId4', None, part4)
+        part1 = BasePart()
+        part2 = BasePart()
+        part3 = BasePart()
+        part4 = BasePart()
+        rel1 = _Relationship('rId1', None, part1)
+        rel2 = _Relationship('rId2', None, part2)
+        rel3 = _Relationship('rId3', None, part3)
+        rel4 = _Relationship('rId4', None, part4)
         cases =\
             ( ('rId1', (rel2, rel3, rel4))
             , ('rId2', (rel1, rel3, rel4))
@@ -808,7 +813,7 @@ class Test_RelationshipCollection(TestCase):
         actual_rIds = []
         for expected_rId, rels in cases:
             expected_rIds.append(expected_rId)
-            relationships = pptx.presentation._RelationshipCollection()
+            relationships = _RelationshipCollection()
             for rel in rels:
                 relationships._additem(rel)
             actual_rIds.append(relationships._next_rId)
@@ -826,9 +831,9 @@ class Test_RelationshipCollection(TestCase):
         partname3 = '/ppt/slides/slide3.xml'
         part1 = PartBuilder().with_partname(partname1).build()
         part2 = PartBuilder().with_partname(partname2).build()
-        rel1 = pptx.presentation._Relationship('rId1', RT_SLIDE, part1)
-        rel2 = pptx.presentation._Relationship('rId2', RT_SLIDE, part2)
-        relationships = pptx.presentation._RelationshipCollection()
+        rel1 = _Relationship('rId1', RT_SLIDE, part1)
+        rel2 = _Relationship('rId2', RT_SLIDE, part2)
+        relationships = _RelationshipCollection()
         relationships._reltype_ordering = (RT_SLIDE)
         relationships._additem(rel1)
         relationships._additem(rel2)
@@ -842,7 +847,7 @@ class Test_RelationshipCollection(TestCase):
     
 
 class TestRun(TestCase):
-    """Test pptx.presentation.Run"""
+    """Test Run"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = etree.parse(path).getroot()
@@ -856,7 +861,7 @@ class TestRun(TestCase):
     def test_text_value(self):
         """Run.text value is correct"""
         # setup -----------------------
-        run = pptx.presentation.Run(self.rList[1])
+        run = Run(self.rList[1])
         # exercise ----------------
         text = run.text
         # verify ------------------
@@ -869,7 +874,7 @@ class TestRun(TestCase):
         """Run.text setter stores passed value"""
         # setup -----------------------
         new_value = 'new string'
-        run = pptx.presentation.Run(self.rList[1])
+        run = Run(self.rList[1])
         # exercise ----------------
         run.text = new_value
         # verify ------------------
@@ -880,14 +885,14 @@ class TestRun(TestCase):
     
 
 class TestShape(TestCase):
-    """Test pptx.presentation.Shape"""
+    """Test Shape"""
     def __loaded_shape(self):
         """
         Return Shape instance loaded from test file.
         """
         sldLayout = _slideLayout1()
         sp = sldLayout.xpath('p:cSld/p:spTree/p:sp', namespaces=nsmap)[0]
-        return pptx.presentation.Shape(sp)
+        return Shape(sp)
     
     def test_class_present(self):
         """Shape class present in presentation module"""
@@ -895,12 +900,12 @@ class TestShape(TestCase):
     
 
 class TestShapeCollection(TestCase):
-    """Test pptx.presentation.ShapeCollection"""
+    """Test ShapeCollection"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         sld = etree.parse(path).getroot()
         spTree = sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-        self.shapes = pptx.presentation.ShapeCollection(spTree)
+        self.shapes = ShapeCollection(spTree)
     
     def test_size_after_construction(self):
         """ShapeCollection is expected size after construction"""
@@ -948,9 +953,9 @@ class TestShapeCollection(TestCase):
             , [3, 'Vertical Subtitle 2',        PH_TYPE_SUBTITLE,  1]
             , [4, 'Table Placeholder 3',        PH_TYPE_TBL,      14]
             )
-        slidelayout = pptx.presentation.SlideLayout()
+        slidelayout = SlideLayout()
         slidelayout._shapes = _sldLayout1_shapes()
-        shapes = pptx.presentation.ShapeCollection(_empty_spTree())
+        shapes = ShapeCollection(_empty_spTree())
         # exercise --------------------
         shapes._clone_layout_placeholders(slidelayout)
         # verify ----------------------
@@ -961,7 +966,7 @@ class TestShapeCollection(TestCase):
                    % (idx, sp))
             self.assertTrue(is_placeholder, msg)
             # verify values -----------
-            ph = pptx.presentation.Placeholder(sp)
+            ph = Placeholder(sp)
             expected = expected_values[idx]
             actual = [ph.id, ph.name, ph.type, ph.idx]
             msg = ("expected placeholder[%d] values %s, got %s"
@@ -973,7 +978,7 @@ class TestShapeCollection(TestCase):
         # setup -----------------------
         layout_shapes = _sldLayout1_shapes()
         layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
-        shapes = pptx.presentation.ShapeCollection(_empty_spTree())
+        shapes = ShapeCollection(_empty_spTree())
         expected_values =\
             ( [2, 'Title 1',                    PH_TYPE_CTRTITLE,  0]
             , [3, 'Date Placeholder 2',         PH_TYPE_DT,       10]
@@ -984,10 +989,10 @@ class TestShapeCollection(TestCase):
             )
         # exercise --------------------
         for idx, layout_ph_sp in enumerate(layout_ph_shapes):
-            layout_ph = pptx.presentation.Placeholder(layout_ph_sp)
+            layout_ph = Placeholder(layout_ph_sp)
             sp = shapes._ShapeCollection__clone_layout_placeholder(layout_ph)
             # verify ----------------------
-            ph = pptx.presentation.Placeholder(sp)
+            ph = Placeholder(sp)
             expected = expected_values[idx]
             actual = [ph.id, ph.name, ph.type, ph.idx]
             msg = "expected placeholder values %s, got %s" % (expected, actual)
@@ -1034,9 +1039,9 @@ class TestShapeCollection(TestCase):
     
 
 class TestSlide(TestCase):
-    """Test pptx.presentation.Slide"""
+    """Test Slide"""
     def setUp(self):
-        self.sld = pptx.presentation.Slide()
+        self.sld = Slide()
     
     def test_class_present(self):
         """Slide class present in presentation module"""
@@ -1050,6 +1055,26 @@ class TestSlide(TestCase):
         expected = CT_SLIDE
         actual = content_type
         msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_construction_adds_slide_layout_relationship(self):
+        """Slide(slidelayout) adds relationship slide->slidelayout"""
+        # setup -----------------------
+        slidelayout = SlideLayout()
+        slidelayout._shapes = _sldLayout1_shapes()
+        # exercise --------------------
+        slide = Slide(slidelayout)
+        # verify length ---------------
+        expected = 1
+        actual = len(slide._relationships)
+        msg = ("expected len(slide._relationships) of %d, got %d"
+               % (expected, actual))
+        self.assertEqual(expected, actual, msg)
+        # verify values ---------------
+        rel = slide._relationships[0]
+        expected = ('rId1', RT_SLIDELAYOUT, slidelayout)
+        actual = (rel._rId, rel._reltype, rel._target)
+        msg = "expected relationship\n%s\ngot\n%s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
     def test__element_minimal_sld_on_construction(self):
@@ -1097,19 +1122,24 @@ class TestSlide(TestCase):
     
 
 class TestSlideCollection(TestCase):
-    """Test pptx.presentation.SlideCollection"""
+    """Test SlideCollection"""
     def setUp(self):
-        self.slides = pptx.presentation.SlideCollection()
+        prs = Presentation()
+        self.slides = SlideCollection(prs)
     
     def test_add_slide_returns_slide(self):
         """SlideCollection.add_slide() returns instance of Slide"""
         # exercise --------------------
         retval = self.slides.add_slide(None)
         # verify ----------------------
-        self.assertIsInstance(retval, pptx.presentation.Slide)
+        self.assertIsInstance(retval, Slide)
     
     def test_add_slide_sets_slidelayout(self):
-        """SlideCollection.add_slide() sets Slide.slidelayout"""
+        """
+        SlideCollection.add_slide() sets Slide.slidelayout
+        
+        Kind of a throw-away test, but was helpful for initial debugging.
+        """
         # setup -----------------------
         slidelayout = Mock(name='slideLayout')
         slidelayout.shapes = []
@@ -1122,11 +1152,49 @@ class TestSlideCollection(TestCase):
         msg = "expected: %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
+    def test_add_slide_adds_slide_layout_relationship(self):
+        """SlideCollection.add_slide() adds relationship prs->slide"""
+        # setup -----------------------
+        prs = Presentation()
+        slides = prs.slides
+        slidelayout = SlideLayout()
+        slidelayout._shapes = []
+        # exercise --------------------
+        slide = slides.add_slide(slidelayout)
+        # verify length ---------------
+        expected = 1
+        actual = len(prs._relationships)
+        msg = ("expected len(prs._relationships) of %d, got %d"
+               % (expected, actual))
+        self.assertEqual(expected, actual, msg)
+        # verify values ---------------
+        rel = prs._relationships[0]
+        expected = ('rId1', RT_SLIDE, slide)
+        actual = (rel._rId, rel._reltype, rel._target)
+        msg = ("expected relationship 1:, got 2:\n1: %s\n2: %s"
+               % (expected, actual))
+        self.assertEqual(expected, actual, msg)
+    
+    def test_add_slide_sets_partname(self):
+        """SlideCollection.add_slide() sets partname of new slide"""
+        # setup -----------------------
+        prs = Presentation()
+        slides = prs.slides
+        slidelayout = SlideLayout()
+        slidelayout._shapes = []
+        # exercise --------------------
+        slide = slides.add_slide(slidelayout)
+        # verify ----------------------
+        expected = '/ppt/slides/slide1.xml'
+        actual = slide.partname
+        msg = "expected partname '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
 
 class TestSlideLayout(TestCase):
-    """Test pptx.presentation.SlideLayout"""
+    """Test SlideLayout"""
     def setUp(self):
-        self.slidelayout = pptx.presentation.SlideLayout()
+        self.slidelayout = SlideLayout()
     
     def __loaded_slidelayout(self, prs_slidemaster=None):
         """
@@ -1142,7 +1210,7 @@ class TestSlideLayout(TestCase):
         slidelayout_path = os.path.abspath(os.path.join(thisdir, relpath))
         # model-side slideMaster part
         if prs_slidemaster is None:
-            prs_slidemaster = Mock(spec=pptx.presentation.SlideMaster)
+            prs_slidemaster = Mock(spec=SlideMaster)
         # a part dict containing the already-loaded model-side slideMaster
         loaded_part_dict = {sldmaster_partname: prs_slidemaster}
         # a slideMaster package part for rel target
@@ -1159,7 +1227,7 @@ class TestSlideLayout(TestCase):
         with open(slidelayout_path, 'r') as f:
             pkg_slidelayout_part.blob = f.read()
         # _load and return
-        slidelayout = pptx.presentation.SlideLayout()
+        slidelayout = SlideLayout()
         return slidelayout._load(pkg_slidelayout_part, loaded_part_dict)
     
     def test_class_present(self):
@@ -1169,7 +1237,7 @@ class TestSlideLayout(TestCase):
     def test__load_sets_slidemaster(self):
         """SlideLayout._load() sets slidemaster"""
         # setup -----------------------
-        prs_slidemaster = Mock(spec=pptx.presentation.SlideMaster)
+        prs_slidemaster = Mock(spec=SlideMaster)
         # # exercise --------------------
         loaded_slidelayout = self.__loaded_slidelayout(prs_slidemaster)
         # verify ----------------------
@@ -1190,9 +1258,9 @@ class TestSlideLayout(TestCase):
     
 
 class TestSlideMaster(TestCase):
-    """Test pptx.presentation.SlideMaster"""
+    """Test SlideMaster"""
     def setUp(self):
-        self.sldmaster = pptx.presentation.SlideMaster()
+        self.sldmaster = SlideMaster()
     
     def test_class_present(self):
         """SlideMaster class present in presentation module"""
@@ -1206,7 +1274,7 @@ class TestSlideMaster(TestCase):
     def test_slidelayouts_correct_length_after_open(self):
         """SlideMaster.slidelayouts correct length after open"""
         # setup -----------------------
-        pkg = pptx.presentation.Package().open(test_pptx_path)
+        pkg = Package().open(test_pptx_path)
         slidemaster = pkg.presentation.slidemasters[0]
         # exercise --------------------
         slidelayouts = slidemaster.slidelayouts
@@ -1215,7 +1283,7 @@ class TestSlideMaster(TestCase):
     
 
 class TestTextFrame(TestCase):
-    """Test pptx.presentation.TextFrame"""
+    """Test TextFrame"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = etree.parse(path).getroot()
@@ -1231,7 +1299,7 @@ class TestTextFrame(TestCase):
         # setup -----------------------
         actual_lengths = []
         for txBody in self.txBodyList:
-            textframe = pptx.presentation.TextFrame(txBody)
+            textframe = TextFrame(txBody)
             # exercise ----------------
             actual_lengths.append(len(textframe.paragraphs))
         # verify ------------------
