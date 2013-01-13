@@ -40,6 +40,16 @@ ch.setFormatter(formatter)
 log.addHandler(ch)
 
 
+def _child(element, child_tagname, nsmap):
+    """
+    Return direct child of *element* having *child_tagname* or :class:`None`
+    if no such child element is present.
+    """
+    xpath = './%s' % child_tagname
+    matching_children = element.xpath(xpath, namespaces=nsmap)
+    return matching_children[0] if len(matching_children) else None
+
+
 class Package(object):
     """
     Root class of presentation object hierarchy.
@@ -557,8 +567,8 @@ class Presentation(BasePart):
         Rewrite sldId elements in sldIdLst before handing over to super for
         transformation of _element into a blob.
         """
-        xpath = './p:sldIdLst'
-        sldIdLst = self._element.xpath(xpath, namespaces=self._nsmap)[0]
+        sldIdLst = (self.__sldIdLst if self.__sldIdLst is not None
+                                    else self.__add_sldIdLst())
         sldIdLst.clear()
         sld_rels = self._relationships.rels_of_reltype(RT_SLIDE)
         for idx, rel in enumerate(sld_rels):
@@ -587,6 +597,36 @@ class Presentation(BasePart):
             elif rel._reltype == RT_SLIDE:
                 self.__slides._loadpart(rel._target)
         return self
+    
+    def __add_sldIdLst(self):
+        """
+        Add a <p:sldIdLst> element to <p:presentation> in the right sequence
+        among its siblings.
+        """
+        assert self.__sldIdLst is None, "__add_sldIdLst() called where "\
+                                        "<p:sldIdLst> already exists"
+        sldIdLst = etree.Element(qname('p', 'sldIdLst'))
+        # insert new sldIdLst element in right sequence
+        if self.__sldSz is not None:
+            self.__sldSz.addprevious(sldIdLst)
+        else:
+            self.__notesSz.addprevious(sldIdLst)
+        return sldIdLst
+    
+    @property
+    def __notesSz(self):
+        """Bookmark to ``<p:notesSz>`` child element"""
+        return _child(self._element, 'p:notesSz', self._nsmap)
+    
+    @property
+    def __sldIdLst(self):
+        """Bookmark to ``<p:sldIdLst>`` child element"""
+        return _child(self._element, 'p:sldIdLst', self._nsmap)
+    
+    @property
+    def __sldSz(self):
+        """Bookmark to ``<p:sldSz>`` child element"""
+        return _child(self._element, 'p:sldSz', self._nsmap)
     
 
 
@@ -837,6 +877,14 @@ class BaseShape(object):
     def name(self):
         """Name of this shape."""
         return self.__cNvPr.get('name', default='')
+    
+    def set_text(self, value):
+        """Replace all text with single run containing *value*"""
+        if not self.has_textframe:
+            raise TypeError("cannot set text of shape with no text frame")
+        self.textframe.text = value
+    
+    text = property(None, set_text)
     
     @property
     def textframe(self):
@@ -1134,6 +1182,23 @@ class TextFrame(object):
             paragraphs.append(Paragraph(p))
         return tuple(paragraphs)
     
+    def clear(self):
+        """
+        Remove all paragraphs except one empty one.
+        """
+        p_list = self.__txBody.xpath('./a:p', namespaces=self.__nsmap)
+        for p in p_list[1:]:
+            self.__txBody.remove(p)
+        p = self.paragraphs[0]
+        p.clear()
+    
+    def set_text(self, value):
+        """Replace all text with single run containing *value*"""
+        self.clear()
+        self.paragraphs[0].text = value
+    
+    text = property(None, set_text)
+    
 
 class Paragraph(object):
     """
@@ -1144,6 +1209,29 @@ class Paragraph(object):
     def __init__(self, p):
         super(Paragraph, self).__init__()
         self.__p = p
+    
+    def add_run(self):
+        """Return a new run appended to the runs in this paragraph."""
+        r = self.__new_run_element()
+        # work out where to insert it, ahead of a:endParaRPr if there is one
+        if self.__endParaRPr is not None:
+            self.__endParaRPr.addprevious(r)
+        else:
+            self.__p.append(r)
+        return Run(r)
+    
+    def clear(self):
+        """Remove all runs from this paragraph."""
+        # for now just remove all children; later might want to keep pPr
+        self.__p.clear()
+    
+    def set_text(self, value):
+        """Replace runs with single run containing *value*"""
+        self.clear()
+        r = self.add_run()
+        r.text = value
+    
+    text = property(None, set_text)
     
     @property
     def runs(self):
@@ -1157,6 +1245,20 @@ class Paragraph(object):
         for r in r_elms:
             runs.append(Run(r))
         return tuple(runs)
+    
+    @property
+    def __endParaRPr(self):
+        """Bookmark to ``<a:endParaRPr>`` child element"""
+        return _child(self.__p, 'a:endParaRPr', self.__nsmap)
+    
+    def __new_run_element(self):
+        """Construct and return an empty run element"""
+        # <a:r>
+        r = etree.Element(qname('a', 'r'))
+        #   <a:t>
+        etree.SubElement(r, qname('a', 't'))
+        # </a:r>
+        return r
     
 
 class Run(object):

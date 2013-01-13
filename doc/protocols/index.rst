@@ -9,4 +9,7 @@ Protocols and Interfaces
 
    relationships
    parts
+   placeholder
+   text
+   elementtree_manipulation
 

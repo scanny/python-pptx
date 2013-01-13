@@ -2,6 +2,8 @@
 ``CT_Presentation``
 ===================
 
+.. highlight:: xml
+
 .. csv-table::
    :header-rows: 0
    :stub-columns: 1
@@ -63,7 +65,7 @@ notesMasterIdLst     ?   CT_NotesMasterIdList    906
 handoutMasterIdLst   ?   CT_HandoutMasterIdList  918
 sldIdLst             ?   CT_SlideIdList          877
 sldSz                ?   CT_SlideSize
-notesSz              ?   a:CT_PositiveSize2D
+notesSz              1   a:CT_PositiveSize2D
 smartTags            ?   CT_SmartTags
 embeddedFontLst      ?   CT_EmbeddedFontList
 custShowLst          ?   CT_CustomShowList

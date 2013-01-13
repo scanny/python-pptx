@@ -318,6 +318,31 @@ class TestBaseShape(TestCase):
         with self.assertRaises(ValueError):
             self.base_shape.textframe
     
+    def test_text_setter_structure_and_value(self):
+        """assign to BaseShape.text yields single run para set to value"""
+        # setup -----------------------
+        test_text = 'python-pptx was here!!'
+        xpath = './p:cSld/p:spTree/p:sp'
+        textbox_sp = self.sld.xpath(xpath, namespaces=nsmap)[2]
+        base_shape = BaseShape(textbox_sp)
+        # exercise --------------------
+        base_shape.text = test_text
+        # verify paragraph count ------
+        expected = 1
+        actual = len(base_shape.textframe.paragraphs)
+        msg = "expected paragraph count %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+        # verify value ----------------
+        expected = test_text
+        actual = base_shape.textframe.paragraphs[0].runs[0].text
+        msg = "expected text '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_text_setter_raises_on_no_textframe(self):
+        """assignment to BaseShape.text raises for shape with no text frame"""
+        with self.assertRaises(TypeError):
+            self.base_shape.text = 'test text'
+    
 
 class TestBaseSlide(TestCase):
     """Test BaseSlide"""
@@ -474,6 +499,55 @@ class TestParagraph(TestCase):
         expected = [0, 0, 2, 1, 1, 1]
         actual = actual_lengths
         msg = "expected run count %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_add_run_increments_run_count(self):
+        """Paragraph.add_run() increments run count"""
+        # setup -----------------------
+        p_elm = self.pList[0]
+        paragraph = Paragraph(p_elm)
+        # exercise --------------------
+        run = paragraph.add_run()
+        # verify ----------------------
+        expected = 1
+        actual = len(paragraph.runs)
+        msg = "expected run count %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_clear_removes_all_runs(self):
+        """Paragraph.clear() removes all runs from paragraph"""
+        # setup -----------------------
+        p_elm = self.pList[2]
+        paragraph = Paragraph(p_elm)
+        expected = 2
+        actual = len(paragraph.runs)
+        msg = "expected pre-test run count %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+        # exercise --------------------
+        paragraph.clear()
+        # verify ----------------------
+        expected = 0
+        actual = len(paragraph.runs)
+        msg = "expected run count %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_text_setter_sets_single_run_text(self):
+        """assignment to Paragraph.text creates single run containing value"""
+        # setup -----------------------
+        test_text = 'python-pptx was here!!'
+        p_elm = self.pList[2]
+        paragraph = Paragraph(p_elm)
+        # exercise --------------------
+        paragraph.text = test_text
+        # verify run count ------------
+        expected = 1
+        actual = len(paragraph.runs)
+        msg = "expected run count %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+        # verify value ----------------
+        expected = test_text
+        actual = paragraph.runs[0].text
+        msg = "expected text '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
 
@@ -1306,6 +1380,25 @@ class TestTextFrame(TestCase):
         expected = [1, 1, 2, 1, 1]
         actual = actual_lengths
         msg = "expected paragraph count %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_text_setter_structure_and_value(self):
+        """assign to TextFrame.text yields single run para set to value"""
+        # setup -----------------------
+        test_text = 'python-pptx was here!!'
+        txBody = self.txBodyList[2]
+        textframe = TextFrame(txBody)
+        # exercise --------------------
+        textframe.text = test_text
+        # verify paragraph count ------
+        expected = 1
+        actual = len(textframe.paragraphs)
+        msg = "expected paragraph count %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+        # verify value ----------------
+        expected = test_text
+        actual = textframe.paragraphs[0].runs[0].text
+        msg = "expected text '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
 

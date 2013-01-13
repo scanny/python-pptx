@@ -2,6 +2,8 @@
 ``CT_Placeholder``
 ==================
 
+.. highlight:: xml
+
 .. csv-table::
    :header-rows: 0
    :stub-columns: 1

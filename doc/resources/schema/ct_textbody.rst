@@ -2,6 +2,8 @@
 ``CT_TextBody``
 ===============
 
+.. highlight:: xml
+
 .. csv-table::
    :header-rows: 0
    :stub-columns: 1
@@ -68,31 +70,31 @@ Schema excerpt
 
   <xsd:complexType name="CT_TextBodyProperties">
     <xsd:sequence>
-      <xsd:element name="prstTxWarp" type="CT_PresetTextShape" minOccurs="0" maxOccurs="1"/>
-      <xsd:group ref="EG_TextAutofit" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="scene3d" type="CT_Scene3D" minOccurs="0" maxOccurs="1"/>
-      <xsd:group ref="EG_Text3D" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="prstTxWarp" type="CT_PresetTextShape"        minOccurs="0" maxOccurs="1"/>
+      <xsd:group ref="EG_TextAutofit"                                 minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="scene3d"    type="CT_Scene3D"                minOccurs="0" maxOccurs="1"/>
+      <xsd:group ref="EG_Text3D"                                      minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="extLst"     type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
     </xsd:sequence>
-    <xsd:attribute name="rot" type="ST_Angle" use="optional"/>
-    <xsd:attribute name="spcFirstLastPara" type="xsd:boolean" use="optional"/>
-    <xsd:attribute name="vertOverflow" type="ST_TextVertOverflowType" use="optional"/>
-    <xsd:attribute name="horzOverflow" type="ST_TextHorzOverflowType" use="optional"/>
-    <xsd:attribute name="vert" type="ST_TextVerticalType" use="optional"/>
-    <xsd:attribute name="wrap" type="ST_TextWrappingType" use="optional"/>
-    <xsd:attribute name="lIns" type="ST_Coordinate32" use="optional"/>
-    <xsd:attribute name="tIns" type="ST_Coordinate32" use="optional"/>
-    <xsd:attribute name="rIns" type="ST_Coordinate32" use="optional"/>
-    <xsd:attribute name="bIns" type="ST_Coordinate32" use="optional"/>
-    <xsd:attribute name="numCol" type="ST_TextColumnCount" use="optional"/>
-    <xsd:attribute name="spcCol" type="ST_PositiveCoordinate32" use="optional"/>
-    <xsd:attribute name="rtlCol" type="xsd:boolean" use="optional"/>
-    <xsd:attribute name="fromWordArt" type="xsd:boolean" use="optional"/>
-    <xsd:attribute name="anchor" type="ST_TextAnchoringType" use="optional"/>
-    <xsd:attribute name="anchorCtr" type="xsd:boolean" use="optional"/>
-    <xsd:attribute name="forceAA" type="xsd:boolean" use="optional"/>
-    <xsd:attribute name="upright" type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="compatLnSpc" type="xsd:boolean" use="optional"/>
+    <xsd:attribute name="rot"              type="ST_Angle"                use="optional"/>
+    <xsd:attribute name="spcFirstLastPara" type="xsd:boolean"             use="optional"/>
+    <xsd:attribute name="vertOverflow"     type="ST_TextVertOverflowType" use="optional"/>
+    <xsd:attribute name="horzOverflow"     type="ST_TextHorzOverflowType" use="optional"/>
+    <xsd:attribute name="vert"             type="ST_TextVerticalType"     use="optional"/>
+    <xsd:attribute name="wrap"             type="ST_TextWrappingType"     use="optional"/>
+    <xsd:attribute name="lIns"             type="ST_Coordinate32"         use="optional"/>
+    <xsd:attribute name="tIns"             type="ST_Coordinate32"         use="optional"/>
+    <xsd:attribute name="rIns"             type="ST_Coordinate32"         use="optional"/>
+    <xsd:attribute name="bIns"             type="ST_Coordinate32"         use="optional"/>
+    <xsd:attribute name="numCol"           type="ST_TextColumnCount"      use="optional"/>
+    <xsd:attribute name="spcCol"           type="ST_PositiveCoordinate32" use="optional"/>
+    <xsd:attribute name="rtlCol"           type="xsd:boolean"             use="optional"/>
+    <xsd:attribute name="fromWordArt"      type="xsd:boolean"             use="optional"/>
+    <xsd:attribute name="anchor"           type="ST_TextAnchoringType"    use="optional"/>
+    <xsd:attribute name="anchorCtr"        type="xsd:boolean"             use="optional"/>
+    <xsd:attribute name="forceAA"          type="xsd:boolean"             use="optional"/>
+    <xsd:attribute name="upright"          type="xsd:boolean"             use="optional" default="false"/>
+    <xsd:attribute name="compatLnSpc"      type="xsd:boolean"             use="optional"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_TextParagraph">
@@ -101,6 +103,32 @@ Schema excerpt
       <xsd:group ref="EG_TextRun" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="endParaRPr" type="CT_TextCharacterProperties" minOccurs="0" maxOccurs="1"/>
     </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_TextParagraphProperties">
+    <xsd:sequence>
+      <xsd:element name="lnSpc"  type="CT_TextSpacing"             minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="spcBef" type="CT_TextSpacing"             minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="spcAft" type="CT_TextSpacing"             minOccurs="0" maxOccurs="1"/>
+      <xsd:group ref="EG_TextBulletColor"                          minOccurs="0" maxOccurs="1"/>
+      <xsd:group ref="EG_TextBulletSize"                           minOccurs="0" maxOccurs="1"/>
+      <xsd:group ref="EG_TextBulletTypeface"                       minOccurs="0" maxOccurs="1"/>
+      <xsd:group ref="EG_TextBullet"                               minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="tabLst" type="CT_TextTabStopList"         minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="defRPr" type="CT_TextCharacterProperties" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="extLst" type="CT_OfficeArtExtensionList"  minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+    <xsd:attribute name="marL"         type="ST_TextMargin"          use="optional"/>
+    <xsd:attribute name="marR"         type="ST_TextMargin"          use="optional"/>
+    <xsd:attribute name="lvl"          type="ST_TextIndentLevelType" use="optional"/>
+    <xsd:attribute name="indent"       type="ST_TextIndent"          use="optional"/>
+    <xsd:attribute name="algn"         type="ST_TextAlignType"       use="optional"/>
+    <xsd:attribute name="defTabSz"     type="ST_Coordinate32"        use="optional"/>
+    <xsd:attribute name="rtl"          type="xsd:boolean"            use="optional"/>
+    <xsd:attribute name="eaLnBrk"      type="xsd:boolean"            use="optional"/>
+    <xsd:attribute name="fontAlgn"     type="ST_TextFontAlignType"   use="optional"/>
+    <xsd:attribute name="latinLnBrk"   type="xsd:boolean"            use="optional"/>
+    <xsd:attribute name="hangingPunct" type="xsd:boolean"            use="optional"/>
   </xsd:complexType>
 
   <xsd:group name="EG_TextRun">
