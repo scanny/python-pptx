@@ -2,6 +2,28 @@
 python-pptx
 ###########
 
+STATUS (as of Jan 19 2013)
+==========================
+
+Development has reached a point where the library is beginning to become
+useful for some practical applications and its time to work toward getting an
+alpha deployment out there.
+
+The following items have been added over the past couple weeks:
+
+* Presentation.add_slide()
+* the ability to change the text of text placeholders and a basic, low-level
+  text manipulation interface
+* a basic implementation of add_picture()
+* acceptance tests based on *behave*
+
+Next is:
+
+* add_textbox()
+* deployment of alpha to PyPI
+* deployment of end-user documentation to RTD.com
+
+
 STATUS (as of Jan 3 2013)
 =========================
 
@@ -34,32 +56,6 @@ I expect coverage to stay close to 100%. The suite is up to 146 tests.
 There's also a start on documentation, although no user documentation so far,
 will have to wait for the top-level API to get a little further along before I
 attend to that.
-
-
-STATUS (as of Dec 14 2012)
-==========================
-
-Under active development, but still starting out. Code doesn't do anything
-very interesting yet except pass the unit tests.
-
-Latest push is broad refactoring of packaging module and addition of unit
-tests. Interim documentation is also substantially updated. At present it
-loads a .pptx file into memory in good order. Next step is to get it to save
-it back uncorrupted.
-
-Continue to expect new pushes once a week or so for the next several weeks.
-Hoping to get baseline .pptx writing capability accomplished by the end of the
-calendar year. That would be:
-
-* creating new presentations from default or arbitrary template (.potx)
-* adding new slides
-* adding placeholder text (title, bullets, etc.)
-* adding shapes and images to slides
-
-One or two folks wanted to see what I had so far, so here it is. Expect to see
-some actual useful functionality in the next month or so, I've got some time
-off coming up over the holidays I'll be using to add some useful end-user
-features.
 
 
 Vision

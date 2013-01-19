@@ -1,6 +1,6 @@
-========================
-Open XML Schema Analysis
-========================
+======================================
+Miscellaneous Open XML schema elements
+======================================
 
 Analysis
 ========
@@ -53,63 +53,6 @@ extLst             ?   CT_OfficeArtExtensionList
 
 First-level slide XML components
 ================================
-
-1344 - sld -- CT_Slide -- §19.3.1.38
-------------------------------------
-
-attributes
-^^^^^^^^^^
-
-================  ===  ==================  ========
-name              use  type                default
-================  ===  ==================  ========
-showMasterSp       ?   xsd:boolean         true
-showMasterPhAnim   ?   xsd:boolean         true
-show               ?   xsd:boolean         true
-================  ===  ==================  ========
-
-
-child elements
-^^^^^^^^^^^^^^
-
-==========  =  =======================  ========
-name        #  type                     line
-==========  =  =======================  ========
-cSld        1  CT_CommonSlideData       1334
-clrMapOvr   ?  CT_ColorMappingOverride  2288 dml
-transition  ?  CT_SlideTransition       83
-timing      ?  CT_SlideTiming           704
-extLst      ?  CT_ExtensionListModify   775>767
-==========  =  =======================  ========
-
-
-
-1334 - cSld -- CT_CommonSlideData
----------------------------------
-
-attributes
-^^^^^^^^^^
-
-================  ===  ==================  ========
-name              use  type                default
-================  ===  ==================  ========
-name               ?   xsd:string          ""
-================  ===  ==================  ========
-
-
-child elements
-^^^^^^^^^^^^^^
-
-===========  ===  =======================  ========
-name          #   type                     line
-===========  ===  =======================  ========
-bg            ?   CT_Background
-spTree        1   CT_GroupShape            1282
-custDataLst   ?   CT_CustomerDataList
-controls      ?   CT_ControlList
-extLst        ?   CT_ExtensionList
-===========  ===  =======================  ========
-
 
 1282 - spTree -- CT_GroupShape
 ------------------------------
@@ -228,29 +171,6 @@ child elements
 name               #   type                              line
 ================  ===  ================================  ========
 nvCxnSpPr          1   CT_ConnectorNonVisual             1219
-spPr               1   a:CT_ShapeProperties              2210 dml
-style              ?   a:CT_ShapeStyle                   2245 dml
-extLst             ?   CT_ExtensionListModify            775>767
-================  ===  ================================  ========
-
-
-1245 - pic -- CT_Picture
-------------------------
-
-attributes
-^^^^^^^^^^
-
-None.
-
-
-child elements
-^^^^^^^^^^^^^^
-
-================  ===  ================================  ========
-name               #   type                              line
-================  ===  ================================  ========
-nvPicPr            1   CT_PictureNonVisual               1236
-blipFill           1   a:CT_BlipFillProperties           1489 dml
 spPr               1   a:CT_ShapeProperties              2210 dml
 style              ?   a:CT_ShapeStyle                   2245 dml
 extLst             ?   CT_ExtensionListModify            775>767

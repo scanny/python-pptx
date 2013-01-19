@@ -25,6 +25,11 @@ Microsoft PowerPoint API documentation
 
 * `OpenXML Content Types as an XML Document <http://blogs.msdn.com/b/ericwhite/archive/2007/12/11/openxml-content-types-as-an-xml-document.aspx>`_
 
+* `PowerPoint 2010 Developer Reference`_
+
+.. _PowerPoint 2010 Developer Reference:
+   http://msdn.microsoft.com/en-us/library/office/ff746846(v=office.14).aspx
+
 
 Sphinx Resources
 ================

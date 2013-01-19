@@ -7,8 +7,8 @@ Resources
 .. toctree::
    :maxdepth: 2
 
+   development_practices
    objects/index
-   schema_analysis
    schema/index
    experiments/index
    about_packaging

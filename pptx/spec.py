@@ -93,6 +93,7 @@ CT_SLIDESHOW    = 'application/vnd.openxmlformats-officedocument.presentationml.
 CT_TEMPLATE     = 'application/vnd.openxmlformats-officedocument.presentationml.template.main+xml'
 
 RT_HANDOUTMASTER  = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster'
+RT_IMAGE          = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
 RT_NOTESMASTER    = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster'
 RT_OFFICEDOCUMENT = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument'
 RT_PRESPROPS      = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps'
@@ -346,7 +347,7 @@ pml_parttypes =\
        , 'baseURI'      : '/ppt/media'
        , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['handoutMaster', 'notesSlide', 'notesMaster', 'slide', 'slideLayout', 'slideMaster']
-       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+       , 'reltype'      : RT_IMAGE
        }
     ,  'image/jpeg':
        # ECMA-376-1 15.2.14
@@ -358,7 +359,7 @@ pml_parttypes =\
        , 'baseURI'      : '/ppt/media'
        , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['handoutMaster', 'notesSlide', 'notesMaster', 'slide', 'slideLayout', 'slideMaster']
-       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+       , 'reltype'      : RT_IMAGE
        }
     ,  'image/png':
        # ECMA-376-1 15.2.14
@@ -370,7 +371,7 @@ pml_parttypes =\
        , 'baseURI'      : '/ppt/media'
        , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['handoutMaster', 'notesSlide', 'notesMaster', 'slide', 'slideLayout', 'slideMaster']
-       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+       , 'reltype'      : RT_IMAGE
        }
     ,  'image/x-emf':
        # ECMA-376-1 15.2.14
@@ -382,7 +383,7 @@ pml_parttypes =\
        , 'baseURI'      : '/ppt/media'
        , 'has_rels'     : PTS_HASRELS_NEVER
        , 'rels_from'    : ['handoutMaster', 'notesSlide', 'notesMaster', 'slide', 'slideLayout', 'slideMaster']
-       , 'reltype'      : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+       , 'reltype'      : RT_IMAGE
        }
     ,  'application/vnd.openxmlformats-officedocument.presentationml.printerSettings':
        # ECMA-376-1 15.2.15
@@ -447,7 +448,7 @@ nsmap['p'       ] = 'http://schemas.openxmlformats.org/presentationml/2006/main'
 nsmap['sl'      ] = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout'
 nsmap['w10'     ] = 'urn:schemas-microsoft-com:office:word'
 nsmap['wne'     ] = 'http://schemas.microsoft.com/office/word/2006/wordml'
-nsmap['i'       ] = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+nsmap['i'       ] = RT_IMAGE
 # Drawing
 nsmap['wp'      ] = 'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing'
 nsmap['pd'      ] = 'http://schemas.openxmlformats.org/drawingml/2006/presentationDrawing'

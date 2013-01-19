@@ -13,7 +13,75 @@ and Open XML.
 """
 
 import os
+import platform
 import re
+
+class BaseLength(int):
+    """Base class for length classes Inches, Cm, Mm, Px, and Emu."""
+    EMUS_PER_INCH = 914400
+    EMUS_PER_CM   = 360000
+    EMUS_PER_MM   = 36000
+    EMUS_PER_PX   = 9525 if platform.system() == 'Windows' else 12700
+    
+    def __new__(cls, emu):
+        return int.__new__(cls, emu)
+    
+    @property
+    def inches(self):
+        return self / float(self.EMUS_PER_INCH)
+    
+    @property
+    def cm(self):
+        return self / float(self.EMUS_PER_CM)
+    
+    @property
+    def mm(self):
+        return self / float(self.EMUS_PER_MM)
+    
+    @property
+    def px(self):
+        # round can somtimes return values like x.999999 which are truncated
+        # to x by int(); adding the 0.1 prevents this
+        return int(round(self / float(self.EMUS_PER_PX)) + 0.1)
+    
+    @property
+    def emu(self):
+        return self
+    
+
+class Inches(BaseLength):
+    """Convenience constructor for length in inches."""
+    def __new__(cls, inches):
+        emu = int(inches * BaseLength.EMUS_PER_INCH)
+        return BaseLength.__new__(cls, emu)
+    
+
+class Cm(BaseLength):
+    """Convenience constructor for length in centimeters."""
+    def __new__(cls, cm):
+        emu = int(cm * BaseLength.EMUS_PER_CM)
+        return BaseLength.__new__(cls, emu)
+    
+
+class Mm(BaseLength):
+    """Convenience constructor for length in millimeters."""
+    def __new__(cls, mm):
+        emu = int(mm * BaseLength.EMUS_PER_MM)
+        return BaseLength.__new__(cls, emu)
+    
+
+class Px(BaseLength):
+    """Convenience constructor for length in pixels."""
+    def __new__(cls, px):
+        emu = int(px * BaseLength.EMUS_PER_PX)
+        return BaseLength.__new__(cls, emu)
+    
+
+class Emu(BaseLength):
+    """Convenience constructor for length in english metric units."""
+    def __new__(cls, emu):
+        return BaseLength.__new__(cls, int(emu))
+    
 
 class Partname(object):
     """
@@ -116,9 +184,9 @@ def sortedtemplatefilepaths(templatedir, searchdir, filenameroot, ext):
     return [filepaths[key] for key in sorted(filepaths.keys())]
 
 
-#TECHDEBT: Not all files in the media directory are necessarily image files.
-#          Audio and Video media can show up there too, although are perhaps
-#          less likely to appear in a presentation template.
+# TECHDEBT: Not all files in the media directory are necessarily image files.
+#           Audio and Video media can show up there too, although are perhaps
+#           less likely to appear in a presentation template.
 def templatemediafilepaths(templatedir):
     # form fully qualified path to search directory
     dirpath = os.path.join(templatedir, 'ppt/media')

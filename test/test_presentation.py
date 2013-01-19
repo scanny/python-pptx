@@ -9,26 +9,27 @@
 
 """Test suite for pptx.presentation module."""
 
+import gc
 import inspect
 import os
 
 from lxml import etree
-from mock import Mock
+from mock import Mock, patch, PropertyMock
 
 import pptx.presentation
 
 from pptx.presentation import (Package, Collection, _RelationshipCollection,
     _Relationship, Presentation, PartCollection, BasePart, Part,
-    SlideCollection, BaseSlide, Slide, SlideLayout, SlideMaster,
+    SlideCollection, BaseSlide, Slide, SlideLayout, SlideMaster, Image,
     ShapeCollection, BaseShape, Shape, Placeholder, TextFrame, Paragraph, Run)
 
 from pptx.exceptions import InvalidPackageError
 from pptx.spec import namespaces, qname
 from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
     CT_SLIDEMASTER)
-from pptx.spec import (RT_HANDOUTMASTER, RT_NOTESMASTER, RT_OFFICEDOCUMENT,
-    RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER, RT_TABLESTYLES,
-    RT_THEME, RT_VIEWPROPS)
+from pptx.spec import (RT_HANDOUTMASTER, RT_IMAGE, RT_NOTESMASTER,
+    RT_OFFICEDOCUMENT, RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER,
+    RT_TABLESTYLES, RT_THEME, RT_VIEWPROPS)
 from pptx.spec import (PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ,
     PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE,
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER)
@@ -48,8 +49,17 @@ log.addHandler(ch)
 
 
 # module globals -------------------------------------------------------------
-thisdir = os.path.abspath(os.path.split(__file__)[0])
-test_pptx_path = os.path.join(thisdir, 'test_files/test.pptx')
+def absjoin(*paths):
+    return os.path.abspath(os.path.join(*paths))
+
+thisdir = os.path.split(__file__)[0]
+test_file_dir = absjoin(thisdir, 'test_files')
+
+test_image_path  = absjoin(test_file_dir, 'python-icon.jpeg')
+new_image_path   = absjoin(test_file_dir, 'monty-truth.png')
+test_pptx_path   = absjoin(test_file_dir, 'test.pptx')
+images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
+
 nsmap = namespaces('a', 'p', 'r')
 
 def _empty_spTree():
@@ -153,9 +163,18 @@ class TestBasePart(TestCase):
         self.basepart = BasePart()
         self.cls = BasePart
     
-    def test_class_present(self):
-        """BasePart class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'BasePart')
+    def test__add_relationship_adds_specified_relationship(self):
+        """BasePart._add_relationship adds specified relationship"""
+        # setup -----------------------
+        reltype = RT_IMAGE
+        target = Mock(name='image')
+        # exercise --------------------
+        rel = self.basepart._add_relationship(reltype, target)
+        # verify ----------------------
+        expected = ('rId1', reltype, target)
+        actual = (rel._rId, rel._reltype, rel._target)
+        msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
     
     def test__blob_value_for_binary_part(self):
         """BasePart._blob value is correct for binary part"""
@@ -185,10 +204,6 @@ class TestBasePart(TestCase):
         actual = retval
         msg = "expected: \n'%s'\n, got \n'%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
-    def test__content_type_property_raises_on_none(self):
-        """BasePart._content_type raises ValueError when None"""
-        self.assertPropertyRaisesOnNone(self.basepart, '_content_type')
     
     def test__load_sets__element_for_xml_part(self):
         """BasePart._load() sets _element for xml part"""
@@ -432,33 +447,136 @@ class TestCollection(TestCase):
         self.assertIsSizedProperty(self.collection, '_values', 0)
     
 
+class TestImage(TestCase):
+    """Test Image"""
+    def test_construction_from_file(self):
+        """Image(path) constructor produces correct attribute values"""
+        # exercise --------------------
+        image = Image(test_image_path)
+        # verify ----------------------
+        expected = '.jpeg'
+        actual = image.ext
+        msg = "expected extension '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+        
+        expected = 'image/jpeg'
+        actual = image._content_type
+        msg = "expected content_type '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+        
+        expected = 3277
+        actual = len(image._blob)
+        msg = "expected blob size %d, got %d" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test_construction_from_file_raises_on_bad_path(self):
+        """Image(path) constructor raises on bad path"""
+        # verify ----------------------
+        with self.assertRaises(IOError):
+            image = Image('foobar27.png')
+    
+    def test___image_file_content_type_known_type(self):
+        """Image.__image_file_content_type() correct for known content type"""
+        # exercise --------------------
+        content_type = Image._Image__image_file_content_type(test_image_path)
+        # verify ----------------------
+        expected = 'image/jpeg'
+        actual = content_type
+        msg = ("expected content type '%s', got '%s'" % (expected, actual))
+        self.assertEqual(expected, actual, msg)
+    
+    def test___image_file_content_type_raises_on_bad_ext(self):
+        """Image.__image_file_content_type() raises on bad extension"""
+        # setup -----------------------
+        path = 'image.xj7'
+        # verify ----------------------
+        with self.assertRaises(TypeError):
+            Image._Image__image_file_content_type(path)
+    
+    def test___image_file_content_type_raises_on_non_img_ext(self):
+        """Image.__image_file_content_type() raises on non-image extension"""
+        # setup -----------------------
+        path = 'image.xml'
+        # verify ----------------------
+        with self.assertRaises(TypeError):
+            Image._Image__image_file_content_type(path)
+    
+
+class TestImageCollection(TestCase):
+    """Test ImageCollection"""
+    def test_add_image_returns_matching_image(self):
+        """ImageCollection.add_image() returns existing image on match"""
+        # setup -----------------------
+        pkg = Package().open(images_pptx_path)
+        matching_idx = 4
+        matching_image = pkg._images[matching_idx]
+        # exercise --------------------
+        image = pkg._images.add_image(test_image_path)
+        # verify ----------------------
+        expected = matching_image
+        actual = image
+        msg = ("expected images[%d], got images[%d]"
+               % (matching_idx, pkg._images.index(image)))
+        self.assertEqual(expected, actual, msg)
+    
+    def test_add_image_adds_new_image(self):
+        """ImageCollection.add_image() adds new image on no match"""
+        # setup -----------------------
+        pkg = Package().open(images_pptx_path)
+        expected_partname = '/ppt/media/image8.png'
+        expected_len = len(pkg._images) + 1
+        expected_sha1 = '79769f1e202add2e963158b532e36c2c0f76a70c'
+        # exercise --------------------
+        image = pkg._images.add_image(new_image_path)
+        # verify ----------------------
+        expected = (expected_partname, expected_len, expected_sha1)
+        actual = (image.partname, len(pkg._images), image._sha1)
+        msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+
 class TestPackage(TestCase):
     """Test Package"""
     def setUp(self):
         self.pkg = Package()
     
-    def test_class_present(self):
-        """Package class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'Package')
+    def test_instances_are_tracked(self):
+        """Package instances are tracked"""
+        self.assertIn(self.pkg, Package.instances())
     
-    def test_open_method_present(self):
-        """Package class has method 'open'"""
-        self.assertClassHasMethod(Package, 'open')
+    def test_instance_refs_garbage_collected(self):
+        """Package instances are tracked"""
+        pkg1_repr = "%r" % self.pkg
+        self.pkg = Package()
+        # pkg2_repr = "%r" % self.pkg
+        gc.collect()
+        reprs = [repr(pkg) for pkg in Package.instances()]
+        # log.debug("pkg1, pkg2, reprs: %s, %s, %s" % (pkg1_repr, pkg2_repr, reprs))
+        self.assertNotIn(pkg1_repr, reprs)
     
-    def test_open_returns_self(self):
-        """Package.open() returns self-reference"""
+    def test_containing_returns_correct_pkg(self):
+        """Package.containing() returns right package instance"""
+        # setup -----------------------
+        pkg1 = Package().open(test_pptx_path)
+        pkg2 = Package().open(test_pptx_path)
+        slide = pkg2.presentation.slides[0]
         # exercise --------------------
-        retval = self.pkg.open(test_pptx_path)
+        found_pkg = Package.containing(slide)
         # verify ----------------------
-        expected = self.pkg
-        actual = retval
-        msg = "expected '%s', got '%s'" % (expected, actual)
+        expected = pkg2
+        actual = found_pkg
+        msg = "expected %r, got %r" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
-    def test_presentation_property_none_on_construction(self):
-        """Package.presentation property None on construction"""
+    def test_open_gathers_image_parts(self):
+        """Package.open() returns self-reference"""
+        # exercise --------------------
+        self.pkg.open(images_pptx_path)
         # verify ----------------------
-        self.assertIsProperty(self.pkg, 'presentation', None)
+        expected = 7
+        actual = len(self.pkg._Package__images)
+        msg = "expected image count of %d, got %d" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
     
     def test_presentation_presentation_after_open(self):
         """Package.presentation Presentation after open()"""
@@ -472,11 +590,6 @@ class TestPackage(TestCase):
         msg = ("expected instance of '%s', got type '%s'"
                % (cls.__name__, type(obj).__name__))
         self.assertTrue(actual, msg)
-    
-    def test__relationships_property_empty_on_construction(self):
-        """Package._relationships property empty on construction"""
-        # verify ----------------------
-        self.assertIsSizedProperty(self.pkg, '_relationships', 0)
     
 
 class TestParagraph(TestCase):
@@ -976,15 +1089,53 @@ class TestShape(TestCase):
 class TestShapeCollection(TestCase):
     """Test ShapeCollection"""
     def setUp(self):
-        path = os.path.join(thisdir, 'test_files/slide1.xml')
+        path = absjoin(test_file_dir, 'slide1.xml')
         sld = etree.parse(path).getroot()
         spTree = sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
         self.shapes = ShapeCollection(spTree)
     
-    def test_size_after_construction(self):
+    def test_construction_size(self):
         """ShapeCollection is expected size after construction"""
         # verify ----------------------
         self.assertLength(self.shapes, 9)
+    
+    @patch('pptx.presentation.Collection._values', new_callable=PropertyMock)
+    @patch('pptx.presentation.Package')
+    def test_add_picture_collaboration(self, MockPackage, mock_values):
+        """ShapeCollection.add_picture() calls the right collaborators"""
+        # constant values -------------
+        rId = 'rId1'
+        top = 1
+        left = 2
+        # setup mockery ---------------
+        pkg      = Mock(name='pkg')
+        image    = Mock(name='image')
+        rel      = Mock(name='rel')
+        pic      = Mock(name='pic')
+        slide    = Mock(name='slide')
+        __pic    = Mock(name='__pic')
+        __spTree = Mock(name='__spTree')
+        Picture  = Mock(name='Picture')
+        MockPackage.containing.return_value = pkg
+        pkg._images.add_image.return_value = image
+        slide._add_relationship.return_value = rel
+        rel._rId = rId
+        __pic.return_value = pic
+        pptx.presentation.Picture = Picture
+        # setup -----------------------
+        shapes = ShapeCollection(_empty_spTree(), slide)
+        shapes._ShapeCollection__pic = __pic
+        shapes._ShapeCollection__spTree = __spTree
+        # exercise --------------------
+        picture = shapes.add_picture(test_image_path, top, left)
+        # verify ----------------------
+        MockPackage.containing.assert_called_once_with(slide)
+        pkg._images.add_image.assert_called_once_with(test_image_path)
+        slide._add_relationship.assert_called_once_with(RT_IMAGE, image)
+        __pic.assert_called_once_with(rId, test_image_path, top, left)
+        __spTree.append.assert_called_once_with(pic)
+        Picture.assert_called_once_with(pic)
+        shapes._values.append.assert_called_once_with(picture)
     
     def test_title_value(self):
         """ShapeCollection.title value is ref to correct shape"""
@@ -1109,6 +1260,26 @@ class TestShapeCollection(TestCase):
         expected = 4
         actual = next_id
         msg = "expected %d, got %d" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+    
+    def test___pic_return_value(self):
+        """ShapeCollection.__pic returns correct value"""
+        # setup -----------------------
+        xml = ('<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/2'
+            '006/main" xmlns:p="http://schemas.openxmlformats.org/presentatio'
+            'nml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
+            'Document/2006/relationships"><p:nvPicPr><p:cNvPr id="4" name="Pi'
+            'cture 3" descr="python-icon.jpeg"/><p:cNvPicPr/><p:nvPr/></p:nvP'
+            'icPr><p:blipFill><a:blip r:embed="rId9"/><a:stretch><a:fillRect/'
+            '></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="0" y="0"/><a'
+            ':ext cx="2590800" cy="2590800"/></a:xfrm><a:prstGeom prst="rect"'
+            '><a:avLst/></a:prstGeom></p:spPr></p:pic>')
+        # exercise --------------------
+        pic = self.shapes._ShapeCollection__pic('rId9', test_image_path, 0, 0)
+        # verify ----------------------
+        expected = xml
+        actual = etree.tostring(pic)
+        msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
 

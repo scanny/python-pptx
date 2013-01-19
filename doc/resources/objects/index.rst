@@ -10,4 +10,5 @@ Collected bits and pieces on specific PowerPoint object types gathered from MSDN
    placeholders
    shape
    textframe
+   picture
 

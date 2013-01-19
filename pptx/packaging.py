@@ -92,11 +92,13 @@ class Package(object):
         pkg_rel_elms = fs.getelement(Package.PKG_RELSITEM_URI)\
                          .findall(qname('pr','Relationship'))
         for rel_elm in pkg_rel_elms:
+            rId = rel_elm.get('Id')
+            reltype = rel_elm.get('Type')
             partname = '/%s' % rel_elm.get('Target')
             part = Part()
             parts_dict[partname] = part
             part._load(fs, partname, cti, parts_dict)
-            rel = Relationship(rel_elm.get('Id'), self, part)
+            rel = Relationship(rId, self, reltype, part)
             self.__relationships.append(rel)
         return self
     
@@ -108,15 +110,17 @@ class Package(object):
         part_dict = {}  # keep track of marshaled parts, graph is cyclic
         for rel in model_pkg._relationships:
             # unpack working values for target part and relationship
+            rId = rel._rId
+            reltype = rel._reltype
             model_part = rel._target
             partname = model_part.partname
             # create package-part for target
             part = Part()
             part_dict[partname] = part
             part._marshal(model_part, part_dict)
-            # create marshalled version of relationship
-            marshalled_rel = Relationship(rel._rId, self, part)
-            self.__relationships.append(marshalled_rel)
+            # create marshaled version of relationship
+            marshaled_rel = Relationship(rId, self, reltype, part)
+            self.__relationships.append(marshaled_rel)
         return self
     
     def save(self, path):
@@ -241,9 +245,11 @@ class Part(object):
         self.typespec = PartTypeSpec(content_type)
         
         # load relationships and propagate load to target parts
-        rel_elms = self.__get_rel_elms(fs)
         self.__relationships = []  # discard any rels from prior load
+        rel_elms = self.__get_rel_elms(fs)
         for rel_elm in rel_elms:
+            rId = rel_elm.get('Id')
+            reltype = rel_elm.get('Type')
             target_relpath = rel_elm.get('Target')
             target_partname = os.path.abspath(os.path.join(baseURI,
                                                            target_relpath))
@@ -255,7 +261,7 @@ class Part(object):
                 target_part._load(fs, target_partname, ct_dict, parts_dict)
             
             # create relationship to target_part
-            rel = Relationship(rel_elm.get('Id'), self, target_part)
+            rel = Relationship(rId, self, reltype, target_part)
             self.__relationships.append(rel)
         
         return self
@@ -278,6 +284,7 @@ class Part(object):
         # load relationships and propagate marshal to target parts
         for rel in model_part._relationships:
             # unpack working values for target part and relationship
+            rId = rel._rId
             reltype = rel._reltype
             model_target_part = rel._target
             partname = model_target_part.partname
@@ -289,7 +296,7 @@ class Part(object):
                 part_dict[partname] = part
                 part._marshal(model_target_part, part_dict)
             # create marshalled version of relationship
-            marshalled_rel = Relationship(rel._rId, self, part)
+            marshalled_rel = Relationship(rId, self, reltype, part)
             self.__relationships.append(marshalled_rel)
     
     @property
@@ -373,11 +380,11 @@ class Relationship(object):
        The target :class:`pptx.packaging.Part` instance in this relationship.
     
     """
-    def __init__(self, rId, source, target):
+    def __init__(self, rId, source, reltype, target):
         super(Relationship, self).__init__()
         self.__source = source
         self.rId = rId
-        self.reltype = target.typespec.reltype
+        self.reltype = reltype
         self.target = target
     
     @property

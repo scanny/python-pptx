@@ -10,5 +10,7 @@ Collected bits and pieces from the XML Schema docs, MSDN web pages, and the ISO/
    ct_presentation
    ct_slide
    ct_placeholder
+   ct_picture
    ct_textbody
+   miscellaneous
 

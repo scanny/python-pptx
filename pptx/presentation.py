@@ -10,9 +10,15 @@
 '''API classes for dealing with presentations and other objects one typically
 encounters as an end-user of the PowerPoint user interface.'''
 
+import hashlib
+import Image as PIL_Image
+import os
+import weakref
+
 from lxml import etree
 
 import pptx.packaging
+import pptx.spec as spec
 import pptx.util as util
 
 from pptx.exceptions import InvalidPackageError
@@ -20,13 +26,15 @@ from pptx.exceptions import InvalidPackageError
 from pptx.spec import namespaces, qname
 from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
     CT_SLIDEMASTER, CT_SLIDESHOW, CT_TEMPLATE)
-from pptx.spec import (RT_HANDOUTMASTER, RT_NOTESMASTER, RT_OFFICEDOCUMENT,
-    RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER, RT_TABLESTYLES,
-    RT_THEME, RT_VIEWPROPS)
+from pptx.spec import (RT_HANDOUTMASTER, RT_IMAGE, RT_NOTESMASTER,
+    RT_OFFICEDOCUMENT, RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER,
+    RT_TABLESTYLES, RT_THEME, RT_VIEWPROPS)
 from pptx.spec import (PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_DT,
     PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TBL,
     PH_TYPE_TITLE, PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL)
 from pptx.spec import slide_ph_basenames
+
+from pptx.util import Px
 
 import logging
 log = logging.getLogger('pptx.presentation')
@@ -50,14 +58,41 @@ def _child(element, child_tagname, nsmap):
     return matching_children[0] if len(matching_children) else None
 
 
+# ============================================================================
+# Package
+# ============================================================================
+
 class Package(object):
     """
     Root class of presentation object hierarchy.
     """
+    # track instances as weakrefs so .containing() can be computed
+    __instances = []
+    
     def __init__(self):
         super(Package, self).__init__()
         self.__presentation = None
         self.__relationships = _RelationshipCollection()
+        self.__images = ImageCollection()
+        self.__instances.append(weakref.ref(self))
+    
+    @classmethod
+    def containing(cls, part):
+        """Return package instance that contains *part*"""
+        for pkg in cls.instances():
+            if part in pkg._parts:
+                return pkg
+        raise KeyError("No package contains part %d" % part)
+    
+    @classmethod
+    def instances(cls):
+        """Return tuple of Package instances that have been created"""
+        # clean garbage collected pkgs out of __instances
+        cls.__instances[:] = [wkref for wkref in cls.__instances
+                              if wkref() is not None]
+        # return instance references in a tuple
+        pkgs = [wkref() for wkref in cls.__instances]
+        return tuple(pkgs)
     
     @property
     def presentation(self):
@@ -78,6 +113,10 @@ class Package(object):
         return self
     
     @property
+    def _images(self):
+        return self.__images
+    
+    @property
     def _relationships(self):
         return self.__relationships
     
@@ -86,7 +125,6 @@ class Package(object):
         Load all the model-side parts and relationships from the on-disk
         package by loading package-level relationship parts and propagating
         the load down the relationship graph.
-        
         """
         # keep track of which parts are already loaded
         part_dict = {}
@@ -111,6 +149,41 @@ class Package(object):
             # create model-side package relationship
             model_rel = _Relationship(pkgrel.rId, reltype, part)
             self.__relationships._additem(model_rel)
+        
+        # gather references to image parts into __images
+        self.__images = ImageCollection()
+        image_parts = [part for part in self._parts
+                       if part.__class__.__name__ == 'Image']
+        for image in image_parts:
+            self.__images._loadpart(image)
+    
+    @property
+    def _parts(self):
+        """
+        Return a list containing a reference to each of the parts in this
+        package.
+        """
+        return [part for part in Package.__walkparts(self.__relationships)]
+    
+    @staticmethod
+    def __walkparts(rels, parts=None):
+        """
+        Recursive function, walk relationships to iterate over all parts in
+        this package. Leave out *parts* parameter in call to visit all parts.
+        """
+        # initial call can leave out parts parameter as a signal to initialize
+        if parts is None:
+            parts = []
+        # log.debug("in __walkparts(), len(parts)==%d", len(parts))
+        for rel in rels:
+            # log.debug("rel.target.partname==%s", rel.target.partname)
+            part = rel._target
+            if part in parts: # only visit each part once (graph is cyclic)
+                continue
+            parts.append(part)
+            yield part
+            for part in Package.__walkparts(part._relationships, parts):
+                yield part
     
 
 
@@ -389,6 +462,43 @@ class PartCollection(Collection):
         self._values.append(part)
     
 
+class ImageCollection(PartCollection):
+    """
+    Immutable sequence of images, typically belonging to an instance of
+    :class:`Package`. An image part containing a particular image blob appears
+    only once in an instance, regardless of how many times it is referenced by
+    a pic shape in a slide.
+    """
+    def __init__(self):
+        super(ImageCollection, self).__init__()
+    
+    def add_image(self, path):
+        """
+        Return image part containing the image at *path*. If the image does
+        not yet exist, a new one is created.
+        """
+        # use Image constructor to validate and characterize image file
+        image = Image(path)
+        # return matching image if found
+        for existing_image in self._values:
+            if existing_image._sha1 == image._sha1:
+                return existing_image
+        # otherwise add it to collection and return new image
+        self._values.append(image)
+        self.__rename_images()
+        return image
+    
+    def __rename_images(self):
+        """
+        Assign partnames like ``/ppt/media/image9.png`` to all images in the
+        collection. The name portion is always ``image``. The number part
+        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
+        extension is preserved during renaming.
+        """
+        for idx, image in enumerate(self._values):
+            image.partname = '/ppt/media/image%d%s' % (idx+1, image.ext)
+    
+
 class Part(object):
     """
     Part factory. Returns an instance of the appropriate custom part type for
@@ -414,6 +524,8 @@ class Part(object):
             return SlideLayout()
         elif reltype == RT_SLIDEMASTER:
             return SlideMaster()
+        elif reltype == RT_IMAGE:
+            return Image()
         return BasePart()
     
 
@@ -482,6 +594,10 @@ class BasePart(Observable):
             raise ValueError(msg)
         return self.__content_type
     
+    @_content_type.setter
+    def _content_type(self, content_type):
+        self.__content_type = content_type
+    
     @property
     def partname(self):
         """Part name of this part, e.g. '/ppt/slides/slide1.xml'."""
@@ -492,6 +608,16 @@ class BasePart(Observable):
     def partname(self, partname):
         self.__partname = partname
         self._notify_observers('partname', self.__partname)
+    
+    def _add_relationship(self, reltype, target_part):
+        """
+        Return new relationship of *reltype* to *target_part* after adding it
+        to the relationship collection of this part.
+        """
+        rId = self._relationships._next_rId
+        rel = _Relationship(rId, reltype, target_part)
+        self._relationships._additem(rel)
+        return rel
     
     def _load(self, pkgpart, part_dict):
         """
@@ -629,6 +755,71 @@ class Presentation(BasePart):
         return _child(self._element, 'p:sldSz', self._nsmap)
     
 
+class Image(BasePart):
+    """
+    Image part. Corresponds to package files ppt/media/image[1-9][0-9]*.*.
+    If *path* parameter is used, the image file at that location is loaded.
+    """
+    def __init__(self, path=None):
+        super(Image, self).__init__()
+        self.__ext = None
+        if path:
+            self.__load_image_from_file(path)
+    
+    @property
+    def ext(self):
+        """Return file extension for this image"""
+        assert self.__ext, "Image.__ext referenced before assigned"
+        return self.__ext
+    
+    @property
+    def _sha1(self):
+        """Return SHA1 hash digest for image"""
+        return hashlib.sha1(self._blob).hexdigest()
+    
+    @property
+    def _blob(self):
+        """
+        For an image, _blob is always _load_blob, image file content is not
+        manipulated.
+        """
+        return self._load_blob
+    
+    def _load(self, pkgpart, part_dict):
+        """Handle aspects of loading that are particular to image parts."""
+        # call parent to do generic aspects of load
+        super(Image, self)._load(pkgpart, part_dict)
+        # set file extension
+        self.__ext = os.path.splitext(pkgpart.partname)[1]
+        # return self-reference to allow generative calling
+        return self
+    
+    @staticmethod
+    def __image_file_content_type(path):
+        """Return the content type of graphic image file at *path*"""
+        ext = os.path.splitext(path)[1]
+        if ext not in spec.default_content_types:
+            tmpl = "unsupported image file extension '%s' at '%s'"
+            raise TypeError(tmpl % (ext, path))
+        content_type = spec.default_content_types[ext]
+        if not content_type.startswith('image/'):
+            tmpl = "'%s' is not an image content type; path '%s'"
+            raise TypeError(tmpl % (content_type, path))
+        return content_type
+    
+    def __load_image_from_file(self, path):
+        """
+        Load image file at *path*.
+        """
+        # set extension
+        self.__ext = os.path.splitext(path)[1]
+        # set content type
+        self._content_type = self.__image_file_content_type(path)
+        # lodge blob
+        with open(path) as f:
+            self._load_blob = f.read()
+    
+
 
 # ============================================================================
 # Slide Parts
@@ -651,14 +842,21 @@ class SlideCollection(PartCollection):
         # 2. add it to this collection
         self._values.append(slide)
         # 3. assign its partname
-        slide_nmbr = self._values.index(slide) + 1
-        slide.partname = '/ppt/slides/slide%d.xml' % slide_nmbr
-        # 3. add presentation->slide relationship 
-        rId = self.__presentation._relationships._next_rId
-        rel = _Relationship(rId, RT_SLIDE, slide)
-        self.__presentation._relationships._additem(rel)
-        # 4. return reference to new slide
+        self.__rename_slides()
+        # 4. add presentation->slide relationship
+        self.__presentation._add_relationship(RT_SLIDE, slide)
+        # 5. return reference to new slide
         return slide
+    
+    def __rename_slides(self):
+        """
+        Assign partnames like ``/ppt/slides/slide9.xml`` to all slides in the
+        collection. The name portion is always ``slide``. The number part
+        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
+        extension is always ``.xml``.
+        """
+        for idx, slide in enumerate(self._values):
+            slide.partname = '/ppt/slides/slide%d.xml' % (idx+1)
     
 
 class BaseSlide(BasePart):
@@ -696,7 +894,7 @@ class BaseSlide(BasePart):
         # unmarshal shapes
         xpath = './p:cSld/p:spTree'
         spTree = self._element.xpath(xpath, namespaces=self._nsmap)[0]
-        self._shapes = ShapeCollection(spTree)
+        self._shapes = ShapeCollection(spTree, self)
         # return self-reference to allow generative calling
         return self
     
@@ -710,14 +908,12 @@ class Slide(BaseSlide):
         self.__slidelayout = slidelayout
         self._element = self.__minimal_element
         spTree = self._element.xpath('//p:spTree', namespaces=self._nsmap)[0]
-        self._shapes = ShapeCollection(spTree)
+        self._shapes = ShapeCollection(spTree, self)
         # if slidelayout, this is a slide being added, not one being loaded
         if slidelayout:
             self._shapes._clone_layout_placeholders(slidelayout)
             # add relationship to slideLayout part
-            rId = self._relationships._next_rId
-            rel = _Relationship(rId, RT_SLIDELAYOUT, slidelayout)
-            self._relationships._additem(rel)
+            self._add_relationship(RT_SLIDELAYOUT, slidelayout)
     
     @property
     def slidelayout(self):
@@ -929,10 +1125,11 @@ class ShapeCollection(BaseShape, Collection):
     CONTENTPART  = qname('p', 'contentPart')
     EXTLST       = qname('p', 'extLst')
     
-    def __init__(self, spTree):
+    def __init__(self, spTree, slide=None):
         # log.debug('ShapeCollect.__init__() called w/element 0x%X', id(spTree))
         super(ShapeCollection, self).__init__(spTree)
         self.__spTree = spTree
+        self.__slide = slide
         # unmarshal shapes
         for elm in spTree:
             # log.debug('elm.tag == %s', elm.tag[60:])
@@ -940,6 +1137,8 @@ class ShapeCollection(BaseShape, Collection):
                 continue
             elif elm.tag == self.SP:
                 shape = Shape(elm)
+            elif elm.tag == self.PIC:
+                shape = Picture(elm)
             elif elm.tag == self.GRPSP:
                 shape = ShapeCollection(elm)
             elif elm.tag == self.CONTENTPART:
@@ -968,6 +1167,21 @@ class ShapeCollection(BaseShape, Collection):
             if shape._is_title:
                 return shape
         return None
+    
+    def add_picture(self, path, top, left):
+        """
+        Add picture shape displaying image in file located at *path*, placing
+        the shape such that its top left corner is at *top* inches from the
+        top of the slide and *left* inches from the left of the slide.
+        """
+        pkg = Package.containing(self.__slide)
+        image = pkg._images.add_image(path)
+        rel = self.__slide._add_relationship(RT_IMAGE, image)
+        pic = self.__pic(rel._rId, path, top, left)
+        self.__spTree.append(pic)
+        picture = Picture(pic)
+        self._values.append(picture)
+        return picture
     
     def _clone_layout_placeholders(self, slidelayout):
         """
@@ -1067,7 +1281,8 @@ class ShapeCollection(BaseShape, Collection):
     def __next_shape_id(self):
         """
         Next available drawing object id number in collection, starting from 1
-        and making use of any gaps in numbering.
+        and making use of any gaps in numbering. In practice, the minimum id
+        is 2 because the spTree element is always assigned id="1".
         """
         cNvPrs = self.__spTree.xpath('//p:cNvPr', namespaces=self._nsmap)
         ids = [int(cNvPr.get('id')) for cNvPr in cNvPrs]
@@ -1079,6 +1294,47 @@ class ShapeCollection(BaseShape, Collection):
                 break
             next_id += 1
         return next_id
+    
+    def __pic(self, rId, path, top, left):
+        """Return minimal ``<p:pic>`` element based on *rId* and *path*."""
+        id = self.__next_shape_id
+        shapename = 'Picture %d' % (id-1)
+        filename = os.path.split(path)[1]
+        
+        cx_px, cy_px = PIL_Image.open(path).size
+        cx = Px(cx_px)
+        cy = Px(cy_px)
+        
+        pic = etree.Element(qname('p', 'pic'), nsmap=self._nsmap)
+        
+        nvPicPr  = etree.SubElement(pic,      qname('p', 'nvPicPr'))
+        cNvPr    = etree.SubElement(nvPicPr,  qname('p', 'cNvPr'))
+        cNvPr.set('id',    str(id))
+        cNvPr.set('name',  shapename)
+        cNvPr.set('descr', filename)
+        cNvPicPr = etree.SubElement(nvPicPr,  qname('p', 'cNvPicPr'))
+        nvPr     = etree.SubElement(nvPicPr,  qname('p', 'nvPr'))
+        
+        blipFill = etree.SubElement(pic,      qname('p', 'blipFill'))
+        blip     = etree.SubElement(blipFill, qname('a', 'blip'))
+        blip.set(qname('r', 'embed'), rId)
+        stretch  = etree.SubElement(blipFill, qname('a', 'stretch'))
+        fillRect = etree.SubElement(stretch,  qname('a', 'fillRect'))
+        
+        spPr = etree.SubElement(pic,  qname('p', 'spPr'))
+        xfrm = etree.SubElement(spPr, qname('a', 'xfrm'))
+        off  = etree.SubElement(xfrm, qname('a', 'off'))
+        off.set('x', str(left))
+        off.set('y', str(top))
+        ext  = etree.SubElement(xfrm, qname('a', 'ext'))
+        ext.set('cx', str(cx))
+        ext.set('cy', str(cy))
+        
+        prstGeom = etree.SubElement(spPr, qname('a', 'prstGeom'))
+        prstGeom.set('prst', 'rect')
+        avLst    = etree.SubElement(prstGeom, qname('a', 'avLst'))
+        
+        return pic
     
 
 class Placeholder(object):
@@ -1126,6 +1382,15 @@ class Placeholder(object):
         """Placeholder 'idx' attribute, e.g. '0'"""
         idx = self.__ph.get('idx')
         return int(idx) if idx else 0
+    
+
+class Picture(BaseShape):
+    """
+    A picture shape, one that places an image on a slide. Corresponds to the
+    ``<p:pic>`` element.
+    """
+    def __init__(self, pic):
+        super(Picture, self).__init__(pic)
     
 
 class Shape(BaseShape):
