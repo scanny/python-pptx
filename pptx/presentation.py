@@ -816,7 +816,7 @@ class Image(BasePart):
         # set content type
         self._content_type = self.__image_file_content_type(path)
         # lodge blob
-        with open(path) as f:
+        with open(path, 'rb') as f:
             self._load_blob = f.read()
     
 
