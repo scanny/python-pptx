@@ -408,7 +408,7 @@ class Relationship(object):
     
     @property
     def __target_relpath(self):
-        return os.path.relpath(self.target.partname, self.__baseURI)
+        return posixpath.relpath(self.target.partname, self.__baseURI)
     
 
 class PartTypeSpec(object):
