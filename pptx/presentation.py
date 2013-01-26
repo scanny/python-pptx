@@ -13,7 +13,12 @@ encounters as an end-user of the PowerPoint user interface.
 """
 
 import hashlib
-import Image as PIL_Image
+
+try:
+    from PIL import Image as PIL_Image
+except ImportError:
+    import Image as PIL_Image
+
 import os
 import weakref
 

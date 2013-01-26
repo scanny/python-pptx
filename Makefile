@@ -1,50 +1,59 @@
 PYTHON      = $(shell test -x bin/python && echo bin/python || \
                       echo `which python`)
-# PYVERS      = $(shell $(PYTHON) -c 'import sys; print "%s.%s" % sys.version_info[0:2]')
-# VIRTUALENV  = $(shell /bin/echo -n `which virtualenv || \
-#                                     which virtualenv-$(PYVERS) || \
-#                                     which virtualenv$(PYVERS)`)
-# VIRTUALENV += --no-site-packages
-# PAGER      ?= less
-# DEPS       := $(shell find $(PWD)/deps -type f -printf "file://%p ")
-# COVERAGE    = $(shell test -x bin/coverage && echo bin/coverage || echo true)
+BEHAVE      = behave
 SETUP       = $(PYTHON) ./setup.py
-# EZ_INSTALL  = $(SETUP) easy_install -f "$(DEPS)"
-# PYLINT      = bin/pylint
-# PLATFORM    = $(shell $(PYTHON) -c "from pkg_resources import get_build_platform; print get_build_platform()")
-# OS         := $(shell uname)
-# EGG        := $(shell $(SETUP) --fullname)-py$(PYVERS).egg
-# SDIST      := $(shell $(SETUP) --fullname).tar.gs
-# SRCDIR     := oauth2
-# SOURCES    := $(shell find $(SRCDIR) -type f -name \*.py -not -name 'test_*')
-# TESTS      := $(shell find $(SRCDIR) -type f -name test_\*.py)
-# COVERED    := $(SOURCES)
-# ROOT        = $(shell pwd)
-# ROOTCMD     = fakeroot
-# SIGN_KEY   ?= nerds@simplegeo.com
+
 # BUILD_NUMBER ?= 1
+# PYVERS        = $(shell $(PYTHON) -c 'import sys; print "%s.%s" % sys.version_info[0:2]')
+# SIGN_KEY     ?= nerds@simplegeo.com
+# SRCDIR       := oauth2
+# VIRTUALENV    = $(shell /bin/echo -n `which virtualenv || \
+#                                       which virtualenv-$(PYVERS) || \
+#                                       which virtualenv$(PYVERS)`)
+# VIRTUALENV   += --no-site-packages
+# COVERAGE      = $(shell test -x bin/coverage && echo bin/coverage || echo true)
+# DEPS         := $(shell find $(PWD)/deps -type f -printf "file://%p ")
+# EGG          := $(shell $(SETUP) --fullname)-py$(PYVERS).egg
+# EZ_INSTALL    = $(SETUP) easy_install -f "$(DEPS)"
+# OS           := $(shell uname)
+# PAGER        ?= less
+# PLATFORM      = $(shell $(PYTHON) -c "from pkg_resources import get_build_platform; print get_build_platform()")
+# PYLINT        = bin/pylint
+# ROOT          = $(shell pwd)
+# ROOTCMD       = fakeroot
+# SDIST        := $(shell $(SETUP) --fullname).tar.gs
+# SOURCES      := $(shell find $(SRCDIR) -type f -name \*.py -not -name 'test_*')
+# TESTS        := $(shell find $(SRCDIR) -type f -name test_\*.py)
+# COVERED      := $(SOURCES)
 
 
 .PHONY: test sdist clean
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  test   to run tests using setup.py"
-	@echo "  sdist  to generate a source distribution into dist/"
-	@echo "  clean  to delete intermediate work product and start fresh"
+	@echo "  accept  to run acceptance tests using behave"
+	@echo "  test    to run tests using setup.py"
+	@echo "  sdist   to generate a source distribution into dist/"
+	@echo "  clean   to delete intermediate work product and start fresh"
 
-#
-# all: egg
-# egg: dist/$(EGG)
-#
-# dist/$(EGG):
-# 	$(SETUP) bdist_egg
+accept:
+	$(BEHAVE)
 
 test:
 	$(SETUP) test
 
 sdist:
 	$(SETUP) sdist
+
+clean:
+	find . -type f -name \*.pyc -exec rm {} \;
+	rm -rf dist python_pptx.egg-info .coverage .DS_Store lint.html lint.txt
+
+# all: egg
+# egg: dist/$(EGG)
+#
+# dist/$(EGG):
+# 	$(SETUP) bdist_egg
 
 # xunit.xml: bin/nosetests $(SOURCES) $(TESTS)
 # 	$(SETUP) test --with-xunit --xunit-file=$@
@@ -107,7 +116,6 @@ sdist:
 # bin/markdown: bin/easy_install
 # 	@$(EZ_INSTALL) Markdown
 #
-#
 # # Development setup
 # rtfm:
 # 	$(PAGER) README.mkd
@@ -133,10 +141,6 @@ sdist:
 # 	@echo "            To activate the development environment, run:"
 # 	@echo "                           . bin/activate"
 # 	@echo "            ---------------------------------------------"
-
-clean:
-	find . -type f -name \*.pyc -exec rm {} \;
-	rm -rf dist python_pptx.egg-info .coverage .DS_Store lint.html lint.txt
 
 # scrap_targets:
 # 	@if test "$(OS)" = "Linux"; then $(ROOTCMD) debian/rules clean; fi

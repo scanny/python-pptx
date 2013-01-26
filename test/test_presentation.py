@@ -14,7 +14,12 @@ import inspect
 import os
 
 from lxml import etree
-from PIL import Image as PILImage
+
+try:
+    from PIL import Image as PILImage
+except ImportError:
+    import Image as PILImage
+
 from mock import Mock, patch, PropertyMock
 
 import pptx.presentation

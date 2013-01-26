@@ -18,7 +18,8 @@ The main API class is :class:`pptx.packaging.Package` which provides the
 methods :meth:`open`, :meth:`marshal`, and :meth:`save`.
 '''
 
-import os, posixpath
+import os
+import posixpath
 import zipfile
 
 from lxml import etree
