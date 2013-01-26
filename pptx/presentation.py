@@ -7,8 +7,10 @@
 # This module is part of python-pptx and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-'''API classes for dealing with presentations and other objects one typically
-encounters as an end-user of the PowerPoint user interface.'''
+"""
+API classes for dealing with presentations and other objects one typically
+encounters as an end-user of the PowerPoint user interface.
+"""
 
 import hashlib
 import Image as PIL_Image

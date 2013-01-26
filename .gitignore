@@ -1,6 +1,10 @@
 .DS_Store
-*.pyc
-python-pptx.tmproj
-README.html
-doc/_build
 .coverage
+.tox
+*.egg-info
+*.pyc
+README.html
+dist
+doc/_build
+features/_scratch/*
+python-pptx.tmproj

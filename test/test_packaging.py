@@ -11,13 +11,17 @@
 
 import inspect
 import os
-import unittest
+import sys
+import unittest2
 import zipfile
 
 from collections import namedtuple
 from lxml import etree
 from mock import Mock
 from StringIO import StringIO
+from unittest2 import skipIf
+
+from .context import pptx
 
 import pptx.packaging
 import pptx.presentation
@@ -28,16 +32,16 @@ from pptx.spec import PTS_CARDINALITY_TUPLE, PTS_HASRELS_ALWAYS
 
 from testing import TestCase
 
-# ============================================================================
-# Utility Items
-# ============================================================================
+# module globals -------------------------------------------------------------
+def absjoin(*paths):
+    return os.path.abspath(os.path.join(*paths))
 
-basepath = os.path.abspath(os.path.split(__file__)[0])
-tmpl_rel_dirpath = '../pptx/pptx_template'
-tmpl_dirpath = os.path.abspath(os.path.join(basepath, tmpl_rel_dirpath))
-test_pptx_path = os.path.join(basepath, 'test_files/test.pptx')
-dir_pkg_path = os.path.join(tmpl_dirpath, 'default')
-zip_pkg_path = os.path.join(tmpl_dirpath, 'default.pptx')
+thisdir = os.path.split(__file__)[0]
+test_file_dir = absjoin(thisdir, 'test_files')
+
+test_pptx_path = absjoin(test_file_dir, 'test.pptx')
+dir_pkg_path   = absjoin(test_file_dir, 'expanded_pptx')
+zip_pkg_path   = test_pptx_path
 
 class MockParent(object):
     """Stub out parent attributes."""
@@ -272,18 +276,12 @@ class TestFileSystem(TestCase):
 class TestPackage(TestCase):
     """Test pptx.packaging.Package"""
     def setUp(self):
-        # construct Package
         self.pkg = pptx.packaging.Package()
-        self.test_pptx_path = os.path.join(basepath, 'test_python-pptx.pptx')
+        self.test_pptx_path = absjoin(thisdir, 'test_python-pptx.pptx')
     
     def tearDown(self):
         if os.path.isfile(self.test_pptx_path):
             os.remove(self.test_pptx_path)
-    
-    def test_class_present(self):
-        """Package class present in packaging module"""
-        # verify ----------------------
-        self.assertClassInModule(pptx.packaging, 'Package')
     
     def test_marshal_method_present(self):
         """Package class has method 'marshal'"""
@@ -456,7 +454,7 @@ class TestPart(TestCase):
         self.content_type = 'application/vnd.openxmlformats-officedocument'\
                             '.presentationml.slideMaster+xml'
         self.part = pptx.packaging.Part()
-        self.test_pptx_path = os.path.join(basepath, 'test_python-pptx.pptx')
+        self.test_pptx_path = absjoin(thisdir, 'test_python-pptx.pptx')
     
     def tearDown(self):
         if os.path.isfile(self.test_pptx_path):
@@ -485,7 +483,7 @@ class TestPart(TestCase):
     def test__load_raises_on_missing_rels_item(self):
         """Part._load() raises on missing rels item"""
         # setup -----------------------
-        path = os.path.join(basepath, 'test_files/missing_rels_item.pptx')
+        path = absjoin(test_file_dir, 'missing_rels_item.pptx')
         fs = pptx.packaging.FileSystem(path)
         pkg = pptx.packaging.Package()
         # verify ----------------------
@@ -629,7 +627,7 @@ class TestRelationship(TestCase):
 class TestZipFileSystem(TestCase):
     """Test pptx.packaging.ZipFileSystem (writing aspect)"""
     def setUp(self):
-        self.test_pptx_path = os.path.join(basepath, 'test_python-pptx.pptx')
+        self.test_pptx_path = absjoin(test_file_dir, 'test_python-pptx.pptx')
         self.xml_in =\
             """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>"""\
             """<p:presentationPr xmlns:a="http://main" """\

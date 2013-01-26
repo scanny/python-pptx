@@ -1450,9 +1450,7 @@ class TestSlideLayout(TestCase):
         # partname for related slideMaster
         sldmaster_partname = '/ppt/slideMasters/slideMaster1.xml'
         # path to test slideLayout XML
-        relpath = ('../pptx/pptx_template/default/ppt/slideLayouts/'
-                   'slideLayout1.xml')
-        slidelayout_path = os.path.abspath(os.path.join(thisdir, relpath))
+        slidelayout_path = absjoin(test_file_dir, 'slideLayout1.xml')
         # model-side slideMaster part
         if prs_slidemaster is None:
             prs_slidemaster = Mock(spec=SlideMaster)
@@ -1483,7 +1481,7 @@ class TestSlideLayout(TestCase):
         """SlideLayout._load() sets slidemaster"""
         # setup -----------------------
         prs_slidemaster = Mock(spec=SlideMaster)
-        # # exercise --------------------
+        # exercise --------------------
         loaded_slidelayout = self.__loaded_slidelayout(prs_slidemaster)
         # verify ----------------------
         expected = prs_slidemaster

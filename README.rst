@@ -2,6 +2,15 @@
 python-pptx
 ###########
 
+STATUS (as of Jan 25 2013)
+==========================
+
+python-pptx-0.1.0a1
+
+Completed distribution items, primarily setup.py. Uploading first alpha to
+PyPI.
+
+
 STATUS (as of Jan 19 2013)
 ==========================
 

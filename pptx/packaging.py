@@ -27,8 +27,8 @@ from StringIO import StringIO
 import pptx.spec
 
 from pptx            import util
-from pptx.exceptions import CorruptedPackageError, DuplicateKeyError,\
-                            NotXMLError, PackageNotFoundError
+from pptx.exceptions import (CorruptedPackageError, DuplicateKeyError,
+    NotXMLError, PackageNotFoundError)
 from pptx.spec import qname
 from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
 
@@ -90,7 +90,7 @@ class Package(object):
         self.__relationships = []  # discard any rels from prior load
         parts_dict = {}            # track loaded parts, graph is cyclic
         pkg_rel_elms = fs.getelement(Package.PKG_RELSITEM_URI)\
-                         .findall(qname('pr','Relationship'))
+                         .findall(qname('pr', 'Relationship'))
         for rel_elm in pkg_rel_elms:
             rId = rel_elm.get('Id')
             reltype = rel_elm.get('Type')
@@ -168,7 +168,7 @@ class Package(object):
         for rel in rels:
             # log.debug("rel.target.partname==%s", rel.target.partname)
             part = rel.target
-            if part in parts: # only visit each part once (graph is cyclic)
+            if part in parts:  # only visit each part once (graph is cyclic)
                 continue
             parts.append(part)
             yield part
@@ -585,10 +585,10 @@ class _ContentTypesItem(object):
         """
         Assemble a [Content_Types].xml item based on the contents of *parts*.
         """
-        # extensions in this dict includes leading '.'
+        # extensions in this dict include leading '.'
         def_cts = pptx.spec.default_content_types
         # initialize working dictionaries for defaults and overrides
-        self.__defaults = {ext[1:]: def_cts[ext] for ext in ('.rels', '.xml')}
+        self.__defaults = dict((ext[1:], def_cts[ext]) for ext in ('.rels', '.xml'))
         self.__overrides = {}
         # compose appropriate element for each part
         for part in parts:
@@ -631,8 +631,10 @@ class _ContentTypesItem(object):
         element = fs.getelement('/[Content_Types].xml')
         defaults = element.findall(qname('ct','Default'))
         overrides = element.findall(qname('ct','Override'))
-        self.__defaults = {d.get('Extension'): d.get('ContentType') for d in defaults}
-        self.__overrides = {o.get('PartName'): o.get('ContentType') for o in overrides}
+        self.__defaults = dict((d.get('Extension'), d.get('ContentType'))
+                               for d in defaults)
+        self.__overrides = dict((o.get('PartName'), o.get('ContentType'))
+                                for o in overrides)
         return self
     
 

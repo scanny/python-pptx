@@ -10,10 +10,10 @@
 """Testing utilities for python-pptx."""
 
 import inspect
-import unittest
+import unittest2
 
 
-class TestCase(unittest.TestCase):
+class TestCase(unittest2.TestCase):
     """Additional assert methods for python-pptx unit testing."""
     def assertClassInModule(self, module, cls_name):
         """
@@ -21,7 +21,7 @@ class TestCase(unittest.TestCase):
         
         """
         # verify ----------------------
-        members = {name: obj for name, obj in inspect.getmembers(module)}
+        members = dict(inspect.getmembers(module))
         if cls_name not in members:
             tmpl = "no class '%s' in module '%s'"
             raise AssertionError(tmpl % (cls_name, module.__name__))
