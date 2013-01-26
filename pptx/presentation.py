@@ -103,6 +103,10 @@ class Package(object):
     
     @property
     def presentation(self):
+        """
+        Reference to the :class:`Presentation` instance contained in this
+        package.
+        """
         return self.__presentation
     
     def open(self, path):
@@ -206,9 +210,9 @@ class Collection(object):
     Has the following characteristics.:
     
     * Container (implements __contains__)
-    * Iterable (implements __iter__)
+    * Iterable (delegates __iter__ to :class:`list`)
     * Sized (implements __len__)
-    * Sequence (implements __getitem__)
+    * Sequence (delegates __getitem__ to :class:`list`)
     """
     def __init__(self):
         # log.debug('Collection.__init__() called')
@@ -1122,15 +1126,15 @@ class ShapeCollection(BaseShape, Collection):
     while spTree in a slide is a group shape, the group shape is recursive in
     that a group shape can include other group shapes within it.
     """
-    NVGRPSPPR    = qname('p', 'nvGrpSpPr')
-    GRPSPPR      = qname('p', 'grpSpPr')
-    SP           = qname('p', 'sp')
-    GRPSP        = qname('p', 'grpSp')
-    GRAPHICFRAME = qname('p', 'graphicFrame')
-    CXNSP        = qname('p', 'cxnSp')
-    PIC          = qname('p', 'pic')
-    CONTENTPART  = qname('p', 'contentPart')
-    EXTLST       = qname('p', 'extLst')
+    _NVGRPSPPR    = qname('p', 'nvGrpSpPr')
+    _GRPSPPR      = qname('p', 'grpSpPr')
+    _SP           = qname('p', 'sp')
+    _GRPSP        = qname('p', 'grpSp')
+    _GRAPHICFRAME = qname('p', 'graphicFrame')
+    _CXNSP        = qname('p', 'cxnSp')
+    _PIC          = qname('p', 'pic')
+    _CONTENTPART  = qname('p', 'contentPart')
+    _EXTLST       = qname('p', 'extLst')
     
     def __init__(self, spTree, slide=None):
         # log.debug('ShapeCollect.__init__() called w/element 0x%X', id(spTree))
@@ -1140,15 +1144,15 @@ class ShapeCollection(BaseShape, Collection):
         # unmarshal shapes
         for elm in spTree:
             # log.debug('elm.tag == %s', elm.tag[60:])
-            if elm.tag in (self.NVGRPSPPR, self.GRPSPPR, self.EXTLST):
+            if elm.tag in (self._NVGRPSPPR, self._GRPSPPR, self._EXTLST):
                 continue
-            elif elm.tag == self.SP:
+            elif elm.tag == self._SP:
                 shape = Shape(elm)
-            elif elm.tag == self.PIC:
+            elif elm.tag == self._PIC:
                 shape = Picture(elm)
-            elif elm.tag == self.GRPSP:
+            elif elm.tag == self._GRPSP:
                 shape = ShapeCollection(elm)
-            elif elm.tag == self.CONTENTPART:
+            elif elm.tag == self._CONTENTPART:
                 msg = "first time 'contentPart' shape encountered in the "\
                       "wild, please let developer know and send example"
                 raise ValueError(msg)

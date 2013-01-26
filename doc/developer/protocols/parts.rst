@@ -2,13 +2,7 @@
 Parts protocol and interfaces
 =============================
 
-... the part-related protocol ...
-
-
-Part protocol
-=============================
-
-... general discussion of Part interface and protocol ...
+... general discussion of Part interfaces and protocol ...
 
 Behavior of loaded parts is different from added parts (but shouldn't be,
 indicates a coupling to loading) ...
@@ -20,8 +14,8 @@ There are essentially three protocols with partially-overlapping interfaces:
 * manipulation protocol
 
 
-Part objects
----------------------------------------
+:class:`Part` objects
+=====================
 
 .. currentmodule:: pptx.presentation
 

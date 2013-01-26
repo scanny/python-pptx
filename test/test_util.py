@@ -11,18 +11,18 @@
 
 import platform
 
-from pptx.util import BaseLength, Cm, Emu, Inches, Mm, Partname, Px
+from pptx.util import _BaseLength, Cm, Emu, Inches, Mm, Partname, Px
 
 from testing import TestCase
 
 class TestLengthClasses(TestCase):
-    """Test BaseLength, Inches, Cm, Mm, Px, and Emu classes"""
+    """Test _BaseLength, Inches, Cm, Mm, Px, and Emu classes"""
     def test_base_method_values(self):
-        """BaseLength() provides correct values for base methods"""
+        """_BaseLength() provides correct values for base methods"""
         # setup -----------------------
         expected_px = 96 if platform.system() == 'Windows' else 72
         # exercise --------------------
-        x = BaseLength(914400)
+        x = _BaseLength(914400)
         # verify ----------------------
         expected = (1.0, 2.54, 25.4, expected_px, 914400, 914400)
         actual = (x.inches, x.cm, x.mm, x.px, x.emu, x)

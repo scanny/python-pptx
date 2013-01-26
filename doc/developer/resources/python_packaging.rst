@@ -43,7 +43,9 @@ Distribution-related files
 * setup.cfg
 
 
-=========================
+----
+
+
 Distribution user stories
 =========================
 
@@ -51,20 +53,20 @@ Distribution user stories
 
 
 Roles
-=====
+-----
 
 * naive end-user
 
 
 Use Cases
-=========
+---------
 
 Test build before distribution
-------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 "Just-works" installation
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ::
 
@@ -75,11 +77,11 @@ Test build before distribution
 
 
 Install as a dependency
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 
 Verify installation
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 ::
 
@@ -88,55 +90,6 @@ Verify installation
    I want to be able to easily run the test suite without having to invest in
    any additional discovery or configuration.
 
-
-
-
-Manifest
-========
-
-These files should be included in the distribution::
-
-   <root>/
-      README.rst
-      setup.py
-      pptx/
-         __init__.py
-         presentation.py
-         packaging.py
-         spec.py
-         util.py
-         exc.py
-      test/
-         test_presentation.py
-         test_packaging.py
-         test_util.py
-         testing.py
-         test_files/
-            minimal_slide.xml
-            missing_rels_item.pptx
-            monty-truth.png
-            no-slides.pptx
-            presentation.xml
-            python-icon.jpeg
-            python-powered.png
-            slide1.xml
-            slideLayout1.xml
-            test.pptx
-            with_images.pptx
-      features/
-         01-round-trip.feature
-         02-add-slide.feature
-         03-add-picture.feature
-         steps/
-            prs_steps.py
-
-
-Dependencies
-============
-
-* lxml
-* PIL
-* others?
 
 
 Resources

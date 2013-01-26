@@ -30,24 +30,32 @@ SETUP       = $(PYTHON) ./setup.py
 .PHONY: test sdist clean
 
 help:
-	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  accept  to run acceptance tests using behave"
-	@echo "  test    to run tests using setup.py"
-	@echo "  sdist   to generate a source distribution into dist/"
-	@echo "  clean   to delete intermediate work product and start fresh"
+	@echo "Please use \`make <target>' where <target> is one or more of"
+	@echo "  accept    to run acceptance tests using behave"
+	@echo "  clean     to delete intermediate work product and start fresh"
+	@echo "  test      to run tests using setup.py"
+	@echo "  register  to update metadata (README.rst) on PyPI"
+	@echo "  sdist     to generate a source distribution into dist/"
+	@echo "  upload    to upload distribution tarball to PyPI"
 
 accept:
 	$(BEHAVE)
 
-test:
-	$(SETUP) test
+clean:
+	find . -type f -name \*.pyc -exec rm {} \;
+	rm -rf dist python_pptx.egg-info .coverage .DS_Store lint.html lint.txt
+
+register:
+	$(SETUP) register
 
 sdist:
 	$(SETUP) sdist
 
-clean:
-	find . -type f -name \*.pyc -exec rm {} \;
-	rm -rf dist python_pptx.egg-info .coverage .DS_Store lint.html lint.txt
+test:
+	$(SETUP) test
+
+upload:
+	$(SETUP) sdist upload
 
 # all: egg
 # egg: dist/$(EGG)

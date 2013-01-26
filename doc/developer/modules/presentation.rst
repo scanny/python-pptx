@@ -4,8 +4,10 @@
 The status of this page is **ROUGH DRAFT**.
 
 .. automodule:: pptx.presentation
-   :members: Package, Presentation, SlideCollection, SlideMaster,
-      SlideLayout, Slide, ShapeCollection, Shape, TextFrame, Paragraph, Run
+   :members: Collection, Observable, BaseSlide, BaseShape
    :undoc-members:
    :show-inheritance:
+
+.. |_RelationshipCollection| replace:: :class:`_RelationshipCollection`
+
 

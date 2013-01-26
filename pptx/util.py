@@ -16,71 +16,71 @@ import os
 import platform
 import re
 
-class BaseLength(int):
+class _BaseLength(int):
     """Base class for length classes Inches, Cm, Mm, Px, and Emu."""
-    EMUS_PER_INCH = 914400
-    EMUS_PER_CM   = 360000
-    EMUS_PER_MM   = 36000
-    EMUS_PER_PX   = 9525 if platform.system() == 'Windows' else 12700
+    _EMUS_PER_INCH = 914400
+    _EMUS_PER_CM   = 360000
+    _EMUS_PER_MM   = 36000
+    _EMUS_PER_PX   = 9525 if platform.system() == 'Windows' else 12700
     
     def __new__(cls, emu):
         return int.__new__(cls, emu)
     
     @property
     def inches(self):
-        return self / float(self.EMUS_PER_INCH)
+        return self / float(self._EMUS_PER_INCH)
     
     @property
     def cm(self):
-        return self / float(self.EMUS_PER_CM)
+        return self / float(self._EMUS_PER_CM)
     
     @property
     def mm(self):
-        return self / float(self.EMUS_PER_MM)
+        return self / float(self._EMUS_PER_MM)
     
     @property
     def px(self):
         # round can somtimes return values like x.999999 which are truncated
         # to x by int(); adding the 0.1 prevents this
-        return int(round(self / float(self.EMUS_PER_PX)) + 0.1)
+        return int(round(self / float(self._EMUS_PER_PX)) + 0.1)
     
     @property
     def emu(self):
         return self
     
 
-class Inches(BaseLength):
+class Inches(_BaseLength):
     """Convenience constructor for length in inches."""
     def __new__(cls, inches):
-        emu = int(inches * BaseLength.EMUS_PER_INCH)
-        return BaseLength.__new__(cls, emu)
+        emu = int(inches * _BaseLength._EMUS_PER_INCH)
+        return _BaseLength.__new__(cls, emu)
     
 
-class Cm(BaseLength):
+class Cm(_BaseLength):
     """Convenience constructor for length in centimeters."""
     def __new__(cls, cm):
-        emu = int(cm * BaseLength.EMUS_PER_CM)
-        return BaseLength.__new__(cls, emu)
+        emu = int(cm * _BaseLength._EMUS_PER_CM)
+        return _BaseLength.__new__(cls, emu)
     
 
-class Mm(BaseLength):
+class Mm(_BaseLength):
     """Convenience constructor for length in millimeters."""
     def __new__(cls, mm):
-        emu = int(mm * BaseLength.EMUS_PER_MM)
-        return BaseLength.__new__(cls, emu)
+        emu = int(mm * _BaseLength._EMUS_PER_MM)
+        return _BaseLength.__new__(cls, emu)
     
 
-class Px(BaseLength):
+class Px(_BaseLength):
     """Convenience constructor for length in pixels."""
     def __new__(cls, px):
-        emu = int(px * BaseLength.EMUS_PER_PX)
-        return BaseLength.__new__(cls, emu)
+        emu = int(px * _BaseLength._EMUS_PER_PX)
+        return _BaseLength.__new__(cls, emu)
     
 
-class Emu(BaseLength):
+class Emu(_BaseLength):
     """Convenience constructor for length in english metric units."""
     def __new__(cls, emu):
-        return BaseLength.__new__(cls, int(emu))
+        return _BaseLength.__new__(cls, int(emu))
     
 
 class Partname(object):
@@ -96,25 +96,42 @@ class Partname(object):
     
     @property
     def baseURI(self):
+        """
+        The base URI of partname, e.g. ``'/ppt/slides'`` for
+        ``'/ppt/slides/slide1.xml'``.
+        """
         return os.path.split(self.__partname)[0]
     
     @property
     def filename(self):
+        """
+        The "filename" portion of partname, e.g. ``'slide1.xml'`` for
+        ``'/ppt/slides/slide1.xml'``.
+        """
         return os.path.split(self.__partname)[1]
     
     @property
     def ext(self):
+        """
+        The extension portion of partname, e.g. ``'.xml'`` for
+        ``'/ppt/slides/slide1.xml'``. Note that period is included, consistent
+        with behavior of :meth:`os.path.ext`.
+        """
         return os.path.splitext(self.__partname)[1]
     
     @property
     def partname(self):
+        """
+        The complete partname, e.g. ``'/ppt/slides/slide1.xml'`` for
+        ``'/ppt/slides/slide1.xml'``.
+        """
         return self.__partname
     
     @property
     def basename(self):
         """
-        Return basename of partname, e.g. ``slide`` for
-        ``/ppt/slides/slide1.xml``.
+        The base "filename" of the partname, e.g. ``'slide'`` for
+        ``'/ppt/slides/slide1.xml'``.
         """
         name = os.path.splitext(self.filename)[0]  # filename with ext removed
         match = self.__filename_re.match(name)
@@ -124,83 +141,14 @@ class Partname(object):
     def idx(self):
         """
         Return partname index as integer for tuple partname or None for
-        singleton partname.
+        singleton partname, e.g. ``21`` for ``'/ppt/slides/slide21.xml'`` and
+        :class:`None` for ``'/ppt/presentation.xml'``.
         """
         name = os.path.splitext(self.filename)[0]  # filename with ext removed
         match = self.__filename_re.match(name)
         return int(match.group(2)) if match.group(2) else None
     
 
-def emu(inches):
-    """Return *inches* converted to English Metric Units (EMU)."""
-    return int(inches * 914400)
-
-# utility sequential integer generator, suitable for generating unique ids.
-def intsequence(start=1):
-    num = start
-    while True:
-        yield num
-        num += 1
-
-# indents second and later attributes on the root element so namespace
-# declarations don't spread off the page in the text editor and can be more
-# easily inspected
-def prettify_nsdecls(xml):
-    lines = xml.splitlines()
-    if len(lines) < 2                   : return xml  # if XML is all on one line, don't mess with it
-    if not lines[0].startswith('<?xml') : return xml  # if don't find xml declaration on first line, pass
-    if not lines[1].startswith('<')     : return xml  # if don't find an unindented opening element on line 2, pass
-    rootline = lines[1]
-    # split rootline into element tag part and attributes parts
-    attrib_re = re.compile(r'([-a-zA-Z0-9_:.]+="[^"]*" *>?)')
-    substrings = [substring.strip() for substring in attrib_re.split(rootline) if substring]
-    # substrings looks something like ['<p:sld', 'xmlns:p="html://..."', 'name="Office Theme>"']
-    if len(substrings) < 3: # means there's at most one attributes so no need to indent
-        return xml
-    indent = ' ' * (len(substrings[0])+1)
-    newrootline = ' '.join(substrings[:2])  # join element tag and first attribute onto same line
-    for substring in substrings[2:]:        # indent remaining attributes on following lines
-        newrootline += '\n%s%s' % (indent, substring)
-    lines[1] = newrootline
-    return '\n'.join(lines)
-
-def sortedtemplatefilepaths(templatedir, searchdir, filenameroot, ext):
-    # trim leading slash off of searchdir if present
-    searchdir = searchdir[1:] if searchdir.startswith('/') else searchdir
-    # form fully qualified path to search directory
-    dirpath = os.path.join(templatedir, searchdir)
-    # form list of all files in the directory
-    filepaths = {}
-    for name in os.listdir(dirpath):
-        fqname = os.path.join(dirpath, name)
-        if not os.path.isfile(fqname):
-            continue
-        if not name.startswith(filenameroot) or not name.endswith(ext):
-            raise Exception('''Unexpected file '%s' found in template.''' % os.path.join(searchdir, name))
-        filenamenumber = name[len(filenameroot):-(len(ext)+1)]
-        sortkey = int(filenamenumber) if filenamenumber else 0
-        filepaths[sortkey] = fqname
-    # return file paths sorted in numerical order (not lexicographic order)
-    return [filepaths[key] for key in sorted(filepaths.keys())]
-
-
-# TECHDEBT: Not all files in the media directory are necessarily image files.
-#           Audio and Video media can show up there too, although are perhaps
-#           less likely to appear in a presentation template.
-def templatemediafilepaths(templatedir):
-    # form fully qualified path to search directory
-    dirpath = os.path.join(templatedir, 'ppt/media')
-    # if directory doesn't exist, it means the template doesn't contain any media files
-    if not os.path.isdir(dirpath):
-        return []
-    # form list of all files in the directory
-    filepaths = []
-    for name in os.listdir(dirpath):
-        filepath = os.path.join(dirpath, name)
-        if not os.path.isfile(filepath):
-            continue
-        filepaths.append(filepath)
-    return filepaths
 
 
     

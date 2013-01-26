@@ -3,18 +3,14 @@ Development Practices
 =====================
 
 
-Acceptance Testing
-==================
-
-
-Behave
-------
+Acceptance testing with ``behave``
+==================================
 
 ... using *behave* for now for acceptance testing ...
 
 
 Installation
-^^^^^^^^^^^^
+------------
 
 ::
 
@@ -22,7 +18,7 @@ Installation
 
 
 Tutorial
-^^^^^^^^
+--------
 
 The `behave tutorial`_ is well worth working through.
 
@@ -35,8 +31,9 @@ the practicalities down.
 .. _examples and tutorials:
    http://jenisys.github.com/behave.example/index.html
 
-Resources
-^^^^^^^^^
+
+``behave`` Resources
+--------------------
 
 * `INVEST in Good Stories, and SMART Tasks`_
 * `The Secret Ninja Cucumber Scrolls`_

@@ -87,19 +87,17 @@ web reference states otherwise.
 
 http://www.pptools.com/starterset/FAQ00036.htm
 
-**Duplicate names not allowed**. PowerPoint won't allow more than one shape on
-a slide to have the same name. If you already have a shape named XXX, you
-can't give another shape that same name.
+   **Duplicate names not allowed**. PowerPoint won't allow more than one shape
+   on a slide to have the same name. If you already have a shape named XXX,
+   you can't give another shape that same name.
+   
+   When this happens, you'll see a message that explains why the name can't be
+   changed, and the name will be reset to the original name in the Object
+   Properties dialog box.
 
-When this happens, you'll see a message that explains why the name can't be
-changed, and the name will be reset to the original name in the Object
-Properties dialog box.
-
-Note:
-
-You can have two or more shapes with the same name, as long as they're on
-different slides. The same "no duplicates" rule applies to slides within a
-presentation; no two slides can have the same name.
+   Note: You can have two or more shapes with the same name, as long as
+   they're on different slides. The same "no duplicates" rule applies to
+   slides within a presentation; no two slides can have the same name.
 
 
 Child Objects

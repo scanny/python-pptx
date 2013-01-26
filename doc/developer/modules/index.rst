@@ -9,11 +9,9 @@ The following modules are contained in the package. Internal APIs are
 documented here as a convenience for developers.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    presentation
    packaging
    spec
-   util
-   exc
 

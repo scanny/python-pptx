@@ -112,7 +112,7 @@ html_theme_options =\
     # , 'analytics_code'   : 'UA-00000000-1'
     # , 'twitter_username' : 'scotchmedia'
     # , 'home_url'         : 'http://code.scotchmedia.com/sphinx-bootstrap'
-    , 'disqus_shortname' : 'scotchmedia'
+    # , 'disqus_shortname' : 'scotchmedia'
     }
 
 # Add any paths that contain custom themes here, relative to this directory.
