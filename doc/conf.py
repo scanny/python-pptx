@@ -99,21 +99,21 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-# html_theme = 'default'
-html_theme = 'sphinx-bootstrap'
+html_theme = 'default'
+# html_theme = 'sphinx-bootstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
-html_theme_options =\
-    { 'github_user'      : 'scanny'
-    , 'github_repo'      : 'python-pptx'
-    # , 'analytics_code'   : 'UA-00000000-1'
-    # , 'twitter_username' : 'scotchmedia'
-    # , 'home_url'         : 'http://code.scotchmedia.com/sphinx-bootstrap'
-    # , 'disqus_shortname' : 'scotchmedia'
-    }
+html_theme_options = {}
+# html_theme_options =\
+#     { 'github_user'      : 'scanny'
+#     , 'github_repo'      : 'python-pptx'
+#     # , 'analytics_code'   : 'UA-00000000-1'
+#     # , 'twitter_username' : 'scotchmedia'
+#     # , 'home_url'         : 'http://code.scotchmedia.com/sphinx-bootstrap'
+#     # , 'disqus_shortname' : 'scotchmedia'
+#     }
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
