@@ -14,6 +14,7 @@ import inspect
 import os
 
 from lxml import etree
+from PIL import Image as PILImage
 from mock import Mock, patch, PropertyMock
 
 import pptx.presentation
@@ -33,6 +34,7 @@ from pptx.spec import (RT_HANDOUTMASTER, RT_IMAGE, RT_NOTESMASTER,
 from pptx.spec import (PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ,
     PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE,
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER)
+from pptx.util import Px
 from testing import TestCase
 
 import logging
@@ -1265,6 +1267,8 @@ class TestShapeCollection(TestCase):
     def test___pic_return_value(self):
         """ShapeCollection.__pic returns correct value"""
         # setup -----------------------
+        test_image = PILImage.open(test_image_path)
+        pic_size = tuple(Px(x) for x in test_image.size)
         xml = ('<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/2'
             '006/main" xmlns:p="http://schemas.openxmlformats.org/presentatio'
             'nml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
@@ -1272,8 +1276,8 @@ class TestShapeCollection(TestCase):
             'cture 3" descr="python-icon.jpeg"/><p:cNvPicPr/><p:nvPr/></p:nvP'
             'icPr><p:blipFill><a:blip r:embed="rId9"/><a:stretch><a:fillRect/'
             '></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="0" y="0"/><a'
-            ':ext cx="2590800" cy="2590800"/></a:xfrm><a:prstGeom prst="rect"'
-            '><a:avLst/></a:prstGeom></p:spPr></p:pic>')
+            ':ext cx="%s" cy="%s"/></a:xfrm><a:prstGeom prst="rect"'
+            '><a:avLst/></a:prstGeom></p:spPr></p:pic>' % pic_size)
         # exercise --------------------
         pic = self.shapes._ShapeCollection__pic('rId9', test_image_path, 0, 0)
         # verify ----------------------
@@ -1352,7 +1356,7 @@ class TestSlide(TestCase):
         rel.reltype = RT_SLIDELAYOUT
         rel.target = slidelayout
         pkgpart = Mock(name='pptx.packaging.Part')
-        with open(path, 'r') as f:
+        with open(path, 'rb') as f:
             pkgpart.blob = f.read()
         pkgpart.relationships = [rel]
         part_dict = {slidelayout.partname: slidelayout}
@@ -1467,7 +1471,7 @@ class TestSlideLayout(TestCase):
         # the slideLayout package part to send to _load()
         pkg_slidelayout_part = Mock(spec=pptx.packaging.Part)
         pkg_slidelayout_part.relationships = [rel]
-        with open(slidelayout_path, 'r') as f:
+        with open(slidelayout_path, 'rb') as f:
             pkg_slidelayout_part.blob = f.read()
         # _load and return
         slidelayout = SlideLayout()
