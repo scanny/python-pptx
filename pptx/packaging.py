@@ -18,7 +18,7 @@ The main API class is :class:`pptx.packaging.Package` which provides the
 methods :meth:`open`, :meth:`marshal`, and :meth:`save`.
 '''
 
-import os
+import os, posixpath
 import zipfile
 
 from lxml import etree
@@ -251,8 +251,8 @@ class Part(object):
             rId = rel_elm.get('Id')
             reltype = rel_elm.get('Type')
             target_relpath = rel_elm.get('Target')
-            target_partname = os.path.abspath(os.path.join(baseURI,
-                                                           target_relpath))
+            target_partname = posixpath.abspath(posixpath.join(baseURI,
+                                                               target_relpath))
             if target_partname in parts_dict:
                 target_part = parts_dict[target_partname]
             else:
@@ -408,7 +408,7 @@ class Relationship(object):
     
     @property
     def __target_relpath(self):
-        return os.path.relpath(self.target.partname, self.__baseURI)
+        return posixpath.relpath(self.target.partname, self.__baseURI)
     
 
 class PartTypeSpec(object):
@@ -746,7 +746,7 @@ class DirectoryFileSystem(BaseFileSystem):
         if itemURI not in self:
             raise LookupError("No package item with URI '%s'" % itemURI)
         path = os.path.join(self.path, itemURI[1:])
-        with open(path) as f:
+        with open(path, 'rb') as f:
             stream = StringIO(f.read())
         return stream
     
@@ -764,7 +764,7 @@ class DirectoryFileSystem(BaseFileSystem):
             for filename in filenames:
                 item_path = os.path.join(dirpath, filename)
                 itemURI = item_path[len(self.path):]  # leaves a leading slash on
-                itemURIs.append(itemURI)
+                itemURIs.append(itemURI.replace(os.sep, '/'))
         return sorted(itemURIs)
     
 
