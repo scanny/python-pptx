@@ -290,7 +290,7 @@ class TestPackage(TestCase):
     def test_marshal_returns_self(self):
         """Package.marshal() returns self-reference"""
         # setup -----------------------
-        model_pkg = pptx.presentation.Package().open(test_pptx_path)
+        model_pkg = pptx.presentation.Package(test_pptx_path)
         # exercise --------------------
         retval = self.pkg.marshal(model_pkg)
         # verify ----------------------
@@ -400,10 +400,6 @@ class TestPackage(TestCase):
         self.pkg.open(dir_pkg_path)
         # verify ----------------------
         self.assertLength(self.pkg.relationships, 4)
-    
-    def test_save_method_present(self):
-        """Package class has method 'save'"""
-        self.assertClassHasMethod(pptx.packaging.Package, 'save')
     
     def test_save_writes_pptx_zipfile(self):
         """Package.save() writes .pptx file"""

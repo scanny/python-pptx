@@ -8,4 +8,3 @@ Feature: Round-trip a presentation
       When I open a basic PowerPoint presentation
        And I save the presentation
       Then I see the pptx file in the working directory
-

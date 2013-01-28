@@ -76,12 +76,15 @@ class Package(object):
     # track instances as weakrefs so .containing() can be computed
     __instances = []
     
-    def __init__(self):
+    def __init__(self, path=None):
         super(Package, self).__init__()
         self.__presentation = None
         self.__relationships = _RelationshipCollection()
         self.__images = ImageCollection()
         self.__instances.append(weakref.ref(self))
+        if path is None:
+            path = self.__default_pptx_path
+        self.__open(path)
     
     @classmethod
     def containing(cls, part):
@@ -109,19 +112,10 @@ class Package(object):
         """
         return self.__presentation
     
-    def open(self, path):
-        """
-        Open presentation file located at *path*. Returns self-reference to
-        allow generative calling structure, e.g.
-        ``pkg = Package().open(path)``.
-        """
-        pkg = pptx.packaging.Package().open(path)
-        self.__load(pkg.relationships)
-        # unmarshal relationships selectively for now
-        for rel in self.__relationships:
-            if rel._reltype == RT_OFFICEDOCUMENT:
-                self.__presentation = rel._target
-        return self
+    def save(self, path):
+        """Save package as .pptx file at *path*"""
+        pkgng_pkg = pptx.packaging.Package().marshal(self)
+        pkgng_pkg.save(path)
     
     @property
     def _images(self):
@@ -167,6 +161,26 @@ class Package(object):
                        if part.__class__.__name__ == 'Image']
         for image in image_parts:
             self.__images._loadpart(image)
+    
+    def __open(self, path):
+        """
+        Load presentation file at *path* into this package.
+        """
+        pkg = pptx.packaging.Package().open(path)
+        self.__load(pkg.relationships)
+        # unmarshal relationships selectively for now
+        for rel in self.__relationships:
+            if rel._reltype == RT_OFFICEDOCUMENT:
+                self.__presentation = rel._target
+    
+    @property
+    def __default_pptx_path(self):
+        """
+        The path of the default presentation, used when no path is specified
+        on construction.
+        """
+        thisdir = os.path.split(__file__)[0]
+        return os.path.join(thisdir, 'templates', 'default.pptx')
     
     @property
     def _parts(self):
@@ -1486,6 +1500,27 @@ class Paragraph(object):
         super(Paragraph, self).__init__()
         self.__p = p
     
+    @property
+    def runs(self):
+        """
+        Immutable sequence of :class:`Run` instances corresponding to the runs
+        in this paragraph.
+        """
+        xpath = './a:r'
+        r_elms = self.__p.xpath(xpath, namespaces=self.__nsmap)
+        runs = []
+        for r in r_elms:
+            runs.append(Run(r))
+        return tuple(runs)
+    
+    def _set_text(self, value):
+        """Replace runs with single run containing *value*"""
+        self.clear()
+        r = self.add_run()
+        r.text = value
+    
+    text = property(None, _set_text)
+    
     def add_run(self):
         """Return a new run appended to the runs in this paragraph."""
         r = self.__new_run_element()
@@ -1500,27 +1535,6 @@ class Paragraph(object):
         """Remove all runs from this paragraph."""
         # for now just remove all children; later might want to keep pPr
         self.__p.clear()
-    
-    def set_text(self, value):
-        """Replace runs with single run containing *value*"""
-        self.clear()
-        r = self.add_run()
-        r.text = value
-    
-    text = property(None, set_text)
-    
-    @property
-    def runs(self):
-        """
-        Immutable sequence of :class:`Run` instances corresponding to the runs
-        in this paragraph.
-        """
-        xpath = './a:r'
-        r_elms = self.__p.xpath(xpath, namespaces=self.__nsmap)
-        runs = []
-        for r in r_elms:
-            runs.append(Run(r))
-        return tuple(runs)
     
     @property
     def __endParaRPr(self):

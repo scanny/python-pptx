@@ -6,7 +6,7 @@ from hamcrest import (assert_that, has_item, is_, is_not, equal_to,
                       greater_than)
 
 from pptx import packaging
-from pptx.presentation import Package
+from pptx import Package
 from pptx.util import Inches
 
 def absjoin(*paths):
@@ -20,7 +20,11 @@ empty_pptx_path = absjoin(test_file_dir, 'no-slides.pptx')
 saved_pptx_path = absjoin(scratch_dir,   'test_out.pptx')
 test_image_path = absjoin(test_file_dir, 'python-powered.png')
 
+test_text = "python-pptx was here!"
+
 # logging.debug("saved_pptx_path is ==> '%s'\n", saved_pptx_path)
+
+# given ---------------------------------------------------
 
 @given('a clean working directory')
 def step(context):
@@ -28,24 +32,26 @@ def step(context):
         os.remove(saved_pptx_path)
 
 
+@given('an initialized pptx environment')
+def step(context):
+    pass
+
+
 @given('I have an empty presentation open')
 def step(context):
-    context.pkg = Package().open(empty_pptx_path)
+    context.pkg = Package(empty_pptx_path)
     context.prs = context.pkg.presentation
 
 
 @given('I have a reference to a slide')
 def step(context):
-    context.pkg = Package().open(empty_pptx_path)
+    context.pkg = Package(empty_pptx_path)
     context.prs = context.pkg.presentation
     slidelayout = context.prs.slidemasters[0].slidelayouts[0]
     context.sld = context.prs.slides.add_slide(slidelayout)
 
 
-@when('I open a basic PowerPoint presentation')
-def step(context):
-    context.pkg = Package().open(basic_pptx_path)
-
+# when ----------------------------------------------------
 
 @when('I add a new slide')
 def step(context):
@@ -60,11 +66,40 @@ def step(context):
     shapes.add_picture(test_image_path, x, y)
 
 
+@when('I construct a Package instance with no path argument')
+def step(context):
+    context.pkg = Package()
+
+
+@when('I open a basic PowerPoint presentation')
+def step(context):
+    context.pkg = Package(basic_pptx_path)
+
+
 @when('I save the presentation')
 def step(context):
     if os.path.isfile(saved_pptx_path):
         os.remove(saved_pptx_path)
     packaging.Package().marshal(context.pkg).save(saved_pptx_path)
+
+
+@when("I set the title text of the slide")
+def step(context):
+    context.sld.shapes.title.text = test_text
+
+
+# then ----------------------------------------------------
+
+@then('I receive a package based on the default template')
+def step(context):
+    prs = context.pkg.presentation
+    assert_that(prs, is_not(None))
+    slidemasters = prs.slidemasters
+    assert_that(slidemasters, is_not(None))
+    assert_that(len(slidemasters), is_(1))
+    slidelayouts = slidemasters[0].slidelayouts
+    assert_that(slidelayouts, is_not(None))
+    assert_that(len(slidelayouts), is_(11))
 
 
 @then('I see the pptx file in the working directory')
@@ -73,12 +108,6 @@ def step(context):
     minimum = 30000
     actual = os.path.getsize(saved_pptx_path)
     assert_that(actual, is_(greater_than(minimum)))
-
-
-@then('the pptx file contains a single slide')
-def step(context):
-    prs = Package().open(saved_pptx_path).presentation
-    assert_that(len(prs.slides), is_(equal_to(1)))
 
 
 @then('the image is saved in the pptx file')
@@ -91,10 +120,23 @@ def step(context):
 
 @then('the picture appears in the slide')
 def step(context):
-    prs = Package().open(saved_pptx_path).presentation
+    prs = Package(saved_pptx_path).presentation
     sld = prs.slides[0]
     shapes = sld.shapes
     classnames = [sp.__class__.__name__ for sp in shapes]
     assert_that(classnames, has_item('Picture'))
 
+
+@then('the pptx file contains a single slide')
+def step(context):
+    prs = Package(saved_pptx_path).presentation
+    assert_that(len(prs.slides), is_(equal_to(1)))
+
+
+@then('the text appears in the title placeholder')
+def step(context):
+    prs = Package(saved_pptx_path).presentation
+    title_shape = prs.slides[0].shapes.title
+    title_text = title_shape.textframe.paragraphs[0].runs[0].text
+    assert_that(title_text, is_(equal_to(test_text)))
 

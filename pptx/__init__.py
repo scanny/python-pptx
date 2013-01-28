@@ -10,9 +10,7 @@ import sys
 import pptx.exc as exceptions
 sys.modules['pptx.exceptions'] = exceptions
 
-from pptx.presentation import\
-    ( Presentation
-    )
+from pptx.presentation import(Package)
 
 __all__ = sorted(name for name, obj in locals().items() if not (name.startswith('_') or inspect.ismodule(obj)))
                  

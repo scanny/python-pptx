@@ -9,8 +9,3 @@ Feature: Add a picture to a slide
        And I save the presentation
       Then the image is saved in the pptx file
        And the picture appears in the slide
-
-
-
-
-# Feature: Create a presentation from the default template

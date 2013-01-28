@@ -8,5 +8,3 @@ Feature: Add a new slide
       When I add a new slide
        And I save the presentation
       Then the pptx file contains a single slide
-
-

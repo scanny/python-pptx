@@ -2,6 +2,33 @@
 Design Narratives
 =================
 
+Narrative explorations into design issues, serving initially as an aid to
+reasoning and later as a memorandum of the considerations undertaken during
+the design process.
+
+
+End-user API facade
+===================
+
+Sat Jan 26 2013
+
+It might be a design improvement if the end-user API was via a single module
+that mediated access to (at least) implementation classes.
+
+... might include:
+
+* Presentation
+
+  * Presentation(path=None) constructor, to use default template
+  * .save(path) -- save the presentation as *path*
+  * slidemasters attribute (immutable sequence)
+  * slides attribute (immutable sequence)
+
+A related possibility is segregating presentation-related parts to a separate
+module, perhaps named prs_parts. Any parts that were general to more than one
+Open XML document could be placed in a separate module, and parts for WML and
+SML could be added in separate modules to fill out the set.
+
 
 Design Narrative -- Model-side relationships
 ============================================

@@ -13,6 +13,7 @@ AUTHOR_EMAIL = 'stcanny@gmail.com'
 URL          = 'http://github.com/scanny/python-pptx'
 LICENSE      = 'MIT'
 PACKAGES     = ['pptx']
+PACKAGE_DATA = {'pptx': ['templates/*']}
 
 INSTALL_REQUIRES = ['lxml', 'PIL']
 TEST_SUITE       = 'test'
@@ -45,6 +46,7 @@ params =\
     , 'url'              : URL
     , 'license'          : LICENSE
     , 'packages'         : PACKAGES
+    , 'package_data'     : PACKAGE_DATA
     , 'install_requires' : INSTALL_REQUIRES
     , 'tests_require'    : TESTS_REQUIRE
     , 'test_suite'       : TEST_SUITE
