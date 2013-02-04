@@ -5,5 +5,5 @@ Feature: Default presentation template is provided
 
   Scenario: Create a minimal presentation from the default template
      Given an initialized pptx environment
-      When I construct a Package instance with no path argument
-      Then I receive a package based on the default template
+      When I construct a Presentation instance with no path argument
+      Then I receive a presentation based on the default template

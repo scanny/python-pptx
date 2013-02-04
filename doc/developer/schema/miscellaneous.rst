@@ -102,33 +102,6 @@ nvPr           1   CT_ApplicationNonVisualDrawingProps
 ============  ===  ===================================  ========
 
 
-1209 - sp -- CT_Shape
-------------------------------------------
-
-attributes
-^^^^^^^^^^
-
-================  ===  ==================  ========
-name              use  type                default
-================  ===  ==================  ========
-useBgFill          ?   xsd:boolean         false
-================  ===  ==================  ========
-
-
-child elements
-^^^^^^^^^^^^^^
-
-======  ===  ======================  ========
-name     #   type                    line
-======  ===  ======================  ========
-nvSpPr   1   CT_ShapeNonVisual       1201
-spPr     1   CT_ShapeProperties      2210 dml
-style    ?   CT_ShapeStyle           2245 dml
-txBody   ?   CT_TextBody             2640 dml
-extLst   ?   CT_ExtensionListModify  775>767
-======  ===  ======================  ========
-
-
 1263 - graphicFrame -- CT_GraphicalObjectFrame
 ----------------------------------------------
 

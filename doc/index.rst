@@ -20,11 +20,10 @@ Here's what a Hello, World! example looks like:
 
 ::
 
-    from pptx import Package
+    from pptx import Presentation
     
-    pkg = Package()
-    prs = pkg.presentation
-    title_slidelayout = prs.slidemasters[0].slidelayouts[0]
+    prs = Presentation()
+    title_slidelayout = prs.slidelayouts[0]
     slide = prs.slides.add_slide(title_slidelayout)
     title = slide.shapes.title
     subtitle = slide.shapes.placeholders[1]
@@ -32,11 +31,11 @@ Here's what a Hello, World! example looks like:
     title.text = "Hello, World!"
     subtitle.text = "python-pptx was here!"
     
-    pkg.save('test.pptx')
+    prs.save('test.pptx')
 
 The documentation is under development alongside the code, so what you'll find
-here is a bit spotty and likely incorrect in some places. Until a few more
-features are filled out, the code should be the final reference.
+here may be a bit spotty and is likely incorrect in some places. Until a few
+more features are filled out, the code should be the final reference.
 
 ----
 

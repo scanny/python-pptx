@@ -10,11 +10,11 @@ import sys
 import pptx.exc as exceptions
 sys.modules['pptx.exceptions'] = exceptions
 
-from pptx.presentation import(Package)
+from pptx.api import(Presentation)
 
-__all__ = sorted(name for name, obj in locals().items() if not (name.startswith('_') or inspect.ismodule(obj)))
+# __all__ = sorted(name for name, obj in locals().items() if not (name.startswith('_') or inspect.ismodule(obj)))
                  
-__version__ = '0.0.1'
+__version__ = '0.1.0a1'
 
 del inspect, sys
 

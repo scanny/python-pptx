@@ -6,7 +6,7 @@ Summary
 =======
 
 ... corresponds to the ``<p:txBody>`` element, see
-:doc:`../schema/ct_textbody`
+:doc:`../../schema/ct_textbody`
 
 
 Description

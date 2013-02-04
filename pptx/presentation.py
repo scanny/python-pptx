@@ -29,6 +29,7 @@ import pptx.spec as spec
 import pptx.util as util
 
 from pptx.exceptions import InvalidPackageError
+from pptx.oxml import CT_Shape
 
 from pptx.spec import namespaces, qname
 from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
@@ -1193,20 +1194,30 @@ class ShapeCollection(BaseShape, Collection):
                 return shape
         return None
     
-    def add_picture(self, path, top, left):
+    def add_picture(self, path, left, top, width=None, height=None):
         """
-        Add picture shape displaying image in file located at *path*, placing
-        the shape such that its top left corner is at *top* inches from the
-        top of the slide and *left* inches from the left of the slide.
+        Add picture shape displaying image in file located at *path*.
         """
         pkg = Package.containing(self.__slide)
         image = pkg._images.add_image(path)
         rel = self.__slide._add_relationship(RT_IMAGE, image)
-        pic = self.__pic(rel._rId, path, top, left)
+        pic = self.__pic(rel._rId, path, left, top, width, height)
         self.__spTree.append(pic)
         picture = Picture(pic)
         self._values.append(picture)
         return picture
+    
+    def add_textbox(self, left, top, width, height):
+        """
+        Add text box shape of specified size at specified position.
+        """
+        id = self.__next_shape_id
+        name = 'TextBox %d' % (id-1)
+        sp = self.__sp(id, name, left, top, width, height, is_textbox=True)
+        self.__spTree.append(sp)
+        shape = Shape(sp)
+        self._values.append(shape)
+        return shape
     
     def _clone_layout_placeholders(self, slidelayout):
         """
@@ -1320,15 +1331,16 @@ class ShapeCollection(BaseShape, Collection):
             next_id += 1
         return next_id
     
-    def __pic(self, rId, path, top, left):
+    def __pic(self, rId, path, x, y, cx=None, cy=None):
         """Return minimal ``<p:pic>`` element based on *rId* and *path*."""
         id = self.__next_shape_id
         shapename = 'Picture %d' % (id-1)
         filename = os.path.split(path)[1]
         
+        # set cx and cy from image size if not specified
         cx_px, cy_px = PIL_Image.open(path).size
-        cx = Px(cx_px)
-        cy = Px(cy_px)
+        cx = cx if cx is not None else Px(cx_px)
+        cy = cy if cy is not None else Px(cy_px)
         
         pic = etree.Element(qname('p', 'pic'), nsmap=self._nsmap)
         
@@ -1349,8 +1361,8 @@ class ShapeCollection(BaseShape, Collection):
         spPr = etree.SubElement(pic,  qname('p', 'spPr'))
         xfrm = etree.SubElement(spPr, qname('a', 'xfrm'))
         off  = etree.SubElement(xfrm, qname('a', 'off'))
-        off.set('x', str(left))
-        off.set('y', str(top))
+        off.set('x', str(x))
+        off.set('y', str(y))
         ext  = etree.SubElement(xfrm, qname('a', 'ext'))
         ext.set('cx', str(cx))
         ext.set('cy', str(cy))
@@ -1360,6 +1372,59 @@ class ShapeCollection(BaseShape, Collection):
         avLst    = etree.SubElement(prstGeom, qname('a', 'avLst'))
         
         return pic
+    
+    # def __sp(self, sp_id, shapename, x, y, cx, cy, is_textbox=False):
+    #     """Return minimal ``<p:sp>`` element based on parameters."""
+    #     sp = etree.Element(qname('p', 'sp'), nsmap=self._nsmap)
+    #     
+    #     nvSpPr = etree.SubElement(sp, qname('p', 'nvSpPr'))
+    #     spPr   = etree.SubElement(sp, qname('p', 'spPr'  ))
+    #     txBody = etree.SubElement(sp, qname('p', 'txBody'))
+    #     
+    #     cNvPr   = etree.SubElement(nvSpPr, qname('p', 'cNvPr'  ))
+    #     cNvSpPr = etree.SubElement(nvSpPr, qname('p', 'cNvSpPr'))
+    #     nvPr    = etree.SubElement(nvSpPr, qname('p', 'nvPr'   ))
+    #     cNvPr.set('id', str(sp_id))
+    #     cNvPr.set('name', shapename)
+    #     if is_textbox:
+    #         cNvSpPr.set('txBox', '1')
+    #     
+    #     xfrm     = etree.SubElement(spPr, qname('a', 'xfrm'    ))
+    #     prstGeom = etree.SubElement(spPr, qname('a', 'prstGeom'))
+    #     noFill   = etree.SubElement(spPr, qname('a', 'noFill'  ))
+    #     prstGeom.set('prst', 'rect')
+    #     
+    #     bodyPr   = etree.SubElement(txBody, qname('a', 'bodyPr'  ))
+    #     lstStyle = etree.SubElement(txBody, qname('a', 'lstStyle'))
+    #     p        = etree.SubElement(txBody, qname('a', 'p'       ))
+    #     
+    #     off = etree.SubElement(xfrm, qname('a', 'off'))
+    #     ext = etree.SubElement(xfrm, qname('a', 'ext'))
+    #     off.set('x', str(x))
+    #     off.set('y', str(y))
+    #     ext.set('cx', str(cx))
+    #     ext.set('cy', str(cy))
+    #     
+    #     avLst = etree.SubElement(prstGeom, qname('a', 'avLst'))
+    #     
+    #     spAutoFit = etree.SubElement(bodyPr, qname('a', 'spAutoFit'))
+    #     
+    #     return sp
+    # 
+    def __sp(self, sp_id, shapename, x, y, cx, cy, is_textbox=False):
+        """Return ``<p:sp>`` element based on parameters."""
+        sp = CT_Shape()
+        sp.nvSpPr.cNvPr.id    = sp_id
+        sp.nvSpPr.cNvPr.name  = shapename
+        sp.spPr.xfrm.off.x    = x
+        sp.spPr.xfrm.off.y    = y
+        sp.spPr.xfrm.ext.cx   = cx
+        sp.spPr.xfrm.ext.cy   = cy
+        sp.spPr.prstGeom.prst = 'rect'
+        sp.txBody.bodyPr.wrap = 'none'
+        if is_textbox:
+            sp.nvSpPr.cNvSpPr.txBox = 1
+        return sp.element
     
 
 class Placeholder(object):
@@ -1427,20 +1492,6 @@ class Shape(BaseShape):
     def __init__(self, shape_element):
         super(Shape, self).__init__(shape_element)
     
-    # @property
-    # def __minimalelement(self):
-    #     """
-    #     Return an ElementTree element that contains all the elements and
-    #     attributes of a shape required by the schema, initialized with default
-    #     values where necessary or appropriate.
-    #     """
-    #     sp      = Element(qname('p', 'sp'))
-    #     nvSpPr  = etree.SubElement(sp     , qname('p', 'nvSpPr'  ) )
-    #     cNvPr   = etree.SubElement(nvSpPr , qname('p', 'cNvPr'   ) , id='None', name=self.name)
-    #     cNvSpPr = etree.SubElement(nvSpPr , qname('p', 'cNvSpPr' ) )
-    #     spPr    = etree.SubElement(sp     , qname('p', 'spPr'    ) )
-    #     return sp
-    # 
 
 
 # ============================================================================

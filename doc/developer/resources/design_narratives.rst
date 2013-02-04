@@ -7,6 +7,82 @@ reasoning and later as a memorandum of the considerations undertaken during
 the design process.
 
 
+XML wrapper classes
+===================
+
+Requirements
+------------
+
+Pending requirements
+^^^^^^^^^^^^^^^^^^^^
+
+* cascading construction (unmarshaling) based on an existing lxml element
+  graph
+
+* generation of entire module file from template so no manual intervention is
+  required
+* work out a good way to subclass to add specialized functionality to selected
+  classes
+
+* repeating elements
+
+  * txBody.p for example
+
+* optional elements ...
+
+  * create on first access
+  * ? how respect element order when inserting a new element after
+    construction? ... need additional metadata
+
+* choice groups ...
+
+
+Completed requirements
+^^^^^^^^^^^^^^^^^^^^^^
+
+* XML access classes are generated
+* child elements can be accessed via dotted notation
+* minimal/required sub-tree elements are constructed in cascade on
+  construction of root element
+* attributes can be accessed via dotted notation; required attributes get no
+  special treatment, it's up to the user to make sure they are set with a
+  valid value.
+
+
+Open Issues
+-----------
+
+
+``<xsd:choice>`` handling
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+...
+
+
+
+
+Purposes
+--------
+
+1. ... compact and readable access ... using dotted member notation instead of
+   ``lxml`` notation in higher level abstraction domains ...
+
+#. Encapsulate and hide
+
+#. Reuse of recurring elements ...
+
+
+Constructors
+------------
+
+... two construction modes:
+
+1. (Roughly) *unmarshal* an existing lxml element
+
+2. Construct a *new* lxml element from scratch
+
+
+
 End-user API facade
 ===================
 

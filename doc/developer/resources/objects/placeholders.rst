@@ -108,7 +108,7 @@ Related Specifications
 
 * The `Placeholders Object documentation`_ on MSDN is a useful source.
 
-* :doc:`../schema/ct_placeholder`
+* :doc:`../../schema/ct_placeholder`
 
 
 Resources

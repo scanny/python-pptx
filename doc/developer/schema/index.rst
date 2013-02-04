@@ -12,5 +12,6 @@ Collected bits and pieces from the XML Schema docs, MSDN web pages, and the ISO/
    ct_placeholder
    ct_picture
    ct_textbody
+   ct_shape
    miscellaneous
 

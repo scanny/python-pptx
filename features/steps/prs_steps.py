@@ -6,7 +6,7 @@ from hamcrest import (assert_that, has_item, is_, is_not, equal_to,
                       greater_than)
 
 from pptx import packaging
-from pptx import Package
+from pptx import Presentation
 from pptx.util import Inches
 
 def absjoin(*paths):
@@ -16,7 +16,6 @@ thisdir       = os.path.split(__file__)[0]
 scratch_dir   = absjoin(thisdir, '../_scratch')
 test_file_dir = absjoin(thisdir, '../../test/test_files')
 basic_pptx_path = absjoin(test_file_dir, 'test.pptx')
-empty_pptx_path = absjoin(test_file_dir, 'no-slides.pptx')
 saved_pptx_path = absjoin(scratch_dir,   'test_out.pptx')
 test_image_path = absjoin(test_file_dir, 'python-powered.png')
 
@@ -39,15 +38,20 @@ def step(context):
 
 @given('I have an empty presentation open')
 def step(context):
-    context.pkg = Package(empty_pptx_path)
-    context.prs = context.pkg.presentation
+    context.prs = Presentation()
+
+
+@given('I have a reference to a blank slide')
+def step(context):
+    context.prs = Presentation()
+    slidelayout = context.prs.slidelayouts[6]
+    context.sld = context.prs.slides.add_slide(slidelayout)
 
 
 @given('I have a reference to a slide')
 def step(context):
-    context.pkg = Package(empty_pptx_path)
-    context.prs = context.pkg.presentation
-    slidelayout = context.prs.slidemasters[0].slidelayouts[0]
+    context.prs = Presentation()
+    slidelayout = context.prs.slidelayouts[0]
     context.sld = context.prs.slides.add_slide(slidelayout)
 
 
@@ -66,21 +70,30 @@ def step(context):
     shapes.add_picture(test_image_path, x, y)
 
 
-@when('I construct a Package instance with no path argument')
+@when("I add a text box to the slide's shape collection")
 def step(context):
-    context.pkg = Package()
+    shapes = context.sld.shapes
+    x, y = (Inches(1.00), Inches(2.00))
+    cx, cy = (Inches(3.00), Inches(1.00))
+    sp = shapes.add_textbox(x, y, cx, cy)
+    sp.text = test_text
+
+
+@when('I construct a Presentation instance with no path argument')
+def step(context):
+    context.prs = Presentation()
 
 
 @when('I open a basic PowerPoint presentation')
 def step(context):
-    context.pkg = Package(basic_pptx_path)
+    context.prs = Presentation(basic_pptx_path)
 
 
 @when('I save the presentation')
 def step(context):
     if os.path.isfile(saved_pptx_path):
         os.remove(saved_pptx_path)
-    packaging.Package().marshal(context.pkg).save(saved_pptx_path)
+    context.prs.save(saved_pptx_path)
 
 
 @when("I set the title text of the slide")
@@ -90,9 +103,9 @@ def step(context):
 
 # then ----------------------------------------------------
 
-@then('I receive a package based on the default template')
+@then('I receive a presentation based on the default template')
 def step(context):
-    prs = context.pkg.presentation
+    prs = context.prs
     assert_that(prs, is_not(None))
     slidemasters = prs.slidemasters
     assert_that(slidemasters, is_not(None))
@@ -120,22 +133,30 @@ def step(context):
 
 @then('the picture appears in the slide')
 def step(context):
-    prs = Package(saved_pptx_path).presentation
+    prs = Presentation(saved_pptx_path)
     sld = prs.slides[0]
     shapes = sld.shapes
     classnames = [sp.__class__.__name__ for sp in shapes]
     assert_that(classnames, has_item('Picture'))
 
 
+@then('the text box appears in the slide')
+def step(context):
+    prs = Presentation(saved_pptx_path)
+    textbox = prs.slides[0].shapes[0]
+    textbox_text = textbox.textframe.paragraphs[0].runs[0].text
+    assert_that(textbox_text, is_(equal_to(test_text)))
+
+
 @then('the pptx file contains a single slide')
 def step(context):
-    prs = Package(saved_pptx_path).presentation
+    prs = Presentation(saved_pptx_path)
     assert_that(len(prs.slides), is_(equal_to(1)))
 
 
 @then('the text appears in the title placeholder')
 def step(context):
-    prs = Package(saved_pptx_path).presentation
+    prs = Presentation(saved_pptx_path)
     title_shape = prs.slides[0].shapes.title
     title_text = title_shape.textframe.paragraphs[0].runs[0].text
     assert_that(title_text, is_(equal_to(test_text)))

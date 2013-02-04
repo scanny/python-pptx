@@ -8,7 +8,9 @@ one's own purposes).
 .. toctree::
    :maxdepth: 1
 
+   development_practices
    modules/index
    protocols/index
+   schema/index
    resources/index
 

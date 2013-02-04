@@ -26,6 +26,8 @@ from mock import Mock, patch, PropertyMock
 
 import pptx.presentation
 
+from pptx.packaging import prettify_nsdecls
+
 from pptx.presentation import (Package, Collection, _RelationshipCollection,
     _Relationship, Presentation, PartCollection, BasePart, Part,
     SlideCollection, BaseSlide, Slide, SlideLayout, SlideMaster, Image,
@@ -41,7 +43,7 @@ from pptx.spec import (RT_HANDOUTMASTER, RT_IMAGE, RT_NOTESMASTER,
 from pptx.spec import (PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ,
     PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE,
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER)
-from pptx.util import Px
+from pptx.util import Inches, Px
 from testing import TestCase
 
 import logging
@@ -56,7 +58,6 @@ ch.setFormatter(formatter)
 log.addHandler(ch)
 
 
-
 # module globals -------------------------------------------------------------
 def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
@@ -69,7 +70,7 @@ new_image_path   = absjoin(test_file_dir, 'monty-truth.png')
 test_pptx_path   = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
-nsmap = namespaces('a', 'p', 'r')
+nsmap = namespaces('a', 'r', 'p')
 
 def _empty_spTree():
     xml = ('<p:spTree xmlns:p="http://schemas.openxmlformats.org/'
@@ -88,6 +89,22 @@ def _sldLayout1_shapes():
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
     shapes = ShapeCollection(spTree)
     return shapes
+
+def _txbox_xml():
+    xml = (\
+        "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n<p:sp xmlns"
+        ':r="http://schemas.openxmlformats.org/officeDocument/2006/relationsh'
+        'ips"\n      xmlns:p="http://schemas.openxmlformats.org/presentationm'
+        'l/2006/main"\n      xmlns:a="http://schemas.openxmlformats.org/drawi'
+        'ngml/2006/main">\n  <p:nvSpPr>\n    <p:cNvPr id="2" name="TextBox 1"'
+        '/>\n    <p:cNvSpPr txBox="1"/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:s'
+        'pPr>\n    <a:xfrm>\n      <a:off x="914400" y="1828800"/>\n      <a:'
+        'ext cx="1371600" cy="457200"/>\n    </a:xfrm>\n    <a:prstGeom prst='
+        '"rect">\n      <a:avLst/>\n    </a:prstGeom>\n    <a:noFill/>\n  </p'
+        ':spPr>\n  <p:txBody>\n    <a:bodyPr wrap="none">\n      <a:spAutoFit'
+        '/>\n    </a:bodyPr>\n    <a:lstStyle/>\n    <a:p/>\n  </p:txBody>\n<'
+        '/p:sp>' )
+    return xml
 
 
 class PartBuilder(object):
@@ -546,6 +563,15 @@ class TestImageCollection(TestCase):
 
 class TestPackage(TestCase):
     """Test Package"""
+    def setUp(self):
+        self.test_pptx_path = absjoin(test_file_dir, 'test_python-pptx.pptx')
+        if os.path.isfile(self.test_pptx_path):
+            os.remove(self.test_pptx_path)
+    
+    def tearDown(self):
+        if os.path.isfile(self.test_pptx_path):
+            os.remove(self.test_pptx_path)
+    
     def test_construction_with_no_path_loads_default_template(self):
         """Package() call with no path loads default template"""
         prs = Package().presentation
@@ -614,14 +640,11 @@ class TestPackage(TestCase):
     def test_saved_file_has_plausible_contents(self):
         """Package.save produces a .pptx with plausible contents"""
         # setup -----------------------
-        test_pptx_path = absjoin(test_file_dir, 'test_python-pptx.pptx')
-        if os.path.isfile(test_pptx_path):
-            os.remove(test_pptx_path)
         pkg = Package()
         # exercise --------------------
-        pkg.save(test_pptx_path)
+        pkg.save(self.test_pptx_path)
         # verify ----------------------
-        pkg = Package(test_pptx_path)
+        pkg = Package(self.test_pptx_path)
         prs = pkg.presentation
         assert_that(prs, is_not(None))
         slidemasters = prs.slidemasters
@@ -1139,14 +1162,15 @@ class TestShapeCollection(TestCase):
         # verify ----------------------
         self.assertLength(self.shapes, 9)
     
+    @patch('pptx.presentation.Picture')
     @patch('pptx.presentation.Collection._values', new_callable=PropertyMock)
     @patch('pptx.presentation.Package')
-    def test_add_picture_collaboration(self, MockPackage, mock_values):
+    def test_add_picture_collaboration(self, MockPackage, mock_values, MockPicture):
         """ShapeCollection.add_picture() calls the right collaborators"""
         # constant values -------------
         rId = 'rId1'
-        top = 1
-        left = 2
+        left = 1
+        top = 2
         # setup mockery ---------------
         pkg      = Mock(name='pkg')
         image    = Mock(name='image')
@@ -1155,27 +1179,80 @@ class TestShapeCollection(TestCase):
         slide    = Mock(name='slide')
         __pic    = Mock(name='__pic')
         __spTree = Mock(name='__spTree')
-        Picture  = Mock(name='Picture')
+        Picture  = MockPicture
         MockPackage.containing.return_value = pkg
         pkg._images.add_image.return_value = image
         slide._add_relationship.return_value = rel
         rel._rId = rId
         __pic.return_value = pic
-        pptx.presentation.Picture = Picture
         # setup -----------------------
         shapes = ShapeCollection(_empty_spTree(), slide)
         shapes._ShapeCollection__pic = __pic
         shapes._ShapeCollection__spTree = __spTree
         # exercise --------------------
-        picture = shapes.add_picture(test_image_path, top, left)
+        picture = shapes.add_picture(test_image_path, left, top)
         # verify ----------------------
         MockPackage.containing.assert_called_once_with(slide)
         pkg._images.add_image.assert_called_once_with(test_image_path)
         slide._add_relationship.assert_called_once_with(RT_IMAGE, image)
-        __pic.assert_called_once_with(rId, test_image_path, top, left)
+        __pic.assert_called_once_with(rId, test_image_path,
+                                      left, top, None, None)
         __spTree.append.assert_called_once_with(pic)
         Picture.assert_called_once_with(pic)
         shapes._values.append.assert_called_once_with(picture)
+    
+    @patch('pptx.presentation.Collection._values', new_callable=PropertyMock)
+    @patch('pptx.presentation.Shape')
+    @patch('pptx.presentation.ShapeCollection._ShapeCollection__next_shape_id'
+          , new_callable=PropertyMock)
+    def test_add_textbox_collaboration(self, __next_shape_id, Shape, _values):
+        """ShapeCollection.add_textbox() calls the right collaborators"""
+        # constant values -------------
+        sp_id  = 9
+        name   = 'TextBox 8'
+        text   = 'Test text'
+        left   = Inches(1.0)
+        top    = Inches(2.0)
+        width  = Inches(1.5)
+        height = Inches(0.5)
+        # setup mockery ---------------
+        __next_shape_id.return_value = sp_id
+        sp = Mock(name='sp')
+        __sp = Mock(name='__sp', return_value=sp)
+        __spTree = Mock(name='__spTree')
+        shapes = ShapeCollection(_empty_spTree())
+        shapes._ShapeCollection__sp = __sp
+        shapes._ShapeCollection__spTree = __spTree
+        # exercise --------------------
+        shape = shapes.add_textbox(left, top, width, height)
+        # verify ----------------------
+        __next_shape_id.assert_called_once_with()
+        __sp.assert_called_once_with(sp_id, name, left, top,
+                                     width, height, is_textbox=True)
+        __spTree.append.assert_called_once_with(sp)
+        Shape.assert_called_once_with(sp)
+        shapes._values.append.assert_called_once_with(shape)
+    
+    def test_add_textbox_xml(self):
+        """ShapeCollection.add_textbox() generates correct XML"""
+        # constant values -------------
+        left   = Inches(1.0)
+        top    = Inches(2.0)
+        width  = Inches(1.5)
+        height = Inches(0.5)
+        shapes = ShapeCollection(_empty_spTree())
+        # exercise --------------------
+        shape = shapes.add_textbox(left, top, width, height)
+        # setup -----------------------
+        xml = etree.tostring(shape._element, encoding='UTF-8',
+                             pretty_print=True, standalone=True)
+        xml = prettify_nsdecls(xml)
+        xml_lines = xml.split('\n')
+        txbox_xml_lines = _txbox_xml().split('\n')
+        # verify ----------------------
+        # self.assertTrue(False, xml)
+        for idx, line in enumerate(xml_lines):
+            assert_that(line, is_(equal_to(txbox_xml_lines[idx])))
     
     def test_title_value(self):
         """ShapeCollection.title value is ref to correct shape"""

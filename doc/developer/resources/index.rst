@@ -9,9 +9,7 @@ Resources
 
    python_packaging
    technical_topics
-   development_practices
    objects/index
-   schema/index
    experiments/index
    about_packaging
    about_relationships

@@ -2,69 +2,45 @@
 python-pptx
 ###########
 
-STATUS (as of Jan 25 2013)
-==========================
-
-python-pptx-0.1.0a1
-
-Completed distribution items, primarily setup.py. Uploading first alpha to
-PyPI.
+VERSION: 0.1.0a1 (first Alpha)
 
 
-STATUS (as of Jan 19 2013)
-==========================
-
-Development has reached a point where the library is beginning to become
-useful for some practical applications and its time to work toward getting an
-alpha deployment out there.
-
-The following items have been added over the past couple weeks:
-
-* Presentation.add_slide()
-* the ability to change the text of text placeholders and a basic, low-level
-  text manipulation interface
-* a basic implementation of add_picture()
-* acceptance tests based on *behave*
-
-Next is:
-
-* add_textbox()
-* deployment of alpha to PyPI
-* deployment of end-user documentation to RTD.com
-
-
-STATUS (as of Jan 3 2013)
+STATUS (as of Feb 1 2013)
 =========================
 
-Starting to get interesting now. The ``pptx.packaging`` module is quite stable
-and I've been focusing attention on the ``pptx.presentation`` module for the
-last week or so. The ``packaging`` module takes care of getting things into
-and out of the .pptx package. The ``presentation`` module is what you interact
-with directly when using the library, Presentation.open(), prs.add_slide(),
-that sort of thing.
+Initial alpha version with limited capabilities. Under active development, with new features added in a new release roughly every two weeks.
 
-A .pptx file will round-trip from a package into memory and back and open up
-in PowerPoint fine. The object model on the in-memory side has the objects
-Presentation, SlideMaster, SlideLayout, and Slide at the part level, and
-Shape, Placeholder (title at least), TextFrame, Paragraph, and Run at the
-element level. So the library now actually works to modify an existing
-presentation, at least to change the text in placeholder shapes.
 
-Right now I'm working on SlideCollection.add_slide(), which will allow adding
-new slides, that will be a big milestone. After that I'll be working on
-Shapes.add_x() for x = things like image, textbox, smart-shape probably, table
-before too long I'm sure.
+Documentation
+=============
 
-Anyway, was time for another push. Seems like I get to those more like once
-every two weeks, so that's a reasonable expectation of the tempo going forward
-for now.
+Documentation is hosted on Read The Docs (readthedocs.org) at
+https://python-pptx.readthedocs.org/en/latest/. The documentation is being
+developed steadily alongside the code.
 
-Unit test coverage is up around 96% and I'm using Test-driven development, so
-I expect coverage to stay close to 100%. The suite is up to 146 tests.
 
-There's also a start on documentation, although no user documentation so far,
-will have to wait for the top-level API to get a little further along before I
-attend to that.
+Installation
+============
+
+``python-pptx`` depends on the ``lxml`` package and the Python Imaging Library
+(``PIL``).
+
+``python-pptx`` may be installed with ``pip`` if you have it
+available::
+
+    pip install python-pptx
+
+It can also be installed using ``easy_install``::
+
+    easy_install python-pptx
+
+If neither ``pip`` nor ``easy_install`` is available, it can be installed
+manually by downloading the distribution from PyPI, unpacking the tarball,
+and running ``setup.py``::
+
+    tar xvzf python-pptx-0.1.0a1.tar.gz
+    cd python-pptx-0.1.0a1
+    python setup.py install
 
 
 Vision
