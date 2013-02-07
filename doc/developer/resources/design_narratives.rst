@@ -10,6 +10,46 @@ the design process.
 XML wrapper classes
 ===================
 
+TODO
+----
+* `(1)` get subclassing working for oxml and oxml_base ...
+
+
+XSD unmarshalling class community
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+... one approach might be to generate the classes off of a subset of the full
+XML Schema, modifying schema element definitions where desired to prune
+unused parts of the type graph
+
+... possibly a TypeGraph object that acts as the container, initialize with a
+root complexType node ... calls from ComplexType to graph like getTypeByName
+and graph can create and return, that keeps type creation code up at the top
+level and outside ComplexType ...
+
+... I wonder how far I could get with just a list of (tag, typename,
+is_required) tuples. Required elements would be created on construction, and
+optional ones would be ...
+
+The rub would come in spTree, and in paragraph (<a:p> where you have an
+arbitrary sequence from a set (xsd:choice) of possible elements.
+
+So tuples won't work for long, there needs to be a set of classes that
+populate the list, maybe just Element and Choice. These situations might be
+rare enough that subclassing the relatively few would work for a start and
+then learn what code to generate step by step.
+
+
+Acceptance Tests
+----------------
+
+* optional element is automatically inserted on first access
+* optional element is not present on construction of parent
+* optional element is not created if not in lxml graph
+* optional element added at run time is inserted in correct sequence
+* ...
+
+
 Requirements
 ------------
 
