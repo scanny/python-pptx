@@ -28,6 +28,7 @@ import pptx.packaging
 import pptx.spec as spec
 import pptx.util as util
 
+from pptx.constants import MSO
 from pptx.exceptions import InvalidPackageError
 from pptx.oxml import CT_Shape
 
@@ -1502,7 +1503,7 @@ class TextFrame(object):
     """
     The part of a shape that contains its text. Not all shapes have a text
     frame. Corresponds to the ``<p:txBody>`` element that can appear as a
-    chile element of ``<p:sp>``.
+    child element of ``<p:sp>``.
     """
     __nsmap = namespaces('a', 'r', 'p')
     
@@ -1523,6 +1524,22 @@ class TextFrame(object):
             paragraphs.append(Paragraph(p))
         return tuple(paragraphs)
     
+    def add_paragraph(self):
+        """
+        Return new |Paragraph| instance appended to paragraph sequence of this
+        text frame.
+        """
+        # get list of existing paragraphs (there's always at least one)
+        xpath = './a:p'
+        p_elms = self.__txBody.xpath(xpath, namespaces=self.__nsmap)
+        # create a new <a:p> element
+        p = etree.Element(qname('a', 'p'), nsmap=self.__nsmap)
+        # insert it after the last existing paragraph
+        last_paragraph = p_elms[len(p_elms)-1]
+        last_paragraph.addnext(p)
+        # return new paragraph as Paragraph instance
+        return Paragraph(p)
+    
     def clear(self):
         """
         Remove all paragraphs except one empty one.
@@ -1540,6 +1557,20 @@ class TextFrame(object):
     
     text = property(None, set_text)
     
+    def set_vertical_anchor(self, value):
+        """
+        Set ``anchor`` attribute of ``<a:bodyPr>`` element
+        """
+        value_map =\
+            { MSO.ANCHOR_TOP    : 't'
+            , MSO.ANCHOR_MIDDLE : 'ctr'
+            , MSO.ANCHOR_BOTTOM : 'b'
+            }
+        xpath = './a:bodyPr'
+        bodyPr = self.__txBody.xpath(xpath, namespaces=self.__nsmap)[0]
+        bodyPr.set('anchor', value_map[value])
+    
+    vertical_anchor = property(None, set_vertical_anchor)
 
 class Paragraph(object):
     """

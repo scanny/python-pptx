@@ -13,6 +13,8 @@ ECMA Spec
 Microsoft PowerPoint API documentation
 ======================================
 
+* `PowerPoint 2010 Interop Namespace`_
+
 * `Shape Tree MSDN page <http://msdn.microsoft.com/en-us/library/office/documentformat.openxml.presentation.shapetree.aspx>`_
 
 * `MSDN Open XML Reference  <http://msdn.microsoft.com/en-us/library/office/documentformat.openxml.presentation.commonslidedata.aspx>`_
@@ -26,6 +28,10 @@ Microsoft PowerPoint API documentation
 * `OpenXML Content Types as an XML Document <http://blogs.msdn.com/b/ericwhite/archive/2007/12/11/openxml-content-types-as-an-xml-document.aspx>`_
 
 * `PowerPoint 2010 Developer Reference`_
+
+
+.. _PowerPoint 2010 Interop Namespace:
+   http://msdn.microsoft.com/en-us/library/ff763170(v=office.14).aspx
 
 .. _PowerPoint 2010 Developer Reference:
    http://msdn.microsoft.com/en-us/library/office/ff746846(v=office.14).aspx

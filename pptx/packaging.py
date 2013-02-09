@@ -674,7 +674,6 @@ class FileSystem(object):
 class BaseFileSystem(object):
     """
     Base class for FileSystem classes, providing common methods.
-    
     """
     def __init__(self, path):
         self.__path = os.path.abspath(path)
@@ -699,7 +698,6 @@ class BaseFileSystem(object):
     def getelement(self, itemURI):
         """
         Return ElementTree element of XML item identified by *itemURI*.
-        
         """
         if itemURI not in self:
             raise LookupError("No package item with URI '%s'" % itemURI)

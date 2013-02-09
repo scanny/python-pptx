@@ -12,6 +12,7 @@
 import gc
 import inspect
 import os
+import re
 
 from hamcrest import (assert_that, has_item, is_, is_in, is_not, equal_to,
                       greater_than)
@@ -33,6 +34,7 @@ from pptx.presentation import (Package, Collection, _RelationshipCollection,
     SlideCollection, BaseSlide, Slide, SlideLayout, SlideMaster, Image,
     ShapeCollection, BaseShape, Shape, Placeholder, TextFrame, Paragraph, Run)
 
+from pptx.constants import MSO
 from pptx.exceptions import InvalidPackageError
 from pptx.spec import namespaces, qname
 from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
@@ -89,6 +91,11 @@ def _sldLayout1_shapes():
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
     shapes = ShapeCollection(spTree)
     return shapes
+
+def _strip_nsdecls(xml):
+    ptrn_str = ' xmlns(:[a-z]+)="[a-zA-Z0-9:/.]+"'
+    nsdecl_re = re.compile(ptrn_str)
+    return nsdecl_re.sub('', xml)
 
 def _txbox_xml():
     xml = (\
@@ -1648,13 +1655,10 @@ class TestTextFrame(TestCase):
     """Test TextFrame"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
-        self.sld = etree.parse(path).getroot()
+        parser = etree.XMLParser(remove_blank_text=True)
+        self.sld = etree.parse(path, parser).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody'
         self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)
-    
-    def test_class_present(self):
-        """TextFrame class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'TextFrame')
     
     def test_paragraphs_size(self):
         """TextFrame.paragraphs is expected size"""
@@ -1669,6 +1673,34 @@ class TestTextFrame(TestCase):
         actual = actual_lengths
         msg = "expected paragraph count %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
+    
+    def test_add_paragraph_works(self):
+        """TextFrame.add_paragraph does what it says"""
+        # setup -----------------------
+        txBody_xml = (
+            '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
+            'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
+            'Document/2006/relationships"><a:bodyPr/><a:p><a:r><a:t>Test text'
+            '</a:t></a:r></a:p></p:txBody>')
+        expected_xml = (
+            '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
+            'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
+            'Document/2006/relationships"><a:bodyPr/><a:p><a:r><a:t>Test text'
+            '</a:t></a:r></a:p><a:p/></p:txBody>')
+        txBody = etree.fromstring(txBody_xml)
+        textframe = TextFrame(txBody)
+        # exercise --------------------
+        p = textframe.add_paragraph()
+        # verify ----------------------
+        assert_that(len(textframe.paragraphs), is_(equal_to(2)))
+        textframe_xml = etree.tostring(textframe._TextFrame__txBody)
+        expected = expected_xml
+        actual = textframe_xml
+        msg = "\nExpected: '%s'\n\n     Got: '%s'" % (expected, actual)
+        if not expected == actual:
+            raise AssertionError(msg)
     
     def test_text_setter_structure_and_value(self):
         """assign to TextFrame.text yields single run para set to value"""
@@ -1688,5 +1720,32 @@ class TestTextFrame(TestCase):
         actual = textframe.paragraphs[0].runs[0].text
         msg = "expected text '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
+    
+    def test_vertical_anchor_works(self):
+        """Assignment to TextFrame.vertical_anchor sets vert anchor"""
+        # setup -----------------------
+        txBody_xml = (
+            '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
+            'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
+            'Document/2006/relationships"><a:bodyPr/><a:p><a:r><a:t>Test text'
+            '</a:t></a:r></a:p></p:txBody>')
+        expected_xml = (
+            '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
+            'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
+            'Document/2006/relationships"><a:bodyPr anchor="ctr"/><a:p><a:r><'
+            'a:t>Test text</a:t></a:r></a:p></p:txBody>')
+        txBody = etree.fromstring(txBody_xml)
+        textframe = TextFrame(txBody)
+        # exercise --------------------
+        textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
+        # verify ----------------------
+        textframe_xml = etree.tostring(textframe._TextFrame__txBody)
+        expected = expected_xml
+        actual = textframe_xml
+        msg = "\nExpected: '%s'\n     Got: '%s'" % (expected, actual)
+        if not expected == actual:
+            raise AssertionError(msg)
     
 

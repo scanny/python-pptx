@@ -7,8 +7,10 @@
 # This module is part of python-pptx and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-'''Constant values from the ECMA-376 spec that are needed for XML generation
-and packaging, and a utility function or two for accessing some of them.'''
+"""
+Constant values from the ECMA-376 spec that are needed for XML generation and
+packaging, and a utility function or two for accessing some of them.
+"""
 
 
 # ============================================================================

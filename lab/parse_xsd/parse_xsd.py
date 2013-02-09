@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# test.py
+# parse_xsd.py
 #
-# Assurance testing during the course of development
+
+"""
+Experimental code to parse XML Schema files for XML object binding classes
+"""
 
 import os
 import sys
