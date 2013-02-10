@@ -42,6 +42,7 @@ more features are filled out, the code should be the final reference.
 Contents:
 
 .. toctree::
+   :titlesonly:
    :maxdepth: 2
 
    user/index

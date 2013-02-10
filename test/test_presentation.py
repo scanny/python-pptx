@@ -32,11 +32,12 @@ from pptx.packaging import prettify_nsdecls
 from pptx.presentation import (Package, Collection, _RelationshipCollection,
     _Relationship, Presentation, PartCollection, BasePart, Part,
     SlideCollection, BaseSlide, Slide, SlideLayout, SlideMaster, Image,
-    ShapeCollection, BaseShape, Shape, Placeholder, TextFrame, Paragraph, Run)
+    ShapeCollection, BaseShape, Shape, Placeholder, TextFrame, _Font,
+    Paragraph, Run)
 
 from pptx.constants import MSO
 from pptx.exceptions import InvalidPackageError
-from pptx.spec import namespaces, qname
+from pptx.spec import namespaces, qtag
 from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
     CT_SLIDEMASTER)
 from pptx.spec import (RT_HANDOUTMASTER, RT_IMAGE, RT_NOTESMASTER,
@@ -45,7 +46,7 @@ from pptx.spec import (RT_HANDOUTMASTER, RT_IMAGE, RT_NOTESMASTER,
 from pptx.spec import (PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ,
     PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE,
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER)
-from pptx.util import Inches, Px
+from pptx.util import Inches, Px, Pt
 from testing import TestCase
 
 import logging
@@ -73,6 +74,11 @@ test_pptx_path   = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
+nsprefix_decls = (\
+    ' xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/'
+    'main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/'
+    'main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/'
+    '2006/relationships"')
 
 def _empty_spTree():
     xml = ('<p:spTree xmlns:p="http://schemas.openxmlformats.org/'
@@ -480,6 +486,58 @@ class TestCollection(TestCase):
         self.assertIsSizedProperty(self.collection, '_values', 0)
     
 
+class Test_Font(TestCase):
+    """Test _Font class"""
+    def setUp(self):
+        self.rPr_xml = '<a:rPr%s/>' % nsprefix_decls
+        self.rPr = etree.fromstring(self.rPr_xml)
+        self.font = _Font(self.rPr)
+    
+    def test_get_bold_setting(self):
+        """_Font.bold returns True on bold font weight"""
+        # setup -----------------------
+        rPr_xml = '<a:rPr%s b="1"/>' % nsprefix_decls
+        rPr = etree.fromstring(rPr_xml)
+        font = _Font(rPr)
+        # verify ----------------------
+        assert_that(self.font.bold, is_(False))
+        assert_that(font.bold, is_(True))
+    
+    def test_set_bold(self):
+        """Setting _Font.bold to True selects bold font weight"""
+        # setup -----------------------
+        expected_rPr_xml = '<a:rPr%s b="1"/>'% (nsprefix_decls)
+        # exercise --------------------
+        self.font.bold = True
+        # verify ----------------------
+        rPr_xml = etree.tostring(self.font._Font__rPr)
+        assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
+    
+    def test_clear_bold(self):
+        """Setting _Font.bold to False selects normal font weight"""
+        # setup -----------------------
+        rPr_xml = '<a:rPr%s b="1"/>' % nsprefix_decls
+        rPr = etree.fromstring(rPr_xml)
+        font = _Font(rPr)
+        expected_rPr_xml = '<a:rPr%s/>'% (nsprefix_decls)
+        # exercise --------------------
+        font.bold = False
+        # verify ----------------------
+        rPr_xml = etree.tostring(font._Font__rPr)
+        assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
+    
+    def test_set_font_size(self):
+        """Assignment to _Font.size changes font size"""
+        # setup -----------------------
+        newfontsize = 2400
+        expected_rPr_xml = '<a:rPr%s sz="%d"/>'% (nsprefix_decls, newfontsize)
+        # exercise --------------------
+        self.font.size = newfontsize
+        # verify ----------------------
+        rPr_xml = etree.tostring(self.font._Font__rPr)
+        assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
+    
+
 class TestImage(TestCase):
     """Test Image"""
     def test_construction_from_file(self):
@@ -669,6 +727,12 @@ class TestParagraph(TestCase):
         self.sld = etree.parse(path).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody/a:p'
         self.pList = self.sld.xpath(xpath, namespaces=nsmap)
+        
+        self.test_text = 'test text'
+        self.p_xml = ('<a:p%s><a:r><a:t>%s</a:t></a:r></a:p>'
+            % (nsprefix_decls, self.test_text))
+        self.p = etree.fromstring(self.p_xml)
+        self.paragraph = Paragraph(self.p)
     
     def test_runs_size(self):
         """Paragraph.runs is expected size"""
@@ -713,6 +777,20 @@ class TestParagraph(TestCase):
         actual = len(paragraph.runs)
         msg = "expected run count %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
+    
+    def test_set_font_size(self):
+        """Assignment to Paragraph.font.size changes font size"""
+        # setup -----------------------
+        newfontsize = Pt(54.3)
+        expected_p_xml = (\
+            '<a:p%s><a:pPr><a:defRPr sz="%d"/></a:pPr><a:r><a:t>%s</a:t></a:r'
+            '></a:p>'
+            % (nsprefix_decls, newfontsize, self.test_text))
+        # exercise --------------------
+        self.paragraph.font.size = newfontsize
+        # verify ----------------------
+        p_xml = etree.tostring(self.paragraph._Paragraph__p)
+        assert_that(p_xml, is_(equal_to(expected_p_xml)))
     
     def test_text_setter_sets_single_run_text(self):
         """assignment to Paragraph.text creates single run containing value"""
@@ -855,7 +933,7 @@ class TestPresentation(TestCase):
         presentation = etree.fromstring(blob)
         sldIds = presentation.xpath('./p:sldIdLst/p:sldId', namespaces=nsmap)
         expected = ['rId3', 'rId4', 'rId5']
-        actual = [sldId.get(qname('r', 'id')) for sldId in sldIds]
+        actual = [sldId.get(qtag('r:id')) for sldId in sldIds]
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
@@ -1106,23 +1184,30 @@ class Test_RelationshipCollection(TestCase):
 class TestRun(TestCase):
     """Test Run"""
     def setUp(self):
-        path = os.path.join(thisdir, 'test_files/slide1.xml')
-        self.sld = etree.parse(path).getroot()
-        xpath = './p:cSld/p:spTree/p:sp/p:txBody/a:p/a:r'
-        self.rList = self.sld.xpath(xpath, namespaces=nsmap)
+        self.test_text = 'test text'
+        self.r_xml = ('<a:r%s><a:t>%s</a:t></a:r>'
+            % (nsprefix_decls, self.test_text))
+        self.r = etree.fromstring(self.r_xml)
+        self.run = Run(self.r)
     
-    def test_class_present(self):
-        """Run class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'Run')
+    def test_set_font_size(self):
+        """Assignment to Run.font.size changes font size"""
+        # setup -----------------------
+        newfontsize = 2400
+        expected_r_xml = ('<a:r%s><a:rPr sz="%d"/><a:t>%s</a:t></a:r>'
+            % (nsprefix_decls, newfontsize, self.test_text))
+        # exercise --------------------
+        self.run.font.size = newfontsize
+        # verify ----------------------
+        r_xml = etree.tostring(self.run._Run__r)
+        assert_that(r_xml, is_(equal_to(expected_r_xml)))
     
     def test_text_value(self):
         """Run.text value is correct"""
-        # setup -----------------------
-        run = Run(self.rList[1])
-        # exercise ----------------
-        text = run.text
-        # verify ------------------
-        expected = ' 2nd run'
+        # exercise --------------------
+        text = self.run.text
+        # verify ----------------------
+        expected = self.test_text
         actual = text
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
@@ -1131,12 +1216,11 @@ class TestRun(TestCase):
         """Run.text setter stores passed value"""
         # setup -----------------------
         new_value = 'new string'
-        run = Run(self.rList[1])
-        # exercise ----------------
-        run.text = new_value
-        # verify ------------------
+        # exercise --------------------
+        self.run.text = new_value
+        # verify ----------------------
         expected = new_value
-        actual = run.text
+        actual = self.run.text
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
     
@@ -1724,13 +1808,13 @@ class TestTextFrame(TestCase):
     def test_vertical_anchor_works(self):
         """Assignment to TextFrame.vertical_anchor sets vert anchor"""
         # setup -----------------------
-        txBody_xml = (
+        txBody_xml = (\
             '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
             'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
             'gml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
             'Document/2006/relationships"><a:bodyPr/><a:p><a:r><a:t>Test text'
             '</a:t></a:r></a:p></p:txBody>')
-        expected_xml = (
+        expected_xml = (\
             '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
             'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
             'gml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'

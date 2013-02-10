@@ -16,7 +16,7 @@ slide.
 
 from lxml.etree import Element
 
-from pptx.spec import namespaces, qname
+from pptx.spec import namespaces, qtag
 
 # default namespace map
 nsmap = namespaces('a', 'r', 'p')
@@ -42,28 +42,28 @@ class CT_ApplicationNonVisualDrawingProps(BaseElement):
     """Wrapper for ``<p:nvPr>`` element"""
     def __init__(self):
         super(CT_ApplicationNonVisualDrawingProps, self).__init__()
-        self._element = Element(qname('p', 'nvPr'), nsmap=nsmap)
+        self._element = Element(qtag('p:nvPr'), nsmap=nsmap)
     
 
 class CT_GeomGuideList(BaseElement):
     """Wrapper for ``<a:avLst>`` element"""
     def __init__(self):
         super(CT_GeomGuideList, self).__init__()
-        self._element = Element(qname('a', 'avLst'), nsmap=nsmap)
+        self._element = Element(qtag('a:avLst'), nsmap=nsmap)
     
 
 class CT_NoFillProperties(BaseElement):
     """Wrapper for ``<a:noFill>`` element"""
     def __init__(self):
         super(CT_NoFillProperties, self).__init__()
-        self._element = Element(qname('a', 'noFill'), nsmap=nsmap)
+        self._element = Element(qtag('a:noFill'), nsmap=nsmap)
     
 
 class CT_NonVisualDrawingProps(BaseElement):
     """Wrapper for ``<p:cNvPr>`` element"""
     def __init__(self):
         super(CT_NonVisualDrawingProps, self).__init__()
-        self._element = Element(qname('p', 'cNvPr'), nsmap=nsmap)
+        self._element = Element(qtag('p:cNvPr'), nsmap=nsmap)
     
     @property
     def id(self):
@@ -86,7 +86,7 @@ class CT_NonVisualDrawingShapeProps(BaseElement):
     """Wrapper for ``<p:cNvSpPr>`` element"""
     def __init__(self):
         super(CT_NonVisualDrawingShapeProps, self).__init__()
-        self._element = Element(qname('p', 'cNvSpPr'), nsmap=nsmap)
+        self._element = Element(qtag('p:cNvSpPr'), nsmap=nsmap)
     
     @property
     def txBox(self):
@@ -101,7 +101,7 @@ class CT_Point2D(BaseElement):
     """Wrapper for ``<a:off>`` element"""
     def __init__(self):
         super(CT_Point2D, self).__init__()
-        self._element = Element(qname('a', 'off'), nsmap=nsmap)
+        self._element = Element(qtag('a:off'), nsmap=nsmap)
     
     @property
     def x(self):
@@ -124,7 +124,7 @@ class CT_PositiveSize2D(BaseElement):
     """Wrapper for ``<a:ext>`` element"""
     def __init__(self):
         super(CT_PositiveSize2D, self).__init__()
-        self._element = Element(qname('a', 'ext'), nsmap=nsmap)
+        self._element = Element(qtag('a:ext'), nsmap=nsmap)
     
     @property
     def cx(self):
@@ -147,7 +147,7 @@ class CT_PresetGeometry2D(BaseElement):
     """Wrapper for ``<a:prstGeom>`` element"""
     def __init__(self):
         super(CT_PresetGeometry2D, self).__init__()
-        self._element = Element(qname('a', 'prstGeom'), nsmap=nsmap)
+        self._element = Element(qtag('a:prstGeom'), nsmap=nsmap)
         self.avLst = CT_GeomGuideList()
         self._element.append(self.avLst.element)
     
@@ -164,7 +164,7 @@ class CT_Shape(BaseElement):
     """Wrapper for ``<p:sp>`` element"""
     def __init__(self):
         super(CT_Shape, self).__init__()
-        self._element = Element(qname('p', 'sp'), nsmap=nsmap)
+        self._element = Element(qtag('p:sp'), nsmap=nsmap)
         self.nvSpPr = CT_ShapeNonVisual()
         self._element.append(self.nvSpPr.element)
         self.spPr = CT_ShapeProperties()
@@ -177,7 +177,7 @@ class CT_ShapeNonVisual(BaseElement):
     """Wrapper for ``<p:nvSpPr>`` element"""
     def __init__(self):
         super(CT_ShapeNonVisual, self).__init__()
-        self._element = Element(qname('p', 'nvSpPr'), nsmap=nsmap)
+        self._element = Element(qtag('p:nvSpPr'), nsmap=nsmap)
         self.cNvPr = CT_NonVisualDrawingProps()
         self._element.append(self.cNvPr.element)
         self.cNvSpPr = CT_NonVisualDrawingShapeProps()
@@ -190,7 +190,7 @@ class CT_ShapeProperties(BaseElement):
     """Wrapper for ``<p:spPr>`` element"""
     def __init__(self):
         super(CT_ShapeProperties, self).__init__()
-        self._element = Element(qname('p', 'spPr'), nsmap=nsmap)
+        self._element = Element(qtag('p:spPr'), nsmap=nsmap)
         self.xfrm = CT_Transform2D()
         self._element.append(self.xfrm.element)
         self.prstGeom = CT_PresetGeometry2D()
@@ -203,7 +203,7 @@ class CT_TextBody(BaseElement):
     """Wrapper for ``<p:txBody>`` element"""
     def __init__(self):
         super(CT_TextBody, self).__init__()
-        self._element = Element(qname('p', 'txBody'), nsmap=nsmap)
+        self._element = Element(qtag('p:txBody'), nsmap=nsmap)
         self.bodyPr = CT_TextBodyProperties()
         self._element.append(self.bodyPr.element)
         self.lstStyle = CT_TextListStyle()
@@ -216,7 +216,7 @@ class CT_TextBodyProperties(BaseElement):
     """Wrapper for ``<a:bodyPr>`` element"""
     def __init__(self):
         super(CT_TextBodyProperties, self).__init__()
-        self._element = Element(qname('a', 'bodyPr'), nsmap=nsmap)
+        self._element = Element(qtag('a:bodyPr'), nsmap=nsmap)
         self.spAutoFit = CT_TextShapeAutofit()
         self._element.append(self.spAutoFit.element)
     
@@ -233,28 +233,28 @@ class CT_TextListStyle(BaseElement):
     """Wrapper for ``<a:lstStyle>`` element"""
     def __init__(self):
         super(CT_TextListStyle, self).__init__()
-        self._element = Element(qname('a', 'lstStyle'), nsmap=nsmap)
+        self._element = Element(qtag('a:lstStyle'), nsmap=nsmap)
     
 
 class CT_TextParagraph(BaseElement):
     """Wrapper for ``<a:p>`` element"""
     def __init__(self):
         super(CT_TextParagraph, self).__init__()
-        self._element = Element(qname('a', 'p'), nsmap=nsmap)
+        self._element = Element(qtag('a:p'), nsmap=nsmap)
     
 
 class CT_TextShapeAutofit(BaseElement):
     """Wrapper for ``<a:spAutoFit>`` element"""
     def __init__(self):
         super(CT_TextShapeAutofit, self).__init__()
-        self._element = Element(qname('a', 'spAutoFit'), nsmap=nsmap)
+        self._element = Element(qtag('a:spAutoFit'), nsmap=nsmap)
     
 
 class CT_Transform2D(BaseElement):
     """Wrapper for ``<a:xfrm>`` element"""
     def __init__(self):
         super(CT_Transform2D, self).__init__()
-        self._element = Element(qname('a', 'xfrm'), nsmap=nsmap)
+        self._element = Element(qtag('a:xfrm'), nsmap=nsmap)
         self.off = CT_Point2D()
         self._element.append(self.off.element)
         self.ext = CT_PositiveSize2D()

@@ -16,6 +16,17 @@ import os
 import platform
 import re
 
+class Pt(int):
+    """
+    Convenience class for setting font sizes in points
+    """
+    _UNITS_PER_POINT = 100
+    
+    def __new__(cls, pts):
+        units = int(pts * Pt._UNITS_PER_POINT)
+        return int.__new__(cls, units)
+    
+
 class _BaseLength(int):
     """Base class for length classes Inches, Cm, Mm, Px, and Emu."""
     _EMUS_PER_INCH = 914400

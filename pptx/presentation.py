@@ -32,7 +32,7 @@ from pptx.constants import MSO
 from pptx.exceptions import InvalidPackageError
 from pptx.oxml import CT_Shape
 
-from pptx.spec import namespaces, qname
+from pptx.spec import namespaces, qtag
 from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
     CT_SLIDEMASTER, CT_SLIDESHOW, CT_TEMPLATE)
 from pptx.spec import (RT_HANDOUTMASTER, RT_IMAGE, RT_NOTESMASTER,
@@ -56,12 +56,17 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - '
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
+# default namespace map for use in lxml calls
+_nsmap = namespaces('a', 'r', 'p')
 
-def _child(element, child_tagname, nsmap):
+def _child(element, child_tagname, nsmap=None):
     """
     Return direct child of *element* having *child_tagname* or :class:`None`
     if no such child element is present.
     """
+    # use default nsmap if not specified
+    if nsmap is None:
+        nsmap = _nsmap
     xpath = './%s' % child_tagname
     matching_children = element.xpath(xpath, namespaces=nsmap)
     return matching_children[0] if len(matching_children) else None
@@ -578,8 +583,6 @@ class BasePart(Observable):
        for this part.
     
     """
-    _nsmap = namespaces('a', 'r', 'p')
-    
     def __init__(self, content_type=None):
         """
         Needs content_type parameter so newly created parts (not loaded from
@@ -725,9 +728,9 @@ class Presentation(BasePart):
         sldIdLst.clear()
         sld_rels = self._relationships.rels_of_reltype(RT_SLIDE)
         for idx, rel in enumerate(sld_rels):
-            sldId = etree.SubElement(sldIdLst, qname('p', 'sldId'))
+            sldId = etree.SubElement(sldIdLst, qtag('p:sldId'))
             sldId.set('id', str(256+idx))
-            sldId.set(qname('r', 'id'), rel._rId)
+            sldId.set(qtag('r:id'), rel._rId)
         return super(Presentation, self)._blob
     
     def _load(self, pkgpart, part_dict):
@@ -758,7 +761,7 @@ class Presentation(BasePart):
         """
         assert self.__sldIdLst is None, "__add_sldIdLst() called where "\
                                         "<p:sldIdLst> already exists"
-        sldIdLst = etree.Element(qname('p', 'sldIdLst'))
+        sldIdLst = etree.Element(qtag('p:sldIdLst'))
         # insert new sldIdLst element in right sequence
         if self.__sldSz is not None:
             self.__sldSz.addprevious(sldIdLst)
@@ -769,17 +772,17 @@ class Presentation(BasePart):
     @property
     def __notesSz(self):
         """Bookmark to ``<p:notesSz>`` child element"""
-        return _child(self._element, 'p:notesSz', self._nsmap)
+        return _child(self._element, 'p:notesSz', _nsmap)
     
     @property
     def __sldIdLst(self):
         """Bookmark to ``<p:sldIdLst>`` child element"""
-        return _child(self._element, 'p:sldIdLst', self._nsmap)
+        return _child(self._element, 'p:sldIdLst', _nsmap)
     
     @property
     def __sldSz(self):
         """Bookmark to ``<p:sldSz>`` child element"""
-        return _child(self._element, 'p:sldSz', self._nsmap)
+        return _child(self._element, 'p:sldSz', _nsmap)
     
 
 class Image(BasePart):
@@ -854,9 +857,8 @@ class Image(BasePart):
 
 class SlideCollection(PartCollection):
     """
-    Immutable sequence of slides, typically belonging to an instance of
-    :class:`Presentation`, with model-domain methods for manipulating the
-    slides in the presentation.
+    Immutable sequence of slides belonging to an instance of |Presentation|,
+    with methods for manipulating the slides in the presentation.
     """
     def __init__(self, presentation):
         super(SlideCollection, self).__init__()
@@ -903,7 +905,7 @@ class BaseSlide(BasePart):
     def name(self):
         """Internal name of this slide-like object."""
         root = self._element
-        cSld = root.xpath('./p:cSld', namespaces=self._nsmap)[0]
+        cSld = root.xpath('./p:cSld', namespaces=_nsmap)[0]
         name = cSld.get('name', default='')
         return name
     
@@ -920,7 +922,7 @@ class BaseSlide(BasePart):
         super(BaseSlide, self)._load(pkgpart, part_dict)
         # unmarshal shapes
         xpath = './p:cSld/p:spTree'
-        spTree = self._element.xpath(xpath, namespaces=self._nsmap)[0]
+        spTree = self._element.xpath(xpath, namespaces=_nsmap)[0]
         self._shapes = ShapeCollection(spTree, self)
         # return self-reference to allow generative calling
         return self
@@ -934,7 +936,7 @@ class Slide(BaseSlide):
         super(Slide, self).__init__(CT_SLIDE)
         self.__slidelayout = slidelayout
         self._element = self.__minimal_element
-        spTree = self._element.xpath('//p:spTree', namespaces=self._nsmap)[0]
+        spTree = self._element.xpath('//p:spTree', namespaces=_nsmap)[0]
         self._shapes = ShapeCollection(spTree, self)
         # if slidelayout, this is a slide being added, not one being loaded
         if slidelayout:
@@ -968,16 +970,16 @@ class Slide(BaseSlide):
         Return element containing the minimal XML for a slide, based on what
         is required by the XMLSchema.
         """
-        sld = etree.Element(qname('p', 'sld'), nsmap=self._nsmap)
-        cSld = etree.SubElement(sld, qname('p', 'cSld'))
-        spTree = etree.SubElement(cSld, qname('p', 'spTree'))
-        nvGrpSpPr = etree.SubElement(spTree, qname('p', 'nvGrpSpPr'))
-        cNvPr = etree.SubElement(nvGrpSpPr, qname('p', 'cNvPr'))
+        sld = etree.Element(qtag('p:sld'), nsmap=_nsmap)
+        cSld = etree.SubElement(sld, qtag('p:cSld'))
+        spTree = etree.SubElement(cSld, qtag('p:spTree'))
+        nvGrpSpPr = etree.SubElement(spTree, qtag('p:nvGrpSpPr'))
+        cNvPr = etree.SubElement(nvGrpSpPr, qtag('p:cNvPr'))
         cNvPr.set('id', '1')
         cNvPr.set('name', '')
-        cNvGrpSpPr = etree.SubElement(nvGrpSpPr, qname('p', 'cNvGrpSpPr'))
-        nvPr = etree.SubElement(nvGrpSpPr, qname('p', 'nvPr'))
-        grpSpPr = etree.SubElement(spTree, qname('p', 'grpSpPr'))
+        cNvGrpSpPr = etree.SubElement(nvGrpSpPr, qtag('p:cNvGrpSpPr'))
+        nvPr = etree.SubElement(nvGrpSpPr, qtag('p:nvPr'))
+        grpSpPr = etree.SubElement(spTree, qtag('p:grpSpPr'))
         return sld
     
 
@@ -1019,12 +1021,12 @@ class SlideMaster(BaseSlide):
     """
     Slide master part. Corresponds to package files
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
-    
-    TECHNOTE: In the Microsoft API, Master is a general type that all of
-    SlideMaster, SlideLayout (CustomLayout), HandoutMaster, and NotesMaster
-    inherit from. So might look into why that is and consider refactoring the
-    various masters a bit later.
     """
+    # TECHNOTE: In the Microsoft API, Master is a general type that all of
+    # SlideMaster, SlideLayout (CustomLayout), HandoutMaster, and NotesMaster
+    # inherit from. So might look into why that is and consider refactoring
+    # the various masters a bit later.
+    
     def __init__(self):
         super(SlideMaster, self).__init__(CT_SLIDEMASTER)
         self.__slidelayouts = PartCollection()
@@ -1058,25 +1060,24 @@ class SlideMaster(BaseSlide):
 
 class BaseShape(object):
     """
-    Base class for shape objects.
+    Base class for shape objects. Both :class:`Shape` and :class:`Picture`
+    inherit from :class:`BaseShape`.
     """
-    _nsmap = namespaces('a', 'r', 'p')
-    
     def __init__(self, shape_element):
         # log.debug('BaseShape.__init__() called w/element 0x%X',
         #            id(shape_element))
         super(BaseShape, self).__init__()
         self._element = shape_element
         self.__cNvPr = shape_element.xpath('./*[1]/p:cNvPr',
-                                           namespaces=self._nsmap)[0]
+                                           namespaces=_nsmap)[0]
     
     @property
     def has_textframe(self):
         """
-        True if this shape has a txBody element and can support text.
+        True if this shape has a txBody element and can contain text.
         """
         xpath = './p:txBody'
-        elements = self._element.xpath(xpath, namespaces=self._nsmap)
+        elements = self._element.xpath(xpath, namespaces=_nsmap)
         return len(elements) > 0
     
     @property
@@ -1093,7 +1094,7 @@ class BaseShape(object):
         has a <p:ph> element.
         """
         xpath = './*[1]/p:nvPr/p:ph'
-        ph_elms = self._element.xpath(xpath, namespaces=self._nsmap)
+        ph_elms = self._element.xpath(xpath, namespaces=_nsmap)
         return len(ph_elms) > 0
     
     @property
@@ -1101,13 +1102,16 @@ class BaseShape(object):
         """Name of this shape."""
         return self.__cNvPr.get('name', default='')
     
-    def set_text(self, value):
+    def _set_text(self, value):
         """Replace all text with single run containing *value*"""
         if not self.has_textframe:
             raise TypeError("cannot set text of shape with no text frame")
-        self.textframe.text = value
+        self.textframe.text = str(value)
     
-    text = property(None, set_text)
+    #: Write-only. Assignment to *text* replaces all text currently contained
+    #: by the shape. Results in a text frame containing exactly one paragraph,
+    #: itself containing a single run.
+    text = property(None, _set_text)
     
     @property
     def textframe(self):
@@ -1117,7 +1121,7 @@ class BaseShape(object):
         has a text frame.
         """
         xpath = './p:txBody'
-        elements = self._element.xpath(xpath, namespaces=self._nsmap)
+        elements = self._element.xpath(xpath, namespaces=_nsmap)
         if len(elements) == 0:
             raise ValueError('shape has no text frame')
         txBody = elements[0]
@@ -1129,7 +1133,7 @@ class BaseShape(object):
         True if this shape is a title placeholder.
         """
         xpath = './*[1]/p:nvPr/p:ph'
-        ph_elms = self._element.xpath(xpath, namespaces=self._nsmap)
+        ph_elms = self._element.xpath(xpath, namespaces=_nsmap)
         if len(ph_elms)==0:
             return False
         idx = ph_elms[0].get('idx', '0')
@@ -1142,15 +1146,15 @@ class ShapeCollection(BaseShape, Collection):
     while spTree in a slide is a group shape, the group shape is recursive in
     that a group shape can include other group shapes within it.
     """
-    _NVGRPSPPR    = qname('p', 'nvGrpSpPr')
-    _GRPSPPR      = qname('p', 'grpSpPr')
-    _SP           = qname('p', 'sp')
-    _GRPSP        = qname('p', 'grpSp')
-    _GRAPHICFRAME = qname('p', 'graphicFrame')
-    _CXNSP        = qname('p', 'cxnSp')
-    _PIC          = qname('p', 'pic')
-    _CONTENTPART  = qname('p', 'contentPart')
-    _EXTLST       = qname('p', 'extLst')
+    _NVGRPSPPR    = qtag('p:nvGrpSpPr')
+    _GRPSPPR      = qtag('p:grpSpPr')
+    _SP           = qtag('p:sp')
+    _GRPSP        = qtag('p:grpSp')
+    _GRAPHICFRAME = qtag('p:graphicFrame')
+    _CXNSP        = qtag('p:cxnSp')
+    _PIC          = qtag('p:pic')
+    _CONTENTPART  = qtag('p:contentPart')
+    _EXTLST       = qtag('p:extLst')
     
     def __init__(self, spTree, slide=None):
         # log.debug('ShapeCollect.__init__() called w/element 0x%X', id(spTree))
@@ -1246,23 +1250,23 @@ class ShapeCollection(BaseShape, Collection):
         orient = layout_ph.orient
         name = self.__next_ph_name(ph_type, id, orient)
         # <p:sp>
-        sp = etree.SubElement(self.__spTree, qname('p', 'sp'))
+        sp = etree.SubElement(self.__spTree, qtag('p:sp'))
         #   <p:nvSpPr>
-        nvSpPr = etree.SubElement(sp, qname('p', 'nvSpPr'))
+        nvSpPr = etree.SubElement(sp, qtag('p:nvSpPr'))
         #     <p:cNvPr id="9" name="Thing Placeholder 8"/>
-        cNvPr = etree.SubElement(nvSpPr, qname('p', 'cNvPr'))
+        cNvPr = etree.SubElement(nvSpPr, qtag('p:cNvPr'))
         cNvPr.set('id', str(id))
         cNvPr.set('name', name)
         #     <p:cNvSpPr>
-        cNvSpPr = etree.SubElement(nvSpPr, qname('p', 'cNvSpPr'))
+        cNvSpPr = etree.SubElement(nvSpPr, qtag('p:cNvSpPr'))
         #       <a:spLocks noGrp="1"/>
-        spLocks = etree.SubElement(cNvSpPr, qname('a', 'spLocks'))
+        spLocks = etree.SubElement(cNvSpPr, qtag('a:spLocks'))
         spLocks.set('noGrp', '1')
         #     </p:cNvSpPr>
         #     <p:nvPr>
-        nvPr = etree.SubElement(nvSpPr, qname('p', 'nvPr'))
+        nvPr = etree.SubElement(nvSpPr, qtag('p:nvPr'))
         #       <p:ph type="body" orient="vert" sz="half" idx="9"/>
-        ph = etree.SubElement(nvPr, qname('p', 'ph'))
+        ph = etree.SubElement(nvPr, qtag('p:ph'))
         if ph_type != PH_TYPE_OBJ:
             ph.set('type', ph_type)
         if layout_ph.orient != PH_ORIENT_HORZ:
@@ -1274,14 +1278,14 @@ class ShapeCollection(BaseShape, Collection):
         #     </p:nvPr>
         #   </p:nvSpPr>
         #   <p:spPr/>
-        spPr = etree.SubElement(sp, qname('p', 'spPr'))
+        spPr = etree.SubElement(sp, qtag('p:spPr'))
         #   <p:txBody>
         if ph_type in (PH_TYPE_TITLE, PH_TYPE_CTRTITLE, PH_TYPE_SUBTITLE,
                        PH_TYPE_BODY, PH_TYPE_OBJ):
-            txBody = etree.SubElement(sp, qname('p', 'txBody'))
-            bodyPr = etree.SubElement(txBody, qname('a', 'bodyPr'))
-            lstStyle = etree.SubElement(txBody, qname('a', 'lstStyle'))
-            p = etree.SubElement(txBody, qname('a', 'p'))
+            txBody = etree.SubElement(sp, qtag('p:txBody'))
+            bodyPr = etree.SubElement(txBody, qtag('a:bodyPr'))
+            lstStyle = etree.SubElement(txBody, qtag('a:lstStyle'))
+            p = etree.SubElement(txBody, qtag('a:p'))
         #   </p:txBody>
         # </p:sp>
         shape = Shape(sp)
@@ -1305,7 +1309,7 @@ class ShapeCollection(BaseShape, Collection):
             basename = 'Vertical %s' % basename
         # increment numpart as necessary to make name unique
         numpart = id - 1
-        names = self.__spTree.xpath('//p:cNvPr/@name', namespaces=self._nsmap)
+        names = self.__spTree.xpath('//p:cNvPr/@name', namespaces=_nsmap)
         while True:
             name = '%s %d' % (basename, numpart)
             if name not in names:
@@ -1321,7 +1325,7 @@ class ShapeCollection(BaseShape, Collection):
         and making use of any gaps in numbering. In practice, the minimum id
         is 2 because the spTree element is always assigned id="1".
         """
-        cNvPrs = self.__spTree.xpath('//p:cNvPr', namespaces=self._nsmap)
+        cNvPrs = self.__spTree.xpath('//p:cNvPr', namespaces=_nsmap)
         ids = [int(cNvPr.get('id')) for cNvPr in cNvPrs]
         ids.sort()
         # first gap in sequence wins, or falls off the end as max(ids)+1
@@ -1343,72 +1347,72 @@ class ShapeCollection(BaseShape, Collection):
         cx = cx if cx is not None else Px(cx_px)
         cy = cy if cy is not None else Px(cy_px)
         
-        pic = etree.Element(qname('p', 'pic'), nsmap=self._nsmap)
+        pic = etree.Element(qtag('p:pic'), nsmap=_nsmap)
         
-        nvPicPr  = etree.SubElement(pic,      qname('p', 'nvPicPr'))
-        cNvPr    = etree.SubElement(nvPicPr,  qname('p', 'cNvPr'))
+        nvPicPr  = etree.SubElement(pic,      qtag('p:nvPicPr'))
+        cNvPr    = etree.SubElement(nvPicPr,  qtag('p:cNvPr'))
         cNvPr.set('id',    str(id))
         cNvPr.set('name',  shapename)
         cNvPr.set('descr', filename)
-        cNvPicPr = etree.SubElement(nvPicPr,  qname('p', 'cNvPicPr'))
-        nvPr     = etree.SubElement(nvPicPr,  qname('p', 'nvPr'))
+        cNvPicPr = etree.SubElement(nvPicPr,  qtag('p:cNvPicPr'))
+        nvPr     = etree.SubElement(nvPicPr,  qtag('p:nvPr'))
         
-        blipFill = etree.SubElement(pic,      qname('p', 'blipFill'))
-        blip     = etree.SubElement(blipFill, qname('a', 'blip'))
-        blip.set(qname('r', 'embed'), rId)
-        stretch  = etree.SubElement(blipFill, qname('a', 'stretch'))
-        fillRect = etree.SubElement(stretch,  qname('a', 'fillRect'))
+        blipFill = etree.SubElement(pic,      qtag('p:blipFill'))
+        blip     = etree.SubElement(blipFill, qtag('a:blip'))
+        blip.set(qtag('r:embed'), rId)
+        stretch  = etree.SubElement(blipFill, qtag('a:stretch'))
+        fillRect = etree.SubElement(stretch,  qtag('a:fillRect'))
         
-        spPr = etree.SubElement(pic,  qname('p', 'spPr'))
-        xfrm = etree.SubElement(spPr, qname('a', 'xfrm'))
-        off  = etree.SubElement(xfrm, qname('a', 'off'))
+        spPr = etree.SubElement(pic,  qtag('p:spPr'))
+        xfrm = etree.SubElement(spPr, qtag('a:xfrm'))
+        off  = etree.SubElement(xfrm, qtag('a:off'))
         off.set('x', str(x))
         off.set('y', str(y))
-        ext  = etree.SubElement(xfrm, qname('a', 'ext'))
+        ext  = etree.SubElement(xfrm, qtag('a:ext'))
         ext.set('cx', str(cx))
         ext.set('cy', str(cy))
         
-        prstGeom = etree.SubElement(spPr, qname('a', 'prstGeom'))
+        prstGeom = etree.SubElement(spPr, qtag('a:prstGeom'))
         prstGeom.set('prst', 'rect')
-        avLst    = etree.SubElement(prstGeom, qname('a', 'avLst'))
+        avLst    = etree.SubElement(prstGeom, qtag('a:avLst'))
         
         return pic
     
     # def __sp(self, sp_id, shapename, x, y, cx, cy, is_textbox=False):
     #     """Return minimal ``<p:sp>`` element based on parameters."""
-    #     sp = etree.Element(qname('p', 'sp'), nsmap=self._nsmap)
+    #     sp = etree.Element(qtag('p:sp'), nsmap=_nsmap)
     #     
-    #     nvSpPr = etree.SubElement(sp, qname('p', 'nvSpPr'))
-    #     spPr   = etree.SubElement(sp, qname('p', 'spPr'  ))
-    #     txBody = etree.SubElement(sp, qname('p', 'txBody'))
+    #     nvSpPr = etree.SubElement(sp, qtag('p:nvSpPr'))
+    #     spPr   = etree.SubElement(sp, qtag('p:spPr'))
+    #     txBody = etree.SubElement(sp, qtag('p:txBody'))
     #     
-    #     cNvPr   = etree.SubElement(nvSpPr, qname('p', 'cNvPr'  ))
-    #     cNvSpPr = etree.SubElement(nvSpPr, qname('p', 'cNvSpPr'))
-    #     nvPr    = etree.SubElement(nvSpPr, qname('p', 'nvPr'   ))
+    #     cNvPr   = etree.SubElement(nvSpPr, qtag('p:cNvPr'))
+    #     cNvSpPr = etree.SubElement(nvSpPr, qtag('p:cNvSpPr'))
+    #     nvPr    = etree.SubElement(nvSpPr, qtag('p:nvPr'))
     #     cNvPr.set('id', str(sp_id))
     #     cNvPr.set('name', shapename)
     #     if is_textbox:
     #         cNvSpPr.set('txBox', '1')
     #     
-    #     xfrm     = etree.SubElement(spPr, qname('a', 'xfrm'    ))
-    #     prstGeom = etree.SubElement(spPr, qname('a', 'prstGeom'))
-    #     noFill   = etree.SubElement(spPr, qname('a', 'noFill'  ))
+    #     xfrm     = etree.SubElement(spPr, qtag('a:xfrm'))
+    #     prstGeom = etree.SubElement(spPr, qtag('a:prstGeom'))
+    #     noFill   = etree.SubElement(spPr, qtag('a:noFill'))
     #     prstGeom.set('prst', 'rect')
     #     
-    #     bodyPr   = etree.SubElement(txBody, qname('a', 'bodyPr'  ))
-    #     lstStyle = etree.SubElement(txBody, qname('a', 'lstStyle'))
-    #     p        = etree.SubElement(txBody, qname('a', 'p'       ))
+    #     bodyPr   = etree.SubElement(txBody, qtag('a:bodyPr'))
+    #     lstStyle = etree.SubElement(txBody, qtag('a:lstStyle'))
+    #     p        = etree.SubElement(txBody, qtag('a:p'))
     #     
-    #     off = etree.SubElement(xfrm, qname('a', 'off'))
-    #     ext = etree.SubElement(xfrm, qname('a', 'ext'))
+    #     off = etree.SubElement(xfrm, qtag('a:off'))
+    #     ext = etree.SubElement(xfrm, qtag('a:ext'))
     #     off.set('x', str(x))
     #     off.set('y', str(y))
     #     ext.set('cx', str(cx))
     #     ext.set('cy', str(cy))
     #     
-    #     avLst = etree.SubElement(prstGeom, qname('a', 'avLst'))
+    #     avLst = etree.SubElement(prstGeom, qtag('a:avLst'))
     #     
-    #     spAutoFit = etree.SubElement(bodyPr, qname('a', 'spAutoFit'))
+    #     spAutoFit = etree.SubElement(bodyPr, qtag('a:spAutoFit'))
     #     
     #     return sp
     # 
@@ -1440,7 +1444,7 @@ class Placeholder(object):
     def __init__(self, shape):
         self.__decorated = shape
         xpath = './*[1]/p:nvPr/p:ph'
-        self.__ph = self._element.xpath(xpath, namespaces=self._nsmap)[0]
+        self.__ph = self._element.xpath(xpath, namespaces=_nsmap)[0]
     
     def __getattr__(self, name):
         """
@@ -1503,10 +1507,8 @@ class TextFrame(object):
     """
     The part of a shape that contains its text. Not all shapes have a text
     frame. Corresponds to the ``<p:txBody>`` element that can appear as a
-    child element of ``<p:sp>``.
+    child element of ``<p:sp>``. Not intended to be constructed directly.
     """
-    __nsmap = namespaces('a', 'r', 'p')
-    
     def __init__(self, txBody):
         super(TextFrame, self).__init__()
         self.__txBody = txBody
@@ -1515,25 +1517,56 @@ class TextFrame(object):
     def paragraphs(self):
         """
         Immutable sequence of :class:`Paragraph` instances corresponding to
-        the paragraphs in this text frame.
+        the paragraphs in this text frame. A text frame always contains at
+        least one paragraph.
         """
         xpath = './a:p'
-        p_elms = self.__txBody.xpath(xpath, namespaces=self.__nsmap)
+        p_elms = self.__txBody.xpath(xpath, namespaces=_nsmap)
         paragraphs = []
         for p in p_elms:
             paragraphs.append(Paragraph(p))
         return tuple(paragraphs)
     
+    def _set_text(self, value):
+        """Replace all text with single run containing *value*"""
+        self.clear()
+        self.paragraphs[0].text = str(value)
+    
+    #: Write-only. Assignment to *text* replaces all text currently contained
+    #: in the text frame with the string value of the assigned expression.
+    #: After assignment, the text frame contains exactly one paragraph
+    #: containing a single run containing all the text.
+    text = property(None, _set_text)
+    
+    def _set_vertical_anchor(self, value):
+        """
+        Set ``anchor`` attribute of ``<a:bodyPr>`` element
+        """
+        value_map =\
+            { MSO.ANCHOR_TOP    : 't'
+            , MSO.ANCHOR_MIDDLE : 'ctr'
+            , MSO.ANCHOR_BOTTOM : 'b'
+            }
+        xpath = './a:bodyPr'
+        bodyPr = self.__txBody.xpath(xpath, namespaces=_nsmap)[0]
+        bodyPr.set('anchor', value_map[value])
+    
+    #: Write-only. Assignment to *vertical_anchor* sets the vertical
+    #: alignment of the text frame to top, middle, or bottom. Valid values are
+    #: ``MSO.ANCHOR_TOP``, ``MSO.ANCHOR_MIDDLE``, or ``MSO.ANCHOR_BOTTOM``.
+    #: The ``MSO`` name is imported from ``pptx.constants``.
+    vertical_anchor = property(None, _set_vertical_anchor)
+    
     def add_paragraph(self):
         """
-        Return new |Paragraph| instance appended to paragraph sequence of this
-        text frame.
+        Return new |Paragraph| instance appended to the sequence of paragraphs
+        contained in this text frame.
         """
         # get list of existing paragraphs (there's always at least one)
         xpath = './a:p'
-        p_elms = self.__txBody.xpath(xpath, namespaces=self.__nsmap)
+        p_elms = self.__txBody.xpath(xpath, namespaces=_nsmap)
         # create a new <a:p> element
-        p = etree.Element(qname('a', 'p'), nsmap=self.__nsmap)
+        p = etree.Element(qtag('a:p'), nsmap=_nsmap)
         # insert it after the last existing paragraph
         last_paragraph = p_elms[len(p_elms)-1]
         last_paragraph.addnext(p)
@@ -1544,43 +1577,89 @@ class TextFrame(object):
         """
         Remove all paragraphs except one empty one.
         """
-        p_list = self.__txBody.xpath('./a:p', namespaces=self.__nsmap)
+        p_list = self.__txBody.xpath('./a:p', namespaces=_nsmap)
         for p in p_list[1:]:
             self.__txBody.remove(p)
         p = self.paragraphs[0]
         p.clear()
     
-    def set_text(self, value):
-        """Replace all text with single run containing *value*"""
-        self.clear()
-        self.paragraphs[0].text = value
+
+class _Font(object):
+    """
+    Character properties object, prominent among those properties being font
+    size, font name, bold, italic, etc. Corresponds to ``<a:rPr>`` child
+    element of a run. Also appears as ``<a:defRPr>`` and ``<a:endParaRPr>``
+    in paragraph and ``<a:defRPr>`` in list style elements. Not intended to be
+    constructed directly.
+    """
+    def __init__(self, rPr):
+        super(_Font, self).__init__()
+        self.__rPr = rPr
     
-    text = property(None, set_text)
-    
-    def set_vertical_anchor(self, value):
+    @property
+    def bold(self):
         """
-        Set ``anchor`` attribute of ``<a:bodyPr>`` element
+        Get or set boolean bold value of |_Font|, e.g.
+        ``paragraph.font.bold = True``.
         """
-        value_map =\
-            { MSO.ANCHOR_TOP    : 't'
-            , MSO.ANCHOR_MIDDLE : 'ctr'
-            , MSO.ANCHOR_BOTTOM : 'b'
-            }
-        xpath = './a:bodyPr'
-        bodyPr = self.__txBody.xpath(xpath, namespaces=self.__nsmap)[0]
-        bodyPr.set('anchor', value_map[value])
+        b = self.__rPr.get('b')
+        return True if b in ('true', '1') else False
     
-    vertical_anchor = property(None, set_vertical_anchor)
+    @bold.setter
+    def bold(self, bool):
+        if bool:
+            self.__rPr.set('b', '1')
+        elif 'b' in self.__rPr.attrib:
+            del self.__rPr.attrib['b']
+    
+    def _set_size(self, centipoints):
+        centipoints = int(centipoints)
+        self.__rPr.set('sz', str(centipoints))
+    
+    #: Set the font size. In PresentationML, font size is expressed in
+    #: hundredths of a point (centipoints). The :class:`pptx.util.Pt` class
+    #: allows convenient conversion to centipoints from float or integer point
+    #: values, e.g. ``Pt(12.5)``. I'm pretty sure I just made up the word
+    #: *centipoint*, but it seems apt :).
+    size = property(None, _set_size)
 
 class Paragraph(object):
     """
-    Paragraph object.
+    Paragraph object. Not intended to be constructed directly.
     """
-    __nsmap = namespaces('a', 'r', 'p')
-    
     def __init__(self, p):
         super(Paragraph, self).__init__()
         self.__p = p
+        self.__pPr = _child(p, 'a:pPr')
+        if self.__pPr is not None:
+            self.__defRPr = _child(self.__pPr, 'a:defRPr')
+        else:
+            self.__defRPr = None
+    
+    @property
+    def font(self):
+        """
+        :class:`_Font` object containing default character properties for the
+        runs in this paragraph. These character properties override default
+        properties inherited from parent objects such as the text frame the
+        paragraph is contained in and they may be overridden by character
+        properties set at the run level.
+        """
+        # A _Font instance is created on first access if it doesn't exist.
+        # This can cause "litter" <a:pPr> and <a:defRPr> elements to be
+        # included in the XML if the _Font element is referred to but not
+        # populated with values.
+        if self.__pPr is None:
+            self.__pPr = etree.Element(qtag('a:pPr'))
+            self.__p.insert(0, self.__pPr)
+        if self.__defRPr is None:
+            self.__defRPr = etree.Element(qtag('a:defRPr'))
+            extLst = _child(self.__pPr, 'a:extLst')
+            if extLst:
+                extLst.addprevious(self.__defRPr)
+            else:
+                self.__pPr.append(self.__defRPr)
+        return _Font(self.__defRPr)
     
     @property
     def runs(self):
@@ -1589,7 +1668,7 @@ class Paragraph(object):
         in this paragraph.
         """
         xpath = './a:r'
-        r_elms = self.__p.xpath(xpath, namespaces=self.__nsmap)
+        r_elms = self.__p.xpath(xpath, namespaces=_nsmap)
         runs = []
         for r in r_elms:
             runs.append(Run(r))
@@ -1599,8 +1678,11 @@ class Paragraph(object):
         """Replace runs with single run containing *value*"""
         self.clear()
         r = self.add_run()
-        r.text = value
+        r.text = str(value)
     
+    #: Write-only. Assignment to *text* replaces all text currently contained
+    #: in the paragraph. After assignment, the paragraph containins exactly
+    #: one run that contains the string equivalent of the assigned expression.
     text = property(None, _set_text)
     
     def add_run(self):
@@ -1615,20 +1697,23 @@ class Paragraph(object):
     
     def clear(self):
         """Remove all runs from this paragraph."""
-        # for now just remove all children; later might want to keep pPr
+        # retain pPr if present
+        pPr = _child(self.__p, 'a:pPr')
         self.__p.clear()
+        if pPr is not None:
+            self.__p.insert(0, pPr)
     
     @property
     def __endParaRPr(self):
         """Bookmark to ``<a:endParaRPr>`` child element"""
-        return _child(self.__p, 'a:endParaRPr', self.__nsmap)
+        return _child(self.__p, 'a:endParaRPr', _nsmap)
     
     def __new_run_element(self):
         """Construct and return an empty run element"""
         # <a:r>
-        r = etree.Element(qname('a', 'r'))
+        r = etree.Element(qtag('a:r'))
         #   <a:t>
-        etree.SubElement(r, qname('a', 't'))
+        etree.SubElement(r, qtag('a:t'))
         # </a:r>
         return r
     
@@ -1637,12 +1722,35 @@ class Run(object):
     """
     Text run object. Corresponds to ``<a:r>`` child element in a paragraph.
     """
-    __nsmap = namespaces('a', 'r', 'p')
-    
     def __init__(self, r):
         super(Run, self).__init__()
         self.__r = r
-        self.__t = r.xpath('./a:t', namespaces=self.__nsmap)[0]
+        elms = r.xpath('./a:rPr', namespaces=_nsmap)
+        self.__rPr = elms[0] if len(elms) else None
+        self.__t = r.xpath('./a:t', namespaces=_nsmap)[0]
+    
+    @property
+    def font(self):
+        """
+        :class:`_Font` object containing run-level character properties for the
+        text in this run. Character properties can and perhaps most often are
+        inherited from parent objects such as the paragraph and slide layout
+        the run is contained in. Only those specifically assigned at the run
+        level are contained in the :class:`_Font` object.
+        """
+        # A _Font instance is created on first access if it doesn't exist.
+        # This can cause a "litter" <a:rPr> element to be included in the
+        # XML if the _Font element is referred to but not populated with
+        # values. This is a small problem, trivial might be a more apt term,
+        # but I'd like to noodle out a way to fix it if possible, perhaps by
+        # not attaching it to the lxml hierarchy until it gets an attribute
+        # set. That would require a couple call-back methods and having _Font
+        # keep track of who its parent is so it could call attach and detach
+        # on the right events.
+        if self.__rPr is None:
+            self.__rPr = etree.Element(qtag('a:rPr'), nsmap=_nsmap)
+            self.__r.insert(0, self.__rPr)
+        return _Font(self.__rPr)
     
     @property
     def text(self):

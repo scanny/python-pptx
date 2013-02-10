@@ -9,6 +9,14 @@ Python 2.6 is planned. Support for earlier versions is not likely to be on the
 horizon, but if someone has a compelling need and is willing to pitch in to
 make it possible, that could happen.
 
+.. toctree::
+   :titlesonly:
+   :maxdepth: 9
+
+   modules/index
+   examples
+
+
 
 Use cases
 =========
@@ -127,12 +135,6 @@ in to specify the layout the new slide should take on::
     title_slidelayout = prs.slidelayouts[0]
     new_slide = prs.slides.add_slide(title_slidelayout)
 
-
-.. toctree::
-   :maxdepth: 1
-
-   modules/index
-   examples
 
 .. |python-pptx| replace:: :mod:`python-pptx`
 .. |Presentation| replace:: :class:`Presentation`

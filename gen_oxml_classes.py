@@ -35,7 +35,7 @@ class $classname(BaseElement):
     """Wrapper for ``<$nsprefix:$tagname>`` element"""
     def __init__(self):
         super($classname, self).__init__()
-        self._element = Element(qname('$nsprefix', '$tagname'), nsmap=nsmap)
+        self._element = Element(qtag('$nsprefix:$tagname'), nsmap=nsmap)
 ''')
 
 required_children = Template('''\
@@ -103,47 +103,4 @@ for element in elements:
 print out
 
 sys.exit()
-
-# ----
-
-# out = tmpl.substitute(classname='CT_ShapeProperties', nsprefix='p', tagname='spPr'  )
-# out = tmpl.substitute(classname='CT_TextBody'       , nsprefix='p', tagname='txBody')
-
-    # def __sp(self, sp_id, shapename, x, y, cx, cy, is_textbox=False):
-    #     
-    #     """Return minimal ``<p:sp>`` element based on parameters."""
-    #     nvSpPr = etree.SubElement(sp, qname('p', 'nvSpPr'))
-    #     spPr   = etree.SubElement(sp, qname('p', 'spPr'  ))
-    #     txBody = etree.SubElement(sp, qname('p', 'txBody'))
-    #     
-    #     cNvPr   = etree.SubElement(nvSpPr, qname('p', 'cNvPr'  ))
-    #     cNvSpPr = etree.SubElement(nvSpPr, qname('p', 'cNvSpPr'))
-    #     nvPr    = etree.SubElement(nvSpPr, qname('p', 'nvPr'   ))
-    #     cNvPr.set('id', str(sp_id))
-    #     cNvPr.set('name', shapename)
-    #     if is_textbox:
-    #         cNvSpPr.set('txBox', '1')
-    #     
-    #     xfrm     = etree.SubElement(spPr, qname('a', 'xfrm'    ))
-    #     prstGeom = etree.SubElement(spPr, qname('a', 'prstGeom'))
-    #     noFill   = etree.SubElement(spPr, qname('a', 'noFill'  ))
-    #     prstGeom.set('prst', 'rect')
-    #     
-    #     bodyPr   = etree.SubElement(txBody, qname('a', 'bodyPr'  ))
-    #     lstStyle = etree.SubElement(txBody, qname('a', 'lstStyle'))
-    #     p        = etree.SubElement(txBody, qname('a', 'p'       ))
-    #     
-    #     off = etree.SubElement(xfrm, qname('a', 'off'))
-    #     ext = etree.SubElement(xfrm, qname('a', 'ext'))
-    #     off.set('x', str(x))
-    #     off.set('y', str(y))
-    #     ext.set('cx', str(cx))
-    #     ext.set('cy', str(cy))
-    #     
-    #     avLst = etree.SubElement(prstGeom, qname('a', 'avLst'))
-    #     
-    #     spAutoFit = etree.SubElement(bodyPr, qname('a', 'spAutoFit'))
-    #     
-    #     return sp
-
 

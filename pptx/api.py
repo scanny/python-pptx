@@ -18,7 +18,9 @@ from pptx.presentation import Package
 
 class Presentation(object):
     """
-    Main API entry point for using :mod:`python-pptx`.
+    Return a |Presentation| instance loaded from ``.pptx`` file at *path*. If
+    *path* is missing or ``None``, load the built-in default presentation
+    template.
     """
     def __init__(self, path=None):
         super(Presentation, self).__init__()
@@ -28,10 +30,10 @@ class Presentation(object):
     @property
     def slidelayouts(self):
         """
-        Collection of :class:`SlideLayout` instances belonging to the first
-        :class:`SlideMaster` of this presentation.
+        Tuple containing the :class:`SlideLayout` instances belonging to the
+        first :class:`SlideMaster` of this presentation.
         """
-        return self.__presentation.slidemasters[0].slidelayouts
+        return tuple(self.__presentation.slidemasters[0].slidelayouts)
     
     @property
     def slidemaster(self):

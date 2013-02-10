@@ -6,7 +6,8 @@ Developer Documentation
 one's own purposes).
 
 .. toctree::
-   :maxdepth: 1
+   :titlesonly:
+   :maxdepth: 9
 
    development_practices
    modules/index

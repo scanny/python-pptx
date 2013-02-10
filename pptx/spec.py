@@ -481,13 +481,18 @@ def namespaces(*prefixes):
     return namespaces
 
 
-# Return a qualified name (QName) for an XML element or attribute in Clark
-# notation (e.g. "{http://www.w3.org/1999/xhtml}body instead of "html:body")
-# by looking up the specified namespace prefix in the overall namespace map
-# (nsmap) above. Google on "xml clark notation" for more on that topic.
-def qname(nsprefix, localtagname):
-    uri = nsmap[nsprefix]
-    return '{%s}%s' % (uri, localtagname)
+def qtag(tag):
+    """
+    Return a qualified name (QName) for an XML element or attribute in Clark
+    notation, e.g. ``'{http://www.w3.org/1999/xhtml}body'`` instead of
+    ``'html:body'``, by looking up the specified namespace prefix in the
+    overall namespace map (nsmap) above. Google on "xml clark notation" for
+    more on Clark notation. *tag* is a namespace-prefixed tagname, e.g.
+    ``'p:cSld'``.
+    """
+    prefix, tagroot = tag.split(':')
+    uri = nsmap[prefix]
+    return '{%s}%s' % (uri, tagroot)
 
 
 

@@ -1,6 +1,8 @@
-===============================================================
-:mod:`packaging` --- manipulate Open Packaging Convention files
-===============================================================
+=======================
+:mod:`packaging` Module
+=======================
+
+Manipulate Open Packaging Convention files
 
 .. automodule:: pptx.packaging
 

@@ -128,9 +128,11 @@ name     #   type                    line
 nvSpPr   1   CT_ShapeNonVisual       1201
 spPr     1   CT_ShapeProperties      2210 dml
 style    ?   CT_ShapeStyle           2245 dml
-txBody   ?   CT_TextBody             2640 dml
+txBody   ?   |CT_TextBody|           2640 dml
 extLst   ?   CT_ExtensionListModify  775>767
 ======  ===  ======================  ========
+
+.. |CT_TextBody| replace:: :doc:`ct_textbody`
 
 
 Spec text

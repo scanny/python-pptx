@@ -19,7 +19,7 @@ from lxml.etree import Element
 
 from pptx.oxml import CT_Shape, CT_ShapeNonVisual
 from pptx.packaging import prettify_nsdecls
-from pptx.spec import namespaces, qname
+from pptx.spec import namespaces, qtag
 
 # default namespace map
 nsmap = namespaces('a', 'r', 'p')

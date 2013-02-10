@@ -2,16 +2,21 @@
 :mod:`pptx` Package Modules
 ===========================
 
-The :mod:`pptx` package provides the :mod:`pptx.presentation` module that
-contains the :class:`Presentation` class, the main API object for the package.
+:class:`Presentation`, the main API class for ``python-pptx``, in provided
+directly by the :mod:`pptx` package::
 
-The following modules are contained in the package. Internal APIs are
-documented here as a convenience for developers.
+    from pptx import Presentation
+
+Most other classes in the package are not constructed directly and therefore
+do not need to be imported. The public attributes and methods of those classes
+are documented on the :doc:`pptx` page.
+
+The following modules are contained in the package.
 
 .. toctree::
    :maxdepth: 1
 
-   presentation
+   pptx
    util
    exc
 
