@@ -2,45 +2,14 @@
 python-pptx
 ###########
 
-VERSION: 0.1.0a1 (first Alpha)
+VERSION: 0.2.0 (first non-alpha release)
 
 
-STATUS (as of Feb 1 2013)
-=========================
+STATUS (as of Feb 10 2013)
+==========================
 
-Initial alpha version with limited capabilities. Under active development, with new features added in a new release roughly every two weeks.
-
-
-Documentation
-=============
-
-Documentation is hosted on Read The Docs (readthedocs.org) at
-https://python-pptx.readthedocs.org/en/latest/. The documentation is being
-developed steadily alongside the code.
-
-
-Installation
-============
-
-``python-pptx`` depends on the ``lxml`` package and the Python Imaging Library
-(``PIL``).
-
-``python-pptx`` may be installed with ``pip`` if you have it
-available::
-
-    pip install python-pptx
-
-It can also be installed using ``easy_install``::
-
-    easy_install python-pptx
-
-If neither ``pip`` nor ``easy_install`` is available, it can be installed
-manually by downloading the distribution from PyPI, unpacking the tarball,
-and running ``setup.py``::
-
-    tar xvzf python-pptx-0.1.0a1.tar.gz
-    cd python-pptx-0.1.0a1
-    python setup.py install
+Initial release with basic capabilities. Under active development, with new
+features added in a new release roughly every two weeks.
 
 
 Vision
@@ -49,7 +18,7 @@ Vision
 A robust, full-featured, and well-documented general-purpose library for
 manipulating Open XML PowerPoint files.
 
-* **robust** - High reliability driven by a full unit-test suite.
+* **robust** - High reliability driven by a comprehensive test suite.
 
 * **full-featured** - Anything that the file format will allow can be
   accomplished via the API. (Note that visions often take some time to fulfill
@@ -67,12 +36,63 @@ manipulating Open XML PowerPoint files.
   purposes can always be accomplished by building a wrapper library of your
   own. Serving general purposes from a particularized library is not so easy.
 
-* **manipulate** - Initially I expect this library to be primarily for
-  purposes of *writing* .pptx files. But since we're talking about vision
-  here, I think it's not to much to envision that it could be developed to
-  also be able to *read* .pptx files and manipulate their contents. I could
-  see that coming in handy for full-text indexing, removing speaker notes,
-  changing out templates, that sort of thing.
+* **manipulate** - While this library will perhaps most commonly be used for
+  *writing* .pptx files, it will also be suitable for *reading* .pptx files
+  and inspecting and manipulating their contents. I could see that coming in
+  handy for full-text indexing, removing speaker notes, changing out
+  templates, adding dynamically generated slides to static boilerplate, that
+  sort of thing.
+
+
+Documentation
+=============
+
+Documentation is hosted on Read The Docs (readthedocs.org) at
+https://python-pptx.readthedocs.org/en/latest/. The documentation is now in
+reasonably robust shape and is being developed steadily alongside the code.
+
+
+Reaching out
+============
+
+We'd love to hear from you if you like |pp|, want a new feature, find a bug,
+need help using it, or just have a word of encouragement.
+
+The **mailing list** for |pp| is python.pptx@librelist.com.
+
+The **issue tracker** is on github at `scanny/python-pptx`_.
+
+Feature requests are best broached initially on the mailing list, they can be
+added to the issue tracker once we've clarified the best approach,
+particularly the appropriate API signature.
+
+.. _`scanny/python-pptx`:
+   https://github.com/scanny/python-pptx
+
+
+Installation
+============
+
+|pp| may be installed with ``pip`` if you have it available::
+
+    pip install python-pptx
+
+It can also be installed using ``easy_install``::
+
+    easy_install python-pptx
+
+If neither ``pip`` nor ``easy_install`` is available, it can be installed
+manually by downloading the distribution from PyPI, unpacking the tarball,
+and running ``setup.py``::
+
+    tar xvzf python-pptx-0.1.0a1.tar.gz
+    cd python-pptx-0.1.0a1
+    python setup.py install
+
+|pp| depends on the ``lxml`` package and the Python Imaging Library
+(``PIL``). Both ``pip`` and ``easy_install`` will take care of satisfying
+those dependencies for you, but if you use this last method you will need to
+install those yourself.
 
 
 License
@@ -84,3 +104,5 @@ remove my name from the credits. See the LICENSE file for specific terms.
 
 .. _MIT license:
    http://www.opensource.org/licenses/mit-license.php
+
+.. |pp| replace:: ``python-pptx``

@@ -14,7 +14,7 @@ from pptx.api import(Presentation)
 
 # __all__ = sorted(name for name, obj in locals().items() if not (name.startswith('_') or inspect.ismodule(obj)))
                  
-__version__ = '0.1.0a1'
+__version__ = '0.2.0'
 
 del inspect, sys
 

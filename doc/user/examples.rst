@@ -31,6 +31,7 @@ Hello World! example
     
     prs.save('test.pptx')
 
+
 ----
 
 Bullet slide example
@@ -59,6 +60,76 @@ Bullet slide example
     tf.add_paragraph().text = 'Use Shape.text for first bullet'
     tf.add_paragraph().text = ('Use TextFrame.add_paragraph() for '
                                'subsequent bullets')
+    
+    prs.save('test.pptx')
+
+
+----
+
+``add_textbox()`` example
+=========================
+
+.. image:: /_static/img/add-textbox.png
+
+|
+
+::
+
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+    
+    prs = Presentation()
+    blank_slidelayout = prs.slidelayouts[6]
+    slide = prs.slides.add_slide(blank_slidelayout)
+    
+    left = top = width = height = Inches(1)
+    txBox = slide.shapes.add_textbox(left, top, width, height)
+    tf = txBox.textframe
+    
+    tf.text = "This is text inside a textbox"
+    
+    p = tf.add_paragraph()
+    p.text = "This is a second paragraph that's bold"
+    p.font.bold = True
+    
+    p = tf.add_paragraph()
+    p.text = "This is a third paragraph that's big"
+    p.font.size = Pt(40)
+    
+    prs.save('test.pptx')
+
+
+----
+
+``add_picture()`` example
+=========================
+
+.. image:: /_static/img/add-picture.png
+
+|
+
+::
+
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+    
+    prs = Presentation()
+    blank_slidelayout = prs.slidelayouts[6]
+    slide = prs.slides.add_slide(blank_slidelayout)
+    
+    left = top = width = height = Inches(1)
+    txBox = slide.shapes.add_textbox(left, top, width, height)
+    tf = txBox.textframe
+    
+    tf.text = "This is text inside a textbox"
+    
+    p = tf.add_paragraph()
+    p.text = "This is a second paragraph that's bold"
+    p.font.bold = True
+    
+    p = tf.add_paragraph()
+    p.text = "This is a third paragraph that's big"
+    p.font.size = Pt(40)
     
     prs.save('test.pptx')
 

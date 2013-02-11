@@ -4,10 +4,7 @@ User Documentation
 
 |python-pptx| is a pure-Python library for manipulating Open XML presentation
 files, perhaps more commonly referred to as PowerPoint files for PowerPoint
-2007 and later versions. Currently it requires Python 2.7, however support for
-Python 2.6 is planned. Support for earlier versions is not likely to be on the
-horizon, but if someone has a compelling need and is willing to pitch in to
-make it possible, that could happen.
+2007 and later versions.
 
 .. toctree::
    :titlesonly:

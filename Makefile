@@ -33,8 +33,9 @@ help:
 	@echo "Please use \`make <target>' where <target> is one or more of"
 	@echo "  accept    to run acceptance tests using behave"
 	@echo "  clean     to delete intermediate work product and start fresh"
-	@echo "  test      to run tests using setup.py"
+	@echo "  readme    to update README.html from README.rst"
 	@echo "  register  to update metadata (README.rst) on PyPI"
+	@echo "  test      to run tests using setup.py"
 	@echo "  sdist     to generate a source distribution into dist/"
 	@echo "  upload    to upload distribution tarball to PyPI"
 
@@ -44,6 +45,10 @@ accept:
 clean:
 	find . -type f -name \*.pyc -exec rm {} \;
 	rm -rf dist python_pptx.egg-info .coverage .DS_Store lint.html lint.txt
+
+readme:
+	rst2html README.rst >README.html
+	open README.html
 
 register:
 	$(SETUP) register

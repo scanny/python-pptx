@@ -5,8 +5,10 @@ import os
 from setuptools import setup
 from glob import glob
 
+from pptx import __version__
+
 NAME         = 'python-pptx'
-VERSION      = '0.1.0a1'
+VERSION      = __version__
 DESCRIPTION  = 'Generate and manipulate Open XML PowerPoint (.pptx) files'
 AUTHOR       = 'Steve Canny'
 AUTHOR_EMAIL = 'python.pptx@librelist.com'
