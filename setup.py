@@ -22,7 +22,7 @@ TEST_SUITE       = 'test'
 TESTS_REQUIRE    = ['unittest2', 'mock', 'PyHamcrest', 'behave']
 
 CLASSIFIERS =\
-    [ 'Development Status :: 3 - Alpha'
+    [ 'Development Status :: 4 - Beta'
     , 'Environment :: Console'
     , 'Intended Audience :: Developers'
     , 'License :: OSI Approved :: MIT License'
@@ -52,6 +52,7 @@ params =\
     , 'install_requires' : INSTALL_REQUIRES
     , 'tests_require'    : TESTS_REQUIRE
     , 'test_suite'       : TEST_SUITE
+    , 'classifiers'      : CLASSIFIERS
     }
 
 setup(**params)
