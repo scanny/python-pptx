@@ -457,7 +457,11 @@ class _Relationship(object):
         an :class:`int`. For example, :attr:`_num` for a relationship with an
         rId of ``'rId12'`` would be ``12``.
         """
-        return int(self.__rId[3:])
+        try:
+            num = int(self.__rId[3:])
+        except ValueError:
+            num = 9999
+        return num
     
     @_rId.setter
     def _rId(self, value):
@@ -723,14 +727,12 @@ class Presentation(BasePart):
         Rewrite sldId elements in sldIdLst before handing over to super for
         transformation of _element into a blob.
         """
-        sldIdLst = (self.__sldIdLst if self.__sldIdLst is not None
-                                    else self.__add_sldIdLst())
-        sldIdLst.clear()
-        sld_rels = self._relationships.rels_of_reltype(RT_SLIDE)
-        for idx, rel in enumerate(sld_rels):
-            sldId = etree.SubElement(sldIdLst, qtag('p:sldId'))
-            sldId.set('id', str(256+idx))
-            sldId.set(qtag('r:id'), rel._rId)
+        self.__rewrite_sldIdLst()
+        # # at least the following needs to be added before using
+        # # _reltype_ordering again for Presentation
+        # self.__rewrite_notesMasterIdLst()
+        # self.__rewrite_handoutMasterIdLst()
+        # self.__rewrite_sldMasterIdLst()
         return super(Presentation, self)._blob
     
     def _load(self, pkgpart, part_dict):
@@ -740,10 +742,17 @@ class Presentation(BasePart):
         # call parent to do generic aspects of load
         super(Presentation, self)._load(pkgpart, part_dict)
         
-        # set reltype ordering so rels file ordering is readable
-        self._relationships._reltype_ordering = (RT_SLIDEMASTER,
-            RT_NOTESMASTER, RT_HANDOUTMASTER, RT_SLIDE, RT_PRESPROPS,
-            RT_VIEWPROPS, RT_TABLESTYLES, RT_THEME)
+        # side effect of setting reltype ordering is that rId values can be
+        # changed (renumbered during resequencing), so must complete rewrites
+        # of all four IdLst elements (notesMasterIdLst, etc.) internal to
+        # presentation.xml to reflect any possible changes. Not sure if good
+        # order in the .rels files is worth the trouble just yet, so
+        # commenting this out for now.
+        
+        # # set reltype ordering so rels file ordering is readable
+        # self._relationships._reltype_ordering = (RT_SLIDEMASTER,
+        #     RT_NOTESMASTER, RT_HANDOUTMASTER, RT_SLIDE, RT_PRESPROPS,
+        #     RT_VIEWPROPS, RT_TABLESTYLES, RT_THEME)
         
         # selectively unmarshal relationships for now
         for rel in self._relationships:
@@ -753,6 +762,21 @@ class Presentation(BasePart):
             elif rel._reltype == RT_SLIDE:
                 self.__slides._loadpart(rel._target)
         return self
+    
+    def __rewrite_sldIdLst(self):
+        """
+        Rewrite the ``<p:sldIdLst>`` element in ``<p:presentation>`` to
+        reflect current ordering of slide relationships and possible
+        renumbering of ``rId`` values.
+        """
+        sldIdLst = (self.__sldIdLst if self.__sldIdLst is not None
+                                    else self.__add_sldIdLst())
+        sldIdLst.clear()
+        sld_rels = self._relationships.rels_of_reltype(RT_SLIDE)
+        for idx, rel in enumerate(sld_rels):
+            sldId = etree.SubElement(sldIdLst, qtag('p:sldId'))
+            sldId.set('id', str(256+idx))
+            sldId.set(qtag('r:id'), rel._rId)
     
     def __add_sldIdLst(self):
         """
