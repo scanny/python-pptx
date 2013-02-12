@@ -3,12 +3,14 @@
 
 The status of this page is **ROUGH DRAFT**.
 
+Also see the protocols pages for additional class internals documentation.
+
 .. automodule:: pptx.presentation
-   :members: Collection, Observable
+   :members: Package, Collection, Observable, ImageCollection, Presentation,
+      Image
+   :member-order: bysource
    :undoc-members:
    :show-inheritance:
-
-.. |_RelationshipCollection| replace:: :class:`_RelationshipCollection`
 
 .. |Paragraph| replace:: :class:`Paragraph`
 

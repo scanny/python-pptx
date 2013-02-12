@@ -15,26 +15,36 @@ Microsoft PowerPoint API documentation
 
 * `PowerPoint 2010 Interop Namespace`_
 
-* `Shape Tree MSDN page <http://msdn.microsoft.com/en-us/library/office/documentformat.openxml.presentation.shapetree.aspx>`_
+* `PowerPoint 2013 Object Model Reference`_
 
-* `MSDN Open XML Reference  <http://msdn.microsoft.com/en-us/library/office/documentformat.openxml.presentation.commonslidedata.aspx>`_
+* `PowerPoint 2010 Object Model Reference`_
 
-* `Microsoft PowerPoint 2013 Object Model Reference <http://msdn.microsoft.com/en-us/library/office/ff743835.aspx>`_
+* `Open XML Presentation Namespace on MSDN`_
 
-* `MSDN - Presentation Members <http://msdn.microsoft.com/en-us/library/office/ff745984(v=office.14).aspx>`_
+* `Office 2013 Open XML Presentation Namespace`_
 
-* `Different MSDN PowerPoint API reference <http://msdn.microsoft.com/en-us/library/documentformat.openxml.presentation.presentation_members.aspx>`_
-
-* `OpenXML Content Types as an XML Document <http://blogs.msdn.com/b/ericwhite/archive/2007/12/11/openxml-content-types-as-an-xml-document.aspx>`_
-
-* `PowerPoint 2010 Developer Reference`_
+* `Open XML Content Types as an XML Document`_
 
 
 .. _PowerPoint 2010 Interop Namespace:
    http://msdn.microsoft.com/en-us/library/ff763170(v=office.14).aspx
 
-.. _PowerPoint 2010 Developer Reference:
+.. _PowerPoint 2013 Object Model Reference:
+   http://msdn.microsoft.com/en-us/library/office/ff743835.aspx
+
+.. _PowerPoint 2010 Object Model Reference:
    http://msdn.microsoft.com/en-us/library/office/ff746846(v=office.14).aspx
+
+.. _Open XML Presentation Namespace on MSDN:
+   http://msdn.microsoft.com/en-us/library/office/cc884925.aspx
+
+.. _Office 2013 Open XML Presentation Namespace:
+   http://msdn.microsoft.com/en-us/library/cc884925.aspx
+
+.. _Open XML Content Types as an XML Document:
+   http://blogs.msdn.com/b/ericwhite/archive/2007/12/11/openxml-content-
+   types-as-an-xml-document.aspx
+
 
 
 Sphinx Resources

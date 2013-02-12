@@ -155,7 +155,7 @@ Design Narrative -- Model-side relationships
   parts are deleted. Relationships for generic parts are maintained from load
   and delivered back for save without change.
 
-The :doc:`../protocols/relationships` page contains documentation for
+The :doc:`protocols/relationships` page contains documentation for
 the :ref:`relationship-related-protocol`.
 
 Interface

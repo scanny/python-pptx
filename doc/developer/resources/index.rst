@@ -8,13 +8,10 @@ Resources
    :maxdepth: 1
 
    python_packaging
-   technical_topics
-   objects/index
-   experiments/index
    about_packaging
    about_relationships
-   design_narratives
    web_resources
+   technical_topics
    applescript
    odds_and_ends
 

@@ -2,16 +2,15 @@
 Developer Documentation
 =======================
 
-... contributing to the :mod:`python-pptx` package ... (or hacking on it for
-one's own purposes).
+The kinds of topics end-users don't often need to know but developers do ...
 
 .. toctree::
    :titlesonly:
    :maxdepth: 9
 
    development_practices
+   analysis/index
+   design/index
    modules/index
-   protocols/index
-   schema/index
    resources/index
 

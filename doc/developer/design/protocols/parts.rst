@@ -20,16 +20,15 @@ There are essentially three protocols with partially-overlapping interfaces:
 .. currentmodule:: pptx.presentation
 
 .. autoclass:: pptx.presentation.Part
-   :members:
+   :members: __new__
    :undoc-members:
-
-   .. automethod:: __new__
 
 
 .. autoclass:: pptx.presentation.BasePart
    :members:
    :undoc-members:
    :private-members:
+
 
 .. autoclass:: pptx.presentation.PartCollection
    :members:
@@ -112,6 +111,8 @@ manipulated via the library API::
 
 Class hierarchy
 ---------------------------------------
+
+Probably outdated, needs fixing ...
 
 ::
 
