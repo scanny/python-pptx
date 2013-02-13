@@ -411,7 +411,13 @@ class Relationship(object):
     
     @property
     def __target_relpath(self):
-        return posixpath.relpath(self.target.partname, self.__baseURI)
+        # workaround for posixpath bug in 2.6, doesn't generate correct
+        # relative path when *start* (second) parameter is root ('/')
+        if self.__baseURI == '/':
+            relpath = self.target.partname[1:]
+        else:
+            relpath = posixpath.relpath(self.target.partname, self.__baseURI)
+        return relpath
     
 
 class PartTypeSpec(object):
