@@ -7,6 +7,7 @@ Protocols and Interfaces
 .. toctree::
    :maxdepth: 1
 
+   filesystem
    relationships
    parts
    placeholder

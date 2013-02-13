@@ -21,10 +21,10 @@ methods :meth:`open`, :meth:`marshal`, and :meth:`save`.
 import os
 import posixpath
 import re
-import zipfile
 
-from lxml import etree
 from StringIO import StringIO
+from lxml import etree
+from zipfile import ZipFile, is_zipfile, ZIP_DEFLATED
 
 import pptx.spec
 
@@ -101,6 +101,7 @@ class Package(object):
             part._load(fs, partname, cti, parts_dict)
             rel = Relationship(rId, self, reltype, part)
             self.__relationships.append(rel)
+        fs.close()
         return self
     
     def marshal(self, model_pkg):
@@ -128,7 +129,7 @@ class Package(object):
         """Save this package at *path*."""
         # open a zip filesystem for writing package
         path = self.__normalizedpath(path)
-        zipfs = ZipFileSystem(path).new()
+        zipfs = ZipFileSystem(path, 'w')
         # write [Content_Types].xml
         cti = _ContentTypesItem().compose(self.parts)
         zipfs.write_element(cti.element, '/[Content_Types].xml')
@@ -140,6 +141,7 @@ class Package(object):
             # write rels item if part has one
             if part.relationships:
                 zipfs.write_element(part._relsitem_element, part._relsitemURI)
+        zipfs.close()
     
     @property
     def __relsitem_element(self):
@@ -654,22 +656,20 @@ class FileSystem(object):
     item URI. The complexities of translating URIs into file paths or zip item
     names, and file and zip file access specifics are all hidden by the
     filesystem class. :class:`FileSystem` acts as the Factory, returning the
-    appropriate concrete filesystem class depending on what it finds at
-    *path*.
-    
+    appropriate concrete filesystem class depending on what it finds at *path*.
     """
     def __new__(cls, path):
         # if path is a directory, return instance of DirectoryFileSystem
         if os.path.isdir(path):
             instance = DirectoryFileSystem(path)
         # if path is a zip file, return instance of ZipFileSystem
-        elif os.path.isfile(path) and zipfile.is_zipfile(path):
+        elif os.path.isfile(path) and is_zipfile(path):
             instance = ZipFileSystem(path)
         # otherwise, something's not right, raise exception
         else:
             raise PackageNotFoundError("Package not found at '%s'" % (path))
         return instance
-    
+
 
 class BaseFileSystem(object):
     """
@@ -677,15 +677,14 @@ class BaseFileSystem(object):
     """
     def __init__(self, path):
         self.__path = os.path.abspath(path)
-    
+
     def __contains__(self, itemURI):
         """
         Allows use of 'in' operator to test whether an item with the specified
         URI exists in this filesystem.
-        
         """
         return itemURI in self.itemURIs
-    
+
     def getblob(self, itemURI):
         """Return byte string of item identified by *itemURI*."""
         if itemURI not in self:
@@ -694,7 +693,7 @@ class BaseFileSystem(object):
         blob = stream.read()
         stream.close()
         return blob
-    
+
     def getelement(self, itemURI):
         """
         Return ElementTree element of XML item identified by *itemURI*.
@@ -709,7 +708,7 @@ class BaseFileSystem(object):
             raise NotXMLError("package item %s is not XML" % itemURI)
         stream.close()
         return element
-    
+
     @property
     def path(self):
         """
@@ -717,7 +716,7 @@ class BaseFileSystem(object):
         object to access a different package.
         """
         return self.__path
-    
+
 
 class DirectoryFileSystem(BaseFileSystem):
     """
@@ -729,18 +728,22 @@ class DirectoryFileSystem(BaseFileSystem):
     """
     def __init__(self, path):
         """
-        path
-           Path to directory containing expanded package.
-        
+        *path* is the path to a directory containing an expanded package.
         """
         super(DirectoryFileSystem, self).__init__(path)
+    
+    def close(self):
+        """
+        Provides interface consistency with |ZipFileSystem|, but does nothing,
+        a directory file system doesn't need closing.
+        """
+        pass
     
     def getstream(self, itemURI):
         """
         Return file-like object containing package item identified by
         *itemURI*. Remember to call close() on the stream when you're done
         with it to free up the memory it uses.
-        
         """
         if itemURI not in self:
             raise LookupError("No package item with URI '%s'" % itemURI)
@@ -769,36 +772,37 @@ class DirectoryFileSystem(BaseFileSystem):
 
 class ZipFileSystem(BaseFileSystem):
     """
-    FileSystem interface for zip-based packages (i.e. regular Office files).
-    Provides standard access methods to hide complexity of dealing with
-    varied package formats.
+    Return new instance providing access to zip-format OPC package at *path*.
     
-    Inherits __contains__(), getelement(), and path from BaseFileSystem.
-    
+    If mode is 'w', creates a new zip archive at *path*. If a file by that name
+    already exists, it is truncated.
+
+    Inherits :meth:`__contains__`, :meth:`getelement`, and :attr:`path` from
+    BaseFileSystem.
     """
-    def __init__(self, path):
-        """
-        path
-           Path to directory containing expanded package.
-        
-        """
+    def __init__(self, path, mode='r'):
         super(ZipFileSystem, self).__init__(path)
-    
+        if 'w' in mode:
+            self.zipf = ZipFile(self.path, 'w', compression=ZIP_DEFLATED)
+        else:
+            self.zipf = ZipFile(self.path, 'r')
+
+    def close(self):
+        """Close the zip file"""
+        self.zipf.close()
+
     def getstream(self, itemURI):
         """
         Return file-like object containing package item identified by
         *itemURI*. Remember to call close() on the stream when you're done
         with it to free up the memory it uses.
-        
         """
         if itemURI not in self:
             raise LookupError("No package item with URI '%s'" % itemURI)
         membername = itemURI[1:]  # trim off leading slash
-        zip = zipfile.ZipFile(self.path)
-        stream = StringIO(zip.read(membername))
-        zip.close()
+        stream = StringIO(self.zipf.read(membername))
         return stream
-    
+
     @property
     def itemURIs(self):
         """
@@ -806,45 +810,25 @@ class ZipFileSystem(BaseFileSystem):
         name is the archive-relative path of that file. A forward-slash is
         prepended to form the URI, e.g. '/ppt/slides/slide1.xml'. Although
         not strictly necessary, the results are sorted for neatness' sake.
-        
         """
-        zip = zipfile.ZipFile(self.path)
-        namelist = zip.namelist()
-        zip.close()
+        names = self.zipf.namelist()
         # zip archive can contain entries for directories, so get rid of those
-        itemURIs = [('/%s' % name) for name in namelist if not name.endswith('/')]
+        itemURIs = [('/%s' % name) for name in names if not name.endswith('/')]
         return sorted(itemURIs)
-    
-    def new(self):
-        """
-        Create a new zip archive at ``self.path``. If a file by that name
-        already exists, it is truncated. Returns self reference to allow
-        generative call.
-        
-        """
-        zip = zipfile.ZipFile(self.path, 'w',
-                              compression=zipfile.ZIP_DEFLATED)
-        zip.close()
-        return self
-    
+
     def write_blob(self, blob, itemURI):
         """
         Write *blob* to zip file as binary stream named *itemURI*.
-        
         """
         if itemURI in self:
             tmpl = "Item with URI '%s' already in package"
             raise DuplicateKeyError(tmpl % itemURI)
         membername = itemURI[1:]  # trim off leading slash
-        zip = zipfile.ZipFile(self.path, 'a',
-                              compression=zipfile.ZIP_DEFLATED)
-        zip.writestr(membername, blob)
-        zip.close()
-    
+        self.zipf.writestr(membername, blob)
+
     def write_element(self, element, itemURI):
         """
         Write *element* to zip file as an XML document named *itemURI*.
-        
         """
         if itemURI in self:
             tmpl = "Item with URI '%s' already in package"
@@ -853,11 +837,8 @@ class ZipFileSystem(BaseFileSystem):
         xml = etree.tostring(element, encoding='UTF-8', pretty_print=True,
                              standalone=True)
         xml = prettify_nsdecls(xml)
-        zip = zipfile.ZipFile(self.path, 'a',
-                              compression=zipfile.ZIP_DEFLATED)
-        zip.writestr(membername, xml)
-        zip.close()
-    
+        self.zipf.writestr(membername, xml)
+
 
 
 # ============================================================================

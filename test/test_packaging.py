@@ -651,16 +651,6 @@ class TestZipFileSystem(TestCase):
         if os.path.isfile(self.test_pptx_path):
             os.remove(self.test_pptx_path)
     
-    def test_class_present(self):
-        """ZipFileSystem class present in packaging module"""
-        # verify ----------------------
-        self.assertClassInModule(pptx.packaging, 'ZipFileSystem')
-    
-    def test_getblob_method_present(self):
-        """ZipFileSystem class has method 'getblob'"""
-        self.assertClassHasMethod(pptx.packaging.ZipFileSystem,
-                                  'getblob')
-    
     def test_getblob_correct_length(self):
         """ZipFileSystem.getblob() returns object of expected length"""
         # setup -----------------------
@@ -679,33 +669,13 @@ class TestZipFileSystem(TestCase):
         with self.assertRaises(LookupError):
             fs.getstream('!blat/rhumba.xml')
     
-    def test_new_method_present(self):
-        """ZipFileSystem class has method 'new'"""
-        self.assertClassHasMethod(pptx.packaging.ZipFileSystem, 'new')
-    
-    def test_new_returns_self(self):
-        """ZipFileSystem.new() returns self-reference"""
-        # exercise --------------------
-        zipfs = pptx.packaging.ZipFileSystem(self.test_pptx_path)
-        retval = zipfs.new()
-        # verify ----------------------
-        expected = zipfs
-        actual = retval
-        msg = "expected %s, got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-    
-    def test_write_blob_method_present(self):
-        """ZipFileSystem class has method 'write_blob'"""
-        self.assertClassHasMethod(pptx.packaging.ZipFileSystem,
-                                  'write_blob')
-    
     def test_write_blob_round_trips(self):
         """ZipFileSystem.write_blob() round-trips intact"""
         # setup -----------------------
         partname = '/docProps/thumbnail.jpeg'
         fs = pptx.packaging.FileSystem(zip_pkg_path)
         in_blob = fs.getblob(partname)
-        test_fs = pptx.packaging.ZipFileSystem(self.test_pptx_path).new()
+        test_fs = pptx.packaging.ZipFileSystem(self.test_pptx_path, 'w')
         # exercise --------------------
         test_fs.write_blob(in_blob, partname)
         # verify ----------------------
@@ -722,23 +692,18 @@ class TestZipFileSystem(TestCase):
         partname = '/docProps/thumbnail.jpeg'
         fs = pptx.packaging.FileSystem(zip_pkg_path)
         blob = fs.getblob(partname)
-        test_fs = pptx.packaging.ZipFileSystem(self.test_pptx_path).new()
+        test_fs = pptx.packaging.ZipFileSystem(self.test_pptx_path, 'w')
         test_fs.write_blob(blob, partname)
         # verify ----------------------
         with self.assertRaises(DuplicateKeyError):
             test_fs.write_blob(blob, partname)
-    
-    def test_write_element_method_present(self):
-        """ZipFileSystem class has method 'write_element'"""
-        self.assertClassHasMethod(pptx.packaging.ZipFileSystem,
-                                  'write_element')
     
     def test_write_element_round_trips(self):
         """ZipFileSystem.write_element() round-trips intact"""
         # setup -----------------------
         elm = etree.fromstring(self.xml_in)
         itemURI = '/ppt/test.xml'
-        zipfs = pptx.packaging.ZipFileSystem(self.test_pptx_path).new()
+        zipfs = pptx.packaging.ZipFileSystem(self.test_pptx_path, 'w')
         # exercise --------------------
         zipfs.write_element(elm, itemURI)
         # verify ----------------------
@@ -755,7 +720,7 @@ class TestZipFileSystem(TestCase):
         # setup -----------------------
         elm = etree.fromstring(self.xml_in)
         itemURI = '/ppt/test.xml'
-        zipfs = pptx.packaging.ZipFileSystem(self.test_pptx_path).new()
+        zipfs = pptx.packaging.ZipFileSystem(self.test_pptx_path, 'w')
         # exercise --------------------
         zipfs.write_element(elm, itemURI)
         # verify ----------------------
