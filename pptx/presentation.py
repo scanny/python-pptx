@@ -71,6 +71,23 @@ def _child(element, child_tagname, nsmap=None):
     matching_children = element.xpath(xpath, namespaces=nsmap)
     return matching_children[0] if len(matching_children) else None
 
+def _to_unicode(text):
+    """
+    Return *text* as a unicode string.
+    
+    *text* can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or
+    unicode. String values are converted to unicode assuming UTF-8 encoding.
+    Unicode values are returned unchanged.
+    """
+    # both str and unicode inherit from basestring
+    if not isinstance(text, basestring):
+        raise TypeError('expected UTF-8 encoded string or unicode')
+    # return unicode strings unchanged
+    if isinstance(text, unicode):
+        return text
+    # otherwise assume UTF-8 encoding, which also works for ASCII
+    return unicode(text, 'utf-8')
+
 
 # ============================================================================
 # Package
@@ -1126,15 +1143,17 @@ class BaseShape(object):
         """Name of this shape."""
         return self.__cNvPr.get('name', default='')
     
-    def _set_text(self, value):
-        """Replace all text with single run containing *value*"""
+    def _set_text(self, text):
+        """Replace all text in shape with single run containing *text*"""
         if not self.has_textframe:
             raise TypeError("cannot set text of shape with no text frame")
-        self.textframe.text = str(value)
+        self.textframe.text = _to_unicode(text)
     
     #: Write-only. Assignment to *text* replaces all text currently contained
-    #: by the shape. Results in a text frame containing exactly one paragraph,
-    #: itself containing a single run.
+    #: by the shape, resulting in a text frame containing exactly one
+    #: paragraph, itself containing a single run. The assigned value can be a
+    #: 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. String
+    #: values are converted to unicode assuming UTF-8 encoding.
     text = property(None, _set_text)
     
     @property
@@ -1551,15 +1570,17 @@ class TextFrame(object):
             paragraphs.append(Paragraph(p))
         return tuple(paragraphs)
     
-    def _set_text(self, value):
-        """Replace all text with single run containing *value*"""
+    def _set_text(self, text):
+        """Replace all text in text frame with single run containing *text*"""
         self.clear()
-        self.paragraphs[0].text = str(value)
+        self.paragraphs[0].text = _to_unicode(text)
     
     #: Write-only. Assignment to *text* replaces all text currently contained
-    #: in the text frame with the string value of the assigned expression.
-    #: After assignment, the text frame contains exactly one paragraph
-    #: containing a single run containing all the text.
+    #: in the text frame with the assigned expression. After assignment, the
+    #: text frame contains exactly one paragraph containing a single run
+    #: containing all the text. The assigned value can be a 7-bit ASCII
+    #: string, a UTF-8 encoded 8-bit string, or unicode. String values are
+    #: converted to unicode assuming UTF-8 encoding.
     text = property(None, _set_text)
     
     def _set_vertical_anchor(self, value):
@@ -1698,15 +1719,18 @@ class Paragraph(object):
             runs.append(Run(r))
         return tuple(runs)
     
-    def _set_text(self, value):
-        """Replace runs with single run containing *value*"""
+    def _set_text(self, text):
+        """Replace runs with single run containing *text*"""
         self.clear()
         r = self.add_run()
-        r.text = str(value)
-    
+        r.text = _to_unicode(text)
+
     #: Write-only. Assignment to *text* replaces all text currently contained
     #: in the paragraph. After assignment, the paragraph containins exactly
-    #: one run that contains the string equivalent of the assigned expression.
+    #: one run containing the text value of the assigned expression. The
+    #: assigned value can be a 7-bit ASCII string, a UTF-8 encoded 8-bit
+    #: string, or unicode. String values are converted to unicode assuming
+    #: UTF-8 encoding.
     text = property(None, _set_text)
     
     def add_run(self):
@@ -1779,15 +1803,18 @@ class Run(object):
     @property
     def text(self):
         """
-        Text contained in this run. A regular text run is required to contain
-        exactly one ``<a:t>`` (text) element.
+        Read/Write. Text contained in the run. A regular text run is required
+        to contain exactly one ``<a:t>`` (text) element. Assignment to *text*
+        replaces the text currently contained in the run. The assigned value
+        can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode.
+        String values are converted to unicode assuming UTF-8 encoding.
         """
         return self.__t.text
     
     @text.setter
     def text(self, str):
         """Set the text of this run to *str*."""
-        self.__t.text = str
+        self.__t.text = _to_unicode(str)
     
 
 

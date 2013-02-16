@@ -74,11 +74,10 @@ test_pptx_path   = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
-nsprefix_decls = (\
-    ' xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/'
-    'main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/'
-    'main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/'
-    '2006/relationships"')
+nsprefix_decls = (' xmlns:p="http://schemas.openxmlformats.org/presentationml'
+    '/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/ma'
+    'in" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relat'
+    'ionships"')
 
 def _empty_spTree():
     xml = ('<p:spTree xmlns:p="http://schemas.openxmlformats.org/'
@@ -124,16 +123,16 @@ class PartBuilder(object):
     """Builder class for test Parts"""
     def __init__(self):
         self.partname = '/ppt/slides/slide1.xml'
-    
+
     def with_partname(self, partname):
         self.partname = partname
         return self
-    
+
     def build(self):
         p = BasePart()
         p.partname = self.partname
         return p
-    
+
 
 class RelationshipCollectionBuilder(object):
     """Builder class for test RelationshipCollections"""
@@ -141,17 +140,17 @@ class RelationshipCollectionBuilder(object):
         { RT_SLIDEMASTER : '/ppt/slideMasters/slideMaster%d.xml'
         , RT_SLIDE       : '/ppt/slides/slide%d.xml'
         }
-    
+
     def __init__(self):
         self.relationships = []
         self.next_rel_num = 1
         self.next_partnums = {}
         self.reltype_ordering = None
-    
+
     def with_ordering(self, *reltypes):
         self.reltype_ordering = tuple(reltypes)
         return self
-    
+
     def with_tuple_targets(self, count, reltype):
         for i in range(count):
             rId = self.__next_rId
@@ -160,7 +159,7 @@ class RelationshipCollectionBuilder(object):
             rel = _Relationship(rId, reltype, target)
             self.relationships.append(rel)
         return self
-    
+
     # def with_singleton_target(self, reltype):
     #     rId = self.__next_rId
     #     partname = self.__singleton_partname(reltype)
@@ -168,25 +167,25 @@ class RelationshipCollectionBuilder(object):
     #     rel = _Relationship(rId, reltype, target)
     #     self.relationships.append(rel)
     #     return self
-    # 
+    #
     def __next_partnum(self, reltype):
         if reltype not in self.next_partnums:
             self.next_partnums[reltype] = 1
         partnum = self.next_partnums[reltype]
         self.next_partnums[reltype] = partnum + 1
         return partnum
-    
+
     @property
     def __next_rId(self):
         rId = 'rId%d' % self.next_rel_num
         self.next_rel_num += 1
         return rId
-    
+
     def __next_tuple_partname(self, reltype):
         partname_tmpl = self.partname_tmpls[reltype]
         partnum = self.__next_partnum(reltype)
         return partname_tmpl % partnum
-    
+
     def build(self):
         rels = _RelationshipCollection()
         for rel in self.relationships:
@@ -194,14 +193,14 @@ class RelationshipCollectionBuilder(object):
         if self.reltype_ordering:
             rels._reltype_ordering = self.reltype_ordering
         return rels
-    
+
 
 class TestBasePart(TestCase):
     """Test BasePart"""
     def setUp(self):
         self.basepart = BasePart()
         self.cls = BasePart
-    
+
     def test__add_relationship_adds_specified_relationship(self):
         """BasePart._add_relationship adds specified relationship"""
         # setup -----------------------
@@ -214,7 +213,7 @@ class TestBasePart(TestCase):
         actual = (rel._rId, rel._reltype, rel._target)
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test__blob_value_for_binary_part(self):
         """BasePart._blob value is correct for binary part"""
         # setup -----------------------
@@ -228,7 +227,7 @@ class TestBasePart(TestCase):
         actual = retval
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test__blob_value_for_xml_part(self):
         """BasePart._blob value is correct for XML part"""
         # setup -----------------------
@@ -243,7 +242,7 @@ class TestBasePart(TestCase):
         actual = retval
         msg = "expected: \n'%s'\n, got \n'%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test__load_sets__element_for_xml_part(self):
         """BasePart._load() sets _element for xml part"""
         # setup -----------------------
@@ -260,7 +259,7 @@ class TestBasePart(TestCase):
         actual = etree.tostring(elm)
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_observable_on_partname(self):
         """BasePart observable on partname value change"""
         # setup -----------------------
@@ -274,7 +273,7 @@ class TestBasePart(TestCase):
         # verify ----------------------
         observer.notify.assert_called_with(self.basepart, 'partname',
                                            new_partname)
-    
+
     def test_partname_setter(self):
         """BasePart.partname setter stores passed value"""
         # setup -----------------------
@@ -286,7 +285,7 @@ class TestBasePart(TestCase):
         actual = self.basepart.partname
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
 
 class TestBaseShape(TestCase):
     """Test BaseShape"""
@@ -296,11 +295,11 @@ class TestBaseShape(TestCase):
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = BaseShape(pic)
-    
+
     def test_class_present(self):
         """BaseShape class present in presentation module"""
         self.assertClassInModule(pptx.presentation, 'BaseShape')
-    
+
     def test_has_textframe_value(self):
         """BaseShape.has_textframe value correct"""
         # setup -----------------------
@@ -317,7 +316,7 @@ class TestBaseShape(TestCase):
         msg = "expected txBody element in shapes %s, got %s"\
               % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_id_value(self):
         """BaseShape.id value is correct"""
         # exercise --------------------
@@ -327,7 +326,7 @@ class TestBaseShape(TestCase):
         actual = id
         msg = "expected %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_is_placeholder_true_for_placeholder(self):
         """BaseShape.is_placeholder True for placeholder shape"""
         # setup -----------------------
@@ -338,14 +337,14 @@ class TestBaseShape(TestCase):
         actual = base_shape.is_placeholder
         msg = "expected True, got %s" % (actual)
         self.assertTrue(actual, msg)
-    
+
     def test_is_placeholder_false_for_non_placeholder(self):
         """BaseShape.is_placeholder False for non-placeholder shape"""
         # verify ----------------------
         actual = self.base_shape.is_placeholder
         msg = "expected False, got %s" % (actual)
         self.assertFalse(actual, msg)
-    
+
     def test__is_title_true_for_title_placeholder(self):
         """BaseShape._is_title True for title placeholder shape"""
         # setup -----------------------
@@ -356,7 +355,7 @@ class TestBaseShape(TestCase):
         actual = base_shape._is_title
         msg = "expected True, got %s" % (actual)
         self.assertTrue(actual, msg)
-    
+
     def test_name_value(self):
         """BaseShape.name value is correct"""
         # exercise --------------------
@@ -366,12 +365,12 @@ class TestBaseShape(TestCase):
         actual = name
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_textframe_raises_on_no_textframe(self):
         """BaseShape.textframe raises on shape with no text frame"""
         with self.assertRaises(ValueError):
             self.base_shape.textframe
-    
+
     def test_text_setter_structure_and_value(self):
         """assign to BaseShape.text yields single run para set to value"""
         # setup -----------------------
@@ -391,18 +390,18 @@ class TestBaseShape(TestCase):
         actual = base_shape.textframe.paragraphs[0].runs[0].text
         msg = "expected text '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_text_setter_raises_on_no_textframe(self):
         """assignment to BaseShape.text raises for shape with no text frame"""
         with self.assertRaises(TypeError):
             self.base_shape.text = 'test text'
-    
+
 
 class TestBaseSlide(TestCase):
     """Test BaseSlide"""
     def setUp(self):
         self.base_slide = BaseSlide()
-    
+
     def test_name_value(self):
         """BaseSlide.name value is correct"""
         # setup -----------------------
@@ -414,7 +413,7 @@ class TestBaseSlide(TestCase):
         actual = name
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_shapes_size_after__load(self):
         """BaseSlide.shapes is expected size after _load()"""
         # setup -----------------------
@@ -430,17 +429,17 @@ class TestBaseSlide(TestCase):
         shapes = self.base_slide.shapes
         # verify ----------------------
         self.assertLength(shapes, 9)
-    
+
 
 class TestCollection(TestCase):
     """Test Collection"""
     def setUp(self):
         self.collection = Collection()
-    
+
     def test_class_present(self):
         """Collection class present in presentation module"""
         self.assertClassInModule(pptx.presentation, 'Collection')
-    
+
     def test_indexable(self):
         """Collection is indexable (e.g. no TypeError on 'collection[0]')"""
         # verify ----------------------
@@ -451,7 +450,7 @@ class TestCollection(TestCase):
             self.fail(msg)
         except IndexError:
             pass
-    
+
     def test_is_container(self):
         """Collection is container (e.g. 'x in collection' works)"""
         # verify ----------------------
@@ -460,7 +459,7 @@ class TestCollection(TestCase):
         except TypeError:
             msg = "'Collection' object is not container"
             self.fail(msg)
-    
+
     def test_iterable(self):
         """Collection is iterable"""
         # verify ----------------------
@@ -470,7 +469,7 @@ class TestCollection(TestCase):
         except TypeError:
             msg = "'Collection' object is not iterable"
             self.fail(msg)
-    
+
     def test_sized(self):
         """Collection is sized (e.g. 'len(collection)' works)"""
         # verify ----------------------
@@ -479,12 +478,12 @@ class TestCollection(TestCase):
         except TypeError:
             msg = "object of type 'Collection' has no len()"
             self.fail(msg)
-    
+
     def test__values_property_empty_on_construction(self):
         """Collection._values property empty on construction"""
         # verify ----------------------
         self.assertIsSizedProperty(self.collection, '_values', 0)
-    
+
 
 class Test_Font(TestCase):
     """Test _Font class"""
@@ -492,7 +491,7 @@ class Test_Font(TestCase):
         self.rPr_xml = '<a:rPr%s/>' % nsprefix_decls
         self.rPr = etree.fromstring(self.rPr_xml)
         self.font = _Font(self.rPr)
-    
+
     def test_get_bold_setting(self):
         """_Font.bold returns True on bold font weight"""
         # setup -----------------------
@@ -502,7 +501,7 @@ class Test_Font(TestCase):
         # verify ----------------------
         assert_that(self.font.bold, is_(False))
         assert_that(font.bold, is_(True))
-    
+
     def test_set_bold(self):
         """Setting _Font.bold to True selects bold font weight"""
         # setup -----------------------
@@ -512,7 +511,7 @@ class Test_Font(TestCase):
         # verify ----------------------
         rPr_xml = etree.tostring(self.font._Font__rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
-    
+
     def test_clear_bold(self):
         """Setting _Font.bold to False selects normal font weight"""
         # setup -----------------------
@@ -525,7 +524,7 @@ class Test_Font(TestCase):
         # verify ----------------------
         rPr_xml = etree.tostring(font._Font__rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
-    
+
     def test_set_font_size(self):
         """Assignment to _Font.size changes font size"""
         # setup -----------------------
@@ -536,7 +535,7 @@ class Test_Font(TestCase):
         # verify ----------------------
         rPr_xml = etree.tostring(self.font._Font__rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
-    
+
 
 class TestImage(TestCase):
     """Test Image"""
@@ -549,23 +548,23 @@ class TestImage(TestCase):
         actual = image.ext
         msg = "expected extension '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-        
+
         expected = 'image/jpeg'
         actual = image._content_type
         msg = "expected content_type '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-        
+
         expected = 3277
         actual = len(image._blob)
         msg = "expected blob size %d, got %d" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_construction_from_file_raises_on_bad_path(self):
         """Image(path) constructor raises on bad path"""
         # verify ----------------------
         with self.assertRaises(IOError):
             image = Image('foobar27.png')
-    
+
     def test___image_file_content_type_known_type(self):
         """Image.__image_file_content_type() correct for known content type"""
         # exercise --------------------
@@ -575,7 +574,7 @@ class TestImage(TestCase):
         actual = content_type
         msg = ("expected content type '%s', got '%s'" % (expected, actual))
         self.assertEqual(expected, actual, msg)
-    
+
     def test___image_file_content_type_raises_on_bad_ext(self):
         """Image.__image_file_content_type() raises on bad extension"""
         # setup -----------------------
@@ -583,7 +582,7 @@ class TestImage(TestCase):
         # verify ----------------------
         with self.assertRaises(TypeError):
             Image._Image__image_file_content_type(path)
-    
+
     def test___image_file_content_type_raises_on_non_img_ext(self):
         """Image.__image_file_content_type() raises on non-image extension"""
         # setup -----------------------
@@ -591,7 +590,7 @@ class TestImage(TestCase):
         # verify ----------------------
         with self.assertRaises(TypeError):
             Image._Image__image_file_content_type(path)
-    
+
 
 class TestImageCollection(TestCase):
     """Test ImageCollection"""
@@ -609,7 +608,7 @@ class TestImageCollection(TestCase):
         msg = ("expected images[%d], got images[%d]"
                % (matching_idx, pkg._images.index(image)))
         self.assertEqual(expected, actual, msg)
-    
+
     def test_add_image_adds_new_image(self):
         """ImageCollection.add_image() adds new image on no match"""
         # setup -----------------------
@@ -624,7 +623,7 @@ class TestImageCollection(TestCase):
         actual = (image.partname, len(pkg._images), image._sha1)
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
 
 class TestPackage(TestCase):
     """Test Package"""
@@ -632,11 +631,11 @@ class TestPackage(TestCase):
         self.test_pptx_path = absjoin(test_file_dir, 'test_python-pptx.pptx')
         if os.path.isfile(self.test_pptx_path):
             os.remove(self.test_pptx_path)
-    
+
     def tearDown(self):
         if os.path.isfile(self.test_pptx_path):
             os.remove(self.test_pptx_path)
-    
+
     def test_construction_with_no_path_loads_default_template(self):
         """Package() call with no path loads default template"""
         prs = Package().presentation
@@ -647,12 +646,12 @@ class TestPackage(TestCase):
         slidelayouts = slidemasters[0].slidelayouts
         assert_that(slidelayouts, is_not(None))
         assert_that(len(slidelayouts), is_(11))
-    
+
     def test_instances_are_tracked(self):
         """Package instances are tracked"""
         pkg = Package()
         self.assertIn(pkg, Package.instances())
-    
+
     def test_instance_refs_are_garbage_collected(self):
         """Package instances are tracked"""
         pkg = Package()
@@ -664,7 +663,7 @@ class TestPackage(TestCase):
         # log.debug("pkg1, pkg2, reprs: %s, %s, %s"
         #           % (pkg1_repr, pkg2_repr, reprs))
         assert_that(pkg1_repr, is_not(is_in(reprs)))
-    
+
     def test_containing_returns_correct_pkg(self):
         """Package.containing() returns right package instance"""
         # setup -----------------------
@@ -678,7 +677,7 @@ class TestPackage(TestCase):
         actual = found_pkg
         msg = "expected %r, got %r" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_open_gathers_image_parts(self):
         """Package open gathers image parts into image collection"""
         # exercise --------------------
@@ -688,7 +687,7 @@ class TestPackage(TestCase):
         actual = len(pkg._Package__images)
         msg = "expected image count of %d, got %d" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_presentation_presentation_after_open(self):
         """Package.presentation is instance of Presentation after open()"""
         # setup -----------------------
@@ -701,7 +700,7 @@ class TestPackage(TestCase):
         msg = ("expected instance of '%s', got type '%s'"
                % (cls.__name__, type(obj).__name__))
         self.assertTrue(actual, msg)
-    
+
     def test_saved_file_has_plausible_contents(self):
         """Package.save produces a .pptx with plausible contents"""
         # setup -----------------------
@@ -718,7 +717,7 @@ class TestPackage(TestCase):
         slidelayouts = slidemasters[0].slidelayouts
         assert_that(slidelayouts, is_not(None))
         assert_that(len(slidelayouts), is_(11))
-    
+
 
 class TestParagraph(TestCase):
     """Test Paragraph"""
@@ -727,13 +726,13 @@ class TestParagraph(TestCase):
         self.sld = etree.parse(path).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody/a:p'
         self.pList = self.sld.xpath(xpath, namespaces=nsmap)
-        
+
         self.test_text = 'test text'
         self.p_xml = ('<a:p%s><a:r><a:t>%s</a:t></a:r></a:p>'
             % (nsprefix_decls, self.test_text))
         self.p = etree.fromstring(self.p_xml)
         self.paragraph = Paragraph(self.p)
-    
+
     def test_runs_size(self):
         """Paragraph.runs is expected size"""
         # setup -----------------------
@@ -747,7 +746,7 @@ class TestParagraph(TestCase):
         actual = actual_lengths
         msg = "expected run count %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_add_run_increments_run_count(self):
         """Paragraph.add_run() increments run count"""
         # setup -----------------------
@@ -760,7 +759,7 @@ class TestParagraph(TestCase):
         actual = len(paragraph.runs)
         msg = "expected run count %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_clear_removes_all_runs(self):
         """Paragraph.clear() removes all runs from paragraph"""
         # setup -----------------------
@@ -777,7 +776,7 @@ class TestParagraph(TestCase):
         actual = len(paragraph.runs)
         msg = "expected run count %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_set_font_size(self):
         """Assignment to Paragraph.font.size changes font size"""
         # setup -----------------------
@@ -791,7 +790,7 @@ class TestParagraph(TestCase):
         # verify ----------------------
         p_xml = etree.tostring(self.paragraph._Paragraph__p)
         assert_that(p_xml, is_(equal_to(expected_p_xml)))
-    
+
     def test_text_setter_sets_single_run_text(self):
         """assignment to Paragraph.text creates single run containing value"""
         # setup -----------------------
@@ -810,14 +809,31 @@ class TestParagraph(TestCase):
         actual = paragraph.runs[0].text
         msg = "expected text '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
+    def test_text_accepts_non_ascii_strings(self):
+        """assignment of non-ASCII string to text does not raise"""
+        # setup -----------------------
+        _7bit_string = 'String containing only 7-bit (ASCII) characters'
+        _8bit_string = '8-bit string: Hér er texti með íslenskum stöfum.'
+        _utf8_literal = u'unicode literal: Hér er texti með íslenskum stöfum.'
+        _utf8_from_8bit = unicode('utf-8 unicode: Hér er texti', 'utf-8')
+        # verify ----------------------
+        try:
+            text = _7bit_string    ; self.paragraph.text = text
+            text = _8bit_string    ; self.paragraph.text = text
+            text = _utf8_literal   ; self.paragraph.text = text
+            text = _utf8_from_8bit ; self.paragraph.text = text
+        except ValueError:
+            msg = "Paragraph.text rejects valid text string '%s'" % text
+            self.fail(msg)
+
 
 class TestPart(TestCase):
     """Test Part"""
     def test_class_present(self):
         """Part class present in presentation module"""
         self.assertClassInModule(pptx.presentation, 'Part')
-    
+
     def test_constructs_presentation_for_rt_officedocument(self):
         """Part() returns Presentation for RT_OFFICEDOCUMENT"""
         # setup -----------------------
@@ -826,7 +842,7 @@ class TestPart(TestCase):
         obj = Part(RT_OFFICEDOCUMENT, CT_PRESENTATION)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
-    
+
     def test_constructs_slide_for_rt_slide(self):
         """Part() returns Slide for RT_SLIDE"""
         # setup -----------------------
@@ -835,7 +851,7 @@ class TestPart(TestCase):
         obj = Part(RT_SLIDE, CT_SLIDE)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
-    
+
     def test_constructs_slidelayout_for_rt_slidelayout(self):
         """Part() returns SlideLayout for RT_SLIDELAYOUT"""
         # setup -----------------------
@@ -844,7 +860,7 @@ class TestPart(TestCase):
         obj = Part(RT_SLIDELAYOUT, CT_SLIDELAYOUT)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
-    
+
     def test_constructs_slidemaster_for_rt_slidemaster(self):
         """Part() returns SlideMaster for RT_SLIDEMASTER"""
         # setup -----------------------
@@ -853,12 +869,12 @@ class TestPart(TestCase):
         obj = Part(RT_SLIDEMASTER, CT_SLIDEMASTER)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
-    
+
     def test_contructor_raises_on_invalid_prs_content_type(self):
         """Part() raises on invalid presentation content type"""
         with self.assertRaises(InvalidPackageError):
             Part(RT_OFFICEDOCUMENT, CT_SLIDEMASTER)
-    
+
 
 class TestPartCollection(TestCase):
     """Test PartCollection"""
@@ -881,7 +897,7 @@ class TestPartCollection(TestCase):
         actual = [part.partname for part in parts]
         msg = "expected %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
 
 class TestPlaceholder(TestCase):
     """Test Placeholder"""
@@ -907,13 +923,13 @@ class TestPlaceholder(TestCase):
             msg = "expected shapes[%d] values %s, got %s"\
                    % (idx, expected, actual)
             self.assertEqual(expected, actual, msg)
-    
+
 
 class TestPresentation(TestCase):
     """Test Presentation"""
     def setUp(self):
         self.prs = Presentation()
-    
+
     def test__blob_rewrites_sldIdLst(self):
         """Presentation._blob rewrites sldIdLst"""
         # setup -----------------------
@@ -936,12 +952,12 @@ class TestPresentation(TestCase):
         actual = [sldId.get(qtag('r:id')) for sldId in sldIds]
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_slidemasters_property_empty_on_construction(self):
         """Presentation.slidemasters property empty on construction"""
         # verify ----------------------
         self.assertIsSizedProperty(self.prs, 'slidemasters', 0)
-    
+
     def test_slidemasters_correct_length_after_pkg_open(self):
         """Presentation.slidemasters correct length after load"""
         # setup -----------------------
@@ -951,12 +967,12 @@ class TestPresentation(TestCase):
         slidemasters = prs.slidemasters
         # verify ----------------------
         self.assertLength(slidemasters, 1)
-    
+
     def test_slides_property_empty_on_construction(self):
         """Presentation.slides property empty on construction"""
         # verify ----------------------
         self.assertIsSizedProperty(self.prs, 'slides', 0)
-    
+
     def test_slides_correct_length_after_pkg_open(self):
         """Presentation.slides correct length after load"""
         # setup -----------------------
@@ -966,7 +982,7 @@ class TestPresentation(TestCase):
         slides = prs.slides
         # verify ----------------------
         self.assertLength(slides, 1)
-    
+
 
 class Test_Relationship(TestCase):
     """Test _Relationship"""
@@ -975,12 +991,12 @@ class Test_Relationship(TestCase):
         reltype = RT_SLIDE
         target_part = None
         self.rel = _Relationship(rId, reltype, target_part)
-    
+
     def test_constructor_raises_on_bad_rId(self):
         """_Relationship constructor raises on non-standard rId"""
         with self.assertRaises(AssertionError):
             _Relationship('Non-std14', None, None)
-    
+
     def test__num_value(self):
         """_Relationship._num value is correct"""
         # setup -----------------------
@@ -992,7 +1008,7 @@ class Test_Relationship(TestCase):
         actual = rel._num
         msg = "expected %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test__rId_setter(self):
         """Relationship._rId setter stores passed value"""
         # setup -----------------------
@@ -1004,13 +1020,13 @@ class Test_Relationship(TestCase):
         actual = self.rel._rId
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
 
 class Test_RelationshipCollection(TestCase):
     """Test _RelationshipCollection"""
     def setUp(self):
         self.relationships = _RelationshipCollection()
-    
+
     def test__additem_raises_on_dup_rId(self):
         """_RelationshipCollection._additem raises on duplicate rId"""
         # setup -----------------------
@@ -1022,7 +1038,7 @@ class Test_RelationshipCollection(TestCase):
         # verify ----------------------
         with self.assertRaises(ValueError):
             self.relationships._additem(rel2)
-    
+
     def test__additem_maintains_rId_ordering(self):
         """_RelationshipCollection maintains rId ordering on additem()"""
         # setup -----------------------
@@ -1041,7 +1057,7 @@ class Test_RelationshipCollection(TestCase):
         actual = [rel._rId for rel in self.relationships]
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def __reltype_ordering_mock(self):
         """
         Return RelationshipCollection instance with mocked-up contents
@@ -1068,7 +1084,7 @@ class Test_RelationshipCollection(TestCase):
         relationships._additem(rel3)
         relationships._additem(rel4)
         return (relationships, partnames)
-    
+
     def test__additem_maintains_reltype_ordering(self):
         """_RelationshipCollection maintains reltype ordering on additem()"""
         # setup -----------------------
@@ -1087,7 +1103,7 @@ class Test_RelationshipCollection(TestCase):
         actual = [rel._target.partname for rel in relationships]
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_rels_of_reltype_return_value(self):
         """RelationshipCollection._rels_of_reltype returns correct rels"""
         # setup -----------------------
@@ -1099,7 +1115,7 @@ class Test_RelationshipCollection(TestCase):
         actual = [rel._rId for rel in retval]
         msg = "expected %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test__reltype_ordering_sorts_rels(self):
         """RelationshipCollection._reltype_ordering sorts rels"""
         # setup -----------------------
@@ -1112,7 +1128,7 @@ class Test_RelationshipCollection(TestCase):
         actual = [rel._target.partname for rel in relationships]
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test__reltype_ordering_renumbers_rels(self):
         """RelationshipCollection._reltype_ordering renumbers rels"""
         # setup -----------------------
@@ -1125,7 +1141,7 @@ class Test_RelationshipCollection(TestCase):
         actual = [rel._rId for rel in relationships]
         msg = "expected numbering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test__next_rId_fills_gap(self):
         """_RelationshipCollection._next_rId fills gap in rId sequence"""
         # setup -----------------------
@@ -1157,7 +1173,7 @@ class Test_RelationshipCollection(TestCase):
         actual = actual_rIds
         msg = "expected rIds %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_reorders_on_partname_change(self):
         """RelationshipCollection reorders on partname change"""
         # setup -----------------------
@@ -1179,7 +1195,7 @@ class Test_RelationshipCollection(TestCase):
         actual = [rel._target.partname for rel in relationships]
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
 
 class TestRun(TestCase):
     """Test Run"""
@@ -1189,7 +1205,7 @@ class TestRun(TestCase):
             % (nsprefix_decls, self.test_text))
         self.r = etree.fromstring(self.r_xml)
         self.run = Run(self.r)
-    
+
     def test_set_font_size(self):
         """Assignment to Run.font.size changes font size"""
         # setup -----------------------
@@ -1201,7 +1217,7 @@ class TestRun(TestCase):
         # verify ----------------------
         r_xml = etree.tostring(self.run._Run__r)
         assert_that(r_xml, is_(equal_to(expected_r_xml)))
-    
+
     def test_text_value(self):
         """Run.text value is correct"""
         # exercise --------------------
@@ -1211,7 +1227,7 @@ class TestRun(TestCase):
         actual = text
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_text_setter(self):
         """Run.text setter stores passed value"""
         # setup -----------------------
@@ -1223,7 +1239,7 @@ class TestRun(TestCase):
         actual = self.run.text
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
 
 class TestShape(TestCase):
     """Test Shape"""
@@ -1234,11 +1250,11 @@ class TestShape(TestCase):
         sldLayout = _slideLayout1()
         sp = sldLayout.xpath('p:cSld/p:spTree/p:sp', namespaces=nsmap)[0]
         return Shape(sp)
-    
+
     def test_class_present(self):
         """Shape class present in presentation module"""
         self.assertClassInModule(pptx.presentation, 'Shape')
-    
+
 
 class TestShapeCollection(TestCase):
     """Test ShapeCollection"""
@@ -1247,12 +1263,12 @@ class TestShapeCollection(TestCase):
         sld = etree.parse(path).getroot()
         spTree = sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
         self.shapes = ShapeCollection(spTree)
-    
+
     def test_construction_size(self):
         """ShapeCollection is expected size after construction"""
         # verify ----------------------
         self.assertLength(self.shapes, 9)
-    
+
     @patch('pptx.presentation.Picture')
     @patch('pptx.presentation.Collection._values', new_callable=PropertyMock)
     @patch('pptx.presentation.Package')
@@ -1291,7 +1307,7 @@ class TestShapeCollection(TestCase):
         __spTree.append.assert_called_once_with(pic)
         Picture.assert_called_once_with(pic)
         shapes._values.append.assert_called_once_with(picture)
-    
+
     @patch('pptx.presentation.Collection._values', new_callable=PropertyMock)
     @patch('pptx.presentation.Shape')
     @patch('pptx.presentation.ShapeCollection._ShapeCollection__next_shape_id'
@@ -1323,7 +1339,7 @@ class TestShapeCollection(TestCase):
         __spTree.append.assert_called_once_with(sp)
         Shape.assert_called_once_with(sp)
         shapes._values.append.assert_called_once_with(shape)
-    
+
     def test_add_textbox_xml(self):
         """ShapeCollection.add_textbox() generates correct XML"""
         # constant values -------------
@@ -1344,7 +1360,7 @@ class TestShapeCollection(TestCase):
         # self.assertTrue(False, xml)
         for idx, line in enumerate(xml_lines):
             assert_that(line, is_(equal_to(txbox_xml_lines[idx])))
-    
+
     def test_title_value(self):
         """ShapeCollection.title value is ref to correct shape"""
         # exercise --------------------
@@ -1354,7 +1370,7 @@ class TestShapeCollection(TestCase):
         actual = self.shapes.index(title_shape)
         msg = "expected shapes[%d], got shapes[%d]" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_placeholders_values(self):
         """ShapeCollection.placeholders values are correct and sorted"""
         # setup -----------------------
@@ -1377,7 +1393,7 @@ class TestShapeCollection(TestCase):
             msg = "expected placeholders[%d] values %s, got %s"\
                    % (idx, expected, actual)
             self.assertEqual(expected, actual, msg)
-    
+
     def test__clone_layout_placeholders_shapes(self):
         """ShapeCollection._clone_layout_placeholders clones shapes"""
         # setup -----------------------
@@ -1405,7 +1421,7 @@ class TestShapeCollection(TestCase):
             msg = ("expected placeholder[%d] values %s, got %s"
                    % (idx, expected, actual))
             self.assertEqual(expected, actual, msg)
-    
+
     def test___clone_layout_placeholder_values(self):
         """ShapeCollection.__clone_layout_placeholder() values correct"""
         # setup -----------------------
@@ -1430,15 +1446,15 @@ class TestShapeCollection(TestCase):
             actual = [ph.id, ph.name, ph.type, ph.idx]
             msg = "expected placeholder values %s, got %s" % (expected, actual)
             self.assertEqual(expected, actual, msg)
-    
+
     def test___next_ph_name_return_value(self):
         """
         ShapeCollection.__next_ph_name() returns correct value
-        
+
         * basename + 'Placeholder' + num, e.g. 'Table Placeholder 8'
         * numpart of name defaults to id-1, but increments until unique
         * prefix 'Vertical' if orient="vert"
-        
+
         """
         cases =\
             ( (PH_TYPE_OBJ,   3, PH_ORIENT_HORZ, 'Content Placeholder 2')
@@ -1457,7 +1473,7 @@ class TestShapeCollection(TestCase):
             msg = "expected placeholder name '%s', got '%s'"\
                   % (expected, actual)
             self.assertEqual(expected, actual, msg)
-    
+
     def test___next_shape_id_value(self):
         """ShapeCollection.__next_shape_id value is correct"""
         # setup -----------------------
@@ -1469,7 +1485,7 @@ class TestShapeCollection(TestCase):
         actual = next_id
         msg = "expected %d, got %d" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test___pic_return_value(self):
         """ShapeCollection.__pic returns correct value"""
         # setup -----------------------
@@ -1491,17 +1507,17 @@ class TestShapeCollection(TestCase):
         actual = etree.tostring(pic)
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
 
 class TestSlide(TestCase):
     """Test Slide"""
     def setUp(self):
         self.sld = Slide()
-    
+
     def test_class_present(self):
         """Slide class present in presentation module"""
         self.assertClassInModule(pptx.presentation, 'Slide')
-    
+
     def test_constructor_sets_correct_content_type(self):
         """Slide constructor sets correct content type"""
         # exercise --------------------
@@ -1511,7 +1527,7 @@ class TestSlide(TestCase):
         actual = content_type
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_construction_adds_slide_layout_relationship(self):
         """Slide(slidelayout) adds relationship slide->slidelayout"""
         # setup -----------------------
@@ -1531,7 +1547,7 @@ class TestSlide(TestCase):
         actual = (rel._rId, rel._reltype, rel._target)
         msg = "expected relationship\n%s\ngot\n%s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test__element_minimal_sld_on_construction(self):
         """Slide._element is minimal sld on construction"""
         # setup -----------------------
@@ -1545,12 +1561,12 @@ class TestSlide(TestCase):
                                                          standalone=True)
         msg = "expected:\n%s\n, got\n%s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_slidelayout_property_none_on_construction(self):
         """Slide.slidelayout property None on construction"""
         # verify ----------------------
         self.assertIsProperty(self.sld, 'slidelayout', None)
-    
+
     def test__load_sets_slidelayout(self):
         """Slide._load() sets slidelayout"""
         # setup -----------------------
@@ -1574,25 +1590,25 @@ class TestSlide(TestCase):
         actual = retval
         msg = "expected: %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
 
 class TestSlideCollection(TestCase):
     """Test SlideCollection"""
     def setUp(self):
         prs = Presentation()
         self.slides = SlideCollection(prs)
-    
+
     def test_add_slide_returns_slide(self):
         """SlideCollection.add_slide() returns instance of Slide"""
         # exercise --------------------
         retval = self.slides.add_slide(None)
         # verify ----------------------
         self.assertIsInstance(retval, Slide)
-    
+
     def test_add_slide_sets_slidelayout(self):
         """
         SlideCollection.add_slide() sets Slide.slidelayout
-        
+
         Kind of a throw-away test, but was helpful for initial debugging.
         """
         # setup -----------------------
@@ -1606,7 +1622,7 @@ class TestSlideCollection(TestCase):
         actual = retval
         msg = "expected: %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_add_slide_adds_slide_layout_relationship(self):
         """SlideCollection.add_slide() adds relationship prs->slide"""
         # setup -----------------------
@@ -1629,7 +1645,7 @@ class TestSlideCollection(TestCase):
         msg = ("expected relationship 1:, got 2:\n1: %s\n2: %s"
                % (expected, actual))
         self.assertEqual(expected, actual, msg)
-    
+
     def test_add_slide_sets_partname(self):
         """SlideCollection.add_slide() sets partname of new slide"""
         # setup -----------------------
@@ -1644,13 +1660,13 @@ class TestSlideCollection(TestCase):
         actual = slide.partname
         msg = "expected partname '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
 
 class TestSlideLayout(TestCase):
     """Test SlideLayout"""
     def setUp(self):
         self.slidelayout = SlideLayout()
-    
+
     def __loaded_slidelayout(self, prs_slidemaster=None):
         """
         Return SlideLayout instance loaded using mocks. *prs_slidemaster* is
@@ -1682,11 +1698,11 @@ class TestSlideLayout(TestCase):
         # _load and return
         slidelayout = SlideLayout()
         return slidelayout._load(pkg_slidelayout_part, loaded_part_dict)
-    
+
     def test_class_present(self):
         """SlideLayout class present in presentation module"""
         self.assertClassInModule(pptx.presentation, 'SlideLayout')
-    
+
     def test__load_sets_slidemaster(self):
         """SlideLayout._load() sets slidemaster"""
         # setup -----------------------
@@ -1698,32 +1714,32 @@ class TestSlideLayout(TestCase):
         actual = loaded_slidelayout.slidemaster
         msg = "expected: %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_slidemaster_is_readonly(self):
         """SlideLayout.slidemaster is read-only"""
         # verify ----------------------
         self.assertIsReadOnly(self.slidelayout, 'slidemaster')
-    
+
     def test_slidemaster_raises_on_ref_before_assigned(self):
         """SlideLayout.slidemaster raises on referenced before assigned"""
         with self.assertRaises(AssertionError):
             self.slidelayout.slidemaster
-    
+
 
 class TestSlideMaster(TestCase):
     """Test SlideMaster"""
     def setUp(self):
         self.sldmaster = SlideMaster()
-    
+
     def test_class_present(self):
         """SlideMaster class present in presentation module"""
         self.assertClassInModule(pptx.presentation, 'SlideMaster')
-    
+
     def test_slidelayouts_property_empty_on_construction(self):
         """SlideMaster.slidelayouts property empty on construction"""
         # verify ----------------------
         self.assertIsSizedProperty(self.sldmaster, 'slidelayouts', 0)
-    
+
     def test_slidelayouts_correct_length_after_open(self):
         """SlideMaster.slidelayouts correct length after open"""
         # setup -----------------------
@@ -1733,7 +1749,7 @@ class TestSlideMaster(TestCase):
         slidelayouts = slidemaster.slidelayouts
         # verify ----------------------
         self.assertLength(slidelayouts, 11)
-    
+
 
 class TestTextFrame(TestCase):
     """Test TextFrame"""
@@ -1743,7 +1759,7 @@ class TestTextFrame(TestCase):
         self.sld = etree.parse(path, parser).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody'
         self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)
-    
+
     def test_paragraphs_size(self):
         """TextFrame.paragraphs is expected size"""
         # setup -----------------------
@@ -1757,7 +1773,7 @@ class TestTextFrame(TestCase):
         actual = actual_lengths
         msg = "expected paragraph count %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_add_paragraph_works(self):
         """TextFrame.add_paragraph does what it says"""
         # setup -----------------------
@@ -1785,7 +1801,7 @@ class TestTextFrame(TestCase):
         msg = "\nExpected: '%s'\n\n     Got: '%s'" % (expected, actual)
         if not expected == actual:
             raise AssertionError(msg)
-    
+
     def test_text_setter_structure_and_value(self):
         """assign to TextFrame.text yields single run para set to value"""
         # setup -----------------------
@@ -1804,7 +1820,7 @@ class TestTextFrame(TestCase):
         actual = textframe.paragraphs[0].runs[0].text
         msg = "expected text '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-    
+
     def test_vertical_anchor_works(self):
         """Assignment to TextFrame.vertical_anchor sets vert anchor"""
         # setup -----------------------
@@ -1831,5 +1847,5 @@ class TestTextFrame(TestCase):
         msg = "\nExpected: '%s'\n     Got: '%s'" % (expected, actual)
         if not expected == actual:
             raise AssertionError(msg)
-    
+
 
