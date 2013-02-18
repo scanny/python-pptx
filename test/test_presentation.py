@@ -17,6 +17,7 @@ import re
 from hamcrest import (assert_that, has_item, is_, is_in, is_not, equal_to,
                       greater_than)
 from lxml import etree
+from StringIO import StringIO
 
 try:
     from PIL import Image as PILImage
@@ -33,7 +34,7 @@ from pptx.presentation import (Package, Collection, _RelationshipCollection,
     _Relationship, Presentation, PartCollection, BasePart, Part,
     SlideCollection, BaseSlide, Slide, SlideLayout, SlideMaster, Image,
     ShapeCollection, BaseShape, Shape, Placeholder, TextFrame, _Font,
-    Paragraph, Run)
+    Paragraph, Run, _to_unicode)
 
 from pptx.constants import MSO
 from pptx.exceptions import InvalidPackageError
@@ -69,6 +70,7 @@ thisdir = os.path.split(__file__)[0]
 test_file_dir = absjoin(thisdir, 'test_files')
 
 test_image_path  = absjoin(test_file_dir, 'python-icon.jpeg')
+test_bmp_path    = absjoin(test_file_dir, 'python.bmp')
 new_image_path   = absjoin(test_file_dir, 'monty-truth.png')
 test_pptx_path   = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -243,6 +245,11 @@ class TestBasePart(TestCase):
         msg = "expected: \n'%s'\n, got \n'%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
+    def test__content_type_raises_on_accessed_before_assigned(self):
+        """BasePart._content_type raises on access before assigned"""
+        with self.assertRaises(ValueError):
+            self.basepart._content_type
+
     def test__load_sets__element_for_xml_part(self):
         """BasePart._load() sets _element for xml part"""
         # setup -----------------------
@@ -355,6 +362,14 @@ class TestBaseShape(TestCase):
         actual = base_shape._is_title
         msg = "expected True, got %s" % (actual)
         self.assertTrue(actual, msg)
+
+    def test__is_title_false_for_no_ph_element(self):
+        """BaseShape._is_title False on shape has no <p:ph> element"""
+        # setup -----------------------
+        self.base_shape._element = Mock(name='_element')
+        self.base_shape._element.xpath.return_value = []
+        # verify ----------------------
+        assert_that(self.base_shape._is_title, is_(False))
 
     def test_name_value(self):
         """BaseShape.name value is correct"""
@@ -544,20 +559,20 @@ class TestImage(TestCase):
         # exercise --------------------
         image = Image(test_image_path)
         # verify ----------------------
-        expected = '.jpeg'
-        actual = image.ext
-        msg = "expected extension '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert_that(image.ext, is_(equal_to('.jpeg')))
+        assert_that(image._content_type, is_(equal_to('image/jpeg')))
+        assert_that(len(image._blob), is_(equal_to(3277)))
 
-        expected = 'image/jpeg'
-        actual = image._content_type
-        msg = "expected content_type '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-        expected = 3277
-        actual = len(image._blob)
-        msg = "expected blob size %d, got %d" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+    def test_construction_from_stream(self):
+        """Image(stream) construction produces correct attribute values"""
+        # exercise --------------------
+        with open(test_image_path) as f:
+            stream = StringIO(f.read())
+        image = Image(stream)
+        # verify ----------------------
+        assert_that(image.ext, is_(equal_to('.jpg')))
+        assert_that(image._content_type, is_(equal_to('image/jpeg')))
+        assert_that(len(image._blob), is_(equal_to(3277)))
 
     def test_construction_from_file_raises_on_bad_path(self):
         """Image(path) constructor raises on bad path"""
@@ -565,31 +580,34 @@ class TestImage(TestCase):
         with self.assertRaises(IOError):
             image = Image('foobar27.png')
 
-    def test___image_file_content_type_known_type(self):
-        """Image.__image_file_content_type() correct for known content type"""
+    def test___ext_from_image_stream_raises_on_incompatible_format(self):
+        """Image.__ext_from_image_stream() raises on incompatible format"""
+        # verify ----------------------
+        with self.assertRaises(ValueError):
+            with open(test_bmp_path) as stream:
+                Image._Image__ext_from_image_stream(stream)
+
+    def test___image_ext_content_type_known_type(self):
+        """Image.__image_ext_content_type() correct for known content type"""
         # exercise --------------------
-        content_type = Image._Image__image_file_content_type(test_image_path)
+        content_type = Image._Image__image_ext_content_type('.jpeg')
         # verify ----------------------
         expected = 'image/jpeg'
         actual = content_type
         msg = ("expected content type '%s', got '%s'" % (expected, actual))
         self.assertEqual(expected, actual, msg)
 
-    def test___image_file_content_type_raises_on_bad_ext(self):
-        """Image.__image_file_content_type() raises on bad extension"""
-        # setup -----------------------
-        path = 'image.xj7'
+    def test___image_ext_content_type_raises_on_bad_ext(self):
+        """Image.__image_ext_content_type() raises on bad extension"""
         # verify ----------------------
         with self.assertRaises(TypeError):
-            Image._Image__image_file_content_type(path)
+            Image._Image__image_ext_content_type('.xj7')
 
-    def test___image_file_content_type_raises_on_non_img_ext(self):
-        """Image.__image_file_content_type() raises on non-image extension"""
-        # setup -----------------------
-        path = 'image.xml'
+    def test___image_ext_content_type_raises_on_non_img_ext(self):
+        """Image.__image_ext_content_type() raises on non-image extension"""
         # verify ----------------------
         with self.assertRaises(TypeError):
-            Image._Image__image_file_content_type(path)
+            Image._Image__image_ext_content_type('.xml')
 
 
 class TestImageCollection(TestCase):
@@ -678,6 +696,15 @@ class TestPackage(TestCase):
         msg = "expected %r, got %r" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
+    def test_containing_raises_on_no_pkg_contains_part(self):
+        """Package.containing(part) raises on no package contains part"""
+        # setup -----------------------
+        pkg = Package(test_pptx_path)
+        part = Mock(name='part')
+        # verify ----------------------
+        with self.assertRaises(KeyError):
+            Package.containing(part)
+
     def test_open_gathers_image_parts(self):
         """Package open gathers image parts into image collection"""
         # exercise --------------------
@@ -764,6 +791,7 @@ class TestParagraph(TestCase):
         """Paragraph.clear() removes all runs from paragraph"""
         # setup -----------------------
         p_elm = self.pList[2]
+        etree.SubElement(p_elm, qtag('a:pPr'))
         paragraph = Paragraph(p_elm)
         expected = 2
         actual = len(paragraph.runs)
@@ -776,6 +804,20 @@ class TestParagraph(TestCase):
         actual = len(paragraph.runs)
         msg = "expected run count %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
+
+    def test_clear_preserves_paragraph_properties(self):
+        """Paragraph.clear() preserves paragraph properties"""
+        # setup -----------------------
+        p_xml = ('<a:p%s><a:pPr lvl="1"/><a:r><a:t>%s</a:t></a:r></a:p>'
+            % (nsprefix_decls, self.test_text))
+        p_elm = etree.fromstring(p_xml)
+        paragraph = Paragraph(p_elm)
+        expected_p_xml = '<a:p%s><a:pPr lvl="1"/></a:p>' % nsprefix_decls
+        # exercise --------------------
+        paragraph.clear()
+        # verify ----------------------
+        p_xml = etree.tostring(paragraph._Paragraph__p)
+        assert_that(p_xml, is_(equal_to(expected_p_xml)))
 
     def test_set_font_size(self):
         """Assignment to Paragraph.font.size changes font size"""
@@ -1004,10 +1046,14 @@ class Test_Relationship(TestCase):
         rId = 'rId%d' % num
         rel = _Relationship(rId, None, None)
         # verify ----------------------
-        expected = num
-        actual = rel._num
-        msg = "expected %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert_that(rel._num, is_(equal_to(num)))
+
+    def test__num_value_on_non_standard_rId(self):
+        """_Relationship._num value is correct for non-standard rId"""
+        # setup -----------------------
+        rel = _Relationship('rIdSm', None, None)
+        # verify ----------------------
+        assert_that(rel._num, is_(equal_to(9999)))
 
     def test__rId_setter(self):
         """Relationship._rId setter stores passed value"""
@@ -1026,6 +1072,37 @@ class Test_RelationshipCollection(TestCase):
     """Test _RelationshipCollection"""
     def setUp(self):
         self.relationships = _RelationshipCollection()
+
+    def __reltype_ordering_mock(self):
+        """
+        Return RelationshipCollection instance with mocked-up contents
+        suitable for testing _reltype_ordering.
+        """
+        # setup -----------------------
+        partnames =\
+            [ '/ppt/slides/slide4.xml'
+            , '/ppt/slideLayouts/slideLayout1.xml'
+            , '/ppt/slideMasters/slideMaster1.xml'
+            , '/ppt/slides/slide1.xml'
+            , '/ppt/presProps.xml'
+            ]
+        part1 = Mock(name='part1'); part1.partname = partnames[0]
+        part2 = Mock(name='part2'); part2.partname = partnames[1]
+        part3 = Mock(name='part3'); part3.partname = partnames[2]
+        part4 = Mock(name='part4'); part4.partname = partnames[3]
+        part5 = Mock(name='part5'); part5.partname = partnames[4]
+        rel1 = _Relationship('rId1', RT_SLIDE,       part1)
+        rel2 = _Relationship('rId2', RT_SLIDELAYOUT, part2)
+        rel3 = _Relationship('rId3', RT_SLIDEMASTER, part3)
+        rel4 = _Relationship('rId4', RT_SLIDE,       part4)
+        rel5 = _Relationship('rId5', RT_PRESPROPS,   part5)
+        relationships = _RelationshipCollection()
+        relationships._additem(rel1)
+        relationships._additem(rel2)
+        relationships._additem(rel3)
+        relationships._additem(rel4)
+        relationships._additem(rel5)
+        return (relationships, partnames)
 
     def test__additem_raises_on_dup_rId(self):
         """_RelationshipCollection._additem raises on duplicate rId"""
@@ -1058,33 +1135,6 @@ class Test_RelationshipCollection(TestCase):
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    def __reltype_ordering_mock(self):
-        """
-        Return RelationshipCollection instance with mocked-up contents
-        suitable for testing _reltype_ordering.
-        """
-        # setup -----------------------
-        partnames =\
-            [ '/ppt/slides/slide4.xml'
-            , '/ppt/slideLayouts/slideLayout1.xml'
-            , '/ppt/slideMasters/slideMaster1.xml'
-            , '/ppt/slides/slide1.xml'
-            ]
-        part1 = Mock(name='part1'); part1.partname = partnames[0]
-        part2 = Mock(name='part2'); part2.partname = partnames[1]
-        part3 = Mock(name='part3'); part3.partname = partnames[2]
-        part4 = Mock(name='part4'); part4.partname = partnames[3]
-        rel1 = _Relationship('rId1', RT_SLIDE,       part1)
-        rel2 = _Relationship('rId2', RT_SLIDELAYOUT, part2)
-        rel3 = _Relationship('rId3', RT_SLIDEMASTER, part3)
-        rel4 = _Relationship('rId4', RT_SLIDE,       part4)
-        relationships = _RelationshipCollection()
-        relationships._additem(rel1)
-        relationships._additem(rel2)
-        relationships._additem(rel3)
-        relationships._additem(rel4)
-        return (relationships, partnames)
-
     def test__additem_maintains_reltype_ordering(self):
         """_RelationshipCollection maintains reltype ordering on additem()"""
         # setup -----------------------
@@ -1099,7 +1149,7 @@ class Test_RelationshipCollection(TestCase):
         relationships._additem(rel)
         # verify ordering -------------
         expected = [partnames[2], partnames[1], partnames[3],
-                    partname, partnames[0]]
+                    partname, partnames[0], partnames[4]]
         actual = [rel._target.partname for rel in relationships]
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
@@ -1124,7 +1174,9 @@ class Test_RelationshipCollection(TestCase):
         # exercise --------------------
         relationships._reltype_ordering = ordering
         # verify ordering -------------
-        expected = [partnames[2], partnames[1], partnames[3], partnames[0]]
+        assert_that(relationships._reltype_ordering, is_(equal_to(ordering)))
+        expected = [ partnames[2], partnames[1], partnames[3], partnames[0]
+                   , partnames[4] ]
         actual = [rel._target.partname for rel in relationships]
         msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
@@ -1137,7 +1189,7 @@ class Test_RelationshipCollection(TestCase):
         # exercise --------------------
         relationships._reltype_ordering = ordering
         # verify renumbering ----------
-        expected = ['rId1', 'rId2', 'rId3', 'rId4']
+        expected = ['rId1', 'rId2', 'rId3', 'rId4', 'rId5']
         actual = [rel._rId for rel in relationships]
         msg = "expected numbering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
@@ -1239,6 +1291,12 @@ class TestRun(TestCase):
         actual = self.run.text
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
+
+    def test__to_unicode_raises_on_non_string(self):
+        """_to_unicode(text) raises on *text* not a string"""
+        # verify ----------------------
+        with self.assertRaises(TypeError):
+            _to_unicode(999)
 
 
 class TestShape(TestCase):
@@ -1486,7 +1544,7 @@ class TestShapeCollection(TestCase):
         msg = "expected %d, got %d" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    def test___pic_return_value(self):
+    def test___pic_generates_correct_xml(self):
         """ShapeCollection.__pic returns correct value"""
         # setup -----------------------
         test_image = PILImage.open(test_image_path)
@@ -1507,6 +1565,26 @@ class TestShapeCollection(TestCase):
         actual = etree.tostring(pic)
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
+
+    def test___pic_from_stream_generates_correct_xml(self):
+        """ShapeCollection.__pic returns correct XML from stream image"""
+        # setup -----------------------
+        test_image = PILImage.open(test_image_path)
+        pic_size = tuple(Px(x) for x in test_image.size)
+        xml = ('<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/2'
+            '006/main" xmlns:p="http://schemas.openxmlformats.org/presentatio'
+            'nml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
+            'Document/2006/relationships"><p:nvPicPr><p:cNvPr id="4" name="Pi'
+            'cture 3"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip '
+            'r:embed="rId9"/><a:stretch><a:fillRect/></a:stretch></p:blipFill'
+            '><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="%s" cy="%s"/></a'
+            ':xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></'
+            'p:pic>' % pic_size)
+        # exercise --------------------
+        with open(test_image_path) as stream:
+            pic = self.shapes._ShapeCollection__pic('rId9', stream, 0, 0)
+        # verify ----------------------
+        assert_that(etree.tostring(pic), is_(equal_to(xml)))
 
 
 class TestSlide(TestCase):

@@ -4,6 +4,7 @@ import os
 from behave   import given, when, then
 from hamcrest import (assert_that, has_item, is_, is_not, equal_to,
                       greater_than)
+from StringIO import StringIO
 
 from pptx import packaging
 from pptx import Presentation
@@ -61,6 +62,15 @@ def step(context):
 def step(context):
     slidelayout = context.prs.slidemasters[0].slidelayouts[0]
     context.prs.slides.add_slide(slidelayout)
+
+
+@when("I add a picture stream to the slide's shape collection")
+def step(context):
+    shapes = context.sld.shapes
+    x, y = (Inches(1.25), Inches(1.25))
+    with open(test_image_path) as f:
+        stream = StringIO(f.read())
+    shapes.add_picture(stream, x, y)
 
 
 @when("I add a picture to the slide's shape collection")

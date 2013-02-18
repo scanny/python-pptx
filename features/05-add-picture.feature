@@ -9,3 +9,11 @@ Feature: Add a picture to a slide
        And I save the presentation
       Then the image is saved in the pptx file
        And the picture appears in the slide
+
+  Scenario: Add a picture stream to a slide
+     Given I have a reference to a slide
+      When I add a picture stream to the slide's shape collection
+       And I save the presentation
+      Then the image is saved in the pptx file
+       And the picture appears in the slide
+

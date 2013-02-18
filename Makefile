@@ -31,13 +31,14 @@ SETUP       = $(PYTHON) ./setup.py
 
 help:
 	@echo "Please use \`make <target>' where <target> is one or more of"
-	@echo "  accept    to run acceptance tests using behave"
-	@echo "  clean     to delete intermediate work product and start fresh"
-	@echo "  readme    to update README.html from README.rst"
-	@echo "  register  to update metadata (README.rst) on PyPI"
-	@echo "  test      to run tests using setup.py"
-	@echo "  sdist     to generate a source distribution into dist/"
-	@echo "  upload    to upload distribution tarball to PyPI"
+	@echo "  accept    run acceptance tests using behave"
+	@echo "  clean     delete intermediate work product and start fresh"
+	@echo "  coverage  run nosetests with coverage"
+	@echo "  readme    update README.html from README.rst"
+	@echo "  register  update metadata (README.rst) on PyPI"
+	@echo "  test      run tests using setup.py"
+	@echo "  sdist     generate a source distribution into dist/"
+	@echo "  upload    upload distribution tarball to PyPI"
 
 accept:
 	$(BEHAVE)
@@ -45,6 +46,9 @@ accept:
 clean:
 	find . -type f -name \*.pyc -exec rm {} \;
 	rm -rf dist python_pptx.egg-info .coverage .DS_Store lint.html lint.txt
+
+coverage:
+	nosetests --with-coverage --cover-package=pptx --cover-erase
 
 readme:
 	rst2html README.rst >README.html

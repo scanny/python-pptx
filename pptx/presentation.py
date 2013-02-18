@@ -81,7 +81,8 @@ def _to_unicode(text):
     """
     # both str and unicode inherit from basestring
     if not isinstance(text, basestring):
-        raise TypeError('expected UTF-8 encoded string or unicode')
+        tmpl = 'expected UTF-8 encoded string or unicode, got %s value %s'
+        raise TypeError(tmpl % (type(text), text))
     # return unicode strings unchanged
     if isinstance(text, unicode):
         return text
@@ -116,7 +117,7 @@ class Package(object):
         for pkg in cls.instances():
             if part in pkg._parts:
                 return pkg
-        raise KeyError("No package contains part %d" % part)
+        raise KeyError("No package contains part %r" % part)
     
     @classmethod
     def instances(cls):
@@ -293,7 +294,6 @@ class Observable(object):
     * notifications are oriented toward "value has been updated", which seems
       like only one possible event, could also be something like "load has
       completed" or "preparing to load".
-    
     """
     def __init__(self):
         super(Observable, self).__init__()
@@ -525,13 +525,15 @@ class ImageCollection(PartCollection):
     def __init__(self):
         super(ImageCollection, self).__init__()
     
-    def add_image(self, path):
+    def add_image(self, file):
         """
-        Return image part containing the image at *path*. If the image does
-        not yet exist, a new one is created.
+        Return image part containing the image in *file*, which is either a
+        path to an image file or a file-like object containing an image. If an
+        image instance containing this same image already exists, that
+        instance is returned. If it does not yet exist, a new one is created.
         """
         # use Image constructor to validate and characterize image file
-        image = Image(path)
+        image = Image(file)
         # return matching image if found
         for existing_image in self._values:
             if existing_image._sha1 == image._sha1:
@@ -636,15 +638,14 @@ class BasePart(Observable):
     @property
     def _content_type(self):
         """
-        Return content type of this part, e.g.
-        'application/vnd.openxmlformats-officedocument.theme+xml'. Throws on
-        access before content type is set (by load or otherwise).
+        Content type of this part, e.g.
+        'application/vnd.openxmlformats-officedocument.theme+xml'.
         """
         if self.__content_type is None:
-            msg = "_content_type called on part with no content type"
+            msg = "BasePart._content_type accessed before assigned"
             raise ValueError(msg)
         return self.__content_type
-    
+
     @_content_type.setter
     def _content_type(self, content_type):
         self.__content_type = content_type
@@ -828,21 +829,24 @@ class Presentation(BasePart):
 
 class Image(BasePart):
     """
-    Image part. Corresponds to package files ppt/media/image[1-9][0-9]*.*.
-    If *path* parameter is used, the image file at that location is loaded.
+    Return new Image part instance. *file* may be |None|, a path to a file (a
+    string), or a file-like object. If *file* is |None|, no image is loaded
+    and :meth:`_load` must be called before using the instance. Otherwise, the
+    file referenced or contained in *file* is loaded. Corresponds to package
+    files ppt/media/image[1-9][0-9]*.*.
     """
-    def __init__(self, path=None):
+    def __init__(self, file=None):
         super(Image, self).__init__()
         self.__ext = None
-        if path:
-            self.__load_image_from_file(path)
-    
+        if file is not None:
+            self.__load_image_from_file(file)
+
     @property
     def ext(self):
         """Return file extension for this image"""
         assert self.__ext, "Image.__ext referenced before assigned"
         return self.__ext
-    
+
     @property
     def _sha1(self):
         """Return SHA1 hash digest for image"""
@@ -864,32 +868,55 @@ class Image(BasePart):
         self.__ext = os.path.splitext(pkgpart.partname)[1]
         # return self-reference to allow generative calling
         return self
-    
+
     @staticmethod
-    def __image_file_content_type(path):
-        """Return the content type of graphic image file at *path*"""
-        ext = os.path.splitext(path)[1]
+    def __image_ext_content_type(ext):
+        """Return the content type corresponding to filename extension *ext*"""
         if ext not in spec.default_content_types:
-            tmpl = "unsupported image file extension '%s' at '%s'"
-            raise TypeError(tmpl % (ext, path))
+            tmpl = "unsupported image file extension '%s'"
+            raise TypeError(tmpl % (ext))
         content_type = spec.default_content_types[ext]
         if not content_type.startswith('image/'):
-            tmpl = "'%s' is not an image content type; path '%s'"
-            raise TypeError(tmpl % (content_type, path))
+            tmpl = "'%s' is not an image content type; ext '%s'"
+            raise TypeError(tmpl % (content_type, ext))
         return content_type
-    
-    def __load_image_from_file(self, path):
+
+    @staticmethod
+    def __ext_from_image_stream(stream):
         """
-        Load image file at *path*.
+        Return the filename extension appropriate to the image file contained
+        in *stream*.
         """
-        # set extension
-        self.__ext = os.path.splitext(path)[1]
-        # set content type
-        self._content_type = self.__image_file_content_type(path)
-        # lodge blob
-        with open(path, 'rb') as f:
-            self._load_blob = f.read()
-    
+        ext_map =\
+            { 'GIF'  : '.gif'
+            , 'JPEG' : '.jpg'
+            , 'PNG'  : '.png'
+            , 'TIFF' : '.tiff'
+            , 'WMF'  : '.wmf'
+            }
+        stream.seek(0)
+        format = PIL_Image.open(stream).format
+        if format not in ext_map:
+            tmpl = "unsupported image format, expected one of: %s, got '%s'"
+            raise ValueError(tmpl % (ext_map.keys(), format))
+        return ext_map[format]
+
+    def __load_image_from_file(self, file):
+        """
+        Load image from *file*, which is either a path to an image file or a
+        file-like object.
+        """
+        if isinstance(file, basestring):  # file is a path
+            path = file
+            self.__ext = os.path.splitext(path)[1]
+            self._content_type = self.__image_ext_content_type(self.__ext)
+            with open(path, 'rb') as f:
+                self._load_blob = f.read()
+        else:  # assume file is a file-like object
+            self.__ext = self.__ext_from_image_stream(file)
+            self._content_type = self.__image_ext_content_type(self.__ext)
+            file.seek(0)
+            self._load_blob = file.read()
 
 
 # ============================================================================
@@ -1242,14 +1269,15 @@ class ShapeCollection(BaseShape, Collection):
                 return shape
         return None
     
-    def add_picture(self, path, left, top, width=None, height=None):
+    def add_picture(self, file, left, top, width=None, height=None):
         """
-        Add picture shape displaying image in file located at *path*.
+        Add picture shape displaying image in *file*, where *file* can be
+        either a path to a file (a string) or a file-like object.
         """
         pkg = Package.containing(self.__slide)
-        image = pkg._images.add_image(path)
+        image = pkg._images.add_image(file)
         rel = self.__slide._add_relationship(RT_IMAGE, image)
-        pic = self.__pic(rel._rId, path, left, top, width, height)
+        pic = self.__pic(rel._rId, file, left, top, width, height)
         self.__spTree.append(pic)
         picture = Picture(pic)
         self._values.append(picture)
@@ -1379,24 +1407,33 @@ class ShapeCollection(BaseShape, Collection):
             next_id += 1
         return next_id
     
-    def __pic(self, rId, path, x, y, cx=None, cy=None):
-        """Return minimal ``<p:pic>`` element based on *rId* and *path*."""
+    def __pic(self, rId, file, x, y, cx=None, cy=None):
+        """
+        Return minimal ``<p:pic>`` element based on *rId* and *file*. *file* is
+        either a path to the file (a string) or a file-like object.
+        """
         id = self.__next_shape_id
         shapename = 'Picture %d' % (id-1)
-        filename = os.path.split(path)[1]
-        
+        if isinstance(file, basestring):  # *file* is a path
+            filename = os.path.split(file)[1]
+        else:
+            filename = None
+            file.seek(0)
+
         # set cx and cy from image size if not specified
-        cx_px, cy_px = PIL_Image.open(path).size
+        cx_px, cy_px = PIL_Image.open(file).size
         cx = cx if cx is not None else Px(cx_px)
         cy = cy if cy is not None else Px(cy_px)
-        
+
+        # assemble XML hierarchy of pic element
         pic = etree.Element(qtag('p:pic'), nsmap=_nsmap)
         
         nvPicPr  = etree.SubElement(pic,      qtag('p:nvPicPr'))
         cNvPr    = etree.SubElement(nvPicPr,  qtag('p:cNvPr'))
-        cNvPr.set('id',    str(id))
-        cNvPr.set('name',  shapename)
-        cNvPr.set('descr', filename)
+        cNvPr.set('id', str(id))
+        cNvPr.set('name', shapename)
+        if filename:
+            cNvPr.set('descr', filename)
         cNvPicPr = etree.SubElement(nvPicPr,  qtag('p:cNvPicPr'))
         nvPr     = etree.SubElement(nvPicPr,  qtag('p:nvPr'))
         
