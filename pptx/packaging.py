@@ -869,7 +869,7 @@ def prettify_nsdecls(xml):
         return xml
     rootline = lines[1]
     # split rootline into element tag part and attributes parts
-    attrib_re = re.compile(r'([-a-zA-Z0-9_:.]+="[^"]*" *>?)')
+    attrib_re = re.compile(r'([-a-zA-Z0-9_:.]+="[^"]*" */?>?)')
     substrings = [substring.strip() for substring in attrib_re.split(rootline)
                                      if substring]
     # substrings look something like:

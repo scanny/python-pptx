@@ -37,7 +37,7 @@ child elements
 ==========  ===  ==========================  ==========
 name         #    type                        line
 ==========  ===  ==========================  ==========
-pPr          1   CT_TextParagraphProperties  2963 dml
+pPr          ?   CT_TextParagraphProperties  2963 dml
 r           \*   EG_TextRun                  2997 dml
 \| br
 \| fld

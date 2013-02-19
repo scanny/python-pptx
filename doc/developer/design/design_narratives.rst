@@ -10,9 +10,62 @@ the design process.
 XML wrapper classes
 ===================
 
-TODO
-----
-* `(1)` get subclassing working for oxml and oxml_base ...
+Acceptance Tests
+----------------
+
+``lxml.objectify``:
+
+* satisfies **1. Parsing** completely.
+
+* satisfies **2. Dotted-notation child access** well-enough, and its approach
+  is probably more robust in the long run since it is unambiguous.
+
+* The ObjectPath functionality can be used to satisfy **3. Child element added
+  on access**, and other more conventional approaches can be devised if
+  needed, perhaps something like ``get_or_add(elm, 'p:cSld/p:sldPr/xyz')``.
+
+1. **Parsing**. Full XML tree of part as found in .pptx file can be parsed
+   without leaving out any elements or attributes. Elements with a custom class
+   are instantiated with that class, all others get the default class.
+
+2. **Dotted-notation child access**. Child elements and attributes can be
+   accessed via dotted notation, e.g. ``sp.nvSpPr.cNvPr``.
+
+3. **Child element added on access**. A child element is added to the parent on
+   first access if not already present. Note: I might think better of this and
+   end up going with convenient but explicit element creation, perhaps
+   something like ``xyz.add_abc()`` for explicit add and
+   ``xyz.get_or_add_abc()`` for adding if it doesn't exist yet, that could be
+   continued like ``xyz.existing_or_new_abc.existing_or_new_def`` for parts of
+   the tree that may or may not be present (optional elements) ... needs to
+   also
+
+4. **New elements inserted in proper sequence**.  within their parent
+
+5. ... dealing with repeating elements, e.g. ``txBody.p``
+
+6. ... dealing with element groups with tuple cardinality, like ``p.r``,
+   ``p.br``
+
+
+Abandoned requirements
+----------------------
+
+7. **Create schema-minimal children**. On construction of a new element,
+   automatically construct all child elements that are required by the schema.
+   Note that this is problematic if elements can't be unambiguously identified
+   during parsing, such as might happen when an element with the same
+   namespace and tagname can appear in multiple contexts with different types.
+   The ``p:sld`` tag is an example of this.
+
+**Rationale:** This was going to be problematic anyway if there were obscure
+tag matches and required fields were created automatically, possibly resulting
+in invalid tags appearing at otherwise untouched locations in the XML
+hierarchy. Also, this bug would probably show up first in the field as it
+would be very burdensome to identify the specific tests required.
+
+Second, the template-driven approach to creating new shape elements takes a
+lot of the ugliness out of the new element generation step.
 
 
 XSD unmarshalling class community
@@ -38,16 +91,6 @@ So tuples won't work for long, there needs to be a set of classes that
 populate the list, maybe just Element and Choice. These situations might be
 rare enough that subclassing the relatively few would work for a start and
 then learn what code to generate step by step.
-
-
-Acceptance Tests
-----------------
-
-* optional element is automatically inserted on first access
-* optional element is not present on construction of parent
-* optional element is not created if not in lxml graph
-* optional element added at run time is inserted in correct sequence
-* ...
 
 
 Requirements

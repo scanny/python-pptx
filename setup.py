@@ -1,14 +1,23 @@
 #!/usr/bin/env python
 
 import os
+import re
 
 from setuptools import setup
 from glob import glob
 
-from pptx import __version__
+# Read the version from pptx.__version__ without importing the package
+# (and thus attempting to import packages it depends on that may not be
+# installed yet)
+thisdir = os.path.dirname(__file__)
+init_py_path = os.path.join(thisdir, 'pptx', '__init__.py')
+version = re.search("__version__ = '([^']+)'",
+                    open(init_py_path).read()).group(1)
+
+
 
 NAME         = 'python-pptx'
-VERSION      = __version__
+VERSION      = version
 DESCRIPTION  = 'Generate and manipulate Open XML PowerPoint (.pptx) files'
 AUTHOR       = 'Steve Canny'
 AUTHOR_EMAIL = 'python.pptx@librelist.com'
