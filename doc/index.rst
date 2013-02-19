@@ -33,8 +33,7 @@ cadence of roughly two-weeks. If you find a feature you need that |pp| doesn't
 do yet, reach out via the mailing list or issue tracker and we'll see if we
 can jump the queue for you to pop it in there :)
 
-Currently |pp| requires Python 2.7, however support for Python 2.6 is planned
-in order to enable running natively on relatively recent versions of Linux.
+Currently |pp| requires Python 2.6.
 Support for earlier versions is not likely to be on the horizon, but if
 someone has a compelling need and is willing to pitch in to make it possible,
 that could happen. Support for Python 3.x is also planned, but will likely
