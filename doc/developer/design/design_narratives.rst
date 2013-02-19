@@ -10,9 +10,29 @@ the design process.
 XML wrapper classes
 ===================
 
-TODO
-----
-* `(1)` get subclassing working for oxml and oxml_base ...
+Acceptance Tests
+----------------
+
+Acceptance Tests
+----------------
+
+* **Parsing**. Full XML tree of part as found in .pptx file can be parsed
+  without leaving out any elements or attributes. Elements with a custom class
+  are instantiated with that class, all others get the default class.
+
+* **Dotted-notation child access**. Child elements and attributes can be
+  accessed via dotted notation, e.g. ``sp.nvSpPr.cNvPr``.
+
+* **Create schema-minimal children**. On construction of a new element,
+  automatically construct all child elements that are required by the schema.
+
+* optional element is automatically inserted on first access
+* optional element is not present on construction of parent
+* optional element is not created if not in lxml graph
+* optional element added at run time is inserted in correct sequence
+* ...
+
+
 
 
 XSD unmarshalling class community
@@ -38,16 +58,6 @@ So tuples won't work for long, there needs to be a set of classes that
 populate the list, maybe just Element and Choice. These situations might be
 rare enough that subclassing the relatively few would work for a start and
 then learn what code to generate step by step.
-
-
-Acceptance Tests
-----------------
-
-* optional element is automatically inserted on first access
-* optional element is not present on construction of parent
-* optional element is not created if not in lxml graph
-* optional element added at run time is inserted in correct sequence
-* ...
 
 
 Requirements
