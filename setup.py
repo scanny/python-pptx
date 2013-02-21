@@ -5,7 +5,7 @@ import os
 from setuptools import setup
 from glob import glob
 
-from pptx import __version__
+execfile('pptx/version.py')
 
 NAME         = 'python-pptx'
 VERSION      = __version__
