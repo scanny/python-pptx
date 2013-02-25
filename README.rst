@@ -2,14 +2,17 @@
 python-pptx
 ###########
 
-VERSION: 0.2.0 (first non-alpha release)
+VERSION: 0.2.1 (second non-alpha release)
 
 
-STATUS (as of Feb 10 2013)
+STATUS (as of Feb 25 2013)
 ==========================
 
-Initial release with basic capabilities. Under active development, with new
-features added in a new release roughly every two weeks.
+Second release with basic capabilities, now supporting Python 2.6 in addition
+to Python 2.7. Under active development, with new features added in a new
+release roughly every two weeks. I'm just finishing up a port of the XML
+manipulation to ``lxml.objectify`` to allow new features to be added more
+quickly, so the next release should show a significant expansion of the API.
 
 
 Vision
@@ -93,6 +96,24 @@ and running ``setup.py``::
 (``PIL``). Both ``pip`` and ``easy_install`` will take care of satisfying
 those dependencies for you, but if you use this last method you will need to
 install those yourself.
+
+
+Release History
+===============
+
+Feb 25, 2013 - v0.2.1
+   * Add support for Python 2.6
+   * Add images from a stream (e.g. StringIO) in addition to a path, allowing
+     images retrieved from a database or network resource to be inserted
+     without saving first.
+   * Expand text methods to accept unicode and UTF-8 encoded 8-bit strings.
+   * Fix potential install bug triggered by importing ``__version__`` from
+     package ``__init__.py`` file.
+
+Feb 10, 2013 - v0.2.0
+    First non-alpha release with basic capabilities: open presentation/template
+    or use built-in default template, add slide, set placeholder text (e.g.
+    bullet slides), add picture, add text box.
 
 
 License
