@@ -18,14 +18,14 @@ what you can do with |pp|.
 Status
 ------
 
-The current release is v0.2.0 dated February 10, 2013. The library is under
+The current release is v0.2.1 dated February 25, 2013. The library is under
 active development. The current release has the following basic capabilities:
 
 * Round-trip any Open XML presentation (.pptx file) including all its elements
 * Add slides
 * Populate text placeholders, for example to create a bullet slide
-* Add an image to a slide with arbitrary position and size
-* Add a textbox to a slide
+* Add image to slide at arbitrary position and size
+* Add textbox to a slide
 * Manipulate text font size and bold
 
 Additional capabilities are actively being developed and added on a release
@@ -33,11 +33,22 @@ cadence of roughly two-weeks. If you find a feature you need that |pp| doesn't
 do yet, reach out via the mailing list or issue tracker and we'll see if we
 can jump the queue for you to pop it in there :)
 
-Currently |pp| requires Python 2.6.
-Support for earlier versions is not likely to be on the horizon, but if
-someone has a compelling need and is willing to pitch in to make it possible,
-that could happen. Support for Python 3.x is also planned, but will likely
-need to wait until more of the corpus of 2.x libraries get 3.x versions.
+Currently |pp| requires Python 2.6 or 2.7. Support for earlier versions is not
+planned as it complicates future support for Python 3.x, but if you have a
+compelling need please reach out via the mailing list. Support for Python 3.x
+is planned, but will likely need to wait until PIL is ported or a viable
+substitute for image handling becomes available. If you have any ideas on a
+viable substitute please reach out via the mailing list, I'd love to hear
+about it :)
+
+
+------------
+Dependencies
+------------
+
+* Python 2.6 or 2.7
+* lxml
+* Python Imaging Library (PIL)
 
 
 ------------
@@ -103,7 +114,7 @@ distribution by issuing the following commands::
     $ nosetests
     .........................
     ----------------------------------------------------------------------
-    Ran 178 tests in 2.279s
+    Ran 182 tests in 1.211s
     
     OK
     
@@ -122,9 +133,9 @@ distribution by issuing the following commands::
     # ... more output ...
 
     6 features passed, 0 failed, 0 skipped
-    6 scenarios passed, 0 failed, 0 skipped
-    24 steps passed, 0 failed, 0 skipped, 0 undefined
-    Took 0m0.8s
+    7 scenarios passed, 0 failed, 0 skipped
+    29 steps passed, 0 failed, 0 skipped, 0 undefined
+    Took 0m0.3s
 
 
 ---------------
