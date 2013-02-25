@@ -12,6 +12,8 @@ Also see the protocols pages for additional class internals documentation.
    :undoc-members:
    :show-inheritance:
 
+.. |None| replace:: :class:`None`
+
 .. |Paragraph| replace:: :class:`Paragraph`
 
 
