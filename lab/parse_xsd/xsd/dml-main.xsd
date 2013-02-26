@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:r="http://purl.oclc.org/ooxml/officeDocument/relationships"
-  xmlns:s="http://purl.oclc.org/ooxml/officeDocument/sharedTypes"
-  xmlns="http://purl.oclc.org/ooxml/drawingml/main"
-  targetNamespace="http://purl.oclc.org/ooxml/drawingml/main" elementFormDefault="qualified">
-  <xsd:import namespace="http://purl.oclc.org/ooxml/officeDocument/relationships"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+  xmlns="http://schemas.openxmlformats.org/drawingml/2006/main"
+  targetNamespace="http://schemas.openxmlformats.org/drawingml/2006/main"
+  elementFormDefault="qualified">
+  <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
     schemaLocation="shared-relationshipReference.xsd"/>
-  <xsd:import namespace="http://purl.oclc.org/ooxml/officeDocument/sharedTypes"
+  <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
     schemaLocation="shared-commonSimpleTypes.xsd"/>
-  <xsd:import namespace="http://purl.oclc.org/ooxml/drawingml/diagram"
+  <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/diagram"
     schemaLocation="dml-diagram.xsd"/>
-  <xsd:import namespace="http://purl.oclc.org/ooxml/drawingml/chart" schemaLocation="dml-chart.xsd"/>
-  <xsd:import namespace="http://purl.oclc.org/ooxml/drawingml/picture"
+  <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/chart"
+    schemaLocation="dml-chart.xsd"/>
+  <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/picture"
     schemaLocation="dml-picture.xsd"/>
-  <xsd:import namespace="http://purl.oclc.org/ooxml/drawingml/lockedCanvas"
+  <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/lockedCanvas"
     schemaLocation="dml-lockedCanvas.xsd"/>
   <xsd:complexType name="CT_AudioFile">
     <xsd:sequence>
@@ -232,25 +234,45 @@
     <xsd:attribute name="val" type="ST_PositiveFixedAngle" use="required"/>
   </xsd:complexType>
   <xsd:simpleType name="ST_Percentage">
-    <xsd:union memberTypes="s:ST_Percentage"/>
+    <xsd:union memberTypes="ST_PercentageDecimal s:ST_Percentage"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="ST_PercentageDecimal">
+    <xsd:restriction base="xsd:int"/>
   </xsd:simpleType>
   <xsd:complexType name="CT_Percentage">
     <xsd:attribute name="val" type="ST_Percentage" use="required"/>
   </xsd:complexType>
   <xsd:simpleType name="ST_PositivePercentage">
-    <xsd:union memberTypes="s:ST_PositivePercentage"/>
+    <xsd:union memberTypes="ST_PositivePercentageDecimal s:ST_PositivePercentage"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="ST_PositivePercentageDecimal">
+    <xsd:restriction base="ST_PercentageDecimal">
+      <xsd:minInclusive value="0"/>
+    </xsd:restriction>
   </xsd:simpleType>
   <xsd:complexType name="CT_PositivePercentage">
     <xsd:attribute name="val" type="ST_PositivePercentage" use="required"/>
   </xsd:complexType>
   <xsd:simpleType name="ST_FixedPercentage">
-    <xsd:union memberTypes="s:ST_FixedPercentage"/>
+    <xsd:union memberTypes="ST_FixedPercentageDecimal s:ST_FixedPercentage"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="ST_FixedPercentageDecimal">
+    <xsd:restriction base="ST_PercentageDecimal">
+      <xsd:minInclusive value="-100000"/>
+      <xsd:maxInclusive value="100000"/>
+    </xsd:restriction>
   </xsd:simpleType>
   <xsd:complexType name="CT_FixedPercentage">
     <xsd:attribute name="val" type="ST_FixedPercentage" use="required"/>
   </xsd:complexType>
   <xsd:simpleType name="ST_PositiveFixedPercentage">
-    <xsd:union memberTypes="s:ST_PositiveFixedPercentage"/>
+    <xsd:union memberTypes="ST_PositiveFixedPercentageDecimal s:ST_PositiveFixedPercentage"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="ST_PositiveFixedPercentageDecimal">
+    <xsd:restriction base="ST_PercentageDecimal">
+      <xsd:minInclusive value="0"/>
+      <xsd:maxInclusive value="100000"/>
+    </xsd:restriction>
   </xsd:simpleType>
   <xsd:complexType name="CT_PositiveFixedPercentage">
     <xsd:attribute name="val" type="ST_PositiveFixedPercentage" use="required"/>
@@ -2605,7 +2627,13 @@
     </xsd:sequence>
   </xsd:complexType>
   <xsd:simpleType name="ST_TextFontScalePercentOrPercentString">
-    <xsd:union memberTypes="s:ST_Percentage"/>
+    <xsd:union memberTypes="ST_TextFontScalePercent s:ST_Percentage"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="ST_TextFontScalePercent">
+    <xsd:restriction base="ST_PercentageDecimal">
+      <xsd:minInclusive value="1000"/>
+      <xsd:maxInclusive value="100000"/>
+    </xsd:restriction>
   </xsd:simpleType>
   <xsd:complexType name="CT_TextNormalAutofit">
     <xsd:attribute name="fontScale" type="ST_TextFontScalePercentOrPercentString" use="optional"
@@ -2716,11 +2744,17 @@
     </xsd:choice>
   </xsd:group>
   <xsd:simpleType name="ST_TextBulletSize">
-    <xsd:union memberTypes="ST_TextBulletSizePercent"/>
+    <xsd:union memberTypes="ST_TextBulletSizePercent ST_TextBulletSizeDecimal"/>
   </xsd:simpleType>
   <xsd:simpleType name="ST_TextBulletSizePercent">
     <xsd:restriction base="xsd:string">
       <xsd:pattern value="0*((2[5-9])|([3-9][0-9])|([1-3][0-9][0-9])|400)%"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="ST_TextBulletSizeDecimal">
+    <xsd:restriction base="ST_PercentageDecimal">
+      <xsd:minInclusive value="25000"/>
+      <xsd:maxInclusive value="400000"/>
     </xsd:restriction>
   </xsd:simpleType>
   <xsd:complexType name="CT_TextBulletSizeFollowText"/>
@@ -2810,8 +2844,8 @@
      <xsd:enumeration value="81"/>
      <xsd:enumeration value="82"/>
    </xsd:restriction>
-  </xsd:simpleType>
-  <xsd:complexType name="CT_TextFont">
+   </xsd:simpleType>
+   <xsd:complexType name="CT_TextFont">
     <xsd:attribute name="typeface" type="ST_TextTypeface" use="required"/>
     <xsd:attribute name="panose" type="s:ST_Panose" use="optional"/>
     <xsd:attribute name="pitchFamily" type="ST_PitchFamily" use="optional" default="0"/>
@@ -2917,7 +2951,13 @@
     </xsd:restriction>
   </xsd:simpleType>
   <xsd:simpleType name="ST_TextSpacingPercentOrPercentString">
-    <xsd:union memberTypes="s:ST_Percentage"/>
+    <xsd:union memberTypes="ST_TextSpacingPercent s:ST_Percentage"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="ST_TextSpacingPercent">
+    <xsd:restriction base="ST_PercentageDecimal">
+      <xsd:minInclusive value="0"/>
+      <xsd:maxInclusive value="13200000"/>
+    </xsd:restriction>
   </xsd:simpleType>
   <xsd:complexType name="CT_TextSpacingPercent">
     <xsd:attribute name="val" type="ST_TextSpacingPercentOrPercentString" use="required"/>

@@ -14,251 +14,179 @@ bit of the lxml graph that spans the entire Open XML package part, e.g. a
 slide.
 """
 
-from lxml.etree import Element
+from lxml import etree, objectify
 
-from pptx.spec import namespaces, qtag
+nsmap =\
+    { 'a': 'http://schemas.openxmlformats.org/drawingml/2006/main'
+    , 'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
+    , 'p': 'http://schemas.openxmlformats.org/presentationml/2006/main'
+    }
 
-# default namespace map
-nsmap = namespaces('a', 'r', 'p')
+etree.register_namespace('a', nsmap['a'])
+etree.register_namespace('p', nsmap['p'])
 
-class BaseElement(object):
-    """Base class for Open XML element classes"""
-    def __init__(self):
-        super(BaseElement, self).__init__()
-    
-    @property
-    def element(self):
-        """Return lxml element for this Open XML element"""
-        return self._element
-    
+oxml_parser = objectify.makeparser(remove_blank_text=True)
 
+# ============================================================================
+# API functions
+# ============================================================================
+
+def _Element(tag, nsmap=None):
+    return objectify.Element(qn(tag), nsmap=nsmap)
+
+def _SubElement(parent, tag, nsmap=None):
+    return objectify.SubElement(parent, qn(tag), nsmap=nsmap)
+
+def oxml_fromstring(text):
+    """``etree.fromstring()`` replacement that uses oxml parser"""
+    return objectify.fromstring(text, oxml_parser)
+
+def oxml_parse(source):
+    """``etree.parse()`` replacement that uses oxml parser"""
+    return objectify.parse(source, oxml_parser)
+
+def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
+    # if xsi parameter is not set to False, PowerPoint won't load without a
+    # repair step; deannotate removes some original xsi:type tags in core.xml
+    # if this parameter is left out (or set to True)
+    objectify.deannotate(elm, xsi=False, cleanup_namespaces=True)
+    return etree.tostring(elm, encoding=encoding, pretty_print=pretty_print,
+                          standalone=standalone)
+
+def qn(tag):
+    """
+    Stands for "qualified name", a utility function to turn a namespace
+    prefixed tag name into a Clark-notation qualified tag name for lxml. For
+    example, ``qn('p:cSld')`` returns ``'{http://schemas.../main}cSld'``.
+    """
+    prefix, tagroot = tag.split(':')
+    uri = nsmap[prefix]
+    return '{%s}%s' % (uri, tagroot)
 
 
 # ============================================================================
-# Generated Classes
+# utility functions
 # ============================================================================
 
-class CT_ApplicationNonVisualDrawingProps(BaseElement):
-    """Wrapper for ``<p:nvPr>`` element"""
-    def __init__(self):
-        super(CT_ApplicationNonVisualDrawingProps, self).__init__()
-        self._element = Element(qtag('p:nvPr'), nsmap=nsmap)
-    
+def _child(element, child_tagname):
+    """
+    Return direct child of *element* having *child_tagname* or :class:`None`
+    if no such child element is present.
+    """
+    xpath = './%s' % child_tagname
+    matching_children = element.xpath(xpath, namespaces=nsmap)
+    return matching_children[0] if len(matching_children) else None
 
-class CT_GeomGuideList(BaseElement):
-    """Wrapper for ``<a:avLst>`` element"""
-    def __init__(self):
-        super(CT_GeomGuideList, self).__init__()
-        self._element = Element(qtag('a:avLst'), nsmap=nsmap)
-    
+def _child_list(element, child_tagname):
+    """
+    Return list containing the direct children of *element* having
+    *child_tagname*.
+    """
+    xpath = './%s' % child_tagname
+    return element.xpath(xpath, namespaces=nsmap)
 
-class CT_NoFillProperties(BaseElement):
-    """Wrapper for ``<a:noFill>`` element"""
-    def __init__(self):
-        super(CT_NoFillProperties, self).__init__()
-        self._element = Element(qtag('a:noFill'), nsmap=nsmap)
-    
+def _get_or_add(start_elm, *path_tags):
+    """
+    Retrieve the element at the end of the branch starting at parent and
+    traversing each of *path_tags* in order, creating any elements not found
+    along the way. Not a good solution when sequence of added children is
+    likely to be a concern.
+    """
+    parent = start_elm
+    for tag in path_tags:
+        child = _child(parent, tag)
+        if child is None:
+            child = _SubElement(parent, tag, nsmap)
+        parent = child
+    return child
 
-class CT_NonVisualDrawingProps(BaseElement):
-    """Wrapper for ``<p:cNvPr>`` element"""
-    def __init__(self):
-        super(CT_NonVisualDrawingProps, self).__init__()
-        self._element = Element(qtag('p:cNvPr'), nsmap=nsmap)
-    
-    @property
-    def id(self):
-        return self._element.get('id')
-    
-    @id.setter
-    def id(self, value):
-        self._element.set('id', str(value))
-    
-    @property
-    def name(self):
-        return self._element.get('name')
-    
-    @name.setter
-    def name(self, value):
-        self._element.set('name', str(value))
-    
 
-class CT_NonVisualDrawingShapeProps(BaseElement):
-    """Wrapper for ``<p:cNvSpPr>`` element"""
-    def __init__(self):
-        super(CT_NonVisualDrawingShapeProps, self).__init__()
-        self._element = Element(qtag('p:cNvSpPr'), nsmap=nsmap)
-    
-    @property
-    def txBox(self):
-        return self._element.get('txBox')
-    
-    @txBox.setter
-    def txBox(self, value):
-        self._element.set('txBox', str(value))
-    
+# ============================================================================
+# Custom element classes
+# ============================================================================
 
-class CT_Point2D(BaseElement):
-    """Wrapper for ``<a:off>`` element"""
-    def __init__(self):
-        super(CT_Point2D, self).__init__()
-        self._element = Element(qtag('a:off'), nsmap=nsmap)
-    
-    @property
-    def x(self):
-        return self._element.get('x')
-    
-    @x.setter
-    def x(self, value):
-        self._element.set('x', str(value))
-    
-    @property
-    def y(self):
-        return self._element.get('y')
-    
-    @y.setter
-    def y(self, value):
-        self._element.set('y', str(value))
-    
+# def _required_attribute(element, name, default):
+#     """
+#     Add attribute with default value to element if it doesn't already exist.
+#     """
+#     if element.get(name) is None:
+#         element.set(name, default)
+# 
+# def _required_child(parent, tag):
+#     """
+#     Add child element with *tag* to *parent* if it doesn't already exist.
+#     """
+#     if _child(parent, tag) is None:
+#         parent.append(_Element(tag))
 
-class CT_PositiveSize2D(BaseElement):
-    """Wrapper for ``<a:ext>`` element"""
-    def __init__(self):
-        super(CT_PositiveSize2D, self).__init__()
-        self._element = Element(qtag('a:ext'), nsmap=nsmap)
-    
-    @property
-    def cx(self):
-        return self._element.get('cx')
-    
-    @cx.setter
-    def cx(self, value):
-        self._element.set('cx', str(value))
-    
-    @property
-    def cy(self):
-        return self._element.get('cy')
-    
-    @cy.setter
-    def cy(self, value):
-        self._element.set('cy', str(value))
-    
 
-class CT_PresetGeometry2D(BaseElement):
-    """Wrapper for ``<a:prstGeom>`` element"""
-    def __init__(self):
-        super(CT_PresetGeometry2D, self).__init__()
-        self._element = Element(qtag('a:prstGeom'), nsmap=nsmap)
-        self.avLst = CT_GeomGuideList()
-        self._element.append(self.avLst.element)
-    
-    @property
-    def prst(self):
-        return self._element.get('prst')
-    
-    @prst.setter
-    def prst(self, value):
-        self._element.set('prst', str(value))
-    
+# class ElementBase(etree.ElementBase):
+#     """Provides the base element interface for custom element classes"""
+#     pass
+# 
+# class CT_Presentation(ElementBase):
+#     """<p:presentation> custom element class"""
+#     def _init(self):
+#         _required_child(self, 'p:notesSz')
+# 
+#     # child accessors -----------------
+#     notesSz            = property(lambda self: _child(self, 'p:notesSz'))
+#     sldMasterIdLst     = property(lambda self: _get_child_or_append(self, 'p:sldMasterIdLst'))
+#     notesMasterIdLst   = property(lambda self: _get_child_or_append(self, 'p:notesMasterIdLst'))
+#     handoutMasterIdLst = property(lambda self: _get_child_or_append(self, 'p:handoutMasterIdLst'))
+#     sldIdLst           = property(lambda self: _get_child_or_append(self, 'p:sldIdLst'))
+#     sldSz              = property(lambda self: _get_child_or_append(self, 'p:sldSz'))
+#     smartTags          = property(lambda self: _get_child_or_append(self, 'p:smartTags'))
+#     embeddedFontLst    = property(lambda self: _get_child_or_append(self, 'p:embeddedFontLst'))
+#     custShowLst        = property(lambda self: _get_child_or_append(self, 'p:custShowLst'))
+#     photoAlbum         = property(lambda self: _get_child_or_append(self, 'p:photoAlbum'))
+#     custDataLst        = property(lambda self: _get_child_or_append(self, 'p:custDataLst'))
+#     kinsoku            = property(lambda self: _get_child_or_append(self, 'p:kinsoku'))
+#     defaultTextStyle   = property(lambda self: _get_child_or_append(self, 'p:defaultTextStyle'))
+#     modifyVerifier     = property(lambda self: _get_child_or_append(self, 'p:modifyVerifier'))
+#     extLst             = property(lambda self: _get_child_or_append(self, 'p:extLst'))
+# 
+#     # attribute accessors -------------
+#     serverZoom               = property(lambda self: self.get('serverZoom'),
+#                                         lambda self, value: self.set('serverZoom', value))
+#     firstSlideNum            = property(lambda self: self.get('firstSlideNum'),
+#                                         lambda self, value: self.set('firstSlideNum', value))
+#     showSpecialPlsOnTitleSld = property(lambda self: self.get('showSpecialPlsOnTitleSld'),
+#                                         lambda self, value: self.set('showSpecialPlsOnTitleSld', value))
+#     rtl                      = property(lambda self: self.get('rtl'),
+#                                         lambda self, value: self.set('rtl', value))
+#     removePersonalInfoOnSave = property(lambda self: self.get('removePersonalInfoOnSave'),
+#                                         lambda self, value: self.set('removePersonalInfoOnSave', value))
+#     compatMode               = property(lambda self: self.get('compatMode'),
+#                                         lambda self, value: self.set('compatMode', value))
+#     strictFirstAndLastChars  = property(lambda self: self.get('strictFirstAndLastChars'),
+#                                         lambda self, value: self.set('strictFirstAndLastChars', value))
+#     embedTrueTypeFonts       = property(lambda self: self.get('embedTrueTypeFonts'),
+#                                         lambda self, value: self.set('embedTrueTypeFonts', value))
+#     saveSubsetFonts          = property(lambda self: self.get('saveSubsetFonts'),
+#                                         lambda self, value: self.set('saveSubsetFonts', value))
+#     autoCompressPictures     = property(lambda self: self.get('autoCompressPictures'),
+#                                         lambda self, value: self.set('autoCompressPictures', value))
+#     bookmarkIdSeed           = property(lambda self: self.get('bookmarkIdSeed'),
+#                                         lambda self, value: self.set('bookmarkIdSeed', value))
+#     conformance              = property(lambda self: self.get('conformance'),
+#                                         lambda self, value: self.set('conformance', value))
+# 
+# 
+# class ElementClassLookup(etree.CustomElementClassLookup):
+#     cls_map =\
+#         { 'pic'          : CT_Picture
+#         , 'nvPicPr'      : CT_PictureNonVisual
+#         , 'ph'           : CT_Placeholder
+#         , 'presentation' : CT_Presentation
+#         }
+# 
+# 
+#     def lookup(self, node_type, document, namespace, name):
+#         if name in self.cls_map:
+#             return self.cls_map[name]
+#         return None
 
-class CT_Shape(BaseElement):
-    """Wrapper for ``<p:sp>`` element"""
-    def __init__(self):
-        super(CT_Shape, self).__init__()
-        self._element = Element(qtag('p:sp'), nsmap=nsmap)
-        self.nvSpPr = CT_ShapeNonVisual()
-        self._element.append(self.nvSpPr.element)
-        self.spPr = CT_ShapeProperties()
-        self._element.append(self.spPr.element)
-        self.txBody = CT_TextBody()
-        self._element.append(self.txBody.element)
-    
-
-class CT_ShapeNonVisual(BaseElement):
-    """Wrapper for ``<p:nvSpPr>`` element"""
-    def __init__(self):
-        super(CT_ShapeNonVisual, self).__init__()
-        self._element = Element(qtag('p:nvSpPr'), nsmap=nsmap)
-        self.cNvPr = CT_NonVisualDrawingProps()
-        self._element.append(self.cNvPr.element)
-        self.cNvSpPr = CT_NonVisualDrawingShapeProps()
-        self._element.append(self.cNvSpPr.element)
-        self.nvPr = CT_ApplicationNonVisualDrawingProps()
-        self._element.append(self.nvPr.element)
-    
-
-class CT_ShapeProperties(BaseElement):
-    """Wrapper for ``<p:spPr>`` element"""
-    def __init__(self):
-        super(CT_ShapeProperties, self).__init__()
-        self._element = Element(qtag('p:spPr'), nsmap=nsmap)
-        self.xfrm = CT_Transform2D()
-        self._element.append(self.xfrm.element)
-        self.prstGeom = CT_PresetGeometry2D()
-        self._element.append(self.prstGeom.element)
-        self.noFill = CT_NoFillProperties()
-        self._element.append(self.noFill.element)
-    
-
-class CT_TextBody(BaseElement):
-    """Wrapper for ``<p:txBody>`` element"""
-    def __init__(self):
-        super(CT_TextBody, self).__init__()
-        self._element = Element(qtag('p:txBody'), nsmap=nsmap)
-        self.bodyPr = CT_TextBodyProperties()
-        self._element.append(self.bodyPr.element)
-        self.lstStyle = CT_TextListStyle()
-        self._element.append(self.lstStyle.element)
-        self.p = CT_TextParagraph()
-        self._element.append(self.p.element)
-    
-
-class CT_TextBodyProperties(BaseElement):
-    """Wrapper for ``<a:bodyPr>`` element"""
-    def __init__(self):
-        super(CT_TextBodyProperties, self).__init__()
-        self._element = Element(qtag('a:bodyPr'), nsmap=nsmap)
-        self.spAutoFit = CT_TextShapeAutofit()
-        self._element.append(self.spAutoFit.element)
-    
-    @property
-    def wrap(self):
-        return self._element.get('wrap')
-    
-    @wrap.setter
-    def wrap(self, value):
-        self._element.set('wrap', str(value))
-    
-
-class CT_TextListStyle(BaseElement):
-    """Wrapper for ``<a:lstStyle>`` element"""
-    def __init__(self):
-        super(CT_TextListStyle, self).__init__()
-        self._element = Element(qtag('a:lstStyle'), nsmap=nsmap)
-    
-
-class CT_TextParagraph(BaseElement):
-    """Wrapper for ``<a:p>`` element"""
-    def __init__(self):
-        super(CT_TextParagraph, self).__init__()
-        self._element = Element(qtag('a:p'), nsmap=nsmap)
-    
-
-class CT_TextShapeAutofit(BaseElement):
-    """Wrapper for ``<a:spAutoFit>`` element"""
-    def __init__(self):
-        super(CT_TextShapeAutofit, self).__init__()
-        self._element = Element(qtag('a:spAutoFit'), nsmap=nsmap)
-    
-
-class CT_Transform2D(BaseElement):
-    """Wrapper for ``<a:xfrm>`` element"""
-    def __init__(self):
-        super(CT_Transform2D, self).__init__()
-        self._element = Element(qtag('a:xfrm'), nsmap=nsmap)
-        self.off = CT_Point2D()
-        self._element.append(self.off.element)
-        self.ext = CT_PositiveSize2D()
-        self._element.append(self.ext.element)
-    
+# oxml_parser.set_element_class_lookup(ElementClassLookup())
 
 

@@ -17,7 +17,7 @@ from unittest2 import TestCase
 from lxml import etree
 from lxml.etree import Element
 
-from pptx.oxml import CT_Shape, CT_ShapeNonVisual
+# from pptx.oxml import CT_Shape, CT_ShapeNonVisual
 from pptx.packaging import prettify_nsdecls
 from pptx.spec import namespaces, qtag
 
@@ -56,30 +56,30 @@ def txbox_xml():
     return xml
 
 
-class TestCT_Shape(TestCase):
-    """Test CT_Shape class"""
-    def test_construction_xml(self):
-        """CT_Shape() produces correct XML on construction"""
-        # setup -----------------------
-        sp = CT_Shape()
-        sp.nvSpPr.cNvPr.id      = 2
-        sp.nvSpPr.cNvPr.name    = 'TextBox 1'
-        sp.nvSpPr.cNvSpPr.txBox = 1
-        sp.spPr.xfrm.off.x      = 1997289
-        sp.spPr.xfrm.off.y      = 2529664
-        sp.spPr.xfrm.ext.cx     = 2390398
-        sp.spPr.xfrm.ext.cy     =  369332
-        sp.spPr.prstGeom.prst   = 'rect'
-        sp.txBody.bodyPr.wrap   = 'none'
-        # exercise --------------------
-        xml = etree.tostring(sp.element, encoding='UTF-8',
-                             pretty_print=True, standalone=True)
-        xml = prettify_nsdecls(xml)
-        xml_lines = xml.split('\n')
-        txbox_xml_lines = txbox_xml().split('\n')
-        # verify ----------------------
-        # self.assertTrue(False, xml)
-        for idx, line in enumerate(xml_lines):
-            assert_that(line, is_(equal_to(txbox_xml_lines[idx])))
-    
+# class TestCT_Shape(TestCase):
+#     """Test CT_Shape class"""
+#     def test_construction_xml(self):
+#         """CT_Shape() produces correct XML on construction"""
+#         # setup -----------------------
+#         sp = CT_Shape()
+#         sp.nvSpPr.cNvPr.id      = 2
+#         sp.nvSpPr.cNvPr.name    = 'TextBox 1'
+#         sp.nvSpPr.cNvSpPr.txBox = 1
+#         sp.spPr.xfrm.off.x      = 1997289
+#         sp.spPr.xfrm.off.y      = 2529664
+#         sp.spPr.xfrm.ext.cx     = 2390398
+#         sp.spPr.xfrm.ext.cy     =  369332
+#         sp.spPr.prstGeom.prst   = 'rect'
+#         sp.txBody.bodyPr.wrap   = 'none'
+#         # exercise --------------------
+#         xml = etree.tostring(sp.element, encoding='UTF-8',
+#                              pretty_print=True, standalone=True)
+#         xml = prettify_nsdecls(xml)
+#         xml_lines = xml.split('\n')
+#         txbox_xml_lines = txbox_xml().split('\n')
+#         # verify ----------------------
+#         # self.assertTrue(False, xml)
+#         for idx, line in enumerate(xml_lines):
+#             assert_that(line, is_(equal_to(txbox_xml_lines[idx])))
+#     
 

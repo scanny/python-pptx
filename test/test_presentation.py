@@ -16,7 +16,6 @@ import re
 
 from hamcrest import (assert_that, has_item, is_, is_in, is_not, equal_to,
                       greater_than)
-from lxml import etree
 from StringIO import StringIO
 
 try:
@@ -28,7 +27,13 @@ from mock import Mock, patch, PropertyMock
 
 import pptx.presentation
 
-from pptx.packaging import prettify_nsdecls
+from pptx.constants  import MSO
+from pptx.exceptions import InvalidPackageError
+
+from pptx.oxml import (_Element, _SubElement, oxml_fromstring, oxml_tostring,
+    oxml_parse)
+
+from pptx.packaging  import prettify_nsdecls
 
 from pptx.presentation import (Package, Collection, _RelationshipCollection,
     _Relationship, Presentation, PartCollection, BasePart, Part,
@@ -36,8 +41,6 @@ from pptx.presentation import (Package, Collection, _RelationshipCollection,
     ShapeCollection, BaseShape, Shape, Placeholder, TextFrame, _Font,
     Paragraph, Run, _to_unicode)
 
-from pptx.constants import MSO
-from pptx.exceptions import InvalidPackageError
 from pptx.spec import namespaces, qtag
 from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
     CT_SLIDEMASTER)
@@ -86,11 +89,11 @@ def _empty_spTree():
            'presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.'
            'org/drawingml/2006/main"><p:nvGrpSpPr><p:cNvPr id="1" name=""/>'
            '<p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree>')
-    return etree.fromstring(xml)
+    return oxml_fromstring(xml)
 
 def _sldLayout1():
     path = os.path.join(thisdir, 'test_files/slideLayout1.xml')
-    sldLayout = etree.parse(path).getroot()
+    sldLayout = oxml_parse(path).getroot()
     return sldLayout
 
 def _sldLayout1_shapes():
@@ -105,19 +108,17 @@ def _strip_nsdecls(xml):
     return nsdecl_re.sub('', xml)
 
 def _txbox_xml():
-    xml = (\
-        "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n<p:sp xmlns"
-        ':r="http://schemas.openxmlformats.org/officeDocument/2006/relationsh'
-        'ips"\n      xmlns:p="http://schemas.openxmlformats.org/presentationm'
-        'l/2006/main"\n      xmlns:a="http://schemas.openxmlformats.org/drawi'
-        'ngml/2006/main">\n  <p:nvSpPr>\n    <p:cNvPr id="2" name="TextBox 1"'
-        '/>\n    <p:cNvSpPr txBox="1"/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:s'
-        'pPr>\n    <a:xfrm>\n      <a:off x="914400" y="1828800"/>\n      <a:'
-        'ext cx="1371600" cy="457200"/>\n    </a:xfrm>\n    <a:prstGeom prst='
-        '"rect">\n      <a:avLst/>\n    </a:prstGeom>\n    <a:noFill/>\n  </p'
-        ':spPr>\n  <p:txBody>\n    <a:bodyPr wrap="none">\n      <a:spAutoFit'
-        '/>\n    </a:bodyPr>\n    <a:lstStyle/>\n    <a:p/>\n  </p:txBody>\n<'
-        '/p:sp>' )
+    xml = ('<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<p'
+        ':sp xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/m'
+        'ain"\n      xmlns:a="http://schemas.openxmlformats.org/drawingml/200'
+        '6/main">\n  <p:nvSpPr>\n    <p:cNvPr id="2" name="TextBox 1"/>\n    '
+        '<p:cNvSpPr txBox="1"/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>\n  '
+        '  <a:xfrm>\n      <a:off x="914400" y="1828800"/>\n      <a:ext cx="'
+        '1371600" cy="457200"/>\n    </a:xfrm>\n    <a:prstGeom prst="rect">'
+        '\n      <a:avLst/>\n    </a:prstGeom>\n    <a:noFill/>\n  </p:spPr>'
+        '\n  <p:txBody>\n    <a:bodyPr wrap="none">\n      <a:spAutoFit/>\n  '
+        '  </a:bodyPr>\n    <a:lstStyle/>\n    <a:p/>\n  </p:txBody>\n</p:sp>'
+        '' )
     return xml
 
 
@@ -233,7 +234,7 @@ class TestBasePart(TestCase):
     def test__blob_value_for_xml_part(self):
         """BasePart._blob value is correct for XML part"""
         # setup -----------------------
-        elm = etree.fromstring('<root><elm1 attr="one"/></root>')
+        elm = oxml_fromstring('<root><elm1 attr="one"/></root>')
         self.basepart._element = elm
         self.basepart.partname = '/ppt/presentation.xml'
         # exercise --------------------
@@ -263,7 +264,7 @@ class TestBasePart(TestCase):
         elm = part._element
         # verify ----------------------
         expected = '<root><elm1 attr="spam"/></root>'
-        actual = etree.tostring(elm)
+        actual = oxml_tostring(elm)
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
@@ -298,7 +299,7 @@ class TestBaseShape(TestCase):
     """Test BaseShape"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
-        self.sld = etree.parse(path).getroot()
+        self.sld = oxml_parse(path).getroot()
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = BaseShape(pic)
@@ -504,14 +505,14 @@ class Test_Font(TestCase):
     """Test _Font class"""
     def setUp(self):
         self.rPr_xml = '<a:rPr%s/>' % nsprefix_decls
-        self.rPr = etree.fromstring(self.rPr_xml)
+        self.rPr = oxml_fromstring(self.rPr_xml)
         self.font = _Font(self.rPr)
 
     def test_get_bold_setting(self):
         """_Font.bold returns True on bold font weight"""
         # setup -----------------------
         rPr_xml = '<a:rPr%s b="1"/>' % nsprefix_decls
-        rPr = etree.fromstring(rPr_xml)
+        rPr = oxml_fromstring(rPr_xml)
         font = _Font(rPr)
         # verify ----------------------
         assert_that(self.font.bold, is_(False))
@@ -520,36 +521,40 @@ class Test_Font(TestCase):
     def test_set_bold(self):
         """Setting _Font.bold to True selects bold font weight"""
         # setup -----------------------
-        expected_rPr_xml = '<a:rPr%s b="1"/>'% (nsprefix_decls)
+        expected_rPr_xml = ('<a:rPr xmlns:a="http://schemas.openxmlformats.or'
+            'g/drawingml/2006/main" b="1"/>')
         # exercise --------------------
         self.font.bold = True
         # verify ----------------------
-        rPr_xml = etree.tostring(self.font._Font__rPr)
+        rPr_xml = oxml_tostring(self.font._Font__rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
 
     def test_clear_bold(self):
         """Setting _Font.bold to False selects normal font weight"""
         # setup -----------------------
-        rPr_xml = '<a:rPr%s b="1"/>' % nsprefix_decls
-        rPr = etree.fromstring(rPr_xml)
+        rPr_xml = ('<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawing'
+            'ml/2006/main" b="1"/>')
+        rPr = oxml_fromstring(rPr_xml)
         font = _Font(rPr)
-        expected_rPr_xml = '<a:rPr%s/>'% (nsprefix_decls)
+        expected_rPr_xml = ('<a:rPr xmlns:a="http://schemas.openxmlformats.or'
+            'g/drawingml/2006/main"/>')
         # exercise --------------------
         font.bold = False
         # verify ----------------------
-        rPr_xml = etree.tostring(font._Font__rPr)
+        rPr_xml = oxml_tostring(font._Font__rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
 
     def test_set_font_size(self):
         """Assignment to _Font.size changes font size"""
         # setup -----------------------
         newfontsize = 2400
-        expected_rPr_xml = '<a:rPr%s sz="%d"/>'% (nsprefix_decls, newfontsize)
+        expected_xml = ('<a:rPr xmlns:a="http://schemas.openxmlformats.org/dr'
+            'awingml/2006/main" sz="%d"/>') % newfontsize
         # exercise --------------------
         self.font.size = newfontsize
         # verify ----------------------
-        rPr_xml = etree.tostring(self.font._Font__rPr)
-        assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
+        actual_xml = oxml_tostring(self.font._Font__rPr)
+        assert_that(actual_xml, is_(equal_to(expected_xml)))
 
 
 class TestImage(TestCase):
@@ -750,14 +755,14 @@ class TestParagraph(TestCase):
     """Test Paragraph"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
-        self.sld = etree.parse(path).getroot()
+        self.sld = oxml_parse(path).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody/a:p'
         self.pList = self.sld.xpath(xpath, namespaces=nsmap)
 
         self.test_text = 'test text'
         self.p_xml = ('<a:p%s><a:r><a:t>%s</a:t></a:r></a:p>'
             % (nsprefix_decls, self.test_text))
-        self.p = etree.fromstring(self.p_xml)
+        self.p = oxml_fromstring(self.p_xml)
         self.paragraph = Paragraph(self.p)
 
     def test_runs_size(self):
@@ -790,48 +795,50 @@ class TestParagraph(TestCase):
     def test_clear_removes_all_runs(self):
         """Paragraph.clear() removes all runs from paragraph"""
         # setup -----------------------
-        p_elm = self.pList[2]
-        etree.SubElement(p_elm, qtag('a:pPr'))
-        paragraph = Paragraph(p_elm)
-        expected = 2
-        actual = len(paragraph.runs)
-        msg = "expected pre-test run count %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        p = self.pList[2]
+        _SubElement(p, 'a:pPr')
+        paragraph = Paragraph(p)
+        assert_that(len(paragraph.runs), is_(equal_to(2)))
         # exercise --------------------
         paragraph.clear()
         # verify ----------------------
-        expected = 0
-        actual = len(paragraph.runs)
-        msg = "expected run count %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert_that(len(paragraph.runs), is_(equal_to(0)))
 
     def test_clear_preserves_paragraph_properties(self):
         """Paragraph.clear() preserves paragraph properties"""
         # setup -----------------------
+        nsprefix_decls = (' xmlns:a="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/main"')
         p_xml = ('<a:p%s><a:pPr lvl="1"/><a:r><a:t>%s</a:t></a:r></a:p>'
             % (nsprefix_decls, self.test_text))
-        p_elm = etree.fromstring(p_xml)
+        p_elm = oxml_fromstring(p_xml)
         paragraph = Paragraph(p_elm)
         expected_p_xml = '<a:p%s><a:pPr lvl="1"/></a:p>' % nsprefix_decls
         # exercise --------------------
         paragraph.clear()
         # verify ----------------------
-        p_xml = etree.tostring(paragraph._Paragraph__p)
+        p_xml = oxml_tostring(paragraph._Paragraph__p)
         assert_that(p_xml, is_(equal_to(expected_p_xml)))
 
     def test_set_font_size(self):
         """Assignment to Paragraph.font.size changes font size"""
         # setup -----------------------
         newfontsize = Pt(54.3)
-        expected_p_xml = (\
-            '<a:p%s><a:pPr><a:defRPr sz="%d"/></a:pPr><a:r><a:t>%s</a:t></a:r'
-            '></a:p>'
-            % (nsprefix_decls, newfontsize, self.test_text))
+        expected_xml = ('<?xml version=\'1.0\' encoding=\'UTF-8\' standalone='
+            '\'yes\'?>\n<a:p xmlns:a="http://schemas.openxmlformats.org/drawi'
+            'ngml/2006/main">\n  <a:pPr>\n    <a:defRPr sz="5430"/>\n  </a:pP'
+            'r>\n  <a:r>\n    <a:t>test text</a:t>\n  </a:r>\n</a:p>\n')
         # exercise --------------------
         self.paragraph.font.size = newfontsize
         # verify ----------------------
-        p_xml = etree.tostring(self.paragraph._Paragraph__p)
-        assert_that(p_xml, is_(equal_to(expected_p_xml)))
+        p_xml = prettify_nsdecls(oxml_tostring(self.paragraph._Paragraph__p,
+            encoding='UTF-8', pretty_print=True, standalone=True))
+        p_xml_lines = p_xml.split('\n')
+        expected_xml_lines = expected_xml.split('\n')
+        for idx, line in enumerate(p_xml_lines):
+            # msg = '\n\n%s' % sld_xml
+            msg = "\n\nexpected:\n\n%s\n\nbut got:\n\n%s" % (expected_xml, p_xml)
+            self.assertEqual(line, expected_xml_lines[idx], msg)
 
     def test_text_setter_sets_single_run_text(self):
         """assignment to Paragraph.text creates single run containing value"""
@@ -984,11 +991,11 @@ class TestPresentation(TestCase):
         prs._relationships = relationships
         prs.partname = '/ppt/presentation.xml'
         path = os.path.join(thisdir, 'test_files/presentation.xml')
-        prs._element = etree.parse(path).getroot()
+        prs._element = oxml_parse(path).getroot()
         # exercise --------------------
         blob = prs._blob
         # verify ----------------------
-        presentation = etree.fromstring(blob)
+        presentation = oxml_fromstring(blob)
         sldIds = presentation.xpath('./p:sldIdLst/p:sldId', namespaces=nsmap)
         expected = ['rId3', 'rId4', 'rId5']
         actual = [sldId.get(qtag('r:id')) for sldId in sldIds]
@@ -1255,20 +1262,28 @@ class TestRun(TestCase):
         self.test_text = 'test text'
         self.r_xml = ('<a:r%s><a:t>%s</a:t></a:r>'
             % (nsprefix_decls, self.test_text))
-        self.r = etree.fromstring(self.r_xml)
+        self.r = oxml_fromstring(self.r_xml)
         self.run = Run(self.r)
 
     def test_set_font_size(self):
         """Assignment to Run.font.size changes font size"""
         # setup -----------------------
         newfontsize = 2400
-        expected_r_xml = ('<a:r%s><a:rPr sz="%d"/><a:t>%s</a:t></a:r>'
-            % (nsprefix_decls, newfontsize, self.test_text))
+        expected_xml = ('<?xml version=\'1.0\' encoding=\'UTF-8\' standalone='
+            '\'yes\'?>\n<a:r xmlns:a="http://schemas.openxmlformats.org/drawi'
+            'ngml/2006/main">\n  <a:rPr sz="2400"/>\n  <a:t>test text</a:t>\n'
+            '</a:r>\n')
         # exercise --------------------
         self.run.font.size = newfontsize
         # verify ----------------------
-        r_xml = etree.tostring(self.run._Run__r)
-        assert_that(r_xml, is_(equal_to(expected_r_xml)))
+        r_xml = prettify_nsdecls(oxml_tostring(self.run._Run__r,
+            encoding='UTF-8', pretty_print=True, standalone=True))
+        r_xml_lines = r_xml.split('\n')
+        expected_xml_lines = expected_xml.split('\n')
+        for idx, line in enumerate(r_xml_lines):
+            msg = ("\n\nexpected:\n\n%s\n\nbut got:\n\n%s"
+                % (expected_xml, r_xml))
+            self.assertEqual(line, expected_xml_lines[idx], msg)
 
     def test_text_value(self):
         """Run.text value is correct"""
@@ -1318,7 +1333,7 @@ class TestShapeCollection(TestCase):
     """Test ShapeCollection"""
     def setUp(self):
         path = absjoin(test_file_dir, 'slide1.xml')
-        sld = etree.parse(path).getroot()
+        sld = oxml_parse(path).getroot()
         spTree = sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
         self.shapes = ShapeCollection(spTree)
 
@@ -1408,16 +1423,15 @@ class TestShapeCollection(TestCase):
         shapes = ShapeCollection(_empty_spTree())
         # exercise --------------------
         shape = shapes.add_textbox(left, top, width, height)
-        # setup -----------------------
-        xml = etree.tostring(shape._element, encoding='UTF-8',
-                             pretty_print=True, standalone=True)
+        # verify ----------------------
+        xml = oxml_tostring(shape._element, encoding='UTF-8',
+                            pretty_print=True, standalone=True)
         xml = prettify_nsdecls(xml)
         xml_lines = xml.split('\n')
         txbox_xml_lines = _txbox_xml().split('\n')
-        # verify ----------------------
-        # self.assertTrue(False, xml)
         for idx, line in enumerate(xml_lines):
-            assert_that(line, is_(equal_to(txbox_xml_lines[idx])))
+            msg = "expected:\n%s\n\nbut got:\n\n%s" % (xml, _txbox_xml())
+            self.assertEqual(line, txbox_xml_lines[idx], msg)
 
     def test_title_value(self):
         """ShapeCollection.title value is ref to correct shape"""
@@ -1505,6 +1519,49 @@ class TestShapeCollection(TestCase):
             msg = "expected placeholder values %s, got %s" % (expected, actual)
             self.assertEqual(expected, actual, msg)
 
+    def test___clone_layout_placeholder_xml(self):
+        """ShapeCollection.__clone_layout_placeholder() produces correct XML"""
+        # setup -----------------------
+        layout_shapes = _sldLayout1_shapes()
+        layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
+        shapes = ShapeCollection(_empty_spTree())
+        xml_template = ('<?xml version=\'1.0\' encoding=\'UTF-8\' standalone='
+            '\'yes\'?>\n<p:sp xmlns:p="http://schemas.openxmlformats.org/pres'
+            'entationml/2006/main"\n      xmlns:a="http://schemas.openxmlform'
+            'ats.org/drawingml/2006/main">\n  <p:nvSpPr>\n    <p:cNvPr id="%d'
+            '" name="%s"/>\n    <p:cNvSpPr>\n      <a:spLocks noGrp="1"/>\n  '
+            '  </p:cNvSpPr>\n    <p:nvPr>\n      <p:ph type="%s"%s/>\n    </p'
+            ':nvPr>\n  </p:nvSpPr>\n  <p:spPr/>\n%s</p:sp>')
+        txBody_snippet = ('  <p:txBody>\n    <a:bodyPr/>\n    <a:lstStyle/>\n'
+            '    <a:p/>\n  </p:txBody>\n')
+        expected_values =\
+            [ (2, 'Title 1', PH_TYPE_CTRTITLE, '', txBody_snippet)
+            , (3, 'Date Placeholder 2', PH_TYPE_DT, ' sz="half" idx="10"', '')
+            , (4, 'Vertical Subtitle 3', PH_TYPE_SUBTITLE,
+                  ' orient="vert" idx="1"', txBody_snippet )
+            , (5, 'Table Placeholder 4', PH_TYPE_TBL,
+                  ' sz="quarter" idx="14"', '')
+            , (6, 'Slide Number Placeholder 5', PH_TYPE_SLDNUM,
+                  ' sz="quarter" idx="12"', '')
+            , (7, 'Footer Placeholder 6', PH_TYPE_FTR,
+                  ' sz="quarter" idx="11"', '')
+            ]
+        # verify ----------------------
+        for idx, layout_ph_sp in enumerate(layout_ph_shapes):
+            # log.debug("layout_ph_sp.name '%s'" % layout_ph_sp.name)
+            layout_ph = Placeholder(layout_ph_sp)
+            sp = shapes._ShapeCollection__clone_layout_placeholder(layout_ph)
+            ph = Placeholder(sp)
+            sp_xml = prettify_nsdecls(oxml_tostring(ph._element,
+                encoding='UTF-8', pretty_print=True, standalone=True))
+            sp_xml_lines = sp_xml.split('\n')
+            expected_xml = xml_template % expected_values[idx]
+            expected_xml_lines = expected_xml.split('\n')
+            for idx, line in enumerate(sp_xml_lines):
+                msg = '\n\n%s' % sp_xml
+                self.assertEqual(line, expected_xml_lines[idx], msg)
+                # assert_that(line, is_(equal_to(expected_xml_lines[idx])))
+
     def test___next_ph_name_return_value(self):
         """
         ShapeCollection.__next_ph_name() returns correct value
@@ -1549,22 +1606,30 @@ class TestShapeCollection(TestCase):
         # setup -----------------------
         test_image = PILImage.open(test_image_path)
         pic_size = tuple(Px(x) for x in test_image.size)
-        xml = ('<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/2'
-            '006/main" xmlns:p="http://schemas.openxmlformats.org/presentatio'
-            'nml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
-            'Document/2006/relationships"><p:nvPicPr><p:cNvPr id="4" name="Pi'
-            'cture 3" descr="python-icon.jpeg"/><p:cNvPicPr/><p:nvPr/></p:nvP'
-            'icPr><p:blipFill><a:blip r:embed="rId9"/><a:stretch><a:fillRect/'
-            '></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="0" y="0"/><a'
-            ':ext cx="%s" cy="%s"/></a:xfrm><a:prstGeom prst="rect"'
-            '><a:avLst/></a:prstGeom></p:spPr></p:pic>' % pic_size)
+        xml = ('<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>'
+            '\n<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/20'
+            '06/main"\n       xmlns:p="http://schemas.openxmlformats.org/pres'
+            'entationml/2006/main"\n       xmlns:r="http://schemas.openxmlfor'
+            'mats.org/officeDocument/2006/relationships">\n  <p:nvPicPr>\n   '
+            ' <p:cNvPr id="4" name="Picture 3" descr="python-icon.jpeg"/>\n  '
+            '  <p:cNvPicPr/>\n    <p:nvPr/>\n  </p:nvPicPr>\n  <p:blipFill>\n'
+            '    <a:blip r:embed="rId9"/>\n    <a:stretch>\n      <a:fillRect'
+            '/>\n    </a:stretch>\n  </p:blipFill>\n  <p:spPr>\n    <a:xfrm>'
+            '\n      <a:off x="0" y="0"/>\n      <a:ext cx="%s" cy="%s"/>\n  '
+            '  </a:xfrm>\n    <a:prstGeom prst="rect">\n      <a:avLst/>\n   '
+            ' </a:prstGeom>\n  </p:spPr>\n</p:pic>' % pic_size)
         # exercise --------------------
         pic = self.shapes._ShapeCollection__pic('rId9', test_image_path, 0, 0)
         # verify ----------------------
-        expected = xml
-        actual = etree.tostring(pic)
-        msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        pic_xml = oxml_tostring(pic, encoding='UTF-8', pretty_print=True,
+            standalone=True)
+        pic_xml = prettify_nsdecls(pic_xml)
+        pic_xml_lines = pic_xml.split('\n')
+        expected_xml_lines = xml.split('\n')
+        for idx, line in enumerate(pic_xml_lines):
+            msg = "\n\nexpected:\n\n%s\n\nbut got\n\n%s" % (xml, pic_xml)
+            self.assertEqual(line, expected_xml_lines[idx], msg)
+            # assert_that(line, is_(equal_to(expected_xml_lines[idx])))
 
     def test___pic_from_stream_generates_correct_xml(self):
         """ShapeCollection.__pic returns correct XML from stream image"""
@@ -1584,7 +1649,7 @@ class TestShapeCollection(TestCase):
         with open(test_image_path) as stream:
             pic = self.shapes._ShapeCollection__pic('rId9', stream, 0, 0)
         # verify ----------------------
-        assert_that(etree.tostring(pic), is_(equal_to(xml)))
+        assert_that(oxml_tostring(pic), is_(equal_to(xml)))
 
 
 class TestSlide(TestCase):
@@ -1635,9 +1700,9 @@ class TestSlide(TestCase):
         # verify ----------------------
         with open(path, 'r') as f:
             expected = f.read()
-        actual = etree.tostring(elm, encoding='UTF-8', pretty_print=True,
-                                                         standalone=True)
-        msg = "expected:\n%s\n, got\n%s" % (expected, actual)
+        actual = prettify_nsdecls(oxml_tostring(elm, encoding='UTF-8',
+            pretty_print=True, standalone=True))
+        msg = "\nexpected:\n\n'%s'\n\nbut got:\n\n'%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
     def test_slidelayout_property_none_on_construction(self):
@@ -1668,6 +1733,25 @@ class TestSlide(TestCase):
         actual = retval
         msg = "expected: %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
+
+
+    def test___minimal_element_xml(self):
+        """Slide.__minimal_element generates correct XML"""
+        # setup -----------------------
+        path = os.path.join(thisdir, 'test_files/minimal_slide.xml')
+        # exercise --------------------
+        sld = self.sld._Slide__minimal_element
+        # verify ----------------------
+        with open(path, 'r') as f:
+            expected_xml = f.read()
+        sld_xml = prettify_nsdecls(oxml_tostring(sld, encoding='UTF-8',
+            pretty_print=True, standalone=True))
+        sld_xml_lines = sld_xml.split('\n')
+        expected_xml_lines = expected_xml.split('\n')
+        for idx, line in enumerate(sld_xml_lines):
+            # msg = '\n\n%s' % sld_xml
+            msg = "expected:\n%s\n, got\n%s" % (expected_xml, sld_xml)
+            self.assertEqual(line, expected_xml_lines[idx], msg)
 
 
 class TestSlideCollection(TestCase):
@@ -1833,8 +1917,7 @@ class TestTextFrame(TestCase):
     """Test TextFrame"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
-        parser = etree.XMLParser(remove_blank_text=True)
-        self.sld = etree.parse(path, parser).getroot()
+        self.sld = oxml_parse(path).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody'
         self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)
 
@@ -1852,7 +1935,7 @@ class TestTextFrame(TestCase):
         msg = "expected paragraph count %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    def test_add_paragraph_works(self):
+    def test_add_paragraph_xml(self):
         """TextFrame.add_paragraph does what it says"""
         # setup -----------------------
         txBody_xml = (
@@ -1864,16 +1947,15 @@ class TestTextFrame(TestCase):
         expected_xml = (
             '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
             'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
-            'gml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
-            'Document/2006/relationships"><a:bodyPr/><a:p><a:r><a:t>Test text'
-            '</a:t></a:r></a:p><a:p/></p:txBody>')
-        txBody = etree.fromstring(txBody_xml)
+            'gml/2006/main"><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></'
+            'a:p><a:p/></p:txBody>')
+        txBody = oxml_fromstring(txBody_xml)
         textframe = TextFrame(txBody)
         # exercise --------------------
         p = textframe.add_paragraph()
         # verify ----------------------
         assert_that(len(textframe.paragraphs), is_(equal_to(2)))
-        textframe_xml = etree.tostring(textframe._TextFrame__txBody)
+        textframe_xml = oxml_tostring(textframe._TextFrame__txBody)
         expected = expected_xml
         actual = textframe_xml
         msg = "\nExpected: '%s'\n\n     Got: '%s'" % (expected, actual)
@@ -1905,25 +1987,27 @@ class TestTextFrame(TestCase):
         txBody_xml = (\
             '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
             'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
-            'gml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
-            'Document/2006/relationships"><a:bodyPr/><a:p><a:r><a:t>Test text'
-            '</a:t></a:r></a:p></p:txBody>')
+            'gml/2006/main"><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></'
+            'a:p></p:txBody>')
         expected_xml = (\
             '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
             'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
-            'gml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
-            'Document/2006/relationships"><a:bodyPr anchor="ctr"/><a:p><a:r><'
-            'a:t>Test text</a:t></a:r></a:p></p:txBody>')
-        txBody = etree.fromstring(txBody_xml)
+            'gml/2006/main">\n  <a:bodyPr anchor="ctr"/>\n  <a:p>\n    <a:r>'
+            '\n      <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>'
+            '\n')
+        txBody = oxml_fromstring(txBody_xml)
         textframe = TextFrame(txBody)
         # exercise --------------------
         textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
         # verify ----------------------
-        textframe_xml = etree.tostring(textframe._TextFrame__txBody)
-        expected = expected_xml
-        actual = textframe_xml
-        msg = "\nExpected: '%s'\n     Got: '%s'" % (expected, actual)
-        if not expected == actual:
-            raise AssertionError(msg)
+        expected_xml_lines = expected_xml.split('\n')
+        actual_xml = oxml_tostring(textframe._TextFrame__txBody,
+            pretty_print=True)
+        actual_xml_lines = actual_xml.split('\n')
+        for idx, actual_line in enumerate(actual_xml_lines):
+            expected_line = expected_xml_lines[idx]
+            msg = ("\n\nexpected:\n\n'%s'\n\nbut got:\n\n'%s'"
+                   % (expected_xml, actual_xml))
+            assert_that(actual_line, is_(equal_to(expected_line)), msg)
 
 
