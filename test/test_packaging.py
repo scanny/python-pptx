@@ -162,7 +162,8 @@ class Test_ContentTypesItem(TestCase):
         # setup ------------------------
         dir_fs = pptx.packaging.FileSystem(dir_pkg_path)
         zip_fs = pptx.packaging.FileSystem(zip_pkg_path)
-        for fs in (dir_fs, zip_fs):
+        file_fs = pptx.packaging.FileSystem(open(zip_pkg_path))
+        for fs in (dir_fs, zip_fs, file_fs):
             # exercise ---------------------
             cti = pptx.packaging._ContentTypesItem().load(fs)
             # test -------------------------
@@ -186,6 +187,7 @@ class TestFileSystem(TestCase):
     def setUp(self):
         self.dir_fs = pptx.packaging.FileSystem(dir_pkg_path)
         self.zip_fs = pptx.packaging.FileSystem(zip_pkg_path)
+        self.file_fs = pptx.packaging.FileSystem(open(zip_pkg_path))
     
     def test_class_present(self):
         """FileSystem class present in packaging module"""
@@ -197,6 +199,7 @@ class TestFileSystem(TestCase):
         test_datasets =\
             ( (self.dir_fs, 'DirectoryFileSystem')
             , (self.zip_fs, 'ZipFileSystem')
+            , (self.file_fs, 'ZipFileSystem')
             )
         for fs, expected in test_datasets:
             actual = fs.__class__.__name__
@@ -211,6 +214,14 @@ class TestFileSystem(TestCase):
         with self.assertRaises(PackageNotFoundError):
             pptx.packaging.FileSystem(bad_path)
     
+    def test_constructor_raises_on_bad_file(self):
+        """FileSystem(path) constructor raises on bad file"""
+        # setup -----------------------
+        bad_file = StringIO('not a zip file')
+        # verify ----------------------
+        with self.assertRaises(PackageNotFoundError):
+            pptx.packaging.FileSystem(bad_file)
+    
     def test_contains(self):
         """'in' operator returns True if URI is in filesystem"""
         expected_URIs =\
@@ -220,46 +231,48 @@ class TestFileSystem(TestCase):
             , '/ppt/slideMasters/slideMaster1.xml'
             , '/ppt/slideLayouts/_rels/slideLayout1.xml.rels'
             )
-        for fs in (self.dir_fs, self.zip_fs):
+        for fs in (self.dir_fs, self.zip_fs, self.file_fs):
             for uri in expected_URIs:
                 self.assertIn(uri, fs)
     
     def test_getelement_return_count(self):
         """ElementTree element for specified package item is returned"""
-        for fs in (self.dir_fs, self.zip_fs):
+        for fs in (self.dir_fs, self.zip_fs, self.file_fs):
             elm = fs.getelement('/[Content_Types].xml')
             self.assertLength(elm, 24)
     
     def test_getelement_raises_on_binary(self):
         """Calling getelement() for binary item raises exception"""
         # call getelement for thumbnail
-        for fs in (self.dir_fs, self.zip_fs):
+        for fs in (self.dir_fs, self.zip_fs, self.file_fs):
             with self.assertRaises(NotXMLError):
                 fs.getelement('/docProps/thumbnail.jpeg')
     
     def test_getstream_correct_length(self):
         """StringIO instance for specified package item is returned"""
-        for fs in (self.dir_fs, self.zip_fs):
+        for fs in (self.dir_fs, self.zip_fs, self.file_fs):
             stream = fs.getstream('/[Content_Types].xml')
             elm = etree.parse(stream).getroot()
             self.assertLength(elm, 24)
     
     def test_getstream_raises_on_bad_URI(self):
         """FileSystem.getstream() raises on bad URI"""
-        for fs in (self.dir_fs, self.zip_fs):
+        for fs in (self.dir_fs, self.zip_fs, self.file_fs):
             with self.assertRaises(LookupError):
                 fs.getstream('!blat/rhumba.xml')
     
     def test_itemURIs_count(self):
         """FileSystem.itemURIs has expected count"""
         # verify ----------------------
-        for fs, fsname in ((self.dir_fs, 'dir_fs'), (self.zip_fs, 'zip_fs')):
+        for fs, fsname in ((self.dir_fs, 'dir_fs'),
+                           (self.zip_fs, 'zip_fs'),
+                           (self.file_fs, 'file_fs')):
             self.assertLength(fs.itemURIs, 38)
     
     def test_itemURIs_plausible(self):
         """All URIs in FileSystem.itemURIs are plausible"""
         # verify ----------------------
-        for fs in (self.dir_fs, self.zip_fs):
+        for fs in (self.dir_fs, self.zip_fs, self.file_fs):
             for itemURI in fs.itemURIs:
                 # plausible segment count
                 expected_min = 1
@@ -301,7 +314,7 @@ class TestPackage(TestCase):
     
     def test_open_returns_self(self):
         """Package.open() returns self-reference"""
-        for path in (dir_pkg_path, zip_pkg_path):
+        for path in (dir_pkg_path, zip_pkg_path, open(zip_pkg_path)):
             # exercise ----------------
             retval = self.pkg.open(path)
             # verify ------------------
@@ -424,6 +437,18 @@ class TestPackage(TestCase):
         # verify ----------------------
         actual = zipfile.is_zipfile(exp_path)
         msg = "no zipfile at %s" % (exp_path)
+        self.assertTrue(actual, msg)
+    
+    def test_save_writes_file_object(self):
+        """Package.save() can write to a file-like object"""
+        # setup -----------------------
+        self.pkg.open(dir_pkg_path)
+        save_file = StringIO()
+        # exercise --------------------
+        self.pkg.save(save_file)
+        # verify ----------------------
+        actual = zipfile.is_zipfile(save_file)
+        msg = "no zipfile created"
         self.assertTrue(actual, msg)
     
     def test_save_member_count(self):
