@@ -85,7 +85,7 @@ class Package(object):
         return tuple(self.__relationships)
     
     def open(self, path):
-        """Load the on-disk package located at *path*."""
+        """Load the package located at *path*."""
         fs = FileSystem(path)
         cti = _ContentTypesItem().load(fs)
         self.__relationships = []  # discard any rels from prior load
@@ -154,7 +154,12 @@ class Package(object):
     @staticmethod
     def __normalizedpath(path):
         """Add '.pptx' extension to path if not already there."""
-        return path if path.endswith('.pptx') else '%s.pptx' % path
+        try:
+            return path if path.endswith('.pptx') else '%s.pptx' % path
+        except AttributeError, TypeEror:
+            # path can be a file-like object
+            return path
+
     
     @classmethod
     def __walkparts(cls, rels, parts=None):
@@ -665,15 +670,20 @@ class FileSystem(object):
     appropriate concrete filesystem class depending on what it finds at *path*.
     """
     def __new__(cls, path):
-        # if path is a directory, return instance of DirectoryFileSystem
-        if os.path.isdir(path):
-            instance = DirectoryFileSystem(path)
-        # if path is a zip file, return instance of ZipFileSystem
-        elif os.path.isfile(path) and is_zipfile(path):
-            instance = ZipFileSystem(path)
-        # otherwise, something's not right, raise exception
-        else:
-            raise PackageNotFoundError("Package not found at '%s'" % (path))
+        try:
+            # if path is a path to a zip file or a valid file-like object,
+            # return instance of ZipFileSystem
+            if is_zipfile(path):
+                instance = ZipFileSystem(path)
+            # if path is a directory, return instance of DirectoryFileSystem
+            elif os.path.isdir(path):
+                instance = DirectoryFileSystem(path)
+            # otherwise, something's not right, raise exception
+            else:
+                raise PackageNotFoundError("Package not found at '%s'" % (path))
+        except TypeError:
+            # in case we're dealing with a file-like object
+            raise PackageNotFoundError("Package not found")
         return instance
 
 
@@ -682,7 +692,10 @@ class BaseFileSystem(object):
     Base class for FileSystem classes, providing common methods.
     """
     def __init__(self, path):
-        self.__path = os.path.abspath(path)
+        try:
+            self.__path = os.path.abspath(path)
+        except AttributeError:
+            self.__path = path
 
     def __contains__(self, itemURI):
         """
@@ -779,7 +792,9 @@ class DirectoryFileSystem(BaseFileSystem):
 class ZipFileSystem(BaseFileSystem):
     """
     Return new instance providing access to zip-format OPC package at *path*.
-    
+
+    *path* can be either a path to a file (a string) or a file-like object.
+
     If mode is 'w', creates a new zip archive at *path*. If a file by that name
     already exists, it is truncated.
 
