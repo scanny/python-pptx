@@ -16,17 +16,19 @@ be named as internal (leading underscore).
 
 from pptx.presentation import Package
 
+
 class Presentation(object):
     """
-    Return a |Presentation| instance loaded from ``.pptx`` file at *path*. If
-    *path* is missing or ``None``, load the built-in default presentation
+    Return a |Presentation| instance loaded from *file*, where *file* can be
+    either a path to a ``.pptx`` file (a string) or a file-like object. If
+    *file* is missing or ``None``, load the built-in default presentation
     template.
     """
-    def __init__(self, path=None):
+    def __init__(self, file=None):
         super(Presentation, self).__init__()
-        self.__package = Package(path)
+        self.__package = Package(file)
         self.__presentation = self.__package.presentation
-    
+
     @property
     def slidelayouts(self):
         """
@@ -34,21 +36,21 @@ class Presentation(object):
         first :class:`SlideMaster` of this presentation.
         """
         return tuple(self.__presentation.slidemasters[0].slidelayouts)
-    
+
     @property
     def slidemaster(self):
         """
         First :class:`SlideMaster` object belonging to this presentation.
         """
         return self.__presentation.slidemasters[0]
-    
+
     @property
     def slidemasters(self):
         """
         List of :class:`SlideMaster` objects belonging to this presentation.
         """
         return self.__presentation.slidemasters
-    
+
     @property
     def slides(self):
         """
@@ -56,12 +58,10 @@ class Presentation(object):
         presentation.
         """
         return self.__presentation.slides
-    
-    def save(self, path):
-        """
-        Save this presentation at *path*.
-        """
-        return self.__package.save(path)
-    
 
-
+    def save(self, file):
+        """
+        Save this presentation to *file*, where *file* can be either a path to
+        a file (a string) or a file-like object.
+        """
+        return self.__package.save(file)

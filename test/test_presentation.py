@@ -10,12 +10,10 @@
 """Test suite for pptx.presentation module."""
 
 import gc
-import inspect
 import os
 import re
 
-from hamcrest import (assert_that, has_item, is_, is_in, is_not, equal_to,
-                      greater_than)
+from hamcrest import assert_that, is_, is_in, is_not, equal_to
 from StringIO import StringIO
 
 try:
@@ -27,29 +25,29 @@ from mock import Mock, patch, PropertyMock
 
 import pptx.presentation
 
-from pptx.constants  import MSO
+from pptx.constants import MSO
 from pptx.exceptions import InvalidPackageError
 
-from pptx.oxml import (_Element, _SubElement, oxml_fromstring, oxml_tostring,
-    oxml_parse)
+from pptx.oxml import _SubElement, oxml_fromstring, oxml_tostring, oxml_parse
 
-from pptx.packaging  import prettify_nsdecls
+from pptx.packaging import prettify_nsdecls
 
-from pptx.presentation import (Package, Collection, _RelationshipCollection,
-    _Relationship, Presentation, PartCollection, BasePart, Part,
-    SlideCollection, BaseSlide, Slide, SlideLayout, SlideMaster, Image,
-    ShapeCollection, BaseShape, Shape, Placeholder, TextFrame, _Font,
-    Paragraph, Run, _to_unicode)
+from pptx.presentation import (
+    Package, Collection, _RelationshipCollection, _Relationship, Presentation,
+    PartCollection, BasePart, Part, SlideCollection, BaseSlide, Slide,
+    SlideLayout, SlideMaster, Image, ShapeCollection, BaseShape, Shape,
+    Placeholder, TextFrame, _Font, Paragraph, Run, _to_unicode)
 
 from pptx.spec import namespaces, qtag
-from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
-    CT_SLIDEMASTER)
-from pptx.spec import (RT_HANDOUTMASTER, RT_IMAGE, RT_NOTESMASTER,
-    RT_OFFICEDOCUMENT, RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER,
-    RT_TABLESTYLES, RT_THEME, RT_VIEWPROPS)
-from pptx.spec import (PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ,
-    PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE,
-    PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER)
+from pptx.spec import (
+    CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT, CT_SLIDEMASTER)
+from pptx.spec import (
+    RT_IMAGE, RT_OFFICEDOCUMENT, RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT,
+    RT_SLIDEMASTER)
+from pptx.spec import (
+    PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
+    PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE, PH_ORIENT_HORZ,
+    PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER)
 from pptx.util import Inches, Px, Pt
 from testing import TestCase
 
@@ -72,17 +70,18 @@ def absjoin(*paths):
 thisdir = os.path.split(__file__)[0]
 test_file_dir = absjoin(thisdir, 'test_files')
 
-test_image_path  = absjoin(test_file_dir, 'python-icon.jpeg')
-test_bmp_path    = absjoin(test_file_dir, 'python.bmp')
-new_image_path   = absjoin(test_file_dir, 'monty-truth.png')
-test_pptx_path   = absjoin(test_file_dir, 'test.pptx')
+test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
+test_bmp_path = absjoin(test_file_dir, 'python.bmp')
+new_image_path = absjoin(test_file_dir, 'monty-truth.png')
+test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
-nsprefix_decls = (' xmlns:p="http://schemas.openxmlformats.org/presentationml'
-    '/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/ma'
-    'in" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relat'
-    'ionships"')
+nsprefix_decls = (
+    ' xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xm'
+    'lns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="h'
+    'ttp://schemas.openxmlformats.org/officeDocument/2006/relationships"')
+
 
 def _empty_spTree():
     xml = ('<p:spTree xmlns:p="http://schemas.openxmlformats.org/'
@@ -91,10 +90,12 @@ def _empty_spTree():
            '<p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree>')
     return oxml_fromstring(xml)
 
+
 def _sldLayout1():
     path = os.path.join(thisdir, 'test_files/slideLayout1.xml')
     sldLayout = oxml_parse(path).getroot()
     return sldLayout
+
 
 def _sldLayout1_shapes():
     sldLayout = _sldLayout1()
@@ -102,23 +103,25 @@ def _sldLayout1_shapes():
     shapes = ShapeCollection(spTree)
     return shapes
 
+
 def _strip_nsdecls(xml):
     ptrn_str = ' xmlns(:[a-z]+)="[a-zA-Z0-9:/.]+"'
     nsdecl_re = re.compile(ptrn_str)
     return nsdecl_re.sub('', xml)
 
+
 def _txbox_xml():
-    xml = ('<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<p'
-        ':sp xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/m'
-        'ain"\n      xmlns:a="http://schemas.openxmlformats.org/drawingml/200'
-        '6/main">\n  <p:nvSpPr>\n    <p:cNvPr id="2" name="TextBox 1"/>\n    '
-        '<p:cNvSpPr txBox="1"/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>\n  '
-        '  <a:xfrm>\n      <a:off x="914400" y="1828800"/>\n      <a:ext cx="'
-        '1371600" cy="457200"/>\n    </a:xfrm>\n    <a:prstGeom prst="rect">'
-        '\n      <a:avLst/>\n    </a:prstGeom>\n    <a:noFill/>\n  </p:spPr>'
-        '\n  <p:txBody>\n    <a:bodyPr wrap="none">\n      <a:spAutoFit/>\n  '
-        '  </a:bodyPr>\n    <a:lstStyle/>\n    <a:p/>\n  </p:txBody>\n</p:sp>'
-        '' )
+    xml = (
+        '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<p:sp'
+        ' xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main'
+        '"\n      xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/m'
+        'ain">\n  <p:nvSpPr>\n    <p:cNvPr id="2" name="TextBox 1"/>\n    <p:'
+        'cNvSpPr txBox="1"/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>\n    <'
+        'a:xfrm>\n      <a:off x="914400" y="1828800"/>\n      <a:ext cx="137'
+        '1600" cy="457200"/>\n    </a:xfrm>\n    <a:prstGeom prst="rect">\n  '
+        '    <a:avLst/>\n    </a:prstGeom>\n    <a:noFill/>\n  </p:spPr>\n  <'
+        'p:txBody>\n    <a:bodyPr wrap="none">\n      <a:spAutoFit/>\n    </a'
+        ':bodyPr>\n    <a:lstStyle/>\n    <a:p/>\n  </p:txBody>\n</p:sp>')
     return xml
 
 
@@ -139,10 +142,8 @@ class PartBuilder(object):
 
 class RelationshipCollectionBuilder(object):
     """Builder class for test RelationshipCollections"""
-    partname_tmpls =\
-        { RT_SLIDEMASTER : '/ppt/slideMasters/slideMaster%d.xml'
-        , RT_SLIDE       : '/ppt/slides/slide%d.xml'
-        }
+    partname_tmpls = {RT_SLIDEMASTER: '/ppt/slideMasters/slideMaster%d.xml',
+                      RT_SLIDE:       '/ppt/slides/slide%d.xml'}
 
     def __init__(self):
         self.relationships = []
@@ -304,10 +305,6 @@ class TestBaseShape(TestCase):
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = BaseShape(pic)
 
-    def test_class_present(self):
-        """BaseShape class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'BaseShape')
-
     def test_has_textframe_value(self):
         """BaseShape.has_textframe value correct"""
         # setup -----------------------
@@ -452,10 +449,6 @@ class TestCollection(TestCase):
     def setUp(self):
         self.collection = Collection()
 
-    def test_class_present(self):
-        """Collection class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'Collection')
-
     def test_indexable(self):
         """Collection is indexable (e.g. no TypeError on 'collection[0]')"""
         # verify ----------------------
@@ -521,8 +514,9 @@ class Test_Font(TestCase):
     def test_set_bold(self):
         """Setting _Font.bold to True selects bold font weight"""
         # setup -----------------------
-        expected_rPr_xml = ('<a:rPr xmlns:a="http://schemas.openxmlformats.or'
-            'g/drawingml/2006/main" b="1"/>')
+        expected_rPr_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main" b="1"/>')
         # exercise --------------------
         self.font.bold = True
         # verify ----------------------
@@ -532,12 +526,14 @@ class Test_Font(TestCase):
     def test_clear_bold(self):
         """Setting _Font.bold to False selects normal font weight"""
         # setup -----------------------
-        rPr_xml = ('<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawing'
-            'ml/2006/main" b="1"/>')
+        rPr_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main" b="1"/>')
         rPr = oxml_fromstring(rPr_xml)
         font = _Font(rPr)
-        expected_rPr_xml = ('<a:rPr xmlns:a="http://schemas.openxmlformats.or'
-            'g/drawingml/2006/main"/>')
+        expected_rPr_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main"/>')
         # exercise --------------------
         font.bold = False
         # verify ----------------------
@@ -548,8 +544,9 @@ class Test_Font(TestCase):
         """Assignment to _Font.size changes font size"""
         # setup -----------------------
         newfontsize = 2400
-        expected_xml = ('<a:rPr xmlns:a="http://schemas.openxmlformats.org/dr'
-            'awingml/2006/main" sz="%d"/>') % newfontsize
+        expected_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main" sz="%d"/>') % newfontsize
         # exercise --------------------
         self.font.size = newfontsize
         # verify ----------------------
@@ -583,7 +580,7 @@ class TestImage(TestCase):
         """Image(path) constructor raises on bad path"""
         # verify ----------------------
         with self.assertRaises(IOError):
-            image = Image('foobar27.png')
+            Image('foobar27.png')
 
     def test___ext_from_image_stream_raises_on_incompatible_format(self):
         """Image.__ext_from_image_stream() raises on incompatible format"""
@@ -760,8 +757,8 @@ class TestParagraph(TestCase):
         self.pList = self.sld.xpath(xpath, namespaces=nsmap)
 
         self.test_text = 'test text'
-        self.p_xml = ('<a:p%s><a:r><a:t>%s</a:t></a:r></a:p>'
-            % (nsprefix_decls, self.test_text))
+        self.p_xml = ('<a:p%s><a:r><a:t>%s</a:t></a:r></a:p>' %
+                      (nsprefix_decls, self.test_text))
         self.p = oxml_fromstring(self.p_xml)
         self.paragraph = Paragraph(self.p)
 
@@ -785,7 +782,7 @@ class TestParagraph(TestCase):
         p_elm = self.pList[0]
         paragraph = Paragraph(p_elm)
         # exercise --------------------
-        run = paragraph.add_run()
+        paragraph.add_run()
         # verify ----------------------
         expected = 1
         actual = len(paragraph.runs)
@@ -807,10 +804,11 @@ class TestParagraph(TestCase):
     def test_clear_preserves_paragraph_properties(self):
         """Paragraph.clear() preserves paragraph properties"""
         # setup -----------------------
-        nsprefix_decls = (' xmlns:a="http://schemas.openxmlformats.org/drawin'
-            'gml/2006/main"')
-        p_xml = ('<a:p%s><a:pPr lvl="1"/><a:r><a:t>%s</a:t></a:r></a:p>'
-            % (nsprefix_decls, self.test_text))
+        nsprefix_decls = (
+            ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/'
+            'main"')
+        p_xml = ('<a:p%s><a:pPr lvl="1"/><a:r><a:t>%s</a:t></a:r></a:p>' %
+                 (nsprefix_decls, self.test_text))
         p_elm = oxml_fromstring(p_xml)
         paragraph = Paragraph(p_elm)
         expected_p_xml = '<a:p%s><a:pPr lvl="1"/></a:p>' % nsprefix_decls
@@ -824,10 +822,11 @@ class TestParagraph(TestCase):
         """Assignment to Paragraph.font.size changes font size"""
         # setup -----------------------
         newfontsize = Pt(54.3)
-        expected_xml = ('<?xml version=\'1.0\' encoding=\'UTF-8\' standalone='
-            '\'yes\'?>\n<a:p xmlns:a="http://schemas.openxmlformats.org/drawi'
-            'ngml/2006/main">\n  <a:pPr>\n    <a:defRPr sz="5430"/>\n  </a:pP'
-            'r>\n  <a:r>\n    <a:t>test text</a:t>\n  </a:r>\n</a:p>\n')
+        expected_xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<'
+            'a:p xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/ma'
+            'in">\n  <a:pPr>\n    <a:defRPr sz="5430"/>\n  </a:pPr>\n  <a:r>'
+            '\n    <a:t>test text</a:t>\n  </a:r>\n</a:p>\n')
         # exercise --------------------
         self.paragraph.font.size = newfontsize
         # verify ----------------------
@@ -879,10 +878,6 @@ class TestParagraph(TestCase):
 
 class TestPart(TestCase):
     """Test Part"""
-    def test_class_present(self):
-        """Part class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'Part')
-
     def test_constructs_presentation_for_rt_officedocument(self):
         """Part() returns Presentation for RT_OFFICEDOCUMENT"""
         # setup -----------------------
@@ -1324,10 +1319,6 @@ class TestShape(TestCase):
         sp = sldLayout.xpath('p:cSld/p:spTree/p:sp', namespaces=nsmap)[0]
         return Shape(sp)
 
-    def test_class_present(self):
-        """Shape class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'Shape')
-
 
 class TestShapeCollection(TestCase):
     """Test ShapeCollection"""
@@ -1500,19 +1491,18 @@ class TestShapeCollection(TestCase):
         layout_shapes = _sldLayout1_shapes()
         layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
         shapes = ShapeCollection(_empty_spTree())
-        expected_values =\
-            ( [2, 'Title 1',                    PH_TYPE_CTRTITLE,  0]
-            , [3, 'Date Placeholder 2',         PH_TYPE_DT,       10]
-            , [4, 'Vertical Subtitle 3',        PH_TYPE_SUBTITLE,  1]
-            , [5, 'Table Placeholder 4',        PH_TYPE_TBL,      14]
-            , [6, 'Slide Number Placeholder 5', PH_TYPE_SLDNUM,   12]
-            , [7, 'Footer Placeholder 6',       PH_TYPE_FTR,      11]
-            )
+        expected_values = (
+            [2, 'Title 1',                    PH_TYPE_CTRTITLE,  0],
+            [3, 'Date Placeholder 2',         PH_TYPE_DT,       10],
+            [4, 'Vertical Subtitle 3',        PH_TYPE_SUBTITLE,  1],
+            [5, 'Table Placeholder 4',        PH_TYPE_TBL,      14],
+            [6, 'Slide Number Placeholder 5', PH_TYPE_SLDNUM,   12],
+            [7, 'Footer Placeholder 6',       PH_TYPE_FTR,      11])
         # exercise --------------------
         for idx, layout_ph_sp in enumerate(layout_ph_shapes):
             layout_ph = Placeholder(layout_ph_sp)
             sp = shapes._ShapeCollection__clone_layout_placeholder(layout_ph)
-            # verify ----------------------
+            # verify ------------------
             ph = Placeholder(sp)
             expected = expected_values[idx]
             actual = [ph.id, ph.name, ph.type, ph.idx]
@@ -1525,35 +1515,37 @@ class TestShapeCollection(TestCase):
         layout_shapes = _sldLayout1_shapes()
         layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
         shapes = ShapeCollection(_empty_spTree())
-        xml_template = ('<?xml version=\'1.0\' encoding=\'UTF-8\' standalone='
+        xml_template = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone='
             '\'yes\'?>\n<p:sp xmlns:p="http://schemas.openxmlformats.org/pres'
             'entationml/2006/main"\n      xmlns:a="http://schemas.openxmlform'
             'ats.org/drawingml/2006/main">\n  <p:nvSpPr>\n    <p:cNvPr id="%d'
             '" name="%s"/>\n    <p:cNvSpPr>\n      <a:spLocks noGrp="1"/>\n  '
             '  </p:cNvSpPr>\n    <p:nvPr>\n      <p:ph type="%s"%s/>\n    </p'
             ':nvPr>\n  </p:nvSpPr>\n  <p:spPr/>\n%s</p:sp>')
-        txBody_snippet = ('  <p:txBody>\n    <a:bodyPr/>\n    <a:lstStyle/>\n'
-            '    <a:p/>\n  </p:txBody>\n')
-        expected_values =\
-            [ (2, 'Title 1', PH_TYPE_CTRTITLE, '', txBody_snippet)
-            , (3, 'Date Placeholder 2', PH_TYPE_DT, ' sz="half" idx="10"', '')
-            , (4, 'Vertical Subtitle 3', PH_TYPE_SUBTITLE,
-                  ' orient="vert" idx="1"', txBody_snippet )
-            , (5, 'Table Placeholder 4', PH_TYPE_TBL,
-                  ' sz="quarter" idx="14"', '')
-            , (6, 'Slide Number Placeholder 5', PH_TYPE_SLDNUM,
-                  ' sz="quarter" idx="12"', '')
-            , (7, 'Footer Placeholder 6', PH_TYPE_FTR,
-                  ' sz="quarter" idx="11"', '')
-            ]
-        # verify ----------------------
+        txBody_snippet = (
+            '  <p:txBody>\n    <a:bodyPr/>\n    <a:lstStyle/>\n    <a:p/>\n  '
+            '</p:txBody>\n')
+        expected_values = [
+            (2, 'Title 1', PH_TYPE_CTRTITLE, '', txBody_snippet),
+            (3, 'Date Placeholder 2', PH_TYPE_DT, ' sz="half" idx="10"', ''),
+            (4, 'Vertical Subtitle 3', PH_TYPE_SUBTITLE,
+                ' orient="vert" idx="1"', txBody_snippet),
+            (5, 'Table Placeholder 4', PH_TYPE_TBL,
+                ' sz="quarter" idx="14"', ''),
+            (6, 'Slide Number Placeholder 5', PH_TYPE_SLDNUM,
+                ' sz="quarter" idx="12"', ''),
+            (7, 'Footer Placeholder 6', PH_TYPE_FTR,
+                ' sz="quarter" idx="11"', '')]
+                    # verify ----------------------
         for idx, layout_ph_sp in enumerate(layout_ph_shapes):
             # log.debug("layout_ph_sp.name '%s'" % layout_ph_sp.name)
             layout_ph = Placeholder(layout_ph_sp)
             sp = shapes._ShapeCollection__clone_layout_placeholder(layout_ph)
             ph = Placeholder(sp)
-            sp_xml = prettify_nsdecls(oxml_tostring(ph._element,
-                encoding='UTF-8', pretty_print=True, standalone=True))
+            sp_xml = prettify_nsdecls(
+                oxml_tostring(ph._element, encoding='UTF-8',
+                              pretty_print=True, standalone=True))
             sp_xml_lines = sp_xml.split('\n')
             expected_xml = xml_template % expected_values[idx]
             expected_xml_lines = expected_xml.split('\n')
@@ -1571,12 +1563,11 @@ class TestShapeCollection(TestCase):
         * prefix 'Vertical' if orient="vert"
 
         """
-        cases =\
-            ( (PH_TYPE_OBJ,   3, PH_ORIENT_HORZ, 'Content Placeholder 2')
-            , (PH_TYPE_TBL,   4, PH_ORIENT_HORZ, 'Table Placeholder 4')
-            , (PH_TYPE_TBL,   7, PH_ORIENT_VERT, 'Vertical Table Placeholder 6')
-            , (PH_TYPE_TITLE, 2, PH_ORIENT_HORZ, 'Title 2')
-            )
+        cases = (
+            (PH_TYPE_OBJ,   3, PH_ORIENT_HORZ, 'Content Placeholder 2'),
+            (PH_TYPE_TBL,   4, PH_ORIENT_HORZ, 'Table Placeholder 4'),
+            (PH_TYPE_TBL,   7, PH_ORIENT_VERT, 'Vertical Table Placeholder 6'),
+            (PH_TYPE_TITLE, 2, PH_ORIENT_HORZ, 'Title 2'))
         # setup -----------------------
         shapes = _sldLayout1_shapes()
         for ph_type, id, orient, expected_name in cases:
@@ -1606,7 +1597,8 @@ class TestShapeCollection(TestCase):
         # setup -----------------------
         test_image = PILImage.open(test_image_path)
         pic_size = tuple(Px(x) for x in test_image.size)
-        xml = ('<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>'
+        xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>'
             '\n<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/20'
             '06/main"\n       xmlns:p="http://schemas.openxmlformats.org/pres'
             'entationml/2006/main"\n       xmlns:r="http://schemas.openxmlfor'
@@ -1622,7 +1614,7 @@ class TestShapeCollection(TestCase):
         pic = self.shapes._ShapeCollection__pic('rId9', test_image_path, 0, 0)
         # verify ----------------------
         pic_xml = oxml_tostring(pic, encoding='UTF-8', pretty_print=True,
-            standalone=True)
+                                standalone=True)
         pic_xml = prettify_nsdecls(pic_xml)
         pic_xml_lines = pic_xml.split('\n')
         expected_xml_lines = xml.split('\n')
@@ -1636,7 +1628,8 @@ class TestShapeCollection(TestCase):
         # setup -----------------------
         test_image = PILImage.open(test_image_path)
         pic_size = tuple(Px(x) for x in test_image.size)
-        xml = ('<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/2'
+        xml = (
+            '<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/2'
             '006/main" xmlns:p="http://schemas.openxmlformats.org/presentatio'
             'nml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
             'Document/2006/relationships"><p:nvPicPr><p:cNvPr id="4" name="Pi'
@@ -1656,10 +1649,6 @@ class TestSlide(TestCase):
     """Test Slide"""
     def setUp(self):
         self.sld = Slide()
-
-    def test_class_present(self):
-        """Slide class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'Slide')
 
     def test_constructor_sets_correct_content_type(self):
         """Slide constructor sets correct content type"""
@@ -1700,8 +1689,9 @@ class TestSlide(TestCase):
         # verify ----------------------
         with open(path, 'r') as f:
             expected = f.read()
-        actual = prettify_nsdecls(oxml_tostring(elm, encoding='UTF-8',
-            pretty_print=True, standalone=True))
+        actual = prettify_nsdecls(
+            oxml_tostring(elm, encoding='UTF-8', pretty_print=True,
+                          standalone=True))
         msg = "\nexpected:\n\n'%s'\n\nbut got:\n\n'%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
@@ -1734,7 +1724,6 @@ class TestSlide(TestCase):
         msg = "expected: %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-
     def test___minimal_element_xml(self):
         """Slide.__minimal_element generates correct XML"""
         # setup -----------------------
@@ -1744,8 +1733,9 @@ class TestSlide(TestCase):
         # verify ----------------------
         with open(path, 'r') as f:
             expected_xml = f.read()
-        sld_xml = prettify_nsdecls(oxml_tostring(sld, encoding='UTF-8',
-            pretty_print=True, standalone=True))
+        sld_xml = prettify_nsdecls(
+            oxml_tostring(sld, encoding='UTF-8', pretty_print=True,
+                          standalone=True))
         sld_xml_lines = sld_xml.split('\n')
         expected_xml_lines = expected_xml.split('\n')
         for idx, line in enumerate(sld_xml_lines):
@@ -1861,10 +1851,6 @@ class TestSlideLayout(TestCase):
         slidelayout = SlideLayout()
         return slidelayout._load(pkg_slidelayout_part, loaded_part_dict)
 
-    def test_class_present(self):
-        """SlideLayout class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'SlideLayout')
-
     def test__load_sets_slidemaster(self):
         """SlideLayout._load() sets slidemaster"""
         # setup -----------------------
@@ -1892,10 +1878,6 @@ class TestSlideMaster(TestCase):
     """Test SlideMaster"""
     def setUp(self):
         self.sldmaster = SlideMaster()
-
-    def test_class_present(self):
-        """SlideMaster class present in presentation module"""
-        self.assertClassInModule(pptx.presentation, 'SlideMaster')
 
     def test_slidelayouts_property_empty_on_construction(self):
         """SlideMaster.slidelayouts property empty on construction"""
@@ -1952,7 +1934,7 @@ class TestTextFrame(TestCase):
         txBody = oxml_fromstring(txBody_xml)
         textframe = TextFrame(txBody)
         # exercise --------------------
-        p = textframe.add_paragraph()
+        textframe.add_paragraph()
         # verify ----------------------
         assert_that(len(textframe.paragraphs), is_(equal_to(2)))
         textframe_xml = oxml_tostring(textframe._TextFrame__txBody)
@@ -1984,12 +1966,12 @@ class TestTextFrame(TestCase):
     def test_vertical_anchor_works(self):
         """Assignment to TextFrame.vertical_anchor sets vert anchor"""
         # setup -----------------------
-        txBody_xml = (\
+        txBody_xml = (
             '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
             'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
             'gml/2006/main"><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></'
             'a:p></p:txBody>')
-        expected_xml = (\
+        expected_xml = (
             '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
             'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawin'
             'gml/2006/main">\n  <a:bodyPr anchor="ctr"/>\n  <a:p>\n    <a:r>'
@@ -2002,12 +1984,11 @@ class TestTextFrame(TestCase):
         # verify ----------------------
         expected_xml_lines = expected_xml.split('\n')
         actual_xml = oxml_tostring(textframe._TextFrame__txBody,
-            pretty_print=True)
+                                   pretty_print=True)
         actual_xml_lines = actual_xml.split('\n')
         for idx, actual_line in enumerate(actual_xml_lines):
             expected_line = expected_xml_lines[idx]
             msg = ("\n\nexpected:\n\n'%s'\n\nbut got:\n\n'%s'"
                    % (expected_xml, actual_xml))
             assert_that(actual_line, is_(equal_to(expected_line)), msg)
-
 

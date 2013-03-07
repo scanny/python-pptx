@@ -29,18 +29,19 @@ import pptx.util as util
 
 from pptx.constants import MSO
 from pptx.exceptions import InvalidPackageError
-from pptx.oxml import (_Element, _SubElement, oxml_fromstring, oxml_tostring,
-    _get_or_add, qn)
+from pptx.oxml import (
+    _Element, _SubElement, oxml_fromstring, oxml_tostring, _get_or_add, qn)
 
 from pptx.spec import namespaces
-from pptx.spec import (CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT,
-    CT_SLIDEMASTER, CT_SLIDESHOW, CT_TEMPLATE)
-from pptx.spec import (RT_HANDOUTMASTER, RT_IMAGE, RT_NOTESMASTER,
-    RT_OFFICEDOCUMENT, RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER,
-    RT_TABLESTYLES, RT_THEME, RT_VIEWPROPS)
-from pptx.spec import (PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_DT,
-    PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TBL,
-    PH_TYPE_TITLE, PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL)
+from pptx.spec import (
+    CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT, CT_SLIDEMASTER, CT_SLIDESHOW,
+    CT_TEMPLATE)
+from pptx.spec import (
+    RT_IMAGE, RT_OFFICEDOCUMENT, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER)
+from pptx.spec import (
+    PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ,
+    PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TITLE, PH_ORIENT_HORZ,
+    PH_ORIENT_VERT, PH_SZ_FULL)
 from pptx.spec import slide_ph_basenames
 
 from pptx.util import Px
@@ -59,6 +60,7 @@ log.addHandler(ch)
 # default namespace map for use in lxml calls
 _nsmap = namespaces('a', 'r', 'p')
 
+
 def _child(element, child_tagname, nsmap=None):
     """
     Return direct child of *element* having *child_tagname* or :class:`None`
@@ -70,6 +72,7 @@ def _child(element, child_tagname, nsmap=None):
     xpath = './%s' % child_tagname
     matching_children = element.xpath(xpath, namespaces=nsmap)
     return matching_children[0] if len(matching_children) else None
+
 
 def _to_unicode(text):
     """
@@ -96,20 +99,25 @@ def _to_unicode(text):
 
 class Package(object):
     """
-    Root class of presentation object hierarchy.
+    Return an instance of |Package| loaded from *file*, where *file* can be a
+    path (a string) or a file-like object. If *file* is a path, it can be
+    either a path to a PowerPoint `.pptx` file or a path to a directory
+    containing an expanded presentation file, as would result from unzipping
+    a `.pptx` file. If *file* is |None|, the default presentation template is
+    loaded.
     """
     # track instances as weakrefs so .containing() can be computed
     __instances = []
 
-    def __init__(self, path=None):
+    def __init__(self, file=None):
         super(Package, self).__init__()
         self.__presentation = None
         self.__relationships = _RelationshipCollection()
         self.__images = ImageCollection()
         self.__instances.append(weakref.ref(self))
-        if path is None:
-            path = self.__default_pptx_path
-        self.__open(path)
+        if file is None:
+            file = self.__default_pptx_path
+        self.__open(file)
 
     @classmethod
     def containing(cls, part):
@@ -137,10 +145,13 @@ class Package(object):
         """
         return self.__presentation
 
-    def save(self, path):
-        """Save package as .pptx file at *path*"""
+    def save(self, file):
+        """
+        Save this package to *file*, where *file* can be either a path to a
+        file (a string) or a file-like object.
+        """
         pkgng_pkg = pptx.packaging.Package().marshal(self)
-        pkgng_pkg.save(path)
+        pkgng_pkg.save(file)
 
     @property
     def _images(self):
@@ -187,11 +198,11 @@ class Package(object):
         for image in image_parts:
             self.__images._loadpart(image)
 
-    def __open(self, path):
+    def __open(self, file):
         """
-        Load presentation file at *path* into this package.
+        Load presentation contained in *file* into this package.
         """
-        pkg = pptx.packaging.Package().open(path)
+        pkg = pptx.packaging.Package().open(file)
         self.__load(pkg.relationships)
         # unmarshal relationships selectively for now
         for rel in self.__relationships:
@@ -228,13 +239,13 @@ class Package(object):
         for rel in rels:
             # log.debug("rel.target.partname==%s", rel.target.partname)
             part = rel._target
-            if part in parts: # only visit each part once (graph is cyclic)
+            # only visit each part once (graph is cyclic)
+            if part in parts:
                 continue
             parts.append(part)
             yield part
             for part in Package.__walkparts(part._relationships, parts):
                 yield part
-
 
 
 # ============================================================================
@@ -317,7 +328,6 @@ class Observable(object):
         assert observer in self._observers, "remove_observer called for"\
                                             "unsubscribed object"
         self._observers.remove(observer)
-
 
 
 # ============================================================================
@@ -415,6 +425,7 @@ class _RelationshipCollection(Collection):
                 if reltype in self.__reltype_ordering:
                     return self.__reltype_ordering.index(reltype)
                 return len(self.__reltype_ordering)
+
             def partname_idx_key(rel):
                 partname = util.Partname(rel._target.partname)
                 if partname.idx is None:
@@ -483,7 +494,6 @@ class _Relationship(object):
     @_rId.setter
     def _rId(self, value):
         self.__rId = value
-
 
 
 # ============================================================================
@@ -626,13 +636,13 @@ class BasePart(Observable):
         """
         if self.partname.endswith('.xml'):
             assert self._element is not None, 'BasePart._blob is undefined '\
-                                 'for xml parts when part.__element is None'
+                'for xml parts when part.__element is None'
             xml = oxml_tostring(self._element, encoding='UTF-8',
                                 pretty_print=True, standalone=True)
             return xml
         # default for binary parts is to return _load_blob unchanged
         assert self._load_blob, "BasePart._blob called on part with no "\
-               "_load_blob; perhaps _blob not overridden by sub-class?"
+            "_load_blob; perhaps _blob not overridden by sub-class?"
         return self._load_blob
 
     @property
@@ -877,13 +887,8 @@ class Image(BasePart):
         Return the filename extension appropriate to the image file contained
         in *stream*.
         """
-        ext_map =\
-            { 'GIF'  : '.gif'
-            , 'JPEG' : '.jpg'
-            , 'PNG'  : '.png'
-            , 'TIFF' : '.tiff'
-            , 'WMF'  : '.wmf'
-            }
+        ext_map = {'GIF': '.gif', 'JPEG': '.jpg', 'PNG': '.png',
+                   'TIFF': '.tiff', 'WMF': '.wmf'}
         stream.seek(0)
         format = PIL_Image.open(stream).format
         if format not in ext_map:
@@ -968,8 +973,8 @@ class BaseSlide(BasePart):
     @property
     def shapes(self):
         """Collection of shape objects belonging to this slide."""
-        assert self._shapes is not None, ("BaseSlide.shapes referenced"
-                                                      " before assigned")
+        assert self._shapes is not None, ("BaseSlide.shapes referenced "
+                                          "before assigned")
         return self._shapes
 
     def _load(self, pkgpart, part_dict):
@@ -1184,7 +1189,7 @@ class BaseShape(object):
         # idx defaults to 0 when idx attr is absent
         ph_idx = ph.get('idx', '0')
         # title placeholder is identified by idx of 0
-        return ph_idx=='0'
+        return ph_idx == '0'
 
 
 class ShapeCollection(BaseShape, Collection):
@@ -1193,15 +1198,15 @@ class ShapeCollection(BaseShape, Collection):
     while spTree in a slide is a group shape, the group shape is recursive in
     that a group shape can include other group shapes within it.
     """
-    _NVGRPSPPR    = qn('p:nvGrpSpPr')
-    _GRPSPPR      = qn('p:grpSpPr')
-    _SP           = qn('p:sp')
-    _GRPSP        = qn('p:grpSp')
+    _NVGRPSPPR = qn('p:nvGrpSpPr')
+    _GRPSPPR = qn('p:grpSpPr')
+    _SP = qn('p:sp')
+    _GRPSP = qn('p:grpSp')
     _GRAPHICFRAME = qn('p:graphicFrame')
-    _CXNSP        = qn('p:cxnSp')
-    _PIC          = qn('p:pic')
-    _CONTENTPART  = qn('p:contentPart')
-    _EXTLST       = qn('p:extLst')
+    _CXNSP = qn('p:cxnSp')
+    _PIC = qn('p:pic')
+    _CONTENTPART = qn('p:contentPart')
+    _EXTLST = qn('p:extLst')
 
     def __init__(self, spTree, slide=None):
         # log.debug('ShapeCollect.__init__() called w/element 0x%X', id(spTree))
@@ -1299,7 +1304,7 @@ class ShapeCollection(BaseShape, Collection):
         shapename = self.__next_ph_name(ph_type, id, orient)
 
         sp = self.__new_placeholder_sp(layout_ph, id, ph_type, orient,
-            shapename)
+                                       shapename)
         self.__spTree.append(sp)
         shape = Shape(sp)
         self.__shapes.append(shape)
@@ -1332,8 +1337,9 @@ class ShapeCollection(BaseShape, Collection):
 
         _SubElement(sp, 'p:spPr')
 
-        placeholder_types_that_have_a_text_frame = (PH_TYPE_TITLE,
-            PH_TYPE_CTRTITLE, PH_TYPE_SUBTITLE, PH_TYPE_BODY, PH_TYPE_OBJ)
+        placeholder_types_that_have_a_text_frame = (
+            PH_TYPE_TITLE, PH_TYPE_CTRTITLE, PH_TYPE_SUBTITLE, PH_TYPE_BODY,
+            PH_TYPE_OBJ)
 
         if ph_type in placeholder_types_that_have_a_text_frame:
             _SubElement(sp, 'p:txBody')
@@ -1429,7 +1435,7 @@ class ShapeCollection(BaseShape, Collection):
         pic.spPr[qn('a:xfrm')].ext.set('cx', str(cx))
         pic.spPr[qn('a:xfrm')].ext.set('cy', str(cy))
         _SubElement(pic.spPr, 'a:prstGeom')
-        pic.spPr[qn('a:prstGeom')].set('prst', 'rect') 
+        pic.spPr[qn('a:prstGeom')].set('prst', 'rect')
         _SubElement(pic.spPr[qn('a:prstGeom')], 'a:avLst')
         return pic
 
@@ -1454,7 +1460,7 @@ class ShapeCollection(BaseShape, Collection):
         sp.spPr[qn('a:xfrm')].ext.set('cx', str(cx))
         sp.spPr[qn('a:xfrm')].ext.set('cy', str(cy))
         _SubElement(sp.spPr, 'a:prstGeom')
-        sp.spPr[qn('a:prstGeom')].set('prst', 'rect') 
+        sp.spPr[qn('a:prstGeom')].set('prst', 'rect')
         _SubElement(sp.spPr[qn('a:prstGeom')], 'a:avLst')
         _SubElement(sp.spPr, 'a:noFill')
 
@@ -1474,7 +1480,7 @@ class Placeholder(object):
     that contains a placeholder element, e.g. ``<p:ph>``.
     """
     def __new__(cls, shape):
-        cls = type('PlaceholderDecorator',(Placeholder, shape.__class__), {})
+        cls = type('PlaceholderDecorator', (Placeholder, shape.__class__), {})
         return object.__new__(cls)
 
     def __init__(self, shape):
@@ -1530,7 +1536,6 @@ class Shape(BaseShape):
         super(Shape, self).__init__(shape_element)
 
 
-
 # ============================================================================
 # Text-related classes
 # ============================================================================
@@ -1576,11 +1581,8 @@ class TextFrame(object):
         """
         Set ``anchor`` attribute of ``<a:bodyPr>`` element
         """
-        value_map =\
-            { MSO.ANCHOR_TOP    : 't'
-            , MSO.ANCHOR_MIDDLE : 'ctr'
-            , MSO.ANCHOR_BOTTOM : 'b'
-            }
+        value_map = {MSO.ANCHOR_TOP: 't', MSO.ANCHOR_MIDDLE: 'ctr',
+                     MSO.ANCHOR_BOTTOM: 'b'}
         bodyPr = _get_or_add(self.__txBody, 'a:bodyPr')
         bodyPr.set('anchor', value_map[value])
 
@@ -1650,6 +1652,7 @@ class _Font(object):
     #: values, e.g. ``Pt(12.5)``. I'm pretty sure I just made up the word
     #: *centipoint*, but it seems apt :).
     size = property(None, _set_size)
+
 
 class Paragraph(object):
     """
@@ -1745,7 +1748,7 @@ class Run(object):
         level are contained in the :class:`_Font` object.
         """
         if not hasattr(self.__r, 'rPr'):
-            self.__r.insert(0, _Element('a:rPr', _nsmap) )
+            self.__r.insert(0, _Element('a:rPr', _nsmap))
         return _Font(self.__r.rPr)
 
     @property
@@ -1763,5 +1766,3 @@ class Run(object):
     def text(self, str):
         """Set the text of this run to *str*."""
         self.__r.t._setText(_to_unicode(str))
-
-
