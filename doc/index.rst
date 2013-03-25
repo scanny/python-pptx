@@ -1,24 +1,22 @@
-=======================================
+#######################################
 Welcome to python-pptx's documentation!
-=======================================
+#######################################
 
 :mod:`python-pptx` is a pure-Python library for reading and writing PowerPoint
 (``.pptx``) files.
 
 
----------------
 Checking it out
----------------
+===============
 
 Browse :doc:`examples with screenshots <user/examples>` to get a quick idea
 what you can do with |pp|.
 
 
-------
 Status
-------
+======
 
-The current release is v0.2.1 dated February 25, 2013. The library is under
+The current release is v0.2.2 dated March 25, 2013. The library is under
 active development. The current release has the following basic capabilities:
 
 * Round-trip any Open XML presentation (.pptx file) including all its elements
@@ -29,31 +27,26 @@ active development. The current release has the following basic capabilities:
 * Manipulate text font size and bold
 
 Additional capabilities are actively being developed and added on a release
-cadence of roughly two-weeks. If you find a feature you need that |pp| doesn't
-do yet, reach out via the mailing list or issue tracker and we'll see if we
-can jump the queue for you to pop it in there :)
+cadence of roughly once per month. If you find a feature you need that |pp|
+doesn't yet have, reach out via the mailing list or issue tracker and we'll see
+if we can jump the queue for you to pop it in there :)
 
 Currently |pp| requires Python 2.6 or 2.7. Support for earlier versions is not
 planned as it complicates future support for Python 3.x, but if you have a
 compelling need please reach out via the mailing list. Support for Python 3.x
-is planned, but will likely need to wait until PIL is ported or a viable
-substitute for image handling becomes available. If you have any ideas on a
-viable substitute please reach out via the mailing list, I'd love to hear
-about it :)
+is planned.
 
 
-------------
 Dependencies
-------------
+============
 
 * Python 2.6 or 2.7
 * lxml
 * Python Imaging Library (PIL)
 
 
-------------
 Reaching out
-------------
+============
 
 We'd love to hear from you if you like |pp|, want a new feature, find a bug,
 need help using it, or just have a word of encouragement.
@@ -70,9 +63,8 @@ particularly the appropriate API signature.
    https://github.com/scanny/python-pptx
 
 
-----------
 Installing
-----------
+==========
 
 |pp| is hosted on PyPI, so installation is relatively simple, and just
 depends on what installation utilit(y/ies) you have installed.
@@ -99,9 +91,8 @@ dependencies for you, but if you use this last method you will need to install
 those yourself.
 
 
------------------
 Running the tests
------------------
+=================
 
 |pp| has a robust test suite, comprising over 180 tests at the time of this
 writing, both at the acceptance test and unit test levels. ``unittest2`` is
@@ -138,9 +129,8 @@ distribution by issuing the following commands::
     Took 0m0.3s
 
 
----------------
 Getting Started
----------------
+===============
 
 A quick way to get started is by trying out some of
 :doc:`the examples <user/examples>` to get a feel for how to use |pp|.
