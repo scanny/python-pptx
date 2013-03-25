@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://purl.oclc.org/ooxml/presentationml/main"
-  xmlns:p="http://purl.oclc.org/ooxml/presentationml/main"
-  xmlns:a="http://purl.oclc.org/ooxml/drawingml/main"
-  xmlns:r="http://purl.oclc.org/ooxml/officeDocument/relationships"
-  xmlns:s="http://purl.oclc.org/ooxml/officeDocument/sharedTypes" elementFormDefault="qualified"
-  targetNamespace="http://purl.oclc.org/ooxml/presentationml/main">
-  <xsd:import namespace="http://purl.oclc.org/ooxml/officeDocument/relationships"
+  xmlns="http://schemas.openxmlformats.org/presentationml/2006/main"
+  xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+  xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+  elementFormDefault="qualified"
+  targetNamespace="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
     schemaLocation="shared-relationshipReference.xsd"/>
-  <xsd:import namespace="http://purl.oclc.org/ooxml/drawingml/main" schemaLocation="dml-main.xsd"/>
-  <xsd:import namespace="http://purl.oclc.org/ooxml/officeDocument/sharedTypes"
+  <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/main"
+    schemaLocation="dml-main.xsd"/>
+  <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
     schemaLocation="shared-commonSimpleTypes.xsd"/>
   <xsd:simpleType name="ST_TransitionSideDirectionType">
     <xsd:restriction base="xsd:token">
@@ -811,6 +813,7 @@
   </xsd:complexType>
   <xsd:element name="cmLst" type="CT_CommentList"/>
   <xsd:attributeGroup name="AG_Ole">
+    <xsd:attribute name="spid" type="a:ST_ShapeID" use="optional"/>
     <xsd:attribute name="name" type="xsd:string" use="optional" default=""/>
     <xsd:attribute name="showAsIcon" type="xsd:boolean" use="optional" default="false"/>
     <xsd:attribute ref="r:id" use="optional"/>
@@ -843,7 +846,7 @@
         <xsd:element name="embed" type="CT_OleObjectEmbed"/>
         <xsd:element name="link" type="CT_OleObjectLink"/>
       </xsd:choice>
-      <xsd:element name="pic" type="CT_Picture" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="pic" type="CT_Picture" minOccurs="0" maxOccurs="1"/>
     </xsd:sequence>
     <xsd:attributeGroup ref="AG_Ole"/>
     <xsd:attribute name="progId" type="xsd:string" use="optional"/>
@@ -1034,6 +1037,18 @@
     <xsd:attribute name="hashValue" type="xsd:base64Binary" use="optional"/>
     <xsd:attribute name="saltValue" type="xsd:base64Binary" use="optional"/>
     <xsd:attribute name="spinValue" type="xsd:unsignedInt" use="optional"/>
+    <xsd:attribute name="cryptProviderType" type="s:ST_CryptProv" use="optional"/>
+    <xsd:attribute name="cryptAlgorithmClass" type="s:ST_AlgClass" use="optional"/>
+    <xsd:attribute name="cryptAlgorithmType" type="s:ST_AlgType" use="optional"/>
+    <xsd:attribute name="cryptAlgorithmSid" type="xsd:unsignedInt" use="optional"/>
+    <xsd:attribute name="spinCount" type="xsd:unsignedInt" use="optional"/>
+    <xsd:attribute name="saltData" type="xsd:base64Binary" use="optional"/>
+    <xsd:attribute name="hashData" type="xsd:base64Binary" use="optional"/>
+    <xsd:attribute name="cryptProvider" type="xsd:string" use="optional"/>
+    <xsd:attribute name="algIdExt" type="xsd:unsignedInt" use="optional"/>
+    <xsd:attribute name="algIdExtSource" type="xsd:string" use="optional"/>
+    <xsd:attribute name="cryptProviderTypeExt" type="xsd:unsignedInt" use="optional"/>
+    <xsd:attribute name="cryptProviderTypeExtSource" type="xsd:string" use="optional"/>
   </xsd:complexType>
   <xsd:complexType name="CT_Presentation">
     <xsd:sequence>
@@ -1077,6 +1092,48 @@
     <xsd:attribute name="target" type="xsd:string" use="optional"/>
     <xsd:attribute name="title" type="xsd:string" use="optional" default=""/>
     <xsd:attribute ref="r:id" use="required"/>
+  </xsd:complexType>
+  <xsd:simpleType name="ST_WebColorType">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="none"/>
+      <xsd:enumeration value="browser"/>
+      <xsd:enumeration value="presentationText"/>
+      <xsd:enumeration value="presentationAccent"/>
+      <xsd:enumeration value="whiteTextOnBlack"/>
+      <xsd:enumeration value="blackTextOnWhite"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="ST_WebScreenSize">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="544x376"/>
+      <xsd:enumeration value="640x480"/>
+      <xsd:enumeration value="720x512"/>
+      <xsd:enumeration value="800x600"/>
+      <xsd:enumeration value="1024x768"/>
+      <xsd:enumeration value="1152x882"/>
+      <xsd:enumeration value="1152x900"/>
+      <xsd:enumeration value="1280x1024"/>
+      <xsd:enumeration value="1600x1200"/>
+      <xsd:enumeration value="1800x1400"/>
+      <xsd:enumeration value="1920x1200"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="ST_WebEncoding">
+    <xsd:restriction base="xsd:string"/>
+  </xsd:simpleType>
+  <xsd:complexType name="CT_WebProperties">
+    <xsd:sequence>
+      <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+    <xsd:attribute name="showAnimation" type="xsd:boolean" use="optional" default="false"/>
+    <xsd:attribute name="resizeGraphics" type="xsd:boolean" use="optional" default="true"/>
+    <xsd:attribute name="allowPng" type="xsd:boolean" use="optional" default="false"/>
+    <xsd:attribute name="relyOnVml" type="xsd:boolean" use="optional" default="false"/>
+    <xsd:attribute name="organizeInFolders" type="xsd:boolean" use="optional" default="true"/>
+    <xsd:attribute name="useLongFilenames" type="xsd:boolean" use="optional" default="true"/>
+    <xsd:attribute name="imgSz" type="ST_WebScreenSize" use="optional" default="800x600"/>
+    <xsd:attribute name="encoding" type="ST_WebEncoding" use="optional" default=""/>
+    <xsd:attribute name="clr" type="ST_WebColorType" use="optional" default="whiteTextOnBlack"/>
   </xsd:complexType>
   <xsd:simpleType name="ST_PrintWhat">
     <xsd:restriction base="xsd:token">
@@ -1135,6 +1192,8 @@
   </xsd:complexType>
   <xsd:complexType name="CT_PresentationProperties">
     <xsd:sequence>
+      <xsd:element name="htmlPubPr" type="CT_HtmlPublishProperties" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="webPr" type="CT_WebProperties" minOccurs="0" maxOccurs="1"/>
       <xsd:element name="prnPr" type="CT_PrintProperties" minOccurs="0" maxOccurs="1"/>
       <xsd:element name="showPr" type="CT_ShowProperties" minOccurs="0" maxOccurs="1"/>
       <xsd:element name="clrMru" type="a:CT_ColorMRU" minOccurs="0" maxOccurs="1"/>

@@ -99,11 +99,34 @@ def step(context):
     context.prs = Presentation(basic_pptx_path)
 
 
+@when('I open a presentation contained in a stream')
+def step(context):
+    with open(basic_pptx_path) as f:
+        stream = StringIO(f.read())
+    context.prs = Presentation(stream)
+    stream.close()
+
+
+@when('I save that stream to a file')
+def step(context):
+    if os.path.isfile(saved_pptx_path):
+        os.remove(saved_pptx_path)
+    context.stream.seek(0)
+    with open(saved_pptx_path, 'wb') as f:
+        f.write(context.stream.read())
+
+
 @when('I save the presentation')
 def step(context):
     if os.path.isfile(saved_pptx_path):
         os.remove(saved_pptx_path)
     context.prs.save(saved_pptx_path)
+
+
+@when('I save the presentation to a stream')
+def step(context):
+    context.stream = StringIO()
+    context.prs.save(context.stream)
 
 
 @when("I set the title text of the slide")

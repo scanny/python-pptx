@@ -59,6 +59,13 @@ def _get_child_or_first(element, tag):
         element.insert(0, child)
     return child
 
+def _get_child_or_insert(element, tag, idx):
+    child = _child(element, tag)
+    if child is None:
+        child = _Element(tag)
+        element.insert(idx, child)
+    return child
+
 def _nsmap(*prefixes):
     """
     Return a dict containing the subset namespace prefix mappings specified by
@@ -204,7 +211,7 @@ class CT_TextBody(ElementBase):
     # child accessors -----------------
     bodyPr   = property(lambda self: _child(self, 'p:bodyPr'))
     p        = property(lambda self: _child_list(self, 'a:p'))
-    lstStyle = property(lambda self: _get_child_or_append(self, 'a:lstStyle'))
+    lstStyle = property(lambda self: _get_child_or_insert(self, 'a:lstStyle', 1))
 
 
 class CT_TextBodyProperties(ElementBase):

@@ -14,6 +14,8 @@ Also see the protocols pages for additional class internals documentation.
 
 .. |None| replace:: :class:`None`
 
+.. |Package| replace:: :class:`Package`
+
 .. |Paragraph| replace:: :class:`Paragraph`
 
 

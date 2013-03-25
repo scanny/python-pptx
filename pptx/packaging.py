@@ -28,8 +28,10 @@ from zipfile import ZipFile, is_zipfile, ZIP_DEFLATED
 
 import pptx.spec
 
-from pptx.exceptions import (CorruptedPackageError, DuplicateKeyError,
-    NotXMLError, PackageNotFoundError)
+from pptx.exceptions import (
+    CorruptedPackageError, DuplicateKeyError, NotXMLError,
+    PackageNotFoundError)
+
 from pptx.spec import qtag
 from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
 
@@ -57,13 +59,13 @@ class Package(object):
     :meth:`open` to open an on-disk package or ``marshal()`` followed by
     ``save()`` to save an in-memory Office document.
     """
-    
+
     PKG_RELSITEM_URI = '/_rels/.rels'
-    
+
     def __init__(self):
         super(Package, self).__init__()
         self.__relationships = []
-    
+
     @property
     def parts(self):
         """
@@ -71,7 +73,7 @@ class Package(object):
         parts in this package.
         """
         return [part for part in self.__walkparts(self.relationships)]
-    
+
     @property
     def relationships(self):
         """
@@ -83,10 +85,15 @@ class Package(object):
         graph via its relationships.
         """
         return tuple(self.__relationships)
-    
-    def open(self, path):
-        """Load the on-disk package located at *path*."""
-        fs = FileSystem(path)
+
+    def open(self, file):
+        """
+        Load the package contained in *file*, where *file* can be a path to a
+        file or directory (a string), or a file-like object. If *file* is a
+        path to a directory, the directory must contain an expanded package
+        such as is produced by unzipping an OPC package file.
+        """
+        fs = FileSystem(file)
         cti = _ContentTypesItem().load(fs)
         self.__relationships = []  # discard any rels from prior load
         parts_dict = {}            # track loaded parts, graph is cyclic
@@ -103,7 +110,7 @@ class Package(object):
             self.__relationships.append(rel)
         fs.close()
         return self
-    
+
     def marshal(self, model_pkg):
         """
         Load the contents of a model-side package such that it can be saved to
@@ -124,12 +131,14 @@ class Package(object):
             marshaled_rel = Relationship(rId, self, reltype, part)
             self.__relationships.append(marshaled_rel)
         return self
-    
-    def save(self, path):
-        """Save this package at *path*."""
+
+    def save(self, file):
+        """
+        Save this package to *file*, where *file* can be either a path to a
+        file (a string) or a file-like object.
+        """
         # open a zip filesystem for writing package
-        path = self.__normalizedpath(path)
-        zipfs = ZipFileSystem(path, 'w')
+        zipfs = ZipFileSystem(file, 'w')
         # write [Content_Types].xml
         cti = _ContentTypesItem().compose(self.parts)
         zipfs.write_element(cti.element, '/[Content_Types].xml')
@@ -142,7 +151,7 @@ class Package(object):
             if part.relationships:
                 zipfs.write_element(part._relsitem_element, part._relsitemURI)
         zipfs.close()
-    
+
     @property
     def __relsitem_element(self):
         nsmap = {None: pptx.spec.nsmap['pr']}
@@ -150,19 +159,14 @@ class Package(object):
         for rel in self.__relationships:
             element.append(rel._element)
         return element
-    
-    @staticmethod
-    def __normalizedpath(path):
-        """Add '.pptx' extension to path if not already there."""
-        return path if path.endswith('.pptx') else '%s.pptx' % path
-    
+
     @classmethod
     def __walkparts(cls, rels, parts=None):
         """
         Recursive generator method, walk relationships to iterate over all
         parts in this package. Leave out *parts* parameter in call to visit
         all parts.
-        
+
         """
         # initial call can leave out parts parameter as a signal to initialize
         if parts is None:
@@ -177,30 +181,30 @@ class Package(object):
             yield part
             for part in cls.__walkparts(part.relationships, parts):
                 yield part
-    
+
 
 class Part(object):
     """
     Part instances are not intended to be constructed externally.
     :class:`pptx.packaging.Part` instances are constructed and initialized
     internally to the :meth:`Package.open` or :meth:`Package.marshal` methods.
-    
+
     The following :class:`Part` instance attributes can be accessed once the
     part has been loaded as part of a package:
-    
+
     .. attribute:: typespec
-       
+
        An instance of :class:`PartTypeSpec` appropriate to the type of this
        part. The :class:`PartTypeSpec` instance provides attributes such as
        *content_type*, *baseURI*, etc. That are useful in several contexts.
-    
+
     .. attribute:: blob
-       
+
        The binary contents of this part contained in a byte string. For XML
        parts, this is simply the XML text. For binary parts such as an image,
        this is the string of bytes corresponding exactly to the bytes on disk
        for the binary object.
-    
+
     """
     def __init__(self):
         super(Part, self).__init__()
@@ -208,13 +212,13 @@ class Part(object):
         self.__relationships = []
         self.typespec = None
         self.blob = None
-    
+
     @property
     def content_type(self):
         """Content type of this part"""
         assert self.typespec, 'Part.content_type called before typespec set'
         return self.typespec.content_type
-    
+
     @property
     def partname(self):
         """
@@ -222,7 +226,7 @@ class Part(object):
         e.g. ``/ppt/slides/slide1.xml``
         """
         return self.__partname
-    
+
     @property
     def relationships(self):
         """
@@ -230,23 +234,23 @@ class Part(object):
         relationship from this part to another part.
         """
         return tuple(self.__relationships)
-    
+
     def _load(self, fs, partname, ct_dict, parts_dict):
         """
         Load part identified as *partname* from filesystem *fs* and propagate
         the load to related parts.
         """
         # log.debug("loading %s", partname)
-        
+
         # calculate working values
         baseURI = os.path.split(partname)[0]
         content_type = ct_dict[partname]
-        
+
         # set persisted attributes
         self.__partname = partname
         self.blob = fs.getblob(partname)
         self.typespec = PartTypeSpec(content_type)
-        
+
         # load relationships and propagate load to target parts
         self.__relationships = []  # discard any rels from prior load
         rel_elms = self.__get_rel_elms(fs)
@@ -262,28 +266,27 @@ class Part(object):
                 target_part = Part()
                 parts_dict[target_partname] = target_part
                 target_part._load(fs, target_partname, ct_dict, parts_dict)
-            
+
             # create relationship to target_part
             rel = Relationship(rId, self, reltype, target_part)
             self.__relationships.append(rel)
-        
+
         return self
-    
+
     def _marshal(self, model_part, part_dict):
         """
         Load the contents of model-side part such that it can be saved to
         disk. Propagate marshalling to related parts.
         """
         # log.debug("marshalling %s", model_part.partname)
-        
+
         # unpack working values
         content_type = model_part._content_type
-        baseURI = os.path.split(model_part.partname)[0]
         # assign persisted attributes from model part
         self.__partname = model_part.partname
         self.blob = model_part._blob
         self.typespec = PartTypeSpec(content_type)
-        
+
         # load relationships and propagate marshal to target parts
         for rel in model_part._relationships:
             # unpack working values for target part and relationship
@@ -301,7 +304,7 @@ class Part(object):
             # create marshalled version of relationship
             marshalled_rel = Relationship(rId, self, reltype, part)
             self.__relationships.append(marshalled_rel)
-    
+
     @property
     def _relsitem_element(self):
         nsmap = {None: pptx.spec.nsmap['pr']}
@@ -309,7 +312,7 @@ class Part(object):
         for rel in self.__relationships:
             element.append(rel._element)
         return element
-    
+
     @property
     def _relsitemURI(self):
         """
@@ -318,7 +321,7 @@ class Part(object):
         """
         head, tail = os.path.split(self.__partname)
         return '%s/_rels/%s.rels' % (head, tail)
-    
+
     def __get_rel_elms(self, fs):
         """
         Helper method for _load(). Return list of this relationship elements
@@ -333,16 +336,15 @@ class Part(object):
         if relsitemURI not in fs:
             tmpl = "required relationships item '%s' not found in package"
             raise CorruptedPackageError(tmpl % relsitemURI)
-        baseURI = os.path.split(self.__partname)[0]
         root_elm = fs.getelement(relsitemURI)
         return root_elm.findall(qtag('pr:Relationship'))
-    
+
     @staticmethod
     def __relsitemURI(typespec, partname, fs):
         """
         REFACTOR: Combine this logic into __get_rel_elms, it's the only caller
         and logic is partially redundant.
-        
+
         Return package URI for this part's relationships item. Returns None if
         a part of this type never has relationships. Also returns None if a
         part of this type has only optional relationships and the package
@@ -355,7 +357,7 @@ class Part(object):
         if typespec.has_rels == PTS_HASRELS_OPTIONAL:
             return relsitemURI if relsitemURI in fs else None
         return relsitemURI
-    
+
 
 class Relationship(object):
     """
@@ -364,24 +366,24 @@ class Relationship(object):
     :class:`Package` or :class:`Part`. *target* is always an instance of
     :class:`Part`. Note that *rId* is only unique within the scope of
     *source*. Relationships do not have a globally unique identifier.
-    
+
     The following attributes are available from :class:`Relationship`
     instances:
-    
+
     .. attribute:: rId
-       
+
        The source-local identifier for this relationship.
-    
+
     .. attribute:: reltype
-       
+
        The relationship type URI for this relationship. These are defined in
        the ECMA spec and look something like:
        'http://schemas.openxmlformats.org/.../relationships/slide'
-    
+
     .. attribute:: target
-       
+
        The target :class:`pptx.packaging.Part` instance in this relationship.
-    
+
     """
     def __init__(self, rId, source, reltype, target):
         super(Relationship, self).__init__()
@@ -389,7 +391,7 @@ class Relationship(object):
         self.rId = rId
         self.reltype = reltype
         self.target = target
-    
+
     @property
     def _element(self):
         """
@@ -401,14 +403,14 @@ class Relationship(object):
         element.set('Type', self.reltype)
         element.set('Target', self.__target_relpath)
         return element
-    
+
     @property
     def __baseURI(self):
         """Return the directory part of the source itemURI."""
         if isinstance(self.__source, Part):
             return os.path.split(self.__source.partname)[0]
         return PKG_BASE_URI
-    
+
     @property
     def __target_relpath(self):
         # workaround for posixpath bug in 2.6, doesn't generate correct
@@ -418,18 +420,18 @@ class Relationship(object):
         else:
             relpath = posixpath.relpath(self.target.partname, self.__baseURI)
         return relpath
-    
+
 
 class PartTypeSpec(object):
     """
     Return an instance of :class:`PartTypeSpec` containing metadata for parts
     of type *content_type*. Instances are cached, so no more than one instance
     for a particular content type is in memory.
-    
+
     Instances provide the following attributes:
-    
+
     .. attribute:: content_type
-       
+
        MIME type-like string that identifies how content is encoded for parts
        of this type. In most cases it corresponds to a particular XML
        sub-schema, although binary parts have other encoding schemes. As an
@@ -437,31 +439,31 @@ class PartTypeSpec(object):
        ``application/vnd.openxmlformats-officedocument.theme+xml``. Each
        part's content type is indicated in the content types item
        (``[Content_Types].xml``) located in the package root.
-    
+
     .. attribute:: basename
-       
+
        The root of the partname "filename" segment for parts of this type. For
        example, *basename* for slide layout parts is ``slideLayout`` and the
        partname for a slide layout matches the regular expression
        ``/ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``, e.g.
        ``/ppt/slideLayouts/slideLayout1.xml``.
-       
+
        Note that while *basename* also usually corresponds to the base of the
        immediate parent "directory" name for tuple parts, this is not
        guaranteed. One example is theme parts, with partnames like
        ``/ppt/theme/theme1.xml``. Use *baseURI* to determine the "directory"
        portion of a partname.
-    
+
     .. attribute:: ext
-       
+
        The extension of the partname "filename" segment for parts of this
        type. For example, *ext* for a presentation part
        (``/ppt/presentation.xml``) is ``.xml``. Note that the leading period
        is included in the extension, consistent with the behavior of
        :func:`os.path.split`.
-    
+
     .. attribute:: cardinality
-       
+
        One of :attr:`pptx.spec.PTS_CARDINALITY_SINGLETON` or
        :attr:`pptx.spec.PTS_CARDINALITY_TUPLE`, corresponding to whether at
        most one or multiple parts of this type may appear in the package.
@@ -469,43 +471,43 @@ class PartTypeSpec(object):
        ``/ppt/slideLayouts/slideLayout4.xml`` is an example of a tuple part.
        The term *tuple* in this context is drawn from set theory in math and
        has no direct relationship to the Python tuple class.
-    
+
     .. attribute:: required
-       
+
        Boolean expressing whether at least one instance of this part type must
        appear in the package. ``presentation`` is an example of a required
        part type. ``notesMaster`` is an example of a optional part type.
-    
+
     .. attribute:: baseURI
-       
+
        The "directory" portion of the partname for parts of this type. The
        term *URI* is used because although part names (and other package item
        URIs) strongly resemble filesystem paths, and are readily operated on
        with functions from :mod:`os.path`, they have no direct correspondence
        to location in a file system (otherwise all packages would overwrite
        each other in the root directory :).
-       
+
        For example, *baseURI* for slide layout parts is ``/ppt/slideLayouts``.
-    
+
     .. attribute:: has_rels
-       
+
        One of ``pptx.spec.PTS_HASRELS_ALWAYS``,
        ``pptx.spec.PTS_HASRELS_NEVER``, or ``pptx.spec.PTS_HASRELS_OPTIONAL``,
        indicating whether parts of this type always, never, or sometimes have
        relationships, respectively.
-    
+
     .. attribute:: reltype
-       
+
        The string used in the ``Type`` attribute of a ``Relationship`` XML
        element where a part of this content type is the target of the
        relationship. A relationship type is a URI string of the same form as a
        web page URL. For example, *reltype* for a part named
        ``/ppt/slides/slide1.xml`` would look something like
        ``http://schemas.openxmlformats.org/.../relationships/slide``.
-    
+
     """
     __instances = {}
-    
+
     def __new__(cls, content_type):
         """
         Only create new instance on first call for content_type. After that,
@@ -517,7 +519,7 @@ class PartTypeSpec(object):
             cls.__instances[content_type] = inst
         # return the instance; note that __init__() gets called either way
         return cls.__instances[content_type]
-    
+
     def __init__(self, content_type):
         """Initialize spec attributes from constant values in pptx.spec."""
         # skip loading if this instance is from the cache
@@ -530,20 +532,27 @@ class PartTypeSpec(object):
             raise KeyError(tmpl % content_type)
         ptsdict = pptx.spec.pml_parttypes[content_type]
         # load attributes from spec constants dictionary
-        self.content_type = content_type            # e.g. 'application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml'
-        self.basename     = ptsdict['basename']     # e.g. 'slideMaster'
-        self.ext          = ptsdict['ext']          # e.g. '.xml'
-        self.cardinality  = ptsdict['cardinality']  # e.g. PTS_CARDINALITY_SINGLETON or PTS_CARDINALITY_TUPLE
-        self.required     = ptsdict['required']     # e.g. False
-        self.baseURI      = ptsdict['baseURI']      # e.g. '/ppt/slideMasters'
-        self.has_rels     = ptsdict['has_rels']     # e.g. PTS_HASRELS_ALWAYS, PTS_HASRELS_NEVER, or PTS_HASRELS_OPTIONAL
-        self.reltype      = ptsdict['reltype']      # e.g. 'http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties'
-    
+        # e.g. 'application/vnd.open...ment.presentationml.slideMaster+xml'
+        self.content_type = content_type
+        # e.g. 'slideMaster'
+        self.basename = ptsdict['basename']
+        # e.g. '.xml'
+        self.cardinality = ptsdict['cardinality']
+        # e.g. PTS_CARDINALITY_SINGLETON or PTS_CARDINALITY_TUPLE
+        self.ext = ptsdict['ext']
+        # e.g. False
+        self.required = ptsdict['required']
+        # e.g. '/ppt/slideMasters'
+        self.baseURI = ptsdict['baseURI']
+        # e.g. PTS_HASRELS_ALWAYS, PTS_HASRELS_NEVER, or PTS_HASRELS_OPTIONAL
+        self.has_rels = ptsdict['has_rels']
+        # e.g. 'http://schemas.openxmlformats.org/.../metadata/core-properties'
+        self.reltype = ptsdict['reltype']
+
     @property
     def format(self):
         """One of ``'xml'`` or ``'binary'``."""
         return 'xml' if self.ext == '.xml' else 'binary'
-    
 
 
 # ============================================================================
@@ -559,11 +568,11 @@ class _ContentTypesItem(object):
         super(_ContentTypesItem, self).__init__()
         self.__defaults = None
         self.__overrides = None
-    
+
     def __getitem__(self, partname):
         """
         Return the content type for the part with *partname*.
-        
+
         """
         # raise exception if called before load()
         if self.__defaults is None or self.__overrides is None:
@@ -580,16 +589,16 @@ class _ContentTypesItem(object):
         # if neither of those work, raise an exception
         tmpl = "no content type for part '%s' in [Content_Types].xml"
         raise LookupError(tmpl % partname)
-    
+
     def __len__(self):
         """
         Return sum count of Default and Override elements.
-        
+
         """
         count = len(self.__defaults) if self.__defaults is not None else 0
         count += len(self.__overrides) if self.__overrides is not None else 0
         return count
-    
+
     def compose(self, parts):
         """
         Assemble a [Content_Types].xml item based on the contents of *parts*.
@@ -613,7 +622,7 @@ class _ContentTypesItem(object):
                 tmpl = "extension '%s' not found in default_content_types"
                 raise LookupError(tmpl % (ext))
         return self
-    
+
     @property
     def element(self):
         nsmap = {None: pptx.spec.nsmap['ct']}
@@ -629,13 +638,13 @@ class _ContentTypesItem(object):
                 subelm.set('PartName', partname)
                 subelm.set('ContentType', self.__overrides[partname])
         return element
-    
+
     def load(self, fs):
         """
         Retrieve [Content_Types].xml from specified file system and load it.
         Returns a reference to this _ContentTypesItem instance to allow
         generative call, e.g. ``cti = _ContentTypesItem().load(fs)``.
-        
+
         """
         element = fs.getelement('/[Content_Types].xml')
         defaults = element.findall(qtag('ct:Default'))
@@ -645,7 +654,6 @@ class _ContentTypesItem(object):
         self.__overrides = dict((o.get('PartName'), o.get('ContentType'))
                                 for o in overrides)
         return self
-    
 
 
 # ============================================================================
@@ -655,7 +663,7 @@ class _ContentTypesItem(object):
 class FileSystem(object):
     """
     Factory for filesystem interface instances.
-    
+
     A FileSystem object provides access to on-disk package items via their URI
     (e.g. ``/_rels/.rels`` or ``/ppt/presentation.xml``). This allows parts to
     be accessed directly by part name, which for a part is identical to its
@@ -664,25 +672,27 @@ class FileSystem(object):
     filesystem class. :class:`FileSystem` acts as the Factory, returning the
     appropriate concrete filesystem class depending on what it finds at *path*.
     """
-    def __new__(cls, path):
-        # if path is a directory, return instance of DirectoryFileSystem
-        if os.path.isdir(path):
-            instance = DirectoryFileSystem(path)
-        # if path is a zip file, return instance of ZipFileSystem
-        elif os.path.isfile(path) and is_zipfile(path):
-            instance = ZipFileSystem(path)
-        # otherwise, something's not right, raise exception
+    def __new__(cls, file):
+        # if *file* is a string, treat it as a path
+        if isinstance(file, basestring):
+            path = file
+            if is_zipfile(path):
+                fs = ZipFileSystem(path)
+            elif os.path.isdir(path):
+                fs = DirectoryFileSystem(path)
+            else:
+                raise PackageNotFoundError("Package not found at '%s'" % path)
         else:
-            raise PackageNotFoundError("Package not found at '%s'" % (path))
-        return instance
+            fs = ZipFileSystem(file)
+        return fs
 
 
 class BaseFileSystem(object):
     """
     Base class for FileSystem classes, providing common methods.
     """
-    def __init__(self, path):
-        self.__path = os.path.abspath(path)
+    def __init__(self):
+        super(BaseFileSystem, self).__init__()
 
     def __contains__(self, itemURI):
         """
@@ -715,36 +725,31 @@ class BaseFileSystem(object):
         stream.close()
         return element
 
-    @property
-    def path(self):
-        """
-        Path property is read-only. Need to instantiate a new FileSystem
-        object to access a different package.
-        """
-        return self.__path
-
 
 class DirectoryFileSystem(BaseFileSystem):
     """
     Provides access to package members that have been expanded into an on-disk
     directory structure.
-    
+
     Inherits __contains__(), getelement(), and path from BaseFileSystem.
-    
     """
     def __init__(self, path):
         """
         *path* is the path to a directory containing an expanded package.
         """
-        super(DirectoryFileSystem, self).__init__(path)
-    
+        super(DirectoryFileSystem, self).__init__()
+        if not os.path.isdir(path):
+            tmpl = "path '%s' not a directory"
+            raise ValueError(tmpl % path)
+        self.__path = os.path.abspath(path)
+
     def close(self):
         """
         Provides interface consistency with |ZipFileSystem|, but does nothing,
         a directory file system doesn't need closing.
         """
         pass
-    
+
     def getstream(self, itemURI):
         """
         Return file-like object containing package item identified by
@@ -753,11 +758,11 @@ class DirectoryFileSystem(BaseFileSystem):
         """
         if itemURI not in self:
             raise LookupError("No package item with URI '%s'" % itemURI)
-        path = os.path.join(self.path, itemURI[1:])
+        path = os.path.join(self.__path, itemURI[1:])
         with open(path, 'rb') as f:
             stream = StringIO(f.read())
         return stream
-    
+
     @property
     def itemURIs(self):
         """
@@ -765,36 +770,39 @@ class DirectoryFileSystem(BaseFileSystem):
         formatted as item URIs. Each URI is the relative path of that file
         with a leading slash added, e.g. '/ppt/slides/slide1.xml'. Although
         not strictly necessary, the results are sorted for neatness' sake.
-        
         """
         itemURIs = []
-        for dirpath, dirnames, filenames in os.walk(self.path):
+        for dirpath, dirnames, filenames in os.walk(self.__path):
             for filename in filenames:
                 item_path = os.path.join(dirpath, filename)
-                itemURI = item_path[len(self.path):]  # leaves a leading slash on
+                itemURI = item_path[len(self.__path):]  # leaves a leading slash on
                 itemURIs.append(itemURI.replace(os.sep, '/'))
         return sorted(itemURIs)
-    
+
 
 class ZipFileSystem(BaseFileSystem):
     """
-    Return new instance providing access to zip-format OPC package at *path*.
-    
-    If mode is 'w', creates a new zip archive at *path*. If a file by that name
-    already exists, it is truncated.
+    Return new instance providing access to zip-format OPC package contained
+    in *file*, where *file* can be either a path to a zip file (a string) or a
+    file-like object. If mode is 'w', a new zip archive is written to *file*.
+    If *file* is a path and a file with that name already exists, it is
+    truncated.
 
     Inherits :meth:`__contains__`, :meth:`getelement`, and :attr:`path` from
     BaseFileSystem.
     """
-    def __init__(self, path, mode='r'):
-        super(ZipFileSystem, self).__init__(path)
+    def __init__(self, file, mode='r'):
+        super(ZipFileSystem, self).__init__()
         if 'w' in mode:
-            self.zipf = ZipFile(self.path, 'w', compression=ZIP_DEFLATED)
+            self.zipf = ZipFile(file, 'w', compression=ZIP_DEFLATED)
         else:
-            self.zipf = ZipFile(self.path, 'r')
+            self.zipf = ZipFile(file, 'r')
 
     def close(self):
-        """Close the zip file"""
+        """
+        Close the |ZipFileSystem| instance, necessary to complete the write
+        process with the instance is opened for writing.
+        """
         self.zipf.close()
 
     def getstream(self, itemURI):
@@ -819,7 +827,7 @@ class ZipFileSystem(BaseFileSystem):
         """
         names = self.zipf.namelist()
         # zip archive can contain entries for directories, so get rid of those
-        itemURIs = [('/%s' % name) for name in names if not name.endswith('/')]
+        itemURIs = [('/%s' % nm) for nm in names if not nm.endswith('/')]
         return sorted(itemURIs)
 
     def write_blob(self, blob, itemURI):
@@ -846,7 +854,6 @@ class ZipFileSystem(BaseFileSystem):
         self.zipf.writestr(membername, xml)
 
 
-
 # ============================================================================
 # Utility functions
 # ============================================================================
@@ -869,21 +876,18 @@ def prettify_nsdecls(xml):
         return xml
     rootline = lines[1]
     # split rootline into element tag part and attributes parts
-    attrib_re = re.compile(r'([-a-zA-Z0-9_:.]+="[^"]*" *>?)')
-    substrings = [substring.strip() for substring in attrib_re.split(rootline)
-                                     if substring]
+    attr_re = re.compile(r'([-a-zA-Z0-9_:.]+="[^"]*" */?>?)')
+    substrs = [substr.strip() for substr in attr_re.split(rootline) if substr]
     # substrings look something like:
     # ['<p:sld', 'xmlns:p="html://..."', 'name="Office Theme>"']
     # if there's only one attribute there's no need to wrap
-    if len(substrings) < 3:
+    if len(substrs) < 3:
         return xml
-    indent = ' ' * (len(substrings[0])+1)
+    indent = ' ' * (len(substrs[0])+1)
     # join element tag and first attribute onto same line
-    newrootline = ' '.join(substrings[:2])
+    newrootline = ' '.join(substrs[:2])
     # indent remaining attributes on following lines
-    for substring in substrings[2:]:
-        newrootline += '\n%s%s' % (indent, substring)
+    for substr in substrs[2:]:
+        newrootline += '\n%s%s' % (indent, substr)
     lines[1] = newrootline
     return '\n'.join(lines)
-
-

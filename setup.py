@@ -15,6 +15,7 @@ version = re.search("__version__ = '([^']+)'",
                     open(init_py_path).read()).group(1)
 
 
+
 NAME         = 'python-pptx'
 VERSION      = version
 DESCRIPTION  = 'Generate and manipulate Open XML PowerPoint (.pptx) files'
@@ -37,6 +38,7 @@ CLASSIFIERS =\
     , 'Operating System :: OS Independent'
     , 'Programming Language :: Python'
     , 'Programming Language :: Python :: 2'
+    , 'Programming Language :: Python :: 2.6'
     , 'Programming Language :: Python :: 2.7'
     , 'Topic :: Office/Business :: Office Suites'
     , 'Topic :: Software Development :: Libraries'
