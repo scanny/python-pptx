@@ -1,6 +1,69 @@
-=====================
+#####################
 Development Practices
-=====================
+#####################
+
+Release procedure
+=================
+
+* develop branch git status clean
+
+  + complete and commit any pending feature branches
+  + stash any incomplete work
+
+* release commit message prepared
+
+  + review and summarize changes since prior release
+
+* release branch committed
+
+  + git flow release start 0.2.2
+  + update version number in `pptx/__init__.py`
+  + update setup.py (shouldn't usually be any changes)
+  + update README.py, in particular, the release history
+  + update doc/index.rst
+  + confirm docs compile without errors
+  + run all tests (behave, nosetests, tox)
+  + create trial distribution (make clean sdist)
+  + git flow release finish 0.2.2
+  + (x) create tag for new version (automatically done by git flow)
+
+* release uploaded to PyPI
+
+  + upload: ``make upload``
+
+* local repo synchronized with github
+
+  + push tags to github
+
+* docs regenerated
+
+  + trigger regeneration of docs on RTD.org
+
+
+
+Prodedure -- Adding a new feature
+=================================
+
+* add issue to github issue tracker
+* create git feature branch
+* write acceptance test
+* recursively, outside in:
+
+  * write unit test
+  * write next level method(s)
+
+* check and adjust documentation as required
+* finish feature branch (merge into development)
+* close issue
+
+
+Outside-in layers
+-----------------
+
+* API wrapper method (if applicable)
+* Internal API method
+* objectify manipulation layer
+* perhaps others
 
 
 Acceptance testing with ``behave``

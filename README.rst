@@ -2,17 +2,15 @@
 python-pptx
 ###########
 
-VERSION: 0.2.1 (second non-alpha release)
+VERSION: 0.2.2 (third beta release)
 
 
-STATUS (as of Feb 25 2013)
+STATUS (as of Mar 25 2013)
 ==========================
 
-Second release with basic capabilities, now supporting Python 2.6 in addition
+Third release with basic capabilities, now supporting Python 2.6 in addition
 to Python 2.7. Under active development, with new features added in a new
-release roughly every two weeks. I'm just finishing up a port of the XML
-manipulation to ``lxml.objectify`` to allow new features to be added more
-quickly, so the next release should show a significant expansion of the API.
+release roughly once a month.
 
 
 Vision
@@ -100,6 +98,11 @@ install those yourself.
 
 Release History
 ===============
+
+Mar 25, 2013 - v0.2.2
+   * Add support for opening a saving a presentation from/to a file-like
+     object.
+   * Refactor XML handling to use lxml objectify
 
 Feb 25, 2013 - v0.2.1
    * Add support for Python 2.6
