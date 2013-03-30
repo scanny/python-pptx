@@ -1,6 +1,6 @@
-====================
+####################
 ``CT_TextParagraph``
-====================
+####################
 
 .. highlight:: xml
 
@@ -20,19 +20,33 @@
 Analysis
 ========
 
+Paragraph level
+---------------
+
+Each paragraph has a level attribute, e.g. ``<a:pPr lvl="1">``, which specifies
+the level text properties applied to the paragraph. From an end-user
+perspective, this corresponds to the indentation level of the paragraph in
+a bullet slide. The range of the ``lvl`` attribute is 0-8, with the default
+being 0 (the ``lvl`` attribute is optional in the XML). The level formatting
+styles are named ``lvl1pPr`` through ``lvl9pPr``, so a paragraph with ``lvl``
+attribute set to ``1`` acquires the formatting defined in ``lvl2pPr``.
+
+
+Other
+-----
 XPath expression from `<p:txBody>` is ``./a:p``
 
 `<p:txBody>` must always contain at least one `<a:p>` element.
 
 
-attributes
-^^^^^^^^^^
+Attributes
+==========
 
 None.
 
 
-child elements
-^^^^^^^^^^^^^^
+Child elements
+==============
 
 ==========  ===  ==========================  ==========
 name         #    type                        line
@@ -45,8 +59,15 @@ endParaRPr   ?   CT_TextCharacterProperties  2842 dml
 ==========  ===  ==========================  ==========
 
 
+Resources
+=========
+
+* ISO-IEC-29500-1, Section L.4.4 -- Open XML Text Primer, p4809
+* ISO-IEC-29500-1, Section 21.1.2.2.7 pPr (Text Paragraph Properties), p3193
+
+
 Spec text
-^^^^^^^^^
+=========
 
    This element specifies the presence of a paragraph of text within the
    containing text body. The paragraph is the highest level text separation
@@ -56,14 +77,14 @@ Spec text
 
 
 Schema excerpt
-^^^^^^^^^^^^^^
+==============
 
 ::
 
   <xsd:complexType name="CT_TextParagraph">
     <xsd:sequence>
       <xsd:element name="pPr"        type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_TextRun"  minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:group   ref="EG_TextRun"                            minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="endParaRPr" type="CT_TextCharacterProperties" minOccurs="0" maxOccurs="1"/>
     </xsd:sequence>
   </xsd:complexType>

@@ -19,16 +19,16 @@ Hello World! example
 ::
 
     from pptx import Presentation
-    
+
     prs = Presentation()
     title_slidelayout = prs.slidelayouts[0]
     slide = prs.slides.add_slide(title_slidelayout)
     title = slide.shapes.title
     subtitle = slide.shapes.placeholders[1]
-    
+
     title.text = "Hello, World!"
     subtitle.text = "python-pptx was here!"
-    
+
     prs.save('test.pptx')
 
 
@@ -44,25 +44,37 @@ Bullet slide example
 ::
 
     from pptx import Presentation
-    
+
     prs = Presentation()
     bullet_slidelayout = prs.slidelayouts[1]
-    
+
     slide = prs.slides.add_slide(bullet_slidelayout)
-    
     shapes = slide.shapes
-    title_placeholder = shapes.title
-    body_placeholder = shapes.placeholders[1]
-    
+
     title_shape.text = 'Adding a Bullet Slide'
+
     tf = body_shape.textframe
     tf.text = 'Find the bullet slide layout'
-    tf.add_paragraph().text = 'Use Shape.text for first bullet'
-    tf.add_paragraph().text = ('Use TextFrame.add_paragraph() for '
-                               'subsequent bullets')
-    
+
+    p = tf.add_paragraph()
+    p.text = 'Use Shape.text for first bullet'
+    p.level = 1
+
+    p = tf.add_paragraph()
+    p.text = 'Use TextFrame.add_paragraph() for subsequent bullets'
+    p.level = 2
+
     prs.save('test.pptx')
 
+Not all shapes can contain text, but those that do always have at least one
+paragraph, even if that paragraph is empty and no text is visible within the
+shape. ``Shape.has_textframe`` can be used to determine whether a shape can
+contain text. When ``Shape.has_textframe`` is ``True``,
+``Shape.textframe.paragraphs[0]`` returns the first paragraph. The text of the
+first paragraph can be set using ``Shape.textframe.paragraphs[0].text``. As
+a shortcut, the calls ``Shape.text`` and ``Shape.textframe.text`` are provided
+to accomplish the same thing. Note that these last two calls delete all the
+shape's paragraphs except the first one before setting the text it contains.
 
 ----
 
@@ -77,25 +89,25 @@ Bullet slide example
 
     from pptx import Presentation
     from pptx.util import Inches, Pt
-    
+
     prs = Presentation()
     blank_slidelayout = prs.slidelayouts[6]
     slide = prs.slides.add_slide(blank_slidelayout)
-    
+
     left = top = width = height = Inches(1)
     txBox = slide.shapes.add_textbox(left, top, width, height)
     tf = txBox.textframe
-    
+
     tf.text = "This is text inside a textbox"
-    
+
     p = tf.add_paragraph()
     p.text = "This is a second paragraph that's bold"
     p.font.bold = True
-    
+
     p = tf.add_paragraph()
     p.text = "This is a third paragraph that's big"
     p.font.size = Pt(40)
-    
+
     prs.save('test.pptx')
 
 
@@ -112,21 +124,44 @@ Bullet slide example
 
     from pptx import Presentation
     from pptx.util import Inches, Px
-    
+
     img_path = 'monty-truth.png'
-    
+
     prs = Presentation()
     blank_slidelayout = prs.slidelayouts[6]
     slide = prs.slides.add_slide(blank_slidelayout)
-    
+
     left = top = Inches(1)
     pic = slide.shapes.add_picture(img_path, left, top)
-    
+
     left = Inches(5)
     width  = Px(280)
     height = int(width*1.427)
     pic = slide.shapes.add_picture(img_path, left, top, width, height)
-    
+
     prs.save('test.pptx')
 
+
+----
+
+Extract all text from slides in presentation
+============================================
+
+::
+
+    from pptx import Presentation
+
+    prs = Presentation(path_to_presentation)
+
+    # text_runs will be populated with a list of strings,
+    # one for each text run in presentation
+    text_runs = []
+
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if not shape.has_textframe:
+                continue
+            for paragraph in shape.textframe.paragraphs:
+                for run in paragraph.runs:
+                    text_runs.append(run.text)
 

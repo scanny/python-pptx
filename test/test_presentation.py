@@ -818,6 +818,40 @@ class TestParagraph(TestCase):
         p_xml = oxml_tostring(paragraph._Paragraph__p)
         assert_that(p_xml, is_(equal_to(expected_p_xml)))
 
+    def test_level_setter_generates_correct_xml(self):
+        """Paragraph.level setter generates correct XML"""
+        # setup -----------------------
+        expected_xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<'
+            'a:p xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/ma'
+            'in">\n  <a:pPr lvl="2"/>\n  <a:r>\n    <a:t>test text</a:t>\n  <'
+            '/a:r>\n</a:p>\n')
+        # exercise --------------------
+        self.paragraph.level = 2
+        # verify ----------------------
+        p_xml = oxml_tostring(self.paragraph._Paragraph__p, encoding='UTF-8',
+                              pretty_print=True, standalone=True)
+        p_xml_lines = p_xml.split('\n')
+        expected_xml_lines = expected_xml.split('\n')
+        for idx, line in enumerate(p_xml_lines):
+            msg = ("\n\nexpected:\n\n%s\n\nbut got:\n\n%s" %
+                   (expected_xml, p_xml))
+            self.assertEqual(line, expected_xml_lines[idx], msg)
+
+    def test_level_roundtrips_intact(self):
+        """Paragraph.level property round-trips intact"""
+        # exercise --------------------
+        self.paragraph.level = 5
+        # verify ----------------------
+        assert_that(self.paragraph.level, is_(equal_to(5)))
+
+    def test_level_raises_on_bad_value(self):
+        """Paragraph.level raises on attempt to assign invalid value"""
+        test_cases = ('0', -1, 9)
+        for value in test_cases:
+            with self.assertRaises(ValueError):
+                self.paragraph.level = value
+
     def test_set_font_size(self):
         """Assignment to Paragraph.font.size changes font size"""
         # setup -----------------------
@@ -835,7 +869,6 @@ class TestParagraph(TestCase):
         p_xml_lines = p_xml.split('\n')
         expected_xml_lines = expected_xml.split('\n')
         for idx, line in enumerate(p_xml_lines):
-            # msg = '\n\n%s' % sld_xml
             msg = "\n\nexpected:\n\n%s\n\nbut got:\n\n%s" % (expected_xml, p_xml)
             self.assertEqual(line, expected_xml_lines[idx], msg)
 

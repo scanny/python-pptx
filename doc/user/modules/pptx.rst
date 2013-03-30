@@ -1,6 +1,6 @@
-===================
+###################
 :mod:`pptx` Package
-===================
+###################
 
 Manipulate Open XML PowerPoint® files.
 
@@ -25,9 +25,8 @@ Example::
    pic = sld.shapes.add_picture(path, x, y, cx, cy)
 
 
-----------------------
 |Presentation| objects
-----------------------
+======================
 
 The |Presentation| class is the only reference that must be imported to work
 with presentation files. Typical use interacts with many other classes, but
@@ -42,9 +41,9 @@ their parent object.
 
 .. currentmodule:: pptx.presentation
 
--------------------------
+
 |SlideCollection| objects
--------------------------
+=========================
 
 The |SlideCollection| object is typically encountered as the
 :attr:`~pptx.Presentation.slides` member of |Presentation|. It is not intended
@@ -57,9 +56,8 @@ to be constructed directly.
    :show-inheritance:
 
 
--------------------------
 |ShapeCollection| objects
--------------------------
+=========================
 
 The |ShapeCollection| object is typically encountered as the
 :attr:`~BaseSlide.shapes` member of |Slide|. It is not intended to be
@@ -72,9 +70,19 @@ constructed directly.
    :show-inheritance:
 
 
--------------------
+``Shape`` objects
+=================
+
+The following properties and methods are common to all shapes.
+
+.. autoclass:: pptx.presentation.BaseShape
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |TextFrame| objects
--------------------
+===================
 
 .. autoclass:: pptx.presentation.TextFrame()
    :members:
@@ -82,9 +90,8 @@ constructed directly.
    :undoc-members:
 
 
----------------
 |_Font| objects
----------------
+===============
 
 The |_Font| object is encountered as a property of |Run|, |Paragraph|, and in
 future other presentation text objects.
@@ -95,9 +102,8 @@ future other presentation text objects.
    :undoc-members:
 
 
--------------------
 |Paragraph| objects
--------------------
+===================
 
 .. autoclass:: pptx.presentation.Paragraph()
    :members:
@@ -105,9 +111,8 @@ future other presentation text objects.
    :undoc-members:
 
 
--------------
 |Run| objects
--------------
+=============
 
 .. autoclass:: pptx.presentation.Run()
    :members:
@@ -115,15 +120,14 @@ future other presentation text objects.
    :undoc-members:
 
 
-
 :mod:`presentation` Module
---------------------------
+==========================
 
 The remaining API classes of the :mod:`presentation` module are described
 here.
 
 .. automodule:: pptx.presentation
-   :members: BaseSlide, SlideMaster, SlideLayout, Slide, BaseShape, Picture
+   :members: BaseSlide, SlideMaster, SlideLayout, Slide, Picture
    :member-order: bysource
    :show-inheritance:
    :undoc-members:

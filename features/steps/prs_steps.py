@@ -24,7 +24,8 @@ test_text = "python-pptx was here!"
 
 # logging.debug("saved_pptx_path is ==> '%s'\n", saved_pptx_path)
 
-# given ---------------------------------------------------
+
+# given ===================================================
 
 @given('a clean working directory')
 def step(context):
@@ -49,6 +50,14 @@ def step(context):
     context.sld = context.prs.slides.add_slide(slidelayout)
 
 
+@given('I have a reference to a bullet body placeholder')
+def step(context):
+    context.prs = Presentation()
+    slidelayout = context.prs.slidelayouts[1]
+    context.sld = context.prs.slides.add_slide(slidelayout)
+    context.body = context.sld.shapes.placeholders[1]
+
+
 @given('I have a reference to a slide')
 def step(context):
     context.prs = Presentation()
@@ -56,7 +65,7 @@ def step(context):
     context.sld = context.prs.slides.add_slide(slidelayout)
 
 
-# when ----------------------------------------------------
+# when ====================================================
 
 @when('I add a new slide')
 def step(context):
@@ -92,6 +101,12 @@ def step(context):
 @when('I construct a Presentation instance with no path argument')
 def step(context):
     context.prs = Presentation()
+
+
+@when('I indent the first paragraph')
+def step(context):
+    p = context.body.textframe.paragraphs[0]
+    p.level = 1
 
 
 @when('I open a basic PowerPoint presentation')
@@ -134,7 +149,7 @@ def step(context):
     context.sld.shapes.title.text = test_text
 
 
-# then ----------------------------------------------------
+# then ====================================================
 
 @then('I receive a presentation based on the default template')
 def step(context):
@@ -162,6 +177,15 @@ def step(context):
     partnames = [part.partname for part in pkgng_pkg.parts
                  if part.partname.startswith('/ppt/media/')]
     assert_that(partnames, has_item('/ppt/media/image1.png'))
+
+
+@then('the paragraph is indented to the second level')
+def step(context):
+    prs = Presentation(saved_pptx_path)
+    sld = prs.slides[0]
+    body = sld.shapes.placeholders[1]
+    p = body.textframe.paragraphs[0]
+    assert_that(p.level, is_(equal_to(1)))
 
 
 @then('the picture appears in the slide')

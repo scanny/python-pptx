@@ -100,7 +100,7 @@ Release History
 ===============
 
 Mar 25, 2013 - v0.2.2
-   * Add support for opening a saving a presentation from/to a file-like
+   * Add support for opening and saving a presentation from/to a file-like
      object.
    * Refactor XML handling to use lxml objectify
 

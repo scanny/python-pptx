@@ -1170,7 +1170,7 @@ class BaseShape(object):
     def textframe(self):
         """
         TextFrame instance for this shape. Raises :class:`ValueError` if shape
-        has no text frame. Use :meth:`has_textframe` to check whether a shape
+        has no text frame. Use :attr:`has_textframe` to check whether a shape
         has a text frame.
         """
         txBody = _child(self._element, 'p:txBody')
@@ -1681,6 +1681,33 @@ class Paragraph(object):
         if not hasattr(self.__p.pPr, 'defRPr'):
             _SubElement(self.__p.pPr, 'a:defRPr')
         return _Font(self.__p.pPr.defRPr)
+
+    def _get_level(self):
+        """
+        Return integer indentation level of this paragraph.
+        """
+        if not hasattr(self.__p, 'pPr'):
+            return 0
+        return int(self.__p.pPr.get('lvl', 0))
+
+    def _set_level(self, level):
+        """
+        Set indentation level of this paragraph to *level*, an integer value
+        between 0 and 8 inclusive.
+        """
+        if not isinstance(level, int) or level < 0 or level > 8:
+            msg = "paragraph level must be integer between 0 and 8 inclusive"
+            raise ValueError(msg)
+        if not hasattr(self.__p, 'pPr'):
+            pPr = _Element('a:pPr', _nsmap)
+            self.__p.insert(0, pPr)
+        self.__p.pPr.set('lvl', str(level))
+
+    #: Read-write integer indentation level of this paragraph. Range is 0-8.
+    #: 0 represents a top-level paragraph and is the default value. Indentation
+    #: level is most commonly encountered in a bulleted list, as is found on a
+    #: word bullet slide.
+    level = property(_get_level, _set_level)
 
     @property
     def runs(self):
