@@ -19,7 +19,8 @@ except ImportError:
     import Image as PIL_Image
 
 from pptx.constants import MSO
-from pptx.oxml import _get_or_add, qn, _Element, _SubElement
+from pptx.oxml import (
+    _get_or_add, qn, _Element, _SubElement, CT_GraphicalObjectFrame)
 from pptx.spec import namespaces, slide_ph_basenames
 from pptx.spec import RT_IMAGE
 from pptx.spec import (
@@ -177,6 +178,8 @@ class ShapeCollection(BaseShape, Collection):
                 shape = Picture(elm)
             elif elm.tag == self._GRPSP:
                 shape = ShapeCollection(elm)
+            elif elm.tag == self._GRAPHICFRAME:
+                shape = Table(elm)
             elif elm.tag == self._CONTENTPART:
                 msg = "first time 'contentPart' shape encountered in the "\
                       "wild, please let developer know and send example"
@@ -216,6 +219,20 @@ class ShapeCollection(BaseShape, Collection):
         picture = Picture(pic)
         self.__shapes.append(picture)
         return picture
+
+    def add_table(self, rows, cols, left, top, width, height):
+        """
+        Add table shape with the specified number of *rows* and *cols* at the
+        specified position with the specified size.
+        """
+        id = self.__next_shape_id
+        name = 'Table %d' % (id-1)
+        graphicFrame = CT_GraphicalObjectFrame(id, name, rows, cols, left,
+                                               top, width, height)
+        self.__spTree.append(graphicFrame)
+        table = Table(graphicFrame)
+        self.__shapes.append(table)
+        return table
 
     def add_textbox(self, left, top, width, height):
         """
@@ -494,6 +511,14 @@ class Shape(BaseShape):
         super(Shape, self).__init__(shape_element)
 
 
+class Table(BaseShape):
+    """
+    A table shape. Corresponds to the ``<p:graphicFrame>`` element.
+    """
+    def __init__(self, graphicFrame):
+        super(Table, self).__init__(graphicFrame)
+
+
 # ============================================================================
 # Text-related classes
 # ============================================================================
@@ -586,7 +611,7 @@ class _Font(object):
     @property
     def bold(self):
         """
-        Get or set boolean bold value of |_Font|, e.g.
+        Get or set boolean bold value of |Font|, e.g.
         ``paragraph.font.bold = True``.
         """
         b = self.__rPr.get('b')

@@ -11,7 +11,7 @@
 
 import os
 
-from hamcrest import assert_that, is_, equal_to
+from hamcrest import assert_that, equal_to, is_
 
 try:
     from PIL import Image as PILImage
@@ -86,6 +86,41 @@ def _sldLayout1_shapes():
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
     shapes = ShapeCollection(spTree)
     return shapes
+
+
+def _table_xml():
+    """
+    vim macro to break: 78|i''üiü
+    """
+    xml = (
+        '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<p:gr'
+        'aphicFrame xmlns:p="http://schemas.openxmlformats.org/presentationml'
+        '/2006/main"\n                xmlns:a="http://schemas.openxmlformats.'
+        'org/drawingml/2006/main">\n  <p:nvGraphicFramePr>\n    <p:cNvPr id="'
+        '2" name="Table 1"/>\n    <p:cNvGraphicFramePr>\n      <a:graphicFram'
+        'eLocks noGrp="1"/>\n    </p:cNvGraphicFramePr>\n    <p:nvPr/>\n  </p'
+        ':nvGraphicFramePr>\n  <p:xfrm>\n    <a:off x="914400" y="1828800"/>'
+        '\n    <a:ext cx="1828800" cy="1828800"/>\n  </p:xfrm>\n  <a:graphic>'
+        '\n    <a:graphicData uri="http://schemas.openxmlformats.org/drawingm'
+        'l/2006/table">\n      <a:tbl>\n        <a:tblPr firstRow="1" bandRow'
+        '="1">\n          <a:tableStyleId>{5C22544A-7EE6-4342-B048-85BDC9FD1C'
+        '3A}</a:tableStyleId>\n        </a:tblPr>\n        <a:tblGrid>\n     '
+        '     <a:gridCol w="3048000"/>\n          <a:gridCol w="3048000"/>\n '
+        '       </a:tblGrid>\n        <a:tr h="370840">\n          <a:tc>\n  '
+        '          <a:txBody>\n              <a:bodyPr/>\n              <a:ls'
+        'tStyle/>\n              <a:p/>\n            </a:txBody>\n           '
+        ' <a:tcPr/>\n          </a:tc>\n          <a:tc>\n            <a:txBo'
+        'dy>\n              <a:bodyPr/>\n              <a:lstStyle/>\n       '
+        '       <a:p/>\n            </a:txBody>\n            <a:tcPr/>\n     '
+        '     </a:tc>\n        </a:tr>\n        <a:tr h="370840">\n          '
+        '<a:tc>\n            <a:txBody>\n              <a:bodyPr/>\n         '
+        '     <a:lstStyle/>\n              <a:p/>\n            </a:txBody>\n '
+        '           <a:tcPr/>\n          </a:tc>\n          <a:tc>\n         '
+        '   <a:txBody>\n              <a:bodyPr/>\n              <a:lstStyle/'
+        '>\n              <a:p/>\n            </a:txBody>\n            <a:tcP'
+        'r/>\n          </a:tc>\n        </a:tr>\n      </a:tbl>\n    </a:gra'
+        'phicData>\n  </a:graphic>\n</p:graphicFrame>')
+    return xml
 
 
 def _txbox_xml():
@@ -553,7 +588,7 @@ class TestShapeCollection(TestCase):
         self.assertLength(self.shapes, 9)
 
     @patch('pptx.shapes.Picture')
-    @patch('pptx.presentation.Collection._values', new_callable=PropertyMock)
+    @patch('pptx.util.Collection._values', new_callable=PropertyMock)
     @patch('pptx.shapes.ShapeCollection._ShapeCollection__package',
            new_callable=PropertyMock)
     def test_add_picture_collaboration(self, mock_package, mock_values,
@@ -592,9 +627,63 @@ class TestShapeCollection(TestCase):
         Picture.assert_called_once_with(pic)
         shapes._values.append.assert_called_once_with(picture)
 
-    @patch('pptx.presentation.Collection._values', new_callable=PropertyMock)
+    @patch('pptx.shapes.Collection._values', new_callable=PropertyMock)
+    @patch('pptx.shapes.Table')
+    @patch('pptx.shapes.CT_GraphicalObjectFrame')
+    @patch('pptx.shapes.ShapeCollection._ShapeCollection__next_shape_id',
+           new_callable=PropertyMock)
+    def test_add_table_collaboration(
+            self, __next_shape_id, CT_GraphicalObjectFrame, Table, _values):
+        """ShapeCollection.add_table() calls the right collaborators"""
+        # constant values -------------
+        sp_id = 9
+        name = 'Table 8'
+        rows = cols = 2
+        left = Inches(1.0)
+        top = Inches(2.0)
+        width = Inches(2.0)
+        height = Inches(2.0)
+        # setup mockery ---------------
+        __next_shape_id.return_value = sp_id
+        graphicFrame = Mock(name='graphicFrame')
+        CT_GraphicalObjectFrame.return_value = graphicFrame
+        __spTree = Mock(name='__spTree')
+        shapes = ShapeCollection(_empty_spTree())
+        shapes._ShapeCollection__spTree = __spTree
+        # exercise --------------------
+        table = shapes.add_table(rows, cols, left, top, width, height)
+        # verify ----------------------
+        __next_shape_id.assert_called_once_with()
+        CT_GraphicalObjectFrame.assert_called_once_with(
+            sp_id, name, rows, cols, left, top, width, height)
+        __spTree.append.assert_called_once_with(graphicFrame)
+        Table.assert_called_once_with(graphicFrame)
+        shapes._values.append.assert_called_once_with(table)
+
+    def test_add_table_xml(self):
+        """ShapeCollection.add_table() generates correct XML"""
+        # constant values -------------
+        rows = cols = 2
+        left = Inches(1.0)
+        top = Inches(2.0)
+        width = Inches(2.0)
+        height = Inches(2.0)
+        shapes = ShapeCollection(_empty_spTree())
+        # exercise --------------------
+        table = shapes.add_table(rows, cols, left, top, width, height)
+        # verify ----------------------
+        xml = oxml_tostring(table._element, encoding='UTF-8',
+                            pretty_print=True, standalone=True)
+        xml = prettify_nsdecls(xml)
+        xml_lines = xml.split('\n')
+        table_xml_lines = _table_xml().split('\n')
+        for idx, line in enumerate(xml_lines):
+            msg = "expected:\n%s\n\nbut got:\n\n%s" % (_table_xml(), xml)
+            self.assertEqual(table_xml_lines[idx], line, msg)
+
+    @patch('pptx.shapes.Collection._values', new_callable=PropertyMock)
     @patch('pptx.shapes.Shape')
-    @patch('pptx.presentation.ShapeCollection._ShapeCollection__next_shape_id',
+    @patch('pptx.shapes.ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
     def test_add_textbox_collaboration(self, __next_shape_id, Shape, _values):
         """ShapeCollection.add_textbox() calls the right collaborators"""
@@ -640,7 +729,7 @@ class TestShapeCollection(TestCase):
         xml_lines = xml.split('\n')
         txbox_xml_lines = _txbox_xml().split('\n')
         for idx, line in enumerate(xml_lines):
-            msg = "expected:\n%s\n\nbut got:\n\n%s" % (xml, _txbox_xml())
+            msg = "expected:\n%s\n\nbut got:\n\n%s" % (_txbox_xml(), xml)
             self.assertEqual(line, txbox_xml_lines[idx], msg)
 
     def test_title_value(self):

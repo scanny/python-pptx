@@ -75,7 +75,7 @@ constructed directly.
 
 The following properties and methods are common to all shapes.
 
-.. autoclass:: pptx.presentation.BaseShape
+.. autoclass:: pptx.shapes.BaseShape
    :members:
    :member-order: bysource
    :undoc-members:
@@ -84,19 +84,19 @@ The following properties and methods are common to all shapes.
 |TextFrame| objects
 ===================
 
-.. autoclass:: pptx.presentation.TextFrame()
+.. autoclass:: pptx.shapes.TextFrame()
    :members:
    :member-order: bysource
    :undoc-members:
 
 
-|_Font| objects
+|Font| objects
 ===============
 
-The |_Font| object is encountered as a property of |Run|, |Paragraph|, and in
+The |Font| object is encountered as a property of |Run|, |Paragraph|, and in
 future other presentation text objects.
 
-.. autoclass:: pptx.presentation._Font()
+.. autoclass:: pptx.shapes._Font()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -105,7 +105,7 @@ future other presentation text objects.
 |Paragraph| objects
 ===================
 
-.. autoclass:: pptx.presentation.Paragraph()
+.. autoclass:: pptx.shapes.Paragraph()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -114,7 +114,7 @@ future other presentation text objects.
 |Run| objects
 =============
 
-.. autoclass:: pptx.presentation.Run()
+.. autoclass:: pptx.shapes.Run()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -127,7 +127,7 @@ The remaining API classes of the :mod:`presentation` module are described
 here.
 
 .. automodule:: pptx.presentation
-   :members: BaseSlide, SlideMaster, SlideLayout, Slide, Picture
+   :members: BaseSlide, SlideMaster, SlideLayout, Slide
    :member-order: bysource
    :show-inheritance:
    :undoc-members:
@@ -146,6 +146,6 @@ here.
 
 .. |Run| replace:: :class:`Run`
 
-.. |_Font| replace:: :class:`_Font`
+.. |Font| replace:: :class:`_Font`
 
 

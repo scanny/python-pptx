@@ -1,10 +1,20 @@
-=====
+#####
 Table
-=====
+#####
 
-:Updated:  2013-02-11
+:Updated:  2013-03-30
 :Author:   Steve Canny
 :Status:   **WORKING DRAFT**
+
+
+Introduction
+============
+
+One of the shapes available for placing on a PowerPoint slide is the *table*.
+As shapes go, it is one of the more complex. In addition to having standard
+shape properties such as position and size, it contains what amount to
+sub-shapes that each have properties of their own. Prominent among these
+sub-element types are row, column, and cell.
 
 
 Discovery protocol
@@ -15,27 +25,17 @@ Discovery protocol
 * (.) Review and document relevant schema elements
 
 
-Notes
-=====
-
-Produced XML inspection
------------------------
-
-* a ``tableStyles.xml`` part is fleshed out substantially; looks like it's
-  populated from built-in defaults "Medium Style 2 - Accent 1". It appears to
-  specify colors indirectly by reference to theme-specified values.
-
-MS API Notes
-------------
+MS API Analysis
+===============
 
 MS API method to add a table is::
 
     Shapes.AddTable(NumRows, NumColumns, Left, Top, Width, Height)
 
-* There is a HasTable property on Shape to indicate the shape "has" a table.
-  Seems like "is" a table would be more apt, but I'm still looking :)
+There is a HasTable property on Shape to indicate the shape "has" a table.
+Seems like "is" a table would be more apt, but I'm still looking :)
 
-`Table Members`_ page on MSDN.
+From the `Table Members`_ page on MSDN.
 
 Most interesting ``Table`` members:
 
@@ -68,21 +68,19 @@ Columns collection and Rows collection both have an Add() method
 * Weight
 
 
-.. _Table Members:
-   http://msdn.microsoft.com/en-us/library/office/ff745711(v=office.14).aspx
+XML produced by PowerPoint® application
+=======================================
 
-.. _Column Members:
-   http://msdn.microsoft.com/en-us/library/office/ff746286(v=office.14).aspx
+Inspection Notes
+----------------
 
-.. _Cell Members:
-   http://msdn.microsoft.com/en-us/library/office/ff744136(v=office.14).aspx
-
-.. _LineFormat Members:
-   http://msdn.microsoft.com/en-us/library/office/ff745240(v=office.14).aspx
+A ``tableStyles.xml`` part is fleshed out substantially; looks like it's
+populated from built-in defaults "Medium Style 2 - Accent 1". It appears to
+specify colors indirectly by reference to theme-specified values.
 
 
 XML produced by PowerPoint® client
-==================================
+----------------------------------
 
 .. highlight:: xml
 
@@ -159,32 +157,19 @@ XML produced by PowerPoint® client
       </a:graphic>
     </p:graphicFrame>
 
-Summary
-=======
-
-...
-
-
-Description
-===========
-
-
-Behaviors
-=========
-
-
-Experiment(s)
--------------
-
-
-Specifications
-==============
-
-
-Related Specifications
-======================
-
 
 Resources
 =========
+
+.. _Table Members:
+   http://msdn.microsoft.com/en-us/library/office/ff745711(v=office.14).aspx
+
+.. _Column Members:
+   http://msdn.microsoft.com/en-us/library/office/ff746286(v=office.14).aspx
+
+.. _Cell Members:
+   http://msdn.microsoft.com/en-us/library/office/ff744136(v=office.14).aspx
+
+.. _LineFormat Members:
+   http://msdn.microsoft.com/en-us/library/office/ff745240(v=office.14).aspx
 
