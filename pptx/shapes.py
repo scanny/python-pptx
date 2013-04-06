@@ -181,8 +181,8 @@ class ShapeCollection(BaseShape, Collection):
             elif elm.tag == self._GRAPHICFRAME:
                 shape = Table(elm)
             elif elm.tag == self._CONTENTPART:
-                msg = "first time 'contentPart' shape encountered in the "\
-                      "wild, please let developer know and send example"
+                msg = ("first time 'contentPart' shape encountered in the "
+                       "wild, please let developer know and send example")
                 raise ValueError(msg)
             else:
                 shape = BaseShape(elm)
@@ -223,7 +223,9 @@ class ShapeCollection(BaseShape, Collection):
     def add_table(self, rows, cols, left, top, width, height):
         """
         Add table shape with the specified number of *rows* and *cols* at the
-        specified position with the specified size.
+        specified position with the specified size. *width* is evenly
+        distributed between the *cols* columns of the new table. Likewise,
+        *height* is evenly distributed between the *rows* rows created.
         """
         id = self.__next_shape_id
         name = 'Table %d' % (id-1)
@@ -511,12 +513,240 @@ class Shape(BaseShape):
         super(Shape, self).__init__(shape_element)
 
 
+# ============================================================================
+# Table-related classes
+# ============================================================================
+
 class Table(BaseShape):
     """
-    A table shape. Corresponds to the ``<p:graphicFrame>`` element.
+    A table shape. Not intended to be constructed directly, use
+    :meth:`ShapeCollection.add_table` to add a table to a slide.
     """
     def __init__(self, graphicFrame):
         super(Table, self).__init__(graphicFrame)
+        self.__graphicFrame = graphicFrame
+        self.__tbl_elm = graphicFrame[qn('a:graphic')].graphicData.tbl
+        self.__rows = _RowCollection(self.__tbl_elm, self)
+        self.__columns = _ColumnCollection(self.__tbl_elm, self)
+
+    def cell(self, row_idx, col_idx):
+        """Return table cell at *row_idx*, *col_idx* location"""
+        row = self.rows[row_idx]
+        return row.cells[col_idx]
+
+    @property
+    def columns(self):
+        """
+        Read-only reference to collection of |_Column| objects representing
+        the table's columns. |_Column| objects are accessed using list
+        notation, e.g. ``col = tbl.columns[0]``.
+        """
+        return self.__columns
+
+    @property
+    def height(self):
+        """
+        Read-only integer height of table in English Metric Units (EMU)
+        """
+        return int(self.__graphicFrame.xfrm[qn('a:ext')].get('cy'))
+
+    @property
+    def rows(self):
+        """
+        Read-only reference to collection of |_Row| objects representing the
+        table's rows. |_Row| objects are accessed using list notation, e.g.
+        ``col = tbl.rows[0]``.
+        """
+        return self.__rows
+
+    @property
+    def width(self):
+        """
+        Read-only integer width of table in English Metric Units (EMU)
+        """
+        return int(self.__graphicFrame.xfrm[qn('a:ext')].get('cx'))
+
+    def _notify_height_changed(self):
+        """
+        Called by a row when its height changes, triggering the graphic frame
+        to recalculate its total height (as the sum of the row heights).
+        """
+        new_table_height = sum([row.height for row in self.rows])
+        self.__graphicFrame.xfrm[qn('a:ext')].set('cy', str(new_table_height))
+
+    def _notify_width_changed(self):
+        """
+        Called by a column when its width changes, triggering the graphic
+        frame to recalculate its total width (as the sum of the column
+        widths).
+        """
+        new_table_width = sum([col.width for col in self.columns])
+        self.__graphicFrame.xfrm[qn('a:ext')].set('cx', str(new_table_width))
+
+
+class _Cell(object):
+    """
+    Table cell
+    """
+
+    def __init__(self, tc):
+        super(_Cell, self).__init__()
+        self.__tc = tc
+
+    def _set_text(self, text):
+        """Replace all text in cell with single run containing *text*"""
+        self.textframe.text = _to_unicode(text)
+
+    #: Write-only. Assignment to *text* replaces all text currently contained
+    #: in the cell, resulting in a text frame containing exactly one
+    #: paragraph, itself containing a single run. The assigned value can be a
+    #: 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. String
+    #: values are converted to unicode assuming UTF-8 encoding.
+    text = property(None, _set_text)
+
+    @property
+    def textframe(self):
+        """
+        |TextFrame| instance containing the text that appears in the cell.
+        """
+        txBody = _child(self.__tc, 'a:txBody')
+        if txBody is None:
+            raise ValueError('cell has no text frame')
+        return TextFrame(txBody)
+
+
+class _Column(object):
+    """
+    Table column
+    """
+
+    def __init__(self, gridCol, table):
+        super(_Column, self).__init__()
+        self.__gridCol = gridCol
+        self.__table = table
+
+    def _get_width(self):
+        """
+        Return width of column in EMU
+        """
+        return int(self.__gridCol.get('w'))
+
+    def _set_width(self, width):
+        """
+        Set column width to *width*, a positive integer value.
+        """
+        if not isinstance(width, int) or width < 0:
+            msg = "column width must be positive integer"
+            raise ValueError(msg)
+        self.__gridCol.set('w', str(width))
+        self.__table._notify_width_changed()
+
+    #: Read-write integer width of this column in English Metric Units (EMU).
+    width = property(_get_width, _set_width)
+
+
+class _Row(object):
+    """
+    Table row
+    """
+
+    def __init__(self, tr, table):
+        super(_Row, self).__init__()
+        self.__tr = tr
+        self.__table = table
+        self.__cells = _CellCollection(tr)
+
+    @property
+    def cells(self):
+        """
+        Read-only reference to collection of cells in row. An individual cell
+        is referenced using list notation, e.g. ``cell = row.cells[0]``.
+        """
+        return self.__cells
+
+    def _get_height(self):
+        """
+        Return height of row in EMU
+        """
+        return int(self.__tr.get('h'))
+
+    def _set_height(self, height):
+        """
+        Set row height to *height*, a positive integer value.
+        """
+        if not isinstance(height, int) or height < 0:
+            msg = "row height must be positive integer"
+            raise ValueError(msg)
+        self.__tr.set('h', str(height))
+        self.__table._notify_height_changed()
+
+    #: Read/write integer height of this row in English Metric Units (EMU).
+    height = property(_get_height, _set_height)
+
+
+class _CellCollection(object):
+    """
+    "Horizontal" sequence of row cells
+    """
+
+    def __init__(self, tr):
+        super(_CellCollection, self).__init__()
+        self.__tr = tr
+
+    def __getitem__(self, idx):
+        """Provides indexed access, (e.g. 'cells[0]')."""
+        if idx < 0 or idx >= len(self.__tr.tc):
+            msg = "cell index [%d] out of range" % idx
+            raise IndexError(msg)
+        return _Cell(self.__tr.tc[idx])
+
+    def __len__(self):
+        """Supports len() function (e.g. 'len(cells) == 1')."""
+        return len(self.__tr.tc)
+
+
+class _ColumnCollection(object):
+    """
+    Sequence of table columns.
+    """
+
+    def __init__(self, tbl_elm, table):
+        super(_ColumnCollection, self).__init__()
+        self.__tbl_elm = tbl_elm
+        self.__table = table
+
+    def __getitem__(self, idx):
+        """Provides indexed access, (e.g. 'columns[0]')."""
+        if idx < 0 or idx >= len(self.__tbl_elm.tblGrid.gridCol):
+            msg = "column index [%d] out of range" % idx
+            raise IndexError(msg)
+        return _Column(self.__tbl_elm.tblGrid.gridCol[idx], self.__table)
+
+    def __len__(self):
+        """Supports len() function (e.g. 'len(columns) == 1')."""
+        return len(self.__tbl_elm.tblGrid.gridCol)
+
+
+class _RowCollection(object):
+    """
+    Sequence of table rows.
+    """
+
+    def __init__(self, tbl_elm, table):
+        super(_RowCollection, self).__init__()
+        self.__tbl_elm = tbl_elm
+        self.__table = table
+
+    def __getitem__(self, idx):
+        """Provides indexed access, (e.g. 'rows[0]')."""
+        if idx < 0 or idx >= len(self.__tbl_elm.tr):
+            msg = "row index [%d] out of range" % idx
+            raise IndexError(msg)
+        return _Row(self.__tbl_elm.tr[idx], self.__table)
+
+    def __len__(self):
+        """Supports len() function (e.g. 'len(rows) == 1')."""
+        return len(self.__tbl_elm.tr)
 
 
 # ============================================================================
@@ -540,12 +770,7 @@ class TextFrame(object):
         the paragraphs in this text frame. A text frame always contains at
         least one paragraph.
         """
-        xpath = './a:p'
-        p_elms = self.__txBody.xpath(xpath, namespaces=_nsmap)
-        paragraphs = []
-        for p in p_elms:
-            paragraphs.append(Paragraph(p))
-        return tuple(paragraphs)
+        return tuple([Paragraph(p) for p in self.__txBody[qn('a:p')]])
 
     def _set_text(self, text):
         """Replace all text in text frame with single run containing *text*"""

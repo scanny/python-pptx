@@ -12,7 +12,7 @@ from the package::
 The components that constitute a presentation, e.g. slides, shapes, etc., are
 lodged in a graph of which the |Presentation| object is the root. All existing
 presentation components are referenced by traversing the graph and new objects
-are added to the graph by calling a method on that objects containing object.
+are added to the graph by calling a method on that object's containing object.
 Consequently, the only presentation object that is constructed directly is
 |Presentation|.
 
@@ -81,6 +81,50 @@ The following properties and methods are common to all shapes.
    :undoc-members:
 
 
+|Table| objects
+===============
+
+A |Table| object is added to a slide using the :meth:`add_table` method on
+|ShapeCollection|.
+
+.. autoclass:: pptx.shapes.Table
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|_Column| objects
+=================
+
+.. autoclass:: pptx.shapes._Column()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|_Row| objects
+==============
+
+.. autoclass:: pptx.shapes._Row()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|_Cell| objects
+===============
+
+A |_Cell| object represents a single table cell at a particular row/column
+location in the table. |_Cell| objects are not constructed directly. A
+reference to a |_Cell| object is obtained using the :meth:`Table.cell` method,
+specifying the cell's row/column location.
+
+.. autoclass:: pptx.shapes._Cell
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |TextFrame| objects
 ===================
 
@@ -132,7 +176,19 @@ here.
    :show-inheritance:
    :undoc-members:
 
+.. |_Cell| replace:: :class:`_Cell`
+
+.. |_Column| replace:: :class:`_Column`
+
+.. |Font| replace:: :class:`_Font`
+
+.. |Paragraph| replace:: :class:`Paragraph`
+
 .. |Presentation| replace:: :class:`~pptx.Presentation`
+
+.. |_Row| replace:: :class:`_Row`
+
+.. |Run| replace:: :class:`Run`
 
 .. |SlideCollection| replace:: :class:`SlideCollection`
 
@@ -140,12 +196,7 @@ here.
 
 .. |ShapeCollection| replace:: :class:`ShapeCollection`
 
+.. |Table| replace:: :class:`Table`
+
 .. |TextFrame| replace:: :class:`TextFrame`
-
-.. |Paragraph| replace:: :class:`Paragraph`
-
-.. |Run| replace:: :class:`Run`
-
-.. |Font| replace:: :class:`_Font`
-
 

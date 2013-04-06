@@ -25,8 +25,9 @@ from pptx.oxml import _SubElement, oxml_fromstring, oxml_tostring, oxml_parse
 from pptx.packaging import prettify_nsdecls
 from pptx.presentation import SlideLayout
 from pptx.shapes import (
-    ShapeCollection, BaseShape, Shape, Placeholder, TextFrame, _Font,
-    Paragraph, Run, _to_unicode)
+    BaseShape, _Cell, _CellCollection, _Column, _ColumnCollection, _Font,
+    Paragraph, Placeholder, _Row, _RowCollection, Run, Shape, ShapeCollection,
+    TextFrame, _to_unicode)
 from pptx.spec import namespaces
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
@@ -89,9 +90,6 @@ def _sldLayout1_shapes():
 
 
 def _table_xml():
-    """
-    vim macro to break: 78|i''üiü
-    """
     xml = (
         '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<p:gr'
         'aphicFrame xmlns:p="http://schemas.openxmlformats.org/presentationml'
@@ -105,14 +103,14 @@ def _table_xml():
         'l/2006/table">\n      <a:tbl>\n        <a:tblPr firstRow="1" bandRow'
         '="1">\n          <a:tableStyleId>{5C22544A-7EE6-4342-B048-85BDC9FD1C'
         '3A}</a:tableStyleId>\n        </a:tblPr>\n        <a:tblGrid>\n     '
-        '     <a:gridCol w="3048000"/>\n          <a:gridCol w="3048000"/>\n '
-        '       </a:tblGrid>\n        <a:tr h="370840">\n          <a:tc>\n  '
+        '     <a:gridCol w="914400"/>\n          <a:gridCol w="914400"/>\n '
+        '       </a:tblGrid>\n        <a:tr h="914400">\n          <a:tc>\n  '
         '          <a:txBody>\n              <a:bodyPr/>\n              <a:ls'
         'tStyle/>\n              <a:p/>\n            </a:txBody>\n           '
         ' <a:tcPr/>\n          </a:tc>\n          <a:tc>\n            <a:txBo'
         'dy>\n              <a:bodyPr/>\n              <a:lstStyle/>\n       '
         '       <a:p/>\n            </a:txBody>\n            <a:tcPr/>\n     '
-        '     </a:tc>\n        </a:tr>\n        <a:tr h="370840">\n          '
+        '     </a:tc>\n        </a:tr>\n        <a:tr h="914400">\n          '
         '<a:tc>\n            <a:txBody>\n              <a:bodyPr/>\n         '
         '     <a:lstStyle/>\n              <a:p/>\n            </a:txBody>\n '
         '           <a:tcPr/>\n          </a:tc>\n          <a:tc>\n         '
@@ -138,6 +136,26 @@ def _txbox_xml():
     return xml
 
 
+class Test_Cell(TestCase):
+    """Test _Cell"""
+    def setUp(self):
+        tc_xml = (
+            '<a:tc xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main"><a:txBody><a:p/></a:txBody></a:tc>')
+        test_tc_elm = oxml_fromstring(tc_xml)
+        self.cell = _Cell(test_tc_elm)
+
+    def test_text_round_trips_intact(self):
+        """_Cell.text (setter) sets cell text"""
+        # setup -----------------------
+        test_text = 'test_text'
+        # exercise --------------------
+        self.cell.text = test_text
+        # verify ----------------------
+        text = self.cell.textframe.paragraphs[0].runs[0].text
+        assert_that(text, is_(equal_to(test_text)))
+
+
 class TestBaseShape(TestCase):
     """Test BaseShape"""
     def setUp(self):
@@ -160,8 +178,8 @@ class TestBaseShape(TestCase):
         # verify ----------------------
         expected = [0, 1, 3, 5, 6]
         actual = indexes
-        msg = "expected txBody element in shapes %s, got %s"\
-              % (expected, actual)
+        msg = ("expected txBody element in shapes %s, got %s" %
+               (expected, actual))
         self.assertEqual(expected, actual, msg)
 
     def test_id_value(self):
@@ -250,6 +268,123 @@ class TestBaseShape(TestCase):
         """assignment to BaseShape.text raises for shape with no text frame"""
         with self.assertRaises(TypeError):
             self.base_shape.text = 'test text'
+
+
+class Test_CellCollection(TestCase):
+    """Test _CellCollection"""
+    def setUp(self):
+        tr_xml = (
+            '<a:tr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main" h="370840"><a:tc><a:txBody><a:p/></a:txBody></a:tc><a:tc'
+            '><a:txBody><a:p/></a:txBody></a:tc></a:tr>')
+        test_tr_elm = oxml_fromstring(tr_xml)
+        self.cells = _CellCollection(test_tr_elm)
+
+    def test_is_indexable(self):
+        """_CellCollection indexable (e.g. no TypeError on 'cells[0]')"""
+        # verify ----------------------
+        try:
+            self.cells[0]
+        except TypeError:
+            msg = "'_CellCollection' object does not support indexing"
+            self.fail(msg)
+        except IndexError:
+            pass
+
+    def test_is_iterable(self):
+        """_CellCollection is iterable (e.g. ``for cell in cells:``)"""
+        # verify ----------------------
+        count = 0
+        try:
+            for cell in self.cells:
+                count += 1
+        except TypeError:
+            msg = "_CellCollection object is not iterable"
+            self.fail(msg)
+        assert_that(count, is_(equal_to(2)))
+
+    def test_raises_on_idx_out_of_range(self):
+        """_CellCollection raises on index out of range"""
+        with self.assertRaises(IndexError):
+            self.cells[9]
+
+    def test_cell_count_correct(self):
+        """len(_CellCollection) returns correct cell count"""
+        # verify ----------------------
+        assert_that(len(self.cells), is_(equal_to(2)))
+
+
+class Test_Column(TestCase):
+    """Test _Column"""
+    def setUp(self):
+        gridCol_xml = (
+            '<a:gridCol xmlns:a="http://schemas.openxmlformats.org/drawingml/'
+            '2006/main" w="3048000"/>')
+        test_gridCol_elm = oxml_fromstring(gridCol_xml)
+        self.column = _Column(test_gridCol_elm, Mock(name='table'))
+
+    def test_width_from_xml_correct(self):
+        """_Column.width returns correct value from gridCol XML element"""
+        # verify ----------------------
+        assert_that(self.column.width, is_(equal_to(3048000)))
+
+    def test_width_round_trips_intact(self):
+        """_Column.width round-trips intact"""
+        # setup -----------------------
+        self.column.width = 999
+        # verify ----------------------
+        assert_that(self.column.width, is_(equal_to(999)))
+
+    def test_set_width_raises_on_bad_value(self):
+        """_Column.width raises on attempt to assign invalid value"""
+        test_cases = ('abc', '1', -1)
+        for value in test_cases:
+            with self.assertRaises(ValueError):
+                self.column.width = value
+
+
+class Test_ColumnCollection(TestCase):
+    """Test _ColumnCollection"""
+    def setUp(self):
+        tbl_xml = (
+            '<a:tbl xmlns:a="http://schemas.openxmlformats.org/drawingml/200'
+            '6/main"><a:tblGrid><a:gridCol w="3048000"/><a:gridCol w="304800'
+            '0"/></a:tblGrid></a:tbl>')
+        test_tbl_elm = oxml_fromstring(tbl_xml)
+        self.columns = _ColumnCollection(test_tbl_elm, Mock(name='table'))
+
+    def test_is_indexable(self):
+        """_ColumnCollection indexable (e.g. no TypeError on 'columns[0]')"""
+        # verify ----------------------
+        try:
+            self.columns[0]
+        except TypeError:
+            msg = "'_ColumnCollection' object does not support indexing"
+            self.fail(msg)
+        except IndexError:
+            pass
+
+    def test_is_iterable(self):
+        """_ColumnCollection is iterable (e.g. ``for col in columns:``)"""
+        # verify ----------------------
+        count = 0
+        try:
+            for col in self.columns:
+                count += 1
+        except TypeError:
+            msg = "_ColumnCollection object is not iterable"
+            self.fail(msg)
+        assert_that(count, is_(equal_to(2)))
+
+    def test_raises_on_idx_out_of_range(self):
+        """_ColumnCollection raises on index out of range"""
+        with self.assertRaises(IndexError):
+            self.columns[9]
+
+    def test_column_count_correct(self):
+        """len(_ColumnCollection) returns correct column count"""
+        # verify ----------------------
+        assert_that(len(self.columns), is_(equal_to(2)))
 
 
 class Test_Font(TestCase):
@@ -402,6 +537,11 @@ class TestParagraph(TestCase):
                    (expected_xml, p_xml))
             self.assertEqual(line, expected_xml_lines[idx], msg)
 
+    def test_level_default_is_zero(self):
+        """Paragraph.level defaults to zero on no lvl attribute"""
+        # verify ----------------------
+        assert_that(self.paragraph.level, is_(equal_to(0)))
+
     def test_level_roundtrips_intact(self):
         """Paragraph.level property round-trips intact"""
         # exercise --------------------
@@ -479,6 +619,36 @@ class TestParagraph(TestCase):
             self.fail(msg)
 
 
+class Test_Row(TestCase):
+    """Test _Row"""
+    def setUp(self):
+        tr_xml = (
+            '<a:tr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main" h="370840"><a:tc><a:txBody><a:p/></a:txBody></a:tc><a:tc'
+            '><a:txBody><a:p/></a:txBody></a:tc></a:tr>')
+        test_tr_elm = oxml_fromstring(tr_xml)
+        self.row = _Row(test_tr_elm, Mock(name='table'))
+
+    def test_height_from_xml_correct(self):
+        """_Row.height returns correct value from tr XML element"""
+        # verify ----------------------
+        assert_that(self.row.height, is_(equal_to(370840)))
+
+    def test_height_round_trips_intact(self):
+        """_Row.height round-trips intact"""
+        # setup -----------------------
+        self.row.height = 999
+        # verify ----------------------
+        assert_that(self.row.height, is_(equal_to(999)))
+
+    def test_set_height_raises_on_bad_value(self):
+        """_Row.height raises on attempt to assign invalid value"""
+        test_cases = ('abc', '1', -1)
+        for value in test_cases:
+            with self.assertRaises(ValueError):
+                self.row.height = value
+
+
 class TestPlaceholder(TestCase):
     """Test Placeholder"""
     def test_property_values(self):
@@ -502,6 +672,52 @@ class TestPlaceholder(TestCase):
             msg = ("expected shapes[%d] values %s, got %s"
                    % (idx, expected, actual))
             self.assertEqual(expected, actual, msg)
+
+
+class Test_RowCollection(TestCase):
+    """Test _RowCollection"""
+    def setUp(self):
+        tbl_xml = (
+            '<a:tbl xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main"><a:tr h="370840"><a:tc><a:txBody><a:p/></a:txBody></a:tc>'
+            '<a:tc><a:txBody><a:p/></a:txBody></a:tc></a:tr><a:tr h="370840">'
+            '<a:tc><a:txBody><a:p/></a:txBody></a:tc><a:tc><a:txBody><a:p/></'
+            'a:txBody></a:tc></a:tr></a:tbl>')
+        test_tbl_elm = oxml_fromstring(tbl_xml)
+        self.rows = _RowCollection(test_tbl_elm, Mock(name='table'))
+
+    def test_is_indexable(self):
+        """_RowCollection indexable (e.g. no TypeError on 'rows[0]')"""
+        # verify ----------------------
+        try:
+            self.rows[0]
+        except TypeError:
+            msg = "'_RowCollection' object does not support indexing"
+            self.fail(msg)
+        except IndexError:
+            pass
+
+    def test_is_iterable(self):
+        """_RowCollection is iterable (e.g. ``for row in rows:``)"""
+        # verify ----------------------
+        count = 0
+        try:
+            for row in self.rows:
+                count += 1
+        except TypeError:
+            msg = "_RowCollection object is not iterable"
+            self.fail(msg)
+        assert_that(count, is_(equal_to(2)))
+
+    def test_raises_on_idx_out_of_range(self):
+        """_RowCollection raises on index out of range"""
+        with self.assertRaises(IndexError):
+            self.rows[9]
+
+    def test_row_count_correct(self):
+        """len(_RowCollection) returns correct row count"""
+        # verify ----------------------
+        assert_that(len(self.rows), is_(equal_to(2)))
 
 
 class TestRun(TestCase):
@@ -586,6 +802,15 @@ class TestShapeCollection(TestCase):
         """ShapeCollection is expected size after construction"""
         # verify ----------------------
         self.assertLength(self.shapes, 9)
+
+    def test_constructor_raises_on_contentPart_shape(self):
+        """ShapeCollection() raises on contentPart shape"""
+        # setup -----------------------
+        spTree = _empty_spTree()
+        _SubElement(spTree, 'p:contentPart')
+        # verify ----------------------
+        with self.assertRaises(ValueError):
+            ShapeCollection(spTree)
 
     @patch('pptx.shapes.Picture')
     @patch('pptx.util.Collection._values', new_callable=PropertyMock)
@@ -742,6 +967,14 @@ class TestShapeCollection(TestCase):
         msg = "expected shapes[%d], got shapes[%d]" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
+    def test_title_is_none_on_no_title_placeholder(self):
+        """ShapeCollection.title value is None when no title placeholder"""
+        # setup -----------------------
+        spTree = _empty_spTree()
+        shapes = ShapeCollection(spTree)
+        # verify ----------------------
+        assert_that(shapes.title, is_(None))
+
     def test_placeholders_values(self):
         """ShapeCollection.placeholders values are correct and sorted"""
         # setup -----------------------
@@ -882,8 +1115,8 @@ class TestShapeCollection(TestCase):
             # verify ----------------------
             expected = expected_name
             actual = name
-            msg = "expected placeholder name '%s', got '%s'"\
-                  % (expected, actual)
+            msg = ("expected placeholder name '%s', got '%s'" %
+                   (expected, actual))
             self.assertEqual(expected, actual, msg)
 
     def test___next_shape_id_value(self):
@@ -935,20 +1168,81 @@ class TestShapeCollection(TestCase):
         test_image = PILImage.open(test_image_path)
         pic_size = tuple(Px(x) for x in test_image.size)
         xml = (
-            '<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/2'
-            '006/main" xmlns:p="http://schemas.openxmlformats.org/presentatio'
-            'nml/2006/main" xmlns:r="http://schemas.openxmlformats.org/office'
-            'Document/2006/relationships"><p:nvPicPr><p:cNvPr id="4" name="Pi'
-            'cture 3"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip '
-            'r:embed="rId9"/><a:stretch><a:fillRect/></a:stretch></p:blipFill'
-            '><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="%s" cy="%s"/></a'
-            ':xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></'
-            'p:pic>' % pic_size)
+            '<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main" xmlns:p="http://schemas.openxmlformats.org/presentationml'
+            '/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDoc'
+            'ument/2006/relationships"><p:nvPicPr><p:cNvPr id="4" name="Pictu'
+            're 3"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:e'
+            'mbed="rId9"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p'
+            ':spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="%s" cy="%s"/></a:xf'
+            'rm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:p'
+            'ic>' % pic_size)
         # exercise --------------------
         with open(test_image_path) as stream:
             pic = self.shapes._ShapeCollection__pic('rId9', stream, 0, 0)
         # verify ----------------------
         assert_that(oxml_tostring(pic), is_(equal_to(xml)))
+
+
+class TestTable(TestCase):
+    """Test Table"""
+    def test_initial_height_divided_evenly_between_rows(self):
+        """Table creation height divided evenly between rows"""
+        # constant values -------------
+        rows = cols = 3
+        left = top = Inches(1.0)
+        width = Inches(2.0)
+        height = 1000
+        shapes = ShapeCollection(_empty_spTree())
+        # exercise --------------------
+        table = shapes.add_table(rows, cols, left, top, width, height)
+        # verify ----------------------
+        assert_that(table.rows[0].height, is_(equal_to(333)))
+        assert_that(table.rows[1].height, is_(equal_to(333)))
+        assert_that(table.rows[2].height, is_(equal_to(334)))
+
+    def test_initial_width_divided_evenly_between_columns(self):
+        """Table creation width divided evenly between columns"""
+        # constant values -------------
+        rows = cols = 3
+        left = top = Inches(1.0)
+        width = 1000
+        height = Inches(2.0)
+        shapes = ShapeCollection(_empty_spTree())
+        # exercise --------------------
+        table = shapes.add_table(rows, cols, left, top, width, height)
+        # verify ----------------------
+        assert_that(table.columns[0].width, is_(equal_to(333)))
+        assert_that(table.columns[1].width, is_(equal_to(333)))
+        assert_that(table.columns[2].width, is_(equal_to(334)))
+
+    def test_height_sum_of_row_heights(self):
+        """Table.height is sum of row heights"""
+        # constant values -------------
+        rows = cols = 2
+        left = top = width = height = Inches(2.0)
+        # setup -----------------------
+        shapes = ShapeCollection(_empty_spTree())
+        tbl = shapes.add_table(rows, cols, left, top, width, height)
+        tbl.rows[0].height = 100
+        tbl.rows[1].height = 200
+        # verify ----------------------
+        sum_of_row_heights = 300
+        assert_that(tbl.height, is_(equal_to(sum_of_row_heights)))
+
+    def test_width_sum_of_col_widths(self):
+        """Table.width is sum of column widths"""
+        # constant values -------------
+        rows = cols = 2
+        left = top = width = height = Inches(2.0)
+        # setup -----------------------
+        shapes = ShapeCollection(_empty_spTree())
+        tbl = shapes.add_table(rows, cols, left, top, width, height)
+        tbl.columns[0].width = 100
+        tbl.columns[1].width = 200
+        # verify ----------------------
+        sum_of_col_widths = tbl.columns[0].width + tbl.columns[1].width
+        assert_that(tbl.width, is_(equal_to(sum_of_col_widths)))
 
 
 class TestTextFrame(TestCase):
@@ -967,7 +1261,7 @@ class TestTextFrame(TestCase):
             textframe = TextFrame(txBody)
             # exercise ----------------
             actual_lengths.append(len(textframe.paragraphs))
-        # verify ------------------
+        # verify ----------------------
         expected = [1, 1, 2, 1, 1]
         actual = actual_lengths
         msg = "expected paragraph count %s, got %s" % (expected, actual)

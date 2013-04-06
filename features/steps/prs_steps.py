@@ -65,6 +65,17 @@ def step_given_ref_to_slide(context):
     context.sld = context.prs.slides.add_slide(slidelayout)
 
 
+@given('I have a reference to a table')
+def step_given_ref_to_table(context):
+    context.prs = Presentation()
+    slidelayout = context.prs.slidelayouts[6]
+    context.sld = context.prs.slides.add_slide(slidelayout)
+    shapes = context.sld.shapes
+    x, y = (Inches(1.00), Inches(2.00))
+    cx, cy = (Inches(3.00), Inches(1.00))
+    context.tbl = shapes.add_table(2, 2, x, y, cx, cy)
+
+
 # when ====================================================
 
 @when('I add a new slide')
@@ -152,9 +163,20 @@ def step_when_save_presentation_to_stream(context):
     context.prs.save(context.stream)
 
 
+@when("I set the text of the first cell")
+def step_when_set_text_of_first_cell(context):
+    context.tbl.cell(0, 0).text = 'test text'
+
+
 @when("I set the title text of the slide")
 def step_when_set_slide_title_text(context):
     context.sld.shapes.title.text = test_text
+
+
+@when("I set the width of the table's columns")
+def step_when_set_table_column_widths(context):
+    context.tbl.columns[0].width = Inches(1.50)
+    context.tbl.columns[1].width = Inches(3.00)
 
 
 # then ====================================================
@@ -205,6 +227,12 @@ def step_then_picture_appears_in_slide(context):
     assert_that(classnames, has_item('Picture'))
 
 
+@then('the pptx file contains a single slide')
+def step_then_pptx_file_contains_single_slide(context):
+    prs = Presentation(saved_pptx_path)
+    assert_that(len(prs.slides), is_(equal_to(1)))
+
+
 @then('the table appears in the slide')
 def step_then_table_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
@@ -214,18 +242,30 @@ def step_then_table_appears_in_slide(context):
     assert_that(classnames, has_item('Table'))
 
 
+@then('the table appears with the new column widths')
+def step_then_table_appears_with_new_col_widths(context):
+    prs = Presentation(saved_pptx_path)
+    sld = prs.slides[0]
+    tbl = sld.shapes[0]
+    assert_that(tbl.columns[0].width, is_(equal_to(Inches(1.50))))
+    assert_that(tbl.columns[1].width, is_(equal_to(Inches(3.00))))
+
+
+@then('the text appears in the first cell of the table')
+def step_then_text_appears_in_first_cell_of_table(context):
+    prs = Presentation(saved_pptx_path)
+    sld = prs.slides[0]
+    tbl = sld.shapes[0]
+    text = tbl.cell(0, 0).textframe.paragraphs[0].runs[0].text
+    assert_that(text, is_(equal_to('test text')))
+
+
 @then('the text box appears in the slide')
 def step_then_text_box_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
     textbox = prs.slides[0].shapes[0]
     textbox_text = textbox.textframe.paragraphs[0].runs[0].text
     assert_that(textbox_text, is_(equal_to(test_text)))
-
-
-@then('the pptx file contains a single slide')
-def step_then_pptx_file_contains_single_slide(context):
-    prs = Presentation(saved_pptx_path)
-    assert_that(len(prs.slides), is_(equal_to(1)))
 
 
 @then('the text appears in the title placeholder')

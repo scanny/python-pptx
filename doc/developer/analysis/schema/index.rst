@@ -7,11 +7,13 @@ Collected bits and pieces from the XML Schema docs, MSDN web pages, and the ISO/
 .. toctree::
    :maxdepth: 1
 
-   ct_presentation
-   ct_slide
-   ct_shape
-   ct_placeholder
+   ct_graphicalobjectframe
    ct_picture
+   ct_placeholder
+   ct_presentation
+   ct_shape
+   ct_slide
+   ct_table
    ct_textbody
    ct_textparagraph
    miscellaneous

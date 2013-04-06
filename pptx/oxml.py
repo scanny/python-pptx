@@ -143,14 +143,20 @@ def CT_GraphicalObjectFrame(id, name, rows, cols, left, top, width, height):
     graphicFrame = oxml_fromstring(xml)
 
     tbl = graphicFrame[qn('a:graphic')].graphicData.tbl
-    rowheight = '370840'
-    colwidth = '3048000'
+    rowheight = height/rows
+    colwidth = width/cols
 
     for col in range(cols):
-        sub_elm(tbl.tblGrid, 'a:gridCol', w=colwidth)
+        # adjust width of last col to absorb any div error
+        if col == cols-1:
+            colwidth = width - ((cols-1) * colwidth)
+        sub_elm(tbl.tblGrid, 'a:gridCol', w=str(colwidth))
 
     for row in range(rows):
-        tr = sub_elm(tbl, 'a:tr', h=rowheight)
+        # adjust height of last row to absorb any div error
+        if row == rows-1:
+            rowheight = height - ((rows-1) * rowheight)
+        tr = sub_elm(tbl, 'a:tr', h=str(rowheight))
         for col in range(cols):
             tr.append(_empty_cell())
 

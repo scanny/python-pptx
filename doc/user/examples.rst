@@ -135,9 +135,53 @@ shape's paragraphs except the first one before setting the text it contains.
     pic = slide.shapes.add_picture(img_path, left, top)
 
     left = Inches(5)
-    width  = Px(280)
+    width = Px(280)
     height = int(width*1.427)
     pic = slide.shapes.add_picture(img_path, left, top, width, height)
+
+    prs.save('test.pptx')
+
+
+----
+
+
+``add_table()`` example
+=======================
+
+.. image:: /_static/img/add-table.png
+
+|
+
+::
+
+    from pptx import Presentation
+    from pptx.util import Inches
+
+    prs = Presentation()
+    title_only_slidelayout = prs.slidelayouts[5]
+    slide = prs.slides.add_slide(title_only_slidelayout)
+    shapes = slide.shapes
+
+    shapes.title.text = 'Adding a Table'
+
+    rows = cols = 2
+    left = top = Inches(2.0)
+    width = Inches(6.0)
+    height = Inches(0.8)
+
+    tbl = shapes.add_table(rows, cols, left, top, width, height)
+
+    # set column widths
+    tbl.columns[0].width = Inches(2.0)
+    tbl.columns[1].width = Inches(4.0)
+
+    # write column headings
+    tbl.cell(0, 0).text = 'Foo'
+    tbl.cell(0, 1).text = 'Bar'
+
+    # write body cells
+    tbl.cell(1, 0).text = 'Baz'
+    tbl.cell(1, 1).text = 'Qux'
 
     prs.save('test.pptx')
 
