@@ -8,5 +8,7 @@ PowerPoint application.
 .. toctree::
    :maxdepth: 1
 
+   chart
+   manipulate-chart
    placeholders_in_new_slide
 
