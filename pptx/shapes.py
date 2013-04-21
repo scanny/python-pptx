@@ -624,6 +624,22 @@ class _Font(object):
         elif 'b' in self.__rPr.attrib:
             del self.__rPr.attrib['b']
 
+    @property
+    def italic(self):
+        """
+        Get or set boolean italic value of |Font|, e.g.
+        ``paragraph.font.italic = True``.
+        """
+        i = self.__rPr.get('i')
+        return True if i in ('true', '1') else False
+
+    @italic.setter
+    def italic(self, bool):
+        if bool:
+            self.__rPr.set('i', '1')
+        elif 'i' in self.__rPr.attrib:
+            del self.__rPr.attrib['i']
+
     def _set_size(self, centipoints):
         # handle float centipoints value gracefully
         centipoints = int(centipoints)

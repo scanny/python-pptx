@@ -90,7 +90,9 @@ def _sldLayout1_shapes():
 
 def _table_xml():
     """
-    vim macro to break: 78|i''üiü
+    vim macro to break: 78|i''ü
+i
+ü
     """
     xml = (
         '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<p:gr'
@@ -294,6 +296,45 @@ class Test_Font(TestCase):
             '/main"/>')
         # exercise --------------------
         font.bold = False
+        # verify ----------------------
+        rPr_xml = oxml_tostring(font._Font__rPr)
+        assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
+
+    def test_get_italic_setting(self):
+        """_Font.italic returns True on italicized font"""
+        # setup -----------------------
+        rPr_xml = '<a:rPr%s i="1"/>' % nsprefix_decls
+        rPr = oxml_fromstring(rPr_xml)
+        font = _Font(rPr)
+        # verify ----------------------
+        assert_that(self.font.italic, is_(False))
+        assert_that(font.italic, is_(True))
+
+    def test_set_italic(self):
+        """Setting _Font.italic to True selects italicized font"""
+        # setup -----------------------
+        expected_rPr_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main" i="1"/>')
+        # exercise --------------------
+        self.font.italic = True
+        # verify ----------------------
+        rPr_xml = oxml_tostring(self.font._Font__rPr)
+        assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
+
+    def test_clear_italic(self):
+        """Setting _Font.italic to False selects normal font"""
+        # setup -----------------------
+        rPr_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main" i="1"/>')
+        rPr = oxml_fromstring(rPr_xml)
+        font = _Font(rPr)
+        expected_rPr_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main"/>')
+        # exercise --------------------
+        font.italic = False
         # verify ----------------------
         rPr_xml = oxml_tostring(font._Font__rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
