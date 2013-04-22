@@ -87,7 +87,7 @@ def sub_elm(parent, tag, **extra):
 
 def _child(element, child_tagname):
     """
-    Return direct child of *element* having *child_tagname* or :class:`None`
+    Return direct child of *element* having *child_tagname* or |None|
     if no such child element is present.
     """
     xpath = './%s' % child_tagname

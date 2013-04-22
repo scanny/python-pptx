@@ -9,12 +9,12 @@
 
 """
 Directly exposed API classes, Presentation for now. Provides some syntactic
-sugar for interacting with the pptx.presentation.Package graph and also
+sugar for interacting with the pptx.presentation._Package graph and also
 provides some insulation so not so many classes in the other modules need to
 be named as internal (leading underscore).
 """
 
-from pptx.presentation import Package
+from pptx.presentation import _Package
 
 
 class Presentation(object):
@@ -26,35 +26,35 @@ class Presentation(object):
     """
     def __init__(self, file=None):
         super(Presentation, self).__init__()
-        self.__package = Package(file)
+        self.__package = _Package(file)
         self.__presentation = self.__package.presentation
 
     @property
     def slidelayouts(self):
         """
-        Tuple containing the :class:`SlideLayout` instances belonging to the
-        first :class:`SlideMaster` of this presentation.
+        Tuple containing the |_SlideLayout| instances belonging to the
+        first |_SlideMaster| of this presentation.
         """
         return tuple(self.__presentation.slidemasters[0].slidelayouts)
 
     @property
     def slidemaster(self):
         """
-        First :class:`SlideMaster` object belonging to this presentation.
+        First |_SlideMaster| object belonging to this presentation.
         """
         return self.__presentation.slidemasters[0]
 
     @property
     def slidemasters(self):
         """
-        List of :class:`SlideMaster` objects belonging to this presentation.
+        List of |_SlideMaster| objects belonging to this presentation.
         """
         return self.__presentation.slidemasters
 
     @property
     def slides(self):
         """
-        :class:`SlideCollection` object containing the slides in this
+        |_SlideCollection| object containing the slides in this
         presentation.
         """
         return self.__presentation.slides

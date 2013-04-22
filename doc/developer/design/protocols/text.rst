@@ -25,14 +25,14 @@ Text-related protocol
 Text handling services are provided the following hierarchy of objects, listed
 in descending order of granularity.
 
-* Slide
-* Shape
-* |TextFrame|
-* |Paragraph|
-* |Run|
+* _Slide
+* _Shape
+* |_TextFrame|
+* |_Paragraph|
+* |_Run|
 
-|TextFrame|
------------
+|_TextFrame|
+------------
 
 A text frame contains all the text for a shape. Not all shapes have a text
 frame. For example, a picture shape has no text frame. Each text frame
@@ -66,9 +66,9 @@ The following code sample illustrates the low-level protocol::
 
 
 
-.. |TextFrame| replace:: :class:`TextFrame`
+.. |_TextFrame| replace:: :class:`_TextFrame`
 
-.. |Paragraph| replace:: :class:`Paragraph`
+.. |_Paragraph| replace:: :class:`_Paragraph`
 
-.. |Run| replace:: :class:`Run`
+.. |_Run| replace:: :class:`_Run`
 

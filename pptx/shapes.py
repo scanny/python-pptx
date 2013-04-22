@@ -35,8 +35,8 @@ _nsmap = namespaces('a', 'r', 'p')
 
 def _child(element, child_tagname, nsmap=None):
     """
-    Return direct child of *element* having *child_tagname* or :class:`None`
-    if no such child element is present.
+    Return direct child of *element* having *child_tagname* or |None| if no
+    such child element is present.
     """
     # use default nsmap if not specified
     if nsmap is None:
@@ -69,13 +69,13 @@ def _to_unicode(text):
 # Shapes
 # ============================================================================
 
-class BaseShape(object):
+class _BaseShape(object):
     """
-    Base class for shape objects. Both :class:`Shape` and :class:`Picture`
-    inherit from :class:`BaseShape`.
+    Base class for shape objects. Both |_Shape| and |_Picture| inherit from
+    |_BaseShape|.
     """
     def __init__(self, shape_element):
-        super(BaseShape, self).__init__()
+        super(_BaseShape, self).__init__()
         self._element = shape_element
         # e.g. nvSpPr for shape, nvPicPr for pic, etc.
         self.__nvXxPr = shape_element.xpath('./*[1]', namespaces=_nsmap)[0]
@@ -123,14 +123,14 @@ class BaseShape(object):
     @property
     def textframe(self):
         """
-        TextFrame instance for this shape. Raises :class:`ValueError` if shape
-        has no text frame. Use :attr:`has_textframe` to check whether a shape
-        has a text frame.
+        _TextFrame instance for this shape. Raises |ValueError| if shape has
+        no text frame. Use :attr:`has_textframe` to check whether a shape has
+        a text frame.
         """
         txBody = _child(self._element, 'p:txBody')
         if txBody is None:
             raise ValueError('shape has no text frame')
-        return TextFrame(txBody)
+        return _TextFrame(txBody)
 
     @property
     def _is_title(self):
@@ -146,7 +146,7 @@ class BaseShape(object):
         return ph_idx == '0'
 
 
-class ShapeCollection(BaseShape, Collection):
+class _ShapeCollection(_BaseShape, Collection):
     """
     Sequence of shapes. Corresponds to CT_GroupShape in pml schema. Note that
     while spTree in a slide is a group shape, the group shape is recursive in
@@ -163,7 +163,7 @@ class ShapeCollection(BaseShape, Collection):
     _EXTLST = qn('p:extLst')
 
     def __init__(self, spTree, slide=None):
-        super(ShapeCollection, self).__init__(spTree)
+        super(_ShapeCollection, self).__init__(spTree)
         self.__spTree = spTree
         self.__slide = slide
         self.__shapes = self._values
@@ -173,19 +173,19 @@ class ShapeCollection(BaseShape, Collection):
             if elm.tag in (self._NVGRPSPPR, self._GRPSPPR, self._EXTLST):
                 continue
             elif elm.tag == self._SP:
-                shape = Shape(elm)
+                shape = _Shape(elm)
             elif elm.tag == self._PIC:
-                shape = Picture(elm)
+                shape = _Picture(elm)
             elif elm.tag == self._GRPSP:
-                shape = ShapeCollection(elm)
+                shape = _ShapeCollection(elm)
             elif elm.tag == self._GRAPHICFRAME:
-                shape = Table(elm)
+                shape = _Table(elm)
             elif elm.tag == self._CONTENTPART:
                 msg = ("first time 'contentPart' shape encountered in the "
                        "wild, please let developer know and send example")
                 raise ValueError(msg)
             else:
-                shape = BaseShape(elm)
+                shape = _BaseShape(elm)
             self.__shapes.append(shape)
 
     @property
@@ -195,7 +195,7 @@ class ShapeCollection(BaseShape, Collection):
         collection, sorted in *idx* order.
         """
         placeholders =\
-            [Placeholder(sp) for sp in self.__shapes if sp.is_placeholder]
+            [_Placeholder(sp) for sp in self.__shapes if sp.is_placeholder]
         placeholders.sort(key=lambda ph: ph.idx)
         return tuple(placeholders)
 
@@ -216,7 +216,7 @@ class ShapeCollection(BaseShape, Collection):
         rel = self.__slide._add_relationship(RT_IMAGE, image)
         pic = self.__pic(rel._rId, file, left, top, width, height)
         self.__spTree.append(pic)
-        picture = Picture(pic)
+        picture = _Picture(pic)
         self.__shapes.append(picture)
         return picture
 
@@ -232,7 +232,7 @@ class ShapeCollection(BaseShape, Collection):
         graphicFrame = CT_GraphicalObjectFrame(id, name, rows, cols, left,
                                                top, width, height)
         self.__spTree.append(graphicFrame)
-        table = Table(graphicFrame)
+        table = _Table(graphicFrame)
         self.__shapes.append(table)
         return table
 
@@ -244,7 +244,7 @@ class ShapeCollection(BaseShape, Collection):
         name = 'TextBox %d' % (id-1)
         sp = self.__sp(id, name, left, top, width, height, is_textbox=True)
         self.__spTree.append(sp)
-        shape = Shape(sp)
+        shape = _Shape(sp)
         self.__shapes.append(shape)
         return shape
 
@@ -258,7 +258,7 @@ class ShapeCollection(BaseShape, Collection):
         for sp in slidelayout.shapes:
             if not sp.is_placeholder:
                 continue
-            ph = Placeholder(sp)
+            ph = _Placeholder(sp)
             if ph.type in latent_ph_types:
                 continue
             self.__clone_layout_placeholder(ph)
@@ -276,7 +276,7 @@ class ShapeCollection(BaseShape, Collection):
         sp = self.__new_placeholder_sp(layout_ph, id, ph_type, orient,
                                        shapename)
         self.__spTree.append(sp)
-        shape = Shape(sp)
+        shape = _Shape(sp)
         self.__shapes.append(shape)
         return shape
 
@@ -365,14 +365,14 @@ class ShapeCollection(BaseShape, Collection):
     @property
     def __package(self):
         """
-        Reference to |Package| this shape collection resides in.
+        Reference to |_Package| this shape collection resides in.
         """
         return self.__slide._package
 
     def __pic(self, rId, file, x, y, cx=None, cy=None):
         """
-        Return minimal ``<p:pic>`` element based on *rId* and *file*. *file* is
-        either a path to the file (a string) or a file-like object.
+        Return minimal ``<p:pic>`` element based on *rId* and *file*. *file*
+        is either a path to the file (a string) or a file-like object.
         """
         id = self.__next_shape_id
         shapename = 'Picture %d' % (id-1)
@@ -451,13 +451,13 @@ class ShapeCollection(BaseShape, Collection):
         return sp
 
 
-class Placeholder(object):
+class _Placeholder(object):
     """
     Decorator (pattern) class for adding placeholder properties to a shape
     that contains a placeholder element, e.g. ``<p:ph>``.
     """
     def __new__(cls, shape):
-        cls = type('PlaceholderDecorator', (Placeholder, shape.__class__), {})
+        cls = type('PlaceholderDecorator', (_Placeholder, shape.__class__), {})
         return object.__new__(cls)
 
     def __init__(self, shape):
@@ -494,36 +494,36 @@ class Placeholder(object):
         return int(self.__ph.get('idx', 0))
 
 
-class Picture(BaseShape):
+class _Picture(_BaseShape):
     """
     A picture shape, one that places an image on a slide. Corresponds to the
     ``<p:pic>`` element.
     """
     def __init__(self, pic):
-        super(Picture, self).__init__(pic)
+        super(_Picture, self).__init__(pic)
 
 
-class Shape(BaseShape):
+class _Shape(_BaseShape):
     """
     A shape that can appear on a slide. Corresponds to the ``<p:sp>`` element
     that can appear in any of the slide-type parts (slide, slideLayout,
     slideMaster, notesPage, notesMaster, handoutMaster).
     """
     def __init__(self, shape_element):
-        super(Shape, self).__init__(shape_element)
+        super(_Shape, self).__init__(shape_element)
 
 
 # ============================================================================
 # Table-related classes
 # ============================================================================
 
-class Table(BaseShape):
+class _Table(_BaseShape):
     """
     A table shape. Not intended to be constructed directly, use
-    :meth:`ShapeCollection.add_table` to add a table to a slide.
+    :meth:`_ShapeCollection.add_table` to add a table to a slide.
     """
     def __init__(self, graphicFrame):
-        super(Table, self).__init__(graphicFrame)
+        super(_Table, self).__init__(graphicFrame)
         self.__graphicFrame = graphicFrame
         self.__tbl_elm = graphicFrame[qn('a:graphic')].graphicData.tbl
         self.__rows = _RowCollection(self.__tbl_elm, self)
@@ -607,12 +607,12 @@ class _Cell(object):
     @property
     def textframe(self):
         """
-        |TextFrame| instance containing the text that appears in the cell.
+        |_TextFrame| instance containing the text that appears in the cell.
         """
         txBody = _child(self.__tc, 'a:txBody')
         if txBody is None:
             raise ValueError('cell has no text frame')
-        return TextFrame(txBody)
+        return _TextFrame(txBody)
 
 
 class _Column(object):
@@ -753,24 +753,24 @@ class _RowCollection(object):
 # Text-related classes
 # ============================================================================
 
-class TextFrame(object):
+class _TextFrame(object):
     """
     The part of a shape that contains its text. Not all shapes have a text
     frame. Corresponds to the ``<p:txBody>`` element that can appear as a
     child element of ``<p:sp>``. Not intended to be constructed directly.
     """
     def __init__(self, txBody):
-        super(TextFrame, self).__init__()
+        super(_TextFrame, self).__init__()
         self.__txBody = txBody
 
     @property
     def paragraphs(self):
         """
-        Immutable sequence of :class:`Paragraph` instances corresponding to
-        the paragraphs in this text frame. A text frame always contains at
-        least one paragraph.
+        Immutable sequence of |_Paragraph| instances corresponding to the
+        paragraphs in this text frame. A text frame always contains at least
+        one paragraph.
         """
-        return tuple([Paragraph(p) for p in self.__txBody[qn('a:p')]])
+        return tuple([_Paragraph(p) for p in self.__txBody[qn('a:p')]])
 
     def _set_text(self, text):
         """Replace all text in text frame with single run containing *text*"""
@@ -802,13 +802,13 @@ class TextFrame(object):
 
     def add_paragraph(self):
         """
-        Return new |Paragraph| instance appended to the sequence of paragraphs
-        contained in this text frame.
+        Return new |_Paragraph| instance appended to the sequence of
+        paragraphs contained in this text frame.
         """
         # <a:p> elements are last in txBody, so can simply append new one
         p = _Element('a:p', _nsmap)
         self.__txBody.append(p)
-        return Paragraph(p)
+        return _Paragraph(p)
 
     def clear(self):
         """
@@ -825,8 +825,8 @@ class _Font(object):
     """
     Character properties object, prominent among those properties being font
     size, font name, bold, italic, etc. Corresponds to ``<a:rPr>`` child
-    element of a run. Also appears as ``<a:defRPr>`` and ``<a:endParaRPr>``
-    in paragraph and ``<a:defRPr>`` in list style elements. Not intended to be
+    element of a run. Also appears as ``<a:defRPr>`` and ``<a:endParaRPr>`` in
+    paragraph and ``<a:defRPr>`` in list style elements. Not intended to be
     constructed directly.
     """
     def __init__(self, rPr):
@@ -836,7 +836,7 @@ class _Font(object):
     @property
     def bold(self):
         """
-        Get or set boolean bold value of |Font|, e.g.
+        Get or set boolean bold value of |_Font|, e.g.
         ``paragraph.font.bold = True``.
         """
         b = self.__rPr.get('b')
@@ -862,22 +862,22 @@ class _Font(object):
     size = property(None, _set_size)
 
 
-class Paragraph(object):
+class _Paragraph(object):
     """
     Paragraph object. Not intended to be constructed directly.
     """
     def __init__(self, p):
-        super(Paragraph, self).__init__()
+        super(_Paragraph, self).__init__()
         self.__p = p
 
     @property
     def font(self):
         """
-        :class:`_Font` object containing default character properties for the
-        runs in this paragraph. These character properties override default
-        properties inherited from parent objects such as the text frame the
-        paragraph is contained in and they may be overridden by character
-        properties set at the run level.
+        |_Font| object containing default character properties for the runs in
+        this paragraph. These character properties override default properties
+        inherited from parent objects such as the text frame the paragraph is
+        contained in and they may be overridden by character properties set at
+        the run level.
         """
         # A _Font instance is created on first access if it doesn't exist.
         # This can cause "litter" <a:pPr> and <a:defRPr> elements to be
@@ -920,14 +920,14 @@ class Paragraph(object):
     @property
     def runs(self):
         """
-        Immutable sequence of :class:`Run` instances corresponding to the runs
-        in this paragraph.
+        Immutable sequence of |_Run| instances corresponding to the runs in
+        this paragraph.
         """
         xpath = './a:r'
         r_elms = self.__p.xpath(xpath, namespaces=_nsmap)
         runs = []
         for r in r_elms:
-            runs.append(Run(r))
+            runs.append(_Run(r))
         return tuple(runs)
 
     def _set_text(self, text):
@@ -954,7 +954,7 @@ class Paragraph(object):
             endParaRPr.addprevious(r)
         else:
             self.__p.append(r)
-        return Run(r)
+        return _Run(r)
 
     def clear(self):
         """Remove all runs from this paragraph."""
@@ -965,22 +965,22 @@ class Paragraph(object):
             self.__p.insert(0, pPr)
 
 
-class Run(object):
+class _Run(object):
     """
     Text run object. Corresponds to ``<a:r>`` child element in a paragraph.
     """
     def __init__(self, r):
-        super(Run, self).__init__()
+        super(_Run, self).__init__()
         self.__r = r
 
     @property
     def font(self):
         """
-        :class:`_Font` object containing run-level character properties for the
-        text in this run. Character properties can and perhaps most often are
+        |_Font| object containing run-level character properties for the text
+        in this run. Character properties can and perhaps most often are
         inherited from parent objects such as the paragraph and slide layout
         the run is contained in. Only those specifically assigned at the run
-        level are contained in the :class:`_Font` object.
+        level are contained in the |_Font| object.
         """
         if not hasattr(self.__r, 'rPr'):
             self.__r.insert(0, _Element('a:rPr', _nsmap))

@@ -57,24 +57,26 @@ Bullet slide example
     tf.text = 'Find the bullet slide layout'
 
     p = tf.add_paragraph()
-    p.text = 'Use Shape.text for first bullet'
+    p.text = 'Use _TextFrame.text for first bullet'
     p.level = 1
 
     p = tf.add_paragraph()
-    p.text = 'Use TextFrame.add_paragraph() for subsequent bullets'
+    p.text = 'Use _TextFrame.add_paragraph() for subsequent bullets'
     p.level = 2
 
     prs.save('test.pptx')
 
 Not all shapes can contain text, but those that do always have at least one
 paragraph, even if that paragraph is empty and no text is visible within the
-shape. ``Shape.has_textframe`` can be used to determine whether a shape can
-contain text. When ``Shape.has_textframe`` is ``True``,
-``Shape.textframe.paragraphs[0]`` returns the first paragraph. The text of the
-first paragraph can be set using ``Shape.textframe.paragraphs[0].text``. As
-a shortcut, the calls ``Shape.text`` and ``Shape.textframe.text`` are provided
-to accomplish the same thing. Note that these last two calls delete all the
-shape's paragraphs except the first one before setting the text it contains.
+shape. ``_BaseShape.has_textframe`` can be used to determine whether a shape
+can contain text. (All shapes subclass ``_BaseShape``.) When
+``_BaseShape.has_textframe`` is ``True``,
+``_BaseShape.textframe.paragraphs[0]`` returns the first paragraph. The text
+of the first paragraph can be set using ``textframe.paragraphs[0].text``. As a
+shortcut, the writable properties ``_BaseShape.text`` and ``_TextFrame.text``
+are provided to accomplish the same thing. Note that these last two calls
+delete all the shape's paragraphs except the first one before setting the text
+it contains.
 
 ----
 

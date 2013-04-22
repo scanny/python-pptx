@@ -46,7 +46,7 @@ Behaviors
 Ids
 ---
 
-test BaseSlide._next_id::
+test _BaseSlide._next_id::
 
     @property
     def _next_id(self):

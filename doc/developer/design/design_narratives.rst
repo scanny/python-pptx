@@ -135,13 +135,10 @@ Completed requirements
 Open Issues
 -----------
 
-
 ``<xsd:choice>`` handling
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ...
-
-
 
 
 Purposes
@@ -163,7 +160,6 @@ Constructors
 1. (Roughly) *unmarshal* an existing lxml element
 
 2. Construct a *new* lxml element from scratch
-
 
 
 End-user API facade
@@ -219,7 +215,6 @@ element  packaging     Package needs this to save pptx
 
 * All the business of baseURI and target like a relative URI are things
   Relationship can safely hide from clients.
-
 
 
 Design Narrative --- Text API
@@ -305,7 +300,6 @@ xml elements access self._element. Maybe change _load_blob to __load_blob.
     else:
         return self._load_blob
 
-----
 
 * If we start with the principle that all operations will be conducted on the
   XML elements and no separate attributes will be stored ...
@@ -358,7 +352,6 @@ Open issues parking lot
   a part class and it's root element. Something to continue to noodle.
 
 
-
 Design Narrative -- Using Sphinx for library documentation
 ==========================================================
 
@@ -381,7 +374,6 @@ and methods are brought it that have docstring. If you explictly list the
 members like :members: fn0, class0, _fn1 those explict members are brought.
 
 
-
 Design Narrative -- Part blob lifecycle
 =======================================
 
@@ -402,7 +394,6 @@ TODO:
 * (/) locate part.write_element and replace with write_blob
 * (/) remove element attribute from pptx.packaging.Part
 
-----
 
 * Simplify packaging module by working only with blobs whenever possible
 
@@ -437,6 +428,7 @@ Recorded: 2012-12-22 11:01 PM
 
 * __loadwalk()
 
+
 Requirements
 ------------
 
@@ -458,18 +450,18 @@ Requirements
   best, so that local context is kept local to the package or part.
 
 ::
-    
+
     def __pkg_level_load(pkgrels):
         # keep track of which parts are already loaded
         part_dict = {}
-        
+
         for pkgrel in pkgrels:
             # unpack working values for part to be loaded
             reltype = pkgrel.reltype
             pkgpart = pkgrel.target_part
             partname = pkgpart.partname
             content_type = pkgpart.content_type
-            
+
             # create target part
             if partname in part_dict:
                 part = part_dict[partname]
@@ -477,12 +469,12 @@ Requirements
                 part = Part(reltype, content_type)
                 part_dict[partname] = part
                 part.load(pkgpart, part_dict)
-            
+
             # create model-side package relationship
             rId = pkgrel.rId
             model_rel = Relationship(rId, reltype, part)
             self.__relationships.append(model_rel)
-            
+
             # unmarshall selectively
             if reltype == RT_OFFICEDOCUMENT:
                 self.__presentation = part
@@ -492,18 +484,14 @@ Requirements
             #     self.__extendedprops = part
             # elif reltype == RT_THUMBNAIL:
             #     self.__thumbnail = part
-            
-    
-    
-    
-    
+
     def __loadwalk(pkgrels, part_dict)
         for pkgrel in pkgrels:
             # construct target part
             part = Part(reltype, content_type)
             pass
-    
+
     def __unmarshalwalk(rels, visited_parts):
         pass
-    
+
 

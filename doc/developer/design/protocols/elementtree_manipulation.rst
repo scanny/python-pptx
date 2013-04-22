@@ -43,7 +43,7 @@ Refactoring ideas
     def _child(element, child_tagname, nsmap):
         """
         Return direct child of *element* having *child_tagname* or
-        :class:`None` if no such child element is present.
+        |None| if no such child element is present.
         """
         xpath = './%s' % child_tagname
         matching_children = element.xpath(xpath, namespaces=nsmap)

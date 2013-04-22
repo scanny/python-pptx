@@ -42,28 +42,28 @@ their parent object.
 .. currentmodule:: pptx.presentation
 
 
-|SlideCollection| objects
-=========================
+|_SlideCollection| objects
+==========================
 
-The |SlideCollection| object is typically encountered as the
+The |_SlideCollection| object is typically encountered as the
 :attr:`~pptx.Presentation.slides` member of |Presentation|. It is not intended
 to be constructed directly.
 
-.. autoclass:: pptx.presentation.SlideCollection
+.. autoclass:: pptx.presentation._SlideCollection
    :members:
    :member-order: bysource
    :undoc-members:
    :show-inheritance:
 
 
-|ShapeCollection| objects
-=========================
+|_ShapeCollection| objects
+==========================
 
-The |ShapeCollection| object is typically encountered as the
-:attr:`~BaseSlide.shapes` member of |Slide|. It is not intended to be
+The |_ShapeCollection| object is typically encountered as the
+:attr:`~BaseSlide.shapes` member of |_Slide|. It is not intended to be
 constructed directly.
 
-.. autoclass:: pptx.presentation.ShapeCollection
+.. autoclass:: pptx.presentation._ShapeCollection
    :members:
    :member-order: bysource
    :undoc-members:
@@ -75,19 +75,19 @@ constructed directly.
 
 The following properties and methods are common to all shapes.
 
-.. autoclass:: pptx.shapes.BaseShape
+.. autoclass:: pptx.shapes._BaseShape
    :members:
    :member-order: bysource
    :undoc-members:
 
 
-|Table| objects
-===============
+|_Table| objects
+================
 
-A |Table| object is added to a slide using the :meth:`add_table` method on
-|ShapeCollection|.
+A |_Table| object is added to a slide using the :meth:`add_table` method on
+|_ShapeCollection|.
 
-.. autoclass:: pptx.shapes.Table
+.. autoclass:: pptx.shapes._Table
    :members:
    :member-order: bysource
    :undoc-members:
@@ -125,19 +125,19 @@ specifying the cell's row/column location.
    :undoc-members:
 
 
-|TextFrame| objects
-===================
+|_TextFrame| objects
+====================
 
-.. autoclass:: pptx.shapes.TextFrame()
+.. autoclass:: pptx.shapes._TextFrame()
    :members:
    :member-order: bysource
    :undoc-members:
 
 
-|Font| objects
+|_Font| objects
 ===============
 
-The |Font| object is encountered as a property of |Run|, |Paragraph|, and in
+The |_Font| object is encountered as a property of |_Run|, |_Paragraph|, and in
 future other presentation text objects.
 
 .. autoclass:: pptx.shapes._Font()
@@ -146,19 +146,19 @@ future other presentation text objects.
    :undoc-members:
 
 
-|Paragraph| objects
-===================
+|_Paragraph| objects
+====================
 
-.. autoclass:: pptx.shapes.Paragraph()
+.. autoclass:: pptx.shapes._Paragraph()
    :members:
    :member-order: bysource
    :undoc-members:
 
 
-|Run| objects
-=============
+|_Run| objects
+==============
 
-.. autoclass:: pptx.shapes.Run()
+.. autoclass:: pptx.shapes._Run()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -171,32 +171,44 @@ The remaining API classes of the :mod:`presentation` module are described
 here.
 
 .. automodule:: pptx.presentation
-   :members: BaseSlide, SlideMaster, SlideLayout, Slide
+   :members: _BaseSlide, _SlideMaster, _SlideLayout, _Slide
    :member-order: bysource
    :show-inheritance:
    :undoc-members:
+
+.. |_BaseShape| replace:: :class:`_BaseShape`
 
 .. |_Cell| replace:: :class:`_Cell`
 
 .. |_Column| replace:: :class:`_Column`
 
-.. |Font| replace:: :class:`_Font`
+.. |_Font| replace:: :class:`_Font`
 
-.. |Paragraph| replace:: :class:`Paragraph`
+.. |_Paragraph| replace:: :class:`_Paragraph`
+
+.. |_Picture| replace:: :class:`_Picture`
 
 .. |Presentation| replace:: :class:`~pptx.Presentation`
 
 .. |_Row| replace:: :class:`_Row`
 
-.. |Run| replace:: :class:`Run`
+.. |_Run| replace:: :class:`_Run`
 
-.. |SlideCollection| replace:: :class:`SlideCollection`
+.. |_Shape| replace:: :class:`_Shape`
 
-.. |Slide| replace:: :class:`Slide`
+.. |_SlideCollection| replace:: :class:`_SlideCollection`
 
-.. |ShapeCollection| replace:: :class:`ShapeCollection`
+.. |_Slide| replace:: :class:`_Slide`
 
-.. |Table| replace:: :class:`Table`
+.. |_SlideLayout| replace:: :class:`_SlideLayout`
 
-.. |TextFrame| replace:: :class:`TextFrame`
+.. |_SlideMaster| replace:: :class:`_SlideMaster`
+
+.. |_ShapeCollection| replace:: :class:`_ShapeCollection`
+
+.. |_Table| replace:: :class:`_Table`
+
+.. |_TextFrame| replace:: :class:`_TextFrame`
+
+.. |ValueError| replace:: :class:`ValueError`
 

@@ -33,10 +33,10 @@ Open questions
 API requirements
 ================
 
-|Table| class
--------------
+|_Table| class
+--------------
 
-Properties and methods required for a |Table| shape.
+Properties and methods required for a |_Table| shape.
 
 * ``apply_style(style_id)`` -- change the style of the table. Not sure what the
   domain of ``style_id`` is.
@@ -294,5 +294,5 @@ XML produced by PowerPoint® client
 
 .. |RowCollection| replace:: :class:`RowCollection`
 
-.. |Table| replace:: :class:`Table`
+.. |_Table| replace:: :class:`_Table`
 

@@ -78,9 +78,7 @@ class Mm(_BaseLength):
 
 
 class Pt(int):
-    """
-    Convenience class for setting font sizes in points
-    """
+    """Convenience class for setting font sizes in points"""
     _UNITS_PER_POINT = 100
 
     def __new__(cls, pts):
@@ -103,9 +101,9 @@ class Collection(object):
     Has the following characteristics.:
 
     * Container (implements __contains__)
-    * Iterable (delegates __iter__ to :class:`list`)
+    * Iterable (delegates __iter__ to |list|)
     * Sized (implements __len__)
-    * Sequence (delegates __getitem__ to :class:`list`)
+    * Sequence (delegates __getitem__ to |list|)
     """
     def __init__(self):
         # log.debug('Collection.__init__() called')
@@ -197,7 +195,7 @@ class Partname(object):
         """
         Return partname index as integer for tuple partname or None for
         singleton partname, e.g. ``21`` for ``'/ppt/slides/slide21.xml'`` and
-        :class:`None` for ``'/ppt/presentation.xml'``.
+        |None| for ``'/ppt/presentation.xml'``.
         """
         name = os.path.splitext(self.filename)[0]  # filename with ext removed
         match = self.__filename_re.match(name)

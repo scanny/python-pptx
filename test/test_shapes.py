@@ -23,11 +23,11 @@ from mock import Mock, patch, PropertyMock
 from pptx.constants import MSO
 from pptx.oxml import _SubElement, oxml_fromstring, oxml_tostring, oxml_parse
 from pptx.packaging import prettify_nsdecls
-from pptx.presentation import SlideLayout
+from pptx.presentation import _SlideLayout
 from pptx.shapes import (
-    BaseShape, _Cell, _CellCollection, _Column, _ColumnCollection, _Font,
-    Paragraph, Placeholder, _Row, _RowCollection, Run, Shape, ShapeCollection,
-    TextFrame, _to_unicode)
+    _BaseShape, _Cell, _CellCollection, _Column, _ColumnCollection, _Font,
+    _Paragraph, _Placeholder, _Row, _RowCollection, _Run, _Shape,
+    _ShapeCollection, _TextFrame, _to_unicode)
 from pptx.spec import namespaces
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
@@ -85,7 +85,7 @@ def _sldLayout1():
 def _sldLayout1_shapes():
     sldLayout = _sldLayout1()
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-    shapes = ShapeCollection(spTree)
+    shapes = _ShapeCollection(spTree)
     return shapes
 
 
@@ -156,20 +156,20 @@ class Test_Cell(TestCase):
         assert_that(text, is_(equal_to(test_text)))
 
 
-class TestBaseShape(TestCase):
-    """Test BaseShape"""
+class Test_BaseShape(TestCase):
+    """Test _BaseShape"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = oxml_parse(path).getroot()
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        self.base_shape = BaseShape(pic)
+        self.base_shape = _BaseShape(pic)
 
     def test_has_textframe_value(self):
-        """BaseShape.has_textframe value correct"""
+        """_BaseShape.has_textframe value correct"""
         # setup -----------------------
         spTree = self.sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-        shapes = ShapeCollection(spTree)
+        shapes = _ShapeCollection(spTree)
         indexes = []
         # exercise --------------------
         for idx, shape in enumerate(shapes):
@@ -183,7 +183,7 @@ class TestBaseShape(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_id_value(self):
-        """BaseShape.id value is correct"""
+        """_BaseShape.id value is correct"""
         # exercise --------------------
         id = self.base_shape.id
         # verify ----------------------
@@ -193,36 +193,36 @@ class TestBaseShape(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_is_placeholder_true_for_placeholder(self):
-        """BaseShape.is_placeholder True for placeholder shape"""
+        """_BaseShape.is_placeholder True for placeholder shape"""
         # setup -----------------------
         xpath = './p:cSld/p:spTree/p:sp'
         sp = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        base_shape = BaseShape(sp)
+        base_shape = _BaseShape(sp)
         # verify ----------------------
         actual = base_shape.is_placeholder
         msg = "expected True, got %s" % (actual)
         self.assertTrue(actual, msg)
 
     def test_is_placeholder_false_for_non_placeholder(self):
-        """BaseShape.is_placeholder False for non-placeholder shape"""
+        """_BaseShape.is_placeholder False for non-placeholder shape"""
         # verify ----------------------
         actual = self.base_shape.is_placeholder
         msg = "expected False, got %s" % (actual)
         self.assertFalse(actual, msg)
 
     def test__is_title_true_for_title_placeholder(self):
-        """BaseShape._is_title True for title placeholder shape"""
+        """_BaseShape._is_title True for title placeholder shape"""
         # setup -----------------------
         xpath = './p:cSld/p:spTree/p:sp'
         title_placeholder_sp = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        base_shape = BaseShape(title_placeholder_sp)
+        base_shape = _BaseShape(title_placeholder_sp)
         # verify ----------------------
         actual = base_shape._is_title
         msg = "expected True, got %s" % (actual)
         self.assertTrue(actual, msg)
 
     def test__is_title_false_for_no_ph_element(self):
-        """BaseShape._is_title False on shape has no <p:ph> element"""
+        """_BaseShape._is_title False on shape has no <p:ph> element"""
         # setup -----------------------
         self.base_shape._element = Mock(name='_element')
         self.base_shape._element.xpath.return_value = []
@@ -230,7 +230,7 @@ class TestBaseShape(TestCase):
         assert_that(self.base_shape._is_title, is_(False))
 
     def test_name_value(self):
-        """BaseShape.name value is correct"""
+        """_BaseShape.name value is correct"""
         # exercise --------------------
         name = self.base_shape.name
         # verify ----------------------
@@ -240,17 +240,17 @@ class TestBaseShape(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_textframe_raises_on_no_textframe(self):
-        """BaseShape.textframe raises on shape with no text frame"""
+        """_BaseShape.textframe raises on shape with no text frame"""
         with self.assertRaises(ValueError):
             self.base_shape.textframe
 
     def test_text_setter_structure_and_value(self):
-        """assign to BaseShape.text yields single run para set to value"""
+        """assign to _BaseShape.text yields single run para set to value"""
         # setup -----------------------
         test_text = 'python-pptx was here!!'
         xpath = './p:cSld/p:spTree/p:sp'
         textbox_sp = self.sld.xpath(xpath, namespaces=nsmap)[2]
-        base_shape = BaseShape(textbox_sp)
+        base_shape = _BaseShape(textbox_sp)
         # exercise --------------------
         base_shape.text = test_text
         # verify paragraph count ------
@@ -265,7 +265,7 @@ class TestBaseShape(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_text_setter_raises_on_no_textframe(self):
-        """assignment to BaseShape.text raises for shape with no text frame"""
+        """assignment to _BaseShape.text raises for shape with no text frame"""
         with self.assertRaises(TypeError):
             self.base_shape.text = 'test text'
 
@@ -447,8 +447,8 @@ class Test_Font(TestCase):
         assert_that(actual_xml, is_(equal_to(expected_xml)))
 
 
-class TestParagraph(TestCase):
-    """Test Paragraph"""
+class Test_Paragraph(TestCase):
+    """Test _Paragraph"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = oxml_parse(path).getroot()
@@ -459,14 +459,14 @@ class TestParagraph(TestCase):
         self.p_xml = ('<a:p%s><a:r><a:t>%s</a:t></a:r></a:p>' %
                       (nsprefix_decls, self.test_text))
         self.p = oxml_fromstring(self.p_xml)
-        self.paragraph = Paragraph(self.p)
+        self.paragraph = _Paragraph(self.p)
 
     def test_runs_size(self):
-        """Paragraph.runs is expected size"""
+        """_Paragraph.runs is expected size"""
         # setup -----------------------
         actual_lengths = []
         for p in self.pList:
-            paragraph = Paragraph(p)
+            paragraph = _Paragraph(p)
             # exercise ----------------
             actual_lengths.append(len(paragraph.runs))
         # verify ------------------
@@ -476,10 +476,10 @@ class TestParagraph(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_add_run_increments_run_count(self):
-        """Paragraph.add_run() increments run count"""
+        """_Paragraph.add_run() increments run count"""
         # setup -----------------------
         p_elm = self.pList[0]
-        paragraph = Paragraph(p_elm)
+        paragraph = _Paragraph(p_elm)
         # exercise --------------------
         paragraph.add_run()
         # verify ----------------------
@@ -489,11 +489,11 @@ class TestParagraph(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_clear_removes_all_runs(self):
-        """Paragraph.clear() removes all runs from paragraph"""
+        """_Paragraph.clear() removes all runs from paragraph"""
         # setup -----------------------
         p = self.pList[2]
         _SubElement(p, 'a:pPr')
-        paragraph = Paragraph(p)
+        paragraph = _Paragraph(p)
         assert_that(len(paragraph.runs), is_(equal_to(2)))
         # exercise --------------------
         paragraph.clear()
@@ -501,7 +501,7 @@ class TestParagraph(TestCase):
         assert_that(len(paragraph.runs), is_(equal_to(0)))
 
     def test_clear_preserves_paragraph_properties(self):
-        """Paragraph.clear() preserves paragraph properties"""
+        """_Paragraph.clear() preserves paragraph properties"""
         # setup -----------------------
         nsprefix_decls = (
             ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/'
@@ -509,7 +509,7 @@ class TestParagraph(TestCase):
         p_xml = ('<a:p%s><a:pPr lvl="1"/><a:r><a:t>%s</a:t></a:r></a:p>' %
                  (nsprefix_decls, self.test_text))
         p_elm = oxml_fromstring(p_xml)
-        paragraph = Paragraph(p_elm)
+        paragraph = _Paragraph(p_elm)
         expected_p_xml = '<a:p%s><a:pPr lvl="1"/></a:p>' % nsprefix_decls
         # exercise --------------------
         paragraph.clear()
@@ -518,7 +518,7 @@ class TestParagraph(TestCase):
         assert_that(p_xml, is_(equal_to(expected_p_xml)))
 
     def test_level_setter_generates_correct_xml(self):
-        """Paragraph.level setter generates correct XML"""
+        """_Paragraph.level setter generates correct XML"""
         # setup -----------------------
         expected_xml = (
             '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<'
@@ -538,26 +538,26 @@ class TestParagraph(TestCase):
             self.assertEqual(line, expected_xml_lines[idx], msg)
 
     def test_level_default_is_zero(self):
-        """Paragraph.level defaults to zero on no lvl attribute"""
+        """_Paragraph.level defaults to zero on no lvl attribute"""
         # verify ----------------------
         assert_that(self.paragraph.level, is_(equal_to(0)))
 
     def test_level_roundtrips_intact(self):
-        """Paragraph.level property round-trips intact"""
+        """_Paragraph.level property round-trips intact"""
         # exercise --------------------
         self.paragraph.level = 5
         # verify ----------------------
         assert_that(self.paragraph.level, is_(equal_to(5)))
 
     def test_level_raises_on_bad_value(self):
-        """Paragraph.level raises on attempt to assign invalid value"""
+        """_Paragraph.level raises on attempt to assign invalid value"""
         test_cases = ('0', -1, 9)
         for value in test_cases:
             with self.assertRaises(ValueError):
                 self.paragraph.level = value
 
     def test_set_font_size(self):
-        """Assignment to Paragraph.font.size changes font size"""
+        """Assignment to _Paragraph.font.size changes font size"""
         # setup -----------------------
         newfontsize = Pt(54.3)
         expected_xml = (
@@ -579,11 +579,11 @@ class TestParagraph(TestCase):
             self.assertEqual(line, expected_xml_lines[idx], msg)
 
     def test_text_setter_sets_single_run_text(self):
-        """assignment to Paragraph.text creates single run containing value"""
+        """assignment to _Paragraph.text creates single run containing value"""
         # setup -----------------------
         test_text = 'python-pptx was here!!'
         p_elm = self.pList[2]
-        paragraph = Paragraph(p_elm)
+        paragraph = _Paragraph(p_elm)
         # exercise --------------------
         paragraph.text = test_text
         # verify run count ------------
@@ -615,7 +615,7 @@ class TestParagraph(TestCase):
             text = _utf8_from_8bit
             self.paragraph.text = text
         except ValueError:
-            msg = "Paragraph.text rejects valid text string '%s'" % text
+            msg = "_Paragraph.text rejects valid text string '%s'" % text
             self.fail(msg)
 
 
@@ -649,10 +649,10 @@ class Test_Row(TestCase):
                 self.row.height = value
 
 
-class TestPlaceholder(TestCase):
-    """Test Placeholder"""
+class Test_Placeholder(TestCase):
+    """Test _Placeholder"""
     def test_property_values(self):
-        """Placeholder property values are correct"""
+        """_Placeholder property values are correct"""
         # setup -----------------------
         expected_values = (
             (PH_TYPE_CTRTITLE, PH_ORIENT_HORZ, PH_SZ_FULL,     0),
@@ -664,7 +664,7 @@ class TestPlaceholder(TestCase):
         shapes = _sldLayout1_shapes()
         # exercise --------------------
         for idx, sp in enumerate(shapes):
-            ph = Placeholder(sp)
+            ph = _Placeholder(sp)
             values = (ph.type, ph.orient, ph.sz, ph.idx)
             # verify ----------------------
             expected = expected_values[idx]
@@ -720,17 +720,17 @@ class Test_RowCollection(TestCase):
         assert_that(len(self.rows), is_(equal_to(2)))
 
 
-class TestRun(TestCase):
-    """Test Run"""
+class Test_Run(TestCase):
+    """Test _Run"""
     def setUp(self):
         self.test_text = 'test text'
         self.r_xml = ('<a:r%s><a:t>%s</a:t></a:r>' %
                       (nsprefix_decls, self.test_text))
         self.r = oxml_fromstring(self.r_xml)
-        self.run = Run(self.r)
+        self.run = _Run(self.r)
 
     def test_set_font_size(self):
-        """Assignment to Run.font.size changes font size"""
+        """Assignment to _Run.font.size changes font size"""
         # setup -----------------------
         newfontsize = 2400
         expected_xml = (
@@ -751,7 +751,7 @@ class TestRun(TestCase):
             self.assertEqual(line, expected_xml_lines[idx], msg)
 
     def test_text_value(self):
-        """Run.text value is correct"""
+        """_Run.text value is correct"""
         # exercise --------------------
         text = self.run.text
         # verify ----------------------
@@ -761,7 +761,7 @@ class TestRun(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_text_setter(self):
-        """Run.text setter stores passed value"""
+        """_Run.text setter stores passed value"""
         # setup -----------------------
         new_value = 'new string'
         # exercise --------------------
@@ -779,46 +779,46 @@ class TestRun(TestCase):
             _to_unicode(999)
 
 
-class TestShape(TestCase):
-    """Test Shape"""
+class Test_Shape(TestCase):
+    """Test _Shape"""
     def __loaded_shape(self):
         """
-        Return Shape instance loaded from test file.
+        Return _Shape instance loaded from test file.
         """
         sldLayout = _sldLayout1()
         sp = sldLayout.xpath('p:cSld/p:spTree/p:sp', namespaces=nsmap)[0]
-        return Shape(sp)
+        return _Shape(sp)
 
 
-class TestShapeCollection(TestCase):
-    """Test ShapeCollection"""
+class Test_ShapeCollection(TestCase):
+    """Test _ShapeCollection"""
     def setUp(self):
         path = absjoin(test_file_dir, 'slide1.xml')
         sld = oxml_parse(path).getroot()
         spTree = sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-        self.shapes = ShapeCollection(spTree)
+        self.shapes = _ShapeCollection(spTree)
 
     def test_construction_size(self):
-        """ShapeCollection is expected size after construction"""
+        """_ShapeCollection is expected size after construction"""
         # verify ----------------------
         self.assertLength(self.shapes, 9)
 
     def test_constructor_raises_on_contentPart_shape(self):
-        """ShapeCollection() raises on contentPart shape"""
+        """_ShapeCollection() raises on contentPart shape"""
         # setup -----------------------
         spTree = _empty_spTree()
         _SubElement(spTree, 'p:contentPart')
         # verify ----------------------
         with self.assertRaises(ValueError):
-            ShapeCollection(spTree)
+            _ShapeCollection(spTree)
 
-    @patch('pptx.shapes.Picture')
+    @patch('pptx.shapes._Picture')
     @patch('pptx.util.Collection._values', new_callable=PropertyMock)
-    @patch('pptx.shapes.ShapeCollection._ShapeCollection__package',
+    @patch('pptx.shapes._ShapeCollection._ShapeCollection__package',
            new_callable=PropertyMock)
     def test_add_picture_collaboration(self, mock_package, mock_values,
                                        MockPicture):
-        """ShapeCollection.add_picture() calls the right collaborators"""
+        """_ShapeCollection.add_picture() calls the right collaborators"""
         # constant values -------------
         rId = 'rId1'
         left = 1
@@ -831,14 +831,14 @@ class TestShapeCollection(TestCase):
         slide = Mock(name='slide')
         __pic = Mock(name='__pic')
         __spTree = Mock(name='__spTree')
-        Picture = MockPicture
+        _Picture = MockPicture
         mock_package.return_value = pkg
         pkg._images.add_image.return_value = image
         slide._add_relationship.return_value = rel
         rel._rId = rId
         __pic.return_value = pic
         # setup -----------------------
-        shapes = ShapeCollection(_empty_spTree(), slide)
+        shapes = _ShapeCollection(_empty_spTree(), slide)
         shapes._ShapeCollection__pic = __pic
         shapes._ShapeCollection__spTree = __spTree
         # exercise --------------------
@@ -849,17 +849,17 @@ class TestShapeCollection(TestCase):
         __pic.assert_called_once_with(rId, test_image_path,
                                       left, top, None, None)
         __spTree.append.assert_called_once_with(pic)
-        Picture.assert_called_once_with(pic)
+        _Picture.assert_called_once_with(pic)
         shapes._values.append.assert_called_once_with(picture)
 
     @patch('pptx.shapes.Collection._values', new_callable=PropertyMock)
-    @patch('pptx.shapes.Table')
+    @patch('pptx.shapes._Table')
     @patch('pptx.shapes.CT_GraphicalObjectFrame')
-    @patch('pptx.shapes.ShapeCollection._ShapeCollection__next_shape_id',
+    @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
     def test_add_table_collaboration(
-            self, __next_shape_id, CT_GraphicalObjectFrame, Table, _values):
-        """ShapeCollection.add_table() calls the right collaborators"""
+            self, __next_shape_id, CT_GraphicalObjectFrame, _Table, _values):
+        """_ShapeCollection.add_table() calls the right collaborators"""
         # constant values -------------
         sp_id = 9
         name = 'Table 8'
@@ -873,7 +873,7 @@ class TestShapeCollection(TestCase):
         graphicFrame = Mock(name='graphicFrame')
         CT_GraphicalObjectFrame.return_value = graphicFrame
         __spTree = Mock(name='__spTree')
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         shapes._ShapeCollection__spTree = __spTree
         # exercise --------------------
         table = shapes.add_table(rows, cols, left, top, width, height)
@@ -882,18 +882,18 @@ class TestShapeCollection(TestCase):
         CT_GraphicalObjectFrame.assert_called_once_with(
             sp_id, name, rows, cols, left, top, width, height)
         __spTree.append.assert_called_once_with(graphicFrame)
-        Table.assert_called_once_with(graphicFrame)
+        _Table.assert_called_once_with(graphicFrame)
         shapes._values.append.assert_called_once_with(table)
 
     def test_add_table_xml(self):
-        """ShapeCollection.add_table() generates correct XML"""
+        """_ShapeCollection.add_table() generates correct XML"""
         # constant values -------------
         rows = cols = 2
         left = Inches(1.0)
         top = Inches(2.0)
         width = Inches(2.0)
         height = Inches(2.0)
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         # exercise --------------------
         table = shapes.add_table(rows, cols, left, top, width, height)
         # verify ----------------------
@@ -907,11 +907,11 @@ class TestShapeCollection(TestCase):
             self.assertEqual(table_xml_lines[idx], line, msg)
 
     @patch('pptx.shapes.Collection._values', new_callable=PropertyMock)
-    @patch('pptx.shapes.Shape')
-    @patch('pptx.shapes.ShapeCollection._ShapeCollection__next_shape_id',
+    @patch('pptx.shapes._Shape')
+    @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
-    def test_add_textbox_collaboration(self, __next_shape_id, Shape, _values):
-        """ShapeCollection.add_textbox() calls the right collaborators"""
+    def test_add_textbox_collaboration(self, __next_shape_id, _Shape, _values):
+        """_ShapeCollection.add_textbox() calls the right collaborators"""
         # constant values -------------
         sp_id = 9
         name = 'TextBox 8'
@@ -924,7 +924,7 @@ class TestShapeCollection(TestCase):
         sp = Mock(name='sp')
         __sp = Mock(name='__sp', return_value=sp)
         __spTree = Mock(name='__spTree')
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         shapes._ShapeCollection__sp = __sp
         shapes._ShapeCollection__spTree = __spTree
         # exercise --------------------
@@ -934,17 +934,17 @@ class TestShapeCollection(TestCase):
         __sp.assert_called_once_with(sp_id, name, left, top,
                                      width, height, is_textbox=True)
         __spTree.append.assert_called_once_with(sp)
-        Shape.assert_called_once_with(sp)
+        _Shape.assert_called_once_with(sp)
         shapes._values.append.assert_called_once_with(shape)
 
     def test_add_textbox_xml(self):
-        """ShapeCollection.add_textbox() generates correct XML"""
+        """_ShapeCollection.add_textbox() generates correct XML"""
         # constant values -------------
         left = Inches(1.0)
         top = Inches(2.0)
         width = Inches(1.5)
         height = Inches(0.5)
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         # exercise --------------------
         shape = shapes.add_textbox(left, top, width, height)
         # verify ----------------------
@@ -958,7 +958,7 @@ class TestShapeCollection(TestCase):
             self.assertEqual(line, txbox_xml_lines[idx], msg)
 
     def test_title_value(self):
-        """ShapeCollection.title value is ref to correct shape"""
+        """_ShapeCollection.title value is ref to correct shape"""
         # exercise --------------------
         title_shape = self.shapes.title
         # verify ----------------------
@@ -968,15 +968,15 @@ class TestShapeCollection(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_title_is_none_on_no_title_placeholder(self):
-        """ShapeCollection.title value is None when no title placeholder"""
+        """_ShapeCollection.title value is None when no title placeholder"""
         # setup -----------------------
         spTree = _empty_spTree()
-        shapes = ShapeCollection(spTree)
+        shapes = _ShapeCollection(spTree)
         # verify ----------------------
         assert_that(shapes.title, is_(None))
 
     def test_placeholders_values(self):
-        """ShapeCollection.placeholders values are correct and sorted"""
+        """_ShapeCollection.placeholders values are correct and sorted"""
         # setup -----------------------
         expected_values = (
             ('Title 1',                    PH_TYPE_CTRTITLE,  0),
@@ -998,15 +998,15 @@ class TestShapeCollection(TestCase):
             self.assertEqual(expected, actual, msg)
 
     def test__clone_layout_placeholders_shapes(self):
-        """ShapeCollection._clone_layout_placeholders clones shapes"""
+        """_ShapeCollection._clone_layout_placeholders clones shapes"""
         # setup -----------------------
         expected_values = (
             [2, 'Title 1',             PH_TYPE_CTRTITLE,  0],
             [3, 'Vertical Subtitle 2', PH_TYPE_SUBTITLE,  1],
             [4, 'Table Placeholder 3', PH_TYPE_TBL,      14])
-        slidelayout = SlideLayout()
+        slidelayout = _SlideLayout()
         slidelayout._shapes = _sldLayout1_shapes()
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         # exercise --------------------
         shapes._clone_layout_placeholders(slidelayout)
         # verify ----------------------
@@ -1017,7 +1017,7 @@ class TestShapeCollection(TestCase):
                    % (idx, sp))
             self.assertTrue(is_placeholder, msg)
             # verify values -----------
-            ph = Placeholder(sp)
+            ph = _Placeholder(sp)
             expected = expected_values[idx]
             actual = [ph.id, ph.name, ph.type, ph.idx]
             msg = ("expected placeholder[%d] values %s, got %s"
@@ -1025,11 +1025,11 @@ class TestShapeCollection(TestCase):
             self.assertEqual(expected, actual, msg)
 
     def test___clone_layout_placeholder_values(self):
-        """ShapeCollection.__clone_layout_placeholder() values correct"""
+        """_ShapeCollection.__clone_layout_placeholder() values correct"""
         # setup -----------------------
         layout_shapes = _sldLayout1_shapes()
         layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         expected_values = (
             [2, 'Title 1',                    PH_TYPE_CTRTITLE,  0],
             [3, 'Date Placeholder 2',         PH_TYPE_DT,       10],
@@ -1039,21 +1039,21 @@ class TestShapeCollection(TestCase):
             [7, 'Footer Placeholder 6',       PH_TYPE_FTR,      11])
         # exercise --------------------
         for idx, layout_ph_sp in enumerate(layout_ph_shapes):
-            layout_ph = Placeholder(layout_ph_sp)
+            layout_ph = _Placeholder(layout_ph_sp)
             sp = shapes._ShapeCollection__clone_layout_placeholder(layout_ph)
             # verify ------------------
-            ph = Placeholder(sp)
+            ph = _Placeholder(sp)
             expected = expected_values[idx]
             actual = [ph.id, ph.name, ph.type, ph.idx]
             msg = "expected placeholder values %s, got %s" % (expected, actual)
             self.assertEqual(expected, actual, msg)
 
     def test___clone_layout_placeholder_xml(self):
-        """ShapeCollection.__clone_layout_placeholder() produces correct XML"""
+        """_ShapeCollection.__clone_layout_placeholder() emits correct XML"""
         # setup -----------------------
         layout_shapes = _sldLayout1_shapes()
         layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         xml_template = (
             '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone='
             '\'yes\'?>\n<p:sp xmlns:p="http://schemas.openxmlformats.org/pres'
@@ -1079,9 +1079,9 @@ class TestShapeCollection(TestCase):
                     # verify ----------------------
         for idx, layout_ph_sp in enumerate(layout_ph_shapes):
             # log.debug("layout_ph_sp.name '%s'" % layout_ph_sp.name)
-            layout_ph = Placeholder(layout_ph_sp)
+            layout_ph = _Placeholder(layout_ph_sp)
             sp = shapes._ShapeCollection__clone_layout_placeholder(layout_ph)
-            ph = Placeholder(sp)
+            ph = _Placeholder(sp)
             sp_xml = prettify_nsdecls(
                 oxml_tostring(ph._element, encoding='UTF-8',
                               pretty_print=True, standalone=True))
@@ -1095,7 +1095,7 @@ class TestShapeCollection(TestCase):
 
     def test___next_ph_name_return_value(self):
         """
-        ShapeCollection.__next_ph_name() returns correct value
+        _ShapeCollection.__next_ph_name() returns correct value
 
         * basename + 'Placeholder' + num, e.g. 'Table Placeholder 8'
         * numpart of name defaults to id-1, but increments until unique
@@ -1120,7 +1120,7 @@ class TestShapeCollection(TestCase):
             self.assertEqual(expected, actual, msg)
 
     def test___next_shape_id_value(self):
-        """ShapeCollection.__next_shape_id value is correct"""
+        """_ShapeCollection.__next_shape_id value is correct"""
         # setup -----------------------
         shapes = _sldLayout1_shapes()
         # exercise --------------------
@@ -1132,7 +1132,7 @@ class TestShapeCollection(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test___pic_generates_correct_xml(self):
-        """ShapeCollection.__pic returns correct value"""
+        """_ShapeCollection.__pic returns correct value"""
         # setup -----------------------
         test_image = PILImage.open(test_image_path)
         pic_size = tuple(Px(x) for x in test_image.size)
@@ -1163,7 +1163,7 @@ class TestShapeCollection(TestCase):
             # assert_that(line, is_(equal_to(expected_xml_lines[idx])))
 
     def test___pic_from_stream_generates_correct_xml(self):
-        """ShapeCollection.__pic returns correct XML from stream image"""
+        """_ShapeCollection.__pic returns correct XML from stream image"""
         # setup -----------------------
         test_image = PILImage.open(test_image_path)
         pic_size = tuple(Px(x) for x in test_image.size)
@@ -1184,8 +1184,8 @@ class TestShapeCollection(TestCase):
         assert_that(oxml_tostring(pic), is_(equal_to(xml)))
 
 
-class TestTable(TestCase):
-    """Test Table"""
+class Test_Table(TestCase):
+    """Test _Table"""
     def test_initial_height_divided_evenly_between_rows(self):
         """Table creation height divided evenly between rows"""
         # constant values -------------
@@ -1193,7 +1193,7 @@ class TestTable(TestCase):
         left = top = Inches(1.0)
         width = Inches(2.0)
         height = 1000
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         # exercise --------------------
         table = shapes.add_table(rows, cols, left, top, width, height)
         # verify ----------------------
@@ -1208,7 +1208,7 @@ class TestTable(TestCase):
         left = top = Inches(1.0)
         width = 1000
         height = Inches(2.0)
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         # exercise --------------------
         table = shapes.add_table(rows, cols, left, top, width, height)
         # verify ----------------------
@@ -1217,12 +1217,12 @@ class TestTable(TestCase):
         assert_that(table.columns[2].width, is_(equal_to(334)))
 
     def test_height_sum_of_row_heights(self):
-        """Table.height is sum of row heights"""
+        """_Table.height is sum of row heights"""
         # constant values -------------
         rows = cols = 2
         left = top = width = height = Inches(2.0)
         # setup -----------------------
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         tbl = shapes.add_table(rows, cols, left, top, width, height)
         tbl.rows[0].height = 100
         tbl.rows[1].height = 200
@@ -1231,12 +1231,12 @@ class TestTable(TestCase):
         assert_that(tbl.height, is_(equal_to(sum_of_row_heights)))
 
     def test_width_sum_of_col_widths(self):
-        """Table.width is sum of column widths"""
+        """_Table.width is sum of column widths"""
         # constant values -------------
         rows = cols = 2
         left = top = width = height = Inches(2.0)
         # setup -----------------------
-        shapes = ShapeCollection(_empty_spTree())
+        shapes = _ShapeCollection(_empty_spTree())
         tbl = shapes.add_table(rows, cols, left, top, width, height)
         tbl.columns[0].width = 100
         tbl.columns[1].width = 200
@@ -1245,8 +1245,8 @@ class TestTable(TestCase):
         assert_that(tbl.width, is_(equal_to(sum_of_col_widths)))
 
 
-class TestTextFrame(TestCase):
-    """Test TextFrame"""
+class Test_TextFrame(TestCase):
+    """Test _TextFrame"""
     def setUp(self):
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         self.sld = oxml_parse(path).getroot()
@@ -1254,11 +1254,11 @@ class TestTextFrame(TestCase):
         self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)
 
     def test_paragraphs_size(self):
-        """TextFrame.paragraphs is expected size"""
+        """_TextFrame.paragraphs is expected size"""
         # setup -----------------------
         actual_lengths = []
         for txBody in self.txBodyList:
-            textframe = TextFrame(txBody)
+            textframe = _TextFrame(txBody)
             # exercise ----------------
             actual_lengths.append(len(textframe.paragraphs))
         # verify ----------------------
@@ -1268,7 +1268,7 @@ class TestTextFrame(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_add_paragraph_xml(self):
-        """TextFrame.add_paragraph does what it says"""
+        """_TextFrame.add_paragraph does what it says"""
         # setup -----------------------
         txBody_xml = (
             '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
@@ -1282,7 +1282,7 @@ class TestTextFrame(TestCase):
             'gml/2006/main"><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></'
             'a:p><a:p/></p:txBody>')
         txBody = oxml_fromstring(txBody_xml)
-        textframe = TextFrame(txBody)
+        textframe = _TextFrame(txBody)
         # exercise --------------------
         textframe.add_paragraph()
         # verify ----------------------
@@ -1295,11 +1295,11 @@ class TestTextFrame(TestCase):
             raise AssertionError(msg)
 
     def test_text_setter_structure_and_value(self):
-        """assign to TextFrame.text yields single run para set to value"""
+        """Assignment to _TextFrame.text yields single run para set to value"""
         # setup -----------------------
         test_text = 'python-pptx was here!!'
         txBody = self.txBodyList[2]
-        textframe = TextFrame(txBody)
+        textframe = _TextFrame(txBody)
         # exercise --------------------
         textframe.text = test_text
         # verify paragraph count ------
@@ -1314,7 +1314,7 @@ class TestTextFrame(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_vertical_anchor_works(self):
-        """Assignment to TextFrame.vertical_anchor sets vert anchor"""
+        """Assignment to _TextFrame.vertical_anchor sets vert anchor"""
         # setup -----------------------
         txBody_xml = (
             '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentatio'
@@ -1328,7 +1328,7 @@ class TestTextFrame(TestCase):
             '\n      <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>'
             '\n')
         txBody = oxml_fromstring(txBody_xml)
-        textframe = TextFrame(txBody)
+        textframe = _TextFrame(txBody)
         # exercise --------------------
         textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
         # verify ----------------------

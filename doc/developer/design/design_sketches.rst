@@ -7,7 +7,7 @@ API sketch
 
 ::
 
-    ShapeCollection.add_table(rows, cols, left, top, width, height)
+    _ShapeCollection.add_table(rows, cols, left, top, width, height)
 
 
 Experimental Code

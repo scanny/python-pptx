@@ -31,7 +31,7 @@ from pptx.exceptions import InvalidPackageError
 from pptx.oxml import (
     _Element, _SubElement, oxml_fromstring, oxml_tostring, qn)
 
-from pptx.shapes import ShapeCollection
+from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
     CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT, CT_SLIDEMASTER, CT_SLIDESHOW,
@@ -58,8 +58,8 @@ _nsmap = namespaces('a', 'r', 'p')
 
 def _child(element, child_tagname, nsmap=None):
     """
-    Return direct child of *element* having *child_tagname* or :class:`None`
-    if no such child element is present.
+    Return direct child of *element* having *child_tagname* or |None| if no
+    such child element is present.
     """
     # use default nsmap if not specified
     if nsmap is None:
@@ -89,12 +89,12 @@ def _to_unicode(text):
 
 
 # ============================================================================
-# Package
+# _Package
 # ============================================================================
 
-class Package(object):
+class _Package(object):
     """
-    Return an instance of |Package| loaded from *file*, where *file* can be a
+    Return an instance of |_Package| loaded from *file*, where *file* can be a
     path (a string) or a file-like object. If *file* is a path, it can be
     either a path to a PowerPoint `.pptx` file or a path to a directory
     containing an expanded presentation file, as would result from unzipping
@@ -105,10 +105,10 @@ class Package(object):
     __instances = []
 
     def __init__(self, file=None):
-        super(Package, self).__init__()
+        super(_Package, self).__init__()
         self.__presentation = None
         self.__relationships = _RelationshipCollection()
-        self.__images = ImageCollection()
+        self.__images = _ImageCollection()
         self.__instances.append(weakref.ref(self))
         if file is None:
             file = self.__default_pptx_path
@@ -124,7 +124,7 @@ class Package(object):
 
     @classmethod
     def instances(cls):
-        """Return tuple of Package instances that have been created"""
+        """Return tuple of _Package instances that have been created"""
         # clean garbage collected pkgs out of __instances
         cls.__instances[:] = [wkref for wkref in cls.__instances
                               if wkref() is not None]
@@ -135,8 +135,7 @@ class Package(object):
     @property
     def presentation(self):
         """
-        Reference to the :class:`Presentation` instance contained in this
-        package.
+        Reference to the |Presentation| instance contained in this package.
         """
         return self.__presentation
 
@@ -178,7 +177,7 @@ class Package(object):
             # log.debug("%s -- %s", reltype, partname)
 
             # create target part
-            part = Part(reltype, content_type)
+            part = _Part(reltype, content_type)
             part_dict[partname] = part
             part._load(pkgpart, part_dict)
 
@@ -187,9 +186,9 @@ class Package(object):
             self.__relationships._additem(model_rel)
 
         # gather references to image parts into __images
-        self.__images = ImageCollection()
+        self.__images = _ImageCollection()
         image_parts = [part for part in self._parts
-                       if part.__class__.__name__ == 'Image']
+                       if part.__class__.__name__ == '_Image']
         for image in image_parts:
             self.__images._loadpart(image)
 
@@ -219,7 +218,7 @@ class Package(object):
         Return a list containing a reference to each of the parts in this
         package.
         """
-        return [part for part in Package.__walkparts(self.__relationships)]
+        return [part for part in _Package.__walkparts(self.__relationships)]
 
     @staticmethod
     def __walkparts(rels, parts=None):
@@ -239,7 +238,7 @@ class Package(object):
                 continue
             parts.append(part)
             yield part
-            for part in Package.__walkparts(part._relationships, parts):
+            for part in _Package.__walkparts(part._relationships, parts):
                 yield part
 
 
@@ -247,11 +246,11 @@ class Package(object):
 # Base classes
 # ============================================================================
 
-class Observable(object):
+class _Observable(object):
     """
     Simple observer pattern mixin. Limitations:
 
-    * observers get all message types from subject (Observable), subscription
+    * observers get all message types from subject (_Observable), subscription
       is on subject basis, not subject + event_type.
 
     * notifications are oriented toward "value has been updated", which seems
@@ -259,7 +258,7 @@ class Observable(object):
       completed" or "preparing to load".
     """
     def __init__(self):
-        super(Observable, self).__init__()
+        super(_Observable, self).__init__()
         self._observers = []
 
     def _notify_observers(self, name, value):
@@ -291,11 +290,11 @@ class _RelationshipCollection(Collection):
     Sequence of relationships maintained in rId order. Maintaining the
     relationships in sorted order makes the .rels files both repeatable and
     more readable, which is very helpful for debugging.
-    :class:`RelationshipCollection` has an attribute *_reltype_ordering* which
-    is a sequence (tuple) of reltypes. If *_reltype_ordering* contains one or
-    more reltype, the collection is maintained in reltype + partname.idx
-    order and relationship ids (rIds) are renumbered to match that sequence
-    and any numbering gaps are filled in.
+    |_RelationshipCollection| has an attribute *_reltype_ordering* which is a
+    sequence (tuple) of reltypes. If *_reltype_ordering* contains one or more
+    reltype, the collection is maintained in reltype + partname.idx order and
+    relationship ids (rIds) are renumbered to match that sequence and any
+    numbering gaps are filled in.
     """
     def __init__(self):
         super(_RelationshipCollection, self).__init__()
@@ -362,7 +361,7 @@ class _RelationshipCollection(Collection):
 
     def notify(self, subject, name, value):
         """RelationshipCollection implements the Observer interface"""
-        if isinstance(subject, BasePart):
+        if isinstance(subject, _BasePart):
             if name == 'partname':
                 self.__resequence()
 
@@ -452,7 +451,7 @@ class _Relationship(object):
 # Parts
 # ============================================================================
 
-class PartCollection(Collection):
+class _PartCollection(Collection):
     """
     Sequence of parts. Sensitive to partname index when ordering parts added
     via _loadpart(), e.g. ``/ppt/slide/slide2.xml`` appears before
@@ -460,7 +459,7 @@ class PartCollection(Collection):
     lexicographical sort.
     """
     def __init__(self):
-        super(PartCollection, self).__init__()
+        super(_PartCollection, self).__init__()
 
     def _loadpart(self, part):
         """
@@ -477,15 +476,15 @@ class PartCollection(Collection):
         self._values.append(part)
 
 
-class ImageCollection(PartCollection):
+class _ImageCollection(_PartCollection):
     """
     Immutable sequence of images, typically belonging to an instance of
-    :class:`Package`. An image part containing a particular image blob appears
-    only once in an instance, regardless of how many times it is referenced by
-    a pic shape in a slide.
+    |_Package|. An image part containing a particular image blob appears only
+    once in an instance, regardless of how many times it is referenced by a
+    pic shape in a slide.
     """
     def __init__(self):
-        super(ImageCollection, self).__init__()
+        super(_ImageCollection, self).__init__()
 
     def add_image(self, file):
         """
@@ -494,8 +493,8 @@ class ImageCollection(PartCollection):
         image instance containing this same image already exists, that
         instance is returned. If it does not yet exist, a new one is created.
         """
-        # use Image constructor to validate and characterize image file
-        image = Image(file)
+        # use _Image constructor to validate and characterize image file
+        image = _Image(file)
         # return matching image if found
         for existing_image in self._values:
             if existing_image._sha1 == image._sha1:
@@ -516,10 +515,10 @@ class ImageCollection(PartCollection):
             image.partname = '/ppt/media/image%d%s' % (idx+1, image.ext)
 
 
-class Part(object):
+class _Part(object):
     """
     Part factory. Returns an instance of the appropriate custom part type for
-    part types that have them, BasePart otherwise.
+    part types that have them, _BasePart otherwise.
     """
     def __new__(cls, reltype, content_type):
         """
@@ -528,7 +527,7 @@ class Part(object):
         particular the presentation part type, *content_type* is also required
         in order to fully specify the part to be created.
         """
-        # log.debug("Creating Part for %s", reltype)
+        # log.debug("Creating _Part for %s", reltype)
         if reltype == RT_OFFICEDOCUMENT:
             if content_type in (CT_PRESENTATION, CT_TEMPLATE, CT_SLIDESHOW):
                 return Presentation()
@@ -536,17 +535,17 @@ class Part(object):
                 tmpl = "Not a presentation content type, got '%s'"
                 raise InvalidPackageError(tmpl % content_type)
         elif reltype == RT_SLIDE:
-            return Slide()
+            return _Slide()
         elif reltype == RT_SLIDELAYOUT:
-            return SlideLayout()
+            return _SlideLayout()
         elif reltype == RT_SLIDEMASTER:
-            return SlideMaster()
+            return _SlideMaster()
         elif reltype == RT_IMAGE:
-            return Image()
-        return BasePart()
+            return _Image()
+        return _BasePart()
 
 
-class BasePart(Observable):
+class _BasePart(_Observable):
     """
     Base class for presentation model parts. Provides common code to all parts
     and is the class we instantiate for parts we don't unmarshal or manipulate
@@ -564,8 +563,8 @@ class BasePart(Observable):
 
     .. attribute:: _relationships
 
-       :class:`RelationshipCollection` instance containing the relationships
-       for this part.
+       |_RelationshipCollection| instance containing the relationships for this
+       part.
 
     """
     def __init__(self, content_type=None):
@@ -573,7 +572,7 @@ class BasePart(Observable):
         Needs content_type parameter so newly created parts (not loaded from
         package) can register their content type.
         """
-        super(BasePart, self).__init__()
+        super(_BasePart, self).__init__()
         self.__content_type = content_type
         self.__partname = None
         self._element = None
@@ -583,17 +582,17 @@ class BasePart(Observable):
     @property
     def _blob(self):
         """
-        Default is to return unchanged _load_blob. Dynamic parts will
-        override. Raises :class:`ValueError` if _load_blob is None.
+        Default is to return unchanged _load_blob. Dynamic parts will override.
+        Raises |ValueError| if _load_blob is None.
         """
         if self.partname.endswith('.xml'):
-            assert self._element is not None, 'BasePart._blob is undefined '\
+            assert self._element is not None, '_BasePart._blob is undefined '\
                 'for xml parts when part.__element is None'
             xml = oxml_tostring(self._element, encoding='UTF-8',
                                 pretty_print=True, standalone=True)
             return xml
         # default for binary parts is to return _load_blob unchanged
-        assert self._load_blob, "BasePart._blob called on part with no "\
+        assert self._load_blob, "_BasePart._blob called on part with no "\
             "_load_blob; perhaps _blob not overridden by sub-class?"
         return self._load_blob
 
@@ -604,7 +603,7 @@ class BasePart(Observable):
         'application/vnd.openxmlformats-officedocument.theme+xml'.
         """
         if self.__content_type is None:
-            msg = "BasePart._content_type accessed before assigned"
+            msg = "_BasePart._content_type accessed before assigned"
             raise ValueError(msg)
         return self.__content_type
 
@@ -615,7 +614,7 @@ class BasePart(Observable):
     @property
     def partname(self):
         """Part name of this part, e.g. '/ppt/slides/slide1.xml'."""
-        assert self.__partname, "BasePart.partname referenced before assigned"
+        assert self.__partname, "_BasePart.partname referenced before assigned"
         return self.__partname
 
     @partname.setter
@@ -666,7 +665,7 @@ class BasePart(Observable):
             if partname in part_dict:
                 part = part_dict[partname]
             else:
-                part = Part(reltype, content_type)
+                part = _Part(reltype, content_type)
                 part_dict[partname] = part
                 part._load(target_pkgpart, part_dict)
 
@@ -676,28 +675,27 @@ class BasePart(Observable):
         return self
 
 
-class Presentation(BasePart):
+class Presentation(_BasePart):
     """
     Top level class in object model, represents the contents of the /ppt
     directory of a .pptx file.
     """
     def __init__(self):
         super(Presentation, self).__init__()
-        self.__slidemasters = PartCollection()
-        self.__slides = SlideCollection(self)
+        self.__slidemasters = _PartCollection()
+        self.__slides = _SlideCollection(self)
 
     @property
     def slidemasters(self):
         """
-        List of :class:`SlideMaster` objects belonging to this presentation.
+        List of |_SlideMaster| objects belonging to this presentation.
         """
         return tuple(self.__slidemasters)
 
     @property
     def slides(self):
         """
-        :class:`SlideCollection` object containing the slides in this
-        presentation.
+        |_SlideCollection| object containing the slides in this presentation.
         """
         return self.__slides
 
@@ -779,7 +777,7 @@ class Presentation(BasePart):
         return sldIdLst
 
 
-class Image(BasePart):
+class _Image(_BasePart):
     """
     Return new Image part instance. *file* may be |None|, a path to a file (a
     string), or a file-like object. If *file* is |None|, no image is loaded
@@ -788,7 +786,7 @@ class Image(BasePart):
     files ppt/media/image[1-9][0-9]*.*.
     """
     def __init__(self, file=None):
-        super(Image, self).__init__()
+        super(_Image, self).__init__()
         self.__ext = None
         if file is not None:
             self.__load_image_from_file(file)
@@ -796,7 +794,7 @@ class Image(BasePart):
     @property
     def ext(self):
         """Return file extension for this image"""
-        assert self.__ext, "Image.__ext referenced before assigned"
+        assert self.__ext, "_Image.__ext referenced before assigned"
         return self.__ext
 
     @property
@@ -815,7 +813,7 @@ class Image(BasePart):
     def _load(self, pkgpart, part_dict):
         """Handle aspects of loading that are particular to image parts."""
         # call parent to do generic aspects of load
-        super(Image, self)._load(pkgpart, part_dict)
+        super(_Image, self)._load(pkgpart, part_dict)
         # set file extension
         self.__ext = posixpath.splitext(pkgpart.partname)[1]
         # return self-reference to allow generative calling
@@ -870,19 +868,19 @@ class Image(BasePart):
 # Slide Parts
 # ============================================================================
 
-class SlideCollection(PartCollection):
+class _SlideCollection(_PartCollection):
     """
     Immutable sequence of slides belonging to an instance of |Presentation|,
     with methods for manipulating the slides in the presentation.
     """
     def __init__(self, presentation):
-        super(SlideCollection, self).__init__()
+        super(_SlideCollection, self).__init__()
         self.__presentation = presentation
 
     def add_slide(self, slidelayout):
         """Add a new slide that inherits layout from *slidelayout*."""
         # 1. construct new slide
-        slide = Slide(slidelayout)
+        slide = _Slide(slidelayout)
         # 2. add it to this collection
         self._values.append(slide)
         # 3. assign its partname
@@ -903,7 +901,7 @@ class SlideCollection(PartCollection):
             slide.partname = '/ppt/slides/slide%d.xml' % (idx+1)
 
 
-class BaseSlide(BasePart):
+class _BaseSlide(_BasePart):
     """
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.
@@ -913,7 +911,7 @@ class BaseSlide(BasePart):
         Needs content_type parameter so newly created parts (not loaded from
         package) can register their content type.
         """
-        super(BaseSlide, self).__init__(content_type)
+        super(_BaseSlide, self).__init__(content_type)
         self._shapes = None
 
     @property
@@ -925,34 +923,34 @@ class BaseSlide(BasePart):
     @property
     def shapes(self):
         """Collection of shape objects belonging to this slide."""
-        assert self._shapes is not None, ("BaseSlide.shapes referenced "
+        assert self._shapes is not None, ("_BaseSlide.shapes referenced "
                                           "before assigned")
         return self._shapes
 
     def _load(self, pkgpart, part_dict):
         """Handle aspects of loading that are general to slide types."""
         # call parent to do generic aspects of load
-        super(BaseSlide, self)._load(pkgpart, part_dict)
+        super(_BaseSlide, self)._load(pkgpart, part_dict)
         # unmarshal shapes
-        self._shapes = ShapeCollection(self._element.cSld.spTree, self)
+        self._shapes = _ShapeCollection(self._element.cSld.spTree, self)
         # return self-reference to allow generative calling
         return self
 
     @property
     def _package(self):
-        """Reference to |Package| containing this slide"""
-        return Package.containing(self)
+        """Reference to |_Package| containing this slide"""
+        return _Package.containing(self)
 
 
-class Slide(BaseSlide):
+class _Slide(_BaseSlide):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
     def __init__(self, slidelayout=None):
-        super(Slide, self).__init__(CT_SLIDE)
+        super(_Slide, self).__init__(CT_SLIDE)
         self.__slidelayout = slidelayout
         self._element = self.__minimal_element
-        self._shapes = ShapeCollection(self._element.cSld.spTree, self)
+        self._shapes = _ShapeCollection(self._element.cSld.spTree, self)
         # if slidelayout, this is a slide being added, not one being loaded
         if slidelayout:
             self._shapes._clone_layout_placeholders(slidelayout)
@@ -962,7 +960,7 @@ class Slide(BaseSlide):
     @property
     def slidelayout(self):
         """
-        :class:`SlideLayout` object this slide inherits appearance from.
+        |_SlideLayout| object this slide inherits appearance from.
         """
         return self.__slidelayout
 
@@ -971,10 +969,10 @@ class Slide(BaseSlide):
         Load slide from package part.
         """
         # call parent to do generic aspects of load
-        super(Slide, self)._load(pkgpart, part_dict)
+        super(_Slide, self)._load(pkgpart, part_dict)
         # selectively unmarshal relationships for now
         for rel in self._relationships:
-            # log.debug("SlideMaster Relationship %s", rel._reltype)
+            # log.debug("_SlideMaster Relationship %s", rel._reltype)
             if rel._reltype == RT_SLIDELAYOUT:
                 self.__slidelayout = rel._target
         return self
@@ -998,19 +996,19 @@ class Slide(BaseSlide):
         return sld
 
 
-class SlideLayout(BaseSlide):
+class _SlideLayout(_BaseSlide):
     """
     Slide layout part. Corresponds to package files
-    ppt/slideLayouts/slideLayout[1-9][0-9]*.xml.
+    ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
     def __init__(self):
-        super(SlideLayout, self).__init__(CT_SLIDELAYOUT)
+        super(_SlideLayout, self).__init__(CT_SLIDELAYOUT)
         self.__slidemaster = None
 
     @property
     def slidemaster(self):
         """Slide master from which this slide layout inherits properties."""
-        assert self.__slidemaster is not None, ("SlideLayout.slidemaster "
+        assert self.__slidemaster is not None, ("_SlideLayout.slidemaster "
                                                 "referenced before assigned")
         return self.__slidemaster
 
@@ -1019,11 +1017,11 @@ class SlideLayout(BaseSlide):
         Load slide layout from package part.
         """
         # call parent to do generic aspects of load
-        super(SlideLayout, self)._load(pkgpart, part_dict)
+        super(_SlideLayout, self)._load(pkgpart, part_dict)
 
         # selectively unmarshal relationships we need
         for rel in self._relationships:
-            # log.debug("SlideLayout Relationship %s", rel._reltype)
+            # log.debug("_SlideLayout Relationship %s", rel._reltype)
             # get slideMaster from which this slideLayout inherits properties
             if rel._reltype == RT_SLIDEMASTER:
                 self.__slidemaster = rel._target
@@ -1032,7 +1030,7 @@ class SlideLayout(BaseSlide):
         return self
 
 
-class SlideMaster(BaseSlide):
+class _SlideMaster(_BaseSlide):
     """
     Slide master part. Corresponds to package files
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
@@ -1043,8 +1041,8 @@ class SlideMaster(BaseSlide):
     # the various masters a bit later.
 
     def __init__(self):
-        super(SlideMaster, self).__init__(CT_SLIDEMASTER)
-        self.__slidelayouts = PartCollection()
+        super(_SlideMaster, self).__init__(CT_SLIDEMASTER)
+        self.__slidelayouts = _PartCollection()
 
     @property
     def slidelayouts(self):
@@ -1058,11 +1056,11 @@ class SlideMaster(BaseSlide):
         Load slide master from package part.
         """
         # call parent to do generic aspects of load
-        super(SlideMaster, self)._load(pkgpart, part_dict)
+        super(_SlideMaster, self)._load(pkgpart, part_dict)
 
         # selectively unmarshal relationships for now
         for rel in self._relationships:
-            # log.debug("SlideMaster Relationship %s", rel._reltype)
+            # log.debug("_SlideMaster Relationship %s", rel._reltype)
             if rel._reltype == RT_SLIDELAYOUT:
                 self.__slidelayouts._loadpart(rel._target)
         return self
