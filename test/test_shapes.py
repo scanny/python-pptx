@@ -13,15 +13,10 @@ import os
 
 from hamcrest import assert_that, equal_to, is_
 
-try:
-    from PIL import Image as PILImage
-except ImportError:
-    import Image as PILImage
-
 from mock import Mock, patch, PropertyMock
 
 from pptx.constants import MSO
-from pptx.oxml import _SubElement, oxml_fromstring, oxml_tostring, oxml_parse
+from pptx.oxml import _SubElement, oxml_fromstring, oxml_parse, oxml_tostring
 from pptx.packaging import prettify_nsdecls
 from pptx.presentation import _SlideLayout
 from pptx.shapes import (
@@ -32,8 +27,8 @@ from pptx.spec import namespaces
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
     PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE, PH_ORIENT_HORZ,
-    PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER, RT_IMAGE)
-from pptx.util import Inches, Px, Pt
+    PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER)
+from pptx.util import Inches, Pt
 from testing import TestCase
 
 import logging
@@ -89,38 +84,6 @@ def _sldLayout1_shapes():
     return shapes
 
 
-def _table_xml():
-    xml = (
-        '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<p:gr'
-        'aphicFrame xmlns:p="http://schemas.openxmlformats.org/presentationml'
-        '/2006/main"\n                xmlns:a="http://schemas.openxmlformats.'
-        'org/drawingml/2006/main">\n  <p:nvGraphicFramePr>\n    <p:cNvPr id="'
-        '2" name="Table 1"/>\n    <p:cNvGraphicFramePr>\n      <a:graphicFram'
-        'eLocks noGrp="1"/>\n    </p:cNvGraphicFramePr>\n    <p:nvPr/>\n  </p'
-        ':nvGraphicFramePr>\n  <p:xfrm>\n    <a:off x="914400" y="1828800"/>'
-        '\n    <a:ext cx="1828800" cy="1828800"/>\n  </p:xfrm>\n  <a:graphic>'
-        '\n    <a:graphicData uri="http://schemas.openxmlformats.org/drawingm'
-        'l/2006/table">\n      <a:tbl>\n        <a:tblPr firstRow="1" bandRow'
-        '="1">\n          <a:tableStyleId>{5C22544A-7EE6-4342-B048-85BDC9FD1C'
-        '3A}</a:tableStyleId>\n        </a:tblPr>\n        <a:tblGrid>\n     '
-        '     <a:gridCol w="914400"/>\n          <a:gridCol w="914400"/>\n '
-        '       </a:tblGrid>\n        <a:tr h="914400">\n          <a:tc>\n  '
-        '          <a:txBody>\n              <a:bodyPr/>\n              <a:ls'
-        'tStyle/>\n              <a:p/>\n            </a:txBody>\n           '
-        ' <a:tcPr/>\n          </a:tc>\n          <a:tc>\n            <a:txBo'
-        'dy>\n              <a:bodyPr/>\n              <a:lstStyle/>\n       '
-        '       <a:p/>\n            </a:txBody>\n            <a:tcPr/>\n     '
-        '     </a:tc>\n        </a:tr>\n        <a:tr h="914400">\n          '
-        '<a:tc>\n            <a:txBody>\n              <a:bodyPr/>\n         '
-        '     <a:lstStyle/>\n              <a:p/>\n            </a:txBody>\n '
-        '           <a:tcPr/>\n          </a:tc>\n          <a:tc>\n         '
-        '   <a:txBody>\n              <a:bodyPr/>\n              <a:lstStyle/'
-        '>\n              <a:p/>\n            </a:txBody>\n            <a:tcP'
-        'r/>\n          </a:tc>\n        </a:tr>\n      </a:tbl>\n    </a:gra'
-        'phicData>\n  </a:graphic>\n</p:graphicFrame>')
-    return xml
-
-
 def _txbox_xml():
     xml = (
         '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<p:sp'
@@ -134,26 +97,6 @@ def _txbox_xml():
         'p:txBody>\n    <a:bodyPr wrap="none">\n      <a:spAutoFit/>\n    </a'
         ':bodyPr>\n    <a:lstStyle/>\n    <a:p/>\n  </p:txBody>\n</p:sp>')
     return xml
-
-
-class Test_Cell(TestCase):
-    """Test _Cell"""
-    def setUp(self):
-        tc_xml = (
-            '<a:tc xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
-            '/main"><a:txBody><a:p/></a:txBody></a:tc>')
-        test_tc_elm = oxml_fromstring(tc_xml)
-        self.cell = _Cell(test_tc_elm)
-
-    def test_text_round_trips_intact(self):
-        """_Cell.text (setter) sets cell text"""
-        # setup -----------------------
-        test_text = 'test_text'
-        # exercise --------------------
-        self.cell.text = test_text
-        # verify ----------------------
-        text = self.cell.textframe.paragraphs[0].runs[0].text
-        assert_that(text, is_(equal_to(test_text)))
 
 
 class Test_BaseShape(TestCase):
@@ -268,6 +211,26 @@ class Test_BaseShape(TestCase):
         """assignment to _BaseShape.text raises for shape with no text frame"""
         with self.assertRaises(TypeError):
             self.base_shape.text = 'test text'
+
+
+class Test_Cell(TestCase):
+    """Test _Cell"""
+    def setUp(self):
+        tc_xml = (
+            '<a:tc xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
+            '/main"><a:txBody><a:p/></a:txBody></a:tc>')
+        test_tc_elm = oxml_fromstring(tc_xml)
+        self.cell = _Cell(test_tc_elm)
+
+    def test_text_round_trips_intact(self):
+        """_Cell.text (setter) sets cell text"""
+        # setup -----------------------
+        test_text = 'test_text'
+        # exercise --------------------
+        self.cell.text = test_text
+        # verify ----------------------
+        text = self.cell.textframe.paragraphs[0].runs[0].text
+        assert_that(text, is_(equal_to(test_text)))
 
 
 class Test_CellCollection(TestCase):
@@ -619,6 +582,31 @@ class Test_Paragraph(TestCase):
             self.fail(msg)
 
 
+class Test_Placeholder(TestCase):
+    """Test _Placeholder"""
+    def test_property_values(self):
+        """_Placeholder property values are correct"""
+        # setup -----------------------
+        expected_values = (
+            (PH_TYPE_CTRTITLE, PH_ORIENT_HORZ, PH_SZ_FULL,     0),
+            (PH_TYPE_DT,       PH_ORIENT_HORZ, PH_SZ_HALF,    10),
+            (PH_TYPE_SUBTITLE, PH_ORIENT_VERT, PH_SZ_FULL,     1),
+            (PH_TYPE_TBL,      PH_ORIENT_HORZ, PH_SZ_QUARTER, 14),
+            (PH_TYPE_SLDNUM,   PH_ORIENT_HORZ, PH_SZ_QUARTER, 12),
+            (PH_TYPE_FTR,      PH_ORIENT_HORZ, PH_SZ_QUARTER, 11))
+        shapes = _sldLayout1_shapes()
+        # exercise --------------------
+        for idx, sp in enumerate(shapes):
+            ph = _Placeholder(sp)
+            values = (ph.type, ph.orient, ph.sz, ph.idx)
+            # verify ----------------------
+            expected = expected_values[idx]
+            actual = values
+            msg = ("expected shapes[%d] values %s, got %s"
+                   % (idx, expected, actual))
+            self.assertEqual(expected, actual, msg)
+
+
 class Test_Row(TestCase):
     """Test _Row"""
     def setUp(self):
@@ -647,31 +635,6 @@ class Test_Row(TestCase):
         for value in test_cases:
             with self.assertRaises(ValueError):
                 self.row.height = value
-
-
-class Test_Placeholder(TestCase):
-    """Test _Placeholder"""
-    def test_property_values(self):
-        """_Placeholder property values are correct"""
-        # setup -----------------------
-        expected_values = (
-            (PH_TYPE_CTRTITLE, PH_ORIENT_HORZ, PH_SZ_FULL,     0),
-            (PH_TYPE_DT,       PH_ORIENT_HORZ, PH_SZ_HALF,    10),
-            (PH_TYPE_SUBTITLE, PH_ORIENT_VERT, PH_SZ_FULL,     1),
-            (PH_TYPE_TBL,      PH_ORIENT_HORZ, PH_SZ_QUARTER, 14),
-            (PH_TYPE_SLDNUM,   PH_ORIENT_HORZ, PH_SZ_QUARTER, 12),
-            (PH_TYPE_FTR,      PH_ORIENT_HORZ, PH_SZ_QUARTER, 11))
-        shapes = _sldLayout1_shapes()
-        # exercise --------------------
-        for idx, sp in enumerate(shapes):
-            ph = _Placeholder(sp)
-            values = (ph.type, ph.orient, ph.sz, ph.idx)
-            # verify ----------------------
-            expected = expected_values[idx]
-            actual = values
-            msg = ("expected shapes[%d] values %s, got %s"
-                   % (idx, expected, actual))
-            self.assertEqual(expected, actual, msg)
 
 
 class Test_RowCollection(TestCase):
@@ -813,129 +776,108 @@ class Test_ShapeCollection(TestCase):
             _ShapeCollection(spTree)
 
     @patch('pptx.shapes._Picture')
-    @patch('pptx.util.Collection._values', new_callable=PropertyMock)
-    @patch('pptx.shapes._ShapeCollection._ShapeCollection__package',
+    @patch('pptx.shapes.CT_Picture')
+    @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
-    def test_add_picture_collaboration(self, mock_package, mock_values,
-                                       MockPicture):
+    def test_add_picture_collaboration(self, next_shape_id, CT_Picture,
+                                       _Picture):
         """_ShapeCollection.add_picture() calls the right collaborators"""
         # constant values -------------
+        file = test_image_path
+        left, top, width, height = 1, 2, 3, 4
+        id_, name, desc = 12, 'Picture 11', 'image1.jpeg'
         rId = 'rId1'
-        left = 1
-        top = 2
         # setup mockery ---------------
-        pkg = Mock(name='pkg')
-        image = Mock(name='image')
-        rel = Mock(name='rel')
-        pic = Mock(name='pic')
+        next_shape_id.return_value = id_
+        image = Mock(name='image', _desc=desc)
+        image._scale.return_value = width, height
+        rel = Mock(name='rel', _rId=rId)
         slide = Mock(name='slide')
-        __pic = Mock(name='__pic')
+        slide._add_image.return_value = image, rel
         __spTree = Mock(name='__spTree')
-        _Picture = MockPicture
-        mock_package.return_value = pkg
-        pkg._images.add_image.return_value = image
-        slide._add_relationship.return_value = rel
-        rel._rId = rId
-        __pic.return_value = pic
-        # setup -----------------------
+        __shapes = Mock(name='__shapes')
         shapes = _ShapeCollection(_empty_spTree(), slide)
-        shapes._ShapeCollection__pic = __pic
         shapes._ShapeCollection__spTree = __spTree
-        # exercise --------------------
-        picture = shapes.add_picture(test_image_path, left, top)
+        shapes._ShapeCollection__shapes = __shapes
+        pic = Mock(name='pic')
+        CT_Picture.new_pic.return_value = pic
+        picture = Mock(name='picture')
+        _Picture.return_value = picture
+        # # exercise --------------------
+        retval = shapes.add_picture(file, left, top, width, height)
         # verify ----------------------
-        pkg._images.add_image.assert_called_once_with(test_image_path)
-        slide._add_relationship.assert_called_once_with(RT_IMAGE, image)
-        __pic.assert_called_once_with(rId, test_image_path,
-                                      left, top, None, None)
+        shapes._ShapeCollection__slide._add_image.assert_called_once_with(file)
+        image._scale.assert_called_once_with(width, height)
+        CT_Picture.new_pic.assert_called_once_with(
+            id_, name, desc, rId, left, top, width, height)
         __spTree.append.assert_called_once_with(pic)
         _Picture.assert_called_once_with(pic)
-        shapes._values.append.assert_called_once_with(picture)
+        __shapes.append.assert_called_once_with(picture)
+        assert_that(retval, is_(equal_to(picture)))
 
-    @patch('pptx.shapes.Collection._values', new_callable=PropertyMock)
     @patch('pptx.shapes._Table')
     @patch('pptx.shapes.CT_GraphicalObjectFrame')
     @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
     def test_add_table_collaboration(
-            self, __next_shape_id, CT_GraphicalObjectFrame, _Table, _values):
+            self, __next_shape_id, CT_GraphicalObjectFrame, _Table):
         """_ShapeCollection.add_table() calls the right collaborators"""
         # constant values -------------
-        sp_id = 9
-        name = 'Table 8'
-        rows = cols = 2
-        left = Inches(1.0)
-        top = Inches(2.0)
-        width = Inches(2.0)
-        height = Inches(2.0)
+        id_, name = 9, 'Table 8'
+        rows, cols = 2, 3
+        left, top, width, height = 111, 222, 333, 444
         # setup mockery ---------------
-        __next_shape_id.return_value = sp_id
+        __next_shape_id.return_value = id_
         graphicFrame = Mock(name='graphicFrame')
-        CT_GraphicalObjectFrame.return_value = graphicFrame
+        CT_GraphicalObjectFrame.new_table.return_value = graphicFrame
         __spTree = Mock(name='__spTree')
+        __shapes = Mock(name='__shapes')
         shapes = _ShapeCollection(_empty_spTree())
         shapes._ShapeCollection__spTree = __spTree
+        shapes._ShapeCollection__shapes = __shapes
+        table = Mock('table')
+        _Table.return_value = table
         # exercise --------------------
-        table = shapes.add_table(rows, cols, left, top, width, height)
+        retval = shapes.add_table(rows, cols, left, top, width, height)
         # verify ----------------------
         __next_shape_id.assert_called_once_with()
-        CT_GraphicalObjectFrame.assert_called_once_with(
-            sp_id, name, rows, cols, left, top, width, height)
+        CT_GraphicalObjectFrame.new_table.assert_called_once_with(
+            id_, name, rows, cols, left, top, width, height)
         __spTree.append.assert_called_once_with(graphicFrame)
         _Table.assert_called_once_with(graphicFrame)
-        shapes._values.append.assert_called_once_with(table)
+        __shapes.append.assert_called_once_with(table)
+        assert_that(retval, is_(equal_to(table)))
 
-    def test_add_table_xml(self):
-        """_ShapeCollection.add_table() generates correct XML"""
-        # constant values -------------
-        rows = cols = 2
-        left = Inches(1.0)
-        top = Inches(2.0)
-        width = Inches(2.0)
-        height = Inches(2.0)
-        shapes = _ShapeCollection(_empty_spTree())
-        # exercise --------------------
-        table = shapes.add_table(rows, cols, left, top, width, height)
-        # verify ----------------------
-        xml = oxml_tostring(table._element, encoding='UTF-8',
-                            pretty_print=True, standalone=True)
-        xml = prettify_nsdecls(xml)
-        xml_lines = xml.split('\n')
-        table_xml_lines = _table_xml().split('\n')
-        for idx, line in enumerate(xml_lines):
-            msg = "expected:\n%s\n\nbut got:\n\n%s" % (_table_xml(), xml)
-            self.assertEqual(table_xml_lines[idx], line, msg)
-
-    @patch('pptx.shapes.Collection._values', new_callable=PropertyMock)
+    @patch('pptx.shapes.CT_Shape')
     @patch('pptx.shapes._Shape')
     @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
-    def test_add_textbox_collaboration(self, __next_shape_id, _Shape, _values):
+    def test_add_textbox_collaboration(self, __next_shape_id, _Shape,
+                                       CT_Shape):
         """_ShapeCollection.add_textbox() calls the right collaborators"""
         # constant values -------------
-        sp_id = 9
-        name = 'TextBox 8'
-        left = Inches(1.0)
-        top = Inches(2.0)
-        width = Inches(1.5)
-        height = Inches(0.5)
+        id_, name = 9, 'TextBox 8'
+        left, top, width, height = 111, 222, 333, 444
         # setup mockery ---------------
-        __next_shape_id.return_value = sp_id
+        __next_shape_id.return_value = id_
         sp = Mock(name='sp')
-        __sp = Mock(name='__sp', return_value=sp)
+        CT_Shape.new_textbox_sp.return_value = sp
         __spTree = Mock(name='__spTree')
+        __shapes = Mock(name='__shapes')
         shapes = _ShapeCollection(_empty_spTree())
-        shapes._ShapeCollection__sp = __sp
         shapes._ShapeCollection__spTree = __spTree
+        shapes._ShapeCollection__shapes = __shapes
+        shape = Mock('shape')
+        _Shape.return_value = shape
         # exercise --------------------
-        shape = shapes.add_textbox(left, top, width, height)
+        retval = shapes.add_textbox(left, top, width, height)
         # verify ----------------------
-        __next_shape_id.assert_called_once_with()
-        __sp.assert_called_once_with(sp_id, name, left, top,
-                                     width, height, is_textbox=True)
-        __spTree.append.assert_called_once_with(sp)
+        CT_Shape.new_textbox_sp.assert_called_once_with(
+            id_, name, left, top, width, height)
         _Shape.assert_called_once_with(sp)
-        shapes._values.append.assert_called_once_with(shape)
+        __spTree.append.assert_called_once_with(sp)
+        __shapes.append.assert_called_once_with(shape)
+        assert_that(retval, is_(equal_to(shape)))
 
     def test_add_textbox_xml(self):
         """_ShapeCollection.add_textbox() generates correct XML"""
@@ -1078,20 +1020,18 @@ class Test_ShapeCollection(TestCase):
                 ' sz="quarter" idx="11"', '')]
                     # verify ----------------------
         for idx, layout_ph_sp in enumerate(layout_ph_shapes):
-            # log.debug("layout_ph_sp.name '%s'" % layout_ph_sp.name)
             layout_ph = _Placeholder(layout_ph_sp)
             sp = shapes._ShapeCollection__clone_layout_placeholder(layout_ph)
             ph = _Placeholder(sp)
-            sp_xml = prettify_nsdecls(
-                oxml_tostring(ph._element, encoding='UTF-8',
-                              pretty_print=True, standalone=True))
+            sp_xml = oxml_tostring(ph._element, encoding='UTF-8',
+                                   pretty_print=True, standalone=True)
+            sp_xml = prettify_nsdecls(sp_xml)
             sp_xml_lines = sp_xml.split('\n')
             expected_xml = xml_template % expected_values[idx]
             expected_xml_lines = expected_xml.split('\n')
             for idx, line in enumerate(sp_xml_lines):
                 msg = '\n\n%s' % sp_xml
                 self.assertEqual(line, expected_xml_lines[idx], msg)
-                # assert_that(line, is_(equal_to(expected_xml_lines[idx])))
 
     def test___next_ph_name_return_value(self):
         """
@@ -1130,58 +1070,6 @@ class Test_ShapeCollection(TestCase):
         actual = next_id
         msg = "expected %d, got %d" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-
-    def test___pic_generates_correct_xml(self):
-        """_ShapeCollection.__pic returns correct value"""
-        # setup -----------------------
-        test_image = PILImage.open(test_image_path)
-        pic_size = tuple(Px(x) for x in test_image.size)
-        xml = (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>'
-            '\n<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/20'
-            '06/main"\n       xmlns:p="http://schemas.openxmlformats.org/pres'
-            'entationml/2006/main"\n       xmlns:r="http://schemas.openxmlfor'
-            'mats.org/officeDocument/2006/relationships">\n  <p:nvPicPr>\n   '
-            ' <p:cNvPr id="4" name="Picture 3" descr="python-icon.jpeg"/>\n  '
-            '  <p:cNvPicPr/>\n    <p:nvPr/>\n  </p:nvPicPr>\n  <p:blipFill>\n'
-            '    <a:blip r:embed="rId9"/>\n    <a:stretch>\n      <a:fillRect'
-            '/>\n    </a:stretch>\n  </p:blipFill>\n  <p:spPr>\n    <a:xfrm>'
-            '\n      <a:off x="0" y="0"/>\n      <a:ext cx="%s" cy="%s"/>\n  '
-            '  </a:xfrm>\n    <a:prstGeom prst="rect">\n      <a:avLst/>\n   '
-            ' </a:prstGeom>\n  </p:spPr>\n</p:pic>' % pic_size)
-        # exercise --------------------
-        pic = self.shapes._ShapeCollection__pic('rId9', test_image_path, 0, 0)
-        # verify ----------------------
-        pic_xml = oxml_tostring(pic, encoding='UTF-8', pretty_print=True,
-                                standalone=True)
-        pic_xml = prettify_nsdecls(pic_xml)
-        pic_xml_lines = pic_xml.split('\n')
-        expected_xml_lines = xml.split('\n')
-        for idx, line in enumerate(pic_xml_lines):
-            msg = "\n\nexpected:\n\n%s\n\nbut got\n\n%s" % (xml, pic_xml)
-            self.assertEqual(line, expected_xml_lines[idx], msg)
-            # assert_that(line, is_(equal_to(expected_xml_lines[idx])))
-
-    def test___pic_from_stream_generates_correct_xml(self):
-        """_ShapeCollection.__pic returns correct XML from stream image"""
-        # setup -----------------------
-        test_image = PILImage.open(test_image_path)
-        pic_size = tuple(Px(x) for x in test_image.size)
-        xml = (
-            '<p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
-            '/main" xmlns:p="http://schemas.openxmlformats.org/presentationml'
-            '/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDoc'
-            'ument/2006/relationships"><p:nvPicPr><p:cNvPr id="4" name="Pictu'
-            're 3"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:e'
-            'mbed="rId9"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p'
-            ':spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="%s" cy="%s"/></a:xf'
-            'rm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:p'
-            'ic>' % pic_size)
-        # exercise --------------------
-        with open(test_image_path) as stream:
-            pic = self.shapes._ShapeCollection__pic('rId9', stream, 0, 0)
-        # verify ----------------------
-        assert_that(oxml_tostring(pic), is_(equal_to(xml)))
 
 
 class Test_Table(TestCase):

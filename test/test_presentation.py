@@ -15,7 +15,7 @@ import os
 from hamcrest import assert_that, is_, is_in, is_not, equal_to
 from StringIO import StringIO
 
-from mock import Mock
+from mock import Mock, patch, PropertyMock
 
 import pptx.presentation
 
@@ -33,6 +33,7 @@ from pptx.spec import (
 from pptx.spec import (
     RT_IMAGE, RT_OFFICEDOCUMENT, RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT,
     RT_SLIDEMASTER)
+from pptx.util import Px
 from testing import TestCase
 
 import logging
@@ -173,6 +174,17 @@ class Test_BasePart(TestCase):
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
+    def test__add_relationship_reuses_matching_relationship(self):
+        """_BasePart._add_relationship reuses matching relationship"""
+        # setup -----------------------
+        reltype = RT_IMAGE
+        target = Mock(name='image')
+        # exercise --------------------
+        rel1 = self.basepart._add_relationship(reltype, target)
+        rel2 = self.basepart._add_relationship(reltype, target)
+        # verify ----------------------
+        assert_that(rel1, is_(equal_to(rel2)))
+
     def test__blob_value_for_binary_part(self):
         """_BasePart._blob value is correct for binary part"""
         # setup -----------------------
@@ -284,6 +296,25 @@ class Test_BaseSlide(TestCase):
         # verify ----------------------
         self.assertLength(shapes, 9)
 
+    @patch('pptx.presentation._BaseSlide._package', new_callable=PropertyMock)
+    def test__add_image_collaboration(self, _package):
+        """_BaseSlide._add_image() returns (image, rel) tuple"""
+        # setup -----------------------
+        base_slide = self.base_slide
+        image = Mock(name='image')
+        rel = Mock(name='rel')
+        base_slide._package._images.add_image.return_value = image
+        base_slide._add_relationship = Mock('_add_relationship')
+        base_slide._add_relationship.return_value = rel
+        file = test_image_path
+        # exercise --------------------
+        retval_image, retval_rel = base_slide._add_image(file)
+        # verify ----------------------
+        base_slide._package._images.add_image.assert_called_once_with(file)
+        base_slide._add_relationship.assert_called_once_with(RT_IMAGE, image)
+        assert_that(retval_image, is_(image))
+        assert_that(retval_rel, is_(rel))
+
 
 class Test_Image(TestCase):
     """Test _Image"""
@@ -295,6 +326,7 @@ class Test_Image(TestCase):
         assert_that(image.ext, is_(equal_to('.jpeg')))
         assert_that(image._content_type, is_(equal_to('image/jpeg')))
         assert_that(len(image._blob), is_(equal_to(3277)))
+        assert_that(image._desc, is_(equal_to('python-icon.jpeg')))
 
     def test_construction_from_stream(self):
         """_Image(stream) construction produces correct attribute values"""
@@ -306,12 +338,32 @@ class Test_Image(TestCase):
         assert_that(image.ext, is_(equal_to('.jpg')))
         assert_that(image._content_type, is_(equal_to('image/jpeg')))
         assert_that(len(image._blob), is_(equal_to(3277)))
+        assert_that(image._desc, is_(equal_to('image.jpg')))
 
     def test_construction_from_file_raises_on_bad_path(self):
         """_Image(path) constructor raises on bad path"""
         # verify ----------------------
         with self.assertRaises(IOError):
             _Image('foobar27.png')
+
+    def test__scale_calculates_correct_dimensions(self):
+        """_Image._scale() calculates correct dimensions"""
+        # setup -----------------------
+        test_cases = (
+            ((None, None), (Px(204), Px(204))),
+            ((1000, None), (1000, 1000)),
+            ((None, 3000), (3000, 3000)),
+            ((3337, 9999), (3337, 9999)))
+        image = _Image(test_image_path)
+        # verify ----------------------
+        for params, expected in test_cases:
+            width, height = params
+            assert_that(image._scale(width, height), is_(equal_to(expected)))
+
+    def test__size_returns_image_native_pixel_dimensions(self):
+        """_Image._size is width, height tuple of image pixel dimensions"""
+        image = _Image(test_image_path)
+        assert_that(image._size, is_(equal_to((204, 204))))
 
     def test___ext_from_image_stream_raises_on_incompatible_format(self):
         """_Image.__ext_from_image_stream() raises on incompatible format"""

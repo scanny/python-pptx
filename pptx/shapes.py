@@ -11,23 +11,16 @@
 Classes that implement PowerPoint shapes such as picture, textbox, and table.
 """
 
-import os
-
-try:
-    from PIL import Image as PIL_Image
-except ImportError:
-    import Image as PIL_Image
-
 from pptx.constants import MSO
 from pptx.oxml import (
-    _get_or_add, qn, _Element, _SubElement, CT_GraphicalObjectFrame)
+    _get_or_add, qn, _Element, _SubElement, CT_GraphicalObjectFrame,
+    CT_Picture, CT_Shape
+)
 from pptx.spec import namespaces, slide_ph_basenames
-from pptx.spec import RT_IMAGE
 from pptx.spec import (
-    PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ,
-    PH_TYPE_SLDNUM, PH_TYPE_SUBTITLE, PH_TYPE_TITLE, PH_ORIENT_HORZ,
-    PH_ORIENT_VERT, PH_SZ_FULL)
-from pptx.util import Collection, Px
+    PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_TYPE_DT, PH_TYPE_FTR,
+    PH_TYPE_OBJ, PH_TYPE_SLDNUM)
+from pptx.util import Collection
 
 # default namespace map for use in lxml calls
 _nsmap = namespaces('a', 'r', 'p')
@@ -169,7 +162,6 @@ class _ShapeCollection(_BaseShape, Collection):
         self.__shapes = self._values
         # unmarshal shapes
         for elm in spTree.iterchildren():
-            # log.debug('elm.tag == %s', elm.tag[60:])
             if elm.tag in (self._NVGRPSPPR, self._GRPSPPR, self._EXTLST):
                 continue
             elif elm.tag == self._SP:
@@ -179,7 +171,10 @@ class _ShapeCollection(_BaseShape, Collection):
             elif elm.tag == self._GRPSP:
                 shape = _ShapeCollection(elm)
             elif elm.tag == self._GRAPHICFRAME:
-                shape = _Table(elm)
+                if elm.has_table:
+                    shape = _Table(elm)
+                else:
+                    shape = _BaseShape(elm)
             elif elm.tag == self._CONTENTPART:
                 msg = ("first time 'contentPart' shape encountered in the "
                        "wild, please let developer know and send example")
@@ -212,9 +207,16 @@ class _ShapeCollection(_BaseShape, Collection):
         Add picture shape displaying image in *file*, where *file* can be
         either a path to a file (a string) or a file-like object.
         """
-        image = self.__package._images.add_image(file)
-        rel = self.__slide._add_relationship(RT_IMAGE, image)
-        pic = self.__pic(rel._rId, file, left, top, width, height)
+        image, rel = self.__slide._add_image(file)
+
+        id = self.__next_shape_id
+        name = 'Picture %d' % (id-1)
+        desc = image._desc
+        rId = rel._rId
+        width, height = image._scale(width, height)
+
+        pic = CT_Picture.new_pic(id, name, desc, rId, left, top, width, height)
+
         self.__spTree.append(pic)
         picture = _Picture(pic)
         self.__shapes.append(picture)
@@ -229,8 +231,8 @@ class _ShapeCollection(_BaseShape, Collection):
         """
         id = self.__next_shape_id
         name = 'Table %d' % (id-1)
-        graphicFrame = CT_GraphicalObjectFrame(id, name, rows, cols, left,
-                                               top, width, height)
+        graphicFrame = CT_GraphicalObjectFrame.new_table(
+            id, name, rows, cols, left, top, width, height)
         self.__spTree.append(graphicFrame)
         table = _Table(graphicFrame)
         self.__shapes.append(table)
@@ -240,11 +242,13 @@ class _ShapeCollection(_BaseShape, Collection):
         """
         Add text box shape of specified size at specified position.
         """
-        id = self.__next_shape_id
-        name = 'TextBox %d' % (id-1)
-        sp = self.__sp(id, name, left, top, width, height, is_textbox=True)
-        self.__spTree.append(sp)
+        id_ = self.__next_shape_id
+        name = 'TextBox %d' % (id_-1)
+
+        sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
         shape = _Shape(sp)
+
+        self.__spTree.append(sp)
         self.__shapes.append(shape)
         return shape
 
@@ -268,56 +272,20 @@ class _ShapeCollection(_BaseShape, Collection):
         Add a new placeholder shape based on the slide layout placeholder
         *layout_ph*.
         """
-        id = self.__next_shape_id
+        id_ = self.__next_shape_id
         ph_type = layout_ph.type
         orient = layout_ph.orient
-        shapename = self.__next_ph_name(ph_type, id, orient)
+        shapename = self.__next_ph_name(ph_type, id_, orient)
+        sz = layout_ph.sz
+        idx = layout_ph.idx
 
-        sp = self.__new_placeholder_sp(layout_ph, id, ph_type, orient,
-                                       shapename)
-        self.__spTree.append(sp)
+        sp = CT_Shape.new_placeholder_sp(id_, shapename, ph_type, orient,
+                                         sz, idx)
         shape = _Shape(sp)
+
+        self.__spTree.append(sp)
         self.__shapes.append(shape)
         return shape
-
-    def __new_placeholder_sp(self, layout_ph, id, ph_type, orient, shapename):
-        """
-        Assemble a new ``<p:sp>`` element based on the specified parameters.
-        """
-        # form XML hierarchy
-        sp = _Element('p:sp', _nsmap)
-        _SubElement(sp, 'p:nvSpPr')
-        _SubElement(sp.nvSpPr, 'p:cNvPr')
-        sp.nvSpPr.cNvPr.set('id', str(id))
-        sp.nvSpPr.cNvPr.set('name', shapename)
-        _SubElement(sp.nvSpPr, 'p:cNvSpPr')
-        _SubElement(sp.nvSpPr.cNvSpPr, 'a:spLocks')
-        sp.nvSpPr.cNvSpPr[qn('a:spLocks')].set('noGrp', '1')
-
-        _SubElement(sp.nvSpPr, 'p:nvPr')
-        ph = _SubElement(sp.nvSpPr.nvPr, 'p:ph')
-        if ph_type != PH_TYPE_OBJ:
-            ph.set('type', ph_type)
-        if layout_ph.orient != PH_ORIENT_HORZ:
-            ph.set('orient', layout_ph.orient)
-        if layout_ph.sz != PH_SZ_FULL:
-            ph.set('sz', layout_ph.sz)
-        if layout_ph.idx != 0:
-            ph.set('idx', str(layout_ph.idx))
-
-        _SubElement(sp, 'p:spPr')
-
-        placeholder_types_that_have_a_text_frame = (
-            PH_TYPE_TITLE, PH_TYPE_CTRTITLE, PH_TYPE_SUBTITLE, PH_TYPE_BODY,
-            PH_TYPE_OBJ)
-
-        if ph_type in placeholder_types_that_have_a_text_frame:
-            _SubElement(sp, 'p:txBody')
-            _SubElement(sp.txBody, 'a:bodyPr')
-            _SubElement(sp.txBody, 'a:lstStyle')
-            _SubElement(sp.txBody, 'a:p')
-
-        return sp
 
     def __next_ph_name(self, ph_type, id, orient):
         """
@@ -341,7 +309,6 @@ class _ShapeCollection(_BaseShape, Collection):
             if name not in names:
                 break
             numpart += 1
-        # log.debug("assigned placeholder name '%s'" % name)
         return name
 
     @property
@@ -361,94 +328,6 @@ class _ShapeCollection(_BaseShape, Collection):
                 break
             next_id += 1
         return next_id
-
-    @property
-    def __package(self):
-        """
-        Reference to |_Package| this shape collection resides in.
-        """
-        return self.__slide._package
-
-    def __pic(self, rId, file, x, y, cx=None, cy=None):
-        """
-        Return minimal ``<p:pic>`` element based on *rId* and *file*. *file*
-        is either a path to the file (a string) or a file-like object.
-        """
-        id = self.__next_shape_id
-        shapename = 'Picture %d' % (id-1)
-        if isinstance(file, basestring):  # *file* is a path
-            filename = os.path.split(file)[1]
-        else:
-            filename = None
-            file.seek(0)
-
-        # set cx and cy from image size if not specified
-        cx_px, cy_px = PIL_Image.open(file).size
-        cx = cx if cx is not None else Px(cx_px)
-        cy = cy if cy is not None else Px(cy_px)
-
-        # assemble XML hierarchy of pic element
-        pic = _Element('p:pic', _nsmap)
-        _SubElement(pic, 'p:nvPicPr')
-        _SubElement(pic.nvPicPr, 'p:cNvPr')
-        pic.nvPicPr.cNvPr.set('id', str(id))
-        pic.nvPicPr.cNvPr.set('name', shapename)
-        if filename:
-            pic.nvPicPr.cNvPr.set('descr', filename)
-        _SubElement(pic.nvPicPr, 'p:cNvPicPr')
-        _SubElement(pic.nvPicPr, 'p:nvPr')
-
-        _SubElement(pic, 'p:blipFill')
-        _SubElement(pic.blipFill, 'a:blip')
-        pic.blipFill[qn('a:blip')].set(qn('r:embed'), rId)
-        _SubElement(pic.blipFill, 'a:stretch')
-        _SubElement(pic.blipFill[qn('a:stretch')], 'a:fillRect')
-        _SubElement(pic, 'p:spPr')
-        _SubElement(pic.spPr, 'a:xfrm')
-        _SubElement(pic.spPr[qn('a:xfrm')], 'a:off')
-        pic.spPr[qn('a:xfrm')].off.set('x', str(x))
-        pic.spPr[qn('a:xfrm')].off.set('y', str(y))
-        _SubElement(pic.spPr[qn('a:xfrm')], 'a:ext')
-        pic.spPr[qn('a:xfrm')].ext.set('cx', str(cx))
-        pic.spPr[qn('a:xfrm')].ext.set('cy', str(cy))
-        _SubElement(pic.spPr, 'a:prstGeom')
-        pic.spPr[qn('a:prstGeom')].set('prst', 'rect')
-        _SubElement(pic.spPr[qn('a:prstGeom')], 'a:avLst')
-        return pic
-
-    def __sp(self, sp_id, shapename, x, y, cx, cy, is_textbox=False):
-        """Return new ``<p:sp>`` element based on parameters."""
-        sp = _Element('p:sp', _nsmap)
-        _SubElement(sp, 'p:nvSpPr')
-        _SubElement(sp.nvSpPr, 'p:cNvPr')
-        sp.nvSpPr.cNvPr.set('id', str(sp_id))
-        sp.nvSpPr.cNvPr.set('name', shapename)
-        _SubElement(sp.nvSpPr, 'p:cNvSpPr')
-        if is_textbox:
-            sp.nvSpPr.cNvSpPr.set('txBox', '1')
-        _SubElement(sp.nvSpPr, 'p:nvPr')
-
-        _SubElement(sp, 'p:spPr')
-        _SubElement(sp.spPr, 'a:xfrm')
-        _SubElement(sp.spPr[qn('a:xfrm')], 'a:off')
-        sp.spPr[qn('a:xfrm')].off.set('x', str(x))
-        sp.spPr[qn('a:xfrm')].off.set('y', str(y))
-        _SubElement(sp.spPr[qn('a:xfrm')], 'a:ext')
-        sp.spPr[qn('a:xfrm')].ext.set('cx', str(cx))
-        sp.spPr[qn('a:xfrm')].ext.set('cy', str(cy))
-        _SubElement(sp.spPr, 'a:prstGeom')
-        sp.spPr[qn('a:prstGeom')].set('prst', 'rect')
-        _SubElement(sp.spPr[qn('a:prstGeom')], 'a:avLst')
-        _SubElement(sp.spPr, 'a:noFill')
-
-        _SubElement(sp, 'p:txBody')
-        _SubElement(sp.txBody, 'a:bodyPr')
-        sp.txBody[qn('a:bodyPr')].set('wrap', 'none')
-        _SubElement(sp.txBody[qn('a:bodyPr')], 'a:spAutoFit')
-        _SubElement(sp.txBody, 'a:lstStyle')
-        _SubElement(sp.txBody, 'a:p')
-
-        return sp
 
 
 class _Placeholder(object):

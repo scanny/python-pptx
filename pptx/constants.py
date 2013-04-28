@@ -18,6 +18,6 @@ class MSO(object):
     Office API.
     """
     # _TextFrame.vertical_anchor values
-    ANCHOR_TOP    = 1
+    ANCHOR_TOP = 1
     ANCHOR_MIDDLE = 3
     ANCHOR_BOTTOM = 4

@@ -171,9 +171,7 @@ class Package(object):
         # initial call can leave out parts parameter as a signal to initialize
         if parts is None:
             parts = []
-        # log.debug("in __walkparts(), len(parts)==%d", len(parts))
         for rel in rels:
-            # log.debug("rel.target.partname==%s", rel.target.partname)
             part = rel.target
             if part in parts:  # only visit each part once (graph is cyclic)
                 continue
@@ -240,8 +238,6 @@ class Part(object):
         Load part identified as *partname* from filesystem *fs* and propagate
         the load to related parts.
         """
-        # log.debug("loading %s", partname)
-
         # calculate working values
         baseURI = os.path.split(partname)[0]
         content_type = ct_dict[partname]
@@ -278,8 +274,6 @@ class Part(object):
         Load the contents of model-side part such that it can be saved to
         disk. Propagate marshalling to related parts.
         """
-        # log.debug("marshalling %s", model_part.partname)
-
         # unpack working values
         content_type = model_part._content_type
         # assign persisted attributes from model part

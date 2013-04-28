@@ -106,7 +106,6 @@ class Collection(object):
     * Sequence (delegates __getitem__ to |list|)
     """
     def __init__(self):
-        # log.debug('Collection.__init__() called')
         super(Collection, self).__init__()
         self.__values = []
 

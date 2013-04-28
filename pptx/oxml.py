@@ -16,15 +16,17 @@ slide.
 
 from lxml import etree, objectify
 
-nsmap = {
-    'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
-    'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-    'p': 'http://schemas.openxmlformats.org/presentationml/2006/main'}
+from pptx.spec import nsmap
+from pptx.spec import (
+    PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_OBJ,
+    PH_TYPE_SUBTITLE, PH_TYPE_TITLE
+)
 
-etree.register_namespace('a', nsmap['a'])
-etree.register_namespace('p', nsmap['p'])
-
-oxml_parser = objectify.makeparser(remove_blank_text=True)
+# configure objectified XML parser
+fallback_lookup = objectify.ObjectifyElementClassLookup()
+element_class_lookup = etree.ElementNamespaceClassLookup(fallback_lookup)
+oxml_parser = etree.XMLParser(remove_blank_text=True)
+oxml_parser.set_element_class_lookup(element_class_lookup)
 
 
 # ============================================================================
@@ -121,134 +123,303 @@ def _get_or_add(start_elm, *path_tags):
 
 
 # ============================================================================
-# Element constructors
-# ============================================================================
-
-def _empty_cell():
-    tc = new('a:tc')
-    tc.txBody = new('a:txBody')
-    tc.txBody.bodyPr = new('a:bodyPr')
-    tc.txBody.lstStyle = new('a:lstStyle')
-    tc.txBody.p = new('a:p')
-    tc.tcPr = new('a:tcPr')
-    return tc
-
-
-def CT_GraphicalObjectFrame(id, name, rows, cols, left, top, width, height):
-    """
-    Corresponds to the ``<p:graphicFrame>`` element, which represents a table
-    shape.
-    """
-    xml = graphicFrame_tmpl % (id, name, left, top, width, height)
-    graphicFrame = oxml_fromstring(xml)
-
-    tbl = graphicFrame[qn('a:graphic')].graphicData.tbl
-    rowheight = height/rows
-    colwidth = width/cols
-
-    for col in range(cols):
-        # adjust width of last col to absorb any div error
-        if col == cols-1:
-            colwidth = width - ((cols-1) * colwidth)
-        sub_elm(tbl.tblGrid, 'a:gridCol', w=str(colwidth))
-
-    for row in range(rows):
-        # adjust height of last row to absorb any div error
-        if row == rows-1:
-            rowheight = height - ((rows-1) * rowheight)
-        tr = sub_elm(tbl, 'a:tr', h=str(rowheight))
-        for col in range(cols):
-            tr.append(_empty_cell())
-
-    objectify.deannotate(graphicFrame, cleanup_namespaces=True)
-    return graphicFrame
-
-
-# ============================================================================
-# Element templates
-# ============================================================================
-
-_uri = 'http://schemas.openxmlformats.org/drawingml/2006/table'
-_guid = '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}'
-
-graphicFrame_tmpl = """
-    <p:graphicFrame %s>
-      <p:nvGraphicFramePr>
-        <p:cNvPr id="%s" name="%s"/>
-        <p:cNvGraphicFramePr>
-          <a:graphicFrameLocks noGrp="1"/>
-        </p:cNvGraphicFramePr>
-        <p:nvPr/>
-      </p:nvGraphicFramePr>
-      <p:xfrm>
-        <a:off x="%s" y="%s"/>
-        <a:ext cx="%s" cy="%s"/>
-      </p:xfrm>
-      <a:graphic>
-        <a:graphicData uri="%s">
-          <a:tbl>
-            <a:tblPr firstRow="1" bandRow="1">
-              <a:tableStyleId>%s</a:tableStyleId>
-            </a:tblPr>
-            <a:tblGrid/>
-          </a:tbl>
-        </a:graphicData>
-      </a:graphic>
-    </p:graphicFrame>""" % (nsdecls('p', 'a'), '%d', '%s', '%d', '%d', '%d',
-                            '%d', _uri, _guid)
-
-
-# ============================================================================
 # Custom element classes
 # ============================================================================
 
-# def _required_attribute(element, name, default):
-#     """
-#     Add attribute with default value to element if it doesn't already exist.
-#     """
-#     if element.get(name) is None:
-#         element.set(name, default)
-#
-#
-# def _required_child(parent, tag):
-#     """
-#     Add child element with *tag* to *parent* if it doesn't already exist.
-#     """
-#     if _child(parent, tag) is None:
-#         parent.append(_Element(tag))
-#
-#
-# class ElementBase(etree.ElementBase):
-#     """Provides the base element interface for custom element classes"""
-#     pass
-#
-#
-# class CT_Presentation(ElementBase):
-#     """<p:presentation> custom element class"""
-#     def _init(self):
-#         _required_child(self, 'p:notesSz')
-#
-#     # child accessors -----------------
-#     notesSz = property(lambda self: _child(self, 'p:notesSz'))
-#     sldSz = property(lambda self: _get_child_or_append(self, 'p:sldSz'))
-#
-#     # attribute accessors -------------
-#     serverZoom = property(lambda self: self.get('serverZoom'),
-#                           lambda self, value: self.set('serverZoom', value))
-#
-#
-# class ElementClassLookup(etree.CustomElementClassLookup):
-#     cls_map =\
-#         { 'pic'          : CT_Picture
-#         , 'nvPicPr'      : CT_PictureNonVisual
-#         , 'ph'           : CT_Placeholder
-#         , 'presentation' : CT_Presentation
-#         }
-#
-#
-#     def lookup(self, node_type, document, namespace, name):
-#         if name in self.cls_map:
-#             return self.cls_map[name]
-#         return None
+class CT_GraphicalObjectFrame(objectify.ObjectifiedElement):
+    """
+    ``<p:graphicFrame>`` element, which is a container for a table, a chart,
+    or another graphical object.
+    """
+    DATATYPE_TABLE = 'http://schemas.openxmlformats.org/drawingml/2006/table'
 
-# oxml_parser.set_element_class_lookup(ElementClassLookup())
+    _graphicFrame_tmpl = (
+        '<p:graphicFrame %s>\n'
+        '  <p:nvGraphicFramePr>\n'
+        '    <p:cNvPr id="%s" name="%s"/>\n'
+        '    <p:cNvGraphicFramePr>\n'
+        '      <a:graphicFrameLocks noGrp="1"/>\n'
+        '    </p:cNvGraphicFramePr>\n'
+        '    <p:nvPr/>\n'
+        '  </p:nvGraphicFramePr>\n'
+        '  <p:xfrm>\n'
+        '    <a:off x="%s" y="%s"/>\n'
+        '    <a:ext cx="%s" cy="%s"/>\n'
+        '  </p:xfrm>\n'
+        '  <a:graphic>\n'
+        '    <a:graphicData/>\n'
+        '  </a:graphic>\n'
+        '</p:graphicFrame>' %
+        (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+    )
+
+    @property
+    def has_table(self):
+        """True if graphicFrame contains a table, False otherwise"""
+        datatype = self[qn('a:graphic')].graphicData.get('uri')
+        if datatype == CT_GraphicalObjectFrame.DATATYPE_TABLE:
+            return True
+        return False
+
+    @staticmethod
+    def new_graphicFrame(id_, name, left, top, width, height):
+        """
+        Return a new ``<p:graphicFrame>`` element tree suitable for containing
+        a table or chart. Note that a graphicFrame element is not a valid
+        shape until it contains a graphical object such as a table.
+        """
+        xml = CT_GraphicalObjectFrame._graphicFrame_tmpl % (
+            id_, name, left, top, width, height)
+        graphicFrame = oxml_fromstring(xml)
+
+        objectify.deannotate(graphicFrame, cleanup_namespaces=True)
+        return graphicFrame
+
+    @staticmethod
+    def new_table(id_, name, rows, cols, left, top, width, height):
+        """
+        Return a ``<p:graphicFrame>`` element tree populated with a table
+        element.
+        """
+        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
+            id_, name, left, top, width, height)
+
+        # set type of contained graphic to table
+        graphicData = graphicFrame[qn('a:graphic')].graphicData
+        graphicData.set('uri', CT_GraphicalObjectFrame.DATATYPE_TABLE)
+
+        # add tbl element tree
+        tbl = CT_Table.new_tbl(rows, cols, width, height)
+        graphicData.append(tbl)
+
+        objectify.deannotate(graphicFrame, cleanup_namespaces=True)
+        return graphicFrame
+
+
+class CT_Picture(objectify.ObjectifiedElement):
+    """
+    ``<p:pic>`` element, which represents a picture shape (an image placement
+    on a slide).
+    """
+    _pic_tmpl = (
+        '<p:pic %s>\n'
+        '  <p:nvPicPr>\n'
+        '    <p:cNvPr id="%s" name="%s" descr="%s"/>\n'
+        '    <p:cNvPicPr>\n'
+        '      <a:picLocks noChangeAspect="1"/>\n'
+        '    </p:cNvPicPr>\n'
+        '    <p:nvPr/>\n'
+        '  </p:nvPicPr>\n'
+        '  <p:blipFill>\n'
+        '    <a:blip r:embed="%s"/>\n'
+        '    <a:stretch>\n'
+        '      <a:fillRect/>\n'
+        '    </a:stretch>\n'
+        '  </p:blipFill>\n'
+        '  <p:spPr>\n'
+        '    <a:xfrm>\n'
+        '      <a:off x="%s" y="%s"/>\n'
+        '      <a:ext cx="%s" cy="%s"/>\n'
+        '    </a:xfrm>\n'
+        '    <a:prstGeom prst="rect">\n'
+        '      <a:avLst/>\n'
+        '    </a:prstGeom>\n'
+        '  </p:spPr>\n'
+        '</p:pic>' % (nsdecls('a', 'p', 'r'), '%d', '%s', '%s', '%s',
+                      '%d', '%d', '%d', '%d')
+    )
+
+    @staticmethod
+    def new_pic(id_, name, desc, rId, left, top, width, height):
+        """
+        Return a new ``<p:pic>`` element tree configured with the supplied
+        parameters.
+        """
+        xml = CT_Picture._pic_tmpl % (id_, name, desc, rId,
+                                      left, top, width, height)
+        pic = oxml_fromstring(xml)
+
+        objectify.deannotate(pic, cleanup_namespaces=True)
+        return pic
+
+
+class CT_Shape(objectify.ObjectifiedElement):
+    """<p:sp> custom element class"""
+    _ph_sp_tmpl = (
+        '<p:sp %s>\n'
+        '  <p:nvSpPr>\n'
+        '    <p:cNvPr id="%s" name="%s"/>\n'
+        '    <p:cNvSpPr/>\n'
+        '    <p:nvPr/>\n'
+        '  </p:nvSpPr>\n'
+        '  <p:spPr/>\n'
+        '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s')
+    )
+
+    _textbox_sp_tmpl = (
+        '<p:sp %s>\n'
+        '  <p:nvSpPr>\n'
+        '    <p:cNvPr id="%s" name="%s"/>\n'
+        '    <p:cNvSpPr/>\n'
+        '    <p:nvPr/>\n'
+        '  </p:nvSpPr>\n'
+        '  <p:spPr>\n'
+        '    <a:xfrm>\n'
+        '      <a:off x="%s" y="%s"/>\n'
+        '      <a:ext cx="%s" cy="%s"/>\n'
+        '    </a:xfrm>\n'
+        '    <a:prstGeom prst="rect">\n'
+        '      <a:avLst/>\n'
+        '    </a:prstGeom>\n'
+        '    <a:noFill/>\n'
+        '  </p:spPr>\n'
+        '  <p:txBody>\n'
+        '    <a:bodyPr wrap="none">\n'
+        '      <a:spAutoFit/>\n'
+        '    </a:bodyPr>\n'
+        '    <a:lstStyle/>\n'
+        '    <a:p/>\n'
+        '  </p:txBody>\n'
+        '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+    )
+
+    @staticmethod
+    def new_placeholder_sp(id_, name, ph_type, orient, sz, idx):
+        """
+        Return a new ``<p:sp>`` element tree configured as a placeholder
+        shape.
+        """
+        xml = CT_Shape._ph_sp_tmpl % (id_, name)
+        sp = oxml_fromstring(xml)
+
+        # placeholder shapes get a "no group" lock
+        _SubElement(sp.nvSpPr.cNvSpPr, 'a:spLocks')
+        sp.nvSpPr.cNvSpPr[qn('a:spLocks')].set('noGrp', '1')
+
+        # placeholder (ph) element attributes values vary by type
+        ph = _SubElement(sp.nvSpPr.nvPr, 'p:ph')
+        if ph_type != PH_TYPE_OBJ:
+            ph.set('type', ph_type)
+        if orient != PH_ORIENT_HORZ:
+            ph.set('orient', orient)
+        if sz != PH_SZ_FULL:
+            ph.set('sz', sz)
+        if idx != 0:
+            ph.set('idx', str(idx))
+
+        placeholder_types_that_have_a_text_frame = (
+            PH_TYPE_TITLE, PH_TYPE_CTRTITLE, PH_TYPE_SUBTITLE, PH_TYPE_BODY,
+            PH_TYPE_OBJ)
+
+        if ph_type in placeholder_types_that_have_a_text_frame:
+            sp.append(CT_TextBody.new_txBody())
+
+        objectify.deannotate(sp, cleanup_namespaces=True)
+        return sp
+
+    @staticmethod
+    def new_textbox_sp(id_, name, left, top, width, height):
+        """
+        Return a new ``<p:sp>`` element tree configured as a base textbox
+        shape.
+        """
+        xml = CT_Shape._textbox_sp_tmpl % (id_, name, left, top, width, height)
+        sp = oxml_fromstring(xml)
+        sp.nvSpPr.cNvSpPr.set('txBox', '1')
+        objectify.deannotate(sp, cleanup_namespaces=True)
+        return sp
+
+
+class CT_Table(objectify.ObjectifiedElement):
+    """``<a:tbl>`` custom element class"""
+    _tbl_tmpl = (
+        '<a:tbl %s>\n'
+        '  <a:tblPr firstRow="1" bandRow="1">\n'
+        '    <a:tableStyleId>%s</a:tableStyleId>\n'
+        '  </a:tblPr>\n'
+        '  <a:tblGrid/>\n'
+        '</a:tbl>' % (nsdecls('a'), '%s')
+    )
+
+    @staticmethod
+    def new_tbl(rows, cols, width, height, tableStyleId=None):
+        """Return a new ``<p:tbl>`` element tree"""
+        # working hypothesis is this is the default table style GUID
+        if tableStyleId is None:
+            tableStyleId = '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}'
+
+        xml = CT_Table._tbl_tmpl % (tableStyleId)
+        tbl = oxml_fromstring(xml)
+
+        # add specified number of rows and columns
+        rowheight = height/rows
+        colwidth = width/cols
+
+        for col in range(cols):
+            # adjust width of last col to absorb any div error
+            if col == cols-1:
+                colwidth = width - ((cols-1) * colwidth)
+            sub_elm(tbl.tblGrid, 'a:gridCol', w=str(colwidth))
+
+        for row in range(rows):
+            # adjust height of last row to absorb any div error
+            if row == rows-1:
+                rowheight = height - ((rows-1) * rowheight)
+            tr = sub_elm(tbl, 'a:tr', h=str(rowheight))
+            for col in range(cols):
+                tr.append(CT_TableCell.new_tc())
+
+        objectify.deannotate(tbl, cleanup_namespaces=True)
+        return tbl
+
+
+class CT_TableCell(objectify.ObjectifiedElement):
+    """``<a:tc>`` custom element class"""
+    _tc_tmpl = (
+        '<a:tc %s>\n'
+        '  <a:txBody>\n'
+        '    <a:bodyPr/>\n'
+        '    <a:lstStyle/>\n'
+        '    <a:p/>\n'
+        '  </a:txBody>\n'
+        '  <a:tcPr/>\n'
+        '</a:tc>' % nsdecls('a')
+    )
+
+    @staticmethod
+    def new_tc():
+        """Return a new ``<a:tc>`` element tree"""
+        xml = CT_TableCell._tc_tmpl
+        tc = oxml_fromstring(xml)
+        objectify.deannotate(tc, cleanup_namespaces=True)
+        return tc
+
+
+class CT_TextBody(objectify.ObjectifiedElement):
+    """<p:txBody> custom element class"""
+    _txBody_tmpl = (
+        '<p:txBody %s>\n'
+        '  <a:bodyPr/>\n'
+        '  <a:lstStyle/>\n'
+        '  <a:p/>\n'
+        '</p:txBody>\n' % (nsdecls('a', 'p'))
+    )
+
+    @staticmethod
+    def new_txBody():
+        """Return a new ``<p:txBody>`` element tree"""
+        xml = CT_TextBody._txBody_tmpl
+        txBody = oxml_fromstring(xml)
+        objectify.deannotate(txBody, cleanup_namespaces=True)
+        return txBody
+
+
+a_namespace = element_class_lookup.get_namespace(nsmap['a'])
+a_namespace['tbl'] = CT_Table
+a_namespace['tc'] = CT_TableCell
+
+p_namespace = element_class_lookup.get_namespace(nsmap['p'])
+p_namespace['graphicFrame'] = CT_GraphicalObjectFrame
+p_namespace['pic'] = CT_Picture
+p_namespace['sp'] = CT_Shape
+p_namespace['txBody'] = CT_TextBody

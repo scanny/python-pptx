@@ -51,6 +51,9 @@ Bullet slide example
     slide = prs.slides.add_slide(bullet_slidelayout)
     shapes = slide.shapes
 
+    title_shape = shapes.title
+    body_shape = shapes.placeholders[1]
+
     title_shape.text = 'Adding a Bullet Slide'
 
     tf = body_shape.textframe

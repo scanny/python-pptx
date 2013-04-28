@@ -23,6 +23,8 @@ import os
 import posixpath
 import weakref
 
+from StringIO import StringIO
+
 import pptx.packaging
 import pptx.spec as spec
 import pptx.util as util
@@ -39,18 +41,7 @@ from pptx.spec import (
 from pptx.spec import (
     RT_IMAGE, RT_OFFICEDOCUMENT, RT_SLIDE, RT_SLIDELAYOUT, RT_SLIDEMASTER)
 
-from pptx.util import Collection
-
-import logging
-log = logging.getLogger('pptx.presentation')
-log.setLevel(logging.DEBUG)
-# log.setLevel(logging.INFO)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - '
-                              '%(message)s')
-ch.setFormatter(formatter)
-log.addHandler(ch)
+from pptx.util import Collection, Px
 
 # default namespace map for use in lxml calls
 _nsmap = namespaces('a', 'r', 'p')
@@ -67,25 +58,6 @@ def _child(element, child_tagname, nsmap=None):
     xpath = './%s' % child_tagname
     matching_children = element.xpath(xpath, namespaces=nsmap)
     return matching_children[0] if len(matching_children) else None
-
-
-def _to_unicode(text):
-    """
-    Return *text* as a unicode string.
-
-    *text* can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or
-    unicode. String values are converted to unicode assuming UTF-8 encoding.
-    Unicode values are returned unchanged.
-    """
-    # both str and unicode inherit from basestring
-    if not isinstance(text, basestring):
-        tmpl = 'expected UTF-8 encoded string or unicode, got %s value %s'
-        raise TypeError(tmpl % (type(text), text))
-    # return unicode strings unchanged
-    if isinstance(text, unicode):
-        return text
-    # otherwise assume UTF-8 encoding, which also works for ASCII
-    return unicode(text, 'utf-8')
 
 
 # ============================================================================
@@ -174,7 +146,6 @@ class _Package(object):
             pkgpart = pkgrel.target
             partname = pkgpart.partname
             content_type = pkgpart.content_type
-            # log.debug("%s -- %s", reltype, partname)
 
             # create target part
             part = _Part(reltype, content_type)
@@ -229,9 +200,7 @@ class _Package(object):
         # initial call can leave out parts parameter as a signal to initialize
         if parts is None:
             parts = []
-        # log.debug("in __walkparts(), len(parts)==%d", len(parts))
         for rel in rels:
-            # log.debug("rel.target.partname==%s", rel.target.partname)
             part = rel._target
             # only visit each part once (graph is cyclic)
             if part in parts:
@@ -274,11 +243,11 @@ class _Observable(object):
         if observer not in self._observers:
             self._observers.append(observer)
 
-    def remove_observer(self, observer):
-        """Remove *observer* from notification list."""
-        assert observer in self._observers, "remove_observer called for"\
-                                            "unsubscribed object"
-        self._observers.remove(observer)
+    # def remove_observer(self, observer):
+    #     """Remove *observer* from notification list."""
+    #     assert observer in self._observers, "remove_observer called for"\
+    #                                         "unsubscribed object"
+    #     self._observers.remove(observer)
 
 
 # ============================================================================
@@ -527,7 +496,6 @@ class _Part(object):
         particular the presentation part type, *content_type* is also required
         in order to fully specify the part to be created.
         """
-        # log.debug("Creating _Part for %s", reltype)
         if reltype == RT_OFFICEDOCUMENT:
             if content_type in (CT_PRESENTATION, CT_TEMPLATE, CT_SLIDESHOW):
                 return Presentation()
@@ -627,6 +595,11 @@ class _BasePart(_Observable):
         Return new relationship of *reltype* to *target_part* after adding it
         to the relationship collection of this part.
         """
+        # reuse existing relationship if there's a match
+        for rel in self._relationships:
+            if rel._target == target_part and rel._reltype == reltype:
+                return rel
+        # otherwise construct a new one
         rId = self._relationships._next_rId
         rel = _Relationship(rId, reltype, target_part)
         self._relationships._additem(rel)
@@ -640,9 +613,7 @@ class _BasePart(_Observable):
         the on-disk package. *part_dict* is a dictionary of already-loaded
         parts, keyed by partname.
         """
-        # log.debug("loading part %s", pkgpart.partname)
-
-        # # set attributes from package part
+        # set attributes from package part
         self.__content_type = pkgpart.content_type
         self.__partname = pkgpart.partname
         if pkgpart.partname.endswith('.xml'):
@@ -734,7 +705,6 @@ class Presentation(_BasePart):
 
         # selectively unmarshal relationships for now
         for rel in self._relationships:
-            # log.debug("Presentation Relationship %s", rel._reltype)
             if rel._reltype == RT_SLIDEMASTER:
                 self.__slidemasters._loadpart(rel._target)
             elif rel._reltype == RT_SLIDE:
@@ -787,20 +757,72 @@ class _Image(_BasePart):
     """
     def __init__(self, file=None):
         super(_Image, self).__init__()
+        self.__filepath = None
         self.__ext = None
         if file is not None:
             self.__load_image_from_file(file)
 
     @property
     def ext(self):
-        """Return file extension for this image"""
+        """
+        Return file extension for this image. Includes the leading dot, e.g.
+        ``'.png'``.
+        """
         assert self.__ext, "_Image.__ext referenced before assigned"
         return self.__ext
+
+    @property
+    def _desc(self):
+        """
+        Return filename associated with this image, either the filename of the
+        original image file the image was created with or a synthetic name of
+        the form ``image.ext`` where ``.ext`` is appropriate to the image file
+        format, e.g. ``'.jpg'``.
+        """
+        if self.__filepath is not None:
+            return os.path.split(self.__filepath)[1]
+        # return generic filename if original filename is unknown
+        return 'image%s' % self.ext
+
+    def _scale(self, width, height):
+        """
+        Return scaled image dimensions based on supplied parameters. If
+        *width* and *height* are both |None|, the native image size is
+        returned. If neither *width* nor *height* is |None|, their values are
+        returned unchanged. If a value is provided for either *width* or
+        *height* and the other is |None|, the dimensions are scaled,
+        preserving the image's aspect ratio.
+        """
+        native_width_px, native_height_px = self._size
+        native_width = Px(native_width_px)
+        native_height = Px(native_height_px)
+
+        if width is None and height is None:
+            width = native_width
+            height = native_height
+        elif width is None:
+            scaling_factor = float(height) / float(native_height)
+            width = int(round(native_width * scaling_factor))
+        elif height is None:
+            scaling_factor = float(width) / float(native_width)
+            height = int(round(native_height * scaling_factor))
+        return width, height
 
     @property
     def _sha1(self):
         """Return SHA1 hash digest for image"""
         return hashlib.sha1(self._blob).hexdigest()
+
+    @property
+    def _size(self):
+        """
+        Return *width*, *height* tuple representing native dimensions of
+        image in pixels.
+        """
+        image_stream = StringIO(self._blob)
+        width_px, height_px = PIL_Image.open(image_stream).size
+        image_stream.close()
+        return width_px, height_px
 
     @property
     def _blob(self):
@@ -852,10 +874,10 @@ class _Image(_BasePart):
         file-like object.
         """
         if isinstance(file, basestring):  # file is a path
-            path = file
-            self.__ext = os.path.splitext(path)[1]
+            self.__filepath = file
+            self.__ext = os.path.splitext(self.__filepath)[1]
             self._content_type = self.__image_ext_content_type(self.__ext)
-            with open(path, 'rb') as f:
+            with open(self.__filepath, 'rb') as f:
                 self._load_blob = f.read()
         else:  # assume file is a file-like object
             self.__ext = self.__ext_from_image_stream(file)
@@ -927,6 +949,17 @@ class _BaseSlide(_BasePart):
                                           "before assigned")
         return self._shapes
 
+    def _add_image(self, file):
+        """
+        Return a tuple ``(image, relationship)`` representing the |Image| part
+        specified by *file*. If a matching image part already exists it is
+        reused. If the slide already has a relationship to an existing image,
+        that relationship is reused.
+        """
+        image = self._package._images.add_image(file)
+        rel = self._add_relationship(RT_IMAGE, image)
+        return (image, rel)
+
     def _load(self, pkgpart, part_dict):
         """Handle aspects of loading that are general to slide types."""
         # call parent to do generic aspects of load
@@ -972,7 +1005,6 @@ class _Slide(_BaseSlide):
         super(_Slide, self)._load(pkgpart, part_dict)
         # selectively unmarshal relationships for now
         for rel in self._relationships:
-            # log.debug("_SlideMaster Relationship %s", rel._reltype)
             if rel._reltype == RT_SLIDELAYOUT:
                 self.__slidelayout = rel._target
         return self
@@ -1021,7 +1053,6 @@ class _SlideLayout(_BaseSlide):
 
         # selectively unmarshal relationships we need
         for rel in self._relationships:
-            # log.debug("_SlideLayout Relationship %s", rel._reltype)
             # get slideMaster from which this slideLayout inherits properties
             if rel._reltype == RT_SLIDEMASTER:
                 self.__slidemaster = rel._target
@@ -1060,7 +1091,6 @@ class _SlideMaster(_BaseSlide):
 
         # selectively unmarshal relationships for now
         for rel in self._relationships:
-            # log.debug("_SlideMaster Relationship %s", rel._reltype)
             if rel._reltype == RT_SLIDELAYOUT:
                 self.__slidelayouts._loadpart(rel._target)
         return self
