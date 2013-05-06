@@ -16,15 +16,15 @@ what you can do with |pp|.
 Status
 ======
 
-The current release is v0.2.2 dated March 25, 2013. The library is under
-active development. The current release has the following basic capabilities:
+The current release is v0.2.3 dated May 5, 2013. The library is under active
+development. The current release has the following basic capabilities:
 
 * Round-trip any Open XML presentation (.pptx file) including all its elements
 * Add slides
 * Populate text placeholders, for example to create a bullet slide
 * Add image to slide at arbitrary position and size
-* Add textbox to a slide
-* Manipulate text font size and bold
+* Add textbox to a slide; manipulate text font size and bold
+* Add table to a slide
 
 Additional capabilities are actively being developed and added on a release
 cadence of roughly once per month. If you find a feature you need that |pp|
@@ -105,7 +105,7 @@ distribution by issuing the following commands::
     $ nosetests
     .........................
     ----------------------------------------------------------------------
-    Ran 182 tests in 1.211s
+    Ran 212 tests in 1.211s
     
     OK
     
@@ -123,10 +123,10 @@ distribution by issuing the following commands::
 
     # ... more output ...
 
-    6 features passed, 0 failed, 0 skipped
-    7 scenarios passed, 0 failed, 0 skipped
-    29 steps passed, 0 failed, 0 skipped, 0 undefined
-    Took 0m0.3s
+    7 features passed, 0 failed, 0 skipped
+    13 scenarios passed, 0 failed, 0 skipped
+    54 steps passed, 0 failed, 0 skipped, 0 undefined
+    Took 0m0.5s
 
 
 Getting Started

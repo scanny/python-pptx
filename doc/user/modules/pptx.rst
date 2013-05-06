@@ -18,6 +18,9 @@ Consequently, the only presentation object that is constructed directly is
 
 Example::
 
+   # load a presentation
+   prs = Presentation(path_to_pptx_file)
+
    # get reference to first shape in first slide
    sp = prs.slides[0].shapes[0]
    
