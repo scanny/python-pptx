@@ -17,6 +17,15 @@
    Spec Section , 20.1.2.2.18
 
 
+Overview
+========
+
+Container for a complex graphical object like a table or a chart. The graphic
+frame defines the position and size, as well as other standard shape properties
+such as id and name. The graphic itself is contained in the ``<a:graphic>``
+child element.
+
+
 Attributes
 ==========
 
@@ -43,8 +52,8 @@ extLst             ?   CT_ExtensionListModify            777
 Resources
 =========
 
-* ISO-IEC-29500-1, Section L.4.4 -- Open XML Text Primer, p4809
-* ISO-IEC-29500-1, Section 21.1.2.2.7 pPr (Text Paragraph Properties), p3193
+* ISO-IEC-29500-1, Section 19.3.1.21 graphicFrame (Graphic Frame), p2570
+* ISO-IEC-29500-1, Section 20.1.2.2.19 graphicFrame (Graphic Frame), p2731
 
 
 Spec text
@@ -127,91 +136,3 @@ Schema excerpt
     </xsd:sequence>
     <xsd:attribute name="uri" type="xsd:token" use="required"/>
   </xsd:complexType>
-
-  <xsd:element name="tbl" type="CT_Table"/>
-
-  <xsd:complexType name="CT_Table">
-    <xsd:sequence>
-      <xsd:element name="tblPr"   type="CT_TableProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="tblGrid" type="CT_TableGrid"       minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="tr"      type="CT_TableRow"        minOccurs="0" maxOccurs="unbounded"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_TableProperties">
-    <xsd:sequence>
-      <xsd:group ref="EG_FillProperties"   minOccurs="0" maxOccurs="1"/>
-      <xsd:group ref="EG_EffectProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:choice                          minOccurs="0" maxOccurs="1">
-        <xsd:element name="tableStyle"   type="CT_TableStyle"/>
-        <xsd:element name="tableStyleId" type="s:ST_Guid"/>
-      </xsd:choice>
-      <xsd:element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
-    </xsd:sequence>
-    <xsd:attribute name="rtl"      type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="firstRow" type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="firstCol" type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="lastRow"  type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="lastCol"  type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="bandRow"  type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="bandCol"  type="xsd:boolean" use="optional" default="false"/>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_TableGrid">
-    <xsd:sequence>
-      <xsd:element name="gridCol" type="CT_TableCol" minOccurs="0" maxOccurs="unbounded"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_TableRow">
-    <xsd:sequence>
-      <xsd:element name="tc" type="CT_TableCell" minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
-    </xsd:sequence>
-    <xsd:attribute name="h" type="ST_Coordinate" use="required"/>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_TableCell">
-    <xsd:sequence>
-      <xsd:element name="txBody" type="CT_TextBody" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="tcPr" type="CT_TableCellProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
-    </xsd:sequence>
-    <xsd:attribute name="rowSpan" type="xsd:int" use="optional" default="1"/>
-    <xsd:attribute name="gridSpan" type="xsd:int" use="optional" default="1"/>
-    <xsd:attribute name="hMerge" type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="vMerge" type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="id" type="xsd:string" use="optional"/>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_TextBody">
-    <xsd:sequence>
-      <xsd:element name="bodyPr"   type="CT_TextBodyProperties" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="lstStyle" type="CT_TextListStyle"      minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="p"        type="CT_TextParagraph"      minOccurs="1" maxOccurs="unbounded"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_TableCellProperties">
-    <xsd:sequence>
-      <xsd:element name="lnL"      type="CT_LineProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lnR"      type="CT_LineProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lnT"      type="CT_LineProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lnB"      type="CT_LineProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lnTlToBr" type="CT_LineProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lnBlToTr" type="CT_LineProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="cell3D"   type="CT_Cell3D"         minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_FillProperties"                  minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="headers"  type="CT_Headers"        minOccurs="0"/>
-      <xsd:element name="extLst"   type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
-    </xsd:sequence>
-    <xsd:attribute name="marL"         type="ST_Coordinate32"         use="optional" default="91440"/>
-    <xsd:attribute name="marR"         type="ST_Coordinate32"         use="optional" default="91440"/>
-    <xsd:attribute name="marT"         type="ST_Coordinate32"         use="optional" default="45720"/>
-    <xsd:attribute name="marB"         type="ST_Coordinate32"         use="optional" default="45720"/>
-    <xsd:attribute name="vert"         type="ST_TextVerticalType"     use="optional" default="horz"/>
-    <xsd:attribute name="anchor"       type="ST_TextAnchoringType"    use="optional" default="t"/>
-    <xsd:attribute name="anchorCtr"    type="xsd:boolean"             use="optional" default="false"/>
-    <xsd:attribute name="horzOverflow" type="ST_TextHorzOverflowType" use="optional" default="clip"/>
-  </xsd:complexType>
-

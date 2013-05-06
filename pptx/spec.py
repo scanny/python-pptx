@@ -74,9 +74,8 @@ slide_ph_basenames = {
 # Keyed by content type
 # Not yet included:
 # * Font Part (font1.fntdata) 15.2.13
-# * chart : 'application/vnd.openxmlformats-officedocument.drawingml.chart+xml'
-# * themeOverride : 'application/vnd.openxmlformats-officedocument.themeOverr'
-#       'ide+xml'
+# * themeOverride : 'application/vnd.openxmlformats-officedocument.'
+#                   'themeOverride+xml'
 # * several others, especially DrawingML parts ...
 #
 # TODO: Also check out other shared parts in section 15.
@@ -88,6 +87,8 @@ PTS_HASRELS_ALWAYS = 'always'
 PTS_HASRELS_NEVER = 'never'
 PTS_HASRELS_OPTIONAL = 'optional'
 
+CT_CHART = (
+    'application/vnd.openxmlformats-officedocument.drawingml.chart+xml')
 CT_COMMENT_AUTHORS = (
     'application/vnd.openxmlformats-officedocument.presentationml.commentAuth'
     'ors+xml')
@@ -122,10 +123,10 @@ CT_PRINTER_SETTINGS = (
     'ings')
 CT_SLIDE = (
     'application/vnd.openxmlformats-officedocument.presentationml.slide+xml')
-CT_SLIDELAYOUT = (
+CT_SLIDE_LAYOUT = (
     'application/vnd.openxmlformats-officedocument.presentationml.slideLayout'
     '+xml')
-CT_SLIDEMASTER = (
+CT_SLIDE_MASTER = (
     'application/vnd.openxmlformats-officedocument.presentationml.slideMaster'
     '+xml')
 CT_SLIDESHOW = (
@@ -144,7 +145,13 @@ CT_THEME = (
 CT_VIEW_PROPS = (
     'application/vnd.openxmlformats-officedocument.presentationml.viewProps+x'
     'ml')
+CT_WORKSHEET = (
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
+
+RT_CHART = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/char'
+    't')
 RT_COMMENT_AUTHORS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comm'
     'entAuthors')
@@ -160,22 +167,25 @@ RT_CUSTOM_PROPS = (
 RT_EXTENDED_PROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/exte'
     'ndedProperties')
-RT_HANDOUTMASTER = (
+RT_HANDOUT_MASTER = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hand'
     'outMaster')
 RT_IMAGE = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/imag'
     'e')
-RT_NOTESMASTER = (
+RT_NOTES_MASTER = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/note'
     'sMaster')
 RT_NOTES_SLIDE = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/note'
     'sSlide')
-RT_OFFICEDOCUMENT = (
+RT_OFFICE_DOCUMENT = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/offi'
     'ceDocument')
-RT_PRESPROPS = (
+RT_PACKAGE = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/pack'
+    'age')
+RT_PRES_PROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/pres'
     'Props')
 RT_PRINTER_SETTINGS = (
@@ -184,10 +194,10 @@ RT_PRINTER_SETTINGS = (
 RT_SLIDE = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slid'
     'e')
-RT_SLIDELAYOUT = (
+RT_SLIDE_LAYOUT = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slid'
     'eLayout')
-RT_SLIDEMASTER = (
+RT_SLIDE_MASTER = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slid'
     'eMaster')
 RT_SLIDESHOW = (
@@ -207,6 +217,7 @@ RT_THEME = (
 RT_VIEWPROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/view'
     'Props')
+
 
 pml_parttypes = {
     CT_COMMENT_AUTHORS: {  # ECMA-376-1 13.3.1
@@ -270,7 +281,7 @@ pml_parttypes = {
         'baseURI':     '/ppt/handoutMasters',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['presentation'],
-        'reltype':     RT_HANDOUTMASTER},
+        'reltype':     RT_HANDOUT_MASTER},
     CT_NOTES_MASTER: {  # ECMA-376-1 13.3.4
         'basename':    'notesMaster',
         'ext':         '.xml',
@@ -282,7 +293,7 @@ pml_parttypes = {
         'baseURI':     '/ppt/notesMasters',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['presentation', 'notesSlide'],
-        'reltype':     RT_NOTESMASTER},
+        'reltype':     RT_NOTES_MASTER},
     CT_NOTES_SLIDE: {  # ECMA-376-1 13.3.5
         'basename':    'notesSlide',
         'ext':         '.xml',
@@ -303,7 +314,7 @@ pml_parttypes = {
         'baseURI':     '/ppt',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['package'],
-        'reltype':     RT_OFFICEDOCUMENT},
+        'reltype':     RT_OFFICE_DOCUMENT},
     CT_PRES_PROPS: {  # ECMA-376-1 13.3.7
         'basename':    'presProps',
         'ext':         '.xml',
@@ -313,7 +324,7 @@ pml_parttypes = {
         'baseURI':     '/ppt',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['presentation'],
-        'reltype':     RT_PRESPROPS},
+        'reltype':     RT_PRES_PROPS},
     CT_PRINTER_SETTINGS: {  # ECMA-376-1 15.2.15
         'basename':    'printerSettings',
         'ext':         '.bin',
@@ -334,7 +345,7 @@ pml_parttypes = {
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['presentation', 'notesSlide'],
         'reltype':     RT_SLIDE},
-    CT_SLIDELAYOUT: {  # ECMA-376-1 13.3.9
+    CT_SLIDE_LAYOUT: {  # ECMA-376-1 13.3.9
         'basename':    'slideLayout',
         'ext':         '.xml',
         'name':        'Slide Layout Part',
@@ -343,8 +354,8 @@ pml_parttypes = {
         'baseURI':     '/ppt/slideLayouts',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['slide', 'slideMaster'],
-        'reltype':     RT_SLIDELAYOUT},
-    CT_SLIDEMASTER: {  # ECMA-376-1 13.3.10
+        'reltype':     RT_SLIDE_LAYOUT},
+    CT_SLIDE_MASTER: {  # ECMA-376-1 13.3.10
         'basename':    'slideMaster',
         'ext':         '.xml',
         'name':        'Slide Master Part',
@@ -353,7 +364,7 @@ pml_parttypes = {
         'baseURI':     '/ppt/slideMasters',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['presentation', 'slideLayout'],
-        'reltype':     RT_SLIDEMASTER},
+        'reltype':     RT_SLIDE_MASTER},
     CT_SLIDESHOW: {  # ECMA-376-1 13.3.6
         # one of three possible Content Type values for presentation part
         'basename':    'presentation',

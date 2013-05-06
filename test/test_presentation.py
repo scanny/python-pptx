@@ -29,10 +29,10 @@ from pptx.presentation import (
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces, qtag
 from pptx.spec import (
-    CT_PRESENTATION, CT_SLIDE, CT_SLIDELAYOUT, CT_SLIDEMASTER)
+    CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT, CT_SLIDE_MASTER)
 from pptx.spec import (
-    RT_IMAGE, RT_OFFICEDOCUMENT, RT_PRESPROPS, RT_SLIDE, RT_SLIDELAYOUT,
-    RT_SLIDEMASTER)
+    RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PRES_PROPS, RT_SLIDE, RT_SLIDE_LAYOUT,
+    RT_SLIDE_MASTER)
 from pptx.util import Px
 from testing import TestCase
 
@@ -98,8 +98,8 @@ class PartBuilder(object):
 
 class RelationshipCollectionBuilder(object):
     """Builder class for test RelationshipCollections"""
-    partname_tmpls = {RT_SLIDEMASTER: '/ppt/slideMasters/slideMaster%d.xml',
-                      RT_SLIDE:       '/ppt/slides/slide%d.xml'}
+    partname_tmpls = {RT_SLIDE_MASTER: '/ppt/slideMasters/slideMaster%d.xml',
+                      RT_SLIDE: '/ppt/slides/slide%d.xml'}
 
     def __init__(self):
         self.relationships = []
@@ -536,11 +536,11 @@ class Test_Package(TestCase):
 class Test_Part(TestCase):
     """Test _Part"""
     def test_constructs_presentation_for_rt_officedocument(self):
-        """_Part() returns Presentation for RT_OFFICEDOCUMENT"""
+        """_Part() returns Presentation for RT_OFFICE_DOCUMENT"""
         # setup -----------------------
         cls = Presentation
         # exercise --------------------
-        obj = _Part(RT_OFFICEDOCUMENT, CT_PRESENTATION)
+        obj = _Part(RT_OFFICE_DOCUMENT, CT_PRESENTATION)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
 
@@ -554,27 +554,27 @@ class Test_Part(TestCase):
         self.assertIsInstance(obj, cls)
 
     def test_constructs_slidelayout_for_rt_slidelayout(self):
-        """_Part() returns _SlideLayout for RT_SLIDELAYOUT"""
+        """_Part() returns _SlideLayout for RT_SLIDE_LAYOUT"""
         # setup -----------------------
         cls = _SlideLayout
         # exercise --------------------
-        obj = _Part(RT_SLIDELAYOUT, CT_SLIDELAYOUT)
+        obj = _Part(RT_SLIDE_LAYOUT, CT_SLIDE_LAYOUT)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
 
     def test_constructs_slidemaster_for_rt_slidemaster(self):
-        """_Part() returns _SlideMaster for RT_SLIDEMASTER"""
+        """_Part() returns _SlideMaster for RT_SLIDE_MASTER"""
         # setup -----------------------
         cls = _SlideMaster
         # exercise --------------------
-        obj = _Part(RT_SLIDEMASTER, CT_SLIDEMASTER)
+        obj = _Part(RT_SLIDE_MASTER, CT_SLIDE_MASTER)
         # verify ----------------------
         self.assertIsInstance(obj, cls)
 
     def test_contructor_raises_on_invalid_prs_content_type(self):
         """_Part() raises on invalid presentation content type"""
         with self.assertRaises(InvalidPackageError):
-            _Part(RT_OFFICEDOCUMENT, CT_SLIDEMASTER)
+            _Part(RT_OFFICE_DOCUMENT, CT_SLIDE_MASTER)
 
 
 class Test_PartCollection(TestCase):
@@ -612,9 +612,9 @@ class Test_Presentation(TestCase):
         """Presentation._blob rewrites sldIdLst"""
         # setup -----------------------
         rels = RelationshipCollectionBuilder()
-        rels = rels.with_tuple_targets(2, RT_SLIDEMASTER)
+        rels = rels.with_tuple_targets(2, RT_SLIDE_MASTER)
         rels = rels.with_tuple_targets(3, RT_SLIDE)
-        rels = rels.with_ordering(RT_SLIDEMASTER, RT_SLIDE)
+        rels = rels.with_ordering(RT_SLIDE_MASTER, RT_SLIDE)
         rels = rels.build()
         prs = Presentation()
         prs._relationships = rels
@@ -730,11 +730,11 @@ class Test_RelationshipCollection(TestCase):
         part4.partname = partnames[3]
         part5 = Mock(name='part5')
         part5.partname = partnames[4]
-        rel1 = _Relationship('rId1', RT_SLIDE,       part1)
-        rel2 = _Relationship('rId2', RT_SLIDELAYOUT, part2)
-        rel3 = _Relationship('rId3', RT_SLIDEMASTER, part3)
-        rel4 = _Relationship('rId4', RT_SLIDE,       part4)
-        rel5 = _Relationship('rId5', RT_PRESPROPS,   part5)
+        rel1 = _Relationship('rId1', RT_SLIDE,        part1)
+        rel2 = _Relationship('rId2', RT_SLIDE_LAYOUT, part2)
+        rel3 = _Relationship('rId3', RT_SLIDE_MASTER, part3)
+        rel4 = _Relationship('rId4', RT_SLIDE,        part4)
+        rel5 = _Relationship('rId5', RT_PRES_PROPS,   part5)
         relationships = _RelationshipCollection()
         relationships._additem(rel1)
         relationships._additem(rel2)
@@ -778,7 +778,7 @@ class Test_RelationshipCollection(TestCase):
         """_RelationshipCollection maintains reltype ordering on additem()"""
         # setup -----------------------
         relationships, partnames = self.__reltype_ordering_mock()
-        ordering = (RT_SLIDEMASTER, RT_SLIDELAYOUT, RT_SLIDE)
+        ordering = (RT_SLIDE_MASTER, RT_SLIDE_LAYOUT, RT_SLIDE)
         relationships._reltype_ordering = ordering
         partname = '/ppt/slides/slide2.xml'
         part = Mock(name='new_part')
@@ -810,7 +810,7 @@ class Test_RelationshipCollection(TestCase):
         """RelationshipCollection._reltype_ordering sorts rels"""
         # setup -----------------------
         relationships, partnames = self.__reltype_ordering_mock()
-        ordering = (RT_SLIDEMASTER, RT_SLIDELAYOUT, RT_SLIDE)
+        ordering = (RT_SLIDE_MASTER, RT_SLIDE_LAYOUT, RT_SLIDE)
         # exercise --------------------
         relationships._reltype_ordering = ordering
         # verify ordering -------------
@@ -825,7 +825,7 @@ class Test_RelationshipCollection(TestCase):
         """RelationshipCollection._reltype_ordering renumbers rels"""
         # setup -----------------------
         relationships, partnames = self.__reltype_ordering_mock()
-        ordering = (RT_SLIDEMASTER, RT_SLIDELAYOUT, RT_SLIDE)
+        ordering = (RT_SLIDE_MASTER, RT_SLIDE_LAYOUT, RT_SLIDE)
         # exercise --------------------
         relationships._reltype_ordering = ordering
         # verify renumbering ----------
@@ -917,7 +917,7 @@ class Test_Slide(TestCase):
         self.assertEqual(expected, actual, msg)
         # verify values ---------------
         rel = slide._relationships[0]
-        expected = ('rId1', RT_SLIDELAYOUT, slidelayout)
+        expected = ('rId1', RT_SLIDE_LAYOUT, slidelayout)
         actual = (rel._rId, rel._reltype, rel._target)
         msg = "expected relationship\n%s\ngot\n%s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
@@ -950,7 +950,7 @@ class Test_Slide(TestCase):
         slidelayout.partname = '/ppt/slideLayouts/slideLayout1.xml'
         rel = Mock(name='pptx.packaging._Relationship')
         rel.rId = 'rId1'
-        rel.reltype = RT_SLIDELAYOUT
+        rel.reltype = RT_SLIDE_LAYOUT
         rel.target = slidelayout
         pkgpart = Mock(name='pptx.packaging.Part')
         with open(path, 'rb') as f:
@@ -1082,7 +1082,7 @@ class Test_SlideLayout(TestCase):
         # a package-side relationship from slideLayout to its slideMaster
         rel = Mock(name='pptx.packaging._Relationship')
         rel.rId = 'rId1'
-        rel.reltype = RT_SLIDEMASTER
+        rel.reltype = RT_SLIDE_MASTER
         rel.target = pkg_slidemaster_part
         # the slideLayout package part to send to _load()
         pkg_slidelayout_part = Mock(spec=pptx.packaging.Part)

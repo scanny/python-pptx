@@ -7,9 +7,10 @@ Collected bits and pieces on specific PowerPoint object types gathered from MSDN
 .. toctree::
    :maxdepth: 1
 
+   chart
+   picture
    placeholders
    shape
-   textframe
-   picture
    table
+   textframe
 

@@ -7,6 +7,7 @@ Collected bits and pieces from the XML Schema docs, MSDN web pages, and the ISO/
 .. toctree::
    :maxdepth: 1
 
+   ct_chart
    ct_graphicalobjectframe
    ct_picture
    ct_placeholder
