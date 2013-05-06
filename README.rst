@@ -2,15 +2,14 @@
 python-pptx
 ###########
 
-VERSION: 0.2.2 (third beta release)
+VERSION: 0.2.3 (fourth beta release)
 
 
-STATUS (as of Mar 25 2013)
-==========================
+STATUS (as of May 5 2013)
+=========================
 
-Third release with basic capabilities, now supporting Python 2.6 in addition
-to Python 2.7. Under active development, with new features added in a new
-release roughly once a month.
+Stable beta release. This release added support for tables. Under active
+development, with new features added in a new release roughly once a month.
 
 
 Vision
@@ -98,6 +97,11 @@ install those yourself.
 
 Release History
 ===============
+
+May 5, 2013 - v0.2.3
+   * Add support for table shapes
+   * Add indentation support to textbox shapes, enabling multi-level bullets on
+     bullet slides.
 
 Mar 25, 2013 - v0.2.2
    * Add support for opening and saving a presentation from/to a file-like
