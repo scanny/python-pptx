@@ -14,35 +14,35 @@ There are essentially three protocols with partially-overlapping interfaces:
 * manipulation protocol
 
 
-:class:`Part` objects
-=====================
+``Part`` objects
+================
 
 .. currentmodule:: pptx.presentation
 
-.. autoclass:: pptx.presentation.Part
+.. autoclass:: pptx.presentation._Part
    :members: __new__
    :undoc-members:
 
 
-.. autoclass:: pptx.presentation.BasePart
+.. autoclass:: pptx.presentation._BasePart
    :members:
    :undoc-members:
    :private-members:
 
 
-.. autoclass:: pptx.presentation.PartCollection
+.. autoclass:: pptx.presentation._PartCollection
    :members:
    :undoc-members:
    :private-members:
    :show-inheritance:
 
    Inherits :meth:`__contains__`, :meth:`__iter__`, :meth:`__len__`,
-   :meth:`__getitem__`, and :meth:`index` from :class:`Collection`.
+   :meth:`__getitem__`, and :meth:`index` from |Collection|.
 
 
 
 Unmarshaling interface
----------------------------------------
+----------------------
 
 The unmarshaling interface provides a protocol the model side uses to load
 a graph of parts from :class:`pptx.packaging.Package`.
@@ -50,13 +50,13 @@ a graph of parts from :class:`pptx.packaging.Package`.
 The following code sample illustrates the protocol::
 
     # construct a part
-    part = Part(reltype, content_type)
+    part = _Part(reltype, content_type)
     
     # load it from instance of pptx.packaging.Part
     part._load(pkgpart, part_dict)
     
     # construct a part collection
-    parts = PartCollection()
+    parts = _PartCollection()
     
     # add a part that was loaded from package
     parts._loadpart(part)
@@ -75,7 +75,7 @@ The following code sample illustrates the protocol::
 
 
 Marshaling interface
----------------------------------------
+--------------------
 
 The marshaling interface provides a protocol to :mod:`pptx.packaging` that
 allows it to gather what it needs to save the document to a .pptx file.
@@ -97,7 +97,7 @@ The following code sample illustrates the protocol::
 
 
 Manipulation interface
----------------------------------------
+----------------------
 
 The manipulation protocol and interfaces are used as the part graph is
 manipulated via the library API::
@@ -110,28 +110,34 @@ manipulated via the library API::
     
 
 Class hierarchy
----------------------------------------
+---------------
 
 Probably outdated, needs fixing ...
 
 ::
 
-   +--BasePart
+   +--_BasePart
    |  |
    |  +--Presentation
-   |  +--BaseSlide
+   |  +--_BaseSlide
    |  |  |
-   |  |  +--SlideMaster
-   |  |  +--SlideLayout
-   |  |  +--Slide
+   |  |  +--_SlideMaster
+   |  |  +--_SlideLayout
+   |  |  +--_Slide
    |  |  +--... others later
    |  |
    |  +--... others later
    |
    +--Collection
       |
-      +--PartCollection
+      +--_PartCollection
          |
-         +--SlideCollection
+         +--_SlideCollection
          +--... others later
 
+
+.. |Collection| replace:: :class:`Collection`
+
+.. |_RelationshipCollection| replace:: :class:`_RelationshipCollection`
+
+.. |ValueError| replace:: :class:`ValueError`

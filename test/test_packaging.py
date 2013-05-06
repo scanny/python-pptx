@@ -286,7 +286,7 @@ class TestPackage(TestCase):
     def test_marshal_returns_self(self):
         """Package.marshal() returns self-reference"""
         # setup -----------------------
-        model_pkg = pptx.presentation.Package(test_pptx_path)
+        model_pkg = pptx.presentation._Package(test_pptx_path)
         # exercise --------------------
         retval = self.pkg.marshal(model_pkg)
         # verify ----------------------

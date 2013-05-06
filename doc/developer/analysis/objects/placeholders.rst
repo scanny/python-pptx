@@ -98,7 +98,7 @@ Specifications
   placeholder.
 
 * The document order of placeholders signifies their z-order and has no
-  bearing on their index order. :attr:`ShapeCollection.placeholders` contains
+  bearing on their index order. :attr:`_ShapeCollection.placeholders` contains
   the placeholders in order of *idx* value, which means the title placeholder
   always appears first in the sequence, if it is present.
 

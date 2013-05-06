@@ -50,7 +50,7 @@ The following code sample illustrates the protocol::
    :show-inheritance:
 
    Inherits :meth:`__contains__`, :meth:`__iter__`, :meth:`__len__`,
-   :meth:`__getitem__`, and :meth:`index` from :class:`Collection`.
+   :meth:`__getitem__`, and :meth:`index` from |Collection|.
 
 
 |_Relationship| objects
@@ -61,6 +61,8 @@ The following code sample illustrates the protocol::
    :member-order: bysource
    :undoc-members:
 
+
+.. |Collection| replace:: :class:`Collection`
 
 .. |_Relationship| replace:: :class:`_Relationship`
 

@@ -2,7 +2,7 @@
 :mod:`pptx` Package Modules
 ===========================
 
-:class:`Presentation`, the main API class for ``python-pptx``, in provided
+|Presentation|, the main API class for ``python-pptx``, in provided
 directly by the :mod:`pptx` package::
 
     from pptx import Presentation
@@ -19,4 +19,6 @@ The following modules are contained in the package.
    pptx
    util
    exc
+
+.. |Presentation| replace:: :class:`Presentation`
 

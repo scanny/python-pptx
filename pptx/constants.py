@@ -17,7 +17,7 @@ class MSO(object):
     Constants corresponding to things like ``msoAnchorMiddle`` in the MS
     Office API.
     """
-    # TextFrame.vertical_anchor values
-    ANCHOR_TOP    = 1
+    # _TextFrame.vertical_anchor values
+    ANCHOR_TOP = 1
     ANCHOR_MIDDLE = 3
     ANCHOR_BOTTOM = 4

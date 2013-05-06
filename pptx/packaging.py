@@ -171,9 +171,7 @@ class Package(object):
         # initial call can leave out parts parameter as a signal to initialize
         if parts is None:
             parts = []
-        # log.debug("in __walkparts(), len(parts)==%d", len(parts))
         for rel in rels:
-            # log.debug("rel.target.partname==%s", rel.target.partname)
             part = rel.target
             if part in parts:  # only visit each part once (graph is cyclic)
                 continue
@@ -189,14 +187,14 @@ class Part(object):
     :class:`pptx.packaging.Part` instances are constructed and initialized
     internally to the :meth:`Package.open` or :meth:`Package.marshal` methods.
 
-    The following :class:`Part` instance attributes can be accessed once the
-    part has been loaded as part of a package:
+    The following |Part| instance attributes can be accessed once the part has
+    been loaded as part of a package:
 
     .. attribute:: typespec
 
-       An instance of :class:`PartTypeSpec` appropriate to the type of this
-       part. The :class:`PartTypeSpec` instance provides attributes such as
-       *content_type*, *baseURI*, etc. That are useful in several contexts.
+       An instance of |PartTypeSpec| appropriate to the type of this part. The
+       |PartTypeSpec| instance provides attributes such as *content_type*,
+       *baseURI*, etc. That are useful in several contexts.
 
     .. attribute:: blob
 
@@ -230,8 +228,8 @@ class Part(object):
     @property
     def relationships(self):
         """
-        Tuple of :class:`Relationship` instances, each representing a
-        relationship from this part to another part.
+        Tuple of |Relationship| instances, each representing a relationship
+        from this part to another part.
         """
         return tuple(self.__relationships)
 
@@ -240,8 +238,6 @@ class Part(object):
         Load part identified as *partname* from filesystem *fs* and propagate
         the load to related parts.
         """
-        # log.debug("loading %s", partname)
-
         # calculate working values
         baseURI = os.path.split(partname)[0]
         content_type = ct_dict[partname]
@@ -278,8 +274,6 @@ class Part(object):
         Load the contents of model-side part such that it can be saved to
         disk. Propagate marshalling to related parts.
         """
-        # log.debug("marshalling %s", model_part.partname)
-
         # unpack working values
         content_type = model_part._content_type
         # assign persisted attributes from model part
@@ -361,14 +355,13 @@ class Part(object):
 
 class Relationship(object):
     """
-    Return a new :class:`Relationship` instance with local identifier *rId*
-    that associates *source* with *target*. *source* is an instance of either
-    :class:`Package` or :class:`Part`. *target* is always an instance of
-    :class:`Part`. Note that *rId* is only unique within the scope of
-    *source*. Relationships do not have a globally unique identifier.
+    Return a new |Relationship| instance with local identifier *rId* that
+    associates *source* with *target*. *source* is an instance of either
+    |Package| or |Part|. *target* is always an instance of |Part|. Note that
+    *rId* is only unique within the scope of *source*. Relationships do not
+    have a globally unique identifier.
 
-    The following attributes are available from :class:`Relationship`
-    instances:
+    The following attributes are available from |Relationship| instances:
 
     .. attribute:: rId
 
@@ -424,9 +417,9 @@ class Relationship(object):
 
 class PartTypeSpec(object):
     """
-    Return an instance of :class:`PartTypeSpec` containing metadata for parts
-    of type *content_type*. Instances are cached, so no more than one instance
-    for a particular content type is in memory.
+    Return an instance of |PartTypeSpec| containing metadata for parts of type
+    *content_type*. Instances are cached, so no more than one instance for a
+    particular content type is in memory.
 
     Instances provide the following attributes:
 
@@ -582,8 +575,9 @@ class _ContentTypesItem(object):
         if partname in self.__overrides:
             return self.__overrides[partname]
         # if not, look for a default based on the extension
-        ext = os.path.splitext(partname)[1]            # get extension of partname
-        ext = ext[1:] if ext.startswith('.') else ext  # with leading dot trimmed off
+        ext = os.path.splitext(partname)[1]  # get extension of partname
+        # with leading dot trimmed off
+        ext = ext[1:] if ext.startswith('.') else ext
         if ext in self.__defaults:
             return self.__defaults[ext]
         # if neither of those work, raise an exception
@@ -606,7 +600,8 @@ class _ContentTypesItem(object):
         # extensions in this dict include leading '.'
         def_cts = pptx.spec.default_content_types
         # initialize working dictionaries for defaults and overrides
-        self.__defaults = dict((ext[1:], def_cts[ext]) for ext in ('.rels', '.xml'))
+        self.__defaults = dict((ext[1:], def_cts[ext])
+                               for ext in ('.rels', '.xml'))
         self.__overrides = {}
         # compose appropriate element for each part
         for part in parts:
@@ -669,7 +664,7 @@ class FileSystem(object):
     be accessed directly by part name, which for a part is identical to its
     item URI. The complexities of translating URIs into file paths or zip item
     names, and file and zip file access specifics are all hidden by the
-    filesystem class. :class:`FileSystem` acts as the Factory, returning the
+    filesystem class. |FileSystem| acts as the Factory, returning the
     appropriate concrete filesystem class depending on what it finds at *path*.
     """
     def __new__(cls, file):
@@ -775,7 +770,7 @@ class DirectoryFileSystem(BaseFileSystem):
         for dirpath, dirnames, filenames in os.walk(self.__path):
             for filename in filenames:
                 item_path = os.path.join(dirpath, filename)
-                itemURI = item_path[len(self.__path):]  # leaves a leading slash on
+                itemURI = item_path[len(self.__path):]  # leave leading slash
                 itemURIs.append(itemURI.replace(os.sep, '/'))
         return sorted(itemURIs)
 

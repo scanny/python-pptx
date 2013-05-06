@@ -1,10 +1,133 @@
-=====
+#####
 Table
-=====
+#####
 
-:Updated:  2013-02-11
+:Updated:  2013-03-30
 :Author:   Steve Canny
 :Status:   **WORKING DRAFT**
+
+
+Introduction
+============
+
+One of the shapes available for placing on a PowerPoint slide is the *table*.
+As shapes go, it is one of the more complex. In addition to having standard
+shape properties such as position and size, it contains what amount to
+sub-shapes that each have properties of their own. Prominent among these
+sub-element types are row, column, and cell.
+
+
+Open questions
+==============
+
+* not sure of the semantics of the ``<a:tableStyleId>`` element. Assuming the
+  GUID it contains somehow maps to a style in the tableStyles.xml, or perhaps
+  some contant values defined elsewhere.
+
+* What would be the Pythonic way to delete a row or column from a table? The MS
+  API has a ``delete()`` method on the row or column itself. I'm inclined to
+  believe it would be more Pythonic to use the ``del`` keyword on the indexed
+  list, e.g. ``del rows[2]``.
+
+
+API requirements
+================
+
+|_Table| class
+--------------
+
+Properties and methods required for a |_Table| shape.
+
+* ``apply_style(style_id)`` -- change the style of the table. Not sure what the
+  domain of ``style_id`` is.
+
+* ``cell(row, col)`` -- method to access an individual |Cell| object.
+
+* ``columns`` -- collection of |Column| objects, each corresponding to a column
+  in the table, in left-to-right order.
+
+* ``firstcol`` -- read/write boolean property which, when true, indicates the
+  first column should be formatted differently, as for a side-heading column at
+  the far left of the table.
+
+* ``firstrow`` -- read/write boolean property which, when true, indicates the
+  first row should be formatted differently, as for a heading row at the top of
+  the table.
+
+* ``horz_banding`` -- read/write boolean property indicating whether alternate
+  color "banding" should be applied to the body rows.
+
+* ``lastcol`` -- read/write boolean property which, when true, indicates the
+  last column should be formatted differently, as for a side totals column at
+  the far right of the table.
+
+* ``lastrow`` -- read/write boolean property which, when true, indicates the
+  last row should be formatted differently, as for a totals row at the bottom
+  of the table.
+
+* ``rows`` -- collection of |Row| objects, each corresponding to a row in the
+  table, in top-to-bottom order.
+
+* ``vert_banding`` -- read/write boolean property indicating whether alternate
+  color "banding" should be applied to the table columns.
+
+
+|Cell| class
+------------
+
+* ``textframe`` -- container for text in the cell.
+* borders, something like LineProperties on each side
+* inset (margins)
+* anchor and anchor_center
+* horzOverflow, not sure what this is exactly, maybe wrap or auto-resize to
+  fit.
+
+
+|Column| class
+--------------
+
+Provide the properties and methods appropriate to a table column.
+
+* ``width`` -- read/write integer width of the column in English Metric Units
+* perhaps ``delete()`` method
+
+
+|ColumnCollection| class
+------------------------
+
+* ``add(before)`` -- add a new column to the left of the column having index
+  *before*, returning a reference to the new column. *before* defaults to
+  ``-1``, which adds the column as the last column in the table.
+
+
+|Row| class
+-----------
+
+* ``height`` -- read/write integer height of the row in English Metric Units
+  (EMU).
+
+
+|RowCollection| class
+---------------------
+
+* ``add(before)`` -- add a new row before the row having index *before*,
+  returning a reference to the new row. *before* defaults to ``-1``, which adds
+  the row as the last row in the table.
+
+
+Behavior
+========
+
+Table width and column widths
+-----------------------------
+
+A table is created by specifying a row and column count, a position, and an
+overall size. Initial column widths are set by dividing the overall width by
+the number of columns, resolving any rounding errors in the last column.
+Conversely, when a column's width is specified, the table width is adjusted to
+the sum of the widths of all columns. Initial row heights are set similarly and
+overall table height adjusted to the sum of row heights when a row's height is
+specified.
 
 
 Discovery protocol
@@ -15,27 +138,17 @@ Discovery protocol
 * (.) Review and document relevant schema elements
 
 
-Notes
-=====
-
-Produced XML inspection
------------------------
-
-* a ``tableStyles.xml`` part is fleshed out substantially; looks like it's
-  populated from built-in defaults "Medium Style 2 - Accent 1". It appears to
-  specify colors indirectly by reference to theme-specified values.
-
-MS API Notes
-------------
+MS API Analysis
+===============
 
 MS API method to add a table is::
 
     Shapes.AddTable(NumRows, NumColumns, Left, Top, Width, Height)
 
-* There is a HasTable property on Shape to indicate the shape "has" a table.
-  Seems like "is" a table would be more apt, but I'm still looking :)
+There is a HasTable property on Shape to indicate the shape "has" a table.
+Seems like "is" a table would be more apt, but I'm still looking :)
 
-`Table Members`_ page on MSDN.
+From the `Table Members`_ page on MSDN.
 
 Most interesting ``Table`` members:
 
@@ -68,21 +181,19 @@ Columns collection and Rows collection both have an Add() method
 * Weight
 
 
-.. _Table Members:
-   http://msdn.microsoft.com/en-us/library/office/ff745711(v=office.14).aspx
+XML produced by PowerPoint® application
+=======================================
 
-.. _Column Members:
-   http://msdn.microsoft.com/en-us/library/office/ff746286(v=office.14).aspx
+Inspection Notes
+----------------
 
-.. _Cell Members:
-   http://msdn.microsoft.com/en-us/library/office/ff744136(v=office.14).aspx
-
-.. _LineFormat Members:
-   http://msdn.microsoft.com/en-us/library/office/ff745240(v=office.14).aspx
+A ``tableStyles.xml`` part is fleshed out substantially; looks like it's
+populated from built-in defaults "Medium Style 2 - Accent 1". It appears to
+specify colors indirectly by reference to theme-specified values.
 
 
 XML produced by PowerPoint® client
-==================================
+----------------------------------
 
 .. highlight:: xml
 
@@ -159,32 +270,29 @@ XML produced by PowerPoint® client
       </a:graphic>
     </p:graphicFrame>
 
-Summary
-=======
-
-...
 
 
-Description
-===========
+.. _Table Members:
+   http://msdn.microsoft.com/en-us/library/office/ff745711(v=office.14).aspx
 
+.. _Column Members:
+   http://msdn.microsoft.com/en-us/library/office/ff746286(v=office.14).aspx
 
-Behaviors
-=========
+.. _Cell Members:
+   http://msdn.microsoft.com/en-us/library/office/ff744136(v=office.14).aspx
 
+.. _LineFormat Members:
+   http://msdn.microsoft.com/en-us/library/office/ff745240(v=office.14).aspx
 
-Experiment(s)
--------------
+.. |Cell| replace:: :class:`Cell`
 
+.. |Column| replace:: :class:`Column`
 
-Specifications
-==============
+.. |ColumnCollection| replace:: :class:`ColumnCollection`
 
+.. |Row| replace:: :class:`Row`
 
-Related Specifications
-======================
+.. |RowCollection| replace:: :class:`RowCollection`
 
-
-Resources
-=========
+.. |_Table| replace:: :class:`_Table`
 

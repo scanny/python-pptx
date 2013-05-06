@@ -14,7 +14,7 @@ Class Hierarchy
    |
    +--.packaging
       |
-      +--PartCollection
+      +--_PartCollection
       |  |
       |  +--ImageParts
       |  +--SlideLayoutParts

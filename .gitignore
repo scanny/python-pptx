@@ -7,8 +7,8 @@ README.html
 dist
 doc/_build
 features/_scratch/*
-python-pptx.tmproj
 out.txt
 _scratch
 doc/_static/ref
-.tm_properties
+tags
+test/debug.py
