@@ -245,6 +245,47 @@ class CT_Picture(objectify.ObjectifiedElement):
 
 class CT_Shape(objectify.ObjectifiedElement):
     """<p:sp> custom element class"""
+    _autoshape_sp_tmpl = (
+        '<p:sp %s>\n'
+        '  <p:nvSpPr>\n'
+        '    <p:cNvPr id="%s" name="%s"/>\n'
+        '    <p:cNvSpPr/>\n'
+        '    <p:nvPr/>\n'
+        '  </p:nvSpPr>\n'
+        '  <p:spPr>\n'
+        '    <a:xfrm>\n'
+        '      <a:off x="%s" y="%s"/>\n'
+        '      <a:ext cx="%s" cy="%s"/>\n'
+        '    </a:xfrm>\n'
+        '    <a:prstGeom prst="%s">\n'
+        '      <a:avLst/>\n'
+        '    </a:prstGeom>\n'
+        '  </p:spPr>\n'
+        '  <p:style>\n'
+        '    <a:lnRef idx="1">\n'
+        '      <a:schemeClr val="accent1"/>\n'
+        '    </a:lnRef>\n'
+        '    <a:fillRef idx="3">\n'
+        '      <a:schemeClr val="accent1"/>\n'
+        '    </a:fillRef>\n'
+        '    <a:effectRef idx="2">\n'
+        '      <a:schemeClr val="accent1"/>\n'
+        '    </a:effectRef>\n'
+        '    <a:fontRef idx="minor">\n'
+        '      <a:schemeClr val="lt1"/>\n'
+        '    </a:fontRef>\n'
+        '  </p:style>\n'
+        '  <p:txBody>\n'
+        '    <a:bodyPr rtlCol="0" anchor="ctr"/>\n'
+        '    <a:lstStyle/>\n'
+        '    <a:p>\n'
+        '      <a:pPr algn="ctr"/>\n'
+        '    </a:p>\n'
+        '  </p:txBody>\n'
+        '</p:sp>' %
+        (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d', '%s')
+    )
+
     _ph_sp_tmpl = (
         '<p:sp %s>\n'
         '  <p:nvSpPr>\n'
@@ -260,7 +301,7 @@ class CT_Shape(objectify.ObjectifiedElement):
         '<p:sp %s>\n'
         '  <p:nvSpPr>\n'
         '    <p:cNvPr id="%s" name="%s"/>\n'
-        '    <p:cNvSpPr/>\n'
+        '    <p:cNvSpPr txBox="1"/>\n'
         '    <p:nvPr/>\n'
         '  </p:nvSpPr>\n'
         '  <p:spPr>\n'
@@ -282,6 +323,43 @@ class CT_Shape(objectify.ObjectifiedElement):
         '  </p:txBody>\n'
         '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
     )
+
+    @property
+    def is_autoshape(self):
+        """
+        True if this shape is an auto shape. A shape is an auto shape if it
+        has a ``<a:prstGeom>`` element and does not have a txBox="1" attribute
+        on cNvSpPr.
+        """
+        prstGeom = _child(self.spPr, 'a:prstGeom')
+        if prstGeom is None:
+            return False
+        txBox = self.nvSpPr.cNvSpPr.get('txBox')
+        if txBox in ('true', '1'):
+            return False
+        return True
+
+    @property
+    def is_textbox(self):
+        """
+        True if this shape is a text box. A shape is a text box if it has a
+        txBox="1" attribute on cNvSpPr.
+        """
+        txBox = self.nvSpPr.cNvSpPr.get('txBox')
+        if txBox in ('true', '1'):
+            return True
+        return False
+
+    @staticmethod
+    def new_autoshape_sp(id_, name, prst, left, top, width, height):
+        """
+        Return a new ``<p:sp>`` element tree configured as a base auto shape.
+        """
+        xml = CT_Shape._autoshape_sp_tmpl % (id_, name, left, top,
+                                             width, height, prst)
+        sp = oxml_fromstring(xml)
+        objectify.deannotate(sp, cleanup_namespaces=True)
+        return sp
 
     @staticmethod
     def new_placeholder_sp(id_, name, ph_type, orient, sz, idx):
@@ -325,9 +403,19 @@ class CT_Shape(objectify.ObjectifiedElement):
         """
         xml = CT_Shape._textbox_sp_tmpl % (id_, name, left, top, width, height)
         sp = oxml_fromstring(xml)
-        sp.nvSpPr.cNvSpPr.set('txBox', '1')
         objectify.deannotate(sp, cleanup_namespaces=True)
         return sp
+
+    @property
+    def prst(self):
+        """
+        Value of ``prst`` attribute of ``<a:prstGeom>`` element or |None| if
+        not present.
+        """
+        prstGeom = _child(self.spPr, 'a:prstGeom')
+        if prstGeom is None:
+            return None
+        return prstGeom.get('prst')
 
 
 class CT_Table(objectify.ObjectifiedElement):

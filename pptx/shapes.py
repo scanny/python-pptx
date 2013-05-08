@@ -16,7 +16,7 @@ from pptx.oxml import (
     _get_or_add, qn, _Element, _SubElement, CT_GraphicalObjectFrame,
     CT_Picture, CT_Shape
 )
-from pptx.spec import namespaces, slide_ph_basenames
+from pptx.spec import autoshape_types, namespaces, slide_ph_basenames
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_TYPE_DT, PH_TYPE_FTR,
     PH_TYPE_OBJ, PH_TYPE_SLDNUM)
@@ -61,6 +61,106 @@ def _to_unicode(text):
 # ============================================================================
 # Shapes
 # ============================================================================
+
+class _AutoShapeType(object):
+    """
+    Return an instance of |_AutoShapeType| containing metadata for an auto
+    shape of type identified by *autoshape_type_id*. Instances are cached, so
+    no more than one instance for a particular auto shape type is in memory.
+
+    Instances provide the following attributes:
+
+    .. attribute:: autoshape_type_id
+
+       Integer uniquely identifying this auto shape type. Corresponds to a
+       value in ``pptx.constants.MSO`` like ``MSO.SHAPE_ROUNDED_RECTANGLE``.
+
+    .. attribute:: basename
+
+       Base part of shape name for auto shapes of this type, e.g. ``Rounded
+       Rectangle`` becomes ``Rounded Rectangle 99`` when the distinguishing
+       integer is added to the shape name.
+
+    .. attribute:: prst
+
+       String identifier for this auto shape type used in the ``<a:prstGeom>``
+       element.
+
+    .. attribute:: desc
+
+       Informal string description of auto shape.
+
+    """
+    __instances = {}
+
+    def __new__(cls, autoshape_type_id):
+        """
+        Only create new instance on first call for content_type. After that,
+        use cached instance.
+        """
+        # if there's not a matching instance in the cache, create one
+        if autoshape_type_id not in cls.__instances:
+            inst = super(_AutoShapeType, cls).__new__(cls)
+            cls.__instances[autoshape_type_id] = inst
+        # return the instance; note that __init__() gets called either way
+        return cls.__instances[autoshape_type_id]
+
+    def __init__(self, autoshape_type_id):
+        """Initialize attributes from constant values in pptx.spec"""
+        # skip loading if this instance is from the cache
+        if hasattr(self, '_loaded'):
+            return
+        # raise on bad autoshape_type_id
+        if autoshape_type_id not in autoshape_types:
+            tmpl = "no autoshape type with id %d in pptx.spec.autoshape_types"
+            raise KeyError(tmpl % autoshape_type_id)
+        # otherwise initialize new instance
+        autoshape_type = autoshape_types[autoshape_type_id]
+        self.__autoshape_type_id = autoshape_type_id
+        self.__prst = autoshape_type['prst']
+        self.__basename = autoshape_type['basename']
+        self.__desc = autoshape_type['desc']
+        self._loaded = True
+
+    @property
+    def autoshape_type_id(self):
+        """Integer identifier of this auto shape type"""
+        return self.__autoshape_type_id
+
+    @property
+    def basename(self):
+        """
+        Base of shape name (less the distinguishing integer) for this auto
+        shape type
+        """
+        return self.__basename
+
+    @property
+    def desc(self):
+        """Informal description of this auto shape type"""
+        return self.__desc
+
+    @staticmethod
+    def _lookup_id_by_prst(prst):
+        """
+        Return auto shape id (e.g. ``MSO.SHAPE_RECTANGLE``) corresponding to
+        specified preset geometry keyword *prst*.
+        """
+        for autoshape_type_id, attribs in autoshape_types.iteritems():
+            if attribs['prst'] == prst:
+                return autoshape_type_id
+        msg = "no auto shape with prst '%s'" % prst
+        raise KeyError(msg)
+
+    @property
+    def prst(self):
+        """
+        Preset geometry identifier string for this auto shape. Used in the
+        ``prst`` attribute of ``<a:prstGeom>`` element to specify the geometry
+        to be used in rendering the shape, for example ``'roundRect'``.
+        """
+        return self.__prst
+
 
 class _BaseShape(object):
     """
@@ -112,6 +212,19 @@ class _BaseShape(object):
     #: 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. String
     #: values are converted to unicode assuming UTF-8 encoding.
     text = property(None, _set_text)
+
+    @property
+    def shape_type(self):
+        """
+        Unique integer identifying the type of this shape, like ``MSO.CHART``.
+        Must be implemented by subclasses. This one returns |None|
+        unconditionally to account for shapes that haven't been implemented
+        yet, like group shape and chart. Once those are done this should raise
+        |NotImplementedError|.
+        """
+        return None
+        # msg = 'shape_type property must be implemented by subclasses'
+        # raise NotImplementedError(msg)
 
     @property
     def textframe(self):
@@ -221,6 +334,23 @@ class _ShapeCollection(_BaseShape, Collection):
         picture = _Picture(pic)
         self.__shapes.append(picture)
         return picture
+
+    def add_shape(self, autoshape_type_id, left, top, width, height):
+        """
+        Add auto shape of type specified by *autoshape_type_id* (like
+        ``MSO.SHAPE_RECTANGLE``) and of specified size at specified position.
+        """
+        autoshape_type = _AutoShapeType(autoshape_type_id)
+        id_ = self.__next_shape_id
+        name = '%s %d' % (autoshape_type.basename, id_-1)
+
+        sp = CT_Shape.new_autoshape_sp(id_, name, autoshape_type.prst,
+                                       left, top, width, height)
+        shape = _Shape(sp)
+
+        self.__spTree.append(sp)
+        self.__shapes.append(shape)
+        return shape
 
     def add_table(self, rows, cols, left, top, width, height):
         """
@@ -381,6 +511,14 @@ class _Picture(_BaseShape):
     def __init__(self, pic):
         super(_Picture, self).__init__(pic)
 
+    @property
+    def shape_type(self):
+        """
+        Unique integer identifying the type of this shape, unconditionally
+        ``MSO.PICTURE`` in this case.
+        """
+        return MSO.PICTURE
+
 
 class _Shape(_BaseShape):
     """
@@ -390,6 +528,37 @@ class _Shape(_BaseShape):
     """
     def __init__(self, shape_element):
         super(_Shape, self).__init__(shape_element)
+
+    @property
+    def auto_shape_type(self):
+        """
+        Unique integer identifying the type of this auto shape, like
+        ``MSO.SHAPE_ROUNDED_RECTANGLE``. Raises |ValueError| if this shape is
+        not an auto shape.
+        """
+        sp = self._element
+        if not sp.is_autoshape:
+            msg = "shape is not an auto shape"
+            raise ValueError(msg)
+        prst = sp.prst
+        auto_shape_type_id = _AutoShapeType._lookup_id_by_prst(prst)
+        return auto_shape_type_id
+
+    @property
+    def shape_type(self):
+        """
+        Unique integer identifying the type of this shape, like
+        ``MSO.TEXT_BOX``.
+        """
+        if self.is_placeholder:
+            return MSO.PLACEHOLDER
+        sp = self._element
+        if sp.is_autoshape:
+            return MSO.AUTO_SHAPE
+        if sp.is_textbox:
+            return MSO.TEXT_BOX
+        msg = '_Shape instance of unrecognized shape type'
+        raise NotImplementedError(msg)
 
 
 # ============================================================================
@@ -437,6 +606,14 @@ class _Table(_BaseShape):
         ``col = tbl.rows[0]``.
         """
         return self.__rows
+
+    @property
+    def shape_type(self):
+        """
+        Unique integer identifying the type of this shape, unconditionally
+        ``MSO.TABLE`` in this case.
+        """
+        return MSO.TABLE
 
     @property
     def width(self):

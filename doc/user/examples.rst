@@ -150,6 +150,53 @@ it contains.
 ----
 
 
+``add_shape()`` example
+=========================
+
+.. image:: /_static/img/add-shape.png
+
+|
+
+::
+
+    from pptx import Presentation
+    from pptx.constants import MSO
+    from pptx.util import Inches
+
+    prs = Presentation()
+    title_only_slidelayout = prs.slidelayouts[5]
+    slide = prs.slides.add_slide(title_only_slidelayout)
+    shapes = slide.shapes
+
+    shapes.title.text = 'Adding an AutoShape'
+
+    left = Inches(0.93)  # 0.93" centers this overall set of shapes
+    top = Inches(3.0)
+    width = Inches(1.75)
+    height = Inches(1.0)
+
+    shape = shapes.add_shape(MSO.SHAPE_PENTAGON, left, top, width, height)
+    shape.text = 'Step 1'
+
+    left = left + width - Inches(0.4)
+    width = Inches(2.0)  # chevrons need more width for visual balance
+
+    for n in range(2, 6):
+        shape = shapes.add_shape(MSO.SHAPE_CHEVRON, left, top, width, height)
+        shape.text = 'Step %d' % n
+        left = left + width - Inches(0.4)
+
+    prs.save('test.pptx')
+
+
+Constants representing each of the available auto shapes (like
+MSO.SHAPE_ROUNDED_RECT, MSO.SHAPE_CHEVRON, etc.) are listed on the
+:doc:`autoshape-types` page.
+
+
+----
+
+
 ``add_table()`` example
 =======================
 

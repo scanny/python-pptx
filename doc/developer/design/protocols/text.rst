@@ -64,11 +64,3 @@ The following code sample illustrates the low-level protocol::
     # deleting items
     paragraph.clear()
 
-
-
-.. |_TextFrame| replace:: :class:`_TextFrame`
-
-.. |_Paragraph| replace:: :class:`_Paragraph`
-
-.. |_Run| replace:: :class:`_Run`
-

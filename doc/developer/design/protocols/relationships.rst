@@ -61,10 +61,3 @@ The following code sample illustrates the protocol::
    :member-order: bysource
    :undoc-members:
 
-
-.. |Collection| replace:: :class:`Collection`
-
-.. |_Relationship| replace:: :class:`_Relationship`
-
-.. |_RelationshipCollection| replace:: :class:`_RelationshipCollection`
-

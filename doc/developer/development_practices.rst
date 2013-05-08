@@ -91,8 +91,10 @@ Creating slide images for documentation
 =======================================
 
 * Desired slide created using a test script
+* Zoom slide to 100% with: click on slide, View > Zoom > Zoom... > 100% > OK
 * Screenshot file on desktop using Cmd-Shift-4, Space, click
-* Screenshot image scaled to 280 x 210px using Photoshop
+* Load into PhotoShop and crop, keeping dark gray border
+* Save as PNG, scaled to 280 x 210px
 * Completed image saved in ``doc/_static/img/``
 
 

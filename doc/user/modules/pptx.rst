@@ -179,39 +179,3 @@ here.
    :show-inheritance:
    :undoc-members:
 
-.. |_BaseShape| replace:: :class:`_BaseShape`
-
-.. |_Cell| replace:: :class:`_Cell`
-
-.. |_Column| replace:: :class:`_Column`
-
-.. |_Font| replace:: :class:`_Font`
-
-.. |_Paragraph| replace:: :class:`_Paragraph`
-
-.. |_Picture| replace:: :class:`_Picture`
-
-.. |Presentation| replace:: :class:`~pptx.Presentation`
-
-.. |_Row| replace:: :class:`_Row`
-
-.. |_Run| replace:: :class:`_Run`
-
-.. |_Shape| replace:: :class:`_Shape`
-
-.. |_SlideCollection| replace:: :class:`_SlideCollection`
-
-.. |_Slide| replace:: :class:`_Slide`
-
-.. |_SlideLayout| replace:: :class:`_SlideLayout`
-
-.. |_SlideMaster| replace:: :class:`_SlideMaster`
-
-.. |_ShapeCollection| replace:: :class:`_ShapeCollection`
-
-.. |_Table| replace:: :class:`_Table`
-
-.. |_TextFrame| replace:: :class:`_TextFrame`
-
-.. |ValueError| replace:: :class:`ValueError`
-

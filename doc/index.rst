@@ -163,4 +163,3 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. |pp| replace:: ``python-pptx``

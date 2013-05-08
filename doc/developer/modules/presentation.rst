@@ -12,16 +12,3 @@ Also see the protocols pages for additional class internals documentation.
    :undoc-members:
    :show-inheritance:
 
-.. |list| replace:: :class:`list`
-
-.. |None| replace:: :class:`None`
-
-.. |_Package| replace:: :class:`_Package`
-
-.. |_Paragraph| replace:: :class:`_Paragraph`
-
-.. |Presentation| replace:: :class:`~pptx.Presentation`
-
-.. |_SlideCollection| replace:: :class:`_SlideCollection`
-
-.. |_SlideMaster| replace:: :class:`_SlideMaster`

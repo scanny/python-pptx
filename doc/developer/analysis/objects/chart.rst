@@ -47,23 +47,24 @@ Properties inherited from ``Shape``
 -----------------------------------
 
 * There is a ``HasChart`` property on Shape to indicate the shape "has"
-  a chart. I'm thinking ``isinstance(shape, Chart)`` will serve that purpose
-  for us. The MS ``Shape`` object also has the properties ``Chart`` and
-  ``Table``, such that accessing the chart would look like
-  ``chart = sld.shapes[9].chart`` rather than ``chart = sld.shapes[9]``. I'm
-  not sure why they designed it that way. Best I can think of is they wanted
-  to keep the ``Shape`` API separate from the ``Chart`` and ``Table`` API.
-  Strikes me as a question to keep in mind as the design continues to emerge.
-  I'd hate to discover late there was a better reason than I'm seeing yet :).
+  a chart. The MS ``Shape`` object also has the properties ``Chart`` and
+  ``Table``, such that accessing the chart would look like ``chart
+  = sld.shapes[9].chart`` rather than ``chart = sld.shapes[9]``. These
+  characteristics reflect chart and table shapes being contained in a graphic
+  frame. The graphic frame is the shape, and the chart or table is considered
+  a drawing/graphic object.
+
 * ``top``, ``left``, ``width``, and ``height`` will be inherited from
   ``Shape``, or perhaps from a ``GraphicFrame`` subclass, since those elements
   are shared by both ``Table`` and ``Chart``.
-* There is such a thing as a shape placeholder, and having that capability
+
+* There is such a thing as a chart placeholder, and having that capability
   might be useful because it would allow certain aspects of the chart to be
   defined in a .pptx template file, such that an end-user could change the size
   and position of the generated charts by uploading a different template file,
   no code changes necessary. Probably not super simple to execute, but not more
   than a medium-sized feature.
+
 * ``name`` should come for free, inherited from BaseShape. Doesn't show on the
   PowerPoint UI, but can be handy for debugging and perhaps other purposes.
 
@@ -389,6 +390,7 @@ XML produced by PowerPoint® client
         <c:autoUpdate val="0"/>
       </c:externalData>
     </c:chartSpace>
+
 
 Resources
 =========
