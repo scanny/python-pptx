@@ -506,7 +506,7 @@ class PartTypeSpec(object):
         Only create new instance on first call for content_type. After that,
         use cached instance.
         """
-        # if there's not an matching instance in the cache, create one
+        # if there's not a matching instance in the cache, create one
         if content_type not in cls.__instances:
             inst = super(PartTypeSpec, cls).__new__(cls)
             cls.__instances[content_type] = inst

@@ -15,4 +15,3 @@ documented here as a convenience for developers.
    packaging
    spec
 
-.. |Presentation| replace:: :class:`~pptx.Presentation`

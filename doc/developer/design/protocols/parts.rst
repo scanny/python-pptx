@@ -135,9 +135,3 @@ Probably outdated, needs fixing ...
          +--_SlideCollection
          +--... others later
 
-
-.. |Collection| replace:: :class:`Collection`
-
-.. |_RelationshipCollection| replace:: :class:`_RelationshipCollection`
-
-.. |ValueError| replace:: :class:`ValueError`

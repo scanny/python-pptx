@@ -62,10 +62,6 @@ test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
-nsprefix_decls = (
-    ' xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xm'
-    'lns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="h'
-    'ttp://schemas.openxmlformats.org/officeDocument/2006/relationships"')
 
 
 def _sldLayout1():

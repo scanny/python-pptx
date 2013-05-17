@@ -12,6 +12,939 @@ Constant values from the ECMA-376 spec that are needed for XML generation and
 packaging, and a utility function or two for accessing some of them.
 """
 
+from constants import MSO
+
+# ============================================================================
+# AutoShape type specs
+# ============================================================================
+
+autoshape_types = {
+    MSO.SHAPE_10_POINT_STAR: {
+        'basename': '10-Point Star',
+        'prst':     'star10',
+        'desc':     '10-Point Star'
+    },
+    MSO.SHAPE_12_POINT_STAR: {
+        'basename': '12-Point Star',
+        'prst':     'star12',
+        'desc':     '12-Point Star'
+    },
+    MSO.SHAPE_16_POINT_STAR: {
+        'basename': '16-Point Star',
+        'prst':     'star16',
+        'desc':     '16-point star'
+    },
+    MSO.SHAPE_24_POINT_STAR: {
+        'basename': '24-Point Star',
+        'prst':     'star24',
+        'desc':     '24-point star'
+    },
+    MSO.SHAPE_32_POINT_STAR: {
+        'basename': '32-Point Star',
+        'prst':     'star32',
+        'desc':     '32-point star'
+    },
+    MSO.SHAPE_4_POINT_STAR: {
+        'basename': '4-Point Star',
+        'prst':     'star4',
+        'desc':     '4-point star'
+    },
+    MSO.SHAPE_5_POINT_STAR: {
+        'basename': '5-Point Star',
+        'prst':     'star5',
+        'desc':     '5-point star'
+    },
+    MSO.SHAPE_6_POINT_STAR: {
+        'basename': '6-Point Star',
+        'prst':     'star6',
+        'desc':     '6-Point Star'
+    },
+    MSO.SHAPE_7_POINT_STAR: {
+        'basename': '7-Point Star',
+        'prst':     'star7',
+        'desc':     '7-Point Star'
+    },
+    MSO.SHAPE_8_POINT_STAR: {
+        'basename': '8-Point Star',
+        'prst':     'star8',
+        'desc':     '8-point star'
+    },
+    MSO.SHAPE_ACTION_BUTTON_BACK_OR_PREVIOUS: {
+        'basename': 'Action Button: Back or Previous',
+        'prst':     'actionButtonBackPrevious',
+        'desc':     ('Back or Previous button. Supports mouse-click and mouse'
+                     '-over actions')
+    },
+    MSO.SHAPE_ACTION_BUTTON_BEGINNING: {
+        'basename': 'Action Button: Beginning',
+        'prst':     'actionButtonBeginning',
+        'desc':     ('Beginning button. Supports mouse-click and mouse-over a'
+                     'ctions')
+    },
+    MSO.SHAPE_ACTION_BUTTON_CUSTOM: {
+        'basename': 'Action Button: Custom',
+        'prst':     'actionButtonBlank',
+        'desc':     ('Button with no default picture or text. Supports mouse-'
+                     'click and mouse-over actions')
+    },
+    MSO.SHAPE_ACTION_BUTTON_DOCUMENT: {
+        'basename': 'Action Button: Document',
+        'prst':     'actionButtonDocument',
+        'desc':     ('Document button. Supports mouse-click and mouse-over ac'
+                     'tions')
+    },
+    MSO.SHAPE_ACTION_BUTTON_END: {
+        'basename': 'Action Button: End',
+        'prst':     'actionButtonEnd',
+        'desc':     'End button. Supports mouse-click and mouse-over actions'
+    },
+    MSO.SHAPE_ACTION_BUTTON_FORWARD_OR_NEXT: {
+        'basename': 'Action Button: Forward or Next',
+        'prst':     'actionButtonForwardNext',
+        'desc':     ('Forward or Next button. Supports mouse-click and mouse-'
+                     'over actions')
+    },
+    MSO.SHAPE_ACTION_BUTTON_HELP: {
+        'basename': 'Action Button: Help',
+        'prst':     'actionButtonHelp',
+        'desc':     'Help button. Supports mouse-click and mouse-over actions'
+    },
+    MSO.SHAPE_ACTION_BUTTON_HOME: {
+        'basename': 'Action Button: Home',
+        'prst':     'actionButtonHome',
+        'desc':     'Home button. Supports mouse-click and mouse-over actions'
+    },
+    MSO.SHAPE_ACTION_BUTTON_INFORMATION: {
+        'basename': 'Action Button: Information',
+        'prst':     'actionButtonInformation',
+        'desc':     ('Information button. Supports mouse-click and mouse-over'
+                     ' actions')
+    },
+    MSO.SHAPE_ACTION_BUTTON_MOVIE: {
+        'basename': 'Action Button: Movie',
+        'prst':     'actionButtonMovie',
+        'desc':     'Movie button. Supports mouse-click and mouse-over actions'
+    },
+    MSO.SHAPE_ACTION_BUTTON_RETURN: {
+        'basename': 'Action Button: Return',
+        'prst':     'actionButtonReturn',
+        'desc':     ('Return button. Supports mouse-click and mouse-over acti'
+                     'ons')
+    },
+    MSO.SHAPE_ACTION_BUTTON_SOUND: {
+        'basename': 'Action Button: Sound',
+        'prst':     'actionButtonSound',
+        'desc':     'Sound button. Supports mouse-click and mouse-over actions'
+    },
+    MSO.SHAPE_ARC: {
+        'basename': 'Arc',
+        'prst':     'arc',
+        'desc':     'Arc'
+    },
+    MSO.SHAPE_BALLOON: {
+        'basename': 'Rounded Rectangular Callout',
+        'prst':     'wedgeRoundRectCallout',
+        'desc':     'Rounded Rectangular Callout'
+    },
+    MSO.SHAPE_BENT_ARROW: {
+        'basename': 'Bent Arrow',
+        'prst':     'bentArrow',
+        'desc':     'Block arrow that follows a curved 90-degree angle'
+    },
+    MSO.SHAPE_BENT_UP_ARROW: {
+        'basename': 'Bent-Up Arrow',
+        'prst':     'bentUpArrow',
+        'desc':     ('Block arrow that follows a sharp 90-degree angle. Point'
+                     's up by default')
+    },
+    MSO.SHAPE_BEVEL: {
+        'basename': 'Bevel',
+        'prst':     'bevel',
+        'desc':     'Bevel'
+    },
+    MSO.SHAPE_BLOCK_ARC: {
+        'basename': 'Block Arc',
+        'prst':     'blockArc',
+        'desc':     'Block arc'
+    },
+    MSO.SHAPE_CAN: {
+        'basename': 'Can',
+        'prst':     'can',
+        'desc':     'Can'
+    },
+    MSO.SHAPE_CHART_PLUS: {
+        'basename': 'Chart Plus',
+        'prst':     'chartPlus',
+        'desc':     'Chart Plus'
+    },
+    MSO.SHAPE_CHART_STAR: {
+        'basename': 'Chart Star',
+        'prst':     'chartStar',
+        'desc':     'Chart Star'
+    },
+    MSO.SHAPE_CHART_X: {
+        'basename': 'Chart X',
+        'prst':     'chartX',
+        'desc':     'Chart X'
+    },
+    MSO.SHAPE_CHEVRON: {
+        'basename': 'Chevron',
+        'prst':     'chevron',
+        'desc':     'Chevron'
+    },
+    MSO.SHAPE_CHORD: {
+        'basename': 'Chord',
+        'prst':     'chord',
+        'desc':     'Geometric chord shape'
+    },
+    MSO.SHAPE_CIRCULAR_ARROW: {
+        'basename': 'Circular Arrow',
+        'prst':     'circularArrow',
+        'desc':     'Block arrow that follows a curved 180-degree angle'
+    },
+    MSO.SHAPE_CLOUD: {
+        'basename': 'Cloud',
+        'prst':     'cloud',
+        'desc':     'Cloud'
+    },
+    MSO.SHAPE_CLOUD_CALLOUT: {
+        'basename': 'Cloud Callout',
+        'prst':     'cloudCallout',
+        'desc':     'Cloud callout'
+    },
+    MSO.SHAPE_CORNER: {
+        'basename': 'Corner',
+        'prst':     'corner',
+        'desc':     'Corner'
+    },
+    MSO.SHAPE_CORNER_TABS: {
+        'basename': 'Corner Tabs',
+        'prst':     'cornerTabs',
+        'desc':     'Corner Tabs'
+    },
+    MSO.SHAPE_CROSS: {
+        'basename': 'Cross',
+        'prst':     'plus',
+        'desc':     'Cross'
+    },
+    MSO.SHAPE_CUBE: {
+        'basename': 'Cube',
+        'prst':     'cube',
+        'desc':     'Cube'
+    },
+    MSO.SHAPE_CURVED_DOWN_ARROW: {
+        'basename': 'Curved Down Arrow',
+        'prst':     'curvedDownArrow',
+        'desc':     'Block arrow that curves down'
+    },
+    MSO.SHAPE_CURVED_DOWN_RIBBON: {
+        'basename': 'Curved Down Ribbon',
+        'prst':     'ellipseRibbon',
+        'desc':     'Ribbon banner that curves down'
+    },
+    MSO.SHAPE_CURVED_LEFT_ARROW: {
+        'basename': 'Curved Left Arrow',
+        'prst':     'curvedLeftArrow',
+        'desc':     'Block arrow that curves left'
+    },
+    MSO.SHAPE_CURVED_RIGHT_ARROW: {
+        'basename': 'Curved Right Arrow',
+        'prst':     'curvedRightArrow',
+        'desc':     'Block arrow that curves right'
+    },
+    MSO.SHAPE_CURVED_UP_ARROW: {
+        'basename': 'Curved Up Arrow',
+        'prst':     'curvedUpArrow',
+        'desc':     'Block arrow that curves up'
+    },
+    MSO.SHAPE_CURVED_UP_RIBBON: {
+        'basename': 'Curved Up Ribbon',
+        'prst':     'ellipseRibbon2',
+        'desc':     'Ribbon banner that curves up'
+    },
+    MSO.SHAPE_DECAGON: {
+        'basename': 'Decagon',
+        'prst':     'decagon',
+        'desc':     'Decagon'
+    },
+    MSO.SHAPE_DIAGONAL_STRIPE: {
+        'basename': 'Diagonal Stripe',
+        'prst':     'diagStripe',
+        'desc':     'Diagonal Stripe'
+    },
+    MSO.SHAPE_DIAMOND: {
+        'basename': 'Diamond',
+        'prst':     'diamond',
+        'desc':     'Diamond'
+    },
+    MSO.SHAPE_DODECAGON: {
+        'basename': 'Dodecagon',
+        'prst':     'dodecagon',
+        'desc':     'Dodecagon'
+    },
+    MSO.SHAPE_DONUT: {
+        'basename': 'Donut',
+        'prst':     'donut',
+        'desc':     'Donut'
+    },
+    MSO.SHAPE_DOUBLE_BRACE: {
+        'basename': 'Double Brace',
+        'prst':     'bracePair',
+        'desc':     'Double brace'
+    },
+    MSO.SHAPE_DOUBLE_BRACKET: {
+        'basename': 'Double Bracket',
+        'prst':     'bracketPair',
+        'desc':     'Double bracket'
+    },
+    MSO.SHAPE_DOUBLE_WAVE: {
+        'basename': 'Double Wave',
+        'prst':     'doubleWave',
+        'desc':     'Double wave'
+    },
+    MSO.SHAPE_DOWN_ARROW: {
+        'basename': 'Down Arrow',
+        'prst':     'downArrow',
+        'desc':     'Block arrow that points down'
+    },
+    MSO.SHAPE_DOWN_ARROW_CALLOUT: {
+        'basename': 'Down Arrow Callout',
+        'prst':     'downArrowCallout',
+        'desc':     'Callout with arrow that points down'
+    },
+    MSO.SHAPE_DOWN_RIBBON: {
+        'basename': 'Down Ribbon',
+        'prst':     'ribbon',
+        'desc':     'Ribbon banner with center area below ribbon ends'
+    },
+    MSO.SHAPE_EXPLOSION1: {
+        'basename': 'Explosion',
+        'prst':     'irregularSeal1',
+        'desc':     'Explosion'
+    },
+    MSO.SHAPE_EXPLOSION2: {
+        'basename': 'Explosion',
+        'prst':     'irregularSeal2',
+        'desc':     'Explosion'
+    },
+    MSO.SHAPE_FLOWCHART_ALTERNATE_PROCESS: {
+        'basename': 'Alternate process',
+        'prst':     'flowChartAlternateProcess',
+        'desc':     'Alternate process flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_CARD: {
+        'basename': 'Card',
+        'prst':     'flowChartPunchedCard',
+        'desc':     'Card flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_COLLATE: {
+        'basename': 'Collate',
+        'prst':     'flowChartCollate',
+        'desc':     'Collate flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_CONNECTOR: {
+        'basename': 'Connector',
+        'prst':     'flowChartConnector',
+        'desc':     'Connector flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_DATA: {
+        'basename': 'Data',
+        'prst':     'flowChartInputOutput',
+        'desc':     'Data flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_DECISION: {
+        'basename': 'Decision',
+        'prst':     'flowChartDecision',
+        'desc':     'Decision flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_DELAY: {
+        'basename': 'Delay',
+        'prst':     'flowChartDelay',
+        'desc':     'Delay flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_DIRECT_ACCESS_STORAGE: {
+        'basename': 'Direct Access Storage',
+        'prst':     'flowChartMagneticDrum',
+        'desc':     'Direct access storage flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_DISPLAY: {
+        'basename': 'Display',
+        'prst':     'flowChartDisplay',
+        'desc':     'Display flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_DOCUMENT: {
+        'basename': 'Document',
+        'prst':     'flowChartDocument',
+        'desc':     'Document flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_EXTRACT: {
+        'basename': 'Extract',
+        'prst':     'flowChartExtract',
+        'desc':     'Extract flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_INTERNAL_STORAGE: {
+        'basename': 'Internal Storage',
+        'prst':     'flowChartInternalStorage',
+        'desc':     'Internal storage flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_MAGNETIC_DISK: {
+        'basename': 'Magnetic Disk',
+        'prst':     'flowChartMagneticDisk',
+        'desc':     'Magnetic disk flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_MANUAL_INPUT: {
+        'basename': 'Manual Input',
+        'prst':     'flowChartManualInput',
+        'desc':     'Manual input flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_MANUAL_OPERATION: {
+        'basename': 'Manual Operation',
+        'prst':     'flowChartManualOperation',
+        'desc':     'Manual operation flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_MERGE: {
+        'basename': 'Merge',
+        'prst':     'flowChartMerge',
+        'desc':     'Merge flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_MULTIDOCUMENT: {
+        'basename': 'Multidocument',
+        'prst':     'flowChartMultidocument',
+        'desc':     'Multi-document flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_OFFLINE_STORAGE: {
+        'basename': 'Offline Storage',
+        'prst':     'flowChartOfflineStorage',
+        'desc':     'Offline Storage'
+    },
+    MSO.SHAPE_FLOWCHART_OFFPAGE_CONNECTOR: {
+        'basename': 'Off-page Connector',
+        'prst':     'flowChartOffpageConnector',
+        'desc':     'Off-page connector flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_OR: {
+        'basename': 'Or',
+        'prst':     'flowChartOr',
+        'desc':     '"Or" flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_PREDEFINED_PROCESS: {
+        'basename': 'Predefined Process',
+        'prst':     'flowChartPredefinedProcess',
+        'desc':     'Predefined process flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_PREPARATION: {
+        'basename': 'Preparation',
+        'prst':     'flowChartPreparation',
+        'desc':     'Preparation flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_PROCESS: {
+        'basename': 'Process',
+        'prst':     'flowChartProcess',
+        'desc':     'Process flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_PUNCHED_TAPE: {
+        'basename': 'Punched Tape',
+        'prst':     'flowChartPunchedTape',
+        'desc':     'Punched tape flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_SEQUENTIAL_ACCESS_STORAGE: {
+        'basename': 'Sequential Access Storage',
+        'prst':     'flowChartMagneticTape',
+        'desc':     'Sequential access storage flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_SORT: {
+        'basename': 'Sort',
+        'prst':     'flowChartSort',
+        'desc':     'Sort flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_STORED_DATA: {
+        'basename': 'Stored Data',
+        'prst':     'flowChartOnlineStorage',
+        'desc':     'Stored data flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_SUMMING_JUNCTION: {
+        'basename': 'Summing Junction',
+        'prst':     'flowChartSummingJunction',
+        'desc':     'Summing junction flowchart symbol'
+    },
+    MSO.SHAPE_FLOWCHART_TERMINATOR: {
+        'basename': 'Terminator',
+        'prst':     'flowChartTerminator',
+        'desc':     'Terminator flowchart symbol'
+    },
+    MSO.SHAPE_FOLDED_CORNER: {
+        'basename': 'Folded Corner',
+        'prst':     'folderCorner',
+        'desc':     'Folded corner'
+    },
+    MSO.SHAPE_FRAME: {
+        'basename': 'Frame',
+        'prst':     'frame',
+        'desc':     'Frame'
+    },
+    MSO.SHAPE_FUNNEL: {
+        'basename': 'Funnel',
+        'prst':     'funnel',
+        'desc':     'Funnel'
+    },
+    MSO.SHAPE_GEAR_6: {
+        'basename': 'Gear 6',
+        'prst':     'gear6',
+        'desc':     'Gear 6'
+    },
+    MSO.SHAPE_GEAR_9: {
+        'basename': 'Gear 9',
+        'prst':     'gear9',
+        'desc':     'Gear 9'
+    },
+    MSO.SHAPE_HALF_FRAME: {
+        'basename': 'Half Frame',
+        'prst':     'halfFrame',
+        'desc':     'Half Frame'
+    },
+    MSO.SHAPE_HEART: {
+        'basename': 'Heart',
+        'prst':     'heart',
+        'desc':     'Heart'
+    },
+    MSO.SHAPE_HEPTAGON: {
+        'basename': 'Heptagon',
+        'prst':     'heptagon',
+        'desc':     'Heptagon'
+    },
+    MSO.SHAPE_HEXAGON: {
+        'basename': 'Hexagon',
+        'prst':     'hexagon',
+        'desc':     'Hexagon'
+    },
+    MSO.SHAPE_HORIZONTAL_SCROLL: {
+        'basename': 'Horizontal Scroll',
+        'prst':     'horizontalScroll',
+        'desc':     'Horizontal scroll'
+    },
+    MSO.SHAPE_ISOSCELES_TRIANGLE: {
+        'basename': 'Isosceles Triangle',
+        'prst':     'triangle',
+        'desc':     'Isosceles triangle'
+    },
+    MSO.SHAPE_LEFT_ARROW: {
+        'basename': 'Left Arrow',
+        'prst':     'leftArrow',
+        'desc':     'Block arrow that points left'
+    },
+    MSO.SHAPE_LEFT_ARROW_CALLOUT: {
+        'basename': 'Left Arrow Callout',
+        'prst':     'leftArrowCallout',
+        'desc':     'Callout with arrow that points left'
+    },
+    MSO.SHAPE_LEFT_BRACE: {
+        'basename': 'Left Brace',
+        'prst':     'leftBrace',
+        'desc':     'Left brace'
+    },
+    MSO.SHAPE_LEFT_BRACKET: {
+        'basename': 'Left Bracket',
+        'prst':     'leftBracket',
+        'desc':     'Left bracket'
+    },
+    MSO.SHAPE_LEFT_CIRCULAR_ARROW: {
+        'basename': 'Left Circular Arrow',
+        'prst':     'leftCircularArrow',
+        'desc':     'Left Circular Arrow'
+    },
+    MSO.SHAPE_LEFT_RIGHT_ARROW: {
+        'basename': 'Left-Right Arrow',
+        'prst':     'leftRightArrow',
+        'desc':     ('Block arrow with arrowheads that point both left and ri'
+                     'ght')
+    },
+    MSO.SHAPE_LEFT_RIGHT_ARROW_CALLOUT: {
+        'basename': 'Left-Right Arrow Callout',
+        'prst':     'leftRightArrowCallout',
+        'desc':     'Callout with arrowheads that point both left and right'
+    },
+    MSO.SHAPE_LEFT_RIGHT_CIRCULAR_ARROW: {
+        'basename': 'Left Right Circular Arrow',
+        'prst':     'leftRightCircularArrow',
+        'desc':     'Left Right Circular Arrow'
+    },
+    MSO.SHAPE_LEFT_RIGHT_RIBBON: {
+        'basename': 'Left Right Ribbon',
+        'prst':     'leftRightRibbon',
+        'desc':     'Left Right Ribbon'
+    },
+    MSO.SHAPE_LEFT_RIGHT_UP_ARROW: {
+        'basename': 'Left-Right-Up Arrow',
+        'prst':     'leftRightUpArrow',
+        'desc':     ('Block arrow with arrowheads that point left, right, and'
+                     ' up')
+    },
+    MSO.SHAPE_LEFT_UP_ARROW: {
+        'basename': 'Left-Up Arrow',
+        'prst':     'leftUpArrow',
+        'desc':     'Block arrow with arrowheads that point left and up'
+    },
+    MSO.SHAPE_LIGHTNING_BOLT: {
+        'basename': 'Lightning Bolt',
+        'prst':     'lightningBolt',
+        'desc':     'Lightning bolt'
+    },
+    MSO.SHAPE_LINE_CALLOUT_1: {
+        'basename': 'Line Callout 1',
+        'prst':     'borderCallout1',
+        'desc':     'Callout with border and horizontal callout line'
+    },
+    MSO.SHAPE_LINE_CALLOUT_1_ACCENT_BAR: {
+        'basename': 'Line Callout 1 (Accent Bar)',
+        'prst':     'accentCallout1',
+        'desc':     'Callout with vertical accent bar'
+    },
+    MSO.SHAPE_LINE_CALLOUT_1_BORDER_AND_ACCENT_BAR: {
+        'basename': 'Line Callout 1 (Border and Accent Bar)',
+        'prst':     'accentBorderCallout1',
+        'desc':     'Callout with border and vertical accent bar'
+    },
+    MSO.SHAPE_LINE_CALLOUT_1_NO_BORDER: {
+        'basename': 'Line Callout 1 (No Border)',
+        'prst':     'callout1',
+        'desc':     'Callout with horizontal line'
+    },
+    MSO.SHAPE_LINE_CALLOUT_2: {
+        'basename': 'Line Callout 2',
+        'prst':     'borderCallout2',
+        'desc':     'Callout with diagonal straight line'
+    },
+    MSO.SHAPE_LINE_CALLOUT_2_ACCENT_BAR: {
+        'basename': 'Line Callout 2 (Accent Bar)',
+        'prst':     'accentCallout2',
+        'desc':     'Callout with diagonal callout line and accent bar'
+    },
+    MSO.SHAPE_LINE_CALLOUT_2_BORDER_AND_ACCENT_BAR: {
+        'basename': 'Line Callout 2 (Border and Accent Bar)',
+        'prst':     'accentBorderCallout2',
+        'desc':     ('Callout with border, diagonal straight line, and accent'
+                     ' bar')
+    },
+    MSO.SHAPE_LINE_CALLOUT_2_NO_BORDER: {
+        'basename': 'Line Callout 2 (No Border)',
+        'prst':     'callout2',
+        'desc':     'Callout with no border and diagonal callout line'
+    },
+    MSO.SHAPE_LINE_CALLOUT_3: {
+        'basename': 'Line Callout 3',
+        'prst':     'borderCallout3',
+        'desc':     'Callout with angled line'
+    },
+    MSO.SHAPE_LINE_CALLOUT_3_ACCENT_BAR: {
+        'basename': 'Line Callout 3 (Accent Bar)',
+        'prst':     'accentCallout3',
+        'desc':     'Callout with angled callout line and accent bar'
+    },
+    MSO.SHAPE_LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR: {
+        'basename': 'Line Callout 3 (Border and Accent Bar)',
+        'prst':     'accentBorderCallout3',
+        'desc':     'Callout with border, angled callout line, and accent bar'
+    },
+    MSO.SHAPE_LINE_CALLOUT_3_NO_BORDER: {
+        'basename': 'Line Callout 3 (No Border)',
+        'prst':     'callout3',
+        'desc':     'Callout with no border and angled callout line'
+    },
+    MSO.SHAPE_LINE_CALLOUT_4: {
+        'basename': 'Line Callout 3',
+        'prst':     'borderCallout3',
+        'desc':     'Callout with callout line segments forming a U-shape.'
+    },
+    MSO.SHAPE_LINE_CALLOUT_4_ACCENT_BAR: {
+        'basename': 'Line Callout 3 (Accent Bar)',
+        'prst':     'accentCallout3',
+        'desc':     ('Callout with accent bar and callout line segments formi'
+                     'ng a U-shape.')
+    },
+    MSO.SHAPE_LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR: {
+        'basename': 'Line Callout 3 (Border and Accent Bar)',
+        'prst':     'accentBorderCallout3',
+        'desc':     ('Callout with border, accent bar, and callout line segme'
+                     'nts forming a U-shape.')
+    },
+    MSO.SHAPE_LINE_CALLOUT_4_NO_BORDER: {
+        'basename': 'Line Callout 3 (No Border)',
+        'prst':     'callout3',
+        'desc':     ('Callout with no border and callout line segments formin'
+                     'g a U-shape.')
+    },
+    MSO.SHAPE_LINE_INVERSE: {
+        'basename': 'Straight Connector',
+        'prst':     'lineInv',
+        'desc':     'Straight Connector'
+    },
+    MSO.SHAPE_MATH_DIVIDE: {
+        'basename': 'Division',
+        'prst':     'mathDivide',
+        'desc':     'Division'
+    },
+    MSO.SHAPE_MATH_EQUAL: {
+        'basename': 'Equal',
+        'prst':     'mathEqual',
+        'desc':     'Equal'
+    },
+    MSO.SHAPE_MATH_MINUS: {
+        'basename': 'Minus',
+        'prst':     'mathMinus',
+        'desc':     'Minus'
+    },
+    MSO.SHAPE_MATH_MULTIPLY: {
+        'basename': 'Multiply',
+        'prst':     'mathMultiply',
+        'desc':     'Multiply'
+    },
+    MSO.SHAPE_MATH_NOT_EQUAL: {
+        'basename': 'Not Equal',
+        'prst':     'mathNotEqual',
+        'desc':     'Not Equal'
+    },
+    MSO.SHAPE_MATH_PLUS: {
+        'basename': 'Plus',
+        'prst':     'mathPlus',
+        'desc':     'Plus'
+    },
+    MSO.SHAPE_MOON: {
+        'basename': 'Moon',
+        'prst':     'moon',
+        'desc':     'Moon'
+    },
+    MSO.SHAPE_NO_SYMBOL: {
+        'basename': '"No" symbol',
+        'prst':     'noSmoking',
+        'desc':     '"No" symbol'
+    },
+    MSO.SHAPE_NON_ISOSCELES_TRAPEZOID: {
+        'basename': 'Non-isosceles Trapezoid',
+        'prst':     'nonIsoscelesTrapezoid',
+        'desc':     'Non-isosceles Trapezoid'
+    },
+    MSO.SHAPE_NOTCHED_RIGHT_ARROW: {
+        'basename': 'Notched Right Arrow',
+        'prst':     'notchedRightArrow',
+        'desc':     'Notched block arrow that points right'
+    },
+    MSO.SHAPE_OCTAGON: {
+        'basename': 'Octagon',
+        'prst':     'octagon',
+        'desc':     'Octagon'
+    },
+    MSO.SHAPE_OVAL: {
+        'basename': 'Oval',
+        'prst':     'ellipse',
+        'desc':     'Oval'
+    },
+    MSO.SHAPE_OVAL_CALLOUT: {
+        'basename': 'Oval Callout',
+        'prst':     'wedgeEllipseCallout',
+        'desc':     'Oval-shaped callout'
+    },
+    MSO.SHAPE_PARALLELOGRAM: {
+        'basename': 'Parallelogram',
+        'prst':     'parallelogram',
+        'desc':     'Parallelogram'
+    },
+    MSO.SHAPE_PENTAGON: {
+        'basename': 'Pentagon',
+        'prst':     'homePlate',
+        'desc':     'Pentagon'
+    },
+    MSO.SHAPE_PIE: {
+        'basename': 'Pie',
+        'prst':     'pie',
+        'desc':     'Pie'
+    },
+    MSO.SHAPE_PIE_WEDGE: {
+        'basename': 'Pie',
+        'prst':     'pieWedge',
+        'desc':     'Pie'
+    },
+    MSO.SHAPE_PLAQUE: {
+        'basename': 'Plaque',
+        'prst':     'plaque',
+        'desc':     'Plaque'
+    },
+    MSO.SHAPE_PLAQUE_TABS: {
+        'basename': 'Plaque Tabs',
+        'prst':     'plaqueTabs',
+        'desc':     'Plaque Tabs'
+    },
+    MSO.SHAPE_QUAD_ARROW: {
+        'basename': 'Quad Arrow',
+        'prst':     'quadArrow',
+        'desc':     'Block arrows that point up, down, left, and right'
+    },
+    MSO.SHAPE_QUAD_ARROW_CALLOUT: {
+        'basename': 'Quad Arrow Callout',
+        'prst':     'quadArrowCallout',
+        'desc':     'Callout with arrows that point up, down, left, and right'
+    },
+    MSO.SHAPE_RECTANGLE: {
+        'basename': 'Rectangle',
+        'prst':     'rect',
+        'desc':     'Rectangle'
+    },
+    MSO.SHAPE_RECTANGULAR_CALLOUT: {
+        'basename': 'Rectangular Callout',
+        'prst':     'wedgeRectCallout',
+        'desc':     'Rectangular callout'
+    },
+    MSO.SHAPE_REGULAR_PENTAGON: {
+        'basename': 'Regular Pentagon',
+        'prst':     'pentagon',
+        'desc':     'Pentagon'
+    },
+    MSO.SHAPE_RIGHT_ARROW: {
+        'basename': 'Right Arrow',
+        'prst':     'rightArrow',
+        'desc':     'Block arrow that points right'
+    },
+    MSO.SHAPE_RIGHT_ARROW_CALLOUT: {
+        'basename': 'Right Arrow Callout',
+        'prst':     'rightArrowCallout',
+        'desc':     'Callout with arrow that points right'
+    },
+    MSO.SHAPE_RIGHT_BRACE: {
+        'basename': 'Right Brace',
+        'prst':     'rightBrace',
+        'desc':     'Right brace'
+    },
+    MSO.SHAPE_RIGHT_BRACKET: {
+        'basename': 'Right Bracket',
+        'prst':     'rightBracket',
+        'desc':     'Right bracket'
+    },
+    MSO.SHAPE_RIGHT_TRIANGLE: {
+        'basename': 'Right Triangle',
+        'prst':     'rtTriangle',
+        'desc':     'Right triangle'
+    },
+    MSO.SHAPE_ROUND_1_RECTANGLE: {
+        'basename': 'Round Single Corner Rectangle',
+        'prst':     'round1Rect',
+        'desc':     'Round Single Corner Rectangle'
+    },
+    MSO.SHAPE_ROUND_2_DIAG_RECTANGLE: {
+        'basename': 'Round Diagonal Corner Rectangle',
+        'prst':     'round2DiagRect',
+        'desc':     'Round Diagonal Corner Rectangle'
+    },
+    MSO.SHAPE_ROUND_2_SAME_RECTANGLE: {
+        'basename': 'Round Same Side Corner Rectangle',
+        'prst':     'round2SameRect',
+        'desc':     'Round Same Side Corner Rectangle'
+    },
+    MSO.SHAPE_ROUNDED_RECTANGLE: {
+        'basename': 'Rounded Rectangle',
+        'prst':     'roundRect',
+        'desc':     'Rounded rectangle'
+    },
+    MSO.SHAPE_ROUNDED_RECTANGULAR_CALLOUT: {
+        'basename': 'Rounded Rectangular Callout',
+        'prst':     'wedgeRoundRectCallout',
+        'desc':     'Rounded rectangle-shaped callout'
+    },
+    MSO.SHAPE_SMILEY_FACE: {
+        'basename': 'Smiley Face',
+        'prst':     'smileyFace',
+        'desc':     'Smiley face'
+    },
+    MSO.SHAPE_SNIP_1_RECTANGLE: {
+        'basename': 'Snip Single Corner Rectangle',
+        'prst':     'snip1Rect',
+        'desc':     'Snip Single Corner Rectangle'
+    },
+    MSO.SHAPE_SNIP_2_DIAG_RECTANGLE: {
+        'basename': 'Snip Diagonal Corner Rectangle',
+        'prst':     'snip2DiagRect',
+        'desc':     'Snip Diagonal Corner Rectangle'
+    },
+    MSO.SHAPE_SNIP_2_SAME_RECTANGLE: {
+        'basename': 'Snip Same Side Corner Rectangle',
+        'prst':     'snip2SameRect',
+        'desc':     'Snip Same Side Corner Rectangle'
+    },
+    MSO.SHAPE_SNIP_ROUND_RECTANGLE: {
+        'basename': 'Snip and Round Single Corner Rectangle',
+        'prst':     'snipRoundRect',
+        'desc':     'Snip and Round Single Corner Rectangle'
+    },
+    MSO.SHAPE_SQUARE_TABS: {
+        'basename': 'Square Tabs',
+        'prst':     'squareTabs',
+        'desc':     'Square Tabs'
+    },
+    MSO.SHAPE_STRIPED_RIGHT_ARROW: {
+        'basename': 'Striped Right Arrow',
+        'prst':     'stripedRightArrow',
+        'desc':     'Block arrow that points right with stripes at the tail'
+    },
+    MSO.SHAPE_SUN: {
+        'basename': 'Sun',
+        'prst':     'sun',
+        'desc':     'Sun'
+    },
+    MSO.SHAPE_SWOOSH_ARROW: {
+        'basename': 'Swoosh Arrow',
+        'prst':     'swooshArrow',
+        'desc':     'Swoosh Arrow'
+    },
+    MSO.SHAPE_TEAR: {
+        'basename': 'Teardrop',
+        'prst':     'teardrop',
+        'desc':     'Teardrop'
+    },
+    MSO.SHAPE_TRAPEZOID: {
+        'basename': 'Trapezoid',
+        'prst':     'trapezoid',
+        'desc':     'Trapezoid'
+    },
+    MSO.SHAPE_U_TURN_ARROW: {
+        'basename': 'U-Turn Arrow',
+        'prst':     'uturnArrow',
+        'desc':     'Block arrow forming a U shape'
+    },
+    MSO.SHAPE_UP_ARROW: {
+        'basename': 'Up Arrow',
+        'prst':     'upArrow',
+        'desc':     'Block arrow that points up'
+    },
+    MSO.SHAPE_UP_ARROW_CALLOUT: {
+        'basename': 'Up Arrow Callout',
+        'prst':     'upArrowCallout',
+        'desc':     'Callout with arrow that points up'
+    },
+    MSO.SHAPE_UP_DOWN_ARROW: {
+        'basename': 'Up-Down Arrow',
+        'prst':     'upDownArrow',
+        'desc':     'Block arrow that points up and down'
+    },
+    MSO.SHAPE_UP_DOWN_ARROW_CALLOUT: {
+        'basename': 'Up-Down Arrow Callout',
+        'prst':     'upDownArrowCallout',
+        'desc':     'Callout with arrows that point up and down'
+    },
+    MSO.SHAPE_UP_RIBBON: {
+        'basename': 'Up Ribbon',
+        'prst':     'ribbon2',
+        'desc':     'Ribbon banner with center area above ribbon ends'
+    },
+    MSO.SHAPE_VERTICAL_SCROLL: {
+        'basename': 'Vertical Scroll',
+        'prst':     'verticalScroll',
+        'desc':     'Vertical scroll'
+    },
+    MSO.SHAPE_WAVE: {
+        'basename': 'Wave',
+        'prst':     'wave',
+        'desc':     'Wave'
+    }
+}
+
 
 # ============================================================================
 # Placeholder constants
@@ -217,7 +1150,6 @@ RT_THEME = (
 RT_VIEWPROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/view'
     'Props')
-
 
 pml_parttypes = {
     CT_COMMENT_AUTHORS: {  # ECMA-376-1 13.3.1

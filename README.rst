@@ -2,13 +2,13 @@
 python-pptx
 ###########
 
-VERSION: 0.2.3 (fourth beta release)
+VERSION: 0.2.4 (fifth beta release)
 
 
-STATUS (as of May 5 2013)
-=========================
+STATUS (as of May 16 2013)
+==========================
 
-Stable beta release. This release added support for tables. Under active
+Stable beta release. This release added support for auto shapes. Under active
 development, with new features added in a new release roughly once a month.
 
 
@@ -97,6 +97,9 @@ install those yourself.
 
 Release History
 ===============
+
+May 16, 2013 - v0.2.4
+   * Add support for auto shapes (e.g. polygons, flowchart symbols, etc.)
 
 May 5, 2013 - v0.2.3
    * Add support for table shapes

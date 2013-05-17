@@ -2,8 +2,8 @@
 User Documentation
 ==================
 
-|python-pptx| is a pure-Python library for manipulating Open XML presentation
-files, perhaps more commonly referred to as PowerPoint files for PowerPoint
+|pp| is a pure-Python library for manipulating Open XML presentation files,
+perhaps more commonly referred to as PowerPoint files for PowerPoint
 2007 and later versions.
 
 .. toctree::
@@ -11,6 +11,7 @@ files, perhaps more commonly referred to as PowerPoint files for PowerPoint
    :maxdepth: 9
 
    modules/index
+   autoshape-types
    examples
 
 
@@ -42,8 +43,8 @@ about them.
 Getting Started
 ===============
 
-|python-pptx| is completely object-oriented, and in general any operations you
-perform with it will be on an object. The root object for a presentation is
+|pp| is completely object-oriented, and in general any operations you perform
+with it will be on an object. The root object for a presentation is
 |Presentation|. API details are provided on the modules pages, but here are
 some basics to get you started, especially some relationships you might find
 surprising at first.
@@ -56,19 +57,19 @@ passing in the path to a presentation to be loaded::
     path = 'slide-deck-foo.pptx'
     prs = Presentation(path)
 
-:mod:`python-pptx` also contains a default template, and if you construct a
-|Presentation| instance without a path, a presentation based on that default
-template is loaded. This can be handy when you want to get started quickly,
-and most of the examples in this documentation use the default template.::
+|pp| also contains a default template, and if you construct a |Presentation|
+instance without a path, a presentation based on that default template is
+loaded. This can be handy when you want to get started quickly, and most of the
+examples in this documentation use the default template.::
 
     # start with default presentation
     prs = Presentation()
 
-Note that there is currently no distinction between templates and presentations in |python-pptx| as there is in the PowerPoint® client, there
-are only presentations. To use a "template" for a presentation you simply
-create a presentation with all the styles, logo, and layouts you want, delete
-all the slides (or leave some in if it suits), and then load that as your
-starting place.
+Note that there is currently no distinction between templates and presentations
+in |pp| as there is in the PowerPoint® client, there are only presentations. To
+use a "template" for a presentation you simply create a presentation with all
+the styles, logo, and layouts you want, delete all the slides (or leave some in
+if it suits), and then load that as your starting place.
 
 
 Slide masters
@@ -132,6 +133,3 @@ in to specify the layout the new slide should take on::
     title_slidelayout = prs.slidelayouts[0]
     new_slide = prs.slides.add_slide(title_slidelayout)
 
-
-.. |python-pptx| replace:: :mod:`python-pptx`
-.. |Presentation| replace:: :class:`Presentation`

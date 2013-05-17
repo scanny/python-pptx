@@ -87,17 +87,3 @@ The following code sample illustrates the protocol::
    :undoc-members:
    :show-inheritance:
 
-
-
-
-.. |pp| replace:: ``python-pptx``
-
-.. |FileSystem| replace:: :class:`FileSystem`
-
-.. |BaseFileSystem| replace:: :class:`BaseFileSystem`
-
-.. |DirectoryFileSystem| replace:: :class:`DirectoryFileSystem`
-
-.. |ZipFileSystem| replace:: :class:`ZipFileSystem`
-
-

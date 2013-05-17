@@ -7,7 +7,3 @@
    :undoc-members:
    :show-inheritance:
 
-.. |list| replace:: :class:`list`
-
-.. |None| replace:: :class:`None`
-

@@ -1,6 +1,6 @@
-============
-Placeholders
-============
+===========
+Placeholder
+===========
 
 :Updated:  2013-01-01
 :Versions: python-pptx 0.1a
@@ -9,15 +9,16 @@ Placeholders
 
 .. :Contributors:
 
+
 Summary
 =======
 
-* Placeholders are a subset of shapes, not a separate class. There is however
-  a `PlaceholderFormat object`_ in the MS API accessed via
+* Placeholder is a subtype of shape (``<p:sp>``), not a distinct shape type.
+  There is however a `PlaceholderFormat object`_ in the MS API accessed via
   ``Shape.PlaceholderFormat`` that provides access to the *name*, *type*, and
   *contained_type* attributes of the placeholder.
 
-* Placeholders are accessed through a slide-type object's shape collection,
+* A placeholder is accessed through a slide-type object's shape collection,
   e.g. ``sld.shapes.placeholders``. The contents of the placeholders
   collection is a subset of the shapes in the shape collection.
 

@@ -41,9 +41,9 @@ Properties and methods required for a |_Table| shape.
 * ``apply_style(style_id)`` -- change the style of the table. Not sure what the
   domain of ``style_id`` is.
 
-* ``cell(row, col)`` -- method to access an individual |Cell| object.
+* ``cell(row, col)`` -- method to access an individual |_Cell| object.
 
-* ``columns`` -- collection of |Column| objects, each corresponding to a column
+* ``columns`` -- collection of |_Column| objects, each corresponding to a column
   in the table, in left-to-right order.
 
 * ``firstcol`` -- read/write boolean property which, when true, indicates the
@@ -65,15 +65,15 @@ Properties and methods required for a |_Table| shape.
   last row should be formatted differently, as for a totals row at the bottom
   of the table.
 
-* ``rows`` -- collection of |Row| objects, each corresponding to a row in the
+* ``rows`` -- collection of |_Row| objects, each corresponding to a row in the
   table, in top-to-bottom order.
 
 * ``vert_banding`` -- read/write boolean property indicating whether alternate
   color "banding" should be applied to the table columns.
 
 
-|Cell| class
-------------
+|_Cell| class
+-------------
 
 * ``textframe`` -- container for text in the cell.
 * borders, something like LineProperties on each side
@@ -83,8 +83,8 @@ Properties and methods required for a |_Table| shape.
   fit.
 
 
-|Column| class
---------------
+|_Column| class
+---------------
 
 Provide the properties and methods appropriate to a table column.
 
@@ -92,23 +92,23 @@ Provide the properties and methods appropriate to a table column.
 * perhaps ``delete()`` method
 
 
-|ColumnCollection| class
-------------------------
+|_ColumnCollection| class
+-------------------------
 
 * ``add(before)`` -- add a new column to the left of the column having index
   *before*, returning a reference to the new column. *before* defaults to
   ``-1``, which adds the column as the last column in the table.
 
 
-|Row| class
------------
+|_Row| class
+------------
 
 * ``height`` -- read/write integer height of the row in English Metric Units
   (EMU).
 
 
-|RowCollection| class
----------------------
+|_RowCollection| class
+----------------------
 
 * ``add(before)`` -- add a new row before the row having index *before*,
   returning a reference to the new row. *before* defaults to ``-1``, which adds
@@ -283,16 +283,4 @@ XML produced by PowerPoint® client
 
 .. _LineFormat Members:
    http://msdn.microsoft.com/en-us/library/office/ff745240(v=office.14).aspx
-
-.. |Cell| replace:: :class:`Cell`
-
-.. |Column| replace:: :class:`Column`
-
-.. |ColumnCollection| replace:: :class:`ColumnCollection`
-
-.. |Row| replace:: :class:`Row`
-
-.. |RowCollection| replace:: :class:`RowCollection`
-
-.. |_Table| replace:: :class:`_Table`
 

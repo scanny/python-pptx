@@ -10,10 +10,10 @@
 """Test suite for pptx.oxml module."""
 
 from hamcrest import assert_that, equal_to, is_
-from unittest2 import TestCase
 
 from pptx.oxml import (
-    CT_GraphicalObjectFrame, CT_Picture, CT_Shape, CT_Table, oxml_tostring, qn
+    CT_GraphicalObjectFrame, CT_Picture, CT_Shape, CT_Table, nsdecls,
+    oxml_tostring, qn
 )
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER,
@@ -21,20 +21,8 @@ from pptx.spec import (
     PH_TYPE_SUBTITLE, PH_TYPE_TBL
 )
 
-
-def _assert_equal_line_by_line(testcase, expected_xml, element):
-    """
-    Apply testcase.assertEqual() to each line of *expected_xml* and
-    corresponding line of XML derived from *element*.
-    """
-    actual_xml = oxml_tostring(element, encoding='UTF-8',
-                               pretty_print=True, standalone=True)
-    actual_xml_lines = actual_xml.split('\n')
-    expected_xml_lines = expected_xml.split('\n')
-    for idx, line in enumerate(actual_xml_lines):
-        msg = ("\n\nexpected:\n\n%s'\nbut got\n\n%s'" %
-               (expected_xml, actual_xml))
-        testcase.assertEqual(line, expected_xml_lines[idx], msg)
+from testdata import test_shape_elements
+from testing import TestCase
 
 
 class TestCT_GraphicalObjectFrame(TestCase):
@@ -61,22 +49,19 @@ class TestCT_GraphicalObjectFrame(TestCase):
         id_, name = 9, 'Table 8'
         left, top, width, height = 111, 222, 333, 444
         xml = (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
-            '<p:graphicFrame xmlns:a="http://schemas.openxmlformats.org/drawi'
-            'ngml/2006/main" xmlns:p="http://schemas.openxmlformats.org/prese'
-            'ntationml/2006/main">\n  <p:nvGraphicFramePr>\n    <p:cNvPr id="'
-            '%d" name="%s"/>\n    <p:cNvGraphicFramePr>\n      <a:graphicFram'
-            'eLocks noGrp="1"/>\n    </p:cNvGraphicFramePr>\n    <p:nvPr/>\n '
-            ' </p:nvGraphicFramePr>\n  <p:xfrm>\n    <a:off x="%d" y="%d"/>\n'
-            '    <a:ext cx="%d" cy="%d"/>\n  </p:xfrm>\n  <a:graphic>\n    <a'
-            ':graphicData/>\n  </a:graphic>\n</p:graphicFrame>\n' %
-            (id_, name, left, top, width, height)
+            '<p:graphicFrame %s>\n  <p:nvGraphicFramePr>\n    <p:cNvPr id="%d'
+            '" name="%s"/>\n    <p:cNvGraphicFramePr>\n      <a:graphicFrameL'
+            'ocks noGrp="1"/>\n    </p:cNvGraphicFramePr>\n    <p:nvPr/>\n  <'
+            '/p:nvGraphicFramePr>\n  <p:xfrm>\n    <a:off x="%d" y="%d"/>\n  '
+            '  <a:ext cx="%d" cy="%d"/>\n  </p:xfrm>\n  <a:graphic>\n    <a:g'
+            'raphicData/>\n  </a:graphic>\n</p:graphicFrame>\n' %
+            (nsdecls('a', 'p'), id_, name, left, top, width, height)
         )
         # exercise --------------------
         graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
             id_, name, left, top, width, height)
         # verify ----------------------
-        _assert_equal_line_by_line(self, xml, graphicFrame)
+        self.assertEqualLineByLine(xml, graphicFrame)
 
     def test_new_table_generates_correct_xml(self):
         """CT_GraphicalObjectFrame.new_table() returns correct XML"""
@@ -85,47 +70,44 @@ class TestCT_GraphicalObjectFrame(TestCase):
         rows, cols = 2, 3
         left, top, width, height = 111, 222, 334, 445
         xml = (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
-            '<p:graphicFrame xmlns:a="http://schemas.openxmlformats.org/drawi'
-            'ngml/2006/main" xmlns:p="http://schemas.openxmlformats.org/prese'
-            'ntationml/2006/main">\n  <p:nvGraphicFramePr>\n    <p:cNvP''r id'
-            '="%d" name="%s"/>\n    <p:cNvGraphicFramePr>\n      <a:graphicFr'
-            'ameLocks noGrp="1"/>\n    </p:cNvGraphicFramePr>\n    <p:nvPr/>'
-            '\n  </p:nvGraphicFramePr>\n  <p:xfrm>\n    <a:off x="%d" y="%d"/'
-            '>\n    <a:ext cx="%d" cy="%d"/>\n  </p:xfrm>\n  <a:graphic>\n   '
-            ' <a:graphicData uri="http://schemas.openxmlformats.org/drawingml'
-            '/2006/table">\n      <a:tbl>\n        <a:tblPr firstRow="1" band'
-            'Row="1">\n          <a:tableStyleId>{5C22544A-7EE6-4342-B048-85B'
-            'DC9FD1C3A}</a:tableStyleId>\n        </a:tblPr>\n        <a:tblG'
-            'rid>\n          <a:gridCol w="111"/>\n          <a:gridCol w="11'
-            '1"/>\n          <a:gridCol w="112"/>\n        </a:tblGrid>\n    '
-            '    <a:tr h="222">\n          <a:tc>\n            <a:txBody>\n  '
-            '            <a:bodyPr/>\n              <a:lstStyle/>\n          '
-            '    <a:p/>\n            </a:txBody>\n            <a:tcPr/>\n    '
-            '      </a:tc>\n          <a:tc>\n            <a:txBody>\n       '
-            '       <a:bodyPr/>\n              <a:lstStyle/>\n              <'
-            'a:p/>\n            </a:txBody>\n            <a:tcPr/>\n         '
-            ' </a:tc>\n          <a:tc>\n            <a:txBody>\n            '
-            '  <a:bodyPr/>\n              <a:lstStyle/>\n              <a:p/>'
-            '\n            </a:txBody>\n            <a:tcPr/>\n          </a:'
-            'tc>\n        </a:tr>\n        <a:tr h="223">\n          <a:tc>\n'
-            '            <a:txBody>\n              <a:bodyPr/>\n             '
-            ' <a:lstStyle/>\n              <a:p/>\n            </a:txBody>\n '
-            '           <a:tcPr/>\n          </a:tc>\n          <a:tc>\n     '
-            '       <a:txBody>\n              <a:bodyPr/>\n              <a:l'
-            'stStyle/>\n              <a:p/>\n            </a:txBody>\n      '
-            '      <a:tcPr/>\n          </a:tc>\n          <a:tc>\n          '
-            '  <a:txBody>\n              <a:bodyPr/>\n              <a:lstSty'
-            'le/>\n              <a:p/>\n            </a:txBody>\n           '
-            ' <a:tcPr/>\n          </a:tc>\n        </a:tr>\n      </a:tbl>\n'
-            '    </a:graphicData>\n  </a:graphic>\n</p:graphicFrame>\n' %
-            (id_, name, left, top, width, height)
+            '<p:graphicFrame %s>\n  <p:nvGraphicFramePr>\n    <p:cNvP''r id="'
+            '%d" name="%s"/>\n    <p:cNvGraphicFramePr>\n      <a:graphicFram'
+            'eLocks noGrp="1"/>\n    </p:cNvGraphicFramePr>\n    <p:nvPr/>\n '
+            ' </p:nvGraphicFramePr>\n  <p:xfrm>\n    <a:off x="%d" y="%d"/>\n'
+            '    <a:ext cx="%d" cy="%d"/>\n  </p:xfrm>\n  <a:graphic>\n    <a'
+            ':graphicData uri="http://schemas.openxmlformats.org/drawingml/20'
+            '06/table">\n      <a:tbl>\n        <a:tblPr firstRow="1" bandRow'
+            '="1">\n          <a:tableStyleId>{5C22544A-7EE6-4342-B048-85BDC9'
+            'FD1C3A}</a:tableStyleId>\n        </a:tblPr>\n        <a:tblGrid'
+            '>\n          <a:gridCol w="111"/>\n          <a:gridCol w="111"/'
+            '>\n          <a:gridCol w="112"/>\n        </a:tblGrid>\n       '
+            ' <a:tr h="222">\n          <a:tc>\n            <a:txBody>\n     '
+            '         <a:bodyPr/>\n              <a:lstStyle/>\n             '
+            ' <a:p/>\n            </a:txBody>\n            <a:tcPr/>\n       '
+            '   </a:tc>\n          <a:tc>\n            <a:txBody>\n          '
+            '    <a:bodyPr/>\n              <a:lstStyle/>\n              <a:p'
+            '/>\n            </a:txBody>\n            <a:tcPr/>\n          </'
+            'a:tc>\n          <a:tc>\n            <a:txBody>\n              <'
+            'a:bodyPr/>\n              <a:lstStyle/>\n              <a:p/>\n '
+            '           </a:txBody>\n            <a:tcPr/>\n          </a:tc>'
+            '\n        </a:tr>\n        <a:tr h="223">\n          <a:tc>\n   '
+            '         <a:txBody>\n              <a:bodyPr/>\n              <a'
+            ':lstStyle/>\n              <a:p/>\n            </a:txBody>\n    '
+            '        <a:tcPr/>\n          </a:tc>\n          <a:tc>\n        '
+            '    <a:txBody>\n              <a:bodyPr/>\n              <a:lstS'
+            'tyle/>\n              <a:p/>\n            </a:txBody>\n         '
+            '   <a:tcPr/>\n          </a:tc>\n          <a:tc>\n            <'
+            'a:txBody>\n              <a:bodyPr/>\n              <a:lstStyle/'
+            '>\n              <a:p/>\n            </a:txBody>\n            <a'
+            ':tcPr/>\n          </a:tc>\n        </a:tr>\n      </a:tbl>\n   '
+            ' </a:graphicData>\n  </a:graphic>\n</p:graphicFrame>\n' %
+            (nsdecls('a', 'p'), id_, name, left, top, width, height)
         )
         # exercise --------------------
         graphicFrame = CT_GraphicalObjectFrame.new_table(
             id_, name, rows, cols, left, top, width, height)
         # verify ----------------------
-        _assert_equal_line_by_line(self, xml, graphicFrame)
+        self.assertEqualLineByLine(xml, graphicFrame)
 
 
 class TestCT_Picture(TestCase):
@@ -136,39 +118,97 @@ class TestCT_Picture(TestCase):
         id_, name, desc, rId = 9, 'Picture 8', 'test-image.png', 'rId7'
         left, top, width, height = 111, 222, 333, 444
         xml = (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<'
-            'p:pic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/'
-            'main" xmlns:p="http://schemas.openxmlformats.org/presentationml/'
-            '2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocu'
-            'ment/2006/relationships">\n  <p:nvPicPr>\n    <p:cNvPr id="%d" n'
-            'ame="%s" descr="%s"/>\n    <p:cNvPicPr>\n      <a:picLocks noCha'
-            'ngeAspect="1"/>\n    </p:cNvPicPr>\n    <p:nvPr/>\n  </p:nvPicPr'
-            '>\n  <p:blipFill>\n    <a:blip r:embed="%s"/>\n    <a:stretch>\n'
-            '      <a:fillRect/>\n    </a:stretch>\n  </p:blipFill>\n  <p:spP'
-            'r>\n    <a:xfrm>\n      <a:off x="%d" y="%d"/>\n      <a:ext cx='
-            '"%d" cy="%d"/>\n    </a:xfrm>\n    <a:prstGeom prst="rect">\n   '
-            '   <a:avLst/>\n    </a:prstGeom>\n  </p:spPr>\n</p:pic>\n' %
-            (id_, name, desc, rId, left, top, width, height))
+            '<p:pic %s>\n  <p:nvPicPr>\n    <p:cNvPr id="%d" name="%s" descr='
+            '"%s"/>\n    <p:cNvPicPr>\n      <a:picLocks noChangeAspect="1"/>'
+            '\n    </p:cNvPicPr>\n    <p:nvPr/>\n  </p:nvPicPr>\n  <p:blipFil'
+            'l>\n    <a:blip r:embed="%s"/>\n    <a:stretch>\n      <a:fillRe'
+            'ct/>\n    </a:stretch>\n  </p:blipFill>\n  <p:spPr>\n    <a:xfrm'
+            '>\n      <a:off x="%d" y="%d"/>\n      <a:ext cx="%d" cy="%d"/>'
+            '\n    </a:xfrm>\n    <a:prstGeom prst="rect">\n      <a:avLst/>'
+            '\n    </a:prstGeom>\n  </p:spPr>\n</p:pic>\n' %
+            (nsdecls('a', 'p', 'r'), id_, name, desc, rId, left, top, width,
+             height)
+        )
         # exercise --------------------
         pic = CT_Picture.new_pic(id_, name, desc, rId, left, top,
                                  width, height)
         # verify ----------------------
-        _assert_equal_line_by_line(self, xml, pic)
+        self.assertEqualLineByLine(xml, pic)
 
 
 class TestCT_Shape(TestCase):
     """Test CT_Shape"""
+    def test_is_autoshape_distinguishes_auto_shape(self):
+        """CT_Shape.is_autoshape distinguishes auto shape"""
+        # setup ------------------------
+        autoshape = test_shape_elements.autoshape
+        placeholder = test_shape_elements.placeholder
+        textbox = test_shape_elements.textbox
+        # verify -----------------------
+        assert_that(autoshape.is_autoshape, is_(True))
+        assert_that(placeholder.is_autoshape, is_(False))
+        assert_that(textbox.is_autoshape, is_(False))
+
+    def test_is_placeholder_distinguishes_placeholder(self):
+        """CT_Shape.is_autoshape distinguishes placeholder"""
+        # setup ------------------------
+        autoshape = test_shape_elements.autoshape
+        placeholder = test_shape_elements.placeholder
+        textbox = test_shape_elements.textbox
+        # verify -----------------------
+        assert_that(autoshape.is_autoshape, is_(True))
+        assert_that(placeholder.is_autoshape, is_(False))
+        assert_that(textbox.is_autoshape, is_(False))
+
+    def test_is_textbox_distinguishes_text_box(self):
+        """CT_Shape.is_textbox distinguishes text box"""
+        # setup ------------------------
+        autoshape = test_shape_elements.autoshape
+        placeholder = test_shape_elements.placeholder
+        textbox = test_shape_elements.textbox
+        # verify -----------------------
+        assert_that(autoshape.is_textbox, is_(False))
+        assert_that(placeholder.is_textbox, is_(False))
+        assert_that(textbox.is_textbox, is_(True))
+
+    def test_new_autoshape_sp_generates_correct_xml(self):
+        """CT_Shape._new_autoshape_sp() returns correct XML"""
+        # setup ------------------------
+        id_ = 9
+        name = 'Rounded Rectangle 8'
+        prst = 'roundRect'
+        left, top, width, height = 111, 222, 333, 444
+        xml = (
+            '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%d" name="%s"/>\n    <'
+            'p:cNvSpPr/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>\n    <a:xf'
+            'rm>\n      <a:off x="%d" y="%d"/>\n      <a:ext cx="%d" cy="%d"/'
+            '>\n    </a:xfrm>\n    <a:prstGeom prst="%s">\n      <a:avLst/>\n'
+            '    </a:prstGeom>\n  </p:spPr>\n  <p:style>\n    <a:lnRef idx="1'
+            '">\n      <a:schemeClr val="accent1"/>\n    </a:lnRef>\n    <a:f'
+            'illRef idx="3">\n      <a:schemeClr val="accent1"/>\n    </a:fil'
+            'lRef>\n    <a:effectRef idx="2">\n      <a:schemeClr val="accent'
+            '1"/>\n    </a:effectRef>\n    <a:fontRef idx="minor">\n      <a:'
+            'schemeClr val="lt1"/>\n    </a:fontRef>\n  </p:style>\n  <p:txBo'
+            'dy>\n    <a:bodyPr rtlCol="0" anchor="ctr"/>\n    <a:lstStyle/>'
+            '\n    <a:p>\n      <a:pPr algn="ctr"/>\n    </a:p>\n  </p:txBody'
+            '>\n</p:sp>\n' %
+            (nsdecls('a', 'p'), id_, name, left, top, width, height, prst)
+        )
+        # exercise ---------------------
+        sp = CT_Shape.new_autoshape_sp(id_, name, prst, left, top,
+                                       width, height)
+        # verify -----------------------
+        self.assertEqualLineByLine(xml, sp)
+
     def test_new_placeholder_sp_generates_correct_xml(self):
         """CT_Shape._new_placeholder_sp() returns correct XML"""
         # setup -----------------------
         expected_xml_tmpl = (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<'
-            'p:sp xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/m'
-            'ain" xmlns:p="http://schemas.openxmlformats.org/presentationml/2'
-            '006/main">\n  <p:nvSpPr>\n    <p:cNvPr id="%d" name="%s"/>\n    '
-            '<p:cNvSpPr>\n      <a:spLocks noGrp="1"/>\n    </p:cNvSpPr>\n   '
-            ' <p:nvPr>\n      <p:ph%s/>\n    </p:nvPr>\n  </p:nvSpPr>\n  <p:s'
-            'pPr/>\n%s</p:sp>\n')
+            '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%s" name="%s"/>\n    <'
+            'p:cNvSpPr>\n      <a:spLocks noGrp="1"/>\n    </p:cNvSpPr>\n    '
+            '<p:nvPr>\n      <p:ph%s/>\n    </p:nvPr>\n  </p:nvSpPr>\n  <p:sp'
+            'Pr/>\n%s</p:sp>\n' % (nsdecls('a', 'p'), '%d', '%s', '%s', '%s')
+        )
         txBody_snippet = (
             '  <p:txBody>\n    <a:bodyPr/>\n    <a:lstStyle/>\n    <a:p/>\n  '
             '</p:txBody>\n')
@@ -209,31 +249,38 @@ class TestCT_Shape(TestCase):
                                              idx)
             # verify ------------------
             expected_xml = expected_xml_tmpl % expected_values[case_idx]
-            _assert_equal_line_by_line(self, expected_xml, sp)
+            self.assertEqualLineByLine(expected_xml, sp)
 
     def test_new_textbox_sp_generates_correct_xml(self):
-        """CT_Shape._new_textbox_sp() returns correct XML"""
+        """CT_Shape.new_textbox_sp() returns correct XML"""
         # setup -----------------------
-        id = 9
+        id_ = 9
         name = 'TextBox 8'
         left, top, width, height = 111, 222, 333, 444
         xml = (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<'
-            'p:sp xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/m'
-            'ain" xmlns:p="http://schemas.openxmlformats.org/presentationml/2'
-            '006/main">\n  <p:nvSpPr>\n    <p:cNvPr id="%d" name="%s"/>\n    '
-            '<p:cNvSpPr txBox="1"/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>'
+            '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%d" name="%s"/>\n    <'
+            'p:cNvSpPr txBox="1"/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>'
             '\n    <a:xfrm>\n      <a:off x="%d" y="%d"/>\n      <a:ext cx="%'
             'd" cy="%d"/>\n    </a:xfrm>\n    <a:prstGeom prst="rect">\n     '
             ' <a:avLst/>\n    </a:prstGeom>\n    <a:noFill/>\n  </p:spPr>\n  '
             '<p:txBody>\n    <a:bodyPr wrap="none">\n      <a:spAutoFit/>\n  '
             '  </a:bodyPr>\n    <a:lstStyle/>\n    <a:p/>\n  </p:txBody>\n</p'
-            ':sp>\n' % (id, name, left, top, width, height)
+            ':sp>\n' %
+            (nsdecls('a', 'p'), id_, name, left, top, width, height)
         )
         # exercise --------------------
-        sp = CT_Shape.new_textbox_sp(id, name, left, top, width, height)
+        sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
         # verify ----------------------
-        _assert_equal_line_by_line(self, xml, sp)
+        self.assertEqualLineByLine(xml, sp)
+
+    def test_prst_return_value(self):
+        """CT_Shape.prst value is correct"""
+        # setup -----------------------
+        rounded_rect_sp = test_shape_elements.rounded_rectangle
+        placeholder_sp = test_shape_elements.placeholder
+        # verify ----------------------
+        assert_that(rounded_rect_sp.prst, is_(equal_to('roundRect')))
+        assert_that(placeholder_sp.prst, is_(equal_to(None)))
 
 
 class TestCT_Table(TestCase):
@@ -244,28 +291,27 @@ class TestCT_Table(TestCase):
         rows, cols = 2, 3
         width, height = 334, 445
         xml = (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<'
-            'a:tbl xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/'
-            'main">\n  <a:tblPr firstRow="1" bandRow="1">\n    <a:tableStyleI'
-            'd>{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}</a:tableStyleId>\n  </a'
-            ':tblPr>\n  <a:tblGrid>\n    <a:gridCol w="111"/>\n    <a:gridCol'
-            ' w="111"/>\n    <a:gridCol w="112"/>\n  </a:tblGrid>\n  <a:tr h='
-            '"222">\n    <a:tc>\n      <a:txBody>\n        <a:bodyPr/>\n     '
-            '   <a:lstStyle/>\n        <a:p/>\n      </a:txBody>\n      <a:tc'
-            'Pr/>\n    </a:tc>\n    <a:tc>\n      <a:txBody>\n        <a:body'
-            'Pr/>\n        <a:lstStyle/>\n        <a:p/>\n      </a:txBody>\n'
-            '      <a:tcPr/>\n    </a:tc>\n    <a:tc>\n      <a:txBody>\n    '
-            '    <a:bodyPr/>\n        <a:lstStyle/>\n        <a:p/>\n      </'
-            'a:txBody>\n      <a:tcPr/>\n    </a:tc>\n  </a:tr>\n  <a:tr h="2'
-            '23">\n    <a:tc>\n      <a:txBody>\n        <a:bodyPr/>\n       '
-            ' <a:lstStyle/>\n        <a:p/>\n      </a:txBody>\n      <a:tcPr'
-            '/>\n    </a:tc>\n    <a:tc>\n      <a:txBody>\n        <a:bodyPr'
-            '/>\n        <a:lstStyle/>\n        <a:p/>\n      </a:txBody>\n  '
-            '    <a:tcPr/>\n    </a:tc>\n    <a:tc>\n      <a:txBody>\n      '
-            '  <a:bodyPr/>\n        <a:lstStyle/>\n        <a:p/>\n      </a:'
-            'txBody>\n      <a:tcPr/>\n    </a:tc>\n  </a:tr>\n</a:tbl>\n'
+            '<a:tbl %s>\n  <a:tblPr firstRow="1" bandRow="1">\n    <a:tableSt'
+            'yleId>{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}</a:tableStyleId>\n '
+            ' </a:tblPr>\n  <a:tblGrid>\n    <a:gridCol w="111"/>\n    <a:gri'
+            'dCol w="111"/>\n    <a:gridCol w="112"/>\n  </a:tblGrid>\n  <a:t'
+            'r h="222">\n    <a:tc>\n      <a:txBody>\n        <a:bodyPr/>\n '
+            '       <a:lstStyle/>\n        <a:p/>\n      </a:txBody>\n      <'
+            'a:tcPr/>\n    </a:tc>\n    <a:tc>\n      <a:txBody>\n        <a:'
+            'bodyPr/>\n        <a:lstStyle/>\n        <a:p/>\n      </a:txBod'
+            'y>\n      <a:tcPr/>\n    </a:tc>\n    <a:tc>\n      <a:txBody>\n'
+            '        <a:bodyPr/>\n        <a:lstStyle/>\n        <a:p/>\n    '
+            '  </a:txBody>\n      <a:tcPr/>\n    </a:tc>\n  </a:tr>\n  <a:tr '
+            'h="223">\n    <a:tc>\n      <a:txBody>\n        <a:bodyPr/>\n   '
+            '     <a:lstStyle/>\n        <a:p/>\n      </a:txBody>\n      <a:'
+            'tcPr/>\n    </a:tc>\n    <a:tc>\n      <a:txBody>\n        <a:bo'
+            'dyPr/>\n        <a:lstStyle/>\n        <a:p/>\n      </a:txBody>'
+            '\n      <a:tcPr/>\n    </a:tc>\n    <a:tc>\n      <a:txBody>\n  '
+            '      <a:bodyPr/>\n        <a:lstStyle/>\n        <a:p/>\n      '
+            '</a:txBody>\n      <a:tcPr/>\n    </a:tc>\n  </a:tr>\n</a:tbl>\n'
+            % nsdecls('a')
         )
         # exercise --------------------
         tbl = CT_Table.new_tbl(rows, cols, width, height)
         # verify ----------------------
-        _assert_equal_line_by_line(self, xml, tbl)
+        self.assertEqualLineByLine(xml, tbl)

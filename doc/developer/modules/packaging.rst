@@ -86,11 +86,3 @@ that data available as an aid to processing OPC packages.
    :member-order: bysource
    :undoc-members:
 
-
-.. |Package| replace:: :class:`Package`
-
-.. |Part| replace:: :class:`Part`
-
-.. |PartTypeSpec| replace:: :class:`PartTypeSpec`
-
-.. |Relationship| replace:: :class:`Relationship`

@@ -11,9 +11,24 @@
 
 import unittest2
 
+from pptx.oxml import oxml_tostring
+
 
 class TestCase(unittest2.TestCase):
     """Additional assert methods for python-pptx unit testing."""
+    def assertEqualLineByLine(self, expected_xml, element):
+        """
+        Apply assertEqual() to each line of *expected_xml* and corresponding
+        line of XML derived from *element*.
+        """
+        actual_xml = oxml_tostring(element, pretty_print=True)
+        actual_xml_lines = actual_xml.split('\n')
+        expected_xml_lines = expected_xml.split('\n')
+        for idx, line in enumerate(actual_xml_lines):
+            msg = ("\n\nexpected:\n\n%s'\nbut got\n\n%s'" %
+                   (expected_xml, actual_xml))
+            self.assertEqual(line, expected_xml_lines[idx], msg)
+
     def assertIsInstance(self, obj, cls):
         """Raise AssertionError if *obj* is not instance of *cls*."""
         tmpl = "expected instance of '%s', got type '%s'"

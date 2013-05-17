@@ -7,6 +7,7 @@ from StringIO import StringIO
 
 from pptx import packaging
 from pptx import Presentation
+from pptx.constants import MSO
 from pptx.util import Inches
 
 
@@ -117,6 +118,15 @@ def step_when_add_text_box(context):
     sp.text = test_text
 
 
+@when("I add an auto shape to the slide's shape collection")
+def step_when_add_auto_shape(context):
+    shapes = context.sld.shapes
+    x, y = (Inches(1.00), Inches(2.00))
+    cx, cy = (Inches(3.00), Inches(4.00))
+    sp = shapes.add_shape(MSO.SHAPE_ROUNDED_RECTANGLE, x, y, cx, cy)
+    sp.text = test_text
+
+
 @when('I construct a Presentation instance with no path argument')
 def step_when_construct_default_prs(context):
     context.prs = Presentation()
@@ -199,6 +209,16 @@ def step_then_see_pptx_file_in_working_dir(context):
     minimum = 30000
     actual = os.path.getsize(saved_pptx_path)
     assert_that(actual, is_(greater_than(minimum)))
+
+
+@then('the auto shape appears in the slide')
+def step_then_auto_shape_appears_in_slide(context):
+    prs = Presentation(saved_pptx_path)
+    sp = prs.slides[0].shapes[0]
+    sp_text = sp.textframe.paragraphs[0].runs[0].text
+    assert_that(sp.shape_type, is_(equal_to(MSO.AUTO_SHAPE)))
+    assert_that(sp.auto_shape_type, is_(equal_to(MSO.SHAPE_ROUNDED_RECTANGLE)))
+    assert_that(sp_text, is_(equal_to(test_text)))
 
 
 @then('the image is saved in the pptx file')
