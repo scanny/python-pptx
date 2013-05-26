@@ -11,11 +11,11 @@
 
 import os
 
-from hamcrest import assert_that, equal_to, is_
+from hamcrest import assert_that, equal_to, is_, same_instance
 
-from mock import Mock, patch, PropertyMock
+from mock import MagicMock, Mock, patch, PropertyMock
 
-from pptx.constants import MSO
+from pptx.constants import MSO, PP
 from pptx.oxml import (
     _SubElement, nsdecls, oxml_fromstring, oxml_parse, oxml_tostring
 )
@@ -470,6 +470,41 @@ class Test_Paragraph(TestCase):
         actual = len(paragraph.runs)
         msg = "expected run count %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
+
+    @patch('pptx.shapes.ParagraphAlignment')
+    def test_alignment_value(self, ParagraphAlignment):
+        """_Paragraph.alignment value is calculated correctly"""
+        # setup ------------------------
+        __p = MagicMock()
+        type(__p).algn = algn = PropertyMock()
+        paragraph = _Paragraph(__p)
+        algn.return_value = algn_val = Mock(name='algn_val')
+        alignment = Mock(name='alignment')
+        ParagraphAlignment.from_text_align_type.return_value = alignment
+        # exercise ---------------------
+        retval = paragraph.alignment
+        # verify -----------------------
+        algn.assert_called_once_with()
+        ParagraphAlignment.from_text_align_type.assert_called_once_with(
+            algn_val)
+        assert_that(retval, is_(same_instance(alignment)))
+
+    @patch('pptx.shapes.ParagraphAlignment')
+    def test_alignment_assignment(self, ParagraphAlignment):
+        """Assignment to _Paragraph.alignment assigns value"""
+        # setup ------------------------
+        __p = MagicMock()
+        type(__p).algn = algn = PropertyMock()
+        paragraph = _Paragraph(__p)
+        alignment = PP.ALIGN_CENTER
+        algn_val = Mock(name='algn_val')
+        ParagraphAlignment.to_text_align_type.return_value = algn_val
+        # exercise ---------------------
+        paragraph.alignment = alignment
+        # verify -----------------------
+        ParagraphAlignment.to_text_align_type.assert_called_once_with(
+            alignment)
+        algn.assert_called_once_with(algn_val)
 
     def test_clear_removes_all_runs(self):
         """_Paragraph.clear() removes all runs from paragraph"""

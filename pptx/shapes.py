@@ -16,7 +16,9 @@ from pptx.oxml import (
     _get_or_add, qn, _Element, _SubElement, CT_GraphicalObjectFrame,
     CT_Picture, CT_Shape
 )
-from pptx.spec import autoshape_types, namespaces, slide_ph_basenames
+from pptx.spec import (
+    autoshape_types, namespaces, ParagraphAlignment, slide_ph_basenames
+)
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_TYPE_DT, PH_TYPE_FTR,
     PH_TYPE_OBJ, PH_TYPE_SLDNUM)
@@ -925,6 +927,29 @@ class _Paragraph(object):
     def __init__(self, p):
         super(_Paragraph, self).__init__()
         self.__p = p
+
+    def _get_alignment(self):
+        """
+        Return alignment type of this paragraph, e.g. ``PP.ALIGN_CENTER``.
+        Can return |None|, meaning the paragraph has no alignment setting and
+        its effective value is inherited from a higher-level object.
+        """
+        algn = self.__p.algn
+        return ParagraphAlignment.from_text_align_type(algn)
+
+    def _set_alignment(self, alignment):
+        """
+        Set alignment of this paragraph to *alignment*, a constant value like
+        ``PP.ALIGN_CENTER``.
+        """
+        algn = ParagraphAlignment.to_text_align_type(alignment)
+        self.__p.algn = algn
+
+    #: Horizontal alignment of this paragraph, represented by a constant
+    #: value like ``PP.ALIGN_CENTER``. Can be |None|, meaning the paragraph
+    #: has no alignment setting and its effective value is inherited from a
+    #: higher-level object.
+    alignment = property(_get_alignment, _set_alignment)
 
     @property
     def font(self):

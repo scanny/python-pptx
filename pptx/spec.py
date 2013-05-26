@@ -14,6 +14,15 @@ packaging, and a utility function or two for accessing some of them.
 
 from constants import MSO
 
+
+class ParagraphAlignment(object):
+    """
+    Mappings between ``PpParagraphAlignment`` values used in the API and
+    ``ST_TextAlignType`` values used in the XML. ``PpParagraphAlignment``
+    values are like ``PP.ALIGN_CENTER``.
+    """
+
+
 # ============================================================================
 # AutoShape type specs
 # ============================================================================
