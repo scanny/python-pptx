@@ -262,3 +262,20 @@ class MSO(object):
     # 'line'
 
     # 'straightConnector1'
+
+
+class PP(object):
+    """
+    Constants specific to PowerPoint (PresentationML), with names like
+    ``PP.ALIGN_CENTER`` corresponding to names like ``ppAlignCenter`` in the
+    Microsoft Office API.
+    """
+    # PpParagraphAlignment -------------
+    ALIGN_CENTER = 2
+    ALIGN_DISTRIBUTE = 5
+    ALIGN_JUSTIFY = 4
+    ALIGN_JUSTIFY_LOW = 7
+    ALIGN_LEFT = 1
+    ALIGNMENT_MIXED = -2
+    ALIGN_RIGHT = 3
+    ALIGN_THAI_DISTRIBUTE = 6
