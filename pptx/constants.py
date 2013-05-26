@@ -279,3 +279,19 @@ class PP(object):
     ALIGNMENT_MIXED = -2
     ALIGN_RIGHT = 3
     ALIGN_THAI_DISTRIBUTE = 6
+
+
+class TEXT_ALIGN_TYPE(object):
+    """
+    Constants containing the valid values of ST_TextAlignType in Open XML.
+    These values appear in the ``algn`` attribute of the ``<a:pPr>`` element
+    and other places in Open XML.
+    """
+    # ST_TextAlignType -----------------
+    CENTER = 'ctr'
+    DISTRIBUTE = 'dist'
+    JUSTIFY = 'just'
+    JUSTIFY_LOW = 'justLow'
+    LEFT = 'l'
+    RIGHT = 'r'
+    THAI_DISTRIBUTE = 'thaiDist'

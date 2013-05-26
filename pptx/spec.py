@@ -12,7 +12,7 @@ Constant values from the ECMA-376 spec that are needed for XML generation and
 packaging, and a utility function or two for accessing some of them.
 """
 
-from constants import MSO
+from constants import MSO, PP, TEXT_ALIGN_TYPE as TAT
 
 
 class ParagraphAlignment(object):
@@ -21,6 +21,28 @@ class ParagraphAlignment(object):
     ``ST_TextAlignType`` values used in the XML. ``PpParagraphAlignment``
     values are like ``PP.ALIGN_CENTER``.
     """
+    _mapping = {
+        PP.ALIGN_CENTER:          TAT.CENTER,
+        PP.ALIGN_DISTRIBUTE:      TAT.DISTRIBUTE,
+        PP.ALIGN_JUSTIFY:         TAT.JUSTIFY,
+        PP.ALIGN_JUSTIFY_LOW:     TAT.JUSTIFY_LOW,
+        PP.ALIGN_LEFT:            TAT.LEFT,
+        PP.ALIGN_RIGHT:           TAT.RIGHT,
+        PP.ALIGN_THAI_DISTRIBUTE: TAT.THAI_DISTRIBUTE
+    }
+
+    @classmethod
+    def to_text_align_type(cls, alignment):
+        """
+        Map a paragraph alignment value (e.g. ``PP.ALIGN_CENTER`` to an
+        ``ST_TextAlignType`` value (e.g. ``TAT.CENTER`` or ``'ctr'``).
+        """
+        try:
+            text_align_type = cls._mapping[alignment]
+        except KeyError:
+            tmpl = "no ST_TextAlignType value for alignment '%s'"
+            raise KeyError(tmpl % alignment)
+        return text_align_type
 
 
 # ============================================================================
