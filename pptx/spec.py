@@ -32,9 +32,21 @@ class ParagraphAlignment(object):
     }
 
     @classmethod
+    def from_text_align_type(cls, text_align_type):
+        """
+        Map an ``ST_TextAlignType`` value (e.g. ``TAT.CENTER`` or ``'ctr'``)
+        to a paragraph alignment value (e.g. ``PP.ALIGN_CENTER``).
+        """
+        for alignment, tat in cls._mapping.iteritems():
+            if tat == text_align_type:
+                return alignment
+        tmpl = "no ST_TextAlignType '%s'"
+        raise KeyError(tmpl % text_align_type)
+
+    @classmethod
     def to_text_align_type(cls, alignment):
         """
-        Map a paragraph alignment value (e.g. ``PP.ALIGN_CENTER`` to an
+        Map a paragraph alignment value (e.g. ``PP.ALIGN_CENTER``) to an
         ``ST_TextAlignType`` value (e.g. ``TAT.CENTER`` or ``'ctr'``).
         """
         try:
