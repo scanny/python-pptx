@@ -10,7 +10,7 @@
 """Test data for unit tests"""
 
 from pptx.oxml import nsdecls, oxml_fromstring
-from pptx.shapes import _Picture, _Shape, _ShapeCollection
+from pptx.shapes import _Paragraph, _Picture, _Shape, _ShapeCollection
 
 
 class _TestShapeXml(object):
@@ -141,6 +141,20 @@ class _TestShapeXml(object):
 test_shape_xml = _TestShapeXml()
 
 
+class _TestTextXml(object):
+    """XML snippets of text-related elements for use in unit tests"""
+    @property
+    def paragraph(self):
+        """
+        XML for an autoshape for unit testing purposes, a rounded rectangle in
+        this case.
+        """
+        return '<a:p %s/>' % nsdecls('a')
+
+
+test_text_xml = _TestTextXml()
+
+
 class _TestShapeElements(object):
     """Shape elements for use in unit tests"""
     @property
@@ -171,6 +185,16 @@ class _TestShapeElements(object):
 test_shape_elements = _TestShapeElements()
 
 
+class _TestTextElements(object):
+    """Text elements for use in unit tests"""
+    @property
+    def paragraph(self):
+        return oxml_fromstring(test_text_xml.paragraph)
+
+
+test_text_elements = _TestTextElements()
+
+
 class _TestShapes(object):
     """Shape instances for use in unit tests"""
     @property
@@ -199,3 +223,13 @@ class _TestShapes(object):
 
 
 test_shapes = _TestShapes()
+
+
+class _TestTextObjects(object):
+    """Text object instances for use in unit tests"""
+    @property
+    def paragraph(self):
+        return _Paragraph(test_text_elements.paragraph)
+
+
+test_text_objects = _TestTextObjects()
