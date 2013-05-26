@@ -7,7 +7,7 @@ from StringIO import StringIO
 
 from pptx import packaging
 from pptx import Presentation
-from pptx.constants import MSO
+from pptx.constants import MSO, PP
 from pptx.util import Inches
 
 
@@ -57,6 +57,16 @@ def step_given_ref_to_bullet_body_placeholder(context):
     slidelayout = context.prs.slidelayouts[1]
     context.sld = context.prs.slides.add_slide(slidelayout)
     context.body = context.sld.shapes.placeholders[1]
+
+
+@given('I have a reference to a paragraph')
+def step_given_ref_to_paragraph(context):
+    context.prs = Presentation()
+    blank_slidelayout = context.prs.slidelayouts[6]
+    slide = context.prs.slides.add_slide(blank_slidelayout)
+    length = Inches(2.00)
+    textbox = slide.shapes.add_textbox(length, length, length, length)
+    context.p = textbox.textframe.paragraphs[0]
 
 
 @given('I have a reference to a slide')
@@ -173,6 +183,11 @@ def step_when_save_presentation_to_stream(context):
     context.prs.save(context.stream)
 
 
+@when("I set the paragraph alignment to centered")
+def step_when_set_paragraph_alignment_to_centered(context):
+    context.p.alignment = PP.ALIGN_CENTER
+
+
 @when("I set the text of the first cell")
 def step_when_set_text_of_first_cell(context):
     context.tbl.cell(0, 0).text = 'test text'
@@ -251,6 +266,13 @@ def step_then_picture_appears_in_slide(context):
 def step_then_pptx_file_contains_single_slide(context):
     prs = Presentation(saved_pptx_path)
     assert_that(len(prs.slides), is_(equal_to(1)))
+
+
+@then('the paragraph is aligned centered')
+def step_then_paragraph_is_aligned_centered(context):
+    prs = Presentation(saved_pptx_path)
+    p = prs.slides[0].shapes[0].textframe.paragraphs[0]
+    assert_that(p.alignment, is_(equal_to(PP.ALIGN_CENTER)))
 
 
 @then('the table appears in the slide')
