@@ -519,6 +519,45 @@ class CT_TableCell(objectify.ObjectifiedElement):
         if len(self.tcPr.attrib) == 0:
             self.remove(self.tcPr)
 
+    @property
+    def marB(self):
+        """
+        Integer bottom margin value represented in ``marB`` attribute of
+        ``<a:tcPr>`` child element of this ``<a:tc>`` element. If the
+        attribute is not present, the default value ``45720`` (0.05 inches)
+        is returned.
+        """
+        DEFAULT_MARB = 45720
+        if not hasattr(self, 'tcPr'):
+            return DEFAULT_MARB
+        return int(self.tcPr.get('marB', DEFAULT_MARB))
+
+    def _set_marB(self, marB):
+        """
+        Set value of marB attribute on ``<a:tcPr>`` child element. If *marB*
+        is |None|, the marB attribute is removed and the ``<a:tcPr>`` element
+        is removed if it then has no attributes.
+        """
+        if marB is None:
+            return self._clear_marB()
+        if not hasattr(self, 'tcPr'):
+            tcPr = _Element('a:tcPr')
+            idx = 1 if hasattr(self, 'txBody') else 0
+            self.insert(idx, tcPr)
+        self.tcPr.set('marB', str(marB))
+
+    def _clear_marB(self):
+        """
+        Remove marB attribute from ``<a:tcPr>`` if it exists and remove
+        ``<a:tcPr>`` element if it then has no attributes.
+        """
+        if not hasattr(self, 'tcPr'):
+            return
+        if 'marB' in self.tcPr.attrib:
+            del self.tcPr.attrib['marB']
+        if len(self.tcPr.attrib) == 0:
+            self.remove(self.tcPr)
+
     def __setattr__(self, attr, value):
         """
         This hack is needed to make setter side of properties work,
@@ -527,6 +566,8 @@ class CT_TableCell(objectify.ObjectifiedElement):
         """
         if attr == 'anchor':
             self._set_anchor(value)
+        elif attr == 'marB':
+            self._set_marB(value)
         else:
             super(CT_TableCell, self).__setattr__(attr, value)
 

@@ -370,6 +370,51 @@ class TestCT_TableCell(TestCase):
             tc.anchor = text_anchoring_type
             self.assertEqualLineByLine(expected_xml, tc)
 
+    def test_marB_property_value_is_correct(self):
+        """CT_TableCell.marB property value is correct"""
+        # setup ------------------------
+        cases = (
+            (test_table_elements.cell_with_margins, 123456),
+            (test_table_elements.cell, 45720)
+        )
+        # verify -----------------------
+        for tc, expected_margin_bottom in cases:
+            assert_that(tc.marB, is_(equal_to(expected_margin_bottom)))
+
+    def test_assignment_to_marB_sets_value(self):
+        """Assignment to CT_TableCell.marB sets marB value"""
+        # setup ------------------------
+        cases = (
+            # something => something else
+            (test_table_elements.cell_with_margins, 654321, 654321),
+            # something => None
+            (test_table_elements.cell_with_margins, None, 45720),
+            # None => something
+            (test_table_elements.cell, 987654, 987654),
+            # None => None
+            (test_table_elements.cell, None, 45720)
+        )
+        # verify -----------------------
+        for tc, marB, expected_marB in cases:
+            tc.marB = marB
+            assert_that(tc.marB, is_(equal_to(expected_marB)))
+
+    def test_assignment_to_marB_produces_correct_xml(self):
+        """Assigning value to CT_TableCell.marB produces correct XML"""
+        # setup ------------------------
+        cases = (
+            # None => something
+            (test_table_elements.cell, 123456,
+             test_table_xml.cell_with_margins),
+            # something => None
+            (test_table_elements.cell_with_margins, None,
+             test_table_xml.cell)
+        )
+        # verify -----------------------
+        for tc, marB, expected_xml in cases:
+            tc.marB = marB
+            self.assertEqualLineByLine(expected_xml, tc)
+
 
 class TestCT_TextParagraph(TestCase):
     """Test CT_TextParagraph"""

@@ -161,6 +161,22 @@ class _TestTableXml(object):
         )
 
     @property
+    def cell_with_margins(self):
+        """
+        XML for cell having top, left, right, and bottom margin settings
+        """
+        return (
+            '<a:tc %s>\n'
+            '  <a:txBody>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p/>\n'
+            '  </a:txBody>\n'
+            '  <a:tcPr marB="123456"/>\n'
+            '</a:tc>\n' % nsdecls('a')
+        )
+
+    @property
     def top_aligned_cell(self):
         """
         XML for empty top-aligned table cell
@@ -239,6 +255,10 @@ class _TestTableElements(object):
     @property
     def cell(self):
         return oxml_fromstring(test_table_xml.cell)
+
+    @property
+    def cell_with_margins(self):
+        return oxml_fromstring(test_table_xml.cell_with_margins)
 
     @property
     def top_aligned_cell(self):
