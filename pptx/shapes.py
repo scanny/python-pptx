@@ -667,6 +667,23 @@ class _Cell(object):
     text = property(None, _set_text)
 
     @property
+    def margin_bottom(self):
+        """
+        Integer value of bottom margin of cell in English Metric Units (EMU).
+        If assigned |None|, the default value is used, 0.1 inches for left
+        and right margins and 0.05 inches for top and bottom.
+        """
+        return self.__tc.marB
+
+    @margin_bottom.setter
+    def margin_bottom(self, margin_bottom):
+        if (not isinstance(margin_bottom, (int, long))
+                and margin_bottom is not None):
+            tmpl = "margin_bottom must be integer or None, got '%s'"
+            raise ValueError(tmpl % margin_bottom)
+        self.__tc.marB = margin_bottom
+
+    @property
     def textframe(self):
         """
         |_TextFrame| instance containing the text that appears in the cell.

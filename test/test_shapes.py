@@ -33,7 +33,8 @@ from pptx.spec import (
 )
 from pptx.util import Inches, Pt
 from testdata import (
-    test_shape_elements, test_shapes, test_text_objects, test_text_xml
+    test_shape_elements, test_shapes, test_table_objects, test_text_objects,
+    test_text_xml
 )
 from testing import TestCase
 
@@ -256,6 +257,41 @@ class Test_Cell(TestCase):
         text = self.cell.textframe.paragraphs[0].runs[0].text
         assert_that(text, is_(equal_to(test_text)))
 
+    def test_margin_bottom_value(self):
+        """_Cell.margin_bottom value is calculated correctly"""
+        # mockery ----------------------
+        # -- CT_TableCell
+        tc = MagicMock()
+        marB = type(tc).marB = PropertyMock()
+        # setup ------------------------
+        cell = _Cell(tc)
+        # exercise ---------------------
+        cell.margin_bottom
+        # verify -----------------------
+        marB.assert_called_once_with()
+
+    def test_margin_bottom_assignment(self):
+        """Assignment to _Cell.margin_bottom sets value"""
+        # mockery ----------------------
+        # -- CT_TableCell
+        tc = MagicMock()
+        marB = type(tc).marB = PropertyMock()
+        # setup ------------------------
+        margin_bottom = 999
+        cell = _Cell(tc)
+        # exercise ---------------------
+        cell.margin_bottom = margin_bottom
+        # verify -----------------------
+        marB.assert_called_once_with(margin_bottom)
+
+    def test_margin_bottom_assignment_raises_on_not_int_or_none(self):
+        """Assignment to _Cell.margin_bottom raises if not int or none"""
+        # setup ------------------------
+        cell = test_table_objects.cell
+        # verify -----------------------
+        with self.assertRaises(ValueError):
+            cell.margin_bottom = 'foobar'
+
     @patch('pptx.shapes.VerticalAnchor')
     def test_vertical_anchor_value(self, VerticalAnchor):
         """_Cell.vertical_anchor value is calculated correctly"""
@@ -280,7 +316,7 @@ class Test_Cell(TestCase):
 
     @patch('pptx.shapes.VerticalAnchor')
     def test_vertical_anchor_assignment(self, VerticalAnchor):
-        """Assignment to _Cell.vertical_anchor assigns value"""
+        """Assignment to _Cell.vertical_anchor sets value"""
         # mockery ----------------------
         # -- loose mocks
         vertical_anchor = Mock(name='vertical_anchor')
