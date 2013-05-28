@@ -485,6 +485,51 @@ class CT_TableCell(objectify.ObjectifiedElement):
         objectify.deannotate(tc, cleanup_namespaces=True)
         return tc
 
+    @property
+    def anchor(self):
+        """
+        String held in ``anchor`` attribute of ``<a:tcPr>`` child element of
+        this ``<a:tc>`` element.
+        """
+        if not hasattr(self, 'tcPr'):
+            return None
+        return self.tcPr.get('anchor')
+
+    def _set_anchor(self, anchor):
+        """
+        Set value of anchor attribute on ``<a:tcPr>`` child element
+        """
+        if anchor is None:
+            return self._clear_anchor()
+        if not hasattr(self, 'tcPr'):
+            tcPr = _Element('a:tcPr')
+            idx = 1 if hasattr(self, 'txBody') else 0
+            self.insert(idx, tcPr)
+        self.tcPr.set('anchor', anchor)
+
+    def _clear_anchor(self):
+        """
+        Remove anchor attribute from ``<a:tcPr>`` if it exists and remove
+        ``<a:tcPr>`` element if it then has no attributes.
+        """
+        if not hasattr(self, 'tcPr'):
+            return
+        if 'anchor' in self.tcPr.attrib:
+            del self.tcPr.attrib['anchor']
+        if len(self.tcPr.attrib) == 0:
+            self.remove(self.tcPr)
+
+    def __setattr__(self, attr, value):
+        """
+        This hack is needed to make setter side of properties work,
+        overrides ``__setattr__`` defined in ObjectifiedElement super class
+        just enough to route messages intended for custom property setters.
+        """
+        if attr == 'anchor':
+            self._set_anchor(value)
+        else:
+            super(CT_TableCell, self).__setattr__(attr, value)
+
 
 class CT_TextBody(objectify.ObjectifiedElement):
     """<p:txBody> custom element class"""

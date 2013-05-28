@@ -195,7 +195,7 @@ def step_when_save_presentation_to_stream(context):
 
 @when("I set the cell vertical anchor to middle")
 def step_when_set_cell_vertical_anchor_to_middle(context):
-    context.cell.vertical_alignment = MSO.ANCHOR_MIDDLE
+    context.cell.vertical_anchor = MSO.ANCHOR_MIDDLE
 
 
 @when("I set the paragraph alignment to centered")

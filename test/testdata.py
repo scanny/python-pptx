@@ -157,7 +157,22 @@ class _TestTableXml(object):
             '    <a:lstStyle/>\n'
             '    <a:p/>\n'
             '  </a:txBody>\n'
-            '  <a:tcPr/>\n'
+            '</a:tc>\n' % nsdecls('a')
+        )
+
+    @property
+    def top_aligned_cell(self):
+        """
+        XML for empty top-aligned table cell
+        """
+        return (
+            '<a:tc %s>\n'
+            '  <a:txBody>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p/>\n'
+            '  </a:txBody>\n'
+            '  <a:tcPr anchor="t"/>\n'
             '</a:tc>\n' % nsdecls('a')
         )
 
@@ -224,6 +239,10 @@ class _TestTableElements(object):
     @property
     def cell(self):
         return oxml_fromstring(test_table_xml.cell)
+
+    @property
+    def top_aligned_cell(self):
+        return oxml_fromstring(test_table_xml.top_aligned_cell)
 
 
 test_table_elements = _TestTableElements()

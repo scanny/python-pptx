@@ -11,7 +11,9 @@
 
 from hamcrest import assert_that, equal_to, is_
 
-from pptx.constants import TEXT_ALIGN_TYPE as TAT
+from pptx.constants import (
+    TEXT_ALIGN_TYPE as TAT, TEXT_ANCHORING_TYPE as TANC
+)
 from pptx.oxml import (
     CT_GraphicalObjectFrame, CT_Picture, CT_Shape, CT_Table, nsdecls, qn
 )
@@ -21,7 +23,10 @@ from pptx.spec import (
     PH_TYPE_SUBTITLE, PH_TYPE_TBL
 )
 
-from testdata import test_shape_elements, test_text_elements, test_text_xml
+from testdata import (
+    test_shape_elements, test_table_elements, test_table_xml,
+    test_text_elements, test_text_xml
+)
 from testing import TestCase
 
 
@@ -315,6 +320,55 @@ class TestCT_Table(TestCase):
         tbl = CT_Table.new_tbl(rows, cols, width, height)
         # verify ----------------------
         self.assertEqualLineByLine(xml, tbl)
+
+
+class TestCT_TableCell(TestCase):
+    """Test CT_TableCell"""
+    def test_anchor_property_value_is_correct(self):
+        """CT_TableCell.anchor property value is correct"""
+        # setup ------------------------
+        cases = (
+            (test_table_elements.cell, None),
+            (test_table_elements.top_aligned_cell, TANC.TOP)
+        )
+        # verify -----------------------
+        for tc, expected_text_anchoring_type in cases:
+            assert_that(tc.anchor,
+                        is_(equal_to(expected_text_anchoring_type)))
+
+    def test_assignment_to_anchor_sets_anchor_value(self):
+        """Assignment to CT_TableCell.anchor sets anchor value"""
+        # setup ------------------------
+        cases = (
+            # something => something else
+            (test_table_elements.top_aligned_cell, TANC.MIDDLE),
+            # something => None
+            (test_table_elements.top_aligned_cell, None),
+            # None => something
+            (test_table_elements.cell, TANC.BOTTOM),
+            # None => None
+            (test_table_elements.cell, None)
+        )
+        # verify -----------------------
+        for tc, anchor in cases:
+            tc.anchor = anchor
+            assert_that(tc.anchor, is_(equal_to(anchor)))
+
+    def test_assignment_to_anchor_produces_correct_xml(self):
+        """Assigning value to CT_TableCell.anchor produces correct XML"""
+        # setup ------------------------
+        cases = (
+            # None => something
+            (test_table_elements.cell, TANC.TOP,
+             test_table_xml.top_aligned_cell),
+            # something => None
+            (test_table_elements.top_aligned_cell, None,
+             test_table_xml.cell)
+        )
+        # verify -----------------------
+        for tc, text_anchoring_type, expected_xml in cases:
+            tc.anchor = text_anchoring_type
+            self.assertEqualLineByLine(expected_xml, tc)
 
 
 class TestCT_TextParagraph(TestCase):
