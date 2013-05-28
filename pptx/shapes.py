@@ -655,6 +655,61 @@ class _Cell(object):
         super(_Cell, self).__init__()
         self.__tc = tc
 
+    @staticmethod
+    def __assert_valid_margin_value(margin_value):
+        """
+        Raise ValueError if *margin_value* is not a positive integer value or
+        |None|.
+        """
+        if (not isinstance(margin_value, (int, long))
+                and margin_value is not None):
+            tmpl = "margin value must be integer or None, got '%s'"
+            raise ValueError(tmpl % margin_value)
+
+    @property
+    def margin_top(self):
+        """
+        Read/write integer value of top margin of cell in English Metric
+        Units (EMU). If assigned |None|, the default value is used, 0.1
+        inches for left and right margins and 0.05 inches for top and bottom.
+        """
+        return self.__tc.marT
+
+    @property
+    def margin_right(self):
+        """Right margin of cell"""
+        return self.__tc.marR
+
+    @property
+    def margin_bottom(self):
+        """Bottom margin of cell"""
+        return self.__tc.marB
+
+    @property
+    def margin_left(self):
+        """Left margin of cell"""
+        return self.__tc.marL
+
+    @margin_top.setter
+    def margin_top(self, margin_top):
+        self.__assert_valid_margin_value(margin_top)
+        self.__tc.marT = margin_top
+
+    @margin_right.setter
+    def margin_right(self, margin_right):
+        self.__assert_valid_margin_value(margin_right)
+        self.__tc.marR = margin_right
+
+    @margin_bottom.setter
+    def margin_bottom(self, margin_bottom):
+        self.__assert_valid_margin_value(margin_bottom)
+        self.__tc.marB = margin_bottom
+
+    @margin_left.setter
+    def margin_left(self, margin_left):
+        self.__assert_valid_margin_value(margin_left)
+        self.__tc.marL = margin_left
+
     def _set_text(self, text):
         """Replace all text in cell with single run containing *text*"""
         self.textframe.text = _to_unicode(text)
@@ -665,23 +720,6 @@ class _Cell(object):
     #: 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. String
     #: values are converted to unicode assuming UTF-8 encoding.
     text = property(None, _set_text)
-
-    @property
-    def margin_bottom(self):
-        """
-        Integer value of bottom margin of cell in English Metric Units (EMU).
-        If assigned |None|, the default value is used, 0.1 inches for left
-        and right margins and 0.05 inches for top and bottom.
-        """
-        return self.__tc.marB
-
-    @margin_bottom.setter
-    def margin_bottom(self, margin_bottom):
-        if (not isinstance(margin_bottom, (int, long))
-                and margin_bottom is not None):
-            tmpl = "margin_bottom must be integer or None, got '%s'"
-            raise ValueError(tmpl % margin_bottom)
-        self.__tc.marB = margin_bottom
 
     @property
     def textframe(self):

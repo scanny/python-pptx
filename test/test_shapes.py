@@ -257,40 +257,70 @@ class Test_Cell(TestCase):
         text = self.cell.textframe.paragraphs[0].runs[0].text
         assert_that(text, is_(equal_to(test_text)))
 
-    def test_margin_bottom_value(self):
-        """_Cell.margin_bottom value is calculated correctly"""
+    def test_margin_values(self):
+        """_Cell.margin_x values are calculated correctly"""
         # mockery ----------------------
+        marT_val, marR_val, marB_val, marL_val = 12, 34, 56, 78
         # -- CT_TableCell
         tc = MagicMock()
-        marB = type(tc).marB = PropertyMock()
+        marT = type(tc).marT = PropertyMock(return_value=marT_val)
+        marR = type(tc).marR = PropertyMock(return_value=marR_val)
+        marB = type(tc).marB = PropertyMock(return_value=marB_val)
+        marL = type(tc).marL = PropertyMock(return_value=marL_val)
         # setup ------------------------
         cell = _Cell(tc)
         # exercise ---------------------
-        cell.margin_bottom
+        margin_top = cell.margin_top
+        margin_right = cell.margin_right
+        margin_bottom = cell.margin_bottom
+        margin_left = cell.margin_left
         # verify -----------------------
+        marT.assert_called_once_with()
+        marR.assert_called_once_with()
         marB.assert_called_once_with()
+        marL.assert_called_once_with()
+        assert_that(margin_top, is_(equal_to(marT_val)))
+        assert_that(margin_right, is_(equal_to(marR_val)))
+        assert_that(margin_bottom, is_(equal_to(marB_val)))
+        assert_that(margin_left, is_(equal_to(marL_val)))
 
-    def test_margin_bottom_assignment(self):
-        """Assignment to _Cell.margin_bottom sets value"""
+    def test_margin_assignment(self):
+        """Assignment to _Cell.margin_x sets value"""
         # mockery ----------------------
         # -- CT_TableCell
         tc = MagicMock()
+        marT = type(tc).marT = PropertyMock()
+        marR = type(tc).marR = PropertyMock()
         marB = type(tc).marB = PropertyMock()
+        marL = type(tc).marL = PropertyMock()
         # setup ------------------------
-        margin_bottom = 999
+        top, right, bottom, left = 12, 34, 56, 78
         cell = _Cell(tc)
         # exercise ---------------------
-        cell.margin_bottom = margin_bottom
+        cell.margin_top = top
+        cell.margin_right = right
+        cell.margin_bottom = bottom
+        cell.margin_left = left
         # verify -----------------------
-        marB.assert_called_once_with(margin_bottom)
+        marT.assert_called_once_with(top)
+        marR.assert_called_once_with(right)
+        marB.assert_called_once_with(bottom)
+        marL.assert_called_once_with(left)
 
-    def test_margin_bottom_assignment_raises_on_not_int_or_none(self):
-        """Assignment to _Cell.margin_bottom raises if not int or none"""
+    def test_margin_assignment_raises_on_not_int_or_none(self):
+        """Assignment to _Cell.margin_x raises for not (int or none)"""
         # setup ------------------------
         cell = test_table_objects.cell
+        bad_margin = 'foobar'
         # verify -----------------------
         with self.assertRaises(ValueError):
-            cell.margin_bottom = 'foobar'
+            cell.margin_top = bad_margin
+        with self.assertRaises(ValueError):
+            cell.margin_right = bad_margin
+        with self.assertRaises(ValueError):
+            cell.margin_bottom = bad_margin
+        with self.assertRaises(ValueError):
+            cell.margin_left = bad_margin
 
     @patch('pptx.shapes.VerticalAnchor')
     def test_vertical_anchor_value(self, VerticalAnchor):
