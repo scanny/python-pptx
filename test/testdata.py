@@ -144,12 +144,22 @@ test_shape_xml = _TestShapeXml()
 class _TestTextXml(object):
     """XML snippets of text-related elements for use in unit tests"""
     @property
+    def centered_paragraph(self):
+        """
+        XML for centered paragraph
+        """
+        return (
+            '<a:p %s>\n'
+            '  <a:pPr algn="ctr"/>\n'
+            '</a:p>\n' % nsdecls('a')
+        )
+
+    @property
     def paragraph(self):
         """
-        XML for an autoshape for unit testing purposes, a rounded rectangle in
-        this case.
+        XML for a default, empty paragraph
         """
-        return '<a:p %s/>' % nsdecls('a')
+        return '<a:p %s/>\n' % nsdecls('a')
 
 
 test_text_xml = _TestTextXml()
@@ -187,6 +197,10 @@ test_shape_elements = _TestShapeElements()
 
 class _TestTextElements(object):
     """Text elements for use in unit tests"""
+    @property
+    def centered_paragraph(self):
+        return oxml_fromstring(test_text_xml.centered_paragraph)
+
     @property
     def paragraph(self):
         return oxml_fromstring(test_text_xml.paragraph)

@@ -22,7 +22,8 @@ class TestParagraphAlignment(TestCase):
     cases = (
         (PP.ALIGN_CENTER,     TAT.CENTER),
         (PP.ALIGN_DISTRIBUTE, TAT.DISTRIBUTE),
-        (PP.ALIGN_JUSTIFY,    TAT.JUSTIFY)
+        (PP.ALIGN_JUSTIFY,    TAT.JUSTIFY),
+        (None,                None)
     )
 
     def test_from_text_align_type_return_value(self):

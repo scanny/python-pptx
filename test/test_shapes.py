@@ -32,7 +32,9 @@ from pptx.spec import (
     PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER
 )
 from pptx.util import Inches, Pt
-from testdata import test_shape_elements, test_shapes
+from testdata import (
+    test_shape_elements, test_shapes, test_text_objects, test_text_xml
+)
 from testing import TestCase
 
 
@@ -475,36 +477,46 @@ class Test_Paragraph(TestCase):
     def test_alignment_value(self, ParagraphAlignment):
         """_Paragraph.alignment value is calculated correctly"""
         # setup ------------------------
-        __p = MagicMock()
-        type(__p).algn = algn = PropertyMock()
-        paragraph = _Paragraph(__p)
-        algn.return_value = algn_val = Mock(name='algn_val')
+        paragraph = test_text_objects.paragraph
+        paragraph._Paragraph__p = __p = MagicMock(name='__p')
+        __p.get_algn = get_algn = Mock(name='get_algn')
+        get_algn.return_value = algn_val = Mock(name='algn_val')
         alignment = Mock(name='alignment')
-        ParagraphAlignment.from_text_align_type.return_value = alignment
+        from_text_align_type = ParagraphAlignment.from_text_align_type
+        from_text_align_type.return_value = alignment
         # exercise ---------------------
         retval = paragraph.alignment
         # verify -----------------------
-        algn.assert_called_once_with()
-        ParagraphAlignment.from_text_align_type.assert_called_once_with(
-            algn_val)
+        get_algn.assert_called_once_with()
+        from_text_align_type.assert_called_once_with(algn_val)
         assert_that(retval, is_(same_instance(alignment)))
 
     @patch('pptx.shapes.ParagraphAlignment')
     def test_alignment_assignment(self, ParagraphAlignment):
         """Assignment to _Paragraph.alignment assigns value"""
         # setup ------------------------
-        __p = MagicMock()
-        type(__p).algn = algn = PropertyMock()
-        paragraph = _Paragraph(__p)
-        alignment = PP.ALIGN_CENTER
+        paragraph = test_text_objects.paragraph
+        paragraph._Paragraph__p = __p = MagicMock(name='__p')
+        __p.set_algn = set_algn = Mock(name='set_algn')
         algn_val = Mock(name='algn_val')
-        ParagraphAlignment.to_text_align_type.return_value = algn_val
+        to_text_align_type = ParagraphAlignment.to_text_align_type
+        to_text_align_type.return_value = algn_val
+        alignment = PP.ALIGN_CENTER
         # exercise ---------------------
         paragraph.alignment = alignment
         # verify -----------------------
-        ParagraphAlignment.to_text_align_type.assert_called_once_with(
-            alignment)
-        algn.assert_called_once_with(algn_val)
+        to_text_align_type.assert_called_once_with(alignment)
+        set_algn.assert_called_once_with(algn_val)
+
+    def test_alignment_integrates_with_CT_TextParagraph(self):
+        """_Paragraph.alignment integrates with CT_TextParagraph"""
+        # setup ------------------------
+        paragraph = test_text_objects.paragraph
+        expected_xml = test_text_xml.centered_paragraph
+        # exercise ---------------------
+        paragraph.alignment = PP.ALIGN_CENTER
+        # verify -----------------------
+        self.assertEqualLineByLine(expected_xml, paragraph._Paragraph__p)
 
     def test_clear_removes_all_runs(self):
         """_Paragraph.clear() removes all runs from paragraph"""

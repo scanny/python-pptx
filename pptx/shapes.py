@@ -934,16 +934,18 @@ class _Paragraph(object):
         Can return |None|, meaning the paragraph has no alignment setting and
         its effective value is inherited from a higher-level object.
         """
-        algn = self.__p.algn
+        algn = self.__p.get_algn()
         return ParagraphAlignment.from_text_align_type(algn)
 
     def _set_alignment(self, alignment):
         """
         Set alignment of this paragraph to *alignment*, a constant value like
-        ``PP.ALIGN_CENTER``.
+        ``PP.ALIGN_CENTER``. If *alignment* is None, any alignment setting is
+        cleared and its effective value is inherited from a higher-level
+        object.
         """
         algn = ParagraphAlignment.to_text_align_type(alignment)
-        self.__p.algn = algn
+        self.__p.set_algn(algn)
 
     #: Horizontal alignment of this paragraph, represented by a constant
     #: value like ``PP.ALIGN_CENTER``. Can be |None|, meaning the paragraph
