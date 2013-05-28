@@ -87,6 +87,16 @@ def step_given_ref_to_table(context):
     context.tbl = shapes.add_table(2, 2, x, y, cx, cy)
 
 
+@given('I have a reference to a table cell')
+def step_given_ref_to_table_cell(context):
+    context.prs = Presentation()
+    slidelayout = context.prs.slidelayouts[6]
+    sld = context.prs.slides.add_slide(slidelayout)
+    length = 1000
+    tbl = sld.shapes.add_table(2, 2, length, length, length, length)
+    context.cell = tbl.cell(0, 0)
+
+
 # when ====================================================
 
 @when('I add a new slide')
@@ -183,6 +193,11 @@ def step_when_save_presentation_to_stream(context):
     context.prs.save(context.stream)
 
 
+@when("I set the cell vertical anchor to middle")
+def step_when_set_cell_vertical_anchor_to_middle(context):
+    context.cell.vertical_alignment = MSO.ANCHOR_MIDDLE
+
+
 @when("I set the paragraph alignment to centered")
 def step_when_set_paragraph_alignment_to_centered(context):
     context.p.alignment = PP.ALIGN_CENTER
@@ -234,6 +249,14 @@ def step_then_auto_shape_appears_in_slide(context):
     assert_that(sp.shape_type, is_(equal_to(MSO.AUTO_SHAPE)))
     assert_that(sp.auto_shape_type, is_(equal_to(MSO.SHAPE_ROUNDED_RECTANGLE)))
     assert_that(sp_text, is_(equal_to(test_text)))
+
+
+@then('the cell contents are vertically centered')
+def step_then_cell_contents_are_vertically_centered(context):
+    prs = Presentation(saved_pptx_path)
+    table = prs.slides[0].shapes[0]
+    cell = table.cell(0, 0)
+    assert_that(cell.vertical_anchor, is_(equal_to(MSO.ANCHOR_MIDDLE)))
 
 
 @then('the image is saved in the pptx file')
