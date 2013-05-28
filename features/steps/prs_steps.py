@@ -193,6 +193,14 @@ def step_when_save_presentation_to_stream(context):
     context.prs.save(context.stream)
 
 
+@when("I set the cell margins")
+def step_when_set_cell_margins(context):
+    context.cell.margin_top = 1000
+    context.cell.margin_left = 2000
+    context.cell.margin_bottom = 3000
+    context.cell.margin_right = 4000
+
+
 @when("I set the cell vertical anchor to middle")
 def step_when_set_cell_vertical_anchor_to_middle(context):
     context.cell.vertical_anchor = MSO.ANCHOR_MIDDLE
@@ -249,6 +257,17 @@ def step_then_auto_shape_appears_in_slide(context):
     assert_that(sp.shape_type, is_(equal_to(MSO.AUTO_SHAPE)))
     assert_that(sp.auto_shape_type, is_(equal_to(MSO.SHAPE_ROUNDED_RECTANGLE)))
     assert_that(sp_text, is_(equal_to(test_text)))
+
+
+@then('the cell contents are inset by the margins')
+def step_then_cell_contents_are_inset_by_the_margins(context):
+    prs = Presentation(saved_pptx_path)
+    table = prs.slides[0].shapes[0]
+    cell = table.cell(0, 0)
+    assert_that(cell.margin_top, is_(equal_to(1000)))
+    assert_that(cell.margin_left, is_(equal_to(2000)))
+    assert_that(cell.margin_bottom, is_(equal_to(3000)))
+    assert_that(cell.margin_right, is_(equal_to(4000)))
 
 
 @then('the cell contents are vertically centered')

@@ -9,4 +9,8 @@ Feature: Change properties of table cell
        And I save the presentation
       Then the cell contents are vertically centered
 
-
+  Scenario: Set cell margins
+     Given I have a reference to a table cell
+      When I set the cell margins
+       And I save the presentation
+      Then the cell contents are inset by the margins
