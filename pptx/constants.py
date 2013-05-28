@@ -17,10 +17,13 @@ class MSO(object):
     Constants corresponding to things like ``msoAnchorMiddle`` in the MS
     Office API.
     """
-    # _TextFrame.vertical_anchor values
+    # MsoVerticalAnchor ----------------
     ANCHOR_TOP = 1
+    ANCHOR_TOP_BASELINE = 2
     ANCHOR_MIDDLE = 3
     ANCHOR_BOTTOM = 4
+    ANCHOR_BOTTOM_BASELINE = 5
+    VERTICAL_ANCHOR_MIXED = -2
 
     # AutoShape types ------------------
 
@@ -295,3 +298,18 @@ class TEXT_ALIGN_TYPE(object):
     LEFT = 'l'
     RIGHT = 'r'
     THAI_DISTRIBUTE = 'thaiDist'
+
+
+class TEXT_ANCHORING_TYPE(object):
+    """
+    Constants containing the valid values of ST_TextAnchoringType in Open
+    XML. These values appear in the ``anchor`` attribute of the ``<a:tcPr>``
+    element of a table cell and the ``<a:bodyPr>`` element of a text frame.
+    Specifies the vertical alignment of text in the frame.
+    """
+    # ST_TextAnchoringType -------------
+    TOP = 't'
+    MIDDLE = 'ctr'
+    BOTTOM = 'b'
+    JUSTIFY = 'just'
+    DISTRIBUTE = 'dist'
