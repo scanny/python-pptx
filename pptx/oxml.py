@@ -22,6 +22,9 @@ from pptx.spec import (
     PH_TYPE_SUBTITLE, PH_TYPE_TITLE
 )
 
+# import logging
+# log = logging.getLogger('pptx.oxml')
+
 # configure objectified XML parser
 fallback_lookup = objectify.ObjectifyElementClassLookup()
 element_class_lookup = etree.ElementNamespaceClassLookup(fallback_lookup)

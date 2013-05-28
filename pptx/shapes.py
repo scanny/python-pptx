@@ -24,6 +24,9 @@ from pptx.spec import (
     PH_TYPE_OBJ, PH_TYPE_SLDNUM)
 from pptx.util import Collection
 
+# import logging
+# log = logging.getLogger('pptx.shapes')
+
 # default namespace map for use in lxml calls
 _nsmap = namespaces('a', 'r', 'p')
 
