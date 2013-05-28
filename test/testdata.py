@@ -10,7 +10,9 @@
 """Test data for unit tests"""
 
 from pptx.oxml import nsdecls, oxml_fromstring
-from pptx.shapes import _Paragraph, _Picture, _Shape, _ShapeCollection
+from pptx.shapes import (
+    _Cell, _Paragraph, _Picture, _Shape, _ShapeCollection
+)
 
 
 class _TestShapeXml(object):
@@ -141,6 +143,28 @@ class _TestShapeXml(object):
 test_shape_xml = _TestShapeXml()
 
 
+class _TestTableXml(object):
+    """XML snippets of table-related elements for use in unit tests"""
+    @property
+    def cell(self):
+        """
+        XML for empty default table cell
+        """
+        return (
+            '<a:tc %s>\n'
+            '  <a:txBody>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p/>\n'
+            '  </a:txBody>\n'
+            '  <a:tcPr/>\n'
+            '</a:tc>\n' % nsdecls('a')
+        )
+
+
+test_table_xml = _TestTableXml()
+
+
 class _TestTextXml(object):
     """XML snippets of text-related elements for use in unit tests"""
     @property
@@ -195,6 +219,16 @@ class _TestShapeElements(object):
 test_shape_elements = _TestShapeElements()
 
 
+class _TestTableElements(object):
+    """Table-related elements for use in unit tests"""
+    @property
+    def cell(self):
+        return oxml_fromstring(test_table_xml.cell)
+
+
+test_table_elements = _TestTableElements()
+
+
 class _TestTextElements(object):
     """Text elements for use in unit tests"""
     @property
@@ -237,6 +271,16 @@ class _TestShapes(object):
 
 
 test_shapes = _TestShapes()
+
+
+class _TestTableObjects(object):
+    """Table-related object instances for use in unit tests"""
+    @property
+    def cell(self):
+        return _Cell(test_table_elements.cell)
+
+
+test_table_objects = _TestTableObjects()
 
 
 class _TestTextObjects(object):

@@ -15,6 +15,14 @@ packaging, and a utility function or two for accessing some of them.
 from constants import MSO, PP, TEXT_ALIGN_TYPE as TAT
 
 
+class VerticalAnchor(object):
+    """
+    Mappings between ``MsoVerticalAnchor`` values used in the API and
+    ``ST_TextAnchoringType`` values used in the XML. ``MsoVerticalAnchor``
+    values are like ``MSO.ANCHOR_MIDDLE``.
+    """
+
+
 class ParagraphAlignment(object):
     """
     Mappings between ``PpParagraphAlignment`` values used in the API and

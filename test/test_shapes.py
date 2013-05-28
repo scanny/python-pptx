@@ -256,6 +256,49 @@ class Test_Cell(TestCase):
         text = self.cell.textframe.paragraphs[0].runs[0].text
         assert_that(text, is_(equal_to(test_text)))
 
+    @patch('pptx.shapes.VerticalAnchor')
+    def test_vertical_anchor_value(self, VerticalAnchor):
+        """_Cell.vertical_anchor value is calculated correctly"""
+        # mockery ----------------------
+        # loose mocks
+        anchor_val = Mock(name='anchor_val')
+        vertical_anchor = Mock(name='vertical_anchor')
+        # CT_TableCell
+        tc = MagicMock()
+        anchor_prop = type(tc).anchor = PropertyMock(return_value=anchor_val)
+        # VerticalAnchor
+        from_text_anchoring_type = VerticalAnchor.from_text_anchoring_type
+        from_text_anchoring_type.return_value = vertical_anchor
+        # setup ------------------------
+        cell = _Cell(tc)
+        # exercise ---------------------
+        retval = cell.vertical_anchor
+        # verify -----------------------
+        anchor_prop.assert_called_once_with()
+        from_text_anchoring_type.assert_called_once_with(anchor_val)
+        assert_that(retval, is_(same_instance(vertical_anchor)))
+
+    @patch('pptx.shapes.VerticalAnchor')
+    def test_vertical_anchor_assignment(self, VerticalAnchor):
+        """Assignment to _Cell.vertical_anchor assigns value"""
+        # mockery ----------------------
+        # -- loose mocks
+        vertical_anchor = Mock(name='vertical_anchor')
+        anchor_val = Mock(name='anchor_val')
+        # -- CT_TableCell
+        tc = MagicMock()
+        anchor_prop = type(tc).anchor = PropertyMock()
+        # -- VerticalAnchor
+        to_text_anchoring_type = VerticalAnchor.to_text_anchoring_type
+        to_text_anchoring_type.return_value = anchor_val
+        # setup ------------------------
+        cell = _Cell(tc)
+        # exercise ---------------------
+        cell.vertical_anchor = vertical_anchor
+        # verify -----------------------
+        to_text_anchoring_type.assert_called_once_with(vertical_anchor)
+        anchor_prop.assert_called_once_with(anchor_val)
+
 
 class Test_CellCollection(TestCase):
     """Test _CellCollection"""

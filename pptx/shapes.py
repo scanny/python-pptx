@@ -17,7 +17,8 @@ from pptx.oxml import (
     CT_Picture, CT_Shape
 )
 from pptx.spec import (
-    autoshape_types, namespaces, ParagraphAlignment, slide_ph_basenames
+    autoshape_types, namespaces, ParagraphAlignment, slide_ph_basenames,
+    VerticalAnchor
 )
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_TYPE_DT, PH_TYPE_FTR,
@@ -674,6 +675,32 @@ class _Cell(object):
         if txBody is None:
             raise ValueError('cell has no text frame')
         return _TextFrame(txBody)
+
+    def _get_vertical_anchor(self):
+        """
+        Return vertical anchor setting for this table cell, e.g.
+        ``MSO.ANCHOR_MIDDLE``. Can be |None|, meaning the cell has no
+        vertical anchor setting and its effective value is inherited from a
+        higher-level object.
+        """
+        anchor = self.__tc.anchor
+        return VerticalAnchor.from_text_anchoring_type(anchor)
+
+    def _set_vertical_anchor(self, vertical_anchor):
+        """
+        Set vertical_anchor of this cell to *vertical_anchor*, a constant
+        value like ``MSO.ANCHOR_MIDDLE``. If *vertical_anchor* is |None|, any
+        vertical anchor setting is cleared and its effective value is
+        inherited.
+        """
+        anchor = VerticalAnchor.to_text_anchoring_type(vertical_anchor)
+        self.__tc.anchor = anchor
+
+    #: Vertical anchor of this table cell, determines the vertical alignment
+    #: of text in the cell. Value is like ``MSO.ANCHOR_MIDDLE``. Can be
+    #: |None|, meaning the cell has no vertical anchor setting and its
+    #: effective value is inherited from a higher-level object.
+    vertical_anchor = property(_get_vertical_anchor, _set_vertical_anchor)
 
 
 class _Column(object):
