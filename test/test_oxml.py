@@ -370,49 +370,78 @@ class TestCT_TableCell(TestCase):
             tc.anchor = text_anchoring_type
             self.assertEqualLineByLine(expected_xml, tc)
 
-    def test_marB_property_value_is_correct(self):
-        """CT_TableCell.marB property value is correct"""
+    def test_marX_property_values_are_correct(self):
+        """CT_TableCell.marX property values are correct"""
         # setup ------------------------
         cases = (
-            (test_table_elements.cell_with_margins, 123456),
-            (test_table_elements.cell, 45720)
+            (test_table_elements.cell_with_margins, 12, 34, 56, 78),
+            (test_table_elements.cell, 45720, 91440, 45720, 91440)
         )
         # verify -----------------------
-        for tc, expected_margin_bottom in cases:
-            assert_that(tc.marB, is_(equal_to(expected_margin_bottom)))
+        for tc, exp_marT, exp_marR, exp_marB, exp_marL in cases:
+            assert_that(tc.marT, is_(equal_to(exp_marT)))
+            assert_that(tc.marR, is_(equal_to(exp_marR)))
+            assert_that(tc.marB, is_(equal_to(exp_marB)))
+            assert_that(tc.marL, is_(equal_to(exp_marL)))
 
-    def test_assignment_to_marB_sets_value(self):
-        """Assignment to CT_TableCell.marB sets marB value"""
+    def test_assignment_to_marX_sets_value(self):
+        """Assignment to CT_TableCell.marX sets marX value"""
         # setup ------------------------
         cases = (
             # something => something else
-            (test_table_elements.cell_with_margins, 654321, 654321),
+            (
+                test_table_elements.cell_with_margins,
+                (98, 76, 54, 32),
+                (98, 76, 54, 32)
+            ),
             # something => None
-            (test_table_elements.cell_with_margins, None, 45720),
+            (
+                test_table_elements.cell_with_margins,
+                (None, None, None, None),
+                (45720, 91440, 45720, 91440)
+            ),
             # None => something
-            (test_table_elements.cell, 987654, 987654),
+            (
+                test_table_elements.cell,
+                (98, 76, 54, 32),
+                (98, 76, 54, 32)
+            ),
             # None => None
-            (test_table_elements.cell, None, 45720)
+            (
+                test_table_elements.cell,
+                (None, None, None, None),
+                (45720, 91440, 45720, 91440)
+            )
         )
         # verify -----------------------
-        for tc, marB, expected_marB in cases:
-            tc.marB = marB
-            assert_that(tc.marB, is_(equal_to(expected_marB)))
+        for tc, marX, expected_marX in cases:
+            tc.marT, tc.marR, tc.marB, tc.marL = marX
+            exp_marT, exp_marR, exp_marB, exp_marL = expected_marX
+            assert_that(tc.marT, is_(equal_to(exp_marT)))
+            assert_that(tc.marR, is_(equal_to(exp_marR)))
+            assert_that(tc.marB, is_(equal_to(exp_marB)))
+            assert_that(tc.marL, is_(equal_to(exp_marL)))
 
-    def test_assignment_to_marB_produces_correct_xml(self):
-        """Assigning value to CT_TableCell.marB produces correct XML"""
+    def test_assignment_to_marX_produces_correct_xml(self):
+        """Assigning value to CT_TableCell.marX produces correct XML"""
         # setup ------------------------
         cases = (
             # None => something
-            (test_table_elements.cell, 123456,
-             test_table_xml.cell_with_margins),
+            (
+                test_table_elements.cell,
+                (12, 34, 56, 78),
+                test_table_xml.cell_with_margins
+            ),
             # something => None
-            (test_table_elements.cell_with_margins, None,
-             test_table_xml.cell)
+            (
+                test_table_elements.cell_with_margins,
+                (None, None, None, None),
+                test_table_xml.cell
+            )
         )
         # verify -----------------------
-        for tc, marB, expected_xml in cases:
-            tc.marB = marB
+        for tc, marX, expected_xml in cases:
+            tc.marT, tc.marR, tc.marB, tc.marL = marX
             self.assertEqualLineByLine(expected_xml, tc)
 
 

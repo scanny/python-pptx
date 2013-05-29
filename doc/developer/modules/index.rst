@@ -13,5 +13,6 @@ documented here as a convenience for developers.
 
    presentation
    packaging
+   oxml
    spec
 
