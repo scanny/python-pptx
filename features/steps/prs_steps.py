@@ -80,8 +80,8 @@ def step_given_ref_to_slide(context):
 def step_given_ref_to_table(context):
     context.prs = Presentation()
     slidelayout = context.prs.slidelayouts[6]
-    context.sld = context.prs.slides.add_slide(slidelayout)
-    shapes = context.sld.shapes
+    sld = context.prs.slides.add_slide(slidelayout)
+    shapes = sld.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(1.00))
     context.tbl = shapes.add_table(2, 2, x, y, cx, cy)
@@ -206,6 +206,11 @@ def step_when_set_cell_vertical_anchor_to_middle(context):
     context.cell.vertical_anchor = MSO.ANCHOR_MIDDLE
 
 
+@when("I set the first_col property to True")
+def step_when_set_first_col_property_to_true(context):
+    context.tbl.first_col = True
+
+
 @when("I set the paragraph alignment to centered")
 def step_when_set_paragraph_alignment_to_centered(context):
     context.p.alignment = PP.ALIGN_CENTER
@@ -276,6 +281,12 @@ def step_then_cell_contents_are_vertically_centered(context):
     table = prs.slides[0].shapes[0]
     cell = table.cell(0, 0)
     assert_that(cell.vertical_anchor, is_(equal_to(MSO.ANCHOR_MIDDLE)))
+
+
+@then('the first column of the table has special formatting')
+def step_then_first_column_of_table_has_special_formatting(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.first_col, is_(True))
 
 
 @then('the image is saved in the pptx file')
