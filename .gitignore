@@ -12,3 +12,4 @@ _scratch
 doc/_static/ref
 tags
 test/debug.py
+Session.vim
