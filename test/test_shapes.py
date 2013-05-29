@@ -1326,6 +1326,43 @@ class Test_Table(TestCase):
         sum_of_col_widths = tbl.columns[0].width + tbl.columns[1].width
         assert_that(tbl.width, is_(equal_to(sum_of_col_widths)))
 
+    def test_first_col_property_value(self):
+        """_Table.first_col property value is calculated correctly"""
+        # mockery ----------------------
+        firstCol_val = True
+        tbl = MagicMock()
+        firstCol = type(tbl).firstCol = PropertyMock(return_value=firstCol_val)
+        shapes = test_shapes.empty_shape_collection
+        table = shapes.add_table(2, 2, 1000, 1000, 1000, 1000)
+        table._Table__tbl_elm = tbl
+        # exercise ---------------------
+        retval = table.first_col
+        # verify -----------------------
+        firstCol.assert_called_once_with()
+        assert_that(retval, is_(equal_to(firstCol_val)))
+
+    def test_first_col_assignment(self):
+        """Assignment to _Table.first_col sets attribute value"""
+        # mockery ----------------------
+        tbl = MagicMock()
+        firstCol = type(tbl).firstCol = PropertyMock()
+        shapes = test_shapes.empty_shape_collection
+        table = shapes.add_table(2, 2, 1000, 1000, 1000, 1000)
+        table._Table__tbl_elm = tbl
+        # verify -----------------------
+        cases = (
+            (True,  True),
+            (False, False),
+            (0,     False),
+            (1,     True),
+            ('',    False),
+            ('foo', True)
+        )
+        for assigned_value, called_with_value in cases:
+            table.first_col = assigned_value
+            firstCol.assert_called_once_with(called_with_value)
+            firstCol.reset_mock()
+
 
 class Test_TextFrame(TestCase):
     """Test _TextFrame"""

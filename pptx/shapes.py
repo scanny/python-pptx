@@ -598,6 +598,19 @@ class _Table(_BaseShape):
         return self.__columns
 
     @property
+    def first_col(self):
+        """
+        Read/write boolean property which, when true, indicates the first
+        column should be formatted differently, as for a side-heading column
+        at the far left of the table.
+        """
+        return self.__tbl_elm.firstCol
+
+    @first_col.setter
+    def first_col(self, bool):
+        self.__tbl_elm.firstCol = True if bool else False
+
+    @property
     def height(self):
         """
         Read-only integer height of table in English Metric Units (EMU)
