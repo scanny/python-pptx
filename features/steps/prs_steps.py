@@ -211,6 +211,21 @@ def step_when_set_first_col_property_to_true(context):
     context.tbl.first_col = True
 
 
+@when("I set the first_row property to True")
+def step_when_set_first_row_property_to_true(context):
+    context.tbl.first_row = True
+
+
+@when("I set the horz_banding property to True")
+def step_when_set_horz_banding_property_to_true(context):
+    context.tbl.horz_banding = True
+
+
+@when("I set the last_col property to True")
+def step_when_set_last_col_property_to_true(context):
+    context.tbl.last_col = True
+
+
 @when("I set the last_row property to True")
 def step_when_set_last_row_property_to_true(context):
     context.tbl.last_row = True
@@ -229,6 +244,11 @@ def step_when_set_text_of_first_cell(context):
 @when("I set the title text of the slide")
 def step_when_set_slide_title_text(context):
     context.sld.shapes.title.text = test_text
+
+
+@when("I set the vert_banding property to True")
+def step_when_set_vert_banding_property_to_true(context):
+    context.tbl.vert_banding = True
 
 
 @when("I set the width of the table's columns")
@@ -288,10 +308,22 @@ def step_then_cell_contents_are_vertically_centered(context):
     assert_that(cell.vertical_anchor, is_(equal_to(MSO.ANCHOR_MIDDLE)))
 
 
+@then('the columns of the table have alternating shading')
+def step_then_columns_of_table_have_alternating_shading(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.vert_banding, is_(True))
+
+
 @then('the first column of the table has special formatting')
 def step_then_first_column_of_table_has_special_formatting(context):
     tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
     assert_that(tbl.first_col, is_(True))
+
+
+@then('the first row of the table has special formatting')
+def step_then_first_row_of_table_has_special_formatting(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.first_row, is_(True))
 
 
 @then('the image is saved in the pptx file')
@@ -300,6 +332,12 @@ def step_then_img_saved_in_pptx_file(context):
     partnames = [part.partname for part in pkgng_pkg.parts
                  if part.partname.startswith('/ppt/media/')]
     assert_that(partnames, has_item('/ppt/media/image1.png'))
+
+
+@then('the last column of the table has special formatting')
+def step_then_last_column_of_table_has_special_formatting(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.last_col, is_(True))
 
 
 @then('the last row of the table has special formatting')
@@ -337,6 +375,12 @@ def step_then_paragraph_is_aligned_centered(context):
     prs = Presentation(saved_pptx_path)
     p = prs.slides[0].shapes[0].textframe.paragraphs[0]
     assert_that(p.alignment, is_(equal_to(PP.ALIGN_CENTER)))
+
+
+@then('the rows of the table have alternating shading')
+def step_then_rows_of_table_have_alternating_shading(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.horz_banding, is_(True))
 
 
 @then('the table appears in the slide')
