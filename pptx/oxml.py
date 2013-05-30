@@ -439,30 +439,21 @@ class CT_Table(objectify.ObjectifiedElement):
 
     @property
     def firstCol(self):
-        """
-        Boolean value represented in firstCol attribute of tblPr child
-        element. Defaults to False if firstCol attribute is missing or tblPr
-        element itself is not present.
-        """
-        if not self.has_tblPr:
-            return False
-        return self.tblPr.get('firstCol') in ('1', 'true')
+        """Boolean value represented in firstCol attribute of tblPr child"""
+        return self._get_boolean_property('firstCol')
+
+    @property
+    def lastRow(self):
+        """Boolean value represented in lastRow attribute of tblPr child"""
+        return self._get_boolean_property('lastRow')
 
     def _set_firstCol(self, value):
-        """
-        Set firstCol attribute of tblPr appropriately based on *value*. If
-        *value* is truthy, the firstCol attribute is set to "1"; a tblPr
-        child element is added if necessary. If *value* is falsey, any
-        firstCol attribute is removed, allowing its default value of False to
-        be its effective value.
-        """
-        if value:
-            tblPr = self._get_or_insert_tblPr()
-            tblPr.set('firstCol', XSD_TRUE)
-        elif not self.has_tblPr:
-            pass
-        elif 'firstCol' in self.tblPr.attrib:
-            del self.tblPr.attrib['firstCol']
+        """Set firstCol attribute of tblPr"""
+        self._set_boolean_property('firstCol', value)
+
+    def _set_lastRow(self, value):
+        """Set lastRow attribute of tblPr"""
+        self._set_boolean_property('lastRow', value)
 
     def __setattr__(self, attr, value):
         """
@@ -472,8 +463,37 @@ class CT_Table(objectify.ObjectifiedElement):
         """
         if attr == 'firstCol':
             self._set_firstCol(value)
+        elif attr == 'lastRow':
+            self._set_lastRow(value)
         else:
             super(CT_Table, self).__setattr__(attr, value)
+
+    def _get_boolean_property(self, propname):
+        """
+        Generalized getter for the boolean properties on the ``<a:tblPr>``
+        child element. Defaults to False if *propname* attribute is missing
+        or ``<a:tblPr>`` element itself is not present.
+        """
+        if not self.has_tblPr:
+            return False
+        return self.tblPr.get(propname) in ('1', 'true')
+
+    def _set_boolean_property(self, propname, value):
+        """
+        Generalized setter for boolean properties on the ``<a:tblPr>`` child
+        element, setting *propname* attribute appropriately based on *value*.
+        If *value* is truthy, the attribute is set to "1"; a tblPr child
+        element is added if necessary. If *value* is falsey, the *propname*
+        attribute is removed if present, allowing its default value of False
+        to be its effective value.
+        """
+        if value:
+            tblPr = self._get_or_insert_tblPr()
+            tblPr.set(propname, XSD_TRUE)
+        elif not self.has_tblPr:
+            pass
+        elif propname in self.tblPr.attrib:
+            del self.tblPr.attrib[propname]
 
     @property
     def has_tblPr(self):

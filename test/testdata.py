@@ -292,10 +292,10 @@ class CT_TableBuilder(object):
         self._tmpl = CT_TableBuilder.with_props_tmpl
         return self
 
-    def with_firstCol(self, value):
-        """add firstCol property with specified value"""
+    def with_prop(self, name, value):
+        """add property named *name* with specified *value*"""
         self._tmpl = CT_TableBuilder.with_props_tmpl
-        self._properties.append(('firstCol', value))
+        self._properties.append((name, value))
         return self
 
 

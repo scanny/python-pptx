@@ -290,6 +290,65 @@ class TestCT_Shape(TestCase):
 
 class TestCT_Table(TestCase):
     """Test CT_Table"""
+    @staticmethod
+    def getter_cases(propname):
+        """Test cases for boolean property getter tests"""
+        return (
+            # defaults to False if no tblPr element present
+            (a_tbl(), False),
+            # defaults to False if tblPr element is empty
+            (a_tbl().with_tblPr, False),
+            # returns True if firstCol is valid truthy value
+            (a_tbl().with_prop(propname, '1'), True),
+            (a_tbl().with_prop(propname, 'true'), True),
+            # returns False if firstCol has valid False value
+            (a_tbl().with_prop(propname, '0'), False),
+            (a_tbl().with_prop(propname, 'false'), False),
+            # returns False if firstCol is not valid xsd:boolean value
+            (a_tbl().with_prop(propname, 'foobar'), False),
+        )
+
+    @staticmethod
+    def assignment_cases(propname):
+        """Test cases for boolean property assignment test"""
+        return (
+            # this set is not quite exhaustive, but seems quite thorough
+            # None = True => True
+            (a_tbl(), True, True),
+            # None = False => False
+            (a_tbl(), False, False),
+            # True = True => True
+            (a_tbl().with_prop(propname, 'true'), True, True),
+            # True = False => False
+            (a_tbl().with_prop(propname, 'true'), False, False),
+            # False = True => True
+            (a_tbl().with_prop(propname, '0'), True, True),
+            # False = False => False
+            (a_tbl().with_prop(propname, '0'), False, False),
+            # Invalid = True => True
+            (a_tbl().with_prop(propname, 'foobar'), True, True),
+            # Invalid = False => False
+            (a_tbl().with_prop(propname, 'foobar'), False, False),
+            # True = string => boolean value
+            (a_tbl().with_prop(propname, '1'), 'False', True),  # tricky :)
+            (a_tbl().with_prop(propname, '1'), '', False),
+            # False = number => boolean value
+            (a_tbl().with_prop(propname, '0'), 0, False),
+            (a_tbl().with_prop(propname, '0'), 999, True),
+        )
+
+    @staticmethod
+    def xml_check_cases(propname):
+        """Test cases for boolean property xml result tests"""
+        return (
+            # => True
+            (a_tbl(), True, a_tbl().with_prop(propname, '1')),
+            # => False: firstCol attribute should be removed if false
+            (a_tbl().with_prop(propname, '1'), False, a_tbl().with_tblPr),
+            # => False: firstCol attribute should not be added if false
+            (a_tbl(), False, a_tbl()),
+        )
+
     def test_new_tbl_generates_correct_xml(self):
         """CT_Table._new_tbl() returns correct XML"""
         # setup -----------------------
@@ -324,20 +383,7 @@ class TestCT_Table(TestCase):
     def test_firstCol_property_value_is_correct(self):
         """CT_TableCell.firstCol property value is correct"""
         # setup ------------------------
-        cases = (
-            # defaults to False if no tblPr element present
-            (a_tbl(), False),
-            # defaults to False if tblPr element is empty
-            (a_tbl().with_tblPr, False),
-            # returns True if firstCol is valid truthy value
-            (a_tbl().with_firstCol('1'), True),
-            (a_tbl().with_firstCol('true'), True),
-            # returns False if firstCol has valid False value
-            (a_tbl().with_firstCol('0'), False),
-            (a_tbl().with_firstCol('false'), False),
-            # returns False if firstCol is not valid xsd:boolean value
-            (a_tbl().with_firstCol('foobar'), False),
-        )
+        cases = self.getter_cases('firstCol')
         # verify -----------------------
         for tbl, expected_firstCol_value in cases:
             reason = ('tbl.firstCol did not return %s for this XML:\n\n%s' %
@@ -349,31 +395,7 @@ class TestCT_Table(TestCase):
     def test_assignment_to_firstCol_sets_attr_value(self):
         """Assignment to CT_Table.firstCol sets attribute value"""
         # setup ------------------------
-        cases = (
-            # this set is not quite exhaustive, but seems quite thorough
-            # None = True => True
-            (a_tbl(), True, True),
-            # None = False => False
-            (a_tbl(), False, False),
-            # True = True => True
-            (a_tbl().with_firstCol('true'), True, True),
-            # True = False => False
-            (a_tbl().with_firstCol('true'), False, False),
-            # False = True => True
-            (a_tbl().with_firstCol('0'), True, True),
-            # False = False => False
-            (a_tbl().with_firstCol('0'), False, False),
-            # Invalid = True => True
-            (a_tbl().with_firstCol('foobar'), True, True),
-            # Invalid = False => False
-            (a_tbl().with_firstCol('foobar'), False, False),
-            # True = string => boolean value
-            (a_tbl().with_firstCol('1'), 'False', True),  # tricky :)
-            (a_tbl().with_firstCol('1'), '', False),
-            # False = number => boolean value
-            (a_tbl().with_firstCol('0'), 0, False),
-            (a_tbl().with_firstCol('0'), 999, True),
-        )
+        cases = self.assignment_cases('firstCol')
         # verify -----------------------
         for tbl_builder, assigned_value, expected_firstCol_value in cases:
             tbl = tbl_builder.element
@@ -383,18 +405,47 @@ class TestCT_Table(TestCase):
     def test_assignment_to_firstCol_produces_correct_xml(self):
         """Assigning value to CT_Table.firstCol produces correct XML"""
         # setup ------------------------
-        cases = (
-            # => True
-            (a_tbl(), True, a_tbl().with_firstCol('1')),
-            # => False: firstCol attribute should be removed if false
-            (a_tbl().with_firstCol('1'), False, a_tbl().with_tblPr),
-            # => False: firstCol attribute should not be added if false
-            (a_tbl(), False, a_tbl()),
-        )
+        cases = self.xml_check_cases('firstCol')
         # verify -----------------------
         for tc_builder, assigned_value, expected_tc_builder in cases:
             tc = tc_builder.element
             tc.firstCol = assigned_value
+            self.assertEqualLineByLine(expected_tc_builder.xml, tc)
+
+    def test_lastRow_property_value_is_correct(self):
+        """CT_TableCell.lastRow property value is correct"""
+        # setup ------------------------
+        cases = self.getter_cases('lastRow')
+        # verify -----------------------
+        for tbl, expected_lastRow_value in cases:
+            reason = ('tbl.lastRow did not return %s for this XML:\n\n%s' %
+                      (expected_lastRow_value, tbl.xml))
+            assert_that(tbl.element.lastRow,
+                        is_(equal_to(expected_lastRow_value)),
+                        reason)
+
+    def test_assignment_to_lastRow_sets_attr_value(self):
+        """Assignment to CT_Table.lastRow sets attribute value"""
+        # setup ------------------------
+        cases = self.assignment_cases('lastRow')
+        # verify -----------------------
+        for tbl_builder, assigned_value, expected_lastRow_value in cases:
+            tbl = tbl_builder.element
+            tbl.lastRow = assigned_value
+            reason = ("assigning %s to:\n\n%s\n" %
+                      (assigned_value, tbl_builder.xml))
+            assert_that(tbl.lastRow,
+                        is_(equal_to(expected_lastRow_value)),
+                        reason)
+
+    def test_assignment_to_lastRow_produces_correct_xml(self):
+        """Assigning value to CT_Table.lastRow produces correct XML"""
+        # setup ------------------------
+        cases = self.xml_check_cases('lastRow')
+        # verify -----------------------
+        for tc_builder, assigned_value, expected_tc_builder in cases:
+            tc = tc_builder.element
+            tc.lastRow = assigned_value
             self.assertEqualLineByLine(expected_tc_builder.xml, tc)
 
 
