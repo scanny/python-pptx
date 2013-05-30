@@ -607,6 +607,31 @@ class _Table(_BaseShape):
         return self.__tbl_elm.firstCol
 
     @property
+    def first_row(self):
+        """
+        Read/write boolean property which, when true, indicates the first
+        row should be formatted differently, e.g. for column headings.
+        """
+        return self.__tbl_elm.firstRow
+
+    @property
+    def horz_banding(self):
+        """
+        Read/write boolean property which, when true, indicates the rows of
+        the table should appear with alternating shading.
+        """
+        return self.__tbl_elm.bandRow
+
+    @property
+    def last_col(self):
+        """
+        Read/write boolean property which, when true, indicates the last
+        column should be formatted differently, as for a row totals column at
+        the far right of the table.
+        """
+        return self.__tbl_elm.lastCol
+
+    @property
     def last_row(self):
         """
         Read/write boolean property which, when true, indicates the last
@@ -615,13 +640,37 @@ class _Table(_BaseShape):
         """
         return self.__tbl_elm.lastRow
 
+    @property
+    def vert_banding(self):
+        """
+        Read/write boolean property which, when true, indicates the columns
+        of the table should appear with alternating shading.
+        """
+        return self.__tbl_elm.bandCol
+
     @first_col.setter
     def first_col(self, bool):
         self.__tbl_elm.firstCol = True if bool else False
 
+    @first_row.setter
+    def first_row(self, bool):
+        self.__tbl_elm.firstRow = True if bool else False
+
+    @horz_banding.setter
+    def horz_banding(self, bool):
+        self.__tbl_elm.bandRow = True if bool else False
+
+    @last_col.setter
+    def last_col(self, bool):
+        self.__tbl_elm.lastCol = True if bool else False
+
     @last_row.setter
     def last_row(self, bool):
         self.__tbl_elm.lastRow = True if bool else False
+
+    @vert_banding.setter
+    def vert_banding(self, bool):
+        self.__tbl_elm.bandCol = True if bool else False
 
     @property
     def height(self):

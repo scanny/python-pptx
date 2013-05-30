@@ -1369,6 +1369,39 @@ class Test_TableBooleanProperties(TestCase):
         firstCol.assert_called_once_with()
         assert_that(retval, is_(equal_to(firstCol_val)))
 
+    def test_first_row_property_value(self):
+        """_Table.first_row property value is calculated correctly"""
+        # mockery ----------------------
+        firstRow_val = True
+        firstRow = self.mockery('firstRow', firstRow_val)
+        # exercise ---------------------
+        retval = self.table.first_row
+        # verify -----------------------
+        firstRow.assert_called_once_with()
+        assert_that(retval, is_(equal_to(firstRow_val)))
+
+    def test_horz_banding_property_value(self):
+        """_Table.horz_banding property value is calculated correctly"""
+        # mockery ----------------------
+        bandRow_val = True
+        bandRow = self.mockery('bandRow', bandRow_val)
+        # exercise ---------------------
+        retval = self.table.horz_banding
+        # verify -----------------------
+        bandRow.assert_called_once_with()
+        assert_that(retval, is_(equal_to(bandRow_val)))
+
+    def test_last_col_property_value(self):
+        """_Table.last_col property value is calculated correctly"""
+        # mockery ----------------------
+        lastCol_val = True
+        lastCol = self.mockery('lastCol', lastCol_val)
+        # exercise ---------------------
+        retval = self.table.last_col
+        # verify -----------------------
+        lastCol.assert_called_once_with()
+        assert_that(retval, is_(equal_to(lastCol_val)))
+
     def test_last_row_property_value(self):
         """_Table.last_row property value is calculated correctly"""
         # mockery ----------------------
@@ -1380,6 +1413,17 @@ class Test_TableBooleanProperties(TestCase):
         lastRow.assert_called_once_with()
         assert_that(retval, is_(equal_to(lastRow_val)))
 
+    def test_vert_banding_property_value(self):
+        """_Table.vert_banding property value is calculated correctly"""
+        # mockery ----------------------
+        bandCol_val = True
+        bandCol = self.mockery('bandCol', bandCol_val)
+        # exercise ---------------------
+        retval = self.table.vert_banding
+        # verify -----------------------
+        bandCol.assert_called_once_with()
+        assert_that(retval, is_(equal_to(bandCol_val)))
+
     def test_first_col_assignment(self):
         """Assignment to _Table.first_col sets attribute value"""
         # mockery ----------------------
@@ -1390,6 +1434,36 @@ class Test_TableBooleanProperties(TestCase):
             firstCol.assert_called_once_with(called_with_value)
             firstCol.reset_mock()
 
+    def test_first_row_assignment(self):
+        """Assignment to _Table.first_row sets attribute value"""
+        # mockery ----------------------
+        firstRow = self.mockery('firstRow')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.first_row = assigned_value
+            firstRow.assert_called_once_with(called_with_value)
+            firstRow.reset_mock()
+
+    def test_horz_banding_assignment(self):
+        """Assignment to _Table.horz_banding sets attribute value"""
+        # mockery ----------------------
+        bandRow = self.mockery('bandRow')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.horz_banding = assigned_value
+            bandRow.assert_called_once_with(called_with_value)
+            bandRow.reset_mock()
+
+    def test_last_col_assignment(self):
+        """Assignment to _Table.last_col sets attribute value"""
+        # mockery ----------------------
+        lastCol = self.mockery('lastCol')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.last_col = assigned_value
+            lastCol.assert_called_once_with(called_with_value)
+            lastCol.reset_mock()
+
     def test_last_row_assignment(self):
         """Assignment to _Table.last_row sets attribute value"""
         # mockery ----------------------
@@ -1399,6 +1473,16 @@ class Test_TableBooleanProperties(TestCase):
             self.table.last_row = assigned_value
             lastRow.assert_called_once_with(called_with_value)
             lastRow.reset_mock()
+
+    def test_vert_banding_assignment(self):
+        """Assignment to _Table.vert_banding sets attribute value"""
+        # mockery ----------------------
+        bandCol = self.mockery('bandCol')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.vert_banding = assigned_value
+            bandCol.assert_called_once_with(called_with_value)
+            bandCol.reset_mock()
 
 
 class Test_TextFrame(TestCase):
