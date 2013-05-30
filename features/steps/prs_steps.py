@@ -211,6 +211,11 @@ def step_when_set_first_col_property_to_true(context):
     context.tbl.first_col = True
 
 
+@when("I set the last_row property to True")
+def step_when_set_last_row_property_to_true(context):
+    context.tbl.last_row = True
+
+
 @when("I set the paragraph alignment to centered")
 def step_when_set_paragraph_alignment_to_centered(context):
     context.p.alignment = PP.ALIGN_CENTER
@@ -295,6 +300,12 @@ def step_then_img_saved_in_pptx_file(context):
     partnames = [part.partname for part in pkgng_pkg.parts
                  if part.partname.startswith('/ppt/media/')]
     assert_that(partnames, has_item('/ppt/media/image1.png'))
+
+
+@then('the last row of the table has special formatting')
+def step_then_last_row_of_table_has_special_formatting(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.last_row, is_(True))
 
 
 @then('the paragraph is indented to the second level')
