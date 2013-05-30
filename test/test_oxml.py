@@ -24,8 +24,8 @@ from pptx.spec import (
 )
 
 from testdata import (
-    test_shape_elements, test_table_elements, test_table_xml,
-    test_text_elements, test_text_xml
+    a_tbl, test_shape_elements, test_table_elements,
+    test_table_xml, test_text_elements, test_text_xml
 )
 from testing import TestCase
 
@@ -320,6 +320,82 @@ class TestCT_Table(TestCase):
         tbl = CT_Table.new_tbl(rows, cols, width, height)
         # verify ----------------------
         self.assertEqualLineByLine(xml, tbl)
+
+    def test_firstCol_property_value_is_correct(self):
+        """CT_TableCell.firstCol property value is correct"""
+        # setup ------------------------
+        cases = (
+            # defaults to False if no tblPr element present
+            (a_tbl(), False),
+            # defaults to False if tblPr element is empty
+            (a_tbl().with_tblPr, False),
+            # returns True if firstCol is valid truthy value
+            (a_tbl().with_firstCol('1'), True),
+            (a_tbl().with_firstCol('true'), True),
+            # returns False if firstCol has valid False value
+            (a_tbl().with_firstCol('0'), False),
+            (a_tbl().with_firstCol('false'), False),
+            # returns False if firstCol is not valid xsd:boolean value
+            (a_tbl().with_firstCol('foobar'), False),
+        )
+        # verify -----------------------
+        for tbl, expected_firstCol_value in cases:
+            reason = ('tbl.firstCol did not return %s for this XML:\n\n%s' %
+                      (expected_firstCol_value, tbl.xml))
+            assert_that(tbl.element.firstCol,
+                        is_(equal_to(expected_firstCol_value)),
+                        reason)
+
+    def test_assignment_to_firstCol_sets_attr_value(self):
+        """Assignment to CT_Table.firstCol sets attribute value"""
+        # setup ------------------------
+        cases = (
+            # this set is not quite exhaustive, but seems quite thorough
+            # None = True => True
+            (a_tbl(), True, True),
+            # None = False => False
+            (a_tbl(), False, False),
+            # True = True => True
+            (a_tbl().with_firstCol('true'), True, True),
+            # True = False => False
+            (a_tbl().with_firstCol('true'), False, False),
+            # False = True => True
+            (a_tbl().with_firstCol('0'), True, True),
+            # False = False => False
+            (a_tbl().with_firstCol('0'), False, False),
+            # Invalid = True => True
+            (a_tbl().with_firstCol('foobar'), True, True),
+            # Invalid = False => False
+            (a_tbl().with_firstCol('foobar'), False, False),
+            # True = string => boolean value
+            (a_tbl().with_firstCol('1'), 'False', True),  # tricky :)
+            (a_tbl().with_firstCol('1'), '', False),
+            # False = number => boolean value
+            (a_tbl().with_firstCol('0'), 0, False),
+            (a_tbl().with_firstCol('0'), 999, True),
+        )
+        # verify -----------------------
+        for tbl_builder, assigned_value, expected_firstCol_value in cases:
+            tbl = tbl_builder.element
+            tbl.firstCol = assigned_value
+            assert_that(tbl.firstCol, is_(equal_to(expected_firstCol_value)))
+
+    def test_assignment_to_firstCol_produces_correct_xml(self):
+        """Assigning value to CT_Table.firstCol produces correct XML"""
+        # setup ------------------------
+        cases = (
+            # => True
+            (a_tbl(), True, a_tbl().with_firstCol('1')),
+            # => False: firstCol attribute should be removed if false
+            (a_tbl().with_firstCol('1'), False, a_tbl().with_tblPr),
+            # => False: firstCol attribute should not be added if false
+            (a_tbl(), False, a_tbl()),
+        )
+        # verify -----------------------
+        for tc_builder, assigned_value, expected_tc_builder in cases:
+            tc = tc_builder.element
+            tc.firstCol = assigned_value
+            self.assertEqualLineByLine(expected_tc_builder.xml, tc)
 
 
 class TestCT_TableCell(TestCase):

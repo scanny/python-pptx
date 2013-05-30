@@ -107,6 +107,25 @@ XML location
 ``<a:tbl>``
 
 
+Observed behavior
+~~~~~~~~~~~~~~~~~
+
+The MS PowerPoint® client exhibits the following behavior related to table
+properties:
+
+upon insertion of a default, empty table
+   ``<a:tblPr firstRow="1" bandRow="1">`` A tblPr element is present with a
+   ``firstRow`` and ``bandRow`` attribute, each set to True.
+
+after setting ``firstRow`` property off
+   ``<a:tblPr bandRow="1">`` The ``firstRow`` attribute is removed, not set
+   to ``0`` or ``false``.
+
+The ``<a:tblPr>`` element is always present, even when it contains no
+attributes, because it contains an ``<a:tableStyleId>`` element, even when
+the table style is set to none using the UI.
+
+
 References
 ~~~~~~~~~~
 

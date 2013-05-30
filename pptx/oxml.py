@@ -25,6 +25,11 @@ from pptx.spec import (
 # import logging
 # log = logging.getLogger('pptx.oxml')
 
+
+# oxml-specific constants --------------
+XSD_TRUE = '1'
+
+
 # configure objectified XML parser
 fallback_lookup = objectify.ObjectifyElementClassLookup()
 element_class_lookup = etree.ElementNamespaceClassLookup(fallback_lookup)
@@ -431,6 +436,63 @@ class CT_Table(objectify.ObjectifiedElement):
         '  <a:tblGrid/>\n'
         '</a:tbl>' % (nsdecls('a'), '%s')
     )
+
+    @property
+    def firstCol(self):
+        """
+        Boolean value represented in firstCol attribute of tblPr child
+        element. Defaults to False if firstCol attribute is missing or tblPr
+        element itself is not present.
+        """
+        if not self.has_tblPr:
+            return False
+        return self.tblPr.get('firstCol') in ('1', 'true')
+
+    def _set_firstCol(self, value):
+        """
+        Set firstCol attribute of tblPr appropriately based on *value*. If
+        *value* is truthy, the firstCol attribute is set to "1"; a tblPr
+        child element is added if necessary. If *value* is falsey, any
+        firstCol attribute is removed, allowing its default value of False to
+        be its effective value.
+        """
+        if value:
+            tblPr = self._get_or_insert_tblPr()
+            tblPr.set('firstCol', XSD_TRUE)
+        elif not self.has_tblPr:
+            pass
+        elif 'firstCol' in self.tblPr.attrib:
+            del self.tblPr.attrib['firstCol']
+
+    def __setattr__(self, attr, value):
+        """
+        Implement setter side of properties. Filters ``__setattr__`` messages
+        to ObjectifiedElement base class to intercept messages intended for
+        custom property setters.
+        """
+        if attr == 'firstCol':
+            self._set_firstCol(value)
+        else:
+            super(CT_Table, self).__setattr__(attr, value)
+
+    @property
+    def has_tblPr(self):
+        """
+        True if this ``<a:tbl>`` element has a ``<a:tblPr>`` child element,
+        False otherwise.
+        """
+        try:
+            self.tblPr
+            return True
+        except AttributeError:
+            return False
+
+    def _get_or_insert_tblPr(self):
+        """Return tblPr child element, inserting a new one if not present"""
+        if not self.has_tblPr:
+            tblPr = _Element('a:tblPr')
+            self.insert(0, tblPr)
+        return self.tblPr
 
     @staticmethod
     def new_tbl(rows, cols, width, height, tableStyleId=None):
