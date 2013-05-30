@@ -1326,31 +1326,14 @@ class Test_Table(TestCase):
         sum_of_col_widths = tbl.columns[0].width + tbl.columns[1].width
         assert_that(tbl.width, is_(equal_to(sum_of_col_widths)))
 
-    def test_first_col_property_value(self):
-        """_Table.first_col property value is calculated correctly"""
-        # mockery ----------------------
-        firstCol_val = True
-        tbl = MagicMock()
-        firstCol = type(tbl).firstCol = PropertyMock(return_value=firstCol_val)
-        shapes = test_shapes.empty_shape_collection
-        table = shapes.add_table(2, 2, 1000, 1000, 1000, 1000)
-        table._Table__tbl_elm = tbl
-        # exercise ---------------------
-        retval = table.first_col
-        # verify -----------------------
-        firstCol.assert_called_once_with()
-        assert_that(retval, is_(equal_to(firstCol_val)))
 
-    def test_first_col_assignment(self):
-        """Assignment to _Table.first_col sets attribute value"""
-        # mockery ----------------------
-        tbl = MagicMock()
-        firstCol = type(tbl).firstCol = PropertyMock()
+class Test_TableBooleanProperties(TestCase):
+    """Test _Table"""
+    def setUp(self):
+        """Test fixture for _Table boolean properties"""
         shapes = test_shapes.empty_shape_collection
-        table = shapes.add_table(2, 2, 1000, 1000, 1000, 1000)
-        table._Table__tbl_elm = tbl
-        # verify -----------------------
-        cases = (
+        self.table = shapes.add_table(2, 2, 1000, 1000, 1000, 1000)
+        self.assignment_cases = (
             (True,  True),
             (False, False),
             (0,     False),
@@ -1358,10 +1341,64 @@ class Test_Table(TestCase):
             ('',    False),
             ('foo', True)
         )
-        for assigned_value, called_with_value in cases:
-            table.first_col = assigned_value
+
+    def mockery(self, property_name, property_return_value=None):
+        """
+        Return property of *property_name* on self.table with return value of
+        *property_return_value*.
+        """
+        # mock <a:tbl> element of _Table so we can mock its properties
+        tbl = MagicMock()
+        self.table._Table__tbl_elm = tbl
+        # create a suitable mock for the property
+        property_ = PropertyMock()
+        if property_return_value:
+            property_.return_value = property_return_value
+        # and attach it the the <a:tbl> element object (class actually)
+        setattr(type(tbl), property_name, property_)
+        return property_
+
+    def test_first_col_property_value(self):
+        """_Table.first_col property value is calculated correctly"""
+        # mockery ----------------------
+        firstCol_val = True
+        firstCol = self.mockery('firstCol', firstCol_val)
+        # exercise ---------------------
+        retval = self.table.first_col
+        # verify -----------------------
+        firstCol.assert_called_once_with()
+        assert_that(retval, is_(equal_to(firstCol_val)))
+
+    def test_last_row_property_value(self):
+        """_Table.last_row property value is calculated correctly"""
+        # mockery ----------------------
+        lastRow_val = True
+        lastRow = self.mockery('lastRow', lastRow_val)
+        # exercise ---------------------
+        retval = self.table.last_row
+        # verify -----------------------
+        lastRow.assert_called_once_with()
+        assert_that(retval, is_(equal_to(lastRow_val)))
+
+    def test_first_col_assignment(self):
+        """Assignment to _Table.first_col sets attribute value"""
+        # mockery ----------------------
+        firstCol = self.mockery('firstCol')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.first_col = assigned_value
             firstCol.assert_called_once_with(called_with_value)
             firstCol.reset_mock()
+
+    def test_last_row_assignment(self):
+        """Assignment to _Table.last_row sets attribute value"""
+        # mockery ----------------------
+        lastRow = self.mockery('lastRow')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.last_row = assigned_value
+            lastRow.assert_called_once_with(called_with_value)
+            lastRow.reset_mock()
 
 
 class Test_TextFrame(TestCase):

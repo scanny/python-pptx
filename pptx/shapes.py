@@ -606,9 +606,22 @@ class _Table(_BaseShape):
         """
         return self.__tbl_elm.firstCol
 
+    @property
+    def last_row(self):
+        """
+        Read/write boolean property which, when true, indicates the last
+        row should be formatted differently, as for a totals row at the
+        bottom of the table.
+        """
+        return self.__tbl_elm.lastRow
+
     @first_col.setter
     def first_col(self, bool):
         self.__tbl_elm.firstCol = True if bool else False
+
+    @last_row.setter
+    def last_row(self, bool):
+        self.__tbl_elm.lastRow = True if bool else False
 
     @property
     def height(self):
