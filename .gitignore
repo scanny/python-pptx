@@ -3,7 +3,6 @@
 .tox
 *.egg-info
 *.pyc
-README.html
 dist
 doc/_build
 features/_scratch/*
