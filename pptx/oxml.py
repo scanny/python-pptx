@@ -437,23 +437,20 @@ class CT_Table(objectify.ObjectifiedElement):
         '</a:tbl>' % (nsdecls('a'), '%s')
     )
 
-    @property
-    def firstCol(self):
-        """Boolean value represented in firstCol attribute of tblPr child"""
-        return self._get_boolean_property('firstCol')
+    BOOLPROPS = (
+        'bandCol', 'bandRow', 'firstCol', 'firstRow', 'lastCol', 'lastRow'
+    )
 
-    @property
-    def lastRow(self):
-        """Boolean value represented in lastRow attribute of tblPr child"""
-        return self._get_boolean_property('lastRow')
-
-    def _set_firstCol(self, value):
-        """Set firstCol attribute of tblPr"""
-        self._set_boolean_property('firstCol', value)
-
-    def _set_lastRow(self, value):
-        """Set lastRow attribute of tblPr"""
-        self._set_boolean_property('lastRow', value)
+    def __getattr__(self, attr):
+        """
+        Implement getter side of properties. Filters ``__getattr__`` messages
+        to ObjectifiedElement base class to intercept messages intended for
+        custom property getters.
+        """
+        if attr in CT_Table.BOOLPROPS:
+            return self._get_boolean_property(attr)
+        else:
+            return super(CT_Table, self).__getattr__(attr)
 
     def __setattr__(self, attr, value):
         """
@@ -461,10 +458,8 @@ class CT_Table(objectify.ObjectifiedElement):
         to ObjectifiedElement base class to intercept messages intended for
         custom property setters.
         """
-        if attr == 'firstCol':
-            self._set_firstCol(value)
-        elif attr == 'lastRow':
-            self._set_lastRow(value)
+        if attr in CT_Table.BOOLPROPS:
+            self._set_boolean_property(attr, value)
         else:
             super(CT_Table, self).__setattr__(attr, value)
 

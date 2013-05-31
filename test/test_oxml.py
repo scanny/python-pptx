@@ -290,64 +290,8 @@ class TestCT_Shape(TestCase):
 
 class TestCT_Table(TestCase):
     """Test CT_Table"""
-    @staticmethod
-    def getter_cases(propname):
-        """Test cases for boolean property getter tests"""
-        return (
-            # defaults to False if no tblPr element present
-            (a_tbl(), False),
-            # defaults to False if tblPr element is empty
-            (a_tbl().with_tblPr, False),
-            # returns True if firstCol is valid truthy value
-            (a_tbl().with_prop(propname, '1'), True),
-            (a_tbl().with_prop(propname, 'true'), True),
-            # returns False if firstCol has valid False value
-            (a_tbl().with_prop(propname, '0'), False),
-            (a_tbl().with_prop(propname, 'false'), False),
-            # returns False if firstCol is not valid xsd:boolean value
-            (a_tbl().with_prop(propname, 'foobar'), False),
-        )
-
-    @staticmethod
-    def assignment_cases(propname):
-        """Test cases for boolean property assignment test"""
-        return (
-            # this set is not quite exhaustive, but seems quite thorough
-            # None = True => True
-            (a_tbl(), True, True),
-            # None = False => False
-            (a_tbl(), False, False),
-            # True = True => True
-            (a_tbl().with_prop(propname, 'true'), True, True),
-            # True = False => False
-            (a_tbl().with_prop(propname, 'true'), False, False),
-            # False = True => True
-            (a_tbl().with_prop(propname, '0'), True, True),
-            # False = False => False
-            (a_tbl().with_prop(propname, '0'), False, False),
-            # Invalid = True => True
-            (a_tbl().with_prop(propname, 'foobar'), True, True),
-            # Invalid = False => False
-            (a_tbl().with_prop(propname, 'foobar'), False, False),
-            # True = string => boolean value
-            (a_tbl().with_prop(propname, '1'), 'False', True),  # tricky :)
-            (a_tbl().with_prop(propname, '1'), '', False),
-            # False = number => boolean value
-            (a_tbl().with_prop(propname, '0'), 0, False),
-            (a_tbl().with_prop(propname, '0'), 999, True),
-        )
-
-    @staticmethod
-    def xml_check_cases(propname):
-        """Test cases for boolean property xml result tests"""
-        return (
-            # => True
-            (a_tbl(), True, a_tbl().with_prop(propname, '1')),
-            # => False: firstCol attribute should be removed if false
-            (a_tbl().with_prop(propname, '1'), False, a_tbl().with_tblPr),
-            # => False: firstCol attribute should not be added if false
-            (a_tbl(), False, a_tbl()),
-        )
+    boolprops = ('bandRow', 'firstRow', 'lastRow',
+                 'bandCol', 'firstCol', 'lastCol')
 
     def test_new_tbl_generates_correct_xml(self):
         """CT_Table._new_tbl() returns correct XML"""
@@ -380,73 +324,54 @@ class TestCT_Table(TestCase):
         # verify ----------------------
         self.assertEqualLineByLine(xml, tbl)
 
-    def test_firstCol_property_value_is_correct(self):
-        """CT_TableCell.firstCol property value is correct"""
-        # setup ------------------------
-        cases = self.getter_cases('firstCol')
-        # verify -----------------------
-        for tbl, expected_firstCol_value in cases:
-            reason = ('tbl.firstCol did not return %s for this XML:\n\n%s' %
-                      (expected_firstCol_value, tbl.xml))
-            assert_that(tbl.element.firstCol,
-                        is_(equal_to(expected_firstCol_value)),
-                        reason)
+    def test_boolean_property_value_is_correct(self):
+        """CT_Table boolean property value is correct"""
+        def getter_cases(propname):
+            """Test cases for boolean property getter tests"""
+            return (
+                # defaults to False if no tblPr element present
+                (a_tbl(), False),
+                # defaults to False if tblPr element is empty
+                (a_tbl().with_tblPr, False),
+                # returns True if firstCol is valid truthy value
+                (a_tbl().with_prop(propname, '1'), True),
+                (a_tbl().with_prop(propname, 'true'), True),
+                # returns False if firstCol has valid False value
+                (a_tbl().with_prop(propname, '0'), False),
+                (a_tbl().with_prop(propname, 'false'), False),
+                # returns False if firstCol is not valid xsd:boolean value
+                (a_tbl().with_prop(propname, 'foobar'), False),
+            )
+        for propname in self.boolprops:
+            cases = getter_cases(propname)
+            for tbl_builder, expected_property_value in cases:
+                reason = (
+                    'tbl.%s did not return %s for this XML:\n\n%s' %
+                    (propname, expected_property_value, tbl_builder.xml)
+                )
+                assert_that(
+                    getattr(tbl_builder.element, propname),
+                    is_(equal_to(expected_property_value)),
+                    reason
+                )
 
-    def test_assignment_to_firstCol_sets_attr_value(self):
-        """Assignment to CT_Table.firstCol sets attribute value"""
-        # setup ------------------------
-        cases = self.assignment_cases('firstCol')
-        # verify -----------------------
-        for tbl_builder, assigned_value, expected_firstCol_value in cases:
-            tbl = tbl_builder.element
-            tbl.firstCol = assigned_value
-            assert_that(tbl.firstCol, is_(equal_to(expected_firstCol_value)))
-
-    def test_assignment_to_firstCol_produces_correct_xml(self):
-        """Assigning value to CT_Table.firstCol produces correct XML"""
-        # setup ------------------------
-        cases = self.xml_check_cases('firstCol')
-        # verify -----------------------
-        for tc_builder, assigned_value, expected_tc_builder in cases:
-            tc = tc_builder.element
-            tc.firstCol = assigned_value
-            self.assertEqualLineByLine(expected_tc_builder.xml, tc)
-
-    def test_lastRow_property_value_is_correct(self):
-        """CT_TableCell.lastRow property value is correct"""
-        # setup ------------------------
-        cases = self.getter_cases('lastRow')
-        # verify -----------------------
-        for tbl, expected_lastRow_value in cases:
-            reason = ('tbl.lastRow did not return %s for this XML:\n\n%s' %
-                      (expected_lastRow_value, tbl.xml))
-            assert_that(tbl.element.lastRow,
-                        is_(equal_to(expected_lastRow_value)),
-                        reason)
-
-    def test_assignment_to_lastRow_sets_attr_value(self):
-        """Assignment to CT_Table.lastRow sets attribute value"""
-        # setup ------------------------
-        cases = self.assignment_cases('lastRow')
-        # verify -----------------------
-        for tbl_builder, assigned_value, expected_lastRow_value in cases:
-            tbl = tbl_builder.element
-            tbl.lastRow = assigned_value
-            reason = ("assigning %s to:\n\n%s\n" %
-                      (assigned_value, tbl_builder.xml))
-            assert_that(tbl.lastRow,
-                        is_(equal_to(expected_lastRow_value)),
-                        reason)
-
-    def test_assignment_to_lastRow_produces_correct_xml(self):
-        """Assigning value to CT_Table.lastRow produces correct XML"""
-        # setup ------------------------
-        cases = self.xml_check_cases('lastRow')
-        # verify -----------------------
-        for tc_builder, assigned_value, expected_tc_builder in cases:
-            tc = tc_builder.element
-            tc.lastRow = assigned_value
-            self.assertEqualLineByLine(expected_tc_builder.xml, tc)
+    def test_assignment_to_boolean_property_produces_correct_xml(self):
+        """Assignment to boolean property of CT_Table produces correct XML"""
+        def xml_check_cases(propname):
+            return (
+                # => True: tblPr and attribute should be added
+                (a_tbl(), True, a_tbl().with_prop(propname, '1')),
+                # => False: attribute should be removed if false
+                (a_tbl().with_prop(propname, '1'), False, a_tbl().with_tblPr),
+                # => False: attribute should not be added if false
+                (a_tbl(), False, a_tbl()),
+            )
+        for propname in self.boolprops:
+            cases = xml_check_cases(propname)
+            for tc_builder, assigned_value, expected_tc_builder in cases:
+                tc = tc_builder.element
+                setattr(tc, propname, assigned_value)
+                self.assertEqualLineByLine(expected_tc_builder.xml, tc)
 
 
 class TestCT_TableCell(TestCase):
