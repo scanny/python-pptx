@@ -676,28 +676,28 @@ class _Table(_BaseShape):
         return self.__tbl_elm.bandCol
 
     @first_col.setter
-    def first_col(self, bool):
-        self.__tbl_elm.firstCol = True if bool else False
+    def first_col(self, value):
+        self.__tbl_elm.firstCol = bool(value)
 
     @first_row.setter
-    def first_row(self, bool):
-        self.__tbl_elm.firstRow = True if bool else False
+    def first_row(self, value):
+        self.__tbl_elm.firstRow = bool(value)
 
     @horz_banding.setter
-    def horz_banding(self, bool):
-        self.__tbl_elm.bandRow = True if bool else False
+    def horz_banding(self, value):
+        self.__tbl_elm.bandRow = bool(value)
 
     @last_col.setter
-    def last_col(self, bool):
-        self.__tbl_elm.lastCol = True if bool else False
+    def last_col(self, value):
+        self.__tbl_elm.lastCol = bool(value)
 
     @last_row.setter
-    def last_row(self, bool):
-        self.__tbl_elm.lastRow = True if bool else False
+    def last_row(self, value):
+        self.__tbl_elm.lastRow = bool(value)
 
     @vert_banding.setter
-    def vert_banding(self, bool):
-        self.__tbl_elm.bandCol = True if bool else False
+    def vert_banding(self, value):
+        self.__tbl_elm.bandCol = bool(value)
 
     @property
     def height(self):
