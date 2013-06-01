@@ -59,6 +59,15 @@ def step_given_ref_to_bullet_body_placeholder(context):
     context.body = context.sld.shapes.placeholders[1]
 
 
+@given('I have a reference to a chevron shape')
+def step_given_ref_to_chevron_shape(context):
+    context.prs = Presentation()
+    blank_slidelayout = context.prs.slidelayouts[6]
+    shapes = context.prs.slides.add_slide(blank_slidelayout).shapes
+    x = y = cx = cy = 914400
+    context.chevron_shape = shapes.add_shape(MSO.SHAPE_CHEVRON, x, y, cx, cy)
+
+
 @given('I have a reference to a paragraph')
 def step_given_ref_to_paragraph(context):
     context.prs = Presentation()
@@ -216,6 +225,11 @@ def step_when_set_first_row_property_to_true(context):
     context.tbl.first_row = True
 
 
+@when("I set the first adjustment value to 0.15")
+def step_when_set_first_adjustment_value(context):
+    context.chevron_shape.adjustments[0] = 0.15
+
+
 @when("I set the horz_banding property to True")
 def step_when_set_horz_banding_property_to_true(context):
     context.tbl.horz_banding = True
@@ -306,6 +320,12 @@ def step_then_cell_contents_are_vertically_centered(context):
     table = prs.slides[0].shapes[0]
     cell = table.cell(0, 0)
     assert_that(cell.vertical_anchor, is_(equal_to(MSO.ANCHOR_MIDDLE)))
+
+
+@then('the chevron shape appears with a less acute arrow head')
+def step_then_chevron_shape_appears_with_less_acute_arrow_head(context):
+    chevron = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(chevron.adjustments[0], is_(equal_to(0.15)))
 
 
 @then('the columns of the table have alternating shading')
