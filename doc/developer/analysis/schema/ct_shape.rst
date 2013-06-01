@@ -259,6 +259,24 @@ Schema excerpt
     </xsd:choice>
   </xsd:group>
 
+  <xsd:complexType name="CT_CustomGeometry2D">
+    <xsd:sequence>
+      <xsd:element name="avLst"   type="CT_GeomGuideList"      minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="gdLst"   type="CT_GeomGuideList"      minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ahLst"   type="CT_AdjustHandleList"   minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="cxnLst"  type="CT_ConnectionSiteList" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="rect"    type="CT_GeomRect"           minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="pathLst" type="CT_Path2DList"         minOccurs="1" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_PresetGeometry2D">
+    <xsd:sequence>
+      <xsd:element name="avLst" type="CT_GeomGuideList" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+    <xsd:attribute name="prst" type="ST_ShapeType" use="required"/>
+  </xsd:complexType>
+
   <xsd:group name="EG_FillProperties">
     <xsd:choice>
       <xsd:element name="noFill"    type="CT_NoFillProperties"         minOccurs="1" maxOccurs="1"/>
@@ -301,11 +319,4 @@ Schema excerpt
       <xsd:element name="effectDag" type="CT_EffectContainer" minOccurs="1" maxOccurs="1"/>
     </xsd:choice>
   </xsd:group>
-
-  <xsd:complexType name="CT_PresetGeometry2D">
-    <xsd:sequence>
-      <xsd:element name="avLst" type="CT_GeomGuideList" minOccurs="0" maxOccurs="1"/>
-    </xsd:sequence>
-    <xsd:attribute name="prst" type="ST_ShapeType" use="required"/>
-  </xsd:complexType>
 

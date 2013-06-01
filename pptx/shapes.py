@@ -84,6 +84,30 @@ class _AdjustmentCollection(object):
     """
     def __init__(self, spPr):
         super(_AdjustmentCollection, self).__init__()
+        self.__adjustments = self.__initialized_adjustments(spPr)
+
+    def __initialized_adjustments(self, spPr):
+        """
+        Return an initialized list of adjustment values based on the contents
+        of *spPr*
+        """
+        adjustments = []
+        if hasattr(spPr, qn('a:prstGeom')):
+            geom = spPr[qn('a:prstGeom')]
+        elif hasattr(spPr, qn('a:custGeom')):
+            geom = spPr[qn('a:custGeom')]
+        else:
+            return adjustments
+        try:
+            for gd in geom.avLst.gd:
+                adjustments.append(gd.get('fmla'))
+        except AttributeError:
+            pass
+        return adjustments
+
+    def __len__(self):
+        """Implement built-in function len()"""
+        return len(self.__adjustments)
 
 
 class _AutoShapeType(object):

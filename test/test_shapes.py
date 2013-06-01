@@ -21,9 +21,10 @@ from pptx.oxml import (
 )
 from pptx.presentation import _SlideLayout
 from pptx.shapes import (
-    _AutoShapeType, _BaseShape, _Cell, _CellCollection, _Column,
-    _ColumnCollection, _Font, _Paragraph, _Placeholder, _Row, _RowCollection,
-    _Run, _Shape, _ShapeCollection, _TextFrame, _to_unicode
+    _AdjustmentCollection, _AutoShapeType, _BaseShape, _Cell,
+    _CellCollection, _Column, _ColumnCollection, _Font, _Paragraph,
+    _Placeholder, _Row, _RowCollection, _Run, _Shape, _ShapeCollection,
+    _TextFrame, _to_unicode
 )
 from pptx.spec import namespaces
 from pptx.spec import (
@@ -33,8 +34,8 @@ from pptx.spec import (
 )
 from pptx.util import Inches, Pt
 from testdata import (
-    test_shape_elements, test_shapes, test_table_objects, test_text_objects,
-    test_text_xml
+    an_spPr, test_shape_elements, test_shapes, test_table_objects,
+    test_text_objects, test_text_xml
 )
 from testing import TestCase
 
@@ -66,6 +67,32 @@ def _sldLayout1_shapes():
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
     shapes = _ShapeCollection(spTree)
     return shapes
+
+
+class Test_AdjustmentCollection(TestCase):
+    """Test _AdjustmentCollection"""
+    def test_it_should_load_correct_number_of_members(self):
+        """_AdjustmentCollection() loads correct number of members"""
+        # setup ------------------------
+        cases = (
+            (an_spPr(), 0),
+            (an_spPr().with_prst(), 0),
+            (an_spPr().with_avLst, 0),
+            (an_spPr().with_gd(), 1),
+            (an_spPr().with_gd().with_gd().with_gd(), 3),
+        )
+        # verify -----------------------
+        for spPr_builder, expected_adjustment_count in cases:
+            adjustments = _AdjustmentCollection(spPr_builder.element)
+            reason = (
+                'wrong number of adjustment values for this XML:\n\n%s' %
+                spPr_builder.xml
+            )
+            assert_that(
+                len(adjustments),
+                is_(expected_adjustment_count),
+                reason
+            )
 
 
 class Test_AutoShapeType(TestCase):
