@@ -895,6 +895,22 @@ class Test_Run(TestCase):
 
 class Test_Shape(TestCase):
     """Test _Shape"""
+    @patch('pptx.shapes._BaseShape.__init__')
+    @patch('pptx.shapes._AdjustmentCollection')
+    def test_it_initializes_adjustments_on_construction(
+            self, _AdjustmentCollection, _BaseShape__init__):
+        """_Shape() initializes adjustments on construction"""
+        # setup ------------------------
+        adjustments = Mock(name='adjustments')
+        _AdjustmentCollection.return_value = adjustments
+        sp = Mock(name='sp')
+        # exercise ---------------------
+        shape = _Shape(sp)
+        # verify -----------------------
+        _BaseShape__init__.assert_called_once_with(sp)
+        _AdjustmentCollection.assert_called_once_with(sp.spPr)
+        assert_that(shape.adjustments, is_(adjustments))
+
     def test_auto_shape_type_value_correct(self):
         """_Shape.auto_shape_type value is correct"""
         # setup ------------------------

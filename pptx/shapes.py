@@ -68,6 +68,24 @@ def _to_unicode(text):
 # Shapes
 # ============================================================================
 
+class _AdjustmentCollection(object):
+    """
+    Sequence of adjustment values for an autoshape.
+
+    An adjustment value corresponds to the position of an adjustment handle on
+    an auto shape. Adjustment handles are the small yellow diamond-shaped
+    handles that appear on certain auto shapes and allow the outline of the
+    shape to be adjusted. For example, a rounded rectangle has an adjustment
+    handle that allows the radius of its corner rounding to be adjusted.
+
+    Values are |float| and generally range from 0.0 to 1.0, although the value
+    can be negative or greater than 1.0 in certain circumstances. Supports
+    ``len()`` and indexed access, e.g. ``shape.adjustments[1] = 0.15``.
+    """
+    def __init__(self, spPr):
+        super(_AdjustmentCollection, self).__init__()
+
+
 class _AutoShapeType(object):
     """
     Return an instance of |_AutoShapeType| containing metadata for an auto
@@ -534,6 +552,15 @@ class _Shape(_BaseShape):
     """
     def __init__(self, shape_element):
         super(_Shape, self).__init__(shape_element)
+        self.__adjustments = _AdjustmentCollection(shape_element.spPr)
+
+    @property
+    def adjustments(self):
+        """
+        Read-only reference to _AdjustmentsCollection instance for this
+        shape
+        """
+        return self.__adjustments
 
     @property
     def auto_shape_type(self):

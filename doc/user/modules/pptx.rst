@@ -84,6 +84,26 @@ The following properties and methods are common to all shapes.
    :undoc-members:
 
 
+The following properties and methods are defined for auto shapes and text boxes.
+
+.. autoclass:: pptx.shapes._Shape
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|_AdjustmentCollection| objects
+===============================
+
+An |_AdjustmentCollection| object reference is accessed using the
+``_Shape.adjustments`` property (read-only).
+
+.. autoclass:: pptx.shapes._AdjustmentCollection
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |_Table| objects
 ================
 
