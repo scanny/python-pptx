@@ -1501,7 +1501,31 @@ pml_parttypes = {
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['handoutMaster', 'notesSlide', 'notesMaster', 'slide',
                         'slideLayout', 'slideMaster'],
-        'reltype':     RT_IMAGE}}
+        'reltype':     RT_IMAGE
+    },
+    'image/vnd.ms-photo': {
+        'basename':    'hdphoto',
+        'ext':         '.wdp',
+        'name':        'Image Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/ppt/media',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   [],
+        'reltype':     RT_IMAGE
+    },
+    'image/tiff': {
+        'basename':    'image',
+        'ext':         '.tiff',
+        'name':        'Image Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/ppt/media',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   [],
+        'reltype':     RT_IMAGE
+    }
+}
 
 
 # ============================================================================
@@ -1526,6 +1550,7 @@ default_content_types = {
     '.rels':    'application/vnd.openxmlformats-package.relationships+xml',
     '.tif':     'image/tiff',
     '.tiff':    'image/tiff',
+    '.wdp':     'image/vnd.ms-photo',
     '.wmf':     'image/x-wmf',
     '.xlsx':    CT_EXCEL_XLSX,
     '.xml':     'application/xml'}
