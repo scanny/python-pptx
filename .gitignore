@@ -8,7 +8,6 @@ doc/_build
 features/_scratch/*
 out.txt
 _scratch
-doc/_static/ref
 tags
 test/debug.py
 Session.vim
