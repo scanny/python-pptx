@@ -15,7 +15,7 @@ from hamcrest import assert_that, equal_to, is_, same_instance
 
 from mock import MagicMock, Mock, patch, PropertyMock
 
-from pptx.constants import MSO, PP
+from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP
 from pptx.oxml import (
     _SubElement, nsdecls, oxml_fromstring, oxml_parse, oxml_tostring
 )
@@ -100,7 +100,7 @@ class Test_AutoShapeType(TestCase):
     def test_construction_return_values(self):
         """_AutoShapeType() returns instance with correct property values"""
         # setup ------------------------
-        id_ = MSO.SHAPE_ROUNDED_RECTANGLE
+        id_ = MAST.ROUNDED_RECTANGLE
         prst = 'roundRect'
         basename = 'Rounded Rectangle'
         desc = 'Rounded rectangle'
@@ -115,7 +115,7 @@ class Test_AutoShapeType(TestCase):
     def test__lookup_id_by_prst_return_value(self):
         """_AutoShapeType._lookup_id_by_prst() return value is correct"""
         # setup ------------------------
-        autoshape_type_id = MSO.SHAPE_ROUNDED_RECTANGLE
+        autoshape_type_id = MAST.ROUNDED_RECTANGLE
         prst = 'roundRect'
         # exercise ---------------------
         retval = _AutoShapeType._lookup_id_by_prst(prst)
@@ -133,7 +133,7 @@ class Test_AutoShapeType(TestCase):
     def test_second_construction_returns_cached_instance(self):
         """_AutoShapeType() returns cached instance on duplicate call"""
         # setup ------------------------
-        id_ = MSO.SHAPE_ROUNDED_RECTANGLE
+        id_ = MAST.ROUNDED_RECTANGLE
         ast1 = _AutoShapeType(id_)
         # exercise ---------------------
         ast2 = _AutoShapeType(id_)
@@ -944,7 +944,7 @@ class Test_Shape(TestCase):
         rounded_rectangle = test_shapes.rounded_rectangle
         # verify -----------------------
         assert_that(rounded_rectangle.auto_shape_type,
-                    is_(equal_to(MSO.SHAPE_ROUNDED_RECTANGLE)))
+                    is_(equal_to(MAST.ROUNDED_RECTANGLE)))
 
     def test_auto_shape_type_raises_on_non_auto_shape(self):
         """_Shape.auto_shape_type raises on non auto shape"""
@@ -1016,7 +1016,7 @@ class Test_ShapeCollection(TestCase):
         prst = 'roundRect'
         id_, name = 9, '%s 8' % basename
         left, top, width, height = 111, 222, 333, 444
-        autoshape_type_id = MSO.SHAPE_ROUNDED_RECTANGLE
+        autoshape_type_id = MAST.ROUNDED_RECTANGLE
         # setup mockery ---------------
         autoshape_type = Mock(name='autoshape_type')
         autoshape_type.basename = basename

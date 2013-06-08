@@ -7,7 +7,7 @@ from StringIO import StringIO
 
 from pptx import packaging
 from pptx import Presentation
-from pptx.constants import MSO, PP
+from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP
 from pptx.util import Inches
 
 
@@ -65,7 +65,7 @@ def step_given_ref_to_chevron_shape(context):
     blank_slidelayout = context.prs.slidelayouts[6]
     shapes = context.prs.slides.add_slide(blank_slidelayout).shapes
     x = y = cx = cy = 914400
-    context.chevron_shape = shapes.add_shape(MSO.SHAPE_CHEVRON, x, y, cx, cy)
+    context.chevron_shape = shapes.add_shape(MAST.CHEVRON, x, y, cx, cy)
 
 
 @given('I have a reference to a paragraph')
@@ -152,7 +152,7 @@ def step_when_add_auto_shape(context):
     shapes = context.sld.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(4.00))
-    sp = shapes.add_shape(MSO.SHAPE_ROUNDED_RECTANGLE, x, y, cx, cy)
+    sp = shapes.add_shape(MAST.ROUNDED_RECTANGLE, x, y, cx, cy)
     sp.text = test_text
 
 
@@ -299,7 +299,7 @@ def step_then_auto_shape_appears_in_slide(context):
     sp = prs.slides[0].shapes[0]
     sp_text = sp.textframe.paragraphs[0].runs[0].text
     assert_that(sp.shape_type, is_(equal_to(MSO.AUTO_SHAPE)))
-    assert_that(sp.auto_shape_type, is_(equal_to(MSO.SHAPE_ROUNDED_RECTANGLE)))
+    assert_that(sp.auto_shape_type, is_(equal_to(MAST.ROUNDED_RECTANGLE)))
     assert_that(sp_text, is_(equal_to(test_text)))
 
 

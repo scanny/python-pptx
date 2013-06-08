@@ -1,3 +1,4 @@
+@wip
 Feature: Adjust auto shape
   In order to customize the path of an auto shape to my needs
   As a developer using python-pptx
