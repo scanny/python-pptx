@@ -262,19 +262,16 @@ def render_mso_auto_shape_type_constants(auto_shape_types):
 def render_mso_auto_shape_type_spec(auto_shape_types):
     out = 'autoshape_types = {\n'
     for idx, ast in enumerate(auto_shape_types):
-        if idx > 0:
-            out += ",\n"
         out += (
             "    MAST.%s: {\n"
             "        'basename': '%s',\n"
             "        'prst':     '%s',\n"
-            "        'desc':     %s,\n"
             "        'avLst':    %s\n"
-            "    }" %
-            (ast.const_name, ast.base_name, ast.prst, render_desc(ast.desc),
+            "    },\n" %
+            (ast.const_name, ast.base_name, ast.prst,
              render_adj_vals(ast.adj_vals))
         )
-    out += '\n}'
+    out += '}'
     return out
 
 
