@@ -103,14 +103,12 @@ class Test_AutoShapeType(TestCase):
         id_ = MAST.ROUNDED_RECTANGLE
         prst = 'roundRect'
         basename = 'Rounded Rectangle'
-        desc = 'Rounded rectangle'
         # exercise ---------------------
         autoshape_type = _AutoShapeType(id_)
         # verify -----------------------
         assert_that(autoshape_type.autoshape_type_id, is_(equal_to(id_)))
         assert_that(autoshape_type.prst, is_(equal_to(prst)))
         assert_that(autoshape_type.basename, is_(equal_to(basename)))
-        assert_that(autoshape_type.desc, is_(equal_to(desc)))
 
     def test__lookup_id_by_prst_return_value(self):
         """_AutoShapeType._lookup_id_by_prst() return value is correct"""

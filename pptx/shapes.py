@@ -167,7 +167,6 @@ class _AutoShapeType(object):
         self.__autoshape_type_id = autoshape_type_id
         self.__prst = autoshape_type['prst']
         self.__basename = autoshape_type['basename']
-        self.__desc = autoshape_type['desc']
         self._loaded = True
 
     @property
