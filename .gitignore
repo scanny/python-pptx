@@ -8,6 +8,7 @@ doc/_build
 features/_scratch/*
 out.txt
 _scratch
+spec/gen_spec/spec*.db
 tags
 test/debug.py
 Session.vim
