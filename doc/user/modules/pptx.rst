@@ -92,6 +92,15 @@ The following properties and methods are defined for auto shapes and text boxes.
    :undoc-members:
 
 
+|_Adjustment| objects
+=====================
+
+.. autoclass:: pptx.shapes._Adjustment
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |_AdjustmentCollection| objects
 ===============================
 

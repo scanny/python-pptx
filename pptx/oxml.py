@@ -426,6 +426,20 @@ class CT_Shape(objectify.ObjectifiedElement):
         return prstGeom.get('prst')
 
 
+class CT_ShapeProperties(objectify.ObjectifiedElement):
+    """<p:spPr> custom element class"""
+    @property
+    def prst(self):
+        """
+        Value of ``prst`` attribute of ``<a:prstGeom>`` child element or
+        |None| if not present.
+        """
+        prstGeom = _child(self, 'a:prstGeom')
+        if prstGeom is None:
+            return None
+        return prstGeom.get('prst')
+
+
 class CT_Table(objectify.ObjectifiedElement):
     """``<a:tbl>`` custom element class"""
     _tbl_tmpl = (
@@ -743,4 +757,5 @@ p_namespace = element_class_lookup.get_namespace(nsmap['p'])
 p_namespace['graphicFrame'] = CT_GraphicalObjectFrame
 p_namespace['pic'] = CT_Picture
 p_namespace['sp'] = CT_Shape
+p_namespace['spPr'] = CT_ShapeProperties
 p_namespace['txBody'] = CT_TextBody

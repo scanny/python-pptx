@@ -66,6 +66,8 @@ release = '0.2.4'
 # file that is read. This is the right place to add substitutions that should
 # be available in every file.
 rst_epilog = """
+.. |_Adjustment| replace:: :class:`_Adjustment`
+
 .. |_AdjustmentCollection| replace:: :class:`_AdjustmentCollection`
 
 .. |BaseFileSystem| replace:: :class:`BaseFileSystem`

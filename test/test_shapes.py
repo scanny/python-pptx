@@ -71,28 +71,76 @@ def _sldLayout1_shapes():
 
 class Test_AdjustmentCollection(TestCase):
     """Test _AdjustmentCollection"""
-    def test_it_should_load_correct_number_of_members(self):
-        """_AdjustmentCollection() loads correct number of members"""
+    @patch('pptx.shapes._Adjustment')
+    @patch('pptx.shapes._AutoShapeType')
+    def test_it_should_load_default_adj_vals_correctly(
+            self, _AutoShapeType, _Adjustment):
+        """_AdjustmentCollection() loads default adj vals correctly"""
         # setup ------------------------
         cases = (
-            (an_spPr(), 0),
-            (an_spPr().with_prst(), 0),
-            (an_spPr().with_avLst, 0),
-            (an_spPr().with_gd(), 1),
-            (an_spPr().with_gd().with_gd().with_gd(), 3),
+            (None, ()),
+            ('rect', ()),
+            ('chevron', (('adj', 50000),)),
+            ('bentArrow', (('adj1', 25000), ('adj2', 25000), ('adj3', 25000),
+                           ('adj4', 43750))),
+        )
+        spPr = Mock(name='spPr')
+        prst = type(spPr).prst = PropertyMock()
+        default_adjustment_values = _AutoShapeType.default_adjustment_values
+        for prst_val, def_adj_vals in cases:
+            prst.return_value = prst_val
+            default_adjustment_values.return_value = def_adj_vals
+            # exercise -----------------
+            adjustments = _AdjustmentCollection(spPr)
+            # verify -------------------
+            reason = "\n\nFailed for prst == '%s'\n" % prst_val
+            prst.assert_called_once_with()
+            if prst_val:
+                default_adjustment_values.assert_called_once_with(prst_val)
+            assert_that(_Adjustment.call_count,
+                        is_(len(def_adj_vals)),
+                        reason)
+            for name, def_val in def_adj_vals:
+                try:
+                    _Adjustment.assert_any_call(name, def_val)
+                except AssertionError:
+                    tmpl = ("_Adjustment('%s', %d) call not found for prst ="
+                            "= '%s'")
+                    raise AssertionError(tmpl % (name, def_val, prst_val))
+            assert_that(len(adjustments),
+                        is_(equal_to(len(def_adj_vals))),
+                        reason)
+            # reset mocks for next case
+            prst.reset_mock()
+            default_adjustment_values.reset_mock()
+            _Adjustment.reset_mock()
+
+    def test_it_should_load_default_adjustment_values(self):
+        """_AdjustmentCollection() loads default adjustment values"""
+        # setup ------------------------
+        cases = (
+            ('rect', ()),
+            ('chevron', (('adj', 50000),)),
+            ('accentBorderCallout1',
+             (('adj1', 18750), ('adj2', -8333), ('adj3', 112500),
+              ('adj4', -38333))),
+            ('wedgeRoundRectCallout',
+             (('adj1', -20833), ('adj2', 62500), ('adj3', 16667))),
+            ('circularArrow',
+             (('adj1', 12500), ('adj2', 1142319), ('adj3', 20457681),
+              ('adj4', 10800000), ('adj5', 12500))),
         )
         # verify -----------------------
-        for spPr_builder, expected_adjustment_count in cases:
-            adjustments = _AdjustmentCollection(spPr_builder.element)
-            reason = (
-                'wrong number of adjustment values for this XML:\n\n%s' %
-                spPr_builder.xml
-            )
-            assert_that(
-                len(adjustments),
-                is_(expected_adjustment_count),
-                reason
-            )
+        for prst, adj_vals in cases:
+            spPr = an_spPr().with_prst(prst).with_avLst.element
+            adjustments = _AdjustmentCollection(spPr)._adjustments
+            assert_that(len(adjustments), is_(equal_to(len(adj_vals))))
+            for idx, adj_val in enumerate(adj_vals):
+                name, def_val = adj_val
+                reason = ("\n     failed for prst '%s', name '%s'" %
+                          (prst, name))
+                assert_that(adjustments[idx].name, is_(name), reason)
+                assert_that(adjustments[idx].def_val, is_(def_val), reason)
 
 
 class Test_AutoShapeType(TestCase):
@@ -109,6 +157,21 @@ class Test_AutoShapeType(TestCase):
         assert_that(autoshape_type.autoshape_type_id, is_(equal_to(id_)))
         assert_that(autoshape_type.prst, is_(equal_to(prst)))
         assert_that(autoshape_type.basename, is_(equal_to(basename)))
+
+    def test_default_adjustment_values_return_value(self):
+        """_AutoShapeType.default_adjustment_values() return val correct"""
+        # setup ------------------------
+        cases = (
+            ('rect', ()),
+            ('chevron', (('adj', 50000),)),
+            ('leftCircularArrow',
+             (('adj1', 12500), ('adj2', -1142319), ('adj3', 1142319),
+              ('adj4', 10800000), ('adj5', 12500))),
+        )
+        # verify -----------------------
+        for prst, expected_vals in cases:
+            def_adj_vals = _AutoShapeType.default_adjustment_values(prst)
+            assert_that(def_adj_vals, is_(equal_to(expected_vals)))
 
     def test__lookup_id_by_prst_return_value(self):
         """_AutoShapeType._lookup_id_by_prst() return value is correct"""

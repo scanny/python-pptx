@@ -24,8 +24,8 @@ from pptx.spec import (
 )
 
 from testdata import (
-    a_tbl, test_shape_elements, test_table_elements,
-    test_table_xml, test_text_elements, test_text_xml
+    a_tbl, an_spPr, test_shape_elements, test_table_elements, test_table_xml,
+    test_text_elements, test_text_xml
 )
 from testing import TestCase
 
@@ -286,6 +286,21 @@ class TestCT_Shape(TestCase):
         # verify ----------------------
         assert_that(rounded_rect_sp.prst, is_(equal_to('roundRect')))
         assert_that(placeholder_sp.prst, is_(equal_to(None)))
+
+
+class TestCT_ShapeProperties(TestCase):
+    """Test CT_ShapeProperties"""
+    def test_prst_return_value(self):
+        """CT_ShapeProperties.prst value is correct"""
+        # setup -----------------------
+        cases = (
+            (an_spPr(), None),
+            (an_spPr().with_prst('rect'), 'rect'),
+        )
+        # verify ----------------------
+        for spPr_builder, expected_prst in cases:
+            spPr = spPr_builder.element
+            assert_that(spPr.prst, is_(equal_to(expected_prst)))
 
 
 class TestCT_Table(TestCase):

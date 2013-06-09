@@ -70,17 +70,9 @@ def _to_unicode(text):
 
 class _AdjustmentCollection(object):
     """
-    Sequence of adjustment values for an autoshape.
-
-    An adjustment value corresponds to the position of an adjustment handle on
-    an auto shape. Adjustment handles are the small yellow diamond-shaped
-    handles that appear on certain auto shapes and allow the outline of the
-    shape to be adjusted. For example, a rounded rectangle has an adjustment
-    handle that allows the radius of its corner rounding to be adjusted.
-
-    Values are |float| and generally range from 0.0 to 1.0, although the value
-    can be negative or greater than 1.0 in certain circumstances. Supports
-    ``len()`` and indexed access, e.g. ``shape.adjustments[1] = 0.15``.
+    Sequence of |_Adjustment| for an auto shape, each representing an
+    available adjustment for a shape of its type. Supports ``len()`` and
+    indexed access, e.g. ``shape.adjustments[1] = 0.15``.
     """
     def __init__(self, spPr):
         super(_AdjustmentCollection, self).__init__()
@@ -92,22 +84,43 @@ class _AdjustmentCollection(object):
         of *spPr*
         """
         adjustments = []
-        if hasattr(spPr, qn('a:prstGeom')):
-            geom = spPr[qn('a:prstGeom')]
-        elif hasattr(spPr, qn('a:custGeom')):
-            geom = spPr[qn('a:custGeom')]
-        else:
+        prst = spPr.prst
+        if not prst:
             return adjustments
-        try:
-            for gd in geom.avLst.gd:
-                adjustments.append(gd.get('fmla'))
-        except AttributeError:
-            pass
+        for name, def_val in _AutoShapeType.default_adjustment_values(prst):
+            adjustments.append(_Adjustment(name, def_val))
         return adjustments
+
+    @property
+    def _adjustments(self):
+        """
+        Sequence containing direct references to the |_Adjustment| objects
+        contained in collection.
+        """
+        return tuple(self.__adjustments)
 
     def __len__(self):
         """Implement built-in function len()"""
         return len(self.__adjustments)
+
+
+class _Adjustment(object):
+    """
+    An adjustment value for an autoshape.
+
+    An adjustment value corresponds to the position of an adjustment handle on
+    an auto shape. Adjustment handles are the small yellow diamond-shaped
+    handles that appear on certain auto shapes and allow the outline of the
+    shape to be adjusted. For example, a rounded rectangle has an adjustment
+    handle that allows the radius of its corner rounding to be adjusted.
+
+    Values are |float| and generally range from 0.0 to 1.0, although the value
+    can be negative or greater than 1.0 in certain circumstances.
+    """
+    def __init__(self, name, def_val):
+        super(_Adjustment, self).__init__()
+        self.name = name
+        self.def_val = def_val
 
 
 class _AutoShapeType(object):
@@ -181,6 +194,15 @@ class _AutoShapeType(object):
         shape type
         """
         return self.__basename
+
+    @staticmethod
+    def default_adjustment_values(prst):
+        """
+        Return sequence of name, value tuples representing the adjustment
+        value defaults for the auto shape type identified by *prst*.
+        """
+        autoshape_type_id = _AutoShapeType._lookup_id_by_prst(prst)
+        return autoshape_types[autoshape_type_id]['avLst']
 
     @property
     def desc(self):
