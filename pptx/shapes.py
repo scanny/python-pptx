@@ -89,7 +89,26 @@ class _AdjustmentCollection(object):
             return adjustments
         for name, def_val in _AutoShapeType.default_adjustment_values(prst):
             adjustments.append(_Adjustment(name, def_val))
+        self.__update_adjustments_with_actuals(adjustments, spPr.gd)
         return adjustments
+
+    @staticmethod
+    def __update_adjustments_with_actuals(adjustments, guides):
+        """
+        Update |_Adjustment| instances in *adjustments* with actual values
+        held in *guides*, a list of ``<a:gd>`` elements. Guides with a name
+        that does not match an adjustment object are skipped.
+        """
+        adjustments_by_name = dict((adj.name, adj) for adj in adjustments)
+        for gd in guides:
+            name = gd.get('name')
+            actual = int(gd.get('fmla')[4:])
+            try:
+                adjustment = adjustments_by_name[name]
+            except KeyError:
+                continue
+            adjustment.actual = actual
+        return
 
     @property
     def _adjustments(self):
@@ -121,6 +140,7 @@ class _Adjustment(object):
         super(_Adjustment, self).__init__()
         self.name = name
         self.def_val = def_val
+        self.actual = None
 
 
 class _AutoShapeType(object):

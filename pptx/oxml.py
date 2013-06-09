@@ -429,6 +429,18 @@ class CT_Shape(objectify.ObjectifiedElement):
 class CT_ShapeProperties(objectify.ObjectifiedElement):
     """<p:spPr> custom element class"""
     @property
+    def gd(self):
+        """
+        List of ``gd`` element children of ``<a:avLst>`` child element, an
+        empty list if none are present.
+        """
+        try:
+            gd_elms = [gd for gd in self[qn('a:prstGeom')].avLst.gd]
+        except AttributeError:
+            gd_elms = []
+        return gd_elms
+
+    @property
     def prst(self):
         """
         Value of ``prst`` attribute of ``<a:prstGeom>`` child element or

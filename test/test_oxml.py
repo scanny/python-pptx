@@ -290,6 +290,30 @@ class TestCT_Shape(TestCase):
 
 class TestCT_ShapeProperties(TestCase):
     """Test CT_ShapeProperties"""
+    def test_gd_return_value(self):
+        """CT_ShapeProperties.gd value is correct"""
+        # setup -----------------------
+        long_spPr = an_spPr().with_gd(111, 'adj1').with_gd(222, 'adj2')
+        long_spPr = long_spPr.with_gd(333, 'adj3').with_gd(444, 'adj4')
+        cases = (
+            (an_spPr(), ()),
+            (an_spPr().with_gd(999, 'adj2'), ((999, 'adj2'),)),
+            (long_spPr, ((111, 'adj1'), (222, 'adj2'), (333, 'adj3'),
+                         (444, 'adj4'))),
+        )
+        for spPr_builder, expected_vals in cases:
+            spPr = spPr_builder.element
+            # exercise -----------------
+            gd_elms = spPr.gd
+            # verify -------------------
+            assert_that(isinstance(gd_elms, list))
+            assert_that(len(gd_elms), is_(equal_to(len(expected_vals))))
+            for idx, gd_elm in enumerate(gd_elms):
+                val, name = expected_vals[idx]
+                fmla = 'val %d' % val
+                assert_that(gd_elm.get('name'), is_(equal_to(name)))
+                assert_that(gd_elm.get('fmla'), is_(equal_to(fmla)))
+
     def test_prst_return_value(self):
         """CT_ShapeProperties.prst value is correct"""
         # setup -----------------------

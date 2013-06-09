@@ -71,50 +71,6 @@ def _sldLayout1_shapes():
 
 class Test_AdjustmentCollection(TestCase):
     """Test _AdjustmentCollection"""
-    @patch('pptx.shapes._Adjustment')
-    @patch('pptx.shapes._AutoShapeType')
-    def test_it_should_load_default_adj_vals_correctly(
-            self, _AutoShapeType, _Adjustment):
-        """_AdjustmentCollection() loads default adj vals correctly"""
-        # setup ------------------------
-        cases = (
-            (None, ()),
-            ('rect', ()),
-            ('chevron', (('adj', 50000),)),
-            ('bentArrow', (('adj1', 25000), ('adj2', 25000), ('adj3', 25000),
-                           ('adj4', 43750))),
-        )
-        spPr = Mock(name='spPr')
-        prst = type(spPr).prst = PropertyMock()
-        default_adjustment_values = _AutoShapeType.default_adjustment_values
-        for prst_val, def_adj_vals in cases:
-            prst.return_value = prst_val
-            default_adjustment_values.return_value = def_adj_vals
-            # exercise -----------------
-            adjustments = _AdjustmentCollection(spPr)
-            # verify -------------------
-            reason = "\n\nFailed for prst == '%s'\n" % prst_val
-            prst.assert_called_once_with()
-            if prst_val:
-                default_adjustment_values.assert_called_once_with(prst_val)
-            assert_that(_Adjustment.call_count,
-                        is_(len(def_adj_vals)),
-                        reason)
-            for name, def_val in def_adj_vals:
-                try:
-                    _Adjustment.assert_any_call(name, def_val)
-                except AssertionError:
-                    tmpl = ("_Adjustment('%s', %d) call not found for prst ="
-                            "= '%s'")
-                    raise AssertionError(tmpl % (name, def_val, prst_val))
-            assert_that(len(adjustments),
-                        is_(equal_to(len(def_adj_vals))),
-                        reason)
-            # reset mocks for next case
-            prst.reset_mock()
-            default_adjustment_values.reset_mock()
-            _Adjustment.reset_mock()
-
     def test_it_should_load_default_adjustment_values(self):
         """_AdjustmentCollection() loads default adjustment values"""
         # setup ------------------------
@@ -141,6 +97,43 @@ class Test_AdjustmentCollection(TestCase):
                           (prst, name))
                 assert_that(adjustments[idx].name, is_(name), reason)
                 assert_that(adjustments[idx].def_val, is_(def_val), reason)
+
+    def test_it_should_load_adj_val_actuals_from_xml(self):
+        """_AdjustmentCollection() updates adj vals from values in xml"""
+        # setup ------------------------
+        def expected_actual(adj_vals, adjustment_name):
+            for name, actual in adj_vals:
+                if name == adjustment_name:
+                    return actual
+            return None
+
+        baloon_builder = an_spPr().with_prst('wedgeRoundRectCallout')
+        baloon_builder.with_gd(111, 'adj1').with_gd(222, 'adj2')
+        baloon_builder.with_gd(333, 'adj3')
+        cases = (
+            # no adjustment values in xml or spec
+            (an_spPr().with_prst('rect').with_avLst, ()),
+            # no adjustment values in xml, but some in spec
+            (an_spPr().with_prst('circularArrow'), ()),
+            # adjustment value in xml but none in spec
+            (an_spPr().with_prst('rect').with_gd(), ()),
+            # middle adjustment value in xml
+            (an_spPr().with_prst('mathDivide').with_gd(name='adj2'),
+             (('adj2', 25000),)),
+            # all adjustment values in xml
+            (baloon_builder,
+             (('adj1', 111), ('adj2', 222), ('adj3', 333))),
+        )
+        # verify -----------------------
+        for spPr_builder, adj_vals in cases:
+            spPr = spPr_builder.element
+            adjustments = _AdjustmentCollection(spPr)._adjustments
+            for adjustment in adjustments:
+                expected_value = expected_actual(adj_vals, adjustment.name)
+                reason = (
+                    "failed for adj val name '%s', for this XML:\n\n%s" %
+                    (adjustment.name, spPr_builder.xml))
+                assert_that(adjustment.actual, is_(expected_value), reason)
 
 
 class Test_AutoShapeType(TestCase):
