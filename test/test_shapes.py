@@ -11,9 +11,9 @@
 
 import os
 
-from hamcrest import assert_that, equal_to, is_, same_instance
-
+from hamcrest import assert_that, equal_to, is_, is_not, same_instance
 from mock import MagicMock, Mock, patch, PropertyMock
+# from unittest2 import skip
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP
 from pptx.oxml import (
@@ -21,7 +21,7 @@ from pptx.oxml import (
 )
 from pptx.presentation import _SlideLayout
 from pptx.shapes import (
-    _AdjustmentCollection, _AutoShapeType, _BaseShape, _Cell,
+    _Adjustment, _AdjustmentCollection, _AutoShapeType, _BaseShape, _Cell,
     _CellCollection, _Column, _ColumnCollection, _Font, _Paragraph,
     _Placeholder, _Row, _RowCollection, _Run, _Shape, _ShapeCollection,
     _TextFrame, _to_unicode
@@ -34,7 +34,7 @@ from pptx.spec import (
 )
 from pptx.util import Inches, Pt
 from testdata import (
-    an_spPr, test_shape_elements, test_shapes, test_table_objects,
+    a_prstGeom, test_shape_elements, test_shapes, test_table_objects,
     test_text_objects, test_text_xml
 )
 from testing import TestCase
@@ -69,6 +69,32 @@ def _sldLayout1_shapes():
     return shapes
 
 
+class Test_Adjustment(TestCase):
+    """Test _Adjustment"""
+    def test_it_should_have_correct_effective_value(self):
+        """_Adjustment.effective_value is correct"""
+        # setup ------------------------
+        name = "don't care"
+        cases = (
+            # no actual, effective should be determined by default value
+            (50000, None, 0.5),
+            # actual matches default
+            (50000, 50000, 0.5),
+            # actual is different than default
+            (50000, 12500, 0.125),
+            # actual is zero
+            (50000, 0, 0.0),
+            # negative default
+            (-20833, None, -0.20833),
+            # negative actual
+            (-20833, -5678901, -56.78901),
+        )
+        # verify -----------------------
+        for def_val, actual, expected in cases:
+            adjustment = _Adjustment(name, def_val, actual)
+            assert_that(adjustment.effective_value, is_(equal_to(expected)))
+
+
 class Test_AdjustmentCollection(TestCase):
     """Test _AdjustmentCollection"""
     def test_it_should_load_default_adjustment_values(self):
@@ -86,20 +112,19 @@ class Test_AdjustmentCollection(TestCase):
              (('adj1', 12500), ('adj2', 1142319), ('adj3', 20457681),
               ('adj4', 10800000), ('adj5', 12500))),
         )
-        # verify -----------------------
-        for prst, adj_vals in cases:
-            spPr = an_spPr().with_prst(prst).with_avLst.element
-            adjustments = _AdjustmentCollection(spPr)._adjustments
-            assert_that(len(adjustments), is_(equal_to(len(adj_vals))))
-            for idx, adj_val in enumerate(adj_vals):
-                name, def_val = adj_val
-                reason = ("\n     failed for prst '%s', name '%s'" %
-                          (prst, name))
-                assert_that(adjustments[idx].name, is_(name), reason)
-                assert_that(adjustments[idx].def_val, is_(def_val), reason)
+        for prst, expected_values in cases:
+            prstGeom = a_prstGeom(prst).with_avLst.element
+            adjustments = _AdjustmentCollection(prstGeom)._adjustments
+            # verify -------------------
+            reason = ("\n     failed for prst: '%s'" % prst)
+            assert_that(len(adjustments),
+                        is_(equal_to(len(expected_values))),
+                        reason)
+            actuals = tuple([(adj.name, adj.def_val) for adj in adjustments])
+            assert_that(actuals, is_(equal_to(expected_values)), reason)
 
     def test_it_should_load_adj_val_actuals_from_xml(self):
-        """_AdjustmentCollection() updates adj vals from values in xml"""
+        """_AdjustmentCollection() loads adjustment value actuals from XML"""
         # setup ------------------------
         def expected_actual(adj_vals, adjustment_name):
             for name, actual in adj_vals:
@@ -107,33 +132,125 @@ class Test_AdjustmentCollection(TestCase):
                     return actual
             return None
 
-        baloon_builder = an_spPr().with_prst('wedgeRoundRectCallout')
-        baloon_builder.with_gd(111, 'adj1').with_gd(222, 'adj2')
-        baloon_builder.with_gd(333, 'adj3')
         cases = (
             # no adjustment values in xml or spec
-            (an_spPr().with_prst('rect').with_avLst, ()),
+            (a_prstGeom('rect').with_avLst, ()),
             # no adjustment values in xml, but some in spec
-            (an_spPr().with_prst('circularArrow'), ()),
+            (a_prstGeom('circularArrow'), ()),
             # adjustment value in xml but none in spec
-            (an_spPr().with_prst('rect').with_gd(), ()),
+            (a_prstGeom('rect').with_gd(), ()),
             # middle adjustment value in xml
-            (an_spPr().with_prst('mathDivide').with_gd(name='adj2'),
+            (a_prstGeom('mathDivide').with_gd(name='adj2'),
              (('adj2', 25000),)),
             # all adjustment values in xml
-            (baloon_builder,
+            (a_prstGeom('wedgeRoundRectCallout').with_gd(111, 'adj1')
+                                                .with_gd(222, 'adj2')
+                                                .with_gd(333, 'adj3'),
              (('adj1', 111), ('adj2', 222), ('adj3', 333))),
         )
         # verify -----------------------
-        for spPr_builder, adj_vals in cases:
-            spPr = spPr_builder.element
-            adjustments = _AdjustmentCollection(spPr)._adjustments
+        for prstGeom_builder, adj_vals in cases:
+            prstGeom = prstGeom_builder.element
+            adjustments = _AdjustmentCollection(prstGeom)._adjustments
             for adjustment in adjustments:
                 expected_value = expected_actual(adj_vals, adjustment.name)
                 reason = (
                     "failed for adj val name '%s', for this XML:\n\n%s" %
-                    (adjustment.name, spPr_builder.xml))
+                    (adjustment.name, prstGeom_builder.xml))
                 assert_that(adjustment.actual, is_(expected_value), reason)
+
+    def test_it_should_return_effective_value_on_indexed_access(self):
+        """_AdjustmentCollection[n] is normalized effective value of nth"""
+        # setup ------------------------
+        cases = (
+            ('rect', ()),
+            ('chevron', (0.5,)),
+            ('circularArrow', (0.125, 11.42319, 204.57681, 108.0, 0.125)),
+        )
+        for prst, expected_values in cases:
+            prstGeom = a_prstGeom(prst).element
+            # exercise -----------------
+            adjustments = _AdjustmentCollection(prstGeom)
+            # verify -------------------
+            reason = "failed on case: prst=='%s'" % prst
+            assert_that(len(adjustments), is_(len(expected_values)), reason)
+            retvals = tuple([adj for adj in adjustments])
+            assert_that(retvals, is_(equal_to(expected_values)), reason)
+
+    def test_it_should_update_actual_value_on_indexed_assignment(self):
+        """Assignment to _AdjustmentCollection[n] updates nth actual"""
+        # setup ------------------------
+        cases = (
+            ('chevron', 0, 0.5, 50000),
+            ('circularArrow', 2, 99.99, 9999000),
+        )
+        prst = 'chevron'
+        for prst, idx, new_value, expected in cases:
+            prstGeom = a_prstGeom(prst).element
+            adjustments = _AdjustmentCollection(prstGeom)
+            # exercise -----------------
+            adjustments[idx] = new_value
+            # verify -------------------
+            reason = "failed on case: prst=='%s'" % prst
+            assert_that(adjustments._adjustments[idx].actual,
+                        is_(equal_to(expected)),
+                        reason)
+
+    def test_it_should_round_trip_indexed_assignment(self):
+        """Assignment to _AdjustmentCollection[n] round-trips"""
+        # setup ------------------------
+        new_value = 0.375
+        prstGeom = a_prstGeom('chevron').element
+        adjustments = _AdjustmentCollection(prstGeom)
+        assert_that(adjustments[0], is_not(equal_to(new_value)))
+        # exercise ---------------------
+        adjustments[0] = new_value
+        # verify -----------------------
+        assert_that(adjustments[0], is_(equal_to(new_value)))
+
+    def test_it_should_raise_on_bad_key(self):
+        """_AdjustmentCollection[idx] raises on invalid idx"""
+        # setup ------------------------
+        prstGeom = a_prstGeom('chevron').element
+        adjustments = _AdjustmentCollection(prstGeom)
+        # verify -----------------------
+        with self.assertRaises(IndexError):
+            adjustments[-6]
+        with self.assertRaises(IndexError):
+            adjustments[6]
+        with self.assertRaises(TypeError):
+            adjustments[0.0]
+        with self.assertRaises(TypeError):
+            adjustments['0']
+        with self.assertRaises(IndexError):
+            adjustments[-6] = 1.0
+        with self.assertRaises(IndexError):
+            adjustments[6] = 1.0
+        with self.assertRaises(TypeError):
+            adjustments[0.0] = 1.0
+        with self.assertRaises(TypeError):
+            adjustments['0'] = 1.0
+
+    def test_it_should_raise_on_assigned_bad_value(self):
+        """_AdjustmentCollection[n] = val raises on val is not number"""
+        # setup ------------------------
+        prstGeom = a_prstGeom('chevron').element
+        adjustments = _AdjustmentCollection(prstGeom)
+        # verify -----------------------
+        with self.assertRaises(ValueError):
+            adjustments[0] = 'foobar'
+
+    def test_writes_adj_vals_to_xml_on_assignment(self):
+        """_AdjustmentCollection writes adj vals to XML on assignment"""
+        # setup ------------------------
+        prstGeom = a_prstGeom('chevron').element
+        adjustments = _AdjustmentCollection(prstGeom)
+        __prstGeom = Mock(name='__prstGeom')
+        adjustments._AdjustmentCollection__prstGeom = __prstGeom
+        # exercise ---------------------
+        adjustments[0] = 0.999
+        # verify -----------------------
+        assert_that(__prstGeom.rewrite_guides.call_count, is_(1))
 
 
 class Test_AutoShapeType(TestCase):
@@ -989,7 +1106,7 @@ class Test_Shape(TestCase):
         shape = _Shape(sp)
         # verify -----------------------
         _BaseShape__init__.assert_called_once_with(sp)
-        _AdjustmentCollection.assert_called_once_with(sp.spPr)
+        _AdjustmentCollection.assert_called_once_with(sp.prstGeom)
         assert_that(shape.adjustments, is_(adjustments))
 
     def test_auto_shape_type_value_correct(self):

@@ -9,13 +9,14 @@
 
 """Test suite for pptx.oxml module."""
 
-from hamcrest import assert_that, equal_to, is_
+from hamcrest import assert_that, equal_to, instance_of, is_, none
 
 from pptx.constants import (
     TEXT_ALIGN_TYPE as TAT, TEXT_ANCHORING_TYPE as TANC
 )
 from pptx.oxml import (
-    CT_GraphicalObjectFrame, CT_Picture, CT_Shape, CT_Table, nsdecls, qn
+    CT_GraphicalObjectFrame, CT_Picture, CT_PresetGeometry2D, CT_Shape,
+    CT_Table, nsdecls, qn
 )
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER,
@@ -24,8 +25,8 @@ from pptx.spec import (
 )
 
 from testdata import (
-    a_tbl, an_spPr, test_shape_elements, test_table_elements, test_table_xml,
-    test_text_elements, test_text_xml
+    a_prstGeom, a_tbl, test_shape_elements, test_table_elements,
+    test_table_xml, test_text_elements, test_text_xml
 )
 from testing import TestCase
 
@@ -139,6 +140,56 @@ class TestCT_Picture(TestCase):
                                  width, height)
         # verify ----------------------
         self.assertEqualLineByLine(xml, pic)
+
+
+class TestCT_PresetGeometry2D(TestCase):
+    """Test CT_PresetGeometry2D"""
+    def test_gd_return_value(self):
+        """CT_PresetGeometry2D.gd value is correct"""
+        # setup -----------------------
+        long_prstGeom = a_prstGeom().with_gd(111, 'adj1')\
+                                    .with_gd(222, 'adj2')\
+                                    .with_gd(333, 'adj3')\
+                                    .with_gd(444, 'adj4')
+        cases = (
+            (a_prstGeom(), ()),
+            (a_prstGeom().with_gd(999, 'adj2'), ((999, 'adj2'),)),
+            (long_prstGeom, ((111, 'adj1'), (222, 'adj2'), (333, 'adj3'),
+                             (444, 'adj4'))),
+        )
+        for prstGeom_builder, expected_vals in cases:
+            prstGeom = prstGeom_builder.element
+            # exercise -----------------
+            gd_elms = prstGeom.gd
+            # verify -------------------
+            assert_that(isinstance(gd_elms, tuple))
+            assert_that(len(gd_elms), is_(equal_to(len(expected_vals))))
+            for idx, gd_elm in enumerate(gd_elms):
+                val, name = expected_vals[idx]
+                fmla = 'val %d' % val
+                assert_that(gd_elm.get('name'), is_(equal_to(name)))
+                assert_that(gd_elm.get('fmla'), is_(equal_to(fmla)))
+
+    def test_it_should_rewrite_guides_correctly(self):
+        """CT_PresetGeometry2D.rewrite_guides() produces correct XML"""
+        # setup ------------------------
+        cases = (
+            (a_prstGeom('chevron'), ()),
+            (a_prstGeom('chevron').with_gd(111, 'foo'), (('bar', 222),)),
+            (a_prstGeom('circularArrow').with_gd(333, 'adj1'),
+             (('adj1', 12500), ('adj2', 1142319), ('adj3', 12500),
+              ('adj4', 10800000), ('adj5', 12500))),
+        )
+        for prstGeom_builder, guides in cases:
+            prstGeom = prstGeom_builder.element
+            # exercise -----------------
+            prstGeom.rewrite_guides(guides)
+            # verify -------------------
+            prstGeom_builder.reset()
+            for name, val in guides:
+                prstGeom_builder.with_gd(val, name)
+            expected_xml = prstGeom_builder.with_avLst.xml
+            self.assertEqualLineByLine(expected_xml, prstGeom)
 
 
 class TestCT_Shape(TestCase):
@@ -287,44 +338,15 @@ class TestCT_Shape(TestCase):
         assert_that(rounded_rect_sp.prst, is_(equal_to('roundRect')))
         assert_that(placeholder_sp.prst, is_(equal_to(None)))
 
-
-class TestCT_ShapeProperties(TestCase):
-    """Test CT_ShapeProperties"""
-    def test_gd_return_value(self):
-        """CT_ShapeProperties.gd value is correct"""
+    def test_prstGeom_return_value(self):
+        """CT_Shape.prstGeom value is correct"""
         # setup -----------------------
-        long_spPr = an_spPr().with_gd(111, 'adj1').with_gd(222, 'adj2')
-        long_spPr = long_spPr.with_gd(333, 'adj3').with_gd(444, 'adj4')
-        cases = (
-            (an_spPr(), ()),
-            (an_spPr().with_gd(999, 'adj2'), ((999, 'adj2'),)),
-            (long_spPr, ((111, 'adj1'), (222, 'adj2'), (333, 'adj3'),
-                         (444, 'adj4'))),
-        )
-        for spPr_builder, expected_vals in cases:
-            spPr = spPr_builder.element
-            # exercise -----------------
-            gd_elms = spPr.gd
-            # verify -------------------
-            assert_that(isinstance(gd_elms, list))
-            assert_that(len(gd_elms), is_(equal_to(len(expected_vals))))
-            for idx, gd_elm in enumerate(gd_elms):
-                val, name = expected_vals[idx]
-                fmla = 'val %d' % val
-                assert_that(gd_elm.get('name'), is_(equal_to(name)))
-                assert_that(gd_elm.get('fmla'), is_(equal_to(fmla)))
-
-    def test_prst_return_value(self):
-        """CT_ShapeProperties.prst value is correct"""
-        # setup -----------------------
-        cases = (
-            (an_spPr(), None),
-            (an_spPr().with_prst('rect'), 'rect'),
-        )
+        rounded_rect_sp = test_shape_elements.rounded_rectangle
+        placeholder_sp = test_shape_elements.placeholder
         # verify ----------------------
-        for spPr_builder, expected_prst in cases:
-            spPr = spPr_builder.element
-            assert_that(spPr.prst, is_(equal_to(expected_prst)))
+        assert_that(rounded_rect_sp.prstGeom,
+                    instance_of(CT_PresetGeometry2D))
+        assert_that(placeholder_sp.prstGeom, is_(none()))
 
 
 class TestCT_Table(TestCase):

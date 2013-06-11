@@ -251,6 +251,43 @@ class CT_Picture(objectify.ObjectifiedElement):
         return pic
 
 
+class CT_PresetGeometry2D(objectify.ObjectifiedElement):
+    """<a:prstGeom> custom element class"""
+    @property
+    def gd(self):
+        """
+        Sequence containing the ``gd`` element children of ``<a:avLst>``
+        child element, empty if none are present.
+        """
+        try:
+            gd_elms = tuple([gd for gd in self.avLst.gd])
+        except AttributeError:
+            gd_elms = ()
+        return gd_elms
+
+    @property
+    def prst(self):
+        """Value of required ``prst`` attribute."""
+        return self.get('prst')
+
+    def rewrite_guides(self, guides):
+        """
+        Remove any ``<a:gd>`` element children of ``<a:avLst>`` and replace
+        them with ones having (name, val) in *guides*.
+        """
+        try:
+            avLst = self.avLst
+        except AttributeError:
+            avLst = _SubElement(self, 'a:avLst')
+        if hasattr(self.avLst, 'gd'):
+            for gd_elm in self.avLst.gd[:]:
+                avLst.remove(gd_elm)
+        for name, val in guides:
+            gd = _SubElement(avLst, 'a:gd')
+            gd.set('name', name)
+            gd.set('fmla', 'val %d' % val)
+
+
 class CT_Shape(objectify.ObjectifiedElement):
     """<p:sp> custom element class"""
     _autoshape_sp_tmpl = (
@@ -425,31 +462,13 @@ class CT_Shape(objectify.ObjectifiedElement):
             return None
         return prstGeom.get('prst')
 
-
-class CT_ShapeProperties(objectify.ObjectifiedElement):
-    """<p:spPr> custom element class"""
     @property
-    def gd(self):
+    def prstGeom(self):
         """
-        List of ``gd`` element children of ``<a:avLst>`` child element, an
-        empty list if none are present.
+        Reference to ``<a:prstGeom>`` child element or |None| if this shape
+        doesn't have one, for example, if it's a placeholder shape.
         """
-        try:
-            gd_elms = [gd for gd in self[qn('a:prstGeom')].avLst.gd]
-        except AttributeError:
-            gd_elms = []
-        return gd_elms
-
-    @property
-    def prst(self):
-        """
-        Value of ``prst`` attribute of ``<a:prstGeom>`` child element or
-        |None| if not present.
-        """
-        prstGeom = _child(self, 'a:prstGeom')
-        if prstGeom is None:
-            return None
-        return prstGeom.get('prst')
+        return _child(self.spPr, 'a:prstGeom')
 
 
 class CT_Table(objectify.ObjectifiedElement):
@@ -762,6 +781,7 @@ class CT_TextParagraph(objectify.ObjectifiedElement):
 
 a_namespace = element_class_lookup.get_namespace(nsmap['a'])
 a_namespace['p'] = CT_TextParagraph
+a_namespace['prstGeom'] = CT_PresetGeometry2D
 a_namespace['tbl'] = CT_Table
 a_namespace['tc'] = CT_TableCell
 
@@ -769,5 +789,4 @@ p_namespace = element_class_lookup.get_namespace(nsmap['p'])
 p_namespace['graphicFrame'] = CT_GraphicalObjectFrame
 p_namespace['pic'] = CT_Picture
 p_namespace['sp'] = CT_Shape
-p_namespace['spPr'] = CT_ShapeProperties
 p_namespace['txBody'] = CT_TextBody

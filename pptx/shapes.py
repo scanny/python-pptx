@@ -11,6 +11,8 @@
 Classes that implement PowerPoint shapes such as picture, textbox, and table.
 """
 
+from numbers import Number
+
 from pptx.constants import MSO
 from pptx.oxml import (
     _get_or_add, qn, _Element, _SubElement, CT_GraphicalObjectFrame,
@@ -74,23 +76,43 @@ class _AdjustmentCollection(object):
     available adjustment for a shape of its type. Supports ``len()`` and
     indexed access, e.g. ``shape.adjustments[1] = 0.15``.
     """
-    def __init__(self, spPr):
+    def __init__(self, prstGeom):
         super(_AdjustmentCollection, self).__init__()
-        self.__adjustments = self.__initialized_adjustments(spPr)
+        self.__adjustments = self.__initialized_adjustments(prstGeom)
+        self.__prstGeom = prstGeom
 
-    def __initialized_adjustments(self, spPr):
+    def __getitem__(self, key):
+        """Provides indexed access, (e.g. 'adjustments[9]')."""
+        return self.__adjustments[key].effective_value
+
+    def __setitem__(self, key, value):
+        """
+        Provides item assignment via an indexed expression, e.g.
+        ``adjustments[9] = 999.9``. Causes all adjustment values in
+        collection to be written to the XML.
+        """
+        self.__adjustments[key].effective_value = value
+        self.__rewrite_guides()
+
+    def __initialized_adjustments(self, prstGeom):
         """
         Return an initialized list of adjustment values based on the contents
-        of *spPr*
+        of *prstGeom*
         """
-        adjustments = []
-        prst = spPr.prst
-        if not prst:
-            return adjustments
-        for name, def_val in _AutoShapeType.default_adjustment_values(prst):
-            adjustments.append(_Adjustment(name, def_val))
-        self.__update_adjustments_with_actuals(adjustments, spPr.gd)
+        if prstGeom is None:
+            return []
+        davs = _AutoShapeType.default_adjustment_values(prstGeom.prst)
+        adjustments = [_Adjustment(name, def_val) for name, def_val in davs]
+        self.__update_adjustments_with_actuals(adjustments, prstGeom.gd)
         return adjustments
+
+    def __rewrite_guides(self):
+        """
+        Write ``<a:gd>`` elements to the XML, one for each adjustment value.
+        Any existing guide elements are overwritten.
+        """
+        guides = [(adj.name, adj.val) for adj in self.__adjustments]
+        self.__prstGeom.rewrite_guides(guides)
 
     @staticmethod
     def __update_adjustments_with_actuals(adjustments, guides):
@@ -136,11 +158,61 @@ class _Adjustment(object):
     Values are |float| and generally range from 0.0 to 1.0, although the value
     can be negative or greater than 1.0 in certain circumstances.
     """
-    def __init__(self, name, def_val):
+    def __init__(self, name, def_val, actual=None):
         super(_Adjustment, self).__init__()
         self.name = name
         self.def_val = def_val
-        self.actual = None
+        self.actual = actual
+
+    @property
+    def effective_value(self):
+        """
+        Read/write |float| representing normalized adjustment value for this
+        adjustment. Actual values are a large-ish integer expressed in shape
+        coordinates, nominally between 0 and 100,000. The effective value is
+        normalized to a corresponding value nominally between 0.0 and 1.0.
+        Intuitively this represents the proportion of the width or height of
+        the shape at which the adjustment value is located from its starting
+        point. For simple shapes such as a rounded rectangle, this intuitive
+        correspondence holds. For more complicated shapes and at more extreme
+        shape proportions (e.g. width is much greater than height), the value
+        can become negative or greater than 1.0.
+        """
+        raw_value = self.actual if self.actual is not None else self.def_val
+        return self.__normalize(raw_value)
+
+    @effective_value.setter
+    def effective_value(self, value):
+        if not isinstance(value, Number):
+            tmpl = "adjustment value must be numeric, got '%s'"
+            raise ValueError(tmpl % value)
+        self.actual = self.__denormalize(value)
+
+    @staticmethod
+    def __denormalize(value):
+        """
+        Return integer corresponding to normalized *raw_value* on unit basis
+        of 100,000. See _Adjustment.normalize for additional details.
+        """
+        return int(value * 100000.0)
+
+    @staticmethod
+    def __normalize(raw_value):
+        """
+        Return normalized value for *raw_value*. A normalized value is a
+        |float| between 0.0 and 1.0 for nominal raw values between 0 and
+        100,000. Raw values less than 0 and greater than 100,000 are valid
+        and return values calculated on the same unit basis of 100,000.
+        """
+        return raw_value / 100000.0
+
+    @property
+    def val(self):
+        """
+        Denormalized effective value (expressed in shape coordinates),
+        suitable for using in the XML.
+        """
+        return self.actual if self.actual is not None else self.def_val
 
 
 class _AutoShapeType(object):
@@ -615,9 +687,9 @@ class _Shape(_BaseShape):
     that can appear in any of the slide-type parts (slide, slideLayout,
     slideMaster, notesPage, notesMaster, handoutMaster).
     """
-    def __init__(self, shape_element):
-        super(_Shape, self).__init__(shape_element)
-        self.__adjustments = _AdjustmentCollection(shape_element.spPr)
+    def __init__(self, sp):
+        super(_Shape, self).__init__(sp)
+        self.__adjustments = _AdjustmentCollection(sp.prstGeom)
 
     @property
     def adjustments(self):
