@@ -16,7 +16,7 @@ what you can do with |pp|.
 Status
 ======
 
-The current release is v0.2.4 dated May 16, 2013. The library is under active
+The current release is v0.2.5 dated June 11, 2013. The library is under active
 development. The current release has the following basic capabilities:
 
 * Round-trip any Open XML presentation (.pptx file) including all its elements

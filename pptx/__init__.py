@@ -11,7 +11,7 @@ sys.modules['pptx.exceptions'] = exceptions
 
 from pptx.api import(Presentation)
 
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 
 import logging
 log = logging.getLogger('pptx')
