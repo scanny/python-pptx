@@ -12,937 +12,1461 @@ Constant values from the ECMA-376 spec that are needed for XML generation and
 packaging, and a utility function or two for accessing some of them.
 """
 
-from constants import MSO
+from constants import (
+    MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP, TEXT_ALIGN_TYPE as TAT,
+    TEXT_ANCHORING_TYPE as TANC
+)
+
+
+class VerticalAnchor(object):
+    """
+    Mappings between ``MsoVerticalAnchor`` values used in the API and
+    ``ST_TextAnchoringType`` values used in the XML. ``MsoVerticalAnchor``
+    values are like ``MSO.ANCHOR_MIDDLE``.
+    """
+    _mapping = {
+        MSO.ANCHOR_TOP:    TANC.TOP,
+        MSO.ANCHOR_MIDDLE: TANC.MIDDLE,
+        MSO.ANCHOR_BOTTOM: TANC.BOTTOM
+    }
+
+    @classmethod
+    def from_text_anchoring_type(cls, text_anchoring_type):
+        """
+        Map an ``ST_TextAnchoringType`` value (e.g. ``TANC.TOP`` or
+        ``'t'``) to an MsoVerticalAnchor value (e.g. ``MSO.ANCHOR_TOP``).
+        Returns |None| if *text_anchoring_type* is |None|.
+        """
+        if text_anchoring_type is None:
+            return None
+        for vertical_anchor, tanc in cls._mapping.iteritems():
+            if tanc == text_anchoring_type:
+                return vertical_anchor
+        tmpl = "no vertical anchor type for ST_TextAnchoringType '%s'"
+        raise KeyError(tmpl % text_anchoring_type)
+
+    @classmethod
+    def to_text_anchoring_type(cls, vertical_anchor):
+        """
+        Map an ``MsoVerticalAnchor`` value (e.g. ``MSO.ANCHOR_MIDDLE``) to an
+        ``ST_TextAnchoringType`` value (e.g. ``TANC.MIDDLE`` or ``'ctr'``).
+        Returns None if *vertical_anchor* is None.
+        """
+        if vertical_anchor is None:
+            return None
+        try:
+            text_anchoring_type = cls._mapping[vertical_anchor]
+        except KeyError:
+            tmpl = "no ST_TextAnchoringType value for vertical_anchor '%s'"
+            raise KeyError(tmpl % vertical_anchor)
+        return text_anchoring_type
+
+
+class ParagraphAlignment(object):
+    """
+    Mappings between ``PpParagraphAlignment`` values used in the API and
+    ``ST_TextAlignType`` values used in the XML. ``PpParagraphAlignment``
+    values are like ``PP.ALIGN_CENTER``.
+    """
+    _mapping = {
+        PP.ALIGN_CENTER:          TAT.CENTER,
+        PP.ALIGN_DISTRIBUTE:      TAT.DISTRIBUTE,
+        PP.ALIGN_JUSTIFY:         TAT.JUSTIFY,
+        PP.ALIGN_JUSTIFY_LOW:     TAT.JUSTIFY_LOW,
+        PP.ALIGN_LEFT:            TAT.LEFT,
+        PP.ALIGN_RIGHT:           TAT.RIGHT,
+        PP.ALIGN_THAI_DISTRIBUTE: TAT.THAI_DISTRIBUTE
+    }
+
+    @classmethod
+    def from_text_align_type(cls, text_align_type):
+        """
+        Map an ``ST_TextAlignType`` value (e.g. ``TAT.CENTER`` or ``'ctr'``)
+        to a paragraph alignment value (e.g. ``PP.ALIGN_CENTER``). Returns
+        None if *text_align_type* is None.
+        """
+        if text_align_type is None:
+            return None
+        for alignment, tat in cls._mapping.iteritems():
+            if tat == text_align_type:
+                return alignment
+        tmpl = "no ST_TextAlignType '%s'"
+        raise KeyError(tmpl % text_align_type)
+
+    @classmethod
+    def to_text_align_type(cls, alignment):
+        """
+        Map a paragraph alignment value (e.g. ``PP.ALIGN_CENTER``) to an
+        ``ST_TextAlignType`` value (e.g. ``TAT.CENTER`` or ``'ctr'``).
+        Returns None if *alignment* is None.
+        """
+        if alignment is None:
+            return None
+        try:
+            text_align_type = cls._mapping[alignment]
+        except KeyError:
+            tmpl = "no ST_TextAlignType value for alignment '%s'"
+            raise KeyError(tmpl % alignment)
+        return text_align_type
+
 
 # ============================================================================
 # AutoShape type specs
 # ============================================================================
 
 autoshape_types = {
-    MSO.SHAPE_10_POINT_STAR: {
-        'basename': '10-Point Star',
-        'prst':     'star10',
-        'desc':     '10-Point Star'
-    },
-    MSO.SHAPE_12_POINT_STAR: {
-        'basename': '12-Point Star',
-        'prst':     'star12',
-        'desc':     '12-Point Star'
-    },
-    MSO.SHAPE_16_POINT_STAR: {
-        'basename': '16-Point Star',
-        'prst':     'star16',
-        'desc':     '16-point star'
-    },
-    MSO.SHAPE_24_POINT_STAR: {
-        'basename': '24-Point Star',
-        'prst':     'star24',
-        'desc':     '24-point star'
-    },
-    MSO.SHAPE_32_POINT_STAR: {
-        'basename': '32-Point Star',
-        'prst':     'star32',
-        'desc':     '32-point star'
-    },
-    MSO.SHAPE_4_POINT_STAR: {
-        'basename': '4-Point Star',
-        'prst':     'star4',
-        'desc':     '4-point star'
-    },
-    MSO.SHAPE_5_POINT_STAR: {
-        'basename': '5-Point Star',
-        'prst':     'star5',
-        'desc':     '5-point star'
-    },
-    MSO.SHAPE_6_POINT_STAR: {
-        'basename': '6-Point Star',
-        'prst':     'star6',
-        'desc':     '6-Point Star'
-    },
-    MSO.SHAPE_7_POINT_STAR: {
-        'basename': '7-Point Star',
-        'prst':     'star7',
-        'desc':     '7-Point Star'
-    },
-    MSO.SHAPE_8_POINT_STAR: {
-        'basename': '8-Point Star',
-        'prst':     'star8',
-        'desc':     '8-point star'
-    },
-    MSO.SHAPE_ACTION_BUTTON_BACK_OR_PREVIOUS: {
+    MAST.ACTION_BUTTON_BACK_OR_PREVIOUS: {
         'basename': 'Action Button: Back or Previous',
         'prst':     'actionButtonBackPrevious',
-        'desc':     ('Back or Previous button. Supports mouse-click and mouse'
-                     '-over actions')
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_BEGINNING: {
+    MAST.ACTION_BUTTON_BEGINNING: {
         'basename': 'Action Button: Beginning',
         'prst':     'actionButtonBeginning',
-        'desc':     ('Beginning button. Supports mouse-click and mouse-over a'
-                     'ctions')
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_CUSTOM: {
+    MAST.ACTION_BUTTON_CUSTOM: {
         'basename': 'Action Button: Custom',
         'prst':     'actionButtonBlank',
-        'desc':     ('Button with no default picture or text. Supports mouse-'
-                     'click and mouse-over actions')
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_DOCUMENT: {
+    MAST.ACTION_BUTTON_DOCUMENT: {
         'basename': 'Action Button: Document',
         'prst':     'actionButtonDocument',
-        'desc':     ('Document button. Supports mouse-click and mouse-over ac'
-                     'tions')
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_END: {
+    MAST.ACTION_BUTTON_END: {
         'basename': 'Action Button: End',
         'prst':     'actionButtonEnd',
-        'desc':     'End button. Supports mouse-click and mouse-over actions'
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_FORWARD_OR_NEXT: {
+    MAST.ACTION_BUTTON_FORWARD_OR_NEXT: {
         'basename': 'Action Button: Forward or Next',
         'prst':     'actionButtonForwardNext',
-        'desc':     ('Forward or Next button. Supports mouse-click and mouse-'
-                     'over actions')
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_HELP: {
+    MAST.ACTION_BUTTON_HELP: {
         'basename': 'Action Button: Help',
         'prst':     'actionButtonHelp',
-        'desc':     'Help button. Supports mouse-click and mouse-over actions'
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_HOME: {
+    MAST.ACTION_BUTTON_HOME: {
         'basename': 'Action Button: Home',
         'prst':     'actionButtonHome',
-        'desc':     'Home button. Supports mouse-click and mouse-over actions'
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_INFORMATION: {
+    MAST.ACTION_BUTTON_INFORMATION: {
         'basename': 'Action Button: Information',
         'prst':     'actionButtonInformation',
-        'desc':     ('Information button. Supports mouse-click and mouse-over'
-                     ' actions')
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_MOVIE: {
+    MAST.ACTION_BUTTON_MOVIE: {
         'basename': 'Action Button: Movie',
         'prst':     'actionButtonMovie',
-        'desc':     'Movie button. Supports mouse-click and mouse-over actions'
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_RETURN: {
+    MAST.ACTION_BUTTON_RETURN: {
         'basename': 'Action Button: Return',
         'prst':     'actionButtonReturn',
-        'desc':     ('Return button. Supports mouse-click and mouse-over acti'
-                     'ons')
+        'avLst':    ()
     },
-    MSO.SHAPE_ACTION_BUTTON_SOUND: {
+    MAST.ACTION_BUTTON_SOUND: {
         'basename': 'Action Button: Sound',
         'prst':     'actionButtonSound',
-        'desc':     'Sound button. Supports mouse-click and mouse-over actions'
+        'avLst':    ()
     },
-    MSO.SHAPE_ARC: {
+    MAST.ARC: {
         'basename': 'Arc',
         'prst':     'arc',
-        'desc':     'Arc'
+        'avLst':    (
+            ('adj1', 16200000),
+            ('adj2', 0),
+        )
     },
-    MSO.SHAPE_BALLOON: {
+    MAST.BALLOON: {
         'basename': 'Rounded Rectangular Callout',
         'prst':     'wedgeRoundRectCallout',
-        'desc':     'Rounded Rectangular Callout'
+        'avLst':    (
+            ('adj1', -20833),
+            ('adj2', 62500),
+            ('adj3', 16667),
+        )
     },
-    MSO.SHAPE_BENT_ARROW: {
+    MAST.BENT_ARROW: {
         'basename': 'Bent Arrow',
         'prst':     'bentArrow',
-        'desc':     'Block arrow that follows a curved 90-degree angle'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+            ('adj4', 43750),
+        )
     },
-    MSO.SHAPE_BENT_UP_ARROW: {
+    MAST.BENT_UP_ARROW: {
         'basename': 'Bent-Up Arrow',
         'prst':     'bentUpArrow',
-        'desc':     ('Block arrow that follows a sharp 90-degree angle. Point'
-                     's up by default')
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+        )
     },
-    MSO.SHAPE_BEVEL: {
+    MAST.BEVEL: {
         'basename': 'Bevel',
         'prst':     'bevel',
-        'desc':     'Bevel'
+        'avLst':    (
+            ('adj', 12500),
+        )
     },
-    MSO.SHAPE_BLOCK_ARC: {
+    MAST.BLOCK_ARC: {
         'basename': 'Block Arc',
         'prst':     'blockArc',
-        'desc':     'Block arc'
+        'avLst':    (
+            ('adj1', 10800000),
+            ('adj2', 0),
+            ('adj3', 25000),
+        )
     },
-    MSO.SHAPE_CAN: {
+    MAST.CAN: {
         'basename': 'Can',
         'prst':     'can',
-        'desc':     'Can'
+        'avLst':    (
+            ('adj', 25000),
+        )
     },
-    MSO.SHAPE_CHART_PLUS: {
+    MAST.CHART_PLUS: {
         'basename': 'Chart Plus',
         'prst':     'chartPlus',
-        'desc':     'Chart Plus'
+        'avLst':    ()
     },
-    MSO.SHAPE_CHART_STAR: {
+    MAST.CHART_STAR: {
         'basename': 'Chart Star',
         'prst':     'chartStar',
-        'desc':     'Chart Star'
+        'avLst':    ()
     },
-    MSO.SHAPE_CHART_X: {
+    MAST.CHART_X: {
         'basename': 'Chart X',
         'prst':     'chartX',
-        'desc':     'Chart X'
+        'avLst':    ()
     },
-    MSO.SHAPE_CHEVRON: {
+    MAST.CHEVRON: {
         'basename': 'Chevron',
         'prst':     'chevron',
-        'desc':     'Chevron'
+        'avLst':    (
+            ('adj', 50000),
+        )
     },
-    MSO.SHAPE_CHORD: {
+    MAST.CHORD: {
         'basename': 'Chord',
         'prst':     'chord',
-        'desc':     'Geometric chord shape'
+        'avLst':    (
+            ('adj1', 2700000),
+            ('adj2', 16200000),
+        )
     },
-    MSO.SHAPE_CIRCULAR_ARROW: {
+    MAST.CIRCULAR_ARROW: {
         'basename': 'Circular Arrow',
         'prst':     'circularArrow',
-        'desc':     'Block arrow that follows a curved 180-degree angle'
+        'avLst':    (
+            ('adj1', 12500),
+            ('adj2', 1142319),
+            ('adj3', 20457681),
+            ('adj4', 10800000),
+            ('adj5', 12500),
+        )
     },
-    MSO.SHAPE_CLOUD: {
+    MAST.CLOUD: {
         'basename': 'Cloud',
         'prst':     'cloud',
-        'desc':     'Cloud'
+        'avLst':    ()
     },
-    MSO.SHAPE_CLOUD_CALLOUT: {
+    MAST.CLOUD_CALLOUT: {
         'basename': 'Cloud Callout',
         'prst':     'cloudCallout',
-        'desc':     'Cloud callout'
+        'avLst':    (
+            ('adj1', -20833),
+            ('adj2', 62500),
+        )
     },
-    MSO.SHAPE_CORNER: {
+    MAST.CORNER: {
         'basename': 'Corner',
         'prst':     'corner',
-        'desc':     'Corner'
+        'avLst':    (
+            ('adj1', 50000),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_CORNER_TABS: {
+    MAST.CORNER_TABS: {
         'basename': 'Corner Tabs',
         'prst':     'cornerTabs',
-        'desc':     'Corner Tabs'
+        'avLst':    ()
     },
-    MSO.SHAPE_CROSS: {
+    MAST.CROSS: {
         'basename': 'Cross',
         'prst':     'plus',
-        'desc':     'Cross'
+        'avLst':    (
+            ('adj', 25000),
+        )
     },
-    MSO.SHAPE_CUBE: {
+    MAST.CUBE: {
         'basename': 'Cube',
         'prst':     'cube',
-        'desc':     'Cube'
+        'avLst':    (
+            ('adj', 25000),
+        )
     },
-    MSO.SHAPE_CURVED_DOWN_ARROW: {
+    MAST.CURVED_DOWN_ARROW: {
         'basename': 'Curved Down Arrow',
         'prst':     'curvedDownArrow',
-        'desc':     'Block arrow that curves down'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 50000),
+            ('adj3', 25000),
+        )
     },
-    MSO.SHAPE_CURVED_DOWN_RIBBON: {
+    MAST.CURVED_DOWN_RIBBON: {
         'basename': 'Curved Down Ribbon',
         'prst':     'ellipseRibbon',
-        'desc':     'Ribbon banner that curves down'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 50000),
+            ('adj3', 12500),
+        )
     },
-    MSO.SHAPE_CURVED_LEFT_ARROW: {
+    MAST.CURVED_LEFT_ARROW: {
         'basename': 'Curved Left Arrow',
         'prst':     'curvedLeftArrow',
-        'desc':     'Block arrow that curves left'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 50000),
+            ('adj3', 25000),
+        )
     },
-    MSO.SHAPE_CURVED_RIGHT_ARROW: {
+    MAST.CURVED_RIGHT_ARROW: {
         'basename': 'Curved Right Arrow',
         'prst':     'curvedRightArrow',
-        'desc':     'Block arrow that curves right'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 50000),
+            ('adj3', 25000),
+        )
     },
-    MSO.SHAPE_CURVED_UP_ARROW: {
+    MAST.CURVED_UP_ARROW: {
         'basename': 'Curved Up Arrow',
         'prst':     'curvedUpArrow',
-        'desc':     'Block arrow that curves up'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 50000),
+            ('adj3', 25000),
+        )
     },
-    MSO.SHAPE_CURVED_UP_RIBBON: {
+    MAST.CURVED_UP_RIBBON: {
         'basename': 'Curved Up Ribbon',
         'prst':     'ellipseRibbon2',
-        'desc':     'Ribbon banner that curves up'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 50000),
+            ('adj3', 12500),
+        )
     },
-    MSO.SHAPE_DECAGON: {
+    MAST.DECAGON: {
         'basename': 'Decagon',
         'prst':     'decagon',
-        'desc':     'Decagon'
+        'avLst':    (
+            ('vf', 105146),
+        )
     },
-    MSO.SHAPE_DIAGONAL_STRIPE: {
+    MAST.DIAGONAL_STRIPE: {
         'basename': 'Diagonal Stripe',
         'prst':     'diagStripe',
-        'desc':     'Diagonal Stripe'
+        'avLst':    (
+            ('adj', 50000),
+        )
     },
-    MSO.SHAPE_DIAMOND: {
+    MAST.DIAMOND: {
         'basename': 'Diamond',
         'prst':     'diamond',
-        'desc':     'Diamond'
+        'avLst':    ()
     },
-    MSO.SHAPE_DODECAGON: {
+    MAST.DODECAGON: {
         'basename': 'Dodecagon',
         'prst':     'dodecagon',
-        'desc':     'Dodecagon'
+        'avLst':    ()
     },
-    MSO.SHAPE_DONUT: {
+    MAST.DONUT: {
         'basename': 'Donut',
         'prst':     'donut',
-        'desc':     'Donut'
+        'avLst':    (
+            ('adj', 25000),
+        )
     },
-    MSO.SHAPE_DOUBLE_BRACE: {
+    MAST.DOUBLE_BRACE: {
         'basename': 'Double Brace',
         'prst':     'bracePair',
-        'desc':     'Double brace'
+        'avLst':    (
+            ('adj', 8333),
+        )
     },
-    MSO.SHAPE_DOUBLE_BRACKET: {
+    MAST.DOUBLE_BRACKET: {
         'basename': 'Double Bracket',
         'prst':     'bracketPair',
-        'desc':     'Double bracket'
+        'avLst':    (
+            ('adj', 16667),
+        )
     },
-    MSO.SHAPE_DOUBLE_WAVE: {
+    MAST.DOUBLE_WAVE: {
         'basename': 'Double Wave',
         'prst':     'doubleWave',
-        'desc':     'Double wave'
+        'avLst':    (
+            ('adj1', 6250),
+            ('adj2', 0),
+        )
     },
-    MSO.SHAPE_DOWN_ARROW: {
+    MAST.DOWN_ARROW: {
         'basename': 'Down Arrow',
         'prst':     'downArrow',
-        'desc':     'Block arrow that points down'
+        'avLst':    (
+            ('adj1', 50000),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_DOWN_ARROW_CALLOUT: {
+    MAST.DOWN_ARROW_CALLOUT: {
         'basename': 'Down Arrow Callout',
         'prst':     'downArrowCallout',
-        'desc':     'Callout with arrow that points down'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+            ('adj4', 64977),
+        )
     },
-    MSO.SHAPE_DOWN_RIBBON: {
+    MAST.DOWN_RIBBON: {
         'basename': 'Down Ribbon',
         'prst':     'ribbon',
-        'desc':     'Ribbon banner with center area below ribbon ends'
+        'avLst':    (
+            ('adj1', 16667),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_EXPLOSION1: {
+    MAST.EXPLOSION1: {
         'basename': 'Explosion',
         'prst':     'irregularSeal1',
-        'desc':     'Explosion'
+        'avLst':    ()
     },
-    MSO.SHAPE_EXPLOSION2: {
+    MAST.EXPLOSION2: {
         'basename': 'Explosion',
         'prst':     'irregularSeal2',
-        'desc':     'Explosion'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_ALTERNATE_PROCESS: {
+    MAST.FLOWCHART_ALTERNATE_PROCESS: {
         'basename': 'Alternate process',
         'prst':     'flowChartAlternateProcess',
-        'desc':     'Alternate process flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_CARD: {
+    MAST.FLOWCHART_CARD: {
         'basename': 'Card',
         'prst':     'flowChartPunchedCard',
-        'desc':     'Card flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_COLLATE: {
+    MAST.FLOWCHART_COLLATE: {
         'basename': 'Collate',
         'prst':     'flowChartCollate',
-        'desc':     'Collate flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_CONNECTOR: {
+    MAST.FLOWCHART_CONNECTOR: {
         'basename': 'Connector',
         'prst':     'flowChartConnector',
-        'desc':     'Connector flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_DATA: {
+    MAST.FLOWCHART_DATA: {
         'basename': 'Data',
         'prst':     'flowChartInputOutput',
-        'desc':     'Data flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_DECISION: {
+    MAST.FLOWCHART_DECISION: {
         'basename': 'Decision',
         'prst':     'flowChartDecision',
-        'desc':     'Decision flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_DELAY: {
+    MAST.FLOWCHART_DELAY: {
         'basename': 'Delay',
         'prst':     'flowChartDelay',
-        'desc':     'Delay flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_DIRECT_ACCESS_STORAGE: {
+    MAST.FLOWCHART_DIRECT_ACCESS_STORAGE: {
         'basename': 'Direct Access Storage',
         'prst':     'flowChartMagneticDrum',
-        'desc':     'Direct access storage flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_DISPLAY: {
+    MAST.FLOWCHART_DISPLAY: {
         'basename': 'Display',
         'prst':     'flowChartDisplay',
-        'desc':     'Display flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_DOCUMENT: {
+    MAST.FLOWCHART_DOCUMENT: {
         'basename': 'Document',
         'prst':     'flowChartDocument',
-        'desc':     'Document flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_EXTRACT: {
+    MAST.FLOWCHART_EXTRACT: {
         'basename': 'Extract',
         'prst':     'flowChartExtract',
-        'desc':     'Extract flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_INTERNAL_STORAGE: {
+    MAST.FLOWCHART_INTERNAL_STORAGE: {
         'basename': 'Internal Storage',
         'prst':     'flowChartInternalStorage',
-        'desc':     'Internal storage flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_MAGNETIC_DISK: {
+    MAST.FLOWCHART_MAGNETIC_DISK: {
         'basename': 'Magnetic Disk',
         'prst':     'flowChartMagneticDisk',
-        'desc':     'Magnetic disk flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_MANUAL_INPUT: {
+    MAST.FLOWCHART_MANUAL_INPUT: {
         'basename': 'Manual Input',
         'prst':     'flowChartManualInput',
-        'desc':     'Manual input flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_MANUAL_OPERATION: {
+    MAST.FLOWCHART_MANUAL_OPERATION: {
         'basename': 'Manual Operation',
         'prst':     'flowChartManualOperation',
-        'desc':     'Manual operation flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_MERGE: {
+    MAST.FLOWCHART_MERGE: {
         'basename': 'Merge',
         'prst':     'flowChartMerge',
-        'desc':     'Merge flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_MULTIDOCUMENT: {
+    MAST.FLOWCHART_MULTIDOCUMENT: {
         'basename': 'Multidocument',
         'prst':     'flowChartMultidocument',
-        'desc':     'Multi-document flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_OFFLINE_STORAGE: {
+    MAST.FLOWCHART_OFFLINE_STORAGE: {
         'basename': 'Offline Storage',
         'prst':     'flowChartOfflineStorage',
-        'desc':     'Offline Storage'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_OFFPAGE_CONNECTOR: {
+    MAST.FLOWCHART_OFFPAGE_CONNECTOR: {
         'basename': 'Off-page Connector',
         'prst':     'flowChartOffpageConnector',
-        'desc':     'Off-page connector flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_OR: {
+    MAST.FLOWCHART_OR: {
         'basename': 'Or',
         'prst':     'flowChartOr',
-        'desc':     '"Or" flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_PREDEFINED_PROCESS: {
+    MAST.FLOWCHART_PREDEFINED_PROCESS: {
         'basename': 'Predefined Process',
         'prst':     'flowChartPredefinedProcess',
-        'desc':     'Predefined process flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_PREPARATION: {
+    MAST.FLOWCHART_PREPARATION: {
         'basename': 'Preparation',
         'prst':     'flowChartPreparation',
-        'desc':     'Preparation flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_PROCESS: {
+    MAST.FLOWCHART_PROCESS: {
         'basename': 'Process',
         'prst':     'flowChartProcess',
-        'desc':     'Process flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_PUNCHED_TAPE: {
+    MAST.FLOWCHART_PUNCHED_TAPE: {
         'basename': 'Punched Tape',
         'prst':     'flowChartPunchedTape',
-        'desc':     'Punched tape flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_SEQUENTIAL_ACCESS_STORAGE: {
+    MAST.FLOWCHART_SEQUENTIAL_ACCESS_STORAGE: {
         'basename': 'Sequential Access Storage',
         'prst':     'flowChartMagneticTape',
-        'desc':     'Sequential access storage flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_SORT: {
+    MAST.FLOWCHART_SORT: {
         'basename': 'Sort',
         'prst':     'flowChartSort',
-        'desc':     'Sort flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_STORED_DATA: {
+    MAST.FLOWCHART_STORED_DATA: {
         'basename': 'Stored Data',
         'prst':     'flowChartOnlineStorage',
-        'desc':     'Stored data flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_SUMMING_JUNCTION: {
+    MAST.FLOWCHART_SUMMING_JUNCTION: {
         'basename': 'Summing Junction',
         'prst':     'flowChartSummingJunction',
-        'desc':     'Summing junction flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FLOWCHART_TERMINATOR: {
+    MAST.FLOWCHART_TERMINATOR: {
         'basename': 'Terminator',
         'prst':     'flowChartTerminator',
-        'desc':     'Terminator flowchart symbol'
+        'avLst':    ()
     },
-    MSO.SHAPE_FOLDED_CORNER: {
+    MAST.FOLDED_CORNER: {
         'basename': 'Folded Corner',
         'prst':     'folderCorner',
-        'desc':     'Folded corner'
+        'avLst':    ()
     },
-    MSO.SHAPE_FRAME: {
+    MAST.FRAME: {
         'basename': 'Frame',
         'prst':     'frame',
-        'desc':     'Frame'
+        'avLst':    (
+            ('adj1', 12500),
+        )
     },
-    MSO.SHAPE_FUNNEL: {
+    MAST.FUNNEL: {
         'basename': 'Funnel',
         'prst':     'funnel',
-        'desc':     'Funnel'
+        'avLst':    ()
     },
-    MSO.SHAPE_GEAR_6: {
+    MAST.GEAR_6: {
         'basename': 'Gear 6',
         'prst':     'gear6',
-        'desc':     'Gear 6'
+        'avLst':    (
+            ('adj1', 15000),
+            ('adj2', 3526),
+        )
     },
-    MSO.SHAPE_GEAR_9: {
+    MAST.GEAR_9: {
         'basename': 'Gear 9',
         'prst':     'gear9',
-        'desc':     'Gear 9'
+        'avLst':    (
+            ('adj1', 10000),
+            ('adj2', 1763),
+        )
     },
-    MSO.SHAPE_HALF_FRAME: {
+    MAST.HALF_FRAME: {
         'basename': 'Half Frame',
         'prst':     'halfFrame',
-        'desc':     'Half Frame'
+        'avLst':    (
+            ('adj1', 33333),
+            ('adj2', 33333),
+        )
     },
-    MSO.SHAPE_HEART: {
+    MAST.HEART: {
         'basename': 'Heart',
         'prst':     'heart',
-        'desc':     'Heart'
+        'avLst':    ()
     },
-    MSO.SHAPE_HEPTAGON: {
+    MAST.HEPTAGON: {
         'basename': 'Heptagon',
         'prst':     'heptagon',
-        'desc':     'Heptagon'
+        'avLst':    (
+            ('hf', 102572),
+            ('vf', 105210),
+        )
     },
-    MSO.SHAPE_HEXAGON: {
+    MAST.HEXAGON: {
         'basename': 'Hexagon',
         'prst':     'hexagon',
-        'desc':     'Hexagon'
+        'avLst':    (
+            ('adj', 25000),
+            ('vf', 115470),
+        )
     },
-    MSO.SHAPE_HORIZONTAL_SCROLL: {
+    MAST.HORIZONTAL_SCROLL: {
         'basename': 'Horizontal Scroll',
         'prst':     'horizontalScroll',
-        'desc':     'Horizontal scroll'
+        'avLst':    (
+            ('adj', 12500),
+        )
     },
-    MSO.SHAPE_ISOSCELES_TRIANGLE: {
+    MAST.ISOSCELES_TRIANGLE: {
         'basename': 'Isosceles Triangle',
         'prst':     'triangle',
-        'desc':     'Isosceles triangle'
+        'avLst':    (
+            ('adj', 50000),
+        )
     },
-    MSO.SHAPE_LEFT_ARROW: {
+    MAST.LEFT_ARROW: {
         'basename': 'Left Arrow',
         'prst':     'leftArrow',
-        'desc':     'Block arrow that points left'
+        'avLst':    (
+            ('adj1', 50000),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_LEFT_ARROW_CALLOUT: {
+    MAST.LEFT_ARROW_CALLOUT: {
         'basename': 'Left Arrow Callout',
         'prst':     'leftArrowCallout',
-        'desc':     'Callout with arrow that points left'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+            ('adj4', 64977),
+        )
     },
-    MSO.SHAPE_LEFT_BRACE: {
+    MAST.LEFT_BRACE: {
         'basename': 'Left Brace',
         'prst':     'leftBrace',
-        'desc':     'Left brace'
+        'avLst':    (
+            ('adj1', 8333),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_LEFT_BRACKET: {
+    MAST.LEFT_BRACKET: {
         'basename': 'Left Bracket',
         'prst':     'leftBracket',
-        'desc':     'Left bracket'
+        'avLst':    (
+            ('adj', 8333),
+        )
     },
-    MSO.SHAPE_LEFT_CIRCULAR_ARROW: {
+    MAST.LEFT_CIRCULAR_ARROW: {
         'basename': 'Left Circular Arrow',
         'prst':     'leftCircularArrow',
-        'desc':     'Left Circular Arrow'
+        'avLst':    (
+            ('adj1', 12500),
+            ('adj2', -1142319),
+            ('adj3', 1142319),
+            ('adj4', 10800000),
+            ('adj5', 12500),
+        )
     },
-    MSO.SHAPE_LEFT_RIGHT_ARROW: {
+    MAST.LEFT_RIGHT_ARROW: {
         'basename': 'Left-Right Arrow',
         'prst':     'leftRightArrow',
-        'desc':     ('Block arrow with arrowheads that point both left and ri'
-                     'ght')
+        'avLst':    (
+            ('adj1', 50000),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_LEFT_RIGHT_ARROW_CALLOUT: {
+    MAST.LEFT_RIGHT_ARROW_CALLOUT: {
         'basename': 'Left-Right Arrow Callout',
         'prst':     'leftRightArrowCallout',
-        'desc':     'Callout with arrowheads that point both left and right'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+            ('adj4', 48123),
+        )
     },
-    MSO.SHAPE_LEFT_RIGHT_CIRCULAR_ARROW: {
+    MAST.LEFT_RIGHT_CIRCULAR_ARROW: {
         'basename': 'Left Right Circular Arrow',
         'prst':     'leftRightCircularArrow',
-        'desc':     'Left Right Circular Arrow'
+        'avLst':    (
+            ('adj1', 12500),
+            ('adj2', 1142319),
+            ('adj3', 20457681),
+            ('adj4', 11942319),
+            ('adj5', 12500),
+        )
     },
-    MSO.SHAPE_LEFT_RIGHT_RIBBON: {
+    MAST.LEFT_RIGHT_RIBBON: {
         'basename': 'Left Right Ribbon',
         'prst':     'leftRightRibbon',
-        'desc':     'Left Right Ribbon'
+        'avLst':    (
+            ('adj1', 50000),
+            ('adj2', 50000),
+            ('adj3', 16667),
+        )
     },
-    MSO.SHAPE_LEFT_RIGHT_UP_ARROW: {
+    MAST.LEFT_RIGHT_UP_ARROW: {
         'basename': 'Left-Right-Up Arrow',
         'prst':     'leftRightUpArrow',
-        'desc':     ('Block arrow with arrowheads that point left, right, and'
-                     ' up')
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+        )
     },
-    MSO.SHAPE_LEFT_UP_ARROW: {
+    MAST.LEFT_UP_ARROW: {
         'basename': 'Left-Up Arrow',
         'prst':     'leftUpArrow',
-        'desc':     'Block arrow with arrowheads that point left and up'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+        )
     },
-    MSO.SHAPE_LIGHTNING_BOLT: {
+    MAST.LIGHTNING_BOLT: {
         'basename': 'Lightning Bolt',
         'prst':     'lightningBolt',
-        'desc':     'Lightning bolt'
+        'avLst':    ()
     },
-    MSO.SHAPE_LINE_CALLOUT_1: {
+    MAST.LINE_CALLOUT_1: {
         'basename': 'Line Callout 1',
         'prst':     'borderCallout1',
-        'desc':     'Callout with border and horizontal callout line'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 112500),
+            ('adj4', -38333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_1_ACCENT_BAR: {
+    MAST.LINE_CALLOUT_1_ACCENT_BAR: {
         'basename': 'Line Callout 1 (Accent Bar)',
         'prst':     'accentCallout1',
-        'desc':     'Callout with vertical accent bar'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 112500),
+            ('adj4', -38333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_1_BORDER_AND_ACCENT_BAR: {
+    MAST.LINE_CALLOUT_1_BORDER_AND_ACCENT_BAR: {
         'basename': 'Line Callout 1 (Border and Accent Bar)',
         'prst':     'accentBorderCallout1',
-        'desc':     'Callout with border and vertical accent bar'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 112500),
+            ('adj4', -38333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_1_NO_BORDER: {
+    MAST.LINE_CALLOUT_1_NO_BORDER: {
         'basename': 'Line Callout 1 (No Border)',
         'prst':     'callout1',
-        'desc':     'Callout with horizontal line'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 112500),
+            ('adj4', -38333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_2: {
+    MAST.LINE_CALLOUT_2: {
         'basename': 'Line Callout 2',
         'prst':     'borderCallout2',
-        'desc':     'Callout with diagonal straight line'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 112500),
+            ('adj6', -46667),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_2_ACCENT_BAR: {
+    MAST.LINE_CALLOUT_2_ACCENT_BAR: {
         'basename': 'Line Callout 2 (Accent Bar)',
         'prst':     'accentCallout2',
-        'desc':     'Callout with diagonal callout line and accent bar'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 112500),
+            ('adj6', -46667),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_2_BORDER_AND_ACCENT_BAR: {
+    MAST.LINE_CALLOUT_2_BORDER_AND_ACCENT_BAR: {
         'basename': 'Line Callout 2 (Border and Accent Bar)',
         'prst':     'accentBorderCallout2',
-        'desc':     ('Callout with border, diagonal straight line, and accent'
-                     ' bar')
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 112500),
+            ('adj6', -46667),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_2_NO_BORDER: {
+    MAST.LINE_CALLOUT_2_NO_BORDER: {
         'basename': 'Line Callout 2 (No Border)',
         'prst':     'callout2',
-        'desc':     'Callout with no border and diagonal callout line'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 112500),
+            ('adj6', -46667),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_3: {
+    MAST.LINE_CALLOUT_3: {
         'basename': 'Line Callout 3',
         'prst':     'borderCallout3',
-        'desc':     'Callout with angled line'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 100000),
+            ('adj6', -16667),
+            ('adj7', 112963),
+            ('adj8', -8333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_3_ACCENT_BAR: {
+    MAST.LINE_CALLOUT_3_ACCENT_BAR: {
         'basename': 'Line Callout 3 (Accent Bar)',
         'prst':     'accentCallout3',
-        'desc':     'Callout with angled callout line and accent bar'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 100000),
+            ('adj6', -16667),
+            ('adj7', 112963),
+            ('adj8', -8333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR: {
+    MAST.LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR: {
         'basename': 'Line Callout 3 (Border and Accent Bar)',
         'prst':     'accentBorderCallout3',
-        'desc':     'Callout with border, angled callout line, and accent bar'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 100000),
+            ('adj6', -16667),
+            ('adj7', 112963),
+            ('adj8', -8333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_3_NO_BORDER: {
+    MAST.LINE_CALLOUT_3_NO_BORDER: {
         'basename': 'Line Callout 3 (No Border)',
         'prst':     'callout3',
-        'desc':     'Callout with no border and angled callout line'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 100000),
+            ('adj6', -16667),
+            ('adj7', 112963),
+            ('adj8', -8333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_4: {
+    MAST.LINE_CALLOUT_4: {
         'basename': 'Line Callout 3',
         'prst':     'borderCallout3',
-        'desc':     'Callout with callout line segments forming a U-shape.'
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 100000),
+            ('adj6', -16667),
+            ('adj7', 112963),
+            ('adj8', -8333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_4_ACCENT_BAR: {
+    MAST.LINE_CALLOUT_4_ACCENT_BAR: {
         'basename': 'Line Callout 3 (Accent Bar)',
         'prst':     'accentCallout3',
-        'desc':     ('Callout with accent bar and callout line segments formi'
-                     'ng a U-shape.')
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 100000),
+            ('adj6', -16667),
+            ('adj7', 112963),
+            ('adj8', -8333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR: {
+    MAST.LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR: {
         'basename': 'Line Callout 3 (Border and Accent Bar)',
         'prst':     'accentBorderCallout3',
-        'desc':     ('Callout with border, accent bar, and callout line segme'
-                     'nts forming a U-shape.')
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 100000),
+            ('adj6', -16667),
+            ('adj7', 112963),
+            ('adj8', -8333),
+        )
     },
-    MSO.SHAPE_LINE_CALLOUT_4_NO_BORDER: {
+    MAST.LINE_CALLOUT_4_NO_BORDER: {
         'basename': 'Line Callout 3 (No Border)',
         'prst':     'callout3',
-        'desc':     ('Callout with no border and callout line segments formin'
-                     'g a U-shape.')
+        'avLst':    (
+            ('adj1', 18750),
+            ('adj2', -8333),
+            ('adj3', 18750),
+            ('adj4', -16667),
+            ('adj5', 100000),
+            ('adj6', -16667),
+            ('adj7', 112963),
+            ('adj8', -8333),
+        )
     },
-    MSO.SHAPE_LINE_INVERSE: {
+    MAST.LINE_INVERSE: {
         'basename': 'Straight Connector',
         'prst':     'lineInv',
-        'desc':     'Straight Connector'
+        'avLst':    ()
     },
-    MSO.SHAPE_MATH_DIVIDE: {
+    MAST.MATH_DIVIDE: {
         'basename': 'Division',
         'prst':     'mathDivide',
-        'desc':     'Division'
+        'avLst':    (
+            ('adj1', 23520),
+            ('adj2', 5880),
+            ('adj3', 11760),
+        )
     },
-    MSO.SHAPE_MATH_EQUAL: {
+    MAST.MATH_EQUAL: {
         'basename': 'Equal',
         'prst':     'mathEqual',
-        'desc':     'Equal'
+        'avLst':    (
+            ('adj1', 23520),
+            ('adj2', 11760),
+        )
     },
-    MSO.SHAPE_MATH_MINUS: {
+    MAST.MATH_MINUS: {
         'basename': 'Minus',
         'prst':     'mathMinus',
-        'desc':     'Minus'
+        'avLst':    (
+            ('adj1', 23520),
+        )
     },
-    MSO.SHAPE_MATH_MULTIPLY: {
+    MAST.MATH_MULTIPLY: {
         'basename': 'Multiply',
         'prst':     'mathMultiply',
-        'desc':     'Multiply'
+        'avLst':    (
+            ('adj1', 23520),
+        )
     },
-    MSO.SHAPE_MATH_NOT_EQUAL: {
+    MAST.MATH_NOT_EQUAL: {
         'basename': 'Not Equal',
         'prst':     'mathNotEqual',
-        'desc':     'Not Equal'
+        'avLst':    (
+            ('adj1', 23520),
+            ('adj2', 6600000),
+            ('adj3', 11760),
+        )
     },
-    MSO.SHAPE_MATH_PLUS: {
+    MAST.MATH_PLUS: {
         'basename': 'Plus',
         'prst':     'mathPlus',
-        'desc':     'Plus'
+        'avLst':    (
+            ('adj1', 23520),
+        )
     },
-    MSO.SHAPE_MOON: {
+    MAST.MOON: {
         'basename': 'Moon',
         'prst':     'moon',
-        'desc':     'Moon'
+        'avLst':    (
+            ('adj', 50000),
+        )
     },
-    MSO.SHAPE_NO_SYMBOL: {
-        'basename': '"No" symbol',
-        'prst':     'noSmoking',
-        'desc':     '"No" symbol'
-    },
-    MSO.SHAPE_NON_ISOSCELES_TRAPEZOID: {
+    MAST.NON_ISOSCELES_TRAPEZOID: {
         'basename': 'Non-isosceles Trapezoid',
         'prst':     'nonIsoscelesTrapezoid',
-        'desc':     'Non-isosceles Trapezoid'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+        )
     },
-    MSO.SHAPE_NOTCHED_RIGHT_ARROW: {
+    MAST.NOTCHED_RIGHT_ARROW: {
         'basename': 'Notched Right Arrow',
         'prst':     'notchedRightArrow',
-        'desc':     'Notched block arrow that points right'
+        'avLst':    (
+            ('adj1', 50000),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_OCTAGON: {
+    MAST.NO_SYMBOL: {
+        'basename': '"No" symbol',
+        'prst':     'noSmoking',
+        'avLst':    (
+            ('adj', 18750),
+        )
+    },
+    MAST.OCTAGON: {
         'basename': 'Octagon',
         'prst':     'octagon',
-        'desc':     'Octagon'
+        'avLst':    (
+            ('adj', 29289),
+        )
     },
-    MSO.SHAPE_OVAL: {
+    MAST.OVAL: {
         'basename': 'Oval',
         'prst':     'ellipse',
-        'desc':     'Oval'
+        'avLst':    ()
     },
-    MSO.SHAPE_OVAL_CALLOUT: {
+    MAST.OVAL_CALLOUT: {
         'basename': 'Oval Callout',
         'prst':     'wedgeEllipseCallout',
-        'desc':     'Oval-shaped callout'
+        'avLst':    (
+            ('adj1', -20833),
+            ('adj2', 62500),
+        )
     },
-    MSO.SHAPE_PARALLELOGRAM: {
+    MAST.PARALLELOGRAM: {
         'basename': 'Parallelogram',
         'prst':     'parallelogram',
-        'desc':     'Parallelogram'
+        'avLst':    (
+            ('adj', 25000),
+        )
     },
-    MSO.SHAPE_PENTAGON: {
+    MAST.PENTAGON: {
         'basename': 'Pentagon',
         'prst':     'homePlate',
-        'desc':     'Pentagon'
+        'avLst':    (
+            ('adj', 50000),
+        )
     },
-    MSO.SHAPE_PIE: {
+    MAST.PIE: {
         'basename': 'Pie',
         'prst':     'pie',
-        'desc':     'Pie'
+        'avLst':    (
+            ('adj1', 0),
+            ('adj2', 16200000),
+        )
     },
-    MSO.SHAPE_PIE_WEDGE: {
+    MAST.PIE_WEDGE: {
         'basename': 'Pie',
         'prst':     'pieWedge',
-        'desc':     'Pie'
+        'avLst':    ()
     },
-    MSO.SHAPE_PLAQUE: {
+    MAST.PLAQUE: {
         'basename': 'Plaque',
         'prst':     'plaque',
-        'desc':     'Plaque'
+        'avLst':    (
+            ('adj', 16667),
+        )
     },
-    MSO.SHAPE_PLAQUE_TABS: {
+    MAST.PLAQUE_TABS: {
         'basename': 'Plaque Tabs',
         'prst':     'plaqueTabs',
-        'desc':     'Plaque Tabs'
+        'avLst':    ()
     },
-    MSO.SHAPE_QUAD_ARROW: {
+    MAST.QUAD_ARROW: {
         'basename': 'Quad Arrow',
         'prst':     'quadArrow',
-        'desc':     'Block arrows that point up, down, left, and right'
+        'avLst':    (
+            ('adj1', 22500),
+            ('adj2', 22500),
+            ('adj3', 22500),
+        )
     },
-    MSO.SHAPE_QUAD_ARROW_CALLOUT: {
+    MAST.QUAD_ARROW_CALLOUT: {
         'basename': 'Quad Arrow Callout',
         'prst':     'quadArrowCallout',
-        'desc':     'Callout with arrows that point up, down, left, and right'
+        'avLst':    (
+            ('adj1', 18515),
+            ('adj2', 18515),
+            ('adj3', 18515),
+            ('adj4', 48123),
+        )
     },
-    MSO.SHAPE_RECTANGLE: {
+    MAST.RECTANGLE: {
         'basename': 'Rectangle',
         'prst':     'rect',
-        'desc':     'Rectangle'
+        'avLst':    ()
     },
-    MSO.SHAPE_RECTANGULAR_CALLOUT: {
+    MAST.RECTANGULAR_CALLOUT: {
         'basename': 'Rectangular Callout',
         'prst':     'wedgeRectCallout',
-        'desc':     'Rectangular callout'
+        'avLst':    (
+            ('adj1', -20833),
+            ('adj2', 62500),
+        )
     },
-    MSO.SHAPE_REGULAR_PENTAGON: {
+    MAST.REGULAR_PENTAGON: {
         'basename': 'Regular Pentagon',
         'prst':     'pentagon',
-        'desc':     'Pentagon'
+        'avLst':    (
+            ('hf', 105146),
+            ('vf', 110557),
+        )
     },
-    MSO.SHAPE_RIGHT_ARROW: {
+    MAST.RIGHT_ARROW: {
         'basename': 'Right Arrow',
         'prst':     'rightArrow',
-        'desc':     'Block arrow that points right'
+        'avLst':    (
+            ('adj1', 50000),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_RIGHT_ARROW_CALLOUT: {
+    MAST.RIGHT_ARROW_CALLOUT: {
         'basename': 'Right Arrow Callout',
         'prst':     'rightArrowCallout',
-        'desc':     'Callout with arrow that points right'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+            ('adj4', 64977),
+        )
     },
-    MSO.SHAPE_RIGHT_BRACE: {
+    MAST.RIGHT_BRACE: {
         'basename': 'Right Brace',
         'prst':     'rightBrace',
-        'desc':     'Right brace'
+        'avLst':    (
+            ('adj1', 8333),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_RIGHT_BRACKET: {
+    MAST.RIGHT_BRACKET: {
         'basename': 'Right Bracket',
         'prst':     'rightBracket',
-        'desc':     'Right bracket'
+        'avLst':    (
+            ('adj', 8333),
+        )
     },
-    MSO.SHAPE_RIGHT_TRIANGLE: {
+    MAST.RIGHT_TRIANGLE: {
         'basename': 'Right Triangle',
         'prst':     'rtTriangle',
-        'desc':     'Right triangle'
+        'avLst':    ()
     },
-    MSO.SHAPE_ROUND_1_RECTANGLE: {
-        'basename': 'Round Single Corner Rectangle',
-        'prst':     'round1Rect',
-        'desc':     'Round Single Corner Rectangle'
-    },
-    MSO.SHAPE_ROUND_2_DIAG_RECTANGLE: {
-        'basename': 'Round Diagonal Corner Rectangle',
-        'prst':     'round2DiagRect',
-        'desc':     'Round Diagonal Corner Rectangle'
-    },
-    MSO.SHAPE_ROUND_2_SAME_RECTANGLE: {
-        'basename': 'Round Same Side Corner Rectangle',
-        'prst':     'round2SameRect',
-        'desc':     'Round Same Side Corner Rectangle'
-    },
-    MSO.SHAPE_ROUNDED_RECTANGLE: {
+    MAST.ROUNDED_RECTANGLE: {
         'basename': 'Rounded Rectangle',
         'prst':     'roundRect',
-        'desc':     'Rounded rectangle'
+        'avLst':    (
+            ('adj', 16667),
+        )
     },
-    MSO.SHAPE_ROUNDED_RECTANGULAR_CALLOUT: {
+    MAST.ROUNDED_RECTANGULAR_CALLOUT: {
         'basename': 'Rounded Rectangular Callout',
         'prst':     'wedgeRoundRectCallout',
-        'desc':     'Rounded rectangle-shaped callout'
+        'avLst':    (
+            ('adj1', -20833),
+            ('adj2', 62500),
+            ('adj3', 16667),
+        )
     },
-    MSO.SHAPE_SMILEY_FACE: {
+    MAST.ROUND_1_RECTANGLE: {
+        'basename': 'Round Single Corner Rectangle',
+        'prst':     'round1Rect',
+        'avLst':    (
+            ('adj', 16667),
+        )
+    },
+    MAST.ROUND_2_DIAG_RECTANGLE: {
+        'basename': 'Round Diagonal Corner Rectangle',
+        'prst':     'round2DiagRect',
+        'avLst':    (
+            ('adj1', 16667),
+            ('adj2', 0),
+        )
+    },
+    MAST.ROUND_2_SAME_RECTANGLE: {
+        'basename': 'Round Same Side Corner Rectangle',
+        'prst':     'round2SameRect',
+        'avLst':    (
+            ('adj1', 16667),
+            ('adj2', 0),
+        )
+    },
+    MAST.SMILEY_FACE: {
         'basename': 'Smiley Face',
         'prst':     'smileyFace',
-        'desc':     'Smiley face'
+        'avLst':    (
+            ('adj', 4653),
+        )
     },
-    MSO.SHAPE_SNIP_1_RECTANGLE: {
+    MAST.SNIP_1_RECTANGLE: {
         'basename': 'Snip Single Corner Rectangle',
         'prst':     'snip1Rect',
-        'desc':     'Snip Single Corner Rectangle'
+        'avLst':    (
+            ('adj', 16667),
+        )
     },
-    MSO.SHAPE_SNIP_2_DIAG_RECTANGLE: {
+    MAST.SNIP_2_DIAG_RECTANGLE: {
         'basename': 'Snip Diagonal Corner Rectangle',
         'prst':     'snip2DiagRect',
-        'desc':     'Snip Diagonal Corner Rectangle'
+        'avLst':    (
+            ('adj1', 0),
+            ('adj2', 16667),
+        )
     },
-    MSO.SHAPE_SNIP_2_SAME_RECTANGLE: {
+    MAST.SNIP_2_SAME_RECTANGLE: {
         'basename': 'Snip Same Side Corner Rectangle',
         'prst':     'snip2SameRect',
-        'desc':     'Snip Same Side Corner Rectangle'
+        'avLst':    (
+            ('adj1', 16667),
+            ('adj2', 0),
+        )
     },
-    MSO.SHAPE_SNIP_ROUND_RECTANGLE: {
+    MAST.SNIP_ROUND_RECTANGLE: {
         'basename': 'Snip and Round Single Corner Rectangle',
         'prst':     'snipRoundRect',
-        'desc':     'Snip and Round Single Corner Rectangle'
+        'avLst':    (
+            ('adj1', 16667),
+            ('adj2', 16667),
+        )
     },
-    MSO.SHAPE_SQUARE_TABS: {
+    MAST.SQUARE_TABS: {
         'basename': 'Square Tabs',
         'prst':     'squareTabs',
-        'desc':     'Square Tabs'
+        'avLst':    ()
     },
-    MSO.SHAPE_STRIPED_RIGHT_ARROW: {
+    MAST.STAR_10_POINT: {
+        'basename': '10-Point Star',
+        'prst':     'star10',
+        'avLst':    (
+            ('adj', 42533),
+            ('hf', 105146),
+        )
+    },
+    MAST.STAR_12_POINT: {
+        'basename': '12-Point Star',
+        'prst':     'star12',
+        'avLst':    (
+            ('adj', 37500),
+        )
+    },
+    MAST.STAR_16_POINT: {
+        'basename': '16-Point Star',
+        'prst':     'star16',
+        'avLst':    (
+            ('adj', 37500),
+        )
+    },
+    MAST.STAR_24_POINT: {
+        'basename': '24-Point Star',
+        'prst':     'star24',
+        'avLst':    (
+            ('adj', 37500),
+        )
+    },
+    MAST.STAR_32_POINT: {
+        'basename': '32-Point Star',
+        'prst':     'star32',
+        'avLst':    (
+            ('adj', 37500),
+        )
+    },
+    MAST.STAR_4_POINT: {
+        'basename': '4-Point Star',
+        'prst':     'star4',
+        'avLst':    (
+            ('adj', 12500),
+        )
+    },
+    MAST.STAR_5_POINT: {
+        'basename': '5-Point Star',
+        'prst':     'star5',
+        'avLst':    (
+            ('adj', 19098),
+            ('hf', 105146),
+            ('vf', 110557),
+        )
+    },
+    MAST.STAR_6_POINT: {
+        'basename': '6-Point Star',
+        'prst':     'star6',
+        'avLst':    (
+            ('adj', 28868),
+            ('hf', 115470),
+        )
+    },
+    MAST.STAR_7_POINT: {
+        'basename': '7-Point Star',
+        'prst':     'star7',
+        'avLst':    (
+            ('adj', 34601),
+            ('hf', 102572),
+            ('vf', 105210),
+        )
+    },
+    MAST.STAR_8_POINT: {
+        'basename': '8-Point Star',
+        'prst':     'star8',
+        'avLst':    (
+            ('adj', 37500),
+        )
+    },
+    MAST.STRIPED_RIGHT_ARROW: {
         'basename': 'Striped Right Arrow',
         'prst':     'stripedRightArrow',
-        'desc':     'Block arrow that points right with stripes at the tail'
+        'avLst':    (
+            ('adj1', 50000),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_SUN: {
+    MAST.SUN: {
         'basename': 'Sun',
         'prst':     'sun',
-        'desc':     'Sun'
+        'avLst':    (
+            ('adj', 25000),
+        )
     },
-    MSO.SHAPE_SWOOSH_ARROW: {
+    MAST.SWOOSH_ARROW: {
         'basename': 'Swoosh Arrow',
         'prst':     'swooshArrow',
-        'desc':     'Swoosh Arrow'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 16667),
+        )
     },
-    MSO.SHAPE_TEAR: {
+    MAST.TEAR: {
         'basename': 'Teardrop',
         'prst':     'teardrop',
-        'desc':     'Teardrop'
+        'avLst':    (
+            ('adj', 100000),
+        )
     },
-    MSO.SHAPE_TRAPEZOID: {
+    MAST.TRAPEZOID: {
         'basename': 'Trapezoid',
         'prst':     'trapezoid',
-        'desc':     'Trapezoid'
+        'avLst':    (
+            ('adj', 25000),
+        )
     },
-    MSO.SHAPE_U_TURN_ARROW: {
-        'basename': 'U-Turn Arrow',
-        'prst':     'uturnArrow',
-        'desc':     'Block arrow forming a U shape'
-    },
-    MSO.SHAPE_UP_ARROW: {
+    MAST.UP_ARROW: {
         'basename': 'Up Arrow',
         'prst':     'upArrow',
-        'desc':     'Block arrow that points up'
+        'avLst':    ()
     },
-    MSO.SHAPE_UP_ARROW_CALLOUT: {
+    MAST.UP_ARROW_CALLOUT: {
         'basename': 'Up Arrow Callout',
         'prst':     'upArrowCallout',
-        'desc':     'Callout with arrow that points up'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+            ('adj4', 64977),
+        )
     },
-    MSO.SHAPE_UP_DOWN_ARROW: {
+    MAST.UP_DOWN_ARROW: {
         'basename': 'Up-Down Arrow',
         'prst':     'upDownArrow',
-        'desc':     'Block arrow that points up and down'
+        'avLst':    (
+            ('adj1', 50000),
+            ('adj1', 50000),
+            ('adj2', 50000),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_UP_DOWN_ARROW_CALLOUT: {
+    MAST.UP_DOWN_ARROW_CALLOUT: {
         'basename': 'Up-Down Arrow Callout',
         'prst':     'upDownArrowCallout',
-        'desc':     'Callout with arrows that point up and down'
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+            ('adj4', 48123),
+        )
     },
-    MSO.SHAPE_UP_RIBBON: {
+    MAST.UP_RIBBON: {
         'basename': 'Up Ribbon',
         'prst':     'ribbon2',
-        'desc':     'Ribbon banner with center area above ribbon ends'
+        'avLst':    (
+            ('adj1', 16667),
+            ('adj2', 50000),
+        )
     },
-    MSO.SHAPE_VERTICAL_SCROLL: {
+    MAST.U_TURN_ARROW: {
+        'basename': 'U-Turn Arrow',
+        'prst':     'uturnArrow',
+        'avLst':    (
+            ('adj1', 25000),
+            ('adj2', 25000),
+            ('adj3', 25000),
+            ('adj4', 43750),
+            ('adj5', 75000),
+        )
+    },
+    MAST.VERTICAL_SCROLL: {
         'basename': 'Vertical Scroll',
         'prst':     'verticalScroll',
-        'desc':     'Vertical scroll'
+        'avLst':    (
+            ('adj', 12500),
+        )
     },
-    MSO.SHAPE_WAVE: {
+    MAST.WAVE: {
         'basename': 'Wave',
         'prst':     'wave',
-        'desc':     'Wave'
-    }
+        'avLst':    (
+            ('adj1', 12500),
+            ('adj2', 0),
+        )
+    },
 }
 
 
@@ -1406,7 +1930,31 @@ pml_parttypes = {
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['handoutMaster', 'notesSlide', 'notesMaster', 'slide',
                         'slideLayout', 'slideMaster'],
-        'reltype':     RT_IMAGE}}
+        'reltype':     RT_IMAGE
+    },
+    'image/vnd.ms-photo': {
+        'basename':    'hdphoto',
+        'ext':         '.wdp',
+        'name':        'Image Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/ppt/media',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   [],
+        'reltype':     RT_IMAGE
+    },
+    'image/tiff': {
+        'basename':    'image',
+        'ext':         '.tiff',
+        'name':        'Image Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/ppt/media',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   [],
+        'reltype':     RT_IMAGE
+    }
+}
 
 
 # ============================================================================
@@ -1431,6 +1979,7 @@ default_content_types = {
     '.rels':    'application/vnd.openxmlformats-package.relationships+xml',
     '.tif':     'image/tiff',
     '.tiff':    'image/tiff',
+    '.wdp':     'image/vnd.ms-photo',
     '.wmf':     'image/x-wmf',
     '.xlsx':    CT_EXCEL_XLSX,
     '.xml':     'application/xml'}

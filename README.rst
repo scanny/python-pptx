@@ -2,14 +2,14 @@
 python-pptx
 ###########
 
-VERSION: 0.2.4 (fifth beta release)
+VERSION: 0.2.5 (sixth beta release)
 
 
-STATUS (as of May 16 2013)
-==========================
+STATUS (as of June 11 2013)
+===========================
 
-Stable beta release. This release added support for auto shapes. Under active
-development, with new features added in a new release roughly once a month.
+Stable beta release. Under active development, with new features added in a new
+release roughly once a month.
 
 
 Vision
@@ -97,6 +97,16 @@ install those yourself.
 
 Release History
 ===============
+
+June 11, 2013 - v0.2.5
+   * Add paragraph alignment property (left, right, centered, etc.)
+   * Add vertical alignment within table cell (top, middle, bottom)
+   * Add table cell margin properties
+   * Add table boolean properties: first column (row header), first row (column
+     headings), last row (for e.g. totals row), last column (for e.g. row
+     totals), horizontal banding, and vertical banding.
+   * Add support for auto shape adjustment values, e.g. change radius of corner
+     rounding on rounded rectangle, position of callout arrow, etc.
 
 May 16, 2013 - v0.2.4
    * Add support for auto shapes (e.g. polygons, flowchart symbols, etc.)

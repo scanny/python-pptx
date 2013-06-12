@@ -11,19 +11,20 @@
 
 import os
 
-from hamcrest import assert_that, equal_to, is_
+from hamcrest import assert_that, equal_to, is_, is_not, same_instance
+from mock import MagicMock, Mock, patch, PropertyMock
+# from unittest2 import skip
 
-from mock import Mock, patch, PropertyMock
-
-from pptx.constants import MSO
+from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP
 from pptx.oxml import (
     _SubElement, nsdecls, oxml_fromstring, oxml_parse, oxml_tostring
 )
 from pptx.presentation import _SlideLayout
 from pptx.shapes import (
-    _AutoShapeType, _BaseShape, _Cell, _CellCollection, _Column,
-    _ColumnCollection, _Font, _Paragraph, _Placeholder, _Row, _RowCollection,
-    _Run, _Shape, _ShapeCollection, _TextFrame, _to_unicode
+    _Adjustment, _AdjustmentCollection, _AutoShapeType, _BaseShape, _Cell,
+    _CellCollection, _Column, _ColumnCollection, _Font, _Paragraph,
+    _Placeholder, _Row, _RowCollection, _Run, _Shape, _ShapeCollection,
+    _TextFrame, _to_unicode
 )
 from pptx.spec import namespaces
 from pptx.spec import (
@@ -32,7 +33,10 @@ from pptx.spec import (
     PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER
 )
 from pptx.util import Inches, Pt
-from testdata import test_shape_elements, test_shapes
+from testdata import (
+    a_prstGeom, test_shape_elements, test_shapes, test_table_objects,
+    test_text_objects, test_text_xml
+)
 from testing import TestCase
 
 
@@ -65,27 +69,224 @@ def _sldLayout1_shapes():
     return shapes
 
 
+class Test_Adjustment(TestCase):
+    """Test _Adjustment"""
+    def test_it_should_have_correct_effective_value(self):
+        """_Adjustment.effective_value is correct"""
+        # setup ------------------------
+        name = "don't care"
+        cases = (
+            # no actual, effective should be determined by default value
+            (50000, None, 0.5),
+            # actual matches default
+            (50000, 50000, 0.5),
+            # actual is different than default
+            (50000, 12500, 0.125),
+            # actual is zero
+            (50000, 0, 0.0),
+            # negative default
+            (-20833, None, -0.20833),
+            # negative actual
+            (-20833, -5678901, -56.78901),
+        )
+        # verify -----------------------
+        for def_val, actual, expected in cases:
+            adjustment = _Adjustment(name, def_val, actual)
+            assert_that(adjustment.effective_value, is_(equal_to(expected)))
+
+
+class Test_AdjustmentCollection(TestCase):
+    """Test _AdjustmentCollection"""
+    def test_it_should_load_default_adjustment_values(self):
+        """_AdjustmentCollection() loads default adjustment values"""
+        # setup ------------------------
+        cases = (
+            ('rect', ()),
+            ('chevron', (('adj', 50000),)),
+            ('accentBorderCallout1',
+             (('adj1', 18750), ('adj2', -8333), ('adj3', 112500),
+              ('adj4', -38333))),
+            ('wedgeRoundRectCallout',
+             (('adj1', -20833), ('adj2', 62500), ('adj3', 16667))),
+            ('circularArrow',
+             (('adj1', 12500), ('adj2', 1142319), ('adj3', 20457681),
+              ('adj4', 10800000), ('adj5', 12500))),
+        )
+        for prst, expected_values in cases:
+            prstGeom = a_prstGeom(prst).with_avLst.element
+            adjustments = _AdjustmentCollection(prstGeom)._adjustments
+            # verify -------------------
+            reason = ("\n     failed for prst: '%s'" % prst)
+            assert_that(len(adjustments),
+                        is_(equal_to(len(expected_values))),
+                        reason)
+            actuals = tuple([(adj.name, adj.def_val) for adj in adjustments])
+            assert_that(actuals, is_(equal_to(expected_values)), reason)
+
+    def test_it_should_load_adj_val_actuals_from_xml(self):
+        """_AdjustmentCollection() loads adjustment value actuals from XML"""
+        # setup ------------------------
+        def expected_actual(adj_vals, adjustment_name):
+            for name, actual in adj_vals:
+                if name == adjustment_name:
+                    return actual
+            return None
+
+        cases = (
+            # no adjustment values in xml or spec
+            (a_prstGeom('rect').with_avLst, ()),
+            # no adjustment values in xml, but some in spec
+            (a_prstGeom('circularArrow'), ()),
+            # adjustment value in xml but none in spec
+            (a_prstGeom('rect').with_gd(), ()),
+            # middle adjustment value in xml
+            (a_prstGeom('mathDivide').with_gd(name='adj2'),
+             (('adj2', 25000),)),
+            # all adjustment values in xml
+            (a_prstGeom('wedgeRoundRectCallout').with_gd(111, 'adj1')
+                                                .with_gd(222, 'adj2')
+                                                .with_gd(333, 'adj3'),
+             (('adj1', 111), ('adj2', 222), ('adj3', 333))),
+        )
+        # verify -----------------------
+        for prstGeom_builder, adj_vals in cases:
+            prstGeom = prstGeom_builder.element
+            adjustments = _AdjustmentCollection(prstGeom)._adjustments
+            for adjustment in adjustments:
+                expected_value = expected_actual(adj_vals, adjustment.name)
+                reason = (
+                    "failed for adj val name '%s', for this XML:\n\n%s" %
+                    (adjustment.name, prstGeom_builder.xml))
+                assert_that(adjustment.actual, is_(expected_value), reason)
+
+    def test_it_should_return_effective_value_on_indexed_access(self):
+        """_AdjustmentCollection[n] is normalized effective value of nth"""
+        # setup ------------------------
+        cases = (
+            ('rect', ()),
+            ('chevron', (0.5,)),
+            ('circularArrow', (0.125, 11.42319, 204.57681, 108.0, 0.125)),
+        )
+        for prst, expected_values in cases:
+            prstGeom = a_prstGeom(prst).element
+            # exercise -----------------
+            adjustments = _AdjustmentCollection(prstGeom)
+            # verify -------------------
+            reason = "failed on case: prst=='%s'" % prst
+            assert_that(len(adjustments), is_(len(expected_values)), reason)
+            retvals = tuple([adj for adj in adjustments])
+            assert_that(retvals, is_(equal_to(expected_values)), reason)
+
+    def test_it_should_update_actual_value_on_indexed_assignment(self):
+        """Assignment to _AdjustmentCollection[n] updates nth actual"""
+        # setup ------------------------
+        cases = (
+            ('chevron', 0, 0.5, 50000),
+            ('circularArrow', 2, 99.99, 9999000),
+        )
+        prst = 'chevron'
+        for prst, idx, new_value, expected in cases:
+            prstGeom = a_prstGeom(prst).element
+            adjustments = _AdjustmentCollection(prstGeom)
+            # exercise -----------------
+            adjustments[idx] = new_value
+            # verify -------------------
+            reason = "failed on case: prst=='%s'" % prst
+            assert_that(adjustments._adjustments[idx].actual,
+                        is_(equal_to(expected)),
+                        reason)
+
+    def test_it_should_round_trip_indexed_assignment(self):
+        """Assignment to _AdjustmentCollection[n] round-trips"""
+        # setup ------------------------
+        new_value = 0.375
+        prstGeom = a_prstGeom('chevron').element
+        adjustments = _AdjustmentCollection(prstGeom)
+        assert_that(adjustments[0], is_not(equal_to(new_value)))
+        # exercise ---------------------
+        adjustments[0] = new_value
+        # verify -----------------------
+        assert_that(adjustments[0], is_(equal_to(new_value)))
+
+    def test_it_should_raise_on_bad_key(self):
+        """_AdjustmentCollection[idx] raises on invalid idx"""
+        # setup ------------------------
+        prstGeom = a_prstGeom('chevron').element
+        adjustments = _AdjustmentCollection(prstGeom)
+        # verify -----------------------
+        with self.assertRaises(IndexError):
+            adjustments[-6]
+        with self.assertRaises(IndexError):
+            adjustments[6]
+        with self.assertRaises(TypeError):
+            adjustments[0.0]
+        with self.assertRaises(TypeError):
+            adjustments['0']
+        with self.assertRaises(IndexError):
+            adjustments[-6] = 1.0
+        with self.assertRaises(IndexError):
+            adjustments[6] = 1.0
+        with self.assertRaises(TypeError):
+            adjustments[0.0] = 1.0
+        with self.assertRaises(TypeError):
+            adjustments['0'] = 1.0
+
+    def test_it_should_raise_on_assigned_bad_value(self):
+        """_AdjustmentCollection[n] = val raises on val is not number"""
+        # setup ------------------------
+        prstGeom = a_prstGeom('chevron').element
+        adjustments = _AdjustmentCollection(prstGeom)
+        # verify -----------------------
+        with self.assertRaises(ValueError):
+            adjustments[0] = 'foobar'
+
+    def test_writes_adj_vals_to_xml_on_assignment(self):
+        """_AdjustmentCollection writes adj vals to XML on assignment"""
+        # setup ------------------------
+        prstGeom = a_prstGeom('chevron').element
+        adjustments = _AdjustmentCollection(prstGeom)
+        __prstGeom = Mock(name='__prstGeom')
+        adjustments._AdjustmentCollection__prstGeom = __prstGeom
+        # exercise ---------------------
+        adjustments[0] = 0.999
+        # verify -----------------------
+        assert_that(__prstGeom.rewrite_guides.call_count, is_(1))
+
+
 class Test_AutoShapeType(TestCase):
     """Test _AutoShapeType"""
     def test_construction_return_values(self):
         """_AutoShapeType() returns instance with correct property values"""
         # setup ------------------------
-        id_ = MSO.SHAPE_ROUNDED_RECTANGLE
+        id_ = MAST.ROUNDED_RECTANGLE
         prst = 'roundRect'
         basename = 'Rounded Rectangle'
-        desc = 'Rounded rectangle'
         # exercise ---------------------
         autoshape_type = _AutoShapeType(id_)
         # verify -----------------------
         assert_that(autoshape_type.autoshape_type_id, is_(equal_to(id_)))
         assert_that(autoshape_type.prst, is_(equal_to(prst)))
         assert_that(autoshape_type.basename, is_(equal_to(basename)))
-        assert_that(autoshape_type.desc, is_(equal_to(desc)))
+
+    def test_default_adjustment_values_return_value(self):
+        """_AutoShapeType.default_adjustment_values() return val correct"""
+        # setup ------------------------
+        cases = (
+            ('rect', ()),
+            ('chevron', (('adj', 50000),)),
+            ('leftCircularArrow',
+             (('adj1', 12500), ('adj2', -1142319), ('adj3', 1142319),
+              ('adj4', 10800000), ('adj5', 12500))),
+        )
+        # verify -----------------------
+        for prst, expected_vals in cases:
+            def_adj_vals = _AutoShapeType.default_adjustment_values(prst)
+            assert_that(def_adj_vals, is_(equal_to(expected_vals)))
 
     def test__lookup_id_by_prst_return_value(self):
         """_AutoShapeType._lookup_id_by_prst() return value is correct"""
         # setup ------------------------
-        autoshape_type_id = MSO.SHAPE_ROUNDED_RECTANGLE
+        autoshape_type_id = MAST.ROUNDED_RECTANGLE
         prst = 'roundRect'
         # exercise ---------------------
         retval = _AutoShapeType._lookup_id_by_prst(prst)
@@ -103,7 +304,7 @@ class Test_AutoShapeType(TestCase):
     def test_second_construction_returns_cached_instance(self):
         """_AutoShapeType() returns cached instance on duplicate call"""
         # setup ------------------------
-        id_ = MSO.SHAPE_ROUNDED_RECTANGLE
+        id_ = MAST.ROUNDED_RECTANGLE
         ast1 = _AutoShapeType(id_)
         # exercise ---------------------
         ast2 = _AutoShapeType(id_)
@@ -253,6 +454,114 @@ class Test_Cell(TestCase):
         # verify -----------------------
         text = self.cell.textframe.paragraphs[0].runs[0].text
         assert_that(text, is_(equal_to(test_text)))
+
+    def test_margin_values(self):
+        """_Cell.margin_x values are calculated correctly"""
+        # mockery ----------------------
+        marT_val, marR_val, marB_val, marL_val = 12, 34, 56, 78
+        # -- CT_TableCell
+        tc = MagicMock()
+        marT = type(tc).marT = PropertyMock(return_value=marT_val)
+        marR = type(tc).marR = PropertyMock(return_value=marR_val)
+        marB = type(tc).marB = PropertyMock(return_value=marB_val)
+        marL = type(tc).marL = PropertyMock(return_value=marL_val)
+        # setup ------------------------
+        cell = _Cell(tc)
+        # exercise ---------------------
+        margin_top = cell.margin_top
+        margin_right = cell.margin_right
+        margin_bottom = cell.margin_bottom
+        margin_left = cell.margin_left
+        # verify -----------------------
+        marT.assert_called_once_with()
+        marR.assert_called_once_with()
+        marB.assert_called_once_with()
+        marL.assert_called_once_with()
+        assert_that(margin_top, is_(equal_to(marT_val)))
+        assert_that(margin_right, is_(equal_to(marR_val)))
+        assert_that(margin_bottom, is_(equal_to(marB_val)))
+        assert_that(margin_left, is_(equal_to(marL_val)))
+
+    def test_margin_assignment(self):
+        """Assignment to _Cell.margin_x sets value"""
+        # mockery ----------------------
+        # -- CT_TableCell
+        tc = MagicMock()
+        marT = type(tc).marT = PropertyMock()
+        marR = type(tc).marR = PropertyMock()
+        marB = type(tc).marB = PropertyMock()
+        marL = type(tc).marL = PropertyMock()
+        # setup ------------------------
+        top, right, bottom, left = 12, 34, 56, 78
+        cell = _Cell(tc)
+        # exercise ---------------------
+        cell.margin_top = top
+        cell.margin_right = right
+        cell.margin_bottom = bottom
+        cell.margin_left = left
+        # verify -----------------------
+        marT.assert_called_once_with(top)
+        marR.assert_called_once_with(right)
+        marB.assert_called_once_with(bottom)
+        marL.assert_called_once_with(left)
+
+    def test_margin_assignment_raises_on_not_int_or_none(self):
+        """Assignment to _Cell.margin_x raises for not (int or none)"""
+        # setup ------------------------
+        cell = test_table_objects.cell
+        bad_margin = 'foobar'
+        # verify -----------------------
+        with self.assertRaises(ValueError):
+            cell.margin_top = bad_margin
+        with self.assertRaises(ValueError):
+            cell.margin_right = bad_margin
+        with self.assertRaises(ValueError):
+            cell.margin_bottom = bad_margin
+        with self.assertRaises(ValueError):
+            cell.margin_left = bad_margin
+
+    @patch('pptx.shapes.VerticalAnchor')
+    def test_vertical_anchor_value(self, VerticalAnchor):
+        """_Cell.vertical_anchor value is calculated correctly"""
+        # mockery ----------------------
+        # loose mocks
+        anchor_val = Mock(name='anchor_val')
+        vertical_anchor = Mock(name='vertical_anchor')
+        # CT_TableCell
+        tc = MagicMock()
+        anchor_prop = type(tc).anchor = PropertyMock(return_value=anchor_val)
+        # VerticalAnchor
+        from_text_anchoring_type = VerticalAnchor.from_text_anchoring_type
+        from_text_anchoring_type.return_value = vertical_anchor
+        # setup ------------------------
+        cell = _Cell(tc)
+        # exercise ---------------------
+        retval = cell.vertical_anchor
+        # verify -----------------------
+        anchor_prop.assert_called_once_with()
+        from_text_anchoring_type.assert_called_once_with(anchor_val)
+        assert_that(retval, is_(same_instance(vertical_anchor)))
+
+    @patch('pptx.shapes.VerticalAnchor')
+    def test_vertical_anchor_assignment(self, VerticalAnchor):
+        """Assignment to _Cell.vertical_anchor sets value"""
+        # mockery ----------------------
+        # -- loose mocks
+        vertical_anchor = Mock(name='vertical_anchor')
+        anchor_val = Mock(name='anchor_val')
+        # -- CT_TableCell
+        tc = MagicMock()
+        anchor_prop = type(tc).anchor = PropertyMock()
+        # -- VerticalAnchor
+        to_text_anchoring_type = VerticalAnchor.to_text_anchoring_type
+        to_text_anchoring_type.return_value = anchor_val
+        # setup ------------------------
+        cell = _Cell(tc)
+        # exercise ---------------------
+        cell.vertical_anchor = vertical_anchor
+        # verify -----------------------
+        to_text_anchoring_type.assert_called_once_with(vertical_anchor)
+        anchor_prop.assert_called_once_with(anchor_val)
 
 
 class Test_CellCollection(TestCase):
@@ -470,6 +779,51 @@ class Test_Paragraph(TestCase):
         actual = len(paragraph.runs)
         msg = "expected run count %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
+
+    @patch('pptx.shapes.ParagraphAlignment')
+    def test_alignment_value(self, ParagraphAlignment):
+        """_Paragraph.alignment value is calculated correctly"""
+        # setup ------------------------
+        paragraph = test_text_objects.paragraph
+        paragraph._Paragraph__p = __p = MagicMock(name='__p')
+        __p.get_algn = get_algn = Mock(name='get_algn')
+        get_algn.return_value = algn_val = Mock(name='algn_val')
+        alignment = Mock(name='alignment')
+        from_text_align_type = ParagraphAlignment.from_text_align_type
+        from_text_align_type.return_value = alignment
+        # exercise ---------------------
+        retval = paragraph.alignment
+        # verify -----------------------
+        get_algn.assert_called_once_with()
+        from_text_align_type.assert_called_once_with(algn_val)
+        assert_that(retval, is_(same_instance(alignment)))
+
+    @patch('pptx.shapes.ParagraphAlignment')
+    def test_alignment_assignment(self, ParagraphAlignment):
+        """Assignment to _Paragraph.alignment assigns value"""
+        # setup ------------------------
+        paragraph = test_text_objects.paragraph
+        paragraph._Paragraph__p = __p = MagicMock(name='__p')
+        __p.set_algn = set_algn = Mock(name='set_algn')
+        algn_val = Mock(name='algn_val')
+        to_text_align_type = ParagraphAlignment.to_text_align_type
+        to_text_align_type.return_value = algn_val
+        alignment = PP.ALIGN_CENTER
+        # exercise ---------------------
+        paragraph.alignment = alignment
+        # verify -----------------------
+        to_text_align_type.assert_called_once_with(alignment)
+        set_algn.assert_called_once_with(algn_val)
+
+    def test_alignment_integrates_with_CT_TextParagraph(self):
+        """_Paragraph.alignment integrates with CT_TextParagraph"""
+        # setup ------------------------
+        paragraph = test_text_objects.paragraph
+        expected_xml = test_text_xml.centered_paragraph
+        # exercise ---------------------
+        paragraph.alignment = PP.ALIGN_CENTER
+        # verify -----------------------
+        self.assertEqualLineByLine(expected_xml, paragraph._Paragraph__p)
 
     def test_clear_removes_all_runs(self):
         """_Paragraph.clear() removes all runs from paragraph"""
@@ -739,13 +1093,29 @@ class Test_Run(TestCase):
 
 class Test_Shape(TestCase):
     """Test _Shape"""
+    @patch('pptx.shapes._BaseShape.__init__')
+    @patch('pptx.shapes._AdjustmentCollection')
+    def test_it_initializes_adjustments_on_construction(
+            self, _AdjustmentCollection, _BaseShape__init__):
+        """_Shape() initializes adjustments on construction"""
+        # setup ------------------------
+        adjustments = Mock(name='adjustments')
+        _AdjustmentCollection.return_value = adjustments
+        sp = Mock(name='sp')
+        # exercise ---------------------
+        shape = _Shape(sp)
+        # verify -----------------------
+        _BaseShape__init__.assert_called_once_with(sp)
+        _AdjustmentCollection.assert_called_once_with(sp.prstGeom)
+        assert_that(shape.adjustments, is_(adjustments))
+
     def test_auto_shape_type_value_correct(self):
         """_Shape.auto_shape_type value is correct"""
         # setup ------------------------
         rounded_rectangle = test_shapes.rounded_rectangle
         # verify -----------------------
         assert_that(rounded_rectangle.auto_shape_type,
-                    is_(equal_to(MSO.SHAPE_ROUNDED_RECTANGLE)))
+                    is_(equal_to(MAST.ROUNDED_RECTANGLE)))
 
     def test_auto_shape_type_raises_on_non_auto_shape(self):
         """_Shape.auto_shape_type raises on non auto shape"""
@@ -817,7 +1187,7 @@ class Test_ShapeCollection(TestCase):
         prst = 'roundRect'
         id_, name = 9, '%s 8' % basename
         left, top, width, height = 111, 222, 333, 444
-        autoshape_type_id = MSO.SHAPE_ROUNDED_RECTANGLE
+        autoshape_type_id = MAST.ROUNDED_RECTANGLE
         # setup mockery ---------------
         autoshape_type = Mock(name='autoshape_type')
         autoshape_type.basename = basename
@@ -1169,6 +1539,164 @@ class Test_Table(TestCase):
         # verify -----------------------
         sum_of_col_widths = tbl.columns[0].width + tbl.columns[1].width
         assert_that(tbl.width, is_(equal_to(sum_of_col_widths)))
+
+
+class Test_TableBooleanProperties(TestCase):
+    """Test _Table"""
+    def setUp(self):
+        """Test fixture for _Table boolean properties"""
+        shapes = test_shapes.empty_shape_collection
+        self.table = shapes.add_table(2, 2, 1000, 1000, 1000, 1000)
+        self.assignment_cases = (
+            (True,  True),
+            (False, False),
+            (0,     False),
+            (1,     True),
+            ('',    False),
+            ('foo', True)
+        )
+
+    def mockery(self, property_name, property_return_value=None):
+        """
+        Return property of *property_name* on self.table with return value of
+        *property_return_value*.
+        """
+        # mock <a:tbl> element of _Table so we can mock its properties
+        tbl = MagicMock()
+        self.table._Table__tbl_elm = tbl
+        # create a suitable mock for the property
+        property_ = PropertyMock()
+        if property_return_value:
+            property_.return_value = property_return_value
+        # and attach it the the <a:tbl> element object (class actually)
+        setattr(type(tbl), property_name, property_)
+        return property_
+
+    def test_first_col_property_value(self):
+        """_Table.first_col property value is calculated correctly"""
+        # mockery ----------------------
+        firstCol_val = True
+        firstCol = self.mockery('firstCol', firstCol_val)
+        # exercise ---------------------
+        retval = self.table.first_col
+        # verify -----------------------
+        firstCol.assert_called_once_with()
+        assert_that(retval, is_(equal_to(firstCol_val)))
+
+    def test_first_row_property_value(self):
+        """_Table.first_row property value is calculated correctly"""
+        # mockery ----------------------
+        firstRow_val = True
+        firstRow = self.mockery('firstRow', firstRow_val)
+        # exercise ---------------------
+        retval = self.table.first_row
+        # verify -----------------------
+        firstRow.assert_called_once_with()
+        assert_that(retval, is_(equal_to(firstRow_val)))
+
+    def test_horz_banding_property_value(self):
+        """_Table.horz_banding property value is calculated correctly"""
+        # mockery ----------------------
+        bandRow_val = True
+        bandRow = self.mockery('bandRow', bandRow_val)
+        # exercise ---------------------
+        retval = self.table.horz_banding
+        # verify -----------------------
+        bandRow.assert_called_once_with()
+        assert_that(retval, is_(equal_to(bandRow_val)))
+
+    def test_last_col_property_value(self):
+        """_Table.last_col property value is calculated correctly"""
+        # mockery ----------------------
+        lastCol_val = True
+        lastCol = self.mockery('lastCol', lastCol_val)
+        # exercise ---------------------
+        retval = self.table.last_col
+        # verify -----------------------
+        lastCol.assert_called_once_with()
+        assert_that(retval, is_(equal_to(lastCol_val)))
+
+    def test_last_row_property_value(self):
+        """_Table.last_row property value is calculated correctly"""
+        # mockery ----------------------
+        lastRow_val = True
+        lastRow = self.mockery('lastRow', lastRow_val)
+        # exercise ---------------------
+        retval = self.table.last_row
+        # verify -----------------------
+        lastRow.assert_called_once_with()
+        assert_that(retval, is_(equal_to(lastRow_val)))
+
+    def test_vert_banding_property_value(self):
+        """_Table.vert_banding property value is calculated correctly"""
+        # mockery ----------------------
+        bandCol_val = True
+        bandCol = self.mockery('bandCol', bandCol_val)
+        # exercise ---------------------
+        retval = self.table.vert_banding
+        # verify -----------------------
+        bandCol.assert_called_once_with()
+        assert_that(retval, is_(equal_to(bandCol_val)))
+
+    def test_first_col_assignment(self):
+        """Assignment to _Table.first_col sets attribute value"""
+        # mockery ----------------------
+        firstCol = self.mockery('firstCol')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.first_col = assigned_value
+            firstCol.assert_called_once_with(called_with_value)
+            firstCol.reset_mock()
+
+    def test_first_row_assignment(self):
+        """Assignment to _Table.first_row sets attribute value"""
+        # mockery ----------------------
+        firstRow = self.mockery('firstRow')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.first_row = assigned_value
+            firstRow.assert_called_once_with(called_with_value)
+            firstRow.reset_mock()
+
+    def test_horz_banding_assignment(self):
+        """Assignment to _Table.horz_banding sets attribute value"""
+        # mockery ----------------------
+        bandRow = self.mockery('bandRow')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.horz_banding = assigned_value
+            bandRow.assert_called_once_with(called_with_value)
+            bandRow.reset_mock()
+
+    def test_last_col_assignment(self):
+        """Assignment to _Table.last_col sets attribute value"""
+        # mockery ----------------------
+        lastCol = self.mockery('lastCol')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.last_col = assigned_value
+            lastCol.assert_called_once_with(called_with_value)
+            lastCol.reset_mock()
+
+    def test_last_row_assignment(self):
+        """Assignment to _Table.last_row sets attribute value"""
+        # mockery ----------------------
+        lastRow = self.mockery('lastRow')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.last_row = assigned_value
+            lastRow.assert_called_once_with(called_with_value)
+            lastRow.reset_mock()
+
+    def test_vert_banding_assignment(self):
+        """Assignment to _Table.vert_banding sets attribute value"""
+        # mockery ----------------------
+        bandCol = self.mockery('bandCol')
+        # verify -----------------------
+        for assigned_value, called_with_value in self.assignment_cases:
+            self.table.vert_banding = assigned_value
+            bandCol.assert_called_once_with(called_with_value)
+            bandCol.reset_mock()
 
 
 class Test_TextFrame(TestCase):

@@ -7,7 +7,7 @@ from StringIO import StringIO
 
 from pptx import packaging
 from pptx import Presentation
-from pptx.constants import MSO
+from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP
 from pptx.util import Inches
 
 
@@ -59,6 +59,25 @@ def step_given_ref_to_bullet_body_placeholder(context):
     context.body = context.sld.shapes.placeholders[1]
 
 
+@given('I have a reference to a chevron shape')
+def step_given_ref_to_chevron_shape(context):
+    context.prs = Presentation()
+    blank_slidelayout = context.prs.slidelayouts[6]
+    shapes = context.prs.slides.add_slide(blank_slidelayout).shapes
+    x = y = cx = cy = 914400
+    context.chevron_shape = shapes.add_shape(MAST.CHEVRON, x, y, cx, cy)
+
+
+@given('I have a reference to a paragraph')
+def step_given_ref_to_paragraph(context):
+    context.prs = Presentation()
+    blank_slidelayout = context.prs.slidelayouts[6]
+    slide = context.prs.slides.add_slide(blank_slidelayout)
+    length = Inches(2.00)
+    textbox = slide.shapes.add_textbox(length, length, length, length)
+    context.p = textbox.textframe.paragraphs[0]
+
+
 @given('I have a reference to a slide')
 def step_given_ref_to_slide(context):
     context.prs = Presentation()
@@ -70,11 +89,21 @@ def step_given_ref_to_slide(context):
 def step_given_ref_to_table(context):
     context.prs = Presentation()
     slidelayout = context.prs.slidelayouts[6]
-    context.sld = context.prs.slides.add_slide(slidelayout)
-    shapes = context.sld.shapes
+    sld = context.prs.slides.add_slide(slidelayout)
+    shapes = sld.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(1.00))
     context.tbl = shapes.add_table(2, 2, x, y, cx, cy)
+
+
+@given('I have a reference to a table cell')
+def step_given_ref_to_table_cell(context):
+    context.prs = Presentation()
+    slidelayout = context.prs.slidelayouts[6]
+    sld = context.prs.slides.add_slide(slidelayout)
+    length = 1000
+    tbl = sld.shapes.add_table(2, 2, length, length, length, length)
+    context.cell = tbl.cell(0, 0)
 
 
 # when ====================================================
@@ -123,7 +152,7 @@ def step_when_add_auto_shape(context):
     shapes = context.sld.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(4.00))
-    sp = shapes.add_shape(MSO.SHAPE_ROUNDED_RECTANGLE, x, y, cx, cy)
+    sp = shapes.add_shape(MAST.ROUNDED_RECTANGLE, x, y, cx, cy)
     sp.text = test_text
 
 
@@ -173,6 +202,54 @@ def step_when_save_presentation_to_stream(context):
     context.prs.save(context.stream)
 
 
+@when("I set the cell margins")
+def step_when_set_cell_margins(context):
+    context.cell.margin_top = 1000
+    context.cell.margin_right = 2000
+    context.cell.margin_bottom = 3000
+    context.cell.margin_left = 4000
+
+
+@when("I set the cell vertical anchor to middle")
+def step_when_set_cell_vertical_anchor_to_middle(context):
+    context.cell.vertical_anchor = MSO.ANCHOR_MIDDLE
+
+
+@when("I set the first_col property to True")
+def step_when_set_first_col_property_to_true(context):
+    context.tbl.first_col = True
+
+
+@when("I set the first_row property to True")
+def step_when_set_first_row_property_to_true(context):
+    context.tbl.first_row = True
+
+
+@when("I set the first adjustment value to 0.15")
+def step_when_set_first_adjustment_value(context):
+    context.chevron_shape.adjustments[0] = 0.15
+
+
+@when("I set the horz_banding property to True")
+def step_when_set_horz_banding_property_to_true(context):
+    context.tbl.horz_banding = True
+
+
+@when("I set the last_col property to True")
+def step_when_set_last_col_property_to_true(context):
+    context.tbl.last_col = True
+
+
+@when("I set the last_row property to True")
+def step_when_set_last_row_property_to_true(context):
+    context.tbl.last_row = True
+
+
+@when("I set the paragraph alignment to centered")
+def step_when_set_paragraph_alignment_to_centered(context):
+    context.p.alignment = PP.ALIGN_CENTER
+
+
 @when("I set the text of the first cell")
 def step_when_set_text_of_first_cell(context):
     context.tbl.cell(0, 0).text = 'test text'
@@ -181,6 +258,11 @@ def step_when_set_text_of_first_cell(context):
 @when("I set the title text of the slide")
 def step_when_set_slide_title_text(context):
     context.sld.shapes.title.text = test_text
+
+
+@when("I set the vert_banding property to True")
+def step_when_set_vert_banding_property_to_true(context):
+    context.tbl.vert_banding = True
 
 
 @when("I set the width of the table's columns")
@@ -217,8 +299,51 @@ def step_then_auto_shape_appears_in_slide(context):
     sp = prs.slides[0].shapes[0]
     sp_text = sp.textframe.paragraphs[0].runs[0].text
     assert_that(sp.shape_type, is_(equal_to(MSO.AUTO_SHAPE)))
-    assert_that(sp.auto_shape_type, is_(equal_to(MSO.SHAPE_ROUNDED_RECTANGLE)))
+    assert_that(sp.auto_shape_type, is_(equal_to(MAST.ROUNDED_RECTANGLE)))
     assert_that(sp_text, is_(equal_to(test_text)))
+
+
+@then('the cell contents are inset by the margins')
+def step_then_cell_contents_are_inset_by_the_margins(context):
+    prs = Presentation(saved_pptx_path)
+    table = prs.slides[0].shapes[0]
+    cell = table.cell(0, 0)
+    assert_that(cell.margin_top, is_(equal_to(1000)))
+    assert_that(cell.margin_right, is_(equal_to(2000)))
+    assert_that(cell.margin_bottom, is_(equal_to(3000)))
+    assert_that(cell.margin_left, is_(equal_to(4000)))
+
+
+@then('the cell contents are vertically centered')
+def step_then_cell_contents_are_vertically_centered(context):
+    prs = Presentation(saved_pptx_path)
+    table = prs.slides[0].shapes[0]
+    cell = table.cell(0, 0)
+    assert_that(cell.vertical_anchor, is_(equal_to(MSO.ANCHOR_MIDDLE)))
+
+
+@then('the chevron shape appears with a less acute arrow head')
+def step_then_chevron_shape_appears_with_less_acute_arrow_head(context):
+    chevron = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(chevron.adjustments[0], is_(equal_to(0.15)))
+
+
+@then('the columns of the table have alternating shading')
+def step_then_columns_of_table_have_alternating_shading(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.vert_banding, is_(True))
+
+
+@then('the first column of the table has special formatting')
+def step_then_first_column_of_table_has_special_formatting(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.first_col, is_(True))
+
+
+@then('the first row of the table has special formatting')
+def step_then_first_row_of_table_has_special_formatting(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.first_row, is_(True))
 
 
 @then('the image is saved in the pptx file')
@@ -227,6 +352,18 @@ def step_then_img_saved_in_pptx_file(context):
     partnames = [part.partname for part in pkgng_pkg.parts
                  if part.partname.startswith('/ppt/media/')]
     assert_that(partnames, has_item('/ppt/media/image1.png'))
+
+
+@then('the last column of the table has special formatting')
+def step_then_last_column_of_table_has_special_formatting(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.last_col, is_(True))
+
+
+@then('the last row of the table has special formatting')
+def step_then_last_row_of_table_has_special_formatting(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.last_row, is_(True))
 
 
 @then('the paragraph is indented to the second level')
@@ -251,6 +388,19 @@ def step_then_picture_appears_in_slide(context):
 def step_then_pptx_file_contains_single_slide(context):
     prs = Presentation(saved_pptx_path)
     assert_that(len(prs.slides), is_(equal_to(1)))
+
+
+@then('the paragraph is aligned centered')
+def step_then_paragraph_is_aligned_centered(context):
+    prs = Presentation(saved_pptx_path)
+    p = prs.slides[0].shapes[0].textframe.paragraphs[0]
+    assert_that(p.alignment, is_(equal_to(PP.ALIGN_CENTER)))
+
+
+@then('the rows of the table have alternating shading')
+def step_then_rows_of_table_have_alternating_shading(context):
+    tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
+    assert_that(tbl.horz_banding, is_(True))
 
 
 @then('the table appears in the slide')

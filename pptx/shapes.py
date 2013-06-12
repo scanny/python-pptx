@@ -11,16 +11,24 @@
 Classes that implement PowerPoint shapes such as picture, textbox, and table.
 """
 
+from numbers import Number
+
 from pptx.constants import MSO
 from pptx.oxml import (
     _get_or_add, qn, _Element, _SubElement, CT_GraphicalObjectFrame,
     CT_Picture, CT_Shape
 )
-from pptx.spec import autoshape_types, namespaces, slide_ph_basenames
+from pptx.spec import (
+    autoshape_types, namespaces, ParagraphAlignment, slide_ph_basenames,
+    VerticalAnchor
+)
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_TYPE_DT, PH_TYPE_FTR,
     PH_TYPE_OBJ, PH_TYPE_SLDNUM)
 from pptx.util import Collection
+
+# import logging
+# log = logging.getLogger('pptx.shapes')
 
 # default namespace map for use in lxml calls
 _nsmap = namespaces('a', 'r', 'p')
@@ -61,6 +69,151 @@ def _to_unicode(text):
 # ============================================================================
 # Shapes
 # ============================================================================
+
+class _AdjustmentCollection(object):
+    """
+    Sequence of |_Adjustment| for an auto shape, each representing an
+    available adjustment for a shape of its type. Supports ``len()`` and
+    indexed access, e.g. ``shape.adjustments[1] = 0.15``.
+    """
+    def __init__(self, prstGeom):
+        super(_AdjustmentCollection, self).__init__()
+        self.__adjustments = self.__initialized_adjustments(prstGeom)
+        self.__prstGeom = prstGeom
+
+    def __getitem__(self, key):
+        """Provides indexed access, (e.g. 'adjustments[9]')."""
+        return self.__adjustments[key].effective_value
+
+    def __setitem__(self, key, value):
+        """
+        Provides item assignment via an indexed expression, e.g.
+        ``adjustments[9] = 999.9``. Causes all adjustment values in
+        collection to be written to the XML.
+        """
+        self.__adjustments[key].effective_value = value
+        self.__rewrite_guides()
+
+    def __initialized_adjustments(self, prstGeom):
+        """
+        Return an initialized list of adjustment values based on the contents
+        of *prstGeom*
+        """
+        if prstGeom is None:
+            return []
+        davs = _AutoShapeType.default_adjustment_values(prstGeom.prst)
+        adjustments = [_Adjustment(name, def_val) for name, def_val in davs]
+        self.__update_adjustments_with_actuals(adjustments, prstGeom.gd)
+        return adjustments
+
+    def __rewrite_guides(self):
+        """
+        Write ``<a:gd>`` elements to the XML, one for each adjustment value.
+        Any existing guide elements are overwritten.
+        """
+        guides = [(adj.name, adj.val) for adj in self.__adjustments]
+        self.__prstGeom.rewrite_guides(guides)
+
+    @staticmethod
+    def __update_adjustments_with_actuals(adjustments, guides):
+        """
+        Update |_Adjustment| instances in *adjustments* with actual values
+        held in *guides*, a list of ``<a:gd>`` elements. Guides with a name
+        that does not match an adjustment object are skipped.
+        """
+        adjustments_by_name = dict((adj.name, adj) for adj in adjustments)
+        for gd in guides:
+            name = gd.get('name')
+            actual = int(gd.get('fmla')[4:])
+            try:
+                adjustment = adjustments_by_name[name]
+            except KeyError:
+                continue
+            adjustment.actual = actual
+        return
+
+    @property
+    def _adjustments(self):
+        """
+        Sequence containing direct references to the |_Adjustment| objects
+        contained in collection.
+        """
+        return tuple(self.__adjustments)
+
+    def __len__(self):
+        """Implement built-in function len()"""
+        return len(self.__adjustments)
+
+
+class _Adjustment(object):
+    """
+    An adjustment value for an autoshape.
+
+    An adjustment value corresponds to the position of an adjustment handle on
+    an auto shape. Adjustment handles are the small yellow diamond-shaped
+    handles that appear on certain auto shapes and allow the outline of the
+    shape to be adjusted. For example, a rounded rectangle has an adjustment
+    handle that allows the radius of its corner rounding to be adjusted.
+
+    Values are |float| and generally range from 0.0 to 1.0, although the value
+    can be negative or greater than 1.0 in certain circumstances.
+    """
+    def __init__(self, name, def_val, actual=None):
+        super(_Adjustment, self).__init__()
+        self.name = name
+        self.def_val = def_val
+        self.actual = actual
+
+    @property
+    def effective_value(self):
+        """
+        Read/write |float| representing normalized adjustment value for this
+        adjustment. Actual values are a large-ish integer expressed in shape
+        coordinates, nominally between 0 and 100,000. The effective value is
+        normalized to a corresponding value nominally between 0.0 and 1.0.
+        Intuitively this represents the proportion of the width or height of
+        the shape at which the adjustment value is located from its starting
+        point. For simple shapes such as a rounded rectangle, this intuitive
+        correspondence holds. For more complicated shapes and at more extreme
+        shape proportions (e.g. width is much greater than height), the value
+        can become negative or greater than 1.0.
+        """
+        raw_value = self.actual if self.actual is not None else self.def_val
+        return self.__normalize(raw_value)
+
+    @effective_value.setter
+    def effective_value(self, value):
+        if not isinstance(value, Number):
+            tmpl = "adjustment value must be numeric, got '%s'"
+            raise ValueError(tmpl % value)
+        self.actual = self.__denormalize(value)
+
+    @staticmethod
+    def __denormalize(value):
+        """
+        Return integer corresponding to normalized *raw_value* on unit basis
+        of 100,000. See _Adjustment.normalize for additional details.
+        """
+        return int(value * 100000.0)
+
+    @staticmethod
+    def __normalize(raw_value):
+        """
+        Return normalized value for *raw_value*. A normalized value is a
+        |float| between 0.0 and 1.0 for nominal raw values between 0 and
+        100,000. Raw values less than 0 and greater than 100,000 are valid
+        and return values calculated on the same unit basis of 100,000.
+        """
+        return raw_value / 100000.0
+
+    @property
+    def val(self):
+        """
+        Denormalized effective value (expressed in shape coordinates),
+        suitable for using in the XML.
+        """
+        return self.actual if self.actual is not None else self.def_val
+
 
 class _AutoShapeType(object):
     """
@@ -119,7 +272,6 @@ class _AutoShapeType(object):
         self.__autoshape_type_id = autoshape_type_id
         self.__prst = autoshape_type['prst']
         self.__basename = autoshape_type['basename']
-        self.__desc = autoshape_type['desc']
         self._loaded = True
 
     @property
@@ -134,6 +286,15 @@ class _AutoShapeType(object):
         shape type
         """
         return self.__basename
+
+    @staticmethod
+    def default_adjustment_values(prst):
+        """
+        Return sequence of name, value tuples representing the adjustment
+        value defaults for the auto shape type identified by *prst*.
+        """
+        autoshape_type_id = _AutoShapeType._lookup_id_by_prst(prst)
+        return autoshape_types[autoshape_type_id]['avLst']
 
     @property
     def desc(self):
@@ -526,8 +687,17 @@ class _Shape(_BaseShape):
     that can appear in any of the slide-type parts (slide, slideLayout,
     slideMaster, notesPage, notesMaster, handoutMaster).
     """
-    def __init__(self, shape_element):
-        super(_Shape, self).__init__(shape_element)
+    def __init__(self, sp):
+        super(_Shape, self).__init__(sp)
+        self.__adjustments = _AdjustmentCollection(sp.prstGeom)
+
+    @property
+    def adjustments(self):
+        """
+        Read-only reference to _AdjustmentsCollection instance for this
+        shape
+        """
+        return self.__adjustments
 
     @property
     def auto_shape_type(self):
@@ -592,6 +762,81 @@ class _Table(_BaseShape):
         return self.__columns
 
     @property
+    def first_col(self):
+        """
+        Read/write boolean property which, when true, indicates the first
+        column should be formatted differently, as for a side-heading column
+        at the far left of the table.
+        """
+        return self.__tbl_elm.firstCol
+
+    @property
+    def first_row(self):
+        """
+        Read/write boolean property which, when true, indicates the first
+        row should be formatted differently, e.g. for column headings.
+        """
+        return self.__tbl_elm.firstRow
+
+    @property
+    def horz_banding(self):
+        """
+        Read/write boolean property which, when true, indicates the rows of
+        the table should appear with alternating shading.
+        """
+        return self.__tbl_elm.bandRow
+
+    @property
+    def last_col(self):
+        """
+        Read/write boolean property which, when true, indicates the last
+        column should be formatted differently, as for a row totals column at
+        the far right of the table.
+        """
+        return self.__tbl_elm.lastCol
+
+    @property
+    def last_row(self):
+        """
+        Read/write boolean property which, when true, indicates the last
+        row should be formatted differently, as for a totals row at the
+        bottom of the table.
+        """
+        return self.__tbl_elm.lastRow
+
+    @property
+    def vert_banding(self):
+        """
+        Read/write boolean property which, when true, indicates the columns
+        of the table should appear with alternating shading.
+        """
+        return self.__tbl_elm.bandCol
+
+    @first_col.setter
+    def first_col(self, value):
+        self.__tbl_elm.firstCol = bool(value)
+
+    @first_row.setter
+    def first_row(self, value):
+        self.__tbl_elm.firstRow = bool(value)
+
+    @horz_banding.setter
+    def horz_banding(self, value):
+        self.__tbl_elm.bandRow = bool(value)
+
+    @last_col.setter
+    def last_col(self, value):
+        self.__tbl_elm.lastCol = bool(value)
+
+    @last_row.setter
+    def last_row(self, value):
+        self.__tbl_elm.lastRow = bool(value)
+
+    @vert_banding.setter
+    def vert_banding(self, value):
+        self.__tbl_elm.bandCol = bool(value)
+
+    @property
     def height(self):
         """
         Read-only integer height of table in English Metric Units (EMU)
@@ -649,6 +894,61 @@ class _Cell(object):
         super(_Cell, self).__init__()
         self.__tc = tc
 
+    @staticmethod
+    def __assert_valid_margin_value(margin_value):
+        """
+        Raise ValueError if *margin_value* is not a positive integer value or
+        |None|.
+        """
+        if (not isinstance(margin_value, (int, long))
+                and margin_value is not None):
+            tmpl = "margin value must be integer or None, got '%s'"
+            raise ValueError(tmpl % margin_value)
+
+    @property
+    def margin_top(self):
+        """
+        Read/write integer value of top margin of cell in English Metric
+        Units (EMU). If assigned |None|, the default value is used, 0.1
+        inches for left and right margins and 0.05 inches for top and bottom.
+        """
+        return self.__tc.marT
+
+    @property
+    def margin_right(self):
+        """Right margin of cell"""
+        return self.__tc.marR
+
+    @property
+    def margin_bottom(self):
+        """Bottom margin of cell"""
+        return self.__tc.marB
+
+    @property
+    def margin_left(self):
+        """Left margin of cell"""
+        return self.__tc.marL
+
+    @margin_top.setter
+    def margin_top(self, margin_top):
+        self.__assert_valid_margin_value(margin_top)
+        self.__tc.marT = margin_top
+
+    @margin_right.setter
+    def margin_right(self, margin_right):
+        self.__assert_valid_margin_value(margin_right)
+        self.__tc.marR = margin_right
+
+    @margin_bottom.setter
+    def margin_bottom(self, margin_bottom):
+        self.__assert_valid_margin_value(margin_bottom)
+        self.__tc.marB = margin_bottom
+
+    @margin_left.setter
+    def margin_left(self, margin_left):
+        self.__assert_valid_margin_value(margin_left)
+        self.__tc.marL = margin_left
+
     def _set_text(self, text):
         """Replace all text in cell with single run containing *text*"""
         self.textframe.text = _to_unicode(text)
@@ -669,6 +969,32 @@ class _Cell(object):
         if txBody is None:
             raise ValueError('cell has no text frame')
         return _TextFrame(txBody)
+
+    def _get_vertical_anchor(self):
+        """
+        Return vertical anchor setting for this table cell, e.g.
+        ``MSO.ANCHOR_MIDDLE``. Can be |None|, meaning the cell has no
+        vertical anchor setting and its effective value is inherited from a
+        higher-level object.
+        """
+        anchor = self.__tc.anchor
+        return VerticalAnchor.from_text_anchoring_type(anchor)
+
+    def _set_vertical_anchor(self, vertical_anchor):
+        """
+        Set vertical_anchor of this cell to *vertical_anchor*, a constant
+        value like ``MSO.ANCHOR_MIDDLE``. If *vertical_anchor* is |None|, any
+        vertical anchor setting is cleared and its effective value is
+        inherited.
+        """
+        anchor = VerticalAnchor.to_text_anchoring_type(vertical_anchor)
+        self.__tc.anchor = anchor
+
+    #: Vertical anchor of this table cell, determines the vertical alignment
+    #: of text in the cell. Value is like ``MSO.ANCHOR_MIDDLE``. Can be
+    #: |None|, meaning the cell has no vertical anchor setting and its
+    #: effective value is inherited from a higher-level object.
+    vertical_anchor = property(_get_vertical_anchor, _set_vertical_anchor)
 
 
 class _Column(object):
@@ -925,6 +1251,31 @@ class _Paragraph(object):
     def __init__(self, p):
         super(_Paragraph, self).__init__()
         self.__p = p
+
+    def _get_alignment(self):
+        """
+        Return alignment type of this paragraph, e.g. ``PP.ALIGN_CENTER``.
+        Can return |None|, meaning the paragraph has no alignment setting and
+        its effective value is inherited from a higher-level object.
+        """
+        algn = self.__p.get_algn()
+        return ParagraphAlignment.from_text_align_type(algn)
+
+    def _set_alignment(self, alignment):
+        """
+        Set alignment of this paragraph to *alignment*, a constant value like
+        ``PP.ALIGN_CENTER``. If *alignment* is None, any alignment setting is
+        cleared and its effective value is inherited from a higher-level
+        object.
+        """
+        algn = ParagraphAlignment.to_text_align_type(alignment)
+        self.__p.set_algn(algn)
+
+    #: Horizontal alignment of this paragraph, represented by a constant
+    #: value like ``PP.ALIGN_CENTER``. Can be |None|, meaning the paragraph
+    #: has no alignment setting and its effective value is inherited from a
+    #: higher-level object.
+    alignment = property(_get_alignment, _set_alignment)
 
     @property
     def font(self):

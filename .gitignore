@@ -3,12 +3,12 @@
 .tox
 *.egg-info
 *.pyc
-README.html
 dist
 doc/_build
 features/_scratch/*
 out.txt
 _scratch
-doc/_static/ref
+spec/gen_spec/spec*.db
 tags
 test/debug.py
+Session.vim

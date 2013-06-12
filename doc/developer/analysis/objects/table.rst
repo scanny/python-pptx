@@ -30,6 +30,111 @@ Open questions
   list, e.g. ``del rows[2]``.
 
 
+Table Properties
+================
+
+Boolean properties
+------------------
+
+``first_row``
+   read/write boolean property which, when true, indicates the first row should
+   be formatted differently, as for a heading row at the top of the table.
+
+``first_col``
+   read/write boolean property which, when true, indicates the first column
+   should be formatted differently, as for a side-heading column at the far
+   left of the table.
+
+``last_row``
+   read/write boolean property which, when true, indicates the last row should
+   be formatted differently, as for a totals row at the bottom of the table.
+
+``last_col``
+   read/write boolean property which, when true, indicates the last column
+   should be formatted differently, as for a side totals column at the far
+   right of the table.
+
+``horz_banding``
+   read/write boolean property indicating whether alternate color "banding"
+   should be applied to the body rows.
+
+``vert_banding``
+   read/write boolean property indicating whether alternate color "banding"
+   should be applied to the table columns.
+
+
+Attribute Names
+~~~~~~~~~~~~~~~
+
++---------------+-----------+-------------+
+| property name | attribute | optionality |
++===============+===========+=============+
+| first_row     | firstRow  | optional    |
++---------------+-----------+-------------+
+| first_col     | firstCol  | optional    |
++---------------+-----------+-------------+
+| last_row      | lastRow   | optional    |
++---------------+-----------+-------------+
+| last_col      | lastCol   | optional    |
++---------------+-----------+-------------+
+| horz_banding  | bandRow   | optional    |
++---------------+-----------+-------------+
+| vert_banding  | bandCol   | optional    |
++---------------+-----------+-------------+
+
+
+Characteristics
+~~~~~~~~~~~~~~~
+
++------------+---------------+
+| value type | boolean, None |
++------------+---------------+
+| mode       | read/write    |
++------------+---------------+
+
+
+XML location
+~~~~~~~~~~~~
+
+.. highlight:: xml
+
+::
+
+   <a:tbl>
+     <a:tblPr firstRow="1" lastCol="1" bandRow="1">
+
+``<a:tblPr>`` is an optional element. If it appears, it is the first child of
+``<a:tbl>``
+
+
+Observed behavior
+~~~~~~~~~~~~~~~~~
+
+The MS PowerPoint® client exhibits the following behavior related to table
+properties:
+
+upon insertion of a default, empty table
+   ``<a:tblPr firstRow="1" bandRow="1">`` A tblPr element is present with a
+   ``firstRow`` and ``bandRow`` attribute, each set to True.
+
+after setting ``firstRow`` property off
+   ``<a:tblPr bandRow="1">`` The ``firstRow`` attribute is removed, not set
+   to ``0`` or ``false``.
+
+The ``<a:tblPr>`` element is always present, even when it contains no
+attributes, because it contains an ``<a:tableStyleId>`` element, even when
+the table style is set to none using the UI.
+
+
+References
+~~~~~~~~~~
+
+`Table.FirstCol Property page on MSDN`_
+
+.. _Table.FirstCol Property page on MSDN:
+   http://msdn.microsoft.com/en-us/library/office/ff744530.aspx
+
+
 API requirements
 ================
 
@@ -43,25 +148,25 @@ Properties and methods required for a |_Table| shape.
 
 * ``cell(row, col)`` -- method to access an individual |_Cell| object.
 
-* ``columns`` -- collection of |_Column| objects, each corresponding to a column
-  in the table, in left-to-right order.
+* ``columns`` -- collection of |_Column| objects, each corresponding to
+  a column in the table, in left-to-right order.
 
-* ``firstcol`` -- read/write boolean property which, when true, indicates the
+* ``first_col`` -- read/write boolean property which, when true, indicates the
   first column should be formatted differently, as for a side-heading column at
   the far left of the table.
 
-* ``firstrow`` -- read/write boolean property which, when true, indicates the
+* ``first_row`` -- read/write boolean property which, when true, indicates the
   first row should be formatted differently, as for a heading row at the top of
   the table.
 
 * ``horz_banding`` -- read/write boolean property indicating whether alternate
   color "banding" should be applied to the body rows.
 
-* ``lastcol`` -- read/write boolean property which, when true, indicates the
+* ``last_col`` -- read/write boolean property which, when true, indicates the
   last column should be formatted differently, as for a side totals column at
   the far right of the table.
 
-* ``lastrow`` -- read/write boolean property which, when true, indicates the
+* ``last_row`` -- read/write boolean property which, when true, indicates the
   last row should be formatted differently, as for a totals row at the bottom
   of the table.
 
