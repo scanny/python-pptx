@@ -286,7 +286,7 @@ class _RelationshipCollection(Collection):
         Insert *relationship* into the appropriate position in this ordered
         collection.
         """
-        rIds = [rel._rId for rel in self._values]
+        rIds = [rel._rId for rel in self]
         if relationship._rId in rIds:
             tmpl = "cannot add relationship with duplicate rId '%s'"
             raise ValueError(tmpl % relationship._rId)
@@ -308,6 +308,17 @@ class _RelationshipCollection(Collection):
                 return tmpl % next_rId_num
             next_rId_num += 1
         return tmpl % next_rId_num
+
+    def related_part(self, reltype):
+        """
+        Return first part in collection having relationship type *reltype* or
+        raise |KeyError| if not found.
+        """
+        for relationship in self._values:
+            if relationship._reltype == reltype:
+                return relationship._target
+        tmpl = "no related part with relationship type '%s'"
+        raise KeyError(tmpl % reltype)
 
     @property
     def _reltype_ordering(self):

@@ -756,6 +756,27 @@ class Test_RelationshipCollection(TestCase):
         relationships._additem(rel5)
         return (relationships, partnames)
 
+    def test_it_can_find_related_part(self):
+        """_RelationshipCollection can find related part"""
+        # setup ------------------------
+        reltype = RT_CORE_PROPS
+        part = Mock(name='part')
+        relationship = _Relationship('rId1', reltype, part)
+        relationships = _RelationshipCollection()
+        relationships._additem(relationship)
+        # exercise ---------------------
+        retval = relationships.related_part(reltype)
+        # verify -----------------------
+        assert_that(retval, same_instance(part))
+
+    def test_it_raises_if_it_cant_find_a_related_part(self):
+        """_RelationshipCollection raises if it can't find a related part"""
+        # setup ------------------------
+        relationships = _RelationshipCollection()
+        # exercise ---------------------
+        with self.assertRaises(KeyError):
+            relationships.related_part('foobar')
+
     def test__additem_raises_on_dup_rId(self):
         """_RelationshipCollection._additem raises on duplicate rId"""
         # setup ------------------------
