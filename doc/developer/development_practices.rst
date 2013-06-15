@@ -16,7 +16,6 @@ Release procedure
 
 * release branch committed
 
-  + git flow release start 0.2.2
   + update version number in `pptx/__init__.py`
   + update setup.py (shouldn't usually be any changes)
   + update README.py, in particular, the release history
@@ -24,17 +23,25 @@ Release procedure
   + confirm docs compile without errors
   + run all tests (behave, nosetests, tox)
   + create trial distribution (make clean sdist)
-  + git commit -m 'Prepare v0.2.2 for release'
-  + git flow release finish 0.2.2
-  + (x) create tag for new version (automatically done by git flow)
+  + git commit -m 'Release v0.2.2'
+  + merge develop into master
+
+    - $ ``git checkout master``
+    - $ ``git merge develop``
+
+  + create tag for new version (automatically done by git flow)
+
+    - $ ``git tag -a v0.2.5 -m 'Release version 0.2.5'``
 
 * release uploaded to PyPI
 
   + upload: ``make upload``
 
-* local repo synchronized with github
+* synchronize local repo with github
 
-  + push tags to github: ``$ git push --tags``
+  + $ ``git push scanny develop``
+  + $ ``git push scanny master``
+  + $ ``git push --tags``
 
 * docs regenerated
 
@@ -45,10 +52,7 @@ Procedure -- Adding a new feature
 =================================
 
 * issue added to github issue tracker
-* git flow feature branch created
-
-  + ``git flow feature start paragraph-level``
-
+* git feature branch created
 * working analysis documented
 * acceptance test failing (not just raising exceptions)
 * recursively, outside in:
