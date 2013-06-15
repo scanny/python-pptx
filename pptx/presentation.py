@@ -37,9 +37,12 @@ from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
     CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT, CT_SLIDE_MASTER, CT_SLIDESHOW,
-    CT_TEMPLATE)
+    CT_TEMPLATE
+)
 from pptx.spec import (
-    RT_IMAGE, RT_OFFICE_DOCUMENT, RT_SLIDE, RT_SLIDE_LAYOUT, RT_SLIDE_MASTER)
+    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_SLIDE, RT_SLIDE_LAYOUT,
+    RT_SLIDE_MASTER
+)
 
 from pptx.util import Collection, Px
 
@@ -93,6 +96,15 @@ class _Package(object):
             if part in pkg._parts:
                 return pkg
         raise KeyError("No package contains part %r" % part)
+
+    @property
+    def core_properties(self):
+        """
+        Instance of |_CoreProperties| holding the read/write Dublin Core
+        document properties for this presentation.
+        """
+        core_properties = self.__relationships.related_part(RT_CORE_PROPS)
+        return core_properties
 
     @classmethod
     def instances(cls):
@@ -644,6 +656,13 @@ class _BasePart(_Observable):
             model_rel = _Relationship(pkgrel.rId, reltype, part)
             self._relationships._additem(model_rel)
         return self
+
+
+class _CoreProperties(_BasePart):
+    """
+    Corresponds to part named ``/docProps/core.xml``, containing the core
+    document properties for this document package.
+    """
 
 
 class Presentation(_BasePart):

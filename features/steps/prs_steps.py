@@ -1,5 +1,7 @@
 import os
 
+from datetime import datetime
+
 from behave import given, when, then
 from hamcrest import (assert_that, has_item, is_, is_not, equal_to,
                       greater_than)
@@ -37,11 +39,6 @@ def step_given_clean_working_dir(context):
 @given('an initialized pptx environment')
 def step_given_initialized_pptx_env(context):
     pass
-
-
-@given('I have an empty presentation open')
-def step_given_empty_prs(context):
-    context.prs = Presentation()
 
 
 @given('I have a reference to a blank slide')
@@ -104,6 +101,17 @@ def step_given_ref_to_table_cell(context):
     length = 1000
     tbl = sld.shapes.add_table(2, 2, length, length, length, length)
     context.cell = tbl.cell(0, 0)
+
+
+@given('I have a reference to the core properties of a presentation')
+def step_given_ref_to_core_doc_props(context):
+    context.prs = Presentation()
+    context.core_properties = context.prs.core_properties
+
+
+@given('I have an empty presentation open')
+def step_given_empty_prs(context):
+    context.prs = Presentation()
 
 
 # when ====================================================
@@ -213,6 +221,20 @@ def step_when_set_cell_margins(context):
 @when("I set the cell vertical anchor to middle")
 def step_when_set_cell_vertical_anchor_to_middle(context):
     context.cell.vertical_anchor = MSO.ANCHOR_MIDDLE
+
+
+@when("I set the core properties to valid values")
+def step_when_set_core_doc_props_to_valid_values(context):
+    context.core_properties.title = 'Title'
+    context.core_properties.subject = 'Subject'
+    context.core_properties.author = 'Author'
+    context.core_properties.keywords = 'key; word; keyword'
+    context.core_properties.comments = 'Comments'
+    context.core_properties.last_modified_by = 'Last Modified By'
+    context.core_properties.revision = 9
+    context.core_properties.created = datetime(2013, 6, 15, 1, 24, 43)
+    context.core_properties.modified = datetime(2013, 6, 15, 1, 24, 43)
+    context.core_properties.category = 'Category'
 
 
 @when("I set the first_col property to True")

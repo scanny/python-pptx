@@ -12,7 +12,7 @@
 import gc
 import os
 
-from hamcrest import assert_that, is_, is_in, is_not, equal_to
+from hamcrest import assert_that, is_, is_in, is_not, equal_to, same_instance
 from StringIO import StringIO
 
 from mock import Mock, patch, PropertyMock
@@ -25,14 +25,17 @@ from pptx.packaging import prettify_nsdecls
 from pptx.presentation import (
     _BasePart, _BaseSlide, _Image, _Package, _Part, _PartCollection,
     Presentation, _Relationship, _RelationshipCollection, _Slide,
-    _SlideCollection, _SlideLayout, _SlideMaster)
+    _SlideCollection, _SlideLayout, _SlideMaster
+)
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces, qtag
 from pptx.spec import (
-    CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT, CT_SLIDE_MASTER)
+    CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT, CT_SLIDE_MASTER
+)
 from pptx.spec import (
-    RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PRES_PROPS, RT_SLIDE, RT_SLIDE_LAYOUT,
-    RT_SLIDE_MASTER)
+    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PRES_PROPS, RT_SLIDE,
+    RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
+)
 from pptx.util import Px
 from testing import TestCase
 
@@ -510,6 +513,20 @@ class Test_Package(TestCase):
         msg = ("expected instance of '%s', got type '%s'"
                % (cls.__name__, type(obj).__name__))
         self.assertTrue(actual, msg)
+
+    def test_it_should_have_core_props(self):
+        """_Package should provide access to core document properties"""
+        # setup -----------------------
+        relationships = Mock(name='relationships')
+        core_props = Mock(name='core_props')
+        relationships.related_part.return_value = core_props
+        pkg = _Package()
+        pkg._Package__relationships = relationships
+        # exercise --------------------
+        retval = pkg.core_properties
+        # verify ----------------------
+        relationships.related_part.assert_called_once_with(RT_CORE_PROPS)
+        assert_that(retval, same_instance(core_props))
 
     def test_saved_file_has_plausible_contents(self):
         """_Package.save produces a .pptx with plausible contents"""
