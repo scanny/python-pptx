@@ -20,15 +20,34 @@ class CT_CorePropertiesBuilder(object):
     Test data builder for CT_CoreProperties (cp:coreProperties) XML element
     """
     properties = (
-        ('title',   'dc:title'),
-        ('subject', 'dc:subject'),
-        ('author',  'dc:creator'),
+        ('author',           'dc:creator'),
+        ('category',         'cp:category'),
+        ('comments',         'dc:description'),
+        ('content_status',   'cp:contentStatus'),
+        ('identifier',       'dc:identifier'),
+        ('language',         'dc:language'),
+        ('last_modified_by', 'cp:lastModifiedBy'),
+        ('subject',          'dc:subject'),
+        ('title',            'dc:title'),
+        ('version',          'cp:version'),
     )
 
     def __init__(self):
         """Establish instance variables with default values"""
         for propname, tag in self.properties:
             setattr(self, '_%s' % propname, None)
+
+    @property
+    def _ns_prefixes(self):
+        ns_prefixes = ['cp']
+        for propname, tag in self.properties:
+            value = getattr(self, '_%s' % propname)
+            if value is None:
+                continue
+            ns_prefix = tag.split(':')[0]
+            if ns_prefix not in ns_prefixes:
+                ns_prefixes.append(ns_prefix)
+        return tuple(ns_prefixes)
 
     @property
     def props_xml(self):
@@ -49,7 +68,7 @@ class CT_CorePropertiesBuilder(object):
         if self.props_xml:
             coreProperties = (
                 '<cp:coreProperties %s>\n%s</cp:coreProperties>\n' %
-                (nsdecls('cp', 'dc'), self.props_xml)
+                (nsdecls(*self._ns_prefixes), self.props_xml)
             )
         else:
             coreProperties = (

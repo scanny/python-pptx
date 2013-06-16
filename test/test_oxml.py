@@ -37,9 +37,16 @@ class TestCT_CoreProperties(TestCase):
         """CT_CoreProperties property values match parsed XML"""
         # setup ------------------------
         cases = (
-            ('title', 'Title'),
-            ('subject', 'Subject'),
-            ('author', 'Author'),
+            ('author',            'Creator'),
+            ('category',          'Category'),
+            ('comments',          'Description'),
+            ('content_status',    'Content Status'),
+            ('identifier',        'Identifier'),
+            ('language',          'Language'),
+            ('last_modified_by',  'Last Modified By'),
+            ('subject',           'Subject'),
+            ('title',             'Title'),
+            ('version',           'Version'),
         )
         childless_core_prop_builder = a_coreProperties()
         # verify -----------------------
@@ -54,16 +61,25 @@ class TestCT_CoreProperties(TestCase):
             builder = a_coreProperties().with_child(attr_name, value)
             coreProperties = builder.element
             attr_value = getattr(coreProperties, attr_name)
-            reason = ("failed for property '%s'" % attr_name)
+            xml = builder.xml
+            reason = ("failed for property '%s' with this XML:\n\n%s" %
+                      (attr_name, xml))
             assert_that(attr_value, is_(equal_to(value)), reason)
 
     def test_setters_produce_correct_xml(self):
         """Assignment to CT_CoreProperties properties produces correct XML"""
         # setup ------------------------
         cases = (
-            ('title', 'Title'),
-            ('subject', 'Subject'),
-            ('author', 'Author'),
+            ('author',            'Creator'),
+            ('category',          'Category'),
+            ('comments',          'Description'),
+            ('content_status',    'Content Status'),
+            ('identifier',        'Identifier'),
+            ('language',          'Language'),
+            ('last_modified_by',  'Last Modified By'),
+            ('subject',           'Subject'),
+            ('title',             'Title'),
+            ('version',           'Version'),
         )
         # verify -----------------------
         for attr_name, value in cases:
