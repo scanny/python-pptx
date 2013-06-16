@@ -35,7 +35,7 @@ class TestCT_GraphicalObjectFrame(TestCase):
     """Test CT_GraphicalObjectFrame"""
     def test_has_table_return_value(self):
         """CT_GraphicalObjectFrame.has_table property has correct value"""
-        # setup -----------------------
+        # setup ------------------------
         id_, name = 9, 'Table 8'
         left, top, width, height = 111, 222, 333, 444
         tbl_uri = 'http://schemas.openxmlformats.org/drawingml/2006/table'
@@ -43,7 +43,7 @@ class TestCT_GraphicalObjectFrame(TestCase):
         graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
             id_, name, left, top, width, height)
         graphicData = graphicFrame[qn('a:graphic')].graphicData
-        # verify ----------------------
+        # verify -----------------------
         graphicData.set('uri', tbl_uri)
         assert_that(graphicFrame.has_table, is_(equal_to(True)))
         graphicData.set('uri', chart_uri)
@@ -51,7 +51,7 @@ class TestCT_GraphicalObjectFrame(TestCase):
 
     def test_new_graphicFrame_generates_correct_xml(self):
         """CT_GraphicalObjectFrame.new_graphicFrame() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         id_, name = 9, 'Table 8'
         left, top, width, height = 111, 222, 333, 444
         xml = (
@@ -63,15 +63,15 @@ class TestCT_GraphicalObjectFrame(TestCase):
             'raphicData/>\n  </a:graphic>\n</p:graphicFrame>\n' %
             (nsdecls('a', 'p'), id_, name, left, top, width, height)
         )
-        # exercise --------------------
+        # exercise ---------------------
         graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
             id_, name, left, top, width, height)
-        # verify ----------------------
+        # verify -----------------------
         self.assertEqualLineByLine(xml, graphicFrame)
 
     def test_new_table_generates_correct_xml(self):
         """CT_GraphicalObjectFrame.new_table() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         id_, name = 9, 'Table 8'
         rows, cols = 2, 3
         left, top, width, height = 111, 222, 334, 445
@@ -109,10 +109,10 @@ class TestCT_GraphicalObjectFrame(TestCase):
             ' </a:graphicData>\n  </a:graphic>\n</p:graphicFrame>\n' %
             (nsdecls('a', 'p'), id_, name, left, top, width, height)
         )
-        # exercise --------------------
+        # exercise ---------------------
         graphicFrame = CT_GraphicalObjectFrame.new_table(
             id_, name, rows, cols, left, top, width, height)
-        # verify ----------------------
+        # verify -----------------------
         self.assertEqualLineByLine(xml, graphicFrame)
 
 
@@ -120,7 +120,7 @@ class TestCT_Picture(TestCase):
     """Test CT_Picture"""
     def test_new_pic_generates_correct_xml(self):
         """CT_Picture.new_pic() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         id_, name, desc, rId = 9, 'Picture 8', 'test-image.png', 'rId7'
         left, top, width, height = 111, 222, 333, 444
         xml = (
@@ -135,10 +135,10 @@ class TestCT_Picture(TestCase):
             (nsdecls('a', 'p', 'r'), id_, name, desc, rId, left, top, width,
              height)
         )
-        # exercise --------------------
+        # exercise ---------------------
         pic = CT_Picture.new_pic(id_, name, desc, rId, left, top,
                                  width, height)
-        # verify ----------------------
+        # verify -----------------------
         self.assertEqualLineByLine(xml, pic)
 
 
@@ -146,7 +146,7 @@ class TestCT_PresetGeometry2D(TestCase):
     """Test CT_PresetGeometry2D"""
     def test_gd_return_value(self):
         """CT_PresetGeometry2D.gd value is correct"""
-        # setup -----------------------
+        # setup ------------------------
         long_prstGeom = a_prstGeom().with_gd(111, 'adj1')\
                                     .with_gd(222, 'adj2')\
                                     .with_gd(333, 'adj3')\
@@ -258,7 +258,7 @@ class TestCT_Shape(TestCase):
 
     def test_new_placeholder_sp_generates_correct_xml(self):
         """CT_Shape._new_placeholder_sp() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         expected_xml_tmpl = (
             '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%s" name="%s"/>\n    <'
             'p:cNvSpPr>\n      <a:spLocks noGrp="1"/>\n    </p:cNvSpPr>\n    '
@@ -298,7 +298,7 @@ class TestCT_Shape(TestCase):
              PH_TYPE_FTR, ''),
             (8, 'Content Placeholder 7', ' idx="15"', txBody_snippet)
         )
-        # exercise --------------------
+        # exercise ---------------------
         for case_idx, argv in enumerate(test_cases):
             id_, name, ph_type, orient, sz, idx = argv
             sp = CT_Shape.new_placeholder_sp(id_, name, ph_type, orient, sz,
@@ -309,7 +309,7 @@ class TestCT_Shape(TestCase):
 
     def test_new_textbox_sp_generates_correct_xml(self):
         """CT_Shape.new_textbox_sp() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         id_ = 9
         name = 'TextBox 8'
         left, top, width, height = 111, 222, 333, 444
@@ -324,26 +324,26 @@ class TestCT_Shape(TestCase):
             ':sp>\n' %
             (nsdecls('a', 'p'), id_, name, left, top, width, height)
         )
-        # exercise --------------------
+        # exercise ---------------------
         sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
-        # verify ----------------------
+        # verify -----------------------
         self.assertEqualLineByLine(xml, sp)
 
     def test_prst_return_value(self):
         """CT_Shape.prst value is correct"""
-        # setup -----------------------
+        # setup ------------------------
         rounded_rect_sp = test_shape_elements.rounded_rectangle
         placeholder_sp = test_shape_elements.placeholder
-        # verify ----------------------
+        # verify -----------------------
         assert_that(rounded_rect_sp.prst, is_(equal_to('roundRect')))
         assert_that(placeholder_sp.prst, is_(equal_to(None)))
 
     def test_prstGeom_return_value(self):
         """CT_Shape.prstGeom value is correct"""
-        # setup -----------------------
+        # setup ------------------------
         rounded_rect_sp = test_shape_elements.rounded_rectangle
         placeholder_sp = test_shape_elements.placeholder
-        # verify ----------------------
+        # verify -----------------------
         assert_that(rounded_rect_sp.prstGeom,
                     instance_of(CT_PresetGeometry2D))
         assert_that(placeholder_sp.prstGeom, is_(none()))
@@ -356,7 +356,7 @@ class TestCT_Table(TestCase):
 
     def test_new_tbl_generates_correct_xml(self):
         """CT_Table._new_tbl() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         rows, cols = 2, 3
         width, height = 334, 445
         xml = (
@@ -380,9 +380,9 @@ class TestCT_Table(TestCase):
             '</a:txBody>\n      <a:tcPr/>\n    </a:tc>\n  </a:tr>\n</a:tbl>\n'
             % nsdecls('a')
         )
-        # exercise --------------------
+        # exercise ---------------------
         tbl = CT_Table.new_tbl(rows, cols, width, height)
-        # verify ----------------------
+        # verify -----------------------
         self.assertEqualLineByLine(xml, tbl)
 
     def test_boolean_property_value_is_correct(self):
