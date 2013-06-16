@@ -35,25 +35,44 @@ class TestCT_CoreProperties(TestCase):
     """Test CT_CoreProperties"""
     def test_getter_values_match_xml(self):
         """CT_CoreProperties property values match parsed XML"""
-        coreProperties = a_coreProperties().element
-        assert_that(coreProperties.title, is_(equal_to('')))
         # setup ------------------------
-        title_val = 'Title'
-        coreProperties = a_coreProperties().with_title(title_val).element
-        # coreProperties = a_coreProperties().element
+        cases = (
+            ('title', 'Title'),
+            ('subject', 'Subject'),
+            ('author', 'Author'),
+        )
+        childless_core_prop_builder = a_coreProperties()
         # verify -----------------------
-        assert_that(coreProperties.title, is_(equal_to(title_val)))
+        for attr_name, value in cases:
+            # string values should return empty string if element is missing
+            childless_coreProperties = childless_core_prop_builder.element
+            attr_value = getattr(childless_coreProperties, attr_name)
+            reason = ("attr '%s' with missing element did not return ''" %
+                      attr_name)
+            assert_that(attr_value, is_(equal_to('')), reason)
+            # and exact XML text otherwise
+            builder = a_coreProperties().with_child(attr_name, value)
+            coreProperties = builder.element
+            attr_value = getattr(coreProperties, attr_name)
+            reason = ("failed for property '%s'" % attr_name)
+            assert_that(attr_value, is_(equal_to(value)), reason)
 
     def test_setters_produce_correct_xml(self):
         """Assignment to CT_CoreProperties properties produces correct XML"""
         # setup ------------------------
-        builder = a_coreProperties()
-        coreProperties = builder.element
-        builder.with_title('Title')
-        expected_xml = builder.xml
-        coreProperties.title = 'Title'
+        cases = (
+            ('title', 'Title'),
+            ('subject', 'Subject'),
+            ('author', 'Author'),
+        )
         # verify -----------------------
-        self.assertEqualLineByLine(expected_xml, coreProperties)
+        for attr_name, value in cases:
+            coreProperties = a_coreProperties().element  # no child elements
+            # exercise ---------------------
+            setattr(coreProperties, attr_name, value)
+            # verify -----------------------
+            expected_xml = a_coreProperties().with_child(attr_name, value).xml
+            self.assertEqualLineByLine(expected_xml, coreProperties)
 
 
 class TestCT_GraphicalObjectFrame(TestCase):

@@ -1,6 +1,6 @@
 import os
 
-from datetime import datetime
+# from datetime import datetime
 
 from behave import given, when, then
 from hamcrest import (assert_that, has_item, is_, is_not, equal_to,
@@ -226,31 +226,22 @@ def step_when_set_cell_vertical_anchor_to_middle(context):
 @when("I set the core properties to valid values")
 def step_when_set_core_doc_props_to_valid_values(context):
     context.propvals = (
-        ('title', 'Title'),
-        # ('subject', 'Subject'),
-        # ('author', 'Author'),
-        # ('keywords', 'key; word; keyword'),
-        # ('comments', 'Comments'),
-        # ('last_modified_by', 'Last Modified By'),
-        # ('revision', 9),
-        # ('created', datetime(2013, 6, 15, 1, 24, 43)),
-        # ('modified', datetime(2013, 6, 15, 1, 24, 43)),
         # ('category', 'Category'),
+        # ('content_status', 'Content Status'),
+        # ('created', datetime(2013, 6, 15, 12, 34, 56)),
+        ('author', 'Creator'),
+        # ('comments', 'Description'),
+        # ('identifier', 'Identifier'),
+        # ('keywords', 'key; word; keyword'),
+        # ('language', 'Language'),
+        # ('last_modified_by', 'Last Modified By'),
+        # ('last_printed', datetime(2013, 6, 15, 12, 34, 56)),
+        # ('modified', datetime(2013, 6, 15, 12, 34, 56)),
+        # ('revision', 9),
+        ('subject', 'Subject'),
+        ('title', 'Title'),
+        # ('version', 'Version'),
     )
-    # subject, is_('Subject'))
-    # author, is_('Creator'))
-    # category, is_('Category'))
-    # content_status, is_('Content Status'))
-    # created, is_(datetime(2013, 6, 15, 12, 34, 56)))
-    # description, is_('Description'))
-    # identifier, is_('Identifier'))
-    # keywords, is_('Keywords'))
-    # language, is_('Language'))
-    # last_modified_by, is_('Last Modified By'))
-    # last_printed,
-    # modified, is_(datetime(2013, 6, 15, 12, 34, 56)))
-    # revision, is_(9))
-    # version, is_('Version'))
     for name, value in context.propvals:
         setattr(context.core_properties, name, value)
 

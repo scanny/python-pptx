@@ -678,6 +678,28 @@ class _CoreProperties(_BasePart):
     limited in length to 255 characters.
     """
     @property
+    def author(self):
+        """
+        Read/write author property of document.
+        """
+        return self._element.author
+
+    @author.setter
+    def author(self, value):
+        self._element.author = str(value)
+
+    @property
+    def subject(self):
+        """
+        Read/write subject property of document.
+        """
+        return self._element.subject
+
+    @subject.setter
+    def subject(self, value):
+        self._element.subject = str(value)
+
+    @property
     def title(self):
         """
         Read/write title property of document.

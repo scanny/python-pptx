@@ -140,6 +140,30 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
     part stored as ``/docProps/core.xml``.
     """
     @property
+    def author(self):
+        """
+        The author property, one of the Dublin Core document metadata
+        elements. Corresponds to the optional ``<dc:creator>`` child element.
+        An empty string ('') if that element is not present.
+        """
+        try:
+            return self[qn('dc:creator')].text
+        except AttributeError:
+            return ''
+
+    @property
+    def subject(self):
+        """
+        The subject property, one of the Dublin Core document metadata
+        elements. Corresponds to the optional ``<dc:subject>`` child element.
+        An empty string ('') if that element is not present.
+        """
+        try:
+            return self[qn('dc:subject')].text
+        except AttributeError:
+            return ''
+
+    @property
     def title(self):
         """
         The title property, one of the Dublin Core document metadata
@@ -156,6 +180,16 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             _SubElement(self, 'dc:title')
         self[qn('dc:title')] = value  # flake8: noqa
 
+    def _set_subject(self, value):
+        if not hasattr(self, qn('dc:subject')):
+            _SubElement(self, 'dc:subject')
+        self[qn('dc:subject')] = value  # flake8: noqa
+
+    def _set_author(self, value):
+        if not hasattr(self, qn('dc:creator')):
+            _SubElement(self, 'dc:creator')
+        self[qn('dc:creator')] = value  # flake8: noqa
+
     def __setattr__(self, attr, value):
         """
         This hack is needed to make setter side of properties work,
@@ -164,6 +198,10 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         """
         if attr == 'title':
             self._set_title(value)
+        elif attr == 'subject':
+            self._set_subject(value)
+        elif attr == 'author':
+            self._set_author(value)
         else:
             super(CT_CoreProperties, self).__setattr__(attr, value)
 
