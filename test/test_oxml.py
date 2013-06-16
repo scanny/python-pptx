@@ -25,10 +25,35 @@ from pptx.spec import (
 )
 
 from testdata import (
-    a_prstGeom, a_tbl, test_shape_elements, test_table_elements,
-    test_table_xml, test_text_elements, test_text_xml
+    a_coreProperties, a_prstGeom, a_tbl, test_shape_elements,
+    test_table_elements, test_table_xml, test_text_elements, test_text_xml
 )
 from testing import TestCase
+
+
+class TestCT_CoreProperties(TestCase):
+    """Test CT_CoreProperties"""
+    def test_getter_values_match_xml(self):
+        """CT_CoreProperties property values match parsed XML"""
+        coreProperties = a_coreProperties().element
+        assert_that(coreProperties.title, is_(equal_to('')))
+        # setup ------------------------
+        title_val = 'Title'
+        coreProperties = a_coreProperties().with_title(title_val).element
+        # coreProperties = a_coreProperties().element
+        # verify -----------------------
+        assert_that(coreProperties.title, is_(equal_to(title_val)))
+
+    def test_setters_produce_correct_xml(self):
+        """Assignment to CT_CoreProperties properties produces correct XML"""
+        # setup ------------------------
+        builder = a_coreProperties()
+        coreProperties = builder.element
+        builder.with_title('Title')
+        expected_xml = builder.xml
+        coreProperties.title = 'Title'
+        # verify -----------------------
+        self.assertEqualLineByLine(expected_xml, coreProperties)
 
 
 class TestCT_GraphicalObjectFrame(TestCase):

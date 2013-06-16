@@ -225,16 +225,34 @@ def step_when_set_cell_vertical_anchor_to_middle(context):
 
 @when("I set the core properties to valid values")
 def step_when_set_core_doc_props_to_valid_values(context):
-    context.core_properties.title = 'Title'
-    context.core_properties.subject = 'Subject'
-    context.core_properties.author = 'Author'
-    context.core_properties.keywords = 'key; word; keyword'
-    context.core_properties.comments = 'Comments'
-    context.core_properties.last_modified_by = 'Last Modified By'
-    context.core_properties.revision = 9
-    context.core_properties.created = datetime(2013, 6, 15, 1, 24, 43)
-    context.core_properties.modified = datetime(2013, 6, 15, 1, 24, 43)
-    context.core_properties.category = 'Category'
+    context.propvals = (
+        ('title', 'Title'),
+        # ('subject', 'Subject'),
+        # ('author', 'Author'),
+        # ('keywords', 'key; word; keyword'),
+        # ('comments', 'Comments'),
+        # ('last_modified_by', 'Last Modified By'),
+        # ('revision', 9),
+        # ('created', datetime(2013, 6, 15, 1, 24, 43)),
+        # ('modified', datetime(2013, 6, 15, 1, 24, 43)),
+        # ('category', 'Category'),
+    )
+    # subject, is_('Subject'))
+    # author, is_('Creator'))
+    # category, is_('Category'))
+    # content_status, is_('Content Status'))
+    # created, is_(datetime(2013, 6, 15, 12, 34, 56)))
+    # description, is_('Description'))
+    # identifier, is_('Identifier'))
+    # keywords, is_('Keywords'))
+    # language, is_('Language'))
+    # last_modified_by, is_('Last Modified By'))
+    # last_printed,
+    # modified, is_(datetime(2013, 6, 15, 12, 34, 56)))
+    # revision, is_(9))
+    # version, is_('Version'))
+    for name, value in context.propvals:
+        setattr(context.core_properties, name, value)
 
 
 @when("I set the first_col property to True")
@@ -354,6 +372,14 @@ def step_then_chevron_shape_appears_with_less_acute_arrow_head(context):
 def step_then_columns_of_table_have_alternating_shading(context):
     tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
     assert_that(tbl.vert_banding, is_(True))
+
+
+@then('the core properties of the presentation have the values I set')
+def step_then_core_props_have_values_previously_set(context):
+    core_props = Presentation(saved_pptx_path).core_properties
+    for name, value in context.propvals:
+        reason = "for core property '%s'" % name
+        assert_that(getattr(core_props, name), is_(value), reason)
 
 
 @then('the first column of the table has special formatting')

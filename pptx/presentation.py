@@ -519,6 +519,8 @@ class _Part(object):
         particular the presentation part type, *content_type* is also required
         in order to fully specify the part to be created.
         """
+        if reltype == RT_CORE_PROPS:
+            return _CoreProperties()
         if reltype == RT_OFFICE_DOCUMENT:
             if content_type in (CT_PRESENTATION, CT_TEMPLATE, CT_SLIDESHOW):
                 return Presentation()
@@ -672,8 +674,19 @@ class _BasePart(_Observable):
 class _CoreProperties(_BasePart):
     """
     Corresponds to part named ``/docProps/core.xml``, containing the core
-    document properties for this document package.
+    document properties for this document package. All string properties are
+    limited in length to 255 characters.
     """
+    @property
+    def title(self):
+        """
+        Read/write title property of document.
+        """
+        return self._element.title
+
+    @title.setter
+    def title(self, value):
+        self._element.title = str(value)
 
 
 class Presentation(_BasePart):

@@ -134,6 +134,40 @@ def _get_or_add(start_elm, *path_tags):
 # Custom element classes
 # ============================================================================
 
+class CT_CoreProperties(objectify.ObjectifiedElement):
+    """
+    ``<cp:coreProperties>`` element, the root element of the Core Properties
+    part stored as ``/docProps/core.xml``.
+    """
+    @property
+    def title(self):
+        """
+        The title property, one of the Dublin Core document metadata
+        elements. Corresponds to the optional ``<dc:title>`` child element.
+        An empty string ('') if that element is not present.
+        """
+        try:
+            return self[qn('dc:title')].text
+        except AttributeError:
+            return ''
+
+    def _set_title(self, value):
+        if not hasattr(self, qn('dc:title')):
+            _SubElement(self, 'dc:title')
+        self[qn('dc:title')] = value  # flake8: noqa
+
+    def __setattr__(self, attr, value):
+        """
+        This hack is needed to make setter side of properties work,
+        overrides ``__setattr__`` defined in ObjectifiedElement super class
+        just enough to route messages intended for custom property setters.
+        """
+        if attr == 'title':
+            self._set_title(value)
+        else:
+            super(CT_CoreProperties, self).__setattr__(attr, value)
+
+
 class CT_GraphicalObjectFrame(objectify.ObjectifiedElement):
     """
     ``<p:graphicFrame>`` element, which is a container for a table, a chart,
@@ -784,6 +818,9 @@ a_namespace['p'] = CT_TextParagraph
 a_namespace['prstGeom'] = CT_PresetGeometry2D
 a_namespace['tbl'] = CT_Table
 a_namespace['tc'] = CT_TableCell
+
+a_namespace = element_class_lookup.get_namespace(nsmap['cp'])
+a_namespace['coreProperties'] = CT_CoreProperties
 
 p_namespace = element_class_lookup.get_namespace(nsmap['p'])
 p_namespace['graphicFrame'] = CT_GraphicalObjectFrame
