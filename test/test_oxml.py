@@ -9,14 +9,16 @@
 
 """Test suite for pptx.oxml module."""
 
+from datetime import datetime
+
 from hamcrest import assert_that, equal_to, instance_of, is_, none
 
 from pptx.constants import (
     TEXT_ALIGN_TYPE as TAT, TEXT_ANCHORING_TYPE as TANC
 )
 from pptx.oxml import (
-    CT_GraphicalObjectFrame, CT_Picture, CT_PresetGeometry2D, CT_Shape,
-    CT_Table, nsdecls, qn
+    CT_CoreProperties, CT_GraphicalObjectFrame, CT_Picture,
+    CT_PresetGeometry2D, CT_Shape, CT_Table, nsdecls, qn
 )
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER,
@@ -29,6 +31,7 @@ from testdata import (
     test_table_elements, test_table_xml, test_text_elements, test_text_xml
 )
 from testing import TestCase
+# from unittest2 import skip
 
 
 class TestCT_CoreProperties(TestCase):
@@ -47,7 +50,7 @@ class TestCT_CoreProperties(TestCase):
         ('version',           'Version'),
     )
 
-    def test_string_getters_are_empty_string_for_missing_element(self):
+    def test_str_getters_are_empty_string_for_missing_element(self):
         """CT_CoreProperties str props empty str ('') for missing element"""
         # setup ------------------------
         childless_core_prop_builder = a_coreProperties()
@@ -59,8 +62,8 @@ class TestCT_CoreProperties(TestCase):
                       (attr_name, childless_core_prop_builder.xml))
             assert_that(attr_value, is_(equal_to('')), reason)
 
-    def test_getter_values_match_xml(self):
-        """CT_CoreProperties property values match parsed XML"""
+    def test_str_getter_values_match_xml(self):
+        """CT_CoreProperties string property values match parsed XML"""
         # verify -----------------------
         for attr_name, value in self._cases:
             builder = a_coreProperties().with_child(attr_name, value)
@@ -70,8 +73,8 @@ class TestCT_CoreProperties(TestCase):
                       (attr_name, builder.xml))
             assert_that(attr_value, is_(equal_to(value)), reason)
 
-    def test_setters_produce_correct_xml(self):
-        """Assignment to CT_CoreProperties property produces correct XML"""
+    def test_str_setters_produce_correct_xml(self):
+        """Assignment to CT_CoreProperties str property yields correct XML"""
         for attr_name, value in self._cases:
             # setup --------------------
             coreProperties = a_coreProperties().element  # no child elements
@@ -80,6 +83,72 @@ class TestCT_CoreProperties(TestCase):
             # verify -------------------
             expected_xml = a_coreProperties().with_child(attr_name, value).xml
             self.assertEqualLineByLine(expected_xml, coreProperties)
+
+    def test_date_parser_recognizes_W3CDTF_strings(self):
+        """date parser recognizes W3CDTF formatted date strings"""
+        # valid W3CDTF date cases:
+        # yyyy e.g. '2003'
+        # yyyy-mm e.g. '2003-12'
+        # yyyy-mm-dd e.g. '2003-12-31'
+        # UTC timezone e.g. '2003-12-31T10:14:55Z'
+        # numeric timezone e.g. '2003-12-31T10:14:55-08:00'
+        cases = (
+            ('1999', datetime(1999, 1, 1, 0, 0, 0)),
+            ('2000-02', datetime(2000, 2, 1, 0, 0, 0)),
+            ('2001-03-04', datetime(2001, 3, 4, 0, 0, 0)),
+            ('2002-05-06T01:23:45Z', datetime(2002, 5, 6, 1, 23, 45)),
+            ('2013-06-16T22:34:56-07:00', datetime(2013, 6, 17, 5, 34, 56)),
+        )
+        for dt_str, expected_datetime in cases:
+            # exercise -----------------
+            dt = CT_CoreProperties._parse_W3CDTF_to_datetime(dt_str)
+            # verify -------------------
+            assert_that(dt, is_(expected_datetime))
+
+    def test_date_getters_have_none_on_element_not_present(self):
+        """CT_CoreProperties date props are None where element not present"""
+        # setup ------------------------
+        coreProperties = a_coreProperties().element
+        # verify -----------------------
+        assert_that(coreProperties.created, is_(None))
+
+    def test_date_getter_value_matches_xml(self):
+        """CT_CoreProperties date props match parsed XML"""
+        # setup ------------------------
+        date_str = '1999-01-23T12:34:56Z'
+        coreProperties = a_coreProperties().with_date_prop(
+            'created', date_str).element
+        # verify -----------------------
+        expected_date = datetime(1999, 01, 23, 12, 34, 56)
+        assert_that(coreProperties.created, is_(expected_date))
+
+    def test_date_getters_have_none_on_not_datetime(self):
+        """CT_CoreProperties date props are None for unparseable elm text"""
+        # setup ------------------------
+        date_str = 'foobar'
+        core_props = a_coreProperties().with_date_prop(
+            'created', date_str).element
+        # verify -----------------------
+        assert_that(core_props.created, is_(None))
+
+    def test_date_setters_produce_correct_xml(self):
+        """Assignment to CT_CoreProperties date props yields correct XML"""
+        # setup ------------------------
+        value = datetime(2013, 6, 16, 12, 34, 56)
+        coreProperties = a_coreProperties().element  # no child elements
+        # exercise ---------------------
+        setattr(coreProperties, 'created', value)
+        # verify -----------------------
+        expected_xml = a_coreProperties().with_date_prop(
+            'created', '2013-06-16T12:34:56Z').xml
+        self.assertEqualLineByLine(expected_xml, coreProperties)
+
+    def test_date_setter_raises_on_not_datetime(self):
+        # setup ------------------------
+        coreProperties = a_coreProperties().element
+        # verify -----------------------
+        with self.assertRaises(ValueError):
+            coreProperties.created = 'foobar'
 
 
 class TestCT_GraphicalObjectFrame(TestCase):

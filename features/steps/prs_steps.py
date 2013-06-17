@@ -1,6 +1,6 @@
 import os
 
-# from datetime import datetime
+from datetime import datetime
 
 from behave import given, when, then
 from hamcrest import (assert_that, has_item, is_, is_not, equal_to,
@@ -231,7 +231,7 @@ def step_when_set_core_doc_props_to_valid_values(context):
         ('comments', 'Description'),
         ('content_status', 'Content Status'),
         # TODO: implement properties of type datetime
-        # ('created', datetime(2013, 6, 15, 12, 34, 56)),
+        ('created', datetime(2013, 6, 15, 12, 34, 56)),
         ('identifier', 'Identifier'),
         ('keywords', 'key; word; keyword'),
         ('language', 'Language'),

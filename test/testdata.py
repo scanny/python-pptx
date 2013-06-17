@@ -24,6 +24,7 @@ class CT_CorePropertiesBuilder(object):
         ('category',         'cp:category'),
         ('comments',         'dc:description'),
         ('content_status',   'cp:contentStatus'),
+        ('created',          'dcterms:created'),
         ('identifier',       'dc:identifier'),
         ('keywords',         'cp:keywords'),
         ('language',         'dc:language'),
@@ -73,7 +74,7 @@ class CT_CorePropertiesBuilder(object):
             )
         else:
             coreProperties = (
-                '<cp:coreProperties %s/>\n' % nsdecls('cp', 'dc')
+                '<cp:coreProperties %s/>\n' % nsdecls('cp', 'dc', 'dcterms')
             )
         return coreProperties
 
@@ -84,6 +85,11 @@ class CT_CorePropertiesBuilder(object):
 
     def with_child(self, name, value):
         """add property element for *name* set to *value*"""
+        setattr(self, '_%s' % name, value)
+        return self
+
+    def with_date_prop(self, name, value):
+        """add date property element for *name* set to *value*"""
         setattr(self, '_%s' % name, value)
         return self
 

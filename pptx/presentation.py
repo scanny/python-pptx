@@ -675,12 +675,20 @@ class _CoreProperties(_BasePart):
     """
     Corresponds to part named ``/docProps/core.xml``, containing the core
     document properties for this document package. All string properties are
-    limited in length to 255 characters.
+    limited in length to 255 characters. All date properties are set and
+    returned without timezone, i.e. in UTC (Greenwich Mean Time, roughly
+    speaking), any timezone conversions are the responsibility of the caller.
+    Date properties such as ``created`` are set and returned as |datetime|
+    values. Date properties return |None| if not set. String properties
+    return an empty string if not set.
     """
     _str_propnames = (
         'author', 'category', 'comments', 'content_status', 'identifier',
         'keywords', 'language', 'last_modified_by', 'subject', 'title',
         'version',
+    )
+    _date_propnames = (
+        'created',
     )
 
     def __getattribute__(self, name):
@@ -688,6 +696,8 @@ class _CoreProperties(_BasePart):
         Intercept attribute access to generalize property getters.
         """
         if name in _CoreProperties._str_propnames:
+            return getattr(self._element, name)
+        elif name in _CoreProperties._date_propnames:
             return getattr(self._element, name)
         else:
             return super(_CoreProperties, self).__getattribute__(name)
@@ -698,6 +708,8 @@ class _CoreProperties(_BasePart):
         """
         if name in _CoreProperties._str_propnames:
             setattr(self._element, name, str(value))
+        elif name in _CoreProperties._date_propnames:
+            setattr(self._element, name, value)
         else:
             super(_CoreProperties, self).__setattr__(name, value)
 
