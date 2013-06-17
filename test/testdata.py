@@ -29,6 +29,8 @@ class CT_CorePropertiesBuilder(object):
         ('keywords',         'cp:keywords'),
         ('language',         'dc:language'),
         ('last_modified_by', 'cp:lastModifiedBy'),
+        ('last_printed',     'cp:lastPrinted'),
+        ('modified',         'dcterms:modified'),
         ('subject',          'dc:subject'),
         ('title',            'dc:title'),
         ('version',          'cp:version'),
@@ -49,6 +51,8 @@ class CT_CorePropertiesBuilder(object):
             ns_prefix = tag.split(':')[0]
             if ns_prefix not in ns_prefixes:
                 ns_prefixes.append(ns_prefix)
+            if ns_prefix == 'dcterms' and 'xsi' not in ns_prefixes:
+                ns_prefixes.append('xsi')
         return tuple(ns_prefixes)
 
     @property
@@ -61,7 +65,11 @@ class CT_CorePropertiesBuilder(object):
             if value == '':
                 xml = '  <%s/>\n' % tag
             else:
-                xml = '  <%s>%s</%s>\n' % (tag, value, tag)
+                if tag.startswith('dcterms:'):
+                    xml = ('  <%s xsi:type="dcterms:W3CDTF">%s</%s>\n' %
+                           (tag, value, tag))
+                else:
+                    xml = '  <%s>%s</%s>\n' % (tag, value, tag)
             props_xml += xml
         return props_xml
 

@@ -147,7 +147,9 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
     limited in length to 255 unicode characters.
     """
     _date_tags = {
-        'created': 'dcterms:created',
+        'created':      'dcterms:created',
+        'last_printed': 'cp:lastPrinted',
+        'modified':     'dcterms:modified',
     }
     _str_tags = {
         'author':           'dc:creator',
@@ -168,25 +170,9 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         Intercept attribute access to generalize property getters.
         """
         if name in CT_CoreProperties._str_tags:
-            # TODO: refactor into helper method
-            tagname = CT_CoreProperties._str_tags[name]
-            tag = qn(tagname)
-            if not hasattr(self, tag):
-                return ''
-            return getattr(self, tag).text
+            return self.__get_str_prop(name)
         elif name in CT_CoreProperties._date_tags:
-            # TODO: refactor into helper method
-            tagname = CT_CoreProperties._date_tags[name]
-            tag = qn(tagname)
-            # date properties return None when property element not present
-            if not hasattr(self, tag):
-                return None
-            datetime_str = getattr(self, tag).text
-            try:
-                return self._parse_W3CDTF_to_datetime(datetime_str)
-            except ValueError:
-                # invalid datetime strings are ignored
-                return None
+            return self.__get_date_prop(name)
         else:
             return super(CT_CoreProperties, self).__getattribute__(name)
 
@@ -196,19 +182,61 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         to intercept messages intended for custom property setters.
         """
         if name in CT_CoreProperties._str_tags:
-            # TODO: refactor into helper method
-            tag = qn(CT_CoreProperties._str_tags[name])
-            setattr(self, tag, value)
+            self.__set_str_prop(name, value)
         elif name in CT_CoreProperties._date_tags:
-            # TODO: refactor into helper method
-            tag = qn(CT_CoreProperties._date_tags[name])
-            if not isinstance(value, datetime):
-                tmpl = "'%s' property requires datetime object, got '%s'"
-                raise ValueError(tmpl % (name, type(value).__name__))
-            dt_str = value.strftime('%Y-%m-%dT%H:%M:%SZ')
-            setattr(self, tag, dt_str)
+            self.__set_date_prop(name, value)
         else:
             super(CT_CoreProperties, self).__setattr__(name, value)
+
+    def __get_str_prop(self, name):
+        """Return string value of *name* property."""
+        # explicit class reference avoids another pass through getattribute
+        tag = qn(CT_CoreProperties._str_tags[name])
+        if not hasattr(self, tag):
+            return ''
+        return getattr(self, tag).text
+
+    def __get_date_prop(self, name):
+        """Return datetime value of *name* property."""
+        # explicit class reference avoids another pass through getattribute
+        tag = qn(CT_CoreProperties._date_tags[name])
+        # date properties return None when property element not present
+        if not hasattr(self, tag):
+            return None
+        datetime_str = getattr(self, tag).text
+        try:
+            return self._parse_W3CDTF_to_datetime(datetime_str)
+        except ValueError:
+            # invalid datetime strings are ignored
+            return None
+
+    def __set_str_prop(self, name, value):
+        """Set string value of *name* property to *value*"""
+        if len(value) > 255:
+            tmpl = ("exceeded 255 char max length of property '%s', got:"
+                    "\n\n'%s'")
+            raise ValueError(tmpl % (name, value))
+        tag = qn(CT_CoreProperties._str_tags[name])
+        setattr(self, tag, value)
+
+    def __set_date_prop(self, name, value):
+        """Set datetime value of *name* property to *value*"""
+        if not isinstance(value, datetime):
+            tmpl = ("'%s' property requires <type 'datetime.datetime'> objec"
+                    "t, got %s")
+            raise ValueError(tmpl % (name, type(value)))
+        tagname = CT_CoreProperties._date_tags[name]
+        tag = qn(tagname)
+        dt_str = value.strftime('%Y-%m-%dT%H:%M:%SZ')
+        setattr(self, tag, dt_str)
+        if name in ('created', 'modified'):
+            # these two require an explicit 'xsi:type' attribute
+            # first and last line are a hack required to add the xsi
+            # namespace to the root element rather than each child element
+            # in which it is referenced
+            self.set(qn('xsi:foo'), 'bar')
+            self[tag].set(qn('xsi:type'), 'dcterms:W3CDTF')
+            del self.attrib[qn('xsi:foo')]
 
     _offset_pattern = re.compile('([+-])(\d\d):(\d\d)')
 

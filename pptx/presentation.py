@@ -688,7 +688,7 @@ class _CoreProperties(_BasePart):
         'version',
     )
     _date_propnames = (
-        'created',
+        'created', 'last_printed', 'modified'
     )
 
     def __getattribute__(self, name):

@@ -84,6 +84,14 @@ class TestCT_CoreProperties(TestCase):
             expected_xml = a_coreProperties().with_child(attr_name, value).xml
             self.assertEqualLineByLine(expected_xml, coreProperties)
 
+    def test_str_setter_raises_on_str_longer_than_255_chars(self):
+        """Raises on assign len(str) > 255 to CT_CoreProperties str prop"""
+        # setup ------------------------
+        coreProperties = a_coreProperties().element
+        # verify -----------------------
+        with self.assertRaises(ValueError):
+            coreProperties.comments = 'foobar 123 ' * 50
+
     def test_date_parser_recognizes_W3CDTF_strings(self):
         """date parser recognizes W3CDTF formatted date strings"""
         # valid W3CDTF date cases:
@@ -133,17 +141,23 @@ class TestCT_CoreProperties(TestCase):
 
     def test_date_setters_produce_correct_xml(self):
         """Assignment to CT_CoreProperties date props yields correct XML"""
+        # See CT_CorePropertiesBuilder for how this implicitly tests that
+        # 'created' and 'modified' add 'xsi:type="dcterms:W3CDTF"' attribute
+        # by adding that on .with_date_prop for those properties.
         # setup ------------------------
+        cases = ('created', 'last_printed', 'modified')
         value = datetime(2013, 6, 16, 12, 34, 56)
-        coreProperties = a_coreProperties().element  # no child elements
-        # exercise ---------------------
-        setattr(coreProperties, 'created', value)
-        # verify -----------------------
-        expected_xml = a_coreProperties().with_date_prop(
-            'created', '2013-06-16T12:34:56Z').xml
-        self.assertEqualLineByLine(expected_xml, coreProperties)
+        for propname in cases:
+            coreProperties = a_coreProperties().element  # no child elements
+            # exercise -----------------
+            setattr(coreProperties, propname, value)
+            # verify -------------------
+            expected_xml = a_coreProperties().with_date_prop(
+                propname, '2013-06-16T12:34:56Z').xml
+            self.assertEqualLineByLine(expected_xml, coreProperties)
 
     def test_date_setter_raises_on_not_datetime(self):
+        """Raises on assign non-datetime to CT_CoreProperties date prop"""
         # setup ------------------------
         coreProperties = a_coreProperties().element
         # verify -----------------------
