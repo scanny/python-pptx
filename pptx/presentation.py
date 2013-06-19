@@ -103,6 +103,7 @@ class _Package(object):
         Instance of |_CoreProperties| holding the read/write Dublin Core
         document properties for this presentation.
         """
+        # TODO: Make this work when there's no core.xml
         core_properties = self.__relationships.related_part(RT_CORE_PROPS)
         return core_properties
 
@@ -682,6 +683,9 @@ class _CoreProperties(_BasePart):
     values. Date properties return |None| if not set. String properties
     return an empty string if not set.
     """
+    # TODO: improve organization of docstring prose
+    # TODO: refactor to remove distinction between properties, send them all
+    #       to oxml and let it do all the validation for setters.
     _str_propnames = (
         'author', 'category', 'comments', 'content_status', 'identifier',
         'keywords', 'language', 'last_modified_by', 'subject', 'title',
@@ -699,6 +703,8 @@ class _CoreProperties(_BasePart):
             return getattr(self._element, name)
         elif name in _CoreProperties._date_propnames:
             return getattr(self._element, name)
+        elif name == 'revision':
+            return getattr(self._element, name)
         else:
             return super(_CoreProperties, self).__getattribute__(name)
 
@@ -709,6 +715,8 @@ class _CoreProperties(_BasePart):
         if name in _CoreProperties._str_propnames:
             setattr(self._element, name, str(value))
         elif name in _CoreProperties._date_propnames:
+            setattr(self._element, name, value)
+        elif name == 'revision':
             setattr(self._element, name, value)
         else:
             super(_CoreProperties, self).__setattr__(name, value)

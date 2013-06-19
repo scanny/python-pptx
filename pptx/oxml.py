@@ -173,6 +173,8 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             return self.__get_str_prop(name)
         elif name in CT_CoreProperties._date_tags:
             return self.__get_date_prop(name)
+        elif name == 'revision':
+            return self.__get_revision()
         else:
             return super(CT_CoreProperties, self).__getattribute__(name)
 
@@ -185,6 +187,8 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             self.__set_str_prop(name, value)
         elif name in CT_CoreProperties._date_tags:
             self.__set_date_prop(name, value)
+        elif name == 'revision':
+            self.__set_revision(value)
         else:
             super(CT_CoreProperties, self).__setattr__(name, value)
 
@@ -209,6 +213,23 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         except ValueError:
             # invalid datetime strings are ignored
             return None
+
+    def __get_revision(self):
+        """Return integer value of revision property."""
+        tag = qn('cp:revision')
+        # revision returns zero when element not present
+        if not hasattr(self, tag):
+            return 0
+        revision_str = getattr(self, tag).text
+        try:
+            revision = int(revision_str)
+        except ValueError:
+            # non-integer revision strings also resolve to 0
+            revision = 0
+        # as do negative integers
+        if revision < 0:
+            revision = 0
+        return revision
 
     def __set_str_prop(self, name, value):
         """Set string value of *name* property to *value*"""
@@ -237,6 +258,14 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             self.set(qn('xsi:foo'), 'bar')
             self[tag].set(qn('xsi:type'), 'dcterms:W3CDTF')
             del self.attrib[qn('xsi:foo')]
+
+    def __set_revision(self, value):
+        """Set integer value of revision property to *value*"""
+        if not isinstance(value, int) or value < 1:
+            tmpl = "revision property requires positive int, got '%s'"
+            raise ValueError(tmpl % value)
+        tag = qn('cp:revision')
+        setattr(self, tag, str(value))
 
     _offset_pattern = re.compile('([+-])(\d\d):(\d\d)')
 

@@ -31,6 +31,7 @@ class CT_CorePropertiesBuilder(object):
         ('last_modified_by', 'cp:lastModifiedBy'),
         ('last_printed',     'cp:lastPrinted'),
         ('modified',         'dcterms:modified'),
+        ('revision',         'cp:revision'),
         ('subject',          'dc:subject'),
         ('title',            'dc:title'),
         ('version',          'cp:version'),
@@ -99,6 +100,11 @@ class CT_CorePropertiesBuilder(object):
     def with_date_prop(self, name, value):
         """add date property element for *name* set to *value*"""
         setattr(self, '_%s' % name, value)
+        return self
+
+    def with_revision(self, value):
+        """add revision element set to *value*"""
+        self._revision = value
         return self
 
     @property

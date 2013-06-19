@@ -1,4 +1,3 @@
-@wip
 Feature: Read and write core document properties
   In order to find documents and make them manageable by digital means
   As a developer using python-pptx

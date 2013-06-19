@@ -164,6 +164,55 @@ class TestCT_CoreProperties(TestCase):
         with self.assertRaises(ValueError):
             coreProperties.created = 'foobar'
 
+    def test_revision_is_zero_on_element_not_present(self):
+        """CT_CoreProperties.revision is zero when element not present"""
+        # setup ------------------------
+        coreProperties = a_coreProperties().element
+        # verify -----------------------
+        assert_that(coreProperties.revision, is_(0))
+
+    def test_revision_value_matches_xml(self):
+        """CT_CoreProperties revision matches parsed XML"""
+        # setup ------------------------
+        builder = a_coreProperties().with_revision('9')
+        coreProperties = builder.element
+        # verify -----------------------
+        reason = ("wrong revision returned for this XML:\n\n%s" %
+                  (builder.xml))
+        assert_that(coreProperties.revision, is_(9), reason)
+
+    def test_revision_is_zero_on_invalid_element_text(self):
+        """CT_CoreProperties.revision is zero if XML value is invalid"""
+        # setup ------------------------
+        cases = ('foobar', '-666')
+        for invalid_text in cases:
+            builder = a_coreProperties().with_revision(invalid_text)
+            coreProperties = builder.element
+            # verify -----------------------
+            reason = ("wrong revision returned for this XML:\n\n%s" %
+                      (builder.xml))
+            assert_that(coreProperties.revision, is_(0), reason)
+
+    def test_assign_to_revision_produces_correct_xml(self):
+        """Assignment to CT_CoreProperties.revision yields correct XML"""
+        # setup ------------------------
+        coreProperties = a_coreProperties().element  # no child elements
+        # exercise ---------------------
+        coreProperties.revision = 999
+        # verify -----------------------
+        expected_xml = a_coreProperties().with_revision('999').xml
+        self.assertEqualLineByLine(expected_xml, coreProperties)
+
+    def test_assign_to_revision_raises_on_not_positive_int(self):
+        """Raises on assign invalid value to CT_CoreProperties.revision"""
+        # setup ------------------------
+        cases = ('foobar', -666)
+        # verify -----------------------
+        for invalid_value in cases:
+            coreProperties = a_coreProperties().element
+            with self.assertRaises(ValueError):
+                coreProperties.revision = invalid_value
+
 
 class TestCT_GraphicalObjectFrame(TestCase):
     """Test CT_GraphicalObjectFrame"""

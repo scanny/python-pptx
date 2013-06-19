@@ -237,8 +237,7 @@ def step_when_set_core_doc_props_to_valid_values(context):
         ('last_modified_by', 'Last Modified By'),
         ('last_printed', datetime(2013, 6, 15, 12, 34, 56)),
         ('modified', datetime(2013, 6, 15, 12, 34, 56)),
-        # TODO: implement properties of type number
-        # ('revision', 9),
+        ('revision', 9),
         ('subject', 'Subject'),
         ('title', 'Title'),
         ('version', 'Version'),
