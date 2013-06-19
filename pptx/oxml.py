@@ -137,72 +137,51 @@ def _get_or_add(start_elm, *path_tags):
 class CT_CoreProperties(objectify.ObjectifiedElement):
     """
     ``<cp:coreProperties>`` element, the root element of the Core Properties
-    part stored as ``/docProps/core.xml``.
+    part stored as ``/docProps/core.xml``. Implements many of the Dublin Core
+    document metadata elements. String elements resolve to an empty string
+    ('') if the element is not present in the XML. String elements are
+    limited in length to 255 unicode characters.
     """
+    _tags = {
+        'author':           'dc:creator',
+        'category':         'cp:category',
+        'comments':         'dc:description',
+        'content_status':   'cp:contentStatus',
+        'identifier':       'dc:identifier',
+        'keywords':         'cp:keywords',
+        'language':         'dc:language',
+        'last_modified_by': 'cp:lastModifiedBy',
+        'subject':          'dc:subject',
+        'title':            'dc:title',
+        'version':          'cp:version',
+    }
+
     def __getattribute__(self, name):
         """
         Intercept attribute access to generalize property getters.
         """
-        tags = {
-            'author':           'dc:creator',
-            'category':         'cp:category',
-            'comments':         'dc:description',
-            'content_status':   'cp:contentStatus',
-            'identifier':       'dc:identifier',
-            'language':         'dc:language',
-            'last_modified_by': 'cp:lastModifiedBy',
-            'subject':          'dc:subject',
-            'title':            'dc:title',
-            'version':          'cp:version',
-        }
-        if name in tags:
-            tag = qn(tags[name])
+        if name in CT_CoreProperties._tags:
+            tagname = CT_CoreProperties._tags[name]
+            tag = qn(tagname)
             if not hasattr(self, tag):
                 return ''
             return getattr(self, tag).text
         else:
             return super(CT_CoreProperties, self).__getattribute__(name)
 
-    def __setattr__(self, attr, value):
+    def __setattr__(self, name, value):
         """
-        This hack is needed to make setter side of properties work,
-        overrides ``__setattr__`` defined in ObjectifiedElement super class
-        just enough to route messages intended for custom property setters.
+        Override ``__setattr__`` defined in ObjectifiedElement super class
+        to intercept messages intended for custom property setters.
         """
-        tags = {
-            'author':           'dc:creator',
-            'category':         'cp:category',
-            'comments':         'dc:description',
-            'content_status':   'cp:contentStatus',
-            'identifier':       'dc:identifier',
-            'language':         'dc:language',
-            'last_modified_by': 'cp:lastModifiedBy',
-            'subject':          'dc:subject',
-            'title':            'dc:title',
-            'version':          'cp:version',
-        }
-        if attr in tags:
-            tag = qn(tags[attr])
+        if name in CT_CoreProperties._tags:
+            tagname = CT_CoreProperties._tags[name]
+            tag = qn(tagname)
             if not hasattr(self, tag):
-                _SubElement(self, tags[attr])
+                _SubElement(self, CT_CoreProperties._tags[name])
             self[tag] = value
         else:
-            super(CT_CoreProperties, self).__setattr__(attr, value)
-
-    # The following |CT_CoreProperties| instance attributes can be accessed
-    # ...
-
-    # .. attribute:: author
-
-    #    The author property, one of the Dublin Core document metadata
-    #    elements. Corresponds to the optional ``<dc:creator>`` child element.
-    #    An empty string ('') if that element is not present.
-
-    # .. attribute:: subject
-
-    #    The subject property, one of the Dublin Core document metadata
-    #    elements. Corresponds to the optional ``<dc:subject>`` child element.
-    #    An empty string ('') if that element is not present.
+            super(CT_CoreProperties, self).__setattr__(name, value)
 
 
 class CT_GraphicalObjectFrame(objectify.ObjectifiedElement):

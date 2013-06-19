@@ -33,60 +33,51 @@ from testing import TestCase
 
 class TestCT_CoreProperties(TestCase):
     """Test CT_CoreProperties"""
-    def test_getter_values_match_xml(self):
-        """CT_CoreProperties property values match parsed XML"""
+    _cases = (
+        ('author',            'Creator'),
+        ('category',          'Category'),
+        ('comments',          'Description'),
+        ('content_status',    'Content Status'),
+        ('identifier',        'Identifier'),
+        ('keywords',          'Key Words'),
+        ('language',          'Language'),
+        ('last_modified_by',  'Last Modified By'),
+        ('subject',           'Subject'),
+        ('title',             'Title'),
+        ('version',           'Version'),
+    )
+
+    def test_string_getters_are_empty_string_for_missing_element(self):
+        """CT_CoreProperties str props empty str ('') for missing element"""
         # setup ------------------------
-        cases = (
-            ('author',            'Creator'),
-            ('category',          'Category'),
-            ('comments',          'Description'),
-            ('content_status',    'Content Status'),
-            ('identifier',        'Identifier'),
-            ('language',          'Language'),
-            ('last_modified_by',  'Last Modified By'),
-            ('subject',           'Subject'),
-            ('title',             'Title'),
-            ('version',           'Version'),
-        )
         childless_core_prop_builder = a_coreProperties()
         # verify -----------------------
-        for attr_name, value in cases:
-            # string values should return empty string if element is missing
+        for attr_name, value in self._cases:
             childless_coreProperties = childless_core_prop_builder.element
             attr_value = getattr(childless_coreProperties, attr_name)
-            reason = ("attr '%s' with missing element did not return ''" %
-                      attr_name)
+            reason = ("attr '%s' did not return '' for this XML:\n\n%s" %
+                      (attr_name, childless_core_prop_builder.xml))
             assert_that(attr_value, is_(equal_to('')), reason)
-            # and exact XML text otherwise
+
+    def test_getter_values_match_xml(self):
+        """CT_CoreProperties property values match parsed XML"""
+        # verify -----------------------
+        for attr_name, value in self._cases:
             builder = a_coreProperties().with_child(attr_name, value)
             coreProperties = builder.element
             attr_value = getattr(coreProperties, attr_name)
-            xml = builder.xml
             reason = ("failed for property '%s' with this XML:\n\n%s" %
-                      (attr_name, xml))
+                      (attr_name, builder.xml))
             assert_that(attr_value, is_(equal_to(value)), reason)
 
     def test_setters_produce_correct_xml(self):
-        """Assignment to CT_CoreProperties properties produces correct XML"""
-        # setup ------------------------
-        cases = (
-            ('author',            'Creator'),
-            ('category',          'Category'),
-            ('comments',          'Description'),
-            ('content_status',    'Content Status'),
-            ('identifier',        'Identifier'),
-            ('language',          'Language'),
-            ('last_modified_by',  'Last Modified By'),
-            ('subject',           'Subject'),
-            ('title',             'Title'),
-            ('version',           'Version'),
-        )
-        # verify -----------------------
-        for attr_name, value in cases:
+        """Assignment to CT_CoreProperties property produces correct XML"""
+        for attr_name, value in self._cases:
+            # setup --------------------
             coreProperties = a_coreProperties().element  # no child elements
-            # exercise ---------------------
+            # exercise -----------------
             setattr(coreProperties, attr_name, value)
-            # verify -----------------------
+            # verify -------------------
             expected_xml = a_coreProperties().with_child(attr_name, value).xml
             self.assertEqualLineByLine(expected_xml, coreProperties)
 

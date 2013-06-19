@@ -677,38 +677,29 @@ class _CoreProperties(_BasePart):
     document properties for this document package. All string properties are
     limited in length to 255 characters.
     """
-    @property
-    def author(self):
-        """
-        Read/write author property of document.
-        """
-        return self._element.author
+    _str_propnames = (
+        'author', 'category', 'comments', 'content_status', 'identifier',
+        'keywords', 'language', 'last_modified_by', 'subject', 'title',
+        'version',
+    )
 
-    @author.setter
-    def author(self, value):
-        self._element.author = str(value)
-
-    @property
-    def subject(self):
+    def __getattribute__(self, name):
         """
-        Read/write subject property of document.
+        Intercept attribute access to generalize property getters.
         """
-        return self._element.subject
+        if name in _CoreProperties._str_propnames:
+            return getattr(self._element, name)
+        else:
+            return super(_CoreProperties, self).__getattribute__(name)
 
-    @subject.setter
-    def subject(self, value):
-        self._element.subject = str(value)
-
-    @property
-    def title(self):
+    def __setattr__(self, name, value):
         """
-        Read/write title property of document.
+        Intercept attribute assignment to generalize assignment to properties
         """
-        return self._element.title
-
-    @title.setter
-    def title(self, value):
-        self._element.title = str(value)
+        if name in _CoreProperties._str_propnames:
+            setattr(self._element, name, str(value))
+        else:
+            super(_CoreProperties, self).__setattr__(name, value)
 
 
 class Presentation(_BasePart):

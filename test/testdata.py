@@ -25,6 +25,7 @@ class CT_CorePropertiesBuilder(object):
         ('comments',         'dc:description'),
         ('content_status',   'cp:contentStatus'),
         ('identifier',       'dc:identifier'),
+        ('keywords',         'cp:keywords'),
         ('language',         'dc:language'),
         ('last_modified_by', 'cp:lastModifiedBy'),
         ('subject',          'dc:subject'),
