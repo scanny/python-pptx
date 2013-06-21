@@ -293,7 +293,10 @@ class _AutoShapeType(object):
         Return sequence of name, value tuples representing the adjustment
         value defaults for the auto shape type identified by *prst*.
         """
-        autoshape_type_id = _AutoShapeType._lookup_id_by_prst(prst)
+        try:
+            autoshape_type_id = _AutoShapeType._lookup_id_by_prst(prst)
+        except KeyError:
+            return ()
         return autoshape_types[autoshape_type_id]['avLst']
 
     @property
