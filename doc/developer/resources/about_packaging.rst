@@ -2,6 +2,16 @@
 About Open XML Packaging
 ========================
 
+Recent Notes
+============
+
+* The content type for **XML** parts (only) is strictly determined by the
+  relationship type. Binary media parts may have multiple allowable content
+  types.
+
+* Each part type has one and only one relationship type.
+
+
 About Packages
 ==============
 

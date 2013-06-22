@@ -82,6 +82,10 @@ rst_epilog = """
 
 .. |_ColumnCollection| replace:: :class:`_ColumnCollection`
 
+.. |_CoreProperties| replace:: :class:`_CoreProperties`
+
+.. |datetime| replace:: :class:`datetime.datetime`
+
 .. |DirectoryFileSystem| replace:: :class:`DirectoryFileSystem`
 
 .. |FileSystem| replace:: :class:`FileSystem`
@@ -89,6 +93,8 @@ rst_epilog = """
 .. |float| replace:: :class:`float`
 
 .. |_Font| replace:: :class:`_Font`
+
+.. |int| replace:: :class:`int`
 
 .. |list| replace:: :class:`list`
 
@@ -135,6 +141,8 @@ rst_epilog = """
 .. |_SlideLayout| replace:: :class:`_SlideLayout`
 
 .. |_SlideMaster| replace:: :class:`_SlideMaster`
+
+.. |str| replace:: :class:`str`
 
 .. |_Table| replace:: :class:`_Table`
 

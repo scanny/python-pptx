@@ -243,6 +243,7 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
 
     def __set_str_prop(self, name, value):
         """Set string value of *name* property to *value*"""
+        value = str(value)
         if len(value) > 255:
             tmpl = ("exceeded 255 char max length of property '%s', got:"
                     "\n\n'%s'")

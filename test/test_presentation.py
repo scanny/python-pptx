@@ -323,7 +323,7 @@ class Test_CoreProperties(TestCase):
     def test_default_constructs_default_core_props(self):
         """_CoreProperties.default() returns new default core props part"""
         # exercise ---------------------
-        core_props = _CoreProperties.default()
+        core_props = _CoreProperties._default()
         # verify -----------------------
         assert_that(core_props, is_(instance_of(_CoreProperties)))
         assert_that(core_props._content_type, is_(CT_CORE_PROPS))

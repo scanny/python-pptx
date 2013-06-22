@@ -2,7 +2,7 @@
 Core Document Properties
 ########################
 
-:Updated:  2013-06-14
+:Updated:  2013-06-22
 :Author:   Steve Canny
 :Status:   **WORKING DRAFT**
 
@@ -12,6 +12,8 @@ Introduction
 
 The 'Core' in core document properties refers to `Dublin Core`_, a metadata
 standard that defines a core set of elements to describe resources.
+
+ISO/IEC 29500-2 Section 11
 
 
 API Sketch

@@ -48,6 +48,18 @@ Release procedure
   + trigger regeneration of docs on RTD.org
 
 
+Creating a hand-modified package
+================================
+
+* remove file, e.g. /docProps/core.xml
+* remove reference from [Content_Types].xml
+* remove relationship(s) from _rels/.rels or wherever they are
+
+Repackage::
+
+    rm -f ../no-core-props.pptx && zip -Dqr ../no-core-props.pptx .
+
+
 Procedure -- Adding a new feature
 =================================
 
