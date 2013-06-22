@@ -1623,8 +1623,9 @@ RT_COMMENTS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comm'
     'ents')
 RT_CORE_PROPS = (
-    'http://schemas.openxmlformats.org/officedocument/2006/relationships/meta'
-    'data/core-properties')
+    'http://schemas.openxmlformats.org/package/2006/relationships/metadata/co'
+    're-properties'
+)
 RT_CUSTOM_PROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/cust'
     'omProperties'

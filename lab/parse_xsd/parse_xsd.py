@@ -15,15 +15,16 @@ from lxml import etree
 
 thisdir, thisfilename = os.path.split(__file__)
 
-nsmap =\
-    { 'xsd' : 'http://www.w3.org/2001/XMLSchema'
-    , 'p'   : 'http://purl.oclc.org/ooxml/presentationml/main'
-    , 'a'   : 'http://purl.oclc.org/ooxml/drawingml/main'
-    , 'r'   : 'http://purl.oclc.org/ooxml/officeDocument/relationships'
-    , 's'   : 'http://purl.oclc.org/ooxml/officeDocument/sharedTypes" elementFormDefault="qualified'
-    }
+nsmap = {
+    'xsd': 'http://www.w3.org/2001/XMLSchema',
+    'p':   'http://purl.oclc.org/ooxml/presentationml/main',
+    'a':   'http://purl.oclc.org/ooxml/drawingml/main',
+    'r':   'http://purl.oclc.org/ooxml/officeDocument/relationships',
+    's':   'http://purl.oclc.org/ooxml/officeDocument/sharedTypes',
+}
 
 reverse_nsmap = {uri: prefix for prefix, uri in nsmap.items()}
+
 
 def pfxdtag(tag):
     """
@@ -33,6 +34,7 @@ def pfxdtag(tag):
     uri, tagroot = tag[1:].split('}')
     prefix = reverse_nsmap[uri]
     return '%s:%s' % (prefix, tagroot)
+
 
 def qtag(tag):
     """
@@ -100,10 +102,8 @@ class TypeGraph(object):
     def load_schema(self, xsd_root, nsprefix):
         for elm in xsd_root:
             tag = pfxdtag(elm.tag)
-            if tag in ( 'xsd:import'
-                      , 'xsd:simpleType'
-                      , 'xsd:group'
-                      , 'xsd:attributeGroup'):
+            if tag in ('xsd:import', 'xsd:simpleType', 'xsd:group',
+                       'xsd:attributeGroup'):
                 continue
             elif tag == 'xsd:complexType':
                 ct = ComplexType(self, elm, nsprefix)
@@ -193,11 +193,11 @@ class ComplexType(object):
         blipFill.add_child('a:blip', cardinality='?')
         blipFill.add_attributes('dpi', 'rotWithShape')
         """
-        s = ("%s = ElementDef('%s', '%s')\n"
-            % (self.name, self.name, self.name))
+        s = ("%s = ElementDef('%s', '%s')\n" %
+             (self.name, self.name, self.name))
         for element in self.elements:
-            s += ("%s.add_child('%s', cardinality='%s')\n"
-                 % (self.name, element.name, element.cardinality))
+            s += ("%s.add_child('%s', cardinality='%s')\n" %
+                  (self.name, element.name, element.cardinality))
         # for attribute in self.attributes:
         #     s += '\n  %s' % attribute
         return s
@@ -278,12 +278,12 @@ class Attribute(object):
     """
     def __init__(self, attribute_elm):
         super(Attribute, self).__init__()
-        self.name    = attribute_elm.get('name')
-        self.type    = attribute_elm.get('type')
-        self.use     = attribute_elm.get('use', 'optional')
+        self.name = attribute_elm.get('name')
+        self.type = attribute_elm.get('type')
+        self.use = attribute_elm.get('use', 'optional')
         self.default = attribute_elm.get('default')
-        self.ref     = attribute_elm.get('ref')
-        self.form    = attribute_elm.get('form')
+        self.ref = attribute_elm.get('ref')
+        self.form = attribute_elm.get('form')
         if self.form is not None:
             raise TypeError('found xsd:attribute with form="%s"' % self.form)
         # don't care about details other than name, ref gives that
@@ -300,20 +300,21 @@ class Attribute(object):
     def is_required(self):
         return self.use == 'required'
 
+
 class Element(object):
     """
     <xsd:element> object
     """
     def __init__(self, element_elm, nsprefix):
         super(Element, self).__init__()
-        self.nsprefix  = nsprefix
-        self.name      = element_elm.get('name')
-        self.tag       = '%s:%s' % (self.nsprefix, self.name)
-        self.typename  = element_elm.get('type')
+        self.nsprefix = nsprefix
+        self.name = element_elm.get('name')
+        self.tag = '%s:%s' % (self.nsprefix, self.name)
+        self.typename = element_elm.get('type')
         if self.typename.startswith('a:'):
             self.typename = self.typename[2:]
-        self.default   = element_elm.get('default')
-        self.form      = element_elm.get('form')
+        self.default = element_elm.get('default')
+        self.form = element_elm.get('form')
         self.minOccurs = element_elm.get('minOccurs', '1')
         self.maxOccurs = element_elm.get('maxOccurs', '1')
         if self.form is not None:
@@ -351,20 +352,20 @@ def element_defs(tags):
             continue
 
         # e.g. blipFill = ElementDef('p:blipFill', 'CT_BlipFillProperties')
-        s += ("\n%s = ElementDef('%s', '%s')\n"
-            % (element.name, element.tag, element.typename))
+        s += ("\n%s = ElementDef('%s', '%s')\n" %
+              (element.name, element.tag, element.typename))
 
         # e.g. blipFill.add_child('a:blip', cardinality='?')
         for child in type.elements:
-            s += ("%s.add_child('%s'%s, cardinality='%s')\n"
-                 % (element.name, child.tag, _padding(type, child),
-                    child.cardinality))
+            s += ("%s.add_child('%s'%s, cardinality='%s')\n" %
+                  (element.name, child.tag, _padding(type, child),
+                   child.cardinality))
 
         # e.g. ext.add_attribute('x', required=True, default="0")
         for a in type.required_attributes:
             default = a.default if a.default else ''
-            s += ("%s.add_attribute('%s', required=True, default='%s')\n"
-                 % (element.name, a.name, default))
+            s += ("%s.add_attribute('%s', required=True, default='%s')\n" %
+                  (element.name, a.name, default))
 
         # e.g. xfrm.add_attributes('rot', 'flipH', 'flipV')
         if type.optional_attributes:
@@ -378,9 +379,10 @@ def element_defs(tags):
 # main
 # ============================================================================
 
-pml = etree.parse(os.path.join(thisdir, 'xsd', 'pml.xsd'     )).getroot()
+pml = etree.parse(os.path.join(thisdir, 'xsd', 'pml.xsd')).getroot()
 dml = etree.parse(os.path.join(thisdir, 'xsd', 'dml-main.xsd')).getroot()
-sst = etree.parse(os.path.join(thisdir, 'xsd', 'shared-commonSimpleTypes.xsd')).getroot()
+sst = etree.parse(os.path.join(thisdir, 'xsd',
+                               'shared-commonSimpleTypes.xsd')).getroot()
 
 # xpath = "./xsd:complexType[@name='CT_Shape']"
 # ct_shape = pml.xpath(xpath, namespaces=nsmap)[0]
@@ -403,7 +405,7 @@ tags = sorted(tg.elements.keys())
 
 # for tag in tags:
 #     print(tag)
-# 
+#
 # print '\n%d distinct tags' % len(tags)
 
 print element_defs(tags)
@@ -416,7 +418,6 @@ print element_defs(tags)
 
 # print element_defs(tags)
 
-# TODO: detect namespace prefix automatically from xsd root element
+# BACKLOG: detect namespace prefix automatically from xsd root element
 
 sys.exit()
-

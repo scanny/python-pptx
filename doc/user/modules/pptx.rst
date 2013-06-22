@@ -45,6 +45,99 @@ their parent object.
 .. currentmodule:: pptx.presentation
 
 
+|_CoreProperties| objects
+=========================
+
+Each |Presentation| object has a |_CoreProperties| object accessed via its
+:attr:`core_properties` attribute that provides read/write access to the
+so-called *core properties* for the document. The core properties are author,
+category, comments, content_status, created, identifier, keywords, language,
+last_modified_by, last_printed, modified, revision, subject, title, and
+version.
+
+Each property is one of three types, |str|, |datetime|, or |int|. String
+properties are limited in length to 255 characters and return an empty string
+('') if not set. Date properties are assigned and returned as |datetime|
+objects without timezone, i.e. in UTC. Any timezone conversions are the
+responsibility of the client. Date properties return |None| if not set.
+
+|pp| does not automatically set any of the document core properties other than
+to add a core properties part containing default values for title,
+last_modified_by, revision, and modified to a presentation that does not have
+one. Client code should change properties like revision and last_modified_by
+explicitly if that behavior is desired.
+
+.. class:: pptx.presentation._CoreProperties
+
+   .. attribute:: author
+
+      *string* -- An entity primarily responsible for making the content of the
+      resource.
+
+   .. attribute:: category
+
+      *string* -- A categorization of the content of this package. Example
+      values might include: Resume, Letter, Financial Forecast, Proposal,
+      or Technical Presentation.
+
+   .. attribute:: comments
+
+      *string* -- An account of the content of the resource.
+
+   .. attribute:: content_status
+
+      *string* -- completion status of the document, e.g. 'draft'
+
+   .. attribute:: created
+
+      *datetime* -- time of intial creation of the document
+
+   .. attribute:: identifier
+
+      *string* -- An unambiguous reference to the resource within a given
+      context, e.g. ISBN.
+
+   .. attribute:: keywords
+
+      *string* -- descriptive words or short phrases likely to be used as
+      search terms for this document
+
+   .. attribute:: language
+
+      *string* -- language the document is written in
+
+   .. attribute:: last_modified_by
+
+      *string* -- name or other identifier (such as email address) of person
+      who last modified the document
+
+   .. attribute:: last_printed
+
+      *datetime* -- time the document was last printed
+
+   .. attribute:: modified
+
+      *datetime* -- time the document was last modified
+
+   .. attribute:: revision
+
+      *int* -- number of this revision, incremented by the PowerPoint® client
+      once each time the document is saved. Note however that the revision
+      number is not automatically incremented by |pp|.
+
+   .. attribute:: subject
+
+      *string* -- The topic of the content of the resource.
+
+   .. attribute:: title
+
+      *string* -- The name given to the resource.
+
+   .. attribute:: version
+
+      *string* -- free-form version string
+
+
 |_SlideCollection| objects
 ==========================
 

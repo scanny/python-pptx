@@ -23,6 +23,7 @@ import os
 import posixpath
 import weakref
 
+from datetime import datetime
 from StringIO import StringIO
 
 import pptx.packaging
@@ -31,15 +32,19 @@ import pptx.util as util
 
 from pptx.exceptions import InvalidPackageError
 from pptx.oxml import (
-    _Element, _SubElement, oxml_fromstring, oxml_tostring, qn)
-
+    CT_CoreProperties, _Element, _SubElement, oxml_fromstring, oxml_tostring,
+    qn
+)
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
-    CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT, CT_SLIDE_MASTER, CT_SLIDESHOW,
-    CT_TEMPLATE)
+    CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
+    CT_SLIDE_MASTER, CT_SLIDESHOW, CT_TEMPLATE
+)
 from pptx.spec import (
-    RT_IMAGE, RT_OFFICE_DOCUMENT, RT_SLIDE, RT_SLIDE_LAYOUT, RT_SLIDE_MASTER)
+    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_SLIDE, RT_SLIDE_LAYOUT,
+    RT_SLIDE_MASTER
+)
 
 from pptx.util import Collection, Px
 
@@ -79,6 +84,7 @@ class _Package(object):
     def __init__(self, file=None):
         super(_Package, self).__init__()
         self.__presentation = None
+        self.__core_properties = None
         self.__relationships = _RelationshipCollection()
         self.__images = _ImageCollection()
         self.__instances.append(weakref.ref(self))
@@ -93,6 +99,16 @@ class _Package(object):
             if part in pkg._parts:
                 return pkg
         raise KeyError("No package contains part %r" % part)
+
+    @property
+    def core_properties(self):
+        """
+        Instance of |_CoreProperties| holding the read/write Dublin Core
+        document properties for this presentation.
+        """
+        assert self.__core_properties, ('_Package.__core_properties referenc'
+                                        'ed before assigned')
+        return self.__core_properties
 
     @classmethod
     def instances(cls):
@@ -173,6 +189,14 @@ class _Package(object):
         for rel in self.__relationships:
             if rel._reltype == RT_OFFICE_DOCUMENT:
                 self.__presentation = rel._target
+            elif rel._reltype == RT_CORE_PROPS:
+                self.__core_properties = rel._target
+        if self.__core_properties is None:
+            core_props = _CoreProperties._default()
+            self.__core_properties = core_props
+            rId = self.__relationships._next_rId
+            rel = _Relationship(rId, RT_CORE_PROPS, core_props)
+            self.__relationships._additem(rel)
 
     @property
     def __default_pptx_path(self):
@@ -274,7 +298,7 @@ class _RelationshipCollection(Collection):
         Insert *relationship* into the appropriate position in this ordered
         collection.
         """
-        rIds = [rel._rId for rel in self._values]
+        rIds = [rel._rId for rel in self]
         if relationship._rId in rIds:
             tmpl = "cannot add relationship with duplicate rId '%s'"
             raise ValueError(tmpl % relationship._rId)
@@ -296,6 +320,17 @@ class _RelationshipCollection(Collection):
                 return tmpl % next_rId_num
             next_rId_num += 1
         return tmpl % next_rId_num
+
+    def related_part(self, reltype):
+        """
+        Return first part in collection having relationship type *reltype* or
+        raise |KeyError| if not found.
+        """
+        for relationship in self._values:
+            if relationship._reltype == reltype:
+                return relationship._target
+        tmpl = "no related part with relationship type '%s'"
+        raise KeyError(tmpl % reltype)
 
     @property
     def _reltype_ordering(self):
@@ -496,6 +531,8 @@ class _Part(object):
         particular the presentation part type, *content_type* is also required
         in order to fully specify the part to be created.
         """
+        if reltype == RT_CORE_PROPS:
+            return _CoreProperties()
         if reltype == RT_OFFICE_DOCUMENT:
             if content_type in (CT_PRESENTATION, CT_TEMPLATE, CT_SLIDESHOW):
                 return Presentation()
@@ -535,14 +572,14 @@ class _BasePart(_Observable):
        part.
 
     """
-    def __init__(self, content_type=None):
+    def __init__(self, content_type=None, partname=None):
         """
         Needs content_type parameter so newly created parts (not loaded from
         package) can register their content type.
         """
         super(_BasePart, self).__init__()
         self.__content_type = content_type
-        self.__partname = None
+        self.__partname = partname
         self._element = None
         self._load_blob = None
         self._relationships = _RelationshipCollection()
@@ -570,9 +607,8 @@ class _BasePart(_Observable):
         Content type of this part, e.g.
         'application/vnd.openxmlformats-officedocument.theme+xml'.
         """
-        if self.__content_type is None:
-            msg = "_BasePart._content_type accessed before assigned"
-            raise ValueError(msg)
+        assert self.__content_type, ('_BasePart._content_type accessed befor'
+                                     'e assigned')
         return self.__content_type
 
     @_content_type.setter
@@ -644,6 +680,49 @@ class _BasePart(_Observable):
             model_rel = _Relationship(pkgrel.rId, reltype, part)
             self._relationships._additem(model_rel)
         return self
+
+
+class _CoreProperties(_BasePart):
+    """
+    Corresponds to part named ``/docProps/core.xml``, containing the core
+    document properties for this document package.
+    """
+    _propnames = (
+        'author', 'category', 'comments', 'content_status', 'created',
+        'identifier', 'keywords', 'language', 'last_modified_by',
+        'last_printed', 'modified', 'revision', 'subject', 'title', 'version'
+    )
+
+    def __init__(self, partname=None):
+        super(_CoreProperties, self).__init__(CT_CORE_PROPS, partname)
+
+    @classmethod
+    def _default(cls):
+        core_props = _CoreProperties('/docProps/core.xml')
+        core_props._element = CT_CoreProperties.new_coreProperties()
+        core_props.title = 'PowerPoint Presentation'
+        core_props.last_modified_by = 'python-pptx'
+        core_props.revision = 1
+        core_props.modified = datetime.utcnow()
+        return core_props
+
+    def __getattribute__(self, name):
+        """
+        Intercept attribute access to generalize property getters.
+        """
+        if name in _CoreProperties._propnames:
+            return getattr(self._element, name)
+        else:
+            return super(_CoreProperties, self).__getattribute__(name)
+
+    def __setattr__(self, name, value):
+        """
+        Intercept attribute assignment to generalize assignment to properties
+        """
+        if name in _CoreProperties._propnames:
+            setattr(self._element, name, value)
+        else:
+            super(_CoreProperties, self).__setattr__(name, value)
 
 
 class Presentation(_BasePart):

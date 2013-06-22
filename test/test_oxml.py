@@ -9,14 +9,16 @@
 
 """Test suite for pptx.oxml module."""
 
+from datetime import datetime
+
 from hamcrest import assert_that, equal_to, instance_of, is_, none
 
 from pptx.constants import (
     TEXT_ALIGN_TYPE as TAT, TEXT_ANCHORING_TYPE as TANC
 )
 from pptx.oxml import (
-    CT_GraphicalObjectFrame, CT_Picture, CT_PresetGeometry2D, CT_Shape,
-    CT_Table, nsdecls, qn
+    CT_CoreProperties, CT_GraphicalObjectFrame, CT_Picture,
+    CT_PresetGeometry2D, CT_Shape, CT_Table, nsdecls, qn
 )
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER,
@@ -25,17 +27,198 @@ from pptx.spec import (
 )
 
 from testdata import (
-    a_prstGeom, a_tbl, test_shape_elements, test_table_elements,
-    test_table_xml, test_text_elements, test_text_xml
+    a_coreProperties, a_prstGeom, a_tbl, test_shape_elements,
+    test_table_elements, test_table_xml, test_text_elements, test_text_xml
 )
 from testing import TestCase
+# from unittest2 import skip
+
+
+class TestCT_CoreProperties(TestCase):
+    """Test CT_CoreProperties"""
+    _cases = (
+        ('author',            'Creator'),
+        ('category',          'Category'),
+        ('comments',          'Description'),
+        ('content_status',    'Content Status'),
+        ('identifier',        'Identifier'),
+        ('keywords',          'Key Words'),
+        ('language',          'Language'),
+        ('last_modified_by',  'Last Modified By'),
+        ('subject',           'Subject'),
+        ('title',             'Title'),
+        ('version',           'Version'),
+    )
+
+    def test_str_getters_are_empty_string_for_missing_element(self):
+        """CT_CoreProperties str props empty str ('') for missing element"""
+        # setup ------------------------
+        childless_core_prop_builder = a_coreProperties()
+        # verify -----------------------
+        for attr_name, value in self._cases:
+            childless_coreProperties = childless_core_prop_builder.element
+            attr_value = getattr(childless_coreProperties, attr_name)
+            reason = ("attr '%s' did not return '' for this XML:\n\n%s" %
+                      (attr_name, childless_core_prop_builder.xml))
+            assert_that(attr_value, is_(equal_to('')), reason)
+
+    def test_str_getter_values_match_xml(self):
+        """CT_CoreProperties string property values match parsed XML"""
+        # verify -----------------------
+        for attr_name, value in self._cases:
+            builder = a_coreProperties().with_child(attr_name, value)
+            coreProperties = builder.element
+            attr_value = getattr(coreProperties, attr_name)
+            reason = ("failed for property '%s' with this XML:\n\n%s" %
+                      (attr_name, builder.xml))
+            assert_that(attr_value, is_(equal_to(value)), reason)
+
+    def test_str_setters_produce_correct_xml(self):
+        """Assignment to CT_CoreProperties str property yields correct XML"""
+        for attr_name, value in self._cases:
+            # setup --------------------
+            coreProperties = a_coreProperties().element  # no child elements
+            # exercise -----------------
+            setattr(coreProperties, attr_name, value)
+            # verify -------------------
+            expected_xml = a_coreProperties().with_child(attr_name, value).xml
+            self.assertEqualLineByLine(expected_xml, coreProperties)
+
+    def test_str_setter_raises_on_str_longer_than_255_chars(self):
+        """Raises on assign len(str) > 255 to CT_CoreProperties str prop"""
+        # setup ------------------------
+        coreProperties = a_coreProperties().element
+        # verify -----------------------
+        with self.assertRaises(ValueError):
+            coreProperties.comments = 'foobar 123 ' * 50
+
+    def test_date_parser_recognizes_W3CDTF_strings(self):
+        """date parser recognizes W3CDTF formatted date strings"""
+        # valid W3CDTF date cases:
+        # yyyy e.g. '2003'
+        # yyyy-mm e.g. '2003-12'
+        # yyyy-mm-dd e.g. '2003-12-31'
+        # UTC timezone e.g. '2003-12-31T10:14:55Z'
+        # numeric timezone e.g. '2003-12-31T10:14:55-08:00'
+        cases = (
+            ('1999', datetime(1999, 1, 1, 0, 0, 0)),
+            ('2000-02', datetime(2000, 2, 1, 0, 0, 0)),
+            ('2001-03-04', datetime(2001, 3, 4, 0, 0, 0)),
+            ('2002-05-06T01:23:45Z', datetime(2002, 5, 6, 1, 23, 45)),
+            ('2013-06-16T22:34:56-07:00', datetime(2013, 6, 17, 5, 34, 56)),
+        )
+        for dt_str, expected_datetime in cases:
+            # exercise -----------------
+            dt = CT_CoreProperties._parse_W3CDTF_to_datetime(dt_str)
+            # verify -------------------
+            assert_that(dt, is_(expected_datetime))
+
+    def test_date_getters_have_none_on_element_not_present(self):
+        """CT_CoreProperties date props are None where element not present"""
+        # setup ------------------------
+        coreProperties = a_coreProperties().element
+        # verify -----------------------
+        assert_that(coreProperties.created, is_(None))
+
+    def test_date_getter_value_matches_xml(self):
+        """CT_CoreProperties date props match parsed XML"""
+        # setup ------------------------
+        date_str = '1999-01-23T12:34:56Z'
+        coreProperties = a_coreProperties().with_date_prop(
+            'created', date_str).element
+        # verify -----------------------
+        expected_date = datetime(1999, 01, 23, 12, 34, 56)
+        assert_that(coreProperties.created, is_(expected_date))
+
+    def test_date_getters_have_none_on_not_datetime(self):
+        """CT_CoreProperties date props are None for unparseable elm text"""
+        # setup ------------------------
+        date_str = 'foobar'
+        core_props = a_coreProperties().with_date_prop(
+            'created', date_str).element
+        # verify -----------------------
+        assert_that(core_props.created, is_(None))
+
+    def test_date_setters_produce_correct_xml(self):
+        """Assignment to CT_CoreProperties date props yields correct XML"""
+        # See CT_CorePropertiesBuilder for how this implicitly tests that
+        # 'created' and 'modified' add 'xsi:type="dcterms:W3CDTF"' attribute
+        # by adding that on .with_date_prop for those properties.
+        # setup ------------------------
+        cases = ('created', 'last_printed', 'modified')
+        value = datetime(2013, 6, 16, 12, 34, 56)
+        for propname in cases:
+            coreProperties = a_coreProperties().element  # no child elements
+            # exercise -----------------
+            setattr(coreProperties, propname, value)
+            # verify -------------------
+            expected_xml = a_coreProperties().with_date_prop(
+                propname, '2013-06-16T12:34:56Z').xml
+            self.assertEqualLineByLine(expected_xml, coreProperties)
+
+    def test_date_setter_raises_on_not_datetime(self):
+        """Raises on assign non-datetime to CT_CoreProperties date prop"""
+        # setup ------------------------
+        coreProperties = a_coreProperties().element
+        # verify -----------------------
+        with self.assertRaises(ValueError):
+            coreProperties.created = 'foobar'
+
+    def test_revision_is_zero_on_element_not_present(self):
+        """CT_CoreProperties.revision is zero when element not present"""
+        # setup ------------------------
+        coreProperties = a_coreProperties().element
+        # verify -----------------------
+        assert_that(coreProperties.revision, is_(0))
+
+    def test_revision_value_matches_xml(self):
+        """CT_CoreProperties revision matches parsed XML"""
+        # setup ------------------------
+        builder = a_coreProperties().with_revision('9')
+        coreProperties = builder.element
+        # verify -----------------------
+        reason = ("wrong revision returned for this XML:\n\n%s" %
+                  (builder.xml))
+        assert_that(coreProperties.revision, is_(9), reason)
+
+    def test_revision_is_zero_on_invalid_element_text(self):
+        """CT_CoreProperties.revision is zero if XML value is invalid"""
+        # setup ------------------------
+        cases = ('foobar', '-666')
+        for invalid_text in cases:
+            builder = a_coreProperties().with_revision(invalid_text)
+            coreProperties = builder.element
+            # verify -----------------------
+            reason = ("wrong revision returned for this XML:\n\n%s" %
+                      (builder.xml))
+            assert_that(coreProperties.revision, is_(0), reason)
+
+    def test_assign_to_revision_produces_correct_xml(self):
+        """Assignment to CT_CoreProperties.revision yields correct XML"""
+        # setup ------------------------
+        coreProperties = a_coreProperties().element  # no child elements
+        # exercise ---------------------
+        coreProperties.revision = 999
+        # verify -----------------------
+        expected_xml = a_coreProperties().with_revision('999').xml
+        self.assertEqualLineByLine(expected_xml, coreProperties)
+
+    def test_assign_to_revision_raises_on_not_positive_int(self):
+        """Raises on assign invalid value to CT_CoreProperties.revision"""
+        # setup ------------------------
+        cases = ('foobar', -666)
+        # verify -----------------------
+        for invalid_value in cases:
+            coreProperties = a_coreProperties().element
+            with self.assertRaises(ValueError):
+                coreProperties.revision = invalid_value
 
 
 class TestCT_GraphicalObjectFrame(TestCase):
     """Test CT_GraphicalObjectFrame"""
     def test_has_table_return_value(self):
         """CT_GraphicalObjectFrame.has_table property has correct value"""
-        # setup -----------------------
+        # setup ------------------------
         id_, name = 9, 'Table 8'
         left, top, width, height = 111, 222, 333, 444
         tbl_uri = 'http://schemas.openxmlformats.org/drawingml/2006/table'
@@ -43,7 +226,7 @@ class TestCT_GraphicalObjectFrame(TestCase):
         graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
             id_, name, left, top, width, height)
         graphicData = graphicFrame[qn('a:graphic')].graphicData
-        # verify ----------------------
+        # verify -----------------------
         graphicData.set('uri', tbl_uri)
         assert_that(graphicFrame.has_table, is_(equal_to(True)))
         graphicData.set('uri', chart_uri)
@@ -51,7 +234,7 @@ class TestCT_GraphicalObjectFrame(TestCase):
 
     def test_new_graphicFrame_generates_correct_xml(self):
         """CT_GraphicalObjectFrame.new_graphicFrame() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         id_, name = 9, 'Table 8'
         left, top, width, height = 111, 222, 333, 444
         xml = (
@@ -63,15 +246,15 @@ class TestCT_GraphicalObjectFrame(TestCase):
             'raphicData/>\n  </a:graphic>\n</p:graphicFrame>\n' %
             (nsdecls('a', 'p'), id_, name, left, top, width, height)
         )
-        # exercise --------------------
+        # exercise ---------------------
         graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
             id_, name, left, top, width, height)
-        # verify ----------------------
+        # verify -----------------------
         self.assertEqualLineByLine(xml, graphicFrame)
 
     def test_new_table_generates_correct_xml(self):
         """CT_GraphicalObjectFrame.new_table() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         id_, name = 9, 'Table 8'
         rows, cols = 2, 3
         left, top, width, height = 111, 222, 334, 445
@@ -109,10 +292,10 @@ class TestCT_GraphicalObjectFrame(TestCase):
             ' </a:graphicData>\n  </a:graphic>\n</p:graphicFrame>\n' %
             (nsdecls('a', 'p'), id_, name, left, top, width, height)
         )
-        # exercise --------------------
+        # exercise ---------------------
         graphicFrame = CT_GraphicalObjectFrame.new_table(
             id_, name, rows, cols, left, top, width, height)
-        # verify ----------------------
+        # verify -----------------------
         self.assertEqualLineByLine(xml, graphicFrame)
 
 
@@ -120,7 +303,7 @@ class TestCT_Picture(TestCase):
     """Test CT_Picture"""
     def test_new_pic_generates_correct_xml(self):
         """CT_Picture.new_pic() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         id_, name, desc, rId = 9, 'Picture 8', 'test-image.png', 'rId7'
         left, top, width, height = 111, 222, 333, 444
         xml = (
@@ -135,10 +318,10 @@ class TestCT_Picture(TestCase):
             (nsdecls('a', 'p', 'r'), id_, name, desc, rId, left, top, width,
              height)
         )
-        # exercise --------------------
+        # exercise ---------------------
         pic = CT_Picture.new_pic(id_, name, desc, rId, left, top,
                                  width, height)
-        # verify ----------------------
+        # verify -----------------------
         self.assertEqualLineByLine(xml, pic)
 
 
@@ -146,7 +329,7 @@ class TestCT_PresetGeometry2D(TestCase):
     """Test CT_PresetGeometry2D"""
     def test_gd_return_value(self):
         """CT_PresetGeometry2D.gd value is correct"""
-        # setup -----------------------
+        # setup ------------------------
         long_prstGeom = a_prstGeom().with_gd(111, 'adj1')\
                                     .with_gd(222, 'adj2')\
                                     .with_gd(333, 'adj3')\
@@ -258,7 +441,7 @@ class TestCT_Shape(TestCase):
 
     def test_new_placeholder_sp_generates_correct_xml(self):
         """CT_Shape._new_placeholder_sp() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         expected_xml_tmpl = (
             '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%s" name="%s"/>\n    <'
             'p:cNvSpPr>\n      <a:spLocks noGrp="1"/>\n    </p:cNvSpPr>\n    '
@@ -298,7 +481,7 @@ class TestCT_Shape(TestCase):
              PH_TYPE_FTR, ''),
             (8, 'Content Placeholder 7', ' idx="15"', txBody_snippet)
         )
-        # exercise --------------------
+        # exercise ---------------------
         for case_idx, argv in enumerate(test_cases):
             id_, name, ph_type, orient, sz, idx = argv
             sp = CT_Shape.new_placeholder_sp(id_, name, ph_type, orient, sz,
@@ -309,7 +492,7 @@ class TestCT_Shape(TestCase):
 
     def test_new_textbox_sp_generates_correct_xml(self):
         """CT_Shape.new_textbox_sp() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         id_ = 9
         name = 'TextBox 8'
         left, top, width, height = 111, 222, 333, 444
@@ -324,26 +507,26 @@ class TestCT_Shape(TestCase):
             ':sp>\n' %
             (nsdecls('a', 'p'), id_, name, left, top, width, height)
         )
-        # exercise --------------------
+        # exercise ---------------------
         sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
-        # verify ----------------------
+        # verify -----------------------
         self.assertEqualLineByLine(xml, sp)
 
     def test_prst_return_value(self):
         """CT_Shape.prst value is correct"""
-        # setup -----------------------
+        # setup ------------------------
         rounded_rect_sp = test_shape_elements.rounded_rectangle
         placeholder_sp = test_shape_elements.placeholder
-        # verify ----------------------
+        # verify -----------------------
         assert_that(rounded_rect_sp.prst, is_(equal_to('roundRect')))
         assert_that(placeholder_sp.prst, is_(equal_to(None)))
 
     def test_prstGeom_return_value(self):
         """CT_Shape.prstGeom value is correct"""
-        # setup -----------------------
+        # setup ------------------------
         rounded_rect_sp = test_shape_elements.rounded_rectangle
         placeholder_sp = test_shape_elements.placeholder
-        # verify ----------------------
+        # verify -----------------------
         assert_that(rounded_rect_sp.prstGeom,
                     instance_of(CT_PresetGeometry2D))
         assert_that(placeholder_sp.prstGeom, is_(none()))
@@ -356,7 +539,7 @@ class TestCT_Table(TestCase):
 
     def test_new_tbl_generates_correct_xml(self):
         """CT_Table._new_tbl() returns correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         rows, cols = 2, 3
         width, height = 334, 445
         xml = (
@@ -380,9 +563,9 @@ class TestCT_Table(TestCase):
             '</a:txBody>\n      <a:tcPr/>\n    </a:tc>\n  </a:tr>\n</a:tbl>\n'
             % nsdecls('a')
         )
-        # exercise --------------------
+        # exercise ---------------------
         tbl = CT_Table.new_tbl(rows, cols, width, height)
-        # verify ----------------------
+        # verify -----------------------
         self.assertEqualLineByLine(xml, tbl)
 
     def test_boolean_property_value_is_correct(self):

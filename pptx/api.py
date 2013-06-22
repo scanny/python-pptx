@@ -30,6 +30,14 @@ class Presentation(object):
         self.__presentation = self.__package.presentation
 
     @property
+    def core_properties(self):
+        """
+        Instance of |_CoreProperties| holding the read/write Dublin Core
+        document properties for this presentation.
+        """
+        return self.__package.core_properties
+
+    @property
     def slidelayouts(self):
         """
         Tuple containing the |_SlideLayout| instances belonging to the

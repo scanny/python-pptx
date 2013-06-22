@@ -9,6 +9,7 @@ Collected bits and pieces on specific PowerPoint object types gathered from MSDN
 
    autoshape
    chart
+   coreprops
    graphicframe
    picture
    placeholder
