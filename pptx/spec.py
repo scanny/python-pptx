@@ -1535,7 +1535,7 @@ slide_ph_basenames = {
 #                   'themeOverride+xml'
 # * several others, especially DrawingML parts ...
 #
-# TODO: Also check out other shared parts in section 15.
+# BACKLOG: Also check out other shared parts in section 15.
 # ============================================================================
 
 PTS_CARDINALITY_SINGLETON = 'singleton'
@@ -1555,7 +1555,14 @@ CT_COMMENTS = (
 CT_CORE_PROPS = (
     'application/vnd.openxmlformats-package.core-properties+xml')
 CT_CUSTOM_PROPS = (
-    'application/vnd.openxmlformats-officedocument.custom-properties+xml')
+    'application/vnd.openxmlformats-officedocument.custom-properties+xml'
+)
+CT_CUSTOM_XML = (
+    'application/xml'
+)
+CT_CUSTOM_XML_PROPS = (
+    'application/vnd.openxmlformats-officedocument.customXmlProperties+xml'
+)
 CT_EXCEL_XLSX = (
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 CT_EXTENDED_PROPS = (
@@ -1616,11 +1623,21 @@ RT_COMMENTS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comm'
     'ents')
 RT_CORE_PROPS = (
-    'http://schemas.openxmlformats.org/officedocument/2006/relationships/meta'
-    'data/core-properties')
+    'http://schemas.openxmlformats.org/package/2006/relationships/metadata/co'
+    're-properties'
+)
 RT_CUSTOM_PROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/cust'
-    'omProperties')
+    'omProperties'
+)
+RT_CUSTOM_XML = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/cus'
+    'tomXml'
+)
+RT_CUSTOM_XML_PROPS = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/cus'
+    'tomXmlProps'
+)
 RT_EXTENDED_PROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/exte'
     'ndedProperties')
@@ -1715,7 +1732,30 @@ pml_parttypes = {
         'baseURI':     '/docProps',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['package'],
-        'reltype':     RT_CUSTOM_PROPS},
+        'reltype':     RT_CUSTOM_PROPS
+    },
+    CT_CUSTOM_XML: {  # ISO/IEC 29500-1 15.2.5
+        'basename':    'item',
+        'ext':         '.xml',
+        'name':        'Custom XML Data Storage Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/customXML',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   [],
+        'reltype':     RT_CUSTOM_XML
+    },
+    CT_CUSTOM_XML_PROPS: {  # ISO/IEC 29500-1 15.2.6
+        'basename':    'itemProps',
+        'ext':         '.xml',
+        'name':        'Custom XML Data Storage Properties Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/customXML',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   [],
+        'reltype':     RT_CUSTOM_XML_PROPS
+    },
     CT_EXTENDED_PROPS: {  # ECMA-376-1 15.2.12.3 (Extended File Properties)
         'basename':    'app',
         'ext':         '.xml',
@@ -1886,7 +1926,8 @@ pml_parttypes = {
         'baseURI':     '/ppt',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['presentation'],
-        'reltype':     RT_VIEWPROPS},
+        'reltype':     RT_VIEWPROPS
+    },
     'image/gif': {  # ECMA-376-1 15.2.14
         'basename':    'image',
         'ext':         '.gif',
@@ -1962,7 +2003,8 @@ pml_parttypes = {
 # ============================================================================
 # Default file extension to MIME type mapping. This is used as a reference for
 # adding <Default> elements to [Content_Types].xml for parts like media files.
-#     TODO: I've seen .wmv elements in the media folder of at least one
+#
+# BACKLOG: I've seen .wmv elements in the media folder of at least one
 # presentation, might need to add an entry for that and perhaps other rich
 # media PowerPoint allows to be embedded (e.g. audio, movie, object, ...).
 # ============================================================================
@@ -1982,7 +2024,8 @@ default_content_types = {
     '.wdp':     'image/vnd.ms-photo',
     '.wmf':     'image/x-wmf',
     '.xlsx':    CT_EXCEL_XLSX,
-    '.xml':     'application/xml'}
+    '.xml':     'application/xml'
+}
 
 
 # ============================================================================

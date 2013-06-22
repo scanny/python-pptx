@@ -8,8 +8,6 @@
 Experimental code to validate XML against an XML Schema
 """
 
-# TODO: try it with RelaxNG compact form schema
-
 import os
 import sys
 
@@ -27,20 +25,20 @@ from lxml import etree
 # xmlschema = etree.XMLSchema(xmlschema_doc)
 
 # test_path = '../../../ar-fy-plans/test/ppt/slides'
-# 
+#
 # xmlschema = etree.XMLSchema(etree.parse('xsd/pml.xsd'))
-# 
+#
 # slide_path = os.path.join(test_path, 'slide1.xml')
 # slide = etree.parse(slide_path)
 # xmlschema.assert_(slide)
-# 
+#
 # sys.exit()
-# 
+#
 # for idx in range(1, 29):
 #     slideLayout_path = os.path.join(test_path, 'slideLayout%d.xml' % idx)
 #     sldLayout = etree.parse(slideLayout_path)
 #     xmlschema.assert_(sldLayout)
-# 
+#
 # sys.exit()
 
 
@@ -57,9 +55,10 @@ for idx in range(1, 29):
 sys.exit()
 
 
-
 # assemble the necessary items
 xmlschema = etree.XMLSchema(etree.parse('xsd/pml.xsd'))  # more compact form
+test_path = '../../../ar-fy-plans/test/ppt/slides'
+slide_path = os.path.join(test_path, 'slide1.xml')
 sld = etree.parse(slide_path)  # should be ElementTree, not Element
 
 # get valid True/False, no message
@@ -80,7 +79,4 @@ for e in xmlschema.error_log:
 # xmlschema.assertValid(sld)
 # xmlschema.assert_(sld)  # bit shorter error message
 
-
-
 sys.exit()
-

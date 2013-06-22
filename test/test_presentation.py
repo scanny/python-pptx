@@ -12,29 +12,40 @@
 import gc
 import os
 
-from hamcrest import assert_that, is_, is_in, is_not, equal_to
+from datetime import datetime, timedelta
 from StringIO import StringIO
 
+from hamcrest import (
+    assert_that, equal_to, instance_of, is_, is_in, is_not, less_than,
+    same_instance
+)
 from mock import Mock, patch, PropertyMock
 
 import pptx.presentation
 
 from pptx.exceptions import InvalidPackageError
-from pptx.oxml import oxml_fromstring, oxml_tostring, oxml_parse
+from pptx.oxml import (
+    CT_CoreProperties, oxml_fromstring, oxml_parse, oxml_tostring
+)
 from pptx.packaging import prettify_nsdecls
 from pptx.presentation import (
-    _BasePart, _BaseSlide, _Image, _Package, _Part, _PartCollection,
-    Presentation, _Relationship, _RelationshipCollection, _Slide,
-    _SlideCollection, _SlideLayout, _SlideMaster)
+    _BasePart, _BaseSlide, _CoreProperties, _Image, _Package, _Part,
+    _PartCollection, Presentation, _Relationship, _RelationshipCollection,
+    _Slide, _SlideCollection, _SlideLayout, _SlideMaster
+)
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces, qtag
 from pptx.spec import (
-    CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT, CT_SLIDE_MASTER)
+    CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
+    CT_SLIDE_MASTER
+)
 from pptx.spec import (
-    RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PRES_PROPS, RT_SLIDE, RT_SLIDE_LAYOUT,
-    RT_SLIDE_MASTER)
+    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PRES_PROPS, RT_SLIDE,
+    RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
+)
 from pptx.util import Px
 from testing import TestCase
+# from unittest2 import skip
 
 import logging
 log = logging.getLogger('pptx.test.presentation')
@@ -159,12 +170,12 @@ class Test_BasePart(TestCase):
 
     def test__add_relationship_adds_specified_relationship(self):
         """_BasePart._add_relationship adds specified relationship"""
-        # setup -----------------------
+        # setup ------------------------
         reltype = RT_IMAGE
         target = Mock(name='image')
-        # exercise --------------------
+        # exercise ---------------------
         rel = self.basepart._add_relationship(reltype, target)
-        # verify ----------------------
+        # verify -----------------------
         expected = ('rId1', reltype, target)
         actual = (rel._rId, rel._reltype, rel._target)
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
@@ -172,24 +183,24 @@ class Test_BasePart(TestCase):
 
     def test__add_relationship_reuses_matching_relationship(self):
         """_BasePart._add_relationship reuses matching relationship"""
-        # setup -----------------------
+        # setup ------------------------
         reltype = RT_IMAGE
         target = Mock(name='image')
-        # exercise --------------------
+        # exercise ---------------------
         rel1 = self.basepart._add_relationship(reltype, target)
         rel2 = self.basepart._add_relationship(reltype, target)
-        # verify ----------------------
+        # verify -----------------------
         assert_that(rel1, is_(equal_to(rel2)))
 
     def test__blob_value_for_binary_part(self):
         """_BasePart._blob value is correct for binary part"""
-        # setup -----------------------
+        # setup ------------------------
         blob = '0123456789'
         self.basepart._load_blob = blob
         self.basepart.partname = '/docProps/thumbnail.jpeg'
-        # exercise --------------------
+        # exercise ---------------------
         retval = self.basepart._blob
-        # verify ----------------------
+        # verify -----------------------
         expected = blob
         actual = retval
         msg = "expected '%s', got '%s'" % (expected, actual)
@@ -197,36 +208,31 @@ class Test_BasePart(TestCase):
 
     def test__blob_value_for_xml_part(self):
         """_BasePart._blob value is correct for XML part"""
-        # setup -----------------------
+        # setup ------------------------
         elm = oxml_fromstring('<root><elm1 attr="one"/></root>')
         self.basepart._element = elm
         self.basepart.partname = '/ppt/presentation.xml'
-        # exercise --------------------
+        # exercise ---------------------
         retval = self.basepart._blob
-        # verify ----------------------
+        # verify -----------------------
         expected = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>"\
                    '\n<root>\n  <elm1 attr="one"/>\n</root>\n'
         actual = retval
         msg = "expected: \n'%s'\n, got \n'%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    def test__content_type_raises_on_accessed_before_assigned(self):
-        """_BasePart._content_type raises on access before assigned"""
-        with self.assertRaises(ValueError):
-            self.basepart._content_type
-
     def test__load_sets__element_for_xml_part(self):
         """_BasePart._load() sets _element for xml part"""
-        # setup -----------------------
+        # setup ------------------------
         pkgpart = Mock(name='pptx.packaging.Part')
         pkgpart.partname = '/ppt/presentation.xml'
         pkgpart.blob = '<root><elm1   attr="spam"/></root>'
         pkgpart.relationships = []
         part_dict = {}
         part = self.basepart._load(pkgpart, part_dict)
-        # exercise --------------------
+        # exercise ---------------------
         elm = part._element
-        # verify ----------------------
+        # verify -----------------------
         expected = '<root><elm1 attr="spam"/></root>'
         actual = oxml_tostring(elm)
         msg = "expected '%s', got '%s'" % (expected, actual)
@@ -234,21 +240,21 @@ class Test_BasePart(TestCase):
 
     def test_observable_on_partname(self):
         """_BasePart observable on partname value change"""
-        # setup -----------------------
+        # setup ------------------------
         old_partname = '/ppt/slides/slide1.xml'
         new_partname = '/ppt/slides/slide2.xml'
         observer = Mock()
         self.basepart.partname = old_partname
         self.basepart.add_observer(observer)
-        # exercise --------------------
+        # exercise ---------------------
         self.basepart.partname = new_partname
-        # verify ----------------------
+        # verify -----------------------
         observer.notify.assert_called_with(self.basepart, 'partname',
                                            new_partname)
 
     def test_partname_setter(self):
         """_BasePart.partname setter stores passed value"""
-        # setup -----------------------
+        # setup ------------------------
         partname = '/ppt/presentation.xml'
         # exercise ----------------
         self.basepart.partname = partname
@@ -266,11 +272,11 @@ class Test_BaseSlide(TestCase):
 
     def test_name_value(self):
         """_BaseSlide.name value is correct"""
-        # setup -----------------------
+        # setup ------------------------
         self.base_slide._element = _sldLayout1()
-        # exercise --------------------
+        # exercise ---------------------
         name = self.base_slide.name
-        # verify ----------------------
+        # verify -----------------------
         expected = 'Title Slide'
         actual = name
         msg = "expected '%s', got '%s'" % (expected, actual)
@@ -278,7 +284,7 @@ class Test_BaseSlide(TestCase):
 
     def test_shapes_size_after__load(self):
         """_BaseSlide.shapes is expected size after _load()"""
-        # setup -----------------------
+        # setup ------------------------
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         pkgpart = Mock(name='pptx.packaging.Part')
         pkgpart.partname = '/ppt/slides/slide1.xml'
@@ -287,15 +293,15 @@ class Test_BaseSlide(TestCase):
         pkgpart.relationships = []
         part_dict = {}
         self.base_slide._load(pkgpart, part_dict)
-        # exercise --------------------
+        # exercise ---------------------
         shapes = self.base_slide.shapes
-        # verify ----------------------
+        # verify -----------------------
         self.assertLength(shapes, 9)
 
     @patch('pptx.presentation._BaseSlide._package', new_callable=PropertyMock)
     def test__add_image_collaboration(self, _package):
         """_BaseSlide._add_image() returns (image, rel) tuple"""
-        # setup -----------------------
+        # setup ------------------------
         base_slide = self.base_slide
         image = Mock(name='image')
         rel = Mock(name='rel')
@@ -303,22 +309,43 @@ class Test_BaseSlide(TestCase):
         base_slide._add_relationship = Mock('_add_relationship')
         base_slide._add_relationship.return_value = rel
         file = test_image_path
-        # exercise --------------------
+        # exercise ---------------------
         retval_image, retval_rel = base_slide._add_image(file)
-        # verify ----------------------
+        # verify -----------------------
         base_slide._package._images.add_image.assert_called_once_with(file)
         base_slide._add_relationship.assert_called_once_with(RT_IMAGE, image)
         assert_that(retval_image, is_(image))
         assert_that(retval_rel, is_(rel))
 
 
+class Test_CoreProperties(TestCase):
+    """Test _CoreProperties"""
+    def test_default_constructs_default_core_props(self):
+        """_CoreProperties.default() returns new default core props part"""
+        # exercise ---------------------
+        core_props = _CoreProperties._default()
+        # verify -----------------------
+        assert_that(core_props, is_(instance_of(_CoreProperties)))
+        assert_that(core_props._content_type, is_(CT_CORE_PROPS))
+        assert_that(core_props.partname, is_('/docProps/core.xml'))
+        assert_that(core_props._element, is_(instance_of(CT_CoreProperties)))
+        assert_that(core_props.title, is_('PowerPoint Presentation'))
+        assert_that(core_props.last_modified_by, is_('python-pptx'))
+        assert_that(core_props.revision, is_(1))
+        # core_props.modified only stores time with seconds resolution, so
+        # comparison needs to be a little loose (within two seconds)
+        modified_timedelta = datetime.utcnow() - core_props.modified
+        max_expected_timedelta = timedelta(seconds=2)
+        assert_that(modified_timedelta, less_than(max_expected_timedelta))
+
+
 class Test_Image(TestCase):
     """Test _Image"""
     def test_construction_from_file(self):
         """_Image(path) constructor produces correct attribute values"""
-        # exercise --------------------
+        # exercise ---------------------
         image = _Image(test_image_path)
-        # verify ----------------------
+        # verify -----------------------
         assert_that(image.ext, is_(equal_to('.jpeg')))
         assert_that(image._content_type, is_(equal_to('image/jpeg')))
         assert_that(len(image._blob), is_(equal_to(3277)))
@@ -326,11 +353,11 @@ class Test_Image(TestCase):
 
     def test_construction_from_stream(self):
         """_Image(stream) construction produces correct attribute values"""
-        # exercise --------------------
+        # exercise ---------------------
         with open(test_image_path) as f:
             stream = StringIO(f.read())
         image = _Image(stream)
-        # verify ----------------------
+        # verify -----------------------
         assert_that(image.ext, is_(equal_to('.jpg')))
         assert_that(image._content_type, is_(equal_to('image/jpeg')))
         assert_that(len(image._blob), is_(equal_to(3277)))
@@ -338,20 +365,20 @@ class Test_Image(TestCase):
 
     def test_construction_from_file_raises_on_bad_path(self):
         """_Image(path) constructor raises on bad path"""
-        # verify ----------------------
+        # verify -----------------------
         with self.assertRaises(IOError):
             _Image('foobar27.png')
 
     def test__scale_calculates_correct_dimensions(self):
         """_Image._scale() calculates correct dimensions"""
-        # setup -----------------------
+        # setup ------------------------
         test_cases = (
             ((None, None), (Px(204), Px(204))),
             ((1000, None), (1000, 1000)),
             ((None, 3000), (3000, 3000)),
             ((3337, 9999), (3337, 9999)))
         image = _Image(test_image_path)
-        # verify ----------------------
+        # verify -----------------------
         for params, expected in test_cases:
             width, height = params
             assert_that(image._scale(width, height), is_(equal_to(expected)))
@@ -363,16 +390,16 @@ class Test_Image(TestCase):
 
     def test___ext_from_image_stream_raises_on_incompatible_format(self):
         """_Image.__ext_from_image_stream() raises on incompatible format"""
-        # verify ----------------------
+        # verify -----------------------
         with self.assertRaises(ValueError):
             with open(test_bmp_path) as stream:
                 _Image._Image__ext_from_image_stream(stream)
 
     def test___image_ext_content_type_known_type(self):
         """_Image.__image_ext_content_type() correct for known content type"""
-        # exercise --------------------
+        # exercise ---------------------
         content_type = _Image._Image__image_ext_content_type('.jpeg')
-        # verify ----------------------
+        # verify -----------------------
         expected = 'image/jpeg'
         actual = content_type
         msg = ("expected content type '%s', got '%s'" % (expected, actual))
@@ -380,13 +407,13 @@ class Test_Image(TestCase):
 
     def test___image_ext_content_type_raises_on_bad_ext(self):
         """_Image.__image_ext_content_type() raises on bad extension"""
-        # verify ----------------------
+        # verify -----------------------
         with self.assertRaises(TypeError):
             _Image._Image__image_ext_content_type('.xj7')
 
     def test___image_ext_content_type_raises_on_non_img_ext(self):
         """_Image.__image_ext_content_type() raises on non-image extension"""
-        # verify ----------------------
+        # verify -----------------------
         with self.assertRaises(TypeError):
             _Image._Image__image_ext_content_type('.xml')
 
@@ -395,13 +422,13 @@ class Test_ImageCollection(TestCase):
     """Test _ImageCollection"""
     def test_add_image_returns_matching_image(self):
         """_ImageCollection.add_image() returns existing image on match"""
-        # setup -----------------------
+        # setup ------------------------
         pkg = _Package(images_pptx_path)
         matching_idx = 4
         matching_image = pkg._images[matching_idx]
-        # exercise --------------------
+        # exercise ---------------------
         image = pkg._images.add_image(test_image_path)
-        # verify ----------------------
+        # verify -----------------------
         expected = matching_image
         actual = image
         msg = ("expected images[%d], got images[%d]"
@@ -410,14 +437,14 @@ class Test_ImageCollection(TestCase):
 
     def test_add_image_adds_new_image(self):
         """_ImageCollection.add_image() adds new image on no match"""
-        # setup -----------------------
+        # setup ------------------------
         pkg = _Package(images_pptx_path)
         expected_partname = '/ppt/media/image8.png'
         expected_len = len(pkg._images) + 1
         expected_sha1 = '79769f1e202add2e963158b532e36c2c0f76a70c'
-        # exercise --------------------
+        # exercise ---------------------
         image = pkg._images.add_image(new_image_path)
-        # verify ----------------------
+        # verify -----------------------
         expected = (expected_partname, expected_len, expected_sha1)
         actual = (image.partname, len(pkg._images), image._sha1)
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
@@ -465,14 +492,14 @@ class Test_Package(TestCase):
 
     def test_containing_returns_correct_pkg(self):
         """_Package.containing() returns right package instance"""
-        # setup -----------------------
+        # setup ------------------------
         pkg1 = _Package(test_pptx_path)
         pkg1.presentation  # does nothing, just needed to fake out pep8 warning
         pkg2 = _Package(test_pptx_path)
         slide = pkg2.presentation.slides[0]
-        # exercise --------------------
+        # exercise ---------------------
         found_pkg = _Package.containing(slide)
-        # verify ----------------------
+        # verify -----------------------
         expected = pkg2
         actual = found_pkg
         msg = "expected %r, got %r" % (expected, actual)
@@ -480,19 +507,19 @@ class Test_Package(TestCase):
 
     def test_containing_raises_on_no_pkg_contains_part(self):
         """_Package.containing(part) raises on no package contains part"""
-        # setup -----------------------
+        # setup ------------------------
         pkg = _Package(test_pptx_path)
         pkg.presentation  # does nothing, just needed to fake out pep8 warning
         part = Mock(name='part')
-        # verify ----------------------
+        # verify -----------------------
         with self.assertRaises(KeyError):
             _Package.containing(part)
 
     def test_open_gathers_image_parts(self):
         """_Package open gathers image parts into image collection"""
-        # exercise --------------------
+        # exercise ---------------------
         pkg = _Package(images_pptx_path)
-        # verify ----------------------
+        # verify -----------------------
         expected = 7
         actual = len(pkg._Package__images)
         msg = "expected image count of %d, got %d" % (expected, actual)
@@ -500,24 +527,31 @@ class Test_Package(TestCase):
 
     def test_presentation_presentation_after_open(self):
         """_Package.presentation is instance of Presentation after open()"""
-        # setup -----------------------
+        # setup ------------------------
         cls = Presentation
         pkg = _Package()
-        # exercise --------------------
+        # exercise ---------------------
         obj = pkg.presentation
-        # verify ----------------------
+        # verify -----------------------
         actual = isinstance(obj, cls)
         msg = ("expected instance of '%s', got type '%s'"
                % (cls.__name__, type(obj).__name__))
         self.assertTrue(actual, msg)
 
+    def test_it_should_have_core_props(self):
+        """_Package should provide access to core document properties"""
+        # setup ------------------------
+        pkg = _Package()
+        # verify -----------------------
+        assert_that(pkg.core_properties, is_(instance_of(_CoreProperties)))
+
     def test_saved_file_has_plausible_contents(self):
         """_Package.save produces a .pptx with plausible contents"""
-        # setup -----------------------
+        # setup ------------------------
         pkg = _Package()
-        # exercise --------------------
+        # exercise ---------------------
         pkg.save(self.test_pptx_path)
-        # verify ----------------------
+        # verify -----------------------
         pkg = _Package(self.test_pptx_path)
         prs = pkg.presentation
         assert_that(prs, is_not(None))
@@ -533,38 +567,38 @@ class Test_Part(TestCase):
     """Test _Part"""
     def test_constructs_presentation_for_rt_officedocument(self):
         """_Part() returns Presentation for RT_OFFICE_DOCUMENT"""
-        # setup -----------------------
+        # setup ------------------------
         cls = Presentation
-        # exercise --------------------
+        # exercise ---------------------
         obj = _Part(RT_OFFICE_DOCUMENT, CT_PRESENTATION)
-        # verify ----------------------
+        # verify -----------------------
         self.assertIsInstance(obj, cls)
 
     def test_constructs_slide_for_rt_slide(self):
         """_Part() returns _Slide for RT_SLIDE"""
-        # setup -----------------------
+        # setup ------------------------
         cls = _Slide
-        # exercise --------------------
+        # exercise ---------------------
         obj = _Part(RT_SLIDE, CT_SLIDE)
-        # verify ----------------------
+        # verify -----------------------
         self.assertIsInstance(obj, cls)
 
     def test_constructs_slidelayout_for_rt_slidelayout(self):
         """_Part() returns _SlideLayout for RT_SLIDE_LAYOUT"""
-        # setup -----------------------
+        # setup ------------------------
         cls = _SlideLayout
-        # exercise --------------------
+        # exercise ---------------------
         obj = _Part(RT_SLIDE_LAYOUT, CT_SLIDE_LAYOUT)
-        # verify ----------------------
+        # verify -----------------------
         self.assertIsInstance(obj, cls)
 
     def test_constructs_slidemaster_for_rt_slidemaster(self):
         """_Part() returns _SlideMaster for RT_SLIDE_MASTER"""
-        # setup -----------------------
+        # setup ------------------------
         cls = _SlideMaster
-        # exercise --------------------
+        # exercise ---------------------
         obj = _Part(RT_SLIDE_MASTER, CT_SLIDE_MASTER)
-        # verify ----------------------
+        # verify -----------------------
         self.assertIsInstance(obj, cls)
 
     def test_contructor_raises_on_invalid_prs_content_type(self):
@@ -577,7 +611,7 @@ class Test_PartCollection(TestCase):
     """Test _PartCollection"""
     def test__loadpart_sorts_loaded_parts(self):
         """_PartCollection._loadpart sorts loaded parts"""
-        # setup -----------------------
+        # setup ------------------------
         partname1 = '/ppt/slides/slide1.xml'
         partname2 = '/ppt/slides/slide2.xml'
         partname3 = '/ppt/slides/slide3.xml'
@@ -588,11 +622,11 @@ class Test_PartCollection(TestCase):
         part3 = Mock(name='part3')
         part3.partname = partname3
         parts = _PartCollection()
-        # exercise --------------------
+        # exercise ---------------------
         parts._loadpart(part2)
         parts._loadpart(part3)
         parts._loadpart(part1)
-        # verify ----------------------
+        # verify -----------------------
         expected = [partname1, partname2, partname3]
         actual = [part.partname for part in parts]
         msg = "expected %s, got %s" % (expected, actual)
@@ -606,7 +640,7 @@ class Test_Presentation(TestCase):
 
     def test__blob_rewrites_sldIdLst(self):
         """Presentation._blob rewrites sldIdLst"""
-        # setup -----------------------
+        # setup ------------------------
         rels = RelationshipCollectionBuilder()
         rels = rels.with_tuple_targets(2, RT_SLIDE_MASTER)
         rels = rels.with_tuple_targets(3, RT_SLIDE)
@@ -617,9 +651,9 @@ class Test_Presentation(TestCase):
         prs.partname = '/ppt/presentation.xml'
         path = os.path.join(thisdir, 'test_files/presentation.xml')
         prs._element = oxml_parse(path).getroot()
-        # exercise --------------------
+        # exercise ---------------------
         blob = prs._blob
-        # verify ----------------------
+        # verify -----------------------
         presentation = oxml_fromstring(blob)
         sldIds = presentation.xpath('./p:sldIdLst/p:sldId', namespaces=nsmap)
         expected = ['rId3', 'rId4', 'rId5']
@@ -629,32 +663,32 @@ class Test_Presentation(TestCase):
 
     def test_slidemasters_property_empty_on_construction(self):
         """Presentation.slidemasters property empty on construction"""
-        # verify ----------------------
+        # verify -----------------------
         self.assertIsSizedProperty(self.prs, 'slidemasters', 0)
 
     def test_slidemasters_correct_length_after_pkg_open(self):
         """Presentation.slidemasters correct length after load"""
-        # setup -----------------------
+        # setup ------------------------
         pkg = _Package(test_pptx_path)
         prs = pkg.presentation
-        # exercise --------------------
+        # exercise ---------------------
         slidemasters = prs.slidemasters
-        # verify ----------------------
+        # verify -----------------------
         self.assertLength(slidemasters, 1)
 
     def test_slides_property_empty_on_construction(self):
         """Presentation.slides property empty on construction"""
-        # verify ----------------------
+        # verify -----------------------
         self.assertIsSizedProperty(self.prs, 'slides', 0)
 
     def test_slides_correct_length_after_pkg_open(self):
         """Presentation.slides correct length after load"""
-        # setup -----------------------
+        # setup ------------------------
         pkg = _Package(test_pptx_path)
         prs = pkg.presentation
-        # exercise --------------------
+        # exercise ---------------------
         slides = prs.slides
-        # verify ----------------------
+        # verify -----------------------
         self.assertLength(slides, 1)
 
 
@@ -673,23 +707,23 @@ class Test_Relationship(TestCase):
 
     def test__num_value(self):
         """_Relationship._num value is correct"""
-        # setup -----------------------
+        # setup ------------------------
         num = 91
         rId = 'rId%d' % num
         rel = _Relationship(rId, None, None)
-        # verify ----------------------
+        # verify -----------------------
         assert_that(rel._num, is_(equal_to(num)))
 
     def test__num_value_on_non_standard_rId(self):
         """_Relationship._num value is correct for non-standard rId"""
-        # setup -----------------------
+        # setup ------------------------
         rel = _Relationship('rIdSm', None, None)
-        # verify ----------------------
+        # verify -----------------------
         assert_that(rel._num, is_(equal_to(9999)))
 
     def test__rId_setter(self):
         """Relationship._rId setter stores passed value"""
-        # setup -----------------------
+        # setup ------------------------
         rId = 'rId9'
         # exercise ----------------
         self.rel._rId = rId
@@ -710,7 +744,7 @@ class Test_RelationshipCollection(TestCase):
         Return RelationshipCollection instance with mocked-up contents
         suitable for testing _reltype_ordering.
         """
-        # setup -----------------------
+        # setup ------------------------
         partnames = ['/ppt/slides/slide4.xml',
                      '/ppt/slideLayouts/slideLayout1.xml',
                      '/ppt/slideMasters/slideMaster1.xml',
@@ -739,32 +773,53 @@ class Test_RelationshipCollection(TestCase):
         relationships._additem(rel5)
         return (relationships, partnames)
 
+    def test_it_can_find_related_part(self):
+        """_RelationshipCollection can find related part"""
+        # setup ------------------------
+        reltype = RT_CORE_PROPS
+        part = Mock(name='part')
+        relationship = _Relationship('rId1', reltype, part)
+        relationships = _RelationshipCollection()
+        relationships._additem(relationship)
+        # exercise ---------------------
+        retval = relationships.related_part(reltype)
+        # verify -----------------------
+        assert_that(retval, same_instance(part))
+
+    def test_it_raises_if_it_cant_find_a_related_part(self):
+        """_RelationshipCollection raises if it can't find a related part"""
+        # setup ------------------------
+        relationships = _RelationshipCollection()
+        # exercise ---------------------
+        with self.assertRaises(KeyError):
+            relationships.related_part('foobar')
+
     def test__additem_raises_on_dup_rId(self):
         """_RelationshipCollection._additem raises on duplicate rId"""
-        # setup -----------------------
+        # setup ------------------------
         part1 = _BasePart()
         part2 = _BasePart()
         rel1 = _Relationship('rId9', None, part1)
         rel2 = _Relationship('rId9', None, part2)
         self.relationships._additem(rel1)
-        # verify ----------------------
+        # verify -----------------------
         with self.assertRaises(ValueError):
             self.relationships._additem(rel2)
 
     def test__additem_maintains_rId_ordering(self):
         """_RelationshipCollection maintains rId ordering on additem()"""
-        # setup -----------------------
+        # setup ------------------------
         part1 = _BasePart()
         part2 = _BasePart()
         part3 = _BasePart()
         rel1 = _Relationship('rId1', None, part1)
         rel2 = _Relationship('rId2', None, part2)
         rel3 = _Relationship('rId3', None, part3)
-        # exercise --------------------
+        # exercise ---------------------
         self.relationships._additem(rel2)
         self.relationships._additem(rel1)
         self.relationships._additem(rel3)
-        # verify ----------------------
+        # verify -----------------------
         expected = ['rId1', 'rId2', 'rId3']
         actual = [rel._rId for rel in self.relationships]
         msg = "expected ordering %s, got %s" % (expected, actual)
@@ -772,7 +827,7 @@ class Test_RelationshipCollection(TestCase):
 
     def test__additem_maintains_reltype_ordering(self):
         """_RelationshipCollection maintains reltype ordering on additem()"""
-        # setup -----------------------
+        # setup ------------------------
         relationships, partnames = self.__reltype_ordering_mock()
         ordering = (RT_SLIDE_MASTER, RT_SLIDE_LAYOUT, RT_SLIDE)
         relationships._reltype_ordering = ordering
@@ -781,7 +836,7 @@ class Test_RelationshipCollection(TestCase):
         part.partname = partname
         rId = relationships._next_rId
         rel = _Relationship(rId, RT_SLIDE, part)
-        # exercise --------------------
+        # exercise ---------------------
         relationships._additem(rel)
         # verify ordering -------------
         expected = [partnames[2], partnames[1], partnames[3],
@@ -792,9 +847,9 @@ class Test_RelationshipCollection(TestCase):
 
     def test_rels_of_reltype_return_value(self):
         """RelationshipCollection._rels_of_reltype returns correct rels"""
-        # setup -----------------------
+        # setup ------------------------
         relationships, partnames = self.__reltype_ordering_mock()
-        # exercise --------------------
+        # exercise ---------------------
         retval = relationships.rels_of_reltype(RT_SLIDE)
         # verify ordering -------------
         expected = ['rId1', 'rId4']
@@ -804,10 +859,10 @@ class Test_RelationshipCollection(TestCase):
 
     def test__reltype_ordering_sorts_rels(self):
         """RelationshipCollection._reltype_ordering sorts rels"""
-        # setup -----------------------
+        # setup ------------------------
         relationships, partnames = self.__reltype_ordering_mock()
         ordering = (RT_SLIDE_MASTER, RT_SLIDE_LAYOUT, RT_SLIDE)
-        # exercise --------------------
+        # exercise ---------------------
         relationships._reltype_ordering = ordering
         # verify ordering -------------
         assert_that(relationships._reltype_ordering, is_(equal_to(ordering)))
@@ -819,10 +874,10 @@ class Test_RelationshipCollection(TestCase):
 
     def test__reltype_ordering_renumbers_rels(self):
         """RelationshipCollection._reltype_ordering renumbers rels"""
-        # setup -----------------------
+        # setup ------------------------
         relationships, partnames = self.__reltype_ordering_mock()
         ordering = (RT_SLIDE_MASTER, RT_SLIDE_LAYOUT, RT_SLIDE)
-        # exercise --------------------
+        # exercise ---------------------
         relationships._reltype_ordering = ordering
         # verify renumbering ----------
         expected = ['rId1', 'rId2', 'rId3', 'rId4', 'rId5']
@@ -832,7 +887,7 @@ class Test_RelationshipCollection(TestCase):
 
     def test__next_rId_fills_gap(self):
         """_RelationshipCollection._next_rId fills gap in rId sequence"""
-        # setup -----------------------
+        # setup ------------------------
         part1 = _BasePart()
         part2 = _BasePart()
         part3 = _BasePart()
@@ -845,7 +900,7 @@ class Test_RelationshipCollection(TestCase):
                  ('rId2', (rel1, rel3, rel4)),
                  ('rId3', (rel1, rel2, rel4)),
                  ('rId4', (rel1, rel2, rel3)))
-        # exercise --------------------
+        # exercise ---------------------
         expected_rIds = []
         actual_rIds = []
         for expected_rId, rels in cases:
@@ -854,7 +909,7 @@ class Test_RelationshipCollection(TestCase):
             for rel in rels:
                 relationships._additem(rel)
             actual_rIds.append(relationships._next_rId)
-        # verify ----------------------
+        # verify -----------------------
         expected = expected_rIds
         actual = actual_rIds
         msg = "expected rIds %s, got %s" % (expected, actual)
@@ -862,7 +917,7 @@ class Test_RelationshipCollection(TestCase):
 
     def test_reorders_on_partname_change(self):
         """RelationshipCollection reorders on partname change"""
-        # setup -----------------------
+        # setup ------------------------
         partname1 = '/ppt/slides/slide1.xml'
         partname2 = '/ppt/slides/slide2.xml'
         partname3 = '/ppt/slides/slide3.xml'
@@ -874,9 +929,9 @@ class Test_RelationshipCollection(TestCase):
         relationships._reltype_ordering = (RT_SLIDE)
         relationships._additem(rel1)
         relationships._additem(rel2)
-        # exercise --------------------
+        # exercise ---------------------
         part1.partname = partname3
-        # verify ----------------------
+        # verify -----------------------
         expected = [partname2, partname3]
         actual = [rel._target.partname for rel in relationships]
         msg = "expected ordering %s, got %s" % (expected, actual)
@@ -890,9 +945,9 @@ class Test_Slide(TestCase):
 
     def test_constructor_sets_correct_content_type(self):
         """_Slide constructor sets correct content type"""
-        # exercise --------------------
+        # exercise ---------------------
         content_type = self.sld._content_type
-        # verify ----------------------
+        # verify -----------------------
         expected = CT_SLIDE
         actual = content_type
         msg = "expected '%s', got '%s'" % (expected, actual)
@@ -900,10 +955,10 @@ class Test_Slide(TestCase):
 
     def test_construction_adds_slide_layout_relationship(self):
         """_Slide(slidelayout) adds relationship slide->slidelayout"""
-        # setup -----------------------
+        # setup ------------------------
         slidelayout = _SlideLayout()
         slidelayout._shapes = _sldLayout1_shapes()
-        # exercise --------------------
+        # exercise ---------------------
         slide = _Slide(slidelayout)
         # verify length ---------------
         expected = 1
@@ -920,11 +975,11 @@ class Test_Slide(TestCase):
 
     def test__element_minimal_sld_on_construction(self):
         """_Slide._element is minimal sld on construction"""
-        # setup -----------------------
+        # setup ------------------------
         path = os.path.join(thisdir, 'test_files/minimal_slide.xml')
-        # exercise --------------------
+        # exercise ---------------------
         elm = self.sld._element
-        # verify ----------------------
+        # verify -----------------------
         with open(path, 'r') as f:
             expected = f.read()
         actual = prettify_nsdecls(
@@ -935,12 +990,12 @@ class Test_Slide(TestCase):
 
     def test_slidelayout_property_none_on_construction(self):
         """_Slide.slidelayout property None on construction"""
-        # verify ----------------------
+        # verify -----------------------
         self.assertIsProperty(self.sld, 'slidelayout', None)
 
     def test__load_sets_slidelayout(self):
         """_Slide._load() sets slidelayout"""
-        # setup -----------------------
+        # setup ------------------------
         path = os.path.join(thisdir, 'test_files/slide1.xml')
         slidelayout = Mock(name='slideLayout')
         slidelayout.partname = '/ppt/slideLayouts/slideLayout1.xml'
@@ -954,9 +1009,9 @@ class Test_Slide(TestCase):
         pkgpart.relationships = [rel]
         part_dict = {slidelayout.partname: slidelayout}
         slide = self.sld._load(pkgpart, part_dict)
-        # exercise --------------------
+        # exercise ---------------------
         retval = slide.slidelayout
-        # verify ----------------------
+        # verify -----------------------
         expected = slidelayout
         actual = retval
         msg = "expected: %s, got %s" % (expected, actual)
@@ -964,11 +1019,11 @@ class Test_Slide(TestCase):
 
     def test___minimal_element_xml(self):
         """_Slide.__minimal_element generates correct XML"""
-        # setup -----------------------
+        # setup ------------------------
         path = os.path.join(thisdir, 'test_files/minimal_slide.xml')
-        # exercise --------------------
+        # exercise ---------------------
         sld = self.sld._Slide__minimal_element
-        # verify ----------------------
+        # verify -----------------------
         with open(path, 'r') as f:
             expected_xml = f.read()
         sld_xml = prettify_nsdecls(
@@ -990,9 +1045,9 @@ class Test_SlideCollection(TestCase):
 
     def test_add_slide_returns_slide(self):
         """_SlideCollection.add_slide() returns instance of _Slide"""
-        # exercise --------------------
+        # exercise ---------------------
         retval = self.slides.add_slide(None)
-        # verify ----------------------
+        # verify -----------------------
         self.assertIsInstance(retval, _Slide)
 
     def test_add_slide_sets_slidelayout(self):
@@ -1001,13 +1056,13 @@ class Test_SlideCollection(TestCase):
 
         Kind of a throw-away test, but was helpful for initial debugging.
         """
-        # setup -----------------------
+        # setup ------------------------
         slidelayout = Mock(name='slideLayout')
         slidelayout.shapes = []
         slide = self.slides.add_slide(slidelayout)
-        # exercise --------------------
+        # exercise ---------------------
         retval = slide.slidelayout
-        # verify ----------------------
+        # verify -----------------------
         expected = slidelayout
         actual = retval
         msg = "expected: %s, got %s" % (expected, actual)
@@ -1015,12 +1070,12 @@ class Test_SlideCollection(TestCase):
 
     def test_add_slide_adds_slide_layout_relationship(self):
         """_SlideCollection.add_slide() adds relationship prs->slide"""
-        # setup -----------------------
+        # setup ------------------------
         prs = Presentation()
         slides = prs.slides
         slidelayout = _SlideLayout()
         slidelayout._shapes = []
-        # exercise --------------------
+        # exercise ---------------------
         slide = slides.add_slide(slidelayout)
         # verify length ---------------
         expected = 1
@@ -1038,14 +1093,14 @@ class Test_SlideCollection(TestCase):
 
     def test_add_slide_sets_partname(self):
         """_SlideCollection.add_slide() sets partname of new slide"""
-        # setup -----------------------
+        # setup ------------------------
         prs = Presentation()
         slides = prs.slides
         slidelayout = _SlideLayout()
         slidelayout._shapes = []
-        # exercise --------------------
+        # exercise ---------------------
         slide = slides.add_slide(slidelayout)
-        # verify ----------------------
+        # verify -----------------------
         expected = '/ppt/slides/slide1.xml'
         actual = slide.partname
         msg = "expected partname '%s', got '%s'" % (expected, actual)
@@ -1091,11 +1146,11 @@ class Test_SlideLayout(TestCase):
 
     def test__load_sets_slidemaster(self):
         """_SlideLayout._load() sets slidemaster"""
-        # setup -----------------------
+        # setup ------------------------
         prs_slidemaster = Mock(spec=_SlideMaster)
-        # exercise --------------------
+        # exercise ---------------------
         loaded_slidelayout = self.__loaded_slidelayout(prs_slidemaster)
-        # verify ----------------------
+        # verify -----------------------
         expected = prs_slidemaster
         actual = loaded_slidelayout.slidemaster
         msg = "expected: %s, got %s" % (expected, actual)
@@ -1103,7 +1158,7 @@ class Test_SlideLayout(TestCase):
 
     def test_slidemaster_is_readonly(self):
         """_SlideLayout.slidemaster is read-only"""
-        # verify ----------------------
+        # verify -----------------------
         self.assertIsReadOnly(self.slidelayout, 'slidemaster')
 
     def test_slidemaster_raises_on_ref_before_assigned(self):
@@ -1119,15 +1174,15 @@ class Test_SlideMaster(TestCase):
 
     def test_slidelayouts_property_empty_on_construction(self):
         """_SlideMaster.slidelayouts property empty on construction"""
-        # verify ----------------------
+        # verify -----------------------
         self.assertIsSizedProperty(self.sldmaster, 'slidelayouts', 0)
 
     def test_slidelayouts_correct_length_after_open(self):
         """_SlideMaster.slidelayouts correct length after open"""
-        # setup -----------------------
+        # setup ------------------------
         pkg = _Package(test_pptx_path)
         slidemaster = pkg.presentation.slidemasters[0]
-        # exercise --------------------
+        # exercise ---------------------
         slidelayouts = slidemaster.slidelayouts
-        # verify ----------------------
+        # verify -----------------------
         self.assertLength(slidelayouts, 11)

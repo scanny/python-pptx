@@ -2,10 +2,10 @@
 python-pptx
 ###########
 
-VERSION: 0.2.5 (sixth beta release)
+VERSION: 0.2.6 (seventh beta release)
 
 
-STATUS (as of June 11 2013)
+STATUS (as of June 22 2013)
 ===========================
 
 Stable beta release. Under active development, with new features added in a new
@@ -97,6 +97,11 @@ install those yourself.
 
 Release History
 ===============
+
+June 22, 2013 - v0.2.6
+   * Add read/write access to core document properties
+   * Hotfix to accomodate connector shapes in _AutoShapeType
+   * Hotfix to allow customXml parts to load when present
 
 June 11, 2013 - v0.2.5
    * Add paragraph alignment property (left, right, centered, etc.)
