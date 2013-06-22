@@ -23,6 +23,7 @@ import os
 import posixpath
 import weakref
 
+from datetime import datetime
 from StringIO import StringIO
 
 import pptx.packaging
@@ -31,13 +32,14 @@ import pptx.util as util
 
 from pptx.exceptions import InvalidPackageError
 from pptx.oxml import (
-    _Element, _SubElement, oxml_fromstring, oxml_tostring, qn)
-
+    CT_CoreProperties, _Element, _SubElement, oxml_fromstring, oxml_tostring,
+    qn
+)
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
-    CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT, CT_SLIDE_MASTER, CT_SLIDESHOW,
-    CT_TEMPLATE
+    CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
+    CT_SLIDE_MASTER, CT_SLIDESHOW, CT_TEMPLATE
 )
 from pptx.spec import (
     RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_SLIDE, RT_SLIDE_LAYOUT,
@@ -82,6 +84,7 @@ class _Package(object):
     def __init__(self, file=None):
         super(_Package, self).__init__()
         self.__presentation = None
+        self.__core_properties = None
         self.__relationships = _RelationshipCollection()
         self.__images = _ImageCollection()
         self.__instances.append(weakref.ref(self))
@@ -103,9 +106,9 @@ class _Package(object):
         Instance of |_CoreProperties| holding the read/write Dublin Core
         document properties for this presentation.
         """
-        # TODO: Make this work when there's no core.xml
-        core_properties = self.__relationships.related_part(RT_CORE_PROPS)
-        return core_properties
+        assert self.__core_properties, ('_Package.__core_properties referenc'
+                                        'ed before assigned')
+        return self.__core_properties
 
     @classmethod
     def instances(cls):
@@ -186,6 +189,14 @@ class _Package(object):
         for rel in self.__relationships:
             if rel._reltype == RT_OFFICE_DOCUMENT:
                 self.__presentation = rel._target
+            elif rel._reltype == RT_CORE_PROPS:
+                self.__core_properties = rel._target
+        if self.__core_properties is None:
+            core_props = _CoreProperties.default()
+            self.__core_properties = core_props
+            rId = self.__relationships._next_rId
+            rel = _Relationship(rId, RT_CORE_PROPS, core_props)
+            self.__relationships._additem(rel)
 
     @property
     def __default_pptx_path(self):
@@ -561,14 +572,14 @@ class _BasePart(_Observable):
        part.
 
     """
-    def __init__(self, content_type=None):
+    def __init__(self, content_type=None, partname=None):
         """
         Needs content_type parameter so newly created parts (not loaded from
         package) can register their content type.
         """
         super(_BasePart, self).__init__()
         self.__content_type = content_type
-        self.__partname = None
+        self.__partname = partname
         self._element = None
         self._load_blob = None
         self._relationships = _RelationshipCollection()
@@ -596,9 +607,8 @@ class _BasePart(_Observable):
         Content type of this part, e.g.
         'application/vnd.openxmlformats-officedocument.theme+xml'.
         """
-        if self.__content_type is None:
-            msg = "_BasePart._content_type accessed before assigned"
-            raise ValueError(msg)
+        assert self.__content_type, ('_BasePart._content_type accessed befor'
+                                     'e assigned')
         return self.__content_type
 
     @_content_type.setter
@@ -694,6 +704,19 @@ class _CoreProperties(_BasePart):
     _date_propnames = (
         'created', 'last_printed', 'modified'
     )
+
+    def __init__(self, partname=None):
+        super(_CoreProperties, self).__init__(CT_CORE_PROPS, partname)
+
+    @classmethod
+    def default(cls):
+        core_props = _CoreProperties('/docProps/core.xml')
+        core_props._element = CT_CoreProperties.new_coreProperties()
+        core_props.title = 'PowerPoint Presentation'
+        core_props.last_modified_by = 'python-pptx'
+        core_props.revision = 1
+        core_props.modified = datetime.utcnow()
+        return core_props
 
     def __getattribute__(self, name):
         """

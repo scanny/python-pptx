@@ -12,25 +12,32 @@
 import gc
 import os
 
-from hamcrest import assert_that, is_, is_in, is_not, equal_to, same_instance
+from datetime import datetime
 from StringIO import StringIO
 
+from hamcrest import (
+    assert_that, equal_to, instance_of, is_, is_in, is_not, less_than,
+    same_instance
+)
 from mock import Mock, patch, PropertyMock
 
 import pptx.presentation
 
 from pptx.exceptions import InvalidPackageError
-from pptx.oxml import oxml_fromstring, oxml_tostring, oxml_parse
+from pptx.oxml import (
+    CT_CoreProperties, oxml_fromstring, oxml_parse, oxml_tostring
+)
 from pptx.packaging import prettify_nsdecls
 from pptx.presentation import (
-    _BasePart, _BaseSlide, _Image, _Package, _Part, _PartCollection,
-    Presentation, _Relationship, _RelationshipCollection, _Slide,
-    _SlideCollection, _SlideLayout, _SlideMaster
+    _BasePart, _BaseSlide, _CoreProperties, _Image, _Package, _Part,
+    _PartCollection, Presentation, _Relationship, _RelationshipCollection,
+    _Slide, _SlideCollection, _SlideLayout, _SlideMaster
 )
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces, qtag
 from pptx.spec import (
-    CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT, CT_SLIDE_MASTER
+    CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
+    CT_SLIDE_MASTER
 )
 from pptx.spec import (
     RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PRES_PROPS, RT_SLIDE,
@@ -38,6 +45,7 @@ from pptx.spec import (
 )
 from pptx.util import Px
 from testing import TestCase
+# from unittest2 import skip
 
 import logging
 log = logging.getLogger('pptx.test.presentation')
@@ -213,11 +221,6 @@ class Test_BasePart(TestCase):
         msg = "expected: \n'%s'\n, got \n'%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    def test__content_type_raises_on_accessed_before_assigned(self):
-        """_BasePart._content_type raises on access before assigned"""
-        with self.assertRaises(ValueError):
-            self.basepart._content_type
-
     def test__load_sets__element_for_xml_part(self):
         """_BasePart._load() sets _element for xml part"""
         # setup ------------------------
@@ -313,6 +316,26 @@ class Test_BaseSlide(TestCase):
         base_slide._add_relationship.assert_called_once_with(RT_IMAGE, image)
         assert_that(retval_image, is_(image))
         assert_that(retval_rel, is_(rel))
+
+
+class Test_CoreProperties(TestCase):
+    """Test _CoreProperties"""
+    def test_default_constructs_default_core_props(self):
+        """_CoreProperties.default() returns new default core props part"""
+        # exercise ---------------------
+        core_props = _CoreProperties.default()
+        # verify -----------------------
+        assert_that(core_props, is_(instance_of(_CoreProperties)))
+        assert_that(core_props._content_type, is_(CT_CORE_PROPS))
+        assert_that(core_props.partname, is_('/docProps/core.xml'))
+        assert_that(core_props._element, is_(instance_of(CT_CoreProperties)))
+        assert_that(core_props.title, is_('PowerPoint Presentation'))
+        assert_that(core_props.last_modified_by, is_('python-pptx'))
+        assert_that(core_props.revision, is_(1))
+        modified_timedelta = datetime.utcnow() - core_props.modified
+        # core_props.modified only stores time with seconds resolution, so
+        # comparison needs to be a little loose (within two seconds)
+        assert_that(modified_timedelta.total_seconds(), is_(less_than(2)))
 
 
 class Test_Image(TestCase):
@@ -517,16 +540,9 @@ class Test_Package(TestCase):
     def test_it_should_have_core_props(self):
         """_Package should provide access to core document properties"""
         # setup ------------------------
-        relationships = Mock(name='relationships')
-        core_props = Mock(name='core_props')
-        relationships.related_part.return_value = core_props
         pkg = _Package()
-        pkg._Package__relationships = relationships
-        # exercise ---------------------
-        retval = pkg.core_properties
         # verify -----------------------
-        relationships.related_part.assert_called_once_with(RT_CORE_PROPS)
-        assert_that(retval, same_instance(core_props))
+        assert_that(pkg.core_properties, is_(instance_of(_CoreProperties)))
 
     def test_saved_file_has_plausible_contents(self):
         """_Package.save produces a .pptx with plausible contents"""

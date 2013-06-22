@@ -164,6 +164,16 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         'title':            'dc:title',
         'version':          'cp:version',
     }
+    _coreProperties_tmpl = (
+        '<cp:coreProperties %s/>\n' % nsdecls('cp', 'dc', 'dcterms')
+    )
+
+    @staticmethod
+    def new_coreProperties():
+        """Return a new ``<cp:coreProperties>`` element"""
+        xml = CT_CoreProperties._coreProperties_tmpl
+        coreProperties = oxml_fromstring(xml)
+        return coreProperties
 
     def __getattribute__(self, name):
         """
