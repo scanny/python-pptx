@@ -1,6 +1,6 @@
 import os
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from behave import given, when, then
 from hamcrest import (
@@ -317,10 +317,11 @@ def step_then_a_core_props_part_with_def_vals_is_added(context):
     assert_that(core_props.title, is_('PowerPoint Presentation'))
     assert_that(core_props.last_modified_by, is_('python-pptx'))
     assert_that(core_props.revision, is_(1))
-    modified_timedelta = datetime.now() - core_props.modified
     # core_props.modified only stores time with seconds resolution, so
     # comparison needs to be a little loose (within two seconds)
-    assert_that(modified_timedelta.total_seconds(), is_(less_than(2)))
+    modified_timedelta = datetime.utcnow() - core_props.modified
+    max_expected_timedelta = timedelta(seconds=2)
+    assert_that(modified_timedelta, less_than(max_expected_timedelta))
 
 
 @then('I receive a presentation based on the default template')

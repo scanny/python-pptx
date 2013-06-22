@@ -5,16 +5,12 @@ Development Practices
 Release procedure
 =================
 
-* develop branch git status clean
+* merge outstanding feature branch(es) into develop
 
-  + complete and commit any pending feature branches
-  + stash any incomplete work
+  + ``$ git checkout develop``
+  + ``$ git merge --no-ff {feature-branch}``
 
-* release commit message prepared
-
-  + review and summarize changes since prior release
-
-* release branch committed
+* complete release updates
 
   + update version number in `pptx/__init__.py`
   + update setup.py (shouldn't usually be any changes)
@@ -23,13 +19,13 @@ Release procedure
   + confirm docs compile without errors
   + run all tests (behave, nosetests, tox)
   + create trial distribution (make clean sdist)
-  + git commit -m 'Release v0.2.2'
+  + ``git commit -m 'Release v0.2.2'``
   + merge develop into master
 
-    - $ ``git checkout master``
-    - $ ``git merge develop``
+    - ``$ git checkout master``
+    - ``$ git merge --no-ff develop``
 
-  + create tag for new version (automatically done by git flow)
+  + create tag for new version
 
     - $ ``git tag -a v0.2.5 -m 'Release version 0.2.5'``
 
@@ -39,9 +35,9 @@ Release procedure
 
 * synchronize local repo with github
 
-  + $ ``git push scanny develop``
-  + $ ``git push scanny master``
-  + $ ``git push --tags``
+  + ``$ git push scanny develop``
+  + ``$ git push scanny master``
+  + ``$ git push --tags``
 
 * docs regenerated
 
@@ -163,5 +159,3 @@ the practicalities down.
 
 .. _behave website:
    http://packages.python.org/behave/index.html
-
-
