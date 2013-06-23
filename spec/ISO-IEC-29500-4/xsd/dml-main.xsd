@@ -2824,28 +2824,28 @@
     <xsd:restriction base="xsd:string"/>
   </xsd:simpleType>
   <xsd:simpleType name="ST_PitchFamily">
-   <xsd:restriction base="xsd:byte">
-     <xsd:enumeration value="00"/>
-     <xsd:enumeration value="01"/>
-     <xsd:enumeration value="02"/>
-     <xsd:enumeration value="16"/>
-     <xsd:enumeration value="17"/>
-     <xsd:enumeration value="18"/>
-     <xsd:enumeration value="32"/>
-     <xsd:enumeration value="33"/>
-     <xsd:enumeration value="34"/>
-     <xsd:enumeration value="48"/>
-     <xsd:enumeration value="49"/>
-     <xsd:enumeration value="50"/>
-     <xsd:enumeration value="64"/>
-     <xsd:enumeration value="65"/>
-     <xsd:enumeration value="66"/>
-     <xsd:enumeration value="80"/>
-     <xsd:enumeration value="81"/>
-     <xsd:enumeration value="82"/>
-   </xsd:restriction>
-   </xsd:simpleType>
-   <xsd:complexType name="CT_TextFont">
+    <xsd:restriction base="xsd:byte">
+      <xsd:enumeration value="00"/>
+      <xsd:enumeration value="01"/>
+      <xsd:enumeration value="02"/>
+      <xsd:enumeration value="16"/>
+      <xsd:enumeration value="17"/>
+      <xsd:enumeration value="18"/>
+      <xsd:enumeration value="32"/>
+      <xsd:enumeration value="33"/>
+      <xsd:enumeration value="34"/>
+      <xsd:enumeration value="48"/>
+      <xsd:enumeration value="49"/>
+      <xsd:enumeration value="50"/>
+      <xsd:enumeration value="64"/>
+      <xsd:enumeration value="65"/>
+      <xsd:enumeration value="66"/>
+      <xsd:enumeration value="80"/>
+      <xsd:enumeration value="81"/>
+      <xsd:enumeration value="82"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="CT_TextFont">
     <xsd:attribute name="typeface" type="ST_TextTypeface" use="required"/>
     <xsd:attribute name="panose" type="s:ST_Panose" use="optional"/>
     <xsd:attribute name="pitchFamily" type="ST_PitchFamily" use="optional" default="0"/>

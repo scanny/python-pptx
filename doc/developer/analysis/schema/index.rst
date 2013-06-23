@@ -16,6 +16,7 @@ Collected bits and pieces from the XML Schema docs, MSDN web pages, and the ISO/
    ct_slide
    ct_table
    ct_textbody
+   ct_textcharacterproperties
    ct_textparagraph
    miscellaneous
 
