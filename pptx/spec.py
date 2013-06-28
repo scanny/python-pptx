@@ -1693,6 +1693,17 @@ RT_VIEWPROPS = (
     'Props')
 
 pml_parttypes = {
+    CT_CHART: {  # ISO/IEC 29500-1 14.2.1
+        'basename':    'chart',
+        'ext':         '.xml',
+        'name':        'Chart Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/ppt/charts',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['presentation'],
+        'reltype':     RT_CHART
+    },
     CT_COMMENT_AUTHORS: {  # ECMA-376-1 13.3.1
         'basename':    'commentAuthors',
         'ext':         '.xml',
@@ -1702,7 +1713,8 @@ pml_parttypes = {
         'baseURI':     '/ppt',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['presentation'],
-        'reltype':     RT_COMMENT_AUTHORS},
+        'reltype':     RT_COMMENT_AUTHORS
+    },
     CT_COMMENTS: {  # ECMA-376-1 13.3.2
         'basename':    'comment',
         'ext':         '.xml',
