@@ -1545,15 +1545,19 @@ PTS_HASRELS_NEVER = 'never'
 PTS_HASRELS_OPTIONAL = 'optional'
 
 CT_CHART = (
-    'application/vnd.openxmlformats-officedocument.drawingml.chart+xml')
+    'application/vnd.openxmlformats-officedocument.drawingml.chart+xml'
+)
 CT_COMMENT_AUTHORS = (
     'application/vnd.openxmlformats-officedocument.presentationml.commentAuth'
-    'ors+xml')
+    'ors+xml'
+)
 CT_COMMENTS = (
     'application/vnd.openxmlformats-officedocument.presentationml.comments+xm'
-    'l')
+    'l'
+)
 CT_CORE_PROPS = (
-    'application/vnd.openxmlformats-package.core-properties+xml')
+    'application/vnd.openxmlformats-package.core-properties+xml'
+)
 CT_CUSTOM_PROPS = (
     'application/vnd.openxmlformats-officedocument.custom-properties+xml'
 )
@@ -1563,65 +1567,134 @@ CT_CUSTOM_XML = (
 CT_CUSTOM_XML_PROPS = (
     'application/vnd.openxmlformats-officedocument.customXmlProperties+xml'
 )
+CT_DOCUMENT = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document.'
+    'main+xml'
+)
+CT_ENDNOTES = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+'
+    'xml'
+)
 CT_EXCEL_XLSX = (
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+)
 CT_EXTENDED_PROPS = (
-    'application/vnd.openxmlformats-officedocument.extended-properties+xml')
+    'application/vnd.openxmlformats-officedocument.extended-properties+xml'
+)
+CT_FONT_TABLE = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable'
+    '+xml'
+)
+CT_FOOTER = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xm'
+    'l'
+)
+CT_FOOTNOTES = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes'
+    '+xml'
+)
+CT_GLOSSARY_DOCUMENT = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document.'
+    'glossary+xml'
+)
 CT_HANDOUT_MASTER = (
     'application/vnd.openxmlformats-officedocument.presentationml.handoutMast'
-    'er+xml')
+    'er+xml'
+)
+CT_HEADER = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.header+xm'
+    'l'
+)
 CT_NOTES_MASTER = (
     'application/vnd.openxmlformats-officedocument.presentationml.notesMaster'
-    '+xml')
+    '+xml'
+)
 CT_NOTES_SLIDE = (
     'application/vnd.openxmlformats-officedocument.presentationml.notesSlide+'
-    'xml')
+    'xml'
+)
+CT_NUMBERING = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.numbering'
+    '+xml'
+)
 CT_PRES_PROPS = (
     'application/vnd.openxmlformats-officedocument.presentationml.presProps+x'
-    'ml')
+    'ml'
+)
 CT_PRESENTATION = (
     'application/vnd.openxmlformats-officedocument.presentationml.presentatio'
-    'n.main+xml')
+    'n.main+xml'
+)
 CT_PRINTER_SETTINGS = (
     'application/vnd.openxmlformats-officedocument.presentationml.printerSett'
-    'ings')
+    'ings'
+)
+CT_SETTINGS = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.settings+'
+    'xml'
+)
 CT_SLIDE = (
-    'application/vnd.openxmlformats-officedocument.presentationml.slide+xml')
+    'application/vnd.openxmlformats-officedocument.presentationml.slide+xml'
+)
 CT_SLIDE_LAYOUT = (
     'application/vnd.openxmlformats-officedocument.presentationml.slideLayout'
-    '+xml')
+    '+xml'
+)
 CT_SLIDE_MASTER = (
     'application/vnd.openxmlformats-officedocument.presentationml.slideMaster'
-    '+xml')
+    '+xml'
+)
 CT_SLIDESHOW = (
     'application/vnd.openxmlformats-officedocument.presentationml.slideshow.m'
-    'ain+xml')
+    'ain+xml'
+)
+CT_STYLES = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xm'
+    'l'
+)
 CT_TABLE_STYLES = (
     'application/vnd.openxmlformats-officedocument.presentationml.tableStyles'
-    '+xml')
+    '+xml'
+)
 CT_TAGS = (
-    'application/vnd.openxmlformats-officedocument.presentationml.tags+xml')
+    'application/vnd.openxmlformats-officedocument.presentationml.tags+xml'
+)
 CT_TEMPLATE = (
     'application/vnd.openxmlformats-officedocument.presentationml.template.ma'
-    'in+xml')
+    'in+xml'
+)
 CT_THEME = (
-    'application/vnd.openxmlformats-officedocument.theme+xml')
+    'application/vnd.openxmlformats-officedocument.theme+xml'
+)
 CT_VIEW_PROPS = (
     'application/vnd.openxmlformats-officedocument.presentationml.viewProps+x'
-    'ml')
+    'ml'
+)
+CT_WEB_SETTINGS = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.webSettin'
+    'gs+xml'
+)
+CT_WML_COMMENTS = (
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.comments+'
+    'xml'
+)
 CT_WORKSHEET = (
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+)
 
 
 RT_CHART = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/char'
-    't')
+    't'
+)
 RT_COMMENT_AUTHORS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comm'
-    'entAuthors')
+    'entAuthors'
+)
 RT_COMMENTS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comm'
-    'ents')
+    'ents'
+)
 RT_CORE_PROPS = (
     'http://schemas.openxmlformats.org/package/2006/relationships/metadata/co'
     're-properties'
@@ -1638,59 +1711,121 @@ RT_CUSTOM_XML_PROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/cus'
     'tomXmlProps'
 )
+RT_ENDNOTES = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/endn'
+    'otes'
+)
 RT_EXTENDED_PROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/exte'
-    'ndedProperties')
+    'ndedProperties'
+)
+RT_FONT_TABLE = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/font'
+    'Table'
+)
+RT_FOOTER = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/foot'
+    'er'
+)
+RT_FOOTNOTES = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/foot'
+    'notes'
+)
+RT_GLOSSARY_DOCUMENT = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/glos'
+    'saryDocument'
+)
 RT_HANDOUT_MASTER = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hand'
-    'outMaster')
+    'outMaster'
+)
+RT_HEADER = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/head'
+    'er'
+)
 RT_IMAGE = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/imag'
-    'e')
+    'e'
+)
 RT_NOTES_MASTER = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/note'
-    'sMaster')
+    'sMaster'
+)
 RT_NOTES_SLIDE = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/note'
-    'sSlide')
+    'sSlide'
+)
+RT_NUMBERING = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/numb'
+    'ering'
+)
 RT_OFFICE_DOCUMENT = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/offi'
-    'ceDocument')
+    'ceDocument'
+)
 RT_PACKAGE = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/pack'
-    'age')
+    'age'
+)
 RT_PRES_PROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/pres'
-    'Props')
+    'Props'
+)
 RT_PRINTER_SETTINGS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/prin'
-    'terSettings')
+    'terSettings'
+)
+RT_SETTINGS = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/sett'
+    'ings'
+)
 RT_SLIDE = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slid'
-    'e')
+    'e'
+)
 RT_SLIDE_LAYOUT = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slid'
-    'eLayout')
+    'eLayout'
+)
 RT_SLIDE_MASTER = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slid'
-    'eMaster')
+    'eMaster'
+)
 RT_SLIDESHOW = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/offi'
-    'ceDocument')
+    'ceDocument'
+)
+RT_STYLES = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/styl'
+    'es'
+)
 RT_TABLESTYLES = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/tabl'
-    'eStyles')
+    'eStyles'
+)
 RT_TAGS = (
-    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/tags')
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/tags'
+)
 RT_TEMPLATE = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/offi'
-    'ceDocument')
+    'ceDocument'
+)
 RT_THEME = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/them'
-    'e')
+    'e'
+)
 RT_VIEWPROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/view'
-    'Props')
+    'Props'
+)
+RT_WEB_SETTINGS = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/webS'
+    'ettings'
+)
+RT_WML_COMMENTS = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comm'
+    'ents'
+)
 
 pml_parttypes = {
     CT_CHART: {  # ISO/IEC 29500-1 14.2.1
@@ -1724,7 +1859,8 @@ pml_parttypes = {
         'baseURI':     '/ppt/comments',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['slide'],
-        'reltype':     RT_COMMENTS},
+        'reltype':     RT_COMMENTS
+    },
     CT_CORE_PROPS: {  # ECMA-376-1 15.2.12.1 ('Core' as in Dublin Core)
         'basename':    'core',
         'ext':         '.xml',
@@ -1734,7 +1870,8 @@ pml_parttypes = {
         'baseURI':     '/docProps',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['package'],
-        'reltype':     RT_CORE_PROPS},
+        'reltype':     RT_CORE_PROPS
+    },
     CT_CUSTOM_PROPS: {  # ECMA-376-1 15.2.12.2
         'basename':    'custom',
         'ext':         '.xml',
@@ -1768,6 +1905,28 @@ pml_parttypes = {
         'rels_from':   [],
         'reltype':     RT_CUSTOM_XML_PROPS
     },
+    CT_DOCUMENT: {  # ISO/IEC 29500-1 11.3.10
+        'basename':    'document',
+        'ext':         '.xml',
+        'name':        'Main Document Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    True,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['package'],
+        'reltype':     RT_OFFICE_DOCUMENT
+    },
+    CT_ENDNOTES: {  # ISO/IEC 29500-1 11.3.4
+        'basename':    'endnotes',
+        'ext':         '.xml',
+        'name':        'Endnotes Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    False,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['document', 'glossary'],
+        'reltype':     RT_ENDNOTES
+    },
     CT_EXTENDED_PROPS: {  # ECMA-376-1 15.2.12.3 (Extended File Properties)
         'basename':    'app',
         'ext':         '.xml',
@@ -1777,7 +1936,52 @@ pml_parttypes = {
         'baseURI':     '/docProps',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['package'],
-        'reltype':     RT_EXTENDED_PROPS},
+        'reltype':     RT_EXTENDED_PROPS
+    },
+    CT_FONT_TABLE: {  # ISO/IEC 29500-1 11.3.5
+        'basename':    'fontTable',
+        'ext':         '.xml',
+        'name':        'Font Table Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    False,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['document'],
+        'reltype':     RT_FONT_TABLE
+    },
+    CT_FOOTER: {  # ISO/IEC 29500-1 11.3.6
+        'basename':    'footer',
+        'ext':         '.xml',
+        'name':        'Footer Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['document', 'glossary'],
+        'reltype':     RT_FOOTER
+    },
+    CT_FOOTNOTES: {  # ISO/IEC 29500-1 11.3.7
+        'basename':    'footnotes',
+        'ext':         '.xml',
+        'name':        'Footnotes Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    False,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['document'],
+        'reltype':     RT_FOOTNOTES
+    },
+    CT_GLOSSARY_DOCUMENT: {  # ISO/IEC 29500-1 11.3.8
+        'basename':    'document',
+        'ext':         '.xml',
+        'name':        'Glossary Document Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    False,
+        'baseURI':     '/word/glossary',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['document'],
+        'reltype':     RT_GLOSSARY_DOCUMENT
+    },
     CT_HANDOUT_MASTER: {  # ECMA-376-1 13.3.3
         'basename':    'handoutMaster',
         'ext':         '.xml',
@@ -1789,7 +1993,19 @@ pml_parttypes = {
         'baseURI':     '/ppt/handoutMasters',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['presentation'],
-        'reltype':     RT_HANDOUT_MASTER},
+        'reltype':     RT_HANDOUT_MASTER
+    },
+    CT_HEADER: {  # ISO/IEC 29500-1 11.3.9
+        'basename':    'header',
+        'ext':         '.xml',
+        'name':        'Header Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['document', 'glossary'],
+        'reltype':     RT_HEADER
+    },
     CT_NOTES_MASTER: {  # ECMA-376-1 13.3.4
         'basename':    'notesMaster',
         'ext':         '.xml',
@@ -1801,7 +2017,8 @@ pml_parttypes = {
         'baseURI':     '/ppt/notesMasters',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['presentation', 'notesSlide'],
-        'reltype':     RT_NOTES_MASTER},
+        'reltype':     RT_NOTES_MASTER
+    },
     CT_NOTES_SLIDE: {  # ECMA-376-1 13.3.5
         'basename':    'notesSlide',
         'ext':         '.xml',
@@ -1811,7 +2028,19 @@ pml_parttypes = {
         'baseURI':     '/ppt/notesSlides',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['slide'],
-        'reltype':     RT_NOTES_SLIDE},
+        'reltype':     RT_NOTES_SLIDE
+    },
+    CT_NUMBERING: {  # ISO/IEC 29500-1 11.3.11
+        'basename':    'numbering',
+        'ext':         '.xml',
+        'name':        'Numbering Definitions Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    False,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['document'],
+        'reltype':     RT_NUMBERING
+    },
     CT_PRESENTATION: {  # ECMA-376-1 13.3.6
         # one of three possible Content Type values for presentation part
         'basename':    'presentation',
@@ -1822,7 +2051,8 @@ pml_parttypes = {
         'baseURI':     '/ppt',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['package'],
-        'reltype':     RT_OFFICE_DOCUMENT},
+        'reltype':     RT_OFFICE_DOCUMENT
+    },
     CT_PRES_PROPS: {  # ECMA-376-1 13.3.7
         'basename':    'presProps',
         'ext':         '.xml',
@@ -1832,7 +2062,8 @@ pml_parttypes = {
         'baseURI':     '/ppt',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['presentation'],
-        'reltype':     RT_PRES_PROPS},
+        'reltype':     RT_PRES_PROPS
+    },
     CT_PRINTER_SETTINGS: {  # ECMA-376-1 15.2.15
         'basename':    'printerSettings',
         'ext':         '.bin',
@@ -1842,7 +2073,19 @@ pml_parttypes = {
         'baseURI':     '/ppt/printerSettings',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['presentation'],
-        'reltype':     RT_PRINTER_SETTINGS},
+        'reltype':     RT_PRINTER_SETTINGS
+    },
+    CT_SETTINGS: {  # ISO/IEC 29500-1 11.3.3
+        'basename':    'settings',
+        'ext':         '.xml',
+        'name':        'Document Settings Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    False,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['document', 'glossary'],
+        'reltype':     RT_SETTINGS
+    },
     CT_SLIDE: {  # ECMA-376-1 13.3.8
         'basename':    'slide',
         'ext':         '.xml',
@@ -1852,7 +2095,8 @@ pml_parttypes = {
         'baseURI':     '/ppt/slides',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['presentation', 'notesSlide'],
-        'reltype':     RT_SLIDE},
+        'reltype':     RT_SLIDE
+    },
     CT_SLIDE_LAYOUT: {  # ECMA-376-1 13.3.9
         'basename':    'slideLayout',
         'ext':         '.xml',
@@ -1862,7 +2106,8 @@ pml_parttypes = {
         'baseURI':     '/ppt/slideLayouts',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['slide', 'slideMaster'],
-        'reltype':     RT_SLIDE_LAYOUT},
+        'reltype':     RT_SLIDE_LAYOUT
+    },
     CT_SLIDE_MASTER: {  # ECMA-376-1 13.3.10
         'basename':    'slideMaster',
         'ext':         '.xml',
@@ -1872,7 +2117,8 @@ pml_parttypes = {
         'baseURI':     '/ppt/slideMasters',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['presentation', 'slideLayout'],
-        'reltype':     RT_SLIDE_MASTER},
+        'reltype':     RT_SLIDE_MASTER
+    },
     CT_SLIDESHOW: {  # ECMA-376-1 13.3.6
         # one of three possible Content Type values for presentation part
         'basename':    'presentation',
@@ -1883,7 +2129,19 @@ pml_parttypes = {
         'baseURI':     '/ppt',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['package'],
-        'reltype':     RT_SLIDESHOW},
+        'reltype':     RT_SLIDESHOW
+    },
+    CT_STYLES: {  # ISO/IEC 29500-1 11.3.12
+        'basename':    'styles',
+        'ext':         '.xml',
+        'name':        'Style Definitions Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    False,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   ['document'],
+        'reltype':     RT_STYLES
+    },
     CT_TABLE_STYLES: {  # ECMA-376-1 14.2.9
         'basename':    'tableStyles',
         'ext':         '.xml',
@@ -1893,7 +2151,8 @@ pml_parttypes = {
         'baseURI':     '/ppt',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['presentation'],
-        'reltype':     RT_TABLESTYLES},
+        'reltype':     RT_TABLESTYLES
+    },
     CT_TAGS: {  # ECMA-376-1 13.3.12
         'basename':    'tag',
         'ext':         '.xml',
@@ -1903,7 +2162,8 @@ pml_parttypes = {
         'baseURI':     '/ppt/tags',
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['presentation', 'slide'],
-        'reltype':     RT_TAGS},
+        'reltype':     RT_TAGS
+    },
     CT_TEMPLATE: {  # ECMA-376-1 13.3.6
         # one of three possible Content Type values for presentation part
         'basename':    'presentation',
@@ -1914,7 +2174,8 @@ pml_parttypes = {
         'baseURI':     '/ppt',
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['package'],
-        'reltype':     RT_TEMPLATE},
+        'reltype':     RT_TEMPLATE
+    },
     CT_THEME: {  # ECMA-376-1 14.2.7
         'basename':    'theme',
         'ext':         '.xml',
@@ -1928,7 +2189,8 @@ pml_parttypes = {
         'has_rels':    PTS_HASRELS_OPTIONAL,
         'rels_from':   ['presentation', 'handoutMaster', 'notesMaster',
                         'slideMaster'],
-        'reltype':     RT_THEME},
+        'reltype':     RT_THEME
+    },
     CT_VIEW_PROPS: {  # ECMA-376-1 13.3.13
         'basename':    'viewProps',
         'ext':         '.xml',
@@ -1940,6 +2202,28 @@ pml_parttypes = {
         'rels_from':   ['presentation'],
         'reltype':     RT_VIEWPROPS
     },
+    CT_WEB_SETTINGS: {  # ISO/IEC 29500-1 11.3.13
+        'basename':    'webSettings',
+        'ext':         '.xml',
+        'name':        'Web Settings Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    False,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['document', 'glossary'],
+        'reltype':     RT_WEB_SETTINGS
+    },
+    CT_WML_COMMENTS: {  # ISO/IEC 29500-1 11.3.2
+        'basename':    'comments',
+        'ext':         '.xml',
+        'name':        'Comments Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    False,
+        'baseURI':     '/word',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['document'],
+        'reltype':     RT_WML_COMMENTS
+    },
     'image/gif': {  # ECMA-376-1 15.2.14
         'basename':    'image',
         'ext':         '.gif',
@@ -1950,7 +2234,8 @@ pml_parttypes = {
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['handoutMaster', 'notesSlide', 'notesMaster', 'slide',
                         'slideLayout', 'slideMaster'],
-        'reltype':     RT_IMAGE},
+        'reltype':     RT_IMAGE
+    },
     'image/jpeg': {  # ECMA-376-1 15.2.14
         'basename':    'image',
         'ext':         '.jpeg',
@@ -1961,7 +2246,8 @@ pml_parttypes = {
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['handoutMaster', 'notesSlide', 'notesMaster', 'slide',
                         'slideLayout', 'slideMaster'],
-        'reltype':     RT_IMAGE},
+        'reltype':     RT_IMAGE
+    },
     'image/png': {  # ECMA-376-1 15.2.14
         'basename':    'image',
         'ext':         '.png',
@@ -1972,7 +2258,8 @@ pml_parttypes = {
         'has_rels':    PTS_HASRELS_NEVER,
         'rels_from':   ['handoutMaster', 'notesSlide', 'notesMaster', 'slide',
                         'slideLayout', 'slideMaster'],
-        'reltype':     RT_IMAGE},
+        'reltype':     RT_IMAGE
+    },
     'image/x-emf': {  # ECMA-376-1 15.2.14
         'basename':    'image',
         'ext':         '.emf',
