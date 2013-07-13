@@ -551,27 +551,24 @@ class _ContentTypesItem(object):
     """
     def __init__(self):
         super(_ContentTypesItem, self).__init__()
-        self.__defaults = None
-        self.__overrides = None
+        self._defaults = {}
+        self._overrides = {}
 
     def __getitem__(self, partname):
         """
         Return the content type for the part with *partname*.
-
         """
-        # raise exception if called before load()
-        if self.__defaults is None or self.__overrides is None:
-            tmpl = "lookup _ContentTypesItem['%s'] attempted before load"
-            raise ValueError(tmpl % partname)
-        # first look for an explicit content type
-        if partname in self.__overrides:
-            return self.__overrides[partname]
-        # if not, look for a default based on the extension
+        # look for explicit partname match in overrides (case-insensitive)
+        for override_partname, content_type in self._overrides.items():
+            if override_partname.lower() == partname.lower():
+                return content_type
+        # look for case-insensitive match on extension in default element
         ext = os.path.splitext(partname)[1]  # get extension of partname
         # with leading dot trimmed off
         ext = ext[1:] if ext.startswith('.') else ext
-        if ext in self.__defaults:
-            return self.__defaults[ext]
+        for extension, content_type in self._defaults.items():
+            if extension.lower() == ext.lower():
+                return content_type
         # if neither of those work, raise an exception
         tmpl = "no content type for part '%s' in [Content_Types].xml"
         raise LookupError(tmpl % partname)
@@ -579,11 +576,8 @@ class _ContentTypesItem(object):
     def __len__(self):
         """
         Return sum count of Default and Override elements.
-
         """
-        count = len(self.__defaults) if self.__defaults is not None else 0
-        count += len(self.__overrides) if self.__overrides is not None else 0
-        return count
+        return len(self._defaults) + len(self._overrides)
 
     def compose(self, parts):
         """
@@ -592,9 +586,9 @@ class _ContentTypesItem(object):
         # extensions in this dict include leading '.'
         def_cts = pptx.spec.default_content_types
         # initialize working dictionaries for defaults and overrides
-        self.__defaults = dict((ext[1:], def_cts[ext])
-                               for ext in ('.rels', '.xml'))
-        self.__overrides = {}
+        self._defaults = dict((ext[1:], def_cts[ext])
+                              for ext in ('.rels', '.xml'))
+        self._overrides = {}
         # compose appropriate element for each part
         for part in parts:
             ext = os.path.splitext(part.partname)[1]
@@ -602,9 +596,9 @@ class _ContentTypesItem(object):
             # fancier way to do this, otherwise I don't know what 'xml'
             # Default entry is for.
             if ext == '.xml':
-                self.__overrides[part.partname] = part.content_type
+                self._overrides[part.partname] = part.content_type
             elif ext in def_cts:
-                self.__defaults[ext[1:]] = def_cts[ext]
+                self._defaults[ext[1:]] = def_cts[ext]
             else:
                 tmpl = "extension '%s' not found in default_content_types"
                 raise LookupError(tmpl % (ext))
@@ -614,16 +608,16 @@ class _ContentTypesItem(object):
     def element(self):
         nsmap = {None: pptx.spec.nsmap['ct']}
         element = etree.Element(qtag('ct:Types'), nsmap=nsmap)
-        if self.__defaults:
-            for ext in sorted(self.__defaults.keys()):
+        if self._defaults:
+            for ext in sorted(self._defaults.keys()):
                 subelm = etree.SubElement(element, qtag('ct:Default'))
                 subelm.set('Extension', ext)
-                subelm.set('ContentType', self.__defaults[ext])
-        if self.__overrides:
-            for partname in sorted(self.__overrides.keys()):
+                subelm.set('ContentType', self._defaults[ext])
+        if self._overrides:
+            for partname in sorted(self._overrides.keys()):
                 subelm = etree.SubElement(element, qtag('ct:Override'))
                 subelm.set('PartName', partname)
-                subelm.set('ContentType', self.__overrides[partname])
+                subelm.set('ContentType', self._overrides[partname])
         return element
 
     def load(self, fs):
@@ -631,15 +625,14 @@ class _ContentTypesItem(object):
         Retrieve [Content_Types].xml from specified file system and load it.
         Returns a reference to this _ContentTypesItem instance to allow
         generative call, e.g. ``cti = _ContentTypesItem().load(fs)``.
-
         """
         element = fs.getelement('/[Content_Types].xml')
         defaults = element.findall(qtag('ct:Default'))
         overrides = element.findall(qtag('ct:Override'))
-        self.__defaults = dict((d.get('Extension'), d.get('ContentType'))
-                               for d in defaults)
-        self.__overrides = dict((o.get('PartName'), o.get('ContentType'))
-                                for o in overrides)
+        self._defaults = dict((d.get('Extension'), d.get('ContentType'))
+                              for d in defaults)
+        self._overrides = dict((o.get('PartName'), o.get('ContentType'))
+                               for o in overrides)
         return self
 
 

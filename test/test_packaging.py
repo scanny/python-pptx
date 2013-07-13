@@ -12,7 +12,7 @@
 import os
 
 from collections import namedtuple
-from hamcrest import assert_that, is_
+from hamcrest import assert_that, equal_to, is_
 from lxml import etree
 from mock import Mock
 from StringIO import StringIO
@@ -117,7 +117,44 @@ class TestBaseFileSystem(TestCase):
             fs.getelement('/docProps/thumbnail.jpeg')
 
 
-class Test_ContentTypesItem(TestCase):
+class Test_ContentTypesItem__getitem__(TestCase):
+    """Test dictionary-style access of content type using partname as key"""
+    def setUp(self):
+        self.cti = _ContentTypesItem()
+
+    def test_it_finds_default_case_insensitive(self):
+        """_ContentTypesItem[partname] finds default case insensitive"""
+        # setup ------------------------
+        partname = '/ppt/media/image1.JPG'
+        content_type = 'image/jpeg'
+        self.cti._defaults = {'jpg': content_type}
+        # exercise ---------------------
+        val = self.cti[partname]
+        # verify -----------------------
+        assert_that(val, is_(equal_to(content_type)))
+
+    def test_it_finds_override_case_insensitive(self):
+        """_ContentTypesItem[partname] finds override case insensitive"""
+        # setup ------------------------
+        partname = '/foo/bar.xml'
+        case_mangled_partname = '/FoO/bAr.XML'
+        content_type = 'application/vnd.content_type'
+        self.cti._overrides = {
+            partname: content_type
+        }
+        # exercise ---------------------
+        val = self.cti[case_mangled_partname]
+        # verify -----------------------
+        assert_that(val, is_(equal_to(content_type)))
+
+    def test_getitem_raises_on_bad_partname(self):
+        """_ContentTypesItem[partname] raises on bad partname"""
+        # verify -----------------------
+        with self.assertRaises(LookupError):
+            self.cti['!blat/rhumba.1x&']
+
+
+class Test_ContentTypesItem_compose(TestCase):
     """Test _ContentTypesItem"""
     def setUp(self):
         self.cti = _ContentTypesItem()
@@ -160,21 +197,6 @@ class Test_ContentTypesItem(TestCase):
         self.cti.compose(pkg.parts)
         # verify ----------------------
         self.assertLength(self.cti.element, 24)
-
-    def test_getitem_raises_before_load(self):
-        """_ContentTypesItem[partname] raises before load"""
-        # verify ----------------------
-        with self.assertRaises(ValueError):
-            self.cti['/ppt/presentation.xml']
-
-    def test_getitem_raises_on_bad_partname(self):
-        """_ContentTypesItem[partname] raises on bad partname"""
-        # setup ------------------------
-        fs = FileSystem(zip_pkg_path)
-        self.cti.load(fs)
-        # verify ----------------------
-        with self.assertRaises(LookupError):
-            self.cti['!blat/rhumba.1x&']
 
     def test_load_spotcheck(self):
         """_ContentTypesItem can load itself from a filesystem instance"""
