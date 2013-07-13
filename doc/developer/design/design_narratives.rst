@@ -10,8 +10,8 @@ the design process.
 XML wrapper classes
 ===================
 
-Acceptance Tests
-----------------
+Acceptance Criteria
+-------------------
 
 ``lxml.objectify``:
 
@@ -48,120 +48,6 @@ Acceptance Tests
    ``p.br``
 
 
-Abandoned requirements
-----------------------
-
-7. **Create schema-minimal children**. On construction of a new element,
-   automatically construct all child elements that are required by the schema.
-   Note that this is problematic if elements can't be unambiguously identified
-   during parsing, such as might happen when an element with the same
-   namespace and tagname can appear in multiple contexts with different types.
-   The ``p:sld`` tag is an example of this.
-
-**Rationale:** This was going to be problematic anyway if there were obscure
-tag matches and required fields were created automatically, possibly resulting
-in invalid tags appearing at otherwise untouched locations in the XML
-hierarchy. Also, this bug would probably show up first in the field as it
-would be very burdensome to identify the specific tests required.
-
-Second, the template-driven approach to creating new shape elements takes a
-lot of the ugliness out of the new element generation step.
-
-
-XSD unmarshalling class community
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-... one approach might be to generate the classes off of a subset of the full
-XML Schema, modifying schema element definitions where desired to prune
-unused parts of the type graph
-
-... possibly a TypeGraph object that acts as the container, initialize with a
-root complexType node ... calls from ComplexType to graph like getTypeByName
-and graph can create and return, that keeps type creation code up at the top
-level and outside ComplexType ...
-
-... I wonder how far I could get with just a list of (tag, typename,
-is_required) tuples. Required elements would be created on construction, and
-optional ones would be ...
-
-The rub would come in spTree, and in paragraph (<a:p> where you have an
-arbitrary sequence from a set (xsd:choice) of possible elements.
-
-So tuples won't work for long, there needs to be a set of classes that
-populate the list, maybe just Element and Choice. These situations might be
-rare enough that subclassing the relatively few would work for a start and
-then learn what code to generate step by step.
-
-
-Requirements
-------------
-
-Pending requirements
-^^^^^^^^^^^^^^^^^^^^
-
-* cascading construction (unmarshaling) based on an existing lxml element
-  graph
-
-* generation of entire module file from template so no manual intervention is
-  required
-* work out a good way to subclass to add specialized functionality to selected
-  classes
-
-* repeating elements
-
-  * txBody.p for example
-
-* optional elements ...
-
-  * create on first access
-  * ? how respect element order when inserting a new element after
-    construction? ... need additional metadata
-
-* choice groups ...
-
-
-Completed requirements
-^^^^^^^^^^^^^^^^^^^^^^
-
-* XML access classes are generated
-* child elements can be accessed via dotted notation
-* minimal/required sub-tree elements are constructed in cascade on
-  construction of root element
-* attributes can be accessed via dotted notation; required attributes get no
-  special treatment, it's up to the user to make sure they are set with a
-  valid value.
-
-
-Open Issues
------------
-
-``<xsd:choice>`` handling
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-...
-
-
-Purposes
---------
-
-1. ... compact and readable access ... using dotted member notation instead of
-   ``lxml`` notation in higher level abstraction domains ...
-
-#. Encapsulate and hide
-
-#. Reuse of recurring elements ...
-
-
-Constructors
-------------
-
-... two construction modes:
-
-1. (Roughly) *unmarshal* an existing lxml element
-
-2. Construct a *new* lxml element from scratch
-
-
 End-user API facade
 ===================
 
@@ -188,6 +74,18 @@ SML could be added in separate modules to fill out the set.
 Design Narrative -- Model-side relationships
 ============================================
 
+Might it make sense to maintain XML of .rels stream throughout life-cycle?
+--------------------------------------------------------------------------
+
+No. The primary rationale is that a partname is not a primary model-side
+entity; partnames are driven by the serialization concern, providing a method
+for addressing serialized parts. Partnames are not required to be up-to-date in
+the model until after the |before_marshal| call to the part returns. Even if
+all part names were kept up-to-date, it would be a leakage across concern
+boundaries to require a part to notify relationships of name changes; not to
+mention it would introduce additional complexity that has nothing to do with
+manipulation of the in-memory model.
+
 **always up-to-date principle**
 
   Model-side relationships are maintained as new parts are added or existing
@@ -197,24 +95,48 @@ Design Narrative -- Model-side relationships
 The :doc:`protocols/relationships` page contains documentation for
 the :ref:`relationship-related-protocol`.
 
-Interface
----------
+I'm not completely sure that the always-up-to-date principle need necessarily
+apply in every case. As long as the relationships are up-to-date before
+returning from the |before_marshal| call, I don't see a reason why that
+choice couldn't be at the designer's discretion. Because relationships don't
+have a compelling model-side runtime purpose, it might simplify the code to
+localize the pre-serialization concern to the |before_marshal| method.
 
-=======  ============  =======================================================
-attr     client        purpose
-=======  ============  =======================================================
-rId      presentation  part association during unmarshaling
-reltype  presentation  allow relationships to be selected by type
-target   presentation  get specifics and content
--------  ------------  -------------------------------------------------------
-element  packaging     Package needs this to save pptx
-=======  ============  =======================================================
+.. |before_marshal| replace:: :meth:`before-marshal`
 
-* Unlikely to need .source attribute in interface because only way to get to
-  the relationships is by traversing the source.
 
-* All the business of baseURI and target like a relative URI are things
-  Relationship can safely hide from clients.
+Members
+-------
+
+**rId**
+
+   The relationship identifier. Must be a unique xsd:ID string. It is usually
+   of the form 'rId%d' % {sequential_int}, e.g. ``'rId9'``, but this need not
+   be the case. In situations where a relationship is created (e.g. for a new
+   part) or can be rewritten, e.g. if presentation->slide relationships were
+   rewritten on |before_marshal|, this form is preferred. In all other cases
+   the existing rId value should be preserved. When a relationship is what the
+   spec terms as *explicit*, there is a reference to the relationship within
+   the source part XML, the key of which is the rId value; changing the rId
+   would break that mapping.
+
+   The **sequence** of relationships in the collection is not significant. The
+   relationship collection should be regarded as a mapping on rId, not as
+   a sequence with the index indicated by the numeric suffix of rId. While
+   PowerPoint observes the convention of using sequential rId values for
+   the slide relationships of a presentation, for example, this should not be
+   used to determine slide sequence, nor is it a requirement for package
+   production (saving a .pptx file).
+
+**reltype**
+
+  A clear purpose for reltype is still a mystery to me.
+
+**target_mode**
+
+**target_part**
+
+**target_ref**
 
 
 Design Narrative --- Text API
