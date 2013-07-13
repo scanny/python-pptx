@@ -2224,6 +2224,18 @@ pml_parttypes = {
         'rels_from':   ['document'],
         'reltype':     RT_WML_COMMENTS
     },
+    'image/bmp': {  # ECMA-376-1 15.2.14
+        'basename':    'image',
+        'ext':         '.bmp',
+        'name':        'Image Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/ppt/media',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   ['handoutMaster', 'notesSlide', 'notesMaster', 'slide',
+                        'slideLayout', 'slideMaster'],
+        'reltype':     RT_IMAGE
+    },
     'image/gif': {  # ECMA-376-1 15.2.14
         'basename':    'image',
         'ext':         '.gif',
@@ -2260,16 +2272,15 @@ pml_parttypes = {
                         'slideLayout', 'slideMaster'],
         'reltype':     RT_IMAGE
     },
-    'image/x-emf': {  # ECMA-376-1 15.2.14
+    'image/tiff': {
         'basename':    'image',
-        'ext':         '.emf',
+        'ext':         '.tiff',
         'name':        'Image Part',
         'cardinality': PTS_CARDINALITY_TUPLE,
         'required':    False,
         'baseURI':     '/ppt/media',
         'has_rels':    PTS_HASRELS_NEVER,
-        'rels_from':   ['handoutMaster', 'notesSlide', 'notesMaster', 'slide',
-                        'slideLayout', 'slideMaster'],
+        'rels_from':   [],
         'reltype':     RT_IMAGE
     },
     'image/vnd.ms-photo': {
@@ -2283,17 +2294,30 @@ pml_parttypes = {
         'rels_from':   [],
         'reltype':     RT_IMAGE
     },
-    'image/tiff': {
+    'image/x-emf': {  # ECMA-376-1 15.2.14
         'basename':    'image',
-        'ext':         '.tiff',
+        'ext':         '.emf',
         'name':        'Image Part',
         'cardinality': PTS_CARDINALITY_TUPLE,
         'required':    False,
         'baseURI':     '/ppt/media',
         'has_rels':    PTS_HASRELS_NEVER,
-        'rels_from':   [],
+        'rels_from':   ['handoutMaster', 'notesSlide', 'notesMaster', 'slide',
+                        'slideLayout', 'slideMaster'],
         'reltype':     RT_IMAGE
-    }
+    },
+    'image/x-wmf': {
+        'basename':    'image',
+        'ext':         '.wmf',
+        'name':        'Image Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/ppt/media',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   ['handoutMaster', 'notesSlide', 'notesMaster',
+                        'slide', 'slideLayout', 'slideMaster'],
+        'reltype':     RT_IMAGE,
+    },
 }
 
 
@@ -2310,6 +2334,7 @@ pml_parttypes = {
 
 default_content_types = {
     '.bin':     CT_PRINTER_SETTINGS,
+    '.bmp':     'image/bmp',
     '.emf':     'image/x-emf',
     '.fntdata': 'application/x-fontdata',
     '.gif':     'image/gif',

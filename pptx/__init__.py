@@ -9,7 +9,7 @@ import sys
 import pptx.exc as exceptions
 sys.modules['pptx.exceptions'] = exceptions
 
-from pptx.api import Presentation  # flake8: noqa
+from pptx.api import Presentation  # noqa
 
 __version__ = '0.2.6'
 
