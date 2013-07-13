@@ -215,8 +215,10 @@ class Test_BasePart(TestCase):
         # exercise ---------------------
         retval = self.basepart._blob
         # verify -----------------------
-        expected = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>"\
-                   '\n<root>\n  <elm1 attr="one"/>\n</root>\n'
+        expected = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<root><elm1 attr="one"/></root>'
+        )
         actual = retval
         msg = "expected: \n'%s'\n, got \n'%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)

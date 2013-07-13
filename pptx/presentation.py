@@ -594,7 +594,7 @@ class _BasePart(_Observable):
             assert self._element is not None, '_BasePart._blob is undefined '\
                 'for xml parts when part.__element is None'
             xml = oxml_tostring(self._element, encoding='UTF-8',
-                                pretty_print=True, standalone=True)
+                                pretty_print=False, standalone=True)
             return xml
         # default for binary parts is to return _load_blob unchanged
         assert self._load_blob, "_BasePart._blob called on part with no "\
