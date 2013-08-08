@@ -26,8 +26,8 @@ class Presentation(object):
     """
     def __init__(self, file=None):
         super(Presentation, self).__init__()
-        self.__package = _Package(file)
-        self.__presentation = self.__package.presentation
+        self._package = _Package(file)
+        self._presentation = self._package.presentation
 
     @property
     def core_properties(self):
@@ -35,7 +35,7 @@ class Presentation(object):
         Instance of |_CoreProperties| holding the read/write Dublin Core
         document properties for this presentation.
         """
-        return self.__package.core_properties
+        return self._package.core_properties
 
     @property
     def slidelayouts(self):
@@ -43,21 +43,21 @@ class Presentation(object):
         Tuple containing the |_SlideLayout| instances belonging to the
         first |_SlideMaster| of this presentation.
         """
-        return tuple(self.__presentation.slidemasters[0].slidelayouts)
+        return tuple(self._presentation.slidemasters[0].slidelayouts)
 
     @property
     def slidemaster(self):
         """
         First |_SlideMaster| object belonging to this presentation.
         """
-        return self.__presentation.slidemasters[0]
+        return self._presentation.slidemasters[0]
 
     @property
     def slidemasters(self):
         """
         List of |_SlideMaster| objects belonging to this presentation.
         """
-        return self.__presentation.slidemasters
+        return self._presentation.slidemasters
 
     @property
     def slides(self):
@@ -65,11 +65,11 @@ class Presentation(object):
         |_SlideCollection| object containing the slides in this
         presentation.
         """
-        return self.__presentation.slides
+        return self._presentation.slides
 
     def save(self, file):
         """
         Save this presentation to *file*, where *file* can be either a path to
         a file (a string) or a file-like object.
         """
-        return self.__package.save(file)
+        return self._package.save(file)
