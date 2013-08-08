@@ -1222,17 +1222,20 @@ class _Font(object):
     def bold(self):
         """
         Get or set boolean bold value of |_Font|, e.g.
-        ``paragraph.font.bold = True``.
+        ``paragraph.font.bold = True``. If set to |None|, the bold setting is
+        cleared and is inherited from an enclosing shape's setting, or a
+        setting in a style or master.
         """
         b = self.__rPr.get('b')
         return True if b in ('true', '1') else False
 
     @bold.setter
     def bold(self, bool):
-        if bool:
-            self.__rPr.set('b', '1')
-        elif 'b' in self.__rPr.attrib:
-            del self.__rPr.attrib['b']
+        if bool is None:
+            if 'b' in self.__rPr.attrib:
+                del self.__rPr.attrib['b']
+        else:
+            self.__rPr.set('b', '1' if bool else '0')
 
     def _set_size(self, centipoints):
         # handle float centipoints value gracefully

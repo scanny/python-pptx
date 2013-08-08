@@ -709,7 +709,7 @@ class Test_Font(TestCase):
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
 
     def test_clear_bold(self):
-        """Setting _Font.bold to False selects normal font weight"""
+        """Setting _Font.bold to None clears run-level bold setting"""
         # setup ------------------------
         rPr_xml = (
             '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
@@ -720,7 +720,7 @@ class Test_Font(TestCase):
             '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
             '/main"/>')
         # exercise ---------------------
-        font.bold = False
+        font.bold = None
         # verify -----------------------
         rPr_xml = oxml_tostring(font._Font__rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
