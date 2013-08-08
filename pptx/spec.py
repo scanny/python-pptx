@@ -605,7 +605,7 @@ autoshape_types = {
     },
     MAST.FOLDED_CORNER: {
         'basename': 'Folded Corner',
-        'prst':     'folderCorner',
+        'prst':     'foldedCorner',
         'avLst':    ()
     },
     MAST.FRAME: {
