@@ -44,7 +44,7 @@ class CT_CorePropertiesBuilder(object):
 
     @property
     def _ns_prefixes(self):
-        ns_prefixes = ['cp']
+        ns_prefixes = ['cp', 'dc', 'dcterms']
         for propname, tag in self.properties:
             value = getattr(self, '_%s' % propname)
             if value is None:

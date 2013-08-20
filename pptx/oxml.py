@@ -75,7 +75,8 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
     # if xsi parameter is not set to False, PowerPoint won't load without a
     # repair step; deannotate removes some original xsi:type tags in core.xml
     # if this parameter is left out (or set to True)
-    objectify.deannotate(elm, xsi=False, cleanup_namespaces=True)
+    # objectify.deannotate(elm, xsi=False, cleanup_namespaces=True)
+    objectify.deannotate(elm, xsi=False, cleanup_namespaces=False)
     return etree.tostring(elm, encoding=encoding, pretty_print=pretty_print,
                           standalone=standalone)
 

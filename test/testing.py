@@ -11,6 +11,8 @@
 
 import unittest2
 
+# from lxml import objectify
+
 from pptx.oxml import oxml_tostring
 
 
@@ -21,6 +23,7 @@ class TestCase(unittest2.TestCase):
         Apply assertEqual() to each line of *expected_xml* and corresponding
         line of XML derived from *element*.
         """
+        # objectify.deannotate(element, xsi=False, cleanup_namespaces=True)
         actual_xml = oxml_tostring(element, pretty_print=True)
         actual_xml_lines = actual_xml.split('\n')
         expected_xml_lines = expected_xml.split('\n')

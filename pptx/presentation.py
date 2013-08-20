@@ -1094,14 +1094,14 @@ class _Slide(_BaseSlide):
         Return element containing the minimal XML for a slide, based on what
         is required by the XMLSchema.
         """
-        sld = _Element('p:sld', _nsmap)
-        _SubElement(sld, 'p:cSld', _nsmap)
-        _SubElement(sld.cSld, 'p:spTree', _nsmap)
-        _SubElement(sld.cSld.spTree, 'p:nvGrpSpPr', _nsmap)
-        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvPr', _nsmap)
-        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvGrpSpPr', _nsmap)
-        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:nvPr', _nsmap)
-        _SubElement(sld.cSld.spTree, 'p:grpSpPr', _nsmap)
+        sld = _Element('p:sld', namespaces('p'))
+        _SubElement(sld, 'p:cSld', namespaces('p'))
+        _SubElement(sld.cSld, 'p:spTree', namespaces('p'))
+        _SubElement(sld.cSld.spTree, 'p:nvGrpSpPr', namespaces('p'))
+        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvPr', namespaces('p'))
+        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvGrpSpPr', namespaces('p'))
+        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:nvPr', namespaces('p'))
+        _SubElement(sld.cSld.spTree, 'p:grpSpPr', namespaces('p'))
         sld.cSld.spTree.nvGrpSpPr.cNvPr.set('id', '1')
         sld.cSld.spTree.nvGrpSpPr.cNvPr.set('name', '')
         return sld

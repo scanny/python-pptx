@@ -1191,7 +1191,7 @@ class _TextFrame(object):
         paragraphs contained in this text frame.
         """
         # <a:p> elements are last in txBody, so can simply append new one
-        p = _Element('a:p', _nsmap)
+        p = _Element('a:p', namespaces('a'))
         self.__txBody.append(p)
         return _Paragraph(p)
 
@@ -1297,7 +1297,7 @@ class _Paragraph(object):
         # included in the XML if the _Font element is referred to but not
         # populated with values.
         if not hasattr(self.__p, 'pPr'):
-            pPr = _Element('a:pPr', _nsmap)
+            pPr = _Element('a:pPr', namespaces('a'))
             self.__p.insert(0, pPr)
         if not hasattr(self.__p.pPr, 'defRPr'):
             _SubElement(self.__p.pPr, 'a:defRPr')
@@ -1320,7 +1320,7 @@ class _Paragraph(object):
             msg = "paragraph level must be integer between 0 and 8 inclusive"
             raise ValueError(msg)
         if not hasattr(self.__p, 'pPr'):
-            pPr = _Element('a:pPr', _nsmap)
+            pPr = _Element('a:pPr', namespaces('a'))
             self.__p.insert(0, pPr)
         self.__p.pPr.set('lvl', str(level))
 
@@ -1359,7 +1359,7 @@ class _Paragraph(object):
 
     def add_run(self):
         """Return a new run appended to the runs in this paragraph."""
-        r = _Element('a:r', _nsmap)
+        r = _Element('a:r', namespaces('a'))
         _SubElement(r, 'a:t')
         # work out where to insert it, ahead of a:endParaRPr if there is one
         endParaRPr = _child(self.__p, 'a:endParaRPr')
@@ -1396,7 +1396,7 @@ class _Run(object):
         level are contained in the |_Font| object.
         """
         if not hasattr(self.__r, 'rPr'):
-            self.__r.insert(0, _Element('a:rPr', _nsmap))
+            self.__r.insert(0, _Element('a:rPr', namespaces('a')))
         return _Font(self.__r.rPr)
 
     @property
