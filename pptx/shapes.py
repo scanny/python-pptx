@@ -479,7 +479,7 @@ class _ShapeCollection(_BaseShape, Collection):
                 return shape
         return None
 
-    def add_picture(self, file, left, top, width=None, height=None):
+    def add_picture(self, file, left, top, width=None, height=None, z_idx=-1):
         """
         Add picture shape displaying image in *file*, where *file* can be
         either a path to a file (a string) or a file-like object.
@@ -494,9 +494,12 @@ class _ShapeCollection(_BaseShape, Collection):
 
         pic = CT_Picture.new_pic(id, name, desc, rId, left, top, width, height)
 
-        self.__spTree.append(pic)
+        idx = len(self.__shapes) if z_idx == -1 else z_idx
+        # self.__spTree.append(pic)
+        self.__spTree.insert(idx+2, pic)
         picture = _Picture(pic)
-        self.__shapes.append(picture)
+        # self.__shapes.append(picture)
+        self.__shapes.insert(idx, picture)
         return picture
 
     def add_shape(self, autoshape_type_id, left, top, width, height):

@@ -1234,7 +1234,7 @@ class Test_ShapeCollection(TestCase):
         slide = Mock(name='slide')
         slide._add_image.return_value = image, rel
         __spTree = Mock(name='__spTree')
-        __shapes = Mock(name='__shapes')
+        __shapes = MagicMock(name='__shapes')
         shapes = _ShapeCollection(test_shape_elements.empty_spTree, slide)
         shapes._ShapeCollection__spTree = __spTree
         shapes._ShapeCollection__shapes = __shapes
@@ -1249,9 +1249,9 @@ class Test_ShapeCollection(TestCase):
         image._scale.assert_called_once_with(width, height)
         CT_Picture.new_pic.assert_called_once_with(
             id_, name, desc, rId, left, top, width, height)
-        __spTree.append.assert_called_once_with(pic)
+        __spTree.insert.assert_called_once_with(2, pic)
         _Picture.assert_called_once_with(pic)
-        __shapes.append.assert_called_once_with(picture)
+        __shapes.insert.assert_called_once_with(0, picture)
         assert_that(retval, is_(equal_to(picture)))
 
     @patch('pptx.shapes._Table')
