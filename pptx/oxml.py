@@ -251,6 +251,8 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             raise ValueError(tmpl % (name, value))
         tag = qn(CT_CoreProperties._str_tags[name])
         setattr(self, tag, value)
+        elm = getattr(self, tag)
+        objectify.deannotate(elm, cleanup_namespaces=True)
 
     def __set_date_prop(self, name, value):
         """Set datetime value of *name* property to *value*"""
@@ -262,6 +264,8 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         tag = qn(tagname)
         dt_str = value.strftime('%Y-%m-%dT%H:%M:%SZ')
         setattr(self, tag, dt_str)
+        elm = getattr(self, tag)
+        objectify.deannotate(elm, cleanup_namespaces=True)
         if name in ('created', 'modified'):
             # these two require an explicit 'xsi:type' attribute
             # first and last line are a hack required to add the xsi
@@ -278,6 +282,8 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             raise ValueError(tmpl % value)
         tag = qn('cp:revision')
         setattr(self, tag, str(value))
+        elm = getattr(self, tag)
+        objectify.deannotate(elm, cleanup_namespaces=True)
 
     _offset_pattern = re.compile('([+-])(\d\d):(\d\d)')
 
