@@ -58,7 +58,7 @@ Reaching out
 We'd love to hear from you if you like |pp|, want a new feature, find a bug,
 need help using it, or just have a word of encouragement.
 
-The **mailing list** for |pp| is python.pptx@librelist.com.
+The **mailing list** for |pp| is python-pptx@googlegroups.com.
 
 The **issue tracker** is on github at `scanny/python-pptx`_.
 
