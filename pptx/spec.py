@@ -1719,6 +1719,9 @@ RT_EXTENDED_PROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/exte'
     'ndedProperties'
 )
+RT_FONT = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/font'
+)
 RT_FONT_TABLE = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/font'
     'Table'
@@ -2317,6 +2320,17 @@ pml_parttypes = {
         'rels_from':   ['handoutMaster', 'notesSlide', 'notesMaster',
                         'slide', 'slideLayout', 'slideMaster'],
         'reltype':     RT_IMAGE,
+    },
+    'application/x-fontdata': {
+        'basename':    'font',
+        'ext':         '.fntdata',
+        'name':        'Font Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/ppt/fonts',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   ['presentation'],
+        'reltype':     RT_FONT,
     },
 }
 
