@@ -25,7 +25,7 @@ LICENSE = 'MIT'
 PACKAGES = ['pptx']
 PACKAGE_DATA = {'pptx': ['templates/*']}
 
-INSTALL_REQUIRES = ['lxml', 'PIL']
+INSTALL_REQUIRES = ['lxml>=2.3.2', 'PIL']
 TEST_SUITE = 'test'
 TESTS_REQUIRE = ['unittest2', 'mock', 'PyHamcrest', 'behave']
 
