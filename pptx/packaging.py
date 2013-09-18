@@ -652,10 +652,10 @@ class FileSystem(object):
     filesystem class. |FileSystem| acts as the Factory, returning the
     appropriate concrete filesystem class depending on what it finds at *path*.
     """
-    def __new__(cls, file):
-        # if *file* is a string, treat it as a path
-        if isinstance(file, basestring):
-            path = file
+    def __new__(cls, file_):
+        # if *file_* is a string, treat it as a path
+        if isinstance(file_, basestring):
+            path = file_
             if is_zipfile(path):
                 fs = ZipFileSystem(path)
             elif os.path.isdir(path):
@@ -663,7 +663,7 @@ class FileSystem(object):
             else:
                 raise PackageNotFoundError("Package not found at '%s'" % path)
         else:
-            fs = ZipFileSystem(file)
+            fs = ZipFileSystem(file_)
         return fs
 
 
@@ -771,12 +771,12 @@ class ZipFileSystem(BaseFileSystem):
     Inherits :meth:`__contains__`, :meth:`getelement`, and :attr:`path` from
     BaseFileSystem.
     """
-    def __init__(self, file, mode='r'):
+    def __init__(self, file_, mode='r'):
         super(ZipFileSystem, self).__init__()
         if 'w' in mode:
-            self.zipf = ZipFile(file, 'w', compression=ZIP_DEFLATED)
+            self.zipf = ZipFile(file_, 'w', compression=ZIP_DEFLATED)
         else:
-            self.zipf = ZipFile(file, 'r')
+            self.zipf = ZipFile(file_, 'r')
 
     def close(self):
         """

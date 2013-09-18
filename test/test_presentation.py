@@ -356,7 +356,7 @@ class Test_Image(TestCase):
     def test_construction_from_stream(self):
         """_Image(stream) construction produces correct attribute values"""
         # exercise ---------------------
-        with open(test_image_path) as f:
+        with open(test_image_path, 'rb') as f:
             stream = StringIO(f.read())
         image = _Image(stream)
         # verify -----------------------

@@ -275,7 +275,7 @@ class TestFileSystem(TestCase):
 
     def test_constructor_returns_zipfs_for_zip_stream(self):
         """FileSystem(zipfile_stream) returns instance of ZipFileSystem"""
-        with open(zip_pkg_path) as stream:
+        with open(zip_pkg_path, 'rb') as stream:
             fs = FileSystem(stream)
         assert_that(isinstance(fs, ZipFileSystem))
 
@@ -319,7 +319,7 @@ class TestPackage(TestCase):
 
     def test_open_returns_self(self):
         """Package.open() returns self-reference"""
-        for file in (dir_pkg_path, zip_pkg_path, open(zip_pkg_path)):
+        for file in (dir_pkg_path, zip_pkg_path, open(zip_pkg_path, 'rb')):
             # exercise ----------------
             retval = self.pkg.open(file)
             # verify ------------------
@@ -631,7 +631,7 @@ class TestZipFileSystem(TestCase):
 
     def test_constructor_accepts_stream(self):
         """ZipFileSystem() constructor accepts zip archive as stream"""
-        with open(zip_pkg_path) as stream:
+        with open(zip_pkg_path, 'rb') as stream:
             fs = ZipFileSystem(stream)
         assert_that(isinstance(fs, ZipFileSystem))
 
