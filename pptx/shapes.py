@@ -532,14 +532,14 @@ class _ShapeCollection(_BaseShape, Collection):
         self.__shapes.append(table)
         return table
 
-    def add_textbox(self, left, top, width, height):
+    def add_textbox(self, left, top, width, height, wordwrap=False):
         """
         Add text box shape of specified size at specified position.
         """
         id_ = self.__next_shape_id
         name = 'TextBox %d' % (id_-1)
 
-        sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
+        sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height, wordwrap)
         shape = _Shape(sp)
 
         self.__spTree.append(sp)

@@ -3,6 +3,7 @@
 .tox
 *.egg-info
 *.pyc
+*.swp
 dist
 doc/_build
 features/_scratch/*

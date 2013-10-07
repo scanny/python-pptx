@@ -1310,7 +1310,7 @@ class Test_ShapeCollection(TestCase):
         retval = shapes.add_textbox(left, top, width, height)
         # verify -----------------------
         CT_Shape.new_textbox_sp.assert_called_once_with(
-            id_, name, left, top, width, height)
+            id_, name, left, top, width, height, False)
         _Shape.assert_called_once_with(sp)
         __spTree.append.assert_called_once_with(sp)
         assert_that(shapes._ShapeCollection__shapes[0], is_(equal_to(shape)))
