@@ -24,6 +24,7 @@ from mock import Mock, patch, PropertyMock
 import pptx.presentation
 
 from pptx.exceptions import InvalidPackageError
+from pptx.opc_constants import CONTENT_TYPE as CT
 from pptx.oxml import (
     CT_CoreProperties, oxml_fromstring, oxml_parse, oxml_tostring
 )
@@ -35,10 +36,6 @@ from pptx.presentation import (
 )
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces, qtag
-from pptx.spec import (
-    CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
-    CT_SLIDE_MASTER
-)
 from pptx.spec import (
     RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PRES_PROPS, RT_SLIDE,
     RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
@@ -328,7 +325,7 @@ class Test_CoreProperties(TestCase):
         core_props = _CoreProperties._default()
         # verify -----------------------
         assert_that(core_props, is_(instance_of(_CoreProperties)))
-        assert_that(core_props._content_type, is_(CT_CORE_PROPS))
+        assert_that(core_props._content_type, is_(CT.OPC_CORE_PROPERTIES))
         assert_that(core_props.partname, is_('/docProps/core.xml'))
         assert_that(core_props._element, is_(instance_of(CT_CoreProperties)))
         assert_that(core_props.title, is_('PowerPoint Presentation'))
@@ -572,7 +569,7 @@ class Test_Part(TestCase):
         # setup ------------------------
         cls = Presentation
         # exercise ---------------------
-        obj = _Part(RT_OFFICE_DOCUMENT, CT_PRESENTATION)
+        obj = _Part(RT_OFFICE_DOCUMENT, CT.PML_PRESENTATION_MAIN)
         # verify -----------------------
         self.assertIsInstance(obj, cls)
 
@@ -581,7 +578,7 @@ class Test_Part(TestCase):
         # setup ------------------------
         cls = _Slide
         # exercise ---------------------
-        obj = _Part(RT_SLIDE, CT_SLIDE)
+        obj = _Part(RT_SLIDE, CT.PML_SLIDE)
         # verify -----------------------
         self.assertIsInstance(obj, cls)
 
@@ -590,7 +587,7 @@ class Test_Part(TestCase):
         # setup ------------------------
         cls = _SlideLayout
         # exercise ---------------------
-        obj = _Part(RT_SLIDE_LAYOUT, CT_SLIDE_LAYOUT)
+        obj = _Part(RT_SLIDE_LAYOUT, CT.PML_SLIDE_LAYOUT)
         # verify -----------------------
         self.assertIsInstance(obj, cls)
 
@@ -599,14 +596,14 @@ class Test_Part(TestCase):
         # setup ------------------------
         cls = _SlideMaster
         # exercise ---------------------
-        obj = _Part(RT_SLIDE_MASTER, CT_SLIDE_MASTER)
+        obj = _Part(RT_SLIDE_MASTER, CT.PML_SLIDE_MASTER)
         # verify -----------------------
         self.assertIsInstance(obj, cls)
 
     def test_contructor_raises_on_invalid_prs_content_type(self):
         """_Part() raises on invalid presentation content type"""
         with self.assertRaises(InvalidPackageError):
-            _Part(RT_OFFICE_DOCUMENT, CT_SLIDE_MASTER)
+            _Part(RT_OFFICE_DOCUMENT, CT.PML_SLIDE_MASTER)
 
 
 class Test_PartCollection(TestCase):
@@ -950,7 +947,7 @@ class Test_Slide(TestCase):
         # exercise ---------------------
         content_type = self.sld._content_type
         # verify -----------------------
-        expected = CT_SLIDE
+        expected = CT.PML_SLIDE
         actual = content_type
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)

@@ -16,6 +16,7 @@ from constants import (
     MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP, TEXT_ALIGN_TYPE as TAT,
     TEXT_ANCHORING_TYPE as TANC
 )
+from .opc_constants import CONTENT_TYPE as CT
 
 
 class VerticalAnchor(object):
@@ -1544,144 +1545,6 @@ PTS_HASRELS_ALWAYS = 'always'
 PTS_HASRELS_NEVER = 'never'
 PTS_HASRELS_OPTIONAL = 'optional'
 
-CT_CHART = (
-    'application/vnd.openxmlformats-officedocument.drawingml.chart+xml'
-)
-CT_COMMENT_AUTHORS = (
-    'application/vnd.openxmlformats-officedocument.presentationml.commentAuth'
-    'ors+xml'
-)
-CT_COMMENTS = (
-    'application/vnd.openxmlformats-officedocument.presentationml.comments+xm'
-    'l'
-)
-CT_CORE_PROPS = (
-    'application/vnd.openxmlformats-package.core-properties+xml'
-)
-CT_CUSTOM_PROPS = (
-    'application/vnd.openxmlformats-officedocument.custom-properties+xml'
-)
-CT_CUSTOM_XML = (
-    'application/xml'
-)
-CT_CUSTOM_XML_PROPS = (
-    'application/vnd.openxmlformats-officedocument.customXmlProperties+xml'
-)
-CT_DOCUMENT = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document.'
-    'main+xml'
-)
-CT_ENDNOTES = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+'
-    'xml'
-)
-CT_EXCEL_XLSX = (
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-)
-CT_EXTENDED_PROPS = (
-    'application/vnd.openxmlformats-officedocument.extended-properties+xml'
-)
-CT_FONT_TABLE = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable'
-    '+xml'
-)
-CT_FOOTER = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xm'
-    'l'
-)
-CT_FOOTNOTES = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes'
-    '+xml'
-)
-CT_GLOSSARY_DOCUMENT = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document.'
-    'glossary+xml'
-)
-CT_HANDOUT_MASTER = (
-    'application/vnd.openxmlformats-officedocument.presentationml.handoutMast'
-    'er+xml'
-)
-CT_HEADER = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.header+xm'
-    'l'
-)
-CT_NOTES_MASTER = (
-    'application/vnd.openxmlformats-officedocument.presentationml.notesMaster'
-    '+xml'
-)
-CT_NOTES_SLIDE = (
-    'application/vnd.openxmlformats-officedocument.presentationml.notesSlide+'
-    'xml'
-)
-CT_NUMBERING = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.numbering'
-    '+xml'
-)
-CT_PRES_PROPS = (
-    'application/vnd.openxmlformats-officedocument.presentationml.presProps+x'
-    'ml'
-)
-CT_PRESENTATION = (
-    'application/vnd.openxmlformats-officedocument.presentationml.presentatio'
-    'n.main+xml'
-)
-CT_PRINTER_SETTINGS = (
-    'application/vnd.openxmlformats-officedocument.presentationml.printerSett'
-    'ings'
-)
-CT_SETTINGS = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.settings+'
-    'xml'
-)
-CT_SLIDE = (
-    'application/vnd.openxmlformats-officedocument.presentationml.slide+xml'
-)
-CT_SLIDE_LAYOUT = (
-    'application/vnd.openxmlformats-officedocument.presentationml.slideLayout'
-    '+xml'
-)
-CT_SLIDE_MASTER = (
-    'application/vnd.openxmlformats-officedocument.presentationml.slideMaster'
-    '+xml'
-)
-CT_SLIDESHOW = (
-    'application/vnd.openxmlformats-officedocument.presentationml.slideshow.m'
-    'ain+xml'
-)
-CT_STYLES = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xm'
-    'l'
-)
-CT_TABLE_STYLES = (
-    'application/vnd.openxmlformats-officedocument.presentationml.tableStyles'
-    '+xml'
-)
-CT_TAGS = (
-    'application/vnd.openxmlformats-officedocument.presentationml.tags+xml'
-)
-CT_TEMPLATE = (
-    'application/vnd.openxmlformats-officedocument.presentationml.template.ma'
-    'in+xml'
-)
-CT_THEME = (
-    'application/vnd.openxmlformats-officedocument.theme+xml'
-)
-CT_VIEW_PROPS = (
-    'application/vnd.openxmlformats-officedocument.presentationml.viewProps+x'
-    'ml'
-)
-CT_WEB_SETTINGS = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.webSettin'
-    'gs+xml'
-)
-CT_WML_COMMENTS = (
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.comments+'
-    'xml'
-)
-CT_WORKSHEET = (
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-)
-
 
 RT_CHART = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/char'
@@ -1831,7 +1694,7 @@ RT_WML_COMMENTS = (
 )
 
 pml_parttypes = {
-    CT_CHART: {  # ISO/IEC 29500-1 14.2.1
+    CT.DML_CHART: {  # ISO/IEC 29500-1 14.2.1
         'basename':    'chart',
         'ext':         '.xml',
         'name':        'Chart Part',
@@ -1842,7 +1705,7 @@ pml_parttypes = {
         'rels_from':   ['presentation'],
         'reltype':     RT_CHART
     },
-    CT_COMMENT_AUTHORS: {  # ECMA-376-1 13.3.1
+    CT.PML_COMMENT_AUTHORS: {  # ECMA-376-1 13.3.1
         'basename':    'commentAuthors',
         'ext':         '.xml',
         'name':        'Comment Authors Part',
@@ -1853,7 +1716,7 @@ pml_parttypes = {
         'rels_from':   ['presentation'],
         'reltype':     RT_COMMENT_AUTHORS
     },
-    CT_COMMENTS: {  # ECMA-376-1 13.3.2
+    CT.PML_COMMENTS: {  # ECMA-376-1 13.3.2
         'basename':    'comment',
         'ext':         '.xml',
         'name':        'Comments Part',
@@ -1864,7 +1727,7 @@ pml_parttypes = {
         'rels_from':   ['slide'],
         'reltype':     RT_COMMENTS
     },
-    CT_CORE_PROPS: {  # ECMA-376-1 15.2.12.1 ('Core' as in Dublin Core)
+    CT.OPC_CORE_PROPERTIES: {  # ECMA-376-1 15.2.12.1 ('Core' asin Dublin Core)
         'basename':    'core',
         'ext':         '.xml',
         'name':        'Core File Properties Part',
@@ -1875,7 +1738,7 @@ pml_parttypes = {
         'rels_from':   ['package'],
         'reltype':     RT_CORE_PROPS
     },
-    CT_CUSTOM_PROPS: {  # ECMA-376-1 15.2.12.2
+    CT.OFC_CUSTOM_PROPERTIES: {  # ECMA-376-1 15.2.12.2
         'basename':    'custom',
         'ext':         '.xml',
         'name':        'Custom File Properties Part',
@@ -1886,7 +1749,7 @@ pml_parttypes = {
         'rels_from':   ['package'],
         'reltype':     RT_CUSTOM_PROPS
     },
-    CT_CUSTOM_XML: {  # ISO/IEC 29500-1 15.2.5
+    CT.XML: {  # ISO/IEC 29500-1 15.2.5
         'basename':    'item',
         'ext':         '.xml',
         'name':        'Custom XML Data Storage Part',
@@ -1897,7 +1760,7 @@ pml_parttypes = {
         'rels_from':   [],
         'reltype':     RT_CUSTOM_XML
     },
-    CT_CUSTOM_XML_PROPS: {  # ISO/IEC 29500-1 15.2.6
+    CT.OFC_CUSTOM_XML_PROPERTIES: {  # ISO/IEC 29500-1 15.2.6
         'basename':    'itemProps',
         'ext':         '.xml',
         'name':        'Custom XML Data Storage Properties Part',
@@ -1908,7 +1771,7 @@ pml_parttypes = {
         'rels_from':   [],
         'reltype':     RT_CUSTOM_XML_PROPS
     },
-    CT_DOCUMENT: {  # ISO/IEC 29500-1 11.3.10
+    CT.WML_DOCUMENT_MAIN: {  # ISO/IEC 29500-1 11.3.10
         'basename':    'document',
         'ext':         '.xml',
         'name':        'Main Document Part',
@@ -1919,7 +1782,7 @@ pml_parttypes = {
         'rels_from':   ['package'],
         'reltype':     RT_OFFICE_DOCUMENT
     },
-    CT_ENDNOTES: {  # ISO/IEC 29500-1 11.3.4
+    CT.WML_ENDNOTES: {  # ISO/IEC 29500-1 11.3.4
         'basename':    'endnotes',
         'ext':         '.xml',
         'name':        'Endnotes Part',
@@ -1930,7 +1793,7 @@ pml_parttypes = {
         'rels_from':   ['document', 'glossary'],
         'reltype':     RT_ENDNOTES
     },
-    CT_EXTENDED_PROPS: {  # ECMA-376-1 15.2.12.3 (Extended File Properties)
+    CT.OFC_EXTENDED_PROPERTIES: {  # ECMA-376-1 15.2.12.3
         'basename':    'app',
         'ext':         '.xml',
         'name':        'Application-Defined File Properties Part',
@@ -1941,7 +1804,7 @@ pml_parttypes = {
         'rels_from':   ['package'],
         'reltype':     RT_EXTENDED_PROPS
     },
-    CT_FONT_TABLE: {  # ISO/IEC 29500-1 11.3.5
+    CT.WML_FONT_TABLE: {  # ISO/IEC 29500-1 11.3.5
         'basename':    'fontTable',
         'ext':         '.xml',
         'name':        'Font Table Part',
@@ -1952,7 +1815,7 @@ pml_parttypes = {
         'rels_from':   ['document'],
         'reltype':     RT_FONT_TABLE
     },
-    CT_FOOTER: {  # ISO/IEC 29500-1 11.3.6
+    CT.WML_FOOTER: {  # ISO/IEC 29500-1 11.3.6
         'basename':    'footer',
         'ext':         '.xml',
         'name':        'Footer Part',
@@ -1963,7 +1826,7 @@ pml_parttypes = {
         'rels_from':   ['document', 'glossary'],
         'reltype':     RT_FOOTER
     },
-    CT_FOOTNOTES: {  # ISO/IEC 29500-1 11.3.7
+    CT.WML_FOOTNOTES: {  # ISO/IEC 29500-1 11.3.7
         'basename':    'footnotes',
         'ext':         '.xml',
         'name':        'Footnotes Part',
@@ -1974,7 +1837,7 @@ pml_parttypes = {
         'rels_from':   ['document'],
         'reltype':     RT_FOOTNOTES
     },
-    CT_GLOSSARY_DOCUMENT: {  # ISO/IEC 29500-1 11.3.8
+    CT.WML_DOCUMENT_GLOSSARY: {  # ISO/IEC 29500-1 11.3.8
         'basename':    'document',
         'ext':         '.xml',
         'name':        'Glossary Document Part',
@@ -1985,7 +1848,7 @@ pml_parttypes = {
         'rels_from':   ['document'],
         'reltype':     RT_GLOSSARY_DOCUMENT
     },
-    CT_HANDOUT_MASTER: {  # ECMA-376-1 13.3.3
+    CT.PML_HANDOUT_MASTER: {  # ECMA-376-1 13.3.3
         'basename':    'handoutMaster',
         'ext':         '.xml',
         'name':        'Handout Master Part',
@@ -1998,7 +1861,7 @@ pml_parttypes = {
         'rels_from':   ['presentation'],
         'reltype':     RT_HANDOUT_MASTER
     },
-    CT_HEADER: {  # ISO/IEC 29500-1 11.3.9
+    CT.WML_HEADER: {  # ISO/IEC 29500-1 11.3.9
         'basename':    'header',
         'ext':         '.xml',
         'name':        'Header Part',
@@ -2009,7 +1872,7 @@ pml_parttypes = {
         'rels_from':   ['document', 'glossary'],
         'reltype':     RT_HEADER
     },
-    CT_NOTES_MASTER: {  # ECMA-376-1 13.3.4
+    CT.PML_NOTES_MASTER: {  # ECMA-376-1 13.3.4
         'basename':    'notesMaster',
         'ext':         '.xml',
         'name':        'Notes Master Part',
@@ -2022,7 +1885,7 @@ pml_parttypes = {
         'rels_from':   ['presentation', 'notesSlide'],
         'reltype':     RT_NOTES_MASTER
     },
-    CT_NOTES_SLIDE: {  # ECMA-376-1 13.3.5
+    CT.PML_NOTES_SLIDE: {  # ECMA-376-1 13.3.5
         'basename':    'notesSlide',
         'ext':         '.xml',
         'name':        'Notes Slide Part',
@@ -2033,7 +1896,7 @@ pml_parttypes = {
         'rels_from':   ['slide'],
         'reltype':     RT_NOTES_SLIDE
     },
-    CT_NUMBERING: {  # ISO/IEC 29500-1 11.3.11
+    CT.WML_NUMBERING: {  # ISO/IEC 29500-1 11.3.11
         'basename':    'numbering',
         'ext':         '.xml',
         'name':        'Numbering Definitions Part',
@@ -2044,7 +1907,7 @@ pml_parttypes = {
         'rels_from':   ['document'],
         'reltype':     RT_NUMBERING
     },
-    CT_PRESENTATION: {  # ECMA-376-1 13.3.6
+    CT.PML_PRESENTATION_MAIN: {  # ECMA-376-1 13.3.6
         # one of three possible Content Type values for presentation part
         'basename':    'presentation',
         'ext':         '.xml',
@@ -2056,7 +1919,7 @@ pml_parttypes = {
         'rels_from':   ['package'],
         'reltype':     RT_OFFICE_DOCUMENT
     },
-    CT_PRES_PROPS: {  # ECMA-376-1 13.3.7
+    CT.PML_PRES_PROPS: {  # ECMA-376-1 13.3.7
         'basename':    'presProps',
         'ext':         '.xml',
         'name':        'Presentation Properties Part',
@@ -2067,7 +1930,7 @@ pml_parttypes = {
         'rels_from':   ['presentation'],
         'reltype':     RT_PRES_PROPS
     },
-    CT_PRINTER_SETTINGS: {  # ECMA-376-1 15.2.15
+    CT.PML_PRINTER_SETTINGS: {  # ECMA-376-1 15.2.15
         'basename':    'printerSettings',
         'ext':         '.bin',
         'name':        'Printer Settings Part',
@@ -2078,7 +1941,7 @@ pml_parttypes = {
         'rels_from':   ['presentation'],
         'reltype':     RT_PRINTER_SETTINGS
     },
-    CT_SETTINGS: {  # ISO/IEC 29500-1 11.3.3
+    CT.WML_SETTINGS: {  # ISO/IEC 29500-1 11.3.3
         'basename':    'settings',
         'ext':         '.xml',
         'name':        'Document Settings Part',
@@ -2089,7 +1952,7 @@ pml_parttypes = {
         'rels_from':   ['document', 'glossary'],
         'reltype':     RT_SETTINGS
     },
-    CT_SLIDE: {  # ECMA-376-1 13.3.8
+    CT.PML_SLIDE: {  # ECMA-376-1 13.3.8
         'basename':    'slide',
         'ext':         '.xml',
         'name':        'Slide Part',
@@ -2100,7 +1963,7 @@ pml_parttypes = {
         'rels_from':   ['presentation', 'notesSlide'],
         'reltype':     RT_SLIDE
     },
-    CT_SLIDE_LAYOUT: {  # ECMA-376-1 13.3.9
+    CT.PML_SLIDE_LAYOUT: {  # ECMA-376-1 13.3.9
         'basename':    'slideLayout',
         'ext':         '.xml',
         'name':        'Slide Layout Part',
@@ -2111,7 +1974,7 @@ pml_parttypes = {
         'rels_from':   ['slide', 'slideMaster'],
         'reltype':     RT_SLIDE_LAYOUT
     },
-    CT_SLIDE_MASTER: {  # ECMA-376-1 13.3.10
+    CT.PML_SLIDE_MASTER: {  # ECMA-376-1 13.3.10
         'basename':    'slideMaster',
         'ext':         '.xml',
         'name':        'Slide Master Part',
@@ -2122,7 +1985,7 @@ pml_parttypes = {
         'rels_from':   ['presentation', 'slideLayout'],
         'reltype':     RT_SLIDE_MASTER
     },
-    CT_SLIDESHOW: {  # ECMA-376-1 13.3.6
+    CT.PML_SLIDESHOW_MAIN: {  # ECMA-376-1 13.3.6
         # one of three possible Content Type values for presentation part
         'basename':    'presentation',
         'ext':         '.xml',
@@ -2134,7 +1997,7 @@ pml_parttypes = {
         'rels_from':   ['package'],
         'reltype':     RT_SLIDESHOW
     },
-    CT_STYLES: {  # ISO/IEC 29500-1 11.3.12
+    CT.WML_STYLES: {  # ISO/IEC 29500-1 11.3.12
         'basename':    'styles',
         'ext':         '.xml',
         'name':        'Style Definitions Part',
@@ -2145,7 +2008,7 @@ pml_parttypes = {
         'rels_from':   ['document'],
         'reltype':     RT_STYLES
     },
-    CT_TABLE_STYLES: {  # ECMA-376-1 14.2.9
+    CT.PML_TABLE_STYLES: {  # ECMA-376-1 14.2.9
         'basename':    'tableStyles',
         'ext':         '.xml',
         'name':        'Table Styles Part',
@@ -2156,7 +2019,7 @@ pml_parttypes = {
         'rels_from':   ['presentation'],
         'reltype':     RT_TABLESTYLES
     },
-    CT_TAGS: {  # ECMA-376-1 13.3.12
+    CT.PML_TAGS: {  # ECMA-376-1 13.3.12
         'basename':    'tag',
         'ext':         '.xml',
         'name':        'User-Defined Tags Part',
@@ -2167,7 +2030,7 @@ pml_parttypes = {
         'rels_from':   ['presentation', 'slide'],
         'reltype':     RT_TAGS
     },
-    CT_TEMPLATE: {  # ECMA-376-1 13.3.6
+    CT.PML_TEMPLATE_MAIN: {  # ECMA-376-1 13.3.6
         # one of three possible Content Type values for presentation part
         'basename':    'presentation',
         'ext':         '.xml',
@@ -2179,7 +2042,7 @@ pml_parttypes = {
         'rels_from':   ['package'],
         'reltype':     RT_TEMPLATE
     },
-    CT_THEME: {  # ECMA-376-1 14.2.7
+    CT.OFC_THEME: {  # ECMA-376-1 14.2.7
         'basename':    'theme',
         'ext':         '.xml',
         'name':        'Theme Part',
@@ -2194,7 +2057,7 @@ pml_parttypes = {
                         'slideMaster'],
         'reltype':     RT_THEME
     },
-    CT_VIEW_PROPS: {  # ECMA-376-1 13.3.13
+    CT.PML_VIEW_PROPS: {  # ECMA-376-1 13.3.13
         'basename':    'viewProps',
         'ext':         '.xml',
         'name':        'View Properties Part',
@@ -2205,7 +2068,7 @@ pml_parttypes = {
         'rels_from':   ['presentation'],
         'reltype':     RT_VIEWPROPS
     },
-    CT_WEB_SETTINGS: {  # ISO/IEC 29500-1 11.3.13
+    CT.WML_WEB_SETTINGS: {  # ISO/IEC 29500-1 11.3.13
         'basename':    'webSettings',
         'ext':         '.xml',
         'name':        'Web Settings Part',
@@ -2216,7 +2079,7 @@ pml_parttypes = {
         'rels_from':   ['document', 'glossary'],
         'reltype':     RT_WEB_SETTINGS
     },
-    CT_WML_COMMENTS: {  # ISO/IEC 29500-1 11.3.2
+    CT.WML_COMMENTS: {  # ISO/IEC 29500-1 11.3.2
         'basename':    'comments',
         'ext':         '.xml',
         'name':        'Comments Part',
@@ -2347,7 +2210,7 @@ pml_parttypes = {
 # ============================================================================
 
 default_content_types = {
-    '.bin':     CT_PRINTER_SETTINGS,
+    '.bin':     CT.PML_PRINTER_SETTINGS,
     '.bmp':     'image/bmp',
     '.emf':     'image/x-emf',
     '.fntdata': 'application/x-fontdata',
@@ -2361,7 +2224,7 @@ default_content_types = {
     '.tiff':    'image/tiff',
     '.wdp':     'image/vnd.ms-photo',
     '.wmf':     'image/x-wmf',
-    '.xlsx':    CT_EXCEL_XLSX,
+    '.xlsx':    CT.SML_SHEET,
     '.xml':     'application/xml'
 }
 

@@ -31,16 +31,13 @@ import pptx.spec as spec
 import pptx.util as util
 
 from pptx.exceptions import InvalidPackageError
+from pptx.opc_constants import CONTENT_TYPE as CT
 from pptx.oxml import (
     CT_CoreProperties, _Element, _SubElement, oxml_fromstring, oxml_tostring,
     qn
 )
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces
-from pptx.spec import (
-    CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
-    CT_SLIDE_MASTER, CT_SLIDESHOW, CT_TEMPLATE
-)
 from pptx.spec import (
     RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_SLIDE, RT_SLIDE_LAYOUT,
     RT_SLIDE_MASTER
@@ -531,10 +528,14 @@ class _Part(object):
         particular the presentation part type, *content_type* is also required
         in order to fully specify the part to be created.
         """
+        PRS_MAIN_CONTENT_TYPES = (
+            CT.PML_PRESENTATION_MAIN, CT.PML_TEMPLATE_MAIN,
+            CT.PML_SLIDESHOW_MAIN
+        )
         if reltype == RT_CORE_PROPS:
             return _CoreProperties()
         if reltype == RT_OFFICE_DOCUMENT:
-            if content_type in (CT_PRESENTATION, CT_TEMPLATE, CT_SLIDESHOW):
+            if content_type in PRS_MAIN_CONTENT_TYPES:
                 return Presentation()
             else:
                 tmpl = "Not a presentation content type, got '%s'"
@@ -694,7 +695,7 @@ class _CoreProperties(_BasePart):
     )
 
     def __init__(self, partname=None):
-        super(_CoreProperties, self).__init__(CT_CORE_PROPS, partname)
+        super(_CoreProperties, self).__init__(CT.OPC_CORE_PROPERTIES, partname)
 
     @classmethod
     def _default(cls):
@@ -1059,7 +1060,7 @@ class _Slide(_BaseSlide):
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
     def __init__(self, slidelayout=None):
-        super(_Slide, self).__init__(CT_SLIDE)
+        super(_Slide, self).__init__(CT.PML_SLIDE)
         self.__slidelayout = slidelayout
         self._element = self.__minimal_element
         self._shapes = _ShapeCollection(self._element.cSld.spTree, self)
@@ -1113,7 +1114,7 @@ class _SlideLayout(_BaseSlide):
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
     def __init__(self):
-        super(_SlideLayout, self).__init__(CT_SLIDE_LAYOUT)
+        super(_SlideLayout, self).__init__(CT.PML_SLIDE_LAYOUT)
         self.__slidemaster = None
 
     @property
@@ -1151,7 +1152,7 @@ class _SlideMaster(_BaseSlide):
     # the various masters a bit later.
 
     def __init__(self):
-        super(_SlideMaster, self).__init__(CT_SLIDE_MASTER)
+        super(_SlideMaster, self).__init__(CT.PML_SLIDE_MASTER)
         self.__slidelayouts = _PartCollection()
 
     @property
