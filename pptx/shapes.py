@@ -532,14 +532,14 @@ class _ShapeCollection(_BaseShape, Collection):
         self.__shapes.append(table)
         return table
 
-    def add_textbox(self, left, top, width, height, wordwrap=False):
+    def add_textbox(self, left, top, width, height):
         """
         Add text box shape of specified size at specified position.
         """
         id_ = self.__next_shape_id
         name = 'TextBox %d' % (id_-1)
 
-        sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height, wordwrap)
+        sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
         shape = _Shape(sp)
 
         self.__spTree.append(sp)
@@ -1184,6 +1184,36 @@ class _TextFrame(object):
     #: ``MSO.ANCHOR_TOP``, ``MSO.ANCHOR_MIDDLE``, or ``MSO.ANCHOR_BOTTOM``.
     #: The ``MSO`` name is imported from ``pptx.constants``.
     vertical_anchor = property(None, _set_vertical_anchor)
+
+    def _set_word_wrap(self, value):
+        """
+        Set ``wrap`` attribution of ``<a:bodyPr>`` element. Can be
+        one of True, False, or None.
+        """
+        bodyPr = _get_or_add(self.__txBody, 'a:bodyPr')
+
+        if value is None:
+            del bodyPr.attrib['wrap']
+            return
+
+        value_map = { True : 'square', False : 'none' }
+        bodyPr.set('wrap', value_map[value])
+
+    def _get_word_wrap(self):
+        """
+        Return the value of the word_wrap setting. Possible return values
+        are True, False, and None.
+        """
+        value_map = { 'square' : True, 'none' : False, None : None }
+        bodyPr = _get_or_add(self.__txBody, 'a:bodyPr')
+        value = bodyPr.get('wrap')
+        return value_map[value]
+
+    #: Read-write. Assignment to *word_wrap* sets the wrapping behavior
+    #: of the text frame. The valid values are True, False, and None. True
+    #: and False turn word wrap on and off, and None will set it to inherit
+    #: the wrapping behavior from its parent element.
+    word_wrap = property(_get_word_wrap, _set_word_wrap)
 
     def add_paragraph(self):
         """
