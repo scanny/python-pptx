@@ -31,17 +31,13 @@ import pptx.spec as spec
 import pptx.util as util
 
 from pptx.exceptions import InvalidPackageError
-from pptx.opc_constants import CONTENT_TYPE as CT
+from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import (
     CT_CoreProperties, _Element, _SubElement, oxml_fromstring, oxml_tostring,
     qn
 )
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces
-from pptx.spec import (
-    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_SLIDE, RT_SLIDE_LAYOUT,
-    RT_SLIDE_MASTER
-)
 
 from pptx.util import Collection, Px
 
@@ -184,15 +180,15 @@ class _Package(object):
         self.__load(pkg.relationships)
         # unmarshal relationships selectively for now
         for rel in self.__relationships:
-            if rel._reltype == RT_OFFICE_DOCUMENT:
+            if rel._reltype == RT.OFFICE_DOCUMENT:
                 self.__presentation = rel._target
-            elif rel._reltype == RT_CORE_PROPS:
+            elif rel._reltype == RT.CORE_PROPERTIES:
                 self.__core_properties = rel._target
         if self.__core_properties is None:
             core_props = _CoreProperties._default()
             self.__core_properties = core_props
             rId = self.__relationships._next_rId
-            rel = _Relationship(rId, RT_CORE_PROPS, core_props)
+            rel = _Relationship(rId, RT.CORE_PROPERTIES, core_props)
             self.__relationships._additem(rel)
 
     @property
@@ -332,7 +328,7 @@ class _RelationshipCollection(Collection):
     @property
     def _reltype_ordering(self):
         """
-        Tuple of relationship types, e.g. ``(RT_SLIDE, RT_SLIDE_LAYOUT)``. If
+        Tuple of relationship types, e.g. ``(RT.SLIDE, RT.SLIDE_LAYOUT)``. If
         present, relationships of those types are grouped, and those groups
         are ordered in the same sequence they appear in the tuple. In
         addition, relationships of the same type are sequenced in order of
@@ -523,7 +519,7 @@ class _Part(object):
     """
     def __new__(cls, reltype, content_type):
         """
-        *reltype* is the relationship type, e.g. ``RT_SLIDE``, corresponding
+        *reltype* is the relationship type, e.g. ``RT.SLIDE``, corresponding
         to the type of part to be created. For at least one part type, in
         particular the presentation part type, *content_type* is also required
         in order to fully specify the part to be created.
@@ -532,21 +528,21 @@ class _Part(object):
             CT.PML_PRESENTATION_MAIN, CT.PML_TEMPLATE_MAIN,
             CT.PML_SLIDESHOW_MAIN
         )
-        if reltype == RT_CORE_PROPS:
+        if reltype == RT.CORE_PROPERTIES:
             return _CoreProperties()
-        if reltype == RT_OFFICE_DOCUMENT:
+        if reltype == RT.OFFICE_DOCUMENT:
             if content_type in PRS_MAIN_CONTENT_TYPES:
                 return Presentation()
             else:
                 tmpl = "Not a presentation content type, got '%s'"
                 raise InvalidPackageError(tmpl % content_type)
-        elif reltype == RT_SLIDE:
+        elif reltype == RT.SLIDE:
             return _Slide()
-        elif reltype == RT_SLIDE_LAYOUT:
+        elif reltype == RT.SLIDE_LAYOUT:
             return _SlideLayout()
-        elif reltype == RT_SLIDE_MASTER:
+        elif reltype == RT.SLIDE_MASTER:
             return _SlideMaster()
-        elif reltype == RT_IMAGE:
+        elif reltype == RT.IMAGE:
             return _Image()
         return _BasePart()
 
@@ -779,15 +775,15 @@ class Presentation(_BasePart):
         # commenting this out for now.
 
         # # set reltype ordering so rels file ordering is readable
-        # self._relationships._reltype_ordering = (RT_SLIDE_MASTER,
-        #     RT_NOTES_MASTER, RT_HANDOUT_MASTER, RT_SLIDE,
-        #     RT_PRES_PROPS, RT_VIEW_PROPS, RT_TABLE_STYLES, RT_THEME)
+        # self._relationships._reltype_ordering = (RT.SLIDE_MASTER,
+        #     RT.NOTES_MASTER, RT.HANDOUT_MASTER, RT.SLIDE,
+        #     RT.PRES_PROPS, RT.VIEW_PROPS, RT.TABLE_STYLES, RT.THEME)
 
         # selectively unmarshal relationships for now
         for rel in self._relationships:
-            if rel._reltype == RT_SLIDE_MASTER:
+            if rel._reltype == RT.SLIDE_MASTER:
                 self.__slidemasters._loadpart(rel._target)
-            elif rel._reltype == RT_SLIDE:
+            elif rel._reltype == RT.SLIDE:
                 self.__slides._loadpart(rel._target)
         return self
 
@@ -801,7 +797,7 @@ class Presentation(_BasePart):
         if sldIdLst is None:
             sldIdLst = self.__add_sldIdLst()
         sldIdLst.clear()
-        sld_rels = self._relationships.rels_of_reltype(RT_SLIDE)
+        sld_rels = self._relationships.rels_of_reltype(RT.SLIDE)
         for idx, rel in enumerate(sld_rels):
             sldId = _Element('p:sldId', _nsmap)
             sldIdLst.append(sldId)
@@ -988,7 +984,7 @@ class _SlideCollection(_PartCollection):
         # 3. assign its partname
         self.__rename_slides()
         # 4. add presentation->slide relationship
-        self.__presentation._add_relationship(RT_SLIDE, slide)
+        self.__presentation._add_relationship(RT.SLIDE, slide)
         # 5. return reference to new slide
         return slide
 
@@ -1037,7 +1033,7 @@ class _BaseSlide(_BasePart):
         that relationship is reused.
         """
         image = self._package._images.add_image(file)
-        rel = self._add_relationship(RT_IMAGE, image)
+        rel = self._add_relationship(RT.IMAGE, image)
         return (image, rel)
 
     def _load(self, pkgpart, part_dict):
@@ -1068,7 +1064,7 @@ class _Slide(_BaseSlide):
         if slidelayout:
             self._shapes._clone_layout_placeholders(slidelayout)
             # add relationship to slideLayout part
-            self._add_relationship(RT_SLIDE_LAYOUT, slidelayout)
+            self._add_relationship(RT.SLIDE_LAYOUT, slidelayout)
 
     @property
     def slidelayout(self):
@@ -1085,7 +1081,7 @@ class _Slide(_BaseSlide):
         super(_Slide, self)._load(pkgpart, part_dict)
         # selectively unmarshal relationships for now
         for rel in self._relationships:
-            if rel._reltype == RT_SLIDE_LAYOUT:
+            if rel._reltype == RT.SLIDE_LAYOUT:
                 self.__slidelayout = rel._target
         return self
 
@@ -1134,7 +1130,7 @@ class _SlideLayout(_BaseSlide):
         # selectively unmarshal relationships we need
         for rel in self._relationships:
             # get slideMaster from which this slideLayout inherits properties
-            if rel._reltype == RT_SLIDE_MASTER:
+            if rel._reltype == RT.SLIDE_MASTER:
                 self.__slidemaster = rel._target
 
         # return self-reference to allow generative calling
@@ -1171,6 +1167,6 @@ class _SlideMaster(_BaseSlide):
 
         # selectively unmarshal relationships for now
         for rel in self._relationships:
-            if rel._reltype == RT_SLIDE_LAYOUT:
+            if rel._reltype == RT.SLIDE_LAYOUT:
                 self.__slidelayouts._loadpart(rel._target)
         return self
