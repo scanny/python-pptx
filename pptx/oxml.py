@@ -555,13 +555,13 @@ class CT_Shape(objectify.ObjectifiedElement):
         '    <a:noFill/>\n'
         '  </p:spPr>\n'
         '  <p:txBody>\n'
-        '    <a:bodyPr %s>\n'
+        '    <a:bodyPr>\n'
         '      <a:spAutoFit/>\n'
         '    </a:bodyPr>\n'
         '    <a:lstStyle/>\n'
         '    <a:p/>\n'
         '  </p:txBody>\n'
-        '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d', '%s')
+        '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
     )
 
     @property
@@ -636,15 +636,13 @@ class CT_Shape(objectify.ObjectifiedElement):
         return sp
 
     @staticmethod
-    def new_textbox_sp(id_, name, left, top, width, height, wordwrap=False):
+    def new_textbox_sp(id_, name, left, top, width, height):
         """
         Return a new ``<p:sp>`` element tree configured as a base textbox
         shape.
         """
 
-        wordwrap_text = '' if wordwrap else 'wrap="none"'
-
-        xml = CT_Shape._textbox_sp_tmpl % (id_, name, left, top, width, height, wordwrap_text)
+        xml = CT_Shape._textbox_sp_tmpl % (id_, name, left, top, width, height)
         sp = oxml_fromstring(xml)
         objectify.deannotate(sp, cleanup_namespaces=True)
         return sp
