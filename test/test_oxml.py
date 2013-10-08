@@ -512,6 +512,28 @@ class TestCT_Shape(TestCase):
         # verify -----------------------
         self.assertEqualLineByLine(xml, sp)
 
+    def test_new_textbox_sp_generates_correct_xml_with_wordwrap_enabled(self):
+        """CT_Shape.new_textbox_sp() returns correct XML"""
+        # setup ------------------------
+        id_ = 9
+        name = 'TextBox 8'
+        left, top, width, height = 111, 222, 333, 444
+        xml = (
+            '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%d" name="%s"/>\n    <'
+            'p:cNvSpPr txBox="1"/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>'
+            '\n    <a:xfrm>\n      <a:off x="%d" y="%d"/>\n      <a:ext cx="%'
+            'd" cy="%d"/>\n    </a:xfrm>\n    <a:prstGeom prst="rect">\n     '
+            ' <a:avLst/>\n    </a:prstGeom>\n    <a:noFill/>\n  </p:spPr>\n  '
+            '<p:txBody>\n    <a:bodyPr>\n      <a:spAutoFit/>\n  '
+            '  </a:bodyPr>\n    <a:lstStyle/>\n    <a:p/>\n  </p:txBody>\n</p'
+            ':sp>\n' %
+            (nsdecls('a', 'p'), id_, name, left, top, width, height)
+        )
+        # exercise ---------------------
+        sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height, True)
+        # verify -----------------------
+        self.assertEqualLineByLine(xml, sp)
+
     def test_prst_return_value(self):
         """CT_Shape.prst value is correct"""
         # setup ------------------------

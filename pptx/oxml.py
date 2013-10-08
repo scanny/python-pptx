@@ -555,7 +555,7 @@ class CT_Shape(objectify.ObjectifiedElement):
         '    <a:noFill/>\n'
         '  </p:spPr>\n'
         '  <p:txBody>\n'
-        '    <a:bodyPr wrap="none">\n'
+        '    <a:bodyPr>\n'
         '      <a:spAutoFit/>\n'
         '    </a:bodyPr>\n'
         '    <a:lstStyle/>\n'
@@ -641,6 +641,7 @@ class CT_Shape(objectify.ObjectifiedElement):
         Return a new ``<p:sp>`` element tree configured as a base textbox
         shape.
         """
+
         xml = CT_Shape._textbox_sp_tmpl % (id_, name, left, top, width, height)
         sp = oxml_fromstring(xml)
         objectify.deannotate(sp, cleanup_namespaces=True)

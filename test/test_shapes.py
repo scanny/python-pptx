@@ -1782,3 +1782,49 @@ class Test_TextFrame(TestCase):
         textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
         # verify -----------------------
         self.assertEqualLineByLine(expected_xml, textframe._TextFrame__txBody)
+
+    def test_word_wrap_works(self):
+        """Assignment to _TextFrame.word_wrap sets word wrap value"""
+        # setup ------------------------
+        txBody_xml = (
+            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
+            'p></p:txBody>' % nsdecls('p', 'a')
+        )
+        true_expected_xml = (
+            '<p:txBody %s>\n  <a:bodyPr wrap="square"/>\n  <a:p>\n    <a:r>\n '
+            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
+            nsdecls('p', 'a')
+        )
+        false_expected_xml = (
+            '<p:txBody %s>\n  <a:bodyPr wrap="none"/>\n  <a:p>\n    <a:r>\n '
+            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
+            nsdecls('p', 'a')
+        )
+        none_expected_xml = (
+            '<p:txBody %s>\n  <a:bodyPr/>\n  <a:p>\n    <a:r>\n '
+            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
+            nsdecls('p', 'a')
+        )
+
+        txBody = oxml_fromstring(txBody_xml)
+        textframe = _TextFrame(txBody)
+
+        self.assertEqual(textframe.word_wrap, None)
+
+        # exercise ---------------------
+        textframe.word_wrap = True
+        # verify -----------------------
+        self.assertEqualLineByLine(true_expected_xml, textframe._TextFrame__txBody)
+        self.assertEqual(textframe.word_wrap, True)
+
+        # exercise ---------------------
+        textframe.word_wrap = False
+        # verify -----------------------
+        self.assertEqualLineByLine(false_expected_xml, textframe._TextFrame__txBody)
+        self.assertEqual(textframe.word_wrap, False)
+
+        # exercise ---------------------
+        textframe.word_wrap = None
+        # verify -----------------------
+        self.assertEqualLineByLine(none_expected_xml, textframe._TextFrame__txBody)
+        self.assertEqual(textframe.word_wrap, None)
