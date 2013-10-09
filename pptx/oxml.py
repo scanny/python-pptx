@@ -45,12 +45,39 @@ oxml_parser.set_element_class_lookup(element_class_lookup)
 # API functions
 # ============================================================================
 
-def _Element(tag, nsmap=None):
-    return oxml_parser.makeelement(qn(tag), nsmap=nsmap)
+class _NamespacePrefixedTag(str):
+    """
+    Value object that knows the semantics of an XML tag having a namespace
+    prefix.
+    """
+    def __new__(cls, nstag, *args):
+        return super(_NamespacePrefixedTag, cls).__new__(cls, nstag)
+
+    def __init__(self, nstag, prefix_to_uri_map):
+        self._pfx, self._local_part = nstag.split(':')
+        self._ns_uri = prefix_to_uri_map[self._pfx]
+
+    @property
+    def clark_name(self):
+        return '{%s}%s' % (self._ns_uri, self._local_part)
+
+    @property
+    def namespace_map(self):
+        return {self._pfx: self._ns_uri}
 
 
-def _SubElement(parent, tag, nsmap=None):
-    return objectify.SubElement(parent, qn(tag), nsmap=nsmap)
+def _Element(tag):
+    namespace_prefixed_tag = _NamespacePrefixedTag(tag, nsmap)
+    tag_name = namespace_prefixed_tag.clark_name
+    tag_nsmap = namespace_prefixed_tag.namespace_map
+    return oxml_parser.makeelement(tag_name, nsmap=tag_nsmap)
+
+
+def _SubElement(parent, tag):
+    namespace_prefixed_tag = _NamespacePrefixedTag(tag, nsmap)
+    tag_name = namespace_prefixed_tag.clark_name
+    tag_nsmap = namespace_prefixed_tag.namespace_map
+    return objectify.SubElement(parent, tag_name, nsmap=tag_nsmap)
 
 
 def new(tag, **extra):
@@ -80,15 +107,15 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
                           standalone=standalone)
 
 
-def qn(tag):
+def qn(namespace_prefixed_tag):
     """
-    Stands for "qualified name", a utility function to turn a namespace
-    prefixed tag name into a Clark-notation qualified tag name for lxml. For
-    example, ``qn('p:cSld')`` returns ``'{http://schemas.../main}cSld'``.
+    Return a Clark-notation qualified tag name corresponding to
+    *namespace_prefixed_tag*, a string like 'p:body'. 'qn' stands for
+    *qualified name*. As an example, ``qn('p:cSld')`` returns
+    ``'{http://schemas.../main}cSld'``.
     """
-    prefix, tagroot = tag.split(':')
-    uri = nsmap[prefix]
-    return '{%s}%s' % (uri, tagroot)
+    nsptag = _NamespacePrefixedTag(namespace_prefixed_tag, nsmap)
+    return nsptag.clark_name
 
 
 def sub_elm(parent, tag, **extra):
@@ -129,7 +156,7 @@ def _get_or_add(start_elm, *path_tags):
     for tag in path_tags:
         child = _child(parent, tag)
         if child is None:
-            child = _SubElement(parent, tag, nsmap)
+            child = _SubElement(parent, tag)
         parent = child
     return child
 

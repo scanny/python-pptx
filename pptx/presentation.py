@@ -793,13 +793,13 @@ class Presentation(_BasePart):
         reflect current ordering of slide relationships and possible
         renumbering of ``rId`` values.
         """
-        sldIdLst = _child(self._element, 'p:sldIdLst', _nsmap)
+        sldIdLst = _child(self._element, 'p:sldIdLst')
         if sldIdLst is None:
             sldIdLst = self.__add_sldIdLst()
         sldIdLst.clear()
         sld_rels = self._relationships.rels_of_reltype(RT.SLIDE)
         for idx, rel in enumerate(sld_rels):
-            sldId = _Element('p:sldId', _nsmap)
+            sldId = _Element('p:sldId')
             sldIdLst.append(sldId)
             sldId.set('id', str(256+idx))
             sldId.set(qn('r:id'), rel._rId)
@@ -809,16 +809,16 @@ class Presentation(_BasePart):
         Add a <p:sldIdLst> element to <p:presentation> in the right sequence
         among its siblings.
         """
-        sldIdLst = _child(self._element, 'p:sldIdLst', _nsmap)
+        sldIdLst = _child(self._element, 'p:sldIdLst')
         assert sldIdLst is None, '__add_sldIdLst() called where '\
                                  '<p:sldIdLst> already exists'
-        sldIdLst = _Element('p:sldIdLst', _nsmap)
+        sldIdLst = _Element('p:sldIdLst')
         # insert new sldIdLst element in right sequence
-        sldSz = _child(self._element, 'p:sldSz', _nsmap)
+        sldSz = _child(self._element, 'p:sldSz')
         if sldSz is not None:
             sldSz.addprevious(sldIdLst)
         else:
-            notesSz = _child(self._element, 'p:notesSz', _nsmap)
+            notesSz = _child(self._element, 'p:notesSz')
             notesSz.addprevious(sldIdLst)
         return sldIdLst
 
@@ -1091,14 +1091,14 @@ class _Slide(_BaseSlide):
         Return element containing the minimal XML for a slide, based on what
         is required by the XMLSchema.
         """
-        sld = _Element('p:sld', _nsmap)
-        _SubElement(sld, 'p:cSld', _nsmap)
-        _SubElement(sld.cSld, 'p:spTree', _nsmap)
-        _SubElement(sld.cSld.spTree, 'p:nvGrpSpPr', _nsmap)
-        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvPr', _nsmap)
-        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvGrpSpPr', _nsmap)
-        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:nvPr', _nsmap)
-        _SubElement(sld.cSld.spTree, 'p:grpSpPr', _nsmap)
+        sld = _Element('p:sld')
+        _SubElement(sld, 'p:cSld')
+        _SubElement(sld.cSld, 'p:spTree')
+        _SubElement(sld.cSld.spTree, 'p:nvGrpSpPr')
+        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvPr')
+        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvGrpSpPr')
+        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:nvPr')
+        _SubElement(sld.cSld.spTree, 'p:grpSpPr')
         sld.cSld.spTree.nvGrpSpPr.cNvPr.set('id', '1')
         sld.cSld.spTree.nvGrpSpPr.cNvPr.set('name', '')
         return sld

@@ -1814,17 +1814,20 @@ class Test_TextFrame(TestCase):
         # exercise ---------------------
         textframe.word_wrap = True
         # verify -----------------------
-        self.assertEqualLineByLine(true_expected_xml, textframe._TextFrame__txBody)
+        self.assertEqualLineByLine(
+            true_expected_xml, textframe._TextFrame__txBody)
         self.assertEqual(textframe.word_wrap, True)
 
         # exercise ---------------------
         textframe.word_wrap = False
         # verify -----------------------
-        self.assertEqualLineByLine(false_expected_xml, textframe._TextFrame__txBody)
+        self.assertEqualLineByLine(
+            false_expected_xml, textframe._TextFrame__txBody)
         self.assertEqual(textframe.word_wrap, False)
 
         # exercise ---------------------
         textframe.word_wrap = None
         # verify -----------------------
-        self.assertEqualLineByLine(none_expected_xml, textframe._TextFrame__txBody)
+        self.assertEqualLineByLine(
+            none_expected_xml, textframe._TextFrame__txBody)
         self.assertEqual(textframe.word_wrap, None)
