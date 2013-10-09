@@ -102,9 +102,12 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
     # if xsi parameter is not set to False, PowerPoint won't load without a
     # repair step; deannotate removes some original xsi:type tags in core.xml
     # if this parameter is left out (or set to True)
-    objectify.deannotate(elm, xsi=False, cleanup_namespaces=True)
-    return etree.tostring(elm, encoding=encoding, pretty_print=pretty_print,
-                          standalone=standalone)
+    objectify.deannotate(elm, xsi=False, cleanup_namespaces=False)
+    xml = etree.tostring(
+        elm, encoding=encoding, pretty_print=pretty_print,
+        standalone=standalone
+    )
+    return xml
 
 
 def qn(namespace_prefixed_tag):
@@ -277,6 +280,9 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             raise ValueError(tmpl % (name, value))
         tag = qn(CT_CoreProperties._str_tags[name])
         setattr(self, tag, value)
+        # objectify will leave in a py: namespace without this cleanup
+        elm = getattr(self, tag)
+        objectify.deannotate(elm, cleanup_namespaces=True)
 
     def __set_date_prop(self, name, value):
         """Set datetime value of *name* property to *value*"""
@@ -288,6 +294,9 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         tag = qn(tagname)
         dt_str = value.strftime('%Y-%m-%dT%H:%M:%SZ')
         setattr(self, tag, dt_str)
+        # objectify will leave in a py: namespace without this cleanup
+        elm = getattr(self, tag)
+        objectify.deannotate(elm, cleanup_namespaces=True)
         if name in ('created', 'modified'):
             # these two require an explicit 'xsi:type' attribute
             # first and last line are a hack required to add the xsi
@@ -304,6 +313,9 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             raise ValueError(tmpl % value)
         tag = qn('cp:revision')
         setattr(self, tag, str(value))
+        # objectify will leave in a py: namespace without this cleanup
+        elm = getattr(self, tag)
+        objectify.deannotate(elm, cleanup_namespaces=True)
 
     _offset_pattern = re.compile('([+-])(\d\d):(\d\d)')
 
