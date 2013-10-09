@@ -28,7 +28,6 @@ from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import (
     CT_CoreProperties, oxml_fromstring, oxml_parse, oxml_tostring
 )
-from pptx.packaging import prettify_nsdecls
 from pptx.presentation import (
     _BasePart, _BaseSlide, _CoreProperties, _Image, _Package, _Part,
     _PartCollection, Presentation, _Relationship, _RelationshipCollection,
@@ -976,12 +975,8 @@ class Test_Slide(TestCase):
         elm = self.sld._element
         # verify -----------------------
         with open(path, 'r') as f:
-            expected = f.read()
-        actual = prettify_nsdecls(
-            oxml_tostring(elm, encoding='UTF-8', pretty_print=True,
-                          standalone=True))
-        msg = "\nexpected:\n\n'%s'\n\nbut got:\n\n'%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+            expected_xml = f.read()
+        self.assertEqualLineByLine(expected_xml, elm)
 
     def test_slidelayout_property_none_on_construction(self):
         """_Slide.slidelayout property None on construction"""
@@ -1021,15 +1016,7 @@ class Test_Slide(TestCase):
         # verify -----------------------
         with open(path, 'r') as f:
             expected_xml = f.read()
-        sld_xml = prettify_nsdecls(
-            oxml_tostring(sld, encoding='UTF-8', pretty_print=True,
-                          standalone=True))
-        sld_xml_lines = sld_xml.split('\n')
-        expected_xml_lines = expected_xml.split('\n')
-        for idx, line in enumerate(sld_xml_lines):
-            # msg = '\n\n%s' % sld_xml
-            msg = "expected:\n%s\n, got\n%s" % (expected_xml, sld_xml)
-            self.assertEqual(line, expected_xml_lines[idx], msg)
+        self.assertEqualLineByLine(expected_xml, sld)
 
 
 class Test_SlideCollection(TestCase):
