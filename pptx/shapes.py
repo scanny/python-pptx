@@ -1185,6 +1185,36 @@ class _TextFrame(object):
     #: The ``MSO`` name is imported from ``pptx.constants``.
     vertical_anchor = property(None, _set_vertical_anchor)
 
+    def _set_word_wrap(self, value):
+        """
+        Set ``wrap`` attribution of ``<a:bodyPr>`` element. Can be
+        one of True, False, or None.
+        """
+        bodyPr = _get_or_add(self.__txBody, 'a:bodyPr')
+
+        if value is None:
+            del bodyPr.attrib['wrap']
+            return
+
+        value_map = { True : 'square', False : 'none' }
+        bodyPr.set('wrap', value_map[value])
+
+    def _get_word_wrap(self):
+        """
+        Return the value of the word_wrap setting. Possible return values
+        are True, False, and None.
+        """
+        value_map = { 'square' : True, 'none' : False, None : None }
+        bodyPr = _get_or_add(self.__txBody, 'a:bodyPr')
+        value = bodyPr.get('wrap')
+        return value_map[value]
+
+    #: Read-write. Assignment to *word_wrap* sets the wrapping behavior
+    #: of the text frame. The valid values are True, False, and None. True
+    #: and False turn word wrap on and off, and None will set it to inherit
+    #: the wrapping behavior from its parent element.
+    word_wrap = property(_get_word_wrap, _set_word_wrap)
+
     def add_paragraph(self):
         """
         Return new |_Paragraph| instance appended to the sequence of

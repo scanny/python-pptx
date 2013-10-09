@@ -77,6 +77,16 @@ def step_given_ref_to_paragraph(context):
     context.p = textbox.textframe.paragraphs[0]
 
 
+@given('I have a reference to a textframe')
+def step_given_ref_to_paragraph(context):
+    context.prs = Presentation()
+    blank_slidelayout = context.prs.slidelayouts[6]
+    slide = context.prs.slides.add_slide(blank_slidelayout)
+    length = Inches(2.00)
+    textbox = slide.shapes.add_textbox(length, length, length, length)
+    context.textframe = textbox.textframe
+
+
 @given('I have a reference to a slide')
 def step_given_ref_to_slide(context):
     context.prs = Presentation()
@@ -288,6 +298,21 @@ def step_when_set_paragraph_alignment_to_centered(context):
     context.p.alignment = PP.ALIGN_CENTER
 
 
+@when("I set the textframe word wrap to True")
+def step_when_set_textframe_word_wrap_to_true(context):
+    context.textframe.word_wrap = True
+
+
+@when("I set the textframe word wrap to False")
+def step_when_set_textframe_word_wrap_to_false(context):
+    context.textframe.word_wrap = False
+
+
+@when("I set the textframe word wrap to None")
+def step_when_set_textframe_word_wrap_to_none(context):
+    context.textframe.word_wrap = None
+
+
 @when("I set the text of the first cell")
 def step_when_set_text_of_first_cell(context):
     context.tbl.cell(0, 0).text = 'test text'
@@ -454,6 +479,27 @@ def step_then_paragraph_is_aligned_centered(context):
     prs = Presentation(saved_pptx_path)
     p = prs.slides[0].shapes[0].textframe.paragraphs[0]
     assert_that(p.alignment, is_(equal_to(PP.ALIGN_CENTER)))
+
+
+@then('the textframe word wrap is on')
+def step_them_textframe_word_wrap_is_on(context):
+    prs = Presentation(saved_pptx_path)
+    textframe = prs.slides[0].shapes[0].textframe
+    assert_that(textframe.word_wrap, is_(True))
+
+
+@then('the textframe word wrap is off')
+def step_them_textframe_word_wrap_is_off(context):
+    prs = Presentation(saved_pptx_path)
+    textframe = prs.slides[0].shapes[0].textframe
+    assert_that(textframe.word_wrap, is_(False))
+
+
+@then('the textframe word wrap is empty')
+def step_them_textframe_word_wrap_is_empty(context):
+    prs = Presentation(saved_pptx_path)
+    textframe = prs.slides[0].shapes[0].textframe
+    assert_that(textframe.word_wrap, is_(None))
 
 
 @then('the rows of the table have alternating shading')
