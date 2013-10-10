@@ -613,17 +613,13 @@ class TestZipFileSystem(TestCase):
             """</p:ext>"""\
             """</p:extLst>"""\
             """</p:presentationPr>"""
-        self.xml_out =\
-            """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"""\
-            """<p:presentationPr xmlns:a="http://main"\n"""\
-            """                  xmlns:r="http://relationships"\n"""\
-            """                  xmlns:p="http://presentationml">\n"""\
-            """  <p:extLst>\n"""\
-            """    <p:ext uri="{E76CE94A-603C-4142-B9EB-6D1370010A27}">\n"""\
-            """      <r:discardImageEditData val="0"/>\n"""\
-            """    </p:ext>\n"""\
-            """  </p:extLst>\n"""\
-            """</p:presentationPr>"""
+        self.xml_out = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<p:presentationPr xmlns:a="http://main" xmlns:r="http://relatio'
+            'nships" xmlns:p="http://presentationml"><p:extLst><p:ext uri="{'
+            'E76CE94A-603C-4142-B9EB-6D1370010A27}"><r:discardImageEditData '
+            'val="0"/></p:ext></p:extLst></p:presentationPr>'
+        )
 
     def tearDown(self):
         if os.path.isfile(test_save_pptx_path):

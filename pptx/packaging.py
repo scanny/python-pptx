@@ -20,7 +20,6 @@ methods :meth:`open`, :meth:`marshal`, and :meth:`save`.
 
 import os
 import posixpath
-import re
 
 from StringIO import StringIO
 from lxml import etree
@@ -828,46 +827,6 @@ class ZipFileSystem(BaseFileSystem):
             tmpl = "Item with URI '%s' already in package"
             raise DuplicateKeyError(tmpl % itemURI)
         membername = itemURI[1:]  # trim off leading slash
-        xml = etree.tostring(element, encoding='UTF-8', pretty_print=True,
+        xml = etree.tostring(element, encoding='UTF-8', pretty_print=False,
                              standalone=True)
-        xml = prettify_nsdecls(xml)
         self.zipf.writestr(membername, xml)
-
-
-# ============================================================================
-# Utility functions
-# ============================================================================
-
-def prettify_nsdecls(xml):
-    """
-    Wrap and indent second and later attributes on the root element so
-    namespace declarations don't run off the page in the text editor and can
-    be more easily inspected.
-    """
-    lines = xml.splitlines()
-    # if entire XML document is all on one line, don't mess with it
-    if len(lines) < 2:
-        return xml
-    # if don't find xml declaration on first line, bail
-    if not lines[0].startswith('<?xml'):
-        return xml
-    # if don't find an unindented opening element on line 2, bail
-    if not lines[1].startswith('<'):
-        return xml
-    rootline = lines[1]
-    # split rootline into element tag part and attributes parts
-    attr_re = re.compile(r'([-a-zA-Z0-9_:.]+="[^"]*" */?>?)')
-    substrs = [substr.strip() for substr in attr_re.split(rootline) if substr]
-    # substrings look something like:
-    # ['<p:sld', 'xmlns:p="html://..."', 'name="Office Theme>"']
-    # if there's only one attribute there's no need to wrap
-    if len(substrs) < 3:
-        return xml
-    indent = ' ' * (len(substrs[0])+1)
-    # join element tag and first attribute onto same line
-    newrootline = ' '.join(substrs[:2])
-    # indent remaining attributes on following lines
-    for substr in substrs[2:]:
-        newrootline += '\n%s%s' % (indent, substr)
-    lines[1] = newrootline
-    return '\n'.join(lines)
