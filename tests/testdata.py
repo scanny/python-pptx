@@ -10,7 +10,8 @@
 """Test data for unit tests"""
 
 from pptx.oxml import nsdecls, oxml_fromstring
-from pptx.shapes import _Cell, _Picture, _Shape, _ShapeCollection
+from pptx.shapes import _Picture, _Shape, _ShapeCollection
+from pptx.table import _Cell
 from pptx.text import _Paragraph
 
 
