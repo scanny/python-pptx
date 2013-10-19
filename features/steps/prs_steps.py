@@ -50,14 +50,6 @@ def step_given_ref_to_blank_slide(context):
     context.sld = context.prs.slides.add_slide(slidelayout)
 
 
-@given('I have a reference to a bullet body placeholder')
-def step_given_ref_to_bullet_body_placeholder(context):
-    context.prs = Presentation()
-    slidelayout = context.prs.slidelayouts[1]
-    context.sld = context.prs.slides.add_slide(slidelayout)
-    context.body = context.sld.shapes.placeholders[1]
-
-
 @given('I have a reference to a chevron shape')
 def step_given_ref_to_chevron_shape(context):
     context.prs = Presentation()
@@ -200,11 +192,6 @@ def step_when_set_first_adjustment_value(context):
     context.chevron_shape.adjustments[0] = 0.15
 
 
-@when("I set the title text of the slide")
-def step_when_set_slide_title_text(context):
-    context.sld.shapes.title.text = test_text
-
-
 # then ====================================================
 
 @then('a core properties part with default values is added')
@@ -293,11 +280,3 @@ def step_then_text_box_appears_in_slide(context):
     textbox = prs.slides[0].shapes[0]
     textbox_text = textbox.textframe.paragraphs[0].runs[0].text
     assert_that(textbox_text, is_(equal_to(test_text)))
-
-
-@then('the text appears in the title placeholder')
-def step_then_text_appears_in_title_placeholder(context):
-    prs = Presentation(saved_pptx_path)
-    title_shape = prs.slides[0].shapes.title
-    title_text = title_shape.textframe.paragraphs[0].runs[0].text
-    assert_that(title_text, is_(equal_to(test_text)))
