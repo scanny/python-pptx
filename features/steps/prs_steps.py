@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import os
 
 from datetime import datetime, timedelta
@@ -10,7 +12,7 @@ from StringIO import StringIO
 
 from pptx import packaging
 from pptx import Presentation
-from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP
+from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.util import Inches
 
 
@@ -26,8 +28,6 @@ saved_pptx_path = absjoin(scratch_dir, 'test_out.pptx')
 test_image_path = absjoin(test_file_dir, 'python-powered.png')
 
 test_text = "python-pptx was here!"
-
-# logging.debug("saved_pptx_path is ==> '%s'\n", saved_pptx_path)
 
 
 # given ===================================================
@@ -65,26 +65,6 @@ def step_given_ref_to_chevron_shape(context):
     shapes = context.prs.slides.add_slide(blank_slidelayout).shapes
     x = y = cx = cy = 914400
     context.chevron_shape = shapes.add_shape(MAST.CHEVRON, x, y, cx, cy)
-
-
-@given('I have a reference to a paragraph')
-def step_given_ref_to_paragraph(context):
-    context.prs = Presentation()
-    blank_slidelayout = context.prs.slidelayouts[6]
-    slide = context.prs.slides.add_slide(blank_slidelayout)
-    length = Inches(2.00)
-    textbox = slide.shapes.add_textbox(length, length, length, length)
-    context.p = textbox.textframe.paragraphs[0]
-
-
-@given('I have a reference to a textframe')
-def step_given_ref_to_textframe(context):
-    context.prs = Presentation()
-    blank_slidelayout = context.prs.slidelayouts[6]
-    slide = context.prs.slides.add_slide(blank_slidelayout)
-    length = Inches(2.00)
-    textbox = slide.shapes.add_textbox(length, length, length, length)
-    context.textframe = textbox.textframe
 
 
 @given('I have a reference to a slide')
@@ -179,12 +159,6 @@ def step_when_add_auto_shape(context):
 @when('I construct a Presentation instance with no path argument')
 def step_when_construct_default_prs(context):
     context.prs = Presentation()
-
-
-@when('I indent the first paragraph')
-def step_when_indent_first_paragraph(context):
-    p = context.body.textframe.paragraphs[0]
-    p.level = 1
 
 
 @when('I open a basic PowerPoint presentation')
@@ -291,26 +265,6 @@ def step_when_set_last_col_property_to_true(context):
 @when("I set the last_row property to True")
 def step_when_set_last_row_property_to_true(context):
     context.tbl.last_row = True
-
-
-@when("I set the paragraph alignment to centered")
-def step_when_set_paragraph_alignment_to_centered(context):
-    context.p.alignment = PP.ALIGN_CENTER
-
-
-@when("I set the textframe word wrap to True")
-def step_when_set_textframe_word_wrap_to_true(context):
-    context.textframe.word_wrap = True
-
-
-@when("I set the textframe word wrap to False")
-def step_when_set_textframe_word_wrap_to_false(context):
-    context.textframe.word_wrap = False
-
-
-@when("I set the textframe word wrap to None")
-def step_when_set_textframe_word_wrap_to_none(context):
-    context.textframe.word_wrap = None
 
 
 @when("I set the text of the first cell")
@@ -450,15 +404,6 @@ def step_then_last_row_of_table_has_special_formatting(context):
     assert_that(tbl.last_row, is_(True))
 
 
-@then('the paragraph is indented to the second level')
-def step_then_paragraph_indented_to_second_level(context):
-    prs = Presentation(saved_pptx_path)
-    sld = prs.slides[0]
-    body = sld.shapes.placeholders[1]
-    p = body.textframe.paragraphs[0]
-    assert_that(p.level, is_(equal_to(1)))
-
-
 @then('the picture appears in the slide')
 def step_then_picture_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
@@ -472,34 +417,6 @@ def step_then_picture_appears_in_slide(context):
 def step_then_pptx_file_contains_single_slide(context):
     prs = Presentation(saved_pptx_path)
     assert_that(len(prs.slides), is_(equal_to(1)))
-
-
-@then('the paragraph is aligned centered')
-def step_then_paragraph_is_aligned_centered(context):
-    prs = Presentation(saved_pptx_path)
-    p = prs.slides[0].shapes[0].textframe.paragraphs[0]
-    assert_that(p.alignment, is_(equal_to(PP.ALIGN_CENTER)))
-
-
-@then('the textframe word wrap is on')
-def step_them_textframe_word_wrap_is_on(context):
-    prs = Presentation(saved_pptx_path)
-    textframe = prs.slides[0].shapes[0].textframe
-    assert_that(textframe.word_wrap, is_(True))
-
-
-@then('the textframe word wrap is off')
-def step_them_textframe_word_wrap_is_off(context):
-    prs = Presentation(saved_pptx_path)
-    textframe = prs.slides[0].shapes[0].textframe
-    assert_that(textframe.word_wrap, is_(False))
-
-
-@then('the textframe word wrap is empty')
-def step_them_textframe_word_wrap_is_empty(context):
-    prs = Presentation(saved_pptx_path)
-    textframe = prs.slides[0].shapes[0].textframe
-    assert_that(textframe.word_wrap, is_(None))
 
 
 @then('the rows of the table have alternating shading')
