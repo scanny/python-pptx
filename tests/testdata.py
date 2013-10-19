@@ -10,9 +10,8 @@
 """Test data for unit tests"""
 
 from pptx.oxml import nsdecls, oxml_fromstring
-from pptx.shapes import (
-    _Cell, _Paragraph, _Picture, _Shape, _ShapeCollection
-)
+from pptx.shapes import _Cell, _Picture, _Shape, _ShapeCollection
+from pptx.text import _Paragraph
 
 
 class CT_CorePropertiesBuilder(object):
