@@ -19,7 +19,7 @@ def absjoin(*paths):
 
 thisdir = os.path.split(__file__)[0]
 scratch_dir = absjoin(thisdir, '../_scratch')
-test_file_dir = absjoin(thisdir, '../../test/test_files')
+test_file_dir = absjoin(thisdir, '../../tests/test_files')
 basic_pptx_path = absjoin(test_file_dir, 'test.pptx')
 no_core_props_pptx_path = absjoin(test_file_dir, 'no-core-props.pptx')
 saved_pptx_path = absjoin(scratch_dir, 'test_out.pptx')
@@ -78,7 +78,7 @@ def step_given_ref_to_paragraph(context):
 
 
 @given('I have a reference to a textframe')
-def step_given_ref_to_paragraph(context):
+def step_given_ref_to_textframe(context):
     context.prs = Presentation()
     blank_slidelayout = context.prs.slidelayouts[6]
     slide = context.prs.slides.add_slide(blank_slidelayout)
