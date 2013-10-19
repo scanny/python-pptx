@@ -19,14 +19,14 @@ from pptx.presentation import _Package
 
 class Presentation(object):
     """
-    Return a |Presentation| instance loaded from *file*, where *file* can be
-    either a path to a ``.pptx`` file (a string) or a file-like object. If
-    *file* is missing or ``None``, load the built-in default presentation
+    Return a |Presentation| instance loaded from *file_*, where *file_* can
+    be either a path to a ``.pptx`` file (a string) or a file-like object.
+    If *file_* is missing or ``None``, load the built-in default presentation
     template.
     """
-    def __init__(self, file=None):
+    def __init__(self, file_=None):
         super(Presentation, self).__init__()
-        self._package = _Package(file)
+        self._package = _Package(file_)
         self._presentation = self._package.presentation
 
     @property

@@ -77,14 +77,14 @@ class Package(object):
         """
         return tuple(self.__relationships)
 
-    def open(self, file):
+    def open(self, file_):
         """
-        Load the package contained in *file*, where *file* can be a path to a
-        file or directory (a string), or a file-like object. If *file* is a
-        path to a directory, the directory must contain an expanded package
+        Load the package contained in *file_*, where *file_* can be a path to
+        a file or directory (a string), or a file-like object. If *file_* is
+        a path to a directory, the directory must contain an expanded package
         such as is produced by unzipping an OPC package file.
         """
-        fs = FileSystem(file)
+        fs = FileSystem(file_)
         cti = _ContentTypesItem().load(fs)
         self.__relationships = []  # discard any rels from prior load
         parts_dict = {}            # track loaded parts, graph is cyclic

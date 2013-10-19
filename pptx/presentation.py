@@ -74,16 +74,16 @@ class _Package(object):
     # track instances as weakrefs so .containing() can be computed
     __instances = []
 
-    def __init__(self, file=None):
+    def __init__(self, file_=None):
         super(_Package, self).__init__()
         self.__presentation = None
         self.__core_properties = None
         self.__relationships = _RelationshipCollection()
         self.__images = _ImageCollection()
         self.__instances.append(weakref.ref(self))
-        if file is None:
-            file = self.__default_pptx_path
-        self.__open(file)
+        if file_ is None:
+            file_ = self.__default_pptx_path
+        self.__open(file_)
 
     @classmethod
     def containing(cls, part):
