@@ -4,20 +4,14 @@
 Gherkin step implementations for slide-related features.
 """
 
-import os
+from __future__ import absolute_import
 
 from behave import given, when, then
 from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
 
-
-def absjoin(*paths):
-    return os.path.abspath(os.path.join(*paths))
-
-thisdir = os.path.split(__file__)[0]
-scratch_dir = absjoin(thisdir, '../_scratch')
-saved_pptx_path = absjoin(scratch_dir, 'test_out.pptx')
+from .helpers import saved_pptx_path
 
 
 # given ===================================================
