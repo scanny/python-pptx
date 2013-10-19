@@ -3,12 +3,9 @@
 import os
 
 from behave import given, when, then
-from hamcrest import (
-    assert_that, equal_to, has_item, is_, is_not, greater_than
-)
+from hamcrest import assert_that, equal_to, is_, is_not, greater_than
 from StringIO import StringIO
 
-from pptx import packaging
 from pptx import Presentation
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.util import Inches
@@ -22,7 +19,6 @@ scratch_dir = absjoin(thisdir, '../_scratch')
 test_file_dir = absjoin(thisdir, '../../tests/test_files')
 basic_pptx_path = absjoin(test_file_dir, 'test.pptx')
 saved_pptx_path = absjoin(scratch_dir, 'test_out.pptx')
-test_image_path = absjoin(test_file_dir, 'python-powered.png')
 
 test_text = "python-pptx was here!"
 
@@ -74,22 +70,6 @@ def step_given_empty_prs(context):
 def step_when_add_slide(context):
     slidelayout = context.prs.slidemasters[0].slidelayouts[0]
     context.prs.slides.add_slide(slidelayout)
-
-
-@when("I add a picture stream to the slide's shape collection")
-def step_when_add_picture_stream(context):
-    shapes = context.sld.shapes
-    x, y = (Inches(1.25), Inches(1.25))
-    with open(test_image_path) as f:
-        stream = StringIO(f.read())
-    shapes.add_picture(stream, x, y)
-
-
-@when("I add a picture to the slide's shape collection")
-def step_when_add_picture(context):
-    shapes = context.sld.shapes
-    x, y = (Inches(1.25), Inches(1.25))
-    shapes.add_picture(test_image_path, x, y)
 
 
 @when("I add a text box to the slide's shape collection")
@@ -192,23 +172,6 @@ def step_then_auto_shape_appears_in_slide(context):
 def step_then_chevron_shape_appears_with_less_acute_arrow_head(context):
     chevron = Presentation(saved_pptx_path).slides[0].shapes[0]
     assert_that(chevron.adjustments[0], is_(equal_to(0.15)))
-
-
-@then('the image is saved in the pptx file')
-def step_then_img_saved_in_pptx_file(context):
-    pkgng_pkg = packaging.Package().open(saved_pptx_path)
-    partnames = [part.partname for part in pkgng_pkg.parts
-                 if part.partname.startswith('/ppt/media/')]
-    assert_that(partnames, has_item('/ppt/media/image1.png'))
-
-
-@then('the picture appears in the slide')
-def step_then_picture_appears_in_slide(context):
-    prs = Presentation(saved_pptx_path)
-    sld = prs.slides[0]
-    shapes = sld.shapes
-    classnames = [sp.__class__.__name__ for sp in shapes]
-    assert_that(classnames, has_item('_Picture'))
 
 
 @then('the pptx file contains a single slide')
