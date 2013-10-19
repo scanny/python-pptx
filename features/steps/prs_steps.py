@@ -3,7 +3,7 @@
 import os
 
 from behave import given, when, then
-from hamcrest import assert_that, equal_to, is_, is_not, greater_than
+from hamcrest import assert_that, is_, is_not, greater_than
 from StringIO import StringIO
 
 from pptx import Presentation
@@ -32,32 +32,12 @@ def step_given_initialized_pptx_env(context):
     pass
 
 
-@given('I have a reference to a blank slide')
-def step_given_ref_to_blank_slide(context):
-    context.prs = Presentation()
-    slidelayout = context.prs.slidelayouts[6]
-    context.sld = context.prs.slides.add_slide(slidelayout)
-
-
-@given('I have a reference to a slide')
-def step_given_ref_to_slide(context):
-    context.prs = Presentation()
-    slidelayout = context.prs.slidelayouts[0]
-    context.sld = context.prs.slides.add_slide(slidelayout)
-
-
 @given('I have an empty presentation open')
 def step_given_empty_prs(context):
     context.prs = Presentation()
 
 
 # when ====================================================
-
-@when('I add a new slide')
-def step_when_add_slide(context):
-    slidelayout = context.prs.slidemasters[0].slidelayouts[0]
-    context.prs.slides.add_slide(slidelayout)
-
 
 @when('I construct a Presentation instance with no path argument')
 def step_when_construct_default_prs(context):
@@ -119,9 +99,3 @@ def step_then_see_pptx_file_in_working_dir(context):
     minimum = 30000
     actual = os.path.getsize(saved_pptx_path)
     assert_that(actual, is_(greater_than(minimum)))
-
-
-@then('the pptx file contains a single slide')
-def step_then_pptx_file_contains_single_slide(context):
-    prs = Presentation(saved_pptx_path)
-    assert_that(len(prs.slides), is_(equal_to(1)))
