@@ -149,3 +149,36 @@ class _SlideCollection(_PartCollection):
         """
         for idx, slide in enumerate(self._values):
             slide.partname = '/ppt/slides/slide%d.xml' % (idx+1)
+
+
+class _SlideLayout(_BaseSlide):
+    """
+    Slide layout part. Corresponds to package files
+    ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
+    """
+    def __init__(self):
+        super(_SlideLayout, self).__init__(CT.PML_SLIDE_LAYOUT)
+        self.__slidemaster = None
+
+    @property
+    def slidemaster(self):
+        """Slide master from which this slide layout inherits properties."""
+        assert self.__slidemaster is not None, ("_SlideLayout.slidemaster "
+                                                "referenced before assigned")
+        return self.__slidemaster
+
+    def _load(self, pkgpart, part_dict):
+        """
+        Load slide layout from package part.
+        """
+        # call parent to do generic aspects of load
+        super(_SlideLayout, self)._load(pkgpart, part_dict)
+
+        # selectively unmarshal relationships we need
+        for rel in self._relationships:
+            # get slideMaster from which this slideLayout inherits properties
+            if rel._reltype == RT.SLIDE_MASTER:
+                self.__slidemaster = rel._target
+
+        # return self-reference to allow generative calling
+        return self
