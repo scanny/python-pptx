@@ -320,9 +320,8 @@ class _RelationshipCollection(Collection):
 
     def notify(self, subject, name, value):
         """RelationshipCollection implements the Observer interface"""
-        if isinstance(subject, _BasePart):
-            if name == 'partname':
-                self.__resequence()
+        if name == 'partname':
+            self.__resequence()
 
     def __resequence(self):
         """
