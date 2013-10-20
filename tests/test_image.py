@@ -9,6 +9,7 @@ from StringIO import StringIO
 from hamcrest import assert_that, equal_to, is_
 
 from pptx.image import _Image
+from pptx.presentation import _Package
 from pptx.util import Px
 
 from testing import TestCase
@@ -21,8 +22,11 @@ def absjoin(*paths):
 thisdir = os.path.split(__file__)[0]
 test_file_dir = absjoin(thisdir, 'test_files')
 
+images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
+
 test_bmp_path = absjoin(test_file_dir, 'python.bmp')
 test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
+new_image_path = absjoin(test_file_dir, 'monty-truth.png')
 
 
 class Test_Image(TestCase):
@@ -102,3 +106,36 @@ class Test_Image(TestCase):
         # verify -----------------------
         with self.assertRaises(TypeError):
             _Image._Image__image_ext_content_type('.xml')
+
+
+class Test_ImageCollection(TestCase):
+    """Test _ImageCollection"""
+    def test_add_image_returns_matching_image(self):
+        """_ImageCollection.add_image() returns existing image on match"""
+        # setup ------------------------
+        pkg = _Package(images_pptx_path)
+        matching_idx = 4
+        matching_image = pkg._images[matching_idx]
+        # exercise ---------------------
+        image = pkg._images.add_image(test_image_path)
+        # verify -----------------------
+        expected = matching_image
+        actual = image
+        msg = ("expected images[%d], got images[%d]"
+               % (matching_idx, pkg._images.index(image)))
+        self.assertEqual(expected, actual, msg)
+
+    def test_add_image_adds_new_image(self):
+        """_ImageCollection.add_image() adds new image on no match"""
+        # setup ------------------------
+        pkg = _Package(images_pptx_path)
+        expected_partname = '/ppt/media/image8.png'
+        expected_len = len(pkg._images) + 1
+        expected_sha1 = '79769f1e202add2e963158b532e36c2c0f76a70c'
+        # exercise ---------------------
+        image = pkg._images.add_image(new_image_path)
+        # verify -----------------------
+        expected = (expected_partname, expected_len, expected_sha1)
+        actual = (image.partname, len(pkg._images), image._sha1)
+        msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)

@@ -20,7 +20,7 @@ from datetime import datetime
 import pptx.packaging
 
 from pptx.exceptions import InvalidPackageError
-from pptx.image import _Image
+from pptx.image import _Image, _ImageCollection
 from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import CT_CoreProperties, _Element, _SubElement, qn
 from pptx.part import _BasePart, _PartCollection
@@ -218,45 +218,6 @@ class _Package(object):
 # ============================================================================
 # Parts
 # ============================================================================
-
-class _ImageCollection(_PartCollection):
-    """
-    Immutable sequence of images, typically belonging to an instance of
-    |_Package|. An image part containing a particular image blob appears only
-    once in an instance, regardless of how many times it is referenced by a
-    pic shape in a slide.
-    """
-    def __init__(self):
-        super(_ImageCollection, self).__init__()
-
-    def add_image(self, file):
-        """
-        Return image part containing the image in *file*, which is either a
-        path to an image file or a file-like object containing an image. If an
-        image instance containing this same image already exists, that
-        instance is returned. If it does not yet exist, a new one is created.
-        """
-        # use _Image constructor to validate and characterize image file
-        image = _Image(file)
-        # return matching image if found
-        for existing_image in self._values:
-            if existing_image._sha1 == image._sha1:
-                return existing_image
-        # otherwise add it to collection and return new image
-        self._values.append(image)
-        self.__rename_images()
-        return image
-
-    def __rename_images(self):
-        """
-        Assign partnames like ``/ppt/media/image9.png`` to all images in the
-        collection. The name portion is always ``image``. The number part
-        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
-        extension is preserved during renaming.
-        """
-        for idx, image in enumerate(self._values):
-            image.partname = '/ppt/media/image%d%s' % (idx+1, image.ext)
-
 
 class _Part(object):
     """
