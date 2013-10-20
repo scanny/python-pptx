@@ -2,6 +2,8 @@
 
 """Test suite for pptx.slides module."""
 
+from __future__ import absolute_import
+
 import os
 
 from hamcrest import assert_that, is_
@@ -18,7 +20,7 @@ from pptx.spec import namespaces
 
 from pptx import packaging
 
-from testing import TestCase
+from ..testing import TestCase
 
 
 def absjoin(*paths):
@@ -26,7 +28,7 @@ def absjoin(*paths):
 
 
 thisdir = os.path.split(__file__)[0]
-test_file_dir = absjoin(thisdir, 'test_files')
+test_file_dir = absjoin(thisdir, '../test_files')
 
 test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
@@ -35,7 +37,7 @@ nsmap = namespaces('a', 'r', 'p')
 
 
 def _sldLayout1():
-    path = os.path.join(thisdir, 'test_files/slideLayout1.xml')
+    path = absjoin(test_file_dir, 'slideLayout1.xml')
     sldLayout = oxml_parse(path).getroot()
     return sldLayout
 
@@ -67,7 +69,7 @@ class Test_BaseSlide(TestCase):
     def test_shapes_size_after__load(self):
         """_BaseSlide.shapes is expected size after _load()"""
         # setup ------------------------
-        path = os.path.join(thisdir, 'test_files/slide1.xml')
+        path = absjoin(test_file_dir, 'slide1.xml')
         pkgpart = Mock(name='pptx.packaging.Part')
         pkgpart.partname = '/ppt/slides/slide1.xml'
         with open(path, 'r') as f:
@@ -138,7 +140,7 @@ class Test_Slide(TestCase):
     def test__element_minimal_sld_on_construction(self):
         """_Slide._element is minimal sld on construction"""
         # setup ------------------------
-        path = os.path.join(thisdir, 'test_files/minimal_slide.xml')
+        path = absjoin(test_file_dir, 'minimal_slide.xml')
         # exercise ---------------------
         elm = self.sld._element
         # verify -----------------------
@@ -154,7 +156,7 @@ class Test_Slide(TestCase):
     def test__load_sets_slidelayout(self):
         """_Slide._load() sets slidelayout"""
         # setup ------------------------
-        path = os.path.join(thisdir, 'test_files/slide1.xml')
+        path = absjoin(test_file_dir, 'slide1.xml')
         slidelayout = Mock(name='slideLayout')
         slidelayout.partname = '/ppt/slideLayouts/slideLayout1.xml'
         rel = Mock(name='pptx.packaging._Relationship')
@@ -178,7 +180,7 @@ class Test_Slide(TestCase):
     def test___minimal_element_xml(self):
         """_Slide.__minimal_element generates correct XML"""
         # setup ------------------------
-        path = os.path.join(thisdir, 'test_files/minimal_slide.xml')
+        path = absjoin(test_file_dir, 'minimal_slide.xml')
         # exercise ---------------------
         sld = self.sld._Slide__minimal_element
         # verify -----------------------
