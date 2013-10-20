@@ -2,6 +2,8 @@
 
 """Test suite for pptx.image module."""
 
+from __future__ import absolute_import
+
 import os
 
 from StringIO import StringIO
@@ -12,7 +14,7 @@ from pptx.parts.image import _Image
 from pptx.presentation import _Package
 from pptx.util import Px
 
-from testing import TestCase
+from ..testing import TestCase
 
 
 def absjoin(*paths):
@@ -20,7 +22,7 @@ def absjoin(*paths):
 
 
 thisdir = os.path.split(__file__)[0]
-test_file_dir = absjoin(thisdir, 'test_files')
+test_file_dir = absjoin(thisdir, '../test_files')
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
