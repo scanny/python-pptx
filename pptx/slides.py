@@ -182,3 +182,38 @@ class _SlideLayout(_BaseSlide):
 
         # return self-reference to allow generative calling
         return self
+
+
+class _SlideMaster(_BaseSlide):
+    """
+    Slide master part. Corresponds to package files
+    ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
+    """
+    # TECHNOTE: In the Microsoft API, Master is a general type that all of
+    # SlideMaster, SlideLayout (CustomLayout), HandoutMaster, and NotesMaster
+    # inherit from. So might look into why that is and consider refactoring
+    # the various masters a bit later.
+
+    def __init__(self):
+        super(_SlideMaster, self).__init__(CT.PML_SLIDE_MASTER)
+        self.__slidelayouts = _PartCollection()
+
+    @property
+    def slidelayouts(self):
+        """
+        Collection of slide layout objects belonging to this slide master.
+        """
+        return self.__slidelayouts
+
+    def _load(self, pkgpart, part_dict):
+        """
+        Load slide master from package part.
+        """
+        # call parent to do generic aspects of load
+        super(_SlideMaster, self)._load(pkgpart, part_dict)
+
+        # selectively unmarshal relationships for now
+        for rel in self._relationships:
+            if rel._reltype == RT.SLIDE_LAYOUT:
+                self.__slidelayouts._loadpart(rel._target)
+        return self

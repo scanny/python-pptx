@@ -13,12 +13,11 @@ from mock import Mock
 from pptx.exceptions import InvalidPackageError
 from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import CT_CoreProperties, oxml_fromstring, oxml_parse
-from pptx.presentation import (
-    _BasePart, _CoreProperties, _Package, _Part, Presentation, _Relationship,
-    _RelationshipCollection, _Slide, _SlideLayout, _SlideMaster
-)
+from pptx.part import _BasePart
+from pptx.presentation import _CoreProperties, _Package, _Part, Presentation
+from pptx.rels import _Relationship, _RelationshipCollection
+from pptx.slides import _Slide, _SlideLayout, _SlideMaster
 from pptx.spec import namespaces, qtag
-
 from testing import TestCase
 
 import logging
@@ -40,7 +39,6 @@ thisdir = os.path.split(__file__)[0]
 test_file_dir = absjoin(thisdir, 'test_files')
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
-
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
@@ -354,24 +352,3 @@ class Test_Presentation(TestCase):
         slides = prs.slides
         # verify -----------------------
         self.assertLength(slides, 1)
-
-
-class Test_SlideMaster(TestCase):
-    """Test _SlideMaster"""
-    def setUp(self):
-        self.sldmaster = _SlideMaster()
-
-    def test_slidelayouts_property_empty_on_construction(self):
-        """_SlideMaster.slidelayouts property empty on construction"""
-        # verify -----------------------
-        self.assertIsSizedProperty(self.sldmaster, 'slidelayouts', 0)
-
-    def test_slidelayouts_correct_length_after_open(self):
-        """_SlideMaster.slidelayouts correct length after open"""
-        # setup ------------------------
-        pkg = _Package(test_pptx_path)
-        slidemaster = pkg.presentation.slidemasters[0]
-        # exercise ---------------------
-        slidelayouts = slidemaster.slidelayouts
-        # verify -----------------------
-        self.assertLength(slidelayouts, 11)

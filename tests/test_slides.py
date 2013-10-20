@@ -9,9 +9,11 @@ from mock import Mock, patch, PropertyMock
 
 from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_parse
-from pptx.presentation import Presentation, _SlideLayout, _SlideMaster
+from pptx.presentation import _Package, Presentation
 from pptx.shapes.shapetree import _ShapeCollection
-from pptx.slides import _BaseSlide, _Slide, _SlideCollection
+from pptx.slides import (
+    _BaseSlide, _Slide, _SlideCollection, _SlideLayout, _SlideMaster
+)
 from pptx.spec import namespaces
 
 from pptx import packaging
@@ -27,6 +29,7 @@ thisdir = os.path.split(__file__)[0]
 test_file_dir = absjoin(thisdir, 'test_files')
 
 test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
+test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
 
@@ -77,7 +80,7 @@ class Test_BaseSlide(TestCase):
         # verify -----------------------
         self.assertLength(shapes, 9)
 
-    @patch('pptx.presentation._BaseSlide._package', new_callable=PropertyMock)
+    @patch('pptx.slides._BaseSlide._package', new_callable=PropertyMock)
     def test__add_image_collaboration(self, _package):
         """_BaseSlide._add_image() returns (image, rel) tuple"""
         # setup ------------------------
@@ -312,3 +315,24 @@ class Test_SlideLayout(TestCase):
         """_SlideLayout.slidemaster raises on referenced before assigned"""
         with self.assertRaises(AssertionError):
             self.slidelayout.slidemaster
+
+
+class Test_SlideMaster(TestCase):
+    """Test _SlideMaster"""
+    def setUp(self):
+        self.sldmaster = _SlideMaster()
+
+    def test_slidelayouts_property_empty_on_construction(self):
+        """_SlideMaster.slidelayouts property empty on construction"""
+        # verify -----------------------
+        self.assertIsSizedProperty(self.sldmaster, 'slidelayouts', 0)
+
+    def test_slidelayouts_correct_length_after_open(self):
+        """_SlideMaster.slidelayouts correct length after open"""
+        # setup ------------------------
+        pkg = _Package(test_pptx_path)
+        slidemaster = pkg.presentation.slidemasters[0]
+        # exercise ---------------------
+        slidelayouts = slidemaster.slidelayouts
+        # verify -----------------------
+        self.assertLength(slidelayouts, 11)
