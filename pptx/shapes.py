@@ -12,8 +12,8 @@ Classes that implement PowerPoint shapes such as picture, textbox, and table.
 """
 
 from pptx.autoshape import _AutoShapeType, _Shape
-from pptx.constants import MSO
 from pptx.oxml import qn, CT_GraphicalObjectFrame, CT_Picture, CT_Shape
+from pptx.picture import _Picture
 from pptx.placeholder import _Placeholder
 from pptx.shape import _BaseShape
 from pptx.spec import namespaces, slide_ph_basenames
@@ -235,20 +235,3 @@ class _ShapeCollection(_BaseShape, Collection):
                 break
             next_id += 1
         return next_id
-
-
-class _Picture(_BaseShape):
-    """
-    A picture shape, one that places an image on a slide. Corresponds to the
-    ``<p:pic>`` element.
-    """
-    def __init__(self, pic):
-        super(_Picture, self).__init__(pic)
-
-    @property
-    def shape_type(self):
-        """
-        Unique integer identifying the type of this shape, unconditionally
-        ``MSO.PICTURE`` in this case.
-        """
-        return MSO.PICTURE

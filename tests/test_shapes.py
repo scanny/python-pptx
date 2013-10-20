@@ -7,7 +7,7 @@ import os
 from hamcrest import assert_that, equal_to, is_
 from mock import Mock, patch, PropertyMock
 
-from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
+from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.oxml import _SubElement, nsdecls, oxml_parse
 from pptx.presentation import _SlideLayout
 from pptx.shapes import _Placeholder, _ShapeCollection
@@ -48,16 +48,6 @@ def _sldLayout1_shapes():
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
     shapes = _ShapeCollection(spTree)
     return shapes
-
-
-class Test_Picture(TestCase):
-    """Test _Picture"""
-    def test_shape_type_value_correct_for_picture(self):
-        """_Shape.shape_type value is correct for picture"""
-        # setup ------------------------
-        picture = test_shapes.picture
-        # verify -----------------------
-        assert_that(picture.shape_type, is_(equal_to(MSO.PICTURE)))
 
 
 class Test_ShapeCollection(TestCase):
