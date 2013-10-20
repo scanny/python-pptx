@@ -9,11 +9,11 @@ from mock import Mock, patch, PropertyMock
 
 from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_parse
-from pptx.presentation import _Package, Presentation
-from pptx.shapes.shapetree import _ShapeCollection
-from pptx.slides import (
+from pptx.parts.slides import (
     _BaseSlide, _Slide, _SlideCollection, _SlideLayout, _SlideMaster
 )
+from pptx.presentation import _Package, Presentation
+from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 
 from pptx import packaging
@@ -80,7 +80,7 @@ class Test_BaseSlide(TestCase):
         # verify -----------------------
         self.assertLength(shapes, 9)
 
-    @patch('pptx.slides._BaseSlide._package', new_callable=PropertyMock)
+    @patch('pptx.parts.slides._BaseSlide._package', new_callable=PropertyMock)
     def test__add_image_collaboration(self, _package):
         """_BaseSlide._add_image() returns (image, rel) tuple"""
         # setup ------------------------

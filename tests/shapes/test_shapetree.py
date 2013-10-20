@@ -11,8 +11,8 @@ from mock import Mock, patch, PropertyMock
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.oxml import _SubElement, nsdecls, oxml_parse
+from pptx.parts.slides import _SlideLayout
 from pptx.shapes.shapetree import _Placeholder, _ShapeCollection
-from pptx.slides import _SlideLayout
 from pptx.spec import namespaces
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
