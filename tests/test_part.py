@@ -7,7 +7,7 @@ from mock import Mock
 
 from pptx.opc_constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_fromstring, oxml_tostring
-from pptx.part import _BasePart, _PartCollection
+from pptx.parts.part import _BasePart, _PartCollection
 
 from testing import TestCase
 

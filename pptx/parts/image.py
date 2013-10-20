@@ -15,7 +15,7 @@ except ImportError:
 
 from StringIO import StringIO
 
-from pptx.part import _BasePart, _PartCollection
+from pptx.parts.part import _BasePart, _PartCollection
 from pptx.spec import default_content_types
 from pptx.util import Px
 

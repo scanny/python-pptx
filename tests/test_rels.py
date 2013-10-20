@@ -7,7 +7,7 @@ from mock import Mock
 
 from pptx.rels import _Relationship, _RelationshipCollection
 from pptx.opc_constants import RELATIONSHIP_TYPE as RT
-from pptx.part import _BasePart
+from pptx.parts.part import _BasePart
 
 from testing import TestCase
 

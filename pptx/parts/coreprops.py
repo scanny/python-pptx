@@ -8,7 +8,7 @@ from datetime import datetime
 
 from pptx.opc_constants import CONTENT_TYPE as CT
 from pptx.oxml import CT_CoreProperties
-from pptx.part import _BasePart
+from pptx.parts.part import _BasePart
 
 
 class _CoreProperties(_BasePart):
