@@ -2,6 +2,8 @@
 
 """Test suite for pptx.coreprops module."""
 
+from __future__ import absolute_import
+
 from datetime import datetime, timedelta
 
 from hamcrest import assert_that, instance_of, is_, less_than
@@ -10,7 +12,7 @@ from pptx.opc_constants import CONTENT_TYPE as CT
 from pptx.oxml import CT_CoreProperties
 from pptx.parts.coreprops import _CoreProperties
 
-from testing import TestCase
+from ..testing import TestCase
 
 
 class Test_CoreProperties(TestCase):
