@@ -9,9 +9,9 @@ from mock import Mock, patch, PropertyMock
 
 from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_parse
-from pptx.presentation import _SlideLayout
+from pptx.presentation import Presentation, _SlideLayout
 from pptx.shapes.shapetree import _ShapeCollection
-from pptx.slides import _BaseSlide, _Slide
+from pptx.slides import _BaseSlide, _Slide, _SlideCollection
 from pptx.spec import namespaces
 
 from testing import TestCase
@@ -180,3 +180,73 @@ class Test_Slide(TestCase):
         with open(path, 'r') as f:
             expected_xml = f.read()
         self.assertEqualLineByLine(expected_xml, sld)
+
+
+class Test_SlideCollection(TestCase):
+    """Test _SlideCollection"""
+    def setUp(self):
+        prs = Presentation()
+        self.slides = _SlideCollection(prs)
+
+    def test_add_slide_returns_slide(self):
+        """_SlideCollection.add_slide() returns instance of _Slide"""
+        # exercise ---------------------
+        retval = self.slides.add_slide(None)
+        # verify -----------------------
+        self.assertIsInstance(retval, _Slide)
+
+    def test_add_slide_sets_slidelayout(self):
+        """
+        _SlideCollection.add_slide() sets _Slide.slidelayout
+
+        Kind of a throw-away test, but was helpful for initial debugging.
+        """
+        # setup ------------------------
+        slidelayout = Mock(name='slideLayout')
+        slidelayout.shapes = []
+        slide = self.slides.add_slide(slidelayout)
+        # exercise ---------------------
+        retval = slide.slidelayout
+        # verify -----------------------
+        expected = slidelayout
+        actual = retval
+        msg = "expected: %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test_add_slide_adds_slide_layout_relationship(self):
+        """_SlideCollection.add_slide() adds relationship prs->slide"""
+        # setup ------------------------
+        prs = Presentation()
+        slides = prs.slides
+        slidelayout = _SlideLayout()
+        slidelayout._shapes = []
+        # exercise ---------------------
+        slide = slides.add_slide(slidelayout)
+        # verify length ---------------
+        expected = 1
+        actual = len(prs._relationships)
+        msg = ("expected len(prs._relationships) of %d, got %d"
+               % (expected, actual))
+        self.assertEqual(expected, actual, msg)
+        # verify values ---------------
+        rel = prs._relationships[0]
+        expected = ('rId1', RT.SLIDE, slide)
+        actual = (rel._rId, rel._reltype, rel._target)
+        msg = ("expected relationship 1:, got 2:\n1: %s\n2: %s"
+               % (expected, actual))
+        self.assertEqual(expected, actual, msg)
+
+    def test_add_slide_sets_partname(self):
+        """_SlideCollection.add_slide() sets partname of new slide"""
+        # setup ------------------------
+        prs = Presentation()
+        slides = prs.slides
+        slidelayout = _SlideLayout()
+        slidelayout._shapes = []
+        # exercise ---------------------
+        slide = slides.add_slide(slidelayout)
+        # verify -----------------------
+        expected = '/ppt/slides/slide1.xml'
+        actual = slide.partname
+        msg = "expected partname '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)

@@ -6,7 +6,7 @@ Slide objects, including _Slide and _SlideMaster.
 
 from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import _Element, _SubElement
-from pptx.part import _BasePart
+from pptx.part import _BasePart, _PartCollection
 from pptx.shapes.shapetree import _ShapeCollection
 
 
@@ -116,3 +116,36 @@ class _Slide(_BaseSlide):
         sld.cSld.spTree.nvGrpSpPr.cNvPr.set('id', '1')
         sld.cSld.spTree.nvGrpSpPr.cNvPr.set('name', '')
         return sld
+
+
+class _SlideCollection(_PartCollection):
+    """
+    Immutable sequence of slides belonging to an instance of |Presentation|,
+    with methods for manipulating the slides in the presentation.
+    """
+    def __init__(self, presentation):
+        super(_SlideCollection, self).__init__()
+        self.__presentation = presentation
+
+    def add_slide(self, slidelayout):
+        """Add a new slide that inherits layout from *slidelayout*."""
+        # 1. construct new slide
+        slide = _Slide(slidelayout)
+        # 2. add it to this collection
+        self._values.append(slide)
+        # 3. assign its partname
+        self.__rename_slides()
+        # 4. add presentation->slide relationship
+        self.__presentation._add_relationship(RT.SLIDE, slide)
+        # 5. return reference to new slide
+        return slide
+
+    def __rename_slides(self):
+        """
+        Assign partnames like ``/ppt/slides/slide9.xml`` to all slides in the
+        collection. The name portion is always ``slide``. The number part
+        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
+        extension is always ``.xml``.
+        """
+        for idx, slide in enumerate(self._values):
+            slide.partname = '/ppt/slides/slide%d.xml' % (idx+1)
