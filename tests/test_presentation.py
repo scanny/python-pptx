@@ -20,17 +20,6 @@ from pptx.slides import _Slide, _SlideLayout, _SlideMaster
 from pptx.spec import namespaces, qtag
 from testing import TestCase
 
-import logging
-log = logging.getLogger('pptx.test.presentation')
-log.setLevel(logging.DEBUG)
-# log.setLevel(logging.INFO)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - '
-                              '%(message)s')
-ch.setFormatter(formatter)
-log.addHandler(ch)
-
 
 def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
