@@ -2,11 +2,119 @@
 
 """Test suite for pptx.part module."""
 
+from hamcrest import assert_that, equal_to, is_
 from mock import Mock
 
-from pptx.part import _PartCollection
+from pptx.opc_constants import RELATIONSHIP_TYPE as RT
+from pptx.oxml import oxml_fromstring, oxml_tostring
+from pptx.part import _BasePart, _PartCollection
 
 from testing import TestCase
+
+
+class Test_BasePart(TestCase):
+    """Test _BasePart"""
+    def setUp(self):
+        self.basepart = _BasePart()
+        self.cls = _BasePart
+
+    def test__add_relationship_adds_specified_relationship(self):
+        """_BasePart._add_relationship adds specified relationship"""
+        # setup ------------------------
+        reltype = RT.IMAGE
+        target = Mock(name='image')
+        # exercise ---------------------
+        rel = self.basepart._add_relationship(reltype, target)
+        # verify -----------------------
+        expected = ('rId1', reltype, target)
+        actual = (rel._rId, rel._reltype, rel._target)
+        msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test__add_relationship_reuses_matching_relationship(self):
+        """_BasePart._add_relationship reuses matching relationship"""
+        # setup ------------------------
+        reltype = RT.IMAGE
+        target = Mock(name='image')
+        # exercise ---------------------
+        rel1 = self.basepart._add_relationship(reltype, target)
+        rel2 = self.basepart._add_relationship(reltype, target)
+        # verify -----------------------
+        assert_that(rel1, is_(equal_to(rel2)))
+
+    def test__blob_value_for_binary_part(self):
+        """_BasePart._blob value is correct for binary part"""
+        # setup ------------------------
+        blob = '0123456789'
+        self.basepart._load_blob = blob
+        self.basepart.partname = '/docProps/thumbnail.jpeg'
+        # exercise ---------------------
+        retval = self.basepart._blob
+        # verify -----------------------
+        expected = blob
+        actual = retval
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test__blob_value_for_xml_part(self):
+        """_BasePart._blob value is correct for XML part"""
+        # setup ------------------------
+        elm = oxml_fromstring('<root><elm1 attr="one"/></root>')
+        self.basepart._element = elm
+        self.basepart.partname = '/ppt/presentation.xml'
+        # exercise ---------------------
+        retval = self.basepart._blob
+        # verify -----------------------
+        expected = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<root><elm1 attr="one"/></root>'
+        )
+        actual = retval
+        msg = "expected: \n'%s'\n, got \n'%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test__load_sets__element_for_xml_part(self):
+        """_BasePart._load() sets _element for xml part"""
+        # setup ------------------------
+        pkgpart = Mock(name='pptx.packaging.Part')
+        pkgpart.partname = '/ppt/presentation.xml'
+        pkgpart.blob = '<root><elm1   attr="spam"/></root>'
+        pkgpart.relationships = []
+        part_dict = {}
+        part = self.basepart._load(pkgpart, part_dict)
+        # exercise ---------------------
+        elm = part._element
+        # verify -----------------------
+        expected = '<root><elm1 attr="spam"/></root>'
+        actual = oxml_tostring(elm)
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test_observable_on_partname(self):
+        """_BasePart observable on partname value change"""
+        # setup ------------------------
+        old_partname = '/ppt/slides/slide1.xml'
+        new_partname = '/ppt/slides/slide2.xml'
+        observer = Mock()
+        self.basepart.partname = old_partname
+        self.basepart.add_observer(observer)
+        # exercise ---------------------
+        self.basepart.partname = new_partname
+        # verify -----------------------
+        observer.notify.assert_called_with(self.basepart, 'partname',
+                                           new_partname)
+
+    def test_partname_setter(self):
+        """_BasePart.partname setter stores passed value"""
+        # setup ------------------------
+        partname = '/ppt/presentation.xml'
+        # exercise ----------------
+        self.basepart.partname = partname
+        # verify ------------------
+        expected = partname
+        actual = self.basepart.partname
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
 
 
 class Test_PartCollection(TestCase):
