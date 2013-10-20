@@ -1,11 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# test_presentation.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
 """Test suite for pptx.presentation module."""
 
@@ -30,14 +23,13 @@ from pptx.oxml import (
 )
 from pptx.presentation import (
     _BasePart, _BaseSlide, _CoreProperties, _Image, _Package, _Part,
-    _PartCollection, Presentation, _Relationship, _RelationshipCollection,
-    _Slide, _SlideCollection, _SlideLayout, _SlideMaster
+    Presentation, _Relationship, _RelationshipCollection, _Slide,
+    _SlideCollection, _SlideLayout, _SlideMaster
 )
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces, qtag
 from pptx.util import Px
 from testing import TestCase
-# from unittest2 import skip
 
 import logging
 log = logging.getLogger('pptx.test.presentation')
@@ -601,32 +593,6 @@ class Test_Part(TestCase):
             _Part(RT.OFFICE_DOCUMENT, CT.PML_SLIDE_MASTER)
 
 
-class Test_PartCollection(TestCase):
-    """Test _PartCollection"""
-    def test__loadpart_sorts_loaded_parts(self):
-        """_PartCollection._loadpart sorts loaded parts"""
-        # setup ------------------------
-        partname1 = '/ppt/slides/slide1.xml'
-        partname2 = '/ppt/slides/slide2.xml'
-        partname3 = '/ppt/slides/slide3.xml'
-        part1 = Mock(name='part1')
-        part1.partname = partname1
-        part2 = Mock(name='part2')
-        part2.partname = partname2
-        part3 = Mock(name='part3')
-        part3.partname = partname3
-        parts = _PartCollection()
-        # exercise ---------------------
-        parts._loadpart(part2)
-        parts._loadpart(part3)
-        parts._loadpart(part1)
-        # verify -----------------------
-        expected = [partname1, partname2, partname3]
-        actual = [part.partname for part in parts]
-        msg = "expected %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-
 class Test_Presentation(TestCase):
     """Test Presentation"""
     def setUp(self):
@@ -684,48 +650,6 @@ class Test_Presentation(TestCase):
         slides = prs.slides
         # verify -----------------------
         self.assertLength(slides, 1)
-
-
-class Test_Relationship(TestCase):
-    """Test _Relationship"""
-    def setUp(self):
-        rId = 'rId1'
-        reltype = RT.SLIDE
-        target_part = None
-        self.rel = _Relationship(rId, reltype, target_part)
-
-    def test_constructor_raises_on_bad_rId(self):
-        """_Relationship constructor raises on non-standard rId"""
-        with self.assertRaises(AssertionError):
-            _Relationship('Non-std14', None, None)
-
-    def test__num_value(self):
-        """_Relationship._num value is correct"""
-        # setup ------------------------
-        num = 91
-        rId = 'rId%d' % num
-        rel = _Relationship(rId, None, None)
-        # verify -----------------------
-        assert_that(rel._num, is_(equal_to(num)))
-
-    def test__num_value_on_non_standard_rId(self):
-        """_Relationship._num value is correct for non-standard rId"""
-        # setup ------------------------
-        rel = _Relationship('rIdSm', None, None)
-        # verify -----------------------
-        assert_that(rel._num, is_(equal_to(9999)))
-
-    def test__rId_setter(self):
-        """Relationship._rId setter stores passed value"""
-        # setup ------------------------
-        rId = 'rId9'
-        # exercise ----------------
-        self.rel._rId = rId
-        # verify ------------------
-        expected = rId
-        actual = self.rel._rId
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
 
 
 class Test_RelationshipCollection(TestCase):
