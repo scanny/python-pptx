@@ -14,12 +14,10 @@ Classes that implement PowerPoint shapes such as picture, textbox, and table.
 from pptx.autoshape import _AutoShapeType, _Shape
 from pptx.constants import MSO
 from pptx.oxml import qn, CT_GraphicalObjectFrame, CT_Picture, CT_Shape
+from pptx.placeholder import _Placeholder
 from pptx.shape import _BaseShape
 from pptx.spec import namespaces, slide_ph_basenames
-from pptx.spec import (
-    PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_TYPE_DT, PH_TYPE_FTR,
-    PH_TYPE_OBJ, PH_TYPE_SLDNUM
-)
+from pptx.spec import PH_ORIENT_VERT, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
 from pptx.table import _Table
 from pptx.util import Collection
 
@@ -237,49 +235,6 @@ class _ShapeCollection(_BaseShape, Collection):
                 break
             next_id += 1
         return next_id
-
-
-class _Placeholder(object):
-    """
-    Decorator (pattern) class for adding placeholder properties to a shape
-    that contains a placeholder element, e.g. ``<p:ph>``.
-    """
-    def __new__(cls, shape):
-        cls = type('PlaceholderDecorator', (_Placeholder, shape.__class__), {})
-        return object.__new__(cls)
-
-    def __init__(self, shape):
-        self.__decorated = shape
-        xpath = './*[1]/p:nvPr/p:ph'
-        self.__ph = self._element.xpath(xpath, namespaces=_nsmap)[0]
-
-    def __getattr__(self, name):
-        """
-        Called when *name* is not found in ``self`` or in class tree. In this
-        case, delegate attribute lookup to decorated (it's probably in its
-        instance namespace).
-        """
-        return getattr(self.__decorated, name)
-
-    @property
-    def type(self):
-        """Placeholder type, e.g. PH_TYPE_CTRTITLE"""
-        return self.__ph.get('type', PH_TYPE_OBJ)
-
-    @property
-    def orient(self):
-        """Placeholder 'orient' attribute, e.g. PH_ORIENT_HORZ"""
-        return self.__ph.get('orient', PH_ORIENT_HORZ)
-
-    @property
-    def sz(self):
-        """Placeholder 'sz' attribute, e.g. PH_SZ_FULL"""
-        return self.__ph.get('sz', PH_SZ_FULL)
-
-    @property
-    def idx(self):
-        """Placeholder 'idx' attribute, e.g. '0'"""
-        return int(self.__ph.get('idx', 0))
 
 
 class _Picture(_BaseShape):

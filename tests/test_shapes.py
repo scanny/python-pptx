@@ -15,7 +15,7 @@ from pptx.spec import namespaces
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
     PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE, PH_ORIENT_HORZ,
-    PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER
+    PH_ORIENT_VERT
 )
 from testdata import test_shape_elements, test_shapes
 from testing import TestCase
@@ -48,31 +48,6 @@ def _sldLayout1_shapes():
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
     shapes = _ShapeCollection(spTree)
     return shapes
-
-
-class Test_Placeholder(TestCase):
-    """Test _Placeholder"""
-    def test_property_values(self):
-        """_Placeholder property values are correct"""
-        # setup ------------------------
-        expected_values = (
-            (PH_TYPE_CTRTITLE, PH_ORIENT_HORZ, PH_SZ_FULL,     0),
-            (PH_TYPE_DT,       PH_ORIENT_HORZ, PH_SZ_HALF,    10),
-            (PH_TYPE_SUBTITLE, PH_ORIENT_VERT, PH_SZ_FULL,     1),
-            (PH_TYPE_TBL,      PH_ORIENT_HORZ, PH_SZ_QUARTER, 14),
-            (PH_TYPE_SLDNUM,   PH_ORIENT_HORZ, PH_SZ_QUARTER, 12),
-            (PH_TYPE_FTR,      PH_ORIENT_HORZ, PH_SZ_QUARTER, 11))
-        shapes = _sldLayout1_shapes()
-        # exercise ---------------------
-        for idx, sp in enumerate(shapes):
-            ph = _Placeholder(sp)
-            values = (ph.type, ph.orient, ph.sz, ph.idx)
-            # verify ----------------------
-            expected = expected_values[idx]
-            actual = values
-            msg = ("expected shapes[%d] values %s, got %s"
-                   % (idx, expected, actual))
-            self.assertEqual(expected, actual, msg)
 
 
 class Test_Picture(TestCase):
