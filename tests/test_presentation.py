@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timedelta
 
 from hamcrest import assert_that, instance_of, is_, is_in, is_not, less_than
-from mock import Mock, patch, PropertyMock
+from mock import Mock
 
 import pptx.presentation
 
@@ -16,9 +16,9 @@ from pptx.exceptions import InvalidPackageError
 from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import CT_CoreProperties, oxml_fromstring, oxml_parse
 from pptx.presentation import (
-    _BasePart, _BaseSlide, _CoreProperties, _Package, _Part, Presentation,
-    _Relationship, _RelationshipCollection, _Slide, _SlideCollection,
-    _SlideLayout, _SlideMaster
+    _BasePart, _CoreProperties, _Package, _Part, Presentation, _Relationship,
+    _RelationshipCollection, _Slide, _SlideCollection, _SlideLayout,
+    _SlideMaster
 )
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces, qtag
@@ -45,7 +45,6 @@ test_file_dir = absjoin(thisdir, 'test_files')
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
-test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
@@ -136,59 +135,6 @@ class RelationshipCollectionBuilder(object):
         if self.reltype_ordering:
             rels._reltype_ordering = self.reltype_ordering
         return rels
-
-
-class Test_BaseSlide(TestCase):
-    """Test _BaseSlide"""
-    def setUp(self):
-        self.base_slide = _BaseSlide()
-
-    def test_name_value(self):
-        """_BaseSlide.name value is correct"""
-        # setup ------------------------
-        self.base_slide._element = _sldLayout1()
-        # exercise ---------------------
-        name = self.base_slide.name
-        # verify -----------------------
-        expected = 'Title Slide'
-        actual = name
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test_shapes_size_after__load(self):
-        """_BaseSlide.shapes is expected size after _load()"""
-        # setup ------------------------
-        path = os.path.join(thisdir, 'test_files/slide1.xml')
-        pkgpart = Mock(name='pptx.packaging.Part')
-        pkgpart.partname = '/ppt/slides/slide1.xml'
-        with open(path, 'r') as f:
-            pkgpart.blob = f.read()
-        pkgpart.relationships = []
-        part_dict = {}
-        self.base_slide._load(pkgpart, part_dict)
-        # exercise ---------------------
-        shapes = self.base_slide.shapes
-        # verify -----------------------
-        self.assertLength(shapes, 9)
-
-    @patch('pptx.presentation._BaseSlide._package', new_callable=PropertyMock)
-    def test__add_image_collaboration(self, _package):
-        """_BaseSlide._add_image() returns (image, rel) tuple"""
-        # setup ------------------------
-        base_slide = self.base_slide
-        image = Mock(name='image')
-        rel = Mock(name='rel')
-        base_slide._package._images.add_image.return_value = image
-        base_slide._add_relationship = Mock('_add_relationship')
-        base_slide._add_relationship.return_value = rel
-        file = test_image_path
-        # exercise ---------------------
-        retval_image, retval_rel = base_slide._add_image(file)
-        # verify -----------------------
-        base_slide._package._images.add_image.assert_called_once_with(file)
-        base_slide._add_relationship.assert_called_once_with(RT.IMAGE, image)
-        assert_that(retval_image, is_(image))
-        assert_that(retval_rel, is_(rel))
 
 
 class Test_CoreProperties(TestCase):
