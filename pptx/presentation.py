@@ -15,14 +15,13 @@ encounters as an end-user of the PowerPoint user interface.
 import os
 import weakref
 
-from datetime import datetime
-
 import pptx.packaging
 
+from pptx.coreprops import _CoreProperties
 from pptx.exceptions import InvalidPackageError
 from pptx.image import _Image, _ImageCollection
 from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.oxml import CT_CoreProperties, _Element, qn
+from pptx.oxml import _Element, qn
 from pptx.part import _BasePart, _PartCollection
 from pptx.rels import _Relationship, _RelationshipCollection
 from pptx.slides import _Slide, _SlideCollection, _SlideLayout, _SlideMaster
@@ -252,49 +251,6 @@ class _Part(object):
         elif reltype == RT.IMAGE:
             return _Image()
         return _BasePart()
-
-
-class _CoreProperties(_BasePart):
-    """
-    Corresponds to part named ``/docProps/core.xml``, containing the core
-    document properties for this document package.
-    """
-    _propnames = (
-        'author', 'category', 'comments', 'content_status', 'created',
-        'identifier', 'keywords', 'language', 'last_modified_by',
-        'last_printed', 'modified', 'revision', 'subject', 'title', 'version'
-    )
-
-    def __init__(self, partname=None):
-        super(_CoreProperties, self).__init__(CT.OPC_CORE_PROPERTIES, partname)
-
-    @classmethod
-    def _default(cls):
-        core_props = _CoreProperties('/docProps/core.xml')
-        core_props._element = CT_CoreProperties.new_coreProperties()
-        core_props.title = 'PowerPoint Presentation'
-        core_props.last_modified_by = 'python-pptx'
-        core_props.revision = 1
-        core_props.modified = datetime.utcnow()
-        return core_props
-
-    def __getattribute__(self, name):
-        """
-        Intercept attribute access to generalize property getters.
-        """
-        if name in _CoreProperties._propnames:
-            return getattr(self._element, name)
-        else:
-            return super(_CoreProperties, self).__getattribute__(name)
-
-    def __setattr__(self, name, value):
-        """
-        Intercept attribute assignment to generalize assignment to properties
-        """
-        if name in _CoreProperties._propnames:
-            setattr(self._element, name, value)
-        else:
-            super(_CoreProperties, self).__setattr__(name, value)
 
 
 class Presentation(_BasePart):
