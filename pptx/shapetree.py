@@ -1,14 +1,7 @@
-# -*- coding: utf-8 -*-
-#
-# shapes.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
 """
-Classes that implement PowerPoint shapes such as picture, textbox, and table.
+The shape tree, the structure that holds a slide's shapes.
 """
 
 from pptx.autoshape import _AutoShapeType, _Shape

@@ -9,7 +9,7 @@ from mock import Mock
 
 from pptx.oxml import oxml_parse
 from pptx.shape import _BaseShape
-from pptx.shapes import _ShapeCollection
+from pptx.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 
 from testing import TestCase

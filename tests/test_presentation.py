@@ -33,7 +33,7 @@ from pptx.presentation import (
     _PartCollection, Presentation, _Relationship, _RelationshipCollection,
     _Slide, _SlideCollection, _SlideLayout, _SlideMaster
 )
-from pptx.shapes import _ShapeCollection
+from pptx.shapetree import _ShapeCollection
 from pptx.spec import namespaces, qtag
 from pptx.util import Px
 from testing import TestCase

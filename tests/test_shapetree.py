@@ -10,7 +10,7 @@ from mock import Mock, patch, PropertyMock
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.oxml import _SubElement, nsdecls, oxml_parse
 from pptx.presentation import _SlideLayout
-from pptx.shapes import _Placeholder, _ShapeCollection
+from pptx.shapetree import _Placeholder, _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
@@ -72,11 +72,11 @@ class Test_ShapeCollection(TestCase):
         with self.assertRaises(ValueError):
             _ShapeCollection(spTree)
 
-    @patch('pptx.shapes.CT_Shape')
-    @patch('pptx.shapes._Shape')
-    @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
+    @patch('pptx.shapetree.CT_Shape')
+    @patch('pptx.shapetree._Shape')
+    @patch('pptx.shapetree._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
-    @patch('pptx.shapes._AutoShapeType')
+    @patch('pptx.shapetree._AutoShapeType')
     def test_add_shape_collaboration(self, _AutoShapeType, __next_shape_id,
                                      _Shape, CT_Shape):
         """_ShapeCollection.add_shape() calls the right collaborators"""
@@ -112,9 +112,9 @@ class Test_ShapeCollection(TestCase):
         __shapes.append.assert_called_once_with(shape)
         assert_that(retval, is_(equal_to(shape)))
 
-    @patch('pptx.shapes._Picture')
-    @patch('pptx.shapes.CT_Picture')
-    @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
+    @patch('pptx.shapetree._Picture')
+    @patch('pptx.shapetree.CT_Picture')
+    @patch('pptx.shapetree._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
     def test_add_picture_collaboration(self, next_shape_id, CT_Picture,
                                        _Picture):
@@ -152,9 +152,9 @@ class Test_ShapeCollection(TestCase):
         __shapes.append.assert_called_once_with(picture)
         assert_that(retval, is_(equal_to(picture)))
 
-    @patch('pptx.shapes._Table')
-    @patch('pptx.shapes.CT_GraphicalObjectFrame')
-    @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
+    @patch('pptx.shapetree._Table')
+    @patch('pptx.shapetree.CT_GraphicalObjectFrame')
+    @patch('pptx.shapetree._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
     def test_add_table_collaboration(
             self, __next_shape_id, CT_GraphicalObjectFrame, _Table):
@@ -185,9 +185,9 @@ class Test_ShapeCollection(TestCase):
         __shapes.append.assert_called_once_with(table)
         assert_that(retval, is_(equal_to(table)))
 
-    @patch('pptx.shapes.CT_Shape')
-    @patch('pptx.shapes._Shape')
-    @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
+    @patch('pptx.shapetree.CT_Shape')
+    @patch('pptx.shapetree._Shape')
+    @patch('pptx.shapetree._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
     def test_add_textbox_collaboration(self, __next_shape_id, _Shape,
                                        CT_Shape):
