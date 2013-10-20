@@ -6,11 +6,8 @@ import gc
 import os
 
 from datetime import datetime, timedelta
-from StringIO import StringIO
 
-from hamcrest import (
-    assert_that, equal_to, instance_of, is_, is_in, is_not, less_than
-)
+from hamcrest import assert_that, instance_of, is_, is_in, is_not, less_than
 from mock import Mock, patch, PropertyMock
 
 import pptx.presentation
@@ -19,13 +16,13 @@ from pptx.exceptions import InvalidPackageError
 from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import CT_CoreProperties, oxml_fromstring, oxml_parse
 from pptx.presentation import (
-    _BasePart, _BaseSlide, _CoreProperties, _Image, _Package, _Part,
-    Presentation, _Relationship, _RelationshipCollection, _Slide,
-    _SlideCollection, _SlideLayout, _SlideMaster
+    _BasePart, _BaseSlide, _CoreProperties, _Package, _Part, Presentation,
+    _Relationship, _RelationshipCollection, _Slide, _SlideCollection,
+    _SlideLayout, _SlideMaster
 )
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces, qtag
-from pptx.util import Px
+
 from testing import TestCase
 
 import logging
@@ -40,16 +37,14 @@ ch.setFormatter(formatter)
 log.addHandler(ch)
 
 
-# module globals -------------------------------------------------------------
 def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
 
 thisdir = os.path.split(__file__)[0]
 test_file_dir = absjoin(thisdir, 'test_files')
 
-test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
-test_bmp_path = absjoin(test_file_dir, 'python.bmp')
 new_image_path = absjoin(test_file_dir, 'monty-truth.png')
+test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
@@ -215,85 +210,6 @@ class Test_CoreProperties(TestCase):
         modified_timedelta = datetime.utcnow() - core_props.modified
         max_expected_timedelta = timedelta(seconds=2)
         assert_that(modified_timedelta, less_than(max_expected_timedelta))
-
-
-class Test_Image(TestCase):
-    """Test _Image"""
-    def test_construction_from_file(self):
-        """_Image(path) constructor produces correct attribute values"""
-        # exercise ---------------------
-        image = _Image(test_image_path)
-        # verify -----------------------
-        assert_that(image.ext, is_(equal_to('.jpeg')))
-        assert_that(image._content_type, is_(equal_to('image/jpeg')))
-        assert_that(len(image._blob), is_(equal_to(3277)))
-        assert_that(image._desc, is_(equal_to('python-icon.jpeg')))
-
-    def test_construction_from_stream(self):
-        """_Image(stream) construction produces correct attribute values"""
-        # exercise ---------------------
-        with open(test_image_path, 'rb') as f:
-            stream = StringIO(f.read())
-        image = _Image(stream)
-        # verify -----------------------
-        assert_that(image.ext, is_(equal_to('.jpg')))
-        assert_that(image._content_type, is_(equal_to('image/jpeg')))
-        assert_that(len(image._blob), is_(equal_to(3277)))
-        assert_that(image._desc, is_(equal_to('image.jpg')))
-
-    def test_construction_from_file_raises_on_bad_path(self):
-        """_Image(path) constructor raises on bad path"""
-        # verify -----------------------
-        with self.assertRaises(IOError):
-            _Image('foobar27.png')
-
-    def test__scale_calculates_correct_dimensions(self):
-        """_Image._scale() calculates correct dimensions"""
-        # setup ------------------------
-        test_cases = (
-            ((None, None), (Px(204), Px(204))),
-            ((1000, None), (1000, 1000)),
-            ((None, 3000), (3000, 3000)),
-            ((3337, 9999), (3337, 9999)))
-        image = _Image(test_image_path)
-        # verify -----------------------
-        for params, expected in test_cases:
-            width, height = params
-            assert_that(image._scale(width, height), is_(equal_to(expected)))
-
-    def test__size_returns_image_native_pixel_dimensions(self):
-        """_Image._size is width, height tuple of image pixel dimensions"""
-        image = _Image(test_image_path)
-        assert_that(image._size, is_(equal_to((204, 204))))
-
-    def test___ext_from_image_stream_raises_on_incompatible_format(self):
-        """_Image.__ext_from_image_stream() raises on incompatible format"""
-        # verify -----------------------
-        with self.assertRaises(ValueError):
-            with open(test_bmp_path) as stream:
-                _Image._Image__ext_from_image_stream(stream)
-
-    def test___image_ext_content_type_known_type(self):
-        """_Image.__image_ext_content_type() correct for known content type"""
-        # exercise ---------------------
-        content_type = _Image._Image__image_ext_content_type('.jpeg')
-        # verify -----------------------
-        expected = 'image/jpeg'
-        actual = content_type
-        msg = ("expected content type '%s', got '%s'" % (expected, actual))
-        self.assertEqual(expected, actual, msg)
-
-    def test___image_ext_content_type_raises_on_bad_ext(self):
-        """_Image.__image_ext_content_type() raises on bad extension"""
-        # verify -----------------------
-        with self.assertRaises(TypeError):
-            _Image._Image__image_ext_content_type('.xj7')
-
-    def test___image_ext_content_type_raises_on_non_img_ext(self):
-        """_Image.__image_ext_content_type() raises on non-image extension"""
-        # verify -----------------------
-        with self.assertRaises(TypeError):
-            _Image._Image__image_ext_content_type('.xml')
 
 
 class Test_ImageCollection(TestCase):
