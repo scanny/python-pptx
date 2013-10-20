@@ -18,11 +18,11 @@ import weakref
 import pptx.packaging
 
 from pptx.exceptions import InvalidPackageError
-from pptx.image import _Image, _ImageCollection
 from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import _Element, qn
 from pptx.part import _BasePart, _PartCollection
 from pptx.parts.coreprops import _CoreProperties
+from pptx.parts.image import _Image, _ImageCollection
 from pptx.rels import _Relationship, _RelationshipCollection
 from pptx.slides import _Slide, _SlideCollection, _SlideLayout, _SlideMaster
 from pptx.spec import namespaces

@@ -8,7 +8,7 @@ from StringIO import StringIO
 
 from hamcrest import assert_that, equal_to, is_
 
-from pptx.image import _Image
+from pptx.parts.image import _Image
 from pptx.presentation import _Package
 from pptx.util import Px
 
