@@ -4,7 +4,8 @@
 Slide objects, including _Slide and _SlideMaster.
 """
 
-from pptx.opc_constants import RELATIONSHIP_TYPE as RT
+from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.oxml import _Element, _SubElement
 from pptx.part import _BasePart
 from pptx.shapes.shapetree import _ShapeCollection
 
@@ -62,3 +63,56 @@ class _BaseSlide(_BasePart):
         from pptx.presentation import _Package
         # !!! =============================================================
         return _Package.containing(self)
+
+
+class _Slide(_BaseSlide):
+    """
+    Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
+    """
+    def __init__(self, slidelayout=None):
+        super(_Slide, self).__init__(CT.PML_SLIDE)
+        self.__slidelayout = slidelayout
+        self._element = self.__minimal_element
+        self._shapes = _ShapeCollection(self._element.cSld.spTree, self)
+        # if slidelayout, this is a slide being added, not one being loaded
+        if slidelayout:
+            self._shapes._clone_layout_placeholders(slidelayout)
+            # add relationship to slideLayout part
+            self._add_relationship(RT.SLIDE_LAYOUT, slidelayout)
+
+    @property
+    def slidelayout(self):
+        """
+        |_SlideLayout| object this slide inherits appearance from.
+        """
+        return self.__slidelayout
+
+    def _load(self, pkgpart, part_dict):
+        """
+        Load slide from package part.
+        """
+        # call parent to do generic aspects of load
+        super(_Slide, self)._load(pkgpart, part_dict)
+        # selectively unmarshal relationships for now
+        for rel in self._relationships:
+            if rel._reltype == RT.SLIDE_LAYOUT:
+                self.__slidelayout = rel._target
+        return self
+
+    @property
+    def __minimal_element(self):
+        """
+        Return element containing the minimal XML for a slide, based on what
+        is required by the XMLSchema.
+        """
+        sld = _Element('p:sld')
+        _SubElement(sld, 'p:cSld')
+        _SubElement(sld.cSld, 'p:spTree')
+        _SubElement(sld.cSld.spTree, 'p:nvGrpSpPr')
+        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvPr')
+        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvGrpSpPr')
+        _SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:nvPr')
+        _SubElement(sld.cSld.spTree, 'p:grpSpPr')
+        sld.cSld.spTree.nvGrpSpPr.cNvPr.set('id', '1')
+        sld.cSld.spTree.nvGrpSpPr.cNvPr.set('name', '')
+        return sld

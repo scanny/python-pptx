@@ -20,7 +20,6 @@ from pptx.presentation import (
     _RelationshipCollection, _Slide, _SlideCollection, _SlideLayout,
     _SlideMaster
 )
-from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces, qtag
 
 from testing import TestCase
@@ -48,19 +47,6 @@ images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
-
-
-def _sldLayout1():
-    path = os.path.join(thisdir, 'test_files/slideLayout1.xml')
-    sldLayout = oxml_parse(path).getroot()
-    return sldLayout
-
-
-def _sldLayout1_shapes():
-    sldLayout = _sldLayout1()
-    spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-    shapes = _ShapeCollection(spTree)
-    return shapes
 
 
 class PartBuilder(object):
@@ -371,93 +357,6 @@ class Test_Presentation(TestCase):
         slides = prs.slides
         # verify -----------------------
         self.assertLength(slides, 1)
-
-
-class Test_Slide(TestCase):
-    """Test _Slide"""
-    def setUp(self):
-        self.sld = _Slide()
-
-    def test_constructor_sets_correct_content_type(self):
-        """_Slide constructor sets correct content type"""
-        # exercise ---------------------
-        content_type = self.sld._content_type
-        # verify -----------------------
-        expected = CT.PML_SLIDE
-        actual = content_type
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test_construction_adds_slide_layout_relationship(self):
-        """_Slide(slidelayout) adds relationship slide->slidelayout"""
-        # setup ------------------------
-        slidelayout = _SlideLayout()
-        slidelayout._shapes = _sldLayout1_shapes()
-        # exercise ---------------------
-        slide = _Slide(slidelayout)
-        # verify length ---------------
-        expected = 1
-        actual = len(slide._relationships)
-        msg = ("expected len(slide._relationships) of %d, got %d"
-               % (expected, actual))
-        self.assertEqual(expected, actual, msg)
-        # verify values ---------------
-        rel = slide._relationships[0]
-        expected = ('rId1', RT.SLIDE_LAYOUT, slidelayout)
-        actual = (rel._rId, rel._reltype, rel._target)
-        msg = "expected relationship\n%s\ngot\n%s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test__element_minimal_sld_on_construction(self):
-        """_Slide._element is minimal sld on construction"""
-        # setup ------------------------
-        path = os.path.join(thisdir, 'test_files/minimal_slide.xml')
-        # exercise ---------------------
-        elm = self.sld._element
-        # verify -----------------------
-        with open(path, 'r') as f:
-            expected_xml = f.read()
-        self.assertEqualLineByLine(expected_xml, elm)
-
-    def test_slidelayout_property_none_on_construction(self):
-        """_Slide.slidelayout property None on construction"""
-        # verify -----------------------
-        self.assertIsProperty(self.sld, 'slidelayout', None)
-
-    def test__load_sets_slidelayout(self):
-        """_Slide._load() sets slidelayout"""
-        # setup ------------------------
-        path = os.path.join(thisdir, 'test_files/slide1.xml')
-        slidelayout = Mock(name='slideLayout')
-        slidelayout.partname = '/ppt/slideLayouts/slideLayout1.xml'
-        rel = Mock(name='pptx.packaging._Relationship')
-        rel.rId = 'rId1'
-        rel.reltype = RT.SLIDE_LAYOUT
-        rel.target = slidelayout
-        pkgpart = Mock(name='pptx.packaging.Part')
-        with open(path, 'rb') as f:
-            pkgpart.blob = f.read()
-        pkgpart.relationships = [rel]
-        part_dict = {slidelayout.partname: slidelayout}
-        slide = self.sld._load(pkgpart, part_dict)
-        # exercise ---------------------
-        retval = slide.slidelayout
-        # verify -----------------------
-        expected = slidelayout
-        actual = retval
-        msg = "expected: %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test___minimal_element_xml(self):
-        """_Slide.__minimal_element generates correct XML"""
-        # setup ------------------------
-        path = os.path.join(thisdir, 'test_files/minimal_slide.xml')
-        # exercise ---------------------
-        sld = self.sld._Slide__minimal_element
-        # verify -----------------------
-        with open(path, 'r') as f:
-            expected_xml = f.read()
-        self.assertEqualLineByLine(expected_xml, sld)
 
 
 class Test_SlideCollection(TestCase):
