@@ -2,12 +2,14 @@
 
 """Test suite for pptx.picture module."""
 
+from __future__ import absolute_import
+
 from hamcrest import assert_that, equal_to, is_
 
 from pptx.constants import MSO
 
-from testdata import test_shapes
-from testing import TestCase
+from ..testdata import test_shapes
+from ..testing import TestCase
 
 
 class Test_Picture(TestCase):

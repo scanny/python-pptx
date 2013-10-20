@@ -2,6 +2,8 @@
 
 """Test suite for pptx.shape module."""
 
+from __future__ import absolute_import
+
 import os
 
 from hamcrest import assert_that, is_
@@ -12,10 +14,11 @@ from pptx.shapes.shape import _BaseShape
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 
-from testing import TestCase
+from ..testing import TestCase
 
 
 thisdir = os.path.split(__file__)[0]
+slide1_path = os.path.join(thisdir, '../test_files/slide1.xml')
 
 nsmap = namespaces('a', 'r', 'p')
 
@@ -23,7 +26,7 @@ nsmap = namespaces('a', 'r', 'p')
 class Test_BaseShape(TestCase):
     """Test _BaseShape"""
     def setUp(self):
-        path = os.path.join(thisdir, 'test_files/slide1.xml')
+        path = slide1_path
         self.sld = oxml_parse(path).getroot()
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]

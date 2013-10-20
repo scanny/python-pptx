@@ -2,6 +2,8 @@
 
 """Test suite for pptx.placeholder module."""
 
+from __future__ import absolute_import
+
 import os
 
 from pptx.oxml import oxml_parse
@@ -14,7 +16,7 @@ from pptx.spec import (
     PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER
 )
 
-from testing import TestCase
+from ..testing import TestCase
 
 nsmap = namespaces('a', 'r', 'p')
 
@@ -23,7 +25,7 @@ thisdir = os.path.split(__file__)[0]
 
 
 def _sldLayout1():
-    path = os.path.join(thisdir, 'test_files/slideLayout1.xml')
+    path = os.path.join(thisdir, '../test_files/slideLayout1.xml')
     sldLayout = oxml_parse(path).getroot()
     return sldLayout
 

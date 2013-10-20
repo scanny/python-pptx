@@ -2,6 +2,8 @@
 
 """Test suite for pptx.autoshape module."""
 
+from __future__ import absolute_import
+
 from hamcrest import assert_that, equal_to, is_, is_not
 from mock import Mock, patch
 
@@ -11,8 +13,8 @@ from pptx.shapes.autoshape import (
 )
 from pptx.oxml import oxml_fromstring
 
-from testdata import a_prstGeom, test_shapes
-from testing import TestCase
+from ..testdata import a_prstGeom, test_shapes
+from ..testing import TestCase
 
 
 class Test_Adjustment(TestCase):
