@@ -7,7 +7,7 @@ Autoshape-related objects such as _Shape and _Adjustment.
 from numbers import Number
 
 from pptx.constants import MSO
-from pptx.shape import _BaseShape
+from pptx.shapes.shape import _BaseShape
 from pptx.spec import autoshape_types
 
 

@@ -4,14 +4,14 @@
 The shape tree, the structure that holds a slide's shapes.
 """
 
-from pptx.autoshape import _AutoShapeType, _Shape
 from pptx.oxml import qn, CT_GraphicalObjectFrame, CT_Picture, CT_Shape
-from pptx.picture import _Picture
-from pptx.placeholder import _Placeholder
-from pptx.shape import _BaseShape
+from pptx.shapes.autoshape import _AutoShapeType, _Shape
+from pptx.shapes.picture import _Picture
+from pptx.shapes.placeholder import _Placeholder
+from pptx.shapes.shape import _BaseShape
+from pptx.shapes.table import _Table
 from pptx.spec import namespaces, slide_ph_basenames
 from pptx.spec import PH_ORIENT_VERT, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
-from pptx.table import _Table
 from pptx.util import Collection
 
 # default namespace map for use in lxml calls

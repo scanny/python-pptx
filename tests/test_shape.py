@@ -8,8 +8,8 @@ from hamcrest import assert_that, is_
 from mock import Mock
 
 from pptx.oxml import oxml_parse
-from pptx.shape import _BaseShape
-from pptx.shapetree import _ShapeCollection
+from pptx.shapes.shape import _BaseShape
+from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 
 from testing import TestCase

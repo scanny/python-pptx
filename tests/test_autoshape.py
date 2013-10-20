@@ -5,10 +5,10 @@
 from hamcrest import assert_that, equal_to, is_, is_not
 from mock import Mock, patch
 
-from pptx.autoshape import (
+from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
+from pptx.shapes.autoshape import (
     _Adjustment, _AdjustmentCollection, _AutoShapeType, _Shape
 )
-from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.oxml import oxml_fromstring
 
 from testdata import a_prstGeom, test_shapes
@@ -268,8 +268,8 @@ class Test_AutoShapeType(TestCase):
 
 class Test_Shape(TestCase):
     """Test _Shape"""
-    @patch('pptx.autoshape._BaseShape.__init__')
-    @patch('pptx.autoshape._AdjustmentCollection')
+    @patch('pptx.shapes.autoshape._BaseShape.__init__')
+    @patch('pptx.shapes.autoshape._AdjustmentCollection')
     def test_it_initializes_adjustments_on_construction(
             self, _AdjustmentCollection, _BaseShape__init__):
         """_Shape() initializes adjustments on construction"""

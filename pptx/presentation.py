@@ -36,7 +36,7 @@ from pptx.oxml import (
     CT_CoreProperties, _Element, _SubElement, oxml_fromstring, oxml_tostring,
     qn
 )
-from pptx.shapetree import _ShapeCollection
+from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 
 from pptx.util import Collection, Px

@@ -5,8 +5,8 @@
 import os
 
 from pptx.oxml import oxml_parse
-from pptx.placeholder import _Placeholder
-from pptx.shapetree import _ShapeCollection
+from pptx.shapes.placeholder import _Placeholder
+from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM,

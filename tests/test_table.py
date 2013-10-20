@@ -6,7 +6,7 @@ from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch, PropertyMock
 
 from pptx.oxml import nsdecls, oxml_fromstring
-from pptx.table import (
+from pptx.shapes.table import (
     _Cell, _CellCollection, _Column, _ColumnCollection, _Row, _RowCollection
 )
 from pptx.util import Inches
@@ -97,7 +97,7 @@ class Test_Cell(TestCase):
         with self.assertRaises(ValueError):
             cell.margin_left = bad_margin
 
-    @patch('pptx.table.VerticalAnchor')
+    @patch('pptx.shapes.table.VerticalAnchor')
     def test_vertical_anchor_value(self, VerticalAnchor):
         """_Cell.vertical_anchor value is calculated correctly"""
         # mockery ----------------------
@@ -119,7 +119,7 @@ class Test_Cell(TestCase):
         from_text_anchoring_type.assert_called_once_with(anchor_val)
         assert_that(retval, is_(same_instance(vertical_anchor)))
 
-    @patch('pptx.table.VerticalAnchor')
+    @patch('pptx.shapes.table.VerticalAnchor')
     def test_vertical_anchor_assignment(self, VerticalAnchor):
         """Assignment to _Cell.vertical_anchor sets value"""
         # mockery ----------------------

@@ -5,7 +5,7 @@ Picture shape.
 """
 
 from pptx.constants import MSO
-from pptx.shape import _BaseShape
+from pptx.shapes.shape import _BaseShape
 
 
 class _Picture(_BaseShape):
