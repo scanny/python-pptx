@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from hamcrest import assert_that, equal_to, is_
 from mock import Mock
 
-from pptx.opc_constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_fromstring, oxml_tostring
 from pptx.parts.part import _BasePart, _PartCollection
 

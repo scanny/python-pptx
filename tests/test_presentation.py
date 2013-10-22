@@ -2,6 +2,8 @@
 
 """Test suite for pptx.presentation module."""
 
+from __future__ import absolute_import
+
 import gc
 import os
 
@@ -9,7 +11,7 @@ from hamcrest import assert_that, instance_of, is_, is_in, is_not
 from mock import Mock
 
 from pptx.exceptions import InvalidPackageError
-from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_fromstring, oxml_parse
 from pptx.parts.coreprops import _CoreProperties
 from pptx.parts.part import _BasePart
@@ -17,7 +19,7 @@ from pptx.parts.slides import _Slide, _SlideLayout, _SlideMaster
 from pptx.presentation import _Package, _Part, Presentation
 from pptx.rels import _Relationship, _RelationshipCollection
 from pptx.spec import namespaces, qtag
-from testing import TestCase
+from .testing import TestCase
 
 
 def absjoin(*paths):

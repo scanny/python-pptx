@@ -1,22 +1,18 @@
-# -*- coding: utf-8 -*-
-#
-# spec.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
 """
-Constant values from the ECMA-376 spec that are needed for XML generation and
-packaging, and a utility function or two for accessing some of them.
+Constant values from the ISO/IEC 29500 spec that are needed for XML
+generation and packaging, and a utility function or two for accessing some of
+them.
 """
 
-from constants import (
+from __future__ import absolute_import
+
+from pptx.constants import (
     MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP, TEXT_ALIGN_TYPE as TAT,
     TEXT_ANCHORING_TYPE as TANC
 )
-from .opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 
 
 class VerticalAnchor(object):

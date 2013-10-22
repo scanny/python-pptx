@@ -1,16 +1,11 @@
-# -*- coding: utf-8 -*-
-#
-# presentation.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
 """
 API classes for dealing with presentations and other objects one typically
 encounters as an end-user of the PowerPoint user interface.
 """
+
+from __future__ import absolute_import
 
 import os
 import weakref
@@ -18,7 +13,7 @@ import weakref
 import pptx.packaging
 
 from pptx.exceptions import InvalidPackageError
-from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import _Element, qn
 from pptx.parts.coreprops import _CoreProperties
 from pptx.parts.image import _Image, _ImageCollection

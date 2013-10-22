@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from hamcrest import assert_that, instance_of, is_, less_than
 
-from pptx.opc_constants import CONTENT_TYPE as CT
+from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.oxml import CT_CoreProperties
 from pptx.parts.coreprops import _CoreProperties
 

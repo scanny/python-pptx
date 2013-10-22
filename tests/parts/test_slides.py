@@ -9,7 +9,7 @@ import os
 from hamcrest import assert_that, is_
 from mock import Mock, patch, PropertyMock
 
-from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_parse
 from pptx.parts.slides import (
     _BaseSlide, _Slide, _SlideCollection, _SlideLayout, _SlideMaster

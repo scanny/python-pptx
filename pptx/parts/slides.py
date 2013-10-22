@@ -4,7 +4,9 @@
 Slide objects, including _Slide and _SlideMaster.
 """
 
-from pptx.opc_constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from __future__ import absolute_import
+
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import _Element, _SubElement
 from pptx.parts.part import _BasePart, _PartCollection
 from pptx.shapes.shapetree import _ShapeCollection

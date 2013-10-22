@@ -2,14 +2,16 @@
 
 """Test suite for pptx.part module."""
 
+from __future__ import absolute_import
+
 from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import Mock
 
 from pptx.rels import _Relationship, _RelationshipCollection
-from pptx.opc_constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.parts.part import _BasePart
 
-from testing import TestCase
+from .testing import TestCase
 
 
 class PartBuilder(object):
