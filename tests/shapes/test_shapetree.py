@@ -20,7 +20,7 @@ from pptx.spec import (
     PH_ORIENT_VERT
 )
 
-from ..testdata import test_shape_elements, test_shapes
+from ..unitdata import test_shape_elements, test_shapes
 from ..unitutil import TestCase
 
 

@@ -21,7 +21,7 @@ from pptx.spec import (
     PH_TYPE_SUBTITLE, PH_TYPE_TBL
 )
 
-from .testdata import (
+from .unitdata import (
     a_coreProperties, a_prstGeom, a_tbl, test_shape_elements,
     test_table_elements, test_table_xml, test_text_elements, test_text_xml
 )

@@ -17,7 +17,7 @@ from pptx.spec import namespaces
 from pptx.text import _Font, _Paragraph, _Run, _TextFrame, _to_unicode
 from pptx.util import Pt
 
-from .testdata import test_text_objects, test_text_xml
+from .unitdata import test_text_objects, test_text_xml
 from .unitutil import TestCase
 
 
