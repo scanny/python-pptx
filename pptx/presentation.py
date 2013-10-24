@@ -14,6 +14,7 @@ import pptx.opc.packaging
 
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.rels import _Relationship, _RelationshipCollection
 from pptx.oxml import _Element, qn
 from pptx.parts.coreprops import _CoreProperties
 from pptx.parts.image import _Image, _ImageCollection
@@ -21,7 +22,6 @@ from pptx.parts.part import _BasePart, _PartCollection
 from pptx.parts.slides import (
     _Slide, _SlideCollection, _SlideLayout, _SlideMaster
 )
-from pptx.rels import _Relationship, _RelationshipCollection
 from pptx.spec import namespaces
 
 # default namespace map for use in lxml calls

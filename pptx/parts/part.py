@@ -4,8 +4,8 @@
 Part objects, including _BasePart.
 """
 
+from pptx.opc.rels import _Relationship, _RelationshipCollection
 from pptx.oxml import oxml_fromstring, oxml_tostring
-from pptx.rels import _Relationship, _RelationshipCollection
 from pptx.util import Collection, Partname
 
 
