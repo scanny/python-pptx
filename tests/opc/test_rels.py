@@ -11,7 +11,7 @@ from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import _Relationship, _RelationshipCollection
 from pptx.parts.part import _BasePart
 
-from .testing import TestCase
+from ..testing import TestCase
 
 
 class PartBuilder(object):
