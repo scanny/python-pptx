@@ -2,6 +2,8 @@
 
 """Test suite for pptx.packaging module."""
 
+from __future__ import absolute_import
+
 import os
 
 from collections import namedtuple
@@ -10,8 +12,6 @@ from lxml import etree
 from mock import Mock
 from StringIO import StringIO
 from zipfile import BadZipfile, ZipFile, is_zipfile
-
-from .context import pptx
 
 import pptx.presentation
 
@@ -25,7 +25,7 @@ from pptx.opc.packaging import (
 
 from pptx.spec import PTS_CARDINALITY_TUPLE, PTS_HASRELS_ALWAYS
 
-from testing import TestCase
+from ..testing import TestCase
 
 
 # module globals -------------------------------------------------------------
@@ -33,7 +33,7 @@ def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
 
 thisdir = os.path.split(__file__)[0]
-test_file_dir = absjoin(thisdir, 'test_files')
+test_file_dir = absjoin(thisdir, '../test_files')
 
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 test_save_pptx_path = absjoin(thisdir, 'test_python-pptx.pptx')
