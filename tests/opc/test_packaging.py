@@ -25,7 +25,7 @@ from pptx.opc.packaging import (
 
 from pptx.spec import PTS_CARDINALITY_TUPLE, PTS_HASRELS_ALWAYS
 
-from ..testing import TestCase
+from ..unitutil import TestCase
 
 
 # module globals -------------------------------------------------------------

@@ -16,7 +16,7 @@ from pptx.spec import (
     PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER
 )
 
-from ..testing import TestCase
+from ..unitutil import TestCase
 
 nsmap = namespaces('a', 'r', 'p')
 

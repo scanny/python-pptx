@@ -1,13 +1,8 @@
-# -*- coding: utf-8 -*-
-#
-# test_spec.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under the MIT License:
-# http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
 """Test suite for pptx.spec module."""
+
+from __future__ import absolute_import
 
 from hamcrest import assert_that, equal_to, is_
 
@@ -16,7 +11,7 @@ from pptx.constants import (
 )
 from pptx.spec import ParagraphAlignment, VerticalAnchor
 
-from testing import TestCase
+from .unitutil import TestCase
 
 
 class TestParagraphAlignment(TestCase):

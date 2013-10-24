@@ -19,7 +19,8 @@ from pptx.parts.part import _BasePart
 from pptx.parts.slides import _Slide, _SlideLayout, _SlideMaster
 from pptx.presentation import _Package, _Part, Presentation
 from pptx.spec import namespaces, qtag
-from .testing import TestCase
+
+from .unitutil import TestCase
 
 
 def absjoin(*paths):

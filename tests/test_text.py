@@ -1,6 +1,8 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 """Test suite for pptx.text module."""
+
+from __future__ import absolute_import
 
 import os
 
@@ -14,8 +16,9 @@ from pptx.oxml import (
 from pptx.spec import namespaces
 from pptx.text import _Font, _Paragraph, _Run, _TextFrame, _to_unicode
 from pptx.util import Pt
-from testdata import test_text_objects, test_text_xml
-from testing import TestCase
+
+from .testdata import test_text_objects, test_text_xml
+from .unitutil import TestCase
 
 
 thisdir = os.path.split(__file__)[0]

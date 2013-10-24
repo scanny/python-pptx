@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 """Test suite for pptx.shapes module."""
 
@@ -19,8 +19,9 @@ from pptx.spec import (
     PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE, PH_ORIENT_HORZ,
     PH_ORIENT_VERT
 )
+
 from ..testdata import test_shape_elements, test_shapes
-from ..testing import TestCase
+from ..unitutil import TestCase
 
 
 # module globals -------------------------------------------------------------

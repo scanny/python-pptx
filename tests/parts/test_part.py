@@ -11,7 +11,7 @@ from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_fromstring, oxml_tostring
 from pptx.parts.part import _BasePart, _PartCollection
 
-from ..testing import TestCase
+from ..unitutil import TestCase
 
 
 class Test_BasePart(TestCase):

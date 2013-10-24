@@ -1,13 +1,8 @@
-# -*- coding: utf-8 -*-
-#
-# test_oxml.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
 """Test suite for pptx.oxml module."""
+
+from __future__ import absolute_import
 
 from datetime import datetime
 
@@ -26,12 +21,11 @@ from pptx.spec import (
     PH_TYPE_SUBTITLE, PH_TYPE_TBL
 )
 
-from testdata import (
+from .testdata import (
     a_coreProperties, a_prstGeom, a_tbl, test_shape_elements,
     test_table_elements, test_table_xml, test_text_elements, test_text_xml
 )
-from testing import TestCase
-# from unittest2 import skip
+from .unitutil import TestCase
 
 
 class TestCT_CoreProperties(TestCase):

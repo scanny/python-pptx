@@ -12,7 +12,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.oxml import CT_CoreProperties
 from pptx.parts.coreprops import _CoreProperties
 
-from ..testing import TestCase
+from ..unitutil import TestCase
 
 
 class Test_CoreProperties(TestCase):

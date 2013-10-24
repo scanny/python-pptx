@@ -14,7 +14,7 @@ from pptx.parts.image import _Image
 from pptx.presentation import _Package
 from pptx.util import Px
 
-from ..testing import TestCase
+from ..unitutil import TestCase
 
 
 def absjoin(*paths):

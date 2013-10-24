@@ -1,20 +1,15 @@
-# -*- coding: utf-8 -*-
-#
-# test_util.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
 """Test suite for pptx.util module."""
+
+from __future__ import absolute_import
 
 import platform
 
 from pptx.util import (
     _BaseLength, Cm, Collection, Emu, Inches, Mm, Partname, Px)
 
-from testing import TestCase
+from .unitutil import TestCase
 
 
 class TestCollection(TestCase):

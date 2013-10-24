@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 """Test suite for pptx.autoshape module."""
 
@@ -14,7 +14,7 @@ from pptx.shapes.autoshape import (
 from pptx.oxml import oxml_fromstring
 
 from ..testdata import a_prstGeom, test_shapes
-from ..testing import TestCase
+from ..unitutil import TestCase
 
 
 class Test_Adjustment(TestCase):

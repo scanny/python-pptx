@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 """Test suite for pptx.table module."""
 
@@ -14,7 +14,7 @@ from pptx.shapes.table import (
 from pptx.util import Inches
 
 from ..testdata import test_shapes, test_table_objects
-from ..testing import TestCase
+from ..unitutil import TestCase
 
 
 class Test_Cell(TestCase):

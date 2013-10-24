@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 """Test suite for pptx.shape module."""
 
@@ -14,7 +14,7 @@ from pptx.shapes.shape import _BaseShape
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 
-from ..testing import TestCase
+from ..unitutil import TestCase
 
 
 thisdir = os.path.split(__file__)[0]
