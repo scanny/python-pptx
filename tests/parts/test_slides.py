@@ -9,6 +9,7 @@ import os
 from hamcrest import assert_that, is_
 from mock import Mock, patch, PropertyMock
 
+from pptx.opc import packaging
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_parse
 from pptx.parts.slides import (
@@ -17,8 +18,6 @@ from pptx.parts.slides import (
 from pptx.presentation import _Package, Presentation
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
-
-from pptx import packaging
 
 from ..testing import TestCase
 

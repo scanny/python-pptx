@@ -1,11 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# test_packaging.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
 """Test suite for pptx.packaging module."""
 
@@ -26,7 +19,7 @@ from pptx.exceptions import (
     CorruptedPackageError, DuplicateKeyError, NotXMLError,
     PackageNotFoundError)
 
-from pptx.packaging import (
+from pptx.opc.packaging import (
     _ContentTypesItem, DirectoryFileSystem, FileSystem, Package, Part,
     PartTypeSpec, ZipFileSystem)
 

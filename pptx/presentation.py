@@ -10,7 +10,7 @@ from __future__ import absolute_import
 import os
 import weakref
 
-import pptx.packaging
+import pptx.opc.packaging
 
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
@@ -108,7 +108,7 @@ class _Package(object):
         Save this package to *file*, where *file* can be either a path to a
         file (a string) or a file-like object.
         """
-        pkgng_pkg = pptx.packaging.Package().marshal(self)
+        pkgng_pkg = pptx.opc.packaging.Package().marshal(self)
         pkgng_pkg.save(file)
 
     @property
@@ -159,7 +159,7 @@ class _Package(object):
         """
         Load presentation contained in *file* into this package.
         """
-        pkg = pptx.packaging.Package().open(file)
+        pkg = pptx.opc.packaging.Package().open(file)
         self.__load(pkg.relationships)
         # unmarshal relationships selectively for now
         for rel in self.__relationships:

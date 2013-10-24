@@ -11,8 +11,8 @@ from StringIO import StringIO
 from behave import when, then
 from hamcrest import assert_that, has_item
 
-from pptx import packaging
 from pptx import Presentation
+from pptx.opc import packaging
 from pptx.util import Inches
 
 from .helpers import saved_pptx_path, test_image_path
