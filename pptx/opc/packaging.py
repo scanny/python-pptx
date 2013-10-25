@@ -46,7 +46,7 @@ class Package(object):
 
     def __init__(self):
         super(Package, self).__init__()
-        self.__relationships = []
+        self._relationships = []
 
     @property
     def parts(self):
@@ -66,7 +66,7 @@ class Package(object):
         These are useful primarily as the starting point to walk the part
         graph via its relationships.
         """
-        return tuple(self.__relationships)
+        return tuple(self._relationships)
 
     def open(self, file_):
         """
@@ -77,8 +77,8 @@ class Package(object):
         """
         fs = FileSystem(file_)
         cti = _ContentTypesItem().load(fs)
-        self.__relationships = []  # discard any rels from prior load
-        parts_dict = {}            # track loaded parts, graph is cyclic
+        self._relationships = []  # discard any rels from prior load
+        parts_dict = {}           # track loaded parts, graph is cyclic
         pkg_rel_elms = fs.getelement(Package.PKG_RELSITEM_URI)\
                          .findall(qtag('pr:Relationship'))
         for rel_elm in pkg_rel_elms:
@@ -89,7 +89,7 @@ class Package(object):
             parts_dict[partname] = part
             part._load(fs, partname, cti, parts_dict)
             rel = Relationship(rId, self, reltype, part)
-            self.__relationships.append(rel)
+            self._relationships.append(rel)
         fs.close()
         return self
 
@@ -111,7 +111,7 @@ class Package(object):
             part._marshal(model_part, part_dict)
             # create marshaled version of relationship
             marshaled_rel = Relationship(rId, self, reltype, part)
-            self.__relationships.append(marshaled_rel)
+            self._relationships.append(marshaled_rel)
         return self
 
     def save(self, file):
@@ -138,7 +138,7 @@ class Package(object):
     def __relsitem_element(self):
         nsmap = {None: pptx.spec.nsmap['pr']}
         element = etree.Element(qtag('pr:Relationships'), nsmap=nsmap)
-        for rel in self.__relationships:
+        for rel in self._relationships:
             element.append(rel._element)
         return element
 
