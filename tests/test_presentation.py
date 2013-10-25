@@ -173,7 +173,7 @@ class Test_Package(TestCase):
         pkg = _Package(images_pptx_path)
         # verify -----------------------
         expected = 7
-        actual = len(pkg._Package__images)
+        actual = len(pkg._images)
         msg = "expected image count of %d, got %d" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 

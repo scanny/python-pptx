@@ -24,10 +24,6 @@ from pptx.parts.slides import (
 )
 
 
-# ============================================================================
-# _Package
-# ============================================================================
-
 class _Package(object):
     """
     Return an instance of |_Package| loaded from *file*, where *file* can be a
@@ -38,18 +34,18 @@ class _Package(object):
     loaded.
     """
     # track instances as weakrefs so .containing() can be computed
-    __instances = []
+    _instances = []
 
     def __init__(self, file_=None):
         super(_Package, self).__init__()
-        self.__presentation = None
-        self.__core_properties = None
-        self.__relationships = _RelationshipCollection()
-        self.__images = _ImageCollection()
-        self.__instances.append(weakref.ref(self))
+        self._presentation = None
+        self._core_properties = None
+        self._relationships_ = _RelationshipCollection()
+        self._images_ = _ImageCollection()
+        self._instances.append(weakref.ref(self))
         if file_ is None:
-            file_ = self.__default_pptx_path
-        self.__open(file_)
+            file_ = self._default_pptx_path
+        self._open(file_)
 
     @classmethod
     def containing(cls, part):
@@ -65,18 +61,19 @@ class _Package(object):
         Instance of |_CoreProperties| holding the read/write Dublin Core
         document properties for this presentation.
         """
-        assert self.__core_properties, ('_Package.__core_properties referenc'
-                                        'ed before assigned')
-        return self.__core_properties
+        assert self._core_properties, (
+            '_Package._core_properties referenced before assigned'
+        )
+        return self._core_properties
 
     @classmethod
     def instances(cls):
         """Return tuple of _Package instances that have been created"""
-        # clean garbage collected pkgs out of __instances
-        cls.__instances[:] = [wkref for wkref in cls.__instances
-                              if wkref() is not None]
+        # clean garbage collected pkgs out of _instances
+        cls._instances[:] = [wkref for wkref in cls._instances
+                             if wkref() is not None]
         # return instance references in a tuple
-        pkgs = [wkref() for wkref in cls.__instances]
+        pkgs = [wkref() for wkref in cls._instances]
         return tuple(pkgs)
 
     @property
@@ -84,7 +81,7 @@ class _Package(object):
         """
         Reference to the |Presentation| instance contained in this package.
         """
-        return self.__presentation
+        return self._presentation
 
     def save(self, file):
         """
@@ -96,13 +93,13 @@ class _Package(object):
 
     @property
     def _images(self):
-        return self.__images
+        return self._images_
 
     @property
     def _relationships(self):
-        return self.__relationships
+        return self._relationships_
 
-    def __load(self, pkgrels):
+    def _load(self, pkgrels):
         """
         Load all the model-side parts and relationships from the on-disk
         package by loading package-level relationship parts and propagating
@@ -112,7 +109,7 @@ class _Package(object):
         part_dict = {}
 
         # discard any previously loaded relationships
-        self.__relationships = _RelationshipCollection()
+        self._relationships_ = _RelationshipCollection()
 
         # add model-side rel for each pkg-side one, and load target parts
         for pkgrel in pkgrels:
@@ -129,36 +126,36 @@ class _Package(object):
 
             # create model-side package relationship
             model_rel = _Relationship(pkgrel.rId, reltype, part)
-            self.__relationships._additem(model_rel)
+            self._relationships_._additem(model_rel)
 
-        # gather references to image parts into __images
-        self.__images = _ImageCollection()
+        # gather references to image parts into _images_
+        self._images_ = _ImageCollection()
         image_parts = [part for part in self._parts
                        if part.__class__.__name__ == '_Image']
         for image in image_parts:
-            self.__images._loadpart(image)
+            self._images_._loadpart(image)
 
-    def __open(self, file):
+    def _open(self, file):
         """
         Load presentation contained in *file* into this package.
         """
         pkg = pptx.opc.packaging.Package().open(file)
-        self.__load(pkg.relationships)
+        self._load(pkg.relationships)
         # unmarshal relationships selectively for now
-        for rel in self.__relationships:
+        for rel in self._relationships_:
             if rel._reltype == RT.OFFICE_DOCUMENT:
-                self.__presentation = rel._target
+                self._presentation = rel._target
             elif rel._reltype == RT.CORE_PROPERTIES:
-                self.__core_properties = rel._target
-        if self.__core_properties is None:
+                self._core_properties = rel._target
+        if self._core_properties is None:
             core_props = _CoreProperties._default()
-            self.__core_properties = core_props
-            rId = self.__relationships._next_rId
+            self._core_properties = core_props
+            rId = self._relationships_._next_rId
             rel = _Relationship(rId, RT.CORE_PROPERTIES, core_props)
-            self.__relationships._additem(rel)
+            self._relationships_._additem(rel)
 
     @property
-    def __default_pptx_path(self):
+    def _default_pptx_path(self):
         """
         The path of the default presentation, used when no path is specified
         on construction.
@@ -172,10 +169,10 @@ class _Package(object):
         Return a list containing a reference to each of the parts in this
         package.
         """
-        return [part for part in _Package.__walkparts(self.__relationships)]
+        return [part for part in _Package._walkparts(self._relationships_)]
 
     @staticmethod
-    def __walkparts(rels, parts=None):
+    def _walkparts(rels, parts=None):
         """
         Recursive function, walk relationships to iterate over all parts in
         this package. Leave out *parts* parameter in call to visit all parts.
@@ -190,13 +187,9 @@ class _Package(object):
                 continue
             parts.append(part)
             yield part
-            for part in _Package.__walkparts(part._relationships, parts):
+            for part in _Package._walkparts(part._relationships, parts):
                 yield part
 
-
-# ============================================================================
-# Parts
-# ============================================================================
 
 class _Part(object):
     """
