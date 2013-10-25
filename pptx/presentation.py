@@ -15,30 +15,13 @@ import pptx.opc.packaging
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import _Relationship, _RelationshipCollection
-from pptx.oxml import _Element, qn
+from pptx.oxml import _child, _Element, qn
 from pptx.parts.coreprops import _CoreProperties
 from pptx.parts.image import _Image, _ImageCollection
 from pptx.parts.part import _BasePart, _PartCollection
 from pptx.parts.slides import (
     _Slide, _SlideCollection, _SlideLayout, _SlideMaster
 )
-from pptx.spec import namespaces
-
-# default namespace map for use in lxml calls
-_nsmap = namespaces('a', 'r', 'p')
-
-
-def _child(element, child_tagname, nsmap=None):
-    """
-    Return direct child of *element* having *child_tagname* or |None| if no
-    such child element is present.
-    """
-    # use default nsmap if not specified
-    if nsmap is None:
-        nsmap = _nsmap
-    xpath = './%s' % child_tagname
-    matching_children = element.xpath(xpath, namespaces=nsmap)
-    return matching_children[0] if len(matching_children) else None
 
 
 # ============================================================================

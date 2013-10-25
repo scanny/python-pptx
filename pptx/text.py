@@ -5,25 +5,12 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
-from pptx.oxml import _get_or_add, _Element, qn, _SubElement
+from pptx.oxml import _child, _get_or_add, _Element, qn, _SubElement
 from pptx.spec import namespaces, ParagraphAlignment
 
 
 # default namespace map for use in lxml calls
 _nsmap = namespaces('a', 'r', 'p')
-
-
-def _child(element, child_tagname, nsmap=None):
-    """
-    Return direct child of *element* having *child_tagname* or |None| if no
-    such child element is present.
-    """
-    # use default nsmap if not specified
-    if nsmap is None:
-        nsmap = _nsmap
-    xpath = './%s' % child_tagname
-    matching_children = element.xpath(xpath, namespaces=nsmap)
-    return matching_children[0] if len(matching_children) else None
 
 
 def _to_unicode(text):

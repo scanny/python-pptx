@@ -5,26 +5,10 @@ Table-related objects such as Table and Cell.
 """
 
 from pptx.constants import MSO
-from pptx.oxml import qn
+from pptx.oxml import _child, qn
 from pptx.shapes.shape import _BaseShape
-from pptx.spec import namespaces, VerticalAnchor
+from pptx.spec import VerticalAnchor
 from pptx.text import _TextFrame
-
-# default namespace map for use in lxml calls
-_nsmap = namespaces('a', 'r', 'p')
-
-
-def _child(element, child_tagname, nsmap=None):
-    """
-    Return direct child of *element* having *child_tagname* or |None| if no
-    such child element is present.
-    """
-    # use default nsmap if not specified
-    if nsmap is None:
-        nsmap = _nsmap
-    xpath = './%s' % child_tagname
-    matching_children = element.xpath(xpath, namespaces=nsmap)
-    return matching_children[0] if len(matching_children) else None
 
 
 def _to_unicode(text):
