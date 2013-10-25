@@ -127,7 +127,7 @@ class _SlideCollection(_PartCollection):
     """
     def __init__(self, presentation):
         super(_SlideCollection, self).__init__()
-        self.__presentation = presentation
+        self._presentation = presentation
 
     def add_slide(self, slidelayout):
         """Add a new slide that inherits layout from *slidelayout*."""
@@ -136,13 +136,13 @@ class _SlideCollection(_PartCollection):
         # 2. add it to this collection
         self._values.append(slide)
         # 3. assign its partname
-        self.__rename_slides()
+        self._rename_slides()
         # 4. add presentation->slide relationship
-        self.__presentation._add_relationship(RT.SLIDE, slide)
+        self._presentation._add_relationship(RT.SLIDE, slide)
         # 5. return reference to new slide
         return slide
 
-    def __rename_slides(self):
+    def _rename_slides(self):
         """
         Assign partnames like ``/ppt/slides/slide9.xml`` to all slides in the
         collection. The name portion is always ``slide``. The number part
