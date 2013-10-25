@@ -76,7 +76,7 @@ class _RelationshipCollection(Collection):
     """
     def __init__(self):
         super(_RelationshipCollection, self).__init__()
-        self.__reltype_ordering = ()
+        self._reltype_ordering_ = ()
 
     def _additem(self, relationship):
         """
@@ -132,11 +132,11 @@ class _RelationshipCollection(Collection):
         removed, renumbering rIds whenever necessary to also maintain the
         sequence in rId order.
         """
-        return self.__reltype_ordering
+        return self._reltype_ordering_
 
     @_reltype_ordering.setter
     def _reltype_ordering(self, ordering):
-        self.__reltype_ordering = tuple(ordering)
+        self._reltype_ordering_ = tuple(ordering)
         self.__resequence()
 
     def rels_of_reltype(self, reltype):
@@ -158,12 +158,12 @@ class _RelationshipCollection(Collection):
         Sort relationships and renumber if necessary to maintain values in rId
         order.
         """
-        if self.__reltype_ordering:
+        if self._reltype_ordering_:
             def reltype_key(rel):
                 reltype = rel._reltype
-                if reltype in self.__reltype_ordering:
-                    return self.__reltype_ordering.index(reltype)
-                return len(self.__reltype_ordering)
+                if reltype in self._reltype_ordering_:
+                    return self._reltype_ordering_.index(reltype)
+                return len(self._reltype_ordering_)
 
             def partname_idx_key(rel):
                 partname = Partname(rel._target.partname)
