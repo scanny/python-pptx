@@ -188,7 +188,7 @@ class Part(object):
     """
     def __init__(self):
         super(Part, self).__init__()
-        self.__partname = None
+        self._partname = None
         self.__relationships = []
         self.typespec = None
         self.blob = None
@@ -205,7 +205,7 @@ class Part(object):
         Package item URI for this part, commonly known as its part name,
         e.g. ``/ppt/slides/slide1.xml``
         """
-        return self.__partname
+        return self._partname
 
     @property
     def relationships(self):
@@ -225,7 +225,7 @@ class Part(object):
         content_type = ct_dict[partname]
 
         # set persisted attributes
-        self.__partname = partname
+        self._partname = partname
         self.blob = fs.getblob(partname)
         self.typespec = PartTypeSpec(content_type)
 
@@ -259,7 +259,7 @@ class Part(object):
         # unpack working values
         content_type = model_part._content_type
         # assign persisted attributes from model part
-        self.__partname = model_part.partname
+        self._partname = model_part.partname
         self.blob = model_part._blob
         self.typespec = PartTypeSpec(content_type)
 
@@ -295,7 +295,7 @@ class Part(object):
         Return theoretical package URI for this part's relationships item,
         without regard to whether this part actually has a relationships item.
         """
-        head, tail = os.path.split(self.__partname)
+        head, tail = os.path.split(self._partname)
         return '%s/_rels/%s.rels' % (head, tail)
 
     def __get_rel_elms(self, fs):
@@ -306,7 +306,7 @@ class Part(object):
         have relationships or its relationships are optional and none exist in
         this filesystem (package).
         """
-        relsitemURI = self.__relsitemURI(self.typespec, self.__partname, fs)
+        relsitemURI = self.__relsitemURI(self.typespec, self._partname, fs)
         if relsitemURI is None:
             return []
         if relsitemURI not in fs:
