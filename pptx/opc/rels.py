@@ -17,9 +17,9 @@ class _Relationship(object):
         super(_Relationship, self).__init__()
         # can't get _num right if rId is non-standard form
         assert rId.startswith('rId'), "rId in non-standard form: '%s'" % rId
-        self.__rId = rId
-        self.__reltype = reltype
-        self.__target = target
+        self._rId_ = rId
+        self._reltype_ = reltype
+        self._target_ = target
 
     @property
     def _rId(self):
@@ -27,7 +27,7 @@ class _Relationship(object):
         Relationship id for this relationship. Must be of the form
         ``rId[1-9][0-9]*``.
         """
-        return self.__rId
+        return self._rId_
 
     @property
     def _reltype(self):
@@ -35,7 +35,7 @@ class _Relationship(object):
         Relationship type URI for this relationship. Corresponds roughly to
         the part type of the target part.
         """
-        return self.__reltype
+        return self._reltype_
 
     @property
     def _target(self):
@@ -43,7 +43,7 @@ class _Relationship(object):
         Target part of this relationship. Relationships are directed, from a
         source and a target. The target is always a part.
         """
-        return self.__target
+        return self._target_
 
     @property
     def _num(self):
@@ -53,14 +53,14 @@ class _Relationship(object):
         rId of ``'rId12'`` would be ``12``.
         """
         try:
-            num = int(self.__rId[3:])
+            num = int(self._rId_[3:])
         except ValueError:
             num = 9999
         return num
 
     @_rId.setter
     def _rId(self, value):
-        self.__rId = value
+        self._rId_ = value
 
 
 class _RelationshipCollection(Collection):
