@@ -30,10 +30,10 @@ class _Image(_BasePart):
     """
     def __init__(self, file=None):
         super(_Image, self).__init__()
-        self.__filepath = None
-        self.__ext = None
+        self._filepath = None
+        self._ext = None
         if file is not None:
-            self.__load_image_from_file(file)
+            self._load_image_from_file(file)
 
     @property
     def ext(self):
@@ -41,8 +41,8 @@ class _Image(_BasePart):
         Return file extension for this image. Includes the leading dot, e.g.
         ``'.png'``.
         """
-        assert self.__ext, "_Image.__ext referenced before assigned"
-        return self.__ext
+        assert self._ext, "_Image._ext referenced before assigned"
+        return self._ext
 
     @property
     def _desc(self):
@@ -52,8 +52,8 @@ class _Image(_BasePart):
         the form ``image.ext`` where ``.ext`` is appropriate to the image file
         format, e.g. ``'.jpg'``.
         """
-        if self.__filepath is not None:
-            return os.path.split(self.__filepath)[1]
+        if self._filepath is not None:
+            return os.path.split(self._filepath)[1]
         # return generic filename if original filename is unknown
         return 'image%s' % self.ext
 
@@ -110,12 +110,12 @@ class _Image(_BasePart):
         # call parent to do generic aspects of load
         super(_Image, self)._load(pkgpart, part_dict)
         # set file extension
-        self.__ext = posixpath.splitext(pkgpart.partname)[1]
+        self._ext = posixpath.splitext(pkgpart.partname)[1]
         # return self-reference to allow generative calling
         return self
 
     @staticmethod
-    def __image_ext_content_type(ext):
+    def _image_ext_content_type(ext):
         """Return the content type corresponding to filename extension *ext*"""
         if ext not in default_content_types:
             tmpl = "unsupported image file extension '%s'"
@@ -127,7 +127,7 @@ class _Image(_BasePart):
         return content_type
 
     @staticmethod
-    def __ext_from_image_stream(stream):
+    def _ext_from_image_stream(stream):
         """
         Return the filename extension appropriate to the image file contained
         in *stream*.
@@ -141,20 +141,20 @@ class _Image(_BasePart):
             raise ValueError(tmpl % (ext_map.keys(), format))
         return ext_map[format]
 
-    def __load_image_from_file(self, file):
+    def _load_image_from_file(self, file):
         """
         Load image from *file*, which is either a path to an image file or a
         file-like object.
         """
         if isinstance(file, basestring):  # file is a path
-            self.__filepath = file
-            self.__ext = os.path.splitext(self.__filepath)[1]
-            self._content_type = self.__image_ext_content_type(self.__ext)
-            with open(self.__filepath, 'rb') as f:
+            self._filepath = file
+            self._ext = os.path.splitext(self._filepath)[1]
+            self._content_type = self._image_ext_content_type(self._ext)
+            with open(self._filepath, 'rb') as f:
                 self._load_blob = f.read()
         else:  # assume file is a file-like object
-            self.__ext = self.__ext_from_image_stream(file)
-            self._content_type = self.__image_ext_content_type(self.__ext)
+            self._ext = self._ext_from_image_stream(file)
+            self._content_type = self._image_ext_content_type(self._ext)
             file.seek(0)
             self._load_blob = file.read()
 
