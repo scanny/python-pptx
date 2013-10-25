@@ -193,12 +193,12 @@ class Test_AdjustmentCollection(TestCase):
         # setup ------------------------
         prstGeom = a_prstGeom('chevron').element
         adjustments = _AdjustmentCollection(prstGeom)
-        __prstGeom = Mock(name='__prstGeom')
-        adjustments._AdjustmentCollection__prstGeom = __prstGeom
+        _prstGeom = Mock(name='_prstGeom')
+        adjustments._prstGeom = _prstGeom
         # exercise ---------------------
         adjustments[0] = 0.999
         # verify -----------------------
-        assert_that(__prstGeom.rewrite_guides.call_count, is_(1))
+        assert_that(_prstGeom.rewrite_guides.call_count, is_(1))
 
 
 class Test_AutoShapeType(TestCase):

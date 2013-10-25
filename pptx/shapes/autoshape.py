@@ -89,12 +89,12 @@ class _AdjustmentCollection(object):
     """
     def __init__(self, prstGeom):
         super(_AdjustmentCollection, self).__init__()
-        self.__adjustments = self.__initialized_adjustments(prstGeom)
-        self.__prstGeom = prstGeom
+        self._adjustments_ = self._initialized_adjustments(prstGeom)
+        self._prstGeom = prstGeom
 
     def __getitem__(self, key):
         """Provides indexed access, (e.g. 'adjustments[9]')."""
-        return self.__adjustments[key].effective_value
+        return self._adjustments_[key].effective_value
 
     def __setitem__(self, key, value):
         """
@@ -102,10 +102,10 @@ class _AdjustmentCollection(object):
         ``adjustments[9] = 999.9``. Causes all adjustment values in
         collection to be written to the XML.
         """
-        self.__adjustments[key].effective_value = value
-        self.__rewrite_guides()
+        self._adjustments_[key].effective_value = value
+        self._rewrite_guides()
 
-    def __initialized_adjustments(self, prstGeom):
+    def _initialized_adjustments(self, prstGeom):
         """
         Return an initialized list of adjustment values based on the contents
         of *prstGeom*
@@ -114,19 +114,19 @@ class _AdjustmentCollection(object):
             return []
         davs = _AutoShapeType.default_adjustment_values(prstGeom.prst)
         adjustments = [_Adjustment(name, def_val) for name, def_val in davs]
-        self.__update_adjustments_with_actuals(adjustments, prstGeom.gd)
+        self._update_adjustments_with_actuals(adjustments, prstGeom.gd)
         return adjustments
 
-    def __rewrite_guides(self):
+    def _rewrite_guides(self):
         """
         Write ``<a:gd>`` elements to the XML, one for each adjustment value.
         Any existing guide elements are overwritten.
         """
-        guides = [(adj.name, adj.val) for adj in self.__adjustments]
-        self.__prstGeom.rewrite_guides(guides)
+        guides = [(adj.name, adj.val) for adj in self._adjustments_]
+        self._prstGeom.rewrite_guides(guides)
 
     @staticmethod
-    def __update_adjustments_with_actuals(adjustments, guides):
+    def _update_adjustments_with_actuals(adjustments, guides):
         """
         Update |_Adjustment| instances in *adjustments* with actual values
         held in *guides*, a list of ``<a:gd>`` elements. Guides with a name
@@ -149,11 +149,11 @@ class _AdjustmentCollection(object):
         Sequence containing direct references to the |_Adjustment| objects
         contained in collection.
         """
-        return tuple(self.__adjustments)
+        return tuple(self._adjustments_)
 
     def __len__(self):
         """Implement built-in function len()"""
-        return len(self.__adjustments)
+        return len(self._adjustments_)
 
 
 class _AutoShapeType(object):
