@@ -160,14 +160,15 @@ class _SlideLayout(_BaseSlide):
     """
     def __init__(self):
         super(_SlideLayout, self).__init__(CT.PML_SLIDE_LAYOUT)
-        self.__slidemaster = None
+        self._slidemaster = None
 
     @property
     def slidemaster(self):
         """Slide master from which this slide layout inherits properties."""
-        assert self.__slidemaster is not None, ("_SlideLayout.slidemaster "
-                                                "referenced before assigned")
-        return self.__slidemaster
+        assert self._slidemaster is not None, (
+            "_SlideLayout.slidemaster referenced before assigned"
+        )
+        return self._slidemaster
 
     def _load(self, pkgpart, part_dict):
         """
@@ -180,7 +181,7 @@ class _SlideLayout(_BaseSlide):
         for rel in self._relationships:
             # get slideMaster from which this slideLayout inherits properties
             if rel._reltype == RT.SLIDE_MASTER:
-                self.__slidemaster = rel._target
+                self._slidemaster = rel._target
 
         # return self-reference to allow generative calling
         return self
@@ -198,14 +199,14 @@ class _SlideMaster(_BaseSlide):
 
     def __init__(self):
         super(_SlideMaster, self).__init__(CT.PML_SLIDE_MASTER)
-        self.__slidelayouts = _PartCollection()
+        self._slidelayouts = _PartCollection()
 
     @property
     def slidelayouts(self):
         """
         Collection of slide layout objects belonging to this slide master.
         """
-        return self.__slidelayouts
+        return self._slidelayouts
 
     def _load(self, pkgpart, part_dict):
         """
@@ -217,5 +218,5 @@ class _SlideMaster(_BaseSlide):
         # selectively unmarshal relationships for now
         for rel in self._relationships:
             if rel._reltype == RT.SLIDE_LAYOUT:
-                self.__slidelayouts._loadpart(rel._target)
+                self._slidelayouts._loadpart(rel._target)
         return self
