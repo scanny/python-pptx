@@ -185,7 +185,7 @@ class _AutoShapeType(object):
        Informal string description of auto shape.
 
     """
-    __instances = {}
+    _instances = {}
 
     def __new__(cls, autoshape_type_id):
         """
@@ -193,11 +193,11 @@ class _AutoShapeType(object):
         use cached instance.
         """
         # if there's not a matching instance in the cache, create one
-        if autoshape_type_id not in cls.__instances:
+        if autoshape_type_id not in cls._instances:
             inst = super(_AutoShapeType, cls).__new__(cls)
-            cls.__instances[autoshape_type_id] = inst
+            cls._instances[autoshape_type_id] = inst
         # return the instance; note that __init__() gets called either way
-        return cls.__instances[autoshape_type_id]
+        return cls._instances[autoshape_type_id]
 
     def __init__(self, autoshape_type_id):
         """Initialize attributes from constant values in pptx.spec"""
@@ -210,15 +210,15 @@ class _AutoShapeType(object):
             raise KeyError(tmpl % autoshape_type_id)
         # otherwise initialize new instance
         autoshape_type = autoshape_types[autoshape_type_id]
-        self.__autoshape_type_id = autoshape_type_id
-        self.__prst = autoshape_type['prst']
-        self.__basename = autoshape_type['basename']
+        self._autoshape_type_id = autoshape_type_id
+        self._prst = autoshape_type['prst']
+        self._basename = autoshape_type['basename']
         self._loaded = True
 
     @property
     def autoshape_type_id(self):
         """Integer identifier of this auto shape type"""
-        return self.__autoshape_type_id
+        return self._autoshape_type_id
 
     @property
     def basename(self):
@@ -226,7 +226,7 @@ class _AutoShapeType(object):
         Base of shape name (less the distinguishing integer) for this auto
         shape type
         """
-        return self.__basename
+        return self._basename
 
     @staticmethod
     def default_adjustment_values(prst):
@@ -243,7 +243,7 @@ class _AutoShapeType(object):
     @property
     def desc(self):
         """Informal description of this auto shape type"""
-        return self.__desc
+        return self._desc
 
     @staticmethod
     def _lookup_id_by_prst(prst):
@@ -264,7 +264,7 @@ class _AutoShapeType(object):
         ``prst`` attribute of ``<a:prstGeom>`` element to specify the geometry
         to be used in rendering the shape, for example ``'roundRect'``.
         """
-        return self.__prst
+        return self._prst
 
 
 class _Shape(_BaseShape):
