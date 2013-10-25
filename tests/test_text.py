@@ -4,8 +4,6 @@
 
 from __future__ import absolute_import
 
-import os
-
 from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch
 
@@ -18,10 +16,9 @@ from pptx.text import _Font, _Paragraph, _Run, _TextFrame
 from pptx.util import Pt
 
 from .unitdata import test_text_objects, test_text_xml
-from .unitutil import TestCase
+from .unitutil import absjoin, TestCase, test_file_dir
 
 
-thisdir = os.path.split(__file__)[0]
 nsmap = namespaces('a', 'r', 'p')
 
 
@@ -88,7 +85,7 @@ class Test_Font(TestCase):
 class Test_Paragraph(TestCase):
     """Test _Paragraph"""
     def setUp(self):
-        path = os.path.join(thisdir, 'test_files/slide1.xml')
+        path = absjoin(test_file_dir, 'slide1.xml')
         self.sld = oxml_parse(path).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody/a:p'
         self.pList = self.sld.xpath(xpath, namespaces=nsmap)
@@ -323,7 +320,7 @@ class Test_Run(TestCase):
 class Test_TextFrame(TestCase):
     """Test _TextFrame"""
     def setUp(self):
-        path = os.path.join(thisdir, 'test_files/slide1.xml')
+        path = absjoin(test_file_dir, 'slide1.xml')
         self.sld = oxml_parse(path).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody'
         self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)

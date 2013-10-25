@@ -4,8 +4,6 @@
 
 from __future__ import absolute_import
 
-import os
-
 from hamcrest import assert_that, is_
 from mock import Mock
 
@@ -14,11 +12,10 @@ from pptx.shapes.shape import _BaseShape
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 
-from ..unitutil import TestCase
+from ..unitutil import absjoin, TestCase, test_file_dir
 
 
-thisdir = os.path.split(__file__)[0]
-slide1_path = os.path.join(thisdir, '../test_files/slide1.xml')
+slide1_path = absjoin(test_file_dir, 'slide1.xml')
 
 nsmap = namespaces('a', 'r', 'p')
 
