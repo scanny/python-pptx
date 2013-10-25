@@ -66,8 +66,8 @@ class _BasePart(_Observable):
         package) can register their content type.
         """
         super(_BasePart, self).__init__()
-        self.__content_type = content_type
-        self.__partname = partname
+        self._content_type_ = content_type
+        self._partname = partname
         self._element = None
         self._load_blob = None
         self._relationships = _RelationshipCollection()
@@ -80,7 +80,7 @@ class _BasePart(_Observable):
         """
         if self.partname.endswith('.xml'):
             assert self._element is not None, '_BasePart._blob is undefined '\
-                'for xml parts when part.__element is None'
+                'for xml parts when part._element is None'
             xml = oxml_tostring(self._element, encoding='UTF-8',
                                 pretty_print=False, standalone=True)
             return xml
@@ -95,24 +95,24 @@ class _BasePart(_Observable):
         Content type of this part, e.g.
         'application/vnd.openxmlformats-officedocument.theme+xml'.
         """
-        assert self.__content_type, ('_BasePart._content_type accessed befor'
+        assert self._content_type_, ('_BasePart._content_type accessed befor'
                                      'e assigned')
-        return self.__content_type
+        return self._content_type_
 
     @_content_type.setter
     def _content_type(self, content_type):
-        self.__content_type = content_type
+        self._content_type_ = content_type
 
     @property
     def partname(self):
         """Part name of this part, e.g. '/ppt/slides/slide1.xml'."""
-        assert self.__partname, "_BasePart.partname referenced before assigned"
-        return self.__partname
+        assert self._partname, "_BasePart.partname referenced before assigned"
+        return self._partname
 
     @partname.setter
     def partname(self, partname):
-        self.__partname = partname
-        self._notify_observers('partname', self.__partname)
+        self._partname = partname
+        self._notify_observers('partname', self._partname)
 
     def _add_relationship(self, reltype, target_part):
         """
@@ -138,8 +138,8 @@ class _BasePart(_Observable):
         parts, keyed by partname.
         """
         # set attributes from package part
-        self.__content_type = pkgpart.content_type
-        self.__partname = pkgpart.partname
+        self._content_type_ = pkgpart.content_type
+        self._partname = pkgpart.partname
         if pkgpart.partname.endswith('.xml'):
             self._element = oxml_fromstring(pkgpart.blob)
         else:
