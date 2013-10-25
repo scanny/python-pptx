@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 """
 Base shape-related objects such as _BaseShape.

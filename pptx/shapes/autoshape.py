@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 """
 Autoshape-related objects such as _Shape and _Adjustment.

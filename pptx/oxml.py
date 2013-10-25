@@ -1,11 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# oxml.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
 """
 Classes that directly manipulate Open XML and provide direct object-oriented
@@ -25,9 +18,6 @@ from pptx.spec import (
     PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_OBJ,
     PH_TYPE_SUBTITLE, PH_TYPE_TITLE
 )
-
-# import logging
-# log = logging.getLogger('pptx.oxml')
 
 
 # oxml-specific constants --------------

@@ -1,13 +1,6 @@
-# -*- coding: utf-8 -*-
-#
-# packaging.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
-'''
+"""
 The :mod:`pptx.packaging` module coheres around the concerns of reading and
 writing presentations to and from a .pptx file. In doing so, it hides the
 complexities of the package "directory" structure, reading and writing parts
@@ -16,7 +9,7 @@ items.
 
 The main API class is :class:`pptx.packaging.Package` which provides the
 methods :meth:`open`, :meth:`marshal`, and :meth:`save`.
-'''
+"""
 
 import os
 import posixpath
@@ -34,8 +27,6 @@ from pptx.exceptions import (
 from pptx.spec import qtag
 from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
 
-# import logging
-# log = logging.getLogger('pptx.packaging')
 
 PKG_BASE_URI = '/'
 

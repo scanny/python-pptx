@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 """
 Text-related objects such as TextFrame and Paragraph.

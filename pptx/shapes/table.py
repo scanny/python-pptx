@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 """
 Table-related objects such as Table and Cell.
