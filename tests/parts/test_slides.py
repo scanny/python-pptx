@@ -167,12 +167,12 @@ class Test_Slide(TestCase):
         msg = "expected: %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    def test___minimal_element_xml(self):
-        """_Slide.__minimal_element generates correct XML"""
+    def test__minimal_element_xml(self):
+        """_Slide._minimal_element generates correct XML"""
         # setup ------------------------
         path = absjoin(test_file_dir, 'minimal_slide.xml')
         # exercise ---------------------
-        sld = self.sld._Slide__minimal_element
+        sld = self.sld._minimal_element
         # verify -----------------------
         with open(path, 'r') as f:
             expected_xml = f.read()

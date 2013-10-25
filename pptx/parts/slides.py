@@ -73,8 +73,8 @@ class _Slide(_BaseSlide):
     """
     def __init__(self, slidelayout=None):
         super(_Slide, self).__init__(CT.PML_SLIDE)
-        self.__slidelayout = slidelayout
-        self._element = self.__minimal_element
+        self._slidelayout = slidelayout
+        self._element = self._minimal_element
         self._shapes = _ShapeCollection(self._element.cSld.spTree, self)
         # if slidelayout, this is a slide being added, not one being loaded
         if slidelayout:
@@ -87,7 +87,7 @@ class _Slide(_BaseSlide):
         """
         |_SlideLayout| object this slide inherits appearance from.
         """
-        return self.__slidelayout
+        return self._slidelayout
 
     def _load(self, pkgpart, part_dict):
         """
@@ -98,11 +98,11 @@ class _Slide(_BaseSlide):
         # selectively unmarshal relationships for now
         for rel in self._relationships:
             if rel._reltype == RT.SLIDE_LAYOUT:
-                self.__slidelayout = rel._target
+                self._slidelayout = rel._target
         return self
 
     @property
-    def __minimal_element(self):
+    def _minimal_element(self):
         """
         Return element containing the minimal XML for a slide, based on what
         is required by the XMLSchema.
