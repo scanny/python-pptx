@@ -23,7 +23,7 @@ class _BaseShape(object):
         super(_BaseShape, self).__init__()
         self._element = shape_element
         # e.g. nvSpPr for shape, nvPicPr for pic, etc.
-        self.__nvXxPr = shape_element.xpath('./*[1]', namespaces=_nsmap)[0]
+        self._nvXxPr = shape_element.xpath('./*[1]', namespaces=_nsmap)[0]
 
     @property
     def has_textframe(self):
@@ -37,7 +37,7 @@ class _BaseShape(object):
         """
         Id of this shape. Note that ids are constrained to positive integers.
         """
-        return int(self.__nvXxPr.cNvPr.get('id'))
+        return int(self._nvXxPr.cNvPr.get('id'))
 
     @property
     def is_placeholder(self):
@@ -45,12 +45,12 @@ class _BaseShape(object):
         True if this shape is a placeholder. A shape is a placeholder if it
         has a <p:ph> element.
         """
-        return _child(self.__nvXxPr.nvPr, 'p:ph') is not None
+        return _child(self._nvXxPr.nvPr, 'p:ph') is not None
 
     @property
     def name(self):
         """Name of this shape."""
-        return self.__nvXxPr.cNvPr.get('name')
+        return self._nvXxPr.cNvPr.get('name')
 
     def _set_text(self, text):
         """Replace all text in shape with single run containing *text*"""
@@ -95,7 +95,7 @@ class _BaseShape(object):
         """
         True if this shape is a title placeholder.
         """
-        ph = _child(self.__nvXxPr.nvPr, 'p:ph')
+        ph = _child(self._nvXxPr.nvPr, 'p:ph')
         if ph is None:
             return False
         # idx defaults to 0 when idx attr is absent
