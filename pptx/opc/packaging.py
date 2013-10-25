@@ -376,7 +376,7 @@ class Relationship(object):
         element = etree.Element('Relationship')
         element.set('Id', self.rId)
         element.set('Type', self.reltype)
-        element.set('Target', self.__target_relpath)
+        element.set('Target', self._target_relpath)
         return element
 
     @property
@@ -387,7 +387,7 @@ class Relationship(object):
         return PKG_BASE_URI
 
     @property
-    def __target_relpath(self):
+    def _target_relpath(self):
         # workaround for posixpath bug in 2.6, doesn't generate correct
         # relative path when *start* (second) parameter is root ('/')
         if self._baseURI == '/':
