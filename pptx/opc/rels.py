@@ -88,7 +88,7 @@ class _RelationshipCollection(Collection):
             tmpl = "cannot add relationship with duplicate rId '%s'"
             raise ValueError(tmpl % relationship._rId)
         self._values.append(relationship)
-        self.__resequence()
+        self._resequence()
         # register as observer of partname changes
         relationship._target.add_observer(self)
 
@@ -137,7 +137,7 @@ class _RelationshipCollection(Collection):
     @_reltype_ordering.setter
     def _reltype_ordering(self, ordering):
         self._reltype_ordering_ = tuple(ordering)
-        self.__resequence()
+        self._resequence()
 
     def rels_of_reltype(self, reltype):
         """
@@ -151,9 +151,9 @@ class _RelationshipCollection(Collection):
     def notify(self, subject, name, value):
         """RelationshipCollection implements the Observer interface"""
         if name == 'partname':
-            self.__resequence()
+            self._resequence()
 
-    def __resequence(self):
+    def _resequence(self):
         """
         Sort relationships and renumber if necessary to maintain values in rId
         order.
