@@ -362,7 +362,7 @@ class Relationship(object):
     """
     def __init__(self, rId, source, reltype, target):
         super(Relationship, self).__init__()
-        self.__source = source
+        self._source = source
         self.rId = rId
         self.reltype = reltype
         self.target = target
@@ -382,8 +382,8 @@ class Relationship(object):
     @property
     def __baseURI(self):
         """Return the directory part of the source itemURI."""
-        if isinstance(self.__source, Part):
-            return os.path.split(self.__source.partname)[0]
+        if isinstance(self._source, Part):
+            return os.path.split(self._source.partname)[0]
         return PKG_BASE_URI
 
     @property
