@@ -189,7 +189,7 @@ class Part(object):
     def __init__(self):
         super(Part, self).__init__()
         self._partname = None
-        self.__relationships = []
+        self._relationships = []
         self.typespec = None
         self.blob = None
 
@@ -213,7 +213,7 @@ class Part(object):
         Tuple of |Relationship| instances, each representing a relationship
         from this part to another part.
         """
-        return tuple(self.__relationships)
+        return tuple(self._relationships)
 
     def _load(self, fs, partname, ct_dict, parts_dict):
         """
@@ -230,7 +230,7 @@ class Part(object):
         self.typespec = PartTypeSpec(content_type)
 
         # load relationships and propagate load to target parts
-        self.__relationships = []  # discard any rels from prior load
+        self._relationships = []  # discard any rels from prior load
         rel_elms = self.__get_rel_elms(fs)
         for rel_elm in rel_elms:
             rId = rel_elm.get('Id')
@@ -247,7 +247,7 @@ class Part(object):
 
             # create relationship to target_part
             rel = Relationship(rId, self, reltype, target_part)
-            self.__relationships.append(rel)
+            self._relationships.append(rel)
 
         return self
 
@@ -279,13 +279,13 @@ class Part(object):
                 part._marshal(model_target_part, part_dict)
             # create marshalled version of relationship
             marshalled_rel = Relationship(rId, self, reltype, part)
-            self.__relationships.append(marshalled_rel)
+            self._relationships.append(marshalled_rel)
 
     @property
     def _relsitem_element(self):
         nsmap = {None: pptx.spec.nsmap['pr']}
         element = etree.Element(qtag('pr:Relationships'), nsmap=nsmap)
-        for rel in self.__relationships:
+        for rel in self._relationships:
             element.append(rel._element)
         return element
 
