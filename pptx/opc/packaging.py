@@ -54,7 +54,7 @@ class Package(object):
         Return a list of :class:`pptx.packaging.Part` corresponding to the
         parts in this package.
         """
-        return [part for part in self.__walkparts(self.relationships)]
+        return [part for part in self._walkparts(self.relationships)]
 
     @property
     def relationships(self):
@@ -143,7 +143,7 @@ class Package(object):
         return element
 
     @classmethod
-    def __walkparts(cls, rels, parts=None):
+    def _walkparts(cls, rels, parts=None):
         """
         Recursive generator method, walk relationships to iterate over all
         parts in this package. Leave out *parts* parameter in call to visit
@@ -159,7 +159,7 @@ class Package(object):
                 continue
             parts.append(part)
             yield part
-            for part in cls.__walkparts(part.relationships, parts):
+            for part in cls._walkparts(part.relationships, parts):
                 yield part
 
 
