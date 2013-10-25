@@ -22,9 +22,9 @@ class _Placeholder(object):
         return object.__new__(cls)
 
     def __init__(self, shape):
-        self.__decorated = shape
+        self._decorated = shape
         xpath = './*[1]/p:nvPr/p:ph'
-        self.__ph = self._element.xpath(xpath, namespaces=_nsmap)[0]
+        self._ph = self._element.xpath(xpath, namespaces=_nsmap)[0]
 
     def __getattr__(self, name):
         """
@@ -32,24 +32,24 @@ class _Placeholder(object):
         case, delegate attribute lookup to decorated (it's probably in its
         instance namespace).
         """
-        return getattr(self.__decorated, name)
+        return getattr(self._decorated, name)
 
     @property
     def type(self):
         """Placeholder type, e.g. PH_TYPE_CTRTITLE"""
-        return self.__ph.get('type', PH_TYPE_OBJ)
+        return self._ph.get('type', PH_TYPE_OBJ)
 
     @property
     def orient(self):
         """Placeholder 'orient' attribute, e.g. PH_ORIENT_HORZ"""
-        return self.__ph.get('orient', PH_ORIENT_HORZ)
+        return self._ph.get('orient', PH_ORIENT_HORZ)
 
     @property
     def sz(self):
         """Placeholder 'sz' attribute, e.g. PH_SZ_FULL"""
-        return self.__ph.get('sz', PH_SZ_FULL)
+        return self._ph.get('sz', PH_SZ_FULL)
 
     @property
     def idx(self):
         """Placeholder 'idx' attribute, e.g. '0'"""
-        return int(self.__ph.get('idx', 0))
+        return int(self._ph.get('idx', 0))
