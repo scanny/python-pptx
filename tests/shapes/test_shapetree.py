@@ -70,7 +70,7 @@ class Test_ShapeCollection(TestCase):
 
     @patch('pptx.shapes.shapetree.CT_Shape')
     @patch('pptx.shapes.shapetree._Shape')
-    @patch('pptx.shapes.shapetree._ShapeCollection._ShapeCollection__next_sh'
+    @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     @patch('pptx.shapes.shapetree._AutoShapeType')
     def test_add_shape_collaboration(self, _AutoShapeType, __next_shape_id,
@@ -93,8 +93,8 @@ class Test_ShapeCollection(TestCase):
         __spTree = Mock(name='__spTree')
         __shapes = Mock(name='__shapes')
         shapes = test_shapes.empty_shape_collection
-        shapes._ShapeCollection__spTree = __spTree
-        shapes._ShapeCollection__shapes = __shapes
+        shapes._spTree = __spTree
+        shapes._shapes = __shapes
         shape = Mock('shape')
         _Shape.return_value = shape
         # exercise ---------------------
@@ -110,7 +110,7 @@ class Test_ShapeCollection(TestCase):
 
     @patch('pptx.shapes.shapetree._Picture')
     @patch('pptx.shapes.shapetree.CT_Picture')
-    @patch('pptx.shapes.shapetree._ShapeCollection._ShapeCollection__next_sh'
+    @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     def test_add_picture_collaboration(self, next_shape_id, CT_Picture,
                                        _Picture):
@@ -130,8 +130,8 @@ class Test_ShapeCollection(TestCase):
         __spTree = Mock(name='__spTree')
         __shapes = Mock(name='__shapes')
         shapes = _ShapeCollection(test_shape_elements.empty_spTree, slide)
-        shapes._ShapeCollection__spTree = __spTree
-        shapes._ShapeCollection__shapes = __shapes
+        shapes._spTree = __spTree
+        shapes._shapes = __shapes
         pic = Mock(name='pic')
         CT_Picture.new_pic.return_value = pic
         picture = Mock(name='picture')
@@ -139,7 +139,7 @@ class Test_ShapeCollection(TestCase):
         # # exercise --------------------
         retval = shapes.add_picture(file, left, top, width, height)
         # verify -----------------------
-        shapes._ShapeCollection__slide._add_image.assert_called_once_with(file)
+        shapes._slide._add_image.assert_called_once_with(file)
         image._scale.assert_called_once_with(width, height)
         CT_Picture.new_pic.assert_called_once_with(
             id_, name, desc, rId, left, top, width, height)
@@ -150,7 +150,7 @@ class Test_ShapeCollection(TestCase):
 
     @patch('pptx.shapes.shapetree._Table')
     @patch('pptx.shapes.shapetree.CT_GraphicalObjectFrame')
-    @patch('pptx.shapes.shapetree._ShapeCollection._ShapeCollection__next_sh'
+    @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     def test_add_table_collaboration(
             self, __next_shape_id, CT_GraphicalObjectFrame, _Table):
@@ -166,8 +166,8 @@ class Test_ShapeCollection(TestCase):
         __spTree = Mock(name='__spTree')
         __shapes = Mock(name='__shapes')
         shapes = test_shapes.empty_shape_collection
-        shapes._ShapeCollection__spTree = __spTree
-        shapes._ShapeCollection__shapes = __shapes
+        shapes._spTree = __spTree
+        shapes._shapes = __shapes
         table = Mock('table')
         _Table.return_value = table
         # exercise ---------------------
@@ -183,7 +183,7 @@ class Test_ShapeCollection(TestCase):
 
     @patch('pptx.shapes.shapetree.CT_Shape')
     @patch('pptx.shapes.shapetree._Shape')
-    @patch('pptx.shapes.shapetree._ShapeCollection._ShapeCollection__next_sh'
+    @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     def test_add_textbox_collaboration(self, __next_shape_id, _Shape,
                                        CT_Shape):
@@ -196,7 +196,7 @@ class Test_ShapeCollection(TestCase):
         shape = Mock('shape')
         __spTree = Mock(name='__spTree')
         shapes = test_shapes.empty_shape_collection
-        shapes._ShapeCollection__spTree = __spTree
+        shapes._spTree = __spTree
         __next_shape_id.return_value = id_
         CT_Shape.new_textbox_sp.return_value = sp
         _Shape.return_value = shape
@@ -207,7 +207,7 @@ class Test_ShapeCollection(TestCase):
             id_, name, left, top, width, height)
         _Shape.assert_called_once_with(sp)
         __spTree.append.assert_called_once_with(sp)
-        assert_that(shapes._ShapeCollection__shapes[0], is_(equal_to(shape)))
+        assert_that(shapes._shapes[0], is_(equal_to(shape)))
         assert_that(retval, is_(equal_to(shape)))
 
     def test_title_value(self):
@@ -292,7 +292,7 @@ class Test_ShapeCollection(TestCase):
         # exercise ---------------------
         for idx, layout_ph_sp in enumerate(layout_ph_shapes):
             layout_ph = _Placeholder(layout_ph_sp)
-            sp = shapes._ShapeCollection__clone_layout_placeholder(layout_ph)
+            sp = shapes._clone_layout_placeholder(layout_ph)
             # verify ------------------
             ph = _Placeholder(sp)
             expected = expected_values[idx]
@@ -330,7 +330,7 @@ class Test_ShapeCollection(TestCase):
                     # verify ----------------------
         for idx, layout_ph_sp in enumerate(layout_ph_shapes):
             layout_ph = _Placeholder(layout_ph_sp)
-            sp = shapes._ShapeCollection__clone_layout_placeholder(layout_ph)
+            sp = shapes._clone_layout_placeholder(layout_ph)
             ph = _Placeholder(sp)
             expected_xml = expected_xml_tmpl % expected_values[idx]
             self.assertEqualLineByLine(expected_xml, ph._element)
@@ -353,7 +353,7 @@ class Test_ShapeCollection(TestCase):
         shapes = _sldLayout1_shapes()
         for ph_type, id, orient, expected_name in cases:
             # exercise --------------------
-            name = shapes._ShapeCollection__next_ph_name(ph_type, id, orient)
+            name = shapes._next_ph_name(ph_type, id, orient)
             # verify ----------------------
             expected = expected_name
             actual = name
@@ -366,7 +366,7 @@ class Test_ShapeCollection(TestCase):
         # setup ------------------------
         shapes = _sldLayout1_shapes()
         # exercise ---------------------
-        next_id = shapes._ShapeCollection__next_shape_id
+        next_id = shapes._next_shape_id
         # verify -----------------------
         expected = 4
         actual = next_id

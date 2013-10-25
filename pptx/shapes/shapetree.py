@@ -40,9 +40,9 @@ class _ShapeCollection(_BaseShape, Collection):
 
     def __init__(self, spTree, slide=None):
         super(_ShapeCollection, self).__init__(spTree)
-        self.__spTree = spTree
-        self.__slide = slide
-        self.__shapes = self._values
+        self._spTree = spTree
+        self._slide = slide
+        self._shapes = self._values
         # unmarshal shapes
         for elm in spTree.iterchildren():
             if elm.tag in (self._NVGRPSPPR, self._GRPSPPR, self._EXTLST):
@@ -64,7 +64,7 @@ class _ShapeCollection(_BaseShape, Collection):
                 raise ValueError(msg)
             else:
                 shape = _BaseShape(elm)
-            self.__shapes.append(shape)
+            self._shapes.append(shape)
 
     @property
     def placeholders(self):
@@ -73,14 +73,14 @@ class _ShapeCollection(_BaseShape, Collection):
         collection, sorted in *idx* order.
         """
         placeholders =\
-            [_Placeholder(sp) for sp in self.__shapes if sp.is_placeholder]
+            [_Placeholder(sp) for sp in self._shapes if sp.is_placeholder]
         placeholders.sort(key=lambda ph: ph.idx)
         return tuple(placeholders)
 
     @property
     def title(self):
         """The title shape in collection or None if no title placeholder."""
-        for shape in self.__shapes:
+        for shape in self._shapes:
             if shape._is_title:
                 return shape
         return None
@@ -90,9 +90,9 @@ class _ShapeCollection(_BaseShape, Collection):
         Add picture shape displaying image in *file*, where *file* can be
         either a path to a file (a string) or a file-like object.
         """
-        image, rel = self.__slide._add_image(file)
+        image, rel = self._slide._add_image(file)
 
-        id = self.__next_shape_id
+        id = self._next_shape_id
         name = 'Picture %d' % (id-1)
         desc = image._desc
         rId = rel._rId
@@ -100,9 +100,9 @@ class _ShapeCollection(_BaseShape, Collection):
 
         pic = CT_Picture.new_pic(id, name, desc, rId, left, top, width, height)
 
-        self.__spTree.append(pic)
+        self._spTree.append(pic)
         picture = _Picture(pic)
-        self.__shapes.append(picture)
+        self._shapes.append(picture)
         return picture
 
     def add_shape(self, autoshape_type_id, left, top, width, height):
@@ -111,15 +111,15 @@ class _ShapeCollection(_BaseShape, Collection):
         ``MSO.SHAPE_RECTANGLE``) and of specified size at specified position.
         """
         autoshape_type = _AutoShapeType(autoshape_type_id)
-        id_ = self.__next_shape_id
+        id_ = self._next_shape_id
         name = '%s %d' % (autoshape_type.basename, id_-1)
 
         sp = CT_Shape.new_autoshape_sp(id_, name, autoshape_type.prst,
                                        left, top, width, height)
         shape = _Shape(sp)
 
-        self.__spTree.append(sp)
-        self.__shapes.append(shape)
+        self._spTree.append(sp)
+        self._shapes.append(shape)
         return shape
 
     def add_table(self, rows, cols, left, top, width, height):
@@ -129,27 +129,27 @@ class _ShapeCollection(_BaseShape, Collection):
         distributed between the *cols* columns of the new table. Likewise,
         *height* is evenly distributed between the *rows* rows created.
         """
-        id = self.__next_shape_id
+        id = self._next_shape_id
         name = 'Table %d' % (id-1)
         graphicFrame = CT_GraphicalObjectFrame.new_table(
             id, name, rows, cols, left, top, width, height)
-        self.__spTree.append(graphicFrame)
+        self._spTree.append(graphicFrame)
         table = _Table(graphicFrame)
-        self.__shapes.append(table)
+        self._shapes.append(table)
         return table
 
     def add_textbox(self, left, top, width, height):
         """
         Add text box shape of specified size at specified position.
         """
-        id_ = self.__next_shape_id
+        id_ = self._next_shape_id
         name = 'TextBox %d' % (id_-1)
 
         sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
         shape = _Shape(sp)
 
-        self.__spTree.append(sp)
-        self.__shapes.append(shape)
+        self._spTree.append(sp)
+        self._shapes.append(shape)
         return shape
 
     def _clone_layout_placeholders(self, slidelayout):
@@ -165,17 +165,17 @@ class _ShapeCollection(_BaseShape, Collection):
             ph = _Placeholder(sp)
             if ph.type in latent_ph_types:
                 continue
-            self.__clone_layout_placeholder(ph)
+            self._clone_layout_placeholder(ph)
 
-    def __clone_layout_placeholder(self, layout_ph):
+    def _clone_layout_placeholder(self, layout_ph):
         """
         Add a new placeholder shape based on the slide layout placeholder
         *layout_ph*.
         """
-        id_ = self.__next_shape_id
+        id_ = self._next_shape_id
         ph_type = layout_ph.type
         orient = layout_ph.orient
-        shapename = self.__next_ph_name(ph_type, id_, orient)
+        shapename = self._next_ph_name(ph_type, id_, orient)
         sz = layout_ph.sz
         idx = layout_ph.idx
 
@@ -183,16 +183,16 @@ class _ShapeCollection(_BaseShape, Collection):
                                          sz, idx)
         shape = _Shape(sp)
 
-        self.__spTree.append(sp)
-        self.__shapes.append(shape)
+        self._spTree.append(sp)
+        self._shapes.append(shape)
         return shape
 
-    def __next_ph_name(self, ph_type, id, orient):
+    def _next_ph_name(self, ph_type, id, orient):
         """
         Next unique placeholder name for placeholder shape of type *ph_type*,
         with id number *id* and orientation *orient*. Usually will be standard
         placeholder root name suffixed with id-1, e.g.
-        __next_ph_name(PH_TYPE_TBL, 4, 'horz') ==> 'Table Placeholder 3'. The
+        _next_ph_name(PH_TYPE_TBL, 4, 'horz') ==> 'Table Placeholder 3'. The
         number is incremented as necessary to make the name unique within the
         collection. If *orient* is ``'vert'``, the placeholder name is
         prefixed with ``'Vertical '``.
@@ -203,7 +203,7 @@ class _ShapeCollection(_BaseShape, Collection):
             basename = 'Vertical %s' % basename
         # increment numpart as necessary to make name unique
         numpart = id - 1
-        names = self.__spTree.xpath('//p:cNvPr/@name', namespaces=_nsmap)
+        names = self._spTree.xpath('//p:cNvPr/@name', namespaces=_nsmap)
         while True:
             name = '%s %d' % (basename, numpart)
             if name not in names:
@@ -212,13 +212,13 @@ class _ShapeCollection(_BaseShape, Collection):
         return name
 
     @property
-    def __next_shape_id(self):
+    def _next_shape_id(self):
         """
         Next available drawing object id number in collection, starting from 1
         and making use of any gaps in numbering. In practice, the minimum id
         is 2 because the spTree element is always assigned id="1".
         """
-        cNvPrs = self.__spTree.xpath('//p:cNvPr', namespaces=_nsmap)
+        cNvPrs = self._spTree.xpath('//p:cNvPr', namespaces=_nsmap)
         ids = [int(cNvPr.get('id')) for cNvPr in cNvPrs]
         ids.sort()
         # first gap in sequence wins, or falls off the end as max(ids)+1
