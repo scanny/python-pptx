@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
-#
-# testing.py
-#
-# Copyright (C) 2012, 2013 Steve Canny scanny@cisco.com
-#
-# This module is part of python-pptx and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# encoding: utf-8
 
 """Testing utilities for python-pptx."""
 
+import os
 import unittest2
 
 from pptx.oxml import oxml_tostring
+
+
+def absjoin(*paths):
+    return os.path.abspath(os.path.join(*paths))
 
 
 class TestCase(unittest2.TestCase):

@@ -19,11 +19,7 @@ from pptx.presentation import _Package, Presentation
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 
-from ..unitutil import TestCase
-
-
-def absjoin(*paths):
-    return os.path.abspath(os.path.join(*paths))
+from ..unitutil import absjoin, TestCase
 
 
 thisdir = os.path.split(__file__)[0]

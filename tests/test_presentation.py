@@ -20,11 +20,8 @@ from pptx.parts.slides import _Slide, _SlideLayout, _SlideMaster
 from pptx.presentation import _Package, _Part, Presentation
 from pptx.spec import namespaces, qtag
 
-from .unitutil import TestCase
+from .unitutil import absjoin, TestCase
 
-
-def absjoin(*paths):
-    return os.path.abspath(os.path.join(*paths))
 
 thisdir = os.path.split(__file__)[0]
 test_file_dir = absjoin(thisdir, 'test_files')

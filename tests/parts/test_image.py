@@ -14,11 +14,7 @@ from pptx.parts.image import _Image
 from pptx.presentation import _Package
 from pptx.util import Px
 
-from ..unitutil import TestCase
-
-
-def absjoin(*paths):
-    return os.path.abspath(os.path.join(*paths))
+from ..unitutil import absjoin, TestCase
 
 
 thisdir = os.path.split(__file__)[0]

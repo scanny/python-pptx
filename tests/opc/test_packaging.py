@@ -25,12 +25,8 @@ from pptx.opc.packaging import (
 
 from pptx.spec import PTS_CARDINALITY_TUPLE, PTS_HASRELS_ALWAYS
 
-from ..unitutil import TestCase
+from ..unitutil import absjoin, TestCase
 
-
-# module globals -------------------------------------------------------------
-def absjoin(*paths):
-    return os.path.abspath(os.path.join(*paths))
 
 thisdir = os.path.split(__file__)[0]
 test_file_dir = absjoin(thisdir, '../test_files')

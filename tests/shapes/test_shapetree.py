@@ -21,12 +21,8 @@ from pptx.spec import (
 )
 
 from ..unitdata import test_shape_elements, test_shapes
-from ..unitutil import TestCase
+from ..unitutil import absjoin, TestCase
 
-
-# module globals -------------------------------------------------------------
-def absjoin(*paths):
-    return os.path.abspath(os.path.join(*paths))
 
 thisdir = os.path.split(__file__)[0]
 test_file_dir = absjoin(thisdir, '../test_files')
