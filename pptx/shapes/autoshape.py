@@ -45,17 +45,17 @@ class _Adjustment(object):
         can become negative or greater than 1.0.
         """
         raw_value = self.actual if self.actual is not None else self.def_val
-        return self.__normalize(raw_value)
+        return self._normalize(raw_value)
 
     @effective_value.setter
     def effective_value(self, value):
         if not isinstance(value, Number):
             tmpl = "adjustment value must be numeric, got '%s'"
             raise ValueError(tmpl % value)
-        self.actual = self.__denormalize(value)
+        self.actual = self._denormalize(value)
 
     @staticmethod
-    def __denormalize(value):
+    def _denormalize(value):
         """
         Return integer corresponding to normalized *raw_value* on unit basis
         of 100,000. See _Adjustment.normalize for additional details.
@@ -63,7 +63,7 @@ class _Adjustment(object):
         return int(value * 100000.0)
 
     @staticmethod
-    def __normalize(raw_value):
+    def _normalize(raw_value):
         """
         Return normalized value for *raw_value*. A normalized value is a
         |float| between 0.0 and 1.0 for nominal raw values between 0 and
