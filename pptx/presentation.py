@@ -233,22 +233,22 @@ class Presentation(_BasePart):
     """
     def __init__(self):
         super(Presentation, self).__init__()
-        self.__slidemasters = _PartCollection()
-        self.__slides = _SlideCollection(self)
+        self._slidemasters = _PartCollection()
+        self._slides = _SlideCollection(self)
 
     @property
     def slidemasters(self):
         """
         List of |_SlideMaster| objects belonging to this presentation.
         """
-        return tuple(self.__slidemasters)
+        return tuple(self._slidemasters)
 
     @property
     def slides(self):
         """
         |_SlideCollection| object containing the slides in this presentation.
         """
-        return self.__slides
+        return self._slides
 
     @property
     def _blob(self):
@@ -286,9 +286,9 @@ class Presentation(_BasePart):
         # selectively unmarshal relationships for now
         for rel in self._relationships:
             if rel._reltype == RT.SLIDE_MASTER:
-                self.__slidemasters._loadpart(rel._target)
+                self._slidemasters._loadpart(rel._target)
             elif rel._reltype == RT.SLIDE:
-                self.__slides._loadpart(rel._target)
+                self._slides._loadpart(rel._target)
         return self
 
     def __rewrite_sldIdLst(self):
