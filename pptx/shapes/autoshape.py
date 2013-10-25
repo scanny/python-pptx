@@ -275,7 +275,7 @@ class _Shape(_BaseShape):
     """
     def __init__(self, sp):
         super(_Shape, self).__init__(sp)
-        self.__adjustments = _AdjustmentCollection(sp.prstGeom)
+        self._adjustments = _AdjustmentCollection(sp.prstGeom)
 
     @property
     def adjustments(self):
@@ -283,7 +283,7 @@ class _Shape(_BaseShape):
         Read-only reference to _AdjustmentsCollection instance for this
         shape
         """
-        return self.__adjustments
+        return self._adjustments
 
     @property
     def auto_shape_type(self):
