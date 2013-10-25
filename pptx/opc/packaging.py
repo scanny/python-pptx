@@ -481,7 +481,7 @@ class PartTypeSpec(object):
        ``http://schemas.openxmlformats.org/.../relationships/slide``.
 
     """
-    __instances = {}
+    _instances = {}
 
     def __new__(cls, content_type):
         """
@@ -489,11 +489,11 @@ class PartTypeSpec(object):
         use cached instance.
         """
         # if there's not a matching instance in the cache, create one
-        if content_type not in cls.__instances:
+        if content_type not in cls._instances:
             inst = super(PartTypeSpec, cls).__new__(cls)
-            cls.__instances[content_type] = inst
+            cls._instances[content_type] = inst
         # return the instance; note that __init__() gets called either way
-        return cls.__instances[content_type]
+        return cls._instances[content_type]
 
     def __init__(self, content_type):
         """Initialize spec attributes from constant values in pptx.spec."""
