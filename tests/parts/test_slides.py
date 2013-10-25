@@ -4,8 +4,6 @@
 
 from __future__ import absolute_import
 
-import os
-
 from hamcrest import assert_that, is_
 from mock import Mock, patch, PropertyMock
 
@@ -19,11 +17,8 @@ from pptx.presentation import _Package, Presentation
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 
-from ..unitutil import absjoin, TestCase
+from ..unitutil import absjoin, TestCase, test_file_dir
 
-
-thisdir = os.path.split(__file__)[0]
-test_file_dir = absjoin(thisdir, '../test_files')
 
 test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')

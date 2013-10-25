@@ -25,16 +25,16 @@ from pptx.opc.packaging import (
 
 from pptx.spec import PTS_CARDINALITY_TUPLE, PTS_HASRELS_ALWAYS
 
-from ..unitutil import absjoin, TestCase
+from ..unitutil import absjoin, TestCase, test_file_dir
 
-
-thisdir = os.path.split(__file__)[0]
-test_file_dir = absjoin(thisdir, '../test_files')
 
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
-test_save_pptx_path = absjoin(thisdir, 'test_python-pptx.pptx')
 dir_pkg_path = absjoin(test_file_dir, 'expanded_pptx')
 zip_pkg_path = test_pptx_path
+
+# TODO: refactor this to use pytest temp dir
+_thisdir = os.path.split(__file__)[0]
+test_save_pptx_path = absjoin(_thisdir, 'test_python-pptx.pptx')
 
 
 class MockParent(object):

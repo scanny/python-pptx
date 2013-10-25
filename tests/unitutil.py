@@ -12,6 +12,10 @@ def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
 
 
+_thisdir = os.path.split(__file__)[0]
+test_file_dir = absjoin(_thisdir, 'test_files')
+
+
 class TestCase(unittest2.TestCase):
     """Additional assert methods for python-pptx unit testing."""
     def assertEqualLineByLine(self, expected_xml, element):

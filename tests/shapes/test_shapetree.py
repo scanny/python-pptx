@@ -21,11 +21,8 @@ from pptx.spec import (
 )
 
 from ..unitdata import test_shape_elements, test_shapes
-from ..unitutil import absjoin, TestCase
+from ..unitutil import absjoin, TestCase, test_file_dir
 
-
-thisdir = os.path.split(__file__)[0]
-test_file_dir = absjoin(thisdir, '../test_files')
 
 test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
 test_bmp_path = absjoin(test_file_dir, 'python.bmp')

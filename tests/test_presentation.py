@@ -20,11 +20,8 @@ from pptx.parts.slides import _Slide, _SlideLayout, _SlideMaster
 from pptx.presentation import _Package, _Part, Presentation
 from pptx.spec import namespaces, qtag
 
-from .unitutil import absjoin, TestCase
+from .unitutil import absjoin, TestCase, test_file_dir
 
-
-thisdir = os.path.split(__file__)[0]
-test_file_dir = absjoin(thisdir, 'test_files')
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
@@ -278,7 +275,7 @@ class Test_Presentation(TestCase):
         prs = Presentation()
         prs._relationships = rels
         prs.partname = '/ppt/presentation.xml'
-        path = os.path.join(thisdir, 'test_files/presentation.xml')
+        path = absjoin(test_file_dir, 'presentation.xml')
         prs._element = oxml_parse(path).getroot()
         # exercise ---------------------
         blob = prs._blob

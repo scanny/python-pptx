@@ -4,8 +4,6 @@
 
 from __future__ import absolute_import
 
-import os
-
 from StringIO import StringIO
 
 from hamcrest import assert_that, equal_to, is_
@@ -14,11 +12,8 @@ from pptx.parts.image import _Image
 from pptx.presentation import _Package
 from pptx.util import Px
 
-from ..unitutil import absjoin, TestCase
+from ..unitutil import absjoin, TestCase, test_file_dir
 
-
-thisdir = os.path.split(__file__)[0]
-test_file_dir = absjoin(thisdir, '../test_files')
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
