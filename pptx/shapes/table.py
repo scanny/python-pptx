@@ -9,25 +9,7 @@ from pptx.oxml import _child, qn
 from pptx.shapes.shape import _BaseShape
 from pptx.spec import VerticalAnchor
 from pptx.text import _TextFrame
-
-
-def _to_unicode(text):
-    """
-    Return *text* as a unicode string.
-
-    *text* can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or
-    unicode. String values are converted to unicode assuming UTF-8 encoding.
-    Unicode values are returned unchanged.
-    """
-    # both str and unicode inherit from basestring
-    if not isinstance(text, basestring):
-        tmpl = 'expected UTF-8 encoded string or unicode, got %s value %s'
-        raise TypeError(tmpl % (type(text), text))
-    # return unicode strings unchanged
-    if isinstance(text, unicode):
-        return text
-    # otherwise assume UTF-8 encoding, which also works for ASCII
-    return unicode(text, 'utf-8')
+from pptx.util import to_unicode
 
 
 class _Table(_BaseShape):
@@ -246,7 +228,7 @@ class _Cell(object):
 
     def _set_text(self, text):
         """Replace all text in cell with single run containing *text*"""
-        self.textframe.text = _to_unicode(text)
+        self.textframe.text = to_unicode(text)
 
     #: Write-only. Assignment to *text* replaces all text currently contained
     #: in the cell, resulting in a text frame containing exactly one

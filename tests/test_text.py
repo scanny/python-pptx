@@ -14,7 +14,7 @@ from pptx.oxml import (
     _SubElement, nsdecls, oxml_fromstring, oxml_parse, oxml_tostring
 )
 from pptx.spec import namespaces
-from pptx.text import _Font, _Paragraph, _Run, _TextFrame, _to_unicode
+from pptx.text import _Font, _Paragraph, _Run, _TextFrame
 from pptx.util import Pt
 
 from .unitdata import test_text_objects, test_text_xml
@@ -318,12 +318,6 @@ class Test_Run(TestCase):
         actual = self.run.text
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-
-    def test__to_unicode_raises_on_non_string(self):
-        """_to_unicode(text) raises on *text* not a string"""
-        # verify -----------------------
-        with self.assertRaises(TypeError):
-            _to_unicode(999)
 
 
 class Test_TextFrame(TestCase):

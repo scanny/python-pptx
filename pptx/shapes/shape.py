@@ -7,29 +7,11 @@ Base shape-related objects such as _BaseShape.
 from pptx.spec import namespaces
 from pptx.oxml import _child
 from pptx.text import _TextFrame
+from pptx.util import to_unicode
 
 
 # default namespace map for use in lxml calls
 _nsmap = namespaces('a', 'r', 'p')
-
-
-def _to_unicode(text):
-    """
-    Return *text* as a unicode string.
-
-    *text* can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or
-    unicode. String values are converted to unicode assuming UTF-8 encoding.
-    Unicode values are returned unchanged.
-    """
-    # both str and unicode inherit from basestring
-    if not isinstance(text, basestring):
-        tmpl = 'expected UTF-8 encoded string or unicode, got %s value %s'
-        raise TypeError(tmpl % (type(text), text))
-    # return unicode strings unchanged
-    if isinstance(text, unicode):
-        return text
-    # otherwise assume UTF-8 encoding, which also works for ASCII
-    return unicode(text, 'utf-8')
 
 
 class _BaseShape(object):
@@ -74,7 +56,7 @@ class _BaseShape(object):
         """Replace all text in shape with single run containing *text*"""
         if not self.has_textframe:
             raise TypeError("cannot set text of shape with no text frame")
-        self.textframe.text = _to_unicode(text)
+        self.textframe.text = to_unicode(text)
 
     #: Write-only. Assignment to *text* replaces all text currently contained
     #: by the shape, resulting in a text frame containing exactly one

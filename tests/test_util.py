@@ -5,11 +5,19 @@
 from __future__ import absolute_import
 
 import platform
+import pytest
 
 from pptx.util import (
-    _BaseLength, Cm, Collection, Emu, Inches, Mm, Partname, Px)
+    _BaseLength, Cm, Collection, Emu, Inches, Mm, Partname, Px, to_unicode
+)
 
 from .unitutil import TestCase
+
+
+def test_to_unicode_raises_on_non_string():
+    """to_unicode(text) raises on *text* not a string"""
+    with pytest.raises(TypeError):
+        to_unicode(999)
 
 
 class TestCollection(TestCase):

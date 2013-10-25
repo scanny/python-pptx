@@ -7,29 +7,11 @@ Text-related objects such as TextFrame and Paragraph.
 from pptx.constants import MSO
 from pptx.oxml import _child, _get_or_add, _Element, qn, _SubElement
 from pptx.spec import namespaces, ParagraphAlignment
+from pptx.util import to_unicode
 
 
 # default namespace map for use in lxml calls
 _nsmap = namespaces('a', 'r', 'p')
-
-
-def _to_unicode(text):
-    """
-    Return *text* as a unicode string.
-
-    *text* can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or
-    unicode. String values are converted to unicode assuming UTF-8 encoding.
-    Unicode values are returned unchanged.
-    """
-    # both str and unicode inherit from basestring
-    if not isinstance(text, basestring):
-        tmpl = 'expected UTF-8 encoded string or unicode, got %s value %s'
-        raise TypeError(tmpl % (type(text), text))
-    # return unicode strings unchanged
-    if isinstance(text, unicode):
-        return text
-    # otherwise assume UTF-8 encoding, which also works for ASCII
-    return unicode(text, 'utf-8')
 
 
 class _TextFrame(object):
@@ -54,7 +36,7 @@ class _TextFrame(object):
     def _set_text(self, text):
         """Replace all text in text frame with single run containing *text*"""
         self.clear()
-        self.paragraphs[0].text = _to_unicode(text)
+        self.paragraphs[0].text = to_unicode(text)
 
     #: Write-only. Assignment to *text* replaces all text currently contained
     #: in the text frame with the assigned expression. After assignment, the
@@ -227,7 +209,7 @@ class _Paragraph(object):
         """Replace runs with single run containing *text*"""
         self.clear()
         r = self.add_run()
-        r.text = _to_unicode(text)
+        r.text = to_unicode(text)
 
     #: Write-only. Assignment to *text* replaces all text currently contained
     #: in the paragraph. After assignment, the paragraph containins exactly
@@ -337,4 +319,4 @@ class _Run(object):
     @text.setter
     def text(self, str):
         """Set the text of this run to *str*."""
-        self.__r.t._setText(_to_unicode(str))
+        self.__r.t._setText(to_unicode(str))
