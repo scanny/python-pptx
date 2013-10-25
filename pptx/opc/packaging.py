@@ -711,7 +711,7 @@ class DirectoryFileSystem(BaseFileSystem):
         if not os.path.isdir(path):
             tmpl = "path '%s' not a directory"
             raise ValueError(tmpl % path)
-        self.__path = os.path.abspath(path)
+        self._path = os.path.abspath(path)
 
     def close(self):
         """
@@ -728,7 +728,7 @@ class DirectoryFileSystem(BaseFileSystem):
         """
         if itemURI not in self:
             raise LookupError("No package item with URI '%s'" % itemURI)
-        path = os.path.join(self.__path, itemURI[1:])
+        path = os.path.join(self._path, itemURI[1:])
         with open(path, 'rb') as f:
             stream = StringIO(f.read())
         return stream
@@ -742,10 +742,10 @@ class DirectoryFileSystem(BaseFileSystem):
         not strictly necessary, the results are sorted for neatness' sake.
         """
         itemURIs = []
-        for dirpath, dirnames, filenames in os.walk(self.__path):
+        for dirpath, dirnames, filenames in os.walk(self._path):
             for filename in filenames:
                 item_path = os.path.join(dirpath, filename)
-                itemURI = item_path[len(self.__path):]  # leave leading slash
+                itemURI = item_path[len(self._path):]  # leave leading slash
                 itemURIs.append(itemURI.replace(os.sep, '/'))
         return sorted(itemURIs)
 
