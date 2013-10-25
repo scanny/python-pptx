@@ -380,7 +380,7 @@ class Relationship(object):
         return element
 
     @property
-    def __baseURI(self):
+    def _baseURI(self):
         """Return the directory part of the source itemURI."""
         if isinstance(self._source, Part):
             return os.path.split(self._source.partname)[0]
@@ -390,10 +390,10 @@ class Relationship(object):
     def __target_relpath(self):
         # workaround for posixpath bug in 2.6, doesn't generate correct
         # relative path when *start* (second) parameter is root ('/')
-        if self.__baseURI == '/':
+        if self._baseURI == '/':
             relpath = self.target.partname[1:]
         else:
-            relpath = posixpath.relpath(self.target.partname, self.__baseURI)
+            relpath = posixpath.relpath(self.target.partname, self._baseURI)
         return relpath
 
 
