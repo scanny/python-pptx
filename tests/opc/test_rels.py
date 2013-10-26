@@ -76,7 +76,7 @@ class Test_RelationshipCollection(TestCase):
     def setUp(self):
         self.relationships = _RelationshipCollection()
 
-    def __reltype_ordering_mock(self):
+    def _reltype_ordering_mock(self):
         """
         Return RelationshipCollection instance with mocked-up contents
         suitable for testing _reltype_ordering.
@@ -165,7 +165,7 @@ class Test_RelationshipCollection(TestCase):
     def test__additem_maintains_reltype_ordering(self):
         """_RelationshipCollection maintains reltype ordering on additem()"""
         # setup ------------------------
-        relationships, partnames = self.__reltype_ordering_mock()
+        relationships, partnames = self._reltype_ordering_mock()
         ordering = (RT.SLIDE_MASTER, RT.SLIDE_LAYOUT, RT.SLIDE)
         relationships._reltype_ordering = ordering
         partname = '/ppt/slides/slide2.xml'
@@ -185,7 +185,7 @@ class Test_RelationshipCollection(TestCase):
     def test_rels_of_reltype_return_value(self):
         """RelationshipCollection._rels_of_reltype returns correct rels"""
         # setup ------------------------
-        relationships, partnames = self.__reltype_ordering_mock()
+        relationships, partnames = self._reltype_ordering_mock()
         # exercise ---------------------
         retval = relationships.rels_of_reltype(RT.SLIDE)
         # verify ordering -------------
@@ -197,7 +197,7 @@ class Test_RelationshipCollection(TestCase):
     def test__reltype_ordering_sorts_rels(self):
         """RelationshipCollection._reltype_ordering sorts rels"""
         # setup ------------------------
-        relationships, partnames = self.__reltype_ordering_mock()
+        relationships, partnames = self._reltype_ordering_mock()
         ordering = (RT.SLIDE_MASTER, RT.SLIDE_LAYOUT, RT.SLIDE)
         # exercise ---------------------
         relationships._reltype_ordering = ordering
@@ -212,7 +212,7 @@ class Test_RelationshipCollection(TestCase):
     def test__reltype_ordering_renumbers_rels(self):
         """RelationshipCollection._reltype_ordering renumbers rels"""
         # setup ------------------------
-        relationships, partnames = self.__reltype_ordering_mock()
+        relationships, partnames = self._reltype_ordering_mock()
         ordering = (RT.SLIDE_MASTER, RT.SLIDE_LAYOUT, RT.SLIDE)
         # exercise ---------------------
         relationships._reltype_ordering = ordering
