@@ -34,24 +34,6 @@ doesn't yet have, reach out via the mailing list or issue tracker and we'll see
 if we can jump the queue for you to pop it in there :)
 
 
-Reaching out
-------------
-
-We'd love to hear from you if you like |pp|, want a new feature, find a bug,
-need help using it, or just have a word of encouragement.
-
-The **mailing list** for |pp| is python.pptx@librelist.com.
-
-The **issue tracker** is on github at `scanny/python-pptx`_.
-
-Feature requests are best broached initially on the mailing list, they can be
-added to the issue tracker once we've clarified the best approach,
-particularly the appropriate API signature.
-
-.. _`scanny/python-pptx`:
-   https://github.com/scanny/python-pptx
-
-
 Running the tests
 -----------------
 
@@ -113,6 +95,16 @@ User Guide
    user/quickstart
 
 
+Community Guide
+---------------
+
+.. toctree::
+   :maxdepth: 1
+
+   community/faq
+   community/support
+
+
 API Documentation
 -----------------
 
@@ -133,12 +125,3 @@ Contributor Guide
    dev/design/index
    dev/modules/index
    dev/resources/index
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
