@@ -9,19 +9,19 @@ from mock import Mock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_fromstring, oxml_tostring
-from pptx.parts.part import _BasePart, _PartCollection
+from pptx.parts.part import BasePart, _PartCollection
 
 from ..unitutil import TestCase
 
 
-class Test_BasePart(TestCase):
-    """Test _BasePart"""
+class TestBasePart(TestCase):
+    """Test BasePart"""
     def setUp(self):
-        self.basepart = _BasePart()
-        self.cls = _BasePart
+        self.basepart = BasePart()
+        self.cls = BasePart
 
     def test__add_relationship_adds_specified_relationship(self):
-        """_BasePart._add_relationship adds specified relationship"""
+        """BasePart._add_relationship adds specified relationship"""
         # setup ------------------------
         reltype = RT.IMAGE
         target = Mock(name='image')
@@ -34,7 +34,7 @@ class Test_BasePart(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test__add_relationship_reuses_matching_relationship(self):
-        """_BasePart._add_relationship reuses matching relationship"""
+        """BasePart._add_relationship reuses matching relationship"""
         # setup ------------------------
         reltype = RT.IMAGE
         target = Mock(name='image')
@@ -45,7 +45,7 @@ class Test_BasePart(TestCase):
         assert_that(rel1, is_(equal_to(rel2)))
 
     def test__blob_value_for_binary_part(self):
-        """_BasePart._blob value is correct for binary part"""
+        """BasePart._blob value is correct for binary part"""
         # setup ------------------------
         blob = '0123456789'
         self.basepart._load_blob = blob
@@ -59,7 +59,7 @@ class Test_BasePart(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test__blob_value_for_xml_part(self):
-        """_BasePart._blob value is correct for XML part"""
+        """BasePart._blob value is correct for XML part"""
         # setup ------------------------
         elm = oxml_fromstring('<root><elm1 attr="one"/></root>')
         self.basepart._element = elm
@@ -76,7 +76,7 @@ class Test_BasePart(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test__load_sets__element_for_xml_part(self):
-        """_BasePart._load() sets _element for xml part"""
+        """BasePart._load() sets _element for xml part"""
         # setup ------------------------
         pkgpart = Mock(name='pptx.packaging.Part')
         pkgpart.partname = '/ppt/presentation.xml'
@@ -93,7 +93,7 @@ class Test_BasePart(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_observable_on_partname(self):
-        """_BasePart observable on partname value change"""
+        """BasePart observable on partname value change"""
         # setup ------------------------
         old_partname = '/ppt/slides/slide1.xml'
         new_partname = '/ppt/slides/slide2.xml'
@@ -107,7 +107,7 @@ class Test_BasePart(TestCase):
                                            new_partname)
 
     def test_partname_setter(self):
-        """_BasePart.partname setter stores passed value"""
+        """BasePart.partname setter stores passed value"""
         # setup ------------------------
         partname = '/ppt/presentation.xml'
         # exercise ----------------

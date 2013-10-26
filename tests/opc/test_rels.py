@@ -9,7 +9,7 @@ from mock import Mock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import _Relationship, _RelationshipCollection
-from pptx.parts.part import _BasePart
+from pptx.parts.part import BasePart
 
 from ..unitutil import TestCase
 
@@ -24,7 +24,7 @@ class PartBuilder(object):
         return self
 
     def build(self):
-        p = _BasePart()
+        p = BasePart()
         p.partname = self.partname
         return p
 
@@ -134,8 +134,8 @@ class Test_RelationshipCollection(TestCase):
     def test__additem_raises_on_dup_rId(self):
         """_RelationshipCollection._additem raises on duplicate rId"""
         # setup ------------------------
-        part1 = _BasePart()
-        part2 = _BasePart()
+        part1 = BasePart()
+        part2 = BasePart()
         rel1 = _Relationship('rId9', None, part1)
         rel2 = _Relationship('rId9', None, part2)
         self.relationships._additem(rel1)
@@ -146,9 +146,9 @@ class Test_RelationshipCollection(TestCase):
     def test__additem_maintains_rId_ordering(self):
         """_RelationshipCollection maintains rId ordering on additem()"""
         # setup ------------------------
-        part1 = _BasePart()
-        part2 = _BasePart()
-        part3 = _BasePart()
+        part1 = BasePart()
+        part2 = BasePart()
+        part3 = BasePart()
         rel1 = _Relationship('rId1', None, part1)
         rel2 = _Relationship('rId2', None, part2)
         rel3 = _Relationship('rId3', None, part3)
@@ -225,10 +225,10 @@ class Test_RelationshipCollection(TestCase):
     def test__next_rId_fills_gap(self):
         """_RelationshipCollection._next_rId fills gap in rId sequence"""
         # setup ------------------------
-        part1 = _BasePart()
-        part2 = _BasePart()
-        part3 = _BasePart()
-        part4 = _BasePart()
+        part1 = BasePart()
+        part2 = BasePart()
+        part3 = BasePart()
+        part4 = BasePart()
         rel1 = _Relationship('rId1', None, part1)
         rel2 = _Relationship('rId2', None, part2)
         rel3 = _Relationship('rId3', None, part3)

@@ -10,10 +10,10 @@ from datetime import datetime
 
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.oxml import CT_CoreProperties
-from pptx.parts.part import _BasePart
+from pptx.parts.part import BasePart
 
 
-class _CoreProperties(_BasePart):
+class _CoreProperties(BasePart):
     """
     Corresponds to part named ``/docProps/core.xml``, containing the core
     document properties for this document package.

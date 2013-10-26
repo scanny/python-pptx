@@ -15,12 +15,12 @@ except ImportError:
 
 from StringIO import StringIO
 
-from pptx.parts.part import _BasePart, _PartCollection
+from pptx.parts.part import BasePart, _PartCollection
 from pptx.spec import default_content_types
 from pptx.util import Px
 
 
-class _Image(_BasePart):
+class _Image(BasePart):
     """
     Return new Image part instance. *file* may be |None|, a path to a file (a
     string), or a file-like object. If *file* is |None|, no image is loaded

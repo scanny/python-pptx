@@ -15,7 +15,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import _Relationship, _RelationshipCollection
 from pptx.oxml import oxml_fromstring, oxml_parse
 from pptx.parts.coreprops import _CoreProperties
-from pptx.parts.part import _BasePart
+from pptx.parts.part import BasePart
 from pptx.parts.slides import _Slide, _SlideLayout, _SlideMaster
 from pptx.presentation import _Package, _Part, Presentation
 from pptx.spec import namespaces, qtag
@@ -39,7 +39,7 @@ class PartBuilder(object):
         return self
 
     def build(self):
-        p = _BasePart()
+        p = BasePart()
         p.partname = self.partname
         return p
 

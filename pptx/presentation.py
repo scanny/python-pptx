@@ -18,7 +18,7 @@ from pptx.opc.rels import _Relationship, _RelationshipCollection
 from pptx.oxml import _child, _Element, qn
 from pptx.parts.coreprops import _CoreProperties
 from pptx.parts.image import _Image, _ImageCollection
-from pptx.parts.part import _BasePart, _PartCollection
+from pptx.parts.part import BasePart, _PartCollection
 from pptx.parts.slides import (
     _Slide, _SlideCollection, _SlideLayout, _SlideMaster
 )
@@ -194,7 +194,7 @@ class _Package(object):
 class _Part(object):
     """
     Part factory. Returns an instance of the appropriate custom part type for
-    part types that have them, _BasePart otherwise.
+    part types that have them, BasePart otherwise.
     """
     def __new__(cls, reltype, content_type):
         """
@@ -223,10 +223,10 @@ class _Part(object):
             return _SlideMaster()
         elif reltype == RT.IMAGE:
             return _Image()
-        return _BasePart()
+        return BasePart()
 
 
-class Presentation(_BasePart):
+class Presentation(BasePart):
     """
     Top level class in object model, represents the contents of the /ppt
     directory of a .pptx file.

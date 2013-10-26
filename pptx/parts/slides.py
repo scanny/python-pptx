@@ -8,11 +8,11 @@ from __future__ import absolute_import
 
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import _Element, _SubElement
-from pptx.parts.part import _BasePart, _PartCollection
+from pptx.parts.part import BasePart, _PartCollection
 from pptx.shapes.shapetree import _ShapeCollection
 
 
-class _BaseSlide(_BasePart):
+class _BaseSlide(BasePart):
     """
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.
