@@ -55,7 +55,7 @@ class Presentation(object):
     @property
     def slides(self):
         """
-        |_SlideCollection| object containing the slides in this
+        |SlideCollection| object containing the slides in this
         presentation.
         """
         return self._presentation.slides

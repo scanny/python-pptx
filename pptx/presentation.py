@@ -20,7 +20,7 @@ from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
 from pptx.parts.part import BasePart, PartCollection
 from pptx.parts.slides import (
-    _Slide, _SlideCollection, _SlideLayout, _SlideMaster
+    _Slide, SlideCollection, _SlideLayout, _SlideMaster
 )
 
 
@@ -234,7 +234,7 @@ class Presentation(BasePart):
     def __init__(self):
         super(Presentation, self).__init__()
         self._slidemasters = PartCollection()
-        self._slides = _SlideCollection(self)
+        self._slides = SlideCollection(self)
 
     @property
     def slidemasters(self):
@@ -246,7 +246,7 @@ class Presentation(BasePart):
     @property
     def slides(self):
         """
-        |_SlideCollection| object containing the slides in this presentation.
+        |SlideCollection| object containing the slides in this presentation.
         """
         return self._slides
 

@@ -11,7 +11,7 @@ from pptx.opc import packaging
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_parse
 from pptx.parts.slides import (
-    _BaseSlide, _Slide, _SlideCollection, _SlideLayout, _SlideMaster
+    _BaseSlide, _Slide, SlideCollection, _SlideLayout, _SlideMaster
 )
 from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import ShapeCollection
@@ -179,14 +179,14 @@ class Test_Slide(TestCase):
         self.assertEqualLineByLine(expected_xml, sld)
 
 
-class Test_SlideCollection(TestCase):
-    """Test _SlideCollection"""
+class TestSlideCollection(TestCase):
+    """Test SlideCollection"""
     def setUp(self):
         prs = Presentation()
-        self.slides = _SlideCollection(prs)
+        self.slides = SlideCollection(prs)
 
     def test_add_slide_returns_slide(self):
-        """_SlideCollection.add_slide() returns instance of _Slide"""
+        """SlideCollection.add_slide() returns instance of _Slide"""
         # exercise ---------------------
         retval = self.slides.add_slide(None)
         # verify -----------------------
@@ -194,7 +194,7 @@ class Test_SlideCollection(TestCase):
 
     def test_add_slide_sets_slidelayout(self):
         """
-        _SlideCollection.add_slide() sets _Slide.slidelayout
+        SlideCollection.add_slide() sets _Slide.slidelayout
 
         Kind of a throw-away test, but was helpful for initial debugging.
         """
@@ -211,7 +211,7 @@ class Test_SlideCollection(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_add_slide_adds_slide_layout_relationship(self):
-        """_SlideCollection.add_slide() adds relationship prs->slide"""
+        """SlideCollection.add_slide() adds relationship prs->slide"""
         # setup ------------------------
         prs = Presentation()
         slides = prs.slides
@@ -234,7 +234,7 @@ class Test_SlideCollection(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_add_slide_sets_partname(self):
-        """_SlideCollection.add_slide() sets partname of new slide"""
+        """SlideCollection.add_slide() sets partname of new slide"""
         # setup ------------------------
         prs = Presentation()
         slides = prs.slides

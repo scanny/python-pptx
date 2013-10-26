@@ -120,13 +120,13 @@ class _Slide(_BaseSlide):
         return sld
 
 
-class _SlideCollection(PartCollection):
+class SlideCollection(PartCollection):
     """
     Immutable sequence of slides belonging to an instance of |Presentation|,
     with methods for manipulating the slides in the presentation.
     """
     def __init__(self, presentation):
-        super(_SlideCollection, self).__init__()
+        super(SlideCollection, self).__init__()
         self._presentation = presentation
 
     def add_slide(self, slidelayout):
