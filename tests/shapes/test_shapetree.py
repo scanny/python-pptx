@@ -72,8 +72,8 @@ class Test_ShapeCollection(TestCase):
     @patch('pptx.shapes.shapetree._Shape')
     @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
-    @patch('pptx.shapes.shapetree._AutoShapeType')
-    def test_add_shape_collaboration(self, _AutoShapeType, _next_shape_id,
+    @patch('pptx.shapes.shapetree.AutoShapeType')
+    def test_add_shape_collaboration(self, AutoShapeType, _next_shape_id,
                                      _Shape, CT_Shape):
         """_ShapeCollection.add_shape() calls the right collaborators"""
         # constant values -------------
@@ -86,7 +86,7 @@ class Test_ShapeCollection(TestCase):
         autoshape_type = Mock(name='autoshape_type')
         autoshape_type.basename = basename
         autoshape_type.prst = prst
-        _AutoShapeType.return_value = autoshape_type
+        AutoShapeType.return_value = autoshape_type
         _next_shape_id.return_value = id_
         sp = Mock(name='sp')
         CT_Shape.new_autoshape_sp.return_value = sp
@@ -100,7 +100,7 @@ class Test_ShapeCollection(TestCase):
         # exercise ---------------------
         retval = shapes.add_shape(autoshape_type_id, left, top, width, height)
         # verify -----------------------
-        _AutoShapeType.assert_called_once_with(autoshape_type_id)
+        AutoShapeType.assert_called_once_with(autoshape_type_id)
         CT_Shape.new_autoshape_sp.assert_called_once_with(
             id_, name, prst, left, top, width, height)
         _Shape.assert_called_once_with(sp)

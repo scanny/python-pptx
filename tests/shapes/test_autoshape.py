@@ -9,7 +9,7 @@ from mock import Mock, patch
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.shapes.autoshape import (
-    _Adjustment, _AdjustmentCollection, _AutoShapeType, _Shape
+    _Adjustment, _AdjustmentCollection, AutoShapeType, _Shape
 )
 from pptx.oxml import oxml_fromstring
 
@@ -201,23 +201,23 @@ class Test_AdjustmentCollection(TestCase):
         assert_that(_prstGeom.rewrite_guides.call_count, is_(1))
 
 
-class Test_AutoShapeType(TestCase):
-    """Test _AutoShapeType"""
+class TestAutoShapeType(TestCase):
+    """Test AutoShapeType"""
     def test_construction_return_values(self):
-        """_AutoShapeType() returns instance with correct property values"""
+        """AutoShapeType() returns instance with correct property values"""
         # setup ------------------------
         id_ = MAST.ROUNDED_RECTANGLE
         prst = 'roundRect'
         basename = 'Rounded Rectangle'
         # exercise ---------------------
-        autoshape_type = _AutoShapeType(id_)
+        autoshape_type = AutoShapeType(id_)
         # verify -----------------------
         assert_that(autoshape_type.autoshape_type_id, is_(equal_to(id_)))
         assert_that(autoshape_type.prst, is_(equal_to(prst)))
         assert_that(autoshape_type.basename, is_(equal_to(basename)))
 
     def test_default_adjustment_values_return_value(self):
-        """_AutoShapeType.default_adjustment_values() return val correct"""
+        """AutoShapeType.default_adjustment_values() return val correct"""
         # setup ------------------------
         cases = (
             ('rect', ()),
@@ -228,44 +228,44 @@ class Test_AutoShapeType(TestCase):
         )
         # verify -----------------------
         for prst, expected_vals in cases:
-            def_adj_vals = _AutoShapeType.default_adjustment_values(prst)
+            def_adj_vals = AutoShapeType.default_adjustment_values(prst)
             assert_that(def_adj_vals, is_(equal_to(expected_vals)))
 
     def test__lookup_id_by_prst_return_value(self):
-        """_AutoShapeType._lookup_id_by_prst() return value is correct"""
+        """AutoShapeType._lookup_id_by_prst() return value is correct"""
         # setup ------------------------
         autoshape_type_id = MAST.ROUNDED_RECTANGLE
         prst = 'roundRect'
         # exercise ---------------------
-        retval = _AutoShapeType._lookup_id_by_prst(prst)
+        retval = AutoShapeType._lookup_id_by_prst(prst)
         # verify -----------------------
         assert_that(retval, is_(equal_to(autoshape_type_id)))
 
     def test__lookup_id_raises_on_bad_prst(self):
-        """_AutoShapeType._lookup_id_by_prst() raises on bad prst"""
+        """AutoShapeType._lookup_id_by_prst() raises on bad prst"""
         # setup ------------------------
         prst = 'badPrst'
         # verify -----------------------
         with self.assertRaises(KeyError):
-            _AutoShapeType._lookup_id_by_prst(prst)
+            AutoShapeType._lookup_id_by_prst(prst)
 
     def test_second_construction_returns_cached_instance(self):
-        """_AutoShapeType() returns cached instance on duplicate call"""
+        """AutoShapeType() returns cached instance on duplicate call"""
         # setup ------------------------
         id_ = MAST.ROUNDED_RECTANGLE
-        ast1 = _AutoShapeType(id_)
+        ast1 = AutoShapeType(id_)
         # exercise ---------------------
-        ast2 = _AutoShapeType(id_)
+        ast2 = AutoShapeType(id_)
         # verify -----------------------
         assert_that(ast2, is_(equal_to(ast1)))
 
     def test_construction_raises_on_bad_autoshape_type_id(self):
-        """_AutoShapeType() raises on bad auto shape type id"""
+        """AutoShapeType() raises on bad auto shape type id"""
         # setup ------------------------
         autoshape_type_id = 9999
         # verify -----------------------
         with self.assertRaises(KeyError):
-            _AutoShapeType(autoshape_type_id)
+            AutoShapeType(autoshape_type_id)
 
 
 class Test_Shape(TestCase):

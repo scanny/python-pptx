@@ -112,7 +112,7 @@ class _AdjustmentCollection(object):
         """
         if prstGeom is None:
             return []
-        davs = _AutoShapeType.default_adjustment_values(prstGeom.prst)
+        davs = AutoShapeType.default_adjustment_values(prstGeom.prst)
         adjustments = [_Adjustment(name, def_val) for name, def_val in davs]
         self._update_adjustments_with_actuals(adjustments, prstGeom.gd)
         return adjustments
@@ -156,9 +156,9 @@ class _AdjustmentCollection(object):
         return len(self._adjustments_)
 
 
-class _AutoShapeType(object):
+class AutoShapeType(object):
     """
-    Return an instance of |_AutoShapeType| containing metadata for an auto
+    Return an instance of |AutoShapeType| containing metadata for an auto
     shape of type identified by *autoshape_type_id*. Instances are cached, so
     no more than one instance for a particular auto shape type is in memory.
 
@@ -194,7 +194,7 @@ class _AutoShapeType(object):
         """
         # if there's not a matching instance in the cache, create one
         if autoshape_type_id not in cls._instances:
-            inst = super(_AutoShapeType, cls).__new__(cls)
+            inst = super(AutoShapeType, cls).__new__(cls)
             cls._instances[autoshape_type_id] = inst
         # return the instance; note that __init__() gets called either way
         return cls._instances[autoshape_type_id]
@@ -235,7 +235,7 @@ class _AutoShapeType(object):
         value defaults for the auto shape type identified by *prst*.
         """
         try:
-            autoshape_type_id = _AutoShapeType._lookup_id_by_prst(prst)
+            autoshape_type_id = AutoShapeType._lookup_id_by_prst(prst)
         except KeyError:
             return ()
         return autoshape_types[autoshape_type_id]['avLst']
@@ -297,7 +297,7 @@ class _Shape(_BaseShape):
             msg = "shape is not an auto shape"
             raise ValueError(msg)
         prst = sp.prst
-        auto_shape_type_id = _AutoShapeType._lookup_id_by_prst(prst)
+        auto_shape_type_id = AutoShapeType._lookup_id_by_prst(prst)
         return auto_shape_type_id
 
     @property

@@ -5,7 +5,7 @@ The shape tree, the structure that holds a slide's shapes.
 """
 
 from pptx.oxml import qn, CT_GraphicalObjectFrame, CT_Picture, CT_Shape
-from pptx.shapes.autoshape import _AutoShapeType, _Shape
+from pptx.shapes.autoshape import AutoShapeType, _Shape
 from pptx.shapes.picture import _Picture
 from pptx.shapes.placeholder import _Placeholder
 from pptx.shapes.shape import _BaseShape
@@ -110,7 +110,7 @@ class _ShapeCollection(_BaseShape, Collection):
         Add auto shape of type specified by *autoshape_type_id* (like
         ``MSO.SHAPE_RECTANGLE``) and of specified size at specified position.
         """
-        autoshape_type = _AutoShapeType(autoshape_type_id)
+        autoshape_type = AutoShapeType(autoshape_type_id)
         id_ = self._next_shape_id
         name = '%s %d' % (autoshape_type.basename, id_-1)
 
