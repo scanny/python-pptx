@@ -128,7 +128,7 @@ Contributor Guide
 .. toctree::
    :maxdepth: 1
 
-   developer/index
+   dev/index
 
 
 
