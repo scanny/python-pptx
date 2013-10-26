@@ -254,7 +254,7 @@ class Test_SlideLayout(TestCase):
     def setUp(self):
         self.slidelayout = _SlideLayout()
 
-    def __loaded_slidelayout(self, prs_slidemaster=None):
+    def _loaded_slidelayout(self, prs_slidemaster=None):
         """
         Return _SlideLayout instance loaded using mocks. *prs_slidemaster* is
         an already-loaded model-side _SlideMaster instance (or mock, as
@@ -291,7 +291,7 @@ class Test_SlideLayout(TestCase):
         # setup ------------------------
         prs_slidemaster = Mock(spec=_SlideMaster)
         # exercise ---------------------
-        loaded_slidelayout = self.__loaded_slidelayout(prs_slidemaster)
+        loaded_slidelayout = self._loaded_slidelayout(prs_slidemaster)
         # verify -----------------------
         expected = prs_slidemaster
         actual = loaded_slidelayout.slidemaster
