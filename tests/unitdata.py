@@ -3,7 +3,7 @@
 """Test data for unit tests"""
 
 from pptx.oxml import nsdecls, oxml_fromstring
-from pptx.shapes.shapetree import Picture, _Shape, _ShapeCollection
+from pptx.shapes.shapetree import Picture, _Shape, ShapeCollection
 from pptx.shapes.table import _Cell
 from pptx.text import _Paragraph
 
@@ -523,7 +523,7 @@ class _TestShapes(object):
 
     @property
     def empty_shape_collection(self):
-        return _ShapeCollection(test_shape_elements.empty_spTree)
+        return ShapeCollection(test_shape_elements.empty_spTree)
 
     @property
     def picture(self):

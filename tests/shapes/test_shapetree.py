@@ -12,7 +12,7 @@ from mock import Mock, patch, PropertyMock
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.oxml import _SubElement, nsdecls, oxml_parse
 from pptx.parts.slides import _SlideLayout
-from pptx.shapes.shapetree import Placeholder, _ShapeCollection
+from pptx.shapes.shapetree import Placeholder, ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
@@ -42,40 +42,40 @@ def _sldLayout1():
 def _sldLayout1_shapes():
     sldLayout = _sldLayout1()
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-    shapes = _ShapeCollection(spTree)
+    shapes = ShapeCollection(spTree)
     return shapes
 
 
-class Test_ShapeCollection(TestCase):
-    """Test _ShapeCollection"""
+class TestShapeCollection(TestCase):
+    """Test ShapeCollection"""
     def setUp(self):
         path = absjoin(test_file_dir, 'slide1.xml')
         sld = oxml_parse(path).getroot()
         spTree = sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-        self.shapes = _ShapeCollection(spTree)
+        self.shapes = ShapeCollection(spTree)
 
     def test_construction_size(self):
-        """_ShapeCollection is expected size after construction"""
+        """ShapeCollection is expected size after construction"""
         # verify -----------------------
         self.assertLength(self.shapes, 9)
 
     def test_constructor_raises_on_contentPart_shape(self):
-        """_ShapeCollection() raises on contentPart shape"""
+        """ShapeCollection() raises on contentPart shape"""
         # setup ------------------------
         spTree = test_shape_elements.empty_spTree
         _SubElement(spTree, 'p:contentPart')
         # verify -----------------------
         with self.assertRaises(ValueError):
-            _ShapeCollection(spTree)
+            ShapeCollection(spTree)
 
     @patch('pptx.shapes.shapetree.CT_Shape')
     @patch('pptx.shapes.shapetree._Shape')
-    @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
+    @patch('pptx.shapes.shapetree.ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     @patch('pptx.shapes.shapetree.AutoShapeType')
     def test_add_shape_collaboration(self, AutoShapeType, _next_shape_id,
                                      _Shape, CT_Shape):
-        """_ShapeCollection.add_shape() calls the right collaborators"""
+        """ShapeCollection.add_shape() calls the right collaborators"""
         # constant values -------------
         basename = 'Rounded Rectangle'
         prst = 'roundRect'
@@ -110,11 +110,11 @@ class Test_ShapeCollection(TestCase):
 
     @patch('pptx.shapes.shapetree.Picture')
     @patch('pptx.shapes.shapetree.CT_Picture')
-    @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
+    @patch('pptx.shapes.shapetree.ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     def test_add_picture_collaboration(self, next_shape_id, CT_Picture,
                                        Picture):
-        """_ShapeCollection.add_picture() calls the right collaborators"""
+        """ShapeCollection.add_picture() calls the right collaborators"""
         # constant values -------------
         file = test_image_path
         left, top, width, height = 1, 2, 3, 4
@@ -129,7 +129,7 @@ class Test_ShapeCollection(TestCase):
         slide._add_image.return_value = image, rel
         _spTree = Mock(name='_spTree')
         _shapes = Mock(name='_shapes')
-        shapes = _ShapeCollection(test_shape_elements.empty_spTree, slide)
+        shapes = ShapeCollection(test_shape_elements.empty_spTree, slide)
         shapes._spTree = _spTree
         shapes._shapes = _shapes
         pic = Mock(name='pic')
@@ -150,11 +150,11 @@ class Test_ShapeCollection(TestCase):
 
     @patch('pptx.shapes.shapetree._Table')
     @patch('pptx.shapes.shapetree.CT_GraphicalObjectFrame')
-    @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
+    @patch('pptx.shapes.shapetree.ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     def test_add_table_collaboration(
             self, _next_shape_id, CT_GraphicalObjectFrame, _Table):
-        """_ShapeCollection.add_table() calls the right collaborators"""
+        """ShapeCollection.add_table() calls the right collaborators"""
         # constant values -------------
         id_, name = 9, 'Table 8'
         rows, cols = 2, 3
@@ -183,11 +183,11 @@ class Test_ShapeCollection(TestCase):
 
     @patch('pptx.shapes.shapetree.CT_Shape')
     @patch('pptx.shapes.shapetree._Shape')
-    @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
+    @patch('pptx.shapes.shapetree.ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     def test_add_textbox_collaboration(self, _next_shape_id, _Shape,
                                        CT_Shape):
-        """_ShapeCollection.add_textbox() calls the right collaborators"""
+        """ShapeCollection.add_textbox() calls the right collaborators"""
         # constant values -------------
         id_, name = 9, 'TextBox 8'
         left, top, width, height = 111, 222, 333, 444
@@ -211,7 +211,7 @@ class Test_ShapeCollection(TestCase):
         assert_that(retval, is_(equal_to(shape)))
 
     def test_title_value(self):
-        """_ShapeCollection.title value is ref to correct shape"""
+        """ShapeCollection.title value is ref to correct shape"""
         # exercise ---------------------
         title_shape = self.shapes.title
         # verify -----------------------
@@ -221,14 +221,14 @@ class Test_ShapeCollection(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_title_is_none_on_no_title_placeholder(self):
-        """_ShapeCollection.title value is None when no title placeholder"""
+        """ShapeCollection.title value is None when no title placeholder"""
         # setup ------------------------
         shapes = test_shapes.empty_shape_collection
         # verify -----------------------
         assert_that(shapes.title, is_(None))
 
     def test_placeholders_values(self):
-        """_ShapeCollection.placeholders values are correct and sorted"""
+        """ShapeCollection.placeholders values are correct and sorted"""
         # setup ------------------------
         expected_values = (
             ('Title 1',                    PH_TYPE_CTRTITLE,  0),
@@ -250,7 +250,7 @@ class Test_ShapeCollection(TestCase):
             self.assertEqual(expected, actual, msg)
 
     def test__clone_layout_placeholders_shapes(self):
-        """_ShapeCollection._clone_layout_placeholders clones shapes"""
+        """ShapeCollection._clone_layout_placeholders clones shapes"""
         # setup ------------------------
         expected_values = (
             [2, 'Title 1',             PH_TYPE_CTRTITLE,  0],
@@ -277,7 +277,7 @@ class Test_ShapeCollection(TestCase):
             self.assertEqual(expected, actual, msg)
 
     def test__clone_layout_placeholder_values(self):
-        """_ShapeCollection._clone_layout_placeholder() values correct"""
+        """ShapeCollection._clone_layout_placeholder() values correct"""
         # setup ------------------------
         layout_shapes = _sldLayout1_shapes()
         layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
@@ -301,7 +301,7 @@ class Test_ShapeCollection(TestCase):
             self.assertEqual(expected, actual, msg)
 
     def test__clone_layout_placeholder_xml(self):
-        """_ShapeCollection._clone_layout_placeholder() emits correct XML"""
+        """ShapeCollection._clone_layout_placeholder() emits correct XML"""
         # setup ------------------------
         layout_shapes = _sldLayout1_shapes()
         layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
@@ -337,7 +337,7 @@ class Test_ShapeCollection(TestCase):
 
     def test__next_ph_name_return_value(self):
         """
-        _ShapeCollection._next_ph_name() returns correct value
+        ShapeCollection._next_ph_name() returns correct value
 
         * basename + 'Placeholder' + num, e.g. 'Table Placeholder 8'
         * numpart of name defaults to id-1, but increments until unique
@@ -362,7 +362,7 @@ class Test_ShapeCollection(TestCase):
             self.assertEqual(expected, actual, msg)
 
     def test__next_shape_id_value(self):
-        """_ShapeCollection._next_shape_id value is correct"""
+        """ShapeCollection._next_shape_id value is correct"""
         # setup ------------------------
         shapes = _sldLayout1_shapes()
         # exercise ---------------------

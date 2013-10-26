@@ -14,7 +14,7 @@ from pptx.parts.slides import (
     _BaseSlide, _Slide, _SlideCollection, _SlideLayout, _SlideMaster
 )
 from pptx.presentation import Package, Presentation
-from pptx.shapes.shapetree import _ShapeCollection
+from pptx.shapes.shapetree import ShapeCollection
 from pptx.spec import namespaces
 
 from ..unitutil import absjoin, TestCase, test_file_dir
@@ -35,7 +35,7 @@ def _sldLayout1():
 def _sldLayout1_shapes():
     sldLayout = _sldLayout1()
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-    shapes = _ShapeCollection(spTree)
+    shapes = ShapeCollection(spTree)
     return shapes
 
 

@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import _Element, _SubElement
 from pptx.parts.part import BasePart, PartCollection
-from pptx.shapes.shapetree import _ShapeCollection
+from pptx.shapes.shapetree import ShapeCollection
 
 
 class _BaseSlide(BasePart):
@@ -54,7 +54,7 @@ class _BaseSlide(BasePart):
         # call parent to do generic aspects of load
         super(_BaseSlide, self)._load(pkgpart, part_dict)
         # unmarshal shapes
-        self._shapes = _ShapeCollection(self._element.cSld.spTree, self)
+        self._shapes = ShapeCollection(self._element.cSld.spTree, self)
         # return self-reference to allow generative calling
         return self
 
@@ -75,7 +75,7 @@ class _Slide(_BaseSlide):
         super(_Slide, self).__init__(CT.PML_SLIDE)
         self._slidelayout = slidelayout
         self._element = self._minimal_element
-        self._shapes = _ShapeCollection(self._element.cSld.spTree, self)
+        self._shapes = ShapeCollection(self._element.cSld.spTree, self)
         # if slidelayout, this is a slide being added, not one being loaded
         if slidelayout:
             self._shapes._clone_layout_placeholders(slidelayout)

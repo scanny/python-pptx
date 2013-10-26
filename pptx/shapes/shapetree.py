@@ -22,7 +22,7 @@ _nsmap = namespaces('a', 'r', 'p')
 # Shapes
 # ============================================================================
 
-class _ShapeCollection(BaseShape, Collection):
+class ShapeCollection(BaseShape, Collection):
     """
     Sequence of shapes. Corresponds to CT_GroupShape in pml schema. Note that
     while spTree in a slide is a group shape, the group shape is recursive in
@@ -39,7 +39,7 @@ class _ShapeCollection(BaseShape, Collection):
     _EXTLST = qn('p:extLst')
 
     def __init__(self, spTree, slide=None):
-        super(_ShapeCollection, self).__init__(spTree)
+        super(ShapeCollection, self).__init__(spTree)
         self._spTree = spTree
         self._slide = slide
         self._shapes = self._values
@@ -52,7 +52,7 @@ class _ShapeCollection(BaseShape, Collection):
             elif elm.tag == self._PIC:
                 shape = Picture(elm)
             elif elm.tag == self._GRPSP:
-                shape = _ShapeCollection(elm)
+                shape = ShapeCollection(elm)
             elif elm.tag == self._GRAPHICFRAME:
                 if elm.has_table:
                     shape = _Table(elm)

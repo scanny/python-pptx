@@ -15,7 +15,7 @@ from pptx.util import to_unicode
 class _Table(BaseShape):
     """
     A table shape. Not intended to be constructed directly, use
-    :meth:`_ShapeCollection.add_table` to add a table to a slide.
+    :meth:`ShapeCollection.add_table` to add a table to a slide.
     """
     def __init__(self, graphicFrame):
         super(_Table, self).__init__(graphicFrame)

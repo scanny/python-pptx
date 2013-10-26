@@ -9,7 +9,7 @@ from mock import Mock
 
 from pptx.oxml import oxml_parse
 from pptx.shapes.shape import BaseShape
-from pptx.shapes.shapetree import _ShapeCollection
+from pptx.shapes.shapetree import ShapeCollection
 from pptx.spec import namespaces
 
 from ..unitutil import absjoin, TestCase, test_file_dir
@@ -33,7 +33,7 @@ class TestBaseShape(TestCase):
         """BaseShape.has_textframe value correct"""
         # setup ------------------------
         spTree = self.sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-        shapes = _ShapeCollection(spTree)
+        shapes = ShapeCollection(spTree)
         indexes = []
         # exercise ---------------------
         for idx, shape in enumerate(shapes):

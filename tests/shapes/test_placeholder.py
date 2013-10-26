@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 from pptx.oxml import oxml_parse
 from pptx.shapes.placeholder import Placeholder
-from pptx.shapes.shapetree import _ShapeCollection
+from pptx.shapes.shapetree import ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM,
@@ -28,7 +28,7 @@ def _sldLayout1():
 def _sldLayout1_shapes():
     sldLayout = _sldLayout1()
     spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-    shapes = _ShapeCollection(spTree)
+    shapes = ShapeCollection(spTree)
     return shapes
 
 
