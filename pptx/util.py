@@ -100,32 +100,32 @@ class Collection(object):
     """
     def __init__(self):
         super(Collection, self).__init__()
-        self.__values = []
+        self._values_ = []
 
     @property
     def _values(self):
         """Return read-only reference to collection values (list)."""
-        return self.__values
+        return self._values_
 
     def __contains__(self, item):  # __iter__ would do this job by itself
         """Supports 'in' operator (e.g. 'x in collection')."""
-        return (item in self.__values)
+        return (item in self._values_)
 
     def __getitem__(self, key):
         """Provides indexed access, (e.g. 'collection[0]')."""
-        return self.__values.__getitem__(key)
+        return self._values_.__getitem__(key)
 
     def __iter__(self):
         """Supports iteration (e.g. 'for x in collection: pass')."""
-        return self.__values.__iter__()
+        return self._values_.__iter__()
 
     def __len__(self):
         """Supports len() function (e.g. 'len(collection) == 1')."""
-        return len(self.__values)
+        return len(self._values_)
 
     def index(self, item):
         """Supports index method (e.g. '[1, 2, 3].index(2) == 1')."""
-        return self.__values.index(item)
+        return self._values_.index(item)
 
 
 class Partname(object):
@@ -133,11 +133,11 @@ class Partname(object):
     Provides access to partname components such as the baseURI and the part
     index.
     """
-    __filename_re = re.compile('([a-zA-Z]+)([1-9][0-9]*)?')
+    _filename_re = re.compile('([a-zA-Z]+)([1-9][0-9]*)?')
 
     def __init__(self, partname):
         super(Partname, self).__init__()
-        self.__partname = partname
+        self._partname = partname
 
     @property
     def baseURI(self):
@@ -145,7 +145,7 @@ class Partname(object):
         The base URI of partname, e.g. ``'/ppt/slides'`` for
         ``'/ppt/slides/slide1.xml'``.
         """
-        return os.path.split(self.__partname)[0]
+        return os.path.split(self._partname)[0]
 
     @property
     def filename(self):
@@ -153,7 +153,7 @@ class Partname(object):
         The "filename" portion of partname, e.g. ``'slide1.xml'`` for
         ``'/ppt/slides/slide1.xml'``.
         """
-        return os.path.split(self.__partname)[1]
+        return os.path.split(self._partname)[1]
 
     @property
     def ext(self):
@@ -162,7 +162,7 @@ class Partname(object):
         ``'/ppt/slides/slide1.xml'``. Note that period is included, consistent
         with behavior of :meth:`os.path.ext`.
         """
-        return os.path.splitext(self.__partname)[1]
+        return os.path.splitext(self._partname)[1]
 
     @property
     def partname(self):
@@ -170,7 +170,7 @@ class Partname(object):
         The complete partname, e.g. ``'/ppt/slides/slide1.xml'`` for
         ``'/ppt/slides/slide1.xml'``.
         """
-        return self.__partname
+        return self._partname
 
     @property
     def basename(self):
@@ -179,7 +179,7 @@ class Partname(object):
         ``'/ppt/slides/slide1.xml'``.
         """
         name = os.path.splitext(self.filename)[0]  # filename with ext removed
-        match = self.__filename_re.match(name)
+        match = self._filename_re.match(name)
         return match.group(1)
 
     @property
@@ -190,7 +190,7 @@ class Partname(object):
         |None| for ``'/ppt/presentation.xml'``.
         """
         name = os.path.splitext(self.filename)[0]  # filename with ext removed
-        match = self.__filename_re.match(name)
+        match = self._filename_re.match(name)
         return int(match.group(2)) if match.group(2) else None
 
 
