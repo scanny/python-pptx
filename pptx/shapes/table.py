@@ -311,9 +311,9 @@ class _Row(object):
 
     def __init__(self, tr, table):
         super(_Row, self).__init__()
-        self.__tr = tr
-        self.__table = table
-        self.__cells = _CellCollection(tr)
+        self._tr = tr
+        self._table = table
+        self._cells = _CellCollection(tr)
 
     @property
     def cells(self):
@@ -321,13 +321,13 @@ class _Row(object):
         Read-only reference to collection of cells in row. An individual cell
         is referenced using list notation, e.g. ``cell = row.cells[0]``.
         """
-        return self.__cells
+        return self._cells
 
     def _get_height(self):
         """
         Return height of row in EMU
         """
-        return int(self.__tr.get('h'))
+        return int(self._tr.get('h'))
 
     def _set_height(self, height):
         """
@@ -336,8 +336,8 @@ class _Row(object):
         if not isinstance(height, int) or height < 0:
             msg = "row height must be positive integer"
             raise ValueError(msg)
-        self.__tr.set('h', str(height))
-        self.__table._notify_height_changed()
+        self._tr.set('h', str(height))
+        self._table._notify_height_changed()
 
     #: Read/write integer height of this row in English Metric Units (EMU).
     height = property(_get_height, _set_height)
