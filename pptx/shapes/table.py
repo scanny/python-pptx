@@ -281,14 +281,14 @@ class _Column(object):
 
     def __init__(self, gridCol, table):
         super(_Column, self).__init__()
-        self.__gridCol = gridCol
-        self.__table = table
+        self._gridCol = gridCol
+        self._table = table
 
     def _get_width(self):
         """
         Return width of column in EMU
         """
-        return int(self.__gridCol.get('w'))
+        return int(self._gridCol.get('w'))
 
     def _set_width(self, width):
         """
@@ -297,8 +297,8 @@ class _Column(object):
         if not isinstance(width, int) or width < 0:
             msg = "column width must be positive integer"
             raise ValueError(msg)
-        self.__gridCol.set('w', str(width))
-        self.__table._notify_width_changed()
+        self._gridCol.set('w', str(width))
+        self._table._notify_width_changed()
 
     #: Read-write integer width of this column in English Metric Units (EMU).
     width = property(_get_width, _set_width)
