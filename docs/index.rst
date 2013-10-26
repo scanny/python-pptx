@@ -1,6 +1,6 @@
-#######################################
-Welcome to python-pptx's documentation!
-#######################################
+###########
+python-pptx
+###########
 
 :mod:`python-pptx` is a pure-Python library for reading and writing PowerPoint
 (``.pptx``) files.
