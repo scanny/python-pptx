@@ -24,3 +24,16 @@ and running ``setup.py``::
 Both ``pip`` and ``easy_install`` will take care of satisfying those
 dependencies for you, but if you use this last method you will need to install
 those yourself.
+
+
+Dependencies
+------------
+
+* Python 2.6 or 2.7
+* lxml
+* Python Imaging Library (PIL)
+
+Currently |pp| requires Python 2.6 or 2.7. Support for earlier versions is not
+planned as it complicates future support for Python 3.x, but if you have a
+compelling need please reach out via the mailing list. Support for Python 3.x
+is underway and should be out shortly.

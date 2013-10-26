@@ -1,6 +1,5 @@
-###########
 python-pptx
-###########
+===========
 
 Release v\ |version| (:doc:`Installation <user/install>`)
 
@@ -9,17 +8,16 @@ Release v\ |version| (:doc:`Installation <user/install>`)
 
 
 Checking it out
-===============
+---------------
 
-Browse :doc:`examples with screenshots <user/examples>` to get a quick idea
+Browse :doc:`examples with screenshots <user/quickstart>` to get a quick idea
 what you can do with |pp|.
 
 
-Status
-======
+Feature Support
+---------------
 
-The current release is v0.2.6 dated June 22, 2013. The library is under active
-development. The current release has the following basic capabilities:
+|pp| has the following capabilities, with many more on the roadmap:
 
 * Round-trip any Open XML presentation (.pptx file) including all its elements
 * Add slides
@@ -35,22 +33,9 @@ cadence of roughly once per month. If you find a feature you need that |pp|
 doesn't yet have, reach out via the mailing list or issue tracker and we'll see
 if we can jump the queue for you to pop it in there :)
 
-Currently |pp| requires Python 2.6 or 2.7. Support for earlier versions is not
-planned as it complicates future support for Python 3.x, but if you have a
-compelling need please reach out via the mailing list. Support for Python 3.x
-is planned.
-
-
-Dependencies
-============
-
-* Python 2.6 or 2.7
-* lxml
-* Python Imaging Library (PIL)
-
 
 Reaching out
-============
+------------
 
 We'd love to hear from you if you like |pp|, want a new feature, find a bug,
 need help using it, or just have a word of encouragement.
@@ -68,7 +53,7 @@ particularly the appropriate API signature.
 
 
 Running the tests
-=================
+-----------------
 
 |pp| has a robust test suite, comprising over 180 tests at the time of this
 writing, both at the acceptance test and unit test levels. ``unittest2`` is
@@ -106,29 +91,43 @@ distribution by issuing the following commands::
 
 
 Getting Started
-===============
+---------------
 
 A quick way to get started is by trying out some of
-:doc:`the examples <user/examples>` to get a feel for how to use |pp|.
-
-Once you've gotten your feet wet, :doc:`this page <user/index>` can help you
-build a better understanding of the object hierarchy that is central to using
-|pp|.
+:doc:`the examples <user/quickstart>` to get a feel for how to use |pp|.
 
 The :doc:`user API documentation <user/modules/pptx>` can help you with the
 fine details of calling signatures and behaviors.
 
 
-----
-
-Contents:
+User Guide
+----------
 
 .. toctree::
-   :titlesonly:
    :maxdepth: 2
 
-   user/index
    user/install
+   user/use-cases
+   user/concepts
+   user/autoshape-types
+   user/quickstart
+
+
+API Documentation
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   user/modules/index
+
+
+Contributor Guide
+-----------------
+
+.. toctree::
+   :maxdepth: 1
+
    developer/index
 
 
