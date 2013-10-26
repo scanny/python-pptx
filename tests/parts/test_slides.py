@@ -11,7 +11,7 @@ from pptx.opc import packaging
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_parse
 from pptx.parts.slides import (
-    _BaseSlide, _Slide, SlideCollection, SlideLayout, _SlideMaster
+    _BaseSlide, _Slide, SlideCollection, SlideLayout, SlideMaster
 )
 from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import ShapeCollection
@@ -257,7 +257,7 @@ class TestSlideLayout(TestCase):
     def _loaded_slidelayout(self, prs_slidemaster=None):
         """
         Return SlideLayout instance loaded using mocks. *prs_slidemaster* is
-        an already-loaded model-side _SlideMaster instance (or mock, as
+        an already-loaded model-side SlideMaster instance (or mock, as
         appropriate to calling test).
         """
         # partname for related slideMaster
@@ -266,7 +266,7 @@ class TestSlideLayout(TestCase):
         slidelayout_path = absjoin(test_file_dir, 'slideLayout1.xml')
         # model-side slideMaster part
         if prs_slidemaster is None:
-            prs_slidemaster = Mock(spec=_SlideMaster)
+            prs_slidemaster = Mock(spec=SlideMaster)
         # a part dict containing the already-loaded model-side slideMaster
         loaded_part_dict = {sldmaster_partname: prs_slidemaster}
         # a slideMaster package part for rel target
@@ -289,7 +289,7 @@ class TestSlideLayout(TestCase):
     def test__load_sets_slidemaster(self):
         """SlideLayout._load() sets slidemaster"""
         # setup ------------------------
-        prs_slidemaster = Mock(spec=_SlideMaster)
+        prs_slidemaster = Mock(spec=SlideMaster)
         # exercise ---------------------
         loaded_slidelayout = self._loaded_slidelayout(prs_slidemaster)
         # verify -----------------------
@@ -309,18 +309,18 @@ class TestSlideLayout(TestCase):
             self.slidelayout.slidemaster
 
 
-class Test_SlideMaster(TestCase):
-    """Test _SlideMaster"""
+class TestSlideMaster(TestCase):
+    """Test SlideMaster"""
     def setUp(self):
-        self.sldmaster = _SlideMaster()
+        self.sldmaster = SlideMaster()
 
     def test_slidelayouts_property_empty_on_construction(self):
-        """_SlideMaster.slidelayouts property empty on construction"""
+        """SlideMaster.slidelayouts property empty on construction"""
         # verify -----------------------
         self.assertIsSizedProperty(self.sldmaster, 'slidelayouts', 0)
 
     def test_slidelayouts_correct_length_after_open(self):
-        """_SlideMaster.slidelayouts correct length after open"""
+        """SlideMaster.slidelayouts correct length after open"""
         # setup ------------------------
         pkg = Package(test_pptx_path)
         slidemaster = pkg.presentation.slidemasters[0]

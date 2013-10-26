@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Slide objects, including _Slide and _SlideMaster.
+Slide objects, including _Slide and SlideMaster.
 """
 
 from __future__ import absolute_import
@@ -187,7 +187,7 @@ class SlideLayout(_BaseSlide):
         return self
 
 
-class _SlideMaster(_BaseSlide):
+class SlideMaster(_BaseSlide):
     """
     Slide master part. Corresponds to package files
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
@@ -198,7 +198,7 @@ class _SlideMaster(_BaseSlide):
     # the various masters a bit later.
 
     def __init__(self):
-        super(_SlideMaster, self).__init__(CT.PML_SLIDE_MASTER)
+        super(SlideMaster, self).__init__(CT.PML_SLIDE_MASTER)
         self._slidelayouts = PartCollection()
 
     @property
@@ -213,7 +213,7 @@ class _SlideMaster(_BaseSlide):
         Load slide master from package part.
         """
         # call parent to do generic aspects of load
-        super(_SlideMaster, self)._load(pkgpart, part_dict)
+        super(SlideMaster, self)._load(pkgpart, part_dict)
 
         # selectively unmarshal relationships for now
         for rel in self._relationships:

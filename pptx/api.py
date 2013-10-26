@@ -34,21 +34,21 @@ class Presentation(object):
     def slidelayouts(self):
         """
         Tuple containing the |SlideLayout| instances belonging to the
-        first |_SlideMaster| of this presentation.
+        first |SlideMaster| of this presentation.
         """
         return tuple(self._presentation.slidemasters[0].slidelayouts)
 
     @property
     def slidemaster(self):
         """
-        First |_SlideMaster| object belonging to this presentation.
+        First |SlideMaster| object belonging to this presentation.
         """
         return self._presentation.slidemasters[0]
 
     @property
     def slidemasters(self):
         """
-        List of |_SlideMaster| objects belonging to this presentation.
+        List of |SlideMaster| objects belonging to this presentation.
         """
         return self._presentation.slidemasters
 
