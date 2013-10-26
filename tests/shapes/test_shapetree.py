@@ -73,7 +73,7 @@ class Test_ShapeCollection(TestCase):
     @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     @patch('pptx.shapes.shapetree._AutoShapeType')
-    def test_add_shape_collaboration(self, _AutoShapeType, __next_shape_id,
+    def test_add_shape_collaboration(self, _AutoShapeType, _next_shape_id,
                                      _Shape, CT_Shape):
         """_ShapeCollection.add_shape() calls the right collaborators"""
         # constant values -------------
@@ -87,14 +87,14 @@ class Test_ShapeCollection(TestCase):
         autoshape_type.basename = basename
         autoshape_type.prst = prst
         _AutoShapeType.return_value = autoshape_type
-        __next_shape_id.return_value = id_
+        _next_shape_id.return_value = id_
         sp = Mock(name='sp')
         CT_Shape.new_autoshape_sp.return_value = sp
-        __spTree = Mock(name='__spTree')
-        __shapes = Mock(name='__shapes')
+        _spTree = Mock(name='_spTree')
+        _shapes = Mock(name='_shapes')
         shapes = test_shapes.empty_shape_collection
-        shapes._spTree = __spTree
-        shapes._shapes = __shapes
+        shapes._spTree = _spTree
+        shapes._shapes = _shapes
         shape = Mock('shape')
         _Shape.return_value = shape
         # exercise ---------------------
@@ -104,8 +104,8 @@ class Test_ShapeCollection(TestCase):
         CT_Shape.new_autoshape_sp.assert_called_once_with(
             id_, name, prst, left, top, width, height)
         _Shape.assert_called_once_with(sp)
-        __spTree.append.assert_called_once_with(sp)
-        __shapes.append.assert_called_once_with(shape)
+        _spTree.append.assert_called_once_with(sp)
+        _shapes.append.assert_called_once_with(shape)
         assert_that(retval, is_(equal_to(shape)))
 
     @patch('pptx.shapes.shapetree._Picture')
@@ -127,11 +127,11 @@ class Test_ShapeCollection(TestCase):
         rel = Mock(name='rel', _rId=rId)
         slide = Mock(name='slide')
         slide._add_image.return_value = image, rel
-        __spTree = Mock(name='__spTree')
-        __shapes = Mock(name='__shapes')
+        _spTree = Mock(name='_spTree')
+        _shapes = Mock(name='_shapes')
         shapes = _ShapeCollection(test_shape_elements.empty_spTree, slide)
-        shapes._spTree = __spTree
-        shapes._shapes = __shapes
+        shapes._spTree = _spTree
+        shapes._shapes = _shapes
         pic = Mock(name='pic')
         CT_Picture.new_pic.return_value = pic
         picture = Mock(name='picture')
@@ -143,9 +143,9 @@ class Test_ShapeCollection(TestCase):
         image._scale.assert_called_once_with(width, height)
         CT_Picture.new_pic.assert_called_once_with(
             id_, name, desc, rId, left, top, width, height)
-        __spTree.append.assert_called_once_with(pic)
+        _spTree.append.assert_called_once_with(pic)
         _Picture.assert_called_once_with(pic)
-        __shapes.append.assert_called_once_with(picture)
+        _shapes.append.assert_called_once_with(picture)
         assert_that(retval, is_(equal_to(picture)))
 
     @patch('pptx.shapes.shapetree._Table')
@@ -153,39 +153,39 @@ class Test_ShapeCollection(TestCase):
     @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     def test_add_table_collaboration(
-            self, __next_shape_id, CT_GraphicalObjectFrame, _Table):
+            self, _next_shape_id, CT_GraphicalObjectFrame, _Table):
         """_ShapeCollection.add_table() calls the right collaborators"""
         # constant values -------------
         id_, name = 9, 'Table 8'
         rows, cols = 2, 3
         left, top, width, height = 111, 222, 333, 444
         # setup mockery ---------------
-        __next_shape_id.return_value = id_
+        _next_shape_id.return_value = id_
         graphicFrame = Mock(name='graphicFrame')
         CT_GraphicalObjectFrame.new_table.return_value = graphicFrame
-        __spTree = Mock(name='__spTree')
-        __shapes = Mock(name='__shapes')
+        _spTree = Mock(name='_spTree')
+        _shapes = Mock(name='_shapes')
         shapes = test_shapes.empty_shape_collection
-        shapes._spTree = __spTree
-        shapes._shapes = __shapes
+        shapes._spTree = _spTree
+        shapes._shapes = _shapes
         table = Mock('table')
         _Table.return_value = table
         # exercise ---------------------
         retval = shapes.add_table(rows, cols, left, top, width, height)
         # verify -----------------------
-        __next_shape_id.assert_called_once_with()
+        _next_shape_id.assert_called_once_with()
         CT_GraphicalObjectFrame.new_table.assert_called_once_with(
             id_, name, rows, cols, left, top, width, height)
-        __spTree.append.assert_called_once_with(graphicFrame)
+        _spTree.append.assert_called_once_with(graphicFrame)
         _Table.assert_called_once_with(graphicFrame)
-        __shapes.append.assert_called_once_with(table)
+        _shapes.append.assert_called_once_with(table)
         assert_that(retval, is_(equal_to(table)))
 
     @patch('pptx.shapes.shapetree.CT_Shape')
     @patch('pptx.shapes.shapetree._Shape')
     @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
-    def test_add_textbox_collaboration(self, __next_shape_id, _Shape,
+    def test_add_textbox_collaboration(self, _next_shape_id, _Shape,
                                        CT_Shape):
         """_ShapeCollection.add_textbox() calls the right collaborators"""
         # constant values -------------
@@ -194,10 +194,10 @@ class Test_ShapeCollection(TestCase):
         # setup mockery ---------------
         sp = Mock(name='sp')
         shape = Mock('shape')
-        __spTree = Mock(name='__spTree')
+        _spTree = Mock(name='_spTree')
         shapes = test_shapes.empty_shape_collection
-        shapes._spTree = __spTree
-        __next_shape_id.return_value = id_
+        shapes._spTree = _spTree
+        _next_shape_id.return_value = id_
         CT_Shape.new_textbox_sp.return_value = sp
         _Shape.return_value = shape
         # exercise ---------------------
@@ -206,7 +206,7 @@ class Test_ShapeCollection(TestCase):
         CT_Shape.new_textbox_sp.assert_called_once_with(
             id_, name, left, top, width, height)
         _Shape.assert_called_once_with(sp)
-        __spTree.append.assert_called_once_with(sp)
+        _spTree.append.assert_called_once_with(sp)
         assert_that(shapes._shapes[0], is_(equal_to(shape)))
         assert_that(retval, is_(equal_to(shape)))
 
@@ -276,8 +276,8 @@ class Test_ShapeCollection(TestCase):
                    % (idx, expected, actual))
             self.assertEqual(expected, actual, msg)
 
-    def test___clone_layout_placeholder_values(self):
-        """_ShapeCollection.__clone_layout_placeholder() values correct"""
+    def test__clone_layout_placeholder_values(self):
+        """_ShapeCollection._clone_layout_placeholder() values correct"""
         # setup ------------------------
         layout_shapes = _sldLayout1_shapes()
         layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
@@ -300,8 +300,8 @@ class Test_ShapeCollection(TestCase):
             msg = "expected placeholder values %s, got %s" % (expected, actual)
             self.assertEqual(expected, actual, msg)
 
-    def test___clone_layout_placeholder_xml(self):
-        """_ShapeCollection.__clone_layout_placeholder() emits correct XML"""
+    def test__clone_layout_placeholder_xml(self):
+        """_ShapeCollection._clone_layout_placeholder() emits correct XML"""
         # setup ------------------------
         layout_shapes = _sldLayout1_shapes()
         layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
@@ -335,9 +335,9 @@ class Test_ShapeCollection(TestCase):
             expected_xml = expected_xml_tmpl % expected_values[idx]
             self.assertEqualLineByLine(expected_xml, ph._element)
 
-    def test___next_ph_name_return_value(self):
+    def test__next_ph_name_return_value(self):
         """
-        _ShapeCollection.__next_ph_name() returns correct value
+        _ShapeCollection._next_ph_name() returns correct value
 
         * basename + 'Placeholder' + num, e.g. 'Table Placeholder 8'
         * numpart of name defaults to id-1, but increments until unique
@@ -361,8 +361,8 @@ class Test_ShapeCollection(TestCase):
                    (expected, actual))
             self.assertEqual(expected, actual, msg)
 
-    def test___next_shape_id_value(self):
-        """_ShapeCollection.__next_shape_id value is correct"""
+    def test__next_shape_id_value(self):
+        """_ShapeCollection._next_shape_id value is correct"""
         # setup ------------------------
         shapes = _sldLayout1_shapes()
         # exercise ---------------------
