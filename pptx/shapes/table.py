@@ -169,10 +169,10 @@ class _Cell(object):
 
     def __init__(self, tc):
         super(_Cell, self).__init__()
-        self.__tc = tc
+        self._tc = tc
 
     @staticmethod
-    def __assert_valid_margin_value(margin_value):
+    def _assert_valid_margin_value(margin_value):
         """
         Raise ValueError if *margin_value* is not a positive integer value or
         |None|.
@@ -189,42 +189,42 @@ class _Cell(object):
         Units (EMU). If assigned |None|, the default value is used, 0.1
         inches for left and right margins and 0.05 inches for top and bottom.
         """
-        return self.__tc.marT
+        return self._tc.marT
 
     @property
     def margin_right(self):
         """Right margin of cell"""
-        return self.__tc.marR
+        return self._tc.marR
 
     @property
     def margin_bottom(self):
         """Bottom margin of cell"""
-        return self.__tc.marB
+        return self._tc.marB
 
     @property
     def margin_left(self):
         """Left margin of cell"""
-        return self.__tc.marL
+        return self._tc.marL
 
     @margin_top.setter
     def margin_top(self, margin_top):
-        self.__assert_valid_margin_value(margin_top)
-        self.__tc.marT = margin_top
+        self._assert_valid_margin_value(margin_top)
+        self._tc.marT = margin_top
 
     @margin_right.setter
     def margin_right(self, margin_right):
-        self.__assert_valid_margin_value(margin_right)
-        self.__tc.marR = margin_right
+        self._assert_valid_margin_value(margin_right)
+        self._tc.marR = margin_right
 
     @margin_bottom.setter
     def margin_bottom(self, margin_bottom):
-        self.__assert_valid_margin_value(margin_bottom)
-        self.__tc.marB = margin_bottom
+        self._assert_valid_margin_value(margin_bottom)
+        self._tc.marB = margin_bottom
 
     @margin_left.setter
     def margin_left(self, margin_left):
-        self.__assert_valid_margin_value(margin_left)
-        self.__tc.marL = margin_left
+        self._assert_valid_margin_value(margin_left)
+        self._tc.marL = margin_left
 
     def _set_text(self, text):
         """Replace all text in cell with single run containing *text*"""
@@ -242,7 +242,7 @@ class _Cell(object):
         """
         |_TextFrame| instance containing the text that appears in the cell.
         """
-        txBody = _child(self.__tc, 'a:txBody')
+        txBody = _child(self._tc, 'a:txBody')
         if txBody is None:
             raise ValueError('cell has no text frame')
         return _TextFrame(txBody)
@@ -254,7 +254,7 @@ class _Cell(object):
         vertical anchor setting and its effective value is inherited from a
         higher-level object.
         """
-        anchor = self.__tc.anchor
+        anchor = self._tc.anchor
         return VerticalAnchor.from_text_anchoring_type(anchor)
 
     def _set_vertical_anchor(self, vertical_anchor):
@@ -265,7 +265,7 @@ class _Cell(object):
         inherited.
         """
         anchor = VerticalAnchor.to_text_anchoring_type(vertical_anchor)
-        self.__tc.anchor = anchor
+        self._tc.anchor = anchor
 
     #: Vertical anchor of this table cell, determines the vertical alignment
     #: of text in the cell. Value is like ``MSO.ANCHOR_MIDDLE``. Can be
