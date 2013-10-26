@@ -350,18 +350,18 @@ class _CellCollection(object):
 
     def __init__(self, tr):
         super(_CellCollection, self).__init__()
-        self.__tr = tr
+        self._tr = tr
 
     def __getitem__(self, idx):
         """Provides indexed access, (e.g. 'cells[0]')."""
-        if idx < 0 or idx >= len(self.__tr.tc):
+        if idx < 0 or idx >= len(self._tr.tc):
             msg = "cell index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Cell(self.__tr.tc[idx])
+        return _Cell(self._tr.tc[idx])
 
     def __len__(self):
         """Supports len() function (e.g. 'len(cells) == 1')."""
-        return len(self.__tr.tc)
+        return len(self._tr.tc)
 
 
 class _ColumnCollection(object):
@@ -371,19 +371,19 @@ class _ColumnCollection(object):
 
     def __init__(self, tbl_elm, table):
         super(_ColumnCollection, self).__init__()
-        self.__tbl_elm = tbl_elm
-        self.__table = table
+        self._tbl_elm = tbl_elm
+        self._table = table
 
     def __getitem__(self, idx):
         """Provides indexed access, (e.g. 'columns[0]')."""
-        if idx < 0 or idx >= len(self.__tbl_elm.tblGrid.gridCol):
+        if idx < 0 or idx >= len(self._tbl_elm.tblGrid.gridCol):
             msg = "column index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Column(self.__tbl_elm.tblGrid.gridCol[idx], self.__table)
+        return _Column(self._tbl_elm.tblGrid.gridCol[idx], self._table)
 
     def __len__(self):
         """Supports len() function (e.g. 'len(columns) == 1')."""
-        return len(self.__tbl_elm.tblGrid.gridCol)
+        return len(self._tbl_elm.tblGrid.gridCol)
 
 
 class _RowCollection(object):
@@ -393,16 +393,16 @@ class _RowCollection(object):
 
     def __init__(self, tbl_elm, table):
         super(_RowCollection, self).__init__()
-        self.__tbl_elm = tbl_elm
-        self.__table = table
+        self._tbl_elm = tbl_elm
+        self._table = table
 
     def __getitem__(self, idx):
         """Provides indexed access, (e.g. 'rows[0]')."""
-        if idx < 0 or idx >= len(self.__tbl_elm.tr):
+        if idx < 0 or idx >= len(self._tbl_elm.tr):
             msg = "row index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Row(self.__tbl_elm.tr[idx], self.__table)
+        return _Row(self._tbl_elm.tr[idx], self._table)
 
     def __len__(self):
         """Supports len() function (e.g. 'len(rows) == 1')."""
-        return len(self.__tbl_elm.tr)
+        return len(self._tbl_elm.tr)
