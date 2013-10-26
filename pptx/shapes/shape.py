@@ -16,7 +16,7 @@ _nsmap = namespaces('a', 'r', 'p')
 
 class BaseShape(object):
     """
-    Base class for shape objects. Both |_Shape| and |Picture| inherit from
+    Base class for shape objects. Both |Shape| and |Picture| inherit from
     |BaseShape|.
     """
     def __init__(self, shape_element):

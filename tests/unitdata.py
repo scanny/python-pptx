@@ -3,7 +3,7 @@
 """Test data for unit tests"""
 
 from pptx.oxml import nsdecls, oxml_fromstring
-from pptx.shapes.shapetree import Picture, _Shape, ShapeCollection
+from pptx.shapes.shapetree import Picture, Shape, ShapeCollection
 from pptx.shapes.table import _Cell
 from pptx.text import _Paragraph
 
@@ -519,7 +519,7 @@ class _TestShapes(object):
     """Shape instances for use in unit tests"""
     @property
     def autoshape(self):
-        return _Shape(test_shape_elements.autoshape)
+        return Shape(test_shape_elements.autoshape)
 
     @property
     def empty_shape_collection(self):
@@ -531,15 +531,15 @@ class _TestShapes(object):
 
     @property
     def placeholder(self):
-        return _Shape(test_shape_elements.placeholder)
+        return Shape(test_shape_elements.placeholder)
 
     @property
     def rounded_rectangle(self):
-        return _Shape(test_shape_elements.rounded_rectangle)
+        return Shape(test_shape_elements.rounded_rectangle)
 
     @property
     def textbox(self):
-        return _Shape(test_shape_elements.textbox)
+        return Shape(test_shape_elements.textbox)
 
 
 test_shapes = _TestShapes()

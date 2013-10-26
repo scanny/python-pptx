@@ -9,7 +9,7 @@ from mock import Mock, patch
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.shapes.autoshape import (
-    _Adjustment, _AdjustmentCollection, AutoShapeType, _Shape
+    _Adjustment, _AdjustmentCollection, AutoShapeType, Shape
 )
 from pptx.oxml import oxml_fromstring
 
@@ -268,26 +268,26 @@ class TestAutoShapeType(TestCase):
             AutoShapeType(autoshape_type_id)
 
 
-class Test_Shape(TestCase):
-    """Test _Shape"""
+class TestShape(TestCase):
+    """Test Shape"""
     @patch('pptx.shapes.autoshape.BaseShape.__init__')
     @patch('pptx.shapes.autoshape._AdjustmentCollection')
     def test_it_initializes_adjustments_on_construction(
             self, _AdjustmentCollection, BaseShape__init__):
-        """_Shape() initializes adjustments on construction"""
+        """Shape() initializes adjustments on construction"""
         # setup ------------------------
         adjustments = Mock(name='adjustments')
         _AdjustmentCollection.return_value = adjustments
         sp = Mock(name='sp')
         # exercise ---------------------
-        shape = _Shape(sp)
+        shape = Shape(sp)
         # verify -----------------------
         BaseShape__init__.assert_called_once_with(sp)
         _AdjustmentCollection.assert_called_once_with(sp.prstGeom)
         assert_that(shape.adjustments, is_(adjustments))
 
     def test_auto_shape_type_value_correct(self):
-        """_Shape.auto_shape_type value is correct"""
+        """Shape.auto_shape_type value is correct"""
         # setup ------------------------
         rounded_rectangle = test_shapes.rounded_rectangle
         # verify -----------------------
@@ -295,7 +295,7 @@ class Test_Shape(TestCase):
                     is_(equal_to(MAST.ROUNDED_RECTANGLE)))
 
     def test_auto_shape_type_raises_on_non_auto_shape(self):
-        """_Shape.auto_shape_type raises on non auto shape"""
+        """Shape.auto_shape_type raises on non auto shape"""
         # setup ------------------------
         textbox = test_shapes.textbox
         # verify -----------------------
@@ -303,7 +303,7 @@ class Test_Shape(TestCase):
             textbox.auto_shape_type
 
     def test_shape_type_value_correct(self):
-        """_Shape.shape_type value is correct for all sub-types"""
+        """Shape.shape_type value is correct for all sub-types"""
         # setup ------------------------
         autoshape = test_shapes.autoshape
         placeholder = test_shapes.placeholder
@@ -314,7 +314,7 @@ class Test_Shape(TestCase):
         assert_that(textbox.shape_type, is_(equal_to(MSO.TEXT_BOX)))
 
     def test_shape_type_raises_on_unrecognized_shape_type(self):
-        """_Shape.shape_type raises on unrecognized shape type"""
+        """Shape.shape_type raises on unrecognized shape type"""
         # setup ------------------------
         xml = (
             '<p:sp xmlns:p="http://schemas.openxmlformats.org/presentationml/'
@@ -323,7 +323,7 @@ class Test_Shape(TestCase):
             '/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/></p:sp>'
         )
         sp = oxml_fromstring(xml)
-        shape = _Shape(sp)
+        shape = Shape(sp)
         # verify -----------------------
         with self.assertRaises(NotImplementedError):
             shape.shape_type

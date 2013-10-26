@@ -69,12 +69,12 @@ class TestShapeCollection(TestCase):
             ShapeCollection(spTree)
 
     @patch('pptx.shapes.shapetree.CT_Shape')
-    @patch('pptx.shapes.shapetree._Shape')
+    @patch('pptx.shapes.shapetree.Shape')
     @patch('pptx.shapes.shapetree.ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     @patch('pptx.shapes.shapetree.AutoShapeType')
     def test_add_shape_collaboration(self, AutoShapeType, _next_shape_id,
-                                     _Shape, CT_Shape):
+                                     Shape, CT_Shape):
         """ShapeCollection.add_shape() calls the right collaborators"""
         # constant values -------------
         basename = 'Rounded Rectangle'
@@ -96,14 +96,14 @@ class TestShapeCollection(TestCase):
         shapes._spTree = _spTree
         shapes._shapes = _shapes
         shape = Mock('shape')
-        _Shape.return_value = shape
+        Shape.return_value = shape
         # exercise ---------------------
         retval = shapes.add_shape(autoshape_type_id, left, top, width, height)
         # verify -----------------------
         AutoShapeType.assert_called_once_with(autoshape_type_id)
         CT_Shape.new_autoshape_sp.assert_called_once_with(
             id_, name, prst, left, top, width, height)
-        _Shape.assert_called_once_with(sp)
+        Shape.assert_called_once_with(sp)
         _spTree.append.assert_called_once_with(sp)
         _shapes.append.assert_called_once_with(shape)
         assert_that(retval, is_(equal_to(shape)))
@@ -182,10 +182,10 @@ class TestShapeCollection(TestCase):
         assert_that(retval, is_(equal_to(table)))
 
     @patch('pptx.shapes.shapetree.CT_Shape')
-    @patch('pptx.shapes.shapetree._Shape')
+    @patch('pptx.shapes.shapetree.Shape')
     @patch('pptx.shapes.shapetree.ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
-    def test_add_textbox_collaboration(self, _next_shape_id, _Shape,
+    def test_add_textbox_collaboration(self, _next_shape_id, Shape,
                                        CT_Shape):
         """ShapeCollection.add_textbox() calls the right collaborators"""
         # constant values -------------
@@ -199,13 +199,13 @@ class TestShapeCollection(TestCase):
         shapes._spTree = _spTree
         _next_shape_id.return_value = id_
         CT_Shape.new_textbox_sp.return_value = sp
-        _Shape.return_value = shape
+        Shape.return_value = shape
         # exercise ---------------------
         retval = shapes.add_textbox(left, top, width, height)
         # verify -----------------------
         CT_Shape.new_textbox_sp.assert_called_once_with(
             id_, name, left, top, width, height)
-        _Shape.assert_called_once_with(sp)
+        Shape.assert_called_once_with(sp)
         _spTree.append.assert_called_once_with(sp)
         assert_that(shapes._shapes[0], is_(equal_to(shape)))
         assert_that(retval, is_(equal_to(shape)))

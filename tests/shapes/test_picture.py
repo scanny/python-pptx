@@ -15,7 +15,7 @@ from ..unitutil import TestCase
 class Test_Picture(TestCase):
     """Test Picture"""
     def test_shape_type_value_correct_for_picture(self):
-        """_Shape.shape_type value is correct for picture"""
+        """Shape.shape_type value is correct for picture"""
         # setup ------------------------
         picture = test_shapes.picture
         # verify -----------------------

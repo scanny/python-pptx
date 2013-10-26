@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Autoshape-related objects such as _Shape and _Adjustment.
+Autoshape-related objects such as Shape and _Adjustment.
 """
 
 from numbers import Number
@@ -267,14 +267,14 @@ class AutoShapeType(object):
         return self._prst
 
 
-class _Shape(BaseShape):
+class Shape(BaseShape):
     """
     A shape that can appear on a slide. Corresponds to the ``<p:sp>`` element
     that can appear in any of the slide-type parts (slide, slideLayout,
     slideMaster, notesPage, notesMaster, handoutMaster).
     """
     def __init__(self, sp):
-        super(_Shape, self).__init__(sp)
+        super(Shape, self).__init__(sp)
         self._adjustments = _AdjustmentCollection(sp.prstGeom)
 
     @property
@@ -313,5 +313,5 @@ class _Shape(BaseShape):
             return MSO.AUTO_SHAPE
         if sp.is_textbox:
             return MSO.TEXT_BOX
-        msg = '_Shape instance of unrecognized shape type'
+        msg = 'Shape instance of unrecognized shape type'
         raise NotImplementedError(msg)

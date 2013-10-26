@@ -5,7 +5,7 @@ The shape tree, the structure that holds a slide's shapes.
 """
 
 from pptx.oxml import qn, CT_GraphicalObjectFrame, CT_Picture, CT_Shape
-from pptx.shapes.autoshape import AutoShapeType, _Shape
+from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import Placeholder
 from pptx.shapes.shape import BaseShape
@@ -48,7 +48,7 @@ class ShapeCollection(BaseShape, Collection):
             if elm.tag in (self._NVGRPSPPR, self._GRPSPPR, self._EXTLST):
                 continue
             elif elm.tag == self._SP:
-                shape = _Shape(elm)
+                shape = Shape(elm)
             elif elm.tag == self._PIC:
                 shape = Picture(elm)
             elif elm.tag == self._GRPSP:
@@ -116,7 +116,7 @@ class ShapeCollection(BaseShape, Collection):
 
         sp = CT_Shape.new_autoshape_sp(id_, name, autoshape_type.prst,
                                        left, top, width, height)
-        shape = _Shape(sp)
+        shape = Shape(sp)
 
         self._spTree.append(sp)
         self._shapes.append(shape)
@@ -146,7 +146,7 @@ class ShapeCollection(BaseShape, Collection):
         name = 'TextBox %d' % (id_-1)
 
         sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
-        shape = _Shape(sp)
+        shape = Shape(sp)
 
         self._spTree.append(sp)
         self._shapes.append(shape)
@@ -181,7 +181,7 @@ class ShapeCollection(BaseShape, Collection):
 
         sp = CT_Shape.new_placeholder_sp(id_, shapename, ph_type, orient,
                                          sz, idx)
-        shape = _Shape(sp)
+        shape = Shape(sp)
 
         self._spTree.append(sp)
         self._shapes.append(shape)
