@@ -66,13 +66,13 @@ release = '0.2.4'
 # file that is read. This is the right place to add substitutions that should
 # be available in every file.
 rst_epilog = """
-.. |_Adjustment| replace:: :class:`_Adjustment`
+.. |Adjustment| replace:: :class:`Adjustment`
 
-.. |_AdjustmentCollection| replace:: :class:`_AdjustmentCollection`
+.. |AdjustmentCollection| replace:: :class:`AdjustmentCollection`
 
 .. |BaseFileSystem| replace:: :class:`BaseFileSystem`
 
-.. |_BaseShape| replace:: :class:`_BaseShape`
+.. |BaseShape| replace:: :class:`BaseShape`
 
 .. |_Cell| replace:: :class:`_Cell`
 
@@ -82,7 +82,7 @@ rst_epilog = """
 
 .. |_ColumnCollection| replace:: :class:`_ColumnCollection`
 
-.. |_CoreProperties| replace:: :class:`_CoreProperties`
+.. |CoreProperties| replace:: :class:`CoreProperties`
 
 .. |datetime| replace:: :class:`datetime.datetime`
 
@@ -104,15 +104,13 @@ rst_epilog = """
 
 .. |Package| replace:: :class:`Package`
 
-.. |_Package| replace:: :class:`_Package`
-
 .. |_Paragraph| replace:: :class:`_Paragraph`
 
 .. |Part| replace:: :class:`Part`
 
 .. |PartTypeSpec| replace:: :class:`PartTypeSpec`
 
-.. |_Picture| replace:: :class:`_Picture`
+.. |Picture| replace:: :class:`Picture`
 
 .. |pp| replace:: ``python-pptx``
 
@@ -120,9 +118,7 @@ rst_epilog = """
 
 .. |Relationship| replace:: :class:`Relationship`
 
-.. |_Relationship| replace:: :class:`_Relationship`
-
-.. |_RelationshipCollection| replace:: :class:`_RelationshipCollection`
+.. |RelationshipCollection| replace:: :class:`RelationshipCollection`
 
 .. |_Row| replace:: :class:`_Row`
 
@@ -130,23 +126,23 @@ rst_epilog = """
 
 .. |_Run| replace:: :class:`_Run`
 
-.. |_Shape| replace:: :class:`_Shape`
+.. |Shape| replace:: :class:`Shape`
 
-.. |_ShapeCollection| replace:: :class:`_ShapeCollection`
+.. |ShapeCollection| replace:: :class:`ShapeCollection`
 
-.. |_Slide| replace:: :class:`_Slide`
+.. |Slide| replace:: :class:`Slide`
 
-.. |_SlideCollection| replace:: :class:`_SlideCollection`
+.. |SlideCollection| replace:: :class:`SlideCollection`
 
-.. |_SlideLayout| replace:: :class:`_SlideLayout`
+.. |SlideLayout| replace:: :class:`SlideLayout`
 
-.. |_SlideMaster| replace:: :class:`_SlideMaster`
+.. |SlideMaster| replace:: :class:`SlideMaster`
 
 .. |str| replace:: :class:`str`
 
-.. |_Table| replace:: :class:`_Table`
+.. |Table| replace:: :class:`Table`
 
-.. |_TextFrame| replace:: :class:`_TextFrame`
+.. |TextFrame| replace:: :class:`TextFrame`
 
 .. |ValueError| replace:: :exc:`ValueError`
 

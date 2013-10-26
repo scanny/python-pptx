@@ -19,18 +19,18 @@ There are essentially three protocols with partially-overlapping interfaces:
 
 .. currentmodule:: pptx.presentation
 
-.. autoclass:: pptx.presentation._Part
+.. autoclass:: pptx.presentation.Part
    :members: __new__
    :undoc-members:
 
 
-.. autoclass:: pptx.presentation._BasePart
+.. autoclass:: pptx.presentation.BasePart
    :members:
    :undoc-members:
    :private-members:
 
 
-.. autoclass:: pptx.presentation._PartCollection
+.. autoclass:: pptx.presentation.PartCollection
    :members:
    :undoc-members:
    :private-members:
@@ -45,18 +45,18 @@ Unmarshaling interface
 ----------------------
 
 The unmarshaling interface provides a protocol the model side uses to load
-a graph of parts from :class:`pptx.packaging.Package`.
+a graph of parts from :class:`pptx.opc.packaging.Package`.
 
 The following code sample illustrates the protocol::
 
     # construct a part
-    part = _Part(reltype, content_type)
+    part = Part(reltype, content_type)
     
-    # load it from instance of pptx.packaging.Part
+    # load it from instance of pptx.opc.packaging.Part
     part._load(pkgpart, part_dict)
     
     # construct a part collection
-    parts = _PartCollection()
+    parts = PartCollection()
     
     # add a part that was loaded from package
     parts._loadpart(part)
@@ -77,7 +77,7 @@ The following code sample illustrates the protocol::
 Marshaling interface
 --------------------
 
-The marshaling interface provides a protocol to :mod:`pptx.packaging` that
+The marshaling interface provides a protocol to :mod:`pptx.opc.packaging` that
 allows it to gather what it needs to save the document to a .pptx file.
 
 The following code sample illustrates the protocol::
@@ -116,22 +116,22 @@ Probably outdated, needs fixing ...
 
 ::
 
-   +--_BasePart
+   +--BasePart
    |  |
    |  +--Presentation
-   |  +--_BaseSlide
+   |  +--BaseSlide
    |  |  |
-   |  |  +--_SlideMaster
-   |  |  +--_SlideLayout
-   |  |  +--_Slide
+   |  |  +--SlideMaster
+   |  |  +--SlideLayout
+   |  |  +--Slide
    |  |  +--... others later
    |  |
    |  +--... others later
    |
    +--Collection
       |
-      +--_PartCollection
+      +--PartCollection
          |
-         +--_SlideCollection
+         +--SlideCollection
          +--... others later
 

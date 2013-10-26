@@ -39,7 +39,7 @@ Filesystem services are provided by a collaboration of four classes:
 
 The following code sample illustrates the protocol::
 
-    from pptx.packaging import FileSystem
+    from pptx.opc.packaging import FileSystem
     
     # construction
     fs = FileSystem(path)
@@ -53,7 +53,7 @@ The following code sample illustrates the protocol::
 |FileSystem| objects
 --------------------
 
-.. autoclass:: pptx.packaging.FileSystem
+.. autoclass:: pptx.opc.packaging.FileSystem
    :members: __new__
    :member-order: bysource
    :undoc-members:
@@ -62,7 +62,7 @@ The following code sample illustrates the protocol::
 |BaseFileSystem| objects
 ------------------------
 
-.. autoclass:: pptx.packaging.BaseFileSystem
+.. autoclass:: pptx.opc.packaging.BaseFileSystem
    :members:
    :member-order: bysource
    :undoc-members:
@@ -71,7 +71,7 @@ The following code sample illustrates the protocol::
 |DirectoryFileSystem| objects
 -----------------------------
 
-.. autoclass:: pptx.packaging.DirectoryFileSystem
+.. autoclass:: pptx.opc.packaging.DirectoryFileSystem
    :members:
    :member-order: bysource
    :undoc-members:
@@ -81,7 +81,7 @@ The following code sample illustrates the protocol::
 |ZipFileSystem| objects
 -----------------------
 
-.. autoclass:: pptx.packaging.ZipFileSystem
+.. autoclass:: pptx.opc.packaging.ZipFileSystem
    :members:
    :member-order: bysource
    :undoc-members:

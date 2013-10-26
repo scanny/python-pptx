@@ -138,10 +138,10 @@ References
 API requirements
 ================
 
-|_Table| class
---------------
+|Table| class
+-------------
 
-Properties and methods required for a |_Table| shape.
+Properties and methods required for a |Table| shape.
 
 * ``apply_style(style_id)`` -- change the style of the table. Not sure what the
   domain of ``style_id`` is.

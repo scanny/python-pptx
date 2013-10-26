@@ -4,7 +4,7 @@
 
 Manipulate Open Packaging Convention files
 
-.. automodule:: pptx.packaging
+.. automodule:: pptx.opc.packaging
 
    .. :members: PartTypeSpec
    .. :member-order: bysource
@@ -23,14 +23,15 @@ Manipulate Open Packaging Convention files
 |Package| objects
 ------------------------
 
-Most users of the :mod:`pptx.packaging` module will only need to interact with
-the |Package| class. The remaining classes in the module provide specialized
-support for |Package|, although one or two contribute to the API via one or
-more of their attributes.
+Most users of the :mod:`pptx.opc.packaging` module will only need to interact
+with the |Package| class. The remaining classes in the module provide
+specialized support for |Package|, although one or two contribute to the API
+via one or more of their attributes.
 
-.. autoclass:: pptx.packaging.Package
+.. autoclass:: pptx.opc.packaging.Package
    :members:
    :member-order: bysource
+   :noindex:
 ..    :undoc-members:
 
 
@@ -43,7 +44,7 @@ more of their attributes.
    different behavior corresponding to their uses in marshaled and unmarshaled
    packages, respectively.
 
-.. autoclass:: pptx.packaging.Part
+.. autoclass:: pptx.opc.packaging.Part
    :members:
    :member-order: bysource
    :undoc-members:
@@ -65,7 +66,7 @@ packages because they represent the links in the document part graph.
    different behavior corresponding to their use in marshaled and unmarshaled
    packages, respectively.
 
-.. autoclass:: pptx.packaging.Relationship
+.. autoclass:: pptx.opc.packaging.Relationship
    :members:
    :member-order: bysource
    :undoc-members:
@@ -81,7 +82,7 @@ that data available as an aid to processing OPC packages.
 .. _ECMA-376 spec:
    http://www.ecma-international.org/publications/standards/Ecma-376.htm
 
-.. autoclass:: pptx.packaging.PartTypeSpec
+.. autoclass:: pptx.opc.packaging.PartTypeSpec
    :members:
    :member-order: bysource
    :undoc-members:

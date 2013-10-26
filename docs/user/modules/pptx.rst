@@ -45,10 +45,10 @@ their parent object.
 .. currentmodule:: pptx.presentation
 
 
-|_CoreProperties| objects
+|CoreProperties| objects
 =========================
 
-Each |Presentation| object has a |_CoreProperties| object accessed via its
+Each |Presentation| object has a |CoreProperties| object accessed via its
 :attr:`core_properties` attribute that provides read/write access to the
 so-called *core properties* for the document. The core properties are author,
 category, comments, content_status, created, identifier, keywords, language,
@@ -67,7 +67,7 @@ last_modified_by, revision, and modified to a presentation that does not have
 one. Client code should change properties like revision and last_modified_by
 explicitly if that behavior is desired.
 
-.. class:: pptx.presentation._CoreProperties
+.. class:: pptx.opc.packaging.CoreProperties
 
    .. attribute:: author
 
@@ -138,28 +138,28 @@ explicitly if that behavior is desired.
       *string* -- free-form version string
 
 
-|_SlideCollection| objects
+|SlideCollection| objects
 ==========================
 
-The |_SlideCollection| object is typically encountered as the
+The |SlideCollection| object is typically encountered as the
 :attr:`~pptx.Presentation.slides` member of |Presentation|. It is not intended
 to be constructed directly.
 
-.. autoclass:: pptx.presentation._SlideCollection
+.. autoclass:: pptx.parts.slides.SlideCollection
    :members:
    :member-order: bysource
    :undoc-members:
    :show-inheritance:
 
 
-|_ShapeCollection| objects
+|ShapeCollection| objects
 ==========================
 
-The |_ShapeCollection| object is typically encountered as the
-:attr:`~BaseSlide.shapes` member of |_Slide|. It is not intended to be
+The |ShapeCollection| object is typically encountered as the
+:attr:`~BaseSlide.shapes` member of |Slide|. It is not intended to be
 constructed directly.
 
-.. autoclass:: pptx.presentation._ShapeCollection
+.. autoclass:: pptx.shapes.shapetree.ShapeCollection
    :members:
    :member-order: bysource
    :undoc-members:
@@ -171,7 +171,7 @@ constructed directly.
 
 The following properties and methods are common to all shapes.
 
-.. autoclass:: pptx.shapes._BaseShape
+.. autoclass:: pptx.shapes.shape.BaseShape
    :members:
    :member-order: bysource
    :undoc-members:
@@ -179,40 +179,40 @@ The following properties and methods are common to all shapes.
 
 The following properties and methods are defined for auto shapes and text boxes.
 
-.. autoclass:: pptx.shapes._Shape
+.. autoclass:: pptx.shapes.autoshape.Shape
    :members:
    :member-order: bysource
    :undoc-members:
 
 
-|_Adjustment| objects
+|Adjustment| objects
 =====================
 
-.. autoclass:: pptx.shapes._Adjustment
+.. autoclass:: pptx.shapes.autoshape.Adjustment
    :members:
    :member-order: bysource
    :undoc-members:
 
 
-|_AdjustmentCollection| objects
+|AdjustmentCollection| objects
 ===============================
 
-An |_AdjustmentCollection| object reference is accessed using the
-``_Shape.adjustments`` property (read-only).
+An |AdjustmentCollection| object reference is accessed using the
+``Shape.adjustments`` property (read-only).
 
-.. autoclass:: pptx.shapes._AdjustmentCollection
+.. autoclass:: pptx.shapes.autoshape.AdjustmentCollection
    :members:
    :member-order: bysource
    :undoc-members:
 
 
-|_Table| objects
+|Table| objects
 ================
 
-A |_Table| object is added to a slide using the :meth:`add_table` method on
-|_ShapeCollection|.
+A |Table| object is added to a slide using the :meth:`add_table` method on
+|ShapeCollection|.
 
-.. autoclass:: pptx.shapes._Table
+.. autoclass:: pptx.shapes.table.Table
    :members:
    :member-order: bysource
    :undoc-members:
@@ -221,7 +221,7 @@ A |_Table| object is added to a slide using the :meth:`add_table` method on
 |_Column| objects
 =================
 
-.. autoclass:: pptx.shapes._Column()
+.. autoclass:: pptx.shapes.table._Column()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -230,7 +230,7 @@ A |_Table| object is added to a slide using the :meth:`add_table` method on
 |_Row| objects
 ==============
 
-.. autoclass:: pptx.shapes._Row()
+.. autoclass:: pptx.shapes.table._Row()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -244,16 +244,16 @@ location in the table. |_Cell| objects are not constructed directly. A
 reference to a |_Cell| object is obtained using the :meth:`Table.cell` method,
 specifying the cell's row/column location.
 
-.. autoclass:: pptx.shapes._Cell
+.. autoclass:: pptx.shapes.table._Cell
    :members:
    :member-order: bysource
    :undoc-members:
 
 
-|_TextFrame| objects
+|TextFrame| objects
 ====================
 
-.. autoclass:: pptx.shapes._TextFrame()
+.. autoclass:: pptx.text.TextFrame()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -265,7 +265,7 @@ specifying the cell's row/column location.
 The |_Font| object is encountered as a property of |_Run|, |_Paragraph|, and in
 future other presentation text objects.
 
-.. autoclass:: pptx.shapes._Font()
+.. autoclass:: pptx.text._Font()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -274,7 +274,7 @@ future other presentation text objects.
 |_Paragraph| objects
 ====================
 
-.. autoclass:: pptx.shapes._Paragraph()
+.. autoclass:: pptx.text._Paragraph()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -283,7 +283,7 @@ future other presentation text objects.
 |_Run| objects
 ==============
 
-.. autoclass:: pptx.shapes._Run()
+.. autoclass:: pptx.text._Run()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -295,8 +295,8 @@ future other presentation text objects.
 The remaining API classes of the :mod:`presentation` module are described
 here.
 
-.. automodule:: pptx.presentation
-   :members: _BaseSlide, _SlideMaster, _SlideLayout, _Slide
+.. automodule:: pptx.parts.slides
+   :members: _BaseSlide, SlideMaster, SlideLayout, Slide
    :member-order: bysource
    :show-inheritance:
    :undoc-members:
