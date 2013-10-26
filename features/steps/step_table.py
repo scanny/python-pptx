@@ -169,7 +169,7 @@ def step_then_table_appears_in_slide(context):
     sld = prs.slides[0]
     shapes = sld.shapes
     classnames = [sp.__class__.__name__ for sp in shapes]
-    assert_that(classnames, has_item('_Table'))
+    assert_that(classnames, has_item('Table'))
 
 
 @then('the table appears with the new column widths')

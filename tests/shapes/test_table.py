@@ -334,8 +334,8 @@ class Test_RowCollection(TestCase):
         assert_that(len(self.rows), is_(equal_to(2)))
 
 
-class Test_Table(TestCase):
-    """Test _Table"""
+class TestTable(TestCase):
+    """Test Table"""
     def test_initial_height_divided_evenly_between_rows(self):
         """Table creation height divided evenly between rows"""
         # constant values -------------
@@ -367,7 +367,7 @@ class Test_Table(TestCase):
         assert_that(table.columns[2].width, is_(equal_to(334)))
 
     def test_height_sum_of_row_heights(self):
-        """_Table.height is sum of row heights"""
+        """Table.height is sum of row heights"""
         # constant values -------------
         rows = cols = 2
         left = top = width = height = Inches(2.0)
@@ -381,7 +381,7 @@ class Test_Table(TestCase):
         assert_that(tbl.height, is_(equal_to(sum_of_row_heights)))
 
     def test_width_sum_of_col_widths(self):
-        """_Table.width is sum of column widths"""
+        """Table.width is sum of column widths"""
         # constant values -------------
         rows = cols = 2
         left = top = width = height = Inches(2.0)
@@ -395,10 +395,10 @@ class Test_Table(TestCase):
         assert_that(tbl.width, is_(equal_to(sum_of_col_widths)))
 
 
-class Test_TableBooleanProperties(TestCase):
-    """Test _Table"""
+class TestTableBooleanProperties(TestCase):
+    """Test Table"""
     def setUp(self):
-        """Test fixture for _Table boolean properties"""
+        """Test fixture for Table boolean properties"""
         shapes = test_shapes.empty_shape_collection
         self.table = shapes.add_table(2, 2, 1000, 1000, 1000, 1000)
         self.assignment_cases = (
@@ -415,7 +415,7 @@ class Test_TableBooleanProperties(TestCase):
         Return property of *property_name* on self.table with return value of
         *property_return_value*.
         """
-        # mock <a:tbl> element of _Table so we can mock its properties
+        # mock <a:tbl> element of Table so we can mock its properties
         tbl = MagicMock()
         self.table._tbl_elm = tbl
         # create a suitable mock for the property
@@ -427,7 +427,7 @@ class Test_TableBooleanProperties(TestCase):
         return property_
 
     def test_first_col_property_value(self):
-        """_Table.first_col property value is calculated correctly"""
+        """Table.first_col property value is calculated correctly"""
         # mockery ----------------------
         firstCol_val = True
         firstCol = self.mockery('firstCol', firstCol_val)
@@ -438,7 +438,7 @@ class Test_TableBooleanProperties(TestCase):
         assert_that(retval, is_(equal_to(firstCol_val)))
 
     def test_first_row_property_value(self):
-        """_Table.first_row property value is calculated correctly"""
+        """Table.first_row property value is calculated correctly"""
         # mockery ----------------------
         firstRow_val = True
         firstRow = self.mockery('firstRow', firstRow_val)
@@ -449,7 +449,7 @@ class Test_TableBooleanProperties(TestCase):
         assert_that(retval, is_(equal_to(firstRow_val)))
 
     def test_horz_banding_property_value(self):
-        """_Table.horz_banding property value is calculated correctly"""
+        """Table.horz_banding property value is calculated correctly"""
         # mockery ----------------------
         bandRow_val = True
         bandRow = self.mockery('bandRow', bandRow_val)
@@ -460,7 +460,7 @@ class Test_TableBooleanProperties(TestCase):
         assert_that(retval, is_(equal_to(bandRow_val)))
 
     def test_last_col_property_value(self):
-        """_Table.last_col property value is calculated correctly"""
+        """Table.last_col property value is calculated correctly"""
         # mockery ----------------------
         lastCol_val = True
         lastCol = self.mockery('lastCol', lastCol_val)
@@ -471,7 +471,7 @@ class Test_TableBooleanProperties(TestCase):
         assert_that(retval, is_(equal_to(lastCol_val)))
 
     def test_last_row_property_value(self):
-        """_Table.last_row property value is calculated correctly"""
+        """Table.last_row property value is calculated correctly"""
         # mockery ----------------------
         lastRow_val = True
         lastRow = self.mockery('lastRow', lastRow_val)
@@ -482,7 +482,7 @@ class Test_TableBooleanProperties(TestCase):
         assert_that(retval, is_(equal_to(lastRow_val)))
 
     def test_vert_banding_property_value(self):
-        """_Table.vert_banding property value is calculated correctly"""
+        """Table.vert_banding property value is calculated correctly"""
         # mockery ----------------------
         bandCol_val = True
         bandCol = self.mockery('bandCol', bandCol_val)
@@ -493,7 +493,7 @@ class Test_TableBooleanProperties(TestCase):
         assert_that(retval, is_(equal_to(bandCol_val)))
 
     def test_first_col_assignment(self):
-        """Assignment to _Table.first_col sets attribute value"""
+        """Assignment to Table.first_col sets attribute value"""
         # mockery ----------------------
         firstCol = self.mockery('firstCol')
         # verify -----------------------
@@ -503,7 +503,7 @@ class Test_TableBooleanProperties(TestCase):
             firstCol.reset_mock()
 
     def test_first_row_assignment(self):
-        """Assignment to _Table.first_row sets attribute value"""
+        """Assignment to Table.first_row sets attribute value"""
         # mockery ----------------------
         firstRow = self.mockery('firstRow')
         # verify -----------------------
@@ -513,7 +513,7 @@ class Test_TableBooleanProperties(TestCase):
             firstRow.reset_mock()
 
     def test_horz_banding_assignment(self):
-        """Assignment to _Table.horz_banding sets attribute value"""
+        """Assignment to Table.horz_banding sets attribute value"""
         # mockery ----------------------
         bandRow = self.mockery('bandRow')
         # verify -----------------------
@@ -523,7 +523,7 @@ class Test_TableBooleanProperties(TestCase):
             bandRow.reset_mock()
 
     def test_last_col_assignment(self):
-        """Assignment to _Table.last_col sets attribute value"""
+        """Assignment to Table.last_col sets attribute value"""
         # mockery ----------------------
         lastCol = self.mockery('lastCol')
         # verify -----------------------
@@ -533,7 +533,7 @@ class Test_TableBooleanProperties(TestCase):
             lastCol.reset_mock()
 
     def test_last_row_assignment(self):
-        """Assignment to _Table.last_row sets attribute value"""
+        """Assignment to Table.last_row sets attribute value"""
         # mockery ----------------------
         lastRow = self.mockery('lastRow')
         # verify -----------------------
@@ -543,7 +543,7 @@ class Test_TableBooleanProperties(TestCase):
             lastRow.reset_mock()
 
     def test_vert_banding_assignment(self):
-        """Assignment to _Table.vert_banding sets attribute value"""
+        """Assignment to Table.vert_banding sets attribute value"""
         # mockery ----------------------
         bandCol = self.mockery('bandCol')
         # verify -----------------------

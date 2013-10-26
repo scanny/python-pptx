@@ -9,7 +9,7 @@ from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import Placeholder
 from pptx.shapes.shape import BaseShape
-from pptx.shapes.table import _Table
+from pptx.shapes.table import Table
 from pptx.spec import namespaces, slide_ph_basenames
 from pptx.spec import PH_ORIENT_VERT, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
 from pptx.util import Collection
@@ -55,7 +55,7 @@ class ShapeCollection(BaseShape, Collection):
                 shape = ShapeCollection(elm)
             elif elm.tag == self._GRAPHICFRAME:
                 if elm.has_table:
-                    shape = _Table(elm)
+                    shape = Table(elm)
                 else:
                     shape = BaseShape(elm)
             elif elm.tag == self._CONTENTPART:
@@ -134,7 +134,7 @@ class ShapeCollection(BaseShape, Collection):
         graphicFrame = CT_GraphicalObjectFrame.new_table(
             id, name, rows, cols, left, top, width, height)
         self._spTree.append(graphicFrame)
-        table = _Table(graphicFrame)
+        table = Table(graphicFrame)
         self._shapes.append(table)
         return table
 

@@ -12,13 +12,13 @@ from pptx.text import _TextFrame
 from pptx.util import to_unicode
 
 
-class _Table(BaseShape):
+class Table(BaseShape):
     """
     A table shape. Not intended to be constructed directly, use
     :meth:`ShapeCollection.add_table` to add a table to a slide.
     """
     def __init__(self, graphicFrame):
-        super(_Table, self).__init__(graphicFrame)
+        super(Table, self).__init__(graphicFrame)
         self._graphicFrame = graphicFrame
         self._tbl_elm = graphicFrame[qn('a:graphic')].graphicData.tbl
         self._rows = _RowCollection(self._tbl_elm, self)

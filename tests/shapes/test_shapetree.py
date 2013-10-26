@@ -148,12 +148,12 @@ class TestShapeCollection(TestCase):
         _shapes.append.assert_called_once_with(picture)
         assert_that(retval, is_(equal_to(picture)))
 
-    @patch('pptx.shapes.shapetree._Table')
+    @patch('pptx.shapes.shapetree.Table')
     @patch('pptx.shapes.shapetree.CT_GraphicalObjectFrame')
     @patch('pptx.shapes.shapetree.ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     def test_add_table_collaboration(
-            self, _next_shape_id, CT_GraphicalObjectFrame, _Table):
+            self, _next_shape_id, CT_GraphicalObjectFrame, Table):
         """ShapeCollection.add_table() calls the right collaborators"""
         # constant values -------------
         id_, name = 9, 'Table 8'
@@ -169,7 +169,7 @@ class TestShapeCollection(TestCase):
         shapes._spTree = _spTree
         shapes._shapes = _shapes
         table = Mock('table')
-        _Table.return_value = table
+        Table.return_value = table
         # exercise ---------------------
         retval = shapes.add_table(rows, cols, left, top, width, height)
         # verify -----------------------
@@ -177,7 +177,7 @@ class TestShapeCollection(TestCase):
         CT_GraphicalObjectFrame.new_table.assert_called_once_with(
             id_, name, rows, cols, left, top, width, height)
         _spTree.append.assert_called_once_with(graphicFrame)
-        _Table.assert_called_once_with(graphicFrame)
+        Table.assert_called_once_with(graphicFrame)
         _shapes.append.assert_called_once_with(table)
         assert_that(retval, is_(equal_to(table)))
 
