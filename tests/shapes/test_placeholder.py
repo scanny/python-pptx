@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 
 from pptx.oxml import oxml_parse
-from pptx.shapes.placeholder import _Placeholder
+from pptx.shapes.placeholder import Placeholder
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
@@ -33,9 +33,9 @@ def _sldLayout1_shapes():
 
 
 class Test_Placeholder(TestCase):
-    """Test _Placeholder"""
+    """Test Placeholder"""
     def test_property_values(self):
-        """_Placeholder property values are correct"""
+        """Placeholder property values are correct"""
         # setup ------------------------
         expected_values = (
             (PH_TYPE_CTRTITLE, PH_ORIENT_HORZ, PH_SZ_FULL,     0),
@@ -47,7 +47,7 @@ class Test_Placeholder(TestCase):
         shapes = _sldLayout1_shapes()
         # exercise ---------------------
         for idx, sp in enumerate(shapes):
-            ph = _Placeholder(sp)
+            ph = Placeholder(sp)
             values = (ph.type, ph.orient, ph.sz, ph.idx)
             # verify ----------------------
             expected = expected_values[idx]

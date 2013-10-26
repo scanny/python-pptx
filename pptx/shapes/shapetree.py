@@ -7,7 +7,7 @@ The shape tree, the structure that holds a slide's shapes.
 from pptx.oxml import qn, CT_GraphicalObjectFrame, CT_Picture, CT_Shape
 from pptx.shapes.autoshape import AutoShapeType, _Shape
 from pptx.shapes.picture import Picture
-from pptx.shapes.placeholder import _Placeholder
+from pptx.shapes.placeholder import Placeholder
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.table import _Table
 from pptx.spec import namespaces, slide_ph_basenames
@@ -73,7 +73,7 @@ class _ShapeCollection(BaseShape, Collection):
         collection, sorted in *idx* order.
         """
         placeholders =\
-            [_Placeholder(sp) for sp in self._shapes if sp.is_placeholder]
+            [Placeholder(sp) for sp in self._shapes if sp.is_placeholder]
         placeholders.sort(key=lambda ph: ph.idx)
         return tuple(placeholders)
 
@@ -162,7 +162,7 @@ class _ShapeCollection(BaseShape, Collection):
         for sp in slidelayout.shapes:
             if not sp.is_placeholder:
                 continue
-            ph = _Placeholder(sp)
+            ph = Placeholder(sp)
             if ph.type in latent_ph_types:
                 continue
             self._clone_layout_placeholder(ph)

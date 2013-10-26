@@ -12,13 +12,13 @@ from pptx.spec import PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_OBJ
 _nsmap = namespaces('a', 'r', 'p')
 
 
-class _Placeholder(object):
+class Placeholder(object):
     """
     Decorator (pattern) class for adding placeholder properties to a shape
     that contains a placeholder element, e.g. ``<p:ph>``.
     """
     def __new__(cls, shape):
-        cls = type('PlaceholderDecorator', (_Placeholder, shape.__class__), {})
+        cls = type('PlaceholderDecorator', (Placeholder, shape.__class__), {})
         return object.__new__(cls)
 
     def __init__(self, shape):

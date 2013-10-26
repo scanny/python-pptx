@@ -12,7 +12,7 @@ from mock import Mock, patch, PropertyMock
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.oxml import _SubElement, nsdecls, oxml_parse
 from pptx.parts.slides import _SlideLayout
-from pptx.shapes.shapetree import _Placeholder, _ShapeCollection
+from pptx.shapes.shapetree import Placeholder, _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
@@ -269,7 +269,7 @@ class Test_ShapeCollection(TestCase):
                    % (idx, sp))
             self.assertTrue(is_placeholder, msg)
             # verify values -----------
-            ph = _Placeholder(sp)
+            ph = Placeholder(sp)
             expected = expected_values[idx]
             actual = [ph.id, ph.name, ph.type, ph.idx]
             msg = ("expected placeholder[%d] values %s, got %s"
@@ -291,10 +291,10 @@ class Test_ShapeCollection(TestCase):
             [7, 'Footer Placeholder 6',       PH_TYPE_FTR,      11])
         # exercise ---------------------
         for idx, layout_ph_sp in enumerate(layout_ph_shapes):
-            layout_ph = _Placeholder(layout_ph_sp)
+            layout_ph = Placeholder(layout_ph_sp)
             sp = shapes._clone_layout_placeholder(layout_ph)
             # verify ------------------
-            ph = _Placeholder(sp)
+            ph = Placeholder(sp)
             expected = expected_values[idx]
             actual = [ph.id, ph.name, ph.type, ph.idx]
             msg = "expected placeholder values %s, got %s" % (expected, actual)
@@ -329,9 +329,9 @@ class Test_ShapeCollection(TestCase):
                 ' sz="quarter" idx="11"', '')]
                     # verify ----------------------
         for idx, layout_ph_sp in enumerate(layout_ph_shapes):
-            layout_ph = _Placeholder(layout_ph_sp)
+            layout_ph = Placeholder(layout_ph_sp)
             sp = shapes._clone_layout_placeholder(layout_ph)
-            ph = _Placeholder(sp)
+            ph = Placeholder(sp)
             expected_xml = expected_xml_tmpl % expected_values[idx]
             self.assertEqualLineByLine(expected_xml, ph._element)
 
