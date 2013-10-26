@@ -81,14 +81,14 @@ class _Adjustment(object):
         return self.actual if self.actual is not None else self.def_val
 
 
-class _AdjustmentCollection(object):
+class AdjustmentCollection(object):
     """
     Sequence of |_Adjustment| for an auto shape, each representing an
     available adjustment for a shape of its type. Supports ``len()`` and
     indexed access, e.g. ``shape.adjustments[1] = 0.15``.
     """
     def __init__(self, prstGeom):
-        super(_AdjustmentCollection, self).__init__()
+        super(AdjustmentCollection, self).__init__()
         self._adjustments_ = self._initialized_adjustments(prstGeom)
         self._prstGeom = prstGeom
 
@@ -275,7 +275,7 @@ class Shape(BaseShape):
     """
     def __init__(self, sp):
         super(Shape, self).__init__(sp)
-        self._adjustments = _AdjustmentCollection(sp.prstGeom)
+        self._adjustments = AdjustmentCollection(sp.prstGeom)
 
     @property
     def adjustments(self):
