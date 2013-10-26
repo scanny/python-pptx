@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Image part objects, including _Image
+Image part objects, including Image
 """
 
 import hashlib
@@ -20,7 +20,7 @@ from pptx.spec import default_content_types
 from pptx.util import Px
 
 
-class _Image(BasePart):
+class Image(BasePart):
     """
     Return new Image part instance. *file* may be |None|, a path to a file (a
     string), or a file-like object. If *file* is |None|, no image is loaded
@@ -29,7 +29,7 @@ class _Image(BasePart):
     files ppt/media/image[1-9][0-9]*.*.
     """
     def __init__(self, file=None):
-        super(_Image, self).__init__()
+        super(Image, self).__init__()
         self._filepath = None
         self._ext = None
         if file is not None:
@@ -41,7 +41,7 @@ class _Image(BasePart):
         Return file extension for this image. Includes the leading dot, e.g.
         ``'.png'``.
         """
-        assert self._ext, "_Image._ext referenced before assigned"
+        assert self._ext, "Image._ext referenced before assigned"
         return self._ext
 
     @property
@@ -108,7 +108,7 @@ class _Image(BasePart):
     def _load(self, pkgpart, part_dict):
         """Handle aspects of loading that are particular to image parts."""
         # call parent to do generic aspects of load
-        super(_Image, self)._load(pkgpart, part_dict)
+        super(Image, self)._load(pkgpart, part_dict)
         # set file extension
         self._ext = posixpath.splitext(pkgpart.partname)[1]
         # return self-reference to allow generative calling
@@ -176,8 +176,8 @@ class ImageCollection(_PartCollection):
         image instance containing this same image already exists, that
         instance is returned. If it does not yet exist, a new one is created.
         """
-        # use _Image constructor to validate and characterize image file
-        image = _Image(file)
+        # use Image constructor to validate and characterize image file
+        image = Image(file)
         # return matching image if found
         for existing_image in self._values:
             if existing_image._sha1 == image._sha1:

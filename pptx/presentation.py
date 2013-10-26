@@ -17,7 +17,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import _Relationship, _RelationshipCollection
 from pptx.oxml import _child, _Element, qn
 from pptx.parts.coreprops import CoreProperties
-from pptx.parts.image import _Image, ImageCollection
+from pptx.parts.image import Image, ImageCollection
 from pptx.parts.part import BasePart, _PartCollection
 from pptx.parts.slides import (
     _Slide, _SlideCollection, _SlideLayout, _SlideMaster
@@ -131,7 +131,7 @@ class _Package(object):
         # gather references to image parts into _images_
         self._images_ = ImageCollection()
         image_parts = [part for part in self._parts
-                       if part.__class__.__name__ == '_Image']
+                       if part.__class__.__name__ == 'Image']
         for image in image_parts:
             self._images_._loadpart(image)
 
@@ -222,7 +222,7 @@ class _Part(object):
         elif reltype == RT.SLIDE_MASTER:
             return _SlideMaster()
         elif reltype == RT.IMAGE:
-            return _Image()
+            return Image()
         return BasePart()
 
 

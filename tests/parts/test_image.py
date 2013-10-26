@@ -8,7 +8,7 @@ from StringIO import StringIO
 
 from hamcrest import assert_that, equal_to, is_
 
-from pptx.parts.image import _Image
+from pptx.parts.image import Image
 from pptx.presentation import _Package
 from pptx.util import Px
 
@@ -22,12 +22,12 @@ test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
 new_image_path = absjoin(test_file_dir, 'monty-truth.png')
 
 
-class Test_Image(TestCase):
-    """Test _Image"""
+class TestImage(TestCase):
+    """Test Image"""
     def test_construction_from_file(self):
-        """_Image(path) constructor produces correct attribute values"""
+        """Image(path) constructor produces correct attribute values"""
         # exercise ---------------------
-        image = _Image(test_image_path)
+        image = Image(test_image_path)
         # verify -----------------------
         assert_that(image.ext, is_(equal_to('.jpeg')))
         assert_that(image._content_type, is_(equal_to('image/jpeg')))
@@ -35,11 +35,11 @@ class Test_Image(TestCase):
         assert_that(image._desc, is_(equal_to('python-icon.jpeg')))
 
     def test_construction_from_stream(self):
-        """_Image(stream) construction produces correct attribute values"""
+        """Image(stream) construction produces correct attribute values"""
         # exercise ---------------------
         with open(test_image_path, 'rb') as f:
             stream = StringIO(f.read())
-        image = _Image(stream)
+        image = Image(stream)
         # verify -----------------------
         assert_that(image.ext, is_(equal_to('.jpg')))
         assert_that(image._content_type, is_(equal_to('image/jpeg')))
@@ -47,39 +47,39 @@ class Test_Image(TestCase):
         assert_that(image._desc, is_(equal_to('image.jpg')))
 
     def test_construction_from_file_raises_on_bad_path(self):
-        """_Image(path) constructor raises on bad path"""
+        """Image(path) constructor raises on bad path"""
         # verify -----------------------
         with self.assertRaises(IOError):
-            _Image('foobar27.png')
+            Image('foobar27.png')
 
     def test__scale_calculates_correct_dimensions(self):
-        """_Image._scale() calculates correct dimensions"""
+        """Image._scale() calculates correct dimensions"""
         # setup ------------------------
         test_cases = (
             ((None, None), (Px(204), Px(204))),
             ((1000, None), (1000, 1000)),
             ((None, 3000), (3000, 3000)),
             ((3337, 9999), (3337, 9999)))
-        image = _Image(test_image_path)
+        image = Image(test_image_path)
         # verify -----------------------
         for params, expected in test_cases:
             width, height = params
             assert_that(image._scale(width, height), is_(equal_to(expected)))
 
     def test__size_returns_image_native_pixel_dimensions(self):
-        """_Image._size is width, height tuple of image pixel dimensions"""
-        image = _Image(test_image_path)
+        """Image._size is width, height tuple of image pixel dimensions"""
+        image = Image(test_image_path)
         assert_that(image._size, is_(equal_to((204, 204))))
 
     def test__ext_from_image_stream_raises_on_incompatible_format(self):
         with self.assertRaises(ValueError):
             with open(test_bmp_path) as stream:
-                _Image._ext_from_image_stream(stream)
+                Image._ext_from_image_stream(stream)
 
     def test__image_ext_content_type_known_type(self):
-        """_Image._image_ext_content_type() correct for known content type"""
+        """Image._image_ext_content_type() correct for known content type"""
         # exercise ---------------------
-        content_type = _Image._image_ext_content_type('.jpeg')
+        content_type = Image._image_ext_content_type('.jpeg')
         # verify -----------------------
         expected = 'image/jpeg'
         actual = content_type
@@ -88,11 +88,11 @@ class Test_Image(TestCase):
 
     def test__image_ext_content_type_raises_on_bad_ext(self):
         with self.assertRaises(TypeError):
-            _Image._image_ext_content_type('.xj7')
+            Image._image_ext_content_type('.xj7')
 
     def test__image_ext_content_type_raises_on_non_img_ext(self):
         with self.assertRaises(TypeError):
-            _Image._image_ext_content_type('.xml')
+            Image._image_ext_content_type('.xml')
 
 
 class TestImageCollection(TestCase):
