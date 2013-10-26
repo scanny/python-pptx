@@ -162,7 +162,7 @@ class Image(BasePart):
 class ImageCollection(_PartCollection):
     """
     Immutable sequence of images, typically belonging to an instance of
-    |_Package|. An image part containing a particular image blob appears only
+    |Package|. An image part containing a particular image blob appears only
     once in an instance, regardless of how many times it is referenced by a
     pic shape in a slide.
     """

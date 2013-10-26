@@ -9,7 +9,7 @@ from StringIO import StringIO
 from hamcrest import assert_that, equal_to, is_
 
 from pptx.parts.image import Image
-from pptx.presentation import _Package
+from pptx.presentation import Package
 from pptx.util import Px
 
 from ..unitutil import absjoin, TestCase, test_file_dir
@@ -100,7 +100,7 @@ class TestImageCollection(TestCase):
     def test_add_image_returns_matching_image(self):
         """ImageCollection.add_image() returns existing image on match"""
         # setup ------------------------
-        pkg = _Package(images_pptx_path)
+        pkg = Package(images_pptx_path)
         matching_idx = 4
         matching_image = pkg._images[matching_idx]
         # exercise ---------------------
@@ -115,7 +115,7 @@ class TestImageCollection(TestCase):
     def test_add_image_adds_new_image(self):
         """ImageCollection.add_image() adds new image on no match"""
         # setup ------------------------
-        pkg = _Package(images_pptx_path)
+        pkg = Package(images_pptx_path)
         expected_partname = '/ppt/media/image8.png'
         expected_len = len(pkg._images) + 1
         expected_sha1 = '79769f1e202add2e963158b532e36c2c0f76a70c'

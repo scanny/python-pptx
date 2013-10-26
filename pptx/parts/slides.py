@@ -60,11 +60,11 @@ class _BaseSlide(BasePart):
 
     @property
     def _package(self):
-        """Reference to |_Package| containing this slide"""
+        """Reference to |Package| containing this slide"""
         # !!! --- GET RID OF THIS, PASS PACKAGE TO PART ON CONSTRUCTION !!!
-        from pptx.presentation import _Package
+        from pptx.presentation import Package
         # !!! =============================================================
-        return _Package.containing(self)
+        return Package.containing(self)
 
 
 class _Slide(_BaseSlide):

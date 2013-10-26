@@ -13,7 +13,7 @@ from pptx.oxml import oxml_parse
 from pptx.parts.slides import (
     _BaseSlide, _Slide, _SlideCollection, _SlideLayout, _SlideMaster
 )
-from pptx.presentation import _Package, Presentation
+from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import _ShapeCollection
 from pptx.spec import namespaces
 
@@ -322,7 +322,7 @@ class Test_SlideMaster(TestCase):
     def test_slidelayouts_correct_length_after_open(self):
         """_SlideMaster.slidelayouts correct length after open"""
         # setup ------------------------
-        pkg = _Package(test_pptx_path)
+        pkg = Package(test_pptx_path)
         slidemaster = pkg.presentation.slidemasters[0]
         # exercise ---------------------
         slidelayouts = slidemaster.slidelayouts

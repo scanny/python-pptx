@@ -2,12 +2,12 @@
 
 """
 Directly exposed API classes, Presentation for now. Provides some syntactic
-sugar for interacting with the pptx.presentation._Package graph and also
+sugar for interacting with the pptx.presentation.Package graph and also
 provides some insulation so not so many classes in the other modules need to
 be named as internal (leading underscore).
 """
 
-from pptx.presentation import _Package
+from pptx.presentation import Package
 
 
 class Presentation(object):
@@ -19,7 +19,7 @@ class Presentation(object):
     """
     def __init__(self, file_=None):
         super(Presentation, self).__init__()
-        self._package = _Package(file_)
+        self._package = Package(file_)
         self._presentation = self._package.presentation
 
     @property

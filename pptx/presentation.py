@@ -24,9 +24,9 @@ from pptx.parts.slides import (
 )
 
 
-class _Package(object):
+class Package(object):
     """
-    Return an instance of |_Package| loaded from *file*, where *file* can be a
+    Return an instance of |Package| loaded from *file*, where *file* can be a
     path (a string) or a file-like object. If *file* is a path, it can be
     either a path to a PowerPoint `.pptx` file or a path to a directory
     containing an expanded presentation file, as would result from unzipping
@@ -37,7 +37,7 @@ class _Package(object):
     _instances = []
 
     def __init__(self, file_=None):
-        super(_Package, self).__init__()
+        super(Package, self).__init__()
         self._presentation = None
         self._core_properties = None
         self._relationships_ = _RelationshipCollection()
@@ -62,13 +62,13 @@ class _Package(object):
         document properties for this presentation.
         """
         assert self._core_properties, (
-            '_Package._core_properties referenced before assigned'
+            'Package._core_properties referenced before assigned'
         )
         return self._core_properties
 
     @classmethod
     def instances(cls):
-        """Return tuple of _Package instances that have been created"""
+        """Return tuple of Package instances that have been created"""
         # clean garbage collected pkgs out of _instances
         cls._instances[:] = [wkref for wkref in cls._instances
                              if wkref() is not None]
@@ -169,7 +169,7 @@ class _Package(object):
         Return a list containing a reference to each of the parts in this
         package.
         """
-        return [part for part in _Package._walkparts(self._relationships_)]
+        return [part for part in Package._walkparts(self._relationships_)]
 
     @staticmethod
     def _walkparts(rels, parts=None):
@@ -187,7 +187,7 @@ class _Package(object):
                 continue
             parts.append(part)
             yield part
-            for part in _Package._walkparts(part._relationships, parts):
+            for part in Package._walkparts(part._relationships, parts):
                 yield part
 
 

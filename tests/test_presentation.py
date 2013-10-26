@@ -17,7 +17,7 @@ from pptx.oxml import oxml_fromstring, oxml_parse
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import BasePart
 from pptx.parts.slides import _Slide, _SlideLayout, _SlideMaster
-from pptx.presentation import _Package, _Part, Presentation
+from pptx.presentation import Package, _Part, Presentation
 from pptx.spec import namespaces, qtag
 
 from .unitutil import absjoin, TestCase, test_file_dir
@@ -95,8 +95,8 @@ class RelationshipCollectionBuilder(object):
         return rels
 
 
-class Test_Package(TestCase):
-    """Test _Package"""
+class TestPackage(TestCase):
+    """Test Package"""
     def setUp(self):
         self.test_pptx_path = absjoin(test_file_dir, 'test_python-pptx.pptx')
         if os.path.isfile(self.test_pptx_path):
@@ -107,8 +107,8 @@ class Test_Package(TestCase):
             os.remove(self.test_pptx_path)
 
     def test_construction_with_no_path_loads_default_template(self):
-        """_Package() call with no path loads default template"""
-        prs = _Package().presentation
+        """Package() call with no path loads default template"""
+        prs = Package().presentation
         assert_that(prs, is_not(None))
         slidemasters = prs.slidemasters
         assert_that(slidemasters, is_not(None))
@@ -118,29 +118,29 @@ class Test_Package(TestCase):
         assert_that(len(slidelayouts), is_(11))
 
     def test_instances_are_tracked(self):
-        """_Package instances are tracked"""
-        pkg = _Package()
-        self.assertIn(pkg, _Package.instances())
+        """Package instances are tracked"""
+        pkg = Package()
+        self.assertIn(pkg, Package.instances())
 
     def test_instance_refs_are_garbage_collected(self):
-        """_Package instance refs are garbage collected with old instances"""
-        pkg = _Package()
+        """Package instance refs are garbage collected with old instances"""
+        pkg = Package()
         pkg1_repr = "%r" % pkg
-        pkg = _Package()
+        pkg = Package()
         # pkg2_repr = "%r" % pkg
         gc.collect()
-        reprs = [repr(pkg_inst) for pkg_inst in _Package.instances()]
+        reprs = [repr(pkg_inst) for pkg_inst in Package.instances()]
         assert_that(pkg1_repr, is_not(is_in(reprs)))
 
     def test_containing_returns_correct_pkg(self):
-        """_Package.containing() returns right package instance"""
+        """Package.containing() returns right package instance"""
         # setup ------------------------
-        pkg1 = _Package(test_pptx_path)
+        pkg1 = Package(test_pptx_path)
         pkg1.presentation  # does nothing, just needed to fake out pep8 warning
-        pkg2 = _Package(test_pptx_path)
+        pkg2 = Package(test_pptx_path)
         slide = pkg2.presentation.slides[0]
         # exercise ---------------------
-        found_pkg = _Package.containing(slide)
+        found_pkg = Package.containing(slide)
         # verify -----------------------
         expected = pkg2
         actual = found_pkg
@@ -148,19 +148,19 @@ class Test_Package(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_containing_raises_on_no_pkg_contains_part(self):
-        """_Package.containing(part) raises on no package contains part"""
+        """Package.containing(part) raises on no package contains part"""
         # setup ------------------------
-        pkg = _Package(test_pptx_path)
+        pkg = Package(test_pptx_path)
         pkg.presentation  # does nothing, just needed to fake out pep8 warning
         part = Mock(name='part')
         # verify -----------------------
         with self.assertRaises(KeyError):
-            _Package.containing(part)
+            Package.containing(part)
 
     def test_open_gathers_image_parts(self):
-        """_Package open gathers image parts into image collection"""
+        """Package open gathers image parts into image collection"""
         # exercise ---------------------
-        pkg = _Package(images_pptx_path)
+        pkg = Package(images_pptx_path)
         # verify -----------------------
         expected = 7
         actual = len(pkg._images)
@@ -168,10 +168,10 @@ class Test_Package(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_presentation_presentation_after_open(self):
-        """_Package.presentation is instance of Presentation after open()"""
+        """Package.presentation is instance of Presentation after open()"""
         # setup ------------------------
         cls = Presentation
-        pkg = _Package()
+        pkg = Package()
         # exercise ---------------------
         obj = pkg.presentation
         # verify -----------------------
@@ -181,20 +181,20 @@ class Test_Package(TestCase):
         self.assertTrue(actual, msg)
 
     def test_it_should_have_core_props(self):
-        """_Package should provide access to core document properties"""
+        """Package should provide access to core document properties"""
         # setup ------------------------
-        pkg = _Package()
+        pkg = Package()
         # verify -----------------------
         assert_that(pkg.core_properties, is_(instance_of(CoreProperties)))
 
     def test_saved_file_has_plausible_contents(self):
-        """_Package.save produces a .pptx with plausible contents"""
+        """Package.save produces a .pptx with plausible contents"""
         # setup ------------------------
-        pkg = _Package()
+        pkg = Package()
         # exercise ---------------------
         pkg.save(self.test_pptx_path)
         # verify -----------------------
-        pkg = _Package(self.test_pptx_path)
+        pkg = Package(self.test_pptx_path)
         prs = pkg.presentation
         assert_that(prs, is_not(None))
         slidemasters = prs.slidemasters
@@ -285,7 +285,7 @@ class Test_Presentation(TestCase):
     def test_slidemasters_correct_length_after_pkg_open(self):
         """Presentation.slidemasters correct length after load"""
         # setup ------------------------
-        pkg = _Package(test_pptx_path)
+        pkg = Package(test_pptx_path)
         prs = pkg.presentation
         # exercise ---------------------
         slidemasters = prs.slidemasters
@@ -300,7 +300,7 @@ class Test_Presentation(TestCase):
     def test_slides_correct_length_after_pkg_open(self):
         """Presentation.slides correct length after load"""
         # setup ------------------------
-        pkg = _Package(test_pptx_path)
+        pkg = Package(test_pptx_path)
         prs = pkg.presentation
         # exercise ---------------------
         slides = prs.slides
