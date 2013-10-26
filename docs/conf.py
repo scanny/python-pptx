@@ -19,6 +19,10 @@ import sys, os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
 
+import pptx
+from pptx import __version__
+
+
 # -- General configuration --------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -58,9 +62,9 @@ copyright = u'2012, 2013, Steve Canny'
 # built documents.
 #
 # The short X.Y version.
-version = '0.2'
+version = __version__
 # The full version, including alpha/beta/rc tags.
-release = '0.2.4'
+release = __version__
 
 # A string of reStructuredText that will be included at the end of every source
 # file that is read. This is the right place to add substitutions that should
@@ -197,7 +201,6 @@ html_theme = 'armstrong'
 # html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
 html_theme_path = ['.themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
