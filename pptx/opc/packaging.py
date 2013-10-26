@@ -125,7 +125,7 @@ class Package(object):
         cti = _ContentTypesItem().compose(self.parts)
         zipfs.write_element(cti.element, '/[Content_Types].xml')
         # write pkg rels item
-        zipfs.write_element(self.__relsitem_element, self.PKG_RELSITEM_URI)
+        zipfs.write_element(self._relsitem_element, self.PKG_RELSITEM_URI)
         for part in self.parts:
             # write part item
             zipfs.write_blob(part.blob, part.partname)
@@ -135,7 +135,7 @@ class Package(object):
         zipfs.close()
 
     @property
-    def __relsitem_element(self):
+    def _relsitem_element(self):
         nsmap = {None: pptx.spec.nsmap['pr']}
         element = etree.Element(qtag('pr:Relationships'), nsmap=nsmap)
         for rel in self._relationships:
@@ -231,7 +231,7 @@ class Part(object):
 
         # load relationships and propagate load to target parts
         self._relationships = []  # discard any rels from prior load
-        rel_elms = self.__get_rel_elms(fs)
+        rel_elms = self._get_rel_elms(fs)
         for rel_elm in rel_elms:
             rId = rel_elm.get('Id')
             reltype = rel_elm.get('Type')
@@ -298,7 +298,7 @@ class Part(object):
         head, tail = os.path.split(self._partname)
         return '%s/_rels/%s.rels' % (head, tail)
 
-    def __get_rel_elms(self, fs):
+    def _get_rel_elms(self, fs):
         """
         Helper method for _load(). Return list of this relationship elements
         for this part from *fs*. Returns empty list if there are no
@@ -318,7 +318,7 @@ class Part(object):
     @staticmethod
     def __relsitemURI(typespec, partname, fs):
         """
-        REFACTOR: Combine this logic into __get_rel_elms, it's the only caller
+        REFACTOR: Combine this logic into _get_rel_elms, it's the only caller
         and logic is partially redundant.
 
         Return package URI for this part's relationships item. Returns None if
