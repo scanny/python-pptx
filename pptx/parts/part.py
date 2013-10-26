@@ -4,7 +4,7 @@
 Part objects, including BasePart.
 """
 
-from pptx.opc.rels import _Relationship, RelationshipCollection
+from pptx.opc.rels import Relationship, RelationshipCollection
 from pptx.oxml import oxml_fromstring, oxml_tostring
 from pptx.util import Collection, Partname
 
@@ -130,7 +130,7 @@ class BasePart(_Observable):
                 return rel
         # otherwise construct a new one
         rId = self._relationships._next_rId
-        rel = _Relationship(rId, reltype, target_part)
+        rel = Relationship(rId, reltype, target_part)
         self._relationships._additem(rel)
         return rel
 
@@ -174,7 +174,7 @@ class BasePart(_Observable):
                 part._load(target_pkgpart, part_dict)
 
             # create model-side package relationship
-            model_rel = _Relationship(pkgrel.rId, reltype, part)
+            model_rel = Relationship(pkgrel.rId, reltype, part)
             self._relationships._additem(model_rel)
         return self
 

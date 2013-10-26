@@ -7,14 +7,14 @@ Relationship-related objects.
 from pptx.util import Collection, Partname
 
 
-class _Relationship(object):
+class Relationship(object):
     """
     Relationship to a part from a package or part. *rId* must be unique in any
     |RelationshipCollection| this relationship is added to; use
     :attr:`RelationshipCollection._next_rId` to get a unique rId.
     """
     def __init__(self, rId, reltype, target):
-        super(_Relationship, self).__init__()
+        super(Relationship, self).__init__()
         # can't get _num right if rId is non-standard form
         assert rId.startswith('rId'), "rId in non-standard form: '%s'" % rId
         self._rId_ = rId
@@ -48,7 +48,7 @@ class _Relationship(object):
     @property
     def _num(self):
         """
-        The numeric portion of the rId of this |_Relationship|, expressed as
+        The numeric portion of the rId of this |Relationship|, expressed as
         an :class:`int`. For example, :attr:`_num` for a relationship with an
         rId of ``'rId12'`` would be ``12``.
         """

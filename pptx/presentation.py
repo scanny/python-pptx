@@ -14,7 +14,7 @@ import pptx.opc.packaging
 
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.opc.rels import _Relationship, RelationshipCollection
+from pptx.opc.rels import Relationship, RelationshipCollection
 from pptx.oxml import _child, _Element, qn
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
@@ -125,7 +125,7 @@ class Package(object):
             part._load(pkgpart, part_dict)
 
             # create model-side package relationship
-            model_rel = _Relationship(pkgrel.rId, reltype, part)
+            model_rel = Relationship(pkgrel.rId, reltype, part)
             self._relationships_._additem(model_rel)
 
         # gather references to image parts into _images_
@@ -151,7 +151,7 @@ class Package(object):
             core_props = CoreProperties._default()
             self._core_properties = core_props
             rId = self._relationships_._next_rId
-            rel = _Relationship(rId, RT.CORE_PROPERTIES, core_props)
+            rel = Relationship(rId, RT.CORE_PROPERTIES, core_props)
             self._relationships_._additem(rel)
 
     @property

@@ -8,7 +8,7 @@ from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import Mock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.rels import _Relationship, RelationshipCollection
+from pptx.opc.rels import Relationship, RelationshipCollection
 from pptx.parts.part import BasePart
 
 from ..unitutil import TestCase
@@ -29,32 +29,32 @@ class PartBuilder(object):
         return p
 
 
-class Test_Relationship(TestCase):
-    """Test _Relationship"""
+class TestRelationship(TestCase):
+    """Test Relationship"""
     def setUp(self):
         rId = 'rId1'
         reltype = RT.SLIDE
         target_part = None
-        self.rel = _Relationship(rId, reltype, target_part)
+        self.rel = Relationship(rId, reltype, target_part)
 
     def test_constructor_raises_on_bad_rId(self):
-        """_Relationship constructor raises on non-standard rId"""
+        """Relationship constructor raises on non-standard rId"""
         with self.assertRaises(AssertionError):
-            _Relationship('Non-std14', None, None)
+            Relationship('Non-std14', None, None)
 
     def test__num_value(self):
-        """_Relationship._num value is correct"""
+        """Relationship._num value is correct"""
         # setup ------------------------
         num = 91
         rId = 'rId%d' % num
-        rel = _Relationship(rId, None, None)
+        rel = Relationship(rId, None, None)
         # verify -----------------------
         assert_that(rel._num, is_(equal_to(num)))
 
     def test__num_value_on_non_standard_rId(self):
-        """_Relationship._num value is correct for non-standard rId"""
+        """Relationship._num value is correct for non-standard rId"""
         # setup ------------------------
-        rel = _Relationship('rIdSm', None, None)
+        rel = Relationship('rIdSm', None, None)
         # verify -----------------------
         assert_that(rel._num, is_(equal_to(9999)))
 
@@ -97,11 +97,11 @@ class TestRelationshipCollection(TestCase):
         part4.partname = partnames[3]
         part5 = Mock(name='part5')
         part5.partname = partnames[4]
-        rel1 = _Relationship('rId1', RT.SLIDE,        part1)
-        rel2 = _Relationship('rId2', RT.SLIDE_LAYOUT, part2)
-        rel3 = _Relationship('rId3', RT.SLIDE_MASTER, part3)
-        rel4 = _Relationship('rId4', RT.SLIDE,        part4)
-        rel5 = _Relationship('rId5', RT.PRES_PROPS,   part5)
+        rel1 = Relationship('rId1', RT.SLIDE,        part1)
+        rel2 = Relationship('rId2', RT.SLIDE_LAYOUT, part2)
+        rel3 = Relationship('rId3', RT.SLIDE_MASTER, part3)
+        rel4 = Relationship('rId4', RT.SLIDE,        part4)
+        rel5 = Relationship('rId5', RT.PRES_PROPS,   part5)
         relationships = RelationshipCollection()
         relationships._additem(rel1)
         relationships._additem(rel2)
@@ -115,7 +115,7 @@ class TestRelationshipCollection(TestCase):
         # setup ------------------------
         reltype = RT.CORE_PROPERTIES
         part = Mock(name='part')
-        relationship = _Relationship('rId1', reltype, part)
+        relationship = Relationship('rId1', reltype, part)
         relationships = RelationshipCollection()
         relationships._additem(relationship)
         # exercise ---------------------
@@ -136,8 +136,8 @@ class TestRelationshipCollection(TestCase):
         # setup ------------------------
         part1 = BasePart()
         part2 = BasePart()
-        rel1 = _Relationship('rId9', None, part1)
-        rel2 = _Relationship('rId9', None, part2)
+        rel1 = Relationship('rId9', None, part1)
+        rel2 = Relationship('rId9', None, part2)
         self.relationships._additem(rel1)
         # verify -----------------------
         with self.assertRaises(ValueError):
@@ -149,9 +149,9 @@ class TestRelationshipCollection(TestCase):
         part1 = BasePart()
         part2 = BasePart()
         part3 = BasePart()
-        rel1 = _Relationship('rId1', None, part1)
-        rel2 = _Relationship('rId2', None, part2)
-        rel3 = _Relationship('rId3', None, part3)
+        rel1 = Relationship('rId1', None, part1)
+        rel2 = Relationship('rId2', None, part2)
+        rel3 = Relationship('rId3', None, part3)
         # exercise ---------------------
         self.relationships._additem(rel2)
         self.relationships._additem(rel1)
@@ -172,7 +172,7 @@ class TestRelationshipCollection(TestCase):
         part = Mock(name='new_part')
         part.partname = partname
         rId = relationships._next_rId
-        rel = _Relationship(rId, RT.SLIDE, part)
+        rel = Relationship(rId, RT.SLIDE, part)
         # exercise ---------------------
         relationships._additem(rel)
         # verify ordering -------------
@@ -229,10 +229,10 @@ class TestRelationshipCollection(TestCase):
         part2 = BasePart()
         part3 = BasePart()
         part4 = BasePart()
-        rel1 = _Relationship('rId1', None, part1)
-        rel2 = _Relationship('rId2', None, part2)
-        rel3 = _Relationship('rId3', None, part3)
-        rel4 = _Relationship('rId4', None, part4)
+        rel1 = Relationship('rId1', None, part1)
+        rel2 = Relationship('rId2', None, part2)
+        rel3 = Relationship('rId3', None, part3)
+        rel4 = Relationship('rId4', None, part4)
         cases = (('rId1', (rel2, rel3, rel4)),
                  ('rId2', (rel1, rel3, rel4)),
                  ('rId3', (rel1, rel2, rel4)),
@@ -260,8 +260,8 @@ class TestRelationshipCollection(TestCase):
         partname3 = '/ppt/slides/slide3.xml'
         part1 = PartBuilder().with_partname(partname1).build()
         part2 = PartBuilder().with_partname(partname2).build()
-        rel1 = _Relationship('rId1', RT.SLIDE, part1)
-        rel2 = _Relationship('rId2', RT.SLIDE, part2)
+        rel1 = Relationship('rId1', RT.SLIDE, part1)
+        rel2 = Relationship('rId2', RT.SLIDE, part2)
         relationships = RelationshipCollection()
         relationships._reltype_ordering = (RT.SLIDE)
         relationships._additem(rel1)

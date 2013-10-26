@@ -149,7 +149,7 @@ class Test_Slide(TestCase):
         path = absjoin(test_file_dir, 'slide1.xml')
         slidelayout = Mock(name='slideLayout')
         slidelayout.partname = '/ppt/slideLayouts/slideLayout1.xml'
-        rel = Mock(name='pptx.packaging._Relationship')
+        rel = Mock(name='pptx.packaging.Relationship')
         rel.rId = 'rId1'
         rel.reltype = RT.SLIDE_LAYOUT
         rel.target = slidelayout
@@ -273,7 +273,7 @@ class Test_SlideLayout(TestCase):
         pkg_slidemaster_part = Mock(spec=packaging.Part)
         pkg_slidemaster_part.partname = sldmaster_partname
         # a package-side relationship from slideLayout to its slideMaster
-        rel = Mock(name='pptx.packaging._Relationship')
+        rel = Mock(name='pptx.packaging.Relationship')
         rel.rId = 'rId1'
         rel.reltype = RT.SLIDE_MASTER
         rel.target = pkg_slidemaster_part
