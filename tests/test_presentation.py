@@ -61,22 +61,14 @@ class RelationshipCollectionBuilder(object):
 
     def with_tuple_targets(self, count, reltype):
         for i in range(count):
-            rId = self.__next_rId
-            partname = self.__next_tuple_partname(reltype)
+            rId = self._next_rId
+            partname = self._next_tuple_partname(reltype)
             target = PartBuilder().with_partname(partname).build()
             rel = _Relationship(rId, reltype, target)
             self.relationships.append(rel)
         return self
 
-    # def with_singleton_target(self, reltype):
-    #     rId = self.__next_rId
-    #     partname = self.__singleton_partname(reltype)
-    #     target = PartBuilder().with_partname(partname).build()
-    #     rel = _Relationship(rId, reltype, target)
-    #     self.relationships.append(rel)
-    #     return self
-    #
-    def __next_partnum(self, reltype):
+    def _next_partnum(self, reltype):
         if reltype not in self.next_partnums:
             self.next_partnums[reltype] = 1
         partnum = self.next_partnums[reltype]
@@ -84,14 +76,14 @@ class RelationshipCollectionBuilder(object):
         return partnum
 
     @property
-    def __next_rId(self):
+    def _next_rId(self):
         rId = 'rId%d' % self.next_rel_num
         self.next_rel_num += 1
         return rId
 
-    def __next_tuple_partname(self, reltype):
+    def _next_tuple_partname(self, reltype):
         partname_tmpl = self.partname_tmpls[reltype]
-        partnum = self.__next_partnum(reltype)
+        partnum = self._next_partnum(reltype)
         return partname_tmpl % partnum
 
     def build(self):
