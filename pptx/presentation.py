@@ -17,7 +17,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import _Relationship, _RelationshipCollection
 from pptx.oxml import _child, _Element, qn
 from pptx.parts.coreprops import CoreProperties
-from pptx.parts.image import _Image, _ImageCollection
+from pptx.parts.image import _Image, ImageCollection
 from pptx.parts.part import BasePart, _PartCollection
 from pptx.parts.slides import (
     _Slide, _SlideCollection, _SlideLayout, _SlideMaster
@@ -41,7 +41,7 @@ class _Package(object):
         self._presentation = None
         self._core_properties = None
         self._relationships_ = _RelationshipCollection()
-        self._images_ = _ImageCollection()
+        self._images_ = ImageCollection()
         self._instances.append(weakref.ref(self))
         if file_ is None:
             file_ = self._default_pptx_path
@@ -129,7 +129,7 @@ class _Package(object):
             self._relationships_._additem(model_rel)
 
         # gather references to image parts into _images_
-        self._images_ = _ImageCollection()
+        self._images_ = ImageCollection()
         image_parts = [part for part in self._parts
                        if part.__class__.__name__ == '_Image']
         for image in image_parts:

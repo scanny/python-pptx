@@ -95,10 +95,10 @@ class Test_Image(TestCase):
             _Image._image_ext_content_type('.xml')
 
 
-class Test_ImageCollection(TestCase):
-    """Test _ImageCollection"""
+class TestImageCollection(TestCase):
+    """Test ImageCollection"""
     def test_add_image_returns_matching_image(self):
-        """_ImageCollection.add_image() returns existing image on match"""
+        """ImageCollection.add_image() returns existing image on match"""
         # setup ------------------------
         pkg = _Package(images_pptx_path)
         matching_idx = 4
@@ -113,7 +113,7 @@ class Test_ImageCollection(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_add_image_adds_new_image(self):
-        """_ImageCollection.add_image() adds new image on no match"""
+        """ImageCollection.add_image() adds new image on no match"""
         # setup ------------------------
         pkg = _Package(images_pptx_path)
         expected_partname = '/ppt/media/image8.png'

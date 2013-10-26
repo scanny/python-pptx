@@ -159,7 +159,7 @@ class _Image(BasePart):
             self._load_blob = file.read()
 
 
-class _ImageCollection(_PartCollection):
+class ImageCollection(_PartCollection):
     """
     Immutable sequence of images, typically belonging to an instance of
     |_Package|. An image part containing a particular image blob appears only
@@ -167,7 +167,7 @@ class _ImageCollection(_PartCollection):
     pic shape in a slide.
     """
     def __init__(self):
-        super(_ImageCollection, self).__init__()
+        super(ImageCollection, self).__init__()
 
     def add_image(self, file):
         """
