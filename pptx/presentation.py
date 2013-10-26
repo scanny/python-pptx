@@ -256,12 +256,12 @@ class Presentation(_BasePart):
         Rewrite sldId elements in sldIdLst before handing over to super for
         transformation of _element into a blob.
         """
-        self.__rewrite_sldIdLst()
+        self._rewrite_sldIdLst()
         # # at least the following needs to be added before using
         # # _reltype_ordering again for Presentation
-        # self.__rewrite_notesMasterIdLst()
-        # self.__rewrite_handoutMasterIdLst()
-        # self.__rewrite_sldMasterIdLst()
+        # self._rewrite_notesMasterIdLst()
+        # self._rewrite_handoutMasterIdLst()
+        # self._rewrite_sldMasterIdLst()
         return super(Presentation, self)._blob
 
     def _load(self, pkgpart, part_dict):
@@ -291,7 +291,7 @@ class Presentation(_BasePart):
                 self._slides._loadpart(rel._target)
         return self
 
-    def __rewrite_sldIdLst(self):
+    def _rewrite_sldIdLst(self):
         """
         Rewrite the ``<p:sldIdLst>`` element in ``<p:presentation>`` to
         reflect current ordering of slide relationships and possible
@@ -299,7 +299,7 @@ class Presentation(_BasePart):
         """
         sldIdLst = _child(self._element, 'p:sldIdLst')
         if sldIdLst is None:
-            sldIdLst = self.__add_sldIdLst()
+            sldIdLst = self._add_sldIdLst()
         sldIdLst.clear()
         sld_rels = self._relationships.rels_of_reltype(RT.SLIDE)
         for idx, rel in enumerate(sld_rels):
@@ -308,13 +308,13 @@ class Presentation(_BasePart):
             sldId.set('id', str(256+idx))
             sldId.set(qn('r:id'), rel._rId)
 
-    def __add_sldIdLst(self):
+    def _add_sldIdLst(self):
         """
         Add a <p:sldIdLst> element to <p:presentation> in the right sequence
         among its siblings.
         """
         sldIdLst = _child(self._element, 'p:sldIdLst')
-        assert sldIdLst is None, '__add_sldIdLst() called where '\
+        assert sldIdLst is None, '_add_sldIdLst() called where '\
                                  '<p:sldIdLst> already exists'
         sldIdLst = _Element('p:sldIdLst')
         # insert new sldIdLst element in right sequence
