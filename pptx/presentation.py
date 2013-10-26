@@ -120,7 +120,7 @@ class Package(object):
             content_type = pkgpart.content_type
 
             # create target part
-            part = _Part(reltype, content_type)
+            part = Part(reltype, content_type)
             part_dict[partname] = part
             part._load(pkgpart, part_dict)
 
@@ -191,7 +191,7 @@ class Package(object):
                 yield part
 
 
-class _Part(object):
+class Part(object):
     """
     Part factory. Returns an instance of the appropriate custom part type for
     part types that have them, BasePart otherwise.

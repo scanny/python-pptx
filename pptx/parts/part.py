@@ -167,9 +167,9 @@ class BasePart(_Observable):
             else:
                 # !!!~!!!~!!!~!!!~!!!~!!!~!!!~
                 # get rid of this as soon as possible
-                from pptx.presentation import _Part
+                from pptx.presentation import Part
                 # !!!~!!!~!!!~!!!~!!!~!!!~!!!~
-                part = _Part(reltype, content_type)
+                part = Part(reltype, content_type)
                 part_dict[partname] = part
                 part._load(target_pkgpart, part_dict)
 

@@ -17,7 +17,7 @@ from pptx.oxml import oxml_fromstring, oxml_parse
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import BasePart
 from pptx.parts.slides import _Slide, _SlideLayout, _SlideMaster
-from pptx.presentation import Package, _Part, Presentation
+from pptx.presentation import Package, Part, Presentation
 from pptx.spec import namespaces, qtag
 
 from .unitutil import absjoin, TestCase, test_file_dir
@@ -205,48 +205,48 @@ class TestPackage(TestCase):
         assert_that(len(slidelayouts), is_(11))
 
 
-class Test_Part(TestCase):
-    """Test _Part"""
+class TestPart(TestCase):
+    """Test Part"""
     def test_constructs_presentation_for_rt_officedocument(self):
-        """_Part() returns Presentation for RT.OFFICE_DOCUMENT"""
+        """Part() returns Presentation for RT.OFFICE_DOCUMENT"""
         # setup ------------------------
         cls = Presentation
         # exercise ---------------------
-        obj = _Part(RT.OFFICE_DOCUMENT, CT.PML_PRESENTATION_MAIN)
+        obj = Part(RT.OFFICE_DOCUMENT, CT.PML_PRESENTATION_MAIN)
         # verify -----------------------
         self.assertIsInstance(obj, cls)
 
     def test_constructs_slide_for_rt_slide(self):
-        """_Part() returns _Slide for RT.SLIDE"""
+        """Part() returns _Slide for RT.SLIDE"""
         # setup ------------------------
         cls = _Slide
         # exercise ---------------------
-        obj = _Part(RT.SLIDE, CT.PML_SLIDE)
+        obj = Part(RT.SLIDE, CT.PML_SLIDE)
         # verify -----------------------
         self.assertIsInstance(obj, cls)
 
     def test_constructs_slidelayout_for_rt_slidelayout(self):
-        """_Part() returns _SlideLayout for RT.SLIDE_LAYOUT"""
+        """Part() returns _SlideLayout for RT.SLIDE_LAYOUT"""
         # setup ------------------------
         cls = _SlideLayout
         # exercise ---------------------
-        obj = _Part(RT.SLIDE_LAYOUT, CT.PML_SLIDE_LAYOUT)
+        obj = Part(RT.SLIDE_LAYOUT, CT.PML_SLIDE_LAYOUT)
         # verify -----------------------
         self.assertIsInstance(obj, cls)
 
     def test_constructs_slidemaster_for_rt_slidemaster(self):
-        """_Part() returns _SlideMaster for RT.SLIDE_MASTER"""
+        """Part() returns _SlideMaster for RT.SLIDE_MASTER"""
         # setup ------------------------
         cls = _SlideMaster
         # exercise ---------------------
-        obj = _Part(RT.SLIDE_MASTER, CT.PML_SLIDE_MASTER)
+        obj = Part(RT.SLIDE_MASTER, CT.PML_SLIDE_MASTER)
         # verify -----------------------
         self.assertIsInstance(obj, cls)
 
     def test_contructor_raises_on_invalid_prs_content_type(self):
-        """_Part() raises on invalid presentation content type"""
+        """Part() raises on invalid presentation content type"""
         with self.assertRaises(InvalidPackageError):
-            _Part(RT.OFFICE_DOCUMENT, CT.PML_SLIDE_MASTER)
+            Part(RT.OFFICE_DOCUMENT, CT.PML_SLIDE_MASTER)
 
 
 class Test_Presentation(TestCase):
