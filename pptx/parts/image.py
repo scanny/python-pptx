@@ -15,7 +15,7 @@ except ImportError:
 
 from StringIO import StringIO
 
-from pptx.parts.part import BasePart, _PartCollection
+from pptx.parts.part import BasePart, PartCollection
 from pptx.spec import default_content_types
 from pptx.util import Px
 
@@ -159,7 +159,7 @@ class Image(BasePart):
             self._load_blob = file.read()
 
 
-class ImageCollection(_PartCollection):
+class ImageCollection(PartCollection):
     """
     Immutable sequence of images, typically belonging to an instance of
     |Package|. An image part containing a particular image blob appears only

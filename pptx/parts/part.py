@@ -179,7 +179,7 @@ class BasePart(_Observable):
         return self
 
 
-class _PartCollection(Collection):
+class PartCollection(Collection):
     """
     Sequence of parts. Sensitive to partname index when ordering parts added
     via _loadpart(), e.g. ``/ppt/slide/slide2.xml`` appears before
@@ -187,7 +187,7 @@ class _PartCollection(Collection):
     lexicographical sort.
     """
     def __init__(self):
-        super(_PartCollection, self).__init__()
+        super(PartCollection, self).__init__()
 
     def _loadpart(self, part):
         """

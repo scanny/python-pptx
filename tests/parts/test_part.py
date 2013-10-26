@@ -9,7 +9,7 @@ from mock import Mock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_fromstring, oxml_tostring
-from pptx.parts.part import BasePart, _PartCollection
+from pptx.parts.part import BasePart, PartCollection
 
 from ..unitutil import TestCase
 
@@ -119,10 +119,10 @@ class TestBasePart(TestCase):
         self.assertEqual(expected, actual, msg)
 
 
-class Test_PartCollection(TestCase):
-    """Test _PartCollection"""
+class TestPartCollection(TestCase):
+    """Test PartCollection"""
     def test__loadpart_sorts_loaded_parts(self):
-        """_PartCollection._loadpart sorts loaded parts"""
+        """PartCollection._loadpart sorts loaded parts"""
         # setup ------------------------
         partname1 = '/ppt/slides/slide1.xml'
         partname2 = '/ppt/slides/slide2.xml'
@@ -133,7 +133,7 @@ class Test_PartCollection(TestCase):
         part2.partname = partname2
         part3 = Mock(name='part3')
         part3.partname = partname3
-        parts = _PartCollection()
+        parts = PartCollection()
         # exercise ---------------------
         parts._loadpart(part2)
         parts._loadpart(part3)

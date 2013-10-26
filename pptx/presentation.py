@@ -18,7 +18,7 @@ from pptx.opc.rels import _Relationship, _RelationshipCollection
 from pptx.oxml import _child, _Element, qn
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
-from pptx.parts.part import BasePart, _PartCollection
+from pptx.parts.part import BasePart, PartCollection
 from pptx.parts.slides import (
     _Slide, _SlideCollection, _SlideLayout, _SlideMaster
 )
@@ -233,7 +233,7 @@ class Presentation(BasePart):
     """
     def __init__(self):
         super(Presentation, self).__init__()
-        self._slidemasters = _PartCollection()
+        self._slidemasters = PartCollection()
         self._slides = _SlideCollection(self)
 
     @property

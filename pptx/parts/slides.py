@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import _Element, _SubElement
-from pptx.parts.part import BasePart, _PartCollection
+from pptx.parts.part import BasePart, PartCollection
 from pptx.shapes.shapetree import _ShapeCollection
 
 
@@ -120,7 +120,7 @@ class _Slide(_BaseSlide):
         return sld
 
 
-class _SlideCollection(_PartCollection):
+class _SlideCollection(PartCollection):
     """
     Immutable sequence of slides belonging to an instance of |Presentation|,
     with methods for manipulating the slides in the presentation.
@@ -199,7 +199,7 @@ class _SlideMaster(_BaseSlide):
 
     def __init__(self):
         super(_SlideMaster, self).__init__(CT.PML_SLIDE_MASTER)
-        self._slidelayouts = _PartCollection()
+        self._slidelayouts = PartCollection()
 
     @property
     def slidelayouts(self):
