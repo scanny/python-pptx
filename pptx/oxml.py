@@ -200,11 +200,11 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         Intercept attribute access to generalize property getters.
         """
         if name in CT_CoreProperties._str_tags:
-            return self.__get_str_prop(name)
+            return self._get_str_prop(name)
         elif name in CT_CoreProperties._date_tags:
-            return self.__get_date_prop(name)
+            return self._get_date_prop(name)
         elif name == 'revision':
-            return self.__get_revision()
+            return self._get_revision()
         else:
             return super(CT_CoreProperties, self).__getattribute__(name)
 
@@ -214,15 +214,15 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         to intercept messages intended for custom property setters.
         """
         if name in CT_CoreProperties._str_tags:
-            self.__set_str_prop(name, value)
+            self._set_str_prop(name, value)
         elif name in CT_CoreProperties._date_tags:
-            self.__set_date_prop(name, value)
+            self._set_date_prop(name, value)
         elif name == 'revision':
-            self.__set_revision(value)
+            self._set_revision(value)
         else:
             super(CT_CoreProperties, self).__setattr__(name, value)
 
-    def __get_str_prop(self, name):
+    def _get_str_prop(self, name):
         """Return string value of *name* property."""
         # explicit class reference avoids another pass through getattribute
         tag = qn(CT_CoreProperties._str_tags[name])
@@ -230,7 +230,7 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             return ''
         return getattr(self, tag).text
 
-    def __get_date_prop(self, name):
+    def _get_date_prop(self, name):
         """Return datetime value of *name* property."""
         # explicit class reference avoids another pass through getattribute
         tag = qn(CT_CoreProperties._date_tags[name])
@@ -244,7 +244,7 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             # invalid datetime strings are ignored
             return None
 
-    def __get_revision(self):
+    def _get_revision(self):
         """Return integer value of revision property."""
         tag = qn('cp:revision')
         # revision returns zero when element not present
@@ -261,7 +261,7 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             revision = 0
         return revision
 
-    def __set_str_prop(self, name, value):
+    def _set_str_prop(self, name, value):
         """Set string value of *name* property to *value*"""
         value = str(value)
         if len(value) > 255:
@@ -274,7 +274,7 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         elm = getattr(self, tag)
         objectify.deannotate(elm, cleanup_namespaces=True)
 
-    def __set_date_prop(self, name, value):
+    def _set_date_prop(self, name, value):
         """Set datetime value of *name* property to *value*"""
         if not isinstance(value, datetime):
             tmpl = ("'%s' property requires <type 'datetime.datetime'> objec"
@@ -296,7 +296,7 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             self[tag].set(qn('xsi:type'), 'dcterms:W3CDTF')
             del self.attrib[qn('xsi:foo')]
 
-    def __set_revision(self, value):
+    def _set_revision(self, value):
         """Set integer value of revision property to *value*"""
         if not isinstance(value, int) or value < 1:
             tmpl = "revision property requires positive int, got '%s'"
