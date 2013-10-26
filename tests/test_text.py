@@ -48,7 +48,7 @@ class Test_Font(TestCase):
         # exercise ---------------------
         self.font.bold = True
         # verify -----------------------
-        rPr_xml = oxml_tostring(self.font._Font__rPr)
+        rPr_xml = oxml_tostring(self.font._rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
 
     def test_clear_bold(self):
@@ -65,7 +65,7 @@ class Test_Font(TestCase):
         # exercise ---------------------
         font.bold = None
         # verify -----------------------
-        rPr_xml = oxml_tostring(font._Font__rPr)
+        rPr_xml = oxml_tostring(font._rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
 
     def test_set_font_size(self):
@@ -78,7 +78,7 @@ class Test_Font(TestCase):
         # exercise ---------------------
         self.font.size = newfontsize
         # verify -----------------------
-        actual_xml = oxml_tostring(self.font._Font__rPr)
+        actual_xml = oxml_tostring(self.font._rPr)
         assert_that(actual_xml, is_(equal_to(expected_xml)))
 
 
@@ -356,7 +356,7 @@ class Test_TextFrame(TestCase):
         textframe.add_paragraph()
         # verify -----------------------
         assert_that(len(textframe.paragraphs), is_(equal_to(2)))
-        textframe_xml = oxml_tostring(textframe._TextFrame__txBody)
+        textframe_xml = oxml_tostring(textframe._txBody)
         expected = expected_xml
         actual = textframe_xml
         msg = "\nExpected: '%s'\n\n     Got: '%s'" % (expected, actual)
@@ -399,7 +399,7 @@ class Test_TextFrame(TestCase):
         # exercise ---------------------
         textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
         # verify -----------------------
-        self.assertEqualLineByLine(expected_xml, textframe._TextFrame__txBody)
+        self.assertEqualLineByLine(expected_xml, textframe._txBody)
 
     def test_word_wrap_works(self):
         """Assignment to _TextFrame.word_wrap sets word wrap value"""
@@ -433,19 +433,19 @@ class Test_TextFrame(TestCase):
         textframe.word_wrap = True
         # verify -----------------------
         self.assertEqualLineByLine(
-            true_expected_xml, textframe._TextFrame__txBody)
+            true_expected_xml, textframe._txBody)
         self.assertEqual(textframe.word_wrap, True)
 
         # exercise ---------------------
         textframe.word_wrap = False
         # verify -----------------------
         self.assertEqualLineByLine(
-            false_expected_xml, textframe._TextFrame__txBody)
+            false_expected_xml, textframe._txBody)
         self.assertEqual(textframe.word_wrap, False)
 
         # exercise ---------------------
         textframe.word_wrap = None
         # verify -----------------------
         self.assertEqualLineByLine(
-            none_expected_xml, textframe._TextFrame__txBody)
+            none_expected_xml, textframe._txBody)
         self.assertEqual(textframe.word_wrap, None)

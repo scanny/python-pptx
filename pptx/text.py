@@ -22,7 +22,7 @@ class _TextFrame(object):
     """
     def __init__(self, txBody):
         super(_TextFrame, self).__init__()
-        self.__txBody = txBody
+        self._txBody = txBody
 
     @property
     def paragraphs(self):
@@ -31,7 +31,7 @@ class _TextFrame(object):
         paragraphs in this text frame. A text frame always contains at least
         one paragraph.
         """
-        return tuple([_Paragraph(p) for p in self.__txBody[qn('a:p')]])
+        return tuple([_Paragraph(p) for p in self._txBody[qn('a:p')]])
 
     def _set_text(self, text):
         """Replace all text in text frame with single run containing *text*"""
@@ -52,7 +52,7 @@ class _TextFrame(object):
         """
         value_map = {MSO.ANCHOR_TOP: 't', MSO.ANCHOR_MIDDLE: 'ctr',
                      MSO.ANCHOR_BOTTOM: 'b'}
-        bodyPr = _get_or_add(self.__txBody, 'a:bodyPr')
+        bodyPr = _get_or_add(self._txBody, 'a:bodyPr')
         bodyPr.set('anchor', value_map[value])
 
     #: Write-only. Assignment to *vertical_anchor* sets the vertical
@@ -66,7 +66,7 @@ class _TextFrame(object):
         Set ``wrap`` attribution of ``<a:bodyPr>`` element. Can be
         one of True, False, or None.
         """
-        bodyPr = _get_or_add(self.__txBody, 'a:bodyPr')
+        bodyPr = _get_or_add(self._txBody, 'a:bodyPr')
 
         if value is None:
             del bodyPr.attrib['wrap']
@@ -81,7 +81,7 @@ class _TextFrame(object):
         are True, False, and None.
         """
         value_map = {'square': True, 'none': False, None: None}
-        bodyPr = _get_or_add(self.__txBody, 'a:bodyPr')
+        bodyPr = _get_or_add(self._txBody, 'a:bodyPr')
         value = bodyPr.get('wrap')
         return value_map[value]
 
@@ -98,16 +98,16 @@ class _TextFrame(object):
         """
         # <a:p> elements are last in txBody, so can simply append new one
         p = _Element('a:p')
-        self.__txBody.append(p)
+        self._txBody.append(p)
         return _Paragraph(p)
 
     def clear(self):
         """
         Remove all paragraphs except one empty one.
         """
-        p_list = self.__txBody.xpath('./a:p', namespaces=_nsmap)
+        p_list = self._txBody.xpath('./a:p', namespaces=_nsmap)
         for p in p_list[1:]:
-            self.__txBody.remove(p)
+            self._txBody.remove(p)
         p = self.paragraphs[0]
         p.clear()
 
@@ -250,7 +250,7 @@ class _Font(object):
     """
     def __init__(self, rPr):
         super(_Font, self).__init__()
-        self.__rPr = rPr
+        self._rPr = rPr
 
     @property
     def bold(self):
@@ -260,21 +260,21 @@ class _Font(object):
         cleared and is inherited from an enclosing shape's setting, or a
         setting in a style or master.
         """
-        b = self.__rPr.get('b')
+        b = self._rPr.get('b')
         return True if b in ('true', '1') else False
 
     @bold.setter
     def bold(self, bool):
         if bool is None:
-            if 'b' in self.__rPr.attrib:
-                del self.__rPr.attrib['b']
+            if 'b' in self._rPr.attrib:
+                del self._rPr.attrib['b']
         else:
-            self.__rPr.set('b', '1' if bool else '0')
+            self._rPr.set('b', '1' if bool else '0')
 
     def _set_size(self, centipoints):
         # handle float centipoints value gracefully
         centipoints = int(centipoints)
-        self.__rPr.set('sz', str(centipoints))
+        self._rPr.set('sz', str(centipoints))
 
     #: Set the font size. In PresentationML, font size is expressed in
     #: hundredths of a point (centipoints). The :class:`pptx.util.Pt` class
