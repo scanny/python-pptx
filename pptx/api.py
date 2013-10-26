@@ -33,7 +33,7 @@ class Presentation(object):
     @property
     def slidelayouts(self):
         """
-        Tuple containing the |_SlideLayout| instances belonging to the
+        Tuple containing the |SlideLayout| instances belonging to the
         first |_SlideMaster| of this presentation.
         """
         return tuple(self._presentation.slidemasters[0].slidelayouts)

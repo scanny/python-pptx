@@ -11,7 +11,7 @@ from pptx.opc import packaging
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_parse
 from pptx.parts.slides import (
-    _BaseSlide, _Slide, SlideCollection, _SlideLayout, _SlideMaster
+    _BaseSlide, _Slide, SlideCollection, SlideLayout, _SlideMaster
 )
 from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import ShapeCollection
@@ -110,7 +110,7 @@ class Test_Slide(TestCase):
     def test_construction_adds_slide_layout_relationship(self):
         """_Slide(slidelayout) adds relationship slide->slidelayout"""
         # setup ------------------------
-        slidelayout = _SlideLayout()
+        slidelayout = SlideLayout()
         slidelayout._shapes = _sldLayout1_shapes()
         # exercise ---------------------
         slide = _Slide(slidelayout)
@@ -215,7 +215,7 @@ class TestSlideCollection(TestCase):
         # setup ------------------------
         prs = Presentation()
         slides = prs.slides
-        slidelayout = _SlideLayout()
+        slidelayout = SlideLayout()
         slidelayout._shapes = []
         # exercise ---------------------
         slide = slides.add_slide(slidelayout)
@@ -238,7 +238,7 @@ class TestSlideCollection(TestCase):
         # setup ------------------------
         prs = Presentation()
         slides = prs.slides
-        slidelayout = _SlideLayout()
+        slidelayout = SlideLayout()
         slidelayout._shapes = []
         # exercise ---------------------
         slide = slides.add_slide(slidelayout)
@@ -249,14 +249,14 @@ class TestSlideCollection(TestCase):
         self.assertEqual(expected, actual, msg)
 
 
-class Test_SlideLayout(TestCase):
-    """Test _SlideLayout"""
+class TestSlideLayout(TestCase):
+    """Test SlideLayout"""
     def setUp(self):
-        self.slidelayout = _SlideLayout()
+        self.slidelayout = SlideLayout()
 
     def _loaded_slidelayout(self, prs_slidemaster=None):
         """
-        Return _SlideLayout instance loaded using mocks. *prs_slidemaster* is
+        Return SlideLayout instance loaded using mocks. *prs_slidemaster* is
         an already-loaded model-side _SlideMaster instance (or mock, as
         appropriate to calling test).
         """
@@ -283,11 +283,11 @@ class Test_SlideLayout(TestCase):
         with open(slidelayout_path, 'rb') as f:
             pkg_slidelayout_part.blob = f.read()
         # _load and return
-        slidelayout = _SlideLayout()
+        slidelayout = SlideLayout()
         return slidelayout._load(pkg_slidelayout_part, loaded_part_dict)
 
     def test__load_sets_slidemaster(self):
-        """_SlideLayout._load() sets slidemaster"""
+        """SlideLayout._load() sets slidemaster"""
         # setup ------------------------
         prs_slidemaster = Mock(spec=_SlideMaster)
         # exercise ---------------------
@@ -299,12 +299,12 @@ class Test_SlideLayout(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_slidemaster_is_readonly(self):
-        """_SlideLayout.slidemaster is read-only"""
+        """SlideLayout.slidemaster is read-only"""
         # verify -----------------------
         self.assertIsReadOnly(self.slidelayout, 'slidemaster')
 
     def test_slidemaster_raises_on_ref_before_assigned(self):
-        """_SlideLayout.slidemaster raises on referenced before assigned"""
+        """SlideLayout.slidemaster raises on referenced before assigned"""
         with self.assertRaises(AssertionError):
             self.slidelayout.slidemaster
 

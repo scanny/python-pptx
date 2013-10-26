@@ -85,7 +85,7 @@ class _Slide(_BaseSlide):
     @property
     def slidelayout(self):
         """
-        |_SlideLayout| object this slide inherits appearance from.
+        |SlideLayout| object this slide inherits appearance from.
         """
         return self._slidelayout
 
@@ -153,20 +153,20 @@ class SlideCollection(PartCollection):
             slide.partname = '/ppt/slides/slide%d.xml' % (idx+1)
 
 
-class _SlideLayout(_BaseSlide):
+class SlideLayout(_BaseSlide):
     """
     Slide layout part. Corresponds to package files
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
     def __init__(self):
-        super(_SlideLayout, self).__init__(CT.PML_SLIDE_LAYOUT)
+        super(SlideLayout, self).__init__(CT.PML_SLIDE_LAYOUT)
         self._slidemaster = None
 
     @property
     def slidemaster(self):
         """Slide master from which this slide layout inherits properties."""
         assert self._slidemaster is not None, (
-            "_SlideLayout.slidemaster referenced before assigned"
+            "SlideLayout.slidemaster referenced before assigned"
         )
         return self._slidemaster
 
@@ -175,7 +175,7 @@ class _SlideLayout(_BaseSlide):
         Load slide layout from package part.
         """
         # call parent to do generic aspects of load
-        super(_SlideLayout, self)._load(pkgpart, part_dict)
+        super(SlideLayout, self)._load(pkgpart, part_dict)
 
         # selectively unmarshal relationships we need
         for rel in self._relationships:

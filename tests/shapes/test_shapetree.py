@@ -11,7 +11,7 @@ from mock import Mock, patch, PropertyMock
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.oxml import _SubElement, nsdecls, oxml_parse
-from pptx.parts.slides import _SlideLayout
+from pptx.parts.slides import SlideLayout
 from pptx.shapes.shapetree import Placeholder, ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
@@ -256,7 +256,7 @@ class TestShapeCollection(TestCase):
             [2, 'Title 1',             PH_TYPE_CTRTITLE,  0],
             [3, 'Vertical Subtitle 2', PH_TYPE_SUBTITLE,  1],
             [4, 'Table Placeholder 3', PH_TYPE_TBL,      14])
-        slidelayout = _SlideLayout()
+        slidelayout = SlideLayout()
         slidelayout._shapes = _sldLayout1_shapes()
         shapes = test_shapes.empty_shape_collection
         # exercise ---------------------

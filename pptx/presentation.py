@@ -20,7 +20,7 @@ from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
 from pptx.parts.part import BasePart, PartCollection
 from pptx.parts.slides import (
-    _Slide, SlideCollection, _SlideLayout, _SlideMaster
+    _Slide, SlideCollection, SlideLayout, _SlideMaster
 )
 
 
@@ -218,7 +218,7 @@ class Part(object):
         elif reltype == RT.SLIDE:
             return _Slide()
         elif reltype == RT.SLIDE_LAYOUT:
-            return _SlideLayout()
+            return SlideLayout()
         elif reltype == RT.SLIDE_MASTER:
             return _SlideMaster()
         elif reltype == RT.IMAGE:
