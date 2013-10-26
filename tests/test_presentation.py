@@ -130,8 +130,6 @@ class Test_Package(TestCase):
         # pkg2_repr = "%r" % pkg
         gc.collect()
         reprs = [repr(pkg_inst) for pkg_inst in _Package.instances()]
-        # log.debug("pkg1, pkg2, reprs: %s, %s, %s"
-        #           % (pkg1_repr, pkg2_repr, reprs))
         assert_that(pkg1_repr, is_not(is_in(reprs)))
 
     def test_containing_returns_correct_pkg(self):
