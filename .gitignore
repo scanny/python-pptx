@@ -3,7 +3,7 @@
 *.egg-info
 *.pyc
 /dist/
-/docs/_build
+/docs/.build
 features/_scratch/*
 out.txt
 _scratch
