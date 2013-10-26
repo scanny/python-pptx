@@ -5,10 +5,10 @@ Picture shape.
 """
 
 from pptx.constants import MSO
-from pptx.shapes.shape import _BaseShape
+from pptx.shapes.shape import BaseShape
 
 
-class _Picture(_BaseShape):
+class _Picture(BaseShape):
     """
     A picture shape, one that places an image on a slide. Corresponds to the
     ``<p:pic>`` element.

@@ -7,7 +7,7 @@ Autoshape-related objects such as _Shape and _Adjustment.
 from numbers import Number
 
 from pptx.constants import MSO
-from pptx.shapes.shape import _BaseShape
+from pptx.shapes.shape import BaseShape
 from pptx.spec import autoshape_types
 
 
@@ -267,7 +267,7 @@ class AutoShapeType(object):
         return self._prst
 
 
-class _Shape(_BaseShape):
+class _Shape(BaseShape):
     """
     A shape that can appear on a slide. Corresponds to the ``<p:sp>`` element
     that can appear in any of the slide-type parts (slide, slideLayout,

@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Base shape-related objects such as _BaseShape.
+Base shape-related objects such as BaseShape.
 """
 
 from pptx.spec import namespaces
@@ -14,13 +14,13 @@ from pptx.util import to_unicode
 _nsmap = namespaces('a', 'r', 'p')
 
 
-class _BaseShape(object):
+class BaseShape(object):
     """
     Base class for shape objects. Both |_Shape| and |_Picture| inherit from
-    |_BaseShape|.
+    |BaseShape|.
     """
     def __init__(self, shape_element):
-        super(_BaseShape, self).__init__()
+        super(BaseShape, self).__init__()
         self._element = shape_element
         # e.g. nvSpPr for shape, nvPicPr for pic, etc.
         self._nvXxPr = shape_element.xpath('./*[1]', namespaces=_nsmap)[0]

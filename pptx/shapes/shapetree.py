@@ -8,7 +8,7 @@ from pptx.oxml import qn, CT_GraphicalObjectFrame, CT_Picture, CT_Shape
 from pptx.shapes.autoshape import AutoShapeType, _Shape
 from pptx.shapes.picture import _Picture
 from pptx.shapes.placeholder import _Placeholder
-from pptx.shapes.shape import _BaseShape
+from pptx.shapes.shape import BaseShape
 from pptx.shapes.table import _Table
 from pptx.spec import namespaces, slide_ph_basenames
 from pptx.spec import PH_ORIENT_VERT, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
@@ -22,7 +22,7 @@ _nsmap = namespaces('a', 'r', 'p')
 # Shapes
 # ============================================================================
 
-class _ShapeCollection(_BaseShape, Collection):
+class _ShapeCollection(BaseShape, Collection):
     """
     Sequence of shapes. Corresponds to CT_GroupShape in pml schema. Note that
     while spTree in a slide is a group shape, the group shape is recursive in
@@ -57,13 +57,13 @@ class _ShapeCollection(_BaseShape, Collection):
                 if elm.has_table:
                     shape = _Table(elm)
                 else:
-                    shape = _BaseShape(elm)
+                    shape = BaseShape(elm)
             elif elm.tag == self._CONTENTPART:
                 msg = ("first time 'contentPart' shape encountered in the "
                        "wild, please let developer know and send example")
                 raise ValueError(msg)
             else:
-                shape = _BaseShape(elm)
+                shape = BaseShape(elm)
             self._shapes.append(shape)
 
     @property

@@ -6,13 +6,13 @@ Table-related objects such as Table and Cell.
 
 from pptx.constants import MSO
 from pptx.oxml import _child, qn
-from pptx.shapes.shape import _BaseShape
+from pptx.shapes.shape import BaseShape
 from pptx.spec import VerticalAnchor
 from pptx.text import _TextFrame
 from pptx.util import to_unicode
 
 
-class _Table(_BaseShape):
+class _Table(BaseShape):
     """
     A table shape. Not intended to be constructed directly, use
     :meth:`_ShapeCollection.add_table` to add a table to a slide.

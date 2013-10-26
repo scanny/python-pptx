@@ -270,10 +270,10 @@ class TestAutoShapeType(TestCase):
 
 class Test_Shape(TestCase):
     """Test _Shape"""
-    @patch('pptx.shapes.autoshape._BaseShape.__init__')
+    @patch('pptx.shapes.autoshape.BaseShape.__init__')
     @patch('pptx.shapes.autoshape._AdjustmentCollection')
     def test_it_initializes_adjustments_on_construction(
-            self, _AdjustmentCollection, _BaseShape__init__):
+            self, _AdjustmentCollection, BaseShape__init__):
         """_Shape() initializes adjustments on construction"""
         # setup ------------------------
         adjustments = Mock(name='adjustments')
@@ -282,7 +282,7 @@ class Test_Shape(TestCase):
         # exercise ---------------------
         shape = _Shape(sp)
         # verify -----------------------
-        _BaseShape__init__.assert_called_once_with(sp)
+        BaseShape__init__.assert_called_once_with(sp)
         _AdjustmentCollection.assert_called_once_with(sp.prstGeom)
         assert_that(shape.adjustments, is_(adjustments))
 
