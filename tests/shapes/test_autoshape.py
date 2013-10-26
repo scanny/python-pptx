@@ -9,7 +9,7 @@ from mock import Mock, patch
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.shapes.autoshape import (
-    _Adjustment, AdjustmentCollection, AutoShapeType, Shape
+    Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
 from pptx.oxml import oxml_fromstring
 
@@ -17,10 +17,10 @@ from ..unitdata import a_prstGeom, test_shapes
 from ..unitutil import TestCase
 
 
-class Test_Adjustment(TestCase):
-    """Test _Adjustment"""
+class TestAdjustment(TestCase):
+    """Test Adjustment"""
     def test_it_should_have_correct_effective_value(self):
-        """_Adjustment.effective_value is correct"""
+        """Adjustment.effective_value is correct"""
         # setup ------------------------
         name = "don't care"
         cases = (
@@ -39,7 +39,7 @@ class Test_Adjustment(TestCase):
         )
         # verify -----------------------
         for def_val, actual, expected in cases:
-            adjustment = _Adjustment(name, def_val, actual)
+            adjustment = Adjustment(name, def_val, actual)
             assert_that(adjustment.effective_value, is_(equal_to(expected)))
 
 

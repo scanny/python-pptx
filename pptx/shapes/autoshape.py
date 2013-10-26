@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Autoshape-related objects such as Shape and _Adjustment.
+Autoshape-related objects such as Shape and Adjustment.
 """
 
 from numbers import Number
@@ -11,7 +11,7 @@ from pptx.shapes.shape import BaseShape
 from pptx.spec import autoshape_types
 
 
-class _Adjustment(object):
+class Adjustment(object):
     """
     An adjustment value for an autoshape.
 
@@ -25,7 +25,7 @@ class _Adjustment(object):
     can be negative or greater than 1.0 in certain circumstances.
     """
     def __init__(self, name, def_val, actual=None):
-        super(_Adjustment, self).__init__()
+        super(Adjustment, self).__init__()
         self.name = name
         self.def_val = def_val
         self.actual = actual
@@ -58,7 +58,7 @@ class _Adjustment(object):
     def _denormalize(value):
         """
         Return integer corresponding to normalized *raw_value* on unit basis
-        of 100,000. See _Adjustment.normalize for additional details.
+        of 100,000. See Adjustment.normalize for additional details.
         """
         return int(value * 100000.0)
 
@@ -83,7 +83,7 @@ class _Adjustment(object):
 
 class AdjustmentCollection(object):
     """
-    Sequence of |_Adjustment| for an auto shape, each representing an
+    Sequence of |Adjustment| for an auto shape, each representing an
     available adjustment for a shape of its type. Supports ``len()`` and
     indexed access, e.g. ``shape.adjustments[1] = 0.15``.
     """
@@ -113,7 +113,7 @@ class AdjustmentCollection(object):
         if prstGeom is None:
             return []
         davs = AutoShapeType.default_adjustment_values(prstGeom.prst)
-        adjustments = [_Adjustment(name, def_val) for name, def_val in davs]
+        adjustments = [Adjustment(name, def_val) for name, def_val in davs]
         self._update_adjustments_with_actuals(adjustments, prstGeom.gd)
         return adjustments
 
@@ -128,7 +128,7 @@ class AdjustmentCollection(object):
     @staticmethod
     def _update_adjustments_with_actuals(adjustments, guides):
         """
-        Update |_Adjustment| instances in *adjustments* with actual values
+        Update |Adjustment| instances in *adjustments* with actual values
         held in *guides*, a list of ``<a:gd>`` elements. Guides with a name
         that does not match an adjustment object are skipped.
         """
@@ -146,7 +146,7 @@ class AdjustmentCollection(object):
     @property
     def _adjustments(self):
         """
-        Sequence containing direct references to the |_Adjustment| objects
+        Sequence containing direct references to the |Adjustment| objects
         contained in collection.
         """
         return tuple(self._adjustments_)
@@ -280,7 +280,7 @@ class Shape(BaseShape):
     @property
     def adjustments(self):
         """
-        Read-only reference to _AdjustmentsCollection instance for this
+        Read-only reference to AdjustmentsCollection instance for this
         shape
         """
         return self._adjustments
