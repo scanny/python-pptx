@@ -14,14 +14,14 @@ from pptx.util import to_unicode
 _nsmap = namespaces('a', 'r', 'p')
 
 
-class _TextFrame(object):
+class TextFrame(object):
     """
     The part of a shape that contains its text. Not all shapes have a text
     frame. Corresponds to the ``<p:txBody>`` element that can appear as a
     child element of ``<p:sp>``. Not intended to be constructed directly.
     """
     def __init__(self, txBody):
-        super(_TextFrame, self).__init__()
+        super(TextFrame, self).__init__()
         self._txBody = txBody
 
     @property

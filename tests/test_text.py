@@ -12,7 +12,7 @@ from pptx.oxml import (
     _SubElement, nsdecls, oxml_fromstring, oxml_parse, oxml_tostring
 )
 from pptx.spec import namespaces
-from pptx.text import _Font, _Paragraph, _Run, _TextFrame
+from pptx.text import _Font, _Paragraph, _Run, TextFrame
 from pptx.util import Pt
 
 from .unitdata import test_text_objects, test_text_xml
@@ -317,8 +317,8 @@ class Test_Run(TestCase):
         self.assertEqual(expected, actual, msg)
 
 
-class Test_TextFrame(TestCase):
-    """Test _TextFrame"""
+class TestTextFrame(TestCase):
+    """Test TextFrame"""
     def setUp(self):
         path = absjoin(test_file_dir, 'slide1.xml')
         self.sld = oxml_parse(path).getroot()
@@ -326,11 +326,11 @@ class Test_TextFrame(TestCase):
         self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)
 
     def test_paragraphs_size(self):
-        """_TextFrame.paragraphs is expected size"""
+        """TextFrame.paragraphs is expected size"""
         # setup ------------------------
         actual_lengths = []
         for txBody in self.txBodyList:
-            textframe = _TextFrame(txBody)
+            textframe = TextFrame(txBody)
             # exercise ----------------
             actual_lengths.append(len(textframe.paragraphs))
         # verify -----------------------
@@ -340,7 +340,7 @@ class Test_TextFrame(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_add_paragraph_xml(self):
-        """_TextFrame.add_paragraph does what it says"""
+        """TextFrame.add_paragraph does what it says"""
         # setup ------------------------
         txBody_xml = (
             '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
@@ -351,7 +351,7 @@ class Test_TextFrame(TestCase):
             'p><a:p/></p:txBody>' % nsdecls('p', 'a')
         )
         txBody = oxml_fromstring(txBody_xml)
-        textframe = _TextFrame(txBody)
+        textframe = TextFrame(txBody)
         # exercise ---------------------
         textframe.add_paragraph()
         # verify -----------------------
@@ -364,11 +364,11 @@ class Test_TextFrame(TestCase):
             raise AssertionError(msg)
 
     def test_text_setter_structure_and_value(self):
-        """Assignment to _TextFrame.text yields single run para set to value"""
+        """Assignment to TextFrame.text yields single run para set to value"""
         # setup ------------------------
         test_text = 'python-pptx was here!!'
         txBody = self.txBodyList[2]
-        textframe = _TextFrame(txBody)
+        textframe = TextFrame(txBody)
         # exercise ---------------------
         textframe.text = test_text
         # verify paragraph count -------
@@ -383,7 +383,7 @@ class Test_TextFrame(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_vertical_anchor_works(self):
-        """Assignment to _TextFrame.vertical_anchor sets vert anchor"""
+        """Assignment to TextFrame.vertical_anchor sets vert anchor"""
         # setup ------------------------
         txBody_xml = (
             '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
@@ -395,14 +395,14 @@ class Test_TextFrame(TestCase):
             nsdecls('p', 'a')
         )
         txBody = oxml_fromstring(txBody_xml)
-        textframe = _TextFrame(txBody)
+        textframe = TextFrame(txBody)
         # exercise ---------------------
         textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
         # verify -----------------------
         self.assertEqualLineByLine(expected_xml, textframe._txBody)
 
     def test_word_wrap_works(self):
-        """Assignment to _TextFrame.word_wrap sets word wrap value"""
+        """Assignment to TextFrame.word_wrap sets word wrap value"""
         # setup ------------------------
         txBody_xml = (
             '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
@@ -425,7 +425,7 @@ class Test_TextFrame(TestCase):
         )
 
         txBody = oxml_fromstring(txBody_xml)
-        textframe = _TextFrame(txBody)
+        textframe = TextFrame(txBody)
 
         self.assertEqual(textframe.word_wrap, None)
 

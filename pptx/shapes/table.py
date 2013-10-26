@@ -8,7 +8,7 @@ from pptx.constants import MSO
 from pptx.oxml import _child, qn
 from pptx.shapes.shape import BaseShape
 from pptx.spec import VerticalAnchor
-from pptx.text import _TextFrame
+from pptx.text import TextFrame
 from pptx.util import to_unicode
 
 
@@ -240,12 +240,12 @@ class _Cell(object):
     @property
     def textframe(self):
         """
-        |_TextFrame| instance containing the text that appears in the cell.
+        |TextFrame| instance containing the text that appears in the cell.
         """
         txBody = _child(self._tc, 'a:txBody')
         if txBody is None:
             raise ValueError('cell has no text frame')
-        return _TextFrame(txBody)
+        return TextFrame(txBody)
 
     def _get_vertical_anchor(self):
         """
