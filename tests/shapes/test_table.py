@@ -417,7 +417,7 @@ class Test_TableBooleanProperties(TestCase):
         """
         # mock <a:tbl> element of _Table so we can mock its properties
         tbl = MagicMock()
-        self.table._Table__tbl_elm = tbl
+        self.table._tbl_elm = tbl
         # create a suitable mock for the property
         property_ = PropertyMock()
         if property_return_value:

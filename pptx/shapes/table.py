@@ -19,10 +19,10 @@ class _Table(_BaseShape):
     """
     def __init__(self, graphicFrame):
         super(_Table, self).__init__(graphicFrame)
-        self.__graphicFrame = graphicFrame
-        self.__tbl_elm = graphicFrame[qn('a:graphic')].graphicData.tbl
-        self.__rows = _RowCollection(self.__tbl_elm, self)
-        self.__columns = _ColumnCollection(self.__tbl_elm, self)
+        self._graphicFrame = graphicFrame
+        self._tbl_elm = graphicFrame[qn('a:graphic')].graphicData.tbl
+        self._rows = _RowCollection(self._tbl_elm, self)
+        self._columns = _ColumnCollection(self._tbl_elm, self)
 
     def cell(self, row_idx, col_idx):
         """Return table cell at *row_idx*, *col_idx* location"""
@@ -36,7 +36,7 @@ class _Table(_BaseShape):
         the table's columns. |_Column| objects are accessed using list
         notation, e.g. ``col = tbl.columns[0]``.
         """
-        return self.__columns
+        return self._columns
 
     @property
     def first_col(self):
@@ -45,7 +45,7 @@ class _Table(_BaseShape):
         column should be formatted differently, as for a side-heading column
         at the far left of the table.
         """
-        return self.__tbl_elm.firstCol
+        return self._tbl_elm.firstCol
 
     @property
     def first_row(self):
@@ -53,7 +53,7 @@ class _Table(_BaseShape):
         Read/write boolean property which, when true, indicates the first
         row should be formatted differently, e.g. for column headings.
         """
-        return self.__tbl_elm.firstRow
+        return self._tbl_elm.firstRow
 
     @property
     def horz_banding(self):
@@ -61,7 +61,7 @@ class _Table(_BaseShape):
         Read/write boolean property which, when true, indicates the rows of
         the table should appear with alternating shading.
         """
-        return self.__tbl_elm.bandRow
+        return self._tbl_elm.bandRow
 
     @property
     def last_col(self):
@@ -70,7 +70,7 @@ class _Table(_BaseShape):
         column should be formatted differently, as for a row totals column at
         the far right of the table.
         """
-        return self.__tbl_elm.lastCol
+        return self._tbl_elm.lastCol
 
     @property
     def last_row(self):
@@ -79,7 +79,7 @@ class _Table(_BaseShape):
         row should be formatted differently, as for a totals row at the
         bottom of the table.
         """
-        return self.__tbl_elm.lastRow
+        return self._tbl_elm.lastRow
 
     @property
     def vert_banding(self):
@@ -87,38 +87,38 @@ class _Table(_BaseShape):
         Read/write boolean property which, when true, indicates the columns
         of the table should appear with alternating shading.
         """
-        return self.__tbl_elm.bandCol
+        return self._tbl_elm.bandCol
 
     @first_col.setter
     def first_col(self, value):
-        self.__tbl_elm.firstCol = bool(value)
+        self._tbl_elm.firstCol = bool(value)
 
     @first_row.setter
     def first_row(self, value):
-        self.__tbl_elm.firstRow = bool(value)
+        self._tbl_elm.firstRow = bool(value)
 
     @horz_banding.setter
     def horz_banding(self, value):
-        self.__tbl_elm.bandRow = bool(value)
+        self._tbl_elm.bandRow = bool(value)
 
     @last_col.setter
     def last_col(self, value):
-        self.__tbl_elm.lastCol = bool(value)
+        self._tbl_elm.lastCol = bool(value)
 
     @last_row.setter
     def last_row(self, value):
-        self.__tbl_elm.lastRow = bool(value)
+        self._tbl_elm.lastRow = bool(value)
 
     @vert_banding.setter
     def vert_banding(self, value):
-        self.__tbl_elm.bandCol = bool(value)
+        self._tbl_elm.bandCol = bool(value)
 
     @property
     def height(self):
         """
         Read-only integer height of table in English Metric Units (EMU)
         """
-        return int(self.__graphicFrame.xfrm[qn('a:ext')].get('cy'))
+        return int(self._graphicFrame.xfrm[qn('a:ext')].get('cy'))
 
     @property
     def rows(self):
@@ -127,7 +127,7 @@ class _Table(_BaseShape):
         table's rows. |_Row| objects are accessed using list notation, e.g.
         ``col = tbl.rows[0]``.
         """
-        return self.__rows
+        return self._rows
 
     @property
     def shape_type(self):
@@ -142,7 +142,7 @@ class _Table(_BaseShape):
         """
         Read-only integer width of table in English Metric Units (EMU)
         """
-        return int(self.__graphicFrame.xfrm[qn('a:ext')].get('cx'))
+        return int(self._graphicFrame.xfrm[qn('a:ext')].get('cx'))
 
     def _notify_height_changed(self):
         """
@@ -150,7 +150,7 @@ class _Table(_BaseShape):
         to recalculate its total height (as the sum of the row heights).
         """
         new_table_height = sum([row.height for row in self.rows])
-        self.__graphicFrame.xfrm[qn('a:ext')].set('cy', str(new_table_height))
+        self._graphicFrame.xfrm[qn('a:ext')].set('cy', str(new_table_height))
 
     def _notify_width_changed(self):
         """
@@ -159,7 +159,7 @@ class _Table(_BaseShape):
         widths).
         """
         new_table_width = sum([col.width for col in self.columns])
-        self.__graphicFrame.xfrm[qn('a:ext')].set('cx', str(new_table_width))
+        self._graphicFrame.xfrm[qn('a:ext')].set('cx', str(new_table_width))
 
 
 class _Cell(object):
