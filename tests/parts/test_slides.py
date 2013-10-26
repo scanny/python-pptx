@@ -11,7 +11,7 @@ from pptx.opc import packaging
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import oxml_parse
 from pptx.parts.slides import (
-    _BaseSlide, _Slide, SlideCollection, SlideLayout, SlideMaster
+    _BaseSlide, Slide, SlideCollection, SlideLayout, SlideMaster
 )
 from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import ShapeCollection
@@ -92,13 +92,13 @@ class Test_BaseSlide(TestCase):
         assert_that(retval_rel, is_(rel))
 
 
-class Test_Slide(TestCase):
-    """Test _Slide"""
+class TestSlide(TestCase):
+    """Test Slide"""
     def setUp(self):
-        self.sld = _Slide()
+        self.sld = Slide()
 
     def test_constructor_sets_correct_content_type(self):
-        """_Slide constructor sets correct content type"""
+        """Slide constructor sets correct content type"""
         # exercise ---------------------
         content_type = self.sld._content_type
         # verify -----------------------
@@ -108,12 +108,12 @@ class Test_Slide(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test_construction_adds_slide_layout_relationship(self):
-        """_Slide(slidelayout) adds relationship slide->slidelayout"""
+        """Slide(slidelayout) adds relationship slide->slidelayout"""
         # setup ------------------------
         slidelayout = SlideLayout()
         slidelayout._shapes = _sldLayout1_shapes()
         # exercise ---------------------
-        slide = _Slide(slidelayout)
+        slide = Slide(slidelayout)
         # verify length ---------------
         expected = 1
         actual = len(slide._relationships)
@@ -128,7 +128,7 @@ class Test_Slide(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test__element_minimal_sld_on_construction(self):
-        """_Slide._element is minimal sld on construction"""
+        """Slide._element is minimal sld on construction"""
         # setup ------------------------
         path = absjoin(test_file_dir, 'minimal_slide.xml')
         # exercise ---------------------
@@ -139,12 +139,12 @@ class Test_Slide(TestCase):
         self.assertEqualLineByLine(expected_xml, elm)
 
     def test_slidelayout_property_none_on_construction(self):
-        """_Slide.slidelayout property None on construction"""
+        """Slide.slidelayout property None on construction"""
         # verify -----------------------
         self.assertIsProperty(self.sld, 'slidelayout', None)
 
     def test__load_sets_slidelayout(self):
-        """_Slide._load() sets slidelayout"""
+        """Slide._load() sets slidelayout"""
         # setup ------------------------
         path = absjoin(test_file_dir, 'slide1.xml')
         slidelayout = Mock(name='slideLayout')
@@ -168,7 +168,7 @@ class Test_Slide(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test__minimal_element_xml(self):
-        """_Slide._minimal_element generates correct XML"""
+        """Slide._minimal_element generates correct XML"""
         # setup ------------------------
         path = absjoin(test_file_dir, 'minimal_slide.xml')
         # exercise ---------------------
@@ -186,15 +186,15 @@ class TestSlideCollection(TestCase):
         self.slides = SlideCollection(prs)
 
     def test_add_slide_returns_slide(self):
-        """SlideCollection.add_slide() returns instance of _Slide"""
+        """SlideCollection.add_slide() returns instance of Slide"""
         # exercise ---------------------
         retval = self.slides.add_slide(None)
         # verify -----------------------
-        self.assertIsInstance(retval, _Slide)
+        self.assertIsInstance(retval, Slide)
 
     def test_add_slide_sets_slidelayout(self):
         """
-        SlideCollection.add_slide() sets _Slide.slidelayout
+        SlideCollection.add_slide() sets Slide.slidelayout
 
         Kind of a throw-away test, but was helpful for initial debugging.
         """

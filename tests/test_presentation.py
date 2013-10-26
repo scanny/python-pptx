@@ -16,7 +16,7 @@ from pptx.opc.rels import Relationship, RelationshipCollection
 from pptx.oxml import oxml_fromstring, oxml_parse
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import BasePart
-from pptx.parts.slides import _Slide, SlideLayout, SlideMaster
+from pptx.parts.slides import Slide, SlideLayout, SlideMaster
 from pptx.presentation import Package, Part, Presentation
 from pptx.spec import namespaces, qtag
 
@@ -217,9 +217,9 @@ class TestPart(TestCase):
         self.assertIsInstance(obj, cls)
 
     def test_constructs_slide_for_rt_slide(self):
-        """Part() returns _Slide for RT.SLIDE"""
+        """Part() returns Slide for RT.SLIDE"""
         # setup ------------------------
-        cls = _Slide
+        cls = Slide
         # exercise ---------------------
         obj = Part(RT.SLIDE, CT.PML_SLIDE)
         # verify -----------------------

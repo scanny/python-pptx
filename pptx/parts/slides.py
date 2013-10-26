@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Slide objects, including _Slide and SlideMaster.
+Slide objects, including Slide and SlideMaster.
 """
 
 from __future__ import absolute_import
@@ -67,12 +67,12 @@ class _BaseSlide(BasePart):
         return Package.containing(self)
 
 
-class _Slide(_BaseSlide):
+class Slide(_BaseSlide):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
     def __init__(self, slidelayout=None):
-        super(_Slide, self).__init__(CT.PML_SLIDE)
+        super(Slide, self).__init__(CT.PML_SLIDE)
         self._slidelayout = slidelayout
         self._element = self._minimal_element
         self._shapes = ShapeCollection(self._element.cSld.spTree, self)
@@ -94,7 +94,7 @@ class _Slide(_BaseSlide):
         Load slide from package part.
         """
         # call parent to do generic aspects of load
-        super(_Slide, self)._load(pkgpart, part_dict)
+        super(Slide, self)._load(pkgpart, part_dict)
         # selectively unmarshal relationships for now
         for rel in self._relationships:
             if rel._reltype == RT.SLIDE_LAYOUT:
@@ -132,7 +132,7 @@ class SlideCollection(PartCollection):
     def add_slide(self, slidelayout):
         """Add a new slide that inherits layout from *slidelayout*."""
         # 1. construct new slide
-        slide = _Slide(slidelayout)
+        slide = Slide(slidelayout)
         # 2. add it to this collection
         self._values.append(slide)
         # 3. assign its partname

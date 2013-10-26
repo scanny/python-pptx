@@ -20,7 +20,7 @@ from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
 from pptx.parts.part import BasePart, PartCollection
 from pptx.parts.slides import (
-    _Slide, SlideCollection, SlideLayout, SlideMaster
+    Slide, SlideCollection, SlideLayout, SlideMaster
 )
 
 
@@ -216,7 +216,7 @@ class Part(object):
                 tmpl = "Not a presentation content type, got '%s'"
                 raise InvalidPackageError(tmpl % content_type)
         elif reltype == RT.SLIDE:
-            return _Slide()
+            return Slide()
         elif reltype == RT.SLIDE_LAYOUT:
             return SlideLayout()
         elif reltype == RT.SLIDE_MASTER:
