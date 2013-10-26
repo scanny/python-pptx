@@ -14,7 +14,7 @@ from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import _Relationship, _RelationshipCollection
 from pptx.oxml import oxml_fromstring, oxml_parse
-from pptx.parts.coreprops import _CoreProperties
+from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import BasePart
 from pptx.parts.slides import _Slide, _SlideLayout, _SlideMaster
 from pptx.presentation import _Package, _Part, Presentation
@@ -185,7 +185,7 @@ class Test_Package(TestCase):
         # setup ------------------------
         pkg = _Package()
         # verify -----------------------
-        assert_that(pkg.core_properties, is_(instance_of(_CoreProperties)))
+        assert_that(pkg.core_properties, is_(instance_of(CoreProperties)))
 
     def test_saved_file_has_plausible_contents(self):
         """_Package.save produces a .pptx with plausible contents"""

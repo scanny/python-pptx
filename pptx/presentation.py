@@ -16,7 +16,7 @@ from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import _Relationship, _RelationshipCollection
 from pptx.oxml import _child, _Element, qn
-from pptx.parts.coreprops import _CoreProperties
+from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import _Image, _ImageCollection
 from pptx.parts.part import BasePart, _PartCollection
 from pptx.parts.slides import (
@@ -58,7 +58,7 @@ class _Package(object):
     @property
     def core_properties(self):
         """
-        Instance of |_CoreProperties| holding the read/write Dublin Core
+        Instance of |CoreProperties| holding the read/write Dublin Core
         document properties for this presentation.
         """
         assert self._core_properties, (
@@ -148,7 +148,7 @@ class _Package(object):
             elif rel._reltype == RT.CORE_PROPERTIES:
                 self._core_properties = rel._target
         if self._core_properties is None:
-            core_props = _CoreProperties._default()
+            core_props = CoreProperties._default()
             self._core_properties = core_props
             rId = self._relationships_._next_rId
             rel = _Relationship(rId, RT.CORE_PROPERTIES, core_props)
@@ -208,7 +208,7 @@ class _Part(object):
             CT.PML_SLIDESHOW_MAIN
         )
         if reltype == RT.CORE_PROPERTIES:
-            return _CoreProperties()
+            return CoreProperties()
         if reltype == RT.OFFICE_DOCUMENT:
             if content_type in PRS_MAIN_CONTENT_TYPES:
                 return Presentation()

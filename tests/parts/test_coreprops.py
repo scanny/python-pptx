@@ -10,19 +10,19 @@ from hamcrest import assert_that, instance_of, is_, less_than
 
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.oxml import CT_CoreProperties
-from pptx.parts.coreprops import _CoreProperties
+from pptx.parts.coreprops import CoreProperties
 
 from ..unitutil import TestCase
 
 
-class Test_CoreProperties(TestCase):
-    """Test _CoreProperties"""
+class TestCoreProperties(TestCase):
+    """Test CoreProperties"""
     def test_default_constructs_default_core_props(self):
-        """_CoreProperties.default() returns new default core props part"""
+        """CoreProperties.default() returns new default core props part"""
         # exercise ---------------------
-        core_props = _CoreProperties._default()
+        core_props = CoreProperties._default()
         # verify -----------------------
-        assert_that(core_props, is_(instance_of(_CoreProperties)))
+        assert_that(core_props, is_(instance_of(CoreProperties)))
         assert_that(core_props._content_type, is_(CT.OPC_CORE_PROPERTIES))
         assert_that(core_props.partname, is_('/docProps/core.xml'))
         assert_that(core_props._element, is_(instance_of(CT_CoreProperties)))

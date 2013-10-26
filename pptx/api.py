@@ -25,7 +25,7 @@ class Presentation(object):
     @property
     def core_properties(self):
         """
-        Instance of |_CoreProperties| holding the read/write Dublin Core
+        Instance of |CoreProperties| holding the read/write Dublin Core
         document properties for this presentation.
         """
         return self._package.core_properties
