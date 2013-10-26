@@ -108,12 +108,12 @@ class Test_ShapeCollection(TestCase):
         _shapes.append.assert_called_once_with(shape)
         assert_that(retval, is_(equal_to(shape)))
 
-    @patch('pptx.shapes.shapetree._Picture')
+    @patch('pptx.shapes.shapetree.Picture')
     @patch('pptx.shapes.shapetree.CT_Picture')
     @patch('pptx.shapes.shapetree._ShapeCollection._next_sh'
            'ape_id', new_callable=PropertyMock)
     def test_add_picture_collaboration(self, next_shape_id, CT_Picture,
-                                       _Picture):
+                                       Picture):
         """_ShapeCollection.add_picture() calls the right collaborators"""
         # constant values -------------
         file = test_image_path
@@ -135,7 +135,7 @@ class Test_ShapeCollection(TestCase):
         pic = Mock(name='pic')
         CT_Picture.new_pic.return_value = pic
         picture = Mock(name='picture')
-        _Picture.return_value = picture
+        Picture.return_value = picture
         # # exercise --------------------
         retval = shapes.add_picture(file, left, top, width, height)
         # verify -----------------------
@@ -144,7 +144,7 @@ class Test_ShapeCollection(TestCase):
         CT_Picture.new_pic.assert_called_once_with(
             id_, name, desc, rId, left, top, width, height)
         _spTree.append.assert_called_once_with(pic)
-        _Picture.assert_called_once_with(pic)
+        Picture.assert_called_once_with(pic)
         _shapes.append.assert_called_once_with(picture)
         assert_that(retval, is_(equal_to(picture)))
 

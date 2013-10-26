@@ -6,7 +6,7 @@ The shape tree, the structure that holds a slide's shapes.
 
 from pptx.oxml import qn, CT_GraphicalObjectFrame, CT_Picture, CT_Shape
 from pptx.shapes.autoshape import AutoShapeType, _Shape
-from pptx.shapes.picture import _Picture
+from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import _Placeholder
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.table import _Table
@@ -50,7 +50,7 @@ class _ShapeCollection(BaseShape, Collection):
             elif elm.tag == self._SP:
                 shape = _Shape(elm)
             elif elm.tag == self._PIC:
-                shape = _Picture(elm)
+                shape = Picture(elm)
             elif elm.tag == self._GRPSP:
                 shape = _ShapeCollection(elm)
             elif elm.tag == self._GRAPHICFRAME:
@@ -101,7 +101,7 @@ class _ShapeCollection(BaseShape, Collection):
         pic = CT_Picture.new_pic(id, name, desc, rId, left, top, width, height)
 
         self._spTree.append(pic)
-        picture = _Picture(pic)
+        picture = Picture(pic)
         self._shapes.append(picture)
         return picture
 

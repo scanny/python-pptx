@@ -52,4 +52,4 @@ def step_then_picture_appears_in_slide(context):
     sld = prs.slides[0]
     shapes = sld.shapes
     classnames = [sp.__class__.__name__ for sp in shapes]
-    assert_that(classnames, has_item('_Picture'))
+    assert_that(classnames, has_item('Picture'))

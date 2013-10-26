@@ -8,13 +8,13 @@ from pptx.constants import MSO
 from pptx.shapes.shape import BaseShape
 
 
-class _Picture(BaseShape):
+class Picture(BaseShape):
     """
     A picture shape, one that places an image on a slide. Corresponds to the
     ``<p:pic>`` element.
     """
     def __init__(self, pic):
-        super(_Picture, self).__init__(pic)
+        super(Picture, self).__init__(pic)
 
     @property
     def shape_type(self):
