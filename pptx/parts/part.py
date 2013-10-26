@@ -4,7 +4,7 @@
 Part objects, including BasePart.
 """
 
-from pptx.opc.rels import _Relationship, _RelationshipCollection
+from pptx.opc.rels import _Relationship, RelationshipCollection
 from pptx.oxml import oxml_fromstring, oxml_tostring
 from pptx.util import Collection, Partname
 
@@ -56,7 +56,7 @@ class BasePart(_Observable):
 
     .. attribute:: _relationships
 
-       |_RelationshipCollection| instance containing the relationships for this
+       |RelationshipCollection| instance containing the relationships for this
        part.
 
     """
@@ -70,7 +70,7 @@ class BasePart(_Observable):
         self._partname = partname
         self._element = None
         self._load_blob = None
-        self._relationships = _RelationshipCollection()
+        self._relationships = RelationshipCollection()
 
     @property
     def _blob(self):
@@ -151,7 +151,7 @@ class BasePart(_Observable):
             self._load_blob = pkgpart.blob
 
         # discard any previously loaded relationships
-        self._relationships = _RelationshipCollection()
+        self._relationships = RelationshipCollection()
 
         # load relationships and propagate load for related parts
         for pkgrel in pkgpart.relationships:

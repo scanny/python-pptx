@@ -14,7 +14,7 @@ import pptx.opc.packaging
 
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.opc.rels import _Relationship, _RelationshipCollection
+from pptx.opc.rels import _Relationship, RelationshipCollection
 from pptx.oxml import _child, _Element, qn
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
@@ -40,7 +40,7 @@ class Package(object):
         super(Package, self).__init__()
         self._presentation = None
         self._core_properties = None
-        self._relationships_ = _RelationshipCollection()
+        self._relationships_ = RelationshipCollection()
         self._images_ = ImageCollection()
         self._instances.append(weakref.ref(self))
         if file_ is None:
@@ -109,7 +109,7 @@ class Package(object):
         part_dict = {}
 
         # discard any previously loaded relationships
-        self._relationships_ = _RelationshipCollection()
+        self._relationships_ = RelationshipCollection()
 
         # add model-side rel for each pkg-side one, and load target parts
         for pkgrel in pkgrels:

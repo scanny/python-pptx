@@ -10,8 +10,8 @@ from pptx.util import Collection, Partname
 class _Relationship(object):
     """
     Relationship to a part from a package or part. *rId* must be unique in any
-    |_RelationshipCollection| this relationship is added to; use
-    :attr:`_RelationshipCollection._next_rId` to get a unique rId.
+    |RelationshipCollection| this relationship is added to; use
+    :attr:`RelationshipCollection._next_rId` to get a unique rId.
     """
     def __init__(self, rId, reltype, target):
         super(_Relationship, self).__init__()
@@ -63,19 +63,19 @@ class _Relationship(object):
         self._rId_ = value
 
 
-class _RelationshipCollection(Collection):
+class RelationshipCollection(Collection):
     """
     Sequence of relationships maintained in rId order. Maintaining the
     relationships in sorted order makes the .rels files both repeatable and
     more readable, which is very helpful for debugging.
-    |_RelationshipCollection| has an attribute *_reltype_ordering* which is a
+    |RelationshipCollection| has an attribute *_reltype_ordering* which is a
     sequence (tuple) of reltypes. If *_reltype_ordering* contains one or more
     reltype, the collection is maintained in reltype + partname.idx order and
     relationship ids (rIds) are renumbered to match that sequence and any
     numbering gaps are filled in.
     """
     def __init__(self):
-        super(_RelationshipCollection, self).__init__()
+        super(RelationshipCollection, self).__init__()
         self._reltype_ordering_ = ()
 
     def _additem(self, relationship):

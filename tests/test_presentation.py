@@ -12,7 +12,7 @@ from mock import Mock
 
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.opc.rels import _Relationship, _RelationshipCollection
+from pptx.opc.rels import _Relationship, RelationshipCollection
 from pptx.oxml import oxml_fromstring, oxml_parse
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import BasePart
@@ -87,7 +87,7 @@ class RelationshipCollectionBuilder(object):
         return partname_tmpl % partnum
 
     def build(self):
-        rels = _RelationshipCollection()
+        rels = RelationshipCollection()
         for rel in self.relationships:
             rels._additem(rel)
         if self.reltype_ordering:

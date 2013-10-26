@@ -8,7 +8,7 @@ from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import Mock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.rels import _Relationship, _RelationshipCollection
+from pptx.opc.rels import _Relationship, RelationshipCollection
 from pptx.parts.part import BasePart
 
 from ..unitutil import TestCase
@@ -71,10 +71,10 @@ class Test_Relationship(TestCase):
         self.assertEqual(expected, actual, msg)
 
 
-class Test_RelationshipCollection(TestCase):
-    """Test _RelationshipCollection"""
+class TestRelationshipCollection(TestCase):
+    """Test RelationshipCollection"""
     def setUp(self):
-        self.relationships = _RelationshipCollection()
+        self.relationships = RelationshipCollection()
 
     def _reltype_ordering_mock(self):
         """
@@ -102,7 +102,7 @@ class Test_RelationshipCollection(TestCase):
         rel3 = _Relationship('rId3', RT.SLIDE_MASTER, part3)
         rel4 = _Relationship('rId4', RT.SLIDE,        part4)
         rel5 = _Relationship('rId5', RT.PRES_PROPS,   part5)
-        relationships = _RelationshipCollection()
+        relationships = RelationshipCollection()
         relationships._additem(rel1)
         relationships._additem(rel2)
         relationships._additem(rel3)
@@ -111,12 +111,12 @@ class Test_RelationshipCollection(TestCase):
         return (relationships, partnames)
 
     def test_it_can_find_related_part(self):
-        """_RelationshipCollection can find related part"""
+        """RelationshipCollection can find related part"""
         # setup ------------------------
         reltype = RT.CORE_PROPERTIES
         part = Mock(name='part')
         relationship = _Relationship('rId1', reltype, part)
-        relationships = _RelationshipCollection()
+        relationships = RelationshipCollection()
         relationships._additem(relationship)
         # exercise ---------------------
         retval = relationships.related_part(reltype)
@@ -124,15 +124,15 @@ class Test_RelationshipCollection(TestCase):
         assert_that(retval, same_instance(part))
 
     def test_it_raises_if_it_cant_find_a_related_part(self):
-        """_RelationshipCollection raises if it can't find a related part"""
+        """RelationshipCollection raises if it can't find a related part"""
         # setup ------------------------
-        relationships = _RelationshipCollection()
+        relationships = RelationshipCollection()
         # exercise ---------------------
         with self.assertRaises(KeyError):
             relationships.related_part('foobar')
 
     def test__additem_raises_on_dup_rId(self):
-        """_RelationshipCollection._additem raises on duplicate rId"""
+        """RelationshipCollection._additem raises on duplicate rId"""
         # setup ------------------------
         part1 = BasePart()
         part2 = BasePart()
@@ -144,7 +144,7 @@ class Test_RelationshipCollection(TestCase):
             self.relationships._additem(rel2)
 
     def test__additem_maintains_rId_ordering(self):
-        """_RelationshipCollection maintains rId ordering on additem()"""
+        """RelationshipCollection maintains rId ordering on additem()"""
         # setup ------------------------
         part1 = BasePart()
         part2 = BasePart()
@@ -163,7 +163,7 @@ class Test_RelationshipCollection(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test__additem_maintains_reltype_ordering(self):
-        """_RelationshipCollection maintains reltype ordering on additem()"""
+        """RelationshipCollection maintains reltype ordering on additem()"""
         # setup ------------------------
         relationships, partnames = self._reltype_ordering_mock()
         ordering = (RT.SLIDE_MASTER, RT.SLIDE_LAYOUT, RT.SLIDE)
@@ -223,7 +223,7 @@ class Test_RelationshipCollection(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test__next_rId_fills_gap(self):
-        """_RelationshipCollection._next_rId fills gap in rId sequence"""
+        """RelationshipCollection._next_rId fills gap in rId sequence"""
         # setup ------------------------
         part1 = BasePart()
         part2 = BasePart()
@@ -242,7 +242,7 @@ class Test_RelationshipCollection(TestCase):
         actual_rIds = []
         for expected_rId, rels in cases:
             expected_rIds.append(expected_rId)
-            relationships = _RelationshipCollection()
+            relationships = RelationshipCollection()
             for rel in rels:
                 relationships._additem(rel)
             actual_rIds.append(relationships._next_rId)
@@ -262,7 +262,7 @@ class Test_RelationshipCollection(TestCase):
         part2 = PartBuilder().with_partname(partname2).build()
         rel1 = _Relationship('rId1', RT.SLIDE, part1)
         rel2 = _Relationship('rId2', RT.SLIDE, part2)
-        relationships = _RelationshipCollection()
+        relationships = RelationshipCollection()
         relationships._reltype_ordering = (RT.SLIDE)
         relationships._additem(rel1)
         relationships._additem(rel2)
