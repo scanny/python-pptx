@@ -184,10 +184,10 @@ class _ImageCollection(_PartCollection):
                 return existing_image
         # otherwise add it to collection and return new image
         self._values.append(image)
-        self.__rename_images()
+        self._rename_images()
         return image
 
-    def __rename_images(self):
+    def _rename_images(self):
         """
         Assign partnames like ``/ppt/media/image9.png`` to all images in the
         collection. The name portion is always ``image``. The number part
