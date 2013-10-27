@@ -7,8 +7,7 @@ from __future__ import absolute_import
 from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch, PropertyMock
 
-from pptx.oxml import oxml_fromstring
-from pptx.oxml.util import nsdecls
+from pptx.oxml import oxml_fromstring, nsdecls
 from pptx.shapes.table import (
     _Cell, _CellCollection, _Column, _ColumnCollection, _Row, _RowCollection
 )

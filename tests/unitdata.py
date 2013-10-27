@@ -2,8 +2,7 @@
 
 """Test data for unit tests"""
 
-from pptx.oxml import oxml_fromstring
-from pptx.oxml.util import nsdecls
+from pptx.oxml import nsdecls, oxml_fromstring
 from pptx.shapes.shapetree import Picture, Shape, ShapeCollection
 from pptx.shapes.table import _Cell
 from pptx.text import _Paragraph

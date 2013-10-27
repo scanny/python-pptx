@@ -40,7 +40,3 @@ def _SubElement(parent, tag):
     tag_name = namespace_prefixed_tag.clark_name
     tag_nsmap = namespace_prefixed_tag.namespace_map
     return objectify.SubElement(parent, tag_name, nsmap=tag_nsmap)
-
-
-def nsdecls(*prefixes):
-    return ' '.join(['xmlns:%s="%s"' % (pfx, nsmap[pfx]) for pfx in prefixes])
