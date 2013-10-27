@@ -7,7 +7,8 @@ objectify elements.
 
 from __future__ import absolute_import
 
-from pptx.oxml import SubElement
+from lxml import objectify
+
 from pptx.oxml.ns import NamespacePrefixedTag
 
 
@@ -36,3 +37,8 @@ def get_or_add(start_elm, *path_tags):
             child_ = SubElement(parent, tag)
         parent = child_
     return child_
+
+
+def SubElement(parent, tag):
+    nsptag = NamespacePrefixedTag(tag)
+    return objectify.SubElement(parent, nsptag.clark_name, nsmap=nsptag.nsmap)

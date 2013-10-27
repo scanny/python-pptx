@@ -49,10 +49,5 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
     return xml
 
 
-def SubElement(parent, tag):
-    nsptag = NamespacePrefixedTag(tag)
-    return objectify.SubElement(parent, nsptag.clark_name, nsmap=nsptag.nsmap)
-
-
 def sub_elm(parent, tag, **extra):
     return objectify.SubElement(parent, qn(tag), **extra)

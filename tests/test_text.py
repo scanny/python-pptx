@@ -8,7 +8,8 @@ from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch
 
 from pptx.constants import MSO, PP
-from pptx.oxml import oxml_fromstring, oxml_parse, oxml_tostring, SubElement
+from pptx.oxml import oxml_fromstring, oxml_parse, oxml_tostring
+from pptx.oxml.core import SubElement
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
 from pptx.util import Pt

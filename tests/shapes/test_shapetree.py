@@ -10,7 +10,8 @@ from hamcrest import assert_that, equal_to, is_
 from mock import Mock, patch, PropertyMock
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
-from pptx.oxml import oxml_parse, SubElement
+from pptx.oxml import oxml_parse
+from pptx.oxml.core import SubElement
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.parts.slides import SlideLayout
 from pptx.shapes.shapetree import Placeholder, ShapeCollection
