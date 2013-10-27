@@ -53,9 +53,9 @@ class _NamespacePrefixedTag(str):
     def __new__(cls, nstag, *args):
         return super(_NamespacePrefixedTag, cls).__new__(cls, nstag)
 
-    def __init__(self, nstag, prefix_to_uri_map):
+    def __init__(self, nstag):
         self._pfx, self._local_part = nstag.split(':')
-        self._ns_uri = prefix_to_uri_map[self._pfx]
+        self._ns_uri = nsmap[self._pfx]
 
     @property
     def clark_name(self):
@@ -89,5 +89,5 @@ def qn(namespace_prefixed_tag):
     *qualified name*. As an example, ``qn('p:cSld')`` returns
     ``'{http://schemas.../main}cSld'``.
     """
-    nsptag = _NamespacePrefixedTag(namespace_prefixed_tag, nsmap)
+    nsptag = _NamespacePrefixedTag(namespace_prefixed_tag)
     return nsptag.clark_name

@@ -49,7 +49,7 @@ def get_or_add(start_elm, *path_tags):
 
 
 def Element(tag):
-    namespace_prefixed_tag = _NamespacePrefixedTag(tag, nsmap)
+    namespace_prefixed_tag = _NamespacePrefixedTag(tag)
     tag_name = namespace_prefixed_tag.clark_name
     tag_nsmap = namespace_prefixed_tag.namespace_map
     return oxml_parser.makeelement(tag_name, nsmap=tag_nsmap)
@@ -78,7 +78,7 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
 
 
 def SubElement(parent, tag):
-    namespace_prefixed_tag = _NamespacePrefixedTag(tag, nsmap)
+    namespace_prefixed_tag = _NamespacePrefixedTag(tag)
     tag_name = namespace_prefixed_tag.clark_name
     tag_nsmap = namespace_prefixed_tag.namespace_map
     return objectify.SubElement(parent, tag_name, nsmap=tag_nsmap)
