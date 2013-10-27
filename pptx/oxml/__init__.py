@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from lxml import etree, objectify
 
-from pptx.oxml.ns import NamespacePrefixedTag, nsmap, qn
+from pptx.oxml.ns import NamespacePrefixedTag, qn
 
 
 # oxml-specific constants --------------
@@ -22,13 +22,15 @@ oxml_parser = etree.XMLParser(remove_blank_text=True)
 oxml_parser.set_element_class_lookup(element_class_lookup)
 
 
-def child(element, child_tagname):
+def child(element, child_tag_str):
     """
-    Return direct child of *element* having *child_tagname* or |None|
-    if no such child element is present.
+    Return direct child of *element* having tag matching *child_tag_str* or
+    |None| if no such child element is present.
     """
-    xpath = './%s' % child_tagname
-    matching_children = element.xpath(xpath, namespaces=nsmap)
+    nsptag = NamespacePrefixedTag(child_tag_str)
+    tag_nsmap = nsptag.namespace_map
+    xpath = './%s' % child_tag_str
+    matching_children = element.xpath(xpath, namespaces=tag_nsmap)
     return matching_children[0] if len(matching_children) else None
 
 
