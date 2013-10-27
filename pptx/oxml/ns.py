@@ -62,7 +62,12 @@ class NamespacePrefixedTag(str):
         return '{%s}%s' % (self._ns_uri, self._local_part)
 
     @property
-    def namespace_map(self):
+    def nsmap(self):
+        """
+        Return a dict having a single member, mapping the namespace prefix of
+        this tag to it's namespace name (e.g. {'f': 'http://foo/bar'}). This
+        is handy for passing to xpath calls and other uses.
+        """
         return {self._pfx: self._ns_uri}
 
 

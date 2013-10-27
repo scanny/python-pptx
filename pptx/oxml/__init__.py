@@ -28,9 +28,8 @@ def child(element, child_tag_str):
     |None| if no such child element is present.
     """
     nsptag = NamespacePrefixedTag(child_tag_str)
-    tag_nsmap = nsptag.namespace_map
     xpath = './%s' % child_tag_str
-    matching_children = element.xpath(xpath, namespaces=tag_nsmap)
+    matching_children = element.xpath(xpath, namespaces=nsptag.nsmap)
     return matching_children[0] if len(matching_children) else None
 
 
@@ -51,10 +50,8 @@ def get_or_add(start_elm, *path_tags):
 
 
 def Element(tag):
-    namespace_prefixed_tag = NamespacePrefixedTag(tag)
-    tag_name = namespace_prefixed_tag.clark_name
-    tag_nsmap = namespace_prefixed_tag.namespace_map
-    return oxml_parser.makeelement(tag_name, nsmap=tag_nsmap)
+    nsptag = NamespacePrefixedTag(tag)
+    return oxml_parser.makeelement(nsptag.clark_name, nsmap=nsptag.nsmap)
 
 
 def oxml_fromstring(text):
@@ -80,10 +77,8 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
 
 
 def SubElement(parent, tag):
-    namespace_prefixed_tag = NamespacePrefixedTag(tag)
-    tag_name = namespace_prefixed_tag.clark_name
-    tag_nsmap = namespace_prefixed_tag.namespace_map
-    return objectify.SubElement(parent, tag_name, nsmap=tag_nsmap)
+    nsptag = NamespacePrefixedTag(tag)
+    return objectify.SubElement(parent, nsptag.clark_name, nsmap=nsptag.nsmap)
 
 
 def sub_elm(parent, tag, **extra):
