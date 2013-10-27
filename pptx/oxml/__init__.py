@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from lxml import etree, objectify
 
-from pptx.oxml.ns import _NamespacePrefixedTag, nsmap
+from pptx.oxml.ns import _NamespacePrefixedTag, nsmap, qn
 
 
 # oxml-specific constants --------------
@@ -75,17 +75,6 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
         standalone=standalone
     )
     return xml
-
-
-def qn(namespace_prefixed_tag):
-    """
-    Return a Clark-notation qualified tag name corresponding to
-    *namespace_prefixed_tag*, a string like 'p:body'. 'qn' stands for
-    *qualified name*. As an example, ``qn('p:cSld')`` returns
-    ``'{http://schemas.../main}cSld'``.
-    """
-    nsptag = _NamespacePrefixedTag(namespace_prefixed_tag, nsmap)
-    return nsptag.clark_name
 
 
 def SubElement(parent, tag):

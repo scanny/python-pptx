@@ -24,7 +24,7 @@ from pptx.exceptions import (
     CorruptedPackageError, DuplicateKeyError, NotXMLError,
     PackageNotFoundError)
 
-from pptx.oxml import qn
+from pptx.oxml.ns import qn
 from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
 
 
