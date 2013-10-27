@@ -24,7 +24,7 @@ from pptx.exceptions import (
     CorruptedPackageError, DuplicateKeyError, NotXMLError,
     PackageNotFoundError)
 
-from pptx.spec import qtag
+from pptx.oxml import qn
 from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
 
 
@@ -80,7 +80,7 @@ class Package(object):
         self._relationships = []  # discard any rels from prior load
         parts_dict = {}           # track loaded parts, graph is cyclic
         pkg_rel_elms = fs.getelement(Package.PKG_RELSITEM_URI)\
-                         .findall(qtag('pr:Relationship'))
+                         .findall(qn('pr:Relationship'))
         for rel_elm in pkg_rel_elms:
             rId = rel_elm.get('Id')
             reltype = rel_elm.get('Type')
@@ -137,7 +137,7 @@ class Package(object):
     @property
     def _relsitem_element(self):
         nsmap = {None: pptx.spec.nsmap['pr']}
-        element = etree.Element(qtag('pr:Relationships'), nsmap=nsmap)
+        element = etree.Element(qn('pr:Relationships'), nsmap=nsmap)
         for rel in self._relationships:
             element.append(rel._element)
         return element
@@ -284,7 +284,7 @@ class Part(object):
     @property
     def _relsitem_element(self):
         nsmap = {None: pptx.spec.nsmap['pr']}
-        element = etree.Element(qtag('pr:Relationships'), nsmap=nsmap)
+        element = etree.Element(qn('pr:Relationships'), nsmap=nsmap)
         for rel in self._relationships:
             element.append(rel._element)
         return element
@@ -313,7 +313,7 @@ class Part(object):
             tmpl = "required relationships item '%s' not found in package"
             raise CorruptedPackageError(tmpl % relsitemURI)
         root_elm = fs.getelement(relsitemURI)
-        return root_elm.findall(qtag('pr:Relationship'))
+        return root_elm.findall(qn('pr:Relationship'))
 
     @staticmethod
     def __relsitemURI(typespec, partname, fs):
@@ -597,15 +597,15 @@ class _ContentTypesItem(object):
     @property
     def element(self):
         nsmap = {None: pptx.spec.nsmap['ct']}
-        element = etree.Element(qtag('ct:Types'), nsmap=nsmap)
+        element = etree.Element(qn('ct:Types'), nsmap=nsmap)
         if self._defaults:
             for ext in sorted(self._defaults.keys()):
-                subelm = etree.SubElement(element, qtag('ct:Default'))
+                subelm = etree.SubElement(element, qn('ct:Default'))
                 subelm.set('Extension', ext)
                 subelm.set('ContentType', self._defaults[ext])
         if self._overrides:
             for partname in sorted(self._overrides.keys()):
-                subelm = etree.SubElement(element, qtag('ct:Override'))
+                subelm = etree.SubElement(element, qn('ct:Override'))
                 subelm.set('PartName', partname)
                 subelm.set('ContentType', self._overrides[partname])
         return element
@@ -617,8 +617,8 @@ class _ContentTypesItem(object):
         generative call, e.g. ``cti = _ContentTypesItem().load(fs)``.
         """
         element = fs.getelement('/[Content_Types].xml')
-        defaults = element.findall(qtag('ct:Default'))
-        overrides = element.findall(qtag('ct:Override'))
+        defaults = element.findall(qn('ct:Default'))
+        overrides = element.findall(qn('ct:Override'))
         self._defaults = dict((d.get('Extension'), d.get('ContentType'))
                               for d in defaults)
         self._overrides = dict((o.get('PartName'), o.get('ContentType'))
