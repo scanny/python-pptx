@@ -5,7 +5,7 @@ Table-related objects such as Table and Cell.
 """
 
 from pptx.constants import MSO
-from pptx.oxml import child
+from pptx.oxml.core import child
 from pptx.oxml.ns import qn
 from pptx.shapes.shape import BaseShape
 from pptx.spec import VerticalAnchor

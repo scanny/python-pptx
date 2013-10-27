@@ -7,7 +7,19 @@ objectify elements.
 
 from __future__ import absolute_import
 
-from pptx.oxml import child, SubElement
+from pptx.oxml import SubElement
+from pptx.oxml.ns import NamespacePrefixedTag
+
+
+def child(element, child_tag_str):
+    """
+    Return direct child of *element* having tag matching *child_tag_str* or
+    |None| if no such child element is present.
+    """
+    nsptag = NamespacePrefixedTag(child_tag_str)
+    xpath = './%s' % child_tag_str
+    matching_children = element.xpath(xpath, namespaces=nsptag.nsmap)
+    return matching_children[0] if len(matching_children) else None
 
 
 def get_or_add(start_elm, *path_tags):

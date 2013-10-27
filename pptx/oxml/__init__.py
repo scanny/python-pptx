@@ -22,17 +22,6 @@ oxml_parser = etree.XMLParser(remove_blank_text=True)
 oxml_parser.set_element_class_lookup(element_class_lookup)
 
 
-def child(element, child_tag_str):
-    """
-    Return direct child of *element* having tag matching *child_tag_str* or
-    |None| if no such child element is present.
-    """
-    nsptag = NamespacePrefixedTag(child_tag_str)
-    xpath = './%s' % child_tag_str
-    matching_children = element.xpath(xpath, namespaces=nsptag.nsmap)
-    return matching_children[0] if len(matching_children) else None
-
-
 def Element(tag):
     nsptag = NamespacePrefixedTag(tag)
     return oxml_parser.makeelement(nsptag.clark_name, nsmap=nsptag.nsmap)
