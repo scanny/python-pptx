@@ -9,9 +9,9 @@ from mock import MagicMock, Mock, patch
 
 from pptx.constants import MSO, PP
 from pptx.oxml import (
-    namespaces, nsdecls, oxml_fromstring, oxml_parse, oxml_tostring,
-    SubElement
+    namespaces, oxml_fromstring, oxml_parse, oxml_tostring, SubElement
 )
+from pptx.oxml.ns import nsdecls
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
 from pptx.util import Pt
 

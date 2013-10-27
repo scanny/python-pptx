@@ -88,10 +88,6 @@ def namespaces(*prefixes):
     return namespaces
 
 
-def nsdecls(*prefixes):
-    return ' '.join(['xmlns:%s="%s"' % (pfx, nsmap[pfx]) for pfx in prefixes])
-
-
 def oxml_fromstring(text):
     """``etree.fromstring()`` replacement that uses oxml parser"""
     return objectify.fromstring(text, oxml_parser)

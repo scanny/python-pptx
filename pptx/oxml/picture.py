@@ -8,7 +8,8 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import element_class_lookup, nsdecls, nsmap, oxml_fromstring
+from pptx.oxml import element_class_lookup, nsmap, oxml_fromstring
+from pptx.oxml.ns import nsdecls
 
 
 class CT_Picture(objectify.ObjectifiedElement):

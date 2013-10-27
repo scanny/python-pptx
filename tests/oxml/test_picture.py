@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 
-from pptx.oxml import nsdecls
+from pptx.oxml.ns import nsdecls
 from pptx.oxml.picture import CT_Picture
 
 from ..unitutil import TestCase

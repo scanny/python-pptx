@@ -43,3 +43,7 @@ nsmap = {
             'rawing'),
     'xsi': ('http://www.w3.org/2001/XMLSchema-instance')
 }
+
+
+def nsdecls(*prefixes):
+    return ' '.join(['xmlns:%s="%s"' % (pfx, nsmap[pfx]) for pfx in prefixes])
