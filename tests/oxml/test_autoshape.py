@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from hamcrest import assert_that, equal_to, instance_of, is_, none
 
 from pptx.oxml import nsdecls
-from pptx.oxml.shape import CT_PresetGeometry2D, CT_Shape
+from pptx.oxml.autoshape import CT_PresetGeometry2D, CT_Shape
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER,
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
