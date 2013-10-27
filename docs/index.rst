@@ -1,8 +1,7 @@
 python-pptx
 ===========
 
-Release v\ |version| (:doc:`Installation <user/install>`)
-
+Release v\ |version| (:ref:`Installation <install>`)
 
 .. include:: ../README.rst
 
@@ -25,54 +24,6 @@ Additional capabilities are actively being developed and added on a release
 cadence of roughly once per month. If you find a feature you need that |pp|
 doesn't yet have, reach out via the mailing list or issue tracker and we'll see
 if we can jump the queue for you to pop it in there :)
-
-
-Running the tests
------------------
-
-|pp| has a robust test suite, comprising over 180 tests at the time of this
-writing, both at the acceptance test and unit test levels. ``unittest2`` is
-used for unit tests, with help from ``PyHamcrest`` matchers and the excellent
-``mock`` library. ``behave`` is used for acceptance tests.
-
-You can run the tests from the folder containing the extracted source
-distribution by issuing the following commands::
-
-    $ nosetests
-    .........................
-    ----------------------------------------------------------------------
-    Ran 299 tests in 1.473s
-    
-    OK
-    
-    $ behave
-    Feature: Add a text box to a slide
-      In order to accommodate a requirement for free-form text on a slide
-      As a presentation developer
-      I need the ability to place a text box on a slide
-      
-      Scenario: Add a text box to a slide 
-        Given I have a reference to a blank slide
-        When I add a text box to the slide's shape collection
-        And I save the presentation
-        Then the text box appears in the slide
-
-    # ... more output ...
-
-    13 features passed, 0 failed, 0 skipped
-    27 scenarios passed, 0 failed, 0 skipped
-    108 steps passed, 0 failed, 0 skipped, 0 undefined
-    Took 0m1.3s
-
-
-Getting Started
----------------
-
-A quick way to get started is by trying out some of
-:doc:`the examples <user/quickstart>` to get a feel for how to use |pp|.
-
-The :doc:`user API documentation <user/modules/pptx>` can help you with the
-fine details of calling signatures and behaviors.
 
 
 User Guide
@@ -115,6 +66,7 @@ Contributor Guide
 .. toctree::
    :maxdepth: 1
 
+   dev/runtests
    dev/development_practices
    dev/philosophy
    dev/analysis/index

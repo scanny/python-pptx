@@ -1,4 +1,14 @@
+Getting Started
+===============
+
+A quick way to get started is by trying out some of :ref:`the examples below
+<examples>` to get a feel for how to use |pp|.
+
+The :ref:`user API documentation <api>` can help you with the fine details of
+calling signatures and behaviors.
+
 .. _examples:
+
 
 Examples
 ========
