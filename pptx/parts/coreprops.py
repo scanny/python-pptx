@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from datetime import datetime
 
 from pptx.opc.constants import CONTENT_TYPE as CT
-from pptx.oxml.util import CT_CoreProperties
+from pptx.oxml.coreprops import CT_CoreProperties
 from pptx.parts.part import BasePart
 
 
