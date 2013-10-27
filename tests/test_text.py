@@ -9,9 +9,9 @@ from mock import MagicMock, Mock, patch
 
 from pptx.constants import MSO, PP
 from pptx.oxml import (
-    namespaces, nsdecls, oxml_fromstring, oxml_parse, oxml_tostring
+    namespaces, nsdecls, oxml_fromstring, oxml_parse, oxml_tostring,
+    SubElement
 )
-from pptx.oxml.util import _SubElement
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
 from pptx.util import Pt
 
@@ -172,7 +172,7 @@ class Test_Paragraph(TestCase):
         """_Paragraph.clear() removes all runs from paragraph"""
         # setup ------------------------
         p = self.pList[2]
-        _SubElement(p, 'a:pPr')
+        SubElement(p, 'a:pPr')
         paragraph = _Paragraph(p)
         assert_that(len(paragraph.runs), is_(equal_to(2)))
         # exercise ---------------------

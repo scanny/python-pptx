@@ -5,8 +5,7 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
-from pptx.oxml import child, Element, get_or_add, namespaces, qn
-from pptx.oxml.util import _SubElement
+from pptx.oxml import child, Element, get_or_add, namespaces, qn, SubElement
 from pptx.spec import ParagraphAlignment
 from pptx.util import to_unicode
 
@@ -163,7 +162,7 @@ class _Paragraph(object):
             pPr = Element('a:pPr')
             self.__p.insert(0, pPr)
         if not hasattr(self.__p.pPr, 'defRPr'):
-            _SubElement(self.__p.pPr, 'a:defRPr')
+            SubElement(self.__p.pPr, 'a:defRPr')
         return _Font(self.__p.pPr.defRPr)
 
     def _get_level(self):
@@ -223,7 +222,7 @@ class _Paragraph(object):
     def add_run(self):
         """Return a new run appended to the runs in this paragraph."""
         r = Element('a:r')
-        _SubElement(r, 'a:t')
+        SubElement(r, 'a:t')
         # work out where to insert it, ahead of a:endParaRPr if there is one
         endParaRPr = child(self.__p, 'a:endParaRPr')
         if endParaRPr is not None:

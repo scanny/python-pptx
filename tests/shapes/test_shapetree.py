@@ -10,8 +10,7 @@ from hamcrest import assert_that, equal_to, is_
 from mock import Mock, patch, PropertyMock
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
-from pptx.oxml import namespaces, nsdecls, oxml_parse
-from pptx.oxml.util import _SubElement
+from pptx.oxml import namespaces, nsdecls, oxml_parse, SubElement
 from pptx.parts.slides import SlideLayout
 from pptx.shapes.shapetree import Placeholder, ShapeCollection
 from pptx.spec import (
@@ -63,7 +62,7 @@ class TestShapeCollection(TestCase):
         """ShapeCollection() raises on contentPart shape"""
         # setup ------------------------
         spTree = test_shape_elements.empty_spTree
-        _SubElement(spTree, 'p:contentPart')
+        SubElement(spTree, 'p:contentPart')
         # verify -----------------------
         with self.assertRaises(ValueError):
             ShapeCollection(spTree)
