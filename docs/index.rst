@@ -57,7 +57,13 @@ API Documentation
 .. toctree::
    :maxdepth: 2
 
-   user/modules/index
+   api/presentation
+   api/slides
+   api/shapes
+   api/table
+   api/text
+   api/exc
+   api/util
 
 
 Contributor Guide
