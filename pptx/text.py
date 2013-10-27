@@ -5,8 +5,8 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
-from pptx.oxml import Element, namespaces, qn
-from pptx.oxml.util import _child, _get_or_add, _SubElement
+from pptx.oxml import Element, get_or_add, namespaces, qn
+from pptx.oxml.util import _child, _SubElement
 from pptx.spec import ParagraphAlignment
 from pptx.util import to_unicode
 
@@ -53,7 +53,7 @@ class TextFrame(object):
         """
         value_map = {MSO.ANCHOR_TOP: 't', MSO.ANCHOR_MIDDLE: 'ctr',
                      MSO.ANCHOR_BOTTOM: 'b'}
-        bodyPr = _get_or_add(self._txBody, 'a:bodyPr')
+        bodyPr = get_or_add(self._txBody, 'a:bodyPr')
         bodyPr.set('anchor', value_map[value])
 
     #: Write-only. Assignment to *vertical_anchor* sets the vertical
@@ -67,7 +67,7 @@ class TextFrame(object):
         Set ``wrap`` attribution of ``<a:bodyPr>`` element. Can be
         one of True, False, or None.
         """
-        bodyPr = _get_or_add(self._txBody, 'a:bodyPr')
+        bodyPr = get_or_add(self._txBody, 'a:bodyPr')
 
         if value is None:
             del bodyPr.attrib['wrap']
@@ -82,7 +82,7 @@ class TextFrame(object):
         are True, False, and None.
         """
         value_map = {'square': True, 'none': False, None: None}
-        bodyPr = _get_or_add(self._txBody, 'a:bodyPr')
+        bodyPr = get_or_add(self._txBody, 'a:bodyPr')
         value = bodyPr.get('wrap')
         return value_map[value]
 

@@ -66,19 +66,3 @@ def _child(element, child_tagname):
     xpath = './%s' % child_tagname
     matching_children = element.xpath(xpath, namespaces=nsmap)
     return matching_children[0] if len(matching_children) else None
-
-
-def _get_or_add(start_elm, *path_tags):
-    """
-    Retrieve the element at the end of the branch starting at parent and
-    traversing each of *path_tags* in order, creating any elements not found
-    along the way. Not a good solution when sequence of added children is
-    likely to be a concern.
-    """
-    parent = start_elm
-    for tag in path_tags:
-        child = _child(parent, tag)
-        if child is None:
-            child = _SubElement(parent, tag)
-        parent = child
-    return child
