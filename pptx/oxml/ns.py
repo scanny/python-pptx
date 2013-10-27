@@ -45,13 +45,13 @@ nsmap = {
 }
 
 
-class _NamespacePrefixedTag(str):
+class NamespacePrefixedTag(str):
     """
     Value object that knows the semantics of an XML tag having a namespace
     prefix.
     """
     def __new__(cls, nstag, *args):
-        return super(_NamespacePrefixedTag, cls).__new__(cls, nstag)
+        return super(NamespacePrefixedTag, cls).__new__(cls, nstag)
 
     def __init__(self, nstag):
         self._pfx, self._local_part = nstag.split(':')
@@ -89,5 +89,5 @@ def qn(namespace_prefixed_tag):
     *qualified name*. As an example, ``qn('p:cSld')`` returns
     ``'{http://schemas.../main}cSld'``.
     """
-    nsptag = _NamespacePrefixedTag(namespace_prefixed_tag)
+    nsptag = NamespacePrefixedTag(namespace_prefixed_tag)
     return nsptag.clark_name
