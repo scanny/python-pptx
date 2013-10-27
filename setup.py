@@ -9,9 +9,8 @@ from setuptools import setup
 # (and thus attempting to import packages it depends on that may not be
 # installed yet)
 thisdir = os.path.dirname(__file__)
-init_py_path = os.path.join(thisdir, 'pptx', '__init__.py')
-version = re.search("__version__ = '([^']+)'",
-                    open(init_py_path).read()).group(1)
+init_py = os.path.join(thisdir, 'pptx', '__init__.py')
+version = re.search("__version__ = '([^']+)'", open(init_py).read()).group(1)
 
 
 NAME = 'python-pptx'
@@ -43,8 +42,9 @@ CLASSIFIERS = [
     'Topic :: Software Development :: Libraries'
 ]
 
-readme = os.path.join(os.path.dirname(__file__), 'README.rst')
-LONG_DESCRIPTION = open(readme).read()
+readme = os.path.join(thisdir, 'README.rst')
+history = os.path.join(thisdir, 'HISTORY.rst')
+LONG_DESCRIPTION = open(readme).read() + '\n\n' + open(history).read()
 
 
 params = {

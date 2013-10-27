@@ -95,52 +95,6 @@ those dependencies for you, but if you use this last method you will need to
 install those yourself.
 
 
-Release History
-===============
-
-June 22, 2013 - v0.2.6
-   * Add read/write access to core document properties
-   * Hotfix to accomodate connector shapes in _AutoShapeType
-   * Hotfix to allow customXml parts to load when present
-
-June 11, 2013 - v0.2.5
-   * Add paragraph alignment property (left, right, centered, etc.)
-   * Add vertical alignment within table cell (top, middle, bottom)
-   * Add table cell margin properties
-   * Add table boolean properties: first column (row header), first row (column
-     headings), last row (for e.g. totals row), last column (for e.g. row
-     totals), horizontal banding, and vertical banding.
-   * Add support for auto shape adjustment values, e.g. change radius of corner
-     rounding on rounded rectangle, position of callout arrow, etc.
-
-May 16, 2013 - v0.2.4
-   * Add support for auto shapes (e.g. polygons, flowchart symbols, etc.)
-
-May 5, 2013 - v0.2.3
-   * Add support for table shapes
-   * Add indentation support to textbox shapes, enabling multi-level bullets on
-     bullet slides.
-
-Mar 25, 2013 - v0.2.2
-   * Add support for opening and saving a presentation from/to a file-like
-     object.
-   * Refactor XML handling to use lxml objectify
-
-Feb 25, 2013 - v0.2.1
-   * Add support for Python 2.6
-   * Add images from a stream (e.g. StringIO) in addition to a path, allowing
-     images retrieved from a database or network resource to be inserted
-     without saving first.
-   * Expand text methods to accept unicode and UTF-8 encoded 8-bit strings.
-   * Fix potential install bug triggered by importing ``__version__`` from
-     package ``__init__.py`` file.
-
-Feb 10, 2013 - v0.2.0
-    First non-alpha release with basic capabilities: open presentation/template
-    or use built-in default template, add slide, set placeholder text (e.g.
-    bullet slides), add picture, add text box.
-
-
 License
 =======
 

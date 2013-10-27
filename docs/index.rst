@@ -103,6 +103,7 @@ Community Guide
 
    community/faq
    community/support
+   community/updates
 
 
 API Documentation
