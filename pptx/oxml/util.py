@@ -9,7 +9,7 @@ slide.
 
 from __future__ import absolute_import
 
-from lxml import etree, objectify
+from lxml import objectify
 
 from pptx.oxml import nsmap
 
@@ -44,15 +44,3 @@ def _SubElement(parent, tag):
 
 def nsdecls(*prefixes):
     return ' '.join(['xmlns:%s="%s"' % (pfx, nsmap[pfx]) for pfx in prefixes])
-
-
-def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
-    # if xsi parameter is not set to False, PowerPoint won't load without a
-    # repair step; deannotate removes some original xsi:type tags in core.xml
-    # if this parameter is left out (or set to True)
-    objectify.deannotate(elm, xsi=False, cleanup_namespaces=False)
-    xml = etree.tostring(
-        elm, encoding=encoding, pretty_print=pretty_print,
-        standalone=standalone
-    )
-    return xml
