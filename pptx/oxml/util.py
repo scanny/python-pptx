@@ -11,7 +11,6 @@ from __future__ import absolute_import
 
 from lxml import etree, objectify
 
-from pptx.oxml import oxml_parser
 from pptx.spec import nsmap
 
 
@@ -53,11 +52,6 @@ def new(tag, **extra):
 
 def nsdecls(*prefixes):
     return ' '.join(['xmlns:%s="%s"' % (pfx, nsmap[pfx]) for pfx in prefixes])
-
-
-def oxml_parse(source):
-    """``etree.parse()`` replacement that uses oxml parser"""
-    return objectify.parse(source, oxml_parser)
 
 
 def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):

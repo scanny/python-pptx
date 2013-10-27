@@ -69,6 +69,11 @@ def oxml_fromstring(text):
     return objectify.fromstring(text, oxml_parser)
 
 
+def oxml_parse(source):
+    """``etree.parse()`` replacement that uses oxml parser"""
+    return objectify.parse(source, oxml_parser)
+
+
 def qn(namespace_prefixed_tag):
     """
     Return a Clark-notation qualified tag name corresponding to
