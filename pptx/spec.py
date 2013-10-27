@@ -2115,15 +2115,3 @@ nsmap = {
     'wp':  ('http://schemas.openxmlformats.org/drawingml/2006/wordprocessingD'
             'rawing'),
     'xsi': 'http://www.w3.org/2001/XMLSchema-instance'}
-
-
-def namespaces(*prefixes):
-    """
-    Return a dict containing the subset namespace prefix mappings specified by
-    *prefixes*. Any number of namespace prefixes can be supplied, e.g.
-    namespaces('a', 'r', 'p').
-    """
-    namespaces = {}
-    for prefix in prefixes:
-        namespaces[prefix] = nsmap[prefix]
-    return namespaces

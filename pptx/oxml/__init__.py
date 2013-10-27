@@ -60,6 +60,18 @@ def Element(tag):
     return oxml_parser.makeelement(tag_name, nsmap=tag_nsmap)
 
 
+def namespaces(*prefixes):
+    """
+    Return a dict containing the subset namespace prefix mappings specified by
+    *prefixes*. Any number of namespace prefixes can be supplied, e.g.
+    namespaces('a', 'r', 'p').
+    """
+    namespaces = {}
+    for prefix in prefixes:
+        namespaces[prefix] = nsmap[prefix]
+    return namespaces
+
+
 def nsdecls(*prefixes):
     return ' '.join(['xmlns:%s="%s"' % (pfx, nsmap[pfx]) for pfx in prefixes])
 

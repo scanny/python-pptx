@@ -9,13 +9,12 @@ from mock import Mock, patch, PropertyMock
 
 from pptx.opc import packaging
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.oxml import oxml_parse
+from pptx.oxml import namespaces, oxml_parse
 from pptx.parts.slides import (
     _BaseSlide, Slide, SlideCollection, SlideLayout, SlideMaster
 )
 from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import ShapeCollection
-from pptx.spec import namespaces
 
 from ..unitutil import absjoin, TestCase, test_file_dir
 

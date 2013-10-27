@@ -4,7 +4,7 @@
 Base shape-related objects such as BaseShape.
 """
 
-from pptx.spec import namespaces
+from pptx.oxml import namespaces
 from pptx.oxml.util import _child
 from pptx.text import TextFrame
 from pptx.util import to_unicode
