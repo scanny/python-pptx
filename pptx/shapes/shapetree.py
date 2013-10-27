@@ -4,9 +4,10 @@
 The shape tree, the structure that holds a slide's shapes.
 """
 
-from pptx.oxml import namespaces, qn
+from pptx.oxml import qn
 from pptx.oxml.autoshape import CT_Shape
 from pptx.oxml.graphfrm import CT_GraphicalObjectFrame
+from pptx.oxml.ns import namespaces
 from pptx.oxml.picture import CT_Picture
 from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.picture import Picture

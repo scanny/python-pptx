@@ -4,7 +4,7 @@
 Placeholder object.
 """
 
-from pptx.oxml import namespaces
+from pptx.oxml.ns import namespaces
 from pptx.spec import PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_OBJ
 
 

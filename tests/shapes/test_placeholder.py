@@ -4,7 +4,8 @@
 
 from __future__ import absolute_import
 
-from pptx.oxml import namespaces, oxml_parse
+from pptx.oxml import oxml_parse
+from pptx.oxml.ns import namespaces
 from pptx.shapes.placeholder import Placeholder
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.spec import (

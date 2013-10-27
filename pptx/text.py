@@ -5,7 +5,8 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
-from pptx.oxml import child, Element, get_or_add, namespaces, qn, SubElement
+from pptx.oxml import child, Element, get_or_add, qn, SubElement
+from pptx.oxml.ns import namespaces
 from pptx.spec import ParagraphAlignment
 from pptx.util import to_unicode
 

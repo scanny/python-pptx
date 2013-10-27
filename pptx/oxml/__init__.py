@@ -55,18 +55,6 @@ def Element(tag):
     return oxml_parser.makeelement(tag_name, nsmap=tag_nsmap)
 
 
-def namespaces(*prefixes):
-    """
-    Return a dict containing the subset namespace prefix mappings specified by
-    *prefixes*. Any number of namespace prefixes can be supplied, e.g.
-    namespaces('a', 'r', 'p').
-    """
-    namespaces = {}
-    for prefix in prefixes:
-        namespaces[prefix] = nsmap[prefix]
-    return namespaces
-
-
 def oxml_fromstring(text):
     """``etree.fromstring()`` replacement that uses oxml parser"""
     return objectify.fromstring(text, oxml_parser)
