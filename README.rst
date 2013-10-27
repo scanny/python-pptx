@@ -63,14 +63,4 @@ those dependencies for you, but if you use this last method you will need to
 install those yourself.
 
 
-License
-=======
-
-Licensed under the `MIT license`_. Short version: this code is copyrighted by
-me (Steve Canny), I give you permission to do what you want with it except
-remove my name from the credits. See the LICENSE file for specific terms.
-
-.. _MIT license:
-   http://www.opensource.org/licenses/mit-license.php
-
 .. |pp| replace:: ``python-pptx``

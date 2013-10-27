@@ -11,6 +11,7 @@ from setuptools import setup
 thisdir = os.path.dirname(__file__)
 init_py = os.path.join(thisdir, 'pptx', '__init__.py')
 version = re.search("__version__ = '([^']+)'", open(init_py).read()).group(1)
+license = os.path.join(thisdir, 'LICENSE')
 
 
 NAME = 'python-pptx'
@@ -20,7 +21,7 @@ KEYWORDS = 'powerpoint ppt pptx office open xml'
 AUTHOR = 'Steve Canny'
 AUTHOR_EMAIL = 'python.pptx@librelist.com'
 URL = 'http://github.com/scanny/python-pptx'
-LICENSE = 'MIT'
+LICENSE = open(license).read()
 PACKAGES = ['pptx']
 PACKAGE_DATA = {'pptx': ['templates/*']}
 
