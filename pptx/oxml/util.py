@@ -68,15 +68,6 @@ def _child(element, child_tagname):
     return matching_children[0] if len(matching_children) else None
 
 
-def _child_list(element, child_tagname):
-    """
-    Return list containing the direct children of *element* having
-    *child_tagname*.
-    """
-    xpath = './%s' % child_tagname
-    return element.xpath(xpath, namespaces=nsmap)
-
-
 def _get_or_add(start_elm, *path_tags):
     """
     Retrieve the element at the end of the branch starting at parent and
