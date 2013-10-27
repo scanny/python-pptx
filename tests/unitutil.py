@@ -5,7 +5,7 @@
 import os
 import unittest2
 
-from pptx.oxml import oxml_tostring
+from pptx.oxml.util import oxml_tostring
 
 
 def absjoin(*paths):

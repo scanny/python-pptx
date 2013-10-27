@@ -8,7 +8,7 @@ from hamcrest import assert_that, equal_to, is_
 from mock import Mock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.oxml import oxml_fromstring, oxml_tostring
+from pptx.oxml.util import oxml_fromstring, oxml_tostring
 from pptx.parts.part import BasePart, PartCollection
 
 from ..unitutil import TestCase

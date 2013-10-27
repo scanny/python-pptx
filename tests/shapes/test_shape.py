@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from hamcrest import assert_that, is_
 from mock import Mock
 
-from pptx.oxml import oxml_parse
+from pptx.oxml.util import oxml_parse
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.spec import namespaces

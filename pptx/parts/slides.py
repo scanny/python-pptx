@@ -7,7 +7,7 @@ Slide objects, including Slide and SlideMaster.
 from __future__ import absolute_import
 
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.oxml import _Element, _SubElement
+from pptx.oxml.util import _Element, _SubElement
 from pptx.parts.part import BasePart, PartCollection
 from pptx.shapes.shapetree import ShapeCollection
 

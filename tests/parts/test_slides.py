@@ -9,7 +9,7 @@ from mock import Mock, patch, PropertyMock
 
 from pptx.opc import packaging
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.oxml import oxml_parse
+from pptx.oxml.util import oxml_parse
 from pptx.parts.slides import (
     _BaseSlide, Slide, SlideCollection, SlideLayout, SlideMaster
 )

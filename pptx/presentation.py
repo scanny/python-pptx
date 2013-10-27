@@ -15,7 +15,7 @@ import pptx.opc.packaging
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import Relationship, RelationshipCollection
-from pptx.oxml import _child, _Element, qn
+from pptx.oxml.util import _child, _Element, qn
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
 from pptx.parts.part import BasePart, PartCollection

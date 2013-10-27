@@ -11,7 +11,7 @@ from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
-from pptx.oxml import oxml_fromstring
+from pptx.oxml.util import oxml_fromstring
 
 from ..unitdata import a_prstGeom, test_shapes
 from ..unitutil import TestCase

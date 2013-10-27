@@ -11,7 +11,7 @@ from hamcrest import assert_that, equal_to, instance_of, is_, none
 from pptx.constants import (
     TEXT_ALIGN_TYPE as TAT, TEXT_ANCHORING_TYPE as TANC
 )
-from pptx.oxml import (
+from pptx.oxml.util import (
     CT_CoreProperties, CT_GraphicalObjectFrame, CT_Picture,
     CT_PresetGeometry2D, CT_Shape, CT_Table, nsdecls, qn
 )

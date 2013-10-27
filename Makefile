@@ -21,7 +21,8 @@ accept:
 
 clean:
 	find . -type f -name \*.pyc -exec rm {} \;
-	rm -rf dist *.egg-info .coverage .DS_Store
+	find . -type f -name .DS_Store -exec rm {} \;
+	rm -rf dist *.egg-info .coverage
 
 coverage:
 	py.test --cov-report term-missing --cov=pptx --cov=tests
