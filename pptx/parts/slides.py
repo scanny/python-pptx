@@ -7,7 +7,8 @@ Slide objects, including Slide and SlideMaster.
 from __future__ import absolute_import
 
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.oxml.util import _Element, _SubElement
+from pptx.oxml import Element
+from pptx.oxml.util import _SubElement
 from pptx.parts.part import BasePart, PartCollection
 from pptx.shapes.shapetree import ShapeCollection
 
@@ -107,7 +108,7 @@ class Slide(_BaseSlide):
         Return element containing the minimal XML for a slide, based on what
         is required by the XMLSchema.
         """
-        sld = _Element('p:sld')
+        sld = Element('p:sld')
         _SubElement(sld, 'p:cSld')
         _SubElement(sld.cSld, 'p:spTree')
         _SubElement(sld.cSld.spTree, 'p:nvGrpSpPr')

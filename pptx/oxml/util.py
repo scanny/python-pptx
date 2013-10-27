@@ -40,13 +40,6 @@ class _NamespacePrefixedTag(str):
         return {self._pfx: self._ns_uri}
 
 
-def _Element(tag):
-    namespace_prefixed_tag = _NamespacePrefixedTag(tag, nsmap)
-    tag_name = namespace_prefixed_tag.clark_name
-    tag_nsmap = namespace_prefixed_tag.namespace_map
-    return oxml_parser.makeelement(tag_name, nsmap=tag_nsmap)
-
-
 def _SubElement(parent, tag):
     namespace_prefixed_tag = _NamespacePrefixedTag(tag, nsmap)
     tag_name = namespace_prefixed_tag.clark_name

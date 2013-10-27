@@ -15,7 +15,8 @@ import pptx.opc.packaging
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import Relationship, RelationshipCollection
-from pptx.oxml.util import _child, _Element, qn
+from pptx.oxml import Element, qn
+from pptx.oxml.util import _child
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
 from pptx.parts.part import BasePart, PartCollection
@@ -303,7 +304,7 @@ class Presentation(BasePart):
         sldIdLst.clear()
         sld_rels = self._relationships.rels_of_reltype(RT.SLIDE)
         for idx, rel in enumerate(sld_rels):
-            sldId = _Element('p:sldId')
+            sldId = Element('p:sldId')
             sldIdLst.append(sldId)
             sldId.set('id', str(256+idx))
             sldId.set(qn('r:id'), rel._rId)
@@ -316,7 +317,7 @@ class Presentation(BasePart):
         sldIdLst = _child(self._element, 'p:sldIdLst')
         assert sldIdLst is None, '_add_sldIdLst() called where '\
                                  '<p:sldIdLst> already exists'
-        sldIdLst = _Element('p:sldIdLst')
+        sldIdLst = Element('p:sldIdLst')
         # insert new sldIdLst element in right sequence
         sldSz = _child(self._element, 'p:sldSz')
         if sldSz is not None:
