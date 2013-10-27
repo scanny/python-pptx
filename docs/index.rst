@@ -122,6 +122,7 @@ Contributor Guide
    :maxdepth: 1
 
    dev/development_practices
+   dev/philosophy
    dev/analysis/index
    dev/design/index
    dev/modules/index
