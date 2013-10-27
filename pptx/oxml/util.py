@@ -14,10 +14,6 @@ from lxml import etree, objectify
 from pptx.spec import nsmap
 
 
-# ============================================================================
-# API functions
-# ============================================================================
-
 class _NamespacePrefixedTag(str):
     """
     Value object that knows the semantics of an XML tag having a namespace
@@ -44,10 +40,6 @@ def _SubElement(parent, tag):
     tag_name = namespace_prefixed_tag.clark_name
     tag_nsmap = namespace_prefixed_tag.namespace_map
     return objectify.SubElement(parent, tag_name, nsmap=tag_nsmap)
-
-
-def new(tag, **extra):
-    return objectify.Element(qn(tag), **extra)
 
 
 def nsdecls(*prefixes):
@@ -80,10 +72,6 @@ def qn(namespace_prefixed_tag):
 def sub_elm(parent, tag, **extra):
     return objectify.SubElement(parent, qn(tag), **extra)
 
-
-# ============================================================================
-# utility functions
-# ============================================================================
 
 def _child(element, child_tagname):
     """
