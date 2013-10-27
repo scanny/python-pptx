@@ -55,11 +55,6 @@ def nsdecls(*prefixes):
     return ' '.join(['xmlns:%s="%s"' % (pfx, nsmap[pfx]) for pfx in prefixes])
 
 
-def oxml_fromstring(text):
-    """``etree.fromstring()`` replacement that uses oxml parser"""
-    return objectify.fromstring(text, oxml_parser)
-
-
 def oxml_parse(source):
     """``etree.parse()`` replacement that uses oxml parser"""
     return objectify.parse(source, oxml_parser)
