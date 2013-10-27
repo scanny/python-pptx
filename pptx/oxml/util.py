@@ -69,10 +69,6 @@ def qn(namespace_prefixed_tag):
     return nsptag.clark_name
 
 
-def sub_elm(parent, tag, **extra):
-    return objectify.SubElement(parent, qn(tag), **extra)
-
-
 def _child(element, child_tagname):
     """
     Return direct child of *element* having *child_tagname* or |None|
