@@ -1,4 +1,5 @@
-========
+.. _examples:
+
 Examples
 ========
 
@@ -10,7 +11,7 @@ Examples to help with getting started ...
 ----
 
 Hello World! example
-====================
+--------------------
 
 .. image:: /_static/img/hello-world.png
 
@@ -35,7 +36,7 @@ Hello World! example
 ----
 
 Bullet slide example
-====================
+--------------------
 
 .. image:: /_static/img/bullet-slide.png
 
@@ -84,7 +85,7 @@ it contains.
 ----
 
 ``add_textbox()`` example
-=========================
+-------------------------
 
 .. image:: /_static/img/add-textbox.png
 
@@ -119,7 +120,7 @@ it contains.
 ----
 
 ``add_picture()`` example
-=========================
+-------------------------
 
 .. image:: /_static/img/add-picture.png
 
@@ -151,7 +152,7 @@ it contains.
 
 
 ``add_shape()`` example
-=========================
+-------------------------
 
 .. image:: /_static/img/add-shape.png
 
@@ -198,7 +199,7 @@ MSO.SHAPE_ROUNDED_RECT, MSO.SHAPE_CHEVRON, etc.) are listed on the
 
 
 ``add_table()`` example
-=======================
+-----------------------
 
 .. image:: /_static/img/add-table.png
 
@@ -241,7 +242,7 @@ MSO.SHAPE_ROUNDED_RECT, MSO.SHAPE_CHEVRON, etc.) are listed on the
 ----
 
 Extract all text from slides in presentation
-============================================
+--------------------------------------------
 
 ::
 

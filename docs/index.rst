@@ -3,15 +3,8 @@ python-pptx
 
 Release v\ |version| (:doc:`Installation <user/install>`)
 
-:mod:`python-pptx` is a pure-Python library for reading and writing PowerPoint
-(``.pptx``) files.
 
-
-Checking it out
----------------
-
-Browse :doc:`examples with screenshots <user/quickstart>` to get a quick idea
-what you can do with |pp|.
+.. include:: ../README.rst
 
 
 Feature Support
