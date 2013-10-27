@@ -9,10 +9,10 @@ from __future__ import absolute_import
 from lxml import objectify
 
 from pptx.oxml import (
-    child, element_class_lookup, nsdecls, oxml_fromstring, qn, SubElement
+    child, element_class_lookup, nsdecls, nsmap, oxml_fromstring, qn,
+    SubElement
 )
 from pptx.oxml.text import CT_TextBody
-from pptx.spec import nsmap
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_OBJ,
     PH_TYPE_SUBTITLE, PH_TYPE_TITLE

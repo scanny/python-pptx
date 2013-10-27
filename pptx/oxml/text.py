@@ -8,8 +8,9 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import Element, element_class_lookup, nsdecls, oxml_fromstring
-from pptx.spec import nsmap
+from pptx.oxml import (
+    Element, element_class_lookup, nsdecls, nsmap, oxml_fromstring
+)
 
 
 class CT_TextBody(objectify.ObjectifiedElement):

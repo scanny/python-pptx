@@ -11,7 +11,7 @@ from __future__ import absolute_import
 
 from lxml import etree, objectify
 
-from pptx.spec import nsmap
+from pptx.oxml import nsmap
 
 
 class _NamespacePrefixedTag(str):

@@ -9,10 +9,9 @@ from __future__ import absolute_import
 from lxml import objectify
 
 from pptx.oxml import (
-    Element, element_class_lookup, nsdecls, oxml_fromstring, sub_elm,
+    Element, element_class_lookup, nsdecls, nsmap, oxml_fromstring, sub_elm,
     XSD_TRUE
 )
-from pptx.spec import nsmap
 
 
 class CT_Table(objectify.ObjectifiedElement):

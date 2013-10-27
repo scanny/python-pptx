@@ -12,8 +12,7 @@ from datetime import datetime, timedelta
 
 from lxml import objectify
 
-from pptx.oxml import element_class_lookup, oxml_fromstring
-from pptx.spec import nsmap
+from pptx.oxml import element_class_lookup, oxml_fromstring, nsmap
 
 from .util import nsdecls, qn
 
