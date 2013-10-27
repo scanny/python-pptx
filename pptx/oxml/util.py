@@ -58,17 +58,6 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
     return xml
 
 
-def qn(namespace_prefixed_tag):
-    """
-    Return a Clark-notation qualified tag name corresponding to
-    *namespace_prefixed_tag*, a string like 'p:body'. 'qn' stands for
-    *qualified name*. As an example, ``qn('p:cSld')`` returns
-    ``'{http://schemas.../main}cSld'``.
-    """
-    nsptag = _NamespacePrefixedTag(namespace_prefixed_tag, nsmap)
-    return nsptag.clark_name
-
-
 def _child(element, child_tagname):
     """
     Return direct child of *element* having *child_tagname* or |None|

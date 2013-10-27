@@ -12,9 +12,9 @@ from datetime import datetime, timedelta
 
 from lxml import objectify
 
-from pptx.oxml import element_class_lookup, oxml_fromstring, nsmap
+from pptx.oxml import element_class_lookup, oxml_fromstring, nsmap, qn
 
-from .util import nsdecls, qn
+from .util import nsdecls
 
 
 class CT_CoreProperties(objectify.ObjectifiedElement):
