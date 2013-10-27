@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from lxml import etree, objectify
 
-from pptx.oxml.ns import nsmap
+from pptx.oxml.ns import _NamespacePrefixedTag, nsmap
 
 
 # oxml-specific constants --------------
@@ -20,27 +20,6 @@ fallback_lookup = objectify.ObjectifyElementClassLookup()
 element_class_lookup = etree.ElementNamespaceClassLookup(fallback_lookup)
 oxml_parser = etree.XMLParser(remove_blank_text=True)
 oxml_parser.set_element_class_lookup(element_class_lookup)
-
-
-class _NamespacePrefixedTag(str):
-    """
-    Value object that knows the semantics of an XML tag having a namespace
-    prefix.
-    """
-    def __new__(cls, nstag, *args):
-        return super(_NamespacePrefixedTag, cls).__new__(cls, nstag)
-
-    def __init__(self, nstag, prefix_to_uri_map):
-        self._pfx, self._local_part = nstag.split(':')
-        self._ns_uri = prefix_to_uri_map[self._pfx]
-
-    @property
-    def clark_name(self):
-        return '{%s}%s' % (self._ns_uri, self._local_part)
-
-    @property
-    def namespace_map(self):
-        return {self._pfx: self._ns_uri}
 
 
 def child(element, child_tagname):
