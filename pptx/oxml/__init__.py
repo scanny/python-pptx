@@ -9,6 +9,8 @@ from __future__ import absolute_import
 
 from lxml import etree, objectify
 
+from pptx.oxml.ns import NamespacePrefixedTag
+
 
 # oxml-specific constants
 XSD_TRUE = '1'
@@ -41,3 +43,13 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
         standalone=standalone
     )
     return xml
+
+
+def register_custom_element_class(nsptag_str, cls):
+    """
+    Register the lxml custom element class *cls* with the parser to be used
+    for XML elements with tag matching *nsptag_str*.
+    """
+    nsptag = NamespacePrefixedTag(nsptag_str)
+    namespace = element_class_lookup.get_namespace(nsptag.nsuri)
+    namespace[nsptag.local_part] = cls

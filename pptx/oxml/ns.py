@@ -62,6 +62,14 @@ class NamespacePrefixedTag(str):
         return '{%s}%s' % (self._ns_uri, self._local_part)
 
     @property
+    def local_part(self):
+        """
+        Return the local part of the tag as a string. E.g. 'foobar' is
+        returned for tag 'f:foobar'.
+        """
+        return self._local_part
+
+    @property
     def nsmap(self):
         """
         Return a dict having a single member, mapping the namespace prefix of
@@ -69,6 +77,23 @@ class NamespacePrefixedTag(str):
         is handy for passing to xpath calls and other uses.
         """
         return {self._pfx: self._ns_uri}
+
+    @property
+    def nspfx(self):
+        """
+        Return the string namespace prefix for the tag, e.g. 'f' is returned
+        for tag 'f:foobar'.
+        """
+        return self._pfx
+
+    @property
+    def nsuri(self):
+        """
+        Return the namespace URI for the tag, e.g. 'http://foo/bar' would be
+        returned for tag 'f:foobar' if the 'f' prefix maps to
+        'http://foo/bar' in nsmap.
+        """
+        return self._ns_uri
 
 
 def namespaces(*prefixes):
