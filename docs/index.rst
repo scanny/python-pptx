@@ -30,14 +30,14 @@ User Guide
 ----------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    user/intro
    user/install
+   user/quickstart
    user/use-cases
    user/concepts
    user/autoshape-types
-   user/quickstart
 
 
 Community Guide
