@@ -8,7 +8,8 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import Element, element_class_lookup, oxml_fromstring
+from pptx.oxml import element_class_lookup, oxml_fromstring
+from pptx.oxml.core import Element
 from pptx.oxml.ns import nsdecls, nsmap
 
 

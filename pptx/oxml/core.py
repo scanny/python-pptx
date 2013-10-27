@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
+from pptx.oxml import oxml_parser
 from pptx.oxml.ns import NamespacePrefixedTag, qn
 
 
@@ -21,6 +22,11 @@ def child(element, child_tag_str):
     xpath = './%s' % child_tag_str
     matching_children = element.xpath(xpath, namespaces=nsptag.nsmap)
     return matching_children[0] if len(matching_children) else None
+
+
+def Element(tag):
+    nsptag = NamespacePrefixedTag(tag)
+    return oxml_parser.makeelement(nsptag.clark_name, nsmap=nsptag.nsmap)
 
 
 def get_or_add(start_elm, *path_tags):

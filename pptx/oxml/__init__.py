@@ -1,17 +1,16 @@
 # encoding: utf-8
 
 """
-Initialize lxml parser.
+Initializes lxml parser and makes available a handful of functions that wrap
+its typical uses.
 """
 
 from __future__ import absolute_import
 
 from lxml import etree, objectify
 
-from pptx.oxml.ns import NamespacePrefixedTag
 
-
-# oxml-specific constants --------------
+# oxml-specific constants
 XSD_TRUE = '1'
 
 
@@ -20,11 +19,6 @@ fallback_lookup = objectify.ObjectifyElementClassLookup()
 element_class_lookup = etree.ElementNamespaceClassLookup(fallback_lookup)
 oxml_parser = etree.XMLParser(remove_blank_text=True)
 oxml_parser.set_element_class_lookup(element_class_lookup)
-
-
-def Element(tag):
-    nsptag = NamespacePrefixedTag(tag)
-    return oxml_parser.makeelement(nsptag.clark_name, nsmap=nsptag.nsmap)
 
 
 def oxml_fromstring(text):
