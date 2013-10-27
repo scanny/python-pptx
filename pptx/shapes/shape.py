@@ -4,8 +4,7 @@
 Base shape-related objects such as BaseShape.
 """
 
-from pptx.oxml import namespaces
-from pptx.oxml.util import _child
+from pptx.oxml import child, namespaces
 from pptx.text import TextFrame
 from pptx.util import to_unicode
 
@@ -30,7 +29,7 @@ class BaseShape(object):
         """
         True if this shape has a txBody element and can contain text.
         """
-        return _child(self._element, 'p:txBody') is not None
+        return child(self._element, 'p:txBody') is not None
 
     @property
     def id(self):
@@ -45,7 +44,7 @@ class BaseShape(object):
         True if this shape is a placeholder. A shape is a placeholder if it
         has a <p:ph> element.
         """
-        return _child(self._nvXxPr.nvPr, 'p:ph') is not None
+        return child(self._nvXxPr.nvPr, 'p:ph') is not None
 
     @property
     def name(self):
@@ -85,7 +84,7 @@ class BaseShape(object):
         no text frame. Use :attr:`has_textframe` to check whether a shape has
         a text frame.
         """
-        txBody = _child(self._element, 'p:txBody')
+        txBody = child(self._element, 'p:txBody')
         if txBody is None:
             raise ValueError('shape has no text frame')
         return TextFrame(txBody)
@@ -95,7 +94,7 @@ class BaseShape(object):
         """
         True if this shape is a title placeholder.
         """
-        ph = _child(self._nvXxPr.nvPr, 'p:ph')
+        ph = child(self._nvXxPr.nvPr, 'p:ph')
         if ph is None:
             return False
         # idx defaults to 0 when idx attr is absent

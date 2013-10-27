@@ -5,8 +5,8 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
-from pptx.oxml import Element, get_or_add, namespaces, qn
-from pptx.oxml.util import _child, _SubElement
+from pptx.oxml import child, Element, get_or_add, namespaces, qn
+from pptx.oxml.util import _SubElement
 from pptx.spec import ParagraphAlignment
 from pptx.util import to_unicode
 
@@ -225,7 +225,7 @@ class _Paragraph(object):
         r = Element('a:r')
         _SubElement(r, 'a:t')
         # work out where to insert it, ahead of a:endParaRPr if there is one
-        endParaRPr = _child(self.__p, 'a:endParaRPr')
+        endParaRPr = child(self.__p, 'a:endParaRPr')
         if endParaRPr is not None:
             endParaRPr.addprevious(r)
         else:
@@ -235,7 +235,7 @@ class _Paragraph(object):
     def clear(self):
         """Remove all runs from this paragraph."""
         # retain pPr if present
-        pPr = _child(self.__p, 'a:pPr')
+        pPr = child(self.__p, 'a:pPr')
         self.__p.clear()
         if pPr is not None:
             self.__p.insert(0, pPr)

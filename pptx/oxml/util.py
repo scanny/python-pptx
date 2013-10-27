@@ -56,13 +56,3 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
         standalone=standalone
     )
     return xml
-
-
-def _child(element, child_tagname):
-    """
-    Return direct child of *element* having *child_tagname* or |None|
-    if no such child element is present.
-    """
-    xpath = './%s' % child_tagname
-    matching_children = element.xpath(xpath, namespaces=nsmap)
-    return matching_children[0] if len(matching_children) else None
