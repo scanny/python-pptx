@@ -11,6 +11,10 @@ from lxml import etree, objectify
 from pptx.spec import nsmap
 
 
+# oxml-specific constants --------------
+XSD_TRUE = '1'
+
+
 # configure objectified XML parser
 fallback_lookup = objectify.ObjectifyElementClassLookup()
 element_class_lookup = etree.ElementNamespaceClassLookup(fallback_lookup)
@@ -53,3 +57,18 @@ def nsdecls(*prefixes):
 def oxml_fromstring(text):
     """``etree.fromstring()`` replacement that uses oxml parser"""
     return objectify.fromstring(text, oxml_parser)
+
+
+def qn(namespace_prefixed_tag):
+    """
+    Return a Clark-notation qualified tag name corresponding to
+    *namespace_prefixed_tag*, a string like 'p:body'. 'qn' stands for
+    *qualified name*. As an example, ``qn('p:cSld')`` returns
+    ``'{http://schemas.../main}cSld'``.
+    """
+    nsptag = _NamespacePrefixedTag(namespace_prefixed_tag, nsmap)
+    return nsptag.clark_name
+
+
+def sub_elm(parent, tag, **extra):
+    return objectify.SubElement(parent, qn(tag), **extra)
