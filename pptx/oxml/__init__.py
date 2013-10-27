@@ -43,6 +43,16 @@ class _NamespacePrefixedTag(str):
         return {self._pfx: self._ns_uri}
 
 
+def child(element, child_tagname):
+    """
+    Return direct child of *element* having *child_tagname* or |None|
+    if no such child element is present.
+    """
+    xpath = './%s' % child_tagname
+    matching_children = element.xpath(xpath, namespaces=nsmap)
+    return matching_children[0] if len(matching_children) else None
+
+
 def Element(tag):
     namespace_prefixed_tag = _NamespacePrefixedTag(tag, nsmap)
     tag_name = namespace_prefixed_tag.clark_name
@@ -68,6 +78,13 @@ def qn(namespace_prefixed_tag):
     """
     nsptag = _NamespacePrefixedTag(namespace_prefixed_tag, nsmap)
     return nsptag.clark_name
+
+
+def SubElement(parent, tag):
+    namespace_prefixed_tag = _NamespacePrefixedTag(tag, nsmap)
+    tag_name = namespace_prefixed_tag.clark_name
+    tag_nsmap = namespace_prefixed_tag.namespace_map
+    return objectify.SubElement(parent, tag_name, nsmap=tag_nsmap)
 
 
 def sub_elm(parent, tag, **extra):
