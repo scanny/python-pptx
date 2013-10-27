@@ -9,7 +9,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml.ns import NamespacePrefixedTag
+from pptx.oxml.ns import NamespacePrefixedTag, qn
 
 
 def child(element, child_tag_str):
@@ -42,3 +42,7 @@ def get_or_add(start_elm, *path_tags):
 def SubElement(parent, tag):
     nsptag = NamespacePrefixedTag(tag)
     return objectify.SubElement(parent, nsptag.clark_name, nsmap=nsptag.nsmap)
+
+
+def sub_elm(parent, tag, **extra):
+    return objectify.SubElement(parent, qn(tag), **extra)

@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from lxml import etree, objectify
 
-from pptx.oxml.ns import NamespacePrefixedTag, qn
+from pptx.oxml.ns import NamespacePrefixedTag
 
 
 # oxml-specific constants --------------
@@ -47,7 +47,3 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
         standalone=standalone
     )
     return xml
-
-
-def sub_elm(parent, tag, **extra):
-    return objectify.SubElement(parent, qn(tag), **extra)
