@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from lxml import objectify
 
 from pptx.oxml import oxml_fromstring, register_custom_element_class, XSD_TRUE
-from pptx.oxml.core import Element, sub_elm
+from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsdecls
 
 
@@ -114,13 +114,13 @@ class CT_Table(objectify.ObjectifiedElement):
             # adjust width of last col to absorb any div error
             if col == cols-1:
                 colwidth = width - ((cols-1) * colwidth)
-            sub_elm(tbl.tblGrid, 'a:gridCol', w=str(colwidth))
+            SubElement(tbl.tblGrid, 'a:gridCol', w=str(colwidth))
 
         for row in range(rows):
             # adjust height of last row to absorb any div error
             if row == rows-1:
                 rowheight = height - ((rows-1) * rowheight)
-            tr = sub_elm(tbl, 'a:tr', h=str(rowheight))
+            tr = SubElement(tbl, 'a:tr', h=str(rowheight))
             for col in range(cols):
                 tr.append(CT_TableCell.new_tc())
 
