@@ -8,9 +8,9 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import element_class_lookup, oxml_fromstring, XSD_TRUE
+from pptx.oxml import oxml_fromstring, register_custom_element_class, XSD_TRUE
 from pptx.oxml.core import Element, sub_elm
-from pptx.oxml.ns import nsdecls, nsmap
+from pptx.oxml.ns import nsdecls
 
 
 class CT_Table(objectify.ObjectifiedElement):
@@ -257,6 +257,5 @@ class CT_TableCell(objectify.ObjectifiedElement):
             super(CT_TableCell, self).__setattr__(attr, value)
 
 
-a_namespace = element_class_lookup.get_namespace(nsmap['a'])
-a_namespace['tbl'] = CT_Table
-a_namespace['tc'] = CT_TableCell
+register_custom_element_class('a:tbl', CT_Table)
+register_custom_element_class('a:tc', CT_TableCell)

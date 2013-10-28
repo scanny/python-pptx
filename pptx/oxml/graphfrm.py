@@ -8,8 +8,8 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import element_class_lookup, oxml_fromstring
-from pptx.oxml.ns import nsdecls, nsmap, qn
+from pptx.oxml import oxml_fromstring, register_custom_element_class
+from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.table import CT_Table
 
 
@@ -83,5 +83,4 @@ class CT_GraphicalObjectFrame(objectify.ObjectifiedElement):
         return graphicFrame
 
 
-p_namespace = element_class_lookup.get_namespace(nsmap['p'])
-p_namespace['graphicFrame'] = CT_GraphicalObjectFrame
+register_custom_element_class('p:graphicFrame', CT_GraphicalObjectFrame)

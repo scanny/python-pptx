@@ -8,9 +8,9 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import element_class_lookup, oxml_fromstring
+from pptx.oxml import oxml_fromstring, register_custom_element_class
 from pptx.oxml.core import child, SubElement
-from pptx.oxml.ns import nsdecls, nsmap, qn
+from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.text import CT_TextBody
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_OBJ,
@@ -238,8 +238,5 @@ class CT_Shape(objectify.ObjectifiedElement):
         return child(self.spPr, 'a:prstGeom')
 
 
-a_namespace = element_class_lookup.get_namespace(nsmap['a'])
-a_namespace['prstGeom'] = CT_PresetGeometry2D
-
-p_namespace = element_class_lookup.get_namespace(nsmap['p'])
-p_namespace['sp'] = CT_Shape
+register_custom_element_class('a:prstGeom', CT_PresetGeometry2D)
+register_custom_element_class('p:sp', CT_Shape)

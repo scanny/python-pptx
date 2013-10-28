@@ -8,9 +8,9 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import element_class_lookup, oxml_fromstring
+from pptx.oxml import oxml_fromstring, register_custom_element_class
 from pptx.oxml.core import Element
-from pptx.oxml.ns import nsdecls, nsmap
+from pptx.oxml.ns import nsdecls
 
 
 class CT_TextBody(objectify.ObjectifiedElement):
@@ -67,8 +67,5 @@ class CT_TextParagraph(objectify.ObjectifiedElement):
             self.remove(self.pPr)
 
 
-a_namespace = element_class_lookup.get_namespace(nsmap['a'])
-a_namespace['p'] = CT_TextParagraph
-
-p_namespace = element_class_lookup.get_namespace(nsmap['p'])
-p_namespace['txBody'] = CT_TextBody
+register_custom_element_class('a:p', CT_TextParagraph)
+register_custom_element_class('p:txBody', CT_TextBody)

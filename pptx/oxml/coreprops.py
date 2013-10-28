@@ -12,8 +12,8 @@ from datetime import datetime, timedelta
 
 from lxml import objectify
 
-from pptx.oxml import element_class_lookup, oxml_fromstring
-from pptx.oxml.ns import nsdecls, nsmap, qn
+from pptx.oxml import oxml_fromstring, register_custom_element_class
+from pptx.oxml.ns import nsdecls, qn
 
 
 class CT_CoreProperties(objectify.ObjectifiedElement):
@@ -215,5 +215,5 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             return cls._offset_dt(dt, offset_str)
         return dt
 
-a_namespace = element_class_lookup.get_namespace(nsmap['cp'])
-a_namespace['coreProperties'] = CT_CoreProperties
+
+register_custom_element_class('cp:coreProperties', CT_CoreProperties)

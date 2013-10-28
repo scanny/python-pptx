@@ -8,8 +8,8 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import element_class_lookup, oxml_fromstring
-from pptx.oxml.ns import nsdecls, nsmap
+from pptx.oxml import oxml_fromstring, register_custom_element_class
+from pptx.oxml.ns import nsdecls
 
 
 class CT_Picture(objectify.ObjectifiedElement):
@@ -59,5 +59,4 @@ class CT_Picture(objectify.ObjectifiedElement):
         return pic
 
 
-p_namespace = element_class_lookup.get_namespace(nsmap['p'])
-p_namespace['pic'] = CT_Picture
+register_custom_element_class('p:pic', CT_Picture)

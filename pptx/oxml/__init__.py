@@ -17,10 +17,10 @@ XSD_TRUE = '1'
 
 
 # configure objectified XML parser
-fallback_lookup = objectify.ObjectifyElementClassLookup()
-element_class_lookup = etree.ElementNamespaceClassLookup(fallback_lookup)
+_fallback_lookup = objectify.ObjectifyElementClassLookup()
+_element_class_lookup = etree.ElementNamespaceClassLookup(_fallback_lookup)
 oxml_parser = etree.XMLParser(remove_blank_text=True)
-oxml_parser.set_element_class_lookup(element_class_lookup)
+oxml_parser.set_element_class_lookup(_element_class_lookup)
 
 
 def oxml_fromstring(text):
@@ -51,5 +51,5 @@ def register_custom_element_class(nsptag_str, cls):
     for XML elements with tag matching *nsptag_str*.
     """
     nsptag = NamespacePrefixedTag(nsptag_str)
-    namespace = element_class_lookup.get_namespace(nsptag.nsuri)
+    namespace = _element_class_lookup.get_namespace(nsptag.nsuri)
     namespace[nsptag.local_part] = cls
