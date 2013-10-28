@@ -9,7 +9,7 @@ from __future__ import absolute_import
 
 #: Maps namespace prefix to namespace name for all known PowerPoint XML
 #: namespaces.
-nsmap = {
+_nsmap = {
     'a':   ('http://schemas.openxmlformats.org/drawingml/2006/main'),
     'cp':  ('http://schemas.openxmlformats.org/package/2006/metadata/core-pro'
             'perties'),
@@ -55,7 +55,7 @@ class NamespacePrefixedTag(str):
 
     def __init__(self, nstag):
         self._pfx, self._local_part = nstag.split(':')
-        self._ns_uri = nsmap[self._pfx]
+        self._ns_uri = _nsmap[self._pfx]
 
     @property
     def clark_name(self):
@@ -91,7 +91,7 @@ class NamespacePrefixedTag(str):
         """
         Return the namespace URI for the tag, e.g. 'http://foo/bar' would be
         returned for tag 'f:foobar' if the 'f' prefix maps to
-        'http://foo/bar' in nsmap.
+        'http://foo/bar' in _nsmap.
         """
         return self._ns_uri
 
@@ -104,12 +104,21 @@ def namespaces(*prefixes):
     """
     namespaces = {}
     for prefix in prefixes:
-        namespaces[prefix] = nsmap[prefix]
+        namespaces[prefix] = _nsmap[prefix]
     return namespaces
 
 
 def nsdecls(*prefixes):
-    return ' '.join(['xmlns:%s="%s"' % (pfx, nsmap[pfx]) for pfx in prefixes])
+    return ' '.join(['xmlns:%s="%s"' % (pfx, _nsmap[pfx]) for pfx in prefixes])
+
+
+def nsuri(nspfx):
+    """
+    Return the namespace URI corresponding to *nspfx*. For example, it would
+    return 'http://foo/bar' for an *nspfx* of 'f' if the 'f' prefix maps to
+    'http://foo/bar' in _nsmap.
+    """
+    return _nsmap[nspfx]
 
 
 def qn(namespace_prefixed_tag):

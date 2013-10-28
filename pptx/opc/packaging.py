@@ -22,9 +22,9 @@ import pptx.spec
 
 from pptx.exceptions import (
     CorruptedPackageError, DuplicateKeyError, NotXMLError,
-    PackageNotFoundError)
-
-from pptx.oxml.ns import qn
+    PackageNotFoundError
+)
+from pptx.oxml.ns import nsuri, qn
 from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
 
 
@@ -136,7 +136,7 @@ class Package(object):
 
     @property
     def _relsitem_element(self):
-        nsmap = {None: pptx.oxml.ns.nsmap['pr']}
+        nsmap = {None: nsuri('pr')}
         element = etree.Element(qn('pr:Relationships'), nsmap=nsmap)
         for rel in self._relationships:
             element.append(rel._element)
@@ -283,7 +283,7 @@ class Part(object):
 
     @property
     def _relsitem_element(self):
-        nsmap = {None: pptx.oxml.ns.nsmap['pr']}
+        nsmap = {None: nsuri('pr')}
         element = etree.Element(qn('pr:Relationships'), nsmap=nsmap)
         for rel in self._relationships:
             element.append(rel._element)
@@ -596,7 +596,7 @@ class _ContentTypesItem(object):
 
     @property
     def element(self):
-        nsmap = {None: pptx.oxml.ns.nsmap['ct']}
+        nsmap = {None: nsuri('ct')}
         element = etree.Element(qn('ct:Types'), nsmap=nsmap)
         if self._defaults:
             for ext in sorted(self._defaults.keys()):
