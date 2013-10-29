@@ -10,7 +10,7 @@ import pytest
 
 from lxml import etree, objectify
 
-from pptx.oxml import oxml_parser
+from pptx.oxml import oxml_parser, register_custom_element_class
 
 
 class DescribeOxmlParser(object):
@@ -24,9 +24,23 @@ class DescribeOxmlParser(object):
         assert xml_bytes == stripped_xml_bytes
 
 
+class DescribeRegisterCustomElementClass(object):
+
+    def it_determines_cust_elm_class_constructed_for_specified_tag(
+            self, xml_bytes):
+        register_custom_element_class('a:foo', CustElmCls)
+        foo = objectify.fromstring(xml_bytes, oxml_parser)
+        assert type(foo) is CustElmCls
+        assert type(foo.bar) is objectify.StringElement
+
+
 # ===========================================================================
 # fixtures
 # ===========================================================================
+
+class CustElmCls(objectify.ObjectifiedElement):
+    pass
+
 
 @pytest.fixture
 def foo(xml_bytes):
