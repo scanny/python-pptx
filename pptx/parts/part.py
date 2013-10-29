@@ -5,7 +5,8 @@ Part objects, including BasePart.
 """
 
 from pptx.opc.rels import Relationship, RelationshipCollection
-from pptx.oxml import oxml_fromstring, oxml_tostring
+from pptx.oxml import oxml_fromstring
+from pptx.oxml.core import serialize_part_xml
 from pptx.util import Collection, Partname
 
 
@@ -83,8 +84,7 @@ class BasePart(_Observable):
                 'BasePart._blob is undefined for xml parts when part._elemen'
                 't is None'
             )
-            xml = oxml_tostring(self._element, encoding='UTF-8',
-                                pretty_print=False, standalone=True)
+            xml = serialize_part_xml(self._element)
             return xml
         # default for binary parts is to return _load_blob unchanged
         assert self._load_blob, (

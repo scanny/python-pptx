@@ -7,7 +7,7 @@ lxml.objectify elements.
 
 from __future__ import absolute_import
 
-from lxml import objectify
+from lxml import etree, objectify
 
 from pptx.oxml import oxml_parser
 from pptx.oxml.ns import NamespacePrefixedTag
@@ -50,6 +50,15 @@ def get_or_add(start_elm, *path_tags):
             child_ = SubElement(parent, tag)
         parent = child_
     return child_
+
+
+def serialize_part_xml(part_elm):
+    # if xsi parameter is not set to False, PowerPoint won't load without a
+    # repair step; deannotate removes some original xsi:type tags in core.xml
+    # if this parameter is left out (or set to True)
+    objectify.deannotate(part_elm, xsi=False, cleanup_namespaces=False)
+    xml = etree.tostring(part_elm, encoding='UTF-8', standalone=True)
+    return xml
 
 
 def SubElement(parent, tag, **extra):
