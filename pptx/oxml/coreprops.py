@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 from lxml import objectify
 
-from pptx.oxml import oxml_fromstring, register_custom_element_class
+from pptx.oxml import parse_xml_bytes, register_custom_element_class
 from pptx.oxml.ns import nsdecls, qn
 
 
@@ -50,7 +50,7 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
     def new_coreProperties():
         """Return a new ``<cp:coreProperties>`` element"""
         xml = CT_CoreProperties._coreProperties_tmpl
-        coreProperties = oxml_fromstring(xml)
+        coreProperties = parse_xml_bytes(xml)
         return coreProperties
 
     def __getattribute__(self, name):

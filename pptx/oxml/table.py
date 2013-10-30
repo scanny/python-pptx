@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import oxml_fromstring, register_custom_element_class, XSD_TRUE
+from pptx.oxml import parse_xml_bytes, register_custom_element_class, XSD_TRUE
 from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsdecls
 
@@ -104,7 +104,7 @@ class CT_Table(objectify.ObjectifiedElement):
             tableStyleId = '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}'
 
         xml = CT_Table._tbl_tmpl % (tableStyleId)
-        tbl = oxml_fromstring(xml)
+        tbl = parse_xml_bytes(xml)
 
         # add specified number of rows and columns
         rowheight = height/rows
@@ -145,7 +145,7 @@ class CT_TableCell(objectify.ObjectifiedElement):
     def new_tc():
         """Return a new ``<a:tc>`` element tree"""
         xml = CT_TableCell._tc_tmpl
-        tc = oxml_fromstring(xml)
+        tc = parse_xml_bytes(xml)
         objectify.deannotate(tc, cleanup_namespaces=True)
         return tc
 

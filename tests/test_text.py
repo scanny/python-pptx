@@ -8,7 +8,7 @@ from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch
 
 from pptx.constants import MSO, PP
-from pptx.oxml import oxml_fromstring, oxml_parse
+from pptx.oxml import parse_xml_bytes, oxml_parse
 from pptx.oxml.core import SubElement
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
@@ -25,14 +25,14 @@ class Test_Font(TestCase):
     """Test _Font class"""
     def setUp(self):
         self.rPr_xml = '<a:rPr %s/>' % nsdecls('a')
-        self.rPr = oxml_fromstring(self.rPr_xml)
+        self.rPr = parse_xml_bytes(self.rPr_xml)
         self.font = _Font(self.rPr)
 
     def test_get_bold_setting(self):
         """_Font.bold returns True on bold font weight"""
         # setup ------------------------
         rPr_xml = '<a:rPr %s b="1"/>' % nsdecls('a')
-        rPr = oxml_fromstring(rPr_xml)
+        rPr = parse_xml_bytes(rPr_xml)
         font = _Font(rPr)
         # verify -----------------------
         assert_that(self.font.bold, is_(False))
@@ -56,7 +56,7 @@ class Test_Font(TestCase):
         rPr_xml = (
             '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
             '/main" b="1"/>')
-        rPr = oxml_fromstring(rPr_xml)
+        rPr = parse_xml_bytes(rPr_xml)
         font = _Font(rPr)
         expected_rPr_xml = (
             '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
@@ -92,7 +92,7 @@ class Test_Paragraph(TestCase):
         self.test_text = 'test text'
         self.p_xml = ('<a:p %s><a:r><a:t>%s</a:t></a:r></a:p>' %
                       (nsdecls('a'), self.test_text))
-        self.p = oxml_fromstring(self.p_xml)
+        self.p = parse_xml_bytes(self.p_xml)
         self.paragraph = _Paragraph(self.p)
 
     def test_runs_size(self):
@@ -184,7 +184,7 @@ class Test_Paragraph(TestCase):
         # setup ------------------------
         p_xml = ('<a:p %s><a:pPr lvl="1"/><a:r><a:t>%s</a:t></a:r></a:p>' %
                  (nsdecls('a'), self.test_text))
-        p_elm = oxml_fromstring(p_xml)
+        p_elm = parse_xml_bytes(p_xml)
         paragraph = _Paragraph(p_elm)
         expected_p_xml = '<a:p %s><a:pPr lvl="1"/></a:p>' % nsdecls('a')
         # exercise ---------------------
@@ -277,7 +277,7 @@ class Test_Run(TestCase):
         self.test_text = 'test text'
         self.r_xml = ('<a:r %s><a:t>%s</a:t></a:r>' %
                       (nsdecls('a'), self.test_text))
-        self.r = oxml_fromstring(self.r_xml)
+        self.r = parse_xml_bytes(self.r_xml)
         self.run = _Run(self.r)
 
     def test_set_font_size(self):
@@ -349,7 +349,7 @@ class TestTextFrame(TestCase):
             '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
             'p><a:p/></p:txBody>' % nsdecls('p', 'a')
         )
-        txBody = oxml_fromstring(txBody_xml)
+        txBody = parse_xml_bytes(txBody_xml)
         textframe = TextFrame(txBody)
         # exercise ---------------------
         textframe.add_paragraph()
@@ -393,7 +393,7 @@ class TestTextFrame(TestCase):
             '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
             nsdecls('p', 'a')
         )
-        txBody = oxml_fromstring(txBody_xml)
+        txBody = parse_xml_bytes(txBody_xml)
         textframe = TextFrame(txBody)
         # exercise ---------------------
         textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
@@ -423,7 +423,7 @@ class TestTextFrame(TestCase):
             nsdecls('p', 'a')
         )
 
-        txBody = oxml_fromstring(txBody_xml)
+        txBody = parse_xml_bytes(txBody_xml)
         textframe = TextFrame(txBody)
 
         self.assertEqual(textframe.word_wrap, None)

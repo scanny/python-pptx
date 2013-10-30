@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import oxml_fromstring, register_custom_element_class
+from pptx.oxml import parse_xml_bytes, register_custom_element_class
 from pptx.oxml.core import child, SubElement
 from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.text import CT_TextBody
@@ -169,7 +169,7 @@ class CT_Shape(objectify.ObjectifiedElement):
         """
         xml = CT_Shape._autoshape_sp_tmpl % (id_, name, left, top,
                                              width, height, prst)
-        sp = oxml_fromstring(xml)
+        sp = parse_xml_bytes(xml)
         objectify.deannotate(sp, cleanup_namespaces=True)
         return sp
 
@@ -180,7 +180,7 @@ class CT_Shape(objectify.ObjectifiedElement):
         shape.
         """
         xml = CT_Shape._ph_sp_tmpl % (id_, name)
-        sp = oxml_fromstring(xml)
+        sp = parse_xml_bytes(xml)
 
         # placeholder shapes get a "no group" lock
         SubElement(sp.nvSpPr.cNvSpPr, 'a:spLocks')
@@ -214,7 +214,7 @@ class CT_Shape(objectify.ObjectifiedElement):
         shape.
         """
         xml = CT_Shape._textbox_sp_tmpl % (id_, name, left, top, width, height)
-        sp = oxml_fromstring(xml)
+        sp = parse_xml_bytes(xml)
         objectify.deannotate(sp, cleanup_namespaces=True)
         return sp
 

@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import oxml_fromstring, register_custom_element_class
+from pptx.oxml import parse_xml_bytes, register_custom_element_class
 from pptx.oxml.ns import nsdecls
 
 
@@ -53,7 +53,7 @@ class CT_Picture(objectify.ObjectifiedElement):
         """
         xml = CT_Picture._pic_tmpl % (id_, name, desc, rId,
                                       left, top, width, height)
-        pic = oxml_fromstring(xml)
+        pic = parse_xml_bytes(xml)
 
         objectify.deannotate(pic, cleanup_namespaces=True)
         return pic

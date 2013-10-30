@@ -11,7 +11,7 @@ from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
-from pptx.oxml import oxml_fromstring
+from pptx.oxml import parse_xml_bytes
 
 from ..unitdata import a_prstGeom, test_shapes
 from ..unitutil import TestCase
@@ -322,7 +322,7 @@ class TestShape(TestCase):
             '2006/main"><p:nvSpPr><p:cNvPr id="9" name="Unknown Shape Type 8"'
             '/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/></p:sp>'
         )
-        sp = oxml_fromstring(xml)
+        sp = parse_xml_bytes(xml)
         shape = Shape(sp)
         # verify -----------------------
         with self.assertRaises(NotImplementedError):

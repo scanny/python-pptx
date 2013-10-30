@@ -23,9 +23,11 @@ oxml_parser = etree.XMLParser(remove_blank_text=True)
 oxml_parser.set_element_class_lookup(_element_class_lookup)
 
 
-def oxml_fromstring(text):
-    """``etree.fromstring()`` replacement that uses oxml parser"""
-    return objectify.fromstring(text, oxml_parser)
+def parse_xml_bytes(xml_bytes):
+    """
+    Return root lxml element obtained by parsing XML contained in *xml_bytes*.
+    """
+    return objectify.fromstring(xml_bytes, oxml_parser)
 
 
 def oxml_parse(source):

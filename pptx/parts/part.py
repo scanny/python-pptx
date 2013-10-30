@@ -5,7 +5,7 @@ Part objects, including BasePart.
 """
 
 from pptx.opc.rels import Relationship, RelationshipCollection
-from pptx.oxml import oxml_fromstring
+from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import serialize_part_xml
 from pptx.util import Collection, Partname
 
@@ -146,7 +146,7 @@ class BasePart(_Observable):
         self._content_type_ = pkgpart.content_type
         self._partname = pkgpart.partname
         if pkgpart.partname.endswith('.xml'):
-            self._element = oxml_fromstring(pkgpart.blob)
+            self._element = parse_xml_bytes(pkgpart.blob)
         else:
             self._load_blob = pkgpart.blob
 

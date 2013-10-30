@@ -13,7 +13,7 @@ from mock import Mock
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import Relationship, RelationshipCollection
-from pptx.oxml import oxml_fromstring, oxml_parse
+from pptx.oxml import parse_xml_bytes, oxml_parse
 from pptx.oxml.ns import namespaces, qn
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import BasePart
@@ -270,7 +270,7 @@ class Test_Presentation(TestCase):
         # exercise ---------------------
         blob = prs._blob
         # verify -----------------------
-        presentation = oxml_fromstring(blob)
+        presentation = parse_xml_bytes(blob)
         sldIds = presentation.xpath('./p:sldIdLst/p:sldId', namespaces=nsmap)
         expected = ['rId3', 'rId4', 'rId5']
         actual = [sldId.get(qn('r:id')) for sldId in sldIds]

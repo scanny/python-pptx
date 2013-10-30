@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import oxml_fromstring, register_custom_element_class
+from pptx.oxml import parse_xml_bytes, register_custom_element_class
 from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.table import CT_Table
 
@@ -57,7 +57,7 @@ class CT_GraphicalObjectFrame(objectify.ObjectifiedElement):
         """
         xml = CT_GraphicalObjectFrame._graphicFrame_tmpl % (
             id_, name, left, top, width, height)
-        graphicFrame = oxml_fromstring(xml)
+        graphicFrame = parse_xml_bytes(xml)
 
         objectify.deannotate(graphicFrame, cleanup_namespaces=True)
         return graphicFrame

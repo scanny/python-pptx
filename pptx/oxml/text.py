@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import oxml_fromstring, register_custom_element_class
+from pptx.oxml import parse_xml_bytes, register_custom_element_class
 from pptx.oxml.core import Element
 from pptx.oxml.ns import nsdecls
 
@@ -27,7 +27,7 @@ class CT_TextBody(objectify.ObjectifiedElement):
     def new_txBody():
         """Return a new ``<p:txBody>`` element tree"""
         xml = CT_TextBody._txBody_tmpl
-        txBody = oxml_fromstring(xml)
+        txBody = parse_xml_bytes(xml)
         objectify.deannotate(txBody, cleanup_namespaces=True)
         return txBody
 

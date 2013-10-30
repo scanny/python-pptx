@@ -8,7 +8,7 @@ from hamcrest import assert_that, equal_to, is_
 from mock import Mock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.oxml import oxml_fromstring
+from pptx.oxml import parse_xml_bytes
 from pptx.parts.part import BasePart, PartCollection
 
 from ..unitutil import serialize_xml, TestCase
@@ -61,7 +61,7 @@ class TestBasePart(TestCase):
     def test__blob_value_for_xml_part(self):
         """BasePart._blob value is correct for XML part"""
         # setup ------------------------
-        elm = oxml_fromstring('<root><elm1 attr="one"/></root>')
+        elm = parse_xml_bytes('<root><elm1 attr="one"/></root>')
         self.basepart._element = elm
         self.basepart.partname = '/ppt/presentation.xml'
         # exercise ---------------------
