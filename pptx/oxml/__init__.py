@@ -27,7 +27,8 @@ def parse_xml_bytes(xml_bytes):
     """
     Return root lxml element obtained by parsing XML contained in *xml_bytes*.
     """
-    return objectify.fromstring(xml_bytes, oxml_parser)
+    root_element = objectify.fromstring(xml_bytes, oxml_parser)
+    return root_element
 
 
 def oxml_parse(source):
