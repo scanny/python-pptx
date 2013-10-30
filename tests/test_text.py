@@ -8,14 +8,14 @@ from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch
 
 from pptx.constants import MSO, PP
-from pptx.oxml import oxml_fromstring, oxml_parse, oxml_tostring
+from pptx.oxml import oxml_fromstring, oxml_parse
 from pptx.oxml.core import SubElement
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
 from pptx.util import Pt
 
 from .unitdata import test_text_objects, test_text_xml
-from .unitutil import absjoin, TestCase, test_file_dir
+from .unitutil import absjoin, serialize_xml, TestCase, test_file_dir
 
 
 nsmap = namespaces('a', 'r', 'p')
@@ -47,7 +47,7 @@ class Test_Font(TestCase):
         # exercise ---------------------
         self.font.bold = True
         # verify -----------------------
-        rPr_xml = oxml_tostring(self.font._rPr)
+        rPr_xml = serialize_xml(self.font._rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
 
     def test_clear_bold(self):
@@ -64,7 +64,7 @@ class Test_Font(TestCase):
         # exercise ---------------------
         font.bold = None
         # verify -----------------------
-        rPr_xml = oxml_tostring(font._rPr)
+        rPr_xml = serialize_xml(font._rPr)
         assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
 
     def test_set_font_size(self):
@@ -77,7 +77,7 @@ class Test_Font(TestCase):
         # exercise ---------------------
         self.font.size = newfontsize
         # verify -----------------------
-        actual_xml = oxml_tostring(self.font._rPr)
+        actual_xml = serialize_xml(self.font._rPr)
         assert_that(actual_xml, is_(equal_to(expected_xml)))
 
 
@@ -190,7 +190,7 @@ class Test_Paragraph(TestCase):
         # exercise ---------------------
         paragraph.clear()
         # verify -----------------------
-        p_xml = oxml_tostring(paragraph._Paragraph__p)
+        p_xml = serialize_xml(paragraph._Paragraph__p)
         assert_that(p_xml, is_(equal_to(expected_p_xml)))
 
     def test_level_setter_generates_correct_xml(self):
@@ -355,7 +355,7 @@ class TestTextFrame(TestCase):
         textframe.add_paragraph()
         # verify -----------------------
         assert_that(len(textframe.paragraphs), is_(equal_to(2)))
-        textframe_xml = oxml_tostring(textframe._txBody)
+        textframe_xml = serialize_xml(textframe._txBody)
         expected = expected_xml
         actual = textframe_xml
         msg = "\nExpected: '%s'\n\n     Got: '%s'" % (expected, actual)

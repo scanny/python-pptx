@@ -5,15 +5,21 @@
 import os
 import unittest2
 
-from pptx.oxml import oxml_tostring
+from lxml import etree, objectify
+
+
+_thisdir = os.path.split(__file__)[0]
+test_file_dir = os.path.abspath(os.path.join(_thisdir, 'test_files'))
 
 
 def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
 
 
-_thisdir = os.path.split(__file__)[0]
-test_file_dir = absjoin(_thisdir, 'test_files')
+def serialize_xml(elm, pretty_print=False):
+    objectify.deannotate(elm, xsi=False)
+    xml = etree.tostring(elm, pretty_print=pretty_print)
+    return xml
 
 
 class TestCase(unittest2.TestCase):
@@ -23,7 +29,7 @@ class TestCase(unittest2.TestCase):
         Apply assertEqual() to each line of *expected_xml* and corresponding
         line of XML derived from *element*.
         """
-        actual_xml = oxml_tostring(element, pretty_print=True)
+        actual_xml = serialize_xml(element, pretty_print=True)
         actual_xml_lines = actual_xml.split('\n')
         expected_xml_lines = expected_xml.split('\n')
         for idx, line in enumerate(actual_xml_lines):

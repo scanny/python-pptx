@@ -8,10 +8,10 @@ from hamcrest import assert_that, equal_to, is_
 from mock import Mock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.oxml import oxml_fromstring, oxml_tostring
+from pptx.oxml import oxml_fromstring
 from pptx.parts.part import BasePart, PartCollection
 
-from ..unitutil import TestCase
+from ..unitutil import serialize_xml, TestCase
 
 
 class TestBasePart(TestCase):
@@ -88,7 +88,7 @@ class TestBasePart(TestCase):
         elm = part._element
         # verify -----------------------
         expected = '<root><elm1 attr="spam"/></root>'
-        actual = oxml_tostring(elm)
+        actual = serialize_xml(elm)
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
