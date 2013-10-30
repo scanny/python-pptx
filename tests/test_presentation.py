@@ -13,14 +13,14 @@ from mock import Mock
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import Relationship, RelationshipCollection
-from pptx.oxml import parse_xml_bytes, oxml_parse
+from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, qn
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import BasePart
 from pptx.parts.slides import Slide, SlideLayout, SlideMaster
 from pptx.presentation import Package, Part, Presentation
 
-from .unitutil import absjoin, TestCase, test_file_dir
+from .unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -266,7 +266,7 @@ class Test_Presentation(TestCase):
         prs._relationships = rels
         prs.partname = '/ppt/presentation.xml'
         path = absjoin(test_file_dir, 'presentation.xml')
-        prs._element = oxml_parse(path).getroot()
+        prs._element = parse_xml_file(path).getroot()
         # exercise ---------------------
         blob = prs._blob
         # verify -----------------------

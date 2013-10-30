@@ -4,7 +4,6 @@
 
 from __future__ import absolute_import
 
-from pptx.oxml import oxml_parse
 from pptx.oxml.ns import namespaces
 from pptx.shapes.placeholder import Placeholder
 from pptx.shapes.shapetree import ShapeCollection
@@ -14,14 +13,14 @@ from pptx.spec import (
     PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER
 )
 
-from ..unitutil import absjoin, TestCase, test_file_dir
+from ..unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
 
 nsmap = namespaces('a', 'r', 'p')
 
 
 def _sldLayout1():
     path = absjoin(test_file_dir, 'slideLayout1.xml')
-    sldLayout = oxml_parse(path).getroot()
+    sldLayout = parse_xml_file(path).getroot()
     return sldLayout
 
 

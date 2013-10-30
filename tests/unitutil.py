@@ -8,6 +8,8 @@ import unittest2
 from lxml import etree, objectify
 from mock import create_autospec, Mock, patch, PropertyMock
 
+from pptx.oxml import oxml_parser
+
 
 _thisdir = os.path.split(__file__)[0]
 test_file_dir = os.path.abspath(os.path.join(_thisdir, 'test_files'))
@@ -15,6 +17,13 @@ test_file_dir = os.path.abspath(os.path.join(_thisdir, 'test_files'))
 
 def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
+
+
+def parse_xml_file(file_):
+    """
+    Return ElementTree for XML contained in *file_*
+    """
+    return objectify.parse(file_, oxml_parser)
 
 
 def relpath(relpath):

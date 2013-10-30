@@ -7,12 +7,11 @@ from __future__ import absolute_import
 from hamcrest import assert_that, is_
 from mock import Mock
 
-from pptx.oxml import oxml_parse
 from pptx.oxml.ns import namespaces
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeCollection
 
-from ..unitutil import absjoin, TestCase, test_file_dir
+from ..unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
 
 
 slide1_path = absjoin(test_file_dir, 'slide1.xml')
@@ -24,7 +23,7 @@ class TestBaseShape(TestCase):
     """Test BaseShape"""
     def setUp(self):
         path = slide1_path
-        self.sld = oxml_parse(path).getroot()
+        self.sld = parse_xml_file(path).getroot()
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = BaseShape(pic)

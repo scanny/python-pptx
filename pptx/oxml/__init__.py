@@ -31,11 +31,6 @@ def parse_xml_bytes(xml_bytes):
     return root_element
 
 
-def oxml_parse(source):
-    """``etree.parse()`` replacement that uses oxml parser"""
-    return objectify.parse(source, oxml_parser)
-
-
 def register_custom_element_class(nsptag_str, cls):
     """
     Register the lxml custom element class *cls* with the parser to be used

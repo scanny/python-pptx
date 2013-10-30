@@ -8,14 +8,16 @@ from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch
 
 from pptx.constants import MSO, PP
-from pptx.oxml import parse_xml_bytes, oxml_parse
+from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import SubElement
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
 from pptx.util import Pt
 
 from .unitdata import test_text_objects, test_text_xml
-from .unitutil import absjoin, serialize_xml, TestCase, test_file_dir
+from .unitutil import (
+    absjoin, parse_xml_file, serialize_xml, TestCase, test_file_dir
+)
 
 
 nsmap = namespaces('a', 'r', 'p')
@@ -85,7 +87,7 @@ class Test_Paragraph(TestCase):
     """Test _Paragraph"""
     def setUp(self):
         path = absjoin(test_file_dir, 'slide1.xml')
-        self.sld = oxml_parse(path).getroot()
+        self.sld = parse_xml_file(path).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody/a:p'
         self.pList = self.sld.xpath(xpath, namespaces=nsmap)
 
@@ -320,7 +322,7 @@ class TestTextFrame(TestCase):
     """Test TextFrame"""
     def setUp(self):
         path = absjoin(test_file_dir, 'slide1.xml')
-        self.sld = oxml_parse(path).getroot()
+        self.sld = parse_xml_file(path).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody'
         self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)
 

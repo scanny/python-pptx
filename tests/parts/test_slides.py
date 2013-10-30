@@ -9,7 +9,6 @@ from mock import Mock, patch, PropertyMock
 
 from pptx.opc import packaging
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.oxml import oxml_parse
 from pptx.oxml.ns import namespaces
 from pptx.parts.slides import (
     _BaseSlide, Slide, SlideCollection, SlideLayout, SlideMaster
@@ -17,7 +16,7 @@ from pptx.parts.slides import (
 from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import ShapeCollection
 
-from ..unitutil import absjoin, TestCase, test_file_dir
+from ..unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
 
 
 test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
@@ -28,7 +27,7 @@ nsmap = namespaces('a', 'r', 'p')
 
 def _sldLayout1():
     path = absjoin(test_file_dir, 'slideLayout1.xml')
-    sldLayout = oxml_parse(path).getroot()
+    sldLayout = parse_xml_file(path).getroot()
     return sldLayout
 
 

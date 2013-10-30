@@ -10,7 +10,6 @@ from hamcrest import assert_that, equal_to, is_
 from mock import Mock, patch, PropertyMock
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
-from pptx.oxml import oxml_parse
 from pptx.oxml.core import SubElement
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.parts.slides import SlideLayout
@@ -22,7 +21,7 @@ from pptx.spec import (
 )
 
 from ..unitdata import test_shape_elements, test_shapes
-from ..unitutil import absjoin, TestCase, test_file_dir
+from ..unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
 
 
 test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
@@ -36,7 +35,7 @@ nsmap = namespaces('a', 'r', 'p')
 
 def _sldLayout1():
     path = os.path.join(test_file_dir, 'slideLayout1.xml')
-    sldLayout = oxml_parse(path).getroot()
+    sldLayout = parse_xml_file(path).getroot()
     return sldLayout
 
 
@@ -51,7 +50,7 @@ class TestShapeCollection(TestCase):
     """Test ShapeCollection"""
     def setUp(self):
         path = absjoin(test_file_dir, 'slide1.xml')
-        sld = oxml_parse(path).getroot()
+        sld = parse_xml_file(path).getroot()
         spTree = sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
         self.shapes = ShapeCollection(spTree)
 
