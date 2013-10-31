@@ -10,8 +10,9 @@ import pytest
 
 from lxml import objectify
 
-from pptx.oxml.core import child, get_or_add, serialize_part_xml
+from pptx.oxml.core import child, Element, get_or_add, serialize_part_xml
 from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.text import CT_TextBody
 
 
 class DescribeChild(object):
@@ -24,6 +25,23 @@ class DescribeChild(object):
     def it_returns_none_if_no_matching_child_is_present(self, parent_elm):
         child_elm = child(parent_elm, 'p:baz')
         assert child_elm is None
+
+
+class DescribeElement(object):
+
+    def it_returns_an_element_with_the_specified_nsptag(self, nsptag_str):
+        elm = Element(nsptag_str)
+        assert elm.tag == qn(nsptag_str)
+
+    def it_returns_custom_element_class_if_one_is_defined(self, nsptag_str):
+        elm = Element(nsptag_str)
+        assert type(elm) is CT_TextBody
+
+    # fixtures -----------------------------------
+
+    @pytest.fixture
+    def nsptag_str(self):
+        return 'p:txBody'
 
 
 class DescribeGetOrAddChild(object):

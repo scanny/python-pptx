@@ -24,15 +24,14 @@ def child(element, child_tag_str):
     return matching_children[0] if len(matching_children) else None
 
 
-def Element(tag):
+def Element(nsptag_str):
     """
-    Return 'loose' lxml element having the tag specified by *tag*. *tag*
-    must contain the standard namespace prefix, e.g. 'a:tbl'. The namespace
-    URI is automatically looked up from the prefix and the resulting element
-    will be an instance of the custom element class for this tag name if one
-    is defined.
+    Return a 'loose' lxml element having the tag specified by *nsptag_str*.
+    *nsptag_str* must contain the standard namespace prefix, e.g. 'a:tbl'.
+    The resulting element is an instance of the custom element class for this
+    tag name if one is defined.
     """
-    nsptag = NamespacePrefixedTag(tag)
+    nsptag = NamespacePrefixedTag(nsptag_str)
     return oxml_parser.makeelement(nsptag.clark_name, nsmap=nsptag.nsmap)
 
 
