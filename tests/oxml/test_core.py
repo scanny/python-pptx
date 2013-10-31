@@ -10,7 +10,10 @@ import pytest
 
 from lxml import objectify
 
-from pptx.oxml.core import child, Element, get_or_add, serialize_part_xml
+from pptx.oxml import oxml_parser
+from pptx.oxml.core import (
+    child, Element, get_or_add, serialize_part_xml, SubElement
+)
 from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.text import CT_TextBody
 
@@ -29,19 +32,13 @@ class DescribeChild(object):
 
 class DescribeElement(object):
 
-    def it_returns_an_element_with_the_specified_nsptag(self, nsptag_str):
+    def it_returns_an_element_with_the_specified_tag(self, nsptag_str):
         elm = Element(nsptag_str)
         assert elm.tag == qn(nsptag_str)
 
     def it_returns_custom_element_class_if_one_is_defined(self, nsptag_str):
         elm = Element(nsptag_str)
         assert type(elm) is CT_TextBody
-
-    # fixtures -----------------------------------
-
-    @pytest.fixture
-    def nsptag_str(self):
-        return 'p:txBody'
 
 
 class DescribeGetOrAddChild(object):
@@ -103,6 +100,33 @@ class DescribeSerializePartXml(object):
         return xml_bytes
 
 
+class DescribeSubElement(object):
+
+    def it_returns_a_child_of_the_passed_parent_elm(
+            self, parent_elm, nsptag_str):
+        elm = SubElement(parent_elm, nsptag_str)
+        assert elm.getparent() is parent_elm
+
+    def it_returns_an_element_with_the_specified_tag(
+            self, parent_elm, nsptag_str):
+        elm = SubElement(parent_elm, nsptag_str)
+        assert elm.tag == qn(nsptag_str)
+
+    def it_returns_custom_element_class_if_one_is_defined_for_tag(
+            self, parent_elm, nsptag_str):
+        # note this behavior depends on the parser of parent_elm being the
+        # one on which the custom element class lookups are defined
+        elm = SubElement(parent_elm, nsptag_str)
+        assert type(elm) is CT_TextBody
+
+    def it_can_set_element_attributes(self, parent_elm, nsptag_str):
+        attr_dct = {'foo': 'f', 'bar': 'b'}
+        elm = SubElement(parent_elm, nsptag_str, attrib=attr_dct, baz='1')
+        assert elm.get('foo') == 'f'
+        assert elm.get('bar') == 'b'
+        assert elm.get('baz') == '1'
+
+
 # ===========================================================================
 # fixtures
 # ===========================================================================
@@ -118,6 +142,11 @@ def known_child_nsptag_str():
 
 
 @pytest.fixture
+def nsptag_str():
+    return 'p:txBody'
+
+
+@pytest.fixture
 def parent_elm():
     xml = '<p:foo %s><a:bar>foobar</a:bar></p:foo>' % nsdecls('p', 'a')
-    return objectify.fromstring(xml)
+    return objectify.fromstring(xml, oxml_parser)

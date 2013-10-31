@@ -56,15 +56,17 @@ def serialize_part_xml(part_elm):
     return xml
 
 
-def SubElement(parent, tag, **extra):
+def SubElement(parent, nsptag_str, **extra):
     """
-    Return an lxml element having *tag*, newly added as a direct child of
-    *parent*. The new element is appended to the sequence of children, so
+    Return an lxml element having *nsptag_str*, newly added as a direct child
+    of *parent*. The new element is appended to the sequence of children, so
     this method is not suitable if the child element must be inserted at a
     different position in the sequence. The class of the returned element is
-    the custom element class for its tag, if one is defined.
+    the custom element class for its tag, if one is defined. Additional
+    named parameters defined on lxml ``makeelement()`` are accepted, such as
+    attrib=attr_dct and e.g. ``visible='1'``.
     """
-    nsptag = NamespacePrefixedTag(tag)
+    nsptag = NamespacePrefixedTag(nsptag_str)
     return objectify.SubElement(
         parent, nsptag.clark_name, nsmap=nsptag.nsmap, **extra
     )
