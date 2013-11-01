@@ -4,7 +4,7 @@
 Relationship-related objects.
 """
 
-from pptx.util import Collection, Partname
+from pptx.util import Collection
 
 
 class Relationship(object):
@@ -15,8 +15,6 @@ class Relationship(object):
     """
     def __init__(self, rId, reltype, target):
         super(Relationship, self).__init__()
-        # can't get _num right if rId is non-standard form
-        assert rId.startswith('rId'), "rId in non-standard form: '%s'" % rId
         self._rId_ = rId
         self._reltype_ = reltype
         self._target_ = target
@@ -45,19 +43,6 @@ class Relationship(object):
         """
         return self._target_
 
-    @property
-    def _num(self):
-        """
-        The numeric portion of the rId of this |Relationship|, expressed as
-        an :class:`int`. For example, :attr:`_num` for a relationship with an
-        rId of ``'rId12'`` would be ``12``.
-        """
-        try:
-            num = int(self._rId_[3:])
-        except ValueError:
-            num = 9999
-        return num
-
     @_rId.setter
     def _rId(self, value):
         self._rId_ = value
@@ -76,7 +61,6 @@ class RelationshipCollection(Collection):
     """
     def __init__(self):
         super(RelationshipCollection, self).__init__()
-        self._reltype_ordering_ = ()
 
     def _additem(self, relationship):
         """
@@ -88,9 +72,6 @@ class RelationshipCollection(Collection):
             tmpl = "cannot add relationship with duplicate rId '%s'"
             raise ValueError(tmpl % relationship._rId)
         self._values.append(relationship)
-        self._resequence()
-        # register as observer of partname changes
-        relationship._target.add_observer(self)
 
     @property
     def _next_rId(self):
@@ -98,13 +79,13 @@ class RelationshipCollection(Collection):
         Next available rId in collection, starting from 'rId1' and making use
         of any gaps in numbering, e.g. 'rId2' for rIds ['rId1', 'rId3'].
         """
+        rIds = [rel._rId for rel in self]
         tmpl = 'rId%d'
-        next_rId_num = 1
-        for relationship in self._values:
-            if relationship._num > next_rId_num:
-                return tmpl % next_rId_num
-            next_rId_num += 1
-        return tmpl % next_rId_num
+        for n in range(1, 999999):
+            rId_candidate = tmpl % n  # like 'rId19'
+            if rId_candidate not in rIds:
+                return rId_candidate
+        raise ValueError('implausible relationship count in collection')
 
     def related_part(self, reltype):
         """
@@ -117,28 +98,6 @@ class RelationshipCollection(Collection):
         tmpl = "no related part with relationship type '%s'"
         raise KeyError(tmpl % reltype)
 
-    @property
-    def _reltype_ordering(self):
-        """
-        Tuple of relationship types, e.g. ``(RT.SLIDE, RT.SLIDE_LAYOUT)``. If
-        present, relationships of those types are grouped, and those groups
-        are ordered in the same sequence they appear in the tuple. In
-        addition, relationships of the same type are sequenced in order of
-        partname number (e.g. 16 for /ppt/slides/slide16.xml). If empty, the
-        collection is maintained in existing rId order; rIds are not
-        renumbered and any gaps in numbering are left to remain. Specifying
-        this value for a collection with members causes it to be immediately
-        reordered. The ordering is maintained as relationships are added or
-        removed, renumbering rIds whenever necessary to also maintain the
-        sequence in rId order.
-        """
-        return self._reltype_ordering_
-
-    @_reltype_ordering.setter
-    def _reltype_ordering(self, ordering):
-        self._reltype_ordering_ = tuple(ordering)
-        self._resequence()
-
     def rels_of_reltype(self, reltype):
         """
         Return a :class:`list` containing the subset of relationships in this
@@ -147,33 +106,3 @@ class RelationshipCollection(Collection):
         in the collection.
         """
         return [rel for rel in self._values if rel._reltype == reltype]
-
-    def notify(self, subject, name, value):
-        """RelationshipCollection implements the Observer interface"""
-        if name == 'partname':
-            self._resequence()
-
-    def _resequence(self):
-        """
-        Sort relationships and renumber if necessary to maintain values in rId
-        order.
-        """
-        if self._reltype_ordering_:
-            def reltype_key(rel):
-                reltype = rel._reltype
-                if reltype in self._reltype_ordering_:
-                    return self._reltype_ordering_.index(reltype)
-                return len(self._reltype_ordering_)
-
-            def partname_idx_key(rel):
-                partname = Partname(rel._target.partname)
-                if partname.idx is None:
-                    return 0
-                return partname.idx
-            self._values.sort(key=lambda rel: partname_idx_key(rel))
-            self._values.sort(key=lambda rel: reltype_key(rel))
-            # renumber consistent with new sort order
-            for idx, relationship in enumerate(self._values):
-                relationship._rId = 'rId%d' % (idx+1)
-        else:
-            self._values.sort(key=lambda rel: rel._num)

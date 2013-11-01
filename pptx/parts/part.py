@@ -10,36 +10,7 @@ from pptx.oxml.core import serialize_part_xml
 from pptx.util import Collection, Partname
 
 
-class _Observable(object):
-    """
-    Simple observer pattern mixin. Limitations:
-
-    * observers get all message types from subject (_Observable), subscription
-      is on subject basis, not subject + event_type.
-
-    * notifications are oriented toward "value has been updated", which seems
-      like only one possible event, could also be something like "load has
-      completed" or "preparing to load".
-    """
-    def __init__(self):
-        super(_Observable, self).__init__()
-        self._observers = []
-
-    def _notify_observers(self, name, value):
-        # value = getattr(self, name)
-        for observer in self._observers:
-            observer.notify(self, name, value)
-
-    def add_observer(self, observer):
-        """
-        Begin notifying *observer* of events. *observer* must implement method
-        ``notify(observed, name, new_value)``
-        """
-        if observer not in self._observers:
-            self._observers.append(observer)
-
-
-class BasePart(_Observable):
+class BasePart(object):
     """
     Base class for presentation model parts. Provides common code to all parts
     and is the class we instantiate for parts we don't unmarshal or manipulate
@@ -117,7 +88,6 @@ class BasePart(_Observable):
     @partname.setter
     def partname(self, partname):
         self._partname = partname
-        self._notify_observers('partname', self._partname)
 
     def _add_relationship(self, reltype, target_part):
         """

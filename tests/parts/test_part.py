@@ -92,20 +92,6 @@ class TestBasePart(TestCase):
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    def test_observable_on_partname(self):
-        """BasePart observable on partname value change"""
-        # setup ------------------------
-        old_partname = '/ppt/slides/slide1.xml'
-        new_partname = '/ppt/slides/slide2.xml'
-        observer = Mock()
-        self.basepart.partname = old_partname
-        self.basepart.add_observer(observer)
-        # exercise ---------------------
-        self.basepart.partname = new_partname
-        # verify -----------------------
-        observer.notify.assert_called_with(self.basepart, 'partname',
-                                           new_partname)
-
     def test_partname_setter(self):
         """BasePart.partname setter stores passed value"""
         # setup ------------------------

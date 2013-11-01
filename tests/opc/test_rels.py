@@ -4,14 +4,13 @@
 
 from __future__ import absolute_import
 
-from hamcrest import assert_that, equal_to, is_, same_instance
+from hamcrest import assert_that, same_instance
 from mock import Mock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import Relationship, RelationshipCollection
 from pptx.parts.part import BasePart
 
-from ..parts.unitdata.part import a_part
 from ..unitutil import TestCase
 
 
@@ -22,27 +21,6 @@ class TestRelationship(TestCase):
         reltype = RT.SLIDE
         target_part = None
         self.rel = Relationship(rId, reltype, target_part)
-
-    def test_constructor_raises_on_bad_rId(self):
-        """Relationship constructor raises on non-standard rId"""
-        with self.assertRaises(AssertionError):
-            Relationship('Non-std14', None, None)
-
-    def test__num_value(self):
-        """Relationship._num value is correct"""
-        # setup ------------------------
-        num = 91
-        rId = 'rId%d' % num
-        rel = Relationship(rId, None, None)
-        # verify -----------------------
-        assert_that(rel._num, is_(equal_to(num)))
-
-    def test__num_value_on_non_standard_rId(self):
-        """Relationship._num value is correct for non-standard rId"""
-        # setup ------------------------
-        rel = Relationship('rIdSm', None, None)
-        # verify -----------------------
-        assert_that(rel._num, is_(equal_to(9999)))
 
     def test__rId_setter(self):
         """Relationship._rId setter stores passed value"""
@@ -129,45 +107,6 @@ class TestRelationshipCollection(TestCase):
         with self.assertRaises(ValueError):
             self.relationships._additem(rel2)
 
-    def test__additem_maintains_rId_ordering(self):
-        """RelationshipCollection maintains rId ordering on additem()"""
-        # setup ------------------------
-        part1 = BasePart()
-        part2 = BasePart()
-        part3 = BasePart()
-        rel1 = Relationship('rId1', None, part1)
-        rel2 = Relationship('rId2', None, part2)
-        rel3 = Relationship('rId3', None, part3)
-        # exercise ---------------------
-        self.relationships._additem(rel2)
-        self.relationships._additem(rel1)
-        self.relationships._additem(rel3)
-        # verify -----------------------
-        expected = ['rId1', 'rId2', 'rId3']
-        actual = [rel._rId for rel in self.relationships]
-        msg = "expected ordering %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test__additem_maintains_reltype_ordering(self):
-        """RelationshipCollection maintains reltype ordering on additem()"""
-        # setup ------------------------
-        relationships, partnames = self._reltype_ordering_mock()
-        ordering = (RT.SLIDE_MASTER, RT.SLIDE_LAYOUT, RT.SLIDE)
-        relationships._reltype_ordering = ordering
-        partname = '/ppt/slides/slide2.xml'
-        part = Mock(name='new_part')
-        part.partname = partname
-        rId = relationships._next_rId
-        rel = Relationship(rId, RT.SLIDE, part)
-        # exercise ---------------------
-        relationships._additem(rel)
-        # verify ordering -------------
-        expected = [partnames[2], partnames[1], partnames[3],
-                    partname, partnames[0], partnames[4]]
-        actual = [r._target.partname for r in relationships]
-        msg = "expected ordering %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
     def test_rels_of_reltype_return_value(self):
         """RelationshipCollection._rels_of_reltype returns correct rels"""
         # setup ------------------------
@@ -178,21 +117,6 @@ class TestRelationshipCollection(TestCase):
         expected = ['rId1', 'rId4']
         actual = [rel._rId for rel in retval]
         msg = "expected %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test__reltype_ordering_sorts_rels(self):
-        """RelationshipCollection._reltype_ordering sorts rels"""
-        # setup ------------------------
-        relationships, partnames = self._reltype_ordering_mock()
-        ordering = (RT.SLIDE_MASTER, RT.SLIDE_LAYOUT, RT.SLIDE)
-        # exercise ---------------------
-        relationships._reltype_ordering = ordering
-        # verify ordering -------------
-        assert_that(relationships._reltype_ordering, is_(equal_to(ordering)))
-        expected = [partnames[2], partnames[1], partnames[3], partnames[0],
-                    partnames[4]]
-        actual = [rel._target.partname for rel in relationships]
-        msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
     def test__reltype_ordering_renumbers_rels(self):
@@ -236,26 +160,4 @@ class TestRelationshipCollection(TestCase):
         expected = expected_rIds
         actual = actual_rIds
         msg = "expected rIds %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test_reorders_on_partname_change(self):
-        """RelationshipCollection reorders on partname change"""
-        # setup ------------------------
-        partname1 = '/ppt/slides/slide1.xml'
-        partname2 = '/ppt/slides/slide2.xml'
-        partname3 = '/ppt/slides/slide3.xml'
-        part1 = a_part().with_partname(partname1).build()
-        part2 = a_part().with_partname(partname2).build()
-        rel1 = Relationship('rId1', RT.SLIDE, part1)
-        rel2 = Relationship('rId2', RT.SLIDE, part2)
-        relationships = RelationshipCollection()
-        relationships._reltype_ordering = (RT.SLIDE)
-        relationships._additem(rel1)
-        relationships._additem(rel2)
-        # exercise ---------------------
-        part1.partname = partname3
-        # verify -----------------------
-        expected = [partname2, partname3]
-        actual = [rel._target.partname for rel in relationships]
-        msg = "expected ordering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
