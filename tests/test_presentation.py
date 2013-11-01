@@ -2,12 +2,11 @@
 
 """Test suite for pptx.presentation module."""
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import gc
-import os
+import pytest
 
-from hamcrest import assert_that, instance_of, is_, is_in, is_not
 from mock import Mock
 
 from pptx.exceptions import InvalidPackageError
@@ -19,7 +18,7 @@ from pptx.parts.slides import Slide, SlideLayout, SlideMaster
 from pptx.presentation import Package, Part, Presentation
 
 from .opc.unitdata.rels import a_rels
-from .unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
+from .unitutil import absjoin, parse_xml_file, test_file_dir
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -28,164 +27,111 @@ test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 nsmap = namespaces('a', 'r', 'p')
 
 
-class TestPackage(TestCase):
-    """Test Package"""
-    def setUp(self):
-        self.test_pptx_path = absjoin(test_file_dir, 'test_python-pptx.pptx')
-        if os.path.isfile(self.test_pptx_path):
-            os.remove(self.test_pptx_path)
+class DescribePackage(object):
 
-    def tearDown(self):
-        if os.path.isfile(self.test_pptx_path):
-            os.remove(self.test_pptx_path)
-
-    def test_construction_with_no_path_loads_default_template(self):
-        """Package() call with no path loads default template"""
+    def it_loads_default_template_when_constructed_with_no_path(self):
         prs = Package().presentation
-        assert_that(prs, is_not(None))
+        assert prs is not None
         slidemasters = prs.slidemasters
-        assert_that(slidemasters, is_not(None))
-        assert_that(len(slidemasters), is_(1))
+        assert slidemasters is not None
+        assert len(slidemasters) == 1
         slidelayouts = slidemasters[0].slidelayouts
-        assert_that(slidelayouts, is_not(None))
-        assert_that(len(slidelayouts), is_(11))
+        assert slidelayouts is not None
+        assert len(slidelayouts) == 11
 
-    def test_instances_are_tracked(self):
-        """Package instances are tracked"""
+    def it_tracks_instances_of_itself(self):
         pkg = Package()
-        self.assertIn(pkg, Package.instances())
+        assert pkg in Package.instances()
 
-    def test_instance_refs_are_garbage_collected(self):
-        """Package instance refs are garbage collected with old instances"""
+    def it_garbage_collects_refs_to_old_instances_of_itself(self):
         pkg = Package()
         pkg1_repr = "%r" % pkg
         pkg = Package()
         # pkg2_repr = "%r" % pkg
         gc.collect()
         reprs = [repr(pkg_inst) for pkg_inst in Package.instances()]
-        assert_that(pkg1_repr, is_not(is_in(reprs)))
+        assert pkg1_repr not in reprs
 
-    def test_containing_returns_correct_pkg(self):
-        """Package.containing() returns right package instance"""
+    def it_knows_which_instance_contains_a_specified_part(self):
         # setup ------------------------
-        pkg1 = Package(test_pptx_path)
-        pkg1.presentation  # does nothing, just needed to fake out pep8 warning
+        pkg1 = Package(test_pptx_path)  # noqa
         pkg2 = Package(test_pptx_path)
         slide = pkg2.presentation.slides[0]
         # exercise ---------------------
         found_pkg = Package.containing(slide)
         # verify -----------------------
-        expected = pkg2
-        actual = found_pkg
-        msg = "expected %r, got %r" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert found_pkg == pkg2
 
-    def test_containing_raises_on_no_pkg_contains_part(self):
-        """Package.containing(part) raises on no package contains part"""
+    def it_raises_when_no_package_contains_specified_part(self):
         # setup ------------------------
         pkg = Package(test_pptx_path)
         pkg.presentation  # does nothing, just needed to fake out pep8 warning
         part = Mock(name='part')
         # verify -----------------------
-        with self.assertRaises(KeyError):
+        with pytest.raises(KeyError):
             Package.containing(part)
 
-    def test_open_gathers_image_parts(self):
+    def it_gathers_packages_image_parts_on_open(self):
         """Package open gathers image parts into image collection"""
-        # exercise ---------------------
         pkg = Package(images_pptx_path)
-        # verify -----------------------
-        expected = 7
-        actual = len(pkg._images)
-        msg = "expected image count of %d, got %d" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert len(pkg._images) == 7
 
-    def test_presentation_presentation_after_open(self):
-        """Package.presentation is instance of Presentation after open()"""
-        # setup ------------------------
-        cls = Presentation
+    def it_returns_an_instance_of_presentation_from_open(self):
         pkg = Package()
-        # exercise ---------------------
-        obj = pkg.presentation
-        # verify -----------------------
-        actual = isinstance(obj, cls)
-        msg = ("expected instance of '%s', got type '%s'"
-               % (cls.__name__, type(obj).__name__))
-        self.assertTrue(actual, msg)
+        assert isinstance(pkg.presentation, Presentation)
 
-    def test_it_should_have_core_props(self):
-        """Package should provide access to core document properties"""
-        # setup ------------------------
+    def it_provides_access_to_the_package_core_properties(self):
         pkg = Package()
-        # verify -----------------------
-        assert_that(pkg.core_properties, is_(instance_of(CoreProperties)))
+        assert isinstance(pkg.core_properties, CoreProperties)
 
-    def test_saved_file_has_plausible_contents(self):
+    def it_can_save_itself_to_a_pptx_file(self, temp_pptx_path):
         """Package.save produces a .pptx with plausible contents"""
         # setup ------------------------
         pkg = Package()
         # exercise ---------------------
-        pkg.save(self.test_pptx_path)
+        pkg.save(temp_pptx_path)
         # verify -----------------------
-        pkg = Package(self.test_pptx_path)
+        pkg = Package(temp_pptx_path)
         prs = pkg.presentation
-        assert_that(prs, is_not(None))
+        assert prs is not None
         slidemasters = prs.slidemasters
-        assert_that(slidemasters, is_not(None))
-        assert_that(len(slidemasters), is_(1))
+        assert slidemasters is not None
+        assert len(slidemasters) == 1
         slidelayouts = slidemasters[0].slidelayouts
-        assert_that(slidelayouts, is_not(None))
-        assert_that(len(slidelayouts), is_(11))
+        assert slidelayouts is not None
+        assert len(slidelayouts) == 11
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def temp_pptx_path(self, tmpdir):
+        return absjoin(str(tmpdir), 'test-pptx.pptx')
 
 
-class TestPart(TestCase):
-    """Test Part"""
-    def test_constructs_presentation_for_rt_officedocument(self):
-        """Part() returns Presentation for RT.OFFICE_DOCUMENT"""
-        # setup ------------------------
-        cls = Presentation
-        # exercise ---------------------
+class DescribePart(object):
+
+    def it_constructs_presentation_for_rt_officedocument(self):
         obj = Part(RT.OFFICE_DOCUMENT, CT.PML_PRESENTATION_MAIN)
-        # verify -----------------------
-        self.assertIsInstance(obj, cls)
+        assert isinstance(obj, Presentation)
 
-    def test_constructs_slide_for_rt_slide(self):
-        """Part() returns Slide for RT.SLIDE"""
-        # setup ------------------------
-        cls = Slide
-        # exercise ---------------------
+    def it_constructs_slide_for_rt_slide(self):
         obj = Part(RT.SLIDE, CT.PML_SLIDE)
-        # verify -----------------------
-        self.assertIsInstance(obj, cls)
+        assert isinstance(obj, Slide)
 
-    def test_constructs_slidelayout_for_rt_slidelayout(self):
-        """Part() returns SlideLayout for RT.SLIDE_LAYOUT"""
-        # setup ------------------------
-        cls = SlideLayout
-        # exercise ---------------------
+    def it_constructs_slidelayout_for_rt_slidelayout(self):
         obj = Part(RT.SLIDE_LAYOUT, CT.PML_SLIDE_LAYOUT)
-        # verify -----------------------
-        self.assertIsInstance(obj, cls)
+        assert isinstance(obj, SlideLayout)
 
-    def test_constructs_slidemaster_for_rt_slidemaster(self):
-        """Part() returns SlideMaster for RT.SLIDE_MASTER"""
-        # setup ------------------------
-        cls = SlideMaster
-        # exercise ---------------------
+    def it_constructs_slidemaster_for_rt_slidemaster(self):
         obj = Part(RT.SLIDE_MASTER, CT.PML_SLIDE_MASTER)
-        # verify -----------------------
-        self.assertIsInstance(obj, cls)
+        assert isinstance(obj, SlideMaster)
 
-    def test_contructor_raises_on_invalid_prs_content_type(self):
-        """Part() raises on invalid presentation content type"""
-        with self.assertRaises(InvalidPackageError):
+    def it_raises_on_construct_attempt_with_invalid_prs_content_type(self):
+        with pytest.raises(InvalidPackageError):
             Part(RT.OFFICE_DOCUMENT, CT.PML_SLIDE_MASTER)
 
 
-class Test_Presentation(TestCase):
-    """Test Presentation"""
-    def setUp(self):
-        self.prs = Presentation()
+class DescribePresentation(object):
 
     def test__blob_rewrites_sldIdLst(self):
         """Presentation._blob rewrites sldIdLst"""
@@ -208,34 +154,24 @@ class Test_Presentation(TestCase):
         expected = ['rId3', 'rId4', 'rId5']
         actual = [sldId.get(qn('r:id')) for sldId in sldIds]
         msg = "expected ordering %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
 
-    def test_slidemasters_property_empty_on_construction(self):
-        """Presentation.slidemasters property empty on construction"""
-        # verify -----------------------
-        self.assertIsSizedProperty(self.prs, 'slidemasters', 0)
+    def test_slidemasters_property_empty_on_construction(self, prs):
+        assert len(prs.slidemasters) == 0
 
     def test_slidemasters_correct_length_after_pkg_open(self):
-        """Presentation.slidemasters correct length after load"""
-        # setup ------------------------
-        pkg = Package(test_pptx_path)
-        prs = pkg.presentation
-        # exercise ---------------------
-        slidemasters = prs.slidemasters
-        # verify -----------------------
-        self.assertLength(slidemasters, 1)
+        prs = Package(test_pptx_path).presentation
+        assert len(prs.slidemasters) == 1
 
-    def test_slides_property_empty_on_construction(self):
-        """Presentation.slides property empty on construction"""
-        # verify -----------------------
-        self.assertIsSizedProperty(self.prs, 'slides', 0)
+    def test_slides_property_empty_on_construction(self, prs):
+        assert len(prs.slides) == 0
 
     def test_slides_correct_length_after_pkg_open(self):
-        """Presentation.slides correct length after load"""
-        # setup ------------------------
-        pkg = Package(test_pptx_path)
-        prs = pkg.presentation
-        # exercise ---------------------
-        slides = prs.slides
-        # verify -----------------------
-        self.assertLength(slides, 1)
+        prs = Package(test_pptx_path).presentation
+        assert len(prs.slides) == 1
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def prs(self):
+        return Presentation()
