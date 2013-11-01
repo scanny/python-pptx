@@ -15,15 +15,15 @@ from ..unitutil import instance_mock
 
 class DescribeRelationship(object):
 
-    def it_stores_rId_when_set(self, rel):
+    def it_remembers_attrs_from_construction(self, rel, slide_master):
+        assert rel.rId == 'rId2'
+        assert rel.reltype == RT.SLIDE_MASTER
+        assert rel.target == slide_master
+
+    def it_allows_its_rId_to_be_changed(self, rel):
+        assert rel.rId == 'rId2'
         rel.rId = 'rId9'
         assert rel.rId == 'rId9'
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def rel(self):
-        return Relationship('rId1', RT.SLIDE, None)
 
 
 class DescribeRelationshipCollection(object):
@@ -50,10 +50,6 @@ class DescribeRelationshipCollection(object):
         assert next_rId == expected_next_rId
 
     # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def rel(self, slide_master):
-        return Relationship('rId2', RT.SLIDE_MASTER, slide_master)
 
     @pytest.fixture
     def rels(self, slide_master):
@@ -86,6 +82,16 @@ class DescribeRelationshipCollection(object):
         rels._additem(Relationship(rIds[2], None, None))
         return (rels, expected_next_rId)
 
-    @pytest.fixture
-    def slide_master(self, request):
-        return instance_mock(request, SlideMaster)
+
+# ===========================================================================
+# fixtures
+# ===========================================================================
+
+@pytest.fixture
+def rel(slide_master):
+    return Relationship('rId2', RT.SLIDE_MASTER, slide_master)
+
+
+@pytest.fixture
+def slide_master(request):
+    return instance_mock(request, SlideMaster)
