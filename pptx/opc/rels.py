@@ -55,7 +55,7 @@ class RelationshipCollection(Collection):
     def __init__(self):
         super(RelationshipCollection, self).__init__()
 
-    def _additem(self, relationship):
+    def add_rel(self, relationship):
         """
         Insert *relationship* into the appropriate position in this ordered
         collection.

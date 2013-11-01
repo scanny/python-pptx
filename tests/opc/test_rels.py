@@ -38,7 +38,7 @@ class DescribeRelationshipCollection(object):
 
     def it_raises_on_add_rel_with_duplicate_rId(self, rels, rel):
         with pytest.raises(ValueError):
-            rels._additem(rel)
+            rels.add_rel(rel)
 
     def it_knows_which_rels_match_a_specified_reltype(self, rels):
         rels_to_slides = rels.rels_of_reltype(RT.SLIDE)
@@ -57,9 +57,9 @@ class DescribeRelationshipCollection(object):
         General-purpose RelationshipCollection fixture
         """
         rels = RelationshipCollection()
-        rels._additem(Relationship('rId1', RT.SLIDE, None))
-        rels._additem(Relationship('rId2', RT.SLIDE_MASTER, slide_master))
-        rels._additem(Relationship('rId3', RT.SLIDE, None))
+        rels.add_rel(Relationship('rId1', RT.SLIDE, None))
+        rels.add_rel(Relationship('rId2', RT.SLIDE_MASTER, slide_master))
+        rels.add_rel(Relationship('rId3', RT.SLIDE, None))
         return rels
 
     @pytest.fixture(
@@ -77,9 +77,9 @@ class DescribeRelationshipCollection(object):
         """
         rels = RelationshipCollection()
         rIds, expected_next_rId = request.param
-        rels._additem(Relationship(rIds[0], None, None))
-        rels._additem(Relationship(rIds[1], None, None))
-        rels._additem(Relationship(rIds[2], None, None))
+        rels.add_rel(Relationship(rIds[0], None, None))
+        rels.add_rel(Relationship(rIds[1], None, None))
+        rels.add_rel(Relationship(rIds[2], None, None))
         return (rels, expected_next_rId)
 
 

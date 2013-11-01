@@ -52,7 +52,7 @@ class RelationshipCollectionBuilder(object):
     def build(self):
         rels = RelationshipCollection()
         for rel in self.relationships:
-            rels._additem(rel)
+            rels.add_rel(rel)
         return rels
 
 

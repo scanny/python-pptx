@@ -101,7 +101,7 @@ class BasePart(object):
         # otherwise construct a new one
         rId = self._relationships._next_rId
         rel = Relationship(rId, reltype, target_part)
-        self._relationships._additem(rel)
+        self._relationships.add_rel(rel)
         return rel
 
     def _load(self, pkgpart, part_dict):
@@ -145,7 +145,7 @@ class BasePart(object):
 
             # create model-side package relationship
             model_rel = Relationship(pkgrel.rId, reltype, part)
-            self._relationships._additem(model_rel)
+            self._relationships.add_rel(model_rel)
         return self
 
 

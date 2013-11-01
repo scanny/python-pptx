@@ -127,7 +127,7 @@ class Package(object):
 
             # create model-side package relationship
             model_rel = Relationship(pkgrel.rId, reltype, part)
-            self._relationships_._additem(model_rel)
+            self._relationships_.add_rel(model_rel)
 
         # gather references to image parts into _images_
         self._images_ = ImageCollection()
@@ -153,7 +153,7 @@ class Package(object):
             self._core_properties = core_props
             rId = self._relationships_._next_rId
             rel = Relationship(rId, RT.CORE_PROPERTIES, core_props)
-            self._relationships_._additem(rel)
+            self._relationships_.add_rel(rel)
 
     @property
     def _default_pptx_path(self):
