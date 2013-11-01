@@ -14,7 +14,7 @@ from pptx.shapes.table import (
 )
 from pptx.util import Inches
 
-from ..unitdata import test_table_objects
+from ..oxml.unitdata.table import test_table_objects
 from ..oxml.unitdata.autoshape import test_shapes
 from ..unitutil import TestCase
 

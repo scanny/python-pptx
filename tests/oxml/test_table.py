@@ -10,7 +10,7 @@ from pptx.constants import TEXT_ANCHORING_TYPE as TANC
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.table import CT_Table
 
-from ..unitdata import a_tbl, test_table_elements, test_table_xml
+from ..oxml.unitdata.table import a_tbl, test_table_elements, test_table_xml
 from ..unitutil import TestCase
 
 
