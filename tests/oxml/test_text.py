@@ -8,7 +8,7 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx.constants import TEXT_ALIGN_TYPE as TAT
 
-from ..unitdata import test_text_elements, test_text_xml
+from ..oxml.unitdata.text import test_text_elements, test_text_xml
 from ..unitutil import TestCase
 
 

@@ -28,9 +28,6 @@ class _TestTextXml(object):
         return '<a:p %s/>\n' % nsdecls('a')
 
 
-test_text_xml = _TestTextXml()
-
-
 class _TestTextElements(object):
     """Text elements for use in unit tests"""
     @property
@@ -42,9 +39,6 @@ class _TestTextElements(object):
         return parse_xml_bytes(test_text_xml.paragraph)
 
 
-test_text_elements = _TestTextElements()
-
-
 class _TestTextObjects(object):
     """Text object instances for use in unit tests"""
     @property
@@ -52,4 +46,6 @@ class _TestTextObjects(object):
         return _Paragraph(test_text_elements.paragraph)
 
 
+test_text_xml = _TestTextXml()
+test_text_elements = _TestTextElements()
 test_text_objects = _TestTextObjects()
