@@ -12,14 +12,13 @@ from mock import Mock
 
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.opc.rels import Relationship, RelationshipCollection
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, qn
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.slides import Slide, SlideLayout, SlideMaster
 from pptx.presentation import Package, Part, Presentation
 
-from .parts.unitdata.part import a_Part
+from .opc.unitdata.rels import a_rels
 from .unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
 
 
@@ -27,57 +26,6 @@ images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
-
-
-class RelationshipCollectionBuilder(object):
-    """Builder class for test RelationshipCollections"""
-    partname_tmpls = {RT.SLIDE_MASTER: '/ppt/slideMasters/slideMaster%d.xml',
-                      RT.SLIDE: '/ppt/slides/slide%d.xml'}
-
-    def __init__(self):
-        self.relationships = []
-        self.next_rel_num = 1
-        self.next_partnums = {}
-        self.reltype_ordering = None
-
-    def with_ordering(self, *reltypes):
-        self.reltype_ordering = tuple(reltypes)
-        return self
-
-    def with_tuple_targets(self, count, reltype):
-        for i in range(count):
-            rId = self._next_rId
-            partname = self._next_tuple_partname(reltype)
-            target = a_Part().with_partname(partname).build()
-            rel = Relationship(rId, reltype, target)
-            self.relationships.append(rel)
-        return self
-
-    def _next_partnum(self, reltype):
-        if reltype not in self.next_partnums:
-            self.next_partnums[reltype] = 1
-        partnum = self.next_partnums[reltype]
-        self.next_partnums[reltype] = partnum + 1
-        return partnum
-
-    @property
-    def _next_rId(self):
-        rId = 'rId%d' % self.next_rel_num
-        self.next_rel_num += 1
-        return rId
-
-    def _next_tuple_partname(self, reltype):
-        partname_tmpl = self.partname_tmpls[reltype]
-        partnum = self._next_partnum(reltype)
-        return partname_tmpl % partnum
-
-    def build(self):
-        rels = RelationshipCollection()
-        for rel in self.relationships:
-            rels._additem(rel)
-        if self.reltype_ordering:
-            rels._reltype_ordering = self.reltype_ordering
-        return rels
 
 
 class TestPackage(TestCase):
@@ -242,7 +190,7 @@ class Test_Presentation(TestCase):
     def test__blob_rewrites_sldIdLst(self):
         """Presentation._blob rewrites sldIdLst"""
         # setup ------------------------
-        rels = RelationshipCollectionBuilder()
+        rels = a_rels()
         rels = rels.with_tuple_targets(2, RT.SLIDE_MASTER)
         rels = rels.with_tuple_targets(3, RT.SLIDE)
         rels = rels.with_ordering(RT.SLIDE_MASTER, RT.SLIDE)

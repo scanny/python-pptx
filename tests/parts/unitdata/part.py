@@ -24,7 +24,7 @@ class PartBuilder(object):
         return p
 
 
-def a_Part():
+def a_part():
     """
     Return a PartBuilder instance.
     """
