@@ -11,22 +11,8 @@ from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import Relationship, RelationshipCollection
 from pptx.parts.part import BasePart
 
+from ..parts.unitdata.part import a_part
 from ..unitutil import TestCase
-
-
-class PartBuilder(object):
-    """Builder class for test Parts"""
-    def __init__(self):
-        self.partname = '/ppt/slides/slide1.xml'
-
-    def with_partname(self, partname):
-        self.partname = partname
-        return self
-
-    def build(self):
-        p = BasePart()
-        p.partname = self.partname
-        return p
 
 
 class TestRelationship(TestCase):
@@ -258,8 +244,8 @@ class TestRelationshipCollection(TestCase):
         partname1 = '/ppt/slides/slide1.xml'
         partname2 = '/ppt/slides/slide2.xml'
         partname3 = '/ppt/slides/slide3.xml'
-        part1 = PartBuilder().with_partname(partname1).build()
-        part2 = PartBuilder().with_partname(partname2).build()
+        part1 = a_part().with_partname(partname1).build()
+        part2 = a_part().with_partname(partname2).build()
         rel1 = Relationship('rId1', RT.SLIDE, part1)
         rel2 = Relationship('rId2', RT.SLIDE, part2)
         relationships = RelationshipCollection()
