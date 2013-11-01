@@ -10,7 +10,7 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx.oxml.coreprops import CT_CoreProperties
 
-from ..unitdata import a_coreProperties
+from .unitdata.coreprops import a_coreProperties
 from ..unitutil import TestCase
 
 
