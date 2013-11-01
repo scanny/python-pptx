@@ -13,7 +13,7 @@ from pptx.shapes.autoshape import (
 )
 from pptx.oxml import parse_xml_bytes
 
-from ..unitdata import a_prstGeom, test_shapes
+from ..oxml.unitdata.autoshape import a_prstGeom, test_shapes
 from ..unitutil import TestCase
 
 

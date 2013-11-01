@@ -14,7 +14,7 @@ from pptx.spec import (
     PH_TYPE_SUBTITLE, PH_TYPE_TBL
 )
 
-from ..unitdata import a_prstGeom, test_shape_elements
+from .unitdata.autoshape import a_prstGeom, test_shape_elements
 from ..unitutil import TestCase
 
 

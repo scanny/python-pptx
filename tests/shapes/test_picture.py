@@ -8,7 +8,7 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx.constants import MSO
 
-from ..unitdata import test_shapes
+from ..oxml.unitdata.autoshape import test_shapes
 from ..unitutil import TestCase
 
 
