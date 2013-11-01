@@ -15,17 +15,17 @@ class Relationship(object):
     """
     def __init__(self, rId, reltype, target):
         super(Relationship, self).__init__()
-        self._rId_ = rId
+        self._rId = rId
         self._reltype = reltype
         self._target = target
 
     @property
-    def _rId(self):
+    def rId(self):
         """
         Relationship id for this relationship. Must be of the form
         ``rId[1-9][0-9]*``.
         """
-        return self._rId_
+        return self._rId
 
     @property
     def reltype(self):
@@ -43,9 +43,9 @@ class Relationship(object):
         """
         return self._target
 
-    @_rId.setter
-    def _rId(self, value):
-        self._rId_ = value
+    @rId.setter
+    def rId(self, value):
+        self._rId = value
 
 
 class RelationshipCollection(Collection):
@@ -60,10 +60,10 @@ class RelationshipCollection(Collection):
         Insert *relationship* into the appropriate position in this ordered
         collection.
         """
-        rIds = [rel._rId for rel in self]
-        if relationship._rId in rIds:
+        rIds = [rel.rId for rel in self]
+        if relationship.rId in rIds:
             tmpl = "cannot add relationship with duplicate rId '%s'"
-            raise ValueError(tmpl % relationship._rId)
+            raise ValueError(tmpl % relationship.rId)
         self._values.append(relationship)
 
     @property
@@ -72,7 +72,7 @@ class RelationshipCollection(Collection):
         Next available rId in collection, starting from 'rId1' and making use
         of any gaps in numbering, e.g. 'rId2' for rIds ['rId1', 'rId3'].
         """
-        rIds = [rel._rId for rel in self]
+        rIds = [rel.rId for rel in self]
         tmpl = 'rId%d'
         for n in range(1, 999999):
             rId_candidate = tmpl % n  # like 'rId19'

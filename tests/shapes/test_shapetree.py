@@ -124,7 +124,7 @@ class TestShapeCollection(TestCase):
         next_shape_id.return_value = id_
         image = Mock(name='image', _desc=desc)
         image._scale.return_value = width, height
-        rel = Mock(name='rel', _rId=rId)
+        rel = Mock(name='rel', rId=rId)
         slide = Mock(name='slide')
         slide._add_image.return_value = image, rel
         _spTree = Mock(name='_spTree')

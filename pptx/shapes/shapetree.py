@@ -98,7 +98,7 @@ class ShapeCollection(BaseShape, Collection):
         id = self._next_shape_id
         name = 'Picture %d' % (id-1)
         desc = image._desc
-        rId = rel._rId
+        rId = rel.rId
         width, height = image._scale(width, height)
 
         pic = CT_Picture.new_pic(id, name, desc, rId, left, top, width, height)

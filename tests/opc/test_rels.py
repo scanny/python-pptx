@@ -23,14 +23,14 @@ class TestRelationship(TestCase):
         self.rel = Relationship(rId, reltype, target_part)
 
     def test__rId_setter(self):
-        """Relationship._rId setter stores passed value"""
+        """Relationship.rId setter stores passed value"""
         # setup ------------------------
         rId = 'rId9'
         # exercise ----------------
-        self.rel._rId = rId
+        self.rel.rId = rId
         # verify ------------------
         expected = rId
-        actual = self.rel._rId
+        actual = self.rel.rId
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
@@ -115,21 +115,8 @@ class TestRelationshipCollection(TestCase):
         retval = relationships.rels_of_reltype(RT.SLIDE)
         # verify ordering -------------
         expected = ['rId1', 'rId4']
-        actual = [rel._rId for rel in retval]
+        actual = [rel.rId for rel in retval]
         msg = "expected %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test__reltype_ordering_renumbers_rels(self):
-        """RelationshipCollection._reltype_ordering renumbers rels"""
-        # setup ------------------------
-        relationships, partnames = self._reltype_ordering_mock()
-        ordering = (RT.SLIDE_MASTER, RT.SLIDE_LAYOUT, RT.SLIDE)
-        # exercise ---------------------
-        relationships._reltype_ordering = ordering
-        # verify renumbering ----------
-        expected = ['rId1', 'rId2', 'rId3', 'rId4', 'rId5']
-        actual = [rel._rId for rel in relationships]
-        msg = "expected numbering %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
     def test__next_rId_fills_gap(self):

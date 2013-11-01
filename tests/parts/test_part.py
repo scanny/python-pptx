@@ -29,7 +29,7 @@ class TestBasePart(TestCase):
         rel = self.basepart._add_relationship(reltype, target)
         # verify -----------------------
         expected = ('rId1', reltype, target)
-        actual = (rel._rId, rel.reltype, rel.target)
+        actual = (rel.rId, rel.reltype, rel.target)
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 

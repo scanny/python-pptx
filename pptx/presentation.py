@@ -289,7 +289,7 @@ class Presentation(BasePart):
             sldId = Element('p:sldId')
             sldIdLst.append(sldId)
             sldId.set('id', str(256+idx))
-            sldId.set(qn('r:id'), rel._rId)
+            sldId.set(qn('r:id'), rel.rId)
 
     def _add_sldIdLst(self):
         """
