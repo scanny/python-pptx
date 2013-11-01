@@ -16,10 +16,10 @@ from pptx.opc.rels import Relationship, RelationshipCollection
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, qn
 from pptx.parts.coreprops import CoreProperties
-from pptx.parts.part import BasePart
 from pptx.parts.slides import Slide, SlideLayout, SlideMaster
 from pptx.presentation import Package, Part, Presentation
 
+from .parts.unitdata.part import a_Part
 from .unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
 
 
@@ -27,21 +27,6 @@ images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
-
-
-class PartBuilder(object):
-    """Builder class for test Parts"""
-    def __init__(self):
-        self.partname = '/ppt/slides/slide1.xml'
-
-    def with_partname(self, partname):
-        self.partname = partname
-        return self
-
-    def build(self):
-        p = BasePart()
-        p.partname = self.partname
-        return p
 
 
 class RelationshipCollectionBuilder(object):
@@ -63,7 +48,7 @@ class RelationshipCollectionBuilder(object):
         for i in range(count):
             rId = self._next_rId
             partname = self._next_tuple_partname(reltype)
-            target = PartBuilder().with_partname(partname).build()
+            target = a_Part().with_partname(partname).build()
             rel = Relationship(rId, reltype, target)
             self.relationships.append(rel)
         return self
