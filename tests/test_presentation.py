@@ -139,7 +139,6 @@ class DescribePresentation(object):
         rels = a_rels()
         rels = rels.with_tuple_targets(2, RT.SLIDE_MASTER)
         rels = rels.with_tuple_targets(3, RT.SLIDE)
-        rels = rels.with_ordering(RT.SLIDE_MASTER, RT.SLIDE)
         rels = rels.build()
         prs = Presentation()
         prs._relationships = rels

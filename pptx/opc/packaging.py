@@ -102,7 +102,7 @@ class Package(object):
         for rel in model_pkg._relationships:
             # unpack working values for target part and relationship
             rId = rel._rId
-            reltype = rel._reltype
+            reltype = rel.reltype
             model_part = rel.target
             partname = model_part.partname
             # create package-part for target
@@ -267,7 +267,7 @@ class Part(object):
         for rel in model_part._relationships:
             # unpack working values for target part and relationship
             rId = rel._rId
-            reltype = rel._reltype
+            reltype = rel.reltype
             model_target_part = rel.target
             partname = model_target_part.partname
             # create package-part for target

@@ -21,11 +21,6 @@ class RelationshipCollectionBuilder(object):
         self.relationships = []
         self.next_rel_num = 1
         self.next_partnums = {}
-        self.reltype_ordering = None
-
-    def with_ordering(self, *reltypes):
-        self.reltype_ordering = tuple(reltypes)
-        return self
 
     def with_tuple_targets(self, count, reltype):
         for i in range(count):
@@ -58,8 +53,6 @@ class RelationshipCollectionBuilder(object):
         rels = RelationshipCollection()
         for rel in self.relationships:
             rels._additem(rel)
-        if self.reltype_ordering:
-            rels._reltype_ordering = self.reltype_ordering
         return rels
 
 

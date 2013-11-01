@@ -144,9 +144,9 @@ class Package(object):
         self._load(pkg.relationships)
         # unmarshal relationships selectively for now
         for rel in self._relationships_:
-            if rel._reltype == RT.OFFICE_DOCUMENT:
+            if rel.reltype == RT.OFFICE_DOCUMENT:
                 self._presentation = rel.target
-            elif rel._reltype == RT.CORE_PROPERTIES:
+            elif rel.reltype == RT.CORE_PROPERTIES:
                 self._core_properties = rel.target
         if self._core_properties is None:
             core_props = CoreProperties._default()
@@ -258,11 +258,6 @@ class Presentation(BasePart):
         transformation of _element into a blob.
         """
         self._rewrite_sldIdLst()
-        # # at least the following needs to be added before using
-        # # _reltype_ordering again for Presentation
-        # self._rewrite_notesMasterIdLst()
-        # self._rewrite_handoutMasterIdLst()
-        # self._rewrite_sldMasterIdLst()
         return super(Presentation, self)._blob
 
     def _load(self, pkgpart, part_dict):
@@ -271,24 +266,11 @@ class Presentation(BasePart):
         """
         # call parent to do generic aspects of load
         super(Presentation, self)._load(pkgpart, part_dict)
-
-        # side effect of setting reltype ordering is that rId values can be
-        # changed (renumbered during resequencing), so must complete rewrites
-        # of all four IdLst elements (notesMasterIdLst, etc.) internal to
-        # presentation.xml to reflect any possible changes. Not sure if good
-        # order in the .rels files is worth the trouble just yet, so
-        # commenting this out for now.
-
-        # # set reltype ordering so rels file ordering is readable
-        # self._relationships._reltype_ordering = (RT.SLIDE_MASTER,
-        #     RT.NOTES_MASTER, RT.HANDOUT_MASTER, RT.SLIDE,
-        #     RT.PRES_PROPS, RT.VIEW_PROPS, RT.TABLE_STYLES, RT.THEME)
-
         # selectively unmarshal relationships for now
         for rel in self._relationships:
-            if rel._reltype == RT.SLIDE_MASTER:
+            if rel.reltype == RT.SLIDE_MASTER:
                 self._slidemasters._loadpart(rel.target)
-            elif rel._reltype == RT.SLIDE:
+            elif rel.reltype == RT.SLIDE:
                 self._slides._loadpart(rel.target)
         return self
 

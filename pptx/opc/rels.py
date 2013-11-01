@@ -16,7 +16,7 @@ class Relationship(object):
     def __init__(self, rId, reltype, target):
         super(Relationship, self).__init__()
         self._rId_ = rId
-        self._reltype_ = reltype
+        self._reltype = reltype
         self._target = target
 
     @property
@@ -28,12 +28,12 @@ class Relationship(object):
         return self._rId_
 
     @property
-    def _reltype(self):
+    def reltype(self):
         """
         Relationship type URI for this relationship. Corresponds roughly to
         the part type of the target part.
         """
-        return self._reltype_
+        return self._reltype
 
     @property
     def target(self):
@@ -50,14 +50,7 @@ class Relationship(object):
 
 class RelationshipCollection(Collection):
     """
-    Sequence of relationships maintained in rId order. Maintaining the
-    relationships in sorted order makes the .rels files both repeatable and
-    more readable, which is very helpful for debugging.
-    |RelationshipCollection| has an attribute *_reltype_ordering* which is a
-    sequence (tuple) of reltypes. If *_reltype_ordering* contains one or more
-    reltype, the collection is maintained in reltype + partname.idx order and
-    relationship ids (rIds) are renumbered to match that sequence and any
-    numbering gaps are filled in.
+    Sequence of |Relationship| instances.
     """
     def __init__(self):
         super(RelationshipCollection, self).__init__()
@@ -93,7 +86,7 @@ class RelationshipCollection(Collection):
         raise |KeyError| if not found.
         """
         for relationship in self._values:
-            if relationship._reltype == reltype:
+            if relationship.reltype == reltype:
                 return relationship.target
         tmpl = "no related part with relationship type '%s'"
         raise KeyError(tmpl % reltype)
@@ -105,4 +98,4 @@ class RelationshipCollection(Collection):
         Returns an empty list if there are no relationships of type *reltype*
         in the collection.
         """
-        return [rel for rel in self._values if rel._reltype == reltype]
+        return [rel for rel in self._values if rel.reltype == reltype]
