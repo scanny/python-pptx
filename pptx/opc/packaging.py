@@ -103,7 +103,7 @@ class Package(object):
             # unpack working values for target part and relationship
             rId = rel._rId
             reltype = rel._reltype
-            model_part = rel._target
+            model_part = rel.target
             partname = model_part.partname
             # create package-part for target
             part = Part()
@@ -268,7 +268,7 @@ class Part(object):
             # unpack working values for target part and relationship
             rId = rel._rId
             reltype = rel._reltype
-            model_target_part = rel._target
+            model_target_part = rel.target
             partname = model_target_part.partname
             # create package-part for target
             if partname in part_dict:

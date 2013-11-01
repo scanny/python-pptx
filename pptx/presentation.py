@@ -145,9 +145,9 @@ class Package(object):
         # unmarshal relationships selectively for now
         for rel in self._relationships_:
             if rel._reltype == RT.OFFICE_DOCUMENT:
-                self._presentation = rel._target
+                self._presentation = rel.target
             elif rel._reltype == RT.CORE_PROPERTIES:
-                self._core_properties = rel._target
+                self._core_properties = rel.target
         if self._core_properties is None:
             core_props = CoreProperties._default()
             self._core_properties = core_props
@@ -182,7 +182,7 @@ class Package(object):
         if parts is None:
             parts = []
         for rel in rels:
-            part = rel._target
+            part = rel.target
             # only visit each part once (graph is cyclic)
             if part in parts:
                 continue
@@ -287,9 +287,9 @@ class Presentation(BasePart):
         # selectively unmarshal relationships for now
         for rel in self._relationships:
             if rel._reltype == RT.SLIDE_MASTER:
-                self._slidemasters._loadpart(rel._target)
+                self._slidemasters._loadpart(rel.target)
             elif rel._reltype == RT.SLIDE:
-                self._slides._loadpart(rel._target)
+                self._slides._loadpart(rel.target)
         return self
 
     def _rewrite_sldIdLst(self):

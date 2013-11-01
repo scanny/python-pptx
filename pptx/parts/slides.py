@@ -98,7 +98,7 @@ class Slide(_BaseSlide):
         # selectively unmarshal relationships for now
         for rel in self._relationships:
             if rel._reltype == RT.SLIDE_LAYOUT:
-                self._slidelayout = rel._target
+                self._slidelayout = rel.target
         return self
 
     @property
@@ -181,7 +181,7 @@ class SlideLayout(_BaseSlide):
         for rel in self._relationships:
             # get slideMaster from which this slideLayout inherits properties
             if rel._reltype == RT.SLIDE_MASTER:
-                self._slidemaster = rel._target
+                self._slidemaster = rel.target
 
         # return self-reference to allow generative calling
         return self
@@ -218,5 +218,5 @@ class SlideMaster(_BaseSlide):
         # selectively unmarshal relationships for now
         for rel in self._relationships:
             if rel._reltype == RT.SLIDE_LAYOUT:
-                self._slidelayouts._loadpart(rel._target)
+                self._slidelayouts._loadpart(rel.target)
         return self

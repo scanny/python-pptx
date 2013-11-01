@@ -96,7 +96,7 @@ class BasePart(object):
         """
         # reuse existing relationship if there's a match
         for rel in self._relationships:
-            if rel._target == target_part and rel._reltype == reltype:
+            if rel.target == target_part and rel._reltype == reltype:
                 return rel
         # otherwise construct a new one
         rId = self._relationships._next_rId

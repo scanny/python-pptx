@@ -122,7 +122,7 @@ class TestSlide(TestCase):
         # verify values ---------------
         rel = slide._relationships[0]
         expected = ('rId1', RT.SLIDE_LAYOUT, slidelayout)
-        actual = (rel._rId, rel._reltype, rel._target)
+        actual = (rel._rId, rel._reltype, rel.target)
         msg = "expected relationship\n%s\ngot\n%s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
@@ -227,7 +227,7 @@ class TestSlideCollection(TestCase):
         # verify values ---------------
         rel = prs._relationships[0]
         expected = ('rId1', RT.SLIDE, slide)
-        actual = (rel._rId, rel._reltype, rel._target)
+        actual = (rel._rId, rel._reltype, rel.target)
         msg = ("expected relationship 1:, got 2:\n1: %s\n2: %s"
                % (expected, actual))
         self.assertEqual(expected, actual, msg)

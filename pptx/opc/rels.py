@@ -17,7 +17,7 @@ class Relationship(object):
         super(Relationship, self).__init__()
         self._rId_ = rId
         self._reltype_ = reltype
-        self._target_ = target
+        self._target = target
 
     @property
     def _rId(self):
@@ -36,12 +36,12 @@ class Relationship(object):
         return self._reltype_
 
     @property
-    def _target(self):
+    def target(self):
         """
         Target part of this relationship. Relationships are directed, from a
         source and a target. The target is always a part.
         """
-        return self._target_
+        return self._target
 
     @_rId.setter
     def _rId(self, value):
@@ -94,7 +94,7 @@ class RelationshipCollection(Collection):
         """
         for relationship in self._values:
             if relationship._reltype == reltype:
-                return relationship._target
+                return relationship.target
         tmpl = "no related part with relationship type '%s'"
         raise KeyError(tmpl % reltype)
 
