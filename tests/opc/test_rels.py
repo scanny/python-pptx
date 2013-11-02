@@ -6,11 +6,13 @@ from __future__ import absolute_import
 
 import pytest
 
+from mock import Mock
+
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import Relationship, RelationshipCollection
 from pptx.parts.slides import SlideMaster
 
-from ..unitutil import instance_mock
+from ..unitutil import instance_mock, property_mock
 
 
 class DescribeRelationship(object):
@@ -30,31 +32,52 @@ class DescribeRelationship(object):
 
 class DescribeRelationshipCollection(object):
 
-    def it_can_find_a_related_part_by_reltype(self, rels):
-        part = rels.related_part(RT.SLIDE_MASTER)
-        assert isinstance(part, SlideMaster)
-
-    def test_it_raises_on_related_part_not_found(self, rels):
-        with pytest.raises(KeyError):
-            rels.related_part('foobar')
+    def it_can_add_a_relationship_to_itself(self, rel):
+        rels = RelationshipCollection()
+        rels.add_rel(rel)
+        assert len(rels) == 1
+        assert rels[0] is rel
 
     def it_raises_on_add_rel_with_duplicate_rId(self, rels, rel):
         with pytest.raises(ValueError):
             rels.add_rel(rel)
-
-    def it_knows_which_rels_match_a_specified_reltype(self, rels):
-        rels_to_slides = rels.rels_of_reltype(RT.SLIDE)
-        assert [r.rId for r in rels_to_slides] == ['rId1', 'rId3']
 
     def it_fills_first_rId_gap_when_adding_rel(self, rels_with_rId_gap):
         rels, expected_next_rId = rels_with_rId_gap
         next_rId = rels.next_rId
         assert next_rId == expected_next_rId
 
+    def it_raises_on_no_next_rId_found(self, _rIds):
+        rels = RelationshipCollection()
+        with pytest.raises(AssertionError):
+            rels.next_rId
+
+    def it_can_find_a_related_part_by_reltype(self, rels):
+        part = rels.related_part(RT.SLIDE_MASTER)
+        assert isinstance(part, SlideMaster)
+
+    def it_raises_on_related_part_not_found(self, rels):
+        with pytest.raises(KeyError):
+            rels.related_part('foobar')
+
+    def it_knows_which_rels_match_a_specified_reltype(self, rels):
+        rels_to_slides = rels.rels_of_reltype(RT.SLIDE)
+        assert [r.rId for r in rels_to_slides] == ['rId1', 'rId3']
+
     def it_knows_the_rIds_of_the_rels_it_contains(self, rels):
         assert rels._rIds == ['rId1', 'rId2', 'rId3']
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def _rIds(self, request):
+        mock_rId_lst = Mock(name='mock_rId_lst')
+        mock_rId_lst.__contains__ = Mock(return_value=True)
+        _rIds = property_mock(
+            request, 'pptx.opc.rels.RelationshipCollection._rIds'
+        )
+        _rIds.return_value = mock_rId_lst
+        return _rIds
 
     @pytest.fixture
     def rels(self, slide_master):
