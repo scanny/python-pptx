@@ -4,9 +4,11 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from pptx.oxml.presentation import CT_Presentation, CT_SlideIdList
+from pptx.oxml.presentation import (
+    CT_Presentation, CT_SlideId, CT_SlideIdList
+)
 
-from .unitdata.presentation import a_presentation
+from .unitdata.presentation import a_presentation, a_sldId, a_sldIdLst
 from ..unitutil import serialize_xml
 
 
@@ -30,3 +32,17 @@ class DescribeCT_Presentation(object):
         elm.get_or_add_sldIdLst()
         expected_xml = a_presentation().with_sldIdLst().with_sldSz().xml_bytes
         assert actual_xml(elm) == expected_xml
+
+
+class DescribeCT_SlideIdList(object):
+
+    def it_is_used_by_the_parser_for_a_sldIdLst_element(self):
+        elm = a_sldIdLst().with_nsdecls().element
+        assert isinstance(elm, CT_SlideIdList)
+
+
+class DescribeCT_SlideId(object):
+
+    def it_is_used_by_the_parser_for_a_sldId_element(self):
+        elm = a_sldId().with_nsdecls().element
+        assert isinstance(elm, CT_SlideId)

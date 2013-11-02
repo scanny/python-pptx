@@ -42,6 +42,13 @@ class CT_Presentation(objectify.ObjectifiedElement):
         return sldIdLst
 
 
+class CT_SlideId(objectify.ObjectifiedElement):
+    """
+    ``<p:sldId>`` element, direct child of <p:sldIdLst> that contains an rId
+    reference to a slide in the presentation.
+    """
+
+
 class CT_SlideIdList(objectify.ObjectifiedElement):
     """
     ``<p:sldIdLst>`` element, direct child of <p:presentation> that contains

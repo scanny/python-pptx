@@ -89,6 +89,36 @@ class CT_PresentationBuilder(BaseBuilder):
         return xml
 
 
+class CT_SlideIdBuilder(BaseBuilder):
+    """
+    Test data builder for CT_SlideId (<p:sldId>) XML element that appears as
+    a child of <p:sldIdLst>.
+    """
+    def __init__(self):
+        """Establish instance variables with default values"""
+        super(CT_SlideIdBuilder, self).__init__()
+        self._id = ''
+        self._rId = ''
+
+    def with_id(self, id):
+        """Add an id attribute containing the string value of *id*"""
+        self._id = ' id="%s"' % str(id)
+        return self
+
+    def with_rId(self, rId):
+        """Add an r:id attribute containing the string value *rId*"""
+        self._rId = ' r:id="%s"' % rId
+        return self
+
+    @property
+    def xml(self):
+        """Return element XML based on attribute settings"""
+        indent = ' ' * self._indent
+        tmpl = '%s<p:sldId%s%s%s/>\n'
+        xml = tmpl % (indent, self._nsdecls, self._id, self._rId)
+        return xml
+
+
 class CT_SlideIdListBuilder(BaseBuilder):
     """
     Test data builder for CT_SlideIdList (<p:sldIdLst>) XML element that
@@ -142,6 +172,11 @@ class CT_SlideSizeBuilder(BaseBuilder):
 def a_presentation():
     """Return a CT_PresentationBuilder instance"""
     return CT_PresentationBuilder()
+
+
+def a_sldId():
+    """Return a CT_SlideIdBuilder instance"""
+    return CT_SlideIdBuilder()
 
 
 def a_sldIdLst():
