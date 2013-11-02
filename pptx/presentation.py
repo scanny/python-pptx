@@ -15,8 +15,6 @@ import pptx.opc.packaging
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import Relationship, RelationshipCollection
-from pptx.oxml.core import Element
-from pptx.oxml.ns import qn
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
 from pptx.parts.part import BasePart, PartCollection
@@ -286,7 +284,5 @@ class Presentation(BasePart):
         sldIdLst.clear()
         sld_rels = self._relationships.rels_of_reltype(RT.SLIDE)
         for idx, rel in enumerate(sld_rels):
-            sldId = Element('p:sldId')
-            sldIdLst.append(sldId)
-            sldId.set('id', str(256+idx))
-            sldId.set(qn('r:id'), rel.rId)
+            id = 256 + idx
+            sldIdLst.add_sldId(id, rel.rId)
