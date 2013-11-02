@@ -11,7 +11,7 @@ class Relationship(object):
     """
     Relationship to a part from a package or part. *rId* must be unique in any
     |RelationshipCollection| this relationship is added to; use
-    :attr:`RelationshipCollection._next_rId` to get a unique rId.
+    :attr:`RelationshipCollection.next_rId` to get a unique rId.
     """
     def __init__(self, rId, reltype, target):
         super(Relationship, self).__init__()
@@ -67,7 +67,7 @@ class RelationshipCollection(Collection):
         self._values.append(relationship)
 
     @property
-    def _next_rId(self):
+    def next_rId(self):
         """
         Next available rId in collection, starting from 'rId1' and making use
         of any gaps in numbering, e.g. 'rId2' for rIds ['rId1', 'rId3'].

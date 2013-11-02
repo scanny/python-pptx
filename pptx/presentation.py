@@ -151,7 +151,7 @@ class Package(object):
         if self._core_properties is None:
             core_props = CoreProperties._default()
             self._core_properties = core_props
-            rId = self._relationships_._next_rId
+            rId = self._relationships_.next_rId
             rel = Relationship(rId, RT.CORE_PROPERTIES, core_props)
             self._relationships_.add_rel(rel)
 

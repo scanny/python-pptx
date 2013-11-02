@@ -46,7 +46,7 @@ class DescribeRelationshipCollection(object):
 
     def it_fills_first_rId_gap_when_adding_rel(self, rels_with_rId_gap):
         rels, expected_next_rId = rels_with_rId_gap
-        next_rId = rels._next_rId
+        next_rId = rels.next_rId
         assert next_rId == expected_next_rId
 
     # fixtures ---------------------------------------------

@@ -99,7 +99,7 @@ class BasePart(object):
             if rel.target == target_part and rel.reltype == reltype:
                 return rel
         # otherwise construct a new one
-        rId = self._relationships._next_rId
+        rId = self._relationships.next_rId
         rel = Relationship(rId, reltype, target_part)
         self._relationships.add_rel(rel)
         return rel

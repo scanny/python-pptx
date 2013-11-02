@@ -14,8 +14,10 @@ from ...parts.unitdata.part import a_part
 
 class RelationshipCollectionBuilder(object):
     """Builder class for test RelationshipCollections"""
-    partname_tmpls = {RT.SLIDE_MASTER: '/ppt/slideMasters/slideMaster%d.xml',
-                      RT.SLIDE: '/ppt/slides/slide%d.xml'}
+    partname_tmpls = {
+        RT.SLIDE_MASTER: '/ppt/slideMasters/slideMaster%d.xml',
+        RT.SLIDE:        '/ppt/slides/slide%d.xml',
+    }
 
     def __init__(self):
         self.relationships = []
@@ -24,7 +26,7 @@ class RelationshipCollectionBuilder(object):
 
     def with_tuple_targets(self, count, reltype):
         for i in range(count):
-            rId = self._next_rId
+            rId = self.next_rId
             partname = self._next_tuple_partname(reltype)
             target = a_part().with_partname(partname).build()
             rel = Relationship(rId, reltype, target)
@@ -39,7 +41,7 @@ class RelationshipCollectionBuilder(object):
         return partnum
 
     @property
-    def _next_rId(self):
+    def next_rId(self):
         rId = 'rId%d' % self.next_rel_num
         self.next_rel_num += 1
         return rId
