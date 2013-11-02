@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from lxml import objectify
 
 from pptx.oxml import register_custom_element_class
+from pptx.oxml.core import child, Element
 
 
 class CT_Presentation(objectify.ObjectifiedElement):
@@ -17,5 +18,37 @@ class CT_Presentation(objectify.ObjectifiedElement):
     ``/ppt/presentation.xml``.
     """
 
+    def get_or_add_sldIdLst(self):
+        """
+        Return the <p:sldIdLst> child element, creating one first if
+        necessary.
+        """
+        sldIdLst = child(self, 'p:sldIdLst')
+        if sldIdLst is None:
+            sldIdLst = self._add_sldIdLst()
+        return sldIdLst
+
+    def _add_sldIdLst(self):
+        """
+        Return a newly created <p:sldIdLst> child element.
+        """
+        sldIdLst = Element('p:sldIdLst')
+        # insert new sldIdLst element in right sequence
+        sldSz = child(self, 'p:sldSz')
+        if sldSz is not None:
+            sldSz.addprevious(sldIdLst)
+        else:
+            notesSz = child(self, 'p:notesSz')
+            notesSz.addprevious(sldIdLst)
+        return sldIdLst
+
+
+class CT_SlideIdList(objectify.ObjectifiedElement):
+    """
+    ``<p:sldIdLst>`` element, direct child of <p:presentation> that contains
+    a list of the slide parts in the presentation.
+    """
+
 
 register_custom_element_class('p:presentation', CT_Presentation)
+register_custom_element_class('p:sldIdLst', CT_SlideIdList)
