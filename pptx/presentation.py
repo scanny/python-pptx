@@ -235,7 +235,6 @@ class Presentation(BasePart):
     def __init__(self):
         super(Presentation, self).__init__()
         self._slidemasters = PartCollection()
-        self._slides = SlideCollection(self)
 
     @property
     def slidemasters(self):
@@ -249,6 +248,8 @@ class Presentation(BasePart):
         """
         |SlideCollection| object containing the slides in this presentation.
         """
+        if not hasattr(self, '_slides'):
+            self._slides = SlideCollection(self)
         return self._slides
 
     @property
@@ -271,7 +272,7 @@ class Presentation(BasePart):
             if rel.reltype == RT.SLIDE_MASTER:
                 self._slidemasters._loadpart(rel.target)
             elif rel.reltype == RT.SLIDE:
-                self._slides._loadpart(rel.target)
+                self.slides._loadpart(rel.target)
         return self
 
     def _rewrite_sldIdLst(self):
