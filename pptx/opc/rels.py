@@ -4,8 +4,6 @@
 Relationship-related objects.
 """
 
-from pptx.util import Collection
-
 
 class Relationship(object):
     """
@@ -48,12 +46,25 @@ class Relationship(object):
         self._rId = value
 
 
-class RelationshipCollection(Collection):
+class RelationshipCollection(object):
     """
     Sequence of |Relationship| instances.
     """
     def __init__(self):
         super(RelationshipCollection, self).__init__()
+        self._values = []
+
+    def __getitem__(self, key):
+        """Provides indexed access, (e.g. 'collection[0]')."""
+        return self._values.__getitem__(key)
+
+    def __iter__(self):
+        """Supports iteration (e.g. 'for x in collection:')."""
+        return self._values.__iter__()
+
+    def __len__(self):
+        """Supports len() function (e.g. 'len(collection) == 1')."""
+        return len(self._values)
 
     def add_rel(self, relationship):
         """
