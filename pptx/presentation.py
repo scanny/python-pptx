@@ -234,14 +234,15 @@ class Presentation(BasePart):
     """
     def __init__(self):
         super(Presentation, self).__init__()
-        self._slidemasters = PartCollection()
 
     @property
     def slidemasters(self):
         """
         List of |SlideMaster| objects belonging to this presentation.
         """
-        return tuple(self._slidemasters)
+        if not hasattr(self, '_slidemasters'):
+            self._slidemasters = PartCollection()
+        return self._slidemasters
 
     @property
     def slides(self):
@@ -270,7 +271,7 @@ class Presentation(BasePart):
         # selectively unmarshal relationships for now
         for rel in self._relationships:
             if rel.reltype == RT.SLIDE_MASTER:
-                self._slidemasters._loadpart(rel.target)
+                self.slidemasters._loadpart(rel.target)
             elif rel.reltype == RT.SLIDE:
                 self.slides._loadpart(rel.target)
         return self
