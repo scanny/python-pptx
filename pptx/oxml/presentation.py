@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from lxml import objectify
 
 from pptx.oxml.core import child, Element
+from pptx.oxml.ns import qn
 
 
 class CT_Presentation(objectify.ObjectifiedElement):
@@ -54,3 +55,14 @@ class CT_SlideIdList(objectify.ObjectifiedElement):
     ``<p:sldIdLst>`` element, direct child of <p:presentation> that contains
     a list of the slide parts in the presentation.
     """
+    def add_sldId(self, id, rId):
+        """
+        Return a reference to a newly created <p:sldId> child element having
+        its id attribute set to the string value of *id* (an integer greater
+        than or equal to 256) and its r:id attribute set to *rId*.
+        """
+        sldId = Element('p:sldId')
+        sldId.set('id', str(id))
+        sldId.set(qn('r:id'), rId)
+        self.append(sldId)
+        return sldId
