@@ -14,7 +14,8 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, qn
 from pptx.parts.coreprops import CoreProperties
-from pptx.parts.slides import Slide, SlideLayout, SlideMaster
+from pptx.parts.part import PartCollection
+from pptx.parts.slides import Slide, SlideCollection, SlideLayout, SlideMaster
 from pptx.presentation import Package, Part, Presentation
 
 from .opc.unitdata.rels import a_rels
@@ -133,6 +134,12 @@ class DescribePart(object):
 
 class DescribePresentation(object):
 
+    def it_provides_access_to_the_slide_masters(self, prs):
+        assert isinstance(prs.slidemasters, PartCollection)
+
+    def it_provides_access_to_the_slides(self, prs):
+        assert isinstance(prs.slides, SlideCollection)
+
     def test__blob_rewrites_sldIdLst(self):
         """Presentation._blob rewrites sldIdLst"""
         # setup ------------------------
@@ -154,20 +161,6 @@ class DescribePresentation(object):
         actual = [sldId.get(qn('r:id')) for sldId in sldIds]
         msg = "expected ordering %s, got %s" % (expected, actual)
         assert actual == expected, msg
-
-    def test_slidemasters_property_empty_on_construction(self, prs):
-        assert len(prs.slidemasters) == 0
-
-    def test_slidemasters_correct_length_after_pkg_open(self):
-        prs = Package(test_pptx_path).presentation
-        assert len(prs.slidemasters) == 1
-
-    def test_slides_property_empty_on_construction(self, prs):
-        assert len(prs.slides) == 0
-
-    def test_slides_correct_length_after_pkg_open(self):
-        prs = Package(test_pptx_path).presentation
-        assert len(prs.slides) == 1
 
     # fixtures ---------------------------------------------
 

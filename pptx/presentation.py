@@ -238,7 +238,7 @@ class Presentation(BasePart):
     @property
     def slidemasters(self):
         """
-        List of |SlideMaster| objects belonging to this presentation.
+        Sequence of |SlideMaster| instances belonging to this presentation.
         """
         if not hasattr(self, '_slidemasters'):
             self._slidemasters = PartCollection()
@@ -261,6 +261,24 @@ class Presentation(BasePart):
         """
         self._rewrite_sldIdLst()
         return super(Presentation, self)._blob
+
+    def _add_sldIdLst(self):
+        """
+        Add a <p:sldIdLst> element to <p:presentation> in the right sequence
+        among its siblings.
+        """
+        sldIdLst = child(self._element, 'p:sldIdLst')
+        assert sldIdLst is None, '_add_sldIdLst() called where '\
+                                 '<p:sldIdLst> already exists'
+        sldIdLst = Element('p:sldIdLst')
+        # insert new sldIdLst element in right sequence
+        sldSz = child(self._element, 'p:sldSz')
+        if sldSz is not None:
+            sldSz.addprevious(sldIdLst)
+        else:
+            notesSz = child(self._element, 'p:notesSz')
+            notesSz.addprevious(sldIdLst)
+        return sldIdLst
 
     def _load(self, pkgpart, part_dict):
         """
@@ -292,21 +310,3 @@ class Presentation(BasePart):
             sldIdLst.append(sldId)
             sldId.set('id', str(256+idx))
             sldId.set(qn('r:id'), rel.rId)
-
-    def _add_sldIdLst(self):
-        """
-        Add a <p:sldIdLst> element to <p:presentation> in the right sequence
-        among its siblings.
-        """
-        sldIdLst = child(self._element, 'p:sldIdLst')
-        assert sldIdLst is None, '_add_sldIdLst() called where '\
-                                 '<p:sldIdLst> already exists'
-        sldIdLst = Element('p:sldIdLst')
-        # insert new sldIdLst element in right sequence
-        sldSz = child(self._element, 'p:sldSz')
-        if sldSz is not None:
-            sldSz.addprevious(sldIdLst)
-        else:
-            notesSz = child(self._element, 'p:notesSz')
-            notesSz.addprevious(sldIdLst)
-        return sldIdLst
