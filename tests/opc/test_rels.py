@@ -15,13 +15,15 @@ from ..unitutil import instance_mock
 
 class DescribeRelationship(object):
 
-    def it_remembers_attrs_from_construction(self, rel, slide_master):
-        assert rel.rId == 'rId2'
+    def it_remembers_attrs_from_construction(self, slide_master):
+        rel = Relationship('rId6', RT.SLIDE_MASTER, slide_master)
+        assert rel.rId == 'rId6'
         assert rel.reltype == RT.SLIDE_MASTER
-        assert rel.target == slide_master
+        assert rel.target is slide_master
 
-    def it_allows_its_rId_to_be_changed(self, rel):
-        assert rel.rId == 'rId2'
+    def it_allows_its_rId_to_be_changed(self):
+        rel = Relationship('rId1', None, None)
+        assert rel.rId == 'rId1'
         rel.rId = 'rId9'
         assert rel.rId == 'rId9'
 
@@ -48,6 +50,9 @@ class DescribeRelationshipCollection(object):
         rels, expected_next_rId = rels_with_rId_gap
         next_rId = rels.next_rId
         assert next_rId == expected_next_rId
+
+    def it_knows_the_rIds_of_the_rels_it_contains(self, rels):
+        assert rels._rIds == ['rId1', 'rId2', 'rId3']
 
     # fixtures ---------------------------------------------
 

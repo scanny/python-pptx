@@ -60,8 +60,7 @@ class RelationshipCollection(Collection):
         Insert *relationship* into the appropriate position in this ordered
         collection.
         """
-        rIds = [rel.rId for rel in self]
-        if relationship.rId in rIds:
+        if relationship.rId in self._rIds:
             tmpl = "cannot add relationship with duplicate rId '%s'"
             raise ValueError(tmpl % relationship.rId)
         self._values.append(relationship)
@@ -72,11 +71,9 @@ class RelationshipCollection(Collection):
         Next available rId in collection, starting from 'rId1' and making use
         of any gaps in numbering, e.g. 'rId2' for rIds ['rId1', 'rId3'].
         """
-        rIds = [rel.rId for rel in self]
-        tmpl = 'rId%d'
         for n in range(1, 999999):
-            rId_candidate = tmpl % n  # like 'rId19'
-            if rId_candidate not in rIds:
+            rId_candidate = 'rId%d' % n  # like 'rId19'
+            if rId_candidate not in self._rIds:
                 return rId_candidate
         raise ValueError('implausible relationship count in collection')
 
@@ -85,9 +82,9 @@ class RelationshipCollection(Collection):
         Return first part in collection having relationship type *reltype* or
         raise |KeyError| if not found.
         """
-        for relationship in self._values:
-            if relationship.reltype == reltype:
-                return relationship.target
+        for rel in self:
+            if rel.reltype == reltype:
+                return rel.target
         tmpl = "no related part with relationship type '%s'"
         raise KeyError(tmpl % reltype)
 
@@ -98,4 +95,8 @@ class RelationshipCollection(Collection):
         Returns an empty list if there are no relationships of type *reltype*
         in the collection.
         """
-        return [rel for rel in self._values if rel.reltype == reltype]
+        return [rel for rel in self if rel.reltype == reltype]
+
+    @property
+    def _rIds(self):
+        return [rel.rId for rel in self]
