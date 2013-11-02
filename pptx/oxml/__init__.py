@@ -39,3 +39,8 @@ def register_custom_element_class(nsptag_str, cls):
     nsptag = NamespacePrefixedTag(nsptag_str)
     namespace = _element_class_lookup.get_namespace(nsptag.nsuri)
     namespace[nsptag.local_part] = cls
+
+
+from pptx.oxml.presentation import CT_Presentation, CT_SlideIdList
+register_custom_element_class('p:presentation', CT_Presentation)
+register_custom_element_class('p:sldIdLst', CT_SlideIdList)

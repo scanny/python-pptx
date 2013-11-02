@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import register_custom_element_class
 from pptx.oxml.core import child, Element
 
 
@@ -48,7 +47,3 @@ class CT_SlideIdList(objectify.ObjectifiedElement):
     ``<p:sldIdLst>`` element, direct child of <p:presentation> that contains
     a list of the slide parts in the presentation.
     """
-
-
-register_custom_element_class('p:presentation', CT_Presentation)
-register_custom_element_class('p:sldIdLst', CT_SlideIdList)

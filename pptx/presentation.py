@@ -15,7 +15,7 @@ import pptx.opc.packaging
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import Relationship, RelationshipCollection
-from pptx.oxml.core import child, Element
+from pptx.oxml.core import Element
 from pptx.oxml.ns import qn
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
@@ -262,24 +262,6 @@ class Presentation(BasePart):
         self._rewrite_sldIdLst()
         return super(Presentation, self)._blob
 
-    def _add_sldIdLst(self):
-        """
-        Add a <p:sldIdLst> element to <p:presentation> in the right sequence
-        among its siblings.
-        """
-        sldIdLst = child(self._element, 'p:sldIdLst')
-        assert sldIdLst is None, '_add_sldIdLst() called where '\
-                                 '<p:sldIdLst> already exists'
-        sldIdLst = Element('p:sldIdLst')
-        # insert new sldIdLst element in right sequence
-        sldSz = child(self._element, 'p:sldSz')
-        if sldSz is not None:
-            sldSz.addprevious(sldIdLst)
-        else:
-            notesSz = child(self._element, 'p:notesSz')
-            notesSz.addprevious(sldIdLst)
-        return sldIdLst
-
     def _load(self, pkgpart, part_dict):
         """
         Load presentation from package part.
@@ -300,9 +282,7 @@ class Presentation(BasePart):
         reflect current ordering of slide relationships and possible
         renumbering of ``rId`` values.
         """
-        sldIdLst = child(self._element, 'p:sldIdLst')
-        if sldIdLst is None:
-            sldIdLst = self._add_sldIdLst()
+        sldIdLst = self._element.get_or_add_sldIdLst()
         sldIdLst.clear()
         sld_rels = self._relationships.rels_of_reltype(RT.SLIDE)
         for idx, rel in enumerate(sld_rels):
