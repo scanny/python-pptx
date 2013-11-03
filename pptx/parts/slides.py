@@ -126,8 +126,10 @@ class SlideCollection(object):
     Immutable sequence of slides belonging to an instance of |Presentation|,
     with methods for manipulating the slides in the presentation.
     """
-    def __init__(self, presentation):
+    def __init__(self, sldIdLst, prs_rels, presentation):
         super(SlideCollection, self).__init__()
+        self._sldIdLst = sldIdLst
+        self._prs_rels = prs_rels
         self._presentation = presentation
         self._slides = []
 

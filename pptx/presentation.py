@@ -248,7 +248,9 @@ class Presentation(BasePart):
         |SlideCollection| object containing the slides in this presentation.
         """
         if not hasattr(self, '_slides'):
-            self._slides = SlideCollection(self)
+            sldIdLst = self._element.get_or_add_sldIdLst()
+            rels = self._relationships
+            self._slides = SlideCollection(sldIdLst, rels, self)
         return self._slides
 
     @property

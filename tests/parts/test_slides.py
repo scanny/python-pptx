@@ -248,7 +248,7 @@ class DescribeSlideCollection(object):
     @pytest.fixture
     def slides(self):
         prs = Presentation()
-        return SlideCollection(prs)
+        return SlideCollection(None, None, prs)
 
 
 class DescribeSlideLayout(object):

@@ -166,4 +166,6 @@ class DescribePresentation(object):
 
     @pytest.fixture
     def prs(self):
-        return Presentation()
+        prs = Presentation()
+        prs._element = Mock(name='_element')
+        return prs
