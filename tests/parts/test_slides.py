@@ -4,7 +4,9 @@
 
 from __future__ import absolute_import
 
-from hamcrest import assert_that, is_
+import pytest
+
+from lxml import objectify
 from mock import Mock, patch, PropertyMock
 
 from pptx.opc import packaging
@@ -16,13 +18,21 @@ from pptx.parts.slides import (
 from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import ShapeCollection
 
-from ..unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
+from ..unitutil import (
+    absjoin, class_mock, instance_mock, method_mock, parse_xml_file,
+    serialize_xml, test_file_dir
+)
 
 
 test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 
 nsmap = namespaces('a', 'r', 'p')
+
+
+def actual_xml(elm):
+    objectify.deannotate(elm, cleanup_namespaces=True)
+    return serialize_xml(elm, pretty_print=True)
 
 
 def _sldLayout1():
@@ -38,24 +48,21 @@ def _sldLayout1_shapes():
     return shapes
 
 
-class Test_BaseSlide(TestCase):
-    """Test _BaseSlide"""
-    def setUp(self):
-        self.base_slide = _BaseSlide()
+class Describe_BaseSlide(object):
 
-    def test_name_value(self):
+    def it_knows_the_name_of_the_slide(self, base_slide):
         """_BaseSlide.name value is correct"""
         # setup ------------------------
-        self.base_slide._element = _sldLayout1()
+        base_slide._element = _sldLayout1()
         # exercise ---------------------
-        name = self.base_slide.name
+        name = base_slide.name
         # verify -----------------------
         expected = 'Title Slide'
         actual = name
         msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
 
-    def test_shapes_size_after__load(self):
+    def it_provides_access_to_the_shapes_on_the_slide(self, base_slide):
         """_BaseSlide.shapes is expected size after _load()"""
         # setup ------------------------
         path = absjoin(test_file_dir, 'slide1.xml')
@@ -65,17 +72,17 @@ class Test_BaseSlide(TestCase):
             pkgpart.blob = f.read()
         pkgpart.relationships = []
         part_dict = {}
-        self.base_slide._load(pkgpart, part_dict)
+        base_slide._load(pkgpart, part_dict)
         # exercise ---------------------
-        shapes = self.base_slide.shapes
+        shapes = base_slide.shapes
         # verify -----------------------
-        self.assertLength(shapes, 9)
+        assert len(shapes) == 9
 
     @patch('pptx.parts.slides._BaseSlide._package', new_callable=PropertyMock)
-    def test__add_image_collaboration(self, _package):
+    def it_can_add_an_image_part_to_the_slide(self, _package, base_slide):
         """_BaseSlide._add_image() returns (image, rel) tuple"""
         # setup ------------------------
-        base_slide = self.base_slide
+        base_slide = base_slide
         image = Mock(name='image')
         rel = Mock(name='rel')
         base_slide._package._images.add_image.return_value = image
@@ -87,26 +94,33 @@ class Test_BaseSlide(TestCase):
         # verify -----------------------
         base_slide._package._images.add_image.assert_called_once_with(file)
         base_slide._add_relationship.assert_called_once_with(RT.IMAGE, image)
-        assert_that(retval_image, is_(image))
-        assert_that(retval_rel, is_(rel))
+        assert retval_image is image
+        assert retval_rel is rel
+
+    def it_knows_what_to_do_after_the_slide_is_unmarshaled(self):
+        pass
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def base_slide(self):
+        return _BaseSlide()
 
 
-class TestSlide(TestCase):
-    """Test Slide"""
-    def setUp(self):
-        self.sld = Slide()
+class DescribeSlide(object):
 
-    def test_constructor_sets_correct_content_type(self):
+    def it_passes_its_content_type_to_BasePart_on_construction(self, slide):
         """Slide constructor sets correct content type"""
         # exercise ---------------------
-        content_type = self.sld._content_type
+        content_type = slide._content_type
         # verify -----------------------
         expected = CT.PML_SLIDE
         actual = content_type
         msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
 
-    def test_construction_adds_slide_layout_relationship(self):
+    def it_establishes_a_relationship_to_its_slide_layout_on_construction(
+            self):
         """Slide(slidelayout) adds relationship slide->slidelayout"""
         # setup ------------------------
         slidelayout = SlideLayout()
@@ -118,31 +132,30 @@ class TestSlide(TestCase):
         actual = len(slide._relationships)
         msg = ("expected len(slide._relationships) of %d, got %d"
                % (expected, actual))
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
         # verify values ---------------
         rel = slide._relationships[0]
         expected = ('rId1', RT.SLIDE_LAYOUT, slidelayout)
         actual = (rel.rId, rel.reltype, rel.target)
         msg = "expected relationship\n%s\ngot\n%s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
 
-    def test__element_minimal_sld_on_construction(self):
+    def it_creates_a_minimal_sld_element_on_construction(self, slide):
         """Slide._element is minimal sld on construction"""
         # setup ------------------------
         path = absjoin(test_file_dir, 'minimal_slide.xml')
         # exercise ---------------------
-        elm = self.sld._element
+        elm = slide._element
         # verify -----------------------
         with open(path, 'r') as f:
             expected_xml = f.read()
-        self.assertEqualLineByLine(expected_xml, elm)
+        assert actual_xml(elm) == expected_xml
 
-    def test_slidelayout_property_none_on_construction(self):
+    def it_has_slidelayout_property_of_none_on_construction(self, slide):
         """Slide.slidelayout property None on construction"""
-        # verify -----------------------
-        self.assertIsProperty(self.sld, 'slidelayout', None)
+        assert slide.slidelayout is None
 
-    def test__load_sets_slidelayout(self):
+    def it_sets_slidelayout_on_load(self, slide):
         """Slide._load() sets slidelayout"""
         # setup ------------------------
         path = absjoin(test_file_dir, 'slide1.xml')
@@ -157,101 +170,76 @@ class TestSlide(TestCase):
             pkgpart.blob = f.read()
         pkgpart.relationships = [rel]
         part_dict = {slidelayout.partname: slidelayout}
-        slide = self.sld._load(pkgpart, part_dict)
+        slide_ = slide._load(pkgpart, part_dict)
         # exercise ---------------------
-        retval = slide.slidelayout
+        retval = slide_.slidelayout
         # verify -----------------------
         expected = slidelayout
         actual = retval
         msg = "expected: %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
 
-    def test__minimal_element_xml(self):
+    def it_knows_the_minimal_element_xml_for_a_slide(self, slide):
         """Slide._minimal_element generates correct XML"""
         # setup ------------------------
         path = absjoin(test_file_dir, 'minimal_slide.xml')
         # exercise ---------------------
-        sld = self.sld._minimal_element
+        sld = slide._minimal_element
         # verify -----------------------
         with open(path, 'r') as f:
             expected_xml = f.read()
-        self.assertEqualLineByLine(expected_xml, sld)
+        assert actual_xml(sld) == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def slide(self):
+        return Slide()
 
 
-class TestSlideCollection(TestCase):
-    """Test SlideCollection"""
-    def setUp(self):
-        prs = Presentation()
-        self.slides = SlideCollection(prs)
+class DescribeSlideCollection(object):
 
-    def test_add_slide_returns_slide(self):
-        """SlideCollection.add_slide() returns instance of Slide"""
-        # exercise ---------------------
-        retval = self.slides.add_slide(None)
+    def it_can_add_a_new_slide(
+            self, slides, Slide_, slidelayout_, _rename_slides_,
+            add_relationship_, slide_):
+        slide = slides.add_slide(slidelayout_)
         # verify -----------------------
-        self.assertIsInstance(retval, Slide)
+        Slide_.assert_called_once_with(slidelayout_)
+        _rename_slides_.assert_called_once_with()
+        add_relationship_.assert_called_once_with(RT.SLIDE, slide_)
+        assert slide is slide_
 
-    def test_add_slide_sets_slidelayout(self):
-        """
-        SlideCollection.add_slide() sets Slide.slidelayout
+    # fixtures -------------------------------------------------------
 
-        Kind of a throw-away test, but was helpful for initial debugging.
-        """
-        # setup ------------------------
-        slidelayout = Mock(name='slideLayout')
-        slidelayout.shapes = []
-        slide = self.slides.add_slide(slidelayout)
-        # exercise ---------------------
-        retval = slide.slidelayout
-        # verify -----------------------
-        expected = slidelayout
-        actual = retval
-        msg = "expected: %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+    @pytest.fixture
+    def add_relationship_(self, request):
+        return method_mock(request, Presentation, '_add_relationship')
 
-    def test_add_slide_adds_slide_layout_relationship(self):
-        """SlideCollection.add_slide() adds relationship prs->slide"""
-        # setup ------------------------
+    @pytest.fixture
+    def _rename_slides_(self, request):
+        return method_mock(request, SlideCollection, '_rename_slides')
+
+    @pytest.fixture
+    def Slide_(self, request, slide_):
+        return class_mock(
+            request, 'pptx.parts.slides.Slide', return_value=slide_
+        )
+
+    @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, Slide)
+
+    @pytest.fixture
+    def slidelayout_(self, request):
+        return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def slides(self):
         prs = Presentation()
-        slides = prs.slides
-        slidelayout = SlideLayout()
-        slidelayout._shapes = []
-        # exercise ---------------------
-        slide = slides.add_slide(slidelayout)
-        # verify length ---------------
-        expected = 1
-        actual = len(prs._relationships)
-        msg = ("expected len(prs._relationships) of %d, got %d"
-               % (expected, actual))
-        self.assertEqual(expected, actual, msg)
-        # verify values ---------------
-        rel = prs._relationships[0]
-        expected = ('rId1', RT.SLIDE, slide)
-        actual = (rel.rId, rel.reltype, rel.target)
-        msg = ("expected relationship 1:, got 2:\n1: %s\n2: %s"
-               % (expected, actual))
-        self.assertEqual(expected, actual, msg)
-
-    def test_add_slide_sets_partname(self):
-        """SlideCollection.add_slide() sets partname of new slide"""
-        # setup ------------------------
-        prs = Presentation()
-        slides = prs.slides
-        slidelayout = SlideLayout()
-        slidelayout._shapes = []
-        # exercise ---------------------
-        slide = slides.add_slide(slidelayout)
-        # verify -----------------------
-        expected = '/ppt/slides/slide1.xml'
-        actual = slide.partname
-        msg = "expected partname '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        return SlideCollection(prs)
 
 
-class TestSlideLayout(TestCase):
-    """Test SlideLayout"""
-    def setUp(self):
-        self.slidelayout = SlideLayout()
+class DescribeSlideLayout(object):
 
     def _loaded_slidelayout(self, prs_slidemaster=None):
         """
@@ -295,28 +283,24 @@ class TestSlideLayout(TestCase):
         expected = prs_slidemaster
         actual = loaded_slidelayout.slidemaster
         msg = "expected: %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
 
-    def test_slidemaster_is_readonly(self):
-        """SlideLayout.slidemaster is read-only"""
-        # verify -----------------------
-        self.assertIsReadOnly(self.slidelayout, 'slidemaster')
-
-    def test_slidemaster_raises_on_ref_before_assigned(self):
+    def test_slidemaster_raises_on_ref_before_assigned(self, slidelayout):
         """SlideLayout.slidemaster raises on referenced before assigned"""
-        with self.assertRaises(AssertionError):
-            self.slidelayout.slidemaster
+        with pytest.raises(AssertionError):
+            slidelayout.slidemaster
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def slidelayout(self):
+        return SlideLayout()
 
 
-class TestSlideMaster(TestCase):
-    """Test SlideMaster"""
-    def setUp(self):
-        self.sldmaster = SlideMaster()
+class DescribeSlideMaster(object):
 
-    def test_slidelayouts_property_empty_on_construction(self):
-        """SlideMaster.slidelayouts property empty on construction"""
-        # verify -----------------------
-        self.assertIsSizedProperty(self.sldmaster, 'slidelayouts', 0)
+    def test_slidelayouts_property_empty_on_construction(self, slidemaster):
+        assert len(slidemaster.slidelayouts) == 0
 
     def test_slidelayouts_correct_length_after_open(self):
         """SlideMaster.slidelayouts correct length after open"""
@@ -326,4 +310,10 @@ class TestSlideMaster(TestCase):
         # exercise ---------------------
         slidelayouts = slidemaster.slidelayouts
         # verify -----------------------
-        self.assertLength(slidelayouts, 11)
+        assert len(slidelayouts) == 11
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def slidemaster(self):
+        return SlideMaster()

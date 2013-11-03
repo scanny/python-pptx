@@ -131,15 +131,10 @@ class SlideCollection(PartCollection):
 
     def add_slide(self, slidelayout):
         """Add a new slide that inherits layout from *slidelayout*."""
-        # 1. construct new slide
         slide = Slide(slidelayout)
-        # 2. add it to this collection
         self._values.append(slide)
-        # 3. assign its partname
-        self._rename_slides()
-        # 4. add presentation->slide relationship
+        self._rename_slides()  # assigns partname as side effect
         self._presentation._add_relationship(RT.SLIDE, slide)
-        # 5. return reference to new slide
         return slide
 
     def _rename_slides(self):
