@@ -10,7 +10,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml.core import Element, SubElement
 from pptx.parts.part import BasePart, PartCollection
 from pptx.shapes.shapetree import ShapeCollection
-from pptx.util import Collection, Partname
+from pptx.util import Partname
 
 
 class _BaseSlide(BasePart):
@@ -121,7 +121,7 @@ class Slide(_BaseSlide):
         return sld
 
 
-class SlideCollection(Collection):
+class SlideCollection(object):
     """
     Immutable sequence of slides belonging to an instance of |Presentation|,
     with methods for manipulating the slides in the presentation.
@@ -129,11 +129,24 @@ class SlideCollection(Collection):
     def __init__(self, presentation):
         super(SlideCollection, self).__init__()
         self._presentation = presentation
+        self._slides = []
+
+    def __getitem__(self, key):
+        """Provides indexed access, (e.g. 'collection[0]')."""
+        return self._slides.__getitem__(key)
+
+    def __iter__(self):
+        """Supports iteration (e.g. 'for x in collection: pass')."""
+        return self._slides.__iter__()
+
+    def __len__(self):
+        """Supports len() function (e.g. 'len(collection) == 1')."""
+        return len(self._slides)
 
     def add_slide(self, slidelayout):
         """Add a new slide that inherits layout from *slidelayout*."""
         slide = Slide(slidelayout)
-        self._values.append(slide)
+        self._slides.append(slide)
         self._rename_slides()  # assigns partname as side effect
         self._presentation._add_relationship(RT.SLIDE, slide)
         return slide
@@ -145,12 +158,12 @@ class SlideCollection(Collection):
         slide9.xml).
         """
         new_partidx = Partname(part.partname).idx
-        for idx, seq_part in enumerate(self._values):
+        for idx, seq_part in enumerate(self._slides):
             partidx = Partname(seq_part.partname).idx
             if partidx > new_partidx:
-                self._values.insert(idx, part)
+                self._slides.insert(idx, part)
                 return
-        self._values.append(part)
+        self._slides.append(part)
 
     def _rename_slides(self):
         """
@@ -159,7 +172,7 @@ class SlideCollection(Collection):
         forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
         extension is always ``.xml``.
         """
-        for idx, slide in enumerate(self._values):
+        for idx, slide in enumerate(self._slides):
             slide.partname = '/ppt/slides/slide%d.xml' % (idx+1)
 
 

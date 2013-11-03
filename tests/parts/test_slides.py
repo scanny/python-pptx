@@ -199,6 +199,18 @@ class DescribeSlide(object):
 
 class DescribeSlideCollection(object):
 
+    def it_is_iterable(self, slides):
+        assert [s for s in slides] == []
+        assert hasattr(slides, '__iter__')
+
+    def it_supports_indexed_access(self, slides):
+        # raises IndexError if supports indexing, TypeError if not
+        with pytest.raises(IndexError):
+            slides[0]
+
+    def it_supports_len(self, slides):
+        assert len(slides) == 0
+
     def it_can_add_a_new_slide(
             self, slides, Slide_, slidelayout_, _rename_slides_,
             add_relationship_, slide_):
