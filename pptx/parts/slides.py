@@ -10,6 +10,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml.core import Element, SubElement
 from pptx.parts.part import BasePart, PartCollection
 from pptx.shapes.shapetree import ShapeCollection
+from pptx.util import Collection, Partname
 
 
 class _BaseSlide(BasePart):
@@ -120,7 +121,7 @@ class Slide(_BaseSlide):
         return sld
 
 
-class SlideCollection(PartCollection):
+class SlideCollection(Collection):
     """
     Immutable sequence of slides belonging to an instance of |Presentation|,
     with methods for manipulating the slides in the presentation.
@@ -136,6 +137,20 @@ class SlideCollection(PartCollection):
         self._rename_slides()  # assigns partname as side effect
         self._presentation._add_relationship(RT.SLIDE, slide)
         return slide
+
+    def _loadpart(self, part):
+        """
+        Insert a new part loaded from a package, such that list remains
+        sorted in logical partname order (e.g. slide10.xml comes after
+        slide9.xml).
+        """
+        new_partidx = Partname(part.partname).idx
+        for idx, seq_part in enumerate(self._values):
+            partidx = Partname(seq_part.partname).idx
+            if partidx > new_partidx:
+                self._values.insert(idx, part)
+                return
+        self._values.append(part)
 
     def _rename_slides(self):
         """
