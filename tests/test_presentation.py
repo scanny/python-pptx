@@ -11,15 +11,13 @@ from mock import Mock
 
 from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.oxml import parse_xml_bytes
-from pptx.oxml.ns import namespaces, qn
+from pptx.oxml.ns import namespaces
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import PartCollection
 from pptx.parts.slides import Slide, SlideCollection, SlideLayout, SlideMaster
 from pptx.presentation import Package, Part, Presentation
 
-from .opc.unitdata.rels import a_rels
-from .unitutil import absjoin, parse_xml_file, test_file_dir
+from .unitutil import absjoin, test_file_dir
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -139,28 +137,6 @@ class DescribePresentation(object):
 
     def it_provides_access_to_the_slides(self, prs):
         assert isinstance(prs.slides, SlideCollection)
-
-    def test__blob_rewrites_sldIdLst(self):
-        """Presentation._blob rewrites sldIdLst"""
-        # setup ------------------------
-        rels = a_rels()
-        rels = rels.with_tuple_targets(2, RT.SLIDE_MASTER)
-        rels = rels.with_tuple_targets(3, RT.SLIDE)
-        rels = rels.build()
-        prs = Presentation()
-        prs._relationships = rels
-        prs.partname = '/ppt/presentation.xml'
-        path = absjoin(test_file_dir, 'presentation.xml')
-        prs._element = parse_xml_file(path).getroot()
-        # exercise ---------------------
-        blob = prs._blob
-        # verify -----------------------
-        presentation = parse_xml_bytes(blob)
-        sldIds = presentation.xpath('./p:sldIdLst/p:sldId', namespaces=nsmap)
-        expected = ['rId3', 'rId4', 'rId5']
-        actual = [sldId.get(qn('r:id')) for sldId in sldIds]
-        msg = "expected ordering %s, got %s" % (expected, actual)
-        assert actual == expected, msg
 
     # fixtures ---------------------------------------------
 

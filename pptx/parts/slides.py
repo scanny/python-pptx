@@ -10,7 +10,6 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.oxml.core import Element, SubElement
 from pptx.parts.part import BasePart, PartCollection
 from pptx.shapes.shapetree import ShapeCollection
-from pptx.util import Partname
 
 
 class _BaseSlide(BasePart):
@@ -131,41 +130,37 @@ class SlideCollection(object):
         self._sldIdLst = sldIdLst
         self._prs_rels = prs_rels
         self._presentation = presentation
-        self._slides = []
 
     def __getitem__(self, key):
-        """Provides indexed access, (e.g. 'collection[0]')."""
-        return self._slides.__getitem__(key)
+        """
+        Provide indexed access, (e.g. 'slides[0]').
+        """
+        if key >= len(self._sldIdLst):
+            raise IndexError('slide index out of range')
+        sldId = self._sldIdLst[key]
+        return self._slide_from_sldId(sldId)
 
     def __iter__(self):
-        """Supports iteration (e.g. 'for x in collection: pass')."""
-        return self._slides.__iter__()
+        """
+        Support iteration (e.g. 'for slide in slides:').
+        """
+        return self._slides
 
     def __len__(self):
-        """Supports len() function (e.g. 'len(collection) == 1')."""
-        return len(self._slides)
+        """
+        Support len() built-in function (e.g. 'len(slides) == 4').
+        """
+        return len(self._sldIdLst)
 
     def add_slide(self, slidelayout):
-        """Add a new slide that inherits layout from *slidelayout*."""
+        """
+        Return a newly added slide that inherits layout from *slidelayout*.
+        """
         slide = Slide(slidelayout)
-        self._slides.append(slide)
+        rel = self._presentation._add_relationship(RT.SLIDE, slide)
+        self._sldIdLst.add_sldId(rel.rId)
         self._rename_slides()  # assigns partname as side effect
-        self._presentation._add_relationship(RT.SLIDE, slide)
         return slide
-
-    def _loadpart(self, part):
-        """
-        Insert a new part loaded from a package, such that list remains
-        sorted in logical partname order (e.g. slide10.xml comes after
-        slide9.xml).
-        """
-        new_partidx = Partname(part.partname).idx
-        for idx, seq_part in enumerate(self._slides):
-            partidx = Partname(seq_part.partname).idx
-            if partidx > new_partidx:
-                self._slides.insert(idx, part)
-                return
-        self._slides.append(part)
 
     def _rename_slides(self):
         """
@@ -176,6 +171,20 @@ class SlideCollection(object):
         """
         for idx, slide in enumerate(self._slides):
             slide.partname = '/ppt/slides/slide%d.xml' % (idx+1)
+
+    def _slide_from_sldId(self, sldId):
+        """
+        Return the |Slide| instance referenced by *sldId*.
+        """
+        return self._prs_rels.part_with_rId(sldId.rId)
+
+    @property
+    def _slides(self):
+        """
+        Iterator over slides in collection.
+        """
+        for sldId in self._sldIdLst:
+            yield self._slide_from_sldId(sldId)
 
 
 class SlideLayout(_BaseSlide):

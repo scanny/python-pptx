@@ -49,6 +49,10 @@ class DescribeCT_SlideIdList(object):
         sldIdLst_elm.add_sldId('rId1')
         assert actual_xml(sldIdLst_elm) == sldIdLst_with_sldId_xml
 
+    def it_returns_sldId_count_for_len(self, sldIdLst_elm):
+        # objectify would return 1 by if __len__ were not overridden
+        assert len(sldIdLst_elm) == 0
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

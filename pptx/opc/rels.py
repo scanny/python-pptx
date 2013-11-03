@@ -88,6 +88,16 @@ class RelationshipCollection(object):
                 return rId_candidate
         assert False, 'programming error in RelationshipCollection.next_rId'
 
+    def part_with_rId(self, rId):
+        """
+        Return target part with matching *rId*, raising |KeyError| if not
+        found.
+        """
+        for rel in self:
+            if rel.rId == rId:
+                return rel.target
+        raise KeyError("no relationship with rId '%s'" % rId)
+
     def related_part(self, reltype):
         """
         Return first part in collection having relationship type *reltype* or

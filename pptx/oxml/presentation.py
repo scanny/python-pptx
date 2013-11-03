@@ -48,6 +48,9 @@ class CT_SlideId(objectify.ObjectifiedElement):
     ``<p:sldId>`` element, direct child of <p:sldIdLst> that contains an rId
     reference to a slide in the presentation.
     """
+    @property
+    def rId(self):
+        return self.get(qn('r:id'))
 
 
 class CT_SlideIdList(objectify.ObjectifiedElement):
@@ -55,6 +58,18 @@ class CT_SlideIdList(objectify.ObjectifiedElement):
     ``<p:sldIdLst>`` element, direct child of <p:presentation> that contains
     a list of the slide parts in the presentation.
     """
+    def __getitem__(self, idx):
+        """
+        Provide indexed access, (e.g. 'collection[0]').
+        """
+        return self.getchildren()[idx]
+
+    def __iter__(self):
+        return self.iterchildren()
+
+    def __len__(self):
+        return self.countchildren()
+
     def add_sldId(self, rId):
         """
         Return a reference to a newly created <p:sldId> child element having

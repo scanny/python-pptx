@@ -253,15 +253,6 @@ class Presentation(BasePart):
             self._slides = SlideCollection(sldIdLst, rels, self)
         return self._slides
 
-    @property
-    def _blob(self):
-        """
-        Rewrite sldId elements in sldIdLst before handing over to super for
-        transformation of _element into a blob.
-        """
-        self._rewrite_sldIdLst()
-        return super(Presentation, self)._blob
-
     def _load(self, pkgpart, part_dict):
         """
         Load presentation from package part.
@@ -272,17 +263,4 @@ class Presentation(BasePart):
         for rel in self._relationships:
             if rel.reltype == RT.SLIDE_MASTER:
                 self.slidemasters._loadpart(rel.target)
-            elif rel.reltype == RT.SLIDE:
-                self.slides._loadpart(rel.target)
         return self
-
-    def _rewrite_sldIdLst(self):
-        """
-        Rewrite the ``<p:sldIdLst>`` element in ``<p:presentation>`` to
-        reflect current ordering of slide relationships.
-        """
-        sldIdLst = self._element.get_or_add_sldIdLst()
-        sldIdLst.clear()
-        sld_rels = self._relationships.rels_of_reltype(RT.SLIDE)
-        for rel in sld_rels:
-            sldIdLst.add_sldId(rel.rId)
