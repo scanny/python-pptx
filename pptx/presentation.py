@@ -279,12 +279,10 @@ class Presentation(BasePart):
     def _rewrite_sldIdLst(self):
         """
         Rewrite the ``<p:sldIdLst>`` element in ``<p:presentation>`` to
-        reflect current ordering of slide relationships and possible
-        renumbering of ``rId`` values.
+        reflect current ordering of slide relationships.
         """
         sldIdLst = self._element.get_or_add_sldIdLst()
         sldIdLst.clear()
         sld_rels = self._relationships.rels_of_reltype(RT.SLIDE)
-        for idx, rel in enumerate(sld_rels):
-            id = 256 + idx
-            sldIdLst.add_sldId(id, rel.rId)
+        for rel in sld_rels:
+            sldIdLst.add_sldId(rel.rId)

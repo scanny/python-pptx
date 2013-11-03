@@ -55,12 +55,12 @@ class CT_SlideIdList(objectify.ObjectifiedElement):
     ``<p:sldIdLst>`` element, direct child of <p:presentation> that contains
     a list of the slide parts in the presentation.
     """
-    def add_sldId(self, id, rId):
+    def add_sldId(self, rId):
         """
         Return a reference to a newly created <p:sldId> child element having
-        its id attribute set to the string value of *id* (an integer greater
-        than or equal to 256) and its r:id attribute set to *rId*.
+        its r:id attribute set to *rId*.
         """
+        id = 256 + len(self.getchildren())
         sldId = Element('p:sldId')
         sldId.set('id', str(id))
         sldId.set(qn('r:id'), rId)

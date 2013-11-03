@@ -46,7 +46,7 @@ class DescribeCT_SlideIdList(object):
 
     def it_can_add_a_sldId_element_as_a_child(
             self, sldIdLst_elm, sldIdLst_with_sldId_xml):
-        sldIdLst_elm.add_sldId(256, 'rId1')
+        sldIdLst_elm.add_sldId('rId1')
         assert actual_xml(sldIdLst_elm) == sldIdLst_with_sldId_xml
 
     # fixtures -------------------------------------------------------
