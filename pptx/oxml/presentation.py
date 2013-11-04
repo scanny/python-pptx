@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml.core import child, Element
+from pptx.oxml.core import child, Element, SubElement
 from pptx.oxml.ns import qn
 
 
@@ -75,9 +75,10 @@ class CT_SlideIdList(objectify.ObjectifiedElement):
         Return a reference to a newly created <p:sldId> child element having
         its r:id attribute set to *rId*.
         """
-        id = 256 + len(self.getchildren())
-        sldId = Element('p:sldId')
-        sldId.set('id', str(id))
+        sldId = SubElement(self, 'p:sldId', id=self._next_id)
         sldId.set(qn('r:id'), rId)
-        self.append(sldId)
         return sldId
+
+    @property
+    def _next_id(self):
+        return str(256 + len(self))

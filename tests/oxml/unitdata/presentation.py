@@ -52,13 +52,23 @@ class CT_PresentationBuilder(BaseBuilder):
     def __init__(self):
         """Establish instance variables with default values"""
         super(CT_PresentationBuilder, self).__init__()
+        self._notesSz = None
         self._sldIdLst = None
         self._sldSz = None
         self._nsdecls = self.nsdecls
 
     @property
     def is_empty(self):
-        return self._sldIdLst is None and self._sldSz is None
+        return (
+            self._sldIdLst is None and
+            self._sldSz is None and
+            self._notesSz is None
+        )
+
+    def with_notesSz(self):
+        """Add an empty notes page size element"""
+        self._notesSz = True
+        return self
 
     def with_sldIdLst(self):
         """Add an empty slide id list element"""
@@ -82,6 +92,8 @@ class CT_PresentationBuilder(BaseBuilder):
                 xml += self._sldIdLst.with_indent(self._indent+2).xml
             if self._sldSz:
                 xml += self._sldSz.with_indent(self._indent+2).xml
+            if self._notesSz:
+                xml += '  %s<p:notesSz/>\n' % indent
             xml += '%s</p:presentation>\n' % indent
         return xml
 
@@ -100,6 +112,10 @@ class CT_SlideIdBuilder(BaseBuilder):
     def with_id(self, id):
         """Add an id attribute containing the string value of *id*"""
         self._id = ' id="%s"' % str(id)
+        return self
+
+    def with_nsdecls(self):
+        self._nsdecls = ' %s' % nsdecls('p', 'r')
         return self
 
     def with_rId(self, rId):
