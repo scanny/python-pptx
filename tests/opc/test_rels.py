@@ -17,7 +17,8 @@ from ..unitutil import instance_mock, property_mock
 
 class DescribeRelationship(object):
 
-    def it_remembers_attrs_from_construction(self, slide_master):
+    def it_remembers_the_attributes_it_was_constructed_with(
+            self, slide_master):
         rel = Relationship('rId6', RT.SLIDE_MASTER, slide_master)
         assert rel.rId == 'rId6'
         assert rel.reltype == RT.SLIDE_MASTER
@@ -51,6 +52,14 @@ class DescribeRelationshipCollection(object):
         rels = RelationshipCollection()
         with pytest.raises(AssertionError):
             rels.next_rId
+
+    def it_can_find_a_related_part_by_rId(self, rels, slide_master):
+        part = rels.part_with_rId('rId2')
+        assert part is slide_master
+
+    def it_raises_KeyError_on_part_with_rId_not_found(self, rels):
+        with pytest.raises(KeyError):
+            rels.part_with_rId('rId666')
 
     def it_can_find_a_related_part_by_reltype(self, rels):
         part = rels.related_part(RT.SLIDE_MASTER)

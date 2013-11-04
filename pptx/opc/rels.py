@@ -52,19 +52,19 @@ class RelationshipCollection(object):
     """
     def __init__(self):
         super(RelationshipCollection, self).__init__()
-        self._values = []
+        self._rels = []
 
     def __getitem__(self, key):
         """Provides indexed access, (e.g. 'collection[0]')."""
-        return self._values.__getitem__(key)
+        return self._rels.__getitem__(key)
 
     def __iter__(self):
         """Supports iteration (e.g. 'for x in collection:')."""
-        return self._values.__iter__()
+        return self._rels.__iter__()
 
     def __len__(self):
         """Supports len() function (e.g. 'len(collection) == 1')."""
-        return len(self._values)
+        return len(self._rels)
 
     def add_rel(self, relationship):
         """
@@ -74,7 +74,7 @@ class RelationshipCollection(object):
         if relationship.rId in self._rIds:
             tmpl = "cannot add relationship with duplicate rId '%s'"
             raise ValueError(tmpl % relationship.rId)
-        self._values.append(relationship)
+        self._rels.append(relationship)
 
     @property
     def next_rId(self):
