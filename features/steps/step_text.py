@@ -14,7 +14,7 @@ from pptx import Presentation
 from pptx.constants import PP
 from pptx.util import Inches
 
-from .helpers import saved_pptx_path
+from .helpers import italics_pptx_path, saved_pptx_path
 
 
 # given ===================================================
@@ -27,6 +27,14 @@ def step_given_ref_to_paragraph(context):
     length = Inches(2.00)
     textbox = slide.shapes.add_textbox(length, length, length, length)
     context.p = textbox.textframe.paragraphs[0]
+
+
+@given('I have a reference to a run with italics set {setting}')
+def step_given_ref_to_run_with_italics_set_to_setting(context, setting):
+    run_idx = {'on': 0, 'off': 1, 'to None': 2}[setting]
+    context.prs = Presentation(italics_pptx_path)
+    runs = context.prs.slides[0].shapes[0].textframe.paragraphs[0].runs
+    context.run = runs[run_idx]
 
 
 @given('I have a reference to a textframe')
@@ -45,6 +53,12 @@ def step_given_ref_to_textframe(context):
 def step_when_indent_first_paragraph(context):
     p = context.body.textframe.paragraphs[0]
     p.level = 1
+
+
+@when("I set italics {setting}")
+def step_when_set_set_italics_to_setting(context, setting):
+    new_italics_value = {'on': True, 'off': False, 'to None': None}[setting]
+    context.run.font.italic = new_italics_value
 
 
 @when("I set the paragraph alignment to centered")
@@ -83,6 +97,15 @@ def step_then_paragraph_indented_to_second_level(context):
     body = sld.shapes.placeholders[1]
     p = body.textframe.paragraphs[0]
     assert_that(p.level, is_(equal_to(1)))
+
+
+@then("the run that had italics set {initial} now has it set {setting}")
+def step_then_run_now_has_italics_set_to_setting(context, initial, setting):
+    run_idx = {'on': 0, 'off': 1, 'to None': 2}[initial]
+    prs = Presentation(italics_pptx_path)
+    run = prs.slides[0].shapes[0].textframe.paragraphs[0].runs[run_idx]
+    expected_val = {'on': True, 'off': False, 'to None': None}[setting]
+    assert run.font.italic == expected_val
 
 
 @then('the textframe word wrap is empty')
