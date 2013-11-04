@@ -243,11 +243,10 @@ class _Paragraph(object):
 
 class _Font(object):
     """
-    Character properties object, prominent among those properties being font
-    size, font name, bold, italic, etc. Corresponds to ``<a:rPr>`` child
-    element of a run. Also appears as ``<a:defRPr>`` and ``<a:endParaRPr>`` in
-    paragraph and ``<a:defRPr>`` in list style elements. Not intended to be
-    constructed directly.
+    Character properties object, providing font size, font name, bold,
+    italic, etc. Corresponds to ``<a:rPr>`` child element of a run. Also
+    appears as ``<a:defRPr>`` and ``<a:endParaRPr>`` in paragraph and
+    ``<a:defRPr>`` in list style elements.
     """
     def __init__(self, rPr):
         super(_Font, self).__init__()
@@ -259,9 +258,13 @@ class _Font(object):
         Get or set boolean bold value of |_Font|, e.g.
         ``paragraph.font.bold = True``. If set to |None|, the bold setting is
         cleared and is inherited from an enclosing shape's setting, or a
-        setting in a style or master.
+        setting in a style or master. Returns None if no bold attribute is
+        present, meaning the effective bold value is inherited from a master
+        or the theme.
         """
         b = self._rPr.get('b')
+        if b is None:
+            return None
         return True if b in ('true', '1') else False
 
     @bold.setter

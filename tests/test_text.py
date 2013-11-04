@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import
 
+import pytest
+
 from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch
 
@@ -14,7 +16,7 @@ from pptx.oxml.ns import namespaces, nsdecls
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
 from pptx.util import Pt
 
-from .oxml.unitdata.text import test_text_objects, test_text_xml
+from .oxml.unitdata.text import an_rPr, test_text_objects, test_text_xml
 from .unitutil import (
     absjoin, parse_xml_file, serialize_xml, TestCase, test_file_dir
 )
@@ -23,53 +25,24 @@ from .unitutil import (
 nsmap = namespaces('a', 'r', 'p')
 
 
-class Test_Font(TestCase):
-    """Test _Font class"""
-    def setUp(self):
-        self.rPr_xml = '<a:rPr %s/>' % nsdecls('a')
-        self.rPr = parse_xml_bytes(self.rPr_xml)
-        self.font = _Font(self.rPr)
+class Describe_Font(object):
 
-    def test_get_bold_setting(self):
-        """_Font.bold returns True on bold font weight"""
-        # setup ------------------------
-        rPr_xml = '<a:rPr %s b="1"/>' % nsdecls('a')
-        rPr = parse_xml_bytes(rPr_xml)
-        font = _Font(rPr)
-        # verify -----------------------
-        assert_that(self.font.bold, is_(False))
-        assert_that(font.bold, is_(True))
+    def it_knows_the_bold_setting(self, font, bold_font, bold_off_font):
+        assert font.bold is None
+        assert bold_font.bold is True
+        assert bold_off_font.bold is False
 
-    def test_set_bold(self):
-        """Setting _Font.bold to True selects bold font weight"""
-        # setup ------------------------
-        expected_rPr_xml = (
-            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
-            '/main" b="1"/>')
-        # exercise ---------------------
-        self.font.bold = True
-        # verify -----------------------
-        rPr_xml = serialize_xml(self.font._rPr)
-        assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
-
-    def test_clear_bold(self):
-        """Setting _Font.bold to None clears run-level bold setting"""
-        # setup ------------------------
-        rPr_xml = (
-            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
-            '/main" b="1"/>')
-        rPr = parse_xml_bytes(rPr_xml)
-        font = _Font(rPr)
-        expected_rPr_xml = (
-            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
-            '/main"/>')
-        # exercise ---------------------
+    def it_can_change_the_bold_setting(
+            self, font, bold_rPr_xml, bold_off_rPr_xml, rPr_xml):
+        assert serialize_xml(font._rPr) == rPr_xml
+        font.bold = True
+        assert serialize_xml(font._rPr) == bold_rPr_xml
+        font.bold = False
+        assert serialize_xml(font._rPr) == bold_off_rPr_xml
         font.bold = None
-        # verify -----------------------
-        rPr_xml = serialize_xml(font._rPr)
-        assert_that(rPr_xml, is_(equal_to(expected_rPr_xml)))
+        assert serialize_xml(font._rPr) == rPr_xml
 
-    def test_set_font_size(self):
+    def it_can_set_the_font_size(self, font):
         """Assignment to _Font.size changes font size"""
         # setup ------------------------
         newfontsize = 2400
@@ -77,14 +50,64 @@ class Test_Font(TestCase):
             '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
             '/main" sz="%d"/>') % newfontsize
         # exercise ---------------------
-        self.font.size = newfontsize
+        font.size = newfontsize
         # verify -----------------------
-        actual_xml = serialize_xml(self.font._rPr)
-        assert_that(actual_xml, is_(equal_to(expected_xml)))
+        actual_xml = serialize_xml(font._rPr)
+        assert actual_xml == expected_xml
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def bold_font(self, bold_rPr):
+        return _Font(bold_rPr)
+
+    @pytest.fixture
+    def bold_off_font(self, bold_off_rPr):
+        return _Font(bold_off_rPr)
+
+    @pytest.fixture
+    def bold_off_rPr(self, bold_off_rPr_bldr):
+        return bold_off_rPr_bldr.element
+
+    @pytest.fixture
+    def bold_off_rPr_bldr(self):
+        return an_rPr().with_nsdecls().with_b(0)
+
+    @pytest.fixture
+    def bold_off_rPr_xml(self, bold_off_rPr_bldr):
+        return bold_off_rPr_bldr.xml
+
+    @pytest.fixture
+    def bold_rPr(self, bold_rPr_bldr):
+        return bold_rPr_bldr.element
+
+    @pytest.fixture
+    def bold_rPr_bldr(self):
+        return an_rPr().with_nsdecls().with_b(1)
+
+    @pytest.fixture
+    def bold_rPr_xml(self, bold_rPr_bldr):
+        return bold_rPr_bldr.xml
+
+    @pytest.fixture
+    def rPr(self, rPr_bldr):
+        return rPr_bldr.element
+
+    @pytest.fixture
+    def rPr_bldr(self):
+        return an_rPr().with_nsdecls()
+
+    @pytest.fixture
+    def rPr_xml(self, rPr_bldr):
+        return rPr_bldr.xml
+
+    @pytest.fixture
+    def font(self, rPr):
+        return _Font(rPr)
 
 
-class Test_Paragraph(TestCase):
-    """Test _Paragraph"""
+class Describe_Paragraph(TestCase):
+
     def setUp(self):
         path = absjoin(test_file_dir, 'slide1.xml')
         self.sld = parse_xml_file(path).getroot()
@@ -273,8 +296,8 @@ class Test_Paragraph(TestCase):
             self.fail(msg)
 
 
-class Test_Run(TestCase):
-    """Test _Run"""
+class Describe_Run(TestCase):
+
     def setUp(self):
         self.test_text = 'test text'
         self.r_xml = ('<a:r %s><a:t>%s</a:t></a:r>' %
@@ -318,8 +341,8 @@ class Test_Run(TestCase):
         self.assertEqual(expected, actual, msg)
 
 
-class TestTextFrame(TestCase):
-    """Test TextFrame"""
+class DescribeTextFrame(TestCase):
+
     def setUp(self):
         path = absjoin(test_file_dir, 'slide1.xml')
         self.sld = parse_xml_file(path).getroot()
