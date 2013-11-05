@@ -16,7 +16,6 @@ class BaseBuilder(object):
     def __init__(self):
         """Establish instance variables with default values"""
         self._empty = False
-        self._indent = 0
         self._nsdecls = ''
         self._xmlattrs = {}
         self._xmlattr_method_map = {}
@@ -24,6 +23,7 @@ class BaseBuilder(object):
             self._xmlattrs[xmlattr_name] = ''
             method_name = 'with_%s' % xmlattr_name
             self._xmlattr_method_map[method_name] = xmlattr_name
+        self._child_bldrs = []
 
     def __getattr__(self, name):
         """
@@ -46,13 +46,8 @@ class BaseBuilder(object):
         elm = parse_xml_bytes(self.xml())
         return elm
 
-    @property
-    def is_empty(self):
-        return True
-
-    def with_indent(self, indent):
-        """Add integer *indent* spaces at beginning of element XML"""
-        self._indent = indent
+    def with_child(self, child_bldr):
+        self._child_bldrs.append(child_bldr)
         return self
 
     def with_nsdecls(self):
@@ -64,16 +59,42 @@ class BaseBuilder(object):
         Return element XML based on attribute settings
         """
         indent_str = ' ' * indent
-        xml = ('%s<%s%s%s/>\n' %
-               (indent_str, self.__tag__, self._nsdecls, self._xmlattrs_str))
+        if self._is_empty:
+            xml = '%s%s\n' % (indent_str, self._empty_element_tag)
+        else:
+            xml = '%s\n' % self._non_empty_element_xml(indent)
         return xml
 
     def xml_bytes(self, indent=0):
         return self.xml(indent=indent).encode('utf-8')
 
+    @property
+    def _empty_element_tag(self):
+        return '<%s%s%s/>' % (self.__tag__, self._nsdecls, self._xmlattrs_str)
+
+    @property
+    def _end_tag(self):
+        return '</%s>' % self.__tag__
+
+    @property
+    def _is_empty(self):
+        return len(self._child_bldrs) == 0
+
+    def _non_empty_element_xml(self, indent):
+        indent_str = ' ' * indent
+        xml = '%s%s\n' % (indent_str, self._start_tag)
+        for child_bldr in self._child_bldrs:
+            xml += child_bldr.xml(indent+2)
+        xml += '%s%s' % (indent_str, self._end_tag)
+        return xml
+
     def _set_xmlattr(self, xmlattr_name, value):
         xmlattr_str = ' %s="%s"' % (xmlattr_name, str(value))
         self._xmlattrs[xmlattr_name] = xmlattr_str
+
+    @property
+    def _start_tag(self):
+        return '<%s%s%s>' % (self.__tag__, self._nsdecls, self._xmlattrs_str)
 
     @property
     def _xmlattrs_str(self):
@@ -94,6 +115,39 @@ class CT_TextCharacterPropertiesBuilder(BaseBuilder):
     __tag__ = 'a:rPr'
     __nspfxs__ = ('a',)
     __attrs__ = ('b', 'i', 'sz')
+
+
+class CT_TextParagraphBuilder(BaseBuilder):
+    """
+    Test data builder for CT_TextParagraph (<a:p>) XML element that appears
+    as a child of <p:txBody>.
+    """
+    __tag__ = 'a:p'
+    __nspfxs__ = ('a',)
+    __attrs__ = ()
+
+
+def a_p():
+    """Return a CT_TextParagraphBuilder instance"""
+    return CT_TextParagraphBuilder()
+
+
+class CT_TextParagraphPropertiesBuilder(BaseBuilder):
+    """
+    Test data builder for CT_TextParagraphProperties (<a:pPr>) XML element
+    that appears as a child of <a:p>.
+    """
+    __tag__ = 'a:pPr'
+    __nspfxs__ = ('a',)
+    __attrs__ = (
+        'marL', 'marR', 'lvl', 'indent', 'algn', 'defTabSz', 'rtl',
+        'eaLnBrk', 'fontAlgn', 'latinLnBrk', 'hangingPunct'
+    )
+
+
+def a_pPr():
+    """Return a CT_TextParagraphPropertiesBuilder instance"""
+    return CT_TextParagraphPropertiesBuilder()
 
 
 class _TestTextXml(object):

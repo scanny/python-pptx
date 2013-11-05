@@ -4,7 +4,41 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from .oxml.unitdata.text import an_rPr
+from pptx.constants import PP
+
+from .oxml.unitdata.text import a_p, a_pPr, an_rPr
+
+
+class DescribeCT_TextParagraphBuilder(object):
+
+    def it_can_build_an_empty_p_element(self):
+        p_bldr = a_p()
+        assert p_bldr.xml() == '<a:p/>\n'
+
+    def it_can_include_a_pPr_child_element(self):
+        pPr_bldr = a_pPr()
+        p_bldr = a_p().with_child(pPr_bldr)
+        expected_xml = (
+            '<a:p>\n'
+            '  <a:pPr/>\n'
+            '</a:p>\n'
+        )
+        assert p_bldr.xml() == expected_xml
+
+
+class DescribeCT_TextParagraphPropertiesBuilder(object):
+
+    def it_can_build_an_empty_rPr_element(self):
+        pPr_bldr = a_pPr()
+        assert pPr_bldr.xml() == '<a:pPr/>\n'
+
+    def it_can_add_an_algn_attribute(self):
+        pPr_bldr = a_pPr().with_algn(PP.ALIGN_CENTER)
+        assert pPr_bldr.xml() == '<a:pPr algn="2"/>\n'
+
+    def it_can_add_a_lvl_attribute(self):
+        pPr_bldr = a_pPr().with_lvl(2)
+        assert pPr_bldr.xml() == '<a:pPr lvl="2"/>\n'
 
 
 class DescribeCT_TextCharacterPropertiesBuilder(object):
