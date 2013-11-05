@@ -8,7 +8,7 @@ import pytest
 
 from lxml import objectify
 
-from hamcrest import assert_that, equal_to, is_, same_instance
+from hamcrest import assert_that, equal_to, is_
 from mock import MagicMock, Mock, patch
 
 from pptx.constants import MSO, PP
@@ -105,25 +105,13 @@ class Describe_Font(object):
         return _Font(rPr)
 
 
-class Describe_Paragraph(TestCase):
+class Describe_Paragraph(object):
 
-    def setUp(self):
-        path = absjoin(test_file_dir, 'slide1.xml')
-        self.sld = parse_xml_file(path).getroot()
-        xpath = './p:cSld/p:spTree/p:sp/p:txBody/a:p'
-        self.pList = self.sld.xpath(xpath, namespaces=nsmap)
-
-        self.test_text = 'test text'
-        self.p_xml = ('<a:p %s><a:r><a:t>%s</a:t></a:r></a:p>' %
-                      (nsdecls('a'), self.test_text))
-        self.p = parse_xml_bytes(self.p_xml)
-        self.paragraph = _Paragraph(self.p)
-
-    def test_runs_size(self):
+    def test_runs_size(self, pList):
         """_Paragraph.runs is expected size"""
         # setup ------------------------
         actual_lengths = []
-        for p in self.pList:
+        for p in pList:
             paragraph = _Paragraph(p)
             # exercise ----------------
             actual_lengths.append(len(paragraph.runs))
@@ -131,12 +119,12 @@ class Describe_Paragraph(TestCase):
         expected = [0, 0, 2, 1, 1, 1]
         actual = actual_lengths
         msg = "expected run count %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
 
-    def test_add_run_increments_run_count(self):
+    def test_add_run_increments_run_count(self, pList):
         """_Paragraph.add_run() increments run count"""
         # setup ------------------------
-        p_elm = self.pList[0]
+        p_elm = pList[0]
         paragraph = _Paragraph(p_elm)
         # exercise ---------------------
         paragraph.add_run()
@@ -144,7 +132,7 @@ class Describe_Paragraph(TestCase):
         expected = 1
         actual = len(paragraph.runs)
         msg = "expected run count %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
 
     @patch('pptx.text.ParagraphAlignment')
     def test_alignment_value(self, ParagraphAlignment):
@@ -162,7 +150,7 @@ class Describe_Paragraph(TestCase):
         # verify -----------------------
         get_algn.assert_called_once_with()
         from_text_align_type.assert_called_once_with(algn_val)
-        assert_that(retval, is_(same_instance(alignment)))
+        assert retval is alignment
 
     @patch('pptx.text.ParagraphAlignment')
     def test_alignment_assignment(self, ParagraphAlignment):
@@ -189,25 +177,25 @@ class Describe_Paragraph(TestCase):
         # exercise ---------------------
         paragraph.alignment = PP.ALIGN_CENTER
         # verify -----------------------
-        self.assertEqualLineByLine(expected_xml, paragraph._Paragraph__p)
+        assert actual_xml(paragraph._Paragraph__p) == expected_xml
 
-    def test_clear_removes_all_runs(self):
+    def test_clear_removes_all_runs(self, pList):
         """_Paragraph.clear() removes all runs from paragraph"""
         # setup ------------------------
-        p = self.pList[2]
+        p = pList[2]
         SubElement(p, 'a:pPr')
         paragraph = _Paragraph(p)
         assert_that(len(paragraph.runs), is_(equal_to(2)))
         # exercise ---------------------
         paragraph.clear()
         # verify -----------------------
-        assert_that(len(paragraph.runs), is_(equal_to(0)))
+        assert len(paragraph.runs) == 0
 
-    def test_clear_preserves_paragraph_properties(self):
+    def test_clear_preserves_paragraph_properties(self, test_text):
         """_Paragraph.clear() preserves paragraph properties"""
         # setup ------------------------
         p_xml = ('<a:p %s><a:pPr lvl="1"/><a:r><a:t>%s</a:t></a:r></a:p>' %
-                 (nsdecls('a'), self.test_text))
+                 (nsdecls('a'), test_text))
         p_elm = parse_xml_bytes(p_xml)
         paragraph = _Paragraph(p_elm)
         expected_p_xml = '<a:p %s><a:pPr lvl="1"/></a:p>' % nsdecls('a')
@@ -215,9 +203,9 @@ class Describe_Paragraph(TestCase):
         paragraph.clear()
         # verify -----------------------
         p_xml = serialize_xml(paragraph._Paragraph__p)
-        assert_that(p_xml, is_(equal_to(expected_p_xml)))
+        assert p_xml == expected_p_xml
 
-    def test_level_setter_generates_correct_xml(self):
+    def test_level_setter_generates_correct_xml(self, paragraph):
         """_Paragraph.level setter generates correct XML"""
         # setup ------------------------
         expected_xml = (
@@ -225,30 +213,30 @@ class Describe_Paragraph(TestCase):
             '\n  </a:r>\n</a:p>\n' % nsdecls('a')
         )
         # exercise ---------------------
-        self.paragraph.level = 2
+        paragraph.level = 2
         # verify -----------------------
-        self.assertEqualLineByLine(expected_xml, self.paragraph._Paragraph__p)
+        assert actual_xml(paragraph._Paragraph__p) == expected_xml
 
-    def test_level_default_is_zero(self):
+    def test_level_default_is_zero(self, paragraph):
         """_Paragraph.level defaults to zero on no lvl attribute"""
         # verify -----------------------
-        assert_that(self.paragraph.level, is_(equal_to(0)))
+        assert paragraph.level == 0
 
-    def test_level_roundtrips_intact(self):
+    def test_level_roundtrips_intact(self, paragraph):
         """_Paragraph.level property round-trips intact"""
         # exercise ---------------------
-        self.paragraph.level = 5
+        paragraph.level = 5
         # verify -----------------------
-        assert_that(self.paragraph.level, is_(equal_to(5)))
+        assert paragraph.level == 5
 
-    def test_level_raises_on_bad_value(self):
+    def test_level_raises_on_bad_value(self, paragraph):
         """_Paragraph.level raises on attempt to assign invalid value"""
         test_cases = ('0', -1, 9)
         for value in test_cases:
-            with self.assertRaises(ValueError):
-                self.paragraph.level = value
+            with pytest.raises(ValueError):
+                paragraph.level = value
 
-    def test_set_font_size(self):
+    def test_set_font_size(self, paragraph):
         """Assignment to _Paragraph.font.size changes font size"""
         # setup ------------------------
         newfontsize = Pt(54.3)
@@ -257,23 +245,23 @@ class Describe_Paragraph(TestCase):
             ':r>\n    <a:t>test text</a:t>\n  </a:r>\n</a:p>\n' % nsdecls('a')
         )
         # exercise ---------------------
-        self.paragraph.font.size = newfontsize
+        paragraph.font.size = newfontsize
         # verify -----------------------
-        self.assertEqualLineByLine(expected_xml, self.paragraph._Paragraph__p)
+        assert actual_xml(paragraph._Paragraph__p) == expected_xml
 
-    def test_text_setter_sets_single_run_text(self):
+    def test_text_setter_sets_single_run_text(self, pList):
         """assignment to _Paragraph.text creates single run containing value"""
         # setup ------------------------
         test_text = 'python-pptx was here!!'
-        p_elm = self.pList[2]
+        p_elm = pList[2]
         paragraph = _Paragraph(p_elm)
         # exercise ---------------------
         paragraph.text = test_text
         # verify -----------------------
-        assert_that(len(paragraph.runs), is_(equal_to(1)))
-        assert_that(paragraph.runs[0].text, is_(equal_to(test_text)))
+        assert len(paragraph.runs) == 1
+        assert paragraph.runs[0].text == test_text
 
-    def test_text_accepts_non_ascii_strings(self):
+    def test_text_accepts_non_ascii_strings(self, paragraph):
         """assignment of non-ASCII string to text does not raise"""
         # setup ------------------------
         _7bit_string = 'String containing only 7-bit (ASCII) characters'
@@ -283,16 +271,51 @@ class Describe_Paragraph(TestCase):
         # verify -----------------------
         try:
             text = _7bit_string
-            self.paragraph.text = text
+            paragraph.text = text
             text = _8bit_string
-            self.paragraph.text = text
+            paragraph.text = text
             text = _utf8_literal
-            self.paragraph.text = text
+            paragraph.text = text
             text = _utf8_from_8bit
-            self.paragraph.text = text
+            paragraph.text = text
         except ValueError:
             msg = "_Paragraph.text rejects valid text string '%s'" % text
-            self.fail(msg)
+            pytest.fail(msg)
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def path(self):
+        return absjoin(test_file_dir, 'slide1.xml')
+
+    @pytest.fixture
+    def sld(self, path):
+        return parse_xml_file(path).getroot()
+
+    @pytest.fixture
+    def xpath(self):
+        return './p:cSld/p:spTree/p:sp/p:txBody/a:p'
+
+    @pytest.fixture
+    def pList(self, sld, xpath):
+        return sld.xpath(xpath, namespaces=nsmap)
+
+    @pytest.fixture
+    def test_text(self):
+        return 'test text'
+
+    @pytest.fixture
+    def p_xml(self, test_text):
+        return ('<a:p %s><a:r><a:t>%s</a:t></a:r></a:p>' %
+                (nsdecls('a'), test_text))
+
+    @pytest.fixture
+    def p(self, p_xml):
+        return parse_xml_bytes(p_xml)
+
+    @pytest.fixture
+    def paragraph(self, p):
+        return _Paragraph(p)
 
 
 class Describe_Run(object):
