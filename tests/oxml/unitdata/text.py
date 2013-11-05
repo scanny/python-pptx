@@ -11,10 +11,7 @@ class BaseBuilder(object):
     """
     Provides common behavior for all data builders.
     """
-    nsdecls = ' %s' % nsdecls('p')
-
     def __init__(self):
-        """Establish instance variables with default values"""
         self._empty = False
         self._nsdecls = ''
         self._xmlattrs = {}
@@ -107,6 +104,16 @@ class BaseBuilder(object):
         return xmlattrs_str
 
 
+class CT_RegularTextRunBuilder(BaseBuilder):
+    __tag__ = 'a:r'
+    __nspfxs__ = ('a',)
+    __attrs__ = ()
+
+
+def an_r():
+    return CT_RegularTextRunBuilder()
+
+
 class CT_TextCharacterPropertiesBuilder(BaseBuilder):
     """
     Test data builder for CT_TextCharacterProperties (<a:rPr>) XML element
@@ -148,6 +155,19 @@ class CT_TextParagraphPropertiesBuilder(BaseBuilder):
 def a_pPr():
     """Return a CT_TextParagraphPropertiesBuilder instance"""
     return CT_TextParagraphPropertiesBuilder()
+
+
+class XsdString(BaseBuilder):
+    __attrs__ = ()
+
+    def __init__(self, tag, nspfxs):
+        self.__tag__ = tag
+        self.__nspfxs__ = nspfxs
+        super(XsdString, self).__init__()
+
+
+def a_t():
+    return XsdString('a:t', ('a',))
 
 
 class _TestTextXml(object):

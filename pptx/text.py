@@ -119,18 +119,20 @@ class _Paragraph(object):
     """
     def __init__(self, p):
         super(_Paragraph, self).__init__()
-        self.__p = p
+        self._p = p
 
     def add_run(self):
-        """Return a new run appended to the runs in this paragraph."""
+        """
+        Return a new run appended to the runs in this paragraph.
+        """
         r = Element('a:r')
         SubElement(r, 'a:t')
         # work out where to insert it, ahead of a:endParaRPr if there is one
-        endParaRPr = child(self.__p, 'a:endParaRPr')
+        endParaRPr = child(self._p, 'a:endParaRPr')
         if endParaRPr is not None:
             endParaRPr.addprevious(r)
         else:
-            self.__p.append(r)
+            self._p.append(r)
         return _Run(r)
 
     @property
@@ -141,21 +143,21 @@ class _Paragraph(object):
         paragraph has no alignment setting and its effective value is
         inherited from a higher-level object.
         """
-        algn = self.__p.get_algn()
+        algn = self._p.get_algn()
         return ParagraphAlignment.from_text_align_type(algn)
 
     @alignment.setter
     def alignment(self, alignment):
         algn = ParagraphAlignment.to_text_align_type(alignment)
-        self.__p.set_algn(algn)
+        self._p.set_algn(algn)
 
     def clear(self):
         """Remove all runs from this paragraph."""
         # retain pPr if present
-        pPr = child(self.__p, 'a:pPr')
-        self.__p.clear()
+        pPr = child(self._p, 'a:pPr')
+        self._p.clear()
         if pPr is not None:
-            self.__p.insert(0, pPr)
+            self._p.insert(0, pPr)
 
     @property
     def font(self):
@@ -170,12 +172,12 @@ class _Paragraph(object):
         # This can cause "litter" <a:pPr> and <a:defRPr> elements to be
         # included in the XML if the _Font element is referred to but not
         # populated with values.
-        if not hasattr(self.__p, 'pPr'):
+        if not hasattr(self._p, 'pPr'):
             pPr = Element('a:pPr')
-            self.__p.insert(0, pPr)
-        if not hasattr(self.__p.pPr, 'defRPr'):
-            SubElement(self.__p.pPr, 'a:defRPr')
-        return _Font(self.__p.pPr.defRPr)
+            self._p.insert(0, pPr)
+        if not hasattr(self._p.pPr, 'defRPr'):
+            SubElement(self._p.pPr, 'a:defRPr')
+        return _Font(self._p.pPr.defRPr)
 
     @property
     def level(self):
@@ -185,19 +187,19 @@ class _Paragraph(object):
         default value. Indentation level is most commonly encountered in a
         bulleted list, as is found on a word bullet slide.
         """
-        if not hasattr(self.__p, 'pPr'):
+        if not hasattr(self._p, 'pPr'):
             return 0
-        return int(self.__p.pPr.get('lvl', 0))
+        return int(self._p.pPr.get('lvl', 0))
 
     @level.setter
     def level(self, level):
         if not isinstance(level, int) or level < 0 or level > 8:
             msg = "paragraph level must be integer between 0 and 8 inclusive"
             raise ValueError(msg)
-        if not hasattr(self.__p, 'pPr'):
+        if not hasattr(self._p, 'pPr'):
             pPr = Element('a:pPr')
-            self.__p.insert(0, pPr)
-        self.__p.pPr.set('lvl', str(level))
+            self._p.insert(0, pPr)
+        self._p.pPr.set('lvl', str(level))
 
     @property
     def runs(self):
@@ -206,7 +208,7 @@ class _Paragraph(object):
         this paragraph.
         """
         xpath = './a:r'
-        r_elms = self.__p.xpath(xpath, namespaces=_nsmap)
+        r_elms = self._p.xpath(xpath, namespaces=_nsmap)
         runs = []
         for r in r_elms:
             runs.append(_Run(r))
@@ -280,7 +282,7 @@ class _Run(object):
     """
     def __init__(self, r):
         super(_Run, self).__init__()
-        self.__r = r
+        self._r = r
 
     @property
     def font(self):
@@ -291,9 +293,9 @@ class _Run(object):
         the run is contained in. Only those specifically assigned at the run
         level are contained in the |_Font| object.
         """
-        if not hasattr(self.__r, 'rPr'):
-            self.__r.insert(0, Element('a:rPr'))
-        return _Font(self.__r.rPr)
+        if not hasattr(self._r, 'rPr'):
+            self._r.insert(0, Element('a:rPr'))
+        return _Font(self._r.rPr)
 
     @property
     def text(self):
@@ -304,9 +306,9 @@ class _Run(object):
         can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode.
         String values are converted to unicode assuming UTF-8 encoding.
         """
-        return self.__r.t.text
+        return self._r.t.text
 
     @text.setter
     def text(self, str):
         """Set the text of this run to *str*."""
-        self.__r.t._setText(to_unicode(str))
+        self._r.t._setText(to_unicode(str))
