@@ -107,20 +107,6 @@ class Describe_Font(object):
 
 class Describe_Paragraph(object):
 
-    def test_runs_size(self, pList):
-        """_Paragraph.runs is expected size"""
-        # setup ------------------------
-        actual_lengths = []
-        for p in pList:
-            paragraph = _Paragraph(p)
-            # exercise ----------------
-            actual_lengths.append(len(paragraph.runs))
-        # verify ------------------
-        expected = [0, 0, 2, 1, 1, 1]
-        actual = actual_lengths
-        msg = "expected run count %s, got %s" % (expected, actual)
-        assert actual == expected, msg
-
     def test_add_run_increments_run_count(self, pList):
         """_Paragraph.add_run() increments run count"""
         # setup ------------------------
@@ -205,6 +191,19 @@ class Describe_Paragraph(object):
         p_xml = serialize_xml(paragraph._Paragraph__p)
         assert p_xml == expected_p_xml
 
+    def test_set_font_size(self, paragraph):
+        """Assignment to _Paragraph.font.size changes font size"""
+        # setup ------------------------
+        newfontsize = Pt(54.3)
+        expected_xml = (
+            '<a:p %s>\n  <a:pPr>\n    <a:defRPr sz="5430"/>\n  </a:pPr>\n  <a'
+            ':r>\n    <a:t>test text</a:t>\n  </a:r>\n</a:p>\n' % nsdecls('a')
+        )
+        # exercise ---------------------
+        paragraph.font.size = newfontsize
+        # verify -----------------------
+        assert actual_xml(paragraph._Paragraph__p) == expected_xml
+
     def test_level_setter_generates_correct_xml(self, paragraph):
         """_Paragraph.level setter generates correct XML"""
         # setup ------------------------
@@ -236,18 +235,19 @@ class Describe_Paragraph(object):
             with pytest.raises(ValueError):
                 paragraph.level = value
 
-    def test_set_font_size(self, paragraph):
-        """Assignment to _Paragraph.font.size changes font size"""
+    def test_runs_size(self, pList):
+        """_Paragraph.runs is expected size"""
         # setup ------------------------
-        newfontsize = Pt(54.3)
-        expected_xml = (
-            '<a:p %s>\n  <a:pPr>\n    <a:defRPr sz="5430"/>\n  </a:pPr>\n  <a'
-            ':r>\n    <a:t>test text</a:t>\n  </a:r>\n</a:p>\n' % nsdecls('a')
-        )
-        # exercise ---------------------
-        paragraph.font.size = newfontsize
-        # verify -----------------------
-        assert actual_xml(paragraph._Paragraph__p) == expected_xml
+        actual_lengths = []
+        for p in pList:
+            paragraph = _Paragraph(p)
+            # exercise ----------------
+            actual_lengths.append(len(paragraph.runs))
+        # verify ------------------
+        expected = [0, 0, 2, 1, 1, 1]
+        actual = actual_lengths
+        msg = "expected run count %s, got %s" % (expected, actual)
+        assert actual == expected, msg
 
     def test_text_setter_sets_single_run_text(self, pList):
         """assignment to _Paragraph.text creates single run containing value"""

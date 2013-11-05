@@ -121,30 +121,41 @@ class _Paragraph(object):
         super(_Paragraph, self).__init__()
         self.__p = p
 
-    def _get_alignment(self):
+    def add_run(self):
+        """Return a new run appended to the runs in this paragraph."""
+        r = Element('a:r')
+        SubElement(r, 'a:t')
+        # work out where to insert it, ahead of a:endParaRPr if there is one
+        endParaRPr = child(self.__p, 'a:endParaRPr')
+        if endParaRPr is not None:
+            endParaRPr.addprevious(r)
+        else:
+            self.__p.append(r)
+        return _Run(r)
+
+    @property
+    def alignment(self):
         """
-        Return alignment type of this paragraph, e.g. ``PP.ALIGN_CENTER``.
-        Can return |None|, meaning the paragraph has no alignment setting and
-        its effective value is inherited from a higher-level object.
+        Horizontal alignment of this paragraph, represented by a constant
+        value like ``PP.ALIGN_CENTER``. Its value can be |None|, meaning the
+        paragraph has no alignment setting and its effective value is
+        inherited from a higher-level object.
         """
         algn = self.__p.get_algn()
         return ParagraphAlignment.from_text_align_type(algn)
 
-    def _set_alignment(self, alignment):
-        """
-        Set alignment of this paragraph to *alignment*, a constant value like
-        ``PP.ALIGN_CENTER``. If *alignment* is None, any alignment setting is
-        cleared and its effective value is inherited from a higher-level
-        object.
-        """
+    @alignment.setter
+    def alignment(self, alignment):
         algn = ParagraphAlignment.to_text_align_type(alignment)
         self.__p.set_algn(algn)
 
-    #: Horizontal alignment of this paragraph, represented by a constant
-    #: value like ``PP.ALIGN_CENTER``. Can be |None|, meaning the paragraph
-    #: has no alignment setting and its effective value is inherited from a
-    #: higher-level object.
-    alignment = property(_get_alignment, _set_alignment)
+    def clear(self):
+        """Remove all runs from this paragraph."""
+        # retain pPr if present
+        pPr = child(self.__p, 'a:pPr')
+        self.__p.clear()
+        if pPr is not None:
+            self.__p.insert(0, pPr)
 
     @property
     def font(self):
@@ -166,19 +177,20 @@ class _Paragraph(object):
             SubElement(self.__p.pPr, 'a:defRPr')
         return _Font(self.__p.pPr.defRPr)
 
-    def _get_level(self):
+    @property
+    def level(self):
         """
-        Return integer indentation level of this paragraph.
+        Read-write integer indentation level of this paragraph, having a
+        range of 0-8 inclusive. 0 represents a top-level paragraph and is the
+        default value. Indentation level is most commonly encountered in a
+        bulleted list, as is found on a word bullet slide.
         """
         if not hasattr(self.__p, 'pPr'):
             return 0
         return int(self.__p.pPr.get('lvl', 0))
 
-    def _set_level(self, level):
-        """
-        Set indentation level of this paragraph to *level*, an integer value
-        between 0 and 8 inclusive.
-        """
+    @level.setter
+    def level(self, level):
         if not isinstance(level, int) or level < 0 or level > 8:
             msg = "paragraph level must be integer between 0 and 8 inclusive"
             raise ValueError(msg)
@@ -186,12 +198,6 @@ class _Paragraph(object):
             pPr = Element('a:pPr')
             self.__p.insert(0, pPr)
         self.__p.pPr.set('lvl', str(level))
-
-    #: Read-write integer indentation level of this paragraph. Range is 0-8.
-    #: 0 represents a top-level paragraph and is the default value. Indentation
-    #: level is most commonly encountered in a bulleted list, as is found on a
-    #: word bullet slide.
-    level = property(_get_level, _set_level)
 
     @property
     def runs(self):
@@ -219,26 +225,6 @@ class _Paragraph(object):
     #: string, or unicode. String values are converted to unicode assuming
     #: UTF-8 encoding.
     text = property(None, _set_text)
-
-    def add_run(self):
-        """Return a new run appended to the runs in this paragraph."""
-        r = Element('a:r')
-        SubElement(r, 'a:t')
-        # work out where to insert it, ahead of a:endParaRPr if there is one
-        endParaRPr = child(self.__p, 'a:endParaRPr')
-        if endParaRPr is not None:
-            endParaRPr.addprevious(r)
-        else:
-            self.__p.append(r)
-        return _Run(r)
-
-    def clear(self):
-        """Remove all runs from this paragraph."""
-        # retain pPr if present
-        pPr = child(self.__p, 'a:pPr')
-        self.__p.clear()
-        if pPr is not None:
-            self.__p.insert(0, pPr)
 
 
 class _Font(object):
