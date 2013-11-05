@@ -47,8 +47,8 @@ class Describe_Font(object):
         # setup ------------------------
         newfontsize = 2400
         expected_xml = (
-            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006'
-            '/main" sz="%d"/>') % newfontsize
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/200'
+            '6/main" sz="%d"/>') % newfontsize
         # exercise ---------------------
         font.size = newfontsize
         # verify -----------------------
@@ -75,7 +75,7 @@ class Describe_Font(object):
 
     @pytest.fixture
     def bold_off_rPr_xml(self, bold_off_rPr_bldr):
-        return bold_off_rPr_bldr.xml
+        return bold_off_rPr_bldr.xml()
 
     @pytest.fixture
     def bold_rPr(self, bold_rPr_bldr):
@@ -87,7 +87,7 @@ class Describe_Font(object):
 
     @pytest.fixture
     def bold_rPr_xml(self, bold_rPr_bldr):
-        return bold_rPr_bldr.xml
+        return bold_rPr_bldr.xml()
 
     @pytest.fixture
     def rPr(self, rPr_bldr):
@@ -99,7 +99,7 @@ class Describe_Font(object):
 
     @pytest.fixture
     def rPr_xml(self, rPr_bldr):
-        return rPr_bldr.xml
+        return rPr_bldr.xml()
 
     @pytest.fixture
     def font(self, rPr):
