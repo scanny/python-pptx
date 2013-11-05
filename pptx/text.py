@@ -125,14 +125,7 @@ class _Paragraph(object):
         """
         Return a new run appended to the runs in this paragraph.
         """
-        r = Element('a:r')
-        SubElement(r, 'a:t')
-        # work out where to insert it, ahead of a:endParaRPr if there is one
-        endParaRPr = child(self._p, 'a:endParaRPr')
-        if endParaRPr is not None:
-            endParaRPr.addprevious(r)
-        else:
-            self._p.append(r)
+        r = self._p.add_r()
         return _Run(r)
 
     @property

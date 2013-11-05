@@ -116,12 +116,23 @@ def an_r():
 
 class CT_TextCharacterPropertiesBuilder(BaseBuilder):
     """
-    Test data builder for CT_TextCharacterProperties (<a:rPr>) XML element
-    that appears as a child of <a:r>.
+    Test data builder for CT_TextCharacterProperties XML element that appears
+    as <a:endParaRPr> child of <a:p> and <a:rPr> child of <a:r>.
     """
-    __tag__ = 'a:rPr'
     __nspfxs__ = ('a',)
-    __attrs__ = ('b', 'i', 'sz')
+    __attrs__ = ('b', 'i', 'sz', 'u')
+
+    def __init__(self, tag):
+        self.__tag__ = tag
+        super(CT_TextCharacterPropertiesBuilder, self).__init__()
+
+
+def an_endParaRPr():
+    return CT_TextCharacterPropertiesBuilder('a:endParaRPr')
+
+
+def an_rPr():
+    return CT_TextCharacterPropertiesBuilder('a:rPr')
 
 
 class CT_TextParagraphBuilder(BaseBuilder):
@@ -207,11 +218,6 @@ class _TestTextObjects(object):
     @property
     def paragraph(self):
         return _Paragraph(test_text_elements.paragraph)
-
-
-def an_rPr():
-    """Return a CT_TextCharacterPropertiesBuilder instance"""
-    return CT_TextCharacterPropertiesBuilder()
 
 
 test_text_xml = _TestTextXml()

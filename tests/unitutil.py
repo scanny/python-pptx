@@ -19,6 +19,11 @@ def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
 
 
+def actual_xml(elm):
+    objectify.deannotate(elm, cleanup_namespaces=True)
+    return serialize_xml(elm, pretty_print=True)
+
+
 def parse_xml_file(file_):
     """
     Return ElementTree for XML contained in *file_*

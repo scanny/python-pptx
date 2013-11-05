@@ -6,8 +6,6 @@ from __future__ import absolute_import
 
 import pytest
 
-from lxml import objectify
-
 from hamcrest import assert_that, equal_to, is_
 from mock import MagicMock, Mock, patch
 
@@ -22,16 +20,12 @@ from .oxml.unitdata.text import (
     a_p, a_t, an_r, an_rPr, test_text_objects, test_text_xml
 )
 from .unitutil import (
-    absjoin, parse_xml_file, serialize_xml, TestCase, test_file_dir
+    absjoin, actual_xml, parse_xml_file, serialize_xml, TestCase,
+    test_file_dir
 )
 
 
 nsmap = namespaces('a', 'r', 'p')
-
-
-def actual_xml(elm):
-    objectify.deannotate(elm, cleanup_namespaces=True)
-    return serialize_xml(elm, pretty_print=True)
 
 
 class Describe_Font(object):
@@ -182,8 +176,7 @@ class Describe_Paragraph(object):
         # exercise ---------------------
         paragraph.clear()
         # verify -----------------------
-        p_xml = serialize_xml(paragraph._p)
-        assert p_xml == expected_p_xml
+        assert serialize_xml(paragraph._p) == expected_p_xml
 
     def test_set_font_size(self, paragraph_with_text):
         """Assignment to _Paragraph.font.size changes font size"""

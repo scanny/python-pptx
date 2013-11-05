@@ -4,16 +4,28 @@
 
 from __future__ import absolute_import
 
-from hamcrest import assert_that, equal_to, is_
+import pytest
 
 from pptx.constants import TEXT_ALIGN_TYPE as TAT
 
-from ..oxml.unitdata.text import test_text_elements, test_text_xml
-from ..unitutil import TestCase
+from ..oxml.unitdata.text import (
+    a_p, a_t, an_endParaRPr, an_r, test_text_elements, test_text_xml
+)
+from ..unitutil import actual_xml
 
 
-class TestCT_TextParagraph(TestCase):
-    """Test CT_TextParagraph"""
+class DescribeCT_TextParagraph(object):
+
+    def it_can_add_a_new_r_element(self, p, p_with_r_xml):
+        p.add_r()
+        assert actual_xml(p) == p_with_r_xml
+
+    def it_adds_r_element_in_correct_sequence(
+            self, p_with_endParaRPr, p_with_r_with_endParaRPr_xml):
+        p = p_with_endParaRPr
+        p.add_r()
+        assert actual_xml(p) == p_with_r_with_endParaRPr_xml
+
     def test_get_algn_returns_correct_value(self):
         """CT_TextParagraph.get_algn() returns correct value"""
         # setup ------------------------
@@ -23,7 +35,7 @@ class TestCT_TextParagraph(TestCase):
         )
         # verify -----------------------
         for p, expected_algn in cases:
-            assert_that(p.get_algn(), is_(equal_to(expected_algn)))
+            assert p.get_algn() == expected_algn
 
     def test_set_algn_sets_algn_value(self):
         """CT_TextParagraph.set_algn() sets algn value"""
@@ -41,7 +53,7 @@ class TestCT_TextParagraph(TestCase):
         # verify -----------------------
         for p, algn in cases:
             p.set_algn(algn)
-            assert_that(p.get_algn(), is_(equal_to(algn)))
+            assert p.get_algn() == algn
 
     def test_set_algn_produces_correct_xml(self):
         """Assigning value to CT_TextParagraph.algn produces correct XML"""
@@ -57,4 +69,34 @@ class TestCT_TextParagraph(TestCase):
         # verify -----------------------
         for p, text_align_type, expected_xml in cases:
             p.set_algn(text_align_type)
-            self.assertEqualLineByLine(expected_xml, p)
+            assert actual_xml(p) == expected_xml
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def p(self, p_bldr):
+        return p_bldr.element
+
+    @pytest.fixture
+    def p_bldr(self):
+        return a_p().with_nsdecls()
+
+    @pytest.fixture
+    def p_with_r_xml(self):
+        r_bldr = an_r().with_child(a_t())
+        return a_p().with_nsdecls().with_child(r_bldr).xml()
+
+    @pytest.fixture
+    def p_with_endParaRPr(self):
+        endParaRPr_bldr = an_endParaRPr()
+        p_bldr = a_p().with_nsdecls().with_child(endParaRPr_bldr)
+        return p_bldr.element
+
+    @pytest.fixture
+    def p_with_r_with_endParaRPr_xml(self):
+        r_bldr = an_r().with_child(a_t())
+        endParaRPr_bldr = an_endParaRPr()
+        p_bldr = a_p().with_nsdecls()
+        p_bldr = p_bldr.with_child(r_bldr)
+        p_bldr = p_bldr.with_child(endParaRPr_bldr)
+        return p_bldr.xml()

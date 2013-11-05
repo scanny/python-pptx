@@ -8,8 +8,8 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import parse_xml_bytes, register_custom_element_class
-from pptx.oxml.core import Element
+from pptx.oxml import parse_xml_bytes
+from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsdecls
 
 
@@ -33,7 +33,22 @@ class CT_TextBody(objectify.ObjectifiedElement):
 
 
 class CT_TextParagraph(objectify.ObjectifiedElement):
-    """<a:p> custom element class"""
+    """
+    <a:p> custom element class
+    """
+    def add_r(self):
+        """
+        Return a newly appended <a:r> element.
+        """
+        r = Element('a:r')
+        SubElement(r, 'a:t')
+        # work out where to insert it, ahead of a:endParaRPr if there is one
+        try:
+            self.endParaRPr.addprevious(r)
+        except AttributeError:
+            self.append(r)
+        return r
+
     def get_algn(self):
         """
         Paragraph horizontal alignment value, like ``TAT.CENTER``. Value of
@@ -65,7 +80,3 @@ class CT_TextParagraph(objectify.ObjectifiedElement):
             del self.pPr.attrib['algn']
         if len(self.pPr.attrib) == 0:
             self.remove(self.pPr)
-
-
-register_custom_element_class('a:p', CT_TextParagraph)
-register_custom_element_class('p:txBody', CT_TextBody)
