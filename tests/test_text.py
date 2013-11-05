@@ -6,6 +6,8 @@ from __future__ import absolute_import
 
 import pytest
 
+from lxml import objectify
+
 from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch
 
@@ -25,6 +27,11 @@ from .unitutil import (
 nsmap = namespaces('a', 'r', 'p')
 
 
+def actual_xml(elm):
+    objectify.deannotate(elm, cleanup_namespaces=True)
+    return serialize_xml(elm, pretty_print=True)
+
+
 class Describe_Font(object):
 
     def it_knows_the_bold_setting(self, font, bold_font, bold_off_font):
@@ -34,26 +41,18 @@ class Describe_Font(object):
 
     def it_can_change_the_bold_setting(
             self, font, bold_rPr_xml, bold_off_rPr_xml, rPr_xml):
-        assert serialize_xml(font._rPr) == rPr_xml
+        assert actual_xml(font._rPr) == rPr_xml
         font.bold = True
-        assert serialize_xml(font._rPr) == bold_rPr_xml
+        assert actual_xml(font._rPr) == bold_rPr_xml
         font.bold = False
-        assert serialize_xml(font._rPr) == bold_off_rPr_xml
+        assert actual_xml(font._rPr) == bold_off_rPr_xml
         font.bold = None
-        assert serialize_xml(font._rPr) == rPr_xml
+        assert actual_xml(font._rPr) == rPr_xml
 
     def it_can_set_the_font_size(self, font):
-        """Assignment to _Font.size changes font size"""
-        # setup ------------------------
-        newfontsize = 2400
-        expected_xml = (
-            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/200'
-            '6/main" sz="%d"/>') % newfontsize
-        # exercise ---------------------
-        font.size = newfontsize
-        # verify -----------------------
-        actual_xml = serialize_xml(font._rPr)
-        assert actual_xml == expected_xml
+        font.size = 2400
+        expected_xml = an_rPr().with_nsdecls().with_sz(2400).xml()
+        assert actual_xml(font._rPr) == expected_xml
 
     # fixtures ---------------------------------------------
 
@@ -296,49 +295,33 @@ class Describe_Paragraph(TestCase):
             self.fail(msg)
 
 
-class Describe_Run(TestCase):
+class Describe_Run(object):
 
-    def setUp(self):
-        self.test_text = 'test text'
-        self.r_xml = ('<a:r %s><a:t>%s</a:t></a:r>' %
-                      (nsdecls('a'), self.test_text))
-        self.r = parse_xml_bytes(self.r_xml)
-        self.run = _Run(self.r)
+    def it_can_get_the_text_of_the_run(self, run, test_text):
+        assert run.text == test_text
 
-    def test_set_font_size(self):
-        """Assignment to _Run.font.size changes font size"""
-        # setup ------------------------
-        newfontsize = 2400
-        expected_xml = (
-            '<a:r %s>\n  <a:rPr sz="2400"/>\n  <a:t>test text</a:t>\n</a:r>\n'
-            % nsdecls('a')
-        )
-        # exercise ---------------------
-        self.run.font.size = newfontsize
-        # verify -----------------------
-        self.assertEqualLineByLine(expected_xml, self.run._Run__r)
+    def it_can_change_the_text_of_the_run(self, run):
+        run.text = 'new text'
+        assert run.text == 'new text'
 
-    def test_text_value(self):
-        """_Run.text value is correct"""
-        # exercise ---------------------
-        text = self.run.text
-        # verify -----------------------
-        expected = self.test_text
-        actual = text
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+    # fixtures ---------------------------------------------
 
-    def test_text_setter(self):
-        """_Run.text setter stores passed value"""
-        # setup ------------------------
-        new_value = 'new string'
-        # exercise ---------------------
-        self.run.text = new_value
-        # verify -----------------------
-        expected = new_value
-        actual = self.run.text
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+    @pytest.fixture
+    def test_text(self):
+        return 'test text'
+
+    @pytest.fixture
+    def r_xml(self, test_text):
+        return ('<a:r %s><a:t>%s</a:t></a:r>' %
+                (nsdecls('a'), test_text))
+
+    @pytest.fixture
+    def r(self, r_xml):
+        return parse_xml_bytes(r_xml)
+
+    @pytest.fixture
+    def run(self, r):
+        return _Run(r)
 
 
 class DescribeTextFrame(TestCase):

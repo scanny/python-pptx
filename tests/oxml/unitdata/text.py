@@ -37,7 +37,8 @@ class BaseBuilder(object):
                 return self
             return with_xmlattr
         else:
-            raise AttributeError
+            tmpl = "'%s' object has no attribute '%s'"
+            raise AttributeError(tmpl % (self.__class__.__name__, name))
 
     @property
     def element(self):
@@ -63,7 +64,7 @@ class BaseBuilder(object):
         Return element XML based on attribute settings
         """
         indent_str = ' ' * indent
-        xml = ('%s<%s%s%s/>' %
+        xml = ('%s<%s%s%s/>\n' %
                (indent_str, self.__tag__, self._nsdecls, self._xmlattrs_str))
         return xml
 
@@ -92,7 +93,7 @@ class CT_TextCharacterPropertiesBuilder(BaseBuilder):
     """
     __tag__ = 'a:rPr'
     __nspfxs__ = ('a',)
-    __attrs__ = ('b', 'i')
+    __attrs__ = ('b', 'i', 'sz')
 
 
 class _TestTextXml(object):
