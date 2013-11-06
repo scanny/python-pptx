@@ -7,14 +7,18 @@ from __future__ import absolute_import
 import pytest
 
 from pptx.constants import TEXT_ALIGN_TYPE as TAT
+from pptx.oxml.text import CT_TextParagraph, CT_TextParagraphProperties
 
 from ..oxml.unitdata.text import (
-    a_p, a_t, an_endParaRPr, an_r, test_text_elements, test_text_xml
+    a_p, a_pPr, a_t, an_endParaRPr, an_r, test_text_elements, test_text_xml
 )
 from ..unitutil import actual_xml
 
 
 class DescribeCT_TextParagraph(object):
+
+    def it_is_used_by_the_parser_for_a_p_element(self, p):
+        assert isinstance(p, CT_TextParagraph)
 
     def it_can_add_a_new_r_element(self, p, p_with_r_xml):
         p.add_r()
@@ -74,12 +78,9 @@ class DescribeCT_TextParagraph(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def p(self, p_bldr):
+    def p(self):
+        p_bldr = a_p().with_nsdecls()
         return p_bldr.element
-
-    @pytest.fixture
-    def p_bldr(self):
-        return a_p().with_nsdecls()
 
     @pytest.fixture
     def p_with_r_xml(self):
@@ -100,3 +101,16 @@ class DescribeCT_TextParagraph(object):
         p_bldr = p_bldr.with_child(r_bldr)
         p_bldr = p_bldr.with_child(endParaRPr_bldr)
         return p_bldr.xml()
+
+
+class DescribeCT_TextParagraphProperties(object):
+
+    def it_is_used_by_the_parser_for_a_pPr_element(self, pPr):
+        assert isinstance(pPr, CT_TextParagraphProperties)
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def pPr(self):
+        pPr_bldr = a_pPr().with_nsdecls()
+        return pPr_bldr.element

@@ -48,6 +48,9 @@ register_custom_element_class('p:presentation', CT_Presentation)
 register_custom_element_class('p:sldId', CT_SlideId)
 register_custom_element_class('p:sldIdLst', CT_SlideIdList)
 
-from pptx.oxml.text import CT_TextBody, CT_TextParagraph
+from pptx.oxml.text import (
+    CT_TextBody, CT_TextParagraph, CT_TextParagraphProperties
+)
 register_custom_element_class('a:p', CT_TextParagraph)
+register_custom_element_class('a:pPr', CT_TextParagraphProperties)
 register_custom_element_class('p:txBody', CT_TextBody)

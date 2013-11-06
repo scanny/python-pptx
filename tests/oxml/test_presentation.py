@@ -6,19 +6,12 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
-from lxml import objectify
-
 from pptx.oxml.presentation import (
     CT_Presentation, CT_SlideId, CT_SlideIdList
 )
 
 from .unitdata.presentation import a_presentation, a_sldId, a_sldIdLst
-from ..unitutil import serialize_xml
-
-
-def actual_xml(elm):
-    objectify.deannotate(elm, cleanup_namespaces=True)
-    return serialize_xml(elm, pretty_print=True)
+from ..unitutil import actual_xml
 
 
 class DescribeCT_Presentation(object):

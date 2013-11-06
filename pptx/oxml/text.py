@@ -80,3 +80,9 @@ class CT_TextParagraph(objectify.ObjectifiedElement):
             del self.pPr.attrib['algn']
         if len(self.pPr.attrib) == 0:
             self.remove(self.pPr)
+
+
+class CT_TextParagraphProperties(objectify.ObjectifiedElement):
+    """
+    <a:pPr> custom element class
+    """
