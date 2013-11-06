@@ -13,6 +13,7 @@ from pptx.constants import MSO, PP
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import SubElement
 from pptx.oxml.ns import namespaces, nsdecls
+from pptx.oxml.text import CT_TextParagraphProperties
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
 from pptx.util import Pt
 
@@ -20,8 +21,8 @@ from .oxml.unitdata.text import (
     a_p, a_t, an_r, an_rPr, test_text_objects, test_text_xml
 )
 from .unitutil import (
-    absjoin, actual_xml, parse_xml_file, serialize_xml, TestCase,
-    test_file_dir
+    absjoin, actual_xml, class_mock, instance_mock, loose_mock,
+    parse_xml_file, property_mock, serialize_xml, TestCase, test_file_dir
 )
 
 
@@ -108,23 +109,14 @@ class Describe_Paragraph(object):
         assert actual_xml(paragraph._p) == p_with_r_xml
         assert isinstance(run, _Run)
 
-    @patch('pptx.text.ParagraphAlignment')
-    def test_alignment_value(self, ParagraphAlignment):
-        """_Paragraph.alignment value is calculated correctly"""
-        # setup ------------------------
-        paragraph = test_text_objects.paragraph
-        paragraph._p = __p = MagicMock(name='__p')
-        __p.get_algn = get_algn = Mock(name='get_algn')
-        get_algn.return_value = algn_val = Mock(name='algn_val')
-        alignment = Mock(name='alignment')
-        from_text_align_type = ParagraphAlignment.from_text_align_type
-        from_text_align_type.return_value = alignment
-        # exercise ---------------------
-        retval = paragraph.alignment
-        # verify -----------------------
-        get_algn.assert_called_once_with()
-        from_text_align_type.assert_called_once_with(algn_val)
-        assert retval is alignment
+    def it_knows_the_alignment_setting_of_the_paragraph(
+            self, paragraph, ParagraphAlignment_, _pPr_, algn):
+        alignment = paragraph.alignment
+        ParagraphAlignment_.from_text_align_type.assert_called_once_with(algn)
+        assert (
+            alignment is
+            ParagraphAlignment_.from_text_align_type.return_value
+        )
 
     @patch('pptx.text.ParagraphAlignment')
     def test_alignment_assignment(self, ParagraphAlignment):
@@ -272,16 +264,28 @@ class Describe_Paragraph(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def path(self):
-        return absjoin(test_file_dir, 'slide1.xml')
+    def ParagraphAlignment_(self, request):
+        return class_mock(request, 'pptx.text.ParagraphAlignment')
+
+    @pytest.fixture
+    def algn(self, request):
+        return loose_mock(request)
+
+    @pytest.fixture
+    def _pPr_(self, request, pPr_):
+        _pPr_ = property_mock(request, 'pptx.text._Paragraph._pPr')
+        _pPr_.return_value = pPr_
+        return _pPr_
 
     @pytest.fixture
     def pList(self, sld, xpath):
         return sld.xpath(xpath, namespaces=nsmap)
 
     @pytest.fixture
-    def p_with_text(self, p_with_text_xml):
-        return parse_xml_bytes(p_with_text_xml)
+    def pPr_(self, request, algn):
+        pPr_ = instance_mock(request, CT_TextParagraphProperties)
+        pPr_.algn = algn
+        return pPr_
 
     @pytest.fixture
     def p_bldr(self):
@@ -293,17 +297,25 @@ class Describe_Paragraph(object):
         return a_p().with_nsdecls().with_child(run_bldr).xml()
 
     @pytest.fixture
+    def p_with_text(self, p_with_text_xml):
+        return parse_xml_bytes(p_with_text_xml)
+
+    @pytest.fixture
     def p_with_text_xml(self, test_text):
         return ('<a:p %s><a:r><a:t>%s</a:t></a:r></a:p>' %
                 (nsdecls('a'), test_text))
+
+    @pytest.fixture
+    def paragraph(self, p_bldr):
+        return _Paragraph(p_bldr.element)
 
     @pytest.fixture
     def paragraph_with_text(self, p_with_text):
         return _Paragraph(p_with_text)
 
     @pytest.fixture
-    def paragraph(self, p_bldr):
-        return _Paragraph(p_bldr.element)
+    def path(self):
+        return absjoin(test_file_dir, 'slide1.xml')
 
     @pytest.fixture
     def sld(self, path):

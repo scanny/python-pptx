@@ -38,17 +38,6 @@ class DescribeCT_TextParagraph(object):
         p.add_r()
         assert actual_xml(p) == p_with_r_with_endParaRPr_xml
 
-    def test_get_algn_returns_correct_value(self):
-        """CT_TextParagraph.get_algn() returns correct value"""
-        # setup ------------------------
-        cases = (
-            (test_text_elements.paragraph, None),
-            (test_text_elements.centered_paragraph, TAT.CENTER)
-        )
-        # verify -----------------------
-        for p, expected_algn in cases:
-            assert p.get_algn() == expected_algn
-
     def test_set_algn_sets_algn_value(self):
         """CT_TextParagraph.set_algn() sets algn value"""
         # setup ------------------------
@@ -65,7 +54,7 @@ class DescribeCT_TextParagraph(object):
         # verify -----------------------
         for p, algn in cases:
             p.set_algn(algn)
-            assert p.get_algn() == algn
+            assert p.get_or_add_pPr().algn == algn
 
     def test_set_algn_produces_correct_xml(self):
         """Assigning value to CT_TextParagraph.algn produces correct XML"""
@@ -131,9 +120,19 @@ class DescribeCT_TextParagraphProperties(object):
     def it_is_used_by_the_parser_for_a_pPr_element(self, pPr):
         assert isinstance(pPr, CT_TextParagraphProperties)
 
+    def it_knows_the_algn_value(self, pPr_with_algn):
+        assert pPr_with_algn.algn == 'foobar'
+
+    def it_maps_missing_algn_attribute_to_None(self, pPr):
+        assert pPr.algn is None
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
     def pPr(self):
         pPr_bldr = a_pPr().with_nsdecls()
         return pPr_bldr.element
+
+    @pytest.fixture
+    def pPr_with_algn(self):
+        return a_pPr().with_nsdecls().with_algn('foobar').element

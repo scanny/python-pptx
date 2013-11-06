@@ -136,9 +136,7 @@ class _Paragraph(object):
         paragraph has no alignment setting and its effective value is
         inherited from a higher-level object.
         """
-        # return ParagraphAlignment.from_text_align_type(self._pPr.algn)
-        algn = self._p.get_algn()
-        return ParagraphAlignment.from_text_align_type(algn)
+        return ParagraphAlignment.from_text_align_type(self._pPr.algn)
 
     @alignment.setter
     def alignment(self, alignment):

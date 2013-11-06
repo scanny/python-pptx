@@ -49,15 +49,6 @@ class CT_TextParagraph(objectify.ObjectifiedElement):
             self.append(r)
         return r
 
-    def get_algn(self):
-        """
-        Paragraph horizontal alignment value, like ``TAT.CENTER``. Value of
-        algn attribute on <a:pPr> child element
-        """
-        if not hasattr(self, 'pPr'):
-            return None
-        return self.pPr.get('algn')
-
     def get_or_add_pPr(self):
         """
         Return the <a:pPr> child element of this <a:p> element, a newly added
@@ -96,3 +87,11 @@ class CT_TextParagraphProperties(objectify.ObjectifiedElement):
     """
     <a:pPr> custom element class
     """
+    @property
+    def algn(self):
+        """
+        Paragraph horizontal alignment value, like ``TAT.CENTER``. Value of
+        'algn' attribute on <a:pPr> child element. None if no 'algn'
+        attribute is present.
+        """
+        return self.get('algn')
