@@ -5,7 +5,7 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
-from pptx.oxml.core import child, Element, get_or_add, SubElement
+from pptx.oxml.core import Element, get_or_add, SubElement
 from pptx.oxml.ns import namespaces, qn
 from pptx.spec import ParagraphAlignment
 from pptx.util import to_unicode
@@ -136,21 +136,25 @@ class _Paragraph(object):
         paragraph has no alignment setting and its effective value is
         inherited from a higher-level object.
         """
+        # return ParagraphAlignment.from_text_align_type(self._pPr.algn)
         algn = self._p.get_algn()
         return ParagraphAlignment.from_text_align_type(algn)
 
     @alignment.setter
     def alignment(self, alignment):
         algn = ParagraphAlignment.to_text_align_type(alignment)
+        # self._pPr.algn = algn
         self._p.set_algn(algn)
 
     def clear(self):
-        """Remove all runs from this paragraph."""
-        # retain pPr if present
-        pPr = child(self._p, 'a:pPr')
+        """
+        Remove all runs from this paragraph. Paragraph properties are
+        preserved.
+        """
+        # self._p.clear_runs()
+        pPr = self._pPr
         self._p.clear()
-        if pPr is not None:
-            self._p.insert(0, pPr)
+        self._p.insert(0, pPr)
 
     @property
     def font(self):
@@ -161,15 +165,9 @@ class _Paragraph(object):
         contained in and they may be overridden by character properties set at
         the run level.
         """
-        # A _Font instance is created on first access if it doesn't exist.
-        # This can cause "litter" <a:pPr> and <a:defRPr> elements to be
-        # included in the XML if the _Font element is referred to but not
-        # populated with values.
-        if not hasattr(self._p, 'pPr'):
-            pPr = Element('a:pPr')
-            self._p.insert(0, pPr)
-        if not hasattr(self._p.pPr, 'defRPr'):
-            SubElement(self._p.pPr, 'a:defRPr')
+        # return _Font(self._defRPr)
+        if not hasattr(self._pPr, 'defRPr'):
+            SubElement(self._pPr, 'a:defRPr')
         return _Font(self._p.pPr.defRPr)
 
     @property
@@ -180,19 +178,15 @@ class _Paragraph(object):
         default value. Indentation level is most commonly encountered in a
         bulleted list, as is found on a word bullet slide.
         """
-        if not hasattr(self._p, 'pPr'):
-            return 0
-        return int(self._p.pPr.get('lvl', 0))
+        # return self._pPr.lvl
+        return int(self._pPr.get('lvl', 0))
 
     @level.setter
     def level(self, level):
         if not isinstance(level, int) or level < 0 or level > 8:
             msg = "paragraph level must be integer between 0 and 8 inclusive"
             raise ValueError(msg)
-        if not hasattr(self._p, 'pPr'):
-            pPr = Element('a:pPr')
-            self._p.insert(0, pPr)
-        self._p.pPr.set('lvl', str(level))
+        self._pPr.set('lvl', str(level))
 
     @property
     def runs(self):
@@ -206,6 +200,18 @@ class _Paragraph(object):
         for r in r_elms:
             runs.append(_Run(r))
         return tuple(runs)
+
+    @property
+    def _pPr(self):
+        """
+        The |CT_TextParagraphProperties| instance for this paragraph, the
+        <a:pPr> element containing its paragraph properties. Causes the
+        element to be added if not present.
+        """
+        if not hasattr(self._p, 'pPr'):
+            pPr = Element('a:pPr')
+            self._p.insert(0, pPr)
+        return self._p.pPr
 
     def _set_text(self, text):
         """Replace runs with single run containing *text*"""
