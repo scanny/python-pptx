@@ -208,10 +208,7 @@ class _Paragraph(object):
         <a:pPr> element containing its paragraph properties. Causes the
         element to be added if not present.
         """
-        if not hasattr(self._p, 'pPr'):
-            pPr = Element('a:pPr')
-            self._p.insert(0, pPr)
-        return self._p.pPr
+        return self._p.get_or_add_pPr()
 
     def _set_text(self, text):
         """Replace runs with single run containing *text*"""

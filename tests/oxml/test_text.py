@@ -20,6 +20,14 @@ class DescribeCT_TextParagraph(object):
     def it_is_used_by_the_parser_for_a_p_element(self, p):
         assert isinstance(p, CT_TextParagraph)
 
+    def it_can_get_the_pPr_child_element(self, p_with_pPr, pPr):
+        _pPr = p_with_pPr.get_or_add_pPr()
+        assert _pPr is pPr
+
+    def it_adds_a_pPr_if_p_doesnt_have_one(self, p, p_with_pPr_xml):
+        p.get_or_add_pPr()
+        assert actual_xml(p) == p_with_pPr_xml
+
     def it_can_add_a_new_r_element(self, p, p_with_r_xml):
         p.add_r()
         assert actual_xml(p) == p_with_r_xml
@@ -83,6 +91,10 @@ class DescribeCT_TextParagraph(object):
         return p_bldr.element
 
     @pytest.fixture
+    def pPr(self):
+        return a_pPr().with_nsdecls().element
+
+    @pytest.fixture
     def p_with_r_xml(self):
         r_bldr = an_r().with_child(a_t())
         return a_p().with_nsdecls().with_child(r_bldr).xml()
@@ -92,6 +104,17 @@ class DescribeCT_TextParagraph(object):
         endParaRPr_bldr = an_endParaRPr()
         p_bldr = a_p().with_nsdecls().with_child(endParaRPr_bldr)
         return p_bldr.element
+
+    @pytest.fixture
+    def p_with_pPr(self, p, pPr):
+        p.append(pPr)
+        return p
+
+    @pytest.fixture
+    def p_with_pPr_xml(self):
+        pPr_bldr = a_pPr()
+        p_with_pPr_bldr = a_p().with_nsdecls().with_child(pPr_bldr)
+        return p_with_pPr_bldr.xml()
 
     @pytest.fixture
     def p_with_r_with_endParaRPr_xml(self):

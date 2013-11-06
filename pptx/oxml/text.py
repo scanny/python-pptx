@@ -58,6 +58,16 @@ class CT_TextParagraph(objectify.ObjectifiedElement):
             return None
         return self.pPr.get('algn')
 
+    def get_or_add_pPr(self):
+        """
+        Return the <a:pPr> child element of this <a:p> element, a newly added
+        one if one is not present.
+        """
+        if not hasattr(self, 'pPr'):
+            pPr = Element('a:pPr')
+            self.insert(0, pPr)
+        return self.pPr
+
     def set_algn(self, value):
         """
         Set value of algn attribute on <a:pPr> child element
