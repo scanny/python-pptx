@@ -141,8 +141,7 @@ class _Paragraph(object):
     @alignment.setter
     def alignment(self, alignment):
         algn = ParagraphAlignment.to_text_align_type(alignment)
-        # self._pPr.algn = algn
-        self._p.set_algn(algn)
+        self._pPr.algn = algn
 
     def clear(self):
         """

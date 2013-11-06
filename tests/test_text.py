@@ -7,22 +7,18 @@ from __future__ import absolute_import
 import pytest
 
 from hamcrest import assert_that, equal_to, is_
-from mock import MagicMock, Mock, patch
 
 from pptx.constants import MSO, PP
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import SubElement
 from pptx.oxml.ns import namespaces, nsdecls
-from pptx.oxml.text import CT_TextParagraphProperties
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
 from pptx.util import Pt
 
-from .oxml.unitdata.text import (
-    a_p, a_t, an_r, an_rPr, test_text_objects, test_text_xml
-)
+from .oxml.unitdata.text import a_p, a_pPr, a_t, an_r, an_rPr
 from .unitutil import (
-    absjoin, actual_xml, class_mock, instance_mock, loose_mock,
-    parse_xml_file, property_mock, serialize_xml, TestCase, test_file_dir
+    absjoin, actual_xml, parse_xml_file, serialize_xml, TestCase,
+    test_file_dir
 )
 
 
@@ -110,40 +106,15 @@ class Describe_Paragraph(object):
         assert isinstance(run, _Run)
 
     def it_knows_the_alignment_setting_of_the_paragraph(
-            self, paragraph, ParagraphAlignment_, _pPr_, algn):
-        alignment = paragraph.alignment
-        ParagraphAlignment_.from_text_align_type.assert_called_once_with(algn)
-        assert (
-            alignment is
-            ParagraphAlignment_.from_text_align_type.return_value
-        )
+            self, paragraph, paragraph_with_algn):
+        assert paragraph.alignment is None
+        assert paragraph_with_algn.alignment == PP.ALIGN_CENTER
 
-    @patch('pptx.text.ParagraphAlignment')
-    def test_alignment_assignment(self, ParagraphAlignment):
-        """Assignment to _Paragraph.alignment assigns value"""
-        # setup ------------------------
-        paragraph = test_text_objects.paragraph
-        paragraph._p = __p = MagicMock(name='__p')
-        __p.set_algn = set_algn = Mock(name='set_algn')
-        algn_val = Mock(name='algn_val')
-        to_text_align_type = ParagraphAlignment.to_text_align_type
-        to_text_align_type.return_value = algn_val
-        alignment = PP.ALIGN_CENTER
-        # exercise ---------------------
-        paragraph.alignment = alignment
-        # verify -----------------------
-        to_text_align_type.assert_called_once_with(alignment)
-        set_algn.assert_called_once_with(algn_val)
-
-    def test_alignment_integrates_with_CT_TextParagraph(self):
-        """_Paragraph.alignment integrates with CT_TextParagraph"""
-        # setup ------------------------
-        paragraph = test_text_objects.paragraph
-        expected_xml = test_text_xml.centered_paragraph
-        # exercise ---------------------
-        paragraph.alignment = PP.ALIGN_CENTER
-        # verify -----------------------
-        assert actual_xml(paragraph._p) == expected_xml
+    def it_can_change_its_alignment_setting(self, paragraph):
+        paragraph.alignment = PP.ALIGN_LEFT
+        assert paragraph._pPr.algn == 'l'
+        paragraph.alignment = None
+        assert paragraph._pPr.algn is None
 
     def test_clear_removes_all_runs(self, pList):
         """_Paragraph.clear() removes all runs from paragraph"""
@@ -264,28 +235,8 @@ class Describe_Paragraph(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def ParagraphAlignment_(self, request):
-        return class_mock(request, 'pptx.text.ParagraphAlignment')
-
-    @pytest.fixture
-    def algn(self, request):
-        return loose_mock(request)
-
-    @pytest.fixture
-    def _pPr_(self, request, pPr_):
-        _pPr_ = property_mock(request, 'pptx.text._Paragraph._pPr')
-        _pPr_.return_value = pPr_
-        return _pPr_
-
-    @pytest.fixture
     def pList(self, sld, xpath):
         return sld.xpath(xpath, namespaces=nsmap)
-
-    @pytest.fixture
-    def pPr_(self, request, algn):
-        pPr_ = instance_mock(request, CT_TextParagraphProperties)
-        pPr_.algn = algn
-        return pPr_
 
     @pytest.fixture
     def p_bldr(self):
@@ -307,6 +258,12 @@ class Describe_Paragraph(object):
 
     @pytest.fixture
     def paragraph(self, p_bldr):
+        return _Paragraph(p_bldr.element)
+
+    @pytest.fixture
+    def paragraph_with_algn(self):
+        pPr_bldr = a_pPr().with_algn('ctr')
+        p_bldr = a_p().with_nsdecls().with_child(pPr_bldr)
         return _Paragraph(p_bldr.element)
 
     @pytest.fixture

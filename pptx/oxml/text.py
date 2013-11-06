@@ -59,34 +59,21 @@ class CT_TextParagraph(objectify.ObjectifiedElement):
             self.insert(0, pPr)
         return self.pPr
 
-    def set_algn(self, value):
-        """
-        Set value of algn attribute on <a:pPr> child element
-        """
-        if value is None:
-            return self._clear_algn()
-        if not hasattr(self, 'pPr'):
-            pPr = Element('a:pPr')
-            self.insert(0, pPr)
-        self.pPr.set('algn', value)
-
-    def _clear_algn(self):
-        """
-        Remove algn attribute from ``<a:pPr>`` if it exists and remove
-        ``<a:pPr>`` element if it then has no attributes.
-        """
-        if not hasattr(self, 'pPr'):
-            return
-        if 'algn' in self.pPr.attrib:
-            del self.pPr.attrib['algn']
-        if len(self.pPr.attrib) == 0:
-            self.remove(self.pPr)
-
 
 class CT_TextParagraphProperties(objectify.ObjectifiedElement):
     """
     <a:pPr> custom element class
     """
+    def __setattr__(self, name, value):
+        """
+        Override ``__setattr__`` defined in ObjectifiedElement super class
+        to intercept messages intended for custom property setters.
+        """
+        if name in ('algn',):
+            self._set_attr(name, value)
+        else:
+            super(CT_TextParagraphProperties, self).__setattr__(name, value)
+
     @property
     def algn(self):
         """
@@ -95,3 +82,12 @@ class CT_TextParagraphProperties(objectify.ObjectifiedElement):
         attribute is present.
         """
         return self.get('algn')
+
+    def _set_attr(self, name, value):
+        """
+        Set attribute of this element having *name* to *value*.
+        """
+        if value is None and name in self.attrib:
+            del self.attrib[name]
+        else:
+            self.set(name, value)

@@ -6,12 +6,9 @@ from __future__ import absolute_import
 
 import pytest
 
-from pptx.constants import TEXT_ALIGN_TYPE as TAT
 from pptx.oxml.text import CT_TextParagraph, CT_TextParagraphProperties
 
-from ..oxml.unitdata.text import (
-    a_p, a_pPr, a_t, an_endParaRPr, an_r, test_text_elements, test_text_xml
-)
+from ..oxml.unitdata.text import a_p, a_pPr, a_t, an_endParaRPr, an_r
 from ..unitutil import actual_xml
 
 
@@ -37,40 +34,6 @@ class DescribeCT_TextParagraph(object):
         p = p_with_endParaRPr
         p.add_r()
         assert actual_xml(p) == p_with_r_with_endParaRPr_xml
-
-    def test_set_algn_sets_algn_value(self):
-        """CT_TextParagraph.set_algn() sets algn value"""
-        # setup ------------------------
-        cases = (
-            # something => something else
-            (test_text_elements.centered_paragraph, TAT.JUSTIFY),
-            # something => None
-            (test_text_elements.centered_paragraph, None),
-            # None => something
-            (test_text_elements.paragraph, TAT.CENTER),
-            # None => None
-            (test_text_elements.paragraph, None)
-        )
-        # verify -----------------------
-        for p, algn in cases:
-            p.set_algn(algn)
-            assert p.get_or_add_pPr().algn == algn
-
-    def test_set_algn_produces_correct_xml(self):
-        """Assigning value to CT_TextParagraph.algn produces correct XML"""
-        # setup ------------------------
-        cases = (
-            # None => something
-            (test_text_elements.paragraph, TAT.CENTER,
-             test_text_xml.centered_paragraph),
-            # something => None
-            (test_text_elements.centered_paragraph, None,
-             test_text_xml.paragraph)
-        )
-        # verify -----------------------
-        for p, text_align_type, expected_xml in cases:
-            p.set_algn(text_align_type)
-            assert actual_xml(p) == expected_xml
 
     # fixtures ---------------------------------------------
 
@@ -126,13 +89,34 @@ class DescribeCT_TextParagraphProperties(object):
     def it_maps_missing_algn_attribute_to_None(self, pPr):
         assert pPr.algn is None
 
+    def it_can_set_the_algn_value(self, pPr, pPr_with_algn_xml, pPr_xml):
+        pPr.algn = 'foobar'
+        assert actual_xml(pPr) == pPr_with_algn_xml
+        pPr.algn = None
+        assert actual_xml(pPr) == pPr_xml
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def pPr(self):
-        pPr_bldr = a_pPr().with_nsdecls()
+    def pPr(self, pPr_bldr):
         return pPr_bldr.element
 
     @pytest.fixture
-    def pPr_with_algn(self):
-        return a_pPr().with_nsdecls().with_algn('foobar').element
+    def pPr_bldr(self):
+        return a_pPr().with_nsdecls()
+
+    @pytest.fixture
+    def pPr_xml(self, pPr_bldr):
+        return pPr_bldr.xml()
+
+    @pytest.fixture
+    def pPr_with_algn(self, pPr_with_algn_bldr):
+        return pPr_with_algn_bldr.element
+
+    @pytest.fixture
+    def pPr_with_algn_bldr(self):
+        return a_pPr().with_nsdecls().with_algn('foobar')
+
+    @pytest.fixture
+    def pPr_with_algn_xml(self, pPr_with_algn_bldr):
+        return pPr_with_algn_bldr.xml()
