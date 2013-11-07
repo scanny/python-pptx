@@ -5,7 +5,7 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
-from pptx.oxml.core import Element, get_or_add, SubElement
+from pptx.oxml.core import Element, get_or_add
 from pptx.oxml.ns import namespaces, qn
 from pptx.spec import ParagraphAlignment
 from pptx.util import to_unicode
@@ -159,10 +159,7 @@ class _Paragraph(object):
         contained in and they may be overridden by character properties set at
         the run level.
         """
-        # return _Font(self._defRPr)
-        if not hasattr(self._pPr, 'defRPr'):
-            SubElement(self._pPr, 'a:defRPr')
-        return _Font(self._p.pPr.defRPr)
+        return _Font(self._defRPr)
 
     @property
     def level(self):
@@ -194,6 +191,15 @@ class _Paragraph(object):
         for r in r_elms:
             runs.append(_Run(r))
         return tuple(runs)
+
+    @property
+    def _defRPr(self):
+        """
+        The |CT_TextCharacterProperties| instance (<a:defRPr> element) that
+        defines the default run properties for runs in this paragraph. Causes
+        the element to be added if not present.
+        """
+        return self._pPr.get_or_add_defRPr()
 
     @property
     def _pPr(self):

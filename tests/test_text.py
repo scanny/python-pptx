@@ -13,12 +13,11 @@ from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.oxml.text import CT_TextParagraph
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
-from pptx.util import Pt
 
 from .oxml.unitdata.text import a_p, a_pPr, a_t, an_r, an_rPr
 from .unitutil import (
-    absjoin, actual_xml, instance_mock, parse_xml_file, serialize_xml,
-    TestCase, test_file_dir
+    absjoin, actual_xml, class_mock, instance_mock, parse_xml_file,
+    serialize_xml, TestCase, test_file_dir
 )
 
 
@@ -121,18 +120,11 @@ class Describe_Paragraph(object):
         paragraph.clear()
         p_.remove_child_r_elms.assert_called_once_with()
 
-    def test_set_font_size(self, paragraph_with_text):
-        """Assignment to _Paragraph.font.size changes font size"""
-        # setup ------------------------
-        newfontsize = Pt(54.3)
-        expected_xml = (
-            '<a:p %s>\n  <a:pPr>\n    <a:defRPr sz="5430"/>\n  </a:pPr>\n  <a'
-            ':r>\n    <a:t>test text</a:t>\n  </a:r>\n</a:p>\n' % nsdecls('a')
-        )
-        # exercise ---------------------
-        paragraph_with_text.font.size = newfontsize
-        # verify -----------------------
-        assert actual_xml(paragraph_with_text._p) == expected_xml
+    def it_provides_access_to_the_default_paragraph_font(
+            self, paragraph, Font_):
+        font = paragraph.font
+        Font_.assert_called_once_with(paragraph._defRPr)
+        assert font == Font_.return_value
 
     def test_level_setter_generates_correct_xml(self, paragraph_with_text):
         """_Paragraph.level setter generates correct XML"""
@@ -213,6 +205,10 @@ class Describe_Paragraph(object):
             pytest.fail(msg)
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def Font_(self, request):
+        return class_mock(request, 'pptx.text._Font')
 
     @pytest.fixture
     def pList(self, sld, xpath):
