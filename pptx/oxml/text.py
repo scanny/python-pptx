@@ -13,8 +13,16 @@ from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsdecls, qn
 
 
+class CT_RegularTextRun(objectify.ObjectifiedElement):
+    """
+    Custom element class for <a:r> elements.
+    """
+
+
 class CT_TextBody(objectify.ObjectifiedElement):
-    """<p:txBody> custom element class"""
+    """
+    <p:txBody> custom element class
+    """
     _txBody_tmpl = (
         '<p:txBody %s>\n'
         '  <a:bodyPr/>\n'

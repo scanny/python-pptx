@@ -1,19 +1,34 @@
 # encoding: utf-8
 
-"""Test suite for pptx.oxml module."""
+"""
+Test suite for pptx.oxml module.
+"""
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import pytest
 
 from pptx.oxml.text import (
-    CT_TextCharacterProperties, CT_TextParagraph, CT_TextParagraphProperties
+    CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph,
+    CT_TextParagraphProperties
 )
 
 from ..oxml.unitdata.text import (
     a_defRPr, a_p, a_pPr, a_t, an_endParaRPr, an_extLst, an_r, an_rPr
 )
 from ..unitutil import actual_xml
+
+
+class DescribeCT_RegularTextRun(object):
+
+    def it_is_used_by_the_parser_for_an_r_element(self, r):
+        assert isinstance(r, CT_RegularTextRun)
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def r(self):
+        return an_r().with_nsdecls().element
 
 
 class DescribeCT_TextCharacterProperties(object):

@@ -24,6 +24,140 @@ from .unitutil import (
 nsmap = namespaces('a', 'r', 'p')
 
 
+class DescribeTextFrame(TestCase):
+
+    def setUp(self):
+        path = absjoin(test_file_dir, 'slide1.xml')
+        self.sld = parse_xml_file(path).getroot()
+        xpath = './p:cSld/p:spTree/p:sp/p:txBody'
+        self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)
+
+    def test_paragraphs_size(self):
+        """TextFrame.paragraphs is expected size"""
+        # setup ------------------------
+        actual_lengths = []
+        for txBody in self.txBodyList:
+            textframe = TextFrame(txBody)
+            # exercise ----------------
+            actual_lengths.append(len(textframe.paragraphs))
+        # verify -----------------------
+        expected = [1, 1, 2, 1, 1]
+        actual = actual_lengths
+        msg = "expected paragraph count %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test_add_paragraph_xml(self):
+        """TextFrame.add_paragraph does what it says"""
+        # setup ------------------------
+        txBody_xml = (
+            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
+            'p></p:txBody>' % nsdecls('p', 'a')
+        )
+        expected_xml = (
+            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
+            'p><a:p/></p:txBody>' % nsdecls('p', 'a')
+        )
+        txBody = parse_xml_bytes(txBody_xml)
+        textframe = TextFrame(txBody)
+        # exercise ---------------------
+        textframe.add_paragraph()
+        # verify -----------------------
+        assert_that(len(textframe.paragraphs), is_(equal_to(2)))
+        textframe_xml = serialize_xml(textframe._txBody)
+        expected = expected_xml
+        actual = textframe_xml
+        msg = "\nExpected: '%s'\n\n     Got: '%s'" % (expected, actual)
+        if not expected == actual:
+            raise AssertionError(msg)
+
+    def test_text_setter_structure_and_value(self):
+        """Assignment to TextFrame.text yields single run para set to value"""
+        # setup ------------------------
+        test_text = 'python-pptx was here!!'
+        txBody = self.txBodyList[2]
+        textframe = TextFrame(txBody)
+        # exercise ---------------------
+        textframe.text = test_text
+        # verify paragraph count -------
+        expected = 1
+        actual = len(textframe.paragraphs)
+        msg = "expected paragraph count %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+        # verify value -----------------
+        expected = test_text
+        actual = textframe.paragraphs[0].runs[0].text
+        msg = "expected text '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test_vertical_anchor_works(self):
+        """Assignment to TextFrame.vertical_anchor sets vert anchor"""
+        # setup ------------------------
+        txBody_xml = (
+            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
+            'p></p:txBody>' % nsdecls('p', 'a')
+        )
+        expected_xml = (
+            '<p:txBody %s>\n  <a:bodyPr anchor="ctr"/>\n  <a:p>\n    <a:r>\n '
+            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
+            nsdecls('p', 'a')
+        )
+        txBody = parse_xml_bytes(txBody_xml)
+        textframe = TextFrame(txBody)
+        # exercise ---------------------
+        textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
+        # verify -----------------------
+        self.assertEqualLineByLine(expected_xml, textframe._txBody)
+
+    def test_word_wrap_works(self):
+        """Assignment to TextFrame.word_wrap sets word wrap value"""
+        # setup ------------------------
+        txBody_xml = (
+            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
+            'p></p:txBody>' % nsdecls('p', 'a')
+        )
+        true_expected_xml = (
+            '<p:txBody %s>\n  <a:bodyPr wrap="square"/>\n  <a:p>\n    <a:r>\n '
+            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
+            nsdecls('p', 'a')
+        )
+        false_expected_xml = (
+            '<p:txBody %s>\n  <a:bodyPr wrap="none"/>\n  <a:p>\n    <a:r>\n '
+            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
+            nsdecls('p', 'a')
+        )
+        none_expected_xml = (
+            '<p:txBody %s>\n  <a:bodyPr/>\n  <a:p>\n    <a:r>\n '
+            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
+            nsdecls('p', 'a')
+        )
+
+        txBody = parse_xml_bytes(txBody_xml)
+        textframe = TextFrame(txBody)
+
+        self.assertEqual(textframe.word_wrap, None)
+
+        # exercise ---------------------
+        textframe.word_wrap = True
+        # verify -----------------------
+        self.assertEqualLineByLine(
+            true_expected_xml, textframe._txBody)
+        self.assertEqual(textframe.word_wrap, True)
+
+        # exercise ---------------------
+        textframe.word_wrap = False
+        # verify -----------------------
+        self.assertEqualLineByLine(
+            false_expected_xml, textframe._txBody)
+        self.assertEqual(textframe.word_wrap, False)
+
+        # exercise ---------------------
+        textframe.word_wrap = None
+        # verify -----------------------
+        self.assertEqualLineByLine(
+            none_expected_xml, textframe._txBody)
+        self.assertEqual(textframe.word_wrap, None)
+
+
 class Describe_Font(object):
 
     def it_knows_the_bold_setting(self, font, bold_font, bold_off_font):
@@ -294,137 +428,3 @@ class Describe_Run(object):
     @pytest.fixture
     def run(self, r):
         return _Run(r)
-
-
-class DescribeTextFrame(TestCase):
-
-    def setUp(self):
-        path = absjoin(test_file_dir, 'slide1.xml')
-        self.sld = parse_xml_file(path).getroot()
-        xpath = './p:cSld/p:spTree/p:sp/p:txBody'
-        self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)
-
-    def test_paragraphs_size(self):
-        """TextFrame.paragraphs is expected size"""
-        # setup ------------------------
-        actual_lengths = []
-        for txBody in self.txBodyList:
-            textframe = TextFrame(txBody)
-            # exercise ----------------
-            actual_lengths.append(len(textframe.paragraphs))
-        # verify -----------------------
-        expected = [1, 1, 2, 1, 1]
-        actual = actual_lengths
-        msg = "expected paragraph count %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test_add_paragraph_xml(self):
-        """TextFrame.add_paragraph does what it says"""
-        # setup ------------------------
-        txBody_xml = (
-            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
-            'p></p:txBody>' % nsdecls('p', 'a')
-        )
-        expected_xml = (
-            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
-            'p><a:p/></p:txBody>' % nsdecls('p', 'a')
-        )
-        txBody = parse_xml_bytes(txBody_xml)
-        textframe = TextFrame(txBody)
-        # exercise ---------------------
-        textframe.add_paragraph()
-        # verify -----------------------
-        assert_that(len(textframe.paragraphs), is_(equal_to(2)))
-        textframe_xml = serialize_xml(textframe._txBody)
-        expected = expected_xml
-        actual = textframe_xml
-        msg = "\nExpected: '%s'\n\n     Got: '%s'" % (expected, actual)
-        if not expected == actual:
-            raise AssertionError(msg)
-
-    def test_text_setter_structure_and_value(self):
-        """Assignment to TextFrame.text yields single run para set to value"""
-        # setup ------------------------
-        test_text = 'python-pptx was here!!'
-        txBody = self.txBodyList[2]
-        textframe = TextFrame(txBody)
-        # exercise ---------------------
-        textframe.text = test_text
-        # verify paragraph count -------
-        expected = 1
-        actual = len(textframe.paragraphs)
-        msg = "expected paragraph count %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-        # verify value -----------------
-        expected = test_text
-        actual = textframe.paragraphs[0].runs[0].text
-        msg = "expected text '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test_vertical_anchor_works(self):
-        """Assignment to TextFrame.vertical_anchor sets vert anchor"""
-        # setup ------------------------
-        txBody_xml = (
-            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
-            'p></p:txBody>' % nsdecls('p', 'a')
-        )
-        expected_xml = (
-            '<p:txBody %s>\n  <a:bodyPr anchor="ctr"/>\n  <a:p>\n    <a:r>\n '
-            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
-            nsdecls('p', 'a')
-        )
-        txBody = parse_xml_bytes(txBody_xml)
-        textframe = TextFrame(txBody)
-        # exercise ---------------------
-        textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
-        # verify -----------------------
-        self.assertEqualLineByLine(expected_xml, textframe._txBody)
-
-    def test_word_wrap_works(self):
-        """Assignment to TextFrame.word_wrap sets word wrap value"""
-        # setup ------------------------
-        txBody_xml = (
-            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
-            'p></p:txBody>' % nsdecls('p', 'a')
-        )
-        true_expected_xml = (
-            '<p:txBody %s>\n  <a:bodyPr wrap="square"/>\n  <a:p>\n    <a:r>\n '
-            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
-            nsdecls('p', 'a')
-        )
-        false_expected_xml = (
-            '<p:txBody %s>\n  <a:bodyPr wrap="none"/>\n  <a:p>\n    <a:r>\n '
-            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
-            nsdecls('p', 'a')
-        )
-        none_expected_xml = (
-            '<p:txBody %s>\n  <a:bodyPr/>\n  <a:p>\n    <a:r>\n '
-            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
-            nsdecls('p', 'a')
-        )
-
-        txBody = parse_xml_bytes(txBody_xml)
-        textframe = TextFrame(txBody)
-
-        self.assertEqual(textframe.word_wrap, None)
-
-        # exercise ---------------------
-        textframe.word_wrap = True
-        # verify -----------------------
-        self.assertEqualLineByLine(
-            true_expected_xml, textframe._txBody)
-        self.assertEqual(textframe.word_wrap, True)
-
-        # exercise ---------------------
-        textframe.word_wrap = False
-        # verify -----------------------
-        self.assertEqualLineByLine(
-            false_expected_xml, textframe._txBody)
-        self.assertEqual(textframe.word_wrap, False)
-
-        # exercise ---------------------
-        textframe.word_wrap = None
-        # verify -----------------------
-        self.assertEqualLineByLine(
-            none_expected_xml, textframe._txBody)
-        self.assertEqual(textframe.word_wrap, None)
