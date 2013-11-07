@@ -24,6 +24,7 @@ import posixpath
 import weakref
 
 from datetime import datetime
+from itertools import groupby
 from StringIO import StringIO
 
 import pptx.packaging
@@ -39,11 +40,11 @@ from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
     CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
-    CT_SLIDE_MASTER, CT_SLIDESHOW, CT_TEMPLATE
+    CT_SLIDE_MASTER, CT_SLIDESHOW, CT_TEMPLATE, CT_WORKSHEET
 )
 from pptx.spec import (
-    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_SLIDE, RT_SLIDE_LAYOUT,
-    RT_SLIDE_MASTER
+    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PACKAGE, RT_SLIDE,
+    RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
 )
 
 from pptx.util import Collection, Px
@@ -547,6 +548,13 @@ class _Part(object):
             return _SlideMaster()
         elif reltype == RT_IMAGE:
             return _Image()
+        elif reltype == RT_PACKAGE:
+            if content_type in (CT_WORKSHEET,):
+                return _EmbeddedWorksheet()
+            else:
+                tmpl = ("Not a supported embedded package content type, "
+                    "got '%s'")
+                raise InvalidPackageError(tmpl % content_type)
         return _BasePart()
 
 
@@ -734,6 +742,7 @@ class Presentation(_BasePart):
         super(Presentation, self).__init__()
         self.__slidemasters = _PartCollection()
         self.__slides = _SlideCollection(self)
+        self.__embedded_packages = _EmbeddedPackageCollection(self)
 
     @property
     def slidemasters(self):
@@ -748,6 +757,14 @@ class Presentation(_BasePart):
         |_SlideCollection| object containing the slides in this presentation.
         """
         return self.__slides
+
+    @property
+    def embedded_packages(self):
+        """
+        |_EmbeddedPackageCollection| object containing the embedded packages
+        in this presentation.
+        """
+        return self.__embedded_packages
 
     @property
     def _blob(self):
@@ -1173,3 +1190,103 @@ class _SlideMaster(_BaseSlide):
             if rel._reltype == RT_SLIDE_LAYOUT:
                 self.__slidelayouts._loadpart(rel._target)
         return self
+
+
+# ============================================================================
+# Embedded Package Parts
+# ============================================================================
+
+class _EmbeddedPackageCollection(_PartCollection):
+    """
+    Immutable sequence of embedded packaged belonging to an instance of
+    |Presentation|, with methods for manipulating the packages in the
+    presentation.
+    """
+    def __init__(self, presentation):
+        super(_EmbeddedPackageCollection, self).__init__()
+        self.__presentation = presentation
+
+    def add_worksheet(self, package_file):
+        """Add a new embedded worksheet package."""
+        # FIXME - resolve how we handle contents.
+        # 1. construct new package
+        pkg = _EmbeddedWorksheet(package_file)
+        # 2. add it to this collection
+        self._values.append(pkg)
+        # 3. assign its partname
+        self.__rename_packages()
+        # FIXME - do we need to add some kind of relationship from the presentation?
+        # 4. return reference to new package
+        return pkg
+
+    def __rename_packages(self):
+        """
+        Assign partnames like ``/ppt/embeddings/Worksheet9.xlsx`` to all
+        packages in the collection. The number part forms a continuous
+        sequence starting at 1 (e.g. 1, 2, 3, ...). The name portion and
+        extension depends on the type of the package.
+        """
+        part_content_type = lambda v: v._content_type
+        values = sorted(self._values, key=part_content_type)
+        for content_type, group in groupby(values, part_content_type):
+            for idx, part in enumerate(group):
+                part.partname = ('/ppt/embeddings/%s%d%s' %
+                    (part._partname_base, idx+1, part._partname_extension))
+
+
+class _BaseEmbeddedPackage(_BasePart):
+    # FIXME - needs work
+    """
+    Base class for slide parts, e.g. slide, slideLayout, slideMaster,
+    notesSlide, notesMaster, and handoutMaster.
+    """
+    def __init__(self, content_type=None, package_file=None): # FIXME - package_file?
+        """
+        Needs content_type parameter so newly created parts (not loaded from
+        package) can register their content type. Needs package_file
+        parameter so newly created parts have a file-like to work with.
+        """
+        super(_BaseEmbeddedPackage, self).__init__(content_type)
+        if package_file is None:
+            package_file = StringIO()
+        self.__package_file = package_file
+
+    @property
+    def name(self):
+        """Internal name of this package object."""
+        return os.path.split(self.partname)[1]
+
+    def _load(self, pkgpart, part_dict):
+        """Handle aspects of loading that are general to slide types."""
+        # call parent to do generic aspects of load
+        super(_BaseEmbeddedPackage, self)._load(pkgpart, part_dict)
+        # unmarshal the package
+        # FIXME - Don't know how we can actually do this.
+        # Not even sure if this is all in the right module.
+        self.__package_file = StringIO() # FIXME
+        # return self-reference to allow generative calling
+        return self
+
+    @property
+    def _package(self):
+        """Reference to |_Package| containing this slide"""
+        return _Package.containing(self)
+
+    @property
+    def file(self):
+        """
+        The file-like object that contains the package contents.
+        """
+        return self.__package_file
+
+
+class _EmbeddedWorksheet(_BaseEmbeddedPackage):
+    """
+    Embedded worksheet part. Corresponds to package files
+    ``ppt/embeddings/Worksheet[1-9][0-9]*.xlsx``.
+    """
+    _partname_base = 'Worksheet'
+    _partname_extension = '.xlsx'
+
+    def __init__(self, package_file=None): # FIXME - not sure we want a file, tbh. Need to see how unmarshaling works
+        super(_EmbeddedWorksheet, self).__init__(CT_WORKSHEET, package_file)

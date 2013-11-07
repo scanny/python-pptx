@@ -1575,9 +1575,6 @@ CT_ENDNOTES = (
     'application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+'
     'xml'
 )
-CT_EXCEL_XLSX = (
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-)
 CT_EXTENDED_PROPS = (
     'application/vnd.openxmlformats-officedocument.extended-properties+xml'
 )
@@ -2224,6 +2221,19 @@ pml_parttypes = {
         'rels_from':   ['document'],
         'reltype':     RT_WML_COMMENTS
     },
+    CT_WORKSHEET: {  # Embedded worksheet package; ISO/IEC 29500-1 15.2.11
+        'basename':    'embeddings',
+        'ext':         '.xlsx',
+        'name':        'Embedded Excel Spreadsheet',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/ppt/embeddings',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['chart', 'handoutMaster', 'notesSlide',
+                        'notesMaster', 'slide', 'slideLayout',
+                        'slideMaster'],
+        'reltype':     RT_PACKAGE
+    },
     'image/bmp': {  # ECMA-376-1 15.2.14
         'basename':    'image',
         'ext':         '.bmp',
@@ -2347,7 +2357,7 @@ default_content_types = {
     '.tiff':    'image/tiff',
     '.wdp':     'image/vnd.ms-photo',
     '.wmf':     'image/x-wmf',
-    '.xlsx':    CT_EXCEL_XLSX,
+    '.xlsx':    CT_WORKSHEET,
     '.xml':     'application/xml'
 }
 
@@ -2360,6 +2370,7 @@ default_content_types = {
 
 nsmap = {
     'a':   'http://schemas.openxmlformats.org/drawingml/2006/main',
+    'c':   'http://schemas.openxmlformats.org/drawingml/2006/chart',
     'cp':  ('http://schemas.openxmlformats.org/package/2006/metadata/core-pro'
             'perties'),
     'ct':  'http://schemas.openxmlformats.org/package/2006/content-types',

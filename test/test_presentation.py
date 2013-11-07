@@ -29,19 +29,21 @@ from pptx.oxml import (
 )
 from pptx.packaging import prettify_nsdecls
 from pptx.presentation import (
-    _BasePart, _BaseSlide, _CoreProperties, _Image, _Package, _Part,
-    _PartCollection, Presentation, _Relationship, _RelationshipCollection,
-    _Slide, _SlideCollection, _SlideLayout, _SlideMaster
+    _BaseEmbeddedPackage, _BasePart, _BaseSlide, _CoreProperties,
+    _EmbeddedWorksheet, _EmbeddedPackageCollection, _Image, _Package,
+    _Part, _PartCollection, Presentation, _Relationship,
+    _RelationshipCollection, _Slide, _SlideCollection, _SlideLayout,
+    _SlideMaster
 )
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces, qtag
 from pptx.spec import (
     CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
-    CT_SLIDE_MASTER
+    CT_SLIDE_MASTER, CT_WORKSHEET
 )
 from pptx.spec import (
-    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PRES_PROPS, RT_SLIDE,
-    RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
+    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PACKAGE, RT_PRES_PROPS,
+    RT_SLIDE, RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
 )
 from pptx.util import Px
 from testing import TestCase
@@ -160,6 +162,25 @@ class RelationshipCollectionBuilder(object):
         if self.reltype_ordering:
             rels._reltype_ordering = self.reltype_ordering
         return rels
+
+
+class Test_BaseEmbeddedPackage(TestCase):
+    """Test _BaseEmbeddedPackage"""
+    def setUp(self):
+        self.base_package = _BaseEmbeddedPackage()
+
+    # FIXME - needs tests
+    # def test_name_value(self):
+    #     """_BaseEmbeddedPackage.name value is correct"""
+    #     # setup ------------------------
+    #     self.base_slide._element = _sldLayout1()
+    #     # exercise ---------------------
+    #     name = self.base_slide.name
+    #     # verify -----------------------
+    #     expected = 'Title Slide'
+    #     actual = name
+    #     msg = "expected '%s', got '%s'" % (expected, actual)
+    #     self.assertEqual(expected, actual, msg)
 
 
 class Test_BasePart(TestCase):
@@ -341,9 +362,70 @@ class Test_CoreProperties(TestCase):
         assert_that(modified_timedelta, less_than(max_expected_timedelta))
 
 
+class Test_EmbeddedWorksheet(TestCase):
+    """Test _EmbeddedWorksheet"""
+    def setUp(self):
+        self.emb = _EmbeddedWorksheet(StringIO())
+
+    def test_constructor_sets_correct_content_type(self):
+        """_EmbeddedWorksheet constructor sets correct content type"""
+        # exercise ---------------------
+        content_type = self.emb._content_type
+        # verify -----------------------
+        expected = CT_WORKSHEET
+        actual = content_type
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+
+class Test_EmbeddedPackageCollection(TestCase):
+    """Test _EmbeddedPackageCollection"""
+    def setUp(self):
+        prs = Presentation()
+        self.packages = _EmbeddedPackageCollection(prs)
+
+    def test_add_worksheet_returns_package(self):
+        """_EmbeddedPackageCollection.add_worksheet() returns instance of
+        _EmbeddedPackage"""
+        # exercise ---------------------
+        retval = self.packages.add_worksheet("")
+        # verify -----------------------
+        self.assertIsInstance(retval, _EmbeddedWorksheet)
+
+    def test_add_worksheet_sets_content(self):
+        """
+        _EmbeddedPackageCollection.add_worksheet() sets
+        _EmbeddedPackageCollection.contents
+        """
+        # setup ------------------------
+        contents = StringIO("Not a real worksheet")
+        pkg = self.packages.add_worksheet(contents)
+        # exercise ---------------------
+        retval = pkg.file
+        # verify -----------------------
+        expected = contents
+        actual = retval
+        msg = "expected: %s, got %s" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test_add_worksheet_sets_partname(self):
+        """_EmbeddedPackageCollection.add_worksheet() sets partname of new
+        slidpackage"""
+        # setup ------------------------
+        prs = Presentation()
+        packages = prs.embedded_packages
+        # exercise ---------------------
+        pkg = packages.add_worksheet("")
+        # verify -----------------------
+        expected = '/ppt/embeddings/Worksheet1.xlsx'
+        actual = pkg.partname
+        msg = "expected partname '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+
 class Test_Image(TestCase):
     """Test _Image"""
-    def test_construction_from_file(self):
+    def test_construction_from_streamion_from_file(self):
         """_Image(path) constructor produces correct attribute values"""
         # exercise ---------------------
         image = _Image(test_image_path)
@@ -567,6 +649,16 @@ class Test_Package(TestCase):
 
 class Test_Part(TestCase):
     """Test _Part"""
+    def test_constructs_embeddedworksheet_for_rt_package(self):
+        """_Part() returns _EmbeddedWorksheet for RT_PACKAGE with
+        CT_WORKSHEET"""
+        # setup ------------------------
+        cls = _EmbeddedWorksheet
+        # exercise ---------------------
+        obj = _Part(RT_PACKAGE, CT_WORKSHEET)
+        # verify -----------------------
+        self.assertIsInstance(obj, cls)
+
     def test_constructs_presentation_for_rt_officedocument(self):
         """_Part() returns Presentation for RT_OFFICE_DOCUMENT"""
         # setup ------------------------

@@ -17,7 +17,7 @@ from pptx.constants import (
     TEXT_ALIGN_TYPE as TAT, TEXT_ANCHORING_TYPE as TANC
 )
 from pptx.oxml import (
-    CT_CoreProperties, CT_GraphicalObjectFrame, CT_Picture,
+    CT_Chart, CT_CoreProperties, CT_GraphicalObjectFrame, CT_Picture,
     CT_PresetGeometry2D, CT_Shape, CT_Table, nsdecls, qn
 )
 from pptx.spec import (
@@ -216,6 +216,22 @@ class TestCT_CoreProperties(TestCase):
 
 class TestCT_GraphicalObjectFrame(TestCase):
     """Test CT_GraphicalObjectFrame"""
+    def test_has_chart_return_value(self):
+        """CT_GraphicalObjectFrame.has_chart property has correct value"""
+        # setup ------------------------
+        id_, name = 9, 'Chart 8'
+        left, top, width, height = 111, 222, 333, 444
+        tbl_uri = 'http://schemas.openxmlformats.org/drawingml/2006/table'
+        chart_uri = 'http://schemas.openxmlformats.org/drawingml/2006/chart'
+        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
+            id_, name, left, top, width, height)
+        graphicData = graphicFrame[qn('a:graphic')].graphicData
+        # verify -----------------------
+        graphicData.set('uri', chart_uri)
+        assert_that(graphicFrame.has_chart, is_(equal_to(True)))
+        graphicData.set('uri', tbl_uri)
+        assert_that(graphicFrame.has_chart, is_(equal_to(False)))
+
     def test_has_table_return_value(self):
         """CT_GraphicalObjectFrame.has_table property has correct value"""
         # setup ------------------------
@@ -249,6 +265,31 @@ class TestCT_GraphicalObjectFrame(TestCase):
         # exercise ---------------------
         graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
             id_, name, left, top, width, height)
+        # verify -----------------------
+        self.assertEqualLineByLine(xml, graphicFrame)
+
+    def test_new_chart_generates_correct_xml(self):
+        """CT_GraphicalObjectFrame.new_chart() returns correct XML"""
+        # setup ------------------------
+        id_, name, rId = 9, 'Chart 8', 'rId1'
+        rows, cols = 2, 3
+        left, top, width, height = 111, 222, 334, 445
+        xml = (
+            '<p:graphicFrame %s>\n  <p:nvGraphicFramePr>\n    <p:cNvP''r id="'
+            '%d" name="%s"/>\n    <p:cNvGraphicFramePr>\n      <a:graphicFram'
+            'eLocks noGrp="1"/>\n    </p:cNvGraphicFramePr>\n    <p:nvPr/>\n '
+            ' </p:nvGraphicFramePr>\n  <p:xfrm>\n    <a:off x="%d" y="%d"/>\n'
+            '    <a:ext cx="%d" cy="%d"/>\n  </p:xfrm>\n  <a:graphic>\n    <a'
+            ':graphicData uri="http://schemas.openxmlformats.org/drawingml/20'
+            '06/chart">\n      <c:chart xmlns:c="http://schemas.openxmlformat'
+            's.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlforma'
+            'ts.org/officeDocument/2006/relationships" r:id="%s"/>\n    </a'
+            ':graphicData>\n  </a:graphic>\n</p:graphicFrame>\n' %
+            (nsdecls('a', 'p'), id_, name, left, top, width, height, rId)
+        )
+        # exercise ---------------------
+        graphicFrame = CT_GraphicalObjectFrame.new_chart(
+            id_, name, rId, left, top, width, height)
         # verify -----------------------
         self.assertEqualLineByLine(xml, graphicFrame)
 
@@ -530,6 +571,23 @@ class TestCT_Shape(TestCase):
         assert_that(rounded_rect_sp.prstGeom,
                     instance_of(CT_PresetGeometry2D))
         assert_that(placeholder_sp.prstGeom, is_(none()))
+
+
+class TestCT_Chart(TestCase):
+    """Test CT_Chart"""
+
+    def test_new_chart_generates_correct_xml(self):
+        """CT_Chart._new_chart() returns correct XML"""
+        # setup ------------------------
+        rId = 'rId1'
+        xml = (
+            '<c:chart %s %s r:id="%s"/>\n' %
+            (nsdecls('c'), nsdecls('r'), rId)
+        )
+        # exercise ---------------------
+        chart = CT_Chart.new_chart(rId)
+        # verify -----------------------
+        self.assertEqualLineByLine(xml, chart)
 
 
 class TestCT_Table(TestCase):
