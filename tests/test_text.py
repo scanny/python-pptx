@@ -10,15 +10,15 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx.constants import MSO, PP
 from pptx.oxml import parse_xml_bytes
-from pptx.oxml.core import SubElement
 from pptx.oxml.ns import namespaces, nsdecls
+from pptx.oxml.text import CT_TextParagraph
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
 from pptx.util import Pt
 
 from .oxml.unitdata.text import a_p, a_pPr, a_t, an_r, an_rPr
 from .unitutil import (
-    absjoin, actual_xml, parse_xml_file, serialize_xml, TestCase,
-    test_file_dir
+    absjoin, actual_xml, instance_mock, parse_xml_file, serialize_xml,
+    TestCase, test_file_dir
 )
 
 
@@ -116,30 +116,10 @@ class Describe_Paragraph(object):
         paragraph.alignment = None
         assert paragraph._pPr.algn is None
 
-    def test_clear_removes_all_runs(self, pList):
-        """_Paragraph.clear() removes all runs from paragraph"""
-        # setup ------------------------
-        p = pList[2]
-        SubElement(p, 'a:pPr')
-        paragraph = _Paragraph(p)
-        assert_that(len(paragraph.runs), is_(equal_to(2)))
-        # exercise ---------------------
+    def it_can_delete_the_text_it_contains(self, paragraph, p_):
+        paragraph._p = p_
         paragraph.clear()
-        # verify -----------------------
-        assert len(paragraph.runs) == 0
-
-    def test_clear_preserves_paragraph_properties(self, test_text):
-        """_Paragraph.clear() preserves paragraph properties"""
-        # setup ------------------------
-        p_xml = ('<a:p %s><a:pPr lvl="1"/><a:r><a:t>%s</a:t></a:r></a:p>' %
-                 (nsdecls('a'), test_text))
-        p_elm = parse_xml_bytes(p_xml)
-        paragraph = _Paragraph(p_elm)
-        expected_p_xml = '<a:p %s><a:pPr lvl="1"/></a:p>' % nsdecls('a')
-        # exercise ---------------------
-        paragraph.clear()
-        # verify -----------------------
-        assert serialize_xml(paragraph._p) == expected_p_xml
+        p_.remove_child_r_elms.assert_called_once_with()
 
     def test_set_font_size(self, paragraph_with_text):
         """Assignment to _Paragraph.font.size changes font size"""
@@ -237,6 +217,10 @@ class Describe_Paragraph(object):
     @pytest.fixture
     def pList(self, sld, xpath):
         return sld.xpath(xpath, namespaces=nsmap)
+
+    @pytest.fixture
+    def p_(self, request):
+        return instance_mock(request, CT_TextParagraph)
 
     @pytest.fixture
     def p_bldr(self):

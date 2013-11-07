@@ -148,10 +148,7 @@ class _Paragraph(object):
         Remove all runs from this paragraph. Paragraph properties are
         preserved.
         """
-        # self._p.remove_child_r_elms()
-        pPr = self._pPr
-        self._p.clear()
-        self._p.insert(0, pPr)
+        self._p.remove_child_r_elms()
 
     @property
     def font(self):
