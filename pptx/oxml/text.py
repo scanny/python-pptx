@@ -10,7 +10,7 @@ from lxml import objectify
 
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, SubElement
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import nsdecls, qn
 
 
 class CT_TextBody(objectify.ObjectifiedElement):
@@ -48,6 +48,16 @@ class CT_TextParagraph(objectify.ObjectifiedElement):
         except AttributeError:
             self.append(r)
         return r
+
+    def remove_child_r_elms(self):
+        """
+        Return self after removing all <a:r> child elements.
+        """
+        children = self.getchildren()
+        for child in children:
+            if child.tag == qn('a:r'):
+                self.remove(child)
+        return self
 
     def get_or_add_pPr(self):
         """

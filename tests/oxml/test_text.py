@@ -35,12 +35,24 @@ class DescribeCT_TextParagraph(object):
         p.add_r()
         assert actual_xml(p) == p_with_r_with_endParaRPr_xml
 
+    def it_can_remove_all_its_r_child_elements(
+            self, p_with_r_children, p_xml):
+        p = p_with_r_children.remove_child_r_elms()
+        assert actual_xml(p) == p_xml
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def p(self):
-        p_bldr = a_p().with_nsdecls()
+    def p(self, p_bldr):
         return p_bldr.element
+
+    @pytest.fixture
+    def p_bldr(self):
+        return a_p().with_nsdecls()
+
+    @pytest.fixture
+    def p_xml(self, p_bldr):
+        return p_bldr.xml()
 
     @pytest.fixture
     def pPr(self):
@@ -67,6 +79,14 @@ class DescribeCT_TextParagraph(object):
         pPr_bldr = a_pPr()
         p_with_pPr_bldr = a_p().with_nsdecls().with_child(pPr_bldr)
         return p_with_pPr_bldr.xml()
+
+    @pytest.fixture
+    def p_with_r_children(self):
+        r_bldr = an_r().with_child(a_t())
+        p_bldr = a_p().with_nsdecls()
+        p_bldr = p_bldr.with_child(r_bldr)
+        p_bldr = p_bldr.with_child(r_bldr)
+        return p_bldr.element
 
     @pytest.fixture
     def p_with_r_with_endParaRPr_xml(self):
