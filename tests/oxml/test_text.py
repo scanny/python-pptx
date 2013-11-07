@@ -6,10 +6,40 @@ from __future__ import absolute_import
 
 import pytest
 
-from pptx.oxml.text import CT_TextParagraph, CT_TextParagraphProperties
+from pptx.oxml.text import (
+    CT_TextCharacterProperties, CT_TextParagraph, CT_TextParagraphProperties
+)
 
-from ..oxml.unitdata.text import a_p, a_pPr, a_t, an_endParaRPr, an_r
+from ..oxml.unitdata.text import (
+    a_defRPr, a_p, a_pPr, a_t, an_endParaRPr, an_r, an_rPr
+)
 from ..unitutil import actual_xml
+
+
+class DescribeCT_TextCharacterProperties(object):
+
+    def it_is_used_by_the_parser_for_a_defRPr_element(self, defRPr):
+        assert isinstance(defRPr, CT_TextCharacterProperties)
+
+    def it_is_used_by_the_parser_for_an_endParaRPr_element(self, endParaRPr):
+        assert isinstance(endParaRPr, CT_TextCharacterProperties)
+
+    def it_is_used_by_the_parser_for_an_rPr_element(self, rPr):
+        assert isinstance(rPr, CT_TextCharacterProperties)
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def defRPr(self):
+        return a_defRPr().with_nsdecls().element
+
+    @pytest.fixture
+    def endParaRPr(self):
+        return an_endParaRPr().with_nsdecls().element
+
+    @pytest.fixture
+    def rPr(self):
+        return an_rPr().with_nsdecls().element
 
 
 class DescribeCT_TextParagraph(object):

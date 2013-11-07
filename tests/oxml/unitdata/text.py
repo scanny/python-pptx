@@ -126,6 +126,10 @@ class CT_TextCharacterPropertiesBuilder(BaseBuilder):
         super(CT_TextCharacterPropertiesBuilder, self).__init__()
 
 
+def a_defRPr():
+    return CT_TextCharacterPropertiesBuilder('a:defRPr')
+
+
 def an_endParaRPr():
     return CT_TextCharacterPropertiesBuilder('a:endParaRPr')
 

@@ -32,6 +32,14 @@ class CT_TextBody(objectify.ObjectifiedElement):
         return txBody
 
 
+class CT_TextCharacterProperties(objectify.ObjectifiedElement):
+    """
+    Custom element class for all of <a:rPr>, <a:defRPr>, and <a:endParaRPr>
+    elements. 'rPr' is short for 'run properties', and it corresponds to the
+    _Font proxy class.
+    """
+
+
 class CT_TextParagraph(objectify.ObjectifiedElement):
     """
     <a:p> custom element class
