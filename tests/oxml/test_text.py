@@ -74,6 +74,15 @@ class DescribeCT_TextCharacterProperties(object):
         assert rPr_with_false_b.b is False
         assert rPr.b is None
 
+    def it_can_set_the_b_value(
+            self, rPr, rPr_with_true_b_xml, rPr_with_false_b_xml, rPr_xml):
+        rPr.b = True
+        assert actual_xml(rPr) == rPr_with_true_b_xml
+        rPr.b = False
+        assert actual_xml(rPr) == rPr_with_false_b_xml
+        rPr.b = None
+        assert actual_xml(rPr) == rPr_xml
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -89,12 +98,24 @@ class DescribeCT_TextCharacterProperties(object):
         return an_rPr().with_nsdecls().element
 
     @pytest.fixture
+    def rPr_xml(self):
+        return an_rPr().with_nsdecls().xml()
+
+    @pytest.fixture
     def rPr_with_false_b(self):
         return an_rPr().with_nsdecls().with_b('false').element
 
     @pytest.fixture
+    def rPr_with_false_b_xml(self):
+        return an_rPr().with_nsdecls().with_b(0).xml()
+
+    @pytest.fixture
     def rPr_with_true_b(self):
         return an_rPr().with_nsdecls().with_b(1).element
+
+    @pytest.fixture
+    def rPr_with_true_b_xml(self):
+        return an_rPr().with_nsdecls().with_b(1).xml()
 
 
 class DescribeCT_TextParagraph(object):
