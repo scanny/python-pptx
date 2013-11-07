@@ -134,11 +134,7 @@ class _Font(object):
         present, meaning the effective bold value is inherited from a master
         or the theme.
         """
-        # return self._rPr.b
-        b = self._rPr.get('b')
-        if b is None:
-            return None
-        return True if b in ('true', '1') else False
+        return self._rPr.b
 
     @bold.setter
     def bold(self, bool):
