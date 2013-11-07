@@ -54,26 +54,35 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
     elements. 'rPr' is short for 'run properties', and it corresponds to the
     _Font proxy class.
     """
+    def __getattr__(self, name):
+        """
+        Override ``__getattr__`` defined in ObjectifiedElement super class
+        to intercept messages intended for custom property setters.
+        """
+        if name in ('b', 'i'):
+            return self._get_bool_attr(name)
+        else:
+            return super(CT_TextCharacterProperties, self).__getattr__(name)
+
     def __setattr__(self, name, value):
         """
         Override ``__setattr__`` defined in ObjectifiedElement super class
         to intercept messages intended for custom property setters.
         """
-        if name in ('b',):
+        if name in ('b', 'i'):
             self._set_bool_attr(name, value)
         else:
             super(CT_TextCharacterProperties, self).__setattr__(name, value)
 
-    @property
-    def b(self):
+    def _get_bool_attr(self, name):
         """
-        True if 'b' attribute is a truthy value, False if a falsey value, and
-        None if no 'b' attribute is present.
+        True if *name* attribute is a truthy value, False if a falsey value,
+        and None if no *name* attribute is present.
         """
-        b = self.get('b')
-        if b is None:
+        attr_str = self.get(name)
+        if attr_str is None:
             return None
-        if b in ('true', '1'):
+        if attr_str in ('true', '1'):
             return True
         return False
 

@@ -83,6 +83,20 @@ class DescribeCT_TextCharacterProperties(object):
         rPr.b = None
         assert actual_xml(rPr) == rPr_xml
 
+    def it_knows_the_i_value(self, rPr_with_true_i, rPr_with_false_i, rPr):
+        assert rPr_with_true_i.i is True
+        assert rPr_with_false_i.i is False
+        assert rPr.i is None
+
+    def it_can_set_the_i_value(
+            self, rPr, rPr_with_true_i_xml, rPr_with_false_i_xml, rPr_xml):
+        rPr.i = True
+        assert actual_xml(rPr) == rPr_with_true_i_xml
+        rPr.i = False
+        assert actual_xml(rPr) == rPr_with_false_i_xml
+        rPr.i = None
+        assert actual_xml(rPr) == rPr_xml
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -110,12 +124,28 @@ class DescribeCT_TextCharacterProperties(object):
         return an_rPr().with_nsdecls().with_b(0).xml()
 
     @pytest.fixture
+    def rPr_with_false_i(self):
+        return an_rPr().with_nsdecls().with_i('false').element
+
+    @pytest.fixture
+    def rPr_with_false_i_xml(self):
+        return an_rPr().with_nsdecls().with_i(0).xml()
+
+    @pytest.fixture
     def rPr_with_true_b(self):
         return an_rPr().with_nsdecls().with_b(1).element
 
     @pytest.fixture
     def rPr_with_true_b_xml(self):
         return an_rPr().with_nsdecls().with_b(1).xml()
+
+    @pytest.fixture
+    def rPr_with_true_i(self):
+        return an_rPr().with_nsdecls().with_i(1).element
+
+    @pytest.fixture
+    def rPr_with_true_i_xml(self):
+        return an_rPr().with_nsdecls().with_i(1).xml()
 
 
 class DescribeCT_TextParagraph(object):
