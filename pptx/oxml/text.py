@@ -101,6 +101,19 @@ class CT_TextParagraphProperties(objectify.ObjectifiedElement):
         """
         return self.get('algn')
 
+    def get_or_add_defRPr(self):
+        """
+        Return the <a:defRPr> child element of this <a:pPr> element, newly
+        added if not already present.
+        """
+        if not hasattr(self, 'defRPr'):
+            defRPr = Element('a:defRPr')
+            try:
+                self.extLst.addprevious(defRPr)
+            except AttributeError:
+                self.append(defRPr)
+        return self.defRPr
+
     def _set_attr(self, name, value):
         """
         Set attribute of this element having *name* to *value*.

@@ -11,7 +11,7 @@ from pptx.oxml.text import (
 )
 
 from ..oxml.unitdata.text import (
-    a_defRPr, a_p, a_pPr, a_t, an_endParaRPr, an_r, an_rPr
+    a_defRPr, a_p, a_pPr, a_t, an_endParaRPr, an_extLst, an_r, an_rPr
 )
 from ..unitutil import actual_xml
 
@@ -145,7 +145,26 @@ class DescribeCT_TextParagraphProperties(object):
         pPr.algn = None
         assert actual_xml(pPr) == pPr_xml
 
+    def it_can_get_the_defRPr_child_element(self, pPr_with_defRPr, defRPr):
+        _defRPr = pPr_with_defRPr.get_or_add_defRPr()
+        assert _defRPr is defRPr
+
+    def it_adds_a_defRPr_if_pPr_doesnt_have_one(
+            self, pPr, pPr_with_defRPr_xml):
+        pPr.get_or_add_defRPr()
+        assert actual_xml(pPr) == pPr_with_defRPr_xml
+
+    def it_adds_defRPr_element_in_correct_sequence(
+            self, pPr_with_extLst, pPr_with_defRPr_with_extLst_xml):
+        pPr = pPr_with_extLst
+        pPr.get_or_add_defRPr()
+        assert actual_xml(pPr) == pPr_with_defRPr_with_extLst_xml
+
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def defRPr(self):
+        return a_defRPr().with_nsdecls().element
 
     @pytest.fixture
     def pPr(self, pPr_bldr):
@@ -170,3 +189,30 @@ class DescribeCT_TextParagraphProperties(object):
     @pytest.fixture
     def pPr_with_algn_xml(self, pPr_with_algn_bldr):
         return pPr_with_algn_bldr.xml()
+
+    @pytest.fixture
+    def pPr_with_defRPr(self, pPr_bldr, defRPr):
+        pPr = pPr_bldr.element
+        pPr.append(defRPr)
+        return pPr
+
+    @pytest.fixture
+    def pPr_with_defRPr_with_extLst_xml(self):
+        defRPr_bldr = a_defRPr()
+        extLst_bldr = an_extLst()
+        pPr_bldr = a_pPr().with_nsdecls()
+        pPr_bldr = pPr_bldr.with_child(defRPr_bldr)
+        pPr_bldr = pPr_bldr.with_child(extLst_bldr)
+        return pPr_bldr.xml()
+
+    @pytest.fixture
+    def pPr_with_defRPr_xml(self):
+        defRPr_bldr = a_defRPr()
+        pPr_bldr = a_pPr().with_nsdecls().with_child(defRPr_bldr)
+        return pPr_bldr.xml()
+
+    @pytest.fixture
+    def pPr_with_extLst(self):
+        extLst_bldr = an_extLst()
+        pPr_bldr = a_pPr().with_nsdecls().with_child(extLst_bldr)
+        return pPr_bldr.element

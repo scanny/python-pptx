@@ -1,6 +1,8 @@
 # encoding: utf-8
 
-"""Test data for unit tests"""
+"""
+XML test data builders for pptx.oxml.text unit tests
+"""
 
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import nsdecls
@@ -101,6 +103,16 @@ class BaseBuilder(object):
         for xmlattr_name in sorted(self._xmlattrs.keys()):
             xmlattrs_str += self._xmlattrs[xmlattr_name]
         return xmlattrs_str
+
+
+class CT_OfficeArtExtensionList(BaseBuilder):
+    __tag__ = 'a:extLst'
+    __nspfxs__ = ('a',)
+    __attrs__ = ()
+
+
+def an_extLst():
+    return CT_OfficeArtExtensionList()
 
 
 class CT_RegularTextRunBuilder(BaseBuilder):
