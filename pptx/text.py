@@ -113,6 +113,53 @@ class TextFrame(object):
         p.clear()
 
 
+class _Font(object):
+    """
+    Character properties object, providing font size, font name, bold,
+    italic, etc. Corresponds to ``<a:rPr>`` child element of a run. Also
+    appears as ``<a:defRPr>`` and ``<a:endParaRPr>`` in paragraph and
+    ``<a:defRPr>`` in list style elements.
+    """
+    def __init__(self, rPr):
+        super(_Font, self).__init__()
+        self._rPr = rPr
+
+    @property
+    def bold(self):
+        """
+        Get or set boolean bold value of |_Font|, e.g.
+        ``paragraph.font.bold = True``. If set to |None|, the bold setting is
+        cleared and is inherited from an enclosing shape's setting, or a
+        setting in a style or master. Returns None if no bold attribute is
+        present, meaning the effective bold value is inherited from a master
+        or the theme.
+        """
+        b = self._rPr.get('b')
+        if b is None:
+            return None
+        return True if b in ('true', '1') else False
+
+    @bold.setter
+    def bold(self, bool):
+        if bool is None:
+            if 'b' in self._rPr.attrib:
+                del self._rPr.attrib['b']
+        else:
+            self._rPr.set('b', '1' if bool else '0')
+
+    def _set_size(self, centipoints):
+        # handle float centipoints value gracefully
+        centipoints = int(centipoints)
+        self._rPr.set('sz', str(centipoints))
+
+    #: Set the font size. In PresentationML, font size is expressed in
+    #: hundredths of a point (centipoints). The :class:`pptx.util.Pt` class
+    #: allows convenient conversion to centipoints from float or integer point
+    #: values, e.g. ``Pt(12.5)``. I'm pretty sure I just made up the word
+    #: *centipoint*, but it seems apt :).
+    size = property(None, _set_size)
+
+
 class _Paragraph(object):
     """
     Paragraph object. Not intended to be constructed directly.
@@ -223,53 +270,6 @@ class _Paragraph(object):
     #: string, or unicode. String values are converted to unicode assuming
     #: UTF-8 encoding.
     text = property(None, _set_text)
-
-
-class _Font(object):
-    """
-    Character properties object, providing font size, font name, bold,
-    italic, etc. Corresponds to ``<a:rPr>`` child element of a run. Also
-    appears as ``<a:defRPr>`` and ``<a:endParaRPr>`` in paragraph and
-    ``<a:defRPr>`` in list style elements.
-    """
-    def __init__(self, rPr):
-        super(_Font, self).__init__()
-        self._rPr = rPr
-
-    @property
-    def bold(self):
-        """
-        Get or set boolean bold value of |_Font|, e.g.
-        ``paragraph.font.bold = True``. If set to |None|, the bold setting is
-        cleared and is inherited from an enclosing shape's setting, or a
-        setting in a style or master. Returns None if no bold attribute is
-        present, meaning the effective bold value is inherited from a master
-        or the theme.
-        """
-        b = self._rPr.get('b')
-        if b is None:
-            return None
-        return True if b in ('true', '1') else False
-
-    @bold.setter
-    def bold(self, bool):
-        if bool is None:
-            if 'b' in self._rPr.attrib:
-                del self._rPr.attrib['b']
-        else:
-            self._rPr.set('b', '1' if bool else '0')
-
-    def _set_size(self, centipoints):
-        # handle float centipoints value gracefully
-        centipoints = int(centipoints)
-        self._rPr.set('sz', str(centipoints))
-
-    #: Set the font size. In PresentationML, font size is expressed in
-    #: hundredths of a point (centipoints). The :class:`pptx.util.Pt` class
-    #: allows convenient conversion to centipoints from float or integer point
-    #: values, e.g. ``Pt(12.5)``. I'm pretty sure I just made up the word
-    #: *centipoint*, but it seems apt :).
-    size = property(None, _set_size)
 
 
 class _Run(object):
