@@ -15,14 +15,16 @@ from hamcrest import assert_that, equal_to, is_, is_not, same_instance
 from mock import MagicMock, Mock, patch, PropertyMock
 # from unittest2 import skip
 
+import pptx.api
+
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP
 from pptx.oxml import (
     _SubElement, nsdecls, oxml_fromstring, oxml_parse, oxml_tostring
 )
-from pptx.presentation import _SlideLayout
+from pptx.presentation import Presentation, _Package, _SlideLayout
 from pptx.shapes import (
     _Adjustment, _AdjustmentCollection, _AutoShapeType, _BaseShape, _Cell,
-    _CellCollection, _Column, _ColumnCollection, _Font, _Paragraph,
+    _CellCollection, _Chart, _Column, _ColumnCollection, _Font, _Paragraph,
     _Placeholder, _Row, _RowCollection, _Run, _Shape, _ShapeCollection,
     _TextFrame, _to_unicode
 )
@@ -52,6 +54,7 @@ test_bmp_path = absjoin(test_file_dir, 'python.bmp')
 new_image_path = absjoin(test_file_dir, 'monty-truth.png')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
+chart_xlsx_path = absjoin(test_file_dir, 'charts.xlsx')
 
 nsmap = namespaces('a', 'r', 'p')
 
@@ -1315,6 +1318,43 @@ class Test_ShapeCollection(TestCase):
         __spTree.append.assert_called_once_with(sp)
         assert_that(shapes._ShapeCollection__shapes[0], is_(equal_to(shape)))
         assert_that(retval, is_(equal_to(shape)))
+
+    def test_add_embedded_spreadsheet_chart(self):
+        """_ShapeCollection.add_embedded_spreadsheet_chart adds the chart and
+        its required relationships."""
+        # setup ------------------------
+        left = top = Inches(1.0)
+        width = Inches(4.0)
+        height = Inches(3.0)
+        prs = pptx.api.Presentation()
+        xlsx_file = file(chart_xlsx_path, 'rb')
+        spreadsheet = prs.embedded_packages.add_spreadsheet(xlsx_file)
+        es_chart = iter(spreadsheet.charts()).next()
+        slide = prs.slides.add_slide(prs.slidelayouts[0])
+        shapes = slide.shapes
+        # exercise ---------------------
+        retval = shapes.add_embedded_spreadsheet_chart(es_chart, left, top, width, height)
+        # verify -----------------------
+        msg = "expected '%s' instance, got '%s'" % (_Chart, type(retval))
+        self.assertTrue(isinstance(retval, _Chart))
+        # self.assserTrue
+        # expected =
+        # actual = retval
+        # msg = "expected '%s', got '%s'" % (expected, actual)
+        # self.assertEqual(expected, actual, msg)
+
+        # FIXME - need a ChartCollection so we can add embedded charts.
+        # Cos a chart could potentially be embedded on multiple slides, so
+        # add_embedded_spreadsheet_chart() can't be responsible for adding the chart
+        # to the package.
+
+        # FIXME - assert the chart was added.
+        # FIXME - assert there’s a relationship from the slide to the chart.
+        # FIXME - assert there's a relationship from the chart to the spreadsheet.
+        # FIXME - assert the chart’s externalData element is present and refers to the right relationship.
+        # FIXME - assert somewhere that the spreadsheet gets saved inside the pptx
+        # FIXME - assert somewhere that the charts get saved inside the pptx
+
 
     def test_title_value(self):
         """_ShapeCollection.title value is ref to correct shape"""

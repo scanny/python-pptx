@@ -384,10 +384,10 @@ class Test_EmbeddedSpreadsheet(TestCase):
         xlsx_file = file(chart_xlsx_path, 'rb')
         spreadsheet = _EmbeddedSpreadsheet(xlsx_file)
         # exercise ---------------------
-        worksheet_charts = list(spreadsheet.charts())
+        charts = list(spreadsheet.charts())
         # verify -----------------------
         expected = ['/xl/charts/chart1.xml', '/xl/charts/chart2.xml']
-        actual = [ch._part.partname for ch in worksheet_charts]
+        actual = [ch._part.partname for ch in charts]
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
@@ -398,22 +398,22 @@ class Test_EmbeddedPackageCollection(TestCase):
         prs = Presentation()
         self.packages = _EmbeddedPackageCollection(prs)
 
-    def test_add_worksheet_returns_package(self):
-        """_EmbeddedPackageCollection.add_worksheet() returns instance of
+    def test_add_spreadsheet_returns_package(self):
+        """_EmbeddedPackageCollection.add_spreadsheet() returns instance of
         _EmbeddedPackage"""
         # exercise ---------------------
-        retval = self.packages.add_worksheet("")
+        retval = self.packages.add_spreadsheet("")
         # verify -----------------------
         self.assertIsInstance(retval, _EmbeddedSpreadsheet)
 
-    def test_add_worksheet_sets_content(self):
+    def test_add_spreadsheet_sets_content(self):
         """
-        _EmbeddedPackageCollection.add_worksheet() sets
+        _EmbeddedPackageCollection.add_spreadsheet() sets
         _EmbeddedPackageCollection.contents
         """
         # setup ------------------------
         contents = StringIO("Not a real worksheet")
-        pkg = self.packages.add_worksheet(contents)
+        pkg = self.packages.add_spreadsheet(contents)
         # exercise ---------------------
         retval = pkg.file
         # verify -----------------------
@@ -422,14 +422,14 @@ class Test_EmbeddedPackageCollection(TestCase):
         msg = "expected: %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    def test_add_worksheet_sets_partname(self):
-        """_EmbeddedPackageCollection.add_worksheet() sets partname of new
+    def test_add_spreadsheet_sets_partname(self):
+        """_EmbeddedPackageCollection.add_spreadsheet() sets partname of new
         slidpackage"""
         # setup ------------------------
         prs = Presentation()
         packages = prs.embedded_packages
         # exercise ---------------------
-        pkg = packages.add_worksheet("")
+        pkg = packages.add_spreadsheet("")
         # verify -----------------------
         expected = '/ppt/embeddings/Worksheet1.xlsx'
         actual = pkg.partname

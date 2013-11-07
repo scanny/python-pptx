@@ -1206,8 +1206,8 @@ class _EmbeddedPackageCollection(_PartCollection):
         super(_EmbeddedPackageCollection, self).__init__()
         self.__presentation = presentation
 
-    def add_worksheet(self, package_file):
-        """Add a new embedded worksheet package."""
+    def add_spreadsheet(self, package_file):
+        """Add a new embedded spreadsheet package."""
         # FIXME - resolve how we handle contents.
         # FIXME - don't think we can blindly accept a file like this,
         # without copying it in some way or other.

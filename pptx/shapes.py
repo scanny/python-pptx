@@ -479,6 +479,23 @@ class _ShapeCollection(_BaseShape, Collection):
                 return shape
         return None
 
+    def add_embedded_spreadsheet_chart(self, es_chart, left, top, width, height):
+        """
+        Add a chart shape copied from the given spreadsheet chart at the
+        specified position with the specified size.
+        """
+        # FIXME - needs test
+        id = self.__next_shape_id
+        name = 'Chart %d' % (id-1)
+        # FIXME - create a relationship!
+        rId = 'FIXME'
+        graphicFrame = CT_GraphicalObjectFrame.new_chart(
+            id, name, rId, left, top, width, height)
+        self.__spTree.append(graphicFrame)
+        chart = _Chart(graphicFrame)
+        self.__shapes.append(chart)
+        return chart
+
     def add_picture(self, file, left, top, width=None, height=None):
         """
         Add picture shape displaying image in *file*, where *file* can be
@@ -732,6 +749,49 @@ class _Shape(_BaseShape):
             return MSO.TEXT_BOX
         msg = '_Shape instance of unrecognized shape type'
         raise NotImplementedError(msg)
+
+
+# ============================================================================
+# Chart-related classes
+# ============================================================================
+
+class _Chart(_BaseShape):
+    """
+    A chart shape. Not intended to be constructed directly, use
+    :meth:`_ShapeCollection.add_embedded_spreadsheet_chart` to add a chart
+    to a slide.
+    """
+    def __init__(self, graphicFrame):
+        super(_Chart, self).__init__(graphicFrame)
+        self.__graphicFrame = graphicFrame
+
+        from pptx.oxml import oxml_tostring
+        print oxml_tostring(graphicFrame)
+        print
+
+        self.__chart_elm = graphicFrame[qn('a:graphic')].graphicData[qn('c:chart')]
+
+    @property
+    def height(self):
+        """
+        Read-only integer height of table in English Metric Units (EMU)
+        """
+        return int(self.__graphicFrame.xfrm[qn('a:ext')].get('cy'))
+
+    @property
+    def shape_type(self):
+        """
+        Unique integer identifying the type of this shape, unconditionally
+        ``MSO.CHART`` in this case.
+        """
+        return MSO.CHART
+
+    @property
+    def width(self):
+        """
+        Read-only integer width of table in English Metric Units (EMU)
+        """
+        return int(self.__graphicFrame.xfrm[qn('a:ext')].get('cx'))
 
 
 # ============================================================================

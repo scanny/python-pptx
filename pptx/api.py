@@ -67,6 +67,10 @@ class Presentation(object):
         """
         return self._presentation.slides
 
+    @property
+    def embedded_packages(self):
+        return self._presentation.embedded_packages
+
     def save(self, file):
         """
         Save this presentation to *file*, where *file* can be either a path to
