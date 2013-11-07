@@ -11,7 +11,9 @@ from hamcrest import assert_that, equal_to, is_
 from pptx.constants import MSO, PP
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, nsdecls
-from pptx.oxml.text import CT_TextParagraph
+from pptx.oxml.text import (
+    CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
+)
 from pptx.text import _Font, _Paragraph, _Run, TextFrame
 
 from .oxml.unitdata.text import a_p, a_pPr, a_t, an_r, an_rPr
@@ -403,6 +405,14 @@ class Describe_Paragraph(object):
 
 class Describe_Run(object):
 
+    def it_provides_access_to_the_font_of_the_run(
+            self, r_, _Font_, rPr_, font_):
+        run = _Run(r_)
+        font = run.font
+        r_.get_or_add_rPr.assert_called_once_with()
+        _Font_.assert_called_once_with(rPr_)
+        assert font == font_
+
     def it_can_get_the_text_of_the_run(self, run, test_text):
         assert run.text == test_text
 
@@ -413,8 +423,28 @@ class Describe_Run(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def test_text(self):
-        return 'test text'
+    def _Font_(self, request, font_):
+        _Font_ = class_mock(request, 'pptx.text._Font')
+        _Font_.return_value = font_
+        return _Font_
+
+    @pytest.fixture
+    def font_(self, request):
+        return instance_mock(request, 'pptx.text._Font')
+
+    @pytest.fixture
+    def r(self, r_xml):
+        return parse_xml_bytes(r_xml)
+
+    @pytest.fixture
+    def rPr_(self, request):
+        return instance_mock(request, CT_TextCharacterProperties)
+
+    @pytest.fixture
+    def r_(self, request, rPr_):
+        r_ = instance_mock(request, CT_RegularTextRun)
+        r_.get_or_add_rPr.return_value = rPr_
+        return r_
 
     @pytest.fixture
     def r_xml(self, test_text):
@@ -422,9 +452,9 @@ class Describe_Run(object):
                 (nsdecls('a'), test_text))
 
     @pytest.fixture
-    def r(self, r_xml):
-        return parse_xml_bytes(r_xml)
-
-    @pytest.fixture
     def run(self, r):
         return _Run(r)
+
+    @pytest.fixture
+    def test_text(self):
+        return 'test text'

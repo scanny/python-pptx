@@ -283,15 +283,14 @@ class _Run(object):
     @property
     def font(self):
         """
-        |_Font| object containing run-level character properties for the text
-        in this run. Character properties can and perhaps most often are
-        inherited from parent objects such as the paragraph and slide layout
-        the run is contained in. Only those specifically assigned at the run
-        level are contained in the |_Font| object.
+        |_Font| instance containing run-level character properties for the
+        text in this run. Character properties can be and perhaps most often
+        are inherited from parent objects such as the paragraph and slide
+        layout the run is contained in. Only those specifically overridden at
+        the run level are contained in the font object.
         """
-        if not hasattr(self._r, 'rPr'):
-            self._r.insert(0, Element('a:rPr'))
-        return _Font(self._r.rPr)
+        rPr = self._r.get_or_add_rPr()
+        return _Font(rPr)
 
     @property
     def text(self):
