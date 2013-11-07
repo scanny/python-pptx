@@ -30,7 +30,7 @@ from pptx.oxml import (
 from pptx.packaging import prettify_nsdecls
 from pptx.presentation import (
     _BaseEmbeddedPackage, _BasePart, _BaseSlide, _CoreProperties,
-    _EmbeddedWorksheet, _EmbeddedPackageCollection, _Image, _Package,
+    _EmbeddedSpreadsheet, _EmbeddedPackageCollection, _Image, _Package,
     _Part, _PartCollection, Presentation, _Relationship,
     _RelationshipCollection, _Slide, _SlideCollection, _SlideLayout,
     _SlideMaster
@@ -39,7 +39,7 @@ from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces, qtag
 from pptx.spec import (
     CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
-    CT_SLIDE_MASTER, CT_WORKSHEET
+    CT_SLIDE_MASTER, CT_SPREADSHEET
 )
 from pptx.spec import (
     RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PACKAGE, RT_PRES_PROPS,
@@ -73,6 +73,7 @@ test_bmp_path = absjoin(test_file_dir, 'python.bmp')
 new_image_path = absjoin(test_file_dir, 'monty-truth.png')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
+chart_xlsx_path = absjoin(test_file_dir, 'charts.xlsx')
 
 nsmap = namespaces('a', 'r', 'p')
 
@@ -362,18 +363,31 @@ class Test_CoreProperties(TestCase):
         assert_that(modified_timedelta, less_than(max_expected_timedelta))
 
 
-class Test_EmbeddedWorksheet(TestCase):
-    """Test _EmbeddedWorksheet"""
+class Test_EmbeddedSpreadsheet(TestCase):
+    """Test _EmbeddedSpreadsheet"""
     def setUp(self):
-        self.emb = _EmbeddedWorksheet(StringIO())
+        self.emb = _EmbeddedSpreadsheet(StringIO())
 
     def test_constructor_sets_correct_content_type(self):
-        """_EmbeddedWorksheet constructor sets correct content type"""
+        """_EmbeddedSpreadsheet constructor sets correct content type"""
         # exercise ---------------------
         content_type = self.emb._content_type
         # verify -----------------------
-        expected = CT_WORKSHEET
+        expected = CT_SPREADSHEET
         actual = content_type
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test_charts_yields_correct_charts(self):
+        """_EmbeddedSpreadsheet.charts() returns correct charts"""
+        # setup ------------------------
+        xlsx_file = file(chart_xlsx_path, 'rb')
+        spreadsheet = _EmbeddedSpreadsheet(xlsx_file)
+        # exercise ---------------------
+        worksheet_charts = list(spreadsheet.charts())
+        # verify -----------------------
+        expected = ['/xl/charts/chart1.xml', '/xl/charts/chart2.xml']
+        actual = [ch._part.partname for ch in worksheet_charts]
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
@@ -390,7 +404,7 @@ class Test_EmbeddedPackageCollection(TestCase):
         # exercise ---------------------
         retval = self.packages.add_worksheet("")
         # verify -----------------------
-        self.assertIsInstance(retval, _EmbeddedWorksheet)
+        self.assertIsInstance(retval, _EmbeddedSpreadsheet)
 
     def test_add_worksheet_sets_content(self):
         """
@@ -650,12 +664,12 @@ class Test_Package(TestCase):
 class Test_Part(TestCase):
     """Test _Part"""
     def test_constructs_embeddedworksheet_for_rt_package(self):
-        """_Part() returns _EmbeddedWorksheet for RT_PACKAGE with
-        CT_WORKSHEET"""
+        """_Part() returns _EmbeddedSpreadsheet for RT_PACKAGE with
+        CT_SPREADSHEET"""
         # setup ------------------------
-        cls = _EmbeddedWorksheet
+        cls = _EmbeddedSpreadsheet
         # exercise ---------------------
-        obj = _Part(RT_PACKAGE, CT_WORKSHEET)
+        obj = _Part(RT_PACKAGE, CT_SPREADSHEET)
         # verify -----------------------
         self.assertIsInstance(obj, cls)
 

@@ -39,8 +39,8 @@ from pptx.oxml import (
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
-    CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
-    CT_SLIDE_MASTER, CT_SLIDESHOW, CT_TEMPLATE, CT_WORKSHEET
+    CT_CHART, CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
+    CT_SLIDE_MASTER, CT_SLIDESHOW, CT_TEMPLATE, CT_SPREADSHEET
 )
 from pptx.spec import (
     RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PACKAGE, RT_SLIDE,
@@ -549,8 +549,8 @@ class _Part(object):
         elif reltype == RT_IMAGE:
             return _Image()
         elif reltype == RT_PACKAGE:
-            if content_type in (CT_WORKSHEET,):
-                return _EmbeddedWorksheet()
+            if content_type in (CT_SPREADSHEET,):
+                return _EmbeddedSpreadsheet()
             else:
                 tmpl = ("Not a supported embedded package content type, "
                     "got '%s'")
@@ -1209,8 +1209,10 @@ class _EmbeddedPackageCollection(_PartCollection):
     def add_worksheet(self, package_file):
         """Add a new embedded worksheet package."""
         # FIXME - resolve how we handle contents.
+        # FIXME - don't think we can blindly accept a file like this,
+        # without copying it in some way or other.
         # 1. construct new package
-        pkg = _EmbeddedWorksheet(package_file)
+        pkg = _EmbeddedSpreadsheet(package_file)
         # 2. add it to this collection
         self._values.append(pkg)
         # 3. assign its partname
@@ -1280,13 +1282,31 @@ class _BaseEmbeddedPackage(_BasePart):
         return self.__package_file
 
 
-class _EmbeddedWorksheet(_BaseEmbeddedPackage):
+class _EmbeddedSpreadsheet(_BaseEmbeddedPackage):
     """
-    Embedded worksheet part. Corresponds to package files
-    ``ppt/embeddings/Worksheet[1-9][0-9]*.xlsx``.
+    Embedded worksheet (Excel spreadsheet) part. Corresponds to package
+    files ``ppt/embeddings/Worksheet[1-9][0-9]*.xlsx``.
     """
     _partname_base = 'Worksheet'
     _partname_extension = '.xlsx'
 
     def __init__(self, package_file=None): # FIXME - not sure we want a file, tbh. Need to see how unmarshaling works
-        super(_EmbeddedWorksheet, self).__init__(CT_WORKSHEET, package_file)
+        super(_EmbeddedSpreadsheet, self).__init__(CT_SPREADSHEET, package_file)
+
+    def charts(self):
+        pkg = pptx.packaging.Package()
+        pkg.open(self.file)
+        for part in pkg.parts:
+            if part.content_type == CT_CHART:
+                yield _EmbeddedSpreadsheetChart(pkg, part)
+
+
+class _EmbeddedSpreadsheetChart(object):
+    """
+    Object representing an embedded worksheet chart. To be used with
+    _ShapeCollection.add_embedded_worksheet_chart().
+    """
+
+    def __init__(self, package, part):
+        self._package = package
+        self._part = part
