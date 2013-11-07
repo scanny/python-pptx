@@ -137,12 +137,8 @@ class _Font(object):
         return self._rPr.b
 
     @bold.setter
-    def bold(self, bool):
-        if bool is None:
-            if 'b' in self._rPr.attrib:
-                del self._rPr.attrib['b']
-        else:
-            self._rPr.set('b', '1' if bool else '0')
+    def bold(self, value):
+        self._rPr.b = value
 
     def _set_size(self, centipoints):
         # handle float centipoints value gracefully
