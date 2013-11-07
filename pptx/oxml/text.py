@@ -17,6 +17,14 @@ class CT_RegularTextRun(objectify.ObjectifiedElement):
     """
     Custom element class for <a:r> elements.
     """
+    def get_or_add_rPr(self):
+        """
+        Return the <a:rPr> child element of this <a:r> element, newly added
+        if not already present.
+        """
+        if not hasattr(self, 'rPr'):
+            self.insert(0, Element('a:rPr'))
+        return self.rPr
 
 
 class CT_TextBody(objectify.ObjectifiedElement):

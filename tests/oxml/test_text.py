@@ -24,11 +24,38 @@ class DescribeCT_RegularTextRun(object):
     def it_is_used_by_the_parser_for_an_r_element(self, r):
         assert isinstance(r, CT_RegularTextRun)
 
+    def it_can_get_the_rPr_child_element(self, r_with_rPr, rPr):
+        _rPr = r_with_rPr.get_or_add_rPr()
+        assert _rPr is rPr
+
+    def it_adds_rPr_element_in_proper_sequence_if_r_doesnt_have_one(
+            self, r, r_with_rPr_xml):
+        r.get_or_add_rPr()
+        assert actual_xml(r) == r_with_rPr_xml
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
     def r(self):
-        return an_r().with_nsdecls().element
+        return an_r().with_nsdecls().with_child(a_t()).element
+
+    @pytest.fixture
+    def rPr(self):
+        return an_rPr().with_nsdecls().element
+
+    @pytest.fixture
+    def r_with_rPr(self, r, rPr):
+        r.insert(0, rPr)
+        return r
+
+    @pytest.fixture
+    def r_with_rPr_xml(self):
+        rPr_bldr = an_rPr()
+        t_bldr = a_t()
+        r_bldr = an_r().with_nsdecls()
+        r_bldr.with_child(rPr_bldr)
+        r_bldr.with_child(t_bldr)
+        return r_bldr.xml()
 
 
 class DescribeCT_TextCharacterProperties(object):
