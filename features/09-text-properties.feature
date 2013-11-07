@@ -27,7 +27,6 @@ Feature: Change properties of text in shapes
       And I save the presentation
      Then the textframe word wrap is empty
 
-  @wip
   Scenario Outline: Set italics property of text
     Given I have a reference to a run with italics set <initial>
      When I set italics <new>

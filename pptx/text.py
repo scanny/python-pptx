@@ -140,6 +140,18 @@ class _Font(object):
     def bold(self, value):
         self._rPr.b = value
 
+    @property
+    def italic(self):
+        """
+        Get or set boolean italic value of |_Font| instance, with the same
+        behaviors as bold with respect to None values.
+        """
+        return self._rPr.i
+
+    @italic.setter
+    def italic(self, value):
+        self._rPr.i = value
+
     def _set_size(self, centipoints):
         # handle float centipoints value gracefully
         centipoints = int(centipoints)

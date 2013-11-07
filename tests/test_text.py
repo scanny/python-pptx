@@ -170,11 +170,30 @@ class Describe_Font(object):
     def it_can_change_the_bold_setting(
             self, font, bold_rPr_xml, bold_off_rPr_xml, rPr_xml):
         assert actual_xml(font._rPr) == rPr_xml
+        font.bold = None
+        assert actual_xml(font._rPr) == rPr_xml
         font.bold = True
         assert actual_xml(font._rPr) == bold_rPr_xml
         font.bold = False
         assert actual_xml(font._rPr) == bold_off_rPr_xml
         font.bold = None
+        assert actual_xml(font._rPr) == rPr_xml
+
+    def it_knows_the_italic_setting(self, font, italic_font, italic_off_font):
+        assert font.italic is None
+        assert italic_font.italic is True
+        assert italic_off_font.italic is False
+
+    def it_can_change_the_italic_setting(
+            self, font, italic_rPr_xml, italic_off_rPr_xml, rPr_xml):
+        assert actual_xml(font._rPr) == rPr_xml
+        font.italic = None  # important to test None to None transition
+        assert actual_xml(font._rPr) == rPr_xml
+        font.italic = True
+        assert actual_xml(font._rPr) == italic_rPr_xml
+        font.italic = False
+        assert actual_xml(font._rPr) == italic_off_rPr_xml
+        font.italic = None
         assert actual_xml(font._rPr) == rPr_xml
 
     def it_can_set_the_font_size(self, font):
@@ -185,51 +204,48 @@ class Describe_Font(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def bold_font(self, bold_rPr):
+    def bold_font(self):
+        bold_rPr = an_rPr().with_nsdecls().with_b(1).element
         return _Font(bold_rPr)
 
     @pytest.fixture
-    def bold_off_font(self, bold_off_rPr):
+    def bold_off_font(self):
+        bold_off_rPr = an_rPr().with_nsdecls().with_b(0).element
         return _Font(bold_off_rPr)
 
     @pytest.fixture
-    def bold_off_rPr(self, bold_off_rPr_bldr):
-        return bold_off_rPr_bldr.element
+    def bold_off_rPr_xml(self):
+        return an_rPr().with_nsdecls().with_b(0).xml()
 
     @pytest.fixture
-    def bold_off_rPr_bldr(self):
-        return an_rPr().with_nsdecls().with_b(0)
+    def bold_rPr_xml(self):
+        return an_rPr().with_nsdecls().with_b(1).xml()
 
     @pytest.fixture
-    def bold_off_rPr_xml(self, bold_off_rPr_bldr):
-        return bold_off_rPr_bldr.xml()
+    def italic_font(self):
+        italic_rPr = an_rPr().with_nsdecls().with_i(1).element
+        return _Font(italic_rPr)
 
     @pytest.fixture
-    def bold_rPr(self, bold_rPr_bldr):
-        return bold_rPr_bldr.element
+    def italic_off_font(self):
+        italic_rPr = an_rPr().with_nsdecls().with_i(0).element
+        return _Font(italic_rPr)
 
     @pytest.fixture
-    def bold_rPr_bldr(self):
-        return an_rPr().with_nsdecls().with_b(1)
+    def italic_off_rPr_xml(self):
+        return an_rPr().with_nsdecls().with_i(0).xml()
 
     @pytest.fixture
-    def bold_rPr_xml(self, bold_rPr_bldr):
-        return bold_rPr_bldr.xml()
+    def italic_rPr_xml(self):
+        return an_rPr().with_nsdecls().with_i(1).xml()
 
     @pytest.fixture
-    def rPr(self, rPr_bldr):
-        return rPr_bldr.element
+    def rPr_xml(self):
+        return an_rPr().with_nsdecls().xml()
 
     @pytest.fixture
-    def rPr_bldr(self):
-        return an_rPr().with_nsdecls()
-
-    @pytest.fixture
-    def rPr_xml(self, rPr_bldr):
-        return rPr_bldr.xml()
-
-    @pytest.fixture
-    def font(self, rPr):
+    def font(self):
+        rPr = an_rPr().with_nsdecls().element
         return _Font(rPr)
 
 

@@ -91,8 +91,9 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         Set boolean attribute of this element having *name* to boolean value
         of *value*.
         """
-        if value is None and name in self.attrib:
-            del self.attrib[name]
+        if value is None:
+            if name in self.attrib:
+                del self.attrib[name]
         elif bool(value):
             self.set(name, '1')
         else:

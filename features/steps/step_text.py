@@ -102,7 +102,7 @@ def step_then_paragraph_indented_to_second_level(context):
 @then("the run that had italics set {initial} now has it set {setting}")
 def step_then_run_now_has_italics_set_to_setting(context, initial, setting):
     run_idx = {'on': 0, 'off': 1, 'to None': 2}[initial]
-    prs = Presentation(italics_pptx_path)
+    prs = Presentation(saved_pptx_path)
     run = prs.slides[0].shapes[0].textframe.paragraphs[0].runs[run_idx]
     expected_val = {'on': True, 'off': False, 'to None': None}[setting]
     assert run.font.italic == expected_val
