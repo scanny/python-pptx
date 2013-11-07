@@ -54,6 +54,18 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
     elements. 'rPr' is short for 'run properties', and it corresponds to the
     _Font proxy class.
     """
+    @property
+    def b(self):
+        """
+        True if 'b' attribute is a truthy value, False if a falsey value, and
+        None if no 'b' attribute is present.
+        """
+        b = self.get('b')
+        if b is None:
+            return None
+        if b in ('true', '1'):
+            return True
+        return False
 
 
 class CT_TextParagraph(objectify.ObjectifiedElement):

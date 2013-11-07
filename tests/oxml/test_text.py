@@ -69,6 +69,11 @@ class DescribeCT_TextCharacterProperties(object):
     def it_is_used_by_the_parser_for_an_rPr_element(self, rPr):
         assert isinstance(rPr, CT_TextCharacterProperties)
 
+    def it_knows_the_b_value(self, rPr_with_true_b, rPr_with_false_b, rPr):
+        assert rPr_with_true_b.b is True
+        assert rPr_with_false_b.b is False
+        assert rPr.b is None
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -82,6 +87,14 @@ class DescribeCT_TextCharacterProperties(object):
     @pytest.fixture
     def rPr(self):
         return an_rPr().with_nsdecls().element
+
+    @pytest.fixture
+    def rPr_with_false_b(self):
+        return an_rPr().with_nsdecls().with_b('false').element
+
+    @pytest.fixture
+    def rPr_with_true_b(self):
+        return an_rPr().with_nsdecls().with_b(1).element
 
 
 class DescribeCT_TextParagraph(object):
