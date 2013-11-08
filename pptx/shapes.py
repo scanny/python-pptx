@@ -479,18 +479,19 @@ class _ShapeCollection(_BaseShape, Collection):
                 return shape
         return None
 
-    def add_embedded_spreadsheet_chart(self, es_chart, left, top, width, height):
+    def add_chart(self, chart, left, top, width, height):
         """
-        Add a chart shape copied from the given spreadsheet chart at the
-        specified position with the specified size.
+        Add a shape for the specified chart at the specified position
+        with the specified size.
         """
         # FIXME - needs test
+        # Add a relationship from the slide to the chart
+        rel = self.__slide._add_relationship(R_CHART, chart)
+        # Add the chart shape
         id = self.__next_shape_id
         name = 'Chart %d' % (id-1)
-        # FIXME - create a relationship!
-        rId = 'FIXME'
         graphicFrame = CT_GraphicalObjectFrame.new_chart(
-            id, name, rId, left, top, width, height)
+            id, name, rel._rId, left, top, width, height)
         self.__spTree.append(graphicFrame)
         chart = _Chart(graphicFrame)
         self.__shapes.append(chart)
@@ -755,6 +756,7 @@ class _Shape(_BaseShape):
 # Chart-related classes
 # ============================================================================
 
+# FIXME - need to distinguish chart *shapes* from chart *parts* (the latter in presentation.py).
 class _Chart(_BaseShape):
     """
     A chart shape. Not intended to be constructed directly, use
@@ -764,11 +766,6 @@ class _Chart(_BaseShape):
     def __init__(self, graphicFrame):
         super(_Chart, self).__init__(graphicFrame)
         self.__graphicFrame = graphicFrame
-
-        from pptx.oxml import oxml_tostring
-        print oxml_tostring(graphicFrame)
-        print
-
         self.__chart_elm = graphicFrame[qn('a:graphic')].graphicData[qn('c:chart')]
 
     @property

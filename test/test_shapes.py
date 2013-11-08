@@ -1319,42 +1319,38 @@ class Test_ShapeCollection(TestCase):
         assert_that(shapes._ShapeCollection__shapes[0], is_(equal_to(shape)))
         assert_that(retval, is_(equal_to(shape)))
 
-    def test_add_embedded_spreadsheet_chart(self):
-        """_ShapeCollection.add_embedded_spreadsheet_chart adds the chart and
-        its required relationships."""
-        # setup ------------------------
-        left = top = Inches(1.0)
-        width = Inches(4.0)
-        height = Inches(3.0)
-        prs = pptx.api.Presentation()
-        xlsx_file = file(chart_xlsx_path, 'rb')
-        spreadsheet = prs.embedded_packages.add_spreadsheet(xlsx_file)
-        es_chart = iter(spreadsheet.charts()).next()
-        slide = prs.slides.add_slide(prs.slidelayouts[0])
-        shapes = slide.shapes
+    @patch('pptx.shapes._Chart')
+    @patch('pptx.shapes.CT_GraphicalObjectFrame')
+    @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
+           new_callable=PropertyMock)
+    def test_add_table_collaboration(
+            self, __next_shape_id, CT_GraphicalObjectFrame, _Chart):
+        """_ShapeCollection.add_chart() calls the right collaborators"""
+        # constant values -------------
+        id_, name = 9, 'Chart 8'
+        rows, cols = 2, 3
+        left, top, width, height = 111, 222, 333, 444
+        # setup mockery ---------------
+        __next_shape_id.return_value = id_
+        graphicFrame = Mock(name='graphicFrame')
+        CT_GraphicalObjectFrame.new_chart.return_value = graphicFrame
+        __spTree = Mock(name='__spTree')
+        __shapes = Mock(name='__shapes')
+        shapes = test_shapes.empty_shape_collection
+        shapes._ShapeCollection__spTree = __spTree
+        shapes._ShapeCollection__shapes = __shapes
+        chart = Mock('chart')
+        _Chart.return_value = chart
         # exercise ---------------------
-        retval = shapes.add_embedded_spreadsheet_chart(es_chart, left, top, width, height)
+        retval = shapes.add_chart(chart, left, top, width, height)
         # verify -----------------------
-        msg = "expected '%s' instance, got '%s'" % (_Chart, type(retval))
-        self.assertTrue(isinstance(retval, _Chart))
-        # self.assserTrue
-        # expected =
-        # actual = retval
-        # msg = "expected '%s', got '%s'" % (expected, actual)
-        # self.assertEqual(expected, actual, msg)
-
-        # FIXME - need a ChartCollection so we can add embedded charts.
-        # Cos a chart could potentially be embedded on multiple slides, so
-        # add_embedded_spreadsheet_chart() can't be responsible for adding the chart
-        # to the package.
-
-        # FIXME - assert the chart was added.
-        # FIXME - assert there’s a relationship from the slide to the chart.
-        # FIXME - assert there's a relationship from the chart to the spreadsheet.
-        # FIXME - assert the chart’s externalData element is present and refers to the right relationship.
-        # FIXME - assert somewhere that the spreadsheet gets saved inside the pptx
-        # FIXME - assert somewhere that the charts get saved inside the pptx
-
+        __next_shape_id.assert_called_once_with()
+        CT_GraphicalObjectFrame.new_chart.assert_called_once_with(
+            chart, left, top, width, height)
+        __spTree.append.assert_called_once_with(graphicFrame)
+        _Chart.assert_called_once_with(graphicFrame)
+        __shapes.append.assert_called_once_with(chart)
+        assert_that(retval, is_(equal_to(chart)))
 
     def test_title_value(self):
         """_ShapeCollection.title value is ref to correct shape"""

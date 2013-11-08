@@ -43,14 +43,14 @@ from pptx.spec import (
     CT_SLIDE_MASTER, CT_SLIDESHOW, CT_TEMPLATE, CT_SPREADSHEET
 )
 from pptx.spec import (
-    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PACKAGE, RT_SLIDE,
-    RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
+    RT_CHART, RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PACKAGE,
+    RT_SLIDE, RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
 )
 
 from pptx.util import Collection, Px
 
 # default namespace map for use in lxml calls
-_nsmap = namespaces('a', 'r', 'p')
+_nsmap = namespaces('a', 'c', 'r', 'p')
 
 
 def _child(element, child_tagname, nsmap=None):
@@ -88,6 +88,8 @@ class _Package(object):
         self.__core_properties = None
         self.__relationships = _RelationshipCollection()
         self.__images = _ImageCollection()
+        self.__charts = _ChartCollection()
+        # FIXME -- put EmbeddedPackageCollection and ChartCollection on here, yeah?
         self.__instances.append(weakref.ref(self))
         if file is None:
             file = self.__default_pptx_path
@@ -139,6 +141,13 @@ class _Package(object):
     @property
     def _images(self):
         return self.__images
+
+    @property
+    def _charts(self):
+        """
+        |_ChartCollection| object containing the charts in this package.
+        """
+        return self.__charts
 
     @property
     def _relationships(self):
@@ -548,6 +557,8 @@ class _Part(object):
             return _SlideMaster()
         elif reltype == RT_IMAGE:
             return _Image()
+        elif reltype == RT_CHART:
+            return _Chart()
         elif reltype == RT_PACKAGE:
             if content_type in (CT_SPREADSHEET,):
                 return _EmbeddedSpreadsheet()
@@ -742,7 +753,7 @@ class Presentation(_BasePart):
         super(Presentation, self).__init__()
         self.__slidemasters = _PartCollection()
         self.__slides = _SlideCollection(self)
-        self.__embedded_packages = _EmbeddedPackageCollection(self)
+        self.__embedded_packages = _EmbeddedPackageCollection(self) # FIXME: move to _Package
 
     @property
     def slidemasters(self):
@@ -1056,6 +1067,18 @@ class _BaseSlide(_BasePart):
         rel = self._add_relationship(RT_IMAGE, image)
         return (image, rel)
 
+    def _add_chart(self, file):
+        """
+        Return a tuple ``(image, relationship)`` representing the |Image| part
+        specified by *file*. If a matching image part already exists it is
+        reused. If the slide already has a relationship to an existing image,
+        that relationship is reused.
+        """
+        ---------------FIXME
+        image = self._package._images.add_image(file)
+        rel = self._add_relationship(RT_IMAGE, image)
+        return (image, rel)
+
     def _load(self, pkgpart, part_dict):
         """Handle aspects of loading that are general to slide types."""
         # call parent to do generic aspects of load
@@ -1103,6 +1126,7 @@ class _Slide(_BaseSlide):
         for rel in self._relationships:
             if rel._reltype == RT_SLIDE_LAYOUT:
                 self.__slidelayout = rel._target
+        # FIXME - unmarshal chart rels too
         return self
 
     @property
@@ -1310,3 +1334,92 @@ class _EmbeddedSpreadsheetChart(object):
     def __init__(self, package, part):
         self._package = package
         self._part = part
+
+
+# ============================================================================
+# Chart Parts
+# ============================================================================
+
+class _ChartCollection(_PartCollection):
+    """
+    Mutable sequence of charts belonging to an instance of |_Package|. An
+    image part containing a particular chart blob appears only once in an
+    instance, regardless of how many times it is referenced by a chart shape
+    in a slide.
+    """
+    def __init__(self):
+        super(_ChartCollection, self).__init__()
+
+    def add_chart(self):
+        """Add a new chart."""
+        # Create a new chart
+        chart = _Chart()
+        # add it to collection and return new chart
+        self._values.append(chart)
+        self.__rename_charts()
+        return chart
+
+    def add_embedded_spreadsheet_chart(self, es_chart):
+        """
+        Return chart part containing the chart in *es_chart*, which should
+        be obtained from ``_EmbeddedSpreadsheet.charts()``.
+        """
+        # copy the chart and add a reference to the spreadsheet
+        blob = es_chart._part.blob
+        chart = _Chart(blob)
+        chart._set_externalData(es_chart._package)
+        # add it to collection and return new chart
+        self._values.append(chart)
+        self.__rename_charts()
+        return chart
+
+    def __rename_charts(self):
+        """
+        Assign partnames like ``/ppt/charts/chart9.xml`` to all charts in the
+        collection. The name portion is always ``chart``. The number part
+        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
+        extension is always ``.xml``.
+        """
+        for idx, chart in enumerate(self._values):
+            chart.partname = '/ppt/charts/chart%d.xml' % (idx+1)
+
+class _Chart(_BasePart):
+    """
+    Chart part. Corresponds to package files ppt/charts/chart[1-9][0-9]*.xml.
+    """
+    def __init__(self, blob=None):
+        super(_Chart, self).__init__(CT_CHART)
+        if blob:
+            self._element = oxml_fromstring(blob)
+        else:
+            self._element = self.__minimal_element
+
+    def _set_externalData(package=None):
+        """
+        Add (or replace, or rmove) the chart’s externalData relationship with
+        a relationship to the specified package.
+        """
+        if hasattr(self._element, 'externalData'):
+            del self._element.externalData
+        if package is not None:
+            rel = self._add_relationship(RT_PACKAGE, package)
+            externalData = _SubElement(self._element, 'c:externalData', _nsmap)
+            externalData.set(qn('r:id'), rel._rId)
+
+    # FIXME - remove if not needed
+    # @property
+    # def _package(self):
+    #     """Reference to |_Package| containing this chart"""
+    #     return _Package.containing(self)
+
+    @property
+    def __minimal_element(self):
+        """
+        Return element containing the minimal XML for a (pie) chart part,
+        based on what is required by the XMLSchema.
+        """
+        cs = _Element('c:chartSpace', _nsmap)
+        _SubElement(cs, 'c:chart', _nsmap)
+        _SubElement(cs.chart, 'c:plotArea', _nsmap)
+        _SubElement(cs.chart.plotArea, 'c:pieChart', _nsmap)
+        return cs

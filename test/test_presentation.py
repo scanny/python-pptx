@@ -25,20 +25,20 @@ import pptx.presentation
 
 from pptx.exceptions import InvalidPackageError
 from pptx.oxml import (
-    CT_CoreProperties, oxml_fromstring, oxml_parse, oxml_tostring
+    CT_CoreProperties, oxml_fromstring, oxml_parse, oxml_tostring, nsdecls
 )
 from pptx.packaging import prettify_nsdecls
 from pptx.presentation import (
-    _BaseEmbeddedPackage, _BasePart, _BaseSlide, _CoreProperties,
-    _EmbeddedSpreadsheet, _EmbeddedPackageCollection, _Image, _Package,
-    _Part, _PartCollection, Presentation, _Relationship,
+    _BaseEmbeddedPackage, _BasePart, _BaseSlide, _Chart, _ChartCollection,
+    _CoreProperties, _EmbeddedSpreadsheet, _EmbeddedPackageCollection,
+    _Image, _Package, _Part, _PartCollection, Presentation, _Relationship,
     _RelationshipCollection, _Slide, _SlideCollection, _SlideLayout,
     _SlideMaster
 )
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces, qtag
 from pptx.spec import (
-    CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
+    CT_CHART, CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
     CT_SLIDE_MASTER, CT_SPREADSHEET
 )
 from pptx.spec import (
@@ -75,7 +75,7 @@ test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 chart_xlsx_path = absjoin(test_file_dir, 'charts.xlsx')
 
-nsmap = namespaces('a', 'r', 'p')
+nsmap = namespaces('a', 'c', 'r', 'p')
 
 
 def _sldLayout1():
@@ -342,6 +342,119 @@ class Test_BaseSlide(TestCase):
         assert_that(retval_rel, is_(rel))
 
 
+class Test_Chart(TestCase):
+    """Test _Chart"""
+    def setUp(self):
+        self.chart = _Chart()
+
+    def test_constructor_sets_correct_content_type(self):
+        """_Chart constructor sets correct content type"""
+        # exercise ---------------------
+        content_type = self.chart._content_type
+        # verify -----------------------
+        expected = CT_CHART
+        actual = content_type
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test_constructor_sets_minimal_xml(self):
+        """_Chart constructor with no arguments sets minimal xml"""
+        # exercise ---------------------
+        _element = self.chart._element
+        # verify -----------------------
+        expected = oxml_tostring(self.chart._Chart__minimal_element)
+        actual = oxml_tostring(_element)
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test_constructor_sets_xml(self):
+        """_Chart constructor with an xml arguments sets that xml"""
+        # setup ------------------------
+        xml = '<c:chartSpace %s/>' % nsdecls('c')
+        # exercise ---------------------
+        chart = _Chart(xml)
+        # verify -----------------------
+        expected = xml
+        actual = oxml_tostring(chart._element)
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    # def test_set_externalData_sets_externalData(self):
+    #     raise NotImplementedError()
+
+    # def test_set_externalData_adds_relationship(self):
+    #     raise NotImplementedError()
+
+    def test___minimal_element_xml(self):
+        """_Chart.__minimal_element generates correct XML"""
+        # setup ------------------------
+        path = os.path.join(thisdir, 'test_files/minimal_piechart.xml')
+        # exercise ---------------------
+        chartSpace = self.chart._Chart__minimal_element
+        # verify -----------------------
+        with open(path, 'r') as f:
+            expected_xml = f.read()
+        chart_xml = prettify_nsdecls(
+            oxml_tostring(chartSpace, encoding='UTF-8', pretty_print=True,
+                          standalone=True))
+        chart_xml_lines = chart_xml.split('\n')
+        expected_xml_lines = expected_xml.split('\n')
+        for idx, line in enumerate(chart_xml_lines):
+            # msg = '\n\n%s' % chart_xml
+            msg = "expected:\n%s\n, got\n%s" % (expected_xml, chart_xml)
+            self.assertEqual(line, expected_xml_lines[idx], msg)
+
+
+class Test_ChartCollection(TestCase):
+    """Test _ChartCollection"""
+    def setUp(self):
+        self.charts = _ChartCollection()
+
+    def test_add_chart_returns_chart(self):
+        """_ChartCollection.add_chart() returns instance of _Chart"""
+        # exercise ---------------------
+        retval = self.charts.add_chart()
+        # verify -----------------------
+        self.assertIsInstance(retval, _Chart)
+
+    def test_add_chart_sets_partname(self):
+        """_ChartCollection.add_chart() sets partname of new chart"""
+        # exercise ---------------------
+        chart = self.charts.add_chart()
+        # verify -----------------------
+        expected = '/ppt/charts/chart1.xml'
+        actual = chart.partname
+        msg = "expected partname '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    # FIXME: test the following
+    # def add_embedded_spreadsheet_chart(self, es_chart):
+    #     """
+    #     Return chart part containing the chart in *es_chart*, which should
+    #     be obtained from ``_EmbeddedSpreadsheet.charts()``.
+    #     """
+    #     # copy the chart and add a reference to the spreadsheet
+    #     blob = es_chart._part.blob
+    #     chart = _Chart(blob)
+    #     chart._set_externalData(es_chart._package)
+    #     # add it to collection and return new chart
+    #     self._values.append(chart)
+    #     self.__rename_charts()
+    #     return chart
+
+        # prs = pptx.api.Presentation()
+        # xlsx_file = file(chart_xlsx_path, 'rb')
+        # spreadsheet = prs.embedded_packages.add_spreadsheet(xlsx_file)
+        # es_chart = iter(spreadsheet.charts()).next()
+
+        # FIXME - assert the chart was added.
+        # FIXME - assert there’s a relationship from the slide to the chart.
+        # FIXME - assert there's a relationship from the chart to the spreadsheet.
+        # FIXME - assert the chart’s externalData element is present and refers to the right relationship.
+        # FIXME - assert somewhere that the spreadsheet gets saved inside the pptx
+        # FIXME - assert somewhere that the charts get saved inside the pptx
+
+
 class Test_CoreProperties(TestCase):
     """Test _CoreProperties"""
     def test_default_constructs_default_core_props(self):
@@ -361,35 +474,6 @@ class Test_CoreProperties(TestCase):
         modified_timedelta = datetime.utcnow() - core_props.modified
         max_expected_timedelta = timedelta(seconds=2)
         assert_that(modified_timedelta, less_than(max_expected_timedelta))
-
-
-class Test_EmbeddedSpreadsheet(TestCase):
-    """Test _EmbeddedSpreadsheet"""
-    def setUp(self):
-        self.emb = _EmbeddedSpreadsheet(StringIO())
-
-    def test_constructor_sets_correct_content_type(self):
-        """_EmbeddedSpreadsheet constructor sets correct content type"""
-        # exercise ---------------------
-        content_type = self.emb._content_type
-        # verify -----------------------
-        expected = CT_SPREADSHEET
-        actual = content_type
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test_charts_yields_correct_charts(self):
-        """_EmbeddedSpreadsheet.charts() returns correct charts"""
-        # setup ------------------------
-        xlsx_file = file(chart_xlsx_path, 'rb')
-        spreadsheet = _EmbeddedSpreadsheet(xlsx_file)
-        # exercise ---------------------
-        charts = list(spreadsheet.charts())
-        # verify -----------------------
-        expected = ['/xl/charts/chart1.xml', '/xl/charts/chart2.xml']
-        actual = [ch._part.partname for ch in charts]
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
 
 
 class Test_EmbeddedPackageCollection(TestCase):
@@ -434,6 +518,35 @@ class Test_EmbeddedPackageCollection(TestCase):
         expected = '/ppt/embeddings/Worksheet1.xlsx'
         actual = pkg.partname
         msg = "expected partname '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+
+class Test_EmbeddedSpreadsheet(TestCase):
+    """Test _EmbeddedSpreadsheet"""
+    def setUp(self):
+        self.emb = _EmbeddedSpreadsheet(StringIO())
+
+    def test_constructor_sets_correct_content_type(self):
+        """_EmbeddedSpreadsheet constructor sets correct content type"""
+        # exercise ---------------------
+        content_type = self.emb._content_type
+        # verify -----------------------
+        expected = CT_SPREADSHEET
+        actual = content_type
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test_charts_yields_correct_charts(self):
+        """_EmbeddedSpreadsheet.charts() returns correct charts"""
+        # setup ------------------------
+        xlsx_file = file(chart_xlsx_path, 'rb')
+        spreadsheet = _EmbeddedSpreadsheet(xlsx_file)
+        # exercise ---------------------
+        charts = list(spreadsheet.charts())
+        # verify -----------------------
+        expected = ['/xl/charts/chart1.xml', '/xl/charts/chart2.xml']
+        actual = [ch._part.partname for ch in charts]
+        msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
 
