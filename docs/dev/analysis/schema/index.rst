@@ -14,6 +14,8 @@ Collected bits and pieces from the XML Schema docs, MSDN web pages, and the ISO/
    ct_presentation
    ct_shape
    ct_slide
+   ct_solidcolorfillproperties
+   ct_srgbcolor
    ct_table
    ct_textbody
    ct_textcharacterproperties

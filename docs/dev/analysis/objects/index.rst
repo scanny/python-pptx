@@ -11,10 +11,10 @@ Collected bits and pieces on specific PowerPoint object types gathered from MSDN
    chart
    coreprops
    font
+   font-color
    graphicframe
    picture
    placeholder
    shape
    table
    textframe
-

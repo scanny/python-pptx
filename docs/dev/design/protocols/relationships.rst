@@ -44,7 +44,7 @@ The following code sample illustrates the protocol::
 .. currentmodule:: pptx.opc.rels
 
 .. autoclass:: pptx.opc.rels.RelationshipCollection
-   :members: _additem, _next_rId, _reltype_ordering, rels_of_reltype
+   :members: add_rel, next_rId, rels_of_reltype
    :member-order: bysource
    :undoc-members:
    :show-inheritance:
@@ -57,7 +57,7 @@ The following code sample illustrates the protocol::
 -----------------------
 
 .. autoclass:: pptx.opc.rels.Relationship
-   :members: _rId, _reltype, _target, _num
+   :members: rId, reltype, target
    :member-order: bysource
    :undoc-members:
 
