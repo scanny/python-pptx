@@ -25,6 +25,26 @@ class TextFrame(object):
         super(TextFrame, self).__init__()
         self._txBody = txBody
 
+    def add_paragraph(self):
+        """
+        Return new |_Paragraph| instance appended to the sequence of
+        paragraphs contained in this text frame.
+        """
+        # <a:p> elements are last in txBody, so can simply append new one
+        p = Element('a:p')
+        self._txBody.append(p)
+        return _Paragraph(p)
+
+    def clear(self):
+        """
+        Remove all paragraphs except one empty one.
+        """
+        p_list = self._txBody.xpath('./a:p', namespaces=_nsmap)
+        for p in p_list[1:]:
+            self._txBody.remove(p)
+        p = self.paragraphs[0]
+        p.clear()
+
     @property
     def paragraphs(self):
         """
@@ -51,8 +71,10 @@ class TextFrame(object):
         """
         Set ``anchor`` attribute of ``<a:bodyPr>`` element
         """
-        value_map = {MSO.ANCHOR_TOP: 't', MSO.ANCHOR_MIDDLE: 'ctr',
-                     MSO.ANCHOR_BOTTOM: 'b'}
+        value_map = {
+            MSO.ANCHOR_TOP: 't', MSO.ANCHOR_MIDDLE: 'ctr',
+            MSO.ANCHOR_BOTTOM: 'b'
+        }
         bodyPr = get_or_add(self._txBody, 'a:bodyPr')
         bodyPr.set('anchor', value_map[value])
 
@@ -62,55 +84,30 @@ class TextFrame(object):
     #: The ``MSO`` name is imported from ``pptx.constants``.
     vertical_anchor = property(None, _set_vertical_anchor)
 
-    def _set_word_wrap(self, value):
+    @property
+    def word_wrap(self):
         """
-        Set ``wrap`` attribution of ``<a:bodyPr>`` element. Can be
-        one of True, False, or None.
-        """
-        bodyPr = get_or_add(self._txBody, 'a:bodyPr')
-
-        if value is None:
-            del bodyPr.attrib['wrap']
-            return
-
-        value_map = {True: 'square', False: 'none'}
-        bodyPr.set('wrap', value_map[value])
-
-    def _get_word_wrap(self):
-        """
-        Return the value of the word_wrap setting. Possible return values
-        are True, False, and None.
+        Read-write value of the word wrap setting for this text frame, either
+        True, False, or None. Assignment to *word_wrap* sets the wrapping
+        behavior. True and False turn word wrap on and off, respectively.
+        Assigning None to word wrap causes its word wrap setting to be
+        removed entirely and the text frame wrapping behavior to be inherited
+        from a parent element.
         """
         value_map = {'square': True, 'none': False, None: None}
         bodyPr = get_or_add(self._txBody, 'a:bodyPr')
         value = bodyPr.get('wrap')
         return value_map[value]
 
-    #: Read-write. Assignment to *word_wrap* sets the wrapping behavior
-    #: of the text frame. The valid values are True, False, and None. True
-    #: and False turn word wrap on and off, and None will set it to inherit
-    #: the wrapping behavior from its parent element.
-    word_wrap = property(_get_word_wrap, _set_word_wrap)
-
-    def add_paragraph(self):
-        """
-        Return new |_Paragraph| instance appended to the sequence of
-        paragraphs contained in this text frame.
-        """
-        # <a:p> elements are last in txBody, so can simply append new one
-        p = Element('a:p')
-        self._txBody.append(p)
-        return _Paragraph(p)
-
-    def clear(self):
-        """
-        Remove all paragraphs except one empty one.
-        """
-        p_list = self._txBody.xpath('./a:p', namespaces=_nsmap)
-        for p in p_list[1:]:
-            self._txBody.remove(p)
-        p = self.paragraphs[0]
-        p.clear()
+    @word_wrap.setter
+    def word_wrap(self, value):
+        value_map = {True: 'square', False: 'none'}
+        bodyPr = get_or_add(self._txBody, 'a:bodyPr')
+        if value is None:
+            if 'wrap' in bodyPr.attrib:
+                del bodyPr.attrib['wrap']
+            return
+        bodyPr.set('wrap', value_map[value])
 
 
 class _Font(object):
