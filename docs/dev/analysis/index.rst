@@ -1,19 +1,79 @@
-========
 Analysis
 ========
 
 Documentation of studies undertaken in support of API and code design.
 
+Feature Analysis
+----------------
+
 .. toctree::
-   :titlesonly:
-   :maxdepth: 2
+   :maxdepth: 1
 
-   objects/index
-   experiments/index
-   schema/index
+   features/font-color
 
 
-Major discovery sources:
+Object Analysis
+---------------
+
+Collected bits and pieces on specific PowerPoint object types gathered from
+MSDN documentation, the ISO/IEC 29500 spec, and other available sources.
+
+.. toctree::
+   :maxdepth: 1
+
+   objects/autoshape
+   objects/chart
+   objects/coreprops
+   objects/font
+   objects/graphicframe
+   objects/picture
+   objects/placeholder
+   objects/shape
+   objects/table
+   objects/textframe
+
+
+Experimental Analysis
+---------------------
+
+Determine behaviors not documented elsewhere by observing the behavior of the
+PowerPoint application.
+
+.. toctree::
+   :maxdepth: 1
+
+   experiments/chart
+   experiments/manipulate-chart
+   experiments/placeholders_in_new_slide
+
+
+Schema Analysis
+---------------
+
+Collected bits and pieces from the XML Schema docs, MSDN web pages, and the
+ISO/IEC 29500 spec.
+
+.. toctree::
+   :maxdepth: 1
+
+   schema/ct_chart
+   schema/ct_graphicalobjectframe
+   schema/ct_picture
+   schema/ct_placeholder
+   schema/ct_presentation
+   schema/ct_shape
+   schema/ct_slide
+   schema/ct_solidcolorfillproperties
+   schema/ct_srgbcolor
+   schema/ct_table
+   schema/ct_textbody
+   schema/ct_textcharacterproperties
+   schema/ct_textparagraph
+   schema/miscellaneous
+
+
+Major discovery sources
+-----------------------
 
 * ISO/IEC 29500 Open XML specification
 * XSD schemas for Open XML
