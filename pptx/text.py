@@ -6,7 +6,7 @@ Text-related objects such as TextFrame and Paragraph.
 
 from pptx.constants import MSO
 from pptx.dml.core import ColorFormat, RGBColor
-from pptx.enum import MSO_COLOR_TYPE
+from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from pptx.oxml.core import Element, get_or_add
 from pptx.oxml.ns import namespaces, qn
 from pptx.spec import ParagraphAlignment
@@ -184,6 +184,19 @@ class _FontColor(ColorFormat):
         # as though it were one
         super(_FontColor, self).__init__()
         self._rPr = rPr
+
+    @property
+    def theme_color(self):
+        """
+        Theme color value of this color, one of those defined in the
+        MSO_THEME_COLOR enumeration, e.g. MSO_THEME_COLOR.ACCENT_1. None if
+        no theme color is explicitly defined for this font. Setting this to a
+        value in MSO_THEME_COLOR causes the color's type to change to
+        ``MSO_COLOR_TYPE.SCHEME``.
+        """
+        if self._schemeClr is None:
+            return None
+        return MSO_THEME_COLOR.from_xml(self._schemeClr.val)
 
     @property
     def rgb(self):

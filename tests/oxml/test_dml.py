@@ -8,9 +8,26 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.oxml.dml import CT_SRgbColor, CT_SolidColorFillProperties
+from pptx.oxml.dml import (
+    CT_SchemeColor, CT_SRgbColor, CT_SolidColorFillProperties
+)
 
 from ..oxml.unitdata.dml import a_schemeClr, a_solidFill, an_srgbClr
+
+
+class DescribeCT_SchemeColor(object):
+
+    def it_is_used_by_the_parser_for_a_schemeClr_element(self, schemeClr):
+        assert isinstance(schemeClr, CT_SchemeColor)
+
+    def it_knows_the_theme_color_str_value(self, schemeClr):
+        assert schemeClr.val == 'bg1'
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def schemeClr(self):
+        return a_schemeClr().with_nsdecls().with_val('bg1').element
 
 
 class DescribeCT_SRgbColor(object):

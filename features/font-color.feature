@@ -17,7 +17,6 @@ Feature: Query and set font color
     Given a font with an RGB color
      Then its color value matches its RGB color
 
-  @wip
   Scenario: Get font theme color
     Given a font with a theme color
      Then its color value matches its theme color

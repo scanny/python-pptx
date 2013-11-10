@@ -10,7 +10,7 @@ from behave import given, then, when
 
 from pptx import Presentation
 from pptx.dml.core import RGBColor
-from pptx.enum import MSO_COLOR_TYPE
+from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 
 from .helpers import test_pptx
 
@@ -63,7 +63,7 @@ def step_color_value_matches_RGB_color(context):
 
 @then('its color value matches its theme color')
 def step_color_value_matches_theme_color(context):
-    assert False
+    assert context.font.color.theme_color == MSO_THEME_COLOR.ACCENT_1
 
 
 @then("the font's color type is {color_type}")

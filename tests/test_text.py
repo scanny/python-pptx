@@ -10,7 +10,7 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx.constants import MSO, PP
 from pptx.dml.core import RGBColor
-from pptx.enum import MSO_COLOR_TYPE
+from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.oxml.text import (
@@ -267,6 +267,10 @@ class Describe_FontColor(object):
     def it_knows_the_RGB_value_of_an_RGB_color(self, color, rgb_color):
         assert color.rgb is None
         assert rgb_color.rgb == RGBColor(0x12, 0x34, 0x56)
+
+    def it_knows_the_theme_color_of_a_theme_color(self, color, theme_color):
+        assert color.theme_color is None
+        assert theme_color.theme_color == MSO_THEME_COLOR.ACCENT_1
 
     # fixtures ---------------------------------------------
 
