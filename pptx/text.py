@@ -5,7 +5,7 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
-from pptx.dml.core import ColorFormat
+from pptx.dml.core import ColorFormat, RGBColor
 from pptx.enum import MSO_COLOR_TYPE
 from pptx.oxml.core import Element, get_or_add
 from pptx.oxml.ns import namespaces, qn
@@ -186,20 +186,48 @@ class _FontColor(ColorFormat):
         self._rPr = rPr
 
     @property
+    def rgb(self):
+        """
+        |RGBColor| value of this color, or None if no RGB color is explicitly
+        defined for this font. Setting this value to an |RGBColor| instance
+        cause its type to change to MSO_COLOR_TYPE.RGB.
+        """
+        if self._srgbClr is None:
+            return None
+        return RGBColor.from_string(self._srgbClr.val)
+
+    @property
     def type(self):
         """
         Read-only. A value from MSO_COLOR_TYPE, either RGB or SCHEME,
         corresponding to the way this color is defined, or None if no color
         is defined at the level of this font.
         """
+        if self._srgbClr is not None:
+            return MSO_COLOR_TYPE.RGB
+        if self._schemeClr is not None:
+            return MSO_COLOR_TYPE.SCHEME
+        return None
+
+    @property
+    def _schemeClr(self):
+        """
+        schemeClr child of <a:solidFill> if present, none otherwise
+        """
         solidFill = self._rPr.solidFill
         if solidFill is None:
             return None
-        if solidFill.srgbClr is not None:
-            return MSO_COLOR_TYPE.RGB
-        if solidFill.schemeClr is not None:
-            return MSO_COLOR_TYPE.SCHEME
-        return None
+        return solidFill.schemeClr
+
+    @property
+    def _srgbClr(self):
+        """
+        srgbClr child of <a:solidFill> if present, none otherwise
+        """
+        solidFill = self._rPr.solidFill
+        if solidFill is None:
+            return None
+        return solidFill.srgbClr
 
 
 class _Paragraph(object):

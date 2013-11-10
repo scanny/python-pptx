@@ -15,6 +15,15 @@ class OxmlElement(objectify.ObjectifiedElement):
     pass
 
 
+class CT_SRgbColor(OxmlElement):
+    """
+    Custom element class for <a:srgbClr> element.
+    """
+    @property
+    def val(self):
+        return self.get('val')
+
+
 class CT_SolidColorFillProperties(OxmlElement):
     """
     Custom element class for <a:solidFill> element.

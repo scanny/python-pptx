@@ -8,9 +8,24 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.oxml.dml import CT_SolidColorFillProperties
+from pptx.oxml.dml import CT_SRgbColor, CT_SolidColorFillProperties
 
 from ..oxml.unitdata.dml import a_schemeClr, a_solidFill, an_srgbClr
+
+
+class DescribeCT_SRgbColor(object):
+
+    def it_is_used_by_the_parser_for_an_srgbClr_element(self, srgbClr):
+        assert isinstance(srgbClr, CT_SRgbColor)
+
+    def it_knows_the_rgb_str_value(self, srgbClr):
+        assert srgbClr.val == '123456'
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def srgbClr(self):
+        return an_srgbClr().with_nsdecls().with_val('123456').element
 
 
 class DescribeCT_SolidColorFillProperties(object):

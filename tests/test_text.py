@@ -9,6 +9,7 @@ import pytest
 from hamcrest import assert_that, equal_to, is_
 
 from pptx.constants import MSO, PP
+from pptx.dml.core import RGBColor
 from pptx.enum import MSO_COLOR_TYPE
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, nsdecls
@@ -262,6 +263,10 @@ class Describe_FontColor(object):
         assert rgb_color.type is MSO_COLOR_TYPE.RGB
         assert theme_color.type is MSO_COLOR_TYPE.SCHEME
         assert solidFill_only_color.type is None
+
+    def it_knows_the_RGB_value_of_an_RGB_color(self, color, rgb_color):
+        assert color.rgb is None
+        assert rgb_color.rgb == RGBColor(0x12, 0x34, 0x56)
 
     # fixtures ---------------------------------------------
 

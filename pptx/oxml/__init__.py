@@ -42,8 +42,9 @@ def register_custom_element_class(nsptag_str, cls):
 
 
 from pptx.oxml.dml import (
-    CT_SolidColorFillProperties
+    CT_SRgbColor, CT_SolidColorFillProperties
 )
+register_custom_element_class('a:srgbClr', CT_SRgbColor)
 register_custom_element_class('a:solidFill', CT_SolidColorFillProperties)
 
 

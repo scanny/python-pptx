@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from behave import given, then, when
 
 from pptx import Presentation
+from pptx.dml.core import RGBColor
 from pptx.enum import MSO_COLOR_TYPE
 
 from .helpers import test_pptx
@@ -57,7 +58,7 @@ def step_set_font_color_value(context, color_type):
 
 @then('its color value matches its RGB color')
 def step_color_value_matches_RGB_color(context):
-    assert False
+    assert context.font.color.rgb == RGBColor(255, 102, 0)
 
 
 @then('its color value matches its theme color')
