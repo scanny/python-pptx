@@ -14,7 +14,7 @@ from pptx.oxml.ns import namespaces, nsdecls
 from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
 )
-from pptx.text import _Font, _Paragraph, _Run, TextFrame
+from pptx.text import _Font, _FontColor, _Paragraph, _Run, TextFrame
 
 from .oxml.unitdata.text import a_p, a_pPr, a_t, an_r, an_rPr
 from .unitutil import (
@@ -178,6 +178,9 @@ class Describe_Font(object):
         assert actual_xml(font._rPr) == bold_off_rPr_xml
         font.bold = None
         assert actual_xml(font._rPr) == rPr_xml
+
+    def it_has_a_color(self, font):
+        assert isinstance(font.color, _FontColor)
 
     def it_knows_the_italic_setting(self, font, italic_font, italic_off_font):
         assert font.italic is None

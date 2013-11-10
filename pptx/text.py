@@ -5,6 +5,7 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
+from pptx.dml.core import ColorFormat
 from pptx.oxml.core import Element, get_or_add
 from pptx.oxml.ns import namespaces, qn
 from pptx.spec import ParagraphAlignment
@@ -143,6 +144,9 @@ class _Font(object):
         The |ColorFormat| instance that provides access to the color settings
         for this font.
         """
+        if not hasattr(self, '_color'):
+            self._color = _FontColor(self._rPr)
+        return self._color
 
     @property
     def italic(self):
@@ -167,6 +171,18 @@ class _Font(object):
     #: values, e.g. ``Pt(12.5)``. I'm pretty sure I just made up the word
     #: *centipoint*, but it seems apt :).
     size = property(None, _set_size)
+
+
+class _FontColor(ColorFormat):
+    """
+    Provides access to font color settings.
+    """
+    def __init__(self, rPr):
+        # note that rPr is not always an actual <a:rPr> element, but must
+        # always be an instance of CT_TextCharacterProperties, so will behave
+        # as though it were one
+        super(_FontColor, self).__init__()
+        self._rPr = rPr
 
 
 class _Paragraph(object):
