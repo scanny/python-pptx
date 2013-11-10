@@ -99,6 +99,13 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         else:
             self.set(name, '0')
 
+    @property
+    def solidFill(self):
+        """
+        The <a:solidFill> child element, or None if not present.
+        """
+        return self.find(qn('a:solidFill'))
+
 
 class CT_TextParagraph(objectify.ObjectifiedElement):
     """

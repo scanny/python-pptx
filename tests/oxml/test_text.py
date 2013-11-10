@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Test suite for pptx.oxml module.
+Test suite for pptx.oxml.text module.
 """
 
 from __future__ import absolute_import, print_function
@@ -13,6 +13,7 @@ from pptx.oxml.text import (
     CT_TextParagraphProperties
 )
 
+from ..oxml.unitdata.dml import a_solidFill
 from ..oxml.unitdata.text import (
     a_defRPr, a_p, a_pPr, a_t, an_endParaRPr, an_extLst, an_r, an_rPr
 )
@@ -97,6 +98,11 @@ class DescribeCT_TextCharacterProperties(object):
         rPr.i = None
         assert actual_xml(rPr) == rPr_xml
 
+    def it_can_get_the_solidFill_child_element_if_there_is_one(
+            self, rPr, rPr_with_solidFill, solidFill):
+        assert rPr.solidFill is None
+        assert rPr_with_solidFill.solidFill is solidFill
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -132,6 +138,12 @@ class DescribeCT_TextCharacterProperties(object):
         return an_rPr().with_nsdecls().with_i(0).xml()
 
     @pytest.fixture
+    def rPr_with_solidFill(self, solidFill):
+        rPr = an_rPr().with_nsdecls().element
+        rPr.append(solidFill)
+        return rPr
+
+    @pytest.fixture
     def rPr_with_true_b(self):
         return an_rPr().with_nsdecls().with_b(1).element
 
@@ -146,6 +158,10 @@ class DescribeCT_TextCharacterProperties(object):
     @pytest.fixture
     def rPr_with_true_i_xml(self):
         return an_rPr().with_nsdecls().with_i(1).xml()
+
+    @pytest.fixture
+    def solidFill(self):
+        return a_solidFill().with_nsdecls().element
 
 
 class DescribeCT_TextParagraph(object):

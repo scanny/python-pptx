@@ -41,6 +41,12 @@ def register_custom_element_class(nsptag_str, cls):
     namespace[nsptag.local_part] = cls
 
 
+from pptx.oxml.dml import (
+    CT_SolidColorFillProperties
+)
+register_custom_element_class('a:solidFill', CT_SolidColorFillProperties)
+
+
 from pptx.oxml.presentation import (
     CT_Presentation, CT_SlideId, CT_SlideIdList
 )

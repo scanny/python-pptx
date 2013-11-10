@@ -20,7 +20,7 @@ font_color_pptx_path = test_pptx('font-color')
 # given ===================================================
 
 @given('a font with {color_type} color')
-def step_given_font_with_no_color(context, color_type):
+def step_given_font_with_color_type(context, color_type):
     textbox_idx = {
         'no':      0,
         'an RGB':  1,
@@ -28,7 +28,7 @@ def step_given_font_with_no_color(context, color_type):
     }[color_type]
     context.prs = Presentation(font_color_pptx_path)
     textbox = context.prs.slides[0].shapes[textbox_idx]
-    context.font = textbox.textframe.paragraphs[0].font
+    context.font = textbox.textframe.paragraphs[0].runs[0].font
 
 
 @given('a font with a color brightness setting of {setting}')

@@ -9,6 +9,7 @@ import pytest
 from hamcrest import assert_that, equal_to, is_
 
 from pptx.constants import MSO, PP
+from pptx.enum import MSO_COLOR_TYPE
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.oxml.text import (
@@ -16,6 +17,7 @@ from pptx.oxml.text import (
 )
 from pptx.text import _Font, _FontColor, _Paragraph, _Run, TextFrame
 
+from .oxml.unitdata.dml import a_schemeClr, a_solidFill, an_srgbClr
 from .oxml.unitdata.text import a_p, a_pPr, a_t, an_r, an_rPr
 from .unitutil import (
     absjoin, actual_xml, class_mock, instance_mock, parse_xml_file,
@@ -250,6 +252,43 @@ class Describe_Font(object):
     def font(self):
         rPr = an_rPr().with_nsdecls().element
         return _Font(rPr)
+
+
+class Describe_FontColor(object):
+
+    def it_knows_the_type_of_its_color(
+            self, color, rgb_color, theme_color, solidFill_only_color):
+        assert color.type is None
+        assert rgb_color.type is MSO_COLOR_TYPE.RGB
+        assert theme_color.type is MSO_COLOR_TYPE.SCHEME
+        assert solidFill_only_color.type is None
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def color(self):
+        rPr = an_rPr().with_nsdecls().element
+        return _FontColor(rPr)
+
+    @pytest.fixture
+    def rgb_color(self):
+        srgbClr_bldr = an_srgbClr().with_val('123456')
+        solidFill_bldr = a_solidFill().with_child(srgbClr_bldr)
+        rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
+        return _FontColor(rPr)
+
+    @pytest.fixture
+    def solidFill_only_color(self):
+        solidFill_bldr = a_solidFill()
+        rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
+        return _FontColor(rPr)
+
+    @pytest.fixture
+    def theme_color(self):
+        schemeClr_bldr = a_schemeClr().with_val('accent1')
+        solidFill_bldr = a_solidFill().with_child(schemeClr_bldr)
+        rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
+        return _FontColor(rPr)
 
 
 class Describe_Paragraph(object):

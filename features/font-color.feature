@@ -3,7 +3,6 @@ Feature: Query and set font color
   As a developer using python-pptx
   I need to query and set the color of text
 
-  @wip
   Scenario Outline: Get font color type
      Given a font with <color type> color
       Then the font's color type is <value>
