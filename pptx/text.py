@@ -138,6 +138,13 @@ class _Font(object):
         self._rPr.b = value
 
     @property
+    def color(self):
+        """
+        The |ColorFormat| instance that provides access to the color settings
+        for this font.
+        """
+
+    @property
     def italic(self):
         """
         Get or set boolean italic value of |_Font| instance, with the same

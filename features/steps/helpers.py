@@ -20,3 +20,10 @@ saved_pptx_path = absjoin(scratch_dir, 'test_out.pptx')
 test_image_path = absjoin(test_file_dir, 'python-powered.png')
 
 test_text = "python-pptx was here!"
+
+
+def test_pptx(name):
+    """
+    Return the absolute path to test .pptx file with root name *name*.
+    """
+    return absjoin(thisdir, 'test_files', '%s.pptx' % name)
