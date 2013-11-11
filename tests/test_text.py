@@ -284,6 +284,14 @@ class Describe_FontColor(object):
         assert rgb_color_with_brightness.brightness == 0.4
         assert theme_color_with_brightness.brightness == -0.25
 
+    def it_can_set_the_RGB_color_value(self, color, rgb_color, theme_color):
+        color.rgb = RGBColor(0x01, 0x23, 0x45)
+        assert color.rgb == RGBColor(0x01, 0x23, 0x45)
+        rgb_color.rgb = RGBColor(0x67, 0x89, 0x9A)
+        assert rgb_color.rgb == RGBColor(0x67, 0x89, 0x9A)
+        theme_color.rgb = RGBColor(0xBC, 0xDE, 0xF0)
+        assert theme_color.rgb == RGBColor(0xBC, 0xDE, 0xF0)
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture

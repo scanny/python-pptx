@@ -291,6 +291,13 @@ Related Schema Definitions
     <xsd:attribute name="val" type="ST_SchemeColorVal" use="required"/>
   </xsd:complexType>
 
+  <xsd:complexType name="CT_PresetColor">
+    <xsd:sequence>
+      <xsd:group ref="EG_ColorTransform" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+    <xsd:attribute name="val" type="ST_PresetColorVal" use="required"/>
+  </xsd:complexType>
+
   <xsd:group name="EG_ColorTransform">
     <xsd:choice>
       <xsd:element name="tint"     type="CT_PositiveFixedPercentage" minOccurs="1" maxOccurs="1"/>
@@ -376,6 +383,18 @@ Related Schema Definitions
       <xsd:element name="grpFill"   type="CT_GroupFillProperties"      minOccurs="1" maxOccurs="1"/>
     </xsd:choice>
   </xsd:group>
+
+  <xsd:complexType name="CT_NoFillProperties"/>
+
+  <xsd:complexType name="CT_GradientFillProperties">
+    <xsd:sequence>
+      <xsd:element name="gsLst"    type="CT_GradientStopList" minOccurs="0" maxOccurs="1"/>
+      <xsd:group   ref="EG_ShadeProperties"                   minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="tileRect" type="CT_RelativeRect"     minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+    <xsd:attribute name="flip"         type="ST_TileFlipMode" use="optional"/>
+    <xsd:attribute name="rotWithShape" type="xsd:boolean"     use="optional"/>
+  </xsd:complexType>
 
 
 Enumerations

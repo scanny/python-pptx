@@ -23,3 +23,6 @@ class DescribeRGBColor(object):
     def it_can_construct_from_a_hex_string_rgb_value(self):
         rgb = RGBColor.from_string('123456')
         assert rgb == RGBColor(0x12, 0x34, 0x56)
+
+    def it_can_provide_a_hex_string_rgb_value(self):
+        assert str(RGBColor(0x12, 0x34, 0x56)) == '123456'

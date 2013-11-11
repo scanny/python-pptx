@@ -23,6 +23,12 @@ class RGBColor(tuple):
                 raise ValueError(msg)
         return super(RGBColor, cls).__new__(cls, (r, g, b))
 
+    def __str__(self):
+        """
+        Return a hex string rgb value, like '3C2F80'
+        """
+        return '%02X%02X%02X' % self
+
     @classmethod
     def from_string(cls, rgb_hex_str):
         r = int(rgb_hex_str[:2], 16)

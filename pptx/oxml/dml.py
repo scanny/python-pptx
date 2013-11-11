@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
+from pptx.oxml.core import SubElement
 from pptx.oxml.ns import qn
 
 
@@ -51,6 +52,16 @@ class CT_SRgbColor(OxmlElement):
     """
     Custom element class for <a:srgbClr> element.
     """
+    def __setattr__(self, name, value):
+        """
+        Override ``__setattr__`` defined in ObjectifiedElement super class
+        to intercept messages intended for custom property setters.
+        """
+        if name in ('val',):
+            self.set(name, value)
+        else:
+            super(CT_SRgbColor, self).__setattr__(name, value)
+
     @property
     def lumMod(self):
         """
@@ -74,6 +85,17 @@ class CT_SolidColorFillProperties(OxmlElement):
     """
     Custom element class for <a:solidFill> element.
     """
+    def get_or_change_to_srgbClr(self):
+        """
+        Return the <a:srgbClr> child of this <a:solidFill>, replacing any
+        other EG_ColorChoice element if found, perhaps most commonly a
+        <a:schemeClr> element.
+        """
+        if self.srgbClr is not None:
+            return self.srgbClr
+        self._clear_color_choice()
+        return self._add_srgbClr()
+
     @property
     def schemeClr(self):
         """
@@ -87,3 +109,22 @@ class CT_SolidColorFillProperties(OxmlElement):
         The <a:srgbClr> child element, or None if not present.
         """
         return self.find(qn('a:srgbClr'))
+
+    def _add_srgbClr(self):
+        """
+        Return a newly added <a:srgbClr> child element.
+        """
+        return SubElement(self, 'a:srgbClr')
+
+    def _clear_color_choice(self):
+        """
+        Remove the EG_ColorChoice child element, e.g. <a:schemeClr>.
+        """
+        eg_colorchoice_tagnames = (
+            'a:scrgbClr', 'a:srgbClr', 'a:hslClr', 'a:sysClr', 'a:schemeClr',
+            'a:prstClr'
+        )
+        for tagname in eg_colorchoice_tagnames:
+            element = self.find(qn(tagname))
+            if element is not None:
+                self.remove(element)

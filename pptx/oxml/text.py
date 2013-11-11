@@ -99,12 +99,46 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         else:
             self.set(name, '0')
 
+    def get_or_change_to_solidFill(self):
+        """
+        Return the <a:solidFill> child element, replacing any other fill
+        element if found, e.g. a <a:gradientFill> element.
+        """
+        # return existing one if there is one
+        if self.solidFill is not None:
+            return self.solidFill
+        # get rid of other fill element type if there is one
+        other_fill_tagnames = (
+            'a:noFill', 'a:gradFill', 'a:blipFill', 'a:pattFill', 'a:grpFill'
+        )
+        self._remove_if_present(other_fill_tagnames)
+        # add solidFill element in right sequence
+        return self._add_solidFill()
+
     @property
     def solidFill(self):
         """
         The <a:solidFill> child element, or None if not present.
         """
         return self.find(qn('a:solidFill'))
+
+    def _add_solidFill(self):
+        """
+        Return a newly added <a:solidFill> child element.
+        """
+        solidFill = Element('a:solidFill')
+        ln = self.find(qn('a:ln'))
+        if ln is not None:
+            self.insert(1, solidFill)
+        else:
+            self.insert(0, solidFill)
+        return solidFill
+
+    def _remove_if_present(self, tagnames):
+        for tagname in tagnames:
+            element = self.find(qn(tagname))
+            if element is not None:
+                self.remove(element)
 
 
 class CT_TextParagraph(objectify.ObjectifiedElement):

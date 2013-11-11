@@ -105,21 +105,51 @@ class BaseBuilder(object):
         return xmlattrs_str
 
 
-class CT_Percentage(BaseBuilder):
+class CT_GradientFillPropertiesBuilder(BaseBuilder):
+    __tag__ = 'a:gradFill'
+    __nspfxs__ = ('a',)
+    __attrs__ = ('flip', 'rotWithShape')
+
+
+def a_gradFill():
+    return CT_GradientFillPropertiesBuilder()
+
+
+class CT_NoFillPropertiesBuilder(BaseBuilder):
+    __tag__ = 'a:noFill'
+    __nspfxs__ = ('a',)
+    __attrs__ = ()
+
+
+def a_noFill():
+    return CT_NoFillPropertiesBuilder()
+
+
+class CT_PercentageBuilder(BaseBuilder):
     __nspfxs__ = ('a',)
     __attrs__ = ('val',)
 
     def __init__(self, tag):
         self.__tag__ = tag
-        super(CT_Percentage, self).__init__()
+        super(CT_PercentageBuilder, self).__init__()
 
 
 def a_lumMod():
-    return CT_Percentage('a:lumMod')
+    return CT_PercentageBuilder('a:lumMod')
 
 
 def a_lumOff():
-    return CT_Percentage('a:lumOff')
+    return CT_PercentageBuilder('a:lumOff')
+
+
+class CT_PresetColorBuilder(BaseBuilder):
+    __tag__ = 'a:prstClr'
+    __nspfxs__ = ('a',)
+    __attrs__ = ('val',)
+
+
+def a_prstClr():
+    return CT_PresetColorBuilder()
 
 
 class CT_SolidColorFillPropertiesBuilder(BaseBuilder):

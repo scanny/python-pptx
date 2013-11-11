@@ -6,13 +6,15 @@ Gherkin step implementations for font color features
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+import os
+
 from behave import given, then, when
 
 from pptx import Presentation
 from pptx.dml.core import RGBColor
 from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 
-from .helpers import test_pptx
+from .helpers import saved_pptx_path, test_pptx
 
 
 font_color_pptx_path = test_pptx('font-color')
@@ -22,13 +24,13 @@ font_color_pptx_path = test_pptx('font-color')
 
 @given('a font with {color_type} color')
 def step_given_font_with_color_type(context, color_type):
-    textbox_idx = {
+    context.textbox_idx = {
         'no':      0,
         'an RGB':  1,
         'a theme': 2
     }[color_type]
     context.prs = Presentation(font_color_pptx_path)
-    textbox = context.prs.slides[0].shapes[textbox_idx]
+    textbox = context.prs.slides[0].shapes[context.textbox_idx]
     context.font = textbox.textframe.paragraphs[0].runs[0].font
 
 
@@ -48,7 +50,12 @@ def step_font_with_color_brightness(context, setting):
 
 @when('I save and reload the presentation')
 def step_save_and_reload(context):
-    assert False
+    if os.path.isfile(saved_pptx_path):
+        os.remove(saved_pptx_path)
+    context.prs.save(saved_pptx_path)
+    context.prs = Presentation(saved_pptx_path)
+    textbox = context.prs.slides[0].shapes[context.textbox_idx]
+    context.font = textbox.textframe.paragraphs[0].runs[0].font
 
 
 @when('I set the font color brightness value')
@@ -58,7 +65,10 @@ def step_set_font_color_brightness(context):
 
 @when('I set the font {color_type} value')
 def step_set_font_color_value(context, color_type):
-    assert False
+    if color_type == 'RGB':
+        context.font.color.rgb = RGBColor(0x12, 0x34, 0x56)
+    elif color_type == 'theme color':
+        context.font.color.theme_color = MSO_THEME_COLOR.DARK_1
 
 
 # then ====================================================
@@ -90,7 +100,11 @@ def step_color_brightness_value_matches(context, value):
 
 @then("the font's {color_type} value matches the value I set")
 def step_color_type_value_matches(context, color_type):
-    assert False
+    if color_type == 'RGB':
+        print(context.font.color.rgb)
+        assert context.font.color.rgb == RGBColor(0x12, 0x34, 0x56)
+    else:
+        assert False
 
 
 @then("the font's color brightness matches the value I set")

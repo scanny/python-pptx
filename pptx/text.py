@@ -218,11 +218,21 @@ class _FontColor(ColorFormat):
         """
         |RGBColor| value of this color, or None if no RGB color is explicitly
         defined for this font. Setting this value to an |RGBColor| instance
-        cause its type to change to MSO_COLOR_TYPE.RGB.
+        cause its type to change to MSO_COLOR_TYPE.RGB. If the color was a
+        theme color with a brightness adjustment, the brightness adjustment
+        is removed when changing it to an RGB color.
         """
         if self._srgbClr is None:
             return None
         return RGBColor.from_string(self._srgbClr.val)
+
+    @rgb.setter
+    def rgb(self, rgb):
+        if not isinstance(rgb, RGBColor):
+            raise TypeError('assigned value must be type RGBColor')
+        solidFill = self._rPr.get_or_change_to_solidFill()
+        srgbClr = solidFill.get_or_change_to_srgbClr()
+        srgbClr.val = str(rgb)
 
     @property
     def theme_color(self):

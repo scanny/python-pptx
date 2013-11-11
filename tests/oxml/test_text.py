@@ -8,12 +8,13 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.oxml.ns import qn
 from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph,
     CT_TextParagraphProperties
 )
 
-from ..oxml.unitdata.dml import a_solidFill
+from ..oxml.unitdata.dml import a_gradFill, a_noFill, a_solidFill
 from ..oxml.unitdata.text import (
     a_defRPr, a_p, a_pPr, a_t, an_endParaRPr, an_extLst, an_r, an_rPr
 )
@@ -98,10 +99,28 @@ class DescribeCT_TextCharacterProperties(object):
         rPr.i = None
         assert actual_xml(rPr) == rPr_xml
 
-    def it_can_get_the_solidFill_child_element_if_there_is_one(
+    def it_can_get_the_solidFill_child_element_or_none_if_there_isnt_one(
             self, rPr, rPr_with_solidFill, solidFill):
         assert rPr.solidFill is None
         assert rPr_with_solidFill.solidFill is solidFill
+
+    def it_gets_the_solidFill_child_element_if_there_is_one(
+            self, rPr_with_solidFill, solidFill):
+        _solidFill = rPr_with_solidFill.get_or_change_to_solidFill()
+        assert _solidFill is solidFill
+
+    def it_adds_a_solidFill_child_element_if_there_isnt_one(
+            self, rPr, rPr_with_solidFill_xml):
+        solidFill = rPr.get_or_change_to_solidFill()
+        assert actual_xml(rPr) == rPr_with_solidFill_xml
+        assert rPr.find(qn('a:solidFill')) == solidFill
+
+    def it_changes_the_fill_type_to_solidFill_if_another_one_is_there(
+            self, rPr_with_gradFill, rPr_with_noFill, rPr_with_solidFill_xml):
+        rPr_with_gradFill.get_or_change_to_solidFill()
+        assert actual_xml(rPr_with_gradFill) == rPr_with_solidFill_xml
+        rPr_with_noFill.get_or_change_to_solidFill()
+        assert actual_xml(rPr_with_noFill) == rPr_with_solidFill_xml
 
     # fixtures ---------------------------------------------
 
@@ -138,10 +157,25 @@ class DescribeCT_TextCharacterProperties(object):
         return an_rPr().with_nsdecls().with_i(0).xml()
 
     @pytest.fixture
+    def rPr_with_gradFill(self):
+        gradFill_bldr = a_gradFill()
+        return an_rPr().with_nsdecls().with_child(gradFill_bldr).element
+
+    @pytest.fixture
+    def rPr_with_noFill(self):
+        noFill_bldr = a_noFill()
+        return an_rPr().with_nsdecls().with_child(noFill_bldr).element
+
+    @pytest.fixture
     def rPr_with_solidFill(self, solidFill):
         rPr = an_rPr().with_nsdecls().element
         rPr.append(solidFill)
         return rPr
+
+    @pytest.fixture
+    def rPr_with_solidFill_xml(self):
+        solidFill_bldr = a_solidFill()
+        return an_rPr().with_nsdecls().with_child(solidFill_bldr).xml()
 
     @pytest.fixture
     def rPr_with_true_b(self):
