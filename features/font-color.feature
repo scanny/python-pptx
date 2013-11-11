@@ -42,14 +42,14 @@ Feature: Query and set font color
     | RGB         |
     | theme color |
 
-  @wip
   Scenario Outline: Set font color brightness
     Given a font with <color type> color
-     When I set the font color brightness value
+     When I set the font color brightness to <value>
       And I save and reload the presentation
-     Then the font's color brightness matches the value I set
+     Then the font's color brightness is <value>
 
   Examples: Color types
-    | color type |
-    | an RGB     |
-    | a theme    |
+    | color type | value |
+    | an RGB     | -0.25 |
+    | a theme    |  0.4  |
+    | an RGB     |  0    |

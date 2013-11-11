@@ -300,6 +300,28 @@ class Describe_FontColor(object):
         theme_color.theme_color = MSO_THEME_COLOR.TEXT_1
         assert theme_color.theme_color == MSO_THEME_COLOR.TEXT_1
 
+    def it_can_set_the_color_brightness(self, color, rgb_color, theme_color):
+        rgb_color.brightness = 0.4
+        assert rgb_color.brightness == 0.4
+        theme_color.brightness = 0.0
+        assert theme_color.brightness == 0.0
+        theme_color.brightness = -0.25
+        assert theme_color.brightness == -0.25
+
+    def it_raises_on_attempt_to_set_brightness_out_of_range(
+            self, theme_color):
+        with pytest.raises(ValueError):
+            theme_color.brightness = 1.1
+        with pytest.raises(ValueError):
+            theme_color.brightness = -1.1
+        with pytest.raises(ValueError):
+            theme_color.brightness = 'bright'
+
+    def it_raises_on_attempt_to_set_brightness_on_None_color_type(
+            self, color):
+        with pytest.raises(ValueError):
+            color.brightness = 0
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture

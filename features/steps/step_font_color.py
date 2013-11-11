@@ -58,9 +58,9 @@ def step_save_and_reload(context):
     context.font = textbox.textframe.paragraphs[0].runs[0].font
 
 
-@when('I set the font color brightness value')
-def step_set_font_color_brightness(context):
-    assert False
+@when('I set the font color brightness to {value}')
+def step_set_font_color_brightness(context, value):
+    context.font.color.brightness = float(value)
 
 
 @when('I set the font {color_type} value')
@@ -106,6 +106,6 @@ def step_color_type_value_matches(context, color_type):
         assert context.font.color.theme_color == MSO_THEME_COLOR.DARK_1
 
 
-@then("the font's color brightness matches the value I set")
-def step_color_brightness_matches(context):
-    assert False
+@then("the font's color brightness is {value}")
+def step_color_brightness_matches(context, value):
+    assert context.font.color.brightness == float(value)

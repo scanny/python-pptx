@@ -19,6 +19,79 @@ from ..oxml.unitdata.dml import (
 from ..unitutil import actual_xml
 
 
+class Describe_BaseColorElement(object):
+
+    def it_can_get_the_lumMod_child_element_if_there_is_one(
+            self, schemeClr, schemeClr_with_lumMod, lumMod):
+        assert schemeClr.lumMod is None
+        assert schemeClr_with_lumMod.lumMod is lumMod
+
+    def it_can_get_the_lumOff_child_element_if_there_is_one(
+            self, schemeClr, schemeClr_with_lumOff, lumOff):
+        assert schemeClr.lumOff is None
+        assert schemeClr_with_lumOff.lumOff is lumOff
+
+    def it_can_remove_existing_lumMod_and_lumOff_child_elements(
+            self, schemeClr_with_lumMod, schemeClr_with_lumOff,
+            schemeClr_xml):
+        schemeClr_with_lumMod.clear_lum()
+        schemeClr_with_lumOff.clear_lum()
+        assert actual_xml(schemeClr_with_lumMod) == schemeClr_xml
+        assert actual_xml(schemeClr_with_lumOff) == schemeClr_xml
+
+    def it_can_add_a_lumMod_child_element(
+            self, schemeClr, schemeClr_with_lumMod_xml):
+        lumMod = schemeClr.add_lumMod(75000)
+        assert actual_xml(schemeClr) == schemeClr_with_lumMod_xml
+        assert schemeClr.find(qn('a:lumMod')) == lumMod
+
+    def it_can_add_a_lumOff_child_element(
+            self, schemeClr, schemeClr_with_lumOff_xml):
+        lumOff = schemeClr.add_lumOff(40000)
+        assert actual_xml(schemeClr) == schemeClr_with_lumOff_xml
+        assert schemeClr.find(qn('a:lumOff')) == lumOff
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def lumMod(self):
+        return a_lumMod().with_nsdecls().element
+
+    @pytest.fixture
+    def lumOff(self):
+        return a_lumOff().with_nsdecls().element
+
+    @pytest.fixture
+    def schemeClr(self):
+        return a_schemeClr().with_nsdecls().element
+
+    @pytest.fixture
+    def schemeClr_xml(self):
+        return a_schemeClr().with_nsdecls().xml()
+
+    @pytest.fixture
+    def schemeClr_with_lumMod(self, lumMod):
+        schemeClr = a_schemeClr().with_nsdecls().element
+        schemeClr.append(lumMod)
+        return schemeClr
+
+    @pytest.fixture
+    def schemeClr_with_lumMod_xml(self):
+        lumMod_bldr = a_lumMod().with_val(75000)
+        return a_schemeClr().with_nsdecls().with_child(lumMod_bldr).xml()
+
+    @pytest.fixture
+    def schemeClr_with_lumOff_xml(self):
+        lumOff_bldr = a_lumOff().with_val(40000)
+        return a_schemeClr().with_nsdecls().with_child(lumOff_bldr).xml()
+
+    @pytest.fixture
+    def schemeClr_with_lumOff(self, lumOff):
+        schemeClr = a_schemeClr().with_nsdecls().element
+        schemeClr.append(lumOff)
+        return schemeClr
+
+
 class DescribeCT_Percentage(object):
 
     def it_is_used_by_the_parser_for_a_lumOff_element(self, lumOff):
@@ -53,16 +126,6 @@ class DescribeCT_SchemeColor(object):
     def it_knows_the_theme_color_str_value(self, schemeClr):
         assert schemeClr.val == 'bg1'
 
-    def it_can_get_the_lumMod_child_element_if_there_is_one(
-            self, schemeClr, schemeClr_with_lumMod, lumMod):
-        assert schemeClr.lumMod is None
-        assert schemeClr_with_lumMod.lumMod is lumMod
-
-    def it_can_get_the_lumOff_child_element_if_there_is_one(
-            self, schemeClr, schemeClr_with_lumOff, lumOff):
-        assert schemeClr.lumOff is None
-        assert schemeClr_with_lumOff.lumOff is lumOff
-
     def it_can_set_the_scheme_color_value(self, schemeClr, schemeClr_xml):
         schemeClr.val = 'accent1'
         assert actual_xml(schemeClr) == schemeClr_xml
@@ -77,26 +140,6 @@ class DescribeCT_SchemeColor(object):
     def schemeClr_xml(self):
         return a_schemeClr().with_nsdecls().with_val('accent1').xml()
 
-    @pytest.fixture
-    def schemeClr_with_lumMod(self, lumMod):
-        schemeClr = a_schemeClr().with_nsdecls().element
-        schemeClr.append(lumMod)
-        return schemeClr
-
-    @pytest.fixture
-    def schemeClr_with_lumOff(self, lumOff):
-        schemeClr = a_schemeClr().with_nsdecls().element
-        schemeClr.append(lumOff)
-        return schemeClr
-
-    @pytest.fixture
-    def lumMod(self):
-        return a_lumMod().with_nsdecls().element
-
-    @pytest.fixture
-    def lumOff(self):
-        return a_lumOff().with_nsdecls().element
-
 
 class DescribeCT_SRgbColor(object):
 
@@ -105,16 +148,6 @@ class DescribeCT_SRgbColor(object):
 
     def it_knows_the_rgb_str_value(self, srgbClr):
         assert srgbClr.val == '123456'
-
-    def it_can_get_the_lumMod_child_element_if_there_is_one(
-            self, srgbClr, srgbClr_with_lumMod, lumMod):
-        assert srgbClr.lumMod is None
-        assert srgbClr_with_lumMod.lumMod is lumMod
-
-    def it_can_get_the_lumOff_child_element_if_there_is_one(
-            self, srgbClr, srgbClr_with_lumOff, lumOff):
-        assert srgbClr.lumOff is None
-        assert srgbClr_with_lumOff.lumOff is lumOff
 
     def it_can_set_the_rgb_str_value(self, srgbClr, srgbClr_xml):
         srgbClr.val = '987654'
@@ -129,26 +162,6 @@ class DescribeCT_SRgbColor(object):
     @pytest.fixture
     def srgbClr_xml(self):
         return an_srgbClr().with_nsdecls().with_val('987654').xml()
-
-    @pytest.fixture
-    def srgbClr_with_lumMod(self, lumMod):
-        srgbClr = an_srgbClr().with_nsdecls().element
-        srgbClr.append(lumMod)
-        return srgbClr
-
-    @pytest.fixture
-    def srgbClr_with_lumOff(self, lumOff):
-        srgbClr = an_srgbClr().with_nsdecls().element
-        srgbClr.append(lumOff)
-        return srgbClr
-
-    @pytest.fixture
-    def lumMod(self):
-        return a_lumMod().with_nsdecls().element
-
-    @pytest.fixture
-    def lumOff(self):
-        return a_lumOff().with_nsdecls().element
 
 
 class DescribeCT_SolidColorFillProperties(object):

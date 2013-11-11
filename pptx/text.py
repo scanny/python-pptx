@@ -194,24 +194,30 @@ class _FontColor(ColorFormat):
         """
         if self._color_elm is None:
             return 0
-
         lumMod, lumOff = self._color_elm.lumMod, self._color_elm.lumOff
-
         # a tint is lighter, a shade is darker
         # only tints have lumOff child
         if lumOff is not None:
             val = lumOff.val
             brightness = float(val) / 100000
             return brightness
-
         # which leaves shades, if lumMod is present
         if lumMod is not None:
             val = lumMod.val
             brightness = -1.0 + float(val)/100000
             return brightness
-
-        # no brightness adjustment if no lum{Mod|Off} elements
+        # there's no brightness adjustment if no lum{Mod|Off} elements
         return 0
+
+    @brightness.setter
+    def brightness(self, value):
+        self._validate_brightness_value(value)
+        if value > 0:
+            self._tint(value)
+        elif value < 0:
+            self._shade(value)
+        else:
+            self._color_elm.clear_lum()
 
     @property
     def rgb(self):
@@ -290,6 +296,18 @@ class _FontColor(ColorFormat):
             return None
         return solidFill.schemeClr
 
+    def _shade(self, value):
+        lumMod_val = 100000 - int(abs(value) * 100000)
+        color_elm = self._color_elm.clear_lum()
+        color_elm.add_lumMod(lumMod_val)
+
+    def _tint(self, value):
+        lumOff_val = int(value * 100000)
+        lumMod_val = 100000 - lumOff_val
+        color_elm = self._color_elm.clear_lum()
+        color_elm.add_lumMod(lumMod_val)
+        color_elm.add_lumOff(lumOff_val)
+
     @property
     def _srgbClr(self):
         """
@@ -299,6 +317,16 @@ class _FontColor(ColorFormat):
         if solidFill is None:
             return None
         return solidFill.srgbClr
+
+    def _validate_brightness_value(self, value):
+        if value < -1.0 or value > 1.0:
+            raise ValueError('brightness must be number in range -1.0 to 1.0')
+        if self._color_elm is None:
+            msg = (
+                "can't set brightness when color.type is None. Set color.rgb"
+                " or .theme_color first."
+            )
+            raise ValueError(msg)
 
 
 class _Paragraph(object):
