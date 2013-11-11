@@ -63,11 +63,19 @@ class DescribeCT_SchemeColor(object):
         assert schemeClr.lumOff is None
         assert schemeClr_with_lumOff.lumOff is lumOff
 
+    def it_can_set_the_scheme_color_value(self, schemeClr, schemeClr_xml):
+        schemeClr.val = 'accent1'
+        assert actual_xml(schemeClr) == schemeClr_xml
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
     def schemeClr(self):
         return a_schemeClr().with_nsdecls().with_val('bg1').element
+
+    @pytest.fixture
+    def schemeClr_xml(self):
+        return a_schemeClr().with_nsdecls().with_val('accent1').xml()
 
     @pytest.fixture
     def schemeClr_with_lumMod(self, lumMod):
@@ -158,6 +166,24 @@ class DescribeCT_SolidColorFillProperties(object):
         assert solidFill.srgbClr is None
         assert solidFill_with_srgbClr.srgbClr is srgbClr
 
+    def it_gets_the_schemeClr_child_element_if_there_is_one(
+            self, solidFill_with_schemeClr, schemeClr):
+        _schemeClr = solidFill_with_schemeClr.get_or_change_to_schemeClr()
+        assert _schemeClr is schemeClr
+
+    def it_adds_an_schemeClr_child_element_if_there_isnt_one(
+            self, solidFill, solidFill_with_schemeClr_xml):
+        schemeClr = solidFill.get_or_change_to_schemeClr()
+        assert actual_xml(solidFill) == solidFill_with_schemeClr_xml
+        assert solidFill.find(qn('a:schemeClr')) == schemeClr
+
+    def it_changes_the_color_choice_to_schemeClr_if_a_different_one_is_there(
+            self, solidFill_with_srgbClr, solidFill_with_prstClr,
+            solidFill_with_schemeClr_xml):
+        for elm in (solidFill_with_srgbClr, solidFill_with_prstClr):
+            elm.get_or_change_to_schemeClr()
+            assert actual_xml(elm) == solidFill_with_schemeClr_xml
+
     def it_gets_the_srgbClr_child_element_if_there_is_one(
             self, solidFill_with_srgbClr, srgbClr):
         _srgbClr = solidFill_with_srgbClr.get_or_change_to_srgbClr()
@@ -177,6 +203,14 @@ class DescribeCT_SolidColorFillProperties(object):
             assert actual_xml(elm) == solidFill_with_srgbClr_xml
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def schemeClr(self):
+        return a_schemeClr().with_nsdecls().element
+
+    @pytest.fixture
+    def srgbClr(self):
+        return an_srgbClr().with_nsdecls().element
 
     @pytest.fixture
     def solidFill(self):
@@ -201,14 +235,11 @@ class DescribeCT_SolidColorFillProperties(object):
         return solidFill
 
     @pytest.fixture
+    def solidFill_with_schemeClr_xml(self):
+        schemeClr_bldr = a_schemeClr()
+        return a_solidFill().with_nsdecls().with_child(schemeClr_bldr).xml()
+
+    @pytest.fixture
     def solidFill_with_srgbClr_xml(self):
         srgbClr_bldr = an_srgbClr()
         return a_solidFill().with_nsdecls().with_child(srgbClr_bldr).xml()
-
-    @pytest.fixture
-    def schemeClr(self):
-        return a_schemeClr().with_nsdecls().element
-
-    @pytest.fixture
-    def srgbClr(self):
-        return an_srgbClr().with_nsdecls().element

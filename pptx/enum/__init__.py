@@ -44,7 +44,26 @@ class MSO_THEME_COLOR(Enumeration):
     TEXT_1 = 13
     TEXT_2 = 15
 
-    _xml_to_val = {
+    _idx_to_xml = {
+        ACCENT_1:           'accent1',
+        ACCENT_2:           'accent2',
+        ACCENT_3:           'accent3',
+        ACCENT_4:           'accent4',
+        ACCENT_5:           'accent5',
+        ACCENT_6:           'accent6',
+        BACKGROUND_1:       'bg1',
+        BACKGROUND_2:       'bg2',
+        DARK_1:             'dk1',
+        DARK_2:             'dk2',
+        FOLLOWED_HYPERLINK: 'folHlink',
+        HYPERLINK:          'hlink',
+        LIGHT_1:            'lt1',
+        LIGHT_2:            'lt2',
+        TEXT_1:             'tx1',
+        TEXT_2:             'tx2',
+    }
+
+    _xml_to_idx = {
         'bg1':      BACKGROUND_1,
         'tx1':      TEXT_1,
         'bg2':      BACKGROUND_2,
@@ -66,4 +85,8 @@ class MSO_THEME_COLOR(Enumeration):
 
     @classmethod
     def from_xml(cls, st_schemecolorval):
-        return cls._xml_to_val[st_schemecolorval]
+        return cls._xml_to_idx[st_schemecolorval]
+
+    @classmethod
+    def to_xml(cls, mso_theme_color_idx):
+        return cls._idx_to_xml[mso_theme_color_idx]

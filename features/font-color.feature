@@ -31,7 +31,6 @@ Feature: Query and set font color
     | 40% lighter              |  0.4  |
     | no brightness adjustment |  0    |
 
-  @wip
   Scenario Outline: Set font color
     Given a font with no color
      When I set the font <color type> value

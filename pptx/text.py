@@ -247,6 +247,12 @@ class _FontColor(ColorFormat):
             return None
         return MSO_THEME_COLOR.from_xml(self._schemeClr.val)
 
+    @theme_color.setter
+    def theme_color(self, mso_theme_color_idx):
+        solidFill = self._rPr.get_or_change_to_solidFill()
+        schemeClr = solidFill.get_or_change_to_schemeClr()
+        schemeClr.val = MSO_THEME_COLOR.to_xml(mso_theme_color_idx)
+
     @property
     def type(self):
         """

@@ -29,6 +29,16 @@ class CT_SchemeColor(OxmlElement):
     """
     Custom element class for <a:schemeClr> element.
     """
+    def __setattr__(self, name, value):
+        """
+        Override ``__setattr__`` defined in ObjectifiedElement super class
+        to intercept messages intended for custom property setters.
+        """
+        if name in ('val',):
+            self.set(name, value)
+        else:
+            super(CT_SchemeColor, self).__setattr__(name, value)
+
     @property
     def lumMod(self):
         """
@@ -85,6 +95,17 @@ class CT_SolidColorFillProperties(OxmlElement):
     """
     Custom element class for <a:solidFill> element.
     """
+    def get_or_change_to_schemeClr(self):
+        """
+        Return the <a:schemeClr> child of this <a:solidFill>, replacing any
+        other EG_ColorChoice element if found, perhaps most commonly a
+        <a:srgbClr> element.
+        """
+        if self.schemeClr is not None:
+            return self.schemeClr
+        self._clear_color_choice()
+        return self._add_schemeClr()
+
     def get_or_change_to_srgbClr(self):
         """
         Return the <a:srgbClr> child of this <a:solidFill>, replacing any
@@ -109,6 +130,12 @@ class CT_SolidColorFillProperties(OxmlElement):
         The <a:srgbClr> child element, or None if not present.
         """
         return self.find(qn('a:srgbClr'))
+
+    def _add_schemeClr(self):
+        """
+        Return a newly added <a:schemeClr> child element.
+        """
+        return SubElement(self, 'a:schemeClr')
 
     def _add_srgbClr(self):
         """

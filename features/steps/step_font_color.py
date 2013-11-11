@@ -101,10 +101,9 @@ def step_color_brightness_value_matches(context, value):
 @then("the font's {color_type} value matches the value I set")
 def step_color_type_value_matches(context, color_type):
     if color_type == 'RGB':
-        print(context.font.color.rgb)
         assert context.font.color.rgb == RGBColor(0x12, 0x34, 0x56)
     else:
-        assert False
+        assert context.font.color.theme_color == MSO_THEME_COLOR.DARK_1
 
 
 @then("the font's color brightness matches the value I set")

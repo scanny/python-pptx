@@ -292,6 +292,14 @@ class Describe_FontColor(object):
         theme_color.rgb = RGBColor(0xBC, 0xDE, 0xF0)
         assert theme_color.rgb == RGBColor(0xBC, 0xDE, 0xF0)
 
+    def it_can_set_the_theme_color(self, color, rgb_color, theme_color):
+        color.theme_color = MSO_THEME_COLOR.ACCENT_1
+        assert color.theme_color == MSO_THEME_COLOR.ACCENT_1
+        rgb_color.theme_color = MSO_THEME_COLOR.BACKGROUND_1
+        assert rgb_color.theme_color == MSO_THEME_COLOR.BACKGROUND_1
+        theme_color.theme_color = MSO_THEME_COLOR.TEXT_1
+        assert theme_color.theme_color == MSO_THEME_COLOR.TEXT_1
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
