@@ -9,10 +9,38 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.oxml.dml import (
-    CT_SchemeColor, CT_SRgbColor, CT_SolidColorFillProperties
+    CT_Percentage, CT_SchemeColor, CT_SRgbColor, CT_SolidColorFillProperties
 )
 
-from ..oxml.unitdata.dml import a_schemeClr, a_solidFill, an_srgbClr
+from ..oxml.unitdata.dml import (
+    a_lumMod, a_lumOff, a_schemeClr, a_solidFill, an_srgbClr
+)
+
+
+class DescribeCT_Percentage(object):
+
+    def it_is_used_by_the_parser_for_a_lumOff_element(self, lumOff):
+        assert isinstance(lumOff, CT_Percentage)
+
+    def it_is_used_by_the_parser_for_a_lumMod_element(self, lumMod):
+        assert isinstance(lumMod, CT_Percentage)
+
+    def it_knows_the_percentage_str_value(self, ct_percentage):
+        assert ct_percentage.val == '99999'
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def ct_percentage(self):
+        return a_lumMod().with_nsdecls().with_val('99999').element
+
+    @pytest.fixture
+    def lumMod(self):
+        return a_lumMod().with_nsdecls().with_val('33333').element
+
+    @pytest.fixture
+    def lumOff(self):
+        return a_lumOff().with_nsdecls().with_val('66666').element
 
 
 class DescribeCT_SchemeColor(object):
@@ -23,11 +51,41 @@ class DescribeCT_SchemeColor(object):
     def it_knows_the_theme_color_str_value(self, schemeClr):
         assert schemeClr.val == 'bg1'
 
+    def it_can_get_the_lumMod_child_element_if_there_is_one(
+            self, schemeClr, schemeClr_with_lumMod, lumMod):
+        assert schemeClr.lumMod is None
+        assert schemeClr_with_lumMod.lumMod is lumMod
+
+    def it_can_get_the_lumOff_child_element_if_there_is_one(
+            self, schemeClr, schemeClr_with_lumOff, lumOff):
+        assert schemeClr.lumOff is None
+        assert schemeClr_with_lumOff.lumOff is lumOff
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
     def schemeClr(self):
         return a_schemeClr().with_nsdecls().with_val('bg1').element
+
+    @pytest.fixture
+    def schemeClr_with_lumMod(self, lumMod):
+        schemeClr = a_schemeClr().with_nsdecls().element
+        schemeClr.append(lumMod)
+        return schemeClr
+
+    @pytest.fixture
+    def schemeClr_with_lumOff(self, lumOff):
+        schemeClr = a_schemeClr().with_nsdecls().element
+        schemeClr.append(lumOff)
+        return schemeClr
+
+    @pytest.fixture
+    def lumMod(self):
+        return a_lumMod().with_nsdecls().element
+
+    @pytest.fixture
+    def lumOff(self):
+        return a_lumOff().with_nsdecls().element
 
 
 class DescribeCT_SRgbColor(object):
@@ -38,11 +96,41 @@ class DescribeCT_SRgbColor(object):
     def it_knows_the_rgb_str_value(self, srgbClr):
         assert srgbClr.val == '123456'
 
+    def it_can_get_the_lumMod_child_element_if_there_is_one(
+            self, srgbClr, srgbClr_with_lumMod, lumMod):
+        assert srgbClr.lumMod is None
+        assert srgbClr_with_lumMod.lumMod is lumMod
+
+    def it_can_get_the_lumOff_child_element_if_there_is_one(
+            self, srgbClr, srgbClr_with_lumOff, lumOff):
+        assert srgbClr.lumOff is None
+        assert srgbClr_with_lumOff.lumOff is lumOff
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
     def srgbClr(self):
         return an_srgbClr().with_nsdecls().with_val('123456').element
+
+    @pytest.fixture
+    def srgbClr_with_lumMod(self, lumMod):
+        srgbClr = an_srgbClr().with_nsdecls().element
+        srgbClr.append(lumMod)
+        return srgbClr
+
+    @pytest.fixture
+    def srgbClr_with_lumOff(self, lumOff):
+        srgbClr = an_srgbClr().with_nsdecls().element
+        srgbClr.append(lumOff)
+        return srgbClr
+
+    @pytest.fixture
+    def lumMod(self):
+        return a_lumMod().with_nsdecls().element
+
+    @pytest.fixture
+    def lumOff(self):
+        return a_lumOff().with_nsdecls().element
 
 
 class DescribeCT_SolidColorFillProperties(object):

@@ -186,17 +186,32 @@ class _FontColor(ColorFormat):
         self._rPr = rPr
 
     @property
-    def theme_color(self):
+    def brightness(self):
         """
-        Theme color value of this color, one of those defined in the
-        MSO_THEME_COLOR enumeration, e.g. MSO_THEME_COLOR.ACCENT_1. None if
-        no theme color is explicitly defined for this font. Setting this to a
-        value in MSO_THEME_COLOR causes the color's type to change to
-        ``MSO_COLOR_TYPE.SCHEME``.
+        Read/write float value between -1.0 and 1.0 indicating the brightness
+        adjustment for this color, e.g. -0.25 is 25% darker and 0.4 is 40%
+        lighter. 0 means no brightness adjustment.
         """
-        if self._schemeClr is None:
-            return None
-        return MSO_THEME_COLOR.from_xml(self._schemeClr.val)
+        if self._color_elm is None:
+            return 0
+
+        lumMod, lumOff = self._color_elm.lumMod, self._color_elm.lumOff
+
+        # a tint is lighter, a shade is darker
+        # only tints have lumOff child
+        if lumOff is not None:
+            val = lumOff.val
+            brightness = float(val) / 100000
+            return brightness
+
+        # which leaves shades, if lumMod is present
+        if lumMod is not None:
+            val = lumMod.val
+            brightness = -1.0 + float(val)/100000
+            return brightness
+
+        # no brightness adjustment if no lum{Mod|Off} elements
+        return 0
 
     @property
     def rgb(self):
@@ -208,6 +223,19 @@ class _FontColor(ColorFormat):
         if self._srgbClr is None:
             return None
         return RGBColor.from_string(self._srgbClr.val)
+
+    @property
+    def theme_color(self):
+        """
+        Theme color value of this color, one of those defined in the
+        MSO_THEME_COLOR enumeration, e.g. MSO_THEME_COLOR.ACCENT_1. None if
+        no theme color is explicitly defined for this font. Setting this to a
+        value in MSO_THEME_COLOR causes the color's type to change to
+        ``MSO_COLOR_TYPE.SCHEME``.
+        """
+        if self._schemeClr is None:
+            return None
+        return MSO_THEME_COLOR.from_xml(self._schemeClr.val)
 
     @property
     def type(self):
@@ -223,9 +251,23 @@ class _FontColor(ColorFormat):
         return None
 
     @property
+    def _color_elm(self):
+        """
+        srgbClr or schemeClr child of <a:solidFill>, None if neither is
+        present.
+        """
+        srgbClr = self._srgbClr
+        if srgbClr is not None:
+            return srgbClr
+        schemeClr = self._schemeClr
+        if schemeClr is not None:
+            return schemeClr
+        return None
+
+    @property
     def _schemeClr(self):
         """
-        schemeClr child of <a:solidFill> if present, none otherwise
+        schemeClr child of <a:solidFill> if present, None otherwise
         """
         solidFill = self._rPr.solidFill
         if solidFill is None:
@@ -235,7 +277,7 @@ class _FontColor(ColorFormat):
     @property
     def _srgbClr(self):
         """
-        srgbClr child of <a:solidFill> if present, none otherwise
+        srgbClr child of <a:solidFill> if present, None otherwise
         """
         solidFill = self._rPr.solidFill
         if solidFill is None:

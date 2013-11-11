@@ -324,6 +324,20 @@ Related Schema Definitions
     </xsd:choice>
   </xsd:group>
 
+  <xsd:complexType name="CT_Percentage">
+    <xsd:attribute name="val" type="ST_Percentage" use="required"/>
+  </xsd:complexType>
+
+  <xsd:simpleType name="ST_Percentage">
+    <xsd:union memberTypes="s:ST_Percentage"/>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_Percentage">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="-?[0-9]+(\.[0-9]+)?%"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
   <xsd:simpleType name="ST_HexColorRGB">
     <xsd:restriction base="xsd:hexBinary">
       <xsd:length value="3" fixed="true"/>

@@ -18,7 +18,9 @@ from pptx.oxml.text import (
 )
 from pptx.text import _Font, _FontColor, _Paragraph, _Run, TextFrame
 
-from .oxml.unitdata.dml import a_schemeClr, a_solidFill, an_srgbClr
+from .oxml.unitdata.dml import (
+    a_lumMod, a_lumOff, a_schemeClr, a_solidFill, an_srgbClr
+)
 from .oxml.unitdata.text import a_p, a_pPr, a_t, an_r, an_rPr
 from .unitutil import (
     absjoin, actual_xml, class_mock, instance_mock, parse_xml_file,
@@ -272,6 +274,16 @@ class Describe_FontColor(object):
         assert color.theme_color is None
         assert theme_color.theme_color == MSO_THEME_COLOR.ACCENT_1
 
+    def it_knows_the_brightness_adjustment_of_its_color(
+            self, color, solidFill_only_color, rgb_color, theme_color,
+            rgb_color_with_brightness, theme_color_with_brightness):
+        assert color.brightness == 0.0
+        assert solidFill_only_color.brightness == 0.0
+        assert rgb_color.brightness == 0.0
+        assert theme_color.brightness == 0.0
+        assert rgb_color_with_brightness.brightness == 0.4
+        assert theme_color_with_brightness.brightness == -0.25
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -287,6 +299,16 @@ class Describe_FontColor(object):
         return _FontColor(rPr)
 
     @pytest.fixture
+    def rgb_color_with_brightness(self):
+        lumMod_bldr = a_lumMod().with_val('60000')
+        lumOff_bldr = a_lumOff().with_val('40000')
+        srgbClr_bldr = an_srgbClr().with_val('123456')
+        srgbClr_bldr.with_child(lumMod_bldr).with_child(lumOff_bldr)
+        solidFill_bldr = a_solidFill().with_child(srgbClr_bldr)
+        rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
+        return _FontColor(rPr)
+
+    @pytest.fixture
     def solidFill_only_color(self):
         solidFill_bldr = a_solidFill()
         rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
@@ -295,6 +317,15 @@ class Describe_FontColor(object):
     @pytest.fixture
     def theme_color(self):
         schemeClr_bldr = a_schemeClr().with_val('accent1')
+        solidFill_bldr = a_solidFill().with_child(schemeClr_bldr)
+        rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
+        return _FontColor(rPr)
+
+    @pytest.fixture
+    def theme_color_with_brightness(self):
+        lumMod_bldr = a_lumMod().with_val('75000')
+        schemeClr_bldr = a_schemeClr().with_val('foobar')
+        schemeClr_bldr.with_child(lumMod_bldr)
         solidFill_bldr = a_solidFill().with_child(schemeClr_bldr)
         rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
         return _FontColor(rPr)

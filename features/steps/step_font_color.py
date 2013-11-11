@@ -34,7 +34,14 @@ def step_given_font_with_color_type(context, color_type):
 
 @given('a font with a color brightness setting of {setting}')
 def step_font_with_color_brightness(context, setting):
-    assert False
+    textbox_idx = {
+        'no brightness adjustment': 2,
+        '25% darker': 3,
+        '40% lighter': 4,
+    }[setting]
+    context.prs = Presentation(font_color_pptx_path)
+    textbox = context.prs.slides[0].shapes[textbox_idx]
+    context.font = textbox.textframe.paragraphs[0].runs[0].font
 
 
 # when ====================================================
@@ -78,7 +85,7 @@ def step_then_font_color_type_is_value(context, color_type):
 
 @then('its color brightness value is {value}')
 def step_color_brightness_value_matches(context, value):
-    assert False
+    assert context.font.color.brightness == float(value)
 
 
 @then("the font's {color_type} value matches the value I set")

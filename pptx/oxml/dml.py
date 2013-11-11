@@ -15,10 +15,33 @@ class OxmlElement(objectify.ObjectifiedElement):
     pass
 
 
+class CT_Percentage(OxmlElement):
+    """
+    Custom element class for <a:lumMod> and <a:lumOff> elements.
+    """
+    @property
+    def val(self):
+        return self.get('val')
+
+
 class CT_SchemeColor(OxmlElement):
     """
     Custom element class for <a:schemeClr> element.
     """
+    @property
+    def lumMod(self):
+        """
+        The <a:lumMod> child element, or None if not present.
+        """
+        return self.find(qn('a:lumMod'))
+
+    @property
+    def lumOff(self):
+        """
+        The <a:lumOff> child element, or None if not present.
+        """
+        return self.find(qn('a:lumOff'))
+
     @property
     def val(self):
         return self.get('val')
@@ -28,6 +51,20 @@ class CT_SRgbColor(OxmlElement):
     """
     Custom element class for <a:srgbClr> element.
     """
+    @property
+    def lumMod(self):
+        """
+        The <a:lumMod> child element, or None if not present.
+        """
+        return self.find(qn('a:lumMod'))
+
+    @property
+    def lumOff(self):
+        """
+        The <a:lumOff> child element, or None if not present.
+        """
+        return self.find(qn('a:lumOff'))
+
     @property
     def val(self):
         return self.get('val')

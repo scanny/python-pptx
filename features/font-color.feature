@@ -21,7 +21,6 @@ Feature: Query and set font color
     Given a font with a theme color
      Then its color value matches its theme color
 
-  @wip
   Scenario Outline: Get font color brightness
     Given a font with a color brightness setting of <setting>
      Then its color brightness value is <value>

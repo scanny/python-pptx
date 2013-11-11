@@ -105,6 +105,23 @@ class BaseBuilder(object):
         return xmlattrs_str
 
 
+class CT_Percentage(BaseBuilder):
+    __nspfxs__ = ('a',)
+    __attrs__ = ('val',)
+
+    def __init__(self, tag):
+        self.__tag__ = tag
+        super(CT_Percentage, self).__init__()
+
+
+def a_lumMod():
+    return CT_Percentage('a:lumMod')
+
+
+def a_lumOff():
+    return CT_Percentage('a:lumOff')
+
+
 class CT_SolidColorFillPropertiesBuilder(BaseBuilder):
     __tag__ = 'a:solidFill'
     __nspfxs__ = ('a',)
