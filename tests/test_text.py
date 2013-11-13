@@ -21,7 +21,9 @@ from pptx.text import _Font, _FontColor, _Paragraph, _Run, TextFrame
 from .oxml.unitdata.dml import (
     a_lumMod, a_lumOff, a_schemeClr, a_solidFill, an_srgbClr
 )
-from .oxml.unitdata.text import a_p, a_pPr, a_t, an_r, an_rPr
+from .oxml.unitdata.text import (
+    a_bodyPr, a_txBody, a_p, a_pPr, a_t, an_r, an_rPr
+)
 from .unitutil import (
     absjoin, actual_xml, class_mock, instance_mock, parse_xml_file,
     serialize_xml, test_file_dir
@@ -109,50 +111,22 @@ class DescribeTextFrame(object):
         # verify -----------------------
         assert actual_xml(textframe._txBody) == expected_xml
 
-    def test_word_wrap_works(self):
-        """Assignment to TextFrame.word_wrap sets word wrap value"""
-        # setup ------------------------
-        txBody_xml = (
-            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
-            'p></p:txBody>' % nsdecls('p', 'a')
-        )
-        true_expected_xml = (
-            '<p:txBody %s>\n  <a:bodyPr wrap="square"/>\n  <a:p>\n    <a:r>\n '
-            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
-            nsdecls('p', 'a')
-        )
-        false_expected_xml = (
-            '<p:txBody %s>\n  <a:bodyPr wrap="none"/>\n  <a:p>\n    <a:r>\n '
-            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
-            nsdecls('p', 'a')
-        )
-        none_expected_xml = (
-            '<p:txBody %s>\n  <a:bodyPr/>\n  <a:p>\n    <a:r>\n '
-            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
-            nsdecls('p', 'a')
-        )
-
-        txBody = parse_xml_bytes(txBody_xml)
+    def it_can_change_the_word_wrap_setting(
+            self, txBody, txBody_with_wrap_on_xml, txBody_with_wrap_off_xml,
+            txBody_xml):
         textframe = TextFrame(txBody)
-
         assert textframe.word_wrap is None
 
-        # exercise ---------------------
         textframe.word_wrap = True
-        # verify -----------------------
-        assert actual_xml(textframe._txBody) == true_expected_xml
+        assert actual_xml(textframe._txBody) == txBody_with_wrap_on_xml
         assert textframe.word_wrap is True
 
-        # exercise ---------------------
         textframe.word_wrap = False
-        # verify -----------------------
-        assert actual_xml(textframe._txBody) == false_expected_xml
+        assert actual_xml(textframe._txBody) == txBody_with_wrap_off_xml
         assert textframe.word_wrap is False
 
-        # exercise ---------------------
         textframe.word_wrap = None
-        # verify -----------------------
-        assert actual_xml(textframe._txBody) == none_expected_xml
+        assert actual_xml(textframe._txBody) == txBody_xml
         assert textframe.word_wrap is None
 
     # fixtures ---------------------------------------------
@@ -163,6 +137,42 @@ class DescribeTextFrame(object):
         sld = parse_xml_file(path).getroot()
         xpath = './p:cSld/p:spTree/p:sp/p:txBody'
         return sld.xpath(xpath, namespaces=nsmap)
+
+    @pytest.fixture
+    def txBody(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr()
+        txBody_bldr = a_txBody().with_nsdecls()
+        txBody_bldr.with_child(bodyPr_bldr)
+        txBody_bldr.with_child(p_bldr)
+        return txBody_bldr.element
+
+    @pytest.fixture
+    def txBody_xml(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr()
+        txBody_bldr = a_txBody().with_nsdecls()
+        txBody_bldr.with_child(bodyPr_bldr)
+        txBody_bldr.with_child(p_bldr)
+        return txBody_bldr.xml()
+
+    @pytest.fixture
+    def txBody_with_wrap_off_xml(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr().with_wrap('none')
+        txBody_bldr = a_txBody().with_nsdecls()
+        txBody_bldr.with_child(bodyPr_bldr)
+        txBody_bldr.with_child(p_bldr)
+        return txBody_bldr.xml()
+
+    @pytest.fixture
+    def txBody_with_wrap_on_xml(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr().with_wrap('square')
+        txBody_bldr = a_txBody().with_nsdecls()
+        txBody_bldr.with_child(bodyPr_bldr)
+        txBody_bldr.with_child(p_bldr)
+        return txBody_bldr.xml()
 
 
 class Describe_Font(object):

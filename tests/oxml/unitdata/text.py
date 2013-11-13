@@ -125,6 +125,31 @@ def an_r():
     return CT_RegularTextRunBuilder()
 
 
+class CT_TextBodyBuilder(BaseBuilder):
+    __tag__ = 'p:txBody'
+    __nspfxs__ = ('p', 'a')
+    __attrs__ = ()
+
+
+def a_txBody():
+    return CT_TextBodyBuilder()
+
+
+class CT_TextBodyPropertiesBuilder(BaseBuilder):
+    __tag__ = 'a:bodyPr'
+    __nspfxs__ = ('a',)
+    __attrs__ = (
+        'rot', 'spcFirstLastPara', 'vertOverflow', 'horzOverflow', 'vert',
+        'wrap', 'lIns', 'tIns', 'rIns', 'bIns', 'numCol', 'spcCol', 'rtlCol',
+        'fromWordArt', 'anchor', 'anchorCtr', 'forceAA', 'upright',
+        'compatLnSpc',
+    )
+
+
+def a_bodyPr():
+    return CT_TextBodyPropertiesBuilder()
+
+
 class CT_TextCharacterPropertiesBuilder(BaseBuilder):
     """
     Test data builder for CT_TextCharacterProperties XML element that appears
