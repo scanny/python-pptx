@@ -24,26 +24,20 @@ from .oxml.unitdata.dml import (
 from .oxml.unitdata.text import a_p, a_pPr, a_t, an_r, an_rPr
 from .unitutil import (
     absjoin, actual_xml, class_mock, instance_mock, parse_xml_file,
-    serialize_xml, TestCase, test_file_dir
+    serialize_xml, test_file_dir
 )
 
 
 nsmap = namespaces('a', 'r', 'p')
 
 
-class DescribeTextFrame(TestCase):
+class DescribeTextFrame(object):
 
-    def setUp(self):
-        path = absjoin(test_file_dir, 'slide1.xml')
-        self.sld = parse_xml_file(path).getroot()
-        xpath = './p:cSld/p:spTree/p:sp/p:txBody'
-        self.txBodyList = self.sld.xpath(xpath, namespaces=nsmap)
-
-    def test_paragraphs_size(self):
+    def test_paragraphs_size(self, txBodyList):
         """TextFrame.paragraphs is expected size"""
         # setup ------------------------
         actual_lengths = []
-        for txBody in self.txBodyList:
+        for txBody in txBodyList:
             textframe = TextFrame(txBody)
             # exercise ----------------
             actual_lengths.append(len(textframe.paragraphs))
@@ -51,7 +45,7 @@ class DescribeTextFrame(TestCase):
         expected = [1, 1, 2, 1, 1]
         actual = actual_lengths
         msg = "expected paragraph count %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
 
     def test_add_paragraph_xml(self):
         """TextFrame.add_paragraph does what it says"""
@@ -77,11 +71,11 @@ class DescribeTextFrame(TestCase):
         if not expected == actual:
             raise AssertionError(msg)
 
-    def test_text_setter_structure_and_value(self):
+    def test_text_setter_structure_and_value(self, txBodyList):
         """Assignment to TextFrame.text yields single run para set to value"""
         # setup ------------------------
         test_text = 'python-pptx was here!!'
-        txBody = self.txBodyList[2]
+        txBody = txBodyList[2]
         textframe = TextFrame(txBody)
         # exercise ---------------------
         textframe.text = test_text
@@ -89,12 +83,12 @@ class DescribeTextFrame(TestCase):
         expected = 1
         actual = len(textframe.paragraphs)
         msg = "expected paragraph count %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
         # verify value -----------------
         expected = test_text
         actual = textframe.paragraphs[0].runs[0].text
         msg = "expected text '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
 
     def test_vertical_anchor_works(self):
         """Assignment to TextFrame.vertical_anchor sets vert anchor"""
@@ -113,7 +107,7 @@ class DescribeTextFrame(TestCase):
         # exercise ---------------------
         textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
         # verify -----------------------
-        self.assertEqualLineByLine(expected_xml, textframe._txBody)
+        assert actual_xml(textframe._txBody) == expected_xml
 
     def test_word_wrap_works(self):
         """Assignment to TextFrame.word_wrap sets word wrap value"""
@@ -141,28 +135,34 @@ class DescribeTextFrame(TestCase):
         txBody = parse_xml_bytes(txBody_xml)
         textframe = TextFrame(txBody)
 
-        self.assertEqual(textframe.word_wrap, None)
+        assert textframe.word_wrap is None
 
         # exercise ---------------------
         textframe.word_wrap = True
         # verify -----------------------
-        self.assertEqualLineByLine(
-            true_expected_xml, textframe._txBody)
-        self.assertEqual(textframe.word_wrap, True)
+        assert actual_xml(textframe._txBody) == true_expected_xml
+        assert textframe.word_wrap is True
 
         # exercise ---------------------
         textframe.word_wrap = False
         # verify -----------------------
-        self.assertEqualLineByLine(
-            false_expected_xml, textframe._txBody)
-        self.assertEqual(textframe.word_wrap, False)
+        assert actual_xml(textframe._txBody) == false_expected_xml
+        assert textframe.word_wrap is False
 
         # exercise ---------------------
         textframe.word_wrap = None
         # verify -----------------------
-        self.assertEqualLineByLine(
-            none_expected_xml, textframe._txBody)
-        self.assertEqual(textframe.word_wrap, None)
+        assert actual_xml(textframe._txBody) == none_expected_xml
+        assert textframe.word_wrap is None
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def txBodyList(self):
+        path = absjoin(test_file_dir, 'slide1.xml')
+        sld = parse_xml_file(path).getroot()
+        xpath = './p:cSld/p:spTree/p:sp/p:txBody'
+        return sld.xpath(xpath, namespaces=nsmap)
 
 
 class Describe_Font(object):
