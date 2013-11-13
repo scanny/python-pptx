@@ -67,6 +67,7 @@ ISO/IEC 29500 spec.
    schema/ct_srgbcolor
    schema/ct_table
    schema/ct_textbody
+   schema/ct_textbodyproperties
    schema/ct_textcharacterproperties
    schema/ct_textparagraph
    schema/miscellaneous
