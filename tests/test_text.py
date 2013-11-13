@@ -33,19 +33,10 @@ nsmap = namespaces('a', 'r', 'p')
 
 class DescribeTextFrame(object):
 
-    def test_paragraphs_size(self, txBodyList):
-        """TextFrame.paragraphs is expected size"""
-        # setup ------------------------
-        actual_lengths = []
-        for txBody in txBodyList:
-            textframe = TextFrame(txBody)
-            # exercise ----------------
-            actual_lengths.append(len(textframe.paragraphs))
-        # verify -----------------------
-        expected = [1, 1, 2, 1, 1]
-        actual = actual_lengths
-        msg = "expected paragraph count %s, got %s" % (expected, actual)
-        assert actual == expected, msg
+    def it_knows_the_number_of_paragraphs_it_contains(
+            self, txBody, txBody_with_2_paras):
+        assert len(TextFrame(txBody).paragraphs) == 1
+        assert len(TextFrame(txBody_with_2_paras).paragraphs) == 2
 
     def it_can_add_a_paragraph_to_the_text_it_contains(
             self, txBody, txBody_with_2_paras_xml):
@@ -86,45 +77,20 @@ class DescribeTextFrame(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def txBodyList(self):
-        path = absjoin(test_file_dir, 'slide1.xml')
-        sld = parse_xml_file(path).getroot()
-        xpath = './p:cSld/p:spTree/p:sp/p:txBody'
-        return sld.xpath(xpath, namespaces=nsmap)
+    def txBody(self, _txBody_bldr):
+        return _txBody_bldr.element
 
     @pytest.fixture
-    def txBody(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr()
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-                      .element
-        )
+    def txBody_xml(self, _txBody_bldr):
+        return _txBody_bldr.xml()
 
     @pytest.fixture
-    def txBody_xml(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr()
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-                      .xml()
-        )
+    def txBody_with_2_paras(self, _txBody_with_2_paras_bldr):
+        return _txBody_with_2_paras_bldr.element
 
     @pytest.fixture
-    def txBody_with_2_paras_xml(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr()
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-                      .with_child(p_bldr)
-                      .xml()
-        )
+    def txBody_with_2_paras_xml(self, _txBody_with_2_paras_bldr):
+        return _txBody_with_2_paras_bldr.xml()
 
     @pytest.fixture
     def txBody_with_anchor_ctr_xml(self):
@@ -170,6 +136,27 @@ class DescribeTextFrame(object):
                       .with_child(bodyPr_bldr)
                       .with_child(p_bldr)
                       .xml()
+        )
+
+    @pytest.fixture
+    def _txBody_bldr(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr()
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+        )
+
+    @pytest.fixture
+    def _txBody_with_2_paras_bldr(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr()
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+                      .with_child(p_bldr)
         )
 
 
