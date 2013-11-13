@@ -73,24 +73,11 @@ class DescribeTextFrame(object):
         if not expected == actual:
             raise AssertionError(msg)
 
-    def test_text_setter_structure_and_value(self, txBodyList):
-        """Assignment to TextFrame.text yields single run para set to value"""
-        # setup ------------------------
-        test_text = 'python-pptx was here!!'
-        txBody = txBodyList[2]
+    def it_can_replace_the_text_it_contains(
+            self, txBody, txBody_with_text_xml):
         textframe = TextFrame(txBody)
-        # exercise ---------------------
-        textframe.text = test_text
-        # verify paragraph count -------
-        expected = 1
-        actual = len(textframe.paragraphs)
-        msg = "expected paragraph count %s, got %s" % (expected, actual)
-        assert actual == expected, msg
-        # verify value -----------------
-        expected = test_text
-        actual = textframe.paragraphs[0].runs[0].text
-        msg = "expected text '%s', got '%s'" % (expected, actual)
-        assert actual == expected, msg
+        textframe.text = 'foobar'
+        assert actual_xml(txBody) == txBody_with_text_xml
 
     def it_can_change_its_vertical_anchor_setting(
             self, txBody, txBody_with_anchor_ctr_xml):
@@ -151,6 +138,19 @@ class DescribeTextFrame(object):
     def txBody_with_anchor_ctr_xml(self):
         p_bldr = a_p()
         bodyPr_bldr = a_bodyPr().with_anchor('ctr')
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+                      .xml()
+        )
+
+    @pytest.fixture
+    def txBody_with_text_xml(self):
+        t_bldr = a_t().with_text('foobar')
+        r_bldr = an_r().with_child(t_bldr)
+        p_bldr = a_p().with_child(r_bldr)
+        bodyPr_bldr = a_bodyPr()
         return (
             a_txBody().with_nsdecls()
                       .with_child(bodyPr_bldr)

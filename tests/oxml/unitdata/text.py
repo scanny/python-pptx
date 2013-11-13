@@ -15,6 +15,7 @@ class BaseBuilder(object):
     def __init__(self):
         self._empty = False
         self._nsdecls = ''
+        self._text = ''
         self._xmlattrs = {}
         self._xmlattr_method_map = {}
         for xmlattr_name in self.__attrs__:
@@ -48,6 +49,10 @@ class BaseBuilder(object):
         self._child_bldrs.append(child_bldr)
         return self
 
+    def with_text(self, text):
+        self._text = text
+        return self
+
     def with_nsdecls(self):
         self._nsdecls = ' %s' % nsdecls(*self.__nspfxs__)
         return self
@@ -76,14 +81,18 @@ class BaseBuilder(object):
 
     @property
     def _is_empty(self):
-        return len(self._child_bldrs) == 0
+        return len(self._child_bldrs) == 0 and len(self._text) == 0
 
     def _non_empty_element_xml(self, indent):
         indent_str = ' ' * indent
-        xml = '%s%s\n' % (indent_str, self._start_tag)
-        for child_bldr in self._child_bldrs:
-            xml += child_bldr.xml(indent+2)
-        xml += '%s%s' % (indent_str, self._end_tag)
+        if self._text:
+            xml = ('%s%s%s%s' %
+                   (indent_str, self._start_tag, self._text, self._end_tag))
+        else:
+            xml = '%s%s\n' % (indent_str, self._start_tag)
+            for child_bldr in self._child_bldrs:
+                xml += child_bldr.xml(indent+2)
+            xml += '%s%s' % (indent_str, self._end_tag)
         return xml
 
     def _set_xmlattr(self, xmlattr_name, value):
