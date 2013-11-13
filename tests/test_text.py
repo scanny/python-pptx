@@ -6,8 +6,6 @@ from __future__ import absolute_import
 
 import pytest
 
-from hamcrest import assert_that, equal_to, is_
-
 from pptx.constants import MSO, PP
 from pptx.dml.core import RGBColor
 from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
@@ -26,7 +24,7 @@ from .oxml.unitdata.text import (
 )
 from .unitutil import (
     absjoin, actual_xml, class_mock, instance_mock, parse_xml_file,
-    serialize_xml, test_file_dir
+    test_file_dir
 )
 
 
@@ -49,29 +47,11 @@ class DescribeTextFrame(object):
         msg = "expected paragraph count %s, got %s" % (expected, actual)
         assert actual == expected, msg
 
-    def test_add_paragraph_xml(self):
-        """TextFrame.add_paragraph does what it says"""
-        # setup ------------------------
-        txBody_xml = (
-            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
-            'p></p:txBody>' % nsdecls('p', 'a')
-        )
-        expected_xml = (
-            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
-            'p><a:p/></p:txBody>' % nsdecls('p', 'a')
-        )
-        txBody = parse_xml_bytes(txBody_xml)
+    def it_can_add_a_paragraph_to_the_text_it_contains(
+            self, txBody, txBody_with_2_paras_xml):
         textframe = TextFrame(txBody)
-        # exercise ---------------------
         textframe.add_paragraph()
-        # verify -----------------------
-        assert_that(len(textframe.paragraphs), is_(equal_to(2)))
-        textframe_xml = serialize_xml(textframe._txBody)
-        expected = expected_xml
-        actual = textframe_xml
-        msg = "\nExpected: '%s'\n\n     Got: '%s'" % (expected, actual)
-        if not expected == actual:
-            raise AssertionError(msg)
+        assert actual_xml(textframe._txBody) == txBody_with_2_paras_xml
 
     def it_can_replace_the_text_it_contains(
             self, txBody, txBody_with_text_xml):
@@ -130,6 +110,18 @@ class DescribeTextFrame(object):
         return (
             a_txBody().with_nsdecls()
                       .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+                      .xml()
+        )
+
+    @pytest.fixture
+    def txBody_with_2_paras_xml(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr()
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
                       .with_child(p_bldr)
                       .xml()
         )
