@@ -1,0 +1,14 @@
+msoShape10pointStar star10
+msoShape12pointStar star12
+msoShape16pointStar star16
+msoShape24pointStar star24
+msoShape32pointStar star32
+msoShapeArc arc
+msoShapeBalloon wedgeRoundRectCallout
+msoShapeBentArrow bentArrow
+msoShapeBentUpArrow bentUpArrow
+msoShapeBevel bevel
+msoShapeBlockArc blockArc
+msoShapeCan can
+msoShapeChartPlus chartPlus
+# etc. ...

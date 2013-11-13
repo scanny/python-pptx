@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<enumeration msname="MsoAutoShapeType" pyname="MSO_AUTO_SHAPE">
+  <member msname="msoShape10pointStar" intval="149" pyname="STAR_10_POINT" xmlval="star10">
+    10-point star.
+  </member>
+  <member msname="msoShape12pointStar" intval="150" pyname="STAR_12_POINT" xmlval="star12">
+    12-point star.
+  </member>
+</enumeration>

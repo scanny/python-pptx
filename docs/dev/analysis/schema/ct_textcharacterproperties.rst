@@ -1,6 +1,6 @@
-##############################
+
 ``CT_TextCharacterProperties``
-##############################
+==============================
 
 .. highlight:: xml
 
@@ -18,20 +18,20 @@
 
 
 Resources
-=========
+---------
 
 * ISO-IEC-29500-1, Section 21.1.2.3.9 rPr (Text Run Properties)
 
 
 Spec text
-=========
+---------
 
    This element contains all run level text properties for the text runs within
    a containing paragraph.
 
 
 Schema excerpt
-==============
+--------------
 
 ::
 

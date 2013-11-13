@@ -1,3 +1,4 @@
+
 Analysis
 ========
 
@@ -64,6 +65,8 @@ ISO/IEC 29500 spec.
    schema/ct_picture
    schema/ct_placeholder
    schema/ct_presentation
+   schema/ct_presetgeometry2d
+   schema/ct_regulartextrun
    schema/ct_shape
    schema/ct_slide
    schema/ct_solidcolorfillproperties
