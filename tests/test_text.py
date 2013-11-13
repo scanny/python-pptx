@@ -92,24 +92,11 @@ class DescribeTextFrame(object):
         msg = "expected text '%s', got '%s'" % (expected, actual)
         assert actual == expected, msg
 
-    def test_vertical_anchor_works(self):
-        """Assignment to TextFrame.vertical_anchor sets vert anchor"""
-        # setup ------------------------
-        txBody_xml = (
-            '<p:txBody %s><a:bodyPr/><a:p><a:r><a:t>Test text</a:t></a:r></a:'
-            'p></p:txBody>' % nsdecls('p', 'a')
-        )
-        expected_xml = (
-            '<p:txBody %s>\n  <a:bodyPr anchor="ctr"/>\n  <a:p>\n    <a:r>\n '
-            '     <a:t>Test text</a:t>\n    </a:r>\n  </a:p>\n</p:txBody>\n' %
-            nsdecls('p', 'a')
-        )
-        txBody = parse_xml_bytes(txBody_xml)
+    def it_can_change_its_vertical_anchor_setting(
+            self, txBody, txBody_with_anchor_ctr_xml):
         textframe = TextFrame(txBody)
-        # exercise ---------------------
         textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
-        # verify -----------------------
-        assert actual_xml(textframe._txBody) == expected_xml
+        assert actual_xml(textframe._txBody) == txBody_with_anchor_ctr_xml
 
     def it_can_change_the_word_wrap_setting(
             self, txBody, txBody_with_wrap_on_xml, txBody_with_wrap_off_xml,
@@ -142,37 +129,56 @@ class DescribeTextFrame(object):
     def txBody(self):
         p_bldr = a_p()
         bodyPr_bldr = a_bodyPr()
-        txBody_bldr = a_txBody().with_nsdecls()
-        txBody_bldr.with_child(bodyPr_bldr)
-        txBody_bldr.with_child(p_bldr)
-        return txBody_bldr.element
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+                      .element
+        )
 
     @pytest.fixture
     def txBody_xml(self):
         p_bldr = a_p()
         bodyPr_bldr = a_bodyPr()
-        txBody_bldr = a_txBody().with_nsdecls()
-        txBody_bldr.with_child(bodyPr_bldr)
-        txBody_bldr.with_child(p_bldr)
-        return txBody_bldr.xml()
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+                      .xml()
+        )
+
+    @pytest.fixture
+    def txBody_with_anchor_ctr_xml(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr().with_anchor('ctr')
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+                      .xml()
+        )
 
     @pytest.fixture
     def txBody_with_wrap_off_xml(self):
         p_bldr = a_p()
         bodyPr_bldr = a_bodyPr().with_wrap('none')
-        txBody_bldr = a_txBody().with_nsdecls()
-        txBody_bldr.with_child(bodyPr_bldr)
-        txBody_bldr.with_child(p_bldr)
-        return txBody_bldr.xml()
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+                      .xml()
+        )
 
     @pytest.fixture
     def txBody_with_wrap_on_xml(self):
         p_bldr = a_p()
         bodyPr_bldr = a_bodyPr().with_wrap('square')
-        txBody_bldr = a_txBody().with_nsdecls()
-        txBody_bldr.with_child(bodyPr_bldr)
-        txBody_bldr.with_child(p_bldr)
-        return txBody_bldr.xml()
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+                      .xml()
+        )
 
 
 class Describe_Font(object):

@@ -74,7 +74,8 @@ class TextFrame(object):
         Set ``anchor`` attribute of ``<a:bodyPr>`` element
         """
         value_map = {
-            MSO.ANCHOR_TOP: 't', MSO.ANCHOR_MIDDLE: 'ctr',
+            MSO.ANCHOR_TOP:    't',
+            MSO.ANCHOR_MIDDLE: 'ctr',
             MSO.ANCHOR_BOTTOM: 'b'
         }
         bodyPr = get_or_add(self._txBody, 'a:bodyPr')
