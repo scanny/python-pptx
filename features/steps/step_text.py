@@ -6,6 +6,8 @@ Gherkin step implementations for text-related features.
 
 from __future__ import absolute_import
 
+import os
+
 from behave import given, when, then
 
 from hamcrest import assert_that, equal_to, is_
@@ -19,8 +21,8 @@ from .helpers import italics_pptx_path, saved_pptx_path
 
 # given ===================================================
 
-@given('I have a reference to a paragraph')
-def step_given_ref_to_paragraph(context):
+@given('a paragraph')
+def given_a_paragraph(context):
     context.prs = Presentation()
     blank_slidelayout = context.prs.slidelayouts[6]
     slide = context.prs.slides.add_slide(blank_slidelayout)
@@ -50,6 +52,14 @@ def step_given_a_textframe(context):
 # when ====================================================
 
 
+@when('I reload the presentation')
+def when_reload_presentation(context):
+    if os.path.isfile(saved_pptx_path):
+        os.remove(saved_pptx_path)
+    context.prs.save(saved_pptx_path)
+    context.prs = Presentation(saved_pptx_path)
+
+
 @when('I set the {side} margin to {inches}"')
 def when_set_margin_to_value(context, side, inches):
     emu = Inches(float(inches))
@@ -63,10 +73,9 @@ def when_set_margin_to_value(context, side, inches):
         context.textframe.margin_bottom = emu
 
 
-@when('I indent the first paragraph')
+@when('I indent the paragraph')
 def step_when_indent_first_paragraph(context):
-    p = context.body.textframe.paragraphs[0]
-    p.level = 1
+    context.p.level = 1
 
 
 @when("I set italics {setting}")
@@ -90,33 +99,34 @@ def step_when_set_textframe_word_wrap(context, setting):
 
 @then('the paragraph is aligned centered')
 def step_then_paragraph_is_aligned_centered(context):
-    prs = Presentation(saved_pptx_path)
-    p = prs.slides[0].shapes[0].textframe.paragraphs[0]
+    p = context.prs.slides[0].shapes[0].textframe.paragraphs[0]
     assert_that(p.alignment, is_(equal_to(PP.ALIGN_CENTER)))
 
 
 @then('the paragraph is indented to the second level')
 def step_then_paragraph_indented_to_second_level(context):
-    prs = Presentation(saved_pptx_path)
-    sld = prs.slides[0]
-    body = sld.shapes.placeholders[1]
-    p = body.textframe.paragraphs[0]
+    p = context.prs.slides[0].shapes[0].textframe.paragraphs[0]
     assert_that(p.level, is_(equal_to(1)))
 
 
 @then("the run that had italics set {initial} now has it set {setting}")
 def step_then_run_now_has_italics_set_to_setting(context, initial, setting):
     run_idx = {'on': 0, 'off': 1, 'to None': 2}[initial]
-    prs = Presentation(saved_pptx_path)
-    run = prs.slides[0].shapes[0].textframe.paragraphs[0].runs[run_idx]
+    run = (
+        context.prs
+               .slides[0]
+               .shapes[0]
+               .textframe
+               .paragraphs[0]
+               .runs[run_idx]
+    )
     expected_val = {'on': True, 'off': False, 'to None': None}[setting]
     assert run.font.italic == expected_val
 
 
 @then('the textframe\'s {side} margin is {inches}"')
 def then_textframe_margin_is_value(context, side, inches):
-    prs = Presentation(saved_pptx_path)
-    textframe = prs.slides[0].shapes[0].textframe
+    textframe = context.prs.slides[0].shapes[0].textframe
     emu = Inches(float(inches))
     if side == 'left':
         assert textframe.margin_left == emu
@@ -131,6 +141,5 @@ def then_textframe_margin_is_value(context, side, inches):
 @then('the textframe word wrap is set {setting}')
 def step_then_textframe_word_wrap_is_setting(context, setting):
     bool_val = {'on': True, 'off': False, 'to None': None}
-    prs = Presentation(saved_pptx_path)
-    textframe = prs.slides[0].shapes[0].textframe
+    textframe = context.prs.slides[0].shapes[0].textframe
     assert_that(textframe.word_wrap, is_(bool_val[setting]))

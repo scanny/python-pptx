@@ -16,8 +16,8 @@ from .helpers import saved_pptx_path, test_text
 
 # given ===================================================
 
-@given('I have a reference to a bullet body placeholder')
-def step_given_ref_to_bullet_body_placeholder(context):
+@given('a bullet body placeholder')
+def given_a_bullet_body_placeholder(context):
     context.prs = Presentation()
     slidelayout = context.prs.slidelayouts[1]
     context.sld = context.prs.slides.add_slide(slidelayout)
@@ -26,12 +26,26 @@ def step_given_ref_to_bullet_body_placeholder(context):
 
 # when ====================================================
 
+@when('I indent the first paragraph')
+def step_when_indent_first_paragraph(context):
+    context.body.textframe.paragraphs[0].level = 1
+
+
 @when("I set the title text of the slide")
 def step_when_set_slide_title_text(context):
     context.sld.shapes.title.text = test_text
 
 
 # then ====================================================
+
+@then('the paragraph is indented')
+def then_paragraph_is_indented(context):
+    prs = Presentation(saved_pptx_path)
+    sld = prs.slides[0]
+    body = sld.shapes.placeholders[1]
+    p = body.textframe.paragraphs[0]
+    assert_that(p.level, is_(equal_to(1)))
+
 
 @then('the text appears in the title placeholder')
 def step_then_text_appears_in_title_placeholder(context):
