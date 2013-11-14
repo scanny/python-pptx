@@ -38,3 +38,16 @@ Feature: Change properties of text in shapes
     | to None | on      |
     | to None | off     |
     | to None | to None |
+
+  Scenario Outline: Set textframe margins
+    Given a textframe
+     When I set the <side> margin to <value>"
+      And I save the presentation
+     Then the textframe's <side> margin is <value>"
+
+  Examples: Italics Settings
+    | side   | value |
+    | left   | 0.1   |
+    | top    | 0.2   |
+    | right  | 0.3   |
+    | bottom | 0.4   |

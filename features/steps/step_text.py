@@ -49,6 +49,20 @@ def step_given_a_textframe(context):
 
 # when ====================================================
 
+
+@when('I set the {side} margin to {inches}"')
+def when_set_margin_to_value(context, side, inches):
+    emu = Inches(float(inches))
+    if side == 'left':
+        context.textframe.margin_left = emu
+    elif side == 'top':
+        context.textframe.margin_top = emu
+    elif side == 'right':
+        context.textframe.margin_right = emu
+    elif side == 'bottom':
+        context.textframe.margin_bottom = emu
+
+
 @when('I indent the first paragraph')
 def step_when_indent_first_paragraph(context):
     p = context.body.textframe.paragraphs[0]
@@ -56,7 +70,7 @@ def step_when_indent_first_paragraph(context):
 
 
 @when("I set italics {setting}")
-def step_when_set_set_italics_to_setting(context, setting):
+def when_set_italics_to_setting(context, setting):
     new_italics_value = {'on': True, 'off': False, 'to None': None}[setting]
     context.run.font.italic = new_italics_value
 
@@ -97,6 +111,21 @@ def step_then_run_now_has_italics_set_to_setting(context, initial, setting):
     run = prs.slides[0].shapes[0].textframe.paragraphs[0].runs[run_idx]
     expected_val = {'on': True, 'off': False, 'to None': None}[setting]
     assert run.font.italic == expected_val
+
+
+@then('the textframe\'s {side} margin is {inches}"')
+def then_textframe_margin_is_value(context, side, inches):
+    prs = Presentation(saved_pptx_path)
+    textframe = prs.slides[0].shapes[0].textframe
+    emu = Inches(float(inches))
+    if side == 'left':
+        assert textframe.margin_left == emu
+    elif side == 'top':
+        assert textframe.margin_top == emu
+    elif side == 'right':
+        assert textframe.margin_right == emu
+    elif side == 'bottom':
+        assert textframe.margin_bottom == emu
 
 
 @then('the textframe word wrap is set {setting}')
