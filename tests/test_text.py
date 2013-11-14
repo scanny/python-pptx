@@ -2,7 +2,7 @@
 
 """Test suite for pptx.text module."""
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import pytest
 
@@ -15,6 +15,7 @@ from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
 )
 from pptx.text import _Font, _FontColor, _Paragraph, _Run, TextFrame
+from pptx.util import Inches
 
 from .oxml.unitdata.dml import (
     a_lumMod, a_lumOff, a_schemeClr, a_solidFill, an_srgbClr
@@ -50,6 +51,52 @@ class DescribeTextFrame(object):
         textframe.text = 'foobar'
         assert actual_xml(txBody) == txBody_with_text_xml
 
+    def it_can_get_its_margin_settings(
+            self, txBody, txBody_with_lIns, txBody_with_tIns,
+            txBody_with_rIns, txBody_with_bIns):
+
+        textframe = TextFrame(txBody)
+        assert textframe.margin_left is None
+        assert textframe.margin_top is None
+        assert textframe.margin_right is None
+        assert textframe.margin_bottom is None
+
+        textframe = TextFrame(txBody_with_lIns)
+        assert textframe.margin_left == Inches(0.01)
+
+        textframe = TextFrame(txBody_with_tIns)
+        assert textframe.margin_top == Inches(0.02)
+
+        textframe = TextFrame(txBody_with_rIns)
+        assert textframe.margin_right == Inches(0.03)
+
+        textframe = TextFrame(txBody_with_bIns)
+        assert textframe.margin_bottom == Inches(0.04)
+
+    def it_can_change_its_margin_settings(
+            self, txBody_bldr, txBody_with_lIns_xml, txBody_with_tIns_xml,
+            txBody_with_rIns_xml, txBody_with_bIns_xml):
+
+        textframe = TextFrame(txBody_bldr.element)
+        textframe.margin_left = Inches(0.01)
+        assert actual_xml(textframe._txBody) == txBody_with_lIns_xml
+
+        textframe = TextFrame(txBody_bldr.element)
+        textframe.margin_top = Inches(0.02)
+        assert actual_xml(textframe._txBody) == txBody_with_tIns_xml
+
+        textframe = TextFrame(txBody_bldr.element)
+        textframe.margin_right = Inches(0.03)
+        assert actual_xml(textframe._txBody) == txBody_with_rIns_xml
+
+        textframe = TextFrame(txBody_bldr.element)
+        textframe.margin_bottom = Inches(0.04)
+        assert actual_xml(textframe._txBody) == txBody_with_bIns_xml
+
+    def it_raises_on_attempt_to_set_margin_to_non_int(self, textframe):
+        with pytest.raises(ValueError):
+            textframe.margin_bottom = '0.1'
+
     def it_can_change_its_vertical_anchor_setting(
             self, txBody, txBody_with_anchor_ctr_xml):
         textframe = TextFrame(txBody)
@@ -77,12 +124,26 @@ class DescribeTextFrame(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def txBody(self, _txBody_bldr):
-        return _txBody_bldr.element
+    def textframe(self, txBody):
+        return TextFrame(txBody)
 
     @pytest.fixture
-    def txBody_xml(self, _txBody_bldr):
-        return _txBody_bldr.xml()
+    def txBody(self, txBody_bldr):
+        return txBody_bldr.element
+
+    @pytest.fixture
+    def txBody_bldr(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr()
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+        )
+
+    @pytest.fixture
+    def txBody_xml(self, txBody_bldr):
+        return txBody_bldr.xml()
 
     @pytest.fixture
     def txBody_with_2_paras(self, _txBody_with_2_paras_bldr):
@@ -102,6 +163,38 @@ class DescribeTextFrame(object):
                       .with_child(p_bldr)
                       .xml()
         )
+
+    @pytest.fixture
+    def txBody_with_bIns(self, _txBody_with_bIns_bldr):
+        return _txBody_with_bIns_bldr.element
+
+    @pytest.fixture
+    def txBody_with_bIns_xml(self, _txBody_with_bIns_bldr):
+        return _txBody_with_bIns_bldr.xml()
+
+    @pytest.fixture
+    def txBody_with_lIns(self, _txBody_with_lIns_bldr):
+        return _txBody_with_lIns_bldr.element
+
+    @pytest.fixture
+    def txBody_with_lIns_xml(self, _txBody_with_lIns_bldr):
+        return _txBody_with_lIns_bldr.xml()
+
+    @pytest.fixture
+    def txBody_with_rIns(self, _txBody_with_rIns_bldr):
+        return _txBody_with_rIns_bldr.element
+
+    @pytest.fixture
+    def txBody_with_rIns_xml(self, _txBody_with_rIns_bldr):
+        return _txBody_with_rIns_bldr.xml()
+
+    @pytest.fixture
+    def txBody_with_tIns(self, _txBody_with_tIns_bldr):
+        return _txBody_with_tIns_bldr.element
+
+    @pytest.fixture
+    def txBody_with_tIns_xml(self, _txBody_with_tIns_bldr):
+        return _txBody_with_tIns_bldr.xml()
 
     @pytest.fixture
     def txBody_with_text_xml(self):
@@ -139,16 +232,6 @@ class DescribeTextFrame(object):
         )
 
     @pytest.fixture
-    def _txBody_bldr(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr()
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-        )
-
-    @pytest.fixture
     def _txBody_with_2_paras_bldr(self):
         p_bldr = a_p()
         bodyPr_bldr = a_bodyPr()
@@ -156,6 +239,46 @@ class DescribeTextFrame(object):
             a_txBody().with_nsdecls()
                       .with_child(bodyPr_bldr)
                       .with_child(p_bldr)
+                      .with_child(p_bldr)
+        )
+
+    @pytest.fixture
+    def _txBody_with_bIns_bldr(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr().with_bIns(int(914400*0.04))
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+        )
+
+    @pytest.fixture
+    def _txBody_with_lIns_bldr(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr().with_lIns(int(914400*0.01))
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+        )
+
+    @pytest.fixture
+    def _txBody_with_tIns_bldr(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr().with_tIns(int(914400*0.02))
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
+                      .with_child(p_bldr)
+        )
+
+    @pytest.fixture
+    def _txBody_with_rIns_bldr(self):
+        p_bldr = a_p()
+        bodyPr_bldr = a_bodyPr().with_rIns(int(914400*0.03))
+        return (
+            a_txBody().with_nsdecls()
+                      .with_child(bodyPr_bldr)
                       .with_child(p_bldr)
         )
 

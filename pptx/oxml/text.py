@@ -47,6 +47,94 @@ class CT_TextBody(objectify.ObjectifiedElement):
         objectify.deannotate(txBody, cleanup_namespaces=True)
         return txBody
 
+    @property
+    def bodyPr(self):
+        return self[qn('a:bodyPr')]
+
+
+class Schema(object):
+    def __init__(self):
+        self._attrs = {}
+
+    def add_attr(self, attr):
+        self._attrs[attr.prop_name] = attr
+
+    @property
+    def attrs(self):
+        return self._attrs
+
+    def is_attr_prop(self, prop_name):
+        return prop_name in self._attrs.keys()
+
+
+class Attribute(object):
+    def __init__(self, prop_name, type_cls, attr_name=None):
+        self._prop_name = prop_name
+        self._type_cls = type_cls
+        self._attr_name = attr_name if attr_name is not None else prop_name
+
+    @property
+    def prop_name(self):
+        return self._prop_name
+
+    def get(self, elm):
+        if self._attr_name not in elm.attrib:
+            return None
+        xml_val = elm.get(self._attr_name)
+        return self._type_cls.from_xml(xml_val)
+
+    def set(self, elm, value):
+        if value is None and self._attr_name in elm.attrib:
+            del elm.attrib[self._attr_name]
+        else:
+            xml_val = self._type_cls.to_xml(value)
+            elm.set(self._attr_name, xml_val)
+
+
+class ST_Coordinate32(object):
+    @classmethod
+    def from_xml(cls, value):
+        return int(value)
+
+    @classmethod
+    def to_xml(cls, value):
+        if not isinstance(value, int):
+            raise ValueError('int value required')
+        return str(value)
+
+
+class OxmlElement(objectify.ObjectifiedElement):
+
+    def __getattr__(self, name):
+        if self.schema.is_attr_prop(name):
+            attr = self.schema.attrs[name]
+            return attr.get(self)
+        else:
+            return super(OxmlElement, self).__getattr__(name)
+
+    def __setattr__(self, name, value):
+        """
+        Override ``__setattr__`` defined in ObjectifiedElement super class
+        to intercept messages intended for custom property setters.
+        """
+        if self.schema.is_attr_prop(name):
+            attr = self.schema.attrs[name]
+            attr.set(self, value)
+        else:
+            super(OxmlElement, self).__setattr__(name, value)
+
+
+class CT_TextBodyProperties(OxmlElement):
+    """
+    <a:bodyPr> custom element class
+    """
+    schema = Schema()
+    schema.add_attr(Attribute('lIns', ST_Coordinate32))
+    schema.add_attr(Attribute('tIns', ST_Coordinate32))
+    schema.add_attr(Attribute('rIns', ST_Coordinate32))
+    schema.add_attr(Attribute('bIns', ST_Coordinate32))
+    # lIns = Attribute(ST_Coordinate32)
+
 
 class CT_TextCharacterProperties(objectify.ObjectifiedElement):
     """

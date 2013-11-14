@@ -48,6 +48,47 @@ class TextFrame(object):
         p.clear()
 
     @property
+    def margin_bottom(self):
+        """
+        Inset of text from textframe border in EMU. ``pptx.util.Inches``
+        provides a convenient way of setting the value, e.g.
+        ``textframe.margin_bottom = Inches(0.05)``. Returns |None| if there
+        is explicit margin setting, meaning the setting is inherited from a
+        master or theme. Conversely, setting a margin to |None| removes any
+        explicit setting at the shape level and restores inheritance of the
+        effective value.
+        """
+        return self._bodyPr.bIns
+
+    @margin_bottom.setter
+    def margin_bottom(self, emu):
+        self._bodyPr.bIns = emu
+
+    @property
+    def margin_left(self):
+        return self._bodyPr.lIns
+
+    @margin_left.setter
+    def margin_left(self, emu):
+        self._bodyPr.lIns = emu
+
+    @property
+    def margin_right(self):
+        return self._bodyPr.rIns
+
+    @margin_right.setter
+    def margin_right(self, emu):
+        self._bodyPr.rIns = emu
+
+    @property
+    def margin_top(self):
+        return self._bodyPr.tIns
+
+    @margin_top.setter
+    def margin_top(self, emu):
+        self._bodyPr.tIns = emu
+
+    @property
     def paragraphs(self):
         """
         Immutable sequence of |_Paragraph| instances corresponding to the
@@ -111,6 +152,10 @@ class TextFrame(object):
                 del bodyPr.attrib['wrap']
             return
         bodyPr.set('wrap', value_map[value])
+
+    @property
+    def _bodyPr(self):
+        return self._txBody.bodyPr
 
 
 class _Font(object):

@@ -10,13 +10,14 @@ import pytest
 
 from pptx.oxml.ns import qn
 from pptx.oxml.text import (
-    CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph,
-    CT_TextParagraphProperties
+    CT_RegularTextRun, CT_TextBody, CT_TextBodyProperties,
+    CT_TextCharacterProperties, CT_TextParagraph, CT_TextParagraphProperties
 )
 
 from ..oxml.unitdata.dml import a_gradFill, a_noFill, a_solidFill
 from ..oxml.unitdata.text import (
-    a_defRPr, a_p, a_pPr, a_t, an_endParaRPr, an_extLst, an_r, an_rPr
+    a_bodyPr, a_defRPr, a_p, a_pPr, a_t, a_txBody, an_endParaRPr, an_extLst,
+    an_r, an_rPr
 )
 from ..unitutil import actual_xml
 
@@ -58,6 +59,93 @@ class DescribeCT_RegularTextRun(object):
         r_bldr.with_child(rPr_bldr)
         r_bldr.with_child(t_bldr)
         return r_bldr.xml()
+
+
+class DescribeCT_TextBody(object):
+
+    def it_is_used_by_the_parser_for_a_txBody_element(self, txBody):
+        assert isinstance(txBody, CT_TextBody)
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def txBody(self):
+        return a_txBody().with_nsdecls().element
+
+
+class DescribeCT_TextBodyProperties(object):
+
+    def it_is_used_by_the_parser_for_a_bodyPr_element(self, bodyPr):
+        assert isinstance(bodyPr, CT_TextBodyProperties)
+
+    def it_can_get_its_xIns_attr_domain_values(self, bodyPr):
+        assert bodyPr.lIns is None
+        bodyPr.lIns = 123
+        assert bodyPr.lIns == 123
+
+        assert bodyPr.tIns is None
+        bodyPr.tIns = 456
+        assert bodyPr.tIns == 456
+
+        assert bodyPr.rIns is None
+        bodyPr.rIns = 789
+        assert bodyPr.rIns == 789
+
+        assert bodyPr.bIns is None
+        bodyPr.bIns = 876
+        assert bodyPr.bIns == 876
+
+    def it_can_set_its_lIns_attribute(
+            self, bodyPr, bodyPr_xml, bodyPr_with_lIns_xml,
+            bodyPr_with_tIns_xml, bodyPr_with_rIns_xml,
+            bodyPr_with_bIns_xml):
+        assert actual_xml(bodyPr) == bodyPr_xml
+
+        bodyPr.lIns = 987
+        assert actual_xml(bodyPr) == bodyPr_with_lIns_xml
+        bodyPr.lIns = None
+        assert actual_xml(bodyPr) == bodyPr_xml
+
+        bodyPr.tIns = 654
+        assert actual_xml(bodyPr) == bodyPr_with_tIns_xml
+        bodyPr.tIns = None
+        assert actual_xml(bodyPr) == bodyPr_xml
+
+        bodyPr.rIns = 321
+        assert actual_xml(bodyPr) == bodyPr_with_rIns_xml
+        bodyPr.rIns = None
+        assert actual_xml(bodyPr) == bodyPr_xml
+
+        bodyPr.bIns = 234
+        assert actual_xml(bodyPr) == bodyPr_with_bIns_xml
+        bodyPr.bIns = None
+        assert actual_xml(bodyPr) == bodyPr_xml
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def bodyPr(self):
+        return a_bodyPr().with_nsdecls().element
+
+    @pytest.fixture
+    def bodyPr_xml(self):
+        return a_bodyPr().with_nsdecls().xml()
+
+    @pytest.fixture
+    def bodyPr_with_lIns_xml(self):
+        return a_bodyPr().with_nsdecls().with_lIns(987).xml()
+
+    @pytest.fixture
+    def bodyPr_with_tIns_xml(self):
+        return a_bodyPr().with_nsdecls().with_tIns(654).xml()
+
+    @pytest.fixture
+    def bodyPr_with_rIns_xml(self):
+        return a_bodyPr().with_nsdecls().with_rIns(321).xml()
+
+    @pytest.fixture
+    def bodyPr_with_bIns_xml(self):
+        return a_bodyPr().with_nsdecls().with_bIns(234).xml()
 
 
 class DescribeCT_TextCharacterProperties(object):
