@@ -9,26 +9,20 @@ Feature: Change properties of text in shapes
        And I save the presentation
       Then the paragraph is aligned centered
 
-  Scenario: Set word wrap to True
-    Given I have a reference to a textframe
-     When I set the textframe word wrap to True
+  Scenario Outline: Set word wrap property of textframe
+    Given a textframe
+     When I set the textframe word wrap <value>
       And I save the presentation
-     Then the textframe word wrap is on
+     Then the textframe word wrap is set <value>
 
-  Scenario: Set word wrap to False
-    Given I have a reference to a textframe
-     When I set the textframe word wrap to False
-      And I save the presentation
-     Then the textframe word wrap is off
-
-  Scenario: Set word wrap to empty
-    Given I have a reference to a textframe
-     When I set the textframe word wrap to None
-      And I save the presentation
-     Then the textframe word wrap is empty
+  Examples: Word-wrap Settings
+    | value   |
+    | on      |
+    | off     |
+    | to None |
 
   Scenario Outline: Set italics property of text
-    Given I have a reference to a run with italics set <initial>
+    Given a run with italics set <initial>
      When I set italics <new>
       And I save the presentation
      Then the run that had italics set <initial> now has it set <new>

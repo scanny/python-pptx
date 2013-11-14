@@ -29,16 +29,16 @@ def step_given_ref_to_paragraph(context):
     context.p = textbox.textframe.paragraphs[0]
 
 
-@given('I have a reference to a run with italics set {setting}')
-def step_given_ref_to_run_with_italics_set_to_setting(context, setting):
+@given('a run with italics set {setting}')
+def step_given_run_with_italics_set_to_setting(context, setting):
     run_idx = {'on': 0, 'off': 1, 'to None': 2}[setting]
     context.prs = Presentation(italics_pptx_path)
     runs = context.prs.slides[0].shapes[0].textframe.paragraphs[0].runs
     context.run = runs[run_idx]
 
 
-@given('I have a reference to a textframe')
-def step_given_ref_to_textframe(context):
+@given('a textframe')
+def step_given_a_textframe(context):
     context.prs = Presentation()
     blank_slidelayout = context.prs.slidelayouts[6]
     slide = context.prs.slides.add_slide(blank_slidelayout)
@@ -66,19 +66,10 @@ def step_when_set_paragraph_alignment_to_centered(context):
     context.p.alignment = PP.ALIGN_CENTER
 
 
-@when("I set the textframe word wrap to True")
-def step_when_set_textframe_word_wrap_to_true(context):
-    context.textframe.word_wrap = True
-
-
-@when("I set the textframe word wrap to False")
-def step_when_set_textframe_word_wrap_to_false(context):
-    context.textframe.word_wrap = False
-
-
-@when("I set the textframe word wrap to None")
-def step_when_set_textframe_word_wrap_to_none(context):
-    context.textframe.word_wrap = None
+@when("I set the textframe word wrap {setting}")
+def step_when_set_textframe_word_wrap(context, setting):
+    bool_val = {'on': True, 'off': False, 'to None': None}
+    context.textframe.word_wrap = bool_val[setting]
 
 
 # then ====================================================
@@ -108,22 +99,9 @@ def step_then_run_now_has_italics_set_to_setting(context, initial, setting):
     assert run.font.italic == expected_val
 
 
-@then('the textframe word wrap is empty')
-def step_them_textframe_word_wrap_is_empty(context):
+@then('the textframe word wrap is set {setting}')
+def step_then_textframe_word_wrap_is_setting(context, setting):
+    bool_val = {'on': True, 'off': False, 'to None': None}
     prs = Presentation(saved_pptx_path)
     textframe = prs.slides[0].shapes[0].textframe
-    assert_that(textframe.word_wrap, is_(None))
-
-
-@then('the textframe word wrap is off')
-def step_them_textframe_word_wrap_is_off(context):
-    prs = Presentation(saved_pptx_path)
-    textframe = prs.slides[0].shapes[0].textframe
-    assert_that(textframe.word_wrap, is_(False))
-
-
-@then('the textframe word wrap is on')
-def step_them_textframe_word_wrap_is_on(context):
-    prs = Presentation(saved_pptx_path)
-    textframe = prs.slides[0].shapes[0].textframe
-    assert_that(textframe.word_wrap, is_(True))
+    assert_that(textframe.word_wrap, is_(bool_val[setting]))
