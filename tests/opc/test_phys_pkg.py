@@ -21,21 +21,16 @@ from zipfile import BadZipfile, ZIP_DEFLATED, ZipFile
 from pptx.exceptions import NotXMLError, PackageNotFoundError
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.phys_pkg import (
-    DirectoryFileSystem, FileSystem, PhysPkgReader, PhysPkgWriter,
-    ZipFileSystem, ZipPkgReader, ZipPkgWriter
+    DirectoryFileSystem, _DirPkgReader, FileSystem, PhysPkgReader,
+    PhysPkgWriter, ZipFileSystem, _ZipPkgReader, _ZipPkgWriter
 )
 
-from ..unitutil import absjoin, class_mock, test_file_dir
+from ..unitutil import absjoin, class_mock, loose_mock, test_file_dir
 
 
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 dir_pkg_path = absjoin(test_file_dir, 'expanded_pptx')
 zip_pkg_path = test_pptx_path
-
-
-@pytest.fixture
-def tmp_pptx_path(tmpdir):
-    return str(tmpdir.join('test_python-pptx.pptx'))
 
 
 class DescribeBaseFileSystem(object):
@@ -143,6 +138,47 @@ class DescribeDirectoryFileSystem(object):
             assert itemURI.startswith('/'), msg
 
 
+class DescribeDirPkgReader(object):
+
+    def it_is_used_by_PhysPkgReader_when_pkg_is_a_dir(self):
+        phys_reader = PhysPkgReader(dir_pkg_path)
+        assert isinstance(phys_reader, _DirPkgReader)
+
+    def it_doesnt_mind_being_closed_even_though_it_doesnt_need_it(
+            self, dir_reader):
+        dir_reader.close()
+
+    def it_can_retrieve_the_blob_for_a_pack_uri(self, dir_reader):
+        pack_uri = PackURI('/ppt/presentation.xml')
+        blob = dir_reader.blob_for(pack_uri)
+        sha1 = hashlib.sha1(blob).hexdigest()
+        assert sha1 == '51b78f4dabc0af2419d4e044ab73028c4bef53aa'
+
+    def it_can_get_the_content_types_xml(self, dir_reader):
+        sha1 = hashlib.sha1(dir_reader.content_types_xml).hexdigest()
+        assert sha1 == 'a68cf138be3c4eb81e47e2550166f9949423c7df'
+
+    def it_can_retrieve_the_rels_xml_for_a_source_uri(self, dir_reader):
+        rels_xml = dir_reader.rels_xml_for(PACKAGE_URI)
+        sha1 = hashlib.sha1(rels_xml).hexdigest()
+        assert sha1 == '64ffe86bb2bbaad53c3c1976042b907f8e10c5a3'
+
+    def it_returns_none_when_part_has_no_rels_xml(self, dir_reader):
+        partname = PackURI('/ppt/viewProps.xml')
+        rels_xml = dir_reader.rels_xml_for(partname)
+        assert rels_xml is None
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def pkg_file_(self, request):
+        return loose_mock(request)
+
+    @pytest.fixture(scope='class')
+    def dir_reader(self):
+        return _DirPkgReader(dir_pkg_path)
+
+
 class DescribeFileSystem(object):
     """Test FileSystem"""
     def test_constructor_returns_dirfs_for_dirpath(self):
@@ -180,34 +216,27 @@ class DescribeFileSystem(object):
 
 class DescribePhysPkgReader(object):
 
-    @pytest.fixture
-    def ZipPkgReader_(self, request):
-        return class_mock(request, 'pptx.opc.phys_pkg.ZipPkgReader')
-
-    def it_constructs_a_pkg_reader_instance(self, ZipPkgReader_):
-        # mockery ----------------------
-        pkg_file = Mock(name='pkg_file')
-        # exercise ---------------------
-        phys_pkg_reader = PhysPkgReader(pkg_file)
-        # verify -----------------------
-        ZipPkgReader_.assert_called_once_with(pkg_file)
-        assert phys_pkg_reader == ZipPkgReader_.return_value
+    def it_raises_when_pkg_path_is_not_a_package(self):
+        with pytest.raises(PackageNotFoundError):
+            PhysPkgReader('foobar')
 
 
 class DescribePhysPkgWriter(object):
 
-    @pytest.fixture
-    def ZipPkgWriter_(self, request):
-        return class_mock(request, 'pptx.opc.phys_pkg.ZipPkgWriter')
+    def it_constructs_a_pkg_writer_instance(self, _ZipPkgWriter_, pkg_file_):
+        phys_pkg_writer = PhysPkgWriter(pkg_file_)
+        _ZipPkgWriter_.assert_called_once_with(pkg_file_)
+        assert phys_pkg_writer == _ZipPkgWriter_.return_value
 
-    def it_constructs_a_pkg_writer_instance(self, ZipPkgWriter_):
-        # mockery ----------------------
-        pkg_file = Mock(name='pkg_file')
-        # exercise ---------------------
-        phys_pkg_writer = PhysPkgWriter(pkg_file)
-        # verify -----------------------
-        ZipPkgWriter_.assert_called_once_with(pkg_file)
-        assert phys_pkg_writer == ZipPkgWriter_.return_value
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def pkg_file_(self, request):
+        return loose_mock(request)
+
+    @pytest.fixture
+    def _ZipPkgWriter_(self, request):
+        return class_mock(request, 'pptx.opc.phys_pkg._ZipPkgWriter')
 
 
 class DescribeZipFileSystem(object):
@@ -292,21 +321,23 @@ class DescribeZipFileSystem(object):
 
 class DescribeZipPkgReader(object):
 
-    @pytest.fixture(scope='class')
-    def phys_reader(self, request):
-        phys_reader = ZipPkgReader(test_pptx_path)
-        request.addfinalizer(phys_reader.close)
-        return phys_reader
+    def it_is_used_by_PhysPkgReader_when_pkg_is_a_zip(self):
+        phys_reader = PhysPkgReader(zip_pkg_path)
+        assert isinstance(phys_reader, _ZipPkgReader)
 
-    def it_opens_pkg_file_zip_on_construction(self, ZipFile_):
-        pkg_file = Mock(name='pkg_file')
-        ZipPkgReader(pkg_file)
-        ZipFile_.assert_called_once_with(pkg_file, 'r')
+    def it_is_used_by_PhysPkgReader_when_pkg_is_a_stream(self):
+        with open(zip_pkg_path, 'rb') as stream:
+            phys_reader = PhysPkgReader(stream)
+        assert isinstance(phys_reader, _ZipPkgReader)
+
+    def it_opens_pkg_file_zip_on_construction(self, ZipFile_, pkg_file_):
+        _ZipPkgReader(pkg_file_)
+        ZipFile_.assert_called_once_with(pkg_file_, 'r')
 
     def it_can_be_closed(self, ZipFile_):
         # mockery ----------------------
         zipf = ZipFile_.return_value
-        zip_pkg_reader = ZipPkgReader(None)
+        zip_pkg_reader = _ZipPkgReader(None)
         # exercise ---------------------
         zip_pkg_reader.close()
         # verify -----------------------
@@ -332,6 +363,18 @@ class DescribeZipPkgReader(object):
         rels_xml = phys_reader.rels_xml_for(partname)
         assert rels_xml is None
 
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(scope='class')
+    def phys_reader(self, request):
+        phys_reader = _ZipPkgReader(zip_pkg_path)
+        request.addfinalizer(phys_reader.close)
+        return phys_reader
+
+    @pytest.fixture
+    def pkg_file_(self, request):
+        return loose_mock(request)
+
 
 class DescribeZipPkgWriter(object):
 
@@ -343,7 +386,7 @@ class DescribeZipPkgWriter(object):
 
     def it_opens_pkg_file_zip_on_construction(self, ZipFile_):
         pkg_file = Mock(name='pkg_file')
-        ZipPkgWriter(pkg_file)
+        _ZipPkgWriter(pkg_file)
         ZipFile_.assert_called_once_with(
             pkg_file, 'w', compression=ZIP_DEFLATED
         )
@@ -351,7 +394,7 @@ class DescribeZipPkgWriter(object):
     def it_can_be_closed(self, ZipFile_):
         # mockery ----------------------
         zipf = ZipFile_.return_value
-        zip_pkg_writer = ZipPkgWriter(None)
+        zip_pkg_writer = _ZipPkgWriter(None)
         # exercise ---------------------
         zip_pkg_writer.close()
         # verify -----------------------
@@ -375,6 +418,11 @@ class DescribeZipPkgWriter(object):
 
 
 # fixtures -------------------------------------------------
+
+@pytest.fixture
+def tmp_pptx_path(tmpdir):
+    return str(tmpdir.join('test_python-pptx.pptx'))
+
 
 @pytest.fixture
 def ZipFile_(request):

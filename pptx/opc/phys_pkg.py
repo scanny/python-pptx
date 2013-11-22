@@ -15,6 +15,8 @@ from zipfile import ZipFile, is_zipfile, ZIP_DEFLATED
 
 from pptx.exceptions import NotXMLError, PackageNotFoundError
 
+from .packuri import CONTENT_TYPES_URI
+
 
 class FileSystem(object):
     """
@@ -136,12 +138,73 @@ class DirectoryFileSystem(BaseFileSystem):
         return sorted(itemURIs)
 
 
+class _DirPkgReader(object):
+    """
+    Implements |PhysPkgReader| interface for an OPC package extracted into a
+    directory.
+    """
+    def __init__(self, path):
+        """
+        *path* is the path to a directory containing an expanded package.
+        """
+        super(_DirPkgReader, self).__init__()
+        self._path = os.path.abspath(path)
+
+    def blob_for(self, pack_uri):
+        """
+        Return contents of file corresponding to *pack_uri* in package
+        directory.
+        """
+        path = os.path.join(self._path, pack_uri.membername)
+        with open(path, 'rb') as f:
+            blob = f.read()
+        return blob
+
+    def close(self):
+        """
+        Provides interface consistency with |ZipFileSystem|, but does
+        nothing, a directory file system doesn't need closing.
+        """
+        pass
+
+    @property
+    def content_types_xml(self):
+        """
+        Return the `[Content_Types].xml` blob from the package.
+        """
+        return self.blob_for(CONTENT_TYPES_URI)
+
+    def rels_xml_for(self, source_uri):
+        """
+        Return rels item XML for source with *source_uri*, or None if the
+        item has no rels item.
+        """
+        try:
+            rels_xml = self.blob_for(source_uri.rels_uri)
+        except IOError:
+            rels_xml = None
+        return rels_xml
+
+
 class PhysPkgReader(object):
     """
     Factory for physical package reader objects.
     """
     def __new__(cls, pkg_file):
-        return ZipPkgReader(pkg_file)
+        # if *pkg_file* is a string, treat it as a path
+        if isinstance(pkg_file, basestring):
+            if os.path.isdir(pkg_file):
+                reader_cls = _DirPkgReader
+            elif is_zipfile(pkg_file):
+                reader_cls = _ZipPkgReader
+            else:
+                raise PackageNotFoundError(
+                    "Package not found at '%s'" % pkg_file
+                )
+        else:  # assume it's a stream and pass it to Zip reader to sort out
+            reader_cls = _ZipPkgReader
+
+        return super(PhysPkgReader, cls).__new__(reader_cls)
 
 
 class PhysPkgWriter(object):
@@ -149,7 +212,7 @@ class PhysPkgWriter(object):
     Factory for physical package writer objects.
     """
     def __new__(cls, pkg_file):
-        return ZipPkgWriter(pkg_file)
+        return _ZipPkgWriter(pkg_file)
 
 
 class ZipFileSystem(BaseFileSystem):
@@ -203,14 +266,12 @@ class ZipFileSystem(BaseFileSystem):
         return sorted(itemURIs)
 
 
-class ZipPkgReader(object):
+class _ZipPkgReader(object):
     """
     Implements |PhysPkgReader| interface for a zip file OPC package.
     """
-    _CONTENT_TYPES_MEMBERNAME = '[Content_Types].xml'
-
     def __init__(self, pkg_file):
-        super(ZipPkgReader, self).__init__()
+        super(_ZipPkgReader, self).__init__()
         self._zipf = ZipFile(pkg_file, 'r')
 
     def blob_for(self, pack_uri):
@@ -231,7 +292,7 @@ class ZipPkgReader(object):
         """
         Return the `[Content_Types].xml` blob from the zip package.
         """
-        return self._zipf.read(self._CONTENT_TYPES_MEMBERNAME)
+        return self.blob_for(CONTENT_TYPES_URI)
 
     def rels_xml_for(self, source_uri):
         """
@@ -239,18 +300,18 @@ class ZipPkgReader(object):
         item is present.
         """
         try:
-            rels_xml = self._zipf.read(source_uri.rels_uri.membername)
+            rels_xml = self.blob_for(source_uri.rels_uri)
         except KeyError:
             rels_xml = None
         return rels_xml
 
 
-class ZipPkgWriter(object):
+class _ZipPkgWriter(object):
     """
     Implements |PhysPkgWriter| interface for a zip file OPC package.
     """
     def __init__(self, pkg_file):
-        super(ZipPkgWriter, self).__init__()
+        super(_ZipPkgWriter, self).__init__()
         self._zipf = ZipFile(pkg_file, 'w', compression=ZIP_DEFLATED)
 
     def close(self):
