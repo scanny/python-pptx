@@ -20,13 +20,13 @@ from lxml import etree
 
 import pptx.spec
 
-from pptx.exceptions import CorruptedPackageError
+from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import serialize_part_xml
 from pptx.oxml.ns import nsuri, qn
 from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
 
 from .packuri import CONTENT_TYPES_URI, PackURI, PACKAGE_URI
-from .phys_pkg import FileSystem, PhysPkgWriter
+from .phys_pkg import PhysPkgReader, PhysPkgWriter
 
 
 class Package(object):
@@ -69,16 +69,20 @@ class Package(object):
         a path to a directory, the directory must contain an expanded package
         such as is produced by unzipping an OPC package file.
         """
-        fs = FileSystem(file_)
+        fs = PhysPkgReader(file_)
         cti = _ContentTypesItem().load(fs)
         self._relationships = []  # discard any rels from prior load
         parts_dict = {}           # track loaded parts, graph is cyclic
-        pkg_rel_elms = fs.getelement(Package.PKG_RELSITEM_URI)\
-                         .findall(qn('pr:Relationship'))
+
+        pkg_rels_xml = fs.rels_xml_for(PACKAGE_URI)
+        pkg_rels_elm = parse_xml_bytes(pkg_rels_xml)
+        pkg_rel_elms = pkg_rels_elm.findall(qn('pr:Relationship'))
+
         for rel_elm in pkg_rel_elms:
             rId = rel_elm.get('Id')
             reltype = rel_elm.get('Type')
-            partname = '/%s' % rel_elm.get('Target')
+            partname_str = '/%s' % rel_elm.get('Target')
+            partname = PackURI(partname_str)
             part = Part()
             parts_dict[partname] = part
             part._load(fs, partname, cti, parts_dict)
@@ -230,7 +234,7 @@ class Part(object):
 
         # set persisted attributes
         self._partname = partname
-        self.blob = fs.getblob(partname)
+        self.blob = fs.blob_for(partname)
         self.typespec = PartTypeSpec(content_type)
 
         # load relationships and propagate load to target parts
@@ -240,8 +244,12 @@ class Part(object):
             rId = rel_elm.get('Id')
             reltype = rel_elm.get('Type')
             target_relpath = rel_elm.get('Target')
-            target_partname = posixpath.abspath(posixpath.join(baseURI,
-                                                               target_relpath))
+
+            target_partname_str = posixpath.abspath(
+                posixpath.join(baseURI, target_relpath)
+            )
+            target_partname = PackURI(target_partname_str)
+
             if target_partname in parts_dict:
                 target_part = parts_dict[target_partname]
             else:
@@ -314,13 +322,10 @@ class Part(object):
         have relationships or its relationships are optional and none exist in
         this filesystem (package).
         """
-        relsitemURI = self.__relsitemURI(self.typespec, self._partname, fs)
-        if relsitemURI is None:
+        rels_xml = fs.rels_xml_for(self._partname)
+        if rels_xml is None:
             return []
-        if relsitemURI not in fs:
-            tmpl = "required relationships item '%s' not found in package"
-            raise CorruptedPackageError(tmpl % relsitemURI)
-        root_elm = fs.getelement(relsitemURI)
+        root_elm = parse_xml_bytes(rels_xml)
         return root_elm.findall(qn('pr:Relationship'))
 
     @staticmethod
@@ -624,11 +629,15 @@ class _ContentTypesItem(object):
         Returns a reference to this _ContentTypesItem instance to allow
         generative call, e.g. ``cti = _ContentTypesItem().load(fs)``.
         """
-        element = fs.getelement('/[Content_Types].xml')
+        content_types_xml = fs.content_types_xml
+        element = parse_xml_bytes(content_types_xml)
+
         defaults = element.findall(qn('ct:Default'))
         overrides = element.findall(qn('ct:Override'))
-        self._defaults = dict((d.get('Extension'), d.get('ContentType'))
-                              for d in defaults)
-        self._overrides = dict((o.get('PartName'), o.get('ContentType'))
-                               for o in overrides)
+        self._defaults = dict(
+            (d.get('Extension'), d.get('ContentType')) for d in defaults
+        )
+        self._overrides = dict(
+            (o.get('PartName'), o.get('ContentType')) for o in overrides
+        )
         return self

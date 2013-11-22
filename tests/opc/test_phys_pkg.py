@@ -14,15 +14,13 @@ except ImportError:
 import hashlib
 import pytest
 
-from lxml import etree
 from mock import Mock
-from zipfile import BadZipfile, ZIP_DEFLATED, ZipFile
+from zipfile import ZIP_DEFLATED, ZipFile
 
-from pptx.exceptions import NotXMLError, PackageNotFoundError
+from pptx.exceptions import PackageNotFoundError
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.phys_pkg import (
-    DirectoryFileSystem, _DirPkgReader, FileSystem, PhysPkgReader,
-    PhysPkgWriter, ZipFileSystem, _ZipPkgReader, _ZipPkgWriter
+    _DirPkgReader, PhysPkgReader, PhysPkgWriter, _ZipPkgReader, _ZipPkgWriter
 )
 
 from ..unitutil import absjoin, class_mock, loose_mock, test_file_dir
@@ -31,111 +29,6 @@ from ..unitutil import absjoin, class_mock, loose_mock, test_file_dir
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 dir_pkg_path = absjoin(test_file_dir, 'expanded_pptx')
 zip_pkg_path = test_pptx_path
-
-
-class DescribeBaseFileSystem(object):
-
-    def test___contains__(self):
-        """'in' operator returns True if URI is in filesystem"""
-        expected_URIs = (
-            '/[Content_Types].xml',
-            '/docProps/app.xml',
-            '/ppt/presentation.xml',
-            '/ppt/slideMasters/slideMaster1.xml',
-            '/ppt/slideLayouts/_rels/slideLayout1.xml.rels')
-        fs = FileSystem(zip_pkg_path)
-        for uri in expected_URIs:
-            assert uri in fs
-
-    def test_getblob_correct_length(self):
-        """BaseFileSystem.getblob() returns object of expected length"""
-        # setup -----------------------
-        partname = '/docProps/thumbnail.jpeg'
-        fs = FileSystem(zip_pkg_path)
-        # exercise --------------------
-        blob = fs.getblob(partname)
-        # verify ----------------------
-        assert len(blob) == 8147
-
-    def test_getblob_raises_on_bad_itemuri(self):
-        """BaseFileSystem.getblob(itemURI) raises on bad itemURI"""
-        # setup -----------------------
-        bad_itemURI = '/spam/eggs/egg1.xml'
-        fs = FileSystem(zip_pkg_path)
-        # verify ----------------------
-        with pytest.raises(LookupError):
-            fs.getblob(bad_itemURI)
-
-    def test_getelement_return_count(self):
-        """ElementTree element for specified package item is returned"""
-        dir_fs = FileSystem(dir_pkg_path)
-        zip_fs = FileSystem(zip_pkg_path)
-        for fs in (dir_fs, zip_fs):
-            elm = fs.getelement('/[Content_Types].xml')
-            assert len(elm) == 24
-
-    def test_getelement_raises_on_bad_itemuri(self):
-        """BaseFileSystem.getelement(itemURI) raises on bad itemURI"""
-        # setup -----------------------
-        bad_itemURI = '/spam/eggs/egg1.xml'
-        fs = FileSystem(zip_pkg_path)
-        # verify ----------------------
-        with pytest.raises(LookupError):
-            fs.getelement(bad_itemURI)
-
-    def test_getelement_raises_on_binary(self):
-        """Calling getelement() for binary item raises exception"""
-        # call getelement for thumbnail
-        fs = FileSystem(zip_pkg_path)
-        with pytest.raises(NotXMLError):
-            fs.getelement('/docProps/thumbnail.jpeg')
-
-
-class DescribeDirectoryFileSystem(object):
-
-    def test_constructor_raises_on_non_dir_path(self):
-        """DirectoryFileSystem(path) raises on non-dir *path*"""
-        with pytest.raises(ValueError):
-            DirectoryFileSystem(zip_pkg_path)
-
-    def test_getstream_correct_length(self):
-        """BytesIO instance for specified package item is returned"""
-        fs = DirectoryFileSystem(dir_pkg_path)
-        stream = fs.getstream('/[Content_Types].xml')
-        elm = etree.parse(stream).getroot()
-        assert len(elm) == 24
-
-    def test_getstream_raises_on_bad_URI(self):
-        """DirectoryFileSystem.getstream() raises on bad URI"""
-        fs = DirectoryFileSystem(dir_pkg_path)
-        with pytest.raises(LookupError):
-            fs.getstream('!blat/rhumba.xml')
-
-    def test_itemURIs_count(self):
-        """DirectoryFileSystem.itemURIs has expected count"""
-        # verify ----------------------
-        fs = DirectoryFileSystem(dir_pkg_path)
-        assert len(fs.itemURIs) == 38
-
-    def test_itemURIs_plausible(self):
-        """All URIs in DirectoryFileSystem.itemURIs are plausible"""
-        # setup -----------------------
-        fs = DirectoryFileSystem(dir_pkg_path)
-        # verify ----------------------
-        for itemURI in fs.itemURIs:
-            # plausible segment count
-            expected_min = 1
-            expected_max = 4
-            # leading slash produces empty string in split list
-            segment_count = len(itemURI.split('/'))-1
-            msg = ("item URI has implausible number of segments:\n"
-                   "itemURI ==> '%s'" % (itemURI))
-            assert segment_count >= expected_min, msg
-            assert segment_count <= expected_max, msg
-            # check for forward slash
-            msg = ("item URI '%s' does not start with forward slash ('/')"
-                   % (itemURI))
-            assert itemURI.startswith('/'), msg
 
 
 class DescribeDirPkgReader(object):
@@ -179,144 +72,11 @@ class DescribeDirPkgReader(object):
         return _DirPkgReader(dir_pkg_path)
 
 
-class DescribeFileSystem(object):
-    """Test FileSystem"""
-    def test_constructor_returns_dirfs_for_dirpath(self):
-        """FileSystem(dirpath) returns instance of DirectoryFileSystem"""
-        fs = FileSystem(dir_pkg_path)
-        assert isinstance(fs, DirectoryFileSystem)
-
-    def test_constructor_returns_zipfs_for_zipfile_path(self):
-        """FileSystem(zipfile_path) returns instance of ZipFileSystem"""
-        fs = FileSystem(zip_pkg_path)
-        assert isinstance(fs, ZipFileSystem)
-
-    def test_constructor_returns_zipfs_for_zip_stream(self):
-        """FileSystem(zipfile_stream) returns instance of ZipFileSystem"""
-        with open(zip_pkg_path, 'rb') as stream:
-            fs = FileSystem(stream)
-        assert isinstance(fs, ZipFileSystem)
-
-    def test_constructor_raises_on_bad_path(self):
-        """FileSystem(path) constructor raises on bad path"""
-        # setup -----------------------
-        bad_path = 'blat/rhumba.1x&'
-        # verify ----------------------
-        with pytest.raises(PackageNotFoundError):
-            FileSystem(bad_path)
-
-    def test_constructor_raises_on_non_zip_stream(self):
-        """FileSystem(path) constructor raises on non-zip stream"""
-        # setup -----------------------
-        non_zip_stream = BytesIO('not a zip file')
-        # verify ----------------------
-        with pytest.raises(BadZipfile):
-            FileSystem(non_zip_stream)
-
-
 class DescribePhysPkgReader(object):
 
     def it_raises_when_pkg_path_is_not_a_package(self):
         with pytest.raises(PackageNotFoundError):
             PhysPkgReader('foobar')
-
-
-class DescribePhysPkgWriter(object):
-
-    def it_constructs_a_pkg_writer_instance(self, _ZipPkgWriter_, pkg_file_):
-        phys_pkg_writer = PhysPkgWriter(pkg_file_)
-        _ZipPkgWriter_.assert_called_once_with(pkg_file_)
-        assert phys_pkg_writer == _ZipPkgWriter_.return_value
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def pkg_file_(self, request):
-        return loose_mock(request)
-
-    @pytest.fixture
-    def _ZipPkgWriter_(self, request):
-        return class_mock(request, 'pptx.opc.phys_pkg._ZipPkgWriter')
-
-
-class DescribeZipFileSystem(object):
-    """
-    Test ZipFileSystem (writing aspect)
-    """
-    def test_constructor_accepts_stream(self):
-        """ZipFileSystem() constructor accepts zip archive as stream"""
-        with open(zip_pkg_path, 'rb') as stream:
-            fs = ZipFileSystem(stream)
-        assert isinstance(fs, ZipFileSystem)
-
-    def test_getstream_correct_length(self):
-        """
-        [Content_Types].xml retrieved as stream has correct element count
-        """
-        fs = ZipFileSystem(zip_pkg_path)
-        stream = fs.getstream('/[Content_Types].xml')
-        content_types_elm = etree.parse(stream).getroot()
-        assert len(content_types_elm) == 24
-
-    def test_getstream_raises_on_bad_URI(self):
-        """ZipFileSystem.getstream() raises on bad URI"""
-        # setup -----------------------
-        fs = FileSystem(zip_pkg_path)
-        # verify ----------------------
-        with pytest.raises(LookupError):
-            fs.getstream('!blat/rhumba.xml')
-
-    def test_itemURIs_count(self):
-        """ZipFileSystem.itemURIs has expected count"""
-        # verify ----------------------
-        fs = ZipFileSystem(zip_pkg_path)
-        assert len(fs.itemURIs) == 38
-
-    def test_itemURIs_plausible(self):
-        """All URIs in ZipFileSystem.itemURIs are plausible"""
-        # setup -----------------------
-        fs = ZipFileSystem(zip_pkg_path)
-        # verify ----------------------
-        for itemURI in fs.itemURIs:
-            # plausible segment count
-            expected_min = 1
-            expected_max = 4
-            # leading slash produces empty string in split list
-            segment_count = len(itemURI.split('/'))-1
-            msg = ("item URI has implausible number of segments:\n"
-                   "itemURI ==> '%s'" % (itemURI))
-            assert segment_count >= expected_min, msg
-            assert segment_count <= expected_max, msg
-            # check for forward slash
-            msg = ("item URI '%s' does not start with forward slash ('/')"
-                   % (itemURI))
-            assert itemURI.startswith('/'), msg
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def xml_in(self):
-        return (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
-            '<p:presentationPr xmlns:a="http://main" xmlns:r="http://relatio'
-            'nships" xmlns:p="http://presentationml">\n'
-            '  <p:extLst>\n'
-            '    <p:ext uri="{E76CE94A-603C-4142-B9EB-6D1370010A27}">\n'
-            '      <r:discardImageEditData val="0"/>\n'
-            '    </p:ext>\n'
-            '  </p:extLst>\n'
-            '</p:presentationPr>\n'
-        )
-
-    @pytest.fixture
-    def xml_out(self):
-        return (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
-            '<p:presentationPr xmlns:a="http://main" xmlns:r="http://relatio'
-            'nships" xmlns:p="http://presentationml"><p:extLst><p:ext uri="{'
-            'E76CE94A-603C-4142-B9EB-6D1370010A27}"><r:discardImageEditData '
-            'val="0"/></p:ext></p:extLst></p:presentationPr>'
-        )
 
 
 class DescribeZipPkgReader(object):
@@ -378,11 +138,9 @@ class DescribeZipPkgReader(object):
 
 class DescribeZipPkgWriter(object):
 
-    @pytest.fixture
-    def pkg_file(self, request):
-        pkg_file = BytesIO()
-        request.addfinalizer(pkg_file.close)
-        return pkg_file
+    def it_is_used_by_PhysPkgWriter_unconditionally(self, tmp_pptx_path):
+        phys_writer = PhysPkgWriter(tmp_pptx_path)
+        assert isinstance(phys_writer, _ZipPkgWriter)
 
     def it_opens_pkg_file_zip_on_construction(self, ZipFile_):
         pkg_file = Mock(name='pkg_file')
@@ -415,6 +173,14 @@ class DescribeZipPkgWriter(object):
         zipf.close()
         retrieved_blob_sha1 = hashlib.sha1(retrieved_blob).hexdigest()
         assert retrieved_blob_sha1 == written_blob_sha1
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def pkg_file(self, request):
+        pkg_file = BytesIO()
+        request.addfinalizer(pkg_file.close)
+        return pkg_file
 
 
 # fixtures -------------------------------------------------

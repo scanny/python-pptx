@@ -16,10 +16,10 @@ from zipfile import ZipFile, is_zipfile
 
 import pptx.presentation
 
-from pptx.exceptions import CorruptedPackageError
 from pptx.opc.packaging import (
-    _ContentTypesItem, FileSystem, Package, Part, PartTypeSpec
+    _ContentTypesItem, Package, Part, PartTypeSpec
 )
+from pptx.opc.phys_pkg import PhysPkgReader
 from pptx.spec import PTS_CARDINALITY_TUPLE, PTS_HASRELS_ALWAYS
 
 from ..unitutil import absjoin, test_file_dir
@@ -126,8 +126,8 @@ class Describe_ContentTypesItem_compose(object):
     def test_load_spotcheck(self):
         """_ContentTypesItem can load itself from a filesystem instance"""
         # setup ------------------------
-        dir_fs = FileSystem(dir_pkg_path)
-        zip_fs = FileSystem(zip_pkg_path)
+        dir_fs = PhysPkgReader(dir_pkg_path)
+        zip_fs = PhysPkgReader(zip_pkg_path)
         for fs in (dir_fs, zip_fs):
             # exercise ---------------------
             cti = _ContentTypesItem().load(fs)
@@ -187,49 +187,6 @@ class DescribePackage(object):
         for part in pkg.parts:
             for rel in part.relationships:
                 assert isinstance(rel.target, Part)
-
-    # def test_blob_correct_length_after_load_binary_part(self):
-    #     """Part.blob correct length after load binary part"""
-    #     # setup -----------------------
-    #     partname = '/docProps/thumbnail.jpeg'
-    #     content_type = 'image/jpeg'
-    #     self.part.load(self.fs, partname, content_type)
-    #     # exercise --------------------
-    #     blob = self.part.blob
-    #     # verify ----------------------
-    #     assert len(blob, 8147)
-    #
-    # def test__rels_element_correct_xml(self):
-    #     BOTH PKG AND PARTS, MAYBE USE TEST FILES
-    #     """RelationshipsItem.element produces expected XML"""
-    #     # setup -----------------------
-    #     ns = 'http://schemas.openxmlformats.org/package/2006/relationships'
-    #     exp_xml = '<Relationships xmlns="%s"/>' % ns
-    #     # exercise --------------------
-    #     elm = self.ri.element
-    #     # verify ----------------------
-    #     xml_out = etree.tostring(elm)
-    #     expected = exp_xml
-    #     actual = xml_out
-    #     msg = "expected '%s'\n%sgot '%s'" % (expected, ' '*21, actual)
-    #     assert actual == expected, msg
-    #
-    # def test_typespec_correct_after_load(self):
-    #     """Part.typespec is correct after load"""
-    #     # setup -----------------------
-    #     self.part.load(self.fs, self.partname, self.content_type)
-    #     # exercise --------------------
-    #     typespec = self.part.typespec
-    #     test_cases =\
-    #         ( (typespec.basename    , 'slideMaster')
-    #         , (typespec.cardinality , 'multiple'   )
-    #         , (typespec.has_rels    , 'always'     )
-    #         , (typespec.format      , 'xml'        )
-    #         )
-    #     # verify ----------------------
-    #     for actual, expected in test_cases:
-    #         msg = "expected '%s', got '%s'" % (expected, actual)
-    #         assert actual == expected, msg
 
     def test_parts_property_empty_on_construction(self, pkg):
         assert len(pkg.parts) == 0
@@ -310,15 +267,6 @@ class DescribePart(object):
         actual = retval
         msg = "expected '%s', got '%s'" % (expected, actual)
         assert actual == expected, msg
-
-    def test__load_raises_on_missing_rels_item(self):
-        """Part._load() raises on missing rels item"""
-        # setup -----------------------
-        path = absjoin(test_file_dir, 'missing_rels_item.pptx')
-        pkg = Package()
-        # verify ----------------------
-        with pytest.raises(CorruptedPackageError):
-            pkg.open(path)
 
     def test_partname_property_none_on_construction(self, part):
         assert part.partname is None

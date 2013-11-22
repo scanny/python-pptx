@@ -11,13 +11,6 @@ class PythonPptxError(Exception):
     """Generic error class."""
 
 
-class CorruptedPackageError(PythonPptxError):
-    """
-    Raised when a package item in an Open XML package cannot be found or is
-    invalid.
-    """
-
-
 class InvalidPackageError(PythonPptxError):
     """
     Raised when a package does not contain a valid presentation part (possibly
