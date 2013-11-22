@@ -19,10 +19,10 @@ from mock import Mock
 from zipfile import BadZipfile, ZIP_DEFLATED, ZipFile
 
 from pptx.exceptions import NotXMLError, PackageNotFoundError
-from pptx.opc.packuri import PackURI
+from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.phys_pkg import (
-    DirectoryFileSystem, FileSystem, PhysPkgWriter, ZipFileSystem,
-    ZipPkgWriter
+    DirectoryFileSystem, FileSystem, PhysPkgReader, PhysPkgWriter,
+    ZipFileSystem, ZipPkgReader, ZipPkgWriter
 )
 
 from ..unitutil import absjoin, class_mock, test_file_dir
@@ -178,6 +178,22 @@ class DescribeFileSystem(object):
             FileSystem(non_zip_stream)
 
 
+class DescribePhysPkgReader(object):
+
+    @pytest.fixture
+    def ZipPkgReader_(self, request):
+        return class_mock(request, 'pptx.opc.phys_pkg.ZipPkgReader')
+
+    def it_constructs_a_pkg_reader_instance(self, ZipPkgReader_):
+        # mockery ----------------------
+        pkg_file = Mock(name='pkg_file')
+        # exercise ---------------------
+        phys_pkg_reader = PhysPkgReader(pkg_file)
+        # verify -----------------------
+        ZipPkgReader_.assert_called_once_with(pkg_file)
+        assert phys_pkg_reader == ZipPkgReader_.return_value
+
+
 class DescribePhysPkgWriter(object):
 
     @pytest.fixture
@@ -272,6 +288,49 @@ class DescribeZipFileSystem(object):
             'E76CE94A-603C-4142-B9EB-6D1370010A27}"><r:discardImageEditData '
             'val="0"/></p:ext></p:extLst></p:presentationPr>'
         )
+
+
+class DescribeZipPkgReader(object):
+
+    @pytest.fixture(scope='class')
+    def phys_reader(self, request):
+        phys_reader = ZipPkgReader(test_pptx_path)
+        request.addfinalizer(phys_reader.close)
+        return phys_reader
+
+    def it_opens_pkg_file_zip_on_construction(self, ZipFile_):
+        pkg_file = Mock(name='pkg_file')
+        ZipPkgReader(pkg_file)
+        ZipFile_.assert_called_once_with(pkg_file, 'r')
+
+    def it_can_be_closed(self, ZipFile_):
+        # mockery ----------------------
+        zipf = ZipFile_.return_value
+        zip_pkg_reader = ZipPkgReader(None)
+        # exercise ---------------------
+        zip_pkg_reader.close()
+        # verify -----------------------
+        zipf.close.assert_called_once_with()
+
+    def it_can_retrieve_the_blob_for_a_pack_uri(self, phys_reader):
+        pack_uri = PackURI('/ppt/presentation.xml')
+        blob = phys_reader.blob_for(pack_uri)
+        sha1 = hashlib.sha1(blob).hexdigest()
+        assert sha1 == 'efa7bee0ac72464903a67a6744c1169035d52a54'
+
+    def it_has_the_content_types_xml(self, phys_reader):
+        sha1 = hashlib.sha1(phys_reader.content_types_xml).hexdigest()
+        assert sha1 == 'ab762ac84414fce18893e18c3f53700c01db56c3'
+
+    def it_can_retrieve_rels_xml_for_source_uri(self, phys_reader):
+        rels_xml = phys_reader.rels_xml_for(PACKAGE_URI)
+        sha1 = hashlib.sha1(rels_xml).hexdigest()
+        assert sha1 == 'e31451d4bbe7d24adbe21454b8e9fdae92f50de5'
+
+    def it_returns_none_when_part_has_no_rels_xml(self, phys_reader):
+        partname = PackURI('/ppt/viewProps.xml')
+        rels_xml = phys_reader.rels_xml_for(partname)
+        assert rels_xml is None
 
 
 class DescribeZipPkgWriter(object):
