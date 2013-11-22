@@ -278,36 +278,6 @@ class DescribeZipFileSystem(object):
         with pytest.raises(DuplicateKeyError):
             test_fs.write_blob(blob, partname)
 
-    def test_write_element_round_trips(self, xml_in, tmp_pptx_path, xml_out):
-        """ZipFileSystem.write_element() round-trips intact"""
-        # setup -----------------------
-        elm = etree.fromstring(xml_in)
-        itemURI = '/ppt/test.xml'
-        zipfs = ZipFileSystem(tmp_pptx_path, 'w')
-        # exercise --------------------
-        zipfs.write_element(elm, itemURI)
-        # verify ----------------------
-        stream = zipfs.getstream(itemURI)
-        xml_out = stream.read()
-        stream.close()
-        expected = xml_out
-        actual = xml_out
-        msg = "expected \n%s\n, got\n%s" % (expected, actual)
-        assert actual == expected, msg
-
-    def test_write_element_raises_on_dup_itemuri(
-            self, xml_in, tmp_pptx_path):
-        """ZipFileSystem.write_element() raises on duplicate itemURI"""
-        # setup -----------------------
-        elm = etree.fromstring(xml_in)
-        itemURI = '/ppt/test.xml'
-        zipfs = ZipFileSystem(tmp_pptx_path, 'w')
-        # exercise --------------------
-        zipfs.write_element(elm, itemURI)
-        # verify ----------------------
-        with pytest.raises(DuplicateKeyError):
-            zipfs.write_element(elm, itemURI)
-
     # fixtures ---------------------------------------------
 
     @pytest.fixture

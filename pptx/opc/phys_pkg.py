@@ -206,18 +206,6 @@ class ZipFileSystem(BaseFileSystem):
         membername = itemURI[1:]  # trim off leading slash
         self.zipf.writestr(membername, blob)
 
-    def write_element(self, element, itemURI):
-        """
-        Write *element* to zip file as an XML document named *itemURI*.
-        """
-        if itemURI in self:
-            tmpl = "Item with URI '%s' already in package"
-            raise DuplicateKeyError(tmpl % itemURI)
-        membername = itemURI[1:]  # trim off leading slash
-        xml = etree.tostring(element, encoding='UTF-8', pretty_print=False,
-                             standalone=True)
-        self.zipf.writestr(membername, xml)
-
 
 class ZipPkgWriter(object):
     """

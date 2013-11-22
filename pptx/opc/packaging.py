@@ -21,6 +21,7 @@ from lxml import etree
 import pptx.spec
 
 from pptx.exceptions import CorruptedPackageError
+from pptx.oxml.core import serialize_part_xml
 from pptx.oxml.ns import nsuri, qn
 from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
 
@@ -37,6 +38,7 @@ class Package(object):
     ``save()`` to save an in-memory Office document.
     """
 
+    CONTENT_TYPES_URI = '/[Content_Types].xml'
     PKG_RELSITEM_URI = '/_rels/.rels'
 
     def __init__(self):
@@ -118,15 +120,15 @@ class Package(object):
         zipfs = ZipFileSystem(file, 'w')
         # write [Content_Types].xml
         cti = _ContentTypesItem().compose(self.parts)
-        zipfs.write_element(cti.element, '/[Content_Types].xml')
+        zipfs.write_blob(cti.xml, self.CONTENT_TYPES_URI)
         # write pkg rels item
-        zipfs.write_element(self._relsitem_element, self.PKG_RELSITEM_URI)
+        zipfs.write_blob(self._relsitem_xml, self.PKG_RELSITEM_URI)
         for part in self.parts:
             # write part item
             zipfs.write_blob(part.blob, part.partname)
             # write rels item if part has one
             if part.relationships:
-                zipfs.write_element(part._relsitem_element, part._relsitemURI)
+                zipfs.write_blob(part._relsitem_xml, part._relsitemURI)
         zipfs.close()
 
     @property
@@ -136,6 +138,10 @@ class Package(object):
         for rel in self._relationships:
             element.append(rel._element)
         return element
+
+    @property
+    def _relsitem_xml(self):
+        return serialize_part_xml(self._relsitem_element)
 
     @classmethod
     def _walkparts(cls, rels, parts=None):
@@ -292,6 +298,10 @@ class Part(object):
         """
         head, tail = os.path.split(self._partname)
         return '%s/_rels/%s.rels' % (head, tail)
+
+    @property
+    def _relsitem_xml(self):
+        return serialize_part_xml(self._relsitem_element)
 
     def _get_rel_elms(self, fs):
         """
@@ -600,6 +610,10 @@ class _ContentTypesItem(object):
                 subelm.set('PartName', partname)
                 subelm.set('ContentType', self._overrides[partname])
         return element
+
+    @property
+    def xml(self):
+        return serialize_part_xml(self.element)
 
     def load(self, fs):
         """
