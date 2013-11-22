@@ -5,9 +5,10 @@ Part objects, including BasePart.
 """
 
 from pptx.opc.rels import Relationship, RelationshipCollection
+from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import serialize_part_xml
-from pptx.util import Collection, Partname
+from pptx.util import Collection
 
 
 class BasePart(object):
@@ -165,9 +166,9 @@ class PartCollection(Collection):
         sorted in logical partname order (e.g. slide10.xml comes after
         slide9.xml).
         """
-        new_partidx = Partname(part.partname).idx
+        new_partidx = PackURI(part.partname).idx
         for idx, seq_part in enumerate(self._values):
-            partidx = Partname(seq_part.partname).idx
+            partidx = PackURI(seq_part.partname).idx
             if partidx > new_partidx:
                 self._values.insert(idx, part)
                 return

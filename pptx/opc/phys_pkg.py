@@ -14,7 +14,6 @@ from StringIO import StringIO
 from zipfile import ZipFile, is_zipfile, ZIP_DEFLATED
 
 from pptx.exceptions import NotXMLError, PackageNotFoundError
-from pptx.util import Partname
 
 
 class FileSystem(object):
@@ -71,9 +70,6 @@ class BaseFileSystem(object):
         """
         Return ElementTree element of XML item identified by *itemURI*.
         """
-        # remove this bit after refactoring Partname to PackURI
-        if isinstance(itemURI, Partname):
-            itemURI = itemURI.partname
         if itemURI not in self:
             raise LookupError("No package item with URI '%s'" % itemURI)
         stream = self.getstream(itemURI)

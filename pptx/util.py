@@ -5,9 +5,7 @@ Utility functions and classes that come in handy when working with PowerPoint
 and Open XML.
 """
 
-import os
 import platform
-import re
 
 
 class _BaseLength(int):
@@ -126,81 +124,6 @@ class Collection(object):
     def index(self, item):
         """Supports index method (e.g. '[1, 2, 3].index(2) == 1')."""
         return self._values_.index(item)
-
-
-class Partname(object):
-    """
-    Provides access to partname components such as the baseURI and the part
-    index.
-    """
-    _filename_re = re.compile('([a-zA-Z]+)([1-9][0-9]*)?')
-
-    def __init__(self, partname):
-        super(Partname, self).__init__()
-        self._partname = partname
-
-    @property
-    def basename(self):
-        """
-        The base "filename" of the partname, e.g. ``'slide'`` for
-        ``'/ppt/slides/slide1.xml'``.
-        """
-        name = os.path.splitext(self.filename)[0]  # filename with ext removed
-        match = self._filename_re.match(name)
-        return match.group(1)
-
-    @property
-    def baseURI(self):
-        """
-        The base URI of partname, e.g. ``'/ppt/slides'`` for
-        ``'/ppt/slides/slide1.xml'``.
-        """
-        return os.path.split(self._partname)[0]
-
-    @property
-    def ext(self):
-        """
-        The extension portion of partname, e.g. ``'.xml'`` for
-        ``'/ppt/slides/slide1.xml'``. Note that period is included, consistent
-        with behavior of :meth:`os.path.ext`.
-        """
-        return os.path.splitext(self._partname)[1]
-
-    @property
-    def filename(self):
-        """
-        The "filename" portion of partname, e.g. ``'slide1.xml'`` for
-        ``'/ppt/slides/slide1.xml'``.
-        """
-        return os.path.split(self._partname)[1]
-
-    @property
-    def idx(self):
-        """
-        Return partname index as integer for tuple partname or None for
-        singleton partname, e.g. ``21`` for ``'/ppt/slides/slide21.xml'`` and
-        |None| for ``'/ppt/presentation.xml'``.
-        """
-        name = os.path.splitext(self.filename)[0]  # filename with ext removed
-        match = self._filename_re.match(name)
-        return int(match.group(2)) if match.group(2) else None
-
-    @property
-    def membername(self):
-        """
-        The pack URI with the leading slash stripped off, the form used as
-        the Zip file membername for the package item. Returns '' for the
-        package pseudo-partname '/'.
-        """
-        return self._partname[1:]
-
-    @property
-    def partname(self):
-        """
-        The complete partname, e.g. ``'/ppt/slides/slide1.xml'`` for
-        ``'/ppt/slides/slide1.xml'``.
-        """
-        return self._partname
 
 
 def to_unicode(text):

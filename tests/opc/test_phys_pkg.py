@@ -19,11 +19,11 @@ from mock import Mock
 from zipfile import BadZipfile, ZIP_DEFLATED, ZipFile
 
 from pptx.exceptions import NotXMLError, PackageNotFoundError
+from pptx.opc.packuri import PackURI
 from pptx.opc.phys_pkg import (
     DirectoryFileSystem, FileSystem, PhysPkgWriter, ZipFileSystem,
     ZipPkgWriter
 )
-from pptx.util import Partname as PackURI
 
 from ..unitutil import absjoin, class_mock, test_file_dir
 

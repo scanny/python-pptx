@@ -24,12 +24,9 @@ from pptx.exceptions import CorruptedPackageError
 from pptx.oxml.core import serialize_part_xml
 from pptx.oxml.ns import nsuri, qn
 from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
-from pptx.util import Partname as PackURI
 
+from .packuri import CONTENT_TYPES_URI, PackURI, PACKAGE_URI
 from .phys_pkg import FileSystem, PhysPkgWriter
-
-
-PKG_BASE_URI = '/'
 
 
 class Package(object):
@@ -39,7 +36,6 @@ class Package(object):
     ``save()`` to save an in-memory Office document.
     """
 
-    CONTENT_TYPES_URI = PackURI('/[Content_Types].xml')
     PKG_RELSITEM_URI = PackURI('/_rels/.rels')
 
     def __init__(self):
@@ -122,16 +118,15 @@ class Package(object):
 
         # write [Content_Types].xml
         cti = _ContentTypesItem().compose(self.parts)
-        phys_pkg_writer.write(self.CONTENT_TYPES_URI, cti.xml)
+        phys_pkg_writer.write(CONTENT_TYPES_URI, cti.xml)
 
         # write pkg rels item
         phys_pkg_writer.write(self.PKG_RELSITEM_URI, self._relsitem_xml)
-        for part in self.parts:
 
-            # write part item
+        # write part items and their rels item when they have one
+        for part in self.parts:
             partname = PackURI(part.partname)
             phys_pkg_writer.write(partname, part.blob)
-
             # write rels item if part has one
             if part.relationships:
                 relsitemURI = PackURI(part._relsitemURI)
@@ -397,7 +392,7 @@ class Relationship(object):
         """Return the directory part of the source itemURI."""
         if isinstance(self._source, Part):
             return os.path.split(self._source.partname)[0]
-        return PKG_BASE_URI
+        return PACKAGE_URI
 
     @property
     def _target_relpath(self):
