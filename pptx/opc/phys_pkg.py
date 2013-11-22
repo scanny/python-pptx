@@ -13,9 +13,8 @@ from lxml import etree
 from StringIO import StringIO
 from zipfile import ZipFile, is_zipfile, ZIP_DEFLATED
 
-from pptx.exceptions import (
-    DuplicateKeyError, NotXMLError, PackageNotFoundError
-)
+from pptx.exceptions import NotXMLError, PackageNotFoundError
+from pptx.util import Partname
 
 
 class FileSystem(object):
@@ -72,6 +71,9 @@ class BaseFileSystem(object):
         """
         Return ElementTree element of XML item identified by *itemURI*.
         """
+        # remove this bit after refactoring Partname to PackURI
+        if isinstance(itemURI, Partname):
+            itemURI = itemURI.partname
         if itemURI not in self:
             raise LookupError("No package item with URI '%s'" % itemURI)
         stream = self.getstream(itemURI)
@@ -195,16 +197,6 @@ class ZipFileSystem(BaseFileSystem):
         # zip archive can contain entries for directories, so get rid of those
         itemURIs = [('/%s' % nm) for nm in names if not nm.endswith('/')]
         return sorted(itemURIs)
-
-    def write_blob(self, blob, itemURI):
-        """
-        Write *blob* to zip file as binary stream named *itemURI*.
-        """
-        if itemURI in self:
-            tmpl = "Item with URI '%s' already in package"
-            raise DuplicateKeyError(tmpl % itemURI)
-        membername = itemURI[1:]  # trim off leading slash
-        self.zipf.writestr(membername, blob)
 
 
 class ZipPkgWriter(object):

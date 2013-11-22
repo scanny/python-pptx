@@ -18,13 +18,6 @@ class CorruptedPackageError(PythonPptxError):
     """
 
 
-class DuplicateKeyError(PythonPptxError):
-    """
-    Raised by a unique collection when an attempt is made to add an item with
-    a key already in the collection.
-    """
-
-
 class InvalidPackageError(PythonPptxError):
     """
     Raised when a package does not contain a valid presentation part (possibly

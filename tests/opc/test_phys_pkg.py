@@ -18,9 +18,7 @@ from lxml import etree
 from mock import Mock
 from zipfile import BadZipfile, ZIP_DEFLATED, ZipFile
 
-from pptx.exceptions import (
-    DuplicateKeyError, NotXMLError, PackageNotFoundError
-)
+from pptx.exceptions import NotXMLError, PackageNotFoundError
 from pptx.opc.phys_pkg import (
     DirectoryFileSystem, FileSystem, PhysPkgWriter, ZipFileSystem,
     ZipPkgWriter
@@ -249,35 +247,6 @@ class DescribeZipFileSystem(object):
                    % (itemURI))
             assert itemURI.startswith('/'), msg
 
-    def test_write_blob_round_trips(self, tmp_pptx_path):
-        """ZipFileSystem.write_blob() round-trips intact"""
-        # setup -----------------------
-        partname = '/docProps/thumbnail.jpeg'
-        fs = FileSystem(zip_pkg_path)
-        in_blob = fs.getblob(partname)
-        test_fs = ZipFileSystem(tmp_pptx_path, 'w')
-        # exercise --------------------
-        test_fs.write_blob(in_blob, partname)
-        # verify ----------------------
-        out_blob = test_fs.getblob(partname)
-        expected = in_blob
-        actual = out_blob
-        msg = ("retrived blob (len %d) differs from original (len %d)" %
-               (len(actual), len(expected)))
-        assert actual == expected, msg
-
-    def test_write_blob_raises_on_dup_itemuri(self, tmp_pptx_path):
-        """ZipFileSystem.write_blob() raises on duplicate itemURI"""
-        # setup -----------------------
-        partname = '/docProps/thumbnail.jpeg'
-        fs = FileSystem(zip_pkg_path)
-        blob = fs.getblob(partname)
-        test_fs = ZipFileSystem(tmp_pptx_path, 'w')
-        test_fs.write_blob(blob, partname)
-        # verify ----------------------
-        with pytest.raises(DuplicateKeyError):
-            test_fs.write_blob(blob, partname)
-
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -316,8 +285,9 @@ class DescribeZipPkgWriter(object):
     def it_opens_pkg_file_zip_on_construction(self, ZipFile_):
         pkg_file = Mock(name='pkg_file')
         ZipPkgWriter(pkg_file)
-        ZipFile_.assert_called_once_with(pkg_file, 'w',
-                                         compression=ZIP_DEFLATED)
+        ZipFile_.assert_called_once_with(
+            pkg_file, 'w', compression=ZIP_DEFLATED
+        )
 
     def it_can_be_closed(self, ZipFile_):
         # mockery ----------------------

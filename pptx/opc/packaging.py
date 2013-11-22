@@ -24,8 +24,9 @@ from pptx.exceptions import CorruptedPackageError
 from pptx.oxml.core import serialize_part_xml
 from pptx.oxml.ns import nsuri, qn
 from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
+from pptx.util import Partname as PackURI
 
-from .phys_pkg import FileSystem, ZipFileSystem
+from .phys_pkg import FileSystem, PhysPkgWriter
 
 
 PKG_BASE_URI = '/'
@@ -38,8 +39,8 @@ class Package(object):
     ``save()`` to save an in-memory Office document.
     """
 
-    CONTENT_TYPES_URI = '/[Content_Types].xml'
-    PKG_RELSITEM_URI = '/_rels/.rels'
+    CONTENT_TYPES_URI = PackURI('/[Content_Types].xml')
+    PKG_RELSITEM_URI = PackURI('/_rels/.rels')
 
     def __init__(self):
         super(Package, self).__init__()
@@ -117,19 +118,26 @@ class Package(object):
         file (a string) or a file-like object.
         """
         # open a zip filesystem for writing package
-        zipfs = ZipFileSystem(file, 'w')
+        phys_pkg_writer = PhysPkgWriter(file)
+
         # write [Content_Types].xml
         cti = _ContentTypesItem().compose(self.parts)
-        zipfs.write_blob(cti.xml, self.CONTENT_TYPES_URI)
+        phys_pkg_writer.write(self.CONTENT_TYPES_URI, cti.xml)
+
         # write pkg rels item
-        zipfs.write_blob(self._relsitem_xml, self.PKG_RELSITEM_URI)
+        phys_pkg_writer.write(self.PKG_RELSITEM_URI, self._relsitem_xml)
         for part in self.parts:
+
             # write part item
-            zipfs.write_blob(part.blob, part.partname)
+            partname = PackURI(part.partname)
+            phys_pkg_writer.write(partname, part.blob)
+
             # write rels item if part has one
             if part.relationships:
-                zipfs.write_blob(part._relsitem_xml, part._relsitemURI)
-        zipfs.close()
+                relsitemURI = PackURI(part._relsitemURI)
+                phys_pkg_writer.write(relsitemURI, part._relsitem_xml)
+
+        phys_pkg_writer.close()
 
     @property
     def _relsitem_element(self):
