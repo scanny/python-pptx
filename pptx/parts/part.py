@@ -138,9 +138,10 @@ class BasePart(object):
             else:
                 # !!!~!!!~!!!~!!!~!!!~!!!~!!!~
                 # get rid of this as soon as possible
-                from pptx.presentation import Part
+                from pptx.presentation import _Part
                 # !!!~!!!~!!!~!!!~!!!~!!!~!!!~
-                part = Part(reltype, content_type)
+                part_cls = _Part(reltype, content_type)
+                part = part_cls()
                 part_dict[partname] = part
                 part._load(target_pkgpart, part_dict)
 

@@ -119,7 +119,8 @@ class Package(object):
             content_type = pkgpart.content_type
 
             # create target part
-            part = Part(reltype, content_type)
+            part_cls = _Part(reltype, content_type)
+            part = part_cls()
             part_dict[partname] = part
             part._load(pkgpart, part_dict)
 
@@ -190,39 +191,32 @@ class Package(object):
                 yield part
 
 
-class Part(object):
+def _Part(reltype, content_type):
     """
-    Part factory. Returns an instance of the appropriate custom part type for
-    part types that have them, BasePart otherwise.
+    Part class selector. Returns the Part subclass appropriate for the given
+    reltype, content_type pair.
     """
-    def __new__(cls, reltype, content_type):
-        """
-        *reltype* is the relationship type, e.g. ``RT.SLIDE``, corresponding
-        to the type of part to be created. For at least one part type, in
-        particular the presentation part type, *content_type* is also required
-        in order to fully specify the part to be created.
-        """
-        PRS_MAIN_CONTENT_TYPES = (
-            CT.PML_PRESENTATION_MAIN, CT.PML_TEMPLATE_MAIN,
-            CT.PML_SLIDESHOW_MAIN
-        )
-        if reltype == RT.CORE_PROPERTIES:
-            return CoreProperties()
-        if reltype == RT.OFFICE_DOCUMENT:
-            if content_type in PRS_MAIN_CONTENT_TYPES:
-                return Presentation()
-            else:
-                tmpl = "Not a presentation content type, got '%s'"
-                raise InvalidPackageError(tmpl % content_type)
-        elif reltype == RT.SLIDE:
-            return Slide()
-        elif reltype == RT.SLIDE_LAYOUT:
-            return SlideLayout()
-        elif reltype == RT.SLIDE_MASTER:
-            return SlideMaster()
-        elif reltype == RT.IMAGE:
-            return Image()
-        return BasePart()
+    PRS_MAIN_CONTENT_TYPES = (
+        CT.PML_PRESENTATION_MAIN, CT.PML_TEMPLATE_MAIN,
+        CT.PML_SLIDESHOW_MAIN
+    )
+    if reltype == RT.CORE_PROPERTIES:
+        return CoreProperties
+    if reltype == RT.OFFICE_DOCUMENT:
+        if content_type in PRS_MAIN_CONTENT_TYPES:
+            return Presentation
+        else:
+            tmpl = "Not a presentation content type, got '%s'"
+            raise InvalidPackageError(tmpl % content_type)
+    elif reltype == RT.SLIDE:
+        return Slide
+    elif reltype == RT.SLIDE_LAYOUT:
+        return SlideLayout
+    elif reltype == RT.SLIDE_MASTER:
+        return SlideMaster
+    elif reltype == RT.IMAGE:
+        return Image
+    return BasePart
 
 
 class Presentation(BasePart):

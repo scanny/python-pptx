@@ -9,15 +9,13 @@ import pytest
 
 from mock import Mock
 
-from pptx.exceptions import InvalidPackageError
-from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.rels import RelationshipCollection
 from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_Presentation, CT_SlideIdList
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import PartCollection
-from pptx.parts.slides import Slide, SlideCollection, SlideLayout, SlideMaster
-from pptx.presentation import Package, Part, Presentation
+from pptx.parts.slides import SlideCollection
+from pptx.presentation import Package, Presentation
 
 from .unitutil import absjoin, class_mock, instance_mock, test_file_dir
 
@@ -107,29 +105,6 @@ class DescribePackage(object):
     @pytest.fixture
     def temp_pptx_path(self, tmpdir):
         return absjoin(str(tmpdir), 'test-pptx.pptx')
-
-
-class DescribePart(object):
-
-    def it_constructs_presentation_for_rt_officedocument(self):
-        obj = Part(RT.OFFICE_DOCUMENT, CT.PML_PRESENTATION_MAIN)
-        assert isinstance(obj, Presentation)
-
-    def it_constructs_slide_for_rt_slide(self):
-        obj = Part(RT.SLIDE, CT.PML_SLIDE)
-        assert isinstance(obj, Slide)
-
-    def it_constructs_slidelayout_for_rt_slidelayout(self):
-        obj = Part(RT.SLIDE_LAYOUT, CT.PML_SLIDE_LAYOUT)
-        assert isinstance(obj, SlideLayout)
-
-    def it_constructs_slidemaster_for_rt_slidemaster(self):
-        obj = Part(RT.SLIDE_MASTER, CT.PML_SLIDE_MASTER)
-        assert isinstance(obj, SlideMaster)
-
-    def it_raises_on_construct_attempt_with_invalid_prs_content_type(self):
-        with pytest.raises(InvalidPackageError):
-            Part(RT.OFFICE_DOCUMENT, CT.PML_SLIDE_MASTER)
 
 
 class DescribePresentation(object):
