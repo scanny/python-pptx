@@ -140,20 +140,22 @@ class Partname(object):
         self._partname = partname
 
     @property
+    def basename(self):
+        """
+        The base "filename" of the partname, e.g. ``'slide'`` for
+        ``'/ppt/slides/slide1.xml'``.
+        """
+        name = os.path.splitext(self.filename)[0]  # filename with ext removed
+        match = self._filename_re.match(name)
+        return match.group(1)
+
+    @property
     def baseURI(self):
         """
         The base URI of partname, e.g. ``'/ppt/slides'`` for
         ``'/ppt/slides/slide1.xml'``.
         """
         return os.path.split(self._partname)[0]
-
-    @property
-    def filename(self):
-        """
-        The "filename" portion of partname, e.g. ``'slide1.xml'`` for
-        ``'/ppt/slides/slide1.xml'``.
-        """
-        return os.path.split(self._partname)[1]
 
     @property
     def ext(self):
@@ -165,22 +167,12 @@ class Partname(object):
         return os.path.splitext(self._partname)[1]
 
     @property
-    def partname(self):
+    def filename(self):
         """
-        The complete partname, e.g. ``'/ppt/slides/slide1.xml'`` for
+        The "filename" portion of partname, e.g. ``'slide1.xml'`` for
         ``'/ppt/slides/slide1.xml'``.
         """
-        return self._partname
-
-    @property
-    def basename(self):
-        """
-        The base "filename" of the partname, e.g. ``'slide'`` for
-        ``'/ppt/slides/slide1.xml'``.
-        """
-        name = os.path.splitext(self.filename)[0]  # filename with ext removed
-        match = self._filename_re.match(name)
-        return match.group(1)
+        return os.path.split(self._partname)[1]
 
     @property
     def idx(self):
@@ -192,6 +184,23 @@ class Partname(object):
         name = os.path.splitext(self.filename)[0]  # filename with ext removed
         match = self._filename_re.match(name)
         return int(match.group(2)) if match.group(2) else None
+
+    @property
+    def membername(self):
+        """
+        The pack URI with the leading slash stripped off, the form used as
+        the Zip file membername for the package item. Returns '' for the
+        package pseudo-partname '/'.
+        """
+        return self._partname[1:]
+
+    @property
+    def partname(self):
+        """
+        The complete partname, e.g. ``'/ppt/slides/slide1.xml'`` for
+        ``'/ppt/slides/slide1.xml'``.
+        """
+        return self._partname
 
 
 def to_unicode(text):

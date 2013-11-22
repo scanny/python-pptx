@@ -6,20 +6,28 @@ Test suite for pptx.opc.packaging module
 
 from __future__ import absolute_import
 
+try:
+    from io import BytesIO  # Python 3
+except ImportError:
+    from StringIO import StringIO as BytesIO
+
+import hashlib
 import pytest
 
 from lxml import etree
-from StringIO import StringIO
-from zipfile import BadZipfile
+from mock import Mock
+from zipfile import BadZipfile, ZIP_DEFLATED, ZipFile
 
 from pptx.exceptions import (
     DuplicateKeyError, NotXMLError, PackageNotFoundError
 )
 from pptx.opc.phys_pkg import (
-    DirectoryFileSystem, FileSystem, ZipFileSystem
+    DirectoryFileSystem, FileSystem, PhysPkgWriter, ZipFileSystem,
+    ZipPkgWriter
 )
+from pptx.util import Partname as PackURI
 
-from ..unitutil import absjoin, test_file_dir
+from ..unitutil import absjoin, class_mock, test_file_dir
 
 
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
@@ -98,7 +106,7 @@ class DescribeDirectoryFileSystem(object):
             DirectoryFileSystem(zip_pkg_path)
 
     def test_getstream_correct_length(self):
-        """StringIO instance for specified package item is returned"""
+        """BytesIO instance for specified package item is returned"""
         fs = DirectoryFileSystem(dir_pkg_path)
         stream = fs.getstream('/[Content_Types].xml')
         elm = etree.parse(stream).getroot()
@@ -166,10 +174,26 @@ class DescribeFileSystem(object):
     def test_constructor_raises_on_non_zip_stream(self):
         """FileSystem(path) constructor raises on non-zip stream"""
         # setup -----------------------
-        non_zip_stream = StringIO('not a zip file')
+        non_zip_stream = BytesIO('not a zip file')
         # verify ----------------------
         with pytest.raises(BadZipfile):
             FileSystem(non_zip_stream)
+
+
+class DescribePhysPkgWriter(object):
+
+    @pytest.fixture
+    def ZipPkgWriter_(self, request):
+        return class_mock(request, 'pptx.opc.phys_pkg.ZipPkgWriter')
+
+    def it_constructs_a_pkg_writer_instance(self, ZipPkgWriter_):
+        # mockery ----------------------
+        pkg_file = Mock(name='pkg_file')
+        # exercise ---------------------
+        phys_pkg_writer = PhysPkgWriter(pkg_file)
+        # verify -----------------------
+        ZipPkgWriter_.assert_called_once_with(pkg_file)
+        assert phys_pkg_writer == ZipPkgWriter_.return_value
 
 
 class DescribeZipFileSystem(object):
@@ -309,3 +333,50 @@ class DescribeZipFileSystem(object):
             'E76CE94A-603C-4142-B9EB-6D1370010A27}"><r:discardImageEditData '
             'val="0"/></p:ext></p:extLst></p:presentationPr>'
         )
+
+
+class DescribeZipPkgWriter(object):
+
+    @pytest.fixture
+    def pkg_file(self, request):
+        pkg_file = BytesIO()
+        request.addfinalizer(pkg_file.close)
+        return pkg_file
+
+    def it_opens_pkg_file_zip_on_construction(self, ZipFile_):
+        pkg_file = Mock(name='pkg_file')
+        ZipPkgWriter(pkg_file)
+        ZipFile_.assert_called_once_with(pkg_file, 'w',
+                                         compression=ZIP_DEFLATED)
+
+    def it_can_be_closed(self, ZipFile_):
+        # mockery ----------------------
+        zipf = ZipFile_.return_value
+        zip_pkg_writer = ZipPkgWriter(None)
+        # exercise ---------------------
+        zip_pkg_writer.close()
+        # verify -----------------------
+        zipf.close.assert_called_once_with()
+
+    def it_can_write_a_blob(self, pkg_file):
+        # setup ------------------------
+        pack_uri = PackURI('/part/name.xml')
+        blob = '<BlobbityFooBlob/>'.encode('utf-8')
+        # exercise ---------------------
+        pkg_writer = PhysPkgWriter(pkg_file)
+        pkg_writer.write(pack_uri, blob)
+        pkg_writer.close()
+        # verify -----------------------
+        written_blob_sha1 = hashlib.sha1(blob).hexdigest()
+        zipf = ZipFile(pkg_file, 'r')
+        retrieved_blob = zipf.read(pack_uri.membername)
+        zipf.close()
+        retrieved_blob_sha1 = hashlib.sha1(retrieved_blob).hexdigest()
+        assert retrieved_blob_sha1 == written_blob_sha1
+
+
+# fixtures -------------------------------------------------
+
+@pytest.fixture
+def ZipFile_(request):
+    return class_mock(request, 'pptx.opc.phys_pkg.ZipFile')

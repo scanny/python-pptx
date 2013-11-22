@@ -138,6 +138,14 @@ class DirectoryFileSystem(BaseFileSystem):
         return sorted(itemURIs)
 
 
+class PhysPkgWriter(object):
+    """
+    Factory for physical package writer objects.
+    """
+    def __new__(cls, pkg_file):
+        return ZipPkgWriter(pkg_file)
+
+
 class ZipFileSystem(BaseFileSystem):
     """
     Return new instance providing access to zip-format OPC package contained
@@ -209,3 +217,26 @@ class ZipFileSystem(BaseFileSystem):
         xml = etree.tostring(element, encoding='UTF-8', pretty_print=False,
                              standalone=True)
         self.zipf.writestr(membername, xml)
+
+
+class ZipPkgWriter(object):
+    """
+    Implements |PhysPkgWriter| interface for a zip file OPC package.
+    """
+    def __init__(self, pkg_file):
+        super(ZipPkgWriter, self).__init__()
+        self._zipf = ZipFile(pkg_file, 'w', compression=ZIP_DEFLATED)
+
+    def close(self):
+        """
+        Close the zip archive, flushing any pending physical writes and
+        releasing any resources it's using.
+        """
+        self._zipf.close()
+
+    def write(self, pack_uri, blob):
+        """
+        Write *blob* to this zip package with the membername corresponding to
+        *pack_uri*.
+        """
+        self._zipf.writestr(pack_uri.membername, blob)
