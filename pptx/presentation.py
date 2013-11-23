@@ -12,15 +12,48 @@ import weakref
 
 import pptx.opc.packaging
 
-from pptx.exceptions import InvalidPackageError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.opc.rels import Relationship, RelationshipCollection
+from pptx.opc.packuri import PACKAGE_URI
+from pptx.opc.pkgreader import PackageReader
+from pptx.opc.rels import RelationshipCollection
+from pptx.oxml import parse_xml_bytes
+from pptx.oxml.core import serialize_part_xml
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImageCollection
 from pptx.parts.part import BasePart, PartCollection
-from pptx.parts.slides import (
-    Slide, SlideCollection, SlideLayout, SlideMaster
-)
+from pptx.parts.slides import SlideCollection
+
+
+def _PartFactory(partname, content_type, blob):
+    part_cls = _PartClass(content_type)
+    return part_cls.load(partname, content_type, blob)
+
+
+def _PartClass(content_type):
+    """
+    Part class selector. Returns the Part subclass appropriate for the given
+    reltype, content_type pair.
+    """
+    PRS_MAIN_CONTENT_TYPES = (
+        CT.PML_PRESENTATION_MAIN, CT.PML_TEMPLATE_MAIN,
+        CT.PML_SLIDESHOW_MAIN
+    )
+
+    from pptx.parts.slides import Slide, SlideLayout, SlideMaster
+
+    if content_type == CT.OPC_CORE_PROPERTIES:
+        return CoreProperties
+    if content_type in PRS_MAIN_CONTENT_TYPES:
+        return Presentation
+    if content_type == CT.PML_SLIDE:
+        return Slide
+    if content_type == CT.PML_SLIDE_LAYOUT:
+        return SlideLayout
+    if content_type == CT.PML_SLIDE_MASTER:
+        return SlideMaster
+    if content_type.startswith('image/'):
+        return Image
+    return BasePart
 
 
 class Package(object):
@@ -39,7 +72,7 @@ class Package(object):
         super(Package, self).__init__()
         self._presentation = None
         self._core_properties = None
-        self._relationships_ = RelationshipCollection()
+        self._rels = RelationshipCollection(PACKAGE_URI.baseURI)
         self._images_ = ImageCollection()
         self._instances.append(weakref.ref(self))
         if file_ is None:
@@ -90,69 +123,90 @@ class Package(object):
         pkgng_pkg = pptx.opc.packaging.Package().marshal(self)
         pkgng_pkg.save(file)
 
+    def _add_relationship(self, reltype, target, rId, is_external=False):
+        """
+        Return newly added |_Relationship| instance of *reltype* between this
+        package and part *target* with key *rId*. Target mode is set to
+        ``RTM.EXTERNAL`` if *is_external* is |True|.
+        """
+        return self._rels.add_relationship(reltype, target, rId, is_external)
+
     @property
     def _images(self):
         return self._images_
 
-    @property
-    def _relationships(self):
-        return self._relationships_
-
-    def _load(self, pkgrels):
+    def _load(self, pkg_reader):
         """
         Load all the model-side parts and relationships from the on-disk
         package by loading package-level relationship parts and propagating
         the load down the relationship graph.
         """
-        # keep track of which parts are already loaded
-        part_dict = {}
+        part_factory = _PartFactory
+        pkg = self
 
-        # discard any previously loaded relationships
-        self._relationships_ = RelationshipCollection()
-
-        # add model-side rel for each pkg-side one, and load target parts
-        for pkgrel in pkgrels:
-            # unpack working values for part to be loaded
-            reltype = pkgrel.reltype
-            pkgpart = pkgrel.target
-            partname = pkgpart.partname
-            content_type = pkgpart.content_type
-
-            # create target part
-            part_cls = _Part(reltype, content_type)
-            part = part_cls()
-            part_dict[partname] = part
-            part._load(pkgpart, part_dict)
-
-            # create model-side package relationship
-            model_rel = Relationship(pkgrel.rId, reltype, part)
-            self._relationships_.add_rel(model_rel)
+        parts = self._unmarshal_parts(pkg_reader, part_factory)
+        self._unmarshal_relationships(pkg_reader, pkg, parts)
+        for part in parts.values():
+            part.after_unmarshal()
 
         # gather references to image parts into _images_
+        def is_image_part(part):
+            return (
+                isinstance(part, Image) and
+                part.partname.startswith('/ppt/media/')
+            )
         self._images_ = ImageCollection()
-        image_parts = [part for part in self._parts
-                       if part.__class__.__name__ == 'Image']
-        for image in image_parts:
-            self._images_._loadpart(image)
+        for part in self._parts:
+            if is_image_part(part):
+                self._images_._loadpart(part)
 
-    def _open(self, file):
+    @staticmethod
+    def _unmarshal_parts(pkg_reader, part_factory):
+        """
+        Return a dictionary of |Part| instances unmarshalled from
+        *pkg_reader*, keyed by partname. Side-effect is that each part in
+        *pkg_reader* is constructed using *part_factory*.
+        """
+        parts = {}
+        for partname, content_type, blob in pkg_reader.iter_sparts():
+            parts[partname] = part_factory(partname, content_type, blob)
+        return parts
+
+    @staticmethod
+    def _unmarshal_relationships(pkg_reader, pkg, parts):
+        """
+        Add a relationship to the source object corresponding to each of the
+        relationships in *pkg_reader* with its target_part set to the actual
+        target part in *parts*.
+        """
+        for source_uri, srel in pkg_reader.iter_srels():
+            source = pkg if source_uri == '/' else parts[source_uri]
+            target = (srel.target_ref if srel.is_external
+                      else parts[srel.target_partname])
+            source._add_relationship(srel.reltype, target, srel.rId,
+                                     srel.is_external)
+
+    def _open(self, pkg_file):
         """
         Load presentation contained in *file* into this package.
         """
-        pkg = pptx.opc.packaging.Package().open(file)
-        self._load(pkg.relationships)
+        # pkg = pptx.opc.packaging.Package().open(pkg_file)
+        # self._load(pkg.relationships)
+        pkg_reader = PackageReader.from_file(pkg_file)
+        self._load(pkg_reader)
         # unmarshal relationships selectively for now
-        for rel in self._relationships_:
+        for rel in self._rels:
             if rel.reltype == RT.OFFICE_DOCUMENT:
-                self._presentation = rel.target
+                self._presentation = rel.target_part
             elif rel.reltype == RT.CORE_PROPERTIES:
-                self._core_properties = rel.target
+                self._core_properties = rel.target_part
         if self._core_properties is None:
             core_props = CoreProperties._default()
             self._core_properties = core_props
-            rId = self._relationships_.next_rId
-            rel = Relationship(rId, RT.CORE_PROPERTIES, core_props)
-            self._relationships_.add_rel(rel)
+            rId = self._rels.next_rId
+            rel = self._rels.add_relationship(
+                RT.CORE_PROPERTIES, core_props, rId
+            )
 
     @property
     def _default_pptx_path(self):
@@ -169,7 +223,7 @@ class Package(object):
         Return a list containing a reference to each of the parts in this
         package.
         """
-        return [part for part in Package._walkparts(self._relationships_)]
+        return [part for part in Package._walkparts(self._rels)]
 
     @staticmethod
     def _walkparts(rels, parts=None):
@@ -181,7 +235,7 @@ class Package(object):
         if parts is None:
             parts = []
         for rel in rels:
-            part = rel.target
+            part = rel.target_part
             # only visit each part once (graph is cyclic)
             if part in parts:
                 continue
@@ -191,41 +245,30 @@ class Package(object):
                 yield part
 
 
-def _Part(reltype, content_type):
-    """
-    Part class selector. Returns the Part subclass appropriate for the given
-    reltype, content_type pair.
-    """
-    PRS_MAIN_CONTENT_TYPES = (
-        CT.PML_PRESENTATION_MAIN, CT.PML_TEMPLATE_MAIN,
-        CT.PML_SLIDESHOW_MAIN
-    )
-    if reltype == RT.CORE_PROPERTIES:
-        return CoreProperties
-    if reltype == RT.OFFICE_DOCUMENT:
-        if content_type in PRS_MAIN_CONTENT_TYPES:
-            return Presentation
-        else:
-            tmpl = "Not a presentation content type, got '%s'"
-            raise InvalidPackageError(tmpl % content_type)
-    elif reltype == RT.SLIDE:
-        return Slide
-    elif reltype == RT.SLIDE_LAYOUT:
-        return SlideLayout
-    elif reltype == RT.SLIDE_MASTER:
-        return SlideMaster
-    elif reltype == RT.IMAGE:
-        return Image
-    return BasePart
-
-
 class Presentation(BasePart):
     """
     Top level class in object model, represents the contents of the /ppt
     directory of a .pptx file.
     """
-    def __init__(self):
-        super(Presentation, self).__init__()
+    def __init__(self, partname, content_type, presentation_elm):
+        super(Presentation, self).__init__(partname, content_type)
+        self._element = presentation_elm
+
+    def after_unmarshal(self):
+        # selectively unmarshal relationships for now
+        for rel in self._relationships:
+            if rel.reltype == RT.SLIDE_MASTER:
+                self.slidemasters._loadpart(rel.target_part)
+
+    @property
+    def blob(self):
+        return serialize_part_xml(self._element)
+
+    @classmethod
+    def load(cls, partname, content_type, blob):
+        presentation_elm = parse_xml_bytes(blob)
+        presentation = cls(partname, content_type, presentation_elm)
+        return presentation
 
     @property
     def slidemasters(self):
@@ -246,15 +289,3 @@ class Presentation(BasePart):
             rels = self._relationships
             self._slides = SlideCollection(sldIdLst, rels, self)
         return self._slides
-
-    def _load(self, pkgpart, part_dict):
-        """
-        Load presentation from package part.
-        """
-        # call parent to do generic aspects of load
-        super(Presentation, self)._load(pkgpart, part_dict)
-        # selectively unmarshal relationships for now
-        for rel in self._relationships:
-            if rel.reltype == RT.SLIDE_MASTER:
-                self.slidemasters._loadpart(rel.target)
-        return self

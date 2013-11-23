@@ -15,6 +15,7 @@ except ImportError:
 
 from StringIO import StringIO
 
+from pptx.opc.packuri import PackURI
 from pptx.parts.part import BasePart, PartCollection
 from pptx.spec import default_content_types
 from pptx.util import Px
@@ -28,12 +29,21 @@ class Image(BasePart):
     file referenced or contained in *file* is loaded. Corresponds to package
     files ppt/media/image[1-9][0-9]*.*.
     """
-    def __init__(self, file=None):
-        super(Image, self).__init__()
-        self._filepath = None
-        self._ext = None
-        if file is not None:
-            self._load_image_from_file(file)
+    def __init__(self, partname, content_type, blob, ext, filepath=None):
+        super(Image, self).__init__(partname, content_type, blob)
+        self._ext = ext
+        self._filepath = filepath
+
+    @classmethod
+    def new(cls, partname, img_file):
+        """
+        Return a new Image part instance from *img_file*, which may be a path
+        to a file (a string), or a file-like object. Corresponds to package
+        files ppt/media/image[1-9][0-9]*.*.
+        """
+        filepath, ext, content_type, blob = cls._load_from_file(img_file)
+        image = cls(partname, content_type, blob, ext, filepath)
+        return image
 
     @property
     def ext(self):
@@ -41,8 +51,12 @@ class Image(BasePart):
         Return file extension for this image. Includes the leading dot, e.g.
         ``'.png'``.
         """
-        assert self._ext, "Image._ext referenced before assigned"
         return self._ext
+
+    @classmethod
+    def load(cls, partname, content_type, blob):
+        ext = posixpath.splitext(partname)[1]
+        return cls(partname, content_type, blob, ext)
 
     @property
     def _desc(self):
@@ -56,6 +70,26 @@ class Image(BasePart):
             return os.path.split(self._filepath)[1]
         # return generic filename if original filename is unknown
         return 'image%s' % self.ext
+
+    @classmethod
+    def _load_from_file(cls, img_file):
+        """
+        Load image from *img_file*, which is either a path to an image file
+        or a file-like object.
+        """
+        if isinstance(img_file, basestring):  # img_file is a path
+            filepath = img_file
+            ext = os.path.splitext(filepath)[1]
+            content_type = cls._image_ext_content_type(ext)
+            with open(filepath, 'rb') as f:
+                blob = f.read()
+        else:  # assume img_file is a file-like object
+            filepath = None
+            ext = cls._ext_from_image_stream(img_file)
+            content_type = cls._image_ext_content_type(ext)
+            img_file.seek(0)
+            blob = img_file.read()
+        return filepath, ext, content_type, blob
 
     def _scale(self, width, height):
         """
@@ -97,23 +131,6 @@ class Image(BasePart):
         image_stream.close()
         return width_px, height_px
 
-    @property
-    def _blob(self):
-        """
-        For an image, _blob is always _load_blob, image file content is not
-        manipulated.
-        """
-        return self._load_blob
-
-    def _load(self, pkgpart, part_dict):
-        """Handle aspects of loading that are particular to image parts."""
-        # call parent to do generic aspects of load
-        super(Image, self)._load(pkgpart, part_dict)
-        # set file extension
-        self._ext = posixpath.splitext(pkgpart.partname)[1]
-        # return self-reference to allow generative calling
-        return self
-
     @staticmethod
     def _image_ext_content_type(ext):
         """Return the content type corresponding to filename extension *ext*"""
@@ -141,23 +158,6 @@ class Image(BasePart):
             raise ValueError(tmpl % (ext_map.keys(), format))
         return ext_map[format]
 
-    def _load_image_from_file(self, file):
-        """
-        Load image from *file*, which is either a path to an image file or a
-        file-like object.
-        """
-        if isinstance(file, basestring):  # file is a path
-            self._filepath = file
-            self._ext = os.path.splitext(self._filepath)[1]
-            self._content_type = self._image_ext_content_type(self._ext)
-            with open(self._filepath, 'rb') as f:
-                self._load_blob = f.read()
-        else:  # assume file is a file-like object
-            self._ext = self._ext_from_image_stream(file)
-            self._content_type = self._image_ext_content_type(self._ext)
-            file.seek(0)
-            self._load_blob = file.read()
-
 
 class ImageCollection(PartCollection):
     """
@@ -177,7 +177,8 @@ class ImageCollection(PartCollection):
         instance is returned. If it does not yet exist, a new one is created.
         """
         # use Image constructor to validate and characterize image file
-        image = Image(file)
+        partname = PackURI('/ppt/media/image1.jpeg')  # dummy just for baseURI
+        image = Image.new(partname, file)
         # return matching image if found
         for existing_image in self._values:
             if existing_image._sha1 == image._sha1:
@@ -195,4 +196,5 @@ class ImageCollection(PartCollection):
         extension is preserved during renaming.
         """
         for idx, image in enumerate(self._values):
-            image.partname = '/ppt/media/image%d%s' % (idx+1, image.ext)
+            partname_str = '/ppt/media/image%d%s' % (idx+1, image.ext)
+            image.partname = PackURI(partname_str)

@@ -7,7 +7,7 @@ Test data for relationship-related unit tests.
 from __future__ import absolute_import
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.rels import Relationship, RelationshipCollection
+from pptx.opc.rels import _Relationship, RelationshipCollection
 
 from pptx.opc.constants import NAMESPACE as NS
 from pptx.opc.oxml import oxml_fromstring
@@ -32,7 +32,7 @@ class RelationshipCollectionBuilder(object):
             rId = self.next_rId
             partname = self._next_tuple_partname(reltype)
             target = a_part().with_partname(partname).build()
-            rel = Relationship(rId, reltype, target)
+            rel = _Relationship(rId, reltype, target)
             self.relationships.append(rel)
         return self
 

@@ -97,11 +97,11 @@ class Package(object):
         a package file.
         """
         part_dict = {}  # keep track of marshaled parts, graph is cyclic
-        for rel in model_pkg._relationships:
+        for rel in model_pkg._rels:
             # unpack working values for target part and relationship
             rId = rel.rId
             reltype = rel.reltype
-            model_part = rel.target
+            model_part = rel.target_part
             partname = model_part.partname
             # create package-part for target
             part = Part()
@@ -272,7 +272,7 @@ class Part(object):
         content_type = model_part._content_type
         # assign persisted attributes from model part
         self._partname = model_part.partname
-        self.blob = model_part._blob
+        self.blob = model_part.blob
         self.typespec = PartTypeSpec(content_type)
 
         # load relationships and propagate marshal to target parts
@@ -280,7 +280,7 @@ class Part(object):
             # unpack working values for target part and relationship
             rId = rel.rId
             reltype = rel.reltype
-            model_target_part = rel.target
+            model_target_part = rel.target_part
             partname = model_target_part.partname
             # create package-part for target
             if partname in part_dict:

@@ -9,6 +9,9 @@ from __future__ import absolute_import
 from datetime import datetime
 
 from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.packuri import PackURI
+from pptx.oxml import parse_xml_bytes
+from pptx.oxml.core import serialize_part_xml
 from pptx.oxml.coreprops import CT_CoreProperties
 from pptx.parts.part import BasePart
 
@@ -24,13 +27,30 @@ class CoreProperties(BasePart):
         'last_printed', 'modified', 'revision', 'subject', 'title', 'version'
     )
 
-    def __init__(self, partname=None):
-        super(CoreProperties, self).__init__(CT.OPC_CORE_PROPERTIES, partname)
+    def __init__(self, partname, content_type, core_props_elm):
+        super(CoreProperties, self).__init__(partname, content_type)
+        self._element = core_props_elm
+
+    @property
+    def blob(self):
+        return serialize_part_xml(self._element)
+
+    @classmethod
+    def load(cls, partname, content_type, blob):
+        core_props_elm = parse_xml_bytes(blob)
+        core_props = cls(partname, content_type, core_props_elm)
+        return core_props
+
+    @classmethod
+    def _new(cls):
+        partname = PackURI('/docProps/core.xml')
+        content_type = CT.OPC_CORE_PROPERTIES
+        core_props_elm = CT_CoreProperties.new_coreProperties()
+        return CoreProperties(partname, content_type, core_props_elm)
 
     @classmethod
     def _default(cls):
-        core_props = CoreProperties('/docProps/core.xml')
-        core_props._element = CT_CoreProperties.new_coreProperties()
+        core_props = cls._new()
         core_props.title = 'PowerPoint Presentation'
         core_props.last_modified_by = 'python-pptx'
         core_props.revision = 1

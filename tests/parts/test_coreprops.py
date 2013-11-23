@@ -1,6 +1,8 @@
 # encoding: utf-8
 
-"""Test suite for pptx.coreprops module."""
+"""
+Test suite for pptx.coreprops module
+"""
 
 from __future__ import absolute_import
 

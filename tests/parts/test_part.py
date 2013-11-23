@@ -4,91 +4,58 @@
 
 from __future__ import absolute_import
 
-from hamcrest import assert_that, equal_to, is_
 from mock import Mock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.oxml import parse_xml_bytes
+from pptx.opc.packuri import PackURI
 from pptx.parts.part import BasePart, PartCollection
 
-from ..unitutil import serialize_xml, TestCase
+from ..unitutil import TestCase
 
 
 class TestBasePart(TestCase):
     """Test BasePart"""
     def setUp(self):
-        self.basepart = BasePart()
+        partname = PackURI('/foo/bar.xml')
+        self.basepart = BasePart(partname, None, None)
         self.cls = BasePart
 
     def test__add_relationship_adds_specified_relationship(self):
         """BasePart._add_relationship adds specified relationship"""
         # setup ------------------------
         reltype = RT.IMAGE
-        target = Mock(name='image')
+        target_part = Mock(name='image')
+        rId = 'rId1'
         # exercise ---------------------
-        rel = self.basepart._add_relationship(reltype, target)
+        rel = self.basepart._add_relationship(reltype, target_part, rId)
         # verify -----------------------
-        expected = ('rId1', reltype, target)
-        actual = (rel.rId, rel.reltype, rel.target)
+        expected = (rId, reltype, target_part)
+        actual = (rel.rId, rel.reltype, rel.target_part)
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    def test__add_relationship_reuses_matching_relationship(self):
-        """BasePart._add_relationship reuses matching relationship"""
-        # setup ------------------------
-        reltype = RT.IMAGE
-        target = Mock(name='image')
-        # exercise ---------------------
-        rel1 = self.basepart._add_relationship(reltype, target)
-        rel2 = self.basepart._add_relationship(reltype, target)
-        # verify -----------------------
-        assert_that(rel1, is_(equal_to(rel2)))
+    # def test__add_relationship_reuses_matching_relationship(self):
+    #     """BasePart._add_relationship reuses matching relationship"""
+    #     # setup ------------------------
+    #     reltype = RT.IMAGE
+    #     target = Mock(name='image')
+    #     # exercise ---------------------
+    #     rel1 = self.basepart._add_relationship(reltype, target)
+    #     rel2 = self.basepart._add_relationship(reltype, target)
+    #     # verify -----------------------
+    #     assert_that(rel1, is_(equal_to(rel2)))
 
     def test__blob_value_for_binary_part(self):
         """BasePart._blob value is correct for binary part"""
         # setup ------------------------
+        partname = PackURI('/docProps/thumbnail.jpeg')
         blob = '0123456789'
-        self.basepart._load_blob = blob
-        self.basepart.partname = '/docProps/thumbnail.jpeg'
+        basepart = BasePart(partname, None, blob)
         # exercise ---------------------
-        retval = self.basepart._blob
+        retval = basepart.blob
         # verify -----------------------
         expected = blob
         actual = retval
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test__blob_value_for_xml_part(self):
-        """BasePart._blob value is correct for XML part"""
-        # setup ------------------------
-        elm = parse_xml_bytes('<root><elm1 attr="one"/></root>')
-        self.basepart._element = elm
-        self.basepart.partname = '/ppt/presentation.xml'
-        # exercise ---------------------
-        retval = self.basepart._blob
-        # verify -----------------------
-        expected = (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
-            '<root><elm1 attr="one"/></root>'
-        )
-        actual = retval
-        msg = "expected: \n'%s'\n, got \n'%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test__load_sets__element_for_xml_part(self):
-        """BasePart._load() sets _element for xml part"""
-        # setup ------------------------
-        pkgpart = Mock(name='pptx.packaging.Part')
-        pkgpart.partname = '/ppt/presentation.xml'
-        pkgpart.blob = '<root><elm1   attr="spam"/></root>'
-        pkgpart.relationships = []
-        part_dict = {}
-        part = self.basepart._load(pkgpart, part_dict)
-        # exercise ---------------------
-        elm = part._element
-        # verify -----------------------
-        expected = '<root><elm1 attr="spam"/></root>'
-        actual = serialize_xml(elm)
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 

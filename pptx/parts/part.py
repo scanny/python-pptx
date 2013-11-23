@@ -4,10 +4,8 @@
 Part objects, including BasePart.
 """
 
-from pptx.opc.rels import Relationship, RelationshipCollection
+from pptx.opc.rels import RelationshipCollection
 from pptx.opc.packuri import PackURI
-from pptx.oxml import parse_xml_bytes
-from pptx.oxml.core import serialize_part_xml
 from pptx.util import Collection
 
 
@@ -33,37 +31,59 @@ class BasePart(object):
        part.
 
     """
-    def __init__(self, content_type=None, partname=None):
+    def __init__(self, partname, content_type, blob=None):
         """
-        Needs content_type parameter so newly created parts (not loaded from
-        package) can register their content type.
+        ... re-document me
         """
         super(BasePart, self).__init__()
-        self._content_type_ = content_type
         self._partname = partname
-        self._element = None
-        self._load_blob = None
-        self._relationships = RelationshipCollection()
+        self._content_type_ = content_type
+        self._blob = blob
+
+    def _add_relationship(self, reltype, target, rId, external=False):
+        """
+        Return newly added |_Relationship| instance of *reltype* between this
+        part and *target* with key *rId*. Target mode is set to
+        ``RTM.EXTERNAL`` if *external* is |True|. If *reltype* and *target*
+        match an existing relationship, that relationship is returned rather
+        than creating a new one.
+        """
+        return self._relationships.add_relationship(
+            reltype, target, rId, external
+        )
+
+    def after_unmarshal(self):
+        """
+        Entry point for any logic to be executed once the part's
+        relationships have all be unmarshaled. Just a ``pass`` for
+        |BasePart|, expected to be overridden by subclasses that need the
+        entry point.
+        """
+        pass
 
     @property
-    def _blob(self):
+    def blob(self):
         """
-        Default is to return unchanged _load_blob. Dynamic parts will override.
-        Raises |ValueError| if _load_blob is None.
+        Return binary value of this part. Intended to be overridden by
+        subclasses. Default is to return load blob.
         """
-        if self.partname.endswith('.xml'):
-            assert self._element is not None, (
-                'BasePart._blob is undefined for xml parts when part._elemen'
-                't is None'
-            )
-            xml = serialize_part_xml(self._element)
-            return xml
-        # default for binary parts is to return _load_blob unchanged
-        assert self._load_blob, (
-            'BasePart._blob called on part with no _load_blob; perhaps _blob'
-            ' not overridden by sub-class?'
-        )
-        return self._load_blob
+        return self._blob
+
+    @classmethod
+    def load(cls, partname, content_type, blob):
+        return cls(partname, content_type, blob)
+
+    @property
+    def partname(self):
+        """
+        |PackURI| instance holding partname of this part, e.g.
+        '/ppt/slides/slide1.xml'
+        """
+        return self._partname
+
+    @partname.setter
+    def partname(self, partname):
+        self._partname = partname
 
     @property
     def _content_type(self):
@@ -71,9 +91,6 @@ class BasePart(object):
         Content type of this part, e.g.
         'application/vnd.openxmlformats-officedocument.theme+xml'.
         """
-        assert self._content_type_, (
-            'BasePart._content_type accessed before assigned'
-        )
         return self._content_type_
 
     @_content_type.setter
@@ -81,74 +98,14 @@ class BasePart(object):
         self._content_type_ = content_type
 
     @property
-    def partname(self):
-        """Part name of this part, e.g. '/ppt/slides/slide1.xml'."""
-        assert self._partname, "BasePart.partname referenced before assigned"
-        return self._partname
-
-    @partname.setter
-    def partname(self, partname):
-        self._partname = partname
-
-    def _add_relationship(self, reltype, target_part):
+    def _relationships(self):
         """
-        Return new relationship of *reltype* to *target_part* after adding it
-        to the relationship collection of this part.
+        |RelationshipCollection| instance holding the relationships for this
+        part.
         """
-        # reuse existing relationship if there's a match
-        for rel in self._relationships:
-            if rel.target == target_part and rel.reltype == reltype:
-                return rel
-        # otherwise construct a new one
-        rId = self._relationships.next_rId
-        rel = Relationship(rId, reltype, target_part)
-        self._relationships.add_rel(rel)
-        return rel
-
-    def _load(self, pkgpart, part_dict):
-        """
-        Load part and relationships from package part, and propagate load
-        process down the relationship graph. *pkgpart* is an instance of
-        :class:`pptx.packaging.Part` containing the part contents read from
-        the on-disk package. *part_dict* is a dictionary of already-loaded
-        parts, keyed by partname.
-        """
-        # set attributes from package part
-        self._content_type_ = pkgpart.content_type
-        self._partname = pkgpart.partname
-        if pkgpart.partname.endswith('.xml'):
-            self._element = parse_xml_bytes(pkgpart.blob)
-        else:
-            self._load_blob = pkgpart.blob
-
-        # discard any previously loaded relationships
-        self._relationships = RelationshipCollection()
-
-        # load relationships and propagate load for related parts
-        for pkgrel in pkgpart.relationships:
-            # unpack working values for part to be loaded
-            reltype = pkgrel.reltype
-            target_pkgpart = pkgrel.target
-            partname = target_pkgpart.partname
-            content_type = target_pkgpart.content_type
-
-            # create target part
-            if partname in part_dict:
-                part = part_dict[partname]
-            else:
-                # !!!~!!!~!!!~!!!~!!!~!!!~!!!~
-                # get rid of this as soon as possible
-                from pptx.presentation import _Part
-                # !!!~!!!~!!!~!!!~!!!~!!!~!!!~
-                part_cls = _Part(reltype, content_type)
-                part = part_cls()
-                part_dict[partname] = part
-                part._load(target_pkgpart, part_dict)
-
-            # create model-side package relationship
-            model_rel = Relationship(pkgrel.rId, reltype, part)
-            self._relationships.add_rel(model_rel)
-        return self
+        if not hasattr(self, '_rels'):
+            self._rels = RelationshipCollection(self._partname.baseURI)
+        return self._rels
 
 
 class PartCollection(Collection):

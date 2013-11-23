@@ -9,6 +9,7 @@ import pytest
 
 from mock import Mock
 
+from pptx.opc.packuri import PackURI
 from pptx.opc.rels import RelationshipCollection
 from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_Presentation, CT_SlideIdList
@@ -135,9 +136,9 @@ class DescribePresentation(object):
 
     @pytest.fixture
     def prs(self, ct_presentation_, rels_):
-        prs = Presentation()
-        prs._element = ct_presentation_
-        prs._relationships = rels_
+        partname = PackURI('/ppt/presentation.xml')
+        prs = Presentation(partname, None, ct_presentation_)
+        prs._rels = rels_
         return prs
 
     @pytest.fixture

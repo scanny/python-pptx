@@ -8,6 +8,7 @@ from StringIO import StringIO
 
 from hamcrest import assert_that, equal_to, is_
 
+from pptx.opc.packuri import PackURI
 from pptx.parts.image import Image
 from pptx.presentation import Package
 from pptx.util import Px
@@ -27,7 +28,8 @@ class TestImage(TestCase):
     def test_construction_from_file(self):
         """Image(path) constructor produces correct attribute values"""
         # exercise ---------------------
-        image = Image(test_image_path)
+        partname = PackURI('/ppt/media/image1.jpeg')
+        image = Image.new(partname, test_image_path)
         # verify -----------------------
         assert_that(image.ext, is_(equal_to('.jpeg')))
         assert_that(image._content_type, is_(equal_to('image/jpeg')))
@@ -37,9 +39,10 @@ class TestImage(TestCase):
     def test_construction_from_stream(self):
         """Image(stream) construction produces correct attribute values"""
         # exercise ---------------------
+        partname = PackURI('/ppt/media/image1.jpeg')
         with open(test_image_path, 'rb') as f:
             stream = StringIO(f.read())
-        image = Image(stream)
+        image = Image.new(partname, stream)
         # verify -----------------------
         assert_that(image.ext, is_(equal_to('.jpg')))
         assert_that(image._content_type, is_(equal_to('image/jpeg')))
@@ -48,9 +51,9 @@ class TestImage(TestCase):
 
     def test_construction_from_file_raises_on_bad_path(self):
         """Image(path) constructor raises on bad path"""
-        # verify -----------------------
+        partname = PackURI('/ppt/media/image1.jpeg')
         with self.assertRaises(IOError):
-            Image('foobar27.png')
+            Image.new(partname, 'foobar27.png')
 
     def test__scale_calculates_correct_dimensions(self):
         """Image._scale() calculates correct dimensions"""
@@ -60,7 +63,8 @@ class TestImage(TestCase):
             ((1000, None), (1000, 1000)),
             ((None, 3000), (3000, 3000)),
             ((3337, 9999), (3337, 9999)))
-        image = Image(test_image_path)
+        partname = PackURI('/ppt/media/image1.png')
+        image = Image.new(partname, test_image_path)
         # verify -----------------------
         for params, expected in test_cases:
             width, height = params
@@ -68,7 +72,8 @@ class TestImage(TestCase):
 
     def test__size_returns_image_native_pixel_dimensions(self):
         """Image._size is width, height tuple of image pixel dimensions"""
-        image = Image(test_image_path)
+        partname = PackURI('/ppt/media/image1.png')
+        image = Image.new(partname, test_image_path)
         assert_that(image._size, is_(equal_to((204, 204))))
 
     def test__ext_from_image_stream_raises_on_incompatible_format(self):

@@ -200,12 +200,12 @@ def method_mock(request, cls, method_name):
     return _patch.start()
 
 
-def property_mock(request, q_property_name):
+def property_mock(request, q_property_name, **kwargs):
     """
     Return a mock for property with fully qualified name *q_property_name*
     where the patch is reversed after pytest uses it.
     """
-    _patch = patch(q_property_name, new_callable=PropertyMock)
+    _patch = patch(q_property_name, new_callable=PropertyMock, **kwargs)
     request.addfinalizer(_patch.stop)
     return _patch.start()
 

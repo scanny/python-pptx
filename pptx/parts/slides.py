@@ -7,7 +7,9 @@ Slide objects, including Slide and SlideMaster.
 from __future__ import absolute_import
 
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.oxml.core import Element, SubElement
+from pptx.opc.packuri import PackURI
+from pptx.oxml import parse_xml_bytes
+from pptx.oxml.core import Element, serialize_part_xml, SubElement
 from pptx.parts.part import BasePart, PartCollection
 from pptx.shapes.shapetree import ShapeCollection
 
@@ -17,13 +19,19 @@ class _BaseSlide(BasePart):
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.
     """
-    def __init__(self, content_type=None):
-        """
-        Needs content_type parameter so newly created parts (not loaded from
-        package) can register their content type.
-        """
-        super(_BaseSlide, self).__init__(content_type)
-        self._shapes = None
+    def __init__(self, partname, content_type, element):
+        super(_BaseSlide, self).__init__(partname, content_type)
+        self._element = element
+
+    @property
+    def blob(self):
+        return serialize_part_xml(self._element)
+
+    @classmethod
+    def load(cls, partname, content_type, blob):
+        slide_elm = parse_xml_bytes(blob)
+        slide = cls(partname, content_type, slide_elm)
+        return slide
 
     @property
     def name(self):
@@ -33,9 +41,11 @@ class _BaseSlide(BasePart):
 
     @property
     def shapes(self):
-        """Collection of shape objects belonging to this slide."""
-        assert self._shapes is not None, ("_BaseSlide.shapes referenced "
-                                          "before assigned")
+        """
+        Collection of shape objects belonging to this slide.
+        """
+        if not hasattr(self, '_shapes'):
+            self._shapes = ShapeCollection(self._element.cSld.spTree, self)
         return self._shapes
 
     def _add_image(self, file):
@@ -46,17 +56,8 @@ class _BaseSlide(BasePart):
         that relationship is reused.
         """
         image = self._package._images.add_image(file)
-        rel = self._add_relationship(RT.IMAGE, image)
+        rel = self._relationships.get_or_add(RT.IMAGE, image)
         return (image, rel)
-
-    def _load(self, pkgpart, part_dict):
-        """Handle aspects of loading that are general to slide types."""
-        # call parent to do generic aspects of load
-        super(_BaseSlide, self)._load(pkgpart, part_dict)
-        # unmarshal shapes
-        self._shapes = ShapeCollection(self._element.cSld.spTree, self)
-        # return self-reference to allow generative calling
-        return self
 
     @property
     def _package(self):
@@ -71,16 +72,28 @@ class Slide(_BaseSlide):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
-    def __init__(self, slidelayout=None):
-        super(Slide, self).__init__(CT.PML_SLIDE)
-        self._slidelayout = slidelayout
-        self._element = self._minimal_element
-        self._shapes = ShapeCollection(self._element.cSld.spTree, self)
-        # if slidelayout, this is a slide being added, not one being loaded
-        if slidelayout:
-            self._shapes._clone_layout_placeholders(slidelayout)
-            # add relationship to slideLayout part
-            self._add_relationship(RT.SLIDE_LAYOUT, slidelayout)
+    def __init__(self, partname, content_type, element):
+        super(Slide, self).__init__(partname, content_type, element)
+
+    @classmethod
+    def new(cls, slidelayout, partname):
+        """
+        Return a new slide based on *slidelayout* and having *partname*,
+        created from scratch.
+        """
+        slide_elm = cls._minimal_element()
+        slide = cls(partname, CT.PML_SLIDE, slide_elm)
+        slide._slidelayout = slidelayout
+        slide.shapes._clone_layout_placeholders(slidelayout)
+        rId = slide._relationships.next_rId
+        slide._add_relationship(RT.SLIDE_LAYOUT, slidelayout, rId)
+        return slide
+
+    def after_unmarshal(self):
+        # selectively unmarshal relationships for now
+        for rel in self._relationships:
+            if rel.reltype == RT.SLIDE_LAYOUT:
+                self._slidelayout = rel.target_part
 
     @property
     def slidelayout(self):
@@ -89,20 +102,8 @@ class Slide(_BaseSlide):
         """
         return self._slidelayout
 
-    def _load(self, pkgpart, part_dict):
-        """
-        Load slide from package part.
-        """
-        # call parent to do generic aspects of load
-        super(Slide, self)._load(pkgpart, part_dict)
-        # selectively unmarshal relationships for now
-        for rel in self._relationships:
-            if rel.reltype == RT.SLIDE_LAYOUT:
-                self._slidelayout = rel.target
-        return self
-
-    @property
-    def _minimal_element(self):
+    @staticmethod
+    def _minimal_element():
         """
         Return element containing the minimal XML for a slide, based on what
         is required by the XMLSchema.
@@ -156,8 +157,10 @@ class SlideCollection(object):
         """
         Return a newly added slide that inherits layout from *slidelayout*.
         """
-        slide = Slide(slidelayout)
-        rel = self._presentation._add_relationship(RT.SLIDE, slide)
+        temp_partname = PackURI('/ppt/slides/slide1.xml')
+        slide = Slide.new(slidelayout, temp_partname)
+        rId = self._presentation._relationships.next_rId
+        rel = self._presentation._add_relationship(RT.SLIDE, slide, rId)
         self._sldIdLst.add_sldId(rel.rId)
         self._rename_slides()  # assigns partname as side effect
         return slide
@@ -170,7 +173,8 @@ class SlideCollection(object):
         extension is always ``.xml``.
         """
         for idx, slide in enumerate(self._slides):
-            slide.partname = '/ppt/slides/slide%d.xml' % (idx+1)
+            partname_str = '/ppt/slides/slide%d.xml' % (idx+1)
+            slide.partname = PackURI(partname_str)
 
     def _slide_from_sldId(self, sldId):
         """
@@ -192,9 +196,15 @@ class SlideLayout(_BaseSlide):
     Slide layout part. Corresponds to package files
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
-    def __init__(self):
-        super(SlideLayout, self).__init__(CT.PML_SLIDE_LAYOUT)
-        self._slidemaster = None
+    def __init__(self, partname, content_type, element):
+        super(SlideLayout, self).__init__(partname, content_type, element)
+
+    def after_unmarshal(self):
+        # selectively unmarshal relationships we need
+        for rel in self._relationships:
+            # get slideMaster from which this slideLayout inherits properties
+            if rel.reltype == RT.SLIDE_MASTER:
+                self._slidemaster = rel.target_part
 
     @property
     def slidemaster(self):
@@ -203,22 +213,6 @@ class SlideLayout(_BaseSlide):
             "SlideLayout.slidemaster referenced before assigned"
         )
         return self._slidemaster
-
-    def _load(self, pkgpart, part_dict):
-        """
-        Load slide layout from package part.
-        """
-        # call parent to do generic aspects of load
-        super(SlideLayout, self)._load(pkgpart, part_dict)
-
-        # selectively unmarshal relationships we need
-        for rel in self._relationships:
-            # get slideMaster from which this slideLayout inherits properties
-            if rel.reltype == RT.SLIDE_MASTER:
-                self._slidemaster = rel.target
-
-        # return self-reference to allow generative calling
-        return self
 
 
 class SlideMaster(_BaseSlide):
@@ -230,27 +224,17 @@ class SlideMaster(_BaseSlide):
     # SlideMaster, SlideLayout (CustomLayout), HandoutMaster, and NotesMaster
     # inherit from. So might look into why that is and consider refactoring
     # the various masters a bit later.
-
-    def __init__(self):
-        super(SlideMaster, self).__init__(CT.PML_SLIDE_MASTER)
-        self._slidelayouts = PartCollection()
+    def __init__(self, partname, content_type, element):
+        super(SlideMaster, self).__init__(partname, content_type, element)
 
     @property
     def slidelayouts(self):
         """
         Collection of slide layout objects belonging to this slide master.
         """
+        if not hasattr(self, '_slidelayouts'):
+            self._slidelayouts = PartCollection()
+            for rel in self._relationships:
+                if rel.reltype == RT.SLIDE_LAYOUT:
+                    self._slidelayouts._loadpart(rel.target_part)
         return self._slidelayouts
-
-    def _load(self, pkgpart, part_dict):
-        """
-        Load slide master from package part.
-        """
-        # call parent to do generic aspects of load
-        super(SlideMaster, self)._load(pkgpart, part_dict)
-
-        # selectively unmarshal relationships for now
-        for rel in self._relationships:
-            if rel.reltype == RT.SLIDE_LAYOUT:
-                self._slidelayouts._loadpart(rel.target)
-        return self

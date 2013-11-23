@@ -11,13 +11,6 @@ class PythonPptxError(Exception):
     """Generic error class."""
 
 
-class InvalidPackageError(PythonPptxError):
-    """
-    Raised when a package does not contain a valid presentation part (possibly
-    because it's a Word or Excel package).
-    """
-
-
 class NotXMLError(PythonPptxError):
     """
     Raised when an XML operation (such as parsing) is attempted on a binary
