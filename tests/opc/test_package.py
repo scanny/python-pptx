@@ -380,7 +380,7 @@ class DescribeUnmarshaller(object):
         _unmarshal_relationships.assert_called_once_with(pkg_reader, pkg,
                                                          parts)
         for part in parts.values():
-            part._after_unmarshal.assert_called_once_with()
+            part.after_unmarshal.assert_called_once_with()
 
     def it_can_unmarshal_parts(self):
         # test data --------------------

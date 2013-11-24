@@ -14,7 +14,7 @@ import pptx.opc.package
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PACKAGE_URI
-from pptx.opc.package import PartFactory
+from pptx.opc.package import PartFactory, Unmarshaller
 from pptx.opc.pkgreader import PackageReader
 from pptx.opc.rels import RelationshipCollection
 from pptx.oxml import parse_xml_bytes
@@ -116,7 +116,7 @@ class Package(object):
             pkg_file = cls._default_pptx_path
         pkg_reader = PackageReader.from_file(pkg_file)
         pkg = cls()
-        pkg._load(pkg_reader)
+        Unmarshaller.unmarshal(pkg_reader, pkg, PartFactory)
         return pkg
 
     @lazyproperty
@@ -150,22 +150,6 @@ class Package(object):
         """
         return ImageCollection()
 
-    def _load(self, pkg_reader):
-        """
-        Load all the model-side parts and relationships from the on-disk
-        package by loading package-level relationship parts and propagating
-        the load down the relationship graph.
-        """
-        # part_factory = _PartFactory
-        part_factory = PartFactory
-        pkg = self
-
-        parts = self._unmarshal_parts(pkg_reader, part_factory)
-        self._unmarshal_relationships(pkg_reader, pkg, parts)
-        for part in parts.values():
-            part.after_unmarshal()
-        pkg.after_unmarshal()
-
     @property
     def _parts(self):
         """
@@ -173,32 +157,6 @@ class Package(object):
         package.
         """
         return [part for part in Package._walkparts(self._rels)]
-
-    @staticmethod
-    def _unmarshal_parts(pkg_reader, part_factory):
-        """
-        Return a dictionary of |Part| instances unmarshalled from
-        *pkg_reader*, keyed by partname. Side-effect is that each part in
-        *pkg_reader* is constructed using *part_factory*.
-        """
-        parts = {}
-        for partname, content_type, blob in pkg_reader.iter_sparts():
-            parts[partname] = part_factory(partname, content_type, blob)
-        return parts
-
-    @staticmethod
-    def _unmarshal_relationships(pkg_reader, pkg, parts):
-        """
-        Add a relationship to the source object corresponding to each of the
-        relationships in *pkg_reader* with its target_part set to the actual
-        target part in *parts*.
-        """
-        for source_uri, srel in pkg_reader.iter_srels():
-            source = pkg if source_uri == '/' else parts[source_uri]
-            target = (srel.target_ref if srel.is_external
-                      else parts[srel.target_partname])
-            source._add_relationship(srel.reltype, target, srel.rId,
-                                     srel.is_external)
 
     @staticmethod
     def _walkparts(rels, parts=None):

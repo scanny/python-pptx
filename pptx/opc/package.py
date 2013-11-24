@@ -568,7 +568,8 @@ class Unmarshaller(object):
         parts = Unmarshaller._unmarshal_parts(pkg_reader, part_factory)
         Unmarshaller._unmarshal_relationships(pkg_reader, pkg, parts)
         for part in parts.values():
-            part._after_unmarshal()
+            part.after_unmarshal()
+        pkg.after_unmarshal()
 
     @staticmethod
     def _unmarshal_parts(pkg_reader, part_factory):
