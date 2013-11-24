@@ -76,6 +76,7 @@ class Package(object):
     def __init__(self):
         super(Package, self).__init__()
         self._instances.append(weakref.ref(self))  # track instances in cls var
+        self._rels = RelationshipCollection(PACKAGE_URI.baseURI)
 
     @classmethod
     def containing(cls, part):
@@ -91,9 +92,17 @@ class Package(object):
         Instance of |CoreProperties| holding the read/write Dublin Core
         document properties for this presentation.
         """
-        assert self._core_properties, (
-            'Package._core_properties referenced before assigned'
-        )
+        if not hasattr(self, '_core_properties'):
+            try:
+                rel = self._rels.get_rel_of_type(RT.CORE_PROPERTIES)
+                self._core_properties = rel.target_part
+            except KeyError:
+                core_props = CoreProperties._default()
+                rId = self._rels.next_rId
+                rel = self._rels.add_relationship(
+                    RT.CORE_PROPERTIES, core_props, rId
+                )
+                self._core_properties = core_props
         return self._core_properties
 
     @classmethod
@@ -108,14 +117,16 @@ class Package(object):
 
     @classmethod
     def open(cls, pkg_file=None):
+        """
+        Return |Package| instance loaded with contents of .pptx package at
+        *pkg_file*, or the default presentation package if *pkg_file* is
+        missing or |None|.
+        """
         if pkg_file is None:
             pkg_file = cls._default_pptx_path
+        pkg_reader = PackageReader.from_file(pkg_file)
         pkg = cls()
-        pkg._presentation = None
-        pkg._core_properties = None
-        pkg._rels = RelationshipCollection(PACKAGE_URI.baseURI)
-        pkg._images_ = ImageCollection()
-        pkg._open(pkg_file)
+        pkg._load(pkg_reader)
         return pkg
 
     @property
@@ -123,6 +134,9 @@ class Package(object):
         """
         Reference to the |Presentation| instance contained in this package.
         """
+        if not hasattr(self, '_presentation'):
+            rel = self._rels.get_rel_of_type(RT.OFFICE_DOCUMENT)
+            self._presentation = rel.target_part
         return self._presentation
 
     def save(self, file):
@@ -143,7 +157,13 @@ class Package(object):
 
     @property
     def _images(self):
-        return self._images_
+        """
+        Collection containing a reference to each of the image parts in this
+        package.
+        """
+        if not hasattr(self, '_image_parts'):
+            self._image_parts = ImageCollection()
+        return self._image_parts
 
     def _load(self, pkg_reader):
         """
@@ -159,38 +179,15 @@ class Package(object):
         for part in parts.values():
             part.after_unmarshal()
 
-        # gather references to image parts into _images_
+        # gather references to image parts into _images
         def is_image_part(part):
             return (
                 isinstance(part, Image) and
                 part.partname.startswith('/ppt/media/')
             )
-        self._images_ = ImageCollection()
         for part in self._parts:
             if is_image_part(part):
-                self._images_._loadpart(part)
-
-    def _open(self, pkg_file):
-        """
-        Load presentation contained in *file* into this package.
-        """
-        # pkg = pptx.opc.packaging.Package().open(pkg_file)
-        # self._load(pkg.relationships)
-        pkg_reader = PackageReader.from_file(pkg_file)
-        self._load(pkg_reader)
-        # unmarshal relationships selectively for now
-        for rel in self._rels:
-            if rel.reltype == RT.OFFICE_DOCUMENT:
-                self._presentation = rel.target_part
-            elif rel.reltype == RT.CORE_PROPERTIES:
-                self._core_properties = rel.target_part
-        if self._core_properties is None:
-            core_props = CoreProperties._default()
-            self._core_properties = core_props
-            rId = self._rels.next_rId
-            rel = self._rels.add_relationship(
-                RT.CORE_PROPERTIES, core_props, rId
-            )
+                self._images._loadpart(part)
 
     @property
     def _parts(self):
