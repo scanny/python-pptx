@@ -56,6 +56,25 @@ def _PartClass(content_type):
     return BasePart
 
 
+def lazyproperty(f):
+    """
+    @lazyprop decorator. Decorated method will be called only on first access
+    to calculate a cached property value. After that, the cached value is
+    returned.
+    """
+    cache_attr_name = '_%s' % f.__name__  # like '_foobar' for prop 'foobar'
+
+    def get_prop_value(obj):
+        try:
+            return getattr(obj, cache_attr_name)
+        except AttributeError:
+            value = f(obj)
+            setattr(obj, cache_attr_name, value)
+            return value
+
+    return property(get_prop_value)
+
+
 class Package(object):
     """
     Return an instance of |Package| loaded from *file*, where *file* can be a
@@ -86,24 +105,18 @@ class Package(object):
                 return pkg
         raise KeyError("No package contains part %r" % part)
 
-    @property
+    @lazyproperty
     def core_properties(self):
         """
         Instance of |CoreProperties| holding the read/write Dublin Core
         document properties for this presentation.
         """
-        if not hasattr(self, '_core_properties'):
-            try:
-                rel = self._rels.get_rel_of_type(RT.CORE_PROPERTIES)
-                self._core_properties = rel.target_part
-            except KeyError:
-                core_props = CoreProperties._default()
-                rId = self._rels.next_rId
-                rel = self._rels.add_relationship(
-                    RT.CORE_PROPERTIES, core_props, rId
-                )
-                self._core_properties = core_props
-        return self._core_properties
+        try:
+            return self._rels.part_with_reltype(RT.CORE_PROPERTIES)
+        except KeyError:
+            core_props = CoreProperties._default()
+            self._rels.get_or_add(RT.CORE_PROPERTIES, core_props)
+            return core_props
 
     @classmethod
     def instances(cls):
@@ -129,15 +142,12 @@ class Package(object):
         pkg._load(pkg_reader)
         return pkg
 
-    @property
+    @lazyproperty
     def presentation(self):
         """
         Reference to the |Presentation| instance contained in this package.
         """
-        if not hasattr(self, '_presentation'):
-            rel = self._rels.get_rel_of_type(RT.OFFICE_DOCUMENT)
-            self._presentation = rel.target_part
-        return self._presentation
+        return self._rels.part_with_reltype(RT.OFFICE_DOCUMENT)
 
     def save(self, file):
         """
@@ -155,15 +165,13 @@ class Package(object):
         """
         return self._rels.add_relationship(reltype, target, rId, is_external)
 
-    @property
+    @lazyproperty
     def _images(self):
         """
         Collection containing a reference to each of the image parts in this
         package.
         """
-        if not hasattr(self, '_image_parts'):
-            self._image_parts = ImageCollection()
-        return self._image_parts
+        return ImageCollection()
 
     def _load(self, pkg_reader):
         """

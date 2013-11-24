@@ -142,6 +142,15 @@ class RelationshipCollection(object):
                 return rId_candidate
         assert False, 'programming error in RelationshipCollection.next_rId'
 
+    def part_with_reltype(self, reltype):
+        """
+        Return target part of rel with matching *reltype*, raising |KeyError|
+        if not found and |ValueError| if more than one matching relationship
+        is found.
+        """
+        rel = self.get_rel_of_type(reltype)
+        return rel.target_part
+
     def part_with_rId(self, rId):
         """
         Return target part with matching *rId*, raising |KeyError| if not
