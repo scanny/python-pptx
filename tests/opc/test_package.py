@@ -17,7 +17,7 @@ from zipfile import ZipFile, is_zipfile
 import pptx.presentation
 
 from pptx.opc.package import (
-    _ContentTypesItem, Package, Part, PartTypeSpec, Unmarshaller
+    _ContentTypesItem, OldPart, Package, PartTypeSpec, Unmarshaller
 )
 from pptx.opc.phys_pkg import PhysPkgReader
 from pptx.spec import PTS_CARDINALITY_TUPLE, PTS_HASRELS_ALWAYS
@@ -176,10 +176,10 @@ class DescribePackage(object):
         pkg.open(zip_pkg_path)
         # verify ----------------------
         for rel in pkg.relationships:
-            assert isinstance(rel.target, Part)
+            assert isinstance(rel.target, OldPart)
         for part in pkg.parts:
             for rel in part.relationships:
-                assert isinstance(rel.target, Part)
+                assert isinstance(rel.target, OldPart)
 
     def test_parts_property_empty_on_construction(self, pkg):
         assert len(pkg.parts) == 0
@@ -284,7 +284,7 @@ class DescribePart(object):
 
     @pytest.fixture
     def part(self):
-        return Part()
+        return OldPart()
 
 
 class DescribePartTypeSpec(object):

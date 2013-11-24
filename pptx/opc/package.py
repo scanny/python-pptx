@@ -49,7 +49,7 @@ class Package(object):
             model_part = rel.target_part
             partname = model_part.partname
             # create package-part for target
-            part = Part()
+            part = OldPart()
             part_dict[partname] = part
             part._marshal(model_part, part_dict)
             # create marshaled version of relationship
@@ -78,7 +78,7 @@ class Package(object):
             reltype = rel_elm.get('Type')
             partname_str = '/%s' % rel_elm.get('Target')
             partname = PackURI(partname_str)
-            part = Part()
+            part = OldPart()
             parts_dict[partname] = part
             part._load(fs, partname, cti, parts_dict)
             rel = Relationship(rId, self, reltype, part)
@@ -166,7 +166,7 @@ class Package(object):
                 yield part
 
 
-class Part(object):
+class OldPart(object):
     """
     Part instances are not intended to be constructed externally.
     :class:`pptx.packaging.Part` instances are constructed and initialized
@@ -190,7 +190,7 @@ class Part(object):
 
     """
     def __init__(self):
-        super(Part, self).__init__()
+        super(OldPart, self).__init__()
         self._partname = None
         self._relationships = []
         self.typespec = None
@@ -248,7 +248,7 @@ class Part(object):
             if target_partname in parts_dict:
                 target_part = parts_dict[target_partname]
             else:
-                target_part = Part()
+                target_part = OldPart()
                 parts_dict[target_partname] = target_part
                 target_part._load(fs, target_partname, ct_dict, parts_dict)
 
@@ -281,7 +281,7 @@ class Part(object):
             if partname in part_dict:
                 part = part_dict[partname]
             else:
-                part = Part()
+                part = OldPart()
                 part_dict[partname] = part
                 part._marshal(model_target_part, part_dict)
             # create marshalled version of relationship
@@ -349,7 +349,7 @@ class PartFactory(object):
     constructed by |Unmarshaller| based on its content type.
     """
     part_type_for = {}
-    default_part_type = Part
+    default_part_type = OldPart
 
     def __new__(cls, partname, content_type, blob):
         if content_type in cls.part_type_for:
@@ -405,7 +405,7 @@ class Relationship(object):
     @property
     def _baseURI(self):
         """Return the directory part of the source itemURI."""
-        if isinstance(self._source, Part):
+        if isinstance(self._source, OldPart):
             return os.path.split(self._source.partname)[0]
         return PACKAGE_URI
 
