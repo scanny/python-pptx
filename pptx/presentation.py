@@ -68,16 +68,14 @@ class Package(object):
     # track instances as weakrefs so .containing() can be computed
     _instances = []
 
-    def __init__(self, file_=None):
+    # path of the default presentation, used when no path specified
+    _default_pptx_path = os.path.join(
+        os.path.split(__file__)[0], 'templates', 'default.pptx'
+    )
+
+    def __init__(self):
         super(Package, self).__init__()
-        self._presentation = None
-        self._core_properties = None
-        self._rels = RelationshipCollection(PACKAGE_URI.baseURI)
-        self._images_ = ImageCollection()
-        self._instances.append(weakref.ref(self))
-        if file_ is None:
-            file_ = self._default_pptx_path
-        self._open(file_)
+        self._instances.append(weakref.ref(self))  # track instances in cls var
 
     @classmethod
     def containing(cls, part):
@@ -107,6 +105,18 @@ class Package(object):
         # return instance references in a tuple
         pkgs = [wkref() for wkref in cls._instances]
         return tuple(pkgs)
+
+    @classmethod
+    def open(cls, pkg_file=None):
+        if pkg_file is None:
+            pkg_file = cls._default_pptx_path
+        pkg = cls()
+        pkg._presentation = None
+        pkg._core_properties = None
+        pkg._rels = RelationshipCollection(PACKAGE_URI.baseURI)
+        pkg._images_ = ImageCollection()
+        pkg._open(pkg_file)
+        return pkg
 
     @property
     def presentation(self):
@@ -160,6 +170,36 @@ class Package(object):
             if is_image_part(part):
                 self._images_._loadpart(part)
 
+    def _open(self, pkg_file):
+        """
+        Load presentation contained in *file* into this package.
+        """
+        # pkg = pptx.opc.packaging.Package().open(pkg_file)
+        # self._load(pkg.relationships)
+        pkg_reader = PackageReader.from_file(pkg_file)
+        self._load(pkg_reader)
+        # unmarshal relationships selectively for now
+        for rel in self._rels:
+            if rel.reltype == RT.OFFICE_DOCUMENT:
+                self._presentation = rel.target_part
+            elif rel.reltype == RT.CORE_PROPERTIES:
+                self._core_properties = rel.target_part
+        if self._core_properties is None:
+            core_props = CoreProperties._default()
+            self._core_properties = core_props
+            rId = self._rels.next_rId
+            rel = self._rels.add_relationship(
+                RT.CORE_PROPERTIES, core_props, rId
+            )
+
+    @property
+    def _parts(self):
+        """
+        Return a list containing a reference to each of the parts in this
+        package.
+        """
+        return [part for part in Package._walkparts(self._rels)]
+
     @staticmethod
     def _unmarshal_parts(pkg_reader, part_factory):
         """
@@ -185,45 +225,6 @@ class Package(object):
                       else parts[srel.target_partname])
             source._add_relationship(srel.reltype, target, srel.rId,
                                      srel.is_external)
-
-    def _open(self, pkg_file):
-        """
-        Load presentation contained in *file* into this package.
-        """
-        # pkg = pptx.opc.packaging.Package().open(pkg_file)
-        # self._load(pkg.relationships)
-        pkg_reader = PackageReader.from_file(pkg_file)
-        self._load(pkg_reader)
-        # unmarshal relationships selectively for now
-        for rel in self._rels:
-            if rel.reltype == RT.OFFICE_DOCUMENT:
-                self._presentation = rel.target_part
-            elif rel.reltype == RT.CORE_PROPERTIES:
-                self._core_properties = rel.target_part
-        if self._core_properties is None:
-            core_props = CoreProperties._default()
-            self._core_properties = core_props
-            rId = self._rels.next_rId
-            rel = self._rels.add_relationship(
-                RT.CORE_PROPERTIES, core_props, rId
-            )
-
-    @property
-    def _default_pptx_path(self):
-        """
-        The path of the default presentation, used when no path is specified
-        on construction.
-        """
-        thisdir = os.path.split(__file__)[0]
-        return os.path.join(thisdir, 'templates', 'default.pptx')
-
-    @property
-    def _parts(self):
-        """
-        Return a list containing a reference to each of the parts in this
-        package.
-        """
-        return [part for part in Package._walkparts(self._rels)]
 
     @staticmethod
     def _walkparts(rels, parts=None):

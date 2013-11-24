@@ -30,13 +30,6 @@ dir_pkg_path = absjoin(test_file_dir, 'expanded_pptx')
 zip_pkg_path = test_pptx_path
 
 
-class MockParent(object):
-    """Stub out parent attributes."""
-    def __init__(self, baseURI=None, itemURI=None):
-        self.baseURI = baseURI
-        self.itemURI = itemURI
-
-
 @pytest.fixture
 def tmp_pptx_path(tmpdir):
     return str(tmpdir.join('test_python-pptx.pptx'))
@@ -150,7 +143,7 @@ class DescribePackage(object):
     def test_marshal_returns_self(self, pkg):
         """Package.marshal() returns self-reference"""
         # setup -----------------------
-        model_pkg = pptx.presentation.Package(test_pptx_path)
+        model_pkg = pptx.presentation.Package.open(test_pptx_path)
         # exercise --------------------
         retval = pkg.marshal(model_pkg)
         # verify ----------------------

@@ -29,8 +29,8 @@ nsmap = namespaces('a', 'r', 'p')
 
 class DescribePackage(object):
 
-    def it_loads_default_template_when_constructed_with_no_path(self):
-        prs = Package().presentation
+    def it_loads_default_template_when_opened_with_no_path(self):
+        prs = Package.open().presentation
         assert prs is not None
         slidemasters = prs.slidemasters
         assert slidemasters is not None
@@ -53,9 +53,8 @@ class DescribePackage(object):
         assert pkg1_repr not in reprs
 
     def it_knows_which_instance_contains_a_specified_part(self):
-        # setup ------------------------
-        pkg1 = Package(test_pptx_path)  # noqa
-        pkg2 = Package(test_pptx_path)
+        pkg1 = Package.open(test_pptx_path)  # noqa
+        pkg2 = Package.open(test_pptx_path)
         slide = pkg2.presentation.slides[0]
         # exercise ---------------------
         found_pkg = Package.containing(slide)
@@ -63,35 +62,30 @@ class DescribePackage(object):
         assert found_pkg == pkg2
 
     def it_raises_when_no_package_contains_specified_part(self):
-        # setup ------------------------
-        pkg = Package(test_pptx_path)
-        pkg.presentation  # does nothing, just needed to fake out pep8 warning
         part = Mock(name='part')
-        # verify -----------------------
         with pytest.raises(KeyError):
             Package.containing(part)
 
-    def it_gathers_packages_image_parts_on_open(self):
-        """Package open gathers image parts into image collection"""
-        pkg = Package(images_pptx_path)
+    def it_gathers_package_image_parts_on_open(self):
+        pkg = Package.open(images_pptx_path)
         assert len(pkg._images) == 7
 
-    def it_returns_an_instance_of_presentation_from_open(self):
-        pkg = Package()
+    def it_provides_ref_to_package_presentation_part(self):
+        pkg = Package.open()
         assert isinstance(pkg.presentation, Presentation)
 
-    def it_provides_access_to_the_package_core_properties(self):
-        pkg = Package()
+    def it_provides_ref_to_package_core_properties_part(self):
+        pkg = Package.open()
         assert isinstance(pkg.core_properties, CoreProperties)
 
     def it_can_save_itself_to_a_pptx_file(self, temp_pptx_path):
         """Package.save produces a .pptx with plausible contents"""
         # setup ------------------------
-        pkg = Package()
+        pkg = Package.open()
         # exercise ---------------------
         pkg.save(temp_pptx_path)
         # verify -----------------------
-        pkg = Package(temp_pptx_path)
+        pkg = Package.open(temp_pptx_path)
         prs = pkg.presentation
         assert prs is not None
         slidemasters = prs.slidemasters

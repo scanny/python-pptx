@@ -103,9 +103,7 @@ class TestImage(TestCase):
 class TestImageCollection(TestCase):
     """Test ImageCollection"""
     def test_add_image_returns_matching_image(self):
-        """ImageCollection.add_image() returns existing image on match"""
-        # setup ------------------------
-        pkg = Package(images_pptx_path)
+        pkg = Package.open(images_pptx_path)
         matching_idx = 4
         matching_image = pkg._images[matching_idx]
         # exercise ---------------------
@@ -120,7 +118,7 @@ class TestImageCollection(TestCase):
     def test_add_image_adds_new_image(self):
         """ImageCollection.add_image() adds new image on no match"""
         # setup ------------------------
-        pkg = Package(images_pptx_path)
+        pkg = Package.open(images_pptx_path)
         expected_partname = '/ppt/media/image8.png'
         expected_len = len(pkg._images) + 1
         expected_sha1 = '79769f1e202add2e963158b532e36c2c0f76a70c'

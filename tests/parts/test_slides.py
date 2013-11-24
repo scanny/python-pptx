@@ -371,13 +371,8 @@ class DescribeSlideMaster(object):
         assert len(slidemaster.slidelayouts) == 0
 
     def test_slidelayouts_correct_length_after_open(self):
-        """SlideMaster.slidelayouts correct length after open"""
-        # setup ------------------------
-        pkg = Package(test_pptx_path)
-        slidemaster = pkg.presentation.slidemasters[0]
-        # exercise ---------------------
+        slidemaster = Package.open(test_pptx_path).presentation.slidemasters[0]
         slidelayouts = slidemaster.slidelayouts
-        # verify -----------------------
         assert len(slidelayouts) == 11
 
     # fixtures -------------------------------------------------------

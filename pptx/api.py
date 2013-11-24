@@ -17,9 +17,9 @@ class Presentation(object):
     If *file_* is missing or ``None``, load the built-in default presentation
     template.
     """
-    def __init__(self, file_=None):
+    def __init__(self, pkg_file=None):
         super(Presentation, self).__init__()
-        self._package = Package(file_)
+        self._package = Package.open(pkg_file)
         self._presentation = self._package.presentation
 
     @property
