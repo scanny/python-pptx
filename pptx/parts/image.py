@@ -188,6 +188,20 @@ class ImageCollection(PartCollection):
         self._rename_images()
         return image
 
+    def load(self, parts):
+        """
+        Load the image collection with all the image parts in iterable
+        *parts*.
+        """
+        def is_image_part(part):
+            return (
+                isinstance(part, Image) and
+                part.partname.startswith('/ppt/media/')
+            )
+        for part in parts:
+            if is_image_part(part):
+                self._loadpart(part)
+
     def _rename_images(self):
         """
         Assign partnames like ``/ppt/media/image9.png`` to all images in the

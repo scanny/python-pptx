@@ -102,16 +102,8 @@ class Package(object):
         Called by loading code after all parts and relationships have been
         loaded, to afford the opportunity for any required post-processing.
         """
-        # gather references to image parts into _images
-        # self._images.load(self._parts)
-        def is_image_part(part):
-            return (
-                isinstance(part, Image) and
-                part.partname.startswith('/ppt/media/')
-            )
-        for part in self._parts:
-            if is_image_part(part):
-                self._images._loadpart(part)
+        # gather image parts into _images
+        self._images.load(self._parts)
 
     @classmethod
     def containing(cls, part):
