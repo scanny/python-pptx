@@ -553,6 +553,50 @@ class PartTypeSpec(object):
         return 'xml' if self.ext == '.xml' else 'binary'
 
 
+class Unmarshaller(object):
+    """
+    Hosts static methods for unmarshalling a package from a |PackageReader|
+    instance.
+    """
+    @staticmethod
+    def unmarshal(pkg_reader, pkg, part_factory):
+        """
+        Construct graph of parts and realized relationships based on the
+        contents of *pkg_reader*, delegating construction of each part to
+        *part_factory*. Package relationships are added to *pkg*.
+        """
+        parts = Unmarshaller._unmarshal_parts(pkg_reader, part_factory)
+        Unmarshaller._unmarshal_relationships(pkg_reader, pkg, parts)
+        for part in parts.values():
+            part._after_unmarshal()
+
+    @staticmethod
+    def _unmarshal_parts(pkg_reader, part_factory):
+        """
+        Return a dictionary of |Part| instances unmarshalled from
+        *pkg_reader*, keyed by partname. Side-effect is that each part in
+        *pkg_reader* is constructed using *part_factory*.
+        """
+        parts = {}
+        for partname, content_type, blob in pkg_reader.iter_sparts():
+            parts[partname] = part_factory(partname, content_type, blob)
+        return parts
+
+    @staticmethod
+    def _unmarshal_relationships(pkg_reader, pkg, parts):
+        """
+        Add a relationship to the source object corresponding to each of the
+        relationships in *pkg_reader* with its target_part set to the actual
+        target part in *parts*.
+        """
+        for source_uri, srel in pkg_reader.iter_srels():
+            source = pkg if source_uri == '/' else parts[source_uri]
+            target = (srel.target_ref if srel.is_external
+                      else parts[srel.target_partname])
+            source._add_relationship(srel.reltype, target, srel.rId,
+                                     srel.is_external)
+
+
 class _ContentTypesItem(object):
     """
     Lookup content type by part name using dictionary syntax, e.g.
