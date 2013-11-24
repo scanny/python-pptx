@@ -13,10 +13,12 @@ from mock import call, Mock, patch, PropertyMock
 from pptx.opc.oxml import CT_Relationships
 from pptx.opc.packuri import PackURI
 from pptx.opc.package import (
-    _Relationship, RelationshipCollection, Unmarshaller
+    Part, PartFactory, _Relationship, RelationshipCollection, Unmarshaller
 )
 
-from ..unitutil import absjoin, class_mock, method_mock, test_file_dir
+from ..unitutil import (
+    absjoin, class_mock, instance_mock, method_mock, test_file_dir
+)
 
 
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
@@ -65,6 +67,114 @@ def tmp_pptx_path(tmpdir):
 #         f.write(stream.read())
 #     msg = "Package.save(stream) did not create zipfile"
 #     assert is_zipfile(tmp_pptx_path), msg
+
+
+class DescribePart(object):
+
+    def it_remembers_its_construction_state(self):
+        partname, content_type, blob = (
+            Mock(name='partname'), Mock(name='content_type'),
+            Mock(name='blob')
+        )
+        part = Part(partname, content_type, blob)
+        assert part.blob == blob
+        assert part.content_type == content_type
+        assert part.partname == partname
+
+    def it_has_a_rels_collection_it_initializes_on_construction(
+            self, RelationshipCollection_):
+        partname = Mock(name='partname', baseURI='/')
+        part = Part(partname, None, None)
+        RelationshipCollection_.assert_called_once_with('/')
+        assert part.rels == RelationshipCollection_.return_value
+
+    def it_can_add_a_relationship_to_another_part(self, part):
+        # mockery ----------------------
+        reltype, target, rId = (
+            Mock(name='reltype'), Mock(name='target'), Mock(name='rId')
+        )
+        part._rels = Mock(name='_rels')
+        # exercise ---------------------
+        part._add_relationship(reltype, target, rId)
+        # verify -----------------------
+        part._rels.add_relationship.assert_called_once_with(reltype, target,
+                                                            rId, False)
+
+    def it_can_be_notified_after_unmarshalling_is_complete(self, part):
+        part._after_unmarshal()
+
+    def it_can_be_notified_before_marshalling_is_started(self, part):
+        part._before_marshal()
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def part(self):
+        partname = PackURI('/foo/bar.xml')
+        return Part(partname, None, None)
+
+    @pytest.fixture
+    def RelationshipCollection_(self, request):
+        return class_mock(request, 'pptx.opc.package.RelationshipCollection')
+
+
+class DescribePartFactory(object):
+
+    def it_constructs_custom_part_type_for_registered_content_types(
+            self, part_args_, CustomPartClass_, part_of_custom_type_):
+        partname, content_type, blob = part_args_
+        PartFactory.part_type_for[content_type] = CustomPartClass_
+        part = PartFactory(partname, content_type, blob)
+        CustomPartClass_.load.assert_called_once_with(
+            partname, content_type, blob
+        )
+        assert part is part_of_custom_type_
+
+    def it_constructs_part_using_default_class_when_no_custom_registered(
+            self, part_args_, DefaultPartClass_, part_of_default_type_):
+        # fixture ----------------------
+        partname, content_type, blob = part_args_
+        # default_part_type needs to be set back after test
+        _prior_def_part_type = PartFactory.default_part_type
+        # exercise ---------------------
+        PartFactory.default_part_type = DefaultPartClass_
+        part = PartFactory(partname, content_type, blob)
+        # teardown ---------------------
+        PartFactory.default_part_type = _prior_def_part_type
+        # verify -----------------------
+        DefaultPartClass_.load.assert_called_once_with(
+            partname, content_type, blob
+        )
+        assert part is part_of_default_type_
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def part_of_custom_type_(self, request):
+        return instance_mock(request, Part)
+
+    @pytest.fixture
+    def CustomPartClass_(self, request, part_of_custom_type_):
+        CustomPartClass_ = Mock(name='CustomPartClass', spec=Part)
+        CustomPartClass_.load.return_value = part_of_custom_type_
+        return CustomPartClass_
+
+    @pytest.fixture
+    def part_of_default_type_(self, request):
+        return instance_mock(request, Part)
+
+    @pytest.fixture
+    def DefaultPartClass_(self, part_of_default_type_):
+        DefaultPartClass_ = Mock(name='DefaultPartClass', spec=Part)
+        DefaultPartClass_.load.return_value = part_of_default_type_
+        return DefaultPartClass_
+
+    @pytest.fixture
+    def part_args_(self, request):
+        partname_ = instance_mock(request, PackURI, name="partname_")
+        content_type_ = instance_mock(request, str, name="content_type_")
+        blob_ = instance_mock(request, str, name="blob_")
+        return partname_, content_type_, blob_
 
 
 class Describe_Relationship(object):

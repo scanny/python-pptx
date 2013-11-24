@@ -173,10 +173,10 @@ def instance_mock(request, cls, name=None, spec_set=True, **kwargs):
     *request.fixturename*. Additional keyword arguments are passed through to
     the Mock() call that creates the mock.
     """
-    if name is None:
-        name = request.fixturename
-    return create_autospec(cls, _name=name, spec_set=spec_set, instance=True,
-                           **kwargs)
+    name = name if name is not None else request.fixturename
+    return create_autospec(
+        cls, _name=name, spec_set=spec_set, instance=True, **kwargs
+    )
 
 
 def loose_mock(request, name=None, **kwargs):

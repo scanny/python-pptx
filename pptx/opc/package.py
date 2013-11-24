@@ -10,6 +10,81 @@ from __future__ import absolute_import
 from pptx.opc.oxml import CT_Relationships
 
 
+class Part(object):
+    """
+    Base class for package parts. Provides common properties and methods, but
+    intended to be subclassed in client code to implement specific part
+    behaviors.
+    """
+    def __init__(self, partname, content_type, blob=None):
+        super(Part, self).__init__()
+        self._partname = partname
+        self._content_type = content_type
+        self._blob = blob
+        self._rels = RelationshipCollection(partname.baseURI)
+
+    @property
+    def blob(self):
+        """
+        Contents of this package part as a sequence of bytes. May be text or
+        binary.
+        """
+        return self._blob
+
+    @property
+    def content_type(self):
+        """
+        Content type of this part.
+        """
+        return self._content_type
+
+    @classmethod
+    def load(cls, partname, content_type, blob):
+        return cls(partname, content_type, blob)
+
+    @property
+    def partname(self):
+        """
+        |PackURI| instance containing partname for this part.
+        """
+        return self._partname
+
+    @property
+    def rels(self):
+        """
+        |RelationshipCollection| instance containing rels for this part.
+        """
+        return self._rels
+
+    def _add_relationship(self, reltype, target, rId, external=False):
+        """
+        Return newly added |_Relationship| instance of *reltype* between this
+        part and *target* with key *rId*. Target mode is set to
+        ``RTM.EXTERNAL`` if *external* is |True|.
+        """
+        return self._rels.add_relationship(reltype, target, rId, external)
+
+    def _after_unmarshal(self):
+        """
+        Entry point for post-unmarshaling processing, for example to parse
+        the part XML. May be overridden by subclasses without forwarding call
+        to super.
+        """
+        # don't place any code here, just catch call if not overridden by
+        # subclass
+        pass
+
+    def _before_marshal(self):
+        """
+        Entry point for pre-serialization processing, for example to finalize
+        part naming if necessary. May be overridden by subclasses without
+        forwarding call to super.
+        """
+        # don't place any code here, just catch call if not overridden by
+        # subclass
+        pass
+
+
 class PartFactory(object):
     """
     Provides a way for client code to specify a subclass of |Part| to be
@@ -20,10 +95,19 @@ class PartFactory(object):
     default_part_type = None
 
     def __new__(cls, partname, content_type, blob):
+        PartClass = cls._part_cls_for(content_type)
+        return PartClass.load(partname, content_type, blob)
+
+    @classmethod
+    def _part_cls_for(cls, content_type):
+        """
+        Return the custom part class registered for *content_type*, or the
+        default part class if no custom class is registered for
+        *content_type*.
+        """
         if content_type in cls.part_type_for:
-            CustomPartClass = cls.part_type_for[content_type]
-            return CustomPartClass.load(partname, content_type, blob)
-        return cls.default_part_type(partname, content_type, blob)
+            return cls.part_type_for[content_type]
+        return cls.default_part_type
 
 
 class RelationshipCollection(object):
