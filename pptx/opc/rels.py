@@ -7,47 +7,7 @@ Relationship-related objects.
 from __future__ import absolute_import
 
 from .oxml import CT_Relationships
-
-
-class _Relationship(object):
-    """
-    Value object for relationship to part.
-    """
-    def __init__(self, rId, reltype, target, baseURI, external=False):
-        super(_Relationship, self).__init__()
-        self._rId = rId
-        self._reltype = reltype
-        self._target = target
-        self._baseURI = baseURI
-        self._is_external = bool(external)
-
-    @property
-    def is_external(self):
-        return self._is_external
-
-    @property
-    def reltype(self):
-        return self._reltype
-
-    @property
-    def rId(self):
-        return self._rId
-
-    @property
-    def target_part(self):
-        if self._is_external:
-            raise ValueError(
-                "target_part property on _Relationship is undefined when tar"
-                "get mode is External"
-            )
-        return self._target
-
-    @property
-    def target_ref(self):
-        if self._is_external:
-            return self._target
-        else:
-            return self._target.partname.relative_ref(self._baseURI)
+from .package import _Relationship
 
 
 class RelationshipCollection(object):
