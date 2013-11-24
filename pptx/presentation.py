@@ -10,12 +10,11 @@ from __future__ import absolute_import
 import os
 import weakref
 
-import pptx.opc.package
-
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PACKAGE_URI
 from pptx.opc.package import PartFactory, Unmarshaller
 from pptx.opc.pkgreader import PackageReader
+from pptx.opc.pkgwriter import PackageWriter
 from pptx.opc.rels import RelationshipCollection
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import serialize_part_xml
@@ -126,13 +125,14 @@ class Package(object):
         """
         return self._rels.part_with_reltype(RT.OFFICE_DOCUMENT)
 
-    def save(self, file):
+    def save(self, pkg_file):
         """
-        Save this package to *file*, where *file* can be either a path to a
-        file (a string) or a file-like object.
+        Save this package to *pkg_file*, which can be either a path to a file
+        (a string) or a file-like object.
         """
-        pkgng_pkg = pptx.opc.package.Package().marshal(self)
-        pkgng_pkg.save(file)
+        for part in self._parts:
+            part.before_marshal()
+        PackageWriter.write(pkg_file, self._rels, self._parts)
 
     def _add_relationship(self, reltype, target, rId, is_external=False):
         """

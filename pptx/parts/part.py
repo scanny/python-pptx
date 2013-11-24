@@ -61,6 +61,16 @@ class BasePart(object):
         """
         pass
 
+    def before_marshal(self):
+        """
+        Entry point for pre-serialization processing, for example to finalize
+        part naming if necessary. May be overridden by subclasses without
+        forwarding call to super.
+        """
+        # don't place any code here, just catch call if not overridden by
+        # subclass
+        pass
+
     @property
     def blob(self):
         """
@@ -68,6 +78,13 @@ class BasePart(object):
         subclasses. Default is to return load blob.
         """
         return self._blob
+
+    @property
+    def content_type(self):
+        """
+        REMOVE ME, SHOULD BE ABLE TO GET FROM opc.package.Part superclass
+        """
+        return self._content_type_
 
     @classmethod
     def load(cls, partname, content_type, blob):
