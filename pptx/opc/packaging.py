@@ -2,13 +2,7 @@
 
 """
 The :mod:`pptx.packaging` module coheres around the concerns of reading and
-writing presentations to and from a .pptx file. In doing so, it hides the
-complexities of the package "directory" structure, reading and writing parts
-to and from the package, zip file manipulation, and traversing relationship
-items.
-
-The main API class is :class:`pptx.packaging.Package` which provides the
-methods :meth:`open`, :meth:`marshal`, and :meth:`save`.
+writing presentations to and from a .pptx file.
 """
 
 from __future__ import absolute_import
@@ -42,25 +36,26 @@ class Package(object):
         super(Package, self).__init__()
         self._relationships = []
 
-    @property
-    def parts(self):
+    def marshal(self, model_pkg):
         """
-        Return a list of :class:`pptx.packaging.Part` corresponding to the
-        parts in this package.
+        Load the contents of a model-side package such that it can be saved
+        to a package file.
         """
-        return [part for part in self._walkparts(self.relationships)]
-
-    @property
-    def relationships(self):
-        """
-        A tuple of :class:`pptx.packaging.Relationship` containing the package
-        relationships for this package. Note these are not all the
-        relationships in the package, just those from the package to top-level
-        parts such as ``/ppt/presentation.xml`` and ``/docProps/core.xml``.
-        These are useful primarily as the starting point to walk the part
-        graph via its relationships.
-        """
-        return tuple(self._relationships)
+        part_dict = {}  # keep track of marshaled parts, graph is cyclic
+        for rel in model_pkg._rels:
+            # unpack working values for target part and relationship
+            rId = rel.rId
+            reltype = rel.reltype
+            model_part = rel.target_part
+            partname = model_part.partname
+            # create package-part for target
+            part = Part()
+            part_dict[partname] = part
+            part._marshal(model_part, part_dict)
+            # create marshaled version of relationship
+            marshaled_rel = Relationship(rId, self, reltype, part)
+            self._relationships.append(marshaled_rel)
+        return self
 
     def open(self, file_):
         """
@@ -91,26 +86,25 @@ class Package(object):
         fs.close()
         return self
 
-    def marshal(self, model_pkg):
+    @property
+    def parts(self):
         """
-        Load the contents of a model-side package such that it can be saved to
-        a package file.
+        Return a list of :class:`pptx.packaging.Part` corresponding to the
+        parts in this package.
         """
-        part_dict = {}  # keep track of marshaled parts, graph is cyclic
-        for rel in model_pkg._rels:
-            # unpack working values for target part and relationship
-            rId = rel.rId
-            reltype = rel.reltype
-            model_part = rel.target_part
-            partname = model_part.partname
-            # create package-part for target
-            part = Part()
-            part_dict[partname] = part
-            part._marshal(model_part, part_dict)
-            # create marshaled version of relationship
-            marshaled_rel = Relationship(rId, self, reltype, part)
-            self._relationships.append(marshaled_rel)
-        return self
+        return [part for part in self._walkparts(self.relationships)]
+
+    @property
+    def relationships(self):
+        """
+        A tuple of :class:`pptx.packaging.Relationship` containing the
+        package relationships for this package. Note these are not all the
+        relationships in the package, just those from the package to
+        top-level parts such as ``/ppt/presentation.xml`` and
+        ``/docProps/core.xml``. These are useful primarily as the starting
+        point to walk the part graph via its relationships.
+        """
+        return tuple(self._relationships)
 
     def save(self, file):
         """
@@ -158,7 +152,8 @@ class Package(object):
         all parts.
 
         """
-        # initial call can leave out parts parameter as a signal to initialize
+        # initial call can leave out parts parameter as a signal to
+        # initialize
         if parts is None:
             parts = []
         for rel in rels:
