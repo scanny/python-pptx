@@ -12,48 +12,17 @@ import weakref
 
 import pptx.opc.packaging
 
-from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PACKAGE_URI
+from pptx.opc.packaging import PartFactory
 from pptx.opc.pkgreader import PackageReader
 from pptx.opc.rels import RelationshipCollection
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import serialize_part_xml
 from pptx.parts.coreprops import CoreProperties
-from pptx.parts.image import Image, ImageCollection
+from pptx.parts.image import ImageCollection
 from pptx.parts.part import BasePart, PartCollection
 from pptx.parts.slides import SlideCollection
-
-
-def _PartFactory(partname, content_type, blob):
-    part_cls = _PartClass(content_type)
-    return part_cls.load(partname, content_type, blob)
-
-
-def _PartClass(content_type):
-    """
-    Part class selector. Returns the Part subclass appropriate for the given
-    reltype, content_type pair.
-    """
-    PRS_MAIN_CONTENT_TYPES = (
-        CT.PML_PRESENTATION_MAIN, CT.PML_TEMPLATE_MAIN,
-        CT.PML_SLIDESHOW_MAIN
-    )
-
-    from pptx.parts.slides import Slide, SlideLayout, SlideMaster
-
-    if content_type == CT.OPC_CORE_PROPERTIES:
-        return CoreProperties
-    if content_type in PRS_MAIN_CONTENT_TYPES:
-        return Presentation
-    if content_type == CT.PML_SLIDE:
-        return Slide
-    if content_type == CT.PML_SLIDE_LAYOUT:
-        return SlideLayout
-    if content_type == CT.PML_SLIDE_MASTER:
-        return SlideMaster
-    if content_type.startswith('image/'):
-        return Image
-    return BasePart
 
 
 def lazyproperty(f):
@@ -187,7 +156,8 @@ class Package(object):
         package by loading package-level relationship parts and propagating
         the load down the relationship graph.
         """
-        part_factory = _PartFactory
+        # part_factory = _PartFactory
+        part_factory = PartFactory
         pkg = self
 
         parts = self._unmarshal_parts(pkg_reader, part_factory)

@@ -343,6 +343,21 @@ class Part(object):
         return relsitemURI
 
 
+class PartFactory(object):
+    """
+    Provides a way for client code to specify a subclass of |Part| to be
+    constructed by |Unmarshaller| based on its content type.
+    """
+    part_type_for = {}
+    default_part_type = Part
+
+    def __new__(cls, partname, content_type, blob):
+        if content_type in cls.part_type_for:
+            CustomPartClass = cls.part_type_for[content_type]
+            return CustomPartClass.load(partname, content_type, blob)
+        return cls.default_part_type(partname, content_type, blob)
+
+
 class Relationship(object):
     """
     Return a new |Relationship| instance with local identifier *rId* that
