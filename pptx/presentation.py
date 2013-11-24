@@ -97,6 +97,22 @@ class Package(object):
         self._instances.append(weakref.ref(self))  # track instances in cls var
         self._rels = RelationshipCollection(PACKAGE_URI.baseURI)
 
+    def after_unmarshal(self):
+        """
+        Called by loading code after all parts and relationships have been
+        loaded, to afford the opportunity for any required post-processing.
+        """
+        # gather references to image parts into _images
+        # self._images.load(self._parts)
+        def is_image_part(part):
+            return (
+                isinstance(part, Image) and
+                part.partname.startswith('/ppt/media/')
+            )
+        for part in self._parts:
+            if is_image_part(part):
+                self._images._loadpart(part)
+
     @classmethod
     def containing(cls, part):
         """Return package instance that contains *part*"""
@@ -186,16 +202,7 @@ class Package(object):
         self._unmarshal_relationships(pkg_reader, pkg, parts)
         for part in parts.values():
             part.after_unmarshal()
-
-        # gather references to image parts into _images
-        def is_image_part(part):
-            return (
-                isinstance(part, Image) and
-                part.partname.startswith('/ppt/media/')
-            )
-        for part in self._parts:
-            if is_image_part(part):
-                self._images._loadpart(part)
+        pkg.after_unmarshal()
 
     @property
     def _parts(self):
