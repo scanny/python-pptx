@@ -200,7 +200,7 @@ class ImageCollection(PartCollection):
             )
         for part in parts:
             if is_image_part(part):
-                self._loadpart(part)
+                self.add_part(part)
 
     def _rename_images(self):
         """

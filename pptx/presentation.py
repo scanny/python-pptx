@@ -263,7 +263,7 @@ class Presentation(BasePart):
         # selectively unmarshal relationships for now
         for rel in self._relationships:
             if rel.reltype == RT.SLIDE_MASTER:
-                self.slidemasters._loadpart(rel.target_part)
+                self.slidemasters.add_part(rel.target_part)
 
     @property
     def blob(self):

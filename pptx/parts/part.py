@@ -118,13 +118,12 @@ class PartCollection(Collection):
     def __init__(self):
         super(PartCollection, self).__init__()
 
-    def _loadpart(self, part):
+    def add_part(self, part):
         """
-        Insert a new part loaded from a package, such that list remains
-        sorted in logical partname order (e.g. slide10.xml comes after
-        slide9.xml).
+        Insert a new part into the collection such that list remains sorted
+        in logical partname order (e.g. slide10.xml comes after slide9.xml).
         """
-        new_partidx = PackURI(part.partname).idx
+        new_partidx = part.partname.idx
         for idx, seq_part in enumerate(self._values):
             partidx = PackURI(seq_part.partname).idx
             if partidx > new_partidx:

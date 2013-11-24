@@ -73,13 +73,11 @@ class TestBasePart(TestCase):
 
 
 class TestPartCollection(TestCase):
-    """Test PartCollection"""
-    def test__loadpart_sorts_loaded_parts(self):
-        """PartCollection._loadpart sorts loaded parts"""
-        # setup ------------------------
-        partname1 = '/ppt/slides/slide1.xml'
-        partname2 = '/ppt/slides/slide2.xml'
-        partname3 = '/ppt/slides/slide3.xml'
+
+    def test_add_part_preserves_sort_order(self):
+        partname1 = PackURI('/ppt/slides/slide1.xml')
+        partname2 = PackURI('/ppt/slides/slide2.xml')
+        partname3 = PackURI('/ppt/slides/slide3.xml')
         part1 = Mock(name='part1')
         part1.partname = partname1
         part2 = Mock(name='part2')
@@ -88,9 +86,9 @@ class TestPartCollection(TestCase):
         part3.partname = partname3
         parts = PartCollection()
         # exercise ---------------------
-        parts._loadpart(part2)
-        parts._loadpart(part3)
-        parts._loadpart(part1)
+        parts.add_part(part2)
+        parts.add_part(part3)
+        parts.add_part(part1)
         # verify -----------------------
         expected = [partname1, partname2, partname3]
         actual = [part.partname for part in parts]

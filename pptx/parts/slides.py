@@ -236,5 +236,5 @@ class SlideMaster(_BaseSlide):
             self._slidelayouts = PartCollection()
             for rel in self._relationships:
                 if rel.reltype == RT.SLIDE_LAYOUT:
-                    self._slidelayouts._loadpart(rel.target_part)
+                    self._slidelayouts.add_part(rel.target_part)
         return self._slidelayouts
