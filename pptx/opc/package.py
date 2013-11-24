@@ -17,10 +17,9 @@ import pptx.spec
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import serialize_part_xml
 from pptx.oxml.ns import nsuri, qn
-from pptx.spec import PTS_HASRELS_NEVER, PTS_HASRELS_OPTIONAL
 
 from .packuri import CONTENT_TYPES_URI, PackURI, PACKAGE_URI
-from .phys_pkg import PhysPkgReader, PhysPkgWriter
+from .phys_pkg import PhysPkgWriter
 
 
 class Package(object):
@@ -55,35 +54,6 @@ class Package(object):
             # create marshaled version of relationship
             marshaled_rel = Relationship(rId, self, reltype, part)
             self._relationships.append(marshaled_rel)
-        return self
-
-    def open(self, file_):
-        """
-        Load the package contained in *file_*, where *file_* can be a path to
-        a file or directory (a string), or a file-like object. If *file_* is
-        a path to a directory, the directory must contain an expanded package
-        such as is produced by unzipping an OPC package file.
-        """
-        fs = PhysPkgReader(file_)
-        cti = _ContentTypesItem().load(fs)
-        self._relationships = []  # discard any rels from prior load
-        parts_dict = {}           # track loaded parts, graph is cyclic
-
-        pkg_rels_xml = fs.rels_xml_for(PACKAGE_URI)
-        pkg_rels_elm = parse_xml_bytes(pkg_rels_xml)
-        pkg_rel_elms = pkg_rels_elm.findall(qn('pr:Relationship'))
-
-        for rel_elm in pkg_rel_elms:
-            rId = rel_elm.get('Id')
-            reltype = rel_elm.get('Type')
-            partname_str = '/%s' % rel_elm.get('Target')
-            partname = PackURI(partname_str)
-            part = OldPart()
-            parts_dict[partname] = part
-            part._load(fs, partname, cti, parts_dict)
-            rel = Relationship(rId, self, reltype, part)
-            self._relationships.append(rel)
-        fs.close()
         return self
 
     @property
@@ -218,46 +188,6 @@ class OldPart(object):
         """
         return tuple(self._relationships)
 
-    def _load(self, fs, partname, ct_dict, parts_dict):
-        """
-        Load part identified as *partname* from filesystem *fs* and propagate
-        the load to related parts.
-        """
-        # calculate working values
-        baseURI = os.path.split(partname)[0]
-        content_type = ct_dict[partname]
-
-        # set persisted attributes
-        self._partname = partname
-        self.blob = fs.blob_for(partname)
-        self.typespec = PartTypeSpec(content_type)
-
-        # load relationships and propagate load to target parts
-        self._relationships = []  # discard any rels from prior load
-        rel_elms = self._get_rel_elms(fs)
-        for rel_elm in rel_elms:
-            rId = rel_elm.get('Id')
-            reltype = rel_elm.get('Type')
-            target_relpath = rel_elm.get('Target')
-
-            target_partname_str = posixpath.abspath(
-                posixpath.join(baseURI, target_relpath)
-            )
-            target_partname = PackURI(target_partname_str)
-
-            if target_partname in parts_dict:
-                target_part = parts_dict[target_partname]
-            else:
-                target_part = OldPart()
-                parts_dict[target_partname] = target_part
-                target_part._load(fs, target_partname, ct_dict, parts_dict)
-
-            # create relationship to target_part
-            rel = Relationship(rId, self, reltype, target_part)
-            self._relationships.append(rel)
-
-        return self
-
     def _marshal(self, model_part, part_dict):
         """
         Load the contents of model-side part such that it can be saved to
@@ -308,39 +238,6 @@ class OldPart(object):
     @property
     def _relsitem_xml(self):
         return serialize_part_xml(self._relsitem_element)
-
-    def _get_rel_elms(self, fs):
-        """
-        Helper method for _load(). Return list of this relationship elements
-        for this part from *fs*. Returns empty list if there are no
-        relationships for this part, either because parts of this type never
-        have relationships or its relationships are optional and none exist in
-        this filesystem (package).
-        """
-        rels_xml = fs.rels_xml_for(self._partname)
-        if rels_xml is None:
-            return []
-        root_elm = parse_xml_bytes(rels_xml)
-        return root_elm.findall(qn('pr:Relationship'))
-
-    @staticmethod
-    def __relsitemURI(typespec, partname, fs):
-        """
-        REFACTOR: Combine this logic into _get_rel_elms, it's the only caller
-        and logic is partially redundant.
-
-        Return package URI for this part's relationships item. Returns None if
-        a part of this type never has relationships. Also returns None if a
-        part of this type has only optional relationships and the package
-        contains no rels item for this part.
-        """
-        if typespec.has_rels == PTS_HASRELS_NEVER:
-            return None
-        head, tail = os.path.split(partname)
-        relsitemURI = '%s/_rels/%s.rels' % (head, tail)
-        if typespec.has_rels == PTS_HASRELS_OPTIONAL:
-            return relsitemURI if relsitemURI in fs else None
-        return relsitemURI
 
 
 class PartFactory(object):

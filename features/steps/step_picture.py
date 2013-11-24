@@ -12,7 +12,7 @@ from behave import when, then
 from hamcrest import assert_that, has_item
 
 from pptx import Presentation
-from pptx.opc import package
+from pptx.presentation import Package
 from pptx.util import Inches
 
 from .helpers import saved_pptx_path, test_image_path
@@ -40,9 +40,8 @@ def step_when_add_picture(context):
 
 @then('the image is saved in the pptx file')
 def step_then_img_saved_in_pptx_file(context):
-    pkgng_pkg = package.Package().open(saved_pptx_path)
-    partnames = [part.partname for part in pkgng_pkg.parts
-                 if part.partname.startswith('/ppt/media/')]
+    pkg = Package().open(saved_pptx_path)
+    partnames = [part.partname for part in pkg._parts]
     assert_that(partnames, has_item('/ppt/media/image1.png'))
 
 
