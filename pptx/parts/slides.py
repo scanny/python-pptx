@@ -85,8 +85,7 @@ class Slide(_BaseSlide):
         slide = cls(partname, CT.PML_SLIDE, slide_elm)
         slide._slidelayout = slidelayout
         slide.shapes._clone_layout_placeholders(slidelayout)
-        rId = slide._relationships.next_rId
-        slide._add_relationship(RT.SLIDE_LAYOUT, slidelayout, rId)
+        slide._relationships.get_or_add(RT.SLIDE_LAYOUT, slidelayout)
         return slide
 
     def after_unmarshal(self):
@@ -159,8 +158,7 @@ class SlideCollection(object):
         """
         temp_partname = PackURI('/ppt/slides/slide1.xml')
         slide = Slide.new(slidelayout, temp_partname)
-        rId = self._presentation._relationships.next_rId
-        rel = self._presentation._add_relationship(RT.SLIDE, slide, rId)
+        rel = self._presentation._relationships.get_or_add(RT.SLIDE, slide)
         self._sldIdLst.add_sldId(rel.rId)
         self._rename_slides()  # assigns partname as side effect
         return slide

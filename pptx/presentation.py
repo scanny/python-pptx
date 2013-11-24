@@ -12,10 +12,11 @@ import weakref
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PACKAGE_URI
-from pptx.opc.package import PartFactory, Unmarshaller
+from pptx.opc.package import (
+    PartFactory, RelationshipCollection, Unmarshaller
+)
 from pptx.opc.pkgreader import PackageReader
 from pptx.opc.pkgwriter import PackageWriter
-from pptx.opc.rels import RelationshipCollection
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import serialize_part_xml
 from pptx.parts.coreprops import CoreProperties

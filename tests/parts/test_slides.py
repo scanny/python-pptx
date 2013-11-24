@@ -12,7 +12,7 @@ from mock import ANY, call, Mock
 from pptx.opc import package
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
-from pptx.opc.rels import _Relationship, RelationshipCollection
+from pptx.opc.package import _Relationship, RelationshipCollection
 from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
 from pptx.parts.slides import (
@@ -214,12 +214,13 @@ class DescribeSlideCollection(object):
 
     def it_can_add_a_new_slide(
             self, slides, Slide_, slidelayout_, prs_, slide_, sldIdLst_,
-            rId_, _rename_slides_):
+            _rename_slides_):
         slide = slides.add_slide(slidelayout_)
         # verify -----------------------
         Slide_.new.assert_called_once_with(slidelayout_, ANY)
-        prs_._add_relationship.assert_called_once_with(RT.SLIDE, slide_, ANY)
-        sldIdLst_.add_sldId.assert_called_once_with(rId_)
+        prs_._relationships.get_or_add.assert_called_once_with(
+            RT.SLIDE, slide_)
+        sldIdLst_.add_sldId.assert_called_once_with(ANY)
         _rename_slides_.assert_called_once_with()
         assert slide is slide_
 

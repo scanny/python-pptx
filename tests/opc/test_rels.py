@@ -10,10 +10,10 @@ from mock import call, Mock, patch, PropertyMock
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.oxml import CT_Relationships
+from pptx.opc.package import Part, _Relationship, RelationshipCollection
 from pptx.opc.packuri import PackURI
-from pptx.opc.rels import _Relationship, RelationshipCollection
 
-from ..unitutil import class_mock, loose_mock
+from ..unitutil import class_mock, instance_mock, loose_mock
 
 
 class Describe_Relationship(object):
@@ -81,10 +81,25 @@ class DescribeRelationshipCollection(object):
         )
         rels = RelationshipCollection(baseURI)
         rel = rels.add_relationship(reltype, target, rId, is_external)
-        _Relationship_.assert_called_once_with(rId, reltype, target, baseURI,
-                                               is_external)
+        _Relationship_.assert_called_once_with(
+            rId, reltype, target, baseURI, is_external
+        )
         assert rels[0] == rel
         assert rel == _Relationship_.return_value
+
+    def it_can_add_a_relationship_if_not_found(
+            self, rels_with_matching_rel_, rels_with_missing_rel_):
+
+        rels, reltype, part, matching_rel = rels_with_matching_rel_
+        assert rels.get_or_add(reltype, part) == matching_rel
+
+        rels, reltype, part, new_rel = rels_with_missing_rel_
+        assert rels.get_or_add(reltype, part) == new_rel
+
+    def it_knows_the_next_available_rId(self, rels_with_rId_gap):
+        rels, expected_next_rId = rels_with_rId_gap
+        next_rId = rels._next_rId
+        assert next_rId == expected_next_rId
 
     def it_can_find_a_related_part_by_reltype(
             self, rels_with_target_known_by_reltype):
@@ -101,24 +116,6 @@ class DescribeRelationshipCollection(object):
         with pytest.raises(KeyError):
             rels.part_with_rId('rId666')
 
-    # def it_knows_the_next_available_rId(self, rels_with_rId_gap):
-    #     rels, expected_next_rId = rels_with_rId_gap
-    #     next_rId = rels.next_rId
-    #     assert next_rId == expected_next_rId
-
-#     def it_raises_on_no_next_rId_found(self, _rIds):
-#         rels = RelationshipCollection()
-#         with pytest.raises(AssertionError):
-#             rels.next_rId
-
-#     def it_raises_on_add_rel_with_duplicate_rId(self, rels, rel):
-#         with pytest.raises(ValueError):
-#             rels.add_rel(rel)
-
-#     def it_knows_which_rels_match_a_specified_reltype(self, rels):
-#         rels_to_slides = rels.rels_of_reltype(RT.SLIDE)
-#         assert [r.rId for r in rels_to_slides] == ['rId1', 'rId3']
-
     def it_can_compose_rels_xml(self, rels_with_known_rels, rels_elm):
         # exercise ---------------------
         rels_with_known_rels.xml
@@ -134,11 +131,24 @@ class DescribeRelationshipCollection(object):
         ]
         assert rels_elm.mock_calls == expected_rels_elm_calls
 
+    # def it_raises_on_no_next_rId_found(self, _rIds):
+    #     rels = RelationshipCollection()
+    #     with pytest.raises(AssertionError):
+    #         rels.next_rId
+
+    # def it_raises_on_add_rel_with_duplicate_rId(self, rels, rel):
+    #     with pytest.raises(ValueError):
+    #         rels.add_rel(rel)
+
+    # def it_knows_which_relS_match_a_specified_reltype(self, rels):
+    #     rels_to_slides = rels.rels_of_reltype(RT.SLIDE)
+    #     assert [r.rId for r in rels_to_slides] == ['rId1', 'rId3']
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
     def _Relationship_(self, request):
-        return class_mock(request, 'pptx.opc.rels._Relationship')
+        return class_mock(request, 'pptx.opc.package._Relationship')
 
     @pytest.fixture
     def rel(self, _rId, _reltype, _target_part, _baseURI):
@@ -200,6 +210,47 @@ class DescribeRelationshipCollection(object):
         rel, rId, target_part = _rel_with_known_target_part
         rels._rels.append(rel)
         return rels, rId, target_part
+
+    @pytest.fixture
+    def rels_with_matching_rel_(self, request, rels):
+        matching_reltype_ = instance_mock(
+            request, str, name='matching_reltype_'
+        )
+        matching_part_ = instance_mock(
+            request, Part, name='matching_part_'
+        )
+        matching_rel_ = instance_mock(
+            request, _Relationship, name='matching_rel_',
+            reltype=matching_reltype_, target_part=matching_part_
+        )
+        rels._rels.append(matching_rel_)
+        return rels, matching_reltype_, matching_part_, matching_rel_
+
+    @pytest.fixture
+    def rels_with_missing_rel_(self, request, rels, _Relationship_):
+        missing_reltype_ = instance_mock(
+            request, str, name='missing_reltype_'
+        )
+        missing_part_ = instance_mock(
+            request, Part, name='missing_part_'
+        )
+        new_rel_ = instance_mock(
+            request, _Relationship, name='new_rel_',
+            reltype=missing_reltype_, target_part=missing_part_
+        )
+        _Relationship_.return_value = new_rel_
+        return rels, missing_reltype_, missing_part_, new_rel_
+
+    @pytest.fixture
+    def rels_with_rId_gap(self, request, rels):
+        rel_with_rId1 = instance_mock(
+            request, _Relationship, name='rel_with_rId1', rId='rId1'
+        )
+        rel_with_rId3 = instance_mock(
+            request, _Relationship, name='rel_with_rId3', rId='rId3'
+        )
+        rels._rels.extend((rel_with_rId1, rel_with_rId3))
+        return rels, 'rId2'
 
     @pytest.fixture
     def _baseURI(self):

@@ -4,7 +4,7 @@
 Part objects, including BasePart.
 """
 
-from pptx.opc.rels import RelationshipCollection
+from pptx.opc.package import RelationshipCollection
 from pptx.opc.packuri import PackURI
 from pptx.util import Collection
 

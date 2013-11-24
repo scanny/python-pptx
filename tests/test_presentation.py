@@ -10,7 +10,7 @@ import pytest
 from mock import Mock
 
 from pptx.opc.packuri import PackURI
-from pptx.opc.rels import RelationshipCollection
+from pptx.opc.package import RelationshipCollection
 from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_Presentation, CT_SlideIdList
 from pptx.parts.coreprops import CoreProperties

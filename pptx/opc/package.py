@@ -132,19 +132,81 @@ class RelationshipCollection(object):
         else:
             return self._rels.__getitem__(key)
 
+    def __iter__(self):
+        """
+        Supports quicker iteration (e.g. 'for rel in rels:') than __getitem__
+        fallback
+        """
+        return self._rels.__iter__()
+
     def __len__(self):
         """Implements len() built-in on this object"""
         return self._rels.__len__()
 
-    def add_relationship(self, reltype, target, rId, external=False):
+    def add_relationship(self, reltype, target, rId, is_external=False):
         """
         Return a newly added |_Relationship| instance.
         """
-        rel = _Relationship(rId, reltype, target, self._baseURI, external)
+        # if relationship.rId in self._rIds:
+        #     tmpl = "cannot add relationship with duplicate rId '%s'"
+        #     raise ValueError(tmpl % relationship.rId)
+        rel = _Relationship(rId, reltype, target, self._baseURI, is_external)
         self._rels.append(rel)
         return rel
 
-    def get_rel_of_type(self, reltype):
+    def get_or_add(self, reltype, target_part):
+        """
+        Return relationship of *reltype* to *target_part*, newly added if not
+        already present in collection.
+        """
+        rel = self._get_matching(reltype, target_part)
+        if rel is None:
+            rId = self._next_rId
+            rel = self.add_relationship(reltype, target_part, rId)
+        return rel
+
+    def part_with_reltype(self, reltype):
+        """
+        Return target part of rel with matching *reltype*, raising |KeyError|
+        if not found and |ValueError| if more than one matching relationship
+        is found.
+        """
+        rel = self._get_rel_of_type(reltype)
+        return rel.target_part
+
+    def part_with_rId(self, rId):
+        """
+        Return target part with matching *rId*, raising |KeyError| if not
+        found.
+        """
+        for rel in self:
+            if rel.rId == rId:
+                return rel.target_part
+        raise KeyError("no relationship with rId '%s'" % rId)
+
+    @property
+    def xml(self):
+        """
+        Serialize this relationship collection into XML suitable for storage
+        as a .rels file in an OPC package.
+        """
+        rels_elm = CT_Relationships.new()
+        for rel in self._rels:
+            rels_elm.add_rel(rel.rId, rel.reltype, rel.target_ref,
+                             rel.is_external)
+        return rels_elm.xml
+
+    def _get_matching(self, reltype, target_part):
+        """
+        Return relationship of matching *reltype* to *target_part* from
+        collection, or none if no such relationship is present.
+        """
+        for rel in self._rels:
+            if rel.target_part == target_part and rel.reltype == reltype:
+                return rel
+        return None
+
+    def _get_rel_of_type(self, reltype):
         """
         Return single relationship of type *reltype* from the collection.
         Raises |KeyError| if no matching relationship is found. Raises
@@ -159,17 +221,28 @@ class RelationshipCollection(object):
             raise ValueError(tmpl % reltype)
         return matching[0]
 
+    def _get_rels_of_type(self, reltype):
+        """
+        Return a |list| containing the relationships in this collection
+        having *reltype*. Returns an empty list if no matching relationships.
+        """
+        return [rel for rel in self if rel.reltype == reltype]
+
     @property
-    def xml(self):
+    def _next_rId(self):
         """
-        Serialize this relationship collection into XML suitable for storage
-        as a .rels file in an OPC package.
+        Next available rId in collection, starting from 'rId1' and making use
+        of any gaps in numbering, e.g. 'rId2' for rIds ['rId1', 'rId3'].
         """
-        rels_elm = CT_Relationships.new()
-        for rel in self._rels:
-            rels_elm.add_rel(rel.rId, rel.reltype, rel.target_ref,
-                             rel.is_external)
-        return rels_elm.xml
+        for n in range(1, len(self)+2):
+            rId_candidate = 'rId%d' % n  # like 'rId19'
+            if rId_candidate not in self._rIds:
+                return rId_candidate
+        assert False, 'programming error in RelationshipCollection.next_rId'
+
+    @property
+    def _rIds(self):
+        return [rel.rId for rel in self]
 
 
 class Unmarshaller(object):

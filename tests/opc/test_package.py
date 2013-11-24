@@ -284,7 +284,7 @@ class DescribeRelationshipCollection(object):
         rels = RelationshipCollection('/baseURI')
         rels.add_relationship(
             reltype='http://rt-hyperlink', target='http://some/link',
-            rId='rId1', external=True
+            rId='rId1', is_external=True
         )
         part = Mock(name='part')
         part.partname.relative_ref.return_value = '../media/image1.png'
