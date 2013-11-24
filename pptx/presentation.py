@@ -10,11 +10,11 @@ from __future__ import absolute_import
 import os
 import weakref
 
-import pptx.opc.packaging
+import pptx.opc.package
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PACKAGE_URI
-from pptx.opc.packaging import PartFactory
+from pptx.opc.package import PartFactory
 from pptx.opc.pkgreader import PackageReader
 from pptx.opc.rels import RelationshipCollection
 from pptx.oxml import parse_xml_bytes
@@ -131,7 +131,7 @@ class Package(object):
         Save this package to *file*, where *file* can be either a path to a
         file (a string) or a file-like object.
         """
-        pkgng_pkg = pptx.opc.packaging.Package().marshal(self)
+        pkgng_pkg = pptx.opc.package.Package().marshal(self)
         pkgng_pkg.save(file)
 
     def _add_relationship(self, reltype, target, rId, is_external=False):

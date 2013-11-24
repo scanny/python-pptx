@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Test suite for pptx.opc.packaging module
+Test suite for pptx.opc.package module
 """
 
 from __future__ import absolute_import
@@ -16,7 +16,7 @@ from zipfile import ZipFile, is_zipfile
 
 import pptx.presentation
 
-from pptx.opc.packaging import (
+from pptx.opc.package import (
     _ContentTypesItem, Package, Part, PartTypeSpec
 )
 from pptx.opc.phys_pkg import PhysPkgReader

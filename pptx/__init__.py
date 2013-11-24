@@ -21,7 +21,7 @@ from pptx.parts.slides import Slide, SlideLayout, SlideMaster
 from pptx.presentation import Presentation as _Presentation
 
 from pptx.opc.constants import CONTENT_TYPE as CT
-from pptx.opc.packaging import PartFactory
+from pptx.opc.package import PartFactory
 
 content_type_to_part_class_map = {
     CT.PML_PRESENTATION_MAIN: _Presentation,

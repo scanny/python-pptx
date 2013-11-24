@@ -9,7 +9,7 @@ import pytest
 from lxml import objectify
 from mock import ANY, call, Mock
 
-from pptx.opc import packaging
+from pptx.opc import package
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.opc.rels import _Relationship, RelationshipCollection
@@ -160,11 +160,11 @@ class DescribeSlide(object):
     #     path = absjoin(test_file_dir, 'slide1.xml')
     #     slidelayout = Mock(name='slideLayout')
     #     slidelayout.partname = '/ppt/slideLayouts/slideLayout1.xml'
-    #     rel = Mock(name='pptx.packaging.Relationship')
+    #     rel = Mock(name='pptx.package.Relationship')
     #     rel.rId = 'rId1'
     #     rel.reltype = RT.SLIDE_LAYOUT
     #     rel.target = slidelayout
-    #     pkgpart = Mock(name='pptx.packaging.Part')
+    #     pkgpart = Mock(name='pptx.package.Part')
     #     with open(path, 'rb') as f:
     #         pkgpart.blob = f.read()
     #     pkgpart.relationships = [rel]
@@ -325,15 +325,15 @@ class DescribeSlideLayout(object):
         # a part dict containing the already-loaded model-side slideMaster
         loaded_part_dict = {sldmaster_partname: prs_slidemaster}
         # a slideMaster package part for rel target
-        pkg_slidemaster_part = Mock(spec=packaging.Part)
+        pkg_slidemaster_part = Mock(spec=package.Part)
         pkg_slidemaster_part.partname = sldmaster_partname
         # a package-side relationship from slideLayout to its slideMaster
-        rel = Mock(name='pptx.packaging.Relationship')
+        rel = Mock(name='pptx.package.Relationship')
         rel.rId = 'rId1'
         rel.reltype = RT.SLIDE_MASTER
         rel.target = pkg_slidemaster_part
         # the slideLayout package part to send to _load()
-        pkg_slidelayout_part = Mock(spec=packaging.Part)
+        pkg_slidelayout_part = Mock(spec=package.Part)
         pkg_slidelayout_part.relationships = [rel]
         with open(slidelayout_path, 'rb') as f:
             pkg_slidelayout_part.blob = f.read()
