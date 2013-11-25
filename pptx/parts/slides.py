@@ -12,6 +12,7 @@ from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, serialize_part_xml, SubElement
 from pptx.parts.part import BasePart, PartCollection
 from pptx.shapes.shapetree import ShapeCollection
+from pptx.util import lazyproperty
 
 
 class _BaseSlide(BasePart):
@@ -56,7 +57,7 @@ class _BaseSlide(BasePart):
         that relationship is reused.
         """
         image = self._package._images.add_image(file)
-        rel = self._relationships.get_or_add(RT.IMAGE, image)
+        rel = self._rels.get_or_add(RT.IMAGE, image)
         return (image, rel)
 
     @property
@@ -85,14 +86,12 @@ class Slide(_BaseSlide):
         slide = cls(partname, CT.PML_SLIDE, slide_elm)
         slide._slidelayout = slidelayout
         slide.shapes._clone_layout_placeholders(slidelayout)
-        slide._relationships.get_or_add(RT.SLIDE_LAYOUT, slidelayout)
+        slide._rels.get_or_add(RT.SLIDE_LAYOUT, slidelayout)
         return slide
 
     def after_unmarshal(self):
         # selectively unmarshal relationships for now
-        for rel in self._relationships:
-            if rel.reltype == RT.SLIDE_LAYOUT:
-                self._slidelayout = rel.target_part
+        self._slidelayout = self._rels.part_with_reltype(RT.SLIDE_LAYOUT)
 
     @property
     def slidelayout(self):
@@ -158,7 +157,7 @@ class SlideCollection(object):
         """
         temp_partname = PackURI('/ppt/slides/slide1.xml')
         slide = Slide.new(slidelayout, temp_partname)
-        rel = self._presentation._relationships.get_or_add(RT.SLIDE, slide)
+        rel = self._presentation._rels.get_or_add(RT.SLIDE, slide)
         self._sldIdLst.add_sldId(rel.rId)
         self._rename_slides()  # assigns partname as side effect
         return slide
@@ -199,10 +198,7 @@ class SlideLayout(_BaseSlide):
 
     def after_unmarshal(self):
         # selectively unmarshal relationships we need
-        for rel in self._relationships:
-            # get slideMaster from which this slideLayout inherits properties
-            if rel.reltype == RT.SLIDE_MASTER:
-                self._slidemaster = rel.target_part
+        self._slidemaster = self._rels.part_with_reltype(RT.SLIDE_MASTER)
 
     @property
     def slidemaster(self):
@@ -225,14 +221,14 @@ class SlideMaster(_BaseSlide):
     def __init__(self, partname, content_type, element):
         super(SlideMaster, self).__init__(partname, content_type, element)
 
-    @property
+    @lazyproperty
     def slidelayouts(self):
         """
         Collection of slide layout objects belonging to this slide master.
         """
-        if not hasattr(self, '_slidelayouts'):
-            self._slidelayouts = PartCollection()
-            for rel in self._relationships:
-                if rel.reltype == RT.SLIDE_LAYOUT:
-                    self._slidelayouts.add_part(rel.target_part)
-        return self._slidelayouts
+        slidelayouts = PartCollection()
+        sl_rels = [r for r in self._rels if r.reltype == RT.SLIDE_LAYOUT]
+        for sl_rel in sl_rels:
+            slide_layout = sl_rel.target_part
+            slidelayouts.add_part(slide_layout)
+        return slidelayouts

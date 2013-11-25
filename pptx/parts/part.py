@@ -4,53 +4,19 @@
 Part objects, including BasePart.
 """
 
-from pptx.opc.package import RelationshipCollection
+from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.util import Collection
 
 
-class BasePart(object):
+class BasePart(Part):
     """
-    Base class for presentation model parts. Provides common code to all parts
-    and is the class we instantiate for parts we don't unmarshal or manipulate
-    yet.
-
-    .. attribute:: _element
-
-       ElementTree element for XML parts. ``None`` for binary parts.
-
-    .. attribute:: _load_blob
-
-       Contents of part as a byte string extracted from the package file. May
-       be set to ``None`` by subclasses that override ._blob after content is
-       unmarshaled, to free up memory.
-
-    .. attribute:: _relationships
-
-       |RelationshipCollection| instance containing the relationships for this
-       part.
-
+    Base class for parts such as Slide and Presentation. Provides common code
+    and serves as default class for parts having no custom part class
+    defined.
     """
     def __init__(self, partname, content_type, blob=None):
-        """
-        ... re-document me
-        """
-        super(BasePart, self).__init__()
-        self._partname = partname
-        self._content_type_ = content_type
-        self._blob = blob
-
-    def _add_relationship(self, reltype, target, rId, external=False):
-        """
-        Return newly added |_Relationship| instance of *reltype* between this
-        part and *target* with key *rId*. Target mode is set to
-        ``RTM.EXTERNAL`` if *external* is |True|. If *reltype* and *target*
-        match an existing relationship, that relationship is returned rather
-        than creating a new one.
-        """
-        return self._relationships.add_relationship(
-            reltype, target, rId, external
-        )
+        super(BasePart, self).__init__(partname, content_type, blob)
 
     def after_unmarshal(self):
         """
@@ -113,16 +79,6 @@ class BasePart(object):
     @_content_type.setter
     def _content_type(self, content_type):
         self._content_type_ = content_type
-
-    @property
-    def _relationships(self):
-        """
-        |RelationshipCollection| instance holding the relationships for this
-        part.
-        """
-        if not hasattr(self, '_rels'):
-            self._rels = RelationshipCollection(self._partname.baseURI)
-        return self._rels
 
 
 class PartCollection(Collection):

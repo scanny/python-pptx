@@ -81,7 +81,7 @@ class Describe_BaseSlide(object):
         base_slide, image_, rel_ = base_slide_fixture
         image, rel = base_slide._add_image(file)
         base_slide._package._images.add_image.assert_called_once_with(file)
-        base_slide._relationships.get_or_add.assert_called_once_with(
+        base_slide._rels.get_or_add.assert_called_once_with(
             RT.IMAGE, image_
         )
         assert image is image_
@@ -93,6 +93,11 @@ class Describe_BaseSlide(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
+    def base_slide(self):
+        partname = PackURI('/foo/bar.xml')
+        return _BaseSlide(partname, None, None)
+
+    @pytest.fixture
     def base_slide_fixture(self, request, base_slide):
         # mock _BaseSlide._package._images.add_image() train wreck
         image_ = loose_mock(request, name='image_')
@@ -102,20 +107,15 @@ class Describe_BaseSlide(object):
             request, 'pptx.parts.slides._BaseSlide._package',
             return_value=pkg_
         )
-        # mock _BaseSlide._relationships.get_or_add()
+        # mock _BaseSlide._rels.get_or_add()
         rel_ = loose_mock(request, name='rel_')
         rels_ = loose_mock(request, name='rels_')
         rels_.get_or_add.return_value = rel_
-        _relationships = property_mock(  # noqa
-            request, 'pptx.parts.slides._BaseSlide._relationships',
+        _rels = property_mock(  # noqa
+            request, 'pptx.parts.slides._BaseSlide._rels',
             return_value=rels_
         )
         return base_slide, image_, rel_
-
-    @pytest.fixture
-    def base_slide(self):
-        partname = PackURI('/foo/bar.xml')
-        return _BaseSlide(partname, None, None)
 
 
 class DescribeSlide(object):
@@ -129,9 +129,9 @@ class DescribeSlide(object):
         # exercise ---------------------
         slide = Slide.new(slidelayout, partname)
         # verify length ---------------
-        assert len(slide._relationships) == 1
+        assert len(slide._rels) == 1
         # verify values ---------------
-        rel = slide._relationships[0]
+        rel = slide._rels[0]
         expected = ('rId1', RT.SLIDE_LAYOUT, slidelayout)
         actual = (rel.rId, rel.reltype, rel.target_part)
         assert actual == expected
@@ -218,7 +218,7 @@ class DescribeSlideCollection(object):
         slide = slides.add_slide(slidelayout_)
         # verify -----------------------
         Slide_.new.assert_called_once_with(slidelayout_, ANY)
-        prs_._relationships.get_or_add.assert_called_once_with(
+        prs_._rels.get_or_add.assert_called_once_with(
             RT.SLIDE, slide_)
         sldIdLst_.add_sldId.assert_called_once_with(ANY)
         _rename_slides_.assert_called_once_with()

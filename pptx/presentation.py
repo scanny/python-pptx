@@ -23,25 +23,7 @@ from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import ImageCollection
 from pptx.parts.part import BasePart, PartCollection
 from pptx.parts.slides import SlideCollection
-
-
-def lazyproperty(f):
-    """
-    @lazyprop decorator. Decorated method will be called only on first access
-    to calculate a cached property value. After that, the cached value is
-    returned.
-    """
-    cache_attr_name = '_%s' % f.__name__  # like '_foobar' for prop 'foobar'
-
-    def get_prop_value(obj):
-        try:
-            return getattr(obj, cache_attr_name)
-        except AttributeError:
-            value = f(obj)
-            setattr(obj, cache_attr_name, value)
-            return value
-
-    return property(get_prop_value)
+from pptx.util import lazyproperty
 
 
 class Package(object):
@@ -175,7 +157,7 @@ class Package(object):
                 continue
             parts.append(part)
             yield part
-            for part in Package._walkparts(part._relationships, parts):
+            for part in Package._walkparts(part._rels, parts):
                 yield part
 
 
@@ -190,9 +172,10 @@ class Presentation(BasePart):
 
     def after_unmarshal(self):
         # selectively unmarshal relationships for now
-        for rel in self._relationships:
-            if rel.reltype == RT.SLIDE_MASTER:
-                self.slidemasters.add_part(rel.target_part)
+        sm_rels = [r for r in self._rels if r.reltype == RT.SLIDE_MASTER]
+        for sm_rel in sm_rels:
+            slide_master = sm_rel.target_part
+            self.slidemasters.add_part(slide_master)
 
     @property
     def blob(self):
@@ -213,13 +196,11 @@ class Presentation(BasePart):
             self._slidemasters = PartCollection()
         return self._slidemasters
 
-    @property
+    @lazyproperty
     def slides(self):
         """
         |SlideCollection| object containing the slides in this presentation.
         """
-        if not hasattr(self, '_slides'):
-            sldIdLst = self._element.get_or_add_sldIdLst()
-            rels = self._relationships
-            self._slides = SlideCollection(sldIdLst, rels, self)
-        return self._slides
+        sldIdLst = self._element.get_or_add_sldIdLst()
+        slides = SlideCollection(sldIdLst, self._rels, self)
+        return slides

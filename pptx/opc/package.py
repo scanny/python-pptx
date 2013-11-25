@@ -8,6 +8,7 @@ writing presentations to and from a .pptx file.
 from __future__ import absolute_import
 
 from pptx.opc.oxml import CT_Relationships
+from pptx.util import lazyproperty
 
 
 class Part(object):
@@ -21,7 +22,6 @@ class Part(object):
         self._partname = partname
         self._content_type = content_type
         self._blob = blob
-        self._rels = RelationshipCollection(partname.baseURI)
 
     @property
     def blob(self):
@@ -49,20 +49,13 @@ class Part(object):
         """
         return self._partname
 
-    @property
-    def rels(self):
-        """
-        |RelationshipCollection| instance containing rels for this part.
-        """
-        return self._rels
-
-    def _add_relationship(self, reltype, target, rId, external=False):
+    def _add_relationship(self, reltype, target, rId, is_external=False):
         """
         Return newly added |_Relationship| instance of *reltype* between this
         part and *target* with key *rId*. Target mode is set to
-        ``RTM.EXTERNAL`` if *external* is |True|.
+        ``RTM.EXTERNAL`` if *is_external* is |True|.
         """
-        return self._rels.add_relationship(reltype, target, rId, external)
+        return self._rels.add_relationship(reltype, target, rId, is_external)
 
     def _after_unmarshal(self):
         """
@@ -83,6 +76,14 @@ class Part(object):
         # don't place any code here, just catch call if not overridden by
         # subclass
         pass
+
+    @lazyproperty
+    def _rels(self):
+        """
+        |RelationshipCollection| instance holding the relationships for this
+        part.
+        """
+        return RelationshipCollection(self._partname.baseURI)
 
 
 class PartFactory(object):

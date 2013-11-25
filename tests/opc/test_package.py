@@ -81,24 +81,25 @@ class DescribePart(object):
         assert part.content_type == content_type
         assert part.partname == partname
 
-    def it_has_a_rels_collection_it_initializes_on_construction(
+    def it_has_a_rels_collection_initialized_on_first_reference(
             self, RelationshipCollection_):
-        partname = Mock(name='partname', baseURI='/')
+        partname = PackURI('/foo/bar.xml')
         part = Part(partname, None, None)
-        RelationshipCollection_.assert_called_once_with('/')
-        assert part.rels == RelationshipCollection_.return_value
+        assert part._rels == RelationshipCollection_.return_value
+        RelationshipCollection_.assert_called_once_with(partname.baseURI)
 
     def it_can_add_a_relationship_to_another_part(self, part):
         # mockery ----------------------
         reltype, target, rId = (
             Mock(name='reltype'), Mock(name='target'), Mock(name='rId')
         )
-        part._rels = Mock(name='_rels')
+        setattr(part, '__rels', Mock(name='_rels'))
         # exercise ---------------------
         part._add_relationship(reltype, target, rId)
         # verify -----------------------
-        part._rels.add_relationship.assert_called_once_with(reltype, target,
-                                                            rId, False)
+        part._rels.add_relationship.assert_called_once_with(
+            reltype, target, rId, False
+        )
 
     def it_can_be_notified_after_unmarshalling_is_complete(self, part):
         part._after_unmarshal()
