@@ -16,7 +16,6 @@ from pptx.api import Presentation  # noqa
 
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image
-from pptx.parts.part import BasePart
 from pptx.parts.slides import Slide, SlideLayout, SlideMaster
 from pptx.presentation import Presentation as _Presentation
 
@@ -43,7 +42,7 @@ content_type_to_part_class_map = {
 
 PartFactory.part_type_for.update(content_type_to_part_class_map)
 
-PartFactory.default_part_type = BasePart
-
-del CoreProperties, Image, BasePart, Slide, SlideLayout, SlideMaster
-del _Presentation, CT, PartFactory
+del (
+    CoreProperties, Image, Slide, SlideLayout, SlideMaster, _Presentation,
+    CT, PartFactory
+)

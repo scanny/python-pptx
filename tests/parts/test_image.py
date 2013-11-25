@@ -32,7 +32,7 @@ class TestImage(TestCase):
         image = Image.new(partname, test_image_path)
         # verify -----------------------
         assert_that(image.ext, is_(equal_to('.jpeg')))
-        assert_that(image._content_type, is_(equal_to('image/jpeg')))
+        assert_that(image.content_type, is_(equal_to('image/jpeg')))
         assert_that(len(image._blob), is_(equal_to(3277)))
         assert_that(image._desc, is_(equal_to('python-icon.jpeg')))
 
@@ -45,7 +45,7 @@ class TestImage(TestCase):
         image = Image.new(partname, stream)
         # verify -----------------------
         assert_that(image.ext, is_(equal_to('.jpg')))
-        assert_that(image._content_type, is_(equal_to('image/jpeg')))
+        assert_that(image.content_type, is_(equal_to('image/jpeg')))
         assert_that(len(image._blob), is_(equal_to(3277)))
         assert_that(image._desc, is_(equal_to('image.jpg')))
 

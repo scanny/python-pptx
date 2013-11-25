@@ -81,6 +81,11 @@ class DescribePart(object):
         assert part.content_type == content_type
         assert part.partname == partname
 
+    def it_allows_its_partname_to_be_changed(self, part):
+        new_partname = PackURI('/ppt/presentation.xml')
+        part.partname = new_partname
+        assert part.partname == new_partname
+
     def it_has_a_rels_collection_initialized_on_first_reference(
             self, RelationshipCollection_):
         partname = PackURI('/foo/bar.xml')

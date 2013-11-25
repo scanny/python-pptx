@@ -7,12 +7,10 @@ Test data for relationship-related unit tests.
 from __future__ import absolute_import
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.package import _Relationship, RelationshipCollection
+from pptx.opc.package import RelationshipCollection
 
 from pptx.opc.constants import NAMESPACE as NS
 from pptx.opc.oxml import oxml_fromstring
-
-from ...parts.unitdata.part import a_part
 
 
 class RelationshipCollectionBuilder(object):
@@ -26,15 +24,6 @@ class RelationshipCollectionBuilder(object):
         self.relationships = []
         self.next_rel_num = 1
         self.next_partnums = {}
-
-    def with_tuple_targets(self, count, reltype):
-        for i in range(count):
-            rId = self.next_rId
-            partname = self._next_tuple_partname(reltype)
-            target = a_part().with_partname(partname).build()
-            rel = _Relationship(rId, reltype, target)
-            self.relationships.append(rel)
-        return self
 
     def _next_partnum(self, reltype):
         if reltype not in self.next_partnums:

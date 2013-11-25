@@ -13,7 +13,7 @@ import weakref
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PACKAGE_URI
 from pptx.opc.package import (
-    PartFactory, RelationshipCollection, Unmarshaller
+    Part, PartFactory, RelationshipCollection, Unmarshaller
 )
 from pptx.opc.pkgreader import PackageReader
 from pptx.opc.pkgwriter import PackageWriter
@@ -21,7 +21,7 @@ from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import serialize_part_xml
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import ImageCollection
-from pptx.parts.part import BasePart, PartCollection
+from pptx.parts.part import PartCollection
 from pptx.parts.slides import SlideCollection
 from pptx.util import lazyproperty
 
@@ -161,7 +161,7 @@ class Package(object):
                 yield part
 
 
-class Presentation(BasePart):
+class Presentation(Part):
     """
     Top level class in object model, represents the contents of the /ppt
     directory of a .pptx file.

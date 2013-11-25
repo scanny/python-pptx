@@ -8,6 +8,7 @@ writing presentations to and from a .pptx file.
 from __future__ import absolute_import
 
 from pptx.opc.oxml import CT_Relationships
+from pptx.opc.packuri import PackURI
 from pptx.util import lazyproperty
 
 
@@ -47,7 +48,8 @@ class Part(object):
     def blob(self):
         """
         Contents of this package part as a sequence of bytes. May be text or
-        binary.
+        binary. Intended to be overridden by subclasses. Default behavior is
+        to return load blob.
         """
         return self._blob
 
@@ -65,9 +67,17 @@ class Part(object):
     @property
     def partname(self):
         """
-        |PackURI| instance containing partname for this part.
+        |PackURI| instance holding partname of this part, e.g.
+        '/ppt/slides/slide1.xml'
         """
         return self._partname
+
+    @partname.setter
+    def partname(self, partname):
+        if not isinstance(partname, PackURI):
+            tmpl = "partname must be instance of PackURI, got '%s'"
+            raise TypeError(tmpl % type(partname).__name__)
+        self._partname = partname
 
     def _add_relationship(self, reltype, target, rId, is_external=False):
         """
@@ -92,8 +102,7 @@ class PartFactory(object):
     constructed by |Unmarshaller| based on its content type.
     """
     part_type_for = {}
-    # default_part_type = Part
-    default_part_type = None
+    default_part_type = Part
 
     def __new__(cls, partname, content_type, blob):
         PartClass = cls._part_cls_for(content_type)

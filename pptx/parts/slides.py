@@ -7,15 +7,16 @@ Slide objects, including Slide and SlideMaster.
 from __future__ import absolute_import
 
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, serialize_part_xml, SubElement
-from pptx.parts.part import BasePart, PartCollection
+from pptx.parts.part import PartCollection
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.util import lazyproperty
 
 
-class _BaseSlide(BasePart):
+class _BaseSlide(Part):
     """
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.

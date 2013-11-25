@@ -25,7 +25,7 @@ class TestCoreProperties(TestCase):
         core_props = CoreProperties._default()
         # verify -----------------------
         assert_that(core_props, is_(instance_of(CoreProperties)))
-        assert_that(core_props._content_type, is_(CT.OPC_CORE_PROPERTIES))
+        assert_that(core_props.content_type, is_(CT.OPC_CORE_PROPERTIES))
         assert_that(core_props.partname, is_('/docProps/core.xml'))
         assert_that(core_props._element, is_(instance_of(CT_CoreProperties)))
         assert_that(core_props.title, is_('PowerPoint Presentation'))
