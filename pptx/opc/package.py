@@ -7,9 +7,98 @@ writing presentations to and from a .pptx file.
 
 from __future__ import absolute_import
 
-from pptx.opc.oxml import CT_Relationships
-from pptx.opc.packuri import PackURI
 from pptx.util import lazyproperty
+
+from .constants import RELATIONSHIP_TYPE as RT
+from .oxml import CT_Relationships
+from .packuri import PACKAGE_URI, PackURI
+from .pkgreader import PackageReader
+from .pkgwriter import PackageWriter
+
+
+class OpcPackage(object):
+    """
+    Main API class for |python-opc|. A new instance is constructed by calling
+    the :meth:`open` class method with a path to a package file or file-like
+    object containing one.
+    """
+    def __init__(self):
+        super(OpcPackage, self).__init__()
+        self._rels = RelationshipCollection(PACKAGE_URI.baseURI)
+
+    @property
+    def main_document(self):
+        """
+        Return a reference to the main document part for this package.
+        Examples include a document part for a WordprocessingML package, a
+        presentation part for a PresentationML package, or a workbook part
+        for a SpreadsheetML package.
+        """
+        rel = self._rels.get_rel_of_type(RT.OFFICE_DOCUMENT)
+        return rel.target_part
+
+    @staticmethod
+    def open(pkg_file):
+        """
+        Return an |OpcPackage| instance loaded with the contents of
+        *pkg_file*.
+        """
+        pkg = OpcPackage()
+        pkg_reader = PackageReader.from_file(pkg_file)
+        Unmarshaller.unmarshal(pkg_reader, pkg, PartFactory)
+        return pkg
+
+    @property
+    def parts(self):
+        """
+        Return an immutable sequence (tuple) containing a reference to each
+        of the parts in this package.
+        """
+        return tuple([p for p in self._walk_parts(self._rels)])
+
+    @property
+    def rels(self):
+        """
+        Return a reference to the |RelationshipCollection| holding the
+        relationships for this package.
+        """
+        return self._rels
+
+    def save(self, pkg_file):
+        """
+        Save this package to *pkg_file*, where *file* can be either a path to
+        a file (a string) or a file-like object.
+        """
+        for part in self.parts:
+            part._before_marshal()
+        PackageWriter.write(pkg_file, self._rels, self.parts)
+
+    def _add_relationship(self, reltype, target, rId, external=False):
+        """
+        Return newly added |_Relationship| instance of *reltype* between this
+        package and part *target* with key *rId*. Target mode is set to
+        ``RTM.EXTERNAL`` if *external* is |True|.
+        """
+        return self._rels.add_relationship(reltype, target, rId, external)
+
+    @staticmethod
+    def _walk_parts(rels, visited_parts=None):
+        """
+        Generate exactly one reference to each of the parts in the package by
+        performing a depth-first traversal of the rels graph.
+        """
+        if visited_parts is None:
+            visited_parts = []
+        for rel in rels:
+            if rel.is_external:
+                continue
+            part = rel.target_part
+            if part in visited_parts:
+                continue
+            visited_parts.append(part)
+            yield part
+            for part in OpcPackage._walk_parts(part._rels, visited_parts):
+                yield part
 
 
 class Part(object):

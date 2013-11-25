@@ -11,9 +11,10 @@ import pytest
 from mock import call, Mock, patch, PropertyMock
 
 from pptx.opc.oxml import CT_Relationships
-from pptx.opc.packuri import PackURI
+from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.package import (
-    Part, PartFactory, _Relationship, RelationshipCollection, Unmarshaller
+    OpcPackage, Part, PartFactory, _Relationship, RelationshipCollection,
+    Unmarshaller
 )
 from pptx.opc.pkgreader import PackageReader
 from pptx.presentation import Package
@@ -27,6 +28,115 @@ from ..unitutil import (
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 dir_pkg_path = absjoin(test_file_dir, 'expanded_pptx')
 zip_pkg_path = test_pptx_path
+
+
+class DescribeOpcPackage(object):
+
+    def it_can_open_a_pkg_file(self, PackageReader_, PartFactory_,
+                               Unmarshaller_):
+        # mockery ----------------------
+        pkg_file = Mock(name='pkg_file')
+        pkg_reader = PackageReader_.from_file.return_value
+        # exercise ---------------------
+        pkg = OpcPackage.open(pkg_file)
+        # verify -----------------------
+        PackageReader_.from_file.assert_called_once_with(pkg_file)
+        Unmarshaller_.unmarshal.assert_called_once_with(pkg_reader, pkg,
+                                                        PartFactory_)
+        assert isinstance(pkg, OpcPackage)
+
+    def it_initializes_its_rels_collection_on_construction(
+            self, RelationshipCollection_):
+        pkg = OpcPackage()
+        RelationshipCollection_.assert_called_once_with(PACKAGE_URI.baseURI)
+        assert pkg.rels == RelationshipCollection_.return_value
+
+    def it_can_add_a_relationship_to_a_part(self):
+        # mockery ----------------------
+        reltype, target, rId = (
+            Mock(name='reltype'), Mock(name='target'), Mock(name='rId')
+        )
+        pkg = OpcPackage()
+        pkg._rels = Mock(name='_rels')
+        # exercise ---------------------
+        pkg._add_relationship(reltype, target, rId)
+        # verify -----------------------
+        pkg._rels.add_relationship.assert_called_once_with(reltype, target,
+                                                           rId, False)
+
+    def it_has_an_immutable_sequence_containing_its_parts(self):
+        # mockery ----------------------
+        parts = [Mock(name='part1'), Mock(name='part2')]
+        pkg = OpcPackage()
+        # verify -----------------------
+        with patch.object(OpcPackage, '_walk_parts', return_value=parts):
+            assert pkg.parts == (parts[0], parts[1])
+
+    def it_can_iterate_over_parts_by_walking_rels_graph(self):
+        # +----------+       +--------+
+        # | pkg_rels |-----> | part_1 |
+        # +----------+       +--------+
+        #      |               |    ^
+        #      v               v    |
+        #   external         +--------+
+        #                    | part_2 |
+        #                    +--------+
+        part1, part2 = (Mock(name='part1'), Mock(name='part2'))
+        part1._rels = [Mock(name='rel1', is_external=False, target_part=part2)]
+        part2._rels = [Mock(name='rel2', is_external=False, target_part=part1)]
+        pkg_rels = [
+            Mock(name='rel3', is_external=False, target_part=part1),
+            Mock(name='rel3', is_external=True),
+        ]
+        # exercise ---------------------
+        generated_parts = [part for part in OpcPackage._walk_parts(pkg_rels)]
+        # verify -----------------------
+        assert generated_parts == [part1, part2]
+
+    def it_can_save_to_a_pkg_file(self, PackageWriter_, parts):
+        # mockery ----------------------
+        pkg_file = Mock(name='pkg_file')
+        pkg = OpcPackage()
+        parts.return_value = parts = [Mock(name='part1'), Mock(name='part2')]
+        # exercise ---------------------
+        pkg.save(pkg_file)
+        # verify -----------------------
+        for part in parts:
+            part._before_marshal.assert_called_once_with()
+        PackageWriter_.write.assert_called_once_with(pkg_file, pkg._rels,
+                                                     parts)
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def PackageReader_(self, request):
+        return class_mock(request, 'pptx.opc.package.PackageReader')
+
+    @pytest.fixture
+    def PackageWriter_(self, request):
+        return class_mock(request, 'pptx.opc.package.PackageWriter')
+
+    @pytest.fixture
+    def PartFactory_(self, request):
+        return class_mock(request, 'pptx.opc.package.PartFactory')
+
+    @pytest.fixture
+    def parts(self, request):
+        """
+        Return a mock patching property OpcPackage.parts, reversing the
+        patch after each use.
+        """
+        _patch = patch.object(OpcPackage, 'parts', new_callable=PropertyMock)
+        request.addfinalizer(_patch.stop)
+        return _patch.start()
+
+    @pytest.fixture
+    def RelationshipCollection_(self, request):
+        return class_mock(request, 'pptx.opc.package.RelationshipCollection')
+
+    @pytest.fixture
+    def Unmarshaller_(self, request):
+        return class_mock(request, 'pptx.opc.package.Unmarshaller')
 
 
 @pytest.fixture
