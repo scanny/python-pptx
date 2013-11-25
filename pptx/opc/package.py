@@ -23,6 +23,26 @@ class Part(object):
         self._content_type = content_type
         self._blob = blob
 
+    def after_unmarshal(self):
+        """
+        Entry point for post-unmarshaling processing, for example to parse
+        the part XML. May be overridden by subclasses without forwarding call
+        to super.
+        """
+        # don't place any code here, just catch call if not overridden by
+        # subclass
+        pass
+
+    def before_marshal(self):
+        """
+        Entry point for pre-serialization processing, for example to finalize
+        part naming if necessary. May be overridden by subclasses without
+        forwarding call to super.
+        """
+        # don't place any code here, just catch call if not overridden by
+        # subclass
+        pass
+
     @property
     def blob(self):
         """
@@ -56,26 +76,6 @@ class Part(object):
         ``RTM.EXTERNAL`` if *is_external* is |True|.
         """
         return self._rels.add_relationship(reltype, target, rId, is_external)
-
-    def _after_unmarshal(self):
-        """
-        Entry point for post-unmarshaling processing, for example to parse
-        the part XML. May be overridden by subclasses without forwarding call
-        to super.
-        """
-        # don't place any code here, just catch call if not overridden by
-        # subclass
-        pass
-
-    def _before_marshal(self):
-        """
-        Entry point for pre-serialization processing, for example to finalize
-        part naming if necessary. May be overridden by subclasses without
-        forwarding call to super.
-        """
-        # don't place any code here, just catch call if not overridden by
-        # subclass
-        pass
 
     @lazyproperty
     def _rels(self):

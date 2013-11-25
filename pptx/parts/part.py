@@ -18,25 +18,6 @@ class BasePart(Part):
     def __init__(self, partname, content_type, blob=None):
         super(BasePart, self).__init__(partname, content_type, blob)
 
-    def after_unmarshal(self):
-        """
-        Entry point for any logic to be executed once the part's
-        relationships have all be unmarshaled. Just a ``pass`` for
-        |BasePart|, expected to be overridden by subclasses that need the
-        entry point.
-        """
-        pass
-
-    def before_marshal(self):
-        """
-        Entry point for pre-serialization processing, for example to finalize
-        part naming if necessary. May be overridden by subclasses without
-        forwarding call to super.
-        """
-        # don't place any code here, just catch call if not overridden by
-        # subclass
-        pass
-
     @property
     def blob(self):
         """
