@@ -55,7 +55,7 @@ class Image(Part):
         return self._ext
 
     @classmethod
-    def load(cls, partname, content_type, blob):
+    def load(cls, partname, content_type, blob, package):
         ext = posixpath.splitext(partname)[1]
         return cls(partname, content_type, blob, ext)
 

@@ -36,7 +36,16 @@ class CoreProperties(Part):
         return serialize_part_xml(self._element)
 
     @classmethod
-    def load(cls, partname, content_type, blob):
+    def default(cls):
+        core_props = cls._new()
+        core_props.title = 'PowerPoint Presentation'
+        core_props.last_modified_by = 'python-pptx'
+        core_props.revision = 1
+        core_props.modified = datetime.utcnow()
+        return core_props
+
+    @classmethod
+    def load(cls, partname, content_type, blob, package):
         core_props_elm = parse_xml_bytes(blob)
         core_props = cls(partname, content_type, core_props_elm)
         return core_props
@@ -47,15 +56,6 @@ class CoreProperties(Part):
         content_type = CT.OPC_CORE_PROPERTIES
         core_props_elm = CT_CoreProperties.new_coreProperties()
         return CoreProperties(partname, content_type, core_props_elm)
-
-    @classmethod
-    def _default(cls):
-        core_props = cls._new()
-        core_props.title = 'PowerPoint Presentation'
-        core_props.last_modified_by = 'python-pptx'
-        core_props.revision = 1
-        core_props.modified = datetime.utcnow()
-        return core_props
 
     def __getattribute__(self, name):
         """

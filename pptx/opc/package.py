@@ -18,10 +18,11 @@ class Part(object):
     intended to be subclassed in client code to implement specific part
     behaviors.
     """
-    def __init__(self, partname, content_type, blob=None):
+    def __init__(self, partname, content_type, blob=None, package=None):
         super(Part, self).__init__()
         self._partname = partname
         self._content_type = content_type
+        self._package = package
         self._blob = blob
 
     def after_unmarshal(self):
@@ -61,8 +62,15 @@ class Part(object):
         return self._content_type
 
     @classmethod
-    def load(cls, partname, content_type, blob):
-        return cls(partname, content_type, blob)
+    def load(cls, partname, content_type, blob, package):
+        return cls(partname, content_type, blob, package)
+
+    @property
+    def package(self):
+        """
+        |OpcPackage| instance this part belongs to.
+        """
+        return self._package
 
     @property
     def partname(self):
@@ -104,9 +112,9 @@ class PartFactory(object):
     part_type_for = {}
     default_part_type = Part
 
-    def __new__(cls, partname, content_type, blob):
+    def __new__(cls, partname, content_type, blob, package):
         PartClass = cls._part_cls_for(content_type)
-        return PartClass.load(partname, content_type, blob)
+        return PartClass.load(partname, content_type, blob, package)
 
     @classmethod
     def _part_cls_for(cls, content_type):
@@ -261,20 +269,22 @@ class Unmarshaller(object):
     instance.
     """
     @staticmethod
-    def unmarshal(pkg_reader, pkg, part_factory):
+    def unmarshal(pkg_reader, package, part_factory):
         """
         Construct graph of parts and realized relationships based on the
         contents of *pkg_reader*, delegating construction of each part to
         *part_factory*. Package relationships are added to *pkg*.
         """
-        parts = Unmarshaller._unmarshal_parts(pkg_reader, part_factory)
-        Unmarshaller._unmarshal_relationships(pkg_reader, pkg, parts)
+        parts = Unmarshaller._unmarshal_parts(
+            pkg_reader, package, part_factory
+        )
+        Unmarshaller._unmarshal_relationships(pkg_reader, package, parts)
         for part in parts.values():
             part.after_unmarshal()
-        pkg.after_unmarshal()
+        package.after_unmarshal()
 
     @staticmethod
-    def _unmarshal_parts(pkg_reader, part_factory):
+    def _unmarshal_parts(pkg_reader, package, part_factory):
         """
         Return a dictionary of |Part| instances unmarshalled from
         *pkg_reader*, keyed by partname. Side-effect is that each part in
@@ -282,18 +292,20 @@ class Unmarshaller(object):
         """
         parts = {}
         for partname, content_type, blob in pkg_reader.iter_sparts():
-            parts[partname] = part_factory(partname, content_type, blob)
+            parts[partname] = part_factory(
+                partname, content_type, blob, package
+            )
         return parts
 
     @staticmethod
-    def _unmarshal_relationships(pkg_reader, pkg, parts):
+    def _unmarshal_relationships(pkg_reader, package, parts):
         """
         Add a relationship to the source object corresponding to each of the
         relationships in *pkg_reader* with its target_part set to the actual
         target part in *parts*.
         """
         for source_uri, srel in pkg_reader.iter_srels():
-            source = pkg if source_uri == '/' else parts[source_uri]
+            source = package if source_uri == '/' else parts[source_uri]
             target = (srel.target_ref if srel.is_external
                       else parts[srel.target_partname])
             source._add_relationship(srel.reltype, target, srel.rId,

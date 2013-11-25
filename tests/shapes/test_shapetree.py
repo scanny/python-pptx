@@ -256,7 +256,7 @@ class TestShapeCollection(TestCase):
             [2, 'Title 1',             PH_TYPE_CTRTITLE,  0],
             [3, 'Vertical Subtitle 2', PH_TYPE_SUBTITLE,  1],
             [4, 'Table Placeholder 3', PH_TYPE_TBL,      14])
-        slidelayout = SlideLayout(None, None, _sldLayout1())
+        slidelayout = SlideLayout(None, None, _sldLayout1(), None)
         shapes = test_shapes.empty_shape_collection
         # exercise ---------------------
         shapes._clone_layout_placeholders(slidelayout)

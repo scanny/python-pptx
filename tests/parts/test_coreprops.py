@@ -19,10 +19,8 @@ from ..unitutil import TestCase
 
 class TestCoreProperties(TestCase):
     """Test CoreProperties"""
-    def test_default_constructs_default_core_props(self):
-        """CoreProperties.default() returns new default core props part"""
-        # exercise ---------------------
-        core_props = CoreProperties._default()
+    def test_it_can_construct_default_core_props(self):
+        core_props = CoreProperties.default()
         # verify -----------------------
         assert_that(core_props, is_(instance_of(CoreProperties)))
         assert_that(core_props.content_type, is_(CT.OPC_CORE_PROPERTIES))

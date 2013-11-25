@@ -4,14 +4,10 @@
 
 from __future__ import absolute_import, print_function
 
-import gc
 import pytest
-
-from mock import Mock
 
 from pptx.opc.packuri import PackURI
 from pptx.opc.package import RelationshipCollection
-from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_Presentation, CT_SlideIdList
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import PartCollection
@@ -23,8 +19,6 @@ from .unitutil import absjoin, class_mock, instance_mock, test_file_dir
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
-
-nsmap = namespaces('a', 'r', 'p')
 
 
 class DescribePackage(object):
@@ -38,33 +32,6 @@ class DescribePackage(object):
         slidelayouts = slidemasters[0].slidelayouts
         assert slidelayouts is not None
         assert len(slidelayouts) == 11
-
-    def it_tracks_instances_of_itself(self):
-        pkg = Package()
-        assert pkg in Package.instances()
-
-    def it_garbage_collects_refs_to_old_instances_of_itself(self):
-        pkg = Package()
-        pkg1_repr = "%r" % pkg
-        pkg = Package()
-        # pkg2_repr = "%r" % pkg
-        gc.collect()
-        reprs = [repr(pkg_inst) for pkg_inst in Package.instances()]
-        assert pkg1_repr not in reprs
-
-    def it_knows_which_instance_contains_a_specified_part(self):
-        pkg1 = Package.open(test_pptx_path)  # noqa
-        pkg2 = Package.open(test_pptx_path)
-        slide = pkg2.presentation.slides[0]
-        # exercise ---------------------
-        found_pkg = Package.containing(slide)
-        # verify -----------------------
-        assert found_pkg == pkg2
-
-    def it_raises_when_no_package_contains_specified_part(self):
-        part = Mock(name='part')
-        with pytest.raises(KeyError):
-            Package.containing(part)
 
     def it_gathers_package_image_parts_on_open(self):
         pkg = Package.open(images_pptx_path)
@@ -131,7 +98,7 @@ class DescribePresentation(object):
     @pytest.fixture
     def prs(self, ct_presentation_, rels_):
         partname = PackURI('/ppt/presentation.xml')
-        prs = Presentation(partname, None, ct_presentation_)
+        prs = Presentation(partname, None, ct_presentation_, None)
         setattr(prs, '__rels', rels_)
         return prs
 

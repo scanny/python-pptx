@@ -8,7 +8,6 @@ encounters as an end-user of the PowerPoint user interface.
 from __future__ import absolute_import
 
 import os
-import weakref
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PACKAGE_URI
@@ -35,8 +34,6 @@ class Package(object):
     a `.pptx` file. If *file* is |None|, the default presentation template is
     loaded.
     """
-    # track instances as weakrefs so .containing() can be computed
-    _instances = []
 
     # path of the default presentation, used when no path specified
     _default_pptx_path = os.path.join(
@@ -45,7 +42,6 @@ class Package(object):
 
     def __init__(self):
         super(Package, self).__init__()
-        self._instances.append(weakref.ref(self))  # track instances in cls var
         self._rels = RelationshipCollection(PACKAGE_URI.baseURI)
 
     def after_unmarshal(self):
@@ -56,14 +52,6 @@ class Package(object):
         # gather image parts into _images
         self._images.load(self._parts)
 
-    @classmethod
-    def containing(cls, part):
-        """Return package instance that contains *part*"""
-        for pkg in cls.instances():
-            if part in pkg._parts:
-                return pkg
-        raise KeyError("No package contains part %r" % part)
-
     @lazyproperty
     def core_properties(self):
         """
@@ -73,19 +61,9 @@ class Package(object):
         try:
             return self._rels.part_with_reltype(RT.CORE_PROPERTIES)
         except KeyError:
-            core_props = CoreProperties._default()
+            core_props = CoreProperties.default()
             self._rels.get_or_add(RT.CORE_PROPERTIES, core_props)
             return core_props
-
-    @classmethod
-    def instances(cls):
-        """Return tuple of Package instances that have been created"""
-        # clean garbage collected pkgs out of _instances
-        cls._instances[:] = [wkref for wkref in cls._instances
-                             if wkref() is not None]
-        # return instance references in a tuple
-        pkgs = [wkref() for wkref in cls._instances]
-        return tuple(pkgs)
 
     @classmethod
     def open(cls, pkg_file=None):
@@ -113,6 +91,7 @@ class Package(object):
         Save this package to *pkg_file*, which can be either a path to a file
         (a string) or a file-like object.
         """
+        # self._notify_before_marshal()
         for part in self._parts:
             part.before_marshal()
         PackageWriter.write(pkg_file, self._rels, self._parts)
@@ -166,35 +145,33 @@ class Presentation(Part):
     Top level class in object model, represents the contents of the /ppt
     directory of a .pptx file.
     """
-    def __init__(self, partname, content_type, presentation_elm):
-        super(Presentation, self).__init__(partname, content_type)
+    def __init__(self, partname, content_type, presentation_elm, package):
+        super(Presentation, self).__init__(
+            partname, content_type, package=package
+        )
         self._element = presentation_elm
-
-    def after_unmarshal(self):
-        # selectively unmarshal relationships for now
-        sm_rels = [r for r in self._rels if r.reltype == RT.SLIDE_MASTER]
-        for sm_rel in sm_rels:
-            slide_master = sm_rel.target_part
-            self.slidemasters.add_part(slide_master)
 
     @property
     def blob(self):
         return serialize_part_xml(self._element)
 
     @classmethod
-    def load(cls, partname, content_type, blob):
+    def load(cls, partname, content_type, blob, package):
         presentation_elm = parse_xml_bytes(blob)
-        presentation = cls(partname, content_type, presentation_elm)
+        presentation = cls(partname, content_type, presentation_elm, package)
         return presentation
 
-    @property
+    @lazyproperty
     def slidemasters(self):
         """
         Sequence of |SlideMaster| instances belonging to this presentation.
         """
-        if not hasattr(self, '_slidemasters'):
-            self._slidemasters = PartCollection()
-        return self._slidemasters
+        slidemasters = PartCollection()
+        sm_rels = [r for r in self._rels if r.reltype == RT.SLIDE_MASTER]
+        for sm_rel in sm_rels:
+            slide_master = sm_rel.target_part
+            slidemasters.add_part(slide_master)
+        return slidemasters
 
     @lazyproperty
     def slides(self):

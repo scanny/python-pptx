@@ -21,8 +21,10 @@ class _BaseSlide(Part):
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.
     """
-    def __init__(self, partname, content_type, element):
-        super(_BaseSlide, self).__init__(partname, content_type)
+    def __init__(self, partname, content_type, element, package):
+        super(_BaseSlide, self).__init__(
+            partname, content_type, package=package
+        )
         self._element = element
 
     @property
@@ -30,9 +32,9 @@ class _BaseSlide(Part):
         return serialize_part_xml(self._element)
 
     @classmethod
-    def load(cls, partname, content_type, blob):
+    def load(cls, partname, content_type, blob, package):
         slide_elm = parse_xml_bytes(blob)
-        slide = cls(partname, content_type, slide_elm)
+        slide = cls(partname, content_type, slide_elm, package)
         return slide
 
     @property
@@ -61,45 +63,29 @@ class _BaseSlide(Part):
         rel = self._rels.get_or_add(RT.IMAGE, image)
         return (image, rel)
 
-    @property
-    def _package(self):
-        """Reference to |Package| containing this slide"""
-        # !!! --- GET RID OF THIS, PASS PACKAGE TO PART ON CONSTRUCTION !!!
-        from pptx.presentation import Package
-        # !!! =============================================================
-        return Package.containing(self)
-
 
 class Slide(_BaseSlide):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
-    def __init__(self, partname, content_type, element):
-        super(Slide, self).__init__(partname, content_type, element)
-
     @classmethod
-    def new(cls, slidelayout, partname):
+    def new(cls, slidelayout, partname, package):
         """
         Return a new slide based on *slidelayout* and having *partname*,
         created from scratch.
         """
         slide_elm = cls._minimal_element()
-        slide = cls(partname, CT.PML_SLIDE, slide_elm)
-        slide._slidelayout = slidelayout
+        slide = cls(partname, CT.PML_SLIDE, slide_elm, package)
         slide.shapes._clone_layout_placeholders(slidelayout)
         slide._rels.get_or_add(RT.SLIDE_LAYOUT, slidelayout)
         return slide
-
-    def after_unmarshal(self):
-        # selectively unmarshal relationships for now
-        self._slidelayout = self._rels.part_with_reltype(RT.SLIDE_LAYOUT)
 
     @property
     def slidelayout(self):
         """
         |SlideLayout| object this slide inherits appearance from.
         """
-        return self._slidelayout
+        return self._rels.part_with_reltype(RT.SLIDE_LAYOUT)
 
     @staticmethod
     def _minimal_element():
@@ -157,7 +143,8 @@ class SlideCollection(object):
         Return a newly added slide that inherits layout from *slidelayout*.
         """
         temp_partname = PackURI('/ppt/slides/slide1.xml')
-        slide = Slide.new(slidelayout, temp_partname)
+        package = self._presentation.package
+        slide = Slide.new(slidelayout, temp_partname, package)
         rel = self._presentation._rels.get_or_add(RT.SLIDE, slide)
         self._sldIdLst.add_sldId(rel.rId)
         self._rename_slides()  # assigns partname as side effect
@@ -194,20 +181,12 @@ class SlideLayout(_BaseSlide):
     Slide layout part. Corresponds to package files
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
-    def __init__(self, partname, content_type, element):
-        super(SlideLayout, self).__init__(partname, content_type, element)
-
-    def after_unmarshal(self):
-        # selectively unmarshal relationships we need
-        self._slidemaster = self._rels.part_with_reltype(RT.SLIDE_MASTER)
-
     @property
     def slidemaster(self):
-        """Slide master from which this slide layout inherits properties."""
-        assert self._slidemaster is not None, (
-            "SlideLayout.slidemaster referenced before assigned"
-        )
-        return self._slidemaster
+        """
+        Slide master from which this slide layout inherits properties.
+        """
+        return self._rels.part_with_reltype(RT.SLIDE_MASTER)
 
 
 class SlideMaster(_BaseSlide):
@@ -219,9 +198,6 @@ class SlideMaster(_BaseSlide):
     # SlideMaster, SlideLayout (CustomLayout), HandoutMaster, and NotesMaster
     # inherit from. So might look into why that is and consider refactoring
     # the various masters a bit later.
-    def __init__(self, partname, content_type, element):
-        super(SlideMaster, self).__init__(partname, content_type, element)
-
     @lazyproperty
     def slidelayouts(self):
         """

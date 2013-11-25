@@ -145,6 +145,17 @@ def class_mock(request, q_class_name, autospec=True, **kwargs):
     return _patch.start()
 
 
+def cls_attr_mock(request, cls, attr_name, name=None, **kwargs):
+    """
+    Return a mock for attribute *attr_name* on *cls* where the patch is
+    reversed after pytest uses it.
+    """
+    name = request.fixturename if name is None else name
+    _patch = patch.object(cls, attr_name, name=name, **kwargs)
+    request.addfinalizer(_patch.stop)
+    return _patch.start()
+
+
 def function_mock(request, q_function_name):
     """
     Return a mock patching the function with qualified name
@@ -190,12 +201,12 @@ def loose_mock(request, name=None, **kwargs):
     return Mock(name=name, **kwargs)
 
 
-def method_mock(request, cls, method_name):
+def method_mock(request, cls, method_name, **kwargs):
     """
     Return a mock for method *method_name* on *cls* where the patch is
     reversed after pytest uses it.
     """
-    _patch = patch.object(cls, method_name)
+    _patch = patch.object(cls, method_name, **kwargs)
     request.addfinalizer(_patch.stop)
     return _patch.start()
 

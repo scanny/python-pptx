@@ -71,7 +71,7 @@ class Describe_BaseSlide(object):
         path = absjoin(test_file_dir, 'slide1.xml')
         with open(path, 'r') as f:
             blob = f.read()
-        base_slide = _BaseSlide.load(None, None, blob)
+        base_slide = _BaseSlide.load(None, None, blob, None)
         # exercise ---------------------
         shapes = base_slide.shapes
         # verify -----------------------
@@ -95,7 +95,7 @@ class Describe_BaseSlide(object):
     @pytest.fixture
     def base_slide(self):
         partname = PackURI('/foo/bar.xml')
-        return _BaseSlide(partname, None, None)
+        return _BaseSlide(partname, None, None, None)
 
     @pytest.fixture
     def base_slide_fixture(self, request, base_slide):
@@ -103,10 +103,7 @@ class Describe_BaseSlide(object):
         image_ = loose_mock(request, name='image_')
         pkg_ = loose_mock(request, name='_package', spec=Package)
         pkg_._images.add_image.return_value = image_
-        _package = property_mock(  # noqa
-            request, 'pptx.parts.slides._BaseSlide._package',
-            return_value=pkg_
-        )
+        base_slide._package = pkg_
         # mock _BaseSlide._rels.get_or_add()
         rel_ = loose_mock(request, name='rel_')
         rels_ = loose_mock(request, name='rels_')
@@ -124,10 +121,10 @@ class DescribeSlide(object):
             self):
         """Slide(slidelayout) adds relationship slide->slidelayout"""
         # setup ------------------------
-        slidelayout = SlideLayout(None, None, _sldLayout1())
+        slidelayout = SlideLayout(None, None, _sldLayout1(), None)
         partname = PackURI('/ppt/slides/slide1.xml')
         # exercise ---------------------
-        slide = Slide.new(slidelayout, partname)
+        slide = Slide.new(slidelayout, partname, None)
         # verify length ---------------
         assert len(slide._rels) == 1
         # verify values ---------------
@@ -193,7 +190,7 @@ class DescribeSlide(object):
 
     @pytest.fixture
     def slide(self):
-        return Slide(None, None, None)
+        return Slide(None, None, None, None)
 
 
 class DescribeSlideCollection(object):
@@ -217,7 +214,7 @@ class DescribeSlideCollection(object):
             _rename_slides_):
         slide = slides.add_slide(slidelayout_)
         # verify -----------------------
-        Slide_.new.assert_called_once_with(slidelayout_, ANY)
+        Slide_.new.assert_called_once_with(slidelayout_, ANY, prs_.package)
         prs_._rels.get_or_add.assert_called_once_with(
             RT.SLIDE, slide_)
         sldIdLst_.add_sldId.assert_called_once_with(ANY)
@@ -381,4 +378,4 @@ class DescribeSlideMaster(object):
     @pytest.fixture
     def slidemaster(self):
         partname = PackURI('/ppt/slideMasters/slideMaster1.xml')
-        return SlideMaster(partname, None, None)
+        return SlideMaster(partname, None, None, None)

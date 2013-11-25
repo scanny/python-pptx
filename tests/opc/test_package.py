@@ -15,9 +15,12 @@ from pptx.opc.packuri import PackURI
 from pptx.opc.package import (
     Part, PartFactory, _Relationship, RelationshipCollection, Unmarshaller
 )
+from pptx.opc.pkgreader import PackageReader
+from pptx.presentation import Package
 
 from ..unitutil import (
-    absjoin, class_mock, instance_mock, method_mock, test_file_dir
+    absjoin, class_mock, cls_attr_mock, instance_mock, loose_mock,
+    method_mock, test_file_dir
 )
 
 
@@ -72,14 +75,15 @@ def tmp_pptx_path(tmpdir):
 class DescribePart(object):
 
     def it_remembers_its_construction_state(self):
-        partname, content_type, blob = (
+        partname, content_type, package, blob = (
             Mock(name='partname'), Mock(name='content_type'),
-            Mock(name='blob')
+            Mock(name='package'), Mock(name='blob')
         )
-        part = Part(partname, content_type, blob)
-        assert part.blob == blob
-        assert part.content_type == content_type
+        part = Part(partname, content_type, blob, package)
         assert part.partname == partname
+        assert part.content_type == content_type
+        assert part.blob == blob
+        assert part.package == package
 
     def it_allows_its_partname_to_be_changed(self, part):
         new_partname = PackURI('/ppt/presentation.xml')
@@ -128,28 +132,23 @@ class DescribePartFactory(object):
 
     def it_constructs_custom_part_type_for_registered_content_types(
             self, part_args_, CustomPartClass_, part_of_custom_type_):
-        partname, content_type, blob = part_args_
+        # fixture ----------------------
+        partname, content_type, pkg, blob = part_args_
+        # exercise ---------------------
         PartFactory.part_type_for[content_type] = CustomPartClass_
-        part = PartFactory(partname, content_type, blob)
+        part = PartFactory(partname, content_type, pkg, blob)
+        # verify -----------------------
         CustomPartClass_.load.assert_called_once_with(
-            partname, content_type, blob
+            partname, content_type, pkg, blob
         )
         assert part is part_of_custom_type_
 
     def it_constructs_part_using_default_class_when_no_custom_registered(
-            self, part_args_, DefaultPartClass_, part_of_default_type_):
-        # fixture ----------------------
-        partname, content_type, blob = part_args_
-        # default_part_type needs to be set back after test
-        _prior_def_part_type = PartFactory.default_part_type
-        # exercise ---------------------
-        PartFactory.default_part_type = DefaultPartClass_
-        part = PartFactory(partname, content_type, blob)
-        # teardown ---------------------
-        PartFactory.default_part_type = _prior_def_part_type
-        # verify -----------------------
+            self, part_args_2_, DefaultPartClass_, part_of_default_type_):
+        partname, content_type, pkg, blob = part_args_2_
+        part = PartFactory(partname, content_type, pkg, blob)
         DefaultPartClass_.load.assert_called_once_with(
-            partname, content_type, blob
+            partname, content_type, pkg, blob
         )
         assert part is part_of_default_type_
 
@@ -170,17 +169,28 @@ class DescribePartFactory(object):
         return instance_mock(request, Part)
 
     @pytest.fixture
-    def DefaultPartClass_(self, part_of_default_type_):
-        DefaultPartClass_ = Mock(name='DefaultPartClass', spec=Part)
+    def DefaultPartClass_(self, request, part_of_default_type_):
+        DefaultPartClass_ = cls_attr_mock(
+            request, PartFactory, 'default_part_type'
+        )
         DefaultPartClass_.load.return_value = part_of_default_type_
         return DefaultPartClass_
 
     @pytest.fixture
     def part_args_(self, request):
-        partname_ = instance_mock(request, PackURI, name="partname_")
-        content_type_ = instance_mock(request, str, name="content_type_")
-        blob_ = instance_mock(request, str, name="blob_")
-        return partname_, content_type_, blob_
+        partname_ = PackURI('/foo/bar.xml')
+        content_type_ = 'content/type'
+        pkg_ = instance_mock(request, Package, name="pkg_")
+        blob_ = b'blob_'
+        return partname_, content_type_, pkg_, blob_
+
+    @pytest.fixture
+    def part_args_2_(self, request):
+        partname_2_ = PackURI('/bar/foo.xml')
+        content_type_2_ = 'foobar/type'
+        pkg_2_ = instance_mock(request, Package, name="pkg_2_")
+        blob_2_ = b'blob_2_'
+        return partname_2_, content_type_2_, pkg_2_, blob_2_
 
 
 class Describe_Relationship(object):
@@ -320,43 +330,40 @@ class DescribeRelationshipCollection(object):
 class DescribeUnmarshaller(object):
 
     def it_can_unmarshal_from_a_pkg_reader(
-            self, _unmarshal_parts, _unmarshal_relationships):
-        # mockery ----------------------
-        pkg = Mock(name='pkg')
-        pkg_reader = Mock(name='pkg_reader')
-        part_factory = Mock(name='part_factory')
-        parts = {1: Mock(name='part_1'), 2: Mock(name='part_2')}
-        _unmarshal_parts.return_value = parts
+            self, pkg_reader_, pkg_, part_factory_, _unmarshal_parts,
+            _unmarshal_relationships, parts_dict_):
         # exercise ---------------------
-        Unmarshaller.unmarshal(pkg_reader, pkg, part_factory)
+        Unmarshaller.unmarshal(pkg_reader_, pkg_, part_factory_)
         # verify -----------------------
-        _unmarshal_parts.assert_called_once_with(pkg_reader, part_factory)
-        _unmarshal_relationships.assert_called_once_with(pkg_reader, pkg,
-                                                         parts)
-        for part in parts.values():
-            part.after_unmarshal.assert_called_once_with()
-
-    def it_can_unmarshal_parts(self):
-        # test data --------------------
-        part_properties = (
-            ('/part/name1.xml', 'app/vnd.contentType_A', '<Part_1/>'),
-            ('/part/name2.xml', 'app/vnd.contentType_B', '<Part_2/>'),
-            ('/part/name3.xml', 'app/vnd.contentType_C', '<Part_3/>'),
+        _unmarshal_parts.assert_called_once_with(
+            pkg_reader_, pkg_, part_factory_
         )
-        # mockery ----------------------
-        pkg_reader = Mock(name='pkg_reader')
-        pkg_reader.iter_sparts.return_value = part_properties
-        part_factory = Mock(name='part_factory')
-        parts = [Mock(name='part1'), Mock(name='part2'), Mock(name='part3')]
-        part_factory.side_effect = parts
+        _unmarshal_relationships.assert_called_once_with(
+            pkg_reader_, pkg_, parts_dict_
+        )
+        for part in parts_dict_.values():
+            part.after_unmarshal.assert_called_once_with()
+        pkg_.after_unmarshal.assert_called_once_with()
+
+    def it_can_unmarshal_parts(
+            self, pkg_reader_, pkg_, part_factory_, parts_dict_, partnames_,
+            content_types_, blobs_):
+        # fixture ----------------------
+        partname_, partname_2_ = partnames_
+        content_type_, content_type_2_ = content_types_
+        blob_, blob_2_ = blobs_
         # exercise ---------------------
-        retval = Unmarshaller._unmarshal_parts(pkg_reader, part_factory)
+        parts = Unmarshaller._unmarshal_parts(
+            pkg_reader_, pkg_, part_factory_
+        )
         # verify -----------------------
-        expected_calls = [call(*p) for p in part_properties]
-        expected_parts = dict((p[0], parts[idx]) for (idx, p) in
-                              enumerate(part_properties))
-        assert part_factory.call_args_list == expected_calls
-        assert retval == expected_parts
+        assert (
+            part_factory_.call_args_list == [
+                call(partname_, content_type_, blob_, pkg_),
+                call(partname_2_, content_type_2_, blob_2_, pkg_)
+            ]
+        )
+        assert parts == parts_dict_
 
     def it_can_unmarshal_relationships(self):
         # test data --------------------
@@ -398,8 +405,64 @@ class DescribeUnmarshaller(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def _unmarshal_parts(self, request):
-        return method_mock(request, Unmarshaller, '_unmarshal_parts')
+    def blobs_(self, request):
+        blob_ = loose_mock(request, spec=str, name='blob_')
+        blob_2_ = loose_mock(request, spec=str, name='blob_2_')
+        return blob_, blob_2_
+
+    @pytest.fixture
+    def content_types_(self, request):
+        content_type_ = loose_mock(request, spec=str, name='content_type_')
+        content_type_2_ = loose_mock(request, spec=str, name='content_type_2_')
+        return content_type_, content_type_2_
+
+    @pytest.fixture
+    def part_factory_(self, request, parts_):
+        part_factory_ = loose_mock(request, spec=Part)
+        part_factory_.side_effect = parts_
+        return part_factory_
+
+    @pytest.fixture
+    def partnames_(self, request):
+        partname_ = loose_mock(request, spec=str, name='partname_')
+        partname_2_ = loose_mock(request, spec=str, name='partname_2_')
+        return partname_, partname_2_
+
+    @pytest.fixture
+    def parts_(self, request):
+        part_ = instance_mock(request, Part, name='part_')
+        part_2_ = instance_mock(request, Part, name='part_2')
+        return part_, part_2_
+
+    @pytest.fixture
+    def parts_dict_(self, request, partnames_, parts_):
+        partname_, partname_2_ = partnames_
+        part_, part_2_ = parts_
+        return {partname_: part_, partname_2_: part_2_}
+
+    @pytest.fixture
+    def pkg_(self, request):
+        return instance_mock(request, Package)
+
+    @pytest.fixture
+    def pkg_reader_(self, request, partnames_, content_types_, blobs_):
+        partname_, partname_2_ = partnames_
+        content_type_, content_type_2_ = content_types_
+        blob_, blob_2_ = blobs_
+        spart_return_values = (
+            (partname_, content_type_, blob_),
+            (partname_2_, content_type_2_, blob_2_),
+        )
+        pkg_reader_ = instance_mock(request, PackageReader)
+        pkg_reader_.iter_sparts.return_value = spart_return_values
+        return pkg_reader_
+
+    @pytest.fixture
+    def _unmarshal_parts(self, request, parts_dict_):
+        return method_mock(
+            request, Unmarshaller, '_unmarshal_parts',
+            return_value=parts_dict_
+        )
 
     @pytest.fixture
     def _unmarshal_relationships(self, request):
