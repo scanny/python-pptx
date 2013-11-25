@@ -10,12 +10,7 @@ from __future__ import absolute_import
 import os
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.packuri import PACKAGE_URI
-from pptx.opc.package import (
-    Part, PartFactory, RelationshipCollection, Unmarshaller
-)
-from pptx.opc.pkgreader import PackageReader
-from pptx.opc.pkgwriter import PackageWriter
+from pptx.opc.package import OpcPackage, Part
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import serialize_part_xml
 from pptx.parts.coreprops import CoreProperties
@@ -25,7 +20,7 @@ from pptx.parts.slides import SlideCollection
 from pptx.util import lazyproperty
 
 
-class Package(object):
+class Package(OpcPackage):
     """
     Return an instance of |Package| loaded from *file*, where *file* can be a
     path (a string) or a file-like object. If *file* is a path, it can be
@@ -40,17 +35,13 @@ class Package(object):
         os.path.split(__file__)[0], 'templates', 'default.pptx'
     )
 
-    def __init__(self):
-        super(Package, self).__init__()
-        self._rels = RelationshipCollection(PACKAGE_URI.baseURI)
-
     def after_unmarshal(self):
         """
         Called by loading code after all parts and relationships have been
         loaded, to afford the opportunity for any required post-processing.
         """
         # gather image parts into _images
-        self._images.load(self._parts)
+        self._images.load(self.parts)
 
     @lazyproperty
     def core_properties(self):
@@ -74,10 +65,7 @@ class Package(object):
         """
         if pkg_file is None:
             pkg_file = cls._default_pptx_path
-        pkg_reader = PackageReader.from_file(pkg_file)
-        pkg = cls()
-        Unmarshaller.unmarshal(pkg_reader, pkg, PartFactory)
-        return pkg
+        return super(Package, cls).open(pkg_file)
 
     @lazyproperty
     def presentation(self):
@@ -86,24 +74,6 @@ class Package(object):
         """
         return self._rels.part_with_reltype(RT.OFFICE_DOCUMENT)
 
-    def save(self, pkg_file):
-        """
-        Save this package to *pkg_file*, which can be either a path to a file
-        (a string) or a file-like object.
-        """
-        # self._notify_before_marshal()
-        for part in self._parts:
-            part.before_marshal()
-        PackageWriter.write(pkg_file, self._rels, self._parts)
-
-    def _add_relationship(self, reltype, target, rId, is_external=False):
-        """
-        Return newly added |_Relationship| instance of *reltype* between this
-        package and part *target* with key *rId*. Target mode is set to
-        ``RTM.EXTERNAL`` if *is_external* is |True|.
-        """
-        return self._rels.add_relationship(reltype, target, rId, is_external)
-
     @lazyproperty
     def _images(self):
         """
@@ -111,33 +81,6 @@ class Package(object):
         package.
         """
         return ImageCollection()
-
-    @property
-    def _parts(self):
-        """
-        Return a list containing a reference to each of the parts in this
-        package.
-        """
-        return [part for part in Package._walkparts(self._rels)]
-
-    @staticmethod
-    def _walkparts(rels, parts=None):
-        """
-        Recursive function, walk relationships to iterate over all parts in
-        this package. Leave out *parts* parameter in call to visit all parts.
-        """
-        # initial call can leave out parts parameter as a signal to initialize
-        if parts is None:
-            parts = []
-        for rel in rels:
-            part = rel.target_part
-            # only visit each part once (graph is cyclic)
-            if part in parts:
-                continue
-            parts.append(part)
-            yield part
-            for part in Package._walkparts(part._rels, parts):
-                yield part
 
 
 class Presentation(Part):

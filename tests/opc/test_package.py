@@ -20,14 +20,8 @@ from pptx.opc.pkgreader import PackageReader
 from pptx.presentation import Package
 
 from ..unitutil import (
-    absjoin, class_mock, cls_attr_mock, instance_mock, loose_mock,
-    method_mock, test_file_dir
+    cls_attr_mock, class_mock, instance_mock, loose_mock, method_mock
 )
-
-
-test_pptx_path = absjoin(test_file_dir, 'test.pptx')
-dir_pkg_path = absjoin(test_file_dir, 'expanded_pptx')
-zip_pkg_path = test_pptx_path
 
 
 class DescribeOpcPackage(object):
@@ -64,13 +58,13 @@ class DescribeOpcPackage(object):
         pkg._rels.add_relationship.assert_called_once_with(reltype, target,
                                                            rId, False)
 
-    def it_has_an_immutable_sequence_containing_its_parts(self):
+    def it_can_provide_a_list_of_the_parts_it_contains(self):
         # mockery ----------------------
         parts = [Mock(name='part1'), Mock(name='part2')]
         pkg = OpcPackage()
         # verify -----------------------
         with patch.object(OpcPackage, '_walk_parts', return_value=parts):
-            assert pkg.parts == (parts[0], parts[1])
+            assert pkg.parts == [parts[0], parts[1]]
 
     def it_can_iterate_over_parts_by_walking_rels_graph(self):
         # +----------+       +--------+
@@ -93,18 +87,15 @@ class DescribeOpcPackage(object):
         # verify -----------------------
         assert generated_parts == [part1, part2]
 
-    def it_can_save_to_a_pkg_file(self, PackageWriter_, parts):
-        # mockery ----------------------
-        pkg_file = Mock(name='pkg_file')
+    def it_can_save_to_a_pkg_file(
+            self, pkg_file_, PackageWriter_, parts, parts_):
         pkg = OpcPackage()
-        parts.return_value = parts = [Mock(name='part1'), Mock(name='part2')]
-        # exercise ---------------------
-        pkg.save(pkg_file)
-        # verify -----------------------
-        for part in parts:
-            part._before_marshal.assert_called_once_with()
-        PackageWriter_.write.assert_called_once_with(pkg_file, pkg._rels,
-                                                     parts)
+        pkg.save(pkg_file_)
+        for part in parts_:
+            part.before_marshal.assert_called_once_with()
+        PackageWriter_.write.assert_called_once_with(
+            pkg_file_, pkg._rels, parts_
+        )
 
     # fixtures ---------------------------------------------
 
@@ -121,14 +112,27 @@ class DescribeOpcPackage(object):
         return class_mock(request, 'pptx.opc.package.PartFactory')
 
     @pytest.fixture
-    def parts(self, request):
+    def parts(self, request, parts_):
         """
         Return a mock patching property OpcPackage.parts, reversing the
         patch after each use.
         """
-        _patch = patch.object(OpcPackage, 'parts', new_callable=PropertyMock)
+        _patch = patch.object(
+            OpcPackage, 'parts', new_callable=PropertyMock,
+            return_value=parts_
+        )
         request.addfinalizer(_patch.stop)
         return _patch.start()
+
+    @pytest.fixture
+    def parts_(self, request):
+        part_ = instance_mock(request, Part, name='part_')
+        part_2_ = instance_mock(request, Part, name='part_2_')
+        return [part_, part_2_]
+
+    @pytest.fixture
+    def pkg_file_(self, request):
+        return loose_mock(request)
 
     @pytest.fixture
     def RelationshipCollection_(self, request):
@@ -137,49 +141,6 @@ class DescribeOpcPackage(object):
     @pytest.fixture
     def Unmarshaller_(self, request):
         return class_mock(request, 'pptx.opc.package.Unmarshaller')
-
-
-@pytest.fixture
-def tmp_pptx_path(tmpdir):
-    return str(tmpdir.join('test_python-pptx.pptx'))
-
-# def test_it_finds_default_case_insensitive(self, cti):
-#     """_ContentTypesItem[partname] finds default case insensitive"""
-#     # setup ------------------------
-#     partname = '/ppt/media/image1.JPG'
-#     content_type = 'image/jpeg'
-#     cti._defaults = {'jpg': content_type}
-#     # exercise ---------------------
-#     val = cti[partname]
-#     # verify -----------------------
-#     assert val == content_type
-
-# def test_it_finds_override_case_insensitive(self, cti):
-#     """_ContentTypesItem[partname] finds override case insensitive"""
-#     # setup ------------------------
-#     partname = '/foo/bar.xml'
-#     case_mangled_partname = '/FoO/bAr.XML'
-#     content_type = 'application/vnd.content_type'
-#     cti._overrides = {
-#         partname: content_type
-#     }
-#     # exercise ---------------------
-#     val = cti[case_mangled_partname]
-#     # verify -----------------------
-#     assert val == content_type
-
-# def test_save_accepts_stream(self, tmp_pptx_path):
-#     pkg = Package().open(dir_pkg_path)
-#     stream = StringIO()
-#     # exercise --------------------
-#     pkg.save(stream)
-#     # verify ----------------------
-#     # can't use is_zipfile() directly on stream in Python 2.6
-#     stream.seek(0)
-#     with open(tmp_pptx_path, 'wb') as f:
-#         f.write(stream.read())
-#     msg = "Package.save(stream) did not create zipfile"
-#     assert is_zipfile(tmp_pptx_path), msg
 
 
 class DescribePart(object):
@@ -577,3 +538,55 @@ class DescribeUnmarshaller(object):
     @pytest.fixture
     def _unmarshal_relationships(self, request):
         return method_mock(request, Unmarshaller, '_unmarshal_relationships')
+
+
+# from ..unitutil import (
+#     absjoin, class_mock, cls_attr_mock, instance_mock, loose_mock,
+#     method_mock, test_file_dir
+# )
+# test_pptx_path = absjoin(test_file_dir, 'test.pptx')
+# dir_pkg_path = absjoin(test_file_dir, 'expanded_pptx')
+# zip_pkg_path = test_pptx_path
+
+# def test_it_finds_default_case_insensitive(self, cti):
+#     """_ContentTypesItem[partname] finds default case insensitive"""
+#     # setup ------------------------
+#     partname = '/ppt/media/image1.JPG'
+#     content_type = 'image/jpeg'
+#     cti._defaults = {'jpg': content_type}
+#     # exercise ---------------------
+#     val = cti[partname]
+#     # verify -----------------------
+#     assert val == content_type
+
+# def test_it_finds_override_case_insensitive(self, cti):
+#     """_ContentTypesItem[partname] finds override case insensitive"""
+#     # setup ------------------------
+#     partname = '/foo/bar.xml'
+#     case_mangled_partname = '/FoO/bAr.XML'
+#     content_type = 'application/vnd.content_type'
+#     cti._overrides = {
+#         partname: content_type
+#     }
+#     # exercise ---------------------
+#     val = cti[case_mangled_partname]
+#     # verify -----------------------
+#     assert val == content_type
+
+# def test_save_accepts_stream(self, tmp_pptx_path):
+#     pkg = Package().open(dir_pkg_path)
+#     stream = StringIO()
+#     # exercise --------------------
+#     pkg.save(stream)
+#     # verify ----------------------
+#     # can't use is_zipfile() directly on stream in Python 2.6
+#     stream.seek(0)
+#     with open(tmp_pptx_path, 'wb') as f:
+#         f.write(stream.read())
+#     msg = "Package.save(stream) did not create zipfile"
+#     assert is_zipfile(tmp_pptx_path), msg
+
+
+# @pytest.fixture
+# def tmp_pptx_path(tmpdir):
+#     return str(tmpdir.join('test_python-pptx.pptx'))

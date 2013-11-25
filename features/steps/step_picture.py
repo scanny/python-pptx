@@ -41,7 +41,7 @@ def step_when_add_picture(context):
 @then('the image is saved in the pptx file')
 def step_then_img_saved_in_pptx_file(context):
     pkg = Package().open(saved_pptx_path)
-    partnames = [part.partname for part in pkg._parts]
+    partnames = [part.partname for part in pkg.parts]
     assert_that(partnames, has_item('/ppt/media/image1.png'))
 
 

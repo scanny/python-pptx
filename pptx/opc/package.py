@@ -37,24 +37,24 @@ class OpcPackage(object):
         rel = self._rels.get_rel_of_type(RT.OFFICE_DOCUMENT)
         return rel.target_part
 
-    @staticmethod
-    def open(pkg_file):
+    @classmethod
+    def open(cls, pkg_file):
         """
         Return an |OpcPackage| instance loaded with the contents of
         *pkg_file*.
         """
-        pkg = OpcPackage()
         pkg_reader = PackageReader.from_file(pkg_file)
-        Unmarshaller.unmarshal(pkg_reader, pkg, PartFactory)
-        return pkg
+        package = cls()
+        Unmarshaller.unmarshal(pkg_reader, package, PartFactory)
+        return package
 
     @property
     def parts(self):
         """
-        Return an immutable sequence (tuple) containing a reference to each
-        of the parts in this package.
+        Return a list containing a reference to each of the parts in this
+        package.
         """
-        return tuple([p for p in self._walk_parts(self._rels)])
+        return [part for part in self._walk_parts(self._rels)]
 
     @property
     def rels(self):
@@ -69,8 +69,9 @@ class OpcPackage(object):
         Save this package to *pkg_file*, where *file* can be either a path to
         a file (a string) or a file-like object.
         """
+        # self._notify_before_marshal()
         for part in self.parts:
-            part._before_marshal()
+            part.before_marshal()
         PackageWriter.write(pkg_file, self._rels, self.parts)
 
     def _add_relationship(self, reltype, target, rId, external=False):
@@ -87,6 +88,7 @@ class OpcPackage(object):
         Generate exactly one reference to each of the parts in the package by
         performing a depth-first traversal of the rels graph.
         """
+        # initial call leaves out parts argument as a signal to initialize
         if visited_parts is None:
             visited_parts = []
         for rel in rels:
