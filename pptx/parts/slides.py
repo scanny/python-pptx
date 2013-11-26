@@ -43,14 +43,12 @@ class _BaseSlide(Part):
         cSld = self._element.cSld
         return cSld.get('name', default='')
 
-    @property
+    @lazyproperty
     def shapes(self):
         """
         Collection of shape objects belonging to this slide.
         """
-        if not hasattr(self, '_shapes'):
-            self._shapes = ShapeCollection(self._element.cSld.spTree, self)
-        return self._shapes
+        return ShapeCollection(self._element.cSld.spTree, self)
 
     def _add_image(self, img_file):
         """
