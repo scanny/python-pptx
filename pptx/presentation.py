@@ -51,7 +51,7 @@ class Package(OpcPackage):
         properties part if one is not present (not common).
         """
         try:
-            return self.related_part(RT.CORE_PROPERTIES)
+            return self.part_related_by(RT.CORE_PROPERTIES)
         except KeyError:
             core_props = CoreProperties.default()
             self.relate_to(core_props, RT.CORE_PROPERTIES)

@@ -65,7 +65,7 @@ class OpcPackage(object):
         presentation part for a PresentationML package, or a workbook part
         for a SpreadsheetML package.
         """
-        return self.related_part(RT.OFFICE_DOCUMENT)
+        return self.part_related_by(RT.OFFICE_DOCUMENT)
 
     @classmethod
     def open(cls, pkg_file):
@@ -77,6 +77,14 @@ class OpcPackage(object):
         package = cls()
         Unmarshaller.unmarshal(pkg_reader, package, PartFactory)
         return package
+
+    def part_related_by(self, reltype):
+        """
+        Return part to which this package has a relationship of *reltype*.
+        Raises |KeyError| if no such relationship is found and |ValueError|
+        if more than one such relationship is found.
+        """
+        return self.rels.part_with_reltype(reltype)
 
     @property
     def parts(self):
@@ -93,14 +101,6 @@ class OpcPackage(object):
         """
         rel = self.rels.get_or_add(reltype, part)
         return rel.rId
-
-    def related_part(self, reltype):
-        """
-        Return part to which this package has a relationship of *reltype*.
-        Raises |KeyError| if no such relationship is found and |ValueError|
-        if more than one such relationship is found.
-        """
-        return self.rels.part_with_reltype(reltype)
 
     @lazyproperty
     def rels(self):
@@ -192,6 +192,14 @@ class Part(object):
         """
         return self._package
 
+    def part_related_by(self, reltype):
+        """
+        Return part to which this part has a relationship of *reltype*.
+        Raises |KeyError| if no such relationship is found and |ValueError|
+        if more than one such relationship is found.
+        """
+        return self.rels.part_with_reltype(reltype)
+
     @property
     def partname(self):
         """
@@ -214,14 +222,6 @@ class Part(object):
         """
         rel = self.rels.get_or_add(reltype, other_part)
         return rel.rId
-
-    def related_part(self, reltype):
-        """
-        Return part to which this part has a relationship of *reltype*.
-        Raises |KeyError| if no such relationship is found and |ValueError|
-        if more than one such relationship is found.
-        """
-        return self.rels.part_with_reltype(reltype)
 
     @lazyproperty
     def rels(self):

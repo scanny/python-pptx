@@ -83,7 +83,7 @@ class Slide(_BaseSlide):
         """
         |SlideLayout| object this slide inherits appearance from.
         """
-        return self.related_part(RT.SLIDE_LAYOUT)
+        return self.part_related_by(RT.SLIDE_LAYOUT)
 
     @staticmethod
     def _minimal_element():
@@ -184,7 +184,7 @@ class SlideLayout(_BaseSlide):
         """
         Slide master from which this slide layout inherits properties.
         """
-        return self.related_part(RT.SLIDE_MASTER)
+        return self.part_related_by(RT.SLIDE_MASTER)
 
 
 class SlideMaster(_BaseSlide):

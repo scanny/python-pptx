@@ -93,9 +93,9 @@ class DescribeOpcPackage(object):
         # verify -----------------------
         assert generated_parts == [part1, part2]
 
-    def it_can_find_a_related_part(self, related_part_fixture_):
+    def it_can_find_a_part_related_by_reltype(self, related_part_fixture_):
         pkg, reltype, related_part_ = related_part_fixture_
-        related_part = pkg.related_part(reltype)
+        related_part = pkg.part_related_by(reltype)
         pkg.rels.part_with_reltype.assert_called_once_with(reltype)
         assert related_part is related_part_
 
@@ -244,9 +244,9 @@ class DescribePart(object):
         part.rels.get_or_add.assert_called_once_with(reltype, related_part_)
         assert _rId == rId
 
-    def it_can_find_a_related_part(self, related_part_fixture_):
+    def it_can_find_a_part_related_by_reltype(self, related_part_fixture_):
         part, reltype, related_part_ = related_part_fixture_
-        related_part = part.related_part(reltype)
+        related_part = part.part_related_by(reltype)
         part.rels.part_with_reltype.assert_called_once_with(reltype)
         assert related_part is related_part_
 
