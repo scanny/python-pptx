@@ -52,16 +52,16 @@ class _BaseSlide(Part):
             self._shapes = ShapeCollection(self._element.cSld.spTree, self)
         return self._shapes
 
-    def _add_image(self, file):
+    def _add_image(self, img_file):
         """
-        Return a tuple ``(image, relationship)`` representing the |Image| part
-        specified by *file*. If a matching image part already exists it is
-        reused. If the slide already has a relationship to an existing image,
-        that relationship is reused.
+        Return 2-tuple ``(image, rId)`` representing an |Image| part
+        corresponding to the image in *img_file*, newly created if no
+        matching image part is already present. If the slide already has a
+        relationship to an existing image, that relationship is reused.
         """
-        image = self._package._images.add_image(file)
+        image = self._package._images.add_image(img_file)
         rel = self.rels.get_or_add(RT.IMAGE, image)
-        return (image, rel)
+        return (image, rel.rId)
 
 
 class Slide(_BaseSlide):

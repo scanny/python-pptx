@@ -21,10 +21,6 @@ from pptx.util import Collection
 _nsmap = namespaces('a', 'r', 'p')
 
 
-# ============================================================================
-# Shapes
-# ============================================================================
-
 class ShapeCollection(BaseShape, Collection):
     """
     Sequence of shapes. Corresponds to CT_GroupShape in pml schema. Note that
@@ -88,17 +84,16 @@ class ShapeCollection(BaseShape, Collection):
                 return shape
         return None
 
-    def add_picture(self, file, left, top, width=None, height=None):
+    def add_picture(self, img_file, left, top, width=None, height=None):
         """
-        Add picture shape displaying image in *file*, where *file* can be
-        either a path to a file (a string) or a file-like object.
+        Add picture shape displaying image in *img_file*, where *img_file*
+        can be either a path to a file (a string) or a file-like object.
         """
-        image, rel = self._slide._add_image(file)
+        image, rId = self._slide._add_image(img_file)
 
         id = self._next_shape_id
         name = 'Picture %d' % (id-1)
         desc = image._desc
-        rId = rel.rId
         width, height = image._scale(width, height)
 
         pic = CT_Picture.new_pic(id, name, desc, rId, left, top, width, height)

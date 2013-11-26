@@ -78,14 +78,16 @@ class Describe_BaseSlide(object):
         assert len(shapes) == 9
 
     def it_can_add_an_image_part_to_the_slide(self, base_slide_fixture):
-        base_slide, image_, rel_ = base_slide_fixture
-        image, rel = base_slide._add_image(file)
-        base_slide._package._images.add_image.assert_called_once_with(file)
-        base_slide.rels.get_or_add.assert_called_once_with(
-            RT.IMAGE, image_
-        )
+        # fixture ----------------------
+        base_slide, img_file_, image_, rId_ = base_slide_fixture
+        # exercise ---------------------
+        image, rId = base_slide._add_image(img_file_)
+        # verify -----------------------
+        base_slide._package._images.add_image.assert_called_once_with(
+            img_file_)
+        base_slide.rels.get_or_add.assert_called_once_with(RT.IMAGE, image_)
         assert image is image_
-        assert rel is rel_
+        assert rId is rId_
 
     def it_knows_what_to_do_after_the_slide_is_unmarshaled(self):
         pass
@@ -100,19 +102,21 @@ class Describe_BaseSlide(object):
     @pytest.fixture
     def base_slide_fixture(self, request, base_slide):
         # mock _BaseSlide._package._images.add_image() train wreck
+        img_file_ = loose_mock(request, name='img_file_')
         image_ = loose_mock(request, name='image_')
         pkg_ = loose_mock(request, name='_package', spec=Package)
         pkg_._images.add_image.return_value = image_
         base_slide._package = pkg_
         # mock _BaseSlide.rels.get_or_add()
-        rel_ = loose_mock(request, name='rel_')
+        rId_ = loose_mock(request, name='rId_')
+        rel_ = loose_mock(request, name='rel_', rId=rId_)
         rels_ = loose_mock(request, name='rels_')
         rels_.get_or_add.return_value = rel_
         rels = property_mock(  # noqa
             request, 'pptx.parts.slides._BaseSlide.rels',
             return_value=rels_
         )
-        return base_slide, image_, rel_
+        return base_slide, img_file_, image_, rId_
 
 
 class DescribeSlide(object):

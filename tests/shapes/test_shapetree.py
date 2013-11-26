@@ -116,7 +116,7 @@ class TestShapeCollection(TestCase):
                                        Picture):
         """ShapeCollection.add_picture() calls the right collaborators"""
         # constant values -------------
-        file = test_image_path
+        img_file = test_image_path
         left, top, width, height = 1, 2, 3, 4
         id_, name, desc = 12, 'Picture 11', 'image1.jpeg'
         rId = 'rId1'
@@ -124,9 +124,8 @@ class TestShapeCollection(TestCase):
         next_shape_id.return_value = id_
         image = Mock(name='image', _desc=desc)
         image._scale.return_value = width, height
-        rel = Mock(name='rel', rId=rId)
         slide = Mock(name='slide')
-        slide._add_image.return_value = image, rel
+        slide._add_image.return_value = image, rId
         _spTree = Mock(name='_spTree')
         _shapes = Mock(name='_shapes')
         shapes = ShapeCollection(test_shape_elements.empty_spTree, slide)
@@ -137,9 +136,9 @@ class TestShapeCollection(TestCase):
         picture = Mock(name='picture')
         Picture.return_value = picture
         # # exercise --------------------
-        retval = shapes.add_picture(file, left, top, width, height)
+        retval = shapes.add_picture(img_file, left, top, width, height)
         # verify -----------------------
-        shapes._slide._add_image.assert_called_once_with(file)
+        shapes._slide._add_image.assert_called_once_with(img_file)
         image._scale.assert_called_once_with(width, height)
         CT_Picture.new_pic.assert_called_once_with(
             id_, name, desc, rId, left, top, width, height)
