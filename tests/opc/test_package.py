@@ -56,6 +56,13 @@ class DescribeOpcPackage(object):
             reltype, target, rId, False
         )
 
+    def it_can_establish_a_relationship_to_another_part(
+            self, relate_to_part_fixture_):
+        pkg, part_, reltype, rId = relate_to_part_fixture_
+        _rId = pkg.relate_to(part_, reltype)
+        pkg.rels.get_or_add.assert_called_once_with(reltype, part_)
+        assert _rId == rId
+
     def it_can_provide_a_list_of_the_parts_it_contains(self):
         # mockery ----------------------
         parts = [Mock(name='part1'), Mock(name='part2')]
@@ -136,6 +143,10 @@ class DescribeOpcPackage(object):
         return [part_, part_2_]
 
     @pytest.fixture
+    def pkg(self, request):
+        return OpcPackage()
+
+    @pytest.fixture
     def pkg_file_(self, request):
         return loose_mock(request)
 
@@ -157,19 +168,29 @@ class DescribeOpcPackage(object):
         return reltype, target_, rId
 
     @pytest.fixture
-    def related_part_fixture_(self, request):
-        reltype = 'http://rel/type'
+    def relate_to_part_fixture_(self, request, pkg, rels_, reltype):
+        rId = 'rId99'
+        rel_ = instance_mock(request, _Relationship, name='rel_', rId=rId)
+        rels_.get_or_add.return_value = rel_
+        pkg._rels = rels_
+        part_ = instance_mock(request, Part, name='part_')
+        return pkg, part_, reltype, rId
+
+    @pytest.fixture
+    def related_part_fixture_(self, request, rels_, reltype):
         related_part_ = instance_mock(request, Part, name='related_part_')
-        rels_ = instance_mock(request, RelationshipCollection, name='rels_')
         rels_.part_with_reltype.return_value = related_part_
         pkg = OpcPackage()
-        pkg.rels  # triggers lazyprop to create pkg._rels
         pkg._rels = rels_
         return pkg, reltype, related_part_
 
     @pytest.fixture
     def rels_(self, request):
         return instance_mock(request, RelationshipCollection)
+
+    @pytest.fixture
+    def reltype(self, request):
+        return 'http://rel/type'
 
     @pytest.fixture
     def Unmarshaller_(self, request):

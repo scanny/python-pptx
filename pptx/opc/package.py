@@ -86,6 +86,14 @@ class OpcPackage(object):
         """
         return [part for part in self.iter_parts()]
 
+    def relate_to(self, part, reltype):
+        """
+        Return rId key of relationship to *part*, from the existing
+        relationship if there is one, otherwise a newly created one.
+        """
+        rel = self.rels.get_or_add(reltype, part)
+        return rel.rId
+
     def related_part(self, reltype):
         """
         Return part to which this package has a relationship of *reltype*.

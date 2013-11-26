@@ -54,7 +54,7 @@ class Package(OpcPackage):
             return self.related_part(RT.CORE_PROPERTIES)
         except KeyError:
             core_props = CoreProperties.default()
-            self.rels.get_or_add(RT.CORE_PROPERTIES, core_props)
+            self.relate_to(core_props, RT.CORE_PROPERTIES)
             return core_props
 
     @classmethod
