@@ -45,18 +45,15 @@ class DescribeOpcPackage(object):
         RelationshipCollection_.assert_called_once_with(PACKAGE_URI.baseURI)
         assert pkg.rels == RelationshipCollection_.return_value
 
-    def it_can_add_a_relationship_to_a_part(self):
-        # mockery ----------------------
-        reltype, target, rId = (
-            Mock(name='reltype'), Mock(name='target'), Mock(name='rId')
-        )
-        pkg = OpcPackage()
-        pkg._rels = Mock(name='_rels')
+    def it_can_add_a_relationship_to_a_part(self, pkg_with_rels_, rel_attrs_):
+        reltype, target, rId = rel_attrs_
+        pkg = pkg_with_rels_
         # exercise ---------------------
-        pkg._add_relationship(reltype, target, rId)
+        pkg.load_rel(reltype, target, rId)
         # verify -----------------------
-        pkg._rels.add_relationship.assert_called_once_with(reltype, target,
-                                                           rId, False)
+        pkg._rels.add_relationship.assert_called_once_with(
+            reltype, target, rId, False
+        )
 
     def it_can_provide_a_list_of_the_parts_it_contains(self):
         # mockery ----------------------
@@ -135,8 +132,25 @@ class DescribeOpcPackage(object):
         return loose_mock(request)
 
     @pytest.fixture
+    def pkg_with_rels_(self, request, rels_):
+        pkg = OpcPackage()
+        pkg._rels = rels_
+        return pkg
+
+    @pytest.fixture
     def RelationshipCollection_(self, request):
         return class_mock(request, 'pptx.opc.package.RelationshipCollection')
+
+    @pytest.fixture
+    def rel_attrs_(self, request):
+        reltype = 'http://rel/type'
+        target_ = instance_mock(request, Part, name='target_')
+        rId = 'rId99'
+        return reltype, target_, rId
+
+    @pytest.fixture
+    def rels_(self, request):
+        return instance_mock(request, RelationshipCollection)
 
     @pytest.fixture
     def Unmarshaller_(self, request):
@@ -175,7 +189,7 @@ class DescribePart(object):
         )
         setattr(part, '__rels', Mock(name='_rels'))
         # exercise ---------------------
-        part._add_relationship(reltype, target, rId)
+        part.load_rel(reltype, target, rId)
         # verify -----------------------
         part._rels.add_relationship.assert_called_once_with(
             reltype, target, rId, False
@@ -462,14 +476,10 @@ class DescribeUnmarshaller(object):
         Unmarshaller._unmarshal_relationships(pkg_reader, pkg, parts)
         # verify -----------------------
         expected_pkg_calls = [
-            call._add_relationship(
-                reltype, parts['partname1'], 'rId1', False),
-            call._add_relationship(
-                reltype, 'target_ref_1', 'rId2', True),
-            call.part1._add_relationship(
-                reltype, parts['partname2'], 'rId3', False),
-            call.part2._add_relationship(
-                reltype, 'target_ref_2', 'rId4', True),
+            call.load_rel(reltype, parts['partname1'], 'rId1', False),
+            call.load_rel(reltype, 'target_ref_1', 'rId2', True),
+            call.part1.load_rel(reltype, parts['partname2'], 'rId3', False),
+            call.part2.load_rel(reltype, 'target_ref_2', 'rId4', True),
         ]
         assert pkg.mock_calls == expected_pkg_calls
 

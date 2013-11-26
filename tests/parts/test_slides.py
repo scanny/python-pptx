@@ -241,7 +241,7 @@ class DescribeSlideCollection(object):
     @pytest.fixture
     def prs_(self, request, rel_):
         prs_ = instance_mock(request, Presentation)
-        prs_._add_relationship.return_value = rel_
+        prs_.load_rel.return_value = rel_
         return prs_
 
     @pytest.fixture

@@ -26,6 +26,17 @@ class OpcPackage(object):
         super(OpcPackage, self).__init__()
         self._rels = RelationshipCollection(PACKAGE_URI.baseURI)
 
+    def load_rel(self, reltype, target, rId, is_external=False):
+        """
+        Return newly added |_Relationship| instance of *reltype* between this
+        part and *target* with key *rId*. Target mode is set to
+        ``RTM.EXTERNAL`` if *is_external* is |True|. Intended for use during
+        load from a serialized package, where the rId is well known. Other
+        methods exist for adding a new relationship to the package during
+        processing.
+        """
+        return self._rels.add_relationship(reltype, target, rId, is_external)
+
     @property
     def main_document(self):
         """
@@ -73,14 +84,6 @@ class OpcPackage(object):
         for part in self.parts:
             part.before_marshal()
         PackageWriter.write(pkg_file, self._rels, self.parts)
-
-    def _add_relationship(self, reltype, target, rId, external=False):
-        """
-        Return newly added |_Relationship| instance of *reltype* between this
-        package and part *target* with key *rId*. Target mode is set to
-        ``RTM.EXTERNAL`` if *external* is |True|.
-        """
-        return self._rels.add_relationship(reltype, target, rId, external)
 
     @staticmethod
     def _walk_parts(rels, visited_parts=None):
@@ -156,6 +159,17 @@ class Part(object):
     def load(cls, partname, content_type, blob, package):
         return cls(partname, content_type, blob, package)
 
+    def load_rel(self, reltype, target, rId, is_external=False):
+        """
+        Return newly added |_Relationship| instance of *reltype* between this
+        part and *target* with key *rId*. Target mode is set to
+        ``RTM.EXTERNAL`` if *is_external* is |True|. Intended for use during
+        load from a serialized package, where the rId is well known. Other
+        methods exist for adding a new relationship to a part when
+        manipulating a part.
+        """
+        return self._rels.add_relationship(reltype, target, rId, is_external)
+
     @property
     def package(self):
         """
@@ -177,14 +191,6 @@ class Part(object):
             tmpl = "partname must be instance of PackURI, got '%s'"
             raise TypeError(tmpl % type(partname).__name__)
         self._partname = partname
-
-    def _add_relationship(self, reltype, target, rId, is_external=False):
-        """
-        Return newly added |_Relationship| instance of *reltype* between this
-        part and *target* with key *rId*. Target mode is set to
-        ``RTM.EXTERNAL`` if *is_external* is |True|.
-        """
-        return self._rels.add_relationship(reltype, target, rId, is_external)
 
     @lazyproperty
     def _rels(self):
@@ -399,8 +405,7 @@ class Unmarshaller(object):
             source = package if source_uri == '/' else parts[source_uri]
             target = (srel.target_ref if srel.is_external
                       else parts[srel.target_partname])
-            source._add_relationship(srel.reltype, target, srel.rId,
-                                     srel.is_external)
+            source.load_rel(srel.reltype, target, srel.rId, srel.is_external)
 
 
 class _Relationship(object):
