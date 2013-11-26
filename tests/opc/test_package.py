@@ -187,14 +187,20 @@ class DescribePart(object):
     def it_can_add_a_relationship_to_another_part(
             self, part_with_rels_, rel_attrs_):
         # fixture ----------------------
-        part = part_with_rels_
+        part, rels_ = part_with_rels_
         reltype, target, rId = rel_attrs_
         # exercise ---------------------
         part.load_rel(reltype, target, rId)
         # verify -----------------------
-        part.rels.add_relationship.assert_called_once_with(
+        rels_.add_relationship.assert_called_once_with(
             reltype, target, rId, False
         )
+
+    def it_can_find_a_related_part(self, related_part_fixture_):
+        part, reltype, related_part_ = related_part_fixture_
+        related_part = part.related_part(reltype)
+        part.rels.part_with_reltype.assert_called_once_with(reltype)
+        assert related_part is related_part_
 
     def it_can_be_notified_after_unmarshalling_is_complete(self, part):
         part.after_unmarshal()
@@ -214,11 +220,19 @@ class DescribePart(object):
     @pytest.fixture
     def part_with_rels_(self, request, part, rels_):
         part._rels = rels_
-        return part
+        return part, rels_
 
     @pytest.fixture
     def RelationshipCollection_(self, request):
         return class_mock(request, 'pptx.opc.package.RelationshipCollection')
+
+    @pytest.fixture
+    def related_part_fixture_(self, request, part, reltype):
+        related_part_ = instance_mock(request, Part, name='related_part_')
+        rels_ = instance_mock(request, RelationshipCollection, name='rels_')
+        rels_.part_with_reltype.return_value = related_part_
+        part._rels = rels_
+        return part, reltype, related_part_
 
     @pytest.fixture
     def rel_attrs_(self, request):
@@ -230,6 +244,10 @@ class DescribePart(object):
     @pytest.fixture
     def rels_(self, request):
         return instance_mock(request, RelationshipCollection)
+
+    @pytest.fixture
+    def reltype(self):
+        return 'http:/rel/type'
 
 
 class DescribePartFactory(object):

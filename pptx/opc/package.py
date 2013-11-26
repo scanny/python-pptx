@@ -44,8 +44,7 @@ class OpcPackage(object):
         presentation part for a PresentationML package, or a workbook part
         for a SpreadsheetML package.
         """
-        rel = self.rels.get_rel_of_type(RT.OFFICE_DOCUMENT)
-        return rel.target_part
+        return self.rels.part_with_reltype(RT.OFFICE_DOCUMENT)
 
     @classmethod
     def open(cls, pkg_file):
@@ -191,6 +190,14 @@ class Part(object):
             tmpl = "partname must be instance of PackURI, got '%s'"
             raise TypeError(tmpl % type(partname).__name__)
         self._partname = partname
+
+    def related_part(self, reltype):
+        """
+        Return part to which this part has a relationship of *reltype*.
+        Raises |KeyError| if no such relationship is found and |ValueError|
+        if more than one such relationship is found.
+        """
+        return self.rels.part_with_reltype(reltype)
 
     @lazyproperty
     def rels(self):
