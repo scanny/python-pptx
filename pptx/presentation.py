@@ -50,7 +50,7 @@ class Package(OpcPackage):
         document properties for this presentation.
         """
         try:
-            return self.rels.part_with_reltype(RT.CORE_PROPERTIES)
+            return self.related_part(RT.CORE_PROPERTIES)
         except KeyError:
             core_props = CoreProperties.default()
             self.rels.get_or_add(RT.CORE_PROPERTIES, core_props)
@@ -67,12 +67,12 @@ class Package(OpcPackage):
             pkg_file = cls._default_pptx_path
         return super(Package, cls).open(pkg_file)
 
-    @lazyproperty
+    @property
     def presentation(self):
         """
         Reference to the |Presentation| instance contained in this package.
         """
-        return self.rels.part_with_reltype(RT.OFFICE_DOCUMENT)
+        return self.main_document
 
     @lazyproperty
     def _images(self):

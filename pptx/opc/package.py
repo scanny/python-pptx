@@ -25,64 +25,6 @@ class OpcPackage(object):
     def __init__(self):
         super(OpcPackage, self).__init__()
 
-    def load_rel(self, reltype, target, rId, is_external=False):
-        """
-        Return newly added |_Relationship| instance of *reltype* between this
-        part and *target* with key *rId*. Target mode is set to
-        ``RTM.EXTERNAL`` if *is_external* is |True|. Intended for use during
-        load from a serialized package, where the rId is well known. Other
-        methods exist for adding a new relationship to the package during
-        processing.
-        """
-        return self.rels.add_relationship(reltype, target, rId, is_external)
-
-    @property
-    def main_document(self):
-        """
-        Return a reference to the main document part for this package.
-        Examples include a document part for a WordprocessingML package, a
-        presentation part for a PresentationML package, or a workbook part
-        for a SpreadsheetML package.
-        """
-        return self.rels.part_with_reltype(RT.OFFICE_DOCUMENT)
-
-    @classmethod
-    def open(cls, pkg_file):
-        """
-        Return an |OpcPackage| instance loaded with the contents of
-        *pkg_file*.
-        """
-        pkg_reader = PackageReader.from_file(pkg_file)
-        package = cls()
-        Unmarshaller.unmarshal(pkg_reader, package, PartFactory)
-        return package
-
-    @property
-    def parts(self):
-        """
-        Return a list containing a reference to each of the parts in this
-        package.
-        """
-        return [part for part in self.iter_parts()]
-
-    @lazyproperty
-    def rels(self):
-        """
-        Return a reference to the |RelationshipCollection| holding the
-        relationships for this package.
-        """
-        return RelationshipCollection(PACKAGE_URI.baseURI)
-
-    def save(self, pkg_file):
-        """
-        Save this package to *pkg_file*, where *file* can be either a path to
-        a file (a string) or a file-like object.
-        """
-        # self._notify_before_marshal()
-        for part in self.parts:
-            part.before_marshal()
-        PackageWriter.write(pkg_file, self.rels, self.parts)
-
     def iter_parts(self):
         """
         Generate exactly one reference to each of the parts in the package by
@@ -103,6 +45,72 @@ class OpcPackage(object):
 
         for part in walk_parts(self):
             yield part
+
+    def load_rel(self, reltype, target, rId, is_external=False):
+        """
+        Return newly added |_Relationship| instance of *reltype* between this
+        part and *target* with key *rId*. Target mode is set to
+        ``RTM.EXTERNAL`` if *is_external* is |True|. Intended for use during
+        load from a serialized package, where the rId is well known. Other
+        methods exist for adding a new relationship to the package during
+        processing.
+        """
+        return self.rels.add_relationship(reltype, target, rId, is_external)
+
+    @property
+    def main_document(self):
+        """
+        Return a reference to the main document part for this package.
+        Examples include a document part for a WordprocessingML package, a
+        presentation part for a PresentationML package, or a workbook part
+        for a SpreadsheetML package.
+        """
+        return self.related_part(RT.OFFICE_DOCUMENT)
+
+    @classmethod
+    def open(cls, pkg_file):
+        """
+        Return an |OpcPackage| instance loaded with the contents of
+        *pkg_file*.
+        """
+        pkg_reader = PackageReader.from_file(pkg_file)
+        package = cls()
+        Unmarshaller.unmarshal(pkg_reader, package, PartFactory)
+        return package
+
+    @property
+    def parts(self):
+        """
+        Return a list containing a reference to each of the parts in this
+        package.
+        """
+        return [part for part in self.iter_parts()]
+
+    def related_part(self, reltype):
+        """
+        Return part to which this package has a relationship of *reltype*.
+        Raises |KeyError| if no such relationship is found and |ValueError|
+        if more than one such relationship is found.
+        """
+        return self.rels.part_with_reltype(reltype)
+
+    @lazyproperty
+    def rels(self):
+        """
+        Return a reference to the |RelationshipCollection| holding the
+        relationships for this package.
+        """
+        return RelationshipCollection(PACKAGE_URI.baseURI)
+
+    def save(self, pkg_file):
+        """
+        Save this package to *pkg_file*, where *file* can be either a path to
+        a file (a string) or a file-like object.
+        """
+        # self._notify_before_marshal()
+        for part in self.parts:
+            part.before_marshal()
+        PackageWriter.write(pkg_file, self.rels, self.parts)
 
 
 class Part(object):

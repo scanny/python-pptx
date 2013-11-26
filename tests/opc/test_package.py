@@ -86,6 +86,12 @@ class DescribeOpcPackage(object):
         # verify -----------------------
         assert generated_parts == [part1, part2]
 
+    def it_can_find_a_related_part(self, related_part_fixture_):
+        pkg, reltype, related_part_ = related_part_fixture_
+        related_part = pkg.related_part(reltype)
+        pkg.rels.part_with_reltype.assert_called_once_with(reltype)
+        assert related_part is related_part_
+
     def it_can_save_to_a_pkg_file(
             self, pkg_file_, PackageWriter_, parts, parts_):
         pkg = OpcPackage()
@@ -149,6 +155,17 @@ class DescribeOpcPackage(object):
         target_ = instance_mock(request, Part, name='target_')
         rId = 'rId99'
         return reltype, target_, rId
+
+    @pytest.fixture
+    def related_part_fixture_(self, request):
+        reltype = 'http://rel/type'
+        related_part_ = instance_mock(request, Part, name='related_part_')
+        rels_ = instance_mock(request, RelationshipCollection, name='rels_')
+        rels_.part_with_reltype.return_value = related_part_
+        pkg = OpcPackage()
+        pkg.rels  # triggers lazyprop to create pkg._rels
+        pkg._rels = rels_
+        return pkg, reltype, related_part_
 
     @pytest.fixture
     def rels_(self, request):
