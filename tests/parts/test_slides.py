@@ -23,7 +23,7 @@ from pptx.shapes.shapetree import ShapeCollection
 
 from ..unitutil import (
     absjoin, class_mock, instance_mock, loose_mock, method_mock,
-    parse_xml_file, property_mock, serialize_xml, test_file_dir
+    parse_xml_file, serialize_xml, test_file_dir
 )
 
 
@@ -85,7 +85,7 @@ class Describe_BaseSlide(object):
         # verify -----------------------
         base_slide._package._images.add_image.assert_called_once_with(
             img_file_)
-        base_slide.rels.get_or_add.assert_called_once_with(RT.IMAGE, image_)
+        base_slide.relate_to.assert_called_once_with(image, RT.IMAGE)
         assert image is image_
         assert rId is rId_
 
@@ -107,15 +107,9 @@ class Describe_BaseSlide(object):
         pkg_ = loose_mock(request, name='_package', spec=Package)
         pkg_._images.add_image.return_value = image_
         base_slide._package = pkg_
-        # mock _BaseSlide.rels.get_or_add()
+        # mock _BaseSlide.relate_to()
         rId_ = loose_mock(request, name='rId_')
-        rel_ = loose_mock(request, name='rel_', rId=rId_)
-        rels_ = loose_mock(request, name='rels_')
-        rels_.get_or_add.return_value = rel_
-        rels = property_mock(  # noqa
-            request, 'pptx.parts.slides._BaseSlide.rels',
-            return_value=rels_
-        )
+        method_mock(request, _BaseSlide, 'relate_to', return_value=rId_)
         return base_slide, img_file_, image_, rId_
 
 
@@ -219,8 +213,7 @@ class DescribeSlideCollection(object):
         slide = slides.add_slide(slidelayout_)
         # verify -----------------------
         Slide_.new.assert_called_once_with(slidelayout_, ANY, prs_.package)
-        prs_.rels.get_or_add.assert_called_once_with(
-            RT.SLIDE, slide_)
+        prs_.relate_to.assert_called_once_with(slide_, RT.SLIDE)
         sldIdLst_.add_sldId.assert_called_once_with(ANY)
         _rename_slides_.assert_called_once_with()
         assert slide is slide_

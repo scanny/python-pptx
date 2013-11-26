@@ -60,8 +60,8 @@ class _BaseSlide(Part):
         relationship to an existing image, that relationship is reused.
         """
         image = self._package._images.add_image(img_file)
-        rel = self.rels.get_or_add(RT.IMAGE, image)
-        return (image, rel.rId)
+        rId = self.relate_to(image, RT.IMAGE)
+        return (image, rId)
 
 
 class Slide(_BaseSlide):
@@ -77,7 +77,7 @@ class Slide(_BaseSlide):
         slide_elm = cls._minimal_element()
         slide = cls(partname, CT.PML_SLIDE, slide_elm, package)
         slide.shapes._clone_layout_placeholders(slidelayout)
-        slide.rels.get_or_add(RT.SLIDE_LAYOUT, slidelayout)
+        slide.relate_to(slidelayout, RT.SLIDE_LAYOUT)
         return slide
 
     @property
@@ -145,8 +145,8 @@ class SlideCollection(object):
         temp_partname = PackURI('/ppt/slides/slide1.xml')
         package = self._presentation.package
         slide = Slide.new(slidelayout, temp_partname, package)
-        rel = self._presentation.rels.get_or_add(RT.SLIDE, slide)
-        self._sldIdLst.add_sldId(rel.rId)
+        rId = self._presentation.relate_to(slide, RT.SLIDE)
+        self._sldIdLst.add_sldId(rId)
         self._rename_slides()  # assigns partname as side effect
         return slide
 

@@ -47,7 +47,8 @@ class Package(OpcPackage):
     def core_properties(self):
         """
         Instance of |CoreProperties| holding the read/write Dublin Core
-        document properties for this presentation.
+        document properties for this presentation. Creates a default core
+        properties part if one is not present (not common).
         """
         try:
             return self.related_part(RT.CORE_PROPERTIES)

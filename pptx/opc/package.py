@@ -199,6 +199,14 @@ class Part(object):
             raise TypeError(tmpl % type(partname).__name__)
         self._partname = partname
 
+    def relate_to(self, other_part, reltype):
+        """
+        Return rId key of relationship to *other_part*, from the existing
+        relationship if there is one, otherwise a newly created one.
+        """
+        rel = self.rels.get_or_add(reltype, other_part)
+        return rel.rId
+
     def related_part(self, reltype):
         """
         Return part to which this part has a relationship of *reltype*.

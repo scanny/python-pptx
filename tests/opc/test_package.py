@@ -213,6 +213,16 @@ class DescribePart(object):
             reltype, target, rId, False
         )
 
+    def it_can_establish_a_relationship_to_another_part(
+            self, relate_to_part_fixture_):
+        # fixture ----------------------
+        part, related_part_, reltype, rId = relate_to_part_fixture_
+        # exercise ---------------------
+        _rId = part.relate_to(related_part_, reltype)
+        # verify -----------------------
+        part.rels.get_or_add.assert_called_once_with(reltype, related_part_)
+        assert _rId == rId
+
     def it_can_find_a_related_part(self, related_part_fixture_):
         part, reltype, related_part_ = related_part_fixture_
         related_part = part.related_part(reltype)
@@ -244,19 +254,29 @@ class DescribePart(object):
         return class_mock(request, 'pptx.opc.package.RelationshipCollection')
 
     @pytest.fixture
+    def rel_attrs_(self, request):
+        reltype = 'http://rel/type'
+        target_ = instance_mock(request, Part, name='target_')
+        rId = 'rId99'
+        return reltype, target_, rId
+
+    @pytest.fixture
+    def relate_to_part_fixture_(self, request, part, reltype):
+        rId = 'rId99'
+        related_part_ = instance_mock(request, Part, name='related_part_')
+        rels_ = instance_mock(request, RelationshipCollection, name='rels_')
+        rel_ = instance_mock(request, _Relationship, name='rel_', rId=rId)
+        rels_.get_or_add.return_value = rel_
+        part._rels = rels_
+        return part, related_part_, reltype, rId
+
+    @pytest.fixture
     def related_part_fixture_(self, request, part, reltype):
         related_part_ = instance_mock(request, Part, name='related_part_')
         rels_ = instance_mock(request, RelationshipCollection, name='rels_')
         rels_.part_with_reltype.return_value = related_part_
         part._rels = rels_
         return part, reltype, related_part_
-
-    @pytest.fixture
-    def rel_attrs_(self, request):
-        reltype = 'http://rel/type'
-        target_ = instance_mock(request, Part, name='target_')
-        rId = 'rId99'
-        return reltype, target_, rId
 
     @pytest.fixture
     def rels_(self, request):
