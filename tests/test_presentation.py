@@ -99,7 +99,8 @@ class DescribePresentation(object):
     def prs(self, ct_presentation_, rels_):
         partname = PackURI('/ppt/presentation.xml')
         prs = Presentation(partname, None, ct_presentation_, None)
-        setattr(prs, '__rels', rels_)
+        prs.rels  # causes prs._rels to be created
+        prs._rels = rels_
         return prs
 
     @pytest.fixture

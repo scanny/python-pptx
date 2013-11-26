@@ -60,7 +60,7 @@ class _BaseSlide(Part):
         that relationship is reused.
         """
         image = self._package._images.add_image(file)
-        rel = self._rels.get_or_add(RT.IMAGE, image)
+        rel = self.rels.get_or_add(RT.IMAGE, image)
         return (image, rel)
 
 
@@ -77,7 +77,7 @@ class Slide(_BaseSlide):
         slide_elm = cls._minimal_element()
         slide = cls(partname, CT.PML_SLIDE, slide_elm, package)
         slide.shapes._clone_layout_placeholders(slidelayout)
-        slide._rels.get_or_add(RT.SLIDE_LAYOUT, slidelayout)
+        slide.rels.get_or_add(RT.SLIDE_LAYOUT, slidelayout)
         return slide
 
     @property
@@ -85,7 +85,7 @@ class Slide(_BaseSlide):
         """
         |SlideLayout| object this slide inherits appearance from.
         """
-        return self._rels.part_with_reltype(RT.SLIDE_LAYOUT)
+        return self.rels.part_with_reltype(RT.SLIDE_LAYOUT)
 
     @staticmethod
     def _minimal_element():
@@ -145,7 +145,7 @@ class SlideCollection(object):
         temp_partname = PackURI('/ppt/slides/slide1.xml')
         package = self._presentation.package
         slide = Slide.new(slidelayout, temp_partname, package)
-        rel = self._presentation._rels.get_or_add(RT.SLIDE, slide)
+        rel = self._presentation.rels.get_or_add(RT.SLIDE, slide)
         self._sldIdLst.add_sldId(rel.rId)
         self._rename_slides()  # assigns partname as side effect
         return slide
@@ -186,7 +186,7 @@ class SlideLayout(_BaseSlide):
         """
         Slide master from which this slide layout inherits properties.
         """
-        return self._rels.part_with_reltype(RT.SLIDE_MASTER)
+        return self.rels.part_with_reltype(RT.SLIDE_MASTER)
 
 
 class SlideMaster(_BaseSlide):
@@ -204,7 +204,7 @@ class SlideMaster(_BaseSlide):
         Collection of slide layout objects belonging to this slide master.
         """
         slidelayouts = PartCollection()
-        sl_rels = [r for r in self._rels if r.reltype == RT.SLIDE_LAYOUT]
+        sl_rels = [r for r in self.rels if r.reltype == RT.SLIDE_LAYOUT]
         for sl_rel in sl_rels:
             slide_layout = sl_rel.target_part
             slidelayouts.add_part(slide_layout)

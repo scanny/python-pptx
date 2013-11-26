@@ -39,11 +39,12 @@ class DescribeOpcPackage(object):
                                                         PartFactory_)
         assert isinstance(pkg, OpcPackage)
 
-    def it_initializes_its_rels_collection_on_construction(
+    def it_initializes_its_rels_collection_on_first_reference(
             self, RelationshipCollection_):
         pkg = OpcPackage()
+        rels = pkg.rels
         RelationshipCollection_.assert_called_once_with(PACKAGE_URI.baseURI)
-        assert pkg.rels == RelationshipCollection_.return_value
+        assert rels == RelationshipCollection_.return_value
 
     def it_can_add_a_relationship_to_a_part(self, pkg_with_rels_, rel_attrs_):
         reltype, target, rId = rel_attrs_
@@ -60,7 +61,7 @@ class DescribeOpcPackage(object):
         parts = [Mock(name='part1'), Mock(name='part2')]
         pkg = OpcPackage()
         # verify -----------------------
-        with patch.object(OpcPackage, '_walk_parts', return_value=parts):
+        with patch.object(OpcPackage, 'iter_parts', return_value=parts):
             assert pkg.parts == [parts[0], parts[1]]
 
     def it_can_iterate_over_parts_by_walking_rels_graph(self):
@@ -73,14 +74,15 @@ class DescribeOpcPackage(object):
         #                    | part_2 |
         #                    +--------+
         part1, part2 = (Mock(name='part1'), Mock(name='part2'))
-        part1._rels = [Mock(name='rel1', is_external=False, target_part=part2)]
-        part2._rels = [Mock(name='rel2', is_external=False, target_part=part1)]
-        pkg_rels = [
+        part1.rels = [Mock(name='rel1', is_external=False, target_part=part2)]
+        part2.rels = [Mock(name='rel2', is_external=False, target_part=part1)]
+        pkg = OpcPackage()
+        pkg._rels = [
             Mock(name='rel3', is_external=False, target_part=part1),
             Mock(name='rel3', is_external=True),
         ]
         # exercise ---------------------
-        generated_parts = [part for part in OpcPackage._walk_parts(pkg_rels)]
+        generated_parts = [part for part in pkg.iter_parts()]
         # verify -----------------------
         assert generated_parts == [part1, part2]
 
@@ -179,19 +181,18 @@ class DescribePart(object):
             self, RelationshipCollection_):
         partname = PackURI('/foo/bar.xml')
         part = Part(partname, None, None)
-        assert part._rels == RelationshipCollection_.return_value
+        assert part.rels is RelationshipCollection_.return_value
         RelationshipCollection_.assert_called_once_with(partname.baseURI)
 
-    def it_can_add_a_relationship_to_another_part(self, part):
-        # mockery ----------------------
-        reltype, target, rId = (
-            Mock(name='reltype'), Mock(name='target'), Mock(name='rId')
-        )
-        setattr(part, '__rels', Mock(name='_rels'))
+    def it_can_add_a_relationship_to_another_part(
+            self, part_with_rels_, rel_attrs_):
+        # fixture ----------------------
+        part = part_with_rels_
+        reltype, target, rId = rel_attrs_
         # exercise ---------------------
         part.load_rel(reltype, target, rId)
         # verify -----------------------
-        part._rels.add_relationship.assert_called_once_with(
+        part.rels.add_relationship.assert_called_once_with(
             reltype, target, rId, False
         )
 
@@ -206,11 +207,29 @@ class DescribePart(object):
     @pytest.fixture
     def part(self):
         partname = PackURI('/foo/bar.xml')
-        return Part(partname, None, None)
+        part = Part(partname, None, None)
+        part.rels  # causes ._rels to be populated as side effect
+        return part
+
+    @pytest.fixture
+    def part_with_rels_(self, request, part, rels_):
+        part._rels = rels_
+        return part
 
     @pytest.fixture
     def RelationshipCollection_(self, request):
         return class_mock(request, 'pptx.opc.package.RelationshipCollection')
+
+    @pytest.fixture
+    def rel_attrs_(self, request):
+        reltype = 'http://rel/type'
+        target_ = instance_mock(request, Part, name='target_')
+        rId = 'rId99'
+        return reltype, target_, rId
+
+    @pytest.fixture
+    def rels_(self, request):
+        return instance_mock(request, RelationshipCollection)
 
 
 class DescribePartFactory(object):

@@ -81,7 +81,7 @@ class Describe_BaseSlide(object):
         base_slide, image_, rel_ = base_slide_fixture
         image, rel = base_slide._add_image(file)
         base_slide._package._images.add_image.assert_called_once_with(file)
-        base_slide._rels.get_or_add.assert_called_once_with(
+        base_slide.rels.get_or_add.assert_called_once_with(
             RT.IMAGE, image_
         )
         assert image is image_
@@ -104,12 +104,12 @@ class Describe_BaseSlide(object):
         pkg_ = loose_mock(request, name='_package', spec=Package)
         pkg_._images.add_image.return_value = image_
         base_slide._package = pkg_
-        # mock _BaseSlide._rels.get_or_add()
+        # mock _BaseSlide.rels.get_or_add()
         rel_ = loose_mock(request, name='rel_')
         rels_ = loose_mock(request, name='rels_')
         rels_.get_or_add.return_value = rel_
-        _rels = property_mock(  # noqa
-            request, 'pptx.parts.slides._BaseSlide._rels',
+        rels = property_mock(  # noqa
+            request, 'pptx.parts.slides._BaseSlide.rels',
             return_value=rels_
         )
         return base_slide, image_, rel_
@@ -126,9 +126,9 @@ class DescribeSlide(object):
         # exercise ---------------------
         slide = Slide.new(slidelayout, partname, None)
         # verify length ---------------
-        assert len(slide._rels) == 1
+        assert len(slide.rels) == 1
         # verify values ---------------
-        rel = slide._rels[0]
+        rel = slide.rels[0]
         expected = ('rId1', RT.SLIDE_LAYOUT, slidelayout)
         actual = (rel.rId, rel.reltype, rel.target_part)
         assert actual == expected
@@ -215,7 +215,7 @@ class DescribeSlideCollection(object):
         slide = slides.add_slide(slidelayout_)
         # verify -----------------------
         Slide_.new.assert_called_once_with(slidelayout_, ANY, prs_.package)
-        prs_._rels.get_or_add.assert_called_once_with(
+        prs_.rels.get_or_add.assert_called_once_with(
             RT.SLIDE, slide_)
         sldIdLst_.add_sldId.assert_called_once_with(ANY)
         _rename_slides_.assert_called_once_with()

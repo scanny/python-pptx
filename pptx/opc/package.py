@@ -24,7 +24,6 @@ class OpcPackage(object):
     """
     def __init__(self):
         super(OpcPackage, self).__init__()
-        self._rels = RelationshipCollection(PACKAGE_URI.baseURI)
 
     def load_rel(self, reltype, target, rId, is_external=False):
         """
@@ -35,7 +34,7 @@ class OpcPackage(object):
         methods exist for adding a new relationship to the package during
         processing.
         """
-        return self._rels.add_relationship(reltype, target, rId, is_external)
+        return self.rels.add_relationship(reltype, target, rId, is_external)
 
     @property
     def main_document(self):
@@ -45,7 +44,7 @@ class OpcPackage(object):
         presentation part for a PresentationML package, or a workbook part
         for a SpreadsheetML package.
         """
-        rel = self._rels.get_rel_of_type(RT.OFFICE_DOCUMENT)
+        rel = self.rels.get_rel_of_type(RT.OFFICE_DOCUMENT)
         return rel.target_part
 
     @classmethod
@@ -65,15 +64,15 @@ class OpcPackage(object):
         Return a list containing a reference to each of the parts in this
         package.
         """
-        return [part for part in self._walk_parts(self._rels)]
+        return [part for part in self.iter_parts()]
 
-    @property
+    @lazyproperty
     def rels(self):
         """
         Return a reference to the |RelationshipCollection| holding the
         relationships for this package.
         """
-        return self._rels
+        return RelationshipCollection(PACKAGE_URI.baseURI)
 
     def save(self, pkg_file):
         """
@@ -83,27 +82,28 @@ class OpcPackage(object):
         # self._notify_before_marshal()
         for part in self.parts:
             part.before_marshal()
-        PackageWriter.write(pkg_file, self._rels, self.parts)
+        PackageWriter.write(pkg_file, self.rels, self.parts)
 
-    @staticmethod
-    def _walk_parts(rels, visited_parts=None):
+    def iter_parts(self):
         """
         Generate exactly one reference to each of the parts in the package by
         performing a depth-first traversal of the rels graph.
         """
-        # initial call leaves out parts argument as a signal to initialize
-        if visited_parts is None:
-            visited_parts = []
-        for rel in rels:
-            if rel.is_external:
-                continue
-            part = rel.target_part
-            if part in visited_parts:
-                continue
-            visited_parts.append(part)
-            yield part
-            for part in OpcPackage._walk_parts(part._rels, visited_parts):
+        def walk_parts(source, visited=list()):
+            for rel in source.rels:
+                if rel.is_external:
+                    continue
+                part = rel.target_part
+                if part in visited:
+                    continue
+                visited.append(part)
                 yield part
+                new_source = part
+                for part in walk_parts(new_source, visited):
+                    yield part
+
+        for part in walk_parts(self):
+            yield part
 
 
 class Part(object):
@@ -168,7 +168,7 @@ class Part(object):
         methods exist for adding a new relationship to a part when
         manipulating a part.
         """
-        return self._rels.add_relationship(reltype, target, rId, is_external)
+        return self.rels.add_relationship(reltype, target, rId, is_external)
 
     @property
     def package(self):
@@ -193,7 +193,7 @@ class Part(object):
         self._partname = partname
 
     @lazyproperty
-    def _rels(self):
+    def rels(self):
         """
         |RelationshipCollection| instance holding the relationships for this
         part.

@@ -50,10 +50,10 @@ class Package(OpcPackage):
         document properties for this presentation.
         """
         try:
-            return self._rels.part_with_reltype(RT.CORE_PROPERTIES)
+            return self.rels.part_with_reltype(RT.CORE_PROPERTIES)
         except KeyError:
             core_props = CoreProperties.default()
-            self._rels.get_or_add(RT.CORE_PROPERTIES, core_props)
+            self.rels.get_or_add(RT.CORE_PROPERTIES, core_props)
             return core_props
 
     @classmethod
@@ -72,7 +72,7 @@ class Package(OpcPackage):
         """
         Reference to the |Presentation| instance contained in this package.
         """
-        return self._rels.part_with_reltype(RT.OFFICE_DOCUMENT)
+        return self.rels.part_with_reltype(RT.OFFICE_DOCUMENT)
 
     @lazyproperty
     def _images(self):
@@ -110,7 +110,7 @@ class Presentation(Part):
         Sequence of |SlideMaster| instances belonging to this presentation.
         """
         slidemasters = PartCollection()
-        sm_rels = [r for r in self._rels if r.reltype == RT.SLIDE_MASTER]
+        sm_rels = [r for r in self.rels if r.reltype == RT.SLIDE_MASTER]
         for sm_rel in sm_rels:
             slide_master = sm_rel.target_part
             slidemasters.add_part(slide_master)
@@ -122,5 +122,5 @@ class Presentation(Part):
         |SlideCollection| object containing the slides in this presentation.
         """
         sldIdLst = self._element.get_or_add_sldIdLst()
-        slides = SlideCollection(sldIdLst, self._rels, self)
+        slides = SlideCollection(sldIdLst, self.rels, self)
         return slides
