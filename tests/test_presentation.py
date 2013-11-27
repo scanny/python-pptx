@@ -79,6 +79,7 @@ class DescribePresentation(object):
         # verify -----------------------
         prs._element.get_or_add_sldIdLst.assert_called_once_with()
         SlideCollection_.assert_called_once_with(sldIdLst_, prs)
+        slides.rename_slides.assert_called_once_with()
         assert slides == slides_
 
     def it_reuses_slide_collection_instance_on_later_references(self, prs):

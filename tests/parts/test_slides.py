@@ -216,34 +216,43 @@ class DescribeSlideCollection(object):
     def it_supports_len(self, slides):
         assert len(slides) == 2
 
-    def it_can_add_a_new_slide(
-            self, slides, Slide_, slidelayout_, prs_, slide_, sldIdLst_,
-            _rename_slides_):
+    def it_can_add_a_new_slide(self, slides, slidelayout_, Slide_, slide_):
         slide = slides.add_slide(slidelayout_)
-        # verify -----------------------
-        Slide_.new.assert_called_once_with(slidelayout_, ANY, prs_.package)
-        prs_.relate_to.assert_called_once_with(slide_, RT.SLIDE)
-        sldIdLst_.add_sldId.assert_called_once_with(ANY)
-        _rename_slides_.assert_called_once_with()
+        Slide_.new.assert_called_once_with(
+            slidelayout_, PackURI('/ppt/slides/slide3.xml'),
+            slides._prs.package
+        )
+        slides._prs.relate_to.assert_called_once_with(slide_, RT.SLIDE)
+        slides._sldIdLst.add_sldId.assert_called_once_with(ANY)
         assert slide is slide_
+
+    def it_knows_the_next_available_slide_partname(
+            self, slides_with_slide_parts_):
+        slides = slides_with_slide_parts_[0]
+        expected_partname = PackURI('/ppt/slides/slide3.xml')
+        partname = slides._next_partname
+        assert isinstance(partname, PackURI)
+        assert partname == expected_partname
 
     def it_can_assign_partnames_to_the_slides(
             self, slides, slide_, slide_2_):
-        slides._rename_slides()
+        slides.rename_slides()
         assert slide_.partname == '/ppt/slides/slide1.xml'
         assert slide_2_.partname == '/ppt/slides/slide2.xml'
 
     # fixtures -------------------------------------------------------
-
-    #   sldIdLst = [sldId_, sldId_2_]
-    #               |       |
-    #               |       +- .rId = rId_2_
-    #               |
-    #               +- .rId = rId_
-    #   prs
+    #
+    #   slides
     #   |
-    #   +- .related_parts = {rId_: slide_, rId_2_: slide_2_}
-
+    #   +- ._sldIdLst = [sldId_, sldId_2_]
+    #   |                |       |
+    #   |                |       +- .rId = rId_2_
+    #   |                |
+    #   |                +- .rId = rId_
+    #   +- ._prs
+    #       |
+    #       +- .related_parts = {rId_: slide_, rId_2_: slide_2_}
+    #
     # ----------------------------------------------------------------
 
     @pytest.fixture
@@ -275,8 +284,8 @@ class DescribeSlideCollection(object):
         return related_parts_
 
     @pytest.fixture
-    def _rename_slides_(self, request):
-        return method_mock(request, SlideCollection, '_rename_slides')
+    def rename_slides_(self, request):
+        return method_mock(request, SlideCollection, 'rename_slides')
 
     @pytest.fixture
     def rId_(self, request):

@@ -141,15 +141,14 @@ class SlideCollection(object):
         """
         Return a newly added slide that inherits layout from *slidelayout*.
         """
-        temp_partname = PackURI('/ppt/slides/slide1.xml')
+        partname = self._next_partname
         package = self._prs.package
-        slide = Slide.new(slidelayout, temp_partname, package)
+        slide = Slide.new(slidelayout, partname, package)
         rId = self._prs.relate_to(slide, RT.SLIDE)
         self._sldIdLst.add_sldId(rId)
-        self._rename_slides()  # assigns partname as side effect
         return slide
 
-    def _rename_slides(self):
+    def rename_slides(self):
         """
         Assign partnames like ``/ppt/slides/slide9.xml`` to all slides in the
         collection. The name portion is always ``slide``. The number part
@@ -159,6 +158,16 @@ class SlideCollection(object):
         for idx, slide in enumerate(self):
             partname_str = '/ppt/slides/slide%d.xml' % (idx+1)
             slide.partname = PackURI(partname_str)
+
+    @property
+    def _next_partname(self):
+        """
+        Return |PackURI| instance containing the partname for a slide to be
+        appended to this slide collection, e.g. ``/ppt/slides/slide9.xml``
+        for a slide collection containing 8 slides.
+        """
+        partname_str = '/ppt/slides/slide%d.xml' % (len(self)+1)
+        return PackURI(partname_str)
 
 
 class SlideLayout(_BaseSlide):

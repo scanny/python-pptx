@@ -124,4 +124,5 @@ class Presentation(Part):
         """
         sldIdLst = self._element.get_or_add_sldIdLst()
         slides = SlideCollection(sldIdLst, self)
+        slides.rename_slides()  # start from known state
         return slides
