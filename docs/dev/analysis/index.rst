@@ -10,6 +10,7 @@ Feature Analysis
    :maxdepth: 1
 
    features/font-color
+   features/hyperlink
 
 
 Object Analysis
