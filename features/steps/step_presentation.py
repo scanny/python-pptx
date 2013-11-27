@@ -13,8 +13,9 @@ from hamcrest import assert_that, is_, is_not, greater_than
 from StringIO import StringIO
 
 from pptx import Presentation
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 
-from .helpers import basic_pptx_path, saved_pptx_path
+from .helpers import basic_pptx_path, ext_rels_pptx_path, saved_pptx_path
 
 
 # given ===================================================
@@ -23,6 +24,11 @@ from .helpers import basic_pptx_path, saved_pptx_path
 def step_given_clean_working_dir(context):
     if os.path.isfile(saved_pptx_path):
         os.remove(saved_pptx_path)
+
+
+@given('a presentation with external relationships')
+def given_prs_with_ext_rels(context):
+    context.prs = Presentation(ext_rels_pptx_path)
 
 
 @given('an initialized pptx environment')
@@ -53,6 +59,14 @@ def step_when_open_presentation_stream(context):
         stream = StringIO(f.read())
     context.prs = Presentation(stream)
     stream.close()
+
+
+@when('I save and reload the presentation')
+def when_save_and_reload_prs(context):
+    if os.path.isfile(saved_pptx_path):
+        os.remove(saved_pptx_path)
+    context.prs.save(saved_pptx_path)
+    context.prs = Presentation(saved_pptx_path)
 
 
 @when('I save that stream to a file')
@@ -97,3 +111,13 @@ def step_then_see_pptx_file_in_working_dir(context):
     minimum = 30000
     actual = os.path.getsize(saved_pptx_path)
     assert_that(actual, is_(greater_than(minimum)))
+
+
+@then('the external relationships are still there')
+def then_ext_rels_are_preserved(context):
+    prs = context.prs
+    sld = prs.slides[0]
+    rel = sld._rels['rId2']
+    assert rel.is_external
+    assert rel.reltype == RT.HYPERLINK
+    assert rel.target_ref == 'https://github.com/scanny/python-pptx'

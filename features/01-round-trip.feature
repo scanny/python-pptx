@@ -21,3 +21,8 @@ Feature: Round-trip a presentation
        And I save the presentation to a stream
        And I save that stream to a file
       Then I see the pptx file in the working directory
+
+  Scenario: Round-trip external relationships
+     Given a presentation with external relationships
+      When I save and reload the presentation
+      Then the external relationships are still there
