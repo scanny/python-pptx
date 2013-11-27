@@ -71,40 +71,6 @@ Open XML document could be placed in a separate module, and parts for WML and
 SML could be added in separate modules to fill out the set.
 
 
-Design Narrative -- Model-side relationships
-============================================
-
-Might it make sense to maintain XML of .rels stream throughout life-cycle?
---------------------------------------------------------------------------
-
-No. The primary rationale is that a partname is not a primary model-side
-entity; partnames are driven by the serialization concern, providing a method
-for addressing serialized parts. Partnames are not required to be up-to-date in
-the model until after the |before_marshal| call to the part returns. Even if
-all part names were kept up-to-date, it would be a leakage across concern
-boundaries to require a part to notify relationships of name changes; not to
-mention it would introduce additional complexity that has nothing to do with
-manipulation of the in-memory model.
-
-**always up-to-date principle**
-
-  Model-side relationships are maintained as new parts are added or existing
-  parts are deleted. Relationships for generic parts are maintained from load
-  and delivered back for save without change.
-
-The :doc:`protocols/relationships` page contains documentation for
-the :ref:`relationship-related-protocol`.
-
-I'm not completely sure that the always-up-to-date principle need necessarily
-apply in every case. As long as the relationships are up-to-date before
-returning from the |before_marshal| call, I don't see a reason why that
-choice couldn't be at the designer's discretion. Because relationships don't
-have a compelling model-side runtime purpose, it might simplify the code to
-localize the pre-serialization concern to the |before_marshal| method.
-
-.. |before_marshal| replace:: :meth:`before-marshal`
-
-
 Members
 -------
 
@@ -114,11 +80,11 @@ Members
    of the form 'rId%d' % {sequential_int}, e.g. ``'rId9'``, but this need not
    be the case. In situations where a relationship is created (e.g. for a new
    part) or can be rewritten, e.g. if presentation->slide relationships were
-   rewritten on |before_marshal|, this form is preferred. In all other cases
-   the existing rId value should be preserved. When a relationship is what the
-   spec terms as *explicit*, there is a reference to the relationship within
-   the source part XML, the key of which is the rId value; changing the rId
-   would break that mapping.
+   rewritten on ``before_marshal()``, this form is preferred. In all other
+   cases the existing rId value should be preserved. When a relationship is
+   what the spec terms as *explicit*, there is a reference to the relationship
+   within the source part XML, the key of which is the rId value; changing the
+   rId would break that mapping.
 
    The **sequence** of relationships in the collection is not significant. The
    relationship collection should be regarded as a mapping on rId, not as

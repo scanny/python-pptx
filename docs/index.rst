@@ -77,5 +77,4 @@ Contributor Guide
    dev/philosophy
    dev/analysis/index
    dev/design/index
-   dev/packaging
    dev/resources/index
