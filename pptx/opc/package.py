@@ -223,6 +223,10 @@ class Part(object):
         rel = self.rels.get_or_add(reltype, other_part)
         return rel.rId
 
+    @property
+    def related_parts(self):
+        return self.rels.related_parts
+
     @lazyproperty
     def rels(self):
         """
@@ -264,6 +268,7 @@ class RelationshipCollection(object):
         super(RelationshipCollection, self).__init__()
         self._baseURI = baseURI
         self._rels = []
+        self._target_parts_by_rId = {}
 
     def __getitem__(self, key):
         """
@@ -298,6 +303,8 @@ class RelationshipCollection(object):
         #     raise ValueError(tmpl % relationship.rId)
         rel = _Relationship(rId, reltype, target, self._baseURI, is_external)
         self._rels.append(rel)
+        if not is_external:
+            self._target_parts_by_rId[rId] = target
         return rel
 
     def get_or_add(self, reltype, target_part):
@@ -320,15 +327,13 @@ class RelationshipCollection(object):
         rel = self._get_rel_of_type(reltype)
         return rel.target_part
 
-    def part_with_rId(self, rId):
+    @property
+    def related_parts(self):
         """
-        Return target part with matching *rId*, raising |KeyError| if not
-        found.
+        dict mapping rIds to target parts for all the internal relationships
+        in the collection.
         """
-        for rel in self:
-            if rel.rId == rId:
-                return rel.target_part
-        raise KeyError("no relationship with rId '%s'" % rId)
+        return self._target_parts_by_rId
 
     @property
     def xml(self):
@@ -366,13 +371,6 @@ class RelationshipCollection(object):
             tmpl = "multiple relationships of type '%s' in collection"
             raise ValueError(tmpl % reltype)
         return matching[0]
-
-    def _get_rels_of_type(self, reltype):
-        """
-        Return a |list| containing the relationships in this collection
-        having *reltype*. Returns an empty list if no matching relationships.
-        """
-        return [rel for rel in self if rel.reltype == reltype]
 
     @property
     def _next_rId(self):

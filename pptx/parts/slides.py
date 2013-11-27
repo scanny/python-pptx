@@ -109,20 +109,19 @@ class SlideCollection(object):
     Immutable sequence of slides belonging to an instance of |Presentation|,
     with methods for manipulating the slides in the presentation.
     """
-    def __init__(self, sldIdLst, prs_rels, presentation):
+    def __init__(self, sldIdLst, prs):
         super(SlideCollection, self).__init__()
         self._sldIdLst = sldIdLst
-        self._prs_rels = prs_rels
-        self._presentation = presentation
+        self._prs = prs
 
-    def __getitem__(self, key):
+    def __getitem__(self, idx):
         """
         Provide indexed access, (e.g. 'slides[0]').
         """
-        if key >= len(self._sldIdLst):
+        if idx >= len(self._sldIdLst):
             raise IndexError('slide index out of range')
-        sldId = self._sldIdLst[key]
-        return self._slide_from_sldId(sldId)
+        rId = self._sldIdLst[idx].rId
+        return self._prs.related_parts[rId]
 
     def __iter__(self):
         """
@@ -141,9 +140,9 @@ class SlideCollection(object):
         Return a newly added slide that inherits layout from *slidelayout*.
         """
         temp_partname = PackURI('/ppt/slides/slide1.xml')
-        package = self._presentation.package
+        package = self._prs.package
         slide = Slide.new(slidelayout, temp_partname, package)
-        rId = self._presentation.relate_to(slide, RT.SLIDE)
+        rId = self._prs.relate_to(slide, RT.SLIDE)
         self._sldIdLst.add_sldId(rId)
         self._rename_slides()  # assigns partname as side effect
         return slide
@@ -163,7 +162,7 @@ class SlideCollection(object):
         """
         Return the |Slide| instance referenced by *sldId*.
         """
-        return self._prs_rels.part_with_rId(sldId.rId)
+        return self._prs.related_parts[sldId.rId]
 
     @property
     def _slides(self):

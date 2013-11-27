@@ -109,12 +109,12 @@ class DescribeRelationshipCollection(object):
 
     def it_can_find_a_related_part_by_rId(self, rels_with_known_target_part):
         rels, rId, known_target_part = rels_with_known_target_part
-        part = rels.part_with_rId(rId)
+        part = rels.related_parts[rId]
         assert part is known_target_part
 
     def it_raises_KeyError_on_part_with_rId_not_found(self, rels):
         with pytest.raises(KeyError):
-            rels.part_with_rId('rId666')
+            rels.related_parts['rId666']
 
     def it_can_compose_rels_xml(self, rels_with_known_rels, rels_elm):
         # exercise ---------------------
@@ -208,7 +208,7 @@ class DescribeRelationshipCollection(object):
     @pytest.fixture
     def rels_with_known_target_part(self, rels, _rel_with_known_target_part):
         rel, rId, target_part = _rel_with_known_target_part
-        rels._rels.append(rel)
+        rels.add_relationship(None, target_part, rId)
         return rels, rId, target_part
 
     @pytest.fixture

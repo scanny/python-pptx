@@ -7,7 +7,6 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.opc.packuri import PackURI
-from pptx.opc.package import RelationshipCollection
 from pptx.oxml.presentation import CT_Presentation, CT_SlideIdList
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import PartCollection
@@ -75,11 +74,11 @@ class DescribePresentation(object):
         assert isinstance(prs.slidemasters, PartCollection)
 
     def it_creates_slide_collection_on_first_reference(
-            self, prs, SlideCollection_, sldIdLst_, rels_, slides_):
+            self, prs, SlideCollection_, sldIdLst_, slides_):
         slides = prs.slides
         # verify -----------------------
         prs._element.get_or_add_sldIdLst.assert_called_once_with()
-        SlideCollection_.assert_called_once_with(sldIdLst_, rels_, prs)
+        SlideCollection_.assert_called_once_with(sldIdLst_, prs)
         assert slides == slides_
 
     def it_reuses_slide_collection_instance_on_later_references(self, prs):
@@ -96,16 +95,10 @@ class DescribePresentation(object):
         return ct_presentation_
 
     @pytest.fixture
-    def prs(self, ct_presentation_, rels_):
+    def prs(self, ct_presentation_):
         partname = PackURI('/ppt/presentation.xml')
         prs = Presentation(partname, None, ct_presentation_, None)
-        prs.rels  # causes prs._rels to be created
-        prs._rels = rels_
         return prs
-
-    @pytest.fixture
-    def rels_(self, request):
-        return instance_mock(request, RelationshipCollection)
 
     @pytest.fixture
     def sldIdLst_(self, request):

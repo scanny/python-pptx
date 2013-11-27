@@ -123,5 +123,5 @@ class Presentation(Part):
         |SlideCollection| object containing the slides in this presentation.
         """
         sldIdLst = self._element.get_or_add_sldIdLst()
-        slides = SlideCollection(sldIdLst, self.rels, self)
+        slides = SlideCollection(sldIdLst, self)
         return slides
