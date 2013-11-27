@@ -127,7 +127,9 @@ class SlideCollection(object):
         """
         Support iteration (e.g. 'for slide in slides:').
         """
-        return self._slides
+        for sldId in self._sldIdLst:
+            rId = sldId.rId
+            yield self._prs.related_parts[rId]
 
     def __len__(self):
         """
@@ -154,23 +156,9 @@ class SlideCollection(object):
         forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
         extension is always ``.xml``.
         """
-        for idx, slide in enumerate(self._slides):
+        for idx, slide in enumerate(self):
             partname_str = '/ppt/slides/slide%d.xml' % (idx+1)
             slide.partname = PackURI(partname_str)
-
-    def _slide_from_sldId(self, sldId):
-        """
-        Return the |Slide| instance referenced by *sldId*.
-        """
-        return self._prs.related_parts[sldId.rId]
-
-    @property
-    def _slides(self):
-        """
-        Iterator over slides in collection.
-        """
-        for sldId in self._sldIdLst:
-            yield self._slide_from_sldId(sldId)
 
 
 class SlideLayout(_BaseSlide):

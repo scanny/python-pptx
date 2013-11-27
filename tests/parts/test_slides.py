@@ -210,7 +210,7 @@ class DescribeSlideCollection(object):
         with pytest.raises(IndexError):
             slides[2]
 
-    def it_is_iterable(self, slides, slide_, slide_2_):
+    def it_can_iterate_over_the_slides(self, slides, slide_, slide_2_):
         assert [s for s in slides] == [slide_, slide_2_]
 
     def it_supports_len(self, slides):
@@ -232,9 +232,6 @@ class DescribeSlideCollection(object):
         slides._rename_slides()
         assert slide_.partname == '/ppt/slides/slide1.xml'
         assert slide_2_.partname == '/ppt/slides/slide2.xml'
-
-    def it_can_iterate_over_the_slides(self, slides, slide_, slide_2_):
-        assert [s for s in slides._slides] == [slide_, slide_2_]
 
     # fixtures -------------------------------------------------------
 
