@@ -39,6 +39,16 @@ def step_given_run_with_italics_set_to_setting(context, setting):
     context.run = runs[run_idx]
 
 
+@given('a text run')
+def given_a_text_run(context):
+    prs = Presentation()
+    blank_slidelayout = prs.slidelayouts[6]
+    slide = prs.slides.add_slide(blank_slidelayout)
+    textbox = slide.shapes.add_textbox(0, 0, 0, 0)
+    p = textbox.textframe.paragraphs[0]
+    context.r = p.add_run()
+
+
 @given('a textframe')
 def step_given_a_textframe(context):
     context.prs = Presentation()
@@ -84,6 +94,17 @@ def when_set_italics_to_setting(context, setting):
     context.run.font.italic = new_italics_value
 
 
+@when('I set the hyperlink address')
+def when_set_hyperlink_address(context):
+    context.run_text = 'python-pptx @ GitHub'
+    context.address = 'https://github.com/scanny/python-pptx'
+
+    r = context.r
+    r.text = context.run_text
+    hlink = r.hyperlink
+    hlink.address = context.address
+
+
 @when("I set the paragraph alignment to centered")
 def step_when_set_paragraph_alignment_to_centered(context):
     context.p.alignment = PP.ALIGN_CENTER
@@ -122,6 +143,14 @@ def step_then_run_now_has_italics_set_to_setting(context, initial, setting):
     )
     expected_val = {'on': True, 'off': False, 'to None': None}[setting]
     assert run.font.italic == expected_val
+
+
+@then('the text of the run is a hyperlink')
+def then_text_of_run_is_hyperlink(context):
+    r = context.r
+    hlink = r.hyperlink
+    assert r.text == context.run_text
+    assert hlink.address == context.address
 
 
 @then('the textframe\'s {side} margin is {inches}"')

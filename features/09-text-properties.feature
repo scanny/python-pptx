@@ -3,17 +3,20 @@ Feature: Change properties of text in shapes
   As a developer using python-pptx
   I need to set the properties of text in a shape
 
+
   Scenario: Set paragraph alignment
      Given a paragraph
       When I set the paragraph alignment to centered
        And I reload the presentation
       Then the paragraph is aligned centered
 
+
   Scenario: Set paragraph indentation
      Given a paragraph
       When I indent the paragraph
        And I reload the presentation
       Then the paragraph is indented to the second level
+
 
   Scenario Outline: Set word wrap property of textframe
     Given a textframe
@@ -26,6 +29,7 @@ Feature: Change properties of text in shapes
     | on      |
     | off     |
     | to None |
+
 
   Scenario Outline: Set italics property of text
     Given a run with italics set <initial>
@@ -45,6 +49,7 @@ Feature: Change properties of text in shapes
     | to None | off     |
     | to None | to None |
 
+
   Scenario Outline: Set textframe margins
     Given a textframe
      When I set the <side> margin to <value>"
@@ -57,3 +62,10 @@ Feature: Change properties of text in shapes
     | top    | 0.2   |
     | right  | 0.3   |
     | bottom | 0.4   |
+
+
+  @wip
+  Scenario: Add hyperlink
+    Given a text run
+     When I set the hyperlink address
+     Then the text of the run is a hyperlink
