@@ -19,11 +19,10 @@ class BaseShape(object):
     Base class for shape objects. Both |Shape| and |Picture| inherit from
     |BaseShape|.
     """
-    def __init__(self, shape_element):
+    def __init__(self, shape_elm, parent):
         super(BaseShape, self).__init__()
-        self._element = shape_element
-        # e.g. nvSpPr for shape, nvPicPr for pic, etc.
-        self._nvXxPr = shape_element.xpath('./*[1]', namespaces=_nsmap)[0]
+        self._element = shape_elm
+        self._parent = parent
 
     @property
     def has_textframe(self):
@@ -51,6 +50,14 @@ class BaseShape(object):
     def name(self):
         """Name of this shape."""
         return self._nvXxPr.cNvPr.get('name')
+
+    @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+        return self._parent.part
 
     def _set_text(self, text):
         """Replace all text in shape with single run containing *text*"""
@@ -88,7 +95,7 @@ class BaseShape(object):
         txBody = child(self._element, 'p:txBody')
         if txBody is None:
             raise ValueError('shape has no text frame')
-        return TextFrame(txBody)
+        return TextFrame(txBody, self)
 
     @property
     def _is_title(self):
@@ -102,3 +109,11 @@ class BaseShape(object):
         ph_idx = ph.get('idx', '0')
         # title placeholder is identified by idx of 0
         return ph_idx == '0'
+
+    @property
+    def _nvXxPr(self):
+        """
+        Non-visual shape properties element for this shape. Actual name
+        depends on the shape type, e.g. ``<p:nvPicPr>`` for picture shape.
+        """
+        return self._element.xpath('./*[1]', namespaces=_nsmap)[0]

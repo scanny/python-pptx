@@ -43,6 +43,15 @@ class _BaseSlide(Part):
         cSld = self._element.cSld
         return cSld.get('name', default='')
 
+    @property
+    def part(self):
+        """
+        Part of the parent protocol, "children" of the slide will not know
+        the part that contains them so must ask their parent object. That
+        chain of delegation ends here for slide child objects.
+        """
+        return self
+
     @lazyproperty
     def shapes(self):
         """

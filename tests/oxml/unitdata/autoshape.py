@@ -240,7 +240,7 @@ class _TestShapes(object):
     """Shape instances for use in unit tests"""
     @property
     def autoshape(self):
-        return Shape(test_shape_elements.autoshape)
+        return Shape(test_shape_elements.autoshape, None)
 
     @property
     def empty_shape_collection(self):
@@ -248,19 +248,19 @@ class _TestShapes(object):
 
     @property
     def picture(self):
-        return Picture(test_shape_elements.picture)
+        return Picture(test_shape_elements.picture, None)
 
     @property
     def placeholder(self):
-        return Shape(test_shape_elements.placeholder)
+        return Shape(test_shape_elements.placeholder, None)
 
     @property
     def rounded_rectangle(self):
-        return Shape(test_shape_elements.rounded_rectangle)
+        return Shape(test_shape_elements.rounded_rectangle, None)
 
     @property
     def textbox(self):
-        return Shape(test_shape_elements.textbox)
+        return Shape(test_shape_elements.textbox, None)
 
 
 test_shape_xml = _TestShapeXml()

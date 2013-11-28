@@ -28,8 +28,8 @@ from .oxml.unitdata.text import (
     a_bodyPr, a_txBody, a_p, a_pPr, a_t, an_hlinkClick, an_r, an_rPr
 )
 from .unitutil import (
-    absjoin, actual_xml, class_mock, instance_mock, parse_xml_file,
-    property_mock, test_file_dir
+    absjoin, actual_xml, class_mock, instance_mock, loose_mock,
+    parse_xml_file, property_mock, test_file_dir
 )
 
 
@@ -40,18 +40,18 @@ class DescribeTextFrame(object):
 
     def it_knows_the_number_of_paragraphs_it_contains(
             self, txBody, txBody_with_2_paras):
-        assert len(TextFrame(txBody).paragraphs) == 1
-        assert len(TextFrame(txBody_with_2_paras).paragraphs) == 2
+        assert len(TextFrame(txBody, None).paragraphs) == 1
+        assert len(TextFrame(txBody_with_2_paras, None).paragraphs) == 2
 
     def it_can_add_a_paragraph_to_the_text_it_contains(
             self, txBody, txBody_with_2_paras_xml):
-        textframe = TextFrame(txBody)
+        textframe = TextFrame(txBody, None)
         textframe.add_paragraph()
         assert actual_xml(textframe._txBody) == txBody_with_2_paras_xml
 
     def it_can_replace_the_text_it_contains(
             self, txBody, txBody_with_text_xml):
-        textframe = TextFrame(txBody)
+        textframe = TextFrame(txBody, None)
         textframe.text = 'foobar'
         assert actual_xml(txBody) == txBody_with_text_xml
 
@@ -59,41 +59,41 @@ class DescribeTextFrame(object):
             self, txBody, txBody_with_lIns, txBody_with_tIns,
             txBody_with_rIns, txBody_with_bIns):
 
-        textframe = TextFrame(txBody)
+        textframe = TextFrame(txBody, None)
         assert textframe.margin_left is None
         assert textframe.margin_top is None
         assert textframe.margin_right is None
         assert textframe.margin_bottom is None
 
-        textframe = TextFrame(txBody_with_lIns)
+        textframe = TextFrame(txBody_with_lIns, None)
         assert textframe.margin_left == Inches(0.01)
 
-        textframe = TextFrame(txBody_with_tIns)
+        textframe = TextFrame(txBody_with_tIns, None)
         assert textframe.margin_top == Inches(0.02)
 
-        textframe = TextFrame(txBody_with_rIns)
+        textframe = TextFrame(txBody_with_rIns, None)
         assert textframe.margin_right == Inches(0.03)
 
-        textframe = TextFrame(txBody_with_bIns)
+        textframe = TextFrame(txBody_with_bIns, None)
         assert textframe.margin_bottom == Inches(0.04)
 
     def it_can_change_its_margin_settings(
             self, txBody_bldr, txBody_with_lIns_xml, txBody_with_tIns_xml,
             txBody_with_rIns_xml, txBody_with_bIns_xml):
 
-        textframe = TextFrame(txBody_bldr.element)
+        textframe = TextFrame(txBody_bldr.element, None)
         textframe.margin_left = Inches(0.01)
         assert actual_xml(textframe._txBody) == txBody_with_lIns_xml
 
-        textframe = TextFrame(txBody_bldr.element)
+        textframe = TextFrame(txBody_bldr.element, None)
         textframe.margin_top = Inches(0.02)
         assert actual_xml(textframe._txBody) == txBody_with_tIns_xml
 
-        textframe = TextFrame(txBody_bldr.element)
+        textframe = TextFrame(txBody_bldr.element, None)
         textframe.margin_right = Inches(0.03)
         assert actual_xml(textframe._txBody) == txBody_with_rIns_xml
 
-        textframe = TextFrame(txBody_bldr.element)
+        textframe = TextFrame(txBody_bldr.element, None)
         textframe.margin_bottom = Inches(0.04)
         assert actual_xml(textframe._txBody) == txBody_with_bIns_xml
 
@@ -103,14 +103,14 @@ class DescribeTextFrame(object):
 
     def it_can_change_its_vertical_anchor_setting(
             self, txBody, txBody_with_anchor_ctr_xml):
-        textframe = TextFrame(txBody)
+        textframe = TextFrame(txBody, None)
         textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
         assert actual_xml(textframe._txBody) == txBody_with_anchor_ctr_xml
 
     def it_can_change_the_word_wrap_setting(
             self, txBody, txBody_with_wrap_on_xml, txBody_with_wrap_off_xml,
             txBody_xml):
-        textframe = TextFrame(txBody)
+        textframe = TextFrame(txBody, None)
         assert textframe.word_wrap is None
 
         textframe.word_wrap = True
@@ -125,11 +125,22 @@ class DescribeTextFrame(object):
         assert actual_xml(textframe._txBody) == txBody_xml
         assert textframe.word_wrap is None
 
+    def it_knows_the_part_it_belongs_to(self, textframe_with_parent_):
+        textframe, parent_ = textframe_with_parent_
+        part = textframe.part
+        assert part is parent_.part
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
     def textframe(self, txBody):
-        return TextFrame(txBody)
+        return TextFrame(txBody, None)
+
+    @pytest.fixture
+    def textframe_with_parent_(self, request):
+        parent_ = loose_mock(request, name='parent_')
+        textframe = TextFrame(None, parent_)
+        return textframe, parent_
 
     @pytest.fixture
     def txBody(self, txBody_bldr):
@@ -511,19 +522,36 @@ class Describe_Hyperlink(object):
         assert actual_xml(hlink._rPr) == rPr_with_hlinkClick_xml
         assert hlink.address == url
 
+    # def it_removes_the_existing_url_before_changing_it(self):
+    # def it_can_remove_the_hyperlink(self):
+    # def it_can_change_the_hyperlink(self):
+        # print(actual_xml(hlink._rPr))
+        # assert False
+
+    def it_knows_the_part_it_belongs_to(self, hlink_with_parent_):
+        hlink, parent_ = hlink_with_parent_
+        part = hlink.part
+        assert part is parent_.part
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
     def hlink(self, request, part_):
         rPr = an_rPr().with_nsdecls('a', 'r').element
-        hlink = _Hyperlink(rPr)
+        hlink = _Hyperlink(rPr, None)
         property_mock(request, _Hyperlink, 'part', return_value=part_)
         return hlink
 
     @pytest.fixture
     def hlink_with_hlinkClick(self, request, rPr_with_hlinkClick_bldr):
         rPr = rPr_with_hlinkClick_bldr.element
-        return _Hyperlink(rPr)
+        return _Hyperlink(rPr, None)
+
+    @pytest.fixture
+    def hlink_with_parent_(self, request):
+        parent_ = loose_mock(request, name='parent_')
+        hlink = _Hyperlink(None, parent_)
+        return hlink, parent_
 
     @pytest.fixture
     def hlink_with_url_(
@@ -624,12 +652,17 @@ class Describe_Paragraph(object):
             with pytest.raises(ValueError):
                 paragraph_with_text.level = value
 
+    def it_knows_the_part_it_belongs_to(self, paragraph_with_parent_):
+        paragraph, parent_ = paragraph_with_parent_
+        part = paragraph.part
+        assert part is parent_.part
+
     def test_runs_size(self, pList):
         """_Paragraph.runs is expected size"""
         # setup ------------------------
         actual_lengths = []
         for p in pList:
-            paragraph = _Paragraph(p)
+            paragraph = _Paragraph(p, None)
             # exercise ----------------
             actual_lengths.append(len(paragraph.runs))
         # verify ------------------
@@ -643,7 +676,7 @@ class Describe_Paragraph(object):
         # setup ------------------------
         test_text = 'python-pptx was here!!'
         p_elm = pList[2]
-        paragraph = _Paragraph(p_elm)
+        paragraph = _Paragraph(p_elm, None)
         # exercise ---------------------
         paragraph.text = test_text
         # verify -----------------------
@@ -705,17 +738,23 @@ class Describe_Paragraph(object):
 
     @pytest.fixture
     def paragraph(self, p_bldr):
-        return _Paragraph(p_bldr.element)
+        return _Paragraph(p_bldr.element, None)
 
     @pytest.fixture
     def paragraph_with_algn(self):
         pPr_bldr = a_pPr().with_algn('ctr')
         p_bldr = a_p().with_nsdecls().with_child(pPr_bldr)
-        return _Paragraph(p_bldr.element)
+        return _Paragraph(p_bldr.element, None)
+
+    @pytest.fixture
+    def paragraph_with_parent_(self, request):
+        parent_ = loose_mock(request, name='parent_')
+        paragraph = _Paragraph(None, parent_)
+        return paragraph, parent_
 
     @pytest.fixture
     def paragraph_with_text(self, p_with_text):
-        return _Paragraph(p_with_text)
+        return _Paragraph(p_with_text, None)
 
     @pytest.fixture
     def path(self):
@@ -738,7 +777,7 @@ class Describe_Run(object):
 
     def it_provides_access_to_the_font_of_the_run(
             self, r_, _Font_, rPr_, font_):
-        run = _Run(r_)
+        run = _Run(r_, None)
         font = run.font
         r_.get_or_add_rPr.assert_called_once_with()
         _Font_.assert_called_once_with(rPr_)
@@ -750,6 +789,11 @@ class Describe_Run(object):
 
     def it_can_get_the_text_of_the_run(self, run, test_text):
         assert run.text == test_text
+
+    def it_knows_the_part_it_belongs_to(self, run_with_parent_):
+        run, parent_ = run_with_parent_
+        part = run.part
+        assert part is parent_.part
 
     def it_can_change_the_text_of_the_run(self, run):
         run.text = 'new text'
@@ -788,7 +832,13 @@ class Describe_Run(object):
 
     @pytest.fixture
     def run(self, r):
-        return _Run(r)
+        return _Run(r, None)
+
+    @pytest.fixture
+    def run_with_parent_(self, request):
+        parent_ = loose_mock(request, name='parent_')
+        run = _Run(None, parent_)
+        return run, parent_
 
     @pytest.fixture
     def test_text(self):

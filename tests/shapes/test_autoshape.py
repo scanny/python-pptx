@@ -280,9 +280,9 @@ class TestShape(TestCase):
         AdjustmentCollection.return_value = adjustments
         sp = Mock(name='sp')
         # exercise ---------------------
-        shape = Shape(sp)
+        shape = Shape(sp, None)
         # verify -----------------------
-        BaseShape__init__.assert_called_once_with(sp)
+        BaseShape__init__.assert_called_once_with(sp, None)
         AdjustmentCollection.assert_called_once_with(sp.prstGeom)
         assert_that(shape.adjustments, is_(adjustments))
 
@@ -323,7 +323,7 @@ class TestShape(TestCase):
             '/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/></p:sp>'
         )
         sp = parse_xml_bytes(xml)
-        shape = Shape(sp)
+        shape = Shape(sp, None)
         # verify -----------------------
         with self.assertRaises(NotImplementedError):
             shape.shape_type

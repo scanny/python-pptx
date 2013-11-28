@@ -13,8 +13,8 @@ class Picture(BaseShape):
     A picture shape, one that places an image on a slide. Corresponds to the
     ``<p:pic>`` element.
     """
-    def __init__(self, pic):
-        super(Picture, self).__init__(pic)
+    def __init__(self, pic, parent):
+        super(Picture, self).__init__(pic, parent)
 
     @property
     def shape_type(self):

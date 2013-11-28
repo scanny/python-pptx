@@ -18,8 +18,8 @@ class Table(BaseShape):
     A table shape. Not intended to be constructed directly, use
     :meth:`ShapeCollection.add_table` to add a table to a slide.
     """
-    def __init__(self, graphicFrame):
-        super(Table, self).__init__(graphicFrame)
+    def __init__(self, graphicFrame, parent):
+        super(Table, self).__init__(graphicFrame, parent)
         self._graphicFrame = graphicFrame
         self._tbl_elm = graphicFrame[qn('a:graphic')].graphicData.tbl
         self._rows = _RowCollection(self._tbl_elm, self)
@@ -246,7 +246,7 @@ class _Cell(object):
         txBody = child(self._tc, 'a:txBody')
         if txBody is None:
             raise ValueError('cell has no text frame')
-        return TextFrame(txBody)
+        return TextFrame(txBody, self)
 
     def _get_vertical_anchor(self):
         """

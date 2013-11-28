@@ -10,7 +10,6 @@ from hamcrest import assert_that, equal_to, is_
 from mock import Mock, patch, PropertyMock
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
-from pptx.oxml.core import SubElement
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.parts.slides import SlideLayout
 from pptx.shapes.shapetree import Placeholder, ShapeCollection
@@ -59,15 +58,6 @@ class TestShapeCollection(TestCase):
         # verify -----------------------
         self.assertLength(self.shapes, 9)
 
-    def test_constructor_raises_on_contentPart_shape(self):
-        """ShapeCollection() raises on contentPart shape"""
-        # setup ------------------------
-        spTree = test_shape_elements.empty_spTree
-        SubElement(spTree, 'p:contentPart')
-        # verify -----------------------
-        with self.assertRaises(ValueError):
-            ShapeCollection(spTree)
-
     @patch('pptx.shapes.shapetree.CT_Shape')
     @patch('pptx.shapes.shapetree.Shape')
     @patch('pptx.shapes.shapetree.ShapeCollection._next_sh'
@@ -103,7 +93,7 @@ class TestShapeCollection(TestCase):
         AutoShapeType.assert_called_once_with(autoshape_type_id)
         CT_Shape.new_autoshape_sp.assert_called_once_with(
             id_, name, prst, left, top, width, height)
-        Shape.assert_called_once_with(sp)
+        Shape.assert_called_once_with(sp, shapes)
         _spTree.append.assert_called_once_with(sp)
         _shapes.append.assert_called_once_with(shape)
         assert_that(retval, is_(equal_to(shape)))
@@ -143,7 +133,7 @@ class TestShapeCollection(TestCase):
         CT_Picture.new_pic.assert_called_once_with(
             id_, name, desc, rId, left, top, width, height)
         _spTree.append.assert_called_once_with(pic)
-        Picture.assert_called_once_with(pic)
+        Picture.assert_called_once_with(pic, shapes)
         _shapes.append.assert_called_once_with(picture)
         assert_that(retval, is_(equal_to(picture)))
 
@@ -176,7 +166,7 @@ class TestShapeCollection(TestCase):
         CT_GraphicalObjectFrame.new_table.assert_called_once_with(
             id_, name, rows, cols, left, top, width, height)
         _spTree.append.assert_called_once_with(graphicFrame)
-        Table.assert_called_once_with(graphicFrame)
+        Table.assert_called_once_with(graphicFrame, shapes)
         _shapes.append.assert_called_once_with(table)
         assert_that(retval, is_(equal_to(table)))
 
@@ -204,7 +194,7 @@ class TestShapeCollection(TestCase):
         # verify -----------------------
         CT_Shape.new_textbox_sp.assert_called_once_with(
             id_, name, left, top, width, height)
-        Shape.assert_called_once_with(sp)
+        Shape.assert_called_once_with(sp, shapes)
         _spTree.append.assert_called_once_with(sp)
         assert_that(shapes._shapes[0], is_(equal_to(shape)))
         assert_that(retval, is_(equal_to(shape)))

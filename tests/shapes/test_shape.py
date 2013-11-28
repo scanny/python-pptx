@@ -4,19 +4,38 @@
 
 from __future__ import absolute_import
 
+import pytest
+
 from hamcrest import assert_that, is_
-from mock import Mock
 
 from pptx.oxml.ns import namespaces
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeCollection
 
-from ..unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
+from ..unitutil import (
+    absjoin, loose_mock, parse_xml_file, TestCase, test_file_dir
+)
 
 
 slide1_path = absjoin(test_file_dir, 'slide1.xml')
 
 nsmap = namespaces('a', 'r', 'p')
+
+
+class DescribeBaseShape(object):
+
+    def it_knows_the_part_it_belongs_to(self, shape_with_parent_):
+        shape, parent_ = shape_with_parent_
+        part = shape.part
+        assert part is parent_.part
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def shape_with_parent_(self, request):
+        parent_ = loose_mock(request, name='parent_')
+        shape = BaseShape(None, parent_)
+        return shape, parent_
 
 
 class TestBaseShape(TestCase):
@@ -26,7 +45,7 @@ class TestBaseShape(TestCase):
         self.sld = parse_xml_file(path).getroot()
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        self.base_shape = BaseShape(pic)
+        self.base_shape = BaseShape(pic, None)
 
     def test_has_textframe_value(self):
         """BaseShape.has_textframe value correct"""
@@ -60,7 +79,7 @@ class TestBaseShape(TestCase):
         # setup ------------------------
         xpath = './p:cSld/p:spTree/p:sp'
         sp = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        base_shape = BaseShape(sp)
+        base_shape = BaseShape(sp, None)
         # verify -----------------------
         actual = base_shape.is_placeholder
         msg = "expected True, got %s" % (actual)
@@ -78,19 +97,20 @@ class TestBaseShape(TestCase):
         # setup ------------------------
         xpath = './p:cSld/p:spTree/p:sp'
         title_placeholder_sp = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        base_shape = BaseShape(title_placeholder_sp)
+        base_shape = BaseShape(title_placeholder_sp, None)
         # verify -----------------------
         actual = base_shape._is_title
         msg = "expected True, got %s" % (actual)
         self.assertTrue(actual, msg)
 
-    def test__is_title_false_for_no_ph_element(self):
-        """BaseShape._is_title False on shape has no <p:ph> element"""
-        # setup ------------------------
-        self.base_shape._element = Mock(name='_element')
-        self.base_shape._element.xpath.return_value = []
-        # verify -----------------------
-        assert_that(self.base_shape._is_title, is_(False))
+    # # needs a shape XML builder, this early version made too many assumptions
+    # def test__is_title_false_for_no_ph_element(self):
+    #     """BaseShape._is_title False on shape has no <p:ph> element"""
+    #     # setup ------------------------
+    #     self.base_shape._element = Mock(name='_element')
+    #     self.base_shape._element.xpath.return_value = []
+    #     # verify -----------------------
+    #     assert_that(self.base_shape._is_title, is_(False))
 
     def test_name_value(self):
         """BaseShape.name value is correct"""
@@ -117,7 +137,7 @@ class TestBaseShape(TestCase):
         test_text = 'python-pptx was here!!'
         xpath = './p:cSld/p:spTree/p:sp'
         textbox_sp = self.sld.xpath(xpath, namespaces=nsmap)[2]
-        base_shape = BaseShape(textbox_sp)
+        base_shape = BaseShape(textbox_sp, None)
         # exercise ---------------------
         base_shape.text = test_text
         # verify paragraph count ------

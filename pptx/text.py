@@ -24,9 +24,10 @@ class TextFrame(object):
     frame. Corresponds to the ``<p:txBody>`` element that can appear as a
     child element of ``<p:sp>``. Not intended to be constructed directly.
     """
-    def __init__(self, txBody):
+    def __init__(self, txBody, parent):
         super(TextFrame, self).__init__()
         self._txBody = txBody
+        self._parent = parent
 
     def add_paragraph(self):
         """
@@ -36,7 +37,7 @@ class TextFrame(object):
         # <a:p> elements are last in txBody, so can simply append new one
         p = Element('a:p')
         self._txBody.append(p)
-        return _Paragraph(p)
+        return _Paragraph(p, self)
 
     def clear(self):
         """
@@ -96,7 +97,15 @@ class TextFrame(object):
         paragraphs in this text frame. A text frame always contains at least
         one paragraph.
         """
-        return tuple([_Paragraph(p) for p in self._txBody[qn('a:p')]])
+        return tuple([_Paragraph(p, self) for p in self._txBody[qn('a:p')]])
+
+    @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+        return self._parent.part
 
     def _set_text(self, text):
         """Replace all text in text frame with single run containing *text*"""
@@ -381,9 +390,10 @@ class _Hyperlink(object):
     Text run hyperlink object. Corresponds to ``<a:hlinkClick>`` child
     element of the run's properties element (``<a:rPr>``).
     """
-    def __init__(self, rPr):
+    def __init__(self, rPr, parent):
         super(_Hyperlink, self).__init__()
         self._rPr = rPr
+        self._parent = parent
 
     @property
     def address(self):
@@ -408,6 +418,7 @@ class _Hyperlink(object):
         The package part containing this object, a _BaseSlide subclass in
         this case.
         """
+        return self._parent.part
 
     @property
     def _hlinkClick(self):
@@ -423,16 +434,17 @@ class _Paragraph(object):
     """
     Paragraph object. Not intended to be constructed directly.
     """
-    def __init__(self, p):
+    def __init__(self, p, parent):
         super(_Paragraph, self).__init__()
         self._p = p
+        self._parent = parent
 
     def add_run(self):
         """
         Return a new run appended to the runs in this paragraph.
         """
         r = self._p.add_r()
-        return _Run(r)
+        return _Run(r, self)
 
     @property
     def alignment(self):
@@ -486,6 +498,14 @@ class _Paragraph(object):
         self._pPr.set('lvl', str(level))
 
     @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+        return self._parent.part
+
+    @property
     def runs(self):
         """
         Immutable sequence of |_Run| instances corresponding to the runs in
@@ -495,7 +515,7 @@ class _Paragraph(object):
         r_elms = self._p.xpath(xpath, namespaces=_nsmap)
         runs = []
         for r in r_elms:
-            runs.append(_Run(r))
+            runs.append(_Run(r, self))
         return tuple(runs)
 
     @property
@@ -535,9 +555,10 @@ class _Run(object):
     """
     Text run object. Corresponds to ``<a:r>`` child element in a paragraph.
     """
-    def __init__(self, r):
+    def __init__(self, r, parent):
         super(_Run, self).__init__()
         self._r = r
+        self._parent = parent
 
     @property
     def font(self):
@@ -561,7 +582,15 @@ class _Run(object):
         in response to actions on its methods and attributes.
         """
         rPr = self._r.get_or_add_rPr()
-        return _Hyperlink(rPr)
+        return _Hyperlink(rPr, self)
+
+    @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+        return self._parent.part
 
     @property
     def text(self):

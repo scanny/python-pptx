@@ -273,8 +273,8 @@ class Shape(BaseShape):
     that can appear in any of the slide-type parts (slide, slideLayout,
     slideMaster, notesPage, notesMaster, handoutMaster).
     """
-    def __init__(self, sp):
-        super(Shape, self).__init__(sp)
+    def __init__(self, sp, parent):
+        super(Shape, self).__init__(sp, parent)
         self._adjustments = AdjustmentCollection(sp.prstGeom)
 
     @property

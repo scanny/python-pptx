@@ -38,7 +38,7 @@ class ShapeCollection(BaseShape, Collection):
     _EXTLST = qn('p:extLst')
 
     def __init__(self, spTree, slide=None):
-        super(ShapeCollection, self).__init__(spTree)
+        super(ShapeCollection, self).__init__(spTree, slide)
         self._spTree = spTree
         self._slide = slide
         self._shapes = self._values
@@ -47,22 +47,22 @@ class ShapeCollection(BaseShape, Collection):
             if elm.tag in (self._NVGRPSPPR, self._GRPSPPR, self._EXTLST):
                 continue
             elif elm.tag == self._SP:
-                shape = Shape(elm)
+                shape = Shape(elm, self)
             elif elm.tag == self._PIC:
-                shape = Picture(elm)
-            elif elm.tag == self._GRPSP:
-                shape = ShapeCollection(elm)
+                shape = Picture(elm, self)
+            # elif elm.tag == self._GRPSP:
+            #     shape = ShapeCollection(elm)
             elif elm.tag == self._GRAPHICFRAME:
                 if elm.has_table:
-                    shape = Table(elm)
+                    shape = Table(elm, self)
                 else:
-                    shape = BaseShape(elm)
-            elif elm.tag == self._CONTENTPART:
-                msg = ("first time 'contentPart' shape encountered in the "
-                       "wild, please let developer know and send example")
-                raise ValueError(msg)
+                    shape = BaseShape(elm, self)
+            # elif elm.tag == self._CONTENTPART:
+            #     msg = ("first time 'contentPart' shape encountered in the "
+            #            "wild, please let developer know and send example")
+            #     raise ValueError(msg)
             else:
-                shape = BaseShape(elm)
+                shape = BaseShape(elm, self)
             self._shapes.append(shape)
 
     @property
@@ -99,7 +99,7 @@ class ShapeCollection(BaseShape, Collection):
         pic = CT_Picture.new_pic(id, name, desc, rId, left, top, width, height)
 
         self._spTree.append(pic)
-        picture = Picture(pic)
+        picture = Picture(pic, self)
         self._shapes.append(picture)
         return picture
 
@@ -114,7 +114,7 @@ class ShapeCollection(BaseShape, Collection):
 
         sp = CT_Shape.new_autoshape_sp(id_, name, autoshape_type.prst,
                                        left, top, width, height)
-        shape = Shape(sp)
+        shape = Shape(sp, self)
 
         self._spTree.append(sp)
         self._shapes.append(shape)
@@ -132,7 +132,7 @@ class ShapeCollection(BaseShape, Collection):
         graphicFrame = CT_GraphicalObjectFrame.new_table(
             id, name, rows, cols, left, top, width, height)
         self._spTree.append(graphicFrame)
-        table = Table(graphicFrame)
+        table = Table(graphicFrame, self)
         self._shapes.append(table)
         return table
 
@@ -144,7 +144,7 @@ class ShapeCollection(BaseShape, Collection):
         name = 'TextBox %d' % (id_-1)
 
         sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
-        shape = Shape(sp)
+        shape = Shape(sp, self)
 
         self._spTree.append(sp)
         self._shapes.append(shape)
@@ -179,7 +179,7 @@ class ShapeCollection(BaseShape, Collection):
 
         sp = CT_Shape.new_placeholder_sp(id_, shapename, ph_type, orient,
                                          sz, idx)
-        shape = Shape(sp)
+        shape = Shape(sp, self)
 
         self._spTree.append(sp)
         self._shapes.append(shape)
