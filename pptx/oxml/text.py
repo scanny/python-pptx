@@ -13,6 +13,15 @@ from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsdecls, qn
 
 
+class CT_Hyperlink(objectify.ObjectifiedElement):
+    """
+    Custom element class for <a:hlinkClick> elements.
+    """
+    @property
+    def rId(self):
+        return self.get(qn('r:id'))
+
+
 class CT_RegularTextRun(objectify.ObjectifiedElement):
     """
     Custom element class for <a:r> elements.
@@ -149,6 +158,8 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         """
         if name in ('b', 'i'):
             return self._get_bool_attr(name)
+        elif name == 'hlinkClick':
+            return self.find(qn('a:hlinkClick'))
         else:
             return super(CT_TextCharacterProperties, self).__getattr__(name)
 

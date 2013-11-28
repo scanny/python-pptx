@@ -53,8 +53,16 @@ class BaseBuilder(object):
         self._text = text
         return self
 
-    def with_nsdecls(self):
-        self._nsdecls = ' %s' % nsdecls(*self.__nspfxs__)
+    def with_nsdecls(self, *nspfxs):
+        """
+        Cause the element to contain namespace declarations. By default, the
+        namespace prefixes defined in the Builder class are used. These can
+        be overridden by providing exlicit prefixes, e.g.
+        ``with_nsdecls('a', 'r')``.
+        """
+        if not nspfxs:
+            nspfxs = self.__nspfxs__
+        self._nsdecls = ' %s' % nsdecls(*nspfxs)
         return self
 
     def xml(self, indent=0):
@@ -112,6 +120,23 @@ class BaseBuilder(object):
         for xmlattr_name in sorted(self._xmlattrs.keys()):
             xmlattrs_str += self._xmlattrs[xmlattr_name]
         return xmlattrs_str
+
+
+class CT_Hyperlink(BaseBuilder):
+    __tag__ = 'a:hlinkClick'
+    __nspfxs__ = ('a', 'r')
+    __attrs__ = (
+        'r:id', 'invalidUrl', 'action', 'tgtFrame', 'tooltip', 'history',
+        'highlightClick', 'endSnd'
+    )
+
+    def with_rId(self, rId):
+        self._set_xmlattr('r:id', rId)
+        return self
+
+
+def an_hlinkClick():
+    return CT_Hyperlink()
 
 
 class CT_OfficeArtExtensionList(BaseBuilder):
