@@ -24,7 +24,7 @@ def child(element, child_tag_str):
     return matching_children[0] if len(matching_children) else None
 
 
-def Element(nsptag_str):
+def Element(nsptag_str, nsmap=None):
     """
     Return a 'loose' lxml element having the tag specified by *nsptag_str*.
     *nsptag_str* must contain the standard namespace prefix, e.g. 'a:tbl'.
@@ -32,7 +32,8 @@ def Element(nsptag_str):
     tag name if one is defined.
     """
     nsptag = NamespacePrefixedTag(nsptag_str)
-    return oxml_parser.makeelement(nsptag.clark_name, nsmap=nsptag.nsmap)
+    nsmap = nsmap if nsmap is not None else nsptag.nsmap
+    return oxml_parser.makeelement(nsptag.clark_name, nsmap=nsmap)
 
 
 def get_or_add(parent, nsptag_str):

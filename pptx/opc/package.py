@@ -215,11 +215,13 @@ class Part(object):
             raise TypeError(tmpl % type(partname).__name__)
         self._partname = partname
 
-    def relate_to(self, other_part, reltype):
+    def relate_to(self, other_part, reltype, is_external=False):
         """
         Return rId key of relationship to *other_part*, from the existing
         relationship if there is one, otherwise a newly created one.
         """
+        if is_external:
+            raise NotImplementedError
         rel = self.rels.get_or_add(reltype, other_part)
         return rel.rId
 

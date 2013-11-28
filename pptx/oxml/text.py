@@ -10,7 +10,7 @@ from lxml import objectify
 
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, SubElement
-from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.ns import nsdecls, nsmap, qn
 
 
 class CT_Hyperlink(objectify.ObjectifiedElement):
@@ -197,6 +197,30 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
             self.set(name, '1')
         else:
             self.set(name, '0')
+
+    def add_hlinkClick(self, rId):
+        """
+        Add an <a:hlinkClick> child element with r:id attribute set to *rId*.
+        """
+        assert self.find(qn('a:hlinkClick')) is None
+
+        hlinkClick = Element('a:hlinkClick', nsmap('a', 'r'))
+        hlinkClick.set(qn('r:id'), rId)
+
+        # find right insertion spot, will go away once xmlchemy comes in
+        if self.find(qn('a:hlinkMouseOver')):
+            successor = self.find(qn('a:hlinkMouseOver'))
+            successor.addprevious(hlinkClick)
+        elif self.find(qn('a:rtl')):
+            successor = self.find(qn('a:rtl'))
+            successor.addprevious(hlinkClick)
+        elif self.find(qn('a:extLst')):
+            successor = self.find(qn('a:extLst'))
+            successor.addprevious(hlinkClick)
+        else:
+            self.append(hlinkClick)
+
+        return hlinkClick
 
     def get_or_change_to_solidFill(self):
         """

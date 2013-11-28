@@ -9,6 +9,7 @@ import pytest
 from pptx.constants import MSO, PP
 from pptx.dml.core import RGBColor
 from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, nsdecls
@@ -500,34 +501,63 @@ class Describe_Hyperlink(object):
     def it_has_None_for_address_when_no_hyperlink_is_present(self, hlink):
         assert hlink.address is None
 
+    def it_can_set_the_target_url(
+            self, hlink, rPr_with_hlinkClick_xml, url):
+        hlink.address = url
+        # verify -----------------------
+        hlink.part.relate_to.assert_called_once_with(
+            url, RT.HYPERLINK, is_external=True
+        )
+        assert actual_xml(hlink._rPr) == rPr_with_hlinkClick_xml
+        assert hlink.address == url
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def hlink(self):
-        rPr = an_rPr().with_nsdecls().element
-        return _Hyperlink(rPr)
-
-    @pytest.fixture
-    def hlink_with_hlinkClick(self, request, rId):
-        hlinkClick_bldr = an_hlinkClick().with_rId(rId)
-        rPr = (
-            an_rPr().with_nsdecls('a', 'r')
-                    .with_child(hlinkClick_bldr)
-                    .element
-        )
+    def hlink(self, request, part_):
+        rPr = an_rPr().with_nsdecls('a', 'r').element
         hlink = _Hyperlink(rPr)
+        property_mock(request, _Hyperlink, 'part', return_value=part_)
         return hlink
 
     @pytest.fixture
-    def hlink_with_url_(self, request, hlink_with_hlinkClick, rId, url):
-        part_ = instance_mock(request, Part, name='part_')
-        part_.target_ref.return_value = url
+    def hlink_with_hlinkClick(self, request, rPr_with_hlinkClick_bldr):
+        rPr = rPr_with_hlinkClick_bldr.element
+        return _Hyperlink(rPr)
+
+    @pytest.fixture
+    def hlink_with_url_(
+            self, request, part_, hlink_with_hlinkClick, rId, url):
         property_mock(request, _Hyperlink, 'part', return_value=part_)
         return hlink_with_hlinkClick, rId, url
 
     @pytest.fixture
+    def part_(self, request, url, rId):
+        """
+        Mock Part instance suitable for patching into _Hyperlink.part
+        property. It returns url for target_ref() and rId for relate_to().
+        """
+        part_ = instance_mock(request, Part)
+        part_.target_ref.return_value = url
+        part_.relate_to.return_value = rId
+        return part_
+
+    @pytest.fixture
     def rId(self):
         return 'rId2'
+
+    @pytest.fixture
+    def rPr_with_hlinkClick_bldr(self, rId):
+        hlinkClick_bldr = an_hlinkClick().with_rId(rId)
+        rPr_bldr = (
+            an_rPr().with_nsdecls('a', 'r')
+                    .with_child(hlinkClick_bldr)
+        )
+        return rPr_bldr
+
+    @pytest.fixture
+    def rPr_with_hlinkClick_xml(self, rPr_with_hlinkClick_bldr):
+        return rPr_with_hlinkClick_bldr.xml()
 
     @pytest.fixture
     def url(self):

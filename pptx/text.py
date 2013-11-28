@@ -7,6 +7,7 @@ Text-related objects such as TextFrame and Paragraph.
 from pptx.constants import MSO
 from pptx.dml.core import ColorFormat, RGBColor
 from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.core import Element, get_or_add
 from pptx.oxml.ns import namespaces, qn
 from pptx.spec import ParagraphAlignment
@@ -387,12 +388,19 @@ class _Hyperlink(object):
     @property
     def address(self):
         """
-        The URL of the hyperlink. Can be an http://, mailto:, or file://
-        scheme URL; others may work.
+        Read/write. The URL of the hyperlink. URL can be on http, https,
+        mailto, or file scheme; others may work.
         """
         if self._hlinkClick is None:
             return None
         return self.part.target_ref(self._hlinkClick.rId)
+
+    @address.setter
+    def address(self, url):
+        if self._hlinkClick:
+            self._remove_hlinkClick()
+        rId = self.part.relate_to(url, RT.HYPERLINK, is_external=True)
+        self._rPr.add_hlinkClick(rId)
 
     @property
     def part(self):
@@ -404,6 +412,11 @@ class _Hyperlink(object):
     @property
     def _hlinkClick(self):
         return self._rPr.hlinkClick
+
+    def _remove_hlinkClick(self):
+        assert self._hlinkClick is not None
+        self.part.drop_rel(self._hlinkClick.rId)
+        self._rPr._hlinkClick = None
 
 
 class _Paragraph(object):

@@ -108,6 +108,9 @@ def namespaces(*prefixes):
     return namespaces
 
 
+nsmap = namespaces  # alias for more compact use with Element()
+
+
 def nsdecls(*prefixes):
     return ' '.join(['xmlns:%s="%s"' % (pfx, _nsmap[pfx]) for pfx in prefixes])
 
