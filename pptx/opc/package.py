@@ -215,15 +215,16 @@ class Part(object):
             raise TypeError(tmpl % type(partname).__name__)
         self._partname = partname
 
-    def relate_to(self, other_part, reltype, is_external=False):
+    def relate_to(self, target, reltype, is_external=False):
         """
-        Return rId key of relationship to *other_part*, from the existing
-        relationship if there is one, otherwise a newly created one.
+        Return rId key of relationship of *reltype* to *target*, from an
+        existing relationship if there is one, otherwise a newly created one.
         """
         if is_external:
-            raise NotImplementedError
-        rel = self.rels.get_or_add(reltype, other_part)
-        return rel.rId
+            return self.rels.get_or_add_ext_rel(reltype, target)
+        else:
+            rel = self.rels.get_or_add(reltype, target)
+            return rel.rId
 
     @property
     def related_parts(self):
@@ -325,6 +326,12 @@ class RelationshipCollection(object):
             rId = self._next_rId
             rel = self.add_relationship(reltype, target_part, rId)
         return rel
+
+    def get_or_add_ext_rel(self, reltype, target_ref):
+        """
+        Return rId of external relationship of *reltype* to *target_ref*,
+        newly added if not already present in collection.
+        """
 
     def part_with_reltype(self, reltype):
         """

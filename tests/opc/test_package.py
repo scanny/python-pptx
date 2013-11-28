@@ -244,6 +244,16 @@ class DescribePart(object):
         part.rels.get_or_add.assert_called_once_with(reltype, related_part_)
         assert _rId == rId
 
+    def it_can_establish_an_external_relationship(
+            self, relate_to_url_fixture_):
+        # fixture ----------------------
+        part, url, reltype, rId = relate_to_url_fixture_
+        # exercise ---------------------
+        _rId = part.relate_to(url, reltype, is_external=True)
+        # verify -----------------------
+        part.rels.get_or_add_ext_rel.assert_called_once_with(reltype, url)
+        assert _rId == rId
+
     def it_can_find_a_part_related_by_reltype(self, related_part_fixture_):
         part, reltype, related_part_ = related_part_fixture_
         related_part = part.part_related_by(reltype)
@@ -290,6 +300,15 @@ class DescribePart(object):
         rels_.get_or_add.return_value = rel_
         part._rels = rels_
         return part, related_part_, reltype, rId
+
+    @pytest.fixture
+    def relate_to_url_fixture_(self, request, part, reltype):
+        rId = 'rId21'
+        url = 'https://github.com/scanny/python-pptx'
+        rels_ = instance_mock(request, RelationshipCollection, name='rels_')
+        rels_.get_or_add_ext_rel.return_value = rId
+        part._rels = rels_
+        return part, url, reltype, rId
 
     @pytest.fixture
     def related_part_fixture_(self, request, part, reltype):
