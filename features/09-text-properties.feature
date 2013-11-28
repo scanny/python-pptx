@@ -64,7 +64,6 @@ Feature: Change properties of text in shapes
     | bottom | 0.4   |
 
 
-  @wip
   Scenario: Add hyperlink
     Given a text run
      When I set the hyperlink address

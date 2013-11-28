@@ -243,6 +243,8 @@ class Part(object):
         Return URL contained in target ref of relationship identified by
         *rId*.
         """
+        rel = self.rels[rId]
+        return rel.target_ref
 
 
 class PartFactory(object):

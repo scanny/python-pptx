@@ -257,6 +257,12 @@ class DescribePart(object):
         part.rels.part_with_reltype.assert_called_once_with(reltype)
         assert related_part is related_part_
 
+    def it_can_find_the_target_ref_of_an_external_relationship(
+            self, target_ref_fixture_):
+        part, rId, url = target_ref_fixture_
+        _url = part.target_ref(rId)
+        assert _url == url
+
     def it_can_be_notified_after_unmarshalling_is_complete(self, part):
         part.after_unmarshal()
 
@@ -269,7 +275,6 @@ class DescribePart(object):
     def part(self):
         partname = PackURI('/foo/bar.xml')
         part = Part(partname, None, None)
-        part.rels  # causes ._rels to be populated as side effect
         return part
 
     @pytest.fixture
@@ -322,6 +327,15 @@ class DescribePart(object):
     @pytest.fixture
     def reltype(self):
         return 'http:/rel/type'
+
+    @pytest.fixture
+    def target_ref_fixture_(self, request, part):
+        rId = 'rId246'
+        url = 'https://github.com/scanny/python-pptx'
+        rels = RelationshipCollection(None)
+        rels.add_relationship(None, url, rId, is_external=True)
+        part._rels = rels
+        return part, rId, url
 
 
 class DescribePartFactory(object):
