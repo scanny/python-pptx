@@ -14,7 +14,9 @@ from pptx.oxml.ns import namespaces, nsdecls
 from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
 )
-from pptx.text import _Font, _FontColor, _Paragraph, _Run, TextFrame
+from pptx.text import (
+    _Font, _FontColor, _Hyperlink, _Paragraph, _Run, TextFrame
+)
 from pptx.util import Inches
 
 from .oxml.unitdata.dml import (
@@ -666,6 +668,10 @@ class Describe_Run(object):
         r_.get_or_add_rPr.assert_called_once_with()
         _Font_.assert_called_once_with(rPr_)
         assert font == font_
+
+    def it_provides_access_to_the_hyperlink_of_the_run(self, run):
+        hlink = run.hyperlink
+        assert isinstance(hlink, _Hyperlink)
 
     def it_can_get_the_text_of_the_run(self, run, test_text):
         assert run.text == test_text

@@ -10,7 +10,7 @@ from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from pptx.oxml.core import Element, get_or_add
 from pptx.oxml.ns import namespaces, qn
 from pptx.spec import ParagraphAlignment
-from pptx.util import to_unicode
+from pptx.util import lazyproperty, to_unicode
 
 
 # default namespace map for use in lxml calls
@@ -375,6 +375,20 @@ class _FontColor(ColorFormat):
             raise ValueError(msg)
 
 
+class _Hyperlink(object):
+    """
+    Text run hyperlink object. Corresponds to ``<a:hlinkClick>`` child
+    element of the run's properties element (``<a:rPr>``).
+    """
+    def __init__(self, rPr):
+        super(_Hyperlink, self).__init__()
+        self._rPr = rPr
+
+    @property
+    def address(self):
+        pass
+
+
 class _Paragraph(object):
     """
     Paragraph object. Not intended to be constructed directly.
@@ -506,6 +520,18 @@ class _Run(object):
         """
         rPr = self._r.get_or_add_rPr()
         return _Font(rPr)
+
+    @lazyproperty
+    def hyperlink(self):
+        """
+        |_Hyperlink| instance acting as proxy for any ``<a:hlinkClick>``
+        element under the run properties element. Created on demand, the
+        hyperlink object is available whether an ``<a:hlinkClick>`` element
+        is present or not, and creates or deletes that element as appropriate
+        in response to actions on its methods and attributes.
+        """
+        rPr = self._r.get_or_add_rPr()
+        return _Hyperlink(rPr)
 
     @property
     def text(self):
