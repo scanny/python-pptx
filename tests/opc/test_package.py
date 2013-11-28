@@ -246,11 +246,8 @@ class DescribePart(object):
 
     def it_can_establish_an_external_relationship(
             self, relate_to_url_fixture_):
-        # fixture ----------------------
         part, url, reltype, rId = relate_to_url_fixture_
-        # exercise ---------------------
         _rId = part.relate_to(url, reltype, is_external=True)
-        # verify -----------------------
         part.rels.get_or_add_ext_rel.assert_called_once_with(reltype, url)
         assert _rId == rId
 
@@ -469,6 +466,21 @@ class DescribeRelationshipCollection(object):
         assert rels[0] == rel
         assert rel == _Relationship_.return_value
 
+    def it_can_add_an_external_relationship(self, add_ext_rel_fixture_):
+        rels, reltype, url = add_ext_rel_fixture_
+        rId = rels.get_or_add_ext_rel(reltype, url)
+        rel = rels[rId]
+        assert rel.is_external
+        assert rel.target_ref == url
+        assert rel.reltype == reltype
+
+    def it_should_return_an_existing_one_if_it_matches(
+            self, add_matching_ext_rel_fixture_):
+        rels, reltype, url, rId = add_matching_ext_rel_fixture_
+        _rId = rels.get_or_add_ext_rel(reltype, url)
+        assert _rId == rId
+        assert len(rels) == 1
+
     def it_can_compose_rels_xml(self, rels, rels_elm):
         # exercise ---------------------
         rels.xml
@@ -485,6 +497,18 @@ class DescribeRelationshipCollection(object):
         assert rels_elm.mock_calls == expected_rels_elm_calls
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def add_ext_rel_fixture_(self, reltype, url):
+        rels = RelationshipCollection(None)
+        return rels, reltype, url
+
+    @pytest.fixture
+    def add_matching_ext_rel_fixture_(self, request, reltype, url):
+        rId = 'rId369'
+        rels = RelationshipCollection(None)
+        rels.add_relationship(reltype, url, rId, is_external=True)
+        return rels, reltype, url, rId
 
     @pytest.fixture
     def _Relationship_(self, request):
@@ -524,6 +548,14 @@ class DescribeRelationshipCollection(object):
         patch_.start()
         request.addfinalizer(patch_.stop)
         return rels_elm
+
+    @pytest.fixture
+    def reltype(self):
+        return 'http://rel/type'
+
+    @pytest.fixture
+    def url(self):
+        return 'https://github.com/scanny/python-pptx'
 
 
 class DescribeUnmarshaller(object):

@@ -221,7 +221,8 @@ class DescribeRelationshipCollection(object):
         )
         matching_rel_ = instance_mock(
             request, _Relationship, name='matching_rel_',
-            reltype=matching_reltype_, target_part=matching_part_
+            reltype=matching_reltype_, target_part=matching_part_,
+            is_external=False
         )
         rels._rels.append(matching_rel_)
         return rels, matching_reltype_, matching_part_, matching_rel_
@@ -236,7 +237,8 @@ class DescribeRelationshipCollection(object):
         )
         new_rel_ = instance_mock(
             request, _Relationship, name='new_rel_',
-            reltype=missing_reltype_, target_part=missing_part_
+            reltype=missing_reltype_, target_part=missing_part_,
+            is_external=False
         )
         _Relationship_.return_value = new_rel_
         return rels, missing_reltype_, missing_part_, new_rel_

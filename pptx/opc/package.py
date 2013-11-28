@@ -332,6 +332,13 @@ class RelationshipCollection(object):
         Return rId of external relationship of *reltype* to *target_ref*,
         newly added if not already present in collection.
         """
+        rel = self._get_matching(reltype, target_ref, is_external=True)
+        if rel is None:
+            rId = self._next_rId
+            rel = self.add_relationship(
+                reltype, target_ref, rId, is_external=True
+            )
+        return rel.rId
 
     def part_with_reltype(self, reltype):
         """
@@ -362,13 +369,23 @@ class RelationshipCollection(object):
                              rel.is_external)
         return rels_elm.xml
 
-    def _get_matching(self, reltype, target_part):
+    def _get_matching(self, reltype, target, is_external=False):
         """
-        Return relationship of matching *reltype* to *target_part* from
-        collection, or none if no such relationship is present.
+        Return relationship of matching *reltype*, *target*, and
+        *is_external* from collection, or None if not found.
         """
+        def matches(rel, reltype, target, is_external):
+            if rel.reltype != reltype:
+                return False
+            if rel.is_external != is_external:
+                return False
+            rel_target = rel.target_ref if rel.is_external else rel.target_part
+            if rel_target != target:
+                return False
+            return True
+
         for rel in self._rels:
-            if rel.target_part == target_part and rel.reltype == reltype:
+            if matches(rel, reltype, target, is_external):
                 return rel
         return None
 
