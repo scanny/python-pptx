@@ -386,7 +386,24 @@ class _Hyperlink(object):
 
     @property
     def address(self):
-        pass
+        """
+        The URL of the hyperlink. Can be an http://, mailto:, or file://
+        scheme URL; others may work.
+        """
+        if self._hlinkClick is None:
+            return None
+        return self.part.target_ref(self._hlinkClick.rId)
+
+    @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+
+    @property
+    def _hlinkClick(self):
+        return self._rPr.hlinkClick
 
 
 class _Paragraph(object):

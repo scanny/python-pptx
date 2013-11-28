@@ -235,6 +235,12 @@ class Part(object):
         """
         return RelationshipCollection(self._partname.baseURI)
 
+    def target_ref(self, rId):
+        """
+        Return URL contained in target ref of relationship identified by
+        *rId*.
+        """
+
 
 class PartFactory(object):
     """

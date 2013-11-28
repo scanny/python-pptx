@@ -9,6 +9,7 @@ import pytest
 from pptx.constants import MSO, PP
 from pptx.dml.core import RGBColor
 from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
+from pptx.opc.package import Part
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.oxml.text import (
@@ -23,11 +24,11 @@ from .oxml.unitdata.dml import (
     a_lumMod, a_lumOff, a_schemeClr, a_solidFill, an_srgbClr
 )
 from .oxml.unitdata.text import (
-    a_bodyPr, a_txBody, a_p, a_pPr, a_t, an_r, an_rPr
+    a_bodyPr, a_txBody, a_p, a_pPr, a_t, an_hlinkClick, an_r, an_rPr
 )
 from .unitutil import (
     absjoin, actual_xml, class_mock, instance_mock, parse_xml_file,
-    test_file_dir
+    property_mock, test_file_dir
 )
 
 
@@ -487,6 +488,50 @@ class Describe_FontColor(object):
         solidFill_bldr = a_solidFill().with_child(schemeClr_bldr)
         rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
         return _FontColor(rPr)
+
+
+class Describe_Hyperlink(object):
+
+    def it_knows_the_target_url_of_the_hyperlink(self, hlink_with_url_):
+        hlink, rId, url = hlink_with_url_
+        assert hlink.address == url
+        hlink.part.target_ref.assert_called_once_with(rId)
+
+    def it_has_None_for_address_when_no_hyperlink_is_present(self, hlink):
+        assert hlink.address is None
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def hlink(self):
+        rPr = an_rPr().with_nsdecls().element
+        return _Hyperlink(rPr)
+
+    @pytest.fixture
+    def hlink_with_hlinkClick(self, request, rId):
+        hlinkClick_bldr = an_hlinkClick().with_rId(rId)
+        rPr = (
+            an_rPr().with_nsdecls('a', 'r')
+                    .with_child(hlinkClick_bldr)
+                    .element
+        )
+        hlink = _Hyperlink(rPr)
+        return hlink
+
+    @pytest.fixture
+    def hlink_with_url_(self, request, hlink_with_hlinkClick, rId, url):
+        part_ = instance_mock(request, Part, name='part_')
+        part_.target_ref.return_value = url
+        property_mock(request, _Hyperlink, 'part', return_value=part_)
+        return hlink_with_hlinkClick, rId, url
+
+    @pytest.fixture
+    def rId(self):
+        return 'rId2'
+
+    @pytest.fixture
+    def url(self):
+        return 'https://github.com/scanny/python-pptx'
 
 
 class Describe_Paragraph(object):
