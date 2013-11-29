@@ -19,6 +19,7 @@ from pptx.opc.package import (
 from pptx.opc.pkgreader import PackageReader
 from pptx.presentation import Package
 
+from ..oxml.unitdata.text import an_hlinkClick, an_rPr
 from ..unitutil import (
     cls_attr_mock, class_mock, instance_mock, loose_mock, method_mock
 )
@@ -284,6 +285,15 @@ class DescribePartRelsProxyInterface(object):
         part.rels.get_or_add_ext_rel.assert_called_once_with(reltype, url)
         assert _rId == rId
 
+    def it_can_drop_a_relationship(self, part_with_rels_to_drop_):
+        part, rId, rId_2, rId_3 = part_with_rels_to_drop_
+        part.drop_rel(rId)    # this one has ref count of 2, don't drop
+        part.drop_rel(rId_2)  # this one has ref count of 1, drop
+        part.drop_rel(rId_3)  # this one has ref count of 0, drop
+        assert part.rels.__delitem__.call_args_list == [
+            call(rId_2), call(rId_3)
+        ]
+
     def it_can_find_a_part_related_by_reltype(self, related_part_fixture_):
         part, reltype, related_part_ = related_part_fixture_
         related_part = part.part_related_by(reltype)
@@ -305,9 +315,18 @@ class DescribePartRelsProxyInterface(object):
         return part
 
     @pytest.fixture
-    def part_with_rels_(self, request, part, rels_):
+    def part_with_rels_to_drop_(self, request, part, rels_):
+        rId, rId_2, rId3 = 'rId1', 'rId2', 'rId3'
+        _element = (
+            an_rPr().with_nsdecls('a', 'r')
+                    .with_child(an_hlinkClick().with_rId(rId))
+                    .with_child(an_hlinkClick().with_rId(rId))
+                    .with_child(an_hlinkClick().with_rId(rId_2))
+                    .element
+        )
+        part._element = _element
         part._rels = rels_
-        return part, rels_
+        return part, rId, rId_2, rId3
 
     @pytest.fixture
     def RelationshipCollection_(self, request):
@@ -343,6 +362,10 @@ class DescribePartRelsProxyInterface(object):
     @pytest.fixture
     def reltype(self):
         return 'http:/rel/type'
+
+    @pytest.fixture
+    def rels_(self, request):
+        return instance_mock(request, RelationshipCollection)
 
     @pytest.fixture
     def target_ref_fixture_(self, request, part):

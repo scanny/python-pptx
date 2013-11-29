@@ -10,7 +10,7 @@ from __future__ import absolute_import
 from pptx.util import lazyproperty
 
 from .constants import RELATIONSHIP_TYPE as RT
-from .oxml import CT_Relationships
+from .oxml import CT_Relationships, nsmap
 from .packuri import PACKAGE_URI, PackURI
 from .pkgreader import PackageReader
 from .pkgwriter import PackageWriter
@@ -210,7 +210,8 @@ class Part(object):
         is less than 2. Relationships with a reference count of 0 are
         implicit relationships.
         """
-        raise NotImplementedError
+        if self._rel_ref_count(rId) < 2:
+            del self.rels[rId]
 
     def part_related_by(self, reltype):
         """
@@ -257,6 +258,15 @@ class Part(object):
         rel = self.rels[rId]
         return rel.target_ref
 
+    def _rel_ref_count(self, rId):
+        """
+        Return the count of references in this part's XML to the relationship
+        identified by *rId*.
+        """
+        assert self._element is not None
+        rIds = self._element.xpath('//@r:id', namespaces=nsmap)
+        return len([_rId for _rId in rIds if _rId == rId])
+
     # ----------------------------------------------------------------
 
     @property
@@ -300,6 +310,12 @@ class RelationshipCollection(object):
         self._baseURI = baseURI
         self._rels = []
         self._target_parts_by_rId = {}
+
+    def __delitem__(self, rId):
+        """
+        Remove the relationship identified by *rId* from the collection.
+        """
+        raise NotImplementedError
 
     def __getitem__(self, key):
         """

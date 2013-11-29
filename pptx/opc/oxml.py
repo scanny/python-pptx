@@ -23,6 +23,7 @@ oxml_parser.set_element_class_lookup(element_class_lookup)
 nsmap = {
     'ct': NS.OPC_CONTENT_TYPES,
     'pr': NS.OPC_RELATIONSHIPS,
+    'r':  NS.OFC_RELATIONSHIPS,
 }
 
 
