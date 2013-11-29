@@ -12,7 +12,6 @@ import os
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import OpcPackage, Part
 from pptx.oxml import parse_xml_bytes
-from pptx.oxml.core import serialize_part_xml
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import ImageCollection
 from pptx.parts.part import PartCollection
@@ -91,13 +90,8 @@ class Presentation(Part):
     """
     def __init__(self, partname, content_type, presentation_elm, package):
         super(Presentation, self).__init__(
-            partname, content_type, package=package
+            partname, content_type, element=presentation_elm, package=package
         )
-        self._element = presentation_elm
-
-    @property
-    def blob(self):
-        return serialize_part_xml(self._element)
 
     @classmethod
     def load(cls, partname, content_type, blob, package):

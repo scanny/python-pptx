@@ -205,11 +205,11 @@ class DescribeOpcPackage(object):
 class DescribePartLoadSaveInterface(object):
 
     def it_remembers_its_construction_state(self):
-        partname, content_type, package, blob = (
+        partname, content_type, blob, element, package = (
             Mock(name='partname'), Mock(name='content_type'),
-            Mock(name='package'), Mock(name='blob')
+            Mock(name='blob'), None, Mock(name='package')
         )
-        part = Part(partname, content_type, blob, package)
+        part = Part(partname, content_type, blob, element, package)
         assert part.partname == partname
         assert part.content_type == content_type
         assert part.blob == blob

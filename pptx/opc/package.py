@@ -7,6 +7,7 @@ writing presentations to and from a .pptx file.
 
 from __future__ import absolute_import
 
+from pptx.oxml.core import serialize_part_xml
 from pptx.util import lazyproperty
 
 from .constants import RELATIONSHIP_TYPE as RT
@@ -127,12 +128,15 @@ class Part(object):
     intended to be subclassed in client code to implement specific part
     behaviors.
     """
-    def __init__(self, partname, content_type, blob=None, package=None):
+    def __init__(
+            self, partname, content_type, blob=None, element=None,
+            package=None):
         super(Part, self).__init__()
         self._partname = partname
         self._content_type = content_type
-        self._package = package
         self._blob = blob
+        self._element = element
+        self._package = package
 
     # load/save interface to OpcPackage ------------------------------
 
@@ -163,6 +167,8 @@ class Part(object):
         binary. Intended to be overridden by subclasses. Default behavior is
         to return load blob.
         """
+        if self._element is not None:
+            return serialize_part_xml(self._element)
         return self._blob
 
     @property
@@ -174,7 +180,9 @@ class Part(object):
 
     @classmethod
     def load(cls, partname, content_type, blob, package):
-        return cls(partname, content_type, blob, package)
+        return cls(
+            partname, content_type, blob=blob, element=None, package=package
+        )
 
     def load_rel(self, reltype, target, rId, is_external=False):
         """

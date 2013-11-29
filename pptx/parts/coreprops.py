@@ -12,7 +12,6 @@ from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
-from pptx.oxml.core import serialize_part_xml
 from pptx.oxml.coreprops import CT_CoreProperties
 
 
@@ -28,12 +27,9 @@ class CoreProperties(Part):
     )
 
     def __init__(self, partname, content_type, core_props_elm):
-        super(CoreProperties, self).__init__(partname, content_type)
-        self._element = core_props_elm
-
-    @property
-    def blob(self):
-        return serialize_part_xml(self._element)
+        super(CoreProperties, self).__init__(
+            partname, content_type, element=core_props_elm
+        )
 
     @classmethod
     def default(cls):

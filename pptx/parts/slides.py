@@ -10,7 +10,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
-from pptx.oxml.core import Element, serialize_part_xml, SubElement
+from pptx.oxml.core import Element, SubElement
 from pptx.parts.part import PartCollection
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.util import lazyproperty
@@ -23,13 +23,8 @@ class _BaseSlide(Part):
     """
     def __init__(self, partname, content_type, element, package):
         super(_BaseSlide, self).__init__(
-            partname, content_type, package=package
+            partname, content_type, element=element, package=package
         )
-        self._element = element
-
-    @property
-    def blob(self):
-        return serialize_part_xml(self._element)
 
     @classmethod
     def load(cls, partname, content_type, blob, package):
