@@ -170,33 +170,10 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         """
         if name in ('b', 'i'):
             self._set_bool_attr(name, value)
+        elif name == 'hlinkClick':
+            self._set_hlinkClick(value)
         else:
             super(CT_TextCharacterProperties, self).__setattr__(name, value)
-
-    def _get_bool_attr(self, name):
-        """
-        True if *name* attribute is a truthy value, False if a falsey value,
-        and None if no *name* attribute is present.
-        """
-        attr_str = self.get(name)
-        if attr_str is None:
-            return None
-        if attr_str in ('true', '1'):
-            return True
-        return False
-
-    def _set_bool_attr(self, name, value):
-        """
-        Set boolean attribute of this element having *name* to boolean value
-        of *value*.
-        """
-        if value is None:
-            if name in self.attrib:
-                del self.attrib[name]
-        elif bool(value):
-            self.set(name, '1')
-        else:
-            self.set(name, '0')
 
     def add_hlinkClick(self, rId):
         """
@@ -257,11 +234,49 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
             self.insert(0, solidFill)
         return solidFill
 
+    def _get_bool_attr(self, name):
+        """
+        True if *name* attribute is a truthy value, False if a falsey value,
+        and None if no *name* attribute is present.
+        """
+        attr_str = self.get(name)
+        if attr_str is None:
+            return None
+        if attr_str in ('true', '1'):
+            return True
+        return False
+
     def _remove_if_present(self, tagnames):
         for tagname in tagnames:
             element = self.find(qn(tagname))
             if element is not None:
                 self.remove(element)
+
+    def _set_bool_attr(self, name, value):
+        """
+        Set boolean attribute of this element having *name* to boolean value
+        of *value*.
+        """
+        if value is None:
+            if name in self.attrib:
+                del self.attrib[name]
+        elif bool(value):
+            self.set(name, '1')
+        else:
+            self.set(name, '0')
+
+    def _set_hlinkClick(self, value):
+        """
+        For *value* is None, remove the ``<a:hlinkClick>`` child. For all
+        other values, raise |ValueError|.
+        """
+        if value is not None:
+            tmpl = "only None can be assigned to optional element, got '%s'"
+            raise ValueError(tmpl % value)
+        # value is None ----------------
+        hlinkClick = self.find(qn('a:hlinkClick'))
+        if hlinkClick is not None:
+            self.remove(hlinkClick)
 
 
 class CT_TextParagraph(objectify.ObjectifiedElement):

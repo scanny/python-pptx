@@ -522,11 +522,23 @@ class Describe_Hyperlink(object):
         assert actual_xml(hlink._rPr) == rPr_with_hlinkClick_xml
         assert hlink.address == url
 
-    # def it_removes_the_existing_url_before_changing_it(self):
-    # def it_can_remove_the_hyperlink(self):
-    # def it_can_change_the_hyperlink(self):
-        # print(actual_xml(hlink._rPr))
-        # assert False
+    def it_can_remove_the_hyperlink(self, remove_hlink_fixture_):
+        hlink, rPr_xml, rId = remove_hlink_fixture_
+        hlink.address = None
+        assert actual_xml(hlink._rPr) == rPr_xml
+        hlink.part.drop_rel.assert_called_once_with(rId)
+
+    def it_can_change_the_target_url(self, change_hlink_fixture_):
+        # fixture ----------------------
+        hlink, rId_existing, new_url, new_rPr_xml = change_hlink_fixture_
+        # exercise ---------------------
+        hlink.address = new_url
+        # verify -----------------------
+        assert actual_xml(hlink._rPr) == new_rPr_xml
+        hlink.part.drop_rel.assert_called_once_with(rId_existing)
+        hlink.part.relate_to.assert_called_once_with(
+            new_url, RT.HYPERLINK, is_external=True
+        )
 
     def it_knows_the_part_it_belongs_to(self, hlink_with_parent_):
         hlink, parent_ = hlink_with_parent_
@@ -534,6 +546,19 @@ class Describe_Hyperlink(object):
         assert part is parent_.part
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def change_hlink_fixture_(
+            self, request, hlink_with_hlinkClick, rId, rId_2, part_, url_2):
+        hlinkClick_bldr = an_hlinkClick().with_rId(rId_2)
+        new_rPr_xml = (
+            an_rPr().with_nsdecls('a', 'r')
+                    .with_child(hlinkClick_bldr)
+                    .xml()
+        )
+        part_.relate_to.return_value = rId_2
+        property_mock(request, _Hyperlink, 'part', return_value=part_)
+        return hlink_with_hlinkClick, rId, url_2, new_rPr_xml
 
     @pytest.fixture
     def hlink(self, request, part_):
@@ -575,6 +600,16 @@ class Describe_Hyperlink(object):
         return 'rId2'
 
     @pytest.fixture
+    def rId_2(self):
+        return 'rId6'
+
+    @pytest.fixture
+    def remove_hlink_fixture_(
+            self, request, hlink_with_hlinkClick, rPr_xml, rId):
+        property_mock(request, _Hyperlink, 'part')
+        return hlink_with_hlinkClick, rPr_xml, rId
+
+    @pytest.fixture
     def rPr_with_hlinkClick_bldr(self, rId):
         hlinkClick_bldr = an_hlinkClick().with_rId(rId)
         rPr_bldr = (
@@ -588,8 +623,16 @@ class Describe_Hyperlink(object):
         return rPr_with_hlinkClick_bldr.xml()
 
     @pytest.fixture
+    def rPr_xml(self):
+        return an_rPr().with_nsdecls().xml()
+
+    @pytest.fixture
     def url(self):
         return 'https://github.com/scanny/python-pptx'
+
+    @pytest.fixture
+    def url_2(self):
+        return 'https://pypi.python.org/pypi/python-pptx'
 
 
 class Describe_Paragraph(object):

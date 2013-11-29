@@ -170,6 +170,14 @@ class Part(object):
         """
         return self._content_type
 
+    def drop_rel(self, rId):
+        """
+        Remove the relationship identified by *rId* if its reference count
+        is less than 2. Relationships with a reference count of 0 are
+        implicit relationships.
+        """
+        raise NotImplementedError
+
     @classmethod
     def load(cls, partname, content_type, blob, package):
         return cls(partname, content_type, blob, package)

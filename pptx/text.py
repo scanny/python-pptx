@@ -407,10 +407,11 @@ class _Hyperlink(object):
 
     @address.setter
     def address(self, url):
-        if self._hlinkClick:
+        # implements all three of add, change, and remove hyperlink
+        if self._hlinkClick is not None:
             self._remove_hlinkClick()
-        rId = self.part.relate_to(url, RT.HYPERLINK, is_external=True)
-        self._rPr.add_hlinkClick(rId)
+        if url is not None:
+            self._add_hlinkClick(url)
 
     @property
     def part(self):
@@ -420,6 +421,10 @@ class _Hyperlink(object):
         """
         return self._parent.part
 
+    def _add_hlinkClick(self, url):
+        rId = self.part.relate_to(url, RT.HYPERLINK, is_external=True)
+        self._rPr.add_hlinkClick(rId)
+
     @property
     def _hlinkClick(self):
         return self._rPr.hlinkClick
@@ -427,7 +432,7 @@ class _Hyperlink(object):
     def _remove_hlinkClick(self):
         assert self._hlinkClick is not None
         self.part.drop_rel(self._hlinkClick.rId)
-        self._rPr._hlinkClick = None
+        self._rPr.hlinkClick = None
 
 
 class _Paragraph(object):
