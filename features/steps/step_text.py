@@ -49,6 +49,17 @@ def given_a_text_run(context):
     context.r = p.add_run()
 
 
+@given('a text run in a table cell')
+def given_a_text_run_in_a_table_cell(context):
+    prs = Presentation()
+    blank_slidelayout = prs.slidelayouts[6]
+    slide = prs.slides.add_slide(blank_slidelayout)
+    table = slide.shapes.add_table(1, 1, 0, 0, 0, 0)
+    cell = table.cell(0, 0)
+    p = cell.textframe.paragraphs[0]
+    context.r = p.add_run()
+
+
 @given('a text run having a hyperlink')
 def given_a_text_run_having_a_hyperlink(context):
     prs = Presentation()
