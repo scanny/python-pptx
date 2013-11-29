@@ -68,3 +68,10 @@ Feature: Change properties of text in shapes
     Given a text run
      When I set the hyperlink address
      Then the text of the run is a hyperlink
+
+
+  @wip
+  Scenario: Remove hyperlink
+    Given a text run having a hyperlink
+     When I set the hyperlink address to None
+     Then the text run is not a hyperlink

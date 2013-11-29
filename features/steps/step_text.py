@@ -49,6 +49,18 @@ def given_a_text_run(context):
     context.r = p.add_run()
 
 
+@given('a text run having a hyperlink')
+def given_a_text_run_having_a_hyperlink(context):
+    prs = Presentation()
+    blank_slidelayout = prs.slidelayouts[6]
+    slide = prs.slides.add_slide(blank_slidelayout)
+    textbox = slide.shapes.add_textbox(0, 0, 0, 0)
+    p = textbox.textframe.paragraphs[0]
+    r = p.add_run()
+    r.hyperlink.address = 'http://foo/bar'
+    context.r = r
+
+
 @given('a textframe')
 def step_given_a_textframe(context):
     context.prs = Presentation()
@@ -105,6 +117,11 @@ def when_set_hyperlink_address(context):
     hlink.address = context.address
 
 
+@when('I set the hyperlink address to None')
+def when_set_hyperlink_address_to_None(context):
+    context.r.hyperlink.address = None
+
+
 @when("I set the paragraph alignment to centered")
 def step_when_set_paragraph_alignment_to_centered(context):
     context.p.alignment = PP.ALIGN_CENTER
@@ -151,6 +168,12 @@ def then_text_of_run_is_hyperlink(context):
     hlink = r.hyperlink
     assert r.text == context.run_text
     assert hlink.address == context.address
+
+
+@then('the text run is not a hyperlink')
+def then_text_run_is_not_a_hyperlink(context):
+    hlink = context.r.hyperlink
+    assert hlink.address is None
 
 
 @then('the textframe\'s {side} margin is {inches}"')
