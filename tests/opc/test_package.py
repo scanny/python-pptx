@@ -492,7 +492,7 @@ class DescribeRelationshipCollection(object):
     def it_has_dict_style_lookup_of_rel_by_rId(self):
         rel = Mock(name='rel', rId='foobar')
         rels = RelationshipCollection(None)
-        rels._rels['foobar'] = rel
+        rels['foobar'] = rel
         assert rels['foobar'] == rel
 
     def it_should_raise_on_failed_lookup_by_rId(self):

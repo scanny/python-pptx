@@ -164,7 +164,7 @@ class DescribeRelationshipCollection(object):
 
     @pytest.fixture
     def rels_with_known_rel(self, rels, _rId, rel):
-        rels._rels[_rId] = rel
+        rels[_rId] = rel
         return rels, _rId, rel
 
     @pytest.fixture
@@ -203,7 +203,7 @@ class DescribeRelationshipCollection(object):
             reltype=matching_reltype_, target_part=matching_part_,
             is_external=False
         )
-        rels._rels[1] = matching_rel_
+        rels[1] = matching_rel_
         return rels, matching_reltype_, matching_part_, matching_rel_
 
     @pytest.fixture
@@ -230,15 +230,15 @@ class DescribeRelationshipCollection(object):
         rel_with_rId3 = instance_mock(
             request, _Relationship, name='rel_with_rId3', rId='rId3'
         )
-        rels._rels['rId1'] = rel_with_rId1
-        rels._rels['rId3'] = rel_with_rId3
+        rels['rId1'] = rel_with_rId1
+        rels['rId3'] = rel_with_rId3
         return rels, 'rId2'
 
     @pytest.fixture
     def rels_with_target_known_by_reltype(
             self, rels, _rel_with_target_known_by_reltype):
         rel, reltype, target_part = _rel_with_target_known_by_reltype
-        rels._rels[1] = rel
+        rels[1] = rel
         return rels, reltype, target_part
 
     @pytest.fixture

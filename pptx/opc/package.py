@@ -301,43 +301,21 @@ class PartFactory(object):
         return cls.default_part_type
 
 
-class RelationshipCollection(object):
+class RelationshipCollection(dict):
     """
     Collection object for |_Relationship| instances, having list semantics.
     """
     def __init__(self, baseURI):
         super(RelationshipCollection, self).__init__()
         self._baseURI = baseURI
-        self._rels = {}
         self._target_parts_by_rId = {}
-
-    def __delitem__(self, rId):
-        """
-        Remove the relationship identified by *rId* from the collection.
-        """
-        return self._rels.__delitem__(rId)
-
-    def __getitem__(self, rId):
-        """
-        Implements access of rel by rId, e.g. ``rels['rId1']``.
-        """
-        try:
-            return self._rels.__getitem__(rId)
-        except KeyError:
-            raise KeyError("no rId '%s' in RelationshipCollection" % rId)
-
-    def __len__(self):
-        """
-        Implements len() built-in on this object
-        """
-        return self._rels.__len__()
 
     def add_relationship(self, reltype, target, rId, is_external=False):
         """
         Return a newly added |_Relationship| instance.
         """
         rel = _Relationship(rId, reltype, target, self._baseURI, is_external)
-        self._rels[rId] = rel
+        self[rId] = rel
         if not is_external:
             self._target_parts_by_rId[rId] = target
         return rel
@@ -383,9 +361,6 @@ class RelationshipCollection(object):
         """
         return self._target_parts_by_rId
 
-    def values(self):
-        return self._rels.values()
-
     @property
     def xml(self):
         """
@@ -393,7 +368,7 @@ class RelationshipCollection(object):
         as a .rels file in an OPC package.
         """
         rels_elm = CT_Relationships.new()
-        for rel in self._rels.values():
+        for rel in self.values():
             rels_elm.add_rel(
                 rel.rId, rel.reltype, rel.target_ref, rel.is_external
             )
@@ -414,7 +389,7 @@ class RelationshipCollection(object):
                 return False
             return True
 
-        for rel in self._rels.values():
+        for rel in self.values():
             if matches(rel, reltype, target, is_external):
                 return rel
         return None
@@ -425,7 +400,7 @@ class RelationshipCollection(object):
         Raises |KeyError| if no matching relationship is found. Raises
         |ValueError| if more than one matching relationship is found.
         """
-        matching = [r for r in self._rels.values() if r.reltype == reltype]
+        matching = [rel for rel in self.values() if rel.reltype == reltype]
         if len(matching) == 0:
             tmpl = "no relationship of type '%s' in collection"
             raise KeyError(tmpl % reltype)
@@ -442,7 +417,7 @@ class RelationshipCollection(object):
         """
         for n in range(1, len(self)+2):
             rId_candidate = 'rId%d' % n  # like 'rId19'
-            if rId_candidate not in self._rels:
+            if rId_candidate not in self:
                 return rId_candidate
 
 
