@@ -134,6 +134,8 @@ class Part(object):
         self._package = package
         self._blob = blob
 
+    # load/save interface to OpcPackage ------------------------------
+
     def after_unmarshal(self):
         """
         Entry point for post-unmarshaling processing, for example to parse
@@ -170,14 +172,6 @@ class Part(object):
         """
         return self._content_type
 
-    def drop_rel(self, rId):
-        """
-        Remove the relationship identified by *rId* if its reference count
-        is less than 2. Relationships with a reference count of 0 are
-        implicit relationships.
-        """
-        raise NotImplementedError
-
     @classmethod
     def load(cls, partname, content_type, blob, package):
         return cls(partname, content_type, blob, package)
@@ -194,21 +188,6 @@ class Part(object):
         return self.rels.add_relationship(reltype, target, rId, is_external)
 
     @property
-    def package(self):
-        """
-        |OpcPackage| instance this part belongs to.
-        """
-        return self._package
-
-    def part_related_by(self, reltype):
-        """
-        Return part to which this part has a relationship of *reltype*.
-        Raises |KeyError| if no such relationship is found and |ValueError|
-        if more than one such relationship is found.
-        """
-        return self.rels.part_with_reltype(reltype)
-
-    @property
     def partname(self):
         """
         |PackURI| instance holding partname of this part, e.g.
@@ -223,6 +202,25 @@ class Part(object):
             raise TypeError(tmpl % type(partname).__name__)
         self._partname = partname
 
+    # relationship management interface for child objects ------------
+
+    def drop_rel(self, rId):
+        """
+        Remove the relationship identified by *rId* if its reference count
+        is less than 2. Relationships with a reference count of 0 are
+        implicit relationships.
+        """
+        raise NotImplementedError
+
+    def part_related_by(self, reltype):
+        """
+        Return part to which this part has a relationship of *reltype*.
+        Raises |KeyError| if no such relationship is found and |ValueError|
+        if more than one such relationship is found. Provides ability to
+        resolve implicitly related part, such as Slide -> SlideLayout.
+        """
+        return self.rels.part_with_reltype(reltype)
+
     def relate_to(self, target, reltype, is_external=False):
         """
         Return rId key of relationship of *reltype* to *target*, from an
@@ -236,6 +234,11 @@ class Part(object):
 
     @property
     def related_parts(self):
+        """
+        Dictionary mapping related parts by rId, so child objects can resolve
+        explicit relationships present in the part XML, e.g. sldIdLst to a
+        specific |Slide| instance.
+        """
         return self.rels.related_parts
 
     @lazyproperty
@@ -253,6 +256,15 @@ class Part(object):
         """
         rel = self.rels[rId]
         return rel.target_ref
+
+    # ----------------------------------------------------------------
+
+    @property
+    def package(self):
+        """
+        |OpcPackage| instance this part belongs to.
+        """
+        return self._package
 
 
 class PartFactory(object):

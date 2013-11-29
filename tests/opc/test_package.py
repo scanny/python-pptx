@@ -197,7 +197,7 @@ class DescribeOpcPackage(object):
         return class_mock(request, 'pptx.opc.package.Unmarshaller')
 
 
-class DescribePart(object):
+class DescribePartLoadSaveInterface(object):
 
     def it_remembers_its_construction_state(self):
         partname, content_type, package, blob = (
@@ -210,19 +210,18 @@ class DescribePart(object):
         assert part.blob == blob
         assert part.package == package
 
+    def it_can_be_notified_after_unmarshalling_is_complete(self, part):
+        part.after_unmarshal()
+
+    def it_can_be_notified_before_marshalling_is_started(self, part):
+        part.before_marshal()
+
     def it_allows_its_partname_to_be_changed(self, part):
         new_partname = PackURI('/ppt/presentation.xml')
         part.partname = new_partname
         assert part.partname == new_partname
 
-    def it_has_a_rels_collection_initialized_on_first_reference(
-            self, RelationshipCollection_):
-        partname = PackURI('/foo/bar.xml')
-        part = Part(partname, None, None)
-        assert part.rels is RelationshipCollection_.return_value
-        RelationshipCollection_.assert_called_once_with(partname.baseURI)
-
-    def it_can_add_a_relationship_to_another_part(
+    def it_can_load_a_relationship_during_package_open(
             self, part_with_rels_, rel_attrs_):
         # fixture ----------------------
         part, rels_ = part_with_rels_
@@ -233,6 +232,40 @@ class DescribePart(object):
         rels_.add_relationship.assert_called_once_with(
             reltype, target, rId, False
         )
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def part(self):
+        partname = PackURI('/foo/bar.xml')
+        part = Part(partname, None, None)
+        return part
+
+    @pytest.fixture
+    def part_with_rels_(self, request, part, rels_):
+        part._rels = rels_
+        return part, rels_
+
+    @pytest.fixture
+    def rel_attrs_(self, request):
+        reltype = 'http://rel/type'
+        target_ = instance_mock(request, Part, name='target_')
+        rId = 'rId99'
+        return reltype, target_, rId
+
+    @pytest.fixture
+    def rels_(self, request):
+        return instance_mock(request, RelationshipCollection)
+
+
+class DescribePartRelsProxyInterface(object):
+
+    def it_has_a_rels_collection_initialized_on_first_reference(
+            self, RelationshipCollection_):
+        partname = PackURI('/foo/bar.xml')
+        part = Part(partname, None, None)
+        assert part.rels is RelationshipCollection_.return_value
+        RelationshipCollection_.assert_called_once_with(partname.baseURI)
 
     def it_can_establish_a_relationship_to_another_part(
             self, relate_to_part_fixture_):
@@ -263,12 +296,6 @@ class DescribePart(object):
         _url = part.target_ref(rId)
         assert _url == url
 
-    def it_can_be_notified_after_unmarshalling_is_complete(self, part):
-        part.after_unmarshal()
-
-    def it_can_be_notified_before_marshalling_is_started(self, part):
-        part.before_marshal()
-
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -285,13 +312,6 @@ class DescribePart(object):
     @pytest.fixture
     def RelationshipCollection_(self, request):
         return class_mock(request, 'pptx.opc.package.RelationshipCollection')
-
-    @pytest.fixture
-    def rel_attrs_(self, request):
-        reltype = 'http://rel/type'
-        target_ = instance_mock(request, Part, name='target_')
-        rId = 'rId99'
-        return reltype, target_, rId
 
     @pytest.fixture
     def relate_to_part_fixture_(self, request, part, reltype):
@@ -319,10 +339,6 @@ class DescribePart(object):
         rels_.part_with_reltype.return_value = related_part_
         part._rels = rels_
         return part, reltype, related_part_
-
-    @pytest.fixture
-    def rels_(self, request):
-        return instance_mock(request, RelationshipCollection)
 
     @pytest.fixture
     def reltype(self):
