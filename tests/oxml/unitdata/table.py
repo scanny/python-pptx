@@ -142,7 +142,7 @@ class _TestTableObjects(object):
     """Table-related object instances for use in unit tests"""
     @property
     def cell(self):
-        return _Cell(test_table_elements.cell)
+        return _Cell(test_table_elements.cell, None)
 
 
 test_table_xml = _TestTableXml()

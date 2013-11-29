@@ -70,7 +70,6 @@ Feature: Change properties of text in shapes
      Then the text of the run is a hyperlink
 
 
-  @wip
   Scenario: Add hyperlink in table cell
     Given a text run in a table cell
      When I set the hyperlink address

@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import
 
+import pytest
+
 from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch, PropertyMock
 
@@ -16,7 +18,23 @@ from pptx.util import Inches
 
 from ..oxml.unitdata.table import test_table_objects
 from ..oxml.unitdata.autoshape import test_shapes
-from ..unitutil import TestCase
+from ..unitutil import loose_mock, TestCase
+
+
+class Describe_Cell(object):
+
+    def it_knows_the_part_it_belongs_to(self, cell_with_parent_):
+        cell, parent_ = cell_with_parent_
+        part = cell.part
+        assert part is parent_.part
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def cell_with_parent_(self, request):
+        parent_ = loose_mock(request, name='parent_')
+        cell = _Cell(None, parent_)
+        return cell, parent_
 
 
 class Test_Cell(TestCase):
@@ -24,7 +42,7 @@ class Test_Cell(TestCase):
     def setUp(self):
         tc_xml = '<a:tc %s><a:txBody><a:p/></a:txBody></a:tc>' % nsdecls('a')
         test_tc_elm = parse_xml_bytes(tc_xml)
-        self.cell = _Cell(test_tc_elm)
+        self.cell = _Cell(test_tc_elm, None)
 
     def test_text_round_trips_intact(self):
         """_Cell.text (setter) sets cell text"""
@@ -47,7 +65,7 @@ class Test_Cell(TestCase):
         marB = type(tc).marB = PropertyMock(return_value=marB_val)
         marL = type(tc).marL = PropertyMock(return_value=marL_val)
         # setup ------------------------
-        cell = _Cell(tc)
+        cell = _Cell(tc, None)
         # exercise ---------------------
         margin_top = cell.margin_top
         margin_right = cell.margin_right
@@ -74,7 +92,7 @@ class Test_Cell(TestCase):
         marL = type(tc).marL = PropertyMock()
         # setup ------------------------
         top, right, bottom, left = 12, 34, 56, 78
-        cell = _Cell(tc)
+        cell = _Cell(tc, None)
         # exercise ---------------------
         cell.margin_top = top
         cell.margin_right = right
@@ -115,7 +133,7 @@ class Test_Cell(TestCase):
         from_text_anchoring_type = VerticalAnchor.from_text_anchoring_type
         from_text_anchoring_type.return_value = vertical_anchor
         # setup ------------------------
-        cell = _Cell(tc)
+        cell = _Cell(tc, None)
         # exercise ---------------------
         retval = cell.vertical_anchor
         # verify -----------------------
@@ -137,12 +155,28 @@ class Test_Cell(TestCase):
         to_text_anchoring_type = VerticalAnchor.to_text_anchoring_type
         to_text_anchoring_type.return_value = anchor_val
         # setup ------------------------
-        cell = _Cell(tc)
+        cell = _Cell(tc, None)
         # exercise ---------------------
         cell.vertical_anchor = vertical_anchor
         # verify -----------------------
         to_text_anchoring_type.assert_called_once_with(vertical_anchor)
         anchor_prop.assert_called_once_with(anchor_val)
+
+
+class Describe_CellCollection(object):
+
+    def it_knows_the_part_it_belongs_to(self, cells_with_parent_):
+        cells, parent_ = cells_with_parent_
+        part = cells.part
+        assert part is parent_.part
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def cells_with_parent_(self, request):
+        parent_ = loose_mock(request, name='parent_')
+        cells = _CellCollection(None, parent_)
+        return cells, parent_
 
 
 class Test_CellCollection(TestCase):
@@ -153,7 +187,7 @@ class Test_CellCollection(TestCase):
             'c><a:txBody><a:p/></a:txBody></a:tc></a:tr>' % nsdecls('a')
         )
         test_tr_elm = parse_xml_bytes(tr_xml)
-        self.cells = _CellCollection(test_tr_elm)
+        self.cells = _CellCollection(test_tr_elm, None)
 
     def test_is_indexable(self):
         """_CellCollection indexable (e.g. no TypeError on 'cells[0]')"""
@@ -260,6 +294,22 @@ class Test_ColumnCollection(TestCase):
         assert_that(len(self.columns), is_(equal_to(2)))
 
 
+class Describe_Row(object):
+
+    def it_knows_the_part_it_belongs_to(self, row_with_parent_):
+        row, parent_ = row_with_parent_
+        part = row.part
+        assert part is parent_.part
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def row_with_parent_(self, request):
+        parent_ = loose_mock(request, name='parent_')
+        row = _Row(None, None, parent_)
+        return row, parent_
+
+
 class Test_Row(TestCase):
     """Test _Row"""
     def setUp(self):
@@ -268,7 +318,7 @@ class Test_Row(TestCase):
             'c><a:txBody><a:p/></a:txBody></a:tc></a:tr>' % nsdecls('a')
         )
         test_tr_elm = parse_xml_bytes(tr_xml)
-        self.row = _Row(test_tr_elm, Mock(name='table'))
+        self.row = _Row(test_tr_elm, Mock(name='table'), None)
 
     def test_height_from_xml_correct(self):
         """_Row.height returns correct value from tr XML element"""

@@ -57,6 +57,13 @@ class Table(BaseShape):
         return self._tbl_elm.firstRow
 
     @property
+    def height(self):
+        """
+        Read-only integer height of table in English Metric Units (EMU)
+        """
+        return int(self._graphicFrame.xfrm[qn('a:ext')].get('cy'))
+
+    @property
     def horz_banding(self):
         """
         Read/write boolean property which, when true, indicates the rows of
@@ -115,13 +122,6 @@ class Table(BaseShape):
         self._tbl_elm.bandCol = bool(value)
 
     @property
-    def height(self):
-        """
-        Read-only integer height of table in English Metric Units (EMU)
-        """
-        return int(self._graphicFrame.xfrm[qn('a:ext')].get('cy'))
-
-    @property
     def rows(self):
         """
         Read-only reference to collection of |_Row| objects representing the
@@ -168,9 +168,10 @@ class _Cell(object):
     Table cell
     """
 
-    def __init__(self, tc):
+    def __init__(self, tc, parent):
         super(_Cell, self).__init__()
         self._tc = tc
+        self._parent = parent
 
     @staticmethod
     def _assert_valid_margin_value(margin_value):
@@ -227,6 +228,14 @@ class _Cell(object):
         self._assert_valid_margin_value(margin_left)
         self._tc.marL = margin_left
 
+    @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+        return self._parent.part
+
     def _set_text(self, text):
         """Replace all text in cell with single run containing *text*"""
         self.textframe.text = to_unicode(text)
@@ -279,7 +288,6 @@ class _Column(object):
     """
     Table column
     """
-
     def __init__(self, gridCol, table):
         super(_Column, self).__init__()
         self._gridCol = gridCol
@@ -309,12 +317,12 @@ class _Row(object):
     """
     Table row
     """
-
-    def __init__(self, tr, table):
+    def __init__(self, tr, table, parent):
         super(_Row, self).__init__()
         self._tr = tr
         self._table = table
-        self._cells = _CellCollection(tr)
+        self._parent = parent
+        self._cells = _CellCollection(tr, self)
 
     @property
     def cells(self):
@@ -343,26 +351,42 @@ class _Row(object):
     #: Read/write integer height of this row in English Metric Units (EMU).
     height = property(_get_height, _set_height)
 
+    @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+        return self._parent.part
+
 
 class _CellCollection(object):
     """
     "Horizontal" sequence of row cells
     """
-
-    def __init__(self, tr):
+    def __init__(self, tr, parent):
         super(_CellCollection, self).__init__()
         self._tr = tr
+        self._parent = parent
 
     def __getitem__(self, idx):
         """Provides indexed access, (e.g. 'cells[0]')."""
         if idx < 0 or idx >= len(self._tr.tc):
             msg = "cell index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Cell(self._tr.tc[idx])
+        return _Cell(self._tr.tc[idx], self)
 
     def __len__(self):
         """Supports len() function (e.g. 'len(cells) == 1')."""
         return len(self._tr.tc)
+
+    @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+        return self._parent.part
 
 
 class _ColumnCollection(object):
@@ -374,6 +398,7 @@ class _ColumnCollection(object):
         super(_ColumnCollection, self).__init__()
         self._tbl_elm = tbl_elm
         self._table = table
+        self._parent = table
 
     def __getitem__(self, idx):
         """Provides indexed access, (e.g. 'columns[0]')."""
@@ -386,6 +411,14 @@ class _ColumnCollection(object):
         """Supports len() function (e.g. 'len(columns) == 1')."""
         return len(self._tbl_elm.tblGrid.gridCol)
 
+    @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+        return self._parent.part
+
 
 class _RowCollection(object):
     """
@@ -396,14 +429,23 @@ class _RowCollection(object):
         super(_RowCollection, self).__init__()
         self._tbl_elm = tbl_elm
         self._table = table
+        self._parent = table
 
     def __getitem__(self, idx):
         """Provides indexed access, (e.g. 'rows[0]')."""
         if idx < 0 or idx >= len(self._tbl_elm.tr):
             msg = "row index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Row(self._tbl_elm.tr[idx], self._table)
+        return _Row(self._tbl_elm.tr[idx], self._table, self)
 
     def __len__(self):
         """Supports len() function (e.g. 'len(rows) == 1')."""
         return len(self._tbl_elm.tr)
+
+    @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+        return self._parent.part
