@@ -55,15 +55,6 @@ class Describe_Relationship(object):
 
 class DescribeRelationshipCollection(object):
 
-    def it_supports_indexed_access(self, rels):
-        try:
-            rels[0]
-        except TypeError:
-            msg = 'RelationshipCollection does not support indexed access'
-            pytest.fail(msg)
-        except IndexError:
-            pass
-
     def it_also_has_dict_style_get_rel_by_rId(self, rels_with_known_rel):
         rels, rId, known_rel = rels_with_known_rel
         assert rels[rId] == known_rel
@@ -84,7 +75,7 @@ class DescribeRelationshipCollection(object):
         _Relationship_.assert_called_once_with(
             rId, reltype, target, baseURI, is_external
         )
-        assert rels[0] == rel
+        assert rels[rId] == rel
         assert rel == _Relationship_.return_value
 
     def it_can_add_a_relationship_if_not_found(
@@ -122,27 +113,22 @@ class DescribeRelationshipCollection(object):
         # trace ------------------------
         print('Actual calls:\n%s' % rels_elm.mock_calls)
         # verify -----------------------
-        expected_rels_elm_calls = [
-            call.add_rel('rId1', 'http://rt-hyperlink', 'http://some/link',
-                         True),
-            call.add_rel('rId2', 'http://rt-image', '../media/image1.png',
-                         False),
-            call.xml()
-        ]
-        assert rels_elm.mock_calls == expected_rels_elm_calls
-
-    # def it_raises_on_no_next_rId_found(self, _rIds):
-    #     rels = RelationshipCollection()
-    #     with pytest.raises(AssertionError):
-    #         rels.next_rId
+        rels_elm.assert_has_calls(
+            [
+                call.add_rel(
+                    'rId1', 'http://rt-hyperlink', 'http://some/link', True
+                ),
+                call.add_rel(
+                    'rId2', 'http://rt-image', '../media/image1.png', False
+                ),
+                call.xml()
+            ],
+            any_order=True
+        )
 
     # def it_raises_on_add_rel_with_duplicate_rId(self, rels, rel):
     #     with pytest.raises(ValueError):
     #         rels.add_rel(rel)
-
-    # def it_knows_which_relS_match_a_specified_reltype(self, rels):
-    #     rels_to_slides = rels.rels_of_reltype(RT.SLIDE)
-    #     assert [r.rId for r in rels_to_slides] == ['rId1', 'rId3']
 
     # fixtures ---------------------------------------------
 
@@ -178,7 +164,7 @@ class DescribeRelationshipCollection(object):
 
     @pytest.fixture
     def rels_with_known_rel(self, rels, _rId, rel):
-        rels._rels.append(rel)
+        rels._rels[_rId] = rel
         return rels, _rId, rel
 
     @pytest.fixture
@@ -199,13 +185,6 @@ class DescribeRelationshipCollection(object):
         return rels
 
     @pytest.fixture
-    def rels_with_target_known_by_reltype(
-            self, rels, _rel_with_target_known_by_reltype):
-        rel, reltype, target_part = _rel_with_target_known_by_reltype
-        rels._rels.append(rel)
-        return rels, reltype, target_part
-
-    @pytest.fixture
     def rels_with_known_target_part(self, rels, _rel_with_known_target_part):
         rel, rId, target_part = _rel_with_known_target_part
         rels.add_relationship(None, target_part, rId)
@@ -224,7 +203,7 @@ class DescribeRelationshipCollection(object):
             reltype=matching_reltype_, target_part=matching_part_,
             is_external=False
         )
-        rels._rels.append(matching_rel_)
+        rels._rels[1] = matching_rel_
         return rels, matching_reltype_, matching_part_, matching_rel_
 
     @pytest.fixture
@@ -251,8 +230,16 @@ class DescribeRelationshipCollection(object):
         rel_with_rId3 = instance_mock(
             request, _Relationship, name='rel_with_rId3', rId='rId3'
         )
-        rels._rels.extend((rel_with_rId1, rel_with_rId3))
+        rels._rels['rId1'] = rel_with_rId1
+        rels._rels['rId3'] = rel_with_rId3
         return rels, 'rId2'
+
+    @pytest.fixture
+    def rels_with_target_known_by_reltype(
+            self, rels, _rel_with_target_known_by_reltype):
+        rel, reltype, target_part = _rel_with_target_known_by_reltype
+        rels._rels[1] = rel
+        return rels, reltype, target_part
 
     @pytest.fixture
     def _baseURI(self):

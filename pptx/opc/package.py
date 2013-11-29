@@ -31,7 +31,7 @@ class OpcPackage(object):
         performing a depth-first traversal of the rels graph.
         """
         def walk_parts(source, visited=list()):
-            for rel in source.rels:
+            for rel in source.rels.values():
                 if rel.is_external:
                     continue
                 part = rel.target_part
@@ -308,48 +308,36 @@ class RelationshipCollection(object):
     def __init__(self, baseURI):
         super(RelationshipCollection, self).__init__()
         self._baseURI = baseURI
-        self._rels = []
+        self._rels = {}
         self._target_parts_by_rId = {}
 
     def __delitem__(self, rId):
         """
         Remove the relationship identified by *rId* from the collection.
         """
-        raise NotImplementedError
+        return self._rels.__delitem__(rId)
 
-    def __getitem__(self, key):
+    def __getitem__(self, rId):
         """
-        Implements access by subscript, e.g. ``rels[9]``. It also implements
-        dict-style lookup of a relationship by rId, e.g. ``rels['rId1']``.
+        Implements access of rel by rId, e.g. ``rels['rId1']``.
         """
-        if isinstance(key, basestring):
-            for rel in self._rels:
-                if rel.rId == key:
-                    return rel
-            raise KeyError("no rId '%s' in RelationshipCollection" % key)
-        else:
-            return self._rels.__getitem__(key)
-
-    def __iter__(self):
-        """
-        Supports quicker iteration (e.g. 'for rel in rels:') than __getitem__
-        fallback
-        """
-        return self._rels.__iter__()
+        try:
+            return self._rels.__getitem__(rId)
+        except KeyError:
+            raise KeyError("no rId '%s' in RelationshipCollection" % rId)
 
     def __len__(self):
-        """Implements len() built-in on this object"""
+        """
+        Implements len() built-in on this object
+        """
         return self._rels.__len__()
 
     def add_relationship(self, reltype, target, rId, is_external=False):
         """
         Return a newly added |_Relationship| instance.
         """
-        # if relationship.rId in self._rIds:
-        #     tmpl = "cannot add relationship with duplicate rId '%s'"
-        #     raise ValueError(tmpl % relationship.rId)
         rel = _Relationship(rId, reltype, target, self._baseURI, is_external)
-        self._rels.append(rel)
+        self._rels[rId] = rel
         if not is_external:
             self._target_parts_by_rId[rId] = target
         return rel
@@ -395,6 +383,9 @@ class RelationshipCollection(object):
         """
         return self._target_parts_by_rId
 
+    def values(self):
+        return self._rels.values()
+
     @property
     def xml(self):
         """
@@ -402,9 +393,10 @@ class RelationshipCollection(object):
         as a .rels file in an OPC package.
         """
         rels_elm = CT_Relationships.new()
-        for rel in self._rels:
-            rels_elm.add_rel(rel.rId, rel.reltype, rel.target_ref,
-                             rel.is_external)
+        for rel in self._rels.values():
+            rels_elm.add_rel(
+                rel.rId, rel.reltype, rel.target_ref, rel.is_external
+            )
         return rels_elm.xml
 
     def _get_matching(self, reltype, target, is_external=False):
@@ -422,7 +414,7 @@ class RelationshipCollection(object):
                 return False
             return True
 
-        for rel in self._rels:
+        for rel in self._rels.values():
             if matches(rel, reltype, target, is_external):
                 return rel
         return None
@@ -433,7 +425,7 @@ class RelationshipCollection(object):
         Raises |KeyError| if no matching relationship is found. Raises
         |ValueError| if more than one matching relationship is found.
         """
-        matching = [rel for rel in self._rels if rel.reltype == reltype]
+        matching = [r for r in self._rels.values() if r.reltype == reltype]
         if len(matching) == 0:
             tmpl = "no relationship of type '%s' in collection"
             raise KeyError(tmpl % reltype)
@@ -450,13 +442,8 @@ class RelationshipCollection(object):
         """
         for n in range(1, len(self)+2):
             rId_candidate = 'rId%d' % n  # like 'rId19'
-            if rId_candidate not in self._rIds:
+            if rId_candidate not in self._rels:
                 return rId_candidate
-        assert False, 'programming error in RelationshipCollection.next_rId'
-
-    @property
-    def _rIds(self):
-        return [rel.rId for rel in self]
 
 
 class Unmarshaller(object):

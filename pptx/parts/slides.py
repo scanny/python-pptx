@@ -207,7 +207,9 @@ class SlideMaster(_BaseSlide):
         Collection of slide layout objects belonging to this slide master.
         """
         slidelayouts = PartCollection()
-        sl_rels = [r for r in self.rels if r.reltype == RT.SLIDE_LAYOUT]
+        sl_rels = [
+            r for r in self.rels.values() if r.reltype == RT.SLIDE_LAYOUT
+        ]
         for sl_rel in sl_rels:
             slide_layout = sl_rel.target_part
             slidelayouts.add_part(slide_layout)

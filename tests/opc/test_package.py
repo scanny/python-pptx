@@ -82,17 +82,21 @@ class DescribeOpcPackage(object):
         #                    | part_2 |
         #                    +--------+
         part1, part2 = (Mock(name='part1'), Mock(name='part2'))
-        part1.rels = [Mock(name='rel1', is_external=False, target_part=part2)]
-        part2.rels = [Mock(name='rel2', is_external=False, target_part=part1)]
+        part1.rels = {
+            1: Mock(name='rel1', is_external=False, target_part=part2)
+        }
+        part2.rels = {
+            1: Mock(name='rel2', is_external=False, target_part=part1)
+        }
         pkg = OpcPackage()
-        pkg._rels = [
-            Mock(name='rel3', is_external=False, target_part=part1),
-            Mock(name='rel3', is_external=True),
-        ]
-        # exercise ---------------------
-        generated_parts = [part for part in pkg.iter_parts()]
+        pkg._rels = {
+            1: Mock(name='rel3', is_external=False, target_part=part1),
+            2: Mock(name='rel4', is_external=True),
+        }
         # verify -----------------------
-        assert generated_parts == [part1, part2]
+        assert part1 in pkg.iter_parts()
+        assert part2 in pkg.iter_parts()
+        assert len([p for p in pkg.iter_parts()]) == 2
 
     def it_can_find_a_part_related_by_reltype(self, related_part_fixture_):
         pkg, reltype, related_part_ = related_part_fixture_
@@ -485,26 +489,14 @@ class DescribeRelationshipCollection(object):
         rels = RelationshipCollection(None)
         assert len(rels) == 0
 
-    def it_supports_indexed_access(self):
-        rels = RelationshipCollection(None)
-        try:
-            rels[0]
-        except TypeError:
-            msg = 'RelationshipCollection does not support indexed access'
-            pytest.fail(msg)
-        except IndexError:
-            pass
-
     def it_has_dict_style_lookup_of_rel_by_rId(self):
         rel = Mock(name='rel', rId='foobar')
         rels = RelationshipCollection(None)
-        rels._rels.append(rel)
+        rels._rels['foobar'] = rel
         assert rels['foobar'] == rel
 
     def it_should_raise_on_failed_lookup_by_rId(self):
-        rel = Mock(name='rel', rId='foobar')
         rels = RelationshipCollection(None)
-        rels._rels.append(rel)
         with pytest.raises(KeyError):
             rels['barfoo']
 
@@ -514,9 +506,10 @@ class DescribeRelationshipCollection(object):
         )
         rels = RelationshipCollection(baseURI)
         rel = rels.add_relationship(reltype, target, rId, external)
-        _Relationship_.assert_called_once_with(rId, reltype, target, baseURI,
-                                               external)
-        assert rels[0] == rel
+        _Relationship_.assert_called_once_with(
+            rId, reltype, target, baseURI, external
+        )
+        assert rels[rId] == rel
         assert rel == _Relationship_.return_value
 
     def it_can_add_an_external_relationship(self, add_ext_rel_fixture_):
@@ -537,17 +530,19 @@ class DescribeRelationshipCollection(object):
     def it_can_compose_rels_xml(self, rels, rels_elm):
         # exercise ---------------------
         rels.xml
-        # trace ------------------------
-        print('Actual calls:\n%s' % rels_elm.mock_calls)
         # verify -----------------------
-        expected_rels_elm_calls = [
-            call.add_rel('rId1', 'http://rt-hyperlink', 'http://some/link',
-                         True),
-            call.add_rel('rId2', 'http://rt-image', '../media/image1.png',
-                         False),
-            call.xml()
-        ]
-        assert rels_elm.mock_calls == expected_rels_elm_calls
+        rels_elm.assert_has_calls(
+            [
+                call.add_rel(
+                    'rId1', 'http://rt-hyperlink', 'http://some/link', True
+                ),
+                call.add_rel(
+                    'rId2', 'http://rt-image', '../media/image1.png', False
+                ),
+                call.xml()
+            ],
+            any_order=True
+        )
 
     # fixtures ---------------------------------------------
 

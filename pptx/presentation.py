@@ -111,7 +111,9 @@ class Presentation(Part):
         Sequence of |SlideMaster| instances belonging to this presentation.
         """
         slidemasters = PartCollection()
-        sm_rels = [r for r in self.rels if r.reltype == RT.SLIDE_MASTER]
+        sm_rels = [
+            r for r in self.rels.values() if r.reltype == RT.SLIDE_MASTER
+        ]
         for sm_rel in sm_rels:
             slide_master = sm_rel.target_part
             slidemasters.add_part(slide_master)

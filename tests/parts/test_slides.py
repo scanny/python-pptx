@@ -12,7 +12,7 @@ from mock import ANY, call, MagicMock, Mock
 from pptx.opc import package
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
-from pptx.opc.package import _Relationship
+from pptx.opc.package import Part, _Relationship
 from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
 from pptx.parts.slides import (
@@ -117,20 +117,15 @@ class Describe_BaseSlide(object):
 class DescribeSlide(object):
 
     def it_establishes_a_relationship_to_its_slide_layout_on_construction(
-            self):
+            self, relate_to_):
         """Slide(slidelayout) adds relationship slide->slidelayout"""
         # setup ------------------------
         slidelayout = SlideLayout(None, None, _sldLayout1(), None)
         partname = PackURI('/ppt/slides/slide1.xml')
         # exercise ---------------------
         slide = Slide.new(slidelayout, partname, None)
-        # verify length ---------------
-        assert len(slide.rels) == 1
-        # verify values ---------------
-        rel = slide.rels[0]
-        expected = ('rId1', RT.SLIDE_LAYOUT, slidelayout)
-        actual = (rel.rId, rel.reltype, rel.target_part)
-        assert actual == expected
+        # verify ----------------------
+        slide.relate_to.assert_called_once_with(slidelayout, RT.SLIDE_LAYOUT)
 
     # def it_creates_a_minimal_sld_element_on_construction(self, slide):
     #     """Slide._element is minimal sld on construction"""
@@ -186,6 +181,10 @@ class DescribeSlide(object):
         assert actual_xml(sld) == expected_xml
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def relate_to_(self, request):
+        return method_mock(request, Part, 'relate_to')
 
     @pytest.fixture
     def slide(self):
