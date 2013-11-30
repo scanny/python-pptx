@@ -15,13 +15,12 @@ from pptx.shapes.shape import BaseShape
 from pptx.shapes.table import Table
 from pptx.spec import slide_ph_basenames
 from pptx.spec import PH_ORIENT_VERT, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
-from pptx.util import Collection
 
 # default namespace map for use in lxml calls
 _nsmap = namespaces('a', 'r', 'p')
 
 
-class ShapeCollection(BaseShape, Collection):
+class ShapeCollection(BaseShape):
     """
     Sequence of shapes. Corresponds to CT_GroupShape in pml schema. Note that
     while spTree in a slide is a group shape, the group shape is recursive in
@@ -41,7 +40,7 @@ class ShapeCollection(BaseShape, Collection):
         super(ShapeCollection, self).__init__(spTree, slide)
         self._spTree = spTree
         self._slide = slide
-        self._shapes = self._values
+        self._shapes = []
         # unmarshal shapes
         for elm in spTree.iterchildren():
             if elm.tag in (self._NVGRPSPPR, self._GRPSPPR, self._EXTLST):
@@ -64,6 +63,18 @@ class ShapeCollection(BaseShape, Collection):
             else:
                 shape = BaseShape(elm, self)
             self._shapes.append(shape)
+
+    def __getitem__(self, idx):
+        return self._shapes.__getitem__(idx)
+
+    def __iter__(self):
+        return self._shapes.__iter__()
+
+    def __len__(self):
+        return self._shapes.__len__()
+
+    def index(self, item):
+        return self._shapes.index(item)
 
     @property
     def placeholders(self):
