@@ -9,6 +9,7 @@ from numbers import Number
 from pptx.constants import MSO
 from pptx.shapes.shape import BaseShape
 from pptx.spec import autoshape_types
+from pptx.util import lazyproperty
 
 
 class Adjustment(object):
@@ -228,14 +229,14 @@ class AutoShapeType(object):
         """
         return self._basename
 
-    @staticmethod
-    def default_adjustment_values(prst):
+    @classmethod
+    def default_adjustment_values(cls, prst):
         """
         Return sequence of name, value tuples representing the adjustment
         value defaults for the auto shape type identified by *prst*.
         """
         try:
-            autoshape_type_id = AutoShapeType._lookup_id_by_prst(prst)
+            autoshape_type_id = cls.from_prst(prst)
         except KeyError:
             return ()
         return autoshape_types[autoshape_type_id]['avLst']
@@ -245,11 +246,11 @@ class AutoShapeType(object):
         """Informal description of this auto shape type"""
         return self._desc
 
-    @staticmethod
-    def _lookup_id_by_prst(prst):
+    @classmethod
+    def from_prst(cls, prst):
         """
         Return auto shape id (e.g. ``MSO.SHAPE_RECTANGLE``) corresponding to
-        specified preset geometry keyword *prst*.
+        preset geometry keyword specified in *prst*.
         """
         for autoshape_type_id, attribs in autoshape_types.iteritems():
             if attribs['prst'] == prst:
@@ -275,15 +276,15 @@ class Shape(BaseShape):
     """
     def __init__(self, sp, parent):
         super(Shape, self).__init__(sp, parent)
-        self._adjustments = AdjustmentCollection(sp.prstGeom)
+        self._sp = sp
 
-    @property
+    @lazyproperty
     def adjustments(self):
         """
         Read-only reference to AdjustmentsCollection instance for this
         shape
         """
-        return self._adjustments
+        return AdjustmentCollection(self._sp.prstGeom)
 
     @property
     def auto_shape_type(self):
@@ -292,12 +293,11 @@ class Shape(BaseShape):
         ``MSO.SHAPE_ROUNDED_RECTANGLE``. Raises |ValueError| if this shape is
         not an auto shape.
         """
-        sp = self._element
-        if not sp.is_autoshape:
+        if not self._sp.is_autoshape:
             msg = "shape is not an auto shape"
             raise ValueError(msg)
-        prst = sp.prst
-        auto_shape_type_id = AutoShapeType._lookup_id_by_prst(prst)
+        prst = self._sp.prst
+        auto_shape_type_id = AutoShapeType.from_prst(prst)
         return auto_shape_type_id
 
     @property
@@ -308,10 +308,9 @@ class Shape(BaseShape):
         """
         if self.is_placeholder:
             return MSO.PLACEHOLDER
-        sp = self._element
-        if sp.is_autoshape:
+        if self._sp.is_autoshape:
             return MSO.AUTO_SHAPE
-        if sp.is_textbox:
+        if self._sp.is_textbox:
             return MSO.TEXT_BOX
         msg = 'Shape instance of unrecognized shape type'
         raise NotImplementedError(msg)

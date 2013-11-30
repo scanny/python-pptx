@@ -4,17 +4,20 @@
 
 from __future__ import absolute_import
 
+import pytest
+
 from hamcrest import assert_that, equal_to, is_, is_not
-from mock import Mock, patch
+from mock import Mock
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
 from pptx.oxml import parse_xml_bytes
+from pptx.oxml.autoshape import CT_Shape
 
-from ..oxml.unitdata.autoshape import a_prstGeom, test_shapes
-from ..unitutil import TestCase
+from ..oxml.unitdata.autoshape import a_prstGeom
+from ..unitutil import class_mock, instance_mock, property_mock, TestCase
 
 
 class TestAdjustment(TestCase):
@@ -231,23 +234,22 @@ class TestAutoShapeType(TestCase):
             def_adj_vals = AutoShapeType.default_adjustment_values(prst)
             assert_that(def_adj_vals, is_(equal_to(expected_vals)))
 
-    def test__lookup_id_by_prst_return_value(self):
-        """AutoShapeType._lookup_id_by_prst() return value is correct"""
+    def test_from_prst_return_value(self):
+        """AutoShapeType.from_prst() return value is correct"""
         # setup ------------------------
         autoshape_type_id = MAST.ROUNDED_RECTANGLE
         prst = 'roundRect'
         # exercise ---------------------
-        retval = AutoShapeType._lookup_id_by_prst(prst)
+        retval = AutoShapeType.from_prst(prst)
         # verify -----------------------
         assert_that(retval, is_(equal_to(autoshape_type_id)))
 
-    def test__lookup_id_raises_on_bad_prst(self):
-        """AutoShapeType._lookup_id_by_prst() raises on bad prst"""
+    def test_from_prst_raises_on_bad_prst(self):
         # setup ------------------------
         prst = 'badPrst'
         # verify -----------------------
         with self.assertRaises(KeyError):
-            AutoShapeType._lookup_id_by_prst(prst)
+            AutoShapeType.from_prst(prst)
 
     def test_second_construction_returns_cached_instance(self):
         """AutoShapeType() returns cached instance on duplicate call"""
@@ -268,54 +270,34 @@ class TestAutoShapeType(TestCase):
             AutoShapeType(autoshape_type_id)
 
 
-class TestShape(TestCase):
-    """Test Shape"""
-    @patch('pptx.shapes.autoshape.BaseShape.__init__')
-    @patch('pptx.shapes.autoshape.AdjustmentCollection')
-    def test_it_initializes_adjustments_on_construction(
-            self, AdjustmentCollection, BaseShape__init__):
-        """Shape() initializes adjustments on construction"""
-        # setup ------------------------
-        adjustments = Mock(name='adjustments')
-        AdjustmentCollection.return_value = adjustments
-        sp = Mock(name='sp')
-        # exercise ---------------------
-        shape = Shape(sp, None)
-        # verify -----------------------
-        BaseShape__init__.assert_called_once_with(sp, None)
-        AdjustmentCollection.assert_called_once_with(sp.prstGeom)
-        assert_that(shape.adjustments, is_(adjustments))
+class DescribeShape(object):
 
-    def test_auto_shape_type_value_correct(self):
-        """Shape.auto_shape_type value is correct"""
-        # setup ------------------------
-        rounded_rectangle = test_shapes.rounded_rectangle
-        # verify -----------------------
-        assert_that(rounded_rectangle.auto_shape_type,
-                    is_(equal_to(MAST.ROUNDED_RECTANGLE)))
+    def it_initializes_adjustments_on_first_ref(self, init_adjs_fixture_):
+        shape, adjs_, AdjustmentCollection_, sp_ = init_adjs_fixture_
+        assert shape.adjustments is adjs_
+        AdjustmentCollection_.assert_called_once_with(sp_.prstGeom)
 
-    def test_auto_shape_type_raises_on_non_auto_shape(self):
-        """Shape.auto_shape_type raises on non auto shape"""
-        # setup ------------------------
-        textbox = test_shapes.textbox
-        # verify -----------------------
-        with self.assertRaises(ValueError):
-            textbox.auto_shape_type
+    def it_knows_its_autoshape_type(self, autoshape_type_fixture_):
+        shape, autoshape_type, AutoShapeType_, prst = autoshape_type_fixture_
+        assert shape.auto_shape_type == autoshape_type
+        AutoShapeType_.from_prst.assert_called_once_with(prst)
 
-    def test_shape_type_value_correct(self):
-        """Shape.shape_type value is correct for all sub-types"""
-        # setup ------------------------
-        autoshape = test_shapes.autoshape
-        placeholder = test_shapes.placeholder
-        textbox = test_shapes.textbox
-        # verify -----------------------
-        assert_that(autoshape.shape_type, is_(equal_to(MSO.AUTO_SHAPE)))
-        assert_that(placeholder.shape_type, is_(equal_to(MSO.PLACEHOLDER)))
-        assert_that(textbox.shape_type, is_(equal_to(MSO.TEXT_BOX)))
+    def it_raises_when_auto_shape_type_called_on_non_autoshape(
+            self, non_autoshape_shape_):
+        with pytest.raises(ValueError):
+            non_autoshape_shape_.auto_shape_type
 
-    def test_shape_type_raises_on_unrecognized_shape_type(self):
-        """Shape.shape_type raises on unrecognized shape type"""
-        # setup ------------------------
+    def it_knows_its_shape_type_when_its_a_placeholder(
+            self, placeholder_shape_):
+        assert placeholder_shape_.shape_type == MSO.PLACEHOLDER
+
+    def it_knows_its_shape_type_when_its_not_a_placeholder(
+            self, non_placeholder_shapes_):
+        autoshape_shape_, textbox_shape_ = non_placeholder_shapes_
+        assert autoshape_shape_.shape_type == MSO.AUTO_SHAPE
+        assert textbox_shape_.shape_type == MSO.TEXT_BOX
+
+    def it_raises_when_shape_type_called_on_unrecognized_shape(self):
         xml = (
             '<p:sp xmlns:p="http://schemas.openxmlformats.org/presentationml/'
             '2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/'
@@ -325,5 +307,77 @@ class TestShape(TestCase):
         sp = parse_xml_bytes(xml)
         shape = Shape(sp, None)
         # verify -----------------------
-        with self.assertRaises(NotImplementedError):
+        with pytest.raises(NotImplementedError):
             shape.shape_type
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def autoshape_type_fixture_(
+            self, request, sp_, autoshape_type, AutoShapeType_, prst):
+        shape = Shape(sp_, None)
+        return shape, autoshape_type, AutoShapeType_, prst
+
+    @pytest.fixture
+    def init_adjs_fixture_(
+            self, request, sp_, adjustments_, AdjustmentCollection_):
+        shape = Shape(sp_, None)
+        return shape, adjustments_, AdjustmentCollection_, sp_
+
+    @pytest.fixture
+    def AdjustmentCollection_(self, request, adjustments_):
+        return class_mock(
+            request, 'pptx.shapes.autoshape.AdjustmentCollection',
+            return_value=adjustments_
+        )
+
+    @pytest.fixture
+    def adjustments_(self, request):
+        return instance_mock(request, AdjustmentCollection)
+
+    @pytest.fixture
+    def AutoShapeType_(self, request, autoshape_type):
+        AutoShapeType_ = class_mock(
+            request, 'pptx.shapes.autoshape.AutoShapeType',
+            return_value=autoshape_type
+        )
+        AutoShapeType_.from_prst.return_value = autoshape_type
+        return AutoShapeType_
+
+    @pytest.fixture
+    def autoshape_type(self):
+        return 66
+
+    @pytest.fixture
+    def non_autoshape_shape_(self, request, sp_):
+        sp_.is_autoshape = False
+        return Shape(sp_, None)
+
+    @pytest.fixture
+    def non_placeholder_shapes_(self, request):
+        autoshape_sp_ = instance_mock(
+            request, CT_Shape, name='autoshape_sp_', is_autoshape=True,
+            is_textbox=False
+        )
+        autoshape_shape_ = Shape(autoshape_sp_, None)
+        textbox_sp_ = instance_mock(
+            request, CT_Shape, name='textbox_sp_', is_autoshape=False,
+            is_textbox=True
+        )
+        textbox_shape_ = Shape(textbox_sp_, None)
+        property_mock(request, Shape, 'is_placeholder', return_value=False)
+        return autoshape_shape_, textbox_shape_
+
+    @pytest.fixture
+    def placeholder_shape_(self, request, sp_):
+        placeholder_shape_ = Shape(sp_, None)
+        property_mock(request, Shape, 'is_placeholder', return_value=True)
+        return placeholder_shape_
+
+    @pytest.fixture
+    def prst(self):
+        return 'foobar'
+
+    @pytest.fixture
+    def sp_(self, request, prst):
+        return instance_mock(request, CT_Shape, prst=prst, is_autoshape=True)
