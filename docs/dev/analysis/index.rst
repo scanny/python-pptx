@@ -11,6 +11,7 @@ Feature Analysis
 
    features/font-color
    features/hyperlink
+   features/shape-fill
 
 
 Object Analysis
