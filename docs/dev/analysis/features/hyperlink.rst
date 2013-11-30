@@ -13,14 +13,13 @@ PowerPoint supports hyperlinks at two distinct levels:
 Hyperlinks in PowerPoint can have four types of targets:
 
 * a Internet address, such as https://github/scanny/python-pptx, including an
-  optional anchor (e.g. #sub-heading suffix to jump mid-page).
+  optional anchor (e.g. #sub-heading suffix to jump mid-page). This can also
+  be an email address, launching the local email client. A mailto: URI is used,
+  with subject specifiable using a '?subject=xyz' suffix.
 
 * another file, e.g. another PowerPoint file, including an optional anchor to,
   for example, a specific slide. A file:// URI is used to specify the file
   path.
-
-* an email address, launching the local email client. A mailto: URI is used,
-  with subject specifiable using a '?subject=xyz' suffix.
 
 * another part in the same presentation. This uses an internal relationship
   (in the .rels item) to the target part.
@@ -55,59 +54,13 @@ out exactly which shapes can be hyperlinked.
     hlink.address = 'https://github.com/scanny/python-pptx'
 
 
-Code sketches
--------------
+Resources
+---------
 
-::
+* `Hyperlink Object (PowerPoint) on MSDN`_
 
-    class _Run(...):
-
-        @lazyproperty
-        def hyperlink(self):
-            return Hyperlink(self._rPr)
-
-
-    class Hyperlink(object):
-
-        def __init__(self, rPr, parent):
-            self._rPr = rPr
-            self._parent = parent
-
-        @property
-        def address(self):
-            if not self._rPr.has_hlinkClick:
-                return None
-            rId = self._rPr.hlinkClick.rId
-            rel = self.part._rels[rId]
-            address = rel.target_ref
-            return address
-
-        @address.setter
-        def address(self, url):
-            if url:
-                self._set_address(url)
-            else:
-                self._clear_address()
-
-        @property
-        def part(self):
-            return self._parent.part
-
-        def _clear_address(self):
-            self._rPr.hlinkClick = None
-
-        def _set_address(self, url):
-            rId = self.part.relate_to(url, RT.HYPERLINK, is_external=True)
-            hlinkClick = self._rPr.get_or_add_hlinkClick()
-            hlinkClick.rId = rId
-
-
-    class CT_Hyperlink:
-
-        rId = Attribute(name='r:id', XsdString)
-        tooltip = Attribute(XsdString)
-        history = Attribute(XsdBoolean)
-        highlightClick = Attribute(XsdBoolean)
+.. _`Hyperlink Object (PowerPoint) on MSDN`:
+   http://msdn.microsoft.com/en-us/library/office/ff746252.aspx
 
 
 Candidate Protocol
@@ -132,8 +85,7 @@ Delete a hyperlink::
 A Hyperlink instance is lazy-created on first reference. The object persists
 until garbage collected once created. The link XML is not written until
 .address is specified. Setting ``hlink.address`` to None or '' causes the
-hlink entry to be removed if present. Attributes in the Hyperlink object are
-preserved when XML element is removed.
+hlink entry to be removed if present.
 
 
 Candidate API
@@ -147,14 +99,14 @@ Hyperlink
 
   .address - target URL
 
-  .email_subject - subject line when link is mailto: type
-
   .screen_tip - tool-tip text displayed on mouse rollover is slideshow mode
 
-  .type - one of MsoHyperlinkType
+  .type - MsoHyperlinkType (shape or run)
 
   .show_and_return ...
-  .sub_address - anchor or bookmark within address, depending on type
+
+_Run.rolloverlink would be an analogous property corresponding to the
+<a:hlinkMouseOver> element
 
 
 Enumerations

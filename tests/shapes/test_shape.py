@@ -9,6 +9,7 @@ import pytest
 from hamcrest import assert_that, is_
 
 from pptx.oxml.ns import namespaces
+from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeCollection
 
@@ -36,6 +37,22 @@ class DescribeBaseShape(object):
         parent_ = loose_mock(request, name='parent_')
         shape = BaseShape(None, parent_)
         return shape, parent_
+
+
+class DescribeSubshape(object):
+
+    def it_knows_the_part_it_belongs_to(self, subshape_with_parent_):
+        subshape, parent_ = subshape_with_parent_
+        part = subshape.part
+        assert part is parent_.part
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def subshape_with_parent_(self, request):
+        parent_ = loose_mock(request, name='parent_')
+        subshape = Subshape(parent_)
+        return subshape, parent_
 
 
 class TestBaseShape(TestCase):

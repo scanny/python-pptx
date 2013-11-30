@@ -10,6 +10,7 @@ from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.core import Element, get_or_add
 from pptx.oxml.ns import namespaces, qn
+from pptx.shapes import Subshape
 from pptx.spec import ParagraphAlignment
 from pptx.util import lazyproperty, to_unicode
 
@@ -18,16 +19,15 @@ from pptx.util import lazyproperty, to_unicode
 _nsmap = namespaces('a', 'r', 'p')
 
 
-class TextFrame(object):
+class TextFrame(Subshape):
     """
     The part of a shape that contains its text. Not all shapes have a text
     frame. Corresponds to the ``<p:txBody>`` element that can appear as a
     child element of ``<p:sp>``. Not intended to be constructed directly.
     """
     def __init__(self, txBody, parent):
-        super(TextFrame, self).__init__()
+        super(TextFrame, self).__init__(parent)
         self._txBody = txBody
-        self._parent = parent
 
     def add_paragraph(self):
         """
@@ -98,14 +98,6 @@ class TextFrame(object):
         one paragraph.
         """
         return tuple([_Paragraph(p, self) for p in self._txBody[qn('a:p')]])
-
-    @property
-    def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
-        """
-        return self._parent.part
 
     def _set_text(self, text):
         """Replace all text in text frame with single run containing *text*"""
@@ -385,15 +377,14 @@ class _FontColor(ColorFormat):
             raise ValueError(msg)
 
 
-class _Hyperlink(object):
+class _Hyperlink(Subshape):
     """
     Text run hyperlink object. Corresponds to ``<a:hlinkClick>`` child
     element of the run's properties element (``<a:rPr>``).
     """
     def __init__(self, rPr, parent):
-        super(_Hyperlink, self).__init__()
+        super(_Hyperlink, self).__init__(parent)
         self._rPr = rPr
-        self._parent = parent
 
     @property
     def address(self):
@@ -413,14 +404,6 @@ class _Hyperlink(object):
         if url is not None:
             self._add_hlinkClick(url)
 
-    @property
-    def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
-        """
-        return self._parent.part
-
     def _add_hlinkClick(self, url):
         rId = self.part.relate_to(url, RT.HYPERLINK, is_external=True)
         self._rPr.add_hlinkClick(rId)
@@ -435,14 +418,13 @@ class _Hyperlink(object):
         self._rPr.hlinkClick = None
 
 
-class _Paragraph(object):
+class _Paragraph(Subshape):
     """
     Paragraph object. Not intended to be constructed directly.
     """
     def __init__(self, p, parent):
-        super(_Paragraph, self).__init__()
+        super(_Paragraph, self).__init__(parent)
         self._p = p
-        self._parent = parent
 
     def add_run(self):
         """
@@ -503,14 +485,6 @@ class _Paragraph(object):
         self._pPr.set('lvl', str(level))
 
     @property
-    def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
-        """
-        return self._parent.part
-
-    @property
     def runs(self):
         """
         Immutable sequence of |_Run| instances corresponding to the runs in
@@ -556,14 +530,13 @@ class _Paragraph(object):
     text = property(None, _set_text)
 
 
-class _Run(object):
+class _Run(Subshape):
     """
     Text run object. Corresponds to ``<a:r>`` child element in a paragraph.
     """
     def __init__(self, r, parent):
-        super(_Run, self).__init__()
+        super(_Run, self).__init__(parent)
         self._r = r
-        self._parent = parent
 
     @property
     def font(self):
@@ -588,14 +561,6 @@ class _Run(object):
         """
         rPr = self._r.get_or_add_rPr()
         return _Hyperlink(rPr, self)
-
-    @property
-    def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
-        """
-        return self._parent.part
 
     @property
     def text(self):

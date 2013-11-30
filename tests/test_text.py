@@ -540,11 +540,6 @@ class Describe_Hyperlink(object):
             new_url, RT.HYPERLINK, is_external=True
         )
 
-    def it_knows_the_part_it_belongs_to(self, hlink_with_parent_):
-        hlink, parent_ = hlink_with_parent_
-        part = hlink.part
-        assert part is parent_.part
-
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -571,12 +566,6 @@ class Describe_Hyperlink(object):
     def hlink_with_hlinkClick(self, request, rPr_with_hlinkClick_bldr):
         rPr = rPr_with_hlinkClick_bldr.element
         return _Hyperlink(rPr, None)
-
-    @pytest.fixture
-    def hlink_with_parent_(self, request):
-        parent_ = loose_mock(request, name='parent_')
-        hlink = _Hyperlink(None, parent_)
-        return hlink, parent_
 
     @pytest.fixture
     def hlink_with_url_(
@@ -695,11 +684,6 @@ class Describe_Paragraph(object):
             with pytest.raises(ValueError):
                 paragraph_with_text.level = value
 
-    def it_knows_the_part_it_belongs_to(self, paragraph_with_parent_):
-        paragraph, parent_ = paragraph_with_parent_
-        part = paragraph.part
-        assert part is parent_.part
-
     def test_runs_size(self, pList):
         """_Paragraph.runs is expected size"""
         # setup ------------------------
@@ -790,12 +774,6 @@ class Describe_Paragraph(object):
         return _Paragraph(p_bldr.element, None)
 
     @pytest.fixture
-    def paragraph_with_parent_(self, request):
-        parent_ = loose_mock(request, name='parent_')
-        paragraph = _Paragraph(None, parent_)
-        return paragraph, parent_
-
-    @pytest.fixture
     def paragraph_with_text(self, p_with_text):
         return _Paragraph(p_with_text, None)
 
@@ -832,11 +810,6 @@ class Describe_Run(object):
 
     def it_can_get_the_text_of_the_run(self, run, test_text):
         assert run.text == test_text
-
-    def it_knows_the_part_it_belongs_to(self, run_with_parent_):
-        run, parent_ = run_with_parent_
-        part = run.part
-        assert part is parent_.part
 
     def it_can_change_the_text_of_the_run(self, run):
         run.text = 'new text'
@@ -876,12 +849,6 @@ class Describe_Run(object):
     @pytest.fixture
     def run(self, r):
         return _Run(r, None)
-
-    @pytest.fixture
-    def run_with_parent_(self, request):
-        parent_ = loose_mock(request, name='parent_')
-        run = _Run(None, parent_)
-        return run, parent_
 
     @pytest.fixture
     def test_text(self):

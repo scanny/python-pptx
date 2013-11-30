@@ -7,6 +7,7 @@ Table-related objects such as Table and Cell.
 from pptx.constants import MSO
 from pptx.oxml.core import child
 from pptx.oxml.ns import qn
+from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
 from pptx.spec import VerticalAnchor
 from pptx.text import TextFrame
@@ -89,14 +90,6 @@ class Table(BaseShape):
         """
         return self._tbl_elm.lastRow
 
-    @property
-    def vert_banding(self):
-        """
-        Read/write boolean property which, when true, indicates the columns
-        of the table should appear with alternating shading.
-        """
-        return self._tbl_elm.bandCol
-
     @first_col.setter
     def first_col(self, value):
         self._tbl_elm.firstCol = bool(value)
@@ -113,13 +106,26 @@ class Table(BaseShape):
     def last_col(self, value):
         self._tbl_elm.lastCol = bool(value)
 
+    def notify_height_changed(self):
+        """
+        Called by a row when its height changes, triggering the graphic frame
+        to recalculate its total height (as the sum of the row heights).
+        """
+        new_table_height = sum([row.height for row in self.rows])
+        self._graphicFrame.xfrm[qn('a:ext')].set('cy', str(new_table_height))
+
+    def notify_width_changed(self):
+        """
+        Called by a column when its width changes, triggering the graphic
+        frame to recalculate its total width (as the sum of the column
+        widths).
+        """
+        new_table_width = sum([col.width for col in self.columns])
+        self._graphicFrame.xfrm[qn('a:ext')].set('cx', str(new_table_width))
+
     @last_row.setter
     def last_row(self, value):
         self._tbl_elm.lastRow = bool(value)
-
-    @vert_banding.setter
-    def vert_banding(self, value):
-        self._tbl_elm.bandCol = bool(value)
 
     @property
     def rows(self):
@@ -139,39 +145,32 @@ class Table(BaseShape):
         return MSO.TABLE
 
     @property
+    def vert_banding(self):
+        """
+        Read/write boolean property which, when true, indicates the columns
+        of the table should appear with alternating shading.
+        """
+        return self._tbl_elm.bandCol
+
+    @vert_banding.setter
+    def vert_banding(self, value):
+        self._tbl_elm.bandCol = bool(value)
+
+    @property
     def width(self):
         """
         Read-only integer width of table in English Metric Units (EMU)
         """
         return int(self._graphicFrame.xfrm[qn('a:ext')].get('cx'))
 
-    def _notify_height_changed(self):
-        """
-        Called by a row when its height changes, triggering the graphic frame
-        to recalculate its total height (as the sum of the row heights).
-        """
-        new_table_height = sum([row.height for row in self.rows])
-        self._graphicFrame.xfrm[qn('a:ext')].set('cy', str(new_table_height))
 
-    def _notify_width_changed(self):
-        """
-        Called by a column when its width changes, triggering the graphic
-        frame to recalculate its total width (as the sum of the column
-        widths).
-        """
-        new_table_width = sum([col.width for col in self.columns])
-        self._graphicFrame.xfrm[qn('a:ext')].set('cx', str(new_table_width))
-
-
-class _Cell(object):
+class _Cell(Subshape):
     """
     Table cell
     """
-
     def __init__(self, tc, parent):
-        super(_Cell, self).__init__()
+        super(_Cell, self).__init__(parent)
         self._tc = tc
-        self._parent = parent
 
     @staticmethod
     def _assert_valid_margin_value(margin_value):
@@ -228,14 +227,6 @@ class _Cell(object):
         self._assert_valid_margin_value(margin_left)
         self._tc.marL = margin_left
 
-    @property
-    def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
-        """
-        return self._parent.part
-
     def _set_text(self, text):
         """Replace all text in cell with single run containing *text*"""
         self.textframe.text = to_unicode(text)
@@ -284,14 +275,13 @@ class _Cell(object):
     vertical_anchor = property(_get_vertical_anchor, _set_vertical_anchor)
 
 
-class _Column(object):
+class _Column(Subshape):
     """
     Table column
     """
-    def __init__(self, gridCol, table):
-        super(_Column, self).__init__()
+    def __init__(self, gridCol, parent):
+        super(_Column, self).__init__(parent)
         self._gridCol = gridCol
-        self._table = table
 
     def _get_width(self):
         """
@@ -307,21 +297,19 @@ class _Column(object):
             msg = "column width must be positive integer"
             raise ValueError(msg)
         self._gridCol.set('w', str(width))
-        self._table._notify_width_changed()
+        self._parent.notify_width_changed()
 
     #: Read-write integer width of this column in English Metric Units (EMU).
     width = property(_get_width, _set_width)
 
 
-class _Row(object):
+class _Row(Subshape):
     """
     Table row
     """
-    def __init__(self, tr, table, parent):
-        super(_Row, self).__init__()
+    def __init__(self, tr, parent):
+        super(_Row, self).__init__(parent)
         self._tr = tr
-        self._table = table
-        self._parent = parent
         self._cells = _CellCollection(tr, self)
 
     @property
@@ -346,28 +334,19 @@ class _Row(object):
             msg = "row height must be positive integer"
             raise ValueError(msg)
         self._tr.set('h', str(height))
-        self._table._notify_height_changed()
+        self._parent.notify_height_changed()
 
     #: Read/write integer height of this row in English Metric Units (EMU).
     height = property(_get_height, _set_height)
 
-    @property
-    def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
-        """
-        return self._parent.part
 
-
-class _CellCollection(object):
+class _CellCollection(Subshape):
     """
     "Horizontal" sequence of row cells
     """
     def __init__(self, tr, parent):
-        super(_CellCollection, self).__init__()
+        super(_CellCollection, self).__init__(parent)
         self._tr = tr
-        self._parent = parent
 
     def __getitem__(self, idx):
         """Provides indexed access, (e.g. 'cells[0]')."""
@@ -380,72 +359,54 @@ class _CellCollection(object):
         """Supports len() function (e.g. 'len(cells) == 1')."""
         return len(self._tr.tc)
 
-    @property
-    def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
-        """
-        return self._parent.part
 
-
-class _ColumnCollection(object):
+class _ColumnCollection(Subshape):
     """
     Sequence of table columns.
     """
-
-    def __init__(self, tbl_elm, table):
-        super(_ColumnCollection, self).__init__()
+    def __init__(self, tbl_elm, parent):
+        super(_ColumnCollection, self).__init__(parent)
         self._tbl_elm = tbl_elm
-        self._table = table
-        self._parent = table
 
     def __getitem__(self, idx):
         """Provides indexed access, (e.g. 'columns[0]')."""
         if idx < 0 or idx >= len(self._tbl_elm.tblGrid.gridCol):
             msg = "column index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Column(self._tbl_elm.tblGrid.gridCol[idx], self._table)
+        return _Column(self._tbl_elm.tblGrid.gridCol[idx], self)
 
     def __len__(self):
         """Supports len() function (e.g. 'len(columns) == 1')."""
         return len(self._tbl_elm.tblGrid.gridCol)
 
-    @property
-    def part(self):
+    def notify_width_changed(self):
         """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
+        Called by a column when its width changes. Pass along to parent.
         """
-        return self._parent.part
+        self._parent.notify_width_changed()
 
 
-class _RowCollection(object):
+class _RowCollection(Subshape):
     """
     Sequence of table rows.
     """
-
-    def __init__(self, tbl_elm, table):
-        super(_RowCollection, self).__init__()
+    def __init__(self, tbl_elm, parent):
+        super(_RowCollection, self).__init__(parent)
         self._tbl_elm = tbl_elm
-        self._table = table
-        self._parent = table
 
     def __getitem__(self, idx):
         """Provides indexed access, (e.g. 'rows[0]')."""
         if idx < 0 or idx >= len(self._tbl_elm.tr):
             msg = "row index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Row(self._tbl_elm.tr[idx], self._table, self)
+        return _Row(self._tbl_elm.tr[idx], self)
 
     def __len__(self):
         """Supports len() function (e.g. 'len(rows) == 1')."""
         return len(self._tbl_elm.tr)
 
-    @property
-    def part(self):
+    def notify_height_changed(self):
         """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
+        Called by a row when its height changes. Pass along to parent.
         """
-        return self._parent.part
+        self._parent.notify_height_changed()

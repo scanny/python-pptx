@@ -4,8 +4,6 @@
 
 from __future__ import absolute_import
 
-import pytest
-
 from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch, PropertyMock
 
@@ -18,23 +16,7 @@ from pptx.util import Inches
 
 from ..oxml.unitdata.table import test_table_objects
 from ..oxml.unitdata.autoshape import test_shapes
-from ..unitutil import loose_mock, TestCase
-
-
-class Describe_Cell(object):
-
-    def it_knows_the_part_it_belongs_to(self, cell_with_parent_):
-        cell, parent_ = cell_with_parent_
-        part = cell.part
-        assert part is parent_.part
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def cell_with_parent_(self, request):
-        parent_ = loose_mock(request, name='parent_')
-        cell = _Cell(None, parent_)
-        return cell, parent_
+from ..unitutil import TestCase
 
 
 class Test_Cell(TestCase):
@@ -163,22 +145,6 @@ class Test_Cell(TestCase):
         anchor_prop.assert_called_once_with(anchor_val)
 
 
-class Describe_CellCollection(object):
-
-    def it_knows_the_part_it_belongs_to(self, cells_with_parent_):
-        cells, parent_ = cells_with_parent_
-        part = cells.part
-        assert part is parent_.part
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def cells_with_parent_(self, request):
-        parent_ = loose_mock(request, name='parent_')
-        cells = _CellCollection(None, parent_)
-        return cells, parent_
-
-
 class Test_CellCollection(TestCase):
     """Test _CellCollection"""
     def setUp(self):
@@ -294,22 +260,6 @@ class Test_ColumnCollection(TestCase):
         assert_that(len(self.columns), is_(equal_to(2)))
 
 
-class Describe_Row(object):
-
-    def it_knows_the_part_it_belongs_to(self, row_with_parent_):
-        row, parent_ = row_with_parent_
-        part = row.part
-        assert part is parent_.part
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def row_with_parent_(self, request):
-        parent_ = loose_mock(request, name='parent_')
-        row = _Row(None, None, parent_)
-        return row, parent_
-
-
 class Test_Row(TestCase):
     """Test _Row"""
     def setUp(self):
@@ -318,7 +268,7 @@ class Test_Row(TestCase):
             'c><a:txBody><a:p/></a:txBody></a:tc></a:tr>' % nsdecls('a')
         )
         test_tr_elm = parse_xml_bytes(tr_xml)
-        self.row = _Row(test_tr_elm, Mock(name='table'), None)
+        self.row = _Row(test_tr_elm, Mock(name='table'))
 
     def test_height_from_xml_correct(self):
         """_Row.height returns correct value from tr XML element"""
