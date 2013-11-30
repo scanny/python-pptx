@@ -528,6 +528,13 @@ class Describe_Hyperlink(object):
         assert actual_xml(hlink._rPr) == rPr_xml
         hlink.part.drop_rel.assert_called_once_with(rId)
 
+    def it_should_remove_the_hyperlink_when_url_set_to_empty_string(
+            self, remove_hlink_fixture_):
+        hlink, rPr_xml, rId = remove_hlink_fixture_
+        hlink.address = ''
+        assert actual_xml(hlink._rPr) == rPr_xml
+        hlink.part.drop_rel.assert_called_once_with(rId)
+
     def it_can_change_the_target_url(self, change_hlink_fixture_):
         # fixture ----------------------
         hlink, rId_existing, new_url, new_rPr_xml = change_hlink_fixture_

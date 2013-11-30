@@ -401,7 +401,7 @@ class _Hyperlink(Subshape):
         # implements all three of add, change, and remove hyperlink
         if self._hlinkClick is not None:
             self._remove_hlinkClick()
-        if url is not None:
+        if url:
             self._add_hlinkClick(url)
 
     def _add_hlinkClick(self, url):

@@ -54,6 +54,12 @@ out exactly which shapes can be hyperlinked.
     hlink.address = 'https://github.com/scanny/python-pptx'
 
 
+Roadmap items
+-------------
+
+* add .hyperlink attribute to Shape and Picture
+
+
 Resources
 ---------
 
