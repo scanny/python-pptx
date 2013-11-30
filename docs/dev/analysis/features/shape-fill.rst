@@ -100,6 +100,9 @@ Enumerations to implement:
 * MSO_FILL_TYPE
 
 
+* table cell fill color
+
+
 Enumerations
 ------------
 

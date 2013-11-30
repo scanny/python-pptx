@@ -18,6 +18,15 @@ from .helpers import saved_pptx_path, test_text
 
 # given ===================================================
 
+@given('an autoshape')
+def given_an_autoshape(context):
+    prs = Presentation()
+    blank_slidelayout = prs.slidelayouts[6]
+    shapes = prs.slides.add_slide(blank_slidelayout).shapes
+    x = y = cx = cy = 914400
+    context.shape = shapes.add_shape(MAST.ROUNDED_RECTANGLE, x, y, cx, cy)
+
+
 @given('I have a reference to a chevron shape')
 def step_given_ref_to_chevron_shape(context):
     context.prs = Presentation()
@@ -47,9 +56,19 @@ def step_when_add_auto_shape(context):
     sp.text = test_text
 
 
+@when("I set the fill type to solid")
+def when_set_fill_type_to_solid(context):
+    context.shape.fill.solid()
+
+
 @when("I set the first adjustment value to 0.15")
 def step_when_set_first_adjustment_value(context):
     context.chevron_shape.adjustments[0] = 0.15
+
+
+@when("I set the foreground color to an RGB value")
+def when_set_fore_color_to_RGB_value(context):
+    context.shape.fill.fore_color.rgb = RGBColor(0x12, 0x34, 0x56)
 
 
 # then ====================================================
@@ -68,6 +87,11 @@ def step_then_auto_shape_appears_in_slide(context):
 def step_then_chevron_shape_appears_with_less_acute_arrow_head(context):
     chevron = Presentation(saved_pptx_path).slides[0].shapes[0]
     assert_that(chevron.adjustments[0], is_(equal_to(0.15)))
+
+
+@then('the foreground color of the shape is the RGB value I set')
+def then_fore_color_is_RGB_value_I_set(context):
+    assert context.shape.fill.fore_color.rgb == RGBColor(0x12, 0x34, 0x56)
 
 
 @then('the text box appears in the slide')
