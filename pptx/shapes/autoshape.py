@@ -45,7 +45,9 @@ class Adjustment(object):
         shape proportions (e.g. width is much greater than height), the value
         can become negative or greater than 1.0.
         """
-        raw_value = self.actual if self.actual is not None else self.def_val
+        raw_value = self.actual
+        if raw_value is None:
+            raw_value = self.def_val
         return self._normalize(raw_value)
 
     @effective_value.setter

@@ -20,13 +20,16 @@ from ..oxml.unitdata.autoshape import a_prstGeom
 from ..unitutil import class_mock, instance_mock, property_mock, TestCase
 
 
-class TestAdjustment(TestCase):
-    """Test Adjustment"""
-    def test_it_should_have_correct_effective_value(self):
-        """Adjustment.effective_value is correct"""
-        # setup ------------------------
-        name = "don't care"
-        cases = (
+class DescribeAdjustment(object):
+
+    def it_knows_its_effective_value(self, effective_val_fixture_):
+        adjustment, expected_effective_value = effective_val_fixture_
+        assert adjustment.effective_value == expected_effective_value
+
+    # fixture --------------------------------------------------------
+
+    def _effective_adj_val_cases():
+        return [
             # no actual, effective should be determined by default value
             (50000, None, 0.5),
             # actual matches default
@@ -39,76 +42,95 @@ class TestAdjustment(TestCase):
             (-20833, None, -0.20833),
             # negative actual
             (-20833, -5678901, -56.78901),
-        )
+        ]
+
+    @pytest.fixture(params=_effective_adj_val_cases())
+    def effective_val_fixture_(self, request):
+        name = None
+        def_val, actual, expected_effective_value = request.param
+        adjustment = Adjustment(name, def_val, actual)
+        return adjustment, expected_effective_value
+
+
+class DescribeAdjustmentCollection(object):
+
+    def it_should_load_default_adjustment_values(self, prstGeom_cases_):
+        prstGeom, prst, expected = prstGeom_cases_
+        adjustments = AdjustmentCollection(prstGeom)._adjustments
+        actuals = tuple([(adj.name, adj.def_val) for adj in adjustments])
+        reason = ("\n     failed for prst: '%s'" % prst)
+        assert len(adjustments) == len(expected), reason
+        assert actuals == expected, reason
+
+    def it_should_load_adj_val_actuals_from_xml(
+            self, load_adj_actuals_fixture_):
+        prstGeom, expected_actuals, prstGeom_xml = load_adj_actuals_fixture_
+        adjustments = AdjustmentCollection(prstGeom)._adjustments
+        # trace ------------------------
+        print("\nfailed on case: '%s'\n\nXML:\n%s" %
+              (prstGeom.prst, prstGeom_xml))
         # verify -----------------------
-        for def_val, actual, expected in cases:
-            adjustment = Adjustment(name, def_val, actual)
-            assert_that(adjustment.effective_value, is_(equal_to(expected)))
+        actual_actuals = dict([(a.name, a.actual) for a in adjustments])
+        assert actual_actuals == expected_actuals
 
+    # fixture --------------------------------------------------------
 
-class TestAdjustmentCollection(TestCase):
-    """Test AdjustmentCollection"""
-    def test_it_should_load_default_adjustment_values(self):
-        """AdjustmentCollection() loads default adjustment values"""
-        # setup ------------------------
-        cases = (
-            ('rect', ()),
-            ('chevron', (('adj', 50000),)),
-            ('accentBorderCallout1',
-             (('adj1', 18750), ('adj2', -8333), ('adj3', 112500),
-              ('adj4', -38333))),
-            ('wedgeRoundRectCallout',
-             (('adj1', -20833), ('adj2', 62500), ('adj3', 16667))),
-            ('circularArrow',
-             (('adj1', 12500), ('adj2', 1142319), ('adj3', 20457681),
-              ('adj4', 10800000), ('adj5', 12500))),
-        )
-        for prst, expected_values in cases:
-            prstGeom = a_prstGeom(prst).with_avLst.element
-            adjustments = AdjustmentCollection(prstGeom)._adjustments
-            # verify -------------------
-            reason = ("\n     failed for prst: '%s'" % prst)
-            assert_that(len(adjustments),
-                        is_(equal_to(len(expected_values))),
-                        reason)
-            actuals = tuple([(adj.name, adj.def_val) for adj in adjustments])
-            assert_that(actuals, is_(equal_to(expected_values)), reason)
-
-    def test_it_should_load_adj_val_actuals_from_xml(self):
-        """AdjustmentCollection() loads adjustment value actuals from XML"""
-        # setup ------------------------
-        def expected_actual(adj_vals, adjustment_name):
-            for name, actual in adj_vals:
-                if name == adjustment_name:
-                    return actual
-            return None
-
-        cases = (
+    def _adj_actuals_cases():
+        return [
             # no adjustment values in xml or spec
             (a_prstGeom('rect').with_avLst, ()),
             # no adjustment values in xml, but some in spec
-            (a_prstGeom('circularArrow'), ()),
+            (a_prstGeom('circularArrow'),
+             (('adj1', None), ('adj2', None), ('adj3', None), ('adj4', None),
+              ('adj5', None))),
             # adjustment value in xml but none in spec
             (a_prstGeom('rect').with_gd(), ()),
             # middle adjustment value in xml
             (a_prstGeom('mathDivide').with_gd(name='adj2'),
-             (('adj2', 25000),)),
+             (('adj1', None), ('adj2', 25000), ('adj3', None))),
             # all adjustment values in xml
-            (a_prstGeom('wedgeRoundRectCallout').with_gd(111, 'adj1')
-                                                .with_gd(222, 'adj2')
-                                                .with_gd(333, 'adj3'),
+            (a_prstGeom('wedgeRoundRectCallout')
+                .with_gd(111, 'adj1')
+                .with_gd(222, 'adj2')
+                .with_gd(333, 'adj3'),
              (('adj1', 111), ('adj2', 222), ('adj3', 333))),
-        )
-        # verify -----------------------
-        for prstGeom_builder, adj_vals in cases:
-            prstGeom = prstGeom_builder.element
-            adjustments = AdjustmentCollection(prstGeom)._adjustments
-            for adjustment in adjustments:
-                expected_value = expected_actual(adj_vals, adjustment.name)
-                reason = (
-                    "failed for adj val name '%s', for this XML:\n\n%s" %
-                    (adjustment.name, prstGeom_builder.xml))
-                assert_that(adjustment.actual, is_(expected_value), reason)
+        ]
+
+    @pytest.fixture(params=_adj_actuals_cases())
+    def load_adj_actuals_fixture_(self, request):
+        prstGeom_bldr, adj_vals = request.param
+        prstGeom = prstGeom_bldr.element
+        expected = dict(adj_vals)
+        prstGeom_xml = prstGeom_bldr.xml
+        return prstGeom, expected, prstGeom_xml
+
+    def _prstGeom_cases():
+        return [
+            # rect has no adjustments
+            ('rect', ()),
+            # chevron has one simple one
+            ('chevron', (('adj', 50000),)),
+            # one with several and some negative
+            ('accentBorderCallout1',
+             (('adj1', 18750), ('adj2', -8333), ('adj3', 112500),
+              ('adj4', -38333))),
+            # another one with some negative
+            ('wedgeRoundRectCallout',
+             (('adj1', -20833), ('adj2', 62500), ('adj3', 16667))),
+            # one with values outside normal range
+            ('circularArrow',
+             (('adj1', 12500), ('adj2', 1142319), ('adj3', 20457681),
+              ('adj4', 10800000), ('adj5', 12500))),
+        ]
+
+    @pytest.fixture(params=_prstGeom_cases())
+    def prstGeom_cases_(self, request):
+        prst, expected_values = request.param
+        prstGeom = a_prstGeom(prst).with_avLst.element
+        return prstGeom, prst, expected_values
+
+
+class TestAdjustmentCollection(TestCase):
 
     def test_it_should_return_effective_value_on_indexed_access(self):
         """AdjustmentCollection[n] is normalized effective value of nth"""
