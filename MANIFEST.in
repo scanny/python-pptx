@@ -1,5 +1,5 @@
-include LICENSE.txt tox.ini
-include test/*.py
+include HISTORY.rst LICENSE README.rst tox.ini
+include tests/*.py
 recursive-include features *
 recursive-include pptx/templates *
-recursive-include test/test_files *
+recursive-include tests/test_files *

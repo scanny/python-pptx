@@ -22,7 +22,10 @@ AUTHOR = 'Steve Canny'
 AUTHOR_EMAIL = 'python.pptx@librelist.com'
 URL = 'http://github.com/scanny/python-pptx'
 LICENSE = open(license).read()
-PACKAGES = ['pptx']
+PACKAGES = [
+    'pptx', 'pptx.dml', 'pptx.enum', 'pptx.opc', 'pptx.oxml', 'pptx.parts',
+    'pptx.shapes'
+]
 PACKAGE_DATA = {'pptx': ['templates/*']}
 
 INSTALL_REQUIRES = ['lxml>=2.3.2', 'PIL']
