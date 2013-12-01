@@ -6,15 +6,14 @@ from __future__ import absolute_import
 
 import pytest
 
-from hamcrest import assert_that, equal_to, is_, is_not
-from mock import Mock
+from hamcrest import assert_that, equal_to, is_
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
 from pptx.oxml import parse_xml_bytes
-from pptx.oxml.autoshape import CT_Shape
+from pptx.oxml.autoshape import CT_PresetGeometry2D, CT_Shape
 
 from ..oxml.unitdata.autoshape import a_prstGeom
 from ..unitutil import class_mock, instance_mock, property_mock, TestCase
@@ -73,7 +72,83 @@ class DescribeAdjustmentCollection(object):
         actual_actuals = dict([(a.name, a.actual) for a in adjustments])
         assert actual_actuals == expected_actuals
 
+    def it_provides_normalized_effective_value_on_indexed_access(
+            self, indexed_access_fixture_):
+        # fixture ----------------------
+        prstGeom, prst, expected_values = indexed_access_fixture_
+        # exercise ---------------------
+        adjustments = AdjustmentCollection(prstGeom)
+        # trace ------------------------
+        print("failed on case: prst=='%s'" % prst)
+        # verify -----------------------
+        actual_values = [adjustments[idx] for idx in range(len(adjustments))]
+        assert actual_values == expected_values
+
+    def it_should_update_actual_value_on_indexed_assignment(
+            self, indexed_assignment_fixture_):
+        """
+        Assignment to AdjustmentCollection[n] updates nth actual
+        """
+        adjs, idx, new_val, expected = indexed_assignment_fixture_
+        adjs[idx] = new_val
+        assert adjs._adjustments[idx].actual == expected
+
+    def it_should_round_trip_indexed_assignment(self, adjustments):
+        new_value = 0.375
+        assert adjustments[0] != new_value
+        # exercise ---------------------
+        adjustments[0] = new_value
+        # verify -----------------------
+        assert adjustments[0] == new_value
+
+    def it_should_raise_on_bad_index(self, adjustments):
+        with pytest.raises(IndexError):
+            adjustments[-6]
+        with pytest.raises(IndexError):
+            adjustments[6]
+        with pytest.raises(TypeError):
+            adjustments[0.0]
+        with pytest.raises(TypeError):
+            adjustments['0']
+        with pytest.raises(IndexError):
+            adjustments[-6] = 1.0
+        with pytest.raises(IndexError):
+            adjustments[6] = 1.0
+        with pytest.raises(TypeError):
+            adjustments[0.0] = 1.0
+        with pytest.raises(TypeError):
+            adjustments['0'] = 1.0
+
+    def it_should_raise_on_assigned_bad_value(self, adjustments):
+        """
+        AdjustmentCollection[n] = val raises on val is not number
+        """
+        with pytest.raises(ValueError):
+            adjustments[0] = '1.0'
+
+    def it_writes_adj_vals_to_xml_on_assignment(
+            self, adjustments_with_prstGeom_):
+        adjs, guides = adjustments_with_prstGeom_
+        adjs[0] = 0.999
+        adjs._prstGeom.rewrite_guides.assert_called_once_with(guides)
+
     # fixture --------------------------------------------------------
+
+    @pytest.fixture
+    def adjustments(self):
+        prstGeom = a_prstGeom('chevron').element
+        return AdjustmentCollection(prstGeom)
+
+    @pytest.fixture
+    def adjustments_with_prstGeom_(self, request):
+        prstGeom = a_prstGeom('chevron').element
+        adjustments = AdjustmentCollection(prstGeom)
+        prstGeom_ = instance_mock(
+            request, CT_PresetGeometry2D, name='prstGeom_'
+        )
+        adjustments._prstGeom = prstGeom_
+        guides = [('adj', 99900)]
+        return adjustments, guides
 
     def _adj_actuals_cases():
         return [
@@ -129,101 +204,31 @@ class DescribeAdjustmentCollection(object):
         prstGeom = a_prstGeom(prst).with_avLst.element
         return prstGeom, prst, expected_values
 
-
-class TestAdjustmentCollection(TestCase):
-
-    def test_it_should_return_effective_value_on_indexed_access(self):
-        """AdjustmentCollection[n] is normalized effective value of nth"""
-        # setup ------------------------
-        cases = (
+    def _effective_val_cases():
+        return [
             ('rect', ()),
             ('chevron', (0.5,)),
-            ('circularArrow', (0.125, 11.42319, 204.57681, 108.0, 0.125)),
-        )
-        for prst, expected_values in cases:
-            prstGeom = a_prstGeom(prst).element
-            # exercise -----------------
-            adjustments = AdjustmentCollection(prstGeom)
-            # verify -------------------
-            reason = "failed on case: prst=='%s'" % prst
-            assert_that(len(adjustments), is_(len(expected_values)), reason)
-            retvals = tuple([adj for adj in adjustments])
-            assert_that(retvals, is_(equal_to(expected_values)), reason)
+            ('circularArrow', (0.125, 11.42319, 204.57681, 108.0, 0.125))
+        ]
 
-    def test_it_should_update_actual_value_on_indexed_assignment(self):
-        """Assignment to AdjustmentCollection[n] updates nth actual"""
-        # setup ------------------------
-        cases = (
+    @pytest.fixture(params=_effective_val_cases())
+    def indexed_access_fixture_(self, request):
+        prst, effective_values = request.param
+        prstGeom = a_prstGeom(prst).element
+        return prstGeom, prst, list(effective_values)
+
+    def _indexed_assignment_cases():
+        return [
             ('chevron', 0, 0.5, 50000),
-            ('circularArrow', 2, 99.99, 9999000),
-        )
-        prst = 'chevron'
-        for prst, idx, new_value, expected in cases:
-            prstGeom = a_prstGeom(prst).element
-            adjustments = AdjustmentCollection(prstGeom)
-            # exercise -----------------
-            adjustments[idx] = new_value
-            # verify -------------------
-            reason = "failed on case: prst=='%s'" % prst
-            assert_that(adjustments._adjustments[idx].actual,
-                        is_(equal_to(expected)),
-                        reason)
+            ('circularArrow', 4, 99.99, 9999000),
+        ]
 
-    def test_it_should_round_trip_indexed_assignment(self):
-        """Assignment to AdjustmentCollection[n] round-trips"""
-        # setup ------------------------
-        new_value = 0.375
-        prstGeom = a_prstGeom('chevron').element
+    @pytest.fixture(params=_indexed_assignment_cases())
+    def indexed_assignment_fixture_(self, request):
+        prst, idx, new_val, expected = request.param
+        prstGeom = a_prstGeom(prst).element
         adjustments = AdjustmentCollection(prstGeom)
-        assert_that(adjustments[0], is_not(equal_to(new_value)))
-        # exercise ---------------------
-        adjustments[0] = new_value
-        # verify -----------------------
-        assert_that(adjustments[0], is_(equal_to(new_value)))
-
-    def test_it_should_raise_on_bad_key(self):
-        """AdjustmentCollection[idx] raises on invalid idx"""
-        # setup ------------------------
-        prstGeom = a_prstGeom('chevron').element
-        adjustments = AdjustmentCollection(prstGeom)
-        # verify -----------------------
-        with self.assertRaises(IndexError):
-            adjustments[-6]
-        with self.assertRaises(IndexError):
-            adjustments[6]
-        with self.assertRaises(TypeError):
-            adjustments[0.0]
-        with self.assertRaises(TypeError):
-            adjustments['0']
-        with self.assertRaises(IndexError):
-            adjustments[-6] = 1.0
-        with self.assertRaises(IndexError):
-            adjustments[6] = 1.0
-        with self.assertRaises(TypeError):
-            adjustments[0.0] = 1.0
-        with self.assertRaises(TypeError):
-            adjustments['0'] = 1.0
-
-    def test_it_should_raise_on_assigned_bad_value(self):
-        """AdjustmentCollection[n] = val raises on val is not number"""
-        # setup ------------------------
-        prstGeom = a_prstGeom('chevron').element
-        adjustments = AdjustmentCollection(prstGeom)
-        # verify -----------------------
-        with self.assertRaises(ValueError):
-            adjustments[0] = 'foobar'
-
-    def test_writes_adj_vals_to_xml_on_assignment(self):
-        """AdjustmentCollection writes adj vals to XML on assignment"""
-        # setup ------------------------
-        prstGeom = a_prstGeom('chevron').element
-        adjustments = AdjustmentCollection(prstGeom)
-        _prstGeom = Mock(name='_prstGeom')
-        adjustments._prstGeom = _prstGeom
-        # exercise ---------------------
-        adjustments[0] = 0.999
-        # verify -----------------------
-        assert_that(_prstGeom.rewrite_guides.call_count, is_(1))
+        return adjustments, idx, new_val, expected
 
 
 class TestAutoShapeType(TestCase):
