@@ -244,11 +244,11 @@ class DescribeAutoShapeType(object):
         assert _default_adj_vals == default_adj_vals
 
     def it_knows_the_autoshape_type_id_for_each_prst_key(self):
-        assert AutoShapeType.from_prst('roundRect') == MAST.ROUNDED_RECTANGLE
+        assert AutoShapeType.id_from_prst('rect') == MAST.RECTANGLE
 
     def it_raises_when_asked_for_autoshape_type_id_with_a_bad_prst(self):
         with pytest.raises(KeyError):
-            AutoShapeType.from_prst('badPrst')
+            AutoShapeType.id_from_prst('badPrst')
 
     def it_caches_autoshape_type_lookups(self):
         autoshape_type_id = MAST.ROUNDED_RECTANGLE
@@ -286,7 +286,7 @@ class DescribeShape(object):
     def it_knows_its_autoshape_type(self, autoshape_type_fixture_):
         shape, autoshape_type, AutoShapeType_, prst = autoshape_type_fixture_
         assert shape.auto_shape_type == autoshape_type
-        AutoShapeType_.from_prst.assert_called_once_with(prst)
+        AutoShapeType_.id_from_prst.assert_called_once_with(prst)
 
     def it_raises_when_auto_shape_type_called_on_non_autoshape(
             self, non_autoshape_shape_):
@@ -347,7 +347,7 @@ class DescribeShape(object):
             request, 'pptx.shapes.autoshape.AutoShapeType',
             return_value=autoshape_type
         )
-        AutoShapeType_.from_prst.return_value = autoshape_type
+        AutoShapeType_.id_from_prst.return_value = autoshape_type
         return AutoShapeType_
 
     @pytest.fixture

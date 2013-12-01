@@ -238,7 +238,7 @@ class AutoShapeType(object):
         value defaults for the auto shape type identified by *prst*.
         """
         try:
-            autoshape_type_id = cls.from_prst(prst)
+            autoshape_type_id = cls.id_from_prst(prst)
         except KeyError:
             return ()
         return autoshape_types[autoshape_type_id]['avLst']
@@ -249,10 +249,10 @@ class AutoShapeType(object):
         return self._desc
 
     @classmethod
-    def from_prst(cls, prst):
+    def id_from_prst(cls, prst):
         """
         Return auto shape id (e.g. ``MSO.SHAPE_RECTANGLE``) corresponding to
-        preset geometry keyword specified in *prst*.
+        preset geometry keyword *prst*.
         """
         for autoshape_type_id, attribs in autoshape_types.iteritems():
             if attribs['prst'] == prst:
@@ -299,7 +299,7 @@ class Shape(BaseShape):
             msg = "shape is not an auto shape"
             raise ValueError(msg)
         prst = self._sp.prst
-        auto_shape_type_id = AutoShapeType.from_prst(prst)
+        auto_shape_type_id = AutoShapeType.id_from_prst(prst)
         return auto_shape_type_id
 
     @property
