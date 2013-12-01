@@ -7,6 +7,7 @@ from __future__ import absolute_import
 import pytest
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
+from pptx.dml.core import FillFormat
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
@@ -328,6 +329,9 @@ class DescribeShape(object):
         with pytest.raises(ValueError):
             non_autoshape_shape_.auto_shape_type
 
+    def it_has_a_fill(self, shape):
+        assert isinstance(shape.fill, FillFormat)
+
     def it_knows_its_shape_type_when_its_a_placeholder(
             self, placeholder_shape_):
         assert placeholder_shape_.shape_type == MSO.PLACEHOLDER
@@ -418,6 +422,10 @@ class DescribeShape(object):
     @pytest.fixture
     def prst(self):
         return 'foobar'
+
+    @pytest.fixture
+    def shape(self, request):
+        return Shape(None, None)
 
     @pytest.fixture
     def sp_(self, request, prst):

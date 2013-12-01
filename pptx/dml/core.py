@@ -12,6 +12,13 @@ class ColorFormat(object):
     """
 
 
+class FillFormat(object):
+    """
+    Provides access to the current fill properties object and provides
+    methods to change the fill type.
+    """
+
+
 class RGBColor(tuple):
     """
     Immutable value object defining a particular RGB color.

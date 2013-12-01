@@ -7,6 +7,7 @@ Autoshape-related objects such as Shape and Adjustment.
 from numbers import Number
 
 from pptx.constants import MSO
+from pptx.dml.core import FillFormat
 from pptx.shapes.shape import BaseShape
 from pptx.spec import autoshape_types
 from pptx.util import lazyproperty
@@ -301,6 +302,14 @@ class Shape(BaseShape):
         prst = self._sp.prst
         auto_shape_type_id = AutoShapeType.id_from_prst(prst)
         return auto_shape_type_id
+
+    @lazyproperty
+    def fill(self):
+        """
+        |FillFormat| instance for this shape, providing access to fill
+        properties such as fill color.
+        """
+        return FillFormat()
 
     @property
     def shape_type(self):
