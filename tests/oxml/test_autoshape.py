@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import
 
+import pytest
+
 from hamcrest import assert_that, equal_to, instance_of, is_, none
 
 from pptx.oxml.autoshape import CT_PresetGeometry2D, CT_Shape
@@ -14,24 +16,49 @@ from pptx.spec import (
     PH_TYPE_SUBTITLE, PH_TYPE_TBL
 )
 
-from .unitdata.autoshape import a_prstGeom, test_shape_elements
-from ..unitutil import TestCase
+from .unitdata.autoshape import (
+    a_gd, a_prstGeom, an_avLst, test_shape_elements
+)
+from ..unitutil import actual_xml, TestCase
 
 
-class TestCT_PresetGeometry2D(TestCase):
-    """Test CT_PresetGeometry2D"""
-    def test_gd_return_value(self):
-        """CT_PresetGeometry2D.gd value is correct"""
-        # setup ------------------------
-        long_prstGeom = a_prstGeom().with_gd(111, 'adj1')\
-                                    .with_gd(222, 'adj2')\
-                                    .with_gd(333, 'adj3')\
-                                    .with_gd(444, 'adj4')
+class DescribeCT_PresetGeometry2D(object):
+
+    def it_can_get_the_list_of_gd_elms(self):
+        # fixture ----------------------
+        gd_1_bldr = a_gd().with_name('adj1').with_fmla('val 111')
+        gd_2_bldr = a_gd().with_name('adj2').with_fmla('val 222')
+        gd_3_bldr = a_gd().with_name('adj3').with_fmla('val 333')
+        gd_4_bldr = a_gd().with_name('adj4').with_fmla('val 444')
+        gd_5_bldr = a_gd().with_name('adj5').with_fmla('val 555')
+
+        empty_prstGeom_bldr = a_prstGeom().with_nsdecls()
+
+        single_gd_prstGeom_bldr = (
+            a_prstGeom()
+            .with_nsdecls()
+            .with_child(
+                an_avLst()
+                .with_child(gd_1_bldr)
+            )
+        )
+
+        long_prstGeom_bldr = (
+            a_prstGeom()
+            .with_nsdecls()
+            .with_child(
+                an_avLst()
+                .with_child(gd_2_bldr)
+                .with_child(gd_3_bldr)
+                .with_child(gd_4_bldr)
+                .with_child(gd_5_bldr)
+            )
+        )
         cases = (
-            (a_prstGeom(), ()),
-            (a_prstGeom().with_gd(999, 'adj2'), ((999, 'adj2'),)),
-            (long_prstGeom, ((111, 'adj1'), (222, 'adj2'), (333, 'adj3'),
-                             (444, 'adj4'))),
+            (empty_prstGeom_bldr, ()),
+            (single_gd_prstGeom_bldr, ((111, 'adj1'),)),
+            (long_prstGeom_bldr,
+             ((222, 'adj2'), (333, 'adj3'), (444, 'adj4'), (555, 'adj5'))),
         )
         for prstGeom_builder, expected_vals in cases:
             prstGeom = prstGeom_builder.element
@@ -46,26 +73,61 @@ class TestCT_PresetGeometry2D(TestCase):
                 assert_that(gd_elm.get('name'), is_(equal_to(name)))
                 assert_that(gd_elm.get('fmla'), is_(equal_to(fmla)))
 
-    def test_it_should_rewrite_guides_correctly(self):
-        """CT_PresetGeometry2D.rewrite_guides() produces correct XML"""
-        # setup ------------------------
-        cases = (
-            (a_prstGeom('chevron'), ()),
-            (a_prstGeom('chevron').with_gd(111, 'foo'), (('bar', 222),)),
-            (a_prstGeom('circularArrow').with_gd(333, 'adj1'),
-             (('adj1', 12500), ('adj2', 1142319), ('adj3', 12500),
-              ('adj4', 10800000), ('adj5', 12500))),
+    def it_can_rewrite_the_gd_elms(self, rewrite_guides_fixture_):
+        prstGeom, guides, expected_xml = rewrite_guides_fixture_
+        prstGeom.rewrite_guides(guides)
+        assert actual_xml(prstGeom) == expected_xml
+
+    # fixture --------------------------------------------------------
+
+    def _rewrite_guides_cases():
+        return [
+            # all five guides for five adj shape
+            ('circularArrow', 5),
+            # empty guides for single adj shape
+            ('chevron', 0),
+            # one guide for single adj shape
+            ('chevron', 1),
+        ]
+
+    @pytest.fixture(params=_rewrite_guides_cases())
+    def rewrite_guides_fixture_(self, request):
+        prst, gd_count = request.param
+
+        avLst_before_bldr = an_avLst()
+        avLst_after_bldr = an_avLst()
+        guides = []
+
+        for n in range(1, gd_count+1):
+            name = 'adj%d' % n
+            val_before = n * 111
+            val_after = val_before + 100
+            fmla_before = 'val %d' % val_before
+            fmla_after = 'val %d' % val_after
+
+            gd_before_bldr = a_gd().with_name(name).with_fmla(fmla_before)
+            gd_after_bldr = a_gd().with_name(name).with_fmla(fmla_after)
+
+            avLst_before_bldr.with_child(gd_before_bldr)
+            avLst_after_bldr.with_child(gd_after_bldr)
+
+            guides.append((name, val_after))
+
+        prstGeom_before_bldr = (
+            a_prstGeom().with_nsdecls()
+                        .with_prst(prst)
+                        .with_child(avLst_before_bldr)
         )
-        for prstGeom_builder, guides in cases:
-            prstGeom = prstGeom_builder.element
-            # exercise -----------------
-            prstGeom.rewrite_guides(guides)
-            # verify -------------------
-            prstGeom_builder.reset()
-            for name, val in guides:
-                prstGeom_builder.with_gd(val, name)
-            expected_xml = prstGeom_builder.with_avLst.xml
-            self.assertEqualLineByLine(expected_xml, prstGeom)
+        prstGeom_after_bldr = (
+            a_prstGeom().with_nsdecls()
+                        .with_prst(prst)
+                        .with_child(avLst_after_bldr)
+        )
+
+        prstGeom = prstGeom_before_bldr.element
+        expected_xml = prstGeom_after_bldr.xml()
+
+        return prstGeom, tuple(guides), expected_xml
 
 
 class TestCT_Shape(TestCase):
