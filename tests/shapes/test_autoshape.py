@@ -6,8 +6,6 @@ from __future__ import absolute_import
 
 import pytest
 
-from hamcrest import assert_that, equal_to, is_
-
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
@@ -16,7 +14,7 @@ from pptx.oxml import parse_xml_bytes
 from pptx.oxml.autoshape import CT_PresetGeometry2D, CT_Shape
 
 from ..oxml.unitdata.autoshape import a_prstGeom
-from ..unitutil import class_mock, instance_mock, property_mock, TestCase
+from ..unitutil import class_mock, instance_mock, property_mock
 
 
 class DescribeAdjustment(object):
@@ -132,7 +130,7 @@ class DescribeAdjustmentCollection(object):
         adjs[0] = 0.999
         adjs._prstGeom.rewrite_guides.assert_called_once_with(guides)
 
-    # fixture --------------------------------------------------------
+    # fixtures -------------------------------------------------------
 
     @pytest.fixture
     def adjustments(self):
@@ -231,70 +229,51 @@ class DescribeAdjustmentCollection(object):
         return adjustments, idx, new_val, expected
 
 
-class TestAutoShapeType(TestCase):
-    """Test AutoShapeType"""
-    def test_construction_return_values(self):
-        """AutoShapeType() returns instance with correct property values"""
-        # setup ------------------------
-        id_ = MAST.ROUNDED_RECTANGLE
-        prst = 'roundRect'
-        basename = 'Rounded Rectangle'
-        # exercise ---------------------
-        autoshape_type = AutoShapeType(id_)
-        # verify -----------------------
-        assert_that(autoshape_type.autoshape_type_id, is_(equal_to(id_)))
-        assert_that(autoshape_type.prst, is_(equal_to(prst)))
-        assert_that(autoshape_type.basename, is_(equal_to(basename)))
+class DescribeAutoShapeType(object):
 
-    def test_default_adjustment_values_return_value(self):
-        """AutoShapeType.default_adjustment_values() return val correct"""
-        # setup ------------------------
-        cases = (
+    def it_knows_the_details_of_the_auto_shape_type_it_represents(self):
+        autoshape_type = AutoShapeType(MAST.ROUNDED_RECTANGLE)
+        assert autoshape_type.autoshape_type_id == MAST.ROUNDED_RECTANGLE
+        assert autoshape_type.prst == 'roundRect'
+        assert autoshape_type.basename == 'Rounded Rectangle'
+
+    def it_knows_the_default_adj_vals_for_its_autoshape_type(
+            self, default_adj_vals_fixture_):
+        prst, default_adj_vals = default_adj_vals_fixture_
+        _default_adj_vals = AutoShapeType.default_adjustment_values(prst)
+        assert _default_adj_vals == default_adj_vals
+
+    def it_knows_the_autoshape_type_id_for_each_prst_key(self):
+        assert AutoShapeType.from_prst('roundRect') == MAST.ROUNDED_RECTANGLE
+
+    def it_raises_when_asked_for_autoshape_type_id_with_a_bad_prst(self):
+        with pytest.raises(KeyError):
+            AutoShapeType.from_prst('badPrst')
+
+    def it_caches_autoshape_type_lookups(self):
+        autoshape_type_id = MAST.ROUNDED_RECTANGLE
+        autoshape_type_1 = AutoShapeType(autoshape_type_id)
+        autoshape_type_2 = AutoShapeType(autoshape_type_id)
+        assert autoshape_type_2 is autoshape_type_1
+
+    def it_raises_on_construction_with_bad_autoshape_type_id(self):
+        with pytest.raises(KeyError):
+            AutoShapeType(9999)
+
+    # fixtures -------------------------------------------------------
+
+    def _default_adj_vals_cases():
+        return [
             ('rect', ()),
             ('chevron', (('adj', 50000),)),
-            ('leftCircularArrow',
-             (('adj1', 12500), ('adj2', -1142319), ('adj3', 1142319),
-              ('adj4', 10800000), ('adj5', 12500))),
-        )
-        # verify -----------------------
-        for prst, expected_vals in cases:
-            def_adj_vals = AutoShapeType.default_adjustment_values(prst)
-            assert_that(def_adj_vals, is_(equal_to(expected_vals)))
+            ('leftCircularArrow', (('adj1', 12500), ('adj2', -1142319),
+             ('adj3', 1142319), ('adj4', 10800000), ('adj5', 12500))),
+        ]
 
-    def test_from_prst_return_value(self):
-        """AutoShapeType.from_prst() return value is correct"""
-        # setup ------------------------
-        autoshape_type_id = MAST.ROUNDED_RECTANGLE
-        prst = 'roundRect'
-        # exercise ---------------------
-        retval = AutoShapeType.from_prst(prst)
-        # verify -----------------------
-        assert_that(retval, is_(equal_to(autoshape_type_id)))
-
-    def test_from_prst_raises_on_bad_prst(self):
-        # setup ------------------------
-        prst = 'badPrst'
-        # verify -----------------------
-        with self.assertRaises(KeyError):
-            AutoShapeType.from_prst(prst)
-
-    def test_second_construction_returns_cached_instance(self):
-        """AutoShapeType() returns cached instance on duplicate call"""
-        # setup ------------------------
-        id_ = MAST.ROUNDED_RECTANGLE
-        ast1 = AutoShapeType(id_)
-        # exercise ---------------------
-        ast2 = AutoShapeType(id_)
-        # verify -----------------------
-        assert_that(ast2, is_(equal_to(ast1)))
-
-    def test_construction_raises_on_bad_autoshape_type_id(self):
-        """AutoShapeType() raises on bad auto shape type id"""
-        # setup ------------------------
-        autoshape_type_id = 9999
-        # verify -----------------------
-        with self.assertRaises(KeyError):
-            AutoShapeType(autoshape_type_id)
+    @pytest.fixture(params=_default_adj_vals_cases())
+    def default_adj_vals_fixture_(self, request):
+        prst, default_adj_vals = request.param
+        return prst, default_adj_vals
 
 
 class DescribeShape(object):
