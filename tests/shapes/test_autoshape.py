@@ -13,7 +13,7 @@ from pptx.shapes.autoshape import (
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.autoshape import CT_PresetGeometry2D, CT_Shape
 
-from ..oxml.unitdata.autoshape import a_prstGeom
+from ..oxml.unitdata.autoshape import a_gd, a_prstGeom, an_avLst
 from ..unitutil import class_mock, instance_mock, property_mock
 
 
@@ -55,9 +55,9 @@ class DescribeAdjustmentCollection(object):
         prstGeom, prst, expected = prstGeom_cases_
         adjustments = AdjustmentCollection(prstGeom)._adjustments
         actuals = tuple([(adj.name, adj.def_val) for adj in adjustments])
-        reason = ("\n     failed for prst: '%s'" % prst)
-        assert len(adjustments) == len(expected), reason
-        assert actuals == expected, reason
+        print("\n     failed for prst: '%s'" % prst)
+        assert len(adjustments) == len(expected)
+        assert actuals == expected
 
     def it_should_load_adj_val_actuals_from_xml(
             self, load_adj_actuals_fixture_):
@@ -134,12 +134,12 @@ class DescribeAdjustmentCollection(object):
 
     @pytest.fixture
     def adjustments(self):
-        prstGeom = a_prstGeom('chevron').element
+        prstGeom = a_prstGeom().with_nsdecls().with_prst('chevron').element
         return AdjustmentCollection(prstGeom)
 
     @pytest.fixture
     def adjustments_with_prstGeom_(self, request):
-        prstGeom = a_prstGeom('chevron').element
+        prstGeom = a_prstGeom().with_nsdecls().with_prst('chevron').element
         adjustments = AdjustmentCollection(prstGeom)
         prstGeom_ = instance_mock(
             request, CT_PresetGeometry2D, name='prstGeom_'
@@ -149,23 +149,53 @@ class DescribeAdjustmentCollection(object):
         return adjustments, guides
 
     def _adj_actuals_cases():
+        gd_bldr = a_gd().with_name('adj2').with_fmla('val 25000')
+        avLst_bldr = an_avLst().with_child(gd_bldr)
+        mathDivide_bldr = (
+            a_prstGeom().with_nsdecls()
+                        .with_prst('mathDivide')
+                        .with_child(avLst_bldr)
+        )
+
+        gd_bldr = a_gd().with_name('adj').with_fmla('val 25000')
+        avLst_bldr = an_avLst().with_child(gd_bldr)
+        rect_bldr = (
+            a_prstGeom().with_nsdecls()
+                        .with_prst('rect')
+                        .with_child(avLst_bldr)
+        )
+
+        gd_bldr_1 = a_gd().with_name('adj1').with_fmla('val 111')
+        gd_bldr_2 = a_gd().with_name('adj2').with_fmla('val 222')
+        gd_bldr_3 = a_gd().with_name('adj3').with_fmla('val 333')
+        avLst_bldr = (
+            an_avLst().with_child(gd_bldr_1)
+                      .with_child(gd_bldr_2)
+                      .with_child(gd_bldr_3)
+        )
+        wedgeRoundRectCallout_bldr = (
+            a_prstGeom().with_nsdecls()
+                        .with_prst('wedgeRoundRectCallout')
+                        .with_child(avLst_bldr)
+        )
+
         return [
             # no adjustment values in xml or spec
-            (a_prstGeom('rect').with_avLst, ()),
+            (a_prstGeom().with_nsdecls()
+                         .with_prst('rect')
+                         .with_child(an_avLst()),
+             ()),
             # no adjustment values in xml, but some in spec
-            (a_prstGeom('circularArrow'),
+            (a_prstGeom().with_nsdecls().with_prst('circularArrow'),
              (('adj1', None), ('adj2', None), ('adj3', None), ('adj4', None),
               ('adj5', None))),
             # adjustment value in xml but none in spec
-            (a_prstGeom('rect').with_gd(), ()),
+            (rect_bldr, ()),
             # middle adjustment value in xml
-            (a_prstGeom('mathDivide').with_gd(name='adj2'),
+            (mathDivide_bldr,
              (('adj1', None), ('adj2', 25000), ('adj3', None))),
             # all adjustment values in xml
-            (a_prstGeom('wedgeRoundRectCallout')
-                .with_gd(111, 'adj1')
-                .with_gd(222, 'adj2')
-                .with_gd(333, 'adj3'),
+            (wedgeRoundRectCallout_bldr,
              (('adj1', 111), ('adj2', 222), ('adj3', 333))),
         ]
 
@@ -199,7 +229,12 @@ class DescribeAdjustmentCollection(object):
     @pytest.fixture(params=_prstGeom_cases())
     def prstGeom_cases_(self, request):
         prst, expected_values = request.param
-        prstGeom = a_prstGeom(prst).with_avLst.element
+        prstGeom = (
+            a_prstGeom().with_nsdecls()
+                        .with_prst(prst)
+                        .with_child(an_avLst())
+                        .element
+        )
         return prstGeom, prst, expected_values
 
     def _effective_val_cases():
@@ -212,7 +247,7 @@ class DescribeAdjustmentCollection(object):
     @pytest.fixture(params=_effective_val_cases())
     def indexed_access_fixture_(self, request):
         prst, effective_values = request.param
-        prstGeom = a_prstGeom(prst).element
+        prstGeom = a_prstGeom().with_nsdecls().with_prst(prst).element
         return prstGeom, prst, list(effective_values)
 
     def _indexed_assignment_cases():
@@ -224,7 +259,7 @@ class DescribeAdjustmentCollection(object):
     @pytest.fixture(params=_indexed_assignment_cases())
     def indexed_assignment_fixture_(self, request):
         prst, idx, new_val, expected = request.param
-        prstGeom = a_prstGeom(prst).element
+        prstGeom = a_prstGeom().with_nsdecls().with_prst(prst).element
         adjustments = AdjustmentCollection(prstGeom)
         return adjustments, idx, new_val, expected
 
