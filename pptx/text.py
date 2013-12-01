@@ -187,15 +187,13 @@ class _Font(object):
     def bold(self, value):
         self._rPr.b = value
 
-    @property
+    @lazyproperty
     def color(self):
         """
         The |ColorFormat| instance that provides access to the color settings
         for this font.
         """
-        if not hasattr(self, '_color'):
-            self._color = _FontColor(self._rPr)
-        return self._color
+        return _FontColor(self._rPr)
 
     @property
     def italic(self):

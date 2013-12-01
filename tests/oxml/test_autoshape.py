@@ -8,7 +8,9 @@ import pytest
 
 from hamcrest import assert_that, equal_to, instance_of, is_, none
 
-from pptx.oxml.autoshape import CT_PresetGeometry2D, CT_Shape
+from pptx.oxml.autoshape import (
+    CT_PresetGeometry2D, CT_Shape, CT_ShapeProperties
+)
 from pptx.oxml.ns import nsdecls
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER,
@@ -17,7 +19,7 @@ from pptx.spec import (
 )
 
 from .unitdata.autoshape import (
-    a_gd, a_prstGeom, an_avLst, test_shape_elements
+    a_gd, a_prstGeom, an_avLst, an_spPr, test_shape_elements
 )
 from ..unitutil import actual_xml, TestCase
 
@@ -128,6 +130,18 @@ class DescribeCT_PresetGeometry2D(object):
         expected_xml = prstGeom_after_bldr.xml()
 
         return prstGeom, tuple(guides), expected_xml
+
+
+class DescribeCT_ShapeProperties(object):
+
+    def it_is_used_by_the_parser_for_an_spPr_element(self, spPr):
+        assert isinstance(spPr, CT_ShapeProperties)
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def spPr(self):
+        return an_spPr().with_nsdecls().element
 
 
 class TestCT_Shape(TestCase):

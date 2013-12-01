@@ -41,6 +41,14 @@ def register_custom_element_class(nsptag_str, cls):
     namespace[nsptag.local_part] = cls
 
 
+from pptx.oxml.autoshape import (
+    CT_PresetGeometry2D, CT_Shape, CT_ShapeProperties
+)
+register_custom_element_class('a:prstGeom', CT_PresetGeometry2D)
+register_custom_element_class('p:sp', CT_Shape)
+register_custom_element_class('p:spPr', CT_ShapeProperties)
+
+
 from pptx.oxml.dml import (
     CT_Percentage, CT_SchemeColor, CT_SRgbColor, CT_SolidColorFillProperties
 )

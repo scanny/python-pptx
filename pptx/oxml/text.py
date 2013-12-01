@@ -202,7 +202,7 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
     def get_or_change_to_solidFill(self):
         """
         Return the <a:solidFill> child element, replacing any other fill
-        element if found, e.g. a <a:gradientFill> element.
+        element if found, e.g. a <a:gradFill> element.
         """
         # return existing one if there is one
         if self.solidFill is not None:

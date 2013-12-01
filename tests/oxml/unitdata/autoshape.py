@@ -19,18 +19,10 @@ class CT_GeomGuide(BaseBuilder):
     __attrs__ = ('name', 'fmla')
 
 
-def a_gd():
-    return CT_GeomGuide()
-
-
 class CT_GeomGuideList(BaseBuilder):
     __tag__ = 'a:avLst'
     __nspfxs__ = ('a',)
     __attrs__ = ()
-
-
-def an_avLst():
-    return CT_GeomGuideList()
 
 
 class CT_PresetGeometry2DBuilder(BaseBuilder):
@@ -39,8 +31,26 @@ class CT_PresetGeometry2DBuilder(BaseBuilder):
     __attrs__ = ('prst',)
 
 
+class CT_ShapePropertiesBuilder(BaseBuilder):
+    __tag__ = 'p:spPr'
+    __nspfxs__ = ('p', 'a')
+    __attrs__ = ('bwMode',)
+
+
+def a_gd():
+    return CT_GeomGuide()
+
+
 def a_prstGeom():
     return CT_PresetGeometry2DBuilder()
+
+
+def an_avLst():
+    return CT_GeomGuideList()
+
+
+def an_spPr():
+    return CT_ShapePropertiesBuilder()
 
 
 class _TestShapeXml(object):

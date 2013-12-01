@@ -48,6 +48,12 @@ class CT_SchemeColorBuilder(BaseBuilder):
     __attrs__ = ('val',)
 
 
+class CT_ShapePropertiesBuilder(BaseBuilder):
+    __tag__ = 'p:spPr'
+    __nspfxs__ = ('p', 'a')
+    __attrs__ = ('bwMode',)
+
+
 class CT_SRgbColorBuilder(BaseBuilder):
     __tag__ = 'a:srgbClr'
     __nspfxs__ = ('a',)
@@ -80,6 +86,10 @@ def a_schemeClr():
 
 def a_solidFill():
     return CT_SolidColorFillPropertiesBuilder()
+
+
+def an_spPr():
+    return CT_ShapePropertiesBuilder()
 
 
 def an_srgbClr():

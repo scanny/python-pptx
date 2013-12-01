@@ -8,8 +8,8 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import parse_xml_bytes, register_custom_element_class
-from pptx.oxml.core import child, SubElement
+from pptx.oxml import parse_xml_bytes
+from pptx.oxml.core import child, Element, SubElement
 from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.text import CT_TextBody
 from pptx.spec import (
@@ -238,5 +238,62 @@ class CT_Shape(objectify.ObjectifiedElement):
         return child(self.spPr, 'a:prstGeom')
 
 
-register_custom_element_class('a:prstGeom', CT_PresetGeometry2D)
-register_custom_element_class('p:sp', CT_Shape)
+class CT_ShapeProperties(objectify.ObjectifiedElement):
+    """
+    Custom element class for <p:spPr> element.
+    """
+    def get_or_change_to_solidFill(self):
+        """
+        Return the <a:solidFill> child element, replacing any other fill
+        element if found, e.g. a <a:gradFill> element.
+        """
+        # return existing one if there is one
+        if self.solidFill is not None:
+            return self.solidFill
+        # get rid of other fill element type if there is one
+        self._remove_if_present(
+            'a:noFill', 'a:gradFill', 'a:blipFill', 'a:pattFill', 'a:grpFill'
+        )
+        # add solidFill element in right sequence
+        return self._add_solidFill()
+
+    @property
+    def solidFill(self):
+        """
+        The <a:solidFill> child element, or None if not present.
+        """
+        return self.find(qn('a:solidFill'))
+
+    def _add_solidFill(self):
+        """
+        Return a newly added <a:solidFill> child element.
+        """
+        solidFill = Element('a:solidFill')
+
+        successor = self._first_successor_in(
+            'a:ln', 'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:sp3d',
+            'a:extLst'
+        )
+        if successor is not None:
+            successor.addprevious(solidFill)
+        else:
+            self.append(solidFill)
+
+        return solidFill
+
+    def _first_successor_in(self, *successor_tagnames):
+        """
+        Return the first child with tag in *successor_tagnames*, or None if
+        not found.
+        """
+        for tagname in successor_tagnames:
+            successor = self.find(qn(tagname))
+            if successor is not None:
+                return successor
+        return None
+
+    def _remove_if_present(self, *tagnames):
+        for tagname in tagnames:
+            element = self.find(qn(tagname))
+            if element is not None:
+                self.remove(element)

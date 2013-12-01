@@ -15,7 +15,7 @@ from pptx.oxml import parse_xml_bytes
 from pptx.oxml.autoshape import CT_PresetGeometry2D, CT_Shape
 
 from ..oxml.unitdata.autoshape import a_gd, a_prstGeom, an_avLst
-from ..unitutil import class_mock, instance_mock, property_mock
+from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
 
 
 class DescribeAdjustment(object):
@@ -425,7 +425,8 @@ class DescribeShape(object):
 
     @pytest.fixture
     def shape(self, request):
-        return Shape(None, None)
+        sp = loose_mock(request, name='sp')
+        return Shape(sp, None)
 
     @pytest.fixture
     def sp_(self, request, prst):
