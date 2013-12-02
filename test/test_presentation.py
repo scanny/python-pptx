@@ -42,8 +42,8 @@ from pptx.spec import (
     CT_SLIDE_MASTER, CT_SPREADSHEET
 )
 from pptx.spec import (
-    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PACKAGE, RT_PRES_PROPS,
-    RT_SLIDE, RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
+    RT_CHART, RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PACKAGE,
+    RT_PRES_PROPS, RT_SLIDE, RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
 )
 from pptx.util import Px
 from testing import TestCase
@@ -341,6 +341,26 @@ class Test_BaseSlide(TestCase):
         assert_that(retval_image, is_(image))
         assert_that(retval_rel, is_(rel))
 
+    @patch('pptx.presentation._BaseSlide._package', new_callable=PropertyMock)
+    def test__add_chart_collaboration(self, _package):
+        """_BaseSlide._add_chart() returns (chart, rel) tuple"""
+        # setup ------------------------
+        base_slide = self.base_slide
+        chart = Mock(name='chart')
+        rel = Mock(name='rel')
+        base_slide._package._charts.add_chart.return_value = chart
+        base_slide._add_relationship = Mock('_add_relationship')
+        base_slide._add_relationship.return_value = rel
+        # exercise ---------------------
+        retval_chart, retval_rel = base_slide._add_chart(chart)
+        # verify -----------------------
+        # FIXME - see presentaiton.py -- but right now slide.add_chart does *not* add the
+        # chart to the package; it assumes it already belongs to the package.
+        # base_slide._package._charts.add_chart.assert_called_once_with(chart)
+        base_slide._add_relationship.assert_called_once_with(RT_CHART, chart)
+        assert_that(retval_chart, is_(chart))
+        assert_that(retval_rel, is_(rel))
+
 
 class Test_Chart(TestCase):
     """Test _Chart"""
@@ -379,11 +399,40 @@ class Test_Chart(TestCase):
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    # def test_set_externalData_sets_externalData(self):
-    #     raise NotImplementedError()
+    def test__set_externalData_sets_externalData(self):
+        # setup
+        xml = '<c:chartSpace %s/>' % nsdecls('c')
+        chart = _Chart(xml)
+        pkg = _Package()
+        e_packages = pkg._embedded_packages
+        e_pkg = e_packages.add_spreadsheet(StringIO(""))
 
-    # def test_set_externalData_adds_relationship(self):
-    #     raise NotImplementedError()
+        # exercise ---------------------
+        chart._set_externalData(e_pkg)
+
+        # verify -----------------------
+        expected = '<c:chartSpace %s><c:externalData %s r:id="rId1"/></c:chartSpace>' \
+            % (nsdecls('c'), nsdecls('r'))
+        actual = oxml_tostring(chart._element)
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+
+    def test__set_externalData_adds_relationship(self):
+        # setup
+        xml = '<c:chartSpace %s/>' % nsdecls('c')
+        chart = _Chart(xml)
+        pkg = _Package()
+        e_packages = pkg._embedded_packages
+        e_pkg = e_packages.add_spreadsheet(StringIO(""))
+
+        # exercise ---------------------
+        chart._set_externalData(e_pkg)
+
+        # verify -----------------------
+        expected = [('rId1', RT_PACKAGE, e_pkg)]
+        actual = [(rel._rId, rel._reltype, rel._target) for rel in chart._relationships]
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
 
     def test___minimal_element_xml(self):
         """_Chart.__minimal_element generates correct XML"""
@@ -408,7 +457,8 @@ class Test_Chart(TestCase):
 class Test_ChartCollection(TestCase):
     """Test _ChartCollection"""
     def setUp(self):
-        self.charts = _ChartCollection()
+        self.pkg = _Package()
+        self.charts = _ChartCollection(self.pkg)
 
     def test_add_chart_returns_chart(self):
         """_ChartCollection.add_chart() returns instance of _Chart"""
@@ -427,30 +477,23 @@ class Test_ChartCollection(TestCase):
         msg = "expected partname '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    # FIXME: test the following
-    # def add_embedded_spreadsheet_chart(self, es_chart):
-    #     """
-    #     Return chart part containing the chart in *es_chart*, which should
-    #     be obtained from ``_EmbeddedSpreadsheet.charts()``.
-    #     """
-    #     # copy the chart and add a reference to the spreadsheet
-    #     blob = es_chart._part.blob
-    #     chart = _Chart(blob)
-    #     chart._set_externalData(es_chart._package)
-    #     # add it to collection and return new chart
-    #     self._values.append(chart)
-    #     self.__rename_charts()
-    #     return chart
-
-        # prs = pptx.api.Presentation()
-        # xlsx_file = file(chart_xlsx_path, 'rb')
-        # spreadsheet = prs.embedded_packages.add_spreadsheet(xlsx_file)
-        # es_chart = iter(spreadsheet.charts()).next()
-
-        # FIXME - assert the chart was added.
-        # FIXME - assert there’s a relationship from the slide to the chart.
-        # FIXME - assert there's a relationship from the chart to the spreadsheet.
-        # FIXME - assert the chart’s externalData element is present and refers to the right relationship.
+    def test_embed_chart_from_spreadsheet(self):
+        """_ChartCollection.embed_chart_from_spreadsheet embeds the
+        spreadsheet and its chart and returns the chart."""
+        # setup ------------------------
+        xlsx_file = file(chart_xlsx_path, 'rb')
+        # exercise ---------------------
+        chart = self.charts.embed_chart_from_spreadsheet(xlsx_file)
+        spreadsheet = chart._relationships[0]._target
+        # verify -----------------------
+        expected = True
+        actual = (chart in self.charts)
+        msg = "expected chart in _ChartCollection: '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
+        expected = True
+        actual = (spreadsheet in self.pkg._embedded_packages)
+        msg = "expected spreadsheet in embedded packages: '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
         # FIXME - assert somewhere that the spreadsheet gets saved inside the pptx
         # FIXME - assert somewhere that the charts get saved inside the pptx
 
@@ -479,29 +522,28 @@ class Test_CoreProperties(TestCase):
 class Test_EmbeddedPackageCollection(TestCase):
     """Test _EmbeddedPackageCollection"""
     def setUp(self):
-        prs = Presentation()
-        self.packages = _EmbeddedPackageCollection(prs)
+        self.packages = _EmbeddedPackageCollection()
 
     def test_add_spreadsheet_returns_package(self):
         """_EmbeddedPackageCollection.add_spreadsheet() returns instance of
         _EmbeddedPackage"""
         # exercise ---------------------
-        retval = self.packages.add_spreadsheet("")
+        retval = self.packages.add_spreadsheet(StringIO(""))
         # verify -----------------------
         self.assertIsInstance(retval, _EmbeddedSpreadsheet)
 
     def test_add_spreadsheet_sets_content(self):
         """
         _EmbeddedPackageCollection.add_spreadsheet() sets
-        _EmbeddedPackageCollection.contents
+        _BaseEmbeddedPackage._blob
         """
         # setup ------------------------
         contents = StringIO("Not a real worksheet")
         pkg = self.packages.add_spreadsheet(contents)
         # exercise ---------------------
-        retval = pkg.file
+        retval = pkg._blob
         # verify -----------------------
-        expected = contents
+        expected = contents.getvalue()
         actual = retval
         msg = "expected: %s, got %s" % (expected, actual)
         self.assertEqual(expected, actual, msg)
@@ -510,13 +552,13 @@ class Test_EmbeddedPackageCollection(TestCase):
         """_EmbeddedPackageCollection.add_spreadsheet() sets partname of new
         slidpackage"""
         # setup ------------------------
-        prs = Presentation()
-        packages = prs.embedded_packages
+        pkg = _Package()
+        e_packages = pkg._embedded_packages
         # exercise ---------------------
-        pkg = packages.add_spreadsheet("")
+        e_pkg = e_packages.add_spreadsheet(StringIO(""))
         # verify -----------------------
         expected = '/ppt/embeddings/Worksheet1.xlsx'
-        actual = pkg.partname
+        actual = e_pkg.partname
         msg = "expected partname '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
@@ -548,6 +590,24 @@ class Test_EmbeddedSpreadsheet(TestCase):
         actual = [ch._part.partname for ch in charts]
         msg = "expected '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
+
+
+class Test_EmbeddedSpreadsheetChart(TestCase):
+    """Test _EmbeddedSpreadsheetChart"""
+
+    def test_copy_to_chart_returns_chart(self):
+        """_EmbeddedSpreadsheetChart.copy_to_chart() returns _Chart instance."""
+        # setup
+        xlsx_file = file(chart_xlsx_path, 'rb')
+        spreadsheet = _EmbeddedSpreadsheet(xlsx_file)
+        es_chart = list(spreadsheet.charts())[0]
+        # exercise ---------------------
+        chart = es_chart.copy_to_chart()
+        # verify -----------------------
+        actual = isinstance(chart, _Chart)
+        msg = ("expected instance of '%s', got type '%s'"
+               % (_Chart.__name__, type(chart).__name__))
+        self.assertTrue(actual, msg)
 
 
 class Test_Image(TestCase):

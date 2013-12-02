@@ -1323,30 +1323,34 @@ class Test_ShapeCollection(TestCase):
     @patch('pptx.shapes.CT_GraphicalObjectFrame')
     @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
-    def test_add_table_collaboration(
+    def test_add_chart_collaboration(
             self, __next_shape_id, CT_GraphicalObjectFrame, _Chart):
         """_ShapeCollection.add_chart() calls the right collaborators"""
         # constant values -------------
         id_, name = 9, 'Chart 8'
+        rId = 'rId1'
         rows, cols = 2, 3
         left, top, width, height = 111, 222, 333, 444
         # setup mockery ---------------
         __next_shape_id.return_value = id_
         graphicFrame = Mock(name='graphicFrame')
         CT_GraphicalObjectFrame.new_chart.return_value = graphicFrame
-        __spTree = Mock(name='__spTree')
-        __shapes = Mock(name='__shapes')
-        shapes = test_shapes.empty_shape_collection
-        shapes._ShapeCollection__spTree = __spTree
-        shapes._ShapeCollection__shapes = __shapes
         chart = Mock('chart')
         _Chart.return_value = chart
+        rel = Mock(name='rel', _rId=rId)
+        slide = Mock(name='slide')
+        slide._add_chart.return_value = chart, rel
+        __spTree = Mock(name='__spTree')
+        __shapes = Mock(name='__shapes')
+        shapes = _ShapeCollection(test_shape_elements.empty_spTree, slide)
+        shapes._ShapeCollection__spTree = __spTree
+        shapes._ShapeCollection__shapes = __shapes
         # exercise ---------------------
         retval = shapes.add_chart(chart, left, top, width, height)
         # verify -----------------------
         __next_shape_id.assert_called_once_with()
         CT_GraphicalObjectFrame.new_chart.assert_called_once_with(
-            chart, left, top, width, height)
+            id_, name, rId, left, top, width, height)
         __spTree.append.assert_called_once_with(graphicFrame)
         _Chart.assert_called_once_with(graphicFrame)
         __shapes.append.assert_called_once_with(chart)

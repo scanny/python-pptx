@@ -68,8 +68,20 @@ class Presentation(object):
         return self._presentation.slides
 
     @property
+    def charts(self):
+        """
+        |_ChartCollection| object containing the charts in this
+        presentation.
+        """
+        return self._package._charts
+
+    @property
     def embedded_packages(self):
-        return self._presentation.embedded_packages
+        """
+        |_EmbeddedPackageCollection| object containing the embedded packages
+        in this presentation.
+        """
+        return self._package._embedded_packages
 
     def save(self, file):
         """

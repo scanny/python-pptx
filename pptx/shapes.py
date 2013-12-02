@@ -481,21 +481,19 @@ class _ShapeCollection(_BaseShape, Collection):
 
     def add_chart(self, chart, left, top, width, height):
         """
-        Add a shape for the specified chart at the specified position
+        Add a shape for the specified chart part at the specified position
         with the specified size.
         """
-        # FIXME - needs test
-        # Add a relationship from the slide to the chart
-        rel = self.__slide._add_relationship(R_CHART, chart)
-        # Add the chart shape
+        chart, rel = self.__slide._add_chart(chart)
+
         id = self.__next_shape_id
         name = 'Chart %d' % (id-1)
         graphicFrame = CT_GraphicalObjectFrame.new_chart(
             id, name, rel._rId, left, top, width, height)
         self.__spTree.append(graphicFrame)
-        chart = _Chart(graphicFrame)
-        self.__shapes.append(chart)
-        return chart
+        chart_shape = _Chart(graphicFrame)
+        self.__shapes.append(chart_shape)
+        return chart_shape
 
     def add_picture(self, file, left, top, width=None, height=None):
         """
@@ -760,8 +758,7 @@ class _Shape(_BaseShape):
 class _Chart(_BaseShape):
     """
     A chart shape. Not intended to be constructed directly, use
-    :meth:`_ShapeCollection.add_embedded_spreadsheet_chart` to add a chart
-    to a slide.
+    :meth:`_ShapeCollection.add_chart` to add a chart to a slide.
     """
     def __init__(self, graphicFrame):
         super(_Chart, self).__init__(graphicFrame)
