@@ -11,6 +11,7 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
+from pptx.dml.core import RGBColor
 from pptx.util import Inches
 
 from .helpers import saved_pptx_path, test_text

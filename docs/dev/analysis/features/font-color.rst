@@ -463,6 +463,7 @@ msoThemeColorBackground2
 msoThemeColorMixed
     -2 - Specifies a mixed color theme.
 
+
 Value Objects
 -------------
 

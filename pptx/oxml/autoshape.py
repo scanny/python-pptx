@@ -242,6 +242,17 @@ class CT_ShapeProperties(objectify.ObjectifiedElement):
     """
     Custom element class for <p:spPr> element.
     """
+    @property
+    def eg_fillproperties(self):
+        """
+        Return the child representing the EG_FillProperties element group
+        member in this element, or |None| if no such child is present.
+        """
+        return self._first_child_found_in(
+            'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill',
+            'a:pattFill', 'a:grpFill'
+        )
+
     def get_or_change_to_solidFill(self):
         """
         Return the <a:solidFill> child element, replacing any other fill
@@ -280,6 +291,17 @@ class CT_ShapeProperties(objectify.ObjectifiedElement):
             self.append(solidFill)
 
         return solidFill
+
+    def _first_child_found_in(self, *tagnames):
+        """
+        Return the first child found with tag in *tagnames*, or None if
+        not found.
+        """
+        for tagname in tagnames:
+            child = self.find(qn(tagname))
+            if child is not None:
+                return child
+        return None
 
     def _first_successor_in(self, *successor_tagnames):
         """

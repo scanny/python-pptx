@@ -204,6 +204,55 @@ Related Schema Definitions
     </xsd:choice>
   </xsd:group>
 
+  <xsd:complexType name="CT_BlipFillProperties">
+    <xsd:sequence>
+      <xsd:element name="blip"    type="CT_Blip"         minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="srcRect" type="CT_RelativeRect" minOccurs="0" maxOccurs="1"/>
+      <xsd:group   ref="EG_FillModeProperties"           minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+    <xsd:attribute name="dpi"          type="xsd:unsignedInt" use="optional"/>
+    <xsd:attribute name="rotWithShape" type="xsd:boolean"     use="optional"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_GradientFillProperties">
+    <xsd:sequence>
+      <xsd:element name="gsLst"    type="CT_GradientStopList" minOccurs="0" maxOccurs="1"/>
+      <xsd:group   ref="EG_ShadeProperties"                   minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="tileRect" type="CT_RelativeRect"     minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+    <xsd:attribute name="flip"         type="ST_TileFlipMode" use="optional"/>
+    <xsd:attribute name="rotWithShape" type="xsd:boolean"     use="optional"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_GroupFillProperties"/>
+
+  <xsd:complexType name="CT_NoFillProperties"/>
+
+  <xsd:complexType name="CT_PatternFillProperties">
+    <xsd:sequence>
+      <xsd:element name="fgClr" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="bgClr" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+    <xsd:attribute name="prst" type="ST_PresetPatternVal" use="optional"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_SolidColorFillProperties">
+    <xsd:sequence>
+      <xsd:group ref="EG_ColorChoice" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:group name="EG_ColorChoice">
+    <xsd:choice>
+      <xsd:element name="scrgbClr"  type="CT_ScRgbColor"  minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="srgbClr"   type="CT_SRgbColor"   minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="hslClr"    type="CT_HslColor"    minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="sysClr"    type="CT_SystemColor" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="schemeClr" type="CT_SchemeColor" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="prstClr"   type="CT_PresetColor" minOccurs="1" maxOccurs="1"/>
+    </xsd:choice>
+  </xsd:group>
+
 
 Resources
 ---------

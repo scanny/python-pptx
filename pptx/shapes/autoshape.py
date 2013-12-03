@@ -309,7 +309,7 @@ class Shape(BaseShape):
         |FillFormat| instance for this shape, providing access to fill
         properties such as fill color.
         """
-        return FillFormat(self._sp.spPr)
+        return FillFormat.from_fill_parent(self._sp.spPr)
 
     @property
     def shape_type(self):

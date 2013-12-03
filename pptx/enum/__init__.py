@@ -18,6 +18,24 @@ class MSO_COLOR_TYPE(Enumeration):
     """
     RGB = 1
     SCHEME = 2
+    HSL = 101
+    PRESET = 102
+    SCRGB = 103
+    SYSTEM = 104
+
+
+class MSO_FILL_TYPE(Enumeration):
+    """
+    Corresponds to MsoFillType enumeration
+    http://msdn.microsoft.com/EN-US/library/office/ff861408.aspx
+    """
+    BACKGROUND = 5
+    GRADIENT = 3
+    GROUP = 101
+    PATTERNED = 2
+    PICTURE = 6
+    SOLID = 1
+    TEXTURED = 4
 
 
 class MSO_THEME_COLOR(Enumeration):
