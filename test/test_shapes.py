@@ -1324,7 +1324,7 @@ class Test_ShapeCollection(TestCase):
     @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
            new_callable=PropertyMock)
     def test_add_chart_collaboration(
-            self, __next_shape_id, CT_GraphicalObjectFrame, _Chart):
+            self, __next_shape_id, CT_GraphicalObjectFrame, _Chart,):
         """_ShapeCollection.add_chart() calls the right collaborators"""
         # constant values -------------
         id_, name = 9, 'Chart 8'
@@ -1346,7 +1346,7 @@ class Test_ShapeCollection(TestCase):
         shapes._ShapeCollection__spTree = __spTree
         shapes._ShapeCollection__shapes = __shapes
         # exercise ---------------------
-        retval = shapes.add_chart(chart, left, top, width, height)
+        retval = shapes._add_chart(chart, rel, left, top, width, height)
         # verify -----------------------
         __next_shape_id.assert_called_once_with()
         CT_GraphicalObjectFrame.new_chart.assert_called_once_with(

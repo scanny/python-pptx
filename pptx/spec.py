@@ -2307,7 +2307,7 @@ pml_parttypes = {
         'cardinality': PTS_CARDINALITY_TUPLE,
         'required':    False,
         'baseURI':     '/xl/worksheets',
-        'has_rels':    PTS_HASRELS_ALWAYS,
+        'has_rels':    PTS_HASRELS_OPTIONAL,
         'rels_from':   ['workbook'],
         'reltype':     RT_WORKSHEET
     },

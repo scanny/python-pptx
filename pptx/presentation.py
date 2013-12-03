@@ -196,7 +196,21 @@ class _Package(object):
                        if part.__class__.__name__ == '_Image']
         for image in image_parts:
             self.__images._loadpart(image)
-        # FIXME - load chart parts
+
+        # gather references to embedded package parts into __embedded_packages
+        self.__embedded_packages = _EmbeddedPackageCollection()
+        embedded_package_parts = [part for part in self._parts
+                       if part.__class__.__name__ in ('_EmbeddedPackage', '_EmbeddedSpreadsheet')]
+        for emb_pkg in embedded_package_parts:
+            self.__embedded_packages._loadpart(emb_pkg)
+
+        # gather references to chart parts into __charts
+        self.__charts = _ChartCollection(self)
+        chart_parts = [part for part in self._parts
+                       if part.__class__.__name__ == '_Chart']
+        for chart in chart_parts:
+            self.__charts._loadpart(chart)
+
 
     def __open(self, file):
         """
@@ -626,9 +640,6 @@ class _BasePart(_Observable):
                                 pretty_print=False, standalone=True)
             return xml
         # default for binary parts is to return _load_blob unchanged
-        # FIXME - debug only
-        if not self._load_blob:
-            print self.__content_type, self.__partname, repr(self)
         assert self._load_blob, "_BasePart._blob called on part with no "\
             "_load_blob; perhaps _blob not overridden by sub-class?"
         return self._load_blob
@@ -1076,15 +1087,14 @@ class _BaseSlide(_BasePart):
         rel = self._add_relationship(RT_IMAGE, image)
         return (image, rel)
 
-    def _add_chart(self, chart):
+    def _add_chart_from_spreadsheet(self, file):
         """
         Return a tuple ``(chart, relationship)`` representing the |Chart| part
-        specified by *file*. If a matching chart part already exists it is
-        reused. If the slide already has a relationship to an existing chart,
-        that relationship is reused.
+        of the first chart in the Excel spreadsheet specified by `file`, where
+        `file` can be either a path to a file (a string) or a file-like object.
+        The spreasheet will be embedded in the presentation.
         """
-        # FIXME - think this is obsolete?
-        # chart = self._package._charts.add_chart(chart)
+        chart = self._package._charts._embed_chart_from_spreadsheet(file)
         rel = self._add_relationship(RT_CHART, chart)
         return (chart, rel)
 
@@ -1130,7 +1140,6 @@ class _Slide(_BaseSlide):
         for rel in self._relationships:
             if rel._reltype == RT_SLIDE_LAYOUT:
                 self.__slidelayout = rel._target
-        # FIXME - unmarshal chart rels too
         return self
 
     @property
@@ -1235,17 +1244,12 @@ class _EmbeddedPackageCollection(_PartCollection):
 
     def add_spreadsheet(self, package_file):
         """Add a new embedded spreadsheet package."""
-        # FIXME - resolve how we handle contents.
-        # FIXME - don't think we can blindly accept a file like this,
-        # without copying it in some way or other.
-        # 1. construct new embedded package
         pkg = _EmbeddedSpreadsheet(package_file)
-        # 2. add it to this collection
+        return self._append_package(pkg)
+
+    def _append_package(self, pkg):
         self._values.append(pkg)
-        # 3. assign its partname
         self.__rename_packages()
-        # FIXME - do we need to add some kind of relationship from the containing package?
-        # 4. return reference to new embedded package
         return pkg
 
     def __rename_packages(self):
@@ -1264,10 +1268,12 @@ class _EmbeddedPackageCollection(_PartCollection):
 
 
 class _BaseEmbeddedPackage(_BasePart):
-    # FIXME - needs work (particularly loading and saving)
     """
     Base class for embedded package parts.
     """
+    _partname_base = 'EmbeddedPackage'
+    _partname_extension = '.bin'
+
     def __init__(self, content_type=None, file=None):
         """
         Needs content_type parameter so newly created parts (not loaded from
@@ -1276,9 +1282,9 @@ class _BaseEmbeddedPackage(_BasePart):
         """
         super(_BaseEmbeddedPackage, self).__init__(content_type)
         self.__filepath = None
-        # FIXME - do we need ext? or content type?
-        # self.__ext = None
-        if file is not None:
+        if file is  None:
+            self._load_blob = ''
+        else:
             self.__load_embedded_package_from_file(file)
 
     @property
@@ -1294,17 +1300,6 @@ class _BaseEmbeddedPackage(_BasePart):
         """
         return self._load_blob
 
-    def _load(self, pkgpart, part_dict):
-        """Handle aspects of loading that are general to embedded package types."""
-        # call parent to do generic aspects of load
-        super(_BaseEmbeddedPackage, self)._load(pkgpart, part_dict)
-        # unmarshal the package
-        # FIXME - Don't know how we can actually do this.
-        # Not even sure if this is all in the right module.
-        # return self-reference to allow generative calling
-        raise NotImplementedError("_BaseEmbeddedPackage._load() not yet implemented.")
-        return self
-
     @property
     def file(self):
         """
@@ -1319,15 +1314,9 @@ class _BaseEmbeddedPackage(_BasePart):
         """
         if isinstance(file, basestring):  # file is a path
             self.__filepath = file
-            # FIXME:
-            # self.__ext = os.path.splitext(self.__filepath)[1]
-            # self._content_type = self.__image_ext_content_type(self.__ext)
             with open(self.__filepath, 'rb') as f:
                 self._load_blob = f.read()
         else:  # assume file is a file-like object
-            # FIXME
-            # self.__ext = self.__ext_from_image_stream(file)
-            # self._content_type = self.__image_ext_content_type(self.__ext)
             file.seek(0)
             self._load_blob = file.read()
 
@@ -1340,7 +1329,7 @@ class _EmbeddedSpreadsheet(_BaseEmbeddedPackage):
     _partname_base = 'Worksheet'
     _partname_extension = '.xlsx'
 
-    def __init__(self, file=None): # FIXME - not sure we want a file, tbh. Need to see how unmarshaling works
+    def __init__(self, file=None):
         super(_EmbeddedSpreadsheet, self).__init__(CT_SPREADSHEET, file)
 
     def charts(self):
@@ -1390,11 +1379,14 @@ class _ChartCollection(_PartCollection):
         # Create a new chart
         chart = _Chart()
         # add it to collection and return new chart
+        return self._append_chart(chart)
+
+    def _append_chart(self, chart):
         self._values.append(chart)
         self.__rename_charts()
         return chart
 
-    def embed_chart_from_spreadsheet(self, file):
+    def _embed_chart_from_spreadsheet(self, file):
         """
         Embed the Excel spreadsheet `file`, and add its first chart to this
         collection. Return the chart part.
@@ -1404,11 +1396,12 @@ class _ChartCollection(_PartCollection):
         is linked instead).
         """
         spreadsheet = self._package._embedded_packages.add_spreadsheet(file)
-        emb_chart = iter(spreadsheet.charts()).next()
+        try:
+            emb_chart = iter(spreadsheet.charts()).next()
+        except StopIteration:
+            raise ValueError("Spreadsheet contains no charts.")
         chart = emb_chart.copy_to_chart()
-        self._values.append(chart)
-        self.__rename_charts()
-        return chart
+        return self._append_chart(chart)
 
     def __rename_charts(self):
         """
@@ -1430,15 +1423,6 @@ class _Chart(_BasePart):
             self._element = oxml_fromstring(blob)
         else:
             self._element = self.__minimal_element
-
-    # FIXME
-    # @property
-    # def _blob(self):
-    #     """
-    #     For an image, _blob is always _load_blob, image file content is not
-    #     manipulated.
-    #     """
-    #     return self._load_blob
 
     def _set_externalData(self, package=None):
         """

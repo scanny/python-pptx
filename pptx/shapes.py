@@ -479,13 +479,26 @@ class _ShapeCollection(_BaseShape, Collection):
                 return shape
         return None
 
-    def add_chart(self, chart, left, top, width, height):
+    def add_chart_from_spreadsheet(self, file, left, top, width, height):
         """
-        Add a shape for the specified chart part at the specified position
+        Add a chart shape for the first chart in the Excel spreadsheet
+        `file` at the specified position with the specified size, where
+        `file` can be either a path to a file (a string) or a file-like
+        object. The spreadsheet will be embedded in the presentation.
+        """
+        # Note that Powerpoint does not allow multiple chart shapes to
+        # reference the same chart part, nor multiple chart parts to
+        # reference the same embedded spreadsheet (though this is allowed
+        # when the spreadsheet is linked). Consequently, each new chart
+        # shape must embed its own chart part and spreadsheet package.
+        chart, rel = self.__slide._add_chart_from_spreadsheet(file)
+        return self._add_chart(chart, rel, left, top, width, height)
+
+    def _add_chart(self, chart, rel, left, top, width, height):
+        """
+        Add a shape for the specified chart and rel at the specified position
         with the specified size.
         """
-        chart, rel = self.__slide._add_chart(chart)
-
         id = self.__next_shape_id
         name = 'Chart %d' % (id-1)
         graphicFrame = CT_GraphicalObjectFrame.new_chart(
@@ -754,7 +767,6 @@ class _Shape(_BaseShape):
 # Chart-related classes
 # ============================================================================
 
-# FIXME - need to distinguish chart *shapes* from chart *parts* (the latter in presentation.py).
 class _Chart(_BaseShape):
     """
     A chart shape. Not intended to be constructed directly, use

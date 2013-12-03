@@ -74,6 +74,7 @@ new_image_path = absjoin(test_file_dir, 'monty-truth.png')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 chart_xlsx_path = absjoin(test_file_dir, 'charts.xlsx')
+no_charts_xlsx_path = absjoin(test_file_dir, 'no-charts.xlsx')
 
 nsmap = namespaces('a', 'c', 'r', 'p')
 
@@ -167,21 +168,29 @@ class RelationshipCollectionBuilder(object):
 
 class Test_BaseEmbeddedPackage(TestCase):
     """Test _BaseEmbeddedPackage"""
-    def setUp(self):
-        self.base_package = _BaseEmbeddedPackage()
+    def test_empty_file(self):
+        """_BaseEmbeddedPackage.file is empty when not loaded from a file."""
+        # setup ------------------------
+        package = _BaseEmbeddedPackage()
+        # exercise ---------------------
+        f = package.file
+        # verify -----------------------
+        expected = ''
+        actual = f.read()
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
 
-    # FIXME - needs tests
-    # def test_name_value(self):
-    #     """_BaseEmbeddedPackage.name value is correct"""
-    #     # setup ------------------------
-    #     self.base_slide._element = _sldLayout1()
-    #     # exercise ---------------------
-    #     name = self.base_slide.name
-    #     # verify -----------------------
-    #     expected = 'Title Slide'
-    #     actual = name
-    #     msg = "expected '%s', got '%s'" % (expected, actual)
-    #     self.assertEqual(expected, actual, msg)
+    def test_file_contents(self):
+        """_BaseEmbeddedPackage.file contains the contents of the file."""
+        # setup ------------------------
+        package = _BaseEmbeddedPackage(file=file(test_image_path))
+        # exercise ---------------------
+        f = package.file
+        # verify -----------------------
+        expected = file(test_image_path).read()
+        actual = f.read()
+        msg = "expected '%s', got '%s'" % (expected, actual)
+        self.assertEqual(expected, actual, msg)
 
 
 class Test_BasePart(TestCase):
@@ -342,25 +351,23 @@ class Test_BaseSlide(TestCase):
         assert_that(retval_rel, is_(rel))
 
     @patch('pptx.presentation._BaseSlide._package', new_callable=PropertyMock)
-    def test__add_chart_collaboration(self, _package):
-        """_BaseSlide._add_chart() returns (chart, rel) tuple"""
+    def test__add_chart_from_spreadsheet_collaboration(self, _package):
+        """_BaseSlide._add_chart_from_spreadsheet() returns (chart, rel) tuple"""
         # setup ------------------------
         base_slide = self.base_slide
+        file = Mock(name='file')
         chart = Mock(name='chart')
         rel = Mock(name='rel')
-        base_slide._package._charts.add_chart.return_value = chart
+        base_slide._package._charts._embed_chart_from_spreadsheet.return_value = chart
         base_slide._add_relationship = Mock('_add_relationship')
         base_slide._add_relationship.return_value = rel
         # exercise ---------------------
-        retval_chart, retval_rel = base_slide._add_chart(chart)
+        retval_chart, retval_rel = base_slide._add_chart_from_spreadsheet(file)
         # verify -----------------------
-        # FIXME - see presentaiton.py -- but right now slide.add_chart does *not* add the
-        # chart to the package; it assumes it already belongs to the package.
-        # base_slide._package._charts.add_chart.assert_called_once_with(chart)
+        base_slide._package._charts._embed_chart_from_spreadsheet.assert_called_once_with(file)
         base_slide._add_relationship.assert_called_once_with(RT_CHART, chart)
         assert_that(retval_chart, is_(chart))
         assert_that(retval_rel, is_(rel))
-
 
 class Test_Chart(TestCase):
     """Test _Chart"""
@@ -477,13 +484,21 @@ class Test_ChartCollection(TestCase):
         msg = "expected partname '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
 
-    def test_embed_chart_from_spreadsheet(self):
+    def test__embed_chart_from_spreadsheet_raises_on_no_spreadsheets(self):
+        """A ValueError is raised if the spreadsheet has no charts."""
+        # setup ------------------------
+        xlsx_file = file(no_charts_xlsx_path, 'rb')
+        # verify -----------------------
+        with self.assertRaises(ValueError):
+            self.charts._embed_chart_from_spreadsheet(xlsx_file)
+
+    def test__embed_chart_from_spreadsheet(self):
         """_ChartCollection.embed_chart_from_spreadsheet embeds the
         spreadsheet and its chart and returns the chart."""
         # setup ------------------------
         xlsx_file = file(chart_xlsx_path, 'rb')
         # exercise ---------------------
-        chart = self.charts.embed_chart_from_spreadsheet(xlsx_file)
+        chart = self.charts._embed_chart_from_spreadsheet(xlsx_file)
         spreadsheet = chart._relationships[0]._target
         # verify -----------------------
         expected = True
@@ -494,8 +509,6 @@ class Test_ChartCollection(TestCase):
         actual = (spreadsheet in self.pkg._embedded_packages)
         msg = "expected spreadsheet in embedded packages: '%s', got '%s'" % (expected, actual)
         self.assertEqual(expected, actual, msg)
-        # FIXME - assert somewhere that the spreadsheet gets saved inside the pptx
-        # FIXME - assert somewhere that the charts get saved inside the pptx
 
 
 class Test_CoreProperties(TestCase):
