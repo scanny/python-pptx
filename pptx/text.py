@@ -5,7 +5,7 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
-from pptx.dml.core import RGBColor
+from pptx.dml.color import RGBColor
 from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.core import Element, get_or_add

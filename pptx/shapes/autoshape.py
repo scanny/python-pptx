@@ -7,7 +7,7 @@ Autoshape-related objects such as Shape and Adjustment.
 from numbers import Number
 
 from pptx.constants import MSO
-from pptx.dml.core import FillFormat
+from pptx.dml.fill import FillFormat
 from pptx.shapes.shape import BaseShape
 from pptx.spec import autoshape_types
 from pptx.util import lazyproperty

@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import pytest
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
-from pptx.dml.core import FillFormat
+from pptx.dml.fill import FillFormat
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )

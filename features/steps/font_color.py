@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from behave import given, then, when
 
 from pptx import Presentation
-from pptx.dml.core import RGBColor
+from pptx.dml.color import RGBColor
 from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 
 from .helpers import test_pptx

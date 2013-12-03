@@ -8,9 +8,8 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.oxml.dml import (
-    CT_Percentage, CT_SchemeColor, CT_SRgbColor, CT_SolidColorFillProperties
-)
+from pptx.oxml.dml.color import CT_Percentage, CT_SchemeColor, CT_SRgbColor
+from pptx.oxml.dml.fill import CT_SolidColorFillProperties
 from pptx.oxml.ns import qn
 
 from ..oxml.unitdata.dml import (
