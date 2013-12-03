@@ -24,7 +24,7 @@ import posixpath
 import weakref
 
 from datetime import datetime
-from itertools import islice, groupby
+from itertools import groupby
 from StringIO import StringIO
 
 import pptx.packaging
