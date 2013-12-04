@@ -6,7 +6,7 @@ Text-related objects such as TextFrame and Paragraph.
 
 from pptx.constants import MSO
 from pptx.dml.color import RGBColor
-from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
+from pptx.enum import MSO_COLOR_TYPE
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.core import Element, get_or_add
 from pptx.oxml.ns import namespaces, qn
@@ -297,13 +297,13 @@ class _FontColor(object):
         """
         if self._schemeClr is None:
             return None
-        return MSO_THEME_COLOR.from_xml(self._schemeClr.val)
+        return self._schemeClr.val
 
     @theme_color.setter
     def theme_color(self, mso_theme_color_idx):
         solidFill = self._rPr.get_or_change_to_solidFill()
         schemeClr = solidFill.get_or_change_to_schemeClr()
-        schemeClr.val = MSO_THEME_COLOR.to_xml(mso_theme_color_idx)
+        schemeClr.val = mso_theme_color_idx
 
     @property
     def type(self):

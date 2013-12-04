@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.enum import MSO_THEME_COLOR
 from pptx.oxml.dml.color import CT_Percentage, CT_SchemeColor, CT_SRgbColor
 from pptx.oxml.dml.fill import CT_SolidColorFillProperties
 from pptx.oxml.ns import qn
@@ -122,11 +123,11 @@ class DescribeCT_SchemeColor(object):
     def it_is_used_by_the_parser_for_a_schemeClr_element(self, schemeClr):
         assert isinstance(schemeClr, CT_SchemeColor)
 
-    def it_knows_the_theme_color_str_value(self, schemeClr):
-        assert schemeClr.val == 'bg1'
+    def it_knows_the_theme_color_idx(self, schemeClr):
+        assert schemeClr.val == MSO_THEME_COLOR.BACKGROUND_1
 
     def it_can_set_the_scheme_color_value(self, schemeClr, schemeClr_xml):
-        schemeClr.val = 'accent1'
+        schemeClr.val = MSO_THEME_COLOR.ACCENT_1
         assert actual_xml(schemeClr) == schemeClr_xml
 
     # fixtures ---------------------------------------------

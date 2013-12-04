@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
+from pptx.enum import MSO_THEME_COLOR
 from pptx.oxml.core import SubElement
 from pptx.oxml.ns import qn
 
@@ -35,10 +36,10 @@ class _BaseColorElement(OxmlElement):
         Override ``__setattr__`` defined in ObjectifiedElement super class
         to intercept messages intended for custom property setters.
         """
-        if name in ('val',):
-            self.set(name, value)
+        if name == 'val':
+            self._set_val(value)
         else:
-            super(CT_SchemeColor, self).__setattr__(name, value)
+            super(_BaseColorElement, self).__setattr__(name, value)
 
     def add_lumMod(self, value):
         """
@@ -81,6 +82,9 @@ class _BaseColorElement(OxmlElement):
     def val(self):
         return self.get('val')
 
+    def _set_val(self, value):
+        self.set('val', value)
+
 
 class CT_HslColor(_BaseColorElement):
     """
@@ -107,6 +111,15 @@ class CT_SchemeColor(_BaseColorElement):
     """
     Custom element class for <a:schemeClr> element.
     """
+    @property
+    def val(self):
+        val = self.get('val')
+        mso_theme_color_idx = MSO_THEME_COLOR.from_xml(val)
+        return mso_theme_color_idx
+
+    def _set_val(self, mso_theme_color_idx):
+        val = MSO_THEME_COLOR.to_xml(mso_theme_color_idx)
+        self.set('val', val)
 
 
 class CT_ScRgbColor(_BaseColorElement):

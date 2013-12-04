@@ -39,6 +39,7 @@ class DescribeColorFormat(object):
         color_format = theme_color_format
         assert color_format.theme_color == MSO_THEME_COLOR.ACCENT_1
 
+    # this should actually return MSO_THEME_COLOR.NOT_THEME_COLOR, not raise
     def it_raises_on_theme_color_get_for_colors_other_than_schemeClr(
             self, theme_color_raise_fixture_):
         color_format, exception_type = theme_color_raise_fixture_
@@ -61,7 +62,11 @@ class DescribeColorFormat(object):
         with pytest.raises(ValueError):
             color_format.rgb = (0x12, 0x34, 0x56)
 
-    # def it_can_set_itself_to_a_theme_color(self):
+    def it_can_set_itself_to_a_theme_color(self, set_theme_color_fixture_):
+        color_format, theme_color, expected_xml = set_theme_color_fixture_
+        color_format.theme_color = theme_color
+        assert actual_xml(color_format._xFill) == expected_xml
+
     # def it_can_set_its_brightness_adjustment(self):
     # def it_raises_on_attempt_to_set_brightness_out_of_range(self):
     # def it_raises_on_attempt_to_set_brightness_on_None_color_type(self):
@@ -167,6 +172,34 @@ class DescribeColorFormat(object):
             .xml()
         )
         return color_format, rgb_color, expected_xml
+
+    @pytest.fixture(params=[
+        'none', 'hsl', 'prst', 'scheme', 'scrgb', 'srgb', 'sys'
+    ])
+    def set_theme_color_fixture_(self, request):
+        mapping = {
+            'none':   None,
+            'hsl':    an_hslClr,
+            'prst':   a_prstClr,
+            'scheme': a_schemeClr,
+            'scrgb':  an_scrgbClr,
+            'srgb':   an_srgbClr,
+            'sys':    a_sysClr,
+        }
+        xClr_bldr_fn = mapping[request.param]
+        solidFill_bldr = a_solidFill().with_nsdecls()
+        if xClr_bldr_fn is not None:
+            solidFill_bldr.with_child(xClr_bldr_fn())
+        solidFill = solidFill_bldr.element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+        theme_color = MSO_THEME_COLOR.ACCENT_6
+        expected_xml = (
+            a_solidFill()
+            .with_nsdecls()
+            .with_child(a_schemeClr().with_val('accent6'))
+            .xml()
+        )
+        return color_format, theme_color, expected_xml
 
     @pytest.fixture
     def theme_color_format(self):

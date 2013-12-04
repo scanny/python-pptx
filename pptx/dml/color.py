@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from types import NoneType
 
-from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
+from pptx.enum import MSO_COLOR_TYPE
 from pptx.oxml.dml.color import (
     CT_HslColor, CT_PresetColor, CT_SchemeColor, CT_ScRgbColor, CT_SRgbColor,
     CT_SystemColor
@@ -74,6 +74,14 @@ class ColorFormat(object):
         """
         return self._color.theme_color
 
+    @theme_color.setter
+    def theme_color(self, mso_theme_color_idx):
+        # change to theme color format if not already
+        if not isinstance(self._color, _SchemeColor):
+            schemeClr = self._xFill.get_or_change_to_schemeClr()
+            self._color = _SchemeColor(schemeClr)
+        self._color.theme_color = mso_theme_color_idx
+
     @property
     def type(self):
         """
@@ -108,9 +116,6 @@ class _Color(object):
 
     @property
     def brightness(self):
-        from lxml import etree
-        print(etree.tostring(self._xClr))
-        print(type(self))
         lumMod, lumOff = self._xClr.lumMod, self._xClr.lumOff
         # a tint is lighter, a shade is darker
         # only tints have lumOff child
@@ -188,7 +193,11 @@ class _SchemeColor(_Color):
         value in MSO_THEME_COLOR causes the color's type to change to
         ``MSO_COLOR_TYPE.SCHEME``.
         """
-        return MSO_THEME_COLOR.from_xml(self._schemeClr.val)
+        return self._schemeClr.val
+
+    @theme_color.setter
+    def theme_color(self, mso_theme_color_idx):
+        self._schemeClr.val = mso_theme_color_idx
 
 
 class _ScRgbColor(_Color):
