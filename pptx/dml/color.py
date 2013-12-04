@@ -34,6 +34,11 @@ class ColorFormat(object):
         """
         return self._color.brightness
 
+    @brightness.setter
+    def brightness(self, value):
+        self._validate_brightness_value(value)
+        self._color.brightness = value
+
     @classmethod
     def from_colorchoice_parent(cls, eg_colorchoice_parent):
         xClr = eg_colorchoice_parent.eg_colorchoice
@@ -91,6 +96,16 @@ class ColorFormat(object):
         """
         return self._color.color_type
 
+    def _validate_brightness_value(self, value):
+        if value < -1.0 or value > 1.0:
+            raise ValueError('brightness must be number in range -1.0 to 1.0')
+        if isinstance(self._color, _NoneColor):
+            msg = (
+                "can't set brightness when color.type is None. Set color.rgb"
+                " or .theme_color first."
+            )
+            raise ValueError(msg)
+
 
 class _Color(object):
     """
@@ -131,6 +146,15 @@ class _Color(object):
         # there's no brightness adjustment if no lum{Mod|Off} elements
         return 0
 
+    @brightness.setter
+    def brightness(self, value):
+        if value > 0:
+            self._tint(value)
+        elif value < 0:
+            self._shade(value)
+        else:
+            self._xClr.clear_lum()
+
     @property
     def color_type(self):
         tmpl = ".color_type property must be implemented on %s"
@@ -151,6 +175,18 @@ class _Color(object):
         """
         tmpl = "no .theme_color property on color type '%s'"
         raise AttributeError(tmpl % self.__class__.__name__)
+
+    def _shade(self, value):
+        lumMod_val = 100000 - int(abs(value) * 100000)
+        color_elm = self._xClr.clear_lum()
+        color_elm.add_lumMod(lumMod_val)
+
+    def _tint(self, value):
+        lumOff_val = int(value * 100000)
+        lumMod_val = 100000 - lumOff_val
+        color_elm = self._xClr.clear_lum()
+        color_elm.add_lumMod(lumMod_val)
+        color_elm.add_lumOff(lumOff_val)
 
 
 class _HslColor(_Color):

@@ -67,7 +67,11 @@ class DescribeColorFormat(object):
         color_format.theme_color = theme_color
         assert actual_xml(color_format._xFill) == expected_xml
 
-    # def it_can_set_its_brightness_adjustment(self):
+    def it_can_set_its_brightness_adjustment(self, set_brightness_fixture_):
+        color_format, brightness, expected_xml = set_brightness_fixture_
+        color_format.brightness = brightness
+        assert actual_xml(color_format._xFill) == expected_xml
+
     # def it_raises_on_attempt_to_set_brightness_out_of_range(self):
     # def it_raises_on_attempt_to_set_brightness_on_None_color_type(self):
 
@@ -144,6 +148,45 @@ class DescribeColorFormat(object):
         solidFill = solidFill_bldr.element
         color_format = ColorFormat.from_colorchoice_parent(solidFill)
         return color_format, exception_type
+
+    @pytest.fixture(params=[
+        '0 to 0', '0 to -0.4', '0.15 to 0.25', '0.15 to -0.15',
+        '-0.25 to 0.4', '-0.3 to -0.4', '-0.4 to 0'
+    ])
+    def set_brightness_fixture_(self, request):
+        mapping = {
+            '0 to 0':        (an_srgbClr,  None,  None,   0,    None,  None),
+            '0 to -0.4':     (an_hslClr,   None,  None,  -0.4,  60000, None),
+            '0.15 to 0.25':  (a_prstClr,   85000, 15000,  0.25, 75000, 25000),
+            '0.15 to -0.15': (a_schemeClr, 85000, 15000, -0.15, 85000, None),
+            '-0.25 to 0.4':  (an_scrgbClr, 75000, None,   0.4,  60000, 40000),
+            '-0.3 to -0.4':  (an_srgbClr,  70000, None,  -0.4,  60000, None),
+            '-0.4 to 0':     (a_sysClr,    60000, None,   0,    None,  None),
+        }
+        xClr_bldr_fn, mod_in, off_in, brightness, mod_out, off_out = (
+            mapping[request.param]
+        )
+
+        xClr_bldr = xClr_bldr_fn()
+        if mod_in is not None:
+            xClr_bldr.with_child(a_lumMod().with_val(mod_in))
+        if off_in is not None:
+            xClr_bldr.with_child(a_lumOff().with_val(off_in))
+        solidFill = (
+            a_solidFill().with_nsdecls().with_child(xClr_bldr).element
+        )
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        xClr_bldr = xClr_bldr_fn()
+        if mod_out is not None:
+            xClr_bldr.with_child(a_lumMod().with_val(mod_out))
+        if off_out is not None:
+            xClr_bldr.with_child(a_lumOff().with_val(off_out))
+        expected_xml = (
+            a_solidFill().with_nsdecls().with_child(xClr_bldr).xml()
+        )
+
+        return color_format, brightness, expected_xml
 
     @pytest.fixture(params=[
         'none', 'hsl', 'prst', 'scheme', 'scrgb', 'srgb', 'sys'
