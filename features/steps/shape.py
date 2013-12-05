@@ -68,6 +68,11 @@ def step_when_set_first_adjustment_value(context):
     context.chevron_shape.adjustments[0] = 0.15
 
 
+@when("I set the foreground color brightness to 0.5")
+def when_set_fore_color_brightness_to_value(context):
+    context.shape.fill.fore_color.brightness = 0.5
+
+
 @when("I set the foreground color to a theme color")
 def when_set_fore_color_to_theme_color(context):
     context.shape.fill.fore_color.theme_color = MSO_THEME_COLOR.ACCENT_6
@@ -94,6 +99,11 @@ def step_then_auto_shape_appears_in_slide(context):
 def step_then_chevron_shape_appears_with_less_acute_arrow_head(context):
     chevron = Presentation(saved_pptx_path).slides[0].shapes[0]
     assert_that(chevron.adjustments[0], is_(equal_to(0.15)))
+
+
+@then('the foreground color brightness of the shape is 0.5')
+def then_fore_color_brightness_is_value(context):
+    assert context.shape.fill.fore_color.brightness == 0.5
 
 
 @then('the foreground color of the shape is the RGB value I set')

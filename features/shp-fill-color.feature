@@ -14,3 +14,10 @@ Feature: Change shape fill color
       When I set the fill type to solid
        And I set the foreground color to a theme color
       Then the foreground color of the shape is the theme color I set
+
+  Scenario: set shape solid fill brightness
+     Given an autoshape
+      When I set the fill type to solid
+       And I set the foreground color to an RGB value
+       And I set the foreground color brightness to 0.5
+      Then the foreground color brightness of the shape is 0.5
