@@ -72,10 +72,26 @@ class DescribeColorFormat(object):
         color_format.brightness = brightness
         assert actual_xml(color_format._xFill) == expected_xml
 
-    # def it_raises_on_attempt_to_set_brightness_out_of_range(self):
-    # def it_raises_on_attempt_to_set_brightness_on_None_color_type(self):
+    def it_raises_on_attempt_to_set_brightness_out_of_range(
+            self, rgb_color_format):
+        with pytest.raises(ValueError):
+            rgb_color_format.brightness = 1.1
+        with pytest.raises(ValueError):
+            rgb_color_format.brightness = -1.1
+
+    def it_raises_on_attempt_to_set_brightness_on_None_color_type(
+            self, color_format_having_none_color_type):
+        color_format = color_format_having_none_color_type
+        with pytest.raises(ValueError):
+            color_format.brightness = 0.5
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def color_format_having_none_color_type(self):
+        solidFill = a_solidFill().with_nsdecls().element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+        return color_format
 
     @pytest.fixture(params=['hsl', 'prst', 'scheme', 'scrgb', 'srgb', 'sys'])
     def color_format_with_brightness(self, request):

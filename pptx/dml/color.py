@@ -156,7 +156,7 @@ class _Color(object):
             self._xClr.clear_lum()
 
     @property
-    def color_type(self):
+    def color_type(self):  # pragma: no cover
         tmpl = ".color_type property must be implemented on %s"
         raise NotImplementedError(tmpl % self.__class__.__name__)
 

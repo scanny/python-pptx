@@ -101,7 +101,7 @@ class _Fill(object):
         raise NotImplementedError(tmpl % self.__class__.__name__)
 
     @property
-    def fill_type(self):
+    def fill_type(self):  # pragma: no cover
         tmpl = ".fill_type property must be implemented on %s"
         raise NotImplementedError(tmpl % self.__class__.__name__)
 
