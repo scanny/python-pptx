@@ -11,6 +11,7 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
+from pptx.enum import MSO_THEME_COLOR
 from pptx.dml.color import RGBColor
 from pptx.util import Inches
 
@@ -67,6 +68,11 @@ def step_when_set_first_adjustment_value(context):
     context.chevron_shape.adjustments[0] = 0.15
 
 
+@when("I set the foreground color to a theme color")
+def when_set_fore_color_to_theme_color(context):
+    context.shape.fill.fore_color.theme_color = MSO_THEME_COLOR.ACCENT_6
+
+
 @when("I set the foreground color to an RGB value")
 def when_set_fore_color_to_RGB_value(context):
     context.shape.fill.fore_color.rgb = RGBColor(0x12, 0x34, 0x56)
@@ -93,6 +99,12 @@ def step_then_chevron_shape_appears_with_less_acute_arrow_head(context):
 @then('the foreground color of the shape is the RGB value I set')
 def then_fore_color_is_RGB_value_I_set(context):
     assert context.shape.fill.fore_color.rgb == RGBColor(0x12, 0x34, 0x56)
+
+
+@then('the foreground color of the shape is the theme color I set')
+def then_fore_color_is_theme_color_I_set(context):
+    fore_color = context.shape.fill.fore_color
+    assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
 
 
 @then('the text box appears in the slide')
