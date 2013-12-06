@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from types import NoneType
 
-from pptx.enum import MSO_COLOR_TYPE
+from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from pptx.oxml.dml.color import (
     CT_HslColor, CT_PresetColor, CT_SchemeColor, CT_ScRgbColor, CT_SRgbColor,
     CT_SystemColor
@@ -173,8 +173,7 @@ class _Color(object):
         """
         Raises TypeError on access unless overridden by subclass.
         """
-        tmpl = "no .theme_color property on color type '%s'"
-        raise AttributeError(tmpl % self.__class__.__name__)
+        return MSO_THEME_COLOR.NOT_THEME_COLOR
 
     def _shade(self, value):
         lumMod_val = 100000 - int(abs(value) * 100000)
@@ -201,6 +200,15 @@ class _NoneColor(_Color):
     @property
     def color_type(self):
         return None
+
+    @property
+    def theme_color(self):
+        """
+        Raise TypeError on attempt to access .theme_color when no color
+        choice is present.
+        """
+        tmpl = "no .theme_color property on color type '%s'"
+        raise AttributeError(tmpl % self.__class__.__name__)
 
 
 class _PrstColor(_Color):

@@ -35,16 +35,15 @@ class DescribeColorFormat(object):
         with pytest.raises(exception_type):
             color_format.rgb
 
-    def it_knows_the_theme_color_of_a_theme_color(self, theme_color_format):
-        color_format = theme_color_format
-        assert color_format.theme_color == MSO_THEME_COLOR.ACCENT_1
+    def it_knows_the_theme_color_of_a_theme_color(
+            self, get_theme_color_fixture_):
+        color_format, theme_color = get_theme_color_fixture_
+        assert color_format.theme_color == theme_color
 
-    # this should actually return MSO_THEME_COLOR.NOT_THEME_COLOR, not raise
-    def it_raises_on_theme_color_get_for_colors_other_than_schemeClr(
-            self, theme_color_raise_fixture_):
-        color_format, exception_type = theme_color_raise_fixture_
-        with pytest.raises(exception_type):
-            color_format.theme_color
+    def it_raises_on_theme_color_get_for_NoneColor(
+            self, _NoneColor_color_format):
+        with pytest.raises(AttributeError):
+            _NoneColor_color_format.theme_color
 
     def it_knows_its_brightness_adjustment(
             self, color_format_with_brightness):
@@ -137,6 +136,12 @@ class DescribeColorFormat(object):
         solidFill = solidFill_bldr.element
         color_format = ColorFormat.from_colorchoice_parent(solidFill)
         return color_format, color_type
+
+    @pytest.fixture
+    def _NoneColor_color_format(self):
+        solidFill = a_solidFill().with_nsdecls().element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+        return color_format
 
     @pytest.fixture
     def rgb_color_format(self):
@@ -260,32 +265,27 @@ class DescribeColorFormat(object):
         )
         return color_format, theme_color, expected_xml
 
-    @pytest.fixture
-    def theme_color_format(self):
-        schemeClr_bldr = a_schemeClr().with_val('accent1')
+    @pytest.fixture(params=['hsl', 'prst', 'scheme', 'scrgb', 'srgb', 'sys'])
+    def get_theme_color_fixture_(self, request):
+        mapping = {
+            'hsl':    (an_hslClr,   MSO_THEME_COLOR.NOT_THEME_COLOR),
+            'prst':   (a_prstClr,   MSO_THEME_COLOR.NOT_THEME_COLOR),
+            'scheme': (a_schemeClr, MSO_THEME_COLOR.ACCENT_1),
+            'scrgb':  (an_scrgbClr, MSO_THEME_COLOR.NOT_THEME_COLOR),
+            'srgb':   (an_srgbClr,  MSO_THEME_COLOR.NOT_THEME_COLOR),
+            'sys':    (a_sysClr,    MSO_THEME_COLOR.NOT_THEME_COLOR),
+        }
+        xClr_bldr_fn, theme_color = mapping[request.param]
+        xClr_bldr = xClr_bldr_fn()
+        if theme_color != MSO_THEME_COLOR.NOT_THEME_COLOR:
+            xClr_bldr.with_val('accent1')
         solidFill = (
-            a_solidFill().with_nsdecls().with_child(schemeClr_bldr).element
+            a_solidFill().with_nsdecls()
+                         .with_child(xClr_bldr)
+                         .element
         )
         color_format = ColorFormat.from_colorchoice_parent(solidFill)
-        return color_format
-
-    @pytest.fixture(params=['none', 'hsl', 'prst', 'scrgb', 'srgb', 'sys'])
-    def theme_color_raise_fixture_(self, request):
-        mapping = {
-            'none':  (None,        AttributeError),
-            'hsl':   (an_hslClr,   AttributeError),
-            'prst':  (a_prstClr,   AttributeError),
-            'scrgb': (an_scrgbClr, AttributeError),
-            'srgb':  (an_srgbClr,  AttributeError),
-            'sys':   (a_sysClr,    AttributeError),
-        }
-        xClr_bldr_fn, exception_type = mapping[request.param]
-        solidFill_bldr = a_solidFill().with_nsdecls()
-        if xClr_bldr_fn is not None:
-            solidFill_bldr.with_child(xClr_bldr_fn())
-        solidFill = solidFill_bldr.element
-        color_format = ColorFormat.from_colorchoice_parent(solidFill)
-        return color_format, exception_type
+        return color_format, theme_color
 
 
 class DescribeRGBColor(object):
