@@ -21,6 +21,11 @@ from ..unitutil import actual_xml
 
 class DescribeFillFormat(object):
 
+    def it_can_set_the_fill_type_to_no_fill(self, set_noFill_fixture_):
+        fill, spPr_with_noFill_xml = set_noFill_fixture_
+        fill.background()
+        assert actual_xml(fill._xPr) == spPr_with_noFill_xml
+
     def it_can_set_the_fill_type_to_solid(self, set_solid_fixture_):
         fill, spPr_with_solidFill_xml = set_solid_fixture_
         fill.solid()
@@ -89,6 +94,25 @@ class DescribeFillFormat(object):
         spPr = spPr_bldr.element
         fill_format = FillFormat.from_fill_parent(spPr)
         return fill_format, exception_type
+
+    @pytest.fixture(params=['none', 'blip', 'grad', 'grp', 'patt', 'solid'])
+    def set_noFill_fixture_(self, request, _spPr_with_noFill_bldr):
+        mapping = {
+            'none':  None,
+            'blip':  a_blipFill,
+            'grad':  a_gradFill,
+            'grp':   a_grpFill,
+            'solid': a_solidFill,
+            'patt':  a_pattFill,
+        }
+        xFill_bldr_fn = mapping[request.param]
+        spPr_bldr = an_spPr().with_nsdecls()
+        if xFill_bldr_fn is not None:
+            spPr_bldr.with_child(xFill_bldr_fn())
+        spPr = spPr_bldr.element
+        fill_format = FillFormat.from_fill_parent(spPr)
+        spPr_with_noFill_xml = _spPr_with_noFill_bldr.xml()
+        return fill_format, spPr_with_noFill_xml
 
     def _solid_fill_cases():
         # no fill type yet

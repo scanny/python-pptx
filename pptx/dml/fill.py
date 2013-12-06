@@ -29,11 +29,15 @@ class FillFormat(object):
 
     @property
     def fill_type(self):
+    def background(self):
         """
         Return a |ColorFormat| instance representing the foreground color of
         this fill.
+        Sets the fill type to noFill, i.e. transparent.
         """
         return self._fill.fill_type
+        noFill = self._xPr.get_or_change_to_noFill()
+        self._fill = _NoFill(noFill)
 
     @property
     def fore_color(self):
