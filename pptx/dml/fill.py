@@ -27,15 +27,10 @@ class FillFormat(object):
         self._xPr = eg_fillproperties_parent
         self._fill = fill_obj
 
-    @property
-    def fill_type(self):
     def background(self):
         """
-        Return a |ColorFormat| instance representing the foreground color of
-        this fill.
         Sets the fill type to noFill, i.e. transparent.
         """
-        return self._fill.fill_type
         noFill = self._xPr.get_or_change_to_noFill()
         self._fill = _NoFill(noFill)
 
@@ -68,6 +63,14 @@ class FillFormat(object):
         """
         solidFill = self._xPr.get_or_change_to_solidFill()
         self._fill = _SolidFill(solidFill)
+
+    @property
+    def type(self):
+        """
+        Return a value in MSO_FILL_TYPE enumeration corresponding to the type
+        of this fill.
+        """
+        return self._fill.type
 
 
 class _Fill(object):
@@ -105,16 +108,12 @@ class _Fill(object):
         raise NotImplementedError(tmpl % self.__class__.__name__)
 
     @property
-    def fill_type(self):  # pragma: no cover
-        tmpl = ".fill_type property must be implemented on %s"
+    def type(self):  # pragma: no cover
+        tmpl = ".type property must be implemented on %s"
         raise NotImplementedError(tmpl % self.__class__.__name__)
 
 
 class _BlipFill(_Fill):
-
-    @property
-    def fill_type(self):
-        return MSO_FILL.PICTURE
 
     @property
     def fore_color(self):
@@ -124,19 +123,19 @@ class _BlipFill(_Fill):
         tmpl = "a picture fill has no foreground color"
         raise TypeError(tmpl)
 
+    @property
+    def type(self):
+        return MSO_FILL.PICTURE
+
 
 class _GradFill(_Fill):
 
     @property
-    def fill_type(self):
+    def type(self):
         return MSO_FILL.GRADIENT
 
 
 class _GrpFill(_Fill):
-
-    @property
-    def fill_type(self):
-        return MSO_FILL.GROUP
 
     @property
     def fore_color(self):
@@ -146,19 +145,19 @@ class _GrpFill(_Fill):
         tmpl = "a group fill has no foreground color"
         raise TypeError(tmpl)
 
+    @property
+    def type(self):
+        return MSO_FILL.GROUP
+
 
 class _NoFill(_Fill):
 
     @property
-    def fill_type(self):
+    def type(self):
         return MSO_FILL.BACKGROUND
 
 
 class _NoneFill(_Fill):
-
-    @property
-    def fill_type(self):
-        return None
 
     @property
     def fore_color(self):
@@ -168,11 +167,15 @@ class _NoneFill(_Fill):
         tmpl = "can't set .fore_color on no fill, call .solid() first"
         raise TypeError(tmpl)
 
+    @property
+    def type(self):
+        return None
+
 
 class _PattFill(_Fill):
 
     @property
-    def fill_type(self):
+    def type(self):
         return MSO_FILL.PATTERNED
 
 
@@ -184,10 +187,10 @@ class _SolidFill(_Fill):
         super(_SolidFill, self).__init__()
         self._solidFill = solidFill
 
-    @property
-    def fill_type(self):
-        return MSO_FILL.SOLID
-
     @lazyproperty
     def fore_color(self):
         return ColorFormat.from_colorchoice_parent(self._solidFill)
+
+    @property
+    def type(self):
+        return MSO_FILL.SOLID

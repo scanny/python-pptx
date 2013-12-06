@@ -34,7 +34,7 @@ class DescribeFillFormat(object):
     def it_knows_the_type_of_fill_it_is(self, fill_type_fixture_):
         fill_format, fill_type = fill_type_fixture_
         print(actual_xml(fill_format._xPr))
-        assert fill_format.fill_type == fill_type
+        assert fill_format.type == fill_type
 
     def it_provides_access_to_the_foreground_color_object(
             self, fore_color_fixture_):
