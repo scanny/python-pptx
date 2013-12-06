@@ -11,7 +11,7 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
-from pptx.enum import MSO_THEME_COLOR
+from pptx.enum import MSO_FILL_TYPE as MSO_FILL, MSO_THEME_COLOR
 from pptx.dml.color import RGBColor
 from pptx.util import Inches
 
@@ -58,6 +58,11 @@ def step_when_add_auto_shape(context):
     sp.text = test_text
 
 
+@when("I set the fill type to background")
+def when_set_fill_type_to_background(context):
+    context.shape.fill.background()
+
+
 @when("I set the fill type to solid")
 def when_set_fill_type_to_solid(context):
     context.shape.fill.solid()
@@ -99,6 +104,11 @@ def step_then_auto_shape_appears_in_slide(context):
 def step_then_chevron_shape_appears_with_less_acute_arrow_head(context):
     chevron = Presentation(saved_pptx_path).slides[0].shapes[0]
     assert_that(chevron.adjustments[0], is_(equal_to(0.15)))
+
+
+@then('the fill type of the shape is background')
+def then_fill_type_is_background(context):
+    assert context.shape.fill.type == MSO_FILL.BACKGROUND
 
 
 @then('the foreground color brightness of the shape is 0.5')
