@@ -6,6 +6,7 @@ Text-related objects such as TextFrame and Paragraph.
 
 from pptx.constants import MSO
 from pptx.dml.color import RGBColor
+from pptx.dml.fill import FillFormat
 from pptx.enum import MSO_COLOR_TYPE
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.core import Element, get_or_add
@@ -194,6 +195,14 @@ class _Font(object):
         for this font.
         """
         return _FontColor(self._rPr)
+
+    @lazyproperty
+    def fill(self):
+        """
+        |FillFormat| instance for this font, providing access to fill
+        properties such as fill color.
+        """
+        return FillFormat.from_fill_parent(self._rPr)
 
     @property
     def italic(self):

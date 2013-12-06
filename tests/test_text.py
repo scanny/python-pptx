@@ -8,6 +8,7 @@ import pytest
 
 from pptx.constants import MSO, PP
 from pptx.dml.color import RGBColor
+from pptx.dml.fill import FillFormat
 from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
@@ -320,6 +321,9 @@ class Describe_Font(object):
     def it_has_a_color(self, font):
         assert isinstance(font.color, _FontColor)
 
+    def it_has_a_fill(self, font):
+        assert isinstance(font.fill, FillFormat)
+
     def it_knows_the_italic_setting(self, font, italic_font, italic_off_font):
         assert font.italic is None
         assert italic_font.italic is True
@@ -363,6 +367,11 @@ class Describe_Font(object):
         return an_rPr().with_nsdecls().with_b(1).xml()
 
     @pytest.fixture
+    def font(self):
+        rPr = an_rPr().with_nsdecls().element
+        return _Font(rPr)
+
+    @pytest.fixture
     def italic_font(self):
         italic_rPr = an_rPr().with_nsdecls().with_i(1).element
         return _Font(italic_rPr)
@@ -383,11 +392,6 @@ class Describe_Font(object):
     @pytest.fixture
     def rPr_xml(self):
         return an_rPr().with_nsdecls().xml()
-
-    @pytest.fixture
-    def font(self):
-        rPr = an_rPr().with_nsdecls().element
-        return _Font(rPr)
 
 
 class Describe_FontColor(object):

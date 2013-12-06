@@ -158,6 +158,8 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         """
         if name in ('b', 'i'):
             return self._get_bool_attr(name)
+        elif name == 'eg_fillproperties':
+            return self._eg_fillproperties()
         elif name == 'hlinkClick':
             return self.find(qn('a:hlinkClick'))
         else:
@@ -233,6 +235,27 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         else:
             self.insert(0, solidFill)
         return solidFill
+
+    def _eg_fillproperties(self):
+        """
+        Return the child representing the EG_FillProperties element group
+        member in this element, or |None| if no such child is present.
+        """
+        return self._first_child_found_in(
+            'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill',
+            'a:pattFill', 'a:grpFill'
+        )
+
+    def _first_child_found_in(self, *tagnames):
+        """
+        Return the first child found with tag in *tagnames*, or None if
+        not found.
+        """
+        for tagname in tagnames:
+            child = self.find(qn(tagname))
+            if child is not None:
+                return child
+        return None
 
     def _get_bool_attr(self, name):
         """
