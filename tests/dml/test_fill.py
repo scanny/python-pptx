@@ -32,36 +32,18 @@ class DescribeFillFormat(object):
         fill_format.solid()
         assert actual_xml(fill_format._xPr) == xPr_with_solidFill_xml
 
-    def it_knows_the_type_of_fill_it_is(self, xPr_bldr, fill_type_fixture_):
-        # fixture ----------------------
-        xFill_bldr, fill_type = fill_type_fixture_
-        if xFill_bldr is not None:
-            xPr_bldr.with_child(xFill_bldr)
-        xPr = xPr_bldr.element
-        fill_format = FillFormat.from_fill_parent(xPr)
-        # verify -----------------------
+    def it_knows_the_type_of_fill_it_is(self, fill_type_fixture_):
+        fill_format, fill_type = fill_type_fixture_
         assert fill_format.type == fill_type
 
     def it_provides_access_to_the_foreground_color_object(
-            self, xPr_bldr, fore_color_fixture_):
-        # fixture ----------------------
-        xFill_bldr, fore_color_type = fore_color_fixture_
-        if xFill_bldr is not None:
-            xPr_bldr.with_child(xFill_bldr)
-        xPr = xPr_bldr.element
-        fill_format = FillFormat.from_fill_parent(xPr)
-        # verify -----------------------
+            self, fore_color_fixture_):
+        fill_format, fore_color_type = fore_color_fixture_
         assert isinstance(fill_format.fore_color, fore_color_type)
 
     def it_raises_on_fore_color_get_for_fill_types_that_dont_have_one(
-            self, xPr_bldr, fore_color_raise_fixture_):
-        # fixture ----------------------
-        xFill_bldr, exception_type = fore_color_raise_fixture_
-        if xFill_bldr is not None:
-            xPr_bldr.with_child(xFill_bldr)
-        xPr = xPr_bldr.element
-        fill_format = FillFormat.from_fill_parent(xPr)
-        # verify -----------------------
+            self, fore_color_raise_fixture_):
+        fill_format, exception_type = fore_color_raise_fixture_
         with pytest.raises(exception_type):
             fill_format.fore_color
 
@@ -70,7 +52,7 @@ class DescribeFillFormat(object):
     @pytest.fixture(params=[
         'none', 'blip', 'grad', 'grp', 'no', 'patt', 'solid'
     ])
-    def fill_type_fixture_(self, request):
+    def fill_type_fixture_(self, request, xPr_bldr):
         mapping = {
             'none':  None,
             'blip':  MSO_FILL.PICTURE,
@@ -82,19 +64,27 @@ class DescribeFillFormat(object):
         }
         fill_type = mapping[request.param]
         xFill_bldr = request.getfuncargvalue('xFill_bldr')
-        return xFill_bldr, fill_type
+        if xFill_bldr is not None:
+            xPr_bldr.with_child(xFill_bldr)
+        xPr = xPr_bldr.element
+        fill_format = FillFormat.from_fill_parent(xPr)
+        return fill_format, fill_type
 
     @pytest.fixture(params=['solid'])
-    def fore_color_fixture_(self, request):
+    def fore_color_fixture_(self, request, xPr_bldr):
         mapping = {
             'solid': ColorFormat,
         }
         fore_color_type = mapping[request.param]
         xFill_bldr = request.getfuncargvalue('xFill_bldr')
-        return xFill_bldr, fore_color_type
+        if xFill_bldr is not None:
+            xPr_bldr.with_child(xFill_bldr)
+        xPr = xPr_bldr.element
+        fill_format = FillFormat.from_fill_parent(xPr)
+        return fill_format, fore_color_type
 
     @pytest.fixture(params=['none', 'blip', 'grad', 'grp', 'no', 'patt'])
-    def fore_color_raise_fixture_(self, request):
+    def fore_color_raise_fixture_(self, request, xPr_bldr):
         mapping = {
             'none':  TypeError,
             'blip':  TypeError,
@@ -105,7 +95,11 @@ class DescribeFillFormat(object):
         }
         exception_type = mapping[request.param]
         xFill_bldr = request.getfuncargvalue('xFill_bldr')
-        return xFill_bldr, exception_type
+        if xFill_bldr is not None:
+            xPr_bldr.with_child(xFill_bldr)
+        xPr = xPr_bldr.element
+        fill_format = FillFormat.from_fill_parent(xPr)
+        return fill_format, exception_type
 
     @pytest.fixture(
         params=['none', 'blip', 'grad', 'grp', 'no', 'patt', 'solid']

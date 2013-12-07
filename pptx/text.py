@@ -5,9 +5,8 @@ Text-related objects such as TextFrame and Paragraph.
 """
 
 from pptx.constants import MSO
-from pptx.dml.color import RGBColor
 from pptx.dml.fill import FillFormat
-from pptx.enum import MSO_COLOR_TYPE
+from pptx.enum import MSO_FILL_TYPE as MSO_FILL
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.core import Element, get_or_add
 from pptx.oxml.ns import namespaces, qn
@@ -194,7 +193,9 @@ class _Font(object):
         The |ColorFormat| instance that provides access to the color settings
         for this font.
         """
-        return _FontColor(self._rPr)
+        if self.fill.type != MSO_FILL.SOLID:
+            self.fill.solid()
+        return self.fill.fore_color
 
     @lazyproperty
     def fill(self):
@@ -227,161 +228,6 @@ class _Font(object):
     #: values, e.g. ``Pt(12.5)``. I'm pretty sure I just made up the word
     #: *centipoint*, but it seems apt :).
     size = property(None, _set_size)
-
-
-class _FontColor(object):
-    """
-    Provides access to font color settings.
-    """
-    def __init__(self, rPr):
-        # note that rPr is not always an actual <a:rPr> element, but must
-        # always be an instance of CT_TextCharacterProperties, so will behave
-        # as though it were one
-        super(_FontColor, self).__init__()
-        self._rPr = rPr
-
-    @property
-    def brightness(self):
-        """
-        Read/write float value between -1.0 and 1.0 indicating the brightness
-        adjustment for this color, e.g. -0.25 is 25% darker and 0.4 is 40%
-        lighter. 0 means no brightness adjustment.
-        """
-        if self._color_elm is None:
-            return 0
-        lumMod, lumOff = self._color_elm.lumMod, self._color_elm.lumOff
-        # a tint is lighter, a shade is darker
-        # only tints have lumOff child
-        if lumOff is not None:
-            val = lumOff.val
-            brightness = float(val) / 100000
-            return brightness
-        # which leaves shades, if lumMod is present
-        if lumMod is not None:
-            val = lumMod.val
-            brightness = -1.0 + float(val)/100000
-            return brightness
-        # there's no brightness adjustment if no lum{Mod|Off} elements
-        return 0
-
-    @brightness.setter
-    def brightness(self, value):
-        self._validate_brightness_value(value)
-        if value > 0:
-            self._tint(value)
-        elif value < 0:
-            self._shade(value)
-        else:
-            self._color_elm.clear_lum()
-
-    @property
-    def rgb(self):
-        """
-        |RGBColor| value of this color, or None if no RGB color is explicitly
-        defined for this font. Setting this value to an |RGBColor| instance
-        cause its type to change to MSO_COLOR_TYPE.RGB. If the color was a
-        theme color with a brightness adjustment, the brightness adjustment
-        is removed when changing it to an RGB color.
-        """
-        if self._srgbClr is None:
-            return None
-        return RGBColor.from_string(self._srgbClr.val)
-
-    @rgb.setter
-    def rgb(self, rgb):
-        if not isinstance(rgb, RGBColor):
-            raise TypeError('assigned value must be type RGBColor')
-        solidFill = self._rPr.get_or_change_to_solidFill()
-        srgbClr = solidFill.get_or_change_to_srgbClr()
-        srgbClr.val = str(rgb)
-
-    @property
-    def theme_color(self):
-        """
-        Theme color value of this color, one of those defined in the
-        MSO_THEME_COLOR enumeration, e.g. MSO_THEME_COLOR.ACCENT_1. None if
-        no theme color is explicitly defined for this font. Setting this to a
-        value in MSO_THEME_COLOR causes the color's type to change to
-        ``MSO_COLOR_TYPE.SCHEME``.
-        """
-        if self._schemeClr is None:
-            return None
-        return self._schemeClr.val
-
-    @theme_color.setter
-    def theme_color(self, mso_theme_color_idx):
-        solidFill = self._rPr.get_or_change_to_solidFill()
-        schemeClr = solidFill.get_or_change_to_schemeClr()
-        schemeClr.val = mso_theme_color_idx
-
-    @property
-    def type(self):
-        """
-        Read-only. A value from MSO_COLOR_TYPE, either RGB or SCHEME,
-        corresponding to the way this color is defined, or None if no color
-        is defined at the level of this font.
-        """
-        if self._srgbClr is not None:
-            return MSO_COLOR_TYPE.RGB
-        if self._schemeClr is not None:
-            return MSO_COLOR_TYPE.SCHEME
-        return None
-
-    @property
-    def _color_elm(self):
-        """
-        srgbClr or schemeClr child of <a:solidFill>, None if neither is
-        present.
-        """
-        srgbClr = self._srgbClr
-        if srgbClr is not None:
-            return srgbClr
-        schemeClr = self._schemeClr
-        if schemeClr is not None:
-            return schemeClr
-        return None
-
-    @property
-    def _schemeClr(self):
-        """
-        schemeClr child of <a:solidFill> if present, None otherwise
-        """
-        solidFill = self._rPr.solidFill
-        if solidFill is None:
-            return None
-        return solidFill.schemeClr
-
-    def _shade(self, value):
-        lumMod_val = 100000 - int(abs(value) * 100000)
-        color_elm = self._color_elm.clear_lum()
-        color_elm.add_lumMod(lumMod_val)
-
-    def _tint(self, value):
-        lumOff_val = int(value * 100000)
-        lumMod_val = 100000 - lumOff_val
-        color_elm = self._color_elm.clear_lum()
-        color_elm.add_lumMod(lumMod_val)
-        color_elm.add_lumOff(lumOff_val)
-
-    @property
-    def _srgbClr(self):
-        """
-        srgbClr child of <a:solidFill> if present, None otherwise
-        """
-        solidFill = self._rPr.solidFill
-        if solidFill is None:
-            return None
-        return solidFill.srgbClr
-
-    def _validate_brightness_value(self, value):
-        if value < -1.0 or value > 1.0:
-            raise ValueError('brightness must be number in range -1.0 to 1.0')
-        if self._color_elm is None:
-            msg = (
-                "can't set brightness when color.type is None. Set color.rgb"
-                " or .theme_color first."
-            )
-            raise ValueError(msg)
 
 
 class _Hyperlink(Subshape):

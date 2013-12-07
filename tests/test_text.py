@@ -7,9 +7,8 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.constants import MSO, PP
-from pptx.dml.color import RGBColor
+from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
-from pptx.enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.oxml import parse_xml_bytes
@@ -17,14 +16,9 @@ from pptx.oxml.ns import namespaces, nsdecls
 from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
 )
-from pptx.text import (
-    _Font, _FontColor, _Hyperlink, _Paragraph, _Run, TextFrame
-)
+from pptx.text import _Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches
 
-from .oxml.unitdata.dml import (
-    a_lumMod, a_lumOff, a_schemeClr, a_solidFill, an_srgbClr
-)
 from .oxml.unitdata.text import (
     a_bodyPr, a_txBody, a_p, a_pPr, a_t, an_hlinkClick, an_r, an_rPr
 )
@@ -319,7 +313,7 @@ class Describe_Font(object):
         assert actual_xml(font._rPr) == rPr_xml
 
     def it_has_a_color(self, font):
-        assert isinstance(font.color, _FontColor)
+        assert isinstance(font.color, ColorFormat)
 
     def it_has_a_fill(self, font):
         assert isinstance(font.fill, FillFormat)
@@ -392,118 +386,6 @@ class Describe_Font(object):
     @pytest.fixture
     def rPr_xml(self):
         return an_rPr().with_nsdecls().xml()
-
-
-class Describe_FontColor(object):
-
-    def it_knows_the_type_of_its_color(
-            self, color, rgb_color, theme_color, solidFill_only_color):
-        assert color.type is None
-        assert rgb_color.type is MSO_COLOR_TYPE.RGB
-        assert theme_color.type is MSO_COLOR_TYPE.SCHEME
-        assert solidFill_only_color.type is None
-
-    def it_knows_the_RGB_value_of_an_RGB_color(self, color, rgb_color):
-        assert color.rgb is None
-        assert rgb_color.rgb == RGBColor(0x12, 0x34, 0x56)
-
-    def it_knows_the_theme_color_of_a_theme_color(self, color, theme_color):
-        assert color.theme_color is None
-        assert theme_color.theme_color == MSO_THEME_COLOR.ACCENT_1
-
-    def it_knows_the_brightness_adjustment_of_its_color(
-            self, color, solidFill_only_color, rgb_color, theme_color,
-            rgb_color_with_brightness, theme_color_with_brightness):
-        assert color.brightness == 0.0
-        assert solidFill_only_color.brightness == 0.0
-        assert rgb_color.brightness == 0.0
-        assert theme_color.brightness == 0.0
-        assert rgb_color_with_brightness.brightness == 0.4
-        assert theme_color_with_brightness.brightness == -0.25
-
-    def it_can_set_the_RGB_color_value(self, color, rgb_color, theme_color):
-        color.rgb = RGBColor(0x01, 0x23, 0x45)
-        assert color.rgb == RGBColor(0x01, 0x23, 0x45)
-        rgb_color.rgb = RGBColor(0x67, 0x89, 0x9A)
-        assert rgb_color.rgb == RGBColor(0x67, 0x89, 0x9A)
-        theme_color.rgb = RGBColor(0xBC, 0xDE, 0xF0)
-        assert theme_color.rgb == RGBColor(0xBC, 0xDE, 0xF0)
-
-    def it_can_set_the_theme_color(self, color, rgb_color, theme_color):
-        color.theme_color = MSO_THEME_COLOR.ACCENT_1
-        assert color.theme_color == MSO_THEME_COLOR.ACCENT_1
-        rgb_color.theme_color = MSO_THEME_COLOR.BACKGROUND_1
-        assert rgb_color.theme_color == MSO_THEME_COLOR.BACKGROUND_1
-        theme_color.theme_color = MSO_THEME_COLOR.TEXT_1
-        assert theme_color.theme_color == MSO_THEME_COLOR.TEXT_1
-
-    def it_can_set_the_color_brightness(self, color, rgb_color, theme_color):
-        rgb_color.brightness = 0.4
-        assert rgb_color.brightness == 0.4
-        theme_color.brightness = 0.0
-        assert theme_color.brightness == 0.0
-        theme_color.brightness = -0.25
-        assert theme_color.brightness == -0.25
-
-    def it_raises_on_attempt_to_set_brightness_out_of_range(
-            self, theme_color):
-        with pytest.raises(ValueError):
-            theme_color.brightness = 1.1
-        with pytest.raises(ValueError):
-            theme_color.brightness = -1.1
-        with pytest.raises(ValueError):
-            theme_color.brightness = 'bright'
-
-    def it_raises_on_attempt_to_set_brightness_on_None_color_type(
-            self, color):
-        with pytest.raises(ValueError):
-            color.brightness = 0
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def color(self):
-        rPr = an_rPr().with_nsdecls().element
-        return _FontColor(rPr)
-
-    @pytest.fixture
-    def rgb_color(self):
-        srgbClr_bldr = an_srgbClr().with_val('123456')
-        solidFill_bldr = a_solidFill().with_child(srgbClr_bldr)
-        rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
-        return _FontColor(rPr)
-
-    @pytest.fixture
-    def rgb_color_with_brightness(self):
-        lumMod_bldr = a_lumMod().with_val('60000')
-        lumOff_bldr = a_lumOff().with_val('40000')
-        srgbClr_bldr = an_srgbClr().with_val('123456')
-        srgbClr_bldr.with_child(lumMod_bldr).with_child(lumOff_bldr)
-        solidFill_bldr = a_solidFill().with_child(srgbClr_bldr)
-        rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
-        return _FontColor(rPr)
-
-    @pytest.fixture
-    def solidFill_only_color(self):
-        solidFill_bldr = a_solidFill()
-        rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
-        return _FontColor(rPr)
-
-    @pytest.fixture
-    def theme_color(self):
-        schemeClr_bldr = a_schemeClr().with_val('accent1')
-        solidFill_bldr = a_solidFill().with_child(schemeClr_bldr)
-        rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
-        return _FontColor(rPr)
-
-    @pytest.fixture
-    def theme_color_with_brightness(self):
-        lumMod_bldr = a_lumMod().with_val('75000')
-        schemeClr_bldr = a_schemeClr().with_val('foobar')
-        schemeClr_bldr.with_child(lumMod_bldr)
-        solidFill_bldr = a_solidFill().with_child(schemeClr_bldr)
-        rPr = an_rPr().with_nsdecls().with_child(solidFill_bldr).element
-        return _FontColor(rPr)
 
 
 class Describe_Hyperlink(object):
