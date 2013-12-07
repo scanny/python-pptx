@@ -38,6 +38,14 @@ class Describe_Cell(object):
         assert cell.margin_top == margin_top
         assert cell.margin_bottom == margin_bottom
 
+    def it_can_change_its_margin_settings(self, set_margin_fixture):
+        cell, marL, marR, marT, marB, tc_with_marX_xml = set_margin_fixture
+        cell.margin_left = marL
+        cell.margin_right = marR
+        cell.margin_top = marT
+        cell.margin_bottom = marB
+        assert actual_xml(cell._tc) == tc_with_marX_xml
+
     # fixture --------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -78,36 +86,41 @@ class Describe_Cell(object):
         )
         return cell, text, tc_with_text_xml
 
+    @pytest.fixture(params=[
+        ((None, None, None, None), (91440, None,  None, None)),
+        ((1234, 2345, 3456, None), (None,  4567,  None, None)),
+        ((None, 2345, 3456, None), (None,  None,  6543, None)),
+        ((1234, 2345, None, 4567), (None,  None,  None, 7654)),
+        ((1234, 2345, 3456, 4567), (None,  None,  None, None)),
+        ((None, None, None, None), (None,  None,  None, None)),
+    ])
+    def set_margin_fixture(self, request):
+
+        def tc_bldr_with(marX):
+            marL, marR, marT, marB = marX
+            tcPr_bldr = a_tcPr()
+            if marL is not None:
+                tcPr_bldr.with_marL(marL)
+            if marR is not None:
+                tcPr_bldr.with_marR(marR)
+            if marT is not None:
+                tcPr_bldr.with_marT(marT)
+            if marB is not None:
+                tcPr_bldr.with_marB(marB)
+            return a_tc().with_nsdecls().with_child(tcPr_bldr)
+
+        before_vals, after_vals = request.param
+        tc = tc_bldr_with(before_vals).element
+        cell = _Cell(tc, None)
+
+        marL, marR, marT, marB = after_vals
+
+        tc_with_marX_xml = tc_bldr_with(after_vals).xml()
+
+        return cell, marL, marR, marT, marB, tc_with_marX_xml
+
 
 class Test_Cell(TestCase):
-
-    def setUp(self):
-        tc_xml = '<a:tc %s><a:txBody><a:p/></a:txBody></a:tc>' % nsdecls('a')
-        test_tc_elm = parse_xml_bytes(tc_xml)
-        self.cell = _Cell(test_tc_elm, None)
-
-    def test_margin_assignment(self):
-        """Assignment to _Cell.margin_x sets value"""
-        # mockery ----------------------
-        # -- CT_TableCell
-        tc = MagicMock()
-        marT = type(tc).marT = PropertyMock()
-        marR = type(tc).marR = PropertyMock()
-        marB = type(tc).marB = PropertyMock()
-        marL = type(tc).marL = PropertyMock()
-        # setup ------------------------
-        top, right, bottom, left = 12, 34, 56, 78
-        cell = _Cell(tc, None)
-        # exercise ---------------------
-        cell.margin_top = top
-        cell.margin_right = right
-        cell.margin_bottom = bottom
-        cell.margin_left = left
-        # verify -----------------------
-        marT.assert_called_once_with(top)
-        marR.assert_called_once_with(right)
-        marB.assert_called_once_with(bottom)
-        marL.assert_called_once_with(left)
 
     def test_margin_assignment_raises_on_not_int_or_none(self):
         """Assignment to _Cell.margin_x raises for not (int or none)"""

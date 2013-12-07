@@ -113,6 +113,7 @@ class _TestTableXml(object):
             '    <a:lstStyle/>\n'
             '    <a:p/>\n'
             '  </a:txBody>\n'
+            '  <a:tcPr/>\n'
             '</a:tc>\n' % nsdecls('a')
         )
 

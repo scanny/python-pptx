@@ -160,9 +160,17 @@ class CT_TableCell(objectify.ObjectifiedElement):
         String held in ``anchor`` attribute of ``<a:tcPr>`` child element of
         this ``<a:tc>`` element.
         """
-        if not hasattr(self, 'tcPr'):
+        if self.tcPr is None:
             return None
         return self.tcPr.get('anchor')
+
+    def get_or_add_tcPr(self):
+        tcPr = self.tcPr
+        if tcPr is None:
+            tcPr = Element('a:tcPr')
+            idx = 1 if self.txBody else 0
+            self.insert(idx, tcPr)
+        return tcPr
 
     def get_or_add_txBody(self):
         """
@@ -187,22 +195,22 @@ class CT_TableCell(objectify.ObjectifiedElement):
         property clears that attribute from the element, effectively setting
         it to the default value.
         """
-        return self.__get_marX('marT', 45720)
+        return self._get_marX('marT', 45720)
 
     @property
     def marR(self):
         """right margin value represented in ``marR`` attribute"""
-        return self.__get_marX('marR', 91440)
+        return self._get_marX('marR', 91440)
 
     @property
     def marB(self):
         """bottom margin value represented in ``marB`` attribute"""
-        return self.__get_marX('marB', 45720)
+        return self._get_marX('marB', 45720)
 
     @property
     def marL(self):
         """left margin value represented in ``marL`` attribute"""
-        return self.__get_marX('marL', 91440)
+        return self._get_marX('marL', 91440)
 
     @staticmethod
     def new_tc():
@@ -213,6 +221,10 @@ class CT_TableCell(objectify.ObjectifiedElement):
         return tc
 
     @property
+    def tcPr(self):
+        return self.find(qn('a:tcPr'))
+
+    @property
     def txBody(self):
         """
         The <a:txBody> child element, or None if not present.
@@ -221,29 +233,20 @@ class CT_TableCell(objectify.ObjectifiedElement):
 
     def _clear_anchor(self):
         """
-        Remove anchor attribute from ``<a:tcPr>`` if it exists and remove
-        ``<a:tcPr>`` element if it then has no attributes.
+        Remove anchor attribute from ``<a:tcPr>`` if it exists
         """
-        if not hasattr(self, 'tcPr'):
+        if self.tcPr is None:
             return
         if 'anchor' in self.tcPr.attrib:
             del self.tcPr.attrib['anchor']
-        if len(self.tcPr.attrib) == 0:
-            self.remove(self.tcPr)
 
-    def _set_marX(self, marX, value):
+    def _get_marX(self, attr_name, default):
         """
-        Set value of marX attribute on ``<a:tcPr>`` child element. If *marX*
-        is |None|, the marX attribute is removed and the ``<a:tcPr>`` element
-        is removed if it then has no attributes.
+        generalized method to get margin values
         """
-        if value is None:
-            return self.__clear_marX(marX)
-        if not hasattr(self, 'tcPr'):
-            tcPr = Element('a:tcPr')
-            idx = 1 if hasattr(self, 'txBody') else 0
-            self.insert(idx, tcPr)
-        self.tcPr.set(marX, str(value))
+        if self.tcPr is None:
+            return default
+        return int(self.tcPr.get(attr_name, default))
 
     def _set_anchor(self, anchor):
         """
@@ -251,26 +254,17 @@ class CT_TableCell(objectify.ObjectifiedElement):
         """
         if anchor is None:
             return self._clear_anchor()
-        if not hasattr(self, 'tcPr'):
-            tcPr = Element('a:tcPr')
-            idx = 1 if hasattr(self, 'txBody') else 0
-            self.insert(idx, tcPr)
-        self.tcPr.set('anchor', anchor)
+        tcPr = self.get_or_add_tcPr()
+        tcPr.set('anchor', anchor)
 
-    def __clear_marX(self, marX):
+    def _set_marX(self, marX, value):
         """
-        Remove marX attribute from ``<a:tcPr>`` if it exists and remove
-        ``<a:tcPr>`` element if it then has no attributes.
+        Set value of marX attribute on ``<a:tcPr>`` child element. If *marX*
+        is |None|, the marX attribute is removed.
         """
-        if not hasattr(self, 'tcPr'):
-            return
-        if marX in self.tcPr.attrib:
-            del self.tcPr.attrib[marX]
-        if len(self.tcPr.attrib) == 0:
-            self.remove(self.tcPr)
-
-    def __get_marX(self, attr_name, default):
-        """generalized method to get margin values"""
-        if not hasattr(self, 'tcPr'):
-            return default
-        return int(self.tcPr.get(attr_name, default))
+        tcPr = self.get_or_add_tcPr()
+        if value is None:
+            if marX in tcPr.attrib:
+                del tcPr.attrib[marX]
+        else:
+            tcPr.set(marX, str(value))
