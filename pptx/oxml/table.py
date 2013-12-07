@@ -8,9 +8,9 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import parse_xml_bytes, register_custom_element_class, XSD_TRUE
+from pptx.oxml import parse_xml_bytes, XSD_TRUE
 from pptx.oxml.core import Element, SubElement
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import nsdecls, qn
 
 
 class CT_Table(objectify.ObjectifiedElement):
@@ -141,13 +141,18 @@ class CT_TableCell(objectify.ObjectifiedElement):
         '</a:tc>' % nsdecls('a')
     )
 
-    @staticmethod
-    def new_tc():
-        """Return a new ``<a:tc>`` element tree"""
-        xml = CT_TableCell._tc_tmpl
-        tc = parse_xml_bytes(xml)
-        objectify.deannotate(tc, cleanup_namespaces=True)
-        return tc
+    def __setattr__(self, attr, value):
+        """
+        This hack is needed to make setter side of properties work,
+        overrides ``__setattr__`` defined in ObjectifiedElement super class
+        just enough to route messages intended for custom property setters.
+        """
+        if attr == 'anchor':
+            self._set_anchor(value)
+        elif attr in ('marT', 'marR', 'marB', 'marL'):
+            self._set_marX(attr, value)
+        else:
+            super(CT_TableCell, self).__setattr__(attr, value)
 
     @property
     def anchor(self):
@@ -159,35 +164,17 @@ class CT_TableCell(objectify.ObjectifiedElement):
             return None
         return self.tcPr.get('anchor')
 
-    def _set_anchor(self, anchor):
+    def get_or_add_txBody(self):
         """
-        Set value of anchor attribute on ``<a:tcPr>`` child element
+        Return the <a:rPr> child element of this <a:r> element, newly added
+        if not already present.
         """
-        if anchor is None:
-            return self._clear_anchor()
-        if not hasattr(self, 'tcPr'):
-            tcPr = Element('a:tcPr')
-            idx = 1 if hasattr(self, 'txBody') else 0
-            self.insert(idx, tcPr)
-        self.tcPr.set('anchor', anchor)
-
-    def _clear_anchor(self):
-        """
-        Remove anchor attribute from ``<a:tcPr>`` if it exists and remove
-        ``<a:tcPr>`` element if it then has no attributes.
-        """
-        if not hasattr(self, 'tcPr'):
-            return
-        if 'anchor' in self.tcPr.attrib:
-            del self.tcPr.attrib['anchor']
-        if len(self.tcPr.attrib) == 0:
-            self.remove(self.tcPr)
-
-    def __get_marX(self, attr_name, default):
-        """generalized method to get margin values"""
-        if not hasattr(self, 'tcPr'):
-            return default
-        return int(self.tcPr.get(attr_name, default))
+        if self.txBody is None:
+            txBody = Element('a:txBody')
+            SubElement(txBody, 'a:bodyPr')
+            SubElement(txBody, 'a:p')
+            self.insert(0, txBody)
+        return self.txBody
 
     @property
     def marT(self):
@@ -217,6 +204,33 @@ class CT_TableCell(objectify.ObjectifiedElement):
         """left margin value represented in ``marL`` attribute"""
         return self.__get_marX('marL', 91440)
 
+    @staticmethod
+    def new_tc():
+        """Return a new ``<a:tc>`` element tree"""
+        xml = CT_TableCell._tc_tmpl
+        tc = parse_xml_bytes(xml)
+        objectify.deannotate(tc, cleanup_namespaces=True)
+        return tc
+
+    @property
+    def txBody(self):
+        """
+        The <a:txBody> child element, or None if not present.
+        """
+        return self.find(qn('a:txBody'))
+
+    def _clear_anchor(self):
+        """
+        Remove anchor attribute from ``<a:tcPr>`` if it exists and remove
+        ``<a:tcPr>`` element if it then has no attributes.
+        """
+        if not hasattr(self, 'tcPr'):
+            return
+        if 'anchor' in self.tcPr.attrib:
+            del self.tcPr.attrib['anchor']
+        if len(self.tcPr.attrib) == 0:
+            self.remove(self.tcPr)
+
     def _set_marX(self, marX, value):
         """
         Set value of marX attribute on ``<a:tcPr>`` child element. If *marX*
@@ -231,6 +245,18 @@ class CT_TableCell(objectify.ObjectifiedElement):
             self.insert(idx, tcPr)
         self.tcPr.set(marX, str(value))
 
+    def _set_anchor(self, anchor):
+        """
+        Set value of anchor attribute on ``<a:tcPr>`` child element
+        """
+        if anchor is None:
+            return self._clear_anchor()
+        if not hasattr(self, 'tcPr'):
+            tcPr = Element('a:tcPr')
+            idx = 1 if hasattr(self, 'txBody') else 0
+            self.insert(idx, tcPr)
+        self.tcPr.set('anchor', anchor)
+
     def __clear_marX(self, marX):
         """
         Remove marX attribute from ``<a:tcPr>`` if it exists and remove
@@ -243,19 +269,8 @@ class CT_TableCell(objectify.ObjectifiedElement):
         if len(self.tcPr.attrib) == 0:
             self.remove(self.tcPr)
 
-    def __setattr__(self, attr, value):
-        """
-        This hack is needed to make setter side of properties work,
-        overrides ``__setattr__`` defined in ObjectifiedElement super class
-        just enough to route messages intended for custom property setters.
-        """
-        if attr == 'anchor':
-            self._set_anchor(value)
-        elif attr in ('marT', 'marR', 'marB', 'marL'):
-            self._set_marX(attr, value)
-        else:
-            super(CT_TableCell, self).__setattr__(attr, value)
-
-
-register_custom_element_class('a:tbl', CT_Table)
-register_custom_element_class('a:tc', CT_TableCell)
+    def __get_marX(self, attr_name, default):
+        """generalized method to get margin values"""
+        if not hasattr(self, 'tcPr'):
+            return default
+        return int(self.tcPr.get(attr_name, default))

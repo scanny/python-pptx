@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import
 
+import pytest
+
 from hamcrest import assert_that, equal_to, is_, same_instance
 from mock import MagicMock, Mock, patch, PropertyMock
 
@@ -14,27 +16,44 @@ from pptx.shapes.table import (
 )
 from pptx.util import Inches
 
-from ..oxml.unitdata.table import test_table_objects
+from ..oxml.unitdata.table import a_tc, a_txBody, test_table_objects
+from ..oxml.unitdata.text import a_bodyPr, a_p, an_r, a_t
 from ..oxml.unitdata.autoshape import test_shapes
-from ..unitutil import TestCase
+from ..unitutil import actual_xml, TestCase
+
+
+class Describe_Cell(object):
+
+    def it_can_set_the_text_it_contains(self, set_cell_text_fixture):
+        cell, text, tc_with_text_xml = set_cell_text_fixture
+        cell.text = text
+        assert actual_xml(cell._tc) == tc_with_text_xml
+
+    # fixture --------------------------------------------------------
+
+    @pytest.fixture
+    def set_cell_text_fixture(self):
+        tc = a_tc().with_nsdecls().element
+        cell = _Cell(tc, None)
+        text = 'foobar'
+        tc_with_text_xml = (
+            a_tc().with_nsdecls().with_child(
+                a_txBody().with_child(
+                    a_bodyPr()).with_child(
+                    a_p().with_child(
+                        an_r().with_child(
+                            a_t().with_text(text)))))
+            .xml()
+        )
+        return cell, text, tc_with_text_xml
 
 
 class Test_Cell(TestCase):
-    """Test _Cell"""
+
     def setUp(self):
         tc_xml = '<a:tc %s><a:txBody><a:p/></a:txBody></a:tc>' % nsdecls('a')
         test_tc_elm = parse_xml_bytes(tc_xml)
         self.cell = _Cell(test_tc_elm, None)
-
-    def test_text_round_trips_intact(self):
-        """_Cell.text (setter) sets cell text"""
-        # setup ------------------------
-        test_text = 'test_text'
-        # exercise ---------------------
-        self.cell.text = test_text
-        # verify -----------------------
-        text = self.cell.textframe.paragraphs[0].runs[0].text
-        assert_that(text, is_(equal_to(test_text)))
 
     def test_margin_values(self):
         """_Cell.margin_x values are calculated correctly"""

@@ -10,6 +10,8 @@ from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import nsdecls
 from pptx.shapes.table import _Cell
 
+from ...unitdata import BaseBuilder
+
 
 class CT_TableBuilder(object):
     """Test data builder for CT_Table (tbl) XML element"""
@@ -60,9 +62,28 @@ class CT_TableBuilder(object):
         return self
 
 
+class CT_TableCellBuilder(BaseBuilder):
+    __tag__ = 'a:tc'
+    __nspfxs__ = ('a',)
+    __attrs__ = ('rowSpan', 'gridSpan', 'hMerge', 'vMerge', 'id')
+
+
+class CT_TextBodyBuilder(BaseBuilder):
+    __tag__ = 'a:txBody'
+    __nspfxs__ = ('a',)
+    __attrs__ = ()
+
+
 def a_tbl():
-    """Syntactic sugar to construct a CT_TableBuilder"""
     return CT_TableBuilder()
+
+
+def a_tc():
+    return CT_TableCellBuilder()
+
+
+def a_txBody():
+    return CT_TextBodyBuilder()
 
 
 class _TestTableXml(object):

@@ -5,7 +5,6 @@ Table-related objects such as Table and Cell.
 """
 
 from pptx.constants import MSO
-from pptx.oxml.core import child
 from pptx.oxml.ns import qn
 from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
@@ -243,9 +242,7 @@ class _Cell(Subshape):
         """
         |TextFrame| instance containing the text that appears in the cell.
         """
-        txBody = child(self._tc, 'a:txBody')
-        if txBody is None:
-            raise ValueError('cell has no text frame')
+        txBody = self._tc.get_or_add_txBody()
         return TextFrame(txBody, self)
 
     def _get_vertical_anchor(self):
