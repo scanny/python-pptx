@@ -16,7 +16,7 @@ from pptx.shapes.table import (
 )
 from pptx.util import Inches
 
-from ..oxml.unitdata.table import a_tc, a_txBody, test_table_objects
+from ..oxml.unitdata.table import a_tc, a_tcPr, a_txBody, test_table_objects
 from ..oxml.unitdata.text import a_bodyPr, a_p, an_r, a_t
 from ..oxml.unitdata.autoshape import test_shapes
 from ..unitutil import actual_xml, TestCase
@@ -29,7 +29,38 @@ class Describe_Cell(object):
         cell.text = text
         assert actual_xml(cell._tc) == tc_with_text_xml
 
+    def it_knows_its_margin_settings(self, cell_margin_fixture):
+        cell, margin_left, margin_right, margin_top, margin_bottom = (
+            cell_margin_fixture
+        )
+        assert cell.margin_left == margin_left
+        assert cell.margin_right == margin_right
+        assert cell.margin_top == margin_top
+        assert cell.margin_bottom == margin_bottom
+
     # fixture --------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ((None, None, None, None), (91440, 91440, 45720, 45720)),
+        ((1234, 2345, 3456, None), (1234,  2345,  3456,  45720)),
+        ((2345, None, 3456, 1234), (2345,  91440, 3456,  1234)),
+    ])
+    def cell_margin_fixture(self, request):
+        mar_vals, expected_vals = request.param
+        marL, marR, marT, marB = mar_vals
+        margin_left, margin_right, margin_top, margin_bottom = expected_vals
+        tcPr_bldr = a_tcPr()
+        if marL is not None:
+            tcPr_bldr.with_marL(marL)
+        if marR is not None:
+            tcPr_bldr.with_marR(marR)
+        if marT is not None:
+            tcPr_bldr.with_marT(marT)
+        if marB is not None:
+            tcPr_bldr.with_marB(marB)
+        tc = a_tc().with_nsdecls().with_child(tcPr_bldr).element
+        cell = _Cell(tc, None)
+        return cell, margin_left, margin_right, margin_top, margin_bottom
 
     @pytest.fixture
     def set_cell_text_fixture(self):
@@ -54,33 +85,6 @@ class Test_Cell(TestCase):
         tc_xml = '<a:tc %s><a:txBody><a:p/></a:txBody></a:tc>' % nsdecls('a')
         test_tc_elm = parse_xml_bytes(tc_xml)
         self.cell = _Cell(test_tc_elm, None)
-
-    def test_margin_values(self):
-        """_Cell.margin_x values are calculated correctly"""
-        # mockery ----------------------
-        marT_val, marR_val, marB_val, marL_val = 12, 34, 56, 78
-        # -- CT_TableCell
-        tc = MagicMock()
-        marT = type(tc).marT = PropertyMock(return_value=marT_val)
-        marR = type(tc).marR = PropertyMock(return_value=marR_val)
-        marB = type(tc).marB = PropertyMock(return_value=marB_val)
-        marL = type(tc).marL = PropertyMock(return_value=marL_val)
-        # setup ------------------------
-        cell = _Cell(tc, None)
-        # exercise ---------------------
-        margin_top = cell.margin_top
-        margin_right = cell.margin_right
-        margin_bottom = cell.margin_bottom
-        margin_left = cell.margin_left
-        # verify -----------------------
-        marT.assert_called_once_with()
-        marR.assert_called_once_with()
-        marB.assert_called_once_with()
-        marL.assert_called_once_with()
-        assert_that(margin_top, is_(equal_to(marT_val)))
-        assert_that(margin_right, is_(equal_to(marR_val)))
-        assert_that(margin_bottom, is_(equal_to(marB_val)))
-        assert_that(margin_left, is_(equal_to(marL_val)))
 
     def test_margin_assignment(self):
         """Assignment to _Cell.margin_x sets value"""

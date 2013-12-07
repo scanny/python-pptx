@@ -68,6 +68,15 @@ class CT_TableCellBuilder(BaseBuilder):
     __attrs__ = ('rowSpan', 'gridSpan', 'hMerge', 'vMerge', 'id')
 
 
+class CT_TableCellPropertiesBuilder(BaseBuilder):
+    __tag__ = 'a:tcPr'
+    __nspfxs__ = ('a',)
+    __attrs__ = (
+        'marL', 'marR', 'marT', 'marB', 'vert', 'anchor', 'anchorCtr',
+        'horzOverflow'
+    )
+
+
 class CT_TextBodyBuilder(BaseBuilder):
     __tag__ = 'a:txBody'
     __nspfxs__ = ('a',)
@@ -80,6 +89,10 @@ def a_tbl():
 
 def a_tc():
     return CT_TableCellBuilder()
+
+
+def a_tcPr():
+    return CT_TableCellPropertiesBuilder()
 
 
 def a_txBody():
