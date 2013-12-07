@@ -11,6 +11,7 @@ from hamcrest import assert_that, equal_to, has_item, is_
 
 from pptx import Presentation
 from pptx.constants import MSO
+from pptx.dml.color import RGBColor
 from pptx.util import Inches
 
 from .helpers import saved_pptx_path
@@ -30,8 +31,8 @@ def step_given_ref_to_table(context):
     context.tbl = shapes.add_table(2, 2, x, y, cx, cy)
 
 
-@given('I have a reference to a table cell')
-def step_given_ref_to_table_cell(context):
+@given('a table cell')
+def given_a_table_cell(context):
     context.prs = Presentation()
     slidelayout = context.prs.slidelayouts[6]
     sld = context.prs.slides.add_slide(slidelayout)
@@ -49,6 +50,16 @@ def step_when_add_table(context):
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(1.00))
     shapes.add_table(2, 2, x, y, cx, cy)
+
+
+@when("I set the cell fill foreground color to an RGB value")
+def when_set_cell_fore_color_to_RGB_value(context):
+    context.cell.fill.fore_color.rgb = RGBColor(0x23, 0x45, 0x67)
+
+
+@when("I set the cell fill type to solid")
+def when_set_cell_fill_type_to_solid(context):
+    context.cell.fill.solid()
 
 
 @when("I set the cell margins")
@@ -143,6 +154,11 @@ def step_then_first_column_of_table_has_special_formatting(context):
 def step_then_first_row_of_table_has_special_formatting(context):
     tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
     assert_that(tbl.first_row, is_(True))
+
+
+@then('the foreground color of the cell is the RGB value I set')
+def then_cell_fore_color_is_RGB_value_I_set(context):
+    assert context.cell.fill.fore_color.rgb == RGBColor(0x23, 0x45, 0x67)
 
 
 @then('the last column of the table has special formatting')
