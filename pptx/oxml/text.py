@@ -201,6 +201,22 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
 
         return hlinkClick
 
+    def get_or_change_to_noFill(self):
+        """
+        Return the <a:noFill> child element, replacing any other fill
+        element if found, e.g. a <a:gradFill> element.
+        """
+        # return existing one if there is one
+        if self.noFill is not None:
+            return self.noFill
+        # get rid of other fill element type if there is one
+        self._remove_if_present(
+            'a:blipFill', 'a:gradFill', 'a:grpFill', 'a:pattFill',
+            'a:solidFill'
+        )
+        # add noFill element in right sequence
+        return self._add_noFill()
+
     def get_or_change_to_solidFill(self):
         """
         Return the <a:solidFill> child element, replacing any other fill
@@ -210,12 +226,18 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         if self.solidFill is not None:
             return self.solidFill
         # get rid of other fill element type if there is one
-        other_fill_tagnames = (
-            'a:noFill', 'a:gradFill', 'a:blipFill', 'a:pattFill', 'a:grpFill'
+        self._remove_if_present(
+            'a:blipFill', 'a:gradFill', 'a:grpFill', 'a:noFill', 'a:pattFill'
         )
-        self._remove_if_present(other_fill_tagnames)
         # add solidFill element in right sequence
         return self._add_solidFill()
+
+    @property
+    def noFill(self):
+        """
+        The <a:noFill> child element, or None if not present.
+        """
+        return self.find(qn('a:noFill'))
 
     @property
     def solidFill(self):
@@ -223,6 +245,19 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         The <a:solidFill> child element, or None if not present.
         """
         return self.find(qn('a:solidFill'))
+
+    def _add_noFill(self):
+        """
+        Return a newly added <a:noFill> child element, assuming no other fill
+        EG_FillProperties element is present.
+        """
+        noFill = Element('a:noFill')
+        ln = self.find(qn('a:ln'))
+        if ln is not None:
+            self.insert(1, noFill)
+        else:
+            self.insert(0, noFill)
+        return noFill
 
     def _add_solidFill(self):
         """
@@ -269,7 +304,7 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
             return True
         return False
 
-    def _remove_if_present(self, tagnames):
+    def _remove_if_present(self, *tagnames):
         for tagname in tagnames:
             element = self.find(qn(tagname))
             if element is not None:

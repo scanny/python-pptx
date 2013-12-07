@@ -43,6 +43,14 @@ class BaseBuilder(object):
             tmpl = "'%s' object has no attribute '%s'"
             raise AttributeError(tmpl % (self.__class__.__name__, name))
 
+    def clear(self):
+        """
+        Reset this builder back to initial state so it can be reused within
+        a single test.
+        """
+        BaseBuilder.__init__(self)
+        return self
+
     @property
     def element(self):
         """

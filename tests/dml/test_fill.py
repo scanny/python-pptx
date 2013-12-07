@@ -16,159 +16,152 @@ from ..oxml.unitdata.dml import (
     a_blipFill, a_gradFill, a_grpFill, a_noFill, a_pattFill, a_solidFill,
     an_spPr
 )
+from ..oxml.unitdata.text import an_rPr
 from ..unitutil import actual_xml
 
 
 class DescribeFillFormat(object):
 
     def it_can_set_the_fill_type_to_no_fill(self, set_noFill_fixture_):
-        fill, spPr_with_noFill_xml = set_noFill_fixture_
-        fill.background()
-        assert actual_xml(fill._xPr) == spPr_with_noFill_xml
+        fill_format, xPr_with_noFill_xml = set_noFill_fixture_
+        fill_format.background()
+        assert actual_xml(fill_format._xPr) == xPr_with_noFill_xml
 
     def it_can_set_the_fill_type_to_solid(self, set_solid_fixture_):
-        fill, spPr_with_solidFill_xml = set_solid_fixture_
-        fill.solid()
-        assert actual_xml(fill._xPr) == spPr_with_solidFill_xml
+        fill_format, xPr_with_solidFill_xml = set_solid_fixture_
+        fill_format.solid()
+        assert actual_xml(fill_format._xPr) == xPr_with_solidFill_xml
 
-    def it_knows_the_type_of_fill_it_is(self, fill_type_fixture_):
-        fill_format, fill_type = fill_type_fixture_
-        print(actual_xml(fill_format._xPr))
+    def it_knows_the_type_of_fill_it_is(self, xPr_bldr, fill_type_fixture_):
+        # fixture ----------------------
+        xFill_bldr, fill_type = fill_type_fixture_
+        if xFill_bldr is not None:
+            xPr_bldr.with_child(xFill_bldr)
+        xPr = xPr_bldr.element
+        fill_format = FillFormat.from_fill_parent(xPr)
+        # verify -----------------------
         assert fill_format.type == fill_type
 
     def it_provides_access_to_the_foreground_color_object(
-            self, fore_color_fixture_):
-        fill_format, fore_color_type = fore_color_fixture_
-        print(actual_xml(fill_format._xPr))
+            self, xPr_bldr, fore_color_fixture_):
+        # fixture ----------------------
+        xFill_bldr, fore_color_type = fore_color_fixture_
+        if xFill_bldr is not None:
+            xPr_bldr.with_child(xFill_bldr)
+        xPr = xPr_bldr.element
+        fill_format = FillFormat.from_fill_parent(xPr)
+        # verify -----------------------
         assert isinstance(fill_format.fore_color, fore_color_type)
 
     def it_raises_on_fore_color_get_for_fill_types_that_dont_have_one(
-            self, fore_color_raise_fixture_):
-        fill_format, exception_type = fore_color_raise_fixture_
+            self, xPr_bldr, fore_color_raise_fixture_):
+        # fixture ----------------------
+        xFill_bldr, exception_type = fore_color_raise_fixture_
+        if xFill_bldr is not None:
+            xPr_bldr.with_child(xFill_bldr)
+        xPr = xPr_bldr.element
+        fill_format = FillFormat.from_fill_parent(xPr)
+        # verify -----------------------
         with pytest.raises(exception_type):
             fill_format.fore_color
 
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        'none', 'no', 'solid', 'grad', 'blip', 'patt', 'grp'
+        'none', 'blip', 'grad', 'grp', 'no', 'patt', 'solid'
     ])
     def fill_type_fixture_(self, request):
         mapping = {
-            'none':  ('_spPr_bldr',                None),
-            'grad':  ('_spPr_with_gradFill_bldr',  MSO_FILL.GRADIENT),
-            'solid': ('_spPr_with_solidFill_bldr', MSO_FILL.SOLID),
-            'no':    ('_spPr_with_noFill_bldr',    MSO_FILL.BACKGROUND),
-            'blip':  ('_spPr_with_blipFill_bldr',  MSO_FILL.PICTURE),
-            'patt':  ('_spPr_with_pattFill_bldr',  MSO_FILL.PATTERNED),
-            'grp':   ('_spPr_with_grpFill_bldr',   MSO_FILL.GROUP),
+            'none':  None,
+            'blip':  MSO_FILL.PICTURE,
+            'grad':  MSO_FILL.GRADIENT,
+            'grp':   MSO_FILL.GROUP,
+            'no':    MSO_FILL.BACKGROUND,
+            'patt':  MSO_FILL.PATTERNED,
+            'solid': MSO_FILL.SOLID,
         }
-        spPr_bldr_name, fill_type = mapping[request.param]
-        spPr_bldr = request.getfuncargvalue(spPr_bldr_name)
-        spPr = spPr_bldr.element
-        fill_format = FillFormat.from_fill_parent(spPr)
-        return fill_format, fill_type
+        fill_type = mapping[request.param]
+        xFill_bldr = request.getfuncargvalue('xFill_bldr')
+        return xFill_bldr, fill_type
 
     @pytest.fixture(params=['solid'])
     def fore_color_fixture_(self, request):
         mapping = {
-            'solid': ('_spPr_with_solidFill_bldr', ColorFormat),
+            'solid': ColorFormat,
         }
-        spPr_bldr_name, fore_color_type = mapping[request.param]
-        spPr_bldr = request.getfuncargvalue(spPr_bldr_name)
-        spPr = spPr_bldr.element
-        fill_format = FillFormat.from_fill_parent(spPr)
-        return fill_format, fore_color_type
+        fore_color_type = mapping[request.param]
+        xFill_bldr = request.getfuncargvalue('xFill_bldr')
+        return xFill_bldr, fore_color_type
 
-    @pytest.fixture(params=['none', 'blip', 'grad', 'grp', 'patt'])
+    @pytest.fixture(params=['none', 'blip', 'grad', 'grp', 'no', 'patt'])
     def fore_color_raise_fixture_(self, request):
         mapping = {
-            'none':  ('_spPr_bldr',                TypeError),
-            'blip':  ('_spPr_with_blipFill_bldr',  TypeError),
-            'grad':  ('_spPr_with_gradFill_bldr',  NotImplementedError),
-            'grp':   ('_spPr_with_grpFill_bldr',   TypeError),
-            'patt':  ('_spPr_with_pattFill_bldr',  NotImplementedError),
+            'none':  TypeError,
+            'blip':  TypeError,
+            'grad':  NotImplementedError,
+            'grp':   TypeError,
+            'no':    TypeError,
+            'patt':  NotImplementedError,
         }
-        spPr_bldr_name, exception_type = mapping[request.param]
-        spPr_bldr = request.getfuncargvalue(spPr_bldr_name)
-        spPr = spPr_bldr.element
-        fill_format = FillFormat.from_fill_parent(spPr)
-        return fill_format, exception_type
+        exception_type = mapping[request.param]
+        xFill_bldr = request.getfuncargvalue('xFill_bldr')
+        return xFill_bldr, exception_type
 
-    @pytest.fixture(params=['none', 'blip', 'grad', 'grp', 'patt', 'solid'])
-    def set_noFill_fixture_(self, request, _spPr_with_noFill_bldr):
+    @pytest.fixture(
+        params=['none', 'blip', 'grad', 'grp', 'no', 'patt', 'solid']
+    )
+    def set_noFill_fixture_(self, request, xPr_bldr):
+        xFill_bldr = request.getfuncargvalue('xFill_bldr')
+        if xFill_bldr is not None:
+            xPr_bldr.with_child(xFill_bldr)
+        xPr = xPr_bldr.element
+        fill_format = FillFormat.from_fill_parent(xPr)
+        xPr_with_noFill_xml = (
+            xPr_bldr.clear()
+                    .with_nsdecls()
+                    .with_child(a_noFill())
+                    .xml()
+        )
+        return fill_format, xPr_with_noFill_xml
+
+    @pytest.fixture(
+        params=['none', 'blip', 'grad', 'grp', 'no', 'patt', 'solid']
+    )
+    def set_solid_fixture_(self, request, xPr_bldr):
+        xFill_bldr = request.getfuncargvalue('xFill_bldr')
+        if xFill_bldr is not None:
+            xPr_bldr.with_child(xFill_bldr)
+        xPr = xPr_bldr.element
+        fill_format = FillFormat.from_fill_parent(xPr)
+        xPr_with_solidFill_xml = (
+            xPr_bldr.clear()
+                    .with_nsdecls()
+                    .with_child(a_solidFill())
+                    .xml()
+        )
+        return fill_format, xPr_with_solidFill_xml
+
+    @pytest.fixture
+    def xFill_bldr(self, request):
         mapping = {
             'none':  None,
             'blip':  a_blipFill,
             'grad':  a_gradFill,
             'grp':   a_grpFill,
+            'no':    a_noFill,
             'solid': a_solidFill,
             'patt':  a_pattFill,
         }
         xFill_bldr_fn = mapping[request.param]
-        spPr_bldr = an_spPr().with_nsdecls()
         if xFill_bldr_fn is not None:
-            spPr_bldr.with_child(xFill_bldr_fn())
-        spPr = spPr_bldr.element
-        fill_format = FillFormat.from_fill_parent(spPr)
-        spPr_with_noFill_xml = _spPr_with_noFill_bldr.xml()
-        return fill_format, spPr_with_noFill_xml
+            return xFill_bldr_fn()
+        return None
 
-    def _solid_fill_cases():
-        # no fill type yet
-        spPr = an_spPr().with_nsdecls().element
-        # non-solid fill type present
-        spPr_with_gradFill = (
-            an_spPr().with_nsdecls()
-                     .with_child(a_gradFill())
-                     .element
-        )
-        # solidFill already present
-        spPr_with_solidFill = (
-            an_spPr().with_nsdecls()
-                     .with_child(a_solidFill())
-                     .element
-        )
-        return [spPr, spPr_with_gradFill, spPr_with_solidFill]
-
-    @pytest.fixture(params=_solid_fill_cases())
-    def set_solid_fixture_(self, request, spPr_with_solidFill_xml):
-        spPr = request.param
-        fill = FillFormat.from_fill_parent(spPr)
-        return fill, spPr_with_solidFill_xml
-
-    @pytest.fixture
-    def spPr_with_solidFill_xml(self):
-        return (
-            an_spPr().with_nsdecls()
-                     .with_child(a_solidFill())
-                     .xml()
-        )
-
-    @pytest.fixture
-    def _spPr_bldr(self, request):
-        return an_spPr().with_nsdecls()
-
-    @pytest.fixture
-    def _spPr_with_noFill_bldr(self, request):
-        return an_spPr().with_nsdecls().with_child(a_noFill())
-
-    @pytest.fixture
-    def _spPr_with_solidFill_bldr(self, request):
-        return an_spPr().with_nsdecls().with_child(a_solidFill())
-
-    @pytest.fixture
-    def _spPr_with_gradFill_bldr(self, request):
-        return an_spPr().with_nsdecls().with_child(a_gradFill())
-
-    @pytest.fixture
-    def _spPr_with_blipFill_bldr(self, request):
-        return an_spPr().with_nsdecls().with_child(a_blipFill())
-
-    @pytest.fixture
-    def _spPr_with_pattFill_bldr(self, request):
-        return an_spPr().with_nsdecls().with_child(a_pattFill())
-
-    @pytest.fixture
-    def _spPr_with_grpFill_bldr(self, request):
-        return an_spPr().with_nsdecls().with_child(a_grpFill())
+    @pytest.fixture(params=['rPr', 'spPr'])
+    def xPr_bldr(self, request):
+        mapping = {
+            'rPr':  an_rPr,
+            'spPr': an_spPr,
+        }
+        xPr_bldr_fn = mapping[request.param]
+        return xPr_bldr_fn().with_nsdecls()
