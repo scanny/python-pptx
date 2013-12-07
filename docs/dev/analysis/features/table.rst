@@ -1,14 +1,10 @@
-#####
+
 Table
-#####
-
-:Updated:  2013-03-30
-:Author:   Steve Canny
-:Status:   **WORKING DRAFT**
+=====
 
 
-Introduction
-============
+Overview
+--------
 
 One of the shapes available for placing on a PowerPoint slide is the *table*.
 As shapes go, it is one of the more complex. In addition to having standard
@@ -18,7 +14,7 @@ sub-element types are row, column, and cell.
 
 
 Open questions
-==============
+--------------
 
 * not sure of the semantics of the ``<a:tableStyleId>`` element. Assuming the
   GUID it contains somehow maps to a style in the tableStyles.xml, or perhaps
@@ -31,10 +27,7 @@ Open questions
 
 
 Table Properties
-================
-
-Boolean properties
-------------------
+----------------
 
 ``first_row``
    read/write boolean property which, when true, indicates the first row should
@@ -136,10 +129,10 @@ References
 
 
 API requirements
-================
+----------------
 
 |Table| class
--------------
+~~~~~~~~~~~~~
 
 Properties and methods required for a |Table| shape.
 
@@ -178,7 +171,7 @@ Properties and methods required for a |Table| shape.
 
 
 |_Cell| class
--------------
+~~~~~~~~~~~~~
 
 * ``textframe`` -- container for text in the cell.
 * borders, something like LineProperties on each side
@@ -189,7 +182,7 @@ Properties and methods required for a |Table| shape.
 
 
 |_Column| class
----------------
+~~~~~~~~~~~~~~~
 
 Provide the properties and methods appropriate to a table column.
 
@@ -198,7 +191,7 @@ Provide the properties and methods appropriate to a table column.
 
 
 |_ColumnCollection| class
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * ``add(before)`` -- add a new column to the left of the column having index
   *before*, returning a reference to the new column. *before* defaults to
@@ -206,14 +199,14 @@ Provide the properties and methods appropriate to a table column.
 
 
 |_Row| class
-------------
+~~~~~~~~~~~~
 
 * ``height`` -- read/write integer height of the row in English Metric Units
   (EMU).
 
 
 |_RowCollection| class
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 * ``add(before)`` -- add a new row before the row having index *before*,
   returning a reference to the new row. *before* defaults to ``-1``, which adds
@@ -221,10 +214,10 @@ Provide the properties and methods appropriate to a table column.
 
 
 Behavior
-========
+--------
 
 Table width and column widths
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A table is created by specifying a row and column count, a position, and an
 overall size. Initial column widths are set by dividing the overall width by
@@ -236,7 +229,7 @@ specified.
 
 
 Discovery protocol
-==================
+------------------
 
 * (/) Review MS API documentation
 * (/) Inspect minimal XML produced by PowerPoint® client
@@ -244,7 +237,7 @@ Discovery protocol
 
 
 MS API Analysis
-===============
+---------------
 
 MS API method to add a table is::
 
@@ -287,10 +280,10 @@ Columns collection and Rows collection both have an Add() method
 
 
 XML produced by PowerPoint® application
-=======================================
+---------------------------------------
 
 Inspection Notes
-----------------
+~~~~~~~~~~~~~~~~
 
 A ``tableStyles.xml`` part is fleshed out substantially; looks like it's
 populated from built-in defaults "Medium Style 2 - Accent 1". It appears to
@@ -298,7 +291,7 @@ specify colors indirectly by reference to theme-specified values.
 
 
 XML produced by PowerPoint® client
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. highlight:: xml
 

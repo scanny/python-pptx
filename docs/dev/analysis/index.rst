@@ -14,6 +14,7 @@ Feature Analysis
    features/hyperlink
    features/shape-fill
    features/color
+   features/table
 
 
 Object Analysis
@@ -33,7 +34,6 @@ MSDN documentation, the ISO/IEC 29500 spec, and other available sources.
    objects/picture
    objects/placeholder
    objects/shape
-   objects/table
    objects/textframe
 
 
