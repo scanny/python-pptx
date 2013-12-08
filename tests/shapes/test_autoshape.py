@@ -346,6 +346,14 @@ class DescribeShape(object):
         assert shape.width == width
         assert shape.height == height
 
+    def it_can_change_its_position(self, position_set_fixture):
+        shape, left, top, xfrm_xml = position_set_fixture
+        shape.left = left
+        shape.top = top
+        assert actual_xml(shape._sp.spPr.xfrm) == xfrm_xml
+
+    # def it_can_change_its_dimensions(self):
+
     def it_knows_its_shape_type_when_its_a_placeholder(
             self, placeholder_shape_):
         assert placeholder_shape_.shape_type == MSO.PLACEHOLDER
@@ -434,6 +442,19 @@ class DescribeShape(object):
         return placeholder_shape_
 
     @pytest.fixture
+    def position_set_fixture(self):
+        sp = an_sp().with_nsdecls().with_child(an_spPr()).element
+        shape = Shape(sp, None)
+        left, top = 434, 343
+        xfrm_xml = (
+            an_xfrm().with_nsdecls('a', 'p')
+                     .with_child(
+                         an_off().with_x(left).with_y(top))
+                     .xml()
+        )
+        return shape, left, top, xfrm_xml
+
+    @pytest.fixture
     def prst(self):
         return 'foobar'
 
@@ -452,7 +473,6 @@ class DescribeShape(object):
                         an_ext().with_cx(width).with_cy(height))))
             .element
         )
-        print(actual_xml(sp))
         shape = Shape(sp, None)
         return shape, width, height
 
@@ -466,7 +486,6 @@ class DescribeShape(object):
                         an_off().with_x(left).with_y(top))))
             .element
         )
-        print(actual_xml(sp))
         shape = Shape(sp, None)
         return shape, left, top
 

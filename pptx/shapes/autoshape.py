@@ -313,17 +313,22 @@ class Shape(BaseShape):
 
     @property
     def height(self):
-        spPr = self._sp.spPr
-        xfrm = spPr.get_or_add_xfrm()
-        ext = xfrm.get_or_add_ext()
-        return ext.cy
+        """
+        Distance between top and bottom extents of shape in integer EMUs.
+        """
+        return self._ext.cy
 
     @property
     def left(self):
-        spPr = self._sp.spPr
-        xfrm = spPr.get_or_add_xfrm()
-        off = xfrm.get_or_add_off()
-        return off.x
+        """
+        Distance between left edge of slide and left edge of this shape, in
+        EMU.
+        """
+        return self._off.x
+
+    @left.setter
+    def left(self, value):
+        self._off.x = value
 
     @property
     def shape_type(self):
@@ -342,14 +347,36 @@ class Shape(BaseShape):
 
     @property
     def top(self):
-        spPr = self._sp.spPr
-        xfrm = spPr.get_or_add_xfrm()
-        off = xfrm.get_or_add_off()
-        return off.y
+        """
+        Distance between top of slide and top edge of this shape, in EMU.
+        """
+        return self._off.y
+
+    @top.setter
+    def top(self, value):
+        self._off.y = value
 
     @property
     def width(self):
+        """
+        Distance between left and right extents of shape in integer EMUs.
+        """
+        return self._ext.cx
+
+    @property
+    def _ext(self):
+        """
+        Get or add sp.spPr.xfrm.ext element
+        """
         spPr = self._sp.spPr
         xfrm = spPr.get_or_add_xfrm()
-        ext = xfrm.get_or_add_ext()
-        return ext.cx
+        return xfrm.get_or_add_ext()
+
+    @property
+    def _off(self):
+        """
+        Get or add sp.spPr.xfrm.off element
+        """
+        spPr = self._sp.spPr
+        xfrm = spPr.get_or_add_xfrm()
+        return xfrm.get_or_add_off()

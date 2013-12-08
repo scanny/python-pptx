@@ -3,7 +3,6 @@ Feature: Query and change shape position and size
   As a developer using python-pptx
   I need to get and set the position and size of a shape
 
-  @wip
   Scenario: get position and size of existing shape
      Given a shape of known position and size
       Then the position and size of the shape matches the known values
