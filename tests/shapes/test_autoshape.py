@@ -15,7 +15,7 @@ from pptx.oxml import parse_xml_bytes
 from pptx.oxml.autoshape import CT_PresetGeometry2D, CT_Shape
 
 from ..oxml.unitdata.autoshape import (
-    a_gd, a_prstGeom, an_avLst, an_off, an_sp, an_spPr, an_xfrm
+    a_gd, a_prstGeom, an_avLst, an_ext, an_off, an_sp, an_spPr, an_xfrm
 )
 from ..unitutil import (
     actual_xml, class_mock, instance_mock, loose_mock, property_mock
@@ -341,6 +341,11 @@ class DescribeShape(object):
         assert shape.left == left
         assert shape.top == top
 
+    def it_has_dimensions(self, shape_with_dimensions):
+        shape, width, height = shape_with_dimensions
+        assert shape.width == width
+        assert shape.height == height
+
     def it_knows_its_shape_type_when_its_a_placeholder(
             self, placeholder_shape_):
         assert placeholder_shape_.shape_type == MSO.PLACEHOLDER
@@ -436,6 +441,20 @@ class DescribeShape(object):
     def shape(self, request):
         sp = loose_mock(request, name='sp')
         return Shape(sp, None)
+
+    @pytest.fixture
+    def shape_with_dimensions(self):
+        width, height = 321, 654
+        sp = (
+            an_sp().with_nsdecls().with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_ext().with_cx(width).with_cy(height))))
+            .element
+        )
+        print(actual_xml(sp))
+        shape = Shape(sp, None)
+        return shape, width, height
 
     @pytest.fixture
     def shape_with_position(self):

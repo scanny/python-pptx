@@ -312,6 +312,13 @@ class Shape(BaseShape):
         return FillFormat.from_fill_parent(self._sp.spPr)
 
     @property
+    def height(self):
+        spPr = self._sp.spPr
+        xfrm = spPr.get_or_add_xfrm()
+        ext = xfrm.get_or_add_ext()
+        return ext.cy
+
+    @property
     def left(self):
         spPr = self._sp.spPr
         xfrm = spPr.get_or_add_xfrm()
@@ -339,3 +346,10 @@ class Shape(BaseShape):
         xfrm = spPr.get_or_add_xfrm()
         off = xfrm.get_or_add_off()
         return off.y
+
+    @property
+    def width(self):
+        spPr = self._sp.spPr
+        xfrm = spPr.get_or_add_xfrm()
+        ext = xfrm.get_or_add_ext()
+        return ext.cx

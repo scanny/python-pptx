@@ -39,6 +39,27 @@ class CT_Point2D(objectify.ObjectifiedElement):
         return int(y_str)
 
 
+class CT_PositiveSize2D(objectify.ObjectifiedElement):
+    """
+    Custom element class for <a:ext> element.
+    """
+    @property
+    def cx(self):
+        """
+        Integer value of required ``cx`` attribute.
+        """
+        cx_str = self.get('cx')
+        return int(cx_str)
+
+    @property
+    def cy(self):
+        """
+        Integer value of required ``cy`` attribute.
+        """
+        cy_str = self.get('cy')
+        return int(cy_str)
+
+
 class CT_PresetGeometry2D(objectify.ObjectifiedElement):
     """<a:prstGeom> custom element class"""
     @property
@@ -405,6 +426,26 @@ class CT_Transform2D(objectify.ObjectifiedElement):
     """
     Custom element class for <a:xfrm> element.
     """
+    @property
+    def ext(self):
+        """
+        The <a:ext> child element, or None if not present.
+        """
+        return self.find(qn('a:ext'))
+
+    def get_or_add_ext(self):
+        """
+        Return the <a:ext> child element, newly added if not already
+        present.
+        """
+        ext = self.ext
+        if ext is None:
+            ext = Element('a:ext')
+            ext.set('cx', '0')
+            ext.set('cy', '0')
+            self.append(ext)
+        return ext
+
     def get_or_add_off(self):
         """
         Return the <a:off> child element, newly added if not already
@@ -412,7 +453,9 @@ class CT_Transform2D(objectify.ObjectifiedElement):
         """
         off = self.off
         if off is None:
-            off = Element('a:off', x=0, y=0)
+            off = Element('a:off')
+            off.set('x', '0')
+            off.set('y', '0')
             self.insert(0, off)
         return off
 
