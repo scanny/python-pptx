@@ -16,7 +16,7 @@ from pptx.shapes.table import (
 )
 from pptx.util import Inches
 
-from ..oxml.unitdata.table import a_tc, a_tcPr, a_txBody, test_table_objects
+from ..oxml.unitdata.table import a_tc, a_tcPr, a_txBody
 from ..oxml.unitdata.text import a_bodyPr, a_p, an_r, a_t
 from ..oxml.unitdata.autoshape import test_shapes
 from ..unitutil import actual_xml, TestCase
@@ -46,6 +46,12 @@ class Describe_Cell(object):
         cell.margin_bottom = marB
         assert actual_xml(cell._tc) == tc_with_marX_xml
 
+    def it_raises_on_margin_assigned_other_than_int_or_None(
+            self, margin_raises_fixture):
+        cell, margin_attr_name, val_of_invalid_type = margin_raises_fixture
+        with pytest.raises(TypeError):
+            setattr(cell, margin_attr_name, val_of_invalid_type)
+
     # fixture --------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -69,6 +75,16 @@ class Describe_Cell(object):
         tc = a_tc().with_nsdecls().with_child(tcPr_bldr).element
         cell = _Cell(tc, None)
         return cell, margin_left, margin_right, margin_top, margin_bottom
+
+    @pytest.fixture(params=[
+        'margin_left', 'margin_right', 'margin_top', 'margin_bottom'
+    ])
+    def margin_raises_fixture(self, request):
+        tc = a_tc().with_nsdecls().element
+        cell = _Cell(tc, None)
+        margin_attr_name = request.param
+        val_of_invalid_type = 'foobar'
+        return cell, margin_attr_name, val_of_invalid_type
 
     @pytest.fixture
     def set_cell_text_fixture(self):
@@ -121,21 +137,6 @@ class Describe_Cell(object):
 
 
 class Test_Cell(TestCase):
-
-    def test_margin_assignment_raises_on_not_int_or_none(self):
-        """Assignment to _Cell.margin_x raises for not (int or none)"""
-        # setup ------------------------
-        cell = test_table_objects.cell
-        bad_margin = 'foobar'
-        # verify -----------------------
-        with self.assertRaises(ValueError):
-            cell.margin_top = bad_margin
-        with self.assertRaises(ValueError):
-            cell.margin_right = bad_margin
-        with self.assertRaises(ValueError):
-            cell.margin_bottom = bad_margin
-        with self.assertRaises(ValueError):
-            cell.margin_left = bad_margin
 
     @patch('pptx.shapes.table.VerticalAnchor')
     def test_vertical_anchor_value(self, VerticalAnchor):

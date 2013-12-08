@@ -171,17 +171,6 @@ class _Cell(Subshape):
         super(_Cell, self).__init__(parent)
         self._tc = tc
 
-    @staticmethod
-    def _assert_valid_margin_value(margin_value):
-        """
-        Raise ValueError if *margin_value* is not a positive integer value or
-        |None|.
-        """
-        if (not isinstance(margin_value, (int, long))
-                and margin_value is not None):
-            tmpl = "margin value must be integer or None, got '%s'"
-            raise ValueError(tmpl % margin_value)
-
     @property
     def margin_top(self):
         """
@@ -208,22 +197,22 @@ class _Cell(Subshape):
 
     @margin_top.setter
     def margin_top(self, margin_top):
-        self._assert_valid_margin_value(margin_top)
+        self._validate_margin_value(margin_top)
         self._tc.marT = margin_top
 
     @margin_right.setter
     def margin_right(self, margin_right):
-        self._assert_valid_margin_value(margin_right)
+        self._validate_margin_value(margin_right)
         self._tc.marR = margin_right
 
     @margin_bottom.setter
     def margin_bottom(self, margin_bottom):
-        self._assert_valid_margin_value(margin_bottom)
+        self._validate_margin_value(margin_bottom)
         self._tc.marB = margin_bottom
 
     @margin_left.setter
     def margin_left(self, margin_left):
-        self._assert_valid_margin_value(margin_left)
+        self._validate_margin_value(margin_left)
         self._tc.marL = margin_left
 
     def _set_text(self, text):
@@ -244,6 +233,17 @@ class _Cell(Subshape):
         """
         txBody = self._tc.get_or_add_txBody()
         return TextFrame(txBody, self)
+
+    @staticmethod
+    def _validate_margin_value(margin_value):
+        """
+        Raise ValueError if *margin_value* is not a positive integer value or
+        |None|.
+        """
+        if (not isinstance(margin_value, (int, long))
+                and margin_value is not None):
+            tmpl = "margin value must be integer or None, got '%s'"
+            raise TypeError(tmpl % margin_value)
 
     def _get_vertical_anchor(self):
         """
