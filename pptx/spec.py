@@ -9,54 +9,9 @@ them.
 from __future__ import absolute_import
 
 from pptx.constants import (
-    MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP, TEXT_ALIGN_TYPE as TAT,
-    TEXT_ANCHORING_TYPE as TANC
+    MSO_AUTO_SHAPE_TYPE as MAST, PP, TEXT_ALIGN_TYPE as TAT
 )
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-
-
-class VerticalAnchor(object):
-    """
-    Mappings between ``MsoVerticalAnchor`` values used in the API and
-    ``ST_TextAnchoringType`` values used in the XML. ``MsoVerticalAnchor``
-    values are like ``MSO.ANCHOR_MIDDLE``.
-    """
-    _mapping = {
-        MSO.ANCHOR_TOP:    TANC.TOP,
-        MSO.ANCHOR_MIDDLE: TANC.MIDDLE,
-        MSO.ANCHOR_BOTTOM: TANC.BOTTOM
-    }
-
-    @classmethod
-    def from_text_anchoring_type(cls, text_anchoring_type):
-        """
-        Map an ``ST_TextAnchoringType`` value (e.g. ``TANC.TOP`` or
-        ``'t'``) to an MsoVerticalAnchor value (e.g. ``MSO.ANCHOR_TOP``).
-        Returns |None| if *text_anchoring_type* is |None|.
-        """
-        if text_anchoring_type is None:
-            return None
-        for vertical_anchor, tanc in cls._mapping.iteritems():
-            if tanc == text_anchoring_type:
-                return vertical_anchor
-        tmpl = "no vertical anchor type for ST_TextAnchoringType '%s'"
-        raise KeyError(tmpl % text_anchoring_type)
-
-    @classmethod
-    def to_text_anchoring_type(cls, vertical_anchor):
-        """
-        Map an ``MsoVerticalAnchor`` value (e.g. ``MSO.ANCHOR_MIDDLE``) to an
-        ``ST_TextAnchoringType`` value (e.g. ``TANC.MIDDLE`` or ``'ctr'``).
-        Returns None if *vertical_anchor* is None.
-        """
-        if vertical_anchor is None:
-            return None
-        try:
-            text_anchoring_type = cls._mapping[vertical_anchor]
-        except KeyError:
-            tmpl = "no ST_TextAnchoringType value for vertical_anchor '%s'"
-            raise KeyError(tmpl % vertical_anchor)
-        return text_anchoring_type
 
 
 class ParagraphAlignment(object):

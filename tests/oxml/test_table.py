@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 from hamcrest import assert_that, equal_to, is_
 
-from pptx.constants import TEXT_ANCHORING_TYPE as TANC
+from pptx.enum import MSO_ANCHOR
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.table import CT_Table
 
@@ -103,11 +103,10 @@ class TestCT_Table(TestCase):
 class TestCT_TableCell(TestCase):
     """Test CT_TableCell"""
     def test_anchor_property_value_is_correct(self):
-        """CT_TableCell.anchor property value is correct"""
         # setup ------------------------
         cases = (
             (test_table_elements.cell, None),
-            (test_table_elements.top_aligned_cell, TANC.TOP)
+            (test_table_elements.top_aligned_cell, MSO_ANCHOR.TOP)
         )
         # verify -----------------------
         for tc, expected_text_anchoring_type in cases:
@@ -119,11 +118,11 @@ class TestCT_TableCell(TestCase):
         # setup ------------------------
         cases = (
             # something => something else
-            (test_table_elements.top_aligned_cell, TANC.MIDDLE),
+            (test_table_elements.top_aligned_cell, MSO_ANCHOR.MIDDLE),
             # something => None
             (test_table_elements.top_aligned_cell, None),
             # None => something
-            (test_table_elements.cell, TANC.BOTTOM),
+            (test_table_elements.cell, MSO_ANCHOR.BOTTOM),
             # None => None
             (test_table_elements.cell, None)
         )
@@ -137,7 +136,7 @@ class TestCT_TableCell(TestCase):
         # setup ------------------------
         cases = (
             # None => something
-            (test_table_elements.cell, TANC.TOP,
+            (test_table_elements.cell, MSO_ANCHOR.TOP,
              test_table_xml.top_aligned_cell),
             # something => None
             (test_table_elements.top_aligned_cell, None,

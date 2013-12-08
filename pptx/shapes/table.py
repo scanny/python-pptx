@@ -8,7 +8,6 @@ from pptx.constants import MSO
 from pptx.oxml.ns import qn
 from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
-from pptx.spec import VerticalAnchor
 from pptx.text import TextFrame
 from pptx.util import to_unicode
 
@@ -215,8 +214,10 @@ class _Cell(Subshape):
         self._validate_margin_value(margin_left)
         self._tc.marL = margin_left
 
-    def _set_text(self, text):
-        """Replace all text in cell with single run containing *text*"""
+    def text(self, text):
+        """
+        Replace all text in cell with single run containing *text*
+        """
         self.textframe.text = to_unicode(text)
 
     #: Write-only. Assignment to *text* replaces all text currently contained
@@ -224,7 +225,7 @@ class _Cell(Subshape):
     #: paragraph, itself containing a single run. The assigned value can be a
     #: 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. String
     #: values are converted to unicode assuming UTF-8 encoding.
-    text = property(None, _set_text)
+    text = property(None, text)
 
     @property
     def textframe(self):
@@ -233,6 +234,26 @@ class _Cell(Subshape):
         """
         txBody = self._tc.get_or_add_txBody()
         return TextFrame(txBody, self)
+
+    @property
+    def vertical_anchor(self):
+        """
+        Vertical anchor of this table cell, determines the vertical alignment
+        of text in the cell. Value is like ``MSO.ANCHOR_MIDDLE``. Can be
+        |None|, meaning the cell has no vertical anchor setting and its
+        effective value is inherited from a higher-level object.
+        """
+        return self._tc.anchor
+
+    @vertical_anchor.setter
+    def vertical_anchor(self, mso_anchor_idx):
+        """
+        Set vertical_anchor of this cell to *vertical_anchor*, a constant
+        value like ``MSO_ANCHOR.MIDDLE``. If *vertical_anchor* is |None|, any
+        vertical anchor setting is cleared and its effective value is
+        inherited.
+        """
+        self._tc.anchor = mso_anchor_idx
 
     @staticmethod
     def _validate_margin_value(margin_value):
@@ -244,32 +265,6 @@ class _Cell(Subshape):
                 and margin_value is not None):
             tmpl = "margin value must be integer or None, got '%s'"
             raise TypeError(tmpl % margin_value)
-
-    def _get_vertical_anchor(self):
-        """
-        Return vertical anchor setting for this table cell, e.g.
-        ``MSO.ANCHOR_MIDDLE``. Can be |None|, meaning the cell has no
-        vertical anchor setting and its effective value is inherited from a
-        higher-level object.
-        """
-        anchor = self._tc.anchor
-        return VerticalAnchor.from_text_anchoring_type(anchor)
-
-    def _set_vertical_anchor(self, vertical_anchor):
-        """
-        Set vertical_anchor of this cell to *vertical_anchor*, a constant
-        value like ``MSO.ANCHOR_MIDDLE``. If *vertical_anchor* is |None|, any
-        vertical anchor setting is cleared and its effective value is
-        inherited.
-        """
-        anchor = VerticalAnchor.to_text_anchoring_type(vertical_anchor)
-        self._tc.anchor = anchor
-
-    #: Vertical anchor of this table cell, determines the vertical alignment
-    #: of text in the cell. Value is like ``MSO.ANCHOR_MIDDLE``. Can be
-    #: |None|, meaning the cell has no vertical anchor setting and its
-    #: effective value is inherited from a higher-level object.
-    vertical_anchor = property(_get_vertical_anchor, _set_vertical_anchor)
 
 
 class _Column(Subshape):

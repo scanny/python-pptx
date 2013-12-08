@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
+from pptx.enum import MSO_ANCHOR
 from pptx.oxml import parse_xml_bytes, XSD_TRUE
 from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsdecls, qn
@@ -162,7 +163,8 @@ class CT_TableCell(objectify.ObjectifiedElement):
         """
         if self.tcPr is None:
             return None
-        return self.tcPr.get('anchor')
+        anchor = self.tcPr.get('anchor')
+        return MSO_ANCHOR.from_xml(anchor)
 
     def get_or_add_tcPr(self):
         tcPr = self.tcPr
@@ -248,10 +250,11 @@ class CT_TableCell(objectify.ObjectifiedElement):
             return default
         return int(self.tcPr.get(attr_name, default))
 
-    def _set_anchor(self, anchor):
+    def _set_anchor(self, anchor_enum_idx):
         """
         Set value of anchor attribute on ``<a:tcPr>`` child element
         """
+        anchor = MSO_ANCHOR.to_xml(anchor_enum_idx)
         if anchor is None:
             return self._clear_anchor()
         tcPr = self.get_or_add_tcPr()

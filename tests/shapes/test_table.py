@@ -6,9 +6,10 @@ from __future__ import absolute_import
 
 import pytest
 
-from hamcrest import assert_that, equal_to, is_, same_instance
-from mock import MagicMock, Mock, patch, PropertyMock
+from hamcrest import assert_that, equal_to, is_
+from mock import MagicMock, Mock, PropertyMock
 
+from pptx.enum import MSO_ANCHOR
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import nsdecls
 from pptx.shapes.table import (
@@ -52,7 +53,27 @@ class Describe_Cell(object):
         with pytest.raises(TypeError):
             setattr(cell, margin_attr_name, val_of_invalid_type)
 
+    def it_knows_its_vertical_anchor_setting(self, anchor_get_fixture):
+        cell, vertical_anchor = anchor_get_fixture
+        assert cell.vertical_anchor == vertical_anchor
+
     # fixture --------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (None,  None),
+        ('t',   MSO_ANCHOR.TOP),
+        ('ctr', MSO_ANCHOR.MIDDLE),
+        ('b',   MSO_ANCHOR.BOTTOM),
+    ])
+    def anchor_get_fixture(self, request):
+        anchor, mso_anchor_idx = request.param
+        tc_bldr = a_tc().with_nsdecls()
+        if anchor is not None:
+            tcPr_bldr = a_tcPr().with_anchor(anchor)
+            tc_bldr.with_child(tcPr_bldr)
+        tc = tc_bldr.element
+        cell = _Cell(tc, None)
+        return cell, mso_anchor_idx
 
     @pytest.fixture(params=[
         ((None, None, None, None), (91440, 91440, 45720, 45720)),
@@ -136,50 +157,28 @@ class Describe_Cell(object):
         return cell, marL, marR, marT, marB, tc_with_marX_xml
 
 
-class Test_Cell(TestCase):
+# class Test_Cell(TestCase):
 
-    @patch('pptx.shapes.table.VerticalAnchor')
-    def test_vertical_anchor_value(self, VerticalAnchor):
-        """_Cell.vertical_anchor value is calculated correctly"""
-        # mockery ----------------------
-        # loose mocks
-        anchor_val = Mock(name='anchor_val')
-        vertical_anchor = Mock(name='vertical_anchor')
-        # CT_TableCell
-        tc = MagicMock()
-        anchor_prop = type(tc).anchor = PropertyMock(return_value=anchor_val)
-        # VerticalAnchor
-        from_text_anchoring_type = VerticalAnchor.from_text_anchoring_type
-        from_text_anchoring_type.return_value = vertical_anchor
-        # setup ------------------------
-        cell = _Cell(tc, None)
-        # exercise ---------------------
-        retval = cell.vertical_anchor
-        # verify -----------------------
-        anchor_prop.assert_called_once_with()
-        from_text_anchoring_type.assert_called_once_with(anchor_val)
-        assert_that(retval, is_(same_instance(vertical_anchor)))
-
-    @patch('pptx.shapes.table.VerticalAnchor')
-    def test_vertical_anchor_assignment(self, VerticalAnchor):
-        """Assignment to _Cell.vertical_anchor sets value"""
-        # mockery ----------------------
-        # -- loose mocks
-        vertical_anchor = Mock(name='vertical_anchor')
-        anchor_val = Mock(name='anchor_val')
-        # -- CT_TableCell
-        tc = MagicMock()
-        anchor_prop = type(tc).anchor = PropertyMock()
-        # -- VerticalAnchor
-        to_text_anchoring_type = VerticalAnchor.to_text_anchoring_type
-        to_text_anchoring_type.return_value = anchor_val
-        # setup ------------------------
-        cell = _Cell(tc, None)
-        # exercise ---------------------
-        cell.vertical_anchor = vertical_anchor
-        # verify -----------------------
-        to_text_anchoring_type.assert_called_once_with(vertical_anchor)
-        anchor_prop.assert_called_once_with(anchor_val)
+#     @patch('pptx.shapes.table.VerticalAnchor')
+#     def test_vertical_anchor_assignment(self, VerticalAnchor):
+#         """Assignment to _Cell.vertical_anchor sets value"""
+#         # mockery ----------------------
+#         # -- loose mocks
+#         vertical_anchor = Mock(name='vertical_anchor')
+#         anchor_val = Mock(name='anchor_val')
+#         # -- CT_TableCell
+#         tc = MagicMock()
+#         anchor_prop = type(tc).anchor = PropertyMock()
+#         # -- VerticalAnchor
+#         to_text_anchoring_type = VerticalAnchor.to_text_anchoring_type
+#         to_text_anchoring_type.return_value = anchor_val
+#         # setup ------------------------
+#         cell = _Cell(tc, None)
+#         # exercise ---------------------
+#         cell.vertical_anchor = vertical_anchor
+#         # verify -----------------------
+#         to_text_anchoring_type.assert_called_once_with(vertical_anchor)
+#         anchor_prop.assert_called_once_with(anchor_val)
 
 
 class Test_CellCollection(TestCase):
