@@ -16,6 +16,7 @@ from ..oxml.unitdata.dml import (
     a_blipFill, a_gradFill, a_grpFill, a_noFill, a_pattFill, a_solidFill,
     an_spPr
 )
+from ..oxml.unitdata.table import a_tcPr
 from ..oxml.unitdata.text import an_rPr
 from ..unitutil import actual_xml
 
@@ -151,11 +152,12 @@ class DescribeFillFormat(object):
             return xFill_bldr_fn()
         return None
 
-    @pytest.fixture(params=['rPr', 'spPr'])
+    @pytest.fixture(params=['rPr', 'spPr', 'tcPr'])
     def xPr_bldr(self, request):
         mapping = {
             'rPr':  an_rPr,
             'spPr': an_spPr,
+            'tcPr': a_tcPr,
         }
         xPr_bldr_fn = mapping[request.param]
         return xPr_bldr_fn().with_nsdecls()

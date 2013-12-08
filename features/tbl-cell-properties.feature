@@ -15,7 +15,6 @@ Feature: Change properties of table cell
        And I save the presentation
       Then the cell contents are inset by the margins
 
-  @wip
   Scenario: set cell fill
      Given a table cell
       When I set the cell fill type to solid
