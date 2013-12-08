@@ -14,8 +14,12 @@ from pptx.shapes.autoshape import (
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.autoshape import CT_PresetGeometry2D, CT_Shape
 
-from ..oxml.unitdata.autoshape import a_gd, a_prstGeom, an_avLst
-from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
+from ..oxml.unitdata.autoshape import (
+    a_gd, a_prstGeom, an_avLst, an_off, an_sp, an_spPr, an_xfrm
+)
+from ..unitutil import (
+    actual_xml, class_mock, instance_mock, loose_mock, property_mock
+)
 
 
 class DescribeAdjustment(object):
@@ -332,6 +336,11 @@ class DescribeShape(object):
     def it_has_a_fill(self, shape):
         assert isinstance(shape.fill, FillFormat)
 
+    def it_has_a_position(self, shape_with_position):
+        shape, left, top = shape_with_position
+        assert shape.left == left
+        assert shape.top == top
+
     def it_knows_its_shape_type_when_its_a_placeholder(
             self, placeholder_shape_):
         assert placeholder_shape_.shape_type == MSO.PLACEHOLDER
@@ -427,6 +436,20 @@ class DescribeShape(object):
     def shape(self, request):
         sp = loose_mock(request, name='sp')
         return Shape(sp, None)
+
+    @pytest.fixture
+    def shape_with_position(self):
+        left, top = 123, 456
+        sp = (
+            an_sp().with_nsdecls().with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_off().with_x(left).with_y(top))))
+            .element
+        )
+        print(actual_xml(sp))
+        shape = Shape(sp, None)
+        return shape, left, top
 
     @pytest.fixture
     def sp_(self, request, prst):

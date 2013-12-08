@@ -95,7 +95,7 @@ Related Schema Definitions
 
   <xsd:complexType name="CT_ShapeProperties">
     <xsd:sequence>
-      <xsd:element name="xfrm"    type="CT_Transform2D"            minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="xfrm" type="CT_Transform2D" minOccurs="0" maxOccurs="1"/>
       ...
     </xsd:sequence>
     <xsd:attribute name="bwMode" type="ST_BlackWhiteMode" use="optional"/>

@@ -18,6 +18,27 @@ from pptx.spec import (
 )
 
 
+class CT_Point2D(objectify.ObjectifiedElement):
+    """
+    Custom element class for <a:off> element.
+    """
+    @property
+    def x(self):
+        """
+        Integer value of required ``x`` attribute.
+        """
+        x_str = self.get('x')
+        return int(x_str)
+
+    @property
+    def y(self):
+        """
+        Integer value of required ``y`` attribute.
+        """
+        y_str = self.get('y')
+        return int(y_str)
+
+
 class CT_PresetGeometry2D(objectify.ObjectifiedElement):
     """<a:prstGeom> custom element class"""
     @property
@@ -253,6 +274,17 @@ class CT_ShapeProperties(objectify.ObjectifiedElement):
             'a:pattFill', 'a:grpFill'
         )
 
+    def get_or_add_xfrm(self):
+        """
+        Return the <a:xfrm> child element, newly added if not already
+        present.
+        """
+        xfrm = self.xfrm
+        if xfrm is None:
+            xfrm = Element('a:xfrm')
+            self.insert(0, xfrm)
+        return xfrm
+
     def get_or_change_to_noFill(self):
         """
         Return the <a:noFill> child element, replacing any other fill
@@ -297,6 +329,13 @@ class CT_ShapeProperties(objectify.ObjectifiedElement):
         The <a:solidFill> child element, or None if not present.
         """
         return self.find(qn('a:solidFill'))
+
+    @property
+    def xfrm(self):
+        """
+        The <a:xfrm> child element, or None if not present.
+        """
+        return self.find(qn('a:xfrm'))
 
     def _add_noFill(self):
         """
@@ -360,3 +399,26 @@ class CT_ShapeProperties(objectify.ObjectifiedElement):
             element = self.find(qn(tagname))
             if element is not None:
                 self.remove(element)
+
+
+class CT_Transform2D(objectify.ObjectifiedElement):
+    """
+    Custom element class for <a:xfrm> element.
+    """
+    def get_or_add_off(self):
+        """
+        Return the <a:off> child element, newly added if not already
+        present.
+        """
+        off = self.off
+        if off is None:
+            off = Element('a:off', x=0, y=0)
+            self.insert(0, off)
+        return off
+
+    @property
+    def off(self):
+        """
+        The <a:off> child element, or None if not present.
+        """
+        return self.find(qn('a:off'))

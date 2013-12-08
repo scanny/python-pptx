@@ -13,16 +13,28 @@ from pptx.oxml.ns import nsdecls
 from pptx.shapes.shapetree import Picture, Shape, ShapeCollection
 
 
-class CT_GeomGuide(BaseBuilder):
+class CT_GeomGuideBuilder(BaseBuilder):
     __tag__ = 'a:gd'
     __nspfxs__ = ('a',)
     __attrs__ = ('name', 'fmla')
 
 
-class CT_GeomGuideList(BaseBuilder):
+class CT_GeomGuideListBuilder(BaseBuilder):
     __tag__ = 'a:avLst'
     __nspfxs__ = ('a',)
     __attrs__ = ()
+
+
+class CT_Point2DBuilder(BaseBuilder):
+    __tag__ = 'a:off'
+    __nspfxs__ = ('a',)
+    __attrs__ = ('x', 'y')
+
+
+class CT_PositiveSize2DBuilder(BaseBuilder):
+    __tag__ = 'a:ext'
+    __nspfxs__ = ('a',)
+    __attrs__ = ('cx', 'cy')
 
 
 class CT_PresetGeometry2DBuilder(BaseBuilder):
@@ -31,14 +43,26 @@ class CT_PresetGeometry2DBuilder(BaseBuilder):
     __attrs__ = ('prst',)
 
 
+class CT_ShapeBuilder(BaseBuilder):
+    __tag__ = 'p:sp'
+    __nspfxs__ = ('p', 'a')
+    __attrs__ = ('useBgFill',)
+
+
 class CT_ShapePropertiesBuilder(BaseBuilder):
     __tag__ = 'p:spPr'
     __nspfxs__ = ('p', 'a')
     __attrs__ = ('bwMode',)
 
 
+class CT_Transform2DBuilder(BaseBuilder):
+    __tag__ = 'a:xfrm'
+    __nspfxs__ = ('a',)
+    __attrs__ = ('rot', 'flipH', 'flipV')
+
+
 def a_gd():
-    return CT_GeomGuide()
+    return CT_GeomGuideBuilder()
 
 
 def a_prstGeom():
@@ -46,11 +70,27 @@ def a_prstGeom():
 
 
 def an_avLst():
-    return CT_GeomGuideList()
+    return CT_GeomGuideListBuilder()
+
+
+def an_ext():
+    return CT_PositiveSize2DBuilder()
+
+
+def an_off():
+    return CT_Point2DBuilder()
+
+
+def an_sp():
+    return CT_ShapeBuilder()
 
 
 def an_spPr():
     return CT_ShapePropertiesBuilder()
+
+
+def an_xfrm():
+    return CT_Transform2DBuilder()
 
 
 class _TestShapeXml(object):

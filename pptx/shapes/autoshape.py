@@ -312,6 +312,13 @@ class Shape(BaseShape):
         return FillFormat.from_fill_parent(self._sp.spPr)
 
     @property
+    def left(self):
+        spPr = self._sp.spPr
+        xfrm = spPr.get_or_add_xfrm()
+        off = xfrm.get_or_add_off()
+        return off.x
+
+    @property
     def shape_type(self):
         """
         Unique integer identifying the type of this shape, like
@@ -325,3 +332,10 @@ class Shape(BaseShape):
             return MSO.TEXT_BOX
         msg = 'Shape instance of unrecognized shape type'
         raise NotImplementedError(msg)
+
+    @property
+    def top(self):
+        spPr = self._sp.spPr
+        xfrm = spPr.get_or_add_xfrm()
+        off = xfrm.get_or_add_off()
+        return off.y
