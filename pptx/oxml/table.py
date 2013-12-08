@@ -271,3 +271,30 @@ class CT_TableCell(objectify.ObjectifiedElement):
                 del tcPr.attrib[marX]
         else:
             tcPr.set(marX, str(value))
+
+
+class CT_TableCellProperties(objectify.ObjectifiedElement):
+    """
+    ``<a:tcPr>`` custom element class
+    """
+    @property
+    def eg_fillproperties(self):
+        """
+        Return the child representing the EG_FillProperties element group
+        member in this element, or |None| if no such child is present.
+        """
+        return self._first_child_found_in(
+            'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill',
+            'a:pattFill', 'a:grpFill'
+        )
+
+    def _first_child_found_in(self, *tagnames):
+        """
+        Return the first child found with tag in *tagnames*, or None if
+        not found.
+        """
+        for tagname in tagnames:
+            child = self.find(qn(tagname))
+            if child is not None:
+                return child
+        return None

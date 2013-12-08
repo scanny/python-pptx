@@ -5,11 +5,12 @@ Table-related objects such as Table and Cell.
 """
 
 from pptx.constants import MSO
+from pptx.dml.fill import FillFormat
 from pptx.oxml.ns import qn
 from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
 from pptx.text import TextFrame
-from pptx.util import to_unicode
+from pptx.util import lazyproperty, to_unicode
 
 
 class Table(BaseShape):
@@ -169,6 +170,15 @@ class _Cell(Subshape):
     def __init__(self, tc, parent):
         super(_Cell, self).__init__(parent)
         self._tc = tc
+
+    @lazyproperty
+    def fill(self):
+        """
+        |FillFormat| instance for this cell, providing access to fill
+        properties such as foreground color.
+        """
+        tcPr = self._tc.get_or_add_tcPr()
+        return FillFormat.from_fill_parent(tcPr)
 
     @property
     def margin_top(self):

@@ -9,6 +9,7 @@ import pytest
 from hamcrest import assert_that, equal_to, is_
 from mock import MagicMock, Mock, PropertyMock
 
+from pptx.dml.fill import FillFormat
 from pptx.enum import MSO_ANCHOR
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import nsdecls
@@ -25,10 +26,8 @@ from ..unitutil import actual_xml, TestCase
 
 class Describe_Cell(object):
 
-    def it_can_set_the_text_it_contains(self, text_set_fixture):
-        cell, text, tc_with_text_xml = text_set_fixture
-        cell.text = text
-        assert actual_xml(cell._tc) == tc_with_text_xml
+    def it_has_a_fill(self, cell):
+        assert isinstance(cell.fill, FillFormat)
 
     def it_knows_its_margin_settings(self, margin_get_fixture):
         cell, margin_left, margin_right, margin_top, margin_bottom = (
@@ -52,6 +51,11 @@ class Describe_Cell(object):
         cell, margin_attr_name, val_of_invalid_type = margin_raises_fixture
         with pytest.raises(TypeError):
             setattr(cell, margin_attr_name, val_of_invalid_type)
+
+    def it_can_set_the_text_it_contains(self, text_set_fixture):
+        cell, text, tc_with_text_xml = text_set_fixture
+        cell.text = text
+        assert actual_xml(cell._tc) == tc_with_text_xml
 
     def it_knows_its_vertical_anchor_setting(self, anchor_get_fixture):
         cell, vertical_anchor = anchor_get_fixture
@@ -101,6 +105,11 @@ class Describe_Cell(object):
         cell = _Cell(tc, None)
         tc_with_anchor_xml = tc_with_anchor_bldr(after_anchor).xml()
         return cell, mso_anchor_idx, tc_with_anchor_xml
+
+    @pytest.fixture
+    def cell(self):
+        tc = a_tc().with_nsdecls().element
+        return _Cell(tc, None)
 
     @pytest.fixture(params=[
         ((None, None, None, None), (91440, 91440, 45720, 45720)),
@@ -160,17 +169,13 @@ class Describe_Cell(object):
     @pytest.fixture(params=[
         'margin_left', 'margin_right', 'margin_top', 'margin_bottom'
     ])
-    def margin_raises_fixture(self, request):
-        tc = a_tc().with_nsdecls().element
-        cell = _Cell(tc, None)
+    def margin_raises_fixture(self, request, cell):
         margin_attr_name = request.param
         val_of_invalid_type = 'foobar'
         return cell, margin_attr_name, val_of_invalid_type
 
     @pytest.fixture
-    def text_set_fixture(self):
-        tc = a_tc().with_nsdecls().element
-        cell = _Cell(tc, None)
+    def text_set_fixture(self, cell):
         text = 'foobar'
         tc_with_text_xml = (
             a_tc().with_nsdecls().with_child(
