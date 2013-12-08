@@ -25,22 +25,22 @@ from ..unitutil import actual_xml, TestCase
 
 class Describe_Cell(object):
 
-    def it_can_set_the_text_it_contains(self, set_cell_text_fixture):
-        cell, text, tc_with_text_xml = set_cell_text_fixture
+    def it_can_set_the_text_it_contains(self, text_set_fixture):
+        cell, text, tc_with_text_xml = text_set_fixture
         cell.text = text
         assert actual_xml(cell._tc) == tc_with_text_xml
 
-    def it_knows_its_margin_settings(self, cell_margin_fixture):
+    def it_knows_its_margin_settings(self, margin_get_fixture):
         cell, margin_left, margin_right, margin_top, margin_bottom = (
-            cell_margin_fixture
+            margin_get_fixture
         )
         assert cell.margin_left == margin_left
         assert cell.margin_right == margin_right
         assert cell.margin_top == margin_top
         assert cell.margin_bottom == margin_bottom
 
-    def it_can_change_its_margin_settings(self, set_margin_fixture):
-        cell, marL, marR, marT, marB, tc_with_marX_xml = set_margin_fixture
+    def it_can_change_its_margin_settings(self, margin_set_fixture):
+        cell, marL, marR, marT, marB, tc_with_marX_xml = margin_set_fixture
         cell.margin_left = marL
         cell.margin_right = marR
         cell.margin_top = marT
@@ -56,6 +56,11 @@ class Describe_Cell(object):
     def it_knows_its_vertical_anchor_setting(self, anchor_get_fixture):
         cell, vertical_anchor = anchor_get_fixture
         assert cell.vertical_anchor == vertical_anchor
+
+    def it_can_change_its_vertical_anchor(self, anchor_set_fixture):
+        cell, vertical_anchor, tc_with_anchor_xml = anchor_set_fixture
+        cell.vertical_anchor = vertical_anchor
+        assert actual_xml(cell._tc) == tc_with_anchor_xml
 
     # fixture --------------------------------------------------------
 
@@ -76,11 +81,33 @@ class Describe_Cell(object):
         return cell, mso_anchor_idx
 
     @pytest.fixture(params=[
+        (None,  None,              None),
+        (None,  MSO_ANCHOR.TOP,    't'),
+        ('t',   MSO_ANCHOR.MIDDLE, 'ctr'),
+        ('ctr', MSO_ANCHOR.BOTTOM, 'b'),
+        ('b',   None,              ''),
+    ])
+    def anchor_set_fixture(self, request):
+        def tc_with_anchor_bldr(anchor):
+            tc_bldr = a_tc().with_nsdecls()
+            if anchor is not None:
+                tcPr_bldr = a_tcPr()
+                if anchor != '':
+                    tcPr_bldr.with_anchor(anchor)
+                tc_bldr.with_child(tcPr_bldr)
+            return tc_bldr
+        before_anchor, mso_anchor_idx, after_anchor = request.param
+        tc = tc_with_anchor_bldr(before_anchor).element
+        cell = _Cell(tc, None)
+        tc_with_anchor_xml = tc_with_anchor_bldr(after_anchor).xml()
+        return cell, mso_anchor_idx, tc_with_anchor_xml
+
+    @pytest.fixture(params=[
         ((None, None, None, None), (91440, 91440, 45720, 45720)),
         ((1234, 2345, 3456, None), (1234,  2345,  3456,  45720)),
         ((2345, None, 3456, 1234), (2345,  91440, 3456,  1234)),
     ])
-    def cell_margin_fixture(self, request):
+    def margin_get_fixture(self, request):
         mar_vals, expected_vals = request.param
         marL, marR, marT, marB = mar_vals
         margin_left, margin_right, margin_top, margin_bottom = expected_vals
@@ -98,32 +125,6 @@ class Describe_Cell(object):
         return cell, margin_left, margin_right, margin_top, margin_bottom
 
     @pytest.fixture(params=[
-        'margin_left', 'margin_right', 'margin_top', 'margin_bottom'
-    ])
-    def margin_raises_fixture(self, request):
-        tc = a_tc().with_nsdecls().element
-        cell = _Cell(tc, None)
-        margin_attr_name = request.param
-        val_of_invalid_type = 'foobar'
-        return cell, margin_attr_name, val_of_invalid_type
-
-    @pytest.fixture
-    def set_cell_text_fixture(self):
-        tc = a_tc().with_nsdecls().element
-        cell = _Cell(tc, None)
-        text = 'foobar'
-        tc_with_text_xml = (
-            a_tc().with_nsdecls().with_child(
-                a_txBody().with_child(
-                    a_bodyPr()).with_child(
-                    a_p().with_child(
-                        an_r().with_child(
-                            a_t().with_text(text)))))
-            .xml()
-        )
-        return cell, text, tc_with_text_xml
-
-    @pytest.fixture(params=[
         ((None, None, None, None), (91440, None,  None, None)),
         ((1234, 2345, 3456, None), (None,  4567,  None, None)),
         ((None, 2345, 3456, None), (None,  None,  6543, None)),
@@ -131,7 +132,7 @@ class Describe_Cell(object):
         ((1234, 2345, 3456, 4567), (None,  None,  None, None)),
         ((None, None, None, None), (None,  None,  None, None)),
     ])
-    def set_margin_fixture(self, request):
+    def margin_set_fixture(self, request):
 
         def tc_bldr_with(marX):
             marL, marR, marT, marB = marX
@@ -156,29 +157,31 @@ class Describe_Cell(object):
 
         return cell, marL, marR, marT, marB, tc_with_marX_xml
 
+    @pytest.fixture(params=[
+        'margin_left', 'margin_right', 'margin_top', 'margin_bottom'
+    ])
+    def margin_raises_fixture(self, request):
+        tc = a_tc().with_nsdecls().element
+        cell = _Cell(tc, None)
+        margin_attr_name = request.param
+        val_of_invalid_type = 'foobar'
+        return cell, margin_attr_name, val_of_invalid_type
 
-# class Test_Cell(TestCase):
-
-#     @patch('pptx.shapes.table.VerticalAnchor')
-#     def test_vertical_anchor_assignment(self, VerticalAnchor):
-#         """Assignment to _Cell.vertical_anchor sets value"""
-#         # mockery ----------------------
-#         # -- loose mocks
-#         vertical_anchor = Mock(name='vertical_anchor')
-#         anchor_val = Mock(name='anchor_val')
-#         # -- CT_TableCell
-#         tc = MagicMock()
-#         anchor_prop = type(tc).anchor = PropertyMock()
-#         # -- VerticalAnchor
-#         to_text_anchoring_type = VerticalAnchor.to_text_anchoring_type
-#         to_text_anchoring_type.return_value = anchor_val
-#         # setup ------------------------
-#         cell = _Cell(tc, None)
-#         # exercise ---------------------
-#         cell.vertical_anchor = vertical_anchor
-#         # verify -----------------------
-#         to_text_anchoring_type.assert_called_once_with(vertical_anchor)
-#         anchor_prop.assert_called_once_with(anchor_val)
+    @pytest.fixture
+    def text_set_fixture(self):
+        tc = a_tc().with_nsdecls().element
+        cell = _Cell(tc, None)
+        text = 'foobar'
+        tc_with_text_xml = (
+            a_tc().with_nsdecls().with_child(
+                a_txBody().with_child(
+                    a_bodyPr()).with_child(
+                    a_p().with_child(
+                        an_r().with_child(
+                            a_t().with_text(text)))))
+            .xml()
+        )
+        return cell, text, tc_with_text_xml
 
 
 class Test_CellCollection(TestCase):
