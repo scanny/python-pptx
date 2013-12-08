@@ -10,10 +10,12 @@ Feature Analysis
 .. toctree::
    :maxdepth: 1
 
+   features/color
    features/font-color
    features/hyperlink
-   features/shape-fill
-   features/color
+   features/shp-fill
+   features/shp-group-shape
+   features/shp-pos-and-size
    features/table
 
 
