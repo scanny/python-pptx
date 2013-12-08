@@ -15,10 +15,16 @@ from pptx.enum import MSO_FILL_TYPE as MSO_FILL, MSO_THEME_COLOR
 from pptx.dml.color import RGBColor
 from pptx.util import Inches
 
-from .helpers import saved_pptx_path, test_text
+from .helpers import saved_pptx_path, shp_pos_and_size_pptx_path, test_text
 
 
 # given ===================================================
+
+@given('a shape of known position and size')
+def given_a_shape_of_known_pos_and_size(context):
+    prs = Presentation(shp_pos_and_size_pptx_path)
+    context.shape = prs.slides[0].shapes[0]
+
 
 @given('an autoshape')
 def given_an_autoshape(context):
@@ -41,7 +47,7 @@ def step_given_ref_to_chevron_shape(context):
 # when ====================================================
 
 @when("I add a text box to the slide's shape collection")
-def step_when_add_text_box(context):
+def when_add_text_box(context):
     shapes = context.sld.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(1.00))
@@ -50,12 +56,21 @@ def step_when_add_text_box(context):
 
 
 @when("I add an auto shape to the slide's shape collection")
-def step_when_add_auto_shape(context):
+def when_add_auto_shape(context):
     shapes = context.sld.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(4.00))
     sp = shapes.add_shape(MAST.ROUNDED_RECTANGLE, x, y, cx, cy)
     sp.text = test_text
+
+
+@when("I change the position and size of the shape")
+def when_change_pos_and_size_of_shape(context):
+    shape = context.shape
+    shape.left = 914400*4
+    shape.top = 914400*3
+    shape.width = 914400*2
+    shape.height = 914400*1
 
 
 @when("I set the fill type to background")
@@ -91,7 +106,7 @@ def when_set_fore_color_to_RGB_value(context):
 # then ====================================================
 
 @then('the auto shape appears in the slide')
-def step_then_auto_shape_appears_in_slide(context):
+def then_auto_shape_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
     sp = prs.slides[0].shapes[0]
     sp_text = sp.textframe.paragraphs[0].runs[0].text
@@ -101,7 +116,7 @@ def step_then_auto_shape_appears_in_slide(context):
 
 
 @then('the chevron shape appears with a less acute arrow head')
-def step_then_chevron_shape_appears_with_less_acute_arrow_head(context):
+def then_chevron_shape_appears_with_less_acute_arrow_head(context):
     chevron = Presentation(saved_pptx_path).slides[0].shapes[0]
     assert_that(chevron.adjustments[0], is_(equal_to(0.15)))
 
@@ -127,8 +142,26 @@ def then_fore_color_is_theme_color_I_set(context):
     assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
 
 
+@then('the position and size of the shape matches the known values')
+def then_shape_pos_and_size_matches_known_values(context):
+    shape = context.shape
+    assert shape.left == 914400
+    assert shape.top == 914400*2
+    assert shape.width == 914400*3
+    assert shape.height == 914400*4
+
+
+@then('the position and size of the shape matches the new values')
+def then_shape_pos_and_size_matches_new_values(context):
+    shape = context.shape
+    assert shape.left == 914400*4
+    assert shape.top == 914400*3
+    assert shape.width == 914400*2
+    assert shape.height == 914400*1
+
+
 @then('the text box appears in the slide')
-def step_then_text_box_appears_in_slide(context):
+def then_text_box_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
     textbox = prs.slides[0].shapes[0]
     textbox_text = textbox.textframe.paragraphs[0].runs[0].text

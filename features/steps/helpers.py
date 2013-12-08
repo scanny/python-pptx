@@ -19,6 +19,7 @@ test_pptx_dir = absjoin(thisdir, 'test_files')
 
 # new test pptx files ------------------
 ext_rels_pptx_path = absjoin(test_pptx_dir, 'ext-rels.pptx')
+shp_pos_and_size_pptx_path = absjoin(test_pptx_dir, 'shp-pos-and-size.pptx')
 
 # legacy test pptx files ---------------
 basic_pptx_path = absjoin(test_file_dir, 'test.pptx')
