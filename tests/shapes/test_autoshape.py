@@ -352,7 +352,11 @@ class DescribeShape(object):
         shape.top = top
         assert actual_xml(shape._sp.spPr.xfrm) == xfrm_xml
 
-    # def it_can_change_its_dimensions(self):
+    def it_can_change_its_dimensions(self, dimensions_set_fixture):
+        shape, width, height, xfrm_xml = dimensions_set_fixture
+        shape.width = width
+        shape.height = height
+        assert actual_xml(shape._sp.spPr.xfrm) == xfrm_xml
 
     def it_knows_its_shape_type_when_its_a_placeholder(
             self, placeholder_shape_):
@@ -414,6 +418,19 @@ class DescribeShape(object):
     @pytest.fixture
     def autoshape_type(self):
         return 66
+
+    @pytest.fixture
+    def dimensions_set_fixture(self):
+        sp = an_sp().with_nsdecls().with_child(an_spPr()).element
+        shape = Shape(sp, None)
+        width, height = 626, 262
+        xfrm_xml = (
+            an_xfrm().with_nsdecls('a', 'p')
+                     .with_child(
+                         an_ext().with_cx(width).with_cy(height))
+                     .xml()
+        )
+        return shape, width, height, xfrm_xml
 
     @pytest.fixture
     def non_autoshape_shape_(self, request, sp_):

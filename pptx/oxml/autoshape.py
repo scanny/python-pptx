@@ -53,6 +53,16 @@ class CT_PositiveSize2D(objectify.ObjectifiedElement):
     """
     Custom element class for <a:ext> element.
     """
+    def __setattr__(self, name, value):
+        """
+        Override ``__setattr__`` defined in ObjectifiedElement super class
+        to intercept messages intended for custom property setters.
+        """
+        if name in ('cx', 'cy'):
+            self.set(name, str(value))
+        else:
+            super(CT_PositiveSize2D, self).__setattr__(name, value)
+
     @property
     def cx(self):
         """
