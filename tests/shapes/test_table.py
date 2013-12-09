@@ -20,7 +20,7 @@ from pptx.util import Inches
 
 from ..oxml.unitdata.table import a_tc, a_tcPr, a_txBody
 from ..oxml.unitdata.text import a_bodyPr, a_p, an_r, a_t
-from ..oxml.unitdata.autoshape import test_shapes
+from ..oxml.unitdata.shape import test_shapes
 from ..unitutil import actual_xml, TestCase
 
 

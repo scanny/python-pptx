@@ -14,7 +14,7 @@ from pptx.shapes.autoshape import (
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.autoshape import CT_PresetGeometry2D, CT_Shape
 
-from ..oxml.unitdata.autoshape import (
+from ..oxml.unitdata.shape import (
     a_gd, a_prstGeom, an_avLst, an_ext, an_off, an_sp, an_spPr, an_xfrm
 )
 from ..unitutil import (

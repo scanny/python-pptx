@@ -19,7 +19,7 @@ from pptx.spec import (
     PH_ORIENT_VERT
 )
 
-from ..oxml.unitdata.autoshape import test_shape_elements, test_shapes
+from ..oxml.unitdata.shape import test_shape_elements, test_shapes
 from ..unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
 
 

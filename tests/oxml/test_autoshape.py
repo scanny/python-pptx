@@ -18,7 +18,7 @@ from pptx.spec import (
     PH_TYPE_SUBTITLE, PH_TYPE_TBL
 )
 
-from .unitdata.autoshape import (
+from .unitdata.shape import (
     a_gd, a_prstGeom, an_avLst, an_spPr, test_shape_elements
 )
 from ..unitutil import actual_xml, TestCase

@@ -11,7 +11,7 @@ import pytest
 from pptx.constants import MSO
 from pptx.shapes.picture import Picture
 
-from ..oxml.unitdata.autoshape import a_pic, an_off, an_spPr, an_xfrm
+from ..oxml.unitdata.shape import a_pic, an_off, an_spPr, an_xfrm
 
 
 class Describe_Picture(object):
