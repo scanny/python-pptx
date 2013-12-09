@@ -108,11 +108,7 @@ class DescribeRelationshipCollection(object):
             rels.related_parts['rId666']
 
     def it_can_compose_rels_xml(self, rels_with_known_rels, rels_elm):
-        # exercise ---------------------
         rels_with_known_rels.xml
-        # trace ------------------------
-        print('Actual calls:\n%s' % rels_elm.mock_calls)
-        # verify -----------------------
         rels_elm.assert_has_calls(
             [
                 call.add_rel(

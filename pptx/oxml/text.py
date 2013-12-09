@@ -201,6 +201,15 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
 
         return hlinkClick
 
+    def get_or_add_latin(self):
+        """
+        Return the <a:latin> child element, a newly added one if not present.
+        """
+        latin = self.latin
+        if latin is None:
+            latin = self._add_latin()
+        return latin
+
     def get_or_change_to_noFill(self):
         """
         Return the <a:noFill> child element, replacing any other fill
@@ -246,12 +255,35 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         """
         return self.find(qn('a:noFill'))
 
+    def remove_latin(self):
+        """
+        Remove the <a:latin> child element if it exists.
+        """
+        if self.latin is not None:
+            self.remove(self.latin)
+
     @property
     def solidFill(self):
         """
         The <a:solidFill> child element, or None if not present.
         """
         return self.find(qn('a:solidFill'))
+
+    def _add_latin(self):
+        """
+        Return a newly added <a:latin> child element; assume one is not
+        already present.
+        """
+        latin = Element('a:latin')
+        successor = self._first_child_found_in(
+            'a:ea', 'a:cs', 'a:sym', 'a:hlinkClick', 'a:hlinkMouseOver',
+            'a:rtl', 'a:extLst'
+        )
+        if successor is not None:
+            successor.addprevious(latin)
+        else:
+            self.append(latin)
+        return latin
 
     def _add_noFill(self):
         """
@@ -349,6 +381,12 @@ class CT_TextFont(objectify.ObjectifiedElement):
     Custom element class for <a:latin>, <a:ea>, <a:cs>, and <a:sym> child
     elements of CT_TextCharacterProperties, e.g. <a:rPr>.
     """
+    def __setattr__(self, name, value):
+        if name == 'typeface':
+            self.set('typeface', value)
+        else:
+            super(CT_TextFont, self).__setattr__(name, value)
+
     @property
     def typeface(self):
         """

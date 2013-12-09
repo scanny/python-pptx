@@ -335,9 +335,14 @@ class Describe_Font(object):
         font.italic = None
         assert actual_xml(font._rPr) == rPr_xml
 
-    def it_knows_its_typeface(self, typeface_get_fixture):
+    def it_knows_its_latin_typeface(self, typeface_get_fixture):
         font, typeface = typeface_get_fixture
         assert font.name == typeface
+
+    def it_can_change_its_latin_typeface(self, typeface_set_fixture):
+        font, typeface, rPr_with_latin_xml = typeface_set_fixture
+        font.name = typeface
+        assert actual_xml(font._rPr) == rPr_with_latin_xml
 
     def it_can_set_the_font_size(self, font):
         font.size = 2400
@@ -400,6 +405,27 @@ class Describe_Font(object):
         rPr = rPr_bldr.element
         font = _Font(rPr)
         return font, typeface
+
+    @pytest.fixture(params=[
+        (None,            None),
+        (None,            'Foobar Light'),
+        ('Foobar Light',  'Foobar Medium'),
+        ('Foobar Medium', None),
+    ])
+    def typeface_set_fixture(self, request):
+        before_typeface, after_typeface = request.param
+        # starting font
+        rPr_bldr = an_rPr().with_nsdecls()
+        if before_typeface is not None:
+            rPr_bldr.with_child(a_latin().with_typeface(before_typeface))
+        rPr = rPr_bldr.element
+        font = _Font(rPr)
+        # expected XML
+        rPr_bldr = an_rPr().with_nsdecls()
+        if after_typeface is not None:
+            rPr_bldr.with_child(a_latin().with_typeface(after_typeface))
+        rPr_with_latin_xml = rPr_bldr.xml()
+        return font, after_typeface, rPr_with_latin_xml
 
 
 class Describe_Hyperlink(object):

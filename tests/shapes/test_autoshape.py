@@ -60,7 +60,6 @@ class DescribeAdjustmentCollection(object):
         prstGeom, prst, expected = prstGeom_cases_
         adjustments = AdjustmentCollection(prstGeom)._adjustments
         actuals = tuple([(adj.name, adj.def_val) for adj in adjustments])
-        print("\n     failed for prst: '%s'" % prst)
         assert len(adjustments) == len(expected)
         assert actuals == expected
 
@@ -68,22 +67,13 @@ class DescribeAdjustmentCollection(object):
             self, load_adj_actuals_fixture_):
         prstGeom, expected_actuals, prstGeom_xml = load_adj_actuals_fixture_
         adjustments = AdjustmentCollection(prstGeom)._adjustments
-        # trace ------------------------
-        print("\nfailed on case: '%s'\n\nXML:\n%s" %
-              (prstGeom.prst, prstGeom_xml))
-        # verify -----------------------
         actual_actuals = dict([(a.name, a.actual) for a in adjustments])
         assert actual_actuals == expected_actuals
 
     def it_provides_normalized_effective_value_on_indexed_access(
             self, indexed_access_fixture_):
-        # fixture ----------------------
         prstGeom, prst, expected_values = indexed_access_fixture_
-        # exercise ---------------------
         adjustments = AdjustmentCollection(prstGeom)
-        # trace ------------------------
-        print("failed on case: prst=='%s'" % prst)
-        # verify -----------------------
         actual_values = [adjustments[idx] for idx in range(len(adjustments))]
         assert actual_values == expected_values
 

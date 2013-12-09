@@ -22,7 +22,6 @@ class DescribeColorFormat(object):
 
     def it_knows_the_type_of_its_color(self, color_type_fixture_):
         color_format, color_type = color_type_fixture_
-        print(actual_xml(color_format._xFill))
         assert color_format.type == color_type
 
     def it_knows_the_RGB_value_of_an_RGB_color(self, rgb_color_format):
@@ -48,7 +47,6 @@ class DescribeColorFormat(object):
     def it_knows_its_brightness_adjustment(
             self, color_format_with_brightness):
         color_format, expected_brightness = color_format_with_brightness
-        print(actual_xml(color_format._xFill))
         assert color_format.brightness == expected_brightness
 
     def it_can_set_itself_to_an_RGB_color(self, set_rgb_fixture_):

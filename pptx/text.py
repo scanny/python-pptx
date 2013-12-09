@@ -231,6 +231,14 @@ class _Font(object):
             return None
         return latin.typeface
 
+    @name.setter
+    def name(self, value):
+        if value is None:
+            self._rPr.remove_latin()
+        else:
+            latin = self._rPr.get_or_add_latin()
+            latin.typeface = value
+
     def _set_size(self, centipoints):
         # handle float centipoints value gracefully
         centipoints = int(centipoints)

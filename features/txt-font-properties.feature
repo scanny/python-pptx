@@ -4,7 +4,6 @@ Feature: Change appearance of font with which text is rendered
   I need to set the properties of the font used to render text
 
 
-  @wip
   Scenario: Change font typeface
     Given a font
      When I assign a typeface name to the font

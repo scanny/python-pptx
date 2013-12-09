@@ -23,29 +23,6 @@ Minimum viable feature
     'Verdana'
 
 
-Acceptance test
----------------
-
-* [ ] split txt-text-properties.feature into txt-font-properties.feature and
-  txt-paragraph-properties.feature.
-
-::
-
-  Scenario: Change font typeface
-     Given a font
-      When I assign a typeface name to the font
-      Then the font name matches the typeface I set
-
-
-Unit tests
-----------
-
-Describe_Font
-
-* it_knows_its_typeface (case for None)
-* it_can_change_its_latin_typeface
-
-
 Related MS API
 --------------
 
