@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from lxml import objectify
 
 from pptx.oxml import parse_xml_bytes, register_custom_element_class
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import nsdecls, qn
 
 
 class CT_Picture(objectify.ObjectifiedElement):
@@ -57,6 +57,16 @@ class CT_Picture(objectify.ObjectifiedElement):
 
         objectify.deannotate(pic, cleanup_namespaces=True)
         return pic
+
+    @property
+    def spPr(self):
+        """
+        The <a:spPr> child element, or None if not present.
+        """
+        spPr = self.find(qn('p:spPr'))
+        if spPr is None:
+            raise ValueError("pic element missing required spPr child")
+        return spPr
 
 
 register_custom_element_class('p:pic', CT_Picture)

@@ -10,7 +10,7 @@ from ...unitdata import BaseBuilder
 
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import nsdecls
-from pptx.shapes.shapetree import Picture, Shape, ShapeCollection
+from pptx.shapes.shapetree import ShapeCollection
 
 
 class CT_GeomGuideBuilder(BaseBuilder):
@@ -22,6 +22,12 @@ class CT_GeomGuideBuilder(BaseBuilder):
 class CT_GeomGuideListBuilder(BaseBuilder):
     __tag__ = 'a:avLst'
     __nspfxs__ = ('a',)
+    __attrs__ = ()
+
+
+class CT_PictureBuilder(BaseBuilder):
+    __tag__ = 'p:pic'
+    __nspfxs__ = ('p', 'a')
     __attrs__ = ()
 
 
@@ -63,6 +69,10 @@ class CT_Transform2DBuilder(BaseBuilder):
 
 def a_gd():
     return CT_GeomGuideBuilder()
+
+
+def a_pic():
+    return CT_PictureBuilder()
 
 
 def a_prstGeom():
@@ -133,36 +143,6 @@ class _TestShapeXml(object):
         )
 
     @property
-    def picture(self):
-        """ XML for an pic shape, for unit testing purposes """
-        return (
-            '<p:pic %s>\n'
-            '  <p:nvPicPr>\n'
-            '    <p:cNvPr id="9" name="Picture 8" descr="image.png"/>\n'
-            '    <p:cNvPicPr>\n'
-            '      <a:picLocks noChangeAspect="1"/>\n'
-            '    </p:cNvPicPr>\n'
-            '    <p:nvPr/>\n'
-            '  </p:nvPicPr>\n'
-            '  <p:blipFill>\n'
-            '    <a:blip r:embed="rId7"/>\n'
-            '    <a:stretch>\n'
-            '      <a:fillRect/>\n'
-            '    </a:stretch>\n'
-            '  </p:blipFill>\n'
-            '  <p:spPr>\n'
-            '    <a:xfrm>\n'
-            '      <a:off x="111" y="222"/>\n'
-            '      <a:ext cx="333" cy="444"/>\n'
-            '    </a:xfrm>\n'
-            '    <a:prstGeom prst="rect">\n'
-            '      <a:avLst/>\n'
-            '    </a:prstGeom>\n'
-            '  </p:spPr>\n'
-            '</p:pic>\n' % nsdecls('a', 'p', 'r')
-        )
-
-    @property
     def placeholder(self):
         """Generic placeholder XML, a date placeholder in this case"""
         return (
@@ -229,10 +209,6 @@ class _TestShapeElements(object):
         return parse_xml_bytes(test_shape_xml.empty_spTree)
 
     @property
-    def picture(self):
-        return parse_xml_bytes(test_shape_xml.picture)
-
-    @property
     def placeholder(self):
         return parse_xml_bytes(test_shape_xml.placeholder)
 
@@ -248,28 +224,8 @@ class _TestShapeElements(object):
 class _TestShapes(object):
     """Shape instances for use in unit tests"""
     @property
-    def autoshape(self):
-        return Shape(test_shape_elements.autoshape, None)
-
-    @property
     def empty_shape_collection(self):
         return ShapeCollection(test_shape_elements.empty_spTree)
-
-    @property
-    def picture(self):
-        return Picture(test_shape_elements.picture, None)
-
-    @property
-    def placeholder(self):
-        return Shape(test_shape_elements.placeholder, None)
-
-    @property
-    def rounded_rectangle(self):
-        return Shape(test_shape_elements.rounded_rectangle, None)
-
-    @property
-    def textbox(self):
-        return Shape(test_shape_elements.textbox, None)
 
 
 test_shape_xml = _TestShapeXml()
