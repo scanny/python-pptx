@@ -24,6 +24,10 @@ class Picture(BaseShape):
         """
         return self._ext.cy
 
+    @height.setter
+    def height(self, value):
+        self._ext.cy = value
+
     @property
     def left(self):
         """
@@ -61,6 +65,10 @@ class Picture(BaseShape):
         Distance between left and right extents of shape in integer EMUs.
         """
         return self._ext.cx
+
+    @width.setter
+    def width(self, value):
+        self._ext.cx = value
 
     @property
     def _ext(self):

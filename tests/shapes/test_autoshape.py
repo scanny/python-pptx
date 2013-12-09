@@ -425,10 +425,9 @@ class DescribeShape(object):
         shape = Shape(sp, None)
         width, height = 626, 262
         xfrm_xml = (
-            an_xfrm().with_nsdecls('a', 'p')
-                     .with_child(
-                         an_ext().with_cx(width).with_cy(height))
-                     .xml()
+            an_xfrm().with_nsdecls('a', 'p').with_child(
+                an_ext().with_cx(width).with_cy(height))
+            .xml()
         )
         return shape, width, height, xfrm_xml
 
@@ -464,10 +463,9 @@ class DescribeShape(object):
         shape = Shape(sp, None)
         left, top = 434, 343
         xfrm_xml = (
-            an_xfrm().with_nsdecls('a', 'p')
-                     .with_child(
-                         an_off().with_x(left).with_y(top))
-                     .xml()
+            an_xfrm().with_nsdecls('a', 'p').with_child(
+                an_off().with_x(left).with_y(top))
+            .xml()
         )
         return shape, left, top, xfrm_xml
 

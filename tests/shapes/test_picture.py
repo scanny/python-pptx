@@ -33,10 +33,28 @@ class Describe_Picture(object):
         picture.top = top
         assert actual_xml(picture._pic.spPr.xfrm) == xfrm_xml
 
+    def it_can_change_its_dimensions(self, dimensions_set_fixture):
+        picture, width, height, xfrm_xml = dimensions_set_fixture
+        picture.width = width
+        picture.height = height
+        assert actual_xml(picture._pic.spPr.xfrm) == xfrm_xml
+
     def it_knows_its_shape_type(self, picture):
         assert picture.shape_type == MSO.PICTURE
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def dimensions_set_fixture(self):
+        pic = a_pic().with_nsdecls().with_child(an_spPr()).element
+        picture = Picture(pic, None)
+        width, height = 626, 262
+        xfrm_xml = (
+            an_xfrm().with_nsdecls('a', 'p').with_child(
+                an_ext().with_cx(width).with_cy(height))
+            .xml()
+        )
+        return picture, width, height, xfrm_xml
 
     @pytest.fixture
     def picture(self):
@@ -74,9 +92,8 @@ class Describe_Picture(object):
         picture = Picture(pic, None)
         left, top = 434, 343
         xfrm_xml = (
-            an_xfrm().with_nsdecls('a', 'p')
-                     .with_child(
-                         an_off().with_x(left).with_y(top))
-                     .xml()
+            an_xfrm().with_nsdecls('a', 'p').with_child(
+                an_off().with_x(left).with_y(top))
+            .xml()
         )
         return picture, left, top, xfrm_xml
