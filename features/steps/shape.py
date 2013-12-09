@@ -20,6 +20,12 @@ from .helpers import saved_pptx_path, shp_pos_and_size_pptx_path, test_text
 
 # given ===================================================
 
+@given('a picture of known position and size')
+def given_a_picture_of_known_pos_and_size(context):
+    prs = Presentation(shp_pos_and_size_pptx_path)
+    context.picture = prs.slides[1].shapes[0]
+
+
 @given('a shape of known position and size')
 def given_a_shape_of_known_pos_and_size(context):
     prs = Presentation(shp_pos_and_size_pptx_path)
@@ -62,6 +68,15 @@ def when_add_auto_shape(context):
     cx, cy = (Inches(3.00), Inches(4.00))
     sp = shapes.add_shape(MAST.ROUNDED_RECTANGLE, x, y, cx, cy)
     sp.text = test_text
+
+
+@when("I change the position and size of the picture")
+def when_change_pos_and_size_of_picture(context):
+    picture = context.picture
+    picture.left = 914400*4
+    picture.top = 914400*3
+    picture.width = 914400*2
+    picture.height = 914400*1
 
 
 @when("I change the position and size of the shape")
@@ -140,6 +155,24 @@ def then_fore_color_is_RGB_value_I_set(context):
 def then_fore_color_is_theme_color_I_set(context):
     fore_color = context.shape.fill.fore_color
     assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
+
+
+@then('the position and size of the picture matches the known values')
+def then_picture_pos_and_size_matches_known_values(context):
+    picture = context.picture
+    assert picture.left == 914400
+    assert picture.top == 914400*2
+    assert picture.width == 914400*3
+    assert picture.height == 914400*4
+
+
+@then('the position and size of the picture matches the new values')
+def then_picture_pos_and_size_matches_new_values(context):
+    picture = context.picture
+    assert picture.left == 914400*4
+    assert picture.top == 914400*3
+    assert picture.width == 914400*2
+    assert picture.height == 914400*1
 
 
 @then('the position and size of the shape matches the known values')
