@@ -32,6 +32,10 @@ class Picture(BaseShape):
         """
         return self._off.x
 
+    @left.setter
+    def left(self, value):
+        self._off.x = value
+
     @property
     def shape_type(self):
         """
@@ -46,6 +50,10 @@ class Picture(BaseShape):
         Distance between top of slide and top edge of this shape, in EMU.
         """
         return self._off.y
+
+    @top.setter
+    def top(self, value):
+        self._off.y = value
 
     @property
     def width(self):
