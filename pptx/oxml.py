@@ -334,6 +334,7 @@ class CT_GraphicalObjectFrame(objectify.ObjectifiedElement):
     ``<p:graphicFrame>`` element, which is a container for a table, a chart,
     or another graphical object.
     """
+    DATATYPE_CHART = 'http://schemas.openxmlformats.org/drawingml/2006/chart'
     DATATYPE_TABLE = 'http://schemas.openxmlformats.org/drawingml/2006/table'
 
     _graphicFrame_tmpl = (
@@ -357,6 +358,14 @@ class CT_GraphicalObjectFrame(objectify.ObjectifiedElement):
     )
 
     @property
+    def has_chart(self):
+        """True if graphicFrame contains a chart, False otherwise"""
+        datatype = self[qn('a:graphic')].graphicData.get('uri')
+        if datatype == CT_GraphicalObjectFrame.DATATYPE_CHART:
+            return True
+        return False
+
+    @property
     def has_table(self):
         """True if graphicFrame contains a table, False otherwise"""
         datatype = self[qn('a:graphic')].graphicData.get('uri')
@@ -374,6 +383,26 @@ class CT_GraphicalObjectFrame(objectify.ObjectifiedElement):
         xml = CT_GraphicalObjectFrame._graphicFrame_tmpl % (
             id_, name, left, top, width, height)
         graphicFrame = oxml_fromstring(xml)
+
+        objectify.deannotate(graphicFrame, cleanup_namespaces=True)
+        return graphicFrame
+
+    @staticmethod
+    def new_chart(id_, name, rId, left, top, width, height):
+        """
+        Return a ``<p:graphicFrame>`` element tree populated with a chart
+        element.
+        """
+        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
+            id_, name, left, top, width, height)
+
+        # set type of contained graphic to table
+        graphicData = graphicFrame[qn('a:graphic')].graphicData
+        graphicData.set('uri', CT_GraphicalObjectFrame.DATATYPE_CHART)
+
+        # add tbl element tree
+        chart = CT_Chart.new_chart(rId)
+        graphicData.append(chart)
 
         objectify.deannotate(graphicFrame, cleanup_namespaces=True)
         return graphicFrame
@@ -664,6 +693,23 @@ class CT_Shape(objectify.ObjectifiedElement):
         doesn't have one, for example, if it's a placeholder shape.
         """
         return _child(self.spPr, 'a:prstGeom')
+
+
+class CT_Chart(objectify.ObjectifiedElement):
+    """``<c:chart>`` custom element class"""
+    _chart_tmpl = (
+        '<c:chart %s %s r:id="%s"/>' %
+        (nsdecls('c'), nsdecls('r'), '%s')
+    )
+
+    @staticmethod
+    def new_chart(rId):
+        """Return a new ``<c:chart>`` element"""
+        xml = CT_Chart._chart_tmpl % (rId)
+        chart = oxml_fromstring(xml)
+
+        objectify.deannotate(chart, cleanup_namespaces=True)
+        return chart
 
 
 class CT_Table(objectify.ObjectifiedElement):

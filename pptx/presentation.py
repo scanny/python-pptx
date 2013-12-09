@@ -24,6 +24,7 @@ import posixpath
 import weakref
 
 from datetime import datetime
+from itertools import groupby
 from StringIO import StringIO
 
 import pptx.packaging
@@ -38,18 +39,18 @@ from pptx.oxml import (
 from pptx.shapes import _ShapeCollection
 from pptx.spec import namespaces
 from pptx.spec import (
-    CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
-    CT_SLIDE_MASTER, CT_SLIDESHOW, CT_TEMPLATE
+    CT_CHART, CT_CORE_PROPS, CT_PRESENTATION, CT_SLIDE, CT_SLIDE_LAYOUT,
+    CT_SLIDE_MASTER, CT_SLIDESHOW, CT_TEMPLATE, CT_SPREADSHEET
 )
 from pptx.spec import (
-    RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_SLIDE, RT_SLIDE_LAYOUT,
-    RT_SLIDE_MASTER
+    RT_CHART, RT_CORE_PROPS, RT_IMAGE, RT_OFFICE_DOCUMENT, RT_PACKAGE,
+    RT_SLIDE, RT_SLIDE_LAYOUT, RT_SLIDE_MASTER
 )
 
 from pptx.util import Collection, Px
 
 # default namespace map for use in lxml calls
-_nsmap = namespaces('a', 'r', 'p')
+_nsmap = namespaces('a', 'c', 'r', 'p')
 
 
 def _child(element, child_tagname, nsmap=None):
@@ -87,6 +88,8 @@ class _Package(object):
         self.__core_properties = None
         self.__relationships = _RelationshipCollection()
         self.__images = _ImageCollection()
+        self.__charts = _ChartCollection(self)
+        self.__embedded_packages = _EmbeddedPackageCollection()
         self.__instances.append(weakref.ref(self))
         if file is None:
             file = self.__default_pptx_path
@@ -140,6 +143,21 @@ class _Package(object):
         return self.__images
 
     @property
+    def _charts(self):
+        """
+        |_ChartCollection| object containing the charts in this package.
+        """
+        return self.__charts
+
+    @property
+    def _embedded_packages(self):
+        """
+        |_EmbeddedPackageCollection| object containing the embedded packages
+        in this package.
+        """
+        return self.__embedded_packages
+
+    @property
     def _relationships(self):
         return self.__relationships
 
@@ -178,6 +196,21 @@ class _Package(object):
                        if part.__class__.__name__ == '_Image']
         for image in image_parts:
             self.__images._loadpart(image)
+
+        # gather references to embedded package parts into __embedded_packages
+        self.__embedded_packages = _EmbeddedPackageCollection()
+        embedded_package_parts = [part for part in self._parts
+                       if part.__class__.__name__ in ('_EmbeddedPackage', '_EmbeddedSpreadsheet')]
+        for emb_pkg in embedded_package_parts:
+            self.__embedded_packages._loadpart(emb_pkg)
+
+        # gather references to chart parts into __charts
+        self.__charts = _ChartCollection(self)
+        chart_parts = [part for part in self._parts
+                       if part.__class__.__name__ == '_Chart']
+        for chart in chart_parts:
+            self.__charts._loadpart(chart)
+
 
     def __open(self, file):
         """
@@ -304,8 +337,9 @@ class _RelationshipCollection(Collection):
             raise ValueError(tmpl % relationship._rId)
         self._values.append(relationship)
         self.__resequence()
-        # register as observer of partname changes
-        relationship._target.add_observer(self)
+        # register as observer of partname changes if supported
+        if hasattr(relationship._target, 'add_observer'):
+            relationship._target.add_observer(self)
 
     @property
     def _next_rId(self):
@@ -547,6 +581,15 @@ class _Part(object):
             return _SlideMaster()
         elif reltype == RT_IMAGE:
             return _Image()
+        elif reltype == RT_CHART:
+            return _Chart()
+        elif reltype == RT_PACKAGE:
+            if content_type in (CT_SPREADSHEET,):
+                return _EmbeddedSpreadsheet()
+            else:
+                tmpl = ("Not a supported embedded package content type, "
+                    "got '%s'")
+                raise InvalidPackageError(tmpl % content_type)
         return _BasePart()
 
 
@@ -625,6 +668,11 @@ class _BasePart(_Observable):
     def partname(self, partname):
         self.__partname = partname
         self._notify_observers('partname', self.__partname)
+
+    @property
+    def _package(self):
+        """Reference to |_Package| containing this part"""
+        return _Package.containing(self)
 
     def _add_relationship(self, reltype, target_part):
         """
@@ -1039,6 +1087,17 @@ class _BaseSlide(_BasePart):
         rel = self._add_relationship(RT_IMAGE, image)
         return (image, rel)
 
+    def _add_chart_from_spreadsheet(self, file):
+        """
+        Return a tuple ``(chart, relationship)`` representing the |Chart| part
+        of the first chart in the Excel spreadsheet specified by `file`, where
+        `file` can be either a path to a file (a string) or a file-like object.
+        The spreasheet will be embedded in the presentation.
+        """
+        chart = self._package._charts._embed_chart_from_spreadsheet(file)
+        rel = self._add_relationship(RT_CHART, chart)
+        return (chart, rel)
+
     def _load(self, pkgpart, part_dict):
         """Handle aspects of loading that are general to slide types."""
         # call parent to do generic aspects of load
@@ -1047,11 +1106,6 @@ class _BaseSlide(_BasePart):
         self._shapes = _ShapeCollection(self._element.cSld.spTree, self)
         # return self-reference to allow generative calling
         return self
-
-    @property
-    def _package(self):
-        """Reference to |_Package| containing this slide"""
-        return _Package.containing(self)
 
 
 class _Slide(_BaseSlide):
@@ -1173,3 +1227,223 @@ class _SlideMaster(_BaseSlide):
             if rel._reltype == RT_SLIDE_LAYOUT:
                 self.__slidelayouts._loadpart(rel._target)
         return self
+
+
+# ============================================================================
+# Embedded Package Parts
+# ============================================================================
+
+class _EmbeddedPackageCollection(_PartCollection):
+    """
+    Immutable sequence of embedded packages belonging to an instance of
+    |_Package|, with methods for manipulating the embedded packages in the
+    package.
+    """
+    def __init__(self):
+        super(_EmbeddedPackageCollection, self).__init__()
+
+    def add_spreadsheet(self, package_file):
+        """Add a new embedded spreadsheet package."""
+        pkg = _EmbeddedSpreadsheet(package_file)
+        return self._append_package(pkg)
+
+    def _append_package(self, pkg):
+        self._values.append(pkg)
+        self.__rename_packages()
+        return pkg
+
+    def __rename_packages(self):
+        """
+        Assign partnames like ``/ppt/embeddings/Worksheet9.xlsx`` to all
+        packages in the collection. The number part forms a continuous
+        sequence starting at 1 (e.g. 1, 2, 3, ...). The name portion and
+        extension depends on the type of the package.
+        """
+        part_content_type = lambda v: v._content_type
+        values = sorted(self._values, key=part_content_type)
+        for content_type, group in groupby(values, part_content_type):
+            for idx, part in enumerate(group):
+                part.partname = ('/ppt/embeddings/%s%d%s' %
+                    (part._partname_base, idx+1, part._partname_extension))
+
+
+class _BaseEmbeddedPackage(_BasePart):
+    """
+    Base class for embedded package parts.
+    """
+    _partname_base = 'EmbeddedPackage'
+    _partname_extension = '.bin'
+
+    def __init__(self, content_type=None, file=None):
+        """
+        Needs content_type parameter so newly created parts (not loaded from
+        package) can register their content type. Needs package_file
+        parameter so newly created parts have a file-like to work with.
+        """
+        super(_BaseEmbeddedPackage, self).__init__(content_type)
+        self.__filepath = None
+        if file is  None:
+            self._load_blob = ''
+        else:
+            self.__load_embedded_package_from_file(file)
+
+    @property
+    def name(self):
+        """Internal name of this package object."""
+        return os.path.split(self.partname)[1]
+
+    @property
+    def _blob(self):
+        """
+        For an embedded package, _blob is always _load_blob, embedded package file
+        content is not manipulated.
+        """
+        return self._load_blob
+
+    @property
+    def file(self):
+        """
+        The file-like object that contains the package contents.
+        """
+        return StringIO(self._blob)
+
+    def __load_embedded_package_from_file(self, file):
+        """
+        Load image from *file*, which is either a path to a file or a
+        file-like object.
+        """
+        if isinstance(file, basestring):  # file is a path
+            self.__filepath = file
+            with open(self.__filepath, 'rb') as f:
+                self._load_blob = f.read()
+        else:  # assume file is a file-like object
+            file.seek(0)
+            self._load_blob = file.read()
+
+
+class _EmbeddedSpreadsheet(_BaseEmbeddedPackage):
+    """
+    Embedded worksheet (Excel spreadsheet) part. Corresponds to package
+    files ``ppt/embeddings/Worksheet[1-9][0-9]*.xlsx``.
+    """
+    _partname_base = 'Worksheet'
+    _partname_extension = '.xlsx'
+
+    def __init__(self, file=None):
+        super(_EmbeddedSpreadsheet, self).__init__(CT_SPREADSHEET, file)
+
+    def charts(self):
+        pkg = pptx.packaging.Package()
+        pkg.open(self.file)
+        for part in pkg.parts:
+            if part.content_type == CT_CHART:
+                yield _EmbeddedSpreadsheetChart(self, part)
+
+
+class _EmbeddedSpreadsheetChart(object):
+    """
+    Object representing an embedded worksheet chart. To be used with
+    _ChartCollection.embed_spreadsheet_chart().
+    """
+
+    def __init__(self, embedded_package, part):
+        self._embedded_package = embedded_package
+        self._part = part
+
+    def copy_to_chart(self):
+        """Copy the embedded chart to a `_Chart` part that can be used in
+        the presentation."""
+        blob = self._part.blob
+        chart = _Chart(blob)
+        chart._set_externalData(self._embedded_package)
+        return chart
+
+
+# ============================================================================
+# Chart Parts
+# ============================================================================
+
+class _ChartCollection(_PartCollection):
+    """
+    Mutable sequence of charts belonging to an instance of |_Package|. A
+    chart part containing a particular chart blob appears only once in an
+    instance, regardless of how many times it is referenced by a chart shape
+    in a slide.
+    """
+    def __init__(self, package):
+        super(_ChartCollection, self).__init__()
+        self._package = package
+
+    def add_chart(self):
+        """Add a new chart."""
+        # Create a new chart
+        chart = _Chart()
+        # add it to collection and return new chart
+        return self._append_chart(chart)
+
+    def _append_chart(self, chart):
+        self._values.append(chart)
+        self.__rename_charts()
+        return chart
+
+    def _embed_chart_from_spreadsheet(self, file):
+        """
+        Embed the Excel spreadsheet `file`, and add its first chart to this
+        collection. Return the chart part.
+
+        Powerpoint will not allow multiple different charts to refer to the
+        same embedded spreadsheet (though it allows this if the spreadsheet
+        is linked instead).
+        """
+        spreadsheet = self._package._embedded_packages.add_spreadsheet(file)
+        try:
+            emb_chart = iter(spreadsheet.charts()).next()
+        except StopIteration:
+            raise ValueError("Spreadsheet contains no charts.")
+        chart = emb_chart.copy_to_chart()
+        return self._append_chart(chart)
+
+    def __rename_charts(self):
+        """
+        Assign partnames like ``/ppt/charts/chart9.xml`` to all charts in the
+        collection. The name portion is always ``chart``. The number part
+        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
+        extension is always ``.xml``.
+        """
+        for idx, chart in enumerate(self._values):
+            chart.partname = '/ppt/charts/chart%d.xml' % (idx+1)
+
+class _Chart(_BasePart):
+    """
+    Chart part. Corresponds to package files ppt/charts/chart[1-9][0-9]*.xml.
+    """
+    def __init__(self, blob=None):
+        super(_Chart, self).__init__(CT_CHART)
+        if blob:
+            self._element = oxml_fromstring(blob)
+        else:
+            self._element = self.__minimal_element
+
+    def _set_externalData(self, package=None):
+        """
+        Add (or replace, or remove) the chart’s externalData relationship with
+        a relationship to the specified package.
+        """
+        if hasattr(self._element, 'externalData'):
+            del self._element.externalData
+        if package is not None:
+            rel = self._add_relationship(RT_PACKAGE, package)
+            externalData = _SubElement(self._element, 'c:externalData', _nsmap)
+            externalData.set(qn('r:id'), rel._rId)
+
+    @property
+    def __minimal_element(self):
+        """
+        Return element containing the minimal XML for a (pie) chart part,
+        based on what is required by the XMLSchema.
+        """
+        cs = _Element('c:chartSpace', _nsmap)
+        _SubElement(cs, 'c:chart', _nsmap)
+        _SubElement(cs.chart, 'c:plotArea', _nsmap)
+        _SubElement(cs.chart.plotArea, 'c:pieChart', _nsmap)
+        return cs

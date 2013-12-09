@@ -15,14 +15,16 @@ from hamcrest import assert_that, equal_to, is_, is_not, same_instance
 from mock import MagicMock, Mock, patch, PropertyMock
 # from unittest2 import skip
 
+import pptx.api
+
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO, PP
 from pptx.oxml import (
     _SubElement, nsdecls, oxml_fromstring, oxml_parse, oxml_tostring
 )
-from pptx.presentation import _SlideLayout
+from pptx.presentation import Presentation, _Package, _SlideLayout
 from pptx.shapes import (
     _Adjustment, _AdjustmentCollection, _AutoShapeType, _BaseShape, _Cell,
-    _CellCollection, _Column, _ColumnCollection, _Font, _Paragraph,
+    _CellCollection, _Chart, _Column, _ColumnCollection, _Font, _Paragraph,
     _Placeholder, _Row, _RowCollection, _Run, _Shape, _ShapeCollection,
     _TextFrame, _to_unicode
 )
@@ -52,6 +54,7 @@ test_bmp_path = absjoin(test_file_dir, 'python.bmp')
 new_image_path = absjoin(test_file_dir, 'monty-truth.png')
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
+chart_xlsx_path = absjoin(test_file_dir, 'charts.xlsx')
 
 nsmap = namespaces('a', 'r', 'p')
 
@@ -1315,6 +1318,43 @@ class Test_ShapeCollection(TestCase):
         __spTree.append.assert_called_once_with(sp)
         assert_that(shapes._ShapeCollection__shapes[0], is_(equal_to(shape)))
         assert_that(retval, is_(equal_to(shape)))
+
+    @patch('pptx.shapes._Chart')
+    @patch('pptx.shapes.CT_GraphicalObjectFrame')
+    @patch('pptx.shapes._ShapeCollection._ShapeCollection__next_shape_id',
+           new_callable=PropertyMock)
+    def test_add_chart_collaboration(
+            self, __next_shape_id, CT_GraphicalObjectFrame, _Chart,):
+        """_ShapeCollection.add_chart() calls the right collaborators"""
+        # constant values -------------
+        id_, name = 9, 'Chart 8'
+        rId = 'rId1'
+        rows, cols = 2, 3
+        left, top, width, height = 111, 222, 333, 444
+        # setup mockery ---------------
+        __next_shape_id.return_value = id_
+        graphicFrame = Mock(name='graphicFrame')
+        CT_GraphicalObjectFrame.new_chart.return_value = graphicFrame
+        chart = Mock('chart')
+        _Chart.return_value = chart
+        rel = Mock(name='rel', _rId=rId)
+        slide = Mock(name='slide')
+        slide._add_chart.return_value = chart, rel
+        __spTree = Mock(name='__spTree')
+        __shapes = Mock(name='__shapes')
+        shapes = _ShapeCollection(test_shape_elements.empty_spTree, slide)
+        shapes._ShapeCollection__spTree = __spTree
+        shapes._ShapeCollection__shapes = __shapes
+        # exercise ---------------------
+        retval = shapes._add_chart(chart, rel, left, top, width, height)
+        # verify -----------------------
+        __next_shape_id.assert_called_once_with()
+        CT_GraphicalObjectFrame.new_chart.assert_called_once_with(
+            id_, name, rId, left, top, width, height)
+        __spTree.append.assert_called_once_with(graphicFrame)
+        _Chart.assert_called_once_with(graphicFrame)
+        __shapes.append.assert_called_once_with(chart)
+        assert_that(retval, is_(equal_to(chart)))
 
     def test_title_value(self):
         """_ShapeCollection.title value is ref to correct shape"""

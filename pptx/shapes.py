@@ -479,6 +479,35 @@ class _ShapeCollection(_BaseShape, Collection):
                 return shape
         return None
 
+    def add_chart_from_spreadsheet(self, file, left, top, width, height):
+        """
+        Add a chart shape for the first chart in the Excel spreadsheet
+        `file` at the specified position with the specified size, where
+        `file` can be either a path to a file (a string) or a file-like
+        object. The spreadsheet will be embedded in the presentation.
+        """
+        # Note that Powerpoint does not allow multiple chart shapes to
+        # reference the same chart part, nor multiple chart parts to
+        # reference the same embedded spreadsheet (though this is allowed
+        # when the spreadsheet is linked). Consequently, each new chart
+        # shape must embed its own chart part and spreadsheet package.
+        chart, rel = self.__slide._add_chart_from_spreadsheet(file)
+        return self._add_chart(chart, rel, left, top, width, height)
+
+    def _add_chart(self, chart, rel, left, top, width, height):
+        """
+        Add a shape for the specified chart and rel at the specified position
+        with the specified size.
+        """
+        id = self.__next_shape_id
+        name = 'Chart %d' % (id-1)
+        graphicFrame = CT_GraphicalObjectFrame.new_chart(
+            id, name, rel._rId, left, top, width, height)
+        self.__spTree.append(graphicFrame)
+        chart_shape = _Chart(graphicFrame)
+        self.__shapes.append(chart_shape)
+        return chart_shape
+
     def add_picture(self, file, left, top, width=None, height=None):
         """
         Add picture shape displaying image in *file*, where *file* can be
@@ -732,6 +761,43 @@ class _Shape(_BaseShape):
             return MSO.TEXT_BOX
         msg = '_Shape instance of unrecognized shape type'
         raise NotImplementedError(msg)
+
+
+# ============================================================================
+# Chart-related classes
+# ============================================================================
+
+class _Chart(_BaseShape):
+    """
+    A chart shape. Not intended to be constructed directly, use
+    :meth:`_ShapeCollection.add_chart` to add a chart to a slide.
+    """
+    def __init__(self, graphicFrame):
+        super(_Chart, self).__init__(graphicFrame)
+        self.__graphicFrame = graphicFrame
+        self.__chart_elm = graphicFrame[qn('a:graphic')].graphicData[qn('c:chart')]
+
+    @property
+    def height(self):
+        """
+        Read-only integer height of table in English Metric Units (EMU)
+        """
+        return int(self.__graphicFrame.xfrm[qn('a:ext')].get('cy'))
+
+    @property
+    def shape_type(self):
+        """
+        Unique integer identifying the type of this shape, unconditionally
+        ``MSO.CHART`` in this case.
+        """
+        return MSO.CHART
+
+    @property
+    def width(self):
+        """
+        Read-only integer width of table in English Metric Units (EMU)
+        """
+        return int(self.__graphicFrame.xfrm[qn('a:ext')].get('cx'))
 
 
 # ============================================================================

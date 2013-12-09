@@ -1571,12 +1571,12 @@ CT_DOCUMENT = (
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document.'
     'main+xml'
 )
+CT_DRAWING = (
+    'application/vnd.openxmlformats-officedocument.drawing+xml'
+)
 CT_ENDNOTES = (
     'application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+'
     'xml'
-)
-CT_EXCEL_XLSX = (
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 )
 CT_EXTENDED_PROPS = (
     'application/vnd.openxmlformats-officedocument.extended-properties+xml'
@@ -1678,10 +1678,28 @@ CT_WML_COMMENTS = (
     'application/vnd.openxmlformats-officedocument.wordprocessingml.comments+'
     'xml'
 )
-CT_WORKSHEET = (
+CT_SPREADSHEET = (
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 )
-
+CT_WORKSHEET = (
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xm'
+    'l'
+)
+CT_SHARED_STRINGS = (
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sharedString'
+    's+xml'
+)
+CT_SPREADSHEET_STYLES = (
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml'
+)
+CT_WORKBOOK = (
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+x'
+    'ml'
+)
+CT_WORKBOOK_TEMPLATE = (
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.template.mai'
+    'n+xml'
+)
 
 RT_CHART = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/char'
@@ -1710,6 +1728,10 @@ RT_CUSTOM_XML = (
 RT_CUSTOM_XML_PROPS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/cus'
     'tomXmlProps'
+)
+RT_DRAWING = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/draw'
+    'ing'
 )
 RT_ENDNOTES = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/endn'
@@ -1779,6 +1801,10 @@ RT_SETTINGS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/sett'
     'ings'
 )
+RT_SHARED_STRINGS = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/shar'
+    'edStrings'
+)
 RT_SLIDE = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slid'
     'e'
@@ -1821,6 +1847,10 @@ RT_VIEWPROPS = (
 RT_WEB_SETTINGS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/webS'
     'ettings'
+)
+RT_WORKSHEET = (
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/work'
+    'sheet'
 )
 RT_WML_COMMENTS = (
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comm'
@@ -1915,6 +1945,17 @@ pml_parttypes = {
         'has_rels':    PTS_HASRELS_OPTIONAL,
         'rels_from':   ['package'],
         'reltype':     RT_OFFICE_DOCUMENT
+    },
+    CT_DRAWING: {  # ISO/IEC 29500-1 12.3.8
+        'basename':    'drawing',
+        'ext':         '.xml',
+        'name':        'Drawings Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/drawings',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['worksheet', 'chartsheet'],
+        'reltype':     RT_DRAWING
     },
     CT_ENDNOTES: {  # ISO/IEC 29500-1 11.3.4
         'basename':    'endnotes',
@@ -2086,6 +2127,17 @@ pml_parttypes = {
         'rels_from':   ['document', 'glossary'],
         'reltype':     RT_SETTINGS
     },
+    CT_SHARED_STRINGS: { # ISO/IEC 29500-1 12.3.15
+        'basename':    'sharedStrings',
+        'ext':         'xml',
+        'name':        'Shared String Table Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    True,
+        'baseURI':     '/xl',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   ['workbook'],
+        'reltype':     RT_SHARED_STRINGS
+    },
     CT_SLIDE: {  # ECMA-376-1 13.3.8
         'basename':    'slide',
         'ext':         '.xml',
@@ -2130,6 +2182,30 @@ pml_parttypes = {
         'has_rels':    PTS_HASRELS_ALWAYS,
         'rels_from':   ['package'],
         'reltype':     RT_SLIDESHOW
+    },
+    CT_SPREADSHEET: {  # Embedded worksheet package; ISO/IEC 29500-1 15.2.11
+        'basename':    'embeddings',
+        'ext':         '.xlsx',
+        'name':        'Worksheet Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/ppt/embeddings',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['chart', 'handoutMaster', 'notesSlide',
+                        'notesMaster', 'slide', 'slideLayout',
+                        'slideMaster'],
+        'reltype':     RT_PACKAGE
+    },
+    CT_SPREADSHEET_STYLES: { # ISO/IEC 29500-1 12.3.20
+        'basename':    'styles',
+        'ext':         'xml',
+        'name':        'Styles Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    False,
+        'baseURI':     '/xl',
+        'has_rels':    PTS_HASRELS_NEVER,
+        'rels_from':   ['workbook'],
+        'reltype':     RT_STYLES
     },
     CT_STYLES: {  # ISO/IEC 29500-1 11.3.12
         'basename':    'styles',
@@ -2223,6 +2299,30 @@ pml_parttypes = {
         'has_rels':    PTS_HASRELS_OPTIONAL,
         'rels_from':   ['document'],
         'reltype':     RT_WML_COMMENTS
+    },
+    CT_WORKSHEET: {
+        'basename':    'sheet',
+        'ext':         '.xml',
+        'name':        'Worksheet Part',
+        'cardinality': PTS_CARDINALITY_TUPLE,
+        'required':    False,
+        'baseURI':     '/xl/worksheets',
+        'has_rels':    PTS_HASRELS_OPTIONAL,
+        'rels_from':   ['workbook'],
+        'reltype':     RT_WORKSHEET
+    },
+    CT_WORKBOOK: {  # ISO/IEC 29500-1 12.3.23
+        # one of two possible Content Type values for workbook part,
+        # the other being CT_WORKBOOK_TEMPLATE and currently unsupported.
+        'basename':    'workbook',
+        'ext':         '.xml',
+        'name':        'Workbook Part',
+        'cardinality': PTS_CARDINALITY_SINGLETON,
+        'required':    True,
+        'baseURI':     '/xl',
+        'has_rels':    PTS_HASRELS_ALWAYS,
+        'rels_from':   ['package'],
+        'reltype':     RT_OFFICE_DOCUMENT
     },
     'image/bmp': {  # ECMA-376-1 15.2.14
         'basename':    'image',
@@ -2347,7 +2447,7 @@ default_content_types = {
     '.tiff':    'image/tiff',
     '.wdp':     'image/vnd.ms-photo',
     '.wmf':     'image/x-wmf',
-    '.xlsx':    CT_EXCEL_XLSX,
+    '.xlsx':    CT_SPREADSHEET,
     '.xml':     'application/xml'
 }
 
@@ -2360,6 +2460,7 @@ default_content_types = {
 
 nsmap = {
     'a':   'http://schemas.openxmlformats.org/drawingml/2006/main',
+    'c':   'http://schemas.openxmlformats.org/drawingml/2006/chart',
     'cp':  ('http://schemas.openxmlformats.org/package/2006/metadata/core-pro'
             'perties'),
     'ct':  'http://schemas.openxmlformats.org/package/2006/content-types',
