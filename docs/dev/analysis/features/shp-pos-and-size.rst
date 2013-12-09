@@ -5,61 +5,13 @@ Shape position and size
 Shapes of the following types can appear in the shape tree of a slide
 (``<p:spTree>``) and each will require support for querying size and position.
 
-* **sp** -- Auto Shape
-* **pic** -- Picture
+* **sp** -- Auto Shape *(completed)*
+* **pic** -- Picture *(completed)*
 * **graphicFrame** -- container for table and chart shapes
 * **grpSp** -- Group Shape
 * **cxnSp** -- Connector (line)
 * **contentPart** -- has no position, but should return None instead of raising
   an exception
-
-
-Acceptance test
----------------
-
-.. highlight:: cucumber
-
-::
-
-    shp-pos-and-size.feature
-
-    Feature: Query and set shape position and size
-      In order to manipulate shapes on an existing slide
-      As an application developer
-      I need to get the position and size of a shape
-
-    Scenario: get position and size of existing shape
-       Given a shape of known position and size
-        When I get the position and size of the shape
-        Then it matches the known position and size of the shape
-
-    Scenario: change position and size of an existing shape
-       Given a shape of known position and size
-        When I change the position and size of the shape
-         And I get the position and size of the shape
-        Then it matches the new position and size of the shape
-
-
-Unit tests
-----------
-
-::
-
-    DescribeShape
-
-    it has a position
-    it has dimensions
-    it can change its position
-    it can change its dimensions
-
-
-Candidate API
--------------
-
-* Shape.left
-* Shape.top
-* Shape.width
-* Shape.height
 
 
 Protocol
@@ -73,6 +25,7 @@ Protocol
     >>> shape.left = Inches(0.5)
     >>> shape.left
     457200
+
 
 XML specimens
 -------------

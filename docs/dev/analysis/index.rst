@@ -11,7 +11,8 @@ Feature Analysis
    :maxdepth: 1
 
    features/color
-   features/font-color
+   features/txt-font-color
+   features/txt-font-typeface
    features/hyperlink
    features/shp-fill
    features/shp-group-shape
