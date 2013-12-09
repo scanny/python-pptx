@@ -233,6 +233,13 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         return self._add_solidFill()
 
     @property
+    def latin(self):
+        """
+        The <a:latin> child element, or None if not present.
+        """
+        return self.find(qn('a:latin'))
+
+    @property
     def noFill(self):
         """
         The <a:noFill> child element, or None if not present.
@@ -335,6 +342,20 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         hlinkClick = self.find(qn('a:hlinkClick'))
         if hlinkClick is not None:
             self.remove(hlinkClick)
+
+
+class CT_TextFont(objectify.ObjectifiedElement):
+    """
+    Custom element class for <a:latin>, <a:ea>, <a:cs>, and <a:sym> child
+    elements of CT_TextCharacterProperties, e.g. <a:rPr>.
+    """
+    @property
+    def typeface(self):
+        """
+        Typeface name to use for characters governed by this element, e.g.
+        Latin characters if it is a <a:latin> element.
+        """
+        return self.get('typeface')
 
 
 class CT_TextParagraph(objectify.ObjectifiedElement):

@@ -64,6 +64,12 @@ class CT_TextCharacterPropertiesBuilder(BaseBuilder):
         super(CT_TextCharacterPropertiesBuilder, self).__init__()
 
 
+class CT_TextFont(BaseBuilder):
+    __tag__ = 'a:latin'
+    __nspfxs__ = ('a',)
+    __attrs__ = ('typeface', 'panose', 'pitchFamily', 'charset')
+
+
 class CT_TextParagraphBuilder(BaseBuilder):
     """
     Test data builder for CT_TextParagraph (<a:p>) XML element that appears
@@ -102,6 +108,10 @@ def a_bodyPr():
 
 def a_defRPr():
     return CT_TextCharacterPropertiesBuilder('a:defRPr')
+
+
+def a_latin():
+    return CT_TextFont()
 
 
 def a_p():

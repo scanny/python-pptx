@@ -96,12 +96,14 @@ register_custom_element_class('a:tcPr', CT_TableCellProperties)
 
 from pptx.oxml.text import (
     CT_Hyperlink, CT_RegularTextRun, CT_TextBody, CT_TextBodyProperties,
-    CT_TextCharacterProperties, CT_TextParagraph, CT_TextParagraphProperties
+    CT_TextCharacterProperties, CT_TextFont, CT_TextParagraph,
+    CT_TextParagraphProperties
 )
 register_custom_element_class('a:bodyPr',     CT_TextBodyProperties)
 register_custom_element_class('a:defRPr',     CT_TextCharacterProperties)
 register_custom_element_class('a:endParaRPr', CT_TextCharacterProperties)
 register_custom_element_class('a:hlinkClick', CT_Hyperlink)
+register_custom_element_class('a:latin',      CT_TextFont)
 register_custom_element_class('a:r',          CT_RegularTextRun)
 register_custom_element_class('a:p',          CT_TextParagraph)
 register_custom_element_class('a:pPr',        CT_TextParagraphProperties)

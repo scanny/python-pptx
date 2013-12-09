@@ -20,7 +20,7 @@ from pptx.text import _Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches
 
 from .oxml.unitdata.text import (
-    a_bodyPr, a_txBody, a_p, a_pPr, a_t, an_hlinkClick, an_r, an_rPr
+    a_bodyPr, a_latin, a_txBody, a_p, a_pPr, a_t, an_hlinkClick, an_r, an_rPr
 )
 from .unitutil import (
     absjoin, actual_xml, class_mock, instance_mock, loose_mock,
@@ -335,6 +335,10 @@ class Describe_Font(object):
         font.italic = None
         assert actual_xml(font._rPr) == rPr_xml
 
+    def it_knows_its_typeface(self, typeface_get_fixture):
+        font, typeface = typeface_get_fixture
+        assert font.name == typeface
+
     def it_can_set_the_font_size(self, font):
         font.size = 2400
         expected_xml = an_rPr().with_nsdecls().with_sz(2400).xml()
@@ -386,6 +390,16 @@ class Describe_Font(object):
     @pytest.fixture
     def rPr_xml(self):
         return an_rPr().with_nsdecls().xml()
+
+    @pytest.fixture(params=[None, 'Foobar Light'])
+    def typeface_get_fixture(self, request):
+        typeface = request.param
+        rPr_bldr = an_rPr().with_nsdecls()
+        if typeface is not None:
+            rPr_bldr.with_child(a_latin().with_typeface(typeface))
+        rPr = rPr_bldr.element
+        font = _Font(rPr)
+        return font, typeface
 
 
 class Describe_Hyperlink(object):
