@@ -18,6 +18,13 @@ class Picture(BaseShape):
         self._pic = pic
 
     @property
+    def height(self):
+        """
+        Distance between top and bottom extents of shape in integer EMUs.
+        """
+        return self._ext.cy
+
+    @property
     def left(self):
         """
         Distance between left edge of slide and left edge of this shape, in
@@ -39,6 +46,22 @@ class Picture(BaseShape):
         Distance between top of slide and top edge of this shape, in EMU.
         """
         return self._off.y
+
+    @property
+    def width(self):
+        """
+        Distance between left and right extents of shape in integer EMUs.
+        """
+        return self._ext.cx
+
+    @property
+    def _ext(self):
+        """
+        Get or add sp.spPr.xfrm.ext element
+        """
+        spPr = self._pic.spPr
+        xfrm = spPr.get_or_add_xfrm()
+        return xfrm.get_or_add_ext()
 
     @property
     def _off(self):
