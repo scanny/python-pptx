@@ -21,6 +21,16 @@ from .helpers import italics_pptx_path, saved_pptx_path
 
 # given ===================================================
 
+@given('a font')
+def given_a_font(context):
+    prs = Presentation()
+    blank_slidelayout = prs.slidelayouts[6]
+    slide = prs.slides.add_slide(blank_slidelayout)
+    textbox = slide.shapes.add_textbox(0, 0, 0, 0)
+    run = textbox.textframe.paragraphs[0].add_run()
+    context.font = run.font
+
+
 @given('a paragraph')
 def given_a_paragraph(context):
     context.prs = Presentation()
@@ -84,6 +94,10 @@ def step_given_a_textframe(context):
 
 # when ====================================================
 
+@when('I assign a typeface name to the font')
+def when_assign_typeface_name_to_font(context):
+    context.font.name = 'Verdana'
+
 
 @when('I reload the presentation')
 def when_reload_presentation(context):
@@ -145,6 +159,11 @@ def step_when_set_textframe_word_wrap(context, setting):
 
 
 # then ====================================================
+
+@then('the font name matches the typeface I set')
+def then_font_name_matches_typeface_I_set(context):
+    assert context.font.name == 'Verdana'
+
 
 @then('the paragraph is aligned centered')
 def step_then_paragraph_is_aligned_centered(context):

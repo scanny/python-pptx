@@ -31,25 +31,6 @@ Feature: Change properties of text in shapes
     | to None |
 
 
-  Scenario Outline: Set italics property of text
-    Given a run with italics set <initial>
-     When I set italics <new>
-      And I reload the presentation
-     Then the run that had italics set <initial> now has it set <new>
-
-  Examples: Italics Settings
-    | initial | new     |
-    | on      | on      |
-    | on      | off     |
-    | on      | to None |
-    | off     | on      |
-    | off     | off     |
-    | off     | to None |
-    | to None | on      |
-    | to None | off     |
-    | to None | to None |
-
-
   Scenario Outline: Set textframe margins
     Given a textframe
      When I set the <side> margin to <value>"
@@ -62,21 +43,3 @@ Feature: Change properties of text in shapes
     | top    | 0.2   |
     | right  | 0.3   |
     | bottom | 0.4   |
-
-
-  Scenario: Add hyperlink
-    Given a text run
-     When I set the hyperlink address
-     Then the text of the run is a hyperlink
-
-
-  Scenario: Add hyperlink in table cell
-    Given a text run in a table cell
-     When I set the hyperlink address
-     Then the text of the run is a hyperlink
-
-
-  Scenario: Remove hyperlink
-    Given a text run having a hyperlink
-     When I set the hyperlink address to None
-     Then the text run is not a hyperlink

@@ -217,6 +217,17 @@ class _Font(object):
     def italic(self, value):
         self._rPr.i = value
 
+    @property
+    def name(self):
+        """
+        Get or set the typeface name for this |_Font| instance, causing the
+        text it controls to appear in the named font, if a matching font is
+        found. Returns |None| if the typeface is currently inherited from the
+        theme. Setting it to |None| removes any override of the theme
+        typeface.
+        """
+        raise NotImplementedError
+
     def _set_size(self, centipoints):
         # handle float centipoints value gracefully
         centipoints = int(centipoints)
