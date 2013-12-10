@@ -28,7 +28,7 @@ PACKAGES = [
 ]
 PACKAGE_DATA = {'pptx': ['templates/*']}
 
-INSTALL_REQUIRES = ['lxml>=2.3.2', 'PIL']
+INSTALL_REQUIRES = ['lxml>=2.3.2', 'Pillow>=2.0']
 TEST_SUITE = 'test'
 TESTS_REQUIRE = ['unittest2', 'mock', 'PyHamcrest', 'behave']
 
