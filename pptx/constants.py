@@ -197,6 +197,8 @@ class MSO_AUTO_SHAPE_TYPE(object):
     VERTICAL_SCROLL = 101
     WAVE = 103
 
+MSO_SHAPE = MSO_AUTO_SHAPE_TYPE
+
 
 class MSO(object):
     """

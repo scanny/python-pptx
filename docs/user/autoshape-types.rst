@@ -1,6 +1,7 @@
-###############
-AutoShape Types
-###############
+.. _MsoAutoShapeType:
+
+Auto Shape Types
+================
 
 SHAPE_10_POINT_STAR
     10-Point Star

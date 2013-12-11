@@ -61,10 +61,11 @@ class CT_Picture(objectify.ObjectifiedElement):
     @property
     def spPr(self):
         """
-        The <a:spPr> child element, or None if not present.
+        The required <a:spPr> child element, raises if not present.
         """
         spPr = self.find(qn('p:spPr'))
         if spPr is None:
+            # TODO: this should be ValidationError, not ValueError
             raise ValueError("pic element missing required spPr child")
         return spPr
 

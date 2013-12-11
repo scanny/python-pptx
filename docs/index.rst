@@ -1,3 +1,4 @@
+
 python-pptx
 ===========
 
@@ -35,6 +36,12 @@ User Guide
    user/intro
    user/install
    user/quickstart
+   user/presentations
+   user/slides
+   user/shapes
+   user/placeholders
+   user/text
+   user/autoshapes
    user/use-cases
    user/concepts
    user/autoshape-types
