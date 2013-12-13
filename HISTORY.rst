@@ -3,6 +3,22 @@
 Release History
 ---------------
 
+0.3.0 (2013-12-12)
+++++++++++++++++++
+
+- Add read/write font color property supporting RGB, theme color, and inherit
+  color types
+- Add font typeface and italic support
+- Add text frame margins and word-wrap
+- Add support for external relationships, e.g. linked spreadsheet
+- Add hyperlink support for text run in shape and table cell
+- Add fill color and brightness for shape and table cell, fill can also be set
+  to transparent (no fill)
+- Add read/write position and size properties to shape and picture
+- Replace PIL dependency with Pillow
+- Restructure modules to better suit size of library
+
+
 0.2.6 (2013-06-22)
 ++++++++++++++++++
 
