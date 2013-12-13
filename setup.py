@@ -19,18 +19,18 @@ VERSION = version
 DESCRIPTION = 'Generate and manipulate Open XML PowerPoint (.pptx) files'
 KEYWORDS = 'powerpoint ppt pptx office open xml'
 AUTHOR = 'Steve Canny'
-AUTHOR_EMAIL = 'python.pptx@librelist.com'
+AUTHOR_EMAIL = 'python-pptx@googlegroups.com'
 URL = 'http://github.com/scanny/python-pptx'
 LICENSE = open(license).read()
 PACKAGES = [
-    'pptx', 'pptx.dml', 'pptx.enum', 'pptx.opc', 'pptx.oxml', 'pptx.parts',
-    'pptx.shapes'
+    'pptx', 'pptx.dml', 'pptx.enum', 'pptx.opc', 'pptx.oxml',
+    'pptx.oxml.dml', 'pptx.parts', 'pptx.shapes'
 ]
 PACKAGE_DATA = {'pptx': ['templates/*']}
 
 INSTALL_REQUIRES = ['lxml>=2.3.2', 'Pillow>=2.0']
-TEST_SUITE = 'test'
-TESTS_REQUIRE = ['unittest2', 'mock', 'PyHamcrest', 'behave']
+TEST_SUITE = 'tests'
+TESTS_REQUIRE = ['pytest', 'unittest2', 'mock', 'PyHamcrest', 'behave']
 
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',
