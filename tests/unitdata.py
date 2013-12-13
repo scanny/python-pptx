@@ -6,8 +6,6 @@ Shared objects for unit data builder modules
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from collections import OrderedDict
-
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import nsdecls
 
@@ -20,10 +18,9 @@ class BaseBuilder(object):
         self._empty = False
         self._nsdecls = ''
         self._text = ''
-        self._xmlattrs = OrderedDict()
+        self._xmlattrs = []
         self._xmlattr_method_map = {}
         for xmlattr_name in self.__attrs__:
-            self._xmlattrs[xmlattr_name] = ''
             method_name = 'with_%s' % xmlattr_name
             self._xmlattr_method_map[method_name] = xmlattr_name
         self._child_bldrs = []
@@ -128,7 +125,7 @@ class BaseBuilder(object):
 
     def _set_xmlattr(self, xmlattr_name, value):
         xmlattr_str = ' %s="%s"' % (xmlattr_name, str(value))
-        self._xmlattrs[xmlattr_name] = xmlattr_str
+        self._xmlattrs.append(xmlattr_str)
 
     @property
     def _start_tag(self):
@@ -139,7 +136,4 @@ class BaseBuilder(object):
         """
         Return all element attributes as a string, like ' foo="bar" x="1"'.
         """
-        xmlattrs_str = ''
-        for xmlattr_name in self._xmlattrs.keys():
-            xmlattrs_str += self._xmlattrs[xmlattr_name]
-        return xmlattrs_str
+        return ''.join(self._xmlattrs)
