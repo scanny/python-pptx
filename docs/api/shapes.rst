@@ -10,16 +10,12 @@ Shapes
 |ShapeCollection| objects
 --------------------------
 
-The |ShapeCollection| object is typically encountered as the
-:attr:`~BaseSlide.shapes` member of |Slide|. It is not intended to be
-constructed directly.
+The |ShapeCollection| object is encountered as the :attr:`~BaseSlide.shapes`
+member of |Slide|.
 
 .. autoclass:: ShapeCollection
-   :inherited-members:
-   :members:
-   :member-order: bysource
-   :undoc-members:
-   :show-inheritance:
+   :members: add_picture, add_shape, add_table, add_textbox, index,
+             placeholders, title
 
 
 .. currentmodule:: pptx.shapes.shape
@@ -31,7 +27,8 @@ constructed directly.
 The following properties and methods are common to all shapes.
 
 .. autoclass:: BaseShape
-   :members:
+   :members: has_textframe, id, is_placeholder, name, shape_type, text,
+             textframe
    :member-order: bysource
    :undoc-members:
 

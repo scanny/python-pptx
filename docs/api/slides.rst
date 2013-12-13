@@ -13,31 +13,27 @@ The |SlideCollection| object is typically encountered as the
 to be constructed directly.
 
 .. autoclass:: SlideCollection
-   :members:
+   :members: add_slide
    :member-order: bysource
    :undoc-members:
-   :show-inheritance:
 
-.. autoclass:: _BaseSlide
-   :members:
-   :member-order: bysource
+
+|Slide| objects
+---------------
+
+|Slide| objects are accessed by index from ``prs.slides`` or as a return value
+from ``slides.add_slide()``.
+
+.. autoclass:: Slide
+   :members: name, slidelayout, shapes
    :undoc-members:
-   :show-inheritance:
+
+
+|SlideMaster| objects
+---------------------
 
 .. autoclass:: SlideMaster
    :members:
-   :member-order: bysource
-   :undoc-members:
-   :show-inheritance:
 
 .. autoclass:: SlideLayout
    :members:
-   :member-order: bysource
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: Slide
-   :members:
-   :member-order: bysource
-   :undoc-members:
-   :show-inheritance:

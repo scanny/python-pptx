@@ -87,7 +87,7 @@ class Adjustment(object):
 
 class AdjustmentCollection(object):
     """
-    Sequence of |Adjustment| for an auto shape, each representing an
+    Sequence of |Adjustment| instance for an auto shape, each representing an
     available adjustment for a shape of its type. Supports ``len()`` and
     indexed access, e.g. ``shape.adjustments[1] = 0.15``.
     """
@@ -284,7 +284,7 @@ class Shape(BaseShape):
     @lazyproperty
     def adjustments(self):
         """
-        Read-only reference to AdjustmentsCollection instance for this
+        Read-only reference to |AdjustmentCollection| instance for this
         shape
         """
         return AdjustmentCollection(self._sp.prstGeom)

@@ -133,6 +133,7 @@ def lazyproperty(f):
     returned.
     """
     cache_attr_name = '_%s' % f.__name__  # like '_foobar' for prop 'foobar'
+    docstring = f.__doc__
 
     def get_prop_value(obj):
         try:
@@ -142,7 +143,7 @@ def lazyproperty(f):
             setattr(obj, cache_attr_name, value)
             return value
 
-    return property(get_prop_value)
+    return property(get_prop_value, doc=docstring)
 
 
 def to_unicode(text):

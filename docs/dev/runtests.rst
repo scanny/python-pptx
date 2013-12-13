@@ -1,7 +1,7 @@
 Running the test suite
 ======================
 
-|pp| has a robust test suite, comprising over 300 tests at the time of writing,
+|pp| has a robust test suite, comprising over 600 tests at the time of writing,
 both at the acceptance test and unit test levels. ``pytest`` is used for unit
 tests, with help from the excellent ``mock`` library. ``behave`` is used for
 acceptance tests.

@@ -69,6 +69,7 @@ API Documentation
    api/shapes
    api/table
    api/text
+   api/dml
    api/exc
    api/util
 

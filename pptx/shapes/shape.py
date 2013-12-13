@@ -59,6 +59,19 @@ class BaseShape(object):
         """
         return self._parent.part
 
+    @property
+    def shape_type(self):
+        """
+        Unique integer identifying the type of this shape, like ``MSO.CHART``.
+        Must be implemented by subclasses.
+        """
+        # # This one returns |None| unconditionally to account for shapes
+        # # that haven't been implemented yet, like group shape and chart.
+        # # Once those are done this should raise |NotImplementedError|.
+        # msg = 'shape_type property must be implemented by subclasses'
+        # raise NotImplementedError(msg)
+        return None
+
     def _set_text(self, text):
         """Replace all text in shape with single run containing *text*"""
         if not self.has_textframe:
@@ -73,22 +86,9 @@ class BaseShape(object):
     text = property(None, _set_text)
 
     @property
-    def shape_type(self):
-        """
-        Unique integer identifying the type of this shape, like ``MSO.CHART``.
-        Must be implemented by subclasses. This one returns |None|
-        unconditionally to account for shapes that haven't been implemented
-        yet, like group shape and chart. Once those are done this should raise
-        |NotImplementedError|.
-        """
-        return None
-        # msg = 'shape_type property must be implemented by subclasses'
-        # raise NotImplementedError(msg)
-
-    @property
     def textframe(self):
         """
-        TextFrame instance for this shape. Raises |ValueError| if shape has
+        |TextFrame| instance for this shape. Raises |ValueError| if shape has
         no text frame. Use :attr:`has_textframe` to check whether a shape has
         a text frame.
         """

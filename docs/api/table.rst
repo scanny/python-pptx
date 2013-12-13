@@ -10,8 +10,8 @@ Table-related objects
 |Table| objects
 ----------------
 
-A |Table| object is added to a slide using the :meth:`add_table` method on
-|ShapeCollection|.
+A |Table| object is added to a slide using the
+:meth:`~.ShapeCollection.add_table` method on |ShapeCollection|.
 
 .. autoclass:: Table
    :members:

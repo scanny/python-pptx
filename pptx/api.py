@@ -41,7 +41,9 @@ class Presentation(object):
     @property
     def slidemaster(self):
         """
-        First |SlideMaster| object belonging to this presentation.
+        First |SlideMaster| object belonging to this presentation. Typically,
+        presentations have only a single slide master. This property provides
+        simpler access in that common case.
         """
         return self._presentation.slidemasters[0]
 

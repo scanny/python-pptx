@@ -22,9 +22,9 @@ _nsmap = namespaces('a', 'r', 'p')
 
 class ShapeCollection(BaseShape):
     """
-    Sequence of shapes. Corresponds to CT_GroupShape in pml schema. Note that
-    while spTree in a slide is a group shape, the group shape is recursive in
-    that a group shape can include other group shapes within it.
+    The sequence of shapes that appears on a slide. The first shape in the
+    sequence is the backmost in z-order and the last shape is topmost.
+    Supports indexed access, len(), index(), and iteration.
     """
     _NVGRPSPPR = qn('p:nvGrpSpPr')
     _GRPSPPR = qn('p:grpSpPr')
@@ -72,28 +72,6 @@ class ShapeCollection(BaseShape):
 
     def __len__(self):
         return self._shapes.__len__()
-
-    def index(self, item):
-        return self._shapes.index(item)
-
-    @property
-    def placeholders(self):
-        """
-        Immutable sequence containing the placeholder shapes in this shape
-        collection, sorted in *idx* order.
-        """
-        placeholders =\
-            [Placeholder(sp) for sp in self._shapes if sp.is_placeholder]
-        placeholders.sort(key=lambda ph: ph.idx)
-        return tuple(placeholders)
-
-    @property
-    def title(self):
-        """The title shape in collection or None if no title placeholder."""
-        for shape in self._shapes:
-            if shape._is_title:
-                return shape
-        return None
 
     def add_picture(self, img_file, left, top, width=None, height=None):
         """
@@ -160,6 +138,32 @@ class ShapeCollection(BaseShape):
         self._spTree.append(sp)
         self._shapes.append(shape)
         return shape
+
+    def index(self, item):
+        """
+        Return the index of *shape* in this sequence, raising |ValueError| if
+        *shape* is not in the collection.
+        """
+        return self._shapes.index(item)
+
+    @property
+    def placeholders(self):
+        """
+        Immutable sequence containing the placeholder shapes in this shape
+        collection, sorted in *idx* order.
+        """
+        placeholders =\
+            [Placeholder(sp) for sp in self._shapes if sp.is_placeholder]
+        placeholders.sort(key=lambda ph: ph.idx)
+        return tuple(placeholders)
+
+    @property
+    def title(self):
+        """The title shape in collection or None if no title placeholder."""
+        for shape in self._shapes:
+            if shape._is_title:
+                return shape
+        return None
 
     def _clone_layout_placeholders(self, slidelayout):
         """

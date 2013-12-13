@@ -51,7 +51,7 @@ class ColorFormat(object):
         """
         |RGBColor| value of this color, or None if no RGB color is explicitly
         defined for this font. Setting this value to an |RGBColor| instance
-        cause its type to change to MSO_COLOR_TYPE.RGB. If the color was a
+        causes its type to change to MSO_COLOR_TYPE.RGB. If the color was a
         theme color with a brightness adjustment, the brightness adjustment
         is removed when changing it to an RGB color.
         """
@@ -300,6 +300,9 @@ class RGBColor(tuple):
 
     @classmethod
     def from_string(cls, rgb_hex_str):
+        """
+        Return a new instance from an RGB color hex string like ``'3C2F80'``.
+        """
         r = int(rgb_hex_str[:2], 16)
         g = int(rgb_hex_str[2:4], 16)
         b = int(rgb_hex_str[4:], 16)

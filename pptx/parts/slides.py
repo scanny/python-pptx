@@ -34,7 +34,9 @@ class _BaseSlide(Part):
 
     @property
     def name(self):
-        """Internal name of this slide-like object."""
+        """
+        Internal name of this slide.
+        """
         cSld = self._element.cSld
         return cSld.get('name', default='')
 
@@ -50,7 +52,8 @@ class _BaseSlide(Part):
     @lazyproperty
     def shapes(self):
         """
-        Collection of shape objects belonging to this slide.
+        Instance of |ShapeCollection| containing sequence of shape objects
+        appearing on this slide.
         """
         return ShapeCollection(self._element.cSld.spTree, self)
 
@@ -110,8 +113,9 @@ class Slide(_BaseSlide):
 
 class SlideCollection(object):
     """
-    Immutable sequence of slides belonging to an instance of |Presentation|,
-    with methods for manipulating the slides in the presentation.
+    Sequence of slides belonging to an instance of |Presentation|, having list
+    semantics for access to individual slides. Supports indexed access,
+    len(), and iteration.
     """
     def __init__(self, sldIdLst, prs):
         super(SlideCollection, self).__init__()

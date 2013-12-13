@@ -96,11 +96,17 @@ rst_epilog = """
 
 .. |FileSystem| replace:: :class:`FileSystem`
 
+.. |FillFormat| replace:: :class:`.FillFormat`
+
 .. |float| replace:: :class:`float`
 
 .. |_Font| replace:: :class:`_Font`
 
+.. |_Hyperlink| replace:: :class:`_Hyperlink`
+
 .. |int| replace:: :class:`int`
+
+.. |KeyError| replace:: :exc:`KeyError`
 
 .. |list| replace:: :class:`list`
 
@@ -108,7 +114,11 @@ rst_epilog = """
 
 .. |NotImplementedError| replace:: :exc:`NotImplementedError`
 
+.. |OpcPackage| replace:: :class:`.OpcPackage`
+
 .. |Package| replace:: :class:`Package`
+
+.. |PackURI| replace:: :class:`.PackURI`
 
 .. |_Paragraph| replace:: :class:`_Paragraph`
 
@@ -122,9 +132,11 @@ rst_epilog = """
 
 .. |Presentation| replace:: :class:`~pptx.Presentation`
 
-.. |Relationship| replace:: :class:`Relationship`
+.. |_Relationship| replace:: :class:`._Relationship`
 
 .. |RelationshipCollection| replace:: :class:`RelationshipCollection`
+
+.. |RGBColor| replace:: :class:`.RGBColor`
 
 .. |_Row| replace:: :class:`_Row`
 
@@ -134,21 +146,23 @@ rst_epilog = """
 
 .. |Shape| replace:: :class:`Shape`
 
-.. |ShapeCollection| replace:: :class:`ShapeCollection`
+.. |ShapeCollection| replace:: :class:`.ShapeCollection`
 
 .. |Slide| replace:: :class:`Slide`
 
-.. |SlideCollection| replace:: :class:`SlideCollection`
+.. |SlideCollection| replace:: :class:`.SlideCollection`
 
-.. |SlideLayout| replace:: :class:`SlideLayout`
+.. |SlideLayout| replace:: :class:`.SlideLayout`
 
-.. |SlideMaster| replace:: :class:`SlideMaster`
+.. |SlideMaster| replace:: :class:`.SlideMaster`
 
 .. |str| replace:: :class:`str`
 
 .. |Table| replace:: :class:`Table`
 
-.. |TextFrame| replace:: :class:`TextFrame`
+.. |TextFrame| replace:: :class:`.TextFrame`
+
+.. |True| replace:: :class:`True`
 
 .. |ValueError| replace:: :exc:`ValueError`
 
