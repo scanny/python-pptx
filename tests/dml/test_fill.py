@@ -63,8 +63,9 @@ class DescribeFillFormat(object):
             'patt':  MSO_FILL.PATTERNED,
             'solid': MSO_FILL.SOLID,
         }
-        fill_type = mapping[request.param]
-        xFill_bldr = request.getfuncargvalue('xFill_bldr')
+        fill_type_str = request.param
+        fill_type = mapping[fill_type_str]
+        xFill_bldr = self._xFill_bldr(fill_type_str)
         if xFill_bldr is not None:
             xPr_bldr.with_child(xFill_bldr)
         xPr = xPr_bldr.element
@@ -76,8 +77,9 @@ class DescribeFillFormat(object):
         mapping = {
             'solid': ColorFormat,
         }
-        fore_color_type = mapping[request.param]
-        xFill_bldr = request.getfuncargvalue('xFill_bldr')
+        fill_type_str = request.param
+        fore_color_type = mapping[fill_type_str]
+        xFill_bldr = self._xFill_bldr(fill_type_str)
         if xFill_bldr is not None:
             xPr_bldr.with_child(xFill_bldr)
         xPr = xPr_bldr.element
@@ -94,8 +96,9 @@ class DescribeFillFormat(object):
             'no':    TypeError,
             'patt':  NotImplementedError,
         }
-        exception_type = mapping[request.param]
-        xFill_bldr = request.getfuncargvalue('xFill_bldr')
+        fill_type_str = request.param
+        exception_type = mapping[fill_type_str]
+        xFill_bldr = self._xFill_bldr(fill_type_str)
         if xFill_bldr is not None:
             xPr_bldr.with_child(xFill_bldr)
         xPr = xPr_bldr.element
@@ -106,7 +109,8 @@ class DescribeFillFormat(object):
         params=['none', 'blip', 'grad', 'grp', 'no', 'patt', 'solid']
     )
     def set_noFill_fixture_(self, request, xPr_bldr):
-        xFill_bldr = request.getfuncargvalue('xFill_bldr')
+        fill_type_str = request.param
+        xFill_bldr = self._xFill_bldr(fill_type_str)
         if xFill_bldr is not None:
             xPr_bldr.with_child(xFill_bldr)
         xPr = xPr_bldr.element
@@ -123,7 +127,8 @@ class DescribeFillFormat(object):
         params=['none', 'blip', 'grad', 'grp', 'no', 'patt', 'solid']
     )
     def set_solid_fixture_(self, request, xPr_bldr):
-        xFill_bldr = request.getfuncargvalue('xFill_bldr')
+        fill_type_str = request.param
+        xFill_bldr = self._xFill_bldr(fill_type_str)
         if xFill_bldr is not None:
             xPr_bldr.with_child(xFill_bldr)
         xPr = xPr_bldr.element
@@ -136,22 +141,6 @@ class DescribeFillFormat(object):
         )
         return fill_format, xPr_with_solidFill_xml
 
-    @pytest.fixture
-    def xFill_bldr(self, request):
-        mapping = {
-            'none':  None,
-            'blip':  a_blipFill,
-            'grad':  a_gradFill,
-            'grp':   a_grpFill,
-            'no':    a_noFill,
-            'solid': a_solidFill,
-            'patt':  a_pattFill,
-        }
-        xFill_bldr_fn = mapping[request.param]
-        if xFill_bldr_fn is not None:
-            return xFill_bldr_fn()
-        return None
-
     @pytest.fixture(params=['rPr', 'spPr', 'tcPr'])
     def xPr_bldr(self, request):
         mapping = {
@@ -161,3 +150,18 @@ class DescribeFillFormat(object):
         }
         xPr_bldr_fn = mapping[request.param]
         return xPr_bldr_fn().with_nsdecls()
+
+    def _xFill_bldr(self, fill_type_str):
+        mapping = {
+            'none':  None,
+            'blip':  a_blipFill,
+            'grad':  a_gradFill,
+            'grp':   a_grpFill,
+            'no':    a_noFill,
+            'solid': a_solidFill,
+            'patt':  a_pattFill,
+        }
+        xFill_bldr_fn = mapping[fill_type_str]
+        if xFill_bldr_fn is None:
+            return None
+        return xFill_bldr_fn()
