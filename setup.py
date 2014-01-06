@@ -3,7 +3,7 @@
 import os
 import re
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # Read the version from pptx.__version__ without importing the package
 # (and thus attempting to import packages it depends on that may not be
@@ -22,15 +22,12 @@ AUTHOR = 'Steve Canny'
 AUTHOR_EMAIL = 'python-pptx@googlegroups.com'
 URL = 'http://github.com/scanny/python-pptx'
 LICENSE = open(license).read()
-PACKAGES = [
-    'pptx', 'pptx.dml', 'pptx.enum', 'pptx.opc', 'pptx.oxml',
-    'pptx.oxml.dml', 'pptx.parts', 'pptx.shapes'
-]
+PACKAGES = find_packages(exclude=['tests', 'tests.*'])
 PACKAGE_DATA = {'pptx': ['templates/*']}
 
 INSTALL_REQUIRES = ['lxml>=2.3.2', 'Pillow>=2.0']
 TEST_SUITE = 'tests'
-TESTS_REQUIRE = ['pytest', 'unittest2', 'mock', 'PyHamcrest', 'behave']
+TESTS_REQUIRE = ['behave', 'mock', 'PyHamcrest', 'pytest', 'unittest2']
 
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',
