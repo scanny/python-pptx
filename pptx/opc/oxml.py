@@ -45,6 +45,15 @@ def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
                           standalone=standalone)
 
 
+def serialize_part_xml(part_elm):
+    # if xsi parameter is not set to False, PowerPoint won't load without a
+    # repair step; deannotate removes some original xsi:type tags in core.xml
+    # if this parameter is left out (or set to True)
+    objectify.deannotate(part_elm, xsi=False, cleanup_namespaces=False)
+    xml = etree.tostring(part_elm, encoding='UTF-8', standalone=True)
+    return xml
+
+
 # ===========================================================================
 # Custom element classes
 # ===========================================================================
