@@ -108,7 +108,7 @@ class DescribePackageWriter(object):
 class Describe_ContentTypesItem(object):
 
     def it_can_compose_content_types_xml(self, parts, types, oxml_tostring):
-        # # exercise ---------------------
+        # exercise ---------------------
         _ContentTypesItem.xml_for(parts)
         # verify -----------------------
         expected_types_calls = [
@@ -121,8 +121,9 @@ class Describe_ContentTypesItem(object):
             call.add_override('/zebra/foo.bar',         'app/vnd.foobar'),
         ]
         assert types.mock_calls == expected_types_calls
-        oxml_tostring.assert_called_once_with(types, encoding='UTF-8',
-                                              standalone=True),
+        oxml_tostring.assert_called_once_with(
+            types, encoding='UTF-8', standalone=True
+        )
 
     # fixtures ---------------------------------------------
 

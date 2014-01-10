@@ -7,10 +7,11 @@ Provides a low-level, read-only API to a serialized Open Packaging Convention
 
 from __future__ import absolute_import
 
+from .constants import RELATIONSHIP_TARGET_MODE as RTM
 from .oxml import oxml_fromstring
 from .packuri import PACKAGE_URI, PackURI
 from .phys_pkg import PhysPkgReader
-from .constants import RELATIONSHIP_TARGET_MODE as RTM
+from .shared import CaseInsensitiveDict
 
 
 class PackageReader(object):
@@ -111,7 +112,7 @@ class _ContentTypeMap(object):
     def __init__(self):
         super(_ContentTypeMap, self).__init__()
         self._overrides = dict()
-        self._defaults = dict()
+        self._defaults = CaseInsensitiveDict()
 
     def __getitem__(self, partname):
         """
@@ -134,14 +135,27 @@ class _ContentTypeMap(object):
         of *content_types_xml*.
         """
         types_elm = oxml_fromstring(content_types_xml)
-        ctmap = _ContentTypeMap()
-        ctmap._overrides = dict(
-            (o.partname, o.content_type) for o in types_elm.overrides
-        )
-        ctmap._defaults = dict(
-            ('.%s' % d.extension, d.content_type) for d in types_elm.defaults
-        )
-        return ctmap
+        ct_map = _ContentTypeMap()
+        for o in types_elm.overrides:
+            ct_map._add_override(o.partname, o.content_type)
+        for d in types_elm.defaults:
+            ct_map._add_default(d.extension, d.content_type)
+        return ct_map
+
+    def _add_default(self, extension, content_type):
+        """
+        Add the default mapping of *extension* to *content_type* to this
+        content type mapping.
+        """
+        ext = '.%s' % extension
+        self._defaults[ext] = content_type
+
+    def _add_override(self, partname, content_type):
+        """
+        Add the default mapping of *partname* to *content_type* to this
+        content type mapping.
+        """
+        self._overrides[partname] = content_type
 
 
 class _SerializedPart(object):
