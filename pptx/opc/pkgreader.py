@@ -145,7 +145,8 @@ class _ContentTypeMap(object):
     def _add_default(self, extension, content_type):
         """
         Add the default mapping of *extension* to *content_type* to this
-        content type mapping.
+        content type mapping. *extension* does not include the leading
+        period.
         """
         ext = '.%s' % extension
         self._defaults[ext] = content_type
