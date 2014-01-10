@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+0.3.1 (2014-01-10)
+++++++++++++++++++
+
+- Hotfix: failed to load certain presentations containing images with
+  uppercase extension
+
+
 0.3.0 (2013-12-12)
 ++++++++++++++++++
 

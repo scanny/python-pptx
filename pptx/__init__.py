@@ -4,7 +4,7 @@
 Initialization module for python-pptx
 """
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 
 import pptx.exc as exceptions
