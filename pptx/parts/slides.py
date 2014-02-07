@@ -11,6 +11,7 @@ from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, SubElement
+from pptx.oxml.ns import nsmap
 from pptx.parts.part import PartCollection
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.util import lazyproperty
@@ -98,7 +99,7 @@ class Slide(_BaseSlide):
         Return element containing the minimal XML for a slide, based on what
         is required by the XMLSchema.
         """
-        sld = Element('p:sld')
+        sld = Element('p:sld', nsmap('a', 'p', 'r'))
         SubElement(sld, 'p:cSld')
         SubElement(sld.cSld, 'p:spTree')
         SubElement(sld.cSld.spTree, 'p:nvGrpSpPr')
@@ -108,6 +109,8 @@ class Slide(_BaseSlide):
         SubElement(sld.cSld.spTree, 'p:grpSpPr')
         sld.cSld.spTree.nvGrpSpPr.cNvPr.set('id', '1')
         sld.cSld.spTree.nvGrpSpPr.cNvPr.set('name', '')
+        SubElement(sld, 'p:clrMapOvr')
+        SubElement(sld.clrMapOvr, 'a:masterClrMapping')
         return sld
 
 
