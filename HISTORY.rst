@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+0.3.2 (2014-02-07)
+++++++++++++++++++
+
+- Hotfix: issue #80 generated presentations fail to load in Keynote and other
+  Apple applications
+
+
 0.3.1 (2014-01-10)
 ++++++++++++++++++
 
@@ -81,7 +88,7 @@ Release History
   package ``__init__.py`` file.
 
 
-0.2.6 (2013-02-10)
+0.2.0 (2013-02-10)
 ++++++++++++++++++
 
 First non-alpha release with basic capabilities:
