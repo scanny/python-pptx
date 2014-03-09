@@ -17,6 +17,13 @@ class SlideMaster(BaseSlide):
     Slide master part. Corresponds to package files
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     """
+    @property
+    def slide_layouts(self):
+        """
+        Sequence of |SlideLayout| objects belonging to this slide master
+        """
+        return _SlideLayouts()
+
     @lazyproperty
     def slidelayouts(self):
         """
@@ -30,3 +37,11 @@ class SlideMaster(BaseSlide):
             slide_layout = sl_rel.target_part
             slidelayouts.add_part(slide_layout)
         return slidelayouts
+
+
+class _SlideLayouts(object):
+    """
+    Collection of slide layouts belonging to an instance of |SlideMaster|,
+    having list access semantics. Supports indexed access, len(), and
+    iteration.
+    """

@@ -8,9 +8,7 @@ from __future__ import absolute_import
 
 import pytest
 
-from pptx.opc.packuri import PackURI
-from pptx.parts.slidemaster import SlideMaster
-from pptx.presentation import Package
+from pptx.parts.slidemaster import _SlideLayouts, SlideMaster
 
 from ..unitutil import absjoin, test_file_dir
 
@@ -20,17 +18,14 @@ test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 
 class DescribeSlideMaster(object):
 
-    def test_slidelayouts_property_empty_on_construction(self, slidemaster):
-        assert len(slidemaster.slidelayouts) == 0
-
-    def test_slidelayouts_correct_length_after_open(self):
-        slidemaster = Package.open(test_pptx_path).presentation.slidemasters[0]
-        slidelayouts = slidemaster.slidelayouts
-        assert len(slidelayouts) == 11
+    def it_provides_access_to_its_slide_layouts(self, layouts_fixture):
+        slide_master = layouts_fixture
+        slide_layouts = slide_master.slide_layouts
+        assert isinstance(slide_layouts, _SlideLayouts)
 
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def slidemaster(self):
-        partname = PackURI('/ppt/slideMasters/slideMaster1.xml')
-        return SlideMaster(partname, None, None, None)
+    def layouts_fixture(self):
+        slide_master = SlideMaster(None, None, None, None)
+        return slide_master
