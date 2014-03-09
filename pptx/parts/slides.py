@@ -12,18 +12,17 @@ from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsmap
-from pptx.parts.part import PartCollection
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.util import lazyproperty
 
 
-class _BaseSlide(Part):
+class BaseSlide(Part):
     """
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.
     """
     def __init__(self, partname, content_type, element, package):
-        super(_BaseSlide, self).__init__(
+        super(BaseSlide, self).__init__(
             partname, content_type, element=element, package=package
         )
 
@@ -70,7 +69,7 @@ class _BaseSlide(Part):
         return (image, rId)
 
 
-class Slide(_BaseSlide):
+class Slide(BaseSlide):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
@@ -181,7 +180,7 @@ class SlideCollection(object):
         return PackURI(partname_str)
 
 
-class SlideLayout(_BaseSlide):
+class SlideLayout(BaseSlide):
     """
     Slide layout part. Corresponds to package files
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
@@ -192,27 +191,3 @@ class SlideLayout(_BaseSlide):
         Slide master from which this slide layout inherits properties.
         """
         return self.part_related_by(RT.SLIDE_MASTER)
-
-
-class SlideMaster(_BaseSlide):
-    """
-    Slide master part. Corresponds to package files
-    ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
-    """
-    # TECHNOTE: In the Microsoft API, Master is a general type that all of
-    # SlideMaster, SlideLayout (CustomLayout), HandoutMaster, and NotesMaster
-    # inherit from. So might look into why that is and consider refactoring
-    # the various masters a bit later.
-    @lazyproperty
-    def slidelayouts(self):
-        """
-        Collection of slide layout objects belonging to this slide master.
-        """
-        slidelayouts = PartCollection()
-        sl_rels = [
-            r for r in self.rels.values() if r.reltype == RT.SLIDE_LAYOUT
-        ]
-        for sl_rel in sl_rels:
-            slide_layout = sl_rel.target_part
-            slidelayouts.add_part(slide_layout)
-        return slidelayouts

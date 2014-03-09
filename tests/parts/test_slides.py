@@ -1,6 +1,8 @@
 # encoding: utf-8
 
-"""Test suite for pptx.slides module."""
+"""
+Test suite for pptx.parts.slides module
+"""
 
 from __future__ import absolute_import
 
@@ -15,9 +17,8 @@ from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part, _Relationship
 from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
-from pptx.parts.slides import (
-    _BaseSlide, Slide, SlideCollection, SlideLayout, SlideMaster
-)
+from pptx.parts.slidemaster import SlideMaster
+from pptx.parts.slides import BaseSlide, Slide, SlideCollection, SlideLayout
 from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import ShapeCollection
 
@@ -51,10 +52,9 @@ def _sldLayout1_shapes():
     return shapes
 
 
-class Describe_BaseSlide(object):
+class DescribeBaseSlide(object):
 
     def it_knows_the_name_of_the_slide(self, base_slide):
-        """_BaseSlide.name value is correct"""
         # setup ------------------------
         base_slide._element = _sldLayout1()
         # exercise ---------------------
@@ -66,12 +66,12 @@ class Describe_BaseSlide(object):
         assert actual == expected, msg
 
     def it_provides_access_to_the_shapes_on_the_slide(self):
-        """_BaseSlide.shapes is expected size after _load()"""
+        """BaseSlide.shapes is expected size after _load()"""
         # setup ------------------------
         path = absjoin(test_file_dir, 'slide1.xml')
         with open(path, 'r') as f:
             blob = f.read()
-        base_slide = _BaseSlide.load(None, None, blob, None)
+        base_slide = BaseSlide.load(None, None, blob, None)
         # exercise ---------------------
         shapes = base_slide.shapes
         # verify -----------------------
@@ -98,19 +98,19 @@ class Describe_BaseSlide(object):
     @pytest.fixture
     def base_slide(self):
         partname = PackURI('/foo/bar.xml')
-        return _BaseSlide(partname, None, None, None)
+        return BaseSlide(partname, None, None, None)
 
     @pytest.fixture
     def base_slide_fixture(self, request, base_slide):
-        # mock _BaseSlide._package._images.add_image() train wreck
+        # mock BaseSlide._package._images.add_image() train wreck
         img_file_ = loose_mock(request, name='img_file_')
         image_ = loose_mock(request, name='image_')
         pkg_ = loose_mock(request, name='_package', spec=Package)
         pkg_._images.add_image.return_value = image_
         base_slide._package = pkg_
-        # mock _BaseSlide.relate_to()
+        # mock BaseSlide.relate_to()
         rId_ = loose_mock(request, name='rId_')
-        method_mock(request, _BaseSlide, 'relate_to', return_value=rId_)
+        method_mock(request, BaseSlide, 'relate_to', return_value=rId_)
         return base_slide, img_file_, image_, rId_
 
 
@@ -404,21 +404,3 @@ class DescribeSlideLayout(object):
     @pytest.fixture
     def slidelayout(self):
         return SlideLayout()
-
-
-class DescribeSlideMaster(object):
-
-    def test_slidelayouts_property_empty_on_construction(self, slidemaster):
-        assert len(slidemaster.slidelayouts) == 0
-
-    def test_slidelayouts_correct_length_after_open(self):
-        slidemaster = Package.open(test_pptx_path).presentation.slidemasters[0]
-        slidelayouts = slidemaster.slidelayouts
-        assert len(slidelayouts) == 11
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def slidemaster(self):
-        partname = PackURI('/ppt/slideMasters/slideMaster1.xml')
-        return SlideMaster(partname, None, None, None)

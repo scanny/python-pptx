@@ -16,7 +16,8 @@ from pptx.api import Presentation  # noqa
 
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image
-from pptx.parts.slides import Slide, SlideLayout, SlideMaster
+from pptx.parts.slidemaster import SlideMaster
+from pptx.parts.slides import Slide, SlideLayout
 from pptx.presentation import Presentation as _Presentation
 
 from pptx.opc.constants import CONTENT_TYPE as CT

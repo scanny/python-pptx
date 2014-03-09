@@ -48,8 +48,20 @@ properties.
 Implementation notions
 ----------------------
 
-* [ ] Start with MasterPlaceholders collection as thin proxy, to shape that
-      out.
+* [ ] Develop ShapeTree to replace ShapeCollection
+
+  + [ ] access via SlideMaster.shapes
+  + [ ] implement __len__()
+  + [ ] implement __iter__()
+  + [ ] implement _ShapeFactory()
+
+* [ ] Start with MasterPlaceholders collection as thin proxy
+
+  + [ ] accessed via SlideMaster.placeholders
+  + [ ] has consequences for shape classes constructed by ShapeCollection for
+        slide master
+  + [ ] core state is slide_master, from which it gets root element and then
+        shape tree
 
 * [ ] maybe the key is to distinguish placeholder inheritance behaviors from
       placeholder element properties
