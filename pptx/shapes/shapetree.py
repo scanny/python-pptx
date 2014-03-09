@@ -152,8 +152,9 @@ class ShapeCollection(BaseShape):
         Immutable sequence containing the placeholder shapes in this shape
         collection, sorted in *idx* order.
         """
-        placeholders =\
+        placeholders = (
             [Placeholder(sp) for sp in self._shapes if sp.is_placeholder]
+        )
         placeholders.sort(key=lambda ph: ph.idx)
         return tuple(placeholders)
 

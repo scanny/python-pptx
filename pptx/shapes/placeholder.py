@@ -1,7 +1,10 @@
 # encoding: utf-8
 
 """
-Placeholder object.
+Placeholder object, a wrapper (decorator pattern) around an autoshape having
+a ``ph`` element. Provides access to placeholder-specific properties of the
+shape, such as the placeholder type. All other attribute gets are forwarded
+to the underlying shape.
 """
 
 from pptx.oxml.ns import namespaces
@@ -28,28 +31,36 @@ class Placeholder(object):
 
     def __getattr__(self, name):
         """
-        Called when *name* is not found in ``self`` or in class tree. In this
-        case, delegate attribute lookup to decorated (it's probably in its
-        instance namespace).
+        Called when *name* is not found in *self* (attribute) or in class
+        tree (methods). In this case, attribute lookup is delegated to
+        underlying shape.
         """
         return getattr(self._decorated, name)
 
     @property
     def type(self):
-        """Placeholder type, e.g. PH_TYPE_CTRTITLE"""
+        """
+        Placeholder type, e.g. PH_TYPE_CTRTITLE
+        """
         return self._ph.get('type', PH_TYPE_OBJ)
 
     @property
     def orient(self):
-        """Placeholder 'orient' attribute, e.g. PH_ORIENT_HORZ"""
+        """
+        Placeholder 'orient' attribute, e.g. PH_ORIENT_HORZ
+        """
         return self._ph.get('orient', PH_ORIENT_HORZ)
 
     @property
     def sz(self):
-        """Placeholder 'sz' attribute, e.g. PH_SZ_FULL"""
+        """
+        Placeholder 'sz' attribute, e.g. PH_SZ_FULL
+        """
         return self._ph.get('sz', PH_SZ_FULL)
 
     @property
     def idx(self):
-        """Placeholder 'idx' attribute, e.g. '0'"""
+        """
+        Placeholder 'idx' attribute, e.g. '0'
+        """
         return int(self._ph.get('idx', 0))
