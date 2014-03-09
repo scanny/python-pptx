@@ -1,10 +1,14 @@
 # encoding: utf-8
 
-"""Test suite for pptx.placeholder module."""
+"""
+Test suite for pptx.shapes.placeholder module
+"""
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function, unicode_literals
 
-from pptx.oxml.ns import namespaces
+import pytest
+
+from pptx.oxml.ns import _nsmap as nsmap
 from pptx.shapes.placeholder import Placeholder
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.spec import (
@@ -13,44 +17,74 @@ from pptx.spec import (
     PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER
 )
 
-from ..unitutil import absjoin, parse_xml_file, TestCase, test_file_dir
-
-nsmap = namespaces('a', 'r', 'p')
+from ..unitutil import absjoin, parse_xml_file, test_file_dir
 
 
-def _sldLayout1():
-    path = absjoin(test_file_dir, 'slideLayout1.xml')
-    sldLayout = parse_xml_file(path).getroot()
-    return sldLayout
+class DescribePlaceholder(object):
 
+    def it_knows_the_placeholder_type(self, type_fixture):
+        placeholder, expected_type = type_fixture
+        assert placeholder.type == expected_type
 
-def _sldLayout1_shapes():
-    sldLayout = _sldLayout1()
-    spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-    shapes = ShapeCollection(spTree)
-    return shapes
+    def it_knows_the_placeholder_orientation(self, orient_fixture):
+        placeholder, expected_orient = orient_fixture
+        assert placeholder.orient == expected_orient
 
+    def it_knows_the_placeholder_size_name(self, sz_fixture):
+        placeholder, expected_sz = sz_fixture
+        assert placeholder.sz == expected_sz
 
-class Test_Placeholder(TestCase):
-    """Test Placeholder"""
-    def test_property_values(self):
-        """Placeholder property values are correct"""
-        # setup ------------------------
-        expected_values = (
-            (PH_TYPE_CTRTITLE, PH_ORIENT_HORZ, PH_SZ_FULL,     0),
-            (PH_TYPE_DT,       PH_ORIENT_HORZ, PH_SZ_HALF,    10),
-            (PH_TYPE_SUBTITLE, PH_ORIENT_VERT, PH_SZ_FULL,     1),
-            (PH_TYPE_TBL,      PH_ORIENT_HORZ, PH_SZ_QUARTER, 14),
-            (PH_TYPE_SLDNUM,   PH_ORIENT_HORZ, PH_SZ_QUARTER, 12),
-            (PH_TYPE_FTR,      PH_ORIENT_HORZ, PH_SZ_QUARTER, 11))
-        shapes = _sldLayout1_shapes()
-        # exercise ---------------------
-        for idx, sp in enumerate(shapes):
-            ph = Placeholder(sp)
-            values = (ph.type, ph.orient, ph.sz, ph.idx)
-            # verify ----------------------
-            expected = expected_values[idx]
-            actual = values
-            msg = ("expected shapes[%d] values %s, got %s"
-                   % (idx, expected, actual))
-            self.assertEqual(expected, actual, msg)
+    def it_knows_the_placeholder_idx(self, idx_fixture):
+        placeholder, expected_idx = idx_fixture
+        assert placeholder.idx == expected_idx
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[0, 1, 2, 3, 4, 5])
+    def idx_fixture(self, request, layout_shapes):
+        sp_idx = request.param
+        shape = layout_shapes[sp_idx]
+        expected_idx = (0, 10, 1, 14, 12, 11)[sp_idx]
+        placeholder = Placeholder(shape)
+        return placeholder, expected_idx
+
+    @pytest.fixture(scope="module")
+    def layout_shapes(self):
+        path = absjoin(test_file_dir, 'slideLayout1.xml')
+        sldLayout = parse_xml_file(path).getroot()
+        spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
+        shapes = ShapeCollection(spTree)
+        return shapes
+
+    @pytest.fixture(params=[0, 1, 2, 3, 4, 5])
+    def orient_fixture(self, request, layout_shapes):
+        sp_idx = request.param
+        shape = layout_shapes[sp_idx]
+        expected_orient = (
+            PH_ORIENT_HORZ, PH_ORIENT_HORZ, PH_ORIENT_VERT,
+            PH_ORIENT_HORZ, PH_ORIENT_HORZ, PH_ORIENT_HORZ,
+        )[sp_idx]
+        placeholder = Placeholder(shape)
+        return placeholder, expected_orient
+
+    @pytest.fixture(params=[0, 1, 2, 3, 4, 5])
+    def sz_fixture(self, request, layout_shapes):
+        sp_idx = request.param
+        shape = layout_shapes[sp_idx]
+        expected_sz = (
+            PH_SZ_FULL,    PH_SZ_HALF,    PH_SZ_FULL,
+            PH_SZ_QUARTER, PH_SZ_QUARTER, PH_SZ_QUARTER,
+        )[sp_idx]
+        placeholder = Placeholder(shape)
+        return placeholder, expected_sz
+
+    @pytest.fixture(params=[0, 1, 2, 3, 4, 5])
+    def type_fixture(self, request, layout_shapes):
+        sp_idx = request.param
+        shape = layout_shapes[sp_idx]
+        expected_type = (
+            PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_SUBTITLE, PH_TYPE_TBL,
+            PH_TYPE_SLDNUM, PH_TYPE_FTR
+        )[sp_idx]
+        placeholder = Placeholder(shape)
+        return placeholder, expected_type
