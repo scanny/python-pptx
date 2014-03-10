@@ -100,9 +100,9 @@ def step_then_receive_prs_based_on_def_tmpl(context):
     slidemasters = prs.slidemasters
     assert_that(slidemasters, is_not(None))
     assert_that(len(slidemasters), is_(1))
-    slidelayouts = slidemasters[0].slidelayouts
-    assert_that(slidelayouts, is_not(None))
-    assert_that(len(slidelayouts), is_(11))
+    slide_layouts = slidemasters[0].slide_layouts
+    assert_that(slide_layouts, is_not(None))
+    assert_that(len(slide_layouts), is_(11))
 
 
 @then('I see the pptx file in the working directory')

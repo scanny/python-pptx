@@ -26,8 +26,8 @@ Hello World! example
     from pptx import Presentation
 
     prs = Presentation()
-    title_slidelayout = prs.slidelayouts[0]
-    slide = prs.slides.add_slide(title_slidelayout)
+    title_slide_layout = prs.slide_layouts[0]
+    slide = prs.slides.add_slide(title_slide_layout)
     title = slide.shapes.title
     subtitle = slide.shapes.placeholders[1]
 
@@ -51,9 +51,9 @@ Bullet slide example
     from pptx import Presentation
 
     prs = Presentation()
-    bullet_slidelayout = prs.slidelayouts[1]
+    bullet_slide_layout = prs.slide_layouts[1]
 
-    slide = prs.slides.add_slide(bullet_slidelayout)
+    slide = prs.slides.add_slide(bullet_slide_layout)
     shapes = slide.shapes
 
     title_shape = shapes.title
@@ -101,8 +101,8 @@ it contains.
     from pptx.util import Inches, Pt
 
     prs = Presentation()
-    blank_slidelayout = prs.slidelayouts[6]
-    slide = prs.slides.add_slide(blank_slidelayout)
+    blank_slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_slide_layout)
 
     left = top = width = height = Inches(1)
     txBox = slide.shapes.add_textbox(left, top, width, height)
@@ -138,8 +138,8 @@ it contains.
     img_path = 'monty-truth.png'
 
     prs = Presentation()
-    blank_slidelayout = prs.slidelayouts[6]
-    slide = prs.slides.add_slide(blank_slidelayout)
+    blank_slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_slide_layout)
 
     left = top = Inches(1)
     pic = slide.shapes.add_picture(img_path, left, top)
@@ -169,8 +169,8 @@ it contains.
     from pptx.util import Inches
 
     prs = Presentation()
-    title_only_slidelayout = prs.slidelayouts[5]
-    slide = prs.slides.add_slide(title_only_slidelayout)
+    title_only_slide_layout = prs.slide_layouts[5]
+    slide = prs.slides.add_slide(title_only_slide_layout)
     shapes = slide.shapes
 
     shapes.title.text = 'Adding an AutoShape'
@@ -215,8 +215,8 @@ MSO_SHAPE.ROUNDED_RECT, MSO_SHAPE.CHEVRON, etc.) are listed on the
     from pptx.util import Inches
 
     prs = Presentation()
-    title_only_slidelayout = prs.slidelayouts[5]
-    slide = prs.slides.add_slide(title_only_slidelayout)
+    title_only_slide_layout = prs.slide_layouts[5]
+    slide = prs.slides.add_slide(title_only_slide_layout)
     shapes = slide.shapes
 
     shapes.title.text = 'Adding a Table'

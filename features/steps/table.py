@@ -23,8 +23,8 @@ from .helpers import saved_pptx_path
 @given('I have a reference to a table')
 def step_given_ref_to_table(context):
     context.prs = Presentation()
-    slidelayout = context.prs.slidelayouts[6]
-    sld = context.prs.slides.add_slide(slidelayout)
+    slide_layout = context.prs.slide_layouts[6]
+    sld = context.prs.slides.add_slide(slide_layout)
     shapes = sld.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(1.00))
@@ -34,8 +34,8 @@ def step_given_ref_to_table(context):
 @given('a table cell')
 def given_a_table_cell(context):
     context.prs = Presentation()
-    slidelayout = context.prs.slidelayouts[6]
-    sld = context.prs.slides.add_slide(slidelayout)
+    slide_layout = context.prs.slide_layouts[6]
+    sld = context.prs.slides.add_slide(slide_layout)
     length = 1000
     tbl = sld.shapes.add_table(2, 2, length, length, length, length)
     context.cell = tbl.cell(0, 0)

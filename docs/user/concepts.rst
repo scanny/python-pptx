@@ -65,9 +65,9 @@ master can also be accessed directly from the presentation via syntactic
 sugar::
 
     prs = Presentation()
-    title_slidelayout = prs.slidemasters[0].slidelayouts[0]
+    title_slide_layout = prs.slidemasters[0].slide_layouts[0]
     # is equivalent to:
-    title_slidelayout = prs.slidelayouts[0]
+    title_slide_layout = prs.slide_layouts[0]
 
 
 Slides
@@ -88,5 +88,5 @@ Adding a slide is accomplished by calling the :meth:`add_slide` method on the
 in to specify the layout the new slide should take on::
 
     prs = Presentation()
-    title_slidelayout = prs.slidelayouts[0]
-    new_slide = prs.slides.add_slide(title_slidelayout)
+    title_slide_layout = prs.slide_layouts[0]
+    new_slide = prs.slides.add_slide(title_slide_layout)

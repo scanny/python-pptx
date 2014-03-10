@@ -24,8 +24,8 @@ from .helpers import italics_pptx_path, saved_pptx_path
 @given('a font')
 def given_a_font(context):
     prs = Presentation()
-    blank_slidelayout = prs.slidelayouts[6]
-    slide = prs.slides.add_slide(blank_slidelayout)
+    blank_slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_slide_layout)
     textbox = slide.shapes.add_textbox(0, 0, 0, 0)
     run = textbox.textframe.paragraphs[0].add_run()
     context.font = run.font
@@ -34,8 +34,8 @@ def given_a_font(context):
 @given('a paragraph')
 def given_a_paragraph(context):
     context.prs = Presentation()
-    blank_slidelayout = context.prs.slidelayouts[6]
-    slide = context.prs.slides.add_slide(blank_slidelayout)
+    blank_slide_layout = context.prs.slide_layouts[6]
+    slide = context.prs.slides.add_slide(blank_slide_layout)
     length = Inches(2.00)
     textbox = slide.shapes.add_textbox(length, length, length, length)
     context.p = textbox.textframe.paragraphs[0]
@@ -52,8 +52,8 @@ def step_given_run_with_italics_set_to_setting(context, setting):
 @given('a text run')
 def given_a_text_run(context):
     prs = Presentation()
-    blank_slidelayout = prs.slidelayouts[6]
-    slide = prs.slides.add_slide(blank_slidelayout)
+    blank_slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_slide_layout)
     textbox = slide.shapes.add_textbox(0, 0, 0, 0)
     p = textbox.textframe.paragraphs[0]
     context.r = p.add_run()
@@ -62,8 +62,8 @@ def given_a_text_run(context):
 @given('a text run in a table cell')
 def given_a_text_run_in_a_table_cell(context):
     prs = Presentation()
-    blank_slidelayout = prs.slidelayouts[6]
-    slide = prs.slides.add_slide(blank_slidelayout)
+    blank_slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_slide_layout)
     table = slide.shapes.add_table(1, 1, 0, 0, 0, 0)
     cell = table.cell(0, 0)
     p = cell.textframe.paragraphs[0]
@@ -73,8 +73,8 @@ def given_a_text_run_in_a_table_cell(context):
 @given('a text run having a hyperlink')
 def given_a_text_run_having_a_hyperlink(context):
     prs = Presentation()
-    blank_slidelayout = prs.slidelayouts[6]
-    slide = prs.slides.add_slide(blank_slidelayout)
+    blank_slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_slide_layout)
     textbox = slide.shapes.add_textbox(0, 0, 0, 0)
     p = textbox.textframe.paragraphs[0]
     r = p.add_run()
@@ -85,8 +85,8 @@ def given_a_text_run_having_a_hyperlink(context):
 @given('a textframe')
 def step_given_a_textframe(context):
     context.prs = Presentation()
-    blank_slidelayout = context.prs.slidelayouts[6]
-    slide = context.prs.slides.add_slide(blank_slidelayout)
+    blank_slide_layout = context.prs.slide_layouts[6]
+    slide = context.prs.slides.add_slide(blank_slide_layout)
     length = Inches(2.00)
     textbox = slide.shapes.add_textbox(length, length, length, length)
     context.textframe = textbox.textframe

@@ -28,9 +28,9 @@ class DescribePackage(object):
         slidemasters = prs.slidemasters
         assert slidemasters is not None
         assert len(slidemasters) == 1
-        slidelayouts = slidemasters[0].slidelayouts
-        assert slidelayouts is not None
-        assert len(slidelayouts) == 11
+        slide_layouts = slidemasters[0].slide_layouts
+        assert slide_layouts is not None
+        assert len(slide_layouts) == 11
 
     def it_gathers_package_image_parts_on_open(self):
         pkg = Package.open(images_pptx_path)
@@ -57,9 +57,9 @@ class DescribePackage(object):
         slidemasters = prs.slidemasters
         assert slidemasters is not None
         assert len(slidemasters) == 1
-        slidelayouts = slidemasters[0].slidelayouts
-        assert slidelayouts is not None
-        assert len(slidelayouts) == 11
+        slide_layouts = slidemasters[0].slide_layouts
+        assert slide_layouts is not None
+        assert len(slide_layouts) == 11
 
     # fixtures ---------------------------------------------
 

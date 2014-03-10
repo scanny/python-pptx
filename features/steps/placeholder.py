@@ -19,8 +19,8 @@ from .helpers import saved_pptx_path, test_text
 @given('a bullet body placeholder')
 def given_a_bullet_body_placeholder(context):
     context.prs = Presentation()
-    slidelayout = context.prs.slidelayouts[1]
-    context.sld = context.prs.slides.add_slide(slidelayout)
+    slide_layout = context.prs.slide_layouts[1]
+    context.sld = context.prs.slides.add_slide(slide_layout)
     context.body = context.sld.shapes.placeholders[1]
 
 

@@ -7,6 +7,10 @@ provides some insulation so not so many classes in the other modules need to
 be named as internal (leading underscore).
 """
 
+from __future__ import absolute_import, print_function, unicode_literals
+
+from warnings import warn
+
 from pptx.presentation import Package
 
 
@@ -31,12 +35,24 @@ class Presentation(object):
         return self._package.core_properties
 
     @property
+    def slide_layouts(self):
+        """
+        Sequence of |SlideLayout| instances belonging to the first
+        |SlideMaster| of this presentation.
+        """
+        return self._presentation.slidemasters[0].slide_layouts
+
+    @property
     def slidelayouts(self):
         """
-        Tuple containing the |SlideLayout| instances belonging to the
-        first |SlideMaster| of this presentation.
+        Deprecated. Use ``.slide_layouts`` property instead.
         """
-        return tuple(self._presentation.slidemasters[0].slidelayouts)
+        msg = (
+            'Presentation.slidelayouts property is deprecated. Use .slide_la'
+            'youts instead.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+        return self.slide_layouts
 
     @property
     def slidemaster(self):

@@ -41,11 +41,11 @@ connected with the right new slide layout:
 * Content with Caption
 * Picture with Caption
 
-In |pp|, these are ``prs.slidelayouts[0]`` through ``prs.slidelayouts[8]``.
+In |pp|, these are ``prs.slide_layouts[0]`` through ``prs.slide_layouts[8]``.
 However, there's no rule they have to appear in this order, it's just
 a convention followed by the themes provided with PowerPoint. If the deck
 you're using as your template has different slide layouts or has them in
-a different order, you'll have to work out the slidelayout indices for
+a different order, you'll have to work out the slide layout indices for
 yourself. It's pretty easy. Just open it up in Slide Master view in PowerPoint
 and count down from the top, starting at zero.
 
@@ -60,7 +60,7 @@ Let's use the Title and Content slide layout; a lot of slides do::
     SLD_LAYOUT_TITLE_AND_CONTENT = 1
 
     prs = Presentation()
-    slide_layout = prs.slidelayouts[SLD_LAYOUT_TITLE_AND_CONTENT]
+    slide_layout = prs.slide_layouts[SLD_LAYOUT_TITLE_AND_CONTENT]
     slide = prs.slides.add_slide(slide_layout)
 
 A few things to note:
@@ -71,7 +71,7 @@ A few things to note:
   of these built into the package because they can't be assured to be right for
   the starting deck you're using.
 
-* ``prs.slidelayouts`` is the collection of slide layouts contained in the
+* ``prs.slide_layouts`` is the collection of slide layouts contained in the
   presentation and has list semantics, at least for item access which is about
   all you can do with that collection at the moment. Using ``prs`` for the
   Presentation instance is purely conventional, but I like it and use it

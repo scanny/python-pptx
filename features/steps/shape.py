@@ -35,8 +35,8 @@ def given_a_shape_of_known_pos_and_size(context):
 @given('an autoshape')
 def given_an_autoshape(context):
     prs = Presentation()
-    blank_slidelayout = prs.slidelayouts[6]
-    shapes = prs.slides.add_slide(blank_slidelayout).shapes
+    blank_slide_layout = prs.slide_layouts[6]
+    shapes = prs.slides.add_slide(blank_slide_layout).shapes
     x = y = cx = cy = 914400
     context.shape = shapes.add_shape(MAST.ROUNDED_RECTANGLE, x, y, cx, cy)
 
@@ -44,8 +44,8 @@ def given_an_autoshape(context):
 @given('I have a reference to a chevron shape')
 def step_given_ref_to_chevron_shape(context):
     context.prs = Presentation()
-    blank_slidelayout = context.prs.slidelayouts[6]
-    shapes = context.prs.slides.add_slide(blank_slidelayout).shapes
+    blank_slide_layout = context.prs.slide_layouts[6]
+    shapes = context.prs.slides.add_slide(blank_slide_layout).shapes
     x = y = cx = cy = 914400
     context.chevron_shape = shapes.add_shape(MAST.CHEVRON, x, y, cx, cy)
 

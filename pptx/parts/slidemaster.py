@@ -6,8 +6,8 @@ Objects related to the slide master part
 
 from __future__ import absolute_import, print_function
 
-from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.parts.part import PartCollection
+from warnings import warn
+
 from pptx.parts.slides import BaseSlide
 from pptx.util import lazyproperty
 
@@ -18,13 +18,6 @@ class SlideMaster(BaseSlide):
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     """
     @property
-    def slide_layouts(self):
-        """
-        Sequence of |SlideLayout| objects belonging to this slide master
-        """
-        return _SlideLayouts(self)
-
-    @property
     def sldLayoutIdLst(self):
         """
         The ``<p:sldLayoutIdLst>`` child element specifying the slide layouts
@@ -33,18 +26,23 @@ class SlideMaster(BaseSlide):
         return self._element.get_or_add_sldLayoutIdLst()
 
     @lazyproperty
+    def slide_layouts(self):
+        """
+        Sequence of |SlideLayout| objects belonging to this slide master
+        """
+        return _SlideLayouts(self)
+
+    @property
     def slidelayouts(self):
         """
-        Collection of slide layout objects belonging to this slide master.
+        Deprecated. Use ``.slide_layouts`` property instead.
         """
-        slidelayouts = PartCollection()
-        sl_rels = [
-            r for r in self.rels.values() if r.reltype == RT.SLIDE_LAYOUT
-        ]
-        for sl_rel in sl_rels:
-            slide_layout = sl_rel.target_part
-            slidelayouts.add_part(slide_layout)
-        return slidelayouts
+        msg = (
+            'SlideMaster.slidelayouts property is deprecated. Use .slide_lay'
+            'outs instead.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+        return self.slide_layouts
 
 
 class _SlideLayouts(object):

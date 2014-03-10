@@ -32,8 +32,13 @@ from ``slides.add_slide()``.
 |SlideMaster| objects
 ---------------------
 
+.. currentmodule:: pptx.parts.slidemaster
+
 .. autoclass:: SlideMaster
    :members:
+   :exclude-members: sldLayoutIdLst
+
+.. currentmodule:: pptx.parts.slides
 
 .. autoclass:: SlideLayout
    :members:
