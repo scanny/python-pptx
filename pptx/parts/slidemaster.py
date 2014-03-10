@@ -4,7 +4,7 @@
 Objects related to the slide master part
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.parts.part import PartCollection
@@ -57,11 +57,28 @@ class _SlideLayouts(object):
         super(_SlideLayouts, self).__init__()
         self._slide_master = slide_master
 
+    def __iter__(self):
+        """
+        Generate a reference to each of the |SlideLayout| instances in the
+        collection, in sequence.
+        """
+        for rId in self._iter_rIds():
+            yield self._slide_master.related_parts[rId]
+
     def __len__(self):
         """
         Support len() built-in function (e.g. 'len(slides) == 4').
         """
         return len(self._sldLayoutIdLst)
+
+    def _iter_rIds(self):
+        """
+        Generate the rId for each slide layout in the collection, in
+        sequence.
+        """
+        sldLayoutId_lst = self._sldLayoutIdLst.sldLayoutId_lst
+        for sldLayoutId in sldLayoutId_lst:
+            yield sldLayoutId.rId
 
     @property
     def _sldLayoutIdLst(self):

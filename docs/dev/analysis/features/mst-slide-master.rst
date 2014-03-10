@@ -33,3 +33,11 @@ Schema excerpt
                    minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
   </xsd:complexType>
+
+  <xsd:complexType name="CT_SlideLayoutIdListEntry">
+    <xsd:sequence>
+      <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+    <xsd:attribute name="id" type="ST_SlideLayoutId" use="optional"/>
+    <xsd:attribute ref="r:id"                        use="required"/>
+  </xsd:complexType>

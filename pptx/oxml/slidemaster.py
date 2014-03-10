@@ -55,6 +55,23 @@ class CT_SlideLayoutIdList(BaseOxmlElement):
         """
         return Element('p:sldLayoutIdLst')
 
+    @property
+    def sldLayoutId_lst(self):
+        """
+        Sequence of ``<p:sldLayoutId>`` child elements
+        """
+        return self.findall(qn('p:sldLayoutId'))
+
+
+class CT_SlideLayoutIdListEntry(BaseOxmlElement):
+    """
+    ``<p:sldLayoutId>`` element, child of ``<p:sldLayoutIdLst>`` containing
+    a reference to a slide layout.
+    """
+    @property
+    def rId(self):
+        return self.get(qn('r:id'))
+
 
 class CT_SlideMaster(BaseOxmlElement):
     """

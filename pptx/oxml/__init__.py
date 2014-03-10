@@ -88,7 +88,10 @@ register_custom_element_class('p:sldId',        CT_SlideId)
 register_custom_element_class('p:sldIdLst',     CT_SlideIdList)
 
 
-from pptx.oxml.slidemaster import CT_SlideLayoutIdList, CT_SlideMaster
+from pptx.oxml.slidemaster import (
+    CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry, CT_SlideMaster
+)
+register_custom_element_class('p:sldLayoutId',    CT_SlideLayoutIdListEntry)
 register_custom_element_class('p:sldLayoutIdLst', CT_SlideLayoutIdList)
 register_custom_element_class('p:sldMaster',      CT_SlideMaster)
 

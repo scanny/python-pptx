@@ -9,10 +9,13 @@ from __future__ import absolute_import
 import pytest
 
 from pptx.parts.slidemaster import _SlideLayouts, SlideMaster
+from pptx.parts.slides import SlideLayout
 from pptx.oxml.slidemaster import CT_SlideLayoutIdList
 
-from ..oxml.unitdata.slides import a_sldLayoutIdLst, a_sldMaster
-from ..unitutil import absjoin, instance_mock, test_file_dir
+from ..oxml.unitdata.slides import (
+    a_sldLayoutId, a_sldLayoutIdLst, a_sldMaster
+)
+from ..unitutil import absjoin, instance_mock, method_mock, test_file_dir
 
 
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
@@ -56,7 +59,37 @@ class DescribeSlideLayouts(object):
         slide_layout_count = len(slide_layouts)
         assert slide_layout_count == expected_count
 
+    def it_can_iterate_over_the_slide_layouts(self, iter_fixture):
+        slide_layouts, slide_layout_, slide_layout_2_ = iter_fixture
+        assert [s for s in slide_layouts] == [slide_layout_, slide_layout_2_]
+
+    def it_iterates_over_rIds_to_help__iter__(self, iter_rIds_fixture):
+        slide_layouts, expected_rIds = iter_rIds_fixture
+        assert [rId for rId in slide_layouts._iter_rIds()] == expected_rIds
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def iter_fixture(
+            self, slide_master_, _iter_rIds_, slide_layout_, slide_layout_2_):
+        slide_master_.related_parts = {
+            'rId1': slide_layout_, 'rId2': slide_layout_2_
+        }
+        slide_layouts = _SlideLayouts(slide_master_)
+        return slide_layouts, slide_layout_, slide_layout_2_
+
+    @pytest.fixture
+    def _iter_rIds_(self, request):
+        return method_mock(
+            request, _SlideLayouts, '_iter_rIds',
+            return_value=iter(['rId1', 'rId2'])
+        )
+
+    @pytest.fixture
+    def iter_rIds_fixture(self, slide_master):
+        slide_layouts = _SlideLayouts(slide_master)
+        expected_rIds = ['rId1', 'rId2']
+        return slide_layouts, expected_rIds
 
     @pytest.fixture
     def len_fixture(self, slide_master_):
@@ -64,6 +97,29 @@ class DescribeSlideLayouts(object):
         slide_master_.sldLayoutIdLst = [1, 2]
         expected_count = 2
         return slide_layouts, expected_count
+
+    @pytest.fixture
+    def sldMaster(self, request):
+        sldMaster_bldr = (
+            a_sldMaster().with_nsdecls('p', 'r').with_child(
+                a_sldLayoutIdLst().with_child(
+                    a_sldLayoutId().with_rId('rId1')).with_child(
+                    a_sldLayoutId().with_rId('rId2'))
+            )
+        )
+        return sldMaster_bldr.element
+
+    @pytest.fixture
+    def slide_layout_(self, request):
+        return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def slide_layout_2_(self, request):
+        return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def slide_master(self, sldMaster):
+        return SlideMaster(None, None, sldMaster, None)
 
     @pytest.fixture
     def slide_master_(self, request):
