@@ -22,7 +22,15 @@ class SlideMaster(BaseSlide):
         """
         Sequence of |SlideLayout| objects belonging to this slide master
         """
-        return _SlideLayouts()
+        return _SlideLayouts(self)
+
+    @property
+    def sldLayoutIdLst(self):
+        """
+        The ``<p:sldLayoutIdLst>`` chile element specifying the slide layouts
+        of this slide master in the XML.
+        """
+        raise NotImplementedError
 
     @lazyproperty
     def slidelayouts(self):
@@ -45,3 +53,21 @@ class _SlideLayouts(object):
     having list access semantics. Supports indexed access, len(), and
     iteration.
     """
+    def __init__(self, slide_master):
+        super(_SlideLayouts, self).__init__()
+        self._slide_master = slide_master
+
+    def __len__(self):
+        """
+        Support len() built-in function (e.g. 'len(slides) == 4').
+        """
+        return len(self._sldLayoutIdLst)
+
+    @property
+    def _sldLayoutIdLst(self):
+        """
+        The ``<p:sldLayoutIdLst>`` element specifying the slide layouts in
+        this collection. This element is a child of the ``<p:sldMaster>``
+        element, the root element of a slide master part.
+        """
+        return self._slide_master.sldLayoutIdLst
