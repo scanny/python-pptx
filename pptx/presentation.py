@@ -122,3 +122,10 @@ class Presentation(Part):
         slides = SlideCollection(sldIdLst, self)
         slides.rename_slides()  # start from known state
         return slides
+
+
+class _SlideMasters(object):
+    """
+    Collection of |SlideMaster| instances belonging to a presentation. Has
+    list access semantics, supporting indexed access, len(), and iteration.
+    """

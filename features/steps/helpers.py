@@ -18,11 +18,9 @@ test_file_dir = absjoin(thisdir, '../../tests/test_files')
 test_pptx_dir = absjoin(thisdir, 'test_files')
 
 # new test pptx files ------------------
-ext_rels_pptx_path = absjoin(test_pptx_dir, 'ext-rels.pptx')
 shp_pos_and_size_pptx_path = absjoin(test_pptx_dir, 'shp-pos-and-size.pptx')
 
 # legacy test pptx files ---------------
-basic_pptx_path = absjoin(test_file_dir, 'test.pptx')
 italics_pptx_path = absjoin(test_file_dir, 'italic-runs.pptx')
 no_core_props_pptx_path = absjoin(test_file_dir, 'no-core-props.pptx')
 test_image_path = absjoin(test_file_dir, 'python-powered.png')
