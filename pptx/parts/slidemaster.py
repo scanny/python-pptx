@@ -27,10 +27,10 @@ class SlideMaster(BaseSlide):
     @property
     def sldLayoutIdLst(self):
         """
-        The ``<p:sldLayoutIdLst>`` chile element specifying the slide layouts
+        The ``<p:sldLayoutIdLst>`` child element specifying the slide layouts
         of this slide master in the XML.
         """
-        raise NotImplementedError
+        return self._element.get_or_add_sldLayoutIdLst()
 
     @lazyproperty
     def slidelayouts(self):

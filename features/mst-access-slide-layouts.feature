@@ -3,7 +3,6 @@ Feature: Access slide layouts from a slide master
   As a developer using python-pptx
   I need access to the slide layouts of a slide master
 
-  @wip
   Scenario: Access slide layout collection
      Given a slide master having two slide layouts
       Then I can access the slide layouts of the slide master

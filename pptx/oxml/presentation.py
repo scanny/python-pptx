@@ -17,7 +17,6 @@ class CT_Presentation(objectify.ObjectifiedElement):
     ``<p:presentation>`` element, root of the Presentation part stored as
     ``/ppt/presentation.xml``.
     """
-
     def get_or_add_sldIdLst(self):
         """
         Return the <p:sldIdLst> child element, creating one first if
