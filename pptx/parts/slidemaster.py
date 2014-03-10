@@ -57,6 +57,15 @@ class _SlideLayouts(object):
         super(_SlideLayouts, self).__init__()
         self._slide_master = slide_master
 
+    def __getitem__(self, idx):
+        """
+        Provide indexed access, (e.g. ``slide_layouts[2]``).
+        """
+        if idx >= len(self._sldLayoutIdLst):
+            raise IndexError('slide layout index out of range')
+        rId = self._sldLayoutIdLst.sldLayoutId_lst[idx].rId
+        return self._slide_master.related_parts[rId]
+
     def __iter__(self):
         """
         Generate a reference to each of the |SlideLayout| instances in the

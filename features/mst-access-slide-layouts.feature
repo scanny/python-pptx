@@ -8,7 +8,6 @@ Feature: Access slide layouts from a slide master
       Then I can access the slide layouts of the slide master
        And the length of the slide layout collection is 2
 
-  @wip
   Scenario: Access slide layout in slide layout collection
      Given a slide layout collection containing two layouts
       Then I can iterate over the slide layouts

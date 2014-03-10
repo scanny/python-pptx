@@ -15,7 +15,9 @@ from pptx.oxml.slidemaster import CT_SlideLayoutIdList
 from ..oxml.unitdata.slides import (
     a_sldLayoutId, a_sldLayoutIdLst, a_sldMaster
 )
-from ..unitutil import absjoin, instance_mock, method_mock, test_file_dir
+from ..unitutil import (
+    absjoin, instance_mock, method_mock, property_mock, test_file_dir
+)
 
 
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')
@@ -67,7 +69,24 @@ class DescribeSlideLayouts(object):
         slide_layouts, expected_rIds = iter_rIds_fixture
         assert [rId for rId in slide_layouts._iter_rIds()] == expected_rIds
 
+    def it_supports_indexed_access(self, getitem_fixture):
+        slide_layouts, idx, slide_layout_ = getitem_fixture
+        slide_layout = slide_layouts[idx]
+        assert slide_layout is slide_layout_
+
+    def it_raises_on_slide_layout_index_out_of_range(self, getitem_fixture):
+        slide_layouts = getitem_fixture[0]
+        with pytest.raises(IndexError):
+            slide_layouts[2]
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def getitem_fixture(self, slide_master, related_parts_, slide_layout_):
+        slide_layouts = _SlideLayouts(slide_master)
+        related_parts_.return_value = {'rId1': None, 'rId2': slide_layout_}
+        idx = 1
+        return slide_layouts, idx, slide_layout_
 
     @pytest.fixture
     def iter_fixture(
@@ -97,6 +116,10 @@ class DescribeSlideLayouts(object):
         slide_master_.sldLayoutIdLst = [1, 2]
         expected_count = 2
         return slide_layouts, expected_count
+
+    @pytest.fixture
+    def related_parts_(self, request):
+        return property_mock(request, SlideMaster, 'related_parts')
 
     @pytest.fixture
     def sldMaster(self, request):
