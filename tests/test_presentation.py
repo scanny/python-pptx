@@ -12,12 +12,17 @@ from pptx.oxml.presentation import (
 )
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import PartCollection
+from pptx.parts.slidemaster import SlideMaster
 from pptx.parts.slides import SlideCollection
 from pptx.presentation import Package, Presentation, _SlideMasters
 
 
-from .oxml.unitdata.presentation import a_presentation, a_sldMasterIdLst
-from .unitutil import absjoin, class_mock, instance_mock, test_file_dir
+from .oxml.unitdata.presentation import (
+    a_presentation, a_sldMasterId, a_sldMasterIdLst
+)
+from .unitutil import (
+    absjoin, class_mock, instance_mock, method_mock, test_file_dir
+)
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -157,7 +162,30 @@ class DescribeSlideMasters(object):
         slide_master_count = len(slide_masters)
         assert slide_master_count == expected_count
 
+    def it_can_iterate_over_the_slide_masters(self, iter_fixture):
+        slide_masters, slide_master_, slide_master_2_ = iter_fixture
+        assert [s for s in slide_masters] == [slide_master_, slide_master_2_]
+
+    def it_iterates_over_rIds_to_help__iter__(self, iter_rIds_fixture):
+        slide_masters, expected_rIds = iter_rIds_fixture
+        assert [rId for rId in slide_masters._iter_rIds()] == expected_rIds
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def iter_fixture(
+            self, presentation_, _iter_rIds_, slide_master_, slide_master_2_):
+        presentation_.related_parts = {
+            'rId1': slide_master_, 'rId2': slide_master_2_
+        }
+        slide_masters = _SlideMasters(presentation_)
+        return slide_masters, slide_master_, slide_master_2_
+
+    @pytest.fixture
+    def iter_rIds_fixture(self, presentation):
+        slide_masters = _SlideMasters(presentation)
+        expected_rIds = ['rId1', 'rId2']
+        return slide_masters, expected_rIds
 
     @pytest.fixture
     def len_fixture(self, presentation_):
@@ -169,5 +197,35 @@ class DescribeSlideMasters(object):
     # fixture components -----------------------------------
 
     @pytest.fixture
+    def _iter_rIds_(self, request):
+        return method_mock(
+            request, _SlideMasters, '_iter_rIds',
+            return_value=iter(['rId1', 'rId2'])
+        )
+
+    @pytest.fixture
+    def presentation(self, presentation_elm):
+        return Presentation(None, None, presentation_elm, None)
+
+    @pytest.fixture
     def presentation_(self, request):
         return instance_mock(request, Presentation)
+
+    @pytest.fixture
+    def presentation_elm(self, request):
+        presentation_bldr = (
+            a_presentation().with_nsdecls('p', 'r').with_child(
+                a_sldMasterIdLst().with_child(
+                    a_sldMasterId().with_rId('rId1')).with_child(
+                    a_sldMasterId().with_rId('rId2'))
+            )
+        )
+        return presentation_bldr.element
+
+    @pytest.fixture
+    def slide_master_(self, request):
+        return instance_mock(request, SlideMaster)
+
+    @pytest.fixture
+    def slide_master_2_(self, request):
+        return instance_mock(request, SlideMaster)

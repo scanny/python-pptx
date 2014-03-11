@@ -42,6 +42,16 @@ class CT_SlideIdListBuilder(BaseBuilder):
     __attrs__ = ()
 
 
+class CT_SlideMasterIdBuilder(BaseBuilder):
+    __tag__ = 'p:sldMasterId'
+    __nspfxs__ = ('p',)
+    __attrs__ = ('id', 'r:id')
+
+    def with_rId(self, rId):
+        self._set_xmlattr('r:id', rId)
+        return self
+
+
 class CT_SlideMasterIdListBuilder(BaseBuilder):
     __tag__ = 'p:sldMasterIdLst'
     __nspfxs__ = ('p',)
@@ -69,6 +79,10 @@ def a_sldId():
 
 def a_sldIdLst():
     return CT_SlideIdListBuilder()
+
+
+def a_sldMasterId():
+    return CT_SlideMasterIdBuilder()
 
 
 def a_sldMasterIdLst():

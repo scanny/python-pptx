@@ -125,3 +125,20 @@ class CT_SlideMasterIdList(BaseOxmlElement):
         Return a new ``<p:sldMasterIdLst>`` element.
         """
         return Element('p:sldMasterIdLst')
+
+    @property
+    def sldMasterId_lst(self):
+        """
+        Sequence of ``<p:sldMasterId>`` child elements
+        """
+        return self.findall(qn('p:sldMasterId'))
+
+
+class CT_SlideMasterIdListEntry(BaseOxmlElement):
+    """
+    ``<p:sldMasterId>`` element, child of ``<p:sldMasterIdLst>`` containing
+    a reference to a slide master.
+    """
+    @property
+    def rId(self):
+        return self.get(qn('r:id'))

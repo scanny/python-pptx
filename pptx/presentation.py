@@ -148,11 +148,28 @@ class _SlideMasters(object):
         super(_SlideMasters, self).__init__()
         self._presentation = presentation
 
+    def __iter__(self):
+        """
+        Generate a reference to each of the |SlideMaster| instances in the
+        collection, in sequence.
+        """
+        for rId in self._iter_rIds():
+            yield self._presentation.related_parts[rId]
+
     def __len__(self):
         """
         Support len() built-in function (e.g. 'len(slide_masters) == 4').
         """
         return len(self._sldMasterIdLst)
+
+    def _iter_rIds(self):
+        """
+        Generate the rId for each slide master in the collection, in
+        sequence.
+        """
+        sldMasterId_lst = self._sldMasterIdLst.sldMasterId_lst
+        for sldMasterId in sldMasterId_lst:
+            yield sldMasterId.rId
 
     @property
     def _sldMasterIdLst(self):

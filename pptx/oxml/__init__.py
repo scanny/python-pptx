@@ -81,11 +81,13 @@ register_custom_element_class('a:solidFill', CT_SolidColorFillProperties)
 
 
 from pptx.oxml.presentation import (
-    CT_Presentation, CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList
+    CT_Presentation, CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList,
+    CT_SlideMasterIdListEntry
 )
 register_custom_element_class('p:presentation',   CT_Presentation)
 register_custom_element_class('p:sldId',          CT_SlideId)
 register_custom_element_class('p:sldIdLst',       CT_SlideIdList)
+register_custom_element_class('p:sldMasterId',    CT_SlideMasterIdListEntry)
 register_custom_element_class('p:sldMasterIdLst', CT_SlideMasterIdList)
 
 

@@ -98,13 +98,6 @@ class DescribeSlideLayouts(object):
         return slide_layouts, slide_layout_, slide_layout_2_
 
     @pytest.fixture
-    def _iter_rIds_(self, request):
-        return method_mock(
-            request, _SlideLayouts, '_iter_rIds',
-            return_value=iter(['rId1', 'rId2'])
-        )
-
-    @pytest.fixture
     def iter_rIds_fixture(self, slide_master):
         slide_layouts = _SlideLayouts(slide_master)
         expected_rIds = ['rId1', 'rId2']
@@ -116,6 +109,15 @@ class DescribeSlideLayouts(object):
         slide_master_.sldLayoutIdLst = [1, 2]
         expected_count = 2
         return slide_layouts, expected_count
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _iter_rIds_(self, request):
+        return method_mock(
+            request, _SlideLayouts, '_iter_rIds',
+            return_value=iter(['rId1', 'rId2'])
+        )
 
     @pytest.fixture
     def related_parts_(self, request):
