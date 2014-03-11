@@ -21,7 +21,8 @@ from .oxml.unitdata.presentation import (
     a_presentation, a_sldMasterId, a_sldMasterIdLst
 )
 from .unitutil import (
-    absjoin, class_mock, instance_mock, method_mock, test_file_dir
+    absjoin, class_mock, instance_mock, method_mock, property_mock,
+    test_file_dir
 )
 
 
@@ -170,7 +171,24 @@ class DescribeSlideMasters(object):
         slide_masters, expected_rIds = iter_rIds_fixture
         assert [rId for rId in slide_masters._iter_rIds()] == expected_rIds
 
+    def it_supports_indexed_access(self, getitem_fixture):
+        slide_masters, idx, slide_master_ = getitem_fixture
+        slide_master = slide_masters[idx]
+        assert slide_master is slide_master_
+
+    def it_raises_on_slide_master_index_out_of_range(self, getitem_fixture):
+        slide_masters = getitem_fixture[0]
+        with pytest.raises(IndexError):
+            slide_masters[2]
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def getitem_fixture(self, presentation, related_parts_, slide_master_):
+        slide_masters = _SlideMasters(presentation)
+        related_parts_.return_value = {'rId1': None, 'rId2': slide_master_}
+        idx = 1
+        return slide_masters, idx, slide_master_
 
     @pytest.fixture
     def iter_fixture(
@@ -221,6 +239,10 @@ class DescribeSlideMasters(object):
             )
         )
         return presentation_bldr.element
+
+    @pytest.fixture
+    def related_parts_(self, request):
+        return property_mock(request, Presentation, 'related_parts')
 
     @pytest.fixture
     def slide_master_(self, request):

@@ -148,6 +148,16 @@ class _SlideMasters(object):
         super(_SlideMasters, self).__init__()
         self._presentation = presentation
 
+    def __getitem__(self, idx):
+        """
+        Provide indexed access, (e.g. ``slide_masters[2]``).
+        """
+        sldMasterId_lst = self._sldMasterIdLst.sldMasterId_lst
+        if idx >= len(sldMasterId_lst):
+            raise IndexError('slide master index out of range')
+        rId = sldMasterId_lst[idx].rId
+        return self._presentation.related_parts[rId]
+
     def __iter__(self):
         """
         Generate a reference to each of the |SlideMaster| instances in the
