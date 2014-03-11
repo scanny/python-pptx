@@ -49,9 +49,9 @@ the 99% situation, you can refer to the first slide master as though it were
 the only one::
 
     prs = Presentation()
-    slidemaster = prs.slidemasters[0]
+    slide_master = prs.slide_masters[0]
     # is equivalent to
-    slidemaster = prs.slidemaster
+    slide_master = prs.slide_master
 
 
 Slide layouts
@@ -65,7 +65,7 @@ master can also be accessed directly from the presentation via syntactic
 sugar::
 
     prs = Presentation()
-    title_slide_layout = prs.slidemasters[0].slide_layouts[0]
+    title_slide_layout = prs.slide_masters[0].slide_layouts[0]
     # is equivalent to:
     title_slide_layout = prs.slide_layouts[0]
 

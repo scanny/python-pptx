@@ -20,13 +20,13 @@ from .helpers import test_pptx
 @given('a slide master having two slide layouts')
 def given_slide_master_having_two_layouts(context):
     prs = Presentation(test_pptx('mst-slide-layouts'))
-    context.slide_master = prs.slidemaster
+    context.slide_master = prs.slide_master
 
 
 @given('a slide layout collection containing two layouts')
 def given_slide_layout_collection_containing_two_layouts(context):
     prs = Presentation(test_pptx('mst-slide-layouts'))
-    context.slide_layouts = prs.slidemaster.slide_layouts
+    context.slide_layouts = prs.slide_master.slide_layouts
 
 
 # then ====================================================

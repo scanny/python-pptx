@@ -136,10 +136,10 @@ def then_can_iterate_over_the_slide_masters(context):
 def then_receive_prs_based_on_def_tmpl(context):
     prs = context.prs
     assert_that(prs, is_not(None))
-    slidemasters = prs.slidemasters
-    assert_that(slidemasters, is_not(None))
-    assert_that(len(slidemasters), is_(1))
-    slide_layouts = slidemasters[0].slide_layouts
+    slide_masters = prs.slide_masters
+    assert_that(slide_masters, is_not(None))
+    assert_that(len(slide_masters), is_(1))
+    slide_layouts = slide_masters[0].slide_layouts
     assert_that(slide_layouts, is_not(None))
     assert_that(len(slide_layouts), is_(11))
 

@@ -4,7 +4,7 @@
 Test suite for pptx.parts.slidemaster module
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import pytest
 
@@ -15,12 +15,7 @@ from pptx.oxml.slidemaster import CT_SlideLayoutIdList
 from ..oxml.unitdata.slides import (
     a_sldLayoutId, a_sldLayoutIdLst, a_sldMaster
 )
-from ..unitutil import (
-    absjoin, instance_mock, method_mock, property_mock, test_file_dir
-)
-
-
-test_pptx_path = absjoin(test_file_dir, 'test.pptx')
+from ..unitutil import instance_mock, method_mock, property_mock
 
 
 class DescribeSlideMaster(object):

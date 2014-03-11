@@ -40,7 +40,7 @@ class Presentation(object):
         Sequence of |SlideLayout| instances belonging to the first
         |SlideMaster| of this presentation.
         """
-        return self._presentation.slidemasters[0].slide_layouts
+        return self._presentation.slide_masters[0].slide_layouts
 
     @property
     def slidelayouts(self):
@@ -55,13 +55,25 @@ class Presentation(object):
         return self.slide_layouts
 
     @property
-    def slidemaster(self):
+    def slide_master(self):
         """
         First |SlideMaster| object belonging to this presentation. Typically,
         presentations have only a single slide master. This property provides
         simpler access in that common case.
         """
-        return self._presentation.slidemasters[0]
+        return self._presentation.slide_masters[0]
+
+    @property
+    def slidemaster(self):
+        """
+        Deprecated. Use ``.slide_master`` property instead.
+        """
+        msg = (
+            'Presentation.slidemaster property is deprecated. Use .slide_m'
+            'aster instead.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+        return self.slide_masters
 
     @property
     def slide_masters(self):
@@ -73,9 +85,14 @@ class Presentation(object):
     @property
     def slidemasters(self):
         """
-        List of |SlideMaster| objects belonging to this presentation.
+        Deprecated. Use ``.slide_masters`` property instead.
         """
-        return self._presentation.slidemasters
+        msg = (
+            'Presentation.slidemasters property is deprecated. Use .slide_'
+            'masters instead.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+        return self.slide_masters
 
     @property
     def slides(self):

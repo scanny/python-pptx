@@ -34,7 +34,7 @@ def step_given_ref_to_slide(context):
 
 @when('I add a new slide')
 def step_when_add_slide(context):
-    slide_layout = context.prs.slidemasters[0].slide_layouts[0]
+    slide_layout = context.prs.slide_masters[0].slide_layouts[0]
     context.prs.slides.add_slide(slide_layout)
 
 

@@ -9,12 +9,13 @@ from __future__ import absolute_import
 
 import os
 
+from warnings import warn
+
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import OpcPackage, Part
 from pptx.oxml import parse_xml_bytes
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import ImageCollection
-from pptx.parts.part import PartCollection
 from pptx.parts.slides import SlideCollection
 from pptx.util import lazyproperty
 
@@ -114,19 +115,17 @@ class Presentation(Part):
         """
         return _SlideMasters(self)
 
-    @lazyproperty
+    @property
     def slidemasters(self):
         """
-        Sequence of |SlideMaster| instances belonging to this presentation.
+        Deprecated. Use ``.slide_masters`` property instead.
         """
-        slidemasters = PartCollection()
-        sm_rels = [
-            r for r in self.rels.values() if r.reltype == RT.SLIDE_MASTER
-        ]
-        for sm_rel in sm_rels:
-            slide_master = sm_rel.target_part
-            slidemasters.add_part(slide_master)
-        return slidemasters
+        msg = (
+            'Presentation.slidemasters property is deprecated. Use .slide_ma'
+            'sters instead.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+        return self.slide_masters
 
     @lazyproperty
     def slides(self):

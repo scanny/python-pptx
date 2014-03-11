@@ -8,7 +8,6 @@ Design
    :titlesonly:
    :maxdepth: 2
 
-   design_narratives
    design_sketches
    protocols/index
 

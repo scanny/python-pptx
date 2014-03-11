@@ -1,6 +1,8 @@
 # encoding: utf-8
 
-"""Test suite for pptx.presentation module."""
+"""
+Test suite for pptx.presentation module
+"""
 
 from __future__ import absolute_import, print_function
 
@@ -11,7 +13,6 @@ from pptx.oxml.presentation import (
     CT_Presentation, CT_SlideIdList, CT_SlideMasterIdList
 )
 from pptx.parts.coreprops import CoreProperties
-from pptx.parts.part import PartCollection
 from pptx.parts.slidemaster import SlideMaster
 from pptx.parts.slides import SlideCollection
 from pptx.presentation import Package, Presentation, _SlideMasters
@@ -27,7 +28,6 @@ from .unitutil import (
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
-test_pptx_path = absjoin(test_file_dir, 'test.pptx')
 
 
 class DescribePackage(object):
@@ -35,10 +35,10 @@ class DescribePackage(object):
     def it_loads_default_template_when_opened_with_no_path(self):
         prs = Package.open().presentation
         assert prs is not None
-        slidemasters = prs.slidemasters
-        assert slidemasters is not None
-        assert len(slidemasters) == 1
-        slide_layouts = slidemasters[0].slide_layouts
+        slide_masters = prs.slide_masters
+        assert slide_masters is not None
+        assert len(slide_masters) == 1
+        slide_layouts = slide_masters[0].slide_layouts
         assert slide_layouts is not None
         assert len(slide_layouts) == 11
 
@@ -55,7 +55,9 @@ class DescribePackage(object):
         assert isinstance(pkg.core_properties, CoreProperties)
 
     def it_can_save_itself_to_a_pptx_file(self, temp_pptx_path):
-        """Package.save produces a .pptx with plausible contents"""
+        """
+        Package.save produces a .pptx with plausible contents
+        """
         # setup ------------------------
         pkg = Package.open()
         # exercise ---------------------
@@ -64,10 +66,10 @@ class DescribePackage(object):
         pkg = Package.open(temp_pptx_path)
         prs = pkg.presentation
         assert prs is not None
-        slidemasters = prs.slidemasters
-        assert slidemasters is not None
-        assert len(slidemasters) == 1
-        slide_layouts = slidemasters[0].slide_layouts
+        slide_masters = prs.slide_masters
+        assert slide_masters is not None
+        assert len(slide_masters) == 1
+        slide_layouts = slide_masters[0].slide_layouts
         assert slide_layouts is not None
         assert len(slide_layouts) == 11
 
@@ -88,9 +90,6 @@ class DescribePresentation(object):
     def it_provides_access_to_its_sldMasterIdLst(self, presentation):
         sldMasterIdLst = presentation.sldMasterIdLst
         assert isinstance(sldMasterIdLst, CT_SlideMasterIdList)
-
-    def it_provides_access_to_the_slide_masters(self, prs):
-        assert isinstance(prs.slidemasters, PartCollection)
 
     def it_creates_slide_collection_on_first_reference(
             self, prs, SlideCollection_, sldIdLst_, slides_):
