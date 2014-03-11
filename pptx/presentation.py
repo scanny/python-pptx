@@ -100,6 +100,13 @@ class Presentation(Part):
         return presentation
 
     @lazyproperty
+    def slide_masters(self):
+        """
+        Sequence of |SlideMaster| objects belonging to this presentation
+        """
+        return _SlideMasters(self)
+
+    @lazyproperty
     def slidemasters(self):
         """
         Sequence of |SlideMaster| instances belonging to this presentation.
@@ -129,3 +136,6 @@ class _SlideMasters(object):
     Collection of |SlideMaster| instances belonging to a presentation. Has
     list access semantics, supporting indexed access, len(), and iteration.
     """
+    def __init__(self, presentation):
+        super(_SlideMasters, self).__init__()
+        self._presentation = presentation

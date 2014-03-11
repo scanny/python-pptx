@@ -64,6 +64,13 @@ class Presentation(object):
         return self._presentation.slidemasters[0]
 
     @property
+    def slide_masters(self):
+        """
+        List of |SlideMaster| objects belonging to this presentation.
+        """
+        return self._presentation.slide_masters
+
+    @property
     def slidemasters(self):
         """
         List of |SlideMaster| objects belonging to this presentation.

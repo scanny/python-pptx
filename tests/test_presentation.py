@@ -11,7 +11,7 @@ from pptx.oxml.presentation import CT_Presentation, CT_SlideIdList
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import PartCollection
 from pptx.parts.slides import SlideCollection
-from pptx.presentation import Package, Presentation
+from pptx.presentation import Package, Presentation, _SlideMasters
 
 from .unitutil import absjoin, class_mock, instance_mock, test_file_dir
 
@@ -70,6 +70,11 @@ class DescribePackage(object):
 
 class DescribePresentation(object):
 
+    def it_provides_access_to_its_slide_masters(self, masters_fixture):
+        presentation = masters_fixture
+        slide_masters = presentation.slide_masters
+        assert isinstance(slide_masters, _SlideMasters)
+
     def it_provides_access_to_the_slide_masters(self, prs):
         assert isinstance(prs.slidemasters, PartCollection)
 
@@ -88,6 +93,13 @@ class DescribePresentation(object):
         assert slides_2 is slides_1
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def masters_fixture(self):
+        presentation = Presentation(None, None, None, None)
+        return presentation
+
+    # fixture components -----------------------------------
 
     @pytest.fixture
     def ct_presentation_(self, request, sldIdLst_):
