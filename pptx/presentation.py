@@ -99,6 +99,14 @@ class Presentation(Part):
         presentation = cls(partname, content_type, presentation_elm, package)
         return presentation
 
+    @property
+    def sldMasterIdLst(self):
+        """
+        The ``<p:sldMasterIdLst>`` child element specifying the slide masters
+        of this presentation in the XML.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def slide_masters(self):
         """
@@ -139,3 +147,18 @@ class _SlideMasters(object):
     def __init__(self, presentation):
         super(_SlideMasters, self).__init__()
         self._presentation = presentation
+
+    def __len__(self):
+        """
+        Support len() built-in function (e.g. 'len(slide_masters) == 4').
+        """
+        return len(self._sldMasterIdLst)
+
+    @property
+    def _sldMasterIdLst(self):
+        """
+        The ``<p:sldMasterIdLst>`` element specifying the slide masters in
+        this collection. This element is a child of the ``<p:presentation>``
+        element, the root element of a presentation part.
+        """
+        return self._presentation.sldMasterIdLst

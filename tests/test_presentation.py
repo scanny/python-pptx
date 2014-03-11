@@ -128,3 +128,26 @@ class DescribePresentation(object):
     @pytest.fixture
     def slides_(self, request):
         return instance_mock(request, SlideCollection)
+
+
+class DescribeSlideMasters(object):
+
+    def it_knows_how_many_masters_it_contains(self, len_fixture):
+        slide_masters, expected_count = len_fixture
+        slide_master_count = len(slide_masters)
+        assert slide_master_count == expected_count
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def len_fixture(self, presentation_):
+        slide_masters = _SlideMasters(presentation_)
+        presentation_.sldMasterIdLst = [1, 2]
+        expected_count = 2
+        return slide_masters, expected_count
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def presentation_(self, request):
+        return instance_mock(request, Presentation)
