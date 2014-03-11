@@ -6,34 +6,8 @@ lxml custom element classes for slide master-related XML elements.
 
 from __future__ import absolute_import
 
-from lxml import objectify
-
-from pptx.oxml.core import Element
+from pptx.oxml.core import BaseOxmlElement, Element
 from pptx.oxml.ns import qn
-
-
-class BaseOxmlElement(objectify.ObjectifiedElement):
-    """
-    Provides common behavior for oxml element classes
-    """
-    def first_child_found_in(self, *tagnames):
-        """
-        Return the first child found with tag in *tagnames*, or None if
-        not found.
-        """
-        for tagname in tagnames:
-            child = self.find(qn(tagname))
-            if child is not None:
-                return child
-        return None
-
-    def insert_element_before(self, elm, *tagnames):
-        successor = self.first_child_found_in(*tagnames)
-        if successor is not None:
-            successor.addprevious(elm)
-        else:
-            self.append(elm)
-        return elm
 
 
 class CT_SlideLayoutIdList(BaseOxmlElement):

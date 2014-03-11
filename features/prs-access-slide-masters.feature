@@ -3,7 +3,6 @@ Feature: Access slide masters of a presentation
   As a developer using python-pptx
   I need access to the slide master collection of a presentation
 
-  @wip
   Scenario: Access slide master collection
      Given a presentation having two slide masters
       Then I can access the slide master collection of the presentation

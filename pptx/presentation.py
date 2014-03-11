@@ -105,7 +105,7 @@ class Presentation(Part):
         The ``<p:sldMasterIdLst>`` child element specifying the slide masters
         of this presentation in the XML.
         """
-        raise NotImplementedError
+        return self._element.get_or_add_sldMasterIdLst()
 
     @lazyproperty
     def slide_masters(self):

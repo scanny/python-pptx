@@ -7,12 +7,16 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.opc.packuri import PackURI
-from pptx.oxml.presentation import CT_Presentation, CT_SlideIdList
+from pptx.oxml.presentation import (
+    CT_Presentation, CT_SlideIdList, CT_SlideMasterIdList
+)
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.part import PartCollection
 from pptx.parts.slides import SlideCollection
 from pptx.presentation import Package, Presentation, _SlideMasters
 
+
+from .oxml.unitdata.presentation import a_presentation, a_sldMasterIdLst
 from .unitutil import absjoin, class_mock, instance_mock, test_file_dir
 
 
@@ -75,6 +79,10 @@ class DescribePresentation(object):
         slide_masters = presentation.slide_masters
         assert isinstance(slide_masters, _SlideMasters)
 
+    def it_provides_access_to_its_sldMasterIdLst(self, presentation):
+        sldMasterIdLst = presentation.sldMasterIdLst
+        assert isinstance(sldMasterIdLst, CT_SlideMasterIdList)
+
     def it_provides_access_to_the_slide_masters(self, prs):
         assert isinstance(prs.slidemasters, PartCollection)
 
@@ -106,6 +114,18 @@ class DescribePresentation(object):
         ct_presentation_ = instance_mock(request, CT_Presentation)
         ct_presentation_.get_or_add_sldIdLst.return_value = sldIdLst_
         return ct_presentation_
+
+    @pytest.fixture
+    def presentation(self, presentation_elm):
+        return Presentation(None, None, presentation_elm, None)
+
+    @pytest.fixture(params=[True, False])
+    def presentation_elm(self, request):
+        has_sldMasterIdLst = request.param
+        presentation_bldr = a_presentation().with_nsdecls()
+        if has_sldMasterIdLst:
+            presentation_bldr.with_child(a_sldMasterIdLst())
+        return presentation_bldr.element
 
     @pytest.fixture
     def prs(self, ct_presentation_):

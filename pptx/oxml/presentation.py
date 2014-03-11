@@ -6,13 +6,11 @@ Custom element classes for presentation-related XML elements.
 
 from __future__ import absolute_import
 
-from lxml import objectify
-
-from pptx.oxml.core import child, Element, SubElement
+from pptx.oxml.core import BaseOxmlElement, child, Element, SubElement
 from pptx.oxml.ns import qn
 
 
-class CT_Presentation(objectify.ObjectifiedElement):
+class CT_Presentation(BaseOxmlElement):
     """
     ``<p:presentation>`` element, root of the Presentation part stored as
     ``/ppt/presentation.xml``.
@@ -26,6 +24,23 @@ class CT_Presentation(objectify.ObjectifiedElement):
         if sldIdLst is None:
             sldIdLst = self._add_sldIdLst()
         return sldIdLst
+
+    def get_or_add_sldMasterIdLst(self):
+        """
+        Return the sldMasterIdLst child element, newly added if not present.
+        """
+        sldMasterIdLst = self.sldMasterIdLst
+        if sldMasterIdLst is None:
+            sldMasterIdLst = self._add_sldMasterIdLst()
+        return sldMasterIdLst
+
+    @property
+    def sldMasterIdLst(self):
+        """
+        The first ``<p:sldMasterIdLst>`` child element, or |None| if not
+        present.
+        """
+        return self.find(qn('p:sldMasterIdLst'))
 
     def _add_sldIdLst(self):
         """
@@ -41,8 +56,17 @@ class CT_Presentation(objectify.ObjectifiedElement):
             notesSz.addprevious(sldIdLst)
         return sldIdLst
 
+    def _add_sldMasterIdLst(self):
+        """
+        Return a newly added sldMasterIdLst child element. Assumes one is not
+        present.
+        """
+        sldMasterIdLst = CT_SlideMasterIdList.new()
+        self.insert(0, sldMasterIdLst)
+        return sldMasterIdLst
 
-class CT_SlideId(objectify.ObjectifiedElement):
+
+class CT_SlideId(BaseOxmlElement):
     """
     ``<p:sldId>`` element, direct child of <p:sldIdLst> that contains an rId
     reference to a slide in the presentation.
@@ -52,7 +76,7 @@ class CT_SlideId(objectify.ObjectifiedElement):
         return self.get(qn('r:id'))
 
 
-class CT_SlideIdList(objectify.ObjectifiedElement):
+class CT_SlideIdList(BaseOxmlElement):
     """
     ``<p:sldIdLst>`` element, direct child of <p:presentation> that contains
     a list of the slide parts in the presentation.
@@ -81,3 +105,23 @@ class CT_SlideIdList(objectify.ObjectifiedElement):
     @property
     def _next_id(self):
         return str(256 + len(self))
+
+
+class CT_SlideMasterIdList(BaseOxmlElement):
+    """
+    ``<p:sldMasterIdLst>`` element, child of ``<p:presentation>`` containing
+    references to the slide masters that belong to the presentation.
+    """
+    def __len__(self):
+        """
+        Return the number of ``<p:sldMasterId>`` child elements
+        """
+        sldMasterId_lst = self.findall(qn('p:sldMasterId'))
+        return len(sldMasterId_lst)
+
+    @classmethod
+    def new(cls):
+        """
+        Return a new ``<p:sldMasterIdLst>`` element.
+        """
+        return Element('p:sldMasterIdLst')
