@@ -1,6 +1,8 @@
 # encoding: utf-8
 
-"""Test suite for pptx.shapes module."""
+"""
+Test suite for pptx.shapes module
+"""
 
 from __future__ import absolute_import
 

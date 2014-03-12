@@ -20,6 +20,17 @@ from pptx.spec import PH_ORIENT_VERT, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
 _nsmap = namespaces('a', 'r', 'p')
 
 
+class ShapeTree(object):
+    """
+    Sequence of shapes appearing on a slide. The first shape in the
+    sequence is the backmost in z-order and the last shape is topmost.
+    Supports indexed access, len(), index(), and iteration.
+    """
+    def __init__(self, slide):
+        super(ShapeTree, self).__init__()
+        self._slide = slide
+
+
 class ShapeCollection(BaseShape):
     """
     The sequence of shapes that appears on a slide. The first shape in the

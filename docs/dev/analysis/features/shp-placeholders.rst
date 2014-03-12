@@ -2,15 +2,24 @@
 Placeholders
 ============
 
-A *placeholder* is a shape that specifies the position and possibly other
-properties of the shape but has no actual content. From a user perspective,
-... Placeholder shapes are inherited from a master ... A placeholder retains
-its placeholder status when it is populated with content. If that content is
-removed (in the PowerPoint application), the placeholder re-assumes its
-original role and behaviors.
+A *placeholder* acts as a pre-formatted container into which content can be
+inserted.
+
+* is part of a property inheritance hierarchy Master -> Layout -> Slide
+
+A slide placeholder may be either [native] (an `<p:sp>` autoshape element) or
+an object, e.g. a `<p:pic>` or other element. In either case, its
+relationship to its layout placeholder is preserved.
+
+... is a shape that specifies the position and possibly other properties of
+the shape but has no actual content. A placeholder retains its placeholder
+status when it is populated with content. If that content is removed (in the
+PowerPoint application), the placeholder re-assumes its original role and
+behaviors.
 
 
 What form should a placeholder take?
+------------------------------------
 
 * decorator pattern
 * subclass of Shape
@@ -45,8 +54,26 @@ possible properties, will want a generalized way to access those.
 properties.
 
 
+Lifecycle
+---------
+
+#. Master placeholder
+#. Layout placeholder, may inherit from a master placeholder
+#. Slide placeholder, cloned from a layout placeholder, initially having no
+   direct properties and inheriting all properties from its layout
+   placeholder. Directly applied properties override inherited properties.
+#. Substituted placeholder. Non-textual shapes replace the placeholder shape
+   when they are "inserted" into the placeholder. However, the new shape
+   retains its placeholder inheritance behaviors, it's link to the original
+   layout placeholder, and certain other placeholder-only properties allowing
+   the original slide placeholder to be restored if the inserted object is
+   deleted.
+
+
 Implementation notions
 ----------------------
+
+Toward SlideMaster.placeholders -> MasterPlaceholders instance
 
 * [ ] Develop ShapeTree to replace ShapeCollection
 
