@@ -25,7 +25,12 @@ to be constructed directly.
 from ``slides.add_slide()``.
 
 .. autoclass:: Slide
-   :members: name, slidelayout, shapes
+   :members:
+   :exclude-members:
+      after_unmarshal, before_marshal, blob, content_type, drop_rel, load,
+      load_rel, new, package, part, part_related_by, relate_to,
+      related_parts, rels, target_ref
+   :inherited-members:
    :undoc-members:
 
 

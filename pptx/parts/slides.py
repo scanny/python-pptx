@@ -6,6 +6,8 @@ Slide objects, including Slide and SlideMaster.
 
 from __future__ import absolute_import
 
+from warnings import warn
+
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
@@ -86,11 +88,23 @@ class Slide(BaseSlide):
         return slide
 
     @property
-    def slidelayout(self):
+    def slide_layout(self):
         """
         |SlideLayout| object this slide inherits appearance from.
         """
         return self.part_related_by(RT.SLIDE_LAYOUT)
+
+    @property
+    def slidelayout(self):
+        """
+        Deprecated. Use ``.slide_layout`` property instead.
+        """
+        msg = (
+            'Slide.slidelayout property is deprecated. Use .slide_layout '
+            'instead.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+        return self.slide_layout
 
     @staticmethod
     def _minimal_element():
@@ -186,8 +200,20 @@ class SlideLayout(BaseSlide):
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
     @property
-    def slidemaster(self):
+    def slide_master(self):
         """
         Slide master from which this slide layout inherits properties.
         """
         return self.part_related_by(RT.SLIDE_MASTER)
+
+    @property
+    def slidemaster(self):
+        """
+        Deprecated. Use ``.slide_master`` property instead.
+        """
+        msg = (
+            'SlideLayout.slidemaster property is deprecated. Use .slide_mast'
+            'er instead.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+        return self.slide_master
