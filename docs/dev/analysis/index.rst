@@ -15,6 +15,7 @@ Feature Analysis
    features/txt-font-typeface
    features/hyperlink
    features/mst-slide-master
+   features/mst-slide-layout
    features/shp-fill
    features/shp-group-shape
    features/shp-placeholders

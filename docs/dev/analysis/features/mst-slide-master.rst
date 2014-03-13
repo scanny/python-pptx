@@ -13,6 +13,8 @@ Schema excerpt
 
 ::
 
+  <xsd:element name="sldMaster" type="CT_SlideMaster"/>
+
   <xsd:complexType name="CT_SlideMaster">
     <xsd:sequence>
       <xsd:element name="cSld" type="CT_CommonSlideData"/>

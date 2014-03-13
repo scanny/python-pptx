@@ -148,6 +148,8 @@ rst_epilog = """
 
 .. |ShapeCollection| replace:: :class:`.ShapeCollection`
 
+.. |ShapeTree| replace:: :class:`.ShapeTree`
+
 .. |Slide| replace:: :class:`Slide`
 
 .. |SlideCollection| replace:: :class:`.SlideCollection`
