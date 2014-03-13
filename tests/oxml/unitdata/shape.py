@@ -25,6 +25,24 @@ class CT_GeomGuideListBuilder(BaseBuilder):
     __attrs__ = ()
 
 
+class CT_GraphicalObjectBuilder(BaseBuilder):
+    __tag__ = 'a:graphic'
+    __nspfxs__ = ('a',)
+    __attrs__ = ()
+
+
+class CT_GraphicalObjectDataBuilder(BaseBuilder):
+    __tag__ = 'a:graphicData'
+    __nspfxs__ = ('a',)
+    __attrs__ = ('uri',)
+
+
+class CT_GraphicalObjectFrameBuilder(BaseBuilder):
+    __tag__ = 'p:graphicFrame'
+    __nspfxs__ = ('p', 'a')
+    __attrs__ = ('bwMode',)
+
+
 class CT_GroupShapeBuilder(BaseBuilder):
     __nspfxs__ = ('p',)
     __attrs__ = ()
@@ -78,6 +96,22 @@ class CT_Transform2DBuilder(BaseBuilder):
 
 def a_gd():
     return CT_GeomGuideBuilder()
+
+
+def a_graphic():
+    return CT_GraphicalObjectBuilder()
+
+
+def a_graphicData():
+    return CT_GraphicalObjectDataBuilder()
+
+
+def a_graphicFrame():
+    return CT_GraphicalObjectFrameBuilder()
+
+
+def a_grpSp():
+    return CT_GroupShapeBuilder('p:grpSp')
 
 
 def a_pic():

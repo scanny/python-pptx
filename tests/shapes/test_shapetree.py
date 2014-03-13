@@ -10,12 +10,111 @@ import pytest
 
 from pptx.oxml.autoshape import CT_Shape
 from pptx.parts.slides import Slide
+from pptx.shapes.autoshape import Shape
 from pptx.shapes.shape import BaseShape
-from pptx.shapes.shapetree import ShapeTree
+from pptx.shapes.picture import Picture
+from pptx.shapes.table import Table
+from pptx.shapes.shapetree import ShapeFactory, ShapeTree
 
-from ..oxml.unitdata.shape import an_sp, an_spPr, an_spTree
+from ..oxml.unitdata.shape import (
+    a_graphic, a_graphicData, a_graphicFrame, a_grpSp, a_pic, an_sp, an_spPr,
+    an_spTree
+)
 from ..oxml.unitdata.slides import a_sld, a_cSld
-from ..unitutil import call, function_mock, instance_mock, method_mock
+from ..unitutil import (
+    call, class_mock, function_mock, instance_mock, method_mock
+)
+
+
+class DescribeShapeFactory(object):
+
+    def it_constructs_the_appropriate_shape_instance_for_a_shape_element(
+            self, factory_fixture):
+        shape_elm, parent_, ShapeClass_, shape_ = factory_fixture
+        shape = ShapeFactory(shape_elm, parent_)
+        ShapeClass_.assert_called_once_with(shape_elm, parent_)
+        assert shape is shape_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=['sp', 'pic', 'tbl', 'chart', 'grpSp'])
+    def factory_fixture(
+            self, request, slide_, Shape_, shape_, Picture_, picture_,
+            tbl_bldr, Table_, table_, chart_bldr, BaseShape_, base_shape_):
+        shape_bldr, ShapeClass_, shape_mock = {
+            'sp':    (an_sp(),    Shape_,     shape_),
+            'pic':   (a_pic(),    Picture_,   picture_),
+            'tbl':   (tbl_bldr,   Table_,     table_),
+            'chart': (chart_bldr, BaseShape_, base_shape_),
+            'grpSp': (a_grpSp(),  BaseShape_, base_shape_),
+        }[request.param]
+        shape_elm = shape_bldr.with_nsdecls().element
+        return shape_elm, slide_, ShapeClass_, shape_mock
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def BaseShape_(self, request, base_shape_):
+        return class_mock(
+            request, 'pptx.shapes.shapetree.BaseShape',
+            return_value=base_shape_
+        )
+
+    @pytest.fixture
+    def base_shape_(self, request):
+        return instance_mock(request, BaseShape)
+
+    @pytest.fixture
+    def chart_bldr(self):
+        chart_uri = 'http://schemas.openxmlformats.org/drawingml/2006/chart'
+        return (
+            a_graphicFrame().with_child(
+                a_graphic().with_child(
+                    a_graphicData().with_uri(chart_uri)))
+        )
+
+    @pytest.fixture
+    def Picture_(self, request, picture_):
+        return class_mock(
+            request, 'pptx.shapes.shapetree.Picture', return_value=picture_
+        )
+
+    @pytest.fixture
+    def picture_(self, request):
+        return instance_mock(request, Picture)
+
+    @pytest.fixture
+    def Shape_(self, request, shape_):
+        return class_mock(
+            request, 'pptx.shapes.shapetree.Shape', return_value=shape_
+        )
+
+    @pytest.fixture
+    def shape_(self, request):
+        return instance_mock(request, Shape)
+
+    @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, Slide)
+
+    @pytest.fixture
+    def Table_(self, request, table_):
+        return class_mock(
+            request, 'pptx.shapes.shapetree.Table', return_value=table_
+        )
+
+    @pytest.fixture
+    def table_(self, request):
+        return instance_mock(request, Table)
+
+    @pytest.fixture
+    def tbl_bldr(self):
+        tbl_uri = 'http://schemas.openxmlformats.org/drawingml/2006/table'
+        return (
+            a_graphicFrame().with_child(
+                a_graphic().with_child(
+                    a_graphicData().with_uri(tbl_uri)))
+        )
 
 
 class DescribeShapeTree(object):

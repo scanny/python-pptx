@@ -24,7 +24,15 @@ def ShapeFactory(shape_elm, parent):
     """
     Return an instance of the appropriate shape proxy class for *shape_elm*.
     """
-    raise NotImplementedError
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp'):
+        return Shape(shape_elm, parent)
+    if tag_name == qn('p:pic'):
+        return Picture(shape_elm, parent)
+    if tag_name == qn('p:graphicFrame'):
+        if shape_elm.has_table:
+            return Table(shape_elm, parent)
+    return BaseShape(shape_elm, parent)
 
 
 class ShapeTree(object):
