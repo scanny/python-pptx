@@ -18,6 +18,11 @@ from ..oxml.unitdata.slides import a_sld, a_cSld
 
 class DescribeShapeTree(object):
 
+    def it_knows_how_many_shapes_it_contains(self, len_fixture):
+        shapes, expected_count = len_fixture
+        shape_count = len(shapes)
+        assert shape_count == expected_count
+
     def it_iterates_over_spTree_shape_elements_to_help__iter__(
             self, iter_elms_fixture):
         shapes, expected_elm_count = iter_elms_fixture
@@ -33,6 +38,12 @@ class DescribeShapeTree(object):
         shapes = ShapeTree(slide)
         expected_elm_count = 2
         return shapes, expected_elm_count
+
+    @pytest.fixture
+    def len_fixture(self, slide):
+        shapes = ShapeTree(slide)
+        expected_count = 2
+        return shapes, expected_count
 
     # fixture components -----------------------------------
 

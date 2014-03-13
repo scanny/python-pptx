@@ -30,6 +30,15 @@ class ShapeTree(object):
         super(ShapeTree, self).__init__()
         self._slide = slide
 
+    def __len__(self):
+        """
+        Return count of shapes in this shape tree. A group shape contributes
+        1 to the total, without regard to the number of shapes contained in
+        the group.
+        """
+        shape_elms = list(self._iter_shape_elms())
+        return len(shape_elms)
+
     def _iter_shape_elms(self):
         """
         Generate each child of the ``<p:spTree>`` element that corresponds to

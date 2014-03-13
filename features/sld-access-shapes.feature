@@ -3,7 +3,6 @@ Feature: Access shapes on a slide
   As a developer using python-pptx
   I need a shape collection to provide access to shapes on a slide
 
-  @wip
   Scenario: Access shape collection
      Given a slide having two shapes
       Then I can access the shape collection of the slide
