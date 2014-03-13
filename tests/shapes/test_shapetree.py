@@ -141,7 +141,25 @@ class DescribeShapeTree(object):
         for elm in shape_elms:
             assert isinstance(elm, CT_Shape)
 
+    def it_supports_indexed_access(self, getitem_fixture):
+        shapes, idx, ShapeFactory_, shape_elm_, shape_ = getitem_fixture
+        shape = shapes[idx]
+        ShapeFactory_.assert_called_once_with(shape_elm_, shapes)
+        assert shape is shape_
+
+    def it_raises_on_shape_index_out_of_range(self, getitem_fixture):
+        shapes = getitem_fixture[0]
+        with pytest.raises(IndexError):
+            shapes[2]
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def getitem_fixture(
+            self, _iter_shape_elms_, ShapeFactory_, sp_2_, shape_):
+        shapes = ShapeTree(None)
+        idx = 1
+        return shapes, idx, ShapeFactory_, sp_2_, shape_
 
     @pytest.fixture
     def iter_fixture(

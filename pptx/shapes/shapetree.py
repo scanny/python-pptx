@@ -6,7 +6,7 @@ The shape tree, the structure that holds a slide's shapes.
 
 from pptx.oxml.autoshape import CT_Shape
 from pptx.oxml.graphfrm import CT_GraphicalObjectFrame
-from pptx.oxml.ns import namespaces, qn
+from pptx.oxml.ns import _nsmap, qn
 from pptx.oxml.picture import CT_Picture
 from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.picture import Picture
@@ -15,9 +15,6 @@ from pptx.shapes.shape import BaseShape
 from pptx.shapes.table import Table
 from pptx.spec import slide_ph_basenames
 from pptx.spec import PH_ORIENT_VERT, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
-
-# default namespace map for use in lxml calls
-_nsmap = namespaces('a', 'r', 'p')
 
 
 def ShapeFactory(shape_elm, parent):
@@ -44,6 +41,17 @@ class ShapeTree(object):
     def __init__(self, slide):
         super(ShapeTree, self).__init__()
         self._slide = slide
+
+    def __getitem__(self, idx):
+        """
+        Return shape at *idx* in sequence, e.g. ``shapes[2]``.
+        """
+        shape_elms = list(self._iter_shape_elms())
+        try:
+            shape_elm = shape_elms[idx]
+        except IndexError:
+            raise IndexError('shape index out of range')
+        return ShapeFactory(shape_elm, self)
 
     def __iter__(self):
         """
