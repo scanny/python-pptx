@@ -25,6 +25,15 @@ class CT_GeomGuideListBuilder(BaseBuilder):
     __attrs__ = ()
 
 
+class CT_GroupShapeBuilder(BaseBuilder):
+    __nspfxs__ = ('p',)
+    __attrs__ = ()
+
+    def __init__(self, tag):
+        self.__tag__ = tag
+        super(CT_GroupShapeBuilder, self).__init__()
+
+
 class CT_PictureBuilder(BaseBuilder):
     __tag__ = 'p:pic'
     __nspfxs__ = ('p', 'a')
@@ -97,6 +106,10 @@ def an_sp():
 
 def an_spPr():
     return CT_ShapePropertiesBuilder()
+
+
+def an_spTree():
+    return CT_GroupShapeBuilder('p:spTree')
 
 
 def an_xfrm():

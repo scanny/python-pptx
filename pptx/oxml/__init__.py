@@ -91,6 +91,10 @@ register_custom_element_class('p:sldMasterId',    CT_SlideMasterIdListEntry)
 register_custom_element_class('p:sldMasterIdLst', CT_SlideMasterIdList)
 
 
+from pptx.oxml.shapetree import CT_GroupShape
+register_custom_element_class('p:spTree',  CT_GroupShape)
+
+
 from pptx.oxml.slidemaster import (
     CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry, CT_SlideMaster
 )

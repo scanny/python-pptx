@@ -17,11 +17,14 @@ from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part, _Relationship
 from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
+from pptx.oxml.shapetree import CT_GroupShape
 from pptx.parts.slidemaster import SlideMaster
 from pptx.parts.slides import BaseSlide, Slide, SlideCollection, SlideLayout
 from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import ShapeCollection
 
+from ..oxml.unitdata.shape import an_spTree
+from ..oxml.unitdata.slides import a_sld, a_cSld
 from ..unitutil import (
     absjoin, class_mock, instance_mock, loose_mock, method_mock,
     parse_xml_file, serialize_xml, test_file_dir
@@ -53,6 +56,11 @@ def _sldLayout1_shapes():
 
 
 class DescribeBaseSlide(object):
+
+    def it_provides_access_to_its_spTree_element_to_help_ShapeTree(
+            self, slide):
+        spTree = slide.spTree
+        assert isinstance(spTree, CT_GroupShape)
 
     def it_knows_the_name_of_the_slide(self, base_slide):
         # setup ------------------------
@@ -96,11 +104,6 @@ class DescribeBaseSlide(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def base_slide(self):
-        partname = PackURI('/foo/bar.xml')
-        return BaseSlide(partname, None, None, None)
-
-    @pytest.fixture
     def base_slide_fixture(self, request, base_slide):
         # mock BaseSlide._package._images.add_image() train wreck
         img_file_ = loose_mock(request, name='img_file_')
@@ -112,6 +115,26 @@ class DescribeBaseSlide(object):
         rId_ = loose_mock(request, name='rId_')
         method_mock(request, BaseSlide, 'relate_to', return_value=rId_)
         return base_slide, img_file_, image_, rId_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def base_slide(self):
+        partname = PackURI('/foo/bar.xml')
+        return BaseSlide(partname, None, None, None)
+
+    @pytest.fixture
+    def sld(self):
+        sld_bldr = (
+            a_sld().with_nsdecls().with_child(
+                a_cSld().with_child(
+                    an_spTree()))
+        )
+        return sld_bldr.element
+
+    @pytest.fixture
+    def slide(self, sld):
+        return BaseSlide(None, None, sld, None)
 
 
 class DescribeSlide(object):

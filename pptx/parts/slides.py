@@ -13,7 +13,7 @@ from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, SubElement
-from pptx.oxml.ns import nsmap
+from pptx.oxml.ns import nsmap, _nsmap
 from pptx.shapes.shapetree import ShapeCollection, ShapeTree
 from pptx.util import lazyproperty
 
@@ -66,6 +66,16 @@ class BaseSlide(Part):
         appearing on this slide.
         """
         return ShapeTree(self)
+
+    @property
+    def spTree(self):
+        """
+        Reference to ``<p:spTree>`` element for this slide
+        """
+        spTree_lst = self._element.xpath(
+            './p:cSld/p:spTree', namespaces=_nsmap
+        )
+        return spTree_lst[0]
 
     def _add_image(self, img_file):
         """
