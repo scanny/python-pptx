@@ -6,6 +6,57 @@ Test suite for pptx.shapes module
 
 from __future__ import absolute_import
 
+import pytest
+
+from pptx.oxml.autoshape import CT_Shape
+from pptx.parts.slides import Slide
+from pptx.shapes.shapetree import ShapeTree
+
+from ..oxml.unitdata.shape import an_sp, an_spPr, an_spTree
+from ..oxml.unitdata.slides import a_sld, a_cSld
+
+
+class DescribeShapeTree(object):
+
+    def it_iterates_over_spTree_shape_elements_to_help__iter__(
+            self, iter_elms_fixture):
+        shapes, expected_elm_count = iter_elms_fixture
+        shape_elms = [elm for elm in shapes._iter_shape_elms()]
+        assert len(shape_elms) == expected_elm_count
+        for elm in shape_elms:
+            assert isinstance(elm, CT_Shape)
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def iter_elms_fixture(self, slide):
+        shapes = ShapeTree(slide)
+        expected_elm_count = 2
+        return shapes, expected_elm_count
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def sld(self):
+        sld_bldr = (
+            a_sld().with_nsdecls().with_child(
+                a_cSld().with_child(
+                    an_spTree().with_child(
+                        an_spPr()).with_child(
+                        an_sp()).with_child(
+                        an_sp())))
+        )
+        return sld_bldr.element
+
+    @pytest.fixture
+    def slide(self, sld):
+        return Slide(None, None, sld, None)
+
+
+# --------------------------------------------------------------------
+# Legacy tests -------------------------------------------------------
+# --------------------------------------------------------------------
+
 import os
 
 from hamcrest import assert_that, equal_to, is_

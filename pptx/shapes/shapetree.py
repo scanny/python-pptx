@@ -30,6 +30,20 @@ class ShapeTree(object):
         super(ShapeTree, self).__init__()
         self._slide = slide
 
+    def _iter_shape_elms(self):
+        """
+        Generate each child of the ``<p:spTree>`` element that corresponds to
+        a shape, in the sequence they appear in the XML.
+        """
+        shape_tags = (
+            qn('p:sp'), qn('p:grpSp'), qn('p:graphicFrame'), qn('p:cxnSp'),
+            qn('p:pic'), qn('p:contentPart')
+        )
+        spTree = self._slide.spTree
+        for elm in spTree.iterchildren():
+            if elm.tag in shape_tags:
+                yield elm
+
 
 class ShapeCollection(BaseShape):
     """
