@@ -10,10 +10,12 @@ import pytest
 
 from pptx.oxml.autoshape import CT_Shape
 from pptx.parts.slides import Slide
+from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeTree
 
 from ..oxml.unitdata.shape import an_sp, an_spPr, an_spTree
 from ..oxml.unitdata.slides import a_sld, a_cSld
+from ..unitutil import call, function_mock, instance_mock, method_mock
 
 
 class DescribeShapeTree(object):
@@ -22,6 +24,15 @@ class DescribeShapeTree(object):
         shapes, expected_count = len_fixture
         shape_count = len(shapes)
         assert shape_count == expected_count
+
+    def it_can_iterate_over_the_shapes_it_contains(self, iter_fixture):
+        shapes, ShapeFactory_, sp_, sp_2_, shape_, shape_2_ = iter_fixture
+        iter_vals = [s for s in shapes]
+        assert ShapeFactory_.call_args_list == [
+            call(sp_, shapes),
+            call(sp_2_, shapes)
+        ]
+        assert iter_vals == [shape_, shape_2_]
 
     def it_iterates_over_spTree_shape_elements_to_help__iter__(
             self, iter_elms_fixture):
@@ -32,6 +43,13 @@ class DescribeShapeTree(object):
             assert isinstance(elm, CT_Shape)
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def iter_fixture(
+            self, _iter_shape_elms_, ShapeFactory_, sp_, sp_2_,
+            shape_, shape_2_):
+        shapes = ShapeTree(None)
+        return shapes, ShapeFactory_, sp_, sp_2_, shape_, shape_2_
 
     @pytest.fixture
     def iter_elms_fixture(self, slide):
@@ -48,6 +66,28 @@ class DescribeShapeTree(object):
     # fixture components -----------------------------------
 
     @pytest.fixture
+    def _iter_shape_elms_(self, request, sp_, sp_2_):
+        return method_mock(
+            request, ShapeTree, '_iter_shape_elms',
+            return_value=iter([sp_, sp_2_])
+        )
+
+    @pytest.fixture
+    def ShapeFactory_(self, request, shape_, shape_2_):
+        return function_mock(
+            request, 'pptx.shapes.shapetree.ShapeFactory',
+            side_effect=[shape_, shape_2_]
+        )
+
+    @pytest.fixture
+    def shape_(self, request):
+        return instance_mock(request, BaseShape)
+
+    @pytest.fixture
+    def shape_2_(self, request):
+        return instance_mock(request, BaseShape)
+
+    @pytest.fixture
     def sld(self):
         sld_bldr = (
             a_sld().with_nsdecls().with_child(
@@ -62,6 +102,14 @@ class DescribeShapeTree(object):
     @pytest.fixture
     def slide(self, sld):
         return Slide(None, None, sld, None)
+
+    @pytest.fixture
+    def sp_(self, request):
+        return instance_mock(request, CT_Shape)
+
+    @pytest.fixture
+    def sp_2_(self, request):
+        return instance_mock(request, CT_Shape)
 
 
 # --------------------------------------------------------------------

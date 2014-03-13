@@ -20,6 +20,13 @@ from pptx.spec import PH_ORIENT_VERT, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
 _nsmap = namespaces('a', 'r', 'p')
 
 
+def ShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*.
+    """
+    raise NotImplementedError
+
+
 class ShapeTree(object):
     """
     Sequence of shapes appearing on a slide. The first shape in the
@@ -29,6 +36,13 @@ class ShapeTree(object):
     def __init__(self, slide):
         super(ShapeTree, self).__init__()
         self._slide = slide
+
+    def __iter__(self):
+        """
+        Generate a reference to each shape in the collection, in sequence.
+        """
+        for shape_elm in self._iter_shape_elms():
+            yield ShapeFactory(shape_elm, self)
 
     def __len__(self):
         """

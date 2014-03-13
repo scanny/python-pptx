@@ -6,6 +6,7 @@ import os
 import unittest2
 
 from lxml import etree, objectify
+from mock import call  # noqa
 from mock import create_autospec, Mock, patch, PropertyMock
 
 from pptx.oxml import oxml_parser
@@ -156,12 +157,12 @@ def cls_attr_mock(request, cls, attr_name, name=None, **kwargs):
     return _patch.start()
 
 
-def function_mock(request, q_function_name):
+def function_mock(request, q_function_name, **kwargs):
     """
     Return a mock patching the function with qualified name
     *q_function_name*. Patch is reversed after calling test returns.
     """
-    _patch = patch(q_function_name)
+    _patch = patch(q_function_name, **kwargs)
     request.addfinalizer(_patch.stop)
     return _patch.start()
 
