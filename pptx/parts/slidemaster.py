@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 
 from warnings import warn
 
-from pptx.parts.slides import BaseSlide
+from pptx.parts.slide import BaseSlide
 from pptx.util import lazyproperty
 
 

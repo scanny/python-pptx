@@ -16,7 +16,7 @@ from pptx.opc.package import OpcPackage, Part
 from pptx.oxml import parse_xml_bytes
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import ImageCollection
-from pptx.parts.slides import SlideCollection
+from pptx.parts.slide import SlideCollection
 from pptx.util import lazyproperty
 
 

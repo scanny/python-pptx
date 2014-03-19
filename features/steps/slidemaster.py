@@ -9,8 +9,8 @@ from __future__ import absolute_import
 from behave import given, then
 
 from pptx import Presentation
+from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import _SlideLayouts
-from pptx.parts.slides import SlideLayout
 
 from .helpers import test_pptx
 

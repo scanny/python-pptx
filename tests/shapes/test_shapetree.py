@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import pytest
 
 from pptx.oxml.autoshape import CT_Shape
-from pptx.parts.slides import Slide
+from pptx.parts.slide import Slide
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.picture import Picture
@@ -240,7 +240,7 @@ from mock import Mock, patch, PropertyMock
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.oxml.ns import namespaces, nsdecls
-from pptx.parts.slides import SlideLayout
+from pptx.parts.slidelayout import SlideLayout
 from pptx.shapes.shapetree import Placeholder, ShapeCollection
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,

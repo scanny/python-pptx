@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Test suite for pptx.parts.slides module
+Test suite for pptx.parts.slide module
 """
 
 from __future__ import absolute_import
@@ -18,8 +18,9 @@ from pptx.opc.package import Part, _Relationship
 from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
 from pptx.oxml.shapetree import CT_GroupShape
+from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
-from pptx.parts.slides import BaseSlide, Slide, SlideCollection, SlideLayout
+from pptx.parts.slide import BaseSlide, Slide, SlideCollection
 from pptx.presentation import Package, Presentation
 from pptx.shapes.shapetree import ShapeCollection
 
@@ -324,7 +325,7 @@ class DescribeSlideCollection(object):
 
     @pytest.fixture
     def Slide_(self, request, slide_):
-        Slide_ = class_mock(request, 'pptx.parts.slides.Slide')
+        Slide_ = class_mock(request, 'pptx.parts.slide.Slide')
         Slide_.new.return_value = slide_
         return Slide_
 

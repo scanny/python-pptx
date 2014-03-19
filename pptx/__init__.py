@@ -14,14 +14,14 @@ del sys
 
 from pptx.api import Presentation  # noqa
 
-from pptx.parts.coreprops import CoreProperties
-from pptx.parts.image import Image
-from pptx.parts.slidemaster import SlideMaster
-from pptx.parts.slides import Slide, SlideLayout
-from pptx.presentation import Presentation as _Presentation
-
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import PartFactory
+from pptx.parts.coreprops import CoreProperties
+from pptx.parts.image import Image
+from pptx.parts.slide import Slide
+from pptx.parts.slidelayout import SlideLayout
+from pptx.parts.slidemaster import SlideMaster
+from pptx.presentation import Presentation as _Presentation
 
 content_type_to_part_class_map = {
     CT.PML_PRESENTATION_MAIN: _Presentation,

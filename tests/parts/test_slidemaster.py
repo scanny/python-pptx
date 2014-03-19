@@ -8,8 +8,8 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import _SlideLayouts, SlideMaster
-from pptx.parts.slides import SlideLayout
 from pptx.oxml.slidemaster import CT_SlideLayoutIdList
 
 from ..oxml.unitdata.slides import (

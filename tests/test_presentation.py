@@ -14,7 +14,7 @@ from pptx.oxml.presentation import (
 )
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.slidemaster import SlideMaster
-from pptx.parts.slides import SlideCollection
+from pptx.parts.slide import SlideCollection
 from pptx.presentation import Package, Presentation, _SlideMasters
 
 
