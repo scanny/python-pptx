@@ -14,7 +14,7 @@ from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsmap, _nsmap
-from pptx.shapes.shapetree import ShapeCollection, ShapeTree
+from pptx.shapes.shapetree import BaseShapeTree, ShapeCollection
 from pptx.util import lazyproperty
 
 
@@ -65,7 +65,7 @@ class BaseSlide(Part):
         Instance of |ShapeTree| containing sequence of shape objects
         appearing on this slide.
         """
-        return ShapeTree(self)
+        return BaseShapeTree(self)
 
     @property
     def spTree(self):

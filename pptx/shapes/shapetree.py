@@ -41,17 +41,6 @@ class BaseShapeTree(object):
         super(BaseShapeTree, self).__init__()
         self._slide = slide
 
-
-class ShapeTree(object):
-    """
-    Sequence of shapes appearing on a slide. The first shape in the
-    sequence is the backmost in z-order and the last shape is topmost.
-    Supports indexed access, len(), index(), and iteration.
-    """
-    def __init__(self, slide):
-        super(ShapeTree, self).__init__()
-        self._slide = slide
-
     def __getitem__(self, idx):
         """
         Return shape at *idx* in sequence, e.g. ``shapes[2]``.
@@ -61,14 +50,14 @@ class ShapeTree(object):
             shape_elm = shape_elms[idx]
         except IndexError:
             raise IndexError('shape index out of range')
-        return ShapeFactory(shape_elm, self)
+        return self._shape_factory(shape_elm)
 
     def __iter__(self):
         """
         Generate a reference to each shape in the collection, in sequence.
         """
         for shape_elm in self._iter_shape_elms():
-            yield ShapeFactory(shape_elm, self)
+            yield self._shape_factory(shape_elm)
 
     def __len__(self):
         """
@@ -92,6 +81,13 @@ class ShapeTree(object):
         for elm in spTree.iterchildren():
             if elm.tag in shape_tags:
                 yield elm
+
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return ShapeFactory(shape_elm, self)
 
 
 class ShapeCollection(BaseShape):

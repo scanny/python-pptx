@@ -10,7 +10,7 @@ from behave import given, then
 
 from pptx import Presentation
 from pptx.shapes.shape import BaseShape
-from pptx.shapes.shapetree import ShapeTree
+from pptx.shapes.shapetree import BaseShapeTree
 
 from .helpers import test_pptx
 
@@ -45,7 +45,7 @@ def then_can_access_shapes_of_slide(context):
     slide = context.slide
     shapes = slide.shapes_new
     msg = 'Slide.shapes not instance of ShapeTree'
-    assert isinstance(shapes, ShapeTree), msg
+    assert isinstance(shapes, BaseShapeTree), msg
 
 
 @then('I can iterate over the shapes')

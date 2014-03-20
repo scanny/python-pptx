@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Test suite for pptx.shapes module
+Test suite for pptx.shapes.shapetree module
 """
 
 from __future__ import absolute_import
@@ -14,7 +14,7 @@ from pptx.shapes.autoshape import Shape
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.picture import Picture
 from pptx.shapes.table import Table
-from pptx.shapes.shapetree import ShapeFactory, ShapeTree
+from pptx.shapes.shapetree import BaseShapeTree, ShapeFactory
 
 from ..oxml.unitdata.shape import (
     a_graphic, a_graphicData, a_graphicFrame, a_grpSp, a_pic, an_sp, an_spPr,
@@ -117,7 +117,7 @@ class DescribeShapeFactory(object):
         )
 
 
-class DescribeShapeTree(object):
+class DescribeBaseShapeTree(object):
 
     def it_knows_how_many_shapes_it_contains(self, len_fixture):
         shapes, expected_count = len_fixture
@@ -157,7 +157,7 @@ class DescribeShapeTree(object):
     @pytest.fixture
     def getitem_fixture(
             self, _iter_shape_elms_, ShapeFactory_, sp_2_, shape_):
-        shapes = ShapeTree(None)
+        shapes = BaseShapeTree(None)
         idx = 1
         return shapes, idx, ShapeFactory_, sp_2_, shape_
 
@@ -165,18 +165,18 @@ class DescribeShapeTree(object):
     def iter_fixture(
             self, _iter_shape_elms_, ShapeFactory_, sp_, sp_2_,
             shape_, shape_2_):
-        shapes = ShapeTree(None)
+        shapes = BaseShapeTree(None)
         return shapes, ShapeFactory_, sp_, sp_2_, shape_, shape_2_
 
     @pytest.fixture
     def iter_elms_fixture(self, slide):
-        shapes = ShapeTree(slide)
+        shapes = BaseShapeTree(slide)
         expected_elm_count = 2
         return shapes, expected_elm_count
 
     @pytest.fixture
     def len_fixture(self, slide):
-        shapes = ShapeTree(slide)
+        shapes = BaseShapeTree(slide)
         expected_count = 2
         return shapes, expected_count
 
@@ -185,7 +185,7 @@ class DescribeShapeTree(object):
     @pytest.fixture
     def _iter_shape_elms_(self, request, sp_, sp_2_):
         return method_mock(
-            request, ShapeTree, '_iter_shape_elms',
+            request, BaseShapeTree, '_iter_shape_elms',
             return_value=iter([sp_, sp_2_])
         )
 
