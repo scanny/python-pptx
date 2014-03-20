@@ -34,9 +34,12 @@ def ShapeFactory(shape_elm, parent):
 
 class BaseShapeTree(object):
     """
-    Base class for shape collections appearing in a slide-type object,
+    Base class for a shape collection appearing in a slide-type object,
     include Slide, SlideLayout, and SlideMaster, providing common methods.
     """
+    def __init__(self, slide):
+        super(BaseShapeTree, self).__init__()
+        self._slide = slide
 
 
 class ShapeTree(object):

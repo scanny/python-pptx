@@ -9,7 +9,9 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.parts.slidelayout import SlideLayout
-from pptx.parts.slidemaster import _SlideLayouts, SlideMaster
+from pptx.parts.slidemaster import (
+    _MasterShapeTree, _SlideLayouts, SlideMaster
+)
 from pptx.oxml.slidemaster import CT_SlideLayoutIdList
 
 from ..oxml.unitdata.slides import (
@@ -20,8 +22,12 @@ from ..unitutil import instance_mock, method_mock, property_mock
 
 class DescribeSlideMaster(object):
 
-    def it_provides_access_to_its_slide_layouts(self, layouts_fixture):
-        slide_master = layouts_fixture
+    def it_provides_access_to_its_shapes(self, slide_master):
+        shapes = slide_master.shapes
+        assert isinstance(shapes, _MasterShapeTree)
+        assert shapes._slide is slide_master
+
+    def it_provides_access_to_its_slide_layouts(self, slide_master):
         slide_layouts = slide_master.slide_layouts
         assert isinstance(slide_layouts, _SlideLayouts)
 
@@ -30,11 +36,6 @@ class DescribeSlideMaster(object):
         assert isinstance(sldLayoutIdLst, CT_SlideLayoutIdList)
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def layouts_fixture(self):
-        slide_master = SlideMaster(None, None, None, None)
-        return slide_master
 
     @pytest.fixture(params=[True, False])
     def sldMaster(self, request):

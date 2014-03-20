@@ -18,6 +18,14 @@ class SlideMaster(BaseSlide):
     Slide master part. Corresponds to package files
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     """
+    @lazyproperty
+    def shapes(self):
+        """
+        Instance of |_MasterShapeTree| containing sequence of shape objects
+        appearing on this slide.
+        """
+        return _MasterShapeTree(self)
+
     @property
     def sldLayoutIdLst(self):
         """
