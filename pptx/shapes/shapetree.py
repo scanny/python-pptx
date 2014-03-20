@@ -32,6 +32,13 @@ def ShapeFactory(shape_elm, parent):
     return BaseShape(shape_elm, parent)
 
 
+class BaseShapeTree(object):
+    """
+    Base class for shape collections appearing in a slide-type object,
+    include Slide, SlideLayout, and SlideMaster, providing common methods.
+    """
+
+
 class ShapeTree(object):
     """
     Sequence of shapes appearing on a slide. The first shape in the

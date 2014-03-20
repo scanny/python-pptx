@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 from warnings import warn
 
 from pptx.parts.slide import BaseSlide
+from pptx.shapes.shapetree import BaseShapeTree
 from pptx.util import lazyproperty
 
 
@@ -95,3 +96,11 @@ class _SlideLayouts(object):
         element, the root element of a slide master part.
         """
         return self._slide_master.sldLayoutIdLst
+
+
+class _MasterShapeTree(BaseShapeTree):
+    """
+    Sequence of shapes appearing on a slide master. The first shape in the
+    sequence is the backmost in z-order and the last shape is topmost.
+    Supports indexed access, len(), and iteration.
+    """
