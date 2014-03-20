@@ -18,15 +18,15 @@ from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import PartFactory
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image
+from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import Slide
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
-from pptx.presentation import Presentation as _Presentation
 
 content_type_to_part_class_map = {
-    CT.PML_PRESENTATION_MAIN: _Presentation,
-    CT.PML_TEMPLATE_MAIN:     _Presentation,
-    CT.PML_SLIDESHOW_MAIN:    _Presentation,
+    CT.PML_PRESENTATION_MAIN: PresentationPart,
+    CT.PML_TEMPLATE_MAIN:     PresentationPart,
+    CT.PML_SLIDESHOW_MAIN:    PresentationPart,
     CT.OPC_CORE_PROPERTIES:   CoreProperties,
     CT.PML_SLIDE:             Slide,
     CT.PML_SLIDE_LAYOUT:      SlideLayout,
@@ -44,6 +44,6 @@ content_type_to_part_class_map = {
 PartFactory.part_type_for.update(content_type_to_part_class_map)
 
 del (
-    CoreProperties, Image, Slide, SlideLayout, SlideMaster, _Presentation,
+    CoreProperties, Image, Slide, SlideLayout, SlideMaster, PresentationPart,
     CT, PartFactory
 )

@@ -18,10 +18,11 @@ from pptx.opc.package import Part, _Relationship
 from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
 from pptx.oxml.shapetree import CT_GroupShape
+from pptx.parts.presentation import PresentationPart
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
 from pptx.parts.slide import BaseSlide, Slide, SlideCollection
-from pptx.presentation import Package, Presentation
+from pptx.presentation import Package
 from pptx.shapes.shapetree import ShapeCollection
 
 from ..oxml.unitdata.shape import an_spTree
@@ -281,7 +282,7 @@ class DescribeSlideCollection(object):
 
     @pytest.fixture
     def prs_(self, request, rel_, related_parts_):
-        prs_ = instance_mock(request, Presentation)
+        prs_ = instance_mock(request, PresentationPart)
         prs_.load_rel.return_value = rel_
         prs_.related_parts = related_parts_
         return prs_
