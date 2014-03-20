@@ -8,8 +8,8 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.package import Package
 from pptx.parts.coreprops import CoreProperties
-from pptx.presentation import Package
 from pptx.parts.presentation import PresentationPart
 
 

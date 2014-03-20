@@ -18,11 +18,11 @@ from pptx.opc.package import Part, _Relationship
 from pptx.oxml.ns import namespaces
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
 from pptx.oxml.shapetree import CT_GroupShape
+from pptx.package import Package
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
 from pptx.parts.slide import BaseSlide, Slide, SlideCollection
-from pptx.presentation import Package
 from pptx.shapes.shapetree import ShapeCollection
 
 from ..oxml.unitdata.shape import an_spTree

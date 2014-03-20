@@ -12,7 +12,7 @@ from behave import when, then
 from hamcrest import assert_that, has_item
 
 from pptx import Presentation
-from pptx.presentation import Package
+from pptx.package import Package
 from pptx.util import Inches
 
 from .helpers import saved_pptx_path, test_image_path

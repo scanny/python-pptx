@@ -17,7 +17,7 @@ from pptx.opc.package import (
     Unmarshaller
 )
 from pptx.opc.pkgreader import PackageReader
-from pptx.presentation import Package
+from pptx.package import Package
 
 from ..oxml.unitdata.text import an_hlinkClick, an_rPr
 from ..unitutil import (

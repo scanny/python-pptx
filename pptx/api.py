@@ -11,7 +11,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from warnings import warn
 
-from pptx.presentation import Package
+from pptx.package import Package
 
 
 class Presentation(object):

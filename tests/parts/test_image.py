@@ -10,7 +10,7 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx.opc.packuri import PackURI
 from pptx.parts.image import Image
-from pptx.presentation import Package
+from pptx.package import Package
 from pptx.util import Px
 
 from ..unitutil import absjoin, TestCase, test_file_dir
