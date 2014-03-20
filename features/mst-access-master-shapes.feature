@@ -3,7 +3,6 @@ Feature: Access shapes on a slide master
   As a developer using python-pptx
   I need access to the shape collection of a slide master
 
-  @wip
   Scenario: Access shape collection of a slide master
      Given a slide master having two shapes
       Then I can access the shape collection of the slide master

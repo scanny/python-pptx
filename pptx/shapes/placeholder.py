@@ -8,6 +8,7 @@ to the underlying shape.
 """
 
 from pptx.oxml.ns import namespaces
+from pptx.shapes.autoshape import Shape
 from pptx.spec import PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_OBJ
 
 
@@ -64,3 +65,17 @@ class Placeholder(object):
         Placeholder 'idx' attribute, e.g. '0'
         """
         return int(self._ph.get('idx', 0))
+
+
+class _BasePlaceholder(Shape):
+    """
+    Base class for placeholder subclasses that differentiate the varying
+    behaviors of placeholders on a master, layout, and slide.
+    """
+
+
+class MasterPlaceholder(_BasePlaceholder):
+    """
+    Placeholder shape on a slide master. Inherits most of its behavior from
+    pptx.shapes.autoshape.Shape.
+    """

@@ -106,9 +106,23 @@ class _SlideLayouts(object):
         return self._slide_master.sldLayoutIdLst
 
 
+def _MasterShapeFactory(shape_elm, parent):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        raise NotImplementedError
+
+
 class _MasterShapeTree(BaseShapeTree):
     """
     Sequence of shapes appearing on a slide master. The first shape in the
     sequence is the backmost in z-order and the last shape is topmost.
     Supports indexed access, len(), and iteration.
     """
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _MasterShapeFactory(shape_elm, self)

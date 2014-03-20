@@ -180,7 +180,7 @@ class DescribeBaseShapeTree(object):
         expected_count = 2
         return shapes, expected_count
 
-    # fixture components -----------------------------------
+    # fixture components ---------------------------------------------
 
     @pytest.fixture
     def _iter_shape_elms_(self, request, sp_, sp_2_):

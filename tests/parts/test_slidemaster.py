@@ -8,16 +8,20 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.oxml.autoshape import CT_Shape
+from pptx.oxml.slidemaster import CT_SlideLayoutIdList
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import (
     _MasterShapeTree, _SlideLayouts, SlideMaster
 )
-from pptx.oxml.slidemaster import CT_SlideLayoutIdList
+from pptx.shapes.placeholder import MasterPlaceholder
 
 from ..oxml.unitdata.slides import (
     a_sldLayoutId, a_sldLayoutIdLst, a_sldMaster
 )
-from ..unitutil import instance_mock, method_mock, property_mock
+from ..unitutil import (
+    function_mock, instance_mock, method_mock, property_mock
+)
 
 
 class DescribeSlideMaster(object):
@@ -145,3 +149,42 @@ class DescribeSlideLayouts(object):
     @pytest.fixture
     def slide_master_(self, request):
         return instance_mock(request, SlideMaster)
+
+
+class Describe_MasterShapeTree(object):
+
+    def it_constructs_a_master_placeholder_for_a_placeholder_element(
+            self, factory_fixture):
+        master_shapes, ph_elm_, _MasterShapeFactory_, master_placeholder_ = (
+            factory_fixture
+        )
+        master_placeholder = master_shapes._shape_factory(ph_elm_)
+        _MasterShapeFactory_.assert_called_once_with(ph_elm_, master_shapes)
+        assert master_placeholder is master_placeholder_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def factory_fixture(
+            self, ph_elm_, _MasterShapeFactory_, master_placeholder_):
+        master_shapes = _MasterShapeTree(ph_elm_)
+        return (
+            master_shapes, ph_elm_, _MasterShapeFactory_, master_placeholder_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def master_placeholder_(self, request):
+        return instance_mock(request, MasterPlaceholder)
+
+    @pytest.fixture
+    def _MasterShapeFactory_(self, request, master_placeholder_):
+        return function_mock(
+            request, 'pptx.parts.slidemaster._MasterShapeFactory',
+            return_value=master_placeholder_
+        )
+
+    @pytest.fixture
+    def ph_elm_(self, request):
+        return instance_mock(request, CT_Shape)
