@@ -73,6 +73,12 @@ class BasePlaceholders(BaseShapeTree):
     Base class for placeholder collections that differentiate behaviors for
     a master, layout, and slide.
     """
+    @staticmethod
+    def _is_member_elm(shape_elm):
+        """
+        True if *shape_elm* is a placeholder shape, False otherwise.
+        """
+        return shape_elm.has_ph_elm
 
 
 class BasePlaceholder(Shape):

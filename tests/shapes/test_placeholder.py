@@ -9,7 +9,8 @@ from __future__ import absolute_import, print_function, unicode_literals
 import pytest
 
 from pptx.oxml.ns import _nsmap as nsmap
-from pptx.shapes.placeholder import Placeholder
+from pptx.oxml.shapes.shared import BaseShapeElement
+from pptx.shapes.placeholder import BasePlaceholders, Placeholder
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM,
@@ -17,7 +18,7 @@ from pptx.spec import (
     PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER
 )
 
-from ..unitutil import absjoin, parse_xml_file, test_file_dir
+from ..unitutil import absjoin, instance_mock, parse_xml_file, test_file_dir
 
 
 class DescribePlaceholder(object):
@@ -88,3 +89,25 @@ class DescribePlaceholder(object):
         )[sp_idx]
         placeholder = Placeholder(shape)
         return placeholder, expected_type
+
+
+class DescribeBasePlaceholders(object):
+
+    def it_contains_only_placeholder_shapes(self, member_fixture):
+        shape_elm_, is_ph_shape = member_fixture
+        _is_ph_shape = BasePlaceholders._is_member_elm(shape_elm_)
+        assert _is_ph_shape == is_ph_shape
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[True, False])
+    def member_fixture(self, request, shape_elm_):
+        is_ph_shape = request.param
+        shape_elm_.has_ph_elm = is_ph_shape
+        return shape_elm_, is_ph_shape
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def shape_elm_(self, request):
+        return instance_mock(request, BaseShapeElement)
