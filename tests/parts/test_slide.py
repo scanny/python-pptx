@@ -9,9 +9,8 @@ from __future__ import absolute_import
 import pytest
 
 from lxml import objectify
-from mock import ANY, call, MagicMock, Mock
+from mock import ANY, call, MagicMock
 
-from pptx.opc import package
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part, _Relationship
@@ -21,7 +20,6 @@ from pptx.oxml.shapetree import CT_GroupShape
 from pptx.package import Package
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slidelayout import SlideLayout
-from pptx.parts.slidemaster import SlideMaster
 from pptx.parts.slide import BaseSlide, Slide, SlideCollection
 from pptx.shapes.shapetree import ShapeCollection
 
@@ -371,61 +369,3 @@ class DescribeSlideCollection(object):
         slide_, slide_2_ = slide_parts_
         slides = SlideCollection(sldIdLst_, prs_)
         return slides, slide_, slide_2_
-
-
-class DescribeSlideLayout(object):
-
-    def _loaded_slidelayout(self, prs_slidemaster=None):
-        """
-        Return SlideLayout instance loaded using mocks. *prs_slidemaster* is
-        an already-loaded model-side SlideMaster instance (or mock, as
-        appropriate to calling test).
-        """
-        # partname for related slideMaster
-        sldmaster_partname = '/ppt/slideMasters/slideMaster1.xml'
-        # path to test slideLayout XML
-        slidelayout_path = absjoin(test_file_dir, 'slideLayout1.xml')
-        # model-side slideMaster part
-        if prs_slidemaster is None:
-            prs_slidemaster = Mock(spec=SlideMaster)
-        # a part dict containing the already-loaded model-side slideMaster
-        loaded_part_dict = {sldmaster_partname: prs_slidemaster}
-        # a slideMaster package part for rel target
-        pkg_slidemaster_part = Mock(spec=package.Part)
-        pkg_slidemaster_part.partname = sldmaster_partname
-        # a package-side relationship from slideLayout to its slideMaster
-        rel = Mock(name='pptx.package.Relationship')
-        rel.rId = 'rId1'
-        rel.reltype = RT.SLIDE_MASTER
-        rel.target = pkg_slidemaster_part
-        # the slideLayout package part to send to _load()
-        pkg_slidelayout_part = Mock(spec=package.Part)
-        pkg_slidelayout_part.relationships = [rel]
-        with open(slidelayout_path, 'rb') as f:
-            pkg_slidelayout_part.blob = f.read()
-        # _load and return
-        slidelayout = SlideLayout()
-        return slidelayout._load(pkg_slidelayout_part, loaded_part_dict)
-
-    # def test__load_sets_slidemaster(self):
-    #     """SlideLayout._load() sets slidemaster"""
-    #     # setup ------------------------
-    #     prs_slidemaster = Mock(spec=SlideMaster)
-    #     # exercise ---------------------
-    #     loaded_slidelayout = self._loaded_slidelayout(prs_slidemaster)
-    #     # verify -----------------------
-    #     expected = prs_slidemaster
-    #     actual = loaded_slidelayout.slidemaster
-    #     msg = "expected: %s, got %s" % (expected, actual)
-    #     assert actual == expected, msg
-
-    # def test_slidemaster_raises_on_ref_before_assigned(self, slidelayout):
-    #     """SlideLayout.slidemaster raises on referenced before assigned"""
-    #     with pytest.raises(AssertionError):
-    #         slidelayout.slidemaster
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def slidelayout(self):
-        return SlideLayout()
