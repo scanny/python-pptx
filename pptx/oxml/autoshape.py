@@ -9,8 +9,9 @@ from __future__ import absolute_import
 from lxml import objectify
 
 from pptx.oxml import parse_xml_bytes
-from pptx.oxml.core import child, Element, SubElement
+from pptx.oxml.core import BaseOxmlElement, child, Element, SubElement
 from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_OBJ,
@@ -18,7 +19,7 @@ from pptx.spec import (
 )
 
 
-class CT_Point2D(objectify.ObjectifiedElement):
+class CT_Point2D(BaseOxmlElement):
     """
     Custom element class for <a:off> element.
     """
@@ -49,7 +50,7 @@ class CT_Point2D(objectify.ObjectifiedElement):
         return int(y_str)
 
 
-class CT_PositiveSize2D(objectify.ObjectifiedElement):
+class CT_PositiveSize2D(BaseOxmlElement):
     """
     Custom element class for <a:ext> element.
     """
@@ -80,7 +81,7 @@ class CT_PositiveSize2D(objectify.ObjectifiedElement):
         return int(cy_str)
 
 
-class CT_PresetGeometry2D(objectify.ObjectifiedElement):
+class CT_PresetGeometry2D(BaseOxmlElement):
     """<a:prstGeom> custom element class"""
     @property
     def gd(self):
@@ -117,7 +118,7 @@ class CT_PresetGeometry2D(objectify.ObjectifiedElement):
             gd.set('fmla', 'val %d' % val)
 
 
-class CT_Shape(objectify.ObjectifiedElement):
+class CT_Shape(BaseShapeElement):
     """<p:sp> custom element class"""
     _autoshape_sp_tmpl = (
         '<p:sp %s>\n'
@@ -300,7 +301,7 @@ class CT_Shape(objectify.ObjectifiedElement):
         return child(self.spPr, 'a:prstGeom')
 
 
-class CT_ShapeProperties(objectify.ObjectifiedElement):
+class CT_ShapeProperties(BaseOxmlElement):
     """
     Custom element class for <p:spPr> element.
     """
@@ -442,7 +443,7 @@ class CT_ShapeProperties(objectify.ObjectifiedElement):
                 self.remove(element)
 
 
-class CT_Transform2D(objectify.ObjectifiedElement):
+class CT_Transform2D(BaseOxmlElement):
     """
     Custom element class for <a:xfrm> element.
     """

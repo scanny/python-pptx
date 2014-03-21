@@ -13,6 +13,12 @@ from pptx.oxml.ns import nsdecls
 from pptx.shapes.shapetree import ShapeCollection
 
 
+class CT_ApplicationNonVisualDrawingPropsBuilder(BaseBuilder):
+    __tag__ = 'p:nvPr'
+    __nspfxs__ = ('p',)
+    __attrs__ = ('isPhoto', 'userDrawn')
+
+
 class CT_GeomGuideBuilder(BaseBuilder):
     __tag__ = 'a:gd'
     __nspfxs__ = ('a',)
@@ -58,6 +64,12 @@ class CT_PictureBuilder(BaseBuilder):
     __attrs__ = ()
 
 
+class CT_PlaceholderBuilder(BaseBuilder):
+    __tag__ = 'p:ph'
+    __nspfxs__ = ('p',)
+    __attrs__ = ('type', 'orient', 'sz', 'idx', 'hasCustomPropt')
+
+
 class CT_Point2DBuilder(BaseBuilder):
     __tag__ = 'a:off'
     __nspfxs__ = ('a',)
@@ -80,6 +92,12 @@ class CT_ShapeBuilder(BaseBuilder):
     __tag__ = 'p:sp'
     __nspfxs__ = ('p', 'a')
     __attrs__ = ('useBgFill',)
+
+
+class CT_ShapeNonVisualBuilder(BaseBuilder):
+    __tag__ = 'p:nvSpPr'
+    __nspfxs__ = ('p',)
+    __attrs__ = ()
 
 
 class CT_ShapePropertiesBuilder(BaseBuilder):
@@ -114,6 +132,10 @@ def a_grpSp():
     return CT_GroupShapeBuilder('p:grpSp')
 
 
+def a_ph():
+    return CT_PlaceholderBuilder()
+
+
 def a_pic():
     return CT_PictureBuilder()
 
@@ -128,6 +150,14 @@ def an_avLst():
 
 def an_ext():
     return CT_PositiveSize2DBuilder()
+
+
+def an_nvPr():
+    return CT_ApplicationNonVisualDrawingPropsBuilder()
+
+
+def an_nvSpPr():
+    return CT_ShapeNonVisualBuilder()
 
 
 def an_off():

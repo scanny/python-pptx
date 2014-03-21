@@ -14,7 +14,7 @@ from pptx.shapes.autoshape import Shape
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.picture import Picture
 from pptx.shapes.table import Table
-from pptx.shapes.shapetree import BaseShapeTree, ShapeFactory
+from pptx.shapes.shapetree import BaseShapeTree, BaseShapeFactory
 
 from ..oxml.unitdata.shape import (
     a_graphic, a_graphicData, a_graphicFrame, a_grpSp, a_pic, an_sp, an_spPr,
@@ -26,12 +26,12 @@ from ..unitutil import (
 )
 
 
-class DescribeShapeFactory(object):
+class DescribeBaseShapeFactory(object):
 
     def it_constructs_the_appropriate_shape_instance_for_a_shape_element(
             self, factory_fixture):
         shape_elm, parent_, ShapeClass_, shape_ = factory_fixture
-        shape = ShapeFactory(shape_elm, parent_)
+        shape = BaseShapeFactory(shape_elm, parent_)
         ShapeClass_.assert_called_once_with(shape_elm, parent_)
         assert shape is shape_
 
@@ -125,9 +125,11 @@ class DescribeBaseShapeTree(object):
         assert shape_count == expected_count
 
     def it_can_iterate_over_the_shapes_it_contains(self, iter_fixture):
-        shapes, ShapeFactory_, sp_, sp_2_, shape_, shape_2_ = iter_fixture
+        shapes, BaseShapeFactory_, sp_, sp_2_, shape_, shape_2_ = (
+            iter_fixture
+        )
         iter_vals = [s for s in shapes]
-        assert ShapeFactory_.call_args_list == [
+        assert BaseShapeFactory_.call_args_list == [
             call(sp_, shapes),
             call(sp_2_, shapes)
         ]
@@ -142,9 +144,9 @@ class DescribeBaseShapeTree(object):
             assert isinstance(elm, CT_Shape)
 
     def it_supports_indexed_access(self, getitem_fixture):
-        shapes, idx, ShapeFactory_, shape_elm_, shape_ = getitem_fixture
+        shapes, idx, BaseShapeFactory_, shape_elm_, shape_ = getitem_fixture
         shape = shapes[idx]
-        ShapeFactory_.assert_called_once_with(shape_elm_, shapes)
+        BaseShapeFactory_.assert_called_once_with(shape_elm_, shapes)
         assert shape is shape_
 
     def it_raises_on_shape_index_out_of_range(self, getitem_fixture):
@@ -156,17 +158,17 @@ class DescribeBaseShapeTree(object):
 
     @pytest.fixture
     def getitem_fixture(
-            self, _iter_shape_elms_, ShapeFactory_, sp_2_, shape_):
+            self, _iter_shape_elms_, BaseShapeFactory_, sp_2_, shape_):
         shapes = BaseShapeTree(None)
         idx = 1
-        return shapes, idx, ShapeFactory_, sp_2_, shape_
+        return shapes, idx, BaseShapeFactory_, sp_2_, shape_
 
     @pytest.fixture
     def iter_fixture(
-            self, _iter_shape_elms_, ShapeFactory_, sp_, sp_2_,
+            self, _iter_shape_elms_, BaseShapeFactory_, sp_, sp_2_,
             shape_, shape_2_):
         shapes = BaseShapeTree(None)
-        return shapes, ShapeFactory_, sp_, sp_2_, shape_, shape_2_
+        return shapes, BaseShapeFactory_, sp_, sp_2_, shape_, shape_2_
 
     @pytest.fixture
     def iter_elms_fixture(self, slide):
@@ -190,9 +192,9 @@ class DescribeBaseShapeTree(object):
         )
 
     @pytest.fixture
-    def ShapeFactory_(self, request, shape_, shape_2_):
+    def BaseShapeFactory_(self, request, shape_, shape_2_):
         return function_mock(
-            request, 'pptx.shapes.shapetree.ShapeFactory',
+            request, 'pptx.shapes.shapetree.BaseShapeFactory',
             side_effect=[shape_, shape_2_]
         )
 

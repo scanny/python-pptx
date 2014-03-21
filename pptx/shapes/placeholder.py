@@ -67,15 +67,8 @@ class Placeholder(object):
         return int(self._ph.get('idx', 0))
 
 
-class _BasePlaceholder(Shape):
+class BasePlaceholder(Shape):
     """
     Base class for placeholder subclasses that differentiate the varying
     behaviors of placeholders on a master, layout, and slide.
-    """
-
-
-class MasterPlaceholder(_BasePlaceholder):
-    """
-    Placeholder shape on a slide master. Inherits most of its behavior from
-    pptx.shapes.autoshape.Shape.
     """

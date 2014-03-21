@@ -80,6 +80,14 @@ register_custom_element_class('a:pattFill',  CT_PatternFillProperties)
 register_custom_element_class('a:solidFill', CT_SolidColorFillProperties)
 
 
+from pptx.oxml.graphfrm import CT_GraphicalObjectFrame
+register_custom_element_class('p:graphicFrame', CT_GraphicalObjectFrame)
+
+
+from pptx.oxml.picture import CT_Picture
+register_custom_element_class('p:pic', CT_Picture)
+
+
 from pptx.oxml.presentation import (
     CT_Presentation, CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList,
     CT_SlideMasterIdListEntry

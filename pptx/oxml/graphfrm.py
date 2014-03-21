@@ -8,12 +8,13 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import parse_xml_bytes, register_custom_element_class
+from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.table import CT_Table
 
 
-class CT_GraphicalObjectFrame(objectify.ObjectifiedElement):
+class CT_GraphicalObjectFrame(BaseShapeElement):
     """
     ``<p:graphicFrame>`` element, which is a container for a table, a chart,
     or another graphical object.
@@ -81,6 +82,3 @@ class CT_GraphicalObjectFrame(objectify.ObjectifiedElement):
 
         objectify.deannotate(graphicFrame, cleanup_namespaces=True)
         return graphicFrame
-
-
-register_custom_element_class('p:graphicFrame', CT_GraphicalObjectFrame)

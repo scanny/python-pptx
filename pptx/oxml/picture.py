@@ -8,11 +8,12 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import parse_xml_bytes, register_custom_element_class
+from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.shapes.shared import BaseShapeElement
 
 
-class CT_Picture(objectify.ObjectifiedElement):
+class CT_Picture(BaseShapeElement):
     """
     ``<p:pic>`` element, which represents a picture shape (an image placement
     on a slide).
@@ -68,6 +69,3 @@ class CT_Picture(objectify.ObjectifiedElement):
             # TODO: this should be ValidationError, not ValueError
             raise ValueError("pic element missing required spPr child")
         return spPr
-
-
-register_custom_element_class('p:pic', CT_Picture)

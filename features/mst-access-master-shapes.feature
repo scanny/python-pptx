@@ -8,7 +8,6 @@ Feature: Access shapes on a slide master
       Then I can access the shape collection of the slide master
        And the length of the master shape collection is 2
 
-  @wip
   Scenario: Access shape in master shape collection
      Given a master shape collection containing two shapes
       Then I can iterate over the master shapes

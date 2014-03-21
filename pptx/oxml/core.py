@@ -84,7 +84,7 @@ def SubElement(parent, nsptag_str, **extra):
     )
 
 
-class XmlString(str):
+class XmlString(unicode):
     """
     Provides string comparison override suitable for serialized XML that is
     useful for tests.

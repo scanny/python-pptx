@@ -8,8 +8,10 @@ from __future__ import absolute_import, print_function
 
 from warnings import warn
 
+from pptx.oxml.ns import qn
 from pptx.parts.slide import BaseSlide
-from pptx.shapes.shapetree import BaseShapeTree
+from pptx.shapes.placeholder import BasePlaceholder
+from pptx.shapes.shapetree import BaseShapeFactory, BaseShapeTree
 from pptx.util import lazyproperty
 
 
@@ -111,7 +113,16 @@ def _MasterShapeFactory(shape_elm, parent):
         Return an instance of the appropriate shape proxy class for
         *shape_elm*.
         """
-        raise NotImplementedError
+        tag_name = shape_elm.tag
+        if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+            return _MasterPlaceholder(shape_elm, parent)
+        return BaseShapeFactory(shape_elm, parent)
+
+
+class _MasterPlaceholder(BasePlaceholder):
+    """
+    Placeholder shape on a slide master.
+    """
 
 
 class _MasterShapeTree(BaseShapeTree):

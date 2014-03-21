@@ -17,7 +17,7 @@ from pptx.spec import slide_ph_basenames
 from pptx.spec import PH_ORIENT_VERT, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
 
 
-def ShapeFactory(shape_elm, parent):
+def BaseShapeFactory(shape_elm, parent):
     """
     Return an instance of the appropriate shape proxy class for *shape_elm*.
     """
@@ -87,7 +87,7 @@ class BaseShapeTree(object):
         Return an instance of the appropriate shape proxy class for
         *shape_elm*.
         """
-        return ShapeFactory(shape_elm, self)
+        return BaseShapeFactory(shape_elm, self)
 
 
 class ShapeCollection(BaseShape):
