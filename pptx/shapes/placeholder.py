@@ -7,14 +7,10 @@ shape, such as the placeholder type. All other attribute gets are forwarded
 to the underlying shape.
 """
 
-from pptx.oxml.ns import namespaces
+from pptx.oxml.ns import _nsmap
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.shapetree import BaseShapeTree
 from pptx.spec import PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_OBJ
-
-
-# default namespace map for use in lxml calls
-_nsmap = namespaces('a', 'r', 'p')
 
 
 class Placeholder(object):
@@ -91,4 +87,4 @@ class BasePlaceholder(Shape):
         """
         Placeholder type, e.g. PH_TYPE_CTRTITLE
         """
-        raise NotImplementedError
+        return self._sp.ph_type

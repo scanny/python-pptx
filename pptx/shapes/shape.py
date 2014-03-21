@@ -5,13 +5,9 @@ Base shape-related objects such as BaseShape.
 """
 
 from pptx.oxml.core import child
-from pptx.oxml.ns import namespaces
+from pptx.oxml.ns import _nsmap
 from pptx.text import TextFrame
 from pptx.util import to_unicode
-
-
-# default namespace map for use in lxml calls
-_nsmap = namespaces('a', 'r', 'p')
 
 
 class BaseShape(object):

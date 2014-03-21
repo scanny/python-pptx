@@ -49,6 +49,12 @@ class CT_GraphicalObjectFrameBuilder(BaseBuilder):
     __attrs__ = ('bwMode',)
 
 
+class CT_GraphicalObjectFrameNonVisualBuilder(BaseBuilder):
+    __tag__ = 'p:nvGraphicFramePr'
+    __nspfxs__ = ('p',)
+    __attrs__ = ()
+
+
 class CT_GroupShapeBuilder(BaseBuilder):
     __nspfxs__ = ('p',)
     __attrs__ = ()
@@ -61,6 +67,12 @@ class CT_GroupShapeBuilder(BaseBuilder):
 class CT_PictureBuilder(BaseBuilder):
     __tag__ = 'p:pic'
     __nspfxs__ = ('p', 'a')
+    __attrs__ = ()
+
+
+class CT_PictureNonVisualBuilder(BaseBuilder):
+    __tag__ = 'p:nvPicPr'
+    __nspfxs__ = ('p',)
     __attrs__ = ()
 
 
@@ -150,6 +162,14 @@ def an_avLst():
 
 def an_ext():
     return CT_PositiveSize2DBuilder()
+
+
+def an_nvGraphicFramePr():
+    return CT_GraphicalObjectFrameNonVisualBuilder()
+
+
+def an_nvPicPr():
+    return CT_PictureNonVisualBuilder()
 
 
 def an_nvPr():
