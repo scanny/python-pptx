@@ -3,7 +3,7 @@
 Slides
 ======
 
-.. currentmodule:: pptx.parts.slides
+.. currentmodule:: pptx.parts.slide
 
 |SlideCollection| objects
 --------------------------
@@ -43,7 +43,7 @@ from ``slides.add_slide()``.
    :members:
    :exclude-members: sldLayoutIdLst
 
-.. currentmodule:: pptx.parts.slides
+.. currentmodule:: pptx.parts.slidelayout
 
 .. autoclass:: SlideLayout
    :members:

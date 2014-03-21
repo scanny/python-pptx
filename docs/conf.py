@@ -110,6 +110,8 @@ rst_epilog = """
 
 .. |list| replace:: :class:`list`
 
+.. |_MasterShapeTree| replace:: :class:`_MasterShapeTree`
+
 .. |None| replace:: :class:`None`
 
 .. |NotImplementedError| replace:: :exc:`NotImplementedError`
