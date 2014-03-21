@@ -44,7 +44,7 @@ class BaseShapeTree(object):
         """
         Return shape at *idx* in sequence, e.g. ``shapes[2]``.
         """
-        shape_elms = list(self._iter_shape_elms())
+        shape_elms = list(self._iter_member_elms())
         try:
             shape_elm = shape_elms[idx]
         except IndexError:
@@ -55,7 +55,7 @@ class BaseShapeTree(object):
         """
         Generate a reference to each shape in the collection, in sequence.
         """
-        for shape_elm in self._iter_shape_elms():
+        for shape_elm in self._iter_member_elms():
             yield self._shape_factory(shape_elm)
 
     def __len__(self):
@@ -64,22 +64,26 @@ class BaseShapeTree(object):
         1 to the total, without regard to the number of shapes contained in
         the group.
         """
-        shape_elms = list(self._iter_shape_elms())
+        shape_elms = list(self._iter_member_elms())
         return len(shape_elms)
 
-    def _iter_shape_elms(self):
+    @staticmethod
+    def _is_member_elm(shape_elm):
+        """
+        Return true if *shape_elm* represents a member of this collection,
+        False otherwise.
+        """
+        return True
+
+    def _iter_member_elms(self):
         """
         Generate each child of the ``<p:spTree>`` element that corresponds to
         a shape, in the sequence they appear in the XML.
         """
-        shape_tags = (
-            qn('p:sp'), qn('p:grpSp'), qn('p:graphicFrame'), qn('p:cxnSp'),
-            qn('p:pic'), qn('p:contentPart')
-        )
         spTree = self._slide.spTree
-        for elm in spTree.iterchildren():
-            if elm.tag in shape_tags:
-                yield elm
+        for shape_elm in spTree.iter_shape_elms():
+            if self._is_member_elm(shape_elm):
+                yield shape_elm
 
     def _shape_factory(self, shape_elm):
         """

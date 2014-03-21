@@ -138,7 +138,7 @@ class DescribeBaseShapeTree(object):
     def it_iterates_over_spTree_shape_elements_to_help__iter__(
             self, iter_elms_fixture):
         shapes, expected_elm_count = iter_elms_fixture
-        shape_elms = [elm for elm in shapes._iter_shape_elms()]
+        shape_elms = [elm for elm in shapes._iter_member_elms()]
         assert len(shape_elms) == expected_elm_count
         for elm in shape_elms:
             assert isinstance(elm, CT_Shape)
@@ -158,14 +158,14 @@ class DescribeBaseShapeTree(object):
 
     @pytest.fixture
     def getitem_fixture(
-            self, _iter_shape_elms_, BaseShapeFactory_, sp_2_, shape_):
+            self, _iter_member_elms_, BaseShapeFactory_, sp_2_, shape_):
         shapes = BaseShapeTree(None)
         idx = 1
         return shapes, idx, BaseShapeFactory_, sp_2_, shape_
 
     @pytest.fixture
     def iter_fixture(
-            self, _iter_shape_elms_, BaseShapeFactory_, sp_, sp_2_,
+            self, _iter_member_elms_, BaseShapeFactory_, sp_, sp_2_,
             shape_, shape_2_):
         shapes = BaseShapeTree(None)
         return shapes, BaseShapeFactory_, sp_, sp_2_, shape_, shape_2_
@@ -185,9 +185,9 @@ class DescribeBaseShapeTree(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def _iter_shape_elms_(self, request, sp_, sp_2_):
+    def _iter_member_elms_(self, request, sp_, sp_2_):
         return method_mock(
-            request, BaseShapeTree, '_iter_shape_elms',
+            request, BaseShapeTree, '_iter_member_elms',
             return_value=iter([sp_, sp_2_])
         )
 
