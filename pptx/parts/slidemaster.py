@@ -152,3 +152,9 @@ class _MasterPlaceholders(BasePlaceholders):
     Sequence of _MasterPlaceholder instances representing the placeholder
     shapes on a slide master.
     """
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _MasterShapeFactory(shape_elm, self)

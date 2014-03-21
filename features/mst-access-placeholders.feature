@@ -8,7 +8,6 @@ Feature: Access master placeholders
       Then I can access the placeholder collection of the slide master
        And the length of the master placeholder collection is 2
 
-  @wip
   Scenario: Access placeholder in master placeholder collection
      Given a master placeholder collection
       Then I can iterate over the master placeholders
