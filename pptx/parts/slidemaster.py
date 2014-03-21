@@ -152,6 +152,17 @@ class _MasterPlaceholders(BasePlaceholders):
     Sequence of _MasterPlaceholder instances representing the placeholder
     shapes on a slide master.
     """
+    def get(self, ph_type, default=None):
+        """
+        Return the first placeholder shape with type *ph_type* (e.g. 'body'),
+        or *default* if no such placeholder shape is present in the
+        collection.
+        """
+        for placeholder in self:
+            if placeholder.ph_type == ph_type:
+                return placeholder
+        return default
+
     def _shape_factory(self, shape_elm):
         """
         Return an instance of the appropriate shape proxy class for

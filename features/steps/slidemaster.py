@@ -66,6 +66,15 @@ def then_can_access_master_placeholder_by_index(context):
         assert isinstance(master_placeholder, _MasterPlaceholder)
 
 
+@then('I can access a master placeholder by type')
+def then_can_access_master_placeholder_by_type(context):
+    master_placeholders = context.master_placeholders
+    title_placeholder = master_placeholders.get('title')
+    body_placeholder = master_placeholders.get('body')
+    assert title_placeholder._element is master_placeholders[0]._element
+    assert body_placeholder._element is master_placeholders[1]._element
+
+
 @then('I can access a master shape by index')
 def then_can_access_master_shape_by_index(context):
     master_shapes = context.master_shapes

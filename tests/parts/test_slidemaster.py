@@ -270,7 +270,24 @@ class Describe_MasterPlaceholders(object):
         )
         assert placeholder is placeholder_
 
+    def it_can_find_a_placeholder_by_type(self, get_fixture):
+        master_placeholders, ph_type, placeholder_ = get_fixture
+        placeholder = master_placeholders.get(ph_type)
+        assert placeholder is placeholder_
+
+    def it_returns_default_if_placeholder_of_type_not_found(
+            self, default_fixture):
+        master_placeholders = default_fixture
+        default = 'barfoo'
+        placeholder = master_placeholders.get('foobar', default)
+        assert placeholder is default
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def default_fixture(self, _iter_):
+        master_placeholders = _MasterPlaceholders(None)
+        return master_placeholders
 
     @pytest.fixture
     def factory_fixture(
@@ -280,15 +297,23 @@ class Describe_MasterPlaceholders(object):
             master_placeholders, ph_elm_, _MasterShapeFactory_, placeholder_
         )
 
+    @pytest.fixture(params=['title', 'body'])
+    def get_fixture(self, request, _iter_, placeholder_, placeholder_2_):
+        master_placeholders = _MasterPlaceholders(None)
+        ph_type = request.param
+        ph_shape_ = {
+            'title': placeholder_, 'body': placeholder_2_
+        }[request.param]
+        return master_placeholders, ph_type, ph_shape_
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def ph_elm_(self, request):
-        return instance_mock(request, CT_Shape)
-
-    @pytest.fixture
-    def placeholder_(self, request):
-        return instance_mock(request, _MasterPlaceholder)
+    def _iter_(self, request, placeholder_, placeholder_2_):
+        return method_mock(
+            request, _MasterPlaceholders, '__iter__',
+            return_value=iter([placeholder_, placeholder_2_])
+        )
 
     @pytest.fixture
     def _MasterShapeFactory_(self, request, placeholder_):
@@ -296,3 +321,15 @@ class Describe_MasterPlaceholders(object):
             request, 'pptx.parts.slidemaster._MasterShapeFactory',
             return_value=placeholder_
         )
+
+    @pytest.fixture
+    def ph_elm_(self, request):
+        return instance_mock(request, CT_Shape)
+
+    @pytest.fixture
+    def placeholder_(self, request):
+        return instance_mock(request, _MasterPlaceholder, ph_type='title')
+
+    @pytest.fixture
+    def placeholder_2_(self, request):
+        return instance_mock(request, _MasterPlaceholder, ph_type='body')
