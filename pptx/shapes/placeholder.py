@@ -9,6 +9,7 @@ to the underlying shape.
 
 from pptx.oxml.ns import namespaces
 from pptx.shapes.autoshape import Shape
+from pptx.shapes.shapetree import BaseShapeTree
 from pptx.spec import PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_OBJ
 
 
@@ -65,6 +66,13 @@ class Placeholder(object):
         Placeholder 'idx' attribute, e.g. '0'
         """
         return int(self._ph.get('idx', 0))
+
+
+class BasePlaceholders(BaseShapeTree):
+    """
+    Base class for placeholder collections that differentiate behaviors for
+    a master, layout, and slide.
+    """
 
 
 class BasePlaceholder(Shape):

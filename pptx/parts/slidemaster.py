@@ -10,7 +10,7 @@ from warnings import warn
 
 from pptx.oxml.ns import qn
 from pptx.parts.slide import BaseSlide
-from pptx.shapes.placeholder import BasePlaceholder
+from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
 from pptx.shapes.shapetree import BaseShapeFactory, BaseShapeTree
 from pptx.util import lazyproperty
 
@@ -137,3 +137,10 @@ class _MasterShapeTree(BaseShapeTree):
         *shape_elm*.
         """
         return _MasterShapeFactory(shape_elm, self)
+
+
+class _MasterPlaceholders(BasePlaceholders):
+    """
+    Sequence of _MasterPlaceholder instances representing the placeholder
+    shapes on a slide master.
+    """

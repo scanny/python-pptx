@@ -10,7 +10,9 @@ from behave import given, then
 
 from pptx import Presentation
 from pptx.parts.slidelayout import SlideLayout
-from pptx.parts.slidemaster import _MasterShapeTree, _SlideLayouts
+from pptx.parts.slidemaster import (
+    _MasterPlaceholder, _MasterPlaceholders, _MasterShapeTree, _SlideLayouts
+)
 from pptx.shapes.shape import BaseShape
 
 from .helpers import test_pptx
@@ -18,10 +20,22 @@ from .helpers import test_pptx
 
 # given ===================================================
 
+@given('a master placeholder collection')
+def given_master_placeholder_collection(context):
+    prs = Presentation(test_pptx('mst-placeholders'))
+    context.master_placeholders = prs.slide_master.placeholders
+
+
 @given('a master shape collection containing two shapes')
 def given_master_shape_collection_containing_two_shapes(context):
     prs = Presentation(test_pptx('mst-shapes'))
     context.master_shapes = prs.slide_master.shapes
+
+
+@given('a slide master having two placeholders')
+def given_master_having_two_placeholders(context):
+    prs = Presentation(test_pptx('mst-placeholders'))
+    context.slide_master = prs.slide_master
 
 
 @given('a slide master having two shapes')
@@ -44,6 +58,14 @@ def given_slide_layout_collection_containing_two_layouts(context):
 
 # then ====================================================
 
+@then('I can access a master placeholder by index')
+def then_can_access_master_placeholder_by_index(context):
+    master_placeholders = context.master_placeholders
+    for idx in range(2):
+        master_placeholder = master_placeholders[idx]
+        assert isinstance(master_placeholder, _MasterPlaceholder)
+
+
 @then('I can access a master shape by index')
 def then_can_access_master_shape_by_index(context):
     master_shapes = context.master_shapes
@@ -60,6 +82,14 @@ def then_can_access_slide_layout_by_index(context):
         assert isinstance(slide_layout, SlideLayout)
 
 
+@then('I can access the placeholder collection of the slide master')
+def then_can_access_placeholder_collection_of_slide_master(context):
+    slide_master = context.slide_master
+    master_placeholders = slide_master.placeholders
+    msg = 'SlideMaster.placeholders not instance of _MasterPlaceholders'
+    assert isinstance(master_placeholders, _MasterPlaceholders), msg
+
+
 @then('I can access the shape collection of the slide master')
 def then_can_access_shape_collection_of_slide_master(context):
     slide_master = context.slide_master
@@ -74,6 +104,16 @@ def then_can_access_slide_layouts_of_slide_master(context):
     slide_layouts = slide_master.slide_layouts
     msg = 'SlideMaster.slide_layouts not instance of _SlideLayouts'
     assert isinstance(slide_layouts, _SlideLayouts), msg
+
+
+@then('I can iterate over the master placeholders')
+def then_can_iterate_over_the_master_placeholders(context):
+    master_placeholders = context.master_placeholders
+    actual_count = 0
+    for master_placeholder in master_placeholders:
+        actual_count += 1
+        assert isinstance(master_placeholder, _MasterPlaceholder)
+    assert actual_count == 2
 
 
 @then('I can iterate over the master shapes')
@@ -102,6 +142,16 @@ def then_len_of_master_shape_collection_is_2(context):
     master_shapes = slide_master.shapes
     assert len(master_shapes) == 2, (
         'expected len(master_shapes) of 2, got %s' % len(master_shapes)
+    )
+
+
+@then('the length of the master placeholder collection is 2')
+def then_len_of_placeholder_collection_is_2(context):
+    slide_master = context.slide_master
+    master_placeholders = slide_master.placeholders
+    assert len(master_placeholders) == 2, (
+        'expected len(master_placeholders) of 2, got %s' %
+        len(master_placeholders)
     )
 
 

@@ -10,7 +10,6 @@ from pptx.oxml.ns import _nsmap, qn
 from pptx.oxml.picture import CT_Picture
 from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.picture import Picture
-from pptx.shapes.placeholder import Placeholder
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.table import Table
 from pptx.spec import slide_ph_basenames
@@ -222,6 +221,7 @@ class ShapeCollection(BaseShape):
         Immutable sequence containing the placeholder shapes in this shape
         collection, sorted in *idx* order.
         """
+        from pptx.shapes.placeholder import Placeholder
         placeholders = (
             [Placeholder(sp) for sp in self._shapes if sp.is_placeholder]
         )
@@ -242,6 +242,7 @@ class ShapeCollection(BaseShape):
         placeholders is preserved. Latent placeholders (date, slide number,
         and footer) are not cloned.
         """
+        from pptx.shapes.placeholder import Placeholder
         latent_ph_types = (PH_TYPE_DT, PH_TYPE_SLDNUM, PH_TYPE_FTR)
         for sp in slidelayout.shapes:
             if not sp.is_placeholder:

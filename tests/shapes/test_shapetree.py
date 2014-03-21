@@ -243,7 +243,8 @@ from mock import Mock, patch, PropertyMock
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.oxml.ns import namespaces, nsdecls
 from pptx.parts.slidelayout import SlideLayout
-from pptx.shapes.shapetree import Placeholder, ShapeCollection
+from pptx.shapes.placeholder import Placeholder
+from pptx.shapes.shapetree import ShapeCollection
 from pptx.spec import (
     PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
     PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE, PH_ORIENT_HORZ,
