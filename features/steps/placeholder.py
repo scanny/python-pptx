@@ -11,7 +11,7 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
 
-from .helpers import saved_pptx_path, test_text
+from .helpers import saved_pptx_path, test_pptx, test_text
 
 
 # given ===================================================
@@ -22,6 +22,12 @@ def given_a_bullet_body_placeholder(context):
     slide_layout = context.prs.slide_layouts[1]
     context.sld = context.prs.slides.add_slide(slide_layout)
     context.body = context.sld.shapes.placeholders[1]
+
+
+@given('a master placeholder')
+def given_a_master_placeholder(context):
+    prs = Presentation(test_pptx('ph-inherit-props'))
+    context.master_placeholder = prs.slide_master.placeholders[1]
 
 
 # when ====================================================
@@ -37,6 +43,20 @@ def step_when_set_slide_title_text(context):
 
 
 # then ====================================================
+
+@then('I can get the placeholder dimensions')
+def then_I_can_get_the_placeholder_dimensions(context):
+    placeholder = context.master_placeholder
+    assert placeholder.width == 6923112, 'got %d' % placeholder.width
+    assert placeholder.height == 3484984, 'got %d' % placeholder.height
+
+
+@then('I can get the placeholder position')
+def then_I_can_get_the_placeholder_position(context):
+    placeholder = context.master_placeholder
+    assert placeholder.left == 1110444, 'got %d' % placeholder.left
+    assert placeholder.top == 1686508, 'got %d' % placeholder.top
+
 
 @then('the paragraph is indented')
 def then_paragraph_is_indented(context):
