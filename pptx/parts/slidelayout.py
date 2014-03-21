@@ -10,6 +10,8 @@ from warnings import warn
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.parts.slide import BaseSlide
+from pptx.shapes.placeholder import BasePlaceholder
+from pptx.shapes.shapetree import BaseShapeTree
 
 
 class SlideLayout(BaseSlide):
@@ -35,3 +37,19 @@ class SlideLayout(BaseSlide):
         )
         warn(msg, UserWarning, stacklevel=2)
         return self.slide_master
+
+
+class _LayoutShapeTree(BaseShapeTree):
+    """
+    Sequence of shapes appearing on a slide layout. The first shape in the
+    sequence is the backmost in z-order and the last shape is topmost.
+    Supports indexed access, len(), index(), and iteration.
+    """
+
+
+class _LayoutPlaceholder(BasePlaceholder):
+    """
+    Placeholder shape on a slide layout, providing differentiated behavior
+    for slide layout placeholders, in particular, inheriting shape properties
+    from the master placeholder having the same type.
+    """
