@@ -54,6 +54,21 @@ class _LayoutShapeTree(BaseShapeTree):
     sequence is the backmost in z-order and the last shape is topmost.
     Supports indexed access, len(), index(), and iteration.
     """
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        parent = self
+        return _LayoutShapeFactory(shape_elm, parent)
+
+
+def _LayoutShapeFactory(shape_elm, parent):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm* on a slide layout.
+        """
+        raise NotImplementedError
 
 
 class _LayoutPlaceholder(BasePlaceholder):

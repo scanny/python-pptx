@@ -139,16 +139,16 @@ class DescribeBaseSlide(object):
 
 class DescribeSlide(object):
 
-    def it_establishes_a_relationship_to_its_slide_layout_on_construction(
-            self, relate_to_):
-        """Slide(slidelayout) adds relationship slide->slidelayout"""
-        # setup ------------------------
-        slidelayout = SlideLayout(None, None, _sldLayout1(), None)
-        partname = PackURI('/ppt/slides/slide1.xml')
-        # exercise ---------------------
-        slide = Slide.new(slidelayout, partname, None)
-        # verify ----------------------
-        slide.relate_to.assert_called_once_with(slidelayout, RT.SLIDE_LAYOUT)
+    # def it_establishes_a_relationship_to_its_slide_layout_on_construction(
+    #         self, relate_to_):
+    #     """Slide(slidelayout) adds relationship slide->slidelayout"""
+    #     # setup ------------------------
+    #     slidelayout = SlideLayout(None, None, _sldLayout1(), None)
+    #     partname = PackURI('/ppt/slides/slide1.xml')
+    #     # exercise ---------------------
+    #     slide = Slide.new(slidelayout, partname, None)
+    #     # verify ----------------------
+    #     slide.relate_to.assert_called_once_with(slidelayout, RT.SLIDE_LAYOUT)
 
     # def it_creates_a_minimal_sld_element_on_construction(self, slide):
     #     """Slide._element is minimal sld on construction"""

@@ -3,6 +3,7 @@ Feature: Add a new slide
   As a python developer using python-pptx
   I need to add a new slide to a presentation
 
+  @wip
   Scenario: Add a new slide to a presentation
      Given I have an empty presentation open
       When I add a new slide

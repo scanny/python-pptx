@@ -3,12 +3,14 @@ Feature: Change text of a placeholder shape
   As a developer using python-pptx
   I need to set the text in a placeholder shape
 
+  @wip
   Scenario: Set the title of a title slide
      Given I have a reference to a slide
       When I set the title text of the slide
        And I save the presentation
       Then the text appears in the title placeholder
 
+  @wip
   Scenario: Round-trip paragraph level setting
      Given a bullet body placeholder
       When I indent the first paragraph

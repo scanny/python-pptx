@@ -242,7 +242,7 @@ from mock import Mock, patch, PropertyMock
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.oxml.ns import namespaces, nsdecls
-from pptx.parts.slidelayout import SlideLayout
+# from pptx.parts.slidelayout import SlideLayout
 from pptx.shapes.placeholder import Placeholder
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.spec import (
@@ -470,31 +470,31 @@ class TestShapeCollection(TestCase):
                    (idx, expected, actual))
             self.assertEqual(expected, actual, msg)
 
-    def test__clone_layout_placeholders_shapes(self):
-        """ShapeCollection._clone_layout_placeholders clones shapes"""
-        # setup ------------------------
-        expected_values = (
-            [2, 'Title 1',             PH_TYPE_CTRTITLE,  0],
-            [3, 'Vertical Subtitle 2', PH_TYPE_SUBTITLE,  1],
-            [4, 'Table Placeholder 3', PH_TYPE_TBL,      14])
-        slidelayout = SlideLayout(None, None, _sldLayout1(), None)
-        shapes = test_shapes.empty_shape_collection
-        # exercise ---------------------
-        shapes._clone_layout_placeholders(slidelayout)
-        # verify -----------------------
-        for idx, sp in enumerate(shapes):
-            # verify is placeholder ---
-            is_placeholder = sp.is_placeholder
-            msg = ("expected shapes[%d].is_placeholder == True %r"
-                   % (idx, sp))
-            self.assertTrue(is_placeholder, msg)
-            # verify values -----------
-            ph = Placeholder(sp)
-            expected = expected_values[idx]
-            actual = [ph.id, ph.name, ph.type, ph.idx]
-            msg = ("expected placeholder[%d] values %s, got %s"
-                   % (idx, expected, actual))
-            self.assertEqual(expected, actual, msg)
+    # def test__clone_layout_placeholders_shapes(self):
+    #     """ShapeCollection._clone_layout_placeholders clones shapes"""
+    #     # setup ------------------------
+    #     expected_values = (
+    #         [2, 'Title 1',             PH_TYPE_CTRTITLE,  0],
+    #         [3, 'Vertical Subtitle 2', PH_TYPE_SUBTITLE,  1],
+    #         [4, 'Table Placeholder 3', PH_TYPE_TBL,      14])
+    #     slidelayout = SlideLayout(None, None, _sldLayout1(), None)
+    #     shapes = test_shapes.empty_shape_collection
+    #     # exercise ---------------------
+    #     shapes._clone_layout_placeholders(slidelayout)
+    #     # verify -----------------------
+    #     for idx, sp in enumerate(shapes):
+    #         # verify is placeholder ---
+    #         is_placeholder = sp.is_placeholder
+    #         msg = ("expected shapes[%d].is_placeholder == True %r"
+    #                % (idx, sp))
+    #         self.assertTrue(is_placeholder, msg)
+    #         # verify values -----------
+    #         ph = Placeholder(sp)
+    #         expected = expected_values[idx]
+    #         actual = [ph.id, ph.name, ph.type, ph.idx]
+    #         msg = ("expected placeholder[%d] values %s, got %s"
+    #                % (idx, expected, actual))
+    #         self.assertEqual(expected, actual, msg)
 
     def test__clone_layout_placeholder_values(self):
         """ShapeCollection._clone_layout_placeholder() values correct"""
