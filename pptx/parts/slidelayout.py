@@ -12,6 +12,7 @@ from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.parts.slide import BaseSlide
 from pptx.shapes.placeholder import BasePlaceholder
 from pptx.shapes.shapetree import BaseShapeTree
+from pptx.util import lazyproperty
 
 
 class SlideLayout(BaseSlide):
@@ -19,6 +20,14 @@ class SlideLayout(BaseSlide):
     Slide layout part. Corresponds to package files
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
+    @lazyproperty
+    def shapes(self):
+        """
+        Instance of |_LayoutShapeTree| containing sequence of shapes
+        appearing on this slide layout.
+        """
+        return _LayoutShapeTree(self)
+
     @property
     def slide_master(self):
         """
