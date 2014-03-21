@@ -12,8 +12,8 @@ from pptx.oxml.autoshape import CT_Shape
 from pptx.oxml.slidemaster import CT_SlideLayoutIdList
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import (
-    _MasterPlaceholder, _MasterShapeFactory, _MasterShapeTree, _SlideLayouts,
-    SlideMaster
+    _MasterPlaceholder, _MasterPlaceholders, _MasterShapeFactory,
+    _MasterShapeTree, _SlideLayouts, SlideMaster
 )
 from pptx.shapes.shape import BaseShape
 
@@ -27,6 +27,11 @@ from ..unitutil import (
 
 
 class DescribeSlideMaster(object):
+
+    def it_provides_access_to_its_placeholders(self, slide_master):
+        placeholders = slide_master.placeholders
+        assert isinstance(placeholders, _MasterPlaceholders)
+        assert placeholders._slide is slide_master
 
     def it_provides_access_to_its_shapes(self, slide_master):
         shapes = slide_master.shapes

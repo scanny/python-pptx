@@ -21,6 +21,14 @@ class SlideMaster(BaseSlide):
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     """
     @lazyproperty
+    def placeholders(self):
+        """
+        Instance of |_MasterPlaceholders| containing sequence of placeholder
+        shapes in this slide master, sorted in *idx* order.
+        """
+        return _MasterPlaceholders(self)
+
+    @lazyproperty
     def shapes(self):
         """
         Instance of |_MasterShapeTree| containing sequence of shape objects
