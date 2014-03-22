@@ -11,7 +11,8 @@ import pytest
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.autoshape import CT_Shape
 from pptx.parts.slidelayout import (
-    _LayoutPlaceholder, _LayoutShapeFactory, _LayoutShapeTree, SlideLayout
+    _LayoutPlaceholder, _LayoutPlaceholders, _LayoutShapeFactory,
+    _LayoutShapeTree, SlideLayout
 )
 from pptx.parts.slidemaster import SlideMaster
 from pptx.shapes.shape import BaseShape
@@ -34,12 +35,26 @@ class DescribeSlideLayout(object):
         _LayoutShapeTree_.assert_called_once_with(slide_layout)
         assert shapes is layout_shape_tree_
 
+    def it_provides_access_to_its_placeholders(self, placeholders_fixture):
+        slide_layout, _LayoutPlaceholders_, layout_placeholders_ = (
+            placeholders_fixture
+        )
+        placeholders = slide_layout.placeholders
+        _LayoutPlaceholders_.assert_called_once_with(slide_layout)
+        assert placeholders is layout_placeholders_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
     def master_fixture(self, slide_master_, part_related_by_):
         slide_layout = SlideLayout(None, None, None, None)
         return slide_layout, slide_master_
+
+    @pytest.fixture
+    def placeholders_fixture(
+            self, _LayoutPlaceholders_, layout_placeholders_):
+        slide_layout = SlideLayout(None, None, None, None)
+        return slide_layout, _LayoutPlaceholders_, layout_placeholders_
 
     @pytest.fixture
     def shapes_fixture(self, _LayoutShapeTree_, layout_shape_tree_):
@@ -49,11 +64,22 @@ class DescribeSlideLayout(object):
     # fixture components -----------------------------------
 
     @pytest.fixture
+    def _LayoutPlaceholders_(self, request, layout_placeholders_):
+        return class_mock(
+            request, 'pptx.parts.slidelayout._LayoutPlaceholders',
+            return_value=layout_placeholders_
+        )
+
+    @pytest.fixture
     def _LayoutShapeTree_(self, request, layout_shape_tree_):
         return class_mock(
             request, 'pptx.parts.slidelayout._LayoutShapeTree',
             return_value=layout_shape_tree_
         )
+
+    @pytest.fixture
+    def layout_placeholders_(self, request):
+        return instance_mock(request, _LayoutPlaceholders)
 
     @pytest.fixture
     def layout_shape_tree_(self, request):

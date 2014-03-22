@@ -22,6 +22,14 @@ class SlideLayout(BaseSlide):
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
     @lazyproperty
+    def placeholders(self):
+        """
+        Instance of |_LayoutPlaceholders| containing sequence of placeholder
+        shapes in this slide layout, sorted in *idx* order.
+        """
+        return _LayoutPlaceholders(self)
+
+    @lazyproperty
     def shapes(self):
         """
         Instance of |_LayoutShapeTree| containing sequence of shapes
