@@ -209,7 +209,24 @@ class Describe_LayoutPlaceholders(object):
         )
         assert layout_placeholder is layout_placeholder_
 
+    def it_can_find_a_placeholder_by_idx_value(self, get_fixture):
+        layout_placeholders, ph_idx, placeholder_ = get_fixture
+        placeholder = layout_placeholders.get(idx=ph_idx)
+        assert placeholder is placeholder_
+
+    def it_returns_default_if_placeholder_having_idx_not_found(
+            self, default_fixture):
+        layout_placeholders = default_fixture
+        default = 'barfoo'
+        placeholder = layout_placeholders.get('foobar', default)
+        assert placeholder is default
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def default_fixture(self, _iter_):
+        layout_placeholders = _LayoutPlaceholders(None)
+        return layout_placeholders
 
     @pytest.fixture
     def factory_fixture(
@@ -220,7 +237,21 @@ class Describe_LayoutPlaceholders(object):
             layout_placeholder_
         )
 
+    @pytest.fixture(params=[0, 1])
+    def get_fixture(self, request, _iter_, placeholder_, placeholder_2_):
+        layout_placeholders = _LayoutPlaceholders(None)
+        ph_idx = request.param
+        ph_shape_ = {0: placeholder_, 1: placeholder_2_}[request.param]
+        return layout_placeholders, ph_idx, ph_shape_
+
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _iter_(self, request, placeholder_, placeholder_2_):
+        return method_mock(
+            request, _LayoutPlaceholders, '__iter__',
+            return_value=iter([placeholder_, placeholder_2_])
+        )
 
     @pytest.fixture
     def layout_placeholder_(self, request):
@@ -236,3 +267,11 @@ class Describe_LayoutPlaceholders(object):
     @pytest.fixture
     def ph_elm_(self, request):
         return instance_mock(request, CT_Shape)
+
+    @pytest.fixture
+    def placeholder_(self, request):
+        return instance_mock(request, _LayoutPlaceholder, idx=0)
+
+    @pytest.fixture
+    def placeholder_2_(self, request):
+        return instance_mock(request, _LayoutPlaceholder, idx=1)

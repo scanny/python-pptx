@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Slide objects, including Slide and SlideMaster.
+Slide layout-related objects.
 """
 
 from __future__ import absolute_import
@@ -96,6 +96,16 @@ class _LayoutPlaceholders(BasePlaceholders):
     Sequence of _LayoutPlaceholder instances representing the placeholder
     shapes on a slide layout.
     """
+    def get(self, idx, default=None):
+        """
+        Return the first placeholder shape with matching *idx* value, or
+        *default* if not found.
+        """
+        for placeholder in self:
+            if placeholder.idx == idx:
+                return placeholder
+        return default
+
     def _shape_factory(self, shape_elm):
         """
         Return an instance of the appropriate shape proxy class for

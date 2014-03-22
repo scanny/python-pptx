@@ -83,6 +83,13 @@ class BasePlaceholder(Shape):
     behaviors of placeholders on a master, layout, and slide.
     """
     @property
+    def idx(self):
+        """
+        Placeholder 'idx' attribute, e.g. '0'
+        """
+        raise NotImplementedError
+
+    @property
     def ph_type(self):
         """
         Placeholder type, e.g. PH_TYPE_CTRTITLE
