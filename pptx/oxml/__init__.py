@@ -103,6 +103,10 @@ from pptx.oxml.shapetree import CT_GroupShape
 register_custom_element_class('p:spTree',  CT_GroupShape)
 
 
+from pptx.oxml.slide import CT_Slide
+register_custom_element_class('p:sld', CT_Slide)
+
+
 from pptx.oxml.slidemaster import (
     CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry, CT_SlideMaster
 )

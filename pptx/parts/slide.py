@@ -210,3 +210,18 @@ class SlideCollection(object):
         """
         partname_str = '/ppt/slides/slide%d.xml' % (len(self)+1)
         return PackURI(partname_str)
+
+
+class _SlideShapeTree(BaseShapeTree):
+    """
+    Sequence of shapes appearing on a slide. The first shape in the sequence
+    is the backmost in z-order and the last shape is topmost. Supports indexed
+    access, len(), index(), and iteration.
+    """
+    def _clone_layout_placeholders(self, slidelayout):
+        """
+        Add placeholder shapes based on those in *slidelayout*. Z-order of
+        placeholders is preserved. Latent placeholders (date, slide number,
+        and footer) are not cloned.
+        """
+        raise NotImplementedError

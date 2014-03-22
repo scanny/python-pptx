@@ -11,30 +11,27 @@ import pytest
 from lxml import objectify
 from mock import ANY, call, MagicMock
 
-from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part, _Relationship
-from pptx.oxml.ns import namespaces
+from pptx.oxml.ns import _nsmap
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
 from pptx.oxml.shapetree import CT_GroupShape
+from pptx.oxml.slide import CT_Slide
 from pptx.package import Package
 from pptx.parts.presentation import PresentationPart
+from pptx.parts.slide import (
+    BaseSlide, Slide, SlideCollection, _SlideShapeTree
+)
 from pptx.parts.slidelayout import SlideLayout
-from pptx.parts.slide import BaseSlide, Slide, SlideCollection
 from pptx.shapes.shapetree import ShapeCollection
 
 from ..oxml.unitdata.shape import an_spTree
 from ..oxml.unitdata.slides import a_sld, a_cSld
 from ..unitutil import (
-    absjoin, class_mock, instance_mock, loose_mock, method_mock,
-    parse_xml_file, serialize_xml, test_file_dir
+    absjoin, class_mock, initializer_mock, instance_mock, loose_mock,
+    method_mock, parse_xml_file, property_mock, serialize_xml, test_file_dir
 )
-
-
-test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
-test_pptx_path = absjoin(test_file_dir, 'test.pptx')
-
-nsmap = namespaces('a', 'r', 'p')
 
 
 def actual_xml(elm):
@@ -50,7 +47,7 @@ def _sldLayout1():
 
 def _sldLayout1_shapes():
     sldLayout = _sldLayout1()
-    spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
+    spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=_nsmap)[0]
     shapes = ShapeCollection(spTree)
     return shapes
 
@@ -139,66 +136,30 @@ class DescribeBaseSlide(object):
 
 class DescribeSlide(object):
 
-    # def it_establishes_a_relationship_to_its_slide_layout_on_construction(
-    #         self, relate_to_):
-    #     """Slide(slidelayout) adds relationship slide->slidelayout"""
-    #     # setup ------------------------
-    #     slidelayout = SlideLayout(None, None, _sldLayout1(), None)
-    #     partname = PackURI('/ppt/slides/slide1.xml')
-    #     # exercise ---------------------
-    #     slide = Slide.new(slidelayout, partname, None)
-    #     # verify ----------------------
-    #     slide.relate_to.assert_called_once_with(slidelayout, RT.SLIDE_LAYOUT)
+    def it_can_create_a_new_slide(self, new_fixture):
+        slide_layout_, partname_, package_ = new_fixture[:3]
+        Slide_init_, slide_elm_, shapes_, relate_to_ = new_fixture[3:]
+        slide = Slide.new(slide_layout_, partname_, package_)
+        Slide_init_.assert_called_once_with(
+            partname_, CT.PML_SLIDE, slide_elm_, package_
+        )
+        shapes_._clone_layout_placeholders.assert_called_once_with(
+            slide_layout_
+        )
+        relate_to_.assert_called_once_with(
+            slide_layout_, RT.SLIDE_LAYOUT
+        )
+        assert isinstance(slide, Slide)
 
-    # def it_creates_a_minimal_sld_element_on_construction(self, slide):
-    #     """Slide._element is minimal sld on construction"""
-    #     # setup ------------------------
-    #     slidelayout = SlideLayout(None, None, _sldLayout1())
-    #     partname = PackURI('/ppt/slides/slide1.xml')
-    #     slide = Slide.new(slidelayout, partname)
-    #     path = absjoin(test_file_dir, 'minimal_slide.xml')
-    #     # exercise ---------------------
-    #     elm = slide._element
-    #     # verify -----------------------
-    #     with open(path, 'r') as f:
-    #         expected_xml = f.read()
-    #     assert actual_xml(elm) == expected_xml
-
-    # def it_has_slidelayout_property_of_none_on_construction(self, slide):
-    #     """Slide.slidelayout property None on construction"""
-    #     assert slide.slidelayout is None
-
-    # def it_sets_slidelayout_on_load(self, slide):
-    #     """Slide._load() sets slidelayout"""
-    #     # setup ------------------------
-    #     path = absjoin(test_file_dir, 'slide1.xml')
-    #     slidelayout = Mock(name='slideLayout')
-    #     slidelayout.partname = '/ppt/slideLayouts/slideLayout1.xml'
-    #     rel = Mock(name='pptx.package.Relationship')
-    #     rel.rId = 'rId1'
-    #     rel.reltype = RT.SLIDE_LAYOUT
-    #     rel.target = slidelayout
-    #     pkgpart = Mock(name='pptx.package.Part')
-    #     with open(path, 'rb') as f:
-    #         pkgpart.blob = f.read()
-    #     pkgpart.relationships = [rel]
-    #     part_dict = {slidelayout.partname: slidelayout}
-    #     slide_ = slide.load(pkgpart, part_dict)
-    #     # exercise ---------------------
-    #     retval = slide_.slidelayout
-    #     # verify -----------------------
-    #     expected = slidelayout
-    #     actual = retval
-    #     msg = "expected: %s, got %s" % (expected, actual)
-    #     assert actual == expected, msg
+    def it_knows_the_slide_layout_it_inherits_from(self, layout_fixture):
+        slide, slide_layout_ = layout_fixture
+        slide_layout = slide.slide_layout
+        slide.part_related_by.assert_called_once_with(RT.SLIDE_LAYOUT)
+        assert slide_layout is slide_layout_
 
     def it_knows_the_minimal_element_xml_for_a_slide(self, slide):
-        """Slide._minimal_element generates correct XML"""
-        # setup ------------------------
         path = absjoin(test_file_dir, 'minimal_slide.xml')
-        # exercise ---------------------
         sld = slide._minimal_element()
-        # verify -----------------------
         with open(path, 'r') as f:
             expected_xml = f.read()
         assert actual_xml(sld) == expected_xml
@@ -206,12 +167,70 @@ class DescribeSlide(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
+    def layout_fixture(self, slide_layout_, part_related_by_):
+        slide = Slide(None, None, None, None)
+        return slide, slide_layout_
+
+    @pytest.fixture
+    def new_fixture(
+            self, slide_layout_, partname_, package_, Slide_init_,
+            _minimal_element_, slide_elm_, shapes_prop_, shapes_,
+            relate_to_):
+        return (
+            slide_layout_, partname_, package_, Slide_init_, slide_elm_,
+            shapes_, relate_to_
+        )
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _minimal_element_(self, request, slide_elm_):
+        return method_mock(
+            request, Slide, '_minimal_element', return_value=slide_elm_
+        )
+
+    @pytest.fixture
+    def package_(self, request):
+        return instance_mock(request, Package)
+
+    @pytest.fixture
+    def part_related_by_(self, request, slide_layout_):
+        return method_mock(
+            request, Slide, 'part_related_by',
+            return_value=slide_layout_
+        )
+
+    @pytest.fixture
+    def partname_(self, request):
+        return instance_mock(request, PackURI)
+
+    @pytest.fixture
     def relate_to_(self, request):
         return method_mock(request, Part, 'relate_to')
 
     @pytest.fixture
+    def shapes_(self, request):
+        return instance_mock(request, _SlideShapeTree)
+
+    @pytest.fixture
+    def shapes_prop_(self, request, shapes_):
+        return property_mock(request, Slide, 'shapes', return_value=shapes_)
+
+    @pytest.fixture
     def slide(self):
         return Slide(None, None, None, None)
+
+    @pytest.fixture
+    def slide_elm_(self, request):
+        return instance_mock(request, CT_Slide)
+
+    @pytest.fixture
+    def Slide_init_(self, request):
+        return initializer_mock(request, Slide)
+
+    @pytest.fixture
+    def slide_layout_(self, request):
+        return instance_mock(request, SlideLayout)
 
 
 class DescribeSlideCollection(object):
