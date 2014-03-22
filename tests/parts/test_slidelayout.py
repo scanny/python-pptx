@@ -17,7 +17,9 @@ from pptx.parts.slidelayout import (
 from pptx.parts.slidemaster import SlideMaster
 from pptx.shapes.shape import BaseShape
 
-from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
+from ..oxml.unitdata.shape import (
+    a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr, an_xfrm
+)
 from ..unitutil import class_mock, function_mock, instance_mock, method_mock
 
 
@@ -287,7 +289,32 @@ class Describe_LayoutPlaceholder(object):
         _direct_or_inherited_value_.assert_called_once_with(attr_name)
         assert value == expected_value
 
+    def it_provides_direct_property_values_when_they_exist(
+            self, direct_fixture):
+        layout_placeholder, expected_width = direct_fixture
+        width = layout_placeholder.width
+        assert width == expected_width
+
+    def it_provides_inherited_property_values_when_no_direct_value(
+            self, inherited_fixture):
+        layout_placeholder, _inherited_value_, inherited_left_ = (
+            inherited_fixture
+        )
+        left = layout_placeholder.left
+        _inherited_value_.assert_called_once_with('left')
+        assert left == inherited_left_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def direct_fixture(self, sp, width):
+        layout_placeholder = _LayoutPlaceholder(sp, None)
+        return layout_placeholder, width
+
+    @pytest.fixture
+    def inherited_fixture(self, sp, _inherited_value_, int_value_):
+        layout_placeholder = _LayoutPlaceholder(sp, None)
+        return layout_placeholder, _inherited_value_, int_value_
 
     @pytest.fixture(params=['left', 'top', 'width', 'height'])
     def xfrm_fixture(self, request, _direct_or_inherited_value_, int_value_):
@@ -308,5 +335,25 @@ class Describe_LayoutPlaceholder(object):
         )
 
     @pytest.fixture
+    def _inherited_value_(self, request, int_value_):
+        return method_mock(
+            request, _LayoutPlaceholder, '_inherited_value',
+            return_value=int_value_
+        )
+
+    @pytest.fixture
     def int_value_(self, request):
         return instance_mock(request, int)
+
+    @pytest.fixture
+    def sp(self, width):
+        return (
+            an_sp().with_nsdecls('p', 'a').with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_ext().with_cx(width))))
+        ).element
+
+    @pytest.fixture
+    def width(self):
+        return 31416

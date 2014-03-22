@@ -131,6 +131,19 @@ class _LayoutPlaceholder(BasePlaceholder):
         directly-applied value if it has one, otherwise the value on the
         master placeholder it inherits from.
         """
+        directly_applied_value = getattr(
+            super(_LayoutPlaceholder, self), attr_name
+        )
+        if directly_applied_value is not None:
+            return directly_applied_value
+        inherited_value = self._inherited_value(attr_name)
+        return inherited_value
+
+    def _inherited_value(self, attr_name):
+        """
+        The attribute value, e.g. 'width' of the parent master placeholder of
+        this placeholder shape
+        """
         raise NotImplementedError
 
 
