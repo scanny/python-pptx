@@ -24,6 +24,18 @@ def given_a_bullet_body_placeholder(context):
     context.body = context.sld.shapes.placeholders[1]
 
 
+@given('a layout placeholder having directly set position and size')
+def given_layout_placeholder_with_directly_set_pos_and_size(context):
+    prs = Presentation(test_pptx('ph-inherit-props'))
+    context.layout_placeholder = prs.slide_layouts[0].placeholders[1]
+
+
+@given('a layout placeholder having no direct position or size settings')
+def given_layout_placeholder_with_no_direct_pos_or_size_settings(context):
+    prs = Presentation(test_pptx('ph-inherit-props'))
+    context.layout_placeholder = prs.slide_layouts[0].placeholders[0]
+
+
 @given('a master placeholder')
 def given_a_master_placeholder(context):
     prs = Presentation(test_pptx('ph-inherit-props'))
@@ -56,6 +68,24 @@ def then_I_can_get_the_placeholder_position(context):
     placeholder = context.master_placeholder
     assert placeholder.left == 1110444, 'got %d' % placeholder.left
     assert placeholder.top == 1686508, 'got %d' % placeholder.top
+
+
+@then('I get the direct settings when I query position and size')
+def then_I_get_direct_settings_when_query_pos_and_size(context):
+    placeholder = context.layout_placeholder
+    assert placeholder.left == 468312, 'got %d' % placeholder.left
+    assert placeholder.top == 1700212, 'got %d' % placeholder.top
+    assert placeholder.width == 8208143, 'got %d' % placeholder.width
+    assert placeholder.height == 4537099, 'got %d' % placeholder.height
+
+
+@then('I get inherited settings when I query position and size')
+def then_I_get_inherited_settings_when_I_query_position_and_size(context):
+    placeholder = context.layout_placeholder
+    assert placeholder.left == 457200, 'got %d' % placeholder.left
+    assert placeholder.top == 274638, 'got %d' % placeholder.top
+    assert placeholder.width == 8229600, 'got %d' % placeholder.width
+    assert placeholder.height == 1143000, 'got %d' % placeholder.height
 
 
 @then('the paragraph is indented')
