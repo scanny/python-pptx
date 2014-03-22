@@ -275,3 +275,38 @@ class Describe_LayoutPlaceholders(object):
     @pytest.fixture
     def placeholder_2_(self, request):
         return instance_mock(request, _LayoutPlaceholder, idx=1)
+
+
+class Describe_LayoutPlaceholder(object):
+
+    def it_considers_inheritance_when_computing_pos_and_size(
+            self, xfrm_fixture):
+        layout_placeholder, _direct_or_inherited_value_ = xfrm_fixture[:2]
+        attr_name, expected_value = xfrm_fixture[2:]
+        value = getattr(layout_placeholder, attr_name)
+        _direct_or_inherited_value_.assert_called_once_with(attr_name)
+        assert value == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=['left', 'top', 'width', 'height'])
+    def xfrm_fixture(self, request, _direct_or_inherited_value_, int_value_):
+        attr_name = request.param
+        layout_placeholder = _LayoutPlaceholder(None, None)
+        _direct_or_inherited_value_.return_value = int_value_
+        return (
+            layout_placeholder, _direct_or_inherited_value_, attr_name,
+            int_value_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _direct_or_inherited_value_(self, request):
+        return method_mock(
+            request, _LayoutPlaceholder, '_direct_or_inherited_value'
+        )
+
+    @pytest.fixture
+    def int_value_(self, request):
+        return instance_mock(request, int)

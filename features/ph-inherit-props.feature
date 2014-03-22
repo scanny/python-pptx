@@ -8,6 +8,7 @@ Feature: Placeholder inherits properties
       Then I can get the placeholder position
        And I can get the placeholder dimensions
 
+  @wip
   Scenario: Layout placeholder direct property settings
      Given a layout placeholder having directly set position and size
       Then I get the direct settings when I query position and size
