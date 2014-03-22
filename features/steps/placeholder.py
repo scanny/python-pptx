@@ -82,10 +82,10 @@ def then_I_get_direct_settings_when_query_pos_and_size(context):
 @then('I get inherited settings when I query position and size')
 def then_I_get_inherited_settings_when_I_query_position_and_size(context):
     placeholder = context.layout_placeholder
-    assert placeholder.left == 457200, 'got %d' % placeholder.left
-    assert placeholder.top == 274638, 'got %d' % placeholder.top
-    assert placeholder.width == 8229600, 'got %d' % placeholder.width
-    assert placeholder.height == 1143000, 'got %d' % placeholder.height
+    assert placeholder.left == 457200, 'got %s' % placeholder.left
+    assert placeholder.top == 274638, 'got %s' % placeholder.top
+    assert placeholder.width == 8229600, 'got %s' % placeholder.width
+    assert placeholder.height == 1143000, 'got %s' % placeholder.height
 
 
 @then('the paragraph is indented')

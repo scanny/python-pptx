@@ -10,7 +10,7 @@ from lxml import objectify
 
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import BaseOxmlElement, child, Element, SubElement
-from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.ns import nsdecls, _nsmap, qn
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
 from pptx.spec import (
@@ -306,6 +306,26 @@ class CT_ShapeProperties(BaseOxmlElement):
     Custom element class for <p:spPr> element.
     """
     @property
+    def cx(self):
+        """
+        Shape width, or None if not present.
+        """
+        cx_str_lst = self.xpath('./a:xfrm/a:ext/@cx', namespaces=_nsmap)
+        if not cx_str_lst:
+            return None
+        return int(cx_str_lst[0])
+
+    @property
+    def cy(self):
+        """
+        Shape height, or None if not present.
+        """
+        cy_str_lst = self.xpath('./a:xfrm/a:ext/@cy', namespaces=_nsmap)
+        if not cy_str_lst:
+            return None
+        return int(cy_str_lst[0])
+
+    @property
     def eg_fillproperties(self):
         """
         Return the child representing the EG_FillProperties element group
@@ -373,11 +393,32 @@ class CT_ShapeProperties(BaseOxmlElement):
         return self.find(qn('a:solidFill'))
 
     @property
+    def x(self):
+        """
+        The integer value of `./xfrm/off/@x` attribute, or None if not
+        present.
+        """
+        x_str_lst = self.xpath('./a:xfrm/a:off/@x', namespaces=_nsmap)
+        if not x_str_lst:
+            return None
+        return int(x_str_lst[0])
+
+    @property
     def xfrm(self):
         """
         The <a:xfrm> child element, or None if not present.
         """
         return self.find(qn('a:xfrm'))
+
+    @property
+    def y(self):
+        """
+        The top of the shape, or None if not present.
+        """
+        y_str_lst = self.xpath('./a:xfrm/a:off/@y', namespaces=_nsmap)
+        if not y_str_lst:
+            return None
+        return int(y_str_lst[0])
 
     def _add_noFill(self):
         """

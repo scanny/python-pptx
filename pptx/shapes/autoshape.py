@@ -316,7 +316,8 @@ class Shape(BaseShape):
         """
         Distance between top and bottom extents of shape in integer EMUs.
         """
-        return self._ext.cy
+        spPr = self._sp.spPr
+        return spPr.cy
 
     @height.setter
     def height(self, value):
@@ -328,7 +329,8 @@ class Shape(BaseShape):
         Distance between left edge of slide and left edge of this shape, in
         EMU.
         """
-        return self._off.x
+        spPr = self._sp.spPr
+        return spPr.x
 
     @left.setter
     def left(self, value):
@@ -354,7 +356,8 @@ class Shape(BaseShape):
         """
         Distance between top of slide and top edge of this shape, in EMU.
         """
-        return self._off.y
+        spPr = self._sp.spPr
+        return spPr.y
 
     @top.setter
     def top(self, value):
@@ -365,7 +368,8 @@ class Shape(BaseShape):
         """
         Distance between left and right extents of shape in integer EMUs.
         """
-        return self._ext.cx
+        spPr = self._sp.spPr
+        return spPr.cx
 
     @width.setter
     def width(self, value):

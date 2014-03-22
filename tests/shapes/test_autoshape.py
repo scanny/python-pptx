@@ -326,15 +326,15 @@ class DescribeShape(object):
     def it_has_a_fill(self, shape):
         assert isinstance(shape.fill, FillFormat)
 
-    def it_has_a_position(self, shape_with_position):
-        shape, left, top = shape_with_position
-        assert shape.left == left
-        assert shape.top == top
+    def it_has_a_position(self, position_get_fixture):
+        shape, expected_left, expected_top = position_get_fixture
+        assert shape.left == expected_left
+        assert shape.top == expected_top
 
-    def it_has_dimensions(self, shape_with_dimensions):
-        shape, width, height = shape_with_dimensions
-        assert shape.width == width
-        assert shape.height == height
+    def it_has_dimensions(self, dimensions_get_fixture):
+        shape, expected_width, expected_height = dimensions_get_fixture
+        assert shape.width == expected_width
+        assert shape.height == expected_height
 
     def it_can_change_its_position(self, position_set_fixture):
         shape, left, top, xfrm_xml = position_set_fixture
@@ -379,11 +379,67 @@ class DescribeShape(object):
         shape = Shape(sp_, None)
         return shape, autoshape_type, AutoShapeType_, prst
 
+    @pytest.fixture(params=[True, False])
+    def dimensions_get_fixture(self, request):
+        has_directly_applied_dimensions = request.param
+        spPr_bldr = an_spPr()
+        width, height = None, None
+        if has_directly_applied_dimensions:
+            width, height = 234, 567
+            xfrm_bldr = an_xfrm().with_child(
+                an_ext().with_cx(width).with_cy(height)
+            )
+            spPr_bldr.with_child(xfrm_bldr)
+        sp = an_sp().with_nsdecls().with_child(spPr_bldr).element
+        shape = Shape(sp, None)
+        return shape, width, height
+
+    @pytest.fixture
+    def dimensions_set_fixture(self):
+        sp = an_sp().with_nsdecls().with_child(an_spPr()).element
+        shape = Shape(sp, None)
+        width, height = 626, 262
+        xfrm_xml = (
+            an_xfrm().with_nsdecls('a', 'p').with_child(
+                an_ext().with_cx(width).with_cy(height))
+            .xml()
+        )
+        return shape, width, height, xfrm_xml
+
     @pytest.fixture
     def init_adjs_fixture_(
             self, request, sp_, adjustments_, AdjustmentCollection_):
         shape = Shape(sp_, None)
         return shape, adjustments_, AdjustmentCollection_, sp_
+
+    @pytest.fixture(params=[True, False])
+    def position_get_fixture(self, request):
+        has_directly_applied_position = request.param
+        spPr_bldr = an_spPr()
+        left, top = None, None
+        if has_directly_applied_position:
+            left, top = 123, 456
+            xfrm_bldr = an_xfrm().with_child(
+                an_off().with_x(left).with_y(top)
+            )
+            spPr_bldr.with_child(xfrm_bldr)
+        sp = an_sp().with_nsdecls().with_child(spPr_bldr).element
+        shape = Shape(sp, None)
+        return shape, left, top
+
+    @pytest.fixture
+    def position_set_fixture(self):
+        sp = an_sp().with_nsdecls().with_child(an_spPr()).element
+        shape = Shape(sp, None)
+        left, top = 434, 343
+        xfrm_xml = (
+            an_xfrm().with_nsdecls('a', 'p').with_child(
+                an_off().with_x(left).with_y(top))
+            .xml()
+        )
+        return shape, left, top, xfrm_xml
+
+    # fixture components ---------------------------------------------
 
     @pytest.fixture
     def AdjustmentCollection_(self, request, adjustments_):
@@ -408,18 +464,6 @@ class DescribeShape(object):
     @pytest.fixture
     def autoshape_type(self):
         return 66
-
-    @pytest.fixture
-    def dimensions_set_fixture(self):
-        sp = an_sp().with_nsdecls().with_child(an_spPr()).element
-        shape = Shape(sp, None)
-        width, height = 626, 262
-        xfrm_xml = (
-            an_xfrm().with_nsdecls('a', 'p').with_child(
-                an_ext().with_cx(width).with_cy(height))
-            .xml()
-        )
-        return shape, width, height, xfrm_xml
 
     @pytest.fixture
     def non_autoshape_shape_(self, request, sp_):
@@ -448,18 +492,6 @@ class DescribeShape(object):
         return placeholder_shape_
 
     @pytest.fixture
-    def position_set_fixture(self):
-        sp = an_sp().with_nsdecls().with_child(an_spPr()).element
-        shape = Shape(sp, None)
-        left, top = 434, 343
-        xfrm_xml = (
-            an_xfrm().with_nsdecls('a', 'p').with_child(
-                an_off().with_x(left).with_y(top))
-            .xml()
-        )
-        return shape, left, top, xfrm_xml
-
-    @pytest.fixture
     def prst(self):
         return 'foobar'
 
@@ -467,32 +499,6 @@ class DescribeShape(object):
     def shape(self, request):
         sp = loose_mock(request, name='sp')
         return Shape(sp, None)
-
-    @pytest.fixture
-    def shape_with_dimensions(self):
-        width, height = 321, 654
-        sp = (
-            an_sp().with_nsdecls().with_child(
-                an_spPr().with_child(
-                    an_xfrm().with_child(
-                        an_ext().with_cx(width).with_cy(height))))
-            .element
-        )
-        shape = Shape(sp, None)
-        return shape, width, height
-
-    @pytest.fixture
-    def shape_with_position(self):
-        left, top = 123, 456
-        sp = (
-            an_sp().with_nsdecls().with_child(
-                an_spPr().with_child(
-                    an_xfrm().with_child(
-                        an_off().with_x(left).with_y(top))))
-            .element
-        )
-        shape = Shape(sp, None)
-        return shape, left, top
 
     @pytest.fixture
     def sp_(self, request, prst):
