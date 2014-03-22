@@ -96,3 +96,10 @@ class _LayoutPlaceholders(BasePlaceholders):
     Sequence of _LayoutPlaceholder instances representing the placeholder
     shapes on a slide layout.
     """
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        parent = self
+        return _LayoutShapeFactory(shape_elm, parent)

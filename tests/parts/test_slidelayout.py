@@ -195,3 +195,44 @@ class Describe_LayoutShapeFactory(object):
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayout)
+
+
+class Describe_LayoutPlaceholders(object):
+
+    def it_constructs_a_layout_placeholder_for_a_placeholder_shape(
+            self, factory_fixture):
+        layout_placeholders, ph_elm_ = factory_fixture[:2]
+        _LayoutShapeFactory_, layout_placeholder_ = factory_fixture[2:]
+        layout_placeholder = layout_placeholders._shape_factory(ph_elm_)
+        _LayoutShapeFactory_.assert_called_once_with(
+            ph_elm_, layout_placeholders
+        )
+        assert layout_placeholder is layout_placeholder_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def factory_fixture(
+            self, ph_elm_, _LayoutShapeFactory_, layout_placeholder_):
+        layout_placeholders = _LayoutPlaceholders(None)
+        return (
+            layout_placeholders, ph_elm_, _LayoutShapeFactory_,
+            layout_placeholder_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def layout_placeholder_(self, request):
+        return instance_mock(request, _LayoutPlaceholder)
+
+    @pytest.fixture
+    def _LayoutShapeFactory_(self, request, layout_placeholder_):
+        return function_mock(
+            request, 'pptx.parts.slidelayout._LayoutShapeFactory',
+            return_value=layout_placeholder_
+        )
+
+    @pytest.fixture
+    def ph_elm_(self, request):
+        return instance_mock(request, CT_Shape)
