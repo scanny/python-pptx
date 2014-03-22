@@ -63,7 +63,7 @@ def then_each_shape_is_of_appropriate_type(context):
 def then_can_access_layout_placeholder_by_idx_value(context):
     layout_placeholders = context.layout_placeholders
     title_placeholder = layout_placeholders.get(idx=0)
-    body_placeholder = layout_placeholders.get(idx=1)
+    body_placeholder = layout_placeholders.get(idx=10)
     assert title_placeholder._element is layout_placeholders[0]._element
     assert body_placeholder._element is layout_placeholders[1]._element
 

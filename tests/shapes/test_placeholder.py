@@ -121,6 +121,10 @@ class DescribeBasePlaceholders(object):
 
 class DescribeBasePlaceholder(object):
 
+    def it_knows_its_idx_value(self, idx_fixture):
+        placeholder, idx = idx_fixture
+        assert placeholder.idx == idx
+
     def it_knows_its_placeholder_type(self, type_fixture):
         placeholder, ph_type = type_fixture
         assert placeholder.ph_type == ph_type
@@ -128,22 +132,34 @@ class DescribeBasePlaceholder(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('sp',           None,    'obj'),
-        ('sp',           'title', 'title'),
-        ('pic',          'pic',   'pic'),
-        ('graphicFrame', 'tbl',   'tbl'),
+        ('sp',           None, 'title', 0),
+        ('sp',           0,    'title', 0),
+        ('sp',           3,    'body',  3),
+        ('pic',          6,    'pic',   6),
+        ('graphicFrame', 9,    'tbl',   9),
+    ])
+    def idx_fixture(self, request):
+        tagname, idx, ph_type, expected_idx = request.param
+        shape_elm = self.shape_elm_factory(tagname, ph_type, idx)
+        placeholder = BasePlaceholder(shape_elm, None)
+        return placeholder, expected_idx
+
+    @pytest.fixture(params=[
+        ('sp',           None,    1, 'obj'),
+        ('sp',           'title', 0, 'title'),
+        ('pic',          'pic',   6, 'pic'),
+        ('graphicFrame', 'tbl',   9, 'tbl'),
     ])
     def type_fixture(self, request):
-        tagname, ph_type, expected_ph_type = request.param
-        shape_elm = self.shape_elm_factory(tagname, ph_type)
-        print(shape_elm.xml)
+        tagname, ph_type, idx, expected_ph_type = request.param
+        shape_elm = self.shape_elm_factory(tagname, ph_type, idx)
         placeholder = BasePlaceholder(shape_elm, None)
         return placeholder, expected_ph_type
 
     # fixture components ---------------------------------------------
 
     @staticmethod
-    def shape_elm_factory(tagname, ph_type):
+    def shape_elm_factory(tagname, ph_type, idx):
         root_bldr, nvXxPr_bldr = {
             'sp':           (an_sp().with_nsdecls('p'), an_nvSpPr()),
             'pic':          (an_sp().with_nsdecls('p'), an_nvPicPr()),
@@ -151,11 +167,12 @@ class DescribeBasePlaceholder(object):
                              an_nvGraphicFramePr()),
         }[tagname]
         ph_bldr = {
-            None:    a_ph().with_idx(1),
-            'body':  a_ph().with_idx(1),
+            None:    a_ph().with_idx(idx),
+            'obj':   a_ph().with_idx(idx),
             'title': a_ph().with_type('title'),
-            'pic':   a_ph().with_idx(6).with_type('pic'),
-            'tbl':   a_ph().with_idx(7).with_type('tbl'),
+            'body':  a_ph().with_type('body').with_idx(idx),
+            'pic':   a_ph().with_type('pic').with_idx(idx),
+            'tbl':   a_ph().with_type('tbl').with_idx(idx),
         }[ph_type]
         return (
             root_bldr.with_child(

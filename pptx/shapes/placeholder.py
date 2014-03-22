@@ -87,7 +87,7 @@ class BasePlaceholder(Shape):
         """
         Placeholder 'idx' attribute, e.g. '0'
         """
-        raise NotImplementedError
+        return self._sp.ph_idx
 
     @property
     def ph_type(self):

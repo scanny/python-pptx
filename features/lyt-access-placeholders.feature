@@ -8,7 +8,6 @@ Feature: Access layout placeholders
       Then I can access the placeholder collection of the slide layout
        And the length of the layout placeholder collection is 2
 
-  @wip
   Scenario: Access placeholder in layout placeholder collection
      Given a layout placeholder collection
       Then I can iterate over the layout placeholders
