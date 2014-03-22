@@ -14,13 +14,15 @@ from pptx.parts.slidelayout import (
     _LayoutPlaceholder, _LayoutPlaceholders, _LayoutShapeFactory,
     _LayoutShapeTree, SlideLayout
 )
-from pptx.parts.slidemaster import SlideMaster
+from pptx.parts.slidemaster import _MasterPlaceholder, SlideMaster
 from pptx.shapes.shape import BaseShape
 
 from ..oxml.unitdata.shape import (
     a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr, an_xfrm
 )
-from ..unitutil import class_mock, function_mock, instance_mock, method_mock
+from ..unitutil import (
+    function_mock, class_mock, instance_mock, method_mock, property_mock
+)
 
 
 class DescribeSlideLayout(object):
@@ -304,6 +306,12 @@ class Describe_LayoutPlaceholder(object):
         _inherited_value_.assert_called_once_with('left')
         assert left == inherited_left_
 
+    def it_knows_how_to_get_a_property_value_from_its_master(
+            self, mstr_val_fixture):
+        layout_placeholder, attr_name, expected_value = mstr_val_fixture
+        value = layout_placeholder._inherited_value(attr_name)
+        assert value == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -315,6 +323,19 @@ class Describe_LayoutPlaceholder(object):
     def inherited_fixture(self, sp, _inherited_value_, int_value_):
         layout_placeholder = _LayoutPlaceholder(sp, None)
         return layout_placeholder, _inherited_value_, int_value_
+
+    @pytest.fixture(params=[(True, 42), (False, None)])
+    def mstr_val_fixture(
+            self, request, _master_placeholder_, master_placeholder_):
+        has_master_placeholder, expected_value = request.param
+        layout_placeholder = _LayoutPlaceholder(None, None)
+        attr_name = 'width'
+        if has_master_placeholder:
+            setattr(master_placeholder_, attr_name, expected_value)
+            _master_placeholder_.return_value = master_placeholder_
+        else:
+            _master_placeholder_.return_value = None
+        return layout_placeholder, attr_name, expected_value
 
     @pytest.fixture(params=['left', 'top', 'width', 'height'])
     def xfrm_fixture(self, request, _direct_or_inherited_value_, int_value_):
@@ -344,6 +365,16 @@ class Describe_LayoutPlaceholder(object):
     @pytest.fixture
     def int_value_(self, request):
         return instance_mock(request, int)
+
+    @pytest.fixture
+    def _master_placeholder_(self, request):
+        return property_mock(
+            request, _LayoutPlaceholder, '_master_placeholder'
+        )
+
+    @pytest.fixture
+    def master_placeholder_(self, request):
+        return instance_mock(request, _MasterPlaceholder)
 
     @pytest.fixture
     def sp(self, width):

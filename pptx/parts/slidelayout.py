@@ -144,6 +144,17 @@ class _LayoutPlaceholder(BasePlaceholder):
         The attribute value, e.g. 'width' of the parent master placeholder of
         this placeholder shape
         """
+        master_placeholder = self._master_placeholder
+        if master_placeholder is None:
+            return None
+        inherited_value = getattr(master_placeholder, attr_name)
+        return inherited_value
+
+    @property
+    def _master_placeholder(self):
+        """
+        The master placeholder shape this layout placeholder inherits from.
+        """
         raise NotImplementedError
 
 
