@@ -3,27 +3,23 @@ Feature: Change shape fill color
   As a developer using python-pptx
   I need to specify the precise fill color of an autoshape
 
-  @wip
   Scenario: set shape fill to transparent
      Given an autoshape
       When I set the fill type to background
       Then the fill type of the shape is background
 
-  @wip
   Scenario: set shape solid fill RGB color
      Given an autoshape
       When I set the fill type to solid
        And I set the foreground color to an RGB value
       Then the foreground color of the shape is the RGB value I set
 
-  @wip
   Scenario: set shape solid fill theme color
      Given an autoshape
       When I set the fill type to solid
        And I set the foreground color to a theme color
       Then the foreground color of the shape is the theme color I set
 
-  @wip
   Scenario: set shape solid fill brightness
      Given an autoshape
       When I set the fill type to solid

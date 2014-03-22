@@ -4,7 +4,6 @@ Feature: Change properties of text in shapes
   I need to set the properties of text in a shape
 
 
-  @wip
   Scenario: Set paragraph alignment
      Given a paragraph
       When I set the paragraph alignment to centered
@@ -12,7 +11,6 @@ Feature: Change properties of text in shapes
       Then the paragraph is aligned centered
 
 
-  @wip
   Scenario: Set paragraph indentation
      Given a paragraph
       When I indent the paragraph
@@ -20,7 +18,6 @@ Feature: Change properties of text in shapes
       Then the paragraph is indented to the second level
 
 
-  @wip
   Scenario Outline: Set word wrap property of textframe
     Given a textframe
      When I set the textframe word wrap <value>
@@ -34,7 +31,6 @@ Feature: Change properties of text in shapes
     | to None |
 
 
-  @wip
   Scenario Outline: Set textframe margins
     Given a textframe
      When I set the <side> margin to <value>"

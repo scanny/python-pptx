@@ -11,10 +11,12 @@ import pytest
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.autoshape import CT_Shape
 from pptx.parts.slidelayout import (
-    _LayoutPlaceholder, _LayoutShapeTree, SlideLayout
+    _LayoutPlaceholder, _LayoutShapeFactory, _LayoutShapeTree, SlideLayout
 )
 from pptx.parts.slidemaster import SlideMaster
+from pptx.shapes.shape import BaseShape
 
+from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..unitutil import class_mock, function_mock, instance_mock, method_mock
 
 
@@ -106,3 +108,64 @@ class Describe_LayoutShapeTree(object):
     @pytest.fixture
     def ph_elm_(self, request):
         return instance_mock(request, CT_Shape)
+
+
+class Describe_LayoutShapeFactory(object):
+
+    def it_constructs_a_layout_placeholder_for_a_shape_element(
+            self, factory_fixture):
+        shape_elm, parent_, ShapeConstructor_, shape_ = factory_fixture
+        shape = _LayoutShapeFactory(shape_elm, parent_)
+        ShapeConstructor_.assert_called_once_with(shape_elm, parent_)
+        assert shape is shape_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=['ph', 'sp', 'pic'])
+    def factory_fixture(
+            self, request, ph_bldr, slide_layout_, _LayoutPlaceholder_,
+            layout_placeholder_, BaseShapeFactory_, base_shape_):
+        shape_bldr, ShapeConstructor_, shape_mock = {
+            'ph':  (ph_bldr, _LayoutPlaceholder_, layout_placeholder_),
+            'sp':  (an_sp(), BaseShapeFactory_,   base_shape_),
+            'pic': (a_pic(), BaseShapeFactory_,   base_shape_),
+        }[request.param]
+        shape_elm = shape_bldr.with_nsdecls().element
+        return shape_elm, slide_layout_, ShapeConstructor_, shape_mock
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def BaseShapeFactory_(self, request, base_shape_):
+        return function_mock(
+            request, 'pptx.parts.slidelayout.BaseShapeFactory',
+            return_value=base_shape_
+        )
+
+    @pytest.fixture
+    def base_shape_(self, request):
+        return instance_mock(request, BaseShape)
+
+    @pytest.fixture
+    def _LayoutPlaceholder_(self, request, layout_placeholder_):
+        return class_mock(
+            request, 'pptx.parts.slidelayout._LayoutPlaceholder',
+            return_value=layout_placeholder_
+        )
+
+    @pytest.fixture
+    def layout_placeholder_(self, request):
+        return instance_mock(request, _LayoutPlaceholder)
+
+    @pytest.fixture
+    def ph_bldr(self):
+        return (
+            an_sp().with_child(
+                an_nvSpPr().with_child(
+                    an_nvPr().with_child(
+                        a_ph().with_idx(1))))
+        )
+
+    @pytest.fixture
+    def slide_layout_(self, request):
+        return instance_mock(request, SlideLayout)

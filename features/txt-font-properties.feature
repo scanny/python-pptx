@@ -4,14 +4,12 @@ Feature: Change appearance of font with which text is rendered
   I need to set the properties of the font used to render text
 
 
-  @wip
   Scenario: Change font typeface
     Given a font
      When I assign a typeface name to the font
      Then the font name matches the typeface I set
 
 
-  @wip
   Scenario Outline: Set italics property of text
     Given a run with italics set <initial>
      When I set italics <new>
@@ -31,21 +29,18 @@ Feature: Change appearance of font with which text is rendered
     | to None | to None |
 
 
-  @wip
   Scenario: Add hyperlink
     Given a text run
      When I set the hyperlink address
      Then the text of the run is a hyperlink
 
 
-  @wip
   Scenario: Add hyperlink in table cell
     Given a text run in a table cell
      When I set the hyperlink address
      Then the text of the run is a hyperlink
 
 
-  @wip
   Scenario: Remove hyperlink
     Given a text run having a hyperlink
      When I set the hyperlink address to None

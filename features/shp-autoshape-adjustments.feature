@@ -3,7 +3,6 @@ Feature: Adjust auto shape
   As a developer using python-pptx
   I need to set the adjustment values of an auto shape
 
-  @wip
   Scenario: set shape adjustment value
      Given I have a reference to a chevron shape
       When I set the first adjustment value to 0.15

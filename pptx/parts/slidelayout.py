@@ -9,9 +9,10 @@ from __future__ import absolute_import
 from warnings import warn
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.oxml.ns import qn
 from pptx.parts.slide import BaseSlide
 from pptx.shapes.placeholder import BasePlaceholder
-from pptx.shapes.shapetree import BaseShapeTree
+from pptx.shapes.shapetree import BaseShapeFactory, BaseShapeTree
 from pptx.util import lazyproperty
 
 
@@ -68,7 +69,10 @@ def _LayoutShapeFactory(shape_elm, parent):
         Return an instance of the appropriate shape proxy class for
         *shape_elm* on a slide layout.
         """
-        raise NotImplementedError
+        tag_name = shape_elm.tag
+        if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+            return _LayoutPlaceholder(shape_elm, parent)
+        return BaseShapeFactory(shape_elm, parent)
 
 
 class _LayoutPlaceholder(BasePlaceholder):

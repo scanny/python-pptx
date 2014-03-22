@@ -3,7 +3,6 @@ Feature: Add a shape to a slide
   As a presentation developer
   I need the ability to place a shape on a slide
 
-  @wip
   Scenario: Add an auto shape to a slide
      Given I have a reference to a blank slide
       When I add an auto shape to the slide's shape collection
