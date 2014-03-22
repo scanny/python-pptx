@@ -11,7 +11,7 @@ from warnings import warn
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.ns import qn
 from pptx.parts.slide import BaseSlide
-from pptx.shapes.placeholder import BasePlaceholder
+from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
 from pptx.shapes.shapetree import BaseShapeFactory, BaseShapeTree
 from pptx.util import lazyproperty
 
@@ -80,4 +80,11 @@ class _LayoutPlaceholder(BasePlaceholder):
     Placeholder shape on a slide layout, providing differentiated behavior
     for slide layout placeholders, in particular, inheriting shape properties
     from the master placeholder having the same type.
+    """
+
+
+class _LayoutPlaceholders(BasePlaceholders):
+    """
+    Sequence of _LayoutPlaceholder instances representing the placeholder
+    shapes on a slide layout.
     """

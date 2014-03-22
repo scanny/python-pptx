@@ -110,6 +110,10 @@ rst_epilog = """
 
 .. |list| replace:: :class:`list`
 
+.. |_LayoutShapeTree| replace:: :class:`_LayoutShapeTree`
+
+.. |_MasterPlaceholders| replace:: :class:`_MasterPlaceholders`
+
 .. |_MasterShapeTree| replace:: :class:`_MasterShapeTree`
 
 .. |None| replace:: :class:`None`
