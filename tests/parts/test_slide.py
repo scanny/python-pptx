@@ -568,3 +568,38 @@ class Describe_SlidePlaceholders(object):
     @pytest.fixture
     def ph_elm_(self, request):
         return instance_mock(request, CT_Shape)
+
+
+class Describe_SlidePlaceholder(object):
+
+    def it_considers_inheritance_when_computing_pos_and_size(
+            self, xfrm_fixture):
+        slide_placeholder, _direct_or_inherited_value_ = xfrm_fixture[:2]
+        attr_name, expected_value = xfrm_fixture[2:]
+        value = getattr(slide_placeholder, attr_name)
+        _direct_or_inherited_value_.assert_called_once_with(attr_name)
+        assert value == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=['left', 'top', 'width', 'height'])
+    def xfrm_fixture(self, request, _direct_or_inherited_value_, int_value_):
+        attr_name = request.param
+        slide_placeholder = _SlidePlaceholder(None, None)
+        _direct_or_inherited_value_.return_value = int_value_
+        return (
+            slide_placeholder, _direct_or_inherited_value_, attr_name,
+            int_value_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _direct_or_inherited_value_(self, request):
+        return method_mock(
+            request, _SlidePlaceholder, '_direct_or_inherited_value'
+        )
+
+    @pytest.fixture
+    def int_value_(self, request):
+        return instance_mock(request, int)

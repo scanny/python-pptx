@@ -261,6 +261,49 @@ class _SlidePlaceholder(BasePlaceholder):
     Placeholder shape on a slide. Inherits shape properties from its
     corresponding slide layout placeholder.
     """
+    @property
+    def height(self):
+        """
+        The effective height of this placeholder shape; its directly-applied
+        height if it has one, otherwise the height of its parent layout
+        placeholder.
+        """
+        return self._direct_or_inherited_value('height')
+
+    @property
+    def left(self):
+        """
+        The effective left of this placeholder shape; its directly-applied
+        left if it has one, otherwise the left of its parent layout
+        placeholder.
+        """
+        return self._direct_or_inherited_value('left')
+
+    @property
+    def top(self):
+        """
+        The effective top of this placeholder shape; its directly-applied
+        top if it has one, otherwise the top of its parent layout
+        placeholder.
+        """
+        return self._direct_or_inherited_value('top')
+
+    @property
+    def width(self):
+        """
+        The effective width of this placeholder shape; its directly-applied
+        width if it has one, otherwise the width of its parent layout
+        placeholder.
+        """
+        return self._direct_or_inherited_value('width')
+
+    def _direct_or_inherited_value(self, attr_name):
+        """
+        The effective value of *attr_name* on this placeholder shape; its
+        directly-applied value if it has one, otherwise the value on the
+        layout placeholder it inherits from.
+        """
+        raise NotImplementedError
 
 
 class _SlidePlaceholders(BasePlaceholders):
