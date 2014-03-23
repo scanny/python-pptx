@@ -611,6 +611,12 @@ class Describe_SlidePlaceholder(object):
         layout_.placeholders.get.assert_called_once_with(idx=idx)
         assert layout_placeholder is layout_placeholder_
 
+    def it_finds_its_slide_layout_to_help_inherit(
+            self, slide_layout_fixture):
+        slide_placeholder, slide_layout_ = slide_layout_fixture
+        slide_layout = slide_placeholder._slide_layout
+        assert slide_layout == slide_layout_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -646,6 +652,11 @@ class Describe_SlidePlaceholder(object):
         else:
             _layout_placeholder_.return_value = None
         return slide_placeholder, attr_name, expected_value
+
+    @pytest.fixture
+    def slide_layout_fixture(self, parent_, slide_layout_):
+        slide_placeholder = _SlidePlaceholder(None, parent_)
+        return slide_placeholder, slide_layout_
 
     @pytest.fixture(params=['left', 'top', 'width', 'height'])
     def xfrm_fixture(self, request, _effective_value_, int_value_):
@@ -689,6 +700,18 @@ class Describe_SlidePlaceholder(object):
     @pytest.fixture
     def layout_placeholder_(self, request):
         return instance_mock(request, _LayoutPlaceholder)
+
+    @pytest.fixture
+    def parent_(self, request, slide_):
+        parent_ = instance_mock(request, _SlideShapeTree)
+        parent_.part = slide_
+        return parent_
+
+    @pytest.fixture
+    def slide_(self, request, slide_layout_):
+        slide_ = instance_mock(request, Slide)
+        slide_.slide_layout = slide_layout_
+        return slide_
 
     @pytest.fixture
     def _slide_layout_(self, request, slide_layout_):

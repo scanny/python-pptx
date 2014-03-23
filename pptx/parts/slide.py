@@ -336,7 +336,8 @@ class _SlidePlaceholder(BasePlaceholder):
         The slide layout from which the slide this placeholder belongs to
         inherits.
         """
-        raise NotImplementedError
+        slide = self.part
+        return slide.slide_layout
 
 
 class _SlidePlaceholders(BasePlaceholders):
