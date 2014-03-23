@@ -12,10 +12,12 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
-from pptx.oxml.core import Element, SubElement
+from pptx.oxml.core import Element, SubElement, qn
 from pptx.oxml.ns import nsmap, _nsmap
 from pptx.shapes.placeholder import BasePlaceholder
-from pptx.shapes.shapetree import BaseShapeTree, ShapeCollection
+from pptx.shapes.shapetree import (
+    BaseShapeFactory, BaseShapeTree, ShapeCollection
+)
 from pptx.util import lazyproperty
 
 
@@ -240,7 +242,10 @@ def _SlideShapeFactory(shape_elm, parent):
     Return an instance of the appropriate shape proxy class for *shape_elm*
     on a slide.
     """
-    raise NotImplementedError
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return _SlidePlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
 
 
 class _SlidePlaceholder(BasePlaceholder):

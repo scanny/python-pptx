@@ -8,7 +8,6 @@ Feature: Access shapes on a slide
       Then I can access the shape collection of the slide
        And the length of the shape collection is 3
 
-  @wip
   Scenario: Access shape in shape collection
      Given a slide shape collection
       Then I can iterate over the shapes
