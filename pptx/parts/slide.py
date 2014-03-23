@@ -326,6 +326,16 @@ class _SlidePlaceholder(BasePlaceholder):
         """
         The layout placeholder shape this slide placeholder inherits from
         """
+        layout = self._slide_layout
+        layout_placeholder = layout.placeholders.get(idx=self.idx)
+        return layout_placeholder
+
+    @property
+    def _slide_layout(self):
+        """
+        The slide layout from which the slide this placeholder belongs to
+        inherits.
+        """
         raise NotImplementedError
 
 
