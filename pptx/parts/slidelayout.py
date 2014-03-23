@@ -155,6 +155,33 @@ class _LayoutPlaceholder(BasePlaceholder):
         """
         The master placeholder shape this layout placeholder inherits from.
         """
+        inheritee_ph_type = {
+            'body':     'body',
+            'chart':    'body',
+            'clipArt':  'body',
+            'ctrTitle': 'title',
+            'dgm':      'body',
+            'dt':       'dt',
+            'ftr':      'ftr',
+            'media':    'body',
+            'obj':      'body',
+            'pic':      'body',
+            'sldNum':   'sldNum',
+            'subTitle': 'body',
+            'tbl':      'body',
+            'title':    'title',
+        }[self.ph_type]
+        slide_master = self._slide_master
+        master_placeholder = slide_master.placeholders.get(
+            inheritee_ph_type, None
+        )
+        return master_placeholder
+
+    @property
+    def _slide_master(self):
+        """
+        The slide master this placeholder inherits from.
+        """
         raise NotImplementedError
 
 

@@ -589,3 +589,37 @@ Experimental findings
   reset.
 * The "Reset Layout to Default Settings" option appears to reset all shape
   properties to inherited, without exception.
+
+
+Layout placeholder inheritance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Objective: determine layout placeholder inheritee for each ph type
+
+Observations:
+
+Layout placeholder with *lyt-ph-type* inherits color from master placeholder
+with *mst-ph-type*, noting idx value match.
+
+lyt-ph-type  mst-ph-type  notes
+===========  ===========  ===================================================
+ctrTitle     title        title layout - idx value matches (None, => 0)
+subTitle     body         title layout - idx value matches (1)
+dt           dt           title layout - idx 10 != 2
+ftr          ftr          title layout - idx 11 != 3
+sldNum       sldNum       title layout - idx 12 != 4
+title        title        bullet layout - idx value matches (None, => 0)
+None (obj)   body         bullet layout - idx value matches (1)
+body         body         sect hdr - idx value matches (1)
+None (obj)   body         two content - idx 2 != 1
+body         body         comparison - idx 3 != 1
+pic          body         picture - idx value matches (1)
+chart        body         manual - idx 9 != 1
+clipArt      body         manual - idx 9 != 1
+dgm          body         manual - idx 9 != 1
+media        body         manual - idx 9 != 1
+tbl          body         manual - idx 9 != 1
+
+hdr          repair err   valid only in Notes and Handout Slide
+sldImg       repair err   valid only in Notes and Handout Slide
+===========  ===========  ===================================================

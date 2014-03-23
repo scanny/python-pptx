@@ -312,6 +312,15 @@ class Describe_LayoutPlaceholder(object):
         value = layout_placeholder._inherited_value(attr_name)
         assert value == expected_value
 
+    def it_finds_its_corresponding_master_placeholder_to_help_inherit(
+            self, mstr_ph_fixture):
+        layout_placeholder, master_, mstr_ph_type, master_placeholder_ = (
+            mstr_ph_fixture
+        )
+        master_placeholder = layout_placeholder._master_placeholder
+        master_.placeholders.get.assert_called_once_with(mstr_ph_type, None)
+        assert master_placeholder is master_placeholder_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -323,6 +332,23 @@ class Describe_LayoutPlaceholder(object):
     def inherited_fixture(self, sp, _inherited_value_, int_value_):
         layout_placeholder = _LayoutPlaceholder(sp, None)
         return layout_placeholder, _inherited_value_, int_value_
+
+    @pytest.fixture(params=[
+        ('tbl',  'body'),
+        ('body', 'body'),
+        ('obj',  'body'),
+    ])
+    def mstr_ph_fixture(
+            self, request, ph_type_, _slide_master_, slide_master_,
+            master_placeholder_):
+        layout_placeholder = _LayoutPlaceholder(None, None)
+        ph_type, mstr_ph_type = request.param
+        ph_type_.return_value = ph_type
+        slide_master_.placeholders.get.return_value = master_placeholder_
+        return (
+            layout_placeholder, slide_master_, mstr_ph_type,
+            master_placeholder_
+        )
 
     @pytest.fixture(params=[(True, 42), (False, None)])
     def mstr_val_fixture(
@@ -375,6 +401,21 @@ class Describe_LayoutPlaceholder(object):
     @pytest.fixture
     def master_placeholder_(self, request):
         return instance_mock(request, _MasterPlaceholder)
+
+    @pytest.fixture
+    def ph_type_(self, request):
+        return property_mock(request, _LayoutPlaceholder, 'ph_type')
+
+    @pytest.fixture
+    def _slide_master_(self, request, slide_master_):
+        return property_mock(
+            request, _LayoutPlaceholder, '_slide_master',
+            return_value=slide_master_
+        )
+
+    @pytest.fixture
+    def slide_master_(self, request):
+        return instance_mock(request, SlideMaster)
 
     @pytest.fixture
     def sp(self, width):
