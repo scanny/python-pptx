@@ -8,7 +8,6 @@ Feature: Access slide placeholders
       Then I can access the placeholder collection of the slide
        And the length of the slide placeholder collection is 2
 
-  @wip
   Scenario: Access placeholder in slide placeholder collection
      Given a slide placeholder collection
       Then I can iterate over the slide placeholders

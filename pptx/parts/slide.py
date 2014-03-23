@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Slide objects, including Slide and SlideMaster.
+Slide and related objects.
 """
 
 from __future__ import absolute_import
@@ -12,8 +12,8 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
-from pptx.oxml.core import Element, SubElement, qn
-from pptx.oxml.ns import nsmap, _nsmap
+from pptx.oxml.core import Element, SubElement
+from pptx.oxml.ns import nsmap, _nsmap, qn
 from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
 from pptx.shapes.shapetree import (
     BaseShapeFactory, BaseShapeTree, ShapeCollection
@@ -111,7 +111,7 @@ class Slide(BaseSlide):
     @lazyproperty
     def shapes_new(self):
         """
-        Instance of |ShapeTree| containing sequence of shape objects
+        Instance of |_SlideShapeTree| containing sequence of shape objects
         appearing on this slide.
         """
         return _SlideShapeTree(self)
@@ -267,3 +267,9 @@ class _SlidePlaceholders(BasePlaceholders):
     """
     Sequence of placeholder shapes on a slide.
     """
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm* on a slide.
+        """
+        return _SlideShapeFactory(shape_elm, self)

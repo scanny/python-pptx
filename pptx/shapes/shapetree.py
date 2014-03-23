@@ -16,21 +16,6 @@ from pptx.spec import slide_ph_basenames
 from pptx.spec import PH_ORIENT_VERT, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
 
 
-def BaseShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*.
-    """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp'):
-        return Shape(shape_elm, parent)
-    if tag_name == qn('p:pic'):
-        return Picture(shape_elm, parent)
-    if tag_name == qn('p:graphicFrame'):
-        if shape_elm.has_table:
-            return Table(shape_elm, parent)
-    return BaseShape(shape_elm, parent)
-
-
 class BaseShapeTree(object):
     """
     Base class for a shape collection appearing in a slide-type object,
@@ -99,6 +84,21 @@ class BaseShapeTree(object):
         *shape_elm*.
         """
         return BaseShapeFactory(shape_elm, self)
+
+
+def BaseShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*.
+    """
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp'):
+        return Shape(shape_elm, parent)
+    if tag_name == qn('p:pic'):
+        return Picture(shape_elm, parent)
+    if tag_name == qn('p:graphicFrame'):
+        if shape_elm.has_table:
+            return Table(shape_elm, parent)
+    return BaseShape(shape_elm, parent)
 
 
 class ShapeCollection(BaseShape):
