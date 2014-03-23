@@ -14,7 +14,7 @@ from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, SubElement, qn
 from pptx.oxml.ns import nsmap, _nsmap
-from pptx.shapes.placeholder import BasePlaceholder
+from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
 from pptx.shapes.shapetree import (
     BaseShapeFactory, BaseShapeTree, ShapeCollection
 )
@@ -252,4 +252,10 @@ class _SlidePlaceholder(BasePlaceholder):
     """
     Placeholder shape on a slide. Inherits shape properties from its
     corresponding slide layout placeholder.
+    """
+
+
+class _SlidePlaceholders(BasePlaceholders):
+    """
+    Sequence of placeholder shapes on a slide.
     """
