@@ -73,7 +73,7 @@ class BaseShapeTree(object):
         The package part containing this object, a _BaseSlide subclass in
         this case.
         """
-        raise NotImplementedError
+        return self._slide
 
     @staticmethod
     def _is_member_elm(shape_elm):

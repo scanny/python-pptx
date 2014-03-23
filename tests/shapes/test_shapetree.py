@@ -154,6 +154,10 @@ class DescribeBaseShapeTree(object):
         with pytest.raises(IndexError):
             shapes[2]
 
+    def it_knows_the_part_it_belongs_to(self, slide):
+        shapes = BaseShapeTree(slide)
+        assert shapes.part is slide
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
