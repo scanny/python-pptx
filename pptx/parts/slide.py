@@ -229,11 +229,42 @@ class _SlideShapeTree(BaseShapeTree):
     is the backmost in z-order and the last shape is topmost. Supports indexed
     access, len(), index(), and iteration.
     """
+    def add_picture(self, image_file, left, top, width=None, height=None):
+        """
+        Add picture shape displaying image in *image_file*, where
+        *image_file* can be either a path to a file (a string) or a file-like
+        object.
+        """
+        image_part, rId = self._get_or_add_image_part(image_file)
+        pic = self._add_pic_from_image_part(
+            image_part, rId, left, top, width, height
+        )
+        picture = self._shape_factory(pic, self)
+        return picture
+
+    def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):
+        """
+        Return a newly added ``<p:pic>`` element specifying a picture shape
+        displaying *image_part* with size and position specified by *x*, *y*,
+        *cx*, and *cy*. The element is appended to the shape tree, causing it
+        to be displayed first in z-order on the slide.
+        """
+        raise NotImplementedError
+
     def _clone_layout_placeholders(self, slidelayout):
         """
         Add placeholder shapes based on those in *slidelayout*. Z-order of
         placeholders is preserved. Latent placeholders (date, slide number,
         and footer) are not cloned.
+        """
+        raise NotImplementedError
+
+    def _get_or_add_image_part(self, image_file):
+        """
+        Return an (image_part, rId) 2-tuple corresponding to an image part
+        containing the image in *image_file*, and related to this object's
+        part with the key *rId*. If the image part and/or relationship
+        already exists, they are reused, otherwise they are newly created.
         """
         raise NotImplementedError
 
