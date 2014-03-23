@@ -21,20 +21,34 @@ from .helpers import saved_pptx_path, test_pptx
 
 # given ===================================================
 
+@given('a blank slide')
+def given_a_blank_slide(context):
+    context.prs = Presentation()
+    slide_layout = context.prs.slide_layouts[6]
+    context.sld = context.prs.slides.add_slide(slide_layout)
+
+
+@given('a slide')
+def given_a_slide(context):
+    context.prs = Presentation()
+    slide_layout = context.prs.slide_layouts[0]
+    context.sld = context.prs.slides.add_slide(slide_layout)
+
+
 @given('a slide having three shapes')
-def given_slide_having_three_shapes(context):
+def given_a_slide_having_three_shapes(context):
     presentation = Presentation(test_pptx('sld-access-shapes'))
     context.slide = presentation.slides[0]
 
 
 @given('a slide having two placeholders')
-def given_slide_having_two_placeholders(context):
+def given_a_slide_having_two_placeholders(context):
     prs = Presentation(test_pptx('sld-access-shapes'))
     context.slide = prs.slides[0]
 
 
 @given('a slide placeholder collection')
-def given_slide_placeholder_collection(context):
+def given_a_slide_placeholder_collection(context):
     prs = Presentation(test_pptx('sld-access-shapes'))
     context.slide_placeholders = prs.slides[0].placeholders
 
@@ -45,24 +59,10 @@ def given_a_slide_shape_collection(context):
     context.shapes = presentation.slides[0].shapes_new
 
 
-@given('I have a reference to a blank slide')
-def step_given_ref_to_blank_slide(context):
-    context.prs = Presentation()
-    slide_layout = context.prs.slide_layouts[6]
-    context.sld = context.prs.slides.add_slide(slide_layout)
-
-
-@given('I have a reference to a slide')
-def step_given_ref_to_slide(context):
-    context.prs = Presentation()
-    slide_layout = context.prs.slide_layouts[0]
-    context.sld = context.prs.slides.add_slide(slide_layout)
-
-
 # when ====================================================
 
 @when('I add a new slide')
-def step_when_add_slide(context):
+def when_add_slide(context):
     slide_layout = context.prs.slide_masters[0].slide_layouts[0]
     context.prs.slides.add_slide(slide_layout)
 
@@ -151,6 +151,6 @@ def then_len_of_placeholder_collection_is_2(context):
 
 
 @then('the pptx file contains a single slide')
-def step_then_pptx_file_contains_single_slide(context):
+def then_pptx_file_contains_single_slide(context):
     prs = Presentation(saved_pptx_path)
     assert_that(len(prs.slides), is_(equal_to(1)))
