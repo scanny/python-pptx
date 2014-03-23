@@ -93,6 +93,14 @@ class Slide(BaseSlide):
         return slide
 
     @lazyproperty
+    def placeholders(self):
+        """
+        Instance of |_SlidePlaceholders| containing sequence of placeholder
+        shapes in this slide.
+        """
+        return _SlidePlaceholders(self)
+
+    @lazyproperty
     def shapes(self):
         """
         Instance of |ShapeCollection| containing sequence of shape objects

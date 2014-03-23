@@ -3,7 +3,6 @@ Feature: Access slide placeholders
   As a developer using python-pptx
   I need a placeholder collection on the slide
 
-  @wip
   Scenario: Access placeholder collection of a slide
      Given a slide having two placeholders
       Then I can access the placeholder collection of the slide
