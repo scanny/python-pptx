@@ -27,19 +27,31 @@ def given_a_bullet_body_placeholder(context):
 @given('a layout placeholder having directly set position and size')
 def given_layout_placeholder_with_directly_set_pos_and_size(context):
     prs = Presentation(test_pptx('ph-inherit-props'))
-    context.layout_placeholder = prs.slide_layouts[0].placeholders[1]
+    context.placeholder = prs.slide_layouts[0].placeholders[1]
 
 
 @given('a layout placeholder having no direct position or size settings')
 def given_layout_placeholder_with_no_direct_pos_or_size_settings(context):
     prs = Presentation(test_pptx('ph-inherit-props'))
-    context.layout_placeholder = prs.slide_layouts[0].placeholders[0]
+    context.placeholder = prs.slide_layouts[0].placeholders[0]
 
 
 @given('a master placeholder')
 def given_a_master_placeholder(context):
     prs = Presentation(test_pptx('ph-inherit-props'))
     context.master_placeholder = prs.slide_master.placeholders[1]
+
+
+@given('a slide placeholder having directly set position and size')
+def given_slide_placeholder_with_directly_set_pos_and_size(context):
+    prs = Presentation(test_pptx('ph-inherit-props'))
+    context.placeholder = prs.slides[0].placeholders[1]
+
+
+@given('a slide placeholder having no direct position or size settings')
+def given_slide_placeholder_with_no_direct_pos_or_size_settings(context):
+    prs = Presentation(test_pptx('ph-inherit-props'))
+    context.placeholder = prs.slides[0].placeholders[0]
 
 
 # when ====================================================
@@ -72,16 +84,16 @@ def then_I_can_get_the_placeholder_position(context):
 
 @then('I get the direct settings when I query position and size')
 def then_I_get_direct_settings_when_query_pos_and_size(context):
-    placeholder = context.layout_placeholder
-    assert placeholder.left == 468312, 'got %d' % placeholder.left
-    assert placeholder.top == 1700212, 'got %d' % placeholder.top
-    assert placeholder.width == 8208143, 'got %d' % placeholder.width
-    assert placeholder.height == 4537099, 'got %d' % placeholder.height
+    placeholder = context.placeholder
+    assert placeholder.left == 468312, 'got %s' % placeholder.left
+    assert placeholder.top == 1700212, 'got %s' % placeholder.top
+    assert placeholder.width == 8208143, 'got %s' % placeholder.width
+    assert placeholder.height == 4537099, 'got %s' % placeholder.height
 
 
 @then('I get inherited settings when I query position and size')
 def then_I_get_inherited_settings_when_I_query_position_and_size(context):
-    placeholder = context.layout_placeholder
+    placeholder = context.placeholder
     assert placeholder.left == 457200, 'got %s' % placeholder.left
     assert placeholder.top == 274638, 'got %s' % placeholder.top
     assert placeholder.width == 8229600, 'got %s' % placeholder.width
