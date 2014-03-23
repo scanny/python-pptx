@@ -67,6 +67,14 @@ class BaseShapeTree(object):
         shape_elms = list(self._iter_member_elms())
         return len(shape_elms)
 
+    @property
+    def part(self):
+        """
+        The package part containing this object, a _BaseSlide subclass in
+        this case.
+        """
+        raise NotImplementedError
+
     @staticmethod
     def _is_member_elm(shape_elm):
         """

@@ -182,7 +182,9 @@ class _LayoutPlaceholder(BasePlaceholder):
         """
         The slide master this placeholder inherits from.
         """
-        raise NotImplementedError
+        slide_layout = self.part
+        slide_master = slide_layout.slide_master
+        return slide_master
 
 
 class _LayoutPlaceholders(BasePlaceholders):

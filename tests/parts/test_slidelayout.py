@@ -16,6 +16,7 @@ from pptx.parts.slidelayout import (
 )
 from pptx.parts.slidemaster import _MasterPlaceholder, SlideMaster
 from pptx.shapes.shape import BaseShape
+from pptx.shapes.shapetree import BaseShapeTree
 
 from ..oxml.unitdata.shape import (
     a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr, an_xfrm
@@ -321,6 +322,11 @@ class Describe_LayoutPlaceholder(object):
         master_.placeholders.get.assert_called_once_with(mstr_ph_type, None)
         assert master_placeholder is master_placeholder_
 
+    def it_finds_its_slide_master_to_help_inherit(self, slide_master_fixture):
+        layout_placeholder, slide_master_ = slide_master_fixture
+        slide_master = layout_placeholder._slide_master
+        assert slide_master == slide_master_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -363,6 +369,11 @@ class Describe_LayoutPlaceholder(object):
             _master_placeholder_.return_value = None
         return layout_placeholder, attr_name, expected_value
 
+    @pytest.fixture
+    def slide_master_fixture(self, parent_, slide_master_):
+        layout_placeholder = _LayoutPlaceholder(None, parent_)
+        return layout_placeholder, slide_master_
+
     @pytest.fixture(params=['left', 'top', 'width', 'height'])
     def xfrm_fixture(self, request, _direct_or_inherited_value_, int_value_):
         attr_name = request.param
@@ -403,8 +414,20 @@ class Describe_LayoutPlaceholder(object):
         return instance_mock(request, _MasterPlaceholder)
 
     @pytest.fixture
+    def parent_(self, request, slide_layout_):
+        parent_ = instance_mock(request, BaseShapeTree)
+        parent_.part = slide_layout_
+        return parent_
+
+    @pytest.fixture
     def ph_type_(self, request):
         return property_mock(request, _LayoutPlaceholder, 'ph_type')
+
+    @pytest.fixture
+    def slide_layout_(self, request, slide_master_):
+        slide_layout_ = instance_mock(request, SlideLayout)
+        slide_layout_.slide_master = slide_master_
+        return slide_layout_
 
     @pytest.fixture
     def _slide_master_(self, request, slide_master_):
