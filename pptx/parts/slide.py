@@ -268,7 +268,7 @@ class _SlidePlaceholder(BasePlaceholder):
         height if it has one, otherwise the height of its parent layout
         placeholder.
         """
-        return self._direct_or_inherited_value('height')
+        return self._effective_value('height')
 
     @property
     def left(self):
@@ -277,7 +277,7 @@ class _SlidePlaceholder(BasePlaceholder):
         left if it has one, otherwise the left of its parent layout
         placeholder.
         """
-        return self._direct_or_inherited_value('left')
+        return self._effective_value('left')
 
     @property
     def top(self):
@@ -286,7 +286,7 @@ class _SlidePlaceholder(BasePlaceholder):
         top if it has one, otherwise the top of its parent layout
         placeholder.
         """
-        return self._direct_or_inherited_value('top')
+        return self._effective_value('top')
 
     @property
     def width(self):
@@ -295,13 +295,25 @@ class _SlidePlaceholder(BasePlaceholder):
         width if it has one, otherwise the width of its parent layout
         placeholder.
         """
-        return self._direct_or_inherited_value('width')
+        return self._effective_value('width')
 
-    def _direct_or_inherited_value(self, attr_name):
+    def _effective_value(self, attr_name):
         """
         The effective value of *attr_name* on this placeholder shape; its
         directly-applied value if it has one, otherwise the value on the
         layout placeholder it inherits from.
+        """
+        directly_applied_value = getattr(
+            super(_SlidePlaceholder, self), attr_name
+        )
+        if directly_applied_value is not None:
+            return directly_applied_value
+        return self._inherited_value(attr_name)
+
+    def _inherited_value(self, attr_name):
+        """
+        The attribute value, e.g. 'width' of the parent master placeholder of
+        this placeholder shape
         """
         raise NotImplementedError
 

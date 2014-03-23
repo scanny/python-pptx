@@ -30,7 +30,8 @@ from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeCollection
 
 from ..oxml.unitdata.shape import (
-    a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp, an_spTree
+    a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr, an_spTree,
+    an_xfrm
 )
 from ..oxml.unitdata.slides import a_sld, a_cSld
 from ..unitutil import (
@@ -580,26 +581,71 @@ class Describe_SlidePlaceholder(object):
         _direct_or_inherited_value_.assert_called_once_with(attr_name)
         assert value == expected_value
 
+    def it_provides_direct_property_values_when_they_exist(
+            self, direct_fixture):
+        slide_placeholder, expected_width = direct_fixture
+        width = slide_placeholder.width
+        assert width == expected_width
+
+    def it_provides_inherited_property_values_when_no_direct_value(
+            self, inherited_fixture):
+        slide_placeholder, _inherited_value_, inherited_left_ = (
+            inherited_fixture
+        )
+        left = slide_placeholder.left
+        _inherited_value_.assert_called_once_with('left')
+        assert left == inherited_left_
+
     # fixtures -------------------------------------------------------
 
+    @pytest.fixture
+    def direct_fixture(self, sp, width):
+        slide_placeholder = _SlidePlaceholder(sp, None)
+        return slide_placeholder, width
+
+    @pytest.fixture
+    def inherited_fixture(self, sp, _inherited_value_, int_value_):
+        slide_placeholder = _SlidePlaceholder(sp, None)
+        return slide_placeholder, _inherited_value_, int_value_
+
     @pytest.fixture(params=['left', 'top', 'width', 'height'])
-    def xfrm_fixture(self, request, _direct_or_inherited_value_, int_value_):
+    def xfrm_fixture(self, request, _effective_value_, int_value_):
         attr_name = request.param
         slide_placeholder = _SlidePlaceholder(None, None)
-        _direct_or_inherited_value_.return_value = int_value_
+        _effective_value_.return_value = int_value_
         return (
-            slide_placeholder, _direct_or_inherited_value_, attr_name,
+            slide_placeholder, _effective_value_, attr_name,
             int_value_
         )
 
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def _direct_or_inherited_value_(self, request):
+    def _effective_value_(self, request):
         return method_mock(
-            request, _SlidePlaceholder, '_direct_or_inherited_value'
+            request, _SlidePlaceholder, '_effective_value'
+        )
+
+    @pytest.fixture
+    def _inherited_value_(self, request, int_value_):
+        return method_mock(
+            request, _SlidePlaceholder, '_inherited_value',
+            return_value=int_value_
         )
 
     @pytest.fixture
     def int_value_(self, request):
         return instance_mock(request, int)
+
+    @pytest.fixture
+    def sp(self, width):
+        return (
+            an_sp().with_nsdecls('p', 'a').with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_ext().with_cx(width))))
+        ).element
+
+    @pytest.fixture
+    def width(self):
+        return 31416
