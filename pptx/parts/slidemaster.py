@@ -131,14 +131,14 @@ class _MasterShapeTree(BaseShapeTree):
 
 
 def _MasterShapeFactory(shape_elm, parent):
-        """
-        Return an instance of the appropriate shape proxy class for
-        *shape_elm*.
-        """
-        tag_name = shape_elm.tag
-        if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
-            return _MasterPlaceholder(shape_elm, parent)
-        return BaseShapeFactory(shape_elm, parent)
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a slide master.
+    """
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return _MasterPlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
 
 
 class _MasterPlaceholder(BasePlaceholder):

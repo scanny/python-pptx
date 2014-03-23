@@ -10,7 +10,8 @@ from behave import given, when, then
 from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
-from pptx.parts.slide import _SlideShapeTree
+from pptx.parts.slide import _SlidePlaceholder, _SlideShapeTree
+from pptx.shapes.picture import Picture
 from pptx.shapes.shape import BaseShape
 
 from .helpers import saved_pptx_path, test_pptx
@@ -53,6 +54,16 @@ def step_when_add_slide(context):
 
 
 # then ====================================================
+
+@then('each slide shape is of the appropriate type')
+def then_each_slide_shape_is_of_the_appropriate_type(context):
+    shapes = context.shapes
+    expected_types = [_SlidePlaceholder, _SlidePlaceholder, Picture]
+    for idx, shape in enumerate(shapes):
+        assert type(shape) == expected_types[idx], (
+            "got \'%s\'" % type(shape).__name__
+        )
+
 
 @then('I can access a shape by index')
 def then_can_access_shape_by_index(context):

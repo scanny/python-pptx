@@ -14,6 +14,7 @@ from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsmap, _nsmap
+from pptx.shapes.placeholder import BasePlaceholder
 from pptx.shapes.shapetree import BaseShapeTree, ShapeCollection
 from pptx.util import lazyproperty
 
@@ -225,3 +226,25 @@ class _SlideShapeTree(BaseShapeTree):
         and footer) are not cloned.
         """
         raise NotImplementedError
+
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _SlideShapeFactory(shape_elm, self)
+
+
+def _SlideShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a slide.
+    """
+    raise NotImplementedError
+
+
+class _SlidePlaceholder(BasePlaceholder):
+    """
+    Placeholder shape on a slide. Inherits shape properties from its
+    corresponding slide layout placeholder.
+    """

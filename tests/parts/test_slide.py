@@ -14,6 +14,7 @@ from mock import ANY, call, MagicMock
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part, _Relationship
+from pptx.oxml.autoshape import CT_Shape
 from pptx.oxml.ns import _nsmap
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
 from pptx.oxml.shapetree import CT_GroupShape
@@ -21,7 +22,7 @@ from pptx.oxml.slide import CT_Slide
 from pptx.package import Package
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import (
-    BaseSlide, Slide, SlideCollection, _SlideShapeTree
+    BaseSlide, Slide, SlideCollection, _SlidePlaceholder, _SlideShapeTree
 )
 from pptx.parts.slidelayout import SlideLayout
 from pptx.shapes.shapetree import ShapeCollection
@@ -29,8 +30,9 @@ from pptx.shapes.shapetree import ShapeCollection
 from ..oxml.unitdata.shape import an_spTree
 from ..oxml.unitdata.slides import a_sld, a_cSld
 from ..unitutil import (
-    absjoin, class_mock, initializer_mock, instance_mock, loose_mock,
-    method_mock, parse_xml_file, property_mock, serialize_xml, test_file_dir
+    absjoin, class_mock, function_mock, initializer_mock, instance_mock,
+    loose_mock, method_mock, parse_xml_file, property_mock, serialize_xml,
+    test_file_dir
 )
 
 
@@ -398,3 +400,40 @@ class DescribeSlideCollection(object):
         slide_, slide_2_ = slide_parts_
         slides = SlideCollection(sldIdLst_, prs_)
         return slides, slide_, slide_2_
+
+
+class Describe_SlideShapeTree(object):
+
+    def it_constructs_a_slide_placeholder_for_a_placeholder_shape(
+            self, factory_fixture):
+        shapes, ph_elm_, _SlideShapeFactory_, slide_placeholder_ = (
+            factory_fixture
+        )
+        slide_placeholder = shapes._shape_factory(ph_elm_)
+        _SlideShapeFactory_.assert_called_once_with(ph_elm_, shapes)
+        assert slide_placeholder is slide_placeholder_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def factory_fixture(
+            self, ph_elm_, _SlideShapeFactory_, slide_placeholder_):
+        shapes = _SlideShapeTree(None)
+        return shapes, ph_elm_, _SlideShapeFactory_, slide_placeholder_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def slide_placeholder_(self, request):
+        return instance_mock(request, _SlidePlaceholder)
+
+    @pytest.fixture
+    def _SlideShapeFactory_(self, request, slide_placeholder_):
+        return function_mock(
+            request, 'pptx.parts.slide._SlideShapeFactory',
+            return_value=slide_placeholder_
+        )
+
+    @pytest.fixture
+    def ph_elm_(self, request):
+        return instance_mock(request, CT_Shape)
