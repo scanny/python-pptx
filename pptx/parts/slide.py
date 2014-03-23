@@ -266,7 +266,9 @@ class _SlideShapeTree(BaseShapeTree):
         part with the key *rId*. If the image part and/or relationship
         already exists, they are reused, otherwise they are newly created.
         """
-        raise NotImplementedError
+        slide = self._slide
+        image_part, rId = slide._add_image(image_file)
+        return image_part, rId
 
     def _shape_factory(self, shape_elm):
         """

@@ -462,6 +462,13 @@ class Describe_SlideShapeTree(object):
         _shape_factory_.assert_called_once_with(pic_, shapes)
         assert picture is picture_
 
+    def it_adds_an_image_to_help_add_picture(self, image_part_fixture):
+        shapes, image_file_, slide_, image_part_, rId_ = image_part_fixture
+        image_part, rId = shapes._get_or_add_image_part(image_file_)
+        slide_._add_image.assert_called_once_with(image_file_)
+        assert image_part == image_part_
+        assert rId == rId_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -469,6 +476,11 @@ class Describe_SlideShapeTree(object):
             self, ph_elm_, _SlideShapeFactory_, slide_placeholder_):
         shapes = _SlideShapeTree(None)
         return shapes, ph_elm_, _SlideShapeFactory_, slide_placeholder_
+
+    @pytest.fixture
+    def image_part_fixture(self, slide_, image_file_, image_part_, rId_):
+        shapes = _SlideShapeTree(slide_)
+        return shapes, image_file_, slide_, image_part_, rId_
 
     @pytest.fixture
     def picture_fixture(
@@ -490,6 +502,14 @@ class Describe_SlideShapeTree(object):
             request, _SlideShapeTree, '_add_pic_from_image_part',
             return_value=pic_
         )
+
+    @pytest.fixture
+    def cx_(self, request):
+        return instance_mock(request, int)
+
+    @pytest.fixture
+    def cy_(self, request):
+        return instance_mock(request, int)
 
     @pytest.fixture
     def _get_or_add_image_part_(self, request, image_part_, rId_):
@@ -525,6 +545,12 @@ class Describe_SlideShapeTree(object):
         )
 
     @pytest.fixture
+    def slide_(self, request, image_part_, rId_):
+        slide_ = instance_mock(request, Slide)
+        slide_._add_image.return_value = image_part_, rId_
+        return slide_
+
+    @pytest.fixture
     def slide_placeholder_(self, request):
         return instance_mock(request, _SlidePlaceholder)
 
@@ -545,14 +571,6 @@ class Describe_SlideShapeTree(object):
 
     @pytest.fixture
     def y_(self, request):
-        return instance_mock(request, int)
-
-    @pytest.fixture
-    def cx_(self, request):
-        return instance_mock(request, int)
-
-    @pytest.fixture
-    def cy_(self, request):
         return instance_mock(request, int)
 
 
