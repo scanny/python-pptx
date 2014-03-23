@@ -70,18 +70,6 @@ class DescribeBaseSlide(object):
         msg = "expected '%s', got '%s'" % (expected, actual)
         assert actual == expected, msg
 
-    def it_provides_access_to_the_shapes_on_the_slide(self):
-        """BaseSlide.shapes is expected size after _load()"""
-        # setup ------------------------
-        path = absjoin(test_file_dir, 'slide1.xml')
-        with open(path, 'r') as f:
-            blob = f.read()
-        base_slide = BaseSlide.load(None, None, blob, None)
-        # exercise ---------------------
-        shapes = base_slide.shapes
-        # verify -----------------------
-        assert len(shapes) == 9
-
     def it_can_add_an_image_part_to_the_slide(self, base_slide_fixture):
         # fixture ----------------------
         base_slide, img_file_, image_, rId_ = base_slide_fixture
@@ -136,6 +124,12 @@ class DescribeBaseSlide(object):
 
 class DescribeSlide(object):
 
+    def it_provides_access_to_the_shapes_on_the_slide(self, shapes_fixture):
+        slide, _SlideShapeTree_, slide_shape_tree_ = shapes_fixture
+        shapes = slide.shapes_new
+        _SlideShapeTree_.assert_called_once_with(slide)
+        assert shapes is slide_shape_tree_
+
     def it_can_create_a_new_slide(self, new_fixture):
         slide_layout_, partname_, package_ = new_fixture[:3]
         Slide_init_, slide_elm_, shapes_, relate_to_ = new_fixture[3:]
@@ -170,6 +164,11 @@ class DescribeSlide(object):
     def layout_fixture(self, slide_layout_, part_related_by_):
         slide = Slide(None, None, None, None)
         return slide, slide_layout_
+
+    @pytest.fixture
+    def shapes_fixture(self, _SlideShapeTree_, slide_shape_tree_):
+        slide = Slide(None, None, None, None)
+        return slide, _SlideShapeTree_, slide_shape_tree_
 
     @pytest.fixture
     def new_fixture(
@@ -221,6 +220,13 @@ class DescribeSlide(object):
         return Slide(None, None, None, None)
 
     @pytest.fixture
+    def _SlideShapeTree_(self, request, slide_shape_tree_):
+        return class_mock(
+            request, 'pptx.parts.slide._SlideShapeTree',
+            return_value=slide_shape_tree_
+        )
+
+    @pytest.fixture
     def slide_elm_(self, request):
         return instance_mock(request, CT_Slide)
 
@@ -231,6 +237,10 @@ class DescribeSlide(object):
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def slide_shape_tree_(self, request):
+        return instance_mock(request, _SlideShapeTree)
 
 
 class DescribeSlideCollection(object):

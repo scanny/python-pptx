@@ -51,22 +51,6 @@ class BaseSlide(Part):
         """
         return self
 
-    @lazyproperty
-    def shapes(self):
-        """
-        Instance of |ShapeCollection| containing sequence of shape objects
-        appearing on this slide.
-        """
-        return ShapeCollection(self._element.cSld.spTree, self)
-
-    @lazyproperty
-    def shapes_new(self):
-        """
-        Instance of |ShapeTree| containing sequence of shape objects
-        appearing on this slide.
-        """
-        return BaseShapeTree(self)
-
     @property
     def spTree(self):
         """
@@ -104,6 +88,22 @@ class Slide(BaseSlide):
         slide.shapes._clone_layout_placeholders(slidelayout)
         slide.relate_to(slidelayout, RT.SLIDE_LAYOUT)
         return slide
+
+    @lazyproperty
+    def shapes(self):
+        """
+        Instance of |ShapeCollection| containing sequence of shape objects
+        appearing on this slide.
+        """
+        return ShapeCollection(self._element.cSld.spTree, self)
+
+    @lazyproperty
+    def shapes_new(self):
+        """
+        Instance of |ShapeTree| containing sequence of shape objects
+        appearing on this slide.
+        """
+        return _SlideShapeTree(self)
 
     @property
     def slide_layout(self):
