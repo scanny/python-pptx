@@ -312,8 +312,19 @@ class _SlidePlaceholder(BasePlaceholder):
 
     def _inherited_value(self, attr_name):
         """
-        The attribute value, e.g. 'width' of the parent master placeholder of
-        this placeholder shape
+        The attribute value, e.g. 'width' of the layout placeholder this
+        slide placeholder inherits from
+        """
+        layout_placeholder = self._layout_placeholder
+        if layout_placeholder is None:
+            return None
+        inherited_value = getattr(layout_placeholder, attr_name)
+        return inherited_value
+
+    @property
+    def _layout_placeholder(self):
+        """
+        The layout placeholder shape this slide placeholder inherits from
         """
         raise NotImplementedError
 

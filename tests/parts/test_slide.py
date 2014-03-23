@@ -25,7 +25,7 @@ from pptx.parts.slide import (
     BaseSlide, Slide, SlideCollection, _SlidePlaceholder, _SlidePlaceholders,
     _SlideShapeFactory, _SlideShapeTree
 )
-from pptx.parts.slidelayout import SlideLayout
+from pptx.parts.slidelayout import _LayoutPlaceholder, SlideLayout
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeCollection
 
@@ -596,6 +596,12 @@ class Describe_SlidePlaceholder(object):
         _inherited_value_.assert_called_once_with('left')
         assert left == inherited_left_
 
+    def it_knows_how_to_get_a_property_value_from_its_layout(
+            self, layout_val_fixture):
+        slide_placeholder, attr_name, expected_value = layout_val_fixture
+        value = slide_placeholder._inherited_value(attr_name)
+        assert value == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -636,6 +642,29 @@ class Describe_SlidePlaceholder(object):
     @pytest.fixture
     def int_value_(self, request):
         return instance_mock(request, int)
+
+    @pytest.fixture(params=[(True, 42), (False, None)])
+    def layout_val_fixture(
+            self, request, _layout_placeholder_, layout_placeholder_):
+        has_layout_placeholder, expected_value = request.param
+        slide_placeholder = _SlidePlaceholder(None, None)
+        attr_name = 'width'
+        if has_layout_placeholder:
+            setattr(layout_placeholder_, attr_name, expected_value)
+            _layout_placeholder_.return_value = layout_placeholder_
+        else:
+            _layout_placeholder_.return_value = None
+        return slide_placeholder, attr_name, expected_value
+
+    @pytest.fixture
+    def _layout_placeholder_(self, request):
+        return property_mock(
+            request, _SlidePlaceholder, '_layout_placeholder'
+        )
+
+    @pytest.fixture
+    def layout_placeholder_(self, request):
+        return instance_mock(request, _LayoutPlaceholder)
 
     @pytest.fixture
     def sp(self, width):
