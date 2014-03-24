@@ -459,7 +459,7 @@ class Describe_SlideShapeTree(object):
         _add_pic_from_image_part_.assert_called_once_with(
             image_part_, rId_, x_, y_, cx_, cy_
         )
-        _shape_factory_.assert_called_once_with(pic_, shapes)
+        _shape_factory_.assert_called_once_with(pic_)
         assert picture is picture_
 
     def it_adds_an_image_to_help_add_picture(self, image_part_fixture):

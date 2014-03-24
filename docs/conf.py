@@ -110,6 +110,8 @@ rst_epilog = """
 
 .. |list| replace:: :class:`list`
 
+.. |_LayoutPlaceholders| replace:: :class:`_LayoutPlaceholders`
+
 .. |_LayoutShapeTree| replace:: :class:`_LayoutShapeTree`
 
 .. |_MasterPlaceholders| replace:: :class:`_MasterPlaceholders`
@@ -163,6 +165,10 @@ rst_epilog = """
 .. |SlideLayout| replace:: :class:`.SlideLayout`
 
 .. |SlideMaster| replace:: :class:`.SlideMaster`
+
+.. |_SlidePlaceholders| replace:: :class:`._SlidePlaceholders`
+
+.. |_SlideShapeTree| replace:: :class:`._SlideShapeTree`
 
 .. |str| replace:: :class:`str`
 

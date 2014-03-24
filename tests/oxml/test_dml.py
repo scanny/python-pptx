@@ -13,7 +13,7 @@ from pptx.oxml.dml.color import CT_Percentage, CT_SchemeColor, CT_SRgbColor
 from pptx.oxml.dml.fill import CT_SolidColorFillProperties
 from pptx.oxml.ns import qn
 
-from ..oxml.unitdata.dml import (
+from .unitdata.dml import (
     a_lumMod, a_lumOff, a_prstClr, a_schemeClr, a_solidFill, an_srgbClr
 )
 from ..unitutil import actual_xml

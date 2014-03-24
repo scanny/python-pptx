@@ -239,7 +239,7 @@ class _SlideShapeTree(BaseShapeTree):
         pic = self._add_pic_from_image_part(
             image_part, rId, left, top, width, height
         )
-        picture = self._shape_factory(pic, self)
+        picture = self._shape_factory(pic)
         return picture
 
     def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):

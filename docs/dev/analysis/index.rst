@@ -20,6 +20,7 @@ Feature Analysis
    features/shp-group-shape
    features/shp-placeholders
    features/shp-pos-and-size
+   features/sld-shape-tree
    features/table
 
 

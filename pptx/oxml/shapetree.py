@@ -6,8 +6,9 @@ lxml custom element classes for shape tree-related XML elements.
 
 from __future__ import absolute_import
 
-from pptx.oxml.ns import qn
-from pptx.oxml.shapes.shared import BaseShapeElement
+from .ns import qn
+from .picture import CT_Picture
+from .shapes.shared import BaseShapeElement
 
 
 class CT_GroupShape(BaseShapeElement):
@@ -26,7 +27,9 @@ class CT_GroupShape(BaseShapeElement):
         Append a ``<p:pic>`` shape to the group/shapetree having properties
         as specified in call.
         """
-        raise NotImplementedError
+        pic = CT_Picture.new_pic(id, name, desc, rId, x, y, cx, cy)
+        self.insert_element_before(pic, 'p:extLst')
+        return pic
 
     def iter_shape_elms(self):
         """
