@@ -17,8 +17,8 @@ from pptx.shapes.table import Table
 from pptx.shapes.shapetree import BaseShapeTree, BaseShapeFactory
 
 from ..oxml.unitdata.shape import (
-    a_graphic, a_graphicData, a_graphicFrame, a_grpSp, a_pic, an_sp, an_spPr,
-    an_spTree
+    a_cNvPr, a_graphic, a_graphicData, a_graphicFrame, a_grpSp, a_pic,
+    an_nvSpPr, an_sp, an_spPr, an_spTree
 )
 from ..oxml.unitdata.slides import a_sld, a_cSld
 from ..unitutil import (
@@ -35,6 +35,11 @@ class DescribeBaseShapeFactory(object):
         ShapeClass_.assert_called_once_with(shape_elm, parent_)
         assert shape is shape_
 
+    def it_finds_an_unused_shape_id_to_help_add_shape(self, next_id_fixture):
+        shapes, next_available_shape_id = next_id_fixture
+        shape_id = shapes._next_shape_id
+        assert shape_id == next_available_shape_id
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=['sp', 'pic', 'tbl', 'chart', 'grpSp'])
@@ -50,6 +55,21 @@ class DescribeBaseShapeFactory(object):
         }[request.param]
         shape_elm = shape_bldr.with_nsdecls().element
         return shape_elm, slide_, ShapeClass_, shape_mock
+
+    @pytest.fixture(params=[
+        ((), 1), ((0,), 1), ((1,), 2), ((2,), 1), ((1, 3,), 2),
+        (('foobar', 0, 1, 7), 2), (('1foo', 2, 2, 2), 1), ((1, 1, 1, 4), 2),
+    ])
+    def next_id_fixture(self, request, slide_):
+        used_ids, next_available_shape_id = request.param
+        nvSpPr_bldr = an_nvSpPr()
+        for used_id in used_ids:
+            nvSpPr_bldr.with_child(a_cNvPr().with_id(used_id))
+        spTree = an_spTree().with_nsdecls().with_child(nvSpPr_bldr).element
+        print(spTree.xml)
+        slide_.spTree = spTree
+        shapes = BaseShapeTree(slide_)
+        return shapes, next_available_shape_id
 
     # fixture components -----------------------------------
 

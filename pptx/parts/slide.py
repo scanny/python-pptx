@@ -254,8 +254,7 @@ class _SlideShapeTree(BaseShapeTree):
         desc = image_part._desc
         scaled_cx, scaled_cy = image_part._scale(cx, cy)
 
-        spTree = self._slide.spTree
-        pic = spTree.add_pic(
+        pic = self._spTree.add_pic(
             id, name, desc, rId, x, y, scaled_cx, scaled_cy
         )
 

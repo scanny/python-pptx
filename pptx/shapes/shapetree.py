@@ -86,7 +86,11 @@ class BaseShapeTree(object):
         the minimum id is 2 because the spTree element is always assigned
         id="1".
         """
-        raise NotImplementedError
+        id_str_lst = self._spTree.xpath('//@id')
+        used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
+        for n in range(1, len(used_ids)+2):
+            if n not in used_ids:
+                return n
 
     def _shape_factory(self, shape_elm):
         """
@@ -94,6 +98,13 @@ class BaseShapeTree(object):
         *shape_elm*.
         """
         return BaseShapeFactory(shape_elm, self)
+
+    @property
+    def _spTree(self):
+        """
+        The ``<p:spTree>`` element underlying this shape tree object
+        """
+        return self._slide.spTree
 
 
 def BaseShapeFactory(shape_elm, parent):

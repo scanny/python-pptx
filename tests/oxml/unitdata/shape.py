@@ -64,6 +64,12 @@ class CT_GroupShapeBuilder(BaseBuilder):
         super(CT_GroupShapeBuilder, self).__init__()
 
 
+class CT_NonVisualDrawingPropsBuilder(BaseBuilder):
+    __tag__ = 'p:cNvPr'
+    __nspfxs__ = ('p',)
+    __attrs__ = ('id', 'name', 'descr', 'hidden', 'title')
+
+
 class CT_PictureBuilder(BaseBuilder):
     __tag__ = 'p:pic'
     __nspfxs__ = ('p', 'a')
@@ -122,6 +128,10 @@ class CT_Transform2DBuilder(BaseBuilder):
     __tag__ = 'a:xfrm'
     __nspfxs__ = ('a',)
     __attrs__ = ('rot', 'flipH', 'flipV')
+
+
+def a_cNvPr():
+    return CT_NonVisualDrawingPropsBuilder()
 
 
 def a_gd():
