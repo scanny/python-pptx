@@ -249,7 +249,17 @@ class _SlideShapeTree(BaseShapeTree):
         *cx*, and *cy*. The element is appended to the shape tree, causing it
         to be displayed first in z-order on the slide.
         """
-        raise NotImplementedError
+        id = self._next_shape_id
+        name = 'Picture %d' % (id-1)
+        desc = image_part._desc
+        scaled_cx, scaled_cy = image_part._scale(cx, cy)
+
+        spTree = self._slide.spTree
+        pic = spTree.add_pic(
+            id, name, desc, rId, x, y, scaled_cx, scaled_cy
+        )
+
+        return pic
 
     def _clone_layout_placeholders(self, slidelayout):
         """

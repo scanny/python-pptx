@@ -469,6 +469,21 @@ class Describe_SlideShapeTree(object):
         assert image_part == image_part_
         assert rId == rId_
 
+    def it_adds_a_pic_to_help_add_picture(self, pic_fixture):
+        # fixture ----------------------
+        shapes, image_part_, rId_, x_, y_, cx_, cy_ = pic_fixture[:7]
+        spTree_, id_, name, desc_ = pic_fixture[7:11]
+        scaled_cx_, scaled_cy_, pic_ = pic_fixture[11:]
+        # exercise ---------------------
+        pic = shapes._add_pic_from_image_part(
+            image_part_, rId_, x_, y_, cx_, cy_
+        )
+        image_part_._scale.assert_called_once_with(cx_, cy_)
+        spTree_.add_pic.assert_called_once_with(
+            id_, name, desc_, rId_, x_, y_, scaled_cx_, scaled_cy_
+        )
+        assert pic is pic_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -481,6 +496,17 @@ class Describe_SlideShapeTree(object):
     def image_part_fixture(self, slide_, image_file_, image_part_, rId_):
         shapes = _SlideShapeTree(slide_)
         return shapes, image_file_, slide_, image_part_, rId_
+
+    @pytest.fixture
+    def pic_fixture(
+            self, slide_, image_part_, rId_, x_, y_, cx_, cy_, spTree_,
+            _next_shape_id_, id_, name, desc_, scaled_cx_, scaled_cy_,
+            pic_):
+        shapes = _SlideShapeTree(slide_)
+        return (
+            shapes, image_part_, rId_, x_, y_, cx_, cy_, spTree_, id_,
+            name, desc_, scaled_cx_, scaled_cy_, pic_
+        )
 
     @pytest.fixture
     def picture_fixture(
@@ -512,6 +538,10 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, int)
 
     @pytest.fixture
+    def desc_(self, request):
+        return instance_mock(request, str)
+
+    @pytest.fixture
     def _get_or_add_image_part_(self, request, image_part_, rId_):
         return method_mock(
             request, _SlideShapeTree, '_get_or_add_image_part',
@@ -519,12 +549,29 @@ class Describe_SlideShapeTree(object):
         )
 
     @pytest.fixture
-    def image_part_(self, request):
-        return instance_mock(request, ImagePart)
+    def id_(self, request):
+        return 42
+
+    @pytest.fixture
+    def image_part_(self, request, desc_, scaled_cx_, scaled_cy_):
+        image_part_ = instance_mock(request, ImagePart)
+        image_part_._desc = desc_
+        image_part_._scale.return_value = scaled_cx_, scaled_cy_
+        return image_part_
 
     @pytest.fixture
     def image_file_(self, request):
         return instance_mock(request, str)
+
+    @pytest.fixture
+    def name(self, request):
+        return 'Picture 41'
+
+    @pytest.fixture
+    def _next_shape_id_(self, request, id_):
+        return property_mock(
+            request, _SlideShapeTree, '_next_shape_id', return_value=id_
+        )
 
     @pytest.fixture
     def pic_(self, request):
@@ -539,14 +586,23 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, str)
 
     @pytest.fixture
+    def scaled_cx_(self, request):
+        return instance_mock(request, int)
+
+    @pytest.fixture
+    def scaled_cy_(self, request):
+        return instance_mock(request, int)
+
+    @pytest.fixture
     def _shape_factory_(self, request, picture_):
         return method_mock(
             request, _SlideShapeTree, '_shape_factory', return_value=picture_
         )
 
     @pytest.fixture
-    def slide_(self, request, image_part_, rId_):
+    def slide_(self, request, spTree_, image_part_, rId_):
         slide_ = instance_mock(request, Slide)
+        slide_.spTree = spTree_
         slide_._add_image.return_value = image_part_, rId_
         return slide_
 
@@ -560,6 +616,12 @@ class Describe_SlideShapeTree(object):
             request, 'pptx.parts.slide._SlideShapeFactory',
             return_value=slide_placeholder_
         )
+
+    @pytest.fixture
+    def spTree_(self, request, pic_):
+        spTree_ = instance_mock(request, CT_GroupShape)
+        spTree_.add_pic.return_value = pic_
+        return spTree_
 
     @pytest.fixture
     def ph_elm_(self, request):

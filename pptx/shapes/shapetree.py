@@ -78,6 +78,16 @@ class BaseShapeTree(object):
             if self._is_member_elm(shape_elm):
                 yield shape_elm
 
+    @property
+    def _next_shape_id(self):
+        """
+        Next available positive integer drawing object id in shape tree,
+        starting from 1 and making use of any gaps in numbering. In practice,
+        the minimum id is 2 because the spTree element is always assigned
+        id="1".
+        """
+        raise NotImplementedError
+
     def _shape_factory(self, shape_elm):
         """
         Return an instance of the appropriate shape proxy class for
@@ -311,9 +321,10 @@ class ShapeCollection(BaseShape):
     @property
     def _next_shape_id(self):
         """
-        Next available drawing object id number in collection, starting from 1
-        and making use of any gaps in numbering. In practice, the minimum id
-        is 2 because the spTree element is always assigned id="1".
+        Next available positive integer drawing object id in collection,
+        starting from 1 and making use of any gaps in numbering. In practice,
+        the minimum id is 2 because the spTree element is always assigned
+        id="1".
         """
         cNvPrs = self._spTree.xpath('//p:cNvPr', namespaces=_nsmap)
         ids = [int(cNvPr.get('id')) for cNvPr in cNvPrs]

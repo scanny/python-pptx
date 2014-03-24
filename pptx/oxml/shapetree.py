@@ -21,6 +21,13 @@ class CT_GroupShape(BaseShapeElement):
         qn('p:pic'), qn('p:contentPart')
     )
 
+    def add_pic(self, id, name, desc, rId, x, y, cx, cy):
+        """
+        Append a ``<p:pic>`` shape to the group/shapetree having properties
+        as specified in call.
+        """
+        raise NotImplementedError
+
     def iter_shape_elms(self):
         """
         Generate each child of this ``<p:spTree>`` element that corresponds
