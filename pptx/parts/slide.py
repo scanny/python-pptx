@@ -14,6 +14,7 @@ from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsmap, _nsmap, qn
+from pptx.shapes.autoshape import AutoShapeType
 from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
 from pptx.shapes.shapetree import (
     BaseShapeFactory, BaseShapeTree, ShapeCollection
@@ -242,6 +243,18 @@ class _SlideShapeTree(BaseShapeTree):
         picture = self._shape_factory(pic)
         return picture
 
+    def add_shape(self, autoshape_type_id, left, top, width, height):
+        """
+        Add auto shape of type specified by *autoshape_type_id* (like
+        ``MSO.SHAPE_RECTANGLE``) and of specified size at specified position.
+        """
+        autoshape_type = AutoShapeType(autoshape_type_id)
+        sp = self._add_sp_from_autoshape_type(
+            autoshape_type, left, top, width, height
+        )
+        shape = self._shape_factory(sp)
+        return shape
+
     def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):
         """
         Return a newly added ``<p:pic>`` element specifying a picture shape
@@ -259,6 +272,13 @@ class _SlideShapeTree(BaseShapeTree):
         )
 
         return pic
+
+    def _add_sp_from_autoshape_type(self, autoshape_type, x, y, cx, cy):
+        """
+        Return a newly-added ``<p:sp>`` element for a shape of
+        *autoshape_type* at position (x, y) and of size (cx, cy).
+        """
+        raise NotImplementedError
 
     def _clone_layout_placeholders(self, slidelayout):
         """

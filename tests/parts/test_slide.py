@@ -28,6 +28,7 @@ from pptx.parts.slide import (
     _SlideShapeFactory, _SlideShapeTree
 )
 from pptx.parts.slidelayout import _LayoutPlaceholder, SlideLayout
+from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.picture import Picture
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeCollection
@@ -446,6 +447,22 @@ class Describe_SlideShapeTree(object):
         _SlideShapeFactory_.assert_called_once_with(ph_elm_, shapes)
         assert slide_placeholder is slide_placeholder_
 
+    def it_can_add_an_autoshape(self, autoshape_fixture):
+        # fixture ----------------------
+        shapes, autoshape_type_id_, x_, y_, cx_, cy_ = autoshape_fixture[:6]
+        AutoShapeType_, _add_sp_from_autoshape_type_ = autoshape_fixture[6:8]
+        autoshape_type_, _shape_factory_, sp_ = autoshape_fixture[8:11]
+        shape_ = autoshape_fixture[11]
+        # exercise ---------------------
+        shape = shapes.add_shape(autoshape_type_id_, x_, y_, cx_, cy_)
+        # verify -----------------------
+        AutoShapeType_.assert_called_once_with(autoshape_type_id_)
+        _add_sp_from_autoshape_type_.assert_called_once_with(
+            autoshape_type_, x_, y_, cx_, cy_
+        )
+        _shape_factory_.assert_called_once_with(sp_)
+        assert shape is shape_
+
     def it_can_add_a_picture_shape(self, picture_fixture):
         # fixture ----------------------
         shapes, image_file_, x_, y_, cx_, cy_ = picture_fixture[:6]
@@ -487,6 +504,19 @@ class Describe_SlideShapeTree(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
+    def autoshape_fixture(
+            self, autoshape_type_id_, x_, y_, cx_, cy_, AutoShapeType_,
+            _add_sp_from_autoshape_type_, autoshape_type_, _shape_factory_,
+            sp_, shape_):
+        shapes = _SlideShapeTree(None)
+        _shape_factory_.return_value = shape_
+        return (
+            shapes, autoshape_type_id_, x_, y_, cx_, cy_, AutoShapeType_,
+            _add_sp_from_autoshape_type_, autoshape_type_, _shape_factory_,
+            sp_, shape_
+        )
+
+    @pytest.fixture
     def factory_fixture(
             self, ph_elm_, _SlideShapeFactory_, slide_placeholder_):
         shapes = _SlideShapeTree(None)
@@ -514,6 +544,7 @@ class Describe_SlideShapeTree(object):
             image_part_, rId_,  _add_pic_from_image_part_, pic_,
             _shape_factory_, picture_):
         shapes = _SlideShapeTree(None)
+        _shape_factory_.return_value = picture_
         return (
             shapes, image_file_, x_, y_, cx_, cy_, _get_or_add_image_part_,
             image_part_, rId_,  _add_pic_from_image_part_, pic_,
@@ -528,6 +559,28 @@ class Describe_SlideShapeTree(object):
             request, _SlideShapeTree, '_add_pic_from_image_part',
             return_value=pic_
         )
+
+    @pytest.fixture
+    def _add_sp_from_autoshape_type_(self, request, sp_):
+        return method_mock(
+            request, _SlideShapeTree, '_add_sp_from_autoshape_type',
+            return_value=sp_
+        )
+
+    @pytest.fixture
+    def AutoShapeType_(self, request, autoshape_type_):
+        return class_mock(
+            request, 'pptx.parts.slide.AutoShapeType',
+            return_value=autoshape_type_
+        )
+
+    @pytest.fixture
+    def autoshape_type_(self, request):
+        return instance_mock(request, AutoShapeType)
+
+    @pytest.fixture
+    def autoshape_type_id_(self, request):
+        return instance_mock(request, int)
 
     @pytest.fixture
     def cx_(self, request):
@@ -594,10 +647,12 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, int)
 
     @pytest.fixture
-    def _shape_factory_(self, request, picture_):
-        return method_mock(
-            request, _SlideShapeTree, '_shape_factory', return_value=picture_
-        )
+    def shape_(self, request):
+        return instance_mock(request, Shape)
+
+    @pytest.fixture
+    def _shape_factory_(self, request):
+        return method_mock(request, _SlideShapeTree, '_shape_factory')
 
     @pytest.fixture
     def slide_(self, request, spTree_, image_part_, rId_):
@@ -616,6 +671,10 @@ class Describe_SlideShapeTree(object):
             request, 'pptx.parts.slide._SlideShapeFactory',
             return_value=slide_placeholder_
         )
+
+    @pytest.fixture
+    def sp_(self, request):
+        return instance_mock(request, CT_Shape)
 
     @pytest.fixture
     def spTree_(self, request, pic_):
