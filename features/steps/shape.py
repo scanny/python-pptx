@@ -63,7 +63,7 @@ def when_add_text_box(context):
 
 @when("I add an auto shape to the slide's shape collection")
 def when_add_auto_shape(context):
-    shapes = context.sld.shapes
+    shapes = context.sld.shapes_new
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(4.00))
     sp = shapes.add_shape(MAST.ROUNDED_RECTANGLE, x, y, cx, cy)
