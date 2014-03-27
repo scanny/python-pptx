@@ -6,6 +6,7 @@ lxml custom element classes for shape tree-related XML elements.
 
 from __future__ import absolute_import
 
+from .autoshape import CT_Shape
 from .ns import qn
 from .picture import CT_Picture
 from .shapes.shared import BaseShapeElement
@@ -22,12 +23,21 @@ class CT_GroupShape(BaseShapeElement):
         qn('p:pic'), qn('p:contentPart')
     )
 
-    def add_pic(self, id, name, desc, rId, x, y, cx, cy):
+    def add_autoshape(self, id_, name, prst, x, y, cx, cy):
+        """
+        Append a new ``<p:sp>`` shape to the group/shapetree having the
+        properties specified in call.
+        """
+        sp = CT_Shape.new_autoshape_sp(id_, name, prst, x, y, cx, cy)
+        self.insert_element_before(sp, 'p:extLst')
+        return sp
+
+    def add_pic(self, id_, name, desc, rId, x, y, cx, cy):
         """
         Append a ``<p:pic>`` shape to the group/shapetree having properties
         as specified in call.
         """
-        pic = CT_Picture.new_pic(id, name, desc, rId, x, y, cx, cy)
+        pic = CT_Picture.new_pic(id_, name, desc, rId, x, y, cx, cy)
         self.insert_element_before(pic, 'p:extLst')
         return pic
 
