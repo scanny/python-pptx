@@ -495,11 +495,26 @@ class Describe_SlideShapeTree(object):
         pic = shapes._add_pic_from_image_part(
             image_part_, rId_, x_, y_, cx_, cy_
         )
+        # verify -----------------------
         image_part_._scale.assert_called_once_with(cx_, cy_)
         spTree_.add_pic.assert_called_once_with(
             id_, name, desc_, rId_, x_, y_, scaled_cx_, scaled_cy_
         )
         assert pic is pic_
+
+    def it_adds_an_sp_to_help_add_shape(self, sp_fixture):
+        # fixture ----------------------
+        shapes, autoshape_type_, x_, y_, cx_, cy_ = sp_fixture[:6]
+        spTree_, id_, name, prst_, sp_ = sp_fixture[6:]
+        # exercise ---------------------
+        sp = shapes._add_sp_from_autoshape_type(
+            autoshape_type_, x_, y_, cx_, cy_
+        )
+        # verify -----------------------
+        spTree_.add_autoshape.assert_called_once_with(
+            id_, name, prst_, x_, y_, cx_, cy_
+        )
+        assert sp is sp_
 
     # fixtures -------------------------------------------------------
 
@@ -551,6 +566,17 @@ class Describe_SlideShapeTree(object):
             _shape_factory_, picture_
         )
 
+    @pytest.fixture
+    def sp_fixture(
+            self, slide_, autoshape_type_, x_, y_, cx_, cy_, spTree_,
+            _next_shape_id_, id_, prst_, sp_):
+        shapes = _SlideShapeTree(slide_)
+        name = 'Foobar 41'
+        return (
+            shapes, autoshape_type_, x_, y_, cx_, cy_, spTree_, id_, name,
+            prst_, sp_
+        )
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -575,8 +601,10 @@ class Describe_SlideShapeTree(object):
         )
 
     @pytest.fixture
-    def autoshape_type_(self, request):
-        return instance_mock(request, AutoShapeType)
+    def autoshape_type_(self, request, prst_):
+        return instance_mock(
+            request, AutoShapeType, basename='Foobar', prst=prst_
+        )
 
     @pytest.fixture
     def autoshape_type_id_(self, request):
@@ -635,6 +663,10 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, Picture)
 
     @pytest.fixture
+    def prst_(self, request):
+        return instance_mock(request, str)
+
+    @pytest.fixture
     def rId_(self, request):
         return instance_mock(request, str)
 
@@ -677,9 +709,10 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, CT_Shape)
 
     @pytest.fixture
-    def spTree_(self, request, pic_):
+    def spTree_(self, request, pic_, sp_):
         spTree_ = instance_mock(request, CT_GroupShape)
         spTree_.add_pic.return_value = pic_
+        spTree_.add_autoshape.return_value = sp_
         return spTree_
 
     @pytest.fixture
