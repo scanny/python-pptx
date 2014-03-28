@@ -58,7 +58,10 @@ class CT_GroupShape(BaseShapeElement):
         Append a newly-created textbox ``<p:sp>`` shape having the specified
         position and size.
         """
-        raise NotImplementedError
+        sp = CT_Shape.new_textbox_sp(id_, name, x, y, cx, cy)
+        self.insert_element_before(sp, 'p:extLst')
+        return sp
+
     def iter_shape_elms(self):
         """
         Generate each child of this ``<p:spTree>`` element that corresponds

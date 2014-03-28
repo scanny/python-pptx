@@ -3,7 +3,6 @@ Feature: Add a text box to a slide
   As a presentation developer
   I need the ability to place a text box on a slide
 
-  @wip
   Scenario: Add a text box to a slide
      Given a blank slide
       When I add a text box to the slide's shape collection

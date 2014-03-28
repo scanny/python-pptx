@@ -53,6 +53,16 @@ class DescribeCT_GroupShape(object):
         insert_element_before_.assert_called_once_with(sp_, 'p:extLst')
         assert sp is sp_
 
+    def it_can_add_a_textbox_sp_element(self, add_textbox_fixt):
+        spTree, id_, name, x, y, cx, cy, CT_Shape_ = add_textbox_fixt[:8]
+        insert_element_before_, sp_ = add_textbox_fixt[8:]
+        sp = spTree.add_textbox(id_, name, x, y, cx, cy)
+        CT_Shape_.new_textbox_sp.assert_called_once_with(
+            id_, name, x, y, cx, cy
+        )
+        insert_element_before_.assert_called_once_with(sp_, 'p:extLst')
+        assert sp is sp_
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -86,6 +96,16 @@ class DescribeCT_GroupShape(object):
             CT_GraphicalObjectFrame_, insert_element_before_, graphicFrame_
         )
 
+    @pytest.fixture
+    def add_textbox_fixt(
+            self, spTree, CT_Shape_, insert_element_before_, sp_):
+        id_, name = 42, 'name'
+        x, y, cx, cy = 3, 4, 5, 6
+        return (
+            spTree, id_, name, x, y, cx, cy, CT_Shape_,
+            insert_element_before_, sp_
+        )
+
     # fixture components -----------------------------------
 
     @pytest.fixture
@@ -106,6 +126,7 @@ class DescribeCT_GroupShape(object):
     def CT_Shape_(self, request, sp_):
         CT_Shape_ = class_mock(request, 'pptx.oxml.shapetree.CT_Shape')
         CT_Shape_.new_autoshape_sp.return_value = sp_
+        CT_Shape_.new_textbox_sp.return_value = sp_
         return CT_Shape_
 
     @pytest.fixture
