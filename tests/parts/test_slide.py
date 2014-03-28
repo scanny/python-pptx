@@ -554,6 +554,16 @@ class Describe_SlideShapeTree(object):
         )
         assert sp is sp_
 
+    def it_adds_an_sp_to_help_add_textbox(self, textbox_sp_fixture):
+        shapes, x_, y_, cx_, cy_, spTree_, id_, name, sp_ = (
+            textbox_sp_fixture
+        )
+        sp = shapes._add_textbox_sp(x_, y_, cx_, cy_)
+        spTree_.add_textbox.assert_called_once_with(
+            id_, name, x_, y_, cx_, cy_
+        )
+        assert sp is sp_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -649,6 +659,14 @@ class Describe_SlideShapeTree(object):
             shapes, x_, y_, cx_, cy_, _add_textbox_sp_, _shape_factory_,
             sp_, textbox_
         )
+
+    @pytest.fixture
+    def textbox_sp_fixture(
+            self, slide_, x_, y_, cx_, cy_, spTree_, _next_shape_id_,
+            id_, sp_):
+        shapes = _SlideShapeTree(slide_)
+        name = 'TextBox 41'
+        return shapes, x_, y_, cx_, cy_, spTree_, id_, name, sp_
 
     # fixture components ---------------------------------------------
 
@@ -816,6 +834,7 @@ class Describe_SlideShapeTree(object):
         spTree_.add_pic.return_value = pic_
         spTree_.add_autoshape.return_value = sp_
         spTree_.add_table.return_value = graphicFrame_
+        spTree_.add_textbox.return_value = sp_
         return spTree_
 
     @pytest.fixture

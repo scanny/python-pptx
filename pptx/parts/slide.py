@@ -323,7 +323,10 @@ class _SlideShapeTree(BaseShapeTree):
         Return a newly-added textbox ``<p:sp>`` element at position (x, y)
         and of size (cx, cy).
         """
-        raise NotImplementedError
+        id_ = self._next_shape_id
+        name = 'TextBox %d' % (id_-1)
+        sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
+        return sp
 
     def _clone_layout_placeholders(self, slidelayout):
         """
