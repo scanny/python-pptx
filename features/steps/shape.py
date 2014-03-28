@@ -42,7 +42,7 @@ def given_an_autoshape(context):
 
 
 @given('I have a reference to a chevron shape')
-def step_given_ref_to_chevron_shape(context):
+def given_ref_to_chevron_shape(context):
     context.prs = Presentation()
     blank_slide_layout = context.prs.slide_layouts[6]
     shapes = context.prs.slides.add_slide(blank_slide_layout).shapes
@@ -54,7 +54,7 @@ def step_given_ref_to_chevron_shape(context):
 
 @when("I add a text box to the slide's shape collection")
 def when_add_text_box(context):
-    shapes = context.sld.shapes
+    shapes = context.sld.shapes_new
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(1.00))
     sp = shapes.add_textbox(x, y, cx, cy)
@@ -99,7 +99,7 @@ def when_set_fill_type_to_solid(context):
 
 
 @when("I set the first adjustment value to 0.15")
-def step_when_set_first_adjustment_value(context):
+def when_set_first_adjustment_value(context):
     context.chevron_shape.adjustments[0] = 0.15
 
 
