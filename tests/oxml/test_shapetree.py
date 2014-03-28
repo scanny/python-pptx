@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.oxml.autoshape import CT_Shape
+from pptx.oxml.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.picture import CT_Picture
 from pptx.oxml.shapetree import CT_GroupShape
 
@@ -17,6 +18,20 @@ from ..unitutil import class_mock, instance_mock, method_mock
 
 
 class DescribeCT_GroupShape(object):
+
+    def it_can_add_a_graphicFrame_element_containing_a_table(
+            self, add_table_fixt):
+        spTree, id_, name, rows, cols, x, y, cx, cy = add_table_fixt[:9]
+        CT_GraphicalObjectFrame_ = add_table_fixt[9]
+        insert_element_before_, graphicFrame_ = add_table_fixt[10:]
+        graphicFrame = spTree.add_table(id_, name, rows, cols, x, y, cx, cy)
+        CT_GraphicalObjectFrame_.new_table.assert_called_once_with(
+            id_, name, rows, cols, x, y, cx, cy
+        )
+        insert_element_before_.assert_called_once_with(
+            graphicFrame_, 'p:extLst'
+        )
+        assert graphicFrame is graphicFrame_
 
     def it_can_add_a_pic_element_representing_a_picture(self, add_pic_fixt):
         spTree, id_, name, desc, rId, x, y, cx, cy = add_pic_fixt[:9]
@@ -41,6 +56,16 @@ class DescribeCT_GroupShape(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
+    def add_autoshape_fixt(
+            self, spTree, CT_Shape_, insert_element_before_, sp_):
+        id_, name, prst = 42, 'name', 'prst'
+        x, y, cx, cy = 9, 8, 7, 6
+        return (
+            spTree, id_, name, prst, x, y, cx, cy, CT_Shape_,
+            insert_element_before_, sp_
+        )
+
+    @pytest.fixture
     def add_pic_fixt(
             self, spTree, CT_Picture_, insert_element_before_, pic_):
         id_, name, desc, rId = 42, 'name', 'desc', 'rId6'
@@ -51,16 +76,25 @@ class DescribeCT_GroupShape(object):
         )
 
     @pytest.fixture
-    def add_autoshape_fixt(
-            self, spTree, CT_Shape_, insert_element_before_, sp_):
-        id_, name, prst = 42, 'name', 'prst'
-        x, y, cx, cy = 9, 8, 7, 6
+    def add_table_fixt(
+            self, spTree, CT_GraphicalObjectFrame_,
+            insert_element_before_, graphicFrame_):
+        id_, name, rows, cols = 42, 'name', 12, 23
+        x, y, cx, cy = 5, 4, 3, 2
         return (
-            spTree, id_, name, prst, x, y, cx, cy, CT_Shape_,
-            insert_element_before_, sp_
+            spTree, id_, name, rows, cols, x, y, cx, cy,
+            CT_GraphicalObjectFrame_, insert_element_before_, graphicFrame_
         )
 
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def CT_GraphicalObjectFrame_(self, request, graphicFrame_):
+        CT_GraphicalObjectFrame_ = class_mock(
+            request, 'pptx.oxml.shapetree.CT_GraphicalObjectFrame'
+        )
+        CT_GraphicalObjectFrame_.new_table.return_value = graphicFrame_
+        return CT_GraphicalObjectFrame_
 
     @pytest.fixture
     def CT_Picture_(self, request, pic_):
@@ -73,6 +107,10 @@ class DescribeCT_GroupShape(object):
         CT_Shape_ = class_mock(request, 'pptx.oxml.shapetree.CT_Shape')
         CT_Shape_.new_autoshape_sp.return_value = sp_
         return CT_Shape_
+
+    @pytest.fixture
+    def graphicFrame_(self, request):
+        return instance_mock(request, CT_GraphicalObjectFrame)
 
     @pytest.fixture
     def insert_element_before_(self, request):

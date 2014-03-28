@@ -3,7 +3,6 @@ Feature: Add a table to a slide
   As a presentation developer
   I need the ability to place a table on a slide
 
-  @wip
   Scenario: Add a table to a slide
      Given a blank slide
       When I add a table to the slide's shape collection

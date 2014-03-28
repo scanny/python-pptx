@@ -7,6 +7,7 @@ lxml custom element classes for shape tree-related XML elements.
 from __future__ import absolute_import
 
 from .autoshape import CT_Shape
+from .graphfrm import CT_GraphicalObjectFrame
 from .ns import qn
 from .picture import CT_Picture
 from .shapes.shared import BaseShapeElement
@@ -46,7 +47,11 @@ class CT_GroupShape(BaseShapeElement):
         Append a ``<p:graphicFrame>`` shape containing a table as specified
         in call.
         """
-        raise NotImplementedError
+        graphicFrame = CT_GraphicalObjectFrame.new_table(
+            id_, name, rows, cols, x, y, cx, cy
+        )
+        self.insert_element_before(graphicFrame, 'p:extLst')
+        return graphicFrame
 
     def iter_shape_elms(self):
         """
