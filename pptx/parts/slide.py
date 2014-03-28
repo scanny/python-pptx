@@ -255,6 +255,26 @@ class _SlideShapeTree(BaseShapeTree):
         shape = self._shape_factory(sp)
         return shape
 
+    def add_table(self, rows, cols, left, top, width, height):
+        """
+        Add table shape with the specified number of *rows* and *cols* at the
+        specified position with the specified size. *width* is evenly
+        distributed between the *cols* columns of the new table. Likewise,
+        *height* is evenly distributed between the *rows* rows created.
+        """
+        graphicFrame = self._add_graphicFrame_containing_table(
+            rows, cols, left, top, width, height
+        )
+        table = self._shape_factory(graphicFrame)
+        return table
+
+    def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
+        """
+        Return a newly added ``<p:graphicFrame>`` element containing a table
+        specified by the parameters.
+        """
+        raise NotImplementedError
+
     def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):
         """
         Return a newly added ``<p:pic>`` element specifying a picture shape

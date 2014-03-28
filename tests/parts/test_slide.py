@@ -16,6 +16,7 @@ from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part, _Relationship
 from pptx.oxml.autoshape import CT_Shape
 from pptx.oxml.ns import _nsmap
+from pptx.oxml.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.picture import CT_Picture
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
 from pptx.oxml.shapetree import CT_GroupShape
@@ -32,6 +33,7 @@ from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.picture import Picture
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeCollection
+from pptx.shapes.table import Table
 
 from ..oxml.unitdata.shape import (
     a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr, an_spTree,
@@ -479,6 +481,20 @@ class Describe_SlideShapeTree(object):
         _shape_factory_.assert_called_once_with(pic_)
         assert picture is picture_
 
+    def it_can_add_a_table(self, table_fixture):
+        # fixture ----------------------
+        shapes, rows_, cols_, x_, y_, cx_, cy_ = table_fixture[:7]
+        _add_graphicFrame_containing_table_ = table_fixture[7]
+        _shape_factory_, graphicFrame_, table_ = table_fixture[8:]
+        # exercise ---------------------
+        table = shapes.add_table(rows_, cols_, x_, y_, cx_, cy_)
+        # verify -----------------------
+        _add_graphicFrame_containing_table_.assert_called_once_with(
+            rows_, cols_, x_, y_, cx_, cy_
+        )
+        _shape_factory_.assert_called_once_with(graphicFrame_)
+        assert table is table_
+
     def it_adds_an_image_to_help_add_picture(self, image_part_fixture):
         shapes, image_file_, slide_, image_part_, rId_ = image_part_fixture
         image_part, rId = shapes._get_or_add_image_part(image_file_)
@@ -577,7 +593,27 @@ class Describe_SlideShapeTree(object):
             prst_, sp_
         )
 
+    @pytest.fixture
+    def table_fixture(
+            self, rows_, cols_, x_, y_, cx_, cy_,
+            _add_graphicFrame_containing_table_, _shape_factory_,
+            graphicFrame_, table_):
+        shapes = _SlideShapeTree(None)
+        _shape_factory_.return_value = table_
+        return (
+            shapes, rows_, cols_, x_, y_, cx_, cy_,
+            _add_graphicFrame_containing_table_, _shape_factory_,
+            graphicFrame_, table_
+        )
+
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _add_graphicFrame_containing_table_(self, request, graphicFrame_):
+        return method_mock(
+            request, _SlideShapeTree, '_add_graphicFrame_containing_table',
+            return_value=graphicFrame_
+        )
 
     @pytest.fixture
     def _add_pic_from_image_part_(self, request, pic_):
@@ -611,6 +647,10 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, int)
 
     @pytest.fixture
+    def cols_(self, request):
+        return instance_mock(request, int)
+
+    @pytest.fixture
     def cx_(self, request):
         return instance_mock(request, int)
 
@@ -628,6 +668,10 @@ class Describe_SlideShapeTree(object):
             request, _SlideShapeTree, '_get_or_add_image_part',
             return_value=(image_part_, rId_)
         )
+
+    @pytest.fixture
+    def graphicFrame_(self, request):
+        return instance_mock(request, CT_GraphicalObjectFrame)
 
     @pytest.fixture
     def id_(self, request):
@@ -655,6 +699,10 @@ class Describe_SlideShapeTree(object):
         )
 
     @pytest.fixture
+    def ph_elm_(self, request):
+        return instance_mock(request, CT_Shape)
+
+    @pytest.fixture
     def pic_(self, request):
         return instance_mock(request, CT_Picture)
 
@@ -669,6 +717,10 @@ class Describe_SlideShapeTree(object):
     @pytest.fixture
     def rId_(self, request):
         return instance_mock(request, str)
+
+    @pytest.fixture
+    def rows_(self, request):
+        return instance_mock(request, int)
 
     @pytest.fixture
     def scaled_cx_(self, request):
@@ -716,8 +768,8 @@ class Describe_SlideShapeTree(object):
         return spTree_
 
     @pytest.fixture
-    def ph_elm_(self, request):
-        return instance_mock(request, CT_Shape)
+    def table_(self, request):
+        return instance_mock(request, Table)
 
     @pytest.fixture
     def x_(self, request):
