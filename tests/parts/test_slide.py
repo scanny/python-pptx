@@ -495,6 +495,14 @@ class Describe_SlideShapeTree(object):
         _shape_factory_.assert_called_once_with(graphicFrame_)
         assert table is table_
 
+    def it_can_add_a_textbox(self, textbox_fixture):
+        shapes, x_, y_, cx_, cy_, _add_textbox_sp_ = textbox_fixture[:6]
+        _shape_factory_, sp_, textbox_ = textbox_fixture[6:]
+        textbox = shapes.add_textbox(x_, y_, cx_, cy_)
+        _add_textbox_sp_.assert_called_once_with(x_, y_, cx_, cy_)
+        _shape_factory_.assert_called_once_with(sp_)
+        assert textbox is textbox_
+
     def it_adds_a_graphicFrame_to_help_add_table(self, graphicFrame_fixture):
         # fixture ----------------------
         shapes, rows_, cols_, x_, y_, cx_, cy_ = graphicFrame_fixture[:7]
@@ -631,6 +639,17 @@ class Describe_SlideShapeTree(object):
             graphicFrame_, table_
         )
 
+    @pytest.fixture
+    def textbox_fixture(
+            self, x_, y_, cx_, cy_, _add_textbox_sp_, _shape_factory_,
+            sp_, textbox_):
+        shapes = _SlideShapeTree(None)
+        _shape_factory_.return_value = textbox_
+        return (
+            shapes, x_, y_, cx_, cy_, _add_textbox_sp_, _shape_factory_,
+            sp_, textbox_
+        )
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -652,6 +671,12 @@ class Describe_SlideShapeTree(object):
         return method_mock(
             request, _SlideShapeTree, '_add_sp_from_autoshape_type',
             return_value=sp_
+        )
+
+    @pytest.fixture
+    def _add_textbox_sp_(self, request, sp_):
+        return method_mock(
+            request, _SlideShapeTree, '_add_textbox_sp', return_value=sp_
         )
 
     @pytest.fixture
@@ -796,6 +821,10 @@ class Describe_SlideShapeTree(object):
     @pytest.fixture
     def table_(self, request):
         return instance_mock(request, Table)
+
+    @pytest.fixture
+    def textbox_(self, request):
+        return instance_mock(request, Shape)
 
     @pytest.fixture
     def x_(self, request):

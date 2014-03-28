@@ -268,6 +268,14 @@ class _SlideShapeTree(BaseShapeTree):
         table = self._shape_factory(graphicFrame)
         return table
 
+    def add_textbox(self, left, top, width, height):
+        """
+        Add text box shape of specified size at specified position on slide.
+        """
+        sp = self._add_textbox_sp(left, top, width, height)
+        textbox = self._shape_factory(sp)
+        return textbox
+
     def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
         """
         Return a newly added ``<p:graphicFrame>`` element containing a table
@@ -309,6 +317,13 @@ class _SlideShapeTree(BaseShapeTree):
             id_, name, autoshape_type.prst, x, y, cx, cy
         )
         return sp
+
+    def _add_textbox_sp(self, x, y, cx, cy):
+        """
+        Return a newly-added textbox ``<p:sp>`` element at position (x, y)
+        and of size (cx, cy).
+        """
+        raise NotImplementedError
 
     def _clone_layout_placeholders(self, slidelayout):
         """
