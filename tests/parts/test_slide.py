@@ -495,6 +495,20 @@ class Describe_SlideShapeTree(object):
         _shape_factory_.assert_called_once_with(graphicFrame_)
         assert table is table_
 
+    def it_adds_a_graphicFrame_to_help_add_table(self, graphicFrame_fixture):
+        # fixture ----------------------
+        shapes, rows_, cols_, x_, y_, cx_, cy_ = graphicFrame_fixture[:7]
+        spTree_, id_, name, graphicFrame_ = graphicFrame_fixture[7:]
+        # exercise ---------------------
+        graphicFrame = shapes._add_graphicFrame_containing_table(
+            rows_, cols_, x_, y_, cx_, cy_
+        )
+        # verify -----------------------
+        spTree_.add_table.assert_called_once_with(
+            id_, name, rows_, cols_, x_, y_, cx_, cy_
+        )
+        assert graphicFrame is graphicFrame_
+
     def it_adds_an_image_to_help_add_picture(self, image_part_fixture):
         shapes, image_file_, slide_, image_part_, rId_ = image_part_fixture
         image_part, rId = shapes._get_or_add_image_part(image_file_)
@@ -552,6 +566,17 @@ class Describe_SlideShapeTree(object):
             self, ph_elm_, _SlideShapeFactory_, slide_placeholder_):
         shapes = _SlideShapeTree(None)
         return shapes, ph_elm_, _SlideShapeFactory_, slide_placeholder_
+
+    @pytest.fixture
+    def graphicFrame_fixture(
+            self, slide_, rows_, cols_, x_, y_, cx_, cy_, spTree_,
+            _next_shape_id_, id_, graphicFrame_):
+        shapes = _SlideShapeTree(slide_)
+        name = 'Table 41'
+        return (
+            shapes, rows_, cols_, x_, y_, cx_, cy_, spTree_, id_, name,
+            graphicFrame_
+        )
 
     @pytest.fixture
     def image_part_fixture(self, slide_, image_file_, image_part_, rId_):
@@ -761,10 +786,11 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, CT_Shape)
 
     @pytest.fixture
-    def spTree_(self, request, pic_, sp_):
+    def spTree_(self, request, pic_, sp_, graphicFrame_):
         spTree_ = instance_mock(request, CT_GroupShape)
         spTree_.add_pic.return_value = pic_
         spTree_.add_autoshape.return_value = sp_
+        spTree_.add_table.return_value = graphicFrame_
         return spTree_
 
     @pytest.fixture

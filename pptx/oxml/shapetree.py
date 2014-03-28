@@ -41,6 +41,13 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(pic, 'p:extLst')
         return pic
 
+    def add_table(self, id_, name, rows, cols, x, y, cx, cy):
+        """
+        Append a ``<p:graphicFrame>`` shape containing a table as specified
+        in call.
+        """
+        raise NotImplementedError
+
     def iter_shape_elms(self):
         """
         Generate each child of this ``<p:spTree>`` element that corresponds

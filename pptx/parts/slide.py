@@ -271,9 +271,14 @@ class _SlideShapeTree(BaseShapeTree):
     def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
         """
         Return a newly added ``<p:graphicFrame>`` element containing a table
-        specified by the parameters.
+        as specified by the parameters.
         """
-        raise NotImplementedError
+        id_ = self._next_shape_id
+        name = 'Table %d' % (id_-1)
+        graphicFrame = self._spTree.add_table(
+            id_, name, rows, cols, x, y, cx, cy
+        )
+        return graphicFrame
 
     def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):
         """
