@@ -282,7 +282,8 @@ class _SlideShapeTree(BaseShapeTree):
         placeholders is preserved. Latent placeholders (date, slide number,
         and footer) are not cloned.
         """
-        raise NotImplementedError
+        for placeholder in slide_layout.iter_cloneable_placeholders():
+            self._clone_layout_placeholder(placeholder)
 
     def index(self, shape):
         """
@@ -356,6 +357,13 @@ class _SlideShapeTree(BaseShapeTree):
         name = 'TextBox %d' % (id_-1)
         sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
         return sp
+
+    def _clone_layout_placeholder(self, layout_placeholder):
+        """
+        Add a new placeholder shape based on the slide layout placeholder
+        *layout_ph*.
+        """
+        raise NotImplementedError
 
     def _clone_layout_placeholders(self, slidelayout):
         """

@@ -31,6 +31,7 @@ from pptx.parts.slide import (
 from pptx.parts.slidelayout import _LayoutPlaceholder, SlideLayout
 from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.picture import Picture
+from pptx.shapes.placeholder import BasePlaceholder
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.shapes.table import Table
@@ -514,6 +515,13 @@ class Describe_SlideShapeTree(object):
         _shape_factory_.assert_called_once_with(sp_)
         assert textbox is textbox_
 
+    def it_can_clone_placeholder_shapes_from_a_layout(self, clone_fixture):
+        shapes, slide_layout_, placeholder_, _clone_layout_placeholder_ = (
+            clone_fixture
+        )
+        shapes.clone_layout_placeholders(slide_layout_)
+        _clone_layout_placeholder_.assert_called_once_with(placeholder_)
+
     def it_knows_the_index_of_each_shape(self, index_fixture):
         shapes, shape_, expected_idx = index_fixture
         idx = shapes.index(shape_)
@@ -599,6 +607,17 @@ class Describe_SlideShapeTree(object):
             shapes, autoshape_type_id_, x_, y_, cx_, cy_, AutoShapeType_,
             _add_sp_from_autoshape_type_, autoshape_type_, _shape_factory_,
             sp_, shape_
+        )
+
+    @pytest.fixture
+    def clone_fixture(
+            self, slide_layout_, placeholder_, _clone_layout_placeholder_):
+        shapes = _SlideShapeTree(None)
+        slide_layout_.iter_cloneable_placeholders.return_value = (
+            iter([placeholder_])
+        )
+        return (
+            shapes, slide_layout_, placeholder_, _clone_layout_placeholder_
         )
 
     @pytest.fixture
@@ -756,6 +775,12 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, int)
 
     @pytest.fixture
+    def _clone_layout_placeholder_(self, request):
+        return method_mock(
+            request, _SlideShapeTree, '_clone_layout_placeholder'
+        )
+
+    @pytest.fixture
     def cols_(self, request):
         return instance_mock(request, int)
 
@@ -820,6 +845,10 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, Picture)
 
     @pytest.fixture
+    def placeholder_(self, request):
+        return instance_mock(request, BasePlaceholder)
+
+    @pytest.fixture
     def prst_(self, request):
         return instance_mock(request, str)
 
@@ -853,6 +882,10 @@ class Describe_SlideShapeTree(object):
         slide_.spTree = spTree_
         slide_._add_image.return_value = image_part_, rId_
         return slide_
+
+    @pytest.fixture
+    def slide_layout_(self, request):
+        return instance_mock(request, SlideLayout)
 
     @pytest.fixture
     def slide_placeholder_(self, request):

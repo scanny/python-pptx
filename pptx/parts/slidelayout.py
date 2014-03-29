@@ -21,6 +21,14 @@ class SlideLayout(BaseSlide):
     Slide layout part. Corresponds to package files
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
+    def iter_cloneable_placeholders(self):
+        """
+        Generate a reference to each layout placeholder on this slide layout
+        that should be cloned to a slide when the layout is applied to the
+        slide.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def placeholders(self):
         """
