@@ -287,6 +287,16 @@ class _SlideShapeTree(BaseShapeTree):
                 return idx
         raise ValueError('shape not in collection')
 
+    @property
+    def title(self):
+        """
+        The title placeholder shape in collection or |None| if not present.
+        """
+        for elm in self._spTree.iter_shape_elms():
+            if elm.ph_idx == 0:
+                return self._shape_factory(elm)
+        return None
+
     def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
         """
         Return a newly added ``<p:graphicFrame>`` element containing a table

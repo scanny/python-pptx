@@ -18,7 +18,6 @@ Feature: Access shapes on a slide
      Given a slide shape collection
       Then the index of each shape matches its position in the sequence
 
-  @wip
   Scenario: Access title placeholder
      Given a slide shape collection
       Then I can access the title placeholder

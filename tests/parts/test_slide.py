@@ -449,6 +449,17 @@ class Describe_SlideShapeTree(object):
         _SlideShapeFactory_.assert_called_once_with(ph_elm_, shapes)
         assert slide_placeholder is slide_placeholder_
 
+    def it_can_find_the_title_placeholder(self, title_fixture):
+        shapes, _shape_factory_, sp_2_, title_placeholder_ = title_fixture
+        title_placeholder = shapes.title
+        _shape_factory_.assert_called_once_with(sp_2_)
+        assert title_placeholder == title_placeholder_
+
+    def it_returns_None_when_slide_has_no_title_ph(self, no_title_fixture):
+        shapes = no_title_fixture
+        title_placeholder = shapes.title
+        assert title_placeholder is None
+
     def it_can_add_an_autoshape(self, autoshape_fixture):
         # fixture ----------------------
         shapes, autoshape_type_id_, x_, y_, cx_, cy_ = autoshape_fixture[:6]
@@ -619,6 +630,12 @@ class Describe_SlideShapeTree(object):
         return shapes, shape_, expected_idx
 
     @pytest.fixture
+    def no_title_fixture(self, slide_, spTree_, sp_):
+        shapes = _SlideShapeTree(slide_)
+        spTree_.iter_shape_elms.return_value = [sp_, sp_]
+        return shapes
+
+    @pytest.fixture
     def pic_fixture(
             self, slide_, image_part_, rId_, x_, y_, cx_, cy_, spTree_,
             _next_shape_id_, id_, name, desc_, scaled_cx_, scaled_cy_,
@@ -684,6 +701,13 @@ class Describe_SlideShapeTree(object):
         shapes = _SlideShapeTree(slide_)
         name = 'TextBox 41'
         return shapes, x_, y_, cx_, cy_, spTree_, id_, name, sp_
+
+    @pytest.fixture
+    def title_fixture(self, slide_, sp_2_, _shape_factory_, shape_):
+        shapes = _SlideShapeTree(slide_)
+        _shape_factory_.return_value = shape_
+        title_placeholder_ = shape_
+        return shapes, _shape_factory_, sp_2_, title_placeholder_
 
     # fixture components ---------------------------------------------
 
@@ -816,8 +840,8 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, int)
 
     @pytest.fixture
-    def shape_(self, request, sp_):
-        return instance_mock(request, Shape, element=sp_)
+    def shape_(self, request, sp_2_):
+        return instance_mock(request, Shape, element=sp_2_)
 
     @pytest.fixture
     def _shape_factory_(self, request):
@@ -846,13 +870,17 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, CT_Shape)
 
     @pytest.fixture
-    def spTree_(self, request, pic_, sp_, graphicFrame_):
+    def sp_2_(self, request):
+        return instance_mock(request, CT_Shape, ph_idx=0)
+
+    @pytest.fixture
+    def spTree_(self, request, pic_, sp_, sp_2_, graphicFrame_):
         spTree_ = instance_mock(request, CT_GroupShape)
         spTree_.add_pic.return_value = pic_
         spTree_.add_autoshape.return_value = sp_
         spTree_.add_table.return_value = graphicFrame_
         spTree_.add_textbox.return_value = sp_
-        spTree_.iter_shape_elms.return_value = [None, sp_]
+        spTree_.iter_shape_elms.return_value = [sp_, sp_2_]
         return spTree_
 
     @pytest.fixture

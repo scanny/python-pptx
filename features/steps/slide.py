@@ -115,8 +115,8 @@ def then_can_access_shapes_of_slide(context):
 def then_I_can_access_the_title_placeholder(context):
     shapes = context.shapes
     title_placeholder = shapes.title
-    assert title_placeholder is shapes[0]
-    assert title_placeholder.text == 'Shape 1'
+    assert title_placeholder.element is shapes[0].element
+    assert title_placeholder.id == 4
 
 
 @then('I can iterate over the shapes')
