@@ -19,6 +19,7 @@ from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
 from pptx.shapes.shapetree import (
     BaseShapeFactory, BaseShapeTree, ShapeCollection
 )
+from pptx.spec import slide_ph_basenames, PH_ORIENT_VERT
 from pptx.util import lazyproperty
 
 
@@ -401,7 +402,19 @@ class _SlideShapeTree(BaseShapeTree):
         collection. If *orient* is ``'vert'``, the placeholder name is
         prefixed with ``'Vertical '``.
         """
-        raise NotImplementedError
+        basename = slide_ph_basenames[ph_type]
+        # prefix rootname with 'Vertical ' if orient is 'vert'
+        if orient == PH_ORIENT_VERT:
+            basename = 'Vertical %s' % basename
+        # increment numpart as necessary to make name unique
+        numpart = id - 1
+        names = self._spTree.xpath('//p:cNvPr/@name', namespaces=_nsmap)
+        while True:
+            name = '%s %d' % (basename, numpart)
+            if name not in names:
+                break
+            numpart += 1
+        return name
 
     def _shape_factory(self, shape_elm):
         """

@@ -35,10 +35,13 @@ from pptx.shapes.placeholder import BasePlaceholder
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.shapes.table import Table
+from pptx.spec import (
+    PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_TYPE_OBJ, PH_TYPE_TBL, PH_TYPE_TITLE
+)
 
 from ..oxml.unitdata.shape import (
-    a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr, an_spTree,
-    an_xfrm
+    a_cNvPr, a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr,
+    an_spTree, an_xfrm
 )
 from ..oxml.unitdata.slides import a_sld, a_cSld
 from ..unitutil import (
@@ -603,6 +606,13 @@ class Describe_SlideShapeTree(object):
             id_, name_, ph_type_, orient_, sz_, idx_
         )
 
+    def it_can_find_the_next_placeholder_name_to_help_clone_placeholder(
+            self, ph_name_fixture):
+        shapes, ph_type, id_, orient, expected_name = ph_name_fixture
+        name = shapes._next_ph_name(ph_type, id_, orient)
+        print(shapes._spTree.xml)
+        assert name == expected_name
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -672,6 +682,22 @@ class Describe_SlideShapeTree(object):
         shapes = _SlideShapeTree(slide_)
         spTree_.iter_shape_elms.return_value = [sp_, sp_]
         return shapes
+
+    @pytest.fixture(params=[
+        (PH_TYPE_OBJ,   3, PH_ORIENT_HORZ, 'Content Placeholder 2'),
+        (PH_TYPE_TBL,   4, PH_ORIENT_HORZ, 'Table Placeholder 4'),
+        (PH_TYPE_TBL,   7, PH_ORIENT_VERT, 'Vertical Table Placeholder 6'),
+        (PH_TYPE_TITLE, 2, PH_ORIENT_HORZ, 'Title 2'),
+    ])
+    def ph_name_fixture(self, request, slide_):
+        ph_type, id_, orient, expected_name = request.param
+        slide_.spTree = (
+            an_spTree().with_nsdecls().with_child(
+                a_cNvPr().with_name('Title 1')).with_child(
+                a_cNvPr().with_name('Table Placeholder 3'))
+        ).element
+        shapes = _SlideShapeTree(slide_)
+        return shapes, ph_type, id_, orient, expected_name
 
     @pytest.fixture
     def pic_fixture(
