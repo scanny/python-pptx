@@ -85,9 +85,16 @@ class BasePlaceholder(Shape):
     @property
     def idx(self):
         """
-        Placeholder 'idx' attribute, e.g. '0'
+        Integer placeholder 'idx' attribute, e.g. 0
         """
         return self._sp.ph_idx
+
+    @property
+    def orient(self):
+        """
+        Placeholder orientation, e.g. PH_ORIENT_HORZ
+        """
+        raise NotImplementedError
 
     @property
     def ph_type(self):
@@ -95,3 +102,10 @@ class BasePlaceholder(Shape):
         Placeholder type, e.g. PH_TYPE_CTRTITLE
         """
         return self._sp.ph_type
+
+    @property
+    def sz(self):
+        """
+        Placeholder 'sz' attribute, e.g. PH_SZ_FULL
+        """
+        raise NotImplementedError

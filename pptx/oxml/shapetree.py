@@ -42,6 +42,13 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(pic, 'p:extLst')
         return pic
 
+    def add_placeholder(self, id_, name, ph_type, orient, sz, idx):
+        """
+        Append a newly-created placeholder ``<p:sp>`` shape having the
+        specified placeholder properties.
+        """
+        raise NotImplementedError
+
     def add_table(self, id_, name, rows, cols, x, y, cx, cy):
         """
         Append a ``<p:graphicFrame>`` shape containing a table as specified

@@ -594,6 +594,15 @@ class Describe_SlideShapeTree(object):
         )
         assert sp is sp_
 
+    def it_clones_a_placeholder_to_help_clone_placeholders(
+            self, clone_ph_fixture):
+        shapes, layout_placeholder_, spTree_ = clone_ph_fixture[:3]
+        id_, name_, ph_type_, orient_, sz_, idx_ = clone_ph_fixture[3:]
+        shapes._clone_layout_placeholder(layout_placeholder_)
+        spTree_.add_placeholder.assert_called_once_with(
+            id_, name_, ph_type_, orient_, sz_, idx_
+        )
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -618,6 +627,16 @@ class Describe_SlideShapeTree(object):
         )
         return (
             shapes, slide_layout_, placeholder_, _clone_layout_placeholder_
+        )
+
+    @pytest.fixture
+    def clone_ph_fixture(
+            self, slide_, layout_placeholder_, spTree_, _next_shape_id_, id_,
+            _next_ph_name_, name_, ph_type_, orient_, sz_, idx_):
+        shapes = _SlideShapeTree(slide_)
+        return (
+            shapes, layout_placeholder_, spTree_, id_, name_, ph_type_,
+            orient_, sz_, idx_
         )
 
     @pytest.fixture
@@ -812,6 +831,10 @@ class Describe_SlideShapeTree(object):
         return 42
 
     @pytest.fixture
+    def idx_(self, request):
+        return instance_mock(request, int)
+
+    @pytest.fixture
     def image_part_(self, request, desc_, scaled_cx_, scaled_cy_):
         image_part_ = instance_mock(request, ImagePart)
         image_part_._desc = desc_
@@ -823,8 +846,25 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, str)
 
     @pytest.fixture
-    def name(self, request):
+    def layout_placeholder_(self, request, ph_type_, orient_, sz_, idx_):
+        return instance_mock(
+            request, _LayoutPlaceholder, ph_type=ph_type_, orient=orient_,
+            sz=sz_, idx=idx_
+        )
+
+    @pytest.fixture
+    def name(self):
         return 'Picture 41'
+
+    @pytest.fixture
+    def name_(self, request):
+        return instance_mock(request, str)
+
+    @pytest.fixture
+    def _next_ph_name_(self, request, name_):
+        return method_mock(
+            request, _SlideShapeTree, '_next_ph_name', return_value=name_
+        )
 
     @pytest.fixture
     def _next_shape_id_(self, request, id_):
@@ -833,8 +873,16 @@ class Describe_SlideShapeTree(object):
         )
 
     @pytest.fixture
+    def orient_(self, request):
+        return instance_mock(request, str)
+
+    @pytest.fixture
     def ph_elm_(self, request):
         return instance_mock(request, CT_Shape)
+
+    @pytest.fixture
+    def ph_type_(self, request):
+        return instance_mock(request, str)
 
     @pytest.fixture
     def pic_(self, request):
@@ -915,6 +963,10 @@ class Describe_SlideShapeTree(object):
         spTree_.add_textbox.return_value = sp_
         spTree_.iter_shape_elms.return_value = [sp_, sp_2_]
         return spTree_
+
+    @pytest.fixture
+    def sz_(self, request):
+        return instance_mock(request, str)
 
     @pytest.fixture
     def table_(self, request):

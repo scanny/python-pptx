@@ -363,7 +363,14 @@ class _SlideShapeTree(BaseShapeTree):
         Add a new placeholder shape based on the slide layout placeholder
         *layout_ph*.
         """
-        raise NotImplementedError
+        id_ = self._next_shape_id
+        ph_type = layout_placeholder.ph_type
+        orient = layout_placeholder.orient
+        name = self._next_ph_name(ph_type, id_, orient)
+        sz = layout_placeholder.sz
+        idx = layout_placeholder.idx
+
+        self._spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
 
     def _clone_layout_placeholders(self, slidelayout):
         """
@@ -383,6 +390,18 @@ class _SlideShapeTree(BaseShapeTree):
         slide = self._slide
         image_part, rId = slide._add_image(image_file)
         return image_part, rId
+
+    def _next_ph_name(self, ph_type, id, orient):
+        """
+        Next unique placeholder name for placeholder shape of type *ph_type*,
+        with id number *id* and orientation *orient*. Usually will be standard
+        placeholder root name suffixed with id-1, e.g.
+        _next_ph_name(PH_TYPE_TBL, 4, 'horz') ==> 'Table Placeholder 3'. The
+        number is incremented as necessary to make the name unique within the
+        collection. If *orient* is ``'vert'``, the placeholder name is
+        prefixed with ``'Vertical '``.
+        """
+        raise NotImplementedError
 
     def _shape_factory(self, shape_elm):
         """
