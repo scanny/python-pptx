@@ -4,8 +4,14 @@ Feature: Add a new slide
   I need to add a new slide to a presentation
 
   Scenario: Add a new slide to a presentation
-     Given I have an empty presentation open
-      When I add a new slide
+     Given an empty presentation
+      When I add a slide based on a layout
        And I save the presentation
       Then the pptx file contains a single slide
-       And the layout was applied to the slide
+       And the layout has been applied to the slide
+
+  @wip
+  Scenario: DELETEME - Temporary to drive clone_layout_placeholder
+     Given an empty slide shape collection
+      When I clone layout placeholders
+      Then corresponding slide placeholders are added to the collection

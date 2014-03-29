@@ -44,17 +44,32 @@ def given_slide_master_collection_containing_two_masters(context):
     context.slide_masters = prs.slide_masters
 
 
+@given('an empty presentation')
+def given_an_empty_presentation(context):
+    context.prs = Presentation()
+
+
+@given('an empty slide shape collection')
+def given_an_empty_slide_shape_collection(context):
+    prs = Presentation(test_pptx('prs-add-slide'))
+    context.prs = prs
+    context.shapes = prs.slides[0].shapes_new
+
+
 @given('an initialized pptx environment')
 def given_initialized_pptx_env(context):
     pass
 
 
-@given('I have an empty presentation open')
-def given_empty_prs(context):
-    context.prs = Presentation()
-
-
 # when ====================================================
+
+@when('I clone layout placeholders')
+def when_I_clone_layout_placeholders(context):
+    prs = context.prs
+    slide_layout = prs.slide_layouts[0]
+    shapes = context.shapes
+    shapes.clone_layout_placeholders(slide_layout)
+
 
 @when('I construct a Presentation instance with no path argument')
 def when_construct_default_prs(context):
@@ -105,6 +120,15 @@ def when_save_presentation_to_stream(context):
 
 
 # then ====================================================
+
+@then('corresponding slide placeholders are added to the collection')
+def then_corresponding_slide_placeholders_are_added_to_collection(context):
+    prs = context.prs
+    shapes = prs.slides[0].shapes
+    assert len(shapes) == 2
+    assert shapes[0].name == 'Title 1'
+    assert shapes[1].name == 'Content Placeholder 2'
+
 
 @then('I can access a slide master by index')
 def then_can_access_slide_master_by_index(context):

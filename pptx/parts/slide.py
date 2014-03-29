@@ -276,6 +276,14 @@ class _SlideShapeTree(BaseShapeTree):
         textbox = self._shape_factory(sp)
         return textbox
 
+    def clone_layout_placeholders(self, slide_layout):
+        """
+        Add placeholder shapes based on those in *slide_layout*. Z-order of
+        placeholders is preserved. Latent placeholders (date, slide number,
+        and footer) are not cloned.
+        """
+        raise NotImplementedError
+
     def index(self, shape):
         """
         Return the index of *shape* in this sequence, raising |ValueError| if

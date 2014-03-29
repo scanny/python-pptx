@@ -61,8 +61,8 @@ def given_a_slide_shape_collection(context):
 
 # when ====================================================
 
-@when('I add a new slide')
-def when_add_slide(context):
+@when('I add a slide based on a layout')
+def when_I_add_a_slide_based_on_a_layout(context):
     slide_layout = context.prs.slide_masters[0].slide_layouts[0]
     context.prs.slides.add_slide(slide_layout)
 
@@ -173,8 +173,8 @@ def then_index_of_each_shape_matches_its_position_in_the_sequence(context):
         )
 
 
-@then('the layout was applied to the slide')
-def then_the_layout_was_applied_to_the_slide(context):
+@then('the layout has been applied to the slide')
+def then_the_layout_has_been_applied_to_the_slide(context):
     prs = context.prs
     shapes = prs.slides[0].shapes
     assert len(shapes) == 2
