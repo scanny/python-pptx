@@ -13,6 +13,7 @@ from pptx.oxml.ns import qn
 from pptx.parts.slide import BaseSlide
 from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
 from pptx.shapes.shapetree import BaseShapeFactory, BaseShapeTree
+from pptx.spec import PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
 from pptx.util import lazyproperty
 
 
@@ -27,7 +28,10 @@ class SlideLayout(BaseSlide):
         that should be cloned to a slide when the layout is applied to the
         slide.
         """
-        raise NotImplementedError
+        latent_ph_types = (PH_TYPE_DT, PH_TYPE_SLDNUM, PH_TYPE_FTR)
+        for ph in self.placeholders:
+            if ph.ph_type not in latent_ph_types:
+                yield ph
 
     @lazyproperty
     def placeholders(self):
