@@ -160,7 +160,7 @@ def then_len_of_placeholder_collection_is_2(context):
 
 @then('the pptx file contains a single slide')
 def then_pptx_file_contains_single_slide(context):
-    prs = Presentation(saved_pptx_path)
+    context.prs = prs = Presentation(saved_pptx_path)
     assert_that(len(prs.slides), is_(equal_to(1)))
 
 
@@ -171,3 +171,12 @@ def then_index_of_each_shape_matches_its_position_in_the_sequence(context):
         assert idx == shapes.index(shape), (
             "index doesn't match for idx == %s" % idx
         )
+
+
+@then('the layout was applied to the slide')
+def then_the_layout_was_applied_to_the_slide(context):
+    prs = context.prs
+    shapes = prs.slides[0].shapes
+    assert len(shapes) == 2
+    assert shapes[0].name == 'Title 1'
+    assert shapes[1].name == 'Subtitle 2'
