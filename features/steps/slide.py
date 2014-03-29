@@ -154,3 +154,12 @@ def then_len_of_placeholder_collection_is_2(context):
 def then_pptx_file_contains_single_slide(context):
     prs = Presentation(saved_pptx_path)
     assert_that(len(prs.slides), is_(equal_to(1)))
+
+
+@then('the index of each shape matches its position in the sequence')
+def then_index_of_each_shape_matches_its_position_in_the_sequence(context):
+    shapes = context.shapes
+    for idx, shape in enumerate(shapes):
+        assert idx == shapes.index(shape), (
+            "index doesn't match for idx == %s" % idx
+        )

@@ -13,3 +13,8 @@ Feature: Access shapes on a slide
       Then I can iterate over the shapes
        And I can access a shape by index
        And each slide shape is of the appropriate type
+
+  @wip
+  Scenario: Get index of shape in shape collection sequence
+     Given a slide shape collection
+      Then the index of each shape matches its position in the sequence
