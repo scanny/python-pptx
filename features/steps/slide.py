@@ -111,6 +111,14 @@ def then_can_access_shapes_of_slide(context):
     assert isinstance(shapes, _SlideShapeTree), msg
 
 
+@then('I can access the title placeholder')
+def then_I_can_access_the_title_placeholder(context):
+    shapes = context.shapes
+    title_placeholder = shapes.title
+    assert title_placeholder is shapes[0]
+    assert title_placeholder.text == 'Shape 1'
+
+
 @then('I can iterate over the shapes')
 def then_can_iterate_over_the_shapes(context):
     shapes = context.shapes
