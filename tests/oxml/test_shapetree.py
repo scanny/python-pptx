@@ -43,6 +43,17 @@ class DescribeCT_GroupShape(object):
         insert_element_before_.assert_called_once_with(pic_, 'p:extLst')
         assert pic is pic_
 
+    def it_can_add_an_sp_element_for_a_placeholder(
+            self, add_placeholder_fixt):
+        spTree, id_, name, ph_type, orient, sz, idx = add_placeholder_fixt[:7]
+        CT_Shape_, insert_element_before_, sp_ = add_placeholder_fixt[7:]
+        sp = spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
+        CT_Shape_.new_placeholder_sp.assert_called_once_with(
+            id_, name, ph_type, orient, sz, idx
+        )
+        insert_element_before_.assert_called_once_with(sp_, 'p:extLst')
+        assert sp is sp_
+
     def it_can_add_an_sp_element_for_an_autoshape(self, add_autoshape_fixt):
         spTree, id_, name, prst, x, y, cx, cy = add_autoshape_fixt[:8]
         CT_Shape_, insert_element_before_, sp_ = add_autoshape_fixt[8:]
@@ -86,6 +97,16 @@ class DescribeCT_GroupShape(object):
         )
 
     @pytest.fixture
+    def add_placeholder_fixt(
+            self, spTree, CT_Shape_, insert_element_before_, sp_):
+        id_, name, ph_type = 42, 'name', 'type'
+        orient, sz, idx = 'orient', 'sz', 24
+        return (
+            spTree, id_, name, ph_type, orient, sz, idx, CT_Shape_,
+            insert_element_before_, sp_
+        )
+
+    @pytest.fixture
     def add_table_fixt(
             self, spTree, CT_GraphicalObjectFrame_,
             insert_element_before_, graphicFrame_):
@@ -126,6 +147,7 @@ class DescribeCT_GroupShape(object):
     def CT_Shape_(self, request, sp_):
         CT_Shape_ = class_mock(request, 'pptx.oxml.shapetree.CT_Shape')
         CT_Shape_.new_autoshape_sp.return_value = sp_
+        CT_Shape_.new_placeholder_sp.return_value = sp_
         CT_Shape_.new_textbox_sp.return_value = sp_
         return CT_Shape_
 
