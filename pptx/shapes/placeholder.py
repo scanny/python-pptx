@@ -108,4 +108,4 @@ class BasePlaceholder(Shape):
         """
         Placeholder 'sz' attribute, e.g. PH_SZ_FULL
         """
-        raise NotImplementedError
+        return self._sp.ph_sz

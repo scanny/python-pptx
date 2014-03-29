@@ -129,6 +129,10 @@ class DescribeBasePlaceholder(object):
         placeholder, orient = orient_fixture
         assert placeholder.orient == orient
 
+    def it_knows_its_sz_value(self, sz_fixture):
+        placeholder, sz = sz_fixture
+        assert placeholder.sz == sz
+
     def it_knows_its_placeholder_type(self, type_fixture):
         placeholder, ph_type = type_fixture
         assert placeholder.ph_type == ph_type
@@ -155,24 +159,40 @@ class DescribeBasePlaceholder(object):
     ])
     def orient_fixture(self, request):
         has_ph_elm, orient, expected_orient = request.param
-
         ph_bldr = a_ph()
         if orient is not None:
-            ph_bldr.with_orient(PH_ORIENT_VERT)
-
+            ph_bldr.with_orient(orient)
         nvPr_bldr = an_nvPr()
         if has_ph_elm:
             nvPr_bldr.with_child(ph_bldr)
-
         shape_elm = (
             an_sp().with_nsdecls('p').with_child(
                 an_nvSpPr().with_child(
                     nvPr_bldr))
         ).element
-
         placeholder = BasePlaceholder(shape_elm, None)
-
         return placeholder, expected_orient
+
+    @pytest.fixture(params=[
+        (False, None,       None),
+        (True,  None,       PH_SZ_FULL),
+        (True,  PH_SZ_HALF, PH_SZ_HALF),
+    ])
+    def sz_fixture(self, request):
+        has_ph_elm, sz, expected_sz = request.param
+        ph_bldr = a_ph()
+        if sz is not None:
+            ph_bldr.with_sz(sz)
+        nvPr_bldr = an_nvPr()
+        if has_ph_elm:
+            nvPr_bldr.with_child(ph_bldr)
+        shape_elm = (
+            an_sp().with_nsdecls('p').with_child(
+                an_nvSpPr().with_child(
+                    nvPr_bldr))
+        ).element
+        placeholder = BasePlaceholder(shape_elm, None)
+        return placeholder, expected_sz
 
     @pytest.fixture(params=[
         ('sp',           None,    1, 'obj'),

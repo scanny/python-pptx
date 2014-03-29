@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from pptx.oxml.core import BaseOxmlElement
 from pptx.oxml.ns import _nsmap
-from pptx.spec import PH_ORIENT_HORZ, PH_TYPE_OBJ
+from pptx.spec import PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_OBJ
 
 
 class BaseShapeElement(BaseOxmlElement):
@@ -56,6 +56,17 @@ class BaseShapeElement(BaseOxmlElement):
         if ph is None:
             return None
         return ph.get('orient', PH_ORIENT_HORZ)
+
+    @property
+    def ph_sz(self):
+        """
+        Placeholder size, e.g. PH_SZ_HALF, None if shape has no ``<p:ph>``
+        descendant.
+        """
+        ph = self.ph
+        if ph is None:
+            return None
+        return ph.get('sz', PH_SZ_FULL)
 
     @property
     def ph_type(self):
