@@ -276,6 +276,17 @@ class _SlideShapeTree(BaseShapeTree):
         textbox = self._shape_factory(sp)
         return textbox
 
+    def index(self, shape):
+        """
+        Return the index of *shape* in this sequence, raising |ValueError| if
+        *shape* is not in the collection.
+        """
+        shape_elm = shape.element
+        for idx, elm in enumerate(self._spTree.iter_shape_elms()):
+            if elm is shape_elm:
+                return idx
+        raise ValueError('shape not in collection')
+
     def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
         """
         Return a newly added ``<p:graphicFrame>`` element containing a table

@@ -21,6 +21,14 @@ class BaseShape(object):
         self._parent = parent
 
     @property
+    def element(self):
+        """
+        Reference to the lxml element for this shape, e.g. a CT_Shape
+        instance.
+        """
+        return self._element
+
+    @property
     def has_textframe(self):
         """
         True if this shape has a txBody element and can contain text.

@@ -503,6 +503,17 @@ class Describe_SlideShapeTree(object):
         _shape_factory_.assert_called_once_with(sp_)
         assert textbox is textbox_
 
+    def it_knows_the_index_of_each_shape(self, index_fixture):
+        shapes, shape_, expected_idx = index_fixture
+        idx = shapes.index(shape_)
+        assert idx == expected_idx
+
+    def it_raises_on_index_where_shape_not_found(self, index_fixture):
+        shapes, shape_, expected_idx = index_fixture
+        shapes._spTree.iter_shape_elms.return_value = []
+        with pytest.raises(ValueError):
+            shapes.index(shape_)
+
     def it_adds_a_graphicFrame_to_help_add_table(self, graphicFrame_fixture):
         # fixture ----------------------
         shapes, rows_, cols_, x_, y_, cx_, cy_ = graphicFrame_fixture[:7]
@@ -600,6 +611,12 @@ class Describe_SlideShapeTree(object):
     def image_part_fixture(self, slide_, image_file_, image_part_, rId_):
         shapes = _SlideShapeTree(slide_)
         return shapes, image_file_, slide_, image_part_, rId_
+
+    @pytest.fixture
+    def index_fixture(self, slide_, shape_):
+        shapes = _SlideShapeTree(slide_)
+        expected_idx = 1
+        return shapes, shape_, expected_idx
 
     @pytest.fixture
     def pic_fixture(
@@ -799,8 +816,8 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, int)
 
     @pytest.fixture
-    def shape_(self, request):
-        return instance_mock(request, Shape)
+    def shape_(self, request, sp_):
+        return instance_mock(request, Shape, element=sp_)
 
     @pytest.fixture
     def _shape_factory_(self, request):
@@ -835,6 +852,7 @@ class Describe_SlideShapeTree(object):
         spTree_.add_autoshape.return_value = sp_
         spTree_.add_table.return_value = graphicFrame_
         spTree_.add_textbox.return_value = sp_
+        spTree_.iter_shape_elms.return_value = [None, sp_]
         return spTree_
 
     @pytest.fixture
