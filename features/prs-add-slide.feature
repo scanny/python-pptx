@@ -9,8 +9,3 @@ Feature: Add a new slide
        And I save the presentation
       Then the pptx file contains a single slide
        And the layout has been applied to the slide
-
-  Scenario: DELETEME - Temporary to drive clone_layout_placeholder
-     Given an empty slide shape collection
-      When I clone layout placeholders
-      Then corresponding slide placeholders are added to the collection
