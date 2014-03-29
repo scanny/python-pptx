@@ -94,7 +94,7 @@ class BasePlaceholder(Shape):
         """
         Placeholder orientation, e.g. PH_ORIENT_HORZ
         """
-        raise NotImplementedError
+        return self._sp.ph_orient
 
     @property
     def ph_type(self):

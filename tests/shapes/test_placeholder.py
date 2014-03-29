@@ -125,6 +125,10 @@ class DescribeBasePlaceholder(object):
         placeholder, idx = idx_fixture
         assert placeholder.idx == idx
 
+    def it_knows_its_orient_value(self, orient_fixture):
+        placeholder, orient = orient_fixture
+        assert placeholder.orient == orient
+
     def it_knows_its_placeholder_type(self, type_fixture):
         placeholder, ph_type = type_fixture
         assert placeholder.ph_type == ph_type
@@ -143,6 +147,32 @@ class DescribeBasePlaceholder(object):
         shape_elm = self.shape_elm_factory(tagname, ph_type, idx)
         placeholder = BasePlaceholder(shape_elm, None)
         return placeholder, expected_idx
+
+    @pytest.fixture(params=[
+        (False, None,           None),
+        (True,  None,           PH_ORIENT_HORZ),
+        (True,  PH_ORIENT_VERT, PH_ORIENT_VERT),
+    ])
+    def orient_fixture(self, request):
+        has_ph_elm, orient, expected_orient = request.param
+
+        ph_bldr = a_ph()
+        if orient is not None:
+            ph_bldr.with_orient(PH_ORIENT_VERT)
+
+        nvPr_bldr = an_nvPr()
+        if has_ph_elm:
+            nvPr_bldr.with_child(ph_bldr)
+
+        shape_elm = (
+            an_sp().with_nsdecls('p').with_child(
+                an_nvSpPr().with_child(
+                    nvPr_bldr))
+        ).element
+
+        placeholder = BasePlaceholder(shape_elm, None)
+
+        return placeholder, expected_orient
 
     @pytest.fixture(params=[
         ('sp',           None,    1, 'obj'),
