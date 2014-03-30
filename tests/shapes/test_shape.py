@@ -8,8 +8,10 @@ import pytest
 
 from hamcrest import assert_that, is_
 
+from pptx.oxml.shapes.shared import BaseShapeElement
+from pptx.oxml.text import CT_TextBody
 from pptx.oxml.ns import namespaces
-from pptx.parts.slide import Slide, _SlideShapeTree
+from pptx.parts.slide import _SlideShapeTree
 from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
 
@@ -30,7 +32,18 @@ class DescribeBaseShape(object):
         part = shape.part
         assert part is parent_.part
 
+    def it_knows_whether_it_can_contain_text(self, has_textframe_fixture):
+        shape, has_textframe = has_textframe_fixture
+        assert shape.has_textframe is has_textframe
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[True, False])
+    def has_textframe_fixture(self, request, shape_elm_, txBody_):
+        has_textframe = request.param
+        shape_elm_.txBody = txBody_ if has_textframe else None
+        shape = BaseShape(shape_elm_, None)
+        return shape, has_textframe
 
     @pytest.fixture
     def part_fixture(self, shapes_):
@@ -41,8 +54,16 @@ class DescribeBaseShape(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def shape_elm_(self, request):
+        return instance_mock(request, BaseShapeElement)
+
+    @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, _SlideShapeTree)
+
+    @pytest.fixture
+    def txBody_(self, request):
+        return instance_mock(request, CT_TextBody)
 
 
 class DescribeSubshape(object):
@@ -69,27 +90,6 @@ class TestBaseShape(TestCase):
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = BaseShape(pic, None)
-
-    def test_has_textframe_value(self):
-        """
-        BaseShape.has_textframe value correct
-        """
-        # setup ------------------------
-        with open(slide1_path) as f:
-            xml_bytes = f.read()
-        slide = Slide.load(None, None, xml_bytes, None)
-        shapes = slide.shapes
-        indexes = []
-        # exercise ---------------------
-        for idx, shape in enumerate(shapes):
-            if shape.has_textframe:
-                indexes.append(idx)
-        # verify -----------------------
-        expected = [0, 1, 3, 5, 6]
-        actual = indexes
-        msg = ("expected txBody element in shapes %s, got %s" %
-               (expected, actual))
-        self.assertEqual(expected, actual, msg)
 
     def test_id_value(self):
         """BaseShape.id value is correct"""

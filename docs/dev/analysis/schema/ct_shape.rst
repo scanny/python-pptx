@@ -71,14 +71,14 @@ Minimal text box ``sp`` shape
         <a:ext cx="999999" cy="999999"/>
       </a:xfrm>
     </p:spPr>
-        <p:txBody>
-          <a:bodyPr/>
-          <a:p>
-            <a:r>
-              <a:t>This is text in a text box</a:t>
-            </a:r>
-          </a:p>
-        </p:txBody>
+    <p:txBody>
+      <a:bodyPr/>
+      <a:p>
+        <a:r>
+          <a:t>This is text in a text box</a:t>
+        </a:r>
+      </a:p>
+    </p:txBody>
   </p:sp>
 
 

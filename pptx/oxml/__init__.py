@@ -99,8 +99,13 @@ register_custom_element_class('p:sldMasterId',    CT_SlideMasterIdListEntry)
 register_custom_element_class('p:sldMasterIdLst', CT_SlideMasterIdList)
 
 
+from pptx.oxml.shapes.connector import CT_Connector
+register_custom_element_class('p:cxnSp',  CT_Connector)
+
+
 from pptx.oxml.shapetree import CT_GroupShape
-register_custom_element_class('p:spTree',  CT_GroupShape)
+register_custom_element_class('p:grpSp',  CT_GroupShape)
+register_custom_element_class('p:spTree', CT_GroupShape)
 
 
 from pptx.oxml.slide import CT_Slide

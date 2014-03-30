@@ -7,7 +7,7 @@ Common shape-related oxml objects
 from __future__ import absolute_import
 
 from pptx.oxml.core import BaseOxmlElement
-from pptx.oxml.ns import _nsmap
+from pptx.oxml.ns import _nsmap, qn
 from pptx.spec import PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_OBJ
 
 
@@ -78,3 +78,10 @@ class BaseShapeElement(BaseOxmlElement):
         if ph is None:
             return None
         return ph.get('type', PH_TYPE_OBJ)
+
+    @property
+    def txBody(self):
+        """
+        Child ``<p:txBody>`` element, None if not present
+        """
+        return self.find(qn('p:txBody'))

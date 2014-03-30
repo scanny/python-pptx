@@ -4,6 +4,8 @@
 Base shape-related objects such as BaseShape.
 """
 
+from __future__ import absolute_import, print_function
+
 from pptx.oxml.core import child
 from pptx.oxml.ns import _nsmap
 from pptx.text import TextFrame
@@ -33,7 +35,7 @@ class BaseShape(object):
         """
         True if this shape has a txBody element and can contain text.
         """
-        return child(self._element, 'p:txBody') is not None
+        return self._element.txBody is not None
 
     @property
     def id(self):

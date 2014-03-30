@@ -102,6 +102,8 @@ rst_epilog = """
 
 .. |_Font| replace:: :class:`_Font`
 
+.. |GraphicFrame| replace:: :class:`.GraphicFrame`
+
 .. |_Hyperlink| replace:: :class:`_Hyperlink`
 
 .. |int| replace:: :class:`int`
