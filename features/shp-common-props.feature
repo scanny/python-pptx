@@ -5,7 +5,20 @@ Feature: Query and change common shape properties
 
   Scenario Outline: get shape id
      Given a <shape type>
-      Then I can access the id of the <shape type>
+      Then I can get the id of the <shape type>
+
+    Examples: Shape types
+      | shape type  |
+      | shape       |
+      | picture     |
+      | table       |
+      | group shape |
+      | connector   |
+
+
+  Scenario Outline: get shape name
+     Given a <shape type>
+      Then I can get the name of the <shape type>
 
     Examples: Shape types
       | shape type  |

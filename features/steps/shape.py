@@ -208,18 +208,6 @@ def then_fore_color_is_theme_color_I_set(context):
     assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
 
 
-@then('I can access the id of the {shape_type}')
-def then_I_can_access_the_id_of_the_shape(context, shape_type):
-    expected_id = {
-        'shape':        2,
-        'picture':      3,
-        'table':        4,
-        'group shape':  9,
-        'connector':   11,
-    }[shape_type]
-    assert context.shape.id == expected_id
-
-
 @then('I can access the slide from the shape')
 def then_I_can_access_the_slide_from_the_shape(context):
     assert context.shape.part is context.slide
@@ -232,6 +220,32 @@ def then_the_shape_has_textframe_status(context, has_textframe_status):
         'has no text frame': False,
     }[has_textframe_status]
     assert context.shape.has_textframe is has_textframe
+
+
+@then('I can get the id of the {shape_type}')
+def then_I_can_get_the_id_of_the_shape(context, shape_type):
+    expected_id = {
+        'shape':        2,
+        'picture':      3,
+        'table':        4,
+        'group shape':  9,
+        'connector':   11,
+    }[shape_type]
+    assert context.shape.id == expected_id
+
+
+@then('I can get the name of the {shape_type}')
+def then_I_can_get_the_name_of_the_shape(context, shape_type):
+    expected_name = {
+        'shape':       'Rounded Rectangle 1',
+        'picture':     'Picture 2',
+        'table':       'Table 3',
+        'group shape': 'Group 8',
+        'connector':   'Elbow Connector 10',
+    }[shape_type]
+    shape = context.shape
+    msg = "expected shape name '%s', got '%s'" % (shape.name, expected_name)
+    assert shape.name == expected_name, msg
 
 
 @then('the position and size of the picture matches the known values')
