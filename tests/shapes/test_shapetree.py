@@ -265,14 +265,10 @@ from hamcrest import assert_that, equal_to, is_
 from mock import Mock, patch, PropertyMock
 
 from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
-from pptx.oxml.ns import namespaces, nsdecls
-# from pptx.parts.slidelayout import SlideLayout
-from pptx.shapes.placeholder import Placeholder
+from pptx.oxml.ns import namespaces
 from pptx.shapes.shapetree import ShapeCollection
 from pptx.spec import (
-    PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
-    PH_TYPE_SUBTITLE, PH_TYPE_TBL, PH_TYPE_TITLE, PH_ORIENT_HORZ,
-    PH_ORIENT_VERT
+    PH_TYPE_OBJ, PH_TYPE_TBL, PH_TYPE_TITLE, PH_ORIENT_HORZ, PH_ORIENT_VERT
 )
 
 from ..oxml.unitdata.shape import test_shape_elements, test_shapes
@@ -471,113 +467,6 @@ class TestShapeCollection(TestCase):
         shapes = test_shapes.empty_shape_collection
         # verify -----------------------
         assert_that(shapes.title, is_(None))
-
-    def test_placeholders_values(self):
-        """ShapeCollection.placeholders values are correct and sorted"""
-        # setup ------------------------
-        expected_values = (
-            ('Title 1',                    PH_TYPE_CTRTITLE,  0),
-            ('Vertical Subtitle 2',        PH_TYPE_SUBTITLE,  1),
-            ('Date Placeholder 7',         PH_TYPE_DT,       10),
-            ('Footer Placeholder 4',       PH_TYPE_FTR,      11),
-            ('Slide Number Placeholder 5', PH_TYPE_SLDNUM,   12),
-            ('Table Placeholder 3',        PH_TYPE_TBL,      14))
-        shapes = _sldLayout1_shapes()
-        # exercise ---------------------
-        placeholders = shapes.placeholders
-        # verify -----------------------
-        for idx, ph in enumerate(placeholders):
-            values = (ph.name, ph.type, ph.idx)
-            expected = expected_values[idx]
-            actual = values
-            msg = ("expected placeholders[%d] values %s, got %s" %
-                   (idx, expected, actual))
-            self.assertEqual(expected, actual, msg)
-
-    # def test__clone_layout_placeholders_shapes(self):
-    #     """ShapeCollection._clone_layout_placeholders clones shapes"""
-    #     # setup ------------------------
-    #     expected_values = (
-    #         [2, 'Title 1',             PH_TYPE_CTRTITLE,  0],
-    #         [3, 'Vertical Subtitle 2', PH_TYPE_SUBTITLE,  1],
-    #         [4, 'Table Placeholder 3', PH_TYPE_TBL,      14])
-    #     slidelayout = SlideLayout(None, None, _sldLayout1(), None)
-    #     shapes = test_shapes.empty_shape_collection
-    #     # exercise ---------------------
-    #     shapes._clone_layout_placeholders(slidelayout)
-    #     # verify -----------------------
-    #     for idx, sp in enumerate(shapes):
-    #         # verify is placeholder ---
-    #         is_placeholder = sp.is_placeholder
-    #         msg = ("expected shapes[%d].is_placeholder == True %r"
-    #                % (idx, sp))
-    #         self.assertTrue(is_placeholder, msg)
-    #         # verify values -----------
-    #         ph = Placeholder(sp)
-    #         expected = expected_values[idx]
-    #         actual = [ph.id, ph.name, ph.type, ph.idx]
-    #         msg = ("expected placeholder[%d] values %s, got %s"
-    #                % (idx, expected, actual))
-    #         self.assertEqual(expected, actual, msg)
-
-    def test__clone_layout_placeholder_values(self):
-        """ShapeCollection._clone_layout_placeholder() values correct"""
-        # setup ------------------------
-        layout_shapes = _sldLayout1_shapes()
-        layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
-        shapes = test_shapes.empty_shape_collection
-        expected_values = (
-            [2, 'Title 1',                    PH_TYPE_CTRTITLE,  0],
-            [3, 'Date Placeholder 2',         PH_TYPE_DT,       10],
-            [4, 'Vertical Subtitle 3',        PH_TYPE_SUBTITLE,  1],
-            [5, 'Table Placeholder 4',        PH_TYPE_TBL,      14],
-            [6, 'Slide Number Placeholder 5', PH_TYPE_SLDNUM,   12],
-            [7, 'Footer Placeholder 6',       PH_TYPE_FTR,      11])
-        # exercise ---------------------
-        for idx, layout_ph_sp in enumerate(layout_ph_shapes):
-            layout_ph = Placeholder(layout_ph_sp)
-            sp = shapes._clone_layout_placeholder(layout_ph)
-            # verify ------------------
-            ph = Placeholder(sp)
-            expected = expected_values[idx]
-            actual = [ph.id, ph.name, ph.type, ph.idx]
-            msg = "expected placeholder values %s, got %s" % (expected, actual)
-            self.assertEqual(expected, actual, msg)
-
-    def test__clone_layout_placeholder_xml(self):
-        """ShapeCollection._clone_layout_placeholder() emits correct XML"""
-        # setup ------------------------
-        layout_shapes = _sldLayout1_shapes()
-        layout_ph_shapes = [sp for sp in layout_shapes if sp.is_placeholder]
-        shapes = test_shapes.empty_shape_collection
-        expected_xml_tmpl = (
-            '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%s" name="%s"/>\n    <'
-            'p:cNvSpPr>\n      <a:spLocks noGrp="1"/>\n    </p:cNvSpPr>\n    '
-            '<p:nvPr>\n      <p:ph type="%s"%s/>\n    </p:nvPr>\n  </p:nvSpPr'
-            '>\n  <p:spPr/>\n%s</p:sp>\n' %
-            (nsdecls('p', 'a'), '%d', '%s', '%s', '%s', '%s')
-        )
-        txBody_snippet = (
-            '  <p:txBody>\n    <a:bodyPr/>\n    <a:lstStyle/>\n    <a:p/>\n  '
-            '</p:txBody>\n')
-        expected_values = [
-            (2, 'Title 1', PH_TYPE_CTRTITLE, '', txBody_snippet),
-            (3, 'Date Placeholder 2', PH_TYPE_DT, ' sz="half" idx="10"', ''),
-            (4, 'Vertical Subtitle 3', PH_TYPE_SUBTITLE,
-                ' orient="vert" idx="1"', txBody_snippet),
-            (5, 'Table Placeholder 4', PH_TYPE_TBL,
-                ' sz="quarter" idx="14"', ''),
-            (6, 'Slide Number Placeholder 5', PH_TYPE_SLDNUM,
-                ' sz="quarter" idx="12"', ''),
-            (7, 'Footer Placeholder 6', PH_TYPE_FTR,
-                ' sz="quarter" idx="11"', '')]
-                    # verify ----------------------
-        for idx, layout_ph_sp in enumerate(layout_ph_shapes):
-            layout_ph = Placeholder(layout_ph_sp)
-            sp = shapes._clone_layout_placeholder(layout_ph)
-            ph = Placeholder(sp)
-            expected_xml = expected_xml_tmpl % expected_values[idx]
-            self.assertEqualLineByLine(expected_xml, ph._element)
 
     def test__next_ph_name_return_value(self):
         """
