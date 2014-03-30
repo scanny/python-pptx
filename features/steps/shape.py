@@ -20,10 +20,25 @@ from .helpers import saved_pptx_path, test_pptx, test_text
 
 # given ===================================================
 
-@given('a picture of known position and size')
-def given_a_picture_of_known_position_and_size(context):
-    prs = Presentation(test_pptx('shp-pos-and-size'))
-    context.picture = prs.slides[1].shapes[0]
+@given('a connector')
+def given_a_connector(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[4]
+
+
+@given('a group shape')
+def given_a_group_shape(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[3]
+
+
+@given('a shape')
+def given_a_shape(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[0]
 
 
 @given('a {shape_type} on a slide')
@@ -182,6 +197,15 @@ def then_fore_color_is_theme_color_I_set(context):
 @then('I can access the slide from the shape')
 def then_I_can_access_the_slide_from_the_shape(context):
     assert context.shape.part is context.slide
+
+
+@then('I can determine the shape {has_textframe_status}')
+def then_the_shape_has_textframe_status(context, has_textframe_status):
+    has_textframe = {
+        'has a text frame':  True,
+        'has no text frame': False,
+    }[has_textframe_status]
+    assert context.shape.has_textframe is has_textframe
 
 
 @then('the position and size of the picture matches the known values')

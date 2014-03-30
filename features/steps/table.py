@@ -29,6 +29,7 @@ def given_a_table(context):
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(1.00))
     context.tbl = shapes.add_table(2, 2, x, y, cx, cy)
+    context.shape = context.tbl
 
 
 @given('a table cell')

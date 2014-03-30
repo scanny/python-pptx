@@ -8,14 +8,29 @@ from __future__ import absolute_import
 
 from StringIO import StringIO
 
-from behave import when, then
+from behave import given, when, then
 from hamcrest import assert_that, has_item
 
 from pptx import Presentation
 from pptx.package import Package
 from pptx.util import Inches
 
-from .helpers import saved_pptx_path, test_image_path
+from .helpers import saved_pptx_path, test_image_path, test_pptx
+
+
+# given ===================================================
+
+@given('a picture')
+def given_a_picture(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[1]
+
+
+@given('a picture of known position and size')
+def given_a_picture_of_known_position_and_size(context):
+    prs = Presentation(test_pptx('shp-pos-and-size'))
+    context.picture = prs.slides[1].shapes[0]
 
 
 # when ====================================================
