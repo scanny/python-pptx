@@ -4,7 +4,7 @@
 Gherkin step implementations for shape-related features.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from behave import given, when, then
 from hamcrest import assert_that, equal_to, is_
@@ -24,6 +24,21 @@ from .helpers import saved_pptx_path, test_pptx, test_text
 def given_a_picture_of_known_position_and_size(context):
     prs = Presentation(test_pptx('shp-pos-and-size'))
     context.picture = prs.slides[1].shapes[0]
+
+
+@given('a {shape_type} on a slide')
+def given_a_shape_on_a_slide(context, shape_type):
+    shape_idx = {
+        'shape':       0,
+        'picture':     1,
+        'table':       2,
+        'group shape': 3,
+        'connector':   4,
+    }[shape_type]
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[shape_idx]
+    context.slide = sld
 
 
 @given('a shape of known position and size')
@@ -162,6 +177,11 @@ def then_fore_color_is_RGB_value_I_set(context):
 def then_fore_color_is_theme_color_I_set(context):
     fore_color = context.shape.fill.fore_color
     assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
+
+
+@then('I can access the slide from the shape')
+def then_I_can_access_the_slide_from_the_shape(context):
+    assert context.shape.part is context.slide
 
 
 @then('the position and size of the picture matches the known values')
