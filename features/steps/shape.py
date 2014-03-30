@@ -15,21 +15,28 @@ from pptx.enum import MSO_FILL_TYPE as MSO_FILL, MSO_THEME_COLOR
 from pptx.dml.color import RGBColor
 from pptx.util import Inches
 
-from .helpers import saved_pptx_path, shp_pos_and_size_pptx_path, test_text
+from .helpers import saved_pptx_path, test_pptx, test_text
 
 
 # given ===================================================
 
 @given('a picture of known position and size')
-def given_a_picture_of_known_pos_and_size(context):
-    prs = Presentation(shp_pos_and_size_pptx_path)
+def given_a_picture_of_known_position_and_size(context):
+    prs = Presentation(test_pptx('shp-pos-and-size'))
     context.picture = prs.slides[1].shapes[0]
 
 
 @given('a shape of known position and size')
-def given_a_shape_of_known_pos_and_size(context):
-    prs = Presentation(shp_pos_and_size_pptx_path)
+def given_a_shape_of_known_position_and_size(context):
+    prs = Presentation(test_pptx('shp-pos-and-size'))
     context.shape = prs.slides[0].shapes[0]
+
+
+@given('a table of known position and size')
+def given_a_table_of_known_position_and_size(context):
+    prs = Presentation(test_pptx('shp-pos-and-size'))
+    context.table_ = prs.slides[2].shapes[0]
+    print(context.table_)
 
 
 @given('an autoshape')
@@ -191,6 +198,15 @@ def then_shape_pos_and_size_matches_new_values(context):
     assert shape.top == 914400*3
     assert shape.width == 914400*2
     assert shape.height == 914400*1
+
+
+@then('the position and size of the table match the known values')
+def then_table_pos_and_size_match_known_values(context):
+    table = context.table_
+    assert table.left == 1524000
+    assert table.top == 1397000
+    assert table.width == 6096000
+    assert table.height == 741680
 
 
 @then('the text box appears in the slide')

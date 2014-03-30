@@ -17,9 +17,6 @@ test_file_dir = absjoin(thisdir, '../../tests/test_files')
 # new ones should go here instead, others should be moved over
 test_pptx_dir = absjoin(thisdir, 'test_files')
 
-# new test pptx files ------------------
-shp_pos_and_size_pptx_path = absjoin(test_pptx_dir, 'shp-pos-and-size.pptx')
-
 # legacy test pptx files ---------------
 italics_pptx_path = absjoin(test_file_dir, 'italic-runs.pptx')
 no_core_props_pptx_path = absjoin(test_file_dir, 'no-core-props.pptx')

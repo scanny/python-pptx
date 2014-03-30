@@ -20,3 +20,8 @@ Feature: Query and change shape position and size
      Given a picture of known position and size
       When I change the position and size of the picture
       Then the position and size of the picture matches the new values
+
+  @wip
+  Scenario: get position and size of a table
+     Given a table of known position and size
+      Then the position and size of the table match the known values
