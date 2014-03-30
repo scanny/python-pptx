@@ -12,8 +12,8 @@ from pptx.util import to_unicode
 
 class BaseShape(object):
     """
-    Base class for shape objects. Both |Shape| and |Picture| inherit from
-    |BaseShape|.
+    Base class for shape objects, including |Shape|, |Picture|, and
+    |GraphicFrame|.
     """
     def __init__(self, shape_elm, parent):
         super(BaseShape, self).__init__()
