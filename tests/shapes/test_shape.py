@@ -9,12 +9,12 @@ import pytest
 from hamcrest import assert_that, is_
 
 from pptx.oxml.ns import namespaces
-from pptx.parts.slide import Slide
+from pptx.parts.slide import Slide, _SlideShapeTree
 from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
 
 from ..unitutil import (
-    absjoin, loose_mock, parse_xml_file, TestCase, test_file_dir
+    absjoin, instance_mock, loose_mock, parse_xml_file, TestCase, test_file_dir
 )
 
 
@@ -25,18 +25,24 @@ nsmap = namespaces('a', 'r', 'p')
 
 class DescribeBaseShape(object):
 
-    def it_knows_the_part_it_belongs_to(self, shape_with_parent_):
-        shape, parent_ = shape_with_parent_
+    def it_knows_the_part_it_belongs_to(self, part_fixture):
+        shape, parent_ = part_fixture
         part = shape.part
         assert part is parent_.part
 
-    # fixtures ---------------------------------------------
+    # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def shape_with_parent_(self, request):
-        parent_ = loose_mock(request, name='parent_')
+    def part_fixture(self, shapes_):
+        parent_ = shapes_
         shape = BaseShape(None, parent_)
         return shape, parent_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def shapes_(self, request):
+        return instance_mock(request, _SlideShapeTree)
 
 
 class DescribeSubshape(object):
