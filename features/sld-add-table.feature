@@ -10,13 +10,13 @@ Feature: Add a table to a slide
       Then the table appears in the slide
 
   Scenario: Set column widths
-     Given a table
+     Given a 2x2 table
       When I set the width of the table's columns
        And I save the presentation
       Then the table appears with the new column widths
 
   Scenario: Set cell text
-     Given a table
+     Given a 2x2 table
       When I set the text of the first cell
        And I save the presentation
       Then the text appears in the first cell of the table

@@ -34,11 +34,25 @@ def given_a_group_shape(context):
     context.shape = sld.shapes[3]
 
 
+@given('a picture')
+def given_a_picture(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[1]
+
+
 @given('a shape')
 def given_a_shape(context):
     prs = Presentation(test_pptx('shp-common-props'))
     sld = prs.slides[0]
     context.shape = sld.shapes[0]
+
+
+@given('a table')
+def given_a_table(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[2]
 
 
 @given('a {shape_type} on a slide')
@@ -192,6 +206,18 @@ def then_fore_color_is_RGB_value_I_set(context):
 def then_fore_color_is_theme_color_I_set(context):
     fore_color = context.shape.fill.fore_color
     assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
+
+
+@then('I can access the id of the {shape_type}')
+def then_I_can_access_the_id_of_the_shape(context, shape_type):
+    expected_id = {
+        'shape':        2,
+        'picture':      3,
+        'table':        4,
+        'group shape':  9,
+        'connector':   11,
+    }[shape_type]
+    assert context.shape.id == expected_id
 
 
 @then('I can access the slide from the shape')

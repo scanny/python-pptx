@@ -20,7 +20,7 @@ from .helpers import saved_pptx_path
 # given ===================================================
 
 
-@given('a table')
+@given('a 2x2 table')
 def given_a_table(context):
     context.prs = Presentation()
     slide_layout = context.prs.slide_layouts[6]
