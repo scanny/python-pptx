@@ -80,8 +80,23 @@ class BaseShapeElement(BaseOxmlElement):
         return ph.get('type', PH_TYPE_OBJ)
 
     @property
+    def shape_id(self):
+        """
+        Integer id of this shape
+        """
+        return int(self._nvXxPr.cNvPr.get('id'))
+
+    @property
     def txBody(self):
         """
         Child ``<p:txBody>`` element, None if not present
         """
         return self.find(qn('p:txBody'))
+
+    @property
+    def _nvXxPr(self):
+        """
+        Non-visual shape properties element for this shape. Actual name
+        depends on the shape type, e.g. ``<p:nvPicPr>`` for picture shape.
+        """
+        return self.xpath('./*[1]', namespaces=_nsmap)[0]

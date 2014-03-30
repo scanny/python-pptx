@@ -42,7 +42,7 @@ class BaseShape(object):
         """
         Id of this shape. Note that ids are constrained to positive integers.
         """
-        return int(self._nvXxPr.cNvPr.get('id'))
+        return self._element.shape_id
 
     @property
     def is_placeholder(self):

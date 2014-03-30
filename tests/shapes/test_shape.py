@@ -27,6 +27,10 @@ nsmap = namespaces('a', 'r', 'p')
 
 class DescribeBaseShape(object):
 
+    def it_knows_its_shape_id(self, id_fixture):
+        shape, shape_id = id_fixture
+        assert shape.id == shape_id
+
     def it_knows_the_part_it_belongs_to(self, part_fixture):
         shape, parent_ = part_fixture
         part = shape.part
@@ -37,6 +41,11 @@ class DescribeBaseShape(object):
         assert shape.has_textframe is has_textframe
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def id_fixture(self, shape_elm_, shape_id):
+        shape = BaseShape(shape_elm_, None)
+        return shape, shape_id
 
     @pytest.fixture(params=[True, False])
     def has_textframe_fixture(self, request, shape_elm_, txBody_):
@@ -54,8 +63,12 @@ class DescribeBaseShape(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def shape_elm_(self, request):
-        return instance_mock(request, BaseShapeElement)
+    def shape_elm_(self, request, shape_id):
+        return instance_mock(request, BaseShapeElement, shape_id=shape_id)
+
+    @pytest.fixture
+    def shape_id(self):
+        return 42
 
     @pytest.fixture
     def shapes_(self, request):
@@ -90,16 +103,6 @@ class TestBaseShape(TestCase):
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = BaseShape(pic, None)
-
-    def test_id_value(self):
-        """BaseShape.id value is correct"""
-        # exercise ---------------------
-        id = self.base_shape.id
-        # verify -----------------------
-        expected = 6
-        actual = id
-        msg = "expected %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
 
     def test_is_placeholder_true_for_placeholder(self):
         """BaseShape.is_placeholder True for placeholder shape"""
