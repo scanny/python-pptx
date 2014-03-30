@@ -104,19 +104,6 @@ class BaseShape(object):
         return TextFrame(txBody, self)
 
     @property
-    def _is_title(self):
-        """
-        True if this shape is a title placeholder.
-        """
-        ph = child(self._nvXxPr.nvPr, 'p:ph')
-        if ph is None:
-            return False
-        # idx defaults to 0 when idx attr is absent
-        ph_idx = ph.get('idx', '0')
-        # title placeholder is identified by idx of 0
-        return ph_idx == '0'
-
-    @property
     def _nvXxPr(self):
         """
         Non-visual shape properties element for this shape. Actual name

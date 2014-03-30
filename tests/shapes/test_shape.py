@@ -115,26 +115,6 @@ class TestBaseShape(TestCase):
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = BaseShape(pic, None)
 
-    def test__is_title_true_for_title_placeholder(self):
-        """BaseShape._is_title True for title placeholder shape"""
-        # setup ------------------------
-        xpath = './p:cSld/p:spTree/p:sp'
-        title_placeholder_sp = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        base_shape = BaseShape(title_placeholder_sp, None)
-        # verify -----------------------
-        actual = base_shape._is_title
-        msg = "expected True, got %s" % (actual)
-        self.assertTrue(actual, msg)
-
-    # # needs a shape XML builder, this early version made too many assumptions
-    # def test__is_title_false_for_no_ph_element(self):
-    #     """BaseShape._is_title False on shape has no <p:ph> element"""
-    #     # setup ------------------------
-    #     self.base_shape._element = Mock(name='_element')
-    #     self.base_shape._element.xpath.return_value = []
-    #     # verify -----------------------
-    #     assert_that(self.base_shape._is_title, is_(False))
-
     def test_name_value(self):
         """BaseShape.name value is correct"""
         # exercise ---------------------
