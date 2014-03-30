@@ -40,6 +40,10 @@ class DescribeBaseShape(object):
         shape, has_textframe = has_textframe_fixture
         assert shape.has_textframe is has_textframe
 
+    def it_knows_whether_it_is_a_placeholder(self, is_placeholder_fixture):
+        shape, is_placeholder = is_placeholder_fixture
+        assert shape.is_placeholder is is_placeholder
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -53,6 +57,13 @@ class DescribeBaseShape(object):
         shape_elm_.txBody = txBody_ if has_textframe else None
         shape = BaseShape(shape_elm_, None)
         return shape, has_textframe
+
+    @pytest.fixture(params=[True, False])
+    def is_placeholder_fixture(self, request, shape_elm_, txBody_):
+        is_placeholder = request.param
+        shape_elm_.has_ph_elm = is_placeholder
+        shape = BaseShape(shape_elm_, None)
+        return shape, is_placeholder
 
     @pytest.fixture
     def part_fixture(self, shapes_):
@@ -103,24 +114,6 @@ class TestBaseShape(TestCase):
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = BaseShape(pic, None)
-
-    def test_is_placeholder_true_for_placeholder(self):
-        """BaseShape.is_placeholder True for placeholder shape"""
-        # setup ------------------------
-        xpath = './p:cSld/p:spTree/p:sp'
-        sp = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        base_shape = BaseShape(sp, None)
-        # verify -----------------------
-        actual = base_shape.is_placeholder
-        msg = "expected True, got %s" % (actual)
-        self.assertTrue(actual, msg)
-
-    def test_is_placeholder_false_for_non_placeholder(self):
-        """BaseShape.is_placeholder False for non-placeholder shape"""
-        # verify -----------------------
-        actual = self.base_shape.is_placeholder
-        msg = "expected False, got %s" % (actual)
-        self.assertFalse(actual, msg)
 
     def test__is_title_true_for_title_placeholder(self):
         """BaseShape._is_title True for title placeholder shape"""

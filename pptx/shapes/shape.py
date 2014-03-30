@@ -50,7 +50,7 @@ class BaseShape(object):
         True if this shape is a placeholder. A shape is a placeholder if it
         has a <p:ph> element.
         """
-        return child(self._nvXxPr.nvPr, 'p:ph') is not None
+        return self._element.has_ph_elm
 
     @property
     def name(self):
