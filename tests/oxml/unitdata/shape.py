@@ -10,7 +10,7 @@ from ...unitdata import BaseBuilder
 
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import nsdecls
-from pptx.shapes.shapetree import ShapeCollection
+from pptx.parts.slide import _SlideShapeTree
 
 
 class CT_ApplicationNonVisualDrawingPropsBuilder(BaseBuilder):
@@ -332,7 +332,11 @@ class _TestShapes(object):
     """Shape instances for use in unit tests"""
     @property
     def empty_shape_collection(self):
-        return ShapeCollection(test_shape_elements.empty_spTree)
+        class FakeSlide(object):
+            pass
+        slide = FakeSlide()
+        slide.spTree = test_shape_elements.empty_spTree
+        return _SlideShapeTree(slide)
 
 
 test_shape_xml = _TestShapeXml()

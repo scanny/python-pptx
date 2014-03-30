@@ -9,9 +9,9 @@ import pytest
 from hamcrest import assert_that, is_
 
 from pptx.oxml.ns import namespaces
+from pptx.parts.slide import Slide
 from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
-from pptx.shapes.shapetree import ShapeCollection
 
 from ..unitutil import (
     absjoin, loose_mock, parse_xml_file, TestCase, test_file_dir
@@ -65,10 +65,14 @@ class TestBaseShape(TestCase):
         self.base_shape = BaseShape(pic, None)
 
     def test_has_textframe_value(self):
-        """BaseShape.has_textframe value correct"""
+        """
+        BaseShape.has_textframe value correct
+        """
         # setup ------------------------
-        spTree = self.sld.xpath('./p:cSld/p:spTree', namespaces=nsmap)[0]
-        shapes = ShapeCollection(spTree)
+        with open(slide1_path) as f:
+            xml_bytes = f.read()
+        slide = Slide.load(None, None, xml_bytes, None)
+        shapes = slide.shapes
         indexes = []
         # exercise ---------------------
         for idx, shape in enumerate(shapes):

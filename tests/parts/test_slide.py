@@ -15,7 +15,6 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part, _Relationship
 from pptx.oxml.autoshape import CT_Shape
-from pptx.oxml.ns import _nsmap
 from pptx.oxml.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.picture import CT_Picture
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
@@ -33,7 +32,6 @@ from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import BasePlaceholder
 from pptx.shapes.shape import BaseShape
-from pptx.shapes.shapetree import ShapeCollection
 from pptx.shapes.table import Table
 from pptx.spec import (
     PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_TYPE_OBJ, PH_TYPE_TBL, PH_TYPE_TITLE
@@ -63,10 +61,11 @@ def _sldLayout1():
 
 
 def _sldLayout1_shapes():
-    sldLayout = _sldLayout1()
-    spTree = sldLayout.xpath('./p:cSld/p:spTree', namespaces=_nsmap)[0]
-    shapes = ShapeCollection(spTree)
-    return shapes
+    path = absjoin(test_file_dir, 'slideLayout1.xml')
+    with open(path) as f:
+        xml_bytes = f.read()
+    slide_layout = SlideLayout.load(None, None, xml_bytes, None)
+    return slide_layout.shapes
 
 
 class DescribeBaseSlide(object):
