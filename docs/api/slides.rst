@@ -34,6 +34,16 @@ from ``slides.add_slide()``.
    :undoc-members:
 
 
+|SlideLayout| objects
+---------------------
+
+.. currentmodule:: pptx.parts.slidelayout
+
+.. autoclass:: SlideLayout
+   :members:
+   :exclude-members: iter_cloneable_placeholders
+
+
 |SlideMaster| objects
 ---------------------
 
@@ -42,8 +52,3 @@ from ``slides.add_slide()``.
 .. autoclass:: SlideMaster
    :members:
    :exclude-members: sldLayoutIdLst
-
-.. currentmodule:: pptx.parts.slidelayout
-
-.. autoclass:: SlideLayout
-   :members:

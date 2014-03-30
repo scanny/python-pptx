@@ -4,18 +4,18 @@ Shapes
 ======
 
 
-.. currentmodule:: pptx.shapes.shapetree
+.. currentmodule:: pptx.parts.slide
 
 
-|ShapeCollection| objects
---------------------------
+|_SlideShapeTree| objects
+-------------------------
 
-The |ShapeCollection| object is encountered as the :attr:`~BaseSlide.shapes`
-member of |Slide|.
+The |_SlideShapeTree| object is encountered as the :attr:`~BaseSlide.shapes`
+property of |Slide|.
 
-.. autoclass:: ShapeCollection
-   :members: add_picture, add_shape, add_table, add_textbox, index,
-             placeholders, title
+.. autoclass:: _SlideShapeTree
+   :members:
+   :exclude-members: clone_layout_placeholders
 
 
 .. currentmodule:: pptx.shapes.shape

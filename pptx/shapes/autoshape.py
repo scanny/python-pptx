@@ -87,8 +87,8 @@ class Adjustment(object):
 
 class AdjustmentCollection(object):
     """
-    Sequence of |Adjustment| instance for an auto shape, each representing an
-    available adjustment for a shape of its type. Supports ``len()`` and
+    Sequence of |Adjustment| instances for an auto shape, each representing
+    an available adjustment for a shape of its type. Supports ``len()`` and
     indexed access, e.g. ``shape.adjustments[1] = 0.15``.
     """
     def __init__(self, prstGeom):

@@ -14,9 +14,6 @@ various aspects of shapes.
 |FillFormat| objects
 --------------------
 
-.. A |Table| object is added to a slide using the
-.. :meth:`~.ShapeCollection.add_table` method on |ShapeCollection|.
-
 .. autoclass:: FillFormat
    :members: background, fore_color, solid, type
 

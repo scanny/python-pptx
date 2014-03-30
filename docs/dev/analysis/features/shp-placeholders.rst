@@ -17,8 +17,9 @@ From a user perspective, a *placeholder* acts as a pre-formatted container
 into which content can be inserted.
 
 A layout inherits from its master differently than how a slide inherits from
-its layout. A layout inherits from a master by placeholder type. A slide
-inherits from its layout by `idx` value.
+its layout. A layout placeholder inherits from the master placeholder sharing
+the same type. A slide placeholder inherits from the layout placeholder
+having the same `idx` value.
 
 
 Candidate protocol -- MasterPlaceholders
@@ -108,88 +109,6 @@ Candidate protocol -- SlidePlaceholders
     2
 
 
-Open Questions
---------------
-
-Q: What placeholder types should be members of `Slide.placeholders`? More
-   specifically, should object shapes that were inserted into placeholders be
-   members?
-
-A: Start with including all placeholders, such that a placeholder's index in
-   the collection is stable across object insertions and corresponds to the
-   items visible on the slide. Reduce to only ShapePlaceholder instances
-   (`<p:sp>` elements) later if some use case demonstrates a compelling
-   reason not to include them.
-
-
-Experimental backlog
---------------------
-
-* It appears a slide master permits at most five placeholders, at most one
-  each of title, body, date, footer, and slide number
-
-  + Hypothesis:
-
-    - Layout inherits properties from master based only on type (e.g. body,
-      dt), with no bearing on idx value.
-    - Slide inherits from layout strictly on idx value.
-
-  + Need to experiment to see if position and size are inherited on body
-    placeholder by type or if idx has any effect
-
-    - expanded/repackaged, change body ph idx on layout and see if still
-      inherits position.
-    - result: slide layout still appears with the proper position and size,
-      however the slide placeholder appears at (0, 0) and apparently with
-      size of (0, 0). 
-
-  + What behavior is exhibited when a slide layout contains two body
-    placeholders, neither of which has a matching idx value and neither of
-    which has a specified size or position?
-
-    - result: both placeholders are present, directly superimposed upon each
-      other. They both inherit position and fill.
-
-* GUI doesn't seem to provide a way to add additional "footer" placeholders
-
-* Does the MS API include populated object placeholders in the Placeholders
-  collection?
-
-
-Candidate classes
------------------
-
-Collections
-~~~~~~~~~~~
-
-* ShapeTree
-* MasterShapeTree - may only overload cls._shape_factory
-* MasterPlaceholders
-* LayoutShapeTree
-* LayoutPlaceholders
-* SlideShapeTree
-* SlidePlaceholders
-
-
-Placeholder shapes
-~~~~~~~~~~~~~~~~~~
-
-* BasePlaceholder
-* MasterPlaceholder
-* LayoutPlaceholder
-* ShapePlaceholder
-* PicturePlaceholder
-* GraphicFramePlaceholder
-
-possibly ...
-
-* ContentPlaceholder
-* TablePlaceholder
-* PicturePlaceholder
-* ChartPlaceholder
-* SmartArtPlaceholder
-
-
 ContentPlaceholder protocol
 ---------------------------
 
@@ -211,111 +130,6 @@ Hypothesis: inheritance behaviors for an object placeholder are the same as
 those for a slide_placeholder. Only object insertion behaviors are different.
 There is some evidence object placeholder behaviors may be on a case-by-case
 basis.
-
-
-What form should a placeholder take?
-------------------------------------
-
-* decorator pattern
-* subclass of Shape
-* wrapper of Shape
-* mixin with Shape
-
-One question is whether it should always be a different type (like from
-construction onward) or whether it should only be treated as a placeholder
-when someone wants to perform placeholder-specific operations on it.
-
-One consideration there is that certain behaviors (such as inherited
-size/position) may always be different, and not be "special" placeholder-only
-operations. Either subclassing would be necessary or tests in all differing
-operations would need to be propagated. That's a pretty firm argument that
-Placeholder needs to be a subclass of Shape (autoshape). How substituted
-shapes are different would need to be clarified.
-
-A `<p:pic>` shape from a placeholder doesn't have its own position and size.
-
-This would indicate that all placeholder types would require their own
-subclass, so the base shape operations were right. That might argue for
-run-time inheritance, like make the shape, then if it's a placeholder then
-decorate it before sending it back.
-
-One option would be to add a mixin when required and modify behavior for when
-it's a placeholder (ughh, placeholder as subclass seems better).
-
-The general notion of inheriting properties will apply to quite a few
-possible properties, will want a generalized way to access those.
-
->> Shape itself should certainly return None if it doesn't have one of those
-properties.
-
-
-Lifecycle
----------
-
-#. Master placeholder
-#. Layout placeholder, may inherit from a master placeholder
-#. Slide placeholder, cloned from a layout placeholder, initially having no
-   direct properties and inheriting all properties from its layout
-   placeholder. Directly applied properties override inherited properties.
-#. Substituted placeholder. Non-textual shapes replace the placeholder shape
-   when they are "inserted" into the placeholder. However, the new shape
-   retains its placeholder inheritance behaviors, it's link to the original
-   layout placeholder, and certain other placeholder-only properties allowing
-   the original slide placeholder to be restored if the inserted object is
-   deleted.
-
-
-Implementation notions
-----------------------
-
-Toward SlideMaster.placeholders -> MasterPlaceholders instance
-
-* [ ] Develop ShapeTree to replace ShapeCollection
-
-  + [ ] access via SlideMaster.shapes
-  + [ ] implement __len__()
-  + [ ] implement __iter__()
-  + [ ] implement _ShapeFactory()
-
-* [ ] Start with MasterPlaceholders collection as thin proxy
-
-  + [ ] accessed via SlideMaster.placeholders
-  + [ ] has consequences for shape classes constructed by ShapeCollection for
-        slide master
-  + [ ] core state is slide_master, from which it gets root element and then
-        shape tree
-
-* [ ] Start with MasterPlaceholder
-
-  + [ ] Inherits from Shape
-  + [ ] Maybe has a PlaceholderElement mixin ... ? (type, orient, sz, idx)
-  + [ ] has_placeholder_properties ... ?  with separate PlaceholderProperties
-        object?, perhaps returns None if not a placeholder shape
-
-* [ ] Maybe create BasePlaceholder and subclass to MasterPlaceholder. I suspect
-      at least there will be different behavior in that it doesn't try to
-      inherit properties from a parent object.
-
-* [ ] Add Placeholders, possibly subclassing to MasterPlaceholders later if
-      needed.
-
-* [ ] Maybe distinction between *placeholder shape* and whatever is
-      a *placeholder element*. A placeholder shape *has* a placeholder
-      element, but it's not the only type of shape that can have one.
-
-* [ ] Enumerate possible "populated placeholders" and characterize behaviors
-      HOWEVER: A shape with a <p:ph> element exhibits inheritance behaviors
-      on shape properties
-
-* [ ] Thin proxy as described elsewhere on this page.
-
-  + Selects only `<p:sp>` elements that have a `<p:ph>` descendant
-  + Instantiates an `XxxPlaceholder` instance for each member element
-  + Is iterable and has lookup, but does not instantiate a hard sequence like
-    a tuple or list, at least does not offer one via its API
-
-* [ ] Add lookup by idx, maybe .find(idx=n) that returns None if not found.
-      Unsuccessful lookups are expected to be common.
 
 
 Shapes that can have a substituted placeholder
@@ -340,13 +154,6 @@ layout placeholder
 master placeholder
     the placeholder shape on the slide master which a layout placeholder
     inherits from, if any.
-
-
-Identification and linkage
---------------------------
-
-... has id, which uniquely identifies shape on slide. idx value identifies
-the layout placeholder it inherits from ...
 
 
 Inheritance behaviors
@@ -396,23 +203,6 @@ Behavior
 
   + ... show master placeholder ...
   + ... add (arbitrary) placeholder ...
-
-
-Placeholder types
------------------
-
-* Title (always inherits from master, although layout may override)
-* Vertical Title (also inherits from master)
-* Content
-* Vertical content
-* Text
-* Vertical text
-* Chart
-* Table
-* SmartArt
-* Media
-* Clip Art
-* Picture
 
 
 Sample XML
@@ -591,6 +381,40 @@ Experimental findings
   properties to inherited, without exception.
 
 
+Other behaviors ...
+~~~~~~~~~~~~~~~~~~~
+
+* It appears a slide master permits at most five placeholders, at most one
+  each of title, body, date, footer, and slide number
+
+  + Hypothesis:
+
+    - Layout inherits properties from master based only on type (e.g. body,
+      dt), with no bearing on idx value.
+    - Slide inherits from layout strictly on idx value.
+
+  + Need to experiment to see if position and size are inherited on body
+    placeholder by type or if idx has any effect
+
+    - expanded/repackaged, change body ph idx on layout and see if still
+      inherits position.
+    - result: slide layout still appears with the proper position and size,
+      however the slide placeholder appears at (0, 0) and apparently with
+      size of (0, 0). 
+
+  + What behavior is exhibited when a slide layout contains two body
+    placeholders, neither of which has a matching idx value and neither of
+    which has a specified size or position?
+
+    - result: both placeholders are present, directly superimposed upon each
+      other. They both inherit position and fill.
+
+* GUI doesn't seem to provide a way to add additional "footer" placeholders
+
+* Does the MS API include populated object placeholders in the Placeholders
+  collection?
+
+
 Layout placeholder inheritance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -623,3 +447,17 @@ tbl          body         manual - idx 9 != 1
 hdr          repair err   valid only in Notes and Handout Slide
 sldImg       repair err   valid only in Notes and Handout Slide
 ===========  ===========  ===================================================
+
+
+Resolved Design Questions
+-------------------------
+
+Q: What placeholder types should be members of `Slide.placeholders`? More
+   specifically, should object shapes that were inserted into placeholders be
+   members?
+
+A: Start with including all placeholders, such that a placeholder's index in
+   the collection is stable across object insertions and corresponds to the
+   items visible on the slide. Reduce to only ShapePlaceholder instances
+   (`<p:sp>` elements) later if some use case demonstrates a compelling
+   reason not to include them.

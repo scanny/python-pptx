@@ -298,7 +298,8 @@ class _SlideShapeTree(BaseShapeTree):
     @property
     def title(self):
         """
-        The title placeholder shape in collection or |None| if not present.
+        The title placeholder shape on the slide or |None| if the slide has
+        no title placeholder.
         """
         for elm in self._spTree.iter_shape_elms():
             if elm.ph_idx == 0:

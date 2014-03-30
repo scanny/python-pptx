@@ -11,10 +11,11 @@ Table-related objects
 ----------------
 
 A |Table| object is added to a slide using the
-:meth:`~.ShapeCollection.add_table` method on |ShapeCollection|.
+:meth:`~._SlideShapeTree.add_table` method on |_SlideShapeTree|.
 
-.. autoclass:: Table
+.. autoclass:: Table()
    :members:
+   :exclude-members: notify_height_changed, notify_width_changed
    :member-order: bysource
    :undoc-members:
 
