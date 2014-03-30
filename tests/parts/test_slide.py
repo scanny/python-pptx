@@ -143,7 +143,7 @@ class DescribeSlide(object):
 
     def it_provides_access_to_the_shapes_on_the_slide(self, shapes_fixture):
         slide, _SlideShapeTree_, slide_shape_tree_ = shapes_fixture
-        shapes = slide.shapes_new
+        shapes = slide.shapes
         _SlideShapeTree_.assert_called_once_with(slide)
         assert shapes is slide_shape_tree_
 
@@ -162,7 +162,7 @@ class DescribeSlide(object):
         Slide_init_.assert_called_once_with(
             partname_, CT.PML_SLIDE, slide_elm_, package_
         )
-        shapes_._clone_layout_placeholders.assert_called_once_with(
+        shapes_.clone_layout_placeholders.assert_called_once_with(
             slide_layout_
         )
         relate_to_.assert_called_once_with(

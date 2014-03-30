@@ -16,9 +16,7 @@ from pptx.oxml.core import Element, SubElement
 from pptx.oxml.ns import nsmap, _nsmap, qn
 from pptx.shapes.autoshape import AutoShapeType
 from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
-from pptx.shapes.shapetree import (
-    BaseShapeFactory, BaseShapeTree, ShapeCollection
-)
+from pptx.shapes.shapetree import BaseShapeFactory, BaseShapeTree
 from pptx.spec import slide_ph_basenames, PH_ORIENT_VERT
 from pptx.util import lazyproperty
 
@@ -90,7 +88,7 @@ class Slide(BaseSlide):
         """
         slide_elm = cls._minimal_element()
         slide = cls(partname, CT.PML_SLIDE, slide_elm, package)
-        slide.shapes._clone_layout_placeholders(slidelayout)
+        slide.shapes.clone_layout_placeholders(slidelayout)
         slide.relate_to(slidelayout, RT.SLIDE_LAYOUT)
         return slide
 
@@ -104,14 +102,6 @@ class Slide(BaseSlide):
 
     @lazyproperty
     def shapes(self):
-        """
-        Instance of |ShapeCollection| containing sequence of shape objects
-        appearing on this slide.
-        """
-        return ShapeCollection(self._element.cSld.spTree, self)
-
-    @lazyproperty
-    def shapes_new(self):
         """
         Instance of |_SlideShapeTree| containing sequence of shape objects
         appearing on this slide.
@@ -298,6 +288,14 @@ class _SlideShapeTree(BaseShapeTree):
         raise ValueError('shape not in collection')
 
     @property
+    def placeholders(self):
+        """
+        Instance of |_SlidePlaceholders| containing sequence of placeholder
+        shapes in this slide.
+        """
+        return self._slide.placeholders
+
+    @property
     def title(self):
         """
         The title placeholder shape in collection or |None| if not present.
@@ -372,14 +370,6 @@ class _SlideShapeTree(BaseShapeTree):
         idx = layout_placeholder.idx
 
         self._spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
-
-    def _clone_layout_placeholders(self, slidelayout):
-        """
-        Add placeholder shapes based on those in *slidelayout*. Z-order of
-        placeholders is preserved. Latent placeholders (date, slide number,
-        and footer) are not cloned.
-        """
-        raise NotImplementedError
 
     def _get_or_add_image_part(self, image_file):
         """

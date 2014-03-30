@@ -56,7 +56,7 @@ def given_a_slide_placeholder_collection(context):
 @given('a slide shape collection')
 def given_a_slide_shape_collection(context):
     presentation = Presentation(test_pptx('sld-access-shapes'))
-    context.shapes = presentation.slides[0].shapes_new
+    context.shapes = presentation.slides[0].shapes
 
 
 # when ====================================================
@@ -106,7 +106,7 @@ def then_can_access_placeholder_collection_of_slide(context):
 @then('I can access the shape collection of the slide')
 def then_can_access_shapes_of_slide(context):
     slide = context.slide
-    shapes = slide.shapes_new
+    shapes = slide.shapes
     msg = 'Slide.shapes not instance of _SlideShapeTree'
     assert isinstance(shapes, _SlideShapeTree), msg
 
@@ -142,7 +142,7 @@ def then_can_iterate_over_the_slide_placeholders(context):
 @then('the length of the shape collection is 3')
 def then_len_of_shape_collection_is_3(context):
     slide = context.slide
-    shapes = slide.shapes_new
+    shapes = slide.shapes
     assert len(shapes) == 3, (
         'expected len(shapes) of 3, got %s' % len(shapes)
     )
