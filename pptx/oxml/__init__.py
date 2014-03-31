@@ -95,9 +95,10 @@ from .shapes.graphfrm import CT_GraphicalObjectFrame
 register_custom_element_class('p:graphicFrame', CT_GraphicalObjectFrame)
 
 
-from .shapes.groupshape import CT_GroupShape
-register_custom_element_class('p:grpSp',  CT_GroupShape)
-register_custom_element_class('p:spTree', CT_GroupShape)
+from .shapes.groupshape import CT_GroupShape, CT_GroupShapeProperties
+register_custom_element_class('p:grpSp',   CT_GroupShape)
+register_custom_element_class('p:grpSpPr', CT_GroupShapeProperties)
+register_custom_element_class('p:spTree',  CT_GroupShape)
 
 
 from .shapes.picture import CT_Picture

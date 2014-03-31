@@ -16,7 +16,8 @@ from pptx.shapes.shape import BaseShape
 from pptx.text import TextFrame
 
 from ..oxml.unitdata.shape import (
-    a_graphicFrame, a_p_xfrm, a_pic, an_off, an_sp, an_spPr, an_xfrm
+    a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic, an_off, an_sp,
+    an_spPr, an_xfrm
 )
 from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
 
@@ -119,6 +120,7 @@ class DescribeBaseShape(object):
         ('sp_no_xfrm',           False), ('sp',           True),
         ('pic_no_xfrm',          False), ('pic',          True),
         ('graphicFrame_no_xfrm', False), ('graphicFrame', True),
+        ('grpSp_no_xfrm',        False), ('grpSp',        True),
     ])
     def position_get_fixture(self, request, left, top):
         shape_elm_fixt_name, expect_values = request.param
@@ -167,6 +169,22 @@ class DescribeBaseShape(object):
         required on graphicFrame.
         """
         return a_graphicFrame().with_nsdecls().with_child(a_p_xfrm()).element
+
+    @pytest.fixture
+    def grpSp(self, left, top):
+        return (
+            a_grpSp().with_nsdecls('p', 'a').with_child(
+                a_grpSpPr().with_child(
+                    an_xfrm().with_child(
+                        an_off().with_x(left).with_y(top))))
+        ).element
+
+    @pytest.fixture
+    def grpSp_no_xfrm(self):
+        return (
+            a_grpSp().with_nsdecls('p', 'a').with_child(
+                a_grpSpPr())
+        ).element
 
     @pytest.fixture
     def left(self):

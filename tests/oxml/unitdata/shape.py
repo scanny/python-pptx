@@ -64,6 +64,12 @@ class CT_GroupShapeBuilder(BaseBuilder):
         super(CT_GroupShapeBuilder, self).__init__()
 
 
+class CT_GroupShapePropertiesBuilder(BaseBuilder):
+    __tag__ = 'p:grpSpPr'
+    __nspfxs__ = ('p', 'a')
+    __attrs__ = ('bwMode',)
+
+
 class CT_NonVisualDrawingPropsBuilder(BaseBuilder):
     __tag__ = 'p:cNvPr'
     __nspfxs__ = ('p',)
@@ -155,6 +161,10 @@ def a_graphicFrame():
 
 def a_grpSp():
     return CT_GroupShapeBuilder('p:grpSp')
+
+
+def a_grpSpPr():
+    return CT_GroupShapePropertiesBuilder()
 
 
 def a_p_xfrm():

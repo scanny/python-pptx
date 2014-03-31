@@ -11,6 +11,7 @@ from .graphfrm import CT_GraphicalObjectFrame
 from ..ns import qn
 from .picture import CT_Picture
 from .shared import BaseShapeElement
+from ..shared import BaseOxmlElement
 
 
 class CT_GroupShape(BaseShapeElement):
@@ -73,6 +74,13 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
+    @property
+    def grpSpPr(self):
+        """
+        The required ``<p:grpSpPr>`` child element
+        """
+        return self.find(qn('p:grpSpPr'))
+
     def iter_shape_elms(self):
         """
         Generate each child of this ``<p:spTree>`` element that corresponds
@@ -81,3 +89,22 @@ class CT_GroupShape(BaseShapeElement):
         for elm in self.iterchildren():
             if elm.tag in self._shape_tags:
                 yield elm
+
+    @property
+    def xfrm(self):
+        """
+        The ``<a:xfrm>`` grandchild element or |None| if not found
+        """
+        return self.grpSpPr.xfrm
+
+
+class CT_GroupShapeProperties(BaseOxmlElement):
+    """
+    The ``<p:grpSpPr>`` element
+    """
+    @property
+    def xfrm(self):
+        """
+        The ``<a:xfrm>`` child element, or |None| if not present
+        """
+        return self.find(qn('a:xfrm'))
