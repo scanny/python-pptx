@@ -11,7 +11,7 @@ from .graphfrm import CT_GraphicalObjectFrame
 from ..ns import qn
 from .picture import CT_Picture
 from .shared import BaseShapeElement
-from ..shared import BaseOxmlElement
+from ..shared import BaseOxmlElement, Element
 
 
 class CT_GroupShape(BaseShapeElement):
@@ -74,6 +74,13 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
+    def get_or_add_xfrm(self):
+        """
+        Return the ``<a:xfrm>`` grandchild element, newly-added if not
+        present.
+        """
+        return self.grpSpPr.get_or_add_xfrm()
+
     @property
     def grpSpPr(self):
         """
@@ -102,6 +109,17 @@ class CT_GroupShapeProperties(BaseOxmlElement):
     """
     The ``<p:grpSpPr>`` element
     """
+    def get_or_add_xfrm(self):
+        """
+        Return the <a:xfrm> child element, newly added if not already
+        present.
+        """
+        xfrm = self.xfrm
+        if xfrm is None:
+            xfrm = Element('a:xfrm')
+            self.insert(0, xfrm)
+        return xfrm
+
     @property
     def xfrm(self):
         """

@@ -134,6 +134,7 @@ class DescribeBaseShape(object):
         ('sp_no_xfrm',           'sp'),
         ('pic_no_xfrm',          'pic'),
         ('graphicFrame_no_xfrm', 'graphicFrame'),
+        ('grpSp_no_xfrm',        'grpSp'),
     ])
     def position_set_fixture(self, request, left, top):
         start_elm_fixt_name, expected_elm_fixt_name = request.param
