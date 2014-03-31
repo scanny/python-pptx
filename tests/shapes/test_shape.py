@@ -15,7 +15,7 @@ from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
 from pptx.text import TextFrame
 
-from ..oxml.unitdata.shape import an_off, an_sp, an_spPr, an_xfrm
+from ..oxml.unitdata.shape import a_pic, an_off, an_sp, an_spPr, an_xfrm
 from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
 
 
@@ -113,17 +113,27 @@ class DescribeBaseShape(object):
         shape = BaseShape(None, parent_)
         return shape, parent_
 
-    @pytest.fixture(params=['sp'])
+    @pytest.fixture(params=[
+        ('sp_no_xfrm',  False), ('sp',  True),
+        ('pic_no_xfrm', False), ('pic', True),
+    ])
     def position_get_fixture(self, request, left, top):
-        shape_elm = request.getfuncargvalue(request.param)
+        shape_elm_fixt_name, expect_values = request.param
+        shape_elm = request.getfuncargvalue(shape_elm_fixt_name)
         shape = BaseShape(shape_elm, None)
+        if not expect_values:
+            left = top = None
         return shape, left, top
 
-    @pytest.fixture
+    @pytest.fixture(params=[
+        ('sp_no_xfrm',  'sp'),
+        ('pic_no_xfrm', 'pic'),
+    ])
     def position_set_fixture(self, request, left, top):
-        start_sp = an_sp().with_nsdecls().with_child(an_spPr()).element
-        shape = BaseShape(start_sp, None)
-        expected_xml = request.getfuncargvalue('sp').xml
+        start_elm_fixt_name, expected_elm_fixt_name = request.param
+        start_elm = request.getfuncargvalue(start_elm_fixt_name)
+        shape = BaseShape(start_elm, None)
+        expected_xml = request.getfuncargvalue(expected_elm_fixt_name).xml
         return shape, left, top, expected_xml
 
     @pytest.fixture
@@ -141,6 +151,19 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def left(self):
         return 123
+
+    @pytest.fixture
+    def pic(self, left, top):
+        return (
+            a_pic().with_nsdecls().with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_off().with_x(left).with_y(top))))
+        ).element
+
+    @pytest.fixture
+    def pic_no_xfrm(self):
+        return a_pic().with_nsdecls().with_child(an_spPr()).element
 
     @pytest.fixture
     def shape_elm_(self, request, shape_id, shape_name, txBody_):
@@ -173,6 +196,10 @@ class DescribeBaseShape(object):
                     an_xfrm().with_child(
                         an_off().with_x(left).with_y(top))))
         ).element
+
+    @pytest.fixture
+    def sp_no_xfrm(self):
+        return an_sp().with_nsdecls().with_child(an_spPr()).element
 
     @pytest.fixture
     def TextFrame_(self, request, textframe_):

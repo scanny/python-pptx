@@ -29,35 +29,12 @@ class Picture(BaseShape):
         self._ext.cy = value
 
     @property
-    def left(self):
-        """
-        Distance between left edge of slide and left edge of this shape, in
-        EMU.
-        """
-        return self._off.x
-
-    @left.setter
-    def left(self, value):
-        self._off.x = value
-
-    @property
     def shape_type(self):
         """
         Unique integer identifying the type of this shape, unconditionally
         ``MSO.PICTURE`` in this case.
         """
         return MSO.PICTURE
-
-    @property
-    def top(self):
-        """
-        Distance between top of slide and top edge of this shape, in EMU.
-        """
-        return self._off.y
-
-    @top.setter
-    def top(self, value):
-        self._off.y = value
 
     @property
     def width(self):
@@ -78,12 +55,3 @@ class Picture(BaseShape):
         spPr = self._pic.spPr
         xfrm = spPr.get_or_add_xfrm()
         return xfrm.get_or_add_ext()
-
-    @property
-    def _off(self):
-        """
-        Get or add sp.spPr.xfrm.off element
-        """
-        spPr = self._pic.spPr
-        xfrm = spPr.get_or_add_xfrm()
-        return xfrm.get_or_add_off()

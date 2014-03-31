@@ -37,6 +37,14 @@ class BaseShapeElement(BaseOxmlElement):
         else:
             super(BaseShapeElement, self).__setattr__(name, value)
 
+    def get_or_add_xfrm(self):
+        """
+        Return the ``<a:xfrm>`` grandchild element, newly-added if not
+        present. This version works for ``<p:sp>``, ``<p:cxnSp>``, and
+        ``<p:pic>`` elements, others will need to override.
+        """
+        return self.spPr.get_or_add_xfrm()
+
     @property
     def has_ph_elm(self):
         """
@@ -126,7 +134,7 @@ class BaseShapeElement(BaseOxmlElement):
         """
         The ``<a:xfrm>`` grandchild element or |None| if not found. This
         version works for ``<p:sp>``, ``<p:cxnSp>``, and ``<p:pic>``
-        elements, other will need to override.
+        elements, others will need to override.
         """
         return self.spPr.xfrm
 
