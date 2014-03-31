@@ -15,7 +15,9 @@ from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
 from pptx.text import TextFrame
 
-from ..oxml.unitdata.shape import a_pic, an_off, an_sp, an_spPr, an_xfrm
+from ..oxml.unitdata.shape import (
+    a_graphicFrame, a_p_xfrm, a_pic, an_off, an_sp, an_spPr, an_xfrm
+)
 from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
 
 
@@ -114,8 +116,9 @@ class DescribeBaseShape(object):
         return shape, parent_
 
     @pytest.fixture(params=[
-        ('sp_no_xfrm',  False), ('sp',  True),
-        ('pic_no_xfrm', False), ('pic', True),
+        ('sp_no_xfrm',           False), ('sp',           True),
+        ('pic_no_xfrm',          False), ('pic',          True),
+        ('graphicFrame_no_xfrm', False), ('graphicFrame', True),
     ])
     def position_get_fixture(self, request, left, top):
         shape_elm_fixt_name, expect_values = request.param
@@ -147,6 +150,22 @@ class DescribeBaseShape(object):
         return shape
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def graphicFrame(self, left, top):
+        return (
+            a_graphicFrame().with_nsdecls().with_child(
+                a_p_xfrm().with_child(
+                    an_off().with_x(left).with_y(top)))
+        ).element
+
+    @pytest.fixture
+    def graphicFrame_no_xfrm(self):
+        """
+        Is actually graphicFrame_with_empty_xfrm, <p:xfrm> element is
+        required on graphicFrame.
+        """
+        return a_graphicFrame().with_nsdecls().with_child(a_p_xfrm()).element
 
     @pytest.fixture
     def left(self):

@@ -82,3 +82,10 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
 
         objectify.deannotate(graphicFrame, cleanup_namespaces=True)
         return graphicFrame
+
+    @property
+    def xfrm(self):
+        """
+        The required ``<p:xfrm>`` child element
+        """
+        return self.find(qn('p:xfrm'))

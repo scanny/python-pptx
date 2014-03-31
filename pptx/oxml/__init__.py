@@ -110,6 +110,7 @@ from .shapes.shared import (
 register_custom_element_class('a:ext',  CT_PositiveSize2D)
 register_custom_element_class('a:off',  CT_Point2D)
 register_custom_element_class('a:xfrm', CT_Transform2D)
+register_custom_element_class('p:xfrm', CT_Transform2D)
 
 
 from .shapes.table import CT_Table, CT_TableCell, CT_TableCellProperties

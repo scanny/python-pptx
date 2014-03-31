@@ -125,9 +125,12 @@ class CT_ShapePropertiesBuilder(BaseBuilder):
 
 
 class CT_Transform2DBuilder(BaseBuilder):
-    __tag__ = 'a:xfrm'
     __nspfxs__ = ('a',)
     __attrs__ = ('rot', 'flipH', 'flipV')
+
+    def __init__(self, tag):
+        self.__tag__ = tag
+        super(CT_Transform2DBuilder, self).__init__()
 
 
 def a_cNvPr():
@@ -152,6 +155,10 @@ def a_graphicFrame():
 
 def a_grpSp():
     return CT_GroupShapeBuilder('p:grpSp')
+
+
+def a_p_xfrm():
+    return CT_Transform2DBuilder('p:xfrm')
 
 
 def a_ph():
@@ -207,7 +214,7 @@ def an_spTree():
 
 
 def an_xfrm():
-    return CT_Transform2DBuilder()
+    return CT_Transform2DBuilder('a:xfrm')
 
 
 class _TestShapeXml(object):
