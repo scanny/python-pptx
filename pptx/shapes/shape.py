@@ -58,6 +58,10 @@ class BaseShape(object):
         """
         return self._element.x
 
+    @left.setter
+    def left(self, value):
+        self._element.x = value
+
     @property
     def name(self):
         """
@@ -93,6 +97,10 @@ class BaseShape(object):
         the slide, in English Metric Units (EMU)
         """
         return self._element.y
+
+    @top.setter
+    def top(self, value):
+        self._element.y = value
 
     def _set_text(self, text):
         """

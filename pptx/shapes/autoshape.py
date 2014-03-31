@@ -324,19 +324,6 @@ class Shape(BaseShape):
         self._ext.cy = value
 
     @property
-    def left(self):
-        """
-        Distance between left edge of slide and left edge of this shape, in
-        EMU.
-        """
-        spPr = self._sp.spPr
-        return spPr.x
-
-    @left.setter
-    def left(self, value):
-        self._off.x = value
-
-    @property
     def shape_type(self):
         """
         Unique integer identifying the type of this shape, like
@@ -350,18 +337,6 @@ class Shape(BaseShape):
             return MSO.TEXT_BOX
         msg = 'Shape instance of unrecognized shape type'
         raise NotImplementedError(msg)
-
-    @property
-    def top(self):
-        """
-        Distance between top of slide and top edge of this shape, in EMU.
-        """
-        spPr = self._sp.spPr
-        return spPr.y
-
-    @top.setter
-    def top(self, value):
-        self._off.y = value
 
     @property
     def width(self):

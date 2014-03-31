@@ -137,6 +137,9 @@ class CT_Shape(BaseShapeElement):
         '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
     )
 
+    def get_or_add_xfrm(self):
+        return self.spPr.get_or_add_xfrm()
+
     @property
     def is_autoshape(self):
         """

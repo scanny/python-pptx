@@ -15,7 +15,7 @@ from pptx.oxml import parse_xml_bytes
 from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 
 from ..oxml.unitdata.shape import (
-    a_gd, a_prstGeom, an_avLst, an_ext, an_off, an_sp, an_spPr, an_xfrm
+    a_gd, a_prstGeom, an_avLst, an_ext, an_sp, an_spPr, an_xfrm
 )
 from ..unitutil import (
     actual_xml, class_mock, instance_mock, loose_mock, property_mock
@@ -326,21 +326,10 @@ class DescribeShape(object):
     def it_has_a_fill(self, shape):
         assert isinstance(shape.fill, FillFormat)
 
-    def it_has_a_position(self, position_get_fixture):
-        shape, expected_left, expected_top = position_get_fixture
-        assert shape.left == expected_left
-        assert shape.top == expected_top
-
     def it_has_dimensions(self, dimensions_get_fixture):
         shape, expected_width, expected_height = dimensions_get_fixture
         assert shape.width == expected_width
         assert shape.height == expected_height
-
-    def it_can_change_its_position(self, position_set_fixture):
-        shape, left, top, xfrm_xml = position_set_fixture
-        shape.left = left
-        shape.top = top
-        assert actual_xml(shape._sp.spPr.xfrm) == xfrm_xml
 
     def it_can_change_its_dimensions(self, dimensions_set_fixture):
         shape, width, height, xfrm_xml = dimensions_set_fixture
@@ -411,33 +400,6 @@ class DescribeShape(object):
             self, request, sp_, adjustments_, AdjustmentCollection_):
         shape = Shape(sp_, None)
         return shape, adjustments_, AdjustmentCollection_, sp_
-
-    @pytest.fixture(params=[True, False])
-    def position_get_fixture(self, request):
-        has_directly_applied_position = request.param
-        spPr_bldr = an_spPr()
-        left, top = None, None
-        if has_directly_applied_position:
-            left, top = 123, 456
-            xfrm_bldr = an_xfrm().with_child(
-                an_off().with_x(left).with_y(top)
-            )
-            spPr_bldr.with_child(xfrm_bldr)
-        sp = an_sp().with_nsdecls().with_child(spPr_bldr).element
-        shape = Shape(sp, None)
-        return shape, left, top
-
-    @pytest.fixture
-    def position_set_fixture(self):
-        sp = an_sp().with_nsdecls().with_child(an_spPr()).element
-        shape = Shape(sp, None)
-        left, top = 434, 343
-        xfrm_xml = (
-            an_xfrm().with_nsdecls('a', 'p').with_child(
-                an_off().with_x(left).with_y(top))
-            .xml()
-        )
-        return shape, left, top, xfrm_xml
 
     # fixture components ---------------------------------------------
 

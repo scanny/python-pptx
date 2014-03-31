@@ -34,6 +34,12 @@ class DescribeBaseShape(object):
         assert shape.left == expected_left
         assert shape.top == expected_top
 
+    def it_can_change_its_position(self, position_set_fixture):
+        shape, left, top, expected_xml = position_set_fixture
+        shape.left = left
+        shape.top = top
+        assert shape._element.xml == expected_xml
+
     def it_knows_the_part_it_belongs_to(self, part_fixture):
         shape, parent_ = part_fixture
         part = shape.part
@@ -112,6 +118,13 @@ class DescribeBaseShape(object):
         shape_elm = request.getfuncargvalue(request.param)
         shape = BaseShape(shape_elm, None)
         return shape, left, top
+
+    @pytest.fixture
+    def position_set_fixture(self, request, left, top):
+        start_sp = an_sp().with_nsdecls().with_child(an_spPr()).element
+        shape = BaseShape(start_sp, None)
+        expected_xml = request.getfuncargvalue('sp').xml
+        return shape, left, top, expected_xml
 
     @pytest.fixture
     def textframe_fixture(self, shape_elm_, TextFrame_, txBody_, textframe_):

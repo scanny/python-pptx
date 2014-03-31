@@ -26,6 +26,17 @@ class BaseShapeElement(BaseOxmlElement):
         else:
             return super(BaseShapeElement, self).__getattr__(name)
 
+    def __setattr__(self, name, value):
+        """
+        Override ``__setattr__`` defined in ObjectifiedElement super class
+        to intercept messages intended for custom property setters.
+        """
+        if name in ('x', 'y', 'cx', 'cy'):
+            xfrm = self.get_or_add_xfrm()
+            setattr(xfrm, name, value)
+        else:
+            super(BaseShapeElement, self).__setattr__(name, value)
+
     @property
     def has_ph_elm(self):
         """
@@ -203,6 +214,20 @@ class CT_Transform2D(BaseOxmlElement):
             return getattr(off, name)
         else:
             return super(CT_Transform2D, self).__getattr__(name)
+
+    def __setattr__(self, name, value):
+        """
+        Override ``__setattr__`` defined in ObjectifiedElement super class
+        to intercept messages intended for custom property setters.
+        """
+        if name in ('x', 'y'):
+            off = self.get_or_add_off()
+            setattr(off, name, value)
+        elif name in ('cx', 'cy'):
+            ext = self.get_or_add_ext()
+            setattr(ext, name, value)
+        else:
+            super(CT_Transform2D, self).__setattr__(name, value)
 
     @property
     def ext(self):
