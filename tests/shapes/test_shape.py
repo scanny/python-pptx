@@ -13,6 +13,7 @@ from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
 from pptx.text import TextFrame
 
+from ..oxml.unitdata.shape import an_off, an_sp, an_spPr, an_xfrm
 from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
 
 
@@ -25,6 +26,11 @@ class DescribeBaseShape(object):
     def it_knows_its_name(self, name_fixture):
         shape, name = name_fixture
         assert shape.name == name
+
+    def it_has_a_position(self, position_get_fixture):
+        shape, expected_left, expected_top = position_get_fixture
+        assert shape.left == expected_left
+        assert shape.top == expected_top
 
     def it_knows_the_part_it_belongs_to(self, part_fixture):
         shape, parent_ = part_fixture
@@ -88,16 +94,22 @@ class DescribeBaseShape(object):
         return shape, shape_name
 
     @pytest.fixture
+    def no_textframe_fixture(self, shape_elm_):
+        shape_elm_.txBody = None
+        shape = BaseShape(shape_elm_, None)
+        return shape
+
+    @pytest.fixture
     def part_fixture(self, shapes_):
         parent_ = shapes_
         shape = BaseShape(None, parent_)
         return shape, parent_
 
-    @pytest.fixture
-    def no_textframe_fixture(self, shape_elm_):
-        shape_elm_.txBody = None
-        shape = BaseShape(shape_elm_, None)
-        return shape
+    @pytest.fixture(params=['sp'])
+    def position_get_fixture(self, request, left, top):
+        shape_elm = request.getfuncargvalue(request.param)
+        shape = BaseShape(shape_elm, None)
+        return shape, left, top
 
     @pytest.fixture
     def textframe_fixture(self, shape_elm_, TextFrame_, txBody_, textframe_):
@@ -110,6 +122,10 @@ class DescribeBaseShape(object):
         return shape
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def left(self):
+        return 123
 
     @pytest.fixture
     def shape_elm_(self, request, shape_id, shape_name, txBody_):
@@ -135,6 +151,15 @@ class DescribeBaseShape(object):
         return instance_mock(request, _SlideShapeTree)
 
     @pytest.fixture
+    def sp(self, left, top):
+        return (
+            an_sp().with_nsdecls().with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_off().with_x(left).with_y(top))))
+        ).element
+
+    @pytest.fixture
     def TextFrame_(self, request, textframe_):
         return class_mock(
             request, 'pptx.shapes.shape.TextFrame', return_value=textframe_
@@ -143,6 +168,10 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def textframe_(self, request):
         return instance_mock(request, TextFrame)
+
+    @pytest.fixture
+    def top(self):
+        return 456
 
     @pytest.fixture
     def txBody_(self, request):

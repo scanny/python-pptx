@@ -51,6 +51,14 @@ class BaseShape(object):
         return self._element.has_ph_elm
 
     @property
+    def left(self):
+        """
+        Integer distance of the left edge of this shape from the left edge of
+        the slide, in English Metric Units (EMU)
+        """
+        return self._element.x
+
+    @property
     def name(self):
         """
         Name of this shape, e.g. 'Picture 7'
@@ -77,6 +85,14 @@ class BaseShape(object):
         # msg = 'shape_type property must be implemented by subclasses'
         # raise NotImplementedError(msg)
         return None
+
+    @property
+    def top(self):
+        """
+        Integer distance of the top edge of this shape from the top edge of
+        the slide, in English Metric Units (EMU)
+        """
+        return self._element.y
 
     def _set_text(self, text):
         """

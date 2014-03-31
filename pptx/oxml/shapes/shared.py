@@ -16,6 +16,16 @@ class BaseShapeElement(BaseOxmlElement):
     Provides common behavior for shape element classes like CT_Shape,
     CT_Picture, etc.
     """
+    def __getattr__(self, name):
+        # common code for position and size attributes
+        if name in ('x', 'y'):
+            xfrm = self.xfrm
+            if xfrm is None:
+                return None
+            return getattr(xfrm, name)
+        else:
+            return super(BaseShapeElement, self).__getattr__(name)
+
     @property
     def has_ph_elm(self):
         """
@@ -99,6 +109,15 @@ class BaseShapeElement(BaseOxmlElement):
         Child ``<p:txBody>`` element, None if not present
         """
         return self.find(qn('p:txBody'))
+
+    @property
+    def xfrm(self):
+        """
+        The ``<a:xfrm>`` grandchild element or |None| if not found. This
+        version works for ``<p:sp>``, ``<p:cxnSp>``, and ``<p:pic>``
+        elements, other will need to override.
+        """
+        return self.spPr.xfrm
 
     @property
     def _nvXxPr(self):

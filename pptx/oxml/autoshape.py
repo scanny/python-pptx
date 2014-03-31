@@ -300,6 +300,10 @@ class CT_Shape(BaseShapeElement):
         """
         return child(self.spPr, 'a:prstGeom')
 
+    @property
+    def spPr(self):
+        return self.find(qn('p:spPr'))
+
 
 class CT_ShapeProperties(BaseOxmlElement):
     """
@@ -488,6 +492,16 @@ class CT_Transform2D(BaseOxmlElement):
     """
     Custom element class for <a:xfrm> element.
     """
+    def __getattr__(self, name):
+        # common code for position and size attributes
+        if name in ('x', 'y'):
+            off = self.off
+            if off is None:
+                return None
+            return getattr(off, name)
+        else:
+            return super(CT_Transform2D, self).__getattr__(name)
+
     @property
     def ext(self):
         """
