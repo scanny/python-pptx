@@ -6,7 +6,6 @@ Base shape-related objects such as BaseShape.
 
 from __future__ import absolute_import, print_function
 
-from pptx.oxml.core import child
 from pptx.text import TextFrame
 from pptx.util import to_unicode
 
@@ -99,7 +98,7 @@ class BaseShape(object):
         no text frame. Use :attr:`has_textframe` to check whether a shape has
         a text frame.
         """
-        txBody = child(self._element, 'p:txBody')
+        txBody = self._element.txBody
         if txBody is None:
             raise ValueError('shape has no text frame')
         return TextFrame(txBody, self)

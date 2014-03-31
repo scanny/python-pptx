@@ -12,9 +12,11 @@ from pptx.oxml.ns import namespaces
 from pptx.parts.slide import _SlideShapeTree
 from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
+from pptx.text import TextFrame
 
 from ..unitutil import (
-    absjoin, instance_mock, loose_mock, parse_xml_file, TestCase, test_file_dir
+    absjoin, class_mock, instance_mock, loose_mock, parse_xml_file, TestCase,
+    test_file_dir
 )
 
 
@@ -45,6 +47,17 @@ class DescribeBaseShape(object):
     def it_knows_whether_it_is_a_placeholder(self, is_placeholder_fixture):
         shape, is_placeholder = is_placeholder_fixture
         assert shape.is_placeholder is is_placeholder
+
+    def it_provides_access_to_its_textframe(self, textframe_fixture):
+        shape, TextFrame_, txBody_, textframe_ = textframe_fixture
+        textframe = shape.textframe
+        TextFrame_.assert_called_once_with(txBody_, shape)
+        assert textframe is textframe_
+
+    def it_raises_when_no_textframe(self, no_textframe_fixture):
+        shape = no_textframe_fixture
+        with pytest.raises(ValueError):
+            shape.textframe
 
     # fixtures -------------------------------------------------------
 
@@ -78,13 +91,24 @@ class DescribeBaseShape(object):
         shape = BaseShape(None, parent_)
         return shape, parent_
 
+    @pytest.fixture
+    def no_textframe_fixture(self, shape_elm_):
+        shape_elm_.txBody = None
+        shape = BaseShape(shape_elm_, None)
+        return shape
+
+    @pytest.fixture
+    def textframe_fixture(self, shape_elm_, TextFrame_, txBody_, textframe_):
+        shape = BaseShape(shape_elm_, None)
+        return shape, TextFrame_, txBody_, textframe_
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def shape_elm_(self, request, shape_id, shape_name):
+    def shape_elm_(self, request, shape_id, shape_name, txBody_):
         return instance_mock(
             request, BaseShapeElement, shape_id=shape_id,
-            shape_name=shape_name
+            shape_name=shape_name, txBody=txBody_
         )
 
     @pytest.fixture
@@ -98,6 +122,16 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, _SlideShapeTree)
+
+    @pytest.fixture
+    def TextFrame_(self, request, textframe_):
+        return class_mock(
+            request, 'pptx.shapes.shape.TextFrame', return_value=textframe_
+        )
+
+    @pytest.fixture
+    def textframe_(self, request):
+        return instance_mock(request, TextFrame)
 
     @pytest.fixture
     def txBody_(self, request):
@@ -128,11 +162,6 @@ class TestBaseShape(TestCase):
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = BaseShape(pic, None)
-
-    def test_textframe_raises_on_no_textframe(self):
-        """BaseShape.textframe raises on shape with no text frame"""
-        with self.assertRaises(ValueError):
-            self.base_shape.textframe
 
     def test_text_setter_structure_and_value(self):
         """assign to BaseShape.text yields single run para set to value"""
