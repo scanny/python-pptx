@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import pytest
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.oxml.autoshape import CT_Shape
+from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.parts.slidelayout import (
     _LayoutPlaceholder, _LayoutPlaceholders, _LayoutShapeFactory,
     _LayoutShapeTree, SlideLayout

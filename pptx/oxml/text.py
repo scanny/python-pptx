@@ -8,9 +8,9 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml import parse_xml_bytes
-from pptx.oxml.core import Element, SubElement
-from pptx.oxml.ns import nsdecls, nsmap, qn
+from . import parse_xml_bytes
+from .ns import nsdecls, nsmap, qn
+from .shared import Element, SubElement
 
 
 class CT_Hyperlink(objectify.ObjectifiedElement):

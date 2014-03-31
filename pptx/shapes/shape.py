@@ -6,8 +6,8 @@ Base shape-related objects such as BaseShape.
 
 from __future__ import absolute_import, print_function
 
-from pptx.text import TextFrame
-from pptx.util import to_unicode
+from ..text import TextFrame
+from ..util import to_unicode
 
 
 class BaseShape(object):

@@ -8,13 +8,13 @@ from __future__ import absolute_import
 
 from warnings import warn
 
-from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.oxml.ns import qn
-from pptx.parts.slide import BaseSlide
-from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
-from pptx.shapes.shapetree import BaseShapeFactory, BaseShapeTree
-from pptx.spec import PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
-from pptx.util import lazyproperty
+from ..opc.constants import RELATIONSHIP_TYPE as RT
+from ..oxml.ns import qn
+from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
+from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
+from .slide import BaseSlide
+from ..spec import PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
+from ..util import lazyproperty
 
 
 class SlideLayout(BaseSlide):

@@ -8,8 +8,8 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.oxml.core import SubElement
-from pptx.oxml.ns import qn
+from ..ns import qn
+from ..shared import SubElement
 
 
 class OxmlElement(objectify.ObjectifiedElement):

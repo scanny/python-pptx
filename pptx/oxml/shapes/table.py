@@ -8,10 +8,10 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.enum import MSO_ANCHOR
-from pptx.oxml import parse_xml_bytes, XSD_TRUE
-from pptx.oxml.core import Element, SubElement
-from pptx.oxml.ns import nsdecls, qn
+from .. import parse_xml_bytes, XSD_TRUE
+from ...enum import MSO_ANCHOR
+from ..ns import nsdecls, qn
+from ..shared import Element, SubElement
 
 
 class CT_Table(objectify.ObjectifiedElement):

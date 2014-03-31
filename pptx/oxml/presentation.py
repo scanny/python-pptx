@@ -6,8 +6,8 @@ Custom element classes for presentation-related XML elements.
 
 from __future__ import absolute_import
 
-from pptx.oxml.core import BaseOxmlElement, child, Element, SubElement
-from pptx.oxml.ns import qn
+from .shared import BaseOxmlElement, child, Element, SubElement
+from .ns import qn
 
 
 class CT_Presentation(BaseOxmlElement):

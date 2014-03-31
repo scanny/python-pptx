@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import pytest
 
-from pptx.oxml.autoshape import CT_Shape
+from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.parts.slide import Slide
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.shape import BaseShape

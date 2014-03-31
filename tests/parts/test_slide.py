@@ -14,11 +14,11 @@ from mock import ANY, call, MagicMock
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part, _Relationship
-from pptx.oxml.autoshape import CT_Shape
-from pptx.oxml.graphfrm import CT_GraphicalObjectFrame
-from pptx.oxml.picture import CT_Picture
 from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
-from pptx.oxml.shapetree import CT_GroupShape
+from pptx.oxml.shapes.autoshape import CT_Shape
+from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
+from pptx.oxml.shapes.groupshape import CT_GroupShape
+from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.slide import CT_Slide
 from pptx.package import Package
 from pptx.parts.image import Image as ImagePart

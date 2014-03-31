@@ -6,7 +6,7 @@ lxml custom element classes for slide master-related XML elements.
 
 from __future__ import absolute_import
 
-from pptx.oxml.core import BaseOxmlElement
+from .shared import BaseOxmlElement
 
 
 class CT_Slide(BaseOxmlElement):

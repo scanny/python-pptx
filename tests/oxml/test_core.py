@@ -11,7 +11,7 @@ import pytest
 from lxml import objectify
 
 from pptx.oxml import oxml_parser
-from pptx.oxml.core import (
+from pptx.oxml.shared import (
     child, Element, get_or_add, serialize_part_xml, SubElement
 )
 from pptx.oxml.ns import nsdecls, qn

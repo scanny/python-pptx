@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from hamcrest import assert_that, equal_to, is_
 
 from pptx.oxml.ns import nsdecls, qn
-from pptx.oxml.graphfrm import CT_GraphicalObjectFrame
+from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 
 from ..unitutil import TestCase
 

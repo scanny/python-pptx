@@ -8,10 +8,10 @@ from __future__ import absolute_import
 
 from warnings import warn
 
-from pptx.opc.package import Part
-from pptx.oxml import parse_xml_bytes
-from pptx.parts.slide import SlideCollection
-from pptx.util import lazyproperty
+from ..opc.package import Part
+from ..oxml import parse_xml_bytes
+from .slide import SlideCollection
+from ..util import lazyproperty
 
 
 class PresentationPart(Part):

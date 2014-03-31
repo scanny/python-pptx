@@ -8,17 +8,17 @@ from __future__ import absolute_import
 
 from warnings import warn
 
-from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.opc.package import Part
-from pptx.opc.packuri import PackURI
-from pptx.oxml import parse_xml_bytes
-from pptx.oxml.core import Element, SubElement
-from pptx.oxml.ns import nsmap, _nsmap, qn
-from pptx.shapes.autoshape import AutoShapeType
-from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
-from pptx.shapes.shapetree import BaseShapeFactory, BaseShapeTree
-from pptx.spec import slide_ph_basenames, PH_ORIENT_VERT
-from pptx.util import lazyproperty
+from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from ..opc.package import Part
+from ..opc.packuri import PackURI
+from ..oxml import parse_xml_bytes
+from ..oxml.ns import nsmap, _nsmap, qn
+from ..oxml.shared import Element, SubElement
+from ..shapes.autoshape import AutoShapeType
+from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
+from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
+from ..spec import slide_ph_basenames, PH_ORIENT_VERT
+from ..util import lazyproperty
 
 
 class BaseSlide(Part):

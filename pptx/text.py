@@ -4,15 +4,15 @@
 Text-related objects such as TextFrame and Paragraph.
 """
 
-from pptx.constants import MSO
-from pptx.dml.fill import FillFormat
-from pptx.enum import MSO_FILL_TYPE as MSO_FILL
-from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.oxml.core import Element, get_or_add
-from pptx.oxml.ns import namespaces, qn
-from pptx.shapes import Subshape
-from pptx.spec import ParagraphAlignment
-from pptx.util import lazyproperty, to_unicode
+from .constants import MSO
+from .dml.fill import FillFormat
+from .enum import MSO_FILL_TYPE as MSO_FILL
+from .opc.constants import RELATIONSHIP_TYPE as RT
+from .oxml.shared import Element, get_or_add
+from .oxml.ns import namespaces, qn
+from .shapes import Subshape
+from .spec import ParagraphAlignment
+from .util import lazyproperty, to_unicode
 
 
 # default namespace map for use in lxml calls

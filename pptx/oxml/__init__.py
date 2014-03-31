@@ -9,7 +9,7 @@ from __future__ import absolute_import
 
 from lxml import etree, objectify
 
-from pptx.oxml.ns import NamespacePrefixedTag
+from .ns import NamespacePrefixedTag
 
 
 # oxml-specific constants
@@ -41,19 +41,7 @@ def register_custom_element_class(nsptag_str, cls):
     namespace[nsptag.local_part] = cls
 
 
-from pptx.oxml.autoshape import (
-    CT_Point2D, CT_PositiveSize2D, CT_PresetGeometry2D, CT_Shape,
-    CT_ShapeProperties, CT_Transform2D
-)
-register_custom_element_class('a:ext',      CT_PositiveSize2D)
-register_custom_element_class('a:off',      CT_Point2D)
-register_custom_element_class('a:prstGeom', CT_PresetGeometry2D)
-register_custom_element_class('p:sp',       CT_Shape)
-register_custom_element_class('p:spPr',     CT_ShapeProperties)
-register_custom_element_class('a:xfrm',     CT_Transform2D)
-
-
-from pptx.oxml.dml.color import (
+from .dml.color import (
     CT_HslColor, CT_Percentage, CT_PresetColor, CT_SchemeColor,
     CT_ScRgbColor, CT_SRgbColor, CT_SystemColor
 )
@@ -67,7 +55,7 @@ register_custom_element_class('a:srgbClr',   CT_SRgbColor)
 register_custom_element_class('a:sysClr',    CT_SystemColor)
 
 
-from pptx.oxml.dml.fill import (
+from .dml.fill import (
     CT_BlipFillProperties, CT_GradientFillProperties, CT_GroupFillProperties,
     CT_NoFillProperties, CT_PatternFillProperties,
     CT_SolidColorFillProperties,
@@ -80,15 +68,7 @@ register_custom_element_class('a:pattFill',  CT_PatternFillProperties)
 register_custom_element_class('a:solidFill', CT_SolidColorFillProperties)
 
 
-from pptx.oxml.graphfrm import CT_GraphicalObjectFrame
-register_custom_element_class('p:graphicFrame', CT_GraphicalObjectFrame)
-
-
-from pptx.oxml.picture import CT_Picture
-register_custom_element_class('p:pic', CT_Picture)
-
-
-from pptx.oxml.presentation import (
+from .presentation import (
     CT_Presentation, CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList,
     CT_SlideMasterIdListEntry
 )
@@ -99,20 +79,50 @@ register_custom_element_class('p:sldMasterId',    CT_SlideMasterIdListEntry)
 register_custom_element_class('p:sldMasterIdLst', CT_SlideMasterIdList)
 
 
-from pptx.oxml.shapes.connector import CT_Connector
+from .shapes.autoshape import (
+    CT_PresetGeometry2D, CT_Shape, CT_ShapeProperties
+)
+register_custom_element_class('a:prstGeom', CT_PresetGeometry2D)
+register_custom_element_class('p:sp',       CT_Shape)
+register_custom_element_class('p:spPr',     CT_ShapeProperties)
+
+
+from .shapes.connector import CT_Connector
 register_custom_element_class('p:cxnSp',  CT_Connector)
 
 
-from pptx.oxml.shapetree import CT_GroupShape
+from .shapes.graphfrm import CT_GraphicalObjectFrame
+register_custom_element_class('p:graphicFrame', CT_GraphicalObjectFrame)
+
+
+from .shapes.groupshape import CT_GroupShape
 register_custom_element_class('p:grpSp',  CT_GroupShape)
 register_custom_element_class('p:spTree', CT_GroupShape)
 
 
-from pptx.oxml.slide import CT_Slide
+from .shapes.picture import CT_Picture
+register_custom_element_class('p:pic', CT_Picture)
+
+
+from .shapes.shared import (
+    CT_Point2D, CT_PositiveSize2D, CT_Transform2D
+)
+register_custom_element_class('a:ext',  CT_PositiveSize2D)
+register_custom_element_class('a:off',  CT_Point2D)
+register_custom_element_class('a:xfrm', CT_Transform2D)
+
+
+from .shapes.table import CT_Table, CT_TableCell, CT_TableCellProperties
+register_custom_element_class('a:tbl',  CT_Table)
+register_custom_element_class('a:tc',   CT_TableCell)
+register_custom_element_class('a:tcPr', CT_TableCellProperties)
+
+
+from .slide import CT_Slide
 register_custom_element_class('p:sld', CT_Slide)
 
 
-from pptx.oxml.slidemaster import (
+from .slidemaster import (
     CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry, CT_SlideMaster
 )
 register_custom_element_class('p:sldLayoutId',    CT_SlideLayoutIdListEntry)
@@ -120,13 +130,7 @@ register_custom_element_class('p:sldLayoutIdLst', CT_SlideLayoutIdList)
 register_custom_element_class('p:sldMaster',      CT_SlideMaster)
 
 
-from pptx.oxml.table import CT_Table, CT_TableCell, CT_TableCellProperties
-register_custom_element_class('a:tbl',  CT_Table)
-register_custom_element_class('a:tc',   CT_TableCell)
-register_custom_element_class('a:tcPr', CT_TableCellProperties)
-
-
-from pptx.oxml.text import (
+from .text import (
     CT_Hyperlink, CT_RegularTextRun, CT_TextBody, CT_TextBodyProperties,
     CT_TextCharacterProperties, CT_TextFont, CT_TextParagraph,
     CT_TextParagraphProperties

@@ -7,7 +7,7 @@ writing presentations to and from a .pptx file.
 
 from __future__ import absolute_import
 
-from pptx.oxml.core import serialize_part_xml
+from ..oxml.shared import serialize_part_xml
 from pptx.util import lazyproperty
 
 from .constants import RELATIONSHIP_TYPE as RT

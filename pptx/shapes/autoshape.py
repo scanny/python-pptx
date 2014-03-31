@@ -6,11 +6,11 @@ Autoshape-related objects such as Shape and Adjustment.
 
 from numbers import Number
 
-from pptx.constants import MSO
-from pptx.dml.fill import FillFormat
-from pptx.shapes.shape import BaseShape
-from pptx.spec import autoshape_types
-from pptx.util import lazyproperty
+from ..constants import MSO
+from ..dml.fill import FillFormat
+from .shape import BaseShape
+from ..spec import autoshape_types
+from ..util import lazyproperty
 
 
 class Adjustment(object):

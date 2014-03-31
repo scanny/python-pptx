@@ -8,11 +8,11 @@ from __future__ import absolute_import, print_function
 
 from warnings import warn
 
-from pptx.oxml.ns import qn
-from pptx.parts.slide import BaseSlide
-from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
-from pptx.shapes.shapetree import BaseShapeFactory, BaseShapeTree
-from pptx.util import lazyproperty
+from ..oxml.ns import qn
+from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
+from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
+from .slide import BaseSlide
+from ..util import lazyproperty
 
 
 class SlideMaster(BaseSlide):

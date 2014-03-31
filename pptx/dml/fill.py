@@ -6,8 +6,8 @@ DrawingML objects related to fill, FillFormat being the top-most.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from pptx.enum import MSO_FILL_TYPE as MSO_FILL
-from pptx.oxml.dml.fill import (
+from ..enum import MSO_FILL_TYPE as MSO_FILL
+from ..oxml.dml.fill import (
     CT_BlipFillProperties, CT_GradientFillProperties, CT_GroupFillProperties,
     CT_NoFillProperties, CT_PatternFillProperties,
     CT_SolidColorFillProperties,

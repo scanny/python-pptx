@@ -8,11 +8,11 @@ from __future__ import absolute_import
 
 from datetime import datetime
 
-from pptx.opc.constants import CONTENT_TYPE as CT
-from pptx.opc.package import Part
-from pptx.opc.packuri import PackURI
-from pptx.oxml import parse_xml_bytes
-from pptx.oxml.coreprops import CT_CoreProperties
+from ..opc.constants import CONTENT_TYPE as CT
+from ..opc.package import Part
+from ..opc.packuri import PackURI
+from ..oxml import parse_xml_bytes
+from ..oxml.coreprops import CT_CoreProperties
 
 
 class CoreProperties(Part):

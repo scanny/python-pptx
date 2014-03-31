@@ -11,8 +11,8 @@ import re
 
 from lxml import etree, objectify
 
-from pptx.oxml import oxml_parser
-from pptx.oxml.ns import NamespacePrefixedTag, qn
+from . import oxml_parser
+from .ns import NamespacePrefixedTag, qn
 
 
 def child(element, child_tag_str):

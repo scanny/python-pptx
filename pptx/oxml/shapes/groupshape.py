@@ -8,9 +8,9 @@ from __future__ import absolute_import
 
 from .autoshape import CT_Shape
 from .graphfrm import CT_GraphicalObjectFrame
-from .ns import qn
+from ..ns import qn
 from .picture import CT_Picture
-from .shapes.shared import BaseShapeElement
+from .shared import BaseShapeElement
 
 
 class CT_GroupShape(BaseShapeElement):

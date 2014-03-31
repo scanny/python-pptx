@@ -8,9 +8,9 @@ from __future__ import absolute_import
 
 from lxml import objectify
 
-from pptx.enum import MSO_THEME_COLOR
-from pptx.oxml.core import SubElement
-from pptx.oxml.ns import qn
+from ...enum import MSO_THEME_COLOR
+from ..ns import qn
+from ..shared import SubElement
 
 
 class OxmlElement(objectify.ObjectifiedElement):

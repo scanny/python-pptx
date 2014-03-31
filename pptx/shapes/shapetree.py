@@ -4,11 +4,11 @@
 The shape tree, the structure that holds a slide's shapes.
 """
 
-from pptx.oxml.ns import qn
-from pptx.shapes.autoshape import Shape
-from pptx.shapes.picture import Picture
-from pptx.shapes.shape import BaseShape
-from pptx.shapes.table import Table
+from .autoshape import Shape
+from ..oxml.ns import qn
+from .picture import Picture
+from .shape import BaseShape
+from .table import Table
 
 
 class BaseShapeTree(object):

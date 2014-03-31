@@ -8,10 +8,10 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.oxml.autoshape import CT_Shape
-from pptx.oxml.graphfrm import CT_GraphicalObjectFrame
-from pptx.oxml.picture import CT_Picture
-from pptx.oxml.shapetree import CT_GroupShape
+from pptx.oxml.shapes.autoshape import CT_Shape
+from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
+from pptx.oxml.shapes.groupshape import CT_GroupShape
+from pptx.oxml.shapes.picture import CT_Picture
 
 from .unitdata.shape import an_spTree
 from ..unitutil import class_mock, instance_mock, method_mock
@@ -132,20 +132,24 @@ class DescribeCT_GroupShape(object):
     @pytest.fixture
     def CT_GraphicalObjectFrame_(self, request, graphicFrame_):
         CT_GraphicalObjectFrame_ = class_mock(
-            request, 'pptx.oxml.shapetree.CT_GraphicalObjectFrame'
+            request, 'pptx.oxml.shapes.groupshape.CT_GraphicalObjectFrame'
         )
         CT_GraphicalObjectFrame_.new_table.return_value = graphicFrame_
         return CT_GraphicalObjectFrame_
 
     @pytest.fixture
     def CT_Picture_(self, request, pic_):
-        CT_Picture_ = class_mock(request, 'pptx.oxml.shapetree.CT_Picture')
+        CT_Picture_ = class_mock(
+            request, 'pptx.oxml.shapes.groupshape.CT_Picture'
+        )
         CT_Picture_.new_pic.return_value = pic_
         return CT_Picture_
 
     @pytest.fixture
     def CT_Shape_(self, request, sp_):
-        CT_Shape_ = class_mock(request, 'pptx.oxml.shapetree.CT_Shape')
+        CT_Shape_ = class_mock(
+            request, 'pptx.oxml.shapes.groupshape.CT_Shape'
+        )
         CT_Shape_.new_autoshape_sp.return_value = sp_
         CT_Shape_.new_placeholder_sp.return_value = sp_
         CT_Shape_.new_textbox_sp.return_value = sp_

@@ -8,7 +8,7 @@ from hamcrest import assert_that, equal_to, is_
 
 from pptx.enum import MSO_ANCHOR
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.table import CT_Table
+from pptx.oxml.shapes.table import CT_Table
 
 from ..oxml.unitdata.table import a_tbl, test_table_elements, test_table_xml
 from ..unitutil import TestCase

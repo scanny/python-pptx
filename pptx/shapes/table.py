@@ -4,13 +4,13 @@
 Table-related objects such as Table and Cell.
 """
 
-from pptx.constants import MSO
-from pptx.dml.fill import FillFormat
-from pptx.oxml.ns import qn
-from pptx.shapes import Subshape
-from pptx.shapes.graphfrm import GraphicFrame
-from pptx.text import TextFrame
-from pptx.util import lazyproperty, to_unicode
+from . import Subshape
+from ..constants import MSO
+from ..dml.fill import FillFormat
+from .graphfrm import GraphicFrame
+from ..oxml.ns import qn
+from ..text import TextFrame
+from ..util import lazyproperty, to_unicode
 
 
 class Table(GraphicFrame):

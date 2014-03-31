@@ -8,7 +8,7 @@ import pytest
 
 from hamcrest import assert_that, equal_to, instance_of, is_, none
 
-from pptx.oxml.autoshape import (
+from pptx.oxml.shapes.autoshape import (
     CT_PresetGeometry2D, CT_Shape, CT_ShapeProperties
 )
 from pptx.oxml.ns import nsdecls
