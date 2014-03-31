@@ -120,6 +120,15 @@ def when_add_auto_shape(context):
     sp.text = test_text
 
 
+@when("I change the position and size of the group shape")
+def when_change_pos_and_size_of_group_shape(context):
+    shape = context.shape
+    shape.left = 914400*4
+    shape.top = 914400*3
+    shape.width = 914400*2
+    shape.height = 914400*1
+
+
 @when("I change the position and size of the picture")
 def when_change_pos_and_size_of_picture(context):
     picture = context.picture
@@ -252,6 +261,24 @@ def then_I_can_get_the_name_of_the_shape(context, shape_type):
     shape = context.shape
     msg = "expected shape name '%s', got '%s'" % (shape.name, expected_name)
     assert shape.name == expected_name, msg
+
+
+@then('the position and size of the group shape match its known values')
+def then_group_shape_pos_and_size_match_known_values(context):
+    shape = context.shape
+    assert shape.left == 5454352, 'got %s' % shape.left
+    assert shape.top == 4121696, 'got %s' % shape.top
+    assert shape.width == 914400, 'got %s' % shape.width
+    assert shape.height == 914400, 'got %s' % shape.height
+
+
+@then('the position and size of the group shape matches the new values')
+def then_group_shape_pos_and_size_matches_new_values(context):
+    shape = context.shape
+    assert shape.left == 914400*4
+    assert shape.top == 914400*3
+    assert shape.width == 914400*2
+    assert shape.height == 914400*1
 
 
 @then('the position and size of the picture matches the known values')

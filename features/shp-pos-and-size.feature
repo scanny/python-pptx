@@ -29,3 +29,14 @@ Feature: Query and change shape position and size
      Given a table of known position and size
       When I change the position of the table
       Then the position of the table matches the new values
+
+  @wip
+  Scenario: get position and size of a group shape
+     Given a group shape
+      Then the position and size of the group shape match its known values
+
+  @wip
+  Scenario: change position and size of an existing group shape
+     Given a group shape
+      When I change the position and size of the group shape
+      Then the position and size of the group shape matches the new values
