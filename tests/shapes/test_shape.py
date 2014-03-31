@@ -8,21 +8,12 @@ import pytest
 
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
-from pptx.oxml.ns import namespaces
 from pptx.parts.slide import _SlideShapeTree
 from pptx.shapes import Subshape
 from pptx.shapes.shape import BaseShape
 from pptx.text import TextFrame
 
-from ..unitutil import (
-    absjoin, class_mock, instance_mock, loose_mock, parse_xml_file, TestCase,
-    test_file_dir
-)
-
-
-slide1_path = absjoin(test_file_dir, 'slide1.xml')
-
-nsmap = namespaces('a', 'r', 'p')
+from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
 
 
 class DescribeBaseShape(object):
@@ -58,6 +49,17 @@ class DescribeBaseShape(object):
         shape = no_textframe_fixture
         with pytest.raises(ValueError):
             shape.textframe
+
+    def it_can_set_the_shape_text_to_a_string(self, text_set_fixture):
+        shape = text_set_fixture
+        shape.text = 'føøbår'
+        assert shape.textframe.text == u'føøbår'
+
+    def it_raises_on_assign_text_where_no_textframe(
+            self, no_textframe_fixture):
+        shape = no_textframe_fixture
+        with pytest.raises(TypeError):
+            shape.text = 'foobar'
 
     # fixtures -------------------------------------------------------
 
@@ -102,6 +104,11 @@ class DescribeBaseShape(object):
         shape = BaseShape(shape_elm_, None)
         return shape, TextFrame_, txBody_, textframe_
 
+    @pytest.fixture
+    def text_set_fixture(self, shape_elm_, shape_textframe_):
+        shape = BaseShape(shape_elm_, None)
+        return shape
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -118,6 +125,10 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def shape_name(self):
         return 'Foobar 41'
+
+    @pytest.fixture
+    def shape_textframe_(self, request):
+        return property_mock(request, BaseShape, 'textframe')
 
     @pytest.fixture
     def shapes_(self, request):
@@ -152,38 +163,3 @@ class DescribeSubshape(object):
         parent_ = loose_mock(request, name='parent_')
         subshape = Subshape(parent_)
         return subshape, parent_
-
-
-class TestBaseShape(TestCase):
-    """Test BaseShape"""
-    def setUp(self):
-        path = slide1_path
-        self.sld = parse_xml_file(path).getroot()
-        xpath = './p:cSld/p:spTree/p:pic'
-        pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
-        self.base_shape = BaseShape(pic, None)
-
-    def test_text_setter_structure_and_value(self):
-        """assign to BaseShape.text yields single run para set to value"""
-        # setup ------------------------
-        test_text = 'python-pptx was here!!'
-        xpath = './p:cSld/p:spTree/p:sp'
-        textbox_sp = self.sld.xpath(xpath, namespaces=nsmap)[2]
-        base_shape = BaseShape(textbox_sp, None)
-        # exercise ---------------------
-        base_shape.text = test_text
-        # verify paragraph count ------
-        expected = 1
-        actual = len(base_shape.textframe.paragraphs)
-        msg = "expected paragraph count %s, got %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-        # verify value ----------------
-        expected = test_text
-        actual = base_shape.textframe.paragraphs[0].runs[0].text
-        msg = "expected text '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test_text_setter_raises_on_no_textframe(self):
-        """assignment to BaseShape.text raises for shape with no text frame"""
-        with self.assertRaises(TypeError):
-            self.base_shape.text = 'test text'

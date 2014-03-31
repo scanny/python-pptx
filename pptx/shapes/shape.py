@@ -79,7 +79,9 @@ class BaseShape(object):
         return None
 
     def _set_text(self, text):
-        """Replace all text in shape with single run containing *text*"""
+        """
+        Replace all text in the shape with a single run containing *text*
+        """
         if not self.has_textframe:
             raise TypeError("cannot set text of shape with no text frame")
         self.textframe.text = to_unicode(text)

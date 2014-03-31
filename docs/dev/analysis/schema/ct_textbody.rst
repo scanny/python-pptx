@@ -86,24 +86,55 @@ Schema excerpt
 
   <xsd:complexType name="CT_TextListStyle">
     <xsd:sequence>
-      <xsd:element name="defPPr"  type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lvl1pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lvl2pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lvl3pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lvl4pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lvl5pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lvl6pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lvl7pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lvl8pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="lvl9pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst"  type="CT_OfficeArtExtensionList"  minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="defPPr"  type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="lvl1pPr" type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="lvl2pPr" type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="lvl3pPr" type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="lvl4pPr" type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="lvl5pPr" type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="lvl6pPr" type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="lvl7pPr" type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="lvl8pPr" type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="lvl9pPr" type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="extLst"  type="CT_OfficeArtExtensionList"  minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
   <xsd:complexType name="CT_TextParagraph">
     <xsd:sequence>
-      <xsd:element name="pPr"        type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_TextRun"  minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="endParaRPr" type="CT_TextCharacterProperties" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="pPr"        type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:group   ref="EG_TextRun"                                    minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="endParaRPr" type="CT_TextCharacterProperties" minOccurs="0"/>
     </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:group name="EG_TextRun">
+    <xsd:choice>
+      <xsd:element name="r"   type="CT_RegularTextRun"/>
+      <xsd:element name="br"  type="CT_TextLineBreak"/>
+      <xsd:element name="fld" type="CT_TextField"/>
+    </xsd:choice>
+  </xsd:group>
+
+  <xsd:complexType name="CT_RegularTextRun">
+    <xsd:sequence>
+      <xsd:element name="rPr" type="CT_TextCharacterProperties" minOccurs="0"/>
+      <xsd:element name="t"   type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_TextLineBreak">
+    <xsd:sequence>
+      <xsd:element name="rPr" type="CT_TextCharacterProperties" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_TextField">
+    <xsd:sequence>
+      <xsd:element name="rPr" type="CT_TextCharacterProperties" minOccurs="0"/>
+      <xsd:element name="pPr" type="CT_TextParagraphProperties" minOccurs="0"/>
+      <xsd:element name="t"   type="xsd:string"                 minOccurs="0"/>
+    </xsd:sequence>
+    <xsd:attribute name="id"   type="s:ST_Guid"  use="required"/>
+    <xsd:attribute name="type" type="xsd:string" use="optional"/>
   </xsd:complexType>
