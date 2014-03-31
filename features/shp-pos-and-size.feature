@@ -24,3 +24,9 @@ Feature: Query and change shape position and size
   Scenario: get position and size of a table
      Given a table of known position and size
       Then the position and size of the table match the known values
+
+  @wip
+  Scenario: change position and size of an existing table
+     Given a table of known position and size
+      When I change the position and size of the table
+      Then the position and size of the table matches the new values

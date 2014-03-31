@@ -79,8 +79,7 @@ def given_a_shape_of_known_position_and_size(context):
 @given('a table of known position and size')
 def given_a_table_of_known_position_and_size(context):
     prs = Presentation(test_pptx('shp-pos-and-size'))
-    context.table_ = prs.slides[2].shapes[0]
-    print(context.table_)
+    context.shape = prs.slides[2].shapes[0]
 
 
 @given('an autoshape')
@@ -137,6 +136,15 @@ def when_change_pos_and_size_of_shape(context):
     shape.top = 914400*3
     shape.width = 914400*2
     shape.height = 914400*1
+
+
+@when("I change the position and size of the table")
+def when_change_pos_and_size_of_table(context):
+    table = context.shape
+    table.left = 914400*4
+    table.top = 914400*3
+    table.width = 914400*2
+    table.height = 914400*1
 
 
 @when("I set the fill type to background")
@@ -286,11 +294,20 @@ def then_shape_pos_and_size_matches_new_values(context):
 
 @then('the position and size of the table match the known values')
 def then_table_pos_and_size_match_known_values(context):
-    table = context.table_
+    table = context.shape
     assert table.left == 1524000
     assert table.top == 1397000
     assert table.width == 6096000
     assert table.height == 741680
+
+
+@then('the position and size of the table matches the new values')
+def then_table_pos_and_size_matches_new_values(context):
+    table = context.shape
+    assert table.left == 914400*4
+    assert table.top == 914400*3
+    assert table.width == 914400*2
+    assert table.height == 914400*1
 
 
 @then('the text box appears in the slide')
