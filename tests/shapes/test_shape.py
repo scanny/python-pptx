@@ -129,8 +129,9 @@ class DescribeBaseShape(object):
         return shape, left, top
 
     @pytest.fixture(params=[
-        ('sp_no_xfrm',  'sp'),
-        ('pic_no_xfrm', 'pic'),
+        ('sp_no_xfrm',           'sp'),
+        ('pic_no_xfrm',          'pic'),
+        ('graphicFrame_no_xfrm', 'graphicFrame'),
     ])
     def position_set_fixture(self, request, left, top):
         start_elm_fixt_name, expected_elm_fixt_name = request.param

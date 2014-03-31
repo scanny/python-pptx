@@ -41,6 +41,13 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
     )
 
+    def get_or_add_xfrm(self):
+        """
+        Return the required ``<p:xfrm>`` child element. Overrides version on
+        BaseShapeElement.
+        """
+        return self.xfrm
+
     @property
     def has_table(self):
         """True if graphicFrame contains a table, False otherwise"""

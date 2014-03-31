@@ -138,13 +138,11 @@ def when_change_pos_and_size_of_shape(context):
     shape.height = 914400*1
 
 
-@when("I change the position and size of the table")
-def when_change_pos_and_size_of_table(context):
+@when("I change the position of the table")
+def when_change_position_of_table(context):
     table = context.shape
     table.left = 914400*4
     table.top = 914400*3
-    table.width = 914400*2
-    table.height = 914400*1
 
 
 @when("I set the fill type to background")
@@ -301,13 +299,11 @@ def then_table_pos_and_size_match_known_values(context):
     assert table.height == 741680
 
 
-@then('the position and size of the table matches the new values')
-def then_table_pos_and_size_matches_new_values(context):
+@then('the position of the table matches the new values')
+def then_table_position_matches_the_new_values(context):
     table = context.shape
     assert table.left == 914400*4
     assert table.top == 914400*3
-    assert table.width == 914400*2
-    assert table.height == 914400*1
 
 
 @then('the text box appears in the slide')
