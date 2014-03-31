@@ -87,6 +87,13 @@ class BaseShapeElement(BaseOxmlElement):
         return int(self._nvXxPr.cNvPr.get('id'))
 
     @property
+    def shape_name(self):
+        """
+        Name of this shape
+        """
+        return self._nvXxPr.cNvPr.get('name')
+
+    @property
     def txBody(self):
         """
         Child ``<p:txBody>`` element, None if not present

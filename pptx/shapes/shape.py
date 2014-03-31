@@ -7,7 +7,6 @@ Base shape-related objects such as BaseShape.
 from __future__ import absolute_import, print_function
 
 from pptx.oxml.core import child
-from pptx.oxml.ns import _nsmap
 from pptx.text import TextFrame
 from pptx.util import to_unicode
 
@@ -54,8 +53,10 @@ class BaseShape(object):
 
     @property
     def name(self):
-        """Name of this shape."""
-        return self._nvXxPr.cNvPr.get('name')
+        """
+        Name of this shape, e.g. 'Picture 7'
+        """
+        return self._element.shape_name
 
     @property
     def part(self):
@@ -102,11 +103,3 @@ class BaseShape(object):
         if txBody is None:
             raise ValueError('shape has no text frame')
         return TextFrame(txBody, self)
-
-    @property
-    def _nvXxPr(self):
-        """
-        Non-visual shape properties element for this shape. Actual name
-        depends on the shape type, e.g. ``<p:nvPicPr>`` for picture shape.
-        """
-        return self._element.xpath('./*[1]', namespaces=_nsmap)[0]

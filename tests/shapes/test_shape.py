@@ -6,8 +6,6 @@ from __future__ import absolute_import
 
 import pytest
 
-from hamcrest import assert_that, is_
-
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.ns import namespaces
@@ -30,6 +28,10 @@ class DescribeBaseShape(object):
     def it_knows_its_shape_id(self, id_fixture):
         shape, shape_id = id_fixture
         assert shape.id == shape_id
+
+    def it_knows_its_name(self, name_fixture):
+        shape, name = name_fixture
+        assert shape.name == name
 
     def it_knows_the_part_it_belongs_to(self, part_fixture):
         shape, parent_ = part_fixture
@@ -66,6 +68,11 @@ class DescribeBaseShape(object):
         return shape, is_placeholder
 
     @pytest.fixture
+    def name_fixture(self, shape_elm_, shape_name):
+        shape = BaseShape(shape_elm_, None)
+        return shape, shape_name
+
+    @pytest.fixture
     def part_fixture(self, shapes_):
         parent_ = shapes_
         shape = BaseShape(None, parent_)
@@ -74,12 +81,19 @@ class DescribeBaseShape(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def shape_elm_(self, request, shape_id):
-        return instance_mock(request, BaseShapeElement, shape_id=shape_id)
+    def shape_elm_(self, request, shape_id, shape_name):
+        return instance_mock(
+            request, BaseShapeElement, shape_id=shape_id,
+            shape_name=shape_name
+        )
 
     @pytest.fixture
     def shape_id(self):
         return 42
+
+    @pytest.fixture
+    def shape_name(self):
+        return 'Foobar 41'
 
     @pytest.fixture
     def shapes_(self, request):
@@ -114,20 +128,6 @@ class TestBaseShape(TestCase):
         xpath = './p:cSld/p:spTree/p:pic'
         pic = self.sld.xpath(xpath, namespaces=nsmap)[0]
         self.base_shape = BaseShape(pic, None)
-
-    def test_name_value(self):
-        """BaseShape.name value is correct"""
-        # exercise ---------------------
-        name = self.base_shape.name
-        # verify -----------------------
-        expected = 'Picture 5'
-        actual = name
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
-
-    def test_shape_name_returns_none_for_unimplemented_shape_types(self):
-        """BaseShape.shape_name returns None for unimplemented shape types"""
-        assert_that(self.base_shape.shape_type, is_(None))
 
     def test_textframe_raises_on_no_textframe(self):
         """BaseShape.textframe raises on shape with no text frame"""
