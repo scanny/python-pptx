@@ -16,8 +16,8 @@ from pptx.shapes.shape import BaseShape
 from pptx.text import TextFrame
 
 from ..oxml.unitdata.shape import (
-    a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic, an_off, an_sp,
-    an_spPr, an_xfrm
+    a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic, an_off,
+    an_sp, an_spPr, an_xfrm
 )
 from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
 
@@ -121,6 +121,7 @@ class DescribeBaseShape(object):
         ('pic_no_xfrm',          False), ('pic',          True),
         ('graphicFrame_no_xfrm', False), ('graphicFrame', True),
         ('grpSp_no_xfrm',        False), ('grpSp',        True),
+        ('cxnSp_no_xfrm',        False), ('cxnSp',        True),
     ])
     def position_get_fixture(self, request, left, top):
         shape_elm_fixt_name, expect_values = request.param
@@ -135,6 +136,7 @@ class DescribeBaseShape(object):
         ('pic_no_xfrm',          'pic'),
         ('graphicFrame_no_xfrm', 'graphicFrame'),
         ('grpSp_no_xfrm',        'grpSp'),
+        ('cxnSp_no_xfrm',        'cxnSp'),
     ])
     def position_set_fixture(self, request, left, top):
         start_elm_fixt_name, expected_elm_fixt_name = request.param
@@ -154,6 +156,19 @@ class DescribeBaseShape(object):
         return shape
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def cxnSp(self, left, top):
+        return (
+            a_cxnSp().with_nsdecls().with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_off().with_x(left).with_y(top))))
+        ).element
+
+    @pytest.fixture
+    def cxnSp_no_xfrm(self):
+        return a_cxnSp().with_nsdecls().with_child(an_spPr()).element
 
     @pytest.fixture
     def graphicFrame(self, left, top):

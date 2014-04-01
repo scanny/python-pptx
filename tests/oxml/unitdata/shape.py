@@ -19,6 +19,12 @@ class CT_ApplicationNonVisualDrawingPropsBuilder(BaseBuilder):
     __attrs__ = ('isPhoto', 'userDrawn')
 
 
+class CT_ConnectorBuilder(BaseBuilder):
+    __tag__ = 'p:cxnSp'
+    __nspfxs__ = ('p', 'a')
+    __attrs__ = ()
+
+
 class CT_GeomGuideBuilder(BaseBuilder):
     __tag__ = 'a:gd'
     __nspfxs__ = ('a',)
@@ -141,6 +147,10 @@ class CT_Transform2DBuilder(BaseBuilder):
 
 def a_cNvPr():
     return CT_NonVisualDrawingPropsBuilder()
+
+
+def a_cxnSp():
+    return CT_ConnectorBuilder()
 
 
 def a_gd():

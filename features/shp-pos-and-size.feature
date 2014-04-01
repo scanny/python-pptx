@@ -30,13 +30,20 @@ Feature: Query and change shape position and size
       When I change the position of the table
       Then the position of the table matches the new values
 
-  @wip
-  Scenario: get position and size of a group shape
+  Scenario: get position of a group shape
      Given a group shape
-      Then the position and size of the group shape match its known values
+      Then the left and top of the group shape match their known values
 
-  @wip
-  Scenario: change position and size of an existing group shape
+  Scenario: change position of a group shape
      Given a group shape
-      When I change the position and size of the group shape
-      Then the position and size of the group shape matches the new values
+      When I change the position of the group shape
+      Then the left and top of the group shape match the new values
+
+  Scenario: get position of a connector
+     Given a connector
+      Then the left and top of the connector match their known values
+
+  Scenario: change position of a connector
+     Given a connector
+      When I change the position of the connector
+      Then the left and top of the connector match the new values
