@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 from lxml import objectify
 
-from . import parse_xml_bytes, register_custom_element_class
+from . import parse_xml_bytes
 from .ns import nsdecls, qn
 
 
@@ -214,6 +214,3 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         if len(offset_str) == 6:
             return cls._offset_dt(dt, offset_str)
         return dt
-
-
-register_custom_element_class('cp:coreProperties', CT_CoreProperties)

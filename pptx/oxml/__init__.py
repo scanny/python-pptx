@@ -41,6 +41,10 @@ def register_custom_element_class(nsptag_str, cls):
     namespace[nsptag.local_part] = cls
 
 
+from .coreprops import CT_CoreProperties
+register_custom_element_class('cp:coreProperties', CT_CoreProperties)
+
+
 from .dml.color import (
     CT_HslColor, CT_Percentage, CT_PresetColor, CT_SchemeColor,
     CT_ScRgbColor, CT_SRgbColor, CT_SystemColor
