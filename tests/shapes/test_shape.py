@@ -92,7 +92,8 @@ class DescribeBaseShape(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('sp_no_xfrm', False), ('sp_with_ext', True),
+        ('sp',  False), ('sp_with_ext',  True),
+        ('pic', False), ('pic_with_ext', True),
     ])
     def dimensions_get_fixture(self, request, width, height):
         shape_elm_fixt_name, expect_values = request.param
@@ -103,7 +104,8 @@ class DescribeBaseShape(object):
         return shape, width, height
 
     @pytest.fixture(params=[
-        ('sp_no_xfrm', 'sp_with_ext'),
+        ('sp',  'sp_with_ext'),
+        ('pic', 'pic_with_ext'),
     ])
     def dimensions_set_fixture(self, request, width, height):
         start_elm_fixt_name, expected_elm_fixt_name = request.param
@@ -149,11 +151,11 @@ class DescribeBaseShape(object):
         return shape, parent_
 
     @pytest.fixture(params=[
-        ('sp_no_xfrm',           False), ('sp',           True),
-        ('pic_no_xfrm',          False), ('pic',          True),
-        ('graphicFrame_no_xfrm', False), ('graphicFrame', True),
-        ('grpSp_no_xfrm',        False), ('grpSp',        True),
-        ('cxnSp_no_xfrm',        False), ('cxnSp',        True),
+        ('sp',           False), ('sp_with_off',           True),
+        ('pic',          False), ('pic_with_off',          True),
+        ('graphicFrame', False), ('graphicFrame_with_off', True),
+        ('grpSp',        False), ('grpSp_with_off',        True),
+        ('cxnSp',        False), ('cxnSp_with_off',        True),
     ])
     def position_get_fixture(self, request, left, top):
         shape_elm_fixt_name, expect_values = request.param
@@ -164,11 +166,11 @@ class DescribeBaseShape(object):
         return shape, left, top
 
     @pytest.fixture(params=[
-        ('sp_no_xfrm',           'sp'),
-        ('pic_no_xfrm',          'pic'),
-        ('graphicFrame_no_xfrm', 'graphicFrame'),
-        ('grpSp_no_xfrm',        'grpSp'),
-        ('cxnSp_no_xfrm',        'cxnSp'),
+        ('sp',           'sp_with_off'),
+        ('pic',          'pic_with_off'),
+        ('graphicFrame', 'graphicFrame_with_off'),
+        ('grpSp',        'grpSp_with_off'),
+        ('cxnSp',        'cxnSp_with_off'),
     ])
     def position_set_fixture(self, request, left, top):
         start_elm_fixt_name, expected_elm_fixt_name = request.param
@@ -190,7 +192,11 @@ class DescribeBaseShape(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def cxnSp(self, left, top):
+    def cxnSp(self):
+        return a_cxnSp().with_nsdecls().with_child(an_spPr()).element
+
+    @pytest.fixture
+    def cxnSp_with_off(self, left, top):
         return (
             a_cxnSp().with_nsdecls().with_child(
                 an_spPr().with_child(
@@ -199,11 +205,12 @@ class DescribeBaseShape(object):
         ).element
 
     @pytest.fixture
-    def cxnSp_no_xfrm(self):
-        return a_cxnSp().with_nsdecls().with_child(an_spPr()).element
+    def graphicFrame(self):
+        # Note that <p:xfrm> element is required on graphicFrame
+        return a_graphicFrame().with_nsdecls().with_child(a_p_xfrm()).element
 
     @pytest.fixture
-    def graphicFrame(self, left, top):
+    def graphicFrame_with_off(self, left, top):
         return (
             a_graphicFrame().with_nsdecls().with_child(
                 a_p_xfrm().with_child(
@@ -211,27 +218,19 @@ class DescribeBaseShape(object):
         ).element
 
     @pytest.fixture
-    def graphicFrame_no_xfrm(self):
-        """
-        Is actually graphicFrame_with_empty_xfrm, <p:xfrm> element is
-        required on graphicFrame.
-        """
-        return a_graphicFrame().with_nsdecls().with_child(a_p_xfrm()).element
+    def grpSp(self):
+        return (
+            a_grpSp().with_nsdecls('p', 'a').with_child(
+                a_grpSpPr())
+        ).element
 
     @pytest.fixture
-    def grpSp(self, left, top):
+    def grpSp_with_off(self, left, top):
         return (
             a_grpSp().with_nsdecls('p', 'a').with_child(
                 a_grpSpPr().with_child(
                     an_xfrm().with_child(
                         an_off().with_x(left).with_y(top))))
-        ).element
-
-    @pytest.fixture
-    def grpSp_no_xfrm(self):
-        return (
-            a_grpSp().with_nsdecls('p', 'a').with_child(
-                a_grpSpPr())
         ).element
 
     @pytest.fixture
@@ -243,7 +242,11 @@ class DescribeBaseShape(object):
         return 123
 
     @pytest.fixture
-    def pic(self, left, top):
+    def pic(self):
+        return a_pic().with_nsdecls().with_child(an_spPr()).element
+
+    @pytest.fixture
+    def pic_with_off(self, left, top):
         return (
             a_pic().with_nsdecls().with_child(
                 an_spPr().with_child(
@@ -252,8 +255,13 @@ class DescribeBaseShape(object):
         ).element
 
     @pytest.fixture
-    def pic_no_xfrm(self):
-        return a_pic().with_nsdecls().with_child(an_spPr()).element
+    def pic_with_ext(self, width, height):
+        return (
+            a_pic().with_nsdecls().with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_ext().with_cx(width).with_cy(height))))
+        ).element
 
     @pytest.fixture
     def shape_elm_(self, request, shape_id, shape_name, txBody_):
@@ -279,13 +287,8 @@ class DescribeBaseShape(object):
         return instance_mock(request, _SlideShapeTree)
 
     @pytest.fixture
-    def sp(self, left, top):
-        return (
-            an_sp().with_nsdecls().with_child(
-                an_spPr().with_child(
-                    an_xfrm().with_child(
-                        an_off().with_x(left).with_y(top))))
-        ).element
+    def sp(self):
+        return an_sp().with_nsdecls().with_child(an_spPr()).element
 
     @pytest.fixture
     def sp_with_ext(self, width, height):
@@ -297,8 +300,13 @@ class DescribeBaseShape(object):
         ).element
 
     @pytest.fixture
-    def sp_no_xfrm(self):
-        return an_sp().with_nsdecls().with_child(an_spPr()).element
+    def sp_with_off(self, left, top):
+        return (
+            an_sp().with_nsdecls().with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_off().with_x(left).with_y(top))))
+        ).element
 
     @pytest.fixture
     def TextFrame_(self, request, textframe_):
