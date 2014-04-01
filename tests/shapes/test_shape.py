@@ -92,8 +92,9 @@ class DescribeBaseShape(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('sp',  False), ('sp_with_ext',  True),
-        ('pic', False), ('pic_with_ext', True),
+        ('sp',           False), ('sp_with_ext',           True),
+        ('pic',          False), ('pic_with_ext',          True),
+        ('graphicFrame', False), ('graphicFrame_with_ext', True),
     ])
     def dimensions_get_fixture(self, request, width, height):
         shape_elm_fixt_name, expect_values = request.param
@@ -104,8 +105,9 @@ class DescribeBaseShape(object):
         return shape, width, height
 
     @pytest.fixture(params=[
-        ('sp',  'sp_with_ext'),
-        ('pic', 'pic_with_ext'),
+        ('sp',           'sp_with_ext'),
+        ('pic',          'pic_with_ext'),
+        ('graphicFrame', 'graphicFrame_with_ext'),
     ])
     def dimensions_set_fixture(self, request, width, height):
         start_elm_fixt_name, expected_elm_fixt_name = request.param
@@ -208,6 +210,14 @@ class DescribeBaseShape(object):
     def graphicFrame(self):
         # Note that <p:xfrm> element is required on graphicFrame
         return a_graphicFrame().with_nsdecls().with_child(a_p_xfrm()).element
+
+    @pytest.fixture
+    def graphicFrame_with_ext(self, width, height):
+        return (
+            a_graphicFrame().with_nsdecls().with_child(
+                a_p_xfrm().with_child(
+                    an_ext().with_cx(width).with_cy(height)))
+        ).element
 
     @pytest.fixture
     def graphicFrame_with_off(self, left, top):

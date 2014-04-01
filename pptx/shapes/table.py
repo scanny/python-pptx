@@ -57,13 +57,6 @@ class Table(GraphicFrame):
         return self._tbl_elm.firstRow
 
     @property
-    def height(self):
-        """
-        Read-only integer height of table in English Metric Units (EMU)
-        """
-        return int(self._graphicFrame.xfrm[qn('a:ext')].get('cy'))
-
-    @property
     def horz_banding(self):
         """
         Read/write boolean property which, when true, indicates the rows of
@@ -111,7 +104,7 @@ class Table(GraphicFrame):
         to recalculate its total height (as the sum of the row heights).
         """
         new_table_height = sum([row.height for row in self.rows])
-        self._graphicFrame.xfrm[qn('a:ext')].set('cy', str(new_table_height))
+        self._graphicFrame.cy = new_table_height
 
     def notify_width_changed(self):
         """
@@ -120,7 +113,7 @@ class Table(GraphicFrame):
         widths).
         """
         new_table_width = sum([col.width for col in self.columns])
-        self._graphicFrame.xfrm[qn('a:ext')].set('cx', str(new_table_width))
+        self._graphicFrame.cx = new_table_width
 
     @last_row.setter
     def last_row(self, value):
@@ -154,13 +147,6 @@ class Table(GraphicFrame):
     @vert_banding.setter
     def vert_banding(self, value):
         self._tbl_elm.bandCol = bool(value)
-
-    @property
-    def width(self):
-        """
-        Read-only integer width of table in English Metric Units (EMU)
-        """
-        return int(self._graphicFrame.xfrm[qn('a:ext')].get('cx'))
 
 
 class _Cell(Subshape):
