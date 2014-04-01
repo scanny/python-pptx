@@ -95,6 +95,7 @@ class DescribeBaseShape(object):
         ('sp',           False), ('sp_with_ext',           True),
         ('pic',          False), ('pic_with_ext',          True),
         ('graphicFrame', False), ('graphicFrame_with_ext', True),
+        ('grpSp',        False), ('grpSp_with_ext',        True),
     ])
     def dimensions_get_fixture(self, request, width, height):
         shape_elm_fixt_name, expect_values = request.param
@@ -108,6 +109,7 @@ class DescribeBaseShape(object):
         ('sp',           'sp_with_ext'),
         ('pic',          'pic_with_ext'),
         ('graphicFrame', 'graphicFrame_with_ext'),
+        ('grpSp',        'grpSp_with_ext'),
     ])
     def dimensions_set_fixture(self, request, width, height):
         start_elm_fixt_name, expected_elm_fixt_name = request.param
@@ -232,6 +234,15 @@ class DescribeBaseShape(object):
         return (
             a_grpSp().with_nsdecls('p', 'a').with_child(
                 a_grpSpPr())
+        ).element
+
+    @pytest.fixture
+    def grpSp_with_ext(self, width, height):
+        return (
+            a_grpSp().with_nsdecls('p', 'a').with_child(
+                a_grpSpPr().with_child(
+                    an_xfrm().with_child(
+                        an_ext().with_cx(width).with_cy(height))))
         ).element
 
     @pytest.fixture
