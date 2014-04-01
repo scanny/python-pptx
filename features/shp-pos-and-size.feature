@@ -30,7 +30,6 @@ Feature: Query and change shape position and size
       | connector   |
 
 
-  @wip
   Scenario Outline: get the size of a shape
     Given a <shape type>
      Then the width and height of the <shape type> match their known values
@@ -44,7 +43,6 @@ Feature: Query and change shape position and size
       | connector   |
 
 
-  @wip
   Scenario Outline: change the size of a shape
     Given a <shape type>
      When I change the width and height of the <shape type>
