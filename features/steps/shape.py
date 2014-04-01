@@ -76,12 +76,6 @@ def given_a_shape_of_known_position_and_size(context):
     context.shape = prs.slides[0].shapes[0]
 
 
-@given('a table of known position and size')
-def given_a_table_of_known_position_and_size(context):
-    prs = Presentation(test_pptx('shp-pos-and-size'))
-    context.shape = prs.slides[2].shapes[0]
-
-
 @given('an autoshape')
 def given_an_autoshape(context):
     prs = Presentation()
@@ -120,45 +114,32 @@ def when_add_auto_shape(context):
     sp.text = test_text
 
 
-@when("I change the position of the connector")
-def when_I_change_the_position_of_the_connector(context):
+@when("I change the left and top of the {shape_type}")
+def when_I_change_the_position_of_the_shape(context, shape_type):
+    left, top = {
+        'shape':        (692696, 1339552),
+        'picture':     (1835696, 2711152),
+        'table':       (2978696, 4082752),
+        'group shape': (4121696, 5454352),
+        'connector':   (5264696, 6825952),
+    }[shape_type]
     shape = context.shape
-    shape.left = 914400*4
-    shape.top = 914400*3
+    shape.left = left
+    shape.top = top
 
 
-@when("I change the position of the group shape")
-def when_I_change_the_position_of_the_group_shape(context):
+@when("I change the width and height of the {shape_type}")
+def when_I_change_the_size_of_the_shape(context, shape_type):
+    width, height = {
+        'shape':        (692696, 1339552),
+        'picture':     (1835696, 2711152),
+        'table':       (2978696, 4082752),
+        'group shape': (4121696, 5454352),
+        'connector':   (5264696, 6825952),
+    }[shape_type]
     shape = context.shape
-    shape.left = 914400*4
-    shape.top = 914400*3
-    # shape.width = 914400*2
-    # shape.height = 914400*1
-
-
-@when("I change the position and size of the picture")
-def when_change_pos_and_size_of_picture(context):
-    picture = context.picture
-    picture.left = 914400*4
-    picture.top = 914400*3
-    picture.width = 914400*2
-    picture.height = 914400*1
-
-
-@when("I change the position and size of the shape")
-def when_change_pos_and_size_of_shape(context):
-    shape = context.shape
-    shape.left = 914400*4
-    shape.top = 914400*3
-    shape.width = 914400*2
-    shape.height = 914400*1
-
-
-@when("I change the position of the table")
-def when_change_position_of_table(context):
-    table = context.shape
-    table.left = 914400*4
-    table.top = 914400*3
+    shape.width = width
+    shape.height = height
 
 
 @when("I set the fill type to background")
@@ -270,88 +251,60 @@ def then_I_can_get_the_name_of_the_shape(context, shape_type):
     assert shape.name == expected_name, msg
 
 
-@then('the left and top of the connector match their known values')
-def then_the_left_and_top_of_the_connector_match_known_values(context):
+@then('the left and top of the {shape_type} match their new values')
+def then_left_and_top_of_shape_match_new_values(context, shape_type):
+    expected_left, expected_top = {
+        'shape':        (692696, 1339552),
+        'picture':     (1835696, 2711152),
+        'table':       (2978696, 4082752),
+        'group shape': (4121696, 5454352),
+        'connector':   (5264696, 6825952),
+    }[shape_type]
     shape = context.shape
-    assert shape.left == 6825952, 'got %s' % shape.left
-    assert shape.top == 5264696, 'got %s' % shape.top
+    assert shape.left == expected_left, 'got left: %s' % shape.left
+    assert shape.top == expected_top, 'got top: %s' % shape.top
 
 
-@then('the left and top of the connector match the new values')
-def then_the_left_and_top_of_the_connector_match_the_new_values(context):
+@then('the left and top of the {shape_type} match their known values')
+def then_left_and_top_of_shape_match_known_values(context, shape_type):
+    expected_left, expected_top = {
+        'shape':       (1339552,  692696),
+        'picture':     (2711152, 1835696),
+        'table':       (4082752, 2978696),
+        'group shape': (5454352, 4121696),
+        'connector':   (6825952, 5264696),
+    }[shape_type]
     shape = context.shape
-    assert shape.left == 914400*4
-    assert shape.top == 914400*3
+    assert shape.left == expected_left, 'got left: %s' % shape.left
+    assert shape.top == expected_top, 'got top: %s' % shape.top
 
 
-@then('the left and top of the group shape match their known values')
-def then_the_left_and_top_of_the_group_shape_match_known_values(context):
+@then('the width and height of the {shape_type} match their known values')
+def then_width_and_height_of_shape_match_known_values(context, shape_type):
+    expected_width, expected_height = {
+        'shape':       (928192, 914400),
+        'picture':     (914400, 945232),
+        'table':       (993304, 914400),
+        'group shape': (914400, 914400),
+        'connector':   (986408, 828600),
+    }[shape_type]
     shape = context.shape
-    assert shape.left == 5454352, 'got %s' % shape.left
-    assert shape.top == 4121696, 'got %s' % shape.top
-    # assert shape.width == 914400, 'got %s' % shape.width
-    # assert shape.height == 914400, 'got %s' % shape.height
+    assert shape.width == expected_width, 'got width: %s' % shape.width
+    assert shape.height == expected_height, 'got height: %s' % shape.height
 
 
-@then('the left and top of the group shape match the new values')
-def then_the_left_and_top_of_the_group_shape_match_the_new_values(context):
+@then('the width and height of the {shape_type} match their new values')
+def then_width_and_height_of_shape_match_new_values(context, shape_type):
+    expected_width, expected_height = {
+        'shape':        (692696, 1339552),
+        'picture':     (1835696, 2711152),
+        'table':       (2978696, 4082752),
+        'group shape': (4121696, 5454352),
+        'connector':   (5264696, 6825952),
+    }[shape_type]
     shape = context.shape
-    assert shape.left == 914400*4
-    assert shape.top == 914400*3
-    # assert shape.width == 914400*2
-    # assert shape.height == 914400*1
-
-
-@then('the position and size of the picture matches the known values')
-def then_picture_pos_and_size_matches_known_values(context):
-    picture = context.picture
-    assert picture.left == 914400
-    assert picture.top == 914400*2
-    assert picture.width == 914400*3
-    assert picture.height == 914400*4
-
-
-@then('the position and size of the picture matches the new values')
-def then_picture_pos_and_size_matches_new_values(context):
-    picture = context.picture
-    assert picture.left == 914400*4
-    assert picture.top == 914400*3
-    assert picture.width == 914400*2
-    assert picture.height == 914400*1
-
-
-@then('the position and size of the shape matches the known values')
-def then_shape_pos_and_size_matches_known_values(context):
-    shape = context.shape
-    assert shape.left == 914400
-    assert shape.top == 914400*2
-    assert shape.width == 914400*3
-    assert shape.height == 914400*4
-
-
-@then('the position and size of the shape matches the new values')
-def then_shape_pos_and_size_matches_new_values(context):
-    shape = context.shape
-    assert shape.left == 914400*4
-    assert shape.top == 914400*3
-    assert shape.width == 914400*2
-    assert shape.height == 914400*1
-
-
-@then('the position and size of the table match the known values')
-def then_table_pos_and_size_match_known_values(context):
-    table = context.shape
-    assert table.left == 1524000
-    assert table.top == 1397000
-    assert table.width == 6096000
-    assert table.height == 741680
-
-
-@then('the position of the table matches the new values')
-def then_table_position_matches_the_new_values(context):
-    table = context.shape
-    assert table.left == 914400*4
-    assert table.top == 914400*3
+    assert shape.width == expected_width, 'got width: %s' % shape.width
+    assert shape.height == expected_height, 'got height: %s' % shape.height
 
 
 @then('the text box appears in the slide')

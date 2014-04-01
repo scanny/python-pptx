@@ -3,47 +3,56 @@ Feature: Query and change shape position and size
   As a developer using python-pptx
   I need to get and set the position and size of a shape
 
-  Scenario: get position and size of existing shape
-     Given a shape of known position and size
-      Then the position and size of the shape matches the known values
+  Scenario Outline: get the position of a shape
+    Given a <shape type>
+     Then the left and top of the <shape type> match their known values
 
-  Scenario: change position and size of an existing shape
-     Given a shape of known position and size
-      When I change the position and size of the shape
-      Then the position and size of the shape matches the new values
+    Examples: Shape types
+      | shape type  |
+      | shape       |
+      | picture     |
+      | table       |
+      | group shape |
+      | connector   |
 
-  Scenario: get position and size of existing picture
-     Given a picture of known position and size
-      Then the position and size of the picture matches the known values
 
-  Scenario: change position and size of an existing picture
-     Given a picture of known position and size
-      When I change the position and size of the picture
-      Then the position and size of the picture matches the new values
+  Scenario Outline: change the position of a shape
+    Given a <shape type>
+     When I change the left and top of the <shape type>
+     Then the left and top of the <shape type> match their new values
 
-  Scenario: get position and size of a table
-     Given a table of known position and size
-      Then the position and size of the table match the known values
+    Examples: Shape types
+      | shape type  |
+      | shape       |
+      | picture     |
+      | table       |
+      | group shape |
+      | connector   |
 
-  Scenario: change position of an existing table
-     Given a table of known position and size
-      When I change the position of the table
-      Then the position of the table matches the new values
 
-  Scenario: get position of a group shape
-     Given a group shape
-      Then the left and top of the group shape match their known values
+  @wip
+  Scenario Outline: get the size of a shape
+    Given a <shape type>
+     Then the width and height of the <shape type> match their known values
 
-  Scenario: change position of a group shape
-     Given a group shape
-      When I change the position of the group shape
-      Then the left and top of the group shape match the new values
+    Examples: Shape types
+      | shape type  |
+      | shape       |
+      | picture     |
+      | table       |
+      | group shape |
+      | connector   |
 
-  Scenario: get position of a connector
-     Given a connector
-      Then the left and top of the connector match their known values
 
-  Scenario: change position of a connector
-     Given a connector
-      When I change the position of the connector
-      Then the left and top of the connector match the new values
+  @wip
+  Scenario Outline: change the size of a shape
+    Given a <shape type>
+     When I change the width and height of the <shape type>
+     Then the width and height of the <shape type> match their new values
+
+    Examples: Shape types
+      | shape type  |
+      | shape       |
+      | picture     |
+      | group shape |
+      | connector   |
