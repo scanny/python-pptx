@@ -312,18 +312,6 @@ class Shape(BaseShape):
         return FillFormat.from_fill_parent(self._sp.spPr)
 
     @property
-    def height(self):
-        """
-        Distance between top and bottom extents of shape in integer EMUs.
-        """
-        spPr = self._sp.spPr
-        return spPr.cy
-
-    @height.setter
-    def height(self, value):
-        self._ext.cy = value
-
-    @property
     def shape_type(self):
         """
         Unique integer identifying the type of this shape, like
@@ -337,33 +325,3 @@ class Shape(BaseShape):
             return MSO.TEXT_BOX
         msg = 'Shape instance of unrecognized shape type'
         raise NotImplementedError(msg)
-
-    @property
-    def width(self):
-        """
-        Distance between left and right extents of shape in integer EMUs.
-        """
-        spPr = self._sp.spPr
-        return spPr.cx
-
-    @width.setter
-    def width(self, value):
-        self._ext.cx = value
-
-    @property
-    def _ext(self):
-        """
-        Get or add sp.spPr.xfrm.ext element
-        """
-        spPr = self._sp.spPr
-        xfrm = spPr.get_or_add_xfrm()
-        return xfrm.get_or_add_ext()
-
-    @property
-    def _off(self):
-        """
-        Get or add sp.spPr.xfrm.off element
-        """
-        spPr = self._sp.spPr
-        xfrm = spPr.get_or_add_xfrm()
-        return xfrm.get_or_add_off()

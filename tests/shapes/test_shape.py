@@ -16,8 +16,8 @@ from pptx.shapes.shape import BaseShape
 from pptx.text import TextFrame
 
 from ..oxml.unitdata.shape import (
-    a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic, an_off,
-    an_sp, an_spPr, an_xfrm
+    a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic, an_ext,
+    an_off, an_sp, an_spPr, an_xfrm
 )
 from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
 
@@ -37,10 +37,21 @@ class DescribeBaseShape(object):
         assert shape.left == expected_left
         assert shape.top == expected_top
 
+    def it_has_dimensions(self, dimensions_get_fixture):
+        shape, expected_width, expected_height = dimensions_get_fixture
+        assert shape.width == expected_width
+        assert shape.height == expected_height
+
     def it_can_change_its_position(self, position_set_fixture):
         shape, left, top, expected_xml = position_set_fixture
         shape.left = left
         shape.top = top
+        assert shape._element.xml == expected_xml
+
+    def it_can_change_its_dimensions(self, dimensions_set_fixture):
+        shape, width, height, expected_xml = dimensions_set_fixture
+        shape.width = width
+        shape.height = height
         assert shape._element.xml == expected_xml
 
     def it_knows_the_part_it_belongs_to(self, part_fixture):
@@ -79,6 +90,27 @@ class DescribeBaseShape(object):
             shape.text = 'foobar'
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('sp_no_xfrm', False), ('sp_with_ext', True),
+    ])
+    def dimensions_get_fixture(self, request, width, height):
+        shape_elm_fixt_name, expect_values = request.param
+        shape_elm = request.getfuncargvalue(shape_elm_fixt_name)
+        shape = BaseShape(shape_elm, None)
+        if not expect_values:
+            width = height = None
+        return shape, width, height
+
+    @pytest.fixture(params=[
+        ('sp_no_xfrm', 'sp_with_ext'),
+    ])
+    def dimensions_set_fixture(self, request, width, height):
+        start_elm_fixt_name, expected_elm_fixt_name = request.param
+        start_elm = request.getfuncargvalue(start_elm_fixt_name)
+        shape = BaseShape(start_elm, None)
+        expected_xml = request.getfuncargvalue(expected_elm_fixt_name).xml
+        return shape, width, height, expected_xml
 
     @pytest.fixture
     def id_fixture(self, shape_elm_, shape_id):
@@ -203,6 +235,10 @@ class DescribeBaseShape(object):
         ).element
 
     @pytest.fixture
+    def height(self):
+        return 654
+
+    @pytest.fixture
     def left(self):
         return 123
 
@@ -252,6 +288,15 @@ class DescribeBaseShape(object):
         ).element
 
     @pytest.fixture
+    def sp_with_ext(self, width, height):
+        return (
+            an_sp().with_nsdecls().with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_ext().with_cx(width).with_cy(height))))
+        ).element
+
+    @pytest.fixture
     def sp_no_xfrm(self):
         return an_sp().with_nsdecls().with_child(an_spPr()).element
 
@@ -272,6 +317,10 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def txBody_(self, request):
         return instance_mock(request, CT_TextBody)
+
+    @pytest.fixture
+    def width(self):
+        return 321
 
 
 class DescribeSubshape(object):

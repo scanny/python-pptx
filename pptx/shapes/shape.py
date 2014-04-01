@@ -36,6 +36,17 @@ class BaseShape(object):
         return self._element.txBody is not None
 
     @property
+    def height(self):
+        """
+        Integer distance between top and bottom extents of shape in EMUs
+        """
+        return self._element.cy
+
+    @height.setter
+    def height(self, value):
+        self._element.cy = value
+
+    @property
     def id(self):
         """
         Id of this shape. Note that ids are constrained to positive integers.
@@ -128,3 +139,14 @@ class BaseShape(object):
         if txBody is None:
             raise ValueError('shape has no text frame')
         return TextFrame(txBody, self)
+
+    @property
+    def width(self):
+        """
+        Integer distance between left and right extents of shape in EMUs
+        """
+        return self._element.cx
+
+    @width.setter
+    def width(self, value):
+        self._element.cx = value

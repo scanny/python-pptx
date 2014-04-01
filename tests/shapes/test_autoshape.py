@@ -14,12 +14,8 @@ from pptx.shapes.autoshape import (
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 
-from ..oxml.unitdata.shape import (
-    a_gd, a_prstGeom, an_avLst, an_ext, an_sp, an_spPr, an_xfrm
-)
-from ..unitutil import (
-    actual_xml, class_mock, instance_mock, loose_mock, property_mock
-)
+from ..oxml.unitdata.shape import a_gd, a_prstGeom, an_avLst
+from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
 
 
 class DescribeAdjustment(object):
@@ -326,17 +322,6 @@ class DescribeShape(object):
     def it_has_a_fill(self, shape):
         assert isinstance(shape.fill, FillFormat)
 
-    def it_has_dimensions(self, dimensions_get_fixture):
-        shape, expected_width, expected_height = dimensions_get_fixture
-        assert shape.width == expected_width
-        assert shape.height == expected_height
-
-    def it_can_change_its_dimensions(self, dimensions_set_fixture):
-        shape, width, height, xfrm_xml = dimensions_set_fixture
-        shape.width = width
-        shape.height = height
-        assert actual_xml(shape._sp.spPr.xfrm) == xfrm_xml
-
     def it_knows_its_shape_type_when_its_a_placeholder(
             self, placeholder_shape_):
         assert placeholder_shape_.shape_type == MSO.PLACEHOLDER
@@ -367,33 +352,6 @@ class DescribeShape(object):
             self, request, sp_, autoshape_type, AutoShapeType_, prst):
         shape = Shape(sp_, None)
         return shape, autoshape_type, AutoShapeType_, prst
-
-    @pytest.fixture(params=[True, False])
-    def dimensions_get_fixture(self, request):
-        has_directly_applied_dimensions = request.param
-        spPr_bldr = an_spPr()
-        width, height = None, None
-        if has_directly_applied_dimensions:
-            width, height = 234, 567
-            xfrm_bldr = an_xfrm().with_child(
-                an_ext().with_cx(width).with_cy(height)
-            )
-            spPr_bldr.with_child(xfrm_bldr)
-        sp = an_sp().with_nsdecls().with_child(spPr_bldr).element
-        shape = Shape(sp, None)
-        return shape, width, height
-
-    @pytest.fixture
-    def dimensions_set_fixture(self):
-        sp = an_sp().with_nsdecls().with_child(an_spPr()).element
-        shape = Shape(sp, None)
-        width, height = 626, 262
-        xfrm_xml = (
-            an_xfrm().with_nsdecls('a', 'p').with_child(
-                an_ext().with_cx(width).with_cy(height))
-            .xml()
-        )
-        return shape, width, height, xfrm_xml
 
     @pytest.fixture
     def init_adjs_fixture_(

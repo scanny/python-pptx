@@ -18,7 +18,7 @@ class BaseShapeElement(BaseOxmlElement):
     """
     def __getattr__(self, name):
         # common code for position and size attributes
-        if name in ('x', 'y'):
+        if name in ('x', 'y', 'cx', 'cy'):
             xfrm = self.xfrm
             if xfrm is None:
                 return None
@@ -220,6 +220,11 @@ class CT_Transform2D(BaseOxmlElement):
             if off is None:
                 return None
             return getattr(off, name)
+        elif name in ('cx', 'cy'):
+            ext = self.ext
+            if ext is None:
+                return None
+            return getattr(ext, name)
         else:
             return super(CT_Transform2D, self).__getattr__(name)
 
