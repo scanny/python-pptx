@@ -145,6 +145,15 @@ class CT_TextBodyProperties(OxmlElement):
     schema.add_attr(Attribute('bIns', ST_Coordinate32))
     # lIns = Attribute(ST_Coordinate32)
 
+    def __setattr__(self, name, value):
+        """
+        Implement property setters
+        """
+        if name == 'autofit':
+            self._set_autofit(value)
+        else:
+            super(CT_TextBodyProperties, self).__setattr__(name, value)
+
     @property
     def autofit(self):
         """
@@ -178,6 +187,62 @@ class CT_TextBodyProperties(OxmlElement):
         The <a:spAutoFit> child element, or None if not present.
         """
         return self.find(qn('a:spAutoFit'))
+
+    def _add_noAutofit(self):
+        noAutofit = Element('a:noAutofit')
+        self._insert_autofit(noAutofit)
+        return noAutofit
+
+    def _add_normAutofit(self):
+        normAutofit = Element('a:normAutofit')
+        self._insert_autofit(normAutofit)
+        return normAutofit
+
+    def _add_spAutoFit(self):
+        spAutoFit = Element('a:spAutoFit')
+        self._insert_autofit(spAutoFit)
+        return spAutoFit
+
+    def _first_child_found_in(self, *tagnames):
+        """
+        Return the first child found with tag in *tagnames*, or None if
+        not found.
+        """
+        for tagname in tagnames:
+            child = self.find(qn(tagname))
+            if child is not None:
+                return child
+        return None
+
+    def _insert_autofit(self, autofit_elm):
+        self._insert_element_before(
+            autofit_elm, 'a:scene3d', 'a:sp3d', 'a:flatTx', 'a:extLst'
+        )
+
+    def _insert_element_before(self, elm, *tagnames):
+        successor = self._first_child_found_in(*tagnames)
+        if successor is not None:
+            successor.addprevious(elm)
+        else:
+            self.append(elm)
+        return elm
+
+    def _remove_if_present(self, *tagnames):
+        for tagname in tagnames:
+            element = self.find(qn(tagname))
+            if element is not None:
+                self.remove(element)
+
+    def _set_autofit(self, value):
+        self._remove_if_present(
+            'a:noAutofit', 'a:normAutofit', 'a:spAutoFit'
+        )
+        if value == MSO_AUTO_SIZE.NONE:
+            self._add_noAutofit()
+        elif value == MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE:
+            self._add_normAutofit()
+        elif value == MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT:
+            self._add_spAutoFit()
 
 
 class CT_TextCharacterProperties(objectify.ObjectifiedElement):

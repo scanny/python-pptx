@@ -16,7 +16,6 @@ Feature: Get and change properties of shape text frame
       | fit text to shape | MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE |
 
 
-  @wip
   Scenario Outline: Change textframe auto-size setting
     Given a textframe
      When I set textframe.auto_size to <value>

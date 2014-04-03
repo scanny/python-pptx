@@ -49,6 +49,10 @@ class TextFrame(Subshape):
         """
         return self._bodyPr.autofit
 
+    @auto_size.setter
+    def auto_size(self, value):
+        self._bodyPr.autofit = value
+
     def clear(self):
         """
         Remove all paragraphs except one empty one.

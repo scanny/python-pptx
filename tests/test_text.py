@@ -15,7 +15,7 @@ from pptx.enum.text import MSO_AUTO_SIZE
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.oxml import parse_xml_bytes
-from pptx.oxml.ns import namespaces, nsdecls
+from pptx.oxml.ns import nsdecls, _nsmap as nsmap
 from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
 )
@@ -32,14 +32,16 @@ from .unitutil import (
 )
 
 
-nsmap = namespaces('a', 'r', 'p')
-
-
 class DescribeTextFrame(object):
 
     def it_knows_its_autosize_setting(self, autosize_get_fixture):
         textframe, expected_value = autosize_get_fixture
         assert textframe.auto_size == expected_value
+
+    def it_can_change_its_autosize_setting(self, autosize_set_fixture):
+        textframe, value, expected_xml = autosize_set_fixture
+        textframe.auto_size = value
+        assert actual_xml(textframe._txBody) == expected_xml
 
     def it_knows_the_number_of_paragraphs_it_contains(
             self, txBody, txBody_with_2_paras):
@@ -142,19 +144,41 @@ class DescribeTextFrame(object):
         MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE,
     ])
     def autosize_get_fixture(self, request):
-        expected_value = request.param
-        bodyPr_bldr = a_bodyPr()
-        if expected_value == MSO_AUTO_SIZE.NONE:
-            bodyPr_bldr.with_child(a_noAutofit())
-        elif expected_value == MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT:
-            bodyPr_bldr.with_child(an_spAutoFit())
-        elif expected_value == MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE:
-            bodyPr_bldr.with_child(a_normAutofit())
+        auto_size = request.param
+        bodyPr_bldr = self.bodyPr_bldr_with_autofit(auto_size)
         txBody = a_txBody().with_nsdecls().with_child(bodyPr_bldr).element
         textframe = TextFrame(txBody, None)
+        expected_value = auto_size
         return textframe, expected_value
 
+    @pytest.fixture(params=[
+        None,
+        MSO_AUTO_SIZE.NONE,
+        MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT,
+        MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE,
+    ])
+    def autosize_set_fixture(self, request):
+        auto_size = request.param
+        txBody = a_txBody().with_nsdecls().with_child(a_bodyPr()).element
+        textframe = TextFrame(txBody, None)
+        value = auto_size
+        expected_xml = (
+            a_txBody().with_nsdecls().with_child(
+                self.bodyPr_bldr_with_autofit(auto_size))
+        ).xml()
+        return textframe, value, expected_xml
+
     # fixture components -----------------------------------
+
+    def bodyPr_bldr_with_autofit(self, auto_size):
+        bodyPr_bldr = a_bodyPr()
+        if auto_size == MSO_AUTO_SIZE.NONE:
+            bodyPr_bldr.with_child(a_noAutofit())
+        elif auto_size == MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT:
+            bodyPr_bldr.with_child(an_spAutoFit())
+        elif auto_size == MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE:
+            bodyPr_bldr.with_child(a_normAutofit())
+        return bodyPr_bldr
 
     @pytest.fixture
     def textframe(self, txBody):
