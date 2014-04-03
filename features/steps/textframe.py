@@ -9,19 +9,35 @@ from __future__ import absolute_import
 from behave import given, then, when
 
 from pptx import Presentation
+from pptx.enum.text import MSO_AUTO_SIZE
 from pptx.util import Inches
+
+from .helpers import test_pptx
 
 
 # given ===================================================
 
 @given('a textframe')
-def step_given_a_textframe(context):
+def given_a_textframe(context):
     context.prs = Presentation()
     blank_slide_layout = context.prs.slide_layouts[6]
     slide = context.prs.slides.add_slide(blank_slide_layout)
     length = Inches(2.00)
     textbox = slide.shapes.add_textbox(length, length, length, length)
     context.textframe = textbox.textframe
+
+
+@given('a textframe having auto-size set to {setting}')
+def given_a_textframe_having_auto_size_set_to_setting(context, setting):
+    shape_idx = {
+        'None':              0,
+        'no auto-size':      1,
+        'fit shape to text': 2,
+        'fit text to shape': 3,
+    }[setting]
+    prs = Presentation(test_pptx('txt-textframe-props'))
+    shape = prs.slides[0].shapes[shape_idx]
+    context.textframe = shape.textframe
 
 
 # when ====================================================
@@ -33,6 +49,20 @@ def when_set_textframe_word_wrap(context, setting):
 
 
 # then ====================================================
+
+@then('textframe.auto_size is {value}')
+def then_textframe_autosize_is_value(context, value):
+    expected_value = {
+        'None': None,
+        'MSO_AUTO_SIZE.NONE': MSO_AUTO_SIZE.NONE,
+        'MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT': MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT,
+        'MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE': MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE,
+    }[value]
+    textframe = context.textframe
+    assert textframe.auto_size == expected_value, (
+        'got %s' % textframe.auto_size
+    )
+
 
 @then('the textframe\'s {side} margin is {inches}"')
 def then_textframe_margin_is_value(context, side, inches):
