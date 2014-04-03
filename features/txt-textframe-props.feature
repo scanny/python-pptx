@@ -4,7 +4,6 @@ Feature: Get and change properties of shape text frame
   I need a set of properties on the text frame of a shape
 
 
-  @wip
   Scenario Outline: Get textframe auto-size setting
     Given a textframe having auto-size set to <setting>
      Then textframe.auto_size is <value>

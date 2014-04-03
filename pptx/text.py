@@ -39,6 +39,16 @@ class TextFrame(Subshape):
         self._txBody.append(p)
         return _Paragraph(p, self)
 
+    @property
+    def auto_size(self):
+        """
+        The type of automatic resizing that should be used to fit the text of
+        this shape within its bounding box when the text would otherwise
+        overflow. May be |None|, MSO_AUTO_SIZE.NONE,
+        MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT, or MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE.
+        """
+        return self._bodyPr.autofit
+
     def clear(self):
         """
         Remove all paragraphs except one empty one.

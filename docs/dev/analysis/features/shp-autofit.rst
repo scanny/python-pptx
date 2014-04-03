@@ -86,27 +86,27 @@ toolbar, the new textbox sizes itself to fit the entered text. This
 corresponds to the setting MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT and ``word_wrap
 = None``.
 
-**``MSO_AUTO_SIZE.NONE``, ``word_wrap = False``**. Text is free form, with
+``MSO_AUTO_SIZE.NONE``, ``word_wrap = False``. Text is free form, with
 PowerPoint exhibiting no formatting behavior. Text appears just as entered
 and lines are broken only where hard breaks are inserted.
 
-**``MSO_AUTO_SIZE.NONE``, ``word_wrap = True``**. Text is wrapped into
+``MSO_AUTO_SIZE.NONE``, ``word_wrap = True``. Text is wrapped into
 a column the width of the shape, but is not constrained vertically.
 
-**``MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT``, ``word_wrap = False``**. The width of
+``MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT``, ``word_wrap = False``. The width of
 the shape expands as new text is entered. Line breaks occur only where hard
 breaks are entered.  The height of the shape grows to accommodate the number
 of lines of entered text.  Width and height shrink as extents of the text are
 reduced by deleting text or reducing font size.
 
-**``MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT``, ``word_wrap = True``**. Text is
+``MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT``, ``word_wrap = True``. Text is
 wrapped into a column the width of the shape, with the height of the shape
 growing to accommodate the resulting number of lines.
 
-**``MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE``, ``word_wrap = False``**. Experiment
+``MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE``, ``word_wrap = False``. Experiment
 ...
 
-**``MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE``, ``word_wrap = True``**. Experiment ...
+``MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE``, ``word_wrap = True``. Experiment ...
 
 
 Documentation Requirements
@@ -172,11 +172,11 @@ Related Schema Definitions
 
   <xsd:complexType name="CT_TextBodyProperties">
     <xsd:sequence>
-      <xsd:element name="prstTxWarp" type="CT_PresetTextShape"    minOccurs="0"/>
-      <xsd:group   ref="EG_TextAutofit"                           minOccurs="0"/>
-      <xsd:element name="scene3d"    type="CT_Scene3D"            minOccurs="0"/>
-      <xsd:group   ref="EG_Text3D"                                minOccurs="0"/>
-      <xsd:element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0"/>
+      <xsd:element name="prstTxWarp" type="CT_PresetTextShape"        minOccurs="0"/>
+      <xsd:group   ref="EG_TextAutofit"                               minOccurs="0"/>
+      <xsd:element name="scene3d"    type="CT_Scene3D"                minOccurs="0"/>
+      <xsd:group   ref="EG_Text3D"                                    minOccurs="0"/>
+      <xsd:element name="extLst"     type="CT_OfficeArtExtensionList" minOccurs="0"/>
     </xsd:sequence>
 
   <xsd:group name="EG_TextAutofit">
@@ -197,3 +197,10 @@ Related Schema Definitions
   <xsd:complexType name="CT_TextShapeAutofit"/>
 
   <xsd:complexType name="CT_TextNoAutofit"/>
+
+  <xsd:group name="EG_Text3D">
+    <xsd:choice>
+      <xsd:element name="sp3d"   type="CT_Shape3D"/>
+      <xsd:element name="flatTx" type="CT_FlatText"/>
+    </xsd:choice>
+  </xsd:group>

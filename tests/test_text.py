@@ -1,6 +1,8 @@
 # encoding: utf-8
 
-"""Test suite for pptx.text module."""
+"""
+Test suite for pptx.text module
+"""
 
 from __future__ import absolute_import, print_function
 
@@ -9,6 +11,7 @@ import pytest
 from pptx.constants import MSO, PP
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
+from pptx.enum.text import MSO_AUTO_SIZE
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.oxml import parse_xml_bytes
@@ -20,7 +23,8 @@ from pptx.text import _Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches
 
 from .oxml.unitdata.text import (
-    a_bodyPr, a_latin, a_txBody, a_p, a_pPr, a_t, an_hlinkClick, an_r, an_rPr
+    a_bodyPr, a_latin, a_txBody, a_noAutofit, a_normAutofit, a_p, a_pPr, a_t,
+    an_hlinkClick, an_r, an_rPr, an_spAutoFit
 )
 from .unitutil import (
     absjoin, actual_xml, class_mock, instance_mock, loose_mock,
@@ -32,6 +36,10 @@ nsmap = namespaces('a', 'r', 'p')
 
 
 class DescribeTextFrame(object):
+
+    def it_knows_its_autosize_setting(self, autosize_get_fixture):
+        textframe, expected_value = autosize_get_fixture
+        assert textframe.auto_size == expected_value
 
     def it_knows_the_number_of_paragraphs_it_contains(
             self, txBody, txBody_with_2_paras):
@@ -126,6 +134,27 @@ class DescribeTextFrame(object):
         assert part is parent_.part
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        None,
+        MSO_AUTO_SIZE.NONE,
+        MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT,
+        MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE,
+    ])
+    def autosize_get_fixture(self, request):
+        expected_value = request.param
+        bodyPr_bldr = a_bodyPr()
+        if expected_value == MSO_AUTO_SIZE.NONE:
+            bodyPr_bldr.with_child(a_noAutofit())
+        elif expected_value == MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT:
+            bodyPr_bldr.with_child(an_spAutoFit())
+        elif expected_value == MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE:
+            bodyPr_bldr.with_child(a_normAutofit())
+        txBody = a_txBody().with_nsdecls().with_child(bodyPr_bldr).element
+        textframe = TextFrame(txBody, None)
+        return textframe, expected_value
+
+    # fixture components -----------------------------------
 
     @pytest.fixture
     def textframe(self, txBody):

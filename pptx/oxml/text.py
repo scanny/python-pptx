@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from lxml import objectify
 
 from . import parse_xml_bytes
+from ..enum.text import MSO_AUTO_SIZE
 from .ns import nsdecls, nsmap, qn
 from .shared import Element, SubElement
 
@@ -143,6 +144,40 @@ class CT_TextBodyProperties(OxmlElement):
     schema.add_attr(Attribute('rIns', ST_Coordinate32))
     schema.add_attr(Attribute('bIns', ST_Coordinate32))
     # lIns = Attribute(ST_Coordinate32)
+
+    @property
+    def autofit(self):
+        """
+        The autofit setting for the textframe
+        """
+        if self.noAutofit is not None:
+            return MSO_AUTO_SIZE.NONE
+        if self.normAutofit is not None:
+            return MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
+        if self.spAutoFit is not None:
+            return MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
+        return None
+
+    @property
+    def noAutofit(self):
+        """
+        The <a:noAutofit> child element, or None if not present.
+        """
+        return self.find(qn('a:noAutofit'))
+
+    @property
+    def normAutofit(self):
+        """
+        The <a:normAutofit> child element, or None if not present.
+        """
+        return self.find(qn('a:normAutofit'))
+
+    @property
+    def spAutoFit(self):
+        """
+        The <a:spAutoFit> child element, or None if not present.
+        """
+        return self.find(qn('a:spAutoFit'))
 
 
 class CT_TextCharacterProperties(objectify.ObjectifiedElement):
