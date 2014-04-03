@@ -42,7 +42,7 @@ def given_a_paragraph(context):
 
 
 @given('a run with italics set {setting}')
-def step_given_run_with_italics_set_to_setting(context, setting):
+def given_run_with_italics_set_to_setting(context, setting):
     run_idx = {'on': 0, 'off': 1, 'to None': 2}[setting]
     context.prs = Presentation(italics_pptx_path)
     runs = context.prs.slides[0].shapes[0].textframe.paragraphs[0].runs
@@ -82,16 +82,6 @@ def given_a_text_run_having_a_hyperlink(context):
     context.r = r
 
 
-@given('a textframe')
-def step_given_a_textframe(context):
-    context.prs = Presentation()
-    blank_slide_layout = context.prs.slide_layouts[6]
-    slide = context.prs.slides.add_slide(blank_slide_layout)
-    length = Inches(2.00)
-    textbox = slide.shapes.add_textbox(length, length, length, length)
-    context.textframe = textbox.textframe
-
-
 # when ====================================================
 
 @when('I assign a typeface name to the font')
@@ -121,7 +111,7 @@ def when_set_margin_to_value(context, side, inches):
 
 
 @when('I indent the paragraph')
-def step_when_indent_first_paragraph(context):
+def when_indent_first_paragraph(context):
     context.p.level = 1
 
 
@@ -148,14 +138,8 @@ def when_set_hyperlink_address_to_None(context):
 
 
 @when("I set the paragraph alignment to centered")
-def step_when_set_paragraph_alignment_to_centered(context):
+def when_set_paragraph_alignment_to_centered(context):
     context.p.alignment = PP.ALIGN_CENTER
-
-
-@when("I set the textframe word wrap {setting}")
-def step_when_set_textframe_word_wrap(context, setting):
-    bool_val = {'on': True, 'off': False, 'to None': None}
-    context.textframe.word_wrap = bool_val[setting]
 
 
 # then ====================================================
@@ -166,19 +150,19 @@ def then_font_name_matches_typeface_I_set(context):
 
 
 @then('the paragraph is aligned centered')
-def step_then_paragraph_is_aligned_centered(context):
+def then_paragraph_is_aligned_centered(context):
     p = context.prs.slides[0].shapes[0].textframe.paragraphs[0]
     assert_that(p.alignment, is_(equal_to(PP.ALIGN_CENTER)))
 
 
 @then('the paragraph is indented to the second level')
-def step_then_paragraph_indented_to_second_level(context):
+def then_paragraph_indented_to_second_level(context):
     p = context.prs.slides[0].shapes[0].textframe.paragraphs[0]
     assert_that(p.level, is_(equal_to(1)))
 
 
 @then("the run that had italics set {initial} now has it set {setting}")
-def step_then_run_now_has_italics_set_to_setting(context, initial, setting):
+def then_run_now_has_italics_set_to_setting(context, initial, setting):
     run_idx = {'on': 0, 'off': 1, 'to None': 2}[initial]
     run = (
         context.prs
@@ -204,24 +188,3 @@ def then_text_of_run_is_hyperlink(context):
 def then_text_run_is_not_a_hyperlink(context):
     hlink = context.r.hyperlink
     assert hlink.address is None
-
-
-@then('the textframe\'s {side} margin is {inches}"')
-def then_textframe_margin_is_value(context, side, inches):
-    textframe = context.prs.slides[0].shapes[0].textframe
-    emu = Inches(float(inches))
-    if side == 'left':
-        assert textframe.margin_left == emu
-    elif side == 'top':
-        assert textframe.margin_top == emu
-    elif side == 'right':
-        assert textframe.margin_right == emu
-    elif side == 'bottom':
-        assert textframe.margin_bottom == emu
-
-
-@then('the textframe word wrap is set {setting}')
-def step_then_textframe_word_wrap_is_setting(context, setting):
-    bool_val = {'on': True, 'off': False, 'to None': None}
-    textframe = context.prs.slides[0].shapes[0].textframe
-    assert_that(textframe.word_wrap, is_(bool_val[setting]))
