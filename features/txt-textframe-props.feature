@@ -16,6 +16,20 @@ Feature: Get and change properties of shape text frame
       | fit text to shape | MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE |
 
 
+  @wip
+  Scenario Outline: Change textframe auto-size setting
+    Given a textframe
+     When I set textframe.auto_size to <value>
+     Then textframe.auto_size is <value>
+
+    Examples: Auto-size settings
+      | value                           |
+      | None                            |
+      | MSO_AUTO_SIZE.NONE              |
+      | MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT |
+      | MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE |
+
+
   Scenario Outline: Set textframe margins
     Given a textframe
      When I set the <side> margin to <value>"

@@ -42,6 +42,17 @@ def given_a_textframe_having_auto_size_set_to_setting(context, setting):
 
 # when ====================================================
 
+@when("I set textframe.auto_size to {setting}")
+def when_set_textframe_auto_size(context, setting):
+    textframe = context.textframe
+    textframe.auto_size = {
+        'None': None,
+        'MSO_AUTO_SIZE.NONE': MSO_AUTO_SIZE.NONE,
+        'MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT': MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT,
+        'MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE': MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE,
+    }[setting]
+
+
 @when("I set the textframe word wrap {setting}")
 def when_set_textframe_word_wrap(context, setting):
     bool_val = {'on': True, 'off': False, 'to None': None}
