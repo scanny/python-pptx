@@ -13,7 +13,7 @@ placed on a slide:
 
 auto shape
    This is a regular shape, like a rectangle, an ellipse, or a block arrow.
-   They come in a large variety of preset shapes, in the neighborhood of 140
+   They come in a large variety of preset shapes, in the neighborhood of 180
    different ones. An auto shape can have a fill and an outline, and can
    contain text. Some auto shapes have adjustments, the little yellow diamonds
    you can drag to adjust how round the corners of a rounded rectangle are for
@@ -28,17 +28,18 @@ picture
    or gradient. That's a different thing. But cool.
 
 graphic frame
-   This is the technical name for the container that holds a table or a chart.
-   You can't add one of these by itself, it just shows up in the file when you
-   add a table or chart. You probably won't need to know anything more about
-   these.
+   This is the technical name for the container that holds a table, a chart,
+   a smart art diagram, or media clip. You can't add one of these by itself,
+   it just shows up in the file when you add a graphical object. You probably
+   won't need to know anything more about these.
 
 group shape
    In PowerPoint, a set of shapes can be *grouped*, allowing them to be
    selected, moved, resized, and even filled as a unit. When you group a set of
    shapes a group shape gets created to contain those member shapes. You can't
    actually see these except by their bounding box when the group is selected,
-   and |pp| doesn't support these yet so I won't say more about them for now.
+   and |pp| doesn't support these yet (other than to preserve ones that are
+   already there) so I won't say more about them for now.
 
 line/connector
    Lines are different from auto shapes because, well, they're linear. Some
@@ -60,10 +61,12 @@ As for real-life shapes, there are these seven types:
 * placeholders -- auto shapes that can appear on a slide layout or master and
   be inherited on slides that use that layout, allowing content to be added
   that takes on the formatting of the placeholder
-* picture -- as described above
-* chart -- pie chart, line chart, etc. |pp| doesn't support creating these yet.
-* table -- that row and column thing
 * line/connector -- as described above
+* picture -- as described above
+* table -- that row and column thing
+* chart -- pie chart, line chart, etc. |pp| doesn't support creating these yet.
+* smart art -- not supported yet, although preserved if present
+* media clip -- not supported yet, although preserved if present
 
 
 Accessing the shapes on a slide

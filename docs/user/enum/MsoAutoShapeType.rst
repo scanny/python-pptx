@@ -1,7 +1,10 @@
 .. _MsoAutoShapeType:
 
-Auto Shape Types
-================
+``MSO_AUTO_SHAPE_TYPE``
+=======================
+
+.. Auto Shape Types
+.. ================
 
 The following names can be used to specify an auto-shape type, such as
 a rectangle or arrow, for example::
@@ -10,6 +13,9 @@ a rectangle or arrow, for example::
 
     shape = slide.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW)
     
+The full name of this enumeration is ``MSO_AUTO_SHAPE_TYPE``. ``MSO_SHAPE``
+is provided as a more compact alias.
+
 ----
 
 ACTION_BUTTON_BACK_OR_PREVIOUS

@@ -93,18 +93,25 @@ Applying textframe-level formatting
 
 The following produces a shape with a single paragraph, a slightly wider bottom
 than top margin (these default to 0.05"), no left margin, text aligned top, and
-word wrapping turned off. Note that vertical alignment is set on the textframe.
-Horizontal alignment is set on each paragraph::
+word wrapping turned off. In addition, the auto-size behavior is set to
+adjust the width and height of the shape to fit its text. Note that vertical
+alignment is set on the textframe. Horizontal alignment is set on each
+paragraph::
 
     from pptx.util import Inches
     from pptx.constants import MSO
+    from pptx.enum.text import MSO_AUTO_SIZE
 
     textframe = shape.textframe
     textframe.text = 'Spam, eggs, and spam'
     textframe.margin_bottom = Inches(0.08)
     textframe.margin_left = 0
     textframe.vertical_anchor = MSO.ANCHOR_TOP
-    textframe.wrap = False
+    textframe.word_wrap = False
+    textframe.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
+
+The possible values for ``TextFrame.auto_size`` are specified by the
+enumeration :ref:`MsoAutoSize`.
 
 
 Applying paragraph formatting

@@ -44,8 +44,9 @@ class TextFrame(Subshape):
         """
         The type of automatic resizing that should be used to fit the text of
         this shape within its bounding box when the text would otherwise
-        overflow. May be |None|, MSO_AUTO_SIZE.NONE,
-        MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT, or MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE.
+        extend beyond the shape boundaries. May be |None|,
+        ``MSO_AUTO_SIZE.NONE``, ``MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT``, or
+        ``MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE``.
         """
         return self._bodyPr.autofit
 
@@ -69,8 +70,8 @@ class TextFrame(Subshape):
         Inset of text from textframe border in EMU. ``pptx.util.Inches``
         provides a convenient way of setting the value, e.g.
         ``textframe.margin_bottom = Inches(0.05)``. Returns |None| if there
-        is explicit margin setting, meaning the setting is inherited from a
-        master or theme. Conversely, setting a margin to |None| removes any
+        is no explicit margin setting, meaning the setting is inherited from
+        a master or theme. Conversely, setting a margin to |None| removes any
         explicit setting at the shape level and restores inheritance of the
         effective value.
         """

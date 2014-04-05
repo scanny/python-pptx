@@ -44,7 +44,7 @@ User Guide
    user/autoshapes
    user/use-cases
    user/concepts
-   user/autoshape-types
+   user/enum/index
 
 
 Community Guide

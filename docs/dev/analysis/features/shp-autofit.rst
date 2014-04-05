@@ -19,41 +19,6 @@ There are certain constraining settings for resizing the text, not sure if
 those are supported in PowerPoint or not.
 
 
-Procedure
----------
-
-#. acceptance test to read textframe.auto_size
-#. tests and implementation of textframe.auto_size
-#. enumeration for MSO_AUTO_SIZE
-
-
-Sketch
-------
-
-* is a property on TextFrame
-* enumeration is MsoAutoSize, members: MsoAutoSizeNone,
-  MsoAutoSizeShapeToFitText, MsoAutoSizeTextToFitShape (poss. return value is
-  MsoAutoSizeMixed, for range or group)
-* To avoid problem Peter had, the add textbox should be sensitive to whether
-  size was specified, and choose an autofit other than resize shape to fit
-  text. I'm thinking MSO_AUTO_SIZE.NONE is the right choice.
-
-
-API changes
------------
-
-* make width and height default to None on shapes.add_textbox(), allowing add
-  textbox to be called with position only.
-
-
-Acceptance Tests
-----------------
-
-1. Read .auto_size property, cases for None, 0, 1, and 2.
-2. Write (assign) .auto_size property, cases for None -> 0, 0 -> 1, 1 -> 2,
-   2 -> None.
-
-
 Protocol
 --------
 
@@ -107,21 +72,6 @@ growing to accommodate the resulting number of lines.
 ...
 
 ``MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE``, ``word_wrap = True``. Experiment ...
-
-
-Documentation Requirements
---------------------------
-
-User Guide
-~~~~~~~~~~
-
-* Example code and calling protocol to set auto_size property
-
-
-API Guide
-~~~~~~~~~
-
-* Enumeration page for MSO_AUTO_SIZE
 
 
 XML specimens

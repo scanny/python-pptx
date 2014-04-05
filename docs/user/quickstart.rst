@@ -3,8 +3,8 @@
 Getting Started
 ===============
 
-A quick way to get started is by trying out some of :ref:`the examples below
-<examples>` to get a feel for how to use |pp|.
+A quick way to get started is by trying out some of the examples below to get
+a feel for how to use |pp|.
 
 The :ref:`user API documentation <api>` can help you with the fine details of
 calling signatures and behaviors.
@@ -29,7 +29,7 @@ Hello World! example
     title_slide_layout = prs.slide_layouts[0]
     slide = prs.slides.add_slide(title_slide_layout)
     title = slide.shapes.title
-    subtitle = slide.shapes.placeholders[1]
+    subtitle = slide.placeholders[1]
 
     title.text = "Hello, World!"
     subtitle.text = "python-pptx was here!"
@@ -196,7 +196,7 @@ it contains.
 
 Constants representing each of the available auto shapes (like
 MSO_SHAPE.ROUNDED_RECT, MSO_SHAPE.CHEVRON, etc.) are listed on the
-:doc:`autoshape-types` page.
+:ref:`autoshape-types <MsoAutoShapeType>` page.
 
 
 ----

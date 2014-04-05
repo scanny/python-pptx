@@ -16,12 +16,13 @@ its ``.text`` attribute.
 Setting the slide title
 -----------------------
 
-Almost all slide layouts have a title, and the title is a placeholder. It's
-such a common operation that there is a dedicated attribute on the shape tree
-for it::
+Almost all slide layouts have a title placeholder, which any slide based on
+the layout inherits when the layout is applied. Accessing a slide's title is
+a common operation and there's a dedicated attribute on the shape tree for
+it::
 
     title_placeholder = slide.shapes.title
-    title_placeholder.text = 'Unchecked foobar considered dangerous'
+    title_placeholder.text = 'Air-speed Velocity of Unladen Swallows'
 
 
 Locating other placehoders
@@ -31,18 +32,18 @@ The title placeholder is always in the same spot, that's one reason there can
 be a dedicated attribute for it. The other placeholders can move around,
 although it's usually not hard to sort out which is which.
 
-A slide's placeholders are in its ``shapes.placeholders`` attribute, which
-supports indexed access, len(), and iteration.
+A slide's placeholders are in its ``placeholders`` attribute, which supports
+indexed access, len(), and iteration.
 
 ::
 
-    >>> placeholders = slide.shapes.placeholders
+    >>> placeholders = slide.placeholders
     >>> len(placeholders)
     3
     >>> title = shapes.title
     >>> assert title is placeholders[0]
     >>> body = placeholders[1]
-    >>> body.text = 'Make sure to double-check your foobar'
+    >>> body.text = 'Distinguish carefully between African and European swallows'
     
 The title placeholder, if present, is guaranteed to be first in the sequence.
 A body content shape, if present, is likely to be second. After that, you'll
