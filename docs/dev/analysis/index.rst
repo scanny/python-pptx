@@ -7,21 +7,24 @@ Documentation of studies undertaken in support of API and code design.
 Feature Analysis
 ----------------
 
+Roughly in reverse chronological order of creation:
+
 .. toctree::
    :maxdepth: 1
 
+   features/prs-properties
+   features/shp-autofit
+   features/shp-pos-and-size
+   features/shp-placeholders
+   features/shp-group-shape
+   features/sld-shape-tree
+   features/mst-slide-master
+   features/mst-slide-layout
    features/color
    features/txt-font-color
    features/txt-font-typeface
    features/hyperlink
-   features/mst-slide-master
-   features/mst-slide-layout
-   features/shp-autofit
    features/shp-fill
-   features/shp-group-shape
-   features/shp-placeholders
-   features/shp-pos-and-size
-   features/sld-shape-tree
    features/table
 
 
