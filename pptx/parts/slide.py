@@ -14,10 +14,11 @@ from ..opc.packuri import PackURI
 from ..oxml import parse_xml_bytes
 from ..oxml.ns import nsmap, _nsmap, qn
 from ..oxml.shared import Element, SubElement
+from ..oxml.shapes.shared import ST_PlaceholderType
 from ..shapes.autoshape import AutoShapeType
 from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
 from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
-from ..spec import slide_ph_basenames, PH_ORIENT_VERT
+from ..spec import PH_ORIENT_VERT
 from ..util import lazyproperty
 
 
@@ -393,10 +394,30 @@ class _SlideShapeTree(BaseShapeTree):
         collection. If *orient* is ``'vert'``, the placeholder name is
         prefixed with ``'Vertical '``.
         """
-        basename = slide_ph_basenames[ph_type]
+        basename = {
+            # BODY is named 'Notes Placeholder' in a notes master
+            ST_PlaceholderType.BODY:      'Text Placeholder',
+            ST_PlaceholderType.CHART:     'Chart Placeholder',
+            ST_PlaceholderType.CLIP_ART:  'ClipArt Placeholder',
+            ST_PlaceholderType.CTR_TITLE: 'Title',
+            ST_PlaceholderType.DGM:       'SmartArt Placeholder',
+            ST_PlaceholderType.DT:        'Date Placeholder',
+            ST_PlaceholderType.FTR:       'Footer Placeholder',
+            ST_PlaceholderType.HDR:       'Header Placeholder',
+            ST_PlaceholderType.MEDIA:     'Media Placeholder',
+            ST_PlaceholderType.OBJ:       'Content Placeholder',
+            ST_PlaceholderType.PIC:       'Picture Placeholder',
+            ST_PlaceholderType.SLD_IMG:   'Slide Image Placeholder',
+            ST_PlaceholderType.SLD_NUM:   'Slide Number Placeholder',
+            ST_PlaceholderType.SUB_TITLE: 'Subtitle',
+            ST_PlaceholderType.TBL:       'Table Placeholder',
+            ST_PlaceholderType.TITLE:     'Title',
+        }[ph_type]
+
         # prefix rootname with 'Vertical ' if orient is 'vert'
         if orient == PH_ORIENT_VERT:
             basename = 'Vertical %s' % basename
+
         # increment numpart as necessary to make name unique
         numpart = id - 1
         names = self._spTree.xpath('//p:cNvPr/@name', namespaces=_nsmap)
@@ -405,6 +426,7 @@ class _SlideShapeTree(BaseShapeTree):
             if name not in names:
                 break
             numpart += 1
+
         return name
 
     def _shape_factory(self, shape_elm):

@@ -6,7 +6,7 @@ Enumerations used by shapes and related objects
 
 from __future__ import absolute_import
 
-from . import (
+from .base import (
     alias, Enumeration, EnumMember, ReturnValueOnlyEnumMember
 )
 
@@ -110,5 +110,90 @@ class MSO_SHAPE_TYPE(Enumeration):
         ),
         ReturnValueOnlyEnumMember(
             'MIXED', -2, 'Mixed shape types'
+        ),
+    )
+
+
+@alias('PP_PLACEHOLDER')
+class PP_PLACEHOLDER_TYPE(Enumeration):
+    """
+    Specifies one of the 18 distinct types of placeholder.
+
+    Alias: ``PP_PLACEHOLDER``
+
+    Example::
+
+        from pptx.enum.shapes import PP_PLACEHOLDER
+
+        placeholder = slide.placeholders[0]
+        assert placeholder.type == PP_PLACEHOLDER.TITLE
+    """
+
+    __ms_name__ = 'PpPlaceholderType'
+
+    __url__ = (
+        'http://msdn.microsoft.com/en-us/library/office/ff860759(v=office.15'
+        ').aspx'
+    )
+
+    __members__ = (
+        EnumMember(
+            'BITMAP', 9, 'Clip art placeholder'
+        ),
+        EnumMember(
+            'BODY', 2, 'Body'
+        ),
+        EnumMember(
+            'CENTER_TITLE', 3, 'Center Title'
+        ),
+        EnumMember(
+            'CHART', 8, 'Chart'
+        ),
+        EnumMember(
+            'DATE', 16, 'Date'
+        ),
+        EnumMember(
+            'FOOTER', 15, 'Footer'
+        ),
+        EnumMember(
+            'HEADER', 14, 'Header'
+        ),
+        EnumMember(
+            'MEDIA_CLIP', 10, 'Media Clip'
+        ),
+        EnumMember(
+            'OBJECT', 7, 'Object'
+        ),
+        EnumMember(
+            'ORG_CHART', 11, 'SmartArt placeholder. Organization chart is a '
+            'legacy name.'
+        ),
+        EnumMember(
+            'PICTURE', 18, 'Picture'
+        ),
+        EnumMember(
+            'SLIDE_NUMBER', 13, 'Slide Number'
+        ),
+        EnumMember(
+            'SUBTITLE', 4, 'Subtitle'
+        ),
+        EnumMember(
+            'TABLE', 12, 'Table'
+        ),
+        EnumMember(
+            'TITLE', 1, 'Title'
+        ),
+        EnumMember(
+            'VERTICAL_BODY', 6, 'Vertical Body'
+        ),
+        EnumMember(
+            'VERTICAL_OBJECT', 17, 'Vertical Object'
+        ),
+        EnumMember(
+            'VERTICAL_TITLE', 5, 'Vertical Title'
+        ),
+        ReturnValueOnlyEnumMember(
+            'MIXED', -2, 'Return value only; multiple placeholders of differ'
+            'ing types.'
         ),
     )

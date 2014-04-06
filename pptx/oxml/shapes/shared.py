@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from ..ns import _nsmap, qn
 from ..shared import BaseOxmlElement, Element
-from ...spec import PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_OBJ
+from ...spec import PH_ORIENT_HORZ, PH_SZ_FULL
 
 
 class BaseShapeElement(BaseOxmlElement):
@@ -106,7 +106,7 @@ class BaseShapeElement(BaseOxmlElement):
         ph = self.ph
         if ph is None:
             return None
-        return ph.get('type', PH_TYPE_OBJ)
+        return ph.get('type', ST_PlaceholderType.OBJ)
 
     @property
     def shape_id(self):
@@ -281,3 +281,23 @@ class CT_Transform2D(BaseOxmlElement):
         The <a:off> child element, or None if not present.
         """
         return self.find(qn('a:off'))
+
+
+class ST_PlaceholderType(object):
+
+    BODY = 'body'
+    CHART = 'chart'
+    CLIP_ART = 'clipArt'
+    CTR_TITLE = 'ctrTitle'
+    DGM = 'dgm'
+    DT = 'dt'
+    FTR = 'ftr'
+    HDR = 'hdr'
+    MEDIA = 'media'
+    OBJ = 'obj'
+    PIC = 'pic'
+    SLD_IMG = 'sldImg'
+    SLD_NUM = 'sldNum'
+    SUB_TITLE = 'subTitle'
+    TBL = 'tbl'
+    TITLE = 'title'

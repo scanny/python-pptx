@@ -10,10 +10,10 @@ from warnings import warn
 
 from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..oxml.ns import qn
+from ..oxml.shapes.shared import ST_PlaceholderType
 from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
 from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
 from .slide import BaseSlide
-from ..spec import PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_SLDNUM
 from ..util import lazyproperty
 
 
@@ -28,7 +28,10 @@ class SlideLayout(BaseSlide):
         that should be cloned to a slide when the layout is applied to the
         slide.
         """
-        latent_ph_types = (PH_TYPE_DT, PH_TYPE_SLDNUM, PH_TYPE_FTR)
+        latent_ph_types = (
+            ST_PlaceholderType.DT, ST_PlaceholderType.FTR,
+            ST_PlaceholderType.SLD_NUM
+        )
         for ph in self.placeholders:
             if ph.ph_type not in latent_ph_types:
                 yield ph

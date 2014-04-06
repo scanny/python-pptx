@@ -19,6 +19,7 @@ from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
+from pptx.oxml.shapes.shared import ST_PlaceholderType
 from pptx.oxml.slide import CT_Slide
 from pptx.package import Package
 from pptx.parts.image import Image as ImagePart
@@ -33,9 +34,7 @@ from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import BasePlaceholder
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.table import Table
-from pptx.spec import (
-    PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_TYPE_OBJ, PH_TYPE_TBL, PH_TYPE_TITLE
-)
+from pptx.spec import PH_ORIENT_HORZ, PH_ORIENT_VERT
 
 from ..oxml.unitdata.shape import (
     a_cNvPr, a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr,
@@ -683,10 +682,14 @@ class Describe_SlideShapeTree(object):
         return shapes
 
     @pytest.fixture(params=[
-        (PH_TYPE_OBJ,   3, PH_ORIENT_HORZ, 'Content Placeholder 2'),
-        (PH_TYPE_TBL,   4, PH_ORIENT_HORZ, 'Table Placeholder 4'),
-        (PH_TYPE_TBL,   7, PH_ORIENT_VERT, 'Vertical Table Placeholder 6'),
-        (PH_TYPE_TITLE, 2, PH_ORIENT_HORZ, 'Title 2'),
+        (ST_PlaceholderType.OBJ,   3, PH_ORIENT_HORZ,
+         'Content Placeholder 2'),
+        (ST_PlaceholderType.TBL,   4, PH_ORIENT_HORZ,
+         'Table Placeholder 4'),
+        (ST_PlaceholderType.TBL,   7, PH_ORIENT_VERT,
+         'Vertical Table Placeholder 6'),
+        (ST_PlaceholderType.TITLE, 2, PH_ORIENT_HORZ,
+         'Title 2'),
     ])
     def ph_name_fixture(self, request, slide_):
         ph_type, id_, orient, expected_name = request.param

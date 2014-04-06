@@ -17,3 +17,4 @@ can be found here:
    MsoVerticalAnchor
 
    PpParagraphAlignment
+   PpPlaceholderType

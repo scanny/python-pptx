@@ -10,13 +10,10 @@ from lxml import objectify
 
 from .. import parse_xml_bytes
 from ..ns import nsdecls, _nsmap, qn
-from .shared import BaseShapeElement
+from .shared import BaseShapeElement, ST_PlaceholderType
 from ..shared import BaseOxmlElement, child, Element, SubElement
 from ..text import CT_TextBody
-from ...spec import (
-    PH_ORIENT_HORZ, PH_SZ_FULL, PH_TYPE_BODY, PH_TYPE_CTRTITLE, PH_TYPE_OBJ,
-    PH_TYPE_SUBTITLE, PH_TYPE_TITLE
-)
+from ...spec import PH_ORIENT_HORZ, PH_SZ_FULL
 
 
 class CT_PresetGeometry2D(BaseOxmlElement):
@@ -189,7 +186,7 @@ class CT_Shape(BaseShapeElement):
 
         # placeholder (ph) element attributes values vary by type
         ph = SubElement(sp.nvSpPr.nvPr, 'p:ph')
-        if ph_type != PH_TYPE_OBJ:
+        if ph_type != ST_PlaceholderType.OBJ:
             ph.set('type', ph_type)
         if orient != PH_ORIENT_HORZ:
             ph.set('orient', orient)
@@ -199,8 +196,10 @@ class CT_Shape(BaseShapeElement):
             ph.set('idx', str(idx))
 
         placeholder_types_that_have_a_text_frame = (
-            PH_TYPE_TITLE, PH_TYPE_CTRTITLE, PH_TYPE_SUBTITLE, PH_TYPE_BODY,
-            PH_TYPE_OBJ)
+            ST_PlaceholderType.TITLE, ST_PlaceholderType.CTR_TITLE,
+            ST_PlaceholderType.SUB_TITLE, ST_PlaceholderType.BODY,
+            ST_PlaceholderType.OBJ
+        )
 
         if ph_type in placeholder_types_that_have_a_text_frame:
             sp.append(CT_TextBody.new_txBody())

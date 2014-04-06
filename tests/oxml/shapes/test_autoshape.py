@@ -12,10 +12,9 @@ from pptx.oxml.shapes.autoshape import (
     CT_PresetGeometry2D, CT_Shape, CT_ShapeProperties
 )
 from pptx.oxml.ns import nsdecls
+from pptx.oxml.shapes.shared import ST_PlaceholderType
 from pptx.spec import (
-    PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER,
-    PH_TYPE_CTRTITLE, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_SLDNUM,
-    PH_TYPE_SUBTITLE, PH_TYPE_TBL
+    PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER
 )
 
 from ..unitdata.shape import (
@@ -221,33 +220,34 @@ class TestCT_Shape(TestCase):
             '  <p:txBody>\n    <a:bodyPr/>\n    <a:lstStyle/>\n    <a:p/>\n  '
             '</p:txBody>\n')
         test_cases = (
-            (2, 'Title 1', PH_TYPE_CTRTITLE, PH_ORIENT_HORZ, PH_SZ_FULL,
-             0),
-            (3, 'Date Placeholder 2', PH_TYPE_DT, PH_ORIENT_HORZ, PH_SZ_HALF,
-             10),
-            (4, 'Vertical Subtitle 3', PH_TYPE_SUBTITLE, PH_ORIENT_VERT,
-             PH_SZ_FULL, 1),
-            (5, 'Table Placeholder 4', PH_TYPE_TBL, PH_ORIENT_HORZ,
-             PH_SZ_QUARTER, 14),
-            (6, 'Slide Number Placeholder 5', PH_TYPE_SLDNUM, PH_ORIENT_HORZ,
-             PH_SZ_QUARTER, 12),
-            (7, 'Footer Placeholder 6', PH_TYPE_FTR, PH_ORIENT_HORZ,
-             PH_SZ_QUARTER, 11),
-            (8, 'Content Placeholder 7', PH_TYPE_OBJ, PH_ORIENT_HORZ,
-             PH_SZ_FULL, 15)
+            (2, 'Title 1', ST_PlaceholderType.CTR_TITLE, PH_ORIENT_HORZ,
+             PH_SZ_FULL, 0),
+            (3, 'Date Placeholder 2', ST_PlaceholderType.DT, PH_ORIENT_HORZ,
+             PH_SZ_HALF, 10),
+            (4, 'Vertical Subtitle 3', ST_PlaceholderType.SUB_TITLE,
+             PH_ORIENT_VERT, PH_SZ_FULL, 1),
+            (5, 'Table Placeholder 4', ST_PlaceholderType.TBL,
+             PH_ORIENT_HORZ, PH_SZ_QUARTER, 14),
+            (6, 'Slide Number Placeholder 5', ST_PlaceholderType.SLD_NUM,
+             PH_ORIENT_HORZ, PH_SZ_QUARTER, 12),
+            (7, 'Footer Placeholder 6', ST_PlaceholderType.FTR,
+             PH_ORIENT_HORZ, PH_SZ_QUARTER, 11),
+            (8, 'Content Placeholder 7', ST_PlaceholderType.OBJ,
+             PH_ORIENT_HORZ, PH_SZ_FULL, 15)
         )
         expected_values = (
-            (2, 'Title 1', ' type="%s"' % PH_TYPE_CTRTITLE, txBody_snippet),
+            (2, 'Title 1', ' type="%s"' % ST_PlaceholderType.CTR_TITLE,
+             txBody_snippet),
             (3, 'Date Placeholder 2', ' type="%s" sz="half" idx="10"' %
-             PH_TYPE_DT, ''),
+             ST_PlaceholderType.DT, ''),
             (4, 'Vertical Subtitle 3', ' type="%s" orient="vert" idx="1"' %
-             PH_TYPE_SUBTITLE, txBody_snippet),
+             ST_PlaceholderType.SUB_TITLE, txBody_snippet),
             (5, 'Table Placeholder 4', ' type="%s" sz="quarter" idx="14"' %
-             PH_TYPE_TBL, ''),
+             ST_PlaceholderType.TBL, ''),
             (6, 'Slide Number Placeholder 5', ' type="%s" sz="quarter" '
-             'idx="12"' % PH_TYPE_SLDNUM, ''),
+             'idx="12"' % ST_PlaceholderType.SLD_NUM, ''),
             (7, 'Footer Placeholder 6', ' type="%s" sz="quarter" idx="11"' %
-             PH_TYPE_FTR, ''),
+             ST_PlaceholderType.FTR, ''),
             (8, 'Content Placeholder 7', ' idx="15"', txBody_snippet)
         )
         # exercise ---------------------

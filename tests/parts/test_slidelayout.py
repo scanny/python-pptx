@@ -10,6 +10,7 @@ import pytest
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.shapes.autoshape import CT_Shape
+from pptx.oxml.shapes.shared import ST_PlaceholderType
 from pptx.parts.slidelayout import (
     _LayoutPlaceholder, _LayoutPlaceholders, _LayoutShapeFactory,
     _LayoutShapeTree, SlideLayout
@@ -17,9 +18,6 @@ from pptx.parts.slidelayout import (
 from pptx.parts.slidemaster import _MasterPlaceholder, SlideMaster
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import BaseShapeTree
-from pptx.spec import (
-    PH_TYPE_BODY, PH_TYPE_DT, PH_TYPE_FTR, PH_TYPE_OBJ, PH_TYPE_TITLE
-)
 
 from ..oxml.unitdata.shape import (
     a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr, an_xfrm
@@ -62,10 +60,10 @@ class DescribeSlideLayout(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ((PH_TYPE_TITLE, PH_TYPE_BODY), (0, 1)),
-        ((PH_TYPE_TITLE, PH_TYPE_DT),   (0,)),
-        ((PH_TYPE_DT,    PH_TYPE_OBJ),  (1,)),
-        ((PH_TYPE_DT,    PH_TYPE_FTR),  ()),
+        ((ST_PlaceholderType.TITLE, ST_PlaceholderType.BODY), (0, 1)),
+        ((ST_PlaceholderType.TITLE, ST_PlaceholderType.DT),   (0,)),
+        ((ST_PlaceholderType.DT,    ST_PlaceholderType.OBJ),  (1,)),
+        ((ST_PlaceholderType.DT,    ST_PlaceholderType.FTR),  ()),
     ])
     def cloneable_fixture(
             self, request, placeholders_, placeholder_, placeholder_2_):

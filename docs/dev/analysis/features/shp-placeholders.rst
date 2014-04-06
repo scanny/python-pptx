@@ -425,6 +425,7 @@ Observations:
 Layout placeholder with *lyt-ph-type* inherits color from master placeholder
 with *mst-ph-type*, noting idx value match.
 
+===========  ===========  ===================================================
 lyt-ph-type  mst-ph-type  notes
 ===========  ===========  ===================================================
 ctrTitle     title        title layout - idx value matches (None, => 0)
