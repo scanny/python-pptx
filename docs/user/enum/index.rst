@@ -12,6 +12,7 @@ can be found here:
    MsoAutoSize
    MsoColorType
    MsoFillType
+   MsoShapeType
    MsoThemeColorIndex
    MsoVerticalAnchor
 

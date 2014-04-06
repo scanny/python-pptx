@@ -5,8 +5,8 @@ Table-related objects such as Table and Cell.
 """
 
 from . import Subshape
-from ..constants import MSO
 from ..dml.fill import FillFormat
+from ..enum.shapes import MSO_SHAPE_TYPE
 from .graphfrm import GraphicFrame
 from ..oxml.ns import qn
 from ..text import TextFrame
@@ -132,9 +132,9 @@ class Table(GraphicFrame):
     def shape_type(self):
         """
         Unique integer identifying the type of this shape, unconditionally
-        ``MSO.TABLE`` in this case.
+        ``MSO_SHAPE_TYPE.TABLE`` in this case.
         """
-        return MSO.TABLE
+        return MSO_SHAPE_TYPE.TABLE
 
     @property
     def vert_banding(self):
@@ -235,7 +235,7 @@ class _Cell(Subshape):
     def vertical_anchor(self):
         """
         Vertical anchor of this table cell, determines the vertical alignment
-        of text in the cell. Value is like ``MSO.ANCHOR_MIDDLE``. Can be
+        of text in the cell. Value is like ``MSO_ANCHOR.MIDDLE``. Can be
         |None|, meaning the cell has no vertical anchor setting and its
         effective value is inherited from a higher-level object.
         """

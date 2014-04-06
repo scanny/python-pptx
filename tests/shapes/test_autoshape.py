@@ -6,8 +6,9 @@ from __future__ import absolute_import
 
 import pytest
 
-from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
+from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.dml.fill import FillFormat
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
@@ -324,13 +325,13 @@ class DescribeShape(object):
 
     def it_knows_its_shape_type_when_its_a_placeholder(
             self, placeholder_shape_):
-        assert placeholder_shape_.shape_type == MSO.PLACEHOLDER
+        assert placeholder_shape_.shape_type == MSO_SHAPE_TYPE.PLACEHOLDER
 
     def it_knows_its_shape_type_when_its_not_a_placeholder(
             self, non_placeholder_shapes_):
         autoshape_shape_, textbox_shape_ = non_placeholder_shapes_
-        assert autoshape_shape_.shape_type == MSO.AUTO_SHAPE
-        assert textbox_shape_.shape_type == MSO.TEXT_BOX
+        assert autoshape_shape_.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+        assert textbox_shape_.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
 
     def it_raises_when_shape_type_called_on_unrecognized_shape(self):
         xml = (

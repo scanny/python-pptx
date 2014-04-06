@@ -3,11 +3,12 @@
 ``MSO_AUTO_SHAPE_TYPE``
 =======================
 
-.. Auto Shape Types
-.. ================
-
 The following names can be used to specify an auto-shape type, such as
-a rectangle or arrow, for example::
+a rectangle or arrow.
+
+Alias: ``MSO_SHAPE``
+
+Example::
 
     from pptx.constants import MSO_SHAPE
 

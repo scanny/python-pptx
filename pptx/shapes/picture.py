@@ -4,8 +4,8 @@
 Picture shape.
 """
 
-from pptx.constants import MSO
-from pptx.shapes.shape import BaseShape
+from ..enum.shapes import MSO_SHAPE_TYPE
+from .shape import BaseShape
 
 
 class Picture(BaseShape):
@@ -21,6 +21,6 @@ class Picture(BaseShape):
     def shape_type(self):
         """
         Unique integer identifying the type of this shape, unconditionally
-        ``MSO.PICTURE`` in this case.
+        ``MSO_SHAPE_TYPE.PICTURE`` in this case.
         """
-        return MSO.PICTURE
+        return MSO_SHAPE_TYPE.PICTURE

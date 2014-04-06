@@ -126,13 +126,9 @@ class TextFrame(Subshape):
         """
         Set ``anchor`` attribute of ``<a:bodyPr>`` element
         """
-        value_map = {
-            MSO_ANCHOR.TOP:    't',
-            MSO_ANCHOR.MIDDLE: 'ctr',
-            MSO_ANCHOR.BOTTOM: 'b'
-        }
+        anchor = MSO_ANCHOR.to_xml(value)
         bodyPr = get_or_add(self._txBody, 'a:bodyPr')
-        bodyPr.set('anchor', value_map[value])
+        bodyPr.set('anchor', anchor)
 
     #: Write-only. Assignment to *vertical_anchor* sets the vertical
     #: alignment of the text frame to top, middle, or bottom. Valid values are

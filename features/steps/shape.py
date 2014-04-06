@@ -10,9 +10,10 @@ from behave import given, when, then
 from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
-from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST, MSO
+from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.util import Inches
 
 from .helpers import saved_pptx_path, test_pptx, test_text
@@ -179,7 +180,7 @@ def then_auto_shape_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
     sp = prs.slides[0].shapes[0]
     sp_text = sp.textframe.paragraphs[0].runs[0].text
-    assert_that(sp.shape_type, is_(equal_to(MSO.AUTO_SHAPE)))
+    assert_that(sp.shape_type, is_(equal_to(MSO_SHAPE_TYPE.AUTO_SHAPE)))
     assert_that(sp.auto_shape_type, is_(equal_to(MAST.ROUNDED_RECTANGLE)))
     assert_that(sp_text, is_(equal_to(test_text)))
 

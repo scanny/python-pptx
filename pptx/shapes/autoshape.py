@@ -6,8 +6,8 @@ Autoshape-related objects such as Shape and Adjustment.
 
 from numbers import Number
 
-from ..constants import MSO
 from ..dml.fill import FillFormat
+from ..enum.shapes import MSO_SHAPE_TYPE
 from .shape import BaseShape
 from ..spec import autoshape_types
 from ..util import lazyproperty
@@ -171,7 +171,7 @@ class AutoShapeType(object):
     .. attribute:: autoshape_type_id
 
        Integer uniquely identifying this auto shape type. Corresponds to a
-       value in ``pptx.constants.MSO`` like ``MSO.SHAPE_ROUNDED_RECTANGLE``.
+       value in ``pptx.constants.MSO`` like ``MSO_SHAPE.ROUNDED_RECTANGLE``.
 
     .. attribute:: basename
 
@@ -252,7 +252,7 @@ class AutoShapeType(object):
     @classmethod
     def id_from_prst(cls, prst):
         """
-        Return auto shape id (e.g. ``MSO.SHAPE_RECTANGLE``) corresponding to
+        Return auto shape id (e.g. ``MSO_SHAPE.RECTANGLE``) corresponding to
         preset geometry keyword *prst*.
         """
         for autoshape_type_id, attribs in autoshape_types.iteritems():
@@ -293,7 +293,7 @@ class Shape(BaseShape):
     def auto_shape_type(self):
         """
         Unique integer identifying the type of this auto shape, like
-        ``MSO.SHAPE_ROUNDED_RECTANGLE``. Raises |ValueError| if this shape is
+        ``MSO_SHAPE.ROUNDED_RECTANGLE``. Raises |ValueError| if this shape is
         not an auto shape.
         """
         if not self._sp.is_autoshape:
@@ -315,13 +315,13 @@ class Shape(BaseShape):
     def shape_type(self):
         """
         Unique integer identifying the type of this shape, like
-        ``MSO.TEXT_BOX``.
+        ``MSO_SHAPE_TYPE.TEXT_BOX``.
         """
         if self.is_placeholder:
-            return MSO.PLACEHOLDER
+            return MSO_SHAPE_TYPE.PLACEHOLDER
         if self._sp.is_autoshape:
-            return MSO.AUTO_SHAPE
+            return MSO_SHAPE_TYPE.AUTO_SHAPE
         if self._sp.is_textbox:
-            return MSO.TEXT_BOX
+            return MSO_SHAPE_TYPE.TEXT_BOX
         msg = 'Shape instance of unrecognized shape type'
         raise NotImplementedError(msg)

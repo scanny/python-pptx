@@ -99,14 +99,13 @@ alignment is set on the textframe. Horizontal alignment is set on each
 paragraph::
 
     from pptx.util import Inches
-    from pptx.constants import MSO
-    from pptx.enum.text import MSO_AUTO_SIZE
+    from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE
 
     textframe = shape.textframe
     textframe.text = 'Spam, eggs, and spam'
     textframe.margin_bottom = Inches(0.08)
     textframe.margin_left = 0
-    textframe.vertical_anchor = MSO.ANCHOR_TOP
+    textframe.vertical_anchor = MSO_ANCHOR.TOP
     textframe.word_wrap = False
     textframe.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
 

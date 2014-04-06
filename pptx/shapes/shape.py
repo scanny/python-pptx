@@ -91,8 +91,8 @@ class BaseShape(object):
     @property
     def shape_type(self):
         """
-        Unique integer identifying the type of this shape, like ``MSO.CHART``.
-        Must be implemented by subclasses.
+        Unique integer identifying the type of this shape, like
+        ``MSO_SHAPE_TYPE.CHART``. Must be implemented by subclasses.
         """
         # # This one returns |None| unconditionally to account for shapes
         # # that haven't been implemented yet, like group shape and chart.

@@ -237,7 +237,7 @@ class _SlideShapeTree(BaseShapeTree):
     def add_shape(self, autoshape_type_id, left, top, width, height):
         """
         Add auto shape of type specified by *autoshape_type_id* (like
-        ``MSO.SHAPE_RECTANGLE``) and of specified size at specified position.
+        ``MSO_SHAPE.RECTANGLE``) and of specified size at specified position.
         """
         autoshape_type = AutoShapeType(autoshape_type_id)
         sp = self._add_sp_from_autoshape_type(
