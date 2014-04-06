@@ -259,22 +259,6 @@ class MSO(object):
     # 'straightConnector1'
 
 
-class TEXT_ALIGN_TYPE(object):
-    """
-    Constants containing the valid values of ST_TextAlignType in Open XML.
-    These values appear in the ``algn`` attribute of the ``<a:pPr>`` element
-    and other places in Open XML.
-    """
-    # ST_TextAlignType -----------------
-    CENTER = 'ctr'
-    DISTRIBUTE = 'dist'
-    JUSTIFY = 'just'
-    JUSTIFY_LOW = 'justLow'
-    LEFT = 'l'
-    RIGHT = 'r'
-    THAI_DISTRIBUTE = 'thaiDist'
-
-
 class TEXT_ANCHORING_TYPE(object):
     """
     Constants containing the valid values of ST_TextAnchoringType in Open

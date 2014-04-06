@@ -6,12 +6,11 @@ Text-related objects such as TextFrame and Paragraph.
 
 from .dml.fill import FillFormat
 from .enum.dml import MSO_FILL
-from .enum.text import MSO_ANCHOR
+from .enum.text import MSO_ANCHOR, PP_ALIGN
 from .opc.constants import RELATIONSHIP_TYPE as RT
 from .oxml.shared import Element, get_or_add
 from .oxml.ns import _nsmap, qn
 from .shapes import Subshape
-from .spec import ParagraphAlignment
 from .util import lazyproperty, to_unicode
 
 
@@ -323,15 +322,15 @@ class _Paragraph(Subshape):
     def alignment(self):
         """
         Horizontal alignment of this paragraph, represented by a constant
-        value like ``PP.ALIGN_CENTER``. Its value can be |None|, meaning the
+        value like ``PP_ALIGN.CENTER``. Its value can be |None|, meaning the
         paragraph has no alignment setting and its effective value is
         inherited from a higher-level object.
         """
-        return ParagraphAlignment.from_text_align_type(self._pPr.algn)
+        return PP_ALIGN.from_xml(self._pPr.algn)
 
     @alignment.setter
     def alignment(self, alignment):
-        algn = ParagraphAlignment.to_text_align_type(alignment)
+        algn = PP_ALIGN.to_xml(alignment)
         self._pPr.algn = algn
 
     def clear(self):

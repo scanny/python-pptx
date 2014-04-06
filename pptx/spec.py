@@ -8,59 +8,8 @@ them.
 
 from __future__ import absolute_import
 
-from pptx.constants import (
-    MSO_AUTO_SHAPE_TYPE as MAST, TEXT_ALIGN_TYPE as TAT
-)
-from pptx.enum.text import PP_ALIGN
+from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.opc.constants import CONTENT_TYPE as CT
-
-
-class ParagraphAlignment(object):
-    """
-    Mappings between ``PpParagraphAlignment`` values used in the API and
-    ``ST_TextAlignType`` values used in the XML. ``PpParagraphAlignment``
-    values are like ``PP_ALIGN.CENTER``.
-    """
-    _mapping = {
-        PP_ALIGN.CENTER:          TAT.CENTER,
-        PP_ALIGN.DISTRIBUTE:      TAT.DISTRIBUTE,
-        PP_ALIGN.JUSTIFY:         TAT.JUSTIFY,
-        PP_ALIGN.JUSTIFY_LOW:     TAT.JUSTIFY_LOW,
-        PP_ALIGN.LEFT:            TAT.LEFT,
-        PP_ALIGN.RIGHT:           TAT.RIGHT,
-        PP_ALIGN.THAI_DISTRIBUTE: TAT.THAI_DISTRIBUTE
-    }
-
-    @classmethod
-    def from_text_align_type(cls, text_align_type):
-        """
-        Map an ``ST_TextAlignType`` value (e.g. ``TAT.CENTER`` or ``'ctr'``)
-        to a paragraph alignment value (e.g. ``PP_ALIGN.CENTER``). Returns
-        None if *text_align_type* is None.
-        """
-        if text_align_type is None:
-            return None
-        for alignment, tat in cls._mapping.iteritems():
-            if tat == text_align_type:
-                return alignment
-        tmpl = "no ST_TextAlignType '%s'"
-        raise KeyError(tmpl % text_align_type)
-
-    @classmethod
-    def to_text_align_type(cls, alignment):
-        """
-        Map a paragraph alignment value (e.g. ``PP_ALIGN.CENTER``) to an
-        ``ST_TextAlignType`` value (e.g. ``TAT.CENTER`` or ``'ctr'``).
-        Returns None if *alignment* is None.
-        """
-        if alignment is None:
-            return None
-        try:
-            text_align_type = cls._mapping[alignment]
-        except KeyError:
-            tmpl = "no ST_TextAlignType value for alignment '%s'"
-            raise KeyError(tmpl % alignment)
-        return text_align_type
 
 
 # ============================================================================
