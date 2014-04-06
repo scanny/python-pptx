@@ -257,18 +257,3 @@ class MSO(object):
     # 'line'
 
     # 'straightConnector1'
-
-
-class TEXT_ANCHORING_TYPE(object):
-    """
-    Constants containing the valid values of ST_TextAnchoringType in Open
-    XML. These values appear in the ``anchor`` attribute of the ``<a:tcPr>``
-    element of a table cell and the ``<a:bodyPr>`` element of a text frame.
-    Specifies the vertical alignment of text in the frame.
-    """
-    # ST_TextAnchoringType -------------
-    TOP = 't'
-    MIDDLE = 'ctr'
-    BOTTOM = 'b'
-    JUSTIFY = 'just'
-    DISTRIBUTE = 'dist'
