@@ -7,13 +7,11 @@ Gherkin step implementations for shape-related features.
 from __future__ import absolute_import, print_function
 
 from behave import given, when, then
-from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
-from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
-from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
 from pptx.util import Inches
 
 from .helpers import saved_pptx_path, test_pptx, test_text
@@ -83,7 +81,7 @@ def given_an_autoshape(context):
     blank_slide_layout = prs.slide_layouts[6]
     shapes = prs.slides.add_slide(blank_slide_layout).shapes
     x = y = cx = cy = 914400
-    context.shape = shapes.add_shape(MAST.ROUNDED_RECTANGLE, x, y, cx, cy)
+    context.shape = shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, cx, cy)
 
 
 @given('I have a reference to a chevron shape')
@@ -92,7 +90,7 @@ def given_ref_to_chevron_shape(context):
     blank_slide_layout = context.prs.slide_layouts[6]
     shapes = context.prs.slides.add_slide(blank_slide_layout).shapes
     x = y = cx = cy = 914400
-    context.chevron_shape = shapes.add_shape(MAST.CHEVRON, x, y, cx, cy)
+    context.chevron_shape = shapes.add_shape(MSO_SHAPE.CHEVRON, x, y, cx, cy)
 
 
 # when ====================================================
@@ -111,7 +109,7 @@ def when_add_auto_shape(context):
     shapes = context.sld.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(4.00))
-    sp = shapes.add_shape(MAST.ROUNDED_RECTANGLE, x, y, cx, cy)
+    sp = shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, cx, cy)
     sp.text = test_text
 
 
@@ -180,15 +178,15 @@ def then_auto_shape_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
     sp = prs.slides[0].shapes[0]
     sp_text = sp.textframe.paragraphs[0].runs[0].text
-    assert_that(sp.shape_type, is_(equal_to(MSO_SHAPE_TYPE.AUTO_SHAPE)))
-    assert_that(sp.auto_shape_type, is_(equal_to(MAST.ROUNDED_RECTANGLE)))
-    assert_that(sp_text, is_(equal_to(test_text)))
+    assert sp.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+    assert sp.auto_shape_type == MSO_SHAPE.ROUNDED_RECTANGLE
+    assert sp_text == test_text
 
 
 @then('the chevron shape appears with a less acute arrow head')
 def then_chevron_shape_appears_with_less_acute_arrow_head(context):
     chevron = Presentation(saved_pptx_path).slides[0].shapes[0]
-    assert_that(chevron.adjustments[0], is_(equal_to(0.15)))
+    assert chevron.adjustments[0] == 0.15
 
 
 @then('the fill type of the shape is background')
@@ -313,4 +311,4 @@ def then_text_box_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
     textbox = prs.slides[0].shapes[0]
     textbox_text = textbox.textframe.paragraphs[0].runs[0].text
-    assert_that(textbox_text, is_(equal_to(test_text)))
+    assert textbox_text == test_text

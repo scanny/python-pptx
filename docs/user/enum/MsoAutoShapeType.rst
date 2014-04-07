@@ -3,19 +3,19 @@
 ``MSO_AUTO_SHAPE_TYPE``
 =======================
 
-The following names can be used to specify an auto-shape type, such as
-a rectangle or arrow.
+Specifies a type of AutoShape, e.g. DOWN_ARROW
 
 Alias: ``MSO_SHAPE``
 
 Example::
 
-    from pptx.constants import MSO_SHAPE
+    from pptx.enum.shapes import MSO_SHAPE
+    from pptx.util import Inches
 
-    shape = slide.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW)
-    
-The full name of this enumeration is ``MSO_AUTO_SHAPE_TYPE``. ``MSO_SHAPE``
-is provided as a more compact alias.
+    left = top = width = height = Inches(1.0)
+    slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height
+    )
 
 ----
 
@@ -63,7 +63,7 @@ BALLOON
     Rounded Rectangular Callout
 
 BENT_ARROW
-    Block arrow that follows a curved 90-degree angle.
+    Block arrow that follows a curved 90-degree angle
 
 BENT_UP_ARROW
     Block arrow that follows a sharp 90-degree angle. Points up by default.
@@ -93,7 +93,7 @@ CHORD
     Geometric chord shape
 
 CIRCULAR_ARROW
-    Block arrow that follows a curved 180-degree angle.
+    Block arrow that follows a curved 180-degree angle
 
 CLOUD
     Cloud
@@ -162,7 +162,7 @@ DOWN_ARROW_CALLOUT
     Callout with arrow that points down
 
 DOWN_RIBBON
-    Ribbon banner with center area below ribbon ends.
+    Ribbon banner with center area below ribbon ends
 
 EXPLOSION1
     Explosion
@@ -243,7 +243,7 @@ FLOWCHART_PUNCHED_TAPE
     Punched tape flowchart symbol
 
 FLOWCHART_SEQUENTIAL_ACCESS_STORAGE
-    Sequential access storage flowchart symbol.
+    Sequential access storage flowchart symbol
 
 FLOWCHART_SORT
     Sort flowchart symbol
@@ -306,10 +306,10 @@ LEFT_CIRCULAR_ARROW
     Left Circular Arrow
 
 LEFT_RIGHT_ARROW
-    Block arrow with arrowheads that point both left and right.
+    Block arrow with arrowheads that point both left and right
 
 LEFT_RIGHT_ARROW_CALLOUT
-    Callout with arrowheads that point both left and right.
+    Callout with arrowheads that point both left and right
 
 LEFT_RIGHT_CIRCULAR_ARROW
     Left Right Circular Arrow
@@ -318,22 +318,22 @@ LEFT_RIGHT_RIBBON
     Left Right Ribbon
 
 LEFT_RIGHT_UP_ARROW
-    Block arrow with arrowheads that point left, right, and up.
+    Block arrow with arrowheads that point left, right, and up
 
 LEFT_UP_ARROW
-    Block arrow with arrowheads that point left and up.
+    Block arrow with arrowheads that point left and up
 
 LIGHTNING_BOLT
     Lightning bolt
 
 LINE_CALLOUT_1
-    Callout with border and horizontal callout line.
+    Callout with border and horizontal callout line
 
 LINE_CALLOUT_1_ACCENT_BAR
     Callout with vertical accent bar
 
 LINE_CALLOUT_1_BORDER_AND_ACCENT_BAR
-    Callout with border and vertical accent bar.
+    Callout with border and vertical accent bar
 
 LINE_CALLOUT_1_NO_BORDER
     Callout with horizontal line
@@ -342,38 +342,38 @@ LINE_CALLOUT_2
     Callout with diagonal straight line
 
 LINE_CALLOUT_2_ACCENT_BAR
-    Callout with diagonal callout line and accent bar.
+    Callout with diagonal callout line and accent bar
 
 LINE_CALLOUT_2_BORDER_AND_ACCENT_BAR
-    Callout with border, diagonal straight line, and accent bar.
+    Callout with border, diagonal straight line, and accent bar
 
 LINE_CALLOUT_2_NO_BORDER
-    Callout with no border and diagonal callout line.
+    Callout with no border and diagonal callout line
 
 LINE_CALLOUT_3
     Callout with angled line
 
 LINE_CALLOUT_3_ACCENT_BAR
-    Callout with angled callout line and accent bar.
+    Callout with angled callout line and accent bar
 
 LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR
-    Callout with border, angled callout line, and accent bar.
+    Callout with border, angled callout line, and accent bar
 
 LINE_CALLOUT_3_NO_BORDER
-    Callout with no border and angled callout line.
+    Callout with no border and angled callout line
 
 LINE_CALLOUT_4
-    Callout with callout line segments forming a U-shape.
+    Callout with callout line segments forming a U-shape
 
 LINE_CALLOUT_4_ACCENT_BAR
-    Callout with accent bar and callout line segments forming a U-shape.
+    Callout with accent bar and callout line segments forming a U-shape
 
 LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR
     Callout with border, accent bar, and callout line segments forming a
-    U-shape.
+    U-shape
 
 LINE_CALLOUT_4_NO_BORDER
-    Callout with no border and callout line segments forming a U-shape..
+    Callout with no border and callout line segments forming a U-shape.
 
 LINE_INVERSE
     Straight Connector
@@ -436,10 +436,10 @@ PLAQUE_TABS
     Plaque Tabs
 
 QUAD_ARROW
-    Block arrows that point up, down, left, and right.
+    Block arrows that point up, down, left, and right
 
 QUAD_ARROW_CALLOUT
-    Callout with arrows that point up, down, left, and right.
+    Callout with arrows that point up, down, left, and right
 
 RECTANGLE
     Rectangle
@@ -529,7 +529,7 @@ STAR_8_POINT
     8-point star
 
 STRIPED_RIGHT_ARROW
-    Block arrow that points right with stripes at the tail.
+    Block arrow that points right with stripes at the tail
 
 SUN
     Sun
@@ -556,10 +556,10 @@ UP_DOWN_ARROW
     Block arrow that points up and down
 
 UP_DOWN_ARROW_CALLOUT
-    Callout with arrows that point up and down.
+    Callout with arrows that point up and down
 
 UP_RIBBON
-    Ribbon banner with center area above ribbon ends.
+    Ribbon banner with center area above ribbon ends
 
 VERTICAL_SCROLL
     Vertical scroll

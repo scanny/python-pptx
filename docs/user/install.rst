@@ -4,7 +4,7 @@ Installing
 ==========
 
 |pp| is hosted on PyPI, so installation is relatively simple, and just
-depends on what installation utilit(y/ies) you have installed.
+depends on what installation utilities you have installed.
 
 |pp| may be installed with ``pip`` if you have it available::
 
@@ -33,9 +33,9 @@ Dependencies
 
 * Python 2.6 or 2.7
 * lxml
-* Python Imaging Library (PIL)
+* Pillow
 
 Currently |pp| requires Python 2.6 or 2.7. Support for earlier versions is not
 planned as it complicates future support for Python 3.x, but if you have a
 compelling need please reach out via the mailing list. Support for Python 3.x
-is underway and should be out shortly.
+is on the roadmap.

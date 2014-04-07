@@ -165,7 +165,7 @@ it contains.
 ::
 
     from pptx import Presentation
-    from pptx.constants import MSO_SHAPE
+    from pptx.enum.shapes import MSO_SHAPE
     from pptx.util import Inches
 
     prs = Presentation()

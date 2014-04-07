@@ -8,7 +8,7 @@ them.
 
 from __future__ import absolute_import
 
-from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
+from pptx.enum.shapes import MSO_SHAPE
 from pptx.opc.constants import CONTENT_TYPE as CT
 
 
@@ -17,67 +17,67 @@ from pptx.opc.constants import CONTENT_TYPE as CT
 # ============================================================================
 
 autoshape_types = {
-    MAST.ACTION_BUTTON_BACK_OR_PREVIOUS: {
+    MSO_SHAPE.ACTION_BUTTON_BACK_OR_PREVIOUS: {
         'basename': 'Action Button: Back or Previous',
         'prst':     'actionButtonBackPrevious',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_BEGINNING: {
+    MSO_SHAPE.ACTION_BUTTON_BEGINNING: {
         'basename': 'Action Button: Beginning',
         'prst':     'actionButtonBeginning',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_CUSTOM: {
+    MSO_SHAPE.ACTION_BUTTON_CUSTOM: {
         'basename': 'Action Button: Custom',
         'prst':     'actionButtonBlank',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_DOCUMENT: {
+    MSO_SHAPE.ACTION_BUTTON_DOCUMENT: {
         'basename': 'Action Button: Document',
         'prst':     'actionButtonDocument',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_END: {
+    MSO_SHAPE.ACTION_BUTTON_END: {
         'basename': 'Action Button: End',
         'prst':     'actionButtonEnd',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_FORWARD_OR_NEXT: {
+    MSO_SHAPE.ACTION_BUTTON_FORWARD_OR_NEXT: {
         'basename': 'Action Button: Forward or Next',
         'prst':     'actionButtonForwardNext',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_HELP: {
+    MSO_SHAPE.ACTION_BUTTON_HELP: {
         'basename': 'Action Button: Help',
         'prst':     'actionButtonHelp',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_HOME: {
+    MSO_SHAPE.ACTION_BUTTON_HOME: {
         'basename': 'Action Button: Home',
         'prst':     'actionButtonHome',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_INFORMATION: {
+    MSO_SHAPE.ACTION_BUTTON_INFORMATION: {
         'basename': 'Action Button: Information',
         'prst':     'actionButtonInformation',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_MOVIE: {
+    MSO_SHAPE.ACTION_BUTTON_MOVIE: {
         'basename': 'Action Button: Movie',
         'prst':     'actionButtonMovie',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_RETURN: {
+    MSO_SHAPE.ACTION_BUTTON_RETURN: {
         'basename': 'Action Button: Return',
         'prst':     'actionButtonReturn',
         'avLst':    ()
     },
-    MAST.ACTION_BUTTON_SOUND: {
+    MSO_SHAPE.ACTION_BUTTON_SOUND: {
         'basename': 'Action Button: Sound',
         'prst':     'actionButtonSound',
         'avLst':    ()
     },
-    MAST.ARC: {
+    MSO_SHAPE.ARC: {
         'basename': 'Arc',
         'prst':     'arc',
         'avLst':    (
@@ -85,7 +85,7 @@ autoshape_types = {
             ('adj2', 0),
         )
     },
-    MAST.BALLOON: {
+    MSO_SHAPE.BALLOON: {
         'basename': 'Rounded Rectangular Callout',
         'prst':     'wedgeRoundRectCallout',
         'avLst':    (
@@ -94,7 +94,7 @@ autoshape_types = {
             ('adj3', 16667),
         )
     },
-    MAST.BENT_ARROW: {
+    MSO_SHAPE.BENT_ARROW: {
         'basename': 'Bent Arrow',
         'prst':     'bentArrow',
         'avLst':    (
@@ -104,7 +104,7 @@ autoshape_types = {
             ('adj4', 43750),
         )
     },
-    MAST.BENT_UP_ARROW: {
+    MSO_SHAPE.BENT_UP_ARROW: {
         'basename': 'Bent-Up Arrow',
         'prst':     'bentUpArrow',
         'avLst':    (
@@ -113,14 +113,14 @@ autoshape_types = {
             ('adj3', 25000),
         )
     },
-    MAST.BEVEL: {
+    MSO_SHAPE.BEVEL: {
         'basename': 'Bevel',
         'prst':     'bevel',
         'avLst':    (
             ('adj', 12500),
         )
     },
-    MAST.BLOCK_ARC: {
+    MSO_SHAPE.BLOCK_ARC: {
         'basename': 'Block Arc',
         'prst':     'blockArc',
         'avLst':    (
@@ -129,36 +129,36 @@ autoshape_types = {
             ('adj3', 25000),
         )
     },
-    MAST.CAN: {
+    MSO_SHAPE.CAN: {
         'basename': 'Can',
         'prst':     'can',
         'avLst':    (
             ('adj', 25000),
         )
     },
-    MAST.CHART_PLUS: {
+    MSO_SHAPE.CHART_PLUS: {
         'basename': 'Chart Plus',
         'prst':     'chartPlus',
         'avLst':    ()
     },
-    MAST.CHART_STAR: {
+    MSO_SHAPE.CHART_STAR: {
         'basename': 'Chart Star',
         'prst':     'chartStar',
         'avLst':    ()
     },
-    MAST.CHART_X: {
+    MSO_SHAPE.CHART_X: {
         'basename': 'Chart X',
         'prst':     'chartX',
         'avLst':    ()
     },
-    MAST.CHEVRON: {
+    MSO_SHAPE.CHEVRON: {
         'basename': 'Chevron',
         'prst':     'chevron',
         'avLst':    (
             ('adj', 50000),
         )
     },
-    MAST.CHORD: {
+    MSO_SHAPE.CHORD: {
         'basename': 'Chord',
         'prst':     'chord',
         'avLst':    (
@@ -166,7 +166,7 @@ autoshape_types = {
             ('adj2', 16200000),
         )
     },
-    MAST.CIRCULAR_ARROW: {
+    MSO_SHAPE.CIRCULAR_ARROW: {
         'basename': 'Circular Arrow',
         'prst':     'circularArrow',
         'avLst':    (
@@ -177,12 +177,12 @@ autoshape_types = {
             ('adj5', 12500),
         )
     },
-    MAST.CLOUD: {
+    MSO_SHAPE.CLOUD: {
         'basename': 'Cloud',
         'prst':     'cloud',
         'avLst':    ()
     },
-    MAST.CLOUD_CALLOUT: {
+    MSO_SHAPE.CLOUD_CALLOUT: {
         'basename': 'Cloud Callout',
         'prst':     'cloudCallout',
         'avLst':    (
@@ -190,7 +190,7 @@ autoshape_types = {
             ('adj2', 62500),
         )
     },
-    MAST.CORNER: {
+    MSO_SHAPE.CORNER: {
         'basename': 'Corner',
         'prst':     'corner',
         'avLst':    (
@@ -198,26 +198,26 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.CORNER_TABS: {
+    MSO_SHAPE.CORNER_TABS: {
         'basename': 'Corner Tabs',
         'prst':     'cornerTabs',
         'avLst':    ()
     },
-    MAST.CROSS: {
+    MSO_SHAPE.CROSS: {
         'basename': 'Cross',
         'prst':     'plus',
         'avLst':    (
             ('adj', 25000),
         )
     },
-    MAST.CUBE: {
+    MSO_SHAPE.CUBE: {
         'basename': 'Cube',
         'prst':     'cube',
         'avLst':    (
             ('adj', 25000),
         )
     },
-    MAST.CURVED_DOWN_ARROW: {
+    MSO_SHAPE.CURVED_DOWN_ARROW: {
         'basename': 'Curved Down Arrow',
         'prst':     'curvedDownArrow',
         'avLst':    (
@@ -226,7 +226,7 @@ autoshape_types = {
             ('adj3', 25000),
         )
     },
-    MAST.CURVED_DOWN_RIBBON: {
+    MSO_SHAPE.CURVED_DOWN_RIBBON: {
         'basename': 'Curved Down Ribbon',
         'prst':     'ellipseRibbon',
         'avLst':    (
@@ -235,7 +235,7 @@ autoshape_types = {
             ('adj3', 12500),
         )
     },
-    MAST.CURVED_LEFT_ARROW: {
+    MSO_SHAPE.CURVED_LEFT_ARROW: {
         'basename': 'Curved Left Arrow',
         'prst':     'curvedLeftArrow',
         'avLst':    (
@@ -244,7 +244,7 @@ autoshape_types = {
             ('adj3', 25000),
         )
     },
-    MAST.CURVED_RIGHT_ARROW: {
+    MSO_SHAPE.CURVED_RIGHT_ARROW: {
         'basename': 'Curved Right Arrow',
         'prst':     'curvedRightArrow',
         'avLst':    (
@@ -253,7 +253,7 @@ autoshape_types = {
             ('adj3', 25000),
         )
     },
-    MAST.CURVED_UP_ARROW: {
+    MSO_SHAPE.CURVED_UP_ARROW: {
         'basename': 'Curved Up Arrow',
         'prst':     'curvedUpArrow',
         'avLst':    (
@@ -262,7 +262,7 @@ autoshape_types = {
             ('adj3', 25000),
         )
     },
-    MAST.CURVED_UP_RIBBON: {
+    MSO_SHAPE.CURVED_UP_RIBBON: {
         'basename': 'Curved Up Ribbon',
         'prst':     'ellipseRibbon2',
         'avLst':    (
@@ -271,52 +271,52 @@ autoshape_types = {
             ('adj3', 12500),
         )
     },
-    MAST.DECAGON: {
+    MSO_SHAPE.DECAGON: {
         'basename': 'Decagon',
         'prst':     'decagon',
         'avLst':    (
             ('vf', 105146),
         )
     },
-    MAST.DIAGONAL_STRIPE: {
+    MSO_SHAPE.DIAGONAL_STRIPE: {
         'basename': 'Diagonal Stripe',
         'prst':     'diagStripe',
         'avLst':    (
             ('adj', 50000),
         )
     },
-    MAST.DIAMOND: {
+    MSO_SHAPE.DIAMOND: {
         'basename': 'Diamond',
         'prst':     'diamond',
         'avLst':    ()
     },
-    MAST.DODECAGON: {
+    MSO_SHAPE.DODECAGON: {
         'basename': 'Dodecagon',
         'prst':     'dodecagon',
         'avLst':    ()
     },
-    MAST.DONUT: {
+    MSO_SHAPE.DONUT: {
         'basename': 'Donut',
         'prst':     'donut',
         'avLst':    (
             ('adj', 25000),
         )
     },
-    MAST.DOUBLE_BRACE: {
+    MSO_SHAPE.DOUBLE_BRACE: {
         'basename': 'Double Brace',
         'prst':     'bracePair',
         'avLst':    (
             ('adj', 8333),
         )
     },
-    MAST.DOUBLE_BRACKET: {
+    MSO_SHAPE.DOUBLE_BRACKET: {
         'basename': 'Double Bracket',
         'prst':     'bracketPair',
         'avLst':    (
             ('adj', 16667),
         )
     },
-    MAST.DOUBLE_WAVE: {
+    MSO_SHAPE.DOUBLE_WAVE: {
         'basename': 'Double Wave',
         'prst':     'doubleWave',
         'avLst':    (
@@ -324,7 +324,7 @@ autoshape_types = {
             ('adj2', 0),
         )
     },
-    MAST.DOWN_ARROW: {
+    MSO_SHAPE.DOWN_ARROW: {
         'basename': 'Down Arrow',
         'prst':     'downArrow',
         'avLst':    (
@@ -332,7 +332,7 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.DOWN_ARROW_CALLOUT: {
+    MSO_SHAPE.DOWN_ARROW_CALLOUT: {
         'basename': 'Down Arrow Callout',
         'prst':     'downArrowCallout',
         'avLst':    (
@@ -342,7 +342,7 @@ autoshape_types = {
             ('adj4', 64977),
         )
     },
-    MAST.DOWN_RIBBON: {
+    MSO_SHAPE.DOWN_RIBBON: {
         'basename': 'Down Ribbon',
         'prst':     'ribbon',
         'avLst':    (
@@ -350,179 +350,179 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.EXPLOSION1: {
+    MSO_SHAPE.EXPLOSION1: {
         'basename': 'Explosion',
         'prst':     'irregularSeal1',
         'avLst':    ()
     },
-    MAST.EXPLOSION2: {
+    MSO_SHAPE.EXPLOSION2: {
         'basename': 'Explosion',
         'prst':     'irregularSeal2',
         'avLst':    ()
     },
-    MAST.FLOWCHART_ALTERNATE_PROCESS: {
+    MSO_SHAPE.FLOWCHART_ALTERNATE_PROCESS: {
         'basename': 'Alternate process',
         'prst':     'flowChartAlternateProcess',
         'avLst':    ()
     },
-    MAST.FLOWCHART_CARD: {
+    MSO_SHAPE.FLOWCHART_CARD: {
         'basename': 'Card',
         'prst':     'flowChartPunchedCard',
         'avLst':    ()
     },
-    MAST.FLOWCHART_COLLATE: {
+    MSO_SHAPE.FLOWCHART_COLLATE: {
         'basename': 'Collate',
         'prst':     'flowChartCollate',
         'avLst':    ()
     },
-    MAST.FLOWCHART_CONNECTOR: {
+    MSO_SHAPE.FLOWCHART_CONNECTOR: {
         'basename': 'Connector',
         'prst':     'flowChartConnector',
         'avLst':    ()
     },
-    MAST.FLOWCHART_DATA: {
+    MSO_SHAPE.FLOWCHART_DATA: {
         'basename': 'Data',
         'prst':     'flowChartInputOutput',
         'avLst':    ()
     },
-    MAST.FLOWCHART_DECISION: {
+    MSO_SHAPE.FLOWCHART_DECISION: {
         'basename': 'Decision',
         'prst':     'flowChartDecision',
         'avLst':    ()
     },
-    MAST.FLOWCHART_DELAY: {
+    MSO_SHAPE.FLOWCHART_DELAY: {
         'basename': 'Delay',
         'prst':     'flowChartDelay',
         'avLst':    ()
     },
-    MAST.FLOWCHART_DIRECT_ACCESS_STORAGE: {
+    MSO_SHAPE.FLOWCHART_DIRECT_ACCESS_STORAGE: {
         'basename': 'Direct Access Storage',
         'prst':     'flowChartMagneticDrum',
         'avLst':    ()
     },
-    MAST.FLOWCHART_DISPLAY: {
+    MSO_SHAPE.FLOWCHART_DISPLAY: {
         'basename': 'Display',
         'prst':     'flowChartDisplay',
         'avLst':    ()
     },
-    MAST.FLOWCHART_DOCUMENT: {
+    MSO_SHAPE.FLOWCHART_DOCUMENT: {
         'basename': 'Document',
         'prst':     'flowChartDocument',
         'avLst':    ()
     },
-    MAST.FLOWCHART_EXTRACT: {
+    MSO_SHAPE.FLOWCHART_EXTRACT: {
         'basename': 'Extract',
         'prst':     'flowChartExtract',
         'avLst':    ()
     },
-    MAST.FLOWCHART_INTERNAL_STORAGE: {
+    MSO_SHAPE.FLOWCHART_INTERNAL_STORAGE: {
         'basename': 'Internal Storage',
         'prst':     'flowChartInternalStorage',
         'avLst':    ()
     },
-    MAST.FLOWCHART_MAGNETIC_DISK: {
+    MSO_SHAPE.FLOWCHART_MAGNETIC_DISK: {
         'basename': 'Magnetic Disk',
         'prst':     'flowChartMagneticDisk',
         'avLst':    ()
     },
-    MAST.FLOWCHART_MANUAL_INPUT: {
+    MSO_SHAPE.FLOWCHART_MANUAL_INPUT: {
         'basename': 'Manual Input',
         'prst':     'flowChartManualInput',
         'avLst':    ()
     },
-    MAST.FLOWCHART_MANUAL_OPERATION: {
+    MSO_SHAPE.FLOWCHART_MANUAL_OPERATION: {
         'basename': 'Manual Operation',
         'prst':     'flowChartManualOperation',
         'avLst':    ()
     },
-    MAST.FLOWCHART_MERGE: {
+    MSO_SHAPE.FLOWCHART_MERGE: {
         'basename': 'Merge',
         'prst':     'flowChartMerge',
         'avLst':    ()
     },
-    MAST.FLOWCHART_MULTIDOCUMENT: {
+    MSO_SHAPE.FLOWCHART_MULTIDOCUMENT: {
         'basename': 'Multidocument',
         'prst':     'flowChartMultidocument',
         'avLst':    ()
     },
-    MAST.FLOWCHART_OFFLINE_STORAGE: {
+    MSO_SHAPE.FLOWCHART_OFFLINE_STORAGE: {
         'basename': 'Offline Storage',
         'prst':     'flowChartOfflineStorage',
         'avLst':    ()
     },
-    MAST.FLOWCHART_OFFPAGE_CONNECTOR: {
+    MSO_SHAPE.FLOWCHART_OFFPAGE_CONNECTOR: {
         'basename': 'Off-page Connector',
         'prst':     'flowChartOffpageConnector',
         'avLst':    ()
     },
-    MAST.FLOWCHART_OR: {
+    MSO_SHAPE.FLOWCHART_OR: {
         'basename': 'Or',
         'prst':     'flowChartOr',
         'avLst':    ()
     },
-    MAST.FLOWCHART_PREDEFINED_PROCESS: {
+    MSO_SHAPE.FLOWCHART_PREDEFINED_PROCESS: {
         'basename': 'Predefined Process',
         'prst':     'flowChartPredefinedProcess',
         'avLst':    ()
     },
-    MAST.FLOWCHART_PREPARATION: {
+    MSO_SHAPE.FLOWCHART_PREPARATION: {
         'basename': 'Preparation',
         'prst':     'flowChartPreparation',
         'avLst':    ()
     },
-    MAST.FLOWCHART_PROCESS: {
+    MSO_SHAPE.FLOWCHART_PROCESS: {
         'basename': 'Process',
         'prst':     'flowChartProcess',
         'avLst':    ()
     },
-    MAST.FLOWCHART_PUNCHED_TAPE: {
+    MSO_SHAPE.FLOWCHART_PUNCHED_TAPE: {
         'basename': 'Punched Tape',
         'prst':     'flowChartPunchedTape',
         'avLst':    ()
     },
-    MAST.FLOWCHART_SEQUENTIAL_ACCESS_STORAGE: {
+    MSO_SHAPE.FLOWCHART_SEQUENTIAL_ACCESS_STORAGE: {
         'basename': 'Sequential Access Storage',
         'prst':     'flowChartMagneticTape',
         'avLst':    ()
     },
-    MAST.FLOWCHART_SORT: {
+    MSO_SHAPE.FLOWCHART_SORT: {
         'basename': 'Sort',
         'prst':     'flowChartSort',
         'avLst':    ()
     },
-    MAST.FLOWCHART_STORED_DATA: {
+    MSO_SHAPE.FLOWCHART_STORED_DATA: {
         'basename': 'Stored Data',
         'prst':     'flowChartOnlineStorage',
         'avLst':    ()
     },
-    MAST.FLOWCHART_SUMMING_JUNCTION: {
+    MSO_SHAPE.FLOWCHART_SUMMING_JUNCTION: {
         'basename': 'Summing Junction',
         'prst':     'flowChartSummingJunction',
         'avLst':    ()
     },
-    MAST.FLOWCHART_TERMINATOR: {
+    MSO_SHAPE.FLOWCHART_TERMINATOR: {
         'basename': 'Terminator',
         'prst':     'flowChartTerminator',
         'avLst':    ()
     },
-    MAST.FOLDED_CORNER: {
+    MSO_SHAPE.FOLDED_CORNER: {
         'basename': 'Folded Corner',
         'prst':     'foldedCorner',
         'avLst':    ()
     },
-    MAST.FRAME: {
+    MSO_SHAPE.FRAME: {
         'basename': 'Frame',
         'prst':     'frame',
         'avLst':    (
             ('adj1', 12500),
         )
     },
-    MAST.FUNNEL: {
+    MSO_SHAPE.FUNNEL: {
         'basename': 'Funnel',
         'prst':     'funnel',
         'avLst':    ()
     },
-    MAST.GEAR_6: {
+    MSO_SHAPE.GEAR_6: {
         'basename': 'Gear 6',
         'prst':     'gear6',
         'avLst':    (
@@ -530,7 +530,7 @@ autoshape_types = {
             ('adj2', 3526),
         )
     },
-    MAST.GEAR_9: {
+    MSO_SHAPE.GEAR_9: {
         'basename': 'Gear 9',
         'prst':     'gear9',
         'avLst':    (
@@ -538,7 +538,7 @@ autoshape_types = {
             ('adj2', 1763),
         )
     },
-    MAST.HALF_FRAME: {
+    MSO_SHAPE.HALF_FRAME: {
         'basename': 'Half Frame',
         'prst':     'halfFrame',
         'avLst':    (
@@ -546,12 +546,12 @@ autoshape_types = {
             ('adj2', 33333),
         )
     },
-    MAST.HEART: {
+    MSO_SHAPE.HEART: {
         'basename': 'Heart',
         'prst':     'heart',
         'avLst':    ()
     },
-    MAST.HEPTAGON: {
+    MSO_SHAPE.HEPTAGON: {
         'basename': 'Heptagon',
         'prst':     'heptagon',
         'avLst':    (
@@ -559,7 +559,7 @@ autoshape_types = {
             ('vf', 105210),
         )
     },
-    MAST.HEXAGON: {
+    MSO_SHAPE.HEXAGON: {
         'basename': 'Hexagon',
         'prst':     'hexagon',
         'avLst':    (
@@ -567,21 +567,21 @@ autoshape_types = {
             ('vf', 115470),
         )
     },
-    MAST.HORIZONTAL_SCROLL: {
+    MSO_SHAPE.HORIZONTAL_SCROLL: {
         'basename': 'Horizontal Scroll',
         'prst':     'horizontalScroll',
         'avLst':    (
             ('adj', 12500),
         )
     },
-    MAST.ISOSCELES_TRIANGLE: {
+    MSO_SHAPE.ISOSCELES_TRIANGLE: {
         'basename': 'Isosceles Triangle',
         'prst':     'triangle',
         'avLst':    (
             ('adj', 50000),
         )
     },
-    MAST.LEFT_ARROW: {
+    MSO_SHAPE.LEFT_ARROW: {
         'basename': 'Left Arrow',
         'prst':     'leftArrow',
         'avLst':    (
@@ -589,7 +589,7 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.LEFT_ARROW_CALLOUT: {
+    MSO_SHAPE.LEFT_ARROW_CALLOUT: {
         'basename': 'Left Arrow Callout',
         'prst':     'leftArrowCallout',
         'avLst':    (
@@ -599,7 +599,7 @@ autoshape_types = {
             ('adj4', 64977),
         )
     },
-    MAST.LEFT_BRACE: {
+    MSO_SHAPE.LEFT_BRACE: {
         'basename': 'Left Brace',
         'prst':     'leftBrace',
         'avLst':    (
@@ -607,14 +607,14 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.LEFT_BRACKET: {
+    MSO_SHAPE.LEFT_BRACKET: {
         'basename': 'Left Bracket',
         'prst':     'leftBracket',
         'avLst':    (
             ('adj', 8333),
         )
     },
-    MAST.LEFT_CIRCULAR_ARROW: {
+    MSO_SHAPE.LEFT_CIRCULAR_ARROW: {
         'basename': 'Left Circular Arrow',
         'prst':     'leftCircularArrow',
         'avLst':    (
@@ -625,7 +625,7 @@ autoshape_types = {
             ('adj5', 12500),
         )
     },
-    MAST.LEFT_RIGHT_ARROW: {
+    MSO_SHAPE.LEFT_RIGHT_ARROW: {
         'basename': 'Left-Right Arrow',
         'prst':     'leftRightArrow',
         'avLst':    (
@@ -633,7 +633,7 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.LEFT_RIGHT_ARROW_CALLOUT: {
+    MSO_SHAPE.LEFT_RIGHT_ARROW_CALLOUT: {
         'basename': 'Left-Right Arrow Callout',
         'prst':     'leftRightArrowCallout',
         'avLst':    (
@@ -643,7 +643,7 @@ autoshape_types = {
             ('adj4', 48123),
         )
     },
-    MAST.LEFT_RIGHT_CIRCULAR_ARROW: {
+    MSO_SHAPE.LEFT_RIGHT_CIRCULAR_ARROW: {
         'basename': 'Left Right Circular Arrow',
         'prst':     'leftRightCircularArrow',
         'avLst':    (
@@ -654,7 +654,7 @@ autoshape_types = {
             ('adj5', 12500),
         )
     },
-    MAST.LEFT_RIGHT_RIBBON: {
+    MSO_SHAPE.LEFT_RIGHT_RIBBON: {
         'basename': 'Left Right Ribbon',
         'prst':     'leftRightRibbon',
         'avLst':    (
@@ -663,7 +663,7 @@ autoshape_types = {
             ('adj3', 16667),
         )
     },
-    MAST.LEFT_RIGHT_UP_ARROW: {
+    MSO_SHAPE.LEFT_RIGHT_UP_ARROW: {
         'basename': 'Left-Right-Up Arrow',
         'prst':     'leftRightUpArrow',
         'avLst':    (
@@ -672,7 +672,7 @@ autoshape_types = {
             ('adj3', 25000),
         )
     },
-    MAST.LEFT_UP_ARROW: {
+    MSO_SHAPE.LEFT_UP_ARROW: {
         'basename': 'Left-Up Arrow',
         'prst':     'leftUpArrow',
         'avLst':    (
@@ -681,12 +681,12 @@ autoshape_types = {
             ('adj3', 25000),
         )
     },
-    MAST.LIGHTNING_BOLT: {
+    MSO_SHAPE.LIGHTNING_BOLT: {
         'basename': 'Lightning Bolt',
         'prst':     'lightningBolt',
         'avLst':    ()
     },
-    MAST.LINE_CALLOUT_1: {
+    MSO_SHAPE.LINE_CALLOUT_1: {
         'basename': 'Line Callout 1',
         'prst':     'borderCallout1',
         'avLst':    (
@@ -696,7 +696,7 @@ autoshape_types = {
             ('adj4', -38333),
         )
     },
-    MAST.LINE_CALLOUT_1_ACCENT_BAR: {
+    MSO_SHAPE.LINE_CALLOUT_1_ACCENT_BAR: {
         'basename': 'Line Callout 1 (Accent Bar)',
         'prst':     'accentCallout1',
         'avLst':    (
@@ -706,7 +706,7 @@ autoshape_types = {
             ('adj4', -38333),
         )
     },
-    MAST.LINE_CALLOUT_1_BORDER_AND_ACCENT_BAR: {
+    MSO_SHAPE.LINE_CALLOUT_1_BORDER_AND_ACCENT_BAR: {
         'basename': 'Line Callout 1 (Border and Accent Bar)',
         'prst':     'accentBorderCallout1',
         'avLst':    (
@@ -716,7 +716,7 @@ autoshape_types = {
             ('adj4', -38333),
         )
     },
-    MAST.LINE_CALLOUT_1_NO_BORDER: {
+    MSO_SHAPE.LINE_CALLOUT_1_NO_BORDER: {
         'basename': 'Line Callout 1 (No Border)',
         'prst':     'callout1',
         'avLst':    (
@@ -726,7 +726,7 @@ autoshape_types = {
             ('adj4', -38333),
         )
     },
-    MAST.LINE_CALLOUT_2: {
+    MSO_SHAPE.LINE_CALLOUT_2: {
         'basename': 'Line Callout 2',
         'prst':     'borderCallout2',
         'avLst':    (
@@ -738,7 +738,7 @@ autoshape_types = {
             ('adj6', -46667),
         )
     },
-    MAST.LINE_CALLOUT_2_ACCENT_BAR: {
+    MSO_SHAPE.LINE_CALLOUT_2_ACCENT_BAR: {
         'basename': 'Line Callout 2 (Accent Bar)',
         'prst':     'accentCallout2',
         'avLst':    (
@@ -750,7 +750,7 @@ autoshape_types = {
             ('adj6', -46667),
         )
     },
-    MAST.LINE_CALLOUT_2_BORDER_AND_ACCENT_BAR: {
+    MSO_SHAPE.LINE_CALLOUT_2_BORDER_AND_ACCENT_BAR: {
         'basename': 'Line Callout 2 (Border and Accent Bar)',
         'prst':     'accentBorderCallout2',
         'avLst':    (
@@ -762,7 +762,7 @@ autoshape_types = {
             ('adj6', -46667),
         )
     },
-    MAST.LINE_CALLOUT_2_NO_BORDER: {
+    MSO_SHAPE.LINE_CALLOUT_2_NO_BORDER: {
         'basename': 'Line Callout 2 (No Border)',
         'prst':     'callout2',
         'avLst':    (
@@ -774,7 +774,7 @@ autoshape_types = {
             ('adj6', -46667),
         )
     },
-    MAST.LINE_CALLOUT_3: {
+    MSO_SHAPE.LINE_CALLOUT_3: {
         'basename': 'Line Callout 3',
         'prst':     'borderCallout3',
         'avLst':    (
@@ -788,7 +788,7 @@ autoshape_types = {
             ('adj8', -8333),
         )
     },
-    MAST.LINE_CALLOUT_3_ACCENT_BAR: {
+    MSO_SHAPE.LINE_CALLOUT_3_ACCENT_BAR: {
         'basename': 'Line Callout 3 (Accent Bar)',
         'prst':     'accentCallout3',
         'avLst':    (
@@ -802,7 +802,7 @@ autoshape_types = {
             ('adj8', -8333),
         )
     },
-    MAST.LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR: {
+    MSO_SHAPE.LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR: {
         'basename': 'Line Callout 3 (Border and Accent Bar)',
         'prst':     'accentBorderCallout3',
         'avLst':    (
@@ -816,7 +816,7 @@ autoshape_types = {
             ('adj8', -8333),
         )
     },
-    MAST.LINE_CALLOUT_3_NO_BORDER: {
+    MSO_SHAPE.LINE_CALLOUT_3_NO_BORDER: {
         'basename': 'Line Callout 3 (No Border)',
         'prst':     'callout3',
         'avLst':    (
@@ -830,7 +830,7 @@ autoshape_types = {
             ('adj8', -8333),
         )
     },
-    MAST.LINE_CALLOUT_4: {
+    MSO_SHAPE.LINE_CALLOUT_4: {
         'basename': 'Line Callout 3',
         'prst':     'borderCallout3',
         'avLst':    (
@@ -844,7 +844,7 @@ autoshape_types = {
             ('adj8', -8333),
         )
     },
-    MAST.LINE_CALLOUT_4_ACCENT_BAR: {
+    MSO_SHAPE.LINE_CALLOUT_4_ACCENT_BAR: {
         'basename': 'Line Callout 3 (Accent Bar)',
         'prst':     'accentCallout3',
         'avLst':    (
@@ -858,7 +858,7 @@ autoshape_types = {
             ('adj8', -8333),
         )
     },
-    MAST.LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR: {
+    MSO_SHAPE.LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR: {
         'basename': 'Line Callout 3 (Border and Accent Bar)',
         'prst':     'accentBorderCallout3',
         'avLst':    (
@@ -872,7 +872,7 @@ autoshape_types = {
             ('adj8', -8333),
         )
     },
-    MAST.LINE_CALLOUT_4_NO_BORDER: {
+    MSO_SHAPE.LINE_CALLOUT_4_NO_BORDER: {
         'basename': 'Line Callout 3 (No Border)',
         'prst':     'callout3',
         'avLst':    (
@@ -886,12 +886,12 @@ autoshape_types = {
             ('adj8', -8333),
         )
     },
-    MAST.LINE_INVERSE: {
+    MSO_SHAPE.LINE_INVERSE: {
         'basename': 'Straight Connector',
         'prst':     'lineInv',
         'avLst':    ()
     },
-    MAST.MATH_DIVIDE: {
+    MSO_SHAPE.MATH_DIVIDE: {
         'basename': 'Division',
         'prst':     'mathDivide',
         'avLst':    (
@@ -900,7 +900,7 @@ autoshape_types = {
             ('adj3', 11760),
         )
     },
-    MAST.MATH_EQUAL: {
+    MSO_SHAPE.MATH_EQUAL: {
         'basename': 'Equal',
         'prst':     'mathEqual',
         'avLst':    (
@@ -908,21 +908,21 @@ autoshape_types = {
             ('adj2', 11760),
         )
     },
-    MAST.MATH_MINUS: {
+    MSO_SHAPE.MATH_MINUS: {
         'basename': 'Minus',
         'prst':     'mathMinus',
         'avLst':    (
             ('adj1', 23520),
         )
     },
-    MAST.MATH_MULTIPLY: {
+    MSO_SHAPE.MATH_MULTIPLY: {
         'basename': 'Multiply',
         'prst':     'mathMultiply',
         'avLst':    (
             ('adj1', 23520),
         )
     },
-    MAST.MATH_NOT_EQUAL: {
+    MSO_SHAPE.MATH_NOT_EQUAL: {
         'basename': 'Not Equal',
         'prst':     'mathNotEqual',
         'avLst':    (
@@ -931,21 +931,21 @@ autoshape_types = {
             ('adj3', 11760),
         )
     },
-    MAST.MATH_PLUS: {
+    MSO_SHAPE.MATH_PLUS: {
         'basename': 'Plus',
         'prst':     'mathPlus',
         'avLst':    (
             ('adj1', 23520),
         )
     },
-    MAST.MOON: {
+    MSO_SHAPE.MOON: {
         'basename': 'Moon',
         'prst':     'moon',
         'avLst':    (
             ('adj', 50000),
         )
     },
-    MAST.NON_ISOSCELES_TRAPEZOID: {
+    MSO_SHAPE.NON_ISOSCELES_TRAPEZOID: {
         'basename': 'Non-isosceles Trapezoid',
         'prst':     'nonIsoscelesTrapezoid',
         'avLst':    (
@@ -953,7 +953,7 @@ autoshape_types = {
             ('adj2', 25000),
         )
     },
-    MAST.NOTCHED_RIGHT_ARROW: {
+    MSO_SHAPE.NOTCHED_RIGHT_ARROW: {
         'basename': 'Notched Right Arrow',
         'prst':     'notchedRightArrow',
         'avLst':    (
@@ -961,26 +961,26 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.NO_SYMBOL: {
+    MSO_SHAPE.NO_SYMBOL: {
         'basename': '"No" symbol',
         'prst':     'noSmoking',
         'avLst':    (
             ('adj', 18750),
         )
     },
-    MAST.OCTAGON: {
+    MSO_SHAPE.OCTAGON: {
         'basename': 'Octagon',
         'prst':     'octagon',
         'avLst':    (
             ('adj', 29289),
         )
     },
-    MAST.OVAL: {
+    MSO_SHAPE.OVAL: {
         'basename': 'Oval',
         'prst':     'ellipse',
         'avLst':    ()
     },
-    MAST.OVAL_CALLOUT: {
+    MSO_SHAPE.OVAL_CALLOUT: {
         'basename': 'Oval Callout',
         'prst':     'wedgeEllipseCallout',
         'avLst':    (
@@ -988,21 +988,21 @@ autoshape_types = {
             ('adj2', 62500),
         )
     },
-    MAST.PARALLELOGRAM: {
+    MSO_SHAPE.PARALLELOGRAM: {
         'basename': 'Parallelogram',
         'prst':     'parallelogram',
         'avLst':    (
             ('adj', 25000),
         )
     },
-    MAST.PENTAGON: {
+    MSO_SHAPE.PENTAGON: {
         'basename': 'Pentagon',
         'prst':     'homePlate',
         'avLst':    (
             ('adj', 50000),
         )
     },
-    MAST.PIE: {
+    MSO_SHAPE.PIE: {
         'basename': 'Pie',
         'prst':     'pie',
         'avLst':    (
@@ -1010,24 +1010,24 @@ autoshape_types = {
             ('adj2', 16200000),
         )
     },
-    MAST.PIE_WEDGE: {
+    MSO_SHAPE.PIE_WEDGE: {
         'basename': 'Pie',
         'prst':     'pieWedge',
         'avLst':    ()
     },
-    MAST.PLAQUE: {
+    MSO_SHAPE.PLAQUE: {
         'basename': 'Plaque',
         'prst':     'plaque',
         'avLst':    (
             ('adj', 16667),
         )
     },
-    MAST.PLAQUE_TABS: {
+    MSO_SHAPE.PLAQUE_TABS: {
         'basename': 'Plaque Tabs',
         'prst':     'plaqueTabs',
         'avLst':    ()
     },
-    MAST.QUAD_ARROW: {
+    MSO_SHAPE.QUAD_ARROW: {
         'basename': 'Quad Arrow',
         'prst':     'quadArrow',
         'avLst':    (
@@ -1036,7 +1036,7 @@ autoshape_types = {
             ('adj3', 22500),
         )
     },
-    MAST.QUAD_ARROW_CALLOUT: {
+    MSO_SHAPE.QUAD_ARROW_CALLOUT: {
         'basename': 'Quad Arrow Callout',
         'prst':     'quadArrowCallout',
         'avLst':    (
@@ -1046,12 +1046,12 @@ autoshape_types = {
             ('adj4', 48123),
         )
     },
-    MAST.RECTANGLE: {
+    MSO_SHAPE.RECTANGLE: {
         'basename': 'Rectangle',
         'prst':     'rect',
         'avLst':    ()
     },
-    MAST.RECTANGULAR_CALLOUT: {
+    MSO_SHAPE.RECTANGULAR_CALLOUT: {
         'basename': 'Rectangular Callout',
         'prst':     'wedgeRectCallout',
         'avLst':    (
@@ -1059,7 +1059,7 @@ autoshape_types = {
             ('adj2', 62500),
         )
     },
-    MAST.REGULAR_PENTAGON: {
+    MSO_SHAPE.REGULAR_PENTAGON: {
         'basename': 'Regular Pentagon',
         'prst':     'pentagon',
         'avLst':    (
@@ -1067,7 +1067,7 @@ autoshape_types = {
             ('vf', 110557),
         )
     },
-    MAST.RIGHT_ARROW: {
+    MSO_SHAPE.RIGHT_ARROW: {
         'basename': 'Right Arrow',
         'prst':     'rightArrow',
         'avLst':    (
@@ -1075,7 +1075,7 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.RIGHT_ARROW_CALLOUT: {
+    MSO_SHAPE.RIGHT_ARROW_CALLOUT: {
         'basename': 'Right Arrow Callout',
         'prst':     'rightArrowCallout',
         'avLst':    (
@@ -1085,7 +1085,7 @@ autoshape_types = {
             ('adj4', 64977),
         )
     },
-    MAST.RIGHT_BRACE: {
+    MSO_SHAPE.RIGHT_BRACE: {
         'basename': 'Right Brace',
         'prst':     'rightBrace',
         'avLst':    (
@@ -1093,26 +1093,26 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.RIGHT_BRACKET: {
+    MSO_SHAPE.RIGHT_BRACKET: {
         'basename': 'Right Bracket',
         'prst':     'rightBracket',
         'avLst':    (
             ('adj', 8333),
         )
     },
-    MAST.RIGHT_TRIANGLE: {
+    MSO_SHAPE.RIGHT_TRIANGLE: {
         'basename': 'Right Triangle',
         'prst':     'rtTriangle',
         'avLst':    ()
     },
-    MAST.ROUNDED_RECTANGLE: {
+    MSO_SHAPE.ROUNDED_RECTANGLE: {
         'basename': 'Rounded Rectangle',
         'prst':     'roundRect',
         'avLst':    (
             ('adj', 16667),
         )
     },
-    MAST.ROUNDED_RECTANGULAR_CALLOUT: {
+    MSO_SHAPE.ROUNDED_RECTANGULAR_CALLOUT: {
         'basename': 'Rounded Rectangular Callout',
         'prst':     'wedgeRoundRectCallout',
         'avLst':    (
@@ -1121,14 +1121,14 @@ autoshape_types = {
             ('adj3', 16667),
         )
     },
-    MAST.ROUND_1_RECTANGLE: {
+    MSO_SHAPE.ROUND_1_RECTANGLE: {
         'basename': 'Round Single Corner Rectangle',
         'prst':     'round1Rect',
         'avLst':    (
             ('adj', 16667),
         )
     },
-    MAST.ROUND_2_DIAG_RECTANGLE: {
+    MSO_SHAPE.ROUND_2_DIAG_RECTANGLE: {
         'basename': 'Round Diagonal Corner Rectangle',
         'prst':     'round2DiagRect',
         'avLst':    (
@@ -1136,7 +1136,7 @@ autoshape_types = {
             ('adj2', 0),
         )
     },
-    MAST.ROUND_2_SAME_RECTANGLE: {
+    MSO_SHAPE.ROUND_2_SAME_RECTANGLE: {
         'basename': 'Round Same Side Corner Rectangle',
         'prst':     'round2SameRect',
         'avLst':    (
@@ -1144,21 +1144,21 @@ autoshape_types = {
             ('adj2', 0),
         )
     },
-    MAST.SMILEY_FACE: {
+    MSO_SHAPE.SMILEY_FACE: {
         'basename': 'Smiley Face',
         'prst':     'smileyFace',
         'avLst':    (
             ('adj', 4653),
         )
     },
-    MAST.SNIP_1_RECTANGLE: {
+    MSO_SHAPE.SNIP_1_RECTANGLE: {
         'basename': 'Snip Single Corner Rectangle',
         'prst':     'snip1Rect',
         'avLst':    (
             ('adj', 16667),
         )
     },
-    MAST.SNIP_2_DIAG_RECTANGLE: {
+    MSO_SHAPE.SNIP_2_DIAG_RECTANGLE: {
         'basename': 'Snip Diagonal Corner Rectangle',
         'prst':     'snip2DiagRect',
         'avLst':    (
@@ -1166,7 +1166,7 @@ autoshape_types = {
             ('adj2', 16667),
         )
     },
-    MAST.SNIP_2_SAME_RECTANGLE: {
+    MSO_SHAPE.SNIP_2_SAME_RECTANGLE: {
         'basename': 'Snip Same Side Corner Rectangle',
         'prst':     'snip2SameRect',
         'avLst':    (
@@ -1174,7 +1174,7 @@ autoshape_types = {
             ('adj2', 0),
         )
     },
-    MAST.SNIP_ROUND_RECTANGLE: {
+    MSO_SHAPE.SNIP_ROUND_RECTANGLE: {
         'basename': 'Snip and Round Single Corner Rectangle',
         'prst':     'snipRoundRect',
         'avLst':    (
@@ -1182,12 +1182,12 @@ autoshape_types = {
             ('adj2', 16667),
         )
     },
-    MAST.SQUARE_TABS: {
+    MSO_SHAPE.SQUARE_TABS: {
         'basename': 'Square Tabs',
         'prst':     'squareTabs',
         'avLst':    ()
     },
-    MAST.STAR_10_POINT: {
+    MSO_SHAPE.STAR_10_POINT: {
         'basename': '10-Point Star',
         'prst':     'star10',
         'avLst':    (
@@ -1195,42 +1195,42 @@ autoshape_types = {
             ('hf', 105146),
         )
     },
-    MAST.STAR_12_POINT: {
+    MSO_SHAPE.STAR_12_POINT: {
         'basename': '12-Point Star',
         'prst':     'star12',
         'avLst':    (
             ('adj', 37500),
         )
     },
-    MAST.STAR_16_POINT: {
+    MSO_SHAPE.STAR_16_POINT: {
         'basename': '16-Point Star',
         'prst':     'star16',
         'avLst':    (
             ('adj', 37500),
         )
     },
-    MAST.STAR_24_POINT: {
+    MSO_SHAPE.STAR_24_POINT: {
         'basename': '24-Point Star',
         'prst':     'star24',
         'avLst':    (
             ('adj', 37500),
         )
     },
-    MAST.STAR_32_POINT: {
+    MSO_SHAPE.STAR_32_POINT: {
         'basename': '32-Point Star',
         'prst':     'star32',
         'avLst':    (
             ('adj', 37500),
         )
     },
-    MAST.STAR_4_POINT: {
+    MSO_SHAPE.STAR_4_POINT: {
         'basename': '4-Point Star',
         'prst':     'star4',
         'avLst':    (
             ('adj', 12500),
         )
     },
-    MAST.STAR_5_POINT: {
+    MSO_SHAPE.STAR_5_POINT: {
         'basename': '5-Point Star',
         'prst':     'star5',
         'avLst':    (
@@ -1239,7 +1239,7 @@ autoshape_types = {
             ('vf', 110557),
         )
     },
-    MAST.STAR_6_POINT: {
+    MSO_SHAPE.STAR_6_POINT: {
         'basename': '6-Point Star',
         'prst':     'star6',
         'avLst':    (
@@ -1247,7 +1247,7 @@ autoshape_types = {
             ('hf', 115470),
         )
     },
-    MAST.STAR_7_POINT: {
+    MSO_SHAPE.STAR_7_POINT: {
         'basename': '7-Point Star',
         'prst':     'star7',
         'avLst':    (
@@ -1256,14 +1256,14 @@ autoshape_types = {
             ('vf', 105210),
         )
     },
-    MAST.STAR_8_POINT: {
+    MSO_SHAPE.STAR_8_POINT: {
         'basename': '8-Point Star',
         'prst':     'star8',
         'avLst':    (
             ('adj', 37500),
         )
     },
-    MAST.STRIPED_RIGHT_ARROW: {
+    MSO_SHAPE.STRIPED_RIGHT_ARROW: {
         'basename': 'Striped Right Arrow',
         'prst':     'stripedRightArrow',
         'avLst':    (
@@ -1271,14 +1271,14 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.SUN: {
+    MSO_SHAPE.SUN: {
         'basename': 'Sun',
         'prst':     'sun',
         'avLst':    (
             ('adj', 25000),
         )
     },
-    MAST.SWOOSH_ARROW: {
+    MSO_SHAPE.SWOOSH_ARROW: {
         'basename': 'Swoosh Arrow',
         'prst':     'swooshArrow',
         'avLst':    (
@@ -1286,26 +1286,26 @@ autoshape_types = {
             ('adj2', 16667),
         )
     },
-    MAST.TEAR: {
+    MSO_SHAPE.TEAR: {
         'basename': 'Teardrop',
         'prst':     'teardrop',
         'avLst':    (
             ('adj', 100000),
         )
     },
-    MAST.TRAPEZOID: {
+    MSO_SHAPE.TRAPEZOID: {
         'basename': 'Trapezoid',
         'prst':     'trapezoid',
         'avLst':    (
             ('adj', 25000),
         )
     },
-    MAST.UP_ARROW: {
+    MSO_SHAPE.UP_ARROW: {
         'basename': 'Up Arrow',
         'prst':     'upArrow',
         'avLst':    ()
     },
-    MAST.UP_ARROW_CALLOUT: {
+    MSO_SHAPE.UP_ARROW_CALLOUT: {
         'basename': 'Up Arrow Callout',
         'prst':     'upArrowCallout',
         'avLst':    (
@@ -1315,7 +1315,7 @@ autoshape_types = {
             ('adj4', 64977),
         )
     },
-    MAST.UP_DOWN_ARROW: {
+    MSO_SHAPE.UP_DOWN_ARROW: {
         'basename': 'Up-Down Arrow',
         'prst':     'upDownArrow',
         'avLst':    (
@@ -1325,7 +1325,7 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.UP_DOWN_ARROW_CALLOUT: {
+    MSO_SHAPE.UP_DOWN_ARROW_CALLOUT: {
         'basename': 'Up-Down Arrow Callout',
         'prst':     'upDownArrowCallout',
         'avLst':    (
@@ -1335,7 +1335,7 @@ autoshape_types = {
             ('adj4', 48123),
         )
     },
-    MAST.UP_RIBBON: {
+    MSO_SHAPE.UP_RIBBON: {
         'basename': 'Up Ribbon',
         'prst':     'ribbon2',
         'avLst':    (
@@ -1343,7 +1343,7 @@ autoshape_types = {
             ('adj2', 50000),
         )
     },
-    MAST.U_TURN_ARROW: {
+    MSO_SHAPE.U_TURN_ARROW: {
         'basename': 'U-Turn Arrow',
         'prst':     'uturnArrow',
         'avLst':    (
@@ -1354,14 +1354,14 @@ autoshape_types = {
             ('adj5', 75000),
         )
     },
-    MAST.VERTICAL_SCROLL: {
+    MSO_SHAPE.VERTICAL_SCROLL: {
         'basename': 'Vertical Scroll',
         'prst':     'verticalScroll',
         'avLst':    (
             ('adj', 12500),
         )
     },
-    MAST.WAVE: {
+    MSO_SHAPE.WAVE: {
         'basename': 'Wave',
         'prst':     'wave',
         'avLst':    (

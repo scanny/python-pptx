@@ -109,8 +109,9 @@ paragraph::
     textframe.word_wrap = False
     textframe.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
 
-The possible values for ``TextFrame.auto_size`` are specified by the
-enumeration :ref:`MsoAutoSize`.
+The possible values for ``TextFrame.auto_size`` and
+``TextFrame.vertical_anchor`` are specified by the enumeration
+:ref:`MsoAutoSize` and :ref:`MsoVerticalAnchor` respectively.
 
 
 Applying paragraph formatting
@@ -119,7 +120,7 @@ Applying paragraph formatting
 The following produces a shape containing three left-aligned paragraphs, the
 second and third indented (like sub-bullets) under the first::
 
-    from pptx.constants import PP
+    from pptx.enum.text import PP_ALIGN
 
     paragraph_strs = [
         'Egg, bacon, sausage and spam.',
@@ -132,12 +133,12 @@ second and third indented (like sub-bullets) under the first::
 
     p = textframe.paragraphs[0]
     p.text = paragraph_strs[0]
-    p.alignment = PP.ALIGN_LEFT
+    p.alignment = PP_ALIGN.LEFT
 
     for para_str in paragraph_strs[1:]:
         p = textframe.add_paragraph()
         p.text = para_str
-        p.alignment = PP.ALIGN_LEFT
+        p.alignment = PP_ALIGN.LEFT
         p.level = 1
 
 
@@ -151,7 +152,7 @@ the theme color Accent 1.
 ::
 
     from pptx.dml.color import RGBColor
-    from pptx.enum import MSO_THEME_COLOR
+    from pptx.enum.dml import MSO_THEME_COLOR
     from pptx.util import Pt
 
     textframe = shape.textframe

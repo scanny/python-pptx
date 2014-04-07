@@ -6,9 +6,8 @@ from __future__ import absolute_import
 
 import pytest
 
-from pptx.constants import MSO_AUTO_SHAPE_TYPE as MAST
 from pptx.dml.fill import FillFormat
-from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
@@ -259,8 +258,8 @@ class DescribeAdjustmentCollection(object):
 class DescribeAutoShapeType(object):
 
     def it_knows_the_details_of_the_auto_shape_type_it_represents(self):
-        autoshape_type = AutoShapeType(MAST.ROUNDED_RECTANGLE)
-        assert autoshape_type.autoshape_type_id == MAST.ROUNDED_RECTANGLE
+        autoshape_type = AutoShapeType(MSO_SHAPE.ROUNDED_RECTANGLE)
+        assert autoshape_type.autoshape_type_id == MSO_SHAPE.ROUNDED_RECTANGLE
         assert autoshape_type.prst == 'roundRect'
         assert autoshape_type.basename == 'Rounded Rectangle'
 
@@ -271,14 +270,14 @@ class DescribeAutoShapeType(object):
         assert _default_adj_vals == default_adj_vals
 
     def it_knows_the_autoshape_type_id_for_each_prst_key(self):
-        assert AutoShapeType.id_from_prst('rect') == MAST.RECTANGLE
+        assert AutoShapeType.id_from_prst('rect') == MSO_SHAPE.RECTANGLE
 
     def it_raises_when_asked_for_autoshape_type_id_with_a_bad_prst(self):
         with pytest.raises(KeyError):
             AutoShapeType.id_from_prst('badPrst')
 
     def it_caches_autoshape_type_lookups(self):
-        autoshape_type_id = MAST.ROUNDED_RECTANGLE
+        autoshape_type_id = MSO_SHAPE.ROUNDED_RECTANGLE
         autoshape_type_1 = AutoShapeType(autoshape_type_id)
         autoshape_type_2 = AutoShapeType(autoshape_type_id)
         assert autoshape_type_2 is autoshape_type_1

@@ -209,6 +209,13 @@ def print_mso_auto_shape_type_constants():
     print out
 
 
+def print_mso_auto_shape_type_enum():
+    """print symbolic constant definitions for msoAutoShapeType"""
+    auto_shape_types = MsoAutoShapeTypeCollection.load(sort='const_name')
+    out = render_mso_auto_shape_type_enum(auto_shape_types)
+    print out
+
+
 def print_mso_auto_shape_type_spec():
     """print spec dictionary for msoAutoShapeType"""
     auto_shape_types = MsoAutoShapeTypeCollection.load(sort='const_name')
@@ -256,6 +263,28 @@ def render_mso_auto_shape_type_constants(auto_shape_types):
     )
     for ast in auto_shape_types:
         out += '    %s = %d\n' % (ast.const_name, ast.id_)
+    return out
+
+
+def render_mso_auto_shape_type_enum(auto_shape_types):
+    out = (
+        'class MSO_AUTO_SHAPE_TYPE(XmlEnumeration):\n'
+        '    """\n'
+        '    Specifies a type of AutoShape, e.g. DOWN_ARROW\n'
+        '    """\n'
+        '\n'
+        '    __members__ = (\n'
+    )
+    for ast in auto_shape_types:
+        tmpl = (
+            "        XmlMappedEnumMember(\n"
+            "            '%s', %d, '%s', '%s'\n"
+            "        ),\n"
+        )
+        args = (ast.const_name, ast.id_, ast.prst, ast.desc)
+        out += tmpl % args
+        # break
+    out += '    )'
     return out
 
 
@@ -342,7 +371,7 @@ def parse_args(spectypes):
 # main
 # ============================================================================
 
-spectypes = ('msoAutoShapeType',)
+spectypes = ('msoAutoShapeType', 'MSO_AUTO_SHAPE_TYPE')
 
 args = parse_args(spectypes)
 
@@ -353,6 +382,8 @@ if args.constants:
 else:
     if args.spectype == 'msoAutoShapeType':
         print_mso_auto_shape_type_spec()
+    elif args.spectype == 'MSO_AUTO_SHAPE_TYPE':
+        print_mso_auto_shape_type_enum()
 
 # avoid error message "close failed ... sys.excepthook is missing ...
 sys.stdout.flush()

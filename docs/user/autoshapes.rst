@@ -13,15 +13,15 @@ Adding an auto shape
 The following code adds a rounded rectangle shape, one inch square, and
 positioned one inch from the top-left corner of the slide::
 
-    from pptx.constants import MSO_SHAPE
+    from pptx.enum.shapes import MSO_SHAPE
 
     left = top = width = height = Inches(1.0)
     shape = shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height
     )
 
-See :ref:`Auto Shape Types <MsoAutoShapeType>` for a list of all 182 auto shape
-types.
+See the :ref:`MsoAutoShapeType` enumeration page for a list of all 182 auto
+shape types.
 
 
 Adjusting an autoshape
