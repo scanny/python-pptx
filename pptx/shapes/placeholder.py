@@ -39,20 +39,20 @@ class BasePlaceholder(Shape):
     @property
     def orient(self):
         """
-        Placeholder orientation, e.g. PH_ORIENT_HORZ
+        Placeholder orientation, e.g. ST_Direction.HORZ
         """
         return self._sp.ph_orient
 
     @property
     def ph_type(self):
         """
-        Placeholder type, e.g. PH_TYPE_CTRTITLE
+        Placeholder type, e.g. ST_PlaceholderType.CTR_TITLE
         """
         return self._sp.ph_type
 
     @property
     def sz(self):
         """
-        Placeholder 'sz' attribute, e.g. PH_SZ_FULL
+        Placeholder 'sz' attribute, e.g. ST_PlaceholderSize.FULL
         """
         return self._sp.ph_sz

@@ -8,9 +8,10 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
-from pptx.oxml.shapes.shared import BaseShapeElement
+from pptx.oxml.shapes.shared import (
+    BaseShapeElement, ST_Direction, ST_PlaceholderSize
+)
 from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
-from pptx.spec import PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF
 
 from ..oxml.unitdata.shape import (
     a_graphicFrame, a_ph, an_nvGraphicFramePr, an_nvPicPr, an_nvPr,
@@ -75,9 +76,9 @@ class DescribeBasePlaceholder(object):
         return placeholder, expected_idx
 
     @pytest.fixture(params=[
-        (False, None,           None),
-        (True,  None,           PH_ORIENT_HORZ),
-        (True,  PH_ORIENT_VERT, PH_ORIENT_VERT),
+        (False, None, None),
+        (True,  None, ST_Direction.HORZ),
+        (True,  ST_Direction.VERT, ST_Direction.VERT),
     ])
     def orient_fixture(self, request):
         has_ph_elm, orient, expected_orient = request.param
@@ -96,9 +97,9 @@ class DescribeBasePlaceholder(object):
         return placeholder, expected_orient
 
     @pytest.fixture(params=[
-        (False, None,       None),
-        (True,  None,       PH_SZ_FULL),
-        (True,  PH_SZ_HALF, PH_SZ_HALF),
+        (False, None, None),
+        (True,  None, ST_PlaceholderSize.FULL),
+        (True,  ST_PlaceholderSize.HALF, ST_PlaceholderSize.HALF),
     ])
     def sz_fixture(self, request):
         has_ph_elm, sz, expected_sz = request.param

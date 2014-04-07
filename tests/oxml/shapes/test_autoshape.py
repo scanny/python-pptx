@@ -12,9 +12,8 @@ from pptx.oxml.shapes.autoshape import (
     CT_PresetGeometry2D, CT_Shape, CT_ShapeProperties
 )
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.shapes.shared import ST_PlaceholderType
-from pptx.spec import (
-    PH_ORIENT_HORZ, PH_ORIENT_VERT, PH_SZ_FULL, PH_SZ_HALF, PH_SZ_QUARTER
+from pptx.oxml.shapes.shared import (
+    ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
 )
 
 from ..unitdata.shape import (
@@ -220,20 +219,20 @@ class TestCT_Shape(TestCase):
             '  <p:txBody>\n    <a:bodyPr/>\n    <a:lstStyle/>\n    <a:p/>\n  '
             '</p:txBody>\n')
         test_cases = (
-            (2, 'Title 1', ST_PlaceholderType.CTR_TITLE, PH_ORIENT_HORZ,
-             PH_SZ_FULL, 0),
-            (3, 'Date Placeholder 2', ST_PlaceholderType.DT, PH_ORIENT_HORZ,
-             PH_SZ_HALF, 10),
+            (2, 'Title 1', ST_PlaceholderType.CTR_TITLE, ST_Direction.HORZ,
+             ST_PlaceholderSize.FULL, 0),
+            (3, 'Date Placeholder 2', ST_PlaceholderType.DT,
+             ST_Direction.HORZ, ST_PlaceholderSize.HALF, 10),
             (4, 'Vertical Subtitle 3', ST_PlaceholderType.SUB_TITLE,
-             PH_ORIENT_VERT, PH_SZ_FULL, 1),
+             ST_Direction.VERT, ST_PlaceholderSize.FULL, 1),
             (5, 'Table Placeholder 4', ST_PlaceholderType.TBL,
-             PH_ORIENT_HORZ, PH_SZ_QUARTER, 14),
+             ST_Direction.HORZ, ST_PlaceholderSize.QUARTER, 14),
             (6, 'Slide Number Placeholder 5', ST_PlaceholderType.SLD_NUM,
-             PH_ORIENT_HORZ, PH_SZ_QUARTER, 12),
+             ST_Direction.HORZ, ST_PlaceholderSize.QUARTER, 12),
             (7, 'Footer Placeholder 6', ST_PlaceholderType.FTR,
-             PH_ORIENT_HORZ, PH_SZ_QUARTER, 11),
+             ST_Direction.HORZ, ST_PlaceholderSize.QUARTER, 11),
             (8, 'Content Placeholder 7', ST_PlaceholderType.OBJ,
-             PH_ORIENT_HORZ, PH_SZ_FULL, 15)
+             ST_Direction.HORZ, ST_PlaceholderSize.FULL, 15)
         )
         expected_values = (
             (2, 'Title 1', ' type="%s"' % ST_PlaceholderType.CTR_TITLE,

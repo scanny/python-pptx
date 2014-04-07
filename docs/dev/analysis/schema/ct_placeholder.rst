@@ -68,16 +68,37 @@ Schema excerpt
 
 ::
 
+  <xsd:complexType name="CT_ApplicationNonVisualDrawingProps">
+    <xsd:sequence>
+      <xsd:element name="ph"          type="CT_Placeholder"      minOccurs="0"/>
+      <xsd:group   ref="a:EG_Media"                              minOccurs="0"/>
+      <xsd:element name="custDataLst" type="CT_CustomerDataList" minOccurs="0"/>
+      <xsd:element name="extLst"      type="CT_ExtensionList"    minOccurs="0"/>
+    </xsd:sequence>
+    <xsd:attribute name="isPhoto"   type="xsd:boolean" default="false"/>
+    <xsd:attribute name="userDrawn" type="xsd:boolean" default="false"/>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_Placeholder">
     <xsd:sequence>
       <xsd:element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
     </xsd:sequence>
-    <xsd:attribute name="type"            type="ST_PlaceholderType" use="optional" default="obj"/>
-    <xsd:attribute name="orient"          type="ST_Direction"       use="optional" default="horz"/>
-    <xsd:attribute name="sz"              type="ST_PlaceholderSize" use="optional" default="full"/>
-    <xsd:attribute name="idx"             type="xsd:unsignedInt"    use="optional" default="0"/>
-    <xsd:attribute name="hasCustomPrompt" type="xsd:boolean"        use="optional" default="false"/>
+    <xsd:attribute name="type"            type="ST_PlaceholderType" default="obj"/>
+    <xsd:attribute name="orient"          type="ST_Direction"       default="horz"/>
+    <xsd:attribute name="sz"              type="ST_PlaceholderSize" default="full"/>
+    <xsd:attribute name="idx"             type="xsd:unsignedInt"    default="0"/>
+    <xsd:attribute name="hasCustomPrompt" type="xsd:boolean"        default="false"/>
   </xsd:complexType>
+
+  <xsd:group name="EG_Media">
+    <xsd:choice>
+      <xsd:element name="audioCd"       type="CT_AudioCD"/>
+      <xsd:element name="wavAudioFile"  type="CT_EmbeddedWAVAudioFile"/>
+      <xsd:element name="audioFile"     type="CT_AudioFile"/>
+      <xsd:element name="videoFile"     type="CT_VideoFile"/>
+      <xsd:element name="quickTimeFile" type="CT_QuickTimeFile"/>
+    </xsd:choice>
+  </xsd:group>
 
   <xsd:simpleType name="ST_PlaceholderType">
     <xsd:restriction base="xsd:token">
@@ -108,3 +129,17 @@ Schema excerpt
     </xsd:restriction>
   </xsd:simpleType>
 
+  <xsd:simpleType name="ST_Direction">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="horz"/>
+      <xsd:enumeration value="vert"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_PlaceholderSize">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="full"/>
+      <xsd:enumeration value="half"/>
+      <xsd:enumeration value="quarter"/>
+    </xsd:restriction>
+  </xsd:simpleType>

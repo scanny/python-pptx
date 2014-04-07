@@ -1373,22 +1373,6 @@ autoshape_types = {
 
 
 # ============================================================================
-# Placeholder constants
-# ============================================================================
-
-# valid values for <p:ph> orient attribute
-# ----------------------------------------
-PH_ORIENT_HORZ = 'horz'
-PH_ORIENT_VERT = 'vert'
-
-# valid values for <p:ph> sz (size) attribute
-# -------------------------------------------
-PH_SZ_FULL = 'full'
-PH_SZ_HALF = 'half'
-PH_SZ_QUARTER = 'quarter'
-
-
-# ============================================================================
 # default_content_types
 # ============================================================================
 # Default file extension to MIME type mapping. This is used as a reference for

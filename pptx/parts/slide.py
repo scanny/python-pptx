@@ -14,11 +14,10 @@ from ..opc.packuri import PackURI
 from ..oxml import parse_xml_bytes
 from ..oxml.ns import nsmap, _nsmap, qn
 from ..oxml.shared import Element, SubElement
-from ..oxml.shapes.shared import ST_PlaceholderType
+from ..oxml.shapes.shared import ST_Direction, ST_PlaceholderType
 from ..shapes.autoshape import AutoShapeType
 from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
 from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
-from ..spec import PH_ORIENT_VERT
 from ..util import lazyproperty
 
 
@@ -389,10 +388,10 @@ class _SlideShapeTree(BaseShapeTree):
         Next unique placeholder name for placeholder shape of type *ph_type*,
         with id number *id* and orientation *orient*. Usually will be standard
         placeholder root name suffixed with id-1, e.g.
-        _next_ph_name(PH_TYPE_TBL, 4, 'horz') ==> 'Table Placeholder 3'. The
-        number is incremented as necessary to make the name unique within the
-        collection. If *orient* is ``'vert'``, the placeholder name is
-        prefixed with ``'Vertical '``.
+        _next_ph_name(ST_PlaceholderType.TBL, 4, 'horz') ==>
+        'Table Placeholder 3'. The number is incremented as necessary to make
+        the name unique within the collection. If *orient* is ``'vert'``, the
+        placeholder name is prefixed with ``'Vertical '``.
         """
         basename = {
             # BODY is named 'Notes Placeholder' in a notes master
@@ -415,7 +414,7 @@ class _SlideShapeTree(BaseShapeTree):
         }[ph_type]
 
         # prefix rootname with 'Vertical ' if orient is 'vert'
-        if orient == PH_ORIENT_VERT:
+        if orient == ST_Direction.VERT:
             basename = 'Vertical %s' % basename
 
         # increment numpart as necessary to make name unique

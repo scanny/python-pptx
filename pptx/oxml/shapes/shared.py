@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 from ..ns import _nsmap, qn
 from ..shared import BaseOxmlElement, Element
-from ...spec import PH_ORIENT_HORZ, PH_SZ_FULL
 
 
 class BaseShapeElement(BaseOxmlElement):
@@ -78,30 +77,30 @@ class BaseShapeElement(BaseOxmlElement):
     @property
     def ph_orient(self):
         """
-        Placeholder orientation, e.g. PH_ORIENT_VERT ('vert'), None if shape
-        has no ``<p:ph>`` descendant.
+        Placeholder orientation, e.g. ST_Direction.VERT ('vert'), None if
+        shape has no ``<p:ph>`` descendant.
         """
         ph = self.ph
         if ph is None:
             return None
-        return ph.get('orient', PH_ORIENT_HORZ)
+        return ph.get('orient', ST_Direction.HORZ)
 
     @property
     def ph_sz(self):
         """
-        Placeholder size, e.g. PH_SZ_HALF, None if shape has no ``<p:ph>``
-        descendant.
+        Placeholder size, e.g. ST_PlaceholderSize.HALF, None if shape has no
+        ``<p:ph>`` descendant.
         """
         ph = self.ph
         if ph is None:
             return None
-        return ph.get('sz', PH_SZ_FULL)
+        return ph.get('sz', ST_PlaceholderSize.FULL)
 
     @property
     def ph_type(self):
         """
-        Placeholder type, e.g. PH_TYPE_TITLE ('title'), none if shape has no
-        ``<p:ph>`` descendant.
+        Placeholder type, e.g. ST_PlaceholderType.TITLE ('title'), none if
+        shape has no ``<p:ph>`` descendant.
         """
         ph = self.ph
         if ph is None:
@@ -281,6 +280,24 @@ class CT_Transform2D(BaseOxmlElement):
         The <a:off> child element, or None if not present.
         """
         return self.find(qn('a:off'))
+
+
+class ST_Direction(object):
+    """
+    Valid values for <p:ph orient=""> attribute
+    """
+
+    HORZ = 'horz'
+    VERT = 'vert'
+
+
+class ST_PlaceholderSize(object):
+    """
+    Valid values for <p:ph> sz (size) attribute
+    """
+    FULL = 'full'
+    HALF = 'half'
+    QUARTER = 'quarter'
 
 
 class ST_PlaceholderType(object):

@@ -10,10 +10,11 @@ from lxml import objectify
 
 from .. import parse_xml_bytes
 from ..ns import nsdecls, _nsmap, qn
-from .shared import BaseShapeElement, ST_PlaceholderType
+from .shared import (
+    BaseShapeElement, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
+)
 from ..shared import BaseOxmlElement, child, Element, SubElement
 from ..text import CT_TextBody
-from ...spec import PH_ORIENT_HORZ, PH_SZ_FULL
 
 
 class CT_PresetGeometry2D(BaseOxmlElement):
@@ -188,9 +189,9 @@ class CT_Shape(BaseShapeElement):
         ph = SubElement(sp.nvSpPr.nvPr, 'p:ph')
         if ph_type != ST_PlaceholderType.OBJ:
             ph.set('type', ph_type)
-        if orient != PH_ORIENT_HORZ:
+        if orient != ST_Direction.HORZ:
             ph.set('orient', orient)
-        if sz != PH_SZ_FULL:
+        if sz != ST_PlaceholderSize.FULL:
             ph.set('sz', sz)
         if idx != 0:
             ph.set('idx', str(idx))
