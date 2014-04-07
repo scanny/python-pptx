@@ -7,7 +7,7 @@ Autoshape-related objects such as Shape and Adjustment.
 from numbers import Number
 
 from ..dml.fill import FillFormat
-from ..enum.shapes import MSO_SHAPE_TYPE
+from ..enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
 from .shape import BaseShape
 from ..spec import autoshape_types
 from ..util import lazyproperty
@@ -215,7 +215,6 @@ class AutoShapeType(object):
         # otherwise initialize new instance
         autoshape_type = autoshape_types[autoshape_type_id]
         self._autoshape_type_id = autoshape_type_id
-        self._prst = autoshape_type['prst']
         self._basename = autoshape_type['basename']
         self._loaded = True
 
@@ -255,11 +254,7 @@ class AutoShapeType(object):
         Return auto shape id (e.g. ``MSO_SHAPE.RECTANGLE``) corresponding to
         preset geometry keyword *prst*.
         """
-        for autoshape_type_id, attribs in autoshape_types.iteritems():
-            if attribs['prst'] == prst:
-                return autoshape_type_id
-        msg = "no auto shape with prst '%s'" % prst
-        raise KeyError(msg)
+        return MSO_AUTO_SHAPE_TYPE.from_xml(prst)
 
     @property
     def prst(self):
@@ -268,7 +263,7 @@ class AutoShapeType(object):
         ``prst`` attribute of ``<a:prstGeom>`` element to specify the geometry
         to be used in rendering the shape, for example ``'roundRect'``.
         """
-        return self._prst
+        return MSO_AUTO_SHAPE_TYPE.to_xml(self._autoshape_type_id)
 
 
 class Shape(BaseShape):
