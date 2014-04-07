@@ -27,3 +27,18 @@ default_content_types = (
     ('xlsx',    CT.SML_SHEET),
     ('xml',     CT.XML),
 )
+
+
+image_content_types = {
+    'bmp':  CT.BMP,
+    'emf':  CT.X_EMF,
+    'gif':  CT.GIF,
+    'jpe':  CT.JPEG,
+    'jpeg': CT.JPEG,
+    'jpg':  CT.JPEG,
+    'png':  CT.PNG,
+    'tif':  CT.TIFF,
+    'tiff': CT.TIFF,
+    'wdp':  CT.MS_PHOTO,
+    'wmf':  CT.X_WMF,
+}

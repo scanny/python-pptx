@@ -9,7 +9,6 @@ them.
 from __future__ import absolute_import
 
 from pptx.enum.shapes import MSO_SHAPE
-from pptx.opc.constants import CONTENT_TYPE as CT
 
 
 # ============================================================================
@@ -1369,35 +1368,4 @@ autoshape_types = {
             ('adj2', 0),
         )
     },
-}
-
-
-# ============================================================================
-# default_content_types
-# ============================================================================
-# Default file extension to MIME type mapping. This is used as a reference for
-# adding <Default> elements to [Content_Types].xml for parts like media files.
-#
-# BACKLOG: I've seen .wmv elements in the media folder of at least one
-# presentation, might need to add an entry for that and perhaps other rich
-# media PowerPoint allows to be embedded (e.g. audio, movie, object, ...).
-# ============================================================================
-
-default_content_types = {
-    '.bin':     CT.PML_PRINTER_SETTINGS,
-    '.bmp':     'image/bmp',
-    '.emf':     'image/x-emf',
-    '.fntdata': 'application/x-fontdata',
-    '.gif':     'image/gif',
-    '.jpe':     'image/jpeg',
-    '.jpeg':    'image/jpeg',
-    '.jpg':     'image/jpeg',
-    '.png':     'image/png',
-    '.rels':    'application/vnd.openxmlformats-package.relationships+xml',
-    '.tif':     'image/tiff',
-    '.tiff':    'image/tiff',
-    '.wdp':     'image/vnd.ms-photo',
-    '.wmf':     'image/x-wmf',
-    '.xlsx':    CT.SML_SHEET,
-    '.xml':     'application/xml'
 }

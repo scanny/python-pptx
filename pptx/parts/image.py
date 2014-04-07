@@ -17,8 +17,8 @@ from StringIO import StringIO
 
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
+from pptx.opc.spec import image_content_types
 from pptx.parts.part import PartCollection
-from pptx.spec import default_content_types
 from pptx.util import Px
 
 
@@ -49,8 +49,7 @@ class Image(Part):
     @property
     def ext(self):
         """
-        Return file extension for this image. Includes the leading dot, e.g.
-        ``'.png'``.
+        Return file extension for this image e.g. ``'png'``.
         """
         return self._ext
 
@@ -64,13 +63,41 @@ class Image(Part):
         """
         Return filename associated with this image, either the filename of the
         original image file the image was created with or a synthetic name of
-        the form ``image.ext`` where ``.ext`` is appropriate to the image file
-        format, e.g. ``'.jpg'``.
+        the form ``image.ext`` where ``ext`` is appropriate to the image file
+        format, e.g. ``'jpg'``.
         """
         if self._filepath is not None:
             return os.path.split(self._filepath)[1]
         # return generic filename if original filename is unknown
-        return 'image%s' % self.ext
+        return 'image.%s' % self.ext
+
+    @staticmethod
+    def _ext_from_image_stream(stream):
+        """
+        Return the filename extension appropriate to the image file contained
+        in *stream*.
+        """
+        ext_map = {
+            'GIF': 'gif', 'JPEG': 'jpg', 'PNG': 'png', 'TIFF': 'tiff',
+            'WMF': 'wmf'
+        }
+        stream.seek(0)
+        format = PIL_Image.open(stream).format
+        if format not in ext_map:
+            tmpl = "unsupported image format, expected one of: %s, got '%s'"
+            raise ValueError(tmpl % (ext_map.keys(), format))
+        return ext_map[format]
+
+    @staticmethod
+    def _image_ext_content_type(ext):
+        """
+        Return the content type corresponding to filename extension *ext*
+        """
+        if ext not in image_content_types:
+            tmpl = "unsupported image file extension '%s'"
+            raise ValueError(tmpl % (ext))
+        content_type = image_content_types[ext]
+        return content_type
 
     @classmethod
     def _load_from_file(cls, img_file):
@@ -80,7 +107,7 @@ class Image(Part):
         """
         if isinstance(img_file, basestring):  # img_file is a path
             filepath = img_file
-            ext = os.path.splitext(filepath)[1]
+            ext = os.path.splitext(filepath)[1][1:]
             content_type = cls._image_ext_content_type(ext)
             with open(filepath, 'rb') as f:
                 blob = f.read()
@@ -131,33 +158,6 @@ class Image(Part):
         width_px, height_px = PIL_Image.open(image_stream).size
         image_stream.close()
         return width_px, height_px
-
-    @staticmethod
-    def _image_ext_content_type(ext):
-        """Return the content type corresponding to filename extension *ext*"""
-        if ext not in default_content_types:
-            tmpl = "unsupported image file extension '%s'"
-            raise TypeError(tmpl % (ext))
-        content_type = default_content_types[ext]
-        if not content_type.startswith('image/'):
-            tmpl = "'%s' is not an image content type; ext '%s'"
-            raise TypeError(tmpl % (content_type, ext))
-        return content_type
-
-    @staticmethod
-    def _ext_from_image_stream(stream):
-        """
-        Return the filename extension appropriate to the image file contained
-        in *stream*.
-        """
-        ext_map = {'GIF': '.gif', 'JPEG': '.jpg', 'PNG': '.png',
-                   'TIFF': '.tiff', 'WMF': '.wmf'}
-        stream.seek(0)
-        format = PIL_Image.open(stream).format
-        if format not in ext_map:
-            tmpl = "unsupported image format, expected one of: %s, got '%s'"
-            raise ValueError(tmpl % (ext_map.keys(), format))
-        return ext_map[format]
 
 
 class ImageCollection(PartCollection):
@@ -211,5 +211,5 @@ class ImageCollection(PartCollection):
         extension is preserved during renaming.
         """
         for idx, image in enumerate(self._values):
-            partname_str = '/ppt/media/image%d%s' % (idx+1, image.ext)
+            partname_str = '/ppt/media/image%d.%s' % (idx+1, image.ext)
             image.partname = PackURI(partname_str)

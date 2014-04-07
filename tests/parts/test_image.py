@@ -31,7 +31,7 @@ class TestImage(TestCase):
         partname = PackURI('/ppt/media/image1.jpeg')
         image = Image.new(partname, test_image_path)
         # verify -----------------------
-        assert_that(image.ext, is_(equal_to('.jpeg')))
+        assert_that(image.ext, is_(equal_to('jpeg')))
         assert_that(image.content_type, is_(equal_to('image/jpeg')))
         assert_that(len(image._blob), is_(equal_to(3277)))
         assert_that(image._desc, is_(equal_to('python-icon.jpeg')))
@@ -44,7 +44,7 @@ class TestImage(TestCase):
             stream = StringIO(f.read())
         image = Image.new(partname, stream)
         # verify -----------------------
-        assert_that(image.ext, is_(equal_to('.jpg')))
+        assert_that(image.ext, is_(equal_to('jpg')))
         assert_that(image.content_type, is_(equal_to('image/jpeg')))
         assert_that(len(image._blob), is_(equal_to(3277)))
         assert_that(image._desc, is_(equal_to('image.jpg')))
@@ -84,7 +84,7 @@ class TestImage(TestCase):
     def test__image_ext_content_type_known_type(self):
         """Image._image_ext_content_type() correct for known content type"""
         # exercise ---------------------
-        content_type = Image._image_ext_content_type('.jpeg')
+        content_type = Image._image_ext_content_type('jpeg')
         # verify -----------------------
         expected = 'image/jpeg'
         actual = content_type
@@ -92,12 +92,8 @@ class TestImage(TestCase):
         self.assertEqual(expected, actual, msg)
 
     def test__image_ext_content_type_raises_on_bad_ext(self):
-        with self.assertRaises(TypeError):
-            Image._image_ext_content_type('.xj7')
-
-    def test__image_ext_content_type_raises_on_non_img_ext(self):
-        with self.assertRaises(TypeError):
-            Image._image_ext_content_type('.xml')
+        with self.assertRaises(ValueError):
+            Image._image_ext_content_type('xj7')
 
 
 class TestImageCollection(TestCase):
