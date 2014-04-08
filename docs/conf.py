@@ -94,6 +94,8 @@ rst_epilog = """
 
 .. |DirectoryFileSystem| replace:: :class:`DirectoryFileSystem`
 
+.. |False| replace:: :class:`False`
+
 .. |FileSystem| replace:: :class:`FileSystem`
 
 .. |FillFormat| replace:: :class:`.FillFormat`
