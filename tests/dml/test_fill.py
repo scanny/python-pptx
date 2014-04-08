@@ -10,7 +10,7 @@ import pytest
 
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
-from pptx.enum import MSO_FILL_TYPE as MSO_FILL
+from pptx.enum.dml import MSO_FILL
 
 from ..oxml.unitdata.dml import (
     a_blipFill, a_gradFill, a_grpFill, a_noFill, a_pattFill, a_solidFill,

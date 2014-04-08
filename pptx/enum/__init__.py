@@ -18,20 +18,6 @@ class Enumeration_OLD(object):
         return cls._idx_to_xml[enum_val]
 
 
-class MSO_FILL_TYPE(Enumeration_OLD):
-    """
-    Corresponds to MsoFillType enumeration
-    http://msdn.microsoft.com/EN-US/library/office/ff861408.aspx
-    """
-    BACKGROUND = 5
-    GRADIENT = 3
-    GROUP = 101
-    PATTERNED = 2
-    PICTURE = 6
-    SOLID = 1
-    TEXTURED = 4
-
-
 class MSO_THEME_COLOR(Enumeration_OLD):
     """
     Corresponds to MsoColorType

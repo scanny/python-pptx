@@ -6,7 +6,7 @@ Text-related objects such as TextFrame and Paragraph.
 
 from .constants import MSO
 from .dml.fill import FillFormat
-from .enum import MSO_FILL_TYPE as MSO_FILL
+from .enum.dml import MSO_FILL
 from .opc.constants import RELATIONSHIP_TYPE as RT
 from .oxml.shared import Element, get_or_add
 from .oxml.ns import namespaces, qn

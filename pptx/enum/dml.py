@@ -6,7 +6,7 @@ Enumerations used by DrawingML objects
 
 from __future__ import absolute_import
 
-from .base import Enumeration, EnumMember
+from .base import alias, Enumeration, EnumMember
 
 
 class MSO_COLOR_TYPE(Enumeration):
@@ -54,5 +54,53 @@ class MSO_COLOR_TYPE(Enumeration):
             Color is one specified by the operating system, such as the
             window background color.
             """
+        ),
+    )
+
+
+@alias('MSO_FILL')
+class MSO_FILL_TYPE(Enumeration):
+    """
+    Specifies the type of bitmap used for the fill of a shape.
+
+    Alias: ``MSO_FILL``
+
+    Example::
+
+        from pptx.enum.dml import MSO_FILL
+
+        assert shape.fill.type == MSO_FILL.SOLID
+    """
+
+    __ms_name__ = 'MsoFillType'
+
+    __url__ = 'http://msdn.microsoft.com/EN-US/library/office/ff861408.aspx'
+
+    __members__ = (
+        EnumMember(
+            'BACKGROUND', 5, """
+            The shape is transparent, such that whatever is behind the shape
+            shows through. Often this is the slide background, but if
+            a visible shape is behind, that will show through.
+            """
+        ),
+        EnumMember(
+            'GRADIENT', 3, 'Shape is filled with a gradient'
+        ),
+        EnumMember(
+            'GROUP', 101, 'Shape is part of a group and should inherit the '
+            'fill properties of the group.'
+        ),
+        EnumMember(
+            'PATTERNED', 2, 'Shape is filled with a pattern'
+        ),
+        EnumMember(
+            'PICTURE', 6, 'Shape is filled with a bitmapped image'
+        ),
+        EnumMember(
+            'SOLID', 1, 'Shape is filled with a solid color'
+        ),
+        EnumMember(
+            'TEXTURED', 4, 'Shape is filled with a texture'
         ),
     )
