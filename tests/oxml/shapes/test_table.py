@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 from hamcrest import assert_that, equal_to, is_
 
-from pptx.enum import MSO_ANCHOR
+from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.table import CT_Table
 

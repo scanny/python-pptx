@@ -4,19 +4,15 @@
 Text-related objects such as TextFrame and Paragraph.
 """
 
-from .constants import MSO
 from .dml.fill import FillFormat
 from .enum.dml import MSO_FILL
+from .enum.text import MSO_ANCHOR
 from .opc.constants import RELATIONSHIP_TYPE as RT
 from .oxml.shared import Element, get_or_add
-from .oxml.ns import namespaces, qn
+from .oxml.ns import _nsmap, qn
 from .shapes import Subshape
 from .spec import ParagraphAlignment
 from .util import lazyproperty, to_unicode
-
-
-# default namespace map for use in lxml calls
-_nsmap = namespaces('a', 'r', 'p')
 
 
 class TextFrame(Subshape):
@@ -132,16 +128,16 @@ class TextFrame(Subshape):
         Set ``anchor`` attribute of ``<a:bodyPr>`` element
         """
         value_map = {
-            MSO.ANCHOR_TOP:    't',
-            MSO.ANCHOR_MIDDLE: 'ctr',
-            MSO.ANCHOR_BOTTOM: 'b'
+            MSO_ANCHOR.TOP:    't',
+            MSO_ANCHOR.MIDDLE: 'ctr',
+            MSO_ANCHOR.BOTTOM: 'b'
         }
         bodyPr = get_or_add(self._txBody, 'a:bodyPr')
         bodyPr.set('anchor', value_map[value])
 
     #: Write-only. Assignment to *vertical_anchor* sets the vertical
     #: alignment of the text frame to top, middle, or bottom. Valid values are
-    #: ``MSO.ANCHOR_TOP``, ``MSO.ANCHOR_MIDDLE``, or ``MSO.ANCHOR_BOTTOM``.
+    #: ``MSO_ANCHOR.TOP``, ``MSO_ANCHOR.MIDDLE``, or ``MSO_ANCHOR.BOTTOM``.
     #: The ``MSO`` name is imported from ``pptx.constants``.
     vertical_anchor = property(None, _set_vertical_anchor)
 

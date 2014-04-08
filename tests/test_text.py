@@ -8,10 +8,10 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.constants import MSO, PP
+from pptx.constants import PP
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
-from pptx.enum.text import MSO_AUTO_SIZE
+from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.oxml import parse_xml_bytes
@@ -109,7 +109,7 @@ class DescribeTextFrame(object):
     def it_can_change_its_vertical_anchor_setting(
             self, txBody, txBody_with_anchor_ctr_xml):
         textframe = TextFrame(txBody, None)
-        textframe.vertical_anchor = MSO.ANCHOR_MIDDLE
+        textframe.vertical_anchor = MSO_ANCHOR.MIDDLE
         assert actual_xml(textframe._txBody) == txBody_with_anchor_ctr_xml
 
     def it_can_change_the_word_wrap_setting(

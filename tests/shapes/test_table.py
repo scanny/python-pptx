@@ -10,7 +10,7 @@ from hamcrest import assert_that, equal_to, is_
 from mock import MagicMock, Mock, PropertyMock
 
 from pptx.dml.fill import FillFormat
-from pptx.enum import MSO_ANCHOR
+from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml import parse_xml_bytes
 from pptx.oxml.ns import nsdecls
 from pptx.shapes.table import (

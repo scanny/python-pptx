@@ -10,8 +10,8 @@ from behave import given, when, then
 from hamcrest import assert_that, equal_to, has_item, is_
 
 from pptx import Presentation
-from pptx.constants import MSO
 from pptx.dml.color import RGBColor
+from pptx.enum.text import MSO_ANCHOR
 from pptx.util import Inches
 
 from .helpers import saved_pptx_path
@@ -73,7 +73,7 @@ def when_set_cell_margins(context):
 
 @when("I set the cell vertical anchor to middle")
 def when_set_cell_vertical_anchor_to_middle(context):
-    context.cell.vertical_anchor = MSO.ANCHOR_MIDDLE
+    context.cell.vertical_anchor = MSO_ANCHOR.MIDDLE
 
 
 @when("I set the first_col property to True")
@@ -136,7 +136,7 @@ def then_cell_contents_are_vertically_centered(context):
     prs = Presentation(saved_pptx_path)
     table = prs.slides[0].shapes[0]
     cell = table.cell(0, 0)
-    assert_that(cell.vertical_anchor, is_(equal_to(MSO.ANCHOR_MIDDLE)))
+    assert_that(cell.vertical_anchor, is_(equal_to(MSO_ANCHOR.MIDDLE)))
 
 
 @then('the columns of the table have alternating shading')

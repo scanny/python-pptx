@@ -13,3 +13,4 @@ can be found here:
    MsoColorType
    MsoFillType
    MsoThemeColorIndex
+   MsoVerticalAnchor

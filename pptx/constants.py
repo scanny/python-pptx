@@ -205,14 +205,6 @@ class MSO(object):
     Constants corresponding to things like ``msoAnchorMiddle`` in the MS
     Office API.
     """
-    # MsoVerticalAnchor ----------------
-    ANCHOR_TOP = 1
-    ANCHOR_TOP_BASELINE = 2
-    ANCHOR_MIDDLE = 3
-    ANCHOR_BOTTOM = 4
-    ANCHOR_BOTTOM_BASELINE = 5
-    VERTICAL_ANCHOR_MIXED = -2
-
     # Shape Types ----------------------
 
     # shapes recognized so far

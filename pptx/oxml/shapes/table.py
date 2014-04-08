@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from lxml import objectify
 
 from .. import parse_xml_bytes, XSD_TRUE
-from ...enum import MSO_ANCHOR
+from ...enum.text import MSO_ANCHOR
 from ..ns import nsdecls, qn
 from ..shared import Element, SubElement
 

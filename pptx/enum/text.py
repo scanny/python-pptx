@@ -6,7 +6,10 @@ Enumerations used by text and related objects
 
 from __future__ import absolute_import
 
-from .base import Enumeration, EnumMember, ReturnValueOnlyEnumMember
+from .base import (
+    alias, Enumeration, EnumMember, ReturnValueOnlyEnumMember,
+    XmlEnumeration, XmlMappedEnumMember
+)
 
 
 class MSO_AUTO_SIZE(Enumeration):
@@ -63,5 +66,43 @@ class MSO_AUTO_SIZE(Enumeration):
         ReturnValueOnlyEnumMember(
             'MIXED', -2, 'Return value only; indicates a combination of auto'
             'matic sizing schemes are used.'
+        ),
+    )
+
+
+@alias('MSO_ANCHOR')
+class MSO_VERTICAL_ANCHOR(XmlEnumeration):
+    """
+    Specifies the vertical alignment of text in a text frame. Used with the
+    ``.vertical_anchor`` property of the |TextFrame| object. Note that the
+    ``vertical_anchor`` property can also have the value None, indicating
+    there is no directly specified vertical anchor setting and its effective
+    value is inherited from its placeholder if it has one or from the theme.
+    None may also be assigned to remove an explicitly specified vertical
+    anchor setting.
+    """
+
+    __ms_name__ = 'MsoVerticalAnchor'
+
+    __url__ = 'http://msdn.microsoft.com/en-us/library/office/ff865255.aspx'
+
+    __members__ = (
+        XmlMappedEnumMember(
+            None, None, None, 'Text frame has no vertical anchor specified '
+            'and inherits its value from its layout placeholder or theme.'
+        ),
+        XmlMappedEnumMember(
+            'TOP', 1, 't', 'Aligns text to top of text frame'
+            ' and inherits its value from its layout placeholder or theme.'
+        ),
+        XmlMappedEnumMember(
+            'MIDDLE', 3, 'ctr', 'Centers text vertically'
+        ),
+        XmlMappedEnumMember(
+            'BOTTOM', 4, 'b', 'Aligns text to bottom of text frame'
+        ),
+        ReturnValueOnlyEnumMember(
+            'MIXED', -2, 'Return value only; indicates a combination of the '
+            'other states.'
         ),
     )
