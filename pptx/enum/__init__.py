@@ -7,7 +7,7 @@ Enumerations used in python-pptx.
 from __future__ import absolute_import
 
 
-class Enumeration(object):
+class Enumeration_OLD(object):
 
     @classmethod
     def from_xml(cls, xml_val):
@@ -18,7 +18,7 @@ class Enumeration(object):
         return cls._idx_to_xml[enum_val]
 
 
-class MSO_COLOR_TYPE(Enumeration):
+class MSO_COLOR_TYPE(Enumeration_OLD):
     """
     Corresponds to MsoColorType
     http://msdn.microsoft.com/en-us/library/office/aa432491(v=office.12).aspx
@@ -31,7 +31,7 @@ class MSO_COLOR_TYPE(Enumeration):
     SYSTEM = 104
 
 
-class MSO_FILL_TYPE(Enumeration):
+class MSO_FILL_TYPE(Enumeration_OLD):
     """
     Corresponds to MsoFillType enumeration
     http://msdn.microsoft.com/EN-US/library/office/ff861408.aspx
@@ -45,7 +45,7 @@ class MSO_FILL_TYPE(Enumeration):
     TEXTURED = 4
 
 
-class MSO_THEME_COLOR(Enumeration):
+class MSO_THEME_COLOR(Enumeration_OLD):
     """
     Corresponds to MsoColorType
     http://msdn.microsoft.com/en-us/library/office/aa432491(v=office.12).aspx
@@ -117,7 +117,7 @@ class MSO_THEME_COLOR(Enumeration):
         return cls._idx_to_xml[mso_theme_color_idx]
 
 
-class MSO_VERTICAL_ANCHOR(Enumeration):
+class MSO_VERTICAL_ANCHOR(Enumeration_OLD):
     """
     Corresponds to MsoVerticalAnchor enumeration
     http://msdn.microsoft.com/en-us/library/office/ff865255.aspx
