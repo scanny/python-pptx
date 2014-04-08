@@ -18,19 +18,6 @@ class Enumeration_OLD(object):
         return cls._idx_to_xml[enum_val]
 
 
-class MSO_COLOR_TYPE(Enumeration_OLD):
-    """
-    Corresponds to MsoColorType
-    http://msdn.microsoft.com/en-us/library/office/aa432491(v=office.12).aspx
-    """
-    RGB = 1
-    SCHEME = 2
-    HSL = 101
-    PRESET = 102
-    SCRGB = 103
-    SYSTEM = 104
-
-
 class MSO_FILL_TYPE(Enumeration_OLD):
     """
     Corresponds to MsoFillType enumeration

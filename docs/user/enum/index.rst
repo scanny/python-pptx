@@ -10,3 +10,4 @@ can be found here:
 
    MsoAutoShapeType
    MsoAutoSize
+   MsoColorType

@@ -8,7 +8,8 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from types import NoneType
 
-from ..enum import MSO_COLOR_TYPE, MSO_THEME_COLOR
+from ..enum import MSO_THEME_COLOR
+from ..enum.dml import MSO_COLOR_TYPE
 from ..oxml.dml.color import (
     CT_HslColor, CT_PresetColor, CT_SchemeColor, CT_ScRgbColor, CT_SRgbColor,
     CT_SystemColor
