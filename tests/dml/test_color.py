@@ -9,8 +9,7 @@ from __future__ import absolute_import
 import pytest
 
 from pptx.dml.color import ColorFormat, RGBColor
-from pptx.enum import MSO_THEME_COLOR
-from pptx.enum.dml import MSO_COLOR_TYPE
+from pptx.enum.dml import MSO_COLOR_TYPE, MSO_THEME_COLOR
 
 from ..oxml.unitdata.dml import (
     a_lumMod, a_lumOff, a_prstClr, a_schemeClr, a_solidFill, a_sysClr,

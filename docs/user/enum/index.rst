@@ -12,3 +12,4 @@ can be found here:
    MsoAutoSize
    MsoColorType
    MsoFillType
+   MsoThemeColorIndex

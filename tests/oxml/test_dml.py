@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.enum import MSO_THEME_COLOR
+from pptx.enum.dml import MSO_THEME_COLOR
 from pptx.oxml.dml.color import CT_Percentage, CT_SchemeColor, CT_SRgbColor
 from pptx.oxml.dml.fill import CT_SolidColorFillProperties
 from pptx.oxml.ns import qn

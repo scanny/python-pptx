@@ -10,8 +10,7 @@ from behave import given, then, when
 
 from pptx import Presentation
 from pptx.dml.color import RGBColor
-from pptx.enum import MSO_THEME_COLOR
-from pptx.enum.dml import MSO_COLOR_TYPE
+from pptx.enum.dml import MSO_COLOR_TYPE, MSO_THEME_COLOR
 
 from .helpers import test_pptx
 
