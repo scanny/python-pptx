@@ -3,10 +3,10 @@
 ``MSO_AUTO_SIZE``
 =================
 
-Shape auto-size settings
+Determines the type of automatic sizing allowed.
 
-The following names can be used to specify the automatic sizing behavior used
-to fit a shape's text within the shape bounding box::
+The following names can be used to specify the automatic sizing behavior
+used to fit a shape's text within the shape bounding box, for example::
 
     from pptx.enum.text import MSO_AUTO_SIZE
 
@@ -28,9 +28,13 @@ NONE
 
 SHAPE_TO_FIT_TEXT
     The shape height and possibly width are adjusted to fit the text. Note
-    this setting interacts with the ``TextFrame.word_wrap`` property setting.
-    If word wrap is turned on, only the height of the shape will be adjusted;
+    this setting interacts with the TextFrame.word_wrap property setting. If
+    word wrap is turned on, only the height of the shape will be adjusted;
     soft line breaks will be used to fit the text horizontally.
 
 TEXT_TO_FIT_SHAPE
     The font size is reduced as necessary to fit the text within the shape.
+
+MIXED
+    Return value only; indicates a combination of automatic sizing schemes are
+    used.
