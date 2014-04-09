@@ -62,7 +62,8 @@ class PresentationPart(Part):
         """
         Width of slides in this presentation, in English Metric Units (EMU)
         """
-        raise NotImplementedError
+        sldSz = self._element.sldSz
+        return sldSz.cx
 
     @lazyproperty
     def slides(self):

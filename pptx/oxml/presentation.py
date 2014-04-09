@@ -142,3 +142,13 @@ class CT_SlideMasterIdListEntry(BaseOxmlElement):
     @property
     def rId(self):
         return self.get(qn('r:id'))
+
+
+class CT_SlideSize(BaseOxmlElement):
+    """
+    ``<p:sldSz>`` element, direct child of <p:presentation> that contains the
+    width and height of slides in the presentation.
+    """
+    @property
+    def cx(self):
+        return int(self.get('cx'))

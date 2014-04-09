@@ -17,12 +17,16 @@ from pptx.parts.slidemaster import SlideMaster
 from pptx.parts.slide import SlideCollection
 
 from ..oxml.unitdata.presentation import (
-    a_presentation, a_sldMasterId, a_sldMasterIdLst
+    a_presentation, a_sldMasterId, a_sldMasterIdLst, a_sldSz
 )
 from ..unitutil import class_mock, instance_mock, method_mock, property_mock
 
 
 class DescribePresentationPart(object):
+
+    def it_knows_the_width_of_its_slides(self, slide_width_fixture):
+        prs_part, slide_width = slide_width_fixture
+        assert prs_part.slide_width == slide_width
 
     def it_provides_access_to_its_slide_masters(self, masters_fixture):
         presentation_part = masters_fixture
@@ -53,6 +57,17 @@ class DescribePresentationPart(object):
     def masters_fixture(self):
         presentation_part = PresentationPart(None, None, None, None)
         return presentation_part
+
+    @pytest.fixture
+    def slide_width_fixture(self):
+        cx = 8765432
+        presentation_elm = (
+            a_presentation().with_nsdecls().with_child(
+                a_sldSz().with_cx(cx))
+        ).element
+        prs_part = PresentationPart(None, None, presentation_elm, None)
+        slide_width = cx
+        return prs_part, slide_width
 
     # fixture components -----------------------------------
 
