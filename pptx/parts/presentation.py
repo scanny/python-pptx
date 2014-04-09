@@ -65,6 +65,11 @@ class PresentationPart(Part):
         sldSz = self._element.sldSz
         return sldSz.cy
 
+    @slide_height.setter
+    def slide_height(self, height):
+        sldSz = self._element.sldSz
+        sldSz.cy = height
+
     @property
     def slide_width(self):
         """

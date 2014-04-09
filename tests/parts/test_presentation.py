@@ -37,6 +37,11 @@ class DescribePresentationPart(object):
         prs_part, slide_height = slide_height_get_fixture
         assert prs_part.slide_height == slide_height
 
+    def it_can_change_the_height_of_its_slides(self, slide_height_set_fixture):
+        prs_part, slide_height, expected_xml = slide_height_set_fixture
+        prs_part.slide_height = slide_height
+        assert prs_part._element.xml == expected_xml
+
     def it_provides_access_to_its_slide_masters(self, masters_fixture):
         presentation_part = masters_fixture
         slide_masters = presentation_part.slide_masters
@@ -77,6 +82,21 @@ class DescribePresentationPart(object):
         prs_part = PresentationPart(None, None, presentation_elm, None)
         slide_height = cy
         return prs_part, slide_height
+
+    @pytest.fixture
+    def slide_height_set_fixture(self):
+        cy = 5432109
+        presentation_elm = (
+            a_presentation().with_nsdecls().with_child(
+                a_sldSz().with_cy(0))
+        ).element
+        prs_part = PresentationPart(None, None, presentation_elm, None)
+        expected_xml = (
+            a_presentation().with_nsdecls().with_child(
+                a_sldSz().with_cy(cy))
+        ).xml()
+        slide_height = cy
+        return prs_part, slide_height, expected_xml
 
     @pytest.fixture
     def slide_width_get_fixture(self):

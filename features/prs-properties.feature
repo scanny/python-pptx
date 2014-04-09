@@ -8,7 +8,6 @@ Feature: Get and set presentation properties
      Then its slide width matches its known value
       And its slide height matches its known value
 
-  @wip
   Scenario:
     Given a presentation
      When I change the slide width and height
