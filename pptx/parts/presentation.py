@@ -62,7 +62,8 @@ class PresentationPart(Part):
         """
         Height of slides in this presentation, in English Metric Units (EMU)
         """
-        raise NotImplementedError
+        sldSz = self._element.sldSz
+        return sldSz.cy
 
     @property
     def slide_width(self):

@@ -152,3 +152,7 @@ class CT_SlideSize(BaseOxmlElement):
     @property
     def cx(self):
         return int(self.get('cx'))
+
+    @property
+    def cy(self):
+        return int(self.get('cy'))

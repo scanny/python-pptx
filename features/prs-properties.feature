@@ -3,7 +3,6 @@ Feature: Get and set presentation properties
   As a developer using python-pptx
   I need a set of read/write properties on the presentation object
 
-  @wip
   Scenario: Get slide dimensions
     Given a presentation
      Then its slide width matches its known value

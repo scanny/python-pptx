@@ -24,6 +24,10 @@ from ..unitutil import class_mock, instance_mock, method_mock, property_mock
 
 class DescribePresentationPart(object):
 
+    def it_knows_the_height_of_its_slides(self, slide_height_fixture):
+        prs_part, slide_height = slide_height_fixture
+        assert prs_part.slide_height == slide_height
+
     def it_knows_the_width_of_its_slides(self, slide_width_fixture):
         prs_part, slide_width = slide_width_fixture
         assert prs_part.slide_width == slide_width
@@ -57,6 +61,17 @@ class DescribePresentationPart(object):
     def masters_fixture(self):
         presentation_part = PresentationPart(None, None, None, None)
         return presentation_part
+
+    @pytest.fixture
+    def slide_height_fixture(self):
+        cy = 5432109
+        presentation_elm = (
+            a_presentation().with_nsdecls().with_child(
+                a_sldSz().with_cy(cy))
+        ).element
+        prs_part = PresentationPart(None, None, presentation_elm, None)
+        slide_height = cy
+        return prs_part, slide_height
 
     @pytest.fixture
     def slide_width_fixture(self):
