@@ -16,18 +16,25 @@ from .unitutil import call, property_mock
 
 class DescribePresentation(object):
 
-    def it_knows_its_slide_width(self, slide_width_get_fixture):
+    def it_knows_the_width_of_its_slides(self, slide_width_get_fixture):
         prs, slide_width = slide_width_get_fixture
         assert prs.slide_width == slide_width
 
-    def it_can_change_its_slide_width(self, slide_width_set_fixture):
+    def it_can_change_the_width_of_its_slides(
+            self, slide_width_set_fixture):
         prs, slide_width, part_slide_width_ = slide_width_set_fixture
         prs.slide_width = slide_width
         assert part_slide_width_.mock_calls == [call(slide_width)]
 
-    def it_knows_its_slide_height(self, slide_height_get_fixture):
+    def it_knows_the_height_of_its_slides(self, slide_height_get_fixture):
         prs, slide_height = slide_height_get_fixture
         assert prs.slide_height == slide_height
+
+    def it_can_change_the_height_of_its_slides(
+            self, slide_height_set_fixture):
+        prs, slide_height, part_slide_height_ = slide_height_set_fixture
+        prs.slide_height = slide_height
+        assert part_slide_height_.mock_calls == [call(slide_height)]
 
     # fixtures -------------------------------------------------------
 
@@ -36,6 +43,11 @@ class DescribePresentation(object):
         prs = Presentation()
         part_slide_height_.return_value = slide_height
         return prs, slide_height
+
+    @pytest.fixture
+    def slide_height_set_fixture(self, part_slide_height_, slide_height):
+        prs = Presentation()
+        return prs, slide_height, part_slide_height_
 
     @pytest.fixture
     def slide_width_get_fixture(self, part_slide_width_, slide_width):

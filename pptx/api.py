@@ -101,6 +101,10 @@ class Presentation(object):
         """
         return self._presentation.slide_height
 
+    @slide_height.setter
+    def slide_height(self, height):
+        self._presentation.slide_height = height
+
     @property
     def slide_width(self):
         """
