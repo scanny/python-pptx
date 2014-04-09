@@ -3,6 +3,29 @@
 Release History
 ---------------
 
+0.4.0 (2014-04-??)
+++++++++++++++++++
+
+- Rationalize enumerations. **Note backward incompatibilities below**
+
+**BACKWARD INCOMPATIBILITIES:**
+
+The following enumerations were moved/renamed during the rationalization of
+enumerations:
+
+- ``pptx.enum.MSO_COLOR_TYPE`` --> ``pptx.enum.dml.MSO_COLOR_TYPE``
+- ``pptx.enum.MSO_FILL`` --> ``pptx.enum.dml.MSO_FILL``
+- ``pptx.enum.MSO_THEME_COLOR`` --> ``pptx.enum.dml.MSO_THEME_COLOR``
+- ``pptx.constants.MSO.ANCHOR_*`` --> ``pptx.enum.text.MSO_ANCHOR.*``
+- ``pptx.constants.MSO_SHAPE`` --> ``pptx.enum.shapes.MSO_SHAPE``
+- ``pptx.constants.PP.ALIGN_*`` --> ``pptx.enum.text.PP_ALIGN.*``
+- ``pptx.constants.MSO.{SHAPE_TYPES}`` -->
+  ``pptx.enum.shapes.MSO_SHAPE_TYPE.*``
+
+Documentation for all enumerations is available in the Enumerations section
+of the User Guide.
+
+
 0.3.2 (2014-02-07)
 ++++++++++++++++++
 
