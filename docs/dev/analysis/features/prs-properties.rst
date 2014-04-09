@@ -10,12 +10,6 @@ The presentation object has a few interesting properties. Right now I'm
 interested in slide size.
 
 
-Notes
------
-
-* ppSlideSizeType PP_SLIDE_SIZE_TYPE : PP_SLIDE_SIZE.ON_SCREEN_16_X_9
-  http://msdn.microsoft.com/en-us/LIbrary/ff746318(v=office.14).aspx
-
 
 Protocol
 --------
@@ -31,28 +25,6 @@ Protocol
     >>> prs.slide_height = 6686550  # 7.3125 inches
     >>> prs.slide_width, prs.slide_height
     (11887200, 6686550)
-
-
-Acceptance tests
-----------------
-
-::
-
-    Scenario: Get slide dimensions
-      Given a presentation
-       Then its slide width matches its known value
-        And its slide height matches its known value
-
-    Scenario:
-      Given a presentation
-       When I change the slide width and height
-       Then the slide width matches the new value
-        And the slide height matches the new value
-
-
-default is::
-
-  <p:sldSz cx="9144000" cy="6858000" type="screen4x3"/>
 
 
 XML specimens
