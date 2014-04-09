@@ -28,6 +28,11 @@ def given_clean_working_dir(context):
         os.remove(saved_pptx_path)
 
 
+@given('a presentation')
+def given_a_presentation(context):
+    context.presentation = Presentation(test_pptx('prs-properties'))
+
+
 @given('a presentation having two slide masters')
 def given_presentation_having_two_masters(context):
     context.presentation = Presentation(test_pptx('prs-slide-masters'))
@@ -55,6 +60,13 @@ def given_initialized_pptx_env(context):
 
 
 # when ====================================================
+
+@when('I change the slide width and height')
+def when_change_slide_width_and_height(context):
+    presentation = context.presentation
+    presentation.slide_width = 100000
+    presentation.slide_height = 200000
+
 
 @when('I construct a Presentation instance with no path argument')
 def when_construct_default_prs(context):
@@ -144,6 +156,18 @@ def then_receive_prs_based_on_def_tmpl(context):
     assert_that(len(slide_layouts), is_(11))
 
 
+@then('its slide height matches its known value')
+def then_slide_height_matches_known_value(context):
+    presentation = context.presentation
+    assert presentation.slide_height == 6858000
+
+
+@then('its slide width matches its known value')
+def then_slide_width_matches_known_value(context):
+    presentation = context.presentation
+    assert presentation.slide_width == 9144000
+
+
 @then('I see the pptx file in the working directory')
 def then_see_pptx_file_in_working_dir(context):
     assert_that(os.path.isfile(saved_pptx_path))
@@ -169,3 +193,15 @@ def then_len_of_slide_master_collection_is_2(context):
     assert len(slide_masters) == 2, (
         'expected len(slide_masters) of 2, got %s' % len(slide_masters)
     )
+
+
+@then('the slide height matches the new value')
+def then_slide_height_matches_new_value(context):
+    presentation = context.presentation
+    assert presentation.slide_height == 200000
+
+
+@then('the slide width matches the new value')
+def then_slide_width_matches_new_value(context):
+    presentation = context.presentation
+    assert presentation.slide_width == 100000
