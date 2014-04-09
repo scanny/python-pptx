@@ -83,13 +83,6 @@ class Presentation(object):
         return self._presentation.slide_masters
 
     @property
-    def slide_width(self):
-        """
-        Width of slides in this presentation, in English Metric Units (EMU)
-        """
-        return self._presentation.slide_width
-
-    @property
     def slidemasters(self):
         """
         Deprecated. Use ``.slide_masters`` property instead.
@@ -100,6 +93,20 @@ class Presentation(object):
         )
         warn(msg, UserWarning, stacklevel=2)
         return self.slide_masters
+
+    @property
+    def slide_height(self):
+        """
+        Height of slides in this presentation, in English Metric Units (EMU)
+        """
+        return self._presentation.slide_height
+
+    @property
+    def slide_width(self):
+        """
+        Width of slides in this presentation, in English Metric Units (EMU)
+        """
+        return self._presentation.slide_width
 
     @property
     def slides(self):

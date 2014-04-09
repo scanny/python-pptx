@@ -20,7 +20,17 @@ class DescribePresentation(object):
         prs, slide_width = slide_width_fixture
         assert prs.slide_width == slide_width
 
+    def it_knows_its_slide_height(self, slide_height_fixture):
+        prs, slide_height = slide_height_fixture
+        assert prs.slide_height == slide_height
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def slide_height_fixture(self, part_slide_height_, slide_height):
+        prs = Presentation()
+        part_slide_height_.return_value = slide_height
+        return prs, slide_height
 
     @pytest.fixture
     def slide_width_fixture(self, part_slide_width_, slide_width):
@@ -31,8 +41,16 @@ class DescribePresentation(object):
     # fixtures components --------------------------------------------
 
     @pytest.fixture
+    def part_slide_height_(self, request):
+        return property_mock(request, PresentationPart, 'slide_height')
+
+    @pytest.fixture
     def part_slide_width_(self, request):
         return property_mock(request, PresentationPart, 'slide_width')
+
+    @pytest.fixture
+    def slide_height(self):
+        return 7654321
 
     @pytest.fixture
     def slide_width(self):

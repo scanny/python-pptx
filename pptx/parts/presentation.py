@@ -58,6 +58,13 @@ class PresentationPart(Part):
         return self.slide_masters
 
     @property
+    def slide_height(self):
+        """
+        Height of slides in this presentation, in English Metric Units (EMU)
+        """
+        raise NotImplementedError
+
+    @property
     def slide_width(self):
         """
         Width of slides in this presentation, in English Metric Units (EMU)
