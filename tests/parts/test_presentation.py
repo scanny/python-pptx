@@ -24,13 +24,18 @@ from ..unitutil import class_mock, instance_mock, method_mock, property_mock
 
 class DescribePresentationPart(object):
 
-    def it_knows_the_height_of_its_slides(self, slide_height_fixture):
-        prs_part, slide_height = slide_height_fixture
-        assert prs_part.slide_height == slide_height
-
-    def it_knows_the_width_of_its_slides(self, slide_width_fixture):
-        prs_part, slide_width = slide_width_fixture
+    def it_knows_the_width_of_its_slides(self, slide_width_get_fixture):
+        prs_part, slide_width = slide_width_get_fixture
         assert prs_part.slide_width == slide_width
+
+    def it_can_change_the_width_of_its_slides(self, slide_width_set_fixture):
+        prs_part, slide_width, expected_xml = slide_width_set_fixture
+        prs_part.slide_width = slide_width
+        assert prs_part._element.xml == expected_xml
+
+    def it_knows_the_height_of_its_slides(self, slide_height_get_fixture):
+        prs_part, slide_height = slide_height_get_fixture
+        assert prs_part.slide_height == slide_height
 
     def it_provides_access_to_its_slide_masters(self, masters_fixture):
         presentation_part = masters_fixture
@@ -63,7 +68,7 @@ class DescribePresentationPart(object):
         return presentation_part
 
     @pytest.fixture
-    def slide_height_fixture(self):
+    def slide_height_get_fixture(self):
         cy = 5432109
         presentation_elm = (
             a_presentation().with_nsdecls().with_child(
@@ -74,7 +79,7 @@ class DescribePresentationPart(object):
         return prs_part, slide_height
 
     @pytest.fixture
-    def slide_width_fixture(self):
+    def slide_width_get_fixture(self):
         cx = 8765432
         presentation_elm = (
             a_presentation().with_nsdecls().with_child(
@@ -83,6 +88,21 @@ class DescribePresentationPart(object):
         prs_part = PresentationPart(None, None, presentation_elm, None)
         slide_width = cx
         return prs_part, slide_width
+
+    @pytest.fixture
+    def slide_width_set_fixture(self):
+        cx = 8765432
+        presentation_elm = (
+            a_presentation().with_nsdecls().with_child(
+                a_sldSz().with_cx(0))
+        ).element
+        prs_part = PresentationPart(None, None, presentation_elm, None)
+        expected_xml = (
+            a_presentation().with_nsdecls().with_child(
+                a_sldSz().with_cx(cx))
+        ).xml()
+        slide_width = cx
+        return prs_part, slide_width, expected_xml
 
     # fixture components -----------------------------------
 
