@@ -8,10 +8,9 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.constants import PP
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
-from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE
+from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.oxml import parse_xml_bytes
@@ -620,10 +619,10 @@ class Describe_Paragraph(object):
     def it_knows_the_alignment_setting_of_the_paragraph(
             self, paragraph, paragraph_with_algn):
         assert paragraph.alignment is None
-        assert paragraph_with_algn.alignment == PP.ALIGN_CENTER
+        assert paragraph_with_algn.alignment == PP_ALIGN.CENTER
 
     def it_can_change_its_alignment_setting(self, paragraph):
-        paragraph.alignment = PP.ALIGN_LEFT
+        paragraph.alignment = PP_ALIGN.LEFT
         assert paragraph._pPr.algn == 'l'
         paragraph.alignment = None
         assert paragraph._pPr.algn is None

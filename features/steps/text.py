@@ -13,7 +13,7 @@ from behave import given, when, then
 from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
-from pptx.constants import PP
+from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches
 
 from .helpers import italics_pptx_path, saved_pptx_path
@@ -139,7 +139,7 @@ def when_set_hyperlink_address_to_None(context):
 
 @when("I set the paragraph alignment to centered")
 def when_set_paragraph_alignment_to_centered(context):
-    context.p.alignment = PP.ALIGN_CENTER
+    context.p.alignment = PP_ALIGN.CENTER
 
 
 # then ====================================================
@@ -152,7 +152,7 @@ def then_font_name_matches_typeface_I_set(context):
 @then('the paragraph is aligned centered')
 def then_paragraph_is_aligned_centered(context):
     p = context.prs.slides[0].shapes[0].textframe.paragraphs[0]
-    assert_that(p.alignment, is_(equal_to(PP.ALIGN_CENTER)))
+    assert_that(p.alignment, is_(equal_to(PP_ALIGN.CENTER)))
 
 
 @then('the paragraph is indented to the second level')

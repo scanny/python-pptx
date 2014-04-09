@@ -90,7 +90,7 @@ class ColorFormat(object):
     @property
     def type(self):
         """
-        Read-only. A value from MSO_COLOR_TYPE, either RGB or SCHEME,
+        Read-only. A value from :ref:`MsoColorType`, either RGB or SCHEME,
         corresponding to the way this color is defined, or None if no color
         is defined at the level of this font.
         """

@@ -1,10 +1,12 @@
 # encoding: utf-8
 
-"""Test suite for tests.xmlbldr module."""
+"""
+Test suite for tests.xmlbldr module
+"""
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from pptx.constants import PP
+from pptx.enum.text import PP_ALIGN
 
 from .oxml.unitdata.text import a_p, a_pPr, an_rPr
 
@@ -33,8 +35,8 @@ class DescribeCT_TextParagraphPropertiesBuilder(object):
         assert pPr_bldr.xml() == '<a:pPr/>\n'
 
     def it_can_add_an_algn_attribute(self):
-        pPr_bldr = a_pPr().with_algn(PP.ALIGN_CENTER)
-        assert pPr_bldr.xml() == '<a:pPr algn="2"/>\n'
+        pPr_bldr = a_pPr().with_algn(PP_ALIGN.to_xml(PP_ALIGN.CENTER))
+        assert pPr_bldr.xml() == '<a:pPr algn="ctr"/>\n'
 
     def it_can_add_a_lvl_attribute(self):
         pPr_bldr = a_pPr().with_lvl(2)

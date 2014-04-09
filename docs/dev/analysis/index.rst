@@ -88,6 +88,7 @@ ISO/IEC 29500 spec.
    schema/ct_textbodyproperties
    schema/ct_textcharacterproperties
    schema/ct_textparagraph
+   schema/ct_textparagraphproperties
    schema/miscellaneous
 
 

@@ -182,4 +182,3 @@ Schema excerpt
     <xsd:attribute name="bmk" type="xsd:string" use="optional"/>
   </xsd:complexType>
 
-

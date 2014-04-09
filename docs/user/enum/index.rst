@@ -14,3 +14,5 @@ can be found here:
    MsoFillType
    MsoThemeColorIndex
    MsoVerticalAnchor
+
+   PpParagraphAlignment

@@ -106,3 +106,57 @@ class MSO_VERTICAL_ANCHOR(XmlEnumeration):
             'other states.'
         ),
     )
+
+
+@alias('PP_ALIGN')
+class PP_PARAGRAPH_ALIGNMENT(XmlEnumeration):
+    """
+    Specifies the horizontal alignment for one or more paragraphs.
+
+    Alias: ``PP_ALIGN``
+
+    Example::
+
+        from pptx.enum.text import PP_ALIGN
+
+        shape.paragraphs[0].alignment = PP_ALIGN.CENTER
+    """
+
+    __ms_name__ = 'PpParagraphAlignment'
+
+    __url__ = (
+        'http://msdn.microsoft.com/en-us/library/office/ff745375(v=office.15'
+        ').aspx'
+    )
+
+    __members__ = (
+        XmlMappedEnumMember(
+            'CENTER', 2, 'ctr', 'Center align'
+        ),
+        XmlMappedEnumMember(
+            'DISTRIBUTE', 5, 'dist', 'Evenly distributes e.g. Japanese chara'
+            'cters from left to right within a line'
+        ),
+        XmlMappedEnumMember(
+            'JUSTIFY', 4, 'just', 'Justified, i.e. each line both begins and'
+            ' ends at the margin with spacing between words adjusted such th'
+            'at the line exactly fills the width of the paragraph.'
+        ),
+        XmlMappedEnumMember(
+            'JUSTIFY_LOW', 7, 'justLow', 'Justify using a small amount of sp'
+            'ace between words.'
+        ),
+        XmlMappedEnumMember(
+            'LEFT', 1, 'l', 'Left aligned'
+        ),
+        XmlMappedEnumMember(
+            'RIGHT', 3, 'r', 'Right aligned'
+        ),
+        XmlMappedEnumMember(
+            'THAI_DISTRIBUTE', 6, 'thaiDist', 'Thai distributed'
+        ),
+        ReturnValueOnlyEnumMember(
+            'MIXED', -2, 'Return value only; indicates multiple paragraph al'
+            'ignments are present in a set of paragraphs.'
+        ),
+    )

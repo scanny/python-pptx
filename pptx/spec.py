@@ -9,8 +9,9 @@ them.
 from __future__ import absolute_import
 
 from pptx.constants import (
-    MSO_AUTO_SHAPE_TYPE as MAST, PP, TEXT_ALIGN_TYPE as TAT
+    MSO_AUTO_SHAPE_TYPE as MAST, TEXT_ALIGN_TYPE as TAT
 )
+from pptx.enum.text import PP_ALIGN
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 
 
@@ -18,23 +19,23 @@ class ParagraphAlignment(object):
     """
     Mappings between ``PpParagraphAlignment`` values used in the API and
     ``ST_TextAlignType`` values used in the XML. ``PpParagraphAlignment``
-    values are like ``PP.ALIGN_CENTER``.
+    values are like ``PP_ALIGN.CENTER``.
     """
     _mapping = {
-        PP.ALIGN_CENTER:          TAT.CENTER,
-        PP.ALIGN_DISTRIBUTE:      TAT.DISTRIBUTE,
-        PP.ALIGN_JUSTIFY:         TAT.JUSTIFY,
-        PP.ALIGN_JUSTIFY_LOW:     TAT.JUSTIFY_LOW,
-        PP.ALIGN_LEFT:            TAT.LEFT,
-        PP.ALIGN_RIGHT:           TAT.RIGHT,
-        PP.ALIGN_THAI_DISTRIBUTE: TAT.THAI_DISTRIBUTE
+        PP_ALIGN.CENTER:          TAT.CENTER,
+        PP_ALIGN.DISTRIBUTE:      TAT.DISTRIBUTE,
+        PP_ALIGN.JUSTIFY:         TAT.JUSTIFY,
+        PP_ALIGN.JUSTIFY_LOW:     TAT.JUSTIFY_LOW,
+        PP_ALIGN.LEFT:            TAT.LEFT,
+        PP_ALIGN.RIGHT:           TAT.RIGHT,
+        PP_ALIGN.THAI_DISTRIBUTE: TAT.THAI_DISTRIBUTE
     }
 
     @classmethod
     def from_text_align_type(cls, text_align_type):
         """
         Map an ``ST_TextAlignType`` value (e.g. ``TAT.CENTER`` or ``'ctr'``)
-        to a paragraph alignment value (e.g. ``PP.ALIGN_CENTER``). Returns
+        to a paragraph alignment value (e.g. ``PP_ALIGN.CENTER``). Returns
         None if *text_align_type* is None.
         """
         if text_align_type is None:
@@ -48,7 +49,7 @@ class ParagraphAlignment(object):
     @classmethod
     def to_text_align_type(cls, alignment):
         """
-        Map a paragraph alignment value (e.g. ``PP.ALIGN_CENTER``) to an
+        Map a paragraph alignment value (e.g. ``PP_ALIGN.CENTER``) to an
         ``ST_TextAlignType`` value (e.g. ``TAT.CENTER`` or ``'ctr'``).
         Returns None if *alignment* is None.
         """

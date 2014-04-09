@@ -1,12 +1,15 @@
 # encoding: utf-8
 
-"""Test suite for pptx.spec module."""
+"""
+Test suite for pptx.spec module
+"""
 
 from __future__ import absolute_import
 
 from hamcrest import assert_that, equal_to, is_
 
-from pptx.constants import PP, TEXT_ALIGN_TYPE as TAT
+from pptx.constants import TEXT_ALIGN_TYPE as TAT
+from pptx.enum.text import PP_ALIGN
 from pptx.spec import ParagraphAlignment
 
 from .unitutil import TestCase
@@ -15,9 +18,9 @@ from .unitutil import TestCase
 class TestParagraphAlignment(TestCase):
     """Test ParagraphAlignment"""
     cases = (
-        (PP.ALIGN_CENTER,     TAT.CENTER),
-        (PP.ALIGN_DISTRIBUTE, TAT.DISTRIBUTE),
-        (PP.ALIGN_JUSTIFY,    TAT.JUSTIFY),
+        (PP_ALIGN.CENTER,     TAT.CENTER),
+        (PP_ALIGN.DISTRIBUTE, TAT.DISTRIBUTE),
+        (PP_ALIGN.JUSTIFY,    TAT.JUSTIFY),
         (None,                None)
     )
 
