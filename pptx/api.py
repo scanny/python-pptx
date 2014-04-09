@@ -108,6 +108,10 @@ class Presentation(object):
         """
         return self._presentation.slide_width
 
+    @slide_width.setter
+    def slide_width(self, width):
+        self._presentation.slide_width = width
+
     @property
     def slides(self):
         """
