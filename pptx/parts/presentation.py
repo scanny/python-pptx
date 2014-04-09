@@ -57,6 +57,13 @@ class PresentationPart(Part):
         warn(msg, UserWarning, stacklevel=2)
         return self.slide_masters
 
+    @property
+    def slide_width(self):
+        """
+        Width of slides in this presentation, in English Metric Units (EMU)
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def slides(self):
         """
