@@ -12,6 +12,7 @@ Roughly in reverse chronological order of creation:
 .. toctree::
    :maxdepth: 1
 
+   features/dml-line
    features/shp-connector
    features/enumerations
    features/prs-properties
