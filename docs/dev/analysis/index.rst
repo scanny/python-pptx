@@ -21,12 +21,12 @@ Roughly in reverse chronological order of creation:
    features/sld-shape-tree
    features/mst-slide-master
    features/mst-slide-layout
-   features/color
+   features/dml-color
+   features/dml-fill
    features/txt-font-color
    features/txt-font-typeface
-   features/hyperlink
-   features/shp-fill
-   features/table
+   features/txt-hyperlink
+   features/shp-table
 
 
 Object Analysis
