@@ -8,12 +8,10 @@ import pytest
 
 from hamcrest import assert_that, equal_to, instance_of, is_, none
 
-from pptx.oxml.shapes.autoshape import (
-    CT_PresetGeometry2D, CT_Shape, CT_ShapeProperties
-)
 from pptx.oxml.ns import nsdecls
+from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 from pptx.oxml.shapes.shared import (
-    ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
+    CT_ShapeProperties, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
 )
 
 from ..unitdata.shape import (

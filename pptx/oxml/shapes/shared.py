@@ -6,8 +6,9 @@ Common shape-related oxml objects
 
 from __future__ import absolute_import
 
+from ..dml.fill import EG_FillProperties
 from ..ns import _nsmap, qn
-from ..shared import BaseOxmlElement, Element
+from ..shared import BaseOxmlElement, ChildTagnames, Element
 
 
 class BaseShapeElement(BaseOxmlElement):
@@ -146,6 +147,16 @@ class BaseShapeElement(BaseOxmlElement):
         return self.xpath('./*[1]', namespaces=_nsmap)[0]
 
 
+class EG_EffectProperties(object):
+
+    __member_names__ = ('a:effectLst', 'a:effectDag')
+
+
+class EG_Geometry(object):
+
+    __member_names__ = ('a:custGeom', 'a:prstGeom')
+
+
 class CT_LineProperties(BaseOxmlElement):
     """
     Custom element class for <a:ln> element
@@ -212,6 +223,159 @@ class CT_PositiveSize2D(BaseOxmlElement):
         """
         cy_str = self.get('cy')
         return int(cy_str)
+
+
+class CT_ShapeProperties(BaseOxmlElement):
+    """
+    Custom element class for <p:spPr> element. Shared by ``<p:sp>``,
+    ``<p:pic>``, and ``<p:cxnSp>`` elements as well as a few more obscure
+    ones.
+    """
+
+    child_tagnames = ChildTagnames.from_nested_sequence(
+        'a:xfrm',
+        EG_Geometry.__member_names__,
+        EG_FillProperties.__member_names__,
+        'a:ln',
+        EG_EffectProperties.__member_names__,
+        'a:scene3d', 'a:sp3d', 'a:extLst',
+    )
+
+    @property
+    def cx(self):
+        """
+        Shape width, or None if not present.
+        """
+        cx_str_lst = self.xpath('./a:xfrm/a:ext/@cx', namespaces=_nsmap)
+        if not cx_str_lst:
+            return None
+        return int(cx_str_lst[0])
+
+    @property
+    def cy(self):
+        """
+        Shape height, or None if not present.
+        """
+        cy_str_lst = self.xpath('./a:xfrm/a:ext/@cy', namespaces=_nsmap)
+        if not cy_str_lst:
+            return None
+        return int(cy_str_lst[0])
+
+    @property
+    def eg_fill_properties(self):
+        """
+        Return the child representing the EG_FillProperties element group
+        member in this element, or |None| if no such child is present.
+        """
+        return self.first_child_found_in(
+            *EG_FillProperties.__member_names__
+        )
+
+    def get_or_add_xfrm(self):
+        """
+        Return the <a:xfrm> child element, newly added if not already
+        present.
+        """
+        xfrm = self.xfrm
+        if xfrm is None:
+            xfrm = self._add_xfrm()
+        return xfrm
+
+    def get_or_change_to_noFill(self):
+        """
+        Return the <a:noFill> child element, replacing any other fill
+        element if found, e.g. a <a:gradFill> element.
+        """
+        if self.noFill is not None:
+            return self.noFill
+        self.remove_eg_fill_properties()
+        return self._add_noFill()
+
+    def get_or_change_to_solidFill(self):
+        """
+        Return the <a:solidFill> child element, replacing any other fill
+        element if found, e.g. a <a:gradFill> element.
+        """
+        if self.solidFill is not None:
+            return self.solidFill
+        self.remove_eg_fill_properties()
+        return self._add_solidFill()
+
+    @property
+    def noFill(self):
+        """
+        The <a:noFill> child element, or None if not present.
+        """
+        return self.find(qn('a:noFill'))
+
+    def remove_eg_fill_properties(self):
+        """
+        Remove the fill child element, e.g ``<a:solidFill>`` if present.
+        """
+        self.remove_if_present(*EG_FillProperties.__member_names__)
+
+    @property
+    def solidFill(self):
+        """
+        The <a:solidFill> child element, or None if not present.
+        """
+        return self.find(qn('a:solidFill'))
+
+    @property
+    def x(self):
+        """
+        The integer value of `./xfrm/off/@x` attribute, or None if not
+        present.
+        """
+        x_str_lst = self.xpath('./a:xfrm/a:off/@x', namespaces=_nsmap)
+        if not x_str_lst:
+            return None
+        return int(x_str_lst[0])
+
+    @property
+    def xfrm(self):
+        """
+        The <a:xfrm> child element, or None if not present.
+        """
+        return self.find(qn('a:xfrm'))
+
+    @property
+    def y(self):
+        """
+        The top of the shape, or None if not present.
+        """
+        y_str_lst = self.xpath('./a:xfrm/a:off/@y', namespaces=_nsmap)
+        if not y_str_lst:
+            return None
+        return int(y_str_lst[0])
+
+    def _add_noFill(self):
+        """
+        Return a newly added <a:noFill> child element, assuming no other fill
+        EG_FillProperties element is present.
+        """
+        noFill = Element('a:noFill')
+        successor_tagnames = self.child_tagnames_after('a:noFill')
+        self.insert_element_before(noFill, *successor_tagnames)
+        return noFill
+
+    def _add_solidFill(self):
+        """
+        Return a newly added <a:solidFill> child element.
+        """
+        solidFill = Element('a:solidFill')
+        successor_tagnames = self.child_tagnames_after('a:solidFill')
+        self.insert_element_before(solidFill, *successor_tagnames)
+        return solidFill
+
+    def _add_xfrm(self):
+        """
+        Return a newly added <a:xfrm> child element.
+        """
+        xfrm = Element('a:xfrm')
+        successor_tagnames = self.child_tagnames_after('a:xfrm')
+        self.insert_element_before(xfrm, *successor_tagnames)
+        return xfrm
 
 
 class CT_Transform2D(BaseOxmlElement):
@@ -286,16 +450,6 @@ class CT_Transform2D(BaseOxmlElement):
         The <a:off> child element, or None if not present.
         """
         return self.find(qn('a:off'))
-
-
-class EG_EffectProperties(object):
-
-    __member_names__ = ('a:effectLst', 'a:effectDag')
-
-
-class EG_Geometry(object):
-
-    __member_names__ = ('a:custGeom', 'a:prstGeom')
 
 
 class ST_Direction(object):
