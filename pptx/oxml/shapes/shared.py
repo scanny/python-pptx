@@ -146,6 +146,12 @@ class BaseShapeElement(BaseOxmlElement):
         return self.xpath('./*[1]', namespaces=_nsmap)[0]
 
 
+class CT_LineProperties(BaseOxmlElement):
+    """
+    Custom element class for <a:ln> element
+    """
+
+
 class CT_Point2D(BaseOxmlElement):
     """
     Custom element class for <a:off> element.

@@ -118,6 +118,8 @@ rst_epilog = """
 
 .. |_LayoutShapeTree| replace:: :class:`_LayoutShapeTree`
 
+.. |LineFormat| replace:: :class:`.LineFormat`
+
 .. |_MasterPlaceholders| replace:: :class:`_MasterPlaceholders`
 
 .. |_MasterShapeTree| replace:: :class:`_MasterShapeTree`

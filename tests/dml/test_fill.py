@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Test suite for pptx.text module.
+Test suite for pptx.dml.fill module
 """
 
 from __future__ import absolute_import
@@ -140,6 +140,8 @@ class DescribeFillFormat(object):
                     .xml()
         )
         return fill_format, xPr_with_solidFill_xml
+
+    # fixture components ---------------------------------------------
 
     @pytest.fixture(params=['rPr', 'spPr', 'tcPr'])
     def xPr_bldr(self, request):

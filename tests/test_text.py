@@ -403,6 +403,39 @@ class Describe_Font(object):
 
     # fixtures ---------------------------------------------
 
+    @pytest.fixture(params=[None, 'Foobar Light'])
+    def typeface_get_fixture(self, request):
+        typeface = request.param
+        rPr_bldr = an_rPr().with_nsdecls()
+        if typeface is not None:
+            rPr_bldr.with_child(a_latin().with_typeface(typeface))
+        rPr = rPr_bldr.element
+        font = _Font(rPr)
+        return font, typeface
+
+    @pytest.fixture(params=[
+        (None,            None),
+        (None,            'Foobar Light'),
+        ('Foobar Light',  'Foobar Medium'),
+        ('Foobar Medium', None),
+    ])
+    def typeface_set_fixture(self, request):
+        before_typeface, after_typeface = request.param
+        # starting font
+        rPr_bldr = an_rPr().with_nsdecls()
+        if before_typeface is not None:
+            rPr_bldr.with_child(a_latin().with_typeface(before_typeface))
+        rPr = rPr_bldr.element
+        font = _Font(rPr)
+        # expected XML
+        rPr_bldr = an_rPr().with_nsdecls()
+        if after_typeface is not None:
+            rPr_bldr.with_child(a_latin().with_typeface(after_typeface))
+        rPr_with_latin_xml = rPr_bldr.xml()
+        return font, after_typeface, rPr_with_latin_xml
+
+    # fixture components ---------------------------------------------
+
     @pytest.fixture
     def bold_font(self):
         bold_rPr = an_rPr().with_nsdecls().with_b(1).element
@@ -447,37 +480,6 @@ class Describe_Font(object):
     @pytest.fixture
     def rPr_xml(self):
         return an_rPr().with_nsdecls().xml()
-
-    @pytest.fixture(params=[None, 'Foobar Light'])
-    def typeface_get_fixture(self, request):
-        typeface = request.param
-        rPr_bldr = an_rPr().with_nsdecls()
-        if typeface is not None:
-            rPr_bldr.with_child(a_latin().with_typeface(typeface))
-        rPr = rPr_bldr.element
-        font = _Font(rPr)
-        return font, typeface
-
-    @pytest.fixture(params=[
-        (None,            None),
-        (None,            'Foobar Light'),
-        ('Foobar Light',  'Foobar Medium'),
-        ('Foobar Medium', None),
-    ])
-    def typeface_set_fixture(self, request):
-        before_typeface, after_typeface = request.param
-        # starting font
-        rPr_bldr = an_rPr().with_nsdecls()
-        if before_typeface is not None:
-            rPr_bldr.with_child(a_latin().with_typeface(before_typeface))
-        rPr = rPr_bldr.element
-        font = _Font(rPr)
-        # expected XML
-        rPr_bldr = an_rPr().with_nsdecls()
-        if after_typeface is not None:
-            rPr_bldr.with_child(a_latin().with_typeface(after_typeface))
-        rPr_with_latin_xml = rPr_bldr.xml()
-        return font, after_typeface, rPr_with_latin_xml
 
 
 class Describe_Hyperlink(object):

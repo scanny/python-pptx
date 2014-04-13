@@ -307,6 +307,13 @@ class Shape(BaseShape):
         """
         return FillFormat.from_fill_parent(self._sp.spPr)
 
+    def get_or_add_ln(self):
+        """
+        Return the ``<a:ln>`` element containing the line format properties
+        XML for this shape.
+        """
+        return self._sp.get_or_add_ln()
+
     @lazyproperty
     def line(self):
         """
