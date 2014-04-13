@@ -7,6 +7,7 @@ Autoshape-related objects such as Shape and Adjustment.
 from numbers import Number
 
 from ..dml.fill import FillFormat
+from ..dml.line import LineFormat
 from ..enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
 from .shape import BaseShape
 from ..spec import autoshape_types
@@ -305,6 +306,14 @@ class Shape(BaseShape):
         properties such as fill color.
         """
         return FillFormat.from_fill_parent(self._sp.spPr)
+
+    @lazyproperty
+    def line(self):
+        """
+        |LineFormat| instance for this shape, providing access to line
+        properties such as line color.
+        """
+        return LineFormat(self)
 
     @property
     def shape_type(self):

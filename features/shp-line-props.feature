@@ -3,7 +3,6 @@ Feature: Get and change line properties
   As a developer using python-pptx
   I need access to the line properties of a shape
 
-  @wip
   Scenario: Access line format of a shape
      Given an autoshape
       Then I can access the line format of the shape

@@ -1,12 +1,15 @@
 # encoding: utf-8
 
-"""Test suite for pptx.autoshape module."""
+"""
+Test suite for pptx.shapes.autoshape module
+"""
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import pytest
 
 from pptx.dml.fill import FillFormat
+from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
@@ -15,7 +18,7 @@ from pptx.oxml import parse_xml_bytes
 from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 
 from ..oxml.unitdata.shape import a_gd, a_prstGeom, an_avLst
-from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
+from ..unitutil import class_mock, instance_mock, property_mock
 
 
 class DescribeAdjustment(object):
@@ -322,6 +325,9 @@ class DescribeShape(object):
     def it_has_a_fill(self, shape):
         assert isinstance(shape.fill, FillFormat)
 
+    def it_has_a_line(self, shape):
+        assert isinstance(shape.line, LineFormat)
+
     def it_knows_its_shape_type_when_its_a_placeholder(
             self, placeholder_shape_):
         assert placeholder_shape_.shape_type == MSO_SHAPE_TYPE.PLACEHOLDER
@@ -349,14 +355,12 @@ class DescribeShape(object):
 
     @pytest.fixture
     def autoshape_type_fixture_(
-            self, request, sp_, autoshape_type, AutoShapeType_, prst):
-        shape = Shape(sp_, None)
+            self, request, shape, autoshape_type, AutoShapeType_, prst):
         return shape, autoshape_type, AutoShapeType_, prst
 
     @pytest.fixture
     def init_adjs_fixture_(
-            self, request, sp_, adjustments_, AdjustmentCollection_):
-        shape = Shape(sp_, None)
+            self, request, shape, sp_, adjustments_, AdjustmentCollection_):
         return shape, adjustments_, AdjustmentCollection_, sp_
 
     # fixture components ---------------------------------------------
@@ -416,9 +420,8 @@ class DescribeShape(object):
         return 'foobar'
 
     @pytest.fixture
-    def shape(self, request):
-        sp = loose_mock(request, name='sp')
-        return Shape(sp, None)
+    def shape(self, request, sp_):
+        return Shape(sp_, None)
 
     @pytest.fixture
     def sp_(self, request, prst):
