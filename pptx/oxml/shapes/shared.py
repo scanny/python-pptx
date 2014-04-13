@@ -271,6 +271,15 @@ class CT_ShapeProperties(BaseOxmlElement):
             *EG_FillProperties.__member_names__
         )
 
+    def get_or_add_ln(self):
+        """
+        Return the <a:ln> child element, newly added if not present.
+        """
+        ln = self.ln
+        if ln is None:
+            ln = self._add_ln()
+        return ln
+
     def get_or_add_xfrm(self):
         """
         Return the <a:xfrm> child element, newly added if not already
@@ -300,6 +309,13 @@ class CT_ShapeProperties(BaseOxmlElement):
             return self.solidFill
         self.remove_eg_fill_properties()
         return self._add_solidFill()
+
+    @property
+    def ln(self):
+        """
+        The <a:ln> child element, or None if not present.
+        """
+        return self.find(qn('a:ln'))
 
     @property
     def noFill(self):
@@ -348,6 +364,16 @@ class CT_ShapeProperties(BaseOxmlElement):
         if not y_str_lst:
             return None
         return int(y_str_lst[0])
+
+    def _add_ln(self):
+        """
+        Return a newly added <a:ln> child element. It is the caller's
+        responsibility to ensure one is not already present.
+        """
+        ln = Element('a:ln')
+        successor_tagnames = self.child_tagnames_after('a:ln')
+        self.insert_element_before(ln, *successor_tagnames)
+        return ln
 
     def _add_noFill(self):
         """

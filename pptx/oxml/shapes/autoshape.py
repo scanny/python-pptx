@@ -135,6 +135,12 @@ class CT_Shape(BaseShapeElement):
         '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
     )
 
+    def get_or_add_ln(self):
+        """
+        Return the <a:ln> grandchild element, newly added if not present.
+        """
+        return self.spPr.get_or_add_ln()
+
     @property
     def is_autoshape(self):
         """
