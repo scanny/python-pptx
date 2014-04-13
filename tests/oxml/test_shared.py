@@ -12,10 +12,39 @@ from lxml import objectify
 
 from pptx.oxml import oxml_parser
 from pptx.oxml.shared import (
-    child, Element, get_or_add, serialize_part_xml, SubElement
+    BaseOxmlElement, child, ChildTagnames, Element, get_or_add,
+    serialize_part_xml, SubElement
 )
 from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.text import CT_TextBody
+
+
+class DescribeBaseOxmlElement(object):
+
+    def it_knows_which_tagnames_follow_a_given_child_tagname(
+            self, child_tagnames_fixture):
+        ElementClass, tagname, tagnames_after = child_tagnames_fixture
+        assert ElementClass.child_tagnames_after(tagname) == tagnames_after
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (('foo', 'bar', 'baz'), 'foo', ('bar', 'baz')),
+        ((('foo', 'bar'), 'baz'), 'foo', ('baz',)),
+        (('foo', ('bar', 'baz')), 'bar', ()),
+        (('1', '2', ('3', ('4', '5'), ('6', '7'))), '2',
+         ('3', '4', '5', '6', '7')),
+        (('1', '2', ('3', ('4', '5'), ('6', '7'))), '3', ()),
+    ])
+    def child_tagnames_fixture(self, request):
+        nested_sequence, tagname, tagnames_after = request.param
+
+        class ElementClass(BaseOxmlElement):
+            child_tagnames = ChildTagnames.from_nested_sequence(
+                *nested_sequence
+            )
+
+        return ElementClass, tagname, tagnames_after
 
 
 class DescribeChild(object):
