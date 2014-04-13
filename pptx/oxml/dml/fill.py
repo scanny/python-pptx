@@ -125,3 +125,11 @@ class CT_SolidColorFillProperties(OxmlElement):
             element = self.find(qn(tagname))
             if element is not None:
                 self.remove(element)
+
+
+class EG_FillProperties(object):
+
+    __member_names__ = (
+        'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill',
+        'a:grpFill'
+    )

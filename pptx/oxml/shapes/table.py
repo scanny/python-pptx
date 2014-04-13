@@ -278,7 +278,7 @@ class CT_TableCellProperties(objectify.ObjectifiedElement):
     ``<a:tcPr>`` custom element class
     """
     @property
-    def eg_fillproperties(self):
+    def eg_fill_properties(self):
         """
         Return the child representing the EG_FillProperties element group
         member in this element, or |None| if no such child is present.

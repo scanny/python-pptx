@@ -22,9 +22,9 @@ class FillFormat(object):
     Provides access to the current fill properties object and provides
     methods to change the fill type.
     """
-    def __init__(self, eg_fillproperties_parent, fill_obj):
+    def __init__(self, eg_fill_properties_parent, fill_obj):
         super(FillFormat, self).__init__()
-        self._xPr = eg_fillproperties_parent
+        self._xPr = eg_fill_properties_parent
         self._fill = fill_obj
 
     def background(self):
@@ -43,15 +43,15 @@ class FillFormat(object):
         return self._fill.fore_color
 
     @classmethod
-    def from_fill_parent(cls, eg_fillproperties_parent):
+    def from_fill_parent(cls, eg_fill_properties_parent):
         """
         Return a |FillFormat| instance initialized to the settings contained
         in *eg_fill_properties_parent*, which must be an element having
         EG_FillProperties in its schema sequence.
         """
-        fill_elm = eg_fillproperties_parent.eg_fillproperties
+        fill_elm = eg_fill_properties_parent.eg_fill_properties
         fill = _Fill(fill_elm)
-        fill_format = cls(eg_fillproperties_parent, fill)
+        fill_format = cls(eg_fill_properties_parent, fill)
         return fill_format
 
     def solid(self):

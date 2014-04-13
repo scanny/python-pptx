@@ -9,11 +9,15 @@ from __future__ import absolute_import
 from lxml import objectify
 
 from .. import parse_xml_bytes
+from ..dml.fill import EG_FillProperties
 from ..ns import nsdecls, _nsmap, qn
+from ..shapes.shared import EG_EffectProperties, EG_Geometry
 from .shared import (
     BaseShapeElement, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
 )
-from ..shared import BaseOxmlElement, child, Element, SubElement
+from ..shared import (
+    BaseOxmlElement, child, ChildTagnames, Element, SubElement
+)
 from ..text import CT_TextBody
 
 
@@ -245,8 +249,20 @@ class CT_Shape(BaseShapeElement):
 
 class CT_ShapeProperties(BaseOxmlElement):
     """
-    Custom element class for <p:spPr> element.
+    Custom element class for <p:spPr> element. Shared by ``<p:sp>``,
+    ``<p:pic>``, and ``<p:cxnSp>`` elements as well as a few more obscure
+    ones.
     """
+
+    child_tagnames = ChildTagnames.from_nested_sequence(
+        'a:xfrm',
+        EG_Geometry.__member_names__,
+        EG_FillProperties.__member_names__,
+        'a:ln',
+        EG_EffectProperties.__member_names__,
+        'a:scene3d', 'a:sp3d', 'a:extLst',
+    )
+
     @property
     def cx(self):
         """
@@ -268,14 +284,13 @@ class CT_ShapeProperties(BaseOxmlElement):
         return int(cy_str_lst[0])
 
     @property
-    def eg_fillproperties(self):
+    def eg_fill_properties(self):
         """
         Return the child representing the EG_FillProperties element group
         member in this element, or |None| if no such child is present.
         """
-        return self._first_child_found_in(
-            'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill',
-            'a:pattFill', 'a:grpFill'
+        return self.first_child_found_in(
+            *EG_FillProperties.__member_names__
         )
 
     def get_or_add_xfrm(self):
@@ -285,8 +300,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         """
         xfrm = self.xfrm
         if xfrm is None:
-            xfrm = Element('a:xfrm')
-            self.insert(0, xfrm)
+            xfrm = self._add_xfrm()
         return xfrm
 
     def get_or_change_to_noFill(self):
@@ -294,15 +308,9 @@ class CT_ShapeProperties(BaseOxmlElement):
         Return the <a:noFill> child element, replacing any other fill
         element if found, e.g. a <a:gradFill> element.
         """
-        # return existing one if there is one
         if self.noFill is not None:
             return self.noFill
-        # get rid of other fill element type if there is one
-        self._remove_if_present(
-            'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill',
-            'a:grpFill'
-        )
-        # add noFill element in right sequence
+        self.remove_eg_fill_properties()
         return self._add_noFill()
 
     def get_or_change_to_solidFill(self):
@@ -310,14 +318,9 @@ class CT_ShapeProperties(BaseOxmlElement):
         Return the <a:solidFill> child element, replacing any other fill
         element if found, e.g. a <a:gradFill> element.
         """
-        # return existing one if there is one
         if self.solidFill is not None:
             return self.solidFill
-        # get rid of other fill element type if there is one
-        self._remove_if_present(
-            'a:noFill', 'a:gradFill', 'a:blipFill', 'a:pattFill', 'a:grpFill'
-        )
-        # add solidFill element in right sequence
+        self.remove_eg_fill_properties()
         return self._add_solidFill()
 
     @property
@@ -326,6 +329,12 @@ class CT_ShapeProperties(BaseOxmlElement):
         The <a:noFill> child element, or None if not present.
         """
         return self.find(qn('a:noFill'))
+
+    def remove_eg_fill_properties(self):
+        """
+        Remove the fill child element, e.g ``<a:solidFill>`` if present.
+        """
+        self.remove_if_present(*EG_FillProperties.__member_names__)
 
     @property
     def solidFill(self):
@@ -368,16 +377,8 @@ class CT_ShapeProperties(BaseOxmlElement):
         EG_FillProperties element is present.
         """
         noFill = Element('a:noFill')
-
-        successor = self._first_successor_in(
-            'a:ln', 'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:sp3d',
-            'a:extLst'
-        )
-        if successor is not None:
-            successor.addprevious(noFill)
-        else:
-            self.append(noFill)
-
+        successor_tagnames = self.child_tagnames_after('a:noFill')
+        self.insert_element_before(noFill, *successor_tagnames)
         return noFill
 
     def _add_solidFill(self):
@@ -385,42 +386,15 @@ class CT_ShapeProperties(BaseOxmlElement):
         Return a newly added <a:solidFill> child element.
         """
         solidFill = Element('a:solidFill')
-
-        successor = self._first_successor_in(
-            'a:ln', 'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:sp3d',
-            'a:extLst'
-        )
-        if successor is not None:
-            successor.addprevious(solidFill)
-        else:
-            self.append(solidFill)
-
+        successor_tagnames = self.child_tagnames_after('a:solidFill')
+        self.insert_element_before(solidFill, *successor_tagnames)
         return solidFill
 
-    def _first_child_found_in(self, *tagnames):
+    def _add_xfrm(self):
         """
-        Return the first child found with tag in *tagnames*, or None if
-        not found.
+        Return a newly added <a:xfrm> child element.
         """
-        for tagname in tagnames:
-            child = self.find(qn(tagname))
-            if child is not None:
-                return child
-        return None
-
-    def _first_successor_in(self, *successor_tagnames):
-        """
-        Return the first child with tag in *successor_tagnames*, or None if
-        not found.
-        """
-        for tagname in successor_tagnames:
-            successor = self.find(qn(tagname))
-            if successor is not None:
-                return successor
-        return None
-
-    def _remove_if_present(self, *tagnames):
-        for tagname in tagnames:
-            element = self.find(qn(tagname))
-            if element is not None:
-                self.remove(element)
+        xfrm = Element('a:xfrm')
+        successor_tagnames = self.child_tagnames_after('a:xfrm')
+        self.insert_element_before(xfrm, *successor_tagnames)
+        return xfrm

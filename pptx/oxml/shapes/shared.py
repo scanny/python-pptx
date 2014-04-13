@@ -282,6 +282,16 @@ class CT_Transform2D(BaseOxmlElement):
         return self.find(qn('a:off'))
 
 
+class EG_EffectProperties(object):
+
+    __member_names__ = ('a:effectLst', 'a:effectDag')
+
+
+class EG_Geometry(object):
+
+    __member_names__ = ('a:custGeom', 'a:prstGeom')
+
+
 class ST_Direction(object):
     """
     Valid values for <p:ph orient=""> attribute

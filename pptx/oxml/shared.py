@@ -181,6 +181,15 @@ class BaseOxmlElement(objectify.ObjectifiedElement):
             self.append(elm)
         return elm
 
+    def remove_if_present(self, *tagnames):
+        """
+        Remove all child elements having tagname in *tagnames*.
+        """
+        for tagname in tagnames:
+            element = self.find(qn(tagname))
+            if element is not None:
+                self.remove(element)
+
     @property
     def xml(self):
         """
