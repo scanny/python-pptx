@@ -28,6 +28,13 @@ saved_pptx_path = absjoin(scratch_dir, 'test_out.pptx')
 test_text = "python-pptx was here!"
 
 
+def cls_qname(obj):
+    module_name = obj.__module__
+    cls_name = obj.__class__.__name__
+    qname = '%s.%s' % (module_name, cls_name)
+    return qname
+
+
 def test_pptx(name):
     """
     Return the absolute path to test .pptx file with root name *name*.
