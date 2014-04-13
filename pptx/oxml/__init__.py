@@ -108,9 +108,11 @@ register_custom_element_class('p:pic', CT_Picture)
 
 
 from .shapes.shared import (
-    CT_Point2D, CT_PositiveSize2D, CT_ShapeProperties, CT_Transform2D
+    CT_LineProperties, CT_Point2D, CT_PositiveSize2D, CT_ShapeProperties,
+    CT_Transform2D
 )
 register_custom_element_class('a:ext',  CT_PositiveSize2D)
+register_custom_element_class('a:ln',   CT_LineProperties)
 register_custom_element_class('a:off',  CT_Point2D)
 register_custom_element_class('p:spPr', CT_ShapeProperties)
 register_custom_element_class('a:xfrm', CT_Transform2D)

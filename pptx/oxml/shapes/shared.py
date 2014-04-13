@@ -7,6 +7,7 @@ Common shape-related oxml objects
 from __future__ import absolute_import
 
 from ..dml.fill import EG_FillProperties
+from ..dml.line import EG_LineFillProperties
 from ..ns import _nsmap, qn
 from ..shared import BaseOxmlElement, ChildTagnames, Element
 
@@ -161,6 +162,15 @@ class CT_LineProperties(BaseOxmlElement):
     """
     Custom element class for <a:ln> element
     """
+    @property
+    def eg_fill_properties(self):
+        """
+        Return the child representing the EG_FillProperties element group
+        member in this element, or |None| if no such child is present.
+        """
+        return self.first_child_found_in(
+            *EG_LineFillProperties.__member_names__
+        )
 
 
 class CT_Point2D(BaseOxmlElement):

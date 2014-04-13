@@ -7,7 +7,6 @@ Feature: Get and change line properties
      Given an autoshape
       Then I can access the line format of the shape
 
-  @wip
   Scenario Outline: Get line fill type
      Given an autoshape having <outline type>
       Then the line fill type is <line fill type>
