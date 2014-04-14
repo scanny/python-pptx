@@ -3,6 +3,7 @@ Feature: Get and change line properties
   As a developer using python-pptx
   I need a set of read/write line properties on line elements
 
+
   Scenario Outline: Get line fill type
      Given an autoshape outline having <outline type>
       Then the line fill type is <line fill type>
@@ -13,7 +14,7 @@ Feature: Get and change line properties
       | no outline                  | MSO_FILL_TYPE.BACKGROUND |
       | a solid outline             | MSO_FILL_TYPE.SOLID      |
 
-  @wip
+
   Scenario Outline: Get line color type
      Given a line with <color type> color
       Then the line's color type is <value>
@@ -23,6 +24,7 @@ Feature: Get and change line properties
     | no         | None        |
     | an RGB     | RGB         |
     | a theme    | theme color |
+
 
   Scenario Outline: Set line fill type
      Given an autoshape outline having <outline type>
@@ -35,7 +37,7 @@ Feature: Get and change line properties
       | a solid outline             | background | MSO_FILL_TYPE.BACKGROUND |
       | no outline                  | solid      | MSO_FILL_TYPE.SOLID      |
 
-  @wip
+
   Scenario Outline: Set line color
     Given a line with no color
      When I set the line <color type> value

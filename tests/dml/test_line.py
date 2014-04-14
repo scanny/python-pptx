@@ -8,12 +8,14 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
+from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
+from pptx.enum.dml import MSO_FILL
 from pptx.oxml.shapes.shared import CT_LineProperties
 from pptx.shapes.autoshape import Shape
 
-from ..unitutil import class_mock, instance_mock
+from ..unitutil import call, class_mock, instance_mock, property_mock
 
 
 class DescribeLineFormat(object):
@@ -24,7 +26,24 @@ class DescribeLineFormat(object):
         FillFormat_.from_fill_parent.assert_called_once_with(ln_)
         assert fill is fill_
 
+    def it_has_a_color(self, color_fixture):
+        line, fill_, expected_solid_calls, color_ = color_fixture
+        color = line.color
+        assert fill_.solid.mock_calls == expected_solid_calls
+        assert color is color_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (MSO_FILL.SOLID,      False),
+        (MSO_FILL.BACKGROUND, True),
+        (None,                True),
+    ])
+    def color_fixture(self, request, line, fill_prop_, fill_, color_):
+        pre_call_fill_type, solid_call_expected = request.param
+        fill_.type = pre_call_fill_type
+        expected_solid_calls = [call()] if solid_call_expected else []
+        return line, fill_, expected_solid_calls, color_
 
     @pytest.fixture
     def fill_fixture(self, line, FillFormat_, ln_, fill_):
@@ -33,8 +52,16 @@ class DescribeLineFormat(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def fill_(self, request):
-        return instance_mock(request, FillFormat)
+    def color_(self, request):
+        return instance_mock(request, ColorFormat)
+
+    @pytest.fixture
+    def fill_(self, request, color_):
+        return instance_mock(request, FillFormat, fore_color=color_)
+
+    @pytest.fixture
+    def fill_prop_(self, request, fill_):
+        return property_mock(request, LineFormat, 'fill', return_value=fill_)
 
     @pytest.fixture
     def FillFormat_(self, request, fill_):
