@@ -14,7 +14,7 @@ from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
 from pptx.util import Inches
 
-from .helpers import saved_pptx_path, test_pptx, test_text
+from .helpers import cls_qname, saved_pptx_path, test_pptx, test_text
 
 
 # given ===================================================
@@ -208,6 +208,17 @@ def then_fore_color_is_RGB_value_I_set(context):
 def then_fore_color_is_theme_color_I_set(context):
     fore_color = context.shape.fill.fore_color
     assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
+
+
+@then('I can access the line format of the shape')
+def then_I_can_access_the_line_format_of_the_shape(context):
+    shape = context.shape
+    line_format = shape.line
+    line_format_cls_name = cls_qname(line_format)
+    expected_cls_name = 'pptx.dml.line.LineFormat'
+    assert line_format_cls_name == expected_cls_name, (
+        "expected '%s', got '%s'" % (expected_cls_name, line_format_cls_name)
+    )
 
 
 @then('I can access the slide from the shape')
