@@ -7,7 +7,9 @@ Common shape-related oxml objects
 from __future__ import absolute_import
 
 from ..dml.fill import EG_FillProperties
-from ..dml.line import EG_LineFillProperties
+from ..dml.line import (
+    EG_LineDashProperties, EG_LineFillProperties, EG_LineJoinProperties
+)
 from ..ns import _nsmap, qn
 from ..shared import BaseOxmlElement, ChildTagnames, Element
 
@@ -148,6 +150,66 @@ class BaseShapeElement(BaseOxmlElement):
         return self.xpath('./*[1]', namespaces=_nsmap)[0]
 
 
+class Fillable(BaseOxmlElement):
+    """
+    Provides common behavior for property elements that can contain one of
+    the fill properties elements like ``<a:solidFill>``. Subclassed by
+    CT_ShapeProperties and CT_LineProperties, perhaps others in the future.
+    """
+    def get_or_change_to_noFill(self):
+        """
+        Return the <a:noFill> child element, replacing any other fill
+        element if found, e.g. a <a:gradFill> element.
+        """
+        if self.noFill is not None:
+            return self.noFill
+        self.remove_fill_element()
+        return self._add_noFill()
+
+    def get_or_change_to_solidFill(self):
+        """
+        Return the <a:solidFill> child element, replacing any other fill
+        element if found, e.g. a <a:gradFill> element.
+        """
+        if self.solidFill is not None:
+            return self.solidFill
+        self.remove_fill_element()
+        return self._add_solidFill()
+
+    @property
+    def noFill(self):
+        """
+        The <a:noFill> child element, or None if not present.
+        """
+        return self.find(qn('a:noFill'))
+
+    @property
+    def solidFill(self):
+        """
+        The <a:solidFill> child element, or None if not present.
+        """
+        return self.find(qn('a:solidFill'))
+
+    def _add_noFill(self):
+        """
+        Return a newly added <a:noFill> child element, assuming no other fill
+        EG_FillProperties element is present.
+        """
+        noFill = Element('a:noFill')
+        successor_tagnames = self.child_tagnames_after('a:noFill')
+        self.insert_element_before(noFill, *successor_tagnames)
+        return noFill
+
+    def _add_solidFill(self):
+        """
+        Return a newly added <a:solidFill> child element.
+        """
+        solidFill = Element('a:solidFill')
+        successor_tagnames = self.child_tagnames_after('a:solidFill')
+        self.insert_element_before(solidFill, *successor_tagnames)
+        return solidFill
+
+
 class EG_EffectProperties(object):
 
     __member_names__ = ('a:effectLst', 'a:effectDag')
@@ -158,12 +220,20 @@ class EG_Geometry(object):
     __member_names__ = ('a:custGeom', 'a:prstGeom')
 
 
-class CT_LineProperties(BaseOxmlElement):
+class CT_LineProperties(Fillable):
     """
     Custom element class for <a:ln> element
     """
+
+    child_tagnames = ChildTagnames.from_nested_sequence(
+        EG_LineFillProperties.__member_names__,
+        EG_LineDashProperties.__member_names__,
+        EG_LineJoinProperties.__member_names__,
+        'a:headEnd', 'a:tailEnd', 'a:extLst',
+    )
+
     @property
-    def eg_fill_properties(self):
+    def fill_element(self):
         """
         Return the child representing the EG_FillProperties element group
         member in this element, or |None| if no such child is present.
@@ -171,6 +241,12 @@ class CT_LineProperties(BaseOxmlElement):
         return self.first_child_found_in(
             *EG_LineFillProperties.__member_names__
         )
+
+    def remove_fill_element(self):
+        """
+        Remove the fill child element, e.g ``<a:solidFill>`` if present.
+        """
+        self.remove_if_present(*EG_LineFillProperties.__member_names__)
 
 
 class CT_Point2D(BaseOxmlElement):
@@ -235,7 +311,7 @@ class CT_PositiveSize2D(BaseOxmlElement):
         return int(cy_str)
 
 
-class CT_ShapeProperties(BaseOxmlElement):
+class CT_ShapeProperties(Fillable):
     """
     Custom element class for <p:spPr> element. Shared by ``<p:sp>``,
     ``<p:pic>``, and ``<p:cxnSp>`` elements as well as a few more obscure
@@ -272,7 +348,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         return int(cy_str_lst[0])
 
     @property
-    def eg_fill_properties(self):
+    def fill_element(self):
         """
         Return the child representing the EG_FillProperties element group
         member in this element, or |None| if no such child is present.
@@ -300,26 +376,6 @@ class CT_ShapeProperties(BaseOxmlElement):
             xfrm = self._add_xfrm()
         return xfrm
 
-    def get_or_change_to_noFill(self):
-        """
-        Return the <a:noFill> child element, replacing any other fill
-        element if found, e.g. a <a:gradFill> element.
-        """
-        if self.noFill is not None:
-            return self.noFill
-        self.remove_eg_fill_properties()
-        return self._add_noFill()
-
-    def get_or_change_to_solidFill(self):
-        """
-        Return the <a:solidFill> child element, replacing any other fill
-        element if found, e.g. a <a:gradFill> element.
-        """
-        if self.solidFill is not None:
-            return self.solidFill
-        self.remove_eg_fill_properties()
-        return self._add_solidFill()
-
     @property
     def ln(self):
         """
@@ -327,25 +383,11 @@ class CT_ShapeProperties(BaseOxmlElement):
         """
         return self.find(qn('a:ln'))
 
-    @property
-    def noFill(self):
-        """
-        The <a:noFill> child element, or None if not present.
-        """
-        return self.find(qn('a:noFill'))
-
-    def remove_eg_fill_properties(self):
+    def remove_fill_element(self):
         """
         Remove the fill child element, e.g ``<a:solidFill>`` if present.
         """
         self.remove_if_present(*EG_FillProperties.__member_names__)
-
-    @property
-    def solidFill(self):
-        """
-        The <a:solidFill> child element, or None if not present.
-        """
-        return self.find(qn('a:solidFill'))
 
     @property
     def x(self):
@@ -384,25 +426,6 @@ class CT_ShapeProperties(BaseOxmlElement):
         successor_tagnames = self.child_tagnames_after('a:ln')
         self.insert_element_before(ln, *successor_tagnames)
         return ln
-
-    def _add_noFill(self):
-        """
-        Return a newly added <a:noFill> child element, assuming no other fill
-        EG_FillProperties element is present.
-        """
-        noFill = Element('a:noFill')
-        successor_tagnames = self.child_tagnames_after('a:noFill')
-        self.insert_element_before(noFill, *successor_tagnames)
-        return noFill
-
-    def _add_solidFill(self):
-        """
-        Return a newly added <a:solidFill> child element.
-        """
-        solidFill = Element('a:solidFill')
-        successor_tagnames = self.child_tagnames_after('a:solidFill')
-        self.insert_element_before(solidFill, *successor_tagnames)
-        return solidFill
 
     def _add_xfrm(self):
         """

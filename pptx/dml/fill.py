@@ -49,7 +49,7 @@ class FillFormat(object):
         in *eg_fill_properties_parent*, which must be an element having
         EG_FillProperties in its schema sequence.
         """
-        fill_elm = eg_fill_properties_parent.eg_fill_properties
+        fill_elm = eg_fill_properties_parent.fill_element
         fill = _Fill(fill_elm)
         fill_format = cls(eg_fill_properties_parent, fill)
         return fill_format

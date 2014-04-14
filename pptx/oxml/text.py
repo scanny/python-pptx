@@ -258,7 +258,7 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         """
         if name in ('b', 'i'):
             return self._get_bool_attr(name)
-        elif name == 'eg_fill_properties':
+        elif name == 'fill_element':
             return self._eg_fill_properties()
         elif name == 'hlinkClick':
             return self.find(qn('a:hlinkClick'))

@@ -13,7 +13,6 @@ Feature: Get and change line properties
       | no outline                  | MSO_FILL_TYPE.BACKGROUND |
       | a solid outline             | MSO_FILL_TYPE.SOLID      |
 
-  @wip
   Scenario Outline: Set line fill type
      Given an autoshape outline having <outline type>
       When I set the line fill type to <fill type>
