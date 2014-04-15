@@ -18,7 +18,6 @@ test_file_dir = absjoin(thisdir, '../../tests/test_files')
 test_pptx_dir = absjoin(thisdir, 'test_files')
 
 # legacy test pptx files ---------------
-italics_pptx_path = absjoin(test_file_dir, 'italic-runs.pptx')
 no_core_props_pptx_path = absjoin(test_file_dir, 'no-core-props.pptx')
 test_image_path = absjoin(test_file_dir, 'python-powered.png')
 

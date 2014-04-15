@@ -16,20 +16,10 @@ from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches
 
-from .helpers import italics_pptx_path, saved_pptx_path
+from .helpers import saved_pptx_path, test_pptx
 
 
 # given ===================================================
-
-@given('a font')
-def given_a_font(context):
-    prs = Presentation()
-    blank_slide_layout = prs.slide_layouts[6]
-    slide = prs.slides.add_slide(blank_slide_layout)
-    textbox = slide.shapes.add_textbox(0, 0, 0, 0)
-    run = textbox.textframe.paragraphs[0].add_run()
-    context.font = run.font
-
 
 @given('a paragraph')
 def given_a_paragraph(context):
@@ -44,7 +34,7 @@ def given_a_paragraph(context):
 @given('a run with italics set {setting}')
 def given_run_with_italics_set_to_setting(context, setting):
     run_idx = {'on': 0, 'off': 1, 'to None': 2}[setting]
-    context.prs = Presentation(italics_pptx_path)
+    context.prs = Presentation(test_pptx('txt-font-props'))
     runs = context.prs.slides[0].shapes[0].textframe.paragraphs[0].runs
     context.run = runs[run_idx]
 

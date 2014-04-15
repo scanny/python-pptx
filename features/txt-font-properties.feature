@@ -1,7 +1,18 @@
-Feature: Change appearance of font with which text is rendered
+Feature: Change appearance of font used to render text
   In order to fine-tune the appearance of text
   As a developer using python-pptx
-  I need to set the properties of the font used to render text
+  I need a set of properties on the font used to render text
+
+
+  @wip
+  Scenario Outline: Get font size
+    Given a font having <applied size>
+     Then the font size property value is <reported size>
+
+    Examples: Font sizes
+      | applied size                    | reported size |
+      | a directly applied size of 42pt | 42.0 points   |
+      | no directly applied size        | None          |
 
 
   Scenario: Change font typeface
@@ -16,17 +27,17 @@ Feature: Change appearance of font with which text is rendered
       And I reload the presentation
      Then the run that had italics set <initial> now has it set <new>
 
-  Examples: Italics Settings
-    | initial | new     |
-    | on      | on      |
-    | on      | off     |
-    | on      | to None |
-    | off     | on      |
-    | off     | off     |
-    | off     | to None |
-    | to None | on      |
-    | to None | off     |
-    | to None | to None |
+    Examples: Italics Settings
+      | initial | new     |
+      | on      | on      |
+      | on      | off     |
+      | on      | to None |
+      | off     | on      |
+      | off     | off     |
+      | off     | to None |
+      | to None | on      |
+      | to None | off     |
+      | to None | to None |
 
 
   Scenario: Add hyperlink
