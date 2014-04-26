@@ -70,32 +70,42 @@ class TestCollection(TestCase):
         self.assertIsSizedProperty(self.collection, '_values', 0)
 
 
-class TestLengthClasses(TestCase):
-    """Test BaseLength, Inches, Cm, Mm, Px, and Emu classes"""
-    def test_base_method_values(self):
-        """BaseLength() provides correct values for base methods"""
-        # setup -----------------------
-        expected_px = 96 if platform.system() == 'Windows' else 72
-        # exercise --------------------
-        x = BaseLength(914400)
-        # verify ----------------------
-        expected = (1.0, 2.54, 25.4, expected_px, 914400, 914400)
-        actual = (x.inches, x.cm, x.mm, x.px, x.emu, x)
-        msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+class DescribeLength(object):
 
-    def test_convenience_constructors(self):
-        """Length constructors produce a length with correct values"""
-        # setup -----------------------
-        expected_px = 132 if platform.system() == 'Windows' else 99
-        # exercise --------------------
-        lengths = {'Inches()': Inches(1.375), 'Cm()': Cm(3.4925),
-                   'Mm()': Mm(34.925), 'Px()': Px(expected_px),
-                   'Emu()': Emu(1257300)}
-        # verify ----------------------
-        for constructor, x in lengths.iteritems():
-            expected = (1.375, 3.4925, 34.925, expected_px, 1257300, 1257300)
-            actual = (x.inches, x.cm, x.mm, x.px, x.emu, x)
-            msg = ("for constructor '%s'\nExpected: %s\n     Got: %s"
-                   % (constructor, expected, actual))
-            self.assertEqual(expected, actual, msg)
+    def it_can_construct_from_convenient_units(self, construct_fixture):
+        UnitCls, units_val, emu = construct_fixture
+        length = UnitCls(units_val)
+        assert isinstance(length, BaseLength)
+        assert length == emu
+
+    def it_can_self_convert_to_convenient_units(self, units_fixture):
+        emu, units_prop_name, expected_length_in_units = units_fixture
+        length = BaseLength(emu)
+        length_in_units = getattr(length, units_prop_name)
+        assert length_in_units == expected_length_in_units
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (BaseLength,  914400,  914400),
+        (Inches,      1.1,    1005840),
+        (Cm,          2.53,    910799),
+        (Emu,         9144.9,    9144),
+        (Mm,          13.8,    496800),
+        (Px,          10,
+         95250 if platform.system() == 'Windows' else 127000),
+    ])
+    def construct_fixture(self, request):
+        UnitCls, units_val, emu = request.param
+        return UnitCls, units_val, emu
+
+    @pytest.fixture(params=[
+        (914400, 'inches', 1.0),
+        (914400, 'cm', 2.54),
+        (914400, 'emu', 914400),
+        (914400, 'mm', 25.4),
+        (914400, 'px', 96 if platform.system() == 'Windows' else 72),
+    ])
+    def units_fixture(self, request):
+        emu, units_prop_name, expected_length_in_units = request.param
+        return emu, units_prop_name, expected_length_in_units
