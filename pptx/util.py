@@ -15,6 +15,7 @@ class BaseLength(int):
     """
 
     _EMUS_PER_INCH = 914400
+    _EMUS_PER_CENTIPOINT = 127
     _EMUS_PER_CM = 360000
     _EMUS_PER_MM = 36000
     _EMUS_PER_PX = 9525 if platform.system() == 'Windows' else 12700
@@ -28,6 +29,14 @@ class BaseLength(int):
         Floating point length in inches
         """
         return self / float(self._EMUS_PER_INCH)
+
+    @property
+    def centipoints(self):
+        """
+        Integer length in hundredths of a point (1/7200 inch). Used
+        internally because PowerPoint stores font size in centipoints.
+        """
+        return self / self._EMUS_PER_CENTIPOINT
 
     @property
     def cm(self):
@@ -68,6 +77,15 @@ class Inches(BaseLength):
     """
     def __new__(cls, inches):
         emu = int(inches * BaseLength._EMUS_PER_INCH)
+        return BaseLength.__new__(cls, emu)
+
+
+class Centipoints(BaseLength):
+    """
+    Convenience constructor for length in hundredths of a point
+    """
+    def __new__(cls, centipoints):
+        emu = int(centipoints * BaseLength._EMUS_PER_CENTIPOINT)
         return BaseLength.__new__(cls, emu)
 
 

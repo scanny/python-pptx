@@ -8,7 +8,7 @@ import platform
 import pytest
 
 from pptx.util import (
-    BaseLength, Cm, Collection, Emu, Inches, Mm, Px, to_unicode
+    BaseLength, Centipoints, Cm, Collection, Emu, Inches, Mm, Px, to_unicode
 )
 
 from .unitutil import TestCase
@@ -89,6 +89,7 @@ class DescribeLength(object):
     @pytest.fixture(params=[
         (BaseLength,  914400,  914400),
         (Inches,      1.1,    1005840),
+        (Centipoints, 12.5,      1587),
         (Cm,          2.53,    910799),
         (Emu,         9144.9,    9144),
         (Mm,          13.8,    496800),
@@ -101,6 +102,7 @@ class DescribeLength(object):
 
     @pytest.fixture(params=[
         (914400, 'inches', 1.0),
+        (914400, 'centipoints', 7200.0),
         (914400, 'cm', 2.54),
         (914400, 'emu', 914400),
         (914400, 'mm', 25.4),
