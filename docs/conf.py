@@ -76,6 +76,8 @@ rst_epilog = """
 
 .. |BaseFileSystem| replace:: :class:`BaseFileSystem`
 
+.. |BaseLength| replace:: :class:`.BaseLength`
+
 .. |BaseShape| replace:: :class:`BaseShape`
 
 .. |_Cell| replace:: :class:`_Cell`

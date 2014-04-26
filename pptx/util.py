@@ -8,7 +8,7 @@ and Open XML.
 import platform
 
 
-class _BaseLength(int):
+class BaseLength(int):
     """Base class for length classes Inches, Cm, Mm, Px, and Emu."""
     _EMUS_PER_INCH = 914400
     _EMUS_PER_CM = 360000
@@ -41,31 +41,31 @@ class _BaseLength(int):
         return self
 
 
-class Inches(_BaseLength):
+class Inches(BaseLength):
     """Convenience constructor for length in inches."""
     def __new__(cls, inches):
-        emu = int(inches * _BaseLength._EMUS_PER_INCH)
-        return _BaseLength.__new__(cls, emu)
+        emu = int(inches * BaseLength._EMUS_PER_INCH)
+        return BaseLength.__new__(cls, emu)
 
 
-class Cm(_BaseLength):
+class Cm(BaseLength):
     """Convenience constructor for length in centimeters."""
     def __new__(cls, cm):
-        emu = int(cm * _BaseLength._EMUS_PER_CM)
-        return _BaseLength.__new__(cls, emu)
+        emu = int(cm * BaseLength._EMUS_PER_CM)
+        return BaseLength.__new__(cls, emu)
 
 
-class Emu(_BaseLength):
+class Emu(BaseLength):
     """Convenience constructor for length in english metric units."""
     def __new__(cls, emu):
-        return _BaseLength.__new__(cls, int(emu))
+        return BaseLength.__new__(cls, int(emu))
 
 
-class Mm(_BaseLength):
+class Mm(BaseLength):
     """Convenience constructor for length in millimeters."""
     def __new__(cls, mm):
-        emu = int(mm * _BaseLength._EMUS_PER_MM)
-        return _BaseLength.__new__(cls, emu)
+        emu = int(mm * BaseLength._EMUS_PER_MM)
+        return BaseLength.__new__(cls, emu)
 
 
 class Pt(int):
@@ -77,11 +77,11 @@ class Pt(int):
         return int.__new__(cls, units)
 
 
-class Px(_BaseLength):
+class Px(BaseLength):
     """Convenience constructor for length in pixels."""
     def __new__(cls, px):
-        emu = int(px * _BaseLength._EMUS_PER_PX)
-        return _BaseLength.__new__(cls, emu)
+        emu = int(px * BaseLength._EMUS_PER_PX)
+        return BaseLength.__new__(cls, emu)
 
 
 class Collection(object):

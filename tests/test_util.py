@@ -8,7 +8,7 @@ import platform
 import pytest
 
 from pptx.util import (
-    _BaseLength, Cm, Collection, Emu, Inches, Mm, Px, to_unicode
+    BaseLength, Cm, Collection, Emu, Inches, Mm, Px, to_unicode
 )
 
 from .unitutil import TestCase
@@ -71,13 +71,13 @@ class TestCollection(TestCase):
 
 
 class TestLengthClasses(TestCase):
-    """Test _BaseLength, Inches, Cm, Mm, Px, and Emu classes"""
+    """Test BaseLength, Inches, Cm, Mm, Px, and Emu classes"""
     def test_base_method_values(self):
-        """_BaseLength() provides correct values for base methods"""
+        """BaseLength() provides correct values for base methods"""
         # setup -----------------------
         expected_px = 96 if platform.system() == 'Windows' else 72
         # exercise --------------------
-        x = _BaseLength(914400)
+        x = BaseLength(914400)
         # verify ----------------------
         expected = (1.0, 2.54, 25.4, expected_px, 914400, 914400)
         actual = (x.inches, x.cm, x.mm, x.px, x.emu, x)
