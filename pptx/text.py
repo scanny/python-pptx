@@ -245,15 +245,26 @@ class _Font(object):
             latin = self._rPr.get_or_add_latin()
             latin.typeface = value
 
-    def _set_size(self, emu):
-        self._rPr.sz = Emu(emu)
+    @property
+    def size(self):
+        """
+        Height of the font in English Metric Units (EMU). The value is
+        an instance of |BaseLength|, a subclass of |int| having properties
+        for convenient conversion into points or other length units.
+        Likewise, the :class:`pptx.util.Pt` class allows convenient
+        specification of point values::
 
-    #: Set the font size. In PresentationML, font size is expressed in
-    #: hundredths of a point (centipoints). The :class:`pptx.util.Pt` class
-    #: allows convenient conversion to centipoints from float or integer point
-    #: values, e.g. ``Pt(12.5)``. I'm pretty sure I just made up the word
-    #: *centipoint*, but it seems apt :).
-    size = property(None, _set_size)
+            >> font.size = Pt(24)
+            >> font.size
+            304800
+            >> font.size.pt
+            24.0
+        """
+        return self._rPr.sz
+
+    @size.setter
+    def size(self, emu):
+        self._rPr.sz = Emu(emu)
 
 
 class _Hyperlink(Subshape):

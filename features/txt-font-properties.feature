@@ -4,7 +4,6 @@ Feature: Change appearance of font used to render text
   I need a set of properties on the font used to render text
 
 
-  @wip
   Scenario Outline: Get font size
     Given a font having <applied size>
      Then the font size property value is <reported size>

@@ -12,6 +12,7 @@ from . import parse_xml_bytes
 from ..enum.text import MSO_AUTO_SIZE
 from .ns import nsdecls, nsmap, qn
 from .shared import Element, SubElement
+from ..util import Centipoints
 
 
 class CT_Hyperlink(objectify.ObjectifiedElement):
@@ -371,6 +372,16 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         The <a:solidFill> child element, or None if not present.
         """
         return self.find(qn('a:solidFill'))
+
+    @property
+    def sz(self):
+        """
+        The value of the ``sz`` attribute, or None if not present.
+        """
+        val = self.get('sz')
+        if val is None:
+            return None
+        return Centipoints(int(val))
 
     def _add_latin(self):
         """

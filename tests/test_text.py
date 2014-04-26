@@ -396,12 +396,28 @@ class Describe_Font(object):
         font.name = typeface
         assert actual_xml(font._rPr) == rPr_with_latin_xml
 
+    def it_knows_the_font_size(self, size_get_fixture):
+        font, expected_size = size_get_fixture
+        assert font.size == expected_size
+
     def it_can_set_the_font_size(self, font):
         font.size = Pt(24)
         expected_xml = an_rPr().with_nsdecls().with_sz(2400).xml()
         assert actual_xml(font._rPr) == expected_xml
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        (None, None),
+        (2400, 304800),
+    ])
+    def size_get_fixture(self, request):
+        sz_val, expected_size = request.param
+        rPr_bldr = an_rPr().with_nsdecls()
+        if sz_val is not None:
+            rPr_bldr.with_sz(sz_val)
+        font = _Font(rPr_bldr.element)
+        return font, expected_size
 
     @pytest.fixture(params=[None, 'Foobar Light'])
     def typeface_get_fixture(self, request):
