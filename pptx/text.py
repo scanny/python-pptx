@@ -11,7 +11,7 @@ from .opc.constants import RELATIONSHIP_TYPE as RT
 from .oxml.shared import Element, get_or_add
 from .oxml.ns import _nsmap, qn
 from .shapes import Subshape
-from .util import lazyproperty, to_unicode
+from .util import Emu, lazyproperty, to_unicode
 
 
 class TextFrame(Subshape):
@@ -245,10 +245,8 @@ class _Font(object):
             latin = self._rPr.get_or_add_latin()
             latin.typeface = value
 
-    def _set_size(self, centipoints):
-        # handle float centipoints value gracefully
-        centipoints = int(centipoints)
-        self._rPr.set('sz', str(centipoints))
+    def _set_size(self, emu):
+        self._rPr.sz = Emu(emu)
 
     #: Set the font size. In PresentationML, font size is expressed in
     #: hundredths of a point (centipoints). The :class:`pptx.util.Pt` class

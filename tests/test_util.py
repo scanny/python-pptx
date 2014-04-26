@@ -8,7 +8,8 @@ import platform
 import pytest
 
 from pptx.util import (
-    BaseLength, Centipoints, Cm, Collection, Emu, Inches, Mm, Px, to_unicode
+    BaseLength, Centipoints, Cm, Collection, Emu, Inches, Mm, Pt, Px,
+    to_unicode
 )
 
 from .unitutil import TestCase
@@ -93,6 +94,7 @@ class DescribeLength(object):
         (Cm,          2.53,    910799),
         (Emu,         9144.9,    9144),
         (Mm,          13.8,    496800),
+        (Pt,          24.5,    311150),
         (Px,          10,
          95250 if platform.system() == 'Windows' else 127000),
     ])
@@ -106,6 +108,7 @@ class DescribeLength(object):
         (914400, 'cm', 2.54),
         (914400, 'emu', 914400),
         (914400, 'mm', 25.4),
+        (914400, 'pt', 72.0),
         (914400, 'px', 96 if platform.system() == 'Windows' else 72),
     ])
     def units_fixture(self, request):

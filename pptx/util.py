@@ -18,6 +18,7 @@ class BaseLength(int):
     _EMUS_PER_CENTIPOINT = 127
     _EMUS_PER_CM = 360000
     _EMUS_PER_MM = 36000
+    _EMUS_PER_PT = 12700
     _EMUS_PER_PX = 9525 if platform.system() == 'Windows' else 12700
 
     def __new__(cls, emu):
@@ -58,6 +59,13 @@ class BaseLength(int):
         Floating point length in millimeters
         """
         return self / float(self._EMUS_PER_MM)
+
+    @property
+    def pt(self):
+        """
+        Floating point length in points
+        """
+        return self / float(self._EMUS_PER_PT)
 
     @property
     def px(self):
@@ -115,16 +123,13 @@ class Mm(BaseLength):
         return BaseLength.__new__(cls, emu)
 
 
-class Pt(int):
+class Pt(BaseLength):
     """
     Convenience value class for specifying a length in points
     """
-
-    _UNITS_PER_POINT = 100
-
-    def __new__(cls, pts):
-        units = int(pts * Pt._UNITS_PER_POINT)
-        return int.__new__(cls, units)
+    def __new__(cls, points):
+        emu = int(points * BaseLength._EMUS_PER_PT)
+        return BaseLength.__new__(cls, emu)
 
 
 class Px(BaseLength):

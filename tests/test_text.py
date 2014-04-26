@@ -19,7 +19,7 @@ from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
 )
 from pptx.text import _Font, _Hyperlink, _Paragraph, _Run, TextFrame
-from pptx.util import Inches
+from pptx.util import Inches, Pt
 
 from .oxml.unitdata.text import (
     a_bodyPr, a_latin, a_txBody, a_noAutofit, a_normAutofit, a_p, a_pPr, a_t,
@@ -397,7 +397,7 @@ class Describe_Font(object):
         assert actual_xml(font._rPr) == rPr_with_latin_xml
 
     def it_can_set_the_font_size(self, font):
-        font.size = 2400
+        font.size = Pt(24)
         expected_xml = an_rPr().with_nsdecls().with_sz(2400).xml()
         assert actual_xml(font._rPr) == expected_xml
 
