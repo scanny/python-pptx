@@ -1,6 +1,6 @@
 
-Shapes (in general)
-===================
+Understanding Shapes
+====================
 
 Pretty much anything on a slide is a shape; the only thing I can think of that
 can appear on a slide that's not a shape is a slide background. There are
@@ -54,7 +54,7 @@ content part
    pretty sure PowerPoint itself doesn't do anything with these. My strategy
    is to ignore them. Working good so far.
 
-As for real-life shapes, there are these seven types:
+As for real-life shapes, there are these nine types:
 
 * shape shapes -- auto shapes with fill and an outline
 * text boxes -- auto shapes with no fill and no outline
@@ -87,4 +87,4 @@ Up next ...
 -----------
 
 Okay. That should be enough noodle work to get started. Let's move on to
-working with placeholder shapes.
+working with AutoShapes.

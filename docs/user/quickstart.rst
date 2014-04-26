@@ -6,7 +6,7 @@ Getting Started
 A quick way to get started is by trying out some of the examples below to get
 a feel for how to use |pp|.
 
-The :ref:`user API documentation <api>` can help you with the fine details of
+The :ref:`API documentation <api>` can help you with the fine details of
 calling signatures and behaviors.
 
 

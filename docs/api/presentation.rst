@@ -1,4 +1,3 @@
-.. _api:
 
 Presentations
 =============
@@ -22,7 +21,7 @@ Example::
 
    # get reference to first shape in first slide
    sp = prs.slides[0].shapes[0]
-   
+
    # add a picture shape to slide
    pic = sld.shapes.add_picture(path, x, y, cx, cy)
 

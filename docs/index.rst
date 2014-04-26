@@ -38,10 +38,10 @@ User Guide
    user/quickstart
    user/presentations
    user/slides
-   user/shapes
+   user/understanding-shapes
+   user/autoshapes
    user/placeholders
    user/text
-   user/autoshapes
    user/use-cases
    user/concepts
    user/enum/index
@@ -57,6 +57,8 @@ Community Guide
    community/support
    community/updates
 
+
+.. _api:
 
 API Documentation
 -----------------
