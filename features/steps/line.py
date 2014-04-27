@@ -11,11 +11,23 @@ from behave import given, then, when
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_COLOR_TYPE, MSO_FILL_TYPE, MSO_THEME_COLOR
+from pptx.util import Pt
 
 from .helpers import test_pptx
 
 
 # given ===================================================
+
+@given('a line of {line_width} width')
+def given_a_line_of_width(context, line_width):
+    shape_idx = {
+        'no explicit': 0,
+        '1 pt':        1,
+    }[line_width]
+    prs = Presentation(test_pptx('shp-line-props'))
+    shape = prs.slides[2].shapes[shape_idx]
+    context.line = shape.line
+
 
 @given('a line with {color_type} color')
 def given_a_line_with_color_type_color(context, color_type):
@@ -49,6 +61,16 @@ def when_I_set_the_line_color_value(context, color_type):
         context.line.color.rgb = RGBColor(0x12, 0x34, 0x56)
     elif color_type == 'theme color':
         context.line.color.theme_color = MSO_THEME_COLOR.DARK_1
+
+
+@when('I set the line width to {line_width}')
+def when_I_set_the_line_width_to_value(context, line_width):
+    value = {
+        'None':    None,
+        '1 pt':    Pt(1),
+        '2.34 pt': Pt(2.34),
+    }[line_width]
+    context.line.width = value
 
 
 @when('I set the line fill type to {line_fill_type}')
@@ -94,3 +116,14 @@ def then_the_line_color_type_value_matches(context, color_type):
         assert line.color.rgb == RGBColor(0x12, 0x34, 0x56)
     else:
         assert line.color.theme_color == MSO_THEME_COLOR.DARK_1
+
+
+@then("the reported line width is {line_width}")
+def then_the_reported_line_width_is_value(context, line_width):
+    expected_value = {
+        'None':    None,
+        '1 pt':    Pt(1),
+        '2.34 pt': Pt(2.34),
+    }[line_width]
+    line = context.line
+    assert line.width == expected_value

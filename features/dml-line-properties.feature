@@ -5,8 +5,8 @@ Feature: Get and change line properties
 
 
   Scenario Outline: Get line fill type
-     Given an autoshape outline having <outline type>
-      Then the line fill type is <line fill type>
+    Given an autoshape outline having <outline type>
+     Then the line fill type is <line fill type>
 
     Examples: Line fill types
       | outline type                | line fill type           |
@@ -16,20 +16,31 @@ Feature: Get and change line properties
 
 
   Scenario Outline: Get line color type
-     Given a line with <color type> color
-      Then the line's color type is <value>
+    Given a line with <color type> color
+     Then the line's color type is <value>
 
-  Examples: Color type settings
-    | color type | value       |
-    | no         | None        |
-    | an RGB     | RGB         |
-    | a theme    | theme color |
+    Examples: Color type settings
+      | color type | value       |
+      | no         | None        |
+      | an RGB     | RGB         |
+      | a theme    | theme color |
+
+
+  @wip
+  Scenario Outline: Get line width
+    Given a line of <line width> width
+     Then the reported line width is <reported line width>
+
+    Examples: Line widths
+      | line width  | reported line width |
+      | no explicit | None                |
+      | 1 pt        | 1 pt                |
 
 
   Scenario Outline: Set line fill type
-     Given an autoshape outline having <outline type>
-      When I set the line fill type to <fill type>
-      Then the line fill type is <fill type index>
+    Given an autoshape outline having <outline type>
+     When I set the line fill type to <fill type>
+     Then the line fill type is <fill type index>
 
     Examples: Line fill types
       | outline type                | fill type  | fill type index          |
@@ -43,7 +54,22 @@ Feature: Get and change line properties
      When I set the line <color type> value
      Then the line's <color type> value matches the new value
 
-  Examples: Color types
-    | color type  |
-    | RGB         |
-    | theme color |
+    Examples: Color types
+      | color type  |
+      | RGB         |
+      | theme color |
+
+
+  @wip
+  Scenario Outline: Set line width
+    Given a line of <line width> width
+     When I set the line width to <new line width>
+     Then the reported line width is <reported line width>
+
+    Examples: Line widths
+      | line width  | new line width | reported line width |
+      | no explicit | None           | None                |
+      | no explicit | 1 pt           | 1 pt                |
+      | 1 pt        | None           | None                |
+      | 1 pt        | 1 pt           | 1 pt                |
+      | 1 pt        | 2.34 pt        | 2.34 pt             |
