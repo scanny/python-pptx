@@ -26,7 +26,6 @@ Feature: Get and change line properties
       | a theme    | theme color |
 
 
-  @wip
   Scenario Outline: Get line width
     Given a line of <line width> width
      Then the reported line width is <reported line width>

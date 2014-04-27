@@ -12,6 +12,7 @@ from ..dml.line import (
 )
 from ..ns import _nsmap, qn
 from ..shared import BaseOxmlElement, ChildTagnames, Element
+from ...util import Emu
 
 
 class BaseShapeElement(BaseOxmlElement):
@@ -247,6 +248,16 @@ class CT_LineProperties(Fillable):
         Remove the fill child element, e.g ``<a:solidFill>`` if present.
         """
         self.remove_if_present(*EG_LineFillProperties.__member_names__)
+
+    @property
+    def w(self):
+        """
+        Integer value of optional ``w`` attribute, or |None| if not present
+        """
+        w_str = self.get('w')
+        if w_str is None:
+            return None
+        return Emu(int(w_str))
 
 
 class CT_Point2D(BaseOxmlElement):

@@ -15,10 +15,15 @@ from pptx.enum.dml import MSO_FILL
 from pptx.oxml.shapes.shared import CT_LineProperties
 from pptx.shapes.autoshape import Shape
 
+from ..oxml.unitdata.dml import an_ln
 from ..unitutil import call, class_mock, instance_mock, property_mock
 
 
 class DescribeLineFormat(object):
+
+    def it_knows_the_line_width(self, width_get_fixture):
+        line, expected_line_width = width_get_fixture
+        assert line.width == expected_line_width
 
     def it_has_a_fill(self, fill_fixture):
         line, FillFormat_, ln_, fill_ = fill_fixture
@@ -48,6 +53,16 @@ class DescribeLineFormat(object):
     @pytest.fixture
     def fill_fixture(self, line, FillFormat_, ln_, fill_):
         return line, FillFormat_, ln_, fill_
+
+    @pytest.fixture(params=[None, 12700])
+    def width_get_fixture(self, request, shape_):
+        w = expected_line_width = request.param
+        ln_bldr = an_ln().with_nsdecls()
+        if w is not None:
+            ln_bldr.with_w(w)
+        shape_.ln = ln_bldr.element
+        line = LineFormat(shape_)
+        return line, expected_line_width
 
     # fixture components ---------------------------------------------
 

@@ -33,6 +33,12 @@ class CT_HslColorBuilder(BaseBuilder):
     __attrs__ = ('hue', 'sat', 'lum')
 
 
+class CT_LinePropertiesBuilder(BaseBuilder):
+    __tag__ = 'a:ln'
+    __nspfxs__ = ('a',)
+    __attrs__ = ('w', 'cap', 'cmpd', 'algn')
+
+
 class CT_NoFillPropertiesBuilder(BaseBuilder):
     __tag__ = 'a:noFill'
     __nspfxs__ = ('a',)
@@ -138,6 +144,10 @@ def a_solidFill():
 
 def an_hslClr():
     return CT_HslColorBuilder()
+
+
+def an_ln():
+    return CT_LinePropertiesBuilder()
 
 
 def an_spPr():

@@ -167,6 +167,13 @@ class CT_Shape(BaseShapeElement):
             return True
         return False
 
+    @property
+    def ln(self):
+        """
+        ``<a:ln>`` grand-child element or |None| if not present
+        """
+        return self.spPr.ln
+
     @staticmethod
     def new_autoshape_sp(id_, name, prst, left, top, width, height):
         """
@@ -246,4 +253,7 @@ class CT_Shape(BaseShapeElement):
 
     @property
     def spPr(self):
+        """
+        Required ``<p:spPr>`` child element containing shape properties
+        """
         return self.find(qn('p:spPr'))

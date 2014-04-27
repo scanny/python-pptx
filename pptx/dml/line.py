@@ -42,9 +42,20 @@ class LineFormat(object):
         ln = self._get_or_add_ln()
         return FillFormat.from_fill_parent(ln)
 
+    @property
+    def width(self):
+        ln = self._ln
+        if ln is None:
+            return None
+        return ln.w
+
     def _get_or_add_ln(self):
         """
         Return the ``<a:ln>`` element containing the line format properties
         in the XML.
         """
         return self._parent.get_or_add_ln()
+
+    @property
+    def _ln(self):
+        return self._parent.ln

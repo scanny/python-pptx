@@ -323,6 +323,14 @@ class Shape(BaseShape):
         return LineFormat(self)
 
     @property
+    def ln(self):
+        """
+        The ``<a:ln>`` element containing the line format properties such as
+        line color and width. |None| if no ``<a:ln>`` element is present.
+        """
+        return self._sp.ln
+
+    @property
     def shape_type(self):
         """
         Unique integer identifying the type of this shape, like
