@@ -356,22 +356,22 @@ class CT_ShapeProperties(Fillable):
     @property
     def cx(self):
         """
-        Shape width, or None if not present.
+        Shape width as an instance of Emu, or None if not present.
         """
         cx_str_lst = self.xpath('./a:xfrm/a:ext/@cx', namespaces=_nsmap)
         if not cx_str_lst:
             return None
-        return int(cx_str_lst[0])
+        return Emu(cx_str_lst[0])
 
     @property
     def cy(self):
         """
-        Shape height, or None if not present.
+        Shape height as an instance of Emu, or None if not present.
         """
         cy_str_lst = self.xpath('./a:xfrm/a:ext/@cy', namespaces=_nsmap)
         if not cy_str_lst:
             return None
-        return int(cy_str_lst[0])
+        return Emu(cy_str_lst[0])
 
     @property
     def fill_element(self):
@@ -418,13 +418,14 @@ class CT_ShapeProperties(Fillable):
     @property
     def x(self):
         """
-        The integer value of `./xfrm/off/@x` attribute, or None if not
-        present.
+        The offset of the left edge of the shape from the left edge of the
+        slide, as an instance of Emu. Corresponds to the value of the
+        `./xfrm/off/@x` attribute. None if not present.
         """
         x_str_lst = self.xpath('./a:xfrm/a:off/@x', namespaces=_nsmap)
         if not x_str_lst:
             return None
-        return int(x_str_lst[0])
+        return Emu(x_str_lst[0])
 
     @property
     def xfrm(self):
@@ -436,12 +437,13 @@ class CT_ShapeProperties(Fillable):
     @property
     def y(self):
         """
-        The top of the shape, or None if not present.
+        The offset of the top of the shape from the top of the slide, as an
+        instance of Emu. None if not present.
         """
         y_str_lst = self.xpath('./a:xfrm/a:off/@y', namespaces=_nsmap)
         if not y_str_lst:
             return None
-        return int(y_str_lst[0])
+        return Emu(y_str_lst[0])
 
     def _add_ln(self):
         """
