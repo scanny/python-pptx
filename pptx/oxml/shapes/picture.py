@@ -46,6 +46,19 @@ class CT_Picture(BaseShapeElement):
                       '%d', '%d', '%d', '%d')
     )
 
+    def get_or_add_ln(self):
+        """
+        Return the <a:ln> grandchild element, newly added if not present.
+        """
+        return self.spPr.get_or_add_ln()
+
+    @property
+    def ln(self):
+        """
+        ``<a:ln>`` grand-child element or |None| if not present
+        """
+        return self.spPr.ln
+
     @staticmethod
     def new_pic(id_, name, desc, rId, left, top, width, height):
         """

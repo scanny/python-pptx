@@ -4,8 +4,10 @@
 Picture shape.
 """
 
+from ..dml.line import LineFormat
 from ..enum.shapes import MSO_SHAPE_TYPE
 from .shape import BaseShape
+from ..util import lazyproperty
 
 
 class Picture(BaseShape):
@@ -16,6 +18,29 @@ class Picture(BaseShape):
     def __init__(self, pic, parent):
         super(Picture, self).__init__(pic, parent)
         self._pic = pic
+
+    def get_or_add_ln(self):
+        """
+        Return the ``<a:ln>`` element containing the line format properties
+        XML for this picture.
+        """
+        return self._pic.get_or_add_ln()
+
+    @lazyproperty
+    def line(self):
+        """
+        |LineFormat| instance for this shape, providing access to line
+        properties such as line color.
+        """
+        return LineFormat(self)
+
+    @property
+    def ln(self):
+        """
+        The ``<a:ln>`` element containing the line format properties such as
+        line color and width. |None| if no ``<a:ln>`` element is present.
+        """
+        return self._pic.ln
 
     @property
     def shape_type(self):
