@@ -49,6 +49,11 @@ class LineFormat(object):
             return None
         return ln.w
 
+    @width.setter
+    def width(self, emu):
+        ln = self._get_or_add_ln()
+        ln.w = emu
+
     def _get_or_add_ln(self):
         """
         Return the ``<a:ln>`` element containing the line format properties

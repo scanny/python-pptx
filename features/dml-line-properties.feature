@@ -59,7 +59,6 @@ Feature: Get and change line properties
       | theme color |
 
 
-  @wip
   Scenario Outline: Set line width
     Given a line of <line width> width
      When I set the line width to <new line width>

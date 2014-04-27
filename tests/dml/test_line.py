@@ -25,6 +25,11 @@ class DescribeLineFormat(object):
         line, expected_line_width = width_get_fixture
         assert line.width == expected_line_width
 
+    def it_can_change_its_width(self, width_set_fixture):
+        line, width, expected_xml = width_set_fixture
+        line.width = width
+        assert line._ln.xml == expected_xml
+
     def it_has_a_fill(self, fill_fixture):
         line, FillFormat_, ln_, fill_ = fill_fixture
         fill = line.fill
@@ -57,12 +62,22 @@ class DescribeLineFormat(object):
     @pytest.fixture(params=[None, 12700])
     def width_get_fixture(self, request, shape_):
         w = expected_line_width = request.param
-        ln_bldr = an_ln().with_nsdecls()
-        if w is not None:
-            ln_bldr.with_w(w)
-        shape_.ln = ln_bldr.element
+        shape_.ln = self.ln_bldr(w).element
         line = LineFormat(shape_)
         return line, expected_line_width
+
+    @pytest.fixture(params=[
+        (None, None), (None, 12700), (12700, 12700), (12700, 25400),
+        (25400, None),
+    ])
+    def width_set_fixture(self, request, shape_):
+        initial_width, width = request.param
+        shape_.ln = shape_.get_or_add_ln.return_value = (
+            self.ln_bldr(initial_width).element
+        )
+        line = LineFormat(shape_)
+        expected_xml = self.ln_bldr(width).xml()
+        return line, width, expected_xml
 
     # fixture components ---------------------------------------------
 
@@ -91,6 +106,12 @@ class DescribeLineFormat(object):
     @pytest.fixture
     def ln_(self, request):
         return instance_mock(request, CT_LineProperties)
+
+    def ln_bldr(self, w):
+        ln_bldr = an_ln().with_nsdecls()
+        if w is not None:
+            ln_bldr.with_w(w)
+        return ln_bldr
 
     @pytest.fixture
     def shape_(self, request, ln_):

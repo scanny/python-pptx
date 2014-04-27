@@ -233,6 +233,21 @@ class CT_LineProperties(Fillable):
         'a:headEnd', 'a:tailEnd', 'a:extLst',
     )
 
+    def __setattr__(self, name, value):
+        """
+        Override ``__setattr__`` defined in ObjectifiedElement super class
+        to intercept messages intended for custom property setters.
+        """
+        if name == 'w':
+            if value is None:
+                if name in self.attrib:
+                    del self.attrib[name]
+            else:
+                val = str(value)
+                self.set(name, val)
+        else:
+            super(CT_LineProperties, self).__setattr__(name, value)
+
     @property
     def fill_element(self):
         """
