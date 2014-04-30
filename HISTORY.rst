@@ -3,7 +3,7 @@
 Release History
 ---------------
 
-0.4.0 (2014-04-??)
+0.4.1 (2014-04-29)
 ++++++++++++++++++
 
 - Rename Presentation.slidemasters to Presentation.slide_masters.
