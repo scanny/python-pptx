@@ -82,9 +82,11 @@ class TestImage(TestCase):
                 Image._ext_from_image_stream(stream)
 
     def test__image_ext_content_type_known_type(self):
-        """Image._image_ext_content_type() correct for known content type"""
+        """
+        Image._image_ext_content_type() correct for known content type
+        """
         # exercise ---------------------
-        content_type = Image._image_ext_content_type('jpeg')
+        content_type = Image._image_ext_content_type('jPeG')
         # verify -----------------------
         expected = 'image/jpeg'
         actual = content_type

@@ -93,10 +93,11 @@ class Image(Part):
         """
         Return the content type corresponding to filename extension *ext*
         """
-        if ext not in image_content_types:
+        key = ext.lower()
+        if key not in image_content_types:
             tmpl = "unsupported image file extension '%s'"
             raise ValueError(tmpl % (ext))
-        content_type = image_content_types[ext]
+        content_type = image_content_types[key]
         return content_type
 
     @classmethod

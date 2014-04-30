@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+0.4.2 (2014-04-29)
+++++++++++++++++++
+
+- fix: issue #88 -- raises on supported image file having uppercase extension
+
+
 0.4.1 (2014-04-29)
 ++++++++++++++++++
 
