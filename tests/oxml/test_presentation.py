@@ -136,7 +136,29 @@ class DescribeCT_SlideIdList(object):
         sldIdLst.add_sldId('rId1')
         assert actual_xml(sldIdLst) == sldIdLst_with_sldId_xml
 
+    def it_knows_the_next_available_slide_id(self, next_id_fixture):
+        sldIdLst, expected_id = next_id_fixture
+        print(sldIdLst.xml)
+        assert sldIdLst._next_id == expected_id
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ((), '256'),
+        ((256,), '257'), ((257,), '256'), ((300,), '256'), ((255,), '256'),
+        ((257, 259), '256'), ((256, 258), '257'), ((256, 257), '258'),
+        ((257, 258, 259), '256'), ((256, 258, 259), '257'),
+        ((256, 257, 259), '258'), ((258, 256, 257), '259'),
+    ])
+    def next_id_fixture(self, request):
+        existing_ids, expected_id = request.param
+        sldIdLst_bldr = a_sldIdLst().with_nsdecls()
+        for n in existing_ids:
+            sldIdLst_bldr.with_child(a_sldId().with_id(n))
+        sldIdLst = sldIdLst_bldr.element
+        return sldIdLst, expected_id
+
+    # fixture components ---------------------------------------------
 
     @pytest.fixture
     def sldIdLst(self):

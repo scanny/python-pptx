@@ -7,7 +7,7 @@ Custom element classes for presentation-related XML elements.
 from __future__ import absolute_import
 
 from .shared import BaseOxmlElement, child, Element, SubElement
-from .ns import qn
+from .ns import _nsmap, qn
 
 
 class CT_Presentation(BaseOxmlElement):
@@ -104,7 +104,15 @@ class CT_SlideIdList(BaseOxmlElement):
 
     @property
     def _next_id(self):
-        return str(256 + len(self))
+        """
+        Return the next available slide ID as a string. Valid slide IDs start
+        at 256. Unused ids in the sequences starting from 256 are used first.
+        """
+        id_str_lst = self.xpath('./p:sldId/@id', namespaces=_nsmap)
+        used_ids = [int(id_str) for id_str in id_str_lst]
+        for n in range(256, 258+len(used_ids)):
+            if n not in used_ids:
+                return str(n)
 
 
 class CT_SlideMasterIdList(BaseOxmlElement):
