@@ -15,8 +15,10 @@ A |Table| object is added to a slide using the
 
 .. autoclass:: Table()
    :members:
-   :exclude-members: notify_height_changed, notify_width_changed
-   :member-order: bysource
+   :inherited-members:
+   :exclude-members:
+      element, has_textframe, notify_height_changed, notify_width_changed,
+      part, text, textframe
    :undoc-members:
 
 

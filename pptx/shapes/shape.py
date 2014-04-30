@@ -38,7 +38,8 @@ class BaseShape(object):
     @property
     def height(self):
         """
-        Integer distance between top and bottom extents of shape in EMUs
+        Read/write. Integer distance between top and bottom extents of shape
+        in EMUs
         """
         return self._element.cy
 
@@ -64,8 +65,8 @@ class BaseShape(object):
     @property
     def left(self):
         """
-        Integer distance of the left edge of this shape from the left edge of
-        the slide, in English Metric Units (EMU)
+        Read/write. Integer distance of the left edge of this shape from the
+        left edge of the slide, in English Metric Units (EMU)
         """
         return self._element.x
 
@@ -104,8 +105,8 @@ class BaseShape(object):
     @property
     def top(self):
         """
-        Integer distance of the top edge of this shape from the top edge of
-        the slide, in English Metric Units (EMU)
+        Read/write. Integer distance of the top edge of this shape from the
+        top edge of the slide, in English Metric Units (EMU)
         """
         return self._element.y
 
@@ -143,7 +144,8 @@ class BaseShape(object):
     @property
     def width(self):
         """
-        Integer distance between left and right extents of shape in EMUs
+        Read/write. Integer distance between left and right extents of shape
+        in EMUs
         """
         return self._element.cx
 

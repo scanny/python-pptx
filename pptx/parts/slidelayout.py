@@ -102,7 +102,8 @@ class _LayoutPlaceholder(BasePlaceholder):
     """
     Placeholder shape on a slide layout, providing differentiated behavior
     for slide layout placeholders, in particular, inheriting shape properties
-    from the master placeholder having the same type.
+    from the master placeholder having the same type, when a matching one
+    exists.
     """
     @property
     def height(self):

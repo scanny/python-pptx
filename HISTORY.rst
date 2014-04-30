@@ -6,6 +6,33 @@ Release History
 0.4.0 (2014-04-??)
 ++++++++++++++++++
 
+- Rename Presentation.slidemasters to Presentation.slide_masters.
+  Presentation.slidemasters property is deprecated.
+- Rename Presentation.slidelayouts to Presentation.slide_layouts.
+  Presentation.slidelayouts property is deprecated.
+- Rename SlideMaster.slidelayouts to SlideMaster.slide_layouts.
+  SlideMaster.slidelayouts property is deprecated.
+- Rename SlideLayout.slidemaster to SlideLayout.slide_master.
+  SlideLayout.slidemaster property is deprecated.
+- Rename Slide.slidelayout to Slide.slide_layout. Slide.slidelayout property
+  is deprecated.
+- Add SlideMaster.shapes to access shapes on slide master.
+- Add SlideMaster.placeholders to access placeholder shapes on slide master.
+- Add _MasterPlaceholder class.
+- Add _LayoutPlaceholder class with position and size inheritable from master
+  placeholder.
+- Add _SlidePlaceholder class with position and size inheritable from layout
+  placeholder.
+- Add Table.left, top, width, and height read/write properties.
+- Add rudimentary GroupShape with left, top, width, and height properties.
+- Add rudimentary Connector with left, top, width, and height properties.
+- Add TextFrame.auto_size property.
+- Add Presentation.slide_width and .slide_height read/write properties.
+- Add LineFormat class providing access to read and change line color and
+  width.
+- Add AutoShape.line
+- Add Picture.line
+
 - Rationalize enumerations. **Note backward incompatibilities below**
 
 **BACKWARD INCOMPATIBILITIES:**

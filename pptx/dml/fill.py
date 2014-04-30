@@ -67,8 +67,8 @@ class FillFormat(object):
     @property
     def type(self):
         """
-        Return a value in MSO_FILL_TYPE enumeration corresponding to the type
-        of this fill.
+        Return a value from the :ref:`MsoFillType` enumeration corresponding
+        to the type of this fill.
         """
         return self._fill.type
 

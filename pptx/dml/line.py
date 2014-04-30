@@ -14,6 +14,8 @@ from ..util import lazyproperty
 class LineFormat(object):
     """
     Provides access to line properties such as line color, style, and width.
+    Typically accessed via the ``.line`` property of a shape such as |Shape|
+    or |Picture|.
     """
     def __init__(self, parent):
         super(LineFormat, self).__init__()
@@ -44,6 +46,12 @@ class LineFormat(object):
 
     @property
     def width(self):
+        """
+        The width of the line expressed as an integer number of :ref:`English
+        Metric Units <EMU>`. The returned value is an instance of
+        |BaseLength|, a value class having properties such as `.inches`,
+        `.cm`, and `.pt` for converting the value into convenient units.
+        """
         ln = self._ln
         if ln is None:
             return None

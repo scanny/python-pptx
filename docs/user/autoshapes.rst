@@ -29,6 +29,8 @@ See the :ref:`MsoAutoShapeType` enumeration page for a list of all 182 auto
 shape types.
 
 
+.. _`EMU`:
+
 Understanding English Metric Units
 ----------------------------------
 

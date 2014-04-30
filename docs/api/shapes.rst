@@ -3,8 +3,8 @@
 Shapes
 ======
 
-
-.. currentmodule:: pptx.parts.slide
+The following classes provide access to the shapes that appear on a slide and
+the collections that contain them.
 
 
 |_SlideShapeTree| objects
@@ -13,53 +13,94 @@ Shapes
 The |_SlideShapeTree| object is encountered as the :attr:`~BaseSlide.shapes`
 property of |Slide|.
 
-.. autoclass:: _SlideShapeTree
+.. autoclass:: pptx.parts.slide._SlideShapeTree()
    :members:
    :exclude-members: clone_layout_placeholders
 
 
-.. currentmodule:: pptx.shapes.shape
-
-
-``Shape`` objects
------------------
+Shape objects in general
+------------------------
 
 The following properties and methods are common to all shapes.
 
-.. autoclass:: BaseShape
-   :members: has_textframe, id, is_placeholder, name, shape_type, text,
-             textframe
-   :member-order: bysource
-   :undoc-members:
-
-
-.. currentmodule:: pptx.shapes.autoshape
-
-
-The following properties and methods are defined for auto shapes and text boxes.
-
-.. autoclass:: Shape
+.. autoclass:: pptx.shapes.shape.BaseShape()
    :members:
+   :exclude-members: part
    :member-order: bysource
    :undoc-members:
 
 
-|Adjustment| objects
----------------------
+``Shape`` objects (AutoShapes)
+------------------------------
 
-.. autoclass:: Adjustment
+The following properties and methods are defined for AutoShapes, which
+includes text boxes and placeholders.
+
+.. autoclass:: pptx.shapes.autoshape.Shape()
    :members:
    :member-order: bysource
    :undoc-members:
 
 
 |AdjustmentCollection| objects
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An |AdjustmentCollection| object reference is accessed using the
+An AutoShape is distinctive in that it can have *adjustments*, represented in
+the PowerPoint user interface as small yellow diamonds that each allow
+a parameter of the shape, such as the angle of an arrowhead, to be adjusted.
+The |AdjustmentCollection| object holds these adjustment values for an
+AutoShape, each of which is an |Adjustment| instance.
+
+The |AdjustmentCollection| instance for an AutoShape is accessed using the
 ``Shape.adjustments`` property (read-only).
 
-.. autoclass:: AdjustmentCollection
+.. autoclass:: pptx.shapes.autoshape.AdjustmentCollection
    :members:
    :member-order: bysource
+   :undoc-members:
+
+
+|Adjustment| objects
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: pptx.shapes.autoshape.Adjustment
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+``Picture`` objects
+-------------------
+
+The following properties and methods are defined for picture shapes.
+
+.. autoclass:: pptx.shapes.picture.Picture()
+   :members:
+   :exclude-members: get_or_add_ln, ln
+   :member-order: bysource
+   :undoc-members:
+
+
+``Placeholder`` objects
+-----------------------
+
+The following properties and methods are defined for placeholder shapes.
+
+.. autoclass:: pptx.shapes.placeholder.BasePlaceholder()
+   :members:
+   :undoc-members:
+
+.. autoclass:: pptx.parts.slide._SlidePlaceholder()
+   :members:
+   :undoc-members:
+
+.. autoclass:: pptx.parts.slidelayout._LayoutPlaceholder()
+   :members:
+   :undoc-members:
+
+.. autoclass:: pptx.parts.slidemaster._MasterPlaceholder()
+   :members:
+   :exclude-members:
+      adjustments, get_or_add_ln, ln, part, shape_type
+   :inherited-members:
    :undoc-members:

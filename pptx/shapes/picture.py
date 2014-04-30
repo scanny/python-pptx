@@ -29,8 +29,8 @@ class Picture(BaseShape):
     @lazyproperty
     def line(self):
         """
-        |LineFormat| instance for this shape, providing access to line
-        properties such as line color.
+        An instance of |LineFormat|, providing access to the properties of
+        the outline bordering this picture, such as its color and width.
         """
         return LineFormat(self)
 

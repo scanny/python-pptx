@@ -96,6 +96,8 @@ rst_epilog = """
 
 .. |DirectoryFileSystem| replace:: :class:`DirectoryFileSystem`
 
+.. |Emu| replace:: :class:`.Emu`
+
 .. |False| replace:: :class:`False`
 
 .. |FileSystem| replace:: :class:`FileSystem`
@@ -142,7 +144,7 @@ rst_epilog = """
 
 .. |PartTypeSpec| replace:: :class:`PartTypeSpec`
 
-.. |Picture| replace:: :class:`Picture`
+.. |Picture| replace:: :class:`.Picture`
 
 .. |pp| replace:: ``python-pptx``
 
@@ -160,7 +162,7 @@ rst_epilog = """
 
 .. |_Run| replace:: :class:`_Run`
 
-.. |Shape| replace:: :class:`Shape`
+.. |Shape| replace:: :class:`.Shape`
 
 .. |ShapeCollection| replace:: :class:`.ShapeCollection`
 

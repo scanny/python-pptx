@@ -15,7 +15,20 @@ various aspects of shapes.
 --------------------
 
 .. autoclass:: FillFormat
-   :members: background, fore_color, solid, type
+   :members:
+   :exclude-members: from_fill_parent
+   :undoc-members:
+
+
+.. currentmodule:: pptx.dml.line
+
+
+|LineFormat| objects
+--------------------
+
+.. autoclass:: LineFormat
+   :members:
+   :undoc-members:
 
 
 .. currentmodule:: pptx.dml.color
@@ -26,6 +39,7 @@ various aspects of shapes.
 
 .. autoclass:: ColorFormat
    :members: brightness, rgb, theme_color, type
+   :undoc-members:
 
 
 |RGBColor| objects
@@ -33,3 +47,4 @@ various aspects of shapes.
 
 .. autoclass:: RGBColor
    :members: from_string
+   :undoc-members:
