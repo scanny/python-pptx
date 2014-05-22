@@ -93,7 +93,6 @@ class MSO_VERTICAL_ANCHOR(XmlEnumeration):
         ),
         XmlMappedEnumMember(
             'TOP', 1, 't', 'Aligns text to top of text frame'
-            ' and inherits its value from its layout placeholder or theme.'
         ),
         XmlMappedEnumMember(
             'MIDDLE', 3, 'ctr', 'Centers text vertically'

@@ -179,7 +179,7 @@ The shape outline also has a read/write width property::
     >>> line.width.pt
     0.75
     >>> line.width = Pt(2.0)
-    line.width.pt
+    >>> line.width.pt
     2.0
 
 

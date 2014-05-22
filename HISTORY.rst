@@ -7,7 +7,7 @@ Release History
 ++++++++++++++++++
 
 - fix: issue #88 -- raises on supported image file having uppercase extension
-- fix: issue #88 -- raises on add_slide() where non-contiguous existing ids
+- fix: issue #89 -- raises on add_slide() where non-contiguous existing ids
 
 
 0.4.1 (2014-04-29)
