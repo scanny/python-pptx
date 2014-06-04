@@ -6,31 +6,198 @@ Test suite for pptx.coreprops module
 
 from __future__ import absolute_import
 
-from datetime import datetime, timedelta
+import pytest
 
-from hamcrest import assert_that, instance_of, is_, less_than
+from datetime import datetime, timedelta
 
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.oxml.coreprops import CT_CoreProperties
 from pptx.parts.coreprops import CoreProperties
 
-from ..unitutil import TestCase
 
+class DescribeCoreProperties(object):
 
-class TestCoreProperties(TestCase):
-    """Test CoreProperties"""
-    def test_it_can_construct_default_core_props(self):
+    def it_knows_the_string_property_values(self, str_prop_get_fixture):
+        core_properties, prop_name, expected_value = str_prop_get_fixture
+        actual_value = getattr(core_properties, prop_name)
+        assert actual_value == expected_value
+
+    def it_can_change_the_string_property_values(self, str_prop_set_fixture):
+        core_properties, prop_name, value, expected_xml = str_prop_set_fixture
+        setattr(core_properties, prop_name, value)
+        assert core_properties._element.xml == expected_xml
+
+    def it_knows_the_date_property_values(self, date_prop_get_fixture):
+        core_properties, prop_name, expected_datetime = date_prop_get_fixture
+        actual_datetime = getattr(core_properties, prop_name)
+        assert actual_datetime == expected_datetime
+
+    def it_can_change_the_date_property_values(self, date_prop_set_fixture):
+        core_properties, prop_name, value, expected_xml = (
+            date_prop_set_fixture
+        )
+        setattr(core_properties, prop_name, value)
+        assert core_properties._element.xml == expected_xml
+
+    def it_knows_the_revision_number(self, revision_get_fixture):
+        core_properties, expected_revision = revision_get_fixture
+        assert core_properties.revision == expected_revision
+
+    def it_can_change_the_revision_number(self, revision_set_fixture):
+        core_properties, revision, expected_xml = revision_set_fixture
+        core_properties.revision = revision
+        assert core_properties._element.xml == expected_xml
+
+    def it_can_construct_a_default_core_props(self):
         core_props = CoreProperties.default()
         # verify -----------------------
-        assert_that(core_props, is_(instance_of(CoreProperties)))
-        assert_that(core_props.content_type, is_(CT.OPC_CORE_PROPERTIES))
-        assert_that(core_props.partname, is_('/docProps/core.xml'))
-        assert_that(core_props._element, is_(instance_of(CT_CoreProperties)))
-        assert_that(core_props.title, is_('PowerPoint Presentation'))
-        assert_that(core_props.last_modified_by, is_('python-pptx'))
-        assert_that(core_props.revision, is_(1))
+        assert isinstance(core_props, CoreProperties)
+        assert core_props.content_type is CT.OPC_CORE_PROPERTIES
+        assert core_props.partname == '/docProps/core.xml'
+        assert isinstance(core_props._element, CT_CoreProperties)
+        assert core_props.title == 'PowerPoint Presentation'
+        assert core_props.last_modified_by == 'python-pptx'
+        assert core_props.revision == 1
         # core_props.modified only stores time with seconds resolution, so
         # comparison needs to be a little loose (within two seconds)
         modified_timedelta = datetime.utcnow() - core_props.modified
         max_expected_timedelta = timedelta(seconds=2)
-        assert_that(modified_timedelta, less_than(max_expected_timedelta))
+        assert modified_timedelta < max_expected_timedelta
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('created',      datetime(2012, 11, 17, 16, 37, 40)),
+        ('last_printed', datetime(2014,  6,  4,  4, 28)),
+        ('modified',     None),
+    ])
+    def date_prop_get_fixture(self, request, core_properties):
+        prop_name, expected_datetime = request.param
+        return core_properties, prop_name, expected_datetime
+
+    @pytest.fixture(params=[
+        ('created', 'dcterms:created', datetime(2001, 2, 3, 4, 5),
+         '2001-02-03T04:05:00Z', ' xsi:type="dcterms:W3CDTF"'),
+        ('last_printed', 'cp:lastPrinted', datetime(2014, 6, 4, 4),
+         '2014-06-04T04:00:00Z', ''),
+        ('modified', 'dcterms:modified', datetime(2005, 4, 3, 2, 1),
+         '2005-04-03T02:01:00Z', ' xsi:type="dcterms:W3CDTF"'),
+    ])
+    def date_prop_set_fixture(self, request):
+        prop_name, tagname, value, str_val, attrs = request.param
+        coreProperties = self.coreProperties(None, None)
+        core_properties = CoreProperties.load(
+            None, None, coreProperties, None
+        )
+        expected_xml = self.coreProperties(tagname, str_val, attrs)
+        return core_properties, prop_name, value, expected_xml
+
+    @pytest.fixture(params=[
+        ('author',           'python-pptx'),
+        ('category',         ''),
+        ('comments',         ''),
+        ('content_status',   'DRAFT'),
+        ('identifier',       'GXS 10.2.1ab'),
+        ('keywords',         'foo bar baz'),
+        ('language',         'US-EN'),
+        ('last_modified_by', 'Steve Canny'),
+        ('subject',          'Spam'),
+        ('title',            'Presentation'),
+        ('version',          '1.2.88'),
+    ])
+    def str_prop_get_fixture(self, request, core_properties):
+        prop_name, expected_value = request.param
+        return core_properties, prop_name, expected_value
+
+    @pytest.fixture(params=[
+        ('author',           'dc:creator',        'scanny'),
+        ('category',         'cp:category',       'silly stories'),
+        ('comments',         'dc:description',    'Bar foo to you'),
+        ('content_status',   'cp:contentStatus',  'FINAL'),
+        ('identifier',       'dc:identifier',     'GT 5.2.xab'),
+        ('keywords',         'cp:keywords',       'dog cat moo'),
+        ('language',         'dc:language',       'GB-EN'),
+        ('last_modified_by', 'cp:lastModifiedBy', 'Billy Bob'),
+        ('subject',          'dc:subject',        'Eggs'),
+        ('title',            'dc:title',          'Dissertation'),
+        ('version',          'cp:version',        '81.2.8'),
+    ])
+    def str_prop_set_fixture(self, request):
+        prop_name, tagname, value = request.param
+        coreProperties = self.coreProperties(None, None)
+        core_properties = CoreProperties.load(
+            None, None, coreProperties, None
+        )
+        expected_xml = self.coreProperties(tagname, value)
+        return core_properties, prop_name, value, expected_xml
+
+    @pytest.fixture(params=[
+        ('42', 42), (None, 0), ('foobar', 0), ('-17', 0), ('32.7', 0)
+    ])
+    def revision_get_fixture(self, request):
+        str_val, expected_revision = request.param
+        tagname = '' if str_val is None else 'cp:revision'
+        coreProperties = self.coreProperties(tagname, str_val)
+        core_properties = CoreProperties.load(
+            None, None, coreProperties, None
+        )
+        return core_properties, expected_revision
+
+    @pytest.fixture(params=[
+        (42, '42'),
+    ])
+    def revision_set_fixture(self, request):
+        value, str_val = request.param
+        coreProperties = self.coreProperties(None, None)
+        core_properties = CoreProperties.load(
+            None, None, coreProperties, None
+        )
+        expected_xml = self.coreProperties('cp:revision', str_val)
+        return core_properties, value, expected_xml
+
+    # fixture components ---------------------------------------------
+
+    def coreProperties(self, tagname, str_val, attrs=''):
+        tmpl = (
+            '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/'
+            'package/2006/metadata/core-properties" xmlns:dc="http://purl.or'
+            'g/dc/elements/1.1/" xmlns:dcmitype="http://purl.org/dc/dcmitype'
+            '/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://'
+            'www.w3.org/2001/XMLSchema-instance">%s</cp:coreProperties>\n'
+        )
+        if not tagname:
+            child_element = ''
+        elif not str_val:
+            child_element = '\n  <%s%s/>\n' % (tagname, attrs)
+        else:
+            child_element = (
+                '\n  <%s%s>%s</%s>\n' % (tagname, attrs, str_val, tagname)
+            )
+        return tmpl % child_element
+
+    @pytest.fixture
+    def core_properties(self):
+        xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/'
+            'package/2006/metadata/core-properties" xmlns:dc="http://purl.or'
+            'g/dc/elements/1.1/" xmlns:dcmitype="http://purl.org/dc/dcmitype'
+            '/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://'
+            'www.w3.org/2001/XMLSchema-instance">\n'
+            '  <cp:contentStatus>DRAFT</cp:contentStatus>\n'
+            '  <dc:creator>python-pptx</dc:creator>\n'
+            '  <dcterms:created xsi:type="dcterms:W3CDTF">2012-11-17T11:07:4'
+            '0-05:30</dcterms:created>\n'
+            '  <dc:description/>\n'
+            '  <dc:identifier>GXS 10.2.1ab</dc:identifier>\n'
+            '  <dc:language>US-EN</dc:language>\n'
+            '  <cp:lastPrinted>2014-06-04T04:28:00Z</cp:lastPrinted>\n'
+            '  <cp:keywords>foo bar baz</cp:keywords>\n'
+            '  <cp:lastModifiedBy>Steve Canny</cp:lastModifiedBy>\n'
+            '  <cp:revision>4</cp:revision>\n'
+            '  <dc:subject>Spam</dc:subject>\n'
+            '  <dc:title>Presentation</dc:title>\n'
+            '  <cp:version>1.2.88</cp:version>\n'
+            '</cp:coreProperties>\n'
+        )
+        return CoreProperties.load(None, None, xml, None)

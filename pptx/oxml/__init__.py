@@ -72,7 +72,7 @@ def register_element_cls(nsptagname, cls):
 
 
 from .coreprops import CT_CoreProperties
-register_custom_element_class('cp:coreProperties', CT_CoreProperties)
+register_element_cls('cp:coreProperties', CT_CoreProperties)
 
 
 from .dml.color import (

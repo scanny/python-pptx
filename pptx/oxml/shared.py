@@ -98,7 +98,7 @@ class XmlString(unicode):
     #                                                     close
 
     _xml_elm_line_patt = re.compile(
-        '( *</?[\w:]+)(.*?)(/?>)([^<]*</\w+>)?'
+        '( *</?[\w:]+)(.*?)(/?>)([^<]*</[\w:]+>)?'
     )
 
     def __eq__(self, other):

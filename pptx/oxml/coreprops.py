@@ -10,13 +10,12 @@ import re
 
 from datetime import datetime, timedelta
 
-from lxml import objectify
-
-from . import parse_xml_bytes
+from . import parse_xml
 from .ns import nsdecls, qn
+from .xmlchemy import BaseOxmlElement, ZeroOrOne
 
 
-class CT_CoreProperties(objectify.ObjectifiedElement):
+class CT_CoreProperties(BaseOxmlElement):
     """
     ``<cp:coreProperties>`` element, the root element of the Core Properties
     part stored as ``/docProps/core.xml``. Implements many of the Dublin Core
@@ -24,24 +23,22 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
     ('') if the element is not present in the XML. String elements are
     limited in length to 255 unicode characters.
     """
-    _date_tags = {
-        'created':      'dcterms:created',
-        'last_printed': 'cp:lastPrinted',
-        'modified':     'dcterms:modified',
-    }
-    _str_tags = {
-        'author':           'dc:creator',
-        'category':         'cp:category',
-        'comments':         'dc:description',
-        'content_status':   'cp:contentStatus',
-        'identifier':       'dc:identifier',
-        'keywords':         'cp:keywords',
-        'language':         'dc:language',
-        'last_modified_by': 'cp:lastModifiedBy',
-        'subject':          'dc:subject',
-        'title':            'dc:title',
-        'version':          'cp:version',
-    }
+    category = ZeroOrOne('cp:category', successors=())
+    contentStatus = ZeroOrOne('cp:contentStatus', successors=())
+    created = ZeroOrOne('dcterms:created', successors=())
+    creator = ZeroOrOne('dc:creator', successors=())
+    description = ZeroOrOne('dc:description', successors=())
+    identifier = ZeroOrOne('dc:identifier', successors=())
+    keywords = ZeroOrOne('cp:keywords', successors=())
+    language = ZeroOrOne('dc:language', successors=())
+    lastModifiedBy = ZeroOrOne('cp:lastModifiedBy', successors=())
+    lastPrinted = ZeroOrOne('cp:lastPrinted', successors=())
+    modified = ZeroOrOne('dcterms:modified', successors=())
+    revision = ZeroOrOne('cp:revision', successors=())
+    subject = ZeroOrOne('dc:subject', successors=())
+    title = ZeroOrOne('dc:title', successors=())
+    version = ZeroOrOne('cp:version', successors=())
+
     _coreProperties_tmpl = (
         '<cp:coreProperties %s/>\n' % nsdecls('cp', 'dc', 'dcterms')
     )
@@ -50,65 +47,106 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
     def new_coreProperties():
         """Return a new ``<cp:coreProperties>`` element"""
         xml = CT_CoreProperties._coreProperties_tmpl
-        coreProperties = parse_xml_bytes(xml)
+        coreProperties = parse_xml(xml)
         return coreProperties
 
-    def __getattribute__(self, name):
-        """
-        Intercept attribute access to generalize property getters.
-        """
-        if name in CT_CoreProperties._str_tags:
-            return self._get_str_prop(name)
-        elif name in CT_CoreProperties._date_tags:
-            return self._get_date_prop(name)
-        elif name == 'revision':
-            return self._get_revision()
-        else:
-            return super(CT_CoreProperties, self).__getattribute__(name)
+    @property
+    def author_text(self):
+        return self._text_of_element('creator')
 
-    def __setattr__(self, name, value):
+    @author_text.setter
+    def author_text(self, value):
+        self._set_element_text('creator', value)
+
+    @property
+    def category_text(self):
+        return self._text_of_element('category')
+
+    @category_text.setter
+    def category_text(self, value):
+        self._set_element_text('category', value)
+
+    @property
+    def comments_text(self):
+        return self._text_of_element('description')
+
+    @comments_text.setter
+    def comments_text(self, value):
+        self._set_element_text('description', value)
+
+    @property
+    def contentStatus_text(self):
+        return self._text_of_element('contentStatus')
+
+    @contentStatus_text.setter
+    def contentStatus_text(self, value):
+        self._set_element_text('contentStatus', value)
+
+    @property
+    def created_datetime(self):
+        return self._datetime_of_element('created')
+
+    @created_datetime.setter
+    def created_datetime(self, value):
+        self._set_element_datetime('created', value)
+
+    @property
+    def identifier_text(self):
+        return self._text_of_element('identifier')
+
+    @identifier_text.setter
+    def identifier_text(self, value):
+        self._set_element_text('identifier', value)
+
+    @property
+    def keywords_text(self):
+        return self._text_of_element('keywords')
+
+    @keywords_text.setter
+    def keywords_text(self, value):
+        self._set_element_text('keywords', value)
+
+    @property
+    def language_text(self):
+        return self._text_of_element('language')
+
+    @language_text.setter
+    def language_text(self, value):
+        self._set_element_text('language', value)
+
+    @property
+    def lastModifiedBy_text(self):
+        return self._text_of_element('lastModifiedBy')
+
+    @lastModifiedBy_text.setter
+    def lastModifiedBy_text(self, value):
+        self._set_element_text('lastModifiedBy', value)
+
+    @property
+    def lastPrinted_datetime(self):
+        return self._datetime_of_element('lastPrinted')
+
+    @lastPrinted_datetime.setter
+    def lastPrinted_datetime(self, value):
+        self._set_element_datetime('lastPrinted', value)
+
+    @property
+    def modified_datetime(self):
+        return self._datetime_of_element('modified')
+
+    @modified_datetime.setter
+    def modified_datetime(self, value):
+        self._set_element_datetime('modified', value)
+
+    @property
+    def revision_number(self):
         """
-        Override ``__setattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
+        Integer value of revision property.
         """
-        if name in CT_CoreProperties._str_tags:
-            self._set_str_prop(name, value)
-        elif name in CT_CoreProperties._date_tags:
-            self._set_date_prop(name, value)
-        elif name == 'revision':
-            self._set_revision(value)
-        else:
-            super(CT_CoreProperties, self).__setattr__(name, value)
-
-    def _get_str_prop(self, name):
-        """Return string value of *name* property."""
-        # explicit class reference avoids another pass through getattribute
-        tag = qn(CT_CoreProperties._str_tags[name])
-        if not hasattr(self, tag):
-            return ''
-        return getattr(self, tag).text
-
-    def _get_date_prop(self, name):
-        """Return datetime value of *name* property."""
-        # explicit class reference avoids another pass through getattribute
-        tag = qn(CT_CoreProperties._date_tags[name])
-        # date properties return None when property element not present
-        if not hasattr(self, tag):
-            return None
-        datetime_str = getattr(self, tag).text
-        try:
-            return self._parse_W3CDTF_to_datetime(datetime_str)
-        except ValueError:
-            # invalid datetime strings are ignored
-            return None
-
-    def _get_revision(self):
-        """Return integer value of revision property."""
-        tag = qn('cp:revision')
-        # revision returns zero when element not present
-        if not hasattr(self, tag):
+        revision = self.revision
+        if revision is None:
             return 0
-        revision_str = getattr(self, tag).text
+        revision_str = revision.text
         try:
             revision = int(revision_str)
         except ValueError:
@@ -119,53 +157,60 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
             revision = 0
         return revision
 
-    def _set_str_prop(self, name, value):
-        """Set string value of *name* property to *value*"""
-        value = str(value)
-        if len(value) > 255:
-            tmpl = ("exceeded 255 char max length of property '%s', got:"
-                    "\n\n'%s'")
-            raise ValueError(tmpl % (name, value))
-        tag = qn(CT_CoreProperties._str_tags[name])
-        setattr(self, tag, value)
-        # objectify will leave in a py: namespace without this cleanup
-        elm = getattr(self, tag)
-        objectify.deannotate(elm, cleanup_namespaces=True)
-
-    def _set_date_prop(self, name, value):
-        """Set datetime value of *name* property to *value*"""
-        if not isinstance(value, datetime):
-            tmpl = ("'%s' property requires <type 'datetime.datetime'> objec"
-                    "t, got %s")
-            raise ValueError(tmpl % (name, type(value)))
-        tagname = CT_CoreProperties._date_tags[name]
-        tag = qn(tagname)
-        dt_str = value.strftime('%Y-%m-%dT%H:%M:%SZ')
-        setattr(self, tag, dt_str)
-        # objectify will leave in a py: namespace without this cleanup
-        elm = getattr(self, tag)
-        objectify.deannotate(elm, cleanup_namespaces=True)
-        if name in ('created', 'modified'):
-            # these two require an explicit 'xsi:type' attribute
-            # first and last line are a hack required to add the xsi
-            # namespace to the root element rather than each child element
-            # in which it is referenced
-            self.set(qn('xsi:foo'), 'bar')
-            self[tag].set(qn('xsi:type'), 'dcterms:W3CDTF')
-            del self.attrib[qn('xsi:foo')]
-
-    def _set_revision(self, value):
-        """Set integer value of revision property to *value*"""
+    @revision_number.setter
+    def revision_number(self, value):
+        """
+        Set revision property to string value of integer *value*.
+        """
         if not isinstance(value, int) or value < 1:
             tmpl = "revision property requires positive int, got '%s'"
             raise ValueError(tmpl % value)
-        tag = qn('cp:revision')
-        setattr(self, tag, str(value))
-        # objectify will leave in a py: namespace without this cleanup
-        elm = getattr(self, tag)
-        objectify.deannotate(elm, cleanup_namespaces=True)
+        revision = self.get_or_add_revision()
+        revision.text = str(value)
 
-    _offset_pattern = re.compile('([+-])(\d\d):(\d\d)')
+    @property
+    def subject_text(self):
+        return self._text_of_element('subject')
+
+    @subject_text.setter
+    def subject_text(self, value):
+        self._set_element_text('subject', value)
+
+    @property
+    def title_text(self):
+        return self._text_of_element('title')
+
+    @title_text.setter
+    def title_text(self, value):
+        self._set_element_text('title', value)
+
+    @property
+    def version_text(self):
+        return self._text_of_element('version')
+
+    @version_text.setter
+    def version_text(self, value):
+        self._set_element_text('version', value)
+
+    def _datetime_of_element(self, property_name):
+        element = getattr(self, property_name)
+        if element is None:
+            return None
+        datetime_str = element.text
+        try:
+            return self._parse_W3CDTF_to_datetime(datetime_str)
+        except ValueError:
+            # invalid datetime strings are ignored
+            return None
+
+    def _get_or_add(self, prop_name):
+        """
+        Return element returned by 'get_or_add_' method for *prop_name*.
+        """
+        get_or_add_method_name = 'get_or_add_%s' % prop_name
+        get_or_add_method = getattr(self, get_or_add_method_name)
+        element = get_or_add_method()
+        return element
 
     @classmethod
     def _offset_dt(cls, dt, offset_str):
@@ -176,13 +221,17 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         """
         match = cls._offset_pattern.match(offset_str)
         if match is None:
-            raise ValueError("'%s' is not a valid offset string" % offset_str)
+            raise ValueError(
+                "'%s' is not a valid offset string" % offset_str
+            )
         sign, hours_str, minutes_str = match.groups()
         sign_factor = -1 if sign == '+' else 1
         hours = int(hours_str) * sign_factor
         minutes = int(minutes_str) * sign_factor
         td = timedelta(hours=hours, minutes=minutes)
         return dt + td
+
+    _offset_pattern = re.compile('([+-])(\d\d):(\d\d)')
 
     @classmethod
     def _parse_W3CDTF_to_datetime(cls, w3cdtf_str):
@@ -214,3 +263,45 @@ class CT_CoreProperties(objectify.ObjectifiedElement):
         if len(offset_str) == 6:
             return cls._offset_dt(dt, offset_str)
         return dt
+
+    def _set_element_datetime(self, prop_name, value):
+        """
+        Set date/time value of child element having *prop_name* to *value*.
+        """
+        if not isinstance(value, datetime):
+            tmpl = (
+                "property requires <type 'datetime.datetime'> object, got %s"
+            )
+            raise ValueError(tmpl % type(value))
+        element = self._get_or_add(prop_name)
+        dt_str = value.strftime('%Y-%m-%dT%H:%M:%SZ')
+        element.text = dt_str
+        if prop_name in ('created', 'modified'):
+            # These two require an explicit 'xsi:type="dcterms:W3CDTF"'
+            # attribute. The first and last line are a hack required to add
+            # the xsi namespace to the root element rather than each child
+            # element in which it is referenced
+            self.set(qn('xsi:foo'), 'bar')
+            element.set(qn('xsi:type'), 'dcterms:W3CDTF')
+            del self.attrib[qn('xsi:foo')]
+
+    def _set_element_text(self, prop_name, value):
+        """
+        Set string value of *name* property to *value*.
+        """
+        value = str(value)
+        if len(value) > 255:
+            tmpl = (
+                "exceeded 255 char limit for property, got:\n\n'%s'"
+            )
+            raise ValueError(tmpl % value)
+        element = self._get_or_add(prop_name)
+        element.text = value
+
+    def _text_of_element(self, property_name):
+        element = getattr(self, property_name)
+        if element is None:
+            return ''
+        if element.text is None:
+            return ''
+        return element.text
