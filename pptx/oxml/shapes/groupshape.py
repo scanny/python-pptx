@@ -11,7 +11,8 @@ from .graphfrm import CT_GraphicalObjectFrame
 from ..ns import qn
 from .picture import CT_Picture
 from .shared import BaseShapeElement
-from ..shared import BaseOxmlElement, Element
+from ..shared import Element
+from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne
 
 
 class CT_GroupShape(BaseShapeElement):
@@ -19,6 +20,7 @@ class CT_GroupShape(BaseShapeElement):
     Used for the shape tree (``<p:spTree>``) element as well as the group
     shape (``<p:grpSp>``) element.
     """
+    nvGrpSpPr = OneAndOnlyOne('p:nvGrpSpPr')
 
     _shape_tags = (
         qn('p:sp'), qn('p:grpSp'), qn('p:graphicFrame'), qn('p:cxnSp'),
@@ -103,6 +105,13 @@ class CT_GroupShape(BaseShapeElement):
         The ``<a:xfrm>`` grandchild element or |None| if not found
         """
         return self.grpSpPr.xfrm
+
+
+class CT_GroupShapeNonVisual(BaseShapeElement):
+    """
+    ``<p:nvGrpSpPr>`` element.
+    """
+    cNvPr = OneAndOnlyOne('p:cNvPr')
 
 
 class CT_GroupShapeProperties(BaseOxmlElement):

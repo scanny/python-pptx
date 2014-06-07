@@ -2,7 +2,7 @@
 
 """Test suite for pptx.oxml.autoshape module."""
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import pytest
 
@@ -141,7 +141,7 @@ class DescribeCT_ShapeProperties(object):
 
 
 class TestCT_Shape(TestCase):
-    """Test CT_Shape"""
+
     def test_is_autoshape_distinguishes_auto_shape(self):
         """CT_Shape.is_autoshape distinguishes auto shape"""
         # setup ------------------------

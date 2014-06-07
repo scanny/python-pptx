@@ -11,8 +11,9 @@ from ..dml.line import (
     EG_LineDashProperties, EG_LineFillProperties, EG_LineJoinProperties
 )
 from ..ns import _nsmap, qn
-from ..shared import BaseOxmlElement, ChildTagnames, Element
+from ..shared import ChildTagnames, Element
 from ...util import Emu
+from ..xmlchemy import BaseOxmlElement
 
 
 class BaseShapeElement(BaseOxmlElement):
@@ -20,26 +21,21 @@ class BaseShapeElement(BaseOxmlElement):
     Provides common behavior for shape element classes like CT_Shape,
     CT_Picture, etc.
     """
-    def __getattr__(self, name):
-        # common code for position and size attributes
-        if name in ('x', 'y', 'cx', 'cy'):
-            xfrm = self.xfrm
-            if xfrm is None:
-                return None
-            return getattr(xfrm, name)
-        else:
-            return super(BaseShapeElement, self).__getattr__(name)
+    @property
+    def cx(self):
+        return self._get_xfrm_attr('cx')
 
-    def __setattr__(self, name, value):
-        """
-        Override ``__setattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
-        """
-        if name in ('x', 'y', 'cx', 'cy'):
-            xfrm = self.get_or_add_xfrm()
-            setattr(xfrm, name, value)
-        else:
-            super(BaseShapeElement, self).__setattr__(name, value)
+    @cx.setter
+    def cx(self, value):
+        self._set_xfrm_attr('cx', value)
+
+    @property
+    def cy(self):
+        return self._get_xfrm_attr('cy')
+
+    @cy.setter
+    def cy(self, value):
+        self._set_xfrm_attr('cy', value)
 
     def get_or_add_xfrm(self):
         """
@@ -134,6 +130,14 @@ class BaseShapeElement(BaseOxmlElement):
         return self.find(qn('p:txBody'))
 
     @property
+    def x(self):
+        return self._get_xfrm_attr('x')
+
+    @x.setter
+    def x(self, value):
+        self._set_xfrm_attr('x', value)
+
+    @property
     def xfrm(self):
         """
         The ``<a:xfrm>`` grandchild element or |None| if not found. This
@@ -143,12 +147,30 @@ class BaseShapeElement(BaseOxmlElement):
         return self.spPr.xfrm
 
     @property
+    def y(self):
+        return self._get_xfrm_attr('y')
+
+    @y.setter
+    def y(self, value):
+        self._set_xfrm_attr('y', value)
+
+    @property
     def _nvXxPr(self):
         """
         Non-visual shape properties element for this shape. Actual name
         depends on the shape type, e.g. ``<p:nvPicPr>`` for picture shape.
         """
         return self.xpath('./*[1]', namespaces=_nsmap)[0]
+
+    def _get_xfrm_attr(self, name):
+        xfrm = self.xfrm
+        if xfrm is None:
+            return None
+        return getattr(xfrm, name)
+
+    def _set_xfrm_attr(self, name, value):
+        xfrm = self.get_or_add_xfrm()
+        setattr(xfrm, name, value)
 
 
 class Fillable(BaseOxmlElement):

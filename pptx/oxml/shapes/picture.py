@@ -6,11 +6,10 @@ lxml custom element classes for picture-related XML elements.
 
 from __future__ import absolute_import
 
-from lxml import objectify
-
-from .. import parse_xml_bytes
+from .. import parse_xml
 from ..ns import nsdecls, qn
 from .shared import BaseShapeElement
+from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne
 
 
 class CT_Picture(BaseShapeElement):
@@ -18,6 +17,8 @@ class CT_Picture(BaseShapeElement):
     ``<p:pic>`` element, which represents a picture shape (an image placement
     on a slide).
     """
+    nvPicPr = OneAndOnlyOne('p:nvPicPr')
+
     _pic_tmpl = (
         '<p:pic %s>\n'
         '  <p:nvPicPr>\n'
@@ -67,9 +68,7 @@ class CT_Picture(BaseShapeElement):
         """
         xml = CT_Picture._pic_tmpl % (id_, name, desc, rId,
                                       left, top, width, height)
-        pic = parse_xml_bytes(xml)
-
-        objectify.deannotate(pic, cleanup_namespaces=True)
+        pic = parse_xml(xml)
         return pic
 
     @property
@@ -82,3 +81,11 @@ class CT_Picture(BaseShapeElement):
             # TODO: this should be ValidationError, not ValueError
             raise ValueError("pic element missing required spPr child")
         return spPr
+
+
+class CT_PictureNonVisual(BaseOxmlElement):
+    """
+    ``<p:nvPicPr>`` element, containing non-visual properties for a picture
+    shape.
+    """
+    cNvPr = OneAndOnlyOne('p:cNvPr')

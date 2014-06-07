@@ -6,16 +6,21 @@ lxml custom element classes for table-related XML elements.
 
 from __future__ import absolute_import
 
-from lxml import objectify
-
-from .. import parse_xml_bytes, XSD_TRUE
+from .. import parse_xml, XSD_TRUE
 from ...enum.text import MSO_ANCHOR
 from ..ns import nsdecls, qn
 from ..shared import Element, SubElement
+from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrMore, ZeroOrOne
 
 
-class CT_Table(objectify.ObjectifiedElement):
-    """``<a:tbl>`` custom element class"""
+class CT_Table(BaseOxmlElement):
+    """
+    ``<a:tbl>`` custom element class
+    """
+    tblPr = ZeroOrOne('a:tblPr', successors=('a:tblGrid', 'a:tr'))
+    tblGrid = OneAndOnlyOne('a:tblGrid')
+    tr = ZeroOrMore('a:tr')
+
     _tbl_tmpl = (
         '<a:tbl %s>\n'
         '  <a:tblPr firstRow="1" bandRow="1">\n'
@@ -37,8 +42,6 @@ class CT_Table(objectify.ObjectifiedElement):
         """
         if attr in CT_Table.BOOLPROPS:
             return self._get_boolean_property(attr)
-        else:
-            return super(CT_Table, self).__getattr__(attr)
 
     def __setattr__(self, attr, value):
         """
@@ -57,9 +60,10 @@ class CT_Table(objectify.ObjectifiedElement):
         child element. Defaults to False if *propname* attribute is missing
         or ``<a:tblPr>`` element itself is not present.
         """
-        if not self.has_tblPr:
+        tblPr = self.tblPr
+        if tblPr is None:
             return False
-        return self.tblPr.get(propname) in ('1', 'true')
+        return tblPr.get(propname) in ('1', 'true')
 
     def _set_boolean_property(self, propname, value):
         """
@@ -71,41 +75,24 @@ class CT_Table(objectify.ObjectifiedElement):
         to be its effective value.
         """
         if value:
-            tblPr = self._get_or_insert_tblPr()
+            tblPr = self.get_or_add_tblPr()
             tblPr.set(propname, XSD_TRUE)
-        elif not self.has_tblPr:
+        elif self.tblPr is None:
             pass
         elif propname in self.tblPr.attrib:
             del self.tblPr.attrib[propname]
 
-    @property
-    def has_tblPr(self):
-        """
-        True if this ``<a:tbl>`` element has a ``<a:tblPr>`` child element,
-        False otherwise.
-        """
-        try:
-            self.tblPr
-            return True
-        except AttributeError:
-            return False
-
-    def _get_or_insert_tblPr(self):
-        """Return tblPr child element, inserting a new one if not present"""
-        if not self.has_tblPr:
-            tblPr = Element('a:tblPr')
-            self.insert(0, tblPr)
-        return self.tblPr
-
     @staticmethod
     def new_tbl(rows, cols, width, height, tableStyleId=None):
-        """Return a new ``<p:tbl>`` element tree"""
+        """
+        Return a new ``<p:tbl>`` element tree
+        """
         # working hypothesis is this is the default table style GUID
         if tableStyleId is None:
             tableStyleId = '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}'
 
         xml = CT_Table._tbl_tmpl % (tableStyleId)
-        tbl = parse_xml_bytes(xml)
+        tbl = parse_xml(xml)
 
         # add specified number of rows and columns
         rowheight = height/rows
@@ -125,11 +112,10 @@ class CT_Table(objectify.ObjectifiedElement):
             for col in range(cols):
                 tr.append(CT_TableCell.new_tc())
 
-        objectify.deannotate(tbl, cleanup_namespaces=True)
         return tbl
 
 
-class CT_TableCell(objectify.ObjectifiedElement):
+class CT_TableCell(BaseOxmlElement):
     """``<a:tc>`` custom element class"""
     _tc_tmpl = (
         '<a:tc %s>\n'
@@ -216,10 +202,11 @@ class CT_TableCell(objectify.ObjectifiedElement):
 
     @staticmethod
     def new_tc():
-        """Return a new ``<a:tc>`` element tree"""
+        """
+        Return a new ``<a:tc>`` element tree.
+        """
         xml = CT_TableCell._tc_tmpl
-        tc = parse_xml_bytes(xml)
-        objectify.deannotate(tc, cleanup_namespaces=True)
+        tc = parse_xml(xml)
         return tc
 
     @property
@@ -273,7 +260,7 @@ class CT_TableCell(objectify.ObjectifiedElement):
             tcPr.set(marX, str(value))
 
 
-class CT_TableCellProperties(objectify.ObjectifiedElement):
+class CT_TableCellProperties(BaseOxmlElement):
     """
     ``<a:tcPr>`` custom element class
     """
@@ -385,3 +372,17 @@ class CT_TableCellProperties(objectify.ObjectifiedElement):
             element = self.find(qn(tagname))
             if element is not None:
                 self.remove(element)
+
+
+class CT_TableGrid(BaseOxmlElement):
+    """
+    ``<a:tblGrid>`` custom element class
+    """
+    gridCol = ZeroOrMore('a:gridCol')
+
+
+class CT_TableRow(BaseOxmlElement):
+    """
+    ``<a:tr>`` custom element class
+    """
+    tc = ZeroOrMore('a:tc', successors=('a:extLst'))

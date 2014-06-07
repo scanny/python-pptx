@@ -6,19 +6,36 @@ lxml custom element classes for shape-related XML elements.
 
 from __future__ import absolute_import
 
-from lxml import objectify
-
-from .. import parse_xml_bytes
+from .. import parse_xml
 from ..ns import nsdecls, qn
 from .shared import (
     BaseShapeElement, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
 )
-from ..shared import BaseOxmlElement, child, SubElement
+from ..shared import child, SubElement
 from ..text import CT_TextBody
+from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne, ZeroOrMore
+
+
+class CT_GeomGuideList(BaseOxmlElement):
+    """
+    ``<a:avLst>`` custom element class
+    """
+    gd = ZeroOrMore('a:gd')
+
+
+class CT_NonVisualDrawingShapeProps(BaseShapeElement):
+    """
+    ``<p:cNvSpPr>`` custom element class
+    """
+    spLocks = ZeroOrOne('a:spLocks')
 
 
 class CT_PresetGeometry2D(BaseOxmlElement):
-    """<a:prstGeom> custom element class"""
+    """
+    <a:prstGeom> custom element class
+    """
+    avLst = ZeroOrOne('a:avLst')
+
     @property
     def gd(self):
         """
@@ -26,14 +43,16 @@ class CT_PresetGeometry2D(BaseOxmlElement):
         child element, empty if none are present.
         """
         try:
-            gd_elms = tuple([gd for gd in self.avLst.gd])
+            gd_elms = tuple([gd for gd in self.avLst.gd_lst])
         except AttributeError:
             gd_elms = ()
         return gd_elms
 
     @property
     def prst(self):
-        """Value of required ``prst`` attribute."""
+        """
+        Value of required ``prst`` attribute.
+        """
         return self.get('prst')
 
     def rewrite_guides(self, guides):
@@ -41,21 +60,20 @@ class CT_PresetGeometry2D(BaseOxmlElement):
         Remove any ``<a:gd>`` element children of ``<a:avLst>`` and replace
         them with ones having (name, val) in *guides*.
         """
-        try:
-            avLst = self.avLst
-        except AttributeError:
-            avLst = SubElement(self, 'a:avLst')
-        if hasattr(self.avLst, 'gd'):
-            for gd_elm in self.avLst.gd[:]:
-                avLst.remove(gd_elm)
+        self._remove_avLst()
+        avLst = self._add_avLst()
         for name, val in guides:
-            gd = SubElement(avLst, 'a:gd')
+            gd = avLst._add_gd()
             gd.set('name', name)
             gd.set('fmla', 'val %d' % val)
 
 
 class CT_Shape(BaseShapeElement):
-    """<p:sp> custom element class"""
+    """
+    ``<p:sp>`` custom element class
+    """
+    nvSpPr = OneAndOnlyOne('p:nvSpPr')
+
     _autoshape_sp_tmpl = (
         '<p:sp %s>\n'
         '  <p:nvSpPr>\n'
@@ -101,7 +119,9 @@ class CT_Shape(BaseShapeElement):
         '<p:sp %s>\n'
         '  <p:nvSpPr>\n'
         '    <p:cNvPr id="%s" name="%s"/>\n'
-        '    <p:cNvSpPr/>\n'
+        '    <p:cNvSpPr>\n'
+        '      <a:spLocks noGrp="1"/>\n'
+        '    </p:cNvSpPr>\n'
         '    <p:nvPr/>\n'
         '  </p:nvSpPr>\n'
         '  <p:spPr/>\n'
@@ -179,10 +199,11 @@ class CT_Shape(BaseShapeElement):
         """
         Return a new ``<p:sp>`` element tree configured as a base auto shape.
         """
-        xml = CT_Shape._autoshape_sp_tmpl % (id_, name, left, top,
-                                             width, height, prst)
-        sp = parse_xml_bytes(xml)
-        objectify.deannotate(sp, cleanup_namespaces=True)
+        xml = (
+            CT_Shape._autoshape_sp_tmpl %
+            (id_, name, left, top, width, height, prst)
+        )
+        sp = parse_xml(xml)
         return sp
 
     @staticmethod
@@ -192,11 +213,7 @@ class CT_Shape(BaseShapeElement):
         shape.
         """
         xml = CT_Shape._ph_sp_tmpl % (id_, name)
-        sp = parse_xml_bytes(xml)
-
-        # placeholder shapes get a "no group" lock
-        SubElement(sp.nvSpPr.cNvSpPr, 'a:spLocks')
-        sp.nvSpPr.cNvSpPr[qn('a:spLocks')].set('noGrp', '1')
+        sp = parse_xml(xml)
 
         # placeholder (ph) element attributes values vary by type
         ph = SubElement(sp.nvSpPr.nvPr, 'p:ph')
@@ -218,7 +235,6 @@ class CT_Shape(BaseShapeElement):
         if ph_type in placeholder_types_that_have_a_text_frame:
             sp.append(CT_TextBody.new_txBody())
 
-        objectify.deannotate(sp, cleanup_namespaces=True)
         return sp
 
     @staticmethod
@@ -228,8 +244,7 @@ class CT_Shape(BaseShapeElement):
         shape.
         """
         xml = CT_Shape._textbox_sp_tmpl % (id_, name, left, top, width, height)
-        sp = parse_xml_bytes(xml)
-        objectify.deannotate(sp, cleanup_namespaces=True)
+        sp = parse_xml(xml)
         return sp
 
     @property
@@ -257,3 +272,12 @@ class CT_Shape(BaseShapeElement):
         Required ``<p:spPr>`` child element containing shape properties
         """
         return self.find(qn('p:spPr'))
+
+
+class CT_ShapeNonVisual(BaseShapeElement):
+    """
+    ``<p:nvSpPr>`` custom element class
+    """
+    cNvPr = OneAndOnlyOne('p:cNvPr')
+    cNvSpPr = OneAndOnlyOne('p:cNvSpPr')
+    nvPr = OneAndOnlyOne('p:nvPr')

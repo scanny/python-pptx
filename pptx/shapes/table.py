@@ -8,7 +8,6 @@ from . import Subshape
 from ..dml.fill import FillFormat
 from ..enum.shapes import MSO_SHAPE_TYPE
 from .graphfrm import GraphicFrame
-from ..oxml.ns import qn
 from ..text import TextFrame
 from ..util import lazyproperty, to_unicode
 
@@ -21,7 +20,7 @@ class Table(GraphicFrame):
     def __init__(self, graphicFrame, parent):
         super(Table, self).__init__(graphicFrame, parent)
         self._graphicFrame = graphicFrame
-        self._tbl_elm = graphicFrame[qn('a:graphic')].graphicData.tbl
+        self._tbl_elm = graphicFrame.graphic.graphicData.tbl
         self._rows = _RowCollection(self._tbl_elm, self)
         self._columns = _ColumnCollection(self._tbl_elm, self)
 
@@ -337,15 +336,19 @@ class _CellCollection(Subshape):
         self._tr = tr
 
     def __getitem__(self, idx):
-        """Provides indexed access, (e.g. 'cells[0]')."""
-        if idx < 0 or idx >= len(self._tr.tc):
+        """
+        Provides indexed access, (e.g. 'cells[0]').
+        """
+        if idx < 0 or idx >= len(self._tr.tc_lst):
             msg = "cell index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Cell(self._tr.tc[idx], self)
+        return _Cell(self._tr.tc_lst[idx], self)
 
     def __len__(self):
-        """Supports len() function (e.g. 'len(cells) == 1')."""
-        return len(self._tr.tc)
+        """
+        Supports len() function (e.g. 'len(cells) == 1').
+        """
+        return len(self._tr.tc_lst)
 
 
 class _ColumnCollection(Subshape):
@@ -357,15 +360,19 @@ class _ColumnCollection(Subshape):
         self._tbl_elm = tbl_elm
 
     def __getitem__(self, idx):
-        """Provides indexed access, (e.g. 'columns[0]')."""
-        if idx < 0 or idx >= len(self._tbl_elm.tblGrid.gridCol):
+        """
+        Provides indexed access, (e.g. 'columns[0]').
+        """
+        if idx < 0 or idx >= len(self._tbl_elm.tblGrid.gridCol_lst):
             msg = "column index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Column(self._tbl_elm.tblGrid.gridCol[idx], self)
+        return _Column(self._tbl_elm.tblGrid.gridCol_lst[idx], self)
 
     def __len__(self):
-        """Supports len() function (e.g. 'len(columns) == 1')."""
-        return len(self._tbl_elm.tblGrid.gridCol)
+        """
+        Supports len() function (e.g. 'len(columns) == 1').
+        """
+        return len(self._tbl_elm.tblGrid.gridCol_lst)
 
     def notify_width_changed(self):
         """
@@ -383,15 +390,19 @@ class _RowCollection(Subshape):
         self._tbl_elm = tbl_elm
 
     def __getitem__(self, idx):
-        """Provides indexed access, (e.g. 'rows[0]')."""
-        if idx < 0 or idx >= len(self._tbl_elm.tr):
+        """
+        Provides indexed access, (e.g. 'rows[0]').
+        """
+        if idx < 0 or idx >= len(self):
             msg = "row index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Row(self._tbl_elm.tr[idx], self)
+        return _Row(self._tbl_elm.tr_lst[idx], self)
 
     def __len__(self):
-        """Supports len() function (e.g. 'len(rows) == 1')."""
-        return len(self._tbl_elm.tr)
+        """
+        Supports len() function (e.g. 'len(rows) == 1').
+        """
+        return len(self._tbl_elm.tr_lst)
 
     def notify_height_changed(self):
         """

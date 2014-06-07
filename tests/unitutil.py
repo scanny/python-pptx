@@ -5,7 +5,7 @@
 import os
 import unittest2
 
-from lxml import etree, objectify
+from lxml import etree
 from mock import call  # noqa
 from mock import create_autospec, Mock, patch, PropertyMock
 
@@ -21,7 +21,6 @@ def absjoin(*paths):
 
 
 def actual_xml(elm):
-    objectify.deannotate(elm, cleanup_namespaces=True)
     return serialize_xml(elm, pretty_print=True)
 
 
@@ -29,7 +28,7 @@ def parse_xml_file(file_):
     """
     Return ElementTree for XML contained in *file_*
     """
-    return objectify.parse(file_, oxml_parser)
+    return etree.parse(file_, oxml_parser)
 
 
 def relpath(relpath):
@@ -38,7 +37,6 @@ def relpath(relpath):
 
 
 def serialize_xml(elm, pretty_print=False):
-    objectify.deannotate(elm, xsi=False)
     xml = etree.tostring(elm, pretty_print=pretty_print)
     return xml
 

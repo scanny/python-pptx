@@ -7,7 +7,7 @@ its typical uses.
 
 from __future__ import absolute_import
 
-from lxml import etree, objectify
+from lxml import etree
 
 from .ns import NamespacePrefixedTag
 
@@ -15,40 +15,10 @@ from .ns import NamespacePrefixedTag
 # oxml-specific constants
 XSD_TRUE = '1'
 
-
-# !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
-# legacy objectified XML parser
-# !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
-
-_fallback_lookup = objectify.ObjectifyElementClassLookup()
-_element_class_lookup = etree.ElementNamespaceClassLookup(_fallback_lookup)
-oxml_parser = etree.XMLParser(remove_blank_text=True)
-oxml_parser.set_element_class_lookup(_element_class_lookup)
-
-
-def parse_xml_bytes(xml_bytes):
-    """
-    Return root lxml element obtained by parsing XML contained in *xml_bytes*.
-    """
-    root_element = objectify.fromstring(xml_bytes, oxml_parser)
-    return root_element
-
-
-def register_custom_element_class(nsptag_str, cls):
-    """
-    Register the lxml custom element class *cls* with the parser to be used
-    for XML elements with tag matching *nsptag_str*.
-    """
-    nsptag = NamespacePrefixedTag(nsptag_str)
-    namespace = _element_class_lookup.get_namespace(nsptag.nsuri)
-    namespace[nsptag.local_part] = cls
-
-# !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
-
 # configure etree XML parser -------------------------------
 element_class_lookup = etree.ElementNamespaceClassLookup()
-etree_parser = etree.XMLParser(remove_blank_text=True)
-etree_parser.set_element_class_lookup(element_class_lookup)
+oxml_parser = etree.XMLParser(remove_blank_text=True)
+oxml_parser.set_element_class_lookup(element_class_lookup)
 
 
 def parse_xml(xml):
@@ -56,8 +26,11 @@ def parse_xml(xml):
     Return root lxml element obtained by parsing XML character string in
     *xml*, which can be either a Python 2.x string or unicode.
     """
-    root_element = etree.fromstring(xml, etree_parser)
+    root_element = etree.fromstring(xml, oxml_parser)
     return root_element
+
+# remove after conversion
+parse_xml_bytes = parse_xml
 
 
 def register_element_cls(nsptagname, cls):
@@ -79,14 +52,14 @@ from .dml.color import (
     CT_HslColor, CT_Percentage, CT_PresetColor, CT_SchemeColor,
     CT_ScRgbColor, CT_SRgbColor, CT_SystemColor
 )
-register_custom_element_class('a:hslClr',    CT_HslColor)
-register_custom_element_class('a:lumMod',    CT_Percentage)
-register_custom_element_class('a:lumOff',    CT_Percentage)
-register_custom_element_class('a:prstClr',   CT_PresetColor)
-register_custom_element_class('a:schemeClr', CT_SchemeColor)
-register_custom_element_class('a:scrgbClr',  CT_ScRgbColor)
-register_custom_element_class('a:srgbClr',   CT_SRgbColor)
-register_custom_element_class('a:sysClr',    CT_SystemColor)
+register_element_cls('a:hslClr',    CT_HslColor)
+register_element_cls('a:lumMod',    CT_Percentage)
+register_element_cls('a:lumOff',    CT_Percentage)
+register_element_cls('a:prstClr',   CT_PresetColor)
+register_element_cls('a:schemeClr', CT_SchemeColor)
+register_element_cls('a:scrgbClr',  CT_ScRgbColor)
+register_element_cls('a:srgbClr',   CT_SRgbColor)
+register_element_cls('a:sysClr',    CT_SystemColor)
 
 
 from .dml.fill import (
@@ -94,12 +67,12 @@ from .dml.fill import (
     CT_NoFillProperties, CT_PatternFillProperties,
     CT_SolidColorFillProperties,
 )
-register_custom_element_class('a:blipFill',  CT_BlipFillProperties)
-register_custom_element_class('a:gradFill',  CT_GradientFillProperties)
-register_custom_element_class('a:grpFill',   CT_GroupFillProperties)
-register_custom_element_class('a:noFill',    CT_NoFillProperties)
-register_custom_element_class('a:pattFill',  CT_PatternFillProperties)
-register_custom_element_class('a:solidFill', CT_SolidColorFillProperties)
+register_element_cls('a:blipFill',  CT_BlipFillProperties)
+register_element_cls('a:gradFill',  CT_GradientFillProperties)
+register_element_cls('a:grpFill',   CT_GroupFillProperties)
+register_element_cls('a:noFill',    CT_NoFillProperties)
+register_element_cls('a:pattFill',  CT_PatternFillProperties)
+register_element_cls('a:solidFill', CT_SolidColorFillProperties)
 
 
 from .presentation import (
@@ -114,57 +87,83 @@ register_element_cls('p:sldMasterIdLst', CT_SlideMasterIdList)
 register_element_cls('p:sldSz',          CT_SlideSize)
 
 
-from .shapes.autoshape import CT_PresetGeometry2D, CT_Shape
-register_custom_element_class('a:prstGeom', CT_PresetGeometry2D)
-register_custom_element_class('p:sp',       CT_Shape)
+from .shapes.autoshape import (
+    CT_GeomGuideList, CT_NonVisualDrawingShapeProps, CT_PresetGeometry2D,
+    CT_Shape, CT_ShapeNonVisual
+)
+register_element_cls('a:avLst',    CT_GeomGuideList)
+register_element_cls('a:prstGeom', CT_PresetGeometry2D)
+register_element_cls('p:cNvSpPr',  CT_NonVisualDrawingShapeProps)
+register_element_cls('p:nvSpPr',   CT_ShapeNonVisual)
+register_element_cls('p:sp',       CT_Shape)
 
 
-from .shapes.connector import CT_Connector
-register_custom_element_class('p:cxnSp',  CT_Connector)
+from .shapes.connector import CT_Connector, CT_ConnectorNonVisual
+register_element_cls('p:cxnSp',     CT_Connector)
+register_element_cls('p:nvCxnSpPr', CT_ConnectorNonVisual)
 
 
-from .shapes.graphfrm import CT_GraphicalObjectFrame
-register_custom_element_class('p:graphicFrame', CT_GraphicalObjectFrame)
+from .shapes.graphfrm import (
+    CT_GraphicalObject, CT_GraphicalObjectData, CT_GraphicalObjectFrame,
+    CT_GraphicalObjectFrameNonVisual
+)
+register_element_cls('a:graphic',          CT_GraphicalObject)
+register_element_cls('a:graphicData',      CT_GraphicalObjectData)
+register_element_cls('p:graphicFrame',     CT_GraphicalObjectFrame)
+register_element_cls('p:nvGraphicFramePr', CT_GraphicalObjectFrameNonVisual)
 
 
-from .shapes.groupshape import CT_GroupShape, CT_GroupShapeProperties
-register_custom_element_class('p:grpSp',   CT_GroupShape)
-register_custom_element_class('p:grpSpPr', CT_GroupShapeProperties)
-register_custom_element_class('p:spTree',  CT_GroupShape)
+from .shapes.groupshape import (
+    CT_GroupShape, CT_GroupShapeNonVisual, CT_GroupShapeProperties
+)
+register_element_cls('p:grpSp',      CT_GroupShape)
+register_element_cls('p:grpSpPr',    CT_GroupShapeProperties)
+register_element_cls('p:nvGrpSpPr',  CT_GroupShapeNonVisual)
+register_element_cls('p:spTree',     CT_GroupShape)
 
 
-from .shapes.picture import CT_Picture
-register_custom_element_class('p:pic', CT_Picture)
+from .shapes.picture import CT_Picture, CT_PictureNonVisual
+register_element_cls('p:nvPicPr', CT_PictureNonVisual)
+register_element_cls('p:pic',     CT_Picture)
 
 
 from .shapes.shared import (
     CT_LineProperties, CT_Point2D, CT_PositiveSize2D, CT_ShapeProperties,
     CT_Transform2D
 )
-register_custom_element_class('a:ext',  CT_PositiveSize2D)
-register_custom_element_class('a:ln',   CT_LineProperties)
-register_custom_element_class('a:off',  CT_Point2D)
-register_custom_element_class('p:spPr', CT_ShapeProperties)
-register_custom_element_class('a:xfrm', CT_Transform2D)
-register_custom_element_class('p:xfrm', CT_Transform2D)
+register_element_cls('a:ext',  CT_PositiveSize2D)
+register_element_cls('a:ln',   CT_LineProperties)
+register_element_cls('a:off',  CT_Point2D)
+register_element_cls('p:spPr', CT_ShapeProperties)
+register_element_cls('a:xfrm', CT_Transform2D)
+register_element_cls('p:xfrm', CT_Transform2D)
 
 
-from .shapes.table import CT_Table, CT_TableCell, CT_TableCellProperties
-register_custom_element_class('a:tbl',  CT_Table)
-register_custom_element_class('a:tc',   CT_TableCell)
-register_custom_element_class('a:tcPr', CT_TableCellProperties)
+from .shapes.table import (
+    CT_Table, CT_TableCell, CT_TableCellProperties, CT_TableGrid, CT_TableRow
+)
+register_element_cls('a:tbl',     CT_Table)
+register_element_cls('a:tblGrid', CT_TableGrid)
+register_element_cls('a:tc',      CT_TableCell)
+register_element_cls('a:tcPr',    CT_TableCellProperties)
+register_element_cls('a:tr',      CT_TableRow)
 
 
-from .slide import CT_Slide
-register_custom_element_class('p:sld', CT_Slide)
+from .slide import CT_CommonSlideData, CT_Slide
+register_element_cls('p:cSld', CT_CommonSlideData)
+register_element_cls('p:sld',  CT_Slide)
+
+
+from .slidelayout import CT_SlideLayout
+register_element_cls('p:sldLayout', CT_SlideLayout)
 
 
 from .slidemaster import (
     CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry, CT_SlideMaster
 )
-register_custom_element_class('p:sldLayoutId',    CT_SlideLayoutIdListEntry)
-register_custom_element_class('p:sldLayoutIdLst', CT_SlideLayoutIdList)
-register_custom_element_class('p:sldMaster',      CT_SlideMaster)
+register_element_cls('p:sldLayoutId',    CT_SlideLayoutIdListEntry)
+register_element_cls('p:sldLayoutIdLst', CT_SlideLayoutIdList)
+register_element_cls('p:sldMaster',      CT_SlideMaster)
 
 
 from .text import (
@@ -172,13 +171,14 @@ from .text import (
     CT_TextCharacterProperties, CT_TextFont, CT_TextParagraph,
     CT_TextParagraphProperties
 )
-register_custom_element_class('a:bodyPr',     CT_TextBodyProperties)
-register_custom_element_class('a:defRPr',     CT_TextCharacterProperties)
-register_custom_element_class('a:endParaRPr', CT_TextCharacterProperties)
-register_custom_element_class('a:hlinkClick', CT_Hyperlink)
-register_custom_element_class('a:latin',      CT_TextFont)
-register_custom_element_class('a:r',          CT_RegularTextRun)
-register_custom_element_class('a:p',          CT_TextParagraph)
-register_custom_element_class('a:pPr',        CT_TextParagraphProperties)
-register_custom_element_class('a:rPr',        CT_TextCharacterProperties)
-register_custom_element_class('p:txBody',     CT_TextBody)
+register_element_cls('a:bodyPr',     CT_TextBodyProperties)
+register_element_cls('a:defRPr',     CT_TextCharacterProperties)
+register_element_cls('a:endParaRPr', CT_TextCharacterProperties)
+register_element_cls('a:hlinkClick', CT_Hyperlink)
+register_element_cls('a:latin',      CT_TextFont)
+register_element_cls('a:r',          CT_RegularTextRun)
+register_element_cls('a:p',          CT_TextParagraph)
+register_element_cls('a:pPr',        CT_TextParagraphProperties)
+register_element_cls('a:rPr',        CT_TextCharacterProperties)
+register_element_cls('a:txBody',     CT_TextBody)
+register_element_cls('p:txBody',     CT_TextBody)

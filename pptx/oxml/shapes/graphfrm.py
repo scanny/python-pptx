@@ -6,12 +6,32 @@ lxml custom element class for CT_GraphicalObjectFrame XML element.
 
 from __future__ import absolute_import
 
-from lxml import objectify
-
-from .. import parse_xml_bytes
+from .. import parse_xml
 from ..ns import nsdecls, qn
 from .shared import BaseShapeElement
 from .table import CT_Table
+from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne
+
+
+class CT_GraphicalObject(BaseOxmlElement):
+    """
+    ``<a:graphic>`` element, which is the container for the reference to or
+    definition of the framed graphical object.
+    """
+    graphicData = OneAndOnlyOne('a:graphicData')
+
+
+class CT_GraphicalObjectData(BaseShapeElement):
+    """
+    ``<p:graphicData>`` element, the direct container for a table, a chart,
+    or another graphical object.
+    """
+    @property
+    def tbl(self):
+        """
+        The contained table object, or |None| if not present.
+        """
+        return self.find(qn('a:tbl'))
 
 
 class CT_GraphicalObjectFrame(BaseShapeElement):
@@ -19,6 +39,9 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
     ``<p:graphicFrame>`` element, which is a container for a table, a chart,
     or another graphical object.
     """
+    nvGraphicFramePr = OneAndOnlyOne('p:nvGraphicFramePr')
+    graphic = OneAndOnlyOne('a:graphic')
+
     DATATYPE_TABLE = 'http://schemas.openxmlformats.org/drawingml/2006/table'
 
     _graphicFrame_tmpl = (
@@ -50,8 +73,10 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
 
     @property
     def has_table(self):
-        """True if graphicFrame contains a table, False otherwise"""
-        datatype = self[qn('a:graphic')].graphicData.get('uri')
+        """
+        True if graphicFrame contains a table, False otherwise.
+        """
+        datatype = self.graphic.graphicData.get('uri')
         if datatype == CT_GraphicalObjectFrame.DATATYPE_TABLE:
             return True
         return False
@@ -65,9 +90,7 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         """
         xml = CT_GraphicalObjectFrame._graphicFrame_tmpl % (
             id_, name, left, top, width, height)
-        graphicFrame = parse_xml_bytes(xml)
-
-        objectify.deannotate(graphicFrame, cleanup_namespaces=True)
+        graphicFrame = parse_xml(xml)
         return graphicFrame
 
     @staticmethod
@@ -80,14 +103,13 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
             id_, name, left, top, width, height)
 
         # set type of contained graphic to table
-        graphicData = graphicFrame[qn('a:graphic')].graphicData
+        graphicData = graphicFrame.graphic.graphicData
         graphicData.set('uri', CT_GraphicalObjectFrame.DATATYPE_TABLE)
 
         # add tbl element tree
         tbl = CT_Table.new_tbl(rows, cols, width, height)
         graphicData.append(tbl)
 
-        objectify.deannotate(graphicFrame, cleanup_namespaces=True)
         return graphicFrame
 
     @property
@@ -96,3 +118,11 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         The required ``<p:xfrm>`` child element
         """
         return self.find(qn('p:xfrm'))
+
+
+class CT_GraphicalObjectFrameNonVisual(BaseOxmlElement):
+    """
+    ``<p:nvGraphicFramePr>`` element, container for the non-visual properties
+    of a graphic frame, such as name, id, etc.
+    """
+    cNvPr = OneAndOnlyOne('p:cNvPr')

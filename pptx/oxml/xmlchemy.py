@@ -11,7 +11,7 @@ import re
 
 from lxml import etree
 
-from . import etree_parser as oxml_parser
+from . import oxml_parser
 from ..exc import InvalidXmlError
 from .ns import NamespacePrefixedTag, qn
 from ..util import lazyproperty

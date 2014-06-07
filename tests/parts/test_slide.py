@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 import pytest
 
-from lxml import objectify
 from mock import ANY, call, MagicMock
 
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
@@ -42,14 +41,8 @@ from ..oxml.unitdata.shape import (
 from ..oxml.unitdata.slides import a_sld, a_cSld
 from ..unitutil import (
     absjoin, class_mock, function_mock, initializer_mock, instance_mock,
-    loose_mock, method_mock, parse_xml_file, property_mock, serialize_xml,
-    test_file_dir
+    loose_mock, method_mock, parse_xml_file, property_mock, test_file_dir
 )
-
-
-def actual_xml(elm):
-    objectify.deannotate(elm, cleanup_namespaces=True)
-    return serialize_xml(elm, pretty_print=True)
 
 
 def _sldLayout1():
@@ -178,7 +171,7 @@ class DescribeSlide(object):
         sld = slide._minimal_element()
         with open(path, 'r') as f:
             expected_xml = f.read()
-        assert actual_xml(sld) == expected_xml
+        assert sld.xml == expected_xml
 
     # fixtures -------------------------------------------------------
 

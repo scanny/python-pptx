@@ -335,7 +335,7 @@ class Test_Row(TestCase):
 
 
 class Test_RowCollection(TestCase):
-    """Test _RowCollection"""
+
     def setUp(self):
         tbl_xml = (
             '<a:tbl %s><a:tr h="370840"><a:tc><a:txBody><a:p/></a:txBody></a:'
@@ -347,7 +347,9 @@ class Test_RowCollection(TestCase):
         self.rows = _RowCollection(test_tbl_elm, Mock(name='table'))
 
     def test_is_indexable(self):
-        """_RowCollection indexable (e.g. no TypeError on 'rows[0]')"""
+        """
+        _RowCollection indexable (e.g. no TypeError on 'rows[0]')
+        """
         # verify -----------------------
         try:
             self.rows[0]

@@ -6,7 +6,7 @@ Test data builders for presentation-related oxml elements
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from ...unitdata import EtreeBaseBuilder as BaseBuilder
+from ...unitdata import BaseBuilder
 
 
 class CT_PositiveSize2DBuilder(BaseBuilder):

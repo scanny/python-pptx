@@ -6,41 +6,16 @@ lxml custom element classes for DrawingML-related XML elements.
 
 from __future__ import absolute_import
 
-from lxml import objectify
-
 from ...enum.dml import MSO_THEME_COLOR
 from ..ns import qn
 from ..shared import SubElement
+from ..xmlchemy import BaseOxmlElement
 
 
-class OxmlElement(objectify.ObjectifiedElement):
-
-    def _first_child_found_in(self, *tagnames):
-        """
-        Return the first child found with tag in *tagnames*, or None if
-        not found.
-        """
-        for tagname in tagnames:
-            child = self.find(qn(tagname))
-            if child is not None:
-                return child
-        return None
-
-
-class _BaseColorElement(OxmlElement):
+class _BaseColorElement(BaseOxmlElement):
     """
     Base class for <a:srgbClr> and <a:schemeClr> elements.
     """
-    def __setattr__(self, name, value):
-        """
-        Override ``__setattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
-        """
-        if name == 'val':
-            self._set_val(value)
-        else:
-            super(_BaseColorElement, self).__setattr__(name, value)
-
     def add_lumMod(self, value):
         """
         Return a newly added <a:lumMod> child element.
@@ -82,7 +57,8 @@ class _BaseColorElement(OxmlElement):
     def val(self):
         return self.get('val')
 
-    def _set_val(self, value):
+    @val.setter
+    def val(self, value):
         self.set('val', value)
 
 
@@ -92,7 +68,7 @@ class CT_HslColor(_BaseColorElement):
     """
 
 
-class CT_Percentage(OxmlElement):
+class CT_Percentage(BaseOxmlElement):
     """
     Custom element class for <a:lumMod> and <a:lumOff> elements.
     """
@@ -117,7 +93,8 @@ class CT_SchemeColor(_BaseColorElement):
         mso_theme_color_idx = MSO_THEME_COLOR.from_xml(val)
         return mso_theme_color_idx
 
-    def _set_val(self, mso_theme_color_idx):
+    @val.setter
+    def val(self, mso_theme_color_idx):
         val = MSO_THEME_COLOR.to_xml(mso_theme_color_idx)
         self.set('val', val)
 

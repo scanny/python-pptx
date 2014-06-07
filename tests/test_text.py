@@ -13,7 +13,7 @@ from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
-from pptx.oxml import parse_xml_bytes
+from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls, _nsmap as nsmap
 from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
@@ -102,7 +102,7 @@ class DescribeTextFrame(object):
         assert actual_xml(textframe._txBody) == txBody_with_bIns_xml
 
     def it_raises_on_attempt_to_set_margin_to_non_int(self, textframe):
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             textframe.margin_bottom = '0.1'
 
     def it_can_change_its_vertical_anchor_setting(
@@ -521,7 +521,7 @@ class Describe_Hyperlink(object):
     def it_can_remove_the_hyperlink(self, remove_hlink_fixture_):
         hlink, rPr_xml, rId = remove_hlink_fixture_
         hlink.address = None
-        assert actual_xml(hlink._rPr) == rPr_xml
+        assert hlink._rPr.xml == rPr_xml
         hlink.part.drop_rel.assert_called_once_with(rId)
 
     def it_should_remove_the_hyperlink_when_url_set_to_empty_string(
@@ -616,7 +616,7 @@ class Describe_Hyperlink(object):
 
     @pytest.fixture
     def rPr_xml(self):
-        return an_rPr().with_nsdecls().xml()
+        return an_rPr().with_nsdecls('a', 'r').xml()
 
     @pytest.fixture
     def url(self):
@@ -759,7 +759,7 @@ class Describe_Paragraph(object):
 
     @pytest.fixture
     def p_with_text(self, p_with_text_xml):
-        return parse_xml_bytes(p_with_text_xml)
+        return parse_xml(p_with_text_xml)
 
     @pytest.fixture
     def p_with_text_xml(self, test_text):
@@ -832,7 +832,7 @@ class Describe_Run(object):
 
     @pytest.fixture
     def r(self, r_xml):
-        return parse_xml_bytes(r_xml)
+        return parse_xml(r_xml)
 
     @pytest.fixture
     def rPr_(self, request):
@@ -840,7 +840,7 @@ class Describe_Run(object):
 
     @pytest.fixture
     def r_(self, request, rPr_):
-        r_ = instance_mock(request, CT_RegularTextRun)
+        r_ = loose_mock(request, CT_RegularTextRun)
         r_.get_or_add_rPr.return_value = rPr_
         return r_
 

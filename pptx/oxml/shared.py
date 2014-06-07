@@ -2,7 +2,7 @@
 
 """
 General purpose functions that raise the abstraction level of interacting with
-lxml.objectify elements.
+lxml elements.
 """
 
 from __future__ import absolute_import
@@ -10,10 +10,10 @@ from __future__ import absolute_import
 import itertools
 import re
 
-from lxml import etree, objectify
+from lxml import etree
 
 from . import oxml_parser
-from .ns import NamespacePrefixedTag, qn
+from .ns import NamespacePrefixedTag
 
 
 def child(element, child_tag_str):
@@ -61,10 +61,6 @@ def serialize_for_reading(element):
 
 
 def serialize_part_xml(part_elm):
-    # if xsi parameter is not set to False, PowerPoint won't load without a
-    # repair step; deannotate removes some original xsi:type tags in core.xml
-    # if this parameter is left out (or set to True)
-    objectify.deannotate(part_elm, xsi=False, cleanup_namespaces=False)
     xml = etree.tostring(part_elm, encoding='UTF-8', standalone=True)
     return xml
 
@@ -80,7 +76,7 @@ def SubElement(parent, nsptag_str, **extra):
     attrib=attr_dct and e.g. ``visible='1'``.
     """
     nsptag = NamespacePrefixedTag(nsptag_str)
-    return objectify.SubElement(
+    return etree.SubElement(
         parent, nsptag.clark_name, nsmap=nsptag.nsmap, **extra
     )
 
@@ -150,54 +146,17 @@ class XmlString(unicode):
         return front, attrs, close, text
 
 
-class BaseOxmlElement(objectify.ObjectifiedElement):
-    """
-    Provides common behavior for oxml element classes
-    """
-    @classmethod
-    def child_tagnames_after(cls, tagname):
-        """
-        Return a sequence containing the namespace prefixed child tagnames,
-        e.g. 'a:prstGeom', that occur after *tagname* in this element.
-        """
-        return cls.child_tagnames.tagnames_after(tagname)
-
-    def first_child_found_in(self, *tagnames):
-        """
-        Return the first child found with tag in *tagnames*, or None if
-        not found.
-        """
-        for tagname in tagnames:
-            child = self.find(qn(tagname))
-            if child is not None:
-                return child
-        return None
-
-    def insert_element_before(self, elm, *tagnames):
-        successor = self.first_child_found_in(*tagnames)
-        if successor is not None:
-            successor.addprevious(elm)
-        else:
-            self.append(elm)
-        return elm
-
-    def remove_if_present(self, *tagnames):
-        """
-        Remove all child elements having tagname in *tagnames*.
-        """
-        for tagname in tagnames:
-            element = self.find(qn(tagname))
-            if element is not None:
-                self.remove(element)
-
-    @property
-    def xml(self):
-        """
-        Return XML string for this element, suitable for testing purposes.
-        Pretty printed for readability and without an XML declaration at the
-        top.
-        """
-        return serialize_for_reading(self)
+# class BaseOxmlElement(etree.ElementBase):
+#     """
+#     Provides common behavior for oxml element classes
+#     """
+#     @classmethod
+#     def child_tagnames_after(cls, tagname):
+#         """
+#         Return a sequence containing the namespace prefixed child tagnames,
+#         e.g. 'a:prstGeom', that occur after *tagname* in this element.
+#         """
+#         return cls.child_tagnames.tagnames_after(tagname)
 
 
 class _Tagname(object):

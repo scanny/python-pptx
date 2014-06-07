@@ -6,57 +6,42 @@ lxml custom element classes for DrawingML-related XML elements.
 
 from __future__ import absolute_import
 
-from lxml import objectify
-
 from ..ns import qn
 from ..shared import SubElement
+from ..xmlchemy import BaseOxmlElement
 
 
-class OxmlElement(objectify.ObjectifiedElement):
-
-    def _first_child_found_in(self, *tagnames):
-        """
-        Return the first child found with tag in *tagnames*, or None if
-        not found.
-        """
-        for tagname in tagnames:
-            child = self.find(qn(tagname))
-            if child is not None:
-                return child
-        return None
-
-
-class CT_BlipFillProperties(OxmlElement):
+class CT_BlipFillProperties(BaseOxmlElement):
     """
     Custom element class for <a:blipFill> element.
     """
 
 
-class CT_GradientFillProperties(OxmlElement):
+class CT_GradientFillProperties(BaseOxmlElement):
     """
     Custom element class for <a:gradFill> element.
     """
 
 
-class CT_GroupFillProperties(OxmlElement):
+class CT_GroupFillProperties(BaseOxmlElement):
     """
     Custom element class for <a:grpFill> element.
     """
 
 
-class CT_NoFillProperties(OxmlElement):
+class CT_NoFillProperties(BaseOxmlElement):
     """
     Custom element class for <a:NoFill> element.
     """
 
 
-class CT_PatternFillProperties(OxmlElement):
+class CT_PatternFillProperties(BaseOxmlElement):
     """
     Custom element class for <a:pattFill> element.
     """
 
 
-class CT_SolidColorFillProperties(OxmlElement):
+class CT_SolidColorFillProperties(BaseOxmlElement):
     """
     Custom element class for <a:solidFill> element.
     """
@@ -66,7 +51,7 @@ class CT_SolidColorFillProperties(OxmlElement):
         Return the child representing the EG_ColorChoice element group in
         this element, or |None| if no such child is present.
         """
-        return self._first_child_found_in(
+        return self.first_child_found_in(
             'a:scrgbClr', 'a:srgbClr', 'a:hslClr', 'a:sysClr', 'a:schemeClr',
             'a:prstClr'
         )

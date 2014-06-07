@@ -19,7 +19,7 @@ from pptx.oxml.xmlchemy import (
     RequiredAttribute, ZeroOrMore, ZeroOrOne
 )
 
-from ..unitdata import EtreeBaseBuilder as BaseBuilder
+from ..unitdata import BaseBuilder
 
 
 class DescribeCustomElementClass(object):

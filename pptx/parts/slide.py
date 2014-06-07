@@ -11,7 +11,7 @@ from warnings import warn
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import Part
 from ..opc.packuri import PackURI
-from ..oxml import parse_xml_bytes
+from ..oxml import parse_xml
 from ..oxml.ns import nsmap, _nsmap, qn
 from ..oxml.shared import Element, SubElement
 from ..oxml.shapes.shared import ST_Direction, ST_PlaceholderType
@@ -33,7 +33,7 @@ class BaseSlide(Part):
 
     @classmethod
     def load(cls, partname, content_type, blob, package):
-        slide_elm = parse_xml_bytes(blob)
+        slide_elm = parse_xml(blob)
         slide = cls(partname, content_type, slide_elm, package)
         return slide
 
@@ -42,6 +42,7 @@ class BaseSlide(Part):
         """
         Internal name of this slide.
         """
+        print(self._element.tag)
         cSld = self._element.cSld
         return cSld.get('name', default='')
 

@@ -6,16 +6,18 @@ from __future__ import absolute_import
 
 from hamcrest import assert_that, equal_to, is_
 
-from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 
 from ...unitutil import TestCase
 
 
 class TestCT_GraphicalObjectFrame(TestCase):
-    """Test CT_GraphicalObjectFrame"""
+
     def test_has_table_return_value(self):
-        """CT_GraphicalObjectFrame.has_table property has correct value"""
+        """
+        CT_GraphicalObjectFrame.has_table property has correct value
+        """
         # setup ------------------------
         id_, name = 9, 'Table 8'
         left, top, width, height = 111, 222, 333, 444
@@ -23,7 +25,7 @@ class TestCT_GraphicalObjectFrame(TestCase):
         chart_uri = 'http://schemas.openxmlformats.org/drawingml/2006/chart'
         graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
             id_, name, left, top, width, height)
-        graphicData = graphicFrame[qn('a:graphic')].graphicData
+        graphicData = graphicFrame.graphic.graphicData
         # verify -----------------------
         graphicData.set('uri', tbl_uri)
         assert_that(graphicFrame.has_table, is_(equal_to(True)))

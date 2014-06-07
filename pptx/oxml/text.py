@@ -6,16 +6,18 @@ lxml custom element classes for text-related XML elements.
 
 from __future__ import absolute_import
 
-from lxml import objectify
-
-from . import parse_xml_bytes
+from . import parse_xml
 from ..enum.text import MSO_AUTO_SIZE
 from .ns import nsdecls, nsmap, qn
 from .shared import Element, SubElement
+from .simpletypes import ST_Coordinate32
 from ..util import Centipoints
+from .xmlchemy import (
+    BaseOxmlElement, OneAndOnlyOne, OneOrMore, OptionalAttribute, ZeroOrOne
+)
 
 
-class CT_Hyperlink(objectify.ObjectifiedElement):
+class CT_Hyperlink(BaseOxmlElement):
     """
     Custom element class for <a:hlinkClick> elements.
     """
@@ -24,24 +26,22 @@ class CT_Hyperlink(objectify.ObjectifiedElement):
         return self.get(qn('r:id'))
 
 
-class CT_RegularTextRun(objectify.ObjectifiedElement):
+class CT_RegularTextRun(BaseOxmlElement):
     """
     Custom element class for <a:r> elements.
     """
-    def get_or_add_rPr(self):
-        """
-        Return the <a:rPr> child element of this <a:r> element, newly added
-        if not already present.
-        """
-        if not hasattr(self, 'rPr'):
-            self.insert(0, Element('a:rPr'))
-        return self.rPr
+
+    rPr = ZeroOrOne('a:rPr', successors=('a:t',))
+    t = OneAndOnlyOne('a:t')
 
 
-class CT_TextBody(objectify.ObjectifiedElement):
+class CT_TextBody(BaseOxmlElement):
     """
     <p:txBody> custom element class
     """
+
+    p = OneOrMore('a:p')
+
     _txBody_tmpl = (
         '<p:txBody %s>\n'
         '  <a:bodyPr/>\n'
@@ -52,108 +52,26 @@ class CT_TextBody(objectify.ObjectifiedElement):
 
     @staticmethod
     def new_txBody():
-        """Return a new ``<p:txBody>`` element tree"""
+        """
+        Return a new ``<p:txBody>`` element tree
+        """
         xml = CT_TextBody._txBody_tmpl
-        txBody = parse_xml_bytes(xml)
-        objectify.deannotate(txBody, cleanup_namespaces=True)
+        txBody = parse_xml(xml)
         return txBody
 
     @property
     def bodyPr(self):
-        return self[qn('a:bodyPr')]
+        return self.find(qn('a:bodyPr'))
 
 
-class Schema(object):
-    def __init__(self):
-        self._attrs = {}
-
-    def add_attr(self, attr):
-        self._attrs[attr.prop_name] = attr
-
-    @property
-    def attrs(self):
-        return self._attrs
-
-    def is_attr_prop(self, prop_name):
-        return prop_name in self._attrs.keys()
-
-
-class Attribute(object):
-    def __init__(self, prop_name, type_cls, attr_name=None):
-        self._prop_name = prop_name
-        self._type_cls = type_cls
-        self._attr_name = attr_name if attr_name is not None else prop_name
-
-    @property
-    def prop_name(self):
-        return self._prop_name
-
-    def get(self, elm):
-        if self._attr_name not in elm.attrib:
-            return None
-        xml_val = elm.get(self._attr_name)
-        return self._type_cls.from_xml(xml_val)
-
-    def set(self, elm, value):
-        if value is None and self._attr_name in elm.attrib:
-            del elm.attrib[self._attr_name]
-        else:
-            xml_val = self._type_cls.to_xml(value)
-            elm.set(self._attr_name, xml_val)
-
-
-class ST_Coordinate32(object):
-    @classmethod
-    def from_xml(cls, value):
-        return int(value)
-
-    @classmethod
-    def to_xml(cls, value):
-        if not isinstance(value, int):
-            raise ValueError('int value required')
-        return str(value)
-
-
-class OxmlElement(objectify.ObjectifiedElement):
-
-    def __getattr__(self, name):
-        if self.schema.is_attr_prop(name):
-            attr = self.schema.attrs[name]
-            return attr.get(self)
-        else:
-            return super(OxmlElement, self).__getattr__(name)
-
-    def __setattr__(self, name, value):
-        """
-        Override ``__setattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
-        """
-        if self.schema.is_attr_prop(name):
-            attr = self.schema.attrs[name]
-            attr.set(self, value)
-        else:
-            super(OxmlElement, self).__setattr__(name, value)
-
-
-class CT_TextBodyProperties(OxmlElement):
+class CT_TextBodyProperties(BaseOxmlElement):
     """
     <a:bodyPr> custom element class
     """
-    schema = Schema()
-    schema.add_attr(Attribute('lIns', ST_Coordinate32))
-    schema.add_attr(Attribute('tIns', ST_Coordinate32))
-    schema.add_attr(Attribute('rIns', ST_Coordinate32))
-    schema.add_attr(Attribute('bIns', ST_Coordinate32))
-    # lIns = Attribute(ST_Coordinate32)
-
-    def __setattr__(self, name, value):
-        """
-        Implement property setters
-        """
-        if name == 'autofit':
-            self._set_autofit(value)
-        else:
-            super(CT_TextBodyProperties, self).__setattr__(name, value)
+    lIns = OptionalAttribute('lIns', ST_Coordinate32)
+    tIns = OptionalAttribute('tIns', ST_Coordinate32)
+    rIns = OptionalAttribute('rIns', ST_Coordinate32)
+    bIns = OptionalAttribute('bIns', ST_Coordinate32)
 
     @property
     def autofit(self):
@@ -167,6 +85,18 @@ class CT_TextBodyProperties(OxmlElement):
         if self.spAutoFit is not None:
             return MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
         return None
+
+    @autofit.setter
+    def autofit(self, value):
+        self._remove_if_present(
+            'a:noAutofit', 'a:normAutofit', 'a:spAutoFit'
+        )
+        if value == MSO_AUTO_SIZE.NONE:
+            self._add_noAutofit()
+        elif value == MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE:
+            self._add_normAutofit()
+        elif value == MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT:
+            self._add_spAutoFit()
 
     @property
     def noAutofit(self):
@@ -234,19 +164,8 @@ class CT_TextBodyProperties(OxmlElement):
             if element is not None:
                 self.remove(element)
 
-    def _set_autofit(self, value):
-        self._remove_if_present(
-            'a:noAutofit', 'a:normAutofit', 'a:spAutoFit'
-        )
-        if value == MSO_AUTO_SIZE.NONE:
-            self._add_noAutofit()
-        elif value == MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE:
-            self._add_normAutofit()
-        elif value == MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT:
-            self._add_spAutoFit()
 
-
-class CT_TextCharacterProperties(objectify.ObjectifiedElement):
+class CT_TextCharacterProperties(BaseOxmlElement):
     """
     Custom element class for all of <a:rPr>, <a:defRPr>, and <a:endParaRPr>
     elements. 'rPr' is short for 'run properties', and it corresponds to the
@@ -490,7 +409,7 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
             self.remove(hlinkClick)
 
 
-class CT_TextFont(objectify.ObjectifiedElement):
+class CT_TextFont(BaseOxmlElement):
     """
     Custom element class for <a:latin>, <a:ea>, <a:cs>, and <a:sym> child
     elements of CT_TextCharacterProperties, e.g. <a:rPr>.
@@ -510,10 +429,16 @@ class CT_TextFont(objectify.ObjectifiedElement):
         return self.get('typeface')
 
 
-class CT_TextParagraph(objectify.ObjectifiedElement):
+class CT_TextParagraph(BaseOxmlElement):
     """
     <a:p> custom element class
     """
+
+    pPr = ZeroOrOne('a:pPr', successors=(
+        'a:r', 'a:br', 'a:fld', 'a:endParaRPr'
+    ))
+    endParaRPr = ZeroOrOne('a:endParaRPr', successors=())
+
     def add_r(self):
         """
         Return a newly appended <a:r> element.
@@ -537,30 +462,13 @@ class CT_TextParagraph(objectify.ObjectifiedElement):
                 self.remove(child)
         return self
 
-    def get_or_add_pPr(self):
-        """
-        Return the <a:pPr> child element of this <a:p> element, a newly added
-        one if one is not present.
-        """
-        if not hasattr(self, 'pPr'):
-            pPr = Element('a:pPr')
-            self.insert(0, pPr)
-        return self.pPr
 
-
-class CT_TextParagraphProperties(objectify.ObjectifiedElement):
+class CT_TextParagraphProperties(BaseOxmlElement):
     """
     <a:pPr> custom element class
     """
-    def __setattr__(self, name, value):
-        """
-        Override ``__setattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
-        """
-        if name in ('algn',):
-            self._set_attr(name, value)
-        else:
-            super(CT_TextParagraphProperties, self).__setattr__(name, value)
+
+    defRPr = ZeroOrOne('a:defRPr', successors=('a:extLst',))
 
     @property
     def algn(self):
@@ -571,24 +479,10 @@ class CT_TextParagraphProperties(objectify.ObjectifiedElement):
         """
         return self.get('algn')
 
-    def get_or_add_defRPr(self):
-        """
-        Return the <a:defRPr> child element of this <a:pPr> element, newly
-        added if not already present.
-        """
-        if not hasattr(self, 'defRPr'):
-            defRPr = Element('a:defRPr')
-            try:
-                self.extLst.addprevious(defRPr)
-            except AttributeError:
-                self.append(defRPr)
-        return self.defRPr
-
-    def _set_attr(self, name, value):
-        """
-        Set attribute of this element having *name* to *value*.
-        """
-        if value is None and name in self.attrib:
-            del self.attrib[name]
-        else:
-            self.set(name, value)
+    @algn.setter
+    def algn(self, value):
+        if value is None:
+            if 'algn' in self.attrib:
+                del self.attrib['algn']
+            return
+        self.set('algn', value)

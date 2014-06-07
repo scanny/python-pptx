@@ -9,7 +9,7 @@ from .enum.dml import MSO_FILL
 from .enum.text import MSO_ANCHOR, PP_ALIGN
 from .opc.constants import RELATIONSHIP_TYPE as RT
 from .oxml.shared import Element, get_or_add
-from .oxml.ns import _nsmap, qn
+from .oxml.ns import _nsmap
 from .shapes import Subshape
 from .util import Emu, lazyproperty, to_unicode
 
@@ -107,7 +107,7 @@ class TextFrame(Subshape):
         paragraphs in this text frame. A text frame always contains at least
         one paragraph.
         """
-        return tuple([_Paragraph(p, self) for p in self._txBody[qn('a:p')]])
+        return tuple([_Paragraph(p, self) for p in self._txBody.p_lst])
 
     def _set_text(self, text):
         """Replace all text in text frame with single run containing *text*"""
@@ -465,5 +465,7 @@ class _Run(Subshape):
 
     @text.setter
     def text(self, str):
-        """Set the text of this run to *str*."""
-        self._r.t._setText(to_unicode(str))
+        """
+        Set the text of this run to *str*.
+        """
+        self._r.t.text = to_unicode(str)

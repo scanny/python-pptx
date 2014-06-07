@@ -94,6 +94,10 @@ class XsdUnsignedInt(BaseIntType):
         cls.validate_int_in_range(value, 0, 4294967295)
 
 
+class ST_Coordinate32(BaseIntType):
+    pass
+
+
 class ST_SlideId(XsdUnsignedInt):
 
     @classmethod
