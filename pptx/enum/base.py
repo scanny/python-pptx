@@ -157,7 +157,7 @@ class Enumeration(object):
     __ms_name__ = ''
 
     @classmethod
-    def is_valid_setting(cls, value):
+    def validate(cls, value):
         """
         Return |True| if *value* is an assignable value, |False| if it is
         a return value-only member or not a member value.
@@ -186,6 +186,7 @@ class XmlEnumeration(Enumeration):
         """
         Return the XML value of the enumeration value *enum_val*.
         """
+        cls.validate(enum_val)
         return cls._member_to_xml[enum_val]
 
 

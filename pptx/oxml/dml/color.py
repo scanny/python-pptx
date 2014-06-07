@@ -67,16 +67,7 @@ class CT_SchemeColor(_BaseColorElement):
     """
     Custom element class for <a:schemeClr> element.
     """
-    @property
-    def val(self):
-        val = self.get('val')
-        mso_theme_color_idx = MSO_THEME_COLOR.from_xml(val)
-        return mso_theme_color_idx
-
-    @val.setter
-    def val(self, mso_theme_color_idx):
-        val = MSO_THEME_COLOR.to_xml(mso_theme_color_idx)
-        self.set('val', val)
+    val = RequiredAttribute('val', MSO_THEME_COLOR)
 
 
 class CT_ScRgbColor(_BaseColorElement):

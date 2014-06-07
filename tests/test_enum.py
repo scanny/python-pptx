@@ -67,10 +67,10 @@ class DescribeEnumeration(object):
         assert FOOBAR.READ_ONLY == -2
 
     def it_knows_if_a_setting_is_valid(self):
-        assert FOOBAR.is_valid_setting(None)
-        assert FOOBAR.is_valid_setting(FOOBAR.READ_WRITE)
-        assert not FOOBAR.is_valid_setting('foobar')
-        assert not FOOBAR.is_valid_setting(FOOBAR.READ_ONLY)
+        assert FOOBAR.validate(None)
+        assert FOOBAR.validate(FOOBAR.READ_WRITE)
+        assert not FOOBAR.validate('foobar')
+        assert not FOOBAR.validate(FOOBAR.READ_ONLY)
 
     def it_can_be_referred_to_by_a_convenience_alias_if_defined(self):
         assert BARFOO is FOOBAR  # noqa
