@@ -14,7 +14,7 @@ from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
-from pptx.oxml import parse_xml_bytes
+from pptx.oxml import parse_xml
 from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 
 from ..oxml.unitdata.shape import a_gd, a_prstGeom, an_avLst
@@ -345,7 +345,7 @@ class DescribeShape(object):
             '2006/main"><p:nvSpPr><p:cNvPr id="9" name="Unknown Shape Type 8"'
             '/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/></p:sp>'
         )
-        sp = parse_xml_bytes(xml)
+        sp = parse_xml(xml)
         shape = Shape(sp, None)
         # verify -----------------------
         with pytest.raises(NotImplementedError):

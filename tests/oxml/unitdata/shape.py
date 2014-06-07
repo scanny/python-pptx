@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from ...unitdata import BaseBuilder
 
-from pptx.oxml import parse_xml_bytes
+from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
 from pptx.parts.slide import _SlideShapeTree
 
@@ -336,23 +336,23 @@ class _TestShapeElements(object):
     """Shape elements for use in unit tests"""
     @property
     def autoshape(self):
-        return parse_xml_bytes(test_shape_xml.autoshape)
+        return parse_xml(test_shape_xml.autoshape)
 
     @property
     def empty_spTree(self):
-        return parse_xml_bytes(test_shape_xml.empty_spTree)
+        return parse_xml(test_shape_xml.empty_spTree)
 
     @property
     def placeholder(self):
-        return parse_xml_bytes(test_shape_xml.placeholder)
+        return parse_xml(test_shape_xml.placeholder)
 
     @property
     def rounded_rectangle(self):
-        return parse_xml_bytes(test_shape_xml.rounded_rectangle)
+        return parse_xml(test_shape_xml.rounded_rectangle)
 
     @property
     def textbox(self):
-        return parse_xml_bytes(test_shape_xml.textbox)
+        return parse_xml(test_shape_xml.textbox)
 
 
 class _TestShapes(object):

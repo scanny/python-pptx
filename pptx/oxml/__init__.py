@@ -29,9 +29,6 @@ def parse_xml(xml):
     root_element = etree.fromstring(xml, oxml_parser)
     return root_element
 
-# remove after conversion
-parse_xml_bytes = parse_xml
-
 
 def register_element_cls(nsptagname, cls):
     """

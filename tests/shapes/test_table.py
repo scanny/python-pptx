@@ -11,7 +11,7 @@ from mock import MagicMock, Mock, PropertyMock
 
 from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR
-from pptx.oxml import parse_xml_bytes
+from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
 from pptx.shapes.table import (
     _Cell, _CellCollection, _Column, _ColumnCollection, _Row, _RowCollection
@@ -196,7 +196,7 @@ class Test_CellCollection(TestCase):
             '<a:tr %s h="370840"><a:tc><a:txBody><a:p/></a:txBody></a:tc><a:t'
             'c><a:txBody><a:p/></a:txBody></a:tc></a:tr>' % nsdecls('a')
         )
-        test_tr_elm = parse_xml_bytes(tr_xml)
+        test_tr_elm = parse_xml(tr_xml)
         self.cells = _CellCollection(test_tr_elm, None)
 
     def test_is_indexable(self):
@@ -237,7 +237,7 @@ class Test_Column(TestCase):
     """Test _Column"""
     def setUp(self):
         gridCol_xml = '<a:gridCol %s w="3048000"/>' % nsdecls('a')
-        test_gridCol_elm = parse_xml_bytes(gridCol_xml)
+        test_gridCol_elm = parse_xml(gridCol_xml)
         self.column = _Column(test_gridCol_elm, Mock(name='table'))
 
     def test_width_from_xml_correct(self):
@@ -267,7 +267,7 @@ class Test_ColumnCollection(TestCase):
             '<a:tbl %s><a:tblGrid><a:gridCol w="3048000"/><a:gridCol w="30480'
             '00"/></a:tblGrid></a:tbl>' % nsdecls('a')
         )
-        test_tbl_elm = parse_xml_bytes(tbl_xml)
+        test_tbl_elm = parse_xml(tbl_xml)
         self.columns = _ColumnCollection(test_tbl_elm, Mock(name='table'))
 
     def test_is_indexable(self):
@@ -311,7 +311,7 @@ class Test_Row(TestCase):
             '<a:tr %s h="370840"><a:tc><a:txBody><a:p/></a:txBody></a:tc><a:t'
             'c><a:txBody><a:p/></a:txBody></a:tc></a:tr>' % nsdecls('a')
         )
-        test_tr_elm = parse_xml_bytes(tr_xml)
+        test_tr_elm = parse_xml(tr_xml)
         self.row = _Row(test_tr_elm, Mock(name='table'))
 
     def test_height_from_xml_correct(self):
@@ -343,7 +343,7 @@ class Test_RowCollection(TestCase):
             '0"><a:tc><a:txBody><a:p/></a:txBody></a:tc><a:tc><a:txBody><a:p/'
             '></a:txBody></a:tc></a:tr></a:tbl>' % nsdecls('a')
         )
-        test_tbl_elm = parse_xml_bytes(tbl_xml)
+        test_tbl_elm = parse_xml(tbl_xml)
         self.rows = _RowCollection(test_tbl_elm, Mock(name='table'))
 
     def test_is_indexable(self):
