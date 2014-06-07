@@ -7,7 +7,7 @@ lxml custom element classes for DrawingML-related XML elements.
 from __future__ import absolute_import
 
 from ...enum.dml import MSO_THEME_COLOR
-from ..simpletypes import ST_Percentage
+from ..simpletypes import ST_HexColorRGB, ST_Percentage
 from ..xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
 
 
@@ -42,14 +42,6 @@ class _BaseColorElement(BaseOxmlElement):
         self._remove_lumMod()
         self._remove_lumOff()
         return self
-
-    @property
-    def val(self):
-        return self.get('val')
-
-    @val.setter
-    def val(self, value):
-        self.set('val', value)
 
 
 class CT_HslColor(_BaseColorElement):
@@ -97,6 +89,7 @@ class CT_SRgbColor(_BaseColorElement):
     """
     Custom element class for <a:srgbClr> element.
     """
+    val = RequiredAttribute('val', ST_HexColorRGB)
 
 
 class CT_SystemColor(_BaseColorElement):

@@ -11,7 +11,9 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.oxml.simpletypes import BaseIntType, BaseSimpleType, ST_Percentage
+from pptx.oxml.simpletypes import (
+    BaseIntType, BaseSimpleType, ST_HexColorRGB, ST_Percentage
+)
 
 from ..unitutil import method_mock, instance_mock
 
@@ -154,6 +156,52 @@ class DescribeBaseIntType(object):
     def to_xml_fixture(self, request):
         value, expected_str_value = request.param
         return value, expected_str_value
+
+
+class DescribeST_HexColorRGB(object):
+
+    def it_can_validate_a_hex_RGB_string(self, valid_fixture):
+        str_value, exception = valid_fixture
+        if exception is None:
+            try:
+                ST_HexColorRGB.validate(str_value)
+            except ValueError:
+                raise AssertionError(
+                    "string '%s' did not validate" % str_value
+                )
+        else:
+            with pytest.raises(exception):
+                ST_HexColorRGB.validate(str_value)
+
+    def it_converts_RGB_string_to_upper_case(self, to_xml_fixture):
+        value, expected_value = to_xml_fixture
+        _value = ST_HexColorRGB.convert_to_xml(value)
+        assert _value == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('deadbf', 'DEADBF'),
+        ('012345', '012345'),
+        ('0a1b3c', '0A1B3C'),
+    ])
+    def to_xml_fixture(self, request):
+        value, expected_value = request.param
+        return value, expected_value
+
+    @pytest.fixture(params=[
+        ('012345', None),
+        ('ABCDEF', None),
+        ('deadbf', None),
+        ('0A1B3C', None),
+        (None,     TypeError),   # must be string
+        (123456,   TypeError),   # must be string
+        ('F00BAR', ValueError),  # includes non-hex character 'R'
+        ('F00b',   ValueError),  # too short, must be 6 characters
+    ])
+    def valid_fixture(self, request):
+        str_value, exception = request.param
+        return str_value, exception
 
 
 class DescribeST_Percentage(object):
