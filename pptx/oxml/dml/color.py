@@ -7,8 +7,6 @@ lxml custom element classes for DrawingML-related XML elements.
 from __future__ import absolute_import
 
 from ...enum.dml import MSO_THEME_COLOR
-from ..ns import qn
-from ..shared import SubElement
 from ..simpletypes import ST_Percentage
 from ..xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
 
@@ -18,6 +16,7 @@ class _BaseColorElement(BaseOxmlElement):
     Base class for <a:srgbClr> and <a:schemeClr> elements.
     """
     lumMod = ZeroOrOne('a:lumMod')
+    lumOff = ZeroOrOne('a:lumOff')
 
     def add_lumMod(self, value):
         """
@@ -31,25 +30,18 @@ class _BaseColorElement(BaseOxmlElement):
         """
         Return a newly added <a:lumOff> child element.
         """
-        return SubElement(self, 'a:lumOff', val=str(value))
+        lumOff = self._add_lumOff()
+        lumOff.val = value
+        return lumOff
 
     def clear_lum(self):
         """
         Return self after removing any <a:lumMod> and <a:lumOff> child
         elements.
         """
-        lum_tagnames = (qn('a:lumMod'), qn('a:lumOff'))
-        for child in self.getchildren():
-            if child.tag in lum_tagnames:
-                self.remove(child)
+        self._remove_lumMod()
+        self._remove_lumOff()
         return self
-
-    @property
-    def lumOff(self):
-        """
-        The <a:lumOff> child element, or None if not present.
-        """
-        return self.find(qn('a:lumOff'))
 
     @property
     def val(self):
