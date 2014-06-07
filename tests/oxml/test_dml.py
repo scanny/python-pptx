@@ -100,8 +100,8 @@ class DescribeCT_Percentage(object):
     def it_is_used_by_the_parser_for_a_lumMod_element(self, lumMod):
         assert isinstance(lumMod, CT_Percentage)
 
-    def it_knows_the_percentage_str_value(self, ct_percentage):
-        assert ct_percentage.val == '99999'
+    def it_knows_the_percentage_value(self, ct_percentage):
+        assert ct_percentage.val == 99999
 
     # fixtures ---------------------------------------------
 

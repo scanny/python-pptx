@@ -98,6 +98,25 @@ class ST_Coordinate32(BaseIntType):
     pass
 
 
+class ST_Percentage(BaseIntType):
+    """
+    String value can be either an integer, representing 1000ths of a percent,
+    or a floating point literal with a '%' suffix.
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if '%' in str_value:
+            return cls._convert_from_percent_literal(str_value)
+        return int(str_value)
+
+    @classmethod
+    def _convert_from_percent_literal(cls, str_value):
+        float_part = str_value[:-1]  # trim off '%' character
+        percent_value = float(float_part)
+        int_value = int(round(percent_value * 1000))
+        return int_value
+
+
 class ST_SlideId(XsdUnsignedInt):
 
     @classmethod

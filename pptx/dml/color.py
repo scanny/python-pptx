@@ -136,12 +136,12 @@ class _Color(object):
         # only tints have lumOff child
         if lumOff is not None:
             val = lumOff.val
-            brightness = float(val) / 100000
+            brightness = val / 100000.0
             return brightness
         # which leaves shades, if lumMod is present
         if lumMod is not None:
             val = lumMod.val
-            brightness = -1.0 + float(val)/100000
+            brightness = -1.0 + (val/100000.0)
             return brightness
         # there's no brightness adjustment if no lum{Mod|Off} elements
         return 0

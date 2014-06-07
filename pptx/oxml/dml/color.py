@@ -9,18 +9,23 @@ from __future__ import absolute_import
 from ...enum.dml import MSO_THEME_COLOR
 from ..ns import qn
 from ..shared import SubElement
-from ..xmlchemy import BaseOxmlElement
+from ..simpletypes import ST_Percentage
+from ..xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
 
 
 class _BaseColorElement(BaseOxmlElement):
     """
     Base class for <a:srgbClr> and <a:schemeClr> elements.
     """
+    lumMod = ZeroOrOne('a:lumMod')
+
     def add_lumMod(self, value):
         """
         Return a newly added <a:lumMod> child element.
         """
-        return SubElement(self, 'a:lumMod', val=str(value))
+        lumMod = self._add_lumMod()
+        lumMod.val = value
+        return lumMod
 
     def add_lumOff(self, value):
         """
@@ -38,13 +43,6 @@ class _BaseColorElement(BaseOxmlElement):
             if child.tag in lum_tagnames:
                 self.remove(child)
         return self
-
-    @property
-    def lumMod(self):
-        """
-        The <a:lumMod> child element, or None if not present.
-        """
-        return self.find(qn('a:lumMod'))
 
     @property
     def lumOff(self):
@@ -72,9 +70,7 @@ class CT_Percentage(BaseOxmlElement):
     """
     Custom element class for <a:lumMod> and <a:lumOff> elements.
     """
-    @property
-    def val(self):
-        return self.get('val')
+    val = RequiredAttribute('val', ST_Percentage)
 
 
 class CT_PresetColor(_BaseColorElement):

@@ -11,7 +11,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.oxml.simpletypes import BaseIntType, BaseSimpleType
+from pptx.oxml.simpletypes import BaseIntType, BaseSimpleType, ST_Percentage
 
 from ..unitutil import method_mock, instance_mock
 
@@ -154,6 +154,27 @@ class DescribeBaseIntType(object):
     def to_xml_fixture(self, request):
         value, expected_str_value = request.param
         return value, expected_str_value
+
+
+class DescribeST_Percentage(object):
+
+    def it_can_convert_from_xml_percent_literals(self, percent_fixture):
+        str_value, expected_value = percent_fixture
+        assert ST_Percentage.convert_from_xml(str_value) == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('12.34%',     12340),
+        ('42%',        42000),
+        ('024%',       24000),
+        ('-42%',      -42000),
+        ('-036.214%', -36214),
+        ('0%',             0),
+    ])
+    def percent_fixture(self, request):
+        str_value, expected_value = request.param
+        return str_value, expected_value
 
 
 # --------------------------------------------------------------------
