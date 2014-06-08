@@ -7,7 +7,7 @@ lxml custom element class for CT_GraphicalObjectFrame XML element.
 from __future__ import absolute_import
 
 from .. import parse_xml
-from ..ns import nsdecls, qn
+from ..ns import nsdecls
 from .shared import BaseShapeElement
 from .table import CT_Table
 from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
@@ -35,6 +35,7 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
     or another graphical object.
     """
     nvGraphicFramePr = OneAndOnlyOne('p:nvGraphicFramePr')
+    xfrm = OneAndOnlyOne('p:xfrm')
     graphic = OneAndOnlyOne('a:graphic')
 
     DATATYPE_TABLE = 'http://schemas.openxmlformats.org/drawingml/2006/table'
@@ -85,13 +86,6 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         graphicData.append(tbl)
 
         return graphicFrame
-
-    @property
-    def xfrm(self):
-        """
-        The required ``<p:xfrm>`` child element
-        """
-        return self.find(qn('p:xfrm'))
 
     @classmethod
     def _graphicFrame_tmpl(cls):
