@@ -1,8 +1,10 @@
 # encoding: utf-8
 
-"""Test suite for pptx.oxml.table module."""
+"""
+Test suite for pptx.oxml.table module.
+"""
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from hamcrest import assert_that, equal_to, is_
 
@@ -10,8 +12,25 @@ from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.table import CT_Table
 
-from ...oxml.unitdata.table import a_tbl, test_table_elements, test_table_xml
+from ...oxml.unitdata.table import (
+    a_tbl, a_tc, a_txBody, test_table_elements, test_table_xml
+)
+from ...oxml.unitdata.text import a_bodyPr, a_p
 from ...unitutil import TestCase
+
+
+class DescribeCT_TableCell(object):
+
+    def it_adds_a_minimally_complete_txBody(self):
+        tc = a_tc().with_nsdecls().element
+        tc.get_or_add_txBody()
+        expected_xml = (
+            a_tc().with_nsdecls().with_child(
+                a_txBody().with_child(
+                    a_bodyPr()).with_child(
+                    a_p()))
+        ).xml()
+        assert tc.xml == expected_xml
 
 
 class TestCT_Table(TestCase):
@@ -101,7 +120,7 @@ class TestCT_Table(TestCase):
 
 
 class TestCT_TableCell(TestCase):
-    """Test CT_TableCell"""
+
     def test_anchor_property_value_is_correct(self):
         # setup ------------------------
         cases = (

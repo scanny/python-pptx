@@ -7,10 +7,11 @@ lxml custom element classes for table-related XML elements.
 from __future__ import absolute_import
 
 from .. import parse_xml
-from ...enum.text import MSO_ANCHOR
+from ...enum.text import MSO_VERTICAL_ANCHOR
 from ..ns import nsdecls, qn
-from ..shared import Element, SubElement
-from ..simpletypes import ST_Coordinate, XsdBoolean
+from ..shared import Element
+from ..simpletypes import ST_Coordinate, ST_Coordinate32, XsdBoolean
+from ..text import CT_TextBody
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
     ZeroOrMore, ZeroOrOne
@@ -156,30 +157,11 @@ class CT_Table(BaseOxmlElement):
 
 
 class CT_TableCell(BaseOxmlElement):
-    """``<a:tc>`` custom element class"""
-    _tc_tmpl = (
-        '<a:tc %s>\n'
-        '  <a:txBody>\n'
-        '    <a:bodyPr/>\n'
-        '    <a:lstStyle/>\n'
-        '    <a:p/>\n'
-        '  </a:txBody>\n'
-        '  <a:tcPr/>\n'
-        '</a:tc>' % nsdecls('a')
-    )
-
-    def __setattr__(self, attr, value):
-        """
-        This hack is needed to make setter side of properties work,
-        overrides ``__setattr__`` defined in ObjectifiedElement super class
-        just enough to route messages intended for custom property setters.
-        """
-        if attr == 'anchor':
-            self._set_anchor(value)
-        elif attr in ('marT', 'marR', 'marB', 'marL'):
-            self._set_marX(attr, value)
-        else:
-            super(CT_TableCell, self).__setattr__(attr, value)
+    """
+    ``<a:tc>`` custom element class
+    """
+    txBody = ZeroOrOne('a:txBody', successors=('a:tcPr', 'a:extLst',))
+    tcPr = ZeroOrOne('a:tcPr', successors=('a:extLst',))
 
     @property
     def anchor(self):
@@ -189,28 +171,17 @@ class CT_TableCell(BaseOxmlElement):
         """
         if self.tcPr is None:
             return None
-        anchor = self.tcPr.get('anchor')
-        return MSO_ANCHOR.from_xml(anchor)
+        return self.tcPr.anchor
 
-    def get_or_add_tcPr(self):
-        tcPr = self.tcPr
-        if tcPr is None:
-            tcPr = Element('a:tcPr')
-            idx = 1 if self.txBody else 0
-            self.insert(idx, tcPr)
-        return tcPr
-
-    def get_or_add_txBody(self):
+    @anchor.setter
+    def anchor(self, anchor_enum_idx):
         """
-        Return the <a:rPr> child element of this <a:r> element, newly added
-        if not already present.
+        Set value of anchor attribute on ``<a:tcPr>`` child element
         """
-        if self.txBody is None:
-            txBody = Element('a:txBody')
-            SubElement(txBody, 'a:bodyPr')
-            SubElement(txBody, 'a:p')
-            self.insert(0, txBody)
-        return self.txBody
+        if anchor_enum_idx is None and self.tcPr is None:
+            return
+        tcPr = self.get_or_add_tcPr()
+        tcPr.anchor = anchor_enum_idx
 
     @property
     def marT(self):
@@ -225,85 +196,98 @@ class CT_TableCell(BaseOxmlElement):
         """
         return self._get_marX('marT', 45720)
 
+    @marT.setter
+    def marT(self, value):
+        self._set_marX('marT', value)
+
     @property
     def marR(self):
-        """right margin value represented in ``marR`` attribute"""
+        """
+        Right margin value represented in ``marR`` attribute.
+        """
         return self._get_marX('marR', 91440)
+
+    @marR.setter
+    def marR(self, value):
+        self._set_marX('marR', value)
 
     @property
     def marB(self):
-        """bottom margin value represented in ``marB`` attribute"""
+        """
+        Bottom margin value represented in ``marB`` attribute.
+        """
         return self._get_marX('marB', 45720)
+
+    @marB.setter
+    def marB(self, value):
+        self._set_marX('marB', value)
 
     @property
     def marL(self):
-        """left margin value represented in ``marL`` attribute"""
+        """
+        Left margin value represented in ``marL`` attribute.
+        """
         return self._get_marX('marL', 91440)
 
-    @staticmethod
-    def new_tc():
+    @marL.setter
+    def marL(self, value):
+        self._set_marX('marL', value)
+
+    @classmethod
+    def new(cls):
         """
         Return a new ``<a:tc>`` element tree.
         """
-        xml = CT_TableCell._tc_tmpl
+        xml = cls._tc_tmpl()
         tc = parse_xml(xml)
         return tc
 
-    @property
-    def tcPr(self):
-        return self.find(qn('a:tcPr'))
-
-    @property
-    def txBody(self):
-        """
-        The <a:txBody> child element, or None if not present.
-        """
-        return self.find(qn('a:txBody'))
-
-    def _clear_anchor(self):
-        """
-        Remove anchor attribute from ``<a:tcPr>`` if it exists
-        """
-        if self.tcPr is None:
-            return
-        if 'anchor' in self.tcPr.attrib:
-            del self.tcPr.attrib['anchor']
-
     def _get_marX(self, attr_name, default):
         """
-        generalized method to get margin values
+        Generalized method to get margin values.
         """
         if self.tcPr is None:
             return default
         return int(self.tcPr.get(attr_name, default))
 
-    def _set_anchor(self, anchor_enum_idx):
-        """
-        Set value of anchor attribute on ``<a:tcPr>`` child element
-        """
-        anchor = MSO_ANCHOR.to_xml(anchor_enum_idx)
-        if anchor is None:
-            return self._clear_anchor()
-        tcPr = self.get_or_add_tcPr()
-        tcPr.set('anchor', anchor)
+    def _new_txBody(self):
+        return CT_TextBody.new_a_txBody()
 
     def _set_marX(self, marX, value):
         """
         Set value of marX attribute on ``<a:tcPr>`` child element. If *marX*
-        is |None|, the marX attribute is removed.
+        is |None|, the marX attribute is removed. *marX* is a string, one of
+        ``('marL', 'marR', 'marT', 'marB')``.
         """
+        if value is None and self.tcPr is None:
+            return
         tcPr = self.get_or_add_tcPr()
-        if value is None:
-            if marX in tcPr.attrib:
-                del tcPr.attrib[marX]
-        else:
-            tcPr.set(marX, str(value))
+        setattr(tcPr, marX, value)
+
+    @classmethod
+    def _tc_tmpl(cls):
+        return (
+            '<a:tc %s>\n'
+            '  <a:txBody>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p/>\n'
+            '  </a:txBody>\n'
+            '  <a:tcPr/>\n'
+            '</a:tc>' % nsdecls('a')
+        )
 
 
 class CT_TableCellProperties(BaseOxmlElement):
     """
     ``<a:tcPr>`` custom element class
     """
+    anchor = OptionalAttribute('anchor', MSO_VERTICAL_ANCHOR)
+    marL = OptionalAttribute('marL', ST_Coordinate32)
+    marR = OptionalAttribute('marR', ST_Coordinate32)
+    marT = OptionalAttribute('marT', ST_Coordinate32)
+    marB = OptionalAttribute('marB', ST_Coordinate32)
+
     @property
     def fill_element(self):
         """
@@ -462,4 +446,4 @@ class CT_TableRow(BaseOxmlElement):
         return self._add_tc()
 
     def _new_tc(self):
-        return CT_TableCell.new_tc()
+        return CT_TableCell.new()

@@ -159,7 +159,7 @@ class CT_Shape(BaseShapeElement):
         )
 
         if ph_type in placeholder_types_that_have_a_text_frame:
-            sp.append(CT_TextBody.new_txBody())
+            sp.append(CT_TextBody.new())
 
         return sp
 

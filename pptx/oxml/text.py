@@ -39,29 +39,49 @@ class CT_TextBody(BaseOxmlElement):
     """
     <p:txBody> custom element class
     """
-
     p = OneOrMore('a:p')
-
-    _txBody_tmpl = (
-        '<p:txBody %s>\n'
-        '  <a:bodyPr/>\n'
-        '  <a:lstStyle/>\n'
-        '  <a:p/>\n'
-        '</p:txBody>\n' % (nsdecls('a', 'p'))
-    )
-
-    @staticmethod
-    def new_txBody():
-        """
-        Return a new ``<p:txBody>`` element tree
-        """
-        xml = CT_TextBody._txBody_tmpl
-        txBody = parse_xml(xml)
-        return txBody
 
     @property
     def bodyPr(self):
         return self.find(qn('a:bodyPr'))
+
+    @classmethod
+    def new(cls):
+        """
+        Return a new ``<p:txBody>`` element tree
+        """
+        xml = cls._txBody_tmpl()
+        txBody = parse_xml(xml)
+        return txBody
+
+    @classmethod
+    def new_a_txBody(cls):
+        """
+        Return a new ``<a:txBody>`` element tree, suitable for use in a table
+        cell and possibly other situations.
+        """
+        xml = cls._a_txBody_tmpl()
+        txBody = parse_xml(xml)
+        return txBody
+
+    @classmethod
+    def _a_txBody_tmpl(cls):
+        return (
+            '<a:txBody %s>\n'
+            '  <a:bodyPr/>\n'
+            '  <a:p/>\n'
+            '</a:txBody>\n' % (nsdecls('a'))
+        )
+
+    @classmethod
+    def _txBody_tmpl(cls):
+        return (
+            '<p:txBody %s>\n'
+            '  <a:bodyPr/>\n'
+            '  <a:lstStyle/>\n'
+            '  <a:p/>\n'
+            '</p:txBody>\n' % (nsdecls('a', 'p'))
+        )
 
 
 class CT_TextBodyProperties(BaseOxmlElement):
