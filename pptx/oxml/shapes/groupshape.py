@@ -11,8 +11,7 @@ from .graphfrm import CT_GraphicalObjectFrame
 from ..ns import qn
 from .picture import CT_Picture
 from .shared import BaseShapeElement
-from ..shared import Element
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne
+from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
 
 
 class CT_GroupShape(BaseShapeElement):
@@ -21,6 +20,7 @@ class CT_GroupShape(BaseShapeElement):
     shape (``<p:grpSp>``) element.
     """
     nvGrpSpPr = OneAndOnlyOne('p:nvGrpSpPr')
+    grpSpPr = OneAndOnlyOne('p:grpSpPr')
 
     _shape_tags = (
         qn('p:sp'), qn('p:grpSp'), qn('p:graphicFrame'), qn('p:cxnSp'),
@@ -83,13 +83,6 @@ class CT_GroupShape(BaseShapeElement):
         """
         return self.grpSpPr.get_or_add_xfrm()
 
-    @property
-    def grpSpPr(self):
-        """
-        The required ``<p:grpSpPr>`` child element
-        """
-        return self.find(qn('p:grpSpPr'))
-
     def iter_shape_elms(self):
         """
         Generate each child of this ``<p:spTree>`` element that corresponds
@@ -118,20 +111,7 @@ class CT_GroupShapeProperties(BaseOxmlElement):
     """
     The ``<p:grpSpPr>`` element
     """
-    def get_or_add_xfrm(self):
-        """
-        Return the <a:xfrm> child element, newly added if not already
-        present.
-        """
-        xfrm = self.xfrm
-        if xfrm is None:
-            xfrm = Element('a:xfrm')
-            self.insert(0, xfrm)
-        return xfrm
-
-    @property
-    def xfrm(self):
-        """
-        The ``<a:xfrm>`` child element, or |None| if not present
-        """
-        return self.find(qn('a:xfrm'))
+    xfrm = ZeroOrOne('a:xfrm', successors=(
+        'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill',
+        'a:grpFill', 'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:extLst'
+    ))
