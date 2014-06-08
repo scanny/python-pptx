@@ -39,26 +39,6 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
 
     DATATYPE_TABLE = 'http://schemas.openxmlformats.org/drawingml/2006/table'
 
-    _graphicFrame_tmpl = (
-        '<p:graphicFrame %s>\n'
-        '  <p:nvGraphicFramePr>\n'
-        '    <p:cNvPr id="%s" name="%s"/>\n'
-        '    <p:cNvGraphicFramePr>\n'
-        '      <a:graphicFrameLocks noGrp="1"/>\n'
-        '    </p:cNvGraphicFramePr>\n'
-        '    <p:nvPr/>\n'
-        '  </p:nvGraphicFramePr>\n'
-        '  <p:xfrm>\n'
-        '    <a:off x="%s" y="%s"/>\n'
-        '    <a:ext cx="%s" cy="%s"/>\n'
-        '  </p:xfrm>\n'
-        '  <a:graphic>\n'
-        '    <a:graphicData/>\n'
-        '  </a:graphic>\n'
-        '</p:graphicFrame>' %
-        (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
-    )
-
     def get_or_add_xfrm(self):
         """
         Return the required ``<p:xfrm>`` child element. Overrides version on
@@ -76,15 +56,14 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
             return True
         return False
 
-    @staticmethod
-    def new_graphicFrame(id_, name, left, top, width, height):
+    @classmethod
+    def new_graphicFrame(cls, id_, name, left, top, width, height):
         """
-        Return a new ``<p:graphicFrame>`` element tree suitable for containing
-        a table or chart. Note that a graphicFrame element is not a valid
-        shape until it contains a graphical object such as a table.
+        Return a new ``<p:graphicFrame>`` element tree suitable for
+        containing a table or chart. Note that a graphicFrame element is not
+        a valid shape until it contains a graphical object such as a table.
         """
-        xml = CT_GraphicalObjectFrame._graphicFrame_tmpl % (
-            id_, name, left, top, width, height)
+        xml = cls._graphicFrame_tmpl() % (id_, name, left, top, width, height)
         graphicFrame = parse_xml(xml)
         return graphicFrame
 
@@ -113,6 +92,28 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         The required ``<p:xfrm>`` child element
         """
         return self.find(qn('p:xfrm'))
+
+    @classmethod
+    def _graphicFrame_tmpl(cls):
+        return (
+            '<p:graphicFrame %s>\n'
+            '  <p:nvGraphicFramePr>\n'
+            '    <p:cNvPr id="%s" name="%s"/>\n'
+            '    <p:cNvGraphicFramePr>\n'
+            '      <a:graphicFrameLocks noGrp="1"/>\n'
+            '    </p:cNvGraphicFramePr>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvGraphicFramePr>\n'
+            '  <p:xfrm>\n'
+            '    <a:off x="%s" y="%s"/>\n'
+            '    <a:ext cx="%s" cy="%s"/>\n'
+            '  </p:xfrm>\n'
+            '  <a:graphic>\n'
+            '    <a:graphicData/>\n'
+            '  </a:graphic>\n'
+            '</p:graphicFrame>' %
+            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+        )
 
 
 class CT_GraphicalObjectFrameNonVisual(BaseOxmlElement):
