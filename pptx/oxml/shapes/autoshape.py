@@ -13,10 +13,11 @@ from .shared import (
     BaseShapeElement, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
 )
 from ..shared import SubElement
-from ..simpletypes import XsdString
+from ..simpletypes import XsdBoolean, XsdString
 from ..text import CT_TextBody
 from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne, ZeroOrMore
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
+    ZeroOrOne, ZeroOrMore
 )
 
 
@@ -41,6 +42,7 @@ class CT_NonVisualDrawingShapeProps(BaseShapeElement):
     ``<p:cNvSpPr>`` custom element class
     """
     spLocks = ZeroOrOne('a:spLocks')
+    txBox = OptionalAttribute('txBox', XsdBoolean)
 
 
 class CT_PresetGeometry2D(BaseOxmlElement):
@@ -97,8 +99,7 @@ class CT_Shape(BaseShapeElement):
         prstGeom = self.prstGeom
         if prstGeom is None:
             return False
-        txBox = self.nvSpPr.cNvSpPr.get('txBox')
-        if txBox in ('true', '1'):
+        if self.nvSpPr.cNvSpPr.txBox is True:
             return False
         return True
 
@@ -106,10 +107,10 @@ class CT_Shape(BaseShapeElement):
     def is_textbox(self):
         """
         True if this shape is a text box. A shape is a text box if it has a
-        txBox="1" attribute on cNvSpPr.
+        ``txBox`` attribute on cNvSpPr that resolves to |True|. The default
+        when the txBox attribute is missing is |False|.
         """
-        txBox = self.nvSpPr.cNvSpPr.get('txBox')
-        if txBox in ('true', '1'):
+        if self.nvSpPr.cNvSpPr.txBox is True:
             return True
         return False
 

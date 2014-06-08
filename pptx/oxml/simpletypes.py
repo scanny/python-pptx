@@ -83,6 +83,25 @@ class BaseIntType(BaseSimpleType):
         cls.validate_int(value)
 
 
+class XsdBoolean(BaseSimpleType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        return str_value in ('1', 'true')
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return {True: '1', False: '0'}[value]
+
+    @classmethod
+    def validate(cls, value):
+        if value not in (True, False):
+            raise TypeError(
+                "only True or False (and possibly None) may be assigned, got"
+                " '%s'" % value
+            )
+
+
 class XsdString(BaseStringType):
     pass
 
