@@ -6,11 +6,15 @@ lxml custom element classes for table-related XML elements.
 
 from __future__ import absolute_import
 
-from .. import parse_xml, XSD_TRUE
+from .. import parse_xml
 from ...enum.text import MSO_ANCHOR
 from ..ns import nsdecls, qn
 from ..shared import Element, SubElement
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrMore, ZeroOrOne
+from ..simpletypes import ST_Coordinate, XsdBoolean
+from ..xmlchemy import (
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
+    ZeroOrMore, ZeroOrOne
+)
 
 
 class CT_Table(BaseOxmlElement):
@@ -19,40 +23,62 @@ class CT_Table(BaseOxmlElement):
     """
     tblPr = ZeroOrOne('a:tblPr', successors=('a:tblGrid', 'a:tr'))
     tblGrid = OneAndOnlyOne('a:tblGrid')
-    tr = ZeroOrMore('a:tr')
+    tr = ZeroOrMore('a:tr', successors=())
 
-    _tbl_tmpl = (
-        '<a:tbl %s>\n'
-        '  <a:tblPr firstRow="1" bandRow="1">\n'
-        '    <a:tableStyleId>%s</a:tableStyleId>\n'
-        '  </a:tblPr>\n'
-        '  <a:tblGrid/>\n'
-        '</a:tbl>' % (nsdecls('a'), '%s')
-    )
+    def add_tr(self, height):
+        """
+        Return a reference to a newly created <a:tr> child element having its
+        ``h`` attribute set to *height*.
+        """
+        return self._add_tr(h=height)
 
-    BOOLPROPS = (
-        'bandCol', 'bandRow', 'firstCol', 'firstRow', 'lastCol', 'lastRow'
-    )
+    @property
+    def bandCol(self):
+        return self._get_boolean_property('bandCol')
 
-    def __getattr__(self, attr):
-        """
-        Implement getter side of properties. Filters ``__getattr__`` messages
-        to ObjectifiedElement base class to intercept messages intended for
-        custom property getters.
-        """
-        if attr in CT_Table.BOOLPROPS:
-            return self._get_boolean_property(attr)
+    @bandCol.setter
+    def bandCol(self, value):
+        self._set_boolean_property('bandCol', value)
 
-    def __setattr__(self, attr, value):
-        """
-        Implement setter side of properties. Filters ``__setattr__`` messages
-        to ObjectifiedElement base class to intercept messages intended for
-        custom property setters.
-        """
-        if attr in CT_Table.BOOLPROPS:
-            self._set_boolean_property(attr, value)
-        else:
-            super(CT_Table, self).__setattr__(attr, value)
+    @property
+    def bandRow(self):
+        return self._get_boolean_property('bandRow')
+
+    @bandRow.setter
+    def bandRow(self, value):
+        self._set_boolean_property('bandRow', value)
+
+    @property
+    def firstCol(self):
+        return self._get_boolean_property('firstCol')
+
+    @firstCol.setter
+    def firstCol(self, value):
+        self._set_boolean_property('firstCol', value)
+
+    @property
+    def firstRow(self):
+        return self._get_boolean_property('firstRow')
+
+    @firstRow.setter
+    def firstRow(self, value):
+        self._set_boolean_property('firstRow', value)
+
+    @property
+    def lastCol(self):
+        return self._get_boolean_property('lastCol')
+
+    @lastCol.setter
+    def lastCol(self, value):
+        self._set_boolean_property('lastCol', value)
+
+    @property
+    def lastRow(self):
+        return self._get_boolean_property('lastRow')
+
+    @lastRow.setter
+    def lastRow(self, value):
+        self._set_boolean_property('lastRow', value)
 
     def _get_boolean_property(self, propname):
         """
@@ -63,7 +89,12 @@ class CT_Table(BaseOxmlElement):
         tblPr = self.tblPr
         if tblPr is None:
             return False
-        return tblPr.get(propname) in ('1', 'true')
+        propval = getattr(tblPr, propname)
+        return {
+            True:  True,
+            False: False,
+            None:  False
+        }[propval]
 
     def _set_boolean_property(self, propname, value):
         """
@@ -74,16 +105,14 @@ class CT_Table(BaseOxmlElement):
         attribute is removed if present, allowing its default value of False
         to be its effective value.
         """
-        if value:
-            tblPr = self.get_or_add_tblPr()
-            tblPr.set(propname, XSD_TRUE)
-        elif self.tblPr is None:
-            pass
-        elif propname in self.tblPr.attrib:
-            del self.tblPr.attrib[propname]
+        value = True if value else None
+        if value is None and self.tblPr is None:
+            return
+        tblPr = self.get_or_add_tblPr()
+        setattr(tblPr, propname, value)
 
-    @staticmethod
-    def new_tbl(rows, cols, width, height, tableStyleId=None):
+    @classmethod
+    def new_tbl(cls, rows, cols, width, height, tableStyleId=None):
         """
         Return a new ``<p:tbl>`` element tree
         """
@@ -91,7 +120,7 @@ class CT_Table(BaseOxmlElement):
         if tableStyleId is None:
             tableStyleId = '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}'
 
-        xml = CT_Table._tbl_tmpl % (tableStyleId)
+        xml = cls._tbl_tmpl() % (tableStyleId)
         tbl = parse_xml(xml)
 
         # add specified number of rows and columns
@@ -102,17 +131,28 @@ class CT_Table(BaseOxmlElement):
             # adjust width of last col to absorb any div error
             if col == cols-1:
                 colwidth = width - ((cols-1) * colwidth)
-            SubElement(tbl.tblGrid, 'a:gridCol', w=str(colwidth))
+            tbl.tblGrid.add_gridCol(width=colwidth)
 
         for row in range(rows):
             # adjust height of last row to absorb any div error
             if row == rows-1:
                 rowheight = height - ((rows-1) * rowheight)
-            tr = SubElement(tbl, 'a:tr', h=str(rowheight))
+            tr = tbl.add_tr(height=rowheight)
             for col in range(cols):
-                tr.append(CT_TableCell.new_tc())
+                tr.add_tc()
 
         return tbl
+
+    @classmethod
+    def _tbl_tmpl(cls):
+        return (
+            '<a:tbl %s>\n'
+            '  <a:tblPr firstRow="1" bandRow="1">\n'
+            '    <a:tableStyleId>%s</a:tableStyleId>\n'
+            '  </a:tblPr>\n'
+            '  <a:tblGrid/>\n'
+            '</a:tbl>' % (nsdecls('a'), '%s')
+        )
 
 
 class CT_TableCell(BaseOxmlElement):
@@ -374,15 +414,52 @@ class CT_TableCellProperties(BaseOxmlElement):
                 self.remove(element)
 
 
+class CT_TableCol(BaseOxmlElement):
+    """
+    ``<a:gridCol>`` custom element class
+    """
+    w = RequiredAttribute('w', ST_Coordinate)
+
+
 class CT_TableGrid(BaseOxmlElement):
     """
     ``<a:tblGrid>`` custom element class
     """
     gridCol = ZeroOrMore('a:gridCol')
 
+    def add_gridCol(self, width):
+        """
+        Return a reference to a newly created <a:gridCol> child element
+        having its ``w`` attribute set to *width*.
+        """
+        return self._add_gridCol(w=width)
+
+
+class CT_TableProperties(BaseOxmlElement):
+    """
+    ``<a:tblPr>`` custom element class
+    """
+    bandRow = OptionalAttribute('bandRow', XsdBoolean)
+    bandCol = OptionalAttribute('bandCol', XsdBoolean)
+    firstRow = OptionalAttribute('firstRow', XsdBoolean)
+    firstCol = OptionalAttribute('firstCol', XsdBoolean)
+    lastRow = OptionalAttribute('lastRow', XsdBoolean)
+    lastCol = OptionalAttribute('lastCol', XsdBoolean)
+
 
 class CT_TableRow(BaseOxmlElement):
     """
     ``<a:tr>`` custom element class
     """
-    tc = ZeroOrMore('a:tc', successors=('a:extLst'))
+    tc = ZeroOrMore('a:tc', successors=('a:extLst',))
+    h = RequiredAttribute('h', ST_Coordinate)
+
+    def add_tc(self):
+        """
+        Return a reference to a newly created <a:gridCol> child element
+        having its ``w`` attribute set to *width*.
+        """
+        return self._add_tc()
+
+    def _new_tc(self):
+        return CT_TableCell.new_tc()

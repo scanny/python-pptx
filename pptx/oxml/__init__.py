@@ -12,9 +12,6 @@ from lxml import etree
 from .ns import NamespacePrefixedTag
 
 
-# oxml-specific constants
-XSD_TRUE = '1'
-
 # configure etree XML parser -------------------------------
 element_class_lookup = etree.ElementNamespaceClassLookup()
 oxml_parser = etree.XMLParser(remove_blank_text=True)
@@ -138,10 +135,13 @@ register_element_cls('p:xfrm', CT_Transform2D)
 
 
 from .shapes.table import (
-    CT_Table, CT_TableCell, CT_TableCellProperties, CT_TableGrid, CT_TableRow
+    CT_Table, CT_TableCell, CT_TableCellProperties, CT_TableCol,
+    CT_TableGrid, CT_TableProperties, CT_TableRow
 )
+register_element_cls('a:gridCol', CT_TableCol)
 register_element_cls('a:tbl',     CT_Table)
 register_element_cls('a:tblGrid', CT_TableGrid)
+register_element_cls('a:tblPr',   CT_TableProperties)
 register_element_cls('a:tc',      CT_TableCell)
 register_element_cls('a:tcPr',    CT_TableCellProperties)
 register_element_cls('a:tr',      CT_TableRow)

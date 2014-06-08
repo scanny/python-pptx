@@ -12,7 +12,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.oxml.simpletypes import (
-    BaseIntType, BaseSimpleType, ST_HexColorRGB, ST_Percentage
+    BaseIntType, BaseSimpleType, ST_Coordinate, ST_HexColorRGB, ST_Percentage
 )
 
 from ..unitutil import method_mock, instance_mock
@@ -156,6 +156,30 @@ class DescribeBaseIntType(object):
     def to_xml_fixture(self, request):
         value, expected_str_value = request.param
         return value, expected_str_value
+
+
+class DescribeST_Coordinate(object):
+
+    def it_can_convert_from_ST_UniversalMeasure(self, univ_meas_fixture):
+        """
+        ST_UniversalMeasure allows strings line '-034.56pt'.
+        """
+        str_value, expected_value = univ_meas_fixture
+        assert ST_Coordinate.convert_from_xml(str_value) == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('1.2in',       1097280),
+        ('42mm',        1512000),
+        ('0024cm',      8640000),
+        ('-42pt',       -533400),
+        ('-036.214pc', -5519014),
+        ('0pi',               0),
+    ])
+    def univ_meas_fixture(self, request):
+        str_value, expected_value = request.param
+        return str_value, expected_value
 
 
 class DescribeST_HexColorRGB(object):

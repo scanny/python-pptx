@@ -6,7 +6,7 @@ stored in XML element attributes. Naming generally corresponds to the simple
 type in the associated XML schema.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from ..util import Emu
 
@@ -113,8 +113,37 @@ class XsdUnsignedInt(BaseIntType):
         cls.validate_int_in_range(value, 0, 4294967295)
 
 
+class ST_Coordinate(BaseSimpleType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if 'i' in str_value or 'm' in str_value or 'p' in str_value:
+            return ST_UniversalMeasure.convert_from_xml(str_value)
+        return int(str_value)
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return str(value)
+
+    @classmethod
+    def validate(cls, value):
+        ST_CoordinateUnqualified.validate(value)
+
+
 class ST_Coordinate32(BaseIntType):
     pass
+
+
+class ST_CoordinateUnqualified(BaseSimpleType):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int(value)
+        if value < -27273042329600 or value > 27273042316900:
+            raise ValueError(
+                "value must be in range -27273042329600 to 27273042316900, g"
+                "ot %d" % value
+            )
 
 
 class ST_HexColorRGB(BaseStringType):
@@ -188,3 +217,17 @@ class ST_SlideSizeCoordinate(BaseIntType):
                 "value must be in range(914400, 51206400) (1-56 inches), got"
                 " %d" % value
             )
+
+
+class ST_UniversalMeasure(BaseSimpleType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        float_part, units_part = str_value[:-2], str_value[-2:]
+        quantity = float(float_part)
+        multiplier = {
+            'mm': 36000, 'cm': 360000, 'in': 914400, 'pt': 12700,
+            'pc': 152400, 'pi': 152400
+        }[units_part]
+        emu_value = int(round(quantity * multiplier))
+        return emu_value
