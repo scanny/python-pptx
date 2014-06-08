@@ -7,7 +7,7 @@ lxml custom element classes for picture-related XML elements.
 from __future__ import absolute_import
 
 from .. import parse_xml
-from ..ns import nsdecls, qn
+from ..ns import nsdecls
 from .shared import BaseShapeElement
 from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne
 
@@ -18,34 +18,7 @@ class CT_Picture(BaseShapeElement):
     on a slide).
     """
     nvPicPr = OneAndOnlyOne('p:nvPicPr')
-
-    _pic_tmpl = (
-        '<p:pic %s>\n'
-        '  <p:nvPicPr>\n'
-        '    <p:cNvPr id="%s" name="%s" descr="%s"/>\n'
-        '    <p:cNvPicPr>\n'
-        '      <a:picLocks noChangeAspect="1"/>\n'
-        '    </p:cNvPicPr>\n'
-        '    <p:nvPr/>\n'
-        '  </p:nvPicPr>\n'
-        '  <p:blipFill>\n'
-        '    <a:blip r:embed="%s"/>\n'
-        '    <a:stretch>\n'
-        '      <a:fillRect/>\n'
-        '    </a:stretch>\n'
-        '  </p:blipFill>\n'
-        '  <p:spPr>\n'
-        '    <a:xfrm>\n'
-        '      <a:off x="%s" y="%s"/>\n'
-        '      <a:ext cx="%s" cy="%s"/>\n'
-        '    </a:xfrm>\n'
-        '    <a:prstGeom prst="rect">\n'
-        '      <a:avLst/>\n'
-        '    </a:prstGeom>\n'
-        '  </p:spPr>\n'
-        '</p:pic>' % (nsdecls('a', 'p', 'r'), '%d', '%s', '%s', '%s',
-                      '%d', '%d', '%d', '%d')
-    )
+    spPr = OneAndOnlyOne('p:spPr')
 
     def get_or_add_ln(self):
         """
@@ -60,27 +33,49 @@ class CT_Picture(BaseShapeElement):
         """
         return self.spPr.ln
 
-    @staticmethod
-    def new_pic(id_, name, desc, rId, left, top, width, height):
+    @classmethod
+    def new_pic(cls, id_, name, desc, rId, left, top, width, height):
         """
         Return a new ``<p:pic>`` element tree configured with the supplied
         parameters.
         """
-        xml = CT_Picture._pic_tmpl % (id_, name, desc, rId,
-                                      left, top, width, height)
+        xml = cls._pic_tmpl() % (
+            id_, name, desc, rId, left, top, width, height
+        )
         pic = parse_xml(xml)
         return pic
 
-    @property
-    def spPr(self):
-        """
-        The required <a:spPr> child element, raises if not present.
-        """
-        spPr = self.find(qn('p:spPr'))
-        if spPr is None:
-            # TODO: this should be ValidationError, not ValueError
-            raise ValueError("pic element missing required spPr child")
-        return spPr
+    @classmethod
+    def _pic_tmpl(cls):
+        return (
+            '<p:pic %s>\n'
+            '  <p:nvPicPr>\n'
+            '    <p:cNvPr id="%s" name="%s" descr="%s"/>\n'
+            '    <p:cNvPicPr>\n'
+            '      <a:picLocks noChangeAspect="1"/>\n'
+            '    </p:cNvPicPr>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvPicPr>\n'
+            '  <p:blipFill>\n'
+            '    <a:blip r:embed="%s"/>\n'
+            '    <a:stretch>\n'
+            '      <a:fillRect/>\n'
+            '    </a:stretch>\n'
+            '  </p:blipFill>\n'
+            '  <p:spPr>\n'
+            '    <a:xfrm>\n'
+            '      <a:off x="%s" y="%s"/>\n'
+            '      <a:ext cx="%s" cy="%s"/>\n'
+            '    </a:xfrm>\n'
+            '    <a:prstGeom prst="rect">\n'
+            '      <a:avLst/>\n'
+            '    </a:prstGeom>\n'
+            '  </p:spPr>\n'
+            '</p:pic>' % (
+                nsdecls('a', 'p', 'r'), '%d', '%s', '%s', '%s', '%d', '%d',
+                '%d', '%d'
+            )
+        )
 
 
 class CT_PictureNonVisual(BaseOxmlElement):
