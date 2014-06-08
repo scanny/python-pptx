@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from .. import parse_xml
 from ...enum.shapes import MSO_AUTO_SHAPE_TYPE
-from ..ns import nsdecls, qn
+from ..ns import nsdecls
 from .shared import (
     BaseShapeElement, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
 )
@@ -79,87 +79,7 @@ class CT_Shape(BaseShapeElement):
     ``<p:sp>`` custom element class
     """
     nvSpPr = OneAndOnlyOne('p:nvSpPr')
-
-    _autoshape_sp_tmpl = (
-        '<p:sp %s>\n'
-        '  <p:nvSpPr>\n'
-        '    <p:cNvPr id="%s" name="%s"/>\n'
-        '    <p:cNvSpPr/>\n'
-        '    <p:nvPr/>\n'
-        '  </p:nvSpPr>\n'
-        '  <p:spPr>\n'
-        '    <a:xfrm>\n'
-        '      <a:off x="%s" y="%s"/>\n'
-        '      <a:ext cx="%s" cy="%s"/>\n'
-        '    </a:xfrm>\n'
-        '    <a:prstGeom prst="%s">\n'
-        '      <a:avLst/>\n'
-        '    </a:prstGeom>\n'
-        '  </p:spPr>\n'
-        '  <p:style>\n'
-        '    <a:lnRef idx="1">\n'
-        '      <a:schemeClr val="accent1"/>\n'
-        '    </a:lnRef>\n'
-        '    <a:fillRef idx="3">\n'
-        '      <a:schemeClr val="accent1"/>\n'
-        '    </a:fillRef>\n'
-        '    <a:effectRef idx="2">\n'
-        '      <a:schemeClr val="accent1"/>\n'
-        '    </a:effectRef>\n'
-        '    <a:fontRef idx="minor">\n'
-        '      <a:schemeClr val="lt1"/>\n'
-        '    </a:fontRef>\n'
-        '  </p:style>\n'
-        '  <p:txBody>\n'
-        '    <a:bodyPr rtlCol="0" anchor="ctr"/>\n'
-        '    <a:lstStyle/>\n'
-        '    <a:p>\n'
-        '      <a:pPr algn="ctr"/>\n'
-        '    </a:p>\n'
-        '  </p:txBody>\n'
-        '</p:sp>' %
-        (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d', '%s')
-    )
-
-    _ph_sp_tmpl = (
-        '<p:sp %s>\n'
-        '  <p:nvSpPr>\n'
-        '    <p:cNvPr id="%s" name="%s"/>\n'
-        '    <p:cNvSpPr>\n'
-        '      <a:spLocks noGrp="1"/>\n'
-        '    </p:cNvSpPr>\n'
-        '    <p:nvPr/>\n'
-        '  </p:nvSpPr>\n'
-        '  <p:spPr/>\n'
-        '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s')
-    )
-
-    _textbox_sp_tmpl = (
-        '<p:sp %s>\n'
-        '  <p:nvSpPr>\n'
-        '    <p:cNvPr id="%s" name="%s"/>\n'
-        '    <p:cNvSpPr txBox="1"/>\n'
-        '    <p:nvPr/>\n'
-        '  </p:nvSpPr>\n'
-        '  <p:spPr>\n'
-        '    <a:xfrm>\n'
-        '      <a:off x="%s" y="%s"/>\n'
-        '      <a:ext cx="%s" cy="%s"/>\n'
-        '    </a:xfrm>\n'
-        '    <a:prstGeom prst="rect">\n'
-        '      <a:avLst/>\n'
-        '    </a:prstGeom>\n'
-        '    <a:noFill/>\n'
-        '  </p:spPr>\n'
-        '  <p:txBody>\n'
-        '    <a:bodyPr wrap="none">\n'
-        '      <a:spAutoFit/>\n'
-        '    </a:bodyPr>\n'
-        '    <a:lstStyle/>\n'
-        '    <a:p/>\n'
-        '  </p:txBody>\n'
-        '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
-    )
+    spPr = OneAndOnlyOne('p:spPr')
 
     def get_or_add_ln(self):
         """
@@ -205,10 +125,8 @@ class CT_Shape(BaseShapeElement):
         """
         Return a new ``<p:sp>`` element tree configured as a base auto shape.
         """
-        xml = (
-            CT_Shape._autoshape_sp_tmpl %
-            (id_, name, left, top, width, height, prst)
-        )
+        tmpl = CT_Shape._autoshape_sp_tmpl()
+        xml = tmpl % (id_, name, left, top, width, height, prst)
         sp = parse_xml(xml)
         return sp
 
@@ -218,7 +136,8 @@ class CT_Shape(BaseShapeElement):
         Return a new ``<p:sp>`` element tree configured as a placeholder
         shape.
         """
-        xml = CT_Shape._ph_sp_tmpl % (id_, name)
+        tmpl = CT_Shape._ph_sp_tmpl()
+        xml = tmpl % (id_, name)
         sp = parse_xml(xml)
 
         # placeholder (ph) element attributes values vary by type
@@ -249,7 +168,8 @@ class CT_Shape(BaseShapeElement):
         Return a new ``<p:sp>`` element tree configured as a base textbox
         shape.
         """
-        xml = CT_Shape._textbox_sp_tmpl % (id_, name, left, top, width, height)
+        tmpl = CT_Shape._textbox_sp_tmpl()
+        xml = tmpl % (id_, name, left, top, width, height)
         sp = parse_xml(xml)
         return sp
 
@@ -272,12 +192,93 @@ class CT_Shape(BaseShapeElement):
         """
         return child(self.spPr, 'a:prstGeom')
 
-    @property
-    def spPr(self):
-        """
-        Required ``<p:spPr>`` child element containing shape properties
-        """
-        return self.find(qn('p:spPr'))
+    @staticmethod
+    def _autoshape_sp_tmpl():
+        return (
+            '<p:sp %s>\n'
+            '  <p:nvSpPr>\n'
+            '    <p:cNvPr id="%s" name="%s"/>\n'
+            '    <p:cNvSpPr/>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvSpPr>\n'
+            '  <p:spPr>\n'
+            '    <a:xfrm>\n'
+            '      <a:off x="%s" y="%s"/>\n'
+            '      <a:ext cx="%s" cy="%s"/>\n'
+            '    </a:xfrm>\n'
+            '    <a:prstGeom prst="%s">\n'
+            '      <a:avLst/>\n'
+            '    </a:prstGeom>\n'
+            '  </p:spPr>\n'
+            '  <p:style>\n'
+            '    <a:lnRef idx="1">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:lnRef>\n'
+            '    <a:fillRef idx="3">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:fillRef>\n'
+            '    <a:effectRef idx="2">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:effectRef>\n'
+            '    <a:fontRef idx="minor">\n'
+            '      <a:schemeClr val="lt1"/>\n'
+            '    </a:fontRef>\n'
+            '  </p:style>\n'
+            '  <p:txBody>\n'
+            '    <a:bodyPr rtlCol="0" anchor="ctr"/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr algn="ctr"/>\n'
+            '    </a:p>\n'
+            '  </p:txBody>\n'
+            '</p:sp>' %
+            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d', '%s')
+        )
+
+    @staticmethod
+    def _ph_sp_tmpl():
+        return (
+            '<p:sp %s>\n'
+            '  <p:nvSpPr>\n'
+            '    <p:cNvPr id="%s" name="%s"/>\n'
+            '    <p:cNvSpPr>\n'
+            '      <a:spLocks noGrp="1"/>\n'
+            '    </p:cNvSpPr>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvSpPr>\n'
+            '  <p:spPr/>\n'
+            '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s')
+        )
+
+    @staticmethod
+    def _textbox_sp_tmpl():
+        return (
+            '<p:sp %s>\n'
+            '  <p:nvSpPr>\n'
+            '    <p:cNvPr id="%s" name="%s"/>\n'
+            '    <p:cNvSpPr txBox="1"/>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvSpPr>\n'
+            '  <p:spPr>\n'
+            '    <a:xfrm>\n'
+            '      <a:off x="%s" y="%s"/>\n'
+            '      <a:ext cx="%s" cy="%s"/>\n'
+            '    </a:xfrm>\n'
+            '    <a:prstGeom prst="rect">\n'
+            '      <a:avLst/>\n'
+            '    </a:prstGeom>\n'
+            '    <a:noFill/>\n'
+            '  </p:spPr>\n'
+            '  <p:txBody>\n'
+            '    <a:bodyPr wrap="none">\n'
+            '      <a:spAutoFit/>\n'
+            '    </a:bodyPr>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p/>\n'
+            '  </p:txBody>\n'
+            '</p:sp>' %
+            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+        )
 
 
 class CT_ShapeNonVisual(BaseShapeElement):
