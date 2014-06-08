@@ -9,8 +9,11 @@ from __future__ import absolute_import
 from .. import parse_xml
 from ..ns import nsdecls
 from .shared import BaseShapeElement
+from ..simpletypes import XsdString
 from .table import CT_Table
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
+from ..xmlchemy import (
+    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
+)
 
 
 class CT_GraphicalObject(BaseOxmlElement):
@@ -27,6 +30,7 @@ class CT_GraphicalObjectData(BaseShapeElement):
     or another graphical object.
     """
     tbl = ZeroOrOne('a:tbl')
+    uri = RequiredAttribute('uri', XsdString)
 
 
 class CT_GraphicalObjectFrame(BaseShapeElement):
@@ -52,7 +56,7 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         """
         True if graphicFrame contains a table, False otherwise.
         """
-        datatype = self.graphic.graphicData.get('uri')
+        datatype = self.graphic.graphicData.uri
         if datatype == CT_GraphicalObjectFrame.DATATYPE_TABLE:
             return True
         return False
@@ -68,18 +72,18 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         graphicFrame = parse_xml(xml)
         return graphicFrame
 
-    @staticmethod
-    def new_table(id_, name, rows, cols, left, top, width, height):
+    @classmethod
+    def new_table(cls, id_, name, rows, cols, left, top, width, height):
         """
         Return a ``<p:graphicFrame>`` element tree populated with a table
         element.
         """
-        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
-            id_, name, left, top, width, height)
-
+        graphicFrame = cls.new_graphicFrame(
+            id_, name, left, top, width, height
+        )
         # set type of contained graphic to table
         graphicData = graphicFrame.graphic.graphicData
-        graphicData.set('uri', CT_GraphicalObjectFrame.DATATYPE_TABLE)
+        graphicData.uri = cls.DATATYPE_TABLE
 
         # add tbl element tree
         tbl = CT_Table.new_tbl(rows, cols, width, height)
