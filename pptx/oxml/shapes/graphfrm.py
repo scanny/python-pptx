@@ -10,7 +10,7 @@ from .. import parse_xml
 from ..ns import nsdecls, qn
 from .shared import BaseShapeElement
 from .table import CT_Table
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne
+from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
 
 
 class CT_GraphicalObject(BaseOxmlElement):
@@ -26,12 +26,7 @@ class CT_GraphicalObjectData(BaseShapeElement):
     ``<p:graphicData>`` element, the direct container for a table, a chart,
     or another graphical object.
     """
-    @property
-    def tbl(self):
-        """
-        The contained table object, or |None| if not present.
-        """
-        return self.find(qn('a:tbl'))
+    tbl = ZeroOrOne('a:tbl')
 
 
 class CT_GraphicalObjectFrame(BaseShapeElement):
