@@ -82,6 +82,12 @@ class CT_NonVisualDrawingPropsBuilder(BaseBuilder):
     __attrs__ = ('id', 'name', 'descr', 'hidden', 'title')
 
 
+class CT_NonVisualDrawingShapePropsBuilder(BaseBuilder):
+    __tag__ = 'p:cNvSpPr'
+    __nspfxs__ = ('p',)
+    __attrs__ = ('txBox',)
+
+
 class CT_PictureBuilder(BaseBuilder):
     __tag__ = 'p:pic'
     __nspfxs__ = ('p', 'a')
@@ -147,6 +153,10 @@ class CT_Transform2DBuilder(BaseBuilder):
 
 def a_cNvPr():
     return CT_NonVisualDrawingPropsBuilder()
+
+
+def a_cNvSpPr():
+    return CT_NonVisualDrawingShapePropsBuilder()
 
 
 def a_cxnSp():

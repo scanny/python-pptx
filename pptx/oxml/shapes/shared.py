@@ -431,6 +431,13 @@ class CT_ShapeProperties(Fillable):
         """
         return self.find(qn('a:ln'))
 
+    @property
+    def prstGeom(self):
+        """
+        The <a:prstGeom> child element, or None if not present.
+        """
+        return self.find(qn('a:prstGeom'))
+
     def remove_fill_element(self):
         """
         Remove the fill child element, e.g ``<a:solidFill>`` if present.

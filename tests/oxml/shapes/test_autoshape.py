@@ -8,8 +8,9 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from hamcrest import assert_that, equal_to, instance_of, is_, none
+from hamcrest import assert_that, instance_of, is_, none
 
+from pptx.enum.shapes import MSO_SHAPE
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 from pptx.oxml.shapes.shared import (
@@ -80,6 +81,16 @@ class DescribeCT_PresetGeometry2D(object):
                 avLst_bldr)
         )
         return prstGeom_bldr
+
+
+class DescribeCT_Shape(object):
+
+    def it_knows_its_MSO_AUTO_SHAPE_TYPE(self):
+        rounded_rect_sp = test_shape_elements.rounded_rectangle
+        placeholder_sp = test_shape_elements.placeholder
+        # verify -----------------------
+        assert rounded_rect_sp.prst == MSO_SHAPE.ROUNDED_RECTANGLE
+        assert placeholder_sp.prst is None
 
 
 class DescribeCT_ShapeProperties(object):
@@ -231,15 +242,6 @@ class TestCT_Shape(TestCase):
         sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
         # verify -----------------------
         self.assertEqualLineByLine(xml, sp)
-
-    def test_prst_return_value(self):
-        """CT_Shape.prst value is correct"""
-        # setup ------------------------
-        rounded_rect_sp = test_shape_elements.rounded_rectangle
-        placeholder_sp = test_shape_elements.placeholder
-        # verify -----------------------
-        assert_that(rounded_rect_sp.prst, is_(equal_to('roundRect')))
-        assert_that(placeholder_sp.prst, is_(equal_to(None)))
 
     def test_prstGeom_return_value(self):
         """CT_Shape.prstGeom value is correct"""

@@ -12,7 +12,7 @@ from ..ns import nsdecls
 from .shared import (
     BaseShapeElement, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
 )
-from ..shared import child, SubElement
+from ..shared import SubElement
 from ..simpletypes import XsdString
 from ..text import CT_TextBody
 from ..xmlchemy import (
@@ -94,7 +94,7 @@ class CT_Shape(BaseShapeElement):
         has a ``<a:prstGeom>`` element and does not have a txBox="1" attribute
         on cNvSpPr.
         """
-        prstGeom = child(self.spPr, 'a:prstGeom')
+        prstGeom = self.prstGeom
         if prstGeom is None:
             return False
         txBox = self.nvSpPr.cNvSpPr.get('txBox')
@@ -179,10 +179,10 @@ class CT_Shape(BaseShapeElement):
         Value of ``prst`` attribute of ``<a:prstGeom>`` element or |None| if
         not present.
         """
-        prstGeom = child(self.spPr, 'a:prstGeom')
+        prstGeom = self.prstGeom
         if prstGeom is None:
             return None
-        return prstGeom.get('prst')
+        return prstGeom.prst
 
     @property
     def prstGeom(self):
@@ -190,7 +190,7 @@ class CT_Shape(BaseShapeElement):
         Reference to ``<a:prstGeom>`` child element or |None| if this shape
         doesn't have one, for example, if it's a placeholder shape.
         """
-        return child(self.spPr, 'a:prstGeom')
+        return self.spPr.prstGeom
 
     @staticmethod
     def _autoshape_sp_tmpl():

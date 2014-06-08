@@ -293,11 +293,8 @@ class Shape(BaseShape):
         not an auto shape.
         """
         if not self._sp.is_autoshape:
-            msg = "shape is not an auto shape"
-            raise ValueError(msg)
-        prst = self._sp.prst
-        auto_shape_type_id = AutoShapeType.id_from_prst(prst)
-        return auto_shape_type_id
+            raise ValueError("shape is not an auto shape")
+        return self._sp.prst
 
     @lazyproperty
     def fill(self):

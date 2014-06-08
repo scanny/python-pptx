@@ -17,7 +17,9 @@ from pptx.shapes.autoshape import (
 from pptx.oxml import parse_xml
 from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 
-from ..oxml.unitdata.shape import a_gd, a_prstGeom, an_avLst
+from ..oxml.unitdata.shape import (
+    a_cNvSpPr, a_gd, a_prstGeom, an_avLst, an_nvSpPr, an_sp, an_spPr
+)
 from ..unitutil import class_mock, instance_mock, property_mock
 
 
@@ -314,9 +316,8 @@ class DescribeShape(object):
         AdjustmentCollection_.assert_called_once_with(sp_.prstGeom)
 
     def it_knows_its_autoshape_type(self, autoshape_type_fixture_):
-        shape, autoshape_type, AutoShapeType_, prst = autoshape_type_fixture_
-        assert shape.auto_shape_type == autoshape_type
-        AutoShapeType_.id_from_prst.assert_called_once_with(prst)
+        shape, expected_auto_shape_type = autoshape_type_fixture_
+        assert shape.auto_shape_type == expected_auto_shape_type
 
     def it_raises_when_auto_shape_type_called_on_non_autoshape(
             self, non_autoshape_shape_):
@@ -355,9 +356,16 @@ class DescribeShape(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def autoshape_type_fixture_(
-            self, request, shape, autoshape_type, AutoShapeType_, prst):
-        return shape, autoshape_type, AutoShapeType_, prst
+    def autoshape_type_fixture_(self, shape, prst):
+        sp = (
+            an_sp().with_nsdecls().with_child(
+                an_nvSpPr().with_child(
+                    a_cNvSpPr())).with_child(
+                an_spPr().with_child(
+                    a_prstGeom().with_prst('chevron')))
+        ).element
+        shape = Shape(sp, None)
+        return shape, MSO_SHAPE.CHEVRON
 
     @pytest.fixture
     def init_adjs_fixture_(
@@ -376,19 +384,6 @@ class DescribeShape(object):
     @pytest.fixture
     def adjustments_(self, request):
         return instance_mock(request, AdjustmentCollection)
-
-    @pytest.fixture
-    def AutoShapeType_(self, request, autoshape_type):
-        AutoShapeType_ = class_mock(
-            request, 'pptx.shapes.autoshape.AutoShapeType',
-            return_value=autoshape_type
-        )
-        AutoShapeType_.id_from_prst.return_value = autoshape_type
-        return AutoShapeType_
-
-    @pytest.fixture
-    def autoshape_type(self):
-        return 66
 
     @pytest.fixture
     def non_autoshape_shape_(self, request, sp_):
@@ -418,7 +413,7 @@ class DescribeShape(object):
 
     @pytest.fixture
     def prst(self):
-        return 'foobar'
+        return MSO_SHAPE.CHEVRON
 
     @pytest.fixture
     def shape(self, request, sp_):
