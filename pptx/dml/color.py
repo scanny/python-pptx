@@ -20,9 +20,9 @@ class ColorFormat(object):
     Provides access to color settings such as RGB color, theme color, and
     luminance adjustments.
     """
-    def __init__(self, eg_colorchoice_parent, color):
+    def __init__(self, eg_colorChoice_parent, color):
         super(ColorFormat, self).__init__()
-        self._xFill = eg_colorchoice_parent
+        self._xFill = eg_colorChoice_parent
         self._color = color
 
     @property
@@ -40,10 +40,10 @@ class ColorFormat(object):
         self._color.brightness = value
 
     @classmethod
-    def from_colorchoice_parent(cls, eg_colorchoice_parent):
-        xClr = eg_colorchoice_parent.eg_colorchoice
+    def from_colorchoice_parent(cls, eg_colorChoice_parent):
+        xClr = eg_colorChoice_parent.eg_colorChoice
         color = _Color(xClr)
-        color_format = cls(eg_colorchoice_parent, color)
+        color_format = cls(eg_colorChoice_parent, color)
         return color_format
 
     @property
