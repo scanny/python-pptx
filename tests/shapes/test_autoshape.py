@@ -293,10 +293,11 @@ class DescribeAutoShapeType(object):
 
     def _default_adj_vals_cases():
         return [
-            ('rect', ()),
-            ('chevron', (('adj', 50000),)),
-            ('leftCircularArrow', (('adj1', 12500), ('adj2', -1142319),
-             ('adj3', 1142319), ('adj4', 10800000), ('adj5', 12500))),
+            (MSO_SHAPE.RECTANGLE, ()),
+            (MSO_SHAPE.CHEVRON,   (('adj', 50000),)),
+            (MSO_SHAPE.LEFT_CIRCULAR_ARROW, (
+                ('adj1', 12500), ('adj2', -1142319), ('adj3', 1142319),
+                ('adj4', 10800000), ('adj5', 12500))),
         ]
 
     @pytest.fixture(params=_default_adj_vals_cases())

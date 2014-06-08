@@ -7,6 +7,7 @@ lxml custom element classes for shape-related XML elements.
 from __future__ import absolute_import
 
 from .. import parse_xml
+from ...enum.shapes import MSO_AUTO_SHAPE_TYPE
 from ..ns import nsdecls, qn
 from .shared import (
     BaseShapeElement, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
@@ -47,6 +48,7 @@ class CT_PresetGeometry2D(BaseOxmlElement):
     <a:prstGeom> custom element class
     """
     avLst = ZeroOrOne('a:avLst')
+    prst = RequiredAttribute('prst', MSO_AUTO_SHAPE_TYPE)
 
     @property
     def gd_lst(self):
@@ -58,13 +60,6 @@ class CT_PresetGeometry2D(BaseOxmlElement):
         if avLst is None:
             return []
         return avLst.gd_lst
-
-    @property
-    def prst(self):
-        """
-        Value of required ``prst`` attribute.
-        """
-        return self.get('prst')
 
     def rewrite_guides(self, guides):
         """

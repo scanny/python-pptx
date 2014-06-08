@@ -211,8 +211,10 @@ class AutoShapeType(object):
             return
         # raise on bad autoshape_type_id
         if autoshape_type_id not in autoshape_types:
-            tmpl = "no autoshape type with id %d in pptx.spec.autoshape_types"
-            raise KeyError(tmpl % autoshape_type_id)
+            raise KeyError(
+                "no autoshape type with id '%s' in pptx.spec.autoshape_types"
+                % autoshape_type_id
+            )
         # otherwise initialize new instance
         autoshape_type = autoshape_types[autoshape_type_id]
         self._autoshape_type_id = autoshape_type_id
@@ -221,7 +223,9 @@ class AutoShapeType(object):
 
     @property
     def autoshape_type_id(self):
-        """Integer identifier of this auto shape type"""
+        """
+        MSO_AUTO_SHAPE_TYPE enumeration value for this auto shape type
+        """
         return self._autoshape_type_id
 
     @property
@@ -238,11 +242,7 @@ class AutoShapeType(object):
         Return sequence of name, value tuples representing the adjustment
         value defaults for the auto shape type identified by *prst*.
         """
-        try:
-            autoshape_type_id = cls.id_from_prst(prst)
-        except KeyError:
-            return ()
-        return autoshape_types[autoshape_type_id]['avLst']
+        return autoshape_types[prst]['avLst']
 
     @property
     def desc(self):
@@ -288,7 +288,7 @@ class Shape(BaseShape):
     @property
     def auto_shape_type(self):
         """
-        Unique integer identifying the type of this auto shape, like
+        Enumeration value identifying the type of this auto shape, like
         ``MSO_SHAPE.ROUNDED_RECTANGLE``. Raises |ValueError| if this shape is
         not an auto shape.
         """
