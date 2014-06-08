@@ -119,7 +119,7 @@ class AdjustmentCollection(object):
             return []
         davs = AutoShapeType.default_adjustment_values(prstGeom.prst)
         adjustments = [Adjustment(name, def_val) for name, def_val in davs]
-        self._update_adjustments_with_actuals(adjustments, prstGeom.gd)
+        self._update_adjustments_with_actuals(adjustments, prstGeom.gd_lst)
         return adjustments
 
     def _rewrite_guides(self):

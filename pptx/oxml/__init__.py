@@ -85,10 +85,11 @@ register_element_cls('p:sldSz',          CT_SlideSize)
 
 
 from .shapes.autoshape import (
-    CT_GeomGuideList, CT_NonVisualDrawingShapeProps, CT_PresetGeometry2D,
-    CT_Shape, CT_ShapeNonVisual
+    CT_GeomGuide, CT_GeomGuideList, CT_NonVisualDrawingShapeProps,
+    CT_PresetGeometry2D, CT_Shape, CT_ShapeNonVisual
 )
 register_element_cls('a:avLst',    CT_GeomGuideList)
+register_element_cls('a:gd',       CT_GeomGuide)
 register_element_cls('a:prstGeom', CT_PresetGeometry2D)
 register_element_cls('p:cNvSpPr',  CT_NonVisualDrawingShapeProps)
 register_element_cls('p:nvSpPr',   CT_ShapeNonVisual)

@@ -1,6 +1,8 @@
 # encoding: utf-8
 
-"""Test suite for pptx.oxml.autoshape module."""
+"""
+Test suite for pptx.oxml.autoshape module.
+"""
 
 from __future__ import absolute_import, print_function
 
@@ -17,115 +19,67 @@ from pptx.oxml.shapes.shared import (
 from ..unitdata.shape import (
     a_gd, a_prstGeom, an_avLst, an_spPr, test_shape_elements
 )
-from ...unitutil import actual_xml, TestCase
+from ...unitutil import TestCase
 
 
 class DescribeCT_PresetGeometry2D(object):
 
-    def it_can_get_the_list_of_gd_elms(self):
-        # fixture ----------------------
-        gd_1_bldr = a_gd().with_name('adj1').with_fmla('val 111')
-        gd_2_bldr = a_gd().with_name('adj2').with_fmla('val 222')
-        gd_3_bldr = a_gd().with_name('adj3').with_fmla('val 333')
-        gd_4_bldr = a_gd().with_name('adj4').with_fmla('val 444')
-        gd_5_bldr = a_gd().with_name('adj5').with_fmla('val 555')
-
-        empty_prstGeom_bldr = a_prstGeom().with_nsdecls()
-
-        single_gd_prstGeom_bldr = (
-            a_prstGeom()
-            .with_nsdecls()
-            .with_child(
-                an_avLst()
-                .with_child(gd_1_bldr)
-            )
-        )
-
-        long_prstGeom_bldr = (
-            a_prstGeom()
-            .with_nsdecls()
-            .with_child(
-                an_avLst()
-                .with_child(gd_2_bldr)
-                .with_child(gd_3_bldr)
-                .with_child(gd_4_bldr)
-                .with_child(gd_5_bldr)
-            )
-        )
-        cases = (
-            (empty_prstGeom_bldr, ()),
-            (single_gd_prstGeom_bldr, ((111, 'adj1'),)),
-            (long_prstGeom_bldr,
-             ((222, 'adj2'), (333, 'adj3'), (444, 'adj4'), (555, 'adj5'))),
-        )
-        for prstGeom_builder, expected_vals in cases:
-            prstGeom = prstGeom_builder.element
-            # exercise -----------------
-            gd_elms = prstGeom.gd
-            # verify -------------------
-            assert_that(isinstance(gd_elms, tuple))
-            assert_that(len(gd_elms), is_(equal_to(len(expected_vals))))
-            for idx, gd_elm in enumerate(gd_elms):
-                val, name = expected_vals[idx]
-                fmla = 'val %d' % val
-                assert_that(gd_elm.get('name'), is_(equal_to(name)))
-                assert_that(gd_elm.get('fmla'), is_(equal_to(fmla)))
+    def it_can_get_the_gd_elms_as_a_sequence(self, gd_lst_fixture):
+        prstGeom, expected_vals = gd_lst_fixture
+        actual_vals = [(gd.name, gd.fmla) for gd in prstGeom.gd_lst]
+        assert actual_vals == expected_vals
 
     def it_can_rewrite_the_gd_elms(self, rewrite_guides_fixture_):
         prstGeom, guides, expected_xml = rewrite_guides_fixture_
+        print(prstGeom.xml)
         prstGeom.rewrite_guides(guides)
-        assert actual_xml(prstGeom) == expected_xml
+        assert prstGeom.xml == expected_xml
 
-    # fixture --------------------------------------------------------
+    # fixtures -------------------------------------------------------
 
-    def _rewrite_guides_cases():
-        return [
-            # all five guides for five adj shape
-            ('circularArrow', 5),
-            # empty guides for single adj shape
-            ('chevron', 0),
-            # one guide for single adj shape
-            ('chevron', 1),
-        ]
+    @pytest.fixture(params=[
+        [],
+        [('adj1', 'val 111')],
+        [('adj2', 'val 222'), ('adj3', 'val 333'), ('adj4', 'val 444'),
+         ('adj5', 'val 555')],
+    ])
+    def gd_lst_fixture(self, request):
+        expected_vals = request.param
+        prstGeom = self.prstGeom_bldr('foobar', expected_vals).element
+        return prstGeom, expected_vals
 
-    @pytest.fixture(params=_rewrite_guides_cases())
+    @pytest.fixture(params=[
+        ('circularArrow', 5),  # all five guides for five adj shape
+        ('chevron',       0),  # empty guides for single adj shape
+        ('chevron',       1),  # one guide for single adj shape
+    ])
     def rewrite_guides_fixture_(self, request):
         prst, gd_count = request.param
 
-        avLst_before_bldr = an_avLst()
-        avLst_after_bldr = an_avLst()
-        guides = []
+        names = ('adj1', 'adj2', 'adj3', 'adj4', 'adj5')
+        vals = (111, 222, 333, 444, 555)
+        fmlas = [('val %d' % v) for v in vals]
+        before_vals = [('adj6', 'val 666')] * 3
+        after_vals = zip(names[:gd_count], fmlas[:gd_count])
 
-        for n in range(1, gd_count+1):
-            name = 'adj%d' % n
-            val_before = n * 111
-            val_after = val_before + 100
-            fmla_before = 'val %d' % val_before
-            fmla_after = 'val %d' % val_after
+        prstGeom = self.prstGeom_bldr(prst, before_vals).element
+        guides = zip(names[:gd_count], vals[:gd_count])
+        expected_xml = self.prstGeom_bldr(prst, after_vals).xml()
 
-            gd_before_bldr = a_gd().with_name(name).with_fmla(fmla_before)
-            gd_after_bldr = a_gd().with_name(name).with_fmla(fmla_after)
+        return prstGeom, guides, expected_xml
 
-            avLst_before_bldr.with_child(gd_before_bldr)
-            avLst_after_bldr.with_child(gd_after_bldr)
+    # fixture components ---------------------------------------------
 
-            guides.append((name, val_after))
-
-        prstGeom_before_bldr = (
-            a_prstGeom().with_nsdecls()
-                        .with_prst(prst)
-                        .with_child(avLst_before_bldr)
+    def prstGeom_bldr(self, prst, gd_vals):
+        avLst_bldr = an_avLst()
+        for name, fmla in gd_vals:
+            gd_bldr = a_gd().with_name(name).with_fmla(fmla)
+            avLst_bldr.with_child(gd_bldr)
+        prstGeom_bldr = (
+            a_prstGeom().with_nsdecls().with_prst(prst).with_child(
+                avLst_bldr)
         )
-        prstGeom_after_bldr = (
-            a_prstGeom().with_nsdecls()
-                        .with_prst(prst)
-                        .with_child(avLst_after_bldr)
-        )
-
-        prstGeom = prstGeom_before_bldr.element
-        expected_xml = prstGeom_after_bldr.xml()
-
-        return prstGeom, tuple(guides), expected_xml
+        return prstGeom_bldr
 
 
 class DescribeCT_ShapeProperties(object):

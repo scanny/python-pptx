@@ -12,8 +12,20 @@ from .shared import (
     BaseShapeElement, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
 )
 from ..shared import child, SubElement
+from ..simpletypes import XsdString
 from ..text import CT_TextBody
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne, ZeroOrMore
+from ..xmlchemy import (
+    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne, ZeroOrMore
+)
+
+
+class CT_GeomGuide(BaseOxmlElement):
+    """
+    ``<a:gd>`` custom element class, defining a "guide", corresponding to
+    a yellow diamond-shaped handle on an autoshape.
+    """
+    name = RequiredAttribute('name', XsdString)
+    fmla = RequiredAttribute('fmla', XsdString)
 
 
 class CT_GeomGuideList(BaseOxmlElement):
@@ -37,16 +49,15 @@ class CT_PresetGeometry2D(BaseOxmlElement):
     avLst = ZeroOrOne('a:avLst')
 
     @property
-    def gd(self):
+    def gd_lst(self):
         """
         Sequence containing the ``gd`` element children of ``<a:avLst>``
         child element, empty if none are present.
         """
-        try:
-            gd_elms = tuple([gd for gd in self.avLst.gd_lst])
-        except AttributeError:
-            gd_elms = ()
-        return gd_elms
+        avLst = self.avLst
+        if avLst is None:
+            return []
+        return avLst.gd_lst
 
     @property
     def prst(self):
@@ -64,8 +75,8 @@ class CT_PresetGeometry2D(BaseOxmlElement):
         avLst = self._add_avLst()
         for name, val in guides:
             gd = avLst._add_gd()
-            gd.set('name', name)
-            gd.set('fmla', 'val %d' % val)
+            gd.name = name
+            gd.fmla = 'val %d' % val
 
 
 class CT_Shape(BaseShapeElement):
