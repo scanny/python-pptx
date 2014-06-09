@@ -10,7 +10,7 @@ from . import parse_xml
 from ..enum.text import MSO_AUTO_SIZE
 from .ns import nsdecls, nsmap, qn
 from .shared import Element, SubElement
-from .simpletypes import ST_Coordinate32
+from .simpletypes import ST_Coordinate32, XsdString
 from ..util import Centipoints
 from .xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OneOrMore, OptionalAttribute, ZeroOrOne
@@ -21,9 +21,7 @@ class CT_Hyperlink(BaseOxmlElement):
     """
     Custom element class for <a:hlinkClick> elements.
     """
-    @property
-    def rId(self):
-        return self.get(qn('r:id'))
+    rId = OptionalAttribute('r:id', XsdString)
 
 
 class CT_RegularTextRun(BaseOxmlElement):
