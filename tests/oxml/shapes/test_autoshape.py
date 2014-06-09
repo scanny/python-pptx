@@ -10,11 +10,11 @@ import pytest
 
 from hamcrest import assert_that, instance_of, is_, none
 
-from pptx.enum.shapes import MSO_SHAPE
+from pptx.enum.shapes import MSO_SHAPE, PP_PLACEHOLDER
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 from pptx.oxml.shapes.shared import (
-    CT_ShapeProperties, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
+    CT_ShapeProperties, ST_Direction, ST_PlaceholderSize
 )
 
 from ..unitdata.shape import (
@@ -92,6 +92,68 @@ class DescribeCT_Shape(object):
         assert rounded_rect_sp.prst == MSO_SHAPE.ROUNDED_RECTANGLE
         assert placeholder_sp.prst is None
 
+    def it_knows_how_to_create_a_new_placeholder_sp(self, new_ph_sp_fixture):
+        id_, name, ph_type, orient, sz, idx, expected_xml = new_ph_sp_fixture
+        sp = CT_Shape.new_placeholder_sp(
+            id_, name, ph_type, orient, sz, idx
+        )
+        assert sp.xml == expected_xml
+        # print(sp.xml)
+        # print(expected_xml)
+        # assert False
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        (2, 'Title 1', PP_PLACEHOLDER.CENTER_TITLE, ST_Direction.HORZ,
+         ST_PlaceholderSize.FULL, 0, ' type="ctrTitle"'),
+        (3, 'Date Placeholder 2', PP_PLACEHOLDER.DATE,
+         ST_Direction.HORZ, ST_PlaceholderSize.HALF, 10,
+         ' type="dt" sz="half" idx="10"'),
+        (4, 'Vertical Subtitle 3', PP_PLACEHOLDER.SUBTITLE,
+         ST_Direction.VERT, ST_PlaceholderSize.FULL, 1,
+         ' type="subTitle" orient="vert" idx="1"'),
+        (5, 'Table Placeholder 4', PP_PLACEHOLDER.TABLE,
+         ST_Direction.HORZ, ST_PlaceholderSize.QUARTER, 14,
+         ' type="tbl" sz="quarter" idx="14"'),
+        (6, 'Slide Number Placeholder 5', PP_PLACEHOLDER.SLIDE_NUMBER,
+         ST_Direction.HORZ, ST_PlaceholderSize.QUARTER, 12,
+         ' type="sldNum" sz="quarter" idx="12"'),
+        (7, 'Footer Placeholder 6', PP_PLACEHOLDER.FOOTER,
+         ST_Direction.HORZ, ST_PlaceholderSize.QUARTER, 11,
+         ' type="ftr" sz="quarter" idx="11"'),
+        (8, 'Content Placeholder 7', PP_PLACEHOLDER.OBJECT,
+         ST_Direction.HORZ, ST_PlaceholderSize.FULL, 15, ' idx="15"'),
+    ])
+    def new_ph_sp_fixture(self, request):
+        id_, name, ph_type, orient, sz, idx, expected_attrs = request.param
+        expected_xml_tmpl = (
+            '<p:sp %s>\n'
+            '  <p:nvSpPr>\n'
+            '    <p:cNvPr id="%s" name="%s"/>\n'
+            '    <p:cNvSpPr>\n'
+            '      <a:spLocks noGrp="1"/>\n'
+            '    </p:cNvSpPr>\n'
+            '    <p:nvPr>\n'
+            '      <p:ph%s/>\n'
+            '    </p:nvPr>\n'
+            '  </p:nvSpPr>\n'
+            '  <p:spPr/>\n'
+            '%s'
+            '</p:sp>\n' % (nsdecls('a', 'p'), '%d', '%s', '%s', '%s')
+        )
+        txBody_snippet = (
+            '  <p:txBody>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p/>\n'
+            '  </p:txBody>\n'
+        )
+        txBody_str = txBody_snippet if id_ in (2, 4, 8) else ''
+        expected_values = (id_, name, expected_attrs, txBody_str)
+        expected_xml = expected_xml_tmpl % expected_values
+        return id_, name, ph_type, orient, sz, idx, expected_xml
+
 
 class DescribeCT_ShapeProperties(object):
 
@@ -168,58 +230,6 @@ class TestCT_Shape(TestCase):
                                        width, height)
         # verify -----------------------
         self.assertEqualLineByLine(xml, sp)
-
-    def test_new_placeholder_sp_generates_correct_xml(self):
-        """CT_Shape._new_placeholder_sp() returns correct XML"""
-        # setup ------------------------
-        expected_xml_tmpl = (
-            '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%s" name="%s"/>\n    <'
-            'p:cNvSpPr>\n      <a:spLocks noGrp="1"/>\n    </p:cNvSpPr>\n    '
-            '<p:nvPr>\n      <p:ph%s/>\n    </p:nvPr>\n  </p:nvSpPr>\n  <p:sp'
-            'Pr/>\n%s</p:sp>\n' % (nsdecls('a', 'p'), '%d', '%s', '%s', '%s')
-        )
-        txBody_snippet = (
-            '  <p:txBody>\n    <a:bodyPr/>\n    <a:lstStyle/>\n    <a:p/>\n  '
-            '</p:txBody>\n')
-        test_cases = (
-            (2, 'Title 1', ST_PlaceholderType.CTR_TITLE, ST_Direction.HORZ,
-             ST_PlaceholderSize.FULL, 0),
-            (3, 'Date Placeholder 2', ST_PlaceholderType.DT,
-             ST_Direction.HORZ, ST_PlaceholderSize.HALF, 10),
-            (4, 'Vertical Subtitle 3', ST_PlaceholderType.SUB_TITLE,
-             ST_Direction.VERT, ST_PlaceholderSize.FULL, 1),
-            (5, 'Table Placeholder 4', ST_PlaceholderType.TBL,
-             ST_Direction.HORZ, ST_PlaceholderSize.QUARTER, 14),
-            (6, 'Slide Number Placeholder 5', ST_PlaceholderType.SLD_NUM,
-             ST_Direction.HORZ, ST_PlaceholderSize.QUARTER, 12),
-            (7, 'Footer Placeholder 6', ST_PlaceholderType.FTR,
-             ST_Direction.HORZ, ST_PlaceholderSize.QUARTER, 11),
-            (8, 'Content Placeholder 7', ST_PlaceholderType.OBJ,
-             ST_Direction.HORZ, ST_PlaceholderSize.FULL, 15)
-        )
-        expected_values = (
-            (2, 'Title 1', ' type="%s"' % ST_PlaceholderType.CTR_TITLE,
-             txBody_snippet),
-            (3, 'Date Placeholder 2', ' type="%s" sz="half" idx="10"' %
-             ST_PlaceholderType.DT, ''),
-            (4, 'Vertical Subtitle 3', ' type="%s" orient="vert" idx="1"' %
-             ST_PlaceholderType.SUB_TITLE, txBody_snippet),
-            (5, 'Table Placeholder 4', ' type="%s" sz="quarter" idx="14"' %
-             ST_PlaceholderType.TBL, ''),
-            (6, 'Slide Number Placeholder 5', ' type="%s" sz="quarter" '
-             'idx="12"' % ST_PlaceholderType.SLD_NUM, ''),
-            (7, 'Footer Placeholder 6', ' type="%s" sz="quarter" idx="11"' %
-             ST_PlaceholderType.FTR, ''),
-            (8, 'Content Placeholder 7', ' idx="15"', txBody_snippet)
-        )
-        # exercise ---------------------
-        for case_idx, argv in enumerate(test_cases):
-            id_, name, ph_type, orient, sz, idx = argv
-            sp = CT_Shape.new_placeholder_sp(id_, name, ph_type, orient, sz,
-                                             idx)
-            # verify ------------------
-            expected_xml = expected_xml_tmpl % expected_values[case_idx]
-            self.assertEqualLineByLine(expected_xml, sp)
 
     def test_new_textbox_sp_generates_correct_xml(self):
         """CT_Shape.new_textbox_sp() returns correct XML"""

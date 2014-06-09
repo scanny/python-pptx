@@ -793,7 +793,7 @@ class MSO_SHAPE_TYPE(Enumeration):
 
 
 @alias('PP_PLACEHOLDER')
-class PP_PLACEHOLDER_TYPE(Enumeration):
+class PP_PLACEHOLDER_TYPE(XmlEnumeration):
     """
     Specifies one of the 18 distinct types of placeholder.
 
@@ -815,59 +815,59 @@ class PP_PLACEHOLDER_TYPE(Enumeration):
     )
 
     __members__ = (
-        EnumMember(
-            'BITMAP', 9, 'Clip art placeholder'
+        XmlMappedEnumMember(
+            'BITMAP', 9, 'clipArt', 'Clip art placeholder'
         ),
-        EnumMember(
-            'BODY', 2, 'Body'
+        XmlMappedEnumMember(
+            'BODY', 2, 'body', 'Body'
         ),
-        EnumMember(
-            'CENTER_TITLE', 3, 'Center Title'
+        XmlMappedEnumMember(
+            'CENTER_TITLE', 3, 'ctrTitle', 'Center Title'
         ),
-        EnumMember(
-            'CHART', 8, 'Chart'
+        XmlMappedEnumMember(
+            'CHART', 8, 'chart', 'Chart'
         ),
-        EnumMember(
-            'DATE', 16, 'Date'
+        XmlMappedEnumMember(
+            'DATE', 16, 'dt', 'Date'
         ),
-        EnumMember(
-            'FOOTER', 15, 'Footer'
+        XmlMappedEnumMember(
+            'FOOTER', 15, 'ftr', 'Footer'
         ),
-        EnumMember(
-            'HEADER', 14, 'Header'
+        XmlMappedEnumMember(
+            'HEADER', 14, 'hdr', 'Header'
         ),
-        EnumMember(
-            'MEDIA_CLIP', 10, 'Media Clip'
+        XmlMappedEnumMember(
+            'MEDIA_CLIP', 10, 'media', 'Media Clip'
         ),
-        EnumMember(
-            'OBJECT', 7, 'Object'
+        XmlMappedEnumMember(
+            'OBJECT', 7, 'obj', 'Object'
         ),
-        EnumMember(
-            'ORG_CHART', 11, 'SmartArt placeholder. Organization chart is a '
-            'legacy name.'
+        XmlMappedEnumMember(
+            'ORG_CHART', 11, 'dgm', 'SmartArt placeholder. Organization char'
+            't is a legacy name.'
         ),
-        EnumMember(
-            'PICTURE', 18, 'Picture'
+        XmlMappedEnumMember(
+            'PICTURE', 18, 'pic', 'Picture'
         ),
-        EnumMember(
-            'SLIDE_NUMBER', 13, 'Slide Number'
+        XmlMappedEnumMember(
+            'SLIDE_NUMBER', 13, 'sldNum', 'Slide Number'
         ),
-        EnumMember(
-            'SUBTITLE', 4, 'Subtitle'
+        XmlMappedEnumMember(
+            'SUBTITLE', 4, 'subTitle', 'Subtitle'
         ),
-        EnumMember(
-            'TABLE', 12, 'Table'
+        XmlMappedEnumMember(
+            'TABLE', 12, 'tbl', 'Table'
         ),
-        EnumMember(
-            'TITLE', 1, 'Title'
+        XmlMappedEnumMember(
+            'TITLE', 1, 'title', 'Title'
         ),
-        EnumMember(
+        ReturnValueOnlyEnumMember(
             'VERTICAL_BODY', 6, 'Vertical Body'
         ),
-        EnumMember(
+        ReturnValueOnlyEnumMember(
             'VERTICAL_OBJECT', 17, 'Vertical Object'
         ),
-        EnumMember(
+        ReturnValueOnlyEnumMember(
             'VERTICAL_TITLE', 5, 'Vertical Title'
         ),
         ReturnValueOnlyEnumMember(

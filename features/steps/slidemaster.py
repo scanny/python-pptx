@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from behave import given, then
 
 from pptx import Presentation
+from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import (
     _MasterPlaceholder, _MasterPlaceholders, _MasterShapeTree, _SlideLayouts
@@ -69,8 +70,8 @@ def then_can_access_master_placeholder_by_index(context):
 @then('I can access a master placeholder by type')
 def then_can_access_master_placeholder_by_type(context):
     master_placeholders = context.master_placeholders
-    title_placeholder = master_placeholders.get('title')
-    body_placeholder = master_placeholders.get('body')
+    title_placeholder = master_placeholders.get(PP_PLACEHOLDER.TITLE)
+    body_placeholder = master_placeholders.get(PP_PLACEHOLDER.BODY)
     assert title_placeholder._element is master_placeholders[0]._element
     assert body_placeholder._element is master_placeholders[1]._element
 

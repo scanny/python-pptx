@@ -7,12 +7,9 @@ lxml custom element classes for shape-related XML elements.
 from __future__ import absolute_import
 
 from .. import parse_xml
-from ...enum.shapes import MSO_AUTO_SHAPE_TYPE
+from ...enum.shapes import MSO_AUTO_SHAPE_TYPE, PP_PLACEHOLDER
 from ..ns import nsdecls
-from .shared import (
-    BaseShapeElement, ST_Direction, ST_PlaceholderSize, ST_PlaceholderType
-)
-from ..shared import SubElement
+from .shared import BaseShapeElement, ST_Direction, ST_PlaceholderSize
 from ..simpletypes import XsdBoolean, XsdString
 from ..text import CT_TextBody
 from ..xmlchemy import (
@@ -142,20 +139,18 @@ class CT_Shape(BaseShapeElement):
         sp = parse_xml(xml)
 
         # placeholder (ph) element attributes values vary by type
-        ph = SubElement(sp.nvSpPr.nvPr, 'p:ph')
-        if ph_type != ST_PlaceholderType.OBJ:
-            ph.set('type', ph_type)
+        ph = sp.nvSpPr.nvPr.get_or_add_ph()
+        ph.type = ph_type
+        ph.idx = idx
         if orient != ST_Direction.HORZ:
             ph.set('orient', orient)
         if sz != ST_PlaceholderSize.FULL:
             ph.set('sz', sz)
-        if idx != 0:
-            ph.set('idx', str(idx))
 
         placeholder_types_that_have_a_text_frame = (
-            ST_PlaceholderType.TITLE, ST_PlaceholderType.CTR_TITLE,
-            ST_PlaceholderType.SUB_TITLE, ST_PlaceholderType.BODY,
-            ST_PlaceholderType.OBJ
+            PP_PLACEHOLDER.TITLE, PP_PLACEHOLDER.CENTER_TITLE,
+            PP_PLACEHOLDER.SUBTITLE, PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.OBJECT
         )
 
         if ph_type in placeholder_types_that_have_a_text_frame:

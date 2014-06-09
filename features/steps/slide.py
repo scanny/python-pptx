@@ -177,6 +177,6 @@ def then_index_of_each_shape_matches_its_position_in_the_sequence(context):
 def then_the_layout_has_been_applied_to_the_slide(context):
     prs = context.prs
     shapes = prs.slides[0].shapes
-    assert len(shapes) == 2
+    assert len(shapes) == 2, 'expected 2 shapes, got %d' % len(shapes)
     assert shapes[0].name == 'Title 1'
     assert shapes[1].name == 'Subtitle 2'

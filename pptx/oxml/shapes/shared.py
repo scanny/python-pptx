@@ -10,10 +10,12 @@ from ..dml.fill import EG_FillProperties
 from ..dml.line import (
     EG_LineDashProperties, EG_LineFillProperties, EG_LineJoinProperties
 )
+from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import _nsmap, qn
 from ..shared import ChildTagnames, Element
+from ..simpletypes import XsdUnsignedInt
 from ...util import Emu
-from ..xmlchemy import BaseOxmlElement
+from ..xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrOne
 
 
 class BaseShapeElement(BaseOxmlElement):
@@ -106,7 +108,7 @@ class BaseShapeElement(BaseOxmlElement):
         ph = self.ph
         if ph is None:
             return None
-        return ph.get('type', ST_PlaceholderType.OBJ)
+        return ph.type
 
     @property
     def shape_id(self):
@@ -243,11 +245,20 @@ class EG_Geometry(object):
     __member_names__ = ('a:custGeom', 'a:prstGeom')
 
 
+class CT_ApplicationNonVisualDrawingProps(BaseOxmlElement):
+    """
+    ``<p:nvPr>`` element
+    """
+    ph = ZeroOrOne('p:ph', successors=(
+        'a:audioCd', 'a:wavAudioFile', 'a:audioFile', 'a:videoFile',
+        'a:quickTimeFile', 'p:custDataLst', 'p:extLst'
+    ))
+
+
 class CT_LineProperties(Fillable):
     """
     Custom element class for <a:ln> element
     """
-
     child_tagnames = ChildTagnames.from_nested_sequence(
         EG_LineFillProperties.__member_names__,
         EG_LineDashProperties.__member_names__,
@@ -295,6 +306,46 @@ class CT_LineProperties(Fillable):
         if w_str is None:
             return None
         return Emu(int(w_str))
+
+
+class CT_Placeholder(BaseOxmlElement):
+    """
+    ``<p:ph>`` customer element class.
+    """
+    idx = OptionalAttribute('idx', XsdUnsignedInt)
+
+    @property
+    def idx(self):
+        idx_str = self.get('idx')
+        if idx_str is None:
+            return 0
+        return int(idx_str)
+
+    @idx.setter
+    def idx(self, value):
+        XsdUnsignedInt.validate(value)
+        if value == 0 or value is None:
+            if 'idx' in self.attrib:
+                del self.attrib['idx']
+            return
+        str_value = str(value)
+        self.set('idx', str_value)
+
+    @property
+    def type(self):
+        type_str = self.get('type')
+        if type_str is None:
+            return PP_PLACEHOLDER.OBJECT
+        return PP_PLACEHOLDER.from_xml(type_str)
+
+    @type.setter
+    def type(self, value):
+        if value is None or value is PP_PLACEHOLDER.OBJECT:
+            if 'type' in self.attrib:
+                del self.attrib['type']
+            return
+        str_value = PP_PLACEHOLDER.to_xml(value)
+        self.set('type', str_value)
 
 
 class CT_Point2D(BaseOxmlElement):
@@ -584,23 +635,3 @@ class ST_PlaceholderSize(object):
     FULL = 'full'
     HALF = 'half'
     QUARTER = 'quarter'
-
-
-class ST_PlaceholderType(object):
-
-    BODY = 'body'
-    CHART = 'chart'
-    CLIP_ART = 'clipArt'
-    CTR_TITLE = 'ctrTitle'
-    DGM = 'dgm'
-    DT = 'dt'
-    FTR = 'ftr'
-    HDR = 'hdr'
-    MEDIA = 'media'
-    OBJ = 'obj'
-    PIC = 'pic'
-    SLD_IMG = 'sldImg'
-    SLD_NUM = 'sldNum'
-    SUB_TITLE = 'subTitle'
-    TBL = 'tbl'
-    TITLE = 'title'

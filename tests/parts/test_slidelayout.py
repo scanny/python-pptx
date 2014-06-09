@@ -8,9 +8,9 @@ from __future__ import absolute_import
 
 import pytest
 
+from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.shapes.autoshape import CT_Shape
-from pptx.oxml.shapes.shared import ST_PlaceholderType
 from pptx.parts.slidelayout import (
     _LayoutPlaceholder, _LayoutPlaceholders, _LayoutShapeFactory,
     _LayoutShapeTree, SlideLayout
@@ -60,10 +60,10 @@ class DescribeSlideLayout(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ((ST_PlaceholderType.TITLE, ST_PlaceholderType.BODY), (0, 1)),
-        ((ST_PlaceholderType.TITLE, ST_PlaceholderType.DT),   (0,)),
-        ((ST_PlaceholderType.DT,    ST_PlaceholderType.OBJ),  (1,)),
-        ((ST_PlaceholderType.DT,    ST_PlaceholderType.FTR),  ()),
+        ((PP_PLACEHOLDER.TITLE, PP_PLACEHOLDER.BODY),   (0, 1)),
+        ((PP_PLACEHOLDER.TITLE, PP_PLACEHOLDER.DATE),   (0,)),
+        ((PP_PLACEHOLDER.DATE,  PP_PLACEHOLDER.OBJECT), (1,)),
+        ((PP_PLACEHOLDER.DATE,  PP_PLACEHOLDER.FOOTER), ()),
     ])
     def cloneable_fixture(
             self, request, placeholders_, placeholder_, placeholder_2_):
@@ -380,9 +380,9 @@ class Describe_LayoutPlaceholder(object):
         return layout_placeholder, _inherited_value_, int_value_
 
     @pytest.fixture(params=[
-        ('tbl',  'body'),
-        ('body', 'body'),
-        ('obj',  'body'),
+        (PP_PLACEHOLDER.TABLE,  PP_PLACEHOLDER.BODY),
+        (PP_PLACEHOLDER.BODY,   PP_PLACEHOLDER.BODY),
+        (PP_PLACEHOLDER.OBJECT, PP_PLACEHOLDER.BODY),
     ])
     def mstr_ph_fixture(
             self, request, ph_type_, _slide_master_, slide_master_,

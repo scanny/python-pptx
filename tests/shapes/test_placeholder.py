@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
+from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import (
     BaseShapeElement, ST_Direction, ST_PlaceholderSize
 )
@@ -118,10 +119,10 @@ class DescribeBasePlaceholder(object):
         return placeholder, expected_sz
 
     @pytest.fixture(params=[
-        ('sp',           None,    1, 'obj'),
-        ('sp',           'title', 0, 'title'),
-        ('pic',          'pic',   6, 'pic'),
-        ('graphicFrame', 'tbl',   9, 'tbl'),
+        ('sp',           None,    1, PP_PLACEHOLDER.OBJECT),
+        ('sp',           'title', 0, PP_PLACEHOLDER.TITLE),
+        ('pic',          'pic',   6, PP_PLACEHOLDER.PICTURE),
+        ('graphicFrame', 'tbl',   9, PP_PLACEHOLDER.TABLE),
     ])
     def type_fixture(self, request):
         tagname, ph_type, idx, expected_ph_type = request.param

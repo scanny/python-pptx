@@ -8,9 +8,9 @@ from __future__ import absolute_import
 
 from warnings import warn
 
+from ..enum.shapes import PP_PLACEHOLDER
 from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..oxml.ns import qn
-from ..oxml.shapes.shared import ST_PlaceholderType
 from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
 from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
 from .slide import BaseSlide
@@ -29,8 +29,8 @@ class SlideLayout(BaseSlide):
         slide.
         """
         latent_ph_types = (
-            ST_PlaceholderType.DT, ST_PlaceholderType.FTR,
-            ST_PlaceholderType.SLD_NUM
+            PP_PLACEHOLDER.DATE, PP_PLACEHOLDER.FOOTER,
+            PP_PLACEHOLDER.SLIDE_NUMBER
         )
         for ph in self.placeholders:
             if ph.ph_type not in latent_ph_types:
@@ -172,20 +172,20 @@ class _LayoutPlaceholder(BasePlaceholder):
         The master placeholder shape this layout placeholder inherits from.
         """
         inheritee_ph_type = {
-            'body':     'body',
-            'chart':    'body',
-            'clipArt':  'body',
-            'ctrTitle': 'title',
-            'dgm':      'body',
-            'dt':       'dt',
-            'ftr':      'ftr',
-            'media':    'body',
-            'obj':      'body',
-            'pic':      'body',
-            'sldNum':   'sldNum',
-            'subTitle': 'body',
-            'tbl':      'body',
-            'title':    'title',
+            PP_PLACEHOLDER.BODY:         PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.CHART:        PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.BITMAP:       PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.CENTER_TITLE: PP_PLACEHOLDER.TITLE,
+            PP_PLACEHOLDER.ORG_CHART:    PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.DATE:         PP_PLACEHOLDER.DATE,
+            PP_PLACEHOLDER.FOOTER:       PP_PLACEHOLDER.FOOTER,
+            PP_PLACEHOLDER.MEDIA_CLIP:   PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.OBJECT:       PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.PICTURE:      PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.SLIDE_NUMBER: PP_PLACEHOLDER.SLIDE_NUMBER,
+            PP_PLACEHOLDER.SUBTITLE:     PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.TABLE:        PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.TITLE:        PP_PLACEHOLDER.TITLE,
         }[self.ph_type]
         slide_master = self._slide_master
         master_placeholder = slide_master.placeholders.get(

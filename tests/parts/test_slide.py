@@ -10,6 +10,7 @@ import pytest
 
 from mock import ANY, call, MagicMock
 
+from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part, _Relationship
@@ -18,7 +19,7 @@ from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
-from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderType
+from pptx.oxml.shapes.shared import ST_Direction
 from pptx.oxml.slide import CT_Slide
 from pptx.package import Package
 from pptx.parts.image import Image as ImagePart
@@ -674,13 +675,13 @@ class Describe_SlideShapeTree(object):
         return shapes
 
     @pytest.fixture(params=[
-        (ST_PlaceholderType.OBJ,   3, ST_Direction.HORZ,
+        (PP_PLACEHOLDER.OBJECT, 3, ST_Direction.HORZ,
          'Content Placeholder 2'),
-        (ST_PlaceholderType.TBL,   4, ST_Direction.HORZ,
+        (PP_PLACEHOLDER.TABLE,  4, ST_Direction.HORZ,
          'Table Placeholder 4'),
-        (ST_PlaceholderType.TBL,   7, ST_Direction.VERT,
+        (PP_PLACEHOLDER.TABLE,  7, ST_Direction.VERT,
          'Vertical Table Placeholder 6'),
-        (ST_PlaceholderType.TITLE, 2, ST_Direction.HORZ,
+        (PP_PLACEHOLDER.TITLE,  2, ST_Direction.HORZ,
          'Title 2'),
     ])
     def ph_name_fixture(self, request, slide_):

@@ -46,7 +46,7 @@ class BasePlaceholder(Shape):
     @property
     def ph_type(self):
         """
-        Placeholder type, e.g. ST_PlaceholderType.CTR_TITLE
+        Placeholder type, e.g. PP_PLACEHOLDER.CENTER_TITLE
         """
         return self._sp.ph_type
 

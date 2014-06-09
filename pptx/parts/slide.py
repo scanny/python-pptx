@@ -8,13 +8,14 @@ from __future__ import absolute_import
 
 from warnings import warn
 
+from ..enum.shapes import PP_PLACEHOLDER
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import Part
 from ..opc.packuri import PackURI
 from ..oxml import parse_xml
 from ..oxml.ns import nsmap, _nsmap, qn
 from ..oxml.shared import Element, SubElement
-from ..oxml.shapes.shared import ST_Direction, ST_PlaceholderType
+from ..oxml.shapes.shared import ST_Direction
 from ..shapes.autoshape import AutoShapeType
 from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
 from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
@@ -42,7 +43,6 @@ class BaseSlide(Part):
         """
         Internal name of this slide.
         """
-        print(self._element.tag)
         cSld = self._element.cSld
         return cSld.get('name', default='')
 
@@ -396,22 +396,22 @@ class _SlideShapeTree(BaseShapeTree):
         """
         basename = {
             # BODY is named 'Notes Placeholder' in a notes master
-            ST_PlaceholderType.BODY:      'Text Placeholder',
-            ST_PlaceholderType.CHART:     'Chart Placeholder',
-            ST_PlaceholderType.CLIP_ART:  'ClipArt Placeholder',
-            ST_PlaceholderType.CTR_TITLE: 'Title',
-            ST_PlaceholderType.DGM:       'SmartArt Placeholder',
-            ST_PlaceholderType.DT:        'Date Placeholder',
-            ST_PlaceholderType.FTR:       'Footer Placeholder',
-            ST_PlaceholderType.HDR:       'Header Placeholder',
-            ST_PlaceholderType.MEDIA:     'Media Placeholder',
-            ST_PlaceholderType.OBJ:       'Content Placeholder',
-            ST_PlaceholderType.PIC:       'Picture Placeholder',
-            ST_PlaceholderType.SLD_IMG:   'Slide Image Placeholder',
-            ST_PlaceholderType.SLD_NUM:   'Slide Number Placeholder',
-            ST_PlaceholderType.SUB_TITLE: 'Subtitle',
-            ST_PlaceholderType.TBL:       'Table Placeholder',
-            ST_PlaceholderType.TITLE:     'Title',
+            PP_PLACEHOLDER.BODY:         'Text Placeholder',
+            PP_PLACEHOLDER.CHART:        'Chart Placeholder',
+            PP_PLACEHOLDER.BITMAP:       'ClipArt Placeholder',
+            PP_PLACEHOLDER.CENTER_TITLE: 'Title',
+            PP_PLACEHOLDER.ORG_CHART:    'SmartArt Placeholder',
+            PP_PLACEHOLDER.DATE:         'Date Placeholder',
+            PP_PLACEHOLDER.FOOTER:       'Footer Placeholder',
+            PP_PLACEHOLDER.HEADER:       'Header Placeholder',
+            PP_PLACEHOLDER.MEDIA_CLIP:   'Media Placeholder',
+            PP_PLACEHOLDER.OBJECT:       'Content Placeholder',
+            PP_PLACEHOLDER.PICTURE:      'Picture Placeholder',
+            # PP_PLACEHOLDER.SLIDE_IMAGE:  'Slide Image Placeholder',
+            PP_PLACEHOLDER.SLIDE_NUMBER: 'Slide Number Placeholder',
+            PP_PLACEHOLDER.SUBTITLE:     'Subtitle',
+            PP_PLACEHOLDER.TABLE:        'Table Placeholder',
+            PP_PLACEHOLDER.TITLE:        'Title',
         }[ph_type]
 
         # prefix rootname with 'Vertical ' if orient is 'vert'
