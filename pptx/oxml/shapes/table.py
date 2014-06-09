@@ -8,13 +8,12 @@ from __future__ import absolute_import
 
 from .. import parse_xml
 from ...enum.text import MSO_VERTICAL_ANCHOR
-from ..ns import nsdecls, qn
-from ..shared import Element
+from ..ns import nsdecls
 from ..simpletypes import ST_Coordinate, ST_Coordinate32, XsdBoolean
 from ..text import CT_TextBody
 from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
-    ZeroOrMore, ZeroOrOne
+    BaseOxmlElement, Choice, OneAndOnlyOne, OptionalAttribute,
+    RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
 )
 
 
@@ -282,120 +281,16 @@ class CT_TableCellProperties(BaseOxmlElement):
     """
     ``<a:tcPr>`` custom element class
     """
+    eg_fillProperties = ZeroOrOneChoice((
+        Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
+        Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
+        successors=('a:headers', 'a:extLst')
+    )
     anchor = OptionalAttribute('anchor', MSO_VERTICAL_ANCHOR)
     marL = OptionalAttribute('marL', ST_Coordinate32)
     marR = OptionalAttribute('marR', ST_Coordinate32)
     marT = OptionalAttribute('marT', ST_Coordinate32)
     marB = OptionalAttribute('marB', ST_Coordinate32)
-
-    @property
-    def fill_element(self):
-        """
-        Return the child representing the EG_FillProperties element group
-        member in this element, or |None| if no such child is present.
-        """
-        return self._first_child_found_in(
-            'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill',
-            'a:pattFill', 'a:grpFill'
-        )
-
-    def get_or_change_to_noFill(self):
-        """
-        Return the <a:noFill> child element, replacing any other fill
-        element if found, e.g. a <a:gradFill> element.
-        """
-        # return existing one if there is one
-        if self.noFill is not None:
-            return self.noFill
-        # get rid of other fill element type if there is one
-        self._remove_if_present(
-            'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill',
-            'a:grpFill'
-        )
-        # add noFill element in right sequence
-        return self._add_noFill()
-
-    def get_or_change_to_solidFill(self):
-        """
-        Return the <a:solidFill> child element, replacing any other fill
-        element if found, e.g. a <a:gradFill> element.
-        """
-        # return existing one if there is one
-        if self.solidFill is not None:
-            return self.solidFill
-        # get rid of other fill element type if there is one
-        self._remove_if_present(
-            'a:noFill', 'a:gradFill', 'a:blipFill', 'a:pattFill', 'a:grpFill'
-        )
-        # add solidFill element in right sequence
-        return self._add_solidFill()
-
-    @property
-    def noFill(self):
-        """
-        The <a:noFill> child element, or None if not present.
-        """
-        return self.find(qn('a:noFill'))
-
-    @property
-    def solidFill(self):
-        """
-        The <a:solidFill> child element, or None if not present.
-        """
-        return self.find(qn('a:solidFill'))
-
-    def _add_noFill(self):
-        """
-        Return a newly added <a:noFill> child element; assume no other fill
-        EG_FillProperties element is present.
-        """
-        noFill = Element('a:noFill')
-        successor = self._first_successor_in('a:headers', 'a:extLst')
-        if successor is not None:
-            successor.addprevious(noFill)
-        else:
-            self.append(noFill)
-        return noFill
-
-    def _add_solidFill(self):
-        """
-        Return a newly added <a:solidFill> child element.
-        """
-        solidFill = Element('a:solidFill')
-        successor = self._first_successor_in('a:headers', 'a:extLst')
-        if successor is not None:
-            successor.addprevious(solidFill)
-        else:
-            self.append(solidFill)
-        return solidFill
-
-    def _first_child_found_in(self, *tagnames):
-        """
-        Return the first child found with tag in *tagnames*, or None if
-        not found.
-        """
-        for tagname in tagnames:
-            child = self.find(qn(tagname))
-            if child is not None:
-                return child
-        return None
-
-    def _first_successor_in(self, *successor_tagnames):
-        """
-        Return the first child with tag in *successor_tagnames*, or None if
-        not found.
-        """
-        for tagname in successor_tagnames:
-            successor = self.find(qn(tagname))
-            if successor is not None:
-                return successor
-        return None
-
-    def _remove_if_present(self, *tagnames):
-        for tagname in tagnames:
-            element = self.find(qn(tagname))
-            if element is not None:
-                self.remove(element)
 
 
 class CT_TableCol(BaseOxmlElement):
@@ -440,8 +335,8 @@ class CT_TableRow(BaseOxmlElement):
 
     def add_tc(self):
         """
-        Return a reference to a newly created <a:gridCol> child element
-        having its ``w`` attribute set to *width*.
+        Return a reference to a newly added minimal valid ``<a:tc>`` child
+        element.
         """
         return self._add_tc()
 

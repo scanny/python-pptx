@@ -43,15 +43,15 @@ class FillFormat(object):
         return self._fill.fore_color
 
     @classmethod
-    def from_fill_parent(cls, eg_fill_properties_parent):
+    def from_fill_parent(cls, eg_fillProperties_parent):
         """
         Return a |FillFormat| instance initialized to the settings contained
-        in *eg_fill_properties_parent*, which must be an element having
-        EG_FillProperties in its schema sequence.
+        in *eg_fillProperties_parent*, which must be an element having
+        EG_FillProperties in its child element sequence in the XML schema.
         """
-        fill_elm = eg_fill_properties_parent.fill_element
+        fill_elm = eg_fillProperties_parent.eg_fillProperties
         fill = _Fill(fill_elm)
-        fill_format = cls(eg_fill_properties_parent, fill)
+        fill_format = cls(eg_fillProperties_parent, fill)
         return fill_format
 
     def solid(self):

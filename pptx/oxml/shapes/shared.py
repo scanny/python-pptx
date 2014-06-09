@@ -271,7 +271,7 @@ class CT_LineProperties(Fillable):
             super(CT_LineProperties, self).__setattr__(name, value)
 
     @property
-    def fill_element(self):
+    def eg_fillProperties(self):
         """
         Return the child representing the EG_FillProperties element group
         member in this element, or |None| if no such child is present.
@@ -396,7 +396,7 @@ class CT_ShapeProperties(Fillable):
         return Emu(cy_str_lst[0])
 
     @property
-    def fill_element(self):
+    def eg_fillProperties(self):
         """
         Return the child representing the EG_FillProperties element group
         member in this element, or |None| if no such child is present.

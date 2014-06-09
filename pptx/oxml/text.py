@@ -198,7 +198,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
         """
         if name in ('b', 'i'):
             return self._get_bool_attr(name)
-        elif name == 'fill_element':
+        elif name == 'eg_fillProperties':
             return self._eg_fill_properties()
         elif name == 'hlinkClick':
             return self.find(qn('a:hlinkClick'))
