@@ -219,6 +219,26 @@ class ST_SlideSizeCoordinate(BaseIntType):
             )
 
 
+class ST_TextFontSize(BaseSimpleType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        return int(str_value)
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return str(value)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int(value)
+        if value < 100 or value > 400000:
+            raise ValueError(
+                "value must be in range 100 -> 400000 (1-4000 points), got"
+                " %d" % value
+            )
+
+
 class ST_UniversalMeasure(BaseSimpleType):
 
     @classmethod

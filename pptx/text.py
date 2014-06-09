@@ -11,7 +11,7 @@ from .opc.constants import RELATIONSHIP_TYPE as RT
 from .oxml.shared import Element, get_or_add
 from .oxml.ns import _nsmap
 from .shapes import Subshape
-from .util import Emu, lazyproperty, to_unicode
+from .util import Centipoints, Emu, lazyproperty, to_unicode
 
 
 class TextFrame(Subshape):
@@ -240,7 +240,7 @@ class _Font(object):
     @name.setter
     def name(self, value):
         if value is None:
-            self._rPr.remove_latin()
+            self._rPr._remove_latin()
         else:
             latin = self._rPr.get_or_add_latin()
             latin.typeface = value
@@ -260,11 +260,15 @@ class _Font(object):
             >> font.size.pt
             24.0
         """
-        return self._rPr.sz
+        sz = self._rPr.sz
+        if sz is None:
+            return None
+        return Centipoints(sz)
 
     @size.setter
     def size(self, emu):
-        self._rPr.sz = Emu(emu)
+        sz = Emu(emu).centipoints
+        self._rPr.sz = sz
 
 
 class _Hyperlink(Subshape):
@@ -305,7 +309,7 @@ class _Hyperlink(Subshape):
     def _remove_hlinkClick(self):
         assert self._hlinkClick is not None
         self.part.drop_rel(self._hlinkClick.rId)
-        self._rPr.hlinkClick = None
+        self._rPr._remove_hlinkClick()
 
 
 class _Paragraph(Subshape):

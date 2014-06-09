@@ -8,10 +8,11 @@ from __future__ import absolute_import
 
 from . import parse_xml
 from ..enum.text import MSO_AUTO_SIZE
-from .ns import nsdecls, nsmap, qn
+from .ns import nsdecls, qn
 from .shared import Element, SubElement
-from .simpletypes import ST_Coordinate32, XsdString
-from ..util import Centipoints
+from .simpletypes import (
+    ST_Coordinate32, ST_TextFontSize, XsdBoolean, XsdString
+)
 from .xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
     ZeroOrOne, ZeroOrOneChoice
@@ -130,242 +131,34 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     elements. 'rPr' is short for 'run properties', and it corresponds to the
     _Font proxy class.
     """
-    def __getattr__(self, name):
-        """
-        Override ``__getattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
-        """
-        if name in ('b', 'i'):
-            return self._get_bool_attr(name)
-        elif name == 'eg_fillProperties':
-            return self._eg_fill_properties()
-        elif name == 'hlinkClick':
-            return self.find(qn('a:hlinkClick'))
-        else:
-            return super(CT_TextCharacterProperties, self).__getattr__(name)
+    eg_fillProperties = ZeroOrOneChoice((
+        Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
+        Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
+        successors=(
+            'a:effectLst', 'a:effectDag', 'a:highlight', 'a:uLnTx', 'a:uLn',
+            'a:uFillTx', 'a:uFill', 'a:latin', 'a:ea', 'a:cs', 'a:sym',
+            'a:hlinkClick', 'a:hlinkMouseOver', 'a:rtl', 'a:extLst'
+        )
+    )
+    latin = ZeroOrOne('a:latin', successors=(
+        'a:ea', 'a:cs', 'a:sym', 'a:hlinkClick', 'a:hlinkMouseOver', 'a:rtl',
+        'a:extLst'
+    ))
+    hlinkClick = ZeroOrOne('a:hlinkClick', successors=(
+        'a:hlinkMouseOver', 'a:rtl', 'a:extLst'
+    ))
 
-    def __setattr__(self, name, value):
-        """
-        Override ``__setattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
-        """
-        if name in ('b', 'i'):
-            self._set_bool_attr(name, value)
-        elif name == 'hlinkClick':
-            self._set_hlinkClick(value)
-        elif name == 'sz':
-            emu_str = str(value.centipoints)
-            self.set(name, emu_str)
-        else:
-            super(CT_TextCharacterProperties, self).__setattr__(name, value)
+    sz = OptionalAttribute('sz', ST_TextFontSize)
+    b = OptionalAttribute('b', XsdBoolean)
+    i = OptionalAttribute('i', XsdBoolean)
 
     def add_hlinkClick(self, rId):
         """
         Add an <a:hlinkClick> child element with r:id attribute set to *rId*.
         """
-        assert self.find(qn('a:hlinkClick')) is None
-
-        hlinkClick = Element('a:hlinkClick', nsmap('a', 'r'))
+        hlinkClick = self.get_or_add_hlinkClick()
         hlinkClick.set(qn('r:id'), rId)
-
-        # find right insertion spot, will go away once xmlchemy comes in
-        if self.find(qn('a:hlinkMouseOver')):
-            successor = self.find(qn('a:hlinkMouseOver'))
-            successor.addprevious(hlinkClick)
-        elif self.find(qn('a:rtl')):
-            successor = self.find(qn('a:rtl'))
-            successor.addprevious(hlinkClick)
-        elif self.find(qn('a:extLst')):
-            successor = self.find(qn('a:extLst'))
-            successor.addprevious(hlinkClick)
-        else:
-            self.append(hlinkClick)
-
         return hlinkClick
-
-    def get_or_add_latin(self):
-        """
-        Return the <a:latin> child element, a newly added one if not present.
-        """
-        latin = self.latin
-        if latin is None:
-            latin = self._add_latin()
-        return latin
-
-    def get_or_change_to_noFill(self):
-        """
-        Return the <a:noFill> child element, replacing any other fill
-        element if found, e.g. a <a:gradFill> element.
-        """
-        # return existing one if there is one
-        if self.noFill is not None:
-            return self.noFill
-        # get rid of other fill element type if there is one
-        self._remove_if_present(
-            'a:blipFill', 'a:gradFill', 'a:grpFill', 'a:pattFill',
-            'a:solidFill'
-        )
-        # add noFill element in right sequence
-        return self._add_noFill()
-
-    def get_or_change_to_solidFill(self):
-        """
-        Return the <a:solidFill> child element, replacing any other fill
-        element if found, e.g. a <a:gradFill> element.
-        """
-        # return existing one if there is one
-        if self.solidFill is not None:
-            return self.solidFill
-        # get rid of other fill element type if there is one
-        self._remove_if_present(
-            'a:blipFill', 'a:gradFill', 'a:grpFill', 'a:noFill', 'a:pattFill'
-        )
-        # add solidFill element in right sequence
-        return self._add_solidFill()
-
-    @property
-    def latin(self):
-        """
-        The <a:latin> child element, or None if not present.
-        """
-        return self.find(qn('a:latin'))
-
-    @property
-    def noFill(self):
-        """
-        The <a:noFill> child element, or None if not present.
-        """
-        return self.find(qn('a:noFill'))
-
-    def remove_latin(self):
-        """
-        Remove the <a:latin> child element if it exists.
-        """
-        if self.latin is not None:
-            self.remove(self.latin)
-
-    @property
-    def solidFill(self):
-        """
-        The <a:solidFill> child element, or None if not present.
-        """
-        return self.find(qn('a:solidFill'))
-
-    @property
-    def sz(self):
-        """
-        The value of the ``sz`` attribute, or None if not present.
-        """
-        val = self.get('sz')
-        if val is None:
-            return None
-        return Centipoints(int(val))
-
-    def _add_latin(self):
-        """
-        Return a newly added <a:latin> child element; assume one is not
-        already present.
-        """
-        latin = Element('a:latin')
-        successor = self._first_child_found_in(
-            'a:ea', 'a:cs', 'a:sym', 'a:hlinkClick', 'a:hlinkMouseOver',
-            'a:rtl', 'a:extLst'
-        )
-        if successor is not None:
-            successor.addprevious(latin)
-        else:
-            self.append(latin)
-        return latin
-
-    def _add_noFill(self):
-        """
-        Return a newly added <a:noFill> child element, assuming no other fill
-        EG_FillProperties element is present.
-        """
-        noFill = Element('a:noFill')
-        ln = self.find(qn('a:ln'))
-        if ln is not None:
-            self.insert(1, noFill)
-        else:
-            self.insert(0, noFill)
-        return noFill
-
-    def _add_solidFill(self):
-        """
-        Return a newly added <a:solidFill> child element.
-        """
-        solidFill = Element('a:solidFill')
-        ln = self.find(qn('a:ln'))
-        if ln is not None:
-            self.insert(1, solidFill)
-        else:
-            self.insert(0, solidFill)
-        return solidFill
-
-    def _eg_fill_properties(self):
-        """
-        Return the child representing the EG_FillProperties element group
-        member in this element, or |None| if no such child is present.
-        """
-        return self._first_child_found_in(
-            'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill',
-            'a:pattFill', 'a:grpFill'
-        )
-
-    def _first_child_found_in(self, *tagnames):
-        """
-        Return the first child found with tag in *tagnames*, or None if
-        not found.
-        """
-        for tagname in tagnames:
-            child = self.find(qn(tagname))
-            if child is not None:
-                return child
-        return None
-
-    def _get_bool_attr(self, name):
-        """
-        True if *name* attribute is a truthy value, False if a falsey value,
-        and None if no *name* attribute is present.
-        """
-        attr_str = self.get(name)
-        if attr_str is None:
-            return None
-        if attr_str in ('true', '1'):
-            return True
-        return False
-
-    def _remove_if_present(self, *tagnames):
-        for tagname in tagnames:
-            element = self.find(qn(tagname))
-            if element is not None:
-                self.remove(element)
-
-    def _set_bool_attr(self, name, value):
-        """
-        Set boolean attribute of this element having *name* to boolean value
-        of *value*.
-        """
-        if value is None:
-            if name in self.attrib:
-                del self.attrib[name]
-        elif bool(value):
-            self.set(name, '1')
-        else:
-            self.set(name, '0')
-
-    def _set_hlinkClick(self, value):
-        """
-        For *value* is None, remove the ``<a:hlinkClick>`` child. For all
-        other values, raise |ValueError|.
-        """
-        if value is not None:
-            tmpl = "only None can be assigned to optional element, got '%s'"
-            raise ValueError(tmpl % value)
-        # value is None ----------------
-        hlinkClick = self.find(qn('a:hlinkClick'))
-        if hlinkClick is not None:
-            self.remove(hlinkClick)
 
 
 class CT_TextFont(BaseOxmlElement):
@@ -392,7 +185,6 @@ class CT_TextParagraph(BaseOxmlElement):
     """
     <a:p> custom element class
     """
-
     pPr = ZeroOrOne('a:pPr', successors=(
         'a:r', 'a:br', 'a:fld', 'a:endParaRPr'
     ))
@@ -426,7 +218,6 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     """
     <a:pPr> custom element class
     """
-
     defRPr = ZeroOrOne('a:defRPr', successors=('a:extLst',))
 
     @property
