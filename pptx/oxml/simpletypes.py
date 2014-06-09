@@ -219,15 +219,7 @@ class ST_SlideSizeCoordinate(BaseIntType):
             )
 
 
-class ST_TextFontSize(BaseSimpleType):
-
-    @classmethod
-    def convert_from_xml(cls, str_value):
-        return int(str_value)
-
-    @classmethod
-    def convert_to_xml(cls, value):
-        return str(value)
+class ST_TextFontSize(BaseIntType):
 
     @classmethod
     def validate(cls, value):
@@ -237,6 +229,10 @@ class ST_TextFontSize(BaseSimpleType):
                 "value must be in range 100 -> 400000 (1-4000 points), got"
                 " %d" % value
             )
+
+
+class ST_TextTypeface(XsdString):
+    pass
 
 
 class ST_UniversalMeasure(BaseSimpleType):

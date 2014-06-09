@@ -11,11 +11,11 @@ from ..enum.text import MSO_AUTO_SIZE
 from .ns import nsdecls, qn
 from .shared import Element, SubElement
 from .simpletypes import (
-    ST_Coordinate32, ST_TextFontSize, XsdBoolean, XsdString
+    ST_Coordinate32, ST_TextFontSize, ST_TextTypeface, XsdBoolean, XsdString
 )
 from .xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
-    ZeroOrOne, ZeroOrOneChoice
+    RequiredAttribute, ZeroOrOne, ZeroOrOneChoice
 )
 
 
@@ -166,19 +166,7 @@ class CT_TextFont(BaseOxmlElement):
     Custom element class for <a:latin>, <a:ea>, <a:cs>, and <a:sym> child
     elements of CT_TextCharacterProperties, e.g. <a:rPr>.
     """
-    def __setattr__(self, name, value):
-        if name == 'typeface':
-            self.set('typeface', value)
-        else:
-            super(CT_TextFont, self).__setattr__(name, value)
-
-    @property
-    def typeface(self):
-        """
-        Typeface name to use for characters governed by this element, e.g.
-        Latin characters if it is a <a:latin> element.
-        """
-        return self.get('typeface')
+    typeface = RequiredAttribute('typeface', ST_TextTypeface)
 
 
 class CT_TextParagraph(BaseOxmlElement):
