@@ -28,7 +28,6 @@ class CT_RegularTextRun(BaseOxmlElement):
     """
     Custom element class for <a:r> elements.
     """
-
     rPr = ZeroOrOne('a:rPr', successors=('a:t',))
     t = OneAndOnlyOne('a:t')
 
@@ -37,11 +36,8 @@ class CT_TextBody(BaseOxmlElement):
     """
     <p:txBody> custom element class
     """
+    bodyPr = OneAndOnlyOne('a:bodyPr')
     p = OneOrMore('a:p')
-
-    @property
-    def bodyPr(self):
-        return self.find(qn('a:bodyPr'))
 
     @classmethod
     def new(cls):
