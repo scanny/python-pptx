@@ -13,7 +13,8 @@ from .shared import Element, SubElement
 from .simpletypes import ST_Coordinate32, XsdString
 from ..util import Centipoints
 from .xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OneOrMore, OptionalAttribute, ZeroOrOne
+    BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
+    ZeroOrOne, ZeroOrOneChoice
 )
 
 
@@ -82,6 +83,11 @@ class CT_TextBodyProperties(BaseOxmlElement):
     """
     <a:bodyPr> custom element class
     """
+    eg_textAutoFit = ZeroOrOneChoice((
+        Choice('a:noAutofit'), Choice('a:normAutofit'),
+        Choice('a:spAutoFit')),
+        successors=('a:scene3d', 'a:sp3d', 'a:flatTx', 'a:extLst')
+    )
     lIns = OptionalAttribute('lIns', ST_Coordinate32)
     tIns = OptionalAttribute('tIns', ST_Coordinate32)
     rIns = OptionalAttribute('rIns', ST_Coordinate32)
@@ -90,7 +96,8 @@ class CT_TextBodyProperties(BaseOxmlElement):
     @property
     def autofit(self):
         """
-        The autofit setting for the textframe
+        The autofit setting for the textframe, a member of the
+        ``MSO_AUTO_SIZE`` enumeration.
         """
         if self.noAutofit is not None:
             return MSO_AUTO_SIZE.NONE
@@ -102,81 +109,19 @@ class CT_TextBodyProperties(BaseOxmlElement):
 
     @autofit.setter
     def autofit(self, value):
-        self._remove_if_present(
-            'a:noAutofit', 'a:normAutofit', 'a:spAutoFit'
-        )
+        if value is not None and not MSO_AUTO_SIZE.validate(value):
+            raise ValueError(
+                'only None or a member of the MSO_AUTO_SIZE enumeration can '
+                'be assigned to CT_TextBodyProperties.autofit, got %s'
+                % value
+            )
+        self._remove_eg_textAutoFit()
         if value == MSO_AUTO_SIZE.NONE:
             self._add_noAutofit()
         elif value == MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE:
             self._add_normAutofit()
         elif value == MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT:
             self._add_spAutoFit()
-
-    @property
-    def noAutofit(self):
-        """
-        The <a:noAutofit> child element, or None if not present.
-        """
-        return self.find(qn('a:noAutofit'))
-
-    @property
-    def normAutofit(self):
-        """
-        The <a:normAutofit> child element, or None if not present.
-        """
-        return self.find(qn('a:normAutofit'))
-
-    @property
-    def spAutoFit(self):
-        """
-        The <a:spAutoFit> child element, or None if not present.
-        """
-        return self.find(qn('a:spAutoFit'))
-
-    def _add_noAutofit(self):
-        noAutofit = Element('a:noAutofit')
-        self._insert_autofit(noAutofit)
-        return noAutofit
-
-    def _add_normAutofit(self):
-        normAutofit = Element('a:normAutofit')
-        self._insert_autofit(normAutofit)
-        return normAutofit
-
-    def _add_spAutoFit(self):
-        spAutoFit = Element('a:spAutoFit')
-        self._insert_autofit(spAutoFit)
-        return spAutoFit
-
-    def _first_child_found_in(self, *tagnames):
-        """
-        Return the first child found with tag in *tagnames*, or None if
-        not found.
-        """
-        for tagname in tagnames:
-            child = self.find(qn(tagname))
-            if child is not None:
-                return child
-        return None
-
-    def _insert_autofit(self, autofit_elm):
-        self._insert_element_before(
-            autofit_elm, 'a:scene3d', 'a:sp3d', 'a:flatTx', 'a:extLst'
-        )
-
-    def _insert_element_before(self, elm, *tagnames):
-        successor = self._first_child_found_in(*tagnames)
-        if successor is not None:
-            successor.addprevious(elm)
-        else:
-            self.append(elm)
-        return elm
-
-    def _remove_if_present(self, *tagnames):
-        for tagname in tagnames:
-            element = self.find(qn(tagname))
-            if element is not None:
-                self.remove(element)
 
 
 class CT_TextCharacterProperties(BaseOxmlElement):
