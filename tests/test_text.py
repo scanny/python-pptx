@@ -641,7 +641,7 @@ class Describe_Paragraph(object):
 
     def it_can_change_its_alignment_setting(self, paragraph):
         paragraph.alignment = PP_ALIGN.LEFT
-        assert paragraph._pPr.algn == 'l'
+        assert paragraph._pPr.algn == PP_ALIGN.LEFT
         paragraph.alignment = None
         assert paragraph._pPr.algn is None
 

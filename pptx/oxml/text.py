@@ -7,7 +7,7 @@ lxml custom element classes for text-related XML elements.
 from __future__ import absolute_import
 
 from . import parse_xml
-from ..enum.text import MSO_AUTO_SIZE
+from ..enum.text import MSO_AUTO_SIZE, PP_PARAGRAPH_ALIGNMENT
 from .ns import nsdecls, qn
 from .simpletypes import (
     ST_Coordinate32, ST_TextFontSize, ST_TextTypeface, XsdBoolean, XsdString
@@ -211,20 +211,4 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     <a:pPr> custom element class
     """
     defRPr = ZeroOrOne('a:defRPr', successors=('a:extLst',))
-
-    @property
-    def algn(self):
-        """
-        Paragraph horizontal alignment value, like ``TAT.CENTER``. Value of
-        'algn' attribute on <a:pPr> child element. None if no 'algn'
-        attribute is present.
-        """
-        return self.get('algn')
-
-    @algn.setter
-    def algn(self, value):
-        if value is None:
-            if 'algn' in self.attrib:
-                del self.attrib['algn']
-            return
-        self.set('algn', value)
+    algn = OptionalAttribute('algn', PP_PARAGRAPH_ALIGNMENT)

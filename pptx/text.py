@@ -6,7 +6,7 @@ Text-related objects such as TextFrame and Paragraph.
 
 from .dml.fill import FillFormat
 from .enum.dml import MSO_FILL
-from .enum.text import MSO_ANCHOR, PP_ALIGN
+from .enum.text import MSO_ANCHOR
 from .opc.constants import RELATIONSHIP_TYPE as RT
 from .oxml.shared import Element, get_or_add
 from .oxml.ns import _nsmap
@@ -335,12 +335,11 @@ class _Paragraph(Subshape):
         paragraph has no alignment setting and its effective value is
         inherited from a higher-level object.
         """
-        return PP_ALIGN.from_xml(self._pPr.algn)
+        return self._pPr.algn
 
     @alignment.setter
     def alignment(self, alignment):
-        algn = PP_ALIGN.to_xml(alignment)
-        self._pPr.algn = algn
+        self._pPr.algn = alignment
 
     def clear(self):
         """

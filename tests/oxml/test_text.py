@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.enum.text import PP_ALIGN
 from pptx.oxml.ns import qn
 from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextBody, CT_TextBodyProperties,
@@ -378,13 +379,13 @@ class DescribeCT_TextParagraphProperties(object):
         assert isinstance(pPr, CT_TextParagraphProperties)
 
     def it_knows_the_algn_value(self, pPr_with_algn):
-        assert pPr_with_algn.algn == 'foobar'
+        assert pPr_with_algn.algn == PP_ALIGN.THAI_DISTRIBUTE
 
     def it_maps_missing_algn_attribute_to_None(self, pPr):
         assert pPr.algn is None
 
     def it_can_set_the_algn_value(self, pPr, pPr_with_algn_xml, pPr_xml):
-        pPr.algn = 'foobar'
+        pPr.algn = PP_ALIGN.THAI_DISTRIBUTE
         assert actual_xml(pPr) == pPr_with_algn_xml
         pPr.algn = None
         assert actual_xml(pPr) == pPr_xml
@@ -428,7 +429,7 @@ class DescribeCT_TextParagraphProperties(object):
 
     @pytest.fixture
     def pPr_with_algn_bldr(self):
-        return a_pPr().with_nsdecls().with_algn('foobar')
+        return a_pPr().with_nsdecls().with_algn('thaiDist')
 
     @pytest.fixture
     def pPr_with_algn_xml(self, pPr_with_algn_bldr):
