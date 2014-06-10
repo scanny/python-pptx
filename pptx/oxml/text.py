@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from . import parse_xml
 from ..enum.text import MSO_AUTO_SIZE
 from .ns import nsdecls, qn
-from .shared import Element, SubElement
 from .simpletypes import (
     ST_Coordinate32, ST_TextFontSize, ST_TextTypeface, XsdBoolean, XsdString
 )
@@ -182,24 +181,29 @@ class CT_TextParagraph(BaseOxmlElement):
         """
         Return a newly appended <a:r> element.
         """
-        r = Element('a:r')
-        SubElement(r, 'a:t')
-        # work out where to insert it, ahead of a:endParaRPr if there is one
-        try:
-            self.endParaRPr.addprevious(r)
-        except AttributeError:
-            self.append(r)
-        return r
+        return self._add_r()
 
     def remove_child_r_elms(self):
         """
         Return self after removing all <a:r> child elements.
         """
-        children = self.getchildren()
-        for child in children:
-            if child.tag == qn('a:r'):
-                self.remove(child)
+        r_lst = self.findall(qn('a:r'))
+        for r in r_lst:
+            self.remove(r)
         return self
+
+    def _add_r(self):
+        r = self._new_r()
+        self._insert_r(r)
+        return r
+
+    def _insert_r(self, r):
+        self.insert_element_before(r, 'a:endParaRPr')
+
+    def _new_r(self):
+        r_xml = '<a:r %s><a:t/></a:r>' % nsdecls('a')
+        r = parse_xml(r_xml)
+        return r
 
 
 class CT_TextParagraphProperties(BaseOxmlElement):
