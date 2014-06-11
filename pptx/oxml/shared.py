@@ -12,15 +12,6 @@ import re
 from lxml import etree
 
 
-def serialize_for_reading(element):
-    """
-    Serialize *element* to human-readable XML suitable for tests. No XML
-    declaration.
-    """
-    xml = etree.tostring(element, encoding='unicode', pretty_print=True)
-    return XmlString(xml)
-
-
 def serialize_part_xml(part_elm):
     xml = etree.tostring(part_elm, encoding='UTF-8', standalone=True)
     return xml
