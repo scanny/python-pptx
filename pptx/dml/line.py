@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from ..enum.dml import MSO_FILL
 from .fill import FillFormat
-from ..util import lazyproperty
+from ..util import Emu, lazyproperty
 
 
 class LineFormat(object):
@@ -54,7 +54,7 @@ class LineFormat(object):
         """
         ln = self._ln
         if ln is None:
-            return None
+            return Emu(0)
         return ln.w
 
     @width.setter

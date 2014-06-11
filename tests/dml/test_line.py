@@ -59,9 +59,9 @@ class DescribeLineFormat(object):
     def fill_fixture(self, line, FillFormat_, ln_, fill_):
         return line, FillFormat_, ln_, fill_
 
-    @pytest.fixture(params=[None, 12700])
+    @pytest.fixture(params=[(None, 0), (12700, 12700)])
     def width_get_fixture(self, request, shape_):
-        w = expected_line_width = request.param
+        w, expected_line_width = request.param
         shape_.ln = self.ln_bldr(w).element
         line = LineFormat(shape_)
         return line, expected_line_width

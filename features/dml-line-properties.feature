@@ -32,7 +32,7 @@ Feature: Get and change line properties
 
     Examples: Line widths
       | line width  | reported line width |
-      | no explicit | None                |
+      | no explicit | 0                   |
       | 1 pt        | 1 pt                |
 
 
@@ -66,8 +66,8 @@ Feature: Get and change line properties
 
     Examples: Line widths
       | line width  | new line width | reported line width |
-      | no explicit | None           | None                |
+      | no explicit | None           | 0                   |
       | no explicit | 1 pt           | 1 pt                |
-      | 1 pt        | None           | None                |
+      | 1 pt        | None           | 0                   |
       | 1 pt        | 1 pt           | 1 pt                |
       | 1 pt        | 2.34 pt        | 2.34 pt             |

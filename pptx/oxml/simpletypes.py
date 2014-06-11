@@ -102,6 +102,10 @@ class XsdBoolean(BaseSimpleType):
             )
 
 
+class XsdInt(BaseIntType):
+    pass
+
+
 class XsdString(BaseStringType):
     pass
 
@@ -178,6 +182,22 @@ class ST_HexColorRGB(BaseStringType):
             raise ValueError(
                 "RGB string must be valid hex string, got '%s'"
                 % str_value
+            )
+
+
+class ST_LineWidth(XsdInt):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        return Emu(int(str_value))
+
+    @classmethod
+    def validate(cls, value):
+        super(ST_LineWidth, cls).validate(value)
+        if value < 0 or value > 20116800:
+            raise ValueError(
+                "value must be in range 0-20116800 inclusive (0-1584 points)"
+                ", got %d" % value
             )
 
 

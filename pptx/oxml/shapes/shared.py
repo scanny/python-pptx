@@ -10,10 +10,13 @@ from ..dml.fill import EG_FillProperties
 from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import _nsmap, qn
 from ..shared import ChildTagnames, Element
-from ..simpletypes import ST_DrawingElementId, XsdString, XsdUnsignedInt
+from ..simpletypes import (
+    ST_DrawingElementId, ST_LineWidth, XsdString, XsdUnsignedInt
+)
 from ...util import Emu
 from ..xmlchemy import (
-    BaseOxmlElement, Choice, RequiredAttribute, ZeroOrOne, ZeroOrOneChoice
+    BaseOxmlElement, Choice, OptionalAttribute, RequiredAttribute, ZeroOrOne,
+    ZeroOrOneChoice
 )
 
 
@@ -207,35 +210,14 @@ class CT_LineProperties(BaseOxmlElement):
             'a:headEnd', 'a:tailEnd', 'a:extLst'
         )
     )
+    w = OptionalAttribute('w', ST_LineWidth, default=Emu(0))
 
     @property
     def eg_fillProperties(self):
+        """
+        Required to fulfill the interface used by dml.fill.
+        """
         return self.eg_lineFillProperties
-
-    def __setattr__(self, name, value):
-        """
-        Override ``__setattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
-        """
-        if name == 'w':
-            if value is None:
-                if name in self.attrib:
-                    del self.attrib[name]
-            else:
-                val = str(value)
-                self.set(name, val)
-        else:
-            super(CT_LineProperties, self).__setattr__(name, value)
-
-    @property
-    def w(self):
-        """
-        Integer value of optional ``w`` attribute, or |None| if not present
-        """
-        w_str = self.get('w')
-        if w_str is None:
-            return None
-        return Emu(int(w_str))
 
 
 class CT_NonVisualDrawingProps(BaseOxmlElement):
