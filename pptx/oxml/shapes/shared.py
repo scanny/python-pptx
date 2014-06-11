@@ -8,15 +8,14 @@ from __future__ import absolute_import
 
 from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import _nsmap, qn
-from ..shared import Element
 from ..simpletypes import (
     ST_Coordinate, ST_DrawingElementId, ST_LineWidth, ST_PositiveCoordinate,
     XsdString, XsdUnsignedInt
 )
 from ...util import Emu
 from ..xmlchemy import (
-    BaseOxmlElement, Choice, OptionalAttribute, RequiredAttribute, ZeroOrOne,
-    ZeroOrOneChoice
+    BaseOxmlElement, Choice, OptionalAttribute, OxmlElement,
+    RequiredAttribute, ZeroOrOne, ZeroOrOneChoice
 )
 
 
@@ -367,81 +366,74 @@ class CT_Transform2D(BaseOxmlElement):
     """
     Custom element class for <a:xfrm> element.
     """
-    def __getattr__(self, name):
-        # common code for position and size attributes
-        if name in ('x', 'y'):
-            off = self.off
-            if off is None:
-                return None
-            return getattr(off, name)
-        elif name in ('cx', 'cy'):
-            ext = self.ext
-            if ext is None:
-                return None
-            return getattr(ext, name)
-        else:
-            return super(CT_Transform2D, self).__getattr__(name)
-
-    def __setattr__(self, name, value):
-        """
-        Override ``__setattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
-        """
-        if name in ('x', 'y'):
-            off = self.get_or_add_off()
-            setattr(off, name, value)
-        elif name in ('cx', 'cy'):
-            ext = self.get_or_add_ext()
-            setattr(ext, name, value)
-        else:
-            super(CT_Transform2D, self).__setattr__(name, value)
+    off = ZeroOrOne('a:off', successors=('a:ext',))
+    ext = ZeroOrOne('a:ext', successors=())
 
     @property
-    def ext(self):
-        """
-        The <a:ext> child element, or None if not present.
-        """
-        return self.find(qn('a:ext'))
-
-    def get_or_add_ext(self):
-        """
-        Return the <a:ext> child element, newly added if not already
-        present.
-        """
-        ext = self.ext
-        if ext is None:
-            ext = Element('a:ext')
-            ext.set('cx', '0')
-            ext.set('cy', '0')
-            self.append(ext)
-        return ext
-
-    def get_or_add_off(self):
-        """
-        Return the <a:off> child element, newly added if not already
-        present.
-        """
+    def x(self):
         off = self.off
         if off is None:
-            off = Element('a:off')
-            off.set('x', '0')
-            off.set('y', '0')
-            self.insert(0, off)
-        return off
+            return None
+        return off.x
+
+    @x.setter
+    def x(self, value):
+        off = self.get_or_add_off()
+        off.x = value
 
     @property
-    def off(self):
-        """
-        The <a:off> child element, or None if not present.
-        """
-        return self.find(qn('a:off'))
+    def y(self):
+        off = self.off
+        if off is None:
+            return None
+        return off.y
+
+    @y.setter
+    def y(self, value):
+        off = self.get_or_add_off()
+        off.y = value
+
+    @property
+    def cx(self):
+        ext = self.ext
+        if ext is None:
+            return None
+        return ext.cx
+
+    @cx.setter
+    def cx(self, value):
+        ext = self.get_or_add_ext()
+        ext.cx = value
+
+    @property
+    def cy(self):
+        ext = self.ext
+        if ext is None:
+            return None
+        return ext.cy
+
+    @cy.setter
+    def cy(self, value):
+        ext = self.get_or_add_ext()
+        ext.cy = value
+
+    def _new_ext(self):
+        ext = OxmlElement('a:ext')
+        ext.cx = 0
+        ext.cy = 0
+        return ext
+
+    def _new_off(self):
+        off = OxmlElement('a:off')
+        off.x = 0
+        off.y = 0
+        return off
 
 
 class ST_Direction(object):
     """
     Valid values for <p:ph orient=""> attribute
     """
-
     HORZ = 'horz'
     VERT = 'vert'
 
