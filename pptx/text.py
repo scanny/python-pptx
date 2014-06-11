@@ -8,7 +8,7 @@ from .dml.fill import FillFormat
 from .enum.dml import MSO_FILL
 from .enum.text import MSO_ANCHOR
 from .opc.constants import RELATIONSHIP_TYPE as RT
-from .oxml.shared import Element, get_or_add
+from .oxml.shared import get_or_add
 from .oxml.ns import _nsmap
 from .shapes import Subshape
 from .util import Centipoints, Emu, lazyproperty, to_unicode
@@ -29,9 +29,7 @@ class TextFrame(Subshape):
         Return new |_Paragraph| instance appended to the sequence of
         paragraphs contained in this text frame.
         """
-        # <a:p> elements are last in txBody, so can simply append new one
-        p = Element('a:p')
-        self._txBody.append(p)
+        p = self._txBody.add_p()
         return _Paragraph(p, self)
 
     @property

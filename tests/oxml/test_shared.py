@@ -11,9 +11,7 @@ import pytest
 from lxml import etree
 
 from pptx.oxml import oxml_parser, parse_xml
-from pptx.oxml.shared import (
-    Element, get_or_add, serialize_part_xml, SubElement
-)
+from pptx.oxml.shared import get_or_add, serialize_part_xml, SubElement
 from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.text import CT_TextBody
 
@@ -45,17 +43,6 @@ from pptx.oxml.text import CT_TextBody
 #             )
 
 #         return ElementClass, tagname, tagnames_after
-
-
-class DescribeElement(object):
-
-    def it_returns_an_element_with_the_specified_tag(self, nsptag_str):
-        elm = Element(nsptag_str)
-        assert elm.tag == qn(nsptag_str)
-
-    def it_returns_custom_element_class_if_one_is_defined(self, nsptag_str):
-        elm = Element(nsptag_str)
-        assert type(elm) is CT_TextBody
 
 
 class DescribeGetOrAddChild(object):

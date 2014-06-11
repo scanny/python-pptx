@@ -169,7 +169,7 @@ class DescribeSlide(object):
 
     def it_knows_the_minimal_element_xml_for_a_slide(self, slide):
         path = absjoin(test_file_dir, 'minimal_slide.xml')
-        sld = slide._minimal_element()
+        sld = CT_Slide.new()
         with open(path, 'r') as f:
             expected_xml = f.read()
         assert sld.xml == expected_xml
@@ -195,7 +195,7 @@ class DescribeSlide(object):
     @pytest.fixture
     def new_fixture(
             self, slide_layout_, partname_, package_, Slide_init_,
-            _minimal_element_, slide_elm_, shapes_prop_, shapes_,
+            CT_Slide_, slide_elm_, shapes_prop_, shapes_,
             relate_to_):
         return (
             slide_layout_, partname_, package_, Slide_init_, slide_elm_,
@@ -205,10 +205,10 @@ class DescribeSlide(object):
     # fixture components -----------------------------------
 
     @pytest.fixture
-    def _minimal_element_(self, request, slide_elm_):
-        return method_mock(
-            request, Slide, '_minimal_element', return_value=slide_elm_
-        )
+    def CT_Slide_(self, request, slide_elm_):
+        CT_Slide_ = class_mock(request, 'pptx.parts.slide.CT_Slide')
+        CT_Slide_.new.return_value = slide_elm_
+        return CT_Slide_
 
     @pytest.fixture
     def package_(self, request):

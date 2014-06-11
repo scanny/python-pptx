@@ -13,9 +13,9 @@ from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import Part
 from ..opc.packuri import PackURI
 from ..oxml import parse_xml
-from ..oxml.ns import nsmap, _nsmap, qn
-from ..oxml.shared import Element, SubElement
+from ..oxml.ns import _nsmap, qn
 from ..oxml.shapes.shared import ST_Direction
+from ..oxml.slide import CT_Slide
 from ..shapes.autoshape import AutoShapeType
 from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
 from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
@@ -87,7 +87,7 @@ class Slide(BaseSlide):
         Return a new slide based on *slidelayout* and having *partname*,
         created from scratch.
         """
-        slide_elm = cls._minimal_element()
+        slide_elm = CT_Slide.new()
         slide = cls(partname, CT.PML_SLIDE, slide_elm, package)
         slide.shapes.clone_layout_placeholders(slidelayout)
         slide.relate_to(slidelayout, RT.SLIDE_LAYOUT)
@@ -127,26 +127,6 @@ class Slide(BaseSlide):
         )
         warn(msg, UserWarning, stacklevel=2)
         return self.slide_layout
-
-    @staticmethod
-    def _minimal_element():
-        """
-        Return element containing the minimal XML for a slide, based on what
-        is required by the XMLSchema.
-        """
-        sld = Element('p:sld', nsmap('a', 'p', 'r'))
-        SubElement(sld, 'p:cSld')
-        SubElement(sld.cSld, 'p:spTree')
-        SubElement(sld.cSld.spTree, 'p:nvGrpSpPr')
-        SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvPr')
-        SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:cNvGrpSpPr')
-        SubElement(sld.cSld.spTree.nvGrpSpPr, 'p:nvPr')
-        SubElement(sld.cSld.spTree, 'p:grpSpPr')
-        sld.cSld.spTree.nvGrpSpPr.cNvPr.set('id', '1')
-        sld.cSld.spTree.nvGrpSpPr.cNvPr.set('name', '')
-        SubElement(sld, 'p:clrMapOvr')
-        SubElement(sld.clrMapOvr, 'a:masterClrMapping')
-        return sld
 
 
 class SlideCollection(object):

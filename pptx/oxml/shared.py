@@ -12,20 +12,7 @@ import re
 
 from lxml import etree
 
-from . import oxml_parser
 from .ns import NamespacePrefixedTag, qn
-
-
-def Element(nsptag_str, nsmap=None):
-    """
-    Return a 'loose' lxml element having the tag specified by *nsptag_str*.
-    *nsptag_str* must contain the standard namespace prefix, e.g. 'a:tbl'.
-    The resulting element is an instance of the custom element class for this
-    tag name if one is defined.
-    """
-    nsptag = NamespacePrefixedTag(nsptag_str)
-    nsmap = nsmap if nsmap is not None else nsptag.nsmap
-    return oxml_parser.makeelement(nsptag.clark_name, nsmap=nsmap)
 
 
 def get_or_add(parent, nsptag_str):
