@@ -12,7 +12,7 @@ from lxml import etree
 
 from pptx.oxml import oxml_parser, parse_xml
 from pptx.oxml.shared import (
-    child, Element, get_or_add, serialize_part_xml, SubElement
+    Element, get_or_add, serialize_part_xml, SubElement
 )
 from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.text import CT_TextBody
@@ -45,18 +45,6 @@ from pptx.oxml.text import CT_TextBody
 #             )
 
 #         return ElementClass, tagname, tagnames_after
-
-
-class DescribeChild(object):
-
-    def it_returns_a_matching_child_if_present(
-            self, parent_elm, known_child_nsptag_str, known_child_elm):
-        child_elm = child(parent_elm, known_child_nsptag_str)
-        assert child_elm is known_child_elm
-
-    def it_returns_none_if_no_matching_child_is_present(self, parent_elm):
-        child_elm = child(parent_elm, 'p:baz')
-        assert child_elm is None
 
 
 class DescribeElement(object):

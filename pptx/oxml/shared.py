@@ -13,18 +13,7 @@ import re
 from lxml import etree
 
 from . import oxml_parser
-from .ns import NamespacePrefixedTag
-
-
-def child(element, child_tag_str):
-    """
-    Return the first direct child of *element* having tag matching
-    *child_tag_str* or |None| if no such child element is present.
-    """
-    nsptag = NamespacePrefixedTag(child_tag_str)
-    xpath = './%s' % child_tag_str
-    matching_children = element.xpath(xpath, namespaces=nsptag.nsmap)
-    return matching_children[0] if len(matching_children) else None
+from .ns import NamespacePrefixedTag, qn
 
 
 def Element(nsptag_str, nsmap=None):
@@ -45,7 +34,7 @@ def get_or_add(parent, nsptag_str):
     *nsptag_str*. If no such child is found, a new one is created and
     returned.
     """
-    _child = child(parent, nsptag_str)
+    _child = parent.find(qn(nsptag_str))
     if _child is None:
         _child = SubElement(parent, nsptag_str)
     return _child
@@ -144,19 +133,6 @@ class XmlString(unicode):
         match = self._xml_elm_line_patt.match(line)
         front, attrs, close, text = [match.group(n) for n in range(1, 5)]
         return front, attrs, close, text
-
-
-# class BaseOxmlElement(etree.ElementBase):
-#     """
-#     Provides common behavior for oxml element classes
-#     """
-#     @classmethod
-#     def child_tagnames_after(cls, tagname):
-#         """
-#         Return a sequence containing the namespace prefixed child tagnames,
-#         e.g. 'a:prstGeom', that occur after *tagname* in this element.
-#         """
-#         return cls.child_tagnames.tagnames_after(tagname)
 
 
 class _Tagname(object):
