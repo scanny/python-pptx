@@ -103,7 +103,19 @@ class XsdBoolean(BaseSimpleType):
 
 
 class XsdInt(BaseIntType):
-    pass
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, -2147483648, 2147483647)
+
+
+class XsdLong(BaseIntType):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(
+            value, -9223372036854775808, 9223372036854775807
+        )
 
 
 class XsdString(BaseStringType):
@@ -134,20 +146,34 @@ class ST_Coordinate(BaseSimpleType):
         ST_CoordinateUnqualified.validate(value)
 
 
-class ST_Coordinate32(BaseIntType):
-    pass
+class ST_Coordinate32(BaseSimpleType):
+    """
+    xsd:union of ST_Coordinate32Unqualified, ST_UniversalMeasure
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if 'i' in str_value or 'm' in str_value or 'p' in str_value:
+            return ST_UniversalMeasure.convert_from_xml(str_value)
+        return ST_Coordinate32Unqualified.convert_from_xml(str_value)
 
-
-class ST_CoordinateUnqualified(BaseSimpleType):
+    @classmethod
+    def convert_to_xml(cls, value):
+        return ST_Coordinate32Unqualified.convert_to_xml(value)
 
     @classmethod
     def validate(cls, value):
-        cls.validate_int(value)
-        if value < -27273042329600 or value > 27273042316900:
-            raise ValueError(
-                "value must be in range -27273042329600 to 27273042316900, g"
-                "ot %d" % value
-            )
+        ST_Coordinate32Unqualified.validate(value)
+
+
+class ST_Coordinate32Unqualified(XsdInt):
+    pass
+
+
+class ST_CoordinateUnqualified(XsdLong):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, -27273042329600, 27273042316900)
 
 
 class ST_DrawingElementId(XsdUnsignedInt):
@@ -218,6 +244,13 @@ class ST_Percentage(BaseIntType):
         percent_value = float(float_part)
         int_value = int(round(percent_value * 1000))
         return int_value
+
+
+class ST_PositiveCoordinate(XsdLong):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 27273042316900)
 
 
 class ST_SlideId(XsdUnsignedInt):
