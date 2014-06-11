@@ -48,11 +48,3 @@ class CT_SolidColorFillProperties(BaseOxmlElement):
         Choice('a:sysClr'), Choice('a:schemeClr'), Choice('a:prstClr')),
         successors=()
     )
-
-
-class EG_FillProperties(object):
-
-    __member_names__ = (
-        'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill',
-        'a:grpFill'
-    )

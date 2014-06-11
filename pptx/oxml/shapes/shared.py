@@ -6,10 +6,9 @@ Common shape-related oxml objects
 
 from __future__ import absolute_import
 
-from ..dml.fill import EG_FillProperties
 from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import _nsmap, qn
-from ..shared import ChildTagnames, Element
+from ..shared import Element
 from ..simpletypes import (
     ST_Coordinate, ST_DrawingElementId, ST_LineWidth, ST_PositiveCoordinate,
     XsdString, XsdUnsignedInt
@@ -179,16 +178,6 @@ class BaseShapeElement(BaseOxmlElement):
         setattr(xfrm, name, value)
 
 
-class EG_EffectProperties(object):
-
-    __member_names__ = ('a:effectLst', 'a:effectDag')
-
-
-class EG_Geometry(object):
-
-    __member_names__ = ('a:custGeom', 'a:prstGeom')
-
-
 class CT_ApplicationNonVisualDrawingProps(BaseOxmlElement):
     """
     ``<p:nvPr>`` element
@@ -307,20 +296,21 @@ class CT_ShapeProperties(BaseOxmlElement):
     ``<p:pic>``, and ``<p:cxnSp>`` elements as well as a few more obscure
     ones.
     """
+    xfrm = ZeroOrOne('a:xfrm', successors=(
+        'a:custGeom', 'a:prstGeom', 'a:ln', 'a:effectLst', 'a:effectDag',
+        'a:scene3d', 'a:sp3d', 'a:extLst'
+    ))
     eg_fillProperties = ZeroOrOneChoice(
         (Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
          Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
-        successors=('a:headers', 'a:extLst')
+        successors=(
+            'a:ln', 'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:sp3d',
+            'a:extLst'
+        )
     )
-
-    child_tagnames = ChildTagnames.from_nested_sequence(
-        'a:xfrm',
-        EG_Geometry.__member_names__,
-        EG_FillProperties.__member_names__,
-        'a:ln',
-        EG_EffectProperties.__member_names__,
-        'a:scene3d', 'a:sp3d', 'a:extLst',
-    )
+    ln = ZeroOrOne('a:ln', successors=(
+        'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:sp3d', 'a:extLst'
+    ))
 
     @property
     def cx(self):
@@ -342,32 +332,6 @@ class CT_ShapeProperties(BaseOxmlElement):
             return None
         return Emu(cy_str_lst[0])
 
-    def get_or_add_ln(self):
-        """
-        Return the <a:ln> child element, newly added if not present.
-        """
-        ln = self.ln
-        if ln is None:
-            ln = self._add_ln()
-        return ln
-
-    def get_or_add_xfrm(self):
-        """
-        Return the <a:xfrm> child element, newly added if not already
-        present.
-        """
-        xfrm = self.xfrm
-        if xfrm is None:
-            xfrm = self._add_xfrm()
-        return xfrm
-
-    @property
-    def ln(self):
-        """
-        The <a:ln> child element, or None if not present.
-        """
-        return self.find(qn('a:ln'))
-
     @property
     def prstGeom(self):
         """
@@ -388,13 +352,6 @@ class CT_ShapeProperties(BaseOxmlElement):
         return Emu(x_str_lst[0])
 
     @property
-    def xfrm(self):
-        """
-        The <a:xfrm> child element, or None if not present.
-        """
-        return self.find(qn('a:xfrm'))
-
-    @property
     def y(self):
         """
         The offset of the top of the shape from the top of the slide, as an
@@ -404,25 +361,6 @@ class CT_ShapeProperties(BaseOxmlElement):
         if not y_str_lst:
             return None
         return Emu(y_str_lst[0])
-
-    def _add_ln(self):
-        """
-        Return a newly added <a:ln> child element. It is the caller's
-        responsibility to ensure one is not already present.
-        """
-        ln = Element('a:ln')
-        successor_tagnames = self.child_tagnames_after('a:ln')
-        self.insert_element_before(ln, *successor_tagnames)
-        return ln
-
-    def _add_xfrm(self):
-        """
-        Return a newly added <a:xfrm> child element.
-        """
-        xfrm = Element('a:xfrm')
-        successor_tagnames = self.child_tagnames_after('a:xfrm')
-        self.insert_element_before(xfrm, *successor_tagnames)
-        return xfrm
 
 
 class CT_Transform2D(BaseOxmlElement):
