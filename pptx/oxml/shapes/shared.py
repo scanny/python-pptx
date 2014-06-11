@@ -11,7 +11,8 @@ from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import _nsmap, qn
 from ..shared import ChildTagnames, Element
 from ..simpletypes import (
-    ST_DrawingElementId, ST_LineWidth, XsdString, XsdUnsignedInt
+    ST_Coordinate, ST_DrawingElementId, ST_LineWidth, XsdString,
+    XsdUnsignedInt
 )
 from ...util import Emu
 from ..xmlchemy import (
@@ -288,31 +289,8 @@ class CT_Point2D(BaseOxmlElement):
     """
     Custom element class for <a:off> element.
     """
-    def __setattr__(self, name, value):
-        """
-        Override ``__setattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
-        """
-        if name in ('x', 'y'):
-            self.set(name, str(value))
-        else:
-            super(CT_Point2D, self).__setattr__(name, value)
-
-    @property
-    def x(self):
-        """
-        Integer value of required ``x`` attribute.
-        """
-        x_str = self.get('x')
-        return int(x_str)
-
-    @property
-    def y(self):
-        """
-        Integer value of required ``y`` attribute.
-        """
-        y_str = self.get('y')
-        return int(y_str)
+    x = RequiredAttribute('x', ST_Coordinate)
+    y = RequiredAttribute('y', ST_Coordinate)
 
 
 class CT_PositiveSize2D(BaseOxmlElement):
