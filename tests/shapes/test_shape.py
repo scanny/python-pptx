@@ -16,8 +16,8 @@ from pptx.shapes.shape import BaseShape
 from pptx.text import TextFrame
 
 from ..oxml.unitdata.shape import (
-    a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic, an_ext,
-    an_off, an_sp, an_spPr, an_xfrm
+    a_cNvPr, a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic,
+    an_ext, an_nvSpPr, an_off, an_sp, an_spPr, an_xfrm
 )
 from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
 
@@ -121,8 +121,13 @@ class DescribeBaseShape(object):
         return shape, width, height, expected_xml
 
     @pytest.fixture
-    def id_fixture(self, shape_elm_, shape_id):
-        shape = BaseShape(shape_elm_, None)
+    def id_fixture(self, shape_id):
+        shape_elm = (
+            an_sp().with_nsdecls().with_child(
+                an_nvSpPr().with_child(
+                    a_cNvPr().with_id(shape_id)))
+        ).element
+        shape = BaseShape(shape_elm, None)
         return shape, shape_id
 
     @pytest.fixture(params=[True, False])
@@ -140,8 +145,13 @@ class DescribeBaseShape(object):
         return shape, is_placeholder
 
     @pytest.fixture
-    def name_fixture(self, shape_elm_, shape_name):
-        shape = BaseShape(shape_elm_, None)
+    def name_fixture(self, shape_name):
+        shape_elm = (
+            an_sp().with_nsdecls().with_child(
+                an_nvSpPr().with_child(
+                    a_cNvPr().with_name(shape_name)))
+        ).element
+        shape = BaseShape(shape_elm, None)
         return shape, shape_name
 
     @pytest.fixture

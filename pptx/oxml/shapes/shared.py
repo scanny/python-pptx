@@ -13,9 +13,9 @@ from ..dml.line import (
 from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import _nsmap, qn
 from ..shared import ChildTagnames, Element
-from ..simpletypes import XsdUnsignedInt
+from ..simpletypes import ST_DrawingElementId, XsdString, XsdUnsignedInt
 from ...util import Emu
-from ..xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrOne
+from ..xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
 
 
 class BaseShapeElement(BaseOxmlElement):
@@ -69,24 +69,24 @@ class BaseShapeElement(BaseOxmlElement):
     @property
     def ph_idx(self):
         """
-        Integer value of placeholder idx attribute, None if shape has no
-        ``<p:ph>`` descendant.
+        Integer value of placeholder idx attribute. Raises |ValueError| if
+        shape is not a placeholder.
         """
         ph = self.ph
         if ph is None:
-            return None
-        return int(ph.get('idx', 0))
+            raise ValueError("not a placeholder shape")
+        return ph.idx
 
     @property
     def ph_orient(self):
         """
-        Placeholder orientation, e.g. ST_Direction.VERT ('vert'), None if
-        shape has no ``<p:ph>`` descendant.
+        Placeholder orientation, e.g. 'vert'. Raises |ValueError| if shape is
+        not a placeholder.
         """
         ph = self.ph
         if ph is None:
-            return None
-        return ph.get('orient', ST_Direction.HORZ)
+            raise ValueError("not a placeholder shape")
+        return ph.orient
 
     @property
     def ph_sz(self):
@@ -115,14 +115,14 @@ class BaseShapeElement(BaseOxmlElement):
         """
         Integer id of this shape
         """
-        return int(self._nvXxPr.cNvPr.get('id'))
+        return self._nvXxPr.cNvPr.id
 
     @property
     def shape_name(self):
         """
         Name of this shape
         """
-        return self._nvXxPr.cNvPr.get('name')
+        return self._nvXxPr.cNvPr.name
 
     @property
     def txBody(self):
@@ -159,8 +159,9 @@ class BaseShapeElement(BaseOxmlElement):
     @property
     def _nvXxPr(self):
         """
-        Non-visual shape properties element for this shape. Actual name
-        depends on the shape type, e.g. ``<p:nvPicPr>`` for picture shape.
+        Required non-visual shape properties element for this shape. Actual
+        name depends on the shape type, e.g. ``<p:nvPicPr>`` for picture
+        shape.
         """
         return self.xpath('./*[1]', namespaces=_nsmap)[0]
 
@@ -308,12 +309,18 @@ class CT_LineProperties(Fillable):
         return Emu(int(w_str))
 
 
+class CT_NonVisualDrawingProps(BaseOxmlElement):
+    """
+    ``<p:cNvPr>`` custom element class.
+    """
+    id = RequiredAttribute('id', ST_DrawingElementId)
+    name = RequiredAttribute('name', XsdString)
+
+
 class CT_Placeholder(BaseOxmlElement):
     """
-    ``<p:ph>`` customer element class.
+    ``<p:ph>`` custom element class.
     """
-    idx = OptionalAttribute('idx', XsdUnsignedInt)
-
     @property
     def idx(self):
         idx_str = self.get('idx')
@@ -330,6 +337,24 @@ class CT_Placeholder(BaseOxmlElement):
             return
         str_value = str(value)
         self.set('idx', str_value)
+
+    @property
+    def orient(self):
+        orient_str = self.get('orient')
+        if orient_str is None:
+            return ST_Direction.HORZ
+        return orient_str
+
+    @orient.setter
+    def orient(self, value):
+        if value not in (ST_Direction.HORZ, ST_Direction.VERT, None):
+            raise ValueError("invalid setting for orient attribute")
+        if value in (ST_Direction.HORZ, None):
+            if 'orient' in self.attrib:
+                del self.attrib['orient']
+            return
+        str_value = str(value)
+        self.set('orient', str_value)
 
     @property
     def type(self):

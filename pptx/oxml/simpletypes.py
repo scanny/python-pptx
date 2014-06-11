@@ -146,6 +146,10 @@ class ST_CoordinateUnqualified(BaseSimpleType):
             )
 
 
+class ST_DrawingElementId(XsdUnsignedInt):
+    pass
+
+
 class ST_HexColorRGB(BaseStringType):
 
     @classmethod
