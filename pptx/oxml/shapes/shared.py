@@ -7,15 +7,14 @@ Common shape-related oxml objects
 from __future__ import absolute_import
 
 from ..dml.fill import EG_FillProperties
-from ..dml.line import (
-    EG_LineDashProperties, EG_LineFillProperties, EG_LineJoinProperties
-)
 from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import _nsmap, qn
 from ..shared import ChildTagnames, Element
 from ..simpletypes import ST_DrawingElementId, XsdString, XsdUnsignedInt
 from ...util import Emu
-from ..xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
+from ..xmlchemy import (
+    BaseOxmlElement, Choice, RequiredAttribute, ZeroOrOne, ZeroOrOneChoice
+)
 
 
 class BaseShapeElement(BaseOxmlElement):
@@ -176,66 +175,6 @@ class BaseShapeElement(BaseOxmlElement):
         setattr(xfrm, name, value)
 
 
-class Fillable(BaseOxmlElement):
-    """
-    Provides common behavior for property elements that can contain one of
-    the fill properties elements like ``<a:solidFill>``. Subclassed by
-    CT_ShapeProperties and CT_LineProperties, perhaps others in the future.
-    """
-    def get_or_change_to_noFill(self):
-        """
-        Return the <a:noFill> child element, replacing any other fill
-        element if found, e.g. a <a:gradFill> element.
-        """
-        if self.noFill is not None:
-            return self.noFill
-        self.remove_fill_element()
-        return self._add_noFill()
-
-    def get_or_change_to_solidFill(self):
-        """
-        Return the <a:solidFill> child element, replacing any other fill
-        element if found, e.g. a <a:gradFill> element.
-        """
-        if self.solidFill is not None:
-            return self.solidFill
-        self.remove_fill_element()
-        return self._add_solidFill()
-
-    @property
-    def noFill(self):
-        """
-        The <a:noFill> child element, or None if not present.
-        """
-        return self.find(qn('a:noFill'))
-
-    @property
-    def solidFill(self):
-        """
-        The <a:solidFill> child element, or None if not present.
-        """
-        return self.find(qn('a:solidFill'))
-
-    def _add_noFill(self):
-        """
-        Return a newly added <a:noFill> child element, assuming no other fill
-        EG_FillProperties element is present.
-        """
-        noFill = Element('a:noFill')
-        successor_tagnames = self.child_tagnames_after('a:noFill')
-        self.insert_element_before(noFill, *successor_tagnames)
-        return noFill
-
-    def _add_solidFill(self):
-        """
-        Return a newly added <a:solidFill> child element.
-        """
-        solidFill = Element('a:solidFill')
-        successor_tagnames = self.child_tagnames_after('a:solidFill')
-        self.insert_element_before(solidFill, *successor_tagnames)
-        return solidFill
-
-
 class EG_EffectProperties(object):
 
     __member_names__ = ('a:effectLst', 'a:effectDag')
@@ -256,16 +195,22 @@ class CT_ApplicationNonVisualDrawingProps(BaseOxmlElement):
     ))
 
 
-class CT_LineProperties(Fillable):
+class CT_LineProperties(BaseOxmlElement):
     """
     Custom element class for <a:ln> element
     """
-    child_tagnames = ChildTagnames.from_nested_sequence(
-        EG_LineFillProperties.__member_names__,
-        EG_LineDashProperties.__member_names__,
-        EG_LineJoinProperties.__member_names__,
-        'a:headEnd', 'a:tailEnd', 'a:extLst',
+    eg_lineFillProperties = ZeroOrOneChoice(
+        (Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
+         Choice('a:pattFill')),
+        successors=(
+            'a:prstDash', 'a:custDash', 'a:round', 'a:bevel', 'a:miter',
+            'a:headEnd', 'a:tailEnd', 'a:extLst'
+        )
     )
+
+    @property
+    def eg_fillProperties(self):
+        return self.eg_lineFillProperties
 
     def __setattr__(self, name, value):
         """
@@ -281,22 +226,6 @@ class CT_LineProperties(Fillable):
                 self.set(name, val)
         else:
             super(CT_LineProperties, self).__setattr__(name, value)
-
-    @property
-    def eg_fillProperties(self):
-        """
-        Return the child representing the EG_FillProperties element group
-        member in this element, or |None| if no such child is present.
-        """
-        return self.first_child_found_in(
-            *EG_LineFillProperties.__member_names__
-        )
-
-    def remove_fill_element(self):
-        """
-        Remove the fill child element, e.g ``<a:solidFill>`` if present.
-        """
-        self.remove_if_present(*EG_LineFillProperties.__member_names__)
 
     @property
     def w(self):
@@ -435,12 +364,17 @@ class CT_PositiveSize2D(BaseOxmlElement):
         return int(cy_str)
 
 
-class CT_ShapeProperties(Fillable):
+class CT_ShapeProperties(BaseOxmlElement):
     """
     Custom element class for <p:spPr> element. Shared by ``<p:sp>``,
     ``<p:pic>``, and ``<p:cxnSp>`` elements as well as a few more obscure
     ones.
     """
+    eg_fillProperties = ZeroOrOneChoice(
+        (Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
+         Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
+        successors=('a:headers', 'a:extLst')
+    )
 
     child_tagnames = ChildTagnames.from_nested_sequence(
         'a:xfrm',
@@ -470,16 +404,6 @@ class CT_ShapeProperties(Fillable):
         if not cy_str_lst:
             return None
         return Emu(cy_str_lst[0])
-
-    @property
-    def eg_fillProperties(self):
-        """
-        Return the child representing the EG_FillProperties element group
-        member in this element, or |None| if no such child is present.
-        """
-        return self.first_child_found_in(
-            *EG_FillProperties.__member_names__
-        )
 
     def get_or_add_ln(self):
         """
@@ -513,12 +437,6 @@ class CT_ShapeProperties(Fillable):
         The <a:prstGeom> child element, or None if not present.
         """
         return self.find(qn('a:prstGeom'))
-
-    def remove_fill_element(self):
-        """
-        Remove the fill child element, e.g ``<a:solidFill>`` if present.
-        """
-        self.remove_if_present(*EG_FillProperties.__member_names__)
 
     @property
     def x(self):
