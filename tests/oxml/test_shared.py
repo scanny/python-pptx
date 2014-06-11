@@ -8,12 +8,8 @@ from __future__ import print_function, unicode_literals
 
 import pytest
 
-from lxml import etree
-
-from pptx.oxml import oxml_parser, parse_xml
-from pptx.oxml.shared import serialize_part_xml, SubElement
-from pptx.oxml.ns import nsdecls, qn
-from pptx.oxml.text import CT_TextBody
+from pptx.oxml import parse_xml
+from pptx.oxml.shared import serialize_part_xml
 
 
 # class DescribeBaseOxmlElement(object):
@@ -81,55 +77,3 @@ class DescribeSerializePartXml(object):
         )
         xml_bytes = unicode_xml.encode('utf-8')
         return xml_bytes
-
-
-class DescribeSubElement(object):
-
-    def it_returns_a_child_of_the_passed_parent_elm(
-            self, parent_elm, nsptag_str):
-        elm = SubElement(parent_elm, nsptag_str)
-        assert elm.getparent() is parent_elm
-
-    def it_returns_an_element_with_the_specified_tag(
-            self, parent_elm, nsptag_str):
-        elm = SubElement(parent_elm, nsptag_str)
-        assert elm.tag == qn(nsptag_str)
-
-    def it_returns_custom_element_class_if_one_is_defined_for_tag(
-            self, parent_elm, nsptag_str):
-        # note this behavior depends on the parser of parent_elm being the
-        # one on which the custom element class lookups are defined
-        elm = SubElement(parent_elm, nsptag_str)
-        assert type(elm) is CT_TextBody
-
-    def it_can_set_element_attributes(self, parent_elm, nsptag_str):
-        attr_dct = {'foo': 'f', 'bar': 'b'}
-        elm = SubElement(parent_elm, nsptag_str, attrib=attr_dct, baz='1')
-        assert elm.get('foo') == 'f'
-        assert elm.get('bar') == 'b'
-        assert elm.get('baz') == '1'
-
-
-# ===========================================================================
-# fixtures
-# ===========================================================================
-
-@pytest.fixture
-def known_child_elm(parent_elm, known_child_nsptag_str):
-    return parent_elm.find(qn(known_child_nsptag_str))
-
-
-@pytest.fixture
-def known_child_nsptag_str():
-    return 'a:bar'
-
-
-@pytest.fixture
-def nsptag_str():
-    return 'p:txBody'
-
-
-@pytest.fixture
-def parent_elm():
-    xml = '<p:foo %s><a:bar>foobar</a:bar></p:foo>' % nsdecls('p', 'a')
-    return etree.fromstring(xml, oxml_parser)
