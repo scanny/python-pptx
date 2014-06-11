@@ -6,9 +6,7 @@ Text-related objects such as TextFrame and Paragraph.
 
 from .dml.fill import FillFormat
 from .enum.dml import MSO_FILL
-from .enum.text import MSO_ANCHOR
 from .opc.constants import RELATIONSHIP_TYPE as RT
-from .oxml.shared import get_or_add
 from .oxml.ns import _nsmap
 from .shapes import Subshape
 from .util import Centipoints, Emu, lazyproperty, to_unicode
@@ -124,9 +122,8 @@ class TextFrame(Subshape):
         """
         Set ``anchor`` attribute of ``<a:bodyPr>`` element
         """
-        anchor = MSO_ANCHOR.to_xml(value)
-        bodyPr = get_or_add(self._txBody, 'a:bodyPr')
-        bodyPr.set('anchor', anchor)
+        bodyPr = self._txBody.bodyPr
+        bodyPr.anchor = value
 
     #: Write-only. Assignment to *vertical_anchor* sets the vertical
     #: alignment of the text frame to top, middle, or bottom. Valid values are
@@ -145,14 +142,14 @@ class TextFrame(Subshape):
         from a parent element.
         """
         value_map = {'square': True, 'none': False, None: None}
-        bodyPr = get_or_add(self._txBody, 'a:bodyPr')
+        bodyPr = self._txBody.bodyPr
         value = bodyPr.get('wrap')
         return value_map[value]
 
     @word_wrap.setter
     def word_wrap(self, value):
         value_map = {True: 'square', False: 'none'}
-        bodyPr = get_or_add(self._txBody, 'a:bodyPr')
+        bodyPr = self._txBody.bodyPr
         if value is None:
             if 'wrap' in bodyPr.attrib:
                 del bodyPr.attrib['wrap']

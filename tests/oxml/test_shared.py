@@ -11,7 +11,7 @@ import pytest
 from lxml import etree
 
 from pptx.oxml import oxml_parser, parse_xml
-from pptx.oxml.shared import get_or_add, serialize_part_xml, SubElement
+from pptx.oxml.shared import serialize_part_xml, SubElement
 from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.text import CT_TextBody
 
@@ -43,19 +43,6 @@ from pptx.oxml.text import CT_TextBody
 #             )
 
 #         return ElementClass, tagname, tagnames_after
-
-
-class DescribeGetOrAddChild(object):
-
-    def it_returns_a_matching_child_if_present(
-            self, parent_elm, known_child_nsptag_str, known_child_elm):
-        child_elm = get_or_add(parent_elm, known_child_nsptag_str)
-        assert child_elm is known_child_elm
-
-    def it_creates_a_new_child_if_one_is_not_present(self, parent_elm):
-        child_elm = get_or_add(parent_elm, 'p:baz')
-        assert child_elm.tag == qn('p:baz')
-        assert child_elm.getparent() is parent_elm
 
 
 class DescribeSerializePartXml(object):

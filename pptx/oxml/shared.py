@@ -12,19 +12,7 @@ import re
 
 from lxml import etree
 
-from .ns import NamespacePrefixedTag, qn
-
-
-def get_or_add(parent, nsptag_str):
-    """
-    Return the first direct child element of *parent* with tag matching
-    *nsptag_str*. If no such child is found, a new one is created and
-    returned.
-    """
-    _child = parent.find(qn(nsptag_str))
-    if _child is None:
-        _child = SubElement(parent, nsptag_str)
-    return _child
+from .ns import NamespacePrefixedTag
 
 
 def serialize_for_reading(element):

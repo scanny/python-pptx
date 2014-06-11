@@ -7,7 +7,9 @@ lxml custom element classes for text-related XML elements.
 from __future__ import absolute_import
 
 from . import parse_xml
-from ..enum.text import MSO_AUTO_SIZE, PP_PARAGRAPH_ALIGNMENT
+from ..enum.text import (
+    MSO_AUTO_SIZE, MSO_VERTICAL_ANCHOR, PP_PARAGRAPH_ALIGNMENT
+)
 from .ns import nsdecls, qn
 from .simpletypes import (
     ST_Coordinate32, ST_TextFontSize, ST_TextTypeface, XsdBoolean, XsdString
@@ -92,6 +94,7 @@ class CT_TextBodyProperties(BaseOxmlElement):
     tIns = OptionalAttribute('tIns', ST_Coordinate32)
     rIns = OptionalAttribute('rIns', ST_Coordinate32)
     bIns = OptionalAttribute('bIns', ST_Coordinate32)
+    anchor = OptionalAttribute('anchor', MSO_VERTICAL_ANCHOR)
 
     @property
     def autofit(self):
