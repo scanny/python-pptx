@@ -270,24 +270,19 @@ class _Column(Subshape):
         super(_Column, self).__init__(parent)
         self._gridCol = gridCol
 
-    def _get_width(self):
+    @property
+    def width(self):
         """
-        Return width of column in EMU
+        Width of column in EMU.
         """
-        return int(self._gridCol.get('w'))
+        return self._gridCol.w
 
-    def _set_width(self, width):
-        """
-        Set column width to *width*, a positive integer value.
-        """
+    @width.setter
+    def width(self, width):
         if not isinstance(width, int) or width < 0:
-            msg = "column width must be positive integer"
-            raise ValueError(msg)
-        self._gridCol.set('w', str(width))
+            raise ValueError("column width must be a positive integer")
+        self._gridCol.w = width
         self._parent.notify_width_changed()
-
-    #: Read-write integer width of this column in English Metric Units (EMU).
-    width = property(_get_width, _set_width)
 
 
 class _Row(Subshape):
@@ -297,7 +292,6 @@ class _Row(Subshape):
     def __init__(self, tr, parent):
         super(_Row, self).__init__(parent)
         self._tr = tr
-        self._cells = _CellCollection(tr, self)
 
     @property
     def cells(self):
@@ -305,26 +299,21 @@ class _Row(Subshape):
         Read-only reference to collection of cells in row. An individual cell
         is referenced using list notation, e.g. ``cell = row.cells[0]``.
         """
-        return self._cells
+        return _CellCollection(self._tr, self)
 
-    def _get_height(self):
+    @property
+    def height(self):
         """
-        Return height of row in EMU
+        Height of row in EMU.
         """
-        return int(self._tr.get('h'))
+        return self._tr.h
 
-    def _set_height(self, height):
-        """
-        Set row height to *height*, a positive integer value.
-        """
+    @height.setter
+    def height(self, height):
         if not isinstance(height, int) or height < 0:
-            msg = "row height must be positive integer"
-            raise ValueError(msg)
-        self._tr.set('h', str(height))
+            raise ValueError("row height must be positive integer")
+        self._tr.h = height
         self._parent.notify_height_changed()
-
-    #: Read/write integer height of this row in English Metric Units (EMU).
-    height = property(_get_height, _set_height)
 
 
 class _CellCollection(Subshape):

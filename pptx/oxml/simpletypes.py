@@ -379,8 +379,32 @@ class ST_TextFontSize(BaseIntType):
             )
 
 
+class ST_TextIndentLevelType(BaseIntType):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 8)
+
+
 class ST_TextTypeface(XsdString):
     pass
+
+
+class ST_TextWrappingType(XsdToken):
+    """
+    Valid values for <a:bodyPr wrap=""> attribute
+    """
+    NONE = 'none'
+    SQUARE = 'square'
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_string(value)
+        if value not in (cls.NONE, cls.SQUARE):
+            raise ValueError(
+                "must be one of '%s' or '%s', got '%s'" %
+                (cls.NONE, cls.SQUARE, value)
+            )
 
 
 class ST_UniversalMeasure(BaseSimpleType):

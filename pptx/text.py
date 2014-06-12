@@ -7,7 +7,7 @@ Text-related objects such as TextFrame and Paragraph.
 from .dml.fill import FillFormat
 from .enum.dml import MSO_FILL
 from .opc.constants import RELATIONSHIP_TYPE as RT
-from .oxml.ns import _nsmap
+from .oxml.simpletypes import ST_TextWrappingType
 from .shapes import Subshape
 from .util import Centipoints, Emu, lazyproperty, to_unicode
 
@@ -49,8 +49,7 @@ class TextFrame(Subshape):
         """
         Remove all paragraphs except one empty one.
         """
-        p_list = self._txBody.xpath('./a:p', namespaces=_nsmap)
-        for p in p_list[1:]:
+        for p in self._txBody.p_lst[1:]:
             self._txBody.remove(p)
         p = self.paragraphs[0]
         p.clear()
@@ -141,20 +140,23 @@ class TextFrame(Subshape):
         removed entirely and the text frame wrapping behavior to be inherited
         from a parent element.
         """
-        value_map = {'square': True, 'none': False, None: None}
-        bodyPr = self._txBody.bodyPr
-        value = bodyPr.get('wrap')
-        return value_map[value]
+        return {
+            ST_TextWrappingType.SQUARE: True,
+            ST_TextWrappingType.NONE:   False,
+            None:                       None
+        }[self._txBody.bodyPr.wrap]
 
     @word_wrap.setter
     def word_wrap(self, value):
-        value_map = {True: 'square', False: 'none'}
-        bodyPr = self._txBody.bodyPr
-        if value is None:
-            if 'wrap' in bodyPr.attrib:
-                del bodyPr.attrib['wrap']
-            return
-        bodyPr.set('wrap', value_map[value])
+        if value not in (True, False, None):
+            raise ValueError(
+                "assigned value must be True, False, or None, got %s" % value
+            )
+        self._txBody.bodyPr.wrap = {
+            True:  ST_TextWrappingType.SQUARE,
+            False: ST_TextWrappingType.NONE,
+            None:  None
+        }[value]
 
     @property
     def _bodyPr(self):
@@ -362,15 +364,11 @@ class _Paragraph(Subshape):
         default value. Indentation level is most commonly encountered in a
         bulleted list, as is found on a word bullet slide.
         """
-        # return self._pPr.lvl
-        return int(self._pPr.get('lvl', 0))
+        return self._pPr.lvl
 
     @level.setter
     def level(self, level):
-        if not isinstance(level, int) or level < 0 or level > 8:
-            msg = "paragraph level must be integer between 0 and 8 inclusive"
-            raise ValueError(msg)
-        self._pPr.set('lvl', str(level))
+        self._pPr.lvl = level
 
     @property
     def runs(self):
@@ -378,10 +376,8 @@ class _Paragraph(Subshape):
         Immutable sequence of |_Run| instances corresponding to the runs in
         this paragraph.
         """
-        xpath = './a:r'
-        r_elms = self._p.xpath(xpath, namespaces=_nsmap)
         runs = []
-        for r in r_elms:
+        for r in self._p.r_lst:
             runs.append(_Run(r, self))
         return tuple(runs)
 

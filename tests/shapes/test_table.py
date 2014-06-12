@@ -253,7 +253,6 @@ class Test_Column(TestCase):
         assert_that(self.column.width, is_(equal_to(999)))
 
     def test_set_width_raises_on_bad_value(self):
-        """_Column.width raises on attempt to assign invalid value"""
         test_cases = ('abc', '1', -1)
         for value in test_cases:
             with self.assertRaises(ValueError):

@@ -139,8 +139,8 @@ class AdjustmentCollection(object):
         """
         adjustments_by_name = dict((adj.name, adj) for adj in adjustments)
         for gd in guides:
-            name = gd.get('name')
-            actual = int(gd.get('fmla')[4:])
+            name = gd.name
+            actual = int(gd.fmla[4:])
             try:
                 adjustment = adjustments_by_name[name]
             except KeyError:

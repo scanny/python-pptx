@@ -43,8 +43,7 @@ class BaseSlide(Part):
         """
         Internal name of this slide.
         """
-        cSld = self._element.cSld
-        return cSld.get('name', default='')
+        return self._element.cSld.name
 
     @property
     def part(self):

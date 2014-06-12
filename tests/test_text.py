@@ -681,8 +681,12 @@ class Describe_Paragraph(object):
         assert paragraph_with_text.level == 5
 
     def test_level_raises_on_bad_value(self, paragraph_with_text):
-        """_Paragraph.level raises on attempt to assign invalid value"""
-        test_cases = ('0', -1, 9)
+        test_cases = ('0', 'foobar', 7.5)
+        for value in test_cases:
+            with pytest.raises(TypeError):
+                paragraph_with_text.level = value
+
+        test_cases = (-1, 9)
         for value in test_cases:
             with pytest.raises(ValueError):
                 paragraph_with_text.level = value

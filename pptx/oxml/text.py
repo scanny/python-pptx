@@ -12,7 +12,8 @@ from ..enum.text import (
 )
 from .ns import nsdecls, qn
 from .simpletypes import (
-    ST_Coordinate32, ST_TextFontSize, ST_TextTypeface, XsdBoolean, XsdString
+    ST_Coordinate32, ST_TextFontSize, ST_TextIndentLevelType,
+    ST_TextTypeface, ST_TextWrappingType, XsdBoolean, XsdString
 )
 from .xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
@@ -95,6 +96,7 @@ class CT_TextBodyProperties(BaseOxmlElement):
     rIns = OptionalAttribute('rIns', ST_Coordinate32)
     bIns = OptionalAttribute('bIns', ST_Coordinate32)
     anchor = OptionalAttribute('anchor', MSO_VERTICAL_ANCHOR)
+    wrap = OptionalAttribute('wrap', ST_TextWrappingType)
 
     @property
     def autofit(self):
@@ -159,7 +161,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
         Add an <a:hlinkClick> child element with r:id attribute set to *rId*.
         """
         hlinkClick = self.get_or_add_hlinkClick()
-        hlinkClick.set(qn('r:id'), rId)
+        hlinkClick.rId = rId
         return hlinkClick
 
 
@@ -186,12 +188,15 @@ class CT_TextParagraph(BaseOxmlElement):
         """
         return self._add_r()
 
+    @property
+    def r_lst(self):
+        return self.findall(qn('a:r'))
+
     def remove_child_r_elms(self):
         """
         Return self after removing all <a:r> child elements.
         """
-        r_lst = self.findall(qn('a:r'))
-        for r in r_lst:
+        for r in self.r_lst:
             self.remove(r)
         return self
 
@@ -214,4 +219,5 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     <a:pPr> custom element class
     """
     defRPr = ZeroOrOne('a:defRPr', successors=('a:extLst',))
+    lvl = OptionalAttribute('lvl', ST_TextIndentLevelType, default=0)
     algn = OptionalAttribute('algn', PP_PARAGRAPH_ALIGNMENT)

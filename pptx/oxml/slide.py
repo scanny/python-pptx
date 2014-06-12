@@ -8,7 +8,10 @@ from __future__ import absolute_import
 
 from . import parse_xml
 from .ns import nsdecls
-from .xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
+from .simpletypes import XsdString
+from .xmlchemy import (
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne
+)
 
 
 class CT_CommonSlideData(BaseOxmlElement):
@@ -16,6 +19,7 @@ class CT_CommonSlideData(BaseOxmlElement):
     ``<p:cSld>`` element.
     """
     spTree = OneAndOnlyOne('p:spTree')
+    name = OptionalAttribute('name', XsdString, default='')
 
 
 class CT_Slide(BaseOxmlElement):
