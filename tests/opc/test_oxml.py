@@ -4,11 +4,16 @@
 Test suite for opc.oxml module
 """
 
+from __future__ import absolute_import, print_function, unicode_literals
+
+import pytest
+
 from pptx.opc.constants import RELATIONSHIP_TARGET_MODE as RTM
 from pptx.opc.oxml import (
     CT_Default, CT_Override, CT_Relationship, CT_Relationships, CT_Types,
-    oxml_tostring
+    oxml_tostring, serialize_part_xml
 )
+from pptx.oxml import parse_xml
 
 from .unitdata.rels import (
     a_Default, an_Override, a_Relationship, a_Relationships, a_Types
@@ -20,25 +25,15 @@ class DescribeCT_Default(object):
     def it_provides_read_access_to_xml_values(self):
         default = a_Default().element
         assert default.extension == 'xml'
-        assert default.content_type == 'application/xml'
-
-    def it_can_construct_a_new_default_element(self):
-        default = CT_Default.new('xml', 'application/xml')
-        expected_xml = a_Default().xml
-        assert default.xml == expected_xml
+        assert default.contentType == 'application/xml'
 
 
 class DescribeCT_Override(object):
 
     def it_provides_read_access_to_xml_values(self):
         override = an_Override().element
-        assert override.partname == '/part/name.xml'
-        assert override.content_type == 'app/vnd.type'
-
-    def it_can_construct_a_new_override_element(self):
-        override = CT_Override.new('/part/name.xml', 'app/vnd.type')
-        expected_xml = an_Override().xml
-        assert override.xml == expected_xml
+        assert override.partName == '/part/name.xml'
+        assert override.contentType == 'app/vnd.type'
 
 
 class DescribeCT_Relationship(object):
@@ -48,7 +43,7 @@ class DescribeCT_Relationship(object):
         assert rel.rId == 'rId9'
         assert rel.reltype == 'ReLtYpE'
         assert rel.target_ref == 'docProps/core.xml'
-        assert rel.target_mode == RTM.INTERNAL
+        assert rel.targetMode == RTM.INTERNAL
 
     def it_can_construct_from_attribute_values(self):
         cases = (
@@ -106,20 +101,20 @@ class DescribeCT_Types(object):
 
     def it_provides_access_to_default_child_elements(self):
         types = a_Types().element
-        assert len(types.defaults) == 2
-        for default in types.defaults:
+        assert len(types.default_lst) == 2
+        for default in types.default_lst:
             assert isinstance(default, CT_Default)
 
     def it_provides_access_to_override_child_elements(self):
         types = a_Types().element
-        assert len(types.overrides) == 3
-        for override in types.overrides:
+        assert len(types.override_lst) == 3
+        for override in types.override_lst:
             assert isinstance(override, CT_Override)
 
     def it_should_have_empty_list_on_no_matching_elements(self):
         types = a_Types().empty().element
-        assert types.defaults == []
-        assert types.overrides == []
+        assert types.default_lst == []
+        assert types.override_lst == []
 
     def it_can_construct_a_new_types_element(self):
         types = CT_Types.new()
@@ -135,3 +130,41 @@ class DescribeCT_Types(object):
         types.add_override('/docProps/thumbnail.jpeg', 'image/jpeg')
         expected_types_xml = a_Types().xml
         assert types.xml == expected_types_xml
+
+
+class DescribeSerializePartXml(object):
+
+    def it_produces_properly_formatted_xml_for_an_opc_part(
+            self, part_elm, expected_part_xml):
+        """
+        Tested aspects:
+        ---------------
+        * [X] it generates an XML declaration
+        * [X] it produces no whitespace between elements
+        * [X] it preserves unused namespaces
+        * [X] it returns bytes ready to save to file (not unicode)
+        """
+        xml = serialize_part_xml(part_elm)
+        assert xml == expected_part_xml
+        # xml contains 134 chars, of which 3 are double-byte; it will have
+        # len of 134 if it's unicode and 137 if it's bytes
+        assert len(xml) == 137
+
+    # fixtures -----------------------------------
+
+    @pytest.fixture
+    def part_elm(self):
+        return parse_xml(
+            '<f:foo xmlns:f="http://foo" xmlns:b="http://bar">\n  <f:bar>fØØ'
+            'bÅr</f:bar>\n</f:foo>\n'
+        )
+
+    @pytest.fixture
+    def expected_part_xml(self):
+        unicode_xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<f:foo xmlns:f="http://foo" xmlns:b="http://bar"><f:bar>fØØbÅr<'
+            '/f:bar></f:foo>'
+        )
+        xml_bytes = unicode_xml.encode('utf-8')
+        return xml_bytes

@@ -7,11 +7,10 @@ writing presentations to and from a .pptx file.
 
 from __future__ import absolute_import
 
-from ..oxml.shared import serialize_part_xml
 from pptx.util import lazyproperty
 
 from .constants import RELATIONSHIP_TYPE as RT
-from .oxml import CT_Relationships, nsmap
+from .oxml import CT_Relationships, nsmap, serialize_part_xml
 from .packuri import PACKAGE_URI, PackURI
 from .pkgreader import PackageReader
 from .pkgwriter import PackageWriter

@@ -83,6 +83,14 @@ class BaseIntType(BaseSimpleType):
         cls.validate_int(value)
 
 
+class XsdAnyUri(BaseStringType):
+    """
+    There's a regular expression this is supposed to meet but so far thinking
+    spending cycles on validating wouldn't be worth it for the number of
+    programming errors it would catch.
+    """
+
+
 class XsdBoolean(BaseSimpleType):
 
     @classmethod
@@ -100,6 +108,14 @@ class XsdBoolean(BaseSimpleType):
                 "only True or False (and possibly None) may be assigned, got"
                 " '%s'" % value
             )
+
+
+class XsdId(BaseStringType):
+    """
+    String that must begin with a letter or underscore and cannot contain any
+    colons. Not fully validated because not used in external API.
+    """
+    pass
 
 
 class XsdInt(BaseIntType):
@@ -127,6 +143,15 @@ class XsdUnsignedInt(BaseIntType):
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 4294967295)
+
+
+class ST_ContentType(XsdString):
+    """
+    Has a pretty wicked regular expression it needs to match in the schema,
+    but figuring it's not worth the trouble or run time to identify
+    a programming error (as opposed to a user/runtime error).
+    """
+    pass
 
 
 class ST_Coordinate(BaseSimpleType):
@@ -177,6 +202,15 @@ class ST_CoordinateUnqualified(XsdLong):
 
 
 class ST_DrawingElementId(XsdUnsignedInt):
+    pass
+
+
+class ST_Extension(XsdString):
+    """
+    Has a regular expression it needs to match in the schema, but figuring
+    it's not worth the trouble or run time to identify a programming error
+    (as opposed to a user/runtime error).
+    """
     pass
 
 
@@ -273,6 +307,20 @@ class ST_SlideSizeCoordinate(BaseIntType):
             raise ValueError(
                 "value must be in range(914400, 51206400) (1-56 inches), got"
                 " %d" % value
+            )
+
+
+class ST_TargetMode(XsdString):
+    """
+    The valid values for the ``TargetMode`` attribute in a Relationship
+    element, either 'External' or 'Internal'.
+    """
+    @classmethod
+    def validate(cls, value):
+        cls.validate_string(value)
+        if value not in ('External', 'Internal'):
+            raise ValueError(
+                "must be one of 'Internal' or 'External', got '%s'" % value
             )
 
 

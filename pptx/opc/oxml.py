@@ -9,16 +9,17 @@ the package related custom element classes.
 
 from __future__ import absolute_import
 
-from lxml import etree, objectify
+from lxml import etree
 
 from .constants import NAMESPACE as NS, RELATIONSHIP_TARGET_MODE as RTM
+from ..oxml import parse_xml, register_element_cls
+from ..oxml.simpletypes import (
+    ST_ContentType, ST_Extension, ST_TargetMode, XsdAnyUri, XsdId
+)
+from ..oxml.xmlchemy import (
+    BaseOxmlElement, OptionalAttribute, RequiredAttribute, ZeroOrMore
+)
 
-
-# configure objectified XML parser
-fallback_lookup = objectify.ObjectifyElementClassLookup()
-element_class_lookup = etree.ElementNamespaceClassLookup(fallback_lookup)
-oxml_parser = etree.XMLParser(remove_blank_text=True)
-oxml_parser.set_element_class_lookup(element_class_lookup)
 
 nsmap = {
     'ct': NS.OPC_CONTENT_TYPES,
@@ -27,180 +28,68 @@ nsmap = {
 }
 
 
-# ===========================================================================
-# functions
-# ===========================================================================
-
-def oxml_fromstring(text):
-    """``etree.fromstring()`` replacement that uses oxml parser"""
-    return objectify.fromstring(text, oxml_parser)
-
-
 def oxml_tostring(elm, encoding=None, pretty_print=False, standalone=None):
-    # if xsi parameter is not set to False, PowerPoint won't load without a
-    # repair step; deannotate removes some original xsi:type tags in core.xml
-    # if this parameter is left out (or set to True)
-    objectify.deannotate(elm, xsi=False, cleanup_namespaces=True)
-    return etree.tostring(elm, encoding=encoding, pretty_print=pretty_print,
-                          standalone=standalone)
+    return etree.tostring(
+        elm, encoding=encoding, pretty_print=pretty_print,
+        standalone=standalone
+    )
 
 
 def serialize_part_xml(part_elm):
-    # if xsi parameter is not set to False, PowerPoint won't load without a
-    # repair step; deannotate removes some original xsi:type tags in core.xml
-    # if this parameter is left out (or set to True)
-    objectify.deannotate(part_elm, xsi=False, cleanup_namespaces=False)
     xml = etree.tostring(part_elm, encoding='UTF-8', standalone=True)
     return xml
 
 
-# ===========================================================================
-# Custom element classes
-# ===========================================================================
-
-class OxmlBaseElement(objectify.ObjectifiedElement):
-    """
-    Base class for all custom element classes, to add standardized behavior
-    to all classes in one place.
-    """
-    @property
-    def xml(self):
-        """
-        Return XML string for this element, suitable for testing purposes.
-        Pretty printed for readability and without an XML declaration at the
-        top.
-        """
-        return oxml_tostring(self, encoding='unicode', pretty_print=True)
-
-
-class CT_Default(OxmlBaseElement):
+class CT_Default(BaseOxmlElement):
     """
     ``<Default>`` element, specifying the default content type to be applied
     to a part with the specified extension.
     """
-    @property
-    def content_type(self):
-        """
-        String held in the ``ContentType`` attribute of this ``<Default>``
-        element.
-        """
-        return self.get('ContentType')
-
-    @property
-    def extension(self):
-        """
-        String held in the ``Extension`` attribute of this ``<Default>``
-        element.
-        """
-        return self.get('Extension')
-
-    @staticmethod
-    def new(ext, content_type):
-        """
-        Return a new ``<Default>`` element with attributes set to parameter
-        values.
-        """
-        xml = '<Default xmlns="%s"/>' % nsmap['ct']
-        default = oxml_fromstring(xml)
-        default.set('Extension', ext)
-        default.set('ContentType', content_type)
-        objectify.deannotate(default, cleanup_namespaces=True)
-        return default
+    extension = RequiredAttribute('Extension', ST_Extension)
+    contentType = RequiredAttribute('ContentType', ST_ContentType)
 
 
-class CT_Override(OxmlBaseElement):
+class CT_Override(BaseOxmlElement):
     """
     ``<Override>`` element, specifying the content type to be applied for a
     part with the specified partname.
     """
-    @property
-    def content_type(self):
-        """
-        String held in the ``ContentType`` attribute of this ``<Override>``
-        element.
-        """
-        return self.get('ContentType')
-
-    @staticmethod
-    def new(partname, content_type):
-        """
-        Return a new ``<Override>`` element with attributes set to parameter
-        values.
-        """
-        xml = '<Override xmlns="%s"/>' % nsmap['ct']
-        override = oxml_fromstring(xml)
-        override.set('PartName', partname)
-        override.set('ContentType', content_type)
-        objectify.deannotate(override, cleanup_namespaces=True)
-        return override
-
-    @property
-    def partname(self):
-        """
-        String held in the ``PartName`` attribute of this ``<Override>``
-        element.
-        """
-        return self.get('PartName')
+    partName = RequiredAttribute('PartName', XsdAnyUri)
+    contentType = RequiredAttribute('ContentType', ST_ContentType)
 
 
-class CT_Relationship(OxmlBaseElement):
+class CT_Relationship(BaseOxmlElement):
     """
     ``<Relationship>`` element, representing a single relationship from a
     source to a target part.
     """
-    @staticmethod
-    def new(rId, reltype, target, target_mode=RTM.INTERNAL):
+    rId = RequiredAttribute('Id', XsdId)
+    reltype = RequiredAttribute('Type', XsdAnyUri)
+    target_ref = RequiredAttribute('Target', XsdAnyUri)
+    targetMode = OptionalAttribute(
+        'TargetMode', ST_TargetMode, default=RTM.INTERNAL
+    )
+
+    @classmethod
+    def new(cls, rId, reltype, target, target_mode=RTM.INTERNAL):
         """
         Return a new ``<Relationship>`` element.
         """
         xml = '<Relationship xmlns="%s"/>' % nsmap['pr']
-        relationship = oxml_fromstring(xml)
-        relationship.set('Id', rId)
-        relationship.set('Type', reltype)
-        relationship.set('Target', target)
-        if target_mode == RTM.EXTERNAL:
-            relationship.set('TargetMode', RTM.EXTERNAL)
-        objectify.deannotate(relationship, cleanup_namespaces=True)
+        relationship = parse_xml(xml)
+        relationship.rId = rId
+        relationship.reltype = reltype
+        relationship.target_ref = target
+        relationship.targetMode = target_mode
         return relationship
 
-    @property
-    def rId(self):
-        """
-        String held in the ``Id`` attribute of this ``<Relationship>``
-        element.
-        """
-        return self.get('Id')
 
-    @property
-    def reltype(self):
-        """
-        String held in the ``Type`` attribute of this ``<Relationship>``
-        element.
-        """
-        return self.get('Type')
-
-    @property
-    def target_ref(self):
-        """
-        String held in the ``Target`` attribute of this ``<Relationship>``
-        element.
-        """
-        return self.get('Target')
-
-    @property
-    def target_mode(self):
-        """
-        String held in the ``TargetMode`` attribute of this
-        ``<Relationship>`` element, either ``Internal`` or ``External``.
-        Defaults to ``Internal``.
-        """
-        return self.get('TargetMode', RTM.INTERNAL)
-
-
-class CT_Relationships(OxmlBaseElement):
+class CT_Relationships(BaseOxmlElement):
     """
     ``<Relationships>`` element, the root element in a .rels file.
     """
+    relationship = ZeroOrMore('pr:Relationship')
+
     def add_rel(self, rId, reltype, target, is_external=False):
         """
         Add a child ``<Relationship>`` element with attributes set according
@@ -208,16 +97,15 @@ class CT_Relationships(OxmlBaseElement):
         """
         target_mode = RTM.EXTERNAL if is_external else RTM.INTERNAL
         relationship = CT_Relationship.new(rId, reltype, target, target_mode)
-        self.append(relationship)
+        self._insert_relationship(relationship)
 
-    @staticmethod
-    def new():
+    @classmethod
+    def new(cls):
         """
         Return a new ``<Relationships>`` element.
         """
         xml = '<Relationships xmlns="%s"/>' % nsmap['pr']
-        relationships = oxml_fromstring(xml)
-        objectify.deannotate(relationships, cleanup_namespaces=True)
+        relationships = parse_xml(xml)
         return relationships
 
     @property
@@ -229,57 +117,43 @@ class CT_Relationships(OxmlBaseElement):
         return oxml_tostring(self, encoding='UTF-8', standalone=True)
 
 
-class CT_Types(OxmlBaseElement):
+class CT_Types(BaseOxmlElement):
     """
     ``<Types>`` element, the container element for Default and Override
     elements in [Content_Types].xml.
     """
+    default = ZeroOrMore('ct:Default')
+    override = ZeroOrMore('ct:Override')
+
     def add_default(self, ext, content_type):
         """
         Add a child ``<Default>`` element with attributes set to parameter
         values.
         """
-        default = CT_Default.new(ext, content_type)
-        self.append(default)
+        return self._add_default(extension=ext, contentType=content_type)
 
     def add_override(self, partname, content_type):
         """
         Add a child ``<Override>`` element with attributes set to parameter
         values.
         """
-        override = CT_Override.new(partname, content_type)
-        self.append(override)
+        return self._add_override(
+            partName=partname, contentType=content_type
+        )
 
-    @property
-    def defaults(self):
-        try:
-            return self.Default[:]
-        except AttributeError:
-            return []
-
-    @staticmethod
-    def new():
+    @classmethod
+    def new(cls):
         """
         Return a new ``<Types>`` element.
         """
         xml = '<Types xmlns="%s"/>' % nsmap['ct']
-        types = oxml_fromstring(xml)
-        objectify.deannotate(types, cleanup_namespaces=True)
+        types = parse_xml(xml)
         return types
 
-    @property
-    def overrides(self):
-        try:
-            return self.Override[:]
-        except AttributeError:
-            return []
 
+register_element_cls('ct:Default',  CT_Default)
+register_element_cls('ct:Override', CT_Override)
+register_element_cls('ct:Types',    CT_Types)
 
-ct_namespace = element_class_lookup.get_namespace(nsmap['ct'])
-ct_namespace['Default'] = CT_Default
-ct_namespace['Override'] = CT_Override
-ct_namespace['Types'] = CT_Types
-
-pr_namespace = element_class_lookup.get_namespace(nsmap['pr'])
-pr_namespace['Relationship'] = CT_Relationship
-pr_namespace['Relationships'] = CT_Relationships
+register_element_cls('pr:Relationship',  CT_Relationship)
+register_element_cls('pr:Relationships', CT_Relationships)

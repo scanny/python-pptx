@@ -13,6 +13,7 @@ from mock import call, Mock, patch
 from pptx.opc.constants import (
     CONTENT_TYPE as CT, RELATIONSHIP_TARGET_MODE as RTM
 )
+from pptx.opc.oxml import CT_Relationship
 from pptx.opc.packuri import PackURI
 from pptx.opc.phys_pkg import _ZipPkgReader
 from pptx.opc.pkgreader import (
@@ -21,7 +22,9 @@ from pptx.opc.pkgreader import (
 )
 
 from .unitdata.types import a_Default, a_Types, an_Override
-from ..unitutil import class_mock, initializer_mock, method_mock
+from ..unitutil import (
+    function_mock, class_mock, initializer_mock, method_mock
+)
 
 
 class DescribePackageReader(object):
@@ -328,9 +331,8 @@ class Describe_SerializedRelationship(object):
 
     def it_remembers_construction_values(self):
         # test data --------------------
-        rel_elm = Mock(
-            name='rel_elm', rId='rId9', reltype='ReLtYpE',
-            target_ref='docProps/core.xml', target_mode=RTM.INTERNAL
+        rel_elm = CT_Relationship.new(
+            'rId9', 'ReLtYpE', 'docProps/core.xml', RTM.INTERNAL
         )
         # exercise ---------------------
         srel = _SerializedRelationship('/', rel_elm)
@@ -341,11 +343,12 @@ class Describe_SerializedRelationship(object):
         assert srel.target_mode == RTM.INTERNAL
 
     def it_knows_when_it_is_external(self):
-        cases = (RTM.INTERNAL, RTM.EXTERNAL, 'FOOBAR')
+        cases = (RTM.INTERNAL, RTM.EXTERNAL, None)
         expected_values = (False, True, False)
         for target_mode, expected_value in zip(cases, expected_values):
-            rel_elm = Mock(name='rel_elm', rId=None, reltype=None,
-                           target_ref=None, target_mode=target_mode)
+            rel_elm = CT_Relationship.new(
+                'rId9', 'ReLtYpE', 'docProps/core.xml', target_mode
+            )
             srel = _SerializedRelationship(None, rel_elm)
             assert srel.is_external is expected_value
 
@@ -367,9 +370,8 @@ class Describe_SerializedRelationship(object):
             assert srel.target_partname == expected_partname
 
     def it_raises_on_target_partname_when_external(self):
-        rel_elm = Mock(
-            name='rel_elm', rId='rId9', reltype='ReLtYpE',
-            target_ref='docProps/core.xml', target_mode=RTM.EXTERNAL
+        rel_elm = CT_Relationship.new(
+            'rId9', 'ReLtYpE', 'docProps/core.xml', RTM.EXTERNAL
         )
         srel = _SerializedRelationship('/', rel_elm)
         with pytest.raises(ValueError):
@@ -378,35 +380,26 @@ class Describe_SerializedRelationship(object):
 
 class Describe_SerializedRelationshipCollection(object):
 
-    @pytest.fixture
-    def oxml_fromstring(self, request):
-        _patch = patch('pptx.opc.pkgreader.oxml_fromstring')
-        request.addfinalizer(_patch.stop)
-        return _patch.start()
-
-    @pytest.fixture
-    def _SerializedRelationship_(self, request):
-        return class_mock(
-            request, 'pptx.opc.pkgreader._SerializedRelationship'
-        )
-
-    def it_can_load_from_xml(self, oxml_fromstring, _SerializedRelationship_):
+    def it_can_load_from_xml(self, parse_xml, _SerializedRelationship_):
         # mockery ----------------------
         baseURI, rels_item_xml, rel_elm_1, rel_elm_2 = (
             Mock(name='baseURI'), Mock(name='rels_item_xml'),
             Mock(name='rel_elm_1'), Mock(name='rel_elm_2'),
         )
-        rels_elm = Mock(name='rels_elm', Relationship=[rel_elm_1, rel_elm_2])
-        oxml_fromstring.return_value = rels_elm
+        rels_elm = Mock(
+            name='rels_elm', relationship_lst=[rel_elm_1, rel_elm_2]
+        )
+        parse_xml.return_value = rels_elm
         # exercise ---------------------
         srels = _SerializedRelationshipCollection.load_from_xml(
-            baseURI, rels_item_xml)
+            baseURI, rels_item_xml
+        )
         # verify -----------------------
         expected_calls = [
             call(baseURI, rel_elm_1),
             call(baseURI, rel_elm_2),
         ]
-        oxml_fromstring.assert_called_once_with(rels_item_xml)
+        parse_xml.assert_called_once_with(rels_item_xml)
         assert _SerializedRelationship_.call_args_list == expected_calls
         assert isinstance(srels, _SerializedRelationshipCollection)
 
@@ -418,3 +411,15 @@ class Describe_SerializedRelationshipCollection(object):
         except TypeError:
             msg = "_SerializedRelationshipCollection object is not iterable"
             pytest.fail(msg)
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def parse_xml(self, request):
+        return function_mock(request, 'pptx.opc.pkgreader.parse_xml')
+
+    @pytest.fixture
+    def _SerializedRelationship_(self, request):
+        return class_mock(
+            request, 'pptx.opc.pkgreader._SerializedRelationship'
+        )
