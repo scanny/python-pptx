@@ -8,18 +8,14 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from hamcrest import assert_that, instance_of, is_, none
+from hamcrest import assert_that, is_
 
 from pptx.enum.shapes import MSO_SHAPE, PP_PLACEHOLDER
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
-from pptx.oxml.shapes.shared import (
-    CT_ShapeProperties, ST_Direction, ST_PlaceholderSize
-)
+from pptx.oxml.shapes.autoshape import CT_Shape
+from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 
-from ..unitdata.shape import (
-    a_gd, a_prstGeom, an_avLst, an_spPr, test_shape_elements
-)
+from ..unitdata.shape import a_gd, a_prstGeom, an_avLst, test_shape_elements
 from ...unitutil import TestCase
 
 
@@ -98,9 +94,6 @@ class DescribeCT_Shape(object):
             id_, name, ph_type, orient, sz, idx
         )
         assert sp.xml == expected_xml
-        # print(sp.xml)
-        # print(expected_xml)
-        # assert False
 
     # fixtures ---------------------------------------------
 
@@ -153,18 +146,6 @@ class DescribeCT_Shape(object):
         expected_values = (id_, name, expected_attrs, txBody_str)
         expected_xml = expected_xml_tmpl % expected_values
         return id_, name, ph_type, orient, sz, idx, expected_xml
-
-
-class DescribeCT_ShapeProperties(object):
-
-    def it_is_used_by_the_parser_for_an_spPr_element(self, spPr):
-        assert isinstance(spPr, CT_ShapeProperties)
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def spPr(self):
-        return an_spPr().with_nsdecls().element
 
 
 class TestCT_Shape(TestCase):
@@ -252,13 +233,3 @@ class TestCT_Shape(TestCase):
         sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
         # verify -----------------------
         self.assertEqualLineByLine(xml, sp)
-
-    def test_prstGeom_return_value(self):
-        """CT_Shape.prstGeom value is correct"""
-        # setup ------------------------
-        rounded_rect_sp = test_shape_elements.rounded_rectangle
-        placeholder_sp = test_shape_elements.placeholder
-        # verify -----------------------
-        assert_that(rounded_rect_sp.prstGeom,
-                    instance_of(CT_PresetGeometry2D))
-        assert_that(placeholder_sp.prstGeom, is_(none()))
