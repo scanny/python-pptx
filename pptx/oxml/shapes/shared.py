@@ -9,8 +9,8 @@ from __future__ import absolute_import
 from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import _nsmap, qn
 from ..simpletypes import (
-    ST_Coordinate, ST_DrawingElementId, ST_LineWidth, ST_PositiveCoordinate,
-    XsdString, XsdUnsignedInt
+    ST_Coordinate, ST_Direction, ST_DrawingElementId, ST_LineWidth,
+    ST_PlaceholderSize, ST_PositiveCoordinate, XsdString, XsdUnsignedInt
 )
 from ...util import Emu
 from ..xmlchemy import (
@@ -97,8 +97,8 @@ class BaseShapeElement(BaseOxmlElement):
         """
         ph = self.ph
         if ph is None:
-            return None
-        return ph.get('sz', ST_PlaceholderSize.FULL)
+            raise ValueError("not a placeholder shape")
+        return ph.sz
 
     @property
     def ph_type(self):
@@ -108,7 +108,7 @@ class BaseShapeElement(BaseOxmlElement):
         """
         ph = self.ph
         if ph is None:
-            return None
+            raise ValueError("not a placeholder shape")
         return ph.type
 
     @property
@@ -221,56 +221,16 @@ class CT_Placeholder(BaseOxmlElement):
     """
     ``<p:ph>`` custom element class.
     """
-    @property
-    def idx(self):
-        idx_str = self.get('idx')
-        if idx_str is None:
-            return 0
-        return int(idx_str)
-
-    @idx.setter
-    def idx(self, value):
-        XsdUnsignedInt.validate(value)
-        if value == 0 or value is None:
-            if 'idx' in self.attrib:
-                del self.attrib['idx']
-            return
-        str_value = str(value)
-        self.set('idx', str_value)
-
-    @property
-    def orient(self):
-        orient_str = self.get('orient')
-        if orient_str is None:
-            return ST_Direction.HORZ
-        return orient_str
-
-    @orient.setter
-    def orient(self, value):
-        if value not in (ST_Direction.HORZ, ST_Direction.VERT, None):
-            raise ValueError("invalid setting for orient attribute")
-        if value in (ST_Direction.HORZ, None):
-            if 'orient' in self.attrib:
-                del self.attrib['orient']
-            return
-        str_value = str(value)
-        self.set('orient', str_value)
-
-    @property
-    def type(self):
-        type_str = self.get('type')
-        if type_str is None:
-            return PP_PLACEHOLDER.OBJECT
-        return PP_PLACEHOLDER.from_xml(type_str)
-
-    @type.setter
-    def type(self, value):
-        if value is None or value is PP_PLACEHOLDER.OBJECT:
-            if 'type' in self.attrib:
-                del self.attrib['type']
-            return
-        str_value = PP_PLACEHOLDER.to_xml(value)
-        self.set('type', str_value)
+    type = OptionalAttribute(
+        'type', PP_PLACEHOLDER, default=PP_PLACEHOLDER.OBJECT
+    )
+    orient = OptionalAttribute(
+        'orient', ST_Direction, default=ST_Direction.HORZ
+    )
+    sz = OptionalAttribute(
+        'sz', ST_PlaceholderSize, default=ST_PlaceholderSize.FULL
+    )
+    idx = OptionalAttribute('idx', XsdUnsignedInt, default=0)
 
 
 class CT_Point2D(BaseOxmlElement):
@@ -428,20 +388,3 @@ class CT_Transform2D(BaseOxmlElement):
         off.x = 0
         off.y = 0
         return off
-
-
-class ST_Direction(object):
-    """
-    Valid values for <p:ph orient=""> attribute
-    """
-    HORZ = 'horz'
-    VERT = 'vert'
-
-
-class ST_PlaceholderSize(object):
-    """
-    Valid values for <p:ph> sz (size) attribute
-    """
-    FULL = 'full'
-    HALF = 'half'
-    QUARTER = 'quarter'

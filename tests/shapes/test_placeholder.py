@@ -111,22 +111,19 @@ class DescribeBasePlaceholder(object):
         return shape
 
     @pytest.fixture(params=[
-        (False, None, None),
-        (True,  None, ST_PlaceholderSize.FULL),
-        (True,  ST_PlaceholderSize.HALF, ST_PlaceholderSize.HALF),
+        (None, ST_PlaceholderSize.FULL),
+        (ST_PlaceholderSize.HALF, ST_PlaceholderSize.HALF),
     ])
     def sz_fixture(self, request):
-        has_ph_elm, sz, expected_sz = request.param
+        sz, expected_sz = request.param
         ph_bldr = a_ph()
         if sz is not None:
             ph_bldr.with_sz(sz)
-        nvPr_bldr = an_nvPr()
-        if has_ph_elm:
-            nvPr_bldr.with_child(ph_bldr)
         shape_elm = (
             an_sp().with_nsdecls('p').with_child(
                 an_nvSpPr().with_child(
-                    nvPr_bldr))
+                    an_nvPr().with_child(
+                        ph_bldr)))
         ).element
         placeholder = BasePlaceholder(shape_elm, None)
         return placeholder, expected_sz

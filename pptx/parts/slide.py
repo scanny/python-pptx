@@ -14,7 +14,7 @@ from ..opc.package import Part
 from ..opc.packuri import PackURI
 from ..oxml import parse_xml
 from ..oxml.ns import _nsmap, qn
-from ..oxml.shapes.shared import ST_Direction
+from ..oxml.simpletypes import ST_Direction
 from ..oxml.slide import CT_Slide
 from ..shapes.autoshape import AutoShapeType
 from ..shapes.placeholder import BasePlaceholder, BasePlaceholders

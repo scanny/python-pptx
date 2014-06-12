@@ -138,6 +138,14 @@ class XsdString(BaseStringType):
     pass
 
 
+class XsdToken(BaseStringType):
+    """
+    xsd:string with whitespace collapsing, e.g. multiple spaces reduced to
+    one, leading and trailing space stripped.
+    """
+    pass
+
+
 class XsdUnsignedInt(BaseIntType):
 
     @classmethod
@@ -199,6 +207,23 @@ class ST_CoordinateUnqualified(XsdLong):
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, -27273042329600, 27273042316900)
+
+
+class ST_Direction(XsdToken):
+    """
+    Valid values for <p:ph orient=""> attribute
+    """
+    HORZ = 'horz'
+    VERT = 'vert'
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_string(value)
+        if value not in (cls.HORZ, cls.VERT):
+            raise ValueError(
+                "must be one of '%s' or '%s', got '%s'" %
+                (cls.HORZ, cls.VERT, value)
+            )
 
 
 class ST_DrawingElementId(XsdUnsignedInt):
@@ -278,6 +303,24 @@ class ST_Percentage(BaseIntType):
         percent_value = float(float_part)
         int_value = int(round(percent_value * 1000))
         return int_value
+
+
+class ST_PlaceholderSize(XsdToken):
+    """
+    Valid values for <p:ph> sz (size) attribute
+    """
+    FULL = 'full'
+    HALF = 'half'
+    QUARTER = 'quarter'
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_string(value)
+        if value not in (cls.FULL, cls.HALF, cls.QUARTER):
+            raise ValueError(
+                "must be one of '%s', '%s', or '%s', got '%s'" %
+                (cls.FULL, cls.HALF, cls.QUARTER, value)
+            )
 
 
 class ST_PositiveCoordinate(XsdLong):

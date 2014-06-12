@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from .. import parse_xml
 from ...enum.shapes import MSO_AUTO_SHAPE_TYPE, PP_PLACEHOLDER
 from ..ns import nsdecls
-from .shared import BaseShapeElement, ST_Direction, ST_PlaceholderSize
+from .shared import BaseShapeElement
 from ..simpletypes import XsdBoolean, XsdString
 from ..text import CT_TextBody
 from ..xmlchemy import (
@@ -138,14 +138,11 @@ class CT_Shape(BaseShapeElement):
         xml = tmpl % (id_, name)
         sp = parse_xml(xml)
 
-        # placeholder (ph) element attributes values vary by type
         ph = sp.nvSpPr.nvPr.get_or_add_ph()
         ph.type = ph_type
         ph.idx = idx
-        if orient != ST_Direction.HORZ:
-            ph.set('orient', orient)
-        if sz != ST_PlaceholderSize.FULL:
-            ph.set('sz', sz)
+        ph.orient = orient
+        ph.sz = sz
 
         placeholder_types_that_have_a_text_frame = (
             PP_PLACEHOLDER.TITLE, PP_PLACEHOLDER.CENTER_TITLE,
