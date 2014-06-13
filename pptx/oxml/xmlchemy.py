@@ -12,6 +12,7 @@ import re
 from lxml import etree
 
 from . import etree_parser as oxml_parser
+from ..exc import InvalidXmlError
 from .ns import NamespacePrefixedTag, qn
 from ..util import lazyproperty
 
@@ -107,9 +108,88 @@ class MetaOxmlElement(type):
     Metaclass for BaseOxmlElement
     """
     def __init__(cls, clsname, bases, clsdict):
+        dispatchable = (RequiredAttribute, ZeroOrOne)
         for key, value in clsdict.items():
-            if isinstance(value, ZeroOrOne):
+            if isinstance(value, dispatchable):
                 value.populate_class_members(cls, key)
+
+
+class RequiredAttribute(object):
+    """
+    Defines a required attribute on a custom element class. A required
+    attribute is assumed to be present for reading, so does not have
+    a default value; its actual value is always used. If missing on read,
+    a |ValidationError| is raised. It also does not remove the attribute if
+    |None| is assigned. Assigning |None| raises |ValidationError|.
+    """
+    def __init__(self, attr_name, simple_type):
+        super(RequiredAttribute, self).__init__()
+        self._attr_name = attr_name
+        self._simple_type = simple_type
+
+    def populate_class_members(self, element_cls, prop_name):
+        """
+        Add the appropriate methods to *element_cls*.
+        """
+        self._element_cls = element_cls
+        self._prop_name = prop_name
+
+        self._add_attr_property()
+
+    def _add_attr_property(self):
+        """
+        Add a read/write ``{prop_name}`` property to the element class that
+        returns the interpreted value of this attribute on access and changes
+        the attribute value to its ST_* counterpart on assignment.
+        """
+        property_ = property(self._getter, self._setter, None)
+        # assign unconditionally to overwrite element name definition
+        setattr(self._element_cls, self._prop_name, property_)
+
+    @property
+    def _getter(self):
+        """
+        Return a function object suitable for the "get" side of the attribute
+        property descriptor.
+        """
+        def get_attr_value(obj):
+            attr_str_value = obj.get(self._clark_name)
+            if attr_str_value is None:
+                raise InvalidXmlError(
+                    "required '%s' attribute not present on element %s" %
+                    (self._attr_name, obj.tag)
+                )
+            return self._simple_type.from_xml(attr_str_value)
+        get_attr_value.__doc__ = self._docstring
+        return get_attr_value
+
+    @property
+    def _docstring(self):
+        """
+        Return the string to use as the ``__doc__`` attribute of the property
+        for this attribute.
+        """
+        return (
+            '%s type-converted value of ``%s`` attribute.' %
+            (self._simple_type.__name__, self._attr_name)
+        )
+
+    @property
+    def _setter(self):
+        """
+        Return a function object suitable for the "set" side of the attribute
+        property descriptor.
+        """
+        def set_attr_value(obj, value):
+            str_value = self._simple_type.to_xml(value)
+            obj.set(self._clark_name, str_value)
+        return set_attr_value
+
+    @property
+    def _clark_name(self):
+        if ':' in self._attr_name:
+            return qn(self._attr_name)
+        return self._attr_name
 
 
 class _BaseChildElement(object):

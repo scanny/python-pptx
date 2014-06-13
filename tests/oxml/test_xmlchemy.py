@@ -10,9 +10,11 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.exc import InvalidXmlError
 from pptx.oxml import register_element_cls
 from pptx.oxml.ns import qn
-from pptx.oxml.xmlchemy import BaseOxmlElement, ZeroOrOne
+from pptx.oxml.simpletypes import BaseIntType
+from pptx.oxml.xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
 
 from ..unitdata import EtreeBaseBuilder as BaseBuilder
 
@@ -21,6 +23,57 @@ class DescribeCustomElementClass(object):
 
     def it_has_the_MetaOxmlElement_metaclass(self):
         assert type(CT_Parent).__name__ == 'MetaOxmlElement'
+
+
+class DescribeRequiredAttribute(object):
+
+    def it_adds_a_getter_property_for_the_attr_value(self, getter_fixture):
+        parent, reqAttr_python_value = getter_fixture
+        assert parent.reqAttr is reqAttr_python_value
+
+    def it_adds_a_setter_property_for_the_attr(self, setter_fixture):
+        parent, value, expected_xml = setter_fixture
+        parent.reqAttr = value
+        assert parent.xml == expected_xml
+
+    def it_adds_a_docstring_for_the_property(self):
+        assert CT_Parent.reqAttr.__doc__.startswith(
+            "ST_IntegerType type-converted value of "
+        )
+
+    def it_raises_on_get_when_attribute_not_present(self):
+        parent = a_parent().with_nsdecls().element
+        with pytest.raises(InvalidXmlError):
+            parent.reqAttr
+
+    def it_raises_on_assign_invalid_value(self, invalid_assign_fixture):
+        parent, value, expected_exception = invalid_assign_fixture
+        with pytest.raises(expected_exception):
+            parent.reqAttr = value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def getter_fixture(self):
+        parent = a_parent().with_nsdecls().with_reqAttr('42').element
+        return parent, 42
+
+    @pytest.fixture(params=[
+        (None, TypeError),
+        (-4,   ValueError),
+        ('2',  TypeError),
+    ])
+    def invalid_assign_fixture(self, request):
+        invalid_value, expected_exception = request.param
+        parent = a_parent().with_nsdecls().with_reqAttr(1).element
+        return parent, invalid_value, expected_exception
+
+    @pytest.fixture
+    def setter_fixture(self):
+        parent = a_parent().with_nsdecls().with_reqAttr('42').element
+        value = 24
+        expected_xml = a_parent().with_nsdecls().with_reqAttr(value).xml()
+        return parent, value, expected_xml
 
 
 class DescribeZeroOrOne(object):
@@ -107,11 +160,23 @@ class DescribeZeroOrOne(object):
 # static shared fixture
 # --------------------------------------------------------------------
 
+class ST_IntegerType(BaseIntType):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int(value)
+        if value < 1 or value > 42:
+            raise ValueError(
+                "value must be in range 1 to 42 inclusive"
+            )
+
+
 class CT_Parent(BaseOxmlElement):
     """
     ``<p:parent>`` element, an invented element for use in testing.
     """
     zooChild = ZeroOrOne('p:zooChild', successors=())
+    reqAttr = RequiredAttribute('reqAttr', ST_IntegerType)
 
 
 class CT_ZooChild(BaseOxmlElement):
@@ -128,7 +193,7 @@ register_element_cls('p:zooChild',  CT_ZooChild)
 class CT_ParentBuilder(BaseBuilder):
     __tag__ = 'p:parent'
     __nspfxs__ = ('p',)
-    __attrs__ = ()
+    __attrs__ = ('reqAttr',)
 
 
 class CT_ZooChildBuilder(BaseBuilder):
