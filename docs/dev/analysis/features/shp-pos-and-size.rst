@@ -172,3 +172,10 @@ Related Schema Definitions
     <xsd:attribute name="cx" type="ST_PositiveCoordinate" use="required"/>
     <xsd:attribute name="cy" type="ST_PositiveCoordinate" use="required"/>
   </xsd:complexType>
+
+  <xsd:simpleType name="ST_PositiveCoordinate">
+    <xsd:restriction base="xsd:long">
+      <xsd:minInclusive value="0"/>
+      <xsd:maxInclusive value="27273042316900"/>
+    </xsd:restriction>
+  </xsd:simpleType>

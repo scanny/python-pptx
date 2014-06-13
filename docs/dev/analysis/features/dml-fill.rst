@@ -167,61 +167,61 @@ Related Schema Definitions
 
   <xsd:complexType name="CT_ShapeProperties">
     <xsd:sequence>
-      <xsd:element name="xfrm"    type="CT_Transform2D"            minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_Geometry"                               minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_FillProperties"                         minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="ln"      type="CT_LineProperties"         minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_EffectProperties"                       minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="scene3d" type="CT_Scene3D"                minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="sp3d"    type="CT_Shape3D"                minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst"  type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="xfrm"    type="CT_Transform2D"            minOccurs="0"/>
+      <xsd:group   ref="EG_Geometry"                               minOccurs="0"/>
+      <xsd:group   ref="EG_FillProperties"                         minOccurs="0"/>
+      <xsd:element name="ln"      type="CT_LineProperties"         minOccurs="0"/>
+      <xsd:group   ref="EG_EffectProperties"                       minOccurs="0"/>
+      <xsd:element name="scene3d" type="CT_Scene3D"                minOccurs="0"/>
+      <xsd:element name="sp3d"    type="CT_Shape3D"                minOccurs="0"/>
+      <xsd:element name="extLst"  type="CT_OfficeArtExtensionList" minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="bwMode" type="ST_BlackWhiteMode" use="optional"/>
+    <xsd:attribute name="bwMode" type="ST_BlackWhiteMode"/>
   </xsd:complexType>
 
   <xsd:group name="EG_Geometry">
     <xsd:choice>
-      <xsd:element name="custGeom" type="CT_CustomGeometry2D" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="prstGeom" type="CT_PresetGeometry2D" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="custGeom" type="CT_CustomGeometry2D"/>
+      <xsd:element name="prstGeom" type="CT_PresetGeometry2D"/>
     </xsd:choice>
   </xsd:group>
 
   <xsd:group name="EG_FillProperties">
     <xsd:choice>
-      <xsd:element name="noFill"    type="CT_NoFillProperties"         minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="solidFill" type="CT_SolidColorFillProperties" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="gradFill"  type="CT_GradientFillProperties"   minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="blipFill"  type="CT_BlipFillProperties"       minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="pattFill"  type="CT_PatternFillProperties"    minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="grpFill"   type="CT_GroupFillProperties"      minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="noFill"    type="CT_NoFillProperties"/>
+      <xsd:element name="solidFill" type="CT_SolidColorFillProperties"/>
+      <xsd:element name="gradFill"  type="CT_GradientFillProperties"/>
+      <xsd:element name="blipFill"  type="CT_BlipFillProperties"/>
+      <xsd:element name="pattFill"  type="CT_PatternFillProperties"/>
+      <xsd:element name="grpFill"   type="CT_GroupFillProperties"/>
     </xsd:choice>
   </xsd:group>
 
   <xsd:group name="EG_EffectProperties">
     <xsd:choice>
-      <xsd:element name="effectLst" type="CT_EffectList"      minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="effectDag" type="CT_EffectContainer" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="effectLst" type="CT_EffectList"/>
+      <xsd:element name="effectDag" type="CT_EffectContainer"/>
     </xsd:choice>
   </xsd:group>
 
   <xsd:complexType name="CT_BlipFillProperties">
     <xsd:sequence>
-      <xsd:element name="blip"    type="CT_Blip"         minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="srcRect" type="CT_RelativeRect" minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_FillModeProperties"           minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="blip"    type="CT_Blip"         minOccurs="0"/>
+      <xsd:element name="srcRect" type="CT_RelativeRect" minOccurs="0"/>
+      <xsd:group   ref="EG_FillModeProperties"           minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="dpi"          type="xsd:unsignedInt" use="optional"/>
-    <xsd:attribute name="rotWithShape" type="xsd:boolean"     use="optional"/>
+    <xsd:attribute name="dpi"          type="xsd:unsignedInt"/>
+    <xsd:attribute name="rotWithShape" type="xsd:boolean"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_GradientFillProperties">
     <xsd:sequence>
-      <xsd:element name="gsLst"    type="CT_GradientStopList" minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_ShadeProperties"                   minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="tileRect" type="CT_RelativeRect"     minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="gsLst"    type="CT_GradientStopList" minOccurs="0"/>
+      <xsd:group   ref="EG_ShadeProperties"                   minOccurs="0"/>
+      <xsd:element name="tileRect" type="CT_RelativeRect"     minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="flip"         type="ST_TileFlipMode" use="optional"/>
-    <xsd:attribute name="rotWithShape" type="xsd:boolean"     use="optional"/>
+    <xsd:attribute name="flip"         type="ST_TileFlipMode"/>
+    <xsd:attribute name="rotWithShape" type="xsd:boolean"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_GroupFillProperties"/>
@@ -230,26 +230,26 @@ Related Schema Definitions
 
   <xsd:complexType name="CT_PatternFillProperties">
     <xsd:sequence>
-      <xsd:element name="fgClr" type="CT_Color" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="bgClr" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="fgClr" type="CT_Color" minOccurs="0"/>
+      <xsd:element name="bgClr" type="CT_Color" minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="prst" type="ST_PresetPatternVal" use="optional"/>
+    <xsd:attribute name="prst" type="ST_PresetPatternVal"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_SolidColorFillProperties">
     <xsd:sequence>
-      <xsd:group ref="EG_ColorChoice" minOccurs="0" maxOccurs="1"/>
+      <xsd:group ref="EG_ColorChoice" minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
   <xsd:group name="EG_ColorChoice">
     <xsd:choice>
-      <xsd:element name="scrgbClr"  type="CT_ScRgbColor"  minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="srgbClr"   type="CT_SRgbColor"   minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="hslClr"    type="CT_HslColor"    minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="sysClr"    type="CT_SystemColor" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="schemeClr" type="CT_SchemeColor" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="prstClr"   type="CT_PresetColor" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="scrgbClr"  type="CT_ScRgbColor"/>
+      <xsd:element name="srgbClr"   type="CT_SRgbColor"/>
+      <xsd:element name="hslClr"    type="CT_HslColor"/>
+      <xsd:element name="sysClr"    type="CT_SystemColor"/>
+      <xsd:element name="schemeClr" type="CT_SchemeColor"/>
+      <xsd:element name="prstClr"   type="CT_PresetColor"/>
     </xsd:choice>
   </xsd:group>
 

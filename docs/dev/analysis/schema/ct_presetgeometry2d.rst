@@ -15,28 +15,6 @@
    Spec Section , 20.1.9.18
 
 
-attributes
-----------
-
-=========  ============================  ===========
-name       type                          optionality
-=========  ============================  ===========
-prst       ST_ShapeType                  required
-=========  ============================  ===========
-
-
-child elements
---------------
-
-=========  ====  ============================
-name        #    type
-=========  ====  ============================
-bodyPr      1    CT_TextBodyProperties
-lstStyle    ?    CT_TextListStyle
-p           \+   :doc:`ct_textparagraph`
-=========  ====  ============================
-
-
 Spec text
 ---------
 
@@ -52,7 +30,7 @@ Schema excerpt
 
   <xsd:complexType name="CT_PresetGeometry2D">
     <xsd:sequence>
-      <xsd:element name="avLst" type="CT_GeomGuideList" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="avLst" type="CT_GeomGuideList" minOccurs="0"/>
     </xsd:sequence>
     <xsd:attribute name="prst" type="ST_ShapeType" use="required"/>
   </xsd:complexType>
@@ -64,7 +42,7 @@ Schema excerpt
   </xsd:complexType>
 
   <xsd:complexType name="CT_GeomGuide">
-    <xsd:attribute name="name" type="ST_GeomGuideName" use="required"/>
+    <xsd:attribute name="name" type="ST_GeomGuideName"    use="required"/>
     <xsd:attribute name="fmla" type="ST_GeomGuideFormula" use="required"/>
   </xsd:complexType>
 

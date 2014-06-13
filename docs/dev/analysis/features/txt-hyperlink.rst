@@ -173,35 +173,39 @@ Related Schema Definitions
 
   <xsd:complexType name="CT_TextCharacterProperties">
     <xsd:sequence>
-      <xsd:element name="ln"        type="CT_LineProperties" minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_FillProperties"                   minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_EffectProperties"                 minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="highlight"      type="CT_Color"     minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_TextUnderlineLine"                minOccurs="0" maxOccurs="1"/>
-      <xsd:group   ref="EG_TextUnderlineFill"                minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="latin"          type="CT_TextFont"  minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="ea"             type="CT_TextFont"  minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="cs"             type="CT_TextFont"  minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="sym"            type="CT_TextFont"  minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="hlinkClick"     type="CT_Hyperlink" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="hlinkMouseOver" type="CT_Hyperlink" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="rtl"            type="CT_Boolean"   minOccurs="0"/>
-      <xsd:element name="extLst"         type="CT_OfficeArtExtensionList" minOccurs="0"  maxOccurs="1"/>
+      <xsd:element name="ln"             type="CT_LineProperties"         minOccurs="0"/>
+      <xsd:group    ref="EG_FillProperties"                               minOccurs="0"/>
+      <xsd:group    ref="EG_EffectProperties"                             minOccurs="0"/>
+      <xsd:element name="highlight"      type="CT_Color"                  minOccurs="0"/>
+      <xsd:group    ref="EG_TextUnderlineLine"                            minOccurs="0"/>
+      <xsd:group    ref="EG_TextUnderlineFill"                            minOccurs="0"/>
+      <xsd:element name="latin"          type="CT_TextFont"               minOccurs="0"/>
+      <xsd:element name="ea"             type="CT_TextFont"               minOccurs="0"/>
+      <xsd:element name="cs"             type="CT_TextFont"               minOccurs="0"/>
+      <xsd:element name="sym"            type="CT_TextFont"               minOccurs="0"/>
+      <xsd:element name="hlinkClick"     type="CT_Hyperlink"              minOccurs="0"/>
+      <xsd:element name="hlinkMouseOver" type="CT_Hyperlink"              minOccurs="0"/>
+      <xsd:element name="rtl"            type="CT_Boolean"                minOccurs="0"/>
+      <xsd:element name="extLst"         type="CT_OfficeArtExtensionList" minOccurs="0"/>
     </xsd:sequence>
     ... 19 attributes ...
   </xsd:complexType>
 
   <xsd:complexType name="CT_Hyperlink">
     <xsd:sequence>
-      <xsd:element name="snd"    type="CT_EmbeddedWAVAudioFile"   minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="snd"    type="CT_EmbeddedWAVAudioFile"   minOccurs="0"/>
+      <xsd:element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute ref="r:id" use="optional"/>
-    <xsd:attribute name="invalidUrl"     type="xsd:string"  use="optional" default=""/>
-    <xsd:attribute name="action"         type="xsd:string"  use="optional" default=""/>
-    <xsd:attribute name="tgtFrame"       type="xsd:string"  use="optional" default=""/>
-    <xsd:attribute name="tooltip"        type="xsd:string"  use="optional" default=""/>
-    <xsd:attribute name="history"        type="xsd:boolean" use="optional" default="true"/>
-    <xsd:attribute name="highlightClick" type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="endSnd"         type="xsd:boolean" use="optional" default="false"/>
+    <xsd:attribute ref="r:id"/>     <!-- type="ST_RelationshipId" -->
+    <xsd:attribute name="invalidUrl"     type="xsd:string"        default=""/>
+    <xsd:attribute name="action"         type="xsd:string"        default=""/>
+    <xsd:attribute name="tgtFrame"       type="xsd:string"        default=""/>
+    <xsd:attribute name="tooltip"        type="xsd:string"        default=""/>
+    <xsd:attribute name="history"        type="xsd:boolean"       default="true"/>
+    <xsd:attribute name="highlightClick" type="xsd:boolean"       default="false"/>
+    <xsd:attribute name="endSnd"         type="xsd:boolean"       default="false"/>
   </xsd:complexType>
+
+  <xsd:simpleType name="ST_RelationshipId">
+    <xsd:restriction base="xsd:string"/>
+  </xsd:simpleType>

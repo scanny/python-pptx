@@ -2,8 +2,6 @@
 ``CT_GraphicalObjectFrame``
 ===========================
 
-.. highlight:: xml
-
 .. csv-table::
    :header-rows: 0
    :stub-columns: 1
@@ -26,29 +24,6 @@ such as id and name. The graphic itself is contained in the ``<a:graphic>``
 child element.
 
 
-Attributes
-==========
-
-================  ===  ===================
-name              use  type
-================  ===  ===================
-bwMode             ?   a:ST_BlackWhiteMode
-================  ===  ===================
-
-
-Child elements
-==============
-
-================  ===  ================================  ==========
-name               #   type                              line
-================  ===  ================================  ==========
-nvGraphicFramePr   1   CT_GraphicalObjectFrameNonVisual  1313
-xfrm               1   a:CT_Transform2D                  635 dml
-a:graphic          1   CT_GraphicalObject                870 dml
-extLst             ?   CT_ExtensionListModify            777
-================  ===  ================================  ==========
-
-
 Resources
 =========
 
@@ -67,34 +42,36 @@ Spec text
 Schema excerpt
 ==============
 
+.. highlight:: xml
+
 ::
 
   <xsd:complexType name="CT_GraphicalObjectFrame">
     <xsd:sequence>
-      <xsd:element name="nvGraphicFramePr" type="CT_GraphicalObjectFrameNonVisual" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="xfrm"   type="a:CT_Transform2D"       minOccurs="1" maxOccurs="1"/>
-      <xsd:element ref="a:graphic" (type="CT_GraphicalObject") minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="nvGraphicFramePr" type="CT_GraphicalObjectFrameNonVisual"/>
+      <xsd:element name="xfrm"             type="a:CT_Transform2D"/>
+      <xsd:element ref="a:graphic"/>  <!-- type="CT_GraphicalObject" -->
+      <xsd:element name="extLst"           type="CT_ExtensionListModify" minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="bwMode" type="a:ST_BlackWhiteMode" use="optional"/>
+    <xsd:attribute name="bwMode" type="a:ST_BlackWhiteMode"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_GraphicalObjectFrameNonVisual">
     <xsd:sequence>
-      <xsd:element name="cNvPr" type="a:CT_NonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="cNvGraphicFramePr" type="a:CT_NonVisualGraphicFrameProperties" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="nvPr" type="CT_ApplicationNonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="cNvPr"             type="a:CT_NonVisualDrawingProps"/>
+      <xsd:element name="cNvGraphicFramePr" type="a:CT_NonVisualGraphicFrameProperties"/>
+      <xsd:element name="nvPr"              type="CT_ApplicationNonVisualDrawingProps"/>
     </xsd:sequence>
   </xsd:complexType>
 
   <xsd:complexType name="CT_Transform2D">
     <xsd:sequence>
-      <xsd:element name="off" type="CT_Point2D"        minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="ext" type="CT_PositiveSize2D" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="off" type="CT_Point2D"        minOccurs="0"/>
+      <xsd:element name="ext" type="CT_PositiveSize2D" minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="rot"   type="ST_Angle"    use="optional" default="0"/>
-    <xsd:attribute name="flipH" type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="flipV" type="xsd:boolean" use="optional" default="false"/>
+    <xsd:attribute name="rot"   type="ST_Angle"    default="0"/>
+    <xsd:attribute name="flipH" type="xsd:boolean" default="false"/>
+    <xsd:attribute name="flipV" type="xsd:boolean" default="false"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_GraphicalObject">
@@ -105,28 +82,28 @@ Schema excerpt
 
   <xsd:complexType name="CT_ExtensionListModify">
     <xsd:sequence>
-      <xsd:group ref="EG_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      <xsd:group ref="EG_ExtensionList" minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="mod" type="xsd:boolean" use="optional" default="false"/>
+    <xsd:attribute name="mod" type="xsd:boolean" default="false"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_NonVisualDrawingProps">
     <xsd:sequence>
-      <xsd:element name="hlinkClick" type="CT_Hyperlink" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="hlinkHover" type="CT_Hyperlink" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst"     type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="hlinkClick" type="CT_Hyperlink"              minOccurs="0"/>
+      <xsd:element name="hlinkHover" type="CT_Hyperlink"              minOccurs="0"/>
+      <xsd:element name="extLst"     type="CT_OfficeArtExtensionList" minOccurs="0"/>
     </xsd:sequence>
     <xsd:attribute name="id"     type="ST_DrawingElementId" use="required"/>
-    <xsd:attribute name="name"   type="xsd:string"  use="required"/>
-    <xsd:attribute name="descr"  type="xsd:string"  use="optional" default=""/>
-    <xsd:attribute name="hidden" type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="title"  type="xsd:string"  use="optional" default=""/>
+    <xsd:attribute name="name"   type="xsd:string"          use="required"/>
+    <xsd:attribute name="descr"  type="xsd:string"          default=""/>
+    <xsd:attribute name="hidden" type="xsd:boolean"         default="false"/>
+    <xsd:attribute name="title"  type="xsd:string"          default=""/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_NonVisualGraphicFrameProperties">
     <xsd:sequence>
-      <xsd:element name="graphicFrameLocks" type="CT_GraphicalObjectFrameLocking" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="graphicFrameLocks" type="CT_GraphicalObjectFrameLocking" minOccurs="0"/>
+      <xsd:element name="extLst"            type="CT_OfficeArtExtensionList"      minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 

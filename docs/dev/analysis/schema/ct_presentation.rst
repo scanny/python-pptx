@@ -91,33 +91,33 @@ Schema excerpt
 
   <xsd:complexType name="CT_Presentation">
     <xsd:sequence>
-      <xsd:element name="sldMasterIdLst"     type="CT_SlideMasterIdList"   minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="notesMasterIdLst"   type="CT_NotesMasterIdList"   minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="handoutMasterIdLst" type="CT_HandoutMasterIdList" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="sldIdLst"           type="CT_SlideIdList"         minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="sldSz"              type="CT_SlideSize"           minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="notesSz"            type="a:CT_PositiveSize2D"    minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="smartTags"          type="CT_SmartTags"           minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="embeddedFontLst"    type="CT_EmbeddedFontList"    minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="custShowLst"        type="CT_CustomShowList"      minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="photoAlbum"         type="CT_PhotoAlbum"          minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="custDataLst"        type="CT_CustomerDataList"    minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="sldMasterIdLst"     type="CT_SlideMasterIdList"   minOccurs="0"/>
+      <xsd:element name="notesMasterIdLst"   type="CT_NotesMasterIdList"   minOccurs="0"/>
+      <xsd:element name="handoutMasterIdLst" type="CT_HandoutMasterIdList" minOccurs="0"/>
+      <xsd:element name="sldIdLst"           type="CT_SlideIdList"         minOccurs="0"/>
+      <xsd:element name="sldSz"              type="CT_SlideSize"           minOccurs="0"/>
+      <xsd:element name="notesSz"            type="a:CT_PositiveSize2D"/>
+      <xsd:element name="smartTags"          type="CT_SmartTags"           minOccurs="0"/>
+      <xsd:element name="embeddedFontLst"    type="CT_EmbeddedFontList"    minOccurs="0"/>
+      <xsd:element name="custShowLst"        type="CT_CustomShowList"      minOccurs="0"/>
+      <xsd:element name="photoAlbum"         type="CT_PhotoAlbum"          minOccurs="0"/>
+      <xsd:element name="custDataLst"        type="CT_CustomerDataList"    minOccurs="0"/>
       <xsd:element name="kinsoku"            type="CT_Kinsoku"             minOccurs="0"/>
-      <xsd:element name="defaultTextStyle"   type="a:CT_TextListStyle"     minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="modifyVerifier"     type="CT_ModifyVerifier"      minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst"             type="CT_ExtensionList"       minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="defaultTextStyle"   type="a:CT_TextListStyle"     minOccurs="0"/>
+      <xsd:element name="modifyVerifier"     type="CT_ModifyVerifier"      minOccurs="0"/>
+      <xsd:element name="extLst"             type="CT_ExtensionList"       minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="serverZoom"               type="a:ST_Percentage"   use="optional" default="50%"/>
-    <xsd:attribute name="firstSlideNum"            type="xsd:int"           use="optional" default="1"/>
-    <xsd:attribute name="showSpecialPlsOnTitleSld" type="xsd:boolean"       use="optional" default="true"/>
-    <xsd:attribute name="rtl"                      type="xsd:boolean"       use="optional" default="false"/>
-    <xsd:attribute name="removePersonalInfoOnSave" type="xsd:boolean"       use="optional" default="false"/>
-    <xsd:attribute name="compatMode"               type="xsd:boolean"       use="optional" default="false"/>
-    <xsd:attribute name="strictFirstAndLastChars"  type="xsd:boolean"       use="optional" default="true"/>
-    <xsd:attribute name="embedTrueTypeFonts"       type="xsd:boolean"       use="optional" default="false"/>
-    <xsd:attribute name="saveSubsetFonts"          type="xsd:boolean"       use="optional" default="false"/>
-    <xsd:attribute name="autoCompressPictures"     type="xsd:boolean"       use="optional" default="true"/>
-    <xsd:attribute name="bookmarkIdSeed"           type="ST_BookmarkIdSeed" use="optional" default="1"/>
+    <xsd:attribute name="serverZoom"               type="a:ST_Percentage"   default="50%"/>
+    <xsd:attribute name="firstSlideNum"            type="xsd:int"           default="1"/>
+    <xsd:attribute name="showSpecialPlsOnTitleSld" type="xsd:boolean"       default="true"/>
+    <xsd:attribute name="rtl"                      type="xsd:boolean"       default="false"/>
+    <xsd:attribute name="removePersonalInfoOnSave" type="xsd:boolean"       default="false"/>
+    <xsd:attribute name="compatMode"               type="xsd:boolean"       default="false"/>
+    <xsd:attribute name="strictFirstAndLastChars"  type="xsd:boolean"       default="true"/>
+    <xsd:attribute name="embedTrueTypeFonts"       type="xsd:boolean"       default="false"/>
+    <xsd:attribute name="saveSubsetFonts"          type="xsd:boolean"       default="false"/>
+    <xsd:attribute name="autoCompressPictures"     type="xsd:boolean"       default="true"/>
+    <xsd:attribute name="bookmarkIdSeed"           type="ST_BookmarkIdSeed" default="1"/>
     <xsd:attribute name="conformance"              type="s:ST_ConformanceClass"/>
   </xsd:complexType>
 
@@ -151,12 +151,18 @@ Schema excerpt
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_SlideIdListEntry">
+  <xsd:complexType name="CT_SlideIdListEntry">  <!-- denormalized -->
     <xsd:sequence>
       <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
     </xsd:sequence>
-    <xsd:attribute name="id" type="ST_SlideId" use="required"/>
-    <xsd:attribute ref="r:id" use="required"/>
+    <xsd:attribute name="id"  type="ST_SlideId"        use="required"/>
+    <xsd:attribute ref="r:id" type="ST_RelationshipId" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_SlideSize">
+    <xsd:attribute name="cx"   type="ST_SlideSizeCoordinate" use="required"/>
+    <xsd:attribute name="cy"   type="ST_SlideSizeCoordinate" use="required"/>
+    <xsd:attribute name="type" type="ST_SlideSizeType"       default="custom"/>
   </xsd:complexType>
 
   <xsd:simpleType name="ST_SlideId">
@@ -166,3 +172,13 @@ Schema excerpt
     </xsd:restriction>
   </xsd:simpleType>
 
+  <xsd:simpleType name="ST_SlideSizeCoordinate">  <!-- denormalized -->
+    <xsd:restriction base="xsd:int">
+      <xsd:minInclusive value="914400"/>
+      <xsd:maxInclusive value="51206400"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_RelationshipId">
+    <xsd:restriction base="xsd:string"/>
+  </xsd:simpleType>

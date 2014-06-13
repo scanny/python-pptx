@@ -108,10 +108,14 @@ Related Schema Definitions
   </xsd:complexType>
 
   <xsd:simpleType name="ST_Percentage">
-    <xsd:union memberTypes="s:ST_Percentage"/>
+    <xsd:union memberTypes="ST_PercentageDecimal s:ST_Percentage"/>
   </xsd:simpleType>
 
-  <xsd:simpleType name="ST_Percentage">
+  <xsd:simpleType name="ST_PercentageDecimal">
+    <xsd:restriction base="xsd:int"/>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="s:ST_Percentage">  <!-- denormalized -->
     <xsd:restriction base="xsd:string">
       <xsd:pattern value="-?[0-9]+(\.[0-9]+)?%"/>
     </xsd:restriction>

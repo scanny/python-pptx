@@ -23,33 +23,6 @@ Analysis
 The ``<p:sld>`` element is the root element for a slide part.
 
 
-attributes
-==========
-
-================  ===  ===========  =======
-name              use  type         default
-================  ===  ===========  =======
-showMasterSp       ?   xsd:boolean  true
-showMasterPhAnim   ?   xsd:boolean  true
-show               ?   xsd:boolean  true
-================  ===  ===========  =======
-
-
-
-child elements
-==============
-
-==========  ===  =========================  ========
-name         #   type                       line
-==========  ===  =========================  ========
-cSld         1   CT_CommonSlideData
-clrMapOvr    ?   CT_ColorMappingOverride    dml
-transition   ?   CT_SlideTransition
-timing       ?   CT_SlideTiming
-extLst       ?   CT_ExtensionListModify
-==========  ===  =========================  ========
-
-
 Spec text
 =========
 
@@ -90,78 +63,67 @@ Schema excerpt
 
   <xsd:element name="sld" type="CT_Slide"/>
 
-  <xsd:complexType name="CT_Slide">
-    <xsd:sequence minOccurs="1" maxOccurs="1">
-      <xsd:element name="cSld" type="CT_CommonSlideData" minOccurs="1" maxOccurs="1"/>
-      <xsd:group ref="EG_ChildSlide" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="transition" type="CT_SlideTransition" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="timing" type="CT_SlideTiming" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+  <xsd:complexType name="CT_Slide">  <!-- denormalized -->
+    <xsd:sequence>
+      <xsd:element name="cSld"       type="CT_CommonSlideData"/>
+      <xsd:element name="clrMapOvr"  type="a:CT_ColorMappingOverride" minOccurs="0"/>
+      <xsd:element name="transition" type="CT_SlideTransition"        minOccurs="0"/>
+      <xsd:element name="timing"     type="CT_SlideTiming"            minOccurs="0"/>
+      <xsd:element name="extLst"     type="CT_ExtensionListModify"    minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attributeGroup ref="AG_ChildSlide"/>
-    <xsd:attribute name="show" type="xsd:boolean" use="optional" default="true"/>
+    <xsd:attribute name="showMasterSp"     type="xsd:boolean" default="true"/>
+    <xsd:attribute name="showMasterPhAnim" type="xsd:boolean" default="true"/>
+    <xsd:attribute name="show"             type="xsd:boolean" default="true"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_CommonSlideData">
     <xsd:sequence>
-      <xsd:element name="bg" type="CT_Background" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="spTree" type="CT_GroupShape" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="custDataLst" type="CT_CustomerDataList" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="controls" type="CT_ControlList" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="bg"          type="CT_Background"       minOccurs="0"/>
+      <xsd:element name="spTree"      type="CT_GroupShape"/>
+      <xsd:element name="custDataLst" type="CT_CustomerDataList" minOccurs="0"/>
+      <xsd:element name="controls"    type="CT_ControlList"      minOccurs="0"/>
+      <xsd:element name="extLst"      type="CT_ExtensionList"    minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="name" type="xsd:string" use="optional" default=""/>
+    <xsd:attribute name="name" type="xsd:string" default=""/>
   </xsd:complexType>
-
-  <xsd:group name="EG_ChildSlide">
-    <xsd:sequence>
-      <xsd:element name="clrMapOvr" type="a:CT_ColorMappingOverride" minOccurs="0" maxOccurs="1"/>
-    </xsd:sequence>
-  </xsd:group>
-
-  <xsd:attributeGroup name="AG_ChildSlide">
-    <xsd:attribute name="showMasterSp" type="xsd:boolean" use="optional" default="true"/>
-    <xsd:attribute name="showMasterPhAnim" type="xsd:boolean" use="optional" default="true"/>
-  </xsd:attributeGroup>
 
   <xsd:complexType name="CT_SlideTransition">
     <xsd:sequence>
-      <xsd:choice minOccurs="0" maxOccurs="1">
-        <xsd:element name="blinds" type="CT_OrientationTransition"/>
-        <xsd:element name="checker" type="CT_OrientationTransition"/>
-        <xsd:element name="circle" type="CT_Empty"/>
-        <xsd:element name="dissolve" type="CT_Empty"/>
-        <xsd:element name="comb" type="CT_OrientationTransition"/>
-        <xsd:element name="cover" type="CT_EightDirectionTransition"/>
-        <xsd:element name="cut" type="CT_OptionalBlackTransition"/>
-        <xsd:element name="diamond" type="CT_Empty"/>
-        <xsd:element name="fade" type="CT_OptionalBlackTransition"/>
+      <xsd:choice minOccurs="0">
+        <xsd:element name="blinds"    type="CT_OrientationTransition"/>
+        <xsd:element name="checker"   type="CT_OrientationTransition"/>
+        <xsd:element name="circle"    type="CT_Empty"/>
+        <xsd:element name="dissolve"  type="CT_Empty"/>
+        <xsd:element name="comb"      type="CT_OrientationTransition"/>
+        <xsd:element name="cover"     type="CT_EightDirectionTransition"/>
+        <xsd:element name="cut"       type="CT_OptionalBlackTransition"/>
+        <xsd:element name="diamond"   type="CT_Empty"/>
+        <xsd:element name="fade"      type="CT_OptionalBlackTransition"/>
         <xsd:element name="newsflash" type="CT_Empty"/>
-        <xsd:element name="plus" type="CT_Empty"/>
-        <xsd:element name="pull" type="CT_EightDirectionTransition"/>
-        <xsd:element name="push" type="CT_SideDirectionTransition"/>
-        <xsd:element name="random" type="CT_Empty"/>
+        <xsd:element name="plus"      type="CT_Empty"/>
+        <xsd:element name="pull"      type="CT_EightDirectionTransition"/>
+        <xsd:element name="push"      type="CT_SideDirectionTransition"/>
+        <xsd:element name="random"    type="CT_Empty"/>
         <xsd:element name="randomBar" type="CT_OrientationTransition"/>
-        <xsd:element name="split" type="CT_SplitTransition"/>
-        <xsd:element name="strips" type="CT_CornerDirectionTransition"/>
-        <xsd:element name="wedge" type="CT_Empty"/>
-        <xsd:element name="wheel" type="CT_WheelTransition"/>
-        <xsd:element name="wipe" type="CT_SideDirectionTransition"/>
-        <xsd:element name="zoom" type="CT_InOutTransition"/>
+        <xsd:element name="split"     type="CT_SplitTransition"/>
+        <xsd:element name="strips"    type="CT_CornerDirectionTransition"/>
+        <xsd:element name="wedge"     type="CT_Empty"/>
+        <xsd:element name="wheel"     type="CT_WheelTransition"/>
+        <xsd:element name="wipe"      type="CT_SideDirectionTransition"/>
+        <xsd:element name="zoom"      type="CT_InOutTransition"/>
       </xsd:choice>
-      <xsd:element name="sndAc" minOccurs="0" maxOccurs="1" type="CT_TransitionSoundAction"/>
-      <xsd:element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="sndAc"  type="CT_TransitionSoundAction" minOccurs="0"/>
+      <xsd:element name="extLst" type="CT_ExtensionListModify"   minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="spd" type="ST_TransitionSpeed" use="optional" default="fast"/>
-    <xsd:attribute name="advClick" type="xsd:boolean" use="optional" default="true"/>
-    <xsd:attribute name="advTm" type="xsd:unsignedInt" use="optional"/>
+    <xsd:attribute name="spd"      type="ST_TransitionSpeed" default="fast"/>
+    <xsd:attribute name="advClick" type="xsd:boolean"        default="true"/>
+    <xsd:attribute name="advTm"    type="xsd:unsignedInt"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_SlideTiming">
     <xsd:sequence>
-      <xsd:element name="tnLst" type="CT_TimeNodeList" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="bldLst" type="CT_BuildList" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="tnLst"  type="CT_TimeNodeList"        minOccurs="0"/>
+      <xsd:element name="bldLst" type="CT_BuildList"           minOccurs="0"/>
+      <xsd:element name="extLst" type="CT_ExtensionListModify" minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
-

@@ -173,3 +173,14 @@ Related Schema Definitions
       <xsd:element name="effectDag" type="CT_EffectContainer"/>
     </xsd:choice>
   </xsd:group>
+
+  <xsd:simpleType name="ST_LineWidth">
+    <xsd:restriction base="ST_Coordinate32Unqualified">
+      <xsd:minInclusive value="0"/>
+      <xsd:maxInclusive value="20116800"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_Coordinate32Unqualified">
+    <xsd:restriction base="xsd:int"/>
+  </xsd:simpleType>
