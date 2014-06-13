@@ -16,7 +16,10 @@ from .ns import NamespacePrefixedTag
 XSD_TRUE = '1'
 
 
-# configure objectified XML parser
+# !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
+# legacy objectified XML parser
+# !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
+
 _fallback_lookup = objectify.ObjectifyElementClassLookup()
 _element_class_lookup = etree.ElementNamespaceClassLookup(_fallback_lookup)
 oxml_parser = etree.XMLParser(remove_blank_text=True)
@@ -38,6 +41,33 @@ def register_custom_element_class(nsptag_str, cls):
     """
     nsptag = NamespacePrefixedTag(nsptag_str)
     namespace = _element_class_lookup.get_namespace(nsptag.nsuri)
+    namespace[nsptag.local_part] = cls
+
+# !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
+
+# configure etree XML parser -------------------------------
+element_class_lookup = etree.ElementNamespaceClassLookup()
+etree_parser = etree.XMLParser(remove_blank_text=True)
+etree_parser.set_element_class_lookup(element_class_lookup)
+
+
+def parse_xml(xml):
+    """
+    Return root lxml element obtained by parsing XML character string in
+    *xml*, which can be either a Python 2.x string or unicode.
+    """
+    root_element = etree.fromstring(xml, etree_parser)
+    return root_element
+
+
+def register_element_cls(nsptagname, cls):
+    """
+    Register *cls* to be constructed when the oxml parser encounters an
+    element having name *nsptag_name*. *nsptag_name* is a string of the form
+    ``nspfx:tagroot``, e.g. ``'w:document'``.
+    """
+    nsptag = NamespacePrefixedTag(nsptagname)
+    namespace = element_class_lookup.get_namespace(nsptag.nsuri)
     namespace[nsptag.local_part] = cls
 
 

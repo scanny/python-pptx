@@ -83,6 +83,7 @@ Contributor Guide
    :maxdepth: 1
 
    dev/runtests
+   dev/xmlchemy
    dev/development_practices
    dev/philosophy
    dev/analysis/index
