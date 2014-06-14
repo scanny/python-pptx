@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from .ns import _nsmap, qn
 from .simpletypes import ST_SlideId, XsdString
 from .xmlchemy import (
-    BaseOxmlElement, OxmlElement, RequiredAttribute, ZeroOrOne, ZeroOrMore
+    BaseOxmlElement, RequiredAttribute, ZeroOrOne, ZeroOrMore
 )
 
 
@@ -67,26 +67,7 @@ class CT_SlideMasterIdList(BaseOxmlElement):
     ``<p:sldMasterIdLst>`` element, child of ``<p:presentation>`` containing
     references to the slide masters that belong to the presentation.
     """
-    def __len__(self):
-        """
-        Return the number of ``<p:sldMasterId>`` child elements
-        """
-        sldMasterId_lst = self.findall(qn('p:sldMasterId'))
-        return len(sldMasterId_lst)
-
-    @classmethod
-    def new(cls):
-        """
-        Return a new ``<p:sldMasterIdLst>`` element.
-        """
-        return OxmlElement('p:sldMasterIdLst')
-
-    @property
-    def sldMasterId_lst(self):
-        """
-        Sequence of ``<p:sldMasterId>`` child elements
-        """
-        return self.findall(qn('p:sldMasterId'))
+    sldMasterId = ZeroOrMore('p:sldMasterId')
 
 
 class CT_SlideMasterIdListEntry(BaseOxmlElement):
