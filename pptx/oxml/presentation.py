@@ -6,7 +6,6 @@ Custom element classes for presentation-related XML elements.
 
 from __future__ import absolute_import
 
-from .shared import child
 from .ns import _nsmap, qn
 from .xmlchemy import BaseOxmlElement, OxmlElement, ZeroOrOne
 
@@ -16,57 +15,12 @@ class CT_Presentation(BaseOxmlElement):
     ``<p:presentation>`` element, root of the Presentation part stored as
     ``/ppt/presentation.xml``.
     """
+    sldMasterIdLst = ZeroOrOne('p:sldMasterIdLst', successors=(
+        'p:notesMasterIdLst', 'p:handoutMasterIdLst', 'p:sldIdLst',
+        'p:sldSz', 'p:notesSz'
+    ))
+    sldIdLst = ZeroOrOne('p:sldIdLst', successors=('p:sldSz', 'p:notesSz'))
     sldSz = ZeroOrOne('p:sldSz', successors=('p:notesSz',))
-
-    def get_or_add_sldIdLst(self):
-        """
-        Return the <p:sldIdLst> child element, creating one first if
-        necessary.
-        """
-        sldIdLst = child(self, 'p:sldIdLst')
-        if sldIdLst is None:
-            sldIdLst = self._add_sldIdLst()
-        return sldIdLst
-
-    def get_or_add_sldMasterIdLst(self):
-        """
-        Return the sldMasterIdLst child element, newly added if not present.
-        """
-        sldMasterIdLst = self.sldMasterIdLst
-        if sldMasterIdLst is None:
-            sldMasterIdLst = self._add_sldMasterIdLst()
-        return sldMasterIdLst
-
-    @property
-    def sldMasterIdLst(self):
-        """
-        The first ``<p:sldMasterIdLst>`` child element, or |None| if not
-        present.
-        """
-        return self.find(qn('p:sldMasterIdLst'))
-
-    def _add_sldIdLst(self):
-        """
-        Return a newly created <p:sldIdLst> child element.
-        """
-        sldIdLst = OxmlElement('p:sldIdLst')
-        # insert new sldIdLst element in right sequence
-        sldSz = child(self, 'p:sldSz')
-        if sldSz is not None:
-            sldSz.addprevious(sldIdLst)
-        else:
-            notesSz = child(self, 'p:notesSz')
-            notesSz.addprevious(sldIdLst)
-        return sldIdLst
-
-    def _add_sldMasterIdLst(self):
-        """
-        Return a newly added sldMasterIdLst child element. Assumes one is not
-        present.
-        """
-        sldMasterIdLst = CT_SlideMasterIdList.new()
-        self.insert(0, sldMasterIdLst)
-        return sldMasterIdLst
 
 
 class CT_SlideId(BaseOxmlElement):

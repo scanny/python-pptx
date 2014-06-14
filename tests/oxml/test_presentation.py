@@ -8,83 +8,9 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
-from pptx.oxml.presentation import (
-    CT_Presentation, CT_SlideId, CT_SlideIdList
-)
+from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
 
-from .unitdata.presentation import (
-    a_notesSz, a_presentation, a_sldId, a_sldIdLst, a_sldSz
-)
-
-
-class DescribeCT_Presentation(object):
-
-    def it_is_used_by_the_parser_for_a_presentation_element(self, prs_elm):
-        assert isinstance(prs_elm, CT_Presentation)
-
-    def it_can_get_the_sldIdLst_child_element(self, prs_with_sldIdLst):
-        sldIdLst = prs_with_sldIdLst.get_or_add_sldIdLst()
-        assert isinstance(sldIdLst, CT_SlideIdList)
-
-    def it_can_add_a_sldIdLst_child_element(
-            self, prs_with_sldSz, prs_with_sldIdLst_sldSz_xml):
-        prs = prs_with_sldSz
-        prs.get_or_add_sldIdLst()
-        assert prs.xml == prs_with_sldIdLst_sldSz_xml
-
-    def it_adds_sldIdLst_before_notesSz_if_no_sldSz_elm(
-            self, prs_with_notesSz, prs_with_sldIdLst_notesSz_xml):
-        prs = prs_with_notesSz
-        prs.get_or_add_sldIdLst()
-        assert prs.xml == prs_with_sldIdLst_notesSz_xml
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def prs_elm(self):
-        return a_presentation().with_nsdecls().element
-
-    @pytest.fixture
-    def prs_with_notesSz(self):
-        return (
-            a_presentation().with_nsdecls()
-                            .with_child(a_notesSz())
-                            .element
-        )
-
-    @pytest.fixture
-    def prs_with_sldIdLst(self):
-        return (
-            a_presentation().with_nsdecls()
-                            .with_child(a_sldIdLst())
-                            .element
-        )
-
-    @pytest.fixture
-    def prs_with_sldIdLst_notesSz_xml(self):
-        return (
-            a_presentation().with_nsdecls()
-                            .with_child(a_sldIdLst())
-                            .with_child(a_notesSz())
-                            .xml()
-        )
-
-    @pytest.fixture
-    def prs_with_sldIdLst_sldSz_xml(self):
-        return (
-            a_presentation().with_nsdecls()
-                            .with_child(a_sldIdLst())
-                            .with_child(a_sldSz())
-                            .xml()
-        )
-
-    @pytest.fixture
-    def prs_with_sldSz(self):
-        return (
-            a_presentation().with_nsdecls()
-                            .with_child(a_sldSz())
-                            .element
-        )
+from .unitdata.presentation import a_sldId, a_sldIdLst
 
 
 class DescribeCT_SlideId(object):
