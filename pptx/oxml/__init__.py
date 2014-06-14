@@ -106,12 +106,12 @@ from .presentation import (
     CT_Presentation, CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList,
     CT_SlideMasterIdListEntry, CT_SlideSize
 )
-register_custom_element_class('p:presentation',   CT_Presentation)
-register_custom_element_class('p:sldId',          CT_SlideId)
-register_custom_element_class('p:sldIdLst',       CT_SlideIdList)
-register_custom_element_class('p:sldMasterId',    CT_SlideMasterIdListEntry)
-register_custom_element_class('p:sldMasterIdLst', CT_SlideMasterIdList)
-register_custom_element_class('p:sldSz',          CT_SlideSize)
+register_element_cls('p:presentation',   CT_Presentation)
+register_element_cls('p:sldId',          CT_SlideId)
+register_element_cls('p:sldIdLst',       CT_SlideIdList)
+register_element_cls('p:sldMasterId',    CT_SlideMasterIdListEntry)
+register_element_cls('p:sldMasterIdLst', CT_SlideMasterIdList)
+register_element_cls('p:sldSz',          CT_SlideSize)
 
 
 from .shapes.autoshape import CT_PresetGeometry2D, CT_Shape

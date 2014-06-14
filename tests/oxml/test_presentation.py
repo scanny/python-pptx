@@ -15,7 +15,6 @@ from pptx.oxml.presentation import (
 from .unitdata.presentation import (
     a_notesSz, a_presentation, a_sldId, a_sldIdLst, a_sldSz
 )
-from ..unitutil import actual_xml
 
 
 class DescribeCT_Presentation(object):
@@ -31,13 +30,13 @@ class DescribeCT_Presentation(object):
             self, prs_with_sldSz, prs_with_sldIdLst_sldSz_xml):
         prs = prs_with_sldSz
         prs.get_or_add_sldIdLst()
-        assert actual_xml(prs) == prs_with_sldIdLst_sldSz_xml
+        assert prs.xml == prs_with_sldIdLst_sldSz_xml
 
     def it_adds_sldIdLst_before_notesSz_if_no_sldSz_elm(
             self, prs_with_notesSz, prs_with_sldIdLst_notesSz_xml):
         prs = prs_with_notesSz
         prs.get_or_add_sldIdLst()
-        assert actual_xml(prs) == prs_with_sldIdLst_notesSz_xml
+        assert prs.xml == prs_with_sldIdLst_notesSz_xml
 
     # fixtures -------------------------------------------------------
 
@@ -110,8 +109,8 @@ class DescribeCT_SlideIdList(object):
 
     def it_provides_indexed_access_to_the_sldIds(self, sldIdLst_with_sldIds):
         sldIdLst, sldId_xml, sldId_2_xml = sldIdLst_with_sldIds
-        assert actual_xml(sldIdLst[0]) == sldId_xml
-        assert actual_xml(sldIdLst[1]) == sldId_2_xml
+        assert sldIdLst[0].xml == sldId_xml
+        assert sldIdLst[1].xml == sldId_2_xml
 
     def it_raises_IndexError_on_index_out_of_range(self, sldIdLst):
         with pytest.raises(IndexError):
@@ -120,21 +119,17 @@ class DescribeCT_SlideIdList(object):
     def it_can_iterate_over_the_sldIds(self, sldIdLst_with_sldIds):
         sldIdLst, sldId_xml, sldId_2_xml = sldIdLst_with_sldIds
         sldIds = [s for s in sldIdLst]
-        assert actual_xml(sldIds[0]) == sldId_xml
-        assert actual_xml(sldIds[1]) == sldId_2_xml
-
-    def it_knows_the_sldId_count(self):
-        pass
+        assert sldIds[0].xml == sldId_xml
+        assert sldIds[1].xml == sldId_2_xml
 
     def it_returns_sldId_count_for_len(self, sldIdLst_with_sldIds):
-        # objectify would return 1 if __len__ were not overridden
         sldIdLst = sldIdLst_with_sldIds[0]
         assert len(sldIdLst) == 2
 
     def it_can_add_a_sldId_element_as_a_child(
             self, sldIdLst, sldIdLst_with_sldId_xml):
         sldIdLst.add_sldId('rId1')
-        assert actual_xml(sldIdLst) == sldIdLst_with_sldId_xml
+        assert sldIdLst.xml == sldIdLst_with_sldId_xml
 
     def it_knows_the_next_available_slide_id(self, next_id_fixture):
         sldIdLst, expected_id = next_id_fixture

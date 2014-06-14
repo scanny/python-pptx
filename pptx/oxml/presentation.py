@@ -6,8 +6,9 @@ Custom element classes for presentation-related XML elements.
 
 from __future__ import absolute_import
 
-from .shared import BaseOxmlElement, child, Element, SubElement
+from .shared import child
 from .ns import _nsmap, qn
+from .xmlchemy import BaseOxmlElement, OxmlElement, ZeroOrOne
 
 
 class CT_Presentation(BaseOxmlElement):
@@ -15,6 +16,8 @@ class CT_Presentation(BaseOxmlElement):
     ``<p:presentation>`` element, root of the Presentation part stored as
     ``/ppt/presentation.xml``.
     """
+    sldSz = ZeroOrOne('p:sldSz', successors=('p:notesSz',))
+
     def get_or_add_sldIdLst(self):
         """
         Return the <p:sldIdLst> child element, creating one first if
@@ -46,7 +49,7 @@ class CT_Presentation(BaseOxmlElement):
         """
         Return a newly created <p:sldIdLst> child element.
         """
-        sldIdLst = Element('p:sldIdLst')
+        sldIdLst = OxmlElement('p:sldIdLst')
         # insert new sldIdLst element in right sequence
         sldSz = child(self, 'p:sldSz')
         if sldSz is not None:
@@ -90,16 +93,15 @@ class CT_SlideIdList(BaseOxmlElement):
     def __iter__(self):
         return self.iterchildren()
 
-    def __len__(self):
-        return self.countchildren()
-
     def add_sldId(self, rId):
         """
         Return a reference to a newly created <p:sldId> child element having
         its r:id attribute set to *rId*.
         """
-        sldId = SubElement(self, 'p:sldId', id=self._next_id)
+        sldId = OxmlElement('p:sldId')
+        sldId.set('id', self._next_id)
         sldId.set(qn('r:id'), rId)
+        self.append(sldId)
         return sldId
 
     @property
@@ -132,7 +134,7 @@ class CT_SlideMasterIdList(BaseOxmlElement):
         """
         Return a new ``<p:sldMasterIdLst>`` element.
         """
-        return Element('p:sldMasterIdLst')
+        return OxmlElement('p:sldMasterIdLst')
 
     @property
     def sldMasterId_lst(self):

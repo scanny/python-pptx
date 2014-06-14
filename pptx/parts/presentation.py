@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from warnings import warn
 
 from ..opc.package import Part
-from ..oxml import parse_xml_bytes
+from ..oxml import parse_xml
 from .slide import SlideCollection
 from ..util import lazyproperty
 
@@ -26,7 +26,7 @@ class PresentationPart(Part):
 
     @classmethod
     def load(cls, partname, content_type, blob, package):
-        presentation_elm = parse_xml_bytes(blob)
+        presentation_elm = parse_xml(blob)
         presentation = cls(partname, content_type, presentation_elm, package)
         return presentation
 
