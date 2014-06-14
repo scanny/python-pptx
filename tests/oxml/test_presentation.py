@@ -8,24 +8,9 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
-from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
+from pptx.oxml.presentation import CT_SlideIdList
 
 from .unitdata.presentation import a_sldId, a_sldIdLst
-
-
-class DescribeCT_SlideId(object):
-
-    def it_is_used_by_the_parser_for_a_sldId_element(self, sldId):
-        assert isinstance(sldId, CT_SlideId)
-
-    def it_knows_the_rId(self, sldId):
-        assert sldId.rId == 'rId1'
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def sldId(self):
-        return a_sldId().with_nsdecls('p', 'r').with_rId('rId1').element
 
 
 class DescribeCT_SlideIdList(object):

@@ -7,7 +7,10 @@ Custom element classes for presentation-related XML elements.
 from __future__ import absolute_import
 
 from .ns import _nsmap, qn
-from .xmlchemy import BaseOxmlElement, OxmlElement, ZeroOrOne
+from .simpletypes import ST_SlideId, XsdString
+from .xmlchemy import (
+    BaseOxmlElement, OxmlElement, RequiredAttribute, ZeroOrOne
+)
 
 
 class CT_Presentation(BaseOxmlElement):
@@ -28,9 +31,8 @@ class CT_SlideId(BaseOxmlElement):
     ``<p:sldId>`` element, direct child of <p:sldIdLst> that contains an rId
     reference to a slide in the presentation.
     """
-    @property
-    def rId(self):
-        return self.get(qn('r:id'))
+    id = RequiredAttribute('id', ST_SlideId)
+    rId = RequiredAttribute('r:id', XsdString)
 
 
 class CT_SlideIdList(BaseOxmlElement):

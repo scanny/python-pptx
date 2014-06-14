@@ -29,6 +29,15 @@ class BaseSimpleType(object):
             )
 
     @classmethod
+    def validate_int_in_range(cls, value, min_inclusive, max_inclusive):
+        cls.validate_int(value)
+        if value < min_inclusive or value > max_inclusive:
+            raise ValueError(
+                "value must be in range %d to %d inclusive, got %d" %
+                (min_inclusive, max_inclusive, value)
+            )
+
+    @classmethod
     def validate_string(cls, value):
         if isinstance(value, str):
             return
@@ -40,6 +49,21 @@ class BaseSimpleType(object):
         raise TypeError(
             "value must be a string, got %s" % type(value)
         )
+
+
+class BaseStringType(BaseSimpleType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        return str_value
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return value
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_string(value)
 
 
 class BaseIntType(BaseSimpleType):
@@ -55,3 +79,21 @@ class BaseIntType(BaseSimpleType):
     @classmethod
     def validate(cls, value):
         cls.validate_int(value)
+
+
+class XsdString(BaseStringType):
+    pass
+
+
+class XsdUnsignedInt(BaseIntType):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 4294967295)
+
+
+class ST_SlideId(XsdUnsignedInt):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 256, 2147483647)
