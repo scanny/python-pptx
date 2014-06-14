@@ -108,7 +108,7 @@ class MetaOxmlElement(type):
     Metaclass for BaseOxmlElement
     """
     def __init__(cls, clsname, bases, clsdict):
-        dispatchable = (RequiredAttribute, ZeroOrOne)
+        dispatchable = (RequiredAttribute, ZeroOrMore, ZeroOrOne)
         for key, value in clsdict.items():
             if isinstance(value, dispatchable):
                 value.populate_class_members(cls, key)
@@ -265,6 +265,15 @@ class _BaseChildElement(object):
         )
         self._add_to_class(self._insert_method_name, _insert_child)
 
+    def _add_list_getter(self):
+        """
+        Add a read-only ``{prop_name}_lst`` property to the element class to
+        retrieve a list of child elements matching this type.
+        """
+        prop_name = '%s_lst' % self._prop_name
+        property_ = property(self._list_getter, None, None)
+        setattr(self._element_cls, prop_name, property_)
+
     @lazyproperty
     def _add_method_name(self):
         return '_add_%s' % self._prop_name
@@ -306,6 +315,20 @@ class _BaseChildElement(object):
     def _insert_method_name(self):
         return '_insert_%s' % self._prop_name
 
+    @property
+    def _list_getter(self):
+        """
+        Return a function object suitable for the "get" side of a list
+        property descriptor.
+        """
+        def get_child_element_list(obj):
+            return obj.findall(qn(self._nsptagname))
+        get_child_element_list.__doc__ = (
+            'A list containing each of the ``<%s>`` child elements, in the o'
+            'rder they appear.' % self._nsptagname
+        )
+        return get_child_element_list
+
     @lazyproperty
     def _remove_method_name(self):
         return '_remove_%s' % self._prop_name
@@ -313,6 +336,24 @@ class _BaseChildElement(object):
     @lazyproperty
     def _new_method_name(self):
         return '_new_%s' % self._prop_name
+
+
+class ZeroOrMore(_BaseChildElement):
+    """
+    Defines an optional repeating child element for MetaOxmlElement.
+    """
+    def populate_class_members(self, element_cls, prop_name):
+        """
+        Add the appropriate methods to *element_cls*.
+        """
+        super(ZeroOrMore, self).populate_class_members(
+            element_cls, prop_name
+        )
+        self._add_list_getter()
+        self._add_creator()
+        self._add_inserter()
+        self._add_adder()
+        delattr(element_cls, prop_name)
 
 
 class ZeroOrOne(_BaseChildElement):

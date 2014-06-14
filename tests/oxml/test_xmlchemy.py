@@ -14,7 +14,9 @@ from pptx.exc import InvalidXmlError
 from pptx.oxml import register_element_cls
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import BaseIntType
-from pptx.oxml.xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
+from pptx.oxml.xmlchemy import (
+    BaseOxmlElement, RequiredAttribute, ZeroOrMore, ZeroOrOne
+)
 
 from ..unitdata import EtreeBaseBuilder as BaseBuilder
 
@@ -74,6 +76,72 @@ class DescribeRequiredAttribute(object):
         value = 24
         expected_xml = a_parent().with_nsdecls().with_reqAttr(value).xml()
         return parent, value, expected_xml
+
+
+class DescribeZeroOrMore(object):
+
+    def it_adds_a_getter_property_for_the_child_element_list(
+            self, getter_fixture):
+        parent, zomChild = getter_fixture
+        assert parent.zomChild_lst[0] is zomChild
+
+    def it_adds_a_creator_method_for_the_child_element(self, new_fixture):
+        parent, expected_xml = new_fixture
+        zomChild = parent._new_zomChild()
+        assert zomChild.xml == expected_xml
+
+    def it_adds_an_insert_method_for_the_child_element(self, insert_fixture):
+        parent, zomChild, expected_xml = insert_fixture
+        parent._insert_zomChild(zomChild)
+        assert parent.xml == expected_xml
+        assert parent._insert_zomChild.__doc__.startswith(
+            'Insert the passed ``<p:zomChild>`` '
+        )
+
+    def it_adds_an_add_method_for_the_child_element(self, add_fixture):
+        parent, expected_xml = add_fixture
+        zomChild = parent._add_zomChild()
+        assert parent.xml == expected_xml
+        assert isinstance(zomChild, CT_ZomChild)
+        assert parent._add_zomChild.__doc__.startswith(
+            'Add a new ``<p:zomChild>`` child element '
+        )
+
+    def it_removes_the_property_root_name_used_for_declaration(self):
+        assert not hasattr(CT_Parent, 'zomChild')
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_fixture(self):
+        parent = self.parent_bldr(False).element
+        expected_xml = self.parent_bldr(True).xml()
+        return parent, expected_xml
+
+    @pytest.fixture
+    def getter_fixture(self):
+        parent = self.parent_bldr(True).element
+        zomChild = parent.find(qn('p:zomChild'))
+        return parent, zomChild
+
+    @pytest.fixture
+    def insert_fixture(self):
+        parent = self.parent_bldr(False).element
+        zomChild = a_zomChild().with_nsdecls().element
+        expected_xml = self.parent_bldr(True).xml()
+        return parent, zomChild, expected_xml
+
+    @pytest.fixture
+    def new_fixture(self):
+        parent = self.parent_bldr(False).element
+        expected_xml = a_zomChild().with_nsdecls().xml()
+        return parent, expected_xml
+
+    def parent_bldr(self, zomChild_is_present):
+        parent_bldr = a_parent().with_nsdecls()
+        if zomChild_is_present:
+            parent_bldr.with_child(a_zomChild())
+        return parent_bldr
 
 
 class DescribeZeroOrOne(object):
@@ -175,8 +243,16 @@ class CT_Parent(BaseOxmlElement):
     """
     ``<p:parent>`` element, an invented element for use in testing.
     """
+    zomChild = ZeroOrMore('p:zomChild', successors=())
     zooChild = ZeroOrOne('p:zooChild', successors=())
     reqAttr = RequiredAttribute('reqAttr', ST_IntegerType)
+
+
+class CT_ZomChild(BaseOxmlElement):
+    """
+    Zom standing for 'ZeroOrMore', ``<p:zomChild>`` element, representing an
+    optional child element that can appear multiple times in sequence.
+    """
 
 
 class CT_ZooChild(BaseOxmlElement):
@@ -187,6 +263,7 @@ class CT_ZooChild(BaseOxmlElement):
 
 
 register_element_cls('p:parent', CT_Parent)
+register_element_cls('p:zomChild',  CT_ZomChild)
 register_element_cls('p:zooChild',  CT_ZooChild)
 
 
@@ -194,6 +271,12 @@ class CT_ParentBuilder(BaseBuilder):
     __tag__ = 'p:parent'
     __nspfxs__ = ('p',)
     __attrs__ = ('reqAttr',)
+
+
+class CT_ZomChildBuilder(BaseBuilder):
+    __tag__ = 'p:zomChild'
+    __nspfxs__ = ('p',)
+    __attrs__ = ()
 
 
 class CT_ZooChildBuilder(BaseBuilder):
@@ -204,6 +287,10 @@ class CT_ZooChildBuilder(BaseBuilder):
 
 def a_parent():
     return CT_ParentBuilder()
+
+
+def a_zomChild():
+    return CT_ZomChildBuilder()
 
 
 def a_zooChild():
