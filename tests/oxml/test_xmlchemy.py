@@ -15,8 +15,8 @@ from pptx.oxml import register_element_cls
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import BaseIntType
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
-    ZeroOrMore, ZeroOrOne
+    BaseOxmlElement, OneAndOnlyOne, OneOrMore, OptionalAttribute,
+    RequiredAttribute, ZeroOrMore, ZeroOrOne
 )
 
 from ..unitdata import EtreeBaseBuilder as BaseBuilder
@@ -41,6 +41,91 @@ class DescribeOneAndOnlyOne(object):
         parent = a_parent().with_nsdecls().with_child(an_oooChild()).element
         oooChild = parent.find(qn('p:oooChild'))
         return parent, oooChild
+
+
+class DescribeOneOrMore(object):
+
+    def it_adds_a_getter_property_for_the_child_element_list(
+            self, getter_fixture):
+        parent, oomChild = getter_fixture
+        assert parent.oomChild_lst[0] is oomChild
+
+    def it_adds_a_creator_method_for_the_child_element(self, new_fixture):
+        parent, expected_xml = new_fixture
+        oomChild = parent._new_oomChild()
+        assert oomChild.xml == expected_xml
+
+    def it_adds_an_insert_method_for_the_child_element(self, insert_fixture):
+        parent, oomChild, expected_xml = insert_fixture
+        parent._insert_oomChild(oomChild)
+        assert parent.xml == expected_xml
+        assert parent._insert_oomChild.__doc__.startswith(
+            'Return the passed ``<p:oomChild>`` '
+        )
+
+    def it_adds_a_private_add_method_for_the_child_element(self, add_fixture):
+        parent, expected_xml = add_fixture
+        oomChild = parent._add_oomChild()
+        assert parent.xml == expected_xml
+        assert isinstance(oomChild, CT_OomChild)
+        assert parent._add_oomChild.__doc__.startswith(
+            'Add a new ``<p:oomChild>`` child element '
+        )
+
+    def it_adds_a_public_add_method_for_the_child_element(self, add_fixture):
+        parent, expected_xml = add_fixture
+        oomChild = parent.add_oomChild()
+        assert parent.xml == expected_xml
+        assert isinstance(oomChild, CT_OomChild)
+        assert parent._add_oomChild.__doc__.startswith(
+            'Add a new ``<p:oomChild>`` child element '
+        )
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_fixture(self):
+        parent = self.parent_bldr(False).element
+        expected_xml = self.parent_bldr(True).xml()
+        return parent, expected_xml
+
+    @pytest.fixture
+    def getter_fixture(self):
+        parent = self.parent_bldr(True).element
+        oomChild = parent.find(qn('p:oomChild'))
+        return parent, oomChild
+
+    @pytest.fixture
+    def insert_fixture(self):
+        parent = (
+            a_parent().with_nsdecls().with_child(
+                an_oooChild()).with_child(
+                a_zomChild()).with_child(
+                a_zooChild())
+        ).element
+        oomChild = an_oomChild().with_nsdecls().element
+        expected_xml = (
+            a_parent().with_nsdecls().with_child(
+                an_oomChild()).with_child(
+                an_oooChild()).with_child(
+                a_zomChild()).with_child(
+                a_zooChild())
+        ).xml()
+        return parent, oomChild, expected_xml
+
+    @pytest.fixture
+    def new_fixture(self):
+        parent = self.parent_bldr(False).element
+        expected_xml = an_oomChild().with_nsdecls().xml()
+        return parent, expected_xml
+
+    # fixture components ---------------------------------------------
+
+    def parent_bldr(self, oomChild_is_present):
+        parent_bldr = a_parent().with_nsdecls()
+        if oomChild_is_present:
+            parent_bldr.with_child(an_oomChild())
+        return parent_bldr
 
 
 class DescribeOptionalAttribute(object):
@@ -173,9 +258,20 @@ class DescribeZeroOrMore(object):
 
     @pytest.fixture
     def insert_fixture(self):
-        parent = self.parent_bldr(False).element
+        parent = (
+            a_parent().with_nsdecls().with_child(
+                an_oomChild()).with_child(
+                an_oooChild()).with_child(
+                a_zooChild())
+        ).element
         zomChild = a_zomChild().with_nsdecls().element
-        expected_xml = self.parent_bldr(True).xml()
+        expected_xml = (
+            a_parent().with_nsdecls().with_child(
+                an_oomChild()).with_child(
+                an_oooChild()).with_child(
+                a_zomChild()).with_child(
+                a_zooChild())
+        ).xml()
         return parent, zomChild, expected_xml
 
     @pytest.fixture
@@ -250,9 +346,20 @@ class DescribeZeroOrOne(object):
 
     @pytest.fixture
     def insert_fixture(self):
-        parent = a_parent().with_nsdecls().element
+        parent = (
+            a_parent().with_nsdecls().with_child(
+                an_oomChild()).with_child(
+                an_oooChild()).with_child(
+                a_zomChild())
+        ).element
         zooChild = a_zooChild().with_nsdecls().element
-        expected_xml = self.parent_bldr(True).xml()
+        expected_xml = (
+            a_parent().with_nsdecls().with_child(
+                an_oomChild()).with_child(
+                an_oooChild()).with_child(
+                a_zomChild()).with_child(
+                a_zooChild())
+        ).xml()
         return parent, zooChild, expected_xml
 
     @pytest.fixture(params=[True, False])
@@ -290,11 +397,22 @@ class CT_Parent(BaseOxmlElement):
     """
     ``<p:parent>`` element, an invented element for use in testing.
     """
+    oomChild = OneOrMore('p:oomChild', successors=(
+        'p:oooChild', 'p:zomChild', 'p:zooChild'
+    ))
     oooChild = OneAndOnlyOne('p:oooChild')
-    zomChild = ZeroOrMore('p:zomChild', successors=())
+    zomChild = ZeroOrMore('p:zomChild', successors=('p:zooChild',))
     zooChild = ZeroOrOne('p:zooChild', successors=())
     optAttr = OptionalAttribute('optAttr', ST_IntegerType)
     reqAttr = RequiredAttribute('reqAttr', ST_IntegerType)
+
+
+class CT_OomChild(BaseOxmlElement):
+    """
+    Oom standing for 'OneOrMore', ``<p:oomChild>`` element, representing a
+    child element that can appear multiple times in sequence, but must appear
+    at least once.
+    """
 
 
 class CT_ZomChild(BaseOxmlElement):
@@ -312,6 +430,7 @@ class CT_ZooChild(BaseOxmlElement):
 
 
 register_element_cls('p:parent', CT_Parent)
+register_element_cls('p:oomChild',  CT_OomChild)
 register_element_cls('p:zomChild',  CT_ZomChild)
 register_element_cls('p:zooChild',  CT_ZooChild)
 
@@ -320,6 +439,12 @@ class CT_ParentBuilder(BaseBuilder):
     __tag__ = 'p:parent'
     __nspfxs__ = ('p',)
     __attrs__ = ('optAttr', 'reqAttr')
+
+
+class CT_OomChildBuilder(BaseBuilder):
+    __tag__ = 'p:oomChild'
+    __nspfxs__ = ('p',)
+    __attrs__ = ()
 
 
 class CT_OooChildBuilder(BaseBuilder):
@@ -350,6 +475,10 @@ def a_zomChild():
 
 def a_zooChild():
     return CT_ZooChildBuilder()
+
+
+def an_oomChild():
+    return CT_OomChildBuilder()
 
 
 def an_oooChild():

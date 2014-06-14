@@ -109,8 +109,8 @@ class MetaOxmlElement(type):
     """
     def __init__(cls, clsname, bases, clsdict):
         dispatchable = (
-            OneAndOnlyOne, OptionalAttribute, RequiredAttribute, ZeroOrMore,
-            ZeroOrOne
+            OneAndOnlyOne, OneOrMore, OptionalAttribute, RequiredAttribute,
+            ZeroOrMore, ZeroOrOne
         )
         for key, value in clsdict.items():
             if isinstance(value, dispatchable):
@@ -439,6 +439,51 @@ class OneAndOnlyOne(_BaseChildElement):
             % self._nsptagname
         )
         return get_child_element
+
+
+class OneOrMore(_BaseChildElement):
+    """
+    Defines a repeating child element for MetaOxmlElement that must appear at
+    least once.
+    """
+    def populate_class_members(self, element_cls, prop_name):
+        """
+        Add the appropriate methods to *element_cls*.
+        """
+        super(OneOrMore, self).populate_class_members(
+            element_cls, prop_name
+        )
+        self._add_list_getter()
+        self._add_creator()
+        self._add_inserter()
+        self._add_adder()
+        self._add_public_adder()
+        delattr(element_cls, prop_name)
+
+    def _add_public_adder(self):
+        """
+        Add a public ``add_x()`` method to the parent element class.
+        """
+        def add_child(obj):
+            private_add_method = getattr(obj, self._add_method_name)
+            child = private_add_method()
+            return child
+
+        add_child.__doc__ = (
+            'Add a new ``<%s>`` child element unconditionally, inserted in t'
+            'he correct sequence.' % self._nsptagname
+        )
+        self._add_to_class(self._public_add_method_name, add_child)
+
+    @lazyproperty
+    def _public_add_method_name(self):
+        """
+        add_childElement() is public API for a repeating element, allowing
+        new elements to be added to the sequence. May be overridden to
+        provide a friendlier API to clients having domain appropriate
+        parameter names for required attributes.
+        """
+        return 'add_%s' % self._prop_name
 
 
 class ZeroOrMore(_BaseChildElement):
