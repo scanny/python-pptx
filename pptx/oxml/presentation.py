@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from .ns import _nsmap, qn
 from .simpletypes import ST_SlideId, XsdString
 from .xmlchemy import (
-    BaseOxmlElement, OxmlElement, RequiredAttribute, ZeroOrOne
+    BaseOxmlElement, OxmlElement, RequiredAttribute, ZeroOrOne, ZeroOrMore
 )
 
 
@@ -40,37 +40,26 @@ class CT_SlideIdList(BaseOxmlElement):
     ``<p:sldIdLst>`` element, direct child of <p:presentation> that contains
     a list of the slide parts in the presentation.
     """
-    def __getitem__(self, idx):
-        """
-        Provide indexed access, (e.g. 'collection[0]').
-        """
-        return self.getchildren()[idx]
-
-    def __iter__(self):
-        return self.iterchildren()
+    sldId = ZeroOrMore('p:sldId')
 
     def add_sldId(self, rId):
         """
         Return a reference to a newly created <p:sldId> child element having
         its r:id attribute set to *rId*.
         """
-        sldId = OxmlElement('p:sldId')
-        sldId.set('id', self._next_id)
-        sldId.set(qn('r:id'), rId)
-        self.append(sldId)
-        return sldId
+        return self._add_sldId(id=self._next_id, rId=rId)
 
     @property
     def _next_id(self):
         """
-        Return the next available slide ID as a string. Valid slide IDs start
+        Return the next available slide ID as an int. Valid slide IDs start
         at 256. Unused ids in the sequences starting from 256 are used first.
         """
         id_str_lst = self.xpath('./p:sldId/@id', namespaces=_nsmap)
         used_ids = [int(id_str) for id_str in id_str_lst]
         for n in range(256, 258+len(used_ids)):
             if n not in used_ids:
-                return str(n)
+                return n
 
 
 class CT_SlideMasterIdList(BaseOxmlElement):
