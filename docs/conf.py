@@ -114,6 +114,8 @@ rst_epilog = """
 
 .. |int| replace:: :class:`int`
 
+.. |InvalidXmlError| replace:: :exc:`InvalidXmlError`
+
 .. |KeyError| replace:: :exc:`KeyError`
 
 .. |list| replace:: :class:`list`

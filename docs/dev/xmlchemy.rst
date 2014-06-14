@@ -89,6 +89,36 @@ Protocol
     None
 
 
+``OneAndOnlyOne`` element declaration
+-------------------------------------
+
+The ``OneAndOnlyOne`` callable generates the API for a required child
+element::
+
+    childElement = OneAndOnlyOne('ns:localTagName')
+
+Unlike the other element declarations, the call does not include
+a ``successors`` argument. Since no API for inserting a new element is
+generated, a successors list is not required.
+
+
+Generated API
+~~~~~~~~~~~~~
+
+``childElement`` property (read-only)
+    Holds a reference to the child element object. Raises |InvalidXmlError|
+    on access if the required child element is not present.
+
+
+Protocol
+~~~~~~~~
+
+::
+
+    >>> foobar.childElement
+    <pptx.oxml.xyz.CT_ChildElement object at 0x10ab4b2d0>
+
+
 ``RequiredAttribute`` attribute declaration
 -------------------------------------------
 
@@ -97,7 +127,8 @@ Protocol
     reqAttr = RequiredAttribute('reqAtr', ST_SimpleType)
 
 
-**Generated API**
+Generated API
+~~~~~~~~~~~~~
 
 ``childElement`` property (read/write)
     Referencing the property returns the type-converted value of the
@@ -120,7 +151,8 @@ Protocol
     )
 
 
-**Generated API**
+Generated API
+~~~~~~~~~~~~~
 
 ``childElement`` property (read-only)
     Holds a reference to the child element object, or None if the element is

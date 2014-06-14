@@ -109,7 +109,8 @@ class MetaOxmlElement(type):
     """
     def __init__(cls, clsname, bases, clsdict):
         dispatchable = (
-            OptionalAttribute, RequiredAttribute, ZeroOrMore, ZeroOrOne
+            OneAndOnlyOne, OptionalAttribute, RequiredAttribute, ZeroOrMore,
+            ZeroOrOne
         )
         for key, value in clsdict.items():
             if isinstance(value, dispatchable):
@@ -320,10 +321,11 @@ class _BaseChildElement(object):
         """
         def _insert_child(obj, child):
             obj.insert_element_before(child, *self._successors)
+            return child
 
         _insert_child.__doc__ = (
-            'Insert the passed ``<%s>`` element as a child in the correct se'
-            'quence.' % self._nsptagname
+            'Return the passed ``<%s>`` element after inserting it as a chil'
+            'd in the correct sequence.' % self._nsptagname
         )
         self._add_to_class(self._insert_method_name, _insert_child)
 
@@ -363,7 +365,8 @@ class _BaseChildElement(object):
     def _getter(self):
         """
         Return a function object suitable for the "get" side of the property
-        descriptor.
+        descriptor. This default getter returns the child element with
+        matching tag name or |None| if not present.
         """
         def get_child_element(obj):
             return obj.find(qn(self._nsptagname))
@@ -398,6 +401,44 @@ class _BaseChildElement(object):
     @lazyproperty
     def _new_method_name(self):
         return '_new_%s' % self._prop_name
+
+
+class OneAndOnlyOne(_BaseChildElement):
+    """
+    Defines a required child element for MetaOxmlElement.
+    """
+    def __init__(self, nsptagname):
+        super(OneAndOnlyOne, self).__init__(nsptagname, None)
+
+    def populate_class_members(self, element_cls, prop_name):
+        """
+        Add the appropriate methods to *element_cls*.
+        """
+        super(OneAndOnlyOne, self).populate_class_members(
+            element_cls, prop_name
+        )
+        self._add_getter()
+
+    @property
+    def _getter(self):
+        """
+        Return a function object suitable for the "get" side of the property
+        descriptor.
+        """
+        def get_child_element(obj):
+            child = obj.find(qn(self._nsptagname))
+            if child is None:
+                raise InvalidXmlError(
+                    "required ``<%s>`` child element not present" %
+                    self._nsptagname
+                )
+            return child
+
+        get_child_element.__doc__ = (
+            'Required ``<%s>`` child element.'
+            % self._nsptagname
+        )
+        return get_child_element
 
 
 class ZeroOrMore(_BaseChildElement):

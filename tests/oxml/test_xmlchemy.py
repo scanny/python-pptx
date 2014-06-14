@@ -15,8 +15,8 @@ from pptx.oxml import register_element_cls
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import BaseIntType
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, OptionalAttribute, RequiredAttribute, ZeroOrMore,
-    ZeroOrOne
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
+    ZeroOrMore, ZeroOrOne
 )
 
 from ..unitdata import EtreeBaseBuilder as BaseBuilder
@@ -26,6 +26,21 @@ class DescribeCustomElementClass(object):
 
     def it_has_the_MetaOxmlElement_metaclass(self):
         assert type(CT_Parent).__name__ == 'MetaOxmlElement'
+
+
+class DescribeOneAndOnlyOne(object):
+
+    def it_adds_a_getter_property_for_the_child_element(self, getter_fixture):
+        parent, oooChild = getter_fixture
+        assert parent.oooChild is oooChild
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def getter_fixture(self):
+        parent = a_parent().with_nsdecls().with_child(an_oooChild()).element
+        oooChild = parent.find(qn('p:oooChild'))
+        return parent, oooChild
 
 
 class DescribeOptionalAttribute(object):
@@ -127,7 +142,7 @@ class DescribeZeroOrMore(object):
         parent._insert_zomChild(zomChild)
         assert parent.xml == expected_xml
         assert parent._insert_zomChild.__doc__.startswith(
-            'Insert the passed ``<p:zomChild>`` '
+            'Return the passed ``<p:zomChild>`` '
         )
 
     def it_adds_an_add_method_for_the_child_element(self, add_fixture):
@@ -196,7 +211,7 @@ class DescribeZeroOrOne(object):
         parent._insert_zooChild(zooChild)
         assert parent.xml == expected_xml
         assert parent._insert_zooChild.__doc__.startswith(
-            'Insert the passed ``<p:zooChild>`` '
+            'Return the passed ``<p:zooChild>`` '
         )
 
     def it_adds_a_get_or_add_method_for_the_child_element(
@@ -275,6 +290,7 @@ class CT_Parent(BaseOxmlElement):
     """
     ``<p:parent>`` element, an invented element for use in testing.
     """
+    oooChild = OneAndOnlyOne('p:oooChild')
     zomChild = ZeroOrMore('p:zomChild', successors=())
     zooChild = ZeroOrOne('p:zooChild', successors=())
     optAttr = OptionalAttribute('optAttr', ST_IntegerType)
@@ -306,6 +322,12 @@ class CT_ParentBuilder(BaseBuilder):
     __attrs__ = ('optAttr', 'reqAttr')
 
 
+class CT_OooChildBuilder(BaseBuilder):
+    __tag__ = 'p:oooChild'
+    __nspfxs__ = ('p',)
+    __attrs__ = ()
+
+
 class CT_ZomChildBuilder(BaseBuilder):
     __tag__ = 'p:zomChild'
     __nspfxs__ = ('p',)
@@ -328,3 +350,7 @@ def a_zomChild():
 
 def a_zooChild():
     return CT_ZooChildBuilder()
+
+
+def an_oooChild():
+    return CT_OooChildBuilder()
