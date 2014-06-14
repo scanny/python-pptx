@@ -8,6 +8,8 @@ type in the associated XML schema.
 
 from __future__ import absolute_import
 
+from ..util import Emu
+
 
 class BaseSimpleType(object):
 
@@ -97,3 +99,19 @@ class ST_SlideId(XsdUnsignedInt):
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 256, 2147483647)
+
+
+class ST_SlideSizeCoordinate(BaseIntType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        return Emu(str_value)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int(value)
+        if value < 914400 or value > 51206400:
+            raise ValueError(
+                "value must be in range(914400, 51206400) (1-56 inches), got"
+                " %d" % value
+            )

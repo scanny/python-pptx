@@ -7,7 +7,7 @@ Custom element classes for presentation-related XML elements.
 from __future__ import absolute_import
 
 from .ns import _nsmap
-from .simpletypes import ST_SlideId, XsdString
+from .simpletypes import ST_SlideId, ST_SlideSizeCoordinate, XsdString
 from .xmlchemy import (
     BaseOxmlElement, RequiredAttribute, ZeroOrOne, ZeroOrMore
 )
@@ -83,21 +83,5 @@ class CT_SlideSize(BaseOxmlElement):
     ``<p:sldSz>`` element, direct child of <p:presentation> that contains the
     width and height of slides in the presentation.
     """
-    def __setattr__(self, name, value):
-        """
-        Override ``__setattr__`` defined in ObjectifiedElement super class
-        to intercept messages intended for custom property setters.
-        """
-        if name in ('cx', 'cy'):
-            value_str = str(int(value))
-            self.set(name, value_str)
-        else:
-            super(CT_SlideSize, self).__setattr__(name, value)
-
-    @property
-    def cx(self):
-        return int(self.get('cx'))
-
-    @property
-    def cy(self):
-        return int(self.get('cy'))
+    cx = RequiredAttribute('cx', ST_SlideSizeCoordinate)
+    cy = RequiredAttribute('cy', ST_SlideSizeCoordinate)

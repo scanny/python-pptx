@@ -16,6 +16,7 @@ from pptx import Presentation
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.parts.presentation import _SlideMasters
 from pptx.parts.slidemaster import SlideMaster
+from pptx.util import Inches
 
 from .helpers import saved_pptx_path, test_pptx
 
@@ -64,8 +65,8 @@ def given_initialized_pptx_env(context):
 @when('I change the slide width and height')
 def when_change_slide_width_and_height(context):
     presentation = context.presentation
-    presentation.slide_width = 100000
-    presentation.slide_height = 200000
+    presentation.slide_width = Inches(4)
+    presentation.slide_height = Inches(3)
 
 
 @when('I construct a Presentation instance with no path argument')
@@ -198,10 +199,10 @@ def then_len_of_slide_master_collection_is_2(context):
 @then('the slide height matches the new value')
 def then_slide_height_matches_new_value(context):
     presentation = context.presentation
-    assert presentation.slide_height == 200000
+    assert presentation.slide_height == Inches(3)
 
 
 @then('the slide width matches the new value')
 def then_slide_width_matches_new_value(context):
     presentation = context.presentation
-    assert presentation.slide_width == 100000
+    assert presentation.slide_width == Inches(4)
