@@ -15,7 +15,8 @@ from pptx.oxml import register_element_cls
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import BaseIntType
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, RequiredAttribute, ZeroOrMore, ZeroOrOne
+    BaseOxmlElement, OptionalAttribute, RequiredAttribute, ZeroOrMore,
+    ZeroOrOne
 )
 
 from ..unitdata import EtreeBaseBuilder as BaseBuilder
@@ -27,11 +28,42 @@ class DescribeCustomElementClass(object):
         assert type(CT_Parent).__name__ == 'MetaOxmlElement'
 
 
+class DescribeOptionalAttribute(object):
+
+    def it_adds_a_getter_property_for_the_attr_value(self, getter_fixture):
+        parent, optAttr_python_value = getter_fixture
+        assert parent.optAttr == optAttr_python_value
+
+    def it_adds_a_setter_property_for_the_attr(self, setter_fixture):
+        parent, value, expected_xml = setter_fixture
+        parent.optAttr = value
+        assert parent.xml == expected_xml
+
+    def it_adds_a_docstring_for_the_property(self):
+        assert CT_Parent.optAttr.__doc__.startswith(
+            "ST_IntegerType type-converted value of "
+        )
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def getter_fixture(self):
+        parent = a_parent().with_nsdecls().with_optAttr('24').element
+        return parent, 24
+
+    @pytest.fixture
+    def setter_fixture(self):
+        parent = a_parent().with_nsdecls().with_optAttr('42').element
+        value = 36
+        expected_xml = a_parent().with_nsdecls().with_optAttr(value).xml()
+        return parent, value, expected_xml
+
+
 class DescribeRequiredAttribute(object):
 
     def it_adds_a_getter_property_for_the_attr_value(self, getter_fixture):
         parent, reqAttr_python_value = getter_fixture
-        assert parent.reqAttr is reqAttr_python_value
+        assert parent.reqAttr == reqAttr_python_value
 
     def it_adds_a_setter_property_for_the_attr(self, setter_fixture):
         parent, value, expected_xml = setter_fixture
@@ -245,6 +277,7 @@ class CT_Parent(BaseOxmlElement):
     """
     zomChild = ZeroOrMore('p:zomChild', successors=())
     zooChild = ZeroOrOne('p:zooChild', successors=())
+    optAttr = OptionalAttribute('optAttr', ST_IntegerType)
     reqAttr = RequiredAttribute('reqAttr', ST_IntegerType)
 
 
@@ -270,7 +303,7 @@ register_element_cls('p:zooChild',  CT_ZooChild)
 class CT_ParentBuilder(BaseBuilder):
     __tag__ = 'p:parent'
     __nspfxs__ = ('p',)
-    __attrs__ = ('reqAttr',)
+    __attrs__ = ('optAttr', 'reqAttr')
 
 
 class CT_ZomChildBuilder(BaseBuilder):

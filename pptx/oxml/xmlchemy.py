@@ -108,22 +108,21 @@ class MetaOxmlElement(type):
     Metaclass for BaseOxmlElement
     """
     def __init__(cls, clsname, bases, clsdict):
-        dispatchable = (RequiredAttribute, ZeroOrMore, ZeroOrOne)
+        dispatchable = (
+            OptionalAttribute, RequiredAttribute, ZeroOrMore, ZeroOrOne
+        )
         for key, value in clsdict.items():
             if isinstance(value, dispatchable):
                 value.populate_class_members(cls, key)
 
 
-class RequiredAttribute(object):
+class BaseAttribute(object):
     """
-    Defines a required attribute on a custom element class. A required
-    attribute is assumed to be present for reading, so does not have
-    a default value; its actual value is always used. If missing on read,
-    a |ValidationError| is raised. It also does not remove the attribute if
-    |None| is assigned. Assigning |None| raises |ValidationError|.
+    Base class for OptionalAttribute and RequiredAttribute, providing common
+    methods.
     """
     def __init__(self, attr_name, simple_type):
-        super(RequiredAttribute, self).__init__()
+        super(BaseAttribute, self).__init__()
         self._attr_name = attr_name
         self._simple_type = simple_type
 
@@ -146,6 +145,75 @@ class RequiredAttribute(object):
         # assign unconditionally to overwrite element name definition
         setattr(self._element_cls, self._prop_name, property_)
 
+    @property
+    def _clark_name(self):
+        if ':' in self._attr_name:
+            return qn(self._attr_name)
+        return self._attr_name
+
+
+class OptionalAttribute(BaseAttribute):
+    """
+    Defines an optional attribute on a custom element class. An optional
+    attribute returns a default value when not present for reading. When
+    assigned |None|, the attribute is removed.
+    """
+    def __init__(self, attr_name, simple_type, default=None):
+        super(OptionalAttribute, self).__init__(attr_name, simple_type)
+        self._default = default
+
+    @property
+    def _getter(self):
+        """
+        Return a function object suitable for the "get" side of the attribute
+        property descriptor.
+        """
+        def get_attr_value(obj):
+            attr_str_value = obj.get(self._clark_name)
+            if attr_str_value is None:
+                return self._default
+            return self._simple_type.from_xml(attr_str_value)
+        get_attr_value.__doc__ = self._docstring
+        return get_attr_value
+
+    @property
+    def _docstring(self):
+        """
+        Return the string to use as the ``__doc__`` attribute of the property
+        for this attribute.
+        """
+        return (
+            '%s type-converted value of ``%s`` attribute, or |None| (or spec'
+            'ified default value) if not present. Assigning the default valu'
+            'e causes the attribute to be removed from the element.' %
+            (self._simple_type.__name__, self._attr_name)
+        )
+
+    @property
+    def _setter(self):
+        """
+        Return a function object suitable for the "set" side of the attribute
+        property descriptor.
+        """
+        def set_attr_value(obj, value):
+            if value is None or value == self._default:
+                if self._attr_name in obj.attrib:
+                    del obj.attrib[self._attr_name]
+                return
+            str_value = self._simple_type.to_xml(value)
+            obj.set(self._clark_name, str_value)
+        return set_attr_value
+
+
+class RequiredAttribute(BaseAttribute):
+    """
+    Defines a required attribute on a custom element class. A required
+    attribute is assumed to be present for reading, so does not have
+    a default value; its actual value is always used. If missing on read,
+    an |InvalidXmlError| is raised. It also does not remove the attribute if
+    |None| is assigned. Assigning |None| raises |TypeError| or |ValueError|,
+    depending on the simple type of the attribute.
+    """
     @property
     def _getter(self):
         """
@@ -184,12 +252,6 @@ class RequiredAttribute(object):
             str_value = self._simple_type.to_xml(value)
             obj.set(self._clark_name, str_value)
         return set_attr_value
-
-    @property
-    def _clark_name(self):
-        if ':' in self._attr_name:
-            return qn(self._attr_name)
-        return self._attr_name
 
 
 class _BaseChildElement(object):
