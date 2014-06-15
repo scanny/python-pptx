@@ -26,8 +26,8 @@ from .oxml.unitdata.text import (
     an_hlinkClick, an_r, an_rPr, an_spAutoFit
 )
 from .unitutil import (
-    absjoin, actual_xml, class_mock, instance_mock, loose_mock,
-    parse_xml_file, property_mock, test_file_dir
+    absjoin, class_mock, instance_mock, loose_mock, parse_xml_file,
+    property_mock, test_file_dir
 )
 
 
@@ -40,7 +40,7 @@ class DescribeTextFrame(object):
     def it_can_change_its_autosize_setting(self, autosize_set_fixture):
         textframe, value, expected_xml = autosize_set_fixture
         textframe.auto_size = value
-        assert actual_xml(textframe._txBody) == expected_xml
+        assert textframe._txBody.xml == expected_xml
 
     def it_knows_the_number_of_paragraphs_it_contains(
             self, txBody, txBody_with_2_paras):
@@ -51,13 +51,13 @@ class DescribeTextFrame(object):
             self, txBody, txBody_with_2_paras_xml):
         textframe = TextFrame(txBody, None)
         textframe.add_paragraph()
-        assert actual_xml(textframe._txBody) == txBody_with_2_paras_xml
+        assert textframe._txBody.xml == txBody_with_2_paras_xml
 
     def it_can_replace_the_text_it_contains(
             self, txBody, txBody_with_text_xml):
         textframe = TextFrame(txBody, None)
         textframe.text = 'foobar'
-        assert actual_xml(txBody) == txBody_with_text_xml
+        assert txBody.xml == txBody_with_text_xml
 
     def it_can_get_its_margin_settings(
             self, txBody, txBody_with_lIns, txBody_with_tIns,
@@ -87,19 +87,19 @@ class DescribeTextFrame(object):
 
         textframe = TextFrame(txBody_bldr.element, None)
         textframe.margin_left = Inches(0.01)
-        assert actual_xml(textframe._txBody) == txBody_with_lIns_xml
+        assert textframe._txBody.xml == txBody_with_lIns_xml
 
         textframe = TextFrame(txBody_bldr.element, None)
         textframe.margin_top = Inches(0.02)
-        assert actual_xml(textframe._txBody) == txBody_with_tIns_xml
+        assert textframe._txBody.xml == txBody_with_tIns_xml
 
         textframe = TextFrame(txBody_bldr.element, None)
         textframe.margin_right = Inches(0.03)
-        assert actual_xml(textframe._txBody) == txBody_with_rIns_xml
+        assert textframe._txBody.xml == txBody_with_rIns_xml
 
         textframe = TextFrame(txBody_bldr.element, None)
         textframe.margin_bottom = Inches(0.04)
-        assert actual_xml(textframe._txBody) == txBody_with_bIns_xml
+        assert textframe._txBody.xml == txBody_with_bIns_xml
 
     def it_raises_on_attempt_to_set_margin_to_non_int(self, textframe):
         with pytest.raises(TypeError):
@@ -109,7 +109,7 @@ class DescribeTextFrame(object):
             self, txBody, txBody_with_anchor_ctr_xml):
         textframe = TextFrame(txBody, None)
         textframe.vertical_anchor = MSO_ANCHOR.MIDDLE
-        assert actual_xml(textframe._txBody) == txBody_with_anchor_ctr_xml
+        assert textframe._txBody.xml == txBody_with_anchor_ctr_xml
 
     def it_can_change_the_word_wrap_setting(
             self, txBody, txBody_with_wrap_on_xml, txBody_with_wrap_off_xml,
@@ -118,15 +118,15 @@ class DescribeTextFrame(object):
         assert textframe.word_wrap is None
 
         textframe.word_wrap = True
-        assert actual_xml(textframe._txBody) == txBody_with_wrap_on_xml
+        assert textframe._txBody.xml == txBody_with_wrap_on_xml
         assert textframe.word_wrap is True
 
         textframe.word_wrap = False
-        assert actual_xml(textframe._txBody) == txBody_with_wrap_off_xml
+        assert textframe._txBody.xml == txBody_with_wrap_off_xml
         assert textframe.word_wrap is False
 
         textframe.word_wrap = None
-        assert actual_xml(textframe._txBody) == txBody_xml
+        assert textframe._txBody.xml == txBody_xml
         assert textframe.word_wrap is None
 
     def it_knows_the_part_it_belongs_to(self, textframe_with_parent_):
@@ -354,15 +354,15 @@ class Describe_Font(object):
 
     def it_can_change_the_bold_setting(
             self, font, bold_rPr_xml, bold_off_rPr_xml, rPr_xml):
-        assert actual_xml(font._rPr) == rPr_xml
+        assert font._rPr.xml == rPr_xml
         font.bold = None
-        assert actual_xml(font._rPr) == rPr_xml
+        assert font._rPr.xml == rPr_xml
         font.bold = True
-        assert actual_xml(font._rPr) == bold_rPr_xml
+        assert font._rPr.xml == bold_rPr_xml
         font.bold = False
-        assert actual_xml(font._rPr) == bold_off_rPr_xml
+        assert font._rPr.xml == bold_off_rPr_xml
         font.bold = None
-        assert actual_xml(font._rPr) == rPr_xml
+        assert font._rPr.xml == rPr_xml
 
     def it_has_a_color(self, font):
         assert isinstance(font.color, ColorFormat)
@@ -377,15 +377,15 @@ class Describe_Font(object):
 
     def it_can_change_the_italic_setting(
             self, font, italic_rPr_xml, italic_off_rPr_xml, rPr_xml):
-        assert actual_xml(font._rPr) == rPr_xml
+        assert font._rPr.xml == rPr_xml
         font.italic = None  # important to test None to None transition
-        assert actual_xml(font._rPr) == rPr_xml
+        assert font._rPr.xml == rPr_xml
         font.italic = True
-        assert actual_xml(font._rPr) == italic_rPr_xml
+        assert font._rPr.xml == italic_rPr_xml
         font.italic = False
-        assert actual_xml(font._rPr) == italic_off_rPr_xml
+        assert font._rPr.xml == italic_off_rPr_xml
         font.italic = None
-        assert actual_xml(font._rPr) == rPr_xml
+        assert font._rPr.xml == rPr_xml
 
     def it_knows_its_latin_typeface(self, typeface_get_fixture):
         font, typeface = typeface_get_fixture
@@ -394,7 +394,7 @@ class Describe_Font(object):
     def it_can_change_its_latin_typeface(self, typeface_set_fixture):
         font, typeface, rPr_with_latin_xml = typeface_set_fixture
         font.name = typeface
-        assert actual_xml(font._rPr) == rPr_with_latin_xml
+        assert font._rPr.xml == rPr_with_latin_xml
 
     def it_knows_the_font_size(self, size_get_fixture):
         font, expected_size = size_get_fixture
@@ -403,7 +403,7 @@ class Describe_Font(object):
     def it_can_set_the_font_size(self, font):
         font.size = Pt(24)
         expected_xml = an_rPr().with_nsdecls().with_sz(2400).xml()
-        assert actual_xml(font._rPr) == expected_xml
+        assert font._rPr.xml == expected_xml
 
     # fixtures ---------------------------------------------
 
@@ -515,7 +515,7 @@ class Describe_Hyperlink(object):
         hlink.part.relate_to.assert_called_once_with(
             url, RT.HYPERLINK, is_external=True
         )
-        assert actual_xml(hlink._rPr) == rPr_with_hlinkClick_xml
+        assert hlink._rPr.xml == rPr_with_hlinkClick_xml
         assert hlink.address == url
 
     def it_can_remove_the_hyperlink(self, remove_hlink_fixture_):
@@ -528,7 +528,7 @@ class Describe_Hyperlink(object):
             self, remove_hlink_fixture_):
         hlink, rPr_xml, rId = remove_hlink_fixture_
         hlink.address = ''
-        assert actual_xml(hlink._rPr) == rPr_xml
+        assert hlink._rPr.xml == rPr_xml
         hlink.part.drop_rel.assert_called_once_with(rId)
 
     def it_can_change_the_target_url(self, change_hlink_fixture_):
@@ -537,7 +537,7 @@ class Describe_Hyperlink(object):
         # exercise ---------------------
         hlink.address = new_url
         # verify -----------------------
-        assert actual_xml(hlink._rPr) == new_rPr_xml
+        assert hlink._rPr.xml == new_rPr_xml
         hlink.part.drop_rel.assert_called_once_with(rId_existing)
         hlink.part.relate_to.assert_called_once_with(
             new_url, RT.HYPERLINK, is_external=True
@@ -631,7 +631,7 @@ class Describe_Paragraph(object):
 
     def it_can_add_a_run(self, paragraph, p_with_r_xml):
         run = paragraph.add_run()
-        assert actual_xml(paragraph._p) == p_with_r_xml
+        assert paragraph._p.xml == p_with_r_xml
         assert isinstance(run, _Run)
 
     def it_knows_the_alignment_setting_of_the_paragraph(
@@ -666,7 +666,7 @@ class Describe_Paragraph(object):
         # exercise ---------------------
         paragraph_with_text.level = 2
         # verify -----------------------
-        assert actual_xml(paragraph_with_text._p) == expected_xml
+        assert paragraph_with_text._p.xml == expected_xml
 
     def test_level_default_is_zero(self, paragraph_with_text):
         """_Paragraph.level defaults to zero on no lvl attribute"""

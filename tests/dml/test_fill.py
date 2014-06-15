@@ -18,7 +18,6 @@ from ..oxml.unitdata.dml import (
 )
 from ..oxml.unitdata.table import a_tcPr
 from ..oxml.unitdata.text import an_rPr
-from ..unitutil import actual_xml
 
 
 class DescribeFillFormat(object):
@@ -26,12 +25,12 @@ class DescribeFillFormat(object):
     def it_can_set_the_fill_type_to_no_fill(self, set_noFill_fixture_):
         fill_format, xPr_with_noFill_xml = set_noFill_fixture_
         fill_format.background()
-        assert actual_xml(fill_format._xPr) == xPr_with_noFill_xml
+        assert fill_format._xPr.xml == xPr_with_noFill_xml
 
     def it_can_set_the_fill_type_to_solid(self, set_solid_fixture_):
         fill_format, xPr_with_solidFill_xml = set_solid_fixture_
         fill_format.solid()
-        assert actual_xml(fill_format._xPr) == xPr_with_solidFill_xml
+        assert fill_format._xPr.xml == xPr_with_solidFill_xml
 
     def it_knows_the_type_of_fill_it_is(self, fill_type_fixture_):
         fill_format, fill_type = fill_type_fixture_

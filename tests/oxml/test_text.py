@@ -20,7 +20,6 @@ from ..oxml.unitdata.text import (
     a_bodyPr, a_defRPr, a_p, a_pPr, a_t, a_txBody, an_endParaRPr, an_extLst,
     an_r, an_rPr
 )
-from ..unitutil import actual_xml
 
 
 class DescribeCT_RegularTextRun(object):
@@ -35,7 +34,7 @@ class DescribeCT_RegularTextRun(object):
     def it_adds_rPr_element_in_proper_sequence_if_r_doesnt_have_one(
             self, r, r_with_rPr_xml):
         r.get_or_add_rPr()
-        assert actual_xml(r) == r_with_rPr_xml
+        assert r.xml == r_with_rPr_xml
 
     # fixtures ---------------------------------------------
 
@@ -100,27 +99,27 @@ class DescribeCT_TextBodyProperties(object):
             self, bodyPr, bodyPr_xml, bodyPr_with_lIns_xml,
             bodyPr_with_tIns_xml, bodyPr_with_rIns_xml,
             bodyPr_with_bIns_xml):
-        assert actual_xml(bodyPr) == bodyPr_xml
+        assert bodyPr.xml == bodyPr_xml
 
         bodyPr.lIns = 987
-        assert actual_xml(bodyPr) == bodyPr_with_lIns_xml
+        assert bodyPr.xml == bodyPr_with_lIns_xml
         bodyPr.lIns = None
-        assert actual_xml(bodyPr) == bodyPr_xml
+        assert bodyPr.xml == bodyPr_xml
 
         bodyPr.tIns = 654
-        assert actual_xml(bodyPr) == bodyPr_with_tIns_xml
+        assert bodyPr.xml == bodyPr_with_tIns_xml
         bodyPr.tIns = None
-        assert actual_xml(bodyPr) == bodyPr_xml
+        assert bodyPr.xml == bodyPr_xml
 
         bodyPr.rIns = 321
-        assert actual_xml(bodyPr) == bodyPr_with_rIns_xml
+        assert bodyPr.xml == bodyPr_with_rIns_xml
         bodyPr.rIns = None
-        assert actual_xml(bodyPr) == bodyPr_xml
+        assert bodyPr.xml == bodyPr_xml
 
         bodyPr.bIns = 234
-        assert actual_xml(bodyPr) == bodyPr_with_bIns_xml
+        assert bodyPr.xml == bodyPr_with_bIns_xml
         bodyPr.bIns = None
-        assert actual_xml(bodyPr) == bodyPr_xml
+        assert bodyPr.xml == bodyPr_xml
 
     # fixtures ---------------------------------------------
 
@@ -168,11 +167,11 @@ class DescribeCT_TextCharacterProperties(object):
     def it_can_set_the_b_value(
             self, rPr, rPr_with_true_b_xml, rPr_with_false_b_xml, rPr_xml):
         rPr.b = True
-        assert actual_xml(rPr) == rPr_with_true_b_xml
+        assert rPr.xml == rPr_with_true_b_xml
         rPr.b = False
-        assert actual_xml(rPr) == rPr_with_false_b_xml
+        assert rPr.xml == rPr_with_false_b_xml
         rPr.b = None
-        assert actual_xml(rPr) == rPr_xml
+        assert rPr.xml == rPr_xml
 
     def it_knows_the_i_value(self, rPr_with_true_i, rPr_with_false_i, rPr):
         assert rPr_with_true_i.i is True
@@ -182,11 +181,11 @@ class DescribeCT_TextCharacterProperties(object):
     def it_can_set_the_i_value(
             self, rPr, rPr_with_true_i_xml, rPr_with_false_i_xml, rPr_xml):
         rPr.i = True
-        assert actual_xml(rPr) == rPr_with_true_i_xml
+        assert rPr.xml == rPr_with_true_i_xml
         rPr.i = False
-        assert actual_xml(rPr) == rPr_with_false_i_xml
+        assert rPr.xml == rPr_with_false_i_xml
         rPr.i = None
-        assert actual_xml(rPr) == rPr_xml
+        assert rPr.xml == rPr_xml
 
     def it_can_get_the_solidFill_child_element_or_none_if_there_isnt_one(
             self, rPr, rPr_with_solidFill, solidFill):
@@ -201,15 +200,15 @@ class DescribeCT_TextCharacterProperties(object):
     def it_adds_a_solidFill_child_element_if_there_isnt_one(
             self, rPr, rPr_with_solidFill_xml):
         solidFill = rPr.get_or_change_to_solidFill()
-        assert actual_xml(rPr) == rPr_with_solidFill_xml
+        assert rPr.xml == rPr_with_solidFill_xml
         assert rPr.find(qn('a:solidFill')) == solidFill
 
     def it_changes_the_fill_type_to_solidFill_if_another_one_is_there(
             self, rPr_with_gradFill, rPr_with_noFill, rPr_with_solidFill_xml):
         rPr_with_gradFill.get_or_change_to_solidFill()
-        assert actual_xml(rPr_with_gradFill) == rPr_with_solidFill_xml
+        assert rPr_with_gradFill.xml == rPr_with_solidFill_xml
         rPr_with_noFill.get_or_change_to_solidFill()
-        assert actual_xml(rPr_with_noFill) == rPr_with_solidFill_xml
+        assert rPr_with_noFill.xml == rPr_with_solidFill_xml
 
     # fixtures ---------------------------------------------
 
@@ -298,22 +297,22 @@ class DescribeCT_TextParagraph(object):
 
     def it_adds_a_pPr_if_p_doesnt_have_one(self, p, p_with_pPr_xml):
         p.get_or_add_pPr()
-        assert actual_xml(p) == p_with_pPr_xml
+        assert p.xml == p_with_pPr_xml
 
     def it_can_add_a_new_r_element(self, p, p_with_r_xml):
         p.add_r()
-        assert actual_xml(p) == p_with_r_xml
+        assert p.xml == p_with_r_xml
 
     def it_adds_r_element_in_correct_sequence(
             self, p_with_endParaRPr, p_with_r_with_endParaRPr_xml):
         p = p_with_endParaRPr
         p.add_r()
-        assert actual_xml(p) == p_with_r_with_endParaRPr_xml
+        assert p.xml == p_with_r_with_endParaRPr_xml
 
     def it_can_remove_all_its_r_child_elements(
             self, p_with_r_children, p_xml):
         p = p_with_r_children.remove_child_r_elms()
-        assert actual_xml(p) == p_xml
+        assert p.xml == p_xml
 
     # fixtures ---------------------------------------------
 
@@ -386,9 +385,9 @@ class DescribeCT_TextParagraphProperties(object):
 
     def it_can_set_the_algn_value(self, pPr, pPr_with_algn_xml, pPr_xml):
         pPr.algn = PP_ALIGN.THAI_DISTRIBUTE
-        assert actual_xml(pPr) == pPr_with_algn_xml
+        assert pPr.xml == pPr_with_algn_xml
         pPr.algn = None
-        assert actual_xml(pPr) == pPr_xml
+        assert pPr.xml == pPr_xml
 
     def it_can_get_the_defRPr_child_element(self, pPr_with_defRPr, defRPr):
         _defRPr = pPr_with_defRPr.get_or_add_defRPr()
@@ -397,13 +396,13 @@ class DescribeCT_TextParagraphProperties(object):
     def it_adds_a_defRPr_if_pPr_doesnt_have_one(
             self, pPr, pPr_with_defRPr_xml):
         pPr.get_or_add_defRPr()
-        assert actual_xml(pPr) == pPr_with_defRPr_xml
+        assert pPr.xml == pPr_with_defRPr_xml
 
     def it_adds_defRPr_element_in_correct_sequence(
             self, pPr_with_extLst, pPr_with_defRPr_with_extLst_xml):
         pPr = pPr_with_extLst
         pPr.get_or_add_defRPr()
-        assert actual_xml(pPr) == pPr_with_defRPr_with_extLst_xml
+        assert pPr.xml == pPr_with_defRPr_with_extLst_xml
 
     # fixtures ---------------------------------------------
 

@@ -67,13 +67,12 @@ class DescribeCT_Relationships(object):
 
     def it_can_construct_a_new_relationships_element(self):
         rels = CT_Relationships.new()
-        actual_xml = oxml_tostring(rels, encoding='unicode',
-                                   pretty_print=True)
         expected_xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
             '<Relationships xmlns="http://schemas.openxmlformats.org/package'
-            '/2006/relationships"/>\n'
+            '/2006/relationships"/>'
         )
-        assert actual_xml == expected_xml
+        assert rels.xml == expected_xml
 
     def it_can_build_rels_element_incrementally(self):
         # setup ------------------------
@@ -84,8 +83,9 @@ class DescribeCT_Relationships(object):
         rels.add_rel('rId3', 'http://reltype2', '../slides/slide1.xml')
         # verify -----------------------
         expected_rels_xml = a_Relationships().xml
-        actual_xml = oxml_tostring(rels, encoding='unicode',
-                                   pretty_print=True)
+        actual_xml = oxml_tostring(
+            rels, encoding='unicode', pretty_print=True
+        )
         assert actual_xml == expected_rels_xml
 
     def it_can_generate_rels_file_xml(self):

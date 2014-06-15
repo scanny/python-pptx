@@ -20,10 +20,6 @@ def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
 
 
-def actual_xml(elm):
-    return serialize_xml(elm, pretty_print=True)
-
-
 def parse_xml_file(file_):
     """
     Return ElementTree for XML contained in *file_*

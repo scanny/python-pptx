@@ -1,6 +1,8 @@
 # encoding: utf-8
 
-"""Test suite for pptx.table module."""
+"""
+Test suite for pptx.table module.
+"""
 
 from __future__ import absolute_import
 
@@ -21,7 +23,7 @@ from pptx.util import Inches
 from ..oxml.unitdata.shape import test_shapes
 from ..oxml.unitdata.table import a_tc, a_tcPr, a_txBody
 from ..oxml.unitdata.text import a_bodyPr, a_p, an_r, a_t
-from ..unitutil import actual_xml, TestCase
+from ..unitutil import TestCase
 
 
 class Describe_Cell(object):
@@ -44,7 +46,7 @@ class Describe_Cell(object):
         cell.margin_right = marR
         cell.margin_top = marT
         cell.margin_bottom = marB
-        assert actual_xml(cell._tc) == tc_with_marX_xml
+        assert cell._tc.xml == tc_with_marX_xml
 
     def it_raises_on_margin_assigned_other_than_int_or_None(
             self, margin_raises_fixture):
@@ -55,7 +57,7 @@ class Describe_Cell(object):
     def it_can_set_the_text_it_contains(self, text_set_fixture):
         cell, text, tc_with_text_xml = text_set_fixture
         cell.text = text
-        assert actual_xml(cell._tc) == tc_with_text_xml
+        assert cell._tc.xml == tc_with_text_xml
 
     def it_knows_its_vertical_anchor_setting(self, anchor_get_fixture):
         cell, vertical_anchor = anchor_get_fixture
@@ -64,7 +66,7 @@ class Describe_Cell(object):
     def it_can_change_its_vertical_anchor(self, anchor_set_fixture):
         cell, vertical_anchor, tc_with_anchor_xml = anchor_set_fixture
         cell.vertical_anchor = vertical_anchor
-        assert actual_xml(cell._tc) == tc_with_anchor_xml
+        assert cell._tc.xml == tc_with_anchor_xml
 
     # fixture --------------------------------------------------------
 

@@ -15,7 +15,6 @@ from ..oxml.unitdata.dml import (
     a_lumMod, a_lumOff, a_prstClr, a_schemeClr, a_solidFill, a_sysClr,
     an_hslClr, an_scrgbClr, an_srgbClr
 )
-from ..unitutil import actual_xml
 
 
 class DescribeColorFormat(object):
@@ -52,7 +51,7 @@ class DescribeColorFormat(object):
     def it_can_set_itself_to_an_RGB_color(self, set_rgb_fixture_):
         color_format, rgb_color, expected_xml = set_rgb_fixture_
         color_format.rgb = rgb_color
-        assert actual_xml(color_format._xFill) == expected_xml
+        assert color_format._xFill.xml == expected_xml
 
     def it_raises_on_assign_non_RGBColor_type_to_rgb(self, rgb_color_format):
         color_format = rgb_color_format
@@ -62,12 +61,12 @@ class DescribeColorFormat(object):
     def it_can_set_itself_to_a_theme_color(self, set_theme_color_fixture_):
         color_format, theme_color, expected_xml = set_theme_color_fixture_
         color_format.theme_color = theme_color
-        assert actual_xml(color_format._xFill) == expected_xml
+        assert color_format._xFill.xml == expected_xml
 
     def it_can_set_its_brightness_adjustment(self, set_brightness_fixture_):
         color_format, brightness, expected_xml = set_brightness_fixture_
         color_format.brightness = brightness
-        assert actual_xml(color_format._xFill) == expected_xml
+        assert color_format._xFill.xml == expected_xml
 
     def it_raises_on_attempt_to_set_brightness_out_of_range(
             self, rgb_color_format):

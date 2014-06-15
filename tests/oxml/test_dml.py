@@ -13,7 +13,6 @@ from pptx.oxml.dml.color import CT_Percentage, CT_SchemeColor, CT_SRgbColor
 from pptx.oxml.ns import qn
 
 from .unitdata.dml import a_lumMod, a_lumOff, a_schemeClr, an_srgbClr
-from ..unitutil import actual_xml
 
 
 class Describe_BaseColorElement(object):
@@ -33,19 +32,19 @@ class Describe_BaseColorElement(object):
             schemeClr_xml):
         schemeClr_with_lumMod.clear_lum()
         schemeClr_with_lumOff.clear_lum()
-        assert actual_xml(schemeClr_with_lumMod) == schemeClr_xml
-        assert actual_xml(schemeClr_with_lumOff) == schemeClr_xml
+        assert schemeClr_with_lumMod.xml == schemeClr_xml
+        assert schemeClr_with_lumOff.xml == schemeClr_xml
 
     def it_can_add_a_lumMod_child_element(
             self, schemeClr, schemeClr_with_lumMod_xml):
         lumMod = schemeClr.add_lumMod(75000)
-        assert actual_xml(schemeClr) == schemeClr_with_lumMod_xml
+        assert schemeClr.xml == schemeClr_with_lumMod_xml
         assert schemeClr.find(qn('a:lumMod')) == lumMod
 
     def it_can_add_a_lumOff_child_element(
             self, schemeClr, schemeClr_with_lumOff_xml):
         lumOff = schemeClr.add_lumOff(40000)
-        assert actual_xml(schemeClr) == schemeClr_with_lumOff_xml
+        assert schemeClr.xml == schemeClr_with_lumOff_xml
         assert schemeClr.find(qn('a:lumOff')) == lumOff
 
     # fixtures ---------------------------------------------
@@ -125,7 +124,7 @@ class DescribeCT_SchemeColor(object):
 
     def it_can_set_the_scheme_color_value(self, schemeClr, schemeClr_xml):
         schemeClr.val = MSO_THEME_COLOR.ACCENT_1
-        assert actual_xml(schemeClr) == schemeClr_xml
+        assert schemeClr.xml == schemeClr_xml
 
     # fixtures ---------------------------------------------
 
@@ -148,7 +147,7 @@ class DescribeCT_SRgbColor(object):
 
     def it_can_set_the_rgb_str_value(self, srgbClr, srgbClr_xml):
         srgbClr.val = '987654'
-        assert actual_xml(srgbClr) == srgbClr_xml
+        assert srgbClr.xml == srgbClr_xml
 
     # fixtures ---------------------------------------------
 
