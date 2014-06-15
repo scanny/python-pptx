@@ -10,8 +10,6 @@ import os
 
 from behave import given, when, then
 
-from hamcrest import assert_that, equal_to, is_
-
 from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches
@@ -142,13 +140,13 @@ def then_font_name_matches_typeface_I_set(context):
 @then('the paragraph is aligned centered')
 def then_paragraph_is_aligned_centered(context):
     p = context.prs.slides[0].shapes[0].textframe.paragraphs[0]
-    assert_that(p.alignment, is_(equal_to(PP_ALIGN.CENTER)))
+    assert p.alignment == PP_ALIGN.CENTER
 
 
 @then('the paragraph is indented to the second level')
 def then_paragraph_indented_to_second_level(context):
     p = context.prs.slides[0].shapes[0].textframe.paragraphs[0]
-    assert_that(p.level, is_(equal_to(1)))
+    assert p.level == 1
 
 
 @then("the run that had italics set {initial} now has it set {setting}")

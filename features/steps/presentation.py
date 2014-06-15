@@ -9,7 +9,6 @@ from __future__ import absolute_import
 import os
 
 from behave import given, when, then
-from hamcrest import assert_that, is_, is_not, greater_than
 from StringIO import StringIO
 
 from pptx import Presentation
@@ -148,13 +147,13 @@ def then_can_iterate_over_the_slide_masters(context):
 @then('I receive a presentation based on the default template')
 def then_receive_prs_based_on_def_tmpl(context):
     prs = context.prs
-    assert_that(prs, is_not(None))
+    assert prs is not None
     slide_masters = prs.slide_masters
-    assert_that(slide_masters, is_not(None))
-    assert_that(len(slide_masters), is_(1))
+    assert slide_masters is not None
+    assert len(slide_masters) == 1
     slide_layouts = slide_masters[0].slide_layouts
-    assert_that(slide_layouts, is_not(None))
-    assert_that(len(slide_layouts), is_(11))
+    assert slide_layouts is not None
+    assert len(slide_layouts) == 11
 
 
 @then('its slide height matches its known value')
@@ -171,10 +170,10 @@ def then_slide_width_matches_known_value(context):
 
 @then('I see the pptx file in the working directory')
 def then_see_pptx_file_in_working_dir(context):
-    assert_that(os.path.isfile(saved_pptx_path))
+    assert os.path.isfile(saved_pptx_path)
     minimum = 30000
     actual = os.path.getsize(saved_pptx_path)
-    assert_that(actual, is_(greater_than(minimum)))
+    assert actual > minimum
 
 
 @then('the external relationships are still there')

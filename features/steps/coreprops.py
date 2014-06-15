@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from datetime import datetime, timedelta
 
 from behave import given, when, then
-from hamcrest import assert_that, is_, less_than
 
 from pptx import Presentation
 
@@ -59,19 +58,20 @@ def step_when_set_core_doc_props_to_valid_values(context):
 @then('a core properties part with default values is added')
 def step_then_a_core_props_part_with_def_vals_is_added(context):
     core_props = context.prs.core_properties
-    assert_that(core_props.title, is_('PowerPoint Presentation'))
-    assert_that(core_props.last_modified_by, is_('python-pptx'))
-    assert_that(core_props.revision, is_(1))
+    assert core_props.title == 'PowerPoint Presentation'
+    assert core_props.last_modified_by == 'python-pptx'
+    assert core_props.revision == 1
     # core_props.modified only stores time with seconds resolution, so
     # comparison needs to be a little loose (within two seconds)
     modified_timedelta = datetime.utcnow() - core_props.modified
     max_expected_timedelta = timedelta(seconds=2)
-    assert_that(modified_timedelta, less_than(max_expected_timedelta))
+    assert modified_timedelta < max_expected_timedelta
 
 
 @then('the core properties of the presentation have the values I set')
 def step_then_core_props_have_values_previously_set(context):
     core_props = Presentation(saved_pptx_path).core_properties
     for name, value in context.propvals:
-        reason = "for core property '%s'" % name
-        assert_that(getattr(core_props, name), is_(value), reason)
+        assert getattr(core_props, name) == value, (
+            "for core property '%s'" % name
+        )

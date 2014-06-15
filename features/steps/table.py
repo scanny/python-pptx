@@ -7,7 +7,6 @@ Gherkin step implementations for table-related features.
 from __future__ import absolute_import
 
 from behave import given, when, then
-from hamcrest import assert_that, equal_to, has_item, is_
 
 from pptx import Presentation
 from pptx.dml.color import RGBColor
@@ -125,10 +124,10 @@ def then_cell_contents_are_inset_by_the_margins(context):
     prs = Presentation(saved_pptx_path)
     table = prs.slides[0].shapes[0]
     cell = table.cell(0, 0)
-    assert_that(cell.margin_top, is_(equal_to(1000)))
-    assert_that(cell.margin_right, is_(equal_to(2000)))
-    assert_that(cell.margin_bottom, is_(equal_to(3000)))
-    assert_that(cell.margin_left, is_(equal_to(4000)))
+    assert cell.margin_top == 1000
+    assert cell.margin_right == 2000
+    assert cell.margin_bottom == 3000
+    assert cell.margin_left == 4000
 
 
 @then('the cell contents are vertically centered')
@@ -136,25 +135,25 @@ def then_cell_contents_are_vertically_centered(context):
     prs = Presentation(saved_pptx_path)
     table = prs.slides[0].shapes[0]
     cell = table.cell(0, 0)
-    assert_that(cell.vertical_anchor, is_(equal_to(MSO_ANCHOR.MIDDLE)))
+    assert cell.vertical_anchor == MSO_ANCHOR.MIDDLE
 
 
 @then('the columns of the table have alternating shading')
 def then_columns_of_table_have_alternating_shading(context):
     tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
-    assert_that(tbl.vert_banding, is_(True))
+    assert tbl.vert_banding is True
 
 
 @then('the first column of the table has special formatting')
 def then_first_column_of_table_has_special_formatting(context):
     tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
-    assert_that(tbl.first_col, is_(True))
+    assert tbl.first_col is True
 
 
 @then('the first row of the table has special formatting')
 def then_first_row_of_table_has_special_formatting(context):
     tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
-    assert_that(tbl.first_row, is_(True))
+    assert tbl.first_row is True
 
 
 @then('the foreground color of the cell is the RGB value I set')
@@ -165,19 +164,19 @@ def then_cell_fore_color_is_RGB_value_I_set(context):
 @then('the last column of the table has special formatting')
 def then_last_column_of_table_has_special_formatting(context):
     tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
-    assert_that(tbl.last_col, is_(True))
+    assert tbl.last_col is True
 
 
 @then('the last row of the table has special formatting')
 def then_last_row_of_table_has_special_formatting(context):
     tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
-    assert_that(tbl.last_row, is_(True))
+    assert tbl.last_row is True
 
 
 @then('the rows of the table have alternating shading')
 def then_rows_of_table_have_alternating_shading(context):
     tbl = Presentation(saved_pptx_path).slides[0].shapes[0]
-    assert_that(tbl.horz_banding, is_(True))
+    assert tbl.horz_banding is True
 
 
 @then('the table appears in the slide')
@@ -186,7 +185,7 @@ def then_table_appears_in_slide(context):
     sld = prs.slides[0]
     shapes = sld.shapes
     _classnames = [sp.__class__.__name__ for sp in shapes]
-    assert_that(_classnames, has_item('Table'))
+    assert 'Table' in _classnames
 
 
 @then('the table appears with the new column widths')
@@ -194,8 +193,8 @@ def then_table_appears_with_new_col_widths(context):
     prs = Presentation(saved_pptx_path)
     sld = prs.slides[0]
     tbl = sld.shapes[0]
-    assert_that(tbl.columns[0].width, is_(equal_to(Inches(1.50))))
-    assert_that(tbl.columns[1].width, is_(equal_to(Inches(3.00))))
+    assert tbl.columns[0].width == Inches(1.50)
+    assert tbl.columns[1].width == Inches(3.00)
 
 
 @then('the text appears in the first cell of the table')
@@ -204,4 +203,4 @@ def then_text_appears_in_first_cell_of_table(context):
     sld = prs.slides[0]
     tbl = sld.shapes[0]
     text = tbl.cell(0, 0).textframe.paragraphs[0].runs[0].text
-    assert_that(text, is_(equal_to('test text')))
+    assert text == 'test text'

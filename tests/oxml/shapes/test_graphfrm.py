@@ -1,10 +1,10 @@
 # encoding: utf-8
 
-"""Test suite for pptx.oxml.graphfrm module."""
+"""
+Test suite for pptx.oxml.graphfrm module.
+"""
 
-from __future__ import absolute_import
-
-from hamcrest import assert_that, equal_to, is_
+from __future__ import absolute_import, print_function
 
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
@@ -28,9 +28,9 @@ class TestCT_GraphicalObjectFrame(TestCase):
         graphicData = graphicFrame.graphic.graphicData
         # verify -----------------------
         graphicData.set('uri', tbl_uri)
-        assert_that(graphicFrame.has_table, is_(equal_to(True)))
+        assert graphicFrame.has_table is True
         graphicData.set('uri', chart_uri)
-        assert_that(graphicFrame.has_table, is_(equal_to(False)))
+        assert graphicFrame.has_table is False
 
     def test_new_graphicFrame_generates_correct_xml(self):
         """CT_GraphicalObjectFrame.new_graphicFrame() returns correct XML"""

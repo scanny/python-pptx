@@ -6,8 +6,6 @@ Test suite for pptx.oxml.table module.
 
 from __future__ import absolute_import, print_function
 
-from hamcrest import assert_that, equal_to, is_
-
 from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.table import CT_Table
@@ -90,14 +88,9 @@ class TestCT_Table(TestCase):
         for propname in self.boolprops:
             cases = getter_cases(propname)
             for tbl_builder, expected_property_value in cases:
-                reason = (
-                    'tbl.%s did not return %s for this XML:\n\n%s' %
-                    (propname, expected_property_value, tbl_builder.xml)
-                )
-                assert_that(
-                    getattr(tbl_builder.element, propname),
-                    is_(equal_to(expected_property_value)),
-                    reason
+                assert (
+                    getattr(tbl_builder.element, propname) ==
+                    expected_property_value
                 )
 
     def test_assignment_to_boolean_property_produces_correct_xml(self):
@@ -129,8 +122,7 @@ class TestCT_TableCell(TestCase):
         )
         # verify -----------------------
         for tc, expected_text_anchoring_type in cases:
-            assert_that(tc.anchor,
-                        is_(equal_to(expected_text_anchoring_type)))
+            assert tc.anchor == expected_text_anchoring_type
 
     def test_assignment_to_anchor_sets_anchor_value(self):
         """Assignment to CT_TableCell.anchor sets anchor value"""
@@ -148,7 +140,7 @@ class TestCT_TableCell(TestCase):
         # verify -----------------------
         for tc, anchor in cases:
             tc.anchor = anchor
-            assert_that(tc.anchor, is_(equal_to(anchor)))
+            assert tc.anchor == anchor
 
     def test_assignment_to_anchor_produces_correct_xml(self):
         """Assigning value to CT_TableCell.anchor produces correct XML"""
@@ -175,10 +167,10 @@ class TestCT_TableCell(TestCase):
         )
         # verify -----------------------
         for tc, exp_marT, exp_marR, exp_marB, exp_marL in cases:
-            assert_that(tc.marT, is_(equal_to(exp_marT)))
-            assert_that(tc.marR, is_(equal_to(exp_marR)))
-            assert_that(tc.marB, is_(equal_to(exp_marB)))
-            assert_that(tc.marL, is_(equal_to(exp_marL)))
+            assert tc.marT == exp_marT
+            assert tc.marR == exp_marR
+            assert tc.marB == exp_marB
+            assert tc.marL == exp_marL
 
     def test_assignment_to_marX_sets_value(self):
         """Assignment to CT_TableCell.marX sets marX value"""
@@ -213,10 +205,10 @@ class TestCT_TableCell(TestCase):
         for tc, marX, expected_marX in cases:
             tc.marT, tc.marR, tc.marB, tc.marL = marX
             exp_marT, exp_marR, exp_marB, exp_marL = expected_marX
-            assert_that(tc.marT, is_(equal_to(exp_marT)))
-            assert_that(tc.marR, is_(equal_to(exp_marR)))
-            assert_that(tc.marB, is_(equal_to(exp_marB)))
-            assert_that(tc.marL, is_(equal_to(exp_marL)))
+            assert tc.marT == exp_marT
+            assert tc.marR == exp_marR
+            assert tc.marB == exp_marB
+            assert tc.marL == exp_marL
 
     def test_assignment_to_marX_produces_correct_xml(self):
         """Assigning value to CT_TableCell.marX produces correct XML"""

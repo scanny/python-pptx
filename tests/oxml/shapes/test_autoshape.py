@@ -8,8 +8,6 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from hamcrest import assert_that, is_
-
 from pptx.enum.shapes import MSO_SHAPE, PP_PLACEHOLDER
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.autoshape import CT_Shape
@@ -157,9 +155,9 @@ class TestCT_Shape(TestCase):
         placeholder = test_shape_elements.placeholder
         textbox = test_shape_elements.textbox
         # verify -----------------------
-        assert_that(autoshape.is_autoshape, is_(True))
-        assert_that(placeholder.is_autoshape, is_(False))
-        assert_that(textbox.is_autoshape, is_(False))
+        assert autoshape.is_autoshape is True
+        assert placeholder.is_autoshape is False
+        assert textbox.is_autoshape is False
 
     def test_is_placeholder_distinguishes_placeholder(self):
         """CT_Shape.is_autoshape distinguishes placeholder"""
@@ -168,9 +166,9 @@ class TestCT_Shape(TestCase):
         placeholder = test_shape_elements.placeholder
         textbox = test_shape_elements.textbox
         # verify -----------------------
-        assert_that(autoshape.is_autoshape, is_(True))
-        assert_that(placeholder.is_autoshape, is_(False))
-        assert_that(textbox.is_autoshape, is_(False))
+        assert autoshape.is_autoshape is True
+        assert placeholder.is_autoshape is False
+        assert textbox.is_autoshape is False
 
     def test_is_textbox_distinguishes_text_box(self):
         """CT_Shape.is_textbox distinguishes text box"""
@@ -179,9 +177,9 @@ class TestCT_Shape(TestCase):
         placeholder = test_shape_elements.placeholder
         textbox = test_shape_elements.textbox
         # verify -----------------------
-        assert_that(autoshape.is_textbox, is_(False))
-        assert_that(placeholder.is_textbox, is_(False))
-        assert_that(textbox.is_textbox, is_(True))
+        assert autoshape.is_textbox is False
+        assert placeholder.is_textbox is False
+        assert textbox.is_textbox is True
 
     def test_new_autoshape_sp_generates_correct_xml(self):
         """CT_Shape._new_autoshape_sp() returns correct XML"""

@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from StringIO import StringIO
 
 from behave import given, when, then
-from hamcrest import assert_that, has_item
 
 from pptx import Presentation
 from pptx.package import Package
@@ -50,7 +49,7 @@ def step_when_add_picture(context):
 def step_then_img_saved_in_pptx_file(context):
     pkg = Package().open(saved_pptx_path)
     partnames = [part.partname for part in pkg.parts]
-    assert_that(partnames, has_item('/ppt/media/image1.png'))
+    assert '/ppt/media/image1.png' in partnames
 
 
 @then('the picture appears in the slide')
@@ -58,5 +57,5 @@ def step_then_picture_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
     sld = prs.slides[0]
     shapes = sld.shapes
-    classnames = [sp.__class__.__name__ for sp in shapes]
-    assert_that(classnames, has_item('Picture'))
+    cls_names = [sp.__class__.__name__ for sp in shapes]
+    assert 'Picture' in cls_names

@@ -1,12 +1,12 @@
 # encoding: utf-8
 
-"""Test suite for pptx.image module."""
+"""
+Test suite for pptx.image module.
+"""
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from StringIO import StringIO
-
-from hamcrest import assert_that, equal_to, is_
 
 from pptx.opc.packuri import PackURI
 from pptx.parts.image import Image
@@ -31,10 +31,10 @@ class TestImage(TestCase):
         partname = PackURI('/ppt/media/image1.jpeg')
         image = Image.new(partname, test_image_path)
         # verify -----------------------
-        assert_that(image.ext, is_(equal_to('jpeg')))
-        assert_that(image.content_type, is_(equal_to('image/jpeg')))
-        assert_that(len(image._blob), is_(equal_to(3277)))
-        assert_that(image._desc, is_(equal_to('python-icon.jpeg')))
+        assert image.ext == 'jpeg'
+        assert image.content_type == 'image/jpeg'
+        assert len(image._blob) == 3277
+        assert image._desc == 'python-icon.jpeg'
 
     def test_construction_from_stream(self):
         """Image(stream) construction produces correct attribute values"""
@@ -44,10 +44,10 @@ class TestImage(TestCase):
             stream = StringIO(f.read())
         image = Image.new(partname, stream)
         # verify -----------------------
-        assert_that(image.ext, is_(equal_to('jpg')))
-        assert_that(image.content_type, is_(equal_to('image/jpeg')))
-        assert_that(len(image._blob), is_(equal_to(3277)))
-        assert_that(image._desc, is_(equal_to('image.jpg')))
+        assert image.ext == 'jpg'
+        assert image.content_type == 'image/jpeg'
+        assert len(image._blob) == 3277
+        assert image._desc == 'image.jpg'
 
     def test_construction_from_file_raises_on_bad_path(self):
         """Image(path) constructor raises on bad path"""
@@ -68,13 +68,13 @@ class TestImage(TestCase):
         # verify -----------------------
         for params, expected in test_cases:
             width, height = params
-            assert_that(image._scale(width, height), is_(equal_to(expected)))
+            assert image._scale(width, height) == expected
 
     def test__size_returns_image_native_pixel_dimensions(self):
         """Image._size is width, height tuple of image pixel dimensions"""
         partname = PackURI('/ppt/media/image1.png')
         image = Image.new(partname, test_image_path)
-        assert_that(image._size, is_(equal_to((204, 204))))
+        assert image._size == (204, 204)
 
     def test__ext_from_image_stream_raises_on_incompatible_format(self):
         with self.assertRaises(ValueError):

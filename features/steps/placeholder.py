@@ -7,7 +7,6 @@ Gherkin step implementations for placeholder-related features.
 from __future__ import absolute_import
 
 from behave import given, when, then
-from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
 
@@ -106,7 +105,7 @@ def then_paragraph_is_indented(context):
     sld = prs.slides[0]
     body = sld.shapes.placeholders[1]
     p = body.textframe.paragraphs[0]
-    assert_that(p.level, is_(equal_to(1)))
+    assert p.level == 1
 
 
 @then('the text appears in the title placeholder')
@@ -114,4 +113,4 @@ def step_then_text_appears_in_title_placeholder(context):
     prs = Presentation(saved_pptx_path)
     title_shape = prs.slides[0].shapes.title
     title_text = title_shape.textframe.paragraphs[0].runs[0].text
-    assert_that(title_text, is_(equal_to(test_text)))
+    assert title_text == test_text

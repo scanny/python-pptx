@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 import pytest
 
-from hamcrest import assert_that, equal_to, is_
 from mock import MagicMock, Mock, PropertyMock
 
 from pptx.dml.fill import FillFormat
@@ -222,7 +221,7 @@ class Test_CellCollection(TestCase):
         except TypeError:
             msg = "_CellCollection object is not iterable"
             self.fail(msg)
-        assert_that(count, is_(equal_to(2)))
+        assert count == 2
 
     def test_raises_on_idx_out_of_range(self):
         """_CellCollection raises on index out of range"""
@@ -232,7 +231,7 @@ class Test_CellCollection(TestCase):
     def test_cell_count_correct(self):
         """len(_CellCollection) returns correct cell count"""
         # verify -----------------------
-        assert_that(len(self.cells), is_(equal_to(2)))
+        assert len(self.cells) == 2
 
 
 class Test_Column(TestCase):
@@ -245,14 +244,14 @@ class Test_Column(TestCase):
     def test_width_from_xml_correct(self):
         """_Column.width returns correct value from gridCol XML element"""
         # verify -----------------------
-        assert_that(self.column.width, is_(equal_to(3048000)))
+        assert self.column.width == 3048000
 
     def test_width_round_trips_intact(self):
         """_Column.width round-trips intact"""
         # setup ------------------------
         self.column.width = 999
         # verify -----------------------
-        assert_that(self.column.width, is_(equal_to(999)))
+        assert self.column.width == 999
 
     def test_set_width_raises_on_bad_value(self):
         test_cases = ('abc', '1', -1)
@@ -292,7 +291,7 @@ class Test_ColumnCollection(TestCase):
         except TypeError:
             msg = "_ColumnCollection object is not iterable"
             self.fail(msg)
-        assert_that(count, is_(equal_to(2)))
+        assert count == 2
 
     def test_raises_on_idx_out_of_range(self):
         """_ColumnCollection raises on index out of range"""
@@ -302,7 +301,7 @@ class Test_ColumnCollection(TestCase):
     def test_column_count_correct(self):
         """len(_ColumnCollection) returns correct column count"""
         # verify -----------------------
-        assert_that(len(self.columns), is_(equal_to(2)))
+        assert len(self.columns) == 2
 
 
 class Test_Row(TestCase):
@@ -318,14 +317,14 @@ class Test_Row(TestCase):
     def test_height_from_xml_correct(self):
         """_Row.height returns correct value from tr XML element"""
         # verify -----------------------
-        assert_that(self.row.height, is_(equal_to(370840)))
+        assert self.row.height == 370840
 
     def test_height_round_trips_intact(self):
         """_Row.height round-trips intact"""
         # setup ------------------------
         self.row.height = 999
         # verify -----------------------
-        assert_that(self.row.height, is_(equal_to(999)))
+        assert self.row.height == 999
 
     def test_set_height_raises_on_bad_value(self):
         """_Row.height raises on attempt to assign invalid value"""
@@ -370,7 +369,7 @@ class Test_RowCollection(TestCase):
         except TypeError:
             msg = "_RowCollection object is not iterable"
             self.fail(msg)
-        assert_that(count, is_(equal_to(2)))
+        assert count == 2
 
     def test_raises_on_idx_out_of_range(self):
         """_RowCollection raises on index out of range"""
@@ -380,7 +379,7 @@ class Test_RowCollection(TestCase):
     def test_row_count_correct(self):
         """len(_RowCollection) returns correct row count"""
         # verify -----------------------
-        assert_that(len(self.rows), is_(equal_to(2)))
+        assert len(self.rows) == 2
 
 
 class TestTable(TestCase):
@@ -396,9 +395,9 @@ class TestTable(TestCase):
         # exercise ---------------------
         table = shapes.add_table(rows, cols, left, top, width, height)
         # verify -----------------------
-        assert_that(table.rows[0].height, is_(equal_to(333)))
-        assert_that(table.rows[1].height, is_(equal_to(333)))
-        assert_that(table.rows[2].height, is_(equal_to(334)))
+        assert table.rows[0].height == 333
+        assert table.rows[1].height == 333
+        assert table.rows[2].height == 334
 
     def test_initial_width_divided_evenly_between_columns(self):
         """Table creation width divided evenly between columns"""
@@ -411,9 +410,9 @@ class TestTable(TestCase):
         # exercise ---------------------
         table = shapes.add_table(rows, cols, left, top, width, height)
         # verify -----------------------
-        assert_that(table.columns[0].width, is_(equal_to(333)))
-        assert_that(table.columns[1].width, is_(equal_to(333)))
-        assert_that(table.columns[2].width, is_(equal_to(334)))
+        assert table.columns[0].width == 333
+        assert table.columns[1].width == 333
+        assert table.columns[2].width == 334
 
     def test_height_sum_of_row_heights(self):
         """Table.height is sum of row heights"""
@@ -427,7 +426,7 @@ class TestTable(TestCase):
         tbl.rows[1].height = 200
         # verify -----------------------
         sum_of_row_heights = 300
-        assert_that(tbl.height, is_(equal_to(sum_of_row_heights)))
+        assert tbl.height == sum_of_row_heights
 
     def test_width_sum_of_col_widths(self):
         """Table.width is sum of column widths"""
@@ -441,7 +440,7 @@ class TestTable(TestCase):
         tbl.columns[1].width = 200
         # verify -----------------------
         sum_of_col_widths = tbl.columns[0].width + tbl.columns[1].width
-        assert_that(tbl.width, is_(equal_to(sum_of_col_widths)))
+        assert tbl.width == sum_of_col_widths
 
 
 class TestTableBooleanProperties(TestCase):
@@ -484,7 +483,7 @@ class TestTableBooleanProperties(TestCase):
         retval = self.table.first_col
         # verify -----------------------
         firstCol.assert_called_once_with()
-        assert_that(retval, is_(equal_to(firstCol_val)))
+        assert retval == firstCol_val
 
     def test_first_row_property_value(self):
         """Table.first_row property value is calculated correctly"""
@@ -495,7 +494,7 @@ class TestTableBooleanProperties(TestCase):
         retval = self.table.first_row
         # verify -----------------------
         firstRow.assert_called_once_with()
-        assert_that(retval, is_(equal_to(firstRow_val)))
+        assert retval == firstRow_val
 
     def test_horz_banding_property_value(self):
         """Table.horz_banding property value is calculated correctly"""
@@ -506,7 +505,7 @@ class TestTableBooleanProperties(TestCase):
         retval = self.table.horz_banding
         # verify -----------------------
         bandRow.assert_called_once_with()
-        assert_that(retval, is_(equal_to(bandRow_val)))
+        assert retval == bandRow_val
 
     def test_last_col_property_value(self):
         """Table.last_col property value is calculated correctly"""
@@ -517,7 +516,7 @@ class TestTableBooleanProperties(TestCase):
         retval = self.table.last_col
         # verify -----------------------
         lastCol.assert_called_once_with()
-        assert_that(retval, is_(equal_to(lastCol_val)))
+        assert retval == lastCol_val
 
     def test_last_row_property_value(self):
         """Table.last_row property value is calculated correctly"""
@@ -528,7 +527,7 @@ class TestTableBooleanProperties(TestCase):
         retval = self.table.last_row
         # verify -----------------------
         lastRow.assert_called_once_with()
-        assert_that(retval, is_(equal_to(lastRow_val)))
+        assert retval == lastRow_val
 
     def test_vert_banding_property_value(self):
         """Table.vert_banding property value is calculated correctly"""
@@ -539,7 +538,7 @@ class TestTableBooleanProperties(TestCase):
         retval = self.table.vert_banding
         # verify -----------------------
         bandCol.assert_called_once_with()
-        assert_that(retval, is_(equal_to(bandCol_val)))
+        assert retval == bandCol_val
 
     def test_first_col_assignment(self):
         """Assignment to Table.first_col sets attribute value"""

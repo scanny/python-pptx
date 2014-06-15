@@ -7,7 +7,6 @@ Gherkin step implementations for slide-related features.
 from __future__ import absolute_import
 
 from behave import given, when, then
-from hamcrest import assert_that, equal_to, is_
 
 from pptx import Presentation
 from pptx.parts.slide import (
@@ -161,7 +160,7 @@ def then_len_of_placeholder_collection_is_2(context):
 @then('the pptx file contains a single slide')
 def then_pptx_file_contains_single_slide(context):
     context.prs = prs = Presentation(saved_pptx_path)
-    assert_that(len(prs.slides), is_(equal_to(1)))
+    assert len(prs.slides) == 1
 
 
 @then('the index of each shape matches its position in the sequence')
