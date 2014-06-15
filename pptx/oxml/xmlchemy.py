@@ -110,7 +110,7 @@ class MetaOxmlElement(type):
     def __init__(cls, clsname, bases, clsdict):
         dispatchable = (
             OneAndOnlyOne, OneOrMore, OptionalAttribute, RequiredAttribute,
-            ZeroOrMore, ZeroOrOne
+            ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
         )
         for key, value in clsdict.items():
             if isinstance(value, dispatchable):
@@ -403,6 +403,75 @@ class _BaseChildElement(object):
         return '_new_%s' % self._prop_name
 
 
+class Choice(_BaseChildElement):
+    """
+    Defines a child element belonging to a group, only one of which may
+    appear as a child.
+    """
+    @property
+    def nsptagname(self):
+        return self._nsptagname
+
+    def populate_class_members(
+            self, element_cls, group_prop_name, successors):
+        """
+        Add the appropriate methods to *element_cls*.
+        """
+        self._element_cls = element_cls
+        self._group_prop_name = group_prop_name
+        self._successors = successors
+
+        self._add_getter()
+        self._add_creator()
+        self._add_inserter()
+        self._add_adder()
+        self._add_get_or_change_to_method()
+
+    def _add_get_or_change_to_method(self):
+        """
+        Add a ``get_or_change_to_x()`` method to the element class for this
+        child element.
+        """
+        def get_or_change_to_child(obj):
+            child = getattr(obj, self._prop_name)
+            if child is not None:
+                return child
+            remove_group_method = getattr(
+                obj, self._remove_group_method_name
+            )
+            remove_group_method()
+            add_method = getattr(obj, self._add_method_name)
+            child = add_method()
+            return child
+
+        get_or_change_to_child.__doc__ = (
+            'Return the ``<%s>`` child, replacing any other group element if'
+            ' found.'
+        ) % self._nsptagname
+        self._add_to_class(
+            self._get_or_change_to_method_name, get_or_change_to_child
+        )
+
+    @property
+    def _prop_name(self):
+        """
+        Calculate property name from tag name, e.g. a:schemeClr -> schemeClr.
+        """
+        if ':' in self._nsptagname:
+            start = self._nsptagname.index(':')+1
+        else:
+            start = 0
+        return self._nsptagname[start:]
+
+    @lazyproperty
+    def _get_or_change_to_method_name(self):
+        return 'get_or_change_to_%s' % self._prop_name
+
+    @lazyproperty
+    def _remove_group_method_name(self):
+        return '_remove_%s' % self._group_prop_name
+
+
 class OneAndOnlyOne(_BaseChildElement):
     """
     Defines a required child element for MetaOxmlElement.
@@ -551,6 +620,82 @@ class ZeroOrOne(_BaseChildElement):
     @lazyproperty
     def _get_or_add_method_name(self):
         return 'get_or_add_%s' % self._prop_name
+
+
+class ZeroOrOneChoice(_BaseChildElement):
+    """
+    Correspondes to an ``EG_*`` element group where at most one of its
+    members may appear as a child.
+    """
+    def __init__(self, choices, successors=()):
+        self._choices = choices
+        self._successors = successors
+
+    def populate_class_members(self, element_cls, prop_name):
+        """
+        Add the appropriate methods to *element_cls*.
+        """
+        super(ZeroOrOneChoice, self).populate_class_members(
+            element_cls, prop_name
+        )
+        self._add_choice_getter()
+        for choice in self._choices:
+            choice.populate_class_members(
+                element_cls, self._prop_name, self._successors
+            )
+        self._add_group_remover()
+
+    def _add_choice_getter(self):
+        """
+        Add a read-only ``{prop_name}`` property to the element class that
+        returns the present member of this group, or |None| if none are
+        present.
+        """
+        property_ = property(self._choice_getter, None, None)
+        # assign unconditionally to overwrite element name definition
+        setattr(self._element_cls, self._prop_name, property_)
+
+    def _add_group_remover(self):
+        """
+        Add a ``_remove_eg_x()`` method to the element class for this choice
+        group.
+        """
+        def _remove_choice_group(obj):
+            for tagname in self._member_nsptagnames:
+                obj.remove_all(tagname)
+
+        _remove_choice_group.__doc__ = (
+            'Remove the current choice group child element if present.'
+        )
+        self._add_to_class(
+            self._remove_choice_group_method_name, _remove_choice_group
+        )
+
+    @property
+    def _choice_getter(self):
+        """
+        Return a function object suitable for the "get" side of the property
+        descriptor.
+        """
+        def get_group_member_element(obj):
+            return obj.first_child_found_in(*self._member_nsptagnames)
+        get_group_member_element.__doc__ = (
+            'Return the child element belonging to this element group, or '
+            '|None| if no member child is present.'
+        )
+        return get_group_member_element
+
+    @lazyproperty
+    def _member_nsptagnames(self):
+        """
+        Sequence of namespace-prefixed tagnames, one for each of the member
+        elements of this choice group.
+        """
+        return [choice.nsptagname for choice in self._choices]
+
+    @lazyproperty
+    def _remove_choice_group_method_name(self):
+        return '_remove_%s' % self._prop_name
 
 
 class BaseOxmlElement(etree.ElementBase):

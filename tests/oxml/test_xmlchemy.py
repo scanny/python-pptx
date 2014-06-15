@@ -15,8 +15,8 @@ from pptx.oxml import register_element_cls
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import BaseIntType
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OneOrMore, OptionalAttribute,
-    RequiredAttribute, ZeroOrMore, ZeroOrOne
+    BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
+    RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
 )
 
 from ..unitdata import BaseBuilder
@@ -26,6 +26,101 @@ class DescribeCustomElementClass(object):
 
     def it_has_the_MetaOxmlElement_metaclass(self):
         assert type(CT_Parent).__name__ == 'MetaOxmlElement'
+
+
+class DescribeChoice(object):
+
+    def it_adds_a_getter_property_for_the_choice_element(
+            self, getter_fixture):
+        parent, expected_choice = getter_fixture
+        assert parent.choice is expected_choice
+
+    def it_adds_a_creator_method_for_the_child_element(self, new_fixture):
+        parent, expected_xml = new_fixture
+        choice = parent._new_choice()
+        assert choice.xml == expected_xml
+
+    def it_adds_an_insert_method_for_the_child_element(self, insert_fixture):
+        parent, choice, expected_xml = insert_fixture
+        parent._insert_choice(choice)
+        assert parent.xml == expected_xml
+        assert parent._insert_choice.__doc__.startswith(
+            'Return the passed ``<p:choice>`` '
+        )
+
+    def it_adds_an_add_method_for_the_child_element(self, add_fixture):
+        parent, expected_xml = add_fixture
+        choice = parent._add_choice()
+        assert parent.xml == expected_xml
+        assert isinstance(choice, CT_Choice)
+        assert parent._add_choice.__doc__.startswith(
+            'Add a new ``<p:choice>`` child element '
+        )
+
+    def it_adds_a_get_or_change_to_method_for_the_child_element(
+            self, get_or_change_to_fixture):
+        parent, expected_xml = get_or_change_to_fixture
+        choice = parent.get_or_change_to_choice()
+        assert isinstance(choice, CT_Choice)
+        assert parent.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_fixture(self):
+        parent = self.parent_bldr().element
+        expected_xml = self.parent_bldr('choice').xml()
+        return parent, expected_xml
+
+    @pytest.fixture(params=[
+        ('choice2', 'choice'),
+        (None,      'choice'),
+        ('choice',  'choice'),
+    ])
+    def get_or_change_to_fixture(self, request):
+        before_member_tag, after_member_tag = request.param
+        parent = self.parent_bldr(before_member_tag).element
+        expected_xml = self.parent_bldr(after_member_tag).xml()
+        return parent, expected_xml
+
+    @pytest.fixture(params=['choice', None])
+    def getter_fixture(self, request):
+        choice_tag = request.param
+        parent = self.parent_bldr(choice_tag).element
+        expected_choice = parent.find(qn('p:choice'))  # None if not found
+        return parent, expected_choice
+
+    @pytest.fixture
+    def insert_fixture(self):
+        parent = (
+            a_parent().with_nsdecls().with_child(
+                an_oomChild()).with_child(
+                an_oooChild())
+        ).element
+        choice = a_choice().with_nsdecls().element
+        expected_xml = (
+            a_parent().with_nsdecls().with_child(
+                a_choice()).with_child(
+                an_oomChild()).with_child(
+                an_oooChild())
+        ).xml()
+        return parent, choice, expected_xml
+
+    @pytest.fixture
+    def new_fixture(self):
+        parent = self.parent_bldr().element
+        expected_xml = a_choice().with_nsdecls().xml()
+        return parent, expected_xml
+
+    # fixture components ---------------------------------------------
+
+    def parent_bldr(self, choice_tag=None):
+        parent_bldr = a_parent().with_nsdecls()
+        if choice_tag == 'choice':
+            parent_bldr.with_child(a_choice())
+        if choice_tag == 'choice2':
+            parent_bldr.with_child(a_choice2())
+        return parent_bldr
 
 
 class DescribeOneAndOnlyOne(object):
@@ -378,6 +473,33 @@ class DescribeZeroOrOne(object):
         return parent_bldr
 
 
+class DescribeZeroOrOneChoice(object):
+
+    def it_adds_a_getter_for_the_current_choice(self, getter_fixture):
+        parent, expected_choice = getter_fixture
+        assert parent.eg_zooChoice is expected_choice
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[None, 'choice', 'choice2'])
+    def getter_fixture(self, request):
+        choice_tag = request.param
+        parent = self.parent_bldr(choice_tag).element
+        tagname = 'p:%s' % choice_tag
+        expected_choice = parent.find(qn(tagname))  # None if not found
+        return parent, expected_choice
+
+    # fixture components ---------------------------------------------
+
+    def parent_bldr(self, choice_tag=None):
+        parent_bldr = a_parent().with_nsdecls()
+        if choice_tag == 'choice':
+            parent_bldr.with_child(a_choice())
+        if choice_tag == 'choice2':
+            parent_bldr.with_child(a_choice2())
+        return parent_bldr
+
+
 # --------------------------------------------------------------------
 # static shared fixture
 # --------------------------------------------------------------------
@@ -397,6 +519,10 @@ class CT_Parent(BaseOxmlElement):
     """
     ``<p:parent>`` element, an invented element for use in testing.
     """
+    eg_zooChoice = ZeroOrOneChoice(
+        (Choice('p:choice'), Choice('p:choice2')),
+        successors=('p:oomChild', 'p:oooChild')
+    )
     oomChild = OneOrMore('p:oomChild', successors=(
         'p:oooChild', 'p:zomChild', 'p:zooChild'
     ))
@@ -405,6 +531,12 @@ class CT_Parent(BaseOxmlElement):
     zooChild = ZeroOrOne('p:zooChild', successors=())
     optAttr = OptionalAttribute('optAttr', ST_IntegerType)
     reqAttr = RequiredAttribute('reqAttr', ST_IntegerType)
+
+
+class CT_Choice(BaseOxmlElement):
+    """
+    ``<p:choice>`` element
+    """
 
 
 class CT_OomChild(BaseOxmlElement):
@@ -429,10 +561,23 @@ class CT_ZooChild(BaseOxmlElement):
     """
 
 
-register_element_cls('p:parent', CT_Parent)
-register_element_cls('p:oomChild',  CT_OomChild)
-register_element_cls('p:zomChild',  CT_ZomChild)
-register_element_cls('p:zooChild',  CT_ZooChild)
+register_element_cls('p:parent',   CT_Parent)
+register_element_cls('p:choice',   CT_Choice)
+register_element_cls('p:oomChild', CT_OomChild)
+register_element_cls('p:zomChild', CT_ZomChild)
+register_element_cls('p:zooChild', CT_ZooChild)
+
+
+class CT_ChoiceBuilder(BaseBuilder):
+    __tag__ = 'p:choice'
+    __nspfxs__ = ('p',)
+    __attrs__ = ()
+
+
+class CT_Choice2Builder(BaseBuilder):
+    __tag__ = 'p:choice2'
+    __nspfxs__ = ('p',)
+    __attrs__ = ()
 
 
 class CT_ParentBuilder(BaseBuilder):
@@ -463,6 +608,14 @@ class CT_ZooChildBuilder(BaseBuilder):
     __tag__ = 'p:zooChild'
     __nspfxs__ = ('p',)
     __attrs__ = ()
+
+
+def a_choice():
+    return CT_ChoiceBuilder()
+
+
+def a_choice2():
+    return CT_Choice2Builder()
 
 
 def a_parent():
