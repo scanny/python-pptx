@@ -6,8 +6,8 @@ lxml custom element classes for slide master-related XML elements.
 
 from __future__ import absolute_import
 
-from .simpletypes import XsdString
-from .xmlchemy import (
+from ..simpletypes import XsdString
+from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne, ZeroOrMore
 )
 

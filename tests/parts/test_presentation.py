@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.opc.packuri import PackURI
-from pptx.oxml.presentation import (
+from pptx.oxml.parts.presentation import (
     CT_Presentation, CT_SlideIdList, CT_SlideMasterIdList
 )
 from pptx.parts.presentation import PresentationPart, _SlideMasters

@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
-from .unitdata.presentation import a_sldId, a_sldIdLst
+from ..unitdata.presentation import a_sldId, a_sldIdLst
 
 
 class DescribeCT_SlideIdList(object):

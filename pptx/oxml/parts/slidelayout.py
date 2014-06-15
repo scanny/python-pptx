@@ -6,7 +6,7 @@ lxml custom element classes for slide master-related XML elements.
 
 from __future__ import absolute_import
 
-from .xmlchemy import BaseOxmlElement, OneAndOnlyOne
+from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne
 
 
 class CT_SlideLayout(BaseOxmlElement):

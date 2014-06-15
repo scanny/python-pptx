@@ -6,10 +6,10 @@ lxml custom element classes for slide master-related XML elements.
 
 from __future__ import absolute_import
 
-from . import parse_xml
-from .ns import nsdecls
-from .simpletypes import XsdString
-from .xmlchemy import (
+from .. import parse_xml
+from ..ns import nsdecls
+from ..simpletypes import XsdString
+from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne
 )
 

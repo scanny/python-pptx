@@ -12,7 +12,7 @@ from ..opc.constants import CONTENT_TYPE as CT
 from ..opc.package import Part
 from ..opc.packuri import PackURI
 from ..oxml import parse_xml
-from ..oxml.coreprops import CT_CoreProperties
+from ..oxml.parts.coreprops import CT_CoreProperties
 
 
 class CoreProperties(Part):

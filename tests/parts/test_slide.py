@@ -14,13 +14,13 @@ from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part, _Relationship
-from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList
+from pptx.oxml.parts.presentation import CT_SlideId, CT_SlideIdList
+from pptx.oxml.parts.slide import CT_Slide
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import ST_Direction
-from pptx.oxml.slide import CT_Slide
 from pptx.package import Package
 from pptx.parts.image import Image as ImagePart
 from pptx.parts.presentation import PresentationPart

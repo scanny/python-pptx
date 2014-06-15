@@ -11,7 +11,7 @@ import pytest
 from datetime import datetime, timedelta
 
 from pptx.opc.constants import CONTENT_TYPE as CT
-from pptx.oxml.coreprops import CT_CoreProperties
+from pptx.oxml.parts.coreprops import CT_CoreProperties
 from pptx.parts.coreprops import CoreProperties
 
 
