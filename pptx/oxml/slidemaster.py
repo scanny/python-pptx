@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from .simpletypes import XsdString
 from .xmlchemy import (
-    BaseOxmlElement, RequiredAttribute, ZeroOrOne, ZeroOrMore
+    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne, ZeroOrMore
 )
 
 
@@ -32,6 +32,7 @@ class CT_SlideMaster(BaseOxmlElement):
     """
     ``<p:sldMaster>`` element, root of a slide master part
     """
+    cSld = OneAndOnlyOne('p:cSld')
     sldLayoutIdLst = ZeroOrOne('p:sldLayoutIdLst', successors=(
         'p:transition', 'p:timing', 'p:hf', 'p:txStyles', 'p:extLst'
     ))

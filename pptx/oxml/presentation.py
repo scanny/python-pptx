@@ -6,7 +6,6 @@ Custom element classes for presentation-related XML elements.
 
 from __future__ import absolute_import
 
-from .ns import _nsmap
 from .simpletypes import ST_SlideId, ST_SlideSizeCoordinate, XsdString
 from .xmlchemy import (
     BaseOxmlElement, RequiredAttribute, ZeroOrOne, ZeroOrMore
@@ -55,7 +54,7 @@ class CT_SlideIdList(BaseOxmlElement):
         Return the next available slide ID as an int. Valid slide IDs start
         at 256. Unused ids in the sequences starting from 256 are used first.
         """
-        id_str_lst = self.xpath('./p:sldId/@id', namespaces=_nsmap)
+        id_str_lst = self.xpath('./p:sldId/@id')
         used_ids = [int(id_str) for id_str in id_str_lst]
         for n in range(256, 258+len(used_ids)):
             if n not in used_ids:

@@ -14,7 +14,7 @@ from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.oxml import parse_xml
-from pptx.oxml.ns import nsdecls, _nsmap as nsmap
+from pptx.oxml.ns import nsdecls
 from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
 )
@@ -746,7 +746,7 @@ class Describe_Paragraph(object):
 
     @pytest.fixture
     def pList(self, sld, xpath):
-        return sld.xpath(xpath, namespaces=nsmap)
+        return sld.xpath(xpath)
 
     @pytest.fixture
     def p_(self, request):

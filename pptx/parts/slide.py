@@ -13,7 +13,7 @@ from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import Part
 from ..opc.packuri import PackURI
 from ..oxml import parse_xml
-from ..oxml.ns import _nsmap, qn
+from ..oxml.ns import qn
 from ..oxml.simpletypes import ST_Direction
 from ..oxml.slide import CT_Slide
 from ..shapes.autoshape import AutoShapeType
@@ -59,10 +59,7 @@ class BaseSlide(Part):
         """
         Reference to ``<p:spTree>`` element for this slide
         """
-        spTree_lst = self._element.xpath(
-            './p:cSld/p:spTree', namespaces=_nsmap
-        )
-        return spTree_lst[0]
+        return self._element.cSld.spTree
 
     def _add_image(self, img_file):
         """
@@ -399,7 +396,7 @@ class _SlideShapeTree(BaseShapeTree):
 
         # increment numpart as necessary to make name unique
         numpart = id - 1
-        names = self._spTree.xpath('//p:cNvPr/@name', namespaces=_nsmap)
+        names = self._spTree.xpath('//p:cNvPr/@name')
         while True:
             name = '%s %d' % (basename, numpart)
             if name not in names:

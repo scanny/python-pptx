@@ -7,7 +7,7 @@ Common shape-related oxml objects
 from __future__ import absolute_import
 
 from ...enum.shapes import PP_PLACEHOLDER
-from ..ns import _nsmap, qn
+from ..ns import qn
 from ..simpletypes import (
     ST_Coordinate, ST_Direction, ST_DrawingElementId, ST_LineWidth,
     ST_PlaceholderSize, ST_PositiveCoordinate, XsdString, XsdUnsignedInt
@@ -61,8 +61,7 @@ class BaseShapeElement(BaseOxmlElement):
         """
         The ``<p:ph>`` descendant element if there is one, None otherwise.
         """
-        xpath = './*[1]/p:nvPr/p:ph'
-        ph_elms = self.xpath(xpath, namespaces=_nsmap)
+        ph_elms = self.xpath('./*[1]/p:nvPr/p:ph')
         if len(ph_elms) == 0:
             return None
         return ph_elms[0]
@@ -164,7 +163,7 @@ class BaseShapeElement(BaseOxmlElement):
         name depends on the shape type, e.g. ``<p:nvPicPr>`` for picture
         shape.
         """
-        return self.xpath('./*[1]', namespaces=_nsmap)[0]
+        return self.xpath('./*[1]')[0]
 
     def _get_xfrm_attr(self, name):
         xfrm = self.xfrm
@@ -276,7 +275,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         """
         Shape width as an instance of Emu, or None if not present.
         """
-        cx_str_lst = self.xpath('./a:xfrm/a:ext/@cx', namespaces=_nsmap)
+        cx_str_lst = self.xpath('./a:xfrm/a:ext/@cx')
         if not cx_str_lst:
             return None
         return Emu(cx_str_lst[0])
@@ -286,7 +285,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         """
         Shape height as an instance of Emu, or None if not present.
         """
-        cy_str_lst = self.xpath('./a:xfrm/a:ext/@cy', namespaces=_nsmap)
+        cy_str_lst = self.xpath('./a:xfrm/a:ext/@cy')
         if not cy_str_lst:
             return None
         return Emu(cy_str_lst[0])
@@ -305,7 +304,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         slide, as an instance of Emu. Corresponds to the value of the
         `./xfrm/off/@x` attribute. None if not present.
         """
-        x_str_lst = self.xpath('./a:xfrm/a:off/@x', namespaces=_nsmap)
+        x_str_lst = self.xpath('./a:xfrm/a:off/@x')
         if not x_str_lst:
             return None
         return Emu(x_str_lst[0])
@@ -316,7 +315,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         The offset of the top of the shape from the top of the slide, as an
         instance of Emu. None if not present.
         """
-        y_str_lst = self.xpath('./a:xfrm/a:off/@y', namespaces=_nsmap)
+        y_str_lst = self.xpath('./a:xfrm/a:off/@y')
         if not y_str_lst:
             return None
         return Emu(y_str_lst[0])

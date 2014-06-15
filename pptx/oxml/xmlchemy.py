@@ -13,7 +13,7 @@ from lxml import etree
 
 from . import oxml_parser
 from ..exc import InvalidXmlError
-from .ns import NamespacePrefixedTag, qn
+from .ns import NamespacePrefixedTag, _nsmap, qn
 from ..util import lazyproperty
 
 
@@ -757,6 +757,15 @@ class BaseOxmlElement(etree.ElementBase):
         top.
         """
         return serialize_for_reading(self)
+
+    def xpath(self, xpath_str):
+        """
+        Override of ``lxml`` _Element.xpath() method to provide standard Open
+        XML namespace mapping in centralized location.
+        """
+        return super(BaseOxmlElement, self).xpath(
+            xpath_str, namespaces=_nsmap
+        )
 
 
 # class _Tagname(object):
