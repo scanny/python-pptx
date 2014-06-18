@@ -275,11 +275,14 @@ class DescribeOptionalAttribute(object):
         parent = a_parent().with_nsdecls().with_optAttr('24').element
         return parent, 24
 
-    @pytest.fixture
-    def setter_fixture(self):
+    @pytest.fixture(params=[36, None])
+    def setter_fixture(self, request):
+        value = request.param
         parent = a_parent().with_nsdecls().with_optAttr('42').element
-        value = 36
-        expected_xml = a_parent().with_nsdecls().with_optAttr(value).xml()
+        if value is None:
+            expected_xml = a_parent().with_nsdecls().xml()
+        else:
+            expected_xml = a_parent().with_nsdecls().with_optAttr(value).xml()
         return parent, value, expected_xml
 
 
@@ -558,7 +561,7 @@ class CT_Parent(BaseOxmlElement):
     oooChild = OneAndOnlyOne('p:oooChild')
     zomChild = ZeroOrMore('p:zomChild', successors=('p:zooChild',))
     zooChild = ZeroOrOne('p:zooChild', successors=())
-    optAttr = OptionalAttribute('optAttr', ST_IntegerType)
+    optAttr = OptionalAttribute('p:optAttr', ST_IntegerType)
     reqAttr = RequiredAttribute('reqAttr', ST_IntegerType)
 
 
@@ -612,7 +615,7 @@ class CT_Choice2Builder(BaseBuilder):
 class CT_ParentBuilder(BaseBuilder):
     __tag__ = 'p:parent'
     __nspfxs__ = ('p',)
-    __attrs__ = ('optAttr', 'reqAttr')
+    __attrs__ = ('p:optAttr', 'reqAttr')
 
 
 class CT_OomChildBuilder(BaseBuilder):

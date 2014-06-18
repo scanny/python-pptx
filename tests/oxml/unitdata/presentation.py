@@ -29,7 +29,7 @@ class CT_PresentationBuilder(BaseBuilder):
 class CT_SlideIdBuilder(BaseBuilder):
     __tag__ = 'p:sldId'
     __nspfxs__ = ('p', 'r')
-    __attrs__ = ('id', 'r:id')
+    __attrs__ = ('r:id', 'id')
 
     def with_rId(self, rId):
         self._set_xmlattr('r:id', rId)
