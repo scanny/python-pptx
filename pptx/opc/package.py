@@ -127,14 +127,11 @@ class Part(object):
     intended to be subclassed in client code to implement specific part
     behaviors.
     """
-    def __init__(
-            self, partname, content_type, blob=None, element=None,
-            package=None):
+    def __init__(self, partname, content_type, blob=None, package=None):
         super(Part, self).__init__()
         self._partname = partname
         self._content_type = content_type
         self._blob = blob
-        self._element = element
         self._package = package
 
     # load/save interface to OpcPackage ------------------------------
@@ -166,8 +163,6 @@ class Part(object):
         binary. Intended to be overridden by subclasses. Default behavior is
         to return load blob.
         """
-        if self._element is not None:
-            return serialize_part_xml(self._element)
         return self._blob
 
     @property
@@ -179,9 +174,7 @@ class Part(object):
 
     @classmethod
     def load(cls, partname, content_type, blob, package):
-        return cls(
-            partname, content_type, blob, element=None, package=package
-        )
+        return cls(partname, content_type, blob, package)
 
     def load_rel(self, reltype, target, rId, is_external=False):
         """
@@ -193,6 +186,13 @@ class Part(object):
         manipulating a part.
         """
         return self.rels.add_relationship(reltype, target, rId, is_external)
+
+    @property
+    def package(self):
+        """
+        |OpcPackage| instance this part belongs to.
+        """
+        return self._package
 
     @property
     def partname(self):
@@ -272,15 +272,6 @@ class Part(object):
         """
         rIds = self._element.xpath('//@r:id')
         return len([_rId for _rId in rIds if _rId == rId])
-
-    # ----------------------------------------------------------------
-
-    @property
-    def package(self):
-        """
-        |OpcPackage| instance this part belongs to.
-        """
-        return self._package
 
 
 class XmlPart(Part):

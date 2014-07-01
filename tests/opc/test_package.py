@@ -210,7 +210,7 @@ class DescribePart(object):
         partname_, content_type_, blob_, package_, __init_ = load_fixture
         part = Part.load(partname_, content_type_, blob_, package_)
         __init_.assert_called_once_with(
-            partname_, content_type_, blob_, element=None, package=package_
+            partname_, content_type_, blob_, package_
         )
         assert isinstance(part, Part)
 
@@ -262,7 +262,7 @@ class DescribePart(object):
 
     @pytest.fixture
     def package_get_fixture(self, package_):
-        part = Part(None, None, None, None, package_)
+        part = Part(None, None, None, package_)
         return part, package_
 
     @pytest.fixture
