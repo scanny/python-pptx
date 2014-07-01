@@ -8,28 +8,16 @@ from __future__ import absolute_import
 
 from warnings import warn
 
-from ..opc.package import Part
-from ..oxml import parse_xml
+from ..opc.package import XmlPart
 from .slide import SlideCollection
 from ..util import lazyproperty
 
 
-class PresentationPart(Part):
+class PresentationPart(XmlPart):
     """
     Top level class in object model, represents the contents of the /ppt
     directory of a .pptx file.
     """
-    def __init__(self, partname, content_type, presentation_elm, package):
-        super(PresentationPart, self).__init__(
-            partname, content_type, element=presentation_elm, package=package
-        )
-
-    @classmethod
-    def load(cls, partname, content_type, blob, package):
-        presentation_elm = parse_xml(blob)
-        presentation = cls(partname, content_type, presentation_elm, package)
-        return presentation
-
     @property
     def sldMasterIdLst(self):
         """
