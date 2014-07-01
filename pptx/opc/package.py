@@ -11,6 +11,7 @@ from pptx.util import lazyproperty
 
 from .constants import RELATIONSHIP_TYPE as RT
 from .oxml import CT_Relationships, serialize_part_xml
+from ..oxml import parse_xml
 from .packuri import PACKAGE_URI, PackURI
 from .pkgreader import PackageReader
 from .pkgwriter import PackageWriter
@@ -282,6 +283,38 @@ class Part(object):
         |OpcPackage| instance this part belongs to.
         """
         return self._package
+
+
+class XmlPart(Part):
+    """
+    Base class for package parts containing an XML payload, which is most of
+    them. Provides additional methods to the |Part| base class that take care
+    of parsing and reserializing the XML payload and managing relationships
+    to other parts.
+    """
+    def __init__(self, partname, content_type, element, package):
+        super(XmlPart, self).__init__(
+            partname, content_type, package=package
+        )
+        self._element = element
+
+    @property
+    def blob(self):
+        return serialize_part_xml(self._element)
+
+    @classmethod
+    def load(cls, partname, content_type, blob, package):
+        element = parse_xml(blob)
+        return cls(partname, content_type, element, package)
+
+    @property
+    def part(self):
+        """
+        Part of the parent protocol, "children" of the document will not know
+        the part that contains them so must ask their parent object. That
+        chain of delegation ends here for child objects.
+        """
+        return self
 
 
 class PartFactory(object):
