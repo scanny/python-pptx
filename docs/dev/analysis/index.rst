@@ -12,6 +12,13 @@ Roughly in reverse chronological order of creation:
 .. toctree::
    :maxdepth: 1
 
+   features/cht-line-chart
+   features/cht-pie-chart
+   features/cht-bar-chart
+   features/cht-chart-builder
+   features/shp-graphfrm
+   features/cht-chart-shape
+   features/cht-chart-overview
    features/dml-line
    features/shp-connector
    features/enumerations
