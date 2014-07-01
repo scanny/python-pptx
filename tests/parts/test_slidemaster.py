@@ -21,8 +21,8 @@ from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..oxml.unitdata.slides import (
     a_sldLayoutId, a_sldLayoutIdLst, a_sldMaster
 )
-from ..unitutil import (
-    function_mock, class_mock, instance_mock, method_mock, property_mock
+from ..unitutil.mock import (
+    class_mock, function_mock, instance_mock, method_mock, property_mock
 )
 
 

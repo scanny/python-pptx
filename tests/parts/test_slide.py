@@ -40,9 +40,10 @@ from ..oxml.unitdata.shape import (
     an_spTree, an_xfrm
 )
 from ..oxml.unitdata.slides import a_sld, a_cSld
-from ..unitutil import (
-    absjoin, class_mock, function_mock, initializer_mock, instance_mock,
-    loose_mock, method_mock, parse_xml_file, property_mock, test_file_dir
+from ..unitutil.file import absjoin, parse_xml_file, test_file_dir
+from ..unitutil.mock import (
+    class_mock, function_mock, initializer_mock, instance_mock, loose_mock,
+    method_mock, property_mock
 )
 
 

@@ -13,7 +13,7 @@ from pptx.opc.oxml import CT_Relationships
 from pptx.opc.package import Part, _Relationship, RelationshipCollection
 from pptx.opc.packuri import PackURI
 
-from ..unitutil import class_mock, instance_mock, loose_mock
+from ..unitutil.mock import class_mock, instance_mock, loose_mock
 
 
 class Describe_Relationship(object):

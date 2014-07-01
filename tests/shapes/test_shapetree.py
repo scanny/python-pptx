@@ -21,7 +21,7 @@ from ..oxml.unitdata.shape import (
     an_nvSpPr, an_sp, an_spPr, an_spTree
 )
 from ..oxml.unitdata.slides import a_sld, a_cSld
-from ..unitutil import (
+from ..unitutil.mock import (
     call, class_mock, function_mock, instance_mock, method_mock
 )
 

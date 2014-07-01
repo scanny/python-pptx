@@ -16,7 +16,7 @@ from pptx.oxml.shapes.shared import CT_LineProperties
 from pptx.shapes.autoshape import Shape
 
 from ..oxml.unitdata.dml import an_ln
-from ..unitutil import call, class_mock, instance_mock, property_mock
+from ..unitutil.mock import call, class_mock, instance_mock, property_mock
 
 
 class DescribeLineFormat(object):

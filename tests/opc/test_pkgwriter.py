@@ -14,7 +14,7 @@ from pptx.opc.packuri import PackURI
 from pptx.opc.pkgwriter import _ContentTypesItem, PackageWriter
 
 from .unitdata.types import a_Default, a_Types, an_Override
-from ..unitutil import function_mock, instance_mock, method_mock
+from ..unitutil.mock import function_mock, instance_mock, method_mock
 
 
 class DescribePackageWriter(object):

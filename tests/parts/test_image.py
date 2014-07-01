@@ -13,7 +13,8 @@ from pptx.parts.image import Image
 from pptx.package import Package
 from pptx.util import Px
 
-from ..unitutil import absjoin, TestCase, test_file_dir
+from ..unitutil.file import absjoin, test_file_dir
+from ..unitutil.legacy import TestCase
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')

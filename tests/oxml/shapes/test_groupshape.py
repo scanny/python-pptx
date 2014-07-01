@@ -14,7 +14,7 @@ from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
 
 from ..unitdata.shape import an_spTree
-from ...unitutil import class_mock, instance_mock, method_mock
+from ...unitutil.mock import class_mock, instance_mock, method_mock
 
 
 class DescribeCT_GroupShape(object):

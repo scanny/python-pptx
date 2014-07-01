@@ -12,7 +12,7 @@ from pptx.util import (
     to_unicode
 )
 
-from .unitutil import TestCase
+from .unitutil.legacy import TestCase
 
 
 def test_to_unicode_raises_on_non_string():
@@ -64,11 +64,6 @@ class TestCollection(TestCase):
         except TypeError:
             msg = "object of type 'Collection' has no len()"
             self.fail(msg)
-
-    def test__values_property_empty_on_construction(self):
-        """Collection._values property empty on construction"""
-        # verify ----------------------
-        self.assertIsSizedProperty(self.collection, '_values', 0)
 
 
 class DescribeLength(object):

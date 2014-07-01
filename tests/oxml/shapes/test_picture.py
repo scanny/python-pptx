@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.picture import CT_Picture
 
-from ...unitutil import TestCase
+from ...unitutil.legacy import TestCase
 
 
 class TestCT_Picture(TestCase):
@@ -33,4 +33,4 @@ class TestCT_Picture(TestCase):
         pic = CT_Picture.new_pic(id_, name, desc, rId, left, top,
                                  width, height)
         # verify -----------------------
-        self.assertEqualLineByLine(xml, pic)
+        assert pic.xml == xml

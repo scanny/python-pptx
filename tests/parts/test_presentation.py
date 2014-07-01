@@ -19,7 +19,9 @@ from pptx.parts.slide import SlideCollection
 from ..oxml.unitdata.presentation import (
     a_presentation, a_sldMasterId, a_sldMasterIdLst, a_sldSz
 )
-from ..unitutil import class_mock, instance_mock, method_mock, property_mock
+from ..unitutil.mock import (
+    class_mock, instance_mock, method_mock, property_mock
+)
 
 
 class DescribePresentationPart(object):

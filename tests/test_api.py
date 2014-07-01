@@ -11,7 +11,7 @@ import pytest
 from pptx.api import Presentation
 from pptx.parts.presentation import PresentationPart
 
-from .unitutil import call, property_mock
+from .unitutil.mock import call, property_mock
 
 
 class DescribePresentation(object):

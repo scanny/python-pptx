@@ -15,7 +15,7 @@ from pptx.oxml.simpletypes import (
     BaseIntType, BaseSimpleType, ST_Coordinate, ST_HexColorRGB, ST_Percentage
 )
 
-from ..unitutil import method_mock, instance_mock
+from ..unitutil.mock import method_mock, instance_mock
 
 
 class DescribeBaseSimpleType(object):

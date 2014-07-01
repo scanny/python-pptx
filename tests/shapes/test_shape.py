@@ -19,7 +19,9 @@ from ..oxml.unitdata.shape import (
     a_cNvPr, a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic,
     an_ext, an_nvSpPr, an_off, an_sp, an_spPr, an_xfrm
 )
-from ..unitutil import class_mock, instance_mock, loose_mock, property_mock
+from ..unitutil.mock import (
+    class_mock, instance_mock, loose_mock, property_mock
+)
 
 
 class DescribeBaseShape(object):

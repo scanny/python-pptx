@@ -22,8 +22,8 @@ from pptx.opc.pkgreader import (
 )
 
 from .unitdata.types import a_Default, a_Types, an_Override
-from ..unitutil import (
-    function_mock, class_mock, initializer_mock, method_mock
+from ..unitutil.mock import (
+    class_mock, function_mock, initializer_mock, method_mock
 )
 
 

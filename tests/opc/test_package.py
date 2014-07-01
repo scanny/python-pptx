@@ -20,8 +20,8 @@ from pptx.opc.pkgreader import PackageReader
 from pptx.package import Package
 
 from ..oxml.unitdata.text import an_hlinkClick, an_rPr
-from ..unitutil import (
-    cls_attr_mock, class_mock, instance_mock, loose_mock, method_mock
+from ..unitutil.mock import (
+    class_mock, cls_attr_mock, instance_mock, loose_mock, method_mock
 )
 
 
@@ -742,55 +742,3 @@ class DescribeUnmarshaller(object):
     @pytest.fixture
     def _unmarshal_relationships(self, request):
         return method_mock(request, Unmarshaller, '_unmarshal_relationships')
-
-
-# from ..unitutil import (
-#     absjoin, class_mock, cls_attr_mock, instance_mock, loose_mock,
-#     method_mock, test_file_dir
-# )
-# test_pptx_path = absjoin(test_file_dir, 'test.pptx')
-# dir_pkg_path = absjoin(test_file_dir, 'expanded_pptx')
-# zip_pkg_path = test_pptx_path
-
-# def test_it_finds_default_case_insensitive(self, cti):
-#     """_ContentTypesItem[partname] finds default case insensitive"""
-#     # setup ------------------------
-#     partname = '/ppt/media/image1.JPG'
-#     content_type = 'image/jpeg'
-#     cti._defaults = {'jpg': content_type}
-#     # exercise ---------------------
-#     val = cti[partname]
-#     # verify -----------------------
-#     assert val == content_type
-
-# def test_it_finds_override_case_insensitive(self, cti):
-#     """_ContentTypesItem[partname] finds override case insensitive"""
-#     # setup ------------------------
-#     partname = '/foo/bar.xml'
-#     case_mangled_partname = '/FoO/bAr.XML'
-#     content_type = 'application/vnd.content_type'
-#     cti._overrides = {
-#         partname: content_type
-#     }
-#     # exercise ---------------------
-#     val = cti[case_mangled_partname]
-#     # verify -----------------------
-#     assert val == content_type
-
-# def test_save_accepts_stream(self, tmp_pptx_path):
-#     pkg = Package().open(dir_pkg_path)
-#     stream = StringIO()
-#     # exercise --------------------
-#     pkg.save(stream)
-#     # verify ----------------------
-#     # can't use is_zipfile() directly on stream in Python 2.6
-#     stream.seek(0)
-#     with open(tmp_pptx_path, 'wb') as f:
-#         f.write(stream.read())
-#     msg = "Package.save(stream) did not create zipfile"
-#     assert is_zipfile(tmp_pptx_path), msg
-
-
-# @pytest.fixture
-# def tmp_pptx_path(tmpdir):
-#     return str(tmpdir.join('test_python-pptx.pptx'))

@@ -25,9 +25,9 @@ from .oxml.unitdata.text import (
     a_bodyPr, a_latin, a_txBody, a_noAutofit, a_normAutofit, a_p, a_pPr, a_t,
     an_hlinkClick, an_r, an_rPr, an_spAutoFit
 )
-from .unitutil import (
-    absjoin, class_mock, instance_mock, loose_mock, parse_xml_file,
-    property_mock, test_file_dir
+from .unitutil.file import absjoin, parse_xml_file, test_file_dir
+from .unitutil.mock import (
+    class_mock, instance_mock, loose_mock, property_mock
 )
 
 

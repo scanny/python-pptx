@@ -14,7 +14,7 @@ from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 
 from ..unitdata.shape import a_gd, a_prstGeom, an_avLst, test_shape_elements
-from ...unitutil import TestCase
+from ...unitutil.legacy import TestCase
 
 
 class DescribeCT_PresetGeometry2D(object):
@@ -208,7 +208,7 @@ class TestCT_Shape(TestCase):
         sp = CT_Shape.new_autoshape_sp(id_, name, prst, left, top,
                                        width, height)
         # verify -----------------------
-        self.assertEqualLineByLine(xml, sp)
+        assert sp.xml == xml
 
     def test_new_textbox_sp_generates_correct_xml(self):
         """CT_Shape.new_textbox_sp() returns correct XML"""
@@ -230,4 +230,4 @@ class TestCT_Shape(TestCase):
         # exercise ---------------------
         sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
         # verify -----------------------
-        self.assertEqualLineByLine(xml, sp)
+        assert sp.xml == xml

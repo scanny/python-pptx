@@ -22,8 +22,8 @@ from pptx.shapes.shapetree import BaseShapeTree
 from ..oxml.unitdata.shape import (
     a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr, an_xfrm
 )
-from ..unitutil import (
-    function_mock, class_mock, instance_mock, method_mock, property_mock
+from ..unitutil.mock import (
+    class_mock, function_mock, instance_mock, method_mock, property_mock
 )
 
 

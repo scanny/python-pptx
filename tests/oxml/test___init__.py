@@ -16,7 +16,7 @@ from pptx.oxml import (
 from pptx.oxml.ns import qn
 from pptx.oxml.xmlchemy import BaseOxmlElement
 
-from ..unitutil import function_mock, loose_mock, var_mock
+from ..unitutil.mock import function_mock, loose_mock, var_mock
 
 
 class DescribeOxmlParser(object):

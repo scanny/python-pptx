@@ -13,7 +13,7 @@ from pptx.parts.coreprops import CoreProperties
 from pptx.parts.presentation import PresentationPart
 
 
-from .unitutil import absjoin, test_file_dir
+from .unitutil.file import absjoin, test_file_dir
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')

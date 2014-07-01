@@ -23,7 +23,8 @@ from pptx.opc.phys_pkg import (
     _DirPkgReader, PhysPkgReader, PhysPkgWriter, _ZipPkgReader, _ZipPkgWriter
 )
 
-from ..unitutil import absjoin, class_mock, loose_mock, test_file_dir
+from ..unitutil.file import absjoin, test_file_dir
+from ..unitutil.mock import class_mock, loose_mock
 
 
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')

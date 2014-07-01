@@ -14,7 +14,7 @@ from ...oxml.unitdata.table import (
     a_tbl, a_tc, a_txBody, test_table_elements, test_table_xml
 )
 from ...oxml.unitdata.text import a_bodyPr, a_p
-from ...unitutil import TestCase
+from ...unitutil.legacy import TestCase
 
 
 class DescribeCT_TableCell(object):
@@ -65,7 +65,7 @@ class TestCT_Table(TestCase):
         # exercise ---------------------
         tbl = CT_Table.new_tbl(rows, cols, width, height)
         # verify -----------------------
-        self.assertEqualLineByLine(xml, tbl)
+        assert tbl.xml == xml
 
     def test_boolean_property_value_is_correct(self):
         """CT_Table boolean property value is correct"""
@@ -109,7 +109,7 @@ class TestCT_Table(TestCase):
             for tc_builder, assigned_value, expected_tc_builder in cases:
                 tc = tc_builder.element
                 setattr(tc, propname, assigned_value)
-                self.assertEqualLineByLine(expected_tc_builder.xml, tc)
+                assert tc.xml == expected_tc_builder.xml
 
 
 class TestCT_TableCell(TestCase):
@@ -156,7 +156,7 @@ class TestCT_TableCell(TestCase):
         # verify -----------------------
         for tc, text_anchoring_type, expected_xml in cases:
             tc.anchor = text_anchoring_type
-            self.assertEqualLineByLine(expected_xml, tc)
+            assert tc.xml == expected_xml
 
     def test_marX_property_values_are_correct(self):
         """CT_TableCell.marX property values are correct"""
@@ -230,4 +230,4 @@ class TestCT_TableCell(TestCase):
         # verify -----------------------
         for tc, marX, expected_xml in cases:
             tc.marT, tc.marR, tc.marB, tc.marL = marX
-            self.assertEqualLineByLine(expected_xml, tc)
+            assert tc.xml == expected_xml

@@ -11,7 +11,7 @@ from mock import Mock
 from pptx.opc.packuri import PackURI
 from pptx.parts.part import PartCollection
 
-from ..unitutil import TestCase
+from ..unitutil.legacy import TestCase
 
 
 class TestPartCollection(TestCase):

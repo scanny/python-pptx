@@ -18,7 +18,7 @@ from ..oxml.unitdata.shape import (
     a_graphicFrame, a_ph, an_nvGraphicFramePr, an_nvPicPr, an_nvPr,
     an_nvSpPr, an_sp
 )
-from ..unitutil import instance_mock
+from ..unitutil.mock import instance_mock
 
 
 class DescribeBasePlaceholders(object):

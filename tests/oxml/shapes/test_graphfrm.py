@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 
-from ...unitutil import TestCase
+from ...unitutil.legacy import TestCase
 
 
 class TestCT_GraphicalObjectFrame(TestCase):
@@ -50,7 +50,7 @@ class TestCT_GraphicalObjectFrame(TestCase):
         graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
             id_, name, left, top, width, height)
         # verify -----------------------
-        self.assertEqualLineByLine(xml, graphicFrame)
+        assert graphicFrame.xml == xml
 
     def test_new_table_generates_correct_xml(self):
         """CT_GraphicalObjectFrame.new_table() returns correct XML"""
@@ -96,4 +96,4 @@ class TestCT_GraphicalObjectFrame(TestCase):
         graphicFrame = CT_GraphicalObjectFrame.new_table(
             id_, name, rows, cols, left, top, width, height)
         # verify -----------------------
-        self.assertEqualLineByLine(xml, graphicFrame)
+        assert graphicFrame.xml == xml
