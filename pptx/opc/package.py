@@ -116,7 +116,6 @@ class OpcPackage(object):
         Save this package to *pkg_file*, where *file* can be either a path to
         a file (a string) or a file-like object.
         """
-        # self._notify_before_marshal()
         for part in self.parts:
             part.before_marshal()
         PackageWriter.write(pkg_file, self.rels, self.parts)
@@ -181,7 +180,7 @@ class Part(object):
     @classmethod
     def load(cls, partname, content_type, blob, package):
         return cls(
-            partname, content_type, blob=blob, element=None, package=package
+            partname, content_type, blob, element=None, package=package
         )
 
     def load_rel(self, reltype, target, rId, is_external=False):
@@ -271,7 +270,6 @@ class Part(object):
         Return the count of references in this part's XML to the relationship
         identified by *rId*.
         """
-        assert self._element is not None
         rIds = self._element.xpath('//@r:id')
         return len([_rId for _rId in rIds if _rId == rId])
 
