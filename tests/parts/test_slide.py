@@ -91,10 +91,6 @@ class DescribeBaseSlide(object):
         assert image is image_
         assert rId is rId_
 
-    def it_knows_it_is_the_part_its_child_objects_belong_to(
-            self, base_slide):
-        assert base_slide.part is base_slide
-
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

@@ -10,9 +10,8 @@ from warnings import warn
 
 from ..enum.shapes import PP_PLACEHOLDER
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from ..opc.package import Part
+from ..opc.package import XmlPart
 from ..opc.packuri import PackURI
-from ..oxml import parse_xml
 from ..oxml.ns import qn
 from ..oxml.simpletypes import ST_Direction
 from ..oxml.parts.slide import CT_Slide
@@ -22,37 +21,17 @@ from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
 from ..util import lazyproperty
 
 
-class BaseSlide(Part):
+class BaseSlide(XmlPart):
     """
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.
     """
-    def __init__(self, partname, content_type, element, package):
-        super(BaseSlide, self).__init__(
-            partname, content_type, element=element, package=package
-        )
-
-    @classmethod
-    def load(cls, partname, content_type, blob, package):
-        slide_elm = parse_xml(blob)
-        slide = cls(partname, content_type, slide_elm, package)
-        return slide
-
     @property
     def name(self):
         """
         Internal name of this slide.
         """
         return self._element.cSld.name
-
-    @property
-    def part(self):
-        """
-        Part of the parent protocol, "children" of the slide will not know
-        the part that contains them so must ask their parent object. That
-        chain of delegation ends here for slide child objects.
-        """
-        return self
 
     @property
     def spTree(self):
