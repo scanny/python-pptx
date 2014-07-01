@@ -9,22 +9,16 @@ from __future__ import absolute_import
 from datetime import datetime
 
 from ..opc.constants import CONTENT_TYPE as CT
-from ..opc.package import Part
+from ..opc.package import XmlPart
 from ..opc.packuri import PackURI
-from ..oxml import parse_xml
 from ..oxml.parts.coreprops import CT_CoreProperties
 
 
-class CoreProperties(Part):
+class CoreProperties(XmlPart):
     """
     Corresponds to part named ``/docProps/core.xml``, containing the core
     document properties for this document package.
     """
-    def __init__(self, partname, content_type, core_props_elm):
-        super(CoreProperties, self).__init__(
-            partname, content_type, element=core_props_elm
-        )
-
     @classmethod
     def default(cls):
         core_props = cls._new()
@@ -113,12 +107,6 @@ class CoreProperties(Part):
     @last_printed.setter
     def last_printed(self, value):
         self._element.lastPrinted_datetime = value
-
-    @classmethod
-    def load(cls, partname, content_type, blob, package):
-        core_props_elm = parse_xml(blob)
-        core_props = cls(partname, content_type, core_props_elm)
-        return core_props
 
     @property
     def modified(self):

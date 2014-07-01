@@ -292,7 +292,7 @@ class XmlPart(Part):
     of parsing and reserializing the XML payload and managing relationships
     to other parts.
     """
-    def __init__(self, partname, content_type, element, package):
+    def __init__(self, partname, content_type, element, package=None):
         super(XmlPart, self).__init__(
             partname, content_type, package=package
         )
