@@ -26,6 +26,15 @@ class OpcPackage(object):
     def __init__(self):
         super(OpcPackage, self).__init__()
 
+    def after_unmarshal(self):
+        """
+        Called by loading code after all parts and relationships have been
+        loaded, to afford the opportunity for any required post-processing.
+        This one does nothing other than catch the call if a subclass
+        doesn't.
+        """
+        pass
+
     def iter_parts(self):
         """
         Generate exactly one reference to each of the parts in the package by

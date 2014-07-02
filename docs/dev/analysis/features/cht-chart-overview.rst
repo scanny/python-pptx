@@ -196,7 +196,7 @@ Containing ``<p:graphicFrame>`` in shape tree::
     </p:graphicFrame>
 
 
-YouGov-6 Pie Chart::
+Pie Chart::
 
   <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
   <c:chartSpace
@@ -365,7 +365,7 @@ YouGov-6 Pie Chart::
   </c:chartSpace>
 
 
-YouGov single series line chart::
+single series line chart::
 
   <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
   <c:chartSpace
@@ -581,7 +581,8 @@ YouGov single series line chart::
     </c:externalData>
   </c:chartSpace>
 
-YouGov simple column chart::
+
+simple column chart::
 
   <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
   <c:chartSpace

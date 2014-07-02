@@ -116,6 +116,9 @@ class DescribeOpcPackage(object):
             pkg_file_, pkg._rels, parts_
         )
 
+    def it_can_be_notified_after_unmarshalling_is_complete(self, pkg):
+        pkg.after_unmarshal()
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
