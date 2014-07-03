@@ -126,7 +126,7 @@ class DescribeTableBooleanProperties(object):
             self, boolprop_set_fixture):
         table, boolprop_name, new_value, expected_xml = boolprop_set_fixture
         setattr(table, boolprop_name, new_value)
-        assert table._tbl_elm.xml == expected_xml
+        assert table._tbl.xml == expected_xml
 
     # fixtures -------------------------------------------------------
 

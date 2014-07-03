@@ -20,23 +20,23 @@ class Table(GraphicFrame):
     def __init__(self, graphicFrame, parent):
         super(Table, self).__init__(graphicFrame, parent)
         self._graphicFrame = graphicFrame
-        self._tbl_elm = graphicFrame.graphic.graphicData.tbl
-        self._rows = _RowCollection(self._tbl_elm, self)
-        self._columns = _ColumnCollection(self._tbl_elm, self)
+        self._tbl = graphicFrame.graphic.graphicData.tbl
 
     def cell(self, row_idx, col_idx):
-        """Return table cell at *row_idx*, *col_idx* location"""
+        """
+        Return table cell at *row_idx*, *col_idx* location.
+        """
         row = self.rows[row_idx]
         return row.cells[col_idx]
 
-    @property
+    @lazyproperty
     def columns(self):
         """
         Read-only reference to collection of |_Column| objects representing
         the table's columns. |_Column| objects are accessed using list
         notation, e.g. ``col = tbl.columns[0]``.
         """
-        return self._columns
+        return _ColumnCollection(self._tbl, self)
 
     @property
     def first_col(self):
@@ -45,7 +45,11 @@ class Table(GraphicFrame):
         column should be formatted differently, as for a side-heading column
         at the far left of the table.
         """
-        return self._tbl_elm.firstCol
+        return self._tbl.firstCol
+
+    @first_col.setter
+    def first_col(self, value):
+        self._tbl.firstCol = value
 
     @property
     def first_row(self):
@@ -53,7 +57,11 @@ class Table(GraphicFrame):
         Read/write boolean property which, when true, indicates the first
         row should be formatted differently, e.g. for column headings.
         """
-        return self._tbl_elm.firstRow
+        return self._tbl.firstRow
+
+    @first_row.setter
+    def first_row(self, value):
+        self._tbl.firstRow = value
 
     @property
     def horz_banding(self):
@@ -61,7 +69,11 @@ class Table(GraphicFrame):
         Read/write boolean property which, when true, indicates the rows of
         the table should appear with alternating shading.
         """
-        return self._tbl_elm.bandRow
+        return self._tbl.bandRow
+
+    @horz_banding.setter
+    def horz_banding(self, value):
+        self._tbl.bandRow = value
 
     @property
     def last_col(self):
@@ -70,7 +82,11 @@ class Table(GraphicFrame):
         column should be formatted differently, as for a row totals column at
         the far right of the table.
         """
-        return self._tbl_elm.lastCol
+        return self._tbl.lastCol
+
+    @last_col.setter
+    def last_col(self, value):
+        self._tbl.lastCol = value
 
     @property
     def last_row(self):
@@ -79,23 +95,11 @@ class Table(GraphicFrame):
         row should be formatted differently, as for a totals row at the
         bottom of the table.
         """
-        return self._tbl_elm.lastRow
+        return self._tbl.lastRow
 
-    @first_col.setter
-    def first_col(self, value):
-        self._tbl_elm.firstCol = bool(value)
-
-    @first_row.setter
-    def first_row(self, value):
-        self._tbl_elm.firstRow = bool(value)
-
-    @horz_banding.setter
-    def horz_banding(self, value):
-        self._tbl_elm.bandRow = bool(value)
-
-    @last_col.setter
-    def last_col(self, value):
-        self._tbl_elm.lastCol = bool(value)
+    @last_row.setter
+    def last_row(self, value):
+        self._tbl.lastRow = value
 
     def notify_height_changed(self):
         """
@@ -114,18 +118,14 @@ class Table(GraphicFrame):
         new_table_width = sum([col.width for col in self.columns])
         self._graphicFrame.cx = new_table_width
 
-    @last_row.setter
-    def last_row(self, value):
-        self._tbl_elm.lastRow = bool(value)
-
-    @property
+    @lazyproperty
     def rows(self):
         """
         Read-only reference to collection of |_Row| objects representing the
         table's rows. |_Row| objects are accessed using list notation, e.g.
         ``col = tbl.rows[0]``.
         """
-        return self._rows
+        return _RowCollection(self._tbl, self)
 
     @property
     def shape_type(self):
@@ -141,11 +141,11 @@ class Table(GraphicFrame):
         Read/write boolean property which, when true, indicates the columns
         of the table should appear with alternating shading.
         """
-        return self._tbl_elm.bandCol
+        return self._tbl.bandCol
 
     @vert_banding.setter
     def vert_banding(self, value):
-        self._tbl_elm.bandCol = bool(value)
+        self._tbl.bandCol = value
 
 
 class _Cell(Subshape):
@@ -166,48 +166,54 @@ class _Cell(Subshape):
         return FillFormat.from_fill_parent(tcPr)
 
     @property
-    def margin_top(self):
+    def margin_left(self):
         """
-        Read/write integer value of top margin of cell in English Metric
-        Units (EMU). If assigned |None|, the default value is used, 0.1
+        Read/write integer value of left margin of cell as a |BaseLength|
+        value object. If assigned |None|, the default value is used, 0.1
         inches for left and right margins and 0.05 inches for top and bottom.
         """
-        return self._tc.marT
+        return self._tc.marL
+
+    @margin_left.setter
+    def margin_left(self, margin_left):
+        self._validate_margin_value(margin_left)
+        self._tc.marL = margin_left
 
     @property
     def margin_right(self):
-        """Right margin of cell"""
+        """
+        Right margin of cell.
+        """
         return self._tc.marR
-
-    @property
-    def margin_bottom(self):
-        """Bottom margin of cell"""
-        return self._tc.marB
-
-    @property
-    def margin_left(self):
-        """Left margin of cell"""
-        return self._tc.marL
-
-    @margin_top.setter
-    def margin_top(self, margin_top):
-        self._validate_margin_value(margin_top)
-        self._tc.marT = margin_top
 
     @margin_right.setter
     def margin_right(self, margin_right):
         self._validate_margin_value(margin_right)
         self._tc.marR = margin_right
 
+    @property
+    def margin_top(self):
+        """
+        Top margin of cell.
+        """
+        return self._tc.marT
+
+    @margin_top.setter
+    def margin_top(self, margin_top):
+        self._validate_margin_value(margin_top)
+        self._tc.marT = margin_top
+
+    @property
+    def margin_bottom(self):
+        """
+        Bottom margin of cell.
+        """
+        return self._tc.marB
+
     @margin_bottom.setter
     def margin_bottom(self, margin_bottom):
         self._validate_margin_value(margin_bottom)
         self._tc.marB = margin_bottom
-
-    @margin_left.setter
-    def margin_left(self, margin_left):
-        self._validate_margin_value(margin_left)
-        self._tc.marL = margin_left
 
     def text(self, text):
         """
@@ -279,8 +285,6 @@ class _Column(Subshape):
 
     @width.setter
     def width(self, width):
-        if not isinstance(width, int) or width < 0:
-            raise ValueError("column width must be a positive integer")
         self._gridCol.w = width
         self._parent.notify_width_changed()
 
@@ -310,8 +314,6 @@ class _Row(Subshape):
 
     @height.setter
     def height(self, height):
-        if not isinstance(height, int) or height < 0:
-            raise ValueError("row height must be positive integer")
         self._tr.h = height
         self._parent.notify_height_changed()
 
@@ -344,24 +346,24 @@ class _ColumnCollection(Subshape):
     """
     Sequence of table columns.
     """
-    def __init__(self, tbl_elm, parent):
+    def __init__(self, tbl, parent):
         super(_ColumnCollection, self).__init__(parent)
-        self._tbl_elm = tbl_elm
+        self._tbl = tbl
 
     def __getitem__(self, idx):
         """
         Provides indexed access, (e.g. 'columns[0]').
         """
-        if idx < 0 or idx >= len(self._tbl_elm.tblGrid.gridCol_lst):
+        if idx < 0 or idx >= len(self._tbl.tblGrid.gridCol_lst):
             msg = "column index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Column(self._tbl_elm.tblGrid.gridCol_lst[idx], self)
+        return _Column(self._tbl.tblGrid.gridCol_lst[idx], self)
 
     def __len__(self):
         """
         Supports len() function (e.g. 'len(columns) == 1').
         """
-        return len(self._tbl_elm.tblGrid.gridCol_lst)
+        return len(self._tbl.tblGrid.gridCol_lst)
 
     def notify_width_changed(self):
         """
@@ -374,9 +376,9 @@ class _RowCollection(Subshape):
     """
     Sequence of table rows.
     """
-    def __init__(self, tbl_elm, parent):
+    def __init__(self, tbl, parent):
         super(_RowCollection, self).__init__(parent)
-        self._tbl_elm = tbl_elm
+        self._tbl = tbl
 
     def __getitem__(self, idx):
         """
@@ -385,13 +387,13 @@ class _RowCollection(Subshape):
         if idx < 0 or idx >= len(self):
             msg = "row index [%d] out of range" % idx
             raise IndexError(msg)
-        return _Row(self._tbl_elm.tr_lst[idx], self)
+        return _Row(self._tbl.tr_lst[idx], self)
 
     def __len__(self):
         """
         Supports len() function (e.g. 'len(rows) == 1').
         """
-        return len(self._tbl_elm.tr_lst)
+        return len(self._tbl.tr_lst)
 
     def notify_height_changed(self):
         """
