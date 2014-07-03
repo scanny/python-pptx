@@ -10,6 +10,14 @@ from __future__ import absolute_import
 from pptx.enum.shapes import MSO_SHAPE
 
 
+GRAPHIC_DATA_URI_CHART = (
+    'http://schemas.openxmlformats.org/drawingml/2006/chart'
+)
+GRAPHIC_DATA_URI_TABLE = (
+    'http://schemas.openxmlformats.org/drawingml/2006/table'
+)
+
+
 # ============================================================================
 # AutoShape type specs
 # ============================================================================

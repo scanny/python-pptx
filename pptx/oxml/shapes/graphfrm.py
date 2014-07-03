@@ -10,6 +10,7 @@ from .. import parse_xml
 from ..ns import nsdecls
 from .shared import BaseShapeElement
 from ..simpletypes import XsdString
+from ...spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
 from .table import CT_Table
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
@@ -42,8 +43,6 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
     xfrm = OneAndOnlyOne('p:xfrm')
     graphic = OneAndOnlyOne('a:graphic')
 
-    DATATYPE_TABLE = 'http://schemas.openxmlformats.org/drawingml/2006/table'
-
     def get_or_add_xfrm(self):
         """
         Return the required ``<p:xfrm>`` child element. Overrides version on
@@ -52,14 +51,18 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         return self.xfrm
 
     @property
+    def has_chart(self):
+        """
+        True if graphicFrame contains a chart, False otherwise.
+        """
+        return self.graphic.graphicData.uri == GRAPHIC_DATA_URI_CHART
+
+    @property
     def has_table(self):
         """
         True if graphicFrame contains a table, False otherwise.
         """
-        datatype = self.graphic.graphicData.uri
-        if datatype == CT_GraphicalObjectFrame.DATATYPE_TABLE:
-            return True
-        return False
+        return self.graphic.graphicData.uri == GRAPHIC_DATA_URI_TABLE
 
     @classmethod
     def new_graphicFrame(cls, id_, name, left, top, width, height):
@@ -83,7 +86,7 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         )
         # set type of contained graphic to table
         graphicData = graphicFrame.graphic.graphicData
-        graphicData.uri = cls.DATATYPE_TABLE
+        graphicData.uri = GRAPHIC_DATA_URI_TABLE
 
         # add tbl element tree
         tbl = CT_Table.new_tbl(rows, cols, width, height)
