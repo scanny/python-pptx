@@ -40,6 +40,17 @@ class BaseShape(object):
         return False
 
     @property
+    def has_table(self):
+        """
+        |True| if this shape is a graphic frame containing a table object.
+        |False| otherwise. When |True|, the table object can be accessed
+        using the ``.table`` property.
+        """
+        # This implementation is unconditionally False, the True version is
+        # on GraphicFrame subclass.
+        return False
+
+    @property
     def has_textframe(self):
         """
         |True| if this shape has a txBody element and can contain text.
