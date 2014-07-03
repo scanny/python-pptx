@@ -100,14 +100,16 @@ class CT_Table(BaseOxmlElement):
         """
         Generalized setter for boolean properties on the ``<a:tblPr>`` child
         element, setting *propname* attribute appropriately based on *value*.
-        If *value* is truthy, the attribute is set to "1"; a tblPr child
-        element is added if necessary. If *value* is falsey, the *propname*
+        If *value* is True, the attribute is set to "1"; a tblPr child
+        element is added if necessary. If *value* is False, the *propname*
         attribute is removed if present, allowing its default value of False
         to be its effective value.
         """
-        value = True if value else None
-        if value is None and self.tblPr is None:
-            return
+        if value not in (True, False):
+            raise ValueError(
+                "assigned value must be either True or False, got %s" %
+                value
+            )
         tblPr = self.get_or_add_tblPr()
         setattr(tblPr, propname, value)
 
@@ -318,12 +320,12 @@ class CT_TableProperties(BaseOxmlElement):
     """
     ``<a:tblPr>`` custom element class
     """
-    bandRow = OptionalAttribute('bandRow', XsdBoolean)
-    bandCol = OptionalAttribute('bandCol', XsdBoolean)
-    firstRow = OptionalAttribute('firstRow', XsdBoolean)
-    firstCol = OptionalAttribute('firstCol', XsdBoolean)
-    lastRow = OptionalAttribute('lastRow', XsdBoolean)
-    lastCol = OptionalAttribute('lastCol', XsdBoolean)
+    bandRow = OptionalAttribute('bandRow', XsdBoolean, default=False)
+    bandCol = OptionalAttribute('bandCol', XsdBoolean, default=False)
+    firstRow = OptionalAttribute('firstRow', XsdBoolean, default=False)
+    firstCol = OptionalAttribute('firstCol', XsdBoolean, default=False)
+    lastRow = OptionalAttribute('lastRow', XsdBoolean, default=False)
+    lastCol = OptionalAttribute('lastCol', XsdBoolean, default=False)
 
 
 class CT_TableRow(BaseOxmlElement):

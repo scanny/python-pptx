@@ -4,48 +4,193 @@
 Test suite for pptx.table module.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import pytest
 
-from mock import MagicMock, Mock, PropertyMock
-
 from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR
-from pptx.oxml import parse_xml
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import qn
+from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.shapes.table import (
-    _Cell, _CellCollection, _Column, _ColumnCollection, _Row, _RowCollection
+    _Cell, _CellCollection, _Column, _ColumnCollection, _Row, _RowCollection,
+    Table
 )
-from pptx.util import Inches
+from pptx.util import Inches, BaseLength, Pt
 
-from ..oxml.unitdata.shape import test_shapes
-from ..oxml.unitdata.table import a_tc, a_tcPr, a_txBody
-from ..oxml.unitdata.text import a_bodyPr, a_p, an_r, a_t
-from ..unitutil.legacy import TestCase
+from ..unitutil.cxml import element, xml
+from ..unitutil.mock import class_mock, instance_mock
+
+
+class DescribeTable(object):
+
+    def it_provides_access_to_its_cells(self, cell_fixture):
+        table, row_idx, col_idx, expected_cell_ = cell_fixture
+        cell = table.cell(row_idx, col_idx)
+        assert cell is expected_cell_
+
+    def it_provides_access_to_its_rows(self, rows_fixture):
+        table, expected_rows_ = rows_fixture
+        assert table.rows is expected_rows_
+
+    def it_provides_access_to_its_columns(self, columns_fixture):
+        table, expected_columns_ = columns_fixture
+        assert table.columns is expected_columns_
+
+    def it_updates_graphicFrame_cy_on_height_change(self, dy_fixture):
+        table, expected_height = dy_fixture
+        table.notify_height_changed()
+        assert table._graphicFrame.cy == expected_height
+
+    def it_updates_graphicFrame_cx_on_width_change(self, dx_fixture):
+        table, expected_width = dx_fixture
+        table.notify_width_changed()
+        assert table._graphicFrame.cx == expected_width
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def cell_fixture(self, table, row_, cell_):
+        table._rows = [row_]
+        row_.cells = [cell_]
+        row_idx = col_idx = 0
+        return table, row_idx, col_idx, cell_
+
+    @pytest.fixture
+    def columns_fixture(self, table, columns_):
+        table._columns = columns_
+        return table, columns_
+
+    @pytest.fixture
+    def dx_fixture(self, graphicFrame_):
+        tbl_cxml = 'a:tbl/a:tblGrid/(a:gridCol{w=111},a:gridCol{w=222})'
+        tbl_cxml = (
+            'p:graphicFrame/(p:xfrm, a:graphic/a:graphicData/%s)' % tbl_cxml
+        )
+        table = Table(element(tbl_cxml), graphicFrame_)
+        expected_width = 333
+        return table, expected_width
+
+    @pytest.fixture
+    def dy_fixture(self, graphicFrame_):
+        tbl_cxml = 'a:tbl/(a:tr{h=100},a:tr{h=200})'
+        tbl_cxml = (
+            'p:graphicFrame/(p:xfrm, a:graphic/a:graphicData/%s)' % tbl_cxml
+        )
+        table = Table(element(tbl_cxml), graphicFrame_)
+        expected_height = 300
+        return table, expected_height
+
+    @pytest.fixture
+    def rows_fixture(self, table, rows_):
+        table._rows = rows_
+        return table, rows_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def cell_(self, request):
+        return instance_mock(request, _Cell)
+
+    @pytest.fixture
+    def columns_(self, request):
+        return instance_mock(request, _ColumnCollection)
+
+    @pytest.fixture
+    def graphicFrame_(self, request):
+        return instance_mock(request, CT_GraphicalObjectFrame)
+
+    @pytest.fixture
+    def row_(self, request):
+        return instance_mock(request, _Row)
+
+    @pytest.fixture
+    def rows_(self, request):
+        return instance_mock(request, _RowCollection)
+
+    @pytest.fixture
+    def table(self):
+        tbl_cxml = 'p:graphicFrame/a:graphic/a:graphicData/a:tbl'
+        # return Table(element('a:tbl'), None)
+        return Table(element(tbl_cxml), None)
+
+
+class DescribeTableBooleanProperties(object):
+
+    def it_knows_its_boolean_property_settings(self, boolprop_get_fixture):
+        table, boolprop_name, expected_value = boolprop_get_fixture
+        boolprop_value = getattr(table, boolprop_name)
+        assert boolprop_value is expected_value
+
+    def it_can_change_its_boolean_property_settings(
+            self, boolprop_set_fixture):
+        table, boolprop_name, new_value, expected_xml = boolprop_set_fixture
+        setattr(table, boolprop_name, new_value)
+        assert table._tbl_elm.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('a:tbl',                         'first_row',    False),
+        ('a:tbl/a:tblPr',                 'first_row',    False),
+        ('a:tbl/a:tblPr{firstRow=1}',     'first_row',    True),
+        ('a:tbl/a:tblPr{firstRow=0}',     'first_row',    False),
+        ('a:tbl/a:tblPr{firstRow=true}',  'first_row',    True),
+        ('a:tbl/a:tblPr{firstRow=false}', 'first_row',    False),
+        ('a:tbl/a:tblPr{firstCol=1}',     'first_col',    True),
+        ('a:tbl/a:tblPr{lastRow=0}',      'last_row',     False),
+        ('a:tbl/a:tblPr{lastCol=true}',   'last_col',     True),
+        ('a:tbl/a:tblPr{bandRow=false}',  'horz_banding', False),
+        ('a:tbl/a:tblPr',                 'vert_banding', False),
+    ])
+    def boolprop_get_fixture(self, request):
+        tbl_cxml, boolprop_name, expected_value = request.param
+        tbl_cxml = 'p:graphicFrame/a:graphic/a:graphicData/' + tbl_cxml
+        table = Table(element(tbl_cxml), None)
+        return table, boolprop_name, expected_value
+
+    @pytest.fixture(params=[
+        ('a:tbl',         'first_row', True,  'a:tbl/a:tblPr{firstRow=1}'),
+        ('a:tbl',         'first_row', False, 'a:tbl/a:tblPr'),
+        ('a:tbl/a:tblPr', 'first_row', True,  'a:tbl/a:tblPr{firstRow=1}'),
+        ('a:tbl/a:tblPr', 'first_row', False, 'a:tbl/a:tblPr'),
+        ('a:tbl/a:tblPr{firstRow=true}',  'first_row', True,
+         'a:tbl/a:tblPr{firstRow=1}'),
+        ('a:tbl/a:tblPr{firstRow=false}', 'first_row', False,
+         'a:tbl/a:tblPr'),
+        ('a:tbl/a:tblPr{bandRow=1}',      'first_row', True,
+         'a:tbl/a:tblPr{bandRow=1,firstRow=1}'),
+        ('a:tbl', 'first_col',    True, 'a:tbl/a:tblPr{firstCol=1}'),
+        ('a:tbl', 'last_row',     True, 'a:tbl/a:tblPr{lastRow=1}'),
+        ('a:tbl', 'last_col',     True, 'a:tbl/a:tblPr{lastCol=1}'),
+        ('a:tbl', 'horz_banding', True, 'a:tbl/a:tblPr{bandRow=1}'),
+        ('a:tbl', 'vert_banding', True, 'a:tbl/a:tblPr{bandCol=1}'),
+    ])
+    def boolprop_set_fixture(self, request):
+        tbl_cxml, boolprop_name, new_value, expected_tbl_cxml = request.param
+        tbl_cxml = 'p:graphicFrame/a:graphic/a:graphicData/' + tbl_cxml
+        table = Table(element(tbl_cxml), None)
+        expected_tbl = element('p:graphicFrame/' + expected_tbl_cxml)
+        # expected_xml = xml(expected_tbl_cxml)
+        expected_xml = expected_tbl.xpath('./a:tbl')[0].xml
+        return table, boolprop_name, new_value, expected_xml
 
 
 class Describe_Cell(object):
 
-    def it_has_a_fill(self, cell):
+    def it_has_a_fill(self, fill_fixture):
+        cell = fill_fixture
         assert isinstance(cell.fill, FillFormat)
 
     def it_knows_its_margin_settings(self, margin_get_fixture):
-        cell, margin_left, margin_right, margin_top, margin_bottom = (
-            margin_get_fixture
-        )
-        assert cell.margin_left == margin_left
-        assert cell.margin_right == margin_right
-        assert cell.margin_top == margin_top
-        assert cell.margin_bottom == margin_bottom
+        cell, margin_prop_name, expected_value = margin_get_fixture
+        margin_value = getattr(cell, margin_prop_name)
+        assert margin_value == expected_value
 
     def it_can_change_its_margin_settings(self, margin_set_fixture):
-        cell, marL, marR, marT, marB, tc_with_marX_xml = margin_set_fixture
-        cell.margin_left = marL
-        cell.margin_right = marR
-        cell.margin_top = marT
-        cell.margin_bottom = marB
-        assert cell._tc.xml == tc_with_marX_xml
+        cell, margin_prop_name, new_value, expected_xml = margin_set_fixture
+        setattr(cell, margin_prop_name, new_value)
+        assert cell._tc.xml == expected_xml
 
     def it_raises_on_margin_assigned_other_than_int_or_None(
             self, margin_raises_fixture):
@@ -53,549 +198,401 @@ class Describe_Cell(object):
         with pytest.raises(TypeError):
             setattr(cell, margin_attr_name, val_of_invalid_type)
 
-    def it_can_set_the_text_it_contains(self, text_set_fixture):
-        cell, text, tc_with_text_xml = text_set_fixture
-        cell.text = text
-        assert cell._tc.xml == tc_with_text_xml
-
     def it_knows_its_vertical_anchor_setting(self, anchor_get_fixture):
-        cell, vertical_anchor = anchor_get_fixture
-        assert cell.vertical_anchor == vertical_anchor
+        cell, expected_value = anchor_get_fixture
+        assert cell.vertical_anchor == expected_value
 
     def it_can_change_its_vertical_anchor(self, anchor_set_fixture):
-        cell, vertical_anchor, tc_with_anchor_xml = anchor_set_fixture
-        cell.vertical_anchor = vertical_anchor
-        assert cell._tc.xml == tc_with_anchor_xml
+        cell, new_value, expected_xml = anchor_set_fixture
+        cell.vertical_anchor = new_value
+        assert cell._tc.xml == expected_xml
 
-    # fixture --------------------------------------------------------
+    def it_can_replace_its_contents_with_a_string(self, text_set_fixture):
+        cell, text, expected_xml = text_set_fixture
+        cell.text = text
+        assert cell._tc.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        (None,  None),
-        ('t',   MSO_ANCHOR.TOP),
-        ('ctr', MSO_ANCHOR.MIDDLE),
-        ('b',   MSO_ANCHOR.BOTTOM),
+        ('a:tc',                    None),
+        ('a:tc/a:tcPr',             None),
+        ('a:tc/a:tcPr{anchor=t}',   MSO_ANCHOR.TOP),
+        ('a:tc/a:tcPr{anchor=ctr}', MSO_ANCHOR.MIDDLE),
+        ('a:tc/a:tcPr{anchor=b}',   MSO_ANCHOR.BOTTOM),
     ])
     def anchor_get_fixture(self, request):
-        anchor, mso_anchor_idx = request.param
-        tc_bldr = a_tc().with_nsdecls()
-        if anchor is not None:
-            tcPr_bldr = a_tcPr().with_anchor(anchor)
-            tc_bldr.with_child(tcPr_bldr)
-        tc = tc_bldr.element
-        cell = _Cell(tc, None)
-        return cell, mso_anchor_idx
+        tc_cxml, expected_value = request.param
+        cell = _Cell(element(tc_cxml), None)
+        return cell, expected_value
 
     @pytest.fixture(params=[
-        (None,  None,              None),
-        (None,  MSO_ANCHOR.TOP,    't'),
-        ('t',   MSO_ANCHOR.MIDDLE, 'ctr'),
-        ('ctr', MSO_ANCHOR.BOTTOM, 'b'),
-        ('b',   None,              ''),
+        ('a:tc', None,              'a:tc'),
+        ('a:tc', MSO_ANCHOR.TOP,    'a:tc/a:tcPr{anchor=t}'),
+        ('a:tc', MSO_ANCHOR.MIDDLE, 'a:tc/a:tcPr{anchor=ctr}'),
+        ('a:tc', MSO_ANCHOR.BOTTOM, 'a:tc/a:tcPr{anchor=b}'),
+        ('a:tc/a:tcPr{anchor=t}',   MSO_ANCHOR.MIDDLE,
+         'a:tc/a:tcPr{anchor=ctr}'),
+        ('a:tc/a:tcPr{anchor=ctr}', None,
+         'a:tc/a:tcPr'),
     ])
     def anchor_set_fixture(self, request):
-        def tc_with_anchor_bldr(anchor):
-            tc_bldr = a_tc().with_nsdecls()
-            if anchor is not None:
-                tcPr_bldr = a_tcPr()
-                if anchor != '':
-                    tcPr_bldr.with_anchor(anchor)
-                tc_bldr.with_child(tcPr_bldr)
-            return tc_bldr
-        before_anchor, mso_anchor_idx, after_anchor = request.param
-        tc = tc_with_anchor_bldr(before_anchor).element
-        cell = _Cell(tc, None)
-        tc_with_anchor_xml = tc_with_anchor_bldr(after_anchor).xml()
-        return cell, mso_anchor_idx, tc_with_anchor_xml
+        tc_cxml, new_value, expected_tc_cxml = request.param
+        cell = _Cell(element(tc_cxml), None)
+        expected_xml = xml(expected_tc_cxml)
+        return cell, new_value, expected_xml
 
     @pytest.fixture
-    def cell(self):
-        tc = a_tc().with_nsdecls().element
-        return _Cell(tc, None)
+    def fill_fixture(self, cell):
+        return cell
 
     @pytest.fixture(params=[
-        ((None, None, None, None), (91440, 91440, 45720, 45720)),
-        ((1234, 2345, 3456, None), (1234,  2345,  3456,  45720)),
-        ((2345, None, 3456, 1234), (2345,  91440, 3456,  1234)),
+        ('a:tc/a:tcPr{marL=82296}', 'margin_left',   Inches(0.09)),
+        ('a:tc/a:tcPr{marR=73152}', 'margin_right',  Inches(0.08)),
+        ('a:tc/a:tcPr{marT=64008}', 'margin_top',    Inches(0.07)),
+        ('a:tc/a:tcPr{marB=54864}', 'margin_bottom', Inches(0.06)),
+        ('a:tc',                    'margin_left',   Inches(0.1)),
+        ('a:tc/a:tcPr',             'margin_right',  Inches(0.1)),
+        ('a:tc',                    'margin_top',    Inches(0.05)),
+        ('a:tc/a:tcPr',             'margin_bottom', Inches(0.05)),
     ])
     def margin_get_fixture(self, request):
-        mar_vals, expected_vals = request.param
-        marL, marR, marT, marB = mar_vals
-        margin_left, margin_right, margin_top, margin_bottom = expected_vals
-        tcPr_bldr = a_tcPr()
-        if marL is not None:
-            tcPr_bldr.with_marL(marL)
-        if marR is not None:
-            tcPr_bldr.with_marR(marR)
-        if marT is not None:
-            tcPr_bldr.with_marT(marT)
-        if marB is not None:
-            tcPr_bldr.with_marB(marB)
-        tc = a_tc().with_nsdecls().with_child(tcPr_bldr).element
-        cell = _Cell(tc, None)
-        return cell, margin_left, margin_right, margin_top, margin_bottom
+        tc_cxml, margin_prop_name, expected_value = request.param
+        cell = _Cell(element(tc_cxml), None)
+        return cell, margin_prop_name, expected_value
 
     @pytest.fixture(params=[
-        ((None, None, None, None), (91440, None,  None, None)),
-        ((1234, 2345, 3456, None), (None,  4567,  None, None)),
-        ((None, 2345, 3456, None), (None,  None,  6543, None)),
-        ((1234, 2345, None, 4567), (None,  None,  None, 7654)),
-        ((1234, 2345, 3456, 4567), (None,  None,  None, None)),
-        ((None, None, None, None), (None,  None,  None, None)),
+        ('a:tc', 'margin_left',   Inches(0.08), 'a:tc/a:tcPr{marL=73152}'),
+        ('a:tc', 'margin_right',  Inches(0.08), 'a:tc/a:tcPr{marR=73152}'),
+        ('a:tc', 'margin_top',    Inches(0.08), 'a:tc/a:tcPr{marT=73152}'),
+        ('a:tc', 'margin_bottom', Inches(0.08), 'a:tc/a:tcPr{marB=73152}'),
+        ('a:tc', 'margin_left',   None,         'a:tc'),
+        ('a:tc/a:tcPr{marL=42}', 'margin_left', None,
+         'a:tc/a:tcPr'),
     ])
     def margin_set_fixture(self, request):
-
-        def tc_bldr_with(marX):
-            marL, marR, marT, marB = marX
-            tcPr_bldr = a_tcPr()
-            if marL is not None:
-                tcPr_bldr.with_marL(marL)
-            if marR is not None:
-                tcPr_bldr.with_marR(marR)
-            if marT is not None:
-                tcPr_bldr.with_marT(marT)
-            if marB is not None:
-                tcPr_bldr.with_marB(marB)
-            return a_tc().with_nsdecls().with_child(tcPr_bldr)
-
-        before_vals, after_vals = request.param
-        tc = tc_bldr_with(before_vals).element
-        cell = _Cell(tc, None)
-
-        marL, marR, marT, marB = after_vals
-
-        tc_with_marX_xml = tc_bldr_with(after_vals).xml()
-
-        return cell, marL, marR, marT, marB, tc_with_marX_xml
+        tc_cxml, margin_prop_name, new_value, expected_tc_cxml = request.param
+        cell = _Cell(element(tc_cxml), None)
+        expected_xml = xml(expected_tc_cxml)
+        return cell, margin_prop_name, new_value, expected_xml
 
     @pytest.fixture(params=[
         'margin_left', 'margin_right', 'margin_top', 'margin_bottom'
     ])
-    def margin_raises_fixture(self, request, cell):
-        margin_attr_name = request.param
+    def margin_raises_fixture(self, request):
+        margin_prop_name = request.param
+        cell = _Cell(element('a:tc'), None)
         val_of_invalid_type = 'foobar'
-        return cell, margin_attr_name, val_of_invalid_type
+        return cell, margin_prop_name, val_of_invalid_type
+
+    @pytest.fixture(params=[
+        ('a:tc', 'foobar',
+         'a:tc/a:txBody/(a:bodyPr, a:p/a:r/a:t"foobar")'),
+        ('a:tc/a:txBody/(a:bodyPr, a:p/a:r/(a:br,a:t"bar"))', 'foobar',
+         'a:tc/a:txBody/(a:bodyPr, a:p/a:r/a:t"foobar")'),
+    ])
+    def text_set_fixture(self, request):
+        tc_cxml, new_text, expected_cxml = request.param
+        cell = _Cell(element(tc_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return cell, new_text, expected_xml
+
+    # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def text_set_fixture(self, cell):
-        text = 'foobar'
-        tc_with_text_xml = (
-            a_tc().with_nsdecls().with_child(
-                a_txBody().with_child(
-                    a_bodyPr()).with_child(
-                    a_p().with_child(
-                        an_r().with_child(
-                            a_t().with_text(text)))))
-            .xml()
-        )
-        return cell, text, tc_with_text_xml
+    def cell(self):
+        return _Cell(element('a:tc'), None)
 
 
-class Test_CellCollection(TestCase):
-    """Test _CellCollection"""
-    def setUp(self):
-        tr_xml = (
-            '<a:tr %s h="370840"><a:tc><a:txBody><a:p/></a:txBody></a:tc><a:t'
-            'c><a:txBody><a:p/></a:txBody></a:tc></a:tr>' % nsdecls('a')
-        )
-        test_tr_elm = parse_xml(tr_xml)
-        self.cells = _CellCollection(test_tr_elm, None)
+class Describe_CellCollection(object):
 
-    def test_is_indexable(self):
-        """_CellCollection indexable (e.g. no TypeError on 'cells[0]')"""
-        # verify -----------------------
-        try:
-            self.cells[0]
-        except TypeError:
-            msg = "'_CellCollection' object does not support indexing"
-            self.fail(msg)
-        except IndexError:
-            pass
+    def it_knows_how_many_cells_it_contains(self, len_fixture):
+        cells, expected_count = len_fixture
+        assert len(cells) == expected_count
 
-    def test_is_iterable(self):
-        """_CellCollection is iterable (e.g. ``for cell in cells:``)"""
-        # verify -----------------------
+    def it_can_iterate_over_the_cells_it_contains(self, iter_fixture):
+        cells, expected_tc_lst = iter_fixture
         count = 0
-        try:
-            for cell in self.cells:
-                count += 1
-        except TypeError:
-            msg = "_CellCollection object is not iterable"
-            self.fail(msg)
-        assert count == 2
+        for idx, cell in enumerate(cells):
+            assert isinstance(cell, _Cell)
+            assert cell._tc is expected_tc_lst[idx]
+            count += 1
+        assert count == len(expected_tc_lst)
 
-    def test_raises_on_idx_out_of_range(self):
-        """_CellCollection raises on index out of range"""
-        with self.assertRaises(IndexError):
-            self.cells[9]
+    def it_supports_indexed_access(self, getitem_fixture):
+        cells, expected_tc_lst = getitem_fixture
+        for idx, tc in enumerate(expected_tc_lst):
+            cell = cells[idx]
+            assert isinstance(cell, _Cell)
+            assert cell._tc is tc
 
-    def test_cell_count_correct(self):
-        """len(_CellCollection) returns correct cell count"""
-        # verify -----------------------
-        assert len(self.cells) == 2
+    def it_raises_on_indexed_access_out_of_range(self):
+        cells = _CellCollection(element('a:tr/a:tc'), None)
+        with pytest.raises(IndexError):
+            cells[-1]
+        with pytest.raises(IndexError):
+            cells[9]
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        'a:tr', 'a:tr/a:tc', 'a:tr/(a:tc, a:tc, a:tc)',
+    ])
+    def getitem_fixture(self, request):
+        tr_cxml = request.param
+        tr = element(tr_cxml)
+        cells = _CellCollection(tr, None)
+        expected_cell_lst = tr.findall(qn('a:tc'))
+        return cells, expected_cell_lst
+
+    @pytest.fixture(params=[
+        'a:tr', 'a:tr/a:tc', 'a:tr/(a:tc, a:tc, a:tc)',
+    ])
+    def iter_fixture(self, request):
+        tr_cxml = request.param
+        tr = element(tr_cxml)
+        cells = _CellCollection(tr, None)
+        expected_cell_lst = tr.findall(qn('a:tc'))
+        return cells, expected_cell_lst
+
+    @pytest.fixture(params=[
+        ('a:tr', 0), ('a:tr/a:tc', 1), ('a:tr/(a:tc, a:tc)', 2),
+    ])
+    def len_fixture(self, request):
+        tr_cxml, expected_len = request.param
+        cells = _CellCollection(element(tr_cxml), None)
+        return cells, expected_len
 
 
-class Test_Column(TestCase):
-    """Test _Column"""
-    def setUp(self):
-        gridCol_xml = '<a:gridCol %s w="3048000"/>' % nsdecls('a')
-        test_gridCol_elm = parse_xml(gridCol_xml)
-        self.column = _Column(test_gridCol_elm, Mock(name='table'))
+class Describe_Column(object):
 
-    def test_width_from_xml_correct(self):
-        """_Column.width returns correct value from gridCol XML element"""
-        # verify -----------------------
-        assert self.column.width == 3048000
+    def it_knows_its_width(self, width_get_fixture):
+        column, expected_value = width_get_fixture
+        width = column.width
+        assert width == expected_value
+        assert isinstance(width, BaseLength)
 
-    def test_width_round_trips_intact(self):
-        """_Column.width round-trips intact"""
-        # setup ------------------------
-        self.column.width = 999
-        # verify -----------------------
-        assert self.column.width == 999
+    def it_can_change_its_width(self, width_set_fixture):
+        column, new_width, expected_xml, parent_ = width_set_fixture
+        column.width = new_width
+        assert column._gridCol.xml == expected_xml
+        parent_.notify_width_changed.assert_called_once_with()
 
-    def test_set_width_raises_on_bad_value(self):
-        test_cases = ('abc', '1', -1)
-        for value in test_cases:
-            with self.assertRaises(ValueError):
-                self.column.width = value
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('a:gridCol{w=914400}', Inches(1)),
+        ('a:gridCol{w=10pt}',   Pt(10)),
+    ])
+    def width_get_fixture(self, request):
+        gridCol_cxml, expected_value = request.param
+        column = _Column(element(gridCol_cxml), None)
+        return column, expected_value
+
+    @pytest.fixture(params=[
+        ('a:gridCol{w=12pt}', Inches(1), 'a:gridCol{w=914400}'),
+        ('a:gridCol{w=1234}', Inches(1), 'a:gridCol{w=914400}'),
+    ])
+    def width_set_fixture(self, request, parent_):
+        gridCol_cxml, new_width, expected_gridCol_cxml = request.param
+        column = _Column(element(gridCol_cxml), parent_)
+        expected_xml = xml(expected_gridCol_cxml)
+        return column, new_width, expected_xml, parent_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def parent_(self, request):
+        return instance_mock(request, _ColumnCollection)
 
 
-class Test_ColumnCollection(TestCase):
-    """Test _ColumnCollection"""
-    def setUp(self):
-        tbl_xml = (
-            '<a:tbl %s><a:tblGrid><a:gridCol w="3048000"/><a:gridCol w="30480'
-            '00"/></a:tblGrid></a:tbl>' % nsdecls('a')
-        )
-        test_tbl_elm = parse_xml(tbl_xml)
-        self.columns = _ColumnCollection(test_tbl_elm, Mock(name='table'))
+class Describe_ColumnCollection(object):
 
-    def test_is_indexable(self):
-        """_ColumnCollection indexable (e.g. no TypeError on 'columns[0]')"""
-        # verify -----------------------
-        try:
-            self.columns[0]
-        except TypeError:
-            msg = "'_ColumnCollection' object does not support indexing"
-            self.fail(msg)
-        except IndexError:
-            pass
+    def it_knows_how_many_columns_it_contains(self, len_fixture):
+        columns, expected_count = len_fixture
+        assert len(columns) == expected_count
 
-    def test_is_iterable(self):
-        """_ColumnCollection is iterable (e.g. ``for col in columns:``)"""
-        # verify -----------------------
+    def it_can_iterate_over_the_columns_it_contains(self, iter_fixture):
+        columns, expected_gridCol_lst = iter_fixture
         count = 0
-        try:
-            for col in self.columns:
-                count += 1
-        except TypeError:
-            msg = "_ColumnCollection object is not iterable"
-            self.fail(msg)
-        assert count == 2
+        for idx, column in enumerate(columns):
+            assert isinstance(column, _Column)
+            assert column._gridCol is expected_gridCol_lst[idx]
+            count += 1
+        assert count == len(expected_gridCol_lst)
 
-    def test_raises_on_idx_out_of_range(self):
-        """_ColumnCollection raises on index out of range"""
-        with self.assertRaises(IndexError):
-            self.columns[9]
+    def it_supports_indexed_access(self, getitem_fixture):
+        columns, expected_gridCol_lst = getitem_fixture
+        for idx, gridCol in enumerate(expected_gridCol_lst):
+            column = columns[idx]
+            assert isinstance(column, _Column)
+            assert column._gridCol is gridCol
 
-    def test_column_count_correct(self):
-        """len(_ColumnCollection) returns correct column count"""
-        # verify -----------------------
-        assert len(self.columns) == 2
-
-
-class Test_Row(TestCase):
-    """Test _Row"""
-    def setUp(self):
-        tr_xml = (
-            '<a:tr %s h="370840"><a:tc><a:txBody><a:p/></a:txBody></a:tc><a:t'
-            'c><a:txBody><a:p/></a:txBody></a:tc></a:tr>' % nsdecls('a')
+    def it_raises_on_indexed_access_out_of_range(self):
+        columns = _ColumnCollection(
+            element('a:tbl/a:tblGrid/a:gridCol'), None
         )
-        test_tr_elm = parse_xml(tr_xml)
-        self.row = _Row(test_tr_elm, Mock(name='table'))
+        with pytest.raises(IndexError):
+            columns[-1]
+        with pytest.raises(IndexError):
+            columns[9]
 
-    def test_height_from_xml_correct(self):
-        """_Row.height returns correct value from tr XML element"""
-        # verify -----------------------
-        assert self.row.height == 370840
+    # fixtures -------------------------------------------------------
 
-    def test_height_round_trips_intact(self):
-        """_Row.height round-trips intact"""
-        # setup ------------------------
-        self.row.height = 999
-        # verify -----------------------
-        assert self.row.height == 999
+    @pytest.fixture(params=[
+        'a:tbl/a:tblGrid',
+        'a:tbl/a:tblGrid/a:gridCol',
+        'a:tbl/a:tblGrid/(a:gridCol, a:gridCol, a:gridCol)',
+    ])
+    def getitem_fixture(self, request):
+        tbl_cxml = request.param
+        tbl = element(tbl_cxml)
+        columns = _ColumnCollection(tbl, None)
+        expected_column_lst = tbl.xpath('//a:gridCol')
+        return columns, expected_column_lst
 
-    def test_set_height_raises_on_bad_value(self):
-        """_Row.height raises on attempt to assign invalid value"""
-        test_cases = ('abc', '1', -1)
-        for value in test_cases:
-            with self.assertRaises(ValueError):
-                self.row.height = value
+    @pytest.fixture(params=[
+        'a:tbl/a:tblGrid',
+        'a:tbl/a:tblGrid/a:gridCol',
+        'a:tbl/a:tblGrid/(a:gridCol, a:gridCol, a:gridCol)',
+    ])
+    def iter_fixture(self, request):
+        tbl_cxml = request.param
+        tbl = element(tbl_cxml)
+        columns = _ColumnCollection(tbl, None)
+        expected_column_lst = tbl.xpath('//a:gridCol')
+        print(expected_column_lst)
+        return columns, expected_column_lst
+
+    @pytest.fixture(params=[
+        ('a:tbl/a:tblGrid', 0),
+        ('a:tbl/a:tblGrid/a:gridCol', 1),
+        ('a:tbl/a:tblGrid/(a:gridCol,a:gridCol)', 2),
+    ])
+    def len_fixture(self, request):
+        tbl_cxml, expected_len = request.param
+        columns = _ColumnCollection(element(tbl_cxml), None)
+        return columns, expected_len
 
 
-class Test_RowCollection(TestCase):
+class Describe_Row(object):
 
-    def setUp(self):
-        tbl_xml = (
-            '<a:tbl %s><a:tr h="370840"><a:tc><a:txBody><a:p/></a:txBody></a:'
-            'tc><a:tc><a:txBody><a:p/></a:txBody></a:tc></a:tr><a:tr h="37084'
-            '0"><a:tc><a:txBody><a:p/></a:txBody></a:tc><a:tc><a:txBody><a:p/'
-            '></a:txBody></a:tc></a:tr></a:tbl>' % nsdecls('a')
+    def it_knows_its_height(self, height_get_fixture):
+        row, expected_value = height_get_fixture
+        height = row.height
+        assert height == expected_value
+        assert isinstance(height, BaseLength)
+
+    def it_can_change_its_height(self, height_set_fixture):
+        row, new_height, expected_xml, parent_ = height_set_fixture
+        row.height = new_height
+        assert row._tr.xml == expected_xml
+        parent_.notify_height_changed.assert_called_once_with()
+
+    def it_provides_access_to_its_cells(self, cells_fixture):
+        row, _CellCollection_, cells_ = cells_fixture
+        cells = row.cells
+        _CellCollection_.assert_called_once_with(row._tr, row)
+        assert cells is cells_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def cells_fixture(self, _CellCollection_, cells_):
+        row = _Row(element('a:tr'), None)
+        return row, _CellCollection_, cells_
+
+    @pytest.fixture(params=[
+        ('a:tr{h=914400}', Inches(1)),
+        ('a:tr{h=10pt}',   Pt(10)),
+    ])
+    def height_get_fixture(self, request):
+        tr_cxml, expected_value = request.param
+        row = _Row(element(tr_cxml), None)
+        return row, expected_value
+
+    @pytest.fixture(params=[
+        ('a:tr{h=12pt}', Inches(1), 'a:tr{h=914400}'),
+        ('a:tr{h=1234}', Inches(1), 'a:tr{h=914400}'),
+    ])
+    def height_set_fixture(self, request, parent_):
+        tr_cxml, new_height, expected_tr_cxml = request.param
+        row = _Row(element(tr_cxml), parent_)
+        expected_xml = xml(expected_tr_cxml)
+        return row, new_height, expected_xml, parent_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _CellCollection_(self, request, cells_):
+        return class_mock(
+            request, 'pptx.shapes.table._CellCollection', return_value=cells_
         )
-        test_tbl_elm = parse_xml(tbl_xml)
-        self.rows = _RowCollection(test_tbl_elm, Mock(name='table'))
 
-    def test_is_indexable(self):
-        """
-        _RowCollection indexable (e.g. no TypeError on 'rows[0]')
-        """
-        # verify -----------------------
-        try:
-            self.rows[0]
-        except TypeError:
-            msg = "'_RowCollection' object does not support indexing"
-            self.fail(msg)
-        except IndexError:
-            pass
+    @pytest.fixture
+    def cells_(self, request):
+        return instance_mock(request, _CellCollection)
 
-    def test_is_iterable(self):
-        """_RowCollection is iterable (e.g. ``for row in rows:``)"""
-        # verify -----------------------
+    @pytest.fixture
+    def parent_(self, request):
+        return instance_mock(request, _RowCollection)
+
+
+class Describe_RowCollection(object):
+
+    def it_knows_how_many_rows_it_contains(self, len_fixture):
+        rows, expected_count = len_fixture
+        assert len(rows) == expected_count
+
+    def it_can_iterate_over_the_rows_it_contains(self, iter_fixture):
+        rows, expected_tr_lst = iter_fixture
         count = 0
-        try:
-            for row in self.rows:
-                count += 1
-        except TypeError:
-            msg = "_RowCollection object is not iterable"
-            self.fail(msg)
-        assert count == 2
+        for idx, row in enumerate(rows):
+            assert isinstance(row, _Row)
+            assert row._tr is expected_tr_lst[idx]
+            count += 1
+        assert count == len(expected_tr_lst)
 
-    def test_raises_on_idx_out_of_range(self):
-        """_RowCollection raises on index out of range"""
-        with self.assertRaises(IndexError):
-            self.rows[9]
+    def it_supports_indexed_access(self, getitem_fixture):
+        rows, expected_tr_lst = getitem_fixture
+        for idx, tr in enumerate(expected_tr_lst):
+            row = rows[idx]
+            assert isinstance(row, _Row)
+            assert row._tr is tr
 
-    def test_row_count_correct(self):
-        """len(_RowCollection) returns correct row count"""
-        # verify -----------------------
-        assert len(self.rows) == 2
+    def it_raises_on_indexed_access_out_of_range(self):
+        rows = _RowCollection(element('a:tbl/a:tr'), None)
+        with pytest.raises(IndexError):
+            rows[-1]
+        with pytest.raises(IndexError):
+            rows[9]
 
+    # fixtures -------------------------------------------------------
 
-class TestTable(TestCase):
-    """Test Table"""
-    def test_initial_height_divided_evenly_between_rows(self):
-        """Table creation height divided evenly between rows"""
-        # constant values -------------
-        rows = cols = 3
-        left = top = Inches(1.0)
-        width = Inches(2.0)
-        height = 1000
-        shapes = test_shapes.empty_shape_collection
-        # exercise ---------------------
-        table = shapes.add_table(rows, cols, left, top, width, height)
-        # verify -----------------------
-        assert table.rows[0].height == 333
-        assert table.rows[1].height == 333
-        assert table.rows[2].height == 334
+    @pytest.fixture(params=[
+        'a:tbl', 'a:tbl/a:tr', 'a:tbl/(a:tr, a:tr, a:tr)',
+    ])
+    def getitem_fixture(self, request):
+        tbl_cxml = request.param
+        tbl = element(tbl_cxml)
+        rows = _RowCollection(tbl, None)
+        expected_row_lst = tbl.findall(qn('a:tr'))
+        return rows, expected_row_lst
 
-    def test_initial_width_divided_evenly_between_columns(self):
-        """Table creation width divided evenly between columns"""
-        # constant values -------------
-        rows = cols = 3
-        left = top = Inches(1.0)
-        width = 1000
-        height = Inches(2.0)
-        shapes = test_shapes.empty_shape_collection
-        # exercise ---------------------
-        table = shapes.add_table(rows, cols, left, top, width, height)
-        # verify -----------------------
-        assert table.columns[0].width == 333
-        assert table.columns[1].width == 333
-        assert table.columns[2].width == 334
+    @pytest.fixture(params=[
+        'a:tbl', 'a:tbl/a:tr', 'a:tbl/(a:tr, a:tr, a:tr)',
+    ])
+    def iter_fixture(self, request):
+        tbl_cxml = request.param
+        tbl = element(tbl_cxml)
+        rows = _RowCollection(tbl, None)
+        expected_row_lst = tbl.findall(qn('a:tr'))
+        return rows, expected_row_lst
 
-    def test_height_sum_of_row_heights(self):
-        """Table.height is sum of row heights"""
-        # constant values -------------
-        rows = cols = 2
-        left = top = width = height = Inches(2.0)
-        # setup ------------------------
-        shapes = test_shapes.empty_shape_collection
-        tbl = shapes.add_table(rows, cols, left, top, width, height)
-        tbl.rows[0].height = 100
-        tbl.rows[1].height = 200
-        # verify -----------------------
-        sum_of_row_heights = 300
-        assert tbl.height == sum_of_row_heights
-
-    def test_width_sum_of_col_widths(self):
-        """Table.width is sum of column widths"""
-        # constant values -------------
-        rows = cols = 2
-        left = top = width = height = Inches(2.0)
-        # setup ------------------------
-        shapes = test_shapes.empty_shape_collection
-        tbl = shapes.add_table(rows, cols, left, top, width, height)
-        tbl.columns[0].width = 100
-        tbl.columns[1].width = 200
-        # verify -----------------------
-        sum_of_col_widths = tbl.columns[0].width + tbl.columns[1].width
-        assert tbl.width == sum_of_col_widths
-
-
-class TestTableBooleanProperties(TestCase):
-    """Test Table"""
-    def setUp(self):
-        """Test fixture for Table boolean properties"""
-        shapes = test_shapes.empty_shape_collection
-        self.table = shapes.add_table(2, 2, 1000, 1000, 1000, 1000)
-        self.assignment_cases = (
-            (True,  True),
-            (False, False),
-            (0,     False),
-            (1,     True),
-            ('',    False),
-            ('foo', True)
-        )
-
-    def mockery(self, property_name, property_return_value=None):
-        """
-        Return property of *property_name* on self.table with return value of
-        *property_return_value*.
-        """
-        # mock <a:tbl> element of Table so we can mock its properties
-        tbl = MagicMock()
-        self.table._tbl_elm = tbl
-        # create a suitable mock for the property
-        property_ = PropertyMock()
-        if property_return_value:
-            property_.return_value = property_return_value
-        # and attach it the the <a:tbl> element object (class actually)
-        setattr(type(tbl), property_name, property_)
-        return property_
-
-    def test_first_col_property_value(self):
-        """Table.first_col property value is calculated correctly"""
-        # mockery ----------------------
-        firstCol_val = True
-        firstCol = self.mockery('firstCol', firstCol_val)
-        # exercise ---------------------
-        retval = self.table.first_col
-        # verify -----------------------
-        firstCol.assert_called_once_with()
-        assert retval == firstCol_val
-
-    def test_first_row_property_value(self):
-        """Table.first_row property value is calculated correctly"""
-        # mockery ----------------------
-        firstRow_val = True
-        firstRow = self.mockery('firstRow', firstRow_val)
-        # exercise ---------------------
-        retval = self.table.first_row
-        # verify -----------------------
-        firstRow.assert_called_once_with()
-        assert retval == firstRow_val
-
-    def test_horz_banding_property_value(self):
-        """Table.horz_banding property value is calculated correctly"""
-        # mockery ----------------------
-        bandRow_val = True
-        bandRow = self.mockery('bandRow', bandRow_val)
-        # exercise ---------------------
-        retval = self.table.horz_banding
-        # verify -----------------------
-        bandRow.assert_called_once_with()
-        assert retval == bandRow_val
-
-    def test_last_col_property_value(self):
-        """Table.last_col property value is calculated correctly"""
-        # mockery ----------------------
-        lastCol_val = True
-        lastCol = self.mockery('lastCol', lastCol_val)
-        # exercise ---------------------
-        retval = self.table.last_col
-        # verify -----------------------
-        lastCol.assert_called_once_with()
-        assert retval == lastCol_val
-
-    def test_last_row_property_value(self):
-        """Table.last_row property value is calculated correctly"""
-        # mockery ----------------------
-        lastRow_val = True
-        lastRow = self.mockery('lastRow', lastRow_val)
-        # exercise ---------------------
-        retval = self.table.last_row
-        # verify -----------------------
-        lastRow.assert_called_once_with()
-        assert retval == lastRow_val
-
-    def test_vert_banding_property_value(self):
-        """Table.vert_banding property value is calculated correctly"""
-        # mockery ----------------------
-        bandCol_val = True
-        bandCol = self.mockery('bandCol', bandCol_val)
-        # exercise ---------------------
-        retval = self.table.vert_banding
-        # verify -----------------------
-        bandCol.assert_called_once_with()
-        assert retval == bandCol_val
-
-    def test_first_col_assignment(self):
-        """Assignment to Table.first_col sets attribute value"""
-        # mockery ----------------------
-        firstCol = self.mockery('firstCol')
-        # verify -----------------------
-        for assigned_value, called_with_value in self.assignment_cases:
-            self.table.first_col = assigned_value
-            firstCol.assert_called_once_with(called_with_value)
-            firstCol.reset_mock()
-
-    def test_first_row_assignment(self):
-        """Assignment to Table.first_row sets attribute value"""
-        # mockery ----------------------
-        firstRow = self.mockery('firstRow')
-        # verify -----------------------
-        for assigned_value, called_with_value in self.assignment_cases:
-            self.table.first_row = assigned_value
-            firstRow.assert_called_once_with(called_with_value)
-            firstRow.reset_mock()
-
-    def test_horz_banding_assignment(self):
-        """Assignment to Table.horz_banding sets attribute value"""
-        # mockery ----------------------
-        bandRow = self.mockery('bandRow')
-        # verify -----------------------
-        for assigned_value, called_with_value in self.assignment_cases:
-            self.table.horz_banding = assigned_value
-            bandRow.assert_called_once_with(called_with_value)
-            bandRow.reset_mock()
-
-    def test_last_col_assignment(self):
-        """Assignment to Table.last_col sets attribute value"""
-        # mockery ----------------------
-        lastCol = self.mockery('lastCol')
-        # verify -----------------------
-        for assigned_value, called_with_value in self.assignment_cases:
-            self.table.last_col = assigned_value
-            lastCol.assert_called_once_with(called_with_value)
-            lastCol.reset_mock()
-
-    def test_last_row_assignment(self):
-        """Assignment to Table.last_row sets attribute value"""
-        # mockery ----------------------
-        lastRow = self.mockery('lastRow')
-        # verify -----------------------
-        for assigned_value, called_with_value in self.assignment_cases:
-            self.table.last_row = assigned_value
-            lastRow.assert_called_once_with(called_with_value)
-            lastRow.reset_mock()
-
-    def test_vert_banding_assignment(self):
-        """Assignment to Table.vert_banding sets attribute value"""
-        # mockery ----------------------
-        bandCol = self.mockery('bandCol')
-        # verify -----------------------
-        for assigned_value, called_with_value in self.assignment_cases:
-            self.table.vert_banding = assigned_value
-            bandCol.assert_called_once_with(called_with_value)
-            bandCol.reset_mock()
+    @pytest.fixture(params=[
+        ('a:tbl', 0), ('a:tbl/a:tr', 1), ('a:tbl/(a:tr, a:tr)', 2),
+    ])
+    def len_fixture(self, request):
+        tbl_cxml, expected_len = request.param
+        rows = _RowCollection(element(tbl_cxml), None)
+        return rows, expected_len

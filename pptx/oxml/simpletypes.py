@@ -8,6 +8,7 @@ type in the associated XML schema.
 
 from __future__ import absolute_import, print_function
 
+from ..exc import InvalidXmlError
 from ..util import Emu
 
 
@@ -95,6 +96,11 @@ class XsdBoolean(BaseSimpleType):
 
     @classmethod
     def convert_from_xml(cls, str_value):
+        if str_value not in ('1', '0', 'true', 'false'):
+            raise InvalidXmlError(
+                "value must be one of '1', '0', 'true' or 'false', got '%s'"
+                % str_value
+            )
         return str_value in ('1', 'true')
 
     @classmethod
@@ -168,7 +174,7 @@ class ST_Coordinate(BaseSimpleType):
     def convert_from_xml(cls, str_value):
         if 'i' in str_value or 'm' in str_value or 'p' in str_value:
             return ST_UniversalMeasure.convert_from_xml(str_value)
-        return int(str_value)
+        return Emu(int(str_value))
 
     @classmethod
     def convert_to_xml(cls, value):
@@ -417,5 +423,5 @@ class ST_UniversalMeasure(BaseSimpleType):
             'mm': 36000, 'cm': 360000, 'in': 914400, 'pt': 12700,
             'pc': 152400, 'pi': 152400
         }[units_part]
-        emu_value = int(round(quantity * multiplier))
+        emu_value = Emu(int(round(quantity * multiplier)))
         return emu_value
