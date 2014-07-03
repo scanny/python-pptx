@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 from ..enum.shapes import MSO_SHAPE_TYPE
 from .shape import BaseShape
+from .table import Table
 
 
 class GraphicFrame(BaseShape):
@@ -46,3 +47,14 @@ class GraphicFrame(BaseShape):
             return MSO_SHAPE_TYPE.TABLE
         else:
             return None
+
+    @property
+    def table(self):
+        """
+        The |Table| object contained in this graphic frame. Raises
+        |ValueError| if this graphic frame does not contain a table.
+        """
+        if not self.has_table:
+            raise ValueError('shape does not contain a table')
+        tbl = self._element.graphic.graphicData.tbl
+        return Table(tbl, self)

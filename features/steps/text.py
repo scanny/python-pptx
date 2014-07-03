@@ -52,7 +52,7 @@ def given_a_text_run_in_a_table_cell(context):
     prs = Presentation()
     blank_slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_slide_layout)
-    table = slide.shapes.add_table(1, 1, 0, 0, 0, 0)
+    table = slide.shapes.add_table(1, 1, 0, 0, 0, 0).table
     cell = table.cell(0, 0)
     p = cell.textframe.paragraphs[0]
     context.r = p.add_run()

@@ -204,16 +204,18 @@ class _SlideShapeTree(BaseShapeTree):
 
     def add_table(self, rows, cols, left, top, width, height):
         """
-        Add table shape with the specified number of *rows* and *cols* at the
-        specified position with the specified size. *width* is evenly
-        distributed between the *cols* columns of the new table. Likewise,
-        *height* is evenly distributed between the *rows* rows created.
+        Add a |GraphicFrame| object containing a table with the specified
+        number of *rows* and *cols* and the specified position and size.
+        *width* is evenly distributed between the columns of the new table.
+        Likewise, *height* is evenly distributed between the rows. Note that
+        the ``.table`` property on the returned |GraphicFrame| shape must be
+        used to access the enclosed |Table| object.
         """
         graphicFrame = self._add_graphicFrame_containing_table(
             rows, cols, left, top, width, height
         )
-        table = self._shape_factory(graphicFrame)
-        return table
+        graphic_frame = self._shape_factory(graphicFrame)
+        return graphic_frame
 
     def add_textbox(self, left, top, width, height):
         """

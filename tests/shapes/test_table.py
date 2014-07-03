@@ -11,7 +11,7 @@ import pytest
 from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml.ns import qn
-from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
+from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.table import (
     _Cell, _CellCollection, _Column, _ColumnCollection, _Row, _RowCollection,
     Table
@@ -37,15 +37,15 @@ class DescribeTable(object):
         table, expected_columns_ = columns_fixture
         assert table.columns is expected_columns_
 
-    def it_updates_graphicFrame_cy_on_height_change(self, dy_fixture):
-        table, expected_height = dy_fixture
-        table.notify_height_changed()
-        assert table._graphicFrame.cy == expected_height
-
-    def it_updates_graphicFrame_cx_on_width_change(self, dx_fixture):
+    def it_updates_graphic_frame_width_on_width_change(self, dx_fixture):
         table, expected_width = dx_fixture
         table.notify_width_changed()
-        assert table._graphicFrame.cx == expected_width
+        assert table._graphic_frame.width == expected_width
+
+    def it_updates_graphic_frame_height_on_height_change(self, dy_fixture):
+        table, expected_height = dy_fixture
+        table.notify_height_changed()
+        assert table._graphic_frame.height == expected_height
 
     # fixtures -------------------------------------------------------
 
@@ -62,22 +62,16 @@ class DescribeTable(object):
         return table, columns_
 
     @pytest.fixture
-    def dx_fixture(self, graphicFrame_):
+    def dx_fixture(self, graphic_frame_):
         tbl_cxml = 'a:tbl/a:tblGrid/(a:gridCol{w=111},a:gridCol{w=222})'
-        tbl_cxml = (
-            'p:graphicFrame/(p:xfrm, a:graphic/a:graphicData/%s)' % tbl_cxml
-        )
-        table = Table(element(tbl_cxml), graphicFrame_)
+        table = Table(element(tbl_cxml), graphic_frame_)
         expected_width = 333
         return table, expected_width
 
     @pytest.fixture
-    def dy_fixture(self, graphicFrame_):
+    def dy_fixture(self, graphic_frame_):
         tbl_cxml = 'a:tbl/(a:tr{h=100},a:tr{h=200})'
-        tbl_cxml = (
-            'p:graphicFrame/(p:xfrm, a:graphic/a:graphicData/%s)' % tbl_cxml
-        )
-        table = Table(element(tbl_cxml), graphicFrame_)
+        table = Table(element(tbl_cxml), graphic_frame_)
         expected_height = 300
         return table, expected_height
 
@@ -97,8 +91,8 @@ class DescribeTable(object):
         return instance_mock(request, _ColumnCollection)
 
     @pytest.fixture
-    def graphicFrame_(self, request):
-        return instance_mock(request, CT_GraphicalObjectFrame)
+    def graphic_frame_(self, request):
+        return instance_mock(request, GraphicFrame)
 
     @pytest.fixture
     def row_(self, request):
@@ -110,9 +104,7 @@ class DescribeTable(object):
 
     @pytest.fixture
     def table(self):
-        tbl_cxml = 'p:graphicFrame/a:graphic/a:graphicData/a:tbl'
-        # return Table(element('a:tbl'), None)
-        return Table(element(tbl_cxml), None)
+        return Table(element('a:tbl'), None)
 
 
 class DescribeTableBooleanProperties(object):
@@ -145,7 +137,6 @@ class DescribeTableBooleanProperties(object):
     ])
     def boolprop_get_fixture(self, request):
         tbl_cxml, boolprop_name, expected_value = request.param
-        tbl_cxml = 'p:graphicFrame/a:graphic/a:graphicData/' + tbl_cxml
         table = Table(element(tbl_cxml), None)
         return table, boolprop_name, expected_value
 
@@ -168,11 +159,8 @@ class DescribeTableBooleanProperties(object):
     ])
     def boolprop_set_fixture(self, request):
         tbl_cxml, boolprop_name, new_value, expected_tbl_cxml = request.param
-        tbl_cxml = 'p:graphicFrame/a:graphic/a:graphicData/' + tbl_cxml
         table = Table(element(tbl_cxml), None)
-        expected_tbl = element('p:graphicFrame/' + expected_tbl_cxml)
-        # expected_xml = xml(expected_tbl_cxml)
-        expected_xml = expected_tbl.xpath('./a:tbl')[0].xml
+        expected_xml = xml(expected_tbl_cxml)
         return table, boolprop_name, new_value, expected_xml
 
 

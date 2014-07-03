@@ -13,6 +13,10 @@ from pptx.oxml.shapes.table import CT_Table
 class DescribeCT_Table(object):
 
     def it_can_create_a_new_tbl_element_tree(self):
+        """
+        Indirectly tests that column widths are a proportional split of total
+        width and that row heights a proportional split of total height.
+        """
         expected_xml = (
             '<a:tbl %s>\n  <a:tblPr firstRow="1" bandRow="1">\n    <a:tableSt'
             'yleId>{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}</a:tableStyleId>\n '

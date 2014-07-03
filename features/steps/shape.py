@@ -47,7 +47,7 @@ def given_a_shape(context):
     context.shape = sld.shapes[0]
 
 
-@given('a table')
+@given('a graphic frame')  # shouldn't matter, but this one contains a table
 def given_a_table(context):
     prs = Presentation(test_pptx('shp-common-props'))
     sld = prs.slides[0]
@@ -57,11 +57,11 @@ def given_a_table(context):
 @given('a {shape_type} on a slide')
 def given_a_shape_on_a_slide(context, shape_type):
     shape_idx = {
-        'shape':       0,
-        'picture':     1,
-        'table':       2,
-        'group shape': 3,
-        'connector':   4,
+        'shape':         0,
+        'picture':       1,
+        'graphic frame': 2,
+        'group shape':   3,
+        'connector':     4,
     }[shape_type]
     prs = Presentation(test_pptx('shp-common-props'))
     sld = prs.slides[0]
@@ -116,11 +116,11 @@ def when_add_auto_shape(context):
 @when("I change the left and top of the {shape_type}")
 def when_I_change_the_position_of_the_shape(context, shape_type):
     left, top = {
-        'shape':        (692696, 1339552),
-        'picture':     (1835696, 2711152),
-        'table':       (2978696, 4082752),
-        'group shape': (4121696, 5454352),
-        'connector':   (5264696, 6825952),
+        'shape':          (692696, 1339552),
+        'picture':       (1835696, 2711152),
+        'graphic frame': (2978696, 4082752),
+        'group shape':   (4121696, 5454352),
+        'connector':     (5264696, 6825952),
     }[shape_type]
     shape = context.shape
     shape.left = left
@@ -130,11 +130,11 @@ def when_I_change_the_position_of_the_shape(context, shape_type):
 @when("I change the width and height of the {shape_type}")
 def when_I_change_the_size_of_the_shape(context, shape_type):
     width, height = {
-        'shape':        (692696, 1339552),
-        'picture':     (1835696, 2711152),
-        'table':       (2978696, 4082752),
-        'group shape': (4121696, 5454352),
-        'connector':   (5264696, 6825952),
+        'shape':          (692696, 1339552),
+        'picture':       (1835696, 2711152),
+        'graphic frame': (2978696, 4082752),
+        'group shape':   (4121696, 5454352),
+        'connector':     (5264696, 6825952),
     }[shape_type]
     shape = context.shape
     shape.width = width
@@ -238,11 +238,11 @@ def then_the_shape_has_textframe_status(context, has_textframe_status):
 @then('I can get the id of the {shape_type}')
 def then_I_can_get_the_id_of_the_shape(context, shape_type):
     expected_id = {
-        'shape':        2,
-        'picture':      3,
-        'table':        4,
-        'group shape':  9,
-        'connector':   11,
+        'shape':         2,
+        'picture':       3,
+        'graphic frame': 4,
+        'group shape':   9,
+        'connector':    11,
     }[shape_type]
     assert context.shape.id == expected_id
 
@@ -250,11 +250,11 @@ def then_I_can_get_the_id_of_the_shape(context, shape_type):
 @then('I can get the name of the {shape_type}')
 def then_I_can_get_the_name_of_the_shape(context, shape_type):
     expected_name = {
-        'shape':       'Rounded Rectangle 1',
-        'picture':     'Picture 2',
-        'table':       'Table 3',
-        'group shape': 'Group 8',
-        'connector':   'Elbow Connector 10',
+        'shape':         'Rounded Rectangle 1',
+        'picture':       'Picture 2',
+        'graphic frame': 'Table 3',
+        'group shape':   'Group 8',
+        'connector':     'Elbow Connector 10',
     }[shape_type]
     shape = context.shape
     msg = "expected shape name '%s', got '%s'" % (shape.name, expected_name)
@@ -264,11 +264,11 @@ def then_I_can_get_the_name_of_the_shape(context, shape_type):
 @then('the left and top of the {shape_type} match their new values')
 def then_left_and_top_of_shape_match_new_values(context, shape_type):
     expected_left, expected_top = {
-        'shape':        (692696, 1339552),
-        'picture':     (1835696, 2711152),
-        'table':       (2978696, 4082752),
-        'group shape': (4121696, 5454352),
-        'connector':   (5264696, 6825952),
+        'shape':          (692696, 1339552),
+        'picture':       (1835696, 2711152),
+        'graphic frame': (2978696, 4082752),
+        'group shape':   (4121696, 5454352),
+        'connector':     (5264696, 6825952),
     }[shape_type]
     shape = context.shape
     assert shape.left == expected_left, 'got left: %s' % shape.left
@@ -278,11 +278,11 @@ def then_left_and_top_of_shape_match_new_values(context, shape_type):
 @then('the left and top of the {shape_type} match their known values')
 def then_left_and_top_of_shape_match_known_values(context, shape_type):
     expected_left, expected_top = {
-        'shape':       (1339552,  692696),
-        'picture':     (2711152, 1835696),
-        'table':       (4082752, 2978696),
-        'group shape': (5454352, 4121696),
-        'connector':   (6825952, 5264696),
+        'shape':         (1339552,  692696),
+        'picture':       (2711152, 1835696),
+        'graphic frame': (4082752, 2978696),
+        'group shape':   (5454352, 4121696),
+        'connector':     (6825952, 5264696),
     }[shape_type]
     shape = context.shape
     assert shape.left == expected_left, 'got left: %s' % shape.left
@@ -292,11 +292,11 @@ def then_left_and_top_of_shape_match_known_values(context, shape_type):
 @then('the width and height of the {shape_type} match their known values')
 def then_width_and_height_of_shape_match_known_values(context, shape_type):
     expected_width, expected_height = {
-        'shape':       (928192, 914400),
-        'picture':     (914400, 945232),
-        'table':       (993304, 914400),
-        'group shape': (914400, 914400),
-        'connector':   (986408, 828600),
+        'shape':         (928192, 914400),
+        'picture':       (914400, 945232),
+        'graphic frame': (993304, 914400),
+        'group shape':   (914400, 914400),
+        'connector':     (986408, 828600),
     }[shape_type]
     shape = context.shape
     assert shape.width == expected_width, 'got width: %s' % shape.width
@@ -306,11 +306,11 @@ def then_width_and_height_of_shape_match_known_values(context, shape_type):
 @then('the width and height of the {shape_type} match their new values')
 def then_width_and_height_of_shape_match_new_values(context, shape_type):
     expected_width, expected_height = {
-        'shape':        (692696, 1339552),
-        'picture':     (1835696, 2711152),
-        'table':       (2978696, 4082752),
-        'group shape': (4121696, 5454352),
-        'connector':   (5264696, 6825952),
+        'shape':          (692696, 1339552),
+        'picture':       (1835696, 2711152),
+        'graphic frame': (2978696, 4082752),
+        'group shape':   (4121696, 5454352),
+        'connector':     (5264696, 6825952),
     }[shape_type]
     shape = context.shape
     assert shape.width == expected_width, 'got width: %s' % shape.width

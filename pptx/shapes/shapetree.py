@@ -5,10 +5,10 @@ The shape tree, the structure that holds a slide's shapes.
 """
 
 from .autoshape import Shape
+from .graphfrm import GraphicFrame
 from ..oxml.ns import qn
 from .picture import Picture
 from .shape import BaseShape
-from .table import Table
 
 
 class BaseShapeTree(object):
@@ -112,6 +112,5 @@ def BaseShapeFactory(shape_elm, parent):
     if tag_name == qn('p:pic'):
         return Picture(shape_elm, parent)
     if tag_name == qn('p:graphicFrame'):
-        if shape_elm.has_table:
-            return Table(shape_elm, parent)
+        return GraphicFrame(shape_elm, parent)
     return BaseShape(shape_elm, parent)

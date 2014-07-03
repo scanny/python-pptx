@@ -3,6 +3,41 @@
 Release History
 ---------------
 
+NEXT
+++++++++++++++++++
+
+- Rationalized graphical object shape access
+  **Note backward incompatibilities below**
+
+**BACKWARD INCOMPATIBILITIES:**
+
+A table is no longer treated as a shape. Rather it is a graphical object
+contained in a GraphicFrame shape, as are Chart and SmartArt objects.
+
+Example::
+
+    table = shapes.add_table(...)
+
+    # becomes
+
+    graphic_frame = shapes.add_table(...)
+    table = graphic_frame.table
+
+    # or
+
+    table = shapes.add_table(...).table
+
+As the enclosing shape, the id, name, shape type, position, and size are
+attributes of the enclosing GraphicFrame object.
+
+The contents of a GraphicFrame shape can be identified using three available
+properties on a shape: has_table, has_chart, and has_smart_art. The enclosed
+graphical object is obtained using the properties GraphicFrame.table and
+GraphicFrame.chart. SmartArt is not yet supported. Accessing one of these
+properties on a GraphicFrame not containing the corresponding object raises
+an exception.
+
+
 0.4.2 (2014-04-29)
 ++++++++++++++++++
 

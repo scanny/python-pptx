@@ -6,25 +6,24 @@ Table-related objects such as Table and Cell.
 
 from . import Subshape
 from ..dml.fill import FillFormat
-from ..enum.shapes import MSO_SHAPE_TYPE
-from .graphfrm import GraphicFrame
 from ..text import TextFrame
 from ..util import lazyproperty, to_unicode
 
 
-class Table(GraphicFrame):
+class Table(object):
     """
     A table shape. Not intended to be constructed directly, use
     :meth:`.Slide.shapes.add_table` to add a table to a slide.
     """
-    def __init__(self, graphicFrame, parent):
-        super(Table, self).__init__(graphicFrame, parent)
-        self._graphicFrame = graphicFrame
-        self._tbl = graphicFrame.graphic.graphicData.tbl
+    def __init__(self, tbl, graphic_frame):
+        super(Table, self).__init__()
+        self._tbl = tbl
+        self._graphic_frame = graphic_frame
 
     def cell(self, row_idx, col_idx):
         """
-        Return table cell at *row_idx*, *col_idx* location.
+        Return table cell at *row_idx*, *col_idx* location. Indexes are
+        zero-based, e.g. cell(0, 0) is the top, left cell.
         """
         row = self.rows[row_idx]
         return row.cells[col_idx]
@@ -107,7 +106,7 @@ class Table(GraphicFrame):
         to recalculate its total height (as the sum of the row heights).
         """
         new_table_height = sum([row.height for row in self.rows])
-        self._graphicFrame.cy = new_table_height
+        self._graphic_frame.height = new_table_height
 
     def notify_width_changed(self):
         """
@@ -116,7 +115,14 @@ class Table(GraphicFrame):
         widths).
         """
         new_table_width = sum([col.width for col in self.columns])
-        self._graphicFrame.cx = new_table_width
+        self._graphic_frame.width = new_table_width
+
+    @property
+    def part(self):
+        """
+        The package part containing this table.
+        """
+        return self._graphic_frame.part
 
     @lazyproperty
     def rows(self):
@@ -126,14 +132,6 @@ class Table(GraphicFrame):
         ``col = tbl.rows[0]``.
         """
         return _RowCollection(self._tbl, self)
-
-    @property
-    def shape_type(self):
-        """
-        Unique integer identifying the type of this shape, unconditionally
-        ``MSO_SHAPE_TYPE.TABLE`` in this case.
-        """
-        return MSO_SHAPE_TYPE.TABLE
 
     @property
     def vert_banding(self):
