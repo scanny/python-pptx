@@ -69,6 +69,10 @@ class DescribeBaseShape(object):
         shape, is_placeholder = is_placeholder_fixture
         assert shape.is_placeholder is is_placeholder
 
+    def it_knows_it_doesnt_contain_a_chart(self):
+        shape = BaseShape(None, None)
+        assert shape.has_chart is False
+
     def it_provides_access_to_its_textframe(self, textframe_fixture):
         shape, TextFrame_, txBody_, textframe_ = textframe_fixture
         textframe = shape.textframe

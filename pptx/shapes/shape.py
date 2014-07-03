@@ -29,9 +29,20 @@ class BaseShape(object):
         return self._element
 
     @property
+    def has_chart(self):
+        """
+        |True| if this shape is a graphic frame containing a chart object.
+        |False| otherwise. When |True|, the chart object can be accessed
+        using the ``.chart`` property.
+        """
+        # This implementation is unconditionally False, the True version is
+        # on GraphicFrame subclass.
+        return False
+
+    @property
     def has_textframe(self):
         """
-        True if this shape has a txBody element and can contain text.
+        |True| if this shape has a txBody element and can contain text.
         """
         # TODO: This test might not be fully robust. txBody is an optional
         # element and the schema decides where it can be present, not its
