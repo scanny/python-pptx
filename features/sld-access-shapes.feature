@@ -4,9 +4,9 @@ Feature: Access shapes on a slide
   I need a shape collection to provide access to shapes on a slide
 
   Scenario: Access shape collection
-     Given a slide having three shapes
+     Given a slide having six shapes
       Then I can access the shape collection of the slide
-       And the length of the shape collection is 3
+       And the length of the shape collection is 6
 
   Scenario: Access shape in shape collection
      Given a slide shape collection

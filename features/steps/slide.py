@@ -12,6 +12,7 @@ from pptx import Presentation
 from pptx.parts.slide import (
     _SlidePlaceholder, _SlidePlaceholders, _SlideShapeTree
 )
+from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.shape import BaseShape
 
@@ -34,8 +35,8 @@ def given_a_slide(context):
     context.sld = context.prs.slides.add_slide(slide_layout)
 
 
-@given('a slide having three shapes')
-def given_a_slide_having_three_shapes(context):
+@given('a slide having six shapes')
+def given_a_slide_having_six_shapes(context):
     presentation = Presentation(test_pptx('sld-access-shapes'))
     context.slide = presentation.slides[0]
 
@@ -70,12 +71,19 @@ def when_I_add_a_slide_based_on_a_layout(context):
 
 @then('each slide shape is of the appropriate type')
 def then_each_slide_shape_is_of_the_appropriate_type(context):
-    shapes = context.shapes
-    expected_types = [_SlidePlaceholder, _SlidePlaceholder, Picture]
-    for idx, shape in enumerate(shapes):
-        assert type(shape) == expected_types[idx], (
+
+    def assertShapeType(shape, expected_type):
+        assert type(shape) is expected_type, (
             "got \'%s\'" % type(shape).__name__
         )
+
+    shapes = context.shapes
+    assertShapeType(shapes[0], _SlidePlaceholder)
+    assertShapeType(shapes[1], _SlidePlaceholder)
+    assertShapeType(shapes[2], Picture)
+    assertShapeType(shapes[3], GraphicFrame)
+    assertShapeType(shapes[4], GraphicFrame)
+    assertShapeType(shapes[5], GraphicFrame)
 
 
 @then('I can access a shape by index')
@@ -125,7 +133,7 @@ def then_can_iterate_over_the_shapes(context):
     for shape in shapes:
         actual_count += 1
         assert isinstance(shape, BaseShape)
-    assert actual_count == 3
+    assert actual_count == 6
 
 
 @then('I can iterate over the slide placeholders')
@@ -138,12 +146,12 @@ def then_can_iterate_over_the_slide_placeholders(context):
     assert actual_count == 2
 
 
-@then('the length of the shape collection is 3')
-def then_len_of_shape_collection_is_3(context):
+@then('the length of the shape collection is 6')
+def then_len_of_shape_collection_is_6(context):
     slide = context.slide
     shapes = slide.shapes
-    assert len(shapes) == 3, (
-        'expected len(shapes) of 3, got %s' % len(shapes)
+    assert len(shapes) == 6, (
+        'expected len(shapes) of 6, got %s' % len(shapes)
     )
 
 
