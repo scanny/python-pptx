@@ -23,3 +23,12 @@ class GraphicFrame(BaseShape):
         ``.chart`` property.
         """
         return self._element.has_chart
+
+    @property
+    def has_table(self):
+        """
+        |True| if this graphic frame contains a table object. |False|
+        otherwise. When |True|, the table object can be accessed using the
+        ``.table`` property.
+        """
+        return self._element.has_table
