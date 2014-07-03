@@ -8,13 +8,13 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.enum.shapes import MSO_SHAPE, PP_PLACEHOLDER
+from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 
-from ..unitdata.shape import a_gd, a_prstGeom, an_avLst, test_shape_elements
-from ...unitutil.legacy import TestCase
+from ..unitdata.shape import a_gd, a_prstGeom, an_avLst
+from ...unitutil.cxml import element
 
 
 class DescribeCT_PresetGeometry2D(object):
@@ -79,12 +79,33 @@ class DescribeCT_PresetGeometry2D(object):
 
 class DescribeCT_Shape(object):
 
-    def it_knows_its_MSO_AUTO_SHAPE_TYPE(self):
-        rounded_rect_sp = test_shape_elements.rounded_rectangle
-        placeholder_sp = test_shape_elements.placeholder
+    def it_knows_how_to_create_a_new_autoshape_sp(self):
+        # setup ------------------------
+        id_ = 9
+        name = 'Rounded Rectangle 8'
+        prst = 'roundRect'
+        left, top, width, height = 111, 222, 333, 444
+        xml = (
+            '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%d" name="%s"/>\n    <'
+            'p:cNvSpPr/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>\n    <a:xf'
+            'rm>\n      <a:off x="%d" y="%d"/>\n      <a:ext cx="%d" cy="%d"/'
+            '>\n    </a:xfrm>\n    <a:prstGeom prst="%s">\n      <a:avLst/>\n'
+            '    </a:prstGeom>\n  </p:spPr>\n  <p:style>\n    <a:lnRef idx="1'
+            '">\n      <a:schemeClr val="accent1"/>\n    </a:lnRef>\n    <a:f'
+            'illRef idx="3">\n      <a:schemeClr val="accent1"/>\n    </a:fil'
+            'lRef>\n    <a:effectRef idx="2">\n      <a:schemeClr val="accent'
+            '1"/>\n    </a:effectRef>\n    <a:fontRef idx="minor">\n      <a:'
+            'schemeClr val="lt1"/>\n    </a:fontRef>\n  </p:style>\n  <p:txBo'
+            'dy>\n    <a:bodyPr rtlCol="0" anchor="ctr"/>\n    <a:lstStyle/>'
+            '\n    <a:p>\n      <a:pPr algn="ctr"/>\n    </a:p>\n  </p:txBody'
+            '>\n</p:sp>\n' %
+            (nsdecls('a', 'p'), id_, name, left, top, width, height, prst)
+        )
+        # exercise ---------------------
+        sp = CT_Shape.new_autoshape_sp(id_, name, prst, left, top,
+                                       width, height)
         # verify -----------------------
-        assert rounded_rect_sp.prst == MSO_SHAPE.ROUNDED_RECTANGLE
-        assert placeholder_sp.prst is None
+        assert sp.xml == xml
 
     def it_knows_how_to_create_a_new_placeholder_sp(self, new_ph_sp_fixture):
         id_, name, ph_type, orient, sz, idx, expected_xml = new_ph_sp_fixture
@@ -93,7 +114,62 @@ class DescribeCT_Shape(object):
         )
         assert sp.xml == expected_xml
 
-    # fixtures ---------------------------------------------
+    def it_knows_how_to_create_a_new_textbox_sp(self):
+        # setup ------------------------
+        id_ = 9
+        name = 'TextBox 8'
+        left, top, width, height = 111, 222, 333, 444
+        xml = (
+            '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%d" name="%s"/>\n    '
+            '<p:cNvSpPr txBox="1"/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr'
+            '>\n    <a:xfrm>\n      <a:off x="%d" y="%d"/>\n      <a:ext cx='
+            '"%d" cy="%d"/>\n    </a:xfrm>\n    <a:prstGeom prst="rect">\n  '
+            '    <a:avLst/>\n    </a:prstGeom>\n    <a:noFill/>\n  </p:spPr>'
+            '\n  <p:txBody>\n    <a:bodyPr wrap="none">\n      <a:spAutoFit/'
+            '>\n    </a:bodyPr>\n    <a:lstStyle/>\n    <a:p/>\n  </p:txBody'
+            '>\n</p:sp>\n' %
+            (nsdecls('a', 'p'), id_, name, left, top, width, height)
+        )
+        # exercise ---------------------
+        sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
+        # verify -----------------------
+        assert sp.xml == xml
+
+    def it_knows_whether_it_is_an_autoshape(self, is_autoshape_fixture):
+        sp, expected_value = is_autoshape_fixture
+        assert sp.is_autoshape is expected_value
+
+    def it_knows_whether_it_is_an_textbox(self, is_textbox_fixture):
+        sp, expected_value = is_textbox_fixture
+        assert sp.is_textbox is expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        # autoshape
+        ('p:sp/(p:nvSpPr/p:cNvSpPr, p:spPr/a:prstGeom)', True),
+        # placeholder
+        ('p:sp/(p:nvSpPr/p:nvPr/p:ph, p:spPr)', False),
+        # textbox
+        ('p:sp/(p:nvSpPr/p:cNvSpPr{txBox=1}, p:spPr/a:prstGeom)', False),
+    ])
+    def is_autoshape_fixture(self, request):
+        sp_cxml, expected_value = request.param
+        sp = element(sp_cxml)
+        return sp, expected_value
+
+    @pytest.fixture(params=[
+        # autoshape
+        ('p:sp/(p:nvSpPr/p:cNvSpPr, p:spPr/a:prstGeom)', False),
+        # placeholder
+        ('p:sp/(p:nvSpPr/(p:nvPr/p:ph, p:cNvSpPr), p:spPr)', False),
+        # textbox
+        ('p:sp/(p:nvSpPr/p:cNvSpPr{txBox=1}, p:spPr/a:prstGeom)', True),
+    ])
+    def is_textbox_fixture(self, request):
+        sp_cxml, expected_value = request.param
+        sp = element(sp_cxml)
+        return sp, expected_value
 
     @pytest.fixture(params=[
         (2, 'Title 1', PP_PLACEHOLDER.CENTER_TITLE, ST_Direction.HORZ,
@@ -144,90 +220,3 @@ class DescribeCT_Shape(object):
         expected_values = (id_, name, expected_attrs, txBody_str)
         expected_xml = expected_xml_tmpl % expected_values
         return id_, name, ph_type, orient, sz, idx, expected_xml
-
-
-class TestCT_Shape(TestCase):
-
-    def test_is_autoshape_distinguishes_auto_shape(self):
-        """CT_Shape.is_autoshape distinguishes auto shape"""
-        # setup ------------------------
-        autoshape = test_shape_elements.autoshape
-        placeholder = test_shape_elements.placeholder
-        textbox = test_shape_elements.textbox
-        # verify -----------------------
-        assert autoshape.is_autoshape is True
-        assert placeholder.is_autoshape is False
-        assert textbox.is_autoshape is False
-
-    def test_is_placeholder_distinguishes_placeholder(self):
-        """CT_Shape.is_autoshape distinguishes placeholder"""
-        # setup ------------------------
-        autoshape = test_shape_elements.autoshape
-        placeholder = test_shape_elements.placeholder
-        textbox = test_shape_elements.textbox
-        # verify -----------------------
-        assert autoshape.is_autoshape is True
-        assert placeholder.is_autoshape is False
-        assert textbox.is_autoshape is False
-
-    def test_is_textbox_distinguishes_text_box(self):
-        """CT_Shape.is_textbox distinguishes text box"""
-        # setup ------------------------
-        autoshape = test_shape_elements.autoshape
-        placeholder = test_shape_elements.placeholder
-        textbox = test_shape_elements.textbox
-        # verify -----------------------
-        assert autoshape.is_textbox is False
-        assert placeholder.is_textbox is False
-        assert textbox.is_textbox is True
-
-    def test_new_autoshape_sp_generates_correct_xml(self):
-        """CT_Shape._new_autoshape_sp() returns correct XML"""
-        # setup ------------------------
-        id_ = 9
-        name = 'Rounded Rectangle 8'
-        prst = 'roundRect'
-        left, top, width, height = 111, 222, 333, 444
-        xml = (
-            '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%d" name="%s"/>\n    <'
-            'p:cNvSpPr/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>\n    <a:xf'
-            'rm>\n      <a:off x="%d" y="%d"/>\n      <a:ext cx="%d" cy="%d"/'
-            '>\n    </a:xfrm>\n    <a:prstGeom prst="%s">\n      <a:avLst/>\n'
-            '    </a:prstGeom>\n  </p:spPr>\n  <p:style>\n    <a:lnRef idx="1'
-            '">\n      <a:schemeClr val="accent1"/>\n    </a:lnRef>\n    <a:f'
-            'illRef idx="3">\n      <a:schemeClr val="accent1"/>\n    </a:fil'
-            'lRef>\n    <a:effectRef idx="2">\n      <a:schemeClr val="accent'
-            '1"/>\n    </a:effectRef>\n    <a:fontRef idx="minor">\n      <a:'
-            'schemeClr val="lt1"/>\n    </a:fontRef>\n  </p:style>\n  <p:txBo'
-            'dy>\n    <a:bodyPr rtlCol="0" anchor="ctr"/>\n    <a:lstStyle/>'
-            '\n    <a:p>\n      <a:pPr algn="ctr"/>\n    </a:p>\n  </p:txBody'
-            '>\n</p:sp>\n' %
-            (nsdecls('a', 'p'), id_, name, left, top, width, height, prst)
-        )
-        # exercise ---------------------
-        sp = CT_Shape.new_autoshape_sp(id_, name, prst, left, top,
-                                       width, height)
-        # verify -----------------------
-        assert sp.xml == xml
-
-    def test_new_textbox_sp_generates_correct_xml(self):
-        """CT_Shape.new_textbox_sp() returns correct XML"""
-        # setup ------------------------
-        id_ = 9
-        name = 'TextBox 8'
-        left, top, width, height = 111, 222, 333, 444
-        xml = (
-            '<p:sp %s>\n  <p:nvSpPr>\n    <p:cNvPr id="%d" name="%s"/>\n    <'
-            'p:cNvSpPr txBox="1"/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>'
-            '\n    <a:xfrm>\n      <a:off x="%d" y="%d"/>\n      <a:ext cx="%'
-            'd" cy="%d"/>\n    </a:xfrm>\n    <a:prstGeom prst="rect">\n     '
-            ' <a:avLst/>\n    </a:prstGeom>\n    <a:noFill/>\n  </p:spPr>\n  '
-            '<p:txBody>\n    <a:bodyPr wrap="none">\n      <a:spAutoFit/>\n  '
-            '  </a:bodyPr>\n    <a:lstStyle/>\n    <a:p/>\n  </p:txBody>\n</p'
-            ':sp>\n' %
-            (nsdecls('a', 'p'), id_, name, left, top, width, height)
-        )
-        # exercise ---------------------
-        sp = CT_Shape.new_textbox_sp(id_, name, left, top, width, height)
-        # verify -----------------------
-        assert sp.xml == xml
