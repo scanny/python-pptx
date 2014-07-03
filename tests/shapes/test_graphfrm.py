@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
 
@@ -23,6 +24,10 @@ class DescribeGraphicFrame(object):
     def it_knows_if_it_contains_a_table(self, has_table_fixture):
         graphic_frame, expected_value = has_table_fixture
         assert graphic_frame.has_table is expected_value
+
+    def it_knows_its_shape_type(self, type_fixture):
+        graphic_frame, expected_type = type_fixture
+        assert graphic_frame.shape_type is expected_type
 
     # fixtures -------------------------------------------------------
 
@@ -43,6 +48,19 @@ class DescribeGraphicFrame(object):
         (GRAPHIC_DATA_URI_TABLE, True),
     ])
     def has_table_fixture(self, request):
+        uri, expected_value = request.param
+        graphicFrame = element(
+            'p:graphicFrame/a:graphic/a:graphicData{uri=%s}' % uri
+        )
+        graphic_frame = GraphicFrame(graphicFrame, None)
+        return graphic_frame, expected_value
+
+    @pytest.fixture(params=[
+        (GRAPHIC_DATA_URI_CHART, MSO_SHAPE_TYPE.CHART),
+        (GRAPHIC_DATA_URI_TABLE, MSO_SHAPE_TYPE.TABLE),
+        ('foobar',               None),
+    ])
+    def type_fixture(self, request):
         uri, expected_value = request.param
         graphicFrame = element(
             'p:graphicFrame/a:graphic/a:graphicData{uri=%s}' % uri

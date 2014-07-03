@@ -7,7 +7,8 @@ container for table, chart, smart art, and media objects.
 
 from __future__ import absolute_import
 
-from pptx.shapes.shape import BaseShape
+from ..enum.shapes import MSO_SHAPE_TYPE
+from .shape import BaseShape
 
 
 class GraphicFrame(BaseShape):
@@ -32,3 +33,16 @@ class GraphicFrame(BaseShape):
         ``.table`` property.
         """
         return self._element.has_table
+
+    @property
+    def shape_type(self):
+        """
+        Unique integer identifying the type of this shape, e.g.
+        ``MSO_SHAPE_TYPE.TABLE``.
+        """
+        if self.has_chart:
+            return MSO_SHAPE_TYPE.CHART
+        elif self.has_table:
+            return MSO_SHAPE_TYPE.TABLE
+        else:
+            return None
