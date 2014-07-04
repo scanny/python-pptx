@@ -4,7 +4,6 @@ Feature: Access chart axes
   I need a way to access the category and value axes of a chart
 
 
-  @wip
   Scenario: Access category axis
     Given a bar chart
      Then I can access the chart category axis

@@ -20,7 +20,7 @@ class DescribeChartPart(object):
     def it_provides_access_to_the_chart_object(self, chart_fixture):
         chart_part, chart_, Chart_ = chart_fixture
         chart = chart_part.chart
-        Chart_.assert_called_once_with(chart_part._element)
+        Chart_.assert_called_once_with(chart_part._element, chart_part)
         assert chart is chart_
 
     # fixtures -------------------------------------------------------

@@ -21,4 +21,4 @@ class ChartPart(XmlPart):
         """
         The |Chart| object representing the chart in this part.
         """
-        return Chart(self._element)
+        return Chart(self._element, self)
