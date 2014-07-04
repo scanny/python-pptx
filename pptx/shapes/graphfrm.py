@@ -18,6 +18,15 @@ class GraphicFrame(BaseShape):
     Corresponds to a ``<p:graphicFrame>`` element in the shape tree.
     """
     @property
+    def chart_part(self):
+        """
+        The |ChartPart| object containing the chart in this graphic frame.
+        """
+        rId = self._element.chart_rId
+        chart_part = self.part.related_parts[rId]
+        return chart_part
+
+    @property
     def has_chart(self):
         """
         |True| if this graphic frame contains a chart object. |False|

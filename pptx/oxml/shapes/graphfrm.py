@@ -20,9 +20,16 @@ from ..xmlchemy import (
 class CT_GraphicalObject(BaseOxmlElement):
     """
     ``<a:graphic>`` element, which is the container for the reference to or
-    definition of the framed graphical object.
+    definition of the framed graphical object (table, chart, etc.).
     """
     graphicData = OneAndOnlyOne('a:graphicData')
+
+    @property
+    def chart(self):
+        """
+        The ``<c:chart>`` grandchild element, or |None| if not present.
+        """
+        return self.graphicData.chart
 
 
 class CT_GraphicalObjectData(BaseShapeElement):
@@ -30,6 +37,7 @@ class CT_GraphicalObjectData(BaseShapeElement):
     ``<p:graphicData>`` element, the direct container for a table, a chart,
     or another graphical object.
     """
+    chart = ZeroOrOne('c:chart')
     tbl = ZeroOrOne('a:tbl')
     uri = RequiredAttribute('uri', XsdString)
 
@@ -42,6 +50,24 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
     nvGraphicFramePr = OneAndOnlyOne('p:nvGraphicFramePr')
     xfrm = OneAndOnlyOne('p:xfrm')
     graphic = OneAndOnlyOne('a:graphic')
+
+    @property
+    def chart(self):
+        """
+        The ``<c:chart>`` great-grandchild element, or |None| if not present.
+        """
+        return self.graphic.chart
+
+    @property
+    def chart_rId(self):
+        """
+        The ``rId`` attribute of the ``<c:chart>`` great-grandchild element,
+        or |None| if not present.
+        """
+        chart = self.chart
+        if chart is None:
+            return None
+        return chart.rId
 
     def get_or_add_xfrm(self):
         """

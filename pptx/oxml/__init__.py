@@ -38,6 +38,10 @@ def register_element_cls(nsptagname, cls):
     namespace[nsptag.local_part] = cls
 
 
+from .chart.chart import CT_Chart
+register_element_cls('c:chart', CT_Chart)
+
+
 from .dml.color import (
     CT_HslColor, CT_Percentage, CT_PresetColor, CT_SchemeColor,
     CT_ScRgbColor, CT_SRgbColor, CT_SystemColor
