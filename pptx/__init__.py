@@ -16,6 +16,7 @@ from pptx.api import Presentation  # noqa
 
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import PartFactory
+from pptx.parts.chart import ChartPart
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image
 from pptx.parts.presentation import PresentationPart
@@ -31,6 +32,7 @@ content_type_to_part_class_map = {
     CT.PML_SLIDE:             Slide,
     CT.PML_SLIDE_LAYOUT:      SlideLayout,
     CT.PML_SLIDE_MASTER:      SlideMaster,
+    CT.DML_CHART:             ChartPart,
     CT.BMP:                   Image,
     CT.GIF:                   Image,
     CT.JPEG:                  Image,
@@ -44,6 +46,6 @@ content_type_to_part_class_map = {
 PartFactory.part_type_for.update(content_type_to_part_class_map)
 
 del (
-    CoreProperties, Image, Slide, SlideLayout, SlideMaster, PresentationPart,
-    CT, PartFactory
+    ChartPart, CoreProperties, Image, Slide, SlideLayout, SlideMaster,
+    PresentationPart, CT, PartFactory
 )

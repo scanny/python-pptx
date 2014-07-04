@@ -4,7 +4,6 @@ Feature: Access chart object
   I need a way to get a chart from its graphic frame container
 
 
-  @wip
   Scenario Outline: Identify a shape containing a chart
     Given a <shape type>
      Then the shape <has?> a chart
@@ -19,7 +18,6 @@ Feature: Access chart object
       | connector                        | does not have |
 
 
-  @wip
   Scenario: Access chart object from graphic frame shape
     Given a graphic frame containing a chart
      When I get the chart from its graphic frame

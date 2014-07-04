@@ -15,3 +15,9 @@ class CT_Chart(BaseOxmlElement):
     ``<c:chart>`` custom element class
     """
     rId = RequiredAttribute('r:id', XsdString)
+
+
+class CT_ChartSpace(BaseOxmlElement):
+    """
+    ``<c:chartSpace>`` element class, the root element of a chart part.
+    """

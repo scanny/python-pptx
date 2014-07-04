@@ -7,6 +7,7 @@ Chart part objects, including Chart and Charts
 from __future__ import absolute_import, print_function, unicode_literals
 
 from ..opc.package import XmlPart
+from ..chart.chart import Chart
 from ..util import lazyproperty
 
 
@@ -20,3 +21,4 @@ class ChartPart(XmlPart):
         """
         The |Chart| object representing the chart in this part.
         """
+        return Chart(self._element)

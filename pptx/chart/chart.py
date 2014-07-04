@@ -11,3 +11,6 @@ class Chart(object):
     """
     A chart object.
     """
+    def __init__(self, chartSpace):
+        super(Chart, self).__init__()
+        self._chartSpace = chartSpace

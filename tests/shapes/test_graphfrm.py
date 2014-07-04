@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Test suite for pptx.graphfrm module.
+Test suite for pptx.shapes.graphfrm module.
 """
 
 from __future__ import absolute_import, print_function
