@@ -8,14 +8,16 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.chart.chart import Chart
 from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.parts.slide import _SlideShapeTree
 from pptx.parts.chart import ChartPart
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
 
 from ..unitutil.cxml import element
-from ..unitutil.mock import instance_mock
+from ..unitutil.mock import instance_mock, property_mock
 
 
 class DescribeGraphicFrame(object):
@@ -37,7 +39,31 @@ class DescribeGraphicFrame(object):
         chart_part = graphic_frame.chart_part
         assert chart_part is chart_part_
 
+    def it_provides_access_to_the_chart_it_contains(self, chart_fixture):
+        graphic_frame, chart_ = chart_fixture
+        chart = graphic_frame.chart
+        assert chart is chart_
+
+    def it_raises_on_chart_if_there_isnt_one(self, chart_raise_fixture):
+        graphic_frame = chart_raise_fixture
+        with pytest.raises(ValueError):
+            graphic_frame.chart
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def chart_fixture(self, request, chart_part_, graphicFrame_, chart_):
+        property_mock(
+            request, GraphicFrame, 'chart_part', return_value=chart_part_
+        )
+        graphic_frame = GraphicFrame(graphicFrame_, None)
+        return graphic_frame, chart_
+
+    @pytest.fixture
+    def chart_raise_fixture(self, request, graphicFrame_):
+        graphicFrame_.has_chart = False
+        graphic_frame = GraphicFrame(graphicFrame_, None)
+        return graphic_frame
 
     @pytest.fixture
     def chart_part_fixture(self, parent_, chart_part_):
@@ -87,8 +113,18 @@ class DescribeGraphicFrame(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def chart_part_(self, request):
-        return instance_mock(request, ChartPart)
+    def chart_(self, request):
+        return instance_mock(request, Chart)
+
+    @pytest.fixture
+    def chart_part_(self, request, chart_):
+        return instance_mock(request, ChartPart, chart=chart_)
+
+    @pytest.fixture
+    def graphicFrame_(self, request):
+        return instance_mock(
+            request, CT_GraphicalObjectFrame, has_chart=True
+        )
 
     @pytest.fixture
     def parent_(self, request, chart_part_):
