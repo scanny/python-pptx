@@ -47,5 +47,6 @@ class CT_PlotArea(BaseOxmlElement):
     """
     ``<c:plotArea>`` element.
     """
-    # catAx is actually ZeroOrMore, but don't need list bit yet
+    # catAx and valAx are actually ZeroOrMore, but don't need list bit yet
     catAx = ZeroOrOne('c:catAx')
+    valAx = ZeroOrOne('c:valAx')

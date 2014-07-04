@@ -9,7 +9,6 @@ Feature: Access chart axes
      Then I can access the chart category axis
 
 
-  @wip
   Scenario: Access value axis
     Given a bar chart
      Then I can access the chart value axis

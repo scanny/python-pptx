@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.chart.axis import CategoryAxis
+from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Chart
 
 from ..unitutil.cxml import element
@@ -28,6 +28,17 @@ class DescribeChart(object):
         with pytest.raises(ValueError):
             chart.category_axis
 
+    def it_provides_access_to_the_value_axis(self, val_ax_fixture):
+        chart, value_axis_, ValueAxis_, valAx = val_ax_fixture
+        value_axis = chart.value_axis
+        ValueAxis_.assert_called_once_with(valAx)
+        assert value_axis is value_axis_
+
+    def it_raises_when_no_value_axis(self, val_ax_raise_fixture):
+        chart = val_ax_raise_fixture
+        with pytest.raises(ValueError):
+            chart.value_axis
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -39,6 +50,18 @@ class DescribeChart(object):
 
     @pytest.fixture
     def cat_ax_raise_fixture(self):
+        chart = Chart(element('c:chartSpace/c:chart/c:plotArea'), None)
+        return chart
+
+    @pytest.fixture
+    def val_ax_fixture(self, ValueAxis_, value_axis_):
+        chartSpace = element('c:chartSpace/c:chart/c:plotArea/c:valAx')
+        valAx = chartSpace.xpath('./c:chart/c:plotArea/c:valAx')[0]
+        chart = Chart(chartSpace, None)
+        return chart, value_axis_, ValueAxis_, valAx
+
+    @pytest.fixture
+    def val_ax_raise_fixture(self):
         chart = Chart(element('c:chartSpace/c:chart/c:plotArea'), None)
         return chart
 
@@ -54,3 +77,14 @@ class DescribeChart(object):
     @pytest.fixture
     def category_axis_(self, request):
         return instance_mock(request, CategoryAxis)
+
+    @pytest.fixture
+    def ValueAxis_(self, request, value_axis_):
+        return class_mock(
+            request, 'pptx.chart.chart.ValueAxis',
+            return_value=value_axis_
+        )
+
+    @pytest.fixture
+    def value_axis_(self, request):
+        return instance_mock(request, ValueAxis)

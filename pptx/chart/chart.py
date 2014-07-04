@@ -6,7 +6,7 @@ Chart shape-related objects such as Chart.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from .axis import CategoryAxis
+from .axis import CategoryAxis, ValueAxis
 
 
 class Chart(object):
@@ -28,3 +28,10 @@ class Chart(object):
         if catAx is None:
             raise ValueError('chart has no category axis')
         return CategoryAxis(catAx)
+
+    @property
+    def value_axis(self):
+        valAx = self._chartSpace.valAx
+        if valAx is None:
+            raise ValueError('chart has no value axis')
+        return ValueAxis(valAx)
