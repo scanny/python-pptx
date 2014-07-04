@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 from behave import given, when, then
 
 from pptx import Presentation
+from pptx.chart.chart import Chart
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
@@ -24,6 +25,27 @@ def given_a_connector(context):
     prs = Presentation(test_pptx('shp-common-props'))
     sld = prs.slides[0]
     context.shape = sld.shapes[4]
+
+
+@given('a graphic frame')  # shouldn't matter, but this one contains a table
+def given_a_table(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[2]
+
+
+@given('a graphic frame containing a chart')
+def given_a_graphic_frame_containing_a_chart(context):
+    prs = Presentation(test_pptx('shp-access-chart'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[0]
+
+
+@given('a graphic frame containing a table')
+def given_a_graphic_frame_containing_a_table(context):
+    prs = Presentation(test_pptx('shp-access-chart'))
+    sld = prs.slides[1]
+    context.shape = sld.shapes[0]
 
 
 @given('a group shape')
@@ -45,13 +67,6 @@ def given_a_shape(context):
     prs = Presentation(test_pptx('shp-common-props'))
     sld = prs.slides[0]
     context.shape = sld.shapes[0]
-
-
-@given('a graphic frame')  # shouldn't matter, but this one contains a table
-def given_a_table(context):
-    prs = Presentation(test_pptx('shp-common-props'))
-    sld = prs.slides[0]
-    context.shape = sld.shapes[2]
 
 
 @given('a {shape_type} on a slide')
@@ -139,6 +154,11 @@ def when_I_change_the_size_of_the_shape(context, shape_type):
     shape = context.shape
     shape.width = width
     shape.height = height
+
+
+@when("I get the chart from its graphic frame")
+def when_I_get_the_chart_from_its_graphic_frame(context):
+    context.chart = context.shape.chart
 
 
 @when("I set the fill type to background")
@@ -261,6 +281,11 @@ def then_I_can_get_the_name_of_the_shape(context, shape_type):
     assert shape.name == expected_name, msg
 
 
+@then('the chart is a Chart object')
+def then_the_chart_is_a_Chart_object(context):
+    assert isinstance(context.chart, Chart)
+
+
 @then('the left and top of the {shape_type} match their new values')
 def then_left_and_top_of_shape_match_new_values(context, shape_type):
     expected_left, expected_top = {
@@ -287,6 +312,13 @@ def then_left_and_top_of_shape_match_known_values(context, shape_type):
     shape = context.shape
     assert shape.left == expected_left, 'got left: %s' % shape.left
     assert shape.top == expected_top, 'got top: %s' % shape.top
+
+
+@then('the shape {has_or_not} a chart')
+def then_the_shape_has_or_not_a_chart(context, has_or_not):
+    expected_bool = {'has': True, 'does not have': False}[has_or_not]
+    shape = context.shape
+    assert shape.has_chart is expected_bool
 
 
 @then('the width and height of the {shape_type} match their known values')
