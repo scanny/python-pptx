@@ -6,6 +6,8 @@ Axis-related chart objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from ..enum.chart import XL_TICK_MARK
+
 
 class _BaseAxis(object):
     """
@@ -14,6 +16,17 @@ class _BaseAxis(object):
     def __init__(self, xAx_elm):
         super(_BaseAxis, self).__init__()
         self._element = xAx_elm
+
+    @property
+    def major_tick_mark(self):
+        """
+        Read/write :ref:`XlTickMark` value specifying the type of major tick
+        mark for this axis.
+        """
+        majorTickMark = self._element.majorTickMark
+        if majorTickMark is None:
+            return XL_TICK_MARK.CROSS
+        return majorTickMark.val
 
     @property
     def maximum_scale(self):

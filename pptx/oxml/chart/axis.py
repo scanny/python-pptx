@@ -6,7 +6,10 @@ lxml custom element classes for chart axis-related XML elements.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
+from ...enum.chart import XL_TICK_MARK
+from ..xmlchemy import (
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne
+)
 
 
 class BaseAxisElement(BaseOxmlElement):
@@ -15,6 +18,9 @@ class BaseAxisElement(BaseOxmlElement):
     """
     scaling = OneAndOnlyOne('c:scaling')
     delete = ZeroOrOne('c:delete', successors=('c:axPos',))
+    majorTickMark = ZeroOrOne('c:majorTickMark', successors=(
+        'c:minorTickMark', 'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
+    ))
 
 
 class CT_CatAx(BaseAxisElement):
@@ -74,6 +80,13 @@ class CT_Scaling(BaseOxmlElement):
         if value is None:
             return
         self._add_min(val=value)
+
+
+class CT_TickMark(BaseOxmlElement):
+    """
+    Used for ``<c:minorTickMark>`` and ``<c:majorTickMark>``.
+    """
+    val = OptionalAttribute('val', XL_TICK_MARK, default=XL_TICK_MARK.CROSS)
 
 
 class CT_ValAx(BaseAxisElement):

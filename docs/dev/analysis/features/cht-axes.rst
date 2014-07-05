@@ -29,23 +29,36 @@ XML specimens
 
 .. highlight:: xml
 
-Example axes XML for a single-series column plot::
+Example axis XML for a single-series line plot::
 
   <c:catAx>
-    <c:axId val="-2068027336"/>
-    <c:scaling/>
+    <c:axId val="-2097691448"/>
+    <c:scaling>
+      <c:orientation val="minMax"/>
+    </c:scaling>
     <c:delete val="0"/>
     <c:axPos val="b"/>
-    <c:crossAx val="-2113994440"/>
+    <c:numFmt formatCode="General" sourceLinked="0"/>
+    <c:majorTickMark val="out"/>
+    <c:minorTickMark val="none"/>
+    <c:tickLblPos val="nextTo"/>
+    <c:txPr>
+      <a:bodyPr/>
+      <a:lstStyle/>
+      <a:p>
+        <a:pPr>
+          <a:defRPr sz="1000"/>
+        </a:pPr>
+        <a:endParaRPr lang="en-US"/>
+      </a:p>
+    </c:txPr>
+    <c:crossAx val="-2097683336"/>
+    <c:crosses val="autoZero"/>
+    <c:auto val="1"/>
+    <c:lblAlgn val="ctr"/>
+    <c:lblOffset val="100"/>
+    <c:noMultiLvlLbl val="0"/>
   </c:catAx>
-
-  <c:valAx>
-    <c:axId val="-2113994440"/>
-    <c:scaling/>
-    <c:delete val="0"/>
-    <c:axPos val="l"/>
-    <c:crossAx val="-2068027336"/>
-  </c:valAx>
 
 
 Related Schema Definitions
@@ -55,25 +68,7 @@ Related Schema Definitions
 
   <xsd:complexType name="CT_PlotArea">
     <xsd:sequence>
-      <xsd:element name="layout" type="CT_Layout" minOccurs="0" maxOccurs="1"/>
-      <xsd:choice minOccurs="1" maxOccurs="unbounded">
-        <xsd:element name="areaChart"      type="CT_AreaChart"/>
-        <xsd:element name="area3DChart"    type="CT_Area3DChart"/>
-        <xsd:element name="lineChart"      type="CT_LineChart"/>
-        <xsd:element name="line3DChart"    type="CT_Line3DChart"/>
-        <xsd:element name="stockChart"     type="CT_StockChart"/>
-        <xsd:element name="radarChart"     type="CT_RadarChart"/>
-        <xsd:element name="scatterChart"   type="CT_ScatterChart"/>
-        <xsd:element name="pieChart"       type="CT_PieChart"/>
-        <xsd:element name="pie3DChart"     type="CT_Pie3DChart"/>
-        <xsd:element name="doughnutChart"  type="CT_DoughnutChart"/>
-        <xsd:element name="barChart"       type="CT_BarChart"/>
-        <xsd:element name="bar3DChart"     type="CT_Bar3DChart"/>
-        <xsd:element name="ofPieChart"     type="CT_OfPieChart"/>
-        <xsd:element name="surfaceChart"   type="CT_SurfaceChart"/>
-        <xsd:element name="surface3DChart" type="CT_Surface3DChart"/>
-        <xsd:element name="bubbleChart"    type="CT_BubbleChart"/>
-      </xsd:choice>
+      <!-- 17 others -->
       <xsd:choice minOccurs="0" maxOccurs="unbounded">
         <xsd:element name="valAx"  type="CT_ValAx"/>
         <xsd:element name="catAx"  type="CT_CatAx"/>
@@ -200,6 +195,10 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:complexType>
 
+  <xsd:complexType name="CT_TickMark">
+    <xsd:attribute name="val" type="ST_TickMark" default="cross"/>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_Boolean">
     <xsd:attribute name="val" type="xsd:boolean" default="true"/>
   </xsd:complexType>
@@ -207,3 +206,12 @@ Related Schema Definitions
   <xsd:complexType name="CT_Double">
     <xsd:attribute name="val" type="xsd:double" use="required"/>
   </xsd:complexType>
+
+  <xsd:simpleType name="ST_TickMark">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="cross"/>
+      <xsd:enumeration value="in"/>
+      <xsd:enumeration value="none"/>
+      <xsd:enumeration value="out"/>
+    </xsd:restriction>
+  </xsd:simpleType>

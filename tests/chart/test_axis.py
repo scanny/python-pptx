@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import _BaseAxis
+from pptx.enum.chart import XL_TICK_MARK
 
 from ..unitutil.cxml import element, xml
 
@@ -47,7 +48,21 @@ class Describe_BaseAxis(object):
         axis.minimum_scale = new_value
         assert axis._element.xml == expected_xml
 
+    def it_knows_its_major_tick_setting(self, major_tick_get_fixture):
+        axis, expected_value = major_tick_get_fixture
+        assert axis.major_tick_mark == expected_value
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:catAx',                          XL_TICK_MARK.CROSS),
+        ('c:catAx/c:majorTickMark',          XL_TICK_MARK.CROSS),
+        ('c:catAx/c:majorTickMark{val=out}', XL_TICK_MARK.OUTSIDE),
+    ])
+    def major_tick_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        return axis, expected_value
 
     @pytest.fixture(params=[
         ('c:catAx/c:scaling/c:max{val=12.34}', 12.34),
