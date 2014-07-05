@@ -24,6 +24,11 @@ class _BaseAxis(object):
         """
         return self._element.scaling.maximum
 
+    @maximum_scale.setter
+    def maximum_scale(self, value):
+        scaling = self._element.scaling
+        scaling.maximum = value
+
     @property
     def visible(self):
         """

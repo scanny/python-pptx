@@ -41,6 +41,17 @@ class CT_Scaling(BaseOxmlElement):
             return None
         return max.val
 
+    @maximum.setter
+    def maximum(self, value):
+        """
+        Set the value of the ``<c:max>`` child element to the float *value*,
+        or remove the max element if *value* is |None|.
+        """
+        self._remove_max()
+        if value is None:
+            return
+        self._add_max(val=value)
+
 
 class CT_ValAx(BaseAxisElement):
     """
