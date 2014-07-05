@@ -25,6 +25,15 @@ class _BaseAxis(object):
             return False
         return False if delete.val else True
 
+    @visible.setter
+    def visible(self, value):
+        if value not in (True, False):
+            raise ValueError(
+                "assigned value must be True or False, got: %s" % value
+            )
+        delete = self._element.get_or_add_delete()
+        delete.val = not value
+
 
 class CategoryAxis(_BaseAxis):
     """
