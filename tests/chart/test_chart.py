@@ -11,7 +11,7 @@ import pytest
 from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Chart
 
-from ..unitutil.cxml import element
+from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
 
 
@@ -43,6 +43,11 @@ class DescribeChart(object):
         chart, expected_value = style_get_fixture
         assert chart.chart_style == expected_value
 
+    def it_can_change_its_style(self, style_set_fixture):
+        chart, new_value, expected_xml = style_set_fixture
+        chart.chart_style = new_value
+        assert chart._chartSpace.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -65,6 +70,18 @@ class DescribeChart(object):
         chartSpace_cxml, expected_value = request.param
         chart = Chart(element(chartSpace_cxml), None)
         return chart, expected_value
+
+    @pytest.fixture(params=[
+        ('c:chartSpace',                4,    'c:chartSpace/c:style{val=4}'),
+        ('c:chartSpace',                None, 'c:chartSpace'),
+        ('c:chartSpace/c:style{val=4}', 2,    'c:chartSpace/c:style{val=2}'),
+        ('c:chartSpace/c:style{val=4}', None, 'c:chartSpace'),
+    ])
+    def style_set_fixture(self, request):
+        chartSpace_cxml, new_value, expected_chartSpace_cxml = request.param
+        chart = Chart(element(chartSpace_cxml), None)
+        expected_xml = xml(expected_chartSpace_cxml)
+        return chart, new_value, expected_xml
 
     @pytest.fixture
     def val_ax_fixture(self, ValueAxis_, value_axis_):

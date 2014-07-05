@@ -32,14 +32,24 @@ class Chart(object):
     @property
     def chart_style(self):
         """
-        Integer index of chart style to be used to format this chart. Range
-        is from 1 to 48. Corresponds to its position in the chart style
-        gallery in the PowerPoint UI.
+        Read/write integer index of chart style used to format this chart.
+        Range is from 1 to 48. Value is |None| if no explicit style has been
+        assigned, in which case the default chart style is used. Assigning
+        |None| causes any explicit setting to be removed. The integer index
+        corresponds to the style's position in the chart style gallery in the
+        PowerPoint UI.
         """
         style = self._chartSpace.style
         if style is None:
             return None
         return style.val
+
+    @chart_style.setter
+    def chart_style(self, value):
+        self._chartSpace._remove_style()
+        if value is None:
+            return
+        self._chartSpace._add_style(val=value)
 
     @property
     def value_axis(self):
