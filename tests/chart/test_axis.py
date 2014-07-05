@@ -42,6 +42,11 @@ class Describe_BaseAxis(object):
         axis, expected_value = minimum_scale_get_fixture
         assert axis.minimum_scale == expected_value
 
+    def it_can_change_the_scale_minimum(self, minimum_scale_set_fixture):
+        axis, new_value, expected_xml = minimum_scale_set_fixture
+        axis.minimum_scale = new_value
+        assert axis._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -80,6 +85,21 @@ class Describe_BaseAxis(object):
         xAx_cxml, expected_value = request.param
         axis = _BaseAxis(element(xAx_cxml))
         return axis, expected_value
+
+    @pytest.fixture(params=[
+        ('c:catAx/c:scaling', 34.56, 'c:catAx/c:scaling/c:min{val=34.56}'),
+        ('c:valAx/c:scaling', 45.67, 'c:valAx/c:scaling/c:min{val=45.67}'),
+        ('c:catAx/c:scaling', None,  'c:catAx/c:scaling'),
+        ('c:valAx/c:scaling/c:min{val=42.42}', 12.34,
+         'c:valAx/c:scaling/c:min{val=12.34}'),
+        ('c:catAx/c:scaling/c:min{val=42.42}', None,
+         'c:catAx/c:scaling'),
+    ])
+    def minimum_scale_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        expected_xml = xml(expected_xAx_cxml)
+        return axis, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('c:catAx',                     False),

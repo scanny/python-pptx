@@ -38,6 +38,11 @@ class _BaseAxis(object):
         """
         return self._element.scaling.minimum
 
+    @minimum_scale.setter
+    def minimum_scale(self, value):
+        scaling = self._element.scaling
+        scaling.minimum = value
+
     @property
     def visible(self):
         """

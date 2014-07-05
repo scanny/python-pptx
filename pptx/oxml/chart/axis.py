@@ -55,10 +55,25 @@ class CT_Scaling(BaseOxmlElement):
 
     @property
     def minimum(self):
+        """
+        The float value of the ``<c:min>`` child element, or |None| if no min
+        element is present.
+        """
         min = self.min
         if min is None:
             return None
         return min.val
+
+    @minimum.setter
+    def minimum(self, value):
+        """
+        Set the value of the ``<c:min>`` child element to the float *value*,
+        or remove the min element if *value* is |None|.
+        """
+        self._remove_min()
+        if value is None:
+            return
+        self._add_min(val=value)
 
 
 class CT_ValAx(BaseAxisElement):
