@@ -59,6 +59,8 @@ class LineFormat(object):
 
     @width.setter
     def width(self, emu):
+        if emu is None:
+            emu = 0
         ln = self._get_or_add_ln()
         ln.w = emu
 

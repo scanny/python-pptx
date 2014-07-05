@@ -343,8 +343,8 @@ class Describe_SerializedRelationship(object):
         assert srel.target_mode == RTM.INTERNAL
 
     def it_knows_when_it_is_external(self):
-        cases = (RTM.INTERNAL, RTM.EXTERNAL, None)
-        expected_values = (False, True, False)
+        cases = (RTM.INTERNAL, RTM.EXTERNAL)
+        expected_values = (False, True)
         for target_mode, expected_value in zip(cases, expected_values):
             rel_elm = CT_Relationship.new(
                 'rId9', 'ReLtYpE', 'docProps/core.xml', target_mode

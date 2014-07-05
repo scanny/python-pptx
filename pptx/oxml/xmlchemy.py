@@ -197,7 +197,7 @@ class OptionalAttribute(BaseAttribute):
         property descriptor.
         """
         def set_attr_value(obj, value):
-            if value is None or value == self._default:
+            if value == self._default:
                 if self._clark_name in obj.attrib:
                     del obj.attrib[self._clark_name]
                 return
