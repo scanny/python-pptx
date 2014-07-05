@@ -16,6 +16,15 @@ class _BaseAxis(object):
         self._element = xAx_elm
 
     @property
+    def maximum_scale(self):
+        """
+        Read/write float value specifying upper limit of value range, the
+        number at the top of the vertical (value) scale. |None| if no maximum
+        scale has been set.
+        """
+        return self._element.scaling.maximum
+
+    @property
     def visible(self):
         """
         Read/write. |True| if axis is visible, |False| otherwise.

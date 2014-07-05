@@ -29,7 +29,22 @@ class Describe_BaseAxis(object):
         with pytest.raises(ValueError):
             axis.visible = 'foobar'
 
+    def it_knows_the_scale_maximum(self, maximum_scale_get_fixture):
+        axis, expected_value = maximum_scale_get_fixture
+        assert axis.maximum_scale == expected_value
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:catAx/c:scaling/c:max{val=12.34}', 12.34),
+        ('c:valAx/c:scaling/c:max{val=23.45}', 23.45),
+        ('c:catAx/c:scaling',                  None),
+        ('c:valAx/c:scaling',                  None),
+    ])
+    def maximum_scale_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        return axis, expected_value
 
     @pytest.fixture(params=[
         ('c:catAx',                     False),

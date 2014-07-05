@@ -190,6 +190,20 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:group>
 
+  <xsd:complexType name="CT_Scaling">
+    <xsd:sequence>
+      <xsd:element name="logBase"     type="CT_LogBase"       minOccurs="0"/>
+      <xsd:element name="orientation" type="CT_Orientation"   minOccurs="0"/>
+      <xsd:element name="max"         type="CT_Double"        minOccurs="0"/>
+      <xsd:element name="min"         type="CT_Double"        minOccurs="0"/>
+      <xsd:element name="extLst"      type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_Boolean">
     <xsd:attribute name="val" type="xsd:boolean" default="true"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_Double">
+    <xsd:attribute name="val" type="xsd:double" use="required"/>
   </xsd:complexType>

@@ -54,19 +54,22 @@ class BaseSimpleType(object):
         )
 
 
-class BaseStringType(BaseSimpleType):
+class BaseFloatType(BaseSimpleType):
 
     @classmethod
     def convert_from_xml(cls, str_value):
-        return str_value
+        return float(str_value)
 
     @classmethod
     def convert_to_xml(cls, value):
-        return value
+        return str(value)
 
     @classmethod
     def validate(cls, value):
-        cls.validate_string(value)
+        if not isinstance(value, (int, float)):
+            raise TypeError(
+                "value must be a number, got %s" % type(value)
+            )
 
 
 class BaseIntType(BaseSimpleType):
@@ -82,6 +85,21 @@ class BaseIntType(BaseSimpleType):
     @classmethod
     def validate(cls, value):
         cls.validate_int(value)
+
+
+class BaseStringType(BaseSimpleType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        return str_value
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return value
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_string(value)
 
 
 class XsdAnyUri(BaseStringType):
@@ -114,6 +132,10 @@ class XsdBoolean(BaseSimpleType):
                 "only True or False (and possibly None) may be assigned, got"
                 " '%s'" % value
             )
+
+
+class XsdDouble(BaseFloatType):
+    pass
 
 
 class XsdId(BaseStringType):

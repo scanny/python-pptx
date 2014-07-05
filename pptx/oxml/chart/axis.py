@@ -6,13 +6,14 @@ lxml custom element classes for chart axis-related XML elements.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from ..xmlchemy import BaseOxmlElement, ZeroOrOne
+from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
 
 
 class BaseAxisElement(BaseOxmlElement):
     """
     Base class for catAx, valAx, and perhaps other axis elements.
     """
+    scaling = OneAndOnlyOne('c:scaling')
     delete = ZeroOrOne('c:delete', successors=('c:axPos',))
 
 
@@ -22,7 +23,26 @@ class CT_CatAx(BaseAxisElement):
     """
 
 
+class CT_Scaling(BaseOxmlElement):
+    """
+    ``<c:scaling>`` element, defining axis scale characteristics such as
+    maximum value, log vs. linear, etc.
+    """
+    max = ZeroOrOne('c:max', successors=('c:min', 'c:extLst'))
+
+    @property
+    def maximum(self):
+        """
+        The float value of the ``<c:max>`` child element, or |None| if no max
+        element is present.
+        """
+        max = self.max
+        if max is None:
+            return None
+        return max.val
+
+
 class CT_ValAx(BaseAxisElement):
     """
-    ``<c:valAx>`` element, defining a category axis.
+    ``<c:valAx>`` element, defining a value axis.
     """
