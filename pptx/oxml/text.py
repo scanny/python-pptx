@@ -114,7 +114,7 @@ class CT_TextBodyProperties(BaseOxmlElement):
 
     @autofit.setter
     def autofit(self, value):
-        if value is not None and not MSO_AUTO_SIZE.validate(value):
+        if value is not None and value not in MSO_AUTO_SIZE._valid_settings:
             raise ValueError(
                 'only None or a member of the MSO_AUTO_SIZE enumeration can '
                 'be assigned to CT_TextBodyProperties.autofit, got %s'
