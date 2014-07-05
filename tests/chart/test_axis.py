@@ -8,10 +8,11 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.chart.axis import _BaseAxis
+from pptx.chart.axis import _BaseAxis, TickLabels
 from pptx.enum.chart import XL_TICK_MARK
 
 from ..unitutil.cxml import element, xml
+from ..unitutil.mock import class_mock, instance_mock
 
 
 class Describe_BaseAxis(object):
@@ -65,6 +66,12 @@ class Describe_BaseAxis(object):
         axis, new_value, expected_xml = minor_tick_set_fixture
         axis.minor_tick_mark = new_value
         assert axis._element.xml == expected_xml
+
+    def it_provides_access_to_the_tick_labels(self, tick_labels_fixture):
+        axis, tick_labels_, TickLabels_, xAx = tick_labels_fixture
+        tick_labels = axis.tick_labels
+        TickLabels_.assert_called_once_with(xAx)
+        assert tick_labels is tick_labels_
 
     # fixtures -------------------------------------------------------
 
@@ -173,6 +180,12 @@ class Describe_BaseAxis(object):
         expected_xml = xml(expected_xAx_cxml)
         return axis, new_value, expected_xml
 
+    @pytest.fixture
+    def tick_labels_fixture(self, TickLabels_, tick_labels_):
+        xAx = element('c:valAx')
+        axis = _BaseAxis(xAx)
+        return axis, tick_labels_, TickLabels_, xAx
+
     @pytest.fixture(params=[
         ('c:catAx',                     False),
         ('c:catAx/c:delete',            False),
@@ -205,3 +218,16 @@ class Describe_BaseAxis(object):
         axis = _BaseAxis(element(xAx_cxml))
         expected_xml = xml(expected_xAx_cxml)
         return axis, new_value, expected_xml
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def TickLabels_(self, request, tick_labels_):
+        return class_mock(
+            request, 'pptx.chart.axis.TickLabels',
+            return_value=tick_labels_
+        )
+
+    @pytest.fixture
+    def tick_labels_(self, request):
+        return instance_mock(request, TickLabels)

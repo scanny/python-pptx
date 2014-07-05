@@ -7,6 +7,7 @@ Axis-related chart objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from ..enum.chart import XL_TICK_MARK
+from ..util import lazyproperty
 
 
 class _BaseAxis(object):
@@ -81,6 +82,14 @@ class _BaseAxis(object):
             return
         self._element._add_minorTickMark(val=value)
 
+    @lazyproperty
+    def tick_labels(self):
+        """
+        The |TickLabels| instance providing access to axis tick label
+        formatting properties.
+        """
+        return TickLabels(self._element)
+
     @property
     def visible(self):
         """
@@ -105,6 +114,15 @@ class CategoryAxis(_BaseAxis):
     """
     A category axis of a chart.
     """
+
+
+class TickLabels(object):
+    """
+    A service class providing access to formatting of axis tick mark labels.
+    """
+    def __init__(self, xAx_elm):
+        super(TickLabels, self).__init__()
+        self._element = xAx_elm
 
 
 class ValueAxis(_BaseAxis):
