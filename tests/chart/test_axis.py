@@ -52,6 +52,11 @@ class Describe_BaseAxis(object):
         axis, expected_value = major_tick_get_fixture
         assert axis.major_tick_mark == expected_value
 
+    def it_can_change_its_major_tick_mark(self, major_tick_set_fixture):
+        axis, new_value, expected_xml = major_tick_set_fixture
+        axis.major_tick_mark = new_value
+        assert axis._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -63,6 +68,22 @@ class Describe_BaseAxis(object):
         xAx_cxml, expected_value = request.param
         axis = _BaseAxis(element(xAx_cxml))
         return axis, expected_value
+
+    @pytest.fixture(params=[
+        ('c:catAx',                         XL_TICK_MARK.INSIDE,
+         'c:catAx/c:majorTickMark{val=in}'),
+        ('c:catAx',                         XL_TICK_MARK.CROSS,
+         'c:catAx'),
+        ('c:catAx/c:majorTickMark{val=in}', XL_TICK_MARK.OUTSIDE,
+         'c:catAx/c:majorTickMark{val=out}'),
+        ('c:catAx/c:majorTickMark{val=in}', XL_TICK_MARK.CROSS,
+         'c:catAx'),
+    ])
+    def major_tick_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        expected_xml = xml(expected_xAx_cxml)
+        return axis, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('c:catAx/c:scaling/c:max{val=12.34}', 12.34),

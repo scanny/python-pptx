@@ -28,6 +28,13 @@ class _BaseAxis(object):
             return XL_TICK_MARK.CROSS
         return majorTickMark.val
 
+    @major_tick_mark.setter
+    def major_tick_mark(self, value):
+        self._element._remove_majorTickMark()
+        if value is XL_TICK_MARK.CROSS:
+            return
+        self._element._add_majorTickMark(val=value)
+
     @property
     def maximum_scale(self):
         """
