@@ -29,6 +29,7 @@ class CT_Scaling(BaseOxmlElement):
     maximum value, log vs. linear, etc.
     """
     max = ZeroOrOne('c:max', successors=('c:min', 'c:extLst'))
+    min = ZeroOrOne('c:min', successors=('c:extLst',))
 
     @property
     def maximum(self):
@@ -51,6 +52,13 @@ class CT_Scaling(BaseOxmlElement):
         if value is None:
             return
         self._add_max(val=value)
+
+    @property
+    def minimum(self):
+        min = self.min
+        if min is None:
+            return None
+        return min.val
 
 
 class CT_ValAx(BaseAxisElement):

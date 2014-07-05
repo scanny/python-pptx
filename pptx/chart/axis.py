@@ -30,6 +30,15 @@ class _BaseAxis(object):
         scaling.maximum = value
 
     @property
+    def minimum_scale(self):
+        """
+        Read/write float value specifying lower limit of value range, the
+        number at the bottom or left of the value scale. |None| if no minimum
+        scale has been set.
+        """
+        return self._element.scaling.minimum
+
+    @property
     def visible(self):
         """
         Read/write. |True| if axis is visible, |False| otherwise.

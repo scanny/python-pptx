@@ -53,6 +53,7 @@ register_element_cls('c:plotArea',   CT_PlotArea)
 from .chart.shared import CT_Boolean, CT_Double
 register_element_cls('c:delete', CT_Boolean)
 register_element_cls('c:max',    CT_Double)
+register_element_cls('c:min',    CT_Double)
 
 
 from .dml.color import (
