@@ -39,6 +39,10 @@ class DescribeChart(object):
         with pytest.raises(ValueError):
             chart.value_axis
 
+    def it_knows_its_style(self, style_get_fixture):
+        chart, expected_value = style_get_fixture
+        assert chart.chart_style == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -52,6 +56,15 @@ class DescribeChart(object):
     def cat_ax_raise_fixture(self):
         chart = Chart(element('c:chartSpace/c:chart/c:plotArea'), None)
         return chart
+
+    @pytest.fixture(params=[
+        ('c:chartSpace/c:style{val=42}', 42),
+        ('c:chartSpace',                 None),
+    ])
+    def style_get_fixture(self, request):
+        chartSpace_cxml, expected_value = request.param
+        chart = Chart(element(chartSpace_cxml), None)
+        return chart, expected_value
 
     @pytest.fixture
     def val_ax_fixture(self, ValueAxis_, value_axis_):

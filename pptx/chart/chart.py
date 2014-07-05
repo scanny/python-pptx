@@ -30,6 +30,18 @@ class Chart(object):
         return CategoryAxis(catAx)
 
     @property
+    def chart_style(self):
+        """
+        Integer index of chart style to be used to format this chart. Range
+        is from 1 to 48. Corresponds to its position in the chart style
+        gallery in the PowerPoint UI.
+        """
+        style = self._chartSpace.style
+        if style is None:
+            return None
+        return style.val
+
+    @property
     def value_axis(self):
         valAx = self._chartSpace.valAx
         if valAx is None:

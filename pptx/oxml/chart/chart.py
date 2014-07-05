@@ -6,7 +6,7 @@ lxml custom element classes for chart-related XML elements.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from ..simpletypes import XsdString
+from ..simpletypes import ST_Style, XsdString
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
 )
@@ -32,6 +32,9 @@ class CT_ChartSpace(BaseOxmlElement):
     """
     ``<c:chartSpace>`` element class, the root element of a chart part.
     """
+    style = ZeroOrOne('c:style', successors=(
+        'c:clrMapOvr', 'c:pivotSource', 'c:protection', 'c:chart'
+    ))
     chart = OneAndOnlyOne('c:chart')
 
     @property
@@ -50,3 +53,10 @@ class CT_PlotArea(BaseOxmlElement):
     # catAx and valAx are actually ZeroOrMore, but don't need list bit yet
     catAx = ZeroOrOne('c:catAx')
     valAx = ZeroOrOne('c:valAx')
+
+
+class CT_Style(BaseOxmlElement):
+    """
+    ``<c:style>`` element; defines the chart style.
+    """
+    val = RequiredAttribute('val', ST_Style)

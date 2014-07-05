@@ -174,6 +174,13 @@ class XsdToken(BaseStringType):
     pass
 
 
+class XsdUnsignedByte(BaseIntType):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 255)
+
+
 class XsdUnsignedInt(BaseIntType):
 
     @classmethod
@@ -379,6 +386,13 @@ class ST_SlideSizeCoordinate(BaseIntType):
                 "value must be in range(914400, 51206400) (1-56 inches), got"
                 " %d" % value
             )
+
+
+class ST_Style(XsdUnsignedByte):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 1, 48)
 
 
 class ST_TargetMode(XsdString):

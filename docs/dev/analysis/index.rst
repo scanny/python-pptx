@@ -19,6 +19,7 @@ Roughly in reverse chronological order of creation:
    features/cht-axes
    features/shp-graphfrm
    features/cht-chart-shape
+   features/cht-chart
    features/cht-chart-overview
    features/dml-line
    features/shp-connector
