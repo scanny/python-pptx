@@ -41,6 +41,7 @@ def register_element_cls(nsptagname, cls):
 from .chart.axis import CT_CatAx, CT_Scaling, CT_TickMark, CT_ValAx
 register_element_cls('c:catAx',         CT_CatAx)
 register_element_cls('c:majorTickMark', CT_TickMark)
+register_element_cls('c:minorTickMark', CT_TickMark)
 register_element_cls('c:scaling',       CT_Scaling)
 register_element_cls('c:valAx',         CT_ValAx)
 

@@ -21,6 +21,9 @@ class BaseAxisElement(BaseOxmlElement):
     majorTickMark = ZeroOrOne('c:majorTickMark', successors=(
         'c:minorTickMark', 'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
     ))
+    minorTickMark = ZeroOrOne('c:minorTickMark', successors=(
+        'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
+    ))
 
 
 class CT_CatAx(BaseAxisElement):

@@ -64,6 +64,17 @@ class _BaseAxis(object):
         scaling.minimum = value
 
     @property
+    def minor_tick_mark(self):
+        """
+        Read/write :ref:`XlTickMark` value specifying the type of minor tick
+        mark for this axis.
+        """
+        minorTickMark = self._element.minorTickMark
+        if minorTickMark is None:
+            return XL_TICK_MARK.CROSS
+        return minorTickMark.val
+
+    @property
     def visible(self):
         """
         Read/write. |True| if axis is visible, |False| otherwise.
