@@ -61,6 +61,11 @@ class Describe_BaseAxis(object):
         axis, expected_value = minor_tick_get_fixture
         assert axis.minor_tick_mark == expected_value
 
+    def it_can_change_its_minor_tick_mark(self, minor_tick_set_fixture):
+        axis, new_value, expected_xml = minor_tick_set_fixture
+        axis.minor_tick_mark = new_value
+        assert axis._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -151,6 +156,22 @@ class Describe_BaseAxis(object):
         xAx_cxml, expected_value = request.param
         axis = _BaseAxis(element(xAx_cxml))
         return axis, expected_value
+
+    @pytest.fixture(params=[
+        ('c:valAx',                         XL_TICK_MARK.INSIDE,
+         'c:valAx/c:minorTickMark{val=in}'),
+        ('c:valAx',                         XL_TICK_MARK.CROSS,
+         'c:valAx'),
+        ('c:valAx/c:minorTickMark{val=in}', XL_TICK_MARK.OUTSIDE,
+         'c:valAx/c:minorTickMark{val=out}'),
+        ('c:valAx/c:minorTickMark{val=in}', XL_TICK_MARK.CROSS,
+         'c:valAx'),
+    ])
+    def minor_tick_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        expected_xml = xml(expected_xAx_cxml)
+        return axis, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('c:catAx',                     False),
