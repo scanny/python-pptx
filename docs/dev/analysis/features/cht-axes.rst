@@ -17,8 +17,61 @@ depending upon the chart type. Likewise for a value axis.
 PowerPoint behavior
 -------------------
 
+TickLabels.number_format
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Proposed python-pptx protocol::
+
+    >>> tick_labels = axis.tick_labels
+    >>> tick_labels.number_format
+    'General'
+    >>> tick_labels.number_format_is_linked
+    True
+    >>> tick_labels.number_format = '#,##0.00'
+    >>> tick_labels.number_format_is_linked = False
+
+Tick-mark label text for the category axis comes from the name of the
+associated category in the chart. The default tick-mark label text for the
+category axis is the number that indicates the position of the category
+relative to the left end of this axis. To change the number of unlabeled tick
+marks between tick-mark labels, you must change the TickLabelSpacing property
+for the category axis.
+
+Tick-mark label text for the value axis is calculated based on the MajorUnit,
+MinimumScale, and MaximumScale properties of the value axis. To change the
+tick-mark label text for the value axis, you must change the values of these
+properties.
+
+MS API protocol::
+
+    >>> tick_labels = axis.TickLabels
+    >>> tick_labels.NumberFormat
+    'General'
+    >>> tick_labels.NumberFormatLinked
+    True
+    >>> tick_labels.NumberFormatLinked = False
+    >>> tick_labels.NumberFormat = "#,##0.00"
+
+    # output of 1234.5678 is '1,234.57'
+
+When ``sourceLinked`` attribute is True, UI shows "General" number format
+category regardless of contents of ``formatCode`` attribute.
+
+The ``sourceLinked`` attribute defaults to True when the ``<c:numFmt>``
+element is present but that attribute is omitted.
+
+When the ``<c:numFmt>`` element is not present, the behavior is as though the
+element ``<c:numFmt formatCode="General" sourceLinked="0"/>`` was present.
+
+The default PowerPoint chart contains this numFmt element::
+
+    ``<c:numFmt formatCode="General" sourceLinked="1"/>``.
+
+
+_BaseAxis.visible property
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ``<c:delete val="0"/>`` element
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * when delete element is absent, the default value is True
 * when ``val`` attribute is absent, the default value is True
@@ -193,6 +246,11 @@ Related Schema Definitions
       <xsd:element name="min"         type="CT_Double"        minOccurs="0"/>
       <xsd:element name="extLst"      type="CT_ExtensionList" minOccurs="0"/>
     </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_NumFmt">
+    <xsd:attribute name="formatCode"   type="xsd:string"  use="required"/>
+    <xsd:attribute name="sourceLinked" type="xsd:boolean"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_TickMark">
