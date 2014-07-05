@@ -16,6 +16,7 @@ Roughly in reverse chronological order of creation:
    features/cht-pie-chart
    features/cht-bar-chart
    features/cht-chart-builder
+   features/cht-axes
    features/shp-graphfrm
    features/cht-chart-shape
    features/cht-chart-overview

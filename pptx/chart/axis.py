@@ -15,6 +15,16 @@ class _BaseAxis(object):
         super(_BaseAxis, self).__init__()
         self._element = xAx_elm
 
+    @property
+    def visible(self):
+        """
+        Read/write. |True| if axis is visible, |False| otherwise.
+        """
+        delete = self._element.delete
+        if delete is None:
+            return False
+        return False if delete.val else True
+
 
 class CategoryAxis(_BaseAxis):
     """

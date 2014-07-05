@@ -38,10 +38,19 @@ def register_element_cls(nsptagname, cls):
     namespace[nsptag.local_part] = cls
 
 
+from .chart.axis import CT_CatAx, CT_ValAx
+register_element_cls('c:catAx', CT_CatAx)
+register_element_cls('c:valAx', CT_ValAx)
+
+
 from .chart.chart import CT_Chart, CT_ChartSpace, CT_PlotArea
 register_element_cls('c:chart',      CT_Chart)
 register_element_cls('c:chartSpace', CT_ChartSpace)
 register_element_cls('c:plotArea',   CT_PlotArea)
+
+
+from .chart.shared import CT_Boolean
+register_element_cls('c:delete', CT_Boolean)
 
 
 from .dml.color import (
