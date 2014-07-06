@@ -12,6 +12,7 @@ Roughly in reverse chronological order of creation:
 .. toctree::
    :maxdepth: 1
 
+   features/cht-data-labels
    features/cht-line-chart
    features/cht-pie-chart
    features/cht-bar-chart
