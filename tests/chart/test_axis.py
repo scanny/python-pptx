@@ -9,7 +9,9 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import _BaseAxis, TickLabels
-from pptx.enum.chart import XL_TICK_MARK
+from pptx.enum.chart import (
+    XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
+)
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
@@ -66,6 +68,10 @@ class Describe_BaseAxis(object):
         axis, new_value, expected_xml = minor_tick_set_fixture
         axis.minor_tick_mark = new_value
         assert axis._element.xml == expected_xml
+
+    def it_knows_its_tick_label_position(self, tick_lbl_pos_get_fixture):
+        axis, expected_value = tick_lbl_pos_get_fixture
+        assert axis.tick_label_position == expected_value
 
     def it_provides_access_to_the_tick_labels(self, tick_labels_fixture):
         axis, tick_labels_, TickLabels_, xAx = tick_labels_fixture
@@ -185,6 +191,17 @@ class Describe_BaseAxis(object):
         xAx = element('c:valAx')
         axis = _BaseAxis(xAx)
         return axis, tick_labels_, TickLabels_, xAx
+
+    @pytest.fixture(params=[
+        ('c:valAx',                          XL_TICK_LBL_POS.NEXT_TO_AXIS),
+        ('c:catAx/c:tickLblPos',             XL_TICK_LBL_POS.NEXT_TO_AXIS),
+        ('c:valAx/c:tickLblPos{val=nextTo}', XL_TICK_LBL_POS.NEXT_TO_AXIS),
+        ('c:catAx/c:tickLblPos{val=low}',    XL_TICK_LBL_POS.LOW),
+    ])
+    def tick_lbl_pos_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        return axis, expected_value
 
     @pytest.fixture(params=[
         ('c:catAx',                     False),

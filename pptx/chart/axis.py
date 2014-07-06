@@ -6,7 +6,7 @@ Axis-related chart objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from ..enum.chart import XL_TICK_MARK
+from ..enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
 from ..util import lazyproperty
 
 
@@ -89,6 +89,17 @@ class _BaseAxis(object):
         formatting properties.
         """
         return TickLabels(self._element)
+
+    @property
+    def tick_label_position(self):
+        """
+        Read/write :ref:`XlTickLabelPosition` value specifying where the tick
+        labels for this axis should appear.
+        """
+        tickLblPos = self._element.tickLblPos
+        if tickLblPos is None:
+            return XL_TICK_LABEL_POSITION.NEXT_TO_AXIS
+        return tickLblPos.val
 
     @property
     def visible(self):
