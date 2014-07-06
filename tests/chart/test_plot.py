@@ -10,7 +10,7 @@ import pytest
 
 from pptx.chart.plot import DataLabels, Plot
 
-from ..unitutil.cxml import element
+from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
 
 
@@ -51,6 +51,11 @@ class DescribeDataLabels(object):
         data_labels, expected_value = number_format_get_fixture
         assert data_labels.number_format == expected_value
 
+    def it_can_change_its_number_format(self, number_format_set_fixture):
+        data_labels, new_value, expected_xml = number_format_set_fixture
+        data_labels.number_format = new_value
+        assert data_labels._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -61,3 +66,14 @@ class DescribeDataLabels(object):
         dLbls_cxml, expected_value = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         return data_labels, expected_value
+
+    @pytest.fixture(params=[
+        ('c:dLbls', 'General', 'c:dLbls/c:numFmt{formatCode=General}'),
+        ('c:dLbls/c:numFmt{formatCode=General}', '00.00',
+         'c:dLbls/c:numFmt{formatCode=00.00}'),
+    ])
+    def number_format_set_fixture(self, request):
+        dLbls_cxml, new_value, expected_dLbls_cxml = request.param
+        data_labels = DataLabels(element(dLbls_cxml))
+        expected_xml = xml(expected_dLbls_cxml)
+        return data_labels, new_value, expected_xml

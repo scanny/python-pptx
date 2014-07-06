@@ -55,6 +55,11 @@ class DataLabels(object):
             return 'General'
         return numFmt.formatCode
 
+    @number_format.setter
+    def number_format(self, value):
+        numFmt = self._element.get_or_add_numFmt()
+        numFmt.formatCode = value
+
 
 def PlotFactory(plot_elm):
     """
