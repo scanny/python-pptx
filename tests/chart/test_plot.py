@@ -43,3 +43,21 @@ class DescribePlot(object):
     @pytest.fixture
     def data_labels_(self, request):
         return instance_mock(request, DataLabels)
+
+
+class DescribeDataLabels(object):
+
+    def it_knows_its_number_format(self, number_format_get_fixture):
+        data_labels, expected_value = number_format_get_fixture
+        assert data_labels.number_format == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:dLbls',                             'General'),
+        ('c:dLbls/c:numFmt{formatCode=foobar}', 'foobar'),
+    ])
+    def number_format_get_fixture(self, request):
+        dLbls_cxml, expected_value = request.param
+        data_labels = DataLabels(element(dLbls_cxml))
+        return data_labels, expected_value

@@ -53,8 +53,9 @@ register_element_cls('c:plotArea',   CT_PlotArea)
 register_element_cls('c:style',      CT_Style)
 
 
-from .chart.plot import CT_BarChart
+from .chart.plot import CT_BarChart, CT_DLbls
 register_element_cls('c:barChart', CT_BarChart)
+register_element_cls('c:dLbls',    CT_DLbls)
 
 
 from .chart.shared import CT_Boolean, CT_Double, CT_NumFmt

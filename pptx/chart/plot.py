@@ -42,6 +42,19 @@ class DataLabels(object):
         super(DataLabels, self).__init__()
         self._element = dLbls
 
+    @property
+    def number_format(self):
+        """
+        Read/write string specifying the format for the numbers on this set
+        of data labels. Returns 'General' if no number format has been set.
+        Note that setting this format string has no effect on rendered data
+        labels when :meth:`number_format_is_linked` is |True|.
+        """
+        numFmt = self._element.numFmt
+        if numFmt is None:
+            return 'General'
+        return numFmt.formatCode
+
 
 def PlotFactory(plot_elm):
     """
