@@ -18,6 +18,10 @@ class BaseAxisElement(BaseOxmlElement):
     """
     scaling = OneAndOnlyOne('c:scaling')
     delete = ZeroOrOne('c:delete', successors=('c:axPos',))
+    numFmt = ZeroOrOne('c:numFmt', successors=(
+        'c:majorTickMark', 'c:minorTickMark', 'c:tickLblPos', 'c:spPr',
+        'c:txPr', 'c:crossAx'
+    ))
     majorTickMark = ZeroOrOne('c:majorTickMark', successors=(
         'c:minorTickMark', 'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
     ))

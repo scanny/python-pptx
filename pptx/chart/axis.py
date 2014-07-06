@@ -124,6 +124,21 @@ class TickLabels(object):
         super(TickLabels, self).__init__()
         self._element = xAx_elm
 
+    @property
+    def number_format(self):
+        """
+        Read/write string specifying the format for the numbers on this axis.
+        Returns 'General' if no number format has been set. Note that this
+        format string has no effect on rendered tick labels when
+        :meth:`number_format_is_linked` is |True|. Assigning a format string
+        to this property automatically sets :meth:`number_format_is_linked`
+        to |False|.
+        """
+        numFmt = self._element.numFmt
+        if numFmt is None:
+            return 'General'
+        return numFmt.formatCode
+
 
 class ValueAxis(_BaseAxis):
     """

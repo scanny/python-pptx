@@ -231,3 +231,21 @@ class Describe_BaseAxis(object):
     @pytest.fixture
     def tick_labels_(self, request):
         return instance_mock(request, TickLabels)
+
+
+class DescribeTickLabels(object):
+
+    def it_knows_its_number_format(self, number_format_get_fixture):
+        tick_labels, expected_value = number_format_get_fixture
+        assert tick_labels.number_format == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:catAx',                              'General'),
+        ('c:valAx/c:numFmt{formatCode=General}', 'General'),
+    ])
+    def number_format_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        tick_labels = TickLabels(element(xAx_cxml))
+        return tick_labels, expected_value
