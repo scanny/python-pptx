@@ -73,6 +73,11 @@ class Describe_BaseAxis(object):
         axis, expected_value = tick_lbl_pos_get_fixture
         assert axis.tick_label_position == expected_value
 
+    def it_can_change_its_tick_label_position(self, tick_lbl_pos_set_fixture):
+        axis, new_value, expected_xml = tick_lbl_pos_set_fixture
+        axis.tick_label_position = new_value
+        assert axis._element.xml == expected_xml
+
     def it_provides_access_to_the_tick_labels(self, tick_labels_fixture):
         axis, tick_labels_, TickLabels_, xAx = tick_labels_fixture
         tick_labels = axis.tick_labels
@@ -202,6 +207,24 @@ class Describe_BaseAxis(object):
         xAx_cxml, expected_value = request.param
         axis = _BaseAxis(element(xAx_cxml))
         return axis, expected_value
+
+    @pytest.fixture(params=[
+        ('c:valAx',                           XL_TICK_LBL_POS.LOW,
+         'c:valAx/c:tickLblPos{val=low}'),
+        ('c:valAx',                           XL_TICK_LBL_POS.NEXT_TO_AXIS,
+         'c:valAx/c:tickLblPos{val=nextTo}'),
+        ('c:valAx/c:tickLblPos{val=low}',     XL_TICK_LBL_POS.HIGH,
+         'c:valAx/c:tickLblPos{val=high}'),
+        ('c:valAx/c:tickLblPos{val=low}',     XL_TICK_LBL_POS.NEXT_TO_AXIS,
+         'c:valAx/c:tickLblPos{val=nextTo}'),
+        ('c:valAx/c:tickLblPos{val=low}',     None,
+         'c:valAx/c:tickLblPos'),
+    ])
+    def tick_lbl_pos_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        expected_xml = xml(expected_xAx_cxml)
+        return axis, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('c:catAx',                     False),

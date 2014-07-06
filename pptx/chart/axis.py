@@ -99,7 +99,14 @@ class _BaseAxis(object):
         tickLblPos = self._element.tickLblPos
         if tickLblPos is None:
             return XL_TICK_LABEL_POSITION.NEXT_TO_AXIS
+        if tickLblPos.val is None:
+            return XL_TICK_LABEL_POSITION.NEXT_TO_AXIS
         return tickLblPos.val
+
+    @tick_label_position.setter
+    def tick_label_position(self, value):
+        tickLblPos = self._element.get_or_add_tickLblPos()
+        tickLblPos.val = value
 
     @property
     def visible(self):

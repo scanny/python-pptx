@@ -96,10 +96,7 @@ class CT_TickLblPos(BaseOxmlElement):
     """
     ``<c:tickLblPos>`` element.
     """
-    val = OptionalAttribute(
-        'val', XL_TICK_LABEL_POSITION,
-        default=XL_TICK_LABEL_POSITION.NEXT_TO_AXIS
-    )
+    val = OptionalAttribute('val', XL_TICK_LABEL_POSITION)
 
 
 class CT_TickMark(BaseOxmlElement):
