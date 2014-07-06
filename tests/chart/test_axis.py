@@ -239,6 +239,11 @@ class DescribeTickLabels(object):
         tick_labels, expected_value = number_format_get_fixture
         assert tick_labels.number_format == expected_value
 
+    def it_can_change_its_number_format(self, number_format_set_fixture):
+        tick_labels, new_value, expected_xml = number_format_set_fixture
+        tick_labels.number_format = new_value
+        assert tick_labels._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -249,3 +254,14 @@ class DescribeTickLabels(object):
         xAx_cxml, expected_value = request.param
         tick_labels = TickLabels(element(xAx_cxml))
         return tick_labels, expected_value
+
+    @pytest.fixture(params=[
+        ('c:catAx', 'General', 'c:catAx/c:numFmt{formatCode=General}'),
+        ('c:valAx/c:numFmt{formatCode=General}', '00.00',
+         'c:valAx/c:numFmt{formatCode=00.00}'),
+    ])
+    def number_format_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        tick_labels = TickLabels(element(xAx_cxml))
+        expected_xml = xml(expected_xAx_cxml)
+        return tick_labels, new_value, expected_xml
