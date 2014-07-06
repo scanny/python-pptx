@@ -30,3 +30,6 @@ class CT_NumFmt(BaseOxmlElement):
     tick mark or data point.
     """
     formatCode = RequiredAttribute('formatCode', XsdString)
+    sourceLinked = OptionalAttribute(
+        'sourceLinked', XsdBoolean, default=True
+    )

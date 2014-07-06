@@ -244,6 +244,11 @@ class DescribeTickLabels(object):
         tick_labels.number_format = new_value
         assert tick_labels._element.xml == expected_xml
 
+    def it_knows_whether_its_number_format_is_linked(
+            self, number_format_is_linked_get_fixture):
+        tick_labels, expected_value = number_format_is_linked_get_fixture
+        assert tick_labels.number_format_is_linked is expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -265,3 +270,14 @@ class DescribeTickLabels(object):
         tick_labels = TickLabels(element(xAx_cxml))
         expected_xml = xml(expected_xAx_cxml)
         return tick_labels, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:catAx',                          False),
+        ('c:valAx/c:numFmt',                 True),
+        ('c:valAx/c:numFmt{sourceLinked=0}', False),
+        ('c:catAx/c:numFmt{sourceLinked=1}', True),
+    ])
+    def number_format_is_linked_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        tick_labels = TickLabels(element(xAx_cxml))
+        return tick_labels, expected_value
