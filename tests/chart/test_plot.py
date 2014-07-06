@@ -61,6 +61,28 @@ class DescribeDataLabels(object):
         data_labels, expected_value = number_format_is_linked_get_fixture
         assert data_labels.number_format_is_linked is expected_value
 
+    def it_can_change_whether_its_number_format_is_linked(
+            self, number_format_is_linked_set_fixture):
+        data_labels, new_value, expected_xml = (
+            number_format_is_linked_set_fixture
+        )
+        data_labels.number_format_is_linked = new_value
+        assert data_labels._element.xml == expected_xml
+
+    @pytest.fixture(params=[
+        ('c:dLbls', True,  'c:dLbls/c:numFmt{sourceLinked=1}'),
+        ('c:dLbls', False, 'c:dLbls/c:numFmt{sourceLinked=0}'),
+        ('c:dLbls', None,  'c:dLbls/c:numFmt'),
+        ('c:dLbls/c:numFmt', True, 'c:dLbls/c:numFmt{sourceLinked=1}'),
+        ('c:dLbls/c:numFmt{sourceLinked=1}', False,
+         'c:dLbls/c:numFmt{sourceLinked=0}'),
+    ])
+    def number_format_is_linked_set_fixture(self, request):
+        dLbls_cxml, new_value, expected_dLbls_cxml = request.param
+        data_labels = DataLabels(element(dLbls_cxml))
+        expected_xml = xml(expected_dLbls_cxml)
+        return data_labels, new_value, expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -73,9 +95,10 @@ class DescribeDataLabels(object):
         return data_labels, expected_value
 
     @pytest.fixture(params=[
-        ('c:dLbls', 'General', 'c:dLbls/c:numFmt{formatCode=General}'),
+        ('c:dLbls', 'General',
+         'c:dLbls/c:numFmt{formatCode=General,sourceLinked=0}'),
         ('c:dLbls/c:numFmt{formatCode=General}', '00.00',
-         'c:dLbls/c:numFmt{formatCode=00.00}'),
+         'c:dLbls/c:numFmt{formatCode=00.00,sourceLinked=0}'),
     ])
     def number_format_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param

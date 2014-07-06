@@ -47,8 +47,10 @@ class DataLabels(object):
         """
         Read/write string specifying the format for the numbers on this set
         of data labels. Returns 'General' if no number format has been set.
-        Note that setting this format string has no effect on rendered data
-        labels when :meth:`number_format_is_linked` is |True|.
+        Note that this format string has no effect on rendered data labels
+        when :meth:`number_format_is_linked` is |True|. Assigning a format
+        string to this property automatically sets
+        :meth:`number_format_is_linked` to |False|.
         """
         numFmt = self._element.numFmt
         if numFmt is None:
@@ -57,8 +59,8 @@ class DataLabels(object):
 
     @number_format.setter
     def number_format(self, value):
-        numFmt = self._element.get_or_add_numFmt()
-        numFmt.formatCode = value
+        self._element.get_or_add_numFmt().formatCode = value
+        self.number_format_is_linked = False
 
     @property
     def number_format_is_linked(self):
@@ -74,6 +76,11 @@ class DataLabels(object):
         if souceLinked is None:
             return True
         return numFmt.sourceLinked
+
+    @number_format_is_linked.setter
+    def number_format_is_linked(self, value):
+        numFmt = self._element.get_or_add_numFmt()
+        numFmt.sourceLinked = value
 
 
 def PlotFactory(plot_elm):
