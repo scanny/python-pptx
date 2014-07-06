@@ -249,6 +249,14 @@ class DescribeTickLabels(object):
         tick_labels, expected_value = number_format_is_linked_get_fixture
         assert tick_labels.number_format_is_linked is expected_value
 
+    def it_can_change_whether_its_number_format_is_linked(
+            self, number_format_is_linked_set_fixture):
+        tick_labels, new_value, expected_xml = (
+            number_format_is_linked_set_fixture
+        )
+        tick_labels.number_format_is_linked = new_value
+        assert tick_labels._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -261,9 +269,10 @@ class DescribeTickLabels(object):
         return tick_labels, expected_value
 
     @pytest.fixture(params=[
-        ('c:catAx', 'General', 'c:catAx/c:numFmt{formatCode=General}'),
+        ('c:catAx', 'General',
+         'c:catAx/c:numFmt{formatCode=General,sourceLinked=0}'),
         ('c:valAx/c:numFmt{formatCode=General}', '00.00',
-         'c:valAx/c:numFmt{formatCode=00.00}'),
+         'c:valAx/c:numFmt{formatCode=00.00,sourceLinked=0}'),
     ])
     def number_format_set_fixture(self, request):
         xAx_cxml, new_value, expected_xAx_cxml = request.param
@@ -281,3 +290,17 @@ class DescribeTickLabels(object):
         xAx_cxml, expected_value = request.param
         tick_labels = TickLabels(element(xAx_cxml))
         return tick_labels, expected_value
+
+    @pytest.fixture(params=[
+        ('c:valAx', True,  'c:valAx/c:numFmt{sourceLinked=1}'),
+        ('c:catAx', False, 'c:catAx/c:numFmt{sourceLinked=0}'),
+        ('c:valAx', None,  'c:valAx/c:numFmt'),
+        ('c:catAx/c:numFmt', True, 'c:catAx/c:numFmt{sourceLinked=1}'),
+        ('c:valAx/c:numFmt{sourceLinked=1}', False,
+         'c:valAx/c:numFmt{sourceLinked=0}'),
+    ])
+    def number_format_is_linked_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        tick_labels = TickLabels(element(xAx_cxml))
+        expected_xml = xml(expected_xAx_cxml)
+        return tick_labels, new_value, expected_xml

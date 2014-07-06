@@ -143,6 +143,7 @@ class TickLabels(object):
     def number_format(self, value):
         numFmt = self._element.get_or_add_numFmt()
         numFmt.formatCode = value
+        self.number_format_is_linked = False
 
     @property
     def number_format_is_linked(self):
@@ -154,7 +155,15 @@ class TickLabels(object):
         numFmt = self._element.numFmt
         if numFmt is None:
             return False
+        souceLinked = numFmt.sourceLinked
+        if souceLinked is None:
+            return True
         return numFmt.sourceLinked
+
+    @number_format_is_linked.setter
+    def number_format_is_linked(self, value):
+        numFmt = self._element.get_or_add_numFmt()
+        numFmt.sourceLinked = value
 
 
 class ValueAxis(_BaseAxis):
