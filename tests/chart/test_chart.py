@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Test suite for pptx.chart module
+Test suite for pptx.chart.chart module
 """
 
 from __future__ import absolute_import, print_function

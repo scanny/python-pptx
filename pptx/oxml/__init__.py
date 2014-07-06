@@ -53,6 +53,10 @@ register_element_cls('c:plotArea',   CT_PlotArea)
 register_element_cls('c:style',      CT_Style)
 
 
+from .chart.plot import CT_BarChart
+register_element_cls('c:barChart', CT_BarChart)
+
+
 from .chart.shared import CT_Boolean, CT_Double, CT_NumFmt
 register_element_cls('c:delete', CT_Boolean)
 register_element_cls('c:max',    CT_Double)

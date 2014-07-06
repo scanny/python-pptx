@@ -19,6 +19,29 @@ class Plot(object):
         super(Plot, self).__init__()
         self._element = plot_elm
 
+    @property
+    def data_labels(self):
+        """
+        |DataLabels| instance providing properties and methods on the
+        collection of data labels associated with this plot.
+        """
+        dLbls = self._element.dLbls
+        if dLbls is None:
+            raise ValueError(
+                'plot has no data labels, set has_data_labels = True first'
+            )
+        return DataLabels(dLbls)
+
+
+class DataLabels(object):
+    """
+    Collection of data labels associated with a plot, and perhaps with
+    a series, not sure about that yet.
+    """
+    def __init__(self, dLbls):
+        super(DataLabels, self).__init__()
+        self._element = dLbls
+
 
 def PlotFactory(plot_elm):
     """
