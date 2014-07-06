@@ -19,4 +19,5 @@ can be found here:
    PpParagraphAlignment
    PpPlaceholderType
 
+   XlTickLabelPosition
    XlTickMark
