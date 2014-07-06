@@ -7,6 +7,7 @@ Chart shape-related objects such as Chart.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from .axis import CategoryAxis, ValueAxis
+from ..util import lazyproperty
 
 
 class Chart(object):
@@ -51,9 +52,30 @@ class Chart(object):
             return
         self._chartSpace._add_style(val=value)
 
+    @lazyproperty
+    def plots(self):
+        """
+        The |Plots| instance containing the sequence of chart groups in
+        this chart.
+        """
+        plotArea = self._chartSpace.chart.plotArea
+        return Plots(plotArea)
+
     @property
     def value_axis(self):
         valAx = self._chartSpace.valAx
         if valAx is None:
             raise ValueError('chart has no value axis')
         return ValueAxis(valAx)
+
+
+class Plots(object):
+    """
+    The sequence of plots in a chart, such as a bar plot or a line plot. Most
+    charts have only a single plot. The concept is necessary when two chart
+    types are displayed in a single set of axes, like a bar plot with
+    a superimposed line plot.
+    """
+    def __init__(self, plotArea):
+        super(Plots, self).__init__()
+        self._plotArea = plotArea

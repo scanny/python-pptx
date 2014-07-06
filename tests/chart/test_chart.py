@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import CategoryAxis, ValueAxis
-from pptx.chart.chart import Chart
+from pptx.chart.chart import Chart, Plots
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
@@ -39,6 +39,12 @@ class DescribeChart(object):
         with pytest.raises(ValueError):
             chart.value_axis
 
+    def it_provides_access_to_the_plots(self, plots_fixture):
+        chart, plots_, Plots_, plotArea = plots_fixture
+        plots = chart.plots
+        Plots_.assert_called_once_with(plotArea)
+        assert plots is plots_
+
     def it_knows_its_style(self, style_get_fixture):
         chart, expected_value = style_get_fixture
         assert chart.chart_style == expected_value
@@ -61,6 +67,13 @@ class DescribeChart(object):
     def cat_ax_raise_fixture(self):
         chart = Chart(element('c:chartSpace/c:chart/c:plotArea'), None)
         return chart
+
+    @pytest.fixture
+    def plots_fixture(self, Plots_, plots_):
+        chartSpace = element('c:chartSpace/c:chart/c:plotArea')
+        plotArea = chartSpace.xpath('./c:chart/c:plotArea')[0]
+        chart = Chart(chartSpace, None)
+        return chart, plots_, Plots_, plotArea
 
     @pytest.fixture(params=[
         ('c:chartSpace/c:style{val=42}', 42),
@@ -107,6 +120,16 @@ class DescribeChart(object):
     @pytest.fixture
     def category_axis_(self, request):
         return instance_mock(request, CategoryAxis)
+
+    @pytest.fixture
+    def Plots_(self, request, plots_):
+        return class_mock(
+            request, 'pptx.chart.chart.Plots', return_value=plots_
+        )
+
+    @pytest.fixture
+    def plots_(self, request):
+        return instance_mock(request, Plots)
 
     @pytest.fixture
     def ValueAxis_(self, request, value_axis_):
