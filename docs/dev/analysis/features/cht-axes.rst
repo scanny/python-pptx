@@ -2,12 +2,12 @@
 Chart Axes
 ==========
 
-PowerPoint chart axes come in three varieties: category axis, value axis, and
-series axis. A series axis only appears on a 3D chart and is also known as
-its depth axis.
+PowerPoint chart axes come in four varieties: category axis, value axis, date
+axis, and series axis. A series axis only appears on a 3D chart and is also
+known as its depth axis.
 
-A chart may have two category axes and/or two value axes. The second axis if
-there is one is known as the *secondary category axis* or *secondary value
+A chart may have two category axes and/or two value axes. The second axis, if
+there is one, is known as the *secondary category axis* or *secondary value
 axis*.
 
 A category axis may appear as either the horizontal or vertical axis,
@@ -16,6 +16,31 @@ depending upon the chart type. Likewise for a value axis.
 
 PowerPoint behavior
 -------------------
+
+Tick label position
+~~~~~~~~~~~~~~~~~~~
+
+Proposed python-pptx protocol::
+
+    >>> axis.tick_label_position
+    XL_TICK_LABEL_POSITION.NEXT_TO_AXIS
+    >>> axis.tick_label_position = XL_TICK_LABEL_POSITION.LOW
+    >>> axis.tick_label_position
+    XL_TICK_LABEL_POSITION.LOW
+
+MS API protocol::
+
+    >>> axis.TickLabelPosition
+    xlTickLabelPositionNextToAxis
+    >>> axis.TickLabelPosition = xlTickLabelPositionLow
+
+    c:catAx/c:tickLblPos{val=nextTo}
+
+Option "none" causes tick labels to be hidden.
+
+Default when no ``<c:tickLblPos>`` element is present is nextTo. Same if
+element is present with no ``val`` attribute.
+
 
 TickLabels.number_format
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -253,6 +278,10 @@ Related Schema Definitions
     <xsd:attribute name="sourceLinked" type="xsd:boolean"/>
   </xsd:complexType>
 
+  <xsd:complexType name="CT_TickLblPos">
+    <xsd:attribute name="val" type="ST_TickLblPos" default="nextTo"/>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_TickMark">
     <xsd:attribute name="val" type="ST_TickMark" default="cross"/>
   </xsd:complexType>
@@ -264,6 +293,15 @@ Related Schema Definitions
   <xsd:complexType name="CT_Double">
     <xsd:attribute name="val" type="xsd:double" use="required"/>
   </xsd:complexType>
+
+  <xsd:simpleType name="ST_TickLblPos">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="high"/>
+      <xsd:enumeration value="low"/>
+      <xsd:enumeration value="nextTo"/>
+      <xsd:enumeration value="none"/>
+    </xsd:restriction>
+  </xsd:simpleType>
 
   <xsd:simpleType name="ST_TickMark">
     <xsd:restriction base="xsd:string">
