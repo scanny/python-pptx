@@ -6,6 +6,7 @@ lxml custom element classes for chart-related XML elements.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from ..ns import qn
 from ..simpletypes import ST_Style, XsdString
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
@@ -53,6 +54,24 @@ class CT_PlotArea(BaseOxmlElement):
     # catAx and valAx are actually ZeroOrMore, but don't need list bit yet
     catAx = ZeroOrOne('c:catAx')
     valAx = ZeroOrOne('c:valAx')
+
+    def iter_plots(self):
+        """
+        Generate each xChart child element in the order it appears.
+        """
+        plot_tags = (
+            qn('c:area3DChart'), qn('c:areaChart'), qn('c:bar3DChart'),
+            qn('c:barChart'), qn('c:bubbleChart'), qn('c:doughnutChart'),
+            qn('c:line3DChart'), qn('c:lineChart'), qn('c:ofPieChart'),
+            qn('c:pie3DChart'), qn('c:pieChart'), qn('c:radarChart'),
+            qn('c:scatterChart'), qn('c:stockChart'), qn('c:surface3DChart'),
+            qn('c:surfaceChart')
+        )
+
+        for child in self.iterchildren():
+            if child.tag not in plot_tags:
+                continue
+            yield child
 
 
 class CT_Style(BaseOxmlElement):

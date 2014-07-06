@@ -10,9 +10,10 @@ import pytest
 
 from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Chart, Plots
+from pptx.chart.plot import Plot
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock
+from ..unitutil.mock import class_mock, function_mock, instance_mock
 
 
 class DescribeChart(object):
@@ -141,3 +142,51 @@ class DescribeChart(object):
     @pytest.fixture
     def value_axis_(self, request):
         return instance_mock(request, ValueAxis)
+
+
+class DescribePlots(object):
+
+    def it_supports_indexed_access(self, getitem_fixture):
+        plots, idx, PlotFactory_, plot_elm, plot_ = getitem_fixture
+        plot = plots[idx]
+        PlotFactory_.assert_called_once_with(plot_elm)
+        assert plot is plot_
+
+    def it_supports_len(self, len_fixture):
+        plots, expected_len = len_fixture
+        assert len(plots) == expected_len
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:plotArea/c:barChart', 0),
+        ('c:plotArea/(c:radarChart,c:barChart)', 1),
+    ])
+    def getitem_fixture(self, request, PlotFactory_, plot_):
+        plotArea_cxml, idx = request.param
+        plotArea = element(plotArea_cxml)
+        plot_elm = plotArea[idx]
+        plots = Plots(plotArea)
+        return plots, idx, PlotFactory_, plot_elm, plot_
+
+    @pytest.fixture(params=[
+        ('c:plotArea',                          0),
+        ('c:plotArea/c:barChart',               1),
+        ('c:plotArea/(c:barChart,c:lineChart)', 2),
+    ])
+    def len_fixture(self, request):
+        plotArea_cxml, expected_len = request.param
+        plots = Plots(element(plotArea_cxml))
+        return plots, expected_len
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def PlotFactory_(self, request, plot_):
+        return function_mock(
+            request, 'pptx.chart.chart.PlotFactory', return_value=plot_
+        )
+
+    @pytest.fixture
+    def plot_(self, request):
+        return instance_mock(request, Plot)

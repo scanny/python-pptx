@@ -6,7 +6,10 @@ Chart shape-related objects such as Chart.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from collections import Sequence
+
 from .axis import CategoryAxis, ValueAxis
+from .plot import PlotFactory
 from ..util import lazyproperty
 
 
@@ -69,7 +72,7 @@ class Chart(object):
         return ValueAxis(valAx)
 
 
-class Plots(object):
+class Plots(Sequence):
     """
     The sequence of plots in a chart, such as a bar plot or a line plot. Most
     charts have only a single plot. The concept is necessary when two chart
@@ -79,3 +82,15 @@ class Plots(object):
     def __init__(self, plotArea):
         super(Plots, self).__init__()
         self._plotArea = plotArea
+
+    def __getitem__(self, index):
+        plot_elms = [p for p in self._plotArea.iter_plots()]
+        if isinstance(index, slice):
+            return [PlotFactory(plot_elm) for plot_elm in plot_elms]
+        else:
+            plot_elm = plot_elms[index]
+            return PlotFactory(plot_elm)
+
+    def __len__(self):
+        plot_elms = [p for p in self._plotArea.iter_plots()]
+        return len(plot_elms)
