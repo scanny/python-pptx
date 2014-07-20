@@ -66,6 +66,10 @@ register_element_cls('c:lineChart', CT_LineChart)
 register_element_cls('c:pieChart',  CT_PieChart)
 
 
+from .chart.series import CT_SeriesComposite
+register_element_cls('c:ser', CT_SeriesComposite)
+
+
 from .chart.shared import CT_Boolean, CT_Double, CT_NumFmt
 register_element_cls('c:delete', CT_Boolean)
 register_element_cls('c:max',    CT_Double)
@@ -183,6 +187,7 @@ register_element_cls('a:ext',   CT_PositiveSize2D)
 register_element_cls('a:ln',    CT_LineProperties)
 register_element_cls('a:off',   CT_Point2D)
 register_element_cls('a:xfrm',  CT_Transform2D)
+register_element_cls('c:spPr',  CT_ShapeProperties)
 register_element_cls('p:cNvPr', CT_NonVisualDrawingProps)
 register_element_cls('p:nvPr',  CT_ApplicationNonVisualDrawingProps)
 register_element_cls('p:ph',    CT_Placeholder)

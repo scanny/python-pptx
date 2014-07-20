@@ -9,9 +9,40 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.series import BarSeries, LineSeries, PieSeries, SeriesFactory
+from pptx.dml.fill import FillFormat
 
 from ..unitutil.cxml import element
 from ..unitutil.mock import class_mock, instance_mock
+
+
+class DescribeBarSeries(object):
+
+    def it_provides_access_to_the_series_fill_format(self, fill_fixture):
+        bar_series, FillFormat_, spPr, fill_ = fill_fixture
+        fill = bar_series.fill
+        FillFormat_.from_fill_parent.assert_called_once_with(spPr)
+        assert fill is fill_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def fill_fixture(self, FillFormat_, fill_):
+        ser = element('c:ser/c:spPr')
+        spPr = ser.spPr
+        bar_series = BarSeries(ser)
+        return bar_series, FillFormat_, spPr, fill_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def FillFormat_(self, request, fill_):
+        FillFormat_ = class_mock(request, 'pptx.chart.series.FillFormat')
+        FillFormat_.from_fill_parent.return_value = fill_
+        return FillFormat_
+
+    @pytest.fixture
+    def fill_(self, request):
+        return instance_mock(request, FillFormat)
 
 
 class DescribeSeriesFactory(object):

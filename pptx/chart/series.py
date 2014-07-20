@@ -6,7 +6,9 @@ Series-related objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from ..dml.fill import FillFormat
 from ..oxml.ns import qn
+from ..util import lazyproperty
 
 
 class _BaseSeries(object):
@@ -22,6 +24,14 @@ class BarSeries(_BaseSeries):
     """
     A data point series belonging to a bar plot.
     """
+    @lazyproperty
+    def fill(self):
+        """
+        |FillFormat| instance for this series, providing access to fill
+        properties such as fill color.
+        """
+        spPr = self._element.get_or_add_spPr()
+        return FillFormat.from_fill_parent(spPr)
 
 
 class LineSeries(_BaseSeries):
