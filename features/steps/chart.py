@@ -56,6 +56,17 @@ def given_a_bar_series_having_fill_of_fill(context, fill):
     context.series = plot.series[series_idx]
 
 
+@given('a bar series having {width} line')
+def given_a_bar_series_having_width_line(context, width):
+    series_idx = {
+        'no':      0,
+        '1 point': 1,
+    }[width]
+    prs = Presentation(test_pptx('cht-series-props'))
+    plot = prs.slides[0].shapes[0].chart.plots[0]
+    context.series = plot.series[series_idx]
+
+
 @given('an axis having {major_or_minor} gridlines')
 def given_an_axis_having_major_or_minor_gridlines(context, major_or_minor):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -152,6 +163,13 @@ def then_the_series_has_a_fill_type_of_type(context, fill_type):
     }[fill_type]
     fill = context.series.fill
     assert fill.type == expected_fill_type
+
+
+@then('the series has a line width of {width}')
+def then_the_series_has_a_line_width_of_width(context, width):
+    expected_width = int(width)
+    line = context.series.line
+    assert line.width == expected_width
 
 
 @then('the value of plot.gap_width is {value}')
