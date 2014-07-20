@@ -10,6 +10,8 @@ from behave import given, then, when
 
 from pptx import Presentation
 from pptx.chart.axis import CategoryAxis, ValueAxis
+from pptx.dml.color import RGBColor
+from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
 
 from .helpers import test_pptx
 
@@ -39,6 +41,19 @@ def given_a_bar_plot_having_gap_width_of_width(context, width):
     slide_idx = {'no explicit value': 0, '300': 1}[width]
     prs = Presentation(test_pptx('cht-plot-props'))
     context.plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
+
+
+@given('a bar series having fill of {fill}')
+def given_a_bar_series_having_fill_of_fill(context, fill):
+    series_idx = {
+        'Automatic': 0,
+        'No Fill':   1,
+        'Orange':    2,
+        'Accent 1':  3,
+    }[fill]
+    prs = Presentation(test_pptx('cht-series-props'))
+    plot = prs.slides[0].shapes[0].chart.plots[0]
+    context.series = plot.series[series_idx]
 
 
 @given('an axis having {major_or_minor} gridlines')
@@ -114,6 +129,29 @@ def then_the_plot_has_data_labels_property_is_value(context, value):
         'False': False,
     }[value]
     assert context.plot.has_data_labels is expected_value
+
+
+@then('the series fill RGB color is FF6600')
+def then_the_series_fill_RGB_color_is_FF6600(context):
+    fill = context.series.fill
+    assert fill.fore_color.rgb == RGBColor(0xFF, 0x66, 0x00)
+
+
+@then('the series fill theme color is Accent 1')
+def then_the_series_fill_theme_color_is_Accent_1(context):
+    fill = context.series.fill
+    assert fill.fore_color.theme_color == MSO_THEME_COLOR.ACCENT_1
+
+
+@then('the series has a fill type of {fill_type}')
+def then_the_series_has_a_fill_type_of_type(context, fill_type):
+    expected_fill_type = {
+        'None':                     None,
+        'MSO_FILL_TYPE.BACKGROUND': MSO_FILL_TYPE.BACKGROUND,
+        'MSO_FILL_TYPE.SOLID':      MSO_FILL_TYPE.SOLID,
+    }[fill_type]
+    fill = context.series.fill
+    assert fill.type == expected_fill_type
 
 
 @then('the value of plot.gap_width is {value}')
