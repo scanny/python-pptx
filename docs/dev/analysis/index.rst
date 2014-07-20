@@ -13,6 +13,7 @@ Roughly in reverse chronological order of creation:
    :maxdepth: 1
 
    features/cht-axis-has-gridlines
+   features/cht-series
    features/cht-access-xlsx
    features/cht-data-labels
    features/cht-line-chart
