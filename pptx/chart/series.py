@@ -7,6 +7,7 @@ Series-related objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from ..dml.fill import FillFormat
+from ..dml.line import LineFormat
 from ..oxml.ns import qn
 from ..util import lazyproperty
 
@@ -32,6 +33,36 @@ class BarSeries(_BaseSeries):
         """
         spPr = self._element.get_or_add_spPr()
         return FillFormat.from_fill_parent(spPr)
+
+    def get_or_add_ln(self):
+        """
+        Return the ``<a:ln>`` element containing the line format properties
+        XML for this shape. Part of the callback interface required by
+        |LineFormat|.
+        """
+        spPr = self._element.get_or_add_spPr()
+        ln = spPr.get_or_add_ln()
+        return ln
+
+    @lazyproperty
+    def line(self):
+        """
+        |LineFormat| instance for this shape, providing access to line
+        properties such as line color.
+        """
+        return LineFormat(self)
+
+    @property
+    def ln(self):
+        """
+        The ``<a:ln>`` element containing the line format properties such as
+        line color and width. |None| if no ``<a:ln>`` element is present.
+        Part of the callback interface required by |LineFormat|.
+        """
+        spPr = self._element.spPr
+        if spPr is None:
+            return None
+        return spPr.ln
 
 
 class LineSeries(_BaseSeries):

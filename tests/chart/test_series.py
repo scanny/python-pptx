@@ -10,8 +10,9 @@ import pytest
 
 from pptx.chart.series import BarSeries, LineSeries, PieSeries, SeriesFactory
 from pptx.dml.fill import FillFormat
+from pptx.dml.line import LineFormat
 
-from ..unitutil.cxml import element
+from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
 
 
@@ -23,6 +24,29 @@ class DescribeBarSeries(object):
         FillFormat_.from_fill_parent.assert_called_once_with(spPr)
         assert fill is fill_
 
+    def it_provides_access_to_the_series_line_format(self, line_fixture):
+        bar_series, LineFormat_, line_ = line_fixture
+        line = bar_series.line
+        LineFormat_.assert_called_once_with(bar_series)
+        assert line is line_
+
+    def it_can_get_the_width_of_its_line(self, line_width_get_fixture):
+        """
+        Tests integration between BarSeries and LineFormat, the latter
+        requiring an ln() method on the former to do this job.
+        """
+        bar_series, expected_width = line_width_get_fixture
+        assert bar_series.line.width == expected_width
+
+    def it_can_change_the_width_of_its_line(self, line_width_set_fixture):
+        """
+        Tests integration between BarSeries and LineFormat, the latter
+        requiring a get_or_add_ln() method on the former to do this job.
+        """
+        bar_series, width, expected_xml = line_width_set_fixture
+        bar_series.line.width = width
+        assert bar_series._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -31,6 +55,29 @@ class DescribeBarSeries(object):
         spPr = ser.spPr
         bar_series = BarSeries(ser)
         return bar_series, FillFormat_, spPr, fill_
+
+    @pytest.fixture
+    def line_fixture(self, LineFormat_, line_):
+        bar_series = BarSeries(element('c:ser'))
+        return bar_series, LineFormat_, line_
+
+    @pytest.fixture(params=[
+        ('c:ser', 0),
+        ('c:ser/c:spPr', 0),
+        ('c:ser/c:spPr/a:ln{w=12700}', 12700),
+    ])
+    def line_width_get_fixture(self, request):
+        ser_cxml, expected_width = request.param
+        bar_series = BarSeries(element(ser_cxml))
+        return bar_series, expected_width
+
+    @pytest.fixture
+    def line_width_set_fixture(self):
+        ser_cxml = 'c:ser{a:foo=bar}/c:order'
+        bar_series = BarSeries(element(ser_cxml))
+        width = 12700  # 1 point
+        expected_xml = xml('c:ser{a:foo=bar}/(c:order,c:spPr/a:ln{w=12700})')
+        return bar_series, width, expected_xml
 
     # fixture components ---------------------------------------------
 
@@ -43,6 +90,16 @@ class DescribeBarSeries(object):
     @pytest.fixture
     def fill_(self, request):
         return instance_mock(request, FillFormat)
+
+    @pytest.fixture
+    def LineFormat_(self, request, line_):
+        return class_mock(
+            request, 'pptx.chart.series.LineFormat', return_value=line_
+        )
+
+    @pytest.fixture
+    def line_(self, request):
+        return instance_mock(request, LineFormat)
 
 
 class DescribeSeriesFactory(object):

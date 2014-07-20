@@ -25,7 +25,6 @@ Feature: Get and set chart series properties
      Then the series fill theme color is Accent 1
 
 
-  @wip
   Scenario Outline: Get series line width
     Given a bar series having <width> line
      Then the series has a line width of <expected-width>
