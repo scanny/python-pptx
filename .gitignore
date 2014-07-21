@@ -4,10 +4,8 @@
 *.pyc
 /dist/
 /docs/.build
-features/_scratch/*
 out.txt
-_scratch
+_scratch/
 /spec/gen_spec/spec*.db
 tags
 /tests/debug.py
-/Session.vim
