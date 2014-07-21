@@ -6,6 +6,26 @@ A bar chart is one of the fundamental plot types, used for column and bar
 charts, clustered, stacked, and stacked 100%.
 
 
+Gap Width
+---------
+
+A gap appears between the bar or clustered bars for each category on a bar
+chart. The default width for this gap is 150% of the bar width. It can be set
+between 0 and 500% of the bar width. In the MS API this is set using the
+property `ChartGroup.GapWidth`.
+
+Proposed protocol::
+
+    >>> assert isinstance(bar_plot, BarPlot)
+    >>> bar_plot.gap_width
+    150
+    >>> bar_plot.gap_width = 300
+    >>> bar_plot.gap_width
+    300
+    >>> bar_plot.gap_width = 700
+    ValueError: gap width must be in range 0-500 (percent)
+
+
 XML specimens
 -------------
 
@@ -43,6 +63,15 @@ reference values in a spreadsheet.::
               </c:numLit>
             </c:val>
           </c:ser>
+          <c:dLbls>
+            <c:showLegendKey val="0"/>
+            <c:showVal val="0"/>
+            <c:showCatName val="0"/>
+            <c:showSerName val="0"/>
+            <c:showPercent val="0"/>
+            <c:showBubbleSize val="0"/>
+          </c:dLbls>
+          <c:gapWidth val="300"/>
           <c:axId val="-2068027336"/>
           <c:axId val="-2113994440"/>
         </c:barChart>
@@ -70,79 +99,7 @@ Related Schema Definitions
 
 .. highlight:: xml
 
-Core elements in chart part::
-
-  <xsd:element name="chartSpace" type="CT_ChartSpace"/>
-
-  <xsd:complexType name="CT_ChartSpace">
-    <xsd:sequence>
-      <xsd:element name="date1904"       type="CT_Boolean"           minOccurs="0"/>
-      <xsd:element name="lang"           type="CT_TextLanguageID"    minOccurs="0"/>
-      <xsd:element name="roundedCorners" type="CT_Boolean"           minOccurs="0"/>
-      <xsd:element name="style"          type="CT_Style"             minOccurs="0"/>
-      <xsd:element name="clrMapOvr"      type="a:CT_ColorMapping"    minOccurs="0"/>
-      <xsd:element name="pivotSource"    type="CT_PivotSource"       minOccurs="0"/>
-      <xsd:element name="protection"     type="CT_Protection"        minOccurs="0"/>
-      <xsd:element name="chart"          type="CT_Chart"/>
-      <xsd:element name="spPr"           type="a:CT_ShapeProperties" minOccurs="0"/>
-      <xsd:element name="txPr"           type="a:CT_TextBody"        minOccurs="0"/>
-      <xsd:element name="externalData"   type="CT_ExternalData"      minOccurs="0"/>
-      <xsd:element name="printSettings"  type="CT_PrintSettings"     minOccurs="0"/>
-      <xsd:element name="userShapes"     type="CT_RelId"             minOccurs="0"/>
-      <xsd:element name="extLst"         type="CT_ExtensionList"     minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_Chart">
-    <xsd:sequence>
-      <xsd:element name="title"            type="CT_Title"         minOccurs="0"/>
-      <xsd:element name="autoTitleDeleted" type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="pivotFmts"        type="CT_PivotFmts"     minOccurs="0"/>
-      <xsd:element name="view3D"           type="CT_View3D"        minOccurs="0"/>
-      <xsd:element name="floor"            type="CT_Surface"       minOccurs="0"/>
-      <xsd:element name="sideWall"         type="CT_Surface"       minOccurs="0"/>
-      <xsd:element name="backWall"         type="CT_Surface"       minOccurs="0"/>
-      <xsd:element name="plotArea"         type="CT_PlotArea"/>
-      <xsd:element name="legend"           type="CT_Legend"        minOccurs="0"/>
-      <xsd:element name="plotVisOnly"      type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="dispBlanksAs"     type="CT_DispBlanksAs"  minOccurs="0"/>
-      <xsd:element name="showDLblsOverMax" type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="extLst"           type="CT_ExtensionList" minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_PlotArea">
-    <xsd:sequence>
-      <xsd:element name="layout" type="CT_Layout" minOccurs="0" maxOccurs="1"/>
-      <xsd:choice minOccurs="1" maxOccurs="unbounded">
-        <xsd:element name="areaChart"      type="CT_AreaChart"/>
-        <xsd:element name="area3DChart"    type="CT_Area3DChart"/>
-        <xsd:element name="lineChart"      type="CT_LineChart"/>
-        <xsd:element name="line3DChart"    type="CT_Line3DChart"/>
-        <xsd:element name="stockChart"     type="CT_StockChart"/>
-        <xsd:element name="radarChart"     type="CT_RadarChart"/>
-        <xsd:element name="scatterChart"   type="CT_ScatterChart"/>
-        <xsd:element name="pieChart"       type="CT_PieChart"/>
-        <xsd:element name="pie3DChart"     type="CT_Pie3DChart"/>
-        <xsd:element name="doughnutChart"  type="CT_DoughnutChart"/>
-        <xsd:element name="barChart"       type="CT_BarChart"/>
-        <xsd:element name="bar3DChart"     type="CT_Bar3DChart"/>
-        <xsd:element name="ofPieChart"     type="CT_OfPieChart"/>
-        <xsd:element name="surfaceChart"   type="CT_SurfaceChart"/>
-        <xsd:element name="surface3DChart" type="CT_Surface3DChart"/>
-        <xsd:element name="bubbleChart"    type="CT_BubbleChart"/>
-      </xsd:choice>
-      <xsd:choice minOccurs="0" maxOccurs="unbounded">
-        <xsd:element name="valAx"  type="CT_ValAx"/>
-        <xsd:element name="catAx"  type="CT_CatAx"/>
-        <xsd:element name="dateAx" type="CT_DateAx"/>
-        <xsd:element name="serAx"  type="CT_SerAx"/>
-      </xsd:choice>
-      <xsd:element name="dTable" type="CT_DTable"            minOccurs="0"/>
-      <xsd:element name="spPr"   type="a:CT_ShapeProperties" minOccurs="0"/>
-      <xsd:element name="extLst" type="CT_ExtensionList"     minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
+::
 
   <xsd:complexType name="CT_BarChart">  <!-- denormalized -->
     <xsd:sequence>
@@ -178,126 +135,23 @@ Core elements in chart part::
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_AxDataSource">
-    <xsd:sequence>
-      <xsd:choice minOccurs="1" maxOccurs="1">
-        <xsd:element name="multiLvlStrRef" type="CT_MultiLvlStrRef"/>
-        <xsd:element name="numRef"         type="CT_NumRef"/>
-        <xsd:element name="numLit"         type="CT_NumData"/>
-        <xsd:element name="strRef"         type="CT_StrRef"/>
-        <xsd:element name="strLit"         type="CT_StrData"/>
-      </xsd:choice>
-    </xsd:sequence>
+  <xsd:complexType name="CT_GapAmount">
+    <xsd:attribute name="val" type="ST_GapAmount" default="150%"/>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_NumDataSource">
-    <xsd:sequence>
-      <xsd:choice minOccurs="1" maxOccurs="1">
-        <xsd:element name="numRef" type="CT_NumRef"/>
-        <xsd:element name="numLit" type="CT_NumData"/>
-      </xsd:choice>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_StrRef">
-    <xsd:sequence>
-      <xsd:element name="f"        type="xsd:string"/>
-      <xsd:element name="strCache" type="CT_StrData"       minOccurs="0"/>
-      <xsd:element name="extLst"   type="CT_ExtensionList" minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_StrData">
-    <xsd:sequence>
-      <xsd:element name="ptCount" type="CT_UnsignedInt"   minOccurs="0"/>
-      <xsd:element name="pt"      type="CT_StrVal"        minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="extLst"  type="CT_ExtensionList" minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_NumRef">
-    <xsd:sequence>
-      <xsd:element name="f"        type="xsd:string"/>
-      <xsd:element name="numCache" type="CT_NumData"       minOccurs="0"/>
-      <xsd:element name="extLst"   type="CT_ExtensionList" minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_NumData">
-    <xsd:sequence>
-      <xsd:element name="formatCode" type="s:ST_Xstring"     minOccurs="0"/>
-      <xsd:element name="ptCount"    type="CT_UnsignedInt"   minOccurs="0"/>
-      <xsd:element name="pt"         type="CT_NumVal"        minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_NumVal">
-    <xsd:sequence>
-      <xsd:element name="v" type="s:ST_Xstring"/>
-    </xsd:sequence>
-    <xsd:attribute name="idx"        type="xsd:unsignedInt" use="required"/>
-    <xsd:attribute name="formatCode" type="s:ST_Xstring"/>
-  </xsd:complexType>
-
-  <xsd:simpleType name="ST_Xstring">
-    <xsd:restriction base="xsd:string"/>
+  <xsd:simpleType name="ST_GapAmount">
+    <xsd:union memberTypes="ST_GapAmountPercent ST_GapAmountUShort"/>
   </xsd:simpleType>
 
-  <xsd:complexType name="CT_CatAx">  <!-- denormalized -->
-    <xsd:sequence>
-      <xsd:element name="axId"           type="CT_UnsignedInt"/>
-      <xsd:element name="scaling"        type="CT_Scaling"/>
-      <xsd:element name="delete"         type="CT_Boolean"           minOccurs="0"/>
-      <xsd:element name="axPos"          type="CT_AxPos"/>
-      <xsd:element name="majorGridlines" type="CT_ChartLines"        minOccurs="0"/>
-      <xsd:element name="minorGridlines" type="CT_ChartLines"        minOccurs="0"/>
-      <xsd:element name="title"          type="CT_Title"             minOccurs="0"/>
-      <xsd:element name="numFmt"         type="CT_NumFmt"            minOccurs="0"/>
-      <xsd:element name="majorTickMark"  type="CT_TickMark"          minOccurs="0"/>
-      <xsd:element name="minorTickMark"  type="CT_TickMark"          minOccurs="0"/>
-      <xsd:element name="tickLblPos"     type="CT_TickLblPos"        minOccurs="0"/>
-      <xsd:element name="spPr"           type="a:CT_ShapeProperties" minOccurs="0"/>
-      <xsd:element name="txPr"           type="a:CT_TextBody"        minOccurs="0"/>
-      <xsd:element name="crossAx"        type="CT_UnsignedInt"/>
-      <xsd:choice                                                    minOccurs="0">
-        <xsd:element name="crosses"      type="CT_Crosses"/>
-        <xsd:element name="crossesAt"    type="CT_Double"/>
-      </xsd:choice>
-      <xsd:element name="auto"           type="CT_Boolean"           minOccurs="0"/>
-      <xsd:element name="lblAlgn"        type="CT_LblAlgn"           minOccurs="0"/>
-      <xsd:element name="lblOffset"      type="CT_LblOffset"         minOccurs="0"/>
-      <xsd:element name="tickLblSkip"    type="CT_Skip"              minOccurs="0"/>
-      <xsd:element name="tickMarkSkip"   type="CT_Skip"              minOccurs="0"/>
-      <xsd:element name="noMultiLvlLbl"  type="CT_Boolean"           minOccurs="0"/>
-      <xsd:element name="extLst"         type="CT_ExtensionList"     minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
+  <xsd:simpleType name="ST_GapAmountPercent">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="0*(([0-9])|([1-9][0-9])|([1-4][0-9][0-9])|500)%"/>
+    </xsd:restriction>
+  </xsd:simpleType>
 
-  <xsd:complexType name="CT_ValAx">  <!-- denormalized -->
-    <xsd:sequence>
-      <xsd:element name="axId"           type="CT_UnsignedInt"/>
-      <xsd:element name="scaling"        type="CT_Scaling"/>
-      <xsd:element name="delete"         type="CT_Boolean"           minOccurs="0"/>
-      <xsd:element name="axPos"          type="CT_AxPos"/>
-      <xsd:element name="majorGridlines" type="CT_ChartLines"        minOccurs="0"/>
-      <xsd:element name="minorGridlines" type="CT_ChartLines"        minOccurs="0"/>
-      <xsd:element name="title"          type="CT_Title"             minOccurs="0"/>
-      <xsd:element name="numFmt"         type="CT_NumFmt"            minOccurs="0"/>
-      <xsd:element name="majorTickMark"  type="CT_TickMark"          minOccurs="0"/>
-      <xsd:element name="minorTickMark"  type="CT_TickMark"          minOccurs="0"/>
-      <xsd:element name="tickLblPos"     type="CT_TickLblPos"        minOccurs="0"/>
-      <xsd:element name="spPr"           type="a:CT_ShapeProperties" minOccurs="0"/>
-      <xsd:element name="txPr"           type="a:CT_TextBody"        minOccurs="0"/>
-      <xsd:element name="crossAx"        type="CT_UnsignedInt"/>
-      <xsd:choice                                                    minOccurs="0">
-        <xsd:element name="crosses"   type="CT_Crosses"/>
-        <xsd:element name="crossesAt" type="CT_Double"/>
-      </xsd:choice>
-      <xsd:element name="crossBetween"   type="CT_CrossBetween"      minOccurs="0"/>
-      <xsd:element name="majorUnit"      type="CT_AxisUnit"          minOccurs="0"/>
-      <xsd:element name="minorUnit"      type="CT_AxisUnit"          minOccurs="0"/>
-      <xsd:element name="dispUnits"      type="CT_DispUnits"         minOccurs="0"/>
-      <xsd:element name="extLst"         type="CT_ExtensionList"     minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
+  <xsd:simpleType name="ST_GapAmountUShort">
+    <xsd:restriction base="xsd:unsignedShort">
+      <xsd:minInclusive value="0"/>
+      <xsd:maxInclusive value="500"/>
+    </xsd:restriction>
+  </xsd:simpleType>
