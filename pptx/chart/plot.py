@@ -63,6 +63,13 @@ class BarPlot(Plot):
     """
     A bar chart-style plot.
     """
+    @property
+    def gap_width(self):
+        """
+        Width of gap between bar(s) of each category, as an integer
+        percentage of the bar width. The default width for a new bar chart is
+        150%.
+        """
 
 
 class DataLabels(object):

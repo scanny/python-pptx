@@ -34,7 +34,20 @@ def given_a_bar_plot_having_or_not_data_labels(context, having_or_not):
     context.plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
 
 
+@given('a bar plot having gap width of {width}')
+def given_a_bar_plot_having_gap_width_of_width(context, width):
+    slide_idx = {'no explicit value': 0, '300': 1}[width]
+    prs = Presentation(test_pptx('cht-plot-props'))
+    context.plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
+
+
 # when ====================================================
+
+@when('I assign {value} to plot.gap_width')
+def when_I_assign_value_to_plot_gap_width(context, value):
+    new_value = int(value)
+    context.plot.gap_width = new_value
+
 
 @when('I assign {value} to plot.has_data_labels')
 def when_I_assign_value_to_plot_has_data_labels(context, value):
@@ -66,3 +79,10 @@ def then_the_plot_has_data_labels_property_is_value(context, value):
         'False': False,
     }[value]
     assert context.plot.has_data_labels is expected_value
+
+
+@then('the value of plot.gap_width is {value}')
+def then_the_value_of_plot_gap_width_is_value(context, value):
+    expected_value = int(value)
+    actual_gap_width = context.plot.gap_width
+    assert actual_gap_width == expected_value, 'got %s' % actual_gap_width
