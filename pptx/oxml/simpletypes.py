@@ -274,6 +274,22 @@ class ST_Extension(XsdString):
     pass
 
 
+class ST_GapAmount(BaseIntType):
+    """
+    String value is an integer in range 0-500, representing a percent,
+    optionally including a '%' suffix.
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if str_value.endswith('%'):  # trim off '%' character if present
+            str_value = str_value[:-1]
+        return int(str_value)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 500)
+
+
 class ST_HexColorRGB(BaseStringType):
 
     @classmethod

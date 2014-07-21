@@ -70,6 +70,10 @@ class BarPlot(Plot):
         percentage of the bar width. The default width for a new bar chart is
         150%.
         """
+        gapWidth = self._element.gapWidth
+        if gapWidth is None:
+            return 150
+        return gapWidth.val
 
 
 class DataLabels(object):

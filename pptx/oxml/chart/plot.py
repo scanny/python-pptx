@@ -8,7 +8,8 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from .. import parse_xml
 from ..ns import nsdecls
-from ..xmlchemy import BaseOxmlElement, ZeroOrOne
+from ..simpletypes import ST_GapAmount
+from ..xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrOne
 
 
 class BaseChartElement(BaseOxmlElement):
@@ -25,6 +26,9 @@ class CT_BarChart(BaseChartElement):
     """
     dLbls = ZeroOrOne('c:dLbls', successors=(
         'c:gapWidth', 'c:overlap', 'c:serLines', 'c:axId'
+    ))
+    gapWidth = ZeroOrOne('c:gapWidth', successors=(
+        'c:overlap', 'c:serLines', 'c:axId'
     ))
 
 
@@ -58,6 +62,14 @@ class CT_DLbls(BaseOxmlElement):
         xml = cls._default_xml
         dLbls = parse_xml(xml)
         return dLbls
+
+
+class CT_GapAmount(BaseOxmlElement):
+    """
+    ``<c:gapWidth>`` child of ``<c:barChart>`` element, also used for other
+    purposes like error bars.
+    """
+    val = OptionalAttribute('val', ST_GapAmount, default=150)
 
 
 class CT_LineChart(BaseChartElement):

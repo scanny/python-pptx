@@ -56,9 +56,12 @@ register_element_cls('c:plotArea',   CT_PlotArea)
 register_element_cls('c:style',      CT_Style)
 
 
-from .chart.plot import CT_BarChart, CT_DLbls, CT_LineChart, CT_PieChart
+from .chart.plot import (
+    CT_BarChart, CT_DLbls, CT_GapAmount, CT_LineChart, CT_PieChart
+)
 register_element_cls('c:barChart',  CT_BarChart)
 register_element_cls('c:dLbls',     CT_DLbls)
+register_element_cls('c:gapWidth',  CT_GapAmount)
 register_element_cls('c:lineChart', CT_LineChart)
 register_element_cls('c:pieChart',  CT_PieChart)
 

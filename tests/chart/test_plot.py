@@ -91,6 +91,26 @@ class DescribePlot(object):
         return instance_mock(request, DataLabels)
 
 
+class DescribeBarPlot(object):
+
+    def it_knows_its_gap_width(self, gap_width_get_fixture):
+        bar_plot, expected_value = gap_width_get_fixture
+        assert bar_plot.gap_width == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:barChart',                      150),
+        ('c:barChart/c:gapWidth',           150),
+        ('c:barChart/c:gapWidth{val=175}',  175),
+        ('c:barChart/c:gapWidth{val=042%}',  42),
+    ])
+    def gap_width_get_fixture(self, request):
+        barChart_cxml, expected_value = request.param
+        bar_plot = BarPlot(element(barChart_cxml))
+        return bar_plot, expected_value
+
+
 class DescribeDataLabels(object):
 
     def it_knows_its_number_format(self, number_format_get_fixture):

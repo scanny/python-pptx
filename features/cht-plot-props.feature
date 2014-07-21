@@ -27,7 +27,6 @@ Feature: Get and set plot properties
       | not having    | True  | True           |
 
 
-  @wip
   Scenario Outline: Get bar plot gap width
     Given a bar plot having gap width of <gap-width>
      Then the value of plot.gap_width is <expected-value>
