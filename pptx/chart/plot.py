@@ -75,6 +75,11 @@ class BarPlot(Plot):
             return 150
         return gapWidth.val
 
+    @gap_width.setter
+    def gap_width(self, value):
+        gapWidth = self._element.get_or_add_gapWidth()
+        gapWidth.val = value
+
 
 class DataLabels(object):
     """

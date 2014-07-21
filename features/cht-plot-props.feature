@@ -37,7 +37,6 @@ Feature: Get and set plot properties
       | 300               | 300            |
 
 
-  @wip
   Scenario Outline: Set bar plot gap width
     Given a bar plot having gap width of <gap-width>
      When I assign <new-value> to plot.gap_width

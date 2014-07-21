@@ -97,6 +97,11 @@ class DescribeBarPlot(object):
         bar_plot, expected_value = gap_width_get_fixture
         assert bar_plot.gap_width == expected_value
 
+    def it_can_change_its_gap_width(self, gap_width_set_fixture):
+        bar_plot, new_value, expected_xml = gap_width_set_fixture
+        bar_plot.gap_width = new_value
+        assert bar_plot._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -109,6 +114,18 @@ class DescribeBarPlot(object):
         barChart_cxml, expected_value = request.param
         bar_plot = BarPlot(element(barChart_cxml))
         return bar_plot, expected_value
+
+    @pytest.fixture(params=[
+        ('c:barChart',  42, 'c:barChart/c:gapWidth{val=42}'),
+        ('c:barChart', 150, 'c:barChart/c:gapWidth'),
+        ('c:barChart/c:gapWidth{val=200%}', 300,
+         'c:barChart/c:gapWidth{val=300}'),
+    ])
+    def gap_width_set_fixture(self, request):
+        barChart_cxml, new_value, expected_barChart_cxml = request.param
+        bar_plot = BarPlot(element(barChart_cxml))
+        expected_xml = xml(expected_barChart_cxml)
+        return bar_plot, new_value, expected_xml
 
 
 class DescribeDataLabels(object):
