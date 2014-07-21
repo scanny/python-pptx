@@ -43,6 +43,21 @@ class Plot(object):
         """
         return self._element.dLbls is not None
 
+    @has_data_labels.setter
+    def has_data_labels(self, value):
+        """
+        Add, remove, or leave alone the ``<c:dLbls>`` child element depending
+        on current state and assigned *value*. If *value* is |True| and no
+        ``<c:dLbls>`` element is present, a new default element is added with
+        default child elements and settings. When |False|, any existing dLbls
+        element is removed.
+        """
+        if bool(value) is False:
+            self._element._remove_dLbls()
+        else:
+            if self._element.dLbls is None:
+                self._element._add_dLbls()
+
 
 class BarPlot(Plot):
     """

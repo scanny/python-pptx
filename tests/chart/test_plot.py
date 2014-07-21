@@ -23,6 +23,12 @@ class DescribePlot(object):
         plot, expected_value = has_data_labels_get_fixture
         assert plot.has_data_labels == expected_value
 
+    def it_can_change_whether_it_has_data_labels(
+            self, has_data_labels_set_fixture):
+        plot, new_value, expected_xml = has_data_labels_set_fixture
+        plot.has_data_labels = new_value
+        assert plot._element.xml == expected_xml
+
     def it_provides_access_to_the_data_labels(self, data_labels_fixture):
         plot, data_labels_, DataLabels_, dLbls = data_labels_fixture
         data_labels = plot.data_labels
@@ -47,6 +53,29 @@ class DescribePlot(object):
         plot_cxml, expected_value = request.param
         plot = Plot(element(plot_cxml))
         return plot, expected_value
+
+    @pytest.fixture(params=[
+        ('c:barChart',          True,  'c:barChart/c:dLbls/+'),
+        ('c:barChart/c:dLbls',  True,  'c:barChart/c:dLbls'),
+        ('c:barChart',          False, 'c:barChart'),
+        ('c:barChart/c:dLbls',  False, 'c:barChart'),
+        ('c:lineChart',         True,  'c:lineChart/c:dLbls/+'),
+        ('c:lineChart/c:dLbls', False, 'c:lineChart'),
+        ('c:pieChart',          True,  'c:pieChart/c:dLbls/+'),
+        ('c:pieChart/c:dLbls',  False, 'c:pieChart'),
+    ])
+    def has_data_labels_set_fixture(self, request):
+        plot_cxml, new_value, expected_plot_cxml = request.param
+        # apply extended suffix to replace trailing '+' where present
+        if expected_plot_cxml.endswith('+'):
+            expected_plot_cxml = expected_plot_cxml[:-1] + (
+                '(c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val='
+                '0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSi'
+                'ze{val=0})'
+            )
+        plot = PlotFactory(element(plot_cxml))
+        expected_xml = xml(expected_plot_cxml)
+        return plot, new_value, expected_xml
 
     # fixture components ---------------------------------------------
 

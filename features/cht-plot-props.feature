@@ -14,7 +14,6 @@ Feature: Get and set plot properties
       | not having    | False          |
 
 
-  @wip
   Scenario Outline: Change whether a plot has data labels
     Given a bar plot <having-or-not> data labels
      When I assign <value> to plot.has_data_labels
