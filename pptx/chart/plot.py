@@ -8,6 +8,8 @@ layered over a bar plot.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from ..oxml.ns import qn
+
 
 class Plot(object):
     """
@@ -31,6 +33,12 @@ class Plot(object):
                 'plot has no data labels, set has_data_labels = True first'
             )
         return DataLabels(dLbls)
+
+
+class BarPlot(Plot):
+    """
+    A bar chart-style plot.
+    """
 
 
 class DataLabels(object):
@@ -83,8 +91,27 @@ class DataLabels(object):
         numFmt.sourceLinked = value
 
 
+class LinePlot(Plot):
+    """
+    A line chart-style plot.
+    """
+
+
+class PiePlot(Plot):
+    """
+    A pie chart-style plot.
+    """
+
+
 def PlotFactory(plot_elm):
     """
     Return an instance of the appropriate subclass of Plot based on the
     tagname of *plot_elm*.
     """
+    if plot_elm.tag == qn('c:barChart'):
+        return BarPlot(plot_elm)
+    if plot_elm.tag == qn('c:lineChart'):
+        return LinePlot(plot_elm)
+    if plot_elm.tag == qn('c:pieChart'):
+        return PiePlot(plot_elm)
+    raise ValueError('unsupported plot type %s' % plot_elm.tag)

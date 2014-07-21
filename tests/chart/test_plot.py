@@ -8,7 +8,9 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.chart.plot import DataLabels, Plot
+from pptx.chart.plot import (
+    BarPlot, DataLabels, LinePlot, PiePlot, Plot, PlotFactory
+)
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
@@ -116,3 +118,65 @@ class DescribeDataLabels(object):
         dLbls_cxml, expected_value = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         return data_labels, expected_value
+
+
+class DescribePlotFactory(object):
+
+    def it_contructs_a_plot_object_from_a_plot_element(self, call_fixture):
+        plot_elm, PlotClass_, plot_ = call_fixture
+        plot = PlotFactory(plot_elm)
+        PlotClass_.assert_called_once_with(plot_elm)
+        assert plot is plot_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        'barChart',
+        'lineChart',
+        'pieChart'
+    ])
+    def call_fixture(
+            self, request, BarPlot_, bar_chart_, LinePlot_, line_chart_,
+            PiePlot_, pie_chart_):
+        plot_cxml, PlotClass_, plot_mock = {
+            'barChart':  ('c:barChart',  BarPlot_,  bar_chart_),
+            'lineChart': ('c:lineChart', LinePlot_, line_chart_),
+            'pieChart':  ('c:pieChart',  PiePlot_,  pie_chart_),
+        }[request.param]
+        plot_elm = element(plot_cxml)
+        return plot_elm, PlotClass_, plot_mock
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def BarPlot_(self, request, bar_chart_):
+        return class_mock(
+            request, 'pptx.chart.plot.BarPlot',
+            return_value=bar_chart_
+        )
+
+    @pytest.fixture
+    def bar_chart_(self, request):
+        return instance_mock(request, BarPlot)
+
+    @pytest.fixture
+    def LinePlot_(self, request, line_chart_):
+        return class_mock(
+            request, 'pptx.chart.plot.LinePlot',
+            return_value=line_chart_
+        )
+
+    @pytest.fixture
+    def line_chart_(self, request):
+        return instance_mock(request, LinePlot)
+
+    @pytest.fixture
+    def PiePlot_(self, request, pie_chart_):
+        return class_mock(
+            request, 'pptx.chart.plot.PiePlot',
+            return_value=pie_chart_
+        )
+
+    @pytest.fixture
+    def pie_chart_(self, request):
+        return instance_mock(request, PiePlot)
