@@ -4,7 +4,6 @@ Feature: Get and set plot properties
   I need a way to get and set plot properties
 
 
-  @wip
   Scenario Outline: Determine whether a plot has data labels
     Given a bar plot <having-or-not> data labels
      Then the plot.has_data_labels property is <expected-value>

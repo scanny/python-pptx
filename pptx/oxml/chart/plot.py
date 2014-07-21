@@ -34,3 +34,20 @@ class CT_DLbls(BaseOxmlElement):
         'c:showBubbleSize', 'c:separator', 'c:showLeaderLines',
         'c:leaderLines', 'c:extLst'
     ))
+
+
+class CT_LineChart(BaseChartElement):
+    """
+    ``<c:lineChart>`` custom element class
+    """
+    dLbls = ZeroOrOne('c:dLbls', successors=(
+        'c:dropLines', 'c:hiLowLines', 'c:upDownBars', 'c:marker',
+        'c:smooth', 'c:axId'
+    ))
+
+
+class CT_PieChart(BaseChartElement):
+    """
+    ``<c:pieChart>`` custom element class
+    """
+    dLbls = ZeroOrOne('c:dLbls', successors=('c:firstSliceAng', 'c:extLst'))

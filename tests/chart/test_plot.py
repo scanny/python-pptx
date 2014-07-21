@@ -18,6 +18,11 @@ from ..unitutil.mock import class_mock, instance_mock
 
 class DescribePlot(object):
 
+    def it_knows_whether_it_has_data_labels(
+            self, has_data_labels_get_fixture):
+        plot, expected_value = has_data_labels_get_fixture
+        assert plot.has_data_labels == expected_value
+
     def it_provides_access_to_the_data_labels(self, data_labels_fixture):
         plot, data_labels_, DataLabels_, dLbls = data_labels_fixture
         data_labels = plot.data_labels
@@ -32,6 +37,16 @@ class DescribePlot(object):
         dLbls = barChart[0]
         plot = Plot(barChart)
         return plot, data_labels_, DataLabels_, dLbls
+
+    @pytest.fixture(params=[
+        ('c:barChart',  False), ('c:barChart/c:dLbls',  True),
+        ('c:lineChart', False), ('c:lineChart/c:dLbls', True),
+        ('c:pieChart',  False), ('c:pieChart/c:dLbls',  True),
+    ])
+    def has_data_labels_get_fixture(self, request):
+        plot_cxml, expected_value = request.param
+        plot = Plot(element(plot_cxml))
+        return plot, expected_value
 
     # fixture components ---------------------------------------------
 

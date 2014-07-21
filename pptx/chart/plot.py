@@ -34,6 +34,15 @@ class Plot(object):
             )
         return DataLabels(dLbls)
 
+    @property
+    def has_data_labels(self):
+        """
+        Read/write boolean, |True| if the series has data labels. Assigning
+        |True| causes data labels to be added to the plot. Assigning False
+        removes any existing data labels.
+        """
+        return self._element.dLbls is not None
+
 
 class BarPlot(Plot):
     """
