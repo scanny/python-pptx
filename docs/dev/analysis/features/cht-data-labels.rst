@@ -2,15 +2,17 @@
 Chart - Data Labels
 ===================
 
-On a PowerPoint chart, data points may be labeled with their values as an aid
-to readers.
+On a PowerPoint chart, data points may be labeled as an aid to readers.
+Typically, the label is the value of the data point. A data label may have
+any combination of its series name, category name, and value. A number format
+may also be applied to the value displayed.
 
 
 PowerPoint behavior
 -------------------
 
-A default PowerPoint chart does not display data labels and has no
-``<c:dLbls>`` child element on its "chart", e.g. ``<c:barChart>`` element.
+A default PowerPoint bar chart does not display data labels, but it does have
+a ``<c:dLbls>`` child element on its ``<c:barChart>`` element.
 
 The default number format, when no ``<c:numFmt>`` child element appears, is
 equivalent to ``<c:numFmt formatCode="General" sourceLinked="1"/>``
