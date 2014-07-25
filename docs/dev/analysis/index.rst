@@ -12,6 +12,7 @@ Roughly in reverse chronological order of creation:
 .. toctree::
    :maxdepth: 1
 
+   features/cht-invert-if-negative
    features/cht-axis-has-gridlines
    features/cht-series
    features/cht-access-xlsx
