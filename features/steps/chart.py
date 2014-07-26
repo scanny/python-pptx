@@ -41,7 +41,30 @@ def given_a_bar_plot_having_gap_width_of_width(context, width):
     context.plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
 
 
+@given('an axis having {major_or_minor} gridlines')
+def given_an_axis_having_major_or_minor_gridlines(context, major_or_minor):
+    prs = Presentation(test_pptx('cht-axis-props'))
+    chart = prs.slides[0].shapes[0].chart
+    context.axis = chart.value_axis
+
+
+@given('an axis not having {major_or_minor} gridlines')
+def given_an_axis_not_having_major_or_minor_gridlines(context, major_or_minor):
+    prs = Presentation(test_pptx('cht-axis-props'))
+    chart = prs.slides[0].shapes[0].chart
+    context.axis = chart.category_axis
+
+
 # when ====================================================
+
+@when('I assign {value} to axis.has_{major_or_minor}_gridlines')
+def when_I_assign_value_to_axis_has_major_or_minor_gridlines(
+        context, value, major_or_minor):
+    axis = context.axis
+    propname = 'has_%s_gridlines' % major_or_minor
+    new_value = {'True': True, 'False': False}[value]
+    setattr(axis, propname, new_value)
+
 
 @when('I assign {value} to plot.gap_width')
 def when_I_assign_value_to_plot_gap_width(context, value):
@@ -59,6 +82,18 @@ def when_I_assign_value_to_plot_has_data_labels(context, value):
 
 
 # then ====================================================
+
+@then('axis.has_{major_or_minor}_gridlines is {value}')
+def then_axis_has_major_or_minor_gridlines_is_expected_value(
+        context, major_or_minor, value):
+    axis = context.axis
+    actual_value = {
+        'major': axis.has_major_gridlines,
+        'minor': axis.has_minor_gridlines,
+    }[major_or_minor]
+    expected_value = {'True': True, 'False': False}[value]
+    assert actual_value is expected_value, 'got %s' % actual_value
+
 
 @then('I can access the chart category axis')
 def then_I_can_access_the_chart_category_axis(context):
