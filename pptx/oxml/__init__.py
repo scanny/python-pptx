@@ -71,10 +71,11 @@ register_element_cls('c:ser', CT_SeriesComposite)
 
 
 from .chart.shared import CT_Boolean, CT_Double, CT_NumFmt
-register_element_cls('c:delete', CT_Boolean)
-register_element_cls('c:max',    CT_Double)
-register_element_cls('c:min',    CT_Double)
-register_element_cls('c:numFmt', CT_NumFmt)
+register_element_cls('c:delete',           CT_Boolean)
+register_element_cls('c:invertIfNegative', CT_Boolean)
+register_element_cls('c:max',              CT_Double)
+register_element_cls('c:min',              CT_Double)
+register_element_cls('c:numFmt',           CT_NumFmt)
 
 
 from .dml.color import (

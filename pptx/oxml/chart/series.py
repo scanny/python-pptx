@@ -20,6 +20,21 @@ class CT_SeriesComposite(BaseOxmlElement):
     order = OneAndOnlyOne('c:order')
     tx = ZeroOrOne('c:tx')      # provide override for _insert_tx()
     spPr = ZeroOrOne('c:spPr')  # provide override for _insert_spPr()
+    invertIfNegative = ZeroOrOne('c:invertIfNegative')  # provide _insert..()
+
+    def _insert_invertIfNegative(self, invertIfNegative):
+        """
+        invertIfNegative has a lot of successors and they vary depending on
+        the series type, so easier just to insert it "manually" as it's close
+        to a required element.
+        """
+        if self.spPr is not None:
+            self.spPr.addnext(invertIfNegative)
+        elif self.tx is not None:
+            self.tx.addnext(invertIfNegative)
+        else:
+            self.order.addnext(invertIfNegative)
+        return invertIfNegative
 
     def _insert_spPr(self, spPr):
         """

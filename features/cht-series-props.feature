@@ -35,7 +35,6 @@ Feature: Get and set chart series properties
       | 1 point | 12700          |
 
 
-  @wip
   Scenario Outline: Get invert_if_negative value
     Given a bar series having invert_if_negative of <setting>
      Then series.invert_if_negative is <expected-value>

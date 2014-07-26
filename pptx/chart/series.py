@@ -53,7 +53,10 @@ class BarSeries(_BaseSeries):
         fill; in a bar with gradient fill, the direction of the gradient is
         reversed, e.g. dark -> light instead of light -> dark.
         """
-        raise NotImplementedError
+        invertIfNegative = self._element.invertIfNegative
+        if invertIfNegative is None:
+            return True
+        return invertIfNegative.val
 
     @lazyproperty
     def line(self):

@@ -47,6 +47,11 @@ class DescribeBarSeries(object):
         bar_series.line.width = width
         assert bar_series._element.xml == expected_xml
 
+    def it_knows_whether_it_should_invert_if_negative(
+            self, invert_if_negative_get_fixture):
+        bar_series, expected_value = invert_if_negative_get_fixture
+        assert bar_series.invert_if_negative == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -55,6 +60,17 @@ class DescribeBarSeries(object):
         spPr = ser.spPr
         bar_series = BarSeries(ser)
         return bar_series, FillFormat_, spPr, fill_
+
+    @pytest.fixture(params=[
+        ('c:ser',                           True),
+        ('c:ser/c:invertIfNegative',        True),
+        ('c:ser/c:invertIfNegative{val=1}', True),
+        ('c:ser/c:invertIfNegative{val=0}', False),
+    ])
+    def invert_if_negative_get_fixture(self, request):
+        ser_cxml, expected_value = request.param
+        bar_series = BarSeries(element(ser_cxml))
+        return bar_series, expected_value
 
     @pytest.fixture
     def line_fixture(self, LineFormat_, line_):
