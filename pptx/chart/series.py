@@ -58,6 +58,11 @@ class BarSeries(_BaseSeries):
             return True
         return invertIfNegative.val
 
+    @invert_if_negative.setter
+    def invert_if_negative(self, value):
+        invertIfNegative = self._element.get_or_add_invertIfNegative()
+        invertIfNegative.val = value
+
     @lazyproperty
     def line(self):
         """

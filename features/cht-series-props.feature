@@ -46,7 +46,6 @@ Feature: Get and set chart series properties
       | False               | False          |
 
 
-  @wip
   Scenario Outline: Change invert_if_negative value
     Given a bar series having invert_if_negative of <setting>
      When I assign <new-value> to series.invert_if_negative
