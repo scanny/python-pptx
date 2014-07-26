@@ -44,6 +44,17 @@ class BarSeries(_BaseSeries):
         ln = spPr.get_or_add_ln()
         return ln
 
+    @property
+    def invert_if_negative(self):
+        """
+        |True| if the fill of a bar having a negative value should be
+        inverted. |False| if the fill should be the same regardless of the
+        bar's value. When |True|, a bar with a solid fill appears with white
+        fill; in a bar with gradient fill, the direction of the gradient is
+        reversed, e.g. dark -> light instead of light -> dark.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def line(self):
         """

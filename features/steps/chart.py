@@ -56,6 +56,18 @@ def given_a_bar_series_having_fill_of_fill(context, fill):
     context.series = plot.series[series_idx]
 
 
+@given('a bar series having invert_if_negative of {setting}')
+def given_a_bar_series_having_invert_if_negative_setting(context, setting):
+    series_idx = {
+        'no explicit setting': 0,
+        'True':                1,
+        'False':               2,
+    }[setting]
+    prs = Presentation(test_pptx('cht-series-props'))
+    plot = prs.slides[0].shapes[0].chart.plots[0]
+    context.series = plot.series[series_idx]
+
+
 @given('a bar series having {width} line')
 def given_a_bar_series_having_width_line(context, width):
     series_idx = {
@@ -105,6 +117,15 @@ def when_I_assign_value_to_plot_has_data_labels(context, value):
         'False': False,
     }[value]
     context.plot.has_data_labels = new_value
+
+
+@when('I assign {value} to series.invert_if_negative')
+def when_I_assign_value_to_series_invert_if_negative(context, value):
+    new_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    context.series.invert_if_negative = new_value
 
 
 # then ====================================================
@@ -170,6 +191,16 @@ def then_the_series_has_a_line_width_of_width(context, width):
     expected_width = int(width)
     line = context.series.line
     assert line.width == expected_width
+
+
+@then('series.invert_if_negative is {value}')
+def then_series_invert_if_negative_is_value(context, value):
+    expected_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    series = context.series
+    assert series.invert_if_negative is expected_value
 
 
 @then('the value of plot.gap_width is {value}')

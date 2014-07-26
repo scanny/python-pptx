@@ -33,3 +33,29 @@ Feature: Get and set chart series properties
       | width   | expected-width |
       | no      | 0              |
       | 1 point | 12700          |
+
+
+  @wip
+  Scenario Outline: Get invert_if_negative value
+    Given a bar series having invert_if_negative of <setting>
+     Then series.invert_if_negative is <expected-value>
+
+    Examples: invert_if_negative settings
+      | setting             | expected-value |
+      | no explicit setting | True           |
+      | True                | True           |
+      | False               | False          |
+
+
+  @wip
+  Scenario Outline: Change invert_if_negative value
+    Given a bar series having invert_if_negative of <setting>
+     When I assign <new-value> to series.invert_if_negative
+     Then series.invert_if_negative is <expected-value>
+
+    Examples: invert_if_negative settings
+      | setting             | new-value | expected-value |
+      | no explicit setting | True      | True           |
+      | no explicit setting | False     | False          |
+      | True                | True      | True           |
+      | False               | False     | False          |
