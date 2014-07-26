@@ -8,7 +8,10 @@ layered over a bar plot.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from collections import Sequence
+
 from ..oxml.ns import qn
+from ..util import lazyproperty
 
 
 class Plot(object):
@@ -57,6 +60,14 @@ class Plot(object):
         else:
             if self._element.dLbls is None:
                 self._element._add_dLbls()
+
+    @lazyproperty
+    def series(self):
+        """
+        The |SeriesCollection| instance containing the sequence of data
+        series in this plot.
+        """
+        return SeriesCollection(self._element)
 
 
 class BarPlot(Plot):
@@ -155,3 +166,11 @@ def PlotFactory(plot_elm):
     if plot_elm.tag == qn('c:pieChart'):
         return PiePlot(plot_elm)
     raise ValueError('unsupported plot type %s' % plot_elm.tag)
+
+
+class SeriesCollection(Sequence):
+    """
+    The sequence of series in a plot.
+    """
+    def __init__(self, plot_elm):
+        self._plot_elm = plot_elm

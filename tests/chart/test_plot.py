@@ -9,7 +9,8 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.plot import (
-    BarPlot, DataLabels, LinePlot, PiePlot, Plot, PlotFactory
+    BarPlot, DataLabels, LinePlot, PiePlot, Plot, PlotFactory,
+    SeriesCollection
 )
 
 from ..unitutil.cxml import element, xml
@@ -34,6 +35,12 @@ class DescribePlot(object):
         data_labels = plot.data_labels
         DataLabels_.assert_called_once_with(dLbls)
         assert data_labels is data_labels_
+
+    def it_provides_access_to_its_series(self, series_fixture):
+        plot, series_, SeriesCollection_, plot_elm = series_fixture
+        series = plot.series
+        SeriesCollection_.assert_called_once_with(plot_elm)
+        assert series is series_
 
     # fixtures -------------------------------------------------------
 
@@ -77,6 +84,12 @@ class DescribePlot(object):
         expected_xml = xml(expected_plot_cxml)
         return plot, new_value, expected_xml
 
+    @pytest.fixture
+    def series_fixture(self, SeriesCollection_, series_collection_):
+        plot_elm = element('c:barChart')
+        plot = Plot(plot_elm)
+        return plot, series_collection_, SeriesCollection_, plot_elm
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -89,6 +102,17 @@ class DescribePlot(object):
     @pytest.fixture
     def data_labels_(self, request):
         return instance_mock(request, DataLabels)
+
+    @pytest.fixture
+    def SeriesCollection_(self, request, series_collection_):
+        return class_mock(
+            request, 'pptx.chart.plot.SeriesCollection',
+            return_value=series_collection_
+        )
+
+    @pytest.fixture
+    def series_collection_(self, request):
+        return instance_mock(request, SeriesCollection)
 
 
 class DescribeBarPlot(object):
