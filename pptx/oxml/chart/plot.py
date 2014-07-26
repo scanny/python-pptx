@@ -7,7 +7,7 @@ Plot-related oxml objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from .. import parse_xml
-from ..ns import nsdecls
+from ..ns import nsdecls, qn
 from ..simpletypes import ST_GapAmount
 from ..xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrOne
 
@@ -16,6 +16,14 @@ class BaseChartElement(BaseOxmlElement):
     """
     Base class for barChart, lineChart, and other plot elements.
     """
+    def iter_sers(self):
+        """
+        Generate each ``<c:ser>`` child element in the order it appears.
+        """
+        for child in self.iterchildren():
+            if child.tag == qn('c:ser'):
+                yield child
+
     def _new_dLbls(self):
         return CT_DLbls.new_default()
 

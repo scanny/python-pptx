@@ -11,6 +11,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from collections import Sequence
 
 from ..oxml.ns import qn
+from .series import SeriesFactory
 from ..util import lazyproperty
 
 
@@ -173,4 +174,16 @@ class SeriesCollection(Sequence):
     The sequence of series in a plot.
     """
     def __init__(self, plot_elm):
+        super(SeriesCollection, self).__init__()
         self._plot_elm = plot_elm
+
+    def __getitem__(self, index):
+        ser = self._ser_lst[index]
+        return SeriesFactory(self._plot_elm, ser)
+
+    def __len__(self):
+        return len(self._ser_lst)
+
+    @property
+    def _ser_lst(self):
+        return [ser for ser in self._plot_elm.iter_sers()]
