@@ -19,6 +19,11 @@ from ..unitutil.mock import class_mock, instance_mock
 
 class Describe_BaseAxis(object):
 
+    def it_knows_whether_it_has_major_gridlines(
+            self, major_gridlines_get_fixture):
+        base_axis, expected_value = major_gridlines_get_fixture
+        assert base_axis.has_major_gridlines is expected_value
+
     def it_knows_whether_it_is_visible(self, visible_get_fixture):
         axis, expected_bool_value = visible_get_fixture
         assert axis.visible is expected_bool_value
@@ -85,6 +90,15 @@ class Describe_BaseAxis(object):
         assert tick_labels is tick_labels_
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:valAx',                  False),
+        ('c:valAx/c:majorGridlines', True),
+    ])
+    def major_gridlines_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        base_axis = _BaseAxis(element(xAx_cxml))
+        return base_axis, expected_value
 
     @pytest.fixture(params=[
         ('c:catAx',                          XL_TICK_MARK.CROSS),
