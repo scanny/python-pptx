@@ -10,7 +10,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from collections import Sequence
 
-from ..enum.chart import XL_CHART_TYPE
+from ..enum.chart import XL_CHART_TYPE as XL
 from ..oxml.ns import qn
 from ..oxml.simpletypes import ST_Grouping
 from .series import SeriesFactory
@@ -214,21 +214,25 @@ class PlotTypeInspector(object):
         """
         if isinstance(plot, AreaPlot):
             return cls._differentiated_area_chart_type(plot)
+        if isinstance(plot, Area3DPlot):
+            return cls._differentiated_area_3d_chart_type(plot)
         raise NotImplementedError
 
     @classmethod
+    def _differentiated_area_3d_chart_type(cls, plot):
+        return {
+            ST_Grouping.STANDARD:        XL.THREE_D_AREA,
+            ST_Grouping.STACKED:         XL.THREE_D_AREA_STACKED,
+            ST_Grouping.PERCENT_STACKED: XL.THREE_D_AREA_STACKED_100,
+        }[plot._element.grouping_val]
+
+    @classmethod
     def _differentiated_area_chart_type(cls, plot):
-        grouping = plot._element.grouping_val
-        try:
-            return {
-                ST_Grouping.STANDARD:        XL_CHART_TYPE.AREA,
-                ST_Grouping.STACKED:         XL_CHART_TYPE.AREA_STACKED,
-                ST_Grouping.PERCENT_STACKED: XL_CHART_TYPE.AREA_STACKED_100,
-            }[grouping]
-        except KeyError:
-            raise NotImplementedError(
-                "not implemented for grouping '%s'" % grouping
-            )
+        return {
+            ST_Grouping.STANDARD:        XL.AREA,
+            ST_Grouping.STACKED:         XL.AREA_STACKED,
+            ST_Grouping.PERCENT_STACKED: XL.AREA_STACKED_100,
+        }[plot._element.grouping_val]
 
 
 class SeriesCollection(Sequence):

@@ -307,11 +307,18 @@ class DescribePlotTypeInspector(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('c:areaChart',                                 XL.AREA),
-        ('c:areaChart/c:grouping',                      XL.AREA),
-        ('c:areaChart/c:grouping{val=standard}',        XL.AREA),
-        ('c:areaChart/c:grouping{val=stacked}',         XL.AREA_STACKED),
-        ('c:areaChart/c:grouping{val=percentStacked}',  XL.AREA_STACKED_100),
+        ('c:areaChart',                            XL.AREA),
+        ('c:areaChart/c:grouping',                 XL.AREA),
+        ('c:areaChart/c:grouping{val=standard}',   XL.AREA),
+        ('c:areaChart/c:grouping{val=stacked}',    XL.AREA_STACKED),
+        ('c:areaChart/c:grouping{val=percentStacked}',
+         XL.AREA_STACKED_100),
+        ('c:area3DChart',                          XL.THREE_D_AREA),
+        ('c:area3DChart/c:grouping',               XL.THREE_D_AREA),
+        ('c:area3DChart/c:grouping{val=standard}', XL.THREE_D_AREA),
+        ('c:area3DChart/c:grouping{val=stacked}',  XL.THREE_D_AREA_STACKED),
+        ('c:area3DChart/c:grouping{val=percentStacked}',
+         XL.THREE_D_AREA_STACKED_100),
     ])
     def chart_type_fixture(self, request):
         plot_cxml, expected_chart_type = request.param

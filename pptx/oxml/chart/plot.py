@@ -17,6 +17,17 @@ class BaseChartElement(BaseOxmlElement):
     """
     Base class for barChart, lineChart, and other plot elements.
     """
+    @property
+    def grouping_val(self):
+        """
+        Return the value of the ``./c:grouping{val=?}`` attribute, taking
+        defaults into account when items are not present.
+        """
+        grouping = self.grouping
+        if grouping is None:
+            return ST_Grouping.STANDARD
+        return grouping.val
+
     def iter_sers(self):
         """
         Generate each ``<c:ser>`` child element in the order it appears.
@@ -29,6 +40,16 @@ class BaseChartElement(BaseOxmlElement):
         return CT_DLbls.new_default()
 
 
+class CT_Area3DChart(BaseChartElement):
+    """
+    ``<c:area3DChart>`` element.
+    """
+    grouping = ZeroOrOne('c:grouping', successors=(
+        'c:varyColors', 'c:ser', 'c:dLbls', 'c:dropLines', 'c:gapDepth',
+        'c:axId'
+    ))
+
+
 class CT_AreaChart(BaseChartElement):
     """
     ``<c:areaChart>`` element.
@@ -36,17 +57,6 @@ class CT_AreaChart(BaseChartElement):
     grouping = ZeroOrOne('c:grouping', successors=(
         'c:varyColors', 'c:ser', 'c:dLbls', 'c:dropLines', 'c:axId'
     ))
-
-    @property
-    def grouping_val(self):
-        """
-        Return the value of the ``./c:grouping{val=?}`` attribute, taking
-        defaults into account when items are not present.
-        """
-        grouping = self.grouping
-        if grouping is None:
-            return ST_Grouping.STANDARD
-        return grouping.val
 
 
 class CT_BarChart(BaseChartElement):
