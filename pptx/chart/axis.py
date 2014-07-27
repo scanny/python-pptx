@@ -29,6 +29,16 @@ class _BaseAxis(object):
         return True
 
     @property
+    def has_minor_gridlines(self):
+        """
+        Read/write boolean value specifying whether this axis has gridlines
+        at its minor tick mark locations.
+        """
+        if self._element.minorGridlines is None:
+            return False
+        return True
+
+    @property
     def major_tick_mark(self):
         """
         Read/write :ref:`XlTickMark` value specifying the type of major tick

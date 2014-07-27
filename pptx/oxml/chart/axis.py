@@ -22,6 +22,10 @@ class BaseAxisElement(BaseOxmlElement):
         'c:minorGridlines', 'c:title', 'c:numFmt', 'c:majorTickMark',
         'c:minorTickMark', 'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
     ))
+    minorGridlines = ZeroOrOne('c:minorGridlines', successors=(
+        'c:title', 'c:numFmt', 'c:majorTickMark', 'c:minorTickMark',
+        'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
+    ))
     numFmt = ZeroOrOne('c:numFmt', successors=(
         'c:majorTickMark', 'c:minorTickMark', 'c:tickLblPos', 'c:spPr',
         'c:txPr', 'c:crossAx'

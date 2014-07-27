@@ -24,6 +24,11 @@ class Describe_BaseAxis(object):
         base_axis, expected_value = major_gridlines_get_fixture
         assert base_axis.has_major_gridlines is expected_value
 
+    def it_knows_whether_it_has_minor_gridlines(
+            self, minor_gridlines_get_fixture):
+        base_axis, expected_value = minor_gridlines_get_fixture
+        assert base_axis.has_minor_gridlines is expected_value
+
     def it_knows_whether_it_is_visible(self, visible_get_fixture):
         axis, expected_bool_value = visible_get_fixture
         assert axis.visible is expected_bool_value
@@ -177,6 +182,15 @@ class Describe_BaseAxis(object):
         axis = _BaseAxis(element(xAx_cxml))
         expected_xml = xml(expected_xAx_cxml)
         return axis, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:catAx',                  False),
+        ('c:catAx/c:minorGridlines', True),
+    ])
+    def minor_gridlines_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        base_axis = _BaseAxis(element(xAx_cxml))
+        return base_axis, expected_value
 
     @pytest.fixture(params=[
         ('c:valAx',                            XL_TICK_MARK.CROSS),

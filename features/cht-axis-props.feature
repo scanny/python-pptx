@@ -4,7 +4,6 @@ Feature: Get and set axis properties
   I need a way to get and set axis properties
 
 
-  @wip
   Scenario Outline: Determine whether an axis has major and/or minor gridlines
     Given an axis <having-or-not> <major-or-minor> gridlines
      Then axis.has_<major-or-minor>_gridlines is <expected-value>
