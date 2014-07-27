@@ -11,6 +11,7 @@ import pytest
 from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Chart, Plots
 from pptx.chart.plot import Plot
+from pptx.enum.chart import EnumMember
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, function_mock, instance_mock
@@ -46,6 +47,12 @@ class DescribeChart(object):
         Plots_.assert_called_once_with(plotArea)
         assert plots is plots_
 
+    def it_knows_its_chart_type(self, chart_type_fixture):
+        chart, PlotTypeInspector_, plot_, chart_type_ = chart_type_fixture
+        chart_type = chart.chart_type
+        PlotTypeInspector_.chart_type.assert_called_once_with(plot_)
+        assert chart_type is chart_type_
+
     def it_knows_its_style(self, style_get_fixture):
         chart, expected_value = style_get_fixture
         assert chart.chart_style == expected_value
@@ -68,6 +75,12 @@ class DescribeChart(object):
     def cat_ax_raise_fixture(self):
         chart = Chart(element('c:chartSpace/c:chart/c:plotArea'), None)
         return chart
+
+    @pytest.fixture
+    def chart_type_fixture(self, PlotTypeInspector_, plot_, chart_type_):
+        chart = Chart(None, None)
+        chart._plots = [plot_]
+        return chart, PlotTypeInspector_, plot_, chart_type_
 
     @pytest.fixture
     def plots_fixture(self, Plots_, plots_):
@@ -123,10 +136,26 @@ class DescribeChart(object):
         return instance_mock(request, CategoryAxis)
 
     @pytest.fixture
+    def chart_type_(self, request):
+        return instance_mock(request, EnumMember)
+
+    @pytest.fixture
+    def PlotTypeInspector_(self, request, chart_type_):
+        PlotTypeInspector_ = class_mock(
+            request, 'pptx.chart.chart.PlotTypeInspector'
+        )
+        PlotTypeInspector_.chart_type.return_value = chart_type_
+        return PlotTypeInspector_
+
+    @pytest.fixture
     def Plots_(self, request, plots_):
         return class_mock(
             request, 'pptx.chart.chart.Plots', return_value=plots_
         )
+
+    @pytest.fixture
+    def plot_(self, request):
+        return instance_mock(request, Plot)
 
     @pytest.fixture
     def plots_(self, request):

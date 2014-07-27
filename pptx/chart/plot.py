@@ -182,6 +182,20 @@ def PlotFactory(plot_elm):
     raise ValueError('unsupported plot type %s' % plot_elm.tag)
 
 
+class PlotTypeInspector(object):
+    """
+    "One-shot" service object that knows how to identify the type of a plot
+    as a member of the XL_CHART_TYPE enumeration.
+    """
+    @classmethod
+    def chart_type(cls, plot):
+        """
+        Return the member of :ref:`XlChartType` that corresponds to the chart
+        type of *plot*.
+        """
+        raise NotImplementedError
+
+
 class SeriesCollection(Sequence):
     """
     The sequence of series in a plot.

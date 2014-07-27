@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from collections import Sequence
 
 from .axis import CategoryAxis, ValueAxis
-from .plot import PlotFactory
+from .plot import PlotFactory, PlotTypeInspector
 from ..util import lazyproperty
 
 
@@ -54,6 +54,17 @@ class Chart(object):
         if value is None:
             return
         self._chartSpace._add_style(val=value)
+
+    @property
+    def chart_type(self):
+        """
+        :ref:`XlChartType` enumeration value specifying the type of this
+        chart. If the chart has two plots, for example, a line plot overlayed
+        on a bar plot, the type is reported for the first (back-most) plot.
+        Read-only.
+        """
+        first_plot = self.plots[0]
+        return PlotTypeInspector.chart_type(first_plot)
 
     @lazyproperty
     def plots(self):
