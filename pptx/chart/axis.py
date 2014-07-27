@@ -28,6 +28,13 @@ class _BaseAxis(object):
             return False
         return True
 
+    @has_major_gridlines.setter
+    def has_major_gridlines(self, value):
+        if bool(value) is True:
+            self._element.get_or_add_majorGridlines()
+        else:
+            self._element._remove_majorGridlines()
+
     @property
     def has_minor_gridlines(self):
         """

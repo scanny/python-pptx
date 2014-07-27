@@ -24,6 +24,12 @@ class Describe_BaseAxis(object):
         base_axis, expected_value = major_gridlines_get_fixture
         assert base_axis.has_major_gridlines is expected_value
 
+    def it_can_change_whether_it_has_major_gridlines(
+            self, major_gridlines_set_fixture):
+        base_axis, new_value, expected_xml = major_gridlines_set_fixture
+        base_axis.has_major_gridlines = new_value
+        assert base_axis._element.xml == expected_xml
+
     def it_knows_whether_it_has_minor_gridlines(
             self, minor_gridlines_get_fixture):
         base_axis, expected_value = minor_gridlines_get_fixture
@@ -104,6 +110,18 @@ class Describe_BaseAxis(object):
         xAx_cxml, expected_value = request.param
         base_axis = _BaseAxis(element(xAx_cxml))
         return base_axis, expected_value
+
+    @pytest.fixture(params=[
+        ('c:catAx',                  True,  'c:catAx/c:majorGridlines'),
+        ('c:catAx/c:majorGridlines', True,  'c:catAx/c:majorGridlines'),
+        ('c:catAx',                  False, 'c:catAx'),
+        ('c:catAx/c:majorGridlines', False, 'c:catAx'),
+    ])
+    def major_gridlines_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        base_axis = _BaseAxis(element(xAx_cxml))
+        expected_xml = xml(expected_xAx_cxml)
+        return base_axis, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('c:catAx',                          XL_TICK_MARK.CROSS),
