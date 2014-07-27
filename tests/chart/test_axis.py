@@ -12,6 +12,7 @@ from pptx.chart.axis import _BaseAxis, TickLabels
 from pptx.enum.chart import (
     XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
 )
+from pptx.text import Font
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
@@ -339,6 +340,17 @@ class Describe_BaseAxis(object):
 
 class DescribeTickLabels(object):
 
+    def it_provides_access_to_its_font(self, font_fixture):
+        tick_labels, Font_, defRPr, font_ = font_fixture
+        font = tick_labels.font
+        Font_.assert_called_once_with(defRPr)
+        assert font is font_
+
+    def it_adds_a_txPr_to_help_font(self, txPr_fixture):
+        tick_labels, expected_xml = txPr_fixture
+        tick_labels.font
+        assert tick_labels._element.xml == expected_xml
+
     def it_knows_its_number_format(self, number_format_get_fixture):
         tick_labels, expected_value = number_format_get_fixture
         assert tick_labels.number_format == expected_value
@@ -362,6 +374,13 @@ class DescribeTickLabels(object):
         assert tick_labels._element.xml == expected_xml
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def font_fixture(self, Font_, font_):
+        catAx = element('c:catAx/c:txPr/a:p/a:pPr/a:defRPr')
+        defRPr = catAx.xpath('.//a:defRPr')[0]
+        tick_labels = TickLabels(catAx)
+        return tick_labels, Font_, defRPr, font_
 
     @pytest.fixture(params=[
         ('c:catAx',                              'General'),
@@ -408,3 +427,29 @@ class DescribeTickLabels(object):
         tick_labels = TickLabels(element(xAx_cxml))
         expected_xml = xml(expected_xAx_cxml)
         return tick_labels, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:valAx{a:b=c}',
+         'c:valAx{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)'),
+        ('c:valAx{a:b=c}/c:txPr/(a:bodyPr,a:p)',
+         'c:valAx{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)'),
+        ('c:valAx{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr)',
+         'c:valAx{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)'),
+    ])
+    def txPr_fixture(self, request):
+        xAx_cxml, expected_cxml = request.param
+        tick_labels = TickLabels(element(xAx_cxml))
+        expected_xml = xml(expected_cxml)
+        return tick_labels, expected_xml
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def Font_(self, request, font_):
+        return class_mock(
+            request, 'pptx.chart.axis.Font', return_value=font_
+        )
+
+    @pytest.fixture
+    def font_(self, request):
+        return instance_mock(request, Font)

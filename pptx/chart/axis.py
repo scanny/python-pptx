@@ -7,6 +7,7 @@ Axis-related chart objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from ..enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
+from ..text import Font
 from ..util import lazyproperty
 
 
@@ -175,6 +176,18 @@ class TickLabels(object):
     def __init__(self, xAx_elm):
         super(TickLabels, self).__init__()
         self._element = xAx_elm
+
+    @lazyproperty
+    def font(self):
+        """
+        The |Font| object that provides access to the text properties for
+        these tick labels, such as bold, italic, etc. Accessing this property
+        Causes a ``<c:txPr>`` child element to be added if not already
+        present.
+        """
+        defRPr = self._element.defRPr
+        font = Font(defRPr)
+        return font
 
     @property
     def number_format(self):

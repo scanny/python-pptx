@@ -6,7 +6,9 @@ lxml custom element classes for chart axis-related XML elements.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from .. import parse_xml
 from ...enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
+from ..ns import nsdecls
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne
 )
@@ -39,6 +41,32 @@ class BaseAxisElement(BaseOxmlElement):
     tickLblPos = ZeroOrOne('c:tickLblPos', successors=(
         'c:spPr', 'c:txPr', 'c:crossAx'
     ))
+    txPr = ZeroOrOne('c:txPr', successors=('c:crossAx',))
+
+    @property
+    def defRPr(self):
+        """
+        ``<a:defRPr>`` great-great-grandchild element, added with its
+        ancestors if not present.
+        """
+        txPr = self.get_or_add_txPr()
+        defRPr = txPr.defRPr
+        return defRPr
+
+    def _new_txPr(self):
+        xml = (
+            '<c:txPr %s>\n'
+            '  <a:bodyPr/>\n'
+            '  <a:lstStyle/>\n'
+            '  <a:p>\n'
+            '    <a:pPr>\n'
+            '      <a:defRPr/>\n'
+            '    </a:pPr>\n'
+            '  </a:p>\n'
+            '</c:txPr>\n'
+        ) % nsdecls('c', 'a')
+        txPr = parse_xml(xml)
+        return txPr
 
 
 class CT_CatAx(BaseAxisElement):

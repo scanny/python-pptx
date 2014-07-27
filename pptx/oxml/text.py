@@ -38,10 +38,24 @@ class CT_RegularTextRun(BaseOxmlElement):
 
 class CT_TextBody(BaseOxmlElement):
     """
-    <p:txBody> custom element class
+    ``<p:txBody>`` custom element class, also used for ``<c:txPr>`` in
+    charts and perhaps other elements.
     """
     bodyPr = OneAndOnlyOne('a:bodyPr')
     p = OneOrMore('a:p')
+
+    @property
+    def defRPr(self):
+        """
+        ``<a:defRPr>`` element of required first ``p`` child, added with its
+        ancestors if not present. Used when element is a ``<c:txPr>`` in
+        a chart and the ``p`` element is used only to specify formatting, not
+        content.
+        """
+        p = self.p_lst[0]
+        pPr = p.get_or_add_pPr()
+        defRPr = pPr.get_or_add_defRPr()
+        return defRPr
 
     @classmethod
     def new(cls):
