@@ -77,6 +77,26 @@ class CT_TextBody(BaseOxmlElement):
         return txBody
 
     @classmethod
+    def new_txPr(cls):
+        """
+        Return a ``<c:txPr>`` element tree suitable for use in a chart object
+        like data labels or tick labels.
+        """
+        xml = (
+            '<c:txPr %s>\n'
+            '  <a:bodyPr/>\n'
+            '  <a:lstStyle/>\n'
+            '  <a:p>\n'
+            '    <a:pPr>\n'
+            '      <a:defRPr/>\n'
+            '    </a:pPr>\n'
+            '  </a:p>\n'
+            '</c:txPr>\n'
+        ) % nsdecls('c', 'a')
+        txPr = parse_xml(xml)
+        return txPr
+
+    @classmethod
     def _a_txBody_tmpl(cls):
         return (
             '<a:txBody %s>\n'

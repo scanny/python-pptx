@@ -12,6 +12,7 @@ from collections import Sequence
 
 from ..oxml.ns import qn
 from .series import SeriesFactory
+from ..text import Font
 from ..util import lazyproperty
 
 
@@ -101,6 +102,18 @@ class DataLabels(object):
     def __init__(self, dLbls):
         super(DataLabels, self).__init__()
         self._element = dLbls
+
+    @lazyproperty
+    def font(self):
+        """
+        The |Font| object that provides access to the text properties for
+        these data labels, such as bold, italic, etc. Accessing this property
+        Causes a ``<c:txPr>`` child element to be added if not already
+        present.
+        """
+        defRPr = self._element.defRPr
+        font = Font(defRPr)
+        return font
 
     @property
     def number_format(self):

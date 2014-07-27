@@ -12,6 +12,7 @@ from pptx.chart.plot import (
     BarPlot, DataLabels, LinePlot, PiePlot, Plot, PlotFactory,
     SeriesCollection
 )
+from pptx.text import Font
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, function_mock, instance_mock
@@ -154,6 +155,17 @@ class DescribeBarPlot(object):
 
 class DescribeDataLabels(object):
 
+    def it_provides_access_to_its_font(self, font_fixture):
+        data_labels, Font_, defRPr, font_ = font_fixture
+        font = data_labels.font
+        Font_.assert_called_once_with(defRPr)
+        assert font is font_
+
+    def it_adds_a_txPr_to_help_font(self, txPr_fixture):
+        data_labels, expected_xml = txPr_fixture
+        data_labels.font
+        assert data_labels._element.xml == expected_xml
+
     def it_knows_its_number_format(self, number_format_get_fixture):
         data_labels, expected_value = number_format_get_fixture
         assert data_labels.number_format == expected_value
@@ -190,7 +202,28 @@ class DescribeDataLabels(object):
         expected_xml = xml(expected_dLbls_cxml)
         return data_labels, new_value, expected_xml
 
+    @pytest.fixture(params=[
+        ('c:dLbls{a:b=c}',
+         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)'),
+        ('c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p)',
+         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)'),
+        ('c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr)',
+         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)'),
+    ])
+    def txPr_fixture(self, request):
+        dLbls_cxml, expected_cxml = request.param
+        data_labels = DataLabels(element(dLbls_cxml))
+        expected_xml = xml(expected_cxml)
+        return data_labels, expected_xml
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def font_fixture(self, Font_, font_):
+        dLbls = element('c:dLbls/c:txPr/a:p/a:pPr/a:defRPr')
+        defRPr = dLbls.xpath('.//a:defRPr')[0]
+        data_labels = DataLabels(dLbls)
+        return data_labels, Font_, defRPr, font_
 
     @pytest.fixture(params=[
         ('c:dLbls',                             'General'),
@@ -223,6 +256,18 @@ class DescribeDataLabels(object):
         dLbls_cxml, expected_value = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         return data_labels, expected_value
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def Font_(self, request, font_):
+        return class_mock(
+            request, 'pptx.chart.plot.Font', return_value=font_
+        )
+
+    @pytest.fixture
+    def font_(self, request):
+        return instance_mock(request, Font)
 
 
 class DescribePlotFactory(object):
