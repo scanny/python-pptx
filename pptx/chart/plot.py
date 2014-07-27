@@ -10,7 +10,9 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from collections import Sequence
 
+from ..enum.chart import XL_CHART_TYPE
 from ..oxml.ns import qn
+from ..oxml.simpletypes import ST_Grouping
 from .series import SeriesFactory
 from ..text import Font
 from ..util import lazyproperty
@@ -203,7 +205,23 @@ class PlotTypeInspector(object):
         Return the member of :ref:`XlChartType` that corresponds to the chart
         type of *plot*.
         """
+        if isinstance(plot, AreaPlot):
+            return cls._differentiated_area_chart_type(plot)
         raise NotImplementedError
+
+    @classmethod
+    def _differentiated_area_chart_type(cls, plot):
+        grouping = plot._element.grouping_val
+        try:
+            return {
+                ST_Grouping.STANDARD:        XL_CHART_TYPE.AREA,
+                ST_Grouping.STACKED:         XL_CHART_TYPE.AREA_STACKED,
+                ST_Grouping.PERCENT_STACKED: XL_CHART_TYPE.AREA_STACKED_100,
+            }[grouping]
+        except KeyError:
+            raise NotImplementedError(
+                "not implemented for grouping '%s'" % grouping
+            )
 
 
 class SeriesCollection(Sequence):

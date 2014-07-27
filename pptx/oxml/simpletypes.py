@@ -290,6 +290,25 @@ class ST_GapAmount(BaseIntType):
         cls.validate_int_in_range(value, 0, 500)
 
 
+class ST_Grouping(XsdString):
+    """
+    Valid values for <c:grouping val=""> attribute
+    """
+    PERCENT_STACKED = 'percentStacked'
+    STANDARD = 'standard'
+    STACKED = 'stacked'
+
+    _valid_settings = (PERCENT_STACKED, STANDARD, STACKED)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_string(value)
+        if value not in cls._valid_settings:
+            raise ValueError(
+                "must be one of %s, got '%s'" % (cls._valid_settings, value)
+            )
+
+
 class ST_HexColorRGB(BaseStringType):
 
     @classmethod

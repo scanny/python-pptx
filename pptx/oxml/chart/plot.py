@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from .. import parse_xml
 from ..ns import nsdecls, qn
-from ..simpletypes import ST_GapAmount
+from ..simpletypes import ST_GapAmount, ST_Grouping
 from ..text import CT_TextBody
 from ..xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrOne
 
@@ -27,6 +27,26 @@ class BaseChartElement(BaseOxmlElement):
 
     def _new_dLbls(self):
         return CT_DLbls.new_default()
+
+
+class CT_AreaChart(BaseChartElement):
+    """
+    ``<c:areaChart>`` element.
+    """
+    grouping = ZeroOrOne('c:grouping', successors=(
+        'c:varyColors', 'c:ser', 'c:dLbls', 'c:dropLines', 'c:axId'
+    ))
+
+    @property
+    def grouping_val(self):
+        """
+        Return the value of the ``./c:grouping{val=?}`` attribute, taking
+        defaults into account when items are not present.
+        """
+        grouping = self.grouping
+        if grouping is None:
+            return ST_Grouping.STANDARD
+        return grouping.val
 
 
 class CT_BarChart(BaseChartElement):
@@ -95,6 +115,15 @@ class CT_GapAmount(BaseOxmlElement):
     purposes like error bars.
     """
     val = OptionalAttribute('val', ST_GapAmount, default=150)
+
+
+class CT_Grouping(BaseOxmlElement):
+    """
+    ``<c:grouping>`` child of an xChart element, specifying a value like
+    'clustered' or 'stacked'. Also used for variants with the same tag name
+    like CT_BarGrouping.
+    """
+    val = OptionalAttribute('val', ST_Grouping, default='standard')
 
 
 class CT_LineChart(BaseChartElement):

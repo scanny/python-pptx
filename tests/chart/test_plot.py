@@ -8,9 +8,10 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.enum.chart import XL_CHART_TYPE as XL
 from pptx.chart.plot import (
     AreaPlot, BarPlot, DataLabels, LinePlot, PiePlot, Plot, PlotFactory,
-    SeriesCollection
+    PlotTypeInspector, SeriesCollection
 )
 from pptx.text import Font
 
@@ -293,6 +294,28 @@ class DescribePlotFactory(object):
         PlotClass_ = class_mock(request, class_spec, return_value=plot_)
         plot_elm = element(plot_cxml)
         return plot_elm, PlotClass_, plot_
+
+
+class DescribePlotTypeInspector(object):
+
+    def it_can_determine_the_chart_type_of_a_plot(self, chart_type_fixture):
+        plot, expected_chart_type = chart_type_fixture
+        chart_type = PlotTypeInspector.chart_type(plot)
+        assert chart_type is expected_chart_type
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:areaChart',                                 XL.AREA),
+        ('c:areaChart/c:grouping',                      XL.AREA),
+        ('c:areaChart/c:grouping{val=standard}',        XL.AREA),
+        ('c:areaChart/c:grouping{val=stacked}',         XL.AREA_STACKED),
+        ('c:areaChart/c:grouping{val=percentStacked}',  XL.AREA_STACKED_100),
+    ])
+    def chart_type_fixture(self, request):
+        plot_cxml, expected_chart_type = request.param
+        plot = PlotFactory(element(plot_cxml))
+        return plot, expected_chart_type
 
 
 class DescribeSeriesCollection(object):
