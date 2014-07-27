@@ -163,7 +163,7 @@ class TextFrame(Subshape):
         return self._txBody.bodyPr
 
 
-class _Font(object):
+class Font(object):
     """
     Character properties object, providing font size, font name, bold,
     italic, etc. Corresponds to ``<a:rPr>`` child element of a run. Also
@@ -171,13 +171,13 @@ class _Font(object):
     ``<a:defRPr>`` in list style elements.
     """
     def __init__(self, rPr):
-        super(_Font, self).__init__()
+        super(Font, self).__init__()
         self._rPr = rPr
 
     @property
     def bold(self):
         """
-        Get or set boolean bold value of |_Font|, e.g.
+        Get or set boolean bold value of |Font|, e.g.
         ``paragraph.font.bold = True``. If set to |None|, the bold setting is
         cleared and is inherited from an enclosing shape's setting, or a
         setting in a style or master. Returns None if no bold attribute is
@@ -211,7 +211,7 @@ class _Font(object):
     @property
     def italic(self):
         """
-        Get or set boolean italic value of |_Font| instance, with the same
+        Get or set boolean italic value of |Font| instance, with the same
         behaviors as bold with respect to None values.
         """
         return self._rPr.i
@@ -223,7 +223,7 @@ class _Font(object):
     @property
     def name(self):
         """
-        Get or set the typeface name for this |_Font| instance, causing the
+        Get or set the typeface name for this |Font| instance, causing the
         text it controls to appear in the named font, if a matching font is
         found. Returns |None| if the typeface is currently inherited from the
         theme. Setting it to |None| removes any override of the theme
@@ -348,13 +348,13 @@ class _Paragraph(Subshape):
     @property
     def font(self):
         """
-        |_Font| object containing default character properties for the runs in
+        |Font| object containing default character properties for the runs in
         this paragraph. These character properties override default properties
         inherited from parent objects such as the text frame the paragraph is
         contained in and they may be overridden by character properties set at
         the run level.
         """
-        return _Font(self._defRPr)
+        return Font(self._defRPr)
 
     @property
     def level(self):
@@ -425,14 +425,14 @@ class _Run(Subshape):
     @property
     def font(self):
         """
-        |_Font| instance containing run-level character properties for the
+        |Font| instance containing run-level character properties for the
         text in this run. Character properties can be and perhaps most often
         are inherited from parent objects such as the paragraph and slide
         layout the run is contained in. Only those specifically overridden at
         the run level are contained in the font object.
         """
         rPr = self._r.get_or_add_rPr()
-        return _Font(rPr)
+        return Font(rPr)
 
     @lazyproperty
     def hyperlink(self):

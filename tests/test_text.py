@@ -18,7 +18,7 @@ from pptx.oxml.ns import nsdecls
 from pptx.oxml.text import (
     CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
 )
-from pptx.text import _Font, _Hyperlink, _Paragraph, _Run, TextFrame
+from pptx.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches, Pt
 
 from .oxml.unitdata.text import (
@@ -345,7 +345,7 @@ class DescribeTextFrame(object):
         )
 
 
-class Describe_Font(object):
+class DescribeFont(object):
 
     def it_knows_the_bold_setting(self, font, bold_font, bold_off_font):
         assert font.bold is None
@@ -416,7 +416,7 @@ class Describe_Font(object):
         rPr_bldr = an_rPr().with_nsdecls()
         if sz_val is not None:
             rPr_bldr.with_sz(sz_val)
-        font = _Font(rPr_bldr.element)
+        font = Font(rPr_bldr.element)
         return font, expected_size
 
     @pytest.fixture(params=[None, 'Foobar Light'])
@@ -426,7 +426,7 @@ class Describe_Font(object):
         if typeface is not None:
             rPr_bldr.with_child(a_latin().with_typeface(typeface))
         rPr = rPr_bldr.element
-        font = _Font(rPr)
+        font = Font(rPr)
         return font, typeface
 
     @pytest.fixture(params=[
@@ -442,7 +442,7 @@ class Describe_Font(object):
         if before_typeface is not None:
             rPr_bldr.with_child(a_latin().with_typeface(before_typeface))
         rPr = rPr_bldr.element
-        font = _Font(rPr)
+        font = Font(rPr)
         # expected XML
         rPr_bldr = an_rPr().with_nsdecls()
         if after_typeface is not None:
@@ -455,12 +455,12 @@ class Describe_Font(object):
     @pytest.fixture
     def bold_font(self):
         bold_rPr = an_rPr().with_nsdecls().with_b(1).element
-        return _Font(bold_rPr)
+        return Font(bold_rPr)
 
     @pytest.fixture
     def bold_off_font(self):
         bold_off_rPr = an_rPr().with_nsdecls().with_b(0).element
-        return _Font(bold_off_rPr)
+        return Font(bold_off_rPr)
 
     @pytest.fixture
     def bold_off_rPr_xml(self):
@@ -473,17 +473,17 @@ class Describe_Font(object):
     @pytest.fixture
     def font(self):
         rPr = an_rPr().with_nsdecls().element
-        return _Font(rPr)
+        return Font(rPr)
 
     @pytest.fixture
     def italic_font(self):
         italic_rPr = an_rPr().with_nsdecls().with_i(1).element
-        return _Font(italic_rPr)
+        return Font(italic_rPr)
 
     @pytest.fixture
     def italic_off_font(self):
         italic_rPr = an_rPr().with_nsdecls().with_i(0).element
-        return _Font(italic_rPr)
+        return Font(italic_rPr)
 
     @pytest.fixture
     def italic_off_rPr_xml(self):
@@ -742,7 +742,7 @@ class Describe_Paragraph(object):
 
     @pytest.fixture
     def Font_(self, request):
-        return class_mock(request, 'pptx.text._Font')
+        return class_mock(request, 'pptx.text.Font')
 
     @pytest.fixture
     def pList(self, sld, xpath):
@@ -804,11 +804,11 @@ class Describe_Paragraph(object):
 class Describe_Run(object):
 
     def it_provides_access_to_the_font_of_the_run(
-            self, r_, _Font_, rPr_, font_):
+            self, r_, Font_, rPr_, font_):
         run = _Run(r_, None)
         font = run.font
         r_.get_or_add_rPr.assert_called_once_with()
-        _Font_.assert_called_once_with(rPr_)
+        Font_.assert_called_once_with(rPr_)
         assert font == font_
 
     def it_provides_access_to_the_hyperlink_of_the_run(self, run):
@@ -825,14 +825,14 @@ class Describe_Run(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def _Font_(self, request, font_):
-        _Font_ = class_mock(request, 'pptx.text._Font')
-        _Font_.return_value = font_
-        return _Font_
+    def Font_(self, request, font_):
+        Font_ = class_mock(request, 'pptx.text.Font')
+        Font_.return_value = font_
+        return Font_
 
     @pytest.fixture
     def font_(self, request):
-        return instance_mock(request, 'pptx.text._Font')
+        return instance_mock(request, 'pptx.text.Font')
 
     @pytest.fixture
     def r(self, r_xml):

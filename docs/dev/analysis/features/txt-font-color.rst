@@ -28,8 +28,7 @@ Candidate API
 
 New members:
 
-* ``_Font.color``
-* ``_FontColor(rPr)  # subclass of ColorFormat for fill elm access``
+* ``Font.color``
 * ``ColorFormat(fillable_elm)``
 * ``ColorFormat.type``
 * ``ColorFormat.rgb``

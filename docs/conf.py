@@ -108,7 +108,7 @@ rst_epilog = """
 
 .. |float| replace:: :class:`float`
 
-.. |_Font| replace:: :class:`_Font`
+.. |Font| replace:: :class:`Font`
 
 .. |GraphicFrame| replace:: :class:`.GraphicFrame`
 
