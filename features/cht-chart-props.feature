@@ -10,7 +10,10 @@ Feature: Get and set chart properties
      Then chart.chart_type is <expected-enum-member>
 
     Examples: chart types
-      | chart-type        | expected-enum-member |
-      | area              | AREA                 |
-      | stacked area      | AREA_STACKED         |
-      | 100% stacked area | AREA_STACKED_100     |
+      | chart-type            | expected-enum-member     |
+      | Area                  | AREA                     |
+      | Stacked Area          | AREA_STACKED             |
+      | 100% Stacked Area     | AREA_STACKED_100         |
+      | 3-D Area              | THREE_D_AREA             |
+      | 3-D Stacked Area      | THREE_D_AREA_STACKED     |
+      | 3-D 100% Stacked Area | THREE_D_AREA_STACKED_100 |

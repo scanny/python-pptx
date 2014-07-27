@@ -83,9 +83,12 @@ def given_a_bar_series_having_width_line(context, width):
 @given('a chart of type {chart_type}')
 def given_a_chart_of_type_chart_type(context, chart_type):
     slide_idx, shape_idx = {
-        'area':              (0, 0),
-        'stacked area':      (0, 1),
-        '100% stacked area': (0, 2),
+        'Area':                  (0, 0),
+        'Stacked Area':          (0, 1),
+        '100% Stacked Area':     (0, 2),
+        '3-D Area':              (0, 3),
+        '3-D Stacked Area':      (0, 4),
+        '3-D 100% Stacked Area': (0, 5),
     }[chart_type]
     prs = Presentation(test_pptx('cht-chart-type'))
     context.chart = prs.slides[slide_idx].shapes[shape_idx].chart
