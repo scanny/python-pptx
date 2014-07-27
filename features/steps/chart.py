@@ -11,6 +11,7 @@ from behave import given, then, when
 from pptx import Presentation
 from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.dml.color import RGBColor
+from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
 
 from .helpers import test_pptx
@@ -79,6 +80,17 @@ def given_a_bar_series_having_width_line(context, width):
     context.series = plot.series[series_idx]
 
 
+@given('a chart of type {chart_type}')
+def given_a_chart_of_type_chart_type(context, chart_type):
+    slide_idx, shape_idx = {
+        'area':              (0, 0),
+        'stacked area':      (0, 1),
+        '100% stacked area': (0, 2),
+    }[chart_type]
+    prs = Presentation(test_pptx('cht-chart-type'))
+    context.chart = prs.slides[slide_idx].shapes[shape_idx].chart
+
+
 @given('an axis having {major_or_minor} gridlines')
 def given_an_axis_having_major_or_minor_gridlines(context, major_or_minor):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -140,6 +152,13 @@ def then_axis_has_major_or_minor_gridlines_is_expected_value(
     }[major_or_minor]
     expected_value = {'True': True, 'False': False}[value]
     assert actual_value is expected_value, 'got %s' % actual_value
+
+
+@then('chart.chart_type is {enum_member}')
+def then_chart_chart_type_is_value(context, enum_member):
+    expected_value = getattr(XL_CHART_TYPE, enum_member)
+    chart = context.chart
+    assert chart.chart_type is expected_value, 'got %s' % chart.chart_type
 
 
 @then('I can access the chart category axis')
