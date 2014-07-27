@@ -72,6 +72,12 @@ class Plot(object):
         return SeriesCollection(self._element)
 
 
+class AreaPlot(Plot):
+    """
+    An area plot.
+    """
+
+
 class BarPlot(Plot):
     """
     A bar chart-style plot.
@@ -175,6 +181,7 @@ def PlotFactory(plot_elm):
     """
     try:
         PlotCls = {
+            qn('c:areaChart'): AreaPlot,
             qn('c:barChart'):  BarPlot,
             qn('c:lineChart'): LinePlot,
             qn('c:pieChart'):  PiePlot,

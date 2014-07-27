@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.plot import (
-    BarPlot, DataLabels, LinePlot, PiePlot, Plot, PlotFactory,
+    AreaPlot, BarPlot, DataLabels, LinePlot, PiePlot, Plot, PlotFactory,
     SeriesCollection
 )
 from pptx.text import Font
@@ -281,6 +281,7 @@ class DescribePlotFactory(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
+        ('c:areaChart', AreaPlot),
         ('c:barChart',  BarPlot),
         ('c:lineChart', LinePlot),
         ('c:pieChart',  PiePlot),
