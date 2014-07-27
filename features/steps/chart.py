@@ -89,6 +89,12 @@ def given_a_chart_of_type_chart_type(context, chart_type):
         '3-D Area':              (0, 3),
         '3-D Stacked Area':      (0, 4),
         '3-D 100% Stacked Area': (0, 5),
+        'Clustered Bar':         (1, 0),
+        'Stacked Bar':           (1, 1),
+        '100% Stacked Bar':      (1, 2),
+        'Clustered Column':      (1, 3),
+        'Stacked Column':        (1, 4),
+        '100% Stacked Column':   (1, 5),
     }[chart_type]
     prs = Presentation(test_pptx('cht-chart-type'))
     context.chart = prs.slides[slide_idx].shapes[shape_idx].chart

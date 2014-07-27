@@ -17,3 +17,9 @@ Feature: Get and set chart properties
       | 3-D Area              | THREE_D_AREA             |
       | 3-D Stacked Area      | THREE_D_AREA_STACKED     |
       | 3-D 100% Stacked Area | THREE_D_AREA_STACKED_100 |
+      | Clustered Bar         | BAR_CLUSTERED            |
+      | Stacked Bar           | BAR_STACKED              |
+      | 100% Stacked Bar      | BAR_STACKED_100          |
+      | Clustered Column      | COLUMN_CLUSTERED         |
+      | Stacked Column        | COLUMN_STACKED           |
+      | 100% Stacked Column   | COLUMN_STACKED_100       |
