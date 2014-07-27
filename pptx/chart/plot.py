@@ -173,13 +173,16 @@ def PlotFactory(plot_elm):
     Return an instance of the appropriate subclass of Plot based on the
     tagname of *plot_elm*.
     """
-    if plot_elm.tag == qn('c:barChart'):
-        return BarPlot(plot_elm)
-    if plot_elm.tag == qn('c:lineChart'):
-        return LinePlot(plot_elm)
-    if plot_elm.tag == qn('c:pieChart'):
-        return PiePlot(plot_elm)
-    raise ValueError('unsupported plot type %s' % plot_elm.tag)
+    try:
+        PlotCls = {
+            qn('c:barChart'):  BarPlot,
+            qn('c:lineChart'): LinePlot,
+            qn('c:pieChart'):  PiePlot,
+        }[plot_elm.tag]
+    except KeyError:
+        raise ValueError('unsupported plot type %s' % plot_elm.tag)
+
+    return PlotCls(plot_elm)
 
 
 class PlotTypeInspector(object):

@@ -281,55 +281,17 @@ class DescribePlotFactory(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        'barChart',
-        'lineChart',
-        'pieChart'
+        ('c:barChart',  BarPlot),
+        ('c:lineChart', LinePlot),
+        ('c:pieChart',  PiePlot),
     ])
-    def call_fixture(
-            self, request, BarPlot_, bar_chart_, LinePlot_, line_chart_,
-            PiePlot_, pie_chart_):
-        plot_cxml, PlotClass_, plot_mock = {
-            'barChart':  ('c:barChart',  BarPlot_,  bar_chart_),
-            'lineChart': ('c:lineChart', LinePlot_, line_chart_),
-            'pieChart':  ('c:pieChart',  PiePlot_,  pie_chart_),
-        }[request.param]
+    def call_fixture(self, request):
+        plot_cxml, PlotCls = request.param
+        plot_ = instance_mock(request, PlotCls)
+        class_spec = 'pptx.chart.plot.%s' % PlotCls.__name__
+        PlotClass_ = class_mock(request, class_spec, return_value=plot_)
         plot_elm = element(plot_cxml)
-        return plot_elm, PlotClass_, plot_mock
-
-    # fixture components -----------------------------------
-
-    @pytest.fixture
-    def BarPlot_(self, request, bar_chart_):
-        return class_mock(
-            request, 'pptx.chart.plot.BarPlot',
-            return_value=bar_chart_
-        )
-
-    @pytest.fixture
-    def bar_chart_(self, request):
-        return instance_mock(request, BarPlot)
-
-    @pytest.fixture
-    def LinePlot_(self, request, line_chart_):
-        return class_mock(
-            request, 'pptx.chart.plot.LinePlot',
-            return_value=line_chart_
-        )
-
-    @pytest.fixture
-    def line_chart_(self, request):
-        return instance_mock(request, LinePlot)
-
-    @pytest.fixture
-    def PiePlot_(self, request, pie_chart_):
-        return class_mock(
-            request, 'pptx.chart.plot.PiePlot',
-            return_value=pie_chart_
-        )
-
-    @pytest.fixture
-    def pie_chart_(self, request):
-        return instance_mock(request, PiePlot)
+        return plot_elm, PlotClass_, plot_
 
 
 class DescribeSeriesCollection(object):
