@@ -80,6 +80,12 @@ class AreaPlot(Plot):
     """
 
 
+class Area3DPlot(Plot):
+    """
+    A 3-dimensional area plot.
+    """
+
+
 class BarPlot(Plot):
     """
     A bar chart-style plot.
@@ -183,10 +189,11 @@ def PlotFactory(plot_elm):
     """
     try:
         PlotCls = {
-            qn('c:areaChart'): AreaPlot,
-            qn('c:barChart'):  BarPlot,
-            qn('c:lineChart'): LinePlot,
-            qn('c:pieChart'):  PiePlot,
+            qn('c:areaChart'):   AreaPlot,
+            qn('c:area3DChart'): Area3DPlot,
+            qn('c:barChart'):    BarPlot,
+            qn('c:lineChart'):   LinePlot,
+            qn('c:pieChart'):    PiePlot,
         }[plot_elm.tag]
     except KeyError:
         raise ValueError('unsupported plot type %s' % plot_elm.tag)

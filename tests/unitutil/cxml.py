@@ -232,7 +232,7 @@ def grammar():
 
     # np:tagName ---------------------------------
     nspfx = Word(alphas)
-    local_name = Word(alphas)
+    local_name = Word(alphanums)
     tagname = Combine(nspfx + colon + local_name)
 
     # np:attr_name=attr_val ----------------------

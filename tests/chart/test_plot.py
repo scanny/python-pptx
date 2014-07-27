@@ -10,8 +10,8 @@ import pytest
 
 from pptx.enum.chart import XL_CHART_TYPE as XL
 from pptx.chart.plot import (
-    AreaPlot, BarPlot, DataLabels, LinePlot, PiePlot, Plot, PlotFactory,
-    PlotTypeInspector, SeriesCollection
+    AreaPlot, Area3DPlot, BarPlot, DataLabels, LinePlot, PiePlot, Plot,
+    PlotFactory, PlotTypeInspector, SeriesCollection
 )
 from pptx.text import Font
 
@@ -282,10 +282,11 @@ class DescribePlotFactory(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('c:areaChart', AreaPlot),
-        ('c:barChart',  BarPlot),
-        ('c:lineChart', LinePlot),
-        ('c:pieChart',  PiePlot),
+        ('c:areaChart',   AreaPlot),
+        ('c:area3DChart', Area3DPlot),
+        ('c:barChart',    BarPlot),
+        ('c:lineChart',   LinePlot),
+        ('c:pieChart',    PiePlot),
     ])
     def call_fixture(self, request):
         plot_cxml, PlotCls = request.param
