@@ -16,7 +16,6 @@ Feature: Get and set axis properties
       | not having    | minor          | False          |
 
 
-  @wip
   Scenario Outline: Change whether an axis has major and/or minor gridlines
     Given an axis <having-or-not> <major-or-minor> gridlines
      When I assign <value> to axis.has_<major-or-minor>_gridlines

@@ -45,6 +45,13 @@ class _BaseAxis(object):
             return False
         return True
 
+    @has_minor_gridlines.setter
+    def has_minor_gridlines(self, value):
+        if bool(value) is True:
+            self._element.get_or_add_minorGridlines()
+        else:
+            self._element._remove_minorGridlines()
+
     @property
     def major_tick_mark(self):
         """
