@@ -339,6 +339,18 @@ class DescribePlotTypeInspector(object):
          XL.BAR_STACKED),
         ('c:barChart/(c:barDir{val=bar},c:grouping{val=percentStacked})',
          XL.BAR_STACKED_100),
+
+        ('c:lineChart',                          XL.LINE_MARKERS),
+        ('c:lineChart/c:grouping',               XL.LINE_MARKERS),
+        ('c:lineChart/c:grouping{val=standard}', XL.LINE_MARKERS),
+        ('c:lineChart/c:grouping{val=stacked}',  XL.LINE_MARKERS_STACKED),
+        ('c:lineChart/c:grouping{val=percentStacked}',
+         XL.LINE_MARKERS_STACKED_100),
+        ('c:lineChart/c:ser/c:marker/c:symbol{val=none}', XL.LINE),
+        ('c:lineChart/(c:grouping{val=stacked},c:ser/c:marker/c:symbol{val=n'
+         'one})', XL.LINE_STACKED),
+        ('c:lineChart/(c:grouping{val=percentStacked},c:ser/c:marker/c:symbo'
+         'l{val=none})', XL.LINE_STACKED_100),
     ])
     def chart_type_fixture(self, request):
         plot_cxml, expected_chart_type = request.param

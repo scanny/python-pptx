@@ -170,10 +170,14 @@ class CT_LineChart(BaseChartElement):
     """
     ``<c:lineChart>`` custom element class
     """
-    dLbls = ZeroOrOne('c:dLbls', successors=(
-        'c:dropLines', 'c:hiLowLines', 'c:upDownBars', 'c:marker',
-        'c:smooth', 'c:axId'
-    ))
+    tag_seq = (
+        'c:grouping', 'c:varyColors', 'c:ser', 'c:dLbls', 'c:dropLines',
+        'c:hiLowLines', 'c:upDownBars', 'c:marker', 'c:smooth', 'c:axId',
+        'c:extLst'
+    )
+    grouping = ZeroOrOne('c:grouping', successors=(tag_seq[1:]))
+    dLbls = ZeroOrOne('c:dLbls', successors=(tag_seq[4:]))
+    del tag_seq
 
 
 class CT_PieChart(BaseChartElement):

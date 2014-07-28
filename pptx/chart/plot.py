@@ -212,18 +212,22 @@ class PlotTypeInspector(object):
         Return the member of :ref:`XlChartType` that corresponds to the chart
         type of *plot*.
         """
-        if isinstance(plot, AreaPlot):
-            return cls._differentiated_area_chart_type(plot)
-        if isinstance(plot, Area3DPlot):
-            return cls._differentiated_area_3d_chart_type(plot)
-        if isinstance(plot, BarPlot):
-            return cls._differentiated_bar_chart_type(plot)
-        raise NotImplementedError(
-            "chart_type() not implemented for %s" % plot.__class__.__name__
-        )
+        try:
+            chart_type_method = {
+                'AreaPlot':   cls._differentiate_area_chart_type,
+                'Area3DPlot': cls._differentiate_area_3d_chart_type,
+                'BarPlot':    cls._differentiate_bar_chart_type,
+                'LinePlot':   cls._differentiate_line_chart_type,
+            }[plot.__class__.__name__]
+        except KeyError:
+            raise NotImplementedError(
+                "chart_type() not implemented for %s" %
+                plot.__class__.__name__
+            )
+        return chart_type_method(plot)
 
     @classmethod
-    def _differentiated_area_3d_chart_type(cls, plot):
+    def _differentiate_area_3d_chart_type(cls, plot):
         return {
             ST_Grouping.STANDARD:        XL.THREE_D_AREA,
             ST_Grouping.STACKED:         XL.THREE_D_AREA_STACKED,
@@ -231,7 +235,7 @@ class PlotTypeInspector(object):
         }[plot._element.grouping_val]
 
     @classmethod
-    def _differentiated_area_chart_type(cls, plot):
+    def _differentiate_area_chart_type(cls, plot):
         return {
             ST_Grouping.STANDARD:        XL.AREA,
             ST_Grouping.STACKED:         XL.AREA_STACKED,
@@ -239,7 +243,7 @@ class PlotTypeInspector(object):
         }[plot._element.grouping_val]
 
     @classmethod
-    def _differentiated_bar_chart_type(cls, plot):
+    def _differentiate_bar_chart_type(cls, plot):
         barChart = plot._element
         if barChart.barDir.val == ST_BarDir.BAR:
             return {
@@ -256,6 +260,31 @@ class PlotTypeInspector(object):
         raise ValueError(
             "invalid barChart.barDir value '%s'" % barChart.barDir.val
         )
+
+    @classmethod
+    def _differentiate_line_chart_type(cls, plot):
+        lineChart = plot._element
+        if cls._has_line_markers(lineChart):
+            return {
+                ST_Grouping.STANDARD:        XL.LINE_MARKERS,
+                ST_Grouping.STACKED:         XL.LINE_MARKERS_STACKED,
+                ST_Grouping.PERCENT_STACKED: XL.LINE_MARKERS_STACKED_100,
+            }[plot._element.grouping_val]
+        else:
+            return {
+                ST_Grouping.STANDARD:        XL.LINE,
+                ST_Grouping.STACKED:         XL.LINE_STACKED,
+                ST_Grouping.PERCENT_STACKED: XL.LINE_STACKED_100,
+            }[plot._element.grouping_val]
+
+    @classmethod
+    def _has_line_markers(cls, lineChart):
+        none_marker_symbols = lineChart.xpath(
+            './c:ser/c:marker/c:symbol[@val="none"]'
+        )
+        if none_marker_symbols:
+            return False
+        return True
 
 
 class SeriesCollection(Sequence):

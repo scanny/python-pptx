@@ -3,6 +3,16 @@ Chart - Plots
 =============
 
 
+XML Semantics
+-------------
+
+* c:lineChart/c:marker{val=0|1} doesn't seem to have any effect one way or
+  the other. Default line charts inserted using PowerPoint always have it set
+  to 1 (True). But even if it's set to 0 or removed, markers still appear.
+  Hypothesis is that c:lineChart/c:ser/c:marker/c:symbol{val=none} and the
+  like are the operative settings.
+
+
 Related Schema Definitions
 --------------------------
 
@@ -115,6 +125,28 @@ Related Schema Definitions
       <xsd:enumeration value="pyramidToMax"/>
     </xsd:restriction>
   </xsd:simpleType>
+
+  <xsd:complexType name="CT_LineChart">
+    <xsd:sequence>
+      <xsd:group ref="EG_LineChartShared" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="hiLowLines" type="CT_ChartLines"    minOccurs="0"/>
+      <xsd:element name="upDownBars" type="CT_UpDownBars"    minOccurs="0"/>
+      <xsd:element name="marker"     type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="smooth"     type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="axId"       type="CT_UnsignedInt"   minOccurs="2" maxOccurs="2"/>
+      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:group name="EG_LineChartShared">
+    <xsd:sequence>
+      <xsd:element name="grouping"   type="CT_Grouping"/>
+      <xsd:element name="varyColors" type="CT_Boolean"    minOccurs="0"/>
+      <xsd:element name="ser"        type="CT_LineSer"    minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"      type="CT_DLbls"      minOccurs="0"/>
+      <xsd:element name="dropLines"  type="CT_ChartLines" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:group>
 
   <xsd:complexType name="CT_RadarChart">
     <xsd:sequence>

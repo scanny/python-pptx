@@ -113,18 +113,18 @@ c:lineChart
 
 * ./c:grouping{val=standard}
 
-  + ./c:marker{val=1})                   => LINE_MARKERS
-  + ./c:ser/c:marker/c:symbol{val=none}) => LINE
+  + ./c:ser/c:marker/c:symbol{val=none} => LINE
+  + ./c:marker{val=1}                   => LINE_MARKERS
 
 * ./c:grouping{val=stacked}
 
-  + ./c:marker{val=1})                   => LINE_MARKERS_STACKED
-  + ./c:ser/c:marker/c:symbol{val=none}) => LINE_STACKED
+  + ./c:marker{val=1}                   => LINE_MARKERS_STACKED
+  + ./c:ser/c:marker/c:symbol{val=none} => LINE_STACKED
 
 * ./c:grouping{val=percentStacked}
 
-  + ./c:marker{val=1})                   => LINE_MARKERS_STACKED_100
-  + ./c:ser/c:marker/c:symbol{val=none}) => LINE_STACKED_100
+  + ./c:marker{val=1}                   => LINE_MARKERS_STACKED_100
+  + ./c:ser/c:marker/c:symbol{val=none} => LINE_STACKED_100
 
 
 c:line3DChart
