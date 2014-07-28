@@ -4,7 +4,6 @@ Feature: Get and set chart properties
   I need a way to get and set chart properties
 
 
-  @wip
   Scenario Outline: Get chart type
     Given a chart of type <chart-type>
      Then chart.chart_type is <expected-enum-member>

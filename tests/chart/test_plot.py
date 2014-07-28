@@ -351,6 +351,9 @@ class DescribePlotTypeInspector(object):
          'one})', XL.LINE_STACKED),
         ('c:lineChart/(c:grouping{val=percentStacked},c:ser/c:marker/c:symbo'
          'l{val=none})', XL.LINE_STACKED_100),
+
+        ('c:pieChart',                           XL.PIE),
+        ('c:pieChart/c:ser/c:explosion{val=25}', XL.PIE_EXPLODED),
     ])
     def chart_type_fixture(self, request):
         plot_cxml, expected_chart_type = request.param

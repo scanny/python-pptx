@@ -148,6 +148,43 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:group>
 
+  <xsd:complexType name="CT_PieChart">
+    <xsd:sequence>
+      <xsd:group    ref="EG_PieChartShared"/>
+      <xsd:element name="firstSliceAng" type="CT_FirstSliceAng" minOccurs="0"/>
+      <xsd:element name="extLst"        type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:group name="EG_PieChartShared">
+    <xsd:sequence>
+      <xsd:element name="varyColors" type="CT_Boolean" minOccurs="0"/>
+      <xsd:element name="ser"        type="CT_PieSer"  minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"      type="CT_DLbls"   minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:group>
+
+  <xsd:complexType name="CT_PieSer">
+    <xsd:sequence>
+      <xsd:group    ref="EG_SerShared"/>
+      <xsd:element name="explosion" type="CT_UnsignedInt"   minOccurs="0"/>
+      <xsd:element name="dPt"       type="CT_DPt"           minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"     type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="cat"       type="CT_AxDataSource"  minOccurs="0"/>
+      <xsd:element name="val"       type="CT_NumDataSource" minOccurs="0"/>
+      <xsd:element name="extLst"    type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:group name="EG_SerShared">
+    <xsd:sequence>
+      <xsd:element name="idx"   type="CT_UnsignedInt"/>
+      <xsd:element name="order" type="CT_UnsignedInt"/>
+      <xsd:element name="tx"    type="CT_SerTx"             minOccurs="0"/>
+      <xsd:element name="spPr"  type="a:CT_ShapeProperties" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:group>
+
   <xsd:complexType name="CT_RadarChart">
     <xsd:sequence>
       <xsd:element name="radarStyle" type="CT_RadarStyle"/>

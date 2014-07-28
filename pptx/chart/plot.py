@@ -218,6 +218,7 @@ class PlotTypeInspector(object):
                 'Area3DPlot': cls._differentiate_area_3d_chart_type,
                 'BarPlot':    cls._differentiate_bar_chart_type,
                 'LinePlot':   cls._differentiate_line_chart_type,
+                'PiePlot':    cls._differentiate_pie_chart_type,
             }[plot.__class__.__name__]
         except KeyError:
             raise NotImplementedError(
@@ -285,6 +286,12 @@ class PlotTypeInspector(object):
         if none_marker_symbols:
             return False
         return True
+
+    @classmethod
+    def _differentiate_pie_chart_type(cls, plot):
+        pieChart = plot._element
+        explosion = pieChart.xpath('./c:ser/c:explosion')
+        return XL.PIE_EXPLODED if explosion else XL.PIE
 
 
 class SeriesCollection(Sequence):
