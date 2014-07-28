@@ -8,9 +8,11 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from .. import parse_xml
 from ..ns import nsdecls, qn
-from ..simpletypes import ST_GapAmount, ST_Grouping
+from ..simpletypes import ST_BarDir, ST_GapAmount, ST_Grouping
 from ..text import CT_TextBody
-from ..xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrOne
+from ..xmlchemy import (
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne
+)
 
 
 class BaseChartElement(BaseOxmlElement):
@@ -26,7 +28,10 @@ class BaseChartElement(BaseOxmlElement):
         grouping = self.grouping
         if grouping is None:
             return ST_Grouping.STANDARD
-        return grouping.val
+        val = grouping.val
+        if val is None:
+            return ST_Grouping.STANDARD
+        return val
 
     def iter_sers(self):
         """
@@ -63,12 +68,37 @@ class CT_BarChart(BaseChartElement):
     """
     ``<c:barChart>`` element.
     """
-    dLbls = ZeroOrOne('c:dLbls', successors=(
-        'c:gapWidth', 'c:overlap', 'c:serLines', 'c:axId'
-    ))
-    gapWidth = ZeroOrOne('c:gapWidth', successors=(
-        'c:overlap', 'c:serLines', 'c:axId'
-    ))
+    _tag_seq = (
+        'c:barDir', 'c:grouping', 'c:varyColors', 'c:ser', 'c:dLbls',
+        'c:gapWidth', 'c:overlap', 'c:serLines', 'c:axId', 'c:extLst'
+    )
+    barDir = OneAndOnlyOne('c:barDir')
+    grouping = ZeroOrOne('c:grouping', successors=_tag_seq[2:])
+    dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[5:])
+    gapWidth = ZeroOrOne('c:gapWidth', successors=_tag_seq[6:])
+    del _tag_seq
+
+    @property
+    def grouping_val(self):
+        """
+        Return the value of the ``./c:grouping{val=?}`` attribute, taking
+        defaults into account when items are not present.
+        """
+        grouping = self.grouping
+        if grouping is None:
+            return ST_Grouping.CLUSTERED
+        val = grouping.val
+        if val is None:
+            return ST_Grouping.CLUSTERED
+        return val
+
+
+class CT_BarDir(BaseOxmlElement):
+    """
+    ``<c:barDir>`` child of a barChart element, specifying the orientation of
+    the bars, 'bar' if they are horizontal and 'col' if they are vertical.
+    """
+    val = OptionalAttribute('val', ST_BarDir, default=ST_BarDir.COL)
 
 
 class CT_DLbls(BaseOxmlElement):
@@ -133,7 +163,7 @@ class CT_Grouping(BaseOxmlElement):
     'clustered' or 'stacked'. Also used for variants with the same tag name
     like CT_BarGrouping.
     """
-    val = OptionalAttribute('val', ST_Grouping, default='standard')
+    val = OptionalAttribute('val', ST_Grouping)
 
 
 class CT_LineChart(BaseChartElement):

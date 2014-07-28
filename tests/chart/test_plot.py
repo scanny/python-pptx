@@ -313,12 +313,32 @@ class DescribePlotTypeInspector(object):
         ('c:areaChart/c:grouping{val=stacked}',    XL.AREA_STACKED),
         ('c:areaChart/c:grouping{val=percentStacked}',
          XL.AREA_STACKED_100),
+
         ('c:area3DChart',                          XL.THREE_D_AREA),
         ('c:area3DChart/c:grouping',               XL.THREE_D_AREA),
         ('c:area3DChart/c:grouping{val=standard}', XL.THREE_D_AREA),
         ('c:area3DChart/c:grouping{val=stacked}',  XL.THREE_D_AREA_STACKED),
         ('c:area3DChart/c:grouping{val=percentStacked}',
          XL.THREE_D_AREA_STACKED_100),
+
+        ('c:barChart/c:barDir',                       XL.COLUMN_CLUSTERED),
+        ('c:barChart/c:barDir{val=col}',              XL.COLUMN_CLUSTERED),
+        ('c:barChart/(c:barDir{val=col},c:grouping)', XL.COLUMN_CLUSTERED),
+        ('c:barChart/(c:barDir{val=col},c:grouping{val=clustered})',
+         XL.COLUMN_CLUSTERED),
+        ('c:barChart/(c:barDir{val=col},c:grouping{val=stacked})',
+         XL.COLUMN_STACKED),
+        ('c:barChart/(c:barDir{val=col},c:grouping{val=percentStacked})',
+         XL.COLUMN_STACKED_100),
+
+        ('c:barChart/c:barDir{val=bar}',              XL.BAR_CLUSTERED),
+        ('c:barChart/(c:barDir{val=bar},c:grouping)', XL.BAR_CLUSTERED),
+        ('c:barChart/(c:barDir{val=bar},c:grouping{val=clustered})',
+         XL.BAR_CLUSTERED),
+        ('c:barChart/(c:barDir{val=bar},c:grouping{val=stacked})',
+         XL.BAR_STACKED),
+        ('c:barChart/(c:barDir{val=bar},c:grouping{val=percentStacked})',
+         XL.BAR_STACKED_100),
     ])
     def chart_type_fixture(self, request):
         plot_cxml, expected_chart_type = request.param

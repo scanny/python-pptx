@@ -12,7 +12,7 @@ from collections import Sequence
 
 from ..enum.chart import XL_CHART_TYPE as XL
 from ..oxml.ns import qn
-from ..oxml.simpletypes import ST_Grouping
+from ..oxml.simpletypes import ST_BarDir, ST_Grouping
 from .series import SeriesFactory
 from ..text import Font
 from ..util import lazyproperty
@@ -216,7 +216,11 @@ class PlotTypeInspector(object):
             return cls._differentiated_area_chart_type(plot)
         if isinstance(plot, Area3DPlot):
             return cls._differentiated_area_3d_chart_type(plot)
-        raise NotImplementedError
+        if isinstance(plot, BarPlot):
+            return cls._differentiated_bar_chart_type(plot)
+        raise NotImplementedError(
+            "chart_type() not implemented for %s" % plot.__class__.__name__
+        )
 
     @classmethod
     def _differentiated_area_3d_chart_type(cls, plot):
@@ -233,6 +237,25 @@ class PlotTypeInspector(object):
             ST_Grouping.STACKED:         XL.AREA_STACKED,
             ST_Grouping.PERCENT_STACKED: XL.AREA_STACKED_100,
         }[plot._element.grouping_val]
+
+    @classmethod
+    def _differentiated_bar_chart_type(cls, plot):
+        barChart = plot._element
+        if barChart.barDir.val == ST_BarDir.BAR:
+            return {
+                ST_Grouping.CLUSTERED:       XL.BAR_CLUSTERED,
+                ST_Grouping.STACKED:         XL.BAR_STACKED,
+                ST_Grouping.PERCENT_STACKED: XL.BAR_STACKED_100,
+            }[barChart.grouping_val]
+        if barChart.barDir.val == ST_BarDir.COL:
+            return {
+                ST_Grouping.CLUSTERED:       XL.COLUMN_CLUSTERED,
+                ST_Grouping.STACKED:         XL.COLUMN_STACKED,
+                ST_Grouping.PERCENT_STACKED: XL.COLUMN_STACKED_100,
+            }[barChart.grouping_val]
+        raise ValueError(
+            "invalid barChart.barDir value '%s'" % barChart.barDir.val
+        )
 
 
 class SeriesCollection(Sequence):

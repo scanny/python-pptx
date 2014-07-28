@@ -188,6 +188,24 @@ class XsdUnsignedInt(BaseIntType):
         cls.validate_int_in_range(value, 0, 4294967295)
 
 
+class ST_BarDir(XsdString):
+    """
+    Valid values for <c:barDir val="?"> attribute
+    """
+    BAR = 'bar'
+    COL = 'col'
+
+    _valid_settings = (BAR, COL)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_string(value)
+        if value not in cls._valid_settings:
+            raise ValueError(
+                "must be one of %s, got '%s'" % (cls._valid_settings, value)
+            )
+
+
 class ST_ContentType(XsdString):
     """
     Has a pretty wicked regular expression it needs to match in the schema,
@@ -292,13 +310,15 @@ class ST_GapAmount(BaseIntType):
 
 class ST_Grouping(XsdString):
     """
-    Valid values for <c:grouping val=""> attribute
+    Valid values for <c:grouping val=""> attribute. Overloaded for use as
+    ST_BarGrouping using same tag name.
     """
+    CLUSTERED = 'clustered'
     PERCENT_STACKED = 'percentStacked'
-    STANDARD = 'standard'
     STACKED = 'stacked'
+    STANDARD = 'standard'
 
-    _valid_settings = (PERCENT_STACKED, STANDARD, STACKED)
+    _valid_settings = (CLUSTERED, PERCENT_STACKED, STACKED, STANDARD)
 
     @classmethod
     def validate(cls, value):

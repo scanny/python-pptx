@@ -37,6 +37,18 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:group>
 
+  <xsd:complexType name="CT_Grouping">
+    <xsd:attribute name="val" type="ST_Grouping" default="standard"/>
+  </xsd:complexType>
+
+  <xsd:simpleType name="ST_Grouping">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="percentStacked"/>
+      <xsd:enumeration value="standard"/>
+      <xsd:enumeration value="stacked"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
   <xsd:complexType name="CT_BarChart">
     <xsd:sequence>
       <xsd:group    ref="EG_BarChartShared"/>
@@ -69,17 +81,20 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:group>
 
-  <xsd:complexType name="CT_Grouping">
-    <xsd:attribute name="val" type="ST_Grouping" default="standard"/>
+  <xsd:complexType name="CT_BarDir">
+    <xsd:attribute name="val" type="ST_BarDir" default="col"/>
   </xsd:complexType>
 
-  <xsd:simpleType name="ST_Grouping">
+  <xsd:simpleType name="ST_BarDir">
     <xsd:restriction base="xsd:string">
-      <xsd:enumeration value="percentStacked"/>
-      <xsd:enumeration value="standard"/>
-      <xsd:enumeration value="stacked"/>
+      <xsd:enumeration value="bar"/>
+      <xsd:enumeration value="col"/>
     </xsd:restriction>
   </xsd:simpleType>
+
+  <xsd:complexType name="CT_BarGrouping">
+    <xsd:attribute name="val" type="ST_BarGrouping" default="clustered"/>
+  </xsd:complexType>
 
   <xsd:simpleType name="ST_BarGrouping">
     <xsd:restriction base="xsd:string">
