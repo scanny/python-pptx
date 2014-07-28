@@ -101,6 +101,8 @@ def given_a_chart_of_type_chart_type(context, chart_type):
         'Marked Line':              (2, 3),
         'Stacked Marked Line':      (2, 4),
         '100% Stacked Marked Line': (2, 5),
+        'Pie':                      (3, 0),
+        'Exploded Pie':             (3, 1),
     }[chart_type]
     prs = Presentation(test_pptx('cht-chart-type'))
     context.chart = prs.slides[slide_idx].shapes[shape_idx].chart

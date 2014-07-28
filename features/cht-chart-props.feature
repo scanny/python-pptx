@@ -29,3 +29,5 @@ Feature: Get and set chart properties
       | Marked Line              | LINE_MARKERS             |
       | Stacked Marked Line      | LINE_MARKERS_STACKED     |
       | 100% Stacked Marked Line | LINE_MARKERS_STACKED_100 |
+      | Pie                      | PIE                      |
+      | Exploded Pie             | PIE_EXPLODED             |
