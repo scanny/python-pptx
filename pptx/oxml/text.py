@@ -278,6 +278,9 @@ class CT_TextCharacterProperties(objectify.ObjectifiedElement):
         elif name == 'sz':
             emu_str = str(value.centipoints)
             self.set(name, emu_str)
+        elif name == 'strike':
+            emu_str = str(value)
+            self.set(name, emu_str)
         else:
             super(CT_TextCharacterProperties, self).__setattr__(name, value)
 
