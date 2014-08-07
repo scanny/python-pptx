@@ -193,6 +193,14 @@ class _Font(object):
     def bold(self, value):
         self._rPr.b = value
 
+    @property
+    def strikethrough(self):
+        return self._rPr.strike
+
+    @strikethrough.setter
+    def strikethrough(self, value):
+        self._rPr.strike = value
+
     @lazyproperty
     def color(self):
         """
