@@ -267,3 +267,10 @@ class ValueAxis(_BaseAxis):
         if minorUnit is None:
             return None
         return minorUnit.val
+
+    @minor_unit.setter
+    def minor_unit(self, value):
+        self._element._remove_minorUnit()
+        if value is None:
+            return
+        self._element._add_minorUnit(val=value)

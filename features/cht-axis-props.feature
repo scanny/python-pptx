@@ -41,7 +41,6 @@ Feature: Get and set axis properties
       | minor          | Auto  | None           |
 
 
-  @wip
   Scenario Outline: Change axis major or minor unit
     Given an axis having <major-or-minor> unit of <value>
      When I assign <new-value> to axis.<major-or-minor>_unit

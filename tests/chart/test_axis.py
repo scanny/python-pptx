@@ -470,6 +470,11 @@ class DescribeValueAxis(object):
         value_axis, expected_value = minor_unit_get_fixture
         assert value_axis.minor_unit == expected_value
 
+    def it_can_change_its_minor_unit(self, minor_unit_set_fixture):
+        value_axis, new_value, expected_xml = minor_unit_set_fixture
+        value_axis.minor_unit = new_value
+        assert value_axis._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -505,3 +510,19 @@ class DescribeValueAxis(object):
         valAx_cxml, expected_value = request.param
         value_axis = ValueAxis(element(valAx_cxml))
         return value_axis, expected_value
+
+    @pytest.fixture(params=[
+        ('c:valAx',                        36,
+         'c:valAx/c:minorUnit{val=36.0}'),
+        ('c:valAx',                        None,
+         'c:valAx'),
+        ('c:valAx/c:minorUnit{val=36.0}',  12.6,
+         'c:valAx/c:minorUnit{val=12.6}'),
+        ('c:valAx/c:minorUnit{val=36.0}',  None,
+         'c:valAx'),
+    ])
+    def minor_unit_set_fixture(self, request):
+        valAx_cxml, new_value, expected_valAx_cxml = request.param
+        value_axis = ValueAxis(element(valAx_cxml))
+        expected_xml = xml(expected_valAx_cxml)
+        return value_axis, new_value, expected_xml
