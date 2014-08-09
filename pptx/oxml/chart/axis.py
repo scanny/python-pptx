@@ -145,3 +145,6 @@ class CT_ValAx(BaseAxisElement):
     majorUnit = ZeroOrOne('c:majorUnit', successors=(
         'c:minorUnit', 'c:dispUnits', 'c:extLst'
     ))
+    minorUnit = ZeroOrOne('c:minorUnit', successors=(
+        'c:dispUnits', 'c:extLst'
+    ))

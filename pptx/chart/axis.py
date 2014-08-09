@@ -247,3 +247,16 @@ class ValueAxis(_BaseAxis):
         if majorUnit is None:
             return None
         return majorUnit.val
+
+    @property
+    def minor_unit(self):
+        """
+        The float number of units between minor tick marks on this value
+        axis. |None| corresponds to the 'Auto' setting in the UI, and
+        specifies the value should be calculated by PowerPoint based on the
+        underlying chart data.
+        """
+        minorUnit = self._element.minorUnit
+        if minorUnit is None:
+            return None
+        return minorUnit.val

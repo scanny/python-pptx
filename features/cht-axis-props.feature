@@ -29,7 +29,6 @@ Feature: Get and set axis properties
       | not having    | minor          | True  | True           |
 
 
-  @wip
   Scenario Outline: Determine axis major and minor unit
     Given an axis having <major-or-minor> unit of <value>
      Then axis.<major-or-minor>_unit is <expected-value>
