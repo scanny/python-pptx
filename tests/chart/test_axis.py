@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.chart.axis import _BaseAxis, TickLabels
+from pptx.chart.axis import _BaseAxis, TickLabels, ValueAxis
 from pptx.enum.chart import (
     XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
 )
@@ -453,3 +453,21 @@ class DescribeTickLabels(object):
     @pytest.fixture
     def font_(self, request):
         return instance_mock(request, Font)
+
+
+class DescribeValueAxis(object):
+
+    def it_knows_its_major_unit(self, major_unit_get_fixture):
+        value_axis, expected_value = major_unit_get_fixture
+        assert value_axis.major_unit == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:valAx', None),
+        ('c:valAx/c:majorUnit{val=4.2}', 4.2),
+    ])
+    def major_unit_get_fixture(self, request):
+        valAx_cxml, expected_value = request.param
+        value_axis = ValueAxis(element(valAx_cxml))
+        return value_axis, expected_value

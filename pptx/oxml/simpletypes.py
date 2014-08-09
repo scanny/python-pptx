@@ -188,6 +188,19 @@ class XsdUnsignedInt(BaseIntType):
         cls.validate_int_in_range(value, 0, 4294967295)
 
 
+class ST_AxisUnit(XsdDouble):
+    """
+    Valid values for val attribute on c:majorUnit and others.
+    """
+    @classmethod
+    def validate(cls, value):
+        super(ST_AxisUnit, cls).validate(value)
+        if value <= 0.0:
+            raise ValueError(
+                "must be positive numeric value, got %d" % value
+            )
+
+
 class ST_BarDir(XsdString):
     """
     Valid values for <c:barDir val="?"> attribute

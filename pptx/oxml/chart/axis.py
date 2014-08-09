@@ -7,9 +7,11 @@ lxml custom element classes for chart axis-related XML elements.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from ...enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
+from ..simpletypes import ST_AxisUnit
 from ..text import CT_TextBody
 from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
+    ZeroOrOne
 )
 
 
@@ -54,6 +56,13 @@ class BaseAxisElement(BaseOxmlElement):
 
     def _new_txPr(self):
         return CT_TextBody.new_txPr()
+
+
+class CT_AxisUnit(BaseOxmlElement):
+    """
+    Used for ``<c:majorUnit>`` and ``<c:minorUnit>`` elements, and others.
+    """
+    val = RequiredAttribute('val', ST_AxisUnit)
 
 
 class CT_CatAx(BaseAxisElement):
@@ -133,3 +142,6 @@ class CT_ValAx(BaseAxisElement):
     """
     ``<c:valAx>`` element, defining a value axis.
     """
+    majorUnit = ZeroOrOne('c:majorUnit', successors=(
+        'c:minorUnit', 'c:dispUnits', 'c:extLst'
+    ))

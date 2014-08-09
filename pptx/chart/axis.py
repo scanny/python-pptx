@@ -235,3 +235,15 @@ class ValueAxis(_BaseAxis):
     """
     A value axis of a chart.
     """
+    @property
+    def major_unit(self):
+        """
+        The float number of units between major tick marks on this value
+        axis. |None| corresponds to the 'Auto' setting in the UI, and
+        specifies the value should be calculated by PowerPoint based on the
+        underlying chart data.
+        """
+        majorUnit = self._element.majorUnit
+        if majorUnit is None:
+            return None
+        return majorUnit.val
