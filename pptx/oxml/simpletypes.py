@@ -62,7 +62,7 @@ class BaseFloatType(BaseSimpleType):
 
     @classmethod
     def convert_to_xml(cls, value):
-        return str(value)
+        return str(float(value))
 
     @classmethod
     def validate(cls, value):
@@ -197,7 +197,7 @@ class ST_AxisUnit(XsdDouble):
         super(ST_AxisUnit, cls).validate(value)
         if value <= 0.0:
             raise ValueError(
-                "must be positive numeric value, got %d" % value
+                "must be positive numeric value, got %s" % value
             )
 
 

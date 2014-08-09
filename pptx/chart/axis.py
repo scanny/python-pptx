@@ -248,6 +248,13 @@ class ValueAxis(_BaseAxis):
             return None
         return majorUnit.val
 
+    @major_unit.setter
+    def major_unit(self, value):
+        self._element._remove_majorUnit()
+        if value is None:
+            return
+        self._element._add_majorUnit(val=value)
+
     @property
     def minor_unit(self):
         """
