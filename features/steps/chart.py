@@ -115,6 +115,15 @@ def given_an_axis_having_major_or_minor_gridlines(context, major_or_minor):
     context.axis = chart.value_axis
 
 
+@given('an axis having {major_or_minor} unit of {value}')
+def given_an_axis_having_major_or_minor_unit_of_value(
+        context, major_or_minor, value):
+    slide_idx = 0 if value == 'Auto' else 1
+    prs = Presentation(test_pptx('cht-axis-props'))
+    chart = prs.slides[slide_idx].shapes[0].chart
+    context.axis = chart.value_axis
+
+
 @given('an axis not having {major_or_minor} gridlines')
 def given_an_axis_not_having_major_or_minor_gridlines(context, major_or_minor):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -130,6 +139,15 @@ def when_I_assign_value_to_axis_has_major_or_minor_gridlines(
     axis = context.axis
     propname = 'has_%s_gridlines' % major_or_minor
     new_value = {'True': True, 'False': False}[value]
+    setattr(axis, propname, new_value)
+
+
+@when('I assign {value} to axis.{major_or_minor}_unit')
+def when_I_assign_value_to_axis_major_or_minor_unit(
+        context, value, major_or_minor):
+    axis = context.axis
+    propname = '%s_unit' % major_or_minor
+    new_value = {'8.4': 8.4, '5': 5, 'None': None}[value]
     setattr(axis, propname, new_value)
 
 
@@ -169,6 +187,17 @@ def then_axis_has_major_or_minor_gridlines_is_expected_value(
     }[major_or_minor]
     expected_value = {'True': True, 'False': False}[value]
     assert actual_value is expected_value, 'got %s' % actual_value
+
+
+@then('axis.{major_or_minor}_unit is {value}')
+def then_axis_major_or_minor_unit_is_value(context, major_or_minor, value):
+    axis = context.axis
+    propname = '%s_unit' % major_or_minor
+    actual_value = getattr(axis, propname)
+    expected_value = {
+        '20.0': 20.0, '8.4': 8.4, '5.0': 5.0, '4.2': 4.2, 'None': None
+    }[value]
+    assert actual_value == expected_value, 'got %s' % actual_value
 
 
 @then('chart.chart_type is {enum_member}')

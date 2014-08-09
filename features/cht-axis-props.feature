@@ -27,3 +27,34 @@ Feature: Get and set axis properties
       | having        | major          | True  | True           |
       | not having    | minor          | False | False          |
       | not having    | minor          | True  | True           |
+
+
+  @wip
+  Scenario Outline: Determine axis major and minor unit
+    Given an axis having <major-or-minor> unit of <value>
+     Then axis.<major-or-minor>_unit is <expected-value>
+
+    Examples: axis unit values
+      | major-or-minor | value | expected-value |
+      | major          | 20.0  | 20.0           |
+      | major          | Auto  | None           |
+      | minor          | 4.2   | 4.2            |
+      | minor          | Auto  | None           |
+
+
+  @wip
+  Scenario Outline: Change axis major or minor unit
+    Given an axis having <major-or-minor> unit of <value>
+     When I assign <new-value> to axis.<major-or-minor>_unit
+     Then axis.<major-or-minor>_unit is <expected-value>
+
+    Examples: expected results of changing <major-or-minor>_unit
+      | major-or-minor | value | new-value | expected-value |
+      | major          | 20.0  | 5         | 5.0            |
+      | major          | 20.0  | None      | None           |
+      | major          | Auto  | 5         | 5.0            |
+      | major          | Auto  | None      | None           |
+      | minor          | 4.2   | 8.4       | 8.4            |
+      | minor          | 4.2   | None      | None           |
+      | minor          | Auto  | 8.4       | 8.4            |
+      | minor          | Auto  | None      | None           |
