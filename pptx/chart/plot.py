@@ -29,6 +29,16 @@ class Plot(object):
         self._element = plot_elm
 
     @property
+    def categories(self):
+        """
+        A tuple containing the category strings for this plot, in the order
+        they appear on the category axis.
+        """
+        xChart = self._element
+        category_pt_elms = xChart.cat_pts
+        return tuple(pt.v.text for pt in category_pt_elms)
+
+    @property
     def data_labels(self):
         """
         |DataLabels| instance providing properties and methods on the

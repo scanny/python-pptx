@@ -21,6 +21,10 @@ from ..unitutil.mock import class_mock, function_mock, instance_mock
 
 class DescribePlot(object):
 
+    def it_knows_its_categories(self, categories_get_fixture):
+        plot, expected_value = categories_get_fixture
+        assert plot.categories == expected_value
+
     def it_knows_whether_it_has_data_labels(
             self, has_data_labels_get_fixture):
         plot, expected_value = has_data_labels_get_fixture
@@ -45,6 +49,24 @@ class DescribePlot(object):
         assert series is series_
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:barChart', ()),
+        ('c:barChart/c:ser', ()),
+        ('c:barChart/c:ser/c:cat/c:strRef', ()),
+        ('c:barChart/c:ser/c:cat/c:strRef/c:strCache', ()),
+        ('c:barChart/c:ser/c:cat/c:strRef/c:strCache/(c:pt{idx=1}/c:v"bar",c'
+         ':pt{idx=0}/c:v"foo",c:pt{idx=2}/c:v"baz")',
+         ('foo', 'bar', 'baz')),
+        ('c:barChart/c:ser/c:cat/c:strLit', ()),
+        ('c:barChart/c:ser/c:cat/c:strLit/(c:pt{idx=2}/c:v"faz",c:pt{idx=0}/'
+         'c:v"boo",c:pt{idx=1}/c:v"far")',
+         ('boo', 'far', 'faz')),
+    ])
+    def categories_get_fixture(self, request):
+        xChart_cxml, expected_value = request.param
+        plot = PlotFactory(element(xChart_cxml))
+        return plot, expected_value
 
     @pytest.fixture
     def data_labels_fixture(self, DataLabels_, data_labels_):

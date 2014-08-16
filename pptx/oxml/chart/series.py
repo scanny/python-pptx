@@ -6,7 +6,10 @@ Series-related oxml objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
+from ..simpletypes import XsdUnsignedInt
+from ..xmlchemy import (
+    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
+)
 
 
 class CT_SeriesComposite(BaseOxmlElement):
@@ -51,3 +54,12 @@ class CT_SeriesComposite(BaseOxmlElement):
     def _insert_tx(self, tx):
         self.order.addnext(tx)
         return tx
+
+
+class CT_StrVal_NumVal_Composite(BaseOxmlElement):
+    """
+    ``<c:pt>`` element, can be either CT_StrVal or CT_NumVal complex type.
+    Using this class for both, differentiating as needed.
+    """
+    v = OneAndOnlyOne('c:v')
+    idx = RequiredAttribute('idx', XsdUnsignedInt)

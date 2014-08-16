@@ -73,7 +73,8 @@ register_element_cls('c:lineChart',   CT_LineChart)
 register_element_cls('c:pieChart',    CT_PieChart)
 
 
-from .chart.series import CT_SeriesComposite
+from .chart.series import CT_SeriesComposite, CT_StrVal_NumVal_Composite
+register_element_cls('c:pt',  CT_StrVal_NumVal_Composite)
 register_element_cls('c:ser', CT_SeriesComposite)
 
 

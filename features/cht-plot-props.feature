@@ -48,7 +48,6 @@ Feature: Get and set plot properties
       | 300               | 275       | 275            |
 
 
-  @wip
   Scenario: Get plot categories
     Given a bar plot having known categories
      Then plot.categories contains the known category strings

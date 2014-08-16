@@ -20,6 +20,16 @@ class BaseChartElement(BaseOxmlElement):
     Base class for barChart, lineChart, and other plot elements.
     """
     @property
+    def cat_pts(self):
+        """
+        The sequence of ``<c:pt>`` elements under the ``<c:cat>`` element of
+        the first series in this xChart element, ordered by the value of
+        their ``idx`` attribute.
+        """
+        cat_pts = self.xpath('./c:ser[1]/c:cat//c:pt')
+        return sorted(cat_pts, key=lambda pt: pt.idx)
+
+    @property
     def grouping_val(self):
         """
         Return the value of the ``./c:grouping{val=?}`` attribute, taking

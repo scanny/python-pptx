@@ -161,6 +161,13 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:complexType>
 
+  <xsd:complexType name="CT_StrVal">
+    <xsd:sequence>
+      <xsd:element name="v" type="s:ST_Xstring"/>
+    </xsd:sequence>
+    <xsd:attribute name="idx" type="xsd:unsignedInt" use="required"/>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_NumRef">
     <xsd:sequence>
       <xsd:element name="f"        type="xsd:string"/>
@@ -185,3 +192,7 @@ Related Schema Definitions
     <xsd:attribute name="idx"        type="xsd:unsignedInt" use="required"/>
     <xsd:attribute name="formatCode" type="s:ST_Xstring"/>
   </xsd:complexType>
+
+  <xsd:simpleType name="ST_Xstring">
+    <xsd:restriction base="xsd:string"/>
+  </xsd:simpleType>
