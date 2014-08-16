@@ -12,6 +12,7 @@ Roughly in reverse chronological order of creation:
 .. toctree::
    :maxdepth: 1
 
+   features/cht-plot-data.rst
    features/cht-axis-unit.rst
    features/cht-chart-type
    features/cht-plots
