@@ -20,6 +20,16 @@ class _BaseSeries(object):
         super(_BaseSeries, self).__init__()
         self._element = ser
 
+    @property
+    def values(self):
+        """
+        A tuple containing the float values for this series, in the order
+        they appear on the chart.
+        """
+        ser = self._element
+        value_pt_elms = ser.val_pts
+        return tuple(pt.value for pt in value_pt_elms)
+
 
 class BarSeries(_BaseSeries):
     """

@@ -25,6 +25,15 @@ class CT_SeriesComposite(BaseOxmlElement):
     spPr = ZeroOrOne('c:spPr')  # provide override for _insert_spPr()
     invertIfNegative = ZeroOrOne('c:invertIfNegative')  # provide _insert..()
 
+    @property
+    def val_pts(self):
+        """
+        The sequence of ``<c:pt>`` elements under the ``<c:val>`` child
+        element, ordered by the value of their ``idx`` attribute.
+        """
+        val_pts = self.xpath('./c:val//c:pt')
+        return sorted(val_pts, key=lambda pt: pt.idx)
+
     def _insert_invertIfNegative(self, invertIfNegative):
         """
         invertIfNegative has a lot of successors and they vary depending on
@@ -63,3 +72,10 @@ class CT_StrVal_NumVal_Composite(BaseOxmlElement):
     """
     v = OneAndOnlyOne('c:v')
     idx = RequiredAttribute('idx', XsdUnsignedInt)
+
+    @property
+    def value(self):
+        """
+        The float value of the text in the required ``<c:v>`` child.
+        """
+        return float(self.v.text)

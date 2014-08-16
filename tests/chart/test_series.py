@@ -8,12 +8,40 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.chart.series import BarSeries, LineSeries, PieSeries, SeriesFactory
+from pptx.chart.series import (
+    BarSeries, LineSeries, PieSeries, SeriesFactory, _BaseSeries
+)
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
+
+
+class Describe_BaseSeries(object):
+
+    def it_knows_its_values(self, values_get_fixture):
+        series, expected_value = values_get_fixture
+        assert series.values == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:ser', ()),
+        ('c:ser/c:val/c:numRef', ()),
+        ('c:ser/c:val/c:numRef/c:numCache', ()),
+        ('c:ser/c:val/c:numRef/c:numCache/(c:pt{idx=1}/c:v"2.3",c:pt{idx=0}/'
+         'c:v"1.2",c:pt{idx=2}/c:v"3.4")',
+         (1.2, 2.3, 3.4)),
+        ('c:ser/c:val/c:numLit', ()),
+        ('c:ser/c:val/c:numLit/(c:pt{idx=2}/c:v"6.7",c:pt{idx=0}/'
+         'c:v"4.5",c:pt{idx=1}/c:v"5.6")',
+         (4.5, 5.6, 6.7)),
+    ])
+    def values_get_fixture(self, request):
+        ser_cxml, expected_value = request.param
+        series = _BaseSeries(element(ser_cxml))
+        return series, expected_value
 
 
 class DescribeBarSeries(object):

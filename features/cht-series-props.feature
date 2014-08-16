@@ -60,7 +60,6 @@ Feature: Get and set chart series properties
       | False               | False     | False          |
 
 
-  @wip
   Scenario: Get series values
     Given a bar series having known values
      Then series.values contains the known values
