@@ -46,3 +46,9 @@ Feature: Get and set plot properties
       | gap-width         | new-value | expected-value |
       | no explicit value | 300       | 300            |
       | 300               | 275       | 275            |
+
+
+  @wip
+  Scenario: Get plot categories
+    Given a bar plot having known categories
+     Then plot.categories contains the known category strings

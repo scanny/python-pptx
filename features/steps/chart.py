@@ -27,6 +27,12 @@ def given_a_bar_chart(context):
     context.chart = graphic_frame.chart
 
 
+@given('a bar plot having known categories')
+def given_a_bar_plot_having_known_categories(context):
+    prs = Presentation(test_pptx('cht-plot-props'))
+    context.plot = prs.slides[2].shapes[0].chart.plots[0]
+
+
 @given('a bar plot {having_or_not} data labels')
 def given_a_bar_plot_having_or_not_data_labels(context, having_or_not):
     slide_idx = {
@@ -217,6 +223,15 @@ def then_I_can_access_the_chart_category_axis(context):
 def then_I_can_access_the_chart_value_axis(context):
     value_axis = context.chart.value_axis
     assert isinstance(value_axis, ValueAxis)
+
+
+@then('plot.categories contains the known category strings')
+def then_plot_categories_contains_the_known_category_strings(context):
+    plot = context.plot
+    expected_categories = ('Foo', 'Bar', 'Baz')
+    assert plot.categories == expected_categories, (
+        'got %s' % plot.categories
+    )
 
 
 @then('the plot.has_data_labels property is {value}')
