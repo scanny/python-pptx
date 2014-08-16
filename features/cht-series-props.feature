@@ -3,6 +3,7 @@ Feature: Get and set chart series properties
   As a developer using python-pptx
   I need a way to get and set series properties
 
+
   Scenario Outline: Get series fill type
     Given a bar series having fill of <fill>
      Then the series has a fill type of <expected-fill-type>
@@ -57,3 +58,9 @@ Feature: Get and set chart series properties
       | no explicit setting | False     | False          |
       | True                | True      | True           |
       | False               | False     | False          |
+
+
+  @wip
+  Scenario: Get series values
+    Given a bar series having known values
+     Then series.values contains the known values

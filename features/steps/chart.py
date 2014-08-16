@@ -75,6 +75,12 @@ def given_a_bar_series_having_invert_if_negative_setting(context, setting):
     context.series = plot.series[series_idx]
 
 
+@given('a bar series having known values')
+def given_a_bar_series_having_known_values(context):
+    prs = Presentation(test_pptx('cht-series-props'))
+    context.series = prs.slides[1].shapes[0].chart.plots[0].series[0]
+
+
 @given('a bar series having {width} line')
 def given_a_bar_series_having_width_line(context, width):
     series_idx = {
@@ -232,6 +238,13 @@ def then_plot_categories_contains_the_known_category_strings(context):
     assert plot.categories == expected_categories, (
         'got %s' % plot.categories
     )
+
+
+@then('series.values contains the known values')
+def then_series_values_contains_the_known_values(context):
+    series = context.series
+    expected_values = (1.2, 2.3, 3.4)
+    assert series.values == expected_values, 'got %s' % series.values
 
 
 @then('the plot.has_data_labels property is {value}')
