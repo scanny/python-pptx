@@ -373,6 +373,10 @@ class DescribeTickLabels(object):
         tick_labels.number_format_is_linked = new_value
         assert tick_labels._element.xml == expected_xml
 
+    def it_knows_its_offset(self, offset_get_fixture):
+        tick_labels, expected_value = offset_get_fixture
+        assert tick_labels.offset == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -427,6 +431,19 @@ class DescribeTickLabels(object):
         tick_labels = TickLabels(element(xAx_cxml))
         expected_xml = xml(expected_xAx_cxml)
         return tick_labels, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:catAx',                      100),
+        ('c:catAx/c:lblOffset',          100),
+        ('c:catAx/c:lblOffset{val=420}', 420),
+        ('c:catAx/c:lblOffset{val=004}',   4),
+        ('c:catAx/c:lblOffset{val=42%}',  42),
+        ('c:catAx/c:lblOffset{val=02%}',   2),
+    ])
+    def offset_get_fixture(self, request):
+        catAx_cxml, expected_value = request.param
+        tick_labels = TickLabels(element(catAx_cxml))
+        return tick_labels, expected_value
 
     @pytest.fixture(params=[
         ('c:valAx{a:b=c}',

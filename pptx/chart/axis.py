@@ -237,7 +237,10 @@ class TickLabels(object):
         the tick mark labels and the axis as a percentange of the default
         value. 100 if no label offset setting is present.
         """
-        raise NotImplementedError
+        lblOffset = self._element.lblOffset
+        if lblOffset is None:
+            return 100
+        return lblOffset.val
 
 
 class ValueAxis(_BaseAxis):

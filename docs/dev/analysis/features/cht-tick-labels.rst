@@ -185,3 +185,24 @@ Related Schema Definitions
       </xsd:choice>
     </xsd:sequence>
   </xsd:group>
+
+  <xsd:complexType name="CT_LblOffset">
+    <xsd:attribute name="val" type="ST_LblOffset" default="100%"/>
+  </xsd:complexType>
+
+  <xsd:simpleType name="ST_LblOffset">
+    <xsd:union memberTypes="ST_LblOffsetPercent ST_LblOffsetUShort"/>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_LblOffsetPercent">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="0*(([0-9])|([1-9][0-9])|([1-9][0-9][0-9])|1000)%"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_LblOffsetUShort">
+    <xsd:restriction base="xsd:unsignedShort">
+      <xsd:minInclusive value="0"/>
+      <xsd:maxInclusive value="1000"/>
+    </xsd:restriction>
+  </xsd:simpleType>

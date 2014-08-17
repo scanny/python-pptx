@@ -75,6 +75,11 @@ class BaseFloatType(BaseSimpleType):
 class BaseIntType(BaseSimpleType):
 
     @classmethod
+    def convert_from_percent_literal(cls, str_value):
+        int_str = str_value.replace('%', '')
+        return int(int_str)
+
+    @classmethod
     def convert_from_xml(cls, str_value):
         return int(str_value)
 
@@ -186,6 +191,13 @@ class XsdUnsignedInt(BaseIntType):
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 4294967295)
+
+
+class XsdUnsignedShort(BaseIntType):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 65535)
 
 
 class ST_AxisUnit(XsdDouble):
@@ -371,6 +383,22 @@ class ST_HexColorRGB(BaseStringType):
                 "RGB string must be valid hex string, got '%s'"
                 % str_value
             )
+
+
+class ST_LblOffset(XsdUnsignedShort):
+    """
+    Unsigned integer value between 0 and 1000 inclusive, with optional
+    percent character ('%') suffix.
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if str_value.endswith('%'):
+            return cls.convert_from_percent_literal(str_value)
+        return int(str_value)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 1000)
 
 
 class ST_LineWidth(XsdInt):

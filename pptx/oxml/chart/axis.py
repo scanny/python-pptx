@@ -1,13 +1,13 @@
 # encoding: utf-8
 
 """
-lxml custom element classes for chart axis-related XML elements.
+Axis-related oxml objects.
 """
 
 from __future__ import absolute_import, print_function, unicode_literals
 
 from ...enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
-from ..simpletypes import ST_AxisUnit
+from ..simpletypes import ST_AxisUnit, ST_LblOffset
 from ..text import CT_TextBody
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
@@ -69,6 +69,16 @@ class CT_CatAx(BaseAxisElement):
     """
     ``<c:catAx>`` element, defining a category axis.
     """
+    lblOffset = ZeroOrOne('c:lblOffset', successors=(
+        'c:tickLblSkip', 'c:tickMarkSkip', 'c:noMultiLvlLbl', 'c:extLst'
+    ))
+
+
+class CT_LblOffset(BaseOxmlElement):
+    """
+    ``<c:lblOffset>`` custom element class
+    """
+    val = OptionalAttribute('val', ST_LblOffset, default=100)
 
 
 class CT_Scaling(BaseOxmlElement):

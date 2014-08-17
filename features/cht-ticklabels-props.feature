@@ -4,7 +4,6 @@ Feature: Get and set tick label properties
   I need a way to get and set tick label properties
 
 
-  @wip
   Scenario Outline: Access tick label offset for an axis
     Given tick labels having an offset of <xml-value>
      Then tick_labels.offset is <expected-value>
