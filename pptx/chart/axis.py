@@ -230,6 +230,15 @@ class TickLabels(object):
         numFmt = self._element.get_or_add_numFmt()
         numFmt.sourceLinked = value
 
+    @property
+    def offset(self):
+        """
+        Read/write int value in range 0-1000 specifying the spacing between
+        the tick mark labels and the axis as a percentange of the default
+        value. 100 if no label offset setting is present.
+        """
+        raise NotImplementedError
+
 
 class ValueAxis(_BaseAxis):
     """

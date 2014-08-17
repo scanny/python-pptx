@@ -143,6 +143,17 @@ def given_an_axis_not_having_major_or_minor_gridlines(context, major_or_minor):
     context.axis = chart.category_axis
 
 
+@given('tick labels having an offset of {setting}')
+def given_tick_labels_having_an_offset_of_setting(context, setting):
+    slide_idx = {
+        'no explicit setting': 0,
+        '420':                 1,
+    }[setting]
+    prs = Presentation(test_pptx('cht-ticklabels-props'))
+    chart = prs.slides[slide_idx].shapes[0].chart
+    context.tick_labels = chart.category_axis.tick_labels
+
+
 # when ====================================================
 
 @when('I assign {value} to axis.has_{major_or_minor}_gridlines')
@@ -185,6 +196,12 @@ def when_I_assign_value_to_series_invert_if_negative(context, value):
         'False': False,
     }[value]
     context.series.invert_if_negative = new_value
+
+
+@when('I assign {value} to tick_labels.offset')
+def when_I_assign_value_to_tick_labels_offset(context, value):
+    new_value = int(value)
+    context.tick_labels.offset = new_value
 
 
 # then ====================================================
@@ -240,6 +257,16 @@ def then_plot_categories_contains_the_known_category_strings(context):
     )
 
 
+@then('series.invert_if_negative is {value}')
+def then_series_invert_if_negative_is_value(context, value):
+    expected_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    series = context.series
+    assert series.invert_if_negative is expected_value
+
+
 @then('series.values contains the known values')
 def then_series_values_contains_the_known_values(context):
     series = context.series
@@ -286,18 +313,17 @@ def then_the_series_has_a_line_width_of_width(context, width):
     assert line.width == expected_width
 
 
-@then('series.invert_if_negative is {value}')
-def then_series_invert_if_negative_is_value(context, value):
-    expected_value = {
-        'True':  True,
-        'False': False,
-    }[value]
-    series = context.series
-    assert series.invert_if_negative is expected_value
-
-
 @then('the value of plot.gap_width is {value}')
 def then_the_value_of_plot_gap_width_is_value(context, value):
     expected_value = int(value)
     actual_gap_width = context.plot.gap_width
     assert actual_gap_width == expected_value, 'got %s' % actual_gap_width
+
+
+@then('tick_labels.offset is {value}')
+def then_tick_labels_offset_is_expected_value(context, value):
+    expected_value = int(value)
+    tick_labels = context.tick_labels
+    assert tick_labels.offset == expected_value, (
+        'got %s' % tick_labels.offset
+    )
