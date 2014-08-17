@@ -377,6 +377,11 @@ class DescribeTickLabels(object):
         tick_labels, expected_value = offset_get_fixture
         assert tick_labels.offset == expected_value
 
+    def it_can_change_its_offset(self, offset_set_fixture):
+        tick_labels, new_value, expected_xml = offset_set_fixture
+        tick_labels.offset = new_value
+        assert tick_labels._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -444,6 +449,16 @@ class DescribeTickLabels(object):
         catAx_cxml, expected_value = request.param
         tick_labels = TickLabels(element(catAx_cxml))
         return tick_labels, expected_value
+
+    @pytest.fixture(params=[
+        ('c:catAx', 420, 'c:catAx/c:lblOffset{val=420}'),
+        ('c:catAx/c:lblOffset{val=420}', 100, 'c:catAx'),
+    ])
+    def offset_set_fixture(self, request):
+        catAx_cxml, new_value, expected_catAx_cxml = request.param
+        tick_labels = TickLabels(element(catAx_cxml))
+        expected_xml = xml(expected_catAx_cxml)
+        return tick_labels, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('c:valAx{a:b=c}',

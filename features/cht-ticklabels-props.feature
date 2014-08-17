@@ -14,7 +14,6 @@ Feature: Get and set tick label properties
       | 420                 | 420            |
 
 
-  @wip
   Scenario Outline: Change tick label offset
     Given tick labels having an offset of <xml-value>
      When I assign <new-value> to tick_labels.offset

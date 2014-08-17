@@ -7,6 +7,7 @@ Axis-related chart objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from ..enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
+from ..oxml.ns import qn
 from ..text import Font
 from ..util import lazyproperty
 
@@ -241,6 +242,16 @@ class TickLabels(object):
         if lblOffset is None:
             return 100
         return lblOffset.val
+
+    @offset.setter
+    def offset(self, value):
+        if self._element.tag != qn('c:catAx'):
+            raise ValueError('only a category axis has an offset')
+        self._element._remove_lblOffset()
+        if value == 100:
+            return
+        lblOffset = self._element._add_lblOffset()
+        lblOffset.val = value
 
 
 class ValueAxis(_BaseAxis):
