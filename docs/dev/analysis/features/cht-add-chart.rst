@@ -1,126 +1,39 @@
 
-Chart Builder
-=============
+_SlideShapeTree.add_chart()
+===========================
 
-The purpose of the chart builder is to allow a developer to specify
-a substantial number of the properties of a new chart and then add the chart
-all in one go. All settings have a default, so a default chart can be inserted
-very easily if that is desired. The developer only specifies items that differ
-from the defaults.
+A chart is added to a slide similarly to adding any other shape. Note that
+a chart is not itself a shape; the item returned by `.add_shape()` is
+a |GraphicFrame| shape which contains a |Chart| object. The actual chart
+object is accessed using the :attr:`chart` attribute on the graphic frame
+that contains it.
 
-This approach allows simpler generation code to be developed for a good part of
-the chart XML and postpones the need for general-purpose modification grade
-code for those elements.
-
-
-Notes
------
-
-* [ ] will need an embedded package manager, should belong to package I think,
-      like ImageParts.
+Adding a chart requires three items, a chart type, the position and size
+desired, and a |ChartData| object specifying the categories and series values
+for the new chart.
 
 
 Protocol
 --------
 
-::
+Creating a new chart::
 
-    >>> from pptx.chart.builder import ChartBuilder
-    >>> chart_builder = ChartBuilder(type=XL_CHART_TYPE.BAR_CLUSTERED)
-    >>> chart_builder.categories = ('Foo', 'Bar', 'Baz')
-    >>> chart_builder.add_series(1, 2, 3)
+    >>> chart_data = ChartData()
+    >>> chart_data.categories = 'Foo', 'Bar'
+    >>> chart_data.add_series('Series 1', (1.2, 2.3))
+    >>> chart_data.add_series('Series 2', (3.4, 4.5))
 
-    >>> chart_graphfrm = chart_builder.add_chart(slide, x, y, cx, cy)
-    ... OR ...
-    >>> shape = shapes.add_chart_from_builder(chart_builder, x, y, cx, cy)
-
-
-Protocol Notes
---------------
-
-All parameters to ``ChartBuilder()`` are optional and are provided with
-a default the same as the PowerPoint default.
-
-
-Code sketch for ChartBuilder
-----------------------------
-
-::
-
-    def add_chart(self, slide):
-        embedded_package_part = self._create_worksheet() 
-        chart_part = self.build_chart_part(embedded_package_part)
-        graphic_frame = slide.shapes.add_graphic_frame_from_chart_part(
-            chart_part, x, y, cx, cy
-        )
-        return graphic_frame
-
-    def _create_worksheet(self):
-        """
-        Return an |EmbeddedPackage| object containing a spreadsheet populated
-        with the data for this chart.
-        """
-        xlsx_file = StringIO()
-        workbook = Workbook(xlsx_file, {'in_memory': True})
-        self.populate_workbook(workbook)
-        workbook.close()
-
-    def _build_chart_part(self, embedded_chart_part):
-        chart_part = ChartPart
-        xlsx_rId = chart_part.relate_to(embedded_chart_part)
-        chart_xml = self._generate_chart_xml(xlsx_rId)
-        chart_part.blob = chart_xml
-        return chart_part
-
-    def _SlideShapeTree.add_graphic_frame_from_chart_part(self, chart_part):
-        graphicFrame = self._add_chart_graphicFrame(x, y, cx, cy)
-        graphic_frame = self._shape_factory(graphicFrame)
-        return graphic_frame
-
-    def _SlideShapeTree.add_chart_graphicFrame(self, x, y, cx, cy):
-        shape_id, name = self._next_shape_credentials('Chart %d')
-        graphicFrame = CT_GraphicalObjectFrame.new(
-            CHART_URI, shape_id, name, x, y, cx, cy
-        )
-        self._spTree.append(graphicFrame)
-        return graphicFrame
-
-
-Enumerations
-------------
-
-XL_CHART_TYPE (XlChartType)
-http://msdn.microsoft.com/en-us/library/office/ff838409.aspx
+    >>> x, y, cx, cy = Inches(2), Inches(2), Inches(6), Inches(4)
+    >>> graphic_frame = shapes.add_chart(
+    >>>     XL_CHART_TYPE.COLUMN_CLUSTERED, x, y, cx, cy, chart_data
+    >>> )
+    >>> chart = graphicFrame.chart
 
 
 Specimen XML
 ------------
 
 .. highlight:: xml
-
-Table in a graphic frame::
-
-    <p:graphicFrame>
-      <p:nvGraphicFramePr>
-        <p:cNvPr id="2" name="Table 1"/>
-        <p:cNvGraphicFramePr>
-          <a:graphicFrameLocks noGrp="1"/>
-        </p:cNvGraphicFramePr>
-        <p:nvPr/>
-      </p:nvGraphicFramePr>
-      <p:xfrm>
-        <a:off x="1524000" y="1397000"/>
-        <a:ext cx="6096000" cy="741680"/>
-      </p:xfrm>
-      <a:graphic>
-        <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
-          <a:tbl>
-            ... remaining table XML ...
-          </a:tbl>
-        </a:graphicData>
-      </a:graphic>
-    </p:graphicFrame>
-
 
 Chart in a graphic frame::
 

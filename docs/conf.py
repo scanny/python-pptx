@@ -82,7 +82,11 @@ rst_epilog = """
 
 .. |_Cell| replace:: :class:`_Cell`
 
-.. |ChartBuilder| replace:: :class:`.ChartBuilder`
+.. |Chart| replace:: :class:`.Chart`
+
+.. |ChartData| replace:: :class:`.ChartData`
+
+.. |ChartXmlWriter| replace:: :class:`.ChartXmlWriter`
 
 .. |Collection| replace:: :class:`Collection`
 
@@ -193,6 +197,8 @@ rst_epilog = """
 .. |True| replace:: :class:`True`
 
 .. |ValueError| replace:: :exc:`ValueError`
+
+.. |WorkbookWriter| replace:: :class:`.WorkbookWriter`
 
 .. |ZipFileSystem| replace:: :class:`ZipFileSystem`
 """
