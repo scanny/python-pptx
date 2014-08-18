@@ -44,25 +44,12 @@ from ..oxml.unitdata.shape import (
     an_spTree, an_xfrm
 )
 from ..oxml.unitdata.slides import a_sld, a_cSld
-from ..unitutil.file import absjoin, parse_xml_file, test_file_dir
+from ..unitutil.cxml import element
+from ..unitutil.file import absjoin, test_file_dir
 from ..unitutil.mock import (
     class_mock, function_mock, initializer_mock, instance_mock, loose_mock,
     method_mock, property_mock
 )
-
-
-def _sldLayout1():
-    path = absjoin(test_file_dir, 'slideLayout1.xml')
-    sldLayout = parse_xml_file(path).getroot()
-    return sldLayout
-
-
-def _sldLayout1_shapes():
-    path = absjoin(test_file_dir, 'slideLayout1.xml')
-    with open(path) as f:
-        xml_bytes = f.read()
-    slide_layout = SlideLayout.load(None, None, xml_bytes, None)
-    return slide_layout.shapes
 
 
 class DescribeBaseSlide(object):
@@ -72,16 +59,9 @@ class DescribeBaseSlide(object):
         spTree = slide.spTree
         assert isinstance(spTree, CT_GroupShape)
 
-    def it_knows_the_name_of_the_slide(self, base_slide):
-        # setup ------------------------
-        base_slide._element = _sldLayout1()
-        # exercise ---------------------
-        name = base_slide.name
-        # verify -----------------------
-        expected = 'Title Slide'
-        actual = name
-        msg = "expected '%s', got '%s'" % (expected, actual)
-        assert actual == expected, msg
+    def it_knows_its_name(self, name_fixture):
+        base_slide, expected_value = name_fixture
+        assert base_slide.name == expected_value
 
     def it_can_add_an_image_part_to_the_slide(self, base_slide_fixture):
         # fixture ----------------------
@@ -109,6 +89,13 @@ class DescribeBaseSlide(object):
         rId_ = loose_mock(request, name='rId_')
         method_mock(request, BaseSlide, 'relate_to', return_value=rId_)
         return base_slide, img_file_, image_, rId_
+
+    @pytest.fixture
+    def name_fixture(self):
+        sld_cxml, expected_value = 'p:sld/p:cSld{name=Foobar}', 'Foobar'
+        sld = element(sld_cxml)
+        base_slide = BaseSlide(None, None, sld, None)
+        return base_slide, expected_value
 
     # fixture components ---------------------------------------------
 
@@ -782,6 +769,7 @@ class Describe_SlideShapeTree(object):
     def factory_fixture(
             self, ph_elm_, _SlideShapeFactory_, slide_placeholder_):
         shapes = _SlideShapeTree(None)
+        _SlideShapeFactory_.return_value = slide_placeholder_
         return shapes, ph_elm_, _SlideShapeFactory_, slide_placeholder_
 
     @pytest.fixture
@@ -1126,11 +1114,8 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, _SlidePlaceholder)
 
     @pytest.fixture
-    def _SlideShapeFactory_(self, request, slide_placeholder_):
-        return function_mock(
-            request, 'pptx.parts.slide._SlideShapeFactory',
-            return_value=slide_placeholder_
-        )
+    def _SlideShapeFactory_(self, request):
+        return function_mock(request, 'pptx.parts.slide._SlideShapeFactory')
 
     @pytest.fixture
     def sp_(self, request):
