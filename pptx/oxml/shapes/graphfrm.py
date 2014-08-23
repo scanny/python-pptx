@@ -106,33 +106,27 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         return graphicFrame
 
     @classmethod
-    def new_graphicFrame(cls, id_, name, left, top, width, height):
+    def new_graphicFrame(cls, id_, name, x, y, cx, cy):
         """
         Return a new ``<p:graphicFrame>`` element tree suitable for
         containing a table or chart. Note that a graphicFrame element is not
         a valid shape until it contains a graphical object such as a table.
         """
-        xml = cls._graphicFrame_tmpl() % (id_, name, left, top, width, height)
+        xml = cls._graphicFrame_tmpl() % (id_, name, x, y, cx, cy)
         graphicFrame = parse_xml(xml)
         return graphicFrame
 
     @classmethod
-    def new_table(cls, id_, name, rows, cols, left, top, width, height):
+    def new_table_graphicFrame(cls, id_, name, rows, cols, x, y, cx, cy):
         """
         Return a ``<p:graphicFrame>`` element tree populated with a table
         element.
         """
-        graphicFrame = cls.new_graphicFrame(
-            id_, name, left, top, width, height
+        graphicFrame = cls.new_graphicFrame(id_, name, x, y, cx, cy)
+        graphicFrame.graphic.graphicData.uri = GRAPHIC_DATA_URI_TABLE
+        graphicFrame.graphic.graphicData.append(
+            CT_Table.new_tbl(rows, cols, cx, cy)
         )
-        # set type of contained graphic to table
-        graphicData = graphicFrame.graphic.graphicData
-        graphicData.uri = GRAPHIC_DATA_URI_TABLE
-
-        # add tbl element tree
-        tbl = CT_Table.new_tbl(rows, cols, width, height)
-        graphicData.append(tbl)
-
         return graphicFrame
 
     @classmethod

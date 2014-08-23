@@ -4,96 +4,90 @@
 Test suite for pptx.oxml.graphfrm module.
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, unicode_literals
 
-from pptx.oxml.ns import nsdecls
+import pytest
+
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 
-from ...unitutil.legacy import TestCase
+from ...unitutil.cxml import element, xml
 
 
-class TestCT_GraphicalObjectFrame(TestCase):
+CHART_URI = 'http://schemas.openxmlformats.org/drawingml/2006/chart'
+TABLE_URI = 'http://schemas.openxmlformats.org/drawingml/2006/table'
 
-    def test_has_table_return_value(self):
-        """
-        CT_GraphicalObjectFrame.has_table property has correct value
-        """
-        # setup ------------------------
-        id_, name = 9, 'Table 8'
-        left, top, width, height = 111, 222, 333, 444
-        tbl_uri = 'http://schemas.openxmlformats.org/drawingml/2006/table'
-        chart_uri = 'http://schemas.openxmlformats.org/drawingml/2006/chart'
+
+class DescribeCT_GraphicalObjectFrame(object):
+
+    def it_knows_whether_it_contains_a_chart(self, has_chart_fixture):
+        graphicFrame, expected_value = has_chart_fixture
+        assert graphicFrame.has_chart is expected_value
+
+    def it_knows_whether_it_contains_a_table(self, has_table_fixture):
+        graphicFrame, expected_value = has_table_fixture
+        assert graphicFrame.has_table is expected_value
+
+    def it_can_construct_a_new_graphicFrame(self, new_graphicFrame_fixture):
+        id_, name, x, y, cx, cy, expected_xml = new_graphicFrame_fixture
         graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
-            id_, name, left, top, width, height)
-        graphicData = graphicFrame.graphic.graphicData
-        # verify -----------------------
-        graphicData.set('uri', tbl_uri)
-        assert graphicFrame.has_table is True
-        graphicData.set('uri', chart_uri)
-        assert graphicFrame.has_table is False
-
-    def test_new_graphicFrame_generates_correct_xml(self):
-        """CT_GraphicalObjectFrame.new_graphicFrame() returns correct XML"""
-        # setup ------------------------
-        id_, name = 9, 'Table 8'
-        left, top, width, height = 111, 222, 333, 444
-        xml = (
-            '<p:graphicFrame %s>\n  <p:nvGraphicFramePr>\n    <p:cNvPr id="%d'
-            '" name="%s"/>\n    <p:cNvGraphicFramePr>\n      <a:graphicFrameL'
-            'ocks noGrp="1"/>\n    </p:cNvGraphicFramePr>\n    <p:nvPr/>\n  <'
-            '/p:nvGraphicFramePr>\n  <p:xfrm>\n    <a:off x="%d" y="%d"/>\n  '
-            '  <a:ext cx="%d" cy="%d"/>\n  </p:xfrm>\n  <a:graphic>\n    <a:g'
-            'raphicData/>\n  </a:graphic>\n</p:graphicFrame>\n' %
-            (nsdecls('a', 'p'), id_, name, left, top, width, height)
+            id_, name, x, y, cx, cy
         )
-        # exercise ---------------------
-        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
-            id_, name, left, top, width, height)
-        # verify -----------------------
-        assert graphicFrame.xml == xml
+        assert graphicFrame.xml == expected_xml
 
-    def test_new_table_generates_correct_xml(self):
-        """CT_GraphicalObjectFrame.new_table() returns correct XML"""
-        # setup ------------------------
-        id_, name = 9, 'Table 8'
-        rows, cols = 2, 3
-        left, top, width, height = 111, 222, 334, 445
-        xml = (
-            '<p:graphicFrame %s>\n  <p:nvGraphicFramePr>\n    <p:cNvP''r id="'
-            '%d" name="%s"/>\n    <p:cNvGraphicFramePr>\n      <a:graphicFram'
-            'eLocks noGrp="1"/>\n    </p:cNvGraphicFramePr>\n    <p:nvPr/>\n '
-            ' </p:nvGraphicFramePr>\n  <p:xfrm>\n    <a:off x="%d" y="%d"/>\n'
-            '    <a:ext cx="%d" cy="%d"/>\n  </p:xfrm>\n  <a:graphic>\n    <a'
-            ':graphicData uri="http://schemas.openxmlformats.org/drawingml/20'
-            '06/table">\n      <a:tbl>\n        <a:tblPr firstRow="1" bandRow'
-            '="1">\n          <a:tableStyleId>{5C22544A-7EE6-4342-B048-85BDC9'
-            'FD1C3A}</a:tableStyleId>\n        </a:tblPr>\n        <a:tblGrid'
-            '>\n          <a:gridCol w="111"/>\n          <a:gridCol w="111"/'
-            '>\n          <a:gridCol w="112"/>\n        </a:tblGrid>\n       '
-            ' <a:tr h="222">\n          <a:tc>\n            <a:txBody>\n     '
-            '         <a:bodyPr/>\n              <a:lstStyle/>\n             '
-            ' <a:p/>\n            </a:txBody>\n            <a:tcPr/>\n       '
-            '   </a:tc>\n          <a:tc>\n            <a:txBody>\n          '
-            '    <a:bodyPr/>\n              <a:lstStyle/>\n              <a:p'
-            '/>\n            </a:txBody>\n            <a:tcPr/>\n          </'
-            'a:tc>\n          <a:tc>\n            <a:txBody>\n              <'
-            'a:bodyPr/>\n              <a:lstStyle/>\n              <a:p/>\n '
-            '           </a:txBody>\n            <a:tcPr/>\n          </a:tc>'
-            '\n        </a:tr>\n        <a:tr h="223">\n          <a:tc>\n   '
-            '         <a:txBody>\n              <a:bodyPr/>\n              <a'
-            ':lstStyle/>\n              <a:p/>\n            </a:txBody>\n    '
-            '        <a:tcPr/>\n          </a:tc>\n          <a:tc>\n        '
-            '    <a:txBody>\n              <a:bodyPr/>\n              <a:lstS'
-            'tyle/>\n              <a:p/>\n            </a:txBody>\n         '
-            '   <a:tcPr/>\n          </a:tc>\n          <a:tc>\n            <'
-            'a:txBody>\n              <a:bodyPr/>\n              <a:lstStyle/'
-            '>\n              <a:p/>\n            </a:txBody>\n            <a'
-            ':tcPr/>\n          </a:tc>\n        </a:tr>\n      </a:tbl>\n   '
-            ' </a:graphicData>\n  </a:graphic>\n</p:graphicFrame>\n' %
-            (nsdecls('a', 'p'), id_, name, left, top, width, height)
+    def it_can_construct_a_new_table_graphicFrame(
+            self, new_table_graphicFrame_fixture):
+        id_, name, rows, cols, x, y, cx, cy, expected_xml = (
+            new_table_graphicFrame_fixture
         )
-        # exercise ---------------------
-        graphicFrame = CT_GraphicalObjectFrame.new_table(
-            id_, name, rows, cols, left, top, width, height)
-        # verify -----------------------
-        assert graphicFrame.xml == xml
+        graphicFrame = CT_GraphicalObjectFrame.new_table_graphicFrame(
+            id_, name, rows, cols, x, y, cx, cy
+        )
+        assert graphicFrame.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (CHART_URI, True), (TABLE_URI, False), ('Foobar', False)
+    ])
+    def has_chart_fixture(self, request):
+        uri, expected_value = request.param
+        graphicFrame_cxml = (
+            'p:graphicFrame/a:graphic/a:graphicData{uri=%s}' % uri
+        )
+        graphicFrame = element(graphicFrame_cxml)
+        return graphicFrame, expected_value
+
+    @pytest.fixture(params=[
+        (CHART_URI, False), (TABLE_URI, True), ('Foobar', False)
+    ])
+    def has_table_fixture(self, request):
+        uri, expected_value = request.param
+        graphicFrame_cxml = (
+            'p:graphicFrame/a:graphic/a:graphicData{uri=%s}' % uri
+        )
+        graphicFrame = element(graphicFrame_cxml)
+        return graphicFrame, expected_value
+
+    @pytest.fixture
+    def new_graphicFrame_fixture(self):
+        id_, name, x, y, cx, cy = 42, 'foobar', 1, 2, 3, 4
+        expected_xml = xml(
+            'p:graphicFrame/(p:nvGraphicFramePr/(p:cNvPr{id=42,name=foobar},'
+            'p:cNvGraphicFramePr/a:graphicFrameLocks{noGrp=1},p:nvPr),p:xfrm'
+            '/(a:off{x=1,y=2},a:ext{cx=3,cy=4}),a:graphic/a:graphicData)'
+        )
+        return id_, name, x, y, cx, cy, expected_xml
+
+    @pytest.fixture
+    def new_table_graphicFrame_fixture(self):
+        id_, name, rows, cols, x, y, cx, cy = 42, 'foobar', 1, 1, 1, 2, 3, 4
+        expected_xml = xml(
+            'p:graphicFrame/(p:nvGraphicFramePr/(p:cNvPr{id=42,name=foobar},'
+            'p:cNvGraphicFramePr/a:graphicFrameLocks{noGrp=1},p:nvPr),p:xfrm'
+            '/(a:off{x=1,y=2},a:ext{cx=3,cy=4}),a:graphic/a:graphicData{uri='
+            '%s}/a:tbl/(a:tblPr{firstRow=1,bandRow=1}/a:tableStyleId"{5C2254'
+            '4A-7EE6-4342-B048-85BDC9FD1C3A}",a:tblGrid/a:gridCol{w=3},a:tr{'
+            'h=4}/a:tc/(a:txBody/(a:bodyPr,a:lstStyle,a:p),a:tcPr)))'
+            % TABLE_URI
+        )
+        return id_, name, rows, cols, x, y, cx, cy, expected_xml

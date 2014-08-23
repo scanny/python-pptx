@@ -22,10 +22,12 @@ class DescribeCT_GroupShape(object):
     def it_can_add_a_graphicFrame_element_containing_a_table(
             self, add_table_fixt):
         spTree, id_, name, rows, cols, x, y, cx, cy = add_table_fixt[:9]
-        CT_GraphicalObjectFrame_ = add_table_fixt[9]
+        new_table_graphicFrame_ = add_table_fixt[9]
         insert_element_before_, graphicFrame_ = add_table_fixt[10:]
+
         graphicFrame = spTree.add_table(id_, name, rows, cols, x, y, cx, cy)
-        CT_GraphicalObjectFrame_.new_table.assert_called_once_with(
+
+        new_table_graphicFrame_.assert_called_once_with(
             id_, name, rows, cols, x, y, cx, cy
         )
         insert_element_before_.assert_called_once_with(
@@ -112,9 +114,12 @@ class DescribeCT_GroupShape(object):
             insert_element_before_, graphicFrame_):
         id_, name, rows, cols = 42, 'name', 12, 23
         x, y, cx, cy = 5, 4, 3, 2
+        new_table_graphicFrame_ = (
+            CT_GraphicalObjectFrame_.new_table_graphicFrame
+        )
         return (
             spTree, id_, name, rows, cols, x, y, cx, cy,
-            CT_GraphicalObjectFrame_, insert_element_before_, graphicFrame_
+            new_table_graphicFrame_, insert_element_before_, graphicFrame_
         )
 
     @pytest.fixture
@@ -134,7 +139,9 @@ class DescribeCT_GroupShape(object):
         CT_GraphicalObjectFrame_ = class_mock(
             request, 'pptx.oxml.shapes.groupshape.CT_GraphicalObjectFrame'
         )
-        CT_GraphicalObjectFrame_.new_table.return_value = graphicFrame_
+        CT_GraphicalObjectFrame_.new_table_graphicFrame.return_value = (
+            graphicFrame_
+        )
         return CT_GraphicalObjectFrame_
 
     @pytest.fixture
