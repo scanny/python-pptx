@@ -34,6 +34,16 @@ class DescribeCT_GraphicalObjectFrame(object):
         )
         assert graphicFrame.xml == expected_xml
 
+    def it_can_construct_a_new_chart_graphicFrame(
+            self, new_chart_graphicFrame_fixture):
+        id_, name, rId, x, y, cx, cy, expected_xml = (
+            new_chart_graphicFrame_fixture
+        )
+        graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
+            id_, name, rId, x, y, cx, cy
+        )
+        assert graphicFrame.xml == expected_xml
+
     def it_can_construct_a_new_table_graphicFrame(
             self, new_table_graphicFrame_fixture):
         id_, name, rows, cols, x, y, cx, cy, expected_xml = (
@@ -67,6 +77,21 @@ class DescribeCT_GraphicalObjectFrame(object):
         )
         graphicFrame = element(graphicFrame_cxml)
         return graphicFrame, expected_value
+
+    @pytest.fixture
+    def new_chart_graphicFrame_fixture(self):
+        id_, name, rId, x, y, cx, cy = 42, 'foobar', 'rId6', 1, 2, 3, 4
+        xml_tmpl = xml(
+            'p:graphicFrame/(p:nvGraphicFramePr/(p:cNvPr{id=42,name=foobar},'
+            'p:cNvGraphicFramePr/a:graphicFrameLocks{noGrp=1},p:nvPr),p:xfrm'
+            '/(a:off{x=1,y=2},a:ext{cx=3,cy=4}),a:graphic/a:graphicData{uri='
+            '%s}"%%s")'
+            % CHART_URI
+        )
+        expected_xml = xml_tmpl % (
+            '\n      ' + xml('c:chart{r:id=rId6}') + '    '
+        )
+        return id_, name, rId, x, y, cx, cy, expected_xml
 
     @pytest.fixture
     def new_graphicFrame_fixture(self):
