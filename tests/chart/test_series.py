@@ -25,11 +25,21 @@ class Describe_BaseSeries(object):
         series, expected_value = name_fixture
         assert series.name == expected_value
 
+    def it_knows_its_position_in_the_series_sequence(self, index_fixture):
+        series, expected_value = index_fixture
+        assert series.index == expected_value
+
     def it_knows_its_values(self, values_get_fixture):
         series, expected_value = values_get_fixture
         assert series.values == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def index_fixture(self):
+        ser_cxml, expected_value = 'c:ser/c:idx{val=42}', 42
+        series = _BaseSeries(element(ser_cxml))
+        return series, expected_value
 
     @pytest.fixture(params=[
         ('c:ser',                                           ''),

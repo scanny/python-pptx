@@ -23,6 +23,14 @@ class _BaseSeries(object):
         self._element = ser
 
     @property
+    def index(self):
+        """
+        The zero-based integer index of this series as reported in its
+        `c:ser/c:idx` element.
+        """
+        return self._element.idx.val
+
+    @property
     def name(self):
         """
         The string label given to this series, appears as the title of the
