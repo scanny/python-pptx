@@ -22,9 +22,10 @@ class Plot(object):
     have more than one plot, in which case they appear as superimposed
     layers, such as a line plot appearing on top of a bar chart.
     """
-    def __init__(self, plot_elm):
+    def __init__(self, xChart, chart):
         super(Plot, self).__init__()
-        self._element = plot_elm
+        self._element = xChart
+        self._chart = chart
 
     @property
     def categories(self):
@@ -35,6 +36,13 @@ class Plot(object):
         xChart = self._element
         category_pt_elms = xChart.cat_pts
         return tuple(pt.v.text for pt in category_pt_elms)
+
+    @property
+    def chart(self):
+        """
+        The |Chart| object containing this plot.
+        """
+        return self._chart
 
     @property
     def data_labels(self):
@@ -190,7 +198,7 @@ class PiePlot(Plot):
     """
 
 
-def PlotFactory(plot_elm):
+def PlotFactory(xChart, chart):
     """
     Return an instance of the appropriate subclass of Plot based on the
     tagname of *plot_elm*.
@@ -202,11 +210,11 @@ def PlotFactory(plot_elm):
             qn('c:barChart'):    BarPlot,
             qn('c:lineChart'):   LinePlot,
             qn('c:pieChart'):    PiePlot,
-        }[plot_elm.tag]
+        }[xChart.tag]
     except KeyError:
-        raise ValueError('unsupported plot type %s' % plot_elm.tag)
+        raise ValueError('unsupported plot type %s' % xChart.tag)
 
-    return PlotCls(plot_elm)
+    return PlotCls(xChart, chart)
 
 
 class PlotTypeInspector(object):

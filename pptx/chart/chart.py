@@ -75,7 +75,7 @@ class Chart(object):
         this chart.
         """
         plotArea = self._chartSpace.chart.plotArea
-        return Plots(plotArea)
+        return Plots(plotArea, self)
 
     def replace_data(self, chart_data):
         """
@@ -121,17 +121,19 @@ class Plots(Sequence):
     types are displayed in a single set of axes, like a bar plot with
     a superimposed line plot.
     """
-    def __init__(self, plotArea):
+    def __init__(self, plotArea, chart):
         super(Plots, self).__init__()
         self._plotArea = plotArea
+        self._chart = chart
 
     def __getitem__(self, index):
-        plot_elms = [p for p in self._plotArea.iter_plots()]
+        xCharts = list(self._plotArea.iter_plots())
         if isinstance(index, slice):
-            return [PlotFactory(plot_elm) for plot_elm in plot_elms]
+            plots = [PlotFactory(xChart, self._chart) for xChart in xCharts]
+            return plots[index]
         else:
-            plot_elm = plot_elms[index]
-            return PlotFactory(plot_elm)
+            xChart = xCharts[index]
+            return PlotFactory(xChart, self._chart)
 
     def __len__(self):
         plot_elms = [p for p in self._plotArea.iter_plots()]

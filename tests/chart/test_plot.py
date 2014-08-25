@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.enum.chart import XL_CHART_TYPE as XL
+from pptx.chart.chart import Chart
 from pptx.chart.plot import (
     AreaPlot, Area3DPlot, BarPlot, DataLabels, LinePlot, PiePlot, Plot,
     PlotFactory, PlotTypeInspector
@@ -21,6 +22,10 @@ from ..unitutil.mock import class_mock, instance_mock
 
 
 class DescribePlot(object):
+
+    def it_knows_which_chart_it_belongs_to(self, chart_fixture):
+        plot, expected_value = chart_fixture
+        assert plot.chart == expected_value
 
     def it_knows_its_categories(self, categories_get_fixture):
         plot, expected_value = categories_get_fixture
@@ -44,9 +49,9 @@ class DescribePlot(object):
         assert data_labels is data_labels_
 
     def it_provides_access_to_its_series(self, series_fixture):
-        plot, series_, SeriesCollection_, plot_elm = series_fixture
+        plot, series_, SeriesCollection_, xChart = series_fixture
         series = plot.series
-        SeriesCollection_.assert_called_once_with(plot_elm)
+        SeriesCollection_.assert_called_once_with(xChart)
         assert series is series_
 
     # fixtures -------------------------------------------------------
@@ -66,14 +71,20 @@ class DescribePlot(object):
     ])
     def categories_get_fixture(self, request):
         xChart_cxml, expected_value = request.param
-        plot = PlotFactory(element(xChart_cxml))
+        plot = PlotFactory(element(xChart_cxml), None)
+        return plot, expected_value
+
+    @pytest.fixture
+    def chart_fixture(self, chart_):
+        plot = Plot(None, chart_)
+        expected_value = chart_
         return plot, expected_value
 
     @pytest.fixture
     def data_labels_fixture(self, DataLabels_, data_labels_):
         barChart = element('c:barChart/c:dLbls')
         dLbls = barChart[0]
-        plot = Plot(barChart)
+        plot = Plot(barChart, None)
         return plot, data_labels_, DataLabels_, dLbls
 
     @pytest.fixture(params=[
@@ -82,8 +93,8 @@ class DescribePlot(object):
         ('c:pieChart',  False), ('c:pieChart/c:dLbls',  True),
     ])
     def has_data_labels_get_fixture(self, request):
-        plot_cxml, expected_value = request.param
-        plot = Plot(element(plot_cxml))
+        xChart_cxml, expected_value = request.param
+        plot = Plot(element(xChart_cxml), None)
         return plot, expected_value
 
     @pytest.fixture(params=[
@@ -97,25 +108,29 @@ class DescribePlot(object):
         ('c:pieChart/c:dLbls',  False, 'c:pieChart'),
     ])
     def has_data_labels_set_fixture(self, request):
-        plot_cxml, new_value, expected_plot_cxml = request.param
+        xChart_cxml, new_value, expected_xChart_cxml = request.param
         # apply extended suffix to replace trailing '+' where present
-        if expected_plot_cxml.endswith('+'):
-            expected_plot_cxml = expected_plot_cxml[:-1] + (
+        if expected_xChart_cxml.endswith('+'):
+            expected_xChart_cxml = expected_xChart_cxml[:-1] + (
                 '(c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val='
                 '0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSi'
                 'ze{val=0})'
             )
-        plot = PlotFactory(element(plot_cxml))
-        expected_xml = xml(expected_plot_cxml)
+        plot = PlotFactory(element(xChart_cxml), None)
+        expected_xml = xml(expected_xChart_cxml)
         return plot, new_value, expected_xml
 
     @pytest.fixture
     def series_fixture(self, SeriesCollection_, series_collection_):
-        plot_elm = element('c:barChart')
-        plot = Plot(plot_elm)
-        return plot, series_collection_, SeriesCollection_, plot_elm
+        xChart = element('c:barChart')
+        plot = Plot(xChart, None)
+        return plot, series_collection_, SeriesCollection_, xChart
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def chart_(self, request):
+        return instance_mock(request, Chart)
 
     @pytest.fixture
     def DataLabels_(self, request, data_labels_):
@@ -161,7 +176,7 @@ class DescribeBarPlot(object):
     ])
     def gap_width_get_fixture(self, request):
         barChart_cxml, expected_value = request.param
-        bar_plot = BarPlot(element(barChart_cxml))
+        bar_plot = BarPlot(element(barChart_cxml), None)
         return bar_plot, expected_value
 
     @pytest.fixture(params=[
@@ -172,7 +187,7 @@ class DescribeBarPlot(object):
     ])
     def gap_width_set_fixture(self, request):
         barChart_cxml, new_value, expected_barChart_cxml = request.param
-        bar_plot = BarPlot(element(barChart_cxml))
+        bar_plot = BarPlot(element(barChart_cxml), None)
         expected_xml = xml(expected_barChart_cxml)
         return bar_plot, new_value, expected_xml
 
@@ -297,9 +312,9 @@ class DescribeDataLabels(object):
 class DescribePlotFactory(object):
 
     def it_contructs_a_plot_object_from_a_plot_element(self, call_fixture):
-        plot_elm, PlotClass_, plot_ = call_fixture
-        plot = PlotFactory(plot_elm)
-        PlotClass_.assert_called_once_with(plot_elm)
+        xChart, chart_, PlotClass_, plot_ = call_fixture
+        plot = PlotFactory(xChart, chart_)
+        PlotClass_.assert_called_once_with(xChart, chart_)
         assert plot is plot_
 
     # fixtures -------------------------------------------------------
@@ -311,13 +326,19 @@ class DescribePlotFactory(object):
         ('c:lineChart',   LinePlot),
         ('c:pieChart',    PiePlot),
     ])
-    def call_fixture(self, request):
-        plot_cxml, PlotCls = request.param
-        plot_ = instance_mock(request, PlotCls)
+    def call_fixture(self, request, chart_):
+        xChart_cxml, PlotCls = request.param
+        plot_ = instance_mock(request, PlotCls, name='plot_')
         class_spec = 'pptx.chart.plot.%s' % PlotCls.__name__
         PlotClass_ = class_mock(request, class_spec, return_value=plot_)
-        plot_elm = element(plot_cxml)
-        return plot_elm, PlotClass_, plot_
+        xChart = element(xChart_cxml)
+        return xChart, chart_, PlotClass_, plot_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def chart_(self, request):
+        return instance_mock(request, Chart)
 
 
 class DescribePlotTypeInspector(object):
@@ -379,6 +400,6 @@ class DescribePlotTypeInspector(object):
         ('c:pieChart/c:ser/c:explosion{val=25}', XL.PIE_EXPLODED),
     ])
     def chart_type_fixture(self, request):
-        plot_cxml, expected_chart_type = request.param
-        plot = PlotFactory(element(plot_cxml))
+        xChart_cxml, expected_chart_type = request.param
+        plot = PlotFactory(element(xChart_cxml), None)
         return plot, expected_chart_type

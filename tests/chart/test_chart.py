@@ -59,7 +59,7 @@ class DescribeChart(object):
     def it_provides_access_to_its_plots(self, plots_fixture):
         chart, plots_, Plots_, plotArea = plots_fixture
         plots = chart.plots
-        Plots_.assert_called_once_with(plotArea)
+        Plots_.assert_called_once_with(plotArea, chart)
         assert plots is plots_
 
     def it_knows_its_chart_type(self, chart_type_fixture):
@@ -245,9 +245,9 @@ class DescribeChart(object):
 class DescribePlots(object):
 
     def it_supports_indexed_access(self, getitem_fixture):
-        plots, idx, PlotFactory_, plot_elm, plot_ = getitem_fixture
+        plots, idx, PlotFactory_, plot_elm, chart_, plot_ = getitem_fixture
         plot = plots[idx]
-        PlotFactory_.assert_called_once_with(plot_elm)
+        PlotFactory_.assert_called_once_with(plot_elm, chart_)
         assert plot is plot_
 
     def it_supports_len(self, len_fixture):
@@ -260,12 +260,12 @@ class DescribePlots(object):
         ('c:plotArea/c:barChart', 0),
         ('c:plotArea/(c:radarChart,c:barChart)', 1),
     ])
-    def getitem_fixture(self, request, PlotFactory_, plot_):
+    def getitem_fixture(self, request, PlotFactory_, chart_, plot_):
         plotArea_cxml, idx = request.param
         plotArea = element(plotArea_cxml)
         plot_elm = plotArea[idx]
-        plots = Plots(plotArea)
-        return plots, idx, PlotFactory_, plot_elm, plot_
+        plots = Plots(plotArea, chart_)
+        return plots, idx, PlotFactory_, plot_elm, chart_, plot_
 
     @pytest.fixture(params=[
         ('c:plotArea',                          0),
@@ -274,10 +274,14 @@ class DescribePlots(object):
     ])
     def len_fixture(self, request):
         plotArea_cxml, expected_len = request.param
-        plots = Plots(element(plotArea_cxml))
+        plots = Plots(element(plotArea_cxml), None)
         return plots, expected_len
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def chart_(self, request):
+        return instance_mock(request, Chart)
 
     @pytest.fixture
     def PlotFactory_(self, request, plot_):
