@@ -111,8 +111,8 @@ def given_ref_to_chevron_shape(context):
 # when ====================================================
 
 @when("I add a text box to the slide's shape collection")
-def when_add_text_box(context):
-    shapes = context.sld.shapes
+def when_I_add_a_text_box(context):
+    shapes = context.slide.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(1.00))
     sp = shapes.add_textbox(x, y, cx, cy)
@@ -120,8 +120,8 @@ def when_add_text_box(context):
 
 
 @when("I add an auto shape to the slide's shape collection")
-def when_add_auto_shape(context):
-    shapes = context.sld.shapes
+def when_I_add_an_auto_shape(context):
+    shapes = context.slide.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(4.00))
     sp = shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, cx, cy)

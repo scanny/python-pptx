@@ -47,8 +47,8 @@ def given_a_table_cell(context):
 
 
 @when("I add a table to the slide's shape collection")
-def when_add_table(context):
-    shapes = context.sld.shapes
+def when_I_add_a_table(context):
+    shapes = context.slide.shapes
     x, y = (Inches(1.00), Inches(2.00))
     cx, cy = (Inches(3.00), Inches(1.00))
     shapes.add_table(2, 2, x, y, cx, cy)

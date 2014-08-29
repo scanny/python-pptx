@@ -1,0 +1,23 @@
+# encoding: utf-8
+
+"""
+ChartData and related objects.
+"""
+
+from __future__ import absolute_import, print_function, unicode_literals
+
+
+class ChartData(object):
+    """
+    Primarily a data transfer object, `ChartData` accumulates data specifying
+    the categories and series values for a plot. However, it also serves as
+    a broker to the services of |ChartXmlWriter| and |WorkbookWriter| for
+    obtaining chart XML and Excel objects respectively.
+    """
+    @property
+    def categories(self):
+        """
+        An immutable sequence containing the category labels currently
+        defined in this chart data object.
+        """
+        raise NotImplementedError

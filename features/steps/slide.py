@@ -23,9 +23,8 @@ from .helpers import saved_pptx_path, test_pptx
 
 @given('a blank slide')
 def given_a_blank_slide(context):
-    context.prs = Presentation()
-    slide_layout = context.prs.slide_layouts[6]
-    context.sld = context.prs.slides.add_slide(slide_layout)
+    context.prs = Presentation(test_pptx('sld-blank'))
+    context.slide = context.prs.slides[0]
 
 
 @given('a slide')

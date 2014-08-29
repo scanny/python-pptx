@@ -6,13 +6,18 @@ Gherkin step implementations for chart features.
 
 from __future__ import absolute_import, print_function
 
+from itertools import count, islice
+
 from behave import given, then, when
 
 from pptx import Presentation
 from pptx.chart.axis import CategoryAxis, ValueAxis
+from pptx.chart.data import ChartData
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
+from pptx.parts.embeddedpackage import EmbeddedXlsxPart
+from pptx.util import Inches
 
 from .helpers import test_pptx
 
@@ -156,6 +161,31 @@ def given_tick_labels_having_an_offset_of_setting(context, setting):
 
 # when ====================================================
 
+@when('I add a {kind} chart with {cats} categories and {sers} series')
+def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
+    chart_type = {
+        'Clustered Bar':    XL_CHART_TYPE.BAR_CLUSTERED,
+        '100% Stacked Bar': XL_CHART_TYPE.BAR_STACKED_100,
+        'Clustered Column': XL_CHART_TYPE.COLUMN_CLUSTERED,
+        'Line':             XL_CHART_TYPE.LINE,
+        'Pie':              XL_CHART_TYPE.PIE,
+    }[kind]
+    category_count, series_count = int(cats), int(sers)
+    category_source = ('Foo', 'Bar', 'Baz', 'Boo', 'Far', 'Faz')
+    series_value_source = count(1.1, 1.1)
+
+    chart_data = ChartData()
+    chart_data.categories = category_source[:category_count]
+    for idx in range(series_count):
+        series_title = 'Series %d' % (idx+1)
+        series_values = tuple(islice(series_value_source, category_count))
+        chart_data.add_series(series_title, series_values)
+
+    context.chart = context.slide.shapes.add_chart(
+        chart_type, Inches(1), Inches(1), Inches(8), Inches(5), chart_data
+    ).chart
+
+
 @when('I assign {value} to axis.has_{major_or_minor}_gridlines')
 def when_I_assign_value_to_axis_has_major_or_minor_gridlines(
         context, value, major_or_minor):
@@ -236,6 +266,14 @@ def then_chart_chart_type_is_value(context, enum_member):
     assert chart.chart_type is expected_value, 'got %s' % chart.chart_type
 
 
+@then('each series has {count} values')
+def then_each_series_has_count_values(context, count):
+    expected_count = int(count)
+    for series in context.chart.plots[0].series:
+        actual_value_count = len(series.values)
+        assert actual_value_count == expected_count
+
+
 @then('I can access the chart category axis')
 def then_I_can_access_the_chart_category_axis(context):
     category_axis = context.chart.category_axis
@@ -272,6 +310,33 @@ def then_series_values_contains_the_known_values(context):
     series = context.series
     expected_values = (1.2, 2.3, 3.4)
     assert series.values == expected_values, 'got %s' % series.values
+
+
+@then('the chart has an Excel data worksheet')
+def then_the_chart_has_an_Excel_data_worksheet(context):
+    xlsx_part = context.chart._workbook.xlsx_part
+    assert isinstance(xlsx_part, EmbeddedXlsxPart)
+
+
+@then('the chart has {count} categories')
+def then_the_chart_has_count_categories(context, count):
+    expected_count = int(count)
+    actual_category_count = len(context.chart.plots[0].categories)
+    assert actual_category_count == expected_count
+
+
+@then('the chart has {count} series')
+def then_the_chart_has_count_series(context, count):
+    expected_count = int(count)
+    actual_series_count = len(context.chart.series)
+    assert actual_series_count == expected_count
+
+
+@then('the chart type is {chart_type}')
+def then_the_chart_type_is_type(context, chart_type):
+    chart_type = getattr(XL_CHART_TYPE, chart_type)
+    chart = context.chart
+    assert chart.chart_type is chart_type, 'got %s' % chart.chart_type
 
 
 @then('the plot.has_data_labels property is {value}')
