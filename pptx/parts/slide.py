@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 from warnings import warn
 
+from .chart import ChartPart
 from ..enum.shapes import PP_PLACEHOLDER
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
@@ -62,18 +63,20 @@ class Slide(BaseSlide):
         *chart_type*, displaying *chart_data*, and related to the slide
         containing this shape tree.
         """
-        raise NotImplementedError
+        chart_part = ChartPart.new(chart_type, chart_data, self.package)
+        rId = self.relate_to(chart_part, RT.CHART)
+        return rId
 
     @classmethod
-    def new(cls, slidelayout, partname, package):
+    def new(cls, slide_layout, partname, package):
         """
-        Return a new slide based on *slidelayout* and having *partname*,
+        Return a new slide based on *slide_layout* and having *partname*,
         created from scratch.
         """
         slide_elm = CT_Slide.new()
         slide = cls(partname, CT.PML_SLIDE, slide_elm, package)
-        slide.shapes.clone_layout_placeholders(slidelayout)
-        slide.relate_to(slidelayout, RT.SLIDE_LAYOUT)
+        slide.shapes.clone_layout_placeholders(slide_layout)
+        slide.relate_to(slide_layout, RT.SLIDE_LAYOUT)
         return slide
 
     @lazyproperty

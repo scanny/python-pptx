@@ -24,6 +24,7 @@ from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import ST_Direction
 from pptx.package import Package
+from pptx.parts.chart import ChartPart
 from pptx.parts.image import Image as ImagePart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import (
@@ -132,6 +133,18 @@ class DescribeBaseSlide(object):
 
 class DescribeSlide(object):
 
+    def it_can_add_a_chart_part(self, add_chart_part_fixture):
+        slide, chart_type_, chart_data_ = add_chart_part_fixture[:3]
+        ChartPart_, chart_part_, package_, rId = add_chart_part_fixture[3:]
+
+        _rId = slide.add_chart_part(chart_type_, chart_data_)
+
+        ChartPart_.new.assert_called_once_with(
+            chart_type_, chart_data_, package_
+        )
+        slide.relate_to.assert_called_once_with(slide, chart_part_, RT.CHART)
+        assert _rId is rId
+
     def it_provides_access_to_the_shapes_on_the_slide(self, shapes_fixture):
         slide, _SlideShapeTree_, slide_shape_tree_ = shapes_fixture
         shapes = slide.shapes
@@ -149,7 +162,9 @@ class DescribeSlide(object):
     def it_can_create_a_new_slide(self, new_fixture):
         slide_layout_, partname_, package_ = new_fixture[:3]
         Slide_init_, slide_elm_, shapes_, relate_to_ = new_fixture[3:]
+
         slide = Slide.new(slide_layout_, partname_, package_)
+
         Slide_init_.assert_called_once_with(
             partname_, CT.PML_SLIDE, slide_elm_, package_
         )
@@ -157,7 +172,7 @@ class DescribeSlide(object):
             slide_layout_
         )
         relate_to_.assert_called_once_with(
-            slide_layout_, RT.SLIDE_LAYOUT
+            slide, slide_layout_, RT.SLIDE_LAYOUT
         )
         assert isinstance(slide, Slide)
 
@@ -175,6 +190,16 @@ class DescribeSlide(object):
         assert sld.xml == expected_xml
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_chart_part_fixture(
+            self, package_, chart_type_, chart_data_, ChartPart_,
+            chart_part_, rId, relate_to_):
+        slide = Slide(None, None, None, package_)
+        return (
+            slide, chart_type_, chart_data_, ChartPart_, chart_part_,
+            package_, rId
+        )
 
     @pytest.fixture
     def layout_fixture(self, slide_layout_, part_related_by_):
@@ -205,6 +230,24 @@ class DescribeSlide(object):
     # fixture components -----------------------------------
 
     @pytest.fixture
+    def ChartPart_(self, request, chart_part_):
+        ChartPart_ = class_mock(request, 'pptx.parts.slide.ChartPart')
+        ChartPart_.new.return_value = chart_part_
+        return ChartPart_
+
+    @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, ChartData)
+
+    @pytest.fixture
+    def chart_part_(self, request):
+        return instance_mock(request, ChartPart)
+
+    @pytest.fixture
+    def chart_type_(self, request):
+        return instance_mock(request, EnumValue)
+
+    @pytest.fixture
     def CT_Slide_(self, request, slide_elm_):
         CT_Slide_ = class_mock(request, 'pptx.parts.slide.CT_Slide')
         CT_Slide_.new.return_value = slide_elm_
@@ -226,8 +269,14 @@ class DescribeSlide(object):
         return instance_mock(request, PackURI)
 
     @pytest.fixture
-    def relate_to_(self, request):
-        return method_mock(request, Part, 'relate_to')
+    def relate_to_(self, request, rId):
+        return method_mock(
+            request, Part, 'relate_to', autospec=True, return_value=rId
+        )
+
+    @pytest.fixture
+    def rId(self):
+        return 'rId42'
 
     @pytest.fixture
     def shapes_(self, request):

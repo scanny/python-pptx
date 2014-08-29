@@ -16,6 +16,14 @@ class ChartPart(XmlPart):
     A chart part; corresponds to parts having partnames matching
     ppt/charts/chart[1-9][0-9]*.xml
     """
+    @classmethod
+    def new(cls, chart_type, chart_data, package):
+        """
+        Return a new |ChartPart| instance to *package* containing a chart of
+        *chart_type* and depicting *chart_data*.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def chart(self):
         """
