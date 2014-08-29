@@ -25,3 +25,9 @@ class ChartData(object):
         defined in this chart data object.
         """
         return tuple(self._categories)
+
+    @categories.setter
+    def categories(self, categories):
+        # Contents need to be replaced in-place so reference sent to
+        # _SeriesData objects retain access to latest values
+        self._categories[:] = categories
