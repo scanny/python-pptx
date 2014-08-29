@@ -9,7 +9,9 @@ from __future__ import absolute_import, print_function
 import pytest
 
 
-from pptx.chart.data import ChartData
+from pptx.chart.data import ChartData, _SeriesData
+
+from ..unitutil.mock import class_mock, instance_mock
 
 
 class DescribeChartData(object):
@@ -23,7 +25,26 @@ class DescribeChartData(object):
         chart_data.categories = new_value
         assert chart_data.categories == expected_value
 
+    def it_can_add_a_series(self, add_series_fixture):
+        chart_data, name, values, _SeriesData_, series_data_ = (
+            add_series_fixture
+        )
+        chart_data.add_series(name, values)
+        _SeriesData_.assert_called_once_with(
+            0, name, values, chart_data._categories
+        )
+        assert chart_data._series_lst[0] is series_data_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_series_fixture(
+            self, request, categories, _SeriesData_, series_data_):
+        chart_data = ChartData()
+        chart_data.categories = categories
+        name = 'Series Foo'
+        values = (1.1, 2.2, 3.3)
+        return chart_data, name, values, _SeriesData_, series_data_
 
     @pytest.fixture
     def categories_get_fixture(self, categories):
@@ -46,3 +67,13 @@ class DescribeChartData(object):
     @pytest.fixture
     def categories(self):
         return ('Foo', 'Bar', 'Baz')
+
+    @pytest.fixture
+    def _SeriesData_(self, request, series_data_):
+        return class_mock(
+            request, 'pptx.chart.data._SeriesData', return_value=series_data_
+        )
+
+    @pytest.fixture
+    def series_data_(self, request):
+        return instance_mock(request, _SeriesData)
