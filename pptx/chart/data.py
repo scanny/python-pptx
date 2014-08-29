@@ -14,10 +14,14 @@ class ChartData(object):
     a broker to the services of |ChartXmlWriter| and |WorkbookWriter| for
     obtaining chart XML and Excel objects respectively.
     """
+    def __init__(self):
+        super(ChartData, self).__init__()
+        self._categories = []
+
     @property
     def categories(self):
         """
         An immutable sequence containing the category labels currently
         defined in this chart data object.
         """
-        raise NotImplementedError
+        return tuple(self._categories)
