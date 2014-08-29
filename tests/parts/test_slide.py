@@ -10,6 +10,8 @@ import pytest
 
 from mock import ANY, call, MagicMock
 
+from pptx.chart.data import ChartData
+from pptx.enum.base import EnumValue
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
@@ -30,6 +32,7 @@ from pptx.parts.slide import (
 )
 from pptx.parts.slidelayout import _LayoutPlaceholder, SlideLayout
 from pptx.shapes.autoshape import AutoShapeType, Shape
+from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import BasePlaceholder
 from pptx.shapes.shape import BaseShape
@@ -432,6 +435,22 @@ class DescribeSlideCollection(object):
 
 class Describe_SlideShapeTree(object):
 
+    def it_can_add_a_chart(self, add_chart_fixture):
+        shape_tree, chart_type_, x, y, cx, cy = add_chart_fixture[:6]
+        chart_data_, rId_, graphic_frame_ = add_chart_fixture[6:]
+
+        graphic_frame = shape_tree.add_chart(
+            chart_type_, x, y, cx, cy, chart_data_
+        )
+
+        shape_tree.part.add_chart_part.assert_called_once_with(
+            chart_type_, chart_data_
+        )
+        shape_tree._add_chart_graphic_frame.assert_called_once_with(
+            shape_tree, rId_, x, y, cx, cy
+        )
+        assert graphic_frame is graphic_frame_
+
     def it_constructs_a_slide_placeholder_for_a_placeholder_shape(
             self, factory_fixture):
         shapes, ph_elm_, _SlideShapeFactory_, slide_placeholder_ = (
@@ -604,6 +623,17 @@ class Describe_SlideShapeTree(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
+    def add_chart_fixture(
+            self, slide_, chart_type_, chart_data_, rId_,
+            _add_chart_graphic_frame_, graphic_frame_):
+        shape_tree = _SlideShapeTree(slide_)
+        x, y, cx, cy = 1, 2, 3, 4
+        return (
+            shape_tree, chart_type_, x, y, cx, cy, chart_data_, rId_,
+            graphic_frame_
+        )
+
+    @pytest.fixture
     def autoshape_fixture(
             self, autoshape_type_id_, x_, y_, cx_, cy_, AutoShapeType_,
             _add_sp_from_autoshape_type_, autoshape_type_, _shape_factory_,
@@ -768,6 +798,13 @@ class Describe_SlideShapeTree(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def _add_chart_graphic_frame_(self, request, graphic_frame_):
+        return method_mock(
+            request, _SlideShapeTree, '_add_chart_graphic_frame',
+            autospec=True, return_value=graphic_frame_
+        )
+
+    @pytest.fixture
     def _add_graphicFrame_containing_table_(self, request, graphicFrame_):
         return method_mock(
             request, _SlideShapeTree, '_add_graphicFrame_containing_table',
@@ -812,6 +849,14 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, int)
 
     @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, ChartData)
+
+    @pytest.fixture
+    def chart_type_(self, request):
+        return instance_mock(request, EnumValue)
+
+    @pytest.fixture
     def _clone_layout_placeholder_(self, request):
         return method_mock(
             request, _SlideShapeTree, '_clone_layout_placeholder'
@@ -843,6 +888,10 @@ class Describe_SlideShapeTree(object):
     @pytest.fixture
     def graphicFrame_(self, request):
         return instance_mock(request, CT_GraphicalObjectFrame)
+
+    @pytest.fixture
+    def graphic_frame_(self, request):
+        return instance_mock(request, GraphicFrame)
 
     @pytest.fixture
     def id_(self, request):
@@ -946,6 +995,7 @@ class Describe_SlideShapeTree(object):
     def slide_(self, request, spTree_, image_part_, rId_):
         slide_ = instance_mock(request, Slide)
         slide_.spTree = spTree_
+        slide_.add_chart_part.return_value = rId_
         slide_._add_image.return_value = image_part_, rId_
         return slide_
 

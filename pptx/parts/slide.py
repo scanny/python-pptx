@@ -56,6 +56,14 @@ class Slide(BaseSlide):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
+    def add_chart_part(self, chart_type, chart_data):
+        """
+        Return the rId of a new |ChartPart| object containing a chart of
+        *chart_type*, displaying *chart_data*, and related to the slide
+        containing this shape tree.
+        """
+        raise NotImplementedError
+
     @classmethod
     def new(cls, slidelayout, partname, package):
         """
@@ -177,6 +185,19 @@ class _SlideShapeTree(BaseShapeTree):
     is the backmost in z-order and the last shape is topmost. Supports indexed
     access, len(), index(), and iteration.
     """
+    def add_chart(self, chart_type, x, y, cx, cy, chart_data):
+        """
+        Add a new chart shape to the slide, having *chart_type*, positioned
+        at (*x*, *y*), having size (*cx*, *cy*), and displaying *chart_data*.
+        Note that a |GraphicFrame| shape object is returned, not the |Chart|
+        object contained in that graphic frame shape. The chart object may be
+        accessed using the :attr:`chart` property of the returned
+        |GraphicFrame| object.
+        """
+        rId = self.part.add_chart_part(chart_type, chart_data)
+        graphic_frame = self._add_chart_graphic_frame(rId, x, y, cx, cy)
+        return graphic_frame
+
     def add_picture(self, image_file, left, top, width=None, height=None):
         """
         Add picture shape displaying image in *image_file*, where
@@ -263,6 +284,13 @@ class _SlideShapeTree(BaseShapeTree):
             if elm.ph_idx == 0:
                 return self._shape_factory(elm)
         return None
+
+    def _add_chart_graphic_frame(self, rId, x, y, cx, cy):
+        """
+        Return a |GraphicFrame| object having the specified position and size
+        and referring to the chart part identified by *rId*.
+        """
+        raise NotImplementedError
 
     def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
         """
