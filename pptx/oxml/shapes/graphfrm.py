@@ -7,6 +7,7 @@ lxml custom element class for CT_GraphicalObjectFrame XML element.
 from __future__ import absolute_import
 
 from .. import parse_xml
+from ..chart.chart import CT_Chart
 from ..ns import nsdecls
 from .shared import BaseShapeElement
 from ..simpletypes import XsdString
@@ -89,6 +90,20 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         True if graphicFrame contains a table, False otherwise.
         """
         return self.graphic.graphicData.uri == GRAPHIC_DATA_URI_TABLE
+
+    @classmethod
+    def new_chart_graphicFrame(cls, id_, name, rId, x, y, cx, cy):
+        """
+        Return a ``<p:graphicFrame>`` element tree populated with a chart
+        element.
+        """
+        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
+            id_, name, x, y, cx, cy
+        )
+        graphicData = graphicFrame.graphic.graphicData
+        graphicData.uri = GRAPHIC_DATA_URI_CHART
+        graphicData.append(CT_Chart.new_chart(rId))
+        return graphicFrame
 
     @classmethod
     def new_graphicFrame(cls, id_, name, left, top, width, height):

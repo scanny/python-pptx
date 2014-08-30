@@ -16,6 +16,7 @@ from ..opc.packuri import PackURI
 from ..oxml.ns import qn
 from ..oxml.simpletypes import ST_Direction
 from ..oxml.parts.slide import CT_Slide
+from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from ..shapes.autoshape import AutoShapeType
 from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
 from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
@@ -294,7 +295,13 @@ class _SlideShapeTree(BaseShapeTree):
         specified position and size and referring to the chart part
         identified by *rId*.
         """
-        raise NotImplementedError
+        shape_id = self._next_shape_id
+        name = 'Chart %d' % (shape_id-1)
+        graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
+            shape_id, name, rId, x, y, cx, cy
+        )
+        self._spTree.append(graphicFrame)
+        return graphicFrame
 
     def _add_chart_graphic_frame(self, rId, x, y, cx, cy):
         """

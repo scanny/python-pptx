@@ -6,7 +6,8 @@ lxml custom element classes for chart-related XML elements.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from ..ns import qn
+from .. import parse_xml
+from ..ns import nsdecls, qn
 from ..simpletypes import ST_Style, XsdString
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
@@ -20,9 +21,22 @@ class CT_Chart(BaseOxmlElement):
     plotArea = OneAndOnlyOne('c:plotArea')
     rId = RequiredAttribute('r:id', XsdString)
 
+    _chart_tmpl = (
+        '<c:chart %s %s r:id="%%s"/>' % (nsdecls('c'), nsdecls('r'))
+    )
+
     @property
     def catAx(self):
         return self.plotArea.catAx
+
+    @staticmethod
+    def new_chart(rId):
+        """
+        Return a new ``<c:chart>`` element
+        """
+        xml = CT_Chart._chart_tmpl % (rId)
+        chart = parse_xml(xml)
+        return chart
 
     @property
     def valAx(self):

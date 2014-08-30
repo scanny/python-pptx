@@ -611,6 +611,15 @@ class Describe_SlideShapeTree(object):
         )
         assert graphic_frame is graphic_frame_
 
+    def it_adds_a_chart_graphicFrame_to_help_add_chart(
+            self, add_chart_graphicFrame_fixture):
+        shape_tree, rId, x, y, cx, cy, expected_xml = (
+            add_chart_graphicFrame_fixture
+        )
+        graphicFrame = shape_tree._add_chart_graphicFrame(rId, x, y, cx, cy)
+        assert graphicFrame.xml == expected_xml
+        shape_tree._spTree.append.assert_called_once_with(graphicFrame)
+
     def it_adds_a_graphicFrame_to_help_add_table(self, graphicFrame_fixture):
         # fixture ----------------------
         shapes, rows_, cols_, x_, y_, cx_, cy_ = graphicFrame_fixture[:7]
@@ -710,6 +719,29 @@ class Describe_SlideShapeTree(object):
         return (
             shape_tree, rId_, x_, y_, cx_, cy_, _add_chart_graphicFrame_,
             _SlideShapeFactory_, graphicFrame_, graphic_frame_
+        )
+
+    @pytest.fixture
+    def add_chart_graphicFrame_fixture(self, slide_, _next_shape_id_, id_):
+        rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
+        shape_tree = _SlideShapeTree(slide_)
+        expected_xml = (
+            '<p:graphicFrame xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/pre'
+            'sentationml/2006/main">\n  <p:nvGraphicFramePr>\n    <p:cNvPr i'
+            'd="42" name="Chart 41"/>\n    <p:cNvGraphicFramePr>\n      <a:g'
+            'raphicFrameLocks noGrp="1"/>\n    </p:cNvGraphicFramePr>\n    <'
+            'p:nvPr/>\n  </p:nvGraphicFramePr>\n  <p:xfrm>\n    <a:off x="1"'
+            ' y="2"/>\n    <a:ext cx="3" cy="4"/>\n  </p:xfrm>\n  <a:graphic'
+            '>\n    <a:graphicData uri="http://schemas.openxmlformats.org/dr'
+            'awingml/2006/chart">\n      <c:chart xmlns:c="http://schemas.op'
+            'enxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.'
+            'openxmlformats.org/officeDocument/2006/relationships" r:id="rId'
+            '42"/>\n    </a:graphicData>\n  </a:graphic>\n</p:graphicFrame>'
+            '\n'
+        )
+        return (
+            shape_tree, rId, x, y, cx, cy, expected_xml
         )
 
     @pytest.fixture
