@@ -6,6 +6,8 @@ Series-related objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from collections import Sequence
+
 from ..dml.fill import FillFormat
 from ..dml.line import LineFormat
 from ..oxml.ns import qn
@@ -104,6 +106,16 @@ class PieSeries(_BaseSeries):
     """
     A data point series belonging to a pie plot.
     """
+
+
+class SeriesCollection(Sequence):
+    """
+    A sequence of |Series| objects.
+    """
+    def __init__(self, parent_elm):
+        # *parent_elm* can be either a c:chartSpace or xChart element
+        super(SeriesCollection, self).__init__()
+        self._element = parent_elm
 
 
 def SeriesFactory(plot_elm, ser):

@@ -11,7 +11,9 @@ import pytest
 from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Chart, Plots
 from pptx.chart.plot import Plot
+from pptx.chart.series import SeriesCollection
 from pptx.enum.base import EnumValue
+from pptx.oxml.chart.chart import CT_ChartSpace
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, function_mock, instance_mock
@@ -41,7 +43,13 @@ class DescribeChart(object):
         with pytest.raises(ValueError):
             chart.value_axis
 
-    def it_provides_access_to_the_plots(self, plots_fixture):
+    def it_provides_access_to_its_series(self, series_fixture):
+        chart, SeriesCollection_, chartSpace_, series_ = series_fixture
+        series = chart.series
+        SeriesCollection_.assert_called_once_with(chartSpace_)
+        assert series is series_
+
+    def it_provides_access_to_its_plots(self, plots_fixture):
         chart, plots_, Plots_, plotArea = plots_fixture
         plots = chart.plots
         Plots_.assert_called_once_with(plotArea)
@@ -88,6 +96,12 @@ class DescribeChart(object):
         plotArea = chartSpace.xpath('./c:chart/c:plotArea')[0]
         chart = Chart(chartSpace, None)
         return chart, plots_, Plots_, plotArea
+
+    @pytest.fixture
+    def series_fixture(
+            self, SeriesCollection_, chartSpace_, series_collection_):
+        chart = Chart(chartSpace_, None)
+        return chart, SeriesCollection_, chartSpace_, series_collection_
 
     @pytest.fixture(params=[
         ('c:chartSpace/c:style{val=42}', 42),
@@ -136,6 +150,10 @@ class DescribeChart(object):
         return instance_mock(request, CategoryAxis)
 
     @pytest.fixture
+    def chartSpace_(self, request):
+        return instance_mock(request, CT_ChartSpace)
+
+    @pytest.fixture
     def chart_type_(self, request):
         return instance_mock(request, EnumValue)
 
@@ -160,6 +178,17 @@ class DescribeChart(object):
     @pytest.fixture
     def plots_(self, request):
         return instance_mock(request, Plots)
+
+    @pytest.fixture
+    def SeriesCollection_(self, request, series_collection_):
+        return class_mock(
+            request, 'pptx.chart.chart.SeriesCollection',
+            return_value=series_collection_
+        )
+
+    @pytest.fixture
+    def series_collection_(self, request):
+        return instance_mock(request, SeriesCollection)
 
     @pytest.fixture
     def ValueAxis_(self, request, value_axis_):

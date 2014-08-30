@@ -10,6 +10,7 @@ from collections import Sequence
 
 from .axis import CategoryAxis, ValueAxis
 from .plot import PlotFactory, PlotTypeInspector
+from .series import SeriesCollection
 from ..util import lazyproperty
 
 
@@ -74,6 +75,14 @@ class Chart(object):
         """
         plotArea = self._chartSpace.chart.plotArea
         return Plots(plotArea)
+
+    @lazyproperty
+    def series(self):
+        """
+        The |SeriesCollection| object containing all the series in this
+        chart.
+        """
+        return SeriesCollection(self._chartSpace)
 
     @property
     def value_axis(self):
