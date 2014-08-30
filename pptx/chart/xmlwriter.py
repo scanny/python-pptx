@@ -173,6 +173,73 @@ class _LineChartXmlWriter(_BaseChartXmlWriter):
     """
     Provides specialized methods particular to the ``<c:lineChart>`` element.
     """
+    @property
+    def xml(self):
+        xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:chart>\n'
+            '    <c:plotArea>\n'
+            '      <c:lineChart>\n'
+            '        <c:grouping val="standard"/>\n'
+            '%s'
+            '        <c:axId val="2118791784"/>\n'
+            '        <c:axId val="2140495176"/>\n'
+            '      </c:lineChart>\n'
+            '      <c:catAx>\n'
+            '        <c:axId val="2118791784"/>\n'
+            '        <c:scaling/>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="2140495176"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:lblAlgn val="ctr"/>\n'
+            '        <c:lblOffset val="100"/>\n'
+            '      </c:catAx>\n'
+            '      <c:valAx>\n'
+            '        <c:axId val="2140495176"/>\n'
+            '        <c:scaling/>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="l"/>\n'
+            '        <c:majorGridlines/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="2118791784"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '      </c:valAx>\n'
+            '    </c:plotArea>\n'
+            '  </c:chart>\n'
+            '</c:chartSpace>\n'
+        ) % self._ser_xml
+        return xml
+
+    @property
+    def _ser_xml(self):
+        xml = ''
+        for series in self._series_lst:
+            xml += (
+                '        <c:ser>\n'
+                '          <c:idx val="%d"/>\n'
+                '          <c:order val="%d"/>\n'
+                '%s'
+                '          <c:marker>\n'
+                '            <c:symbol val="none"/>\n'
+                '          </c:marker>\n'
+                '%s%s'
+                '          <c:smooth val="0"/>\n'
+                '        </c:ser>\n'
+            ) % (
+                series.index, series.index, series.tx_xml, series.cat_xml,
+                series.val_xml
+            )
+        return xml
 
 
 class _PieChartXmlWriter(_BaseChartXmlWriter):

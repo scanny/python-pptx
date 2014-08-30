@@ -91,6 +91,14 @@ class Chart(object):
             raise ValueError('chart has no value axis')
         return ValueAxis(valAx)
 
+    @property
+    def _workbook(self):
+        """
+        The |ChartWorkbook| object providing access to the Excel source data
+        for this chart.
+        """
+        return self._chart_part.chart_workbook
+
 
 class Plots(Sequence):
     """

@@ -78,6 +78,24 @@ class Describe_BarChartXmlWriter(object):
         return xml_writer, expected_xml
 
 
+class Describe_LineChartXmlWriter(object):
+
+    def it_can_generate_xml_for_a_line_chart(self, xml_fixture):
+        xml_writer, expected_xml = xml_fixture
+        assert xml_writer.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def xml_fixture(self, request):
+        series_data_seq = make_series_data_seq(cat_count=2, ser_count=2)
+        xml_writer = _LineChartXmlWriter(
+            XL_CHART_TYPE.LINE, series_data_seq
+        )
+        expected_xml = snippet_text('2x2-line')
+        return xml_writer, expected_xml
+
+
 # helpers ------------------------------------------------------------
 
 def make_series_data_seq(cat_count, ser_count):
