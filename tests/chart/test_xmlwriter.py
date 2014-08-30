@@ -96,6 +96,22 @@ class Describe_LineChartXmlWriter(object):
         return xml_writer, expected_xml
 
 
+class Describe_PieChartXmlWriter(object):
+
+    def it_can_generate_xml_for_a_pie_chart(self, xml_fixture):
+        xml_writer, expected_xml = xml_fixture
+        assert xml_writer.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def xml_fixture(self, request):
+        series_data_seq = make_series_data_seq(cat_count=3, ser_count=1)
+        xml_writer = _PieChartXmlWriter(XL_CHART_TYPE.PIE, series_data_seq)
+        expected_xml = snippet_text('3x1-pie')
+        return xml_writer, expected_xml
+
+
 # helpers ------------------------------------------------------------
 
 def make_series_data_seq(cat_count, ser_count):

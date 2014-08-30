@@ -3,7 +3,6 @@ Feature: Add a chart
   As a developer using python-pptx
   I need a way to add a chart to a slide, specifying its type and data
 
-  @wip
   Scenario Outline: Add a chart
     Given a blank slide
      When I add a <type> chart with <cats> categories and <sers> series

@@ -246,3 +246,34 @@ class _PieChartXmlWriter(_BaseChartXmlWriter):
     """
     Provides specialized methods particular to the ``<c:pieChart>`` element.
     """
+    @property
+    def xml(self):
+        xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:chart>\n'
+            '    <c:plotArea>\n'
+            '      <c:pieChart>\n'
+            '        <c:varyColors val="1"/>\n'
+            '%s'
+            '      </c:pieChart>\n'
+            '    </c:plotArea>\n'
+            '  </c:chart>\n'
+            '</c:chartSpace>\n'
+        ) % self._ser_xml
+        return xml
+
+    @property
+    def _ser_xml(self):
+        series = self._series_lst[0]
+        xml = (
+            '        <c:ser>\n'
+            '          <c:idx val="0"/>\n'
+            '          <c:order val="0"/>\n'
+            '%s%s%s'
+            '        </c:ser>\n'
+        ) % (series.tx_xml, series.cat_xml, series.val_xml)
+        return xml
