@@ -84,7 +84,12 @@ class OpcPackage(object):
         containing a single replacement item, a '%d' to be used to insert the
         integer portion of the partname. Example: '/ppt/slides/slide%d.xml'
         """
-        raise NotImplementedError
+        partnames = [part.partname for part in self.iter_parts()]
+        for n in range(1, len(partnames)+2):
+            candidate_partname = tmpl % n
+            if candidate_partname not in partnames:
+                return PackURI(candidate_partname)
+        raise Exception('ProgrammingError: ran out of candidate_partnames')
 
     @classmethod
     def open(cls, pkg_file):

@@ -106,6 +106,13 @@ class DescribeOpcPackage(object):
         pkg.rels.part_with_reltype.assert_called_once_with(reltype)
         assert related_part is related_part_
 
+    def it_can_find_the_next_available_vector_partname(
+            self, next_partname_fixture):
+        package, partname_template, expected_partname = next_partname_fixture
+        partname = package.next_partname(partname_template)
+        assert isinstance(partname, PackURI)
+        assert partname == expected_partname
+
     def it_can_save_to_a_pkg_file(
             self, pkg_file_, PackageWriter_, parts, parts_):
         pkg = OpcPackage()
@@ -120,6 +127,49 @@ class DescribeOpcPackage(object):
         pkg.after_unmarshal()
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        ((), 1), ((1,), 2), ((1, 2), 3), ((2, 3), 1), ((1, 3), 2)
+    ])
+    def next_partname_fixture(self, request, iter_parts_):
+        existing_partname_numbers, next_partname_number = request.param
+        package = OpcPackage()
+        parts = [
+            instance_mock(
+                request, Part, name='part[%d]' % idx,
+                partname='/foo/bar/baz%d.xml' % n
+            )
+            for idx, n in enumerate(existing_partname_numbers)
+        ]
+        iter_parts_.return_value = iter(parts)
+        partname_template = '/foo/bar/baz%d.xml'
+        expected_partname = PackURI(
+            '/foo/bar/baz%d.xml' % next_partname_number
+        )
+        return package, partname_template, expected_partname
+
+    @pytest.fixture
+    def relate_to_part_fixture_(self, request, pkg, rels_, reltype):
+        rId = 'rId99'
+        rel_ = instance_mock(request, _Relationship, name='rel_', rId=rId)
+        rels_.get_or_add.return_value = rel_
+        pkg._rels = rels_
+        part_ = instance_mock(request, Part, name='part_')
+        return pkg, part_, reltype, rId
+
+    @pytest.fixture
+    def related_part_fixture_(self, request, rels_, reltype):
+        related_part_ = instance_mock(request, Part, name='related_part_')
+        rels_.part_with_reltype.return_value = related_part_
+        pkg = OpcPackage()
+        pkg._rels = rels_
+        return pkg, reltype, related_part_
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def iter_parts_(self, request):
+        return method_mock(request, OpcPackage, 'iter_parts')
 
     @pytest.fixture
     def PackageReader_(self, request):
@@ -176,23 +226,6 @@ class DescribeOpcPackage(object):
         target_ = instance_mock(request, Part, name='target_')
         rId = 'rId99'
         return reltype, target_, rId
-
-    @pytest.fixture
-    def relate_to_part_fixture_(self, request, pkg, rels_, reltype):
-        rId = 'rId99'
-        rel_ = instance_mock(request, _Relationship, name='rel_', rId=rId)
-        rels_.get_or_add.return_value = rel_
-        pkg._rels = rels_
-        part_ = instance_mock(request, Part, name='part_')
-        return pkg, part_, reltype, rId
-
-    @pytest.fixture
-    def related_part_fixture_(self, request, rels_, reltype):
-        related_part_ = instance_mock(request, Part, name='related_part_')
-        rels_.part_with_reltype.return_value = related_part_
-        pkg = OpcPackage()
-        pkg._rels = rels_
-        return pkg, reltype, related_part_
 
     @pytest.fixture
     def rels_(self, request):
