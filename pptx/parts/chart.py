@@ -46,7 +46,7 @@ class ChartPart(XmlPart):
         The |ChartWorkbook| object providing access to the external chart
         data in a linked or embedded Excel workbook.
         """
-        raise NotImplementedError
+        return ChartWorkbook(self._element, self)
 
 
 class ChartWorkbook(object):
@@ -54,6 +54,11 @@ class ChartWorkbook(object):
     Provides access to the external chart data in a linked or embedded Excel
     workbook.
     """
+    def __init__(self, chartSpace, chart_part):
+        super(ChartWorkbook, self).__init__()
+        self._chartSpace = chartSpace
+        self._chart_part = chart_part
+
     def update_from_xlsx_blob(self, xlsx_blob):
         """
         Replace the Excel spreadsheet in the related |EmbeddedXlsxPart| with

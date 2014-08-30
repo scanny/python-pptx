@@ -46,6 +46,14 @@ class DescribeChartPart(object):
         Chart_.assert_called_once_with(chart_part._element, chart_part)
         assert chart is chart_
 
+    def it_provides_access_to_the_chart_workbook(self, workbook_fixture):
+        chart_part, ChartWorkbook_, chartSpace_, chart_workbook_ = (
+            workbook_fixture
+        )
+        chart_workbook = chart_part.chart_workbook
+        ChartWorkbook_.assert_called_once_with(chartSpace_, chart_part)
+        assert chart_workbook is chart_workbook_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -64,7 +72,19 @@ class DescribeChartPart(object):
             partname_, content_type, chart_blob_, chart_part_, xlsx_blob_
         )
 
+    @pytest.fixture
+    def workbook_fixture(self, chartSpace_, ChartWorkbook_, chart_workbook_):
+        chart_part = ChartPart(None, None, chartSpace_)
+        return chart_part, ChartWorkbook_, chartSpace_, chart_workbook_
+
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ChartWorkbook_(self, request, chart_workbook_):
+        return class_mock(
+            request, 'pptx.parts.chart.ChartWorkbook',
+            return_value=chart_workbook_
+        )
 
     @pytest.fixture
     def Chart_(self, request, chart_):
