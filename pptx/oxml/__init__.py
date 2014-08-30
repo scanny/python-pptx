@@ -83,9 +83,12 @@ register_element_cls('c:pt',  CT_StrVal_NumVal_Composite)
 register_element_cls('c:ser', CT_SeriesComposite)
 
 
-from .chart.shared import CT_Boolean, CT_Double, CT_NumFmt
+from .chart.shared import (
+    CT_Boolean, CT_Double, CT_NumFmt, CT_UnsignedInt
+)
 register_element_cls('c:autoUpdate',       CT_Boolean)
 register_element_cls('c:delete',           CT_Boolean)
+register_element_cls('c:idx',              CT_UnsignedInt)
 register_element_cls('c:invertIfNegative', CT_Boolean)
 register_element_cls('c:max',              CT_Double)
 register_element_cls('c:min',              CT_Double)

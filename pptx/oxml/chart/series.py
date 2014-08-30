@@ -20,6 +20,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     depends on the caller not to do anything invalid for a series belonging
     to a particular plot type.
     """
+    idx = OneAndOnlyOne('c:idx')
     order = OneAndOnlyOne('c:order')
     tx = ZeroOrOne('c:tx')      # provide override for _insert_tx()
     spPr = ZeroOrOne('c:spPr')  # provide override for _insert_spPr()

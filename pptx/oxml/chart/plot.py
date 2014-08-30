@@ -11,7 +11,7 @@ from ..ns import nsdecls, qn
 from ..simpletypes import ST_BarDir, ST_GapAmount, ST_Grouping
 from ..text import CT_TextBody
 from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne, ZeroOrMore
 )
 
 
@@ -51,6 +51,13 @@ class BaseChartElement(BaseOxmlElement):
             if child.tag == qn('c:ser'):
                 yield child
 
+    @property
+    def sers(self):
+        """
+        Sequence of ``<c:ser>`` child elements in document order.
+        """
+        return list(self.iter_sers())
+
     def _new_dLbls(self):
         return CT_DLbls.new_default()
 
@@ -84,6 +91,7 @@ class CT_BarChart(BaseChartElement):
     )
     barDir = OneAndOnlyOne('c:barDir')
     grouping = ZeroOrOne('c:grouping', successors=_tag_seq[2:])
+    ser = ZeroOrMore('c:ser', successors=_tag_seq[4:])
     dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[5:])
     gapWidth = ZeroOrOne('c:gapWidth', successors=_tag_seq[6:])
     del _tag_seq
@@ -180,18 +188,24 @@ class CT_LineChart(BaseChartElement):
     """
     ``<c:lineChart>`` custom element class
     """
-    tag_seq = (
+    _tag_seq = (
         'c:grouping', 'c:varyColors', 'c:ser', 'c:dLbls', 'c:dropLines',
         'c:hiLowLines', 'c:upDownBars', 'c:marker', 'c:smooth', 'c:axId',
         'c:extLst'
     )
-    grouping = ZeroOrOne('c:grouping', successors=(tag_seq[1:]))
-    dLbls = ZeroOrOne('c:dLbls', successors=(tag_seq[4:]))
-    del tag_seq
+    grouping = ZeroOrOne('c:grouping', successors=(_tag_seq[1:]))
+    ser = ZeroOrMore('c:ser', successors=_tag_seq[3:])
+    dLbls = ZeroOrOne('c:dLbls', successors=(_tag_seq[4:]))
+    del _tag_seq
 
 
 class CT_PieChart(BaseChartElement):
     """
     ``<c:pieChart>`` custom element class
     """
-    dLbls = ZeroOrOne('c:dLbls', successors=('c:firstSliceAng', 'c:extLst'))
+    _tag_seq = (
+        'c:varyColors', 'c:ser', 'c:dLbls', 'c:firstSliceAng', 'c:extLst'
+    )
+    ser = ZeroOrMore('c:ser', successors=_tag_seq[2:])
+    dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[3:])
+    del _tag_seq

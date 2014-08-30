@@ -60,6 +60,23 @@ class CT_ChartSpace(BaseOxmlElement):
         return self.chart.catAx
 
     @property
+    def sers(self):
+        """
+        An immutable sequence of the `c:ser` elements under this chartSpace
+        element, sorted in order of their `c:ser/c:idx/@val` value and with
+        any gaps in numbering collapsed.
+        """
+        def ser_idx(ser):
+            return ser.idx.val
+
+        sers = sorted(self.xpath('.//c:ser'), key=ser_idx)
+        for idx, ser in enumerate(sers):
+            if ser.idx.val != idx:
+                ser.idx.val = idx
+                ser.order.val = idx
+        return sers
+
+    @property
     def valAx(self):
         return self.chart.valAx
 

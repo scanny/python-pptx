@@ -117,16 +117,24 @@ class SeriesCollection(Sequence):
         super(SeriesCollection, self).__init__()
         self._element = parent_elm
 
+    def __getitem__(self, index):
+        ser = self._element.sers[index]
+        return _SeriesFactory(ser)
 
-def SeriesFactory(plot_elm, ser):
+    def __len__(self):
+        return len(self._element.sers)
+
+
+def _SeriesFactory(ser):
     """
     Return an instance of the appropriate subclass of _BaseSeries based on the
-    tagname of *plot_elm*.
+    xChart element *ser* appears in.
     """
-    if plot_elm.tag == qn('c:barChart'):
+    xChart_tag = ser.getparent().tag
+    if xChart_tag == qn('c:barChart'):
         return BarSeries(ser)
-    if plot_elm.tag == qn('c:lineChart'):
+    if xChart_tag == qn('c:lineChart'):
         return LineSeries(ser)
-    if plot_elm.tag == qn('c:pieChart'):
+    if xChart_tag == qn('c:pieChart'):
         return PieSeries(ser)
-    raise ValueError('unsupported series type %s' % plot_elm.tag)
+    raise ValueError('unsupported series type %s' % xChart_tag)

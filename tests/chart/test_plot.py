@@ -11,12 +11,13 @@ import pytest
 from pptx.enum.chart import XL_CHART_TYPE as XL
 from pptx.chart.plot import (
     AreaPlot, Area3DPlot, BarPlot, DataLabels, LinePlot, PiePlot, Plot,
-    PlotFactory, PlotTypeInspector, SeriesCollection
+    PlotFactory, PlotTypeInspector
 )
+from pptx.chart.series import SeriesCollection
 from pptx.text import Font
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, function_mock, instance_mock
+from ..unitutil.mock import class_mock, instance_mock
 
 
 class DescribePlot(object):
@@ -381,54 +382,3 @@ class DescribePlotTypeInspector(object):
         plot_cxml, expected_chart_type = request.param
         plot = PlotFactory(element(plot_cxml))
         return plot, expected_chart_type
-
-
-class DescribeSeriesCollection(object):
-
-    def it_supports_indexed_access(self, getitem_fixture):
-        series_collection, idx, SeriesFactory_, plot_elm, ser, series_ = (
-            getitem_fixture
-        )
-        series = series_collection[idx]
-        SeriesFactory_.assert_called_once_with(plot_elm, ser)
-        assert series is series_
-
-    def it_supports_len(self, len_fixture):
-        series_collection, expected_len = len_fixture
-        assert len(series_collection) == expected_len
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture(params=[
-        ('c:barChart/c:ser', 0),
-        ('c:barChart/(c:ser,c:ser,c:ser)', 2),
-    ])
-    def getitem_fixture(self, request, SeriesFactory_, series_):
-        plot_elm_cxml, idx = request.param
-        plot_elm = element(plot_elm_cxml)
-        ser = plot_elm[idx]
-        series_collection = SeriesCollection(plot_elm)
-        return series_collection, idx, SeriesFactory_, plot_elm, ser, series_
-
-    @pytest.fixture(params=[
-        ('c:barChart',                    0),
-        ('c:barChart/c:ser',              1),
-        ('c:barChart/(c:ser,c:ser)',      2),
-        ('c:barChart/(c:idx,c:tx,c:ser)', 1),
-    ])
-    def len_fixture(self, request):
-        plot_elm_cxml, expected_len = request.param
-        series_collection = SeriesCollection(element(plot_elm_cxml))
-        return series_collection, expected_len
-
-    # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def SeriesFactory_(self, request, series_):
-        return function_mock(
-            request, 'pptx.chart.plot.SeriesFactory', return_value=series_
-        )
-
-    @pytest.fixture
-    def series_(self, request):
-        return instance_mock(request, Plot)

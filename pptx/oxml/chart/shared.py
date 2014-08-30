@@ -6,7 +6,7 @@ Shared oxml objects for charts.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from ..simpletypes import XsdBoolean, XsdDouble, XsdString
+from ..simpletypes import XsdBoolean, XsdDouble, XsdString, XsdUnsignedInt
 from ..xmlchemy import BaseOxmlElement, OptionalAttribute, RequiredAttribute
 
 
@@ -31,3 +31,10 @@ class CT_NumFmt(BaseOxmlElement):
     """
     formatCode = RequiredAttribute('formatCode', XsdString)
     sourceLinked = OptionalAttribute('sourceLinked', XsdBoolean)
+
+
+class CT_UnsignedInt(BaseOxmlElement):
+    """
+    ``<c:idx>`` element and others.
+    """
+    val = RequiredAttribute('val', XsdUnsignedInt)

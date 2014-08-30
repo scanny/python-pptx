@@ -9,13 +9,14 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.series import (
-    BarSeries, LineSeries, PieSeries, SeriesFactory, _BaseSeries
+    BarSeries, _BaseSeries, LineSeries, PieSeries, SeriesCollection,
+    _SeriesFactory
 )
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock
+from ..unitutil.mock import class_mock, function_mock, instance_mock
 
 
 class Describe_BaseSeries(object):
@@ -168,11 +169,66 @@ class DescribeBarSeries(object):
         return instance_mock(request, LineFormat)
 
 
-class DescribeSeriesFactory(object):
+class DescribeSeriesCollection(object):
+
+    def it_supports_indexed_access(self, getitem_fixture):
+        series_collection, idx, _SeriesFactory_, ser, series_ = (
+            getitem_fixture
+        )
+        series = series_collection[idx]
+        _SeriesFactory_.assert_called_once_with(ser)
+        assert series is series_
+
+    def it_supports_len(self, len_fixture):
+        series_collection, expected_len = len_fixture
+        assert len(series_collection) == expected_len
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:barChart/c:ser',               0),
+        ('c:barChart/(c:ser,c:ser,c:ser)', 2),
+        ('c:chartSpace/(c:barChart/(c:ser/c:idx{val=0},c:ser/c:idx{val=1}),c'
+         ':lineChart/c:ser/c:idx{val=2})', 2),
+    ])
+    def getitem_fixture(self, request, _SeriesFactory_, series_):
+        cxml, idx = request.param
+        parent_elm = element(cxml)
+        ser = parent_elm.xpath('.//c:ser')[idx]
+        series_collection = SeriesCollection(parent_elm)
+        return series_collection, idx, _SeriesFactory_, ser, series_
+
+    @pytest.fixture(params=[
+        ('c:barChart',                     0),
+        ('c:barChart/c:ser',               1),
+        ('c:barChart/(c:ser,c:ser)',       2),
+        ('c:barChart/(c:idx,c:tx,c:ser)',  1),
+        ('c:chartSpace/(c:barChart/(c:ser/c:idx{val=0},c:ser/c:idx{val=1}),c'
+         ':lineChart/c:ser/c:idx{val=2})', 3),
+    ])
+    def len_fixture(self, request):
+        xChart_cxml, expected_len = request.param
+        series_collection = SeriesCollection(element(xChart_cxml))
+        return series_collection, expected_len
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _SeriesFactory_(self, request, series_):
+        return function_mock(
+            request, 'pptx.chart.series._SeriesFactory', return_value=series_
+        )
+
+    @pytest.fixture
+    def series_(self, request):
+        return instance_mock(request, _BaseSeries)
+
+
+class Describe_SeriesFactory(object):
 
     def it_contructs_a_series_object_from_a_plot_element(self, call_fixture):
-        xChart, ser, SeriesCls_, series_ = call_fixture
-        series = SeriesFactory(xChart, ser)
+        ser, SeriesCls_, series_ = call_fixture
+        series = _SeriesFactory(ser)
         SeriesCls_.assert_called_once_with(ser)
         assert series is series_
 
@@ -191,9 +247,8 @@ class DescribeSeriesFactory(object):
             'lineChart': ('c:lineChart/c:ser', LineSeries_, line_series_),
             'pieChart':  ('c:pieChart/c:ser',  PieSeries_,  pie_series_),
         }[request.param]
-        xChart = element(xChart_cxml)
-        ser = xChart[0]
-        return xChart, ser, SeriesCls_, series_
+        ser = element(xChart_cxml).ser_lst[0]
+        return ser, SeriesCls_, series_
 
     # fixture components -----------------------------------
 

@@ -8,12 +8,10 @@ layered over a bar plot.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from collections import Sequence
-
 from ..enum.chart import XL_CHART_TYPE as XL
 from ..oxml.ns import qn
 from ..oxml.simpletypes import ST_BarDir, ST_Grouping
-from .series import SeriesFactory
+from .series import SeriesCollection
 from ..text import Font
 from ..util import lazyproperty
 
@@ -302,23 +300,3 @@ class PlotTypeInspector(object):
         pieChart = plot._element
         explosion = pieChart.xpath('./c:ser/c:explosion')
         return XL.PIE_EXPLODED if explosion else XL.PIE
-
-
-class SeriesCollection(Sequence):
-    """
-    The sequence of series in a plot.
-    """
-    def __init__(self, plot_elm):
-        super(SeriesCollection, self).__init__()
-        self._plot_elm = plot_elm
-
-    def __getitem__(self, index):
-        ser = self._ser_lst[index]
-        return SeriesFactory(self._plot_elm, ser)
-
-    def __len__(self):
-        return len(self._ser_lst)
-
-    @property
-    def _ser_lst(self):
-        return [ser for ser in self._plot_elm.iter_sers()]
