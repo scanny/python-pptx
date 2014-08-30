@@ -592,6 +592,25 @@ class Describe_SlideShapeTree(object):
         with pytest.raises(ValueError):
             shapes.index(shape_)
 
+    def it_adds_a_chart_graphic_frame_to_help_add_chart(
+            self, add_chart_graph_frm_fixture):
+        shape_tree, rId_, x, y, cx, cy = add_chart_graph_frm_fixture[:6]
+        _add_chart_graphicFrame_ = add_chart_graph_frm_fixture[6]
+        _SlideShapeFactory_, graphicFrame_ = add_chart_graph_frm_fixture[7:9]
+        graphic_frame_ = add_chart_graph_frm_fixture[9]
+
+        graphic_frame = shape_tree._add_chart_graphic_frame(
+            rId_, x, y, cx, cy
+        )
+
+        _add_chart_graphicFrame_.assert_called_once_with(
+            shape_tree, rId_, x, y, cx, cy
+        )
+        _SlideShapeFactory_.assert_called_once_with(
+            graphicFrame_, shape_tree
+        )
+        assert graphic_frame is graphic_frame_
+
     def it_adds_a_graphicFrame_to_help_add_table(self, graphicFrame_fixture):
         # fixture ----------------------
         shapes, rows_, cols_, x_, y_, cx_, cy_ = graphicFrame_fixture[:7]
@@ -680,6 +699,17 @@ class Describe_SlideShapeTree(object):
         return (
             shape_tree, chart_type_, x, y, cx, cy, chart_data_, rId_,
             graphic_frame_
+        )
+
+    @pytest.fixture
+    def add_chart_graph_frm_fixture(
+            self, rId_, x_, y_, cx_, cy_, _add_chart_graphicFrame_,
+            _SlideShapeFactory_, graphicFrame_, graphic_frame_):
+        shape_tree = _SlideShapeTree(None)
+        _SlideShapeFactory_.return_value = graphic_frame_
+        return (
+            shape_tree, rId_, x_, y_, cx_, cy_, _add_chart_graphicFrame_,
+            _SlideShapeFactory_, graphicFrame_, graphic_frame_
         )
 
     @pytest.fixture
@@ -845,6 +875,13 @@ class Describe_SlideShapeTree(object):
         return shapes, _shape_factory_, sp_2_, title_placeholder_
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _add_chart_graphicFrame_(self, request, graphicFrame_):
+        return method_mock(
+            request, _SlideShapeTree, '_add_chart_graphicFrame',
+            autospec=True, return_value=graphicFrame_
+        )
 
     @pytest.fixture
     def _add_chart_graphic_frame_(self, request, graphic_frame_):

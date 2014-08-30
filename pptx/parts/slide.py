@@ -288,12 +288,22 @@ class _SlideShapeTree(BaseShapeTree):
                 return self._shape_factory(elm)
         return None
 
+    def _add_chart_graphicFrame(self, rId, x, y, cx, cy):
+        """
+        Add a new ``<p:graphicFrame>`` element to this shape tree having the
+        specified position and size and referring to the chart part
+        identified by *rId*.
+        """
+        raise NotImplementedError
+
     def _add_chart_graphic_frame(self, rId, x, y, cx, cy):
         """
         Return a |GraphicFrame| object having the specified position and size
         and referring to the chart part identified by *rId*.
         """
-        raise NotImplementedError
+        graphicFrame = self._add_chart_graphicFrame(rId, x, y, cx, cy)
+        graphic_frame = self._shape_factory(graphicFrame)
+        return graphic_frame
 
     def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
         """
