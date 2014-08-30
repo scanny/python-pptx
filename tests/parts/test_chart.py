@@ -152,6 +152,10 @@ class DescribeChartPart(object):
 
 class DescribeChartWorkbook(object):
 
+    def it_can_get_the_chart_xlsx_part(self, xlsx_part_get_fixture):
+        chart_data, expected_object = xlsx_part_get_fixture
+        assert chart_data.xlsx_part is expected_object
+
     def it_adds_an_xlsx_part_on_update_if_needed(self, add_part_fixture):
         chart_data, xlsx_blob_, EmbeddedXlsxPart_ = add_part_fixture[:3]
         package_, xlsx_part_prop_, xlsx_part_ = add_part_fixture[3:]
@@ -184,6 +188,16 @@ class DescribeChartWorkbook(object):
     def update_blob_fixture(self, request, xlsx_blob_, xlsx_part_prop_):
         chart_data = ChartWorkbook(None, None)
         return chart_data, xlsx_blob_
+
+    @pytest.fixture(params=[
+        ('c:chartSpace', None),
+        ('c:chartSpace/c:externalData{r:id=rId42}', 'rId42'),
+    ])
+    def xlsx_part_get_fixture(self, request, chart_part_, xlsx_part_):
+        chartSpace_cxml, xlsx_part_rId = request.param
+        chart_data = ChartWorkbook(element(chartSpace_cxml), chart_part_)
+        expected_object = xlsx_part_ if xlsx_part_rId else None
+        return chart_data, expected_object
 
     # fixture components ---------------------------------------------
 

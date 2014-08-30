@@ -37,6 +37,9 @@ class CT_ChartSpace(BaseOxmlElement):
         'c:clrMapOvr', 'c:pivotSource', 'c:protection', 'c:chart'
     ))
     chart = OneAndOnlyOne('c:chart')
+    externalData = ZeroOrOne('c:externalData', successors=(
+        'c:printSettings', 'c:userShapes', 'c:extLst'
+    ))
 
     @property
     def catAx(self):
@@ -45,6 +48,27 @@ class CT_ChartSpace(BaseOxmlElement):
     @property
     def valAx(self):
         return self.chart.valAx
+
+    @property
+    def xlsx_part_rId(self):
+        """
+        The string in the required ``r:id`` attribute of the
+        `<c:externalData>` child, or |None| if no externalData element is
+        present.
+        """
+        externalData = self.externalData
+        if externalData is None:
+            return None
+        return externalData.rId
+
+
+class CT_ExternalData(BaseOxmlElement):
+    """
+    `<c:externalData>` element, defining link to embedded Excel package part
+    containing the chart data.
+    """
+    autoUpdate = ZeroOrOne('c:autoUpdate')
+    rId = RequiredAttribute('r:id', XsdString)
 
 
 class CT_PlotArea(BaseOxmlElement):

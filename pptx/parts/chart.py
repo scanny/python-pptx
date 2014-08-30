@@ -79,7 +79,10 @@ class ChartWorkbook(object):
         `c:chartSpace/c:externalData/@rId` or |None| if there is no
         `<c:externalData>` element.
         """
-        raise NotImplementedError
+        xlsx_part_rId = self._chartSpace.xlsx_part_rId
+        if xlsx_part_rId is None:
+            return None
+        return self._chart_part.related_parts[xlsx_part_rId]
 
     @property
     def _package(self):

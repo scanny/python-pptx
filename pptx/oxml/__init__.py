@@ -53,11 +53,14 @@ register_element_cls('c:tickLblPos',    CT_TickLblPos)
 register_element_cls('c:valAx',         CT_ValAx)
 
 
-from .chart.chart import CT_Chart, CT_ChartSpace, CT_PlotArea, CT_Style
-register_element_cls('c:chart',      CT_Chart)
-register_element_cls('c:chartSpace', CT_ChartSpace)
-register_element_cls('c:plotArea',   CT_PlotArea)
-register_element_cls('c:style',      CT_Style)
+from .chart.chart import (
+    CT_Chart, CT_ChartSpace, CT_ExternalData, CT_PlotArea, CT_Style
+)
+register_element_cls('c:chart',        CT_Chart)
+register_element_cls('c:chartSpace',   CT_ChartSpace)
+register_element_cls('c:externalData', CT_ExternalData)
+register_element_cls('c:plotArea',     CT_PlotArea)
+register_element_cls('c:style',        CT_Style)
 
 
 from .chart.plot import (
