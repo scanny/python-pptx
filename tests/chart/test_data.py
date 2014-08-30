@@ -26,6 +26,10 @@ class DescribeChartData(object):
         chart_data.categories = new_value
         assert chart_data.categories == expected_value
 
+    def it_provides_access_to_its_current_series_data(self, series_fixture):
+        chart_data, expected_value = series_fixture
+        assert chart_data.series == expected_value
+
     def it_can_add_a_series(self, add_series_fixture):
         chart_data, name, values, _SeriesData_, series_data_ = (
             add_series_fixture
@@ -71,6 +75,13 @@ class DescribeChartData(object):
         new_value, expected_value = request.param
         chart_data = ChartData()
         return chart_data, new_value, expected_value
+
+    @pytest.fixture
+    def series_fixture(self, series_data_):
+        chart_data = ChartData()
+        chart_data._series_lst = [series_data_, series_data_]
+        expected_value = (series_data_, series_data_)
+        return chart_data, expected_value
 
     @pytest.fixture
     def xml_bytes_fixture(self, chart_type_, ChartXmlWriter_, series_lst_):

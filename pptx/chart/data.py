@@ -44,6 +44,14 @@ class ChartData(object):
         self._categories[:] = categories
 
     @property
+    def series(self):
+        """
+        An snapshot of the current |_SeriesData| objects in this chart data
+        contained in an immutable sequence.
+        """
+        return tuple(self._series_lst)
+
+    @property
     def xlsx_blob(self):
         """
         Return a blob containing an Excel workbook file populated with the
@@ -81,3 +89,176 @@ class _SeriesData(object):
         self._name = name
         self._values = values
         self._categories = categories
+
+    def __len__(self):
+        """
+        The number of values this series contains.
+        """
+        return len(self._values)
+
+    @property
+    def cat_xml(self):
+        """
+        The unicode XML snippet for the ``<c:cat>`` element for this series,
+        containing the category labels and spreadsheet reference.
+        """
+        return self._cat_tmpl.format(
+            wksht_ref=self._categories_ref, cat_count=len(self._categories),
+            cat_pt_xml=self._cat_pt_xml, nsdecls=''
+        )
+
+    @property
+    def index(self):
+        """
+        The zero-based index of this series within the plot.
+        """
+        return self._series_idx
+
+    @property
+    def name(self):
+        """
+        The name of this series.
+        """
+        return self._name
+
+    @property
+    def tx_xml(self):
+        """
+        Return the ``<c:tx>`` element for this series as unicode text. This
+        element contains the series name.
+        """
+        return self._tx_tmpl.format(
+            wksht_ref=self._series_name_ref, series_name=self.name,
+            nsdecls=''
+        )
+
+    @property
+    def val_xml(self):
+        """
+        Return the unicode XML snippet for the ``<c:val>`` element describing
+        this series.
+        """
+        return self._val_tmpl.format(
+            wksht_ref=self._values_ref, val_count=len(self),
+            val_pt_xml=self._val_pt_xml, nsdecls=''
+        )
+
+    @property
+    def _categories_ref(self):
+        """
+        The Excel worksheet reference to the categories for this series.
+        """
+        end_row_number = len(self._categories) + 1
+        return "Sheet1!$A$2:$A$%d" % end_row_number
+
+    @property
+    def _cat_pt_xml(self):
+        """
+        The unicode XML snippet for the ``<c:pt>`` elements containing the
+        category names for this series.
+        """
+        xml = ''
+        for idx, name in enumerate(self._categories):
+            xml += (
+                '                <c:pt idx="%d">\n'
+                '                  <c:v>%s</c:v>\n'
+                '                </c:pt>\n'
+            ) % (idx, name)
+        return xml
+
+    @property
+    def _cat_tmpl(self):
+        """
+        The template for the ``<c:cat>`` element for this series, containing
+        the category labels and spreadsheet reference.
+        """
+        return (
+            '          <c:cat{nsdecls}>\n'
+            '            <c:strRef>\n'
+            '              <c:f>{wksht_ref}</c:f>\n'
+            '              <c:strCache>\n'
+            '                <c:ptCount val="{cat_count}"/>\n'
+            '{cat_pt_xml}'
+            '              </c:strCache>\n'
+            '            </c:strRef>\n'
+            '          </c:cat>\n'
+        )
+
+    @property
+    def _col_letter(self):
+        """
+        The letter of the Excel worksheet column in which the data for this
+        series appears.
+        """
+        return chr(ord('B') + self._series_idx)
+
+    @property
+    def _series_name_ref(self):
+        """
+        The Excel worksheet reference to the name for this series.
+        """
+        return "Sheet1!$%s$1" % self._col_letter
+
+    @property
+    def _tx_tmpl(self):
+        """
+        The string formatting template for the ``<c:tx>`` element for this
+        series, containing the series title and spreadsheet range reference.
+        """
+        return (
+            '          <c:tx{nsdecls}>\n'
+            '            <c:strRef>\n'
+            '              <c:f>{wksht_ref}</c:f>\n'
+            '              <c:strCache>\n'
+            '                <c:ptCount val="1"/>\n'
+            '                <c:pt idx="0">\n'
+            '                  <c:v>{series_name}</c:v>\n'
+            '                </c:pt>\n'
+            '              </c:strCache>\n'
+            '            </c:strRef>\n'
+            '          </c:tx>\n'
+        )
+
+    @property
+    def _val_pt_xml(self):
+        """
+        The unicode XML snippet containing the ``<c:pt>`` elements for this
+        series.
+        """
+        xml = ''
+        for idx, value in enumerate(self._values):
+            xml += (
+                '                <c:pt idx="%d">\n'
+                '                  <c:v>%s</c:v>\n'
+                '                </c:pt>\n'
+            ) % (idx, value)
+        return xml
+
+    @property
+    def _val_tmpl(self):
+        """
+        The template for the ``<c:val>`` element for this series, containing
+        the series values and their spreadsheet range reference.
+        """
+        return (
+            '          <c:val{nsdecls}>\n'
+            '            <c:numRef>\n'
+            '              <c:f>{wksht_ref}</c:f>\n'
+            '              <c:numCache>\n'
+            '                <c:formatCode>General</c:formatCode>\n'
+            '                <c:ptCount val="{val_count}"/>\n'
+            '{val_pt_xml}'
+            '              </c:numCache>\n'
+            '            </c:numRef>\n'
+            '          </c:val>\n'
+        )
+
+    @property
+    def _values_ref(self):
+        """
+        The Excel worksheet reference to the values for this series (not
+        including the series name).
+        """
+        return "Sheet1!$%s$2:$%s$%d" % (
+            self._col_letter, self._col_letter, len(self._values)+1
+        )

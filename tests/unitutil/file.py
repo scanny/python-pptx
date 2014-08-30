@@ -38,6 +38,18 @@ def parse_xml_file(file_):
     return etree.parse(file_, oxml_parser)
 
 
+def snippet_text(snippet_file_name):
+    """
+    Return the unicode text read from the test snippet file having *name*.
+    """
+    snippet_file_path = os.path.join(
+        test_file_dir, 'snippets', '%s.txt' % snippet_file_name
+    )
+    with open(snippet_file_path, 'rb') as f:
+        snippet_bytes = f.read()
+    return snippet_bytes.decode('utf-8')
+
+
 def test_file(name):
     """
     Return the absolute path to test file having *name*.
