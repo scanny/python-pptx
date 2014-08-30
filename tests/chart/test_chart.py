@@ -10,10 +10,12 @@ import pytest
 
 from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Chart, Plots
+from pptx.chart.data import ChartData
 from pptx.chart.plot import Plot
 from pptx.chart.series import SeriesCollection
 from pptx.enum.base import EnumValue
 from pptx.oxml.chart.chart import CT_ChartSpace
+from pptx.parts.chart import ChartPart
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, function_mock, instance_mock
@@ -70,6 +72,18 @@ class DescribeChart(object):
         chart.chart_style = new_value
         assert chart._chartSpace.xml == expected_xml
 
+    def it_can_replace_the_chart_data(self, replace_data_fixture):
+        chart, chart_data_, _SeriesRewriter_, chartSpace_, workbook_ = (
+            replace_data_fixture
+        )
+        chart.replace_data(chart_data_)
+        _SeriesRewriter_.replace_series_data.assert_called_once_with(
+            chartSpace_, chart_data_
+        )
+        workbook_.update_from_xlsx_blob.assert_called_once_with(
+            chart_data_.xlsx_blob
+        )
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -96,6 +110,15 @@ class DescribeChart(object):
         plotArea = chartSpace.xpath('./c:chart/c:plotArea')[0]
         chart = Chart(chartSpace, None)
         return chart, plots_, Plots_, plotArea
+
+    @pytest.fixture
+    def replace_data_fixture(
+            self, chartSpace_, chart_part_, chart_data_, _SeriesRewriter_):
+        chart = Chart(chartSpace_, chart_part_)
+        workbook_ = chart_part_.chart_workbook
+        return (
+            chart, chart_data_, _SeriesRewriter_, chartSpace_, workbook_
+        )
 
     @pytest.fixture
     def series_fixture(
@@ -154,6 +177,14 @@ class DescribeChart(object):
         return instance_mock(request, CT_ChartSpace)
 
     @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, ChartData)
+
+    @pytest.fixture
+    def chart_part_(self, request):
+        return instance_mock(request, ChartPart)
+
+    @pytest.fixture
     def chart_type_(self, request):
         return instance_mock(request, EnumValue)
 
@@ -185,6 +216,10 @@ class DescribeChart(object):
             request, 'pptx.chart.chart.SeriesCollection',
             return_value=series_collection_
         )
+
+    @pytest.fixture
+    def _SeriesRewriter_(self, request):
+        return class_mock(request, 'pptx.chart.chart._SeriesRewriter')
 
     @pytest.fixture
     def series_collection_(self, request):

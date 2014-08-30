@@ -76,6 +76,14 @@ class Chart(object):
         plotArea = self._chartSpace.chart.plotArea
         return Plots(plotArea)
 
+    def replace_data(self, chart_data):
+        """
+        Use the categories and series values in *chart_data* to replace those
+        in the XML for this chart.
+        """
+        _SeriesRewriter.replace_series_data(self._chartSpace, chart_data)
+        self._workbook.update_from_xlsx_blob(chart_data.xlsx_blob)
+
     @lazyproperty
     def series(self):
         """
@@ -86,6 +94,11 @@ class Chart(object):
 
     @property
     def value_axis(self):
+        """
+        The |ValueAxis| object providing access to properties of the value
+        axis of this chart. Raises |ValueError| if the chart has no value
+        axis.
+        """
         valAx = self._chartSpace.valAx
         if valAx is None:
             raise ValueError('chart has no value axis')
@@ -122,3 +135,26 @@ class Plots(Sequence):
     def __len__(self):
         plot_elms = [p for p in self._plotArea.iter_plots()]
         return len(plot_elms)
+
+
+class _SeriesRewriter(object):
+    """
+    Pure functional service class that knows how to rewrite the data in
+    a chart while disturbing the current formatting as little as possible.
+    All the data for a chart is located under its ``<c:ser>`` elements, so
+    updating the data for a chart requires changes to series element subtrees
+    only.
+    """
+    @classmethod
+    def replace_series_data(cls, chartSpace, chart_data):
+        """
+        Use the category and series data in *chart_data* to rewrite the
+        series name, category labels, and point values of the series
+        contained in the *chartSpace* element. All series-level formatting is
+        left undisturbed. If *chart_data* contains fewer series than
+        *chartSpace*, the excess series are deleted. If *chart_data* contains
+        more series than the *chartSpace* element, new series are added to
+        the last plot in the chart and series formatting is copied from the
+        last series in that plot.
+        """
+        raise NotImplementedError
