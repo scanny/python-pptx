@@ -6,6 +6,9 @@ Chart builder and related objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from contextlib import contextmanager
+from StringIO import StringIO as BytesIO
+
 
 class WorkbookWriter(object):
     """
@@ -16,5 +19,29 @@ class WorkbookWriter(object):
         """
         Return the byte stream of an Excel file formatted as chart data for
         a chart having *categories* and *series*.
+        """
+        xlsx_file = BytesIO()
+        with cls._open_worksheet(xlsx_file) as worksheet:
+            cls._populate_worksheet(worksheet, categories, series)
+        return xlsx_file.getvalue()
+
+    @staticmethod
+    @contextmanager
+    def _open_worksheet(xlsx_file):
+        """
+        Enable XlsxWriter Worksheet object to be opened, operated on, and
+        then automatically closed within a `with` statement. A filename or
+        stream object (such as a ``BytesIO`` instance) is expected as
+        *xlsx_file*.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def _populate_worksheet(cls, worksheet, categories, series):
+        """
+        Write *categories* and *series* to *worksheet* in the standard
+        layout, categories in first column starting in second row, and series
+        as columns starting in second column, series title in first cell.
+        Make the whole range an Excel List.
         """
         raise NotImplementedError
