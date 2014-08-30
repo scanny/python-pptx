@@ -9,6 +9,8 @@ from __future__ import absolute_import, print_function, unicode_literals
 from contextlib import contextmanager
 from StringIO import StringIO as BytesIO
 
+from xlsxwriter import Workbook
+
 
 class WorkbookWriter(object):
     """
@@ -34,7 +36,10 @@ class WorkbookWriter(object):
         stream object (such as a ``BytesIO`` instance) is expected as
         *xlsx_file*.
         """
-        raise NotImplementedError
+        workbook = Workbook(xlsx_file, {'in_memory': True})
+        worksheet = workbook.add_worksheet()
+        yield worksheet
+        workbook.close()
 
     @classmethod
     def _populate_worksheet(cls, worksheet, categories, series):

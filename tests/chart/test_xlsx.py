@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from StringIO import StringIO as BytesIO
+from zipfile import ZipFile
 
 from xlsxwriter.worksheet import Worksheet
 
@@ -30,6 +31,14 @@ class Describe_WorkbookWriter(object):
             worksheet_, categories_, series_
         )
         assert xlsx_blob is xlsx_blob_
+
+    def it_can_open_a_worksheet_in_a_context(self):
+        xlsx_file = BytesIO()
+        with WorkbookWriter._open_worksheet(xlsx_file) as worksheet:
+            assert isinstance(worksheet, Worksheet)
+        zipf = ZipFile(xlsx_file)
+        assert 'xl/worksheets/sheet1.xml' in zipf.namelist()
+        zipf.close
 
     # fixtures -------------------------------------------------------
 
