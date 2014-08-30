@@ -157,4 +157,24 @@ class _SeriesRewriter(object):
         the last plot in the chart and series formatting is copied from the
         last series in that plot.
         """
+        sers = cls._adjust_ser_count(chartSpace, len(chart_data.series))
+        for ser, series_data in zip(sers, chart_data.series):
+            cls._rewrite_ser_data(ser, series_data)
+
+    @classmethod
+    def _adjust_ser_count(cls, chartSpace, new_ser_count):
+        """
+        Return the ser elements in *chartSpace* after adjusting their number
+        to *new_ser_count*. The ser elements returned are sorted in
+        increasing order of the c:ser/c:idx value, starting with 0 and with
+        any gaps in numbering collapsed.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def _rewrite_ser_data(cls, ser, series_data):
+        """
+        Rewrite the ``<c:tx>``, ``<c:cat>`` and ``<c:val>`` child elements
+        of *ser* based on the values in *series_data*.
+        """
         raise NotImplementedError

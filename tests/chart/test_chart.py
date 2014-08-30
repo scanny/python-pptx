@@ -9,16 +9,19 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import CategoryAxis, ValueAxis
-from pptx.chart.chart import Chart, Plots
-from pptx.chart.data import ChartData
+from pptx.chart.chart import Chart, Plots, _SeriesRewriter
+from pptx.chart.data import ChartData, _SeriesData
 from pptx.chart.plot import Plot
 from pptx.chart.series import SeriesCollection
 from pptx.enum.base import EnumValue
 from pptx.oxml.chart.chart import CT_ChartSpace
+from pptx.oxml.chart.series import CT_SeriesComposite
 from pptx.parts.chart import ChartPart
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, function_mock, instance_mock
+from ..unitutil.mock import (
+    call, class_mock, function_mock, instance_mock, method_mock
+)
 
 
 class DescribeChart(object):
@@ -283,3 +286,70 @@ class DescribePlots(object):
     @pytest.fixture
     def plot_(self, request):
         return instance_mock(request, Plot)
+
+
+class Describe_SeriesRewriter(object):
+
+    def it_can_replace_the_sers_in_a_chartSpace(self, replace_fixture):
+        chartSpace_, chart_data_, series_count, expected_calls = (
+            replace_fixture
+        )
+
+        _SeriesRewriter.replace_series_data(chartSpace_, chart_data_)
+
+        _SeriesRewriter._adjust_ser_count.assert_called_once_with(
+            chartSpace_, series_count
+        )
+        assert _SeriesRewriter._rewrite_ser_data.call_args_list == (
+            expected_calls
+        )
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def replace_fixture(
+            self, chartSpace_, chart_data_, _adjust_ser_count_,
+            _rewrite_ser_data_, ser_, ser_2_, series_data_, series_data_2_):
+        _adjust_ser_count_.return_value = [ser_, ser_2_]
+        series_count = 2
+        expected_calls = [
+            call(ser_,   series_data_),
+            call(ser_2_, series_data_2_)
+        ]
+        return chartSpace_, chart_data_, series_count, expected_calls
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _adjust_ser_count_(self, request):
+        return method_mock(request, _SeriesRewriter, '_adjust_ser_count')
+
+    @pytest.fixture
+    def chartSpace_(self, request):
+        return instance_mock(request, CT_ChartSpace)
+
+    @pytest.fixture
+    def chart_data_(self, request, series_data_, series_data_2_):
+        chart_data_ = instance_mock(request, ChartData)
+        chart_data_.series = [series_data_, series_data_2_]
+        return chart_data_
+
+    @pytest.fixture
+    def _rewrite_ser_data_(self, request):
+        return method_mock(request, _SeriesRewriter, '_rewrite_ser_data')
+
+    @pytest.fixture
+    def ser_(self, request):
+        return instance_mock(request, CT_SeriesComposite)
+
+    @pytest.fixture
+    def ser_2_(self, request):
+        return instance_mock(request, CT_SeriesComposite)
+
+    @pytest.fixture
+    def series_data_(self, request):
+        return instance_mock(request, _SeriesData)
+
+    @pytest.fixture
+    def series_data_2_(self, request):
+        return instance_mock(request, _SeriesData)
