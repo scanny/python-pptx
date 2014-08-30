@@ -6,6 +6,8 @@ Gherkin step implementations for chart features.
 
 from __future__ import absolute_import, print_function
 
+import hashlib
+
 from itertools import count, islice
 
 from behave import given, then, when
@@ -95,6 +97,23 @@ def given_a_bar_series_having_width_line(context, width):
     prs = Presentation(test_pptx('cht-series-props'))
     plot = prs.slides[0].shapes[0].chart.plots[0]
     context.series = plot.series[series_idx]
+
+
+@given('a chart of size and type {spec}')
+def given_a_chart_of_size_and_type_spec(context, spec):
+    slide_idx = {
+        '2x2 Clustered Bar':    0,
+        '2x2 100% Stacked Bar': 1,
+        '2x2 Clustered Column': 2,
+        '4x3 Line':             3,
+        '3x1 Pie':              4,
+    }[spec]
+    prs = Presentation(test_pptx('cht-replace-data'))
+    chart = prs.slides[slide_idx].shapes[0].chart
+    context.chart = chart
+    context.xlsx_sha1 = hashlib.sha1(
+        chart._workbook.xlsx_part.blob
+    ).hexdigest()
 
 
 @given('a chart of type {chart_type}')
@@ -234,6 +253,22 @@ def when_I_assign_value_to_tick_labels_offset(context, value):
     context.tick_labels.offset = new_value
 
 
+@when('I replace its data with {cats} categories and {sers} series')
+def when_I_replace_its_data_with_categories_and_series(context, cats, sers):
+    category_count, series_count = int(cats), int(sers)
+    category_source = ('Foo', 'Bar', 'Baz', 'Boo', 'Far', 'Faz')
+    series_value_source = count(1.1, 1.1)
+
+    chart_data = ChartData()
+    chart_data.categories = category_source[:category_count]
+    for idx in range(series_count):
+        series_title = 'New Series %d' % (idx+1)
+        series_values = tuple(islice(series_value_source, category_count))
+        chart_data.add_series(series_title, series_values)
+
+    context.chart.replace_data(chart_data)
+
+
 # then ====================================================
 
 @then('axis.has_{major_or_minor}_gridlines is {value}')
@@ -264,6 +299,12 @@ def then_chart_chart_type_is_value(context, enum_member):
     expected_value = getattr(XL_CHART_TYPE, enum_member)
     chart = context.chart
     assert chart.chart_type is expected_value, 'got %s' % chart.chart_type
+
+
+@then('each series has a new name')
+def then_each_series_has_a_new_name(context):
+    for series in context.chart.plots[0].series:
+        assert series.name.startswith('New ')
 
 
 @then('each series has {count} values')
@@ -316,6 +357,15 @@ def then_series_values_contains_the_known_values(context):
 def then_the_chart_has_an_Excel_data_worksheet(context):
     xlsx_part = context.chart._workbook.xlsx_part
     assert isinstance(xlsx_part, EmbeddedXlsxPart)
+
+
+@then('the chart has new chart data')
+def then_the_chart_has_new_chart_data(context):
+    orig_xlsx_sha1 = context.xlsx_sha1
+    new_xlsx_sha1 = hashlib.sha1(
+        context.chart._workbook.xlsx_part.blob
+    ).hexdigest()
+    assert new_xlsx_sha1 != orig_xlsx_sha1
 
 
 @then('the chart has {count} categories')
