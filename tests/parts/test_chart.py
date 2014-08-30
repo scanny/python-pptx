@@ -11,14 +11,14 @@ import pytest
 from pptx.chart.chart import Chart
 from pptx.chart.data import ChartData
 from pptx.enum.base import EnumValue
-from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.package import OpcPackage
 from pptx.opc.packuri import PackURI
 from pptx.oxml.chart.chart import CT_ChartSpace
 from pptx.parts.chart import ChartPart, ChartWorkbook
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 
-from ..unitutil.cxml import element
+from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
     class_mock, instance_mock, method_mock, property_mock
 )
@@ -156,6 +156,14 @@ class DescribeChartWorkbook(object):
         chart_data, expected_object = xlsx_part_get_fixture
         assert chart_data.xlsx_part is expected_object
 
+    def it_can_change_the_chart_xlsx_part(self, xlsx_part_set_fixture):
+        chart_data, xlsx_part_, expected_xml = xlsx_part_set_fixture
+        chart_data.xlsx_part = xlsx_part_
+        chart_data._chart_part.relate_to.assert_called_once_with(
+            xlsx_part_, RT.PACKAGE
+        )
+        assert chart_data._chartSpace.xml == expected_xml
+
     def it_adds_an_xlsx_part_on_update_if_needed(self, add_part_fixture):
         chart_data, xlsx_blob_, EmbeddedXlsxPart_ = add_part_fixture[:3]
         package_, xlsx_part_prop_, xlsx_part_ = add_part_fixture[3:]
@@ -198,6 +206,18 @@ class DescribeChartWorkbook(object):
         chart_data = ChartWorkbook(element(chartSpace_cxml), chart_part_)
         expected_object = xlsx_part_ if xlsx_part_rId else None
         return chart_data, expected_object
+
+    @pytest.fixture(params=[
+        ('c:chartSpace{r:a=b}', 'c:chartSpace{r:a=b}/c:externalData{r:id=rId'
+         '42}/c:autoUpdate{val=0}'),
+        ('c:chartSpace/c:externalData{r:id=rId66}',
+         'c:chartSpace/c:externalData{r:id=rId42}'),
+    ])
+    def xlsx_part_set_fixture(self, request, chart_part_, xlsx_part_):
+        chartSpace_cxml, expected_cxml = request.param
+        chart_data = ChartWorkbook(element(chartSpace_cxml), chart_part_)
+        expected_xml = xml(expected_cxml)
+        return chart_data, xlsx_part_, expected_xml
 
     # fixture components ---------------------------------------------
 

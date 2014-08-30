@@ -61,6 +61,16 @@ class CT_ChartSpace(BaseOxmlElement):
             return None
         return externalData.rId
 
+    def _add_externalData(self):
+        """
+        Always add a ``<c:autoUpdate val="0"/>`` child so auto-updating
+        behavior is off by default.
+        """
+        externalData = self._new_externalData()
+        externalData._add_autoUpdate(val=False)
+        self._insert_externalData(externalData)
+        return externalData
+
 
 class CT_ExternalData(BaseOxmlElement):
     """

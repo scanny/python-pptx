@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from ..chart.chart import Chart
 from .embeddedpackage import EmbeddedXlsxPart
-from ..opc.constants import CONTENT_TYPE as CT
+from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..util import lazyproperty
 
@@ -83,6 +83,16 @@ class ChartWorkbook(object):
         if xlsx_part_rId is None:
             return None
         return self._chart_part.related_parts[xlsx_part_rId]
+
+    @xlsx_part.setter
+    def xlsx_part(self, xlsx_part):
+        """
+        Set the related |EmbeddedXlsxPart| to *xlsx_part*. Assume one does
+        not already exist.
+        """
+        rId = self._chart_part.relate_to(xlsx_part, RT.PACKAGE)
+        externalData = self._chartSpace.get_or_add_externalData()
+        externalData.rId = rId
 
     @property
     def _package(self):
