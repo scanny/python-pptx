@@ -23,3 +23,10 @@ class EmbeddedXlsxPart(EmbeddedPackagePart):
     An Excel file stored in a part, typically used as a data source for
     a chart.
     """
+    @classmethod
+    def new(cls, xlsx_blob, package):
+        """
+        Return a new |EmbeddedXlsxPart| instance added to *package* and
+        containing *xlsx_blob*.
+        """
+        raise NotImplementedError

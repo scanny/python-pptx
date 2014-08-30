@@ -16,8 +16,12 @@ from pptx.opc.package import OpcPackage
 from pptx.opc.packuri import PackURI
 from pptx.oxml.chart.chart import CT_ChartSpace
 from pptx.parts.chart import ChartPart, ChartWorkbook
+from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 
-from ..unitutil.mock import class_mock, instance_mock, method_mock
+from ..unitutil.cxml import element
+from ..unitutil.mock import (
+    class_mock, instance_mock, method_mock, property_mock
+)
 
 
 class DescribeChartPart(object):
@@ -144,3 +148,73 @@ class DescribeChartPart(object):
     @pytest.fixture
     def xlsx_blob_(self, request):
         return instance_mock(request, bytes)
+
+
+class DescribeChartWorkbook(object):
+
+    def it_adds_an_xlsx_part_on_update_if_needed(self, add_part_fixture):
+        chart_data, xlsx_blob_, EmbeddedXlsxPart_ = add_part_fixture[:3]
+        package_, xlsx_part_prop_, xlsx_part_ = add_part_fixture[3:]
+
+        chart_data.update_from_xlsx_blob(xlsx_blob_)
+
+        EmbeddedXlsxPart_.new.assert_called_once_with(xlsx_blob_, package_)
+        xlsx_part_prop_.assert_called_with(xlsx_part_)
+
+    def but_replaces_xlsx_blob_when_part_exists(self, update_blob_fixture):
+        chart_data, xlsx_blob_ = update_blob_fixture
+        chart_data.update_from_xlsx_blob(xlsx_blob_)
+        assert chart_data.xlsx_part.blob is xlsx_blob_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_part_fixture(
+            self, request, chart_part_, xlsx_blob_, EmbeddedXlsxPart_,
+            package_, xlsx_part_, xlsx_part_prop_):
+        chartSpace_cxml = 'c:chartSpace'
+        chart_data = ChartWorkbook(element(chartSpace_cxml), chart_part_)
+        xlsx_part_prop_.return_value = None
+        return (
+            chart_data, xlsx_blob_, EmbeddedXlsxPart_, package_,
+            xlsx_part_prop_, xlsx_part_
+        )
+
+    @pytest.fixture
+    def update_blob_fixture(self, request, xlsx_blob_, xlsx_part_prop_):
+        chart_data = ChartWorkbook(None, None)
+        return chart_data, xlsx_blob_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def chart_part_(self, request, package_, xlsx_part_):
+        chart_part_ = instance_mock(request, ChartPart)
+        chart_part_.package = package_
+        chart_part_.related_parts = {'rId42': xlsx_part_}
+        chart_part_.relate_to.return_value = 'rId42'
+        return chart_part_
+
+    @pytest.fixture
+    def EmbeddedXlsxPart_(self, request, xlsx_part_):
+        EmbeddedXlsxPart_ = class_mock(
+            request, 'pptx.parts.chart.EmbeddedXlsxPart'
+        )
+        EmbeddedXlsxPart_.new.return_value = xlsx_part_
+        return EmbeddedXlsxPart_
+
+    @pytest.fixture
+    def package_(self, request):
+        return instance_mock(request, OpcPackage)
+
+    @pytest.fixture
+    def xlsx_blob_(self, request):
+        return instance_mock(request, bytes)
+
+    @pytest.fixture
+    def xlsx_part_(self, request):
+        return instance_mock(request, EmbeddedXlsxPart)
+
+    @pytest.fixture
+    def xlsx_part_prop_(self, request, xlsx_part_):
+        return property_mock(request, ChartWorkbook, 'xlsx_part')

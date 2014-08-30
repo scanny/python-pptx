@@ -6,9 +6,10 @@ Chart part objects, including Chart and Charts
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from ..chart.chart import Chart
+from .embeddedpackage import EmbeddedXlsxPart
 from ..opc.constants import CONTENT_TYPE as CT
 from ..opc.package import XmlPart
-from ..chart.chart import Chart
 from ..util import lazyproperty
 
 
@@ -65,4 +66,21 @@ class ChartWorkbook(object):
         the Excel binary in *xlsx_blob*, adding a new |EmbeddedXlsxPart| if
         there isn't one.
         """
+        xlsx_part = self.xlsx_part
+        if xlsx_part is None:
+            self.xlsx_part = EmbeddedXlsxPart.new(xlsx_blob, self._package)
+            return
+        xlsx_part.blob = xlsx_blob
+
+    @property
+    def xlsx_part(self):
+        """
+        Return the related |EmbeddedXlsxPart| object having its rId at
+        `c:chartSpace/c:externalData/@rId` or |None| if there is no
+        `<c:externalData>` element.
+        """
         raise NotImplementedError
+
+    @property
+    def _package(self):
+        return self._chart_part.package
