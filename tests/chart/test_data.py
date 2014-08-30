@@ -49,6 +49,15 @@ class DescribeChartData(object):
         ChartXmlWriter_.assert_called_once_with(chart_type_, series_lst_)
         assert xml_bytes == expected_bytes
 
+    def it_can_provide_its_data_as_an_Excel_workbook(self, xlsx_fixture):
+        chart_data, WorkbookWriter_ = xlsx_fixture[:2]
+        categories, series_, xlsx_blob_ = xlsx_fixture[2:]
+        xlsx_blob = chart_data.xlsx_blob
+        WorkbookWriter_.xlsx_blob.assert_called_once_with(
+            categories, series_
+        )
+        assert xlsx_blob is xlsx_blob_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -82,6 +91,17 @@ class DescribeChartData(object):
         chart_data._series_lst = [series_data_, series_data_]
         expected_value = (series_data_, series_data_)
         return chart_data, expected_value
+
+    @pytest.fixture
+    def xlsx_fixture(
+            self, request, WorkbookWriter_, categories, series_lst_,
+            xlsx_blob_):
+        chart_data = ChartData()
+        chart_data.categories = categories
+        chart_data._series_lst = series_lst_
+        return (
+            chart_data, WorkbookWriter_, categories, series_lst_, xlsx_blob_
+        )
 
     @pytest.fixture
     def xml_bytes_fixture(self, chart_type_, ChartXmlWriter_, series_lst_):
@@ -124,3 +144,15 @@ class DescribeChartData(object):
     @pytest.fixture
     def series_lst_(self, request):
         return instance_mock(request, list)
+
+    @pytest.fixture
+    def WorkbookWriter_(self, request, xlsx_blob_):
+        WorkbookWriter_ = class_mock(
+            request, 'pptx.chart.data.WorkbookWriter'
+        )
+        WorkbookWriter_.xlsx_blob.return_value = xlsx_blob_
+        return WorkbookWriter_
+
+    @pytest.fixture
+    def xlsx_blob_(self, request):
+        return instance_mock(request, bytes)

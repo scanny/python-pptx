@@ -6,6 +6,7 @@ ChartData and related objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from .xlsx import WorkbookWriter
 from .xmlwriter import ChartXmlWriter
 
 
@@ -57,7 +58,7 @@ class ChartData(object):
         Return a blob containing an Excel workbook file populated with the
         categories and series in this chart data object.
         """
-        raise NotImplementedError
+        return WorkbookWriter.xlsx_blob(self.categories, self._series_lst)
 
     def xml_bytes(self, chart_type):
         """
