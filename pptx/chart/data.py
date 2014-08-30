@@ -145,6 +145,13 @@ class _SeriesData(object):
         )
 
     @property
+    def values(self):
+        """
+        The values in this series as a sequence of float.
+        """
+        return self._values
+
+    @property
     def _categories_ref(self):
         """
         The Excel worksheet reference to the categories for this series.

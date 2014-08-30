@@ -49,4 +49,8 @@ class WorkbookWriter(object):
         as columns starting in second column, series title in first cell.
         Make the whole range an Excel List.
         """
-        raise NotImplementedError
+        worksheet.write_column(1, 0, categories)
+        for series in series:
+            series_col = series.index + 1
+            worksheet.write(0, series_col, series.name)
+            worksheet.write_column(1, series_col, series.values)

@@ -13,9 +13,10 @@ from zipfile import ZipFile
 
 from xlsxwriter.worksheet import Worksheet
 
+from pptx.chart.data import _SeriesData
 from pptx.chart.xlsx import WorkbookWriter
 
-from ..unitutil.mock import class_mock, instance_mock, method_mock
+from ..unitutil.mock import call, class_mock, instance_mock, method_mock
 
 
 class Describe_WorkbookWriter(object):
@@ -40,7 +41,28 @@ class Describe_WorkbookWriter(object):
         assert 'xl/worksheets/sheet1.xml' in zipf.namelist()
         zipf.close
 
+    def it_can_populate_a_worksheet_with_chart_data(self, populate_fixture):
+        worksheet_, categories, series, expected_calls = populate_fixture
+        WorkbookWriter._populate_worksheet(worksheet_, categories, series)
+        assert worksheet_.mock_calls == expected_calls
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def populate_fixture(self, worksheet_):
+        categories = ('Foo', 'Bar')
+        series = (
+            _SeriesData(0, 'Series 1', (1.1, 2.2), categories),
+            _SeriesData(1, 'Series 2', (3.3, 4.4), categories)
+        )
+        expected_calls = [
+            call.write_column(1, 0, ('Foo', 'Bar')),
+            call.write(0, 1, 'Series 1'),
+            call.write_column(1, 1, (1.1, 2.2)),
+            call.write(0, 2, 'Series 2'),
+            call.write_column(1, 2, (3.3, 4.4))
+        ]
+        return worksheet_, categories, series, expected_calls
 
     @pytest.fixture
     def xlsx_blob_fixture(
