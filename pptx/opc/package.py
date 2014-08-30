@@ -77,6 +77,15 @@ class OpcPackage(object):
         """
         return self.part_related_by(RT.OFFICE_DOCUMENT)
 
+    def next_partname(self, tmpl):
+        """
+        Return a |PackURI| instance representing the next available partname
+        matching *tmpl*, which is a printf (%)-style template string
+        containing a single replacement item, a '%d' to be used to insert the
+        integer portion of the partname. Example: '/ppt/slides/slide%d.xml'
+        """
+        raise NotImplementedError
+
     @classmethod
     def open(cls, pkg_file):
         """

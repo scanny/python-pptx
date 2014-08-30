@@ -41,6 +41,22 @@ class ChartData(object):
         # _SeriesData objects retain access to latest values
         self._categories[:] = categories
 
+    @property
+    def xlsx_blob(self):
+        """
+        Return a blob containing an Excel workbook file populated with the
+        categories and series in this chart data object.
+        """
+        raise NotImplementedError
+
+    def xml_bytes(self, chart_type):
+        """
+        Return a blob containing the XML for a chart of *chart_type*
+        containing the series in this chart data object, as bytes suitable
+        for writing directly to a file.
+        """
+        raise NotImplementedError
+
 
 class _SeriesData(object):
     """
