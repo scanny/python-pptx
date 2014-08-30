@@ -4,12 +4,13 @@
 Test suite for pptx.chart.data module
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
 
 from pptx.chart.data import ChartData, _SeriesData
+from pptx.enum.base import EnumValue
 
 from ..unitutil.mock import class_mock, instance_mock
 
@@ -34,6 +35,15 @@ class DescribeChartData(object):
             0, name, values, chart_data._categories
         )
         assert chart_data._series_lst[0] is series_data_
+
+    def it_can_generate_chart_part_XML_for_its_data(self, xml_bytes_fixture):
+        chart_data, chart_type_, ChartXmlWriter_ = xml_bytes_fixture[:3]
+        expected_bytes, series_lst_ = xml_bytes_fixture[3:]
+
+        xml_bytes = chart_data.xml_bytes(chart_type_)
+
+        ChartXmlWriter_.assert_called_once_with(chart_type_, series_lst_)
+        assert xml_bytes == expected_bytes
 
     # fixtures -------------------------------------------------------
 
@@ -62,11 +72,33 @@ class DescribeChartData(object):
         chart_data = ChartData()
         return chart_data, new_value, expected_value
 
+    @pytest.fixture
+    def xml_bytes_fixture(self, chart_type_, ChartXmlWriter_, series_lst_):
+        chart_data = ChartData()
+        chart_data._series_lst = series_lst_
+        expected_bytes = 'ƒøØßår'.encode('utf-8')
+        return (
+            chart_data, chart_type_, ChartXmlWriter_, expected_bytes,
+            series_lst_
+        )
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
     def categories(self):
         return ('Foo', 'Bar', 'Baz')
+
+    @pytest.fixture
+    def ChartXmlWriter_(self, request):
+        ChartXmlWriter_ = class_mock(
+            request, 'pptx.chart.data.ChartXmlWriter'
+        )
+        ChartXmlWriter_.return_value.xml = 'ƒøØßår'
+        return ChartXmlWriter_
+
+    @pytest.fixture
+    def chart_type_(self, request):
+        return instance_mock(request, EnumValue)
 
     @pytest.fixture
     def _SeriesData_(self, request, series_data_):
@@ -77,3 +109,7 @@ class DescribeChartData(object):
     @pytest.fixture
     def series_data_(self, request):
         return instance_mock(request, _SeriesData)
+
+    @pytest.fixture
+    def series_lst_(self, request):
+        return instance_mock(request, list)

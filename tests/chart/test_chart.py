@@ -11,7 +11,7 @@ import pytest
 from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Chart, Plots
 from pptx.chart.plot import Plot
-from pptx.enum.chart import EnumMember
+from pptx.enum.base import EnumValue
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, function_mock, instance_mock
@@ -137,7 +137,7 @@ class DescribeChart(object):
 
     @pytest.fixture
     def chart_type_(self, request):
-        return instance_mock(request, EnumMember)
+        return instance_mock(request, EnumValue)
 
     @pytest.fixture
     def PlotTypeInspector_(self, request, chart_type_):

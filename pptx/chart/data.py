@@ -6,6 +6,8 @@ ChartData and related objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from .xmlwriter import ChartXmlWriter
+
 
 class ChartData(object):
     """
@@ -55,7 +57,16 @@ class ChartData(object):
         containing the series in this chart data object, as bytes suitable
         for writing directly to a file.
         """
-        raise NotImplementedError
+        return self._xml(chart_type).encode('utf-8')
+
+    def _xml(self, chart_type):
+        """
+        Return (as unicode text) the XML for a chart of *chart_type* having
+        the categories and series in this chart data object. The XML is
+        a complete XML document, including an XML declaration specifying
+        UTF-8 encoding.
+        """
+        return ChartXmlWriter(chart_type, self._series_lst).xml
 
 
 class _SeriesData(object):
