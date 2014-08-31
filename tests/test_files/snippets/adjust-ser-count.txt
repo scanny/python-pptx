@@ -1,0 +1,157 @@
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
+  <c:chart>
+    <c:plotArea>
+      <c:barChart>
+        <c:ser>
+          <c:idx val="0"/>
+          <c:order val="0"/>
+        </c:ser>
+      </c:barChart>
+      <c:lineChart>
+        <c:ser>
+          <c:idx val="1"/>
+          <c:order val="1"/>
+        </c:ser>
+      </c:lineChart>
+    </c:plotArea>
+  </c:chart>
+</c:chartSpace>
+
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
+  <c:chart>
+    <c:plotArea>
+      <c:barChart>
+        <c:ser>
+          <c:idx val="0"/>
+          <c:order val="0"/>
+        </c:ser>
+      </c:barChart>
+      <c:lineChart>
+        <c:ser>
+          <c:idx val="1"/>
+          <c:order val="1"/>
+        </c:ser>
+      </c:lineChart>
+    </c:plotArea>
+  </c:chart>
+</c:chartSpace>
+
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
+  <c:chart>
+    <c:plotArea>
+      <c:barChart>
+        <c:ser>
+          <c:idx val="1"/>
+          <c:order val="1"/>
+        </c:ser>
+      </c:barChart>
+      <c:lineChart>
+        <c:ser>
+          <c:idx val="0"/>
+          <c:order val="0"/>
+        </c:ser>
+      </c:lineChart>
+    </c:plotArea>
+  </c:chart>
+</c:chartSpace>
+
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
+  <c:chart>
+    <c:plotArea>
+      <c:barChart>
+        <c:ser>
+          <c:idx val="1"/>
+          <c:order val="1"/>
+        </c:ser>
+      </c:barChart>
+      <c:lineChart>
+        <c:ser>
+          <c:idx val="0"/>
+          <c:order val="0"/>
+        </c:ser>
+        <c:ser>
+          <c:idx val="2"/>
+          <c:order val="2"/>
+        </c:ser>
+      </c:lineChart>
+    </c:plotArea>
+  </c:chart>
+</c:chartSpace>
+
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
+  <c:chart>
+    <c:plotArea>
+      <c:barChart>
+        <c:ser>
+          <c:idx val="2"/>
+          <c:order val="2"/>
+        </c:ser>
+        <c:ser>
+          <c:idx val="1"/>
+          <c:order val="1"/>
+        </c:ser>
+      </c:barChart>
+      <c:lineChart>
+        <c:ser>
+          <c:idx val="0"/>
+          <c:order val="0"/>
+        </c:ser>
+      </c:lineChart>
+    </c:plotArea>
+  </c:chart>
+</c:chartSpace>
+
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
+  <c:chart>
+    <c:plotArea>
+      <c:barChart>
+        <c:ser>
+          <c:idx val="1"/>
+          <c:order val="1"/>
+        </c:ser>
+      </c:barChart>
+      <c:lineChart>
+        <c:ser>
+          <c:idx val="0"/>
+          <c:order val="0"/>
+        </c:ser>
+      </c:lineChart>
+    </c:plotArea>
+  </c:chart>
+</c:chartSpace>
+
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
+  <c:chart>
+    <c:plotArea>
+      <c:barChart>
+        <c:ser>
+          <c:idx val="2"/>
+          <c:order val="2"/>
+        </c:ser>
+        <c:ser>
+          <c:idx val="1"/>
+          <c:order val="1"/>
+        </c:ser>
+      </c:barChart>
+      <c:lineChart>
+        <c:ser>
+          <c:idx val="0"/>
+          <c:order val="0"/>
+        </c:ser>
+      </c:lineChart>
+    </c:plotArea>
+  </c:chart>
+</c:chartSpace>
+
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
+  <c:chart>
+    <c:plotArea>
+      <c:lineChart>
+        <c:ser>
+          <c:idx val="0"/>
+          <c:order val="0"/>
+        </c:ser>
+      </c:lineChart>
+    </c:plotArea>
+  </c:chart>
+</c:chartSpace>

@@ -7,6 +7,7 @@ Chart shape-related objects such as Chart.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from collections import Sequence
+from copy import deepcopy
 
 from .axis import CategoryAxis, ValueAxis
 from .plot import PlotFactory, PlotTypeInspector
@@ -162,6 +163,24 @@ class _SeriesRewriter(object):
             cls._rewrite_ser_data(ser, series_data)
 
     @classmethod
+    def _add_cloned_sers(cls, chartSpace, count):
+        """
+        Add `c:ser` elements to the last xChart element in *chartSpace*,
+        cloned from the last `c:ser` child of that xChart.
+        """
+        def clone_ser(ser, idx):
+            new_ser = deepcopy(ser)
+            new_ser.idx.val = idx
+            new_ser.order.val = idx
+            ser.addnext(new_ser)
+            return new_ser
+
+        last_ser = chartSpace.last_doc_order_ser
+        starting_idx = len(chartSpace.sers)
+        for idx in range(starting_idx, starting_idx+count):
+            last_ser = clone_ser(last_ser, idx)
+
+    @classmethod
     def _adjust_ser_count(cls, chartSpace, new_ser_count):
         """
         Return the ser elements in *chartSpace* after adjusting their number
@@ -169,7 +188,12 @@ class _SeriesRewriter(object):
         increasing order of the c:ser/c:idx value, starting with 0 and with
         any gaps in numbering collapsed.
         """
-        raise NotImplementedError
+        ser_count_diff = new_ser_count - len(chartSpace.sers)
+        if ser_count_diff > 0:
+            cls._add_cloned_sers(chartSpace, ser_count_diff)
+        elif ser_count_diff < 0:
+            cls._trim_ser_count_by(chartSpace, abs(ser_count_diff))
+        return chartSpace.sers
 
     @classmethod
     def _rewrite_ser_data(cls, ser, series_data):
@@ -178,3 +202,22 @@ class _SeriesRewriter(object):
         of *ser* based on the values in *series_data*.
         """
         raise NotImplementedError
+
+    @classmethod
+    def _trim_ser_count_by(cls, chartSpace, count):
+        """
+        Remove the last *count* ser elements from *chartSpace*. Any xChart
+        elements having no ser child elements after trimming are also
+        removed.
+        """
+        extra_sers = chartSpace.sers[-count:]
+        for ser in extra_sers:
+            parent = ser.getparent()
+            parent.remove(ser)
+        extra_xCharts = [
+            xChart for xChart in chartSpace.chart.plotArea.iter_plots()
+            if len(list(xChart.iter_sers())) == 0
+        ]
+        for xChart in extra_xCharts:
+            parent = xChart.getparent()
+            parent.remove(xChart)

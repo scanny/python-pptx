@@ -14,11 +14,13 @@ from pptx.chart.data import ChartData, _SeriesData
 from pptx.chart.plot import Plot
 from pptx.chart.series import SeriesCollection
 from pptx.enum.base import EnumValue
+from pptx.oxml import parse_xml
 from pptx.oxml.chart.chart import CT_ChartSpace
 from pptx.oxml.chart.series import CT_SeriesComposite
 from pptx.parts.chart import ChartPart
 
 from ..unitutil.cxml import element, xml
+from ..unitutil.file import snippet_seq
 from ..unitutil.mock import (
     call, class_mock, function_mock, instance_mock, method_mock
 )
@@ -304,7 +306,31 @@ class Describe_SeriesRewriter(object):
             expected_calls
         )
 
+    def it_can_change_the_number_of_sers_in_a_chartSpace(
+            self, adjust_fixture):
+        chartSpace, new_ser_count, expected_xml = adjust_fixture
+        _SeriesRewriter._adjust_ser_count(chartSpace, new_ser_count)
+        assert chartSpace.xml == expected_xml
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        # same ser_count doesn't change anything
+        (0, 2),
+        # greater ser_count adds to end of last xChart
+        (2, 3),
+        # lesser ser_count removes from last in idx order, not doc order
+        (4, 2),
+        # an xChart left with no sers is removed
+        (6, 1),
+    ])
+    def adjust_fixture(self, request):
+        snippet_offset, new_ser_count = request.param
+        chartSpace_xml, expected_xml = snippet_seq(
+            'adjust-ser-count', snippet_offset, count=2
+        )
+        chartSpace = parse_xml(chartSpace_xml)
+        return chartSpace, new_ser_count, expected_xml
 
     @pytest.fixture
     def replace_fixture(

@@ -60,6 +60,19 @@ class CT_ChartSpace(BaseOxmlElement):
         return self.chart.catAx
 
     @property
+    def last_doc_order_ser(self):
+        """
+        Return the last `<c:ser>` element in the last xChart element, based
+        on document order. Note this is not necessarily the same element as
+        ``self.sers[-1]``.
+        """
+        last_xChart = list(self.chart.plotArea.iter_plots())[-1]
+        sers = list(last_xChart.iter_sers())
+        if not sers:
+            return None
+        return sers[-1]
+
+    @property
     def sers(self):
         """
         An immutable sequence of the `c:ser` elements under this chartSpace

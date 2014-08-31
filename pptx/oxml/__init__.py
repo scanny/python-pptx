@@ -93,6 +93,7 @@ register_element_cls('c:invertIfNegative', CT_Boolean)
 register_element_cls('c:max',              CT_Double)
 register_element_cls('c:min',              CT_Double)
 register_element_cls('c:numFmt',           CT_NumFmt)
+register_element_cls('c:order',            CT_UnsignedInt)
 
 
 from .dml.color import (
