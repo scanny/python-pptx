@@ -155,6 +155,17 @@ def given_a_chart_of_type_chart_type(context, chart_type):
     context.chart = prs.slides[slide_idx].shapes[shape_idx].chart
 
 
+@given('a legend having horizontal offset of {value}')
+def given_a_legend_having_horizontal_offset_of_value(context, value):
+    slide_idx = {
+        'none': 0,
+        '-0.5': 1,
+        '0.42': 2,
+    }[value]
+    prs = Presentation(test_pptx('cht-legend-props'))
+    context.legend = prs.slides[slide_idx].shapes[0].chart.legend
+
+
 @given('an axis having {major_or_minor} gridlines')
 def given_an_axis_having_major_or_minor_gridlines(context, major_or_minor):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -241,6 +252,12 @@ def when_I_assign_value_to_axis_major_or_minor_unit(
     propname = '%s_unit' % major_or_minor
     new_value = {'8.4': 8.4, '5': 5, 'None': None}[value]
     setattr(axis, propname, new_value)
+
+
+@when('I assign {value} to legend.horz_offset')
+def when_I_assign_value_to_legend_horz_offset(context, value):
+    new_value = float(value)
+    context.legend.horz_offset = new_value
 
 
 @when('I assign {value} to plot.gap_width')
@@ -361,6 +378,13 @@ def then_I_can_access_the_chart_category_axis(context):
 def then_I_can_access_the_chart_value_axis(context):
     value_axis = context.chart.value_axis
     assert isinstance(value_axis, ValueAxis)
+
+
+@then('legend.horz_offset is {value}')
+def then_legend_horz_offset_is_value(context, value):
+    expected_value = float(value)
+    legend = context.legend
+    assert legend.horz_offset == expected_value
 
 
 @then('plot.categories contains the known category strings')

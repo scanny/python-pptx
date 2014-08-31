@@ -147,6 +147,16 @@ class Legend(object):
         super(Legend, self).__init__()
         self._element = legend_elm
 
+    @property
+    def horz_offset(self):
+        """
+        Adjustment of the x position of the legend from its default.
+        Expressed as a float between -1.0 and 1.0 representing a fraction of
+        the chart width. Negative values move the legend left, positive
+        values move it to the right. |None| if no setting is specified.
+        """
+        raise NotImplementedError
+
 
 class Plots(Sequence):
     """
