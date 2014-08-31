@@ -26,7 +26,6 @@ Feature: Access chart legend
       | not having    | False | False          |
 
 
-  @wip
   Scenario: Access legend object of chart
     Given a chart having a legend
      Then chart.legend is a legend object

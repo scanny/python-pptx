@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import CategoryAxis, ValueAxis
-from pptx.chart.chart import Chart, Plots, _SeriesRewriter
+from pptx.chart.chart import Chart, Plots, Legend, _SeriesRewriter
 from pptx.chart.data import ChartData, _SeriesData
 from pptx.chart.plot import Plot
 from pptx.chart.series import SeriesCollection
@@ -70,6 +70,12 @@ class DescribeChart(object):
         chart, new_value, expected_xml = has_legend_set_fixture
         chart.has_legend = new_value
         assert chart._chartSpace.xml == expected_xml
+
+    def it_provides_access_to_its_legend(self, legend_fixture):
+        chart, Legend_, expected_calls, expected_value = legend_fixture
+        legend = chart.legend
+        assert Legend_.call_args_list == expected_calls
+        assert legend is expected_value
 
     def it_knows_its_chart_type(self, chart_type_fixture):
         chart, PlotTypeInspector_, plot_, chart_type_ = chart_type_fixture
@@ -136,6 +142,21 @@ class DescribeChart(object):
         chart = Chart(element(chartSpace_cxml), None)
         expected_xml = xml(expected_chartSpace_cxml)
         return chart, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:chartSpace/c:chart',          False),
+        ('c:chartSpace/c:chart/c:legend', True),
+    ])
+    def legend_fixture(self, request, Legend_, legend_):
+        chartSpace_cxml, has_legend = request.param
+        chartSpace = element(chartSpace_cxml)
+        chart = Chart(chartSpace, None)
+        expected_value, expected_calls = None, []
+        if has_legend:
+            expected_value = legend_
+            legend_elm = chartSpace.chart.legend
+            expected_calls.append(call(legend_elm))
+        return chart, Legend_, expected_calls, expected_value
 
     @pytest.fixture
     def plots_fixture(self, Plots_, plots_):
@@ -220,6 +241,16 @@ class DescribeChart(object):
     @pytest.fixture
     def chart_type_(self, request):
         return instance_mock(request, EnumValue)
+
+    @pytest.fixture
+    def Legend_(self, request, legend_):
+        return class_mock(
+            request, 'pptx.chart.chart.Legend', return_value=legend_
+        )
+
+    @pytest.fixture
+    def legend_(self, request):
+        return instance_mock(request, Legend)
 
     @pytest.fixture
     def PlotTypeInspector_(self, request, chart_type_):

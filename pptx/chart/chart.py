@@ -82,6 +82,17 @@ class Chart(object):
     def has_legend(self, value):
         self._chartSpace.chart.has_legend = bool(value)
 
+    @property
+    def legend(self):
+        """
+        A |Legend| object providing access to the properties of the legend
+        for this chart.
+        """
+        legend_elm = self._chartSpace.chart.legend
+        if legend_elm is None:
+            return None
+        return Legend(legend_elm)
+
     @lazyproperty
     def plots(self):
         """
@@ -132,6 +143,9 @@ class Legend(object):
     """
     Represents the legend in a chart. A chart can have at most one legend.
     """
+    def __init__(self, legend_elm):
+        super(Legend, self).__init__()
+        self._element = legend_elm
 
 
 class Plots(Sequence):
