@@ -166,6 +166,17 @@ def given_a_legend_having_horizontal_offset_of_value(context, value):
     context.legend = prs.slides[slide_idx].shapes[0].chart.legend
 
 
+@given('a legend with overlay setting of {setting}')
+def given_a_legend_with_overlay_setting_of_setting(context, setting):
+    slide_idx = {
+        'no explicit setting': 0,
+        'True':                1,
+        'False':               2,
+    }[setting]
+    prs = Presentation(test_pptx('cht-legend-props'))
+    context.legend = prs.slides[slide_idx].shapes[0].chart.legend
+
+
 @given('an axis having {major_or_minor} gridlines')
 def given_an_axis_having_major_or_minor_gridlines(context, major_or_minor):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -258,6 +269,15 @@ def when_I_assign_value_to_axis_major_or_minor_unit(
 def when_I_assign_value_to_legend_horz_offset(context, value):
     new_value = float(value)
     context.legend.horz_offset = new_value
+
+
+@when('I assign {value} to legend.include_in_layout')
+def when_I_assign_value_to_legend_include_in_layout(context, value):
+    new_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    context.legend.include_in_layout = new_value
 
 
 @when('I assign {value} to plot.gap_width')
@@ -385,6 +405,16 @@ def then_legend_horz_offset_is_value(context, value):
     expected_value = float(value)
     legend = context.legend
     assert legend.horz_offset == expected_value
+
+
+@then('legend.include_in_layout is {value}')
+def then_legend_include_in_layout_is_value(context, value):
+    expected_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    legend = context.legend
+    assert legend.include_in_layout is expected_value
 
 
 @then('plot.categories contains the known category strings')

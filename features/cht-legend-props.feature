@@ -26,3 +26,31 @@ Feature: Get and set legend properties
       | -0.5   |    0.5    |      0.5       |
       |  0.42  |   -0.5    |     -0.5       |
       | -0.5   |    0      |      0.0       |
+
+
+  @wip
+  Scenario Outline: Determine whether the legend is beside or overlays the chart
+    Given a legend with overlay setting of <setting>
+     Then legend.include_in_layout is <expected-value>
+
+    Examples: legend.include_in_layout expected values
+      | setting             | expected-value |
+      | no explicit setting | True           |
+      | True                | True           |
+      | False               | False          |
+
+
+  @wip
+  Scenario Outline: Change whether the legend is beside or overlays the chart
+    Given a legend with overlay setting of <setting>
+     When I assign <value> to legend.include_in_layout
+     Then legend.include_in_layout is <expected-value>
+
+    Examples: legend.include_in_layout expected values
+      | setting             | value | expected-value |
+      | no explicit setting | True  | True           |
+      | no explicit setting | False | False          |
+      | True                | False | False          |
+      | True                | True  | True           |
+      | False               | True  | True           |
+      | False               | False | False          |

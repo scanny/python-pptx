@@ -161,6 +161,14 @@ class Legend(object):
     def horz_offset(self, value):
         self._element.horz_offset = value
 
+    @property
+    def include_in_layout(self):
+        """
+        Read/write boolean specifying whether the legend should occupy the
+        chart layout space, causing it to overlap the chart.
+        """
+        raise NotImplementedError
+
 
 class Plots(Sequence):
     """
