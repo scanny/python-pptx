@@ -78,6 +78,10 @@ class Chart(object):
         """
         return self._chartSpace.chart.has_legend
 
+    @has_legend.setter
+    def has_legend(self, value):
+        self._chartSpace.chart.has_legend = bool(value)
+
     @lazyproperty
     def plots(self):
         """

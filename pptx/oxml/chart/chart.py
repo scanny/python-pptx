@@ -42,6 +42,20 @@ class CT_Chart(BaseOxmlElement):
             return False
         return True
 
+    @has_legend.setter
+    def has_legend(self, bool_value):
+        """
+        Add, remove, or leave alone the ``<c:legend>`` child element depending
+        on current state and *bool_value*. If *bool_value* is |True| and no
+        ``<c:legend>`` element is present, a new default element is added.
+        When |False|, any existing legend element is removed.
+        """
+        if bool(bool_value) is False:
+            self._remove_legend()
+        else:
+            if self.legend is None:
+                self._add_legend()
+
     @staticmethod
     def new_chart(rId):
         """

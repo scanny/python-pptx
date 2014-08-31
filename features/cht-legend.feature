@@ -13,7 +13,6 @@ Feature: Access chart legend
       | not having    | False          |
 
 
-  @wip
   Scenario Outline: Adding a legend
     Given a chart <having-or-not> a legend
      When I assign <value> to chart.has_legend

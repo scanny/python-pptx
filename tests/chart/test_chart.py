@@ -66,6 +66,11 @@ class DescribeChart(object):
         chart, expected_value = has_legend_get_fixture
         assert chart.has_legend == expected_value
 
+    def it_can_change_whether_it_has_a_legend(self, has_legend_set_fixture):
+        chart, new_value, expected_xml = has_legend_set_fixture
+        chart.has_legend = new_value
+        assert chart._chartSpace.xml == expected_xml
+
     def it_knows_its_chart_type(self, chart_type_fixture):
         chart, PlotTypeInspector_, plot_, chart_type_ = chart_type_fixture
         chart_type = chart.chart_type
@@ -121,6 +126,16 @@ class DescribeChart(object):
         chartSpace_cxml, expected_value = request.param
         chart = Chart(element(chartSpace_cxml), None)
         return chart, expected_value
+
+    @pytest.fixture(params=[
+        ('c:chartSpace/c:chart', True,
+         'c:chartSpace/c:chart/c:legend'),
+    ])
+    def has_legend_set_fixture(self, request):
+        chartSpace_cxml, new_value, expected_chartSpace_cxml = request.param
+        chart = Chart(element(chartSpace_cxml), None)
+        expected_xml = xml(expected_chartSpace_cxml)
+        return chart, new_value, expected_xml
 
     @pytest.fixture
     def plots_fixture(self, Plots_, plots_):
