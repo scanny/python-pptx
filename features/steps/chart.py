@@ -14,6 +14,7 @@ from behave import given, then, when
 
 from pptx import Presentation
 from pptx.chart.axis import CategoryAxis, ValueAxis
+from pptx.chart.chart import Legend
 from pptx.chart.data import ChartData
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
@@ -97,6 +98,16 @@ def given_a_bar_series_having_width_line(context, width):
     prs = Presentation(test_pptx('cht-series-props'))
     plot = prs.slides[0].shapes[0].chart.plots[0]
     context.series = plot.series[series_idx]
+
+
+@given('a chart {having_or_not} a legend')
+def given_a_chart_having_or_not_a_legend(context, having_or_not):
+    slide_idx = {
+        'having':     0,
+        'not having': 1,
+    }[having_or_not]
+    prs = Presentation(test_pptx('cht-legend'))
+    context.chart = prs.slides[slide_idx].shapes[0].chart
 
 
 @given('a chart of size and type {spec}')
@@ -205,6 +216,15 @@ def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
     ).chart
 
 
+@when('I assign {value} to chart.has_legend')
+def when_I_assign_value_to_chart_has_legend(context, value):
+    new_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    context.chart.has_legend = new_value
+
+
 @when('I assign {value} to axis.has_{major_or_minor}_gridlines')
 def when_I_assign_value_to_axis_has_major_or_minor_gridlines(
         context, value, major_or_minor):
@@ -299,6 +319,22 @@ def then_chart_chart_type_is_value(context, enum_member):
     expected_value = getattr(XL_CHART_TYPE, enum_member)
     chart = context.chart
     assert chart.chart_type is expected_value, 'got %s' % chart.chart_type
+
+
+@then('chart.has_legend is {value}')
+def then_chart_has_legend_is_value(context, value):
+    expected_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    chart = context.chart
+    assert chart.has_legend is expected_value
+
+
+@then('chart.legend is a legend object')
+def then_chart_legend_is_a_legend_object(context):
+    chart = context.chart
+    assert isinstance(chart.legend, Legend)
 
 
 @then('each series has a new name')

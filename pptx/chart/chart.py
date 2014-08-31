@@ -68,6 +68,16 @@ class Chart(object):
         first_plot = self.plots[0]
         return PlotTypeInspector.chart_type(first_plot)
 
+    @property
+    def has_legend(self):
+        """
+        Read/write boolean, |True| if the chart has a legend. Assigning
+        |True| causes a legend to be added to the chart if it doesn't already
+        have one. Assigning False removes any existing legend definition
+        along with any existing legend settings.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def plots(self):
         """
@@ -112,6 +122,12 @@ class Chart(object):
         for this chart.
         """
         return self._chart_part.chart_workbook
+
+
+class Legend(object):
+    """
+    Represents the legend in a chart. A chart can have at most one legend.
+    """
 
 
 class Plots(Sequence):
