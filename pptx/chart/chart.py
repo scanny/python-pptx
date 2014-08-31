@@ -76,7 +76,7 @@ class Chart(object):
         have one. Assigning False removes any existing legend definition
         along with any existing legend settings.
         """
-        raise NotImplementedError
+        return self._chartSpace.chart.has_legend
 
     @lazyproperty
     def plots(self):

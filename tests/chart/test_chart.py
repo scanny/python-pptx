@@ -62,6 +62,10 @@ class DescribeChart(object):
         Plots_.assert_called_once_with(plotArea, chart)
         assert plots is plots_
 
+    def it_knows_whether_it_has_a_legend(self, has_legend_get_fixture):
+        chart, expected_value = has_legend_get_fixture
+        assert chart.has_legend == expected_value
+
     def it_knows_its_chart_type(self, chart_type_fixture):
         chart, PlotTypeInspector_, plot_, chart_type_ = chart_type_fixture
         chart_type = chart.chart_type
@@ -108,6 +112,15 @@ class DescribeChart(object):
         chart = Chart(None, None)
         chart._plots = [plot_]
         return chart, PlotTypeInspector_, plot_, chart_type_
+
+    @pytest.fixture(params=[
+        ('c:chartSpace/c:chart',          False),
+        ('c:chartSpace/c:chart/c:legend', True),
+    ])
+    def has_legend_get_fixture(self, request):
+        chartSpace_cxml, expected_value = request.param
+        chart = Chart(element(chartSpace_cxml), None)
+        return chart, expected_value
 
     @pytest.fixture
     def plots_fixture(self, Plots_, plots_):

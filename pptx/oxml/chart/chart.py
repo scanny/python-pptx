@@ -19,6 +19,9 @@ class CT_Chart(BaseOxmlElement):
     ``<c:chart>`` custom element class
     """
     plotArea = OneAndOnlyOne('c:plotArea')
+    legend = ZeroOrOne('c:legend', successors=(
+        'c:plotVisOnly', 'c:dispBlanksAs', 'c:showDLblsOverMax', 'c:extLst'
+    ))
     rId = RequiredAttribute('r:id', XsdString)
 
     _chart_tmpl = (
@@ -28,6 +31,16 @@ class CT_Chart(BaseOxmlElement):
     @property
     def catAx(self):
         return self.plotArea.catAx
+
+    @property
+    def has_legend(self):
+        """
+        True if this chart has a legend defined, False otherwise.
+        """
+        legend = self.legend
+        if legend is None:
+            return False
+        return True
 
     @staticmethod
     def new_chart(rId):

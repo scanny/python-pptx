@@ -3,7 +3,6 @@ Feature: Access chart legend
   As a developer using python-pptx
   I need a way to access the chart legend
 
-  @wip
   Scenario Outline: Determine presence of legend
     Given a chart <having-or-not> a legend
      Then chart.has_legend is <expected-value>
