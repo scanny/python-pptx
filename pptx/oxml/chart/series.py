@@ -25,6 +25,10 @@ class CT_SeriesComposite(BaseOxmlElement):
     tx = ZeroOrOne('c:tx')      # provide override for _insert_tx()
     spPr = ZeroOrOne('c:spPr')  # provide override for _insert_spPr()
     invertIfNegative = ZeroOrOne('c:invertIfNegative')  # provide _insert..()
+    cat = ZeroOrOne('c:cat', successors=(
+        'c:val', 'c:smooth', 'c:shape', 'c:extLst'
+    ))
+    val = ZeroOrOne('c:val', successors=('c:smooth', 'c:shape', 'c:extLst'))
 
     @property
     def val_pts(self):

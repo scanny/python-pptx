@@ -312,6 +312,12 @@ class Describe_SeriesRewriter(object):
         _SeriesRewriter._adjust_ser_count(chartSpace, new_ser_count)
         assert chartSpace.xml == expected_xml
 
+    def it_rewrites_ser_data_to_help_replace_series_data(
+            self, rewrite_ser_fixture):
+        ser, series_data, expected_xml = rewrite_ser_fixture
+        _SeriesRewriter._rewrite_ser_data(ser, series_data)
+        assert ser.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -343,6 +349,13 @@ class Describe_SeriesRewriter(object):
             call(ser_2_, series_data_2_)
         ]
         return chartSpace_, chart_data_, series_count, expected_calls
+
+    @pytest.fixture
+    def rewrite_ser_fixture(self):
+        ser_xml, expected_xml = snippet_seq('rewrite-ser')
+        ser = parse_xml(ser_xml)
+        series_data = _SeriesData(2, 'Series 4', (1, 2), ('Foo', 'Bar'))
+        return ser, series_data, expected_xml
 
     # fixture components ---------------------------------------------
 

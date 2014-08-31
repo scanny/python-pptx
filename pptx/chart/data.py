@@ -6,6 +6,8 @@ ChartData and related objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from ..oxml import parse_xml
+from ..oxml.ns import nsdecls
 from .xlsx import WorkbookWriter
 from .xmlwriter import ChartXmlWriter
 
@@ -98,6 +100,17 @@ class _SeriesData(object):
         return len(self._values)
 
     @property
+    def cat(self):
+        """
+        The ``<c:cat>`` element XML for this series, as an oxml element.
+        """
+        xml = self._cat_tmpl.format(
+            wksht_ref=self._categories_ref, cat_count=len(self._categories),
+            cat_pt_xml=self._cat_pt_xml, nsdecls=' %s' % nsdecls('c')
+        )
+        return parse_xml(xml)
+
+    @property
     def cat_xml(self):
         """
         The unicode XML snippet for the ``<c:cat>`` element for this series,
@@ -123,6 +136,18 @@ class _SeriesData(object):
         return self._name
 
     @property
+    def tx(self):
+        """
+        Return a ``<c:tx>`` oxml element for this series, containing the
+        series name.
+        """
+        xml = self._tx_tmpl.format(
+            wksht_ref=self._series_name_ref, series_name=self.name,
+            nsdecls=' %s' % nsdecls('c')
+        )
+        return parse_xml(xml)
+
+    @property
     def tx_xml(self):
         """
         Return the ``<c:tx>`` element for this series as unicode text. This
@@ -132,6 +157,17 @@ class _SeriesData(object):
             wksht_ref=self._series_name_ref, series_name=self.name,
             nsdecls=''
         )
+
+    @property
+    def val(self):
+        """
+        The ``<c:val>`` XML for this series, as an oxml element.
+        """
+        xml = self._val_tmpl.format(
+            wksht_ref=self._values_ref, val_count=len(self),
+            val_pt_xml=self._val_pt_xml, nsdecls=' %s' % nsdecls('c')
+        )
+        return parse_xml(xml)
 
     @property
     def val_xml(self):

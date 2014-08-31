@@ -201,7 +201,12 @@ class _SeriesRewriter(object):
         Rewrite the ``<c:tx>``, ``<c:cat>`` and ``<c:val>`` child elements
         of *ser* based on the values in *series_data*.
         """
-        raise NotImplementedError
+        ser._remove_tx()
+        ser._remove_cat()
+        ser._remove_val()
+        ser._insert_tx(series_data.tx)
+        ser._insert_cat(series_data.cat)
+        ser._insert_val(series_data.val)
 
     @classmethod
     def _trim_ser_count_by(cls, chartSpace, count):
