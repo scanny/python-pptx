@@ -86,6 +86,8 @@ rst_epilog = """
 
 .. |ChartData| replace:: :class:`.ChartData`
 
+.. |ChartPart| replace:: :class:`.ChartPart`
+
 .. |ChartXmlWriter| replace:: :class:`.ChartXmlWriter`
 
 .. |Collection| replace:: :class:`Collection`

@@ -12,6 +12,7 @@ Roughly in reverse chronological order of creation:
 .. toctree::
    :maxdepth: 1
 
+   features/cht-legend.rst
    features/cht-add-chart.rst
    features/cht-chart-data.rst
    features/cht-tick-labels.rst
