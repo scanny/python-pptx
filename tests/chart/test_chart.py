@@ -301,6 +301,31 @@ class DescribeChart(object):
         return instance_mock(request, ValueAxis)
 
 
+class DescribeLegend(object):
+
+    def it_knows_its_horizontal_offset(self, horz_offset_get_fixture):
+        legend, expected_value = horz_offset_get_fixture
+        assert legend.horz_offset == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:legend',                                                 0.0),
+        ('c:legend/c:layout',                                        0.0),
+        ('c:legend/c:layout/c:manualLayout',                         0.0),
+        ('c:legend/c:layout/c:manualLayout/c:xMode',                 0.0),
+        ('c:legend/c:layout/c:manualLayout/c:xMode{val=edge}',       0.0),
+        ('c:legend/c:layout/c:manualLayout/c:xMode{val=factor}',     0.0),
+        ('c:legend/c:layout/c:manualLayout/(c:xMode,c:x{val=0.42})', 0.42),
+        ('c:legend/c:layout/c:manualLayout/(c:xMode{val=factor},c:x{val=0.42'
+         '})', 0.42),
+    ])
+    def horz_offset_get_fixture(self, request):
+        legend_cxml, expected_value = request.param
+        legend = Legend(element(legend_cxml))
+        return legend, expected_value
+
+
 class DescribePlots(object):
 
     def it_supports_indexed_access(self, getitem_fixture):

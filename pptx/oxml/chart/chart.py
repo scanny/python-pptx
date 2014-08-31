@@ -152,6 +152,30 @@ class CT_ExternalData(BaseOxmlElement):
     rId = RequiredAttribute('r:id', XsdString)
 
 
+class CT_Legend(BaseOxmlElement):
+    """
+    ``<c:legend>`` custom element class
+    """
+    _tag_seq = (
+        'c:legendPos', 'c:legendEntry', 'c:layout', 'c:overlay', 'c:spPr',
+        'c:txPr', 'c:extLst'
+    )
+    layout = ZeroOrOne('c:layout', successors=_tag_seq[3:])
+    del _tag_seq
+
+    @property
+    def horz_offset(self):
+        """
+        The float value in ./c:layout/c:manualLayout/c:x when
+        ./c:layout/c:manualLayout/c:xMode@val == "factor". 0.0 if that
+        XPath expression has no match.
+        """
+        layout = self.layout
+        if layout is None:
+            return 0.0
+        return layout.horz_offset
+
+
 class CT_PlotArea(BaseOxmlElement):
     """
     ``<c:plotArea>`` element.

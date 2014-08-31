@@ -4,7 +4,6 @@ Feature: Get and set legend properties
   I need a way to get and set legend properties
 
 
-  @wip
   Scenario Outline: Determine legend horizontal offset
     Given a legend having horizontal offset of <value>
      Then legend.horz_offset is <expected-value>

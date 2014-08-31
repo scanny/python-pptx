@@ -107,6 +107,17 @@ class BaseStringType(BaseSimpleType):
         cls.validate_string(value)
 
 
+class BaseStringEnumerationType(BaseStringType):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_string(value)
+        if value not in cls._members:
+            raise ValueError(
+                "must be one of %s, got '%s'" % (cls._members, value)
+            )
+
+
 class XsdAnyUri(BaseStringType):
     """
     There's a regular expression this is supposed to meet but so far thinking
@@ -148,7 +159,6 @@ class XsdId(BaseStringType):
     String that must begin with a letter or underscore and cannot contain any
     colons. Not fully validated because not used in external API.
     """
-    pass
 
 
 class XsdInt(BaseIntType):
@@ -171,12 +181,24 @@ class XsdString(BaseStringType):
     pass
 
 
+class XsdStringEnumeration(BaseStringEnumerationType):
+    """
+    Set of enumerated xsd:string values.
+    """
+
+
 class XsdToken(BaseStringType):
     """
     xsd:string with whitespace collapsing, e.g. multiple spaces reduced to
     one, leading and trailing space stripped.
     """
-    pass
+
+
+class XsdTokenEnumeration(BaseStringEnumerationType):
+    """
+    xsd:string with whitespace collapsing, e.g. multiple spaces reduced to
+    one, leading and trailing space stripped.
+    """
 
 
 class XsdUnsignedByte(BaseIntType):
@@ -213,22 +235,14 @@ class ST_AxisUnit(XsdDouble):
             )
 
 
-class ST_BarDir(XsdString):
+class ST_BarDir(XsdStringEnumeration):
     """
     Valid values for <c:barDir val="?"> attribute
     """
     BAR = 'bar'
     COL = 'col'
 
-    _valid_settings = (BAR, COL)
-
-    @classmethod
-    def validate(cls, value):
-        cls.validate_string(value)
-        if value not in cls._valid_settings:
-            raise ValueError(
-                "must be one of %s, got '%s'" % (cls._valid_settings, value)
-            )
+    _members = (BAR, COL)
 
 
 class ST_ContentType(XsdString):
@@ -287,21 +301,14 @@ class ST_CoordinateUnqualified(XsdLong):
         cls.validate_int_in_range(value, -27273042329600, 27273042316900)
 
 
-class ST_Direction(XsdToken):
+class ST_Direction(XsdTokenEnumeration):
     """
     Valid values for <p:ph orient=""> attribute
     """
     HORZ = 'horz'
     VERT = 'vert'
 
-    @classmethod
-    def validate(cls, value):
-        cls.validate_string(value)
-        if value not in (cls.HORZ, cls.VERT):
-            raise ValueError(
-                "must be one of '%s' or '%s', got '%s'" %
-                (cls.HORZ, cls.VERT, value)
-            )
+    _members = (HORZ, VERT)
 
 
 class ST_DrawingElementId(XsdUnsignedInt):
@@ -333,7 +340,7 @@ class ST_GapAmount(BaseIntType):
         cls.validate_int_in_range(value, 0, 500)
 
 
-class ST_Grouping(XsdString):
+class ST_Grouping(XsdStringEnumeration):
     """
     Valid values for <c:grouping val=""> attribute. Overloaded for use as
     ST_BarGrouping using same tag name.
@@ -343,15 +350,7 @@ class ST_Grouping(XsdString):
     STACKED = 'stacked'
     STANDARD = 'standard'
 
-    _valid_settings = (CLUSTERED, PERCENT_STACKED, STACKED, STANDARD)
-
-    @classmethod
-    def validate(cls, value):
-        cls.validate_string(value)
-        if value not in cls._valid_settings:
-            raise ValueError(
-                "must be one of %s, got '%s'" % (cls._valid_settings, value)
-            )
+    _members = (CLUSTERED, PERCENT_STACKED, STACKED, STANDARD)
 
 
 class ST_HexColorRGB(BaseStringType):
@@ -383,6 +382,17 @@ class ST_HexColorRGB(BaseStringType):
                 "RGB string must be valid hex string, got '%s'"
                 % str_value
             )
+
+
+class ST_LayoutMode(XsdStringEnumeration):
+    """
+    Valid values for `val` attribute on c:xMode and other elements of type
+    CT_LayoutMode.
+    """
+    EDGE = 'edge'
+    FACTOR = 'factor'
+
+    _members = (EDGE, FACTOR)
 
 
 class ST_LblOffset(XsdUnsignedShort):
@@ -436,7 +446,7 @@ class ST_Percentage(BaseIntType):
         return int_value
 
 
-class ST_PlaceholderSize(XsdToken):
+class ST_PlaceholderSize(XsdTokenEnumeration):
     """
     Valid values for <p:ph> sz (size) attribute
     """
@@ -444,14 +454,7 @@ class ST_PlaceholderSize(XsdToken):
     HALF = 'half'
     QUARTER = 'quarter'
 
-    @classmethod
-    def validate(cls, value):
-        cls.validate_string(value)
-        if value not in (cls.FULL, cls.HALF, cls.QUARTER):
-            raise ValueError(
-                "must be one of '%s', '%s', or '%s', got '%s'" %
-                (cls.FULL, cls.HALF, cls.QUARTER, value)
-            )
+    _members = (FULL, HALF, QUARTER)
 
 
 class ST_PositiveCoordinate(XsdLong):
@@ -528,21 +531,14 @@ class ST_TextTypeface(XsdString):
     pass
 
 
-class ST_TextWrappingType(XsdToken):
+class ST_TextWrappingType(XsdTokenEnumeration):
     """
     Valid values for <a:bodyPr wrap=""> attribute
     """
     NONE = 'none'
     SQUARE = 'square'
 
-    @classmethod
-    def validate(cls, value):
-        cls.validate_string(value)
-        if value not in (cls.NONE, cls.SQUARE):
-            raise ValueError(
-                "must be one of '%s' or '%s', got '%s'" %
-                (cls.NONE, cls.SQUARE, value)
-            )
+    _members = (NONE, SQUARE)
 
 
 class ST_UniversalMeasure(BaseSimpleType):

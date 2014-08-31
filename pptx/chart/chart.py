@@ -155,7 +155,7 @@ class Legend(object):
         the chart width. Negative values move the legend left, positive
         values move it to the right. |None| if no setting is specified.
         """
-        raise NotImplementedError
+        return self._element.horz_offset
 
 
 class Plots(Sequence):
