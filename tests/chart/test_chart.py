@@ -307,6 +307,11 @@ class DescribeLegend(object):
         legend, expected_value = horz_offset_get_fixture
         assert legend.horz_offset == expected_value
 
+    def it_can_change_its_horizontal_offset(self, horz_offset_set_fixture):
+        legend, new_value, expected_xml = horz_offset_set_fixture
+        legend.horz_offset = new_value
+        assert legend._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -324,6 +329,26 @@ class DescribeLegend(object):
         legend_cxml, expected_value = request.param
         legend = Legend(element(legend_cxml))
         return legend, expected_value
+
+    @pytest.fixture(params=[
+        ('c:legend',
+         0.42, 'c:legend/c:layout/c:manualLayout/(c:xMode,c:x{val=0.42})'),
+        ('c:legend/c:layout',
+         0.42, 'c:legend/c:layout/c:manualLayout/(c:xMode,c:x{val=0.42})'),
+        ('c:legend/c:layout/c:manualLayout',
+         -.42, 'c:legend/c:layout/c:manualLayout/(c:xMode,c:x{val=-0.42})'),
+        ('c:legend/c:layout/c:manualLayout/c:xMode{val=edge}',
+         -0.1, 'c:legend/c:layout/c:manualLayout/(c:xMode,c:x{val=-0.1})'),
+        ('c:legend/c:layout/c:manualLayout/c:xMode{val=factor}',
+         0.2, 'c:legend/c:layout/c:manualLayout/(c:xMode,c:x{val=0.2})'),
+        ('c:legend/c:layout/c:manualLayout',
+         0, 'c:legend/c:layout'),
+    ])
+    def horz_offset_set_fixture(self, request):
+        legend_cxml, new_value, expected_legend_cxml = request.param
+        legend = Legend(element(legend_cxml))
+        expected_xml = xml(expected_legend_cxml)
+        return legend, new_value, expected_xml
 
 
 class DescribePlots(object):

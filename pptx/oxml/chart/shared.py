@@ -46,6 +46,19 @@ class CT_Layout(BaseOxmlElement):
             return 0.0
         return manualLayout.horz_offset
 
+    @horz_offset.setter
+    def horz_offset(self, offset):
+        """
+        Set the value of ./c:manualLayout/c:x@val to *offset* and
+        ./c:manualLayout/c:xMode@val to "factor". Remove ./c:manualLayout if
+        *offset* == 0.
+        """
+        if offset == 0.0:
+            self._remove_manualLayout()
+            return
+        manualLayout = self.get_or_add_manualLayout()
+        manualLayout.horz_offset = offset
+
 
 class CT_LayoutMode(BaseOxmlElement):
     """
@@ -79,6 +92,14 @@ class CT_ManualLayout(BaseOxmlElement):
         if x is None or xMode is None or xMode.val != ST_LayoutMode.FACTOR:
             return 0.0
         return x.val
+
+    @horz_offset.setter
+    def horz_offset(self, offset):
+        """
+        Set the value of ./c:x@val to *offset* and ./c:xMode@val to "factor".
+        """
+        self.get_or_add_xMode().val = ST_LayoutMode.FACTOR
+        self.get_or_add_x().val = offset
 
 
 class CT_NumFmt(BaseOxmlElement):

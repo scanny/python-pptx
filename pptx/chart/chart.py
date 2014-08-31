@@ -157,6 +157,10 @@ class Legend(object):
         """
         return self._element.horz_offset
 
+    @horz_offset.setter
+    def horz_offset(self, value):
+        self._element.horz_offset = value
+
 
 class Plots(Sequence):
     """

@@ -15,7 +15,6 @@ Feature: Get and set legend properties
       | 0.42  | 0.42           |
 
 
-  @wip
   Scenario Outline: Change legend horizontal offset
     Given a legend having horizontal offset of <value>
      When I assign <new-value> to legend.horz_offset

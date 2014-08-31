@@ -175,6 +175,16 @@ class CT_Legend(BaseOxmlElement):
             return 0.0
         return layout.horz_offset
 
+    @horz_offset.setter
+    def horz_offset(self, offset):
+        """
+        Set the value of ./c:layout/c:manualLayout/c:x@val to *offset* and
+        ./c:layout/c:manualLayout/c:xMode@val to "factor". Remove
+        ./c:layout/c:manualLayout if *offset* == 0.
+        """
+        layout = self.get_or_add_layout()
+        layout.horz_offset = offset
+
 
 class CT_PlotArea(BaseOxmlElement):
     """
