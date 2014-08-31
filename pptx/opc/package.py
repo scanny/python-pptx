@@ -188,6 +188,15 @@ class Part(object):
         """
         return self._blob
 
+    @blob.setter
+    def blob(self, bytes_):
+        """
+        Note that not all subclasses use the part blob as their blob source.
+        In particular, the |XmlPart| subclass uses its `self._element` to
+        serialize a blob on demand. This works find for binary parts though.
+        """
+        self._blob = bytes_
+
     @property
     def content_type(self):
         """

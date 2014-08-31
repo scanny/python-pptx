@@ -277,6 +277,11 @@ class DescribePart(object):
         part, load_blob = blob_fixture
         assert part.blob is load_blob
 
+    def it_can_change_its_blob(self):
+        part, new_blob = Part(None, None, 'xyz', None), 'foobar'
+        part.blob = new_blob
+        assert part.blob == new_blob
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
