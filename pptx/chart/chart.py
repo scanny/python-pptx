@@ -167,7 +167,10 @@ class Legend(object):
         Read/write boolean specifying whether the legend should occupy the
         chart layout space, causing it to overlap the chart.
         """
-        raise NotImplementedError
+        overlay = self._element.overlay
+        if overlay is None:
+            return True
+        return overlay.val
 
 
 class Plots(Sequence):

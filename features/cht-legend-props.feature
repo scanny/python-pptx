@@ -28,7 +28,6 @@ Feature: Get and set legend properties
       | -0.5   |    0      |      0.0       |
 
 
-  @wip
   Scenario Outline: Determine whether the legend is beside or overlays the chart
     Given a legend with overlay setting of <setting>
      Then legend.include_in_layout is <expected-value>

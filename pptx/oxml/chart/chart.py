@@ -161,6 +161,7 @@ class CT_Legend(BaseOxmlElement):
         'c:txPr', 'c:extLst'
     )
     layout = ZeroOrOne('c:layout', successors=_tag_seq[3:])
+    overlay = ZeroOrOne('c:overlay', successors=_tag_seq[4:])
     del _tag_seq
 
     @property
