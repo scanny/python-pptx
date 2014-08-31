@@ -3,7 +3,6 @@ Feature: Replace chart data
   As a developer using python-pptx
   I need a way to replace the data of a chart
 
-  @wip
   Scenario Outline: Replace chart data
     Given a chart of size and type <spec>
      When I replace its data with <cats> categories and <sers> series

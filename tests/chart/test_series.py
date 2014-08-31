@@ -21,11 +21,24 @@ from ..unitutil.mock import class_mock, function_mock, instance_mock
 
 class Describe_BaseSeries(object):
 
+    def it_knows_its_name(self, name_fixture):
+        series, expected_value = name_fixture
+        assert series.name == expected_value
+
     def it_knows_its_values(self, values_get_fixture):
         series, expected_value = values_get_fixture
         assert series.values == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:ser',                                           ''),
+        ('c:ser/c:tx/c:strRef/c:strCache/c:pt/c:v"foobar"', 'foobar'),
+    ])
+    def name_fixture(self, request):
+        ser_cxml, expected_value = request.param
+        series = _BaseSeries(element(ser_cxml))
+        return series, expected_value
 
     @pytest.fixture(params=[
         ('c:ser', ()),

@@ -23,6 +23,16 @@ class _BaseSeries(object):
         self._element = ser
 
     @property
+    def name(self):
+        """
+        The string label given to this series, appears as the title of the
+        column for this series in the Excel worksheet.
+        """
+        names = self._element.xpath('./c:tx//c:pt/c:v/text()')
+        name = names[0] if names else ''
+        return name
+
+    @property
     def values(self):
         """
         A tuple containing the float values for this series, in the order
