@@ -172,6 +172,10 @@ class Legend(object):
             return True
         return overlay.val
 
+    @include_in_layout.setter
+    def include_in_layout(self, value):
+        self._element.get_or_add_overlay().val = bool(value)
+
 
 class Plots(Sequence):
     """

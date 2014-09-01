@@ -39,7 +39,6 @@ Feature: Get and set legend properties
       | False               | False          |
 
 
-  @wip
   Scenario Outline: Change whether the legend is beside or overlays the chart
     Given a legend with overlay setting of <setting>
      When I assign <value> to legend.include_in_layout

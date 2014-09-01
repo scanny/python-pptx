@@ -317,6 +317,12 @@ class DescribeLegend(object):
         legend, expected_value = include_in_layout_get_fixture
         assert legend.include_in_layout == expected_value
 
+    def it_can_change_whether_it_overlaps_the_chart(
+            self, include_in_layout_set_fixture):
+        legend, new_value, expected_xml = include_in_layout_set_fixture
+        legend.include_in_layout = new_value
+        assert legend._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -365,6 +371,18 @@ class DescribeLegend(object):
         legend_cxml, expected_value = request.param
         legend = Legend(element(legend_cxml))
         return legend, expected_value
+
+    @pytest.fixture(params=[
+        ('c:legend',                  True,  'c:legend/c:overlay'),
+        ('c:legend',                  False, 'c:legend/c:overlay{val=0}'),
+        ('c:legend/c:overlay{val=0}', True,  'c:legend/c:overlay'),
+        ('c:legend/c:overlay{val=1}', False, 'c:legend/c:overlay{val=0}'),
+    ])
+    def include_in_layout_set_fixture(self, request):
+        legend_cxml, new_value, expected_legend_cxml = request.param
+        legend = Legend(element(legend_cxml))
+        expected_xml = xml(expected_legend_cxml)
+        return legend, new_value, expected_xml
 
 
 class DescribePlots(object):
