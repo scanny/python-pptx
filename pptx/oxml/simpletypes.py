@@ -331,9 +331,9 @@ class ST_GapAmount(BaseIntType):
     """
     @classmethod
     def convert_from_xml(cls, str_value):
-        if str_value.endswith('%'):  # trim off '%' character if present
-            str_value = str_value[:-1]
-        return int(str_value)
+        if '%' in str_value:
+            return cls.convert_from_percent_literal(str_value)
+        return super(ST_GapAmount, cls).convert_from_xml(str_value)
 
     @classmethod
     def validate(cls, value):
@@ -425,6 +425,22 @@ class ST_LineWidth(XsdInt):
                 "value must be in range 0-20116800 inclusive (0-1584 points)"
                 ", got %d" % value
             )
+
+
+class ST_Overlap(BaseIntType):
+    """
+    String value is an integer in range -100..100, representing a percent,
+    optionally including a '%' suffix.
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if '%' in str_value:
+            return cls.convert_from_percent_literal(str_value)
+        return super(ST_Overlap, cls).convert_from_xml(str_value)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, -100, 100)
 
 
 class ST_Percentage(BaseIntType):

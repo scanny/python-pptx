@@ -48,7 +48,6 @@ Feature: Get and set plot properties
       | 300               | 275       | 275            |
 
 
-  @wip
   Scenario Outline: Get bar plot overlap
     Given a bar plot having overlap of <overlap>
      Then plot.overlap is <expected-value>

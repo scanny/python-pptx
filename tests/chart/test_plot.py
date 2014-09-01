@@ -201,6 +201,11 @@ class DescribeBarPlot(object):
         bar_plot.gap_width = new_value
         assert bar_plot._element.xml == expected_xml
 
+    def it_knows_how_much_it_overlaps_the_adjacent_bar(
+            self, overlap_get_fixture):
+        bar_plot, expected_value = overlap_get_fixture
+        assert bar_plot.overlap == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -225,6 +230,18 @@ class DescribeBarPlot(object):
         bar_plot = BarPlot(element(barChart_cxml), None)
         expected_xml = xml(expected_barChart_cxml)
         return bar_plot, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:barChart',                        0),
+        ('c:barChart/c:overlap',              0),
+        ('c:barChart/c:overlap{val=42}',     42),
+        ('c:barChart/c:overlap{val=-42}',   -42),
+        ('c:barChart/c:overlap{val=-042%}', -42),
+    ])
+    def overlap_get_fixture(self, request):
+        barChart_cxml, expected_value = request.param
+        bar_plot = BarPlot(element(barChart_cxml), None)
+        return bar_plot, expected_value
 
 
 class DescribeDataLabels(object):

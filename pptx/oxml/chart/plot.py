@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from .. import parse_xml
 from ..ns import nsdecls, qn
-from ..simpletypes import ST_BarDir, ST_GapAmount, ST_Grouping
+from ..simpletypes import ST_BarDir, ST_GapAmount, ST_Grouping, ST_Overlap
 from ..text import CT_TextBody
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne, ZeroOrMore
@@ -101,6 +101,7 @@ class CT_BarChart(BaseChartElement):
     ser = ZeroOrMore('c:ser', successors=_tag_seq[4:])
     dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[5:])
     gapWidth = ZeroOrOne('c:gapWidth', successors=_tag_seq[6:])
+    overlap = ZeroOrOne('c:overlap', successors=_tag_seq[7:])
     del _tag_seq
 
     @property
@@ -204,6 +205,14 @@ class CT_LineChart(BaseChartElement):
     ser = ZeroOrMore('c:ser', successors=_tag_seq[3:])
     dLbls = ZeroOrOne('c:dLbls', successors=(_tag_seq[4:]))
     del _tag_seq
+
+
+class CT_Overlap(BaseOxmlElement):
+    """
+    ``<c:overlap>`` element specifying bar overlap as an integer percentage
+    of bar width, in range -100 to 100.
+    """
+    val = OptionalAttribute('val', ST_Overlap, default=0)
 
 
 class CT_PieChart(BaseChartElement):

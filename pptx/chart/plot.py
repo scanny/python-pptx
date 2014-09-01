@@ -149,7 +149,10 @@ class BarPlot(Plot):
         width and a setting of 100 causes all the bars in a category to be
         superimposed. A stacked bar plot has overlap of 100 by default.
         """
-        raise NotImplementedError
+        overlap = self._element.overlap
+        if overlap is None:
+            return 0
+        return overlap.val
 
 
 class DataLabels(object):
