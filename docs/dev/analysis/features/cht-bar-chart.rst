@@ -2,8 +2,9 @@
 Bar Chart
 =========
 
-A bar chart is one of the fundamental plot types, used for column and bar
-charts, clustered, stacked, and stacked 100%.
+The bar chart is a fundamental plot type, used for both column and bar charts
+by specifying the bar direction. It is also used for the clustered, stacked,
+and stacked 100% varieties by specifying grouping and overlap.
 
 
 Gap Width
@@ -24,6 +25,32 @@ Proposed protocol::
     300
     >>> bar_plot.gap_width = 700
     ValueError: gap width must be in range 0-500 (percent)
+
+
+Overlap
+-------
+
+In a bar chart having two or more series, the bars for each category are
+clustered together for ready comparison. By default, these bars are directly
+adjacent to each other, visually "touching".
+
+The bars can be made to overlap each other or have a space between them using
+the *overlap* property. Its values range between -100 and 100, representing
+the percentage of the bar width by which to overlap adjacent bars. A setting
+of -100 creates a gap of a full bar width and a setting of 100 causes all the
+bars in a category to be superimposed. The default value is 0.
+
+Proposed protocol::
+
+    >>> bar_plot = chart.plots[0]
+    >>> assert isinstance(bar_plot, BarPlot)
+    >>> bar_plot.overlap
+    0
+    >>> bar_plot.overlap = -50
+    >>> bar_plot.overlap
+    -50
+    >>> bar_plot.overlap = 200
+    ValueError: overlap must be in range -100..100 (percent)
 
 
 XML specimens
@@ -72,6 +99,7 @@ reference values in a spreadsheet.::
             <c:showBubbleSize val="0"/>
           </c:dLbls>
           <c:gapWidth val="300"/>
+          <c:overlap val="-20"/>
           <c:axId val="-2068027336"/>
           <c:axId val="-2113994440"/>
         </c:barChart>
@@ -135,6 +163,8 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:complexType>
 
+  <!-- gap-width -->
+
   <xsd:complexType name="CT_GapAmount">
     <xsd:attribute name="val" type="ST_GapAmount" default="150%"/>
   </xsd:complexType>
@@ -153,5 +183,28 @@ Related Schema Definitions
     <xsd:restriction base="xsd:unsignedShort">
       <xsd:minInclusive value="0"/>
       <xsd:maxInclusive value="500"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <!-- overlap -->
+
+  <xsd:complexType name="CT_Overlap">
+    <xsd:attribute name="val" type="ST_Overlap" default="0%"/>
+  </xsd:complexType>
+
+  <xsd:simpleType name="ST_Overlap">
+    <xsd:union memberTypes="ST_OverlapPercent ST_OverlapByte"/>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_OverlapPercent">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="(-?0*(([0-9])|([1-9][0-9])|100))%"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_OverlapByte">
+    <xsd:restriction base="xsd:byte">
+      <xsd:minInclusive value="-100"/>
+      <xsd:maxInclusive value="100"/>
     </xsd:restriction>
   </xsd:simpleType>
