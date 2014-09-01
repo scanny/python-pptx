@@ -140,6 +140,17 @@ class BarPlot(Plot):
         gapWidth = self._element.get_or_add_gapWidth()
         gapWidth.val = value
 
+    @property
+    def overlap(self):
+        """
+        Read/write int value in range -100 to 100 specifying a percentage of
+        the bar width by which to overlap adjacent bars in a multi-series bar
+        chart. Default is 0. A setting of -100 creates a gap of a full bar
+        width and a setting of 100 causes all the bars in a category to be
+        superimposed. A stacked bar plot has overlap of 100 by default.
+        """
+        raise NotImplementedError
+
 
 class DataLabels(object):
     """

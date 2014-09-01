@@ -6,7 +6,7 @@ Feature: Get and set plot properties
 
   Scenario Outline: Determine whether a plot has data labels
     Given a bar plot <having-or-not> data labels
-     Then the plot.has_data_labels property is <expected-value>
+     Then plot.has_data_labels is <expected-value>
 
     Examples: having data labels or not
       | having-or-not | expected-value |
@@ -17,7 +17,7 @@ Feature: Get and set plot properties
   Scenario Outline: Change whether a plot has data labels
     Given a bar plot <having-or-not> data labels
      When I assign <value> to plot.has_data_labels
-     Then the plot.has_data_labels property is <expected-value>
+     Then plot.has_data_labels is <expected-value>
 
     Examples: expected results of changing has_data_labels
       | having-or-not | value | expected-value |
@@ -29,7 +29,7 @@ Feature: Get and set plot properties
 
   Scenario Outline: Get bar plot gap width
     Given a bar plot having gap width of <gap-width>
-     Then the value of plot.gap_width is <expected-value>
+     Then plot.gap_width is <expected-value>
 
     Examples: bar plot gap widths
       | gap-width         | expected-value |
@@ -40,12 +40,36 @@ Feature: Get and set plot properties
   Scenario Outline: Set bar plot gap width
     Given a bar plot having gap width of <gap-width>
      When I assign <new-value> to plot.gap_width
-     Then the value of plot.gap_width is <expected-value>
+     Then plot.gap_width is <expected-value>
 
     Examples: expected results of changing gap width
       | gap-width         | new-value | expected-value |
       | no explicit value | 300       | 300            |
       | 300               | 275       | 275            |
+
+
+  @wip
+  Scenario Outline: Get bar plot overlap
+    Given a bar plot having overlap of <overlap>
+     Then plot.overlap is <expected-value>
+
+    Examples: expected bar plot overlap values
+      | overlap           | expected-value |
+      | no explicit value | 0              |
+      | 42                | 42             |
+      | -42               | -42            |
+
+
+  @wip
+  Scenario Outline: Set bar plot overlap
+    Given a bar plot having overlap of <overlap>
+     When I assign <new-value> to plot.overlap
+     Then plot.overlap is <expected-value>
+
+    Examples: expected results of changing overlap
+      | overlap           | new-value | expected-value |
+      | no explicit value | 42        | 42             |
+      | 42                | -42       | -42            |
 
 
   Scenario: Get plot categories

@@ -58,6 +58,17 @@ def given_a_bar_plot_having_gap_width_of_width(context, width):
     context.plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
 
 
+@given('a bar plot having overlap of {overlap}')
+def given_a_bar_plot_having_overlap_of_overlap(context, overlap):
+    slide_idx = {
+        'no explicit value': 0,
+        '42':                1,
+        '-42':               2,
+    }[overlap]
+    prs = Presentation(test_pptx('cht-plot-props'))
+    context.plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
+
+
 @given('a bar plot having vary color by category set to {setting}')
 def given_a_bar_plot_having_vary_color_by_category_setting(context, setting):
     slide_idx = {
@@ -323,6 +334,12 @@ def when_I_assign_value_to_plot_has_data_labels(context, value):
     context.plot.has_data_labels = new_value
 
 
+@when('I assign {value} to plot.overlap')
+def when_I_assign_value_to_plot_overlap(context, value):
+    new_value = int(value)
+    context.plot.overlap = new_value
+
+
 @when('I assign {value} to plot.vary_by_categories')
 def when_I_assign_value_to_plot_vary_by_categories(context, value):
     new_value = {
@@ -470,6 +487,29 @@ def then_plot_categories_contains_the_known_category_strings(context):
     )
 
 
+@then('plot.gap_width is {value}')
+def then_plot_gap_width_is_value(context, value):
+    expected_value = int(value)
+    plot = context.plot
+    assert plot.gap_width == expected_value, 'got %s' % plot.gap_width
+
+
+@then('plot.has_data_labels is {value}')
+def then_plot_has_data_labels_is_value(context, value):
+    expected_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    assert context.plot.has_data_labels is expected_value
+
+
+@then('plot.overlap is {value}')
+def then_plot_overlap_is_expected_value(context, value):
+    expected_value = int(value)
+    plot = context.plot
+    assert plot.overlap == expected_value, 'got %s' % plot.overlap
+
+
 @then('plot.vary_by_categories is {value}')
 def then_plot_vary_by_categories_is_value(context, value):
     expected_value = {
@@ -533,15 +573,6 @@ def then_the_chart_type_is_type(context, chart_type):
     assert chart.chart_type is chart_type, 'got %s' % chart.chart_type
 
 
-@then('the plot.has_data_labels property is {value}')
-def then_the_plot_has_data_labels_property_is_value(context, value):
-    expected_value = {
-        'True':  True,
-        'False': False,
-    }[value]
-    assert context.plot.has_data_labels is expected_value
-
-
 @then('the series fill RGB color is FF6600')
 def then_the_series_fill_RGB_color_is_FF6600(context):
     fill = context.series.fill
@@ -570,13 +601,6 @@ def then_the_series_has_a_line_width_of_width(context, width):
     expected_width = int(width)
     line = context.series.line
     assert line.width == expected_width
-
-
-@then('the value of plot.gap_width is {value}')
-def then_the_value_of_plot_gap_width_is_value(context, value):
-    expected_value = int(value)
-    actual_gap_width = context.plot.gap_width
-    assert actual_gap_width == expected_value, 'got %s' % actual_gap_width
 
 
 @then('tick_labels.offset is {value}')
