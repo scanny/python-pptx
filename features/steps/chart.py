@@ -58,6 +58,17 @@ def given_a_bar_plot_having_gap_width_of_width(context, width):
     context.plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
 
 
+@given('a bar plot having vary color by category set to {setting}')
+def given_a_bar_plot_having_vary_color_by_category_setting(context, setting):
+    slide_idx = {
+        'no explicit setting': 0,
+        'True':                1,
+        'False':               2,
+    }[setting]
+    prs = Presentation(test_pptx('cht-plot-props'))
+    context.plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
+
+
 @given('a bar series having fill of {fill}')
 def given_a_bar_series_having_fill_of_fill(context, fill):
     series_idx = {
@@ -312,6 +323,15 @@ def when_I_assign_value_to_plot_has_data_labels(context, value):
     context.plot.has_data_labels = new_value
 
 
+@when('I assign {value} to plot.vary_by_categories')
+def when_I_assign_value_to_plot_vary_by_categories(context, value):
+    new_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    context.plot.vary_by_categories = new_value
+
+
 @when('I assign {value} to series.invert_if_negative')
 def when_I_assign_value_to_series_invert_if_negative(context, value):
     new_value = {
@@ -448,6 +468,16 @@ def then_plot_categories_contains_the_known_category_strings(context):
     assert plot.categories == expected_categories, (
         'got %s' % plot.categories
     )
+
+
+@then('plot.vary_by_categories is {value}')
+def then_plot_vary_by_categories_is_value(context, value):
+    expected_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    plot = context.plot
+    assert plot.vary_by_categories is expected_value
 
 
 @then('series.invert_if_negative is {value}')

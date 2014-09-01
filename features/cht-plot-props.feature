@@ -51,3 +51,28 @@ Feature: Get and set plot properties
   Scenario: Get plot categories
     Given a bar plot having known categories
      Then plot.categories contains the known category strings
+
+
+  @wip
+  Scenario Outline: Determine whether a plot varies color by category
+    Given a bar plot having vary color by category set to <setting>
+     Then plot.vary_by_categories is <expected-value>
+
+    Examples: expected Plot.vary_by_categories values
+      | setting             | expected-value |
+      | no explicit setting | True           |
+      | True                | True           |
+      | False               | False          |
+
+
+  @wip
+  Scenario Outline: Change whether a plot varies color by category
+    Given a bar plot having vary color by category set to <setting>
+     When I assign <value> to plot.vary_by_categories
+     Then plot.vary_by_categories is <expected-value>
+
+    Examples: expected Plot.vary_by_categories values
+      | setting             | value | expected-value |
+      | no explicit setting | False | False          |
+      | True                | False | False          |
+      | False               | True  | True           |

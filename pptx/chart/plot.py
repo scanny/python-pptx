@@ -89,6 +89,16 @@ class Plot(object):
         """
         return SeriesCollection(self._element)
 
+    @property
+    def vary_by_categories(self):
+        """
+        Read/write boolean value specifying whether to use a differnt color
+        for each of the points in this plot. Only effective when there is
+        a single series; PowerPoint automatically varies color by series when
+        there is more than one.
+        """
+        raise NotImplementedError
+
 
 class AreaPlot(Plot):
     """
