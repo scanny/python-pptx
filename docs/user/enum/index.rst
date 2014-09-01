@@ -20,5 +20,6 @@ can be found here:
    PpPlaceholderType
 
    XlChartType
+   XlLegendPosition
    XlTickLabelPosition
    XlTickMark

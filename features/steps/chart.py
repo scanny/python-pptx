@@ -17,7 +17,7 @@ from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Legend
 from pptx.chart.data import ChartData
 from pptx.dml.color import RGBColor
-from pptx.enum.chart import XL_CHART_TYPE
+from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 from pptx.util import Inches
@@ -166,6 +166,17 @@ def given_a_legend_having_horizontal_offset_of_value(context, value):
     context.legend = prs.slides[slide_idx].shapes[0].chart.legend
 
 
+@given('a legend positioned {location} the chart')
+def given_a_legend_positioned_location_the_chart(context, location):
+    slide_idx = {
+        'at an unspecified location of': 0,
+        'below':                         1,
+        'to the right of':               2,
+    }[location]
+    prs = Presentation(test_pptx('cht-legend-props'))
+    context.legend = prs.slides[slide_idx].shapes[0].chart.legend
+
+
 @given('a legend with overlay setting of {setting}')
 def given_a_legend_with_overlay_setting_of_setting(context, setting):
     slide_idx = {
@@ -278,6 +289,12 @@ def when_I_assign_value_to_legend_include_in_layout(context, value):
         'False': False,
     }[value]
     context.legend.include_in_layout = new_value
+
+
+@when('I assign {value} to legend.position')
+def when_I_assign_value_to_legend_position(context, value):
+    enum_value = getattr(XL_LEGEND_POSITION, value)
+    context.legend.position = enum_value
 
 
 @when('I assign {value} to plot.gap_width')
@@ -415,6 +432,13 @@ def then_legend_include_in_layout_is_value(context, value):
     }[value]
     legend = context.legend
     assert legend.include_in_layout is expected_value
+
+
+@then('legend.position is {value}')
+def then_legend_position_is_value(context, value):
+    expected_position = getattr(XL_LEGEND_POSITION, value)
+    legend = context.legend
+    assert legend.position is expected_position, 'got %s' % legend.position
 
 
 @then('plot.categories contains the known category strings')

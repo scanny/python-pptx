@@ -7,7 +7,8 @@ Enumerations used by charts and related objects
 from __future__ import absolute_import
 
 from .base import (
-    Enumeration, EnumMember, XmlEnumeration, XmlMappedEnumMember
+    Enumeration, EnumMember, ReturnValueOnlyEnumMember, XmlEnumeration,
+    XmlMappedEnumMember
 )
 
 
@@ -249,6 +250,47 @@ class XL_CHART_TYPE(Enumeration):
         EnumMember(
             'XY_SCATTER_SMOOTH_NO_MARKERS', 73, 'Scatter with Smoothed Lines'
             ' and No Data Markers.'
+        ),
+    )
+
+
+class XL_LEGEND_POSITION(XmlEnumeration):
+    """
+    Specifies the position of the legend on a chart.
+
+    Example::
+
+        from pptx.enum.chart import XL_LEGEND_POSITION
+
+        chart.has_legend = True
+        chart.legend.position = XL_LEGEND_POSITION.BOTTOM
+    """
+
+    __ms_name__ = 'XlLegendPosition'
+
+    __url__ = (
+        'http://msdn.microsoft.com/en-us/library/office/ff745840.aspx'
+    )
+
+    __members__ = (
+        XmlMappedEnumMember(
+            'BOTTOM', -4107, 'b', 'Below the chart.'
+        ),
+        XmlMappedEnumMember(
+            'CORNER', 2, 'tr', 'In the upper-right corner of the chart borde'
+            'r.'
+        ),
+        ReturnValueOnlyEnumMember(
+            'CUSTOM', -4161, 'A custom position.'
+        ),
+        XmlMappedEnumMember(
+            'LEFT', -4131, 'l', 'Left of the chart.'
+        ),
+        XmlMappedEnumMember(
+            'RIGHT', -4152, 'r', 'Right of the chart.'
+        ),
+        XmlMappedEnumMember(
+            'TOP', -4160, 't', 'Above the chart.'
         ),
     )
 

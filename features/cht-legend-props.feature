@@ -44,7 +44,7 @@ Feature: Get and set legend properties
      When I assign <value> to legend.include_in_layout
      Then legend.include_in_layout is <expected-value>
 
-    Examples: legend.include_in_layout expected values
+    Examples: expected results of changing legend.include_in_layout
       | setting             | value | expected-value |
       | no explicit setting | True  | True           |
       | no explicit setting | False | False          |
@@ -52,3 +52,28 @@ Feature: Get and set legend properties
       | True                | True  | True           |
       | False               | True  | True           |
       | False               | False | False          |
+
+
+  @wip
+  Scenario Outline: Determine legend position
+    Given a legend positioned <location> the chart
+     Then legend.position is <expected-value>
+
+    Examples: legend position values
+      | location                      | expected-value |
+      | at an unspecified location of | RIGHT          |
+      | below                         | BOTTOM         |
+      | to the right of               | RIGHT          |
+
+
+  @wip
+  Scenario Outline: Change legend position
+    Given a legend positioned <location> the chart
+     When I assign <new-value> to legend.position
+     Then legend.position is <expected-value>
+
+    Examples: expected results of changing legend.position
+      | location                      | new-value | expected-value |
+      | at an unspecified location of | RIGHT     | RIGHT          |
+      | below                         | TOP       | TOP            |
+      | to the right of               | BOTTOM    | BOTTOM         |

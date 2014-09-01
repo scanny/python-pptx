@@ -176,6 +176,14 @@ class Legend(object):
     def include_in_layout(self, value):
         self._element.get_or_add_overlay().val = bool(value)
 
+    @property
+    def position(self):
+        """
+        Read/write :ref:`XlLegendPosition` enumeration value specifying the
+        position of the legend within the chart.
+        """
+        raise NotImplementedError
+
 
 class Plots(Sequence):
     """

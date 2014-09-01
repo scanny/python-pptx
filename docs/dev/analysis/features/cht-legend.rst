@@ -42,6 +42,12 @@ Candidate protocol
     XL_LEGEND_POSITION.BOTTOM (-4107)
 
 
+Enumerations
+------------
+
+* :ref:`XlLegendPosition`
+
+
 Feature Summary
 ---------------
 
