@@ -188,6 +188,10 @@ class Legend(object):
             return XL_LEGEND_POSITION.RIGHT
         return legendPos.val
 
+    @position.setter
+    def position(self, position):
+        self._element.get_or_add_legendPos().val = position
+
 
 class Plots(Sequence):
     """

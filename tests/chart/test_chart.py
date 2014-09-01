@@ -329,6 +329,11 @@ class DescribeLegend(object):
         legend, expected_value = position_get_fixture
         assert legend.position == expected_value
 
+    def it_can_change_its_position(self, position_set_fixture):
+        legend, new_value, expected_xml = position_set_fixture
+        legend.position = new_value
+        assert legend._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -401,6 +406,23 @@ class DescribeLegend(object):
         legend = Legend(element(legend_cxml))
         expected_value = getattr(XL_LEGEND_POSITION, expected_enum_member)
         return legend, expected_value
+
+    @pytest.fixture(params=[
+        ('c:legend/c:legendPos{val=r}', 'BOTTOM',
+         'c:legend/c:legendPos{val=b}'),
+        ('c:legend/c:legendPos{val=b}', 'RIGHT',
+         'c:legend/c:legendPos'),
+        ('c:legend',                    'TOP',
+         'c:legend/c:legendPos{val=t}'),
+        ('c:legend/c:legendPos',        'CORNER',
+         'c:legend/c:legendPos{val=tr}'),
+    ])
+    def position_set_fixture(self, request):
+        legend_cxml, new_enum_member, expected_legend_cxml = request.param
+        legend = Legend(element(legend_cxml))
+        new_value = getattr(XL_LEGEND_POSITION, new_enum_member)
+        expected_xml = xml(expected_legend_cxml)
+        return legend, new_value, expected_xml
 
 
 class DescribePlots(object):

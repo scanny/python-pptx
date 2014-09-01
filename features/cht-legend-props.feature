@@ -65,7 +65,6 @@ Feature: Get and set legend properties
       | to the right of               | RIGHT          |
 
 
-  @wip
   Scenario Outline: Change legend position
     Given a legend positioned <location> the chart
      When I assign <new-value> to legend.position
