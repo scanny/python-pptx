@@ -47,6 +47,12 @@ class DescribePlot(object):
         plot, expected_value = vary_by_categories_get_fixture
         assert plot.vary_by_categories == expected_value
 
+    def it_can_change_whether_it_varies_color_by_category(
+            self, vary_by_categories_set_fixture):
+        plot, new_value, expected_xml = vary_by_categories_set_fixture
+        plot.vary_by_categories = new_value
+        assert plot._element.xml == expected_xml
+
     def it_provides_access_to_the_data_labels(self, data_labels_fixture):
         plot, data_labels_, DataLabels_, dLbls = data_labels_fixture
         data_labels = plot.data_labels
@@ -140,6 +146,20 @@ class DescribePlot(object):
         xChart_cxml, expected_value = request.param
         plot = Plot(element(xChart_cxml), None)
         return plot, expected_value
+
+    @pytest.fixture(params=[
+        ('c:barChart', False, 'c:barChart/c:varyColors{val=0}'),
+        ('c:barChart', True,  'c:barChart/c:varyColors'),
+        ('c:lineChart/c:varyColors{val=0}', True,
+         'c:lineChart/c:varyColors'),
+        ('c:pieChart/c:varyColors{val=1}',  False,
+         'c:pieChart/c:varyColors{val=0}'),
+    ])
+    def vary_by_categories_set_fixture(self, request):
+        xChart_cxml, new_value, expected_xChart_cxml = request.param
+        plot = Plot(element(xChart_cxml), None)
+        expected_xml = xml(expected_xChart_cxml)
+        return plot, new_value, expected_xml
 
     # fixture components ---------------------------------------------
 

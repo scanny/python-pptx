@@ -64,7 +64,6 @@ Feature: Get and set plot properties
       | False               | False          |
 
 
-  @wip
   Scenario Outline: Change whether a plot varies color by category
     Given a bar plot having vary color by category set to <setting>
      When I assign <value> to plot.vary_by_categories
