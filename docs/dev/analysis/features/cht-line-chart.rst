@@ -5,6 +5,16 @@ Line Chart
 A line chart is one of the fundamental plot types.
 
 
+XML Semantics
+-------------
+
+* c:lineChart/c:marker{val=0|1} doesn't seem to have any effect one way or
+  the other. Default line charts inserted using PowerPoint always have it set
+  to 1 (True). But even if it's set to 0 or removed, markers still appear.
+  Hypothesis is that c:lineChart/c:ser/c:marker/c:symbol{val=none} and the
+  like are the operative settings.
+
+
 XML specimens
 -------------
 

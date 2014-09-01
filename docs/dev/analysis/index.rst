@@ -12,6 +12,10 @@ Roughly in reverse chronological order of creation:
 .. toctree::
    :maxdepth: 1
 
+   features/cht-line-chart
+   features/cht-pie-chart
+   features/cht-bar-chart
+   features/cht-plots
    features/cht-legend.rst
    features/cht-add-chart.rst
    features/cht-chart-data.rst
@@ -19,15 +23,11 @@ Roughly in reverse chronological order of creation:
    features/cht-plot-data.rst
    features/cht-axis-unit.rst
    features/cht-chart-type
-   features/cht-plots
    features/cht-invert-if-negative
    features/cht-axis-has-gridlines
    features/cht-series
    features/cht-access-xlsx
    features/cht-data-labels
-   features/cht-line-chart
-   features/cht-pie-chart
-   features/cht-bar-chart
    features/cht-axes
    features/shp-graphfrm
    features/cht-chart-shape

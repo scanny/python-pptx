@@ -2,15 +2,79 @@
 Chart - Plots
 =============
 
+Within the ``c:chartSpace/c:chart/c:plotArea`` element may occur 0..n
+`xChart` elements, each containing 0..n series.
+
+`xChart` here is a placeholder name for the various plot elements, each of
+which ends with `Chart`:
+
+* ``<c:barChart>``
+* ``<c:lineChart>``
+* ``<c:pieChart>``
+* ``<c:areaChart>``
+* etc. ...
+
+In the Microsoft API, the term *chart group* is used for the concept these
+elements represent. Rather than a group of charts, their role is perhaps
+better described as a *series group*. The terminology is a bit vexed when it
+comes down to details. The term *plot* was chosen for the purposes of this
+library.
+
+The reason the concept of a plot is required is that more than one type of
+plotting may appear on a single chart. For example, a line chart can appear
+on top of a column chart. To be more precise, one or more series can be
+plotted as lines superimposed on one or more series plotted as columns.
+
+The two sets of series both belong to a single chart, and there is only
+a single data source to define all the series in the chart. The Excel
+workbook that provides the chart data uses only a single worksheet.
+
+Individual series can be assigned a different *chart type* using the
+PowerPoint UI; this operation causes them to be placed in a distinct `xChart`
+element of the corresponding type. During this operation, PowerPoint adds
+`xChart` elements in an order that seems to correspond to logical viewing
+order, without respect to the sequence of the series chosen. It appears area
+plots are placed in back, bar next, and line in front. This prevents plots of
+one type from obscuring the others.
+
+Note that not all combinations of chart types are possible. I've seen area
+overlaid with column overlaid with line. Bar cannot be combined with line,
+which seems sensible because their axes locations differ (switched
+horizontal/vertical).
+
+
+Feature Summary
+---------------
+
+Most plot-level properties are particular to a chart type. One so far is
+shared by plots of almost all chart types.
+
+* **Plot.vary_by_categories** -- Read/write boolean determining whether point
+  markers for each category have a different color. A point marker here means
+  a bar for a bar chart, a pie section, etc. This setting is only operative
+  when the plot has a single series. A plot with multiple series uses varying
+  colors to distinguish series rather than categories.
+
+
+Candidate protocol
+------------------
+
+Plot.vary_by_categories::
+
+    >>> plot = chart.plots[0]
+    >>> plot.vary_by_categories
+    True
+    >>> plot.vary_by_categories = False
+    >>> plot.vary_by_categories
+    False
+
 
 XML Semantics
 -------------
 
-* c:lineChart/c:marker{val=0|1} doesn't seem to have any effect one way or
-  the other. Default line charts inserted using PowerPoint always have it set
-  to 1 (True). But even if it's set to 0 or removed, markers still appear.
-  Hypothesis is that c:lineChart/c:ser/c:marker/c:symbol{val=none} and the
-  like are the operative settings.
+* The value of ``c:xChart/c:varyColors`` defaults to |True| when the element
+  is not present or when the element is present but its ``val`` attribute is
+  not.
 
 
 Related Schema Definitions
