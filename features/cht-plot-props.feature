@@ -59,7 +59,6 @@ Feature: Get and set plot properties
       | -42               | -42            |
 
 
-  @wip
   Scenario Outline: Set bar plot overlap
     Given a bar plot having overlap of <overlap>
      When I assign <new-value> to plot.overlap

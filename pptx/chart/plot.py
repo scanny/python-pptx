@@ -154,6 +154,17 @@ class BarPlot(Plot):
             return 0
         return overlap.val
 
+    @overlap.setter
+    def overlap(self, value):
+        """
+        Set the value of the ``<c:overlap>`` child element to *int_value*,
+        or remove the overlap element if *int_value* is 0.
+        """
+        if value == 0:
+            self._element._remove_overlap()
+            return
+        self._element.get_or_add_overlap().val = value
+
 
 class DataLabels(object):
     """
