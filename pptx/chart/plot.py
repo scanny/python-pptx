@@ -97,7 +97,10 @@ class Plot(object):
         a single series; PowerPoint automatically varies color by series when
         there is more than one.
         """
-        raise NotImplementedError
+        varyColors = self._element.varyColors
+        if varyColors is None:
+            return True
+        return varyColors.val
 
 
 class AreaPlot(Plot):

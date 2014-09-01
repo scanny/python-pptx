@@ -19,6 +19,13 @@ class BaseChartElement(BaseOxmlElement):
     """
     Base class for barChart, lineChart, and other plot elements.
     """
+    # needs successors for all chart types; bar, pie, and line so far
+    varyColors = ZeroOrOne('c:varyColors', successors=(
+        'c:ser', 'c:dLbls', 'c:gapWidth', 'c:overlap', 'c:serLines',
+        'c:dropLines', 'c:hiLowLines', 'c:upDownBars', 'c:marker',
+        'c:smooth', 'c:axId', 'c:firstSliceAng', 'c:extLst'
+    ))
+
     @property
     def cat_pts(self):
         """

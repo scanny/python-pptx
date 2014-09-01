@@ -42,6 +42,11 @@ class DescribePlot(object):
         plot.has_data_labels = new_value
         assert plot._element.xml == expected_xml
 
+    def it_knows_whether_it_varies_color_by_category(
+            self, vary_by_categories_get_fixture):
+        plot, expected_value = vary_by_categories_get_fixture
+        assert plot.vary_by_categories == expected_value
+
     def it_provides_access_to_the_data_labels(self, data_labels_fixture):
         plot, data_labels_, DataLabels_, dLbls = data_labels_fixture
         data_labels = plot.data_labels
@@ -125,6 +130,16 @@ class DescribePlot(object):
         xChart = element('c:barChart')
         plot = Plot(xChart, None)
         return plot, series_collection_, SeriesCollection_, xChart
+
+    @pytest.fixture(params=[
+        ('c:barChart',                     True),
+        ('c:lineChart/c:varyColors',       True),
+        ('c:pieChart/c:varyColors{val=0}', False),
+    ])
+    def vary_by_categories_get_fixture(self, request):
+        xChart_cxml, expected_value = request.param
+        plot = Plot(element(xChart_cxml), None)
+        return plot, expected_value
 
     # fixture components ---------------------------------------------
 

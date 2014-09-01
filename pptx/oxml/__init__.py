@@ -101,6 +101,7 @@ register_element_cls('c:min',              CT_Double)
 register_element_cls('c:numFmt',           CT_NumFmt)
 register_element_cls('c:order',            CT_UnsignedInt)
 register_element_cls('c:overlay',          CT_Boolean)
+register_element_cls('c:varyColors',       CT_Boolean)
 register_element_cls('c:x',                CT_Double)
 register_element_cls('c:xMode',            CT_LayoutMode)
 
