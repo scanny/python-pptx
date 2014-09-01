@@ -14,6 +14,7 @@ from pptx.chart.data import ChartData, _SeriesData
 from pptx.chart.plot import Plot
 from pptx.chart.series import SeriesCollection
 from pptx.enum.base import EnumValue
+from pptx.enum.chart import XL_LEGEND_POSITION
 from pptx.oxml import parse_xml
 from pptx.oxml.chart.chart import CT_ChartSpace
 from pptx.oxml.chart.series import CT_SeriesComposite
@@ -323,6 +324,11 @@ class DescribeLegend(object):
         legend.include_in_layout = new_value
         assert legend._element.xml == expected_xml
 
+    def it_knows_its_position_with_respect_to_the_chart(
+            self, position_get_fixture):
+        legend, expected_value = position_get_fixture
+        assert legend.position == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -383,6 +389,18 @@ class DescribeLegend(object):
         legend = Legend(element(legend_cxml))
         expected_xml = xml(expected_legend_cxml)
         return legend, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:legend',                    'RIGHT'),
+        ('c:legend/c:legendPos',        'RIGHT'),
+        ('c:legend/c:legendPos{val=r}', 'RIGHT'),
+        ('c:legend/c:legendPos{val=b}', 'BOTTOM'),
+    ])
+    def position_get_fixture(self, request):
+        legend_cxml, expected_enum_member = request.param
+        legend = Legend(element(legend_cxml))
+        expected_value = getattr(XL_LEGEND_POSITION, expected_enum_member)
+        return legend, expected_value
 
 
 class DescribePlots(object):

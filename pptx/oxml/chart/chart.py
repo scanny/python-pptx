@@ -7,10 +7,12 @@ lxml custom element classes for chart-related XML elements.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from .. import parse_xml
+from ...enum.chart import XL_LEGEND_POSITION
 from ..ns import nsdecls, qn
 from ..simpletypes import ST_Style, XsdString
 from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
+    ZeroOrOne
 )
 
 
@@ -160,6 +162,7 @@ class CT_Legend(BaseOxmlElement):
         'c:legendPos', 'c:legendEntry', 'c:layout', 'c:overlay', 'c:spPr',
         'c:txPr', 'c:extLst'
     )
+    legendPos = ZeroOrOne('c:legendPos', successors=_tag_seq[1:])
     layout = ZeroOrOne('c:layout', successors=_tag_seq[3:])
     overlay = ZeroOrOne('c:overlay', successors=_tag_seq[4:])
     del _tag_seq
@@ -185,6 +188,16 @@ class CT_Legend(BaseOxmlElement):
         """
         layout = self.get_or_add_layout()
         layout.horz_offset = offset
+
+
+class CT_LegendPos(BaseOxmlElement):
+    """
+    ``<c:legendPos>`` element specifying position of legend with respect to
+    chart as a member of ST_LegendPos.
+    """
+    val = OptionalAttribute(
+        'val', XL_LEGEND_POSITION, default=XL_LEGEND_POSITION.RIGHT
+    )
 
 
 class CT_PlotArea(BaseOxmlElement):

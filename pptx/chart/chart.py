@@ -10,6 +10,7 @@ from collections import Sequence
 from copy import deepcopy
 
 from .axis import CategoryAxis, ValueAxis
+from ..enum.chart import XL_LEGEND_POSITION
 from .plot import PlotFactory, PlotTypeInspector
 from .series import SeriesCollection
 from ..util import lazyproperty
@@ -182,7 +183,10 @@ class Legend(object):
         Read/write :ref:`XlLegendPosition` enumeration value specifying the
         position of the legend within the chart.
         """
-        raise NotImplementedError
+        legendPos = self._element.legendPos
+        if legendPos is None:
+            return XL_LEGEND_POSITION.RIGHT
+        return legendPos.val
 
 
 class Plots(Sequence):

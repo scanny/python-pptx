@@ -54,7 +54,6 @@ Feature: Get and set legend properties
       | False               | False | False          |
 
 
-  @wip
   Scenario Outline: Determine legend position
     Given a legend positioned <location> the chart
      Then legend.position is <expected-value>
