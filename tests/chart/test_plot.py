@@ -8,13 +8,13 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.enum.chart import XL_CHART_TYPE as XL
 from pptx.chart.chart import Chart
 from pptx.chart.plot import (
     AreaPlot, Area3DPlot, BarPlot, DataLabels, LinePlot, PiePlot, Plot,
     PlotFactory, PlotTypeInspector
 )
 from pptx.chart.series import SeriesCollection
+from pptx.enum.chart import XL_CHART_TYPE as XL, XL_LABEL_POSITION
 from pptx.text import Font
 
 from ..unitutil.cxml import element, xml
@@ -297,33 +297,9 @@ class DescribeDataLabels(object):
         data_labels.number_format_is_linked = new_value
         assert data_labels._element.xml == expected_xml
 
-    @pytest.fixture(params=[
-        ('c:dLbls', True,  'c:dLbls/c:numFmt{sourceLinked=1}'),
-        ('c:dLbls', False, 'c:dLbls/c:numFmt{sourceLinked=0}'),
-        ('c:dLbls', None,  'c:dLbls/c:numFmt'),
-        ('c:dLbls/c:numFmt', True, 'c:dLbls/c:numFmt{sourceLinked=1}'),
-        ('c:dLbls/c:numFmt{sourceLinked=1}', False,
-         'c:dLbls/c:numFmt{sourceLinked=0}'),
-    ])
-    def number_format_is_linked_set_fixture(self, request):
-        dLbls_cxml, new_value, expected_dLbls_cxml = request.param
-        data_labels = DataLabels(element(dLbls_cxml))
-        expected_xml = xml(expected_dLbls_cxml)
-        return data_labels, new_value, expected_xml
-
-    @pytest.fixture(params=[
-        ('c:dLbls{a:b=c}',
-         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)'),
-        ('c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p)',
-         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)'),
-        ('c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr)',
-         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)'),
-    ])
-    def txPr_fixture(self, request):
-        dLbls_cxml, expected_cxml = request.param
-        data_labels = DataLabels(element(dLbls_cxml))
-        expected_xml = xml(expected_cxml)
-        return data_labels, expected_xml
+    def it_knows_its_position(self, position_get_fixture):
+        data_labels, expected_value = position_get_fixture
+        assert data_labels.position == expected_value
 
     # fixtures -------------------------------------------------------
 
@@ -365,6 +341,43 @@ class DescribeDataLabels(object):
         dLbls_cxml, expected_value = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         return data_labels, expected_value
+
+    @pytest.fixture(params=[
+        ('c:dLbls', True,  'c:dLbls/c:numFmt{sourceLinked=1}'),
+        ('c:dLbls', False, 'c:dLbls/c:numFmt{sourceLinked=0}'),
+        ('c:dLbls', None,  'c:dLbls/c:numFmt'),
+        ('c:dLbls/c:numFmt', True, 'c:dLbls/c:numFmt{sourceLinked=1}'),
+        ('c:dLbls/c:numFmt{sourceLinked=1}', False,
+         'c:dLbls/c:numFmt{sourceLinked=0}'),
+    ])
+    def number_format_is_linked_set_fixture(self, request):
+        dLbls_cxml, new_value, expected_dLbls_cxml = request.param
+        data_labels = DataLabels(element(dLbls_cxml))
+        expected_xml = xml(expected_dLbls_cxml)
+        return data_labels, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:dLbls',                       None),
+        ('c:dLbls/c:dLblPos{val=inBase}', XL_LABEL_POSITION.INSIDE_BASE),
+    ])
+    def position_get_fixture(self, request):
+        dLbls_cxml, expected_value = request.param
+        data_labels = DataLabels(element(dLbls_cxml))
+        return data_labels, expected_value
+
+    @pytest.fixture(params=[
+        ('c:dLbls{a:b=c}',
+         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)'),
+        ('c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p)',
+         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)'),
+        ('c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr)',
+         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)'),
+    ])
+    def txPr_fixture(self, request):
+        dLbls_cxml, expected_cxml = request.param
+        data_labels = DataLabels(element(dLbls_cxml))
+        expected_xml = xml(expected_cxml)
+        return data_labels, expected_xml
 
     # fixture components ---------------------------------------------
 

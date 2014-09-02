@@ -4,7 +4,6 @@ Feature: Access and modify data labels properties
   I need a way to get and set data labels properties
 
 
-  @wip
   Scenario Outline: Determine position of data labels
     Given bar chart data labels positioned <relation-to> their data point
      Then data_labels.position is <expected-value>

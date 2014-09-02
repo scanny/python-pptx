@@ -236,7 +236,10 @@ class DataLabels(object):
         PowerPoint to choose the default position, which varies by chart
         type.
         """
-        raise NotImplementedError
+        dLblPos = self._element.dLblPos
+        if dLblPos is None:
+            return None
+        return dLblPos.val
 
 
 class LinePlot(Plot):

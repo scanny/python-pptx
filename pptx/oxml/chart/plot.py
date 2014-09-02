@@ -7,11 +7,13 @@ Plot-related oxml objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from .. import parse_xml
+from ...enum.chart import XL_DATA_LABEL_POSITION
 from ..ns import nsdecls, qn
 from ..simpletypes import ST_BarDir, ST_GapAmount, ST_Grouping, ST_Overlap
 from ..text import CT_TextBody
 from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne, ZeroOrMore
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
+    ZeroOrOne, ZeroOrMore
 )
 
 
@@ -127,6 +129,14 @@ class CT_BarDir(BaseOxmlElement):
     val = OptionalAttribute('val', ST_BarDir, default=ST_BarDir.COL)
 
 
+class CT_DLblPos(BaseOxmlElement):
+    """
+    ``<c:dLblPos>`` element specifying the positioning of a data label with
+    respect to its data point.
+    """
+    val = RequiredAttribute('val', XL_DATA_LABEL_POSITION)
+
+
 class CT_DLbls(BaseOxmlElement):
     """
     ``<c:dLbls>`` element specifying the properties of a set of data labels.
@@ -139,6 +149,7 @@ class CT_DLbls(BaseOxmlElement):
     )
     numFmt = ZeroOrOne('c:numFmt', successors=(_tag_seq[1:]))
     txPr = ZeroOrOne('c:txPr', successors=(_tag_seq[3:]))
+    dLblPos = ZeroOrOne('c:dLblPos', successors=(_tag_seq[4:]))
     del _tag_seq
 
     _default_xml = (
