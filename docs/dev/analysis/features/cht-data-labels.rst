@@ -3,9 +3,62 @@ Chart - Data Labels
 ===================
 
 On a PowerPoint chart, data points may be labeled as an aid to readers.
-Typically, the label is the value of the data point. A data label may have
-any combination of its series name, category name, and value. A number format
-may also be applied to the value displayed.
+Typically, the label is the value of the data point, but a data label may
+have any combination of its series name, category name, and value. A number
+format may also be applied to the value displayed.
+
+
+Position
+--------
+
+There are nine choices for where a data label may be positioned relative to
+its data point marker, although the available options depend on the chart
+type. The options are specified using the :ref:`XlDataLabelPosition`
+enumeration.
+
+**XML Semantics.** The default position when no ``<c:dLblPos>`` element is
+present (common) depends on the chart type:
+
++------------------------------+-------------+
+| barChart (clustered)         | OUTSIDE_END |
++------------------------------+-------------+
+| bar3DChart (clustered)       | OUTSIDE_END |
++------------------------------+-------------+
+| barChart (stacked)           | CENTER      |
++------------------------------+-------------+
+| barChart (percent stacked)   | CENTER      |
++------------------------------+-------------+
+| bar3DChart (stacked)         | CENTER      |
++------------------------------+-------------+
+| bar3DChart (percent stacked) | CENTER      |
++------------------------------+-------------+
+| pieChart                     | BEST_FIT    |
++------------------------------+-------------+
+| pie3DChart                   | BEST_FIT    |
++------------------------------+-------------+
+| ofPieChart                   | BEST_FIT    |
++------------------------------+-------------+
+| areaChart                    | CENTER      |
++------------------------------+-------------+
+| area3DChart                  | CENTER      |
++------------------------------+-------------+
+| doughnutChart                | CENTER      |
++------------------------------+-------------+
+| radarChart                   | OUTSIDE_END |
++------------------------------+-------------+
+| all others                   | RIGHT       |
++------------------------------+-------------+
+
+http://msdn.microsoft.com/en-us/library/ff535061(v=office.12).aspx
+
+Proposed protocol::
+
+    >>> data_labels = plot.data_labels
+    >>> data_labels.position
+    OUTSIDE_END (2)
+    >>> data_labels.position = XL_DATA_LABEL_POSITION.INSIDE_END
+    >>> data_labels.position
+    INSIDE_END (3)
 
 
 PowerPoint behavior

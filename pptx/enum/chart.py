@@ -7,8 +7,8 @@ Enumerations used by charts and related objects
 from __future__ import absolute_import
 
 from .base import (
-    Enumeration, EnumMember, ReturnValueOnlyEnumMember, XmlEnumeration,
-    XmlMappedEnumMember
+    alias, Enumeration, EnumMember, ReturnValueOnlyEnumMember,
+    XmlEnumeration, XmlMappedEnumMember
 )
 
 
@@ -250,6 +250,68 @@ class XL_CHART_TYPE(Enumeration):
         EnumMember(
             'XY_SCATTER_SMOOTH_NO_MARKERS', 73, 'Scatter with Smoothed Lines'
             ' and No Data Markers.'
+        ),
+    )
+
+
+@alias('XL_LABEL_POSITION')
+class XL_DATA_LABEL_POSITION(XmlEnumeration):
+    """
+    Specifies where the data label is positioned.
+
+    Example::
+
+        from pptx.enum.chart import XL_LABEL_POSITION
+
+        data_labels = chart.plots[0].data_labels
+        data_labels.position = XL_LABEL_POSITION.OUTSIDE_END
+    """
+
+    __ms_name__ = 'XlDataLabelPosition'
+
+    __url__ = (
+        'http://msdn.microsoft.com/en-us/library/office/ff745082.aspx'
+    )
+
+    __members__ = (
+        XmlMappedEnumMember(
+            'ABOVE', 0, 't', 'The data label is positioned above the data po'
+            'int.'
+        ),
+        XmlMappedEnumMember(
+            'BELOW', 1, 'b', 'The data label is positioned below the data po'
+            'int.'
+        ),
+        XmlMappedEnumMember(
+            'BEST_FIT', 5, 'bestFit', 'Word sets the position of the data la'
+            'bel.'
+        ),
+        XmlMappedEnumMember(
+            'CENTER', -4108, 'ctr', 'The data label is centered on the data '
+            'point or inside a bar or a pie slice.'
+        ),
+        XmlMappedEnumMember(
+            'INSIDE_BASE', 4, 'inBase', 'The data label is positioned inside'
+            ' the data point at the bottom edge.'
+        ),
+        XmlMappedEnumMember(
+            'INSIDE_END', 3, 'inEnd', 'The data label is positioned inside t'
+            'he data point at the top edge.'
+        ),
+        XmlMappedEnumMember(
+            'LEFT', -4131, 'l', 'The data label is positioned to the left of'
+            ' the data point.'
+        ),
+        ReturnValueOnlyEnumMember(
+            'MIXED', 6, 'Data labels are in multiple positions.'
+        ),
+        XmlMappedEnumMember(
+            'OUTSIDE_END', 2, 'outEnd', 'The data label is positioned outsid'
+            'e the data point at the top edge.'
+        ),
+        XmlMappedEnumMember(
+            'RIGHT', -4152, 'r', 'The data label is positioned to the right '
+            'of the data point.'
         ),
     )
 
