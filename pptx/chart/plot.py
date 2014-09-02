@@ -227,6 +227,17 @@ class DataLabels(object):
         numFmt = self._element.get_or_add_numFmt()
         numFmt.sourceLinked = value
 
+    @property
+    def position(self):
+        """
+        Read/write :ref:`XlDataLabelPosition` enumeration value specifying
+        the position of the data labels with respect to their data point, or
+        |None| if no position is specified. Assigning |None| causes
+        PowerPoint to choose the default position, which varies by chart
+        type.
+        """
+        raise NotImplementedError
+
 
 class LinePlot(Plot):
     """

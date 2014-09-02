@@ -17,7 +17,9 @@ from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Legend
 from pptx.chart.data import ChartData
 from pptx.dml.color import RGBColor
-from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
+from pptx.enum.chart import (
+    XL_CHART_TYPE, XL_DATA_LABEL_POSITION, XL_LEGEND_POSITION
+)
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 from pptx.util import Inches
@@ -233,6 +235,18 @@ def given_an_axis_not_having_major_or_minor_gridlines(context, major_or_minor):
     context.axis = chart.category_axis
 
 
+@given('bar chart data labels positioned {relation_to} their data point')
+def given_bar_chart_data_labels_positioned_relation_to_their_data_point(
+        context, relation_to):
+    slide_idx = {
+        'in unspecified relation to': 0,
+        'inside, at the base of':     1,
+    }[relation_to]
+    prs = Presentation(test_pptx('cht-datalabels-props'))
+    chart = prs.slides[slide_idx].shapes[0].chart
+    context.data_labels = chart.plots[0].data_labels
+
+
 @given('tick labels having an offset of {setting}')
 def given_tick_labels_having_an_offset_of_setting(context, setting):
     slide_idx = {
@@ -296,6 +310,17 @@ def when_I_assign_value_to_axis_major_or_minor_unit(
     propname = '%s_unit' % major_or_minor
     new_value = {'8.4': 8.4, '5': 5, 'None': None}[value]
     setattr(axis, propname, new_value)
+
+
+@when('I assign {value} to data_labels.position')
+def when_I_assign_value_to_data_labels_position(context, value):
+    new_value = {
+        'None':        None,
+        'INSIDE_BASE': XL_DATA_LABEL_POSITION.INSIDE_BASE,
+        'INSIDE_END':  XL_DATA_LABEL_POSITION.INSIDE_END,
+        'OUTSIDE_END': XL_DATA_LABEL_POSITION.OUTSIDE_END,
+    }[value]
+    context.data_labels.position = new_value
 
 
 @when('I assign {value} to legend.horz_offset')
@@ -426,6 +451,20 @@ def then_chart_has_legend_is_value(context, value):
 def then_chart_legend_is_a_legend_object(context):
     chart = context.chart
     assert isinstance(chart.legend, Legend)
+
+
+@then('data_labels.position is {value}')
+def then_data_labels_position_is_value(context, value):
+    expected_value = {
+        'None':        None,
+        'INSIDE_BASE': XL_DATA_LABEL_POSITION.INSIDE_BASE,
+        'INSIDE_END':  XL_DATA_LABEL_POSITION.INSIDE_END,
+        'OUTSIDE_END': XL_DATA_LABEL_POSITION.OUTSIDE_END,
+    }[value]
+    data_labels = context.data_labels
+    assert data_labels.position is expected_value, (
+        'got %s' % data_labels.position
+    )
 
 
 @then('each series has a new name')
