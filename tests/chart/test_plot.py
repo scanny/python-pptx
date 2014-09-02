@@ -301,6 +301,11 @@ class DescribeDataLabels(object):
         data_labels, expected_value = position_get_fixture
         assert data_labels.position == expected_value
 
+    def it_can_change_its_position(self, position_set_fixture):
+        data_labels, new_value, expected_xml = position_set_fixture
+        data_labels.position = new_value
+        assert data_labels._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -364,6 +369,20 @@ class DescribeDataLabels(object):
         dLbls_cxml, expected_value = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         return data_labels, expected_value
+
+    @pytest.fixture(params=[
+        ('c:dLbls',                       XL_LABEL_POSITION.INSIDE_BASE,
+         'c:dLbls/c:dLblPos{val=inBase}'),
+        ('c:dLbls/c:dLblPos{val=inBase}', XL_LABEL_POSITION.OUTSIDE_END,
+         'c:dLbls/c:dLblPos{val=outEnd}'),
+        ('c:dLbls/c:dLblPos{val=inBase}', None, 'c:dLbls'),
+        ('c:dLbls',                       None, 'c:dLbls'),
+    ])
+    def position_set_fixture(self, request):
+        dLbls_cxml, new_value, expected_dLbls_cxml = request.param
+        data_labels = DataLabels(element(dLbls_cxml))
+        expected_xml = xml(expected_dLbls_cxml)
+        return data_labels, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('c:dLbls{a:b=c}',

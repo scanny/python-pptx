@@ -241,6 +241,13 @@ class DataLabels(object):
             return None
         return dLblPos.val
 
+    @position.setter
+    def position(self, value):
+        if value is None:
+            self._element._remove_dLblPos()
+            return
+        self._element.get_or_add_dLblPos().val = value
+
 
 class LinePlot(Plot):
     """

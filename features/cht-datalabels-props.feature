@@ -14,7 +14,6 @@ Feature: Access and modify data labels properties
       | inside, at the base of     | INSIDE_BASE    |
 
 
-  @wip
   Scenario Outline: Change position of data labels
     Given bar chart data labels positioned <relation-to> their data point
      When I assign <new-value> to data_labels.position
