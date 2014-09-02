@@ -29,6 +29,7 @@ class CT_SeriesComposite(BaseOxmlElement):
         'c:val', 'c:smooth', 'c:shape', 'c:extLst'
     ))
     val = ZeroOrOne('c:val', successors=('c:smooth', 'c:shape', 'c:extLst'))
+    smooth = ZeroOrOne('c:smooth', successors=('c:extLst',))
 
     @property
     def val_pts(self):

@@ -118,6 +118,22 @@ class LineSeries(_BaseSeries):
     """
     A data point series belonging to a line plot.
     """
+    @property
+    def smooth(self):
+        """
+        Read/write boolean specifying whether to use curve smoothing to
+        form the line connecting the data points in this series into
+        a continuous curve. If |False|, a series of straight line segments
+        are used to connect the points.
+        """
+        smooth = self._element.smooth
+        if smooth is None:
+            return True
+        return smooth.val
+
+    @smooth.setter
+    def smooth(self, value):
+        self._element.get_or_add_smooth().val = value
 
 
 class PieSeries(_BaseSeries):

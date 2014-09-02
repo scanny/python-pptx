@@ -192,6 +192,44 @@ class DescribeBarSeries(object):
         return instance_mock(request, LineFormat)
 
 
+class DescribeLineSeries(object):
+
+    def it_knows_whether_it_should_use_curve_smoothing(
+            self, smooth_get_fixture):
+        series, expected_value = smooth_get_fixture
+        assert series.smooth == expected_value
+
+    def it_can_change_whether_it_uses_curve_smoothing(
+            self, smooth_set_fixture):
+        series, new_value, expected_xml = smooth_set_fixture
+        series.smooth = new_value
+        assert series._element.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:ser',                 True),
+        ('c:ser/c:smooth',        True),
+        ('c:ser/c:smooth{val=1}', True),
+        ('c:ser/c:smooth{val=0}', False),
+    ])
+    def smooth_get_fixture(self, request):
+        ser_cxml, expected_value = request.param
+        series = LineSeries(element(ser_cxml))
+        return series, expected_value
+
+    @pytest.fixture(params=[
+        ('c:ser',                 True,  'c:ser/c:smooth'),
+        ('c:ser/c:smooth',        False, 'c:ser/c:smooth{val=0}'),
+        ('c:ser/c:smooth{val=0}', True,  'c:ser/c:smooth'),
+    ])
+    def smooth_set_fixture(self, request):
+        ser_cxml, new_value, expected_ser_cxml = request.param
+        series = LineSeries(element(ser_cxml))
+        expected_xml = xml(expected_ser_cxml)
+        return series, new_value, expected_xml
+
+
 class DescribeSeriesCollection(object):
 
     def it_supports_indexed_access(self, getitem_fixture):
