@@ -75,3 +75,51 @@ changing how these labels are displayed.
    :member-order: bysource
    :undoc-members:
 
+
+|Plot| objects
+--------------
+
+A *plot* is a group of series all depicted using the same charting type, e.g.
+bar, column, line, etc. Most charts have only a single plot; however, a chart
+may have multiple, as in where a line plot appears overlaid on a bar plot in
+the same chart. In the Microsoft API, this concept has the name *chart
+group*. The term *plot* was chosen for |pp| to avoid the common mistake of
+understanding a chart group to be a group of chart objects.
+
+Certain properties must be set at the plot level. Some of those properties
+are not present on plots of all chart types. For example, :attr:`gap_width`
+is only present on a bar or column plot.
+
+.. autoclass:: pptx.chart.plot.Plot()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|BarPlot| objects
+~~~~~~~~~~~~~~~~~
+
+The following properties are only present on bar-type plots, which includes
+both bar and column charts.
+
+.. autoclass:: pptx.chart.plot.BarPlot()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|DataLabels| objects
+--------------------
+
+A *data label* is text that labels a particular data point, usually with its
+value, allowing the point to be interpreted more clearly than just visually
+comparing its marker with its axis.
+
+A |DataLabels| object is not a collection, such as a sequence, and it does
+not provide access to individual data points. Rather, it provides properties
+that allow all the data labels in its scope to be formatted at once.
+
+.. autoclass:: pptx.chart.plot.DataLabels()
+   :members:
+   :member-order: bysource
+   :undoc-members:

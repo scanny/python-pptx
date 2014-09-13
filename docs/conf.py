@@ -76,6 +76,8 @@ rst_epilog = """
 
 .. |Axis| replace:: :class:`Axis`
 
+.. |BarPlot| replace:: :class:`.BarPlot`
+
 .. |BaseFileSystem| replace:: :class:`BaseFileSystem`
 
 .. |BaseLength| replace:: :class:`.BaseLength`
@@ -101,6 +103,8 @@ rst_epilog = """
 .. |_ColumnCollection| replace:: :class:`_ColumnCollection`
 
 .. |CoreProperties| replace:: :class:`CoreProperties`
+
+.. |DataLabels| replace:: :class:`.DataLabels`
 
 .. |datetime| replace:: :class:`datetime.datetime`
 
@@ -160,6 +164,8 @@ rst_epilog = """
 
 .. |Picture| replace:: :class:`.Picture`
 
+.. |Plot| replace:: :class:`.Plot`
+
 .. |Plots| replace:: :class:`.Plots`
 
 .. |pp| replace:: ``python-pptx``
@@ -177,6 +183,8 @@ rst_epilog = """
 .. |_RowCollection| replace:: :class:`_RowCollection`
 
 .. |_Run| replace:: :class:`_Run`
+
+.. |Series| replace:: :class:`.Series`
 
 .. |SeriesCollection| replace:: :class:`.SeriesCollection`
 

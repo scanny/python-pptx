@@ -84,18 +84,18 @@ class Plot(object):
     @lazyproperty
     def series(self):
         """
-        The |SeriesCollection| instance containing the sequence of data
-        series in this plot.
+        A sequence of |Series| objects representing the series in this plot,
+        in the order they appear in the plot.
         """
         return SeriesCollection(self._element)
 
     @property
     def vary_by_categories(self):
         """
-        Read/write boolean value specifying whether to use a differnt color
+        Read/write boolean value specifying whether to use a different color
         for each of the points in this plot. Only effective when there is
         a single series; PowerPoint automatically varies color by series when
-        there is more than one.
+        more than one series is present.
         """
         varyColors = self._element.varyColors
         if varyColors is None:
@@ -127,8 +127,8 @@ class BarPlot(Plot):
     def gap_width(self):
         """
         Width of gap between bar(s) of each category, as an integer
-        percentage of the bar width. The default width for a new bar chart is
-        150%.
+        percentage of the bar width. The default value for a new bar chart is
+        150, representing 150% or 1.5 times the width of a single bar.
         """
         gapWidth = self._element.gapWidth
         if gapWidth is None:
@@ -143,7 +143,7 @@ class BarPlot(Plot):
     @property
     def overlap(self):
         """
-        Read/write int value in range -100 to 100 specifying a percentage of
+        Read/write int value in range -100..100 specifying a percentage of
         the bar width by which to overlap adjacent bars in a multi-series bar
         chart. Default is 0. A setting of -100 creates a gap of a full bar
         width and a setting of 100 causes all the bars in a category to be
@@ -169,7 +169,7 @@ class BarPlot(Plot):
 class DataLabels(object):
     """
     Collection of data labels associated with a plot, and perhaps with
-    a series, not sure about that yet.
+    a series or data point, although the latter two are not yet implemented.
     """
     def __init__(self, dLbls):
         super(DataLabels, self).__init__()
@@ -179,9 +179,7 @@ class DataLabels(object):
     def font(self):
         """
         The |Font| object that provides access to the text properties for
-        these data labels, such as bold, italic, etc. Accessing this property
-        Causes a ``<c:txPr>`` child element to be added if not already
-        present.
+        these data labels, such as bold, italic, etc.
         """
         defRPr = self._element.defRPr
         font = Font(defRPr)
