@@ -35,3 +35,43 @@ specified via the API.
    :members:
    :member-order: bysource
    :undoc-members:
+
+
+|Axis| objects
+--------------
+
+A chart typically has two axes, a category axis and a value axis. In general,
+one of these is horizontal and the other is vertical, where which is which
+depends on the chart type. Perhaps the most prominent exception is a pie
+chart, which has neither a category or value axis.
+
+.. autoclass:: pptx.chart.axis._BaseAxis()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+Value Axes
+~~~~~~~~~~
+
+Some axis properties are only relevant to value axes, in particular, those
+related to numeric values rather than text category labels.
+
+.. autoclass:: pptx.chart.axis.ValueAxis()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|TickLabels| objects
+--------------------
+
+Tick labels are the numbers appearing on a value axis or the category names
+appearing on a category axis. Certain formatting options are available for
+changing how these labels are displayed.
+
+.. autoclass:: pptx.chart.axis.TickLabels()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+

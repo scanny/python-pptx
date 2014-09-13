@@ -74,6 +74,8 @@ rst_epilog = """
 
 .. |AdjustmentCollection| replace:: :class:`AdjustmentCollection`
 
+.. |Axis| replace:: :class:`Axis`
+
 .. |BaseFileSystem| replace:: :class:`BaseFileSystem`
 
 .. |BaseLength| replace:: :class:`.BaseLength`
@@ -114,7 +116,7 @@ rst_epilog = """
 
 .. |float| replace:: :class:`float`
 
-.. |Font| replace:: :class:`Font`
+.. |Font| replace:: :class:`.Font`
 
 .. |GraphicFrame| replace:: :class:`.GraphicFrame`
 
@@ -201,6 +203,8 @@ rst_epilog = """
 .. |Table| replace:: :class:`Table`
 
 .. |TextFrame| replace:: :class:`.TextFrame`
+
+.. |TickLabels| replace:: :class:`.TickLabels`
 
 .. |True| replace:: :class:`True`
 

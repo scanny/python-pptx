@@ -14,7 +14,8 @@ from ..util import lazyproperty
 
 class _BaseAxis(object):
     """
-    Base class for chart axis classes.
+    Base class for chart axis objects. All axis objects share these
+    properties.
     """
     def __init__(self, xAx_elm):
         super(_BaseAxis, self).__init__()
@@ -24,7 +25,9 @@ class _BaseAxis(object):
     def has_major_gridlines(self):
         """
         Read/write boolean value specifying whether this axis has gridlines
-        at its major tick mark locations.
+        at its major tick mark locations. Assigning |True| to this property
+        causes major gridlines to be displayed. Assigning |False| causes them
+        to be removed.
         """
         if self._element.majorGridlines is None:
             return False
@@ -41,7 +44,9 @@ class _BaseAxis(object):
     def has_minor_gridlines(self):
         """
         Read/write boolean value specifying whether this axis has gridlines
-        at its minor tick mark locations.
+        at its minor tick mark locations. Assigning |True| to this property
+        causes minor gridlines to be displayed. Assigning |False| causes them
+        to be removed.
         """
         if self._element.minorGridlines is None:
             return False
@@ -58,7 +63,7 @@ class _BaseAxis(object):
     def major_tick_mark(self):
         """
         Read/write :ref:`XlTickMark` value specifying the type of major tick
-        mark for this axis.
+        mark to display on this axis.
         """
         majorTickMark = self._element.majorTickMark
         if majorTickMark is None:
@@ -75,9 +80,11 @@ class _BaseAxis(object):
     @property
     def maximum_scale(self):
         """
-        Read/write float value specifying upper limit of value range, the
-        number at the top of the vertical (value) scale. |None| if no maximum
-        scale has been set.
+        Read/write float value specifying the upper limit of the value range
+        for this axis, the number at the top or right of the vertical or
+        horizontal value scale, respectively. The value |None| indicates the
+        upper limit should be determined automatically based on the range of
+        data point values associated with the axis.
         """
         return self._element.scaling.maximum
 
@@ -91,7 +98,9 @@ class _BaseAxis(object):
         """
         Read/write float value specifying lower limit of value range, the
         number at the bottom or left of the value scale. |None| if no minimum
-        scale has been set.
+        scale has been set. The value |None| indicates the lower limit should
+        be determined automatically based on the range of data point values
+        associated with the axis.
         """
         return self._element.scaling.minimum
 
@@ -122,7 +131,8 @@ class _BaseAxis(object):
     def tick_labels(self):
         """
         The |TickLabels| instance providing access to axis tick label
-        formatting properties.
+        formatting properties. Tick labels are the numbers appearing on
+        a value axis or the category names appearing on a category axis.
         """
         return TickLabels(self._element)
 
@@ -182,9 +192,7 @@ class TickLabels(object):
     def font(self):
         """
         The |Font| object that provides access to the text properties for
-        these tick labels, such as bold, italic, etc. Accessing this property
-        Causes a ``<c:txPr>`` child element to be added if not already
-        present.
+        these tick labels, such as bold, italic, etc.
         """
         defRPr = self._element.defRPr
         font = Font(defRPr)
@@ -193,12 +201,13 @@ class TickLabels(object):
     @property
     def number_format(self):
         """
-        Read/write string specifying the format for the numbers on this axis.
-        Returns 'General' if no number format has been set. Note that this
-        format string has no effect on rendered tick labels when
-        :meth:`number_format_is_linked` is |True|. Assigning a format string
-        to this property automatically sets :meth:`number_format_is_linked`
-        to |False|.
+        Read/write string (e.g. "$#,##0.00") specifying the format for the
+        numbers on this axis. The syntax for these strings is the same as it
+        appears in the PowerPoint or Excel UI. Returns 'General' if no number
+        format has been set. Note that this format string has no effect on
+        rendered tick labels when :meth:`number_format_is_linked` is |True|.
+        Assigning a format string to this property automatically sets
+        :meth:`number_format_is_linked` to |False|.
         """
         numFmt = self._element.numFmt
         if numFmt is None:
