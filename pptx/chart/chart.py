@@ -188,7 +188,7 @@ class Legend(object):
     def position(self):
         """
         Read/write :ref:`XlLegendPosition` enumeration value specifying the
-        position of the legend within the chart.
+        general region of the chart in which to place the legend.
         """
         legendPos = self._element.legendPos
         if legendPos is None:

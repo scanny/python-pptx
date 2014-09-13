@@ -20,3 +20,18 @@ to specify and format a chart.
    :members:
    :member-order: bysource
    :undoc-members:
+
+
+|Legend| objects
+----------------
+
+A legend provides a visual key relating each series of data points to their
+assigned meaning by mapping a color, line type, or point shape to each series
+name. A legend is optional, but there can be at most one. Most aspects of
+a legend are determined automatically, but aspects of its position may be
+specified via the API.
+
+.. autoclass:: pptx.chart.chart.Legend()
+   :members:
+   :member-order: bysource
+   :undoc-members:
