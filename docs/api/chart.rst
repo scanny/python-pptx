@@ -9,6 +9,20 @@ name, are provided by the graphic frame shape. The chart itself is accessed
 using the :attr:`chart` property on the graphic frame shape.
 
 
+|ChartData| objects
+-------------------
+
+A |ChartData| object is used to specify the categories and series that
+together comprise the data depicted in a chart. It is used when creating
+a new chart and when replacing the data for an existing chart.
+
+.. autoclass:: pptx.chart.data.ChartData
+   :exclude-members: series, xlsx_blob, xml_bytes
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |Chart| objects
 ---------------
 

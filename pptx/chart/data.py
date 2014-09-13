@@ -14,10 +14,10 @@ from .xmlwriter import ChartXmlWriter
 
 class ChartData(object):
     """
-    Primarily a data transfer object, `ChartData` accumulates data specifying
-    the categories and series values for a plot. However, it also serves as
-    a broker to the services of |ChartXmlWriter| and |WorkbookWriter| for
-    obtaining chart XML and Excel objects respectively.
+    Accumulates data specifying the categories and series values for a plot
+    and acts as a proxy for the chart data table that will be written to an
+    Excel worksheet. Used as a parameter in :meth:`shapes.add_chart` and
+    :meth:`Chart.replace_data`.
     """
     def __init__(self):
         super(ChartData, self).__init__()
@@ -26,7 +26,8 @@ class ChartData(object):
 
     def add_series(self, name, values):
         """
-        Add a series to this data set having *name* and *values*.
+        Add a series to this data set entitled *name* and the data points
+        specified by *values*, an iterable of numeric values.
         """
         series_idx = len(self._series_lst)
         series = _SeriesData(series_idx, name, values, self._categories)
@@ -35,8 +36,9 @@ class ChartData(object):
     @property
     def categories(self):
         """
-        An immutable sequence containing the category labels currently
-        defined in this chart data object.
+        Read-write. The sequence of category label strings to use in the
+        chart. Any type that is iterable over a sequence of strings can be
+        assigned, e.g. a list, tuple, or iterator.
         """
         return tuple(self._categories)
 
