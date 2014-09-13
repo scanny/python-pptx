@@ -123,3 +123,44 @@ that allow all the data labels in its scope to be formatted at once.
    :members:
    :member-order: bysource
    :undoc-members:
+
+
+|Series| objects
+----------------
+
+A *series* is a sequence of data points that represent a coherent set of
+observations across each of the categories in the chart. For example, on
+a chart having regional categories "West", "East", and "Mid-west", a series
+might be "Q1 Sales" and have values 42, 120, and 34. The series in this case
+coheres around the first quarter time period.
+
+In general, the type (class) of a series object depends upon the chart type.
+The following properties are available on series objects of all types.
+
+.. autoclass:: pptx.chart.series._BaseSeries()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|BarSeries| objects
+~~~~~~~~~~~~~~~~~~~
+
+These properties are only available on series belonging to a bar-type plot.
+
+.. autoclass:: pptx.chart.series.BarSeries()
+   :exclude-members: get_or_add_ln, ln
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|LineSeries| objects
+~~~~~~~~~~~~~~~~~~~~
+
+These properties are only available on series belonging to a line-type plot.
+
+.. autoclass:: pptx.chart.series.LineSeries()
+   :members:
+   :member-order: bysource
+   :undoc-members:

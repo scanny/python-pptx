@@ -78,6 +78,8 @@ rst_epilog = """
 
 .. |BarPlot| replace:: :class:`.BarPlot`
 
+.. |BarSeries| replace:: :class:`.BarSeries`
+
 .. |BaseFileSystem| replace:: :class:`BaseFileSystem`
 
 .. |BaseLength| replace:: :class:`.BaseLength`
@@ -141,6 +143,8 @@ rst_epilog = """
 .. |Legend| replace:: :class:`.Legend`
 
 .. |LineFormat| replace:: :class:`.LineFormat`
+
+.. |LineSeries| replace:: :class:`.LineSeries`
 
 .. |_MasterPlaceholders| replace:: :class:`_MasterPlaceholders`
 

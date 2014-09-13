@@ -34,7 +34,8 @@ class _BaseSeries(object):
     def name(self):
         """
         The string label given to this series, appears as the title of the
-        column for this series in the Excel worksheet.
+        column for this series in the Excel worksheet. It also appears as the
+        label for this series in the legend.
         """
         names = self._element.xpath('./c:tx//c:pt/c:v/text()')
         name = names[0] if names else ''
@@ -43,8 +44,8 @@ class _BaseSeries(object):
     @property
     def values(self):
         """
-        A tuple containing the float values for this series, in the order
-        they appear on the chart.
+        Read-only. A sequence containing the float values for this series, in
+        the order they appear on the chart.
         """
         ser = self._element
         value_pt_elms = ser.val_pts
@@ -77,11 +78,13 @@ class BarSeries(_BaseSeries):
     @property
     def invert_if_negative(self):
         """
-        |True| if the fill of a bar having a negative value should be
-        inverted. |False| if the fill should be the same regardless of the
-        bar's value. When |True|, a bar with a solid fill appears with white
-        fill; in a bar with gradient fill, the direction of the gradient is
-        reversed, e.g. dark -> light instead of light -> dark.
+        |True| if a point having a value less than zero should appear with a
+        fill different than those with a positive value. |False| if the fill
+        should be the same regardless of the bar's value. When |True|, a bar
+        with a solid fill appears with white fill; in a bar with gradient
+        fill, the direction of the gradient is reversed, e.g. dark -> light
+        instead of light -> dark. The term "invert" here should be understood
+        to mean "invert the *direction* of the *fill gradient*".
         """
         invertIfNegative = self._element.invertIfNegative
         if invertIfNegative is None:
@@ -97,7 +100,7 @@ class BarSeries(_BaseSeries):
     def line(self):
         """
         |LineFormat| instance for this shape, providing access to line
-        properties such as line color.
+        properties such as line color and width.
         """
         return LineFormat(self)
 
