@@ -19,6 +19,7 @@ Feature Support
 * Add textbox to a slide; manipulate text font size and bold
 * Add table to a slide
 * Add auto shapes (e.g. polygons, flowchart shapes, etc.) to a slide
+* Add and manipulate column, bar, line, and pie charts
 * Access and change core document properties such as title and subject
 
 Additional capabilities are actively being developed and added on a release
@@ -70,6 +71,7 @@ API Documentation
    api/slides
    api/shapes
    api/table
+   api/chart
    api/text
    api/dml
    api/exc

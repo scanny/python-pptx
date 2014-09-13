@@ -61,10 +61,10 @@ class Chart(object):
     @property
     def chart_type(self):
         """
-        :ref:`XlChartType` enumeration value specifying the type of this
-        chart. If the chart has two plots, for example, a line plot overlayed
-        on a bar plot, the type is reported for the first (back-most) plot.
-        Read-only.
+        Read-only :ref:`XlChartType` enumeration value specifying the type of
+        this chart. If the chart has two plots, for example, a line plot
+        overlayed on a bar plot, the type reported is for the first
+        (back-most) plot.
         """
         first_plot = self.plots[0]
         return PlotTypeInspector.chart_type(first_plot)
@@ -97,16 +97,23 @@ class Chart(object):
     @lazyproperty
     def plots(self):
         """
-        The |Plots| instance containing the sequence of chart groups in
-        this chart.
+        The |Plots| instance containing the sequence of plots in this chart.
+        A plot, called a *chart group* in the Microsoft API, is a distinct
+        sequence of one or more series depicted in a particular charting
+        type. For example, a chart having a series plotted as a line overlaid
+        on three series plotted as columns would have two plots; the first
+        corresponding to the three column series and the second to the line
+        series. Plots are sequenced in the order drawn, i.e. back-most to
+        front-most.
         """
         plotArea = self._chartSpace.chart.plotArea
         return Plots(plotArea, self)
 
     def replace_data(self, chart_data):
         """
-        Use the categories and series values in *chart_data* to replace those
-        in the XML for this chart.
+        Use the categories and series values in the |ChartData| object
+        *chart_data* to replace those in the XML and Excel worksheet for this
+        chart.
         """
         _SeriesRewriter.replace_series_data(self._chartSpace, chart_data)
         self._workbook.update_from_xlsx_blob(chart_data.xlsx_blob)

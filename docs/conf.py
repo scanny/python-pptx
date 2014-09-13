@@ -132,6 +132,8 @@ rst_epilog = """
 
 .. |_LayoutShapeTree| replace:: :class:`_LayoutShapeTree`
 
+.. |Legend| replace:: :class:`.Legend`
+
 .. |LineFormat| replace:: :class:`.LineFormat`
 
 .. |_MasterPlaceholders| replace:: :class:`_MasterPlaceholders`
@@ -156,6 +158,8 @@ rst_epilog = """
 
 .. |Picture| replace:: :class:`.Picture`
 
+.. |Plots| replace:: :class:`.Plots`
+
 .. |pp| replace:: ``python-pptx``
 
 .. |Presentation| replace:: :class:`~pptx.Presentation`
@@ -171,6 +175,8 @@ rst_epilog = """
 .. |_RowCollection| replace:: :class:`_RowCollection`
 
 .. |_Run| replace:: :class:`_Run`
+
+.. |SeriesCollection| replace:: :class:`.SeriesCollection`
 
 .. |Shape| replace:: :class:`.Shape`
 
@@ -197,6 +203,8 @@ rst_epilog = """
 .. |TextFrame| replace:: :class:`.TextFrame`
 
 .. |True| replace:: :class:`True`
+
+.. |ValueAxis| replace:: :class:`.ValueAxis`
 
 .. |ValueError| replace:: :exc:`ValueError`
 
