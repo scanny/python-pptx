@@ -6,7 +6,7 @@ Test suite for pptx.chart.xmlwriter module
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from itertools import count, islice
+from itertools import islice
 
 import pytest
 
@@ -18,6 +18,7 @@ from pptx.chart.xmlwriter import (
 )
 from pptx.enum.chart import XL_CHART_TYPE
 
+from ..unitutil import count
 from ..unitutil.file import snippet_text
 from ..unitutil.mock import class_mock, instance_mock
 

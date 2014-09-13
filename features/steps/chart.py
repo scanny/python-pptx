@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 
 import hashlib
 
-from itertools import count, islice
+from itertools import islice
 
 from behave import given, then, when
 
@@ -24,7 +24,7 @@ from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 from pptx.util import Inches
 
-from .helpers import test_pptx
+from .helpers import count, test_pptx
 
 
 # given ===================================================

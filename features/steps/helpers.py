@@ -34,6 +34,16 @@ def cls_qname(obj):
     return qname
 
 
+def count(start=0, step=1):
+    """
+    Local implementation of `itertools.count()` to allow v2.6 compatibility.
+    """
+    n = start
+    while True:
+        yield n
+        n += step
+
+
 def test_pptx(name):
     """
     Return the absolute path to test .pptx file with root name *name*.
