@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import CategoryAxis, ValueAxis
-from pptx.chart.chart import Chart, Plots, Legend, _SeriesRewriter
+from pptx.chart.chart import Chart, Legend, _Plots, _SeriesRewriter
 from pptx.chart.data import ChartData, _SeriesData
 from pptx.chart.plot import Plot
 from pptx.chart.series import SeriesCollection
@@ -58,9 +58,9 @@ class DescribeChart(object):
         assert series is series_
 
     def it_provides_access_to_its_plots(self, plots_fixture):
-        chart, plots_, Plots_, plotArea = plots_fixture
+        chart, plots_, _Plots_, plotArea = plots_fixture
         plots = chart.plots
-        Plots_.assert_called_once_with(plotArea, chart)
+        _Plots_.assert_called_once_with(plotArea, chart)
         assert plots is plots_
 
     def it_knows_whether_it_has_a_legend(self, has_legend_get_fixture):
@@ -160,11 +160,11 @@ class DescribeChart(object):
         return chart, Legend_, expected_calls, expected_value
 
     @pytest.fixture
-    def plots_fixture(self, Plots_, plots_):
+    def plots_fixture(self, _Plots_, plots_):
         chartSpace = element('c:chartSpace/c:chart/c:plotArea')
         plotArea = chartSpace.xpath('./c:chart/c:plotArea')[0]
         chart = Chart(chartSpace, None)
-        return chart, plots_, Plots_, plotArea
+        return chart, plots_, _Plots_, plotArea
 
     @pytest.fixture
     def replace_data_fixture(
@@ -262,9 +262,9 @@ class DescribeChart(object):
         return PlotTypeInspector_
 
     @pytest.fixture
-    def Plots_(self, request, plots_):
+    def _Plots_(self, request, plots_):
         return class_mock(
-            request, 'pptx.chart.chart.Plots', return_value=plots_
+            request, 'pptx.chart.chart._Plots', return_value=plots_
         )
 
     @pytest.fixture
@@ -273,7 +273,7 @@ class DescribeChart(object):
 
     @pytest.fixture
     def plots_(self, request):
-        return instance_mock(request, Plots)
+        return instance_mock(request, _Plots)
 
     @pytest.fixture
     def SeriesCollection_(self, request, series_collection_):
@@ -425,7 +425,7 @@ class DescribeLegend(object):
         return legend, new_value, expected_xml
 
 
-class DescribePlots(object):
+class Describe_Plots(object):
 
     def it_supports_indexed_access(self, getitem_fixture):
         plots, idx, PlotFactory_, plot_elm, chart_, plot_ = getitem_fixture
@@ -447,7 +447,7 @@ class DescribePlots(object):
         plotArea_cxml, idx = request.param
         plotArea = element(plotArea_cxml)
         plot_elm = plotArea[idx]
-        plots = Plots(plotArea, chart_)
+        plots = _Plots(plotArea, chart_)
         return plots, idx, PlotFactory_, plot_elm, chart_, plot_
 
     @pytest.fixture(params=[
@@ -457,7 +457,7 @@ class DescribePlots(object):
     ])
     def len_fixture(self, request):
         plotArea_cxml, expected_len = request.param
-        plots = Plots(element(plotArea_cxml), None)
+        plots = _Plots(element(plotArea_cxml), None)
         return plots, expected_len
 
     # fixture components ---------------------------------------------

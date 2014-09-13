@@ -97,17 +97,18 @@ class Chart(object):
     @lazyproperty
     def plots(self):
         """
-        The |Plots| instance containing the sequence of plots in this chart.
-        A plot, called a *chart group* in the Microsoft API, is a distinct
-        sequence of one or more series depicted in a particular charting
-        type. For example, a chart having a series plotted as a line overlaid
-        on three series plotted as columns would have two plots; the first
-        corresponding to the three column series and the second to the line
-        series. Plots are sequenced in the order drawn, i.e. back-most to
-        front-most.
+        The sequence of plots in this chart. A plot, called a *chart group*
+        in the Microsoft API, is a distinct sequence of one or more series
+        depicted in a particular charting type. For example, a chart having
+        a series plotted as a line overlaid on three series plotted as
+        columns would have two plots; the first corresponding to the three
+        column series and the second to the line series. Plots are sequenced
+        in the order drawn, i.e. back-most to front-most. Supports *len()*,
+        membership (e.g. ``p in plots``), iteration, slicing, and indexed
+        access (e.g. ``plot = plots[i]``).
         """
         plotArea = self._chartSpace.chart.plotArea
-        return Plots(plotArea, self)
+        return _Plots(plotArea, self)
 
     def replace_data(self, chart_data):
         """
@@ -200,7 +201,7 @@ class Legend(object):
         self._element.get_or_add_legendPos().val = position
 
 
-class Plots(Sequence):
+class _Plots(Sequence):
     """
     The sequence of plots in a chart, such as a bar plot or a line plot. Most
     charts have only a single plot. The concept is necessary when two chart
@@ -208,7 +209,7 @@ class Plots(Sequence):
     a superimposed line plot.
     """
     def __init__(self, plotArea, chart):
-        super(Plots, self).__init__()
+        super(_Plots, self).__init__()
         self._plotArea = plotArea
         self._chart = chart
 
