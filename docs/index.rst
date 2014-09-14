@@ -43,6 +43,7 @@ User Guide
    user/autoshapes
    user/placeholders
    user/text
+   user/charts
    user/use-cases
    user/concepts
    user/enum/index

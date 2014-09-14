@@ -1,3 +1,4 @@
+.. _chart-api:
 
 Charts
 ======
