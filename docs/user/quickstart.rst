@@ -226,19 +226,19 @@ MSO_SHAPE.ROUNDED_RECT, MSO_SHAPE.CHEVRON, etc.) are listed on the
     width = Inches(6.0)
     height = Inches(0.8)
 
-    tbl = shapes.add_table(rows, cols, left, top, width, height)
+    table = shapes.add_table(rows, cols, left, top, width, height).table
 
     # set column widths
-    tbl.columns[0].width = Inches(2.0)
-    tbl.columns[1].width = Inches(4.0)
+    table.columns[0].width = Inches(2.0)
+    table.columns[1].width = Inches(4.0)
 
     # write column headings
-    tbl.cell(0, 0).text = 'Foo'
-    tbl.cell(0, 1).text = 'Bar'
+    table.cell(0, 0).text = 'Foo'
+    table.cell(0, 1).text = 'Bar'
 
     # write body cells
-    tbl.cell(1, 0).text = 'Baz'
-    tbl.cell(1, 1).text = 'Qux'
+    table.cell(1, 0).text = 'Baz'
+    table.cell(1, 1).text = 'Qux'
 
     prs.save('test.pptx')
 
