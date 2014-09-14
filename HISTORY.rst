@@ -3,9 +3,11 @@
 Release History
 ---------------
 
-NEXT
+0.5.0 (2014-09-13)
 ++++++++++++++++++
 
+- Add support for creating and manipulating bar, column, line, and pie charts
+- Major refactoring of XML layer (oxml)
 - Rationalized graphical object shape access
   **Note backward incompatibilities below**
 
