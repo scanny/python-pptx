@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/scanny/python-pptx.svg?branch=master
+   :target: https://travis-ci.org/scanny/python-pptx
+
 *python-pptx* is a Python library for creating and updating PowerPoint (.pptx)
 files.
 
