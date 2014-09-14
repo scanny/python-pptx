@@ -59,6 +59,8 @@ Text
 .. toctree::
    :maxdepth: 1
 
+   features/txt-fit-text
+   features/txt-autofit-text
    features/txt-text
    features/txt-font-underline
    features/txt-font-color
