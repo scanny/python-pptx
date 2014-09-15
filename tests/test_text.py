@@ -15,9 +15,7 @@ from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.text import (
-    CT_RegularTextRun, CT_TextCharacterProperties, CT_TextParagraph
-)
+from pptx.oxml.text import CT_TextParagraph
 from pptx.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches, Pt
 
@@ -716,60 +714,74 @@ class Describe_Paragraph(object):
 
 class Describe_Run(object):
 
-    def it_provides_access_to_the_font_of_the_run(
-            self, r_, Font_, rPr_, font_):
-        run = _Run(r_, None)
+    def it_provides_access_to_its_font(self, font_fixture):
+        run, rPr, Font_, font_ = font_fixture
         font = run.font
-        r_.get_or_add_rPr.assert_called_once_with()
-        Font_.assert_called_once_with(rPr_)
+        Font_.assert_called_once_with(rPr)
         assert font == font_
 
-    def it_provides_access_to_the_hyperlink_of_the_run(self, run):
+    def it_provides_access_to_a_hyperlink_proxy(self, hyperlink_fixture):
+        run, rPr, _Hyperlink_, hlink_ = hyperlink_fixture
         hlink = run.hyperlink
-        assert isinstance(hlink, _Hyperlink)
+        _Hyperlink_.assert_called_once_with(rPr, run)
+        assert hlink is hlink_
 
-    def it_can_get_the_text_of_the_run(self, run, test_text):
-        assert run.text == test_text
+    def it_can_get_the_text_of_the_run(self, text_get_fixture):
+        run, expected_value = text_get_fixture
+        assert run.text == expected_value
 
-    def it_can_change_the_text_of_the_run(self, run):
-        run.text = 'new text'
-        assert run.text == 'new text'
+    def it_can_change_its_text(self, text_set_fixture):
+        run, new_value, expected_xml = text_set_fixture
+        run.text = new_value
+        assert run._r.xml == expected_xml
 
     # fixtures ---------------------------------------------
 
     @pytest.fixture
+    def font_fixture(self, Font_, font_):
+        r = element('a:r/a:rPr')
+        rPr = r.rPr
+        run = _Run(r, None)
+        return run, rPr, Font_, font_
+
+    @pytest.fixture
+    def hyperlink_fixture(self, _Hyperlink_, hlink_):
+        r = element('a:r/a:rPr')
+        rPr = r.rPr
+        run = _Run(r, None)
+        return run, rPr, _Hyperlink_, hlink_
+
+    @pytest.fixture
+    def text_get_fixture(self):
+        r = element('a:r/a:t"foobar"')
+        run = _Run(r, None)
+        return run, 'foobar'
+
+    @pytest.fixture(params=[
+        ('a:r/a:t', 'barfoo', 'a:r/a:t"barfoo"'),
+    ])
+    def text_set_fixture(self, request):
+        r_cxml, new_value, expected_r_cxml = request.param
+        run = _Run(element(r_cxml), None)
+        expected_xml = xml(expected_r_cxml)
+        return run, new_value, expected_xml
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
     def Font_(self, request, font_):
-        Font_ = class_mock(request, 'pptx.text.Font')
-        Font_.return_value = font_
-        return Font_
+        return class_mock(request, 'pptx.text.Font', return_value=font_)
 
     @pytest.fixture
     def font_(self, request):
-        return instance_mock(request, 'pptx.text.Font')
+        return instance_mock(request, Font)
 
     @pytest.fixture
-    def r(self, r_xml):
-        return parse_xml(r_xml)
+    def _Hyperlink_(self, request, hlink_):
+        return class_mock(
+            request, 'pptx.text._Hyperlink', return_value=hlink_
+        )
 
     @pytest.fixture
-    def rPr_(self, request):
-        return instance_mock(request, CT_TextCharacterProperties)
-
-    @pytest.fixture
-    def r_(self, request, rPr_):
-        r_ = loose_mock(request, CT_RegularTextRun)
-        r_.get_or_add_rPr.return_value = rPr_
-        return r_
-
-    @pytest.fixture
-    def r_xml(self, test_text):
-        return ('<a:r %s><a:t>%s</a:t></a:r>' %
-                (nsdecls('a'), test_text))
-
-    @pytest.fixture
-    def run(self, r):
-        return _Run(r, None)
-
-    @pytest.fixture
-    def test_text(self):
-        return 'test text'
+    def hlink_(self, request):
+        return instance_mock(request, _Hyperlink)
