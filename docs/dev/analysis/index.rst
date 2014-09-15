@@ -12,6 +12,7 @@ Roughly in reverse chronological order of creation:
 .. toctree::
    :maxdepth: 1
 
+   features/txt-text
    features/cht-line-chart
    features/cht-pie-chart
    features/cht-bar-chart
@@ -69,7 +70,6 @@ MSDN documentation, the ISO/IEC 29500 spec, and other available sources.
    objects/picture
    objects/placeholder
    objects/shape
-   objects/textframe
 
 
 Experimental Analysis
@@ -107,8 +107,6 @@ ISO/IEC 29500 spec.
    schema/ct_solidcolorfillproperties
    schema/ct_srgbcolor
    schema/ct_table
-   schema/ct_textbody
-   schema/ct_textbodyproperties
    schema/ct_textcharacterproperties
    schema/ct_textparagraph
    schema/ct_textparagraphproperties

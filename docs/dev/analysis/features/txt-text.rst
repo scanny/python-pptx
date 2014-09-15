@@ -1,45 +1,55 @@
 
-``CT_TextBody``
-===============
+Text
+====
+
+All text in PowerPoint appears in a shape. Of the six shape types, only
+an AutoShape can directly contain text. This includes text placeholders, text
+boxes, and geometric auto shapes. These correspond to shapes based on the
+``<p:sp>`` XML element.
+
+Each auto shape has a text frame, represented by a |TextFrame| object. A text
+frame contains one or more paragraphs, and each paragraph contains a sequence
+of zero or more run, line break, or field elements (``<a:r>``, ``<a:br>``,
+and ``<a:fld>``, respectively).
+
+
+Notes
+-----
+
+* include a:fld/a:t contents in Paragraph.text
+
+
+XML specimens
+-------------
 
 .. highlight:: xml
 
-.. csv-table::
-   :header-rows: 0
-   :stub-columns: 1
-   :widths: 15, 50
+Default text box with text, a line break, and a field::
 
-   Spec Name    , Shape Text Body
-   Tag(s)       , p:txBody
-   Namespace    , presentationml (pml.xsd)
-   Spec Section , 19.3.1.51
-
-
-attributes
-----------
-
-None.
-
-
-child elements
---------------
-
-=========  ====  ================================
-name        #    type
-=========  ====  ================================
-bodyPr      1    :doc:`ct_textbodyproperties`
-lstStyle    ?    CT_TextListStyle
-p           \+   :doc:`ct_textparagraph`
-=========  ====  ================================
-
-
-Spec text
----------
-
-   This element specifies the existence of text to be contained within the
-   corresponding shape. All visible text and visible text related properties
-   are contained within this element. There can be multiple paragraphs and
-   within paragraphs multiple runs of text.
+  <p:txBody>
+    <a:bodyPr wrap="none" rtlCol="0">
+      <a:spAutoFit/>
+    </a:bodyPr>
+    <a:lstStyle/>
+    <a:p>
+      <a:r>
+        <a:rPr lang="en-US" dirty="0" smtClean="0"/>
+        <a:t>This text box has a break here -&gt;</a:t>
+      </a:r>
+      <a:br>
+        <a:rPr lang="en-US" dirty="0" smtClean="0"/>
+      </a:br>
+      <a:r>
+        <a:rPr lang="en-US" dirty="0" smtClean="0"/>
+        <a:t>and a Field here -&gt; </a:t>
+      </a:r>
+      <a:fld id="{466D331B-39A1-D247-9EB6-2F41F44AA032}" type="datetime2">
+        <a:rPr lang="en-US" smtClean="0"/>
+        <a:t>Monday, September 15, 14</a:t>
+      </a:fld>
+      <a:endParaRPr lang="en-US" dirty="0"/>
+    </a:p>
+  </p:txBody>
 
 
 Schema excerpt
