@@ -79,7 +79,7 @@ class Image(Part):
         """
         ext_map = {
             'GIF': 'gif', 'JPEG': 'jpg', 'PNG': 'png', 'TIFF': 'tiff',
-            'WMF': 'wmf'
+            'WMF': 'wmf', 'BMP': 'bmp'
         }
         stream.seek(0)
         format = PIL_Image.open(stream).format
