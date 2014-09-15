@@ -27,6 +27,12 @@ def given_a_textframe(context):
     context.textframe = textbox.textframe
 
 
+@given('a textframe containing text')
+def given_a_textframe_containing_text(context):
+    prs = Presentation(test_pptx('txt-text'))
+    context.textframe = prs.slides[0].shapes[0].textframe
+
+
 @given('a textframe having auto-size set to {setting}')
 def given_a_textframe_having_auto_size_set_to_setting(context, setting):
     shape_idx = {
@@ -41,6 +47,11 @@ def given_a_textframe_having_auto_size_set_to_setting(context, setting):
 
 
 # when ====================================================
+
+@when('I assign a string to textframe.text')
+def when_I_assign_a_string_to_textframe_text(context):
+    context.textframe.text = ' Foo Bar \n Baz Zoo '
+
 
 @when("I set textframe.auto_size to {setting}")
 def when_set_textframe_auto_size(context, setting):
@@ -89,10 +100,22 @@ def then_textframe_margin_is_value(context, side, inches):
         assert textframe.margin_bottom == emu
 
 
-@then('the textframe word wrap is set {setting}')
-def then_textframe_word_wrap_is_setting(context, setting):
+@then('textframe.text is the text in the shape')
+def then_textframe_text_is_the_text_in_the_shape(context):
+    textframe = context.textframe
+    assert textframe.text == ' Foo Bar \n Baz Zoo \n1'
+
+
+@then('textframe.text matches the assigned string')
+def then_textframe_text_matches_the_assigned_string(context):
+    textframe = context.textframe
+    assert textframe.text == ' Foo Bar \n Baz Zoo '
+
+
+@then('textframe.word_wrap is {value}')
+def then_textframe_word_wrap_is_value(context, value):
     expected_value = {
         'on': True, 'off': False, 'to None': None
-    }[setting]
+    }[value]
     textframe = context.prs.slides[0].shapes[0].textframe
     assert textframe.word_wrap is expected_value

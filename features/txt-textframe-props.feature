@@ -47,7 +47,7 @@ Feature: Get and change properties of shape text frame
     Given a textframe
      When I set the textframe word wrap <value>
       And I reload the presentation
-     Then the textframe word wrap is set <value>
+     Then textframe.word_wrap is <value>
 
     Examples: Word-wrap Settings
       | value   |

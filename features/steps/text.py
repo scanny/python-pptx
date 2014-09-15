@@ -26,7 +26,25 @@ def given_a_paragraph(context):
     slide = context.prs.slides.add_slide(blank_slide_layout)
     length = Inches(2.00)
     textbox = slide.shapes.add_textbox(length, length, length, length)
-    context.p = textbox.textframe.paragraphs[0]
+    context.paragraph = textbox.textframe.paragraphs[0]
+
+
+@given('a paragraph containing text')
+def given_a_paragraph_containing_text(context):
+    prs = Presentation(test_pptx('txt-text'))
+    context.paragraph = prs.slides[0].shapes[0].textframe.paragraphs[0]
+
+
+@given('a run')
+def given_a_run(context):
+    prs = Presentation(test_pptx('txt-text'))
+    context.run = prs.slides[0].shapes[0].textframe.paragraphs[0].runs[0]
+
+
+@given('a run containing text')
+def given_a_run_containing_text(context):
+    prs = Presentation(test_pptx('txt-text'))
+    context.run = prs.slides[0].shapes[0].textframe.paragraphs[0].runs[0]
 
 
 @given('a run with italics set {setting}')
@@ -72,6 +90,16 @@ def given_a_text_run_having_a_hyperlink(context):
 
 # when ====================================================
 
+@when('I assign a string to paragraph.text')
+def when_I_assign_a_string_to_paragraph_text(context):
+    context.paragraph.text = ' Boo Far \n Faz Foo '
+
+
+@when('I assign a string to run.text')
+def when_I_assign_a_string_to_run_text(context):
+    context.run.text = ' Boo Far '
+
+
 @when('I assign a typeface name to the font')
 def when_assign_typeface_name_to_font(context):
     context.font.name = 'Verdana'
@@ -100,7 +128,7 @@ def when_set_margin_to_value(context, side, inches):
 
 @when('I indent the paragraph')
 def when_indent_first_paragraph(context):
-    context.p.level = 1
+    context.paragraph.level = 1
 
 
 @when("I set italics {setting}")
@@ -127,10 +155,34 @@ def when_set_hyperlink_address_to_None(context):
 
 @when("I set the paragraph alignment to centered")
 def when_set_paragraph_alignment_to_centered(context):
-    context.p.alignment = PP_ALIGN.CENTER
+    context.paragraph.alignment = PP_ALIGN.CENTER
 
 
 # then ====================================================
+
+@then('paragraph.text is the text in the paragraph')
+def then_paragraph_text_is_the_text_in_the_paragraph(context):
+    paragraph = context.paragraph
+    assert paragraph.text == ' Foo Bar \n Baz Zoo \n1'
+
+
+@then('paragraph.text matches the assigned string')
+def then_paragraph_text_matches_the_assigned_string(context):
+    paragraph = context.paragraph
+    assert paragraph.text == ' Boo Far \n Faz Foo '
+
+
+@then('run.text is the text in the run')
+def then_run_text_is_the_text_in_the_run(context):
+    run = context.run
+    assert run.text == ' Foo Bar '
+
+
+@then('run.text matches the assigned string')
+def then_run_text_matches_the_assigned_string(context):
+    run = context.run
+    assert run.text == ' Boo Far '
+
 
 @then('the font name matches the typeface I set')
 def then_font_name_matches_typeface_I_set(context):
