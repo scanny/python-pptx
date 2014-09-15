@@ -22,9 +22,9 @@ from pptx.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches, Pt
 
 from .oxml.unitdata.text import (
-    a_bodyPr, a_latin, a_txBody, a_noAutofit, a_normAutofit, a_p, a_pPr, a_t,
-    an_hlinkClick, an_r, an_rPr, an_spAutoFit
+    a_bodyPr, a_latin, a_txBody, a_p, a_pPr, a_t, an_hlinkClick, an_r, an_rPr
 )
+from .unitutil.cxml import element, xml
 from .unitutil.file import absjoin, parse_xml_file, test_file_dir
 from .unitutil.mock import (
     class_mock, instance_mock, loose_mock, property_mock
@@ -59,47 +59,15 @@ class DescribeTextFrame(object):
         textframe.text = 'foobar'
         assert txBody.xml == txBody_with_text_xml
 
-    def it_can_get_its_margin_settings(
-            self, txBody, txBody_with_lIns, txBody_with_tIns,
-            txBody_with_rIns, txBody_with_bIns):
+    def it_knows_its_margin_settings(self, margin_get_fixture):
+        textframe, prop_name, expected_value = margin_get_fixture
+        margin_value = getattr(textframe, prop_name)
+        assert margin_value == expected_value
 
-        textframe = TextFrame(txBody, None)
-        assert textframe.margin_left is None
-        assert textframe.margin_top is None
-        assert textframe.margin_right is None
-        assert textframe.margin_bottom is None
-
-        textframe = TextFrame(txBody_with_lIns, None)
-        assert textframe.margin_left == Inches(0.01)
-
-        textframe = TextFrame(txBody_with_tIns, None)
-        assert textframe.margin_top == Inches(0.02)
-
-        textframe = TextFrame(txBody_with_rIns, None)
-        assert textframe.margin_right == Inches(0.03)
-
-        textframe = TextFrame(txBody_with_bIns, None)
-        assert textframe.margin_bottom == Inches(0.04)
-
-    def it_can_change_its_margin_settings(
-            self, txBody_bldr, txBody_with_lIns_xml, txBody_with_tIns_xml,
-            txBody_with_rIns_xml, txBody_with_bIns_xml):
-
-        textframe = TextFrame(txBody_bldr.element, None)
-        textframe.margin_left = Inches(0.01)
-        assert textframe._txBody.xml == txBody_with_lIns_xml
-
-        textframe = TextFrame(txBody_bldr.element, None)
-        textframe.margin_top = Inches(0.02)
-        assert textframe._txBody.xml == txBody_with_tIns_xml
-
-        textframe = TextFrame(txBody_bldr.element, None)
-        textframe.margin_right = Inches(0.03)
-        assert textframe._txBody.xml == txBody_with_rIns_xml
-
-        textframe = TextFrame(txBody_bldr.element, None)
-        textframe.margin_bottom = Inches(0.04)
-        assert textframe._txBody.xml == txBody_with_bIns_xml
+    def it_can_change_its_margin_settings(self, margin_set_fixture):
+        textframe, prop_name, new_value, expected_xml = margin_set_fixture
+        setattr(textframe, prop_name, new_value)
+        assert textframe._txBody.xml == expected_xml
 
     def it_raises_on_attempt_to_set_margin_to_non_int(self, textframe):
         with pytest.raises(TypeError):
@@ -137,47 +105,64 @@ class DescribeTextFrame(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
-        None,
-        MSO_AUTO_SIZE.NONE,
-        MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT,
-        MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE,
+        ('p:txBody/a:bodyPr', None),
+        ('p:txBody/a:bodyPr/a:noAutofit',   MSO_AUTO_SIZE.NONE),
+        ('p:txBody/a:bodyPr/a:spAutoFit',   MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT),
+        ('p:txBody/a:bodyPr/a:normAutofit', MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE),
     ])
     def autosize_get_fixture(self, request):
-        auto_size = request.param
-        bodyPr_bldr = self.bodyPr_bldr_with_autofit(auto_size)
-        txBody = a_txBody().with_nsdecls().with_child(bodyPr_bldr).element
-        textframe = TextFrame(txBody, None)
-        expected_value = auto_size
+        txBody_cxml, expected_value = request.param
+        textframe = TextFrame(element(txBody_cxml), None)
         return textframe, expected_value
 
     @pytest.fixture(params=[
-        None,
-        MSO_AUTO_SIZE.NONE,
-        MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT,
-        MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE,
+        ('p:txBody/a:bodyPr',               MSO_AUTO_SIZE.NONE,
+         'p:txBody/a:bodyPr/a:noAutofit'),
+        ('p:txBody/a:bodyPr/a:noAutofit',   MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT,
+         'p:txBody/a:bodyPr/a:spAutoFit'),
+        ('p:txBody/a:bodyPr/a:spAutoFit',   MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE,
+         'p:txBody/a:bodyPr/a:normAutofit'),
+        ('p:txBody/a:bodyPr/a:normAutofit', None,
+         'p:txBody/a:bodyPr'),
     ])
     def autosize_set_fixture(self, request):
-        auto_size = request.param
-        txBody = a_txBody().with_nsdecls().with_child(a_bodyPr()).element
-        textframe = TextFrame(txBody, None)
-        value = auto_size
-        expected_xml = (
-            a_txBody().with_nsdecls().with_child(
-                self.bodyPr_bldr_with_autofit(auto_size))
-        ).xml()
+        txBody_cxml, value, expected_cxml = request.param
+        textframe = TextFrame(element(txBody_cxml), None)
+        expected_xml = xml(expected_cxml)
         return textframe, value, expected_xml
 
-    # fixture components -----------------------------------
+    @pytest.fixture(params=[
+        ('p:txBody/a:bodyPr',             'left',   None),
+        ('p:txBody/a:bodyPr',             'top',    None),
+        ('p:txBody/a:bodyPr',             'right',  None),
+        ('p:txBody/a:bodyPr',             'bottom', None),
+        ('p:txBody/a:bodyPr{lIns=9144}',  'left',   Inches(0.01)),
+        ('p:txBody/a:bodyPr{tIns=18288}', 'top',    Inches(0.02)),
+        ('p:txBody/a:bodyPr{rIns=27432}', 'right',  Inches(0.03)),
+        ('p:txBody/a:bodyPr{bIns=36576}', 'bottom', Inches(0.04)),
+    ])
+    def margin_get_fixture(self, request):
+        txBody_cxml, side, expected_value = request.param
+        textframe = TextFrame(element(txBody_cxml), None)
+        prop_name = "margin_%s" % side
+        return textframe, prop_name, expected_value
 
-    def bodyPr_bldr_with_autofit(self, auto_size):
-        bodyPr_bldr = a_bodyPr()
-        if auto_size == MSO_AUTO_SIZE.NONE:
-            bodyPr_bldr.with_child(a_noAutofit())
-        elif auto_size == MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT:
-            bodyPr_bldr.with_child(an_spAutoFit())
-        elif auto_size == MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE:
-            bodyPr_bldr.with_child(a_normAutofit())
-        return bodyPr_bldr
+    @pytest.fixture(params=[
+        ('p:txBody/a:bodyPr',             'left',  Inches(0.11),
+         'p:txBody/a:bodyPr{lIns=100584}'),
+        ('p:txBody/a:bodyPr{tIns=1234}', 'top',    Inches(0.12),
+         'p:txBody/a:bodyPr{tIns=109728}'),
+        ('p:txBody/a:bodyPr{rIns=2345}', 'right',  Inches(0.13),
+         'p:txBody/a:bodyPr{rIns=118872}'),
+        ('p:txBody/a:bodyPr{bIns=3456}', 'bottom', Inches(0.14),
+         'p:txBody/a:bodyPr{bIns=128016}'),
+    ])
+    def margin_set_fixture(self, request):
+        txBody_cxml, side, new_value, expected_txBody_cxml = request.param
+        textframe = TextFrame(element(txBody_cxml), None)
+        prop_name = "margin_%s" % side
+        expected_xml = xml(expected_txBody_cxml)
+        return textframe, prop_name, new_value, expected_xml
 
     @pytest.fixture
     def textframe(self, txBody):
@@ -227,38 +212,6 @@ class DescribeTextFrame(object):
         )
 
     @pytest.fixture
-    def txBody_with_bIns(self, _txBody_with_bIns_bldr):
-        return _txBody_with_bIns_bldr.element
-
-    @pytest.fixture
-    def txBody_with_bIns_xml(self, _txBody_with_bIns_bldr):
-        return _txBody_with_bIns_bldr.xml()
-
-    @pytest.fixture
-    def txBody_with_lIns(self, _txBody_with_lIns_bldr):
-        return _txBody_with_lIns_bldr.element
-
-    @pytest.fixture
-    def txBody_with_lIns_xml(self, _txBody_with_lIns_bldr):
-        return _txBody_with_lIns_bldr.xml()
-
-    @pytest.fixture
-    def txBody_with_rIns(self, _txBody_with_rIns_bldr):
-        return _txBody_with_rIns_bldr.element
-
-    @pytest.fixture
-    def txBody_with_rIns_xml(self, _txBody_with_rIns_bldr):
-        return _txBody_with_rIns_bldr.xml()
-
-    @pytest.fixture
-    def txBody_with_tIns(self, _txBody_with_tIns_bldr):
-        return _txBody_with_tIns_bldr.element
-
-    @pytest.fixture
-    def txBody_with_tIns_xml(self, _txBody_with_tIns_bldr):
-        return _txBody_with_tIns_bldr.xml()
-
-    @pytest.fixture
     def txBody_with_text_xml(self):
         t_bldr = a_t().with_text('foobar')
         r_bldr = an_r().with_child(t_bldr)
@@ -301,46 +254,6 @@ class DescribeTextFrame(object):
             a_txBody().with_nsdecls()
                       .with_child(bodyPr_bldr)
                       .with_child(p_bldr)
-                      .with_child(p_bldr)
-        )
-
-    @pytest.fixture
-    def _txBody_with_bIns_bldr(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr().with_bIns(int(914400*0.04))
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-        )
-
-    @pytest.fixture
-    def _txBody_with_lIns_bldr(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr().with_lIns(int(914400*0.01))
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-        )
-
-    @pytest.fixture
-    def _txBody_with_tIns_bldr(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr().with_tIns(int(914400*0.02))
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-        )
-
-    @pytest.fixture
-    def _txBody_with_rIns_bldr(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr().with_rIns(int(914400*0.03))
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
                       .with_child(p_bldr)
         )
 
