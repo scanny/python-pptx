@@ -130,9 +130,6 @@ class PP_PARAGRAPH_ALIGNMENT(XmlEnumeration):
 
     __members__ = (
         XmlMappedEnumMember(
-            None, None, None, 'No alignment setting on paragraph element'
-        ),
-        XmlMappedEnumMember(
             'CENTER', 2, 'ctr', 'Center align'
         ),
         XmlMappedEnumMember(

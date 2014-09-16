@@ -315,7 +315,7 @@ class _Paragraph(Subshape):
     """
     def __init__(self, p, parent):
         super(_Paragraph, self).__init__(parent)
-        self._p = p
+        self._element = self._p = p
 
     def add_run(self):
         """
@@ -327,16 +327,17 @@ class _Paragraph(Subshape):
     @property
     def alignment(self):
         """
-        Horizontal alignment of this paragraph, represented by a constant
-        value like ``PP_ALIGN.CENTER``. Its value can be |None|, meaning the
-        paragraph has no alignment setting and its effective value is
-        inherited from a higher-level object.
+        Horizontal alignment of this paragraph, represented by either
+        a member of the enumeration :ref:`PpParagraphAlignment` or |None|.
+        The value |None| indicates the paragraph should 'inherit' its
+        effective value from its style hierarchy. Assigning |None| removes
+        any explicit setting, causing its inherited value to be used.
         """
         return self._pPr.algn
 
     @alignment.setter
-    def alignment(self, alignment):
-        self._pPr.algn = alignment
+    def alignment(self, value):
+        self._pPr.algn = value
 
     def clear(self):
         """
@@ -376,10 +377,7 @@ class _Paragraph(Subshape):
         Immutable sequence of |_Run| instances corresponding to the runs in
         this paragraph.
         """
-        runs = []
-        for r in self._p.r_lst:
-            runs.append(_Run(r, self))
-        return tuple(runs)
+        return tuple(_Run(r, self) for r in self._element.r_lst)
 
     @property
     def _defRPr(self):
@@ -399,19 +397,25 @@ class _Paragraph(Subshape):
         """
         return self._p.get_or_add_pPr()
 
-    def _set_text(self, text):
-        """Replace runs with single run containing *text*"""
+    @property
+    def text(self):
+        """
+        A single string containing all the text in this paragraph. Formed by
+        concatenating the text in each run and field making up the paragraph,
+        adding a line feed character ('\\\\n') for each line break element
+        encountered. Assigning a string to this property causes all content
+        in the paragraph to be replaced by a single run containing the
+        assigned text. The assigned value can be a 7-bit ASCII string,
+        a UTF-8 encoded 8-bit string, or unicode. String values are converted
+        to unicode assuming UTF-8 encoding.
+        """
+        raise NotImplementedError
+
+    @text.setter
+    def text(self, text):
         self.clear()
         r = self.add_run()
         r.text = to_unicode(text)
-
-    #: Write-only. Assignment to *text* replaces all text currently contained
-    #: in the paragraph. After assignment, the paragraph containins exactly
-    #: one run containing the text value of the assigned expression. The
-    #: assigned value can be a 7-bit ASCII string, a UTF-8 encoded 8-bit
-    #: string, or unicode. String values are converted to unicode assuming
-    #: UTF-8 encoding.
-    text = property(None, _set_text)
 
 
 class _Run(Subshape):

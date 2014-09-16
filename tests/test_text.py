@@ -13,17 +13,14 @@ from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
-from pptx.oxml import parse_xml
-from pptx.oxml.ns import nsdecls
 from pptx.oxml.text import CT_TextParagraph
 from pptx.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches, Pt
 
 from .oxml.unitdata.text import (
-    a_bodyPr, a_latin, a_txBody, a_p, a_pPr, a_t, an_hlinkClick, an_r, an_rPr
+    a_bodyPr, a_latin, a_txBody, a_p, a_t, an_hlinkClick, an_r, an_rPr
 )
 from .unitutil.cxml import element, xml
-from .unitutil.file import absjoin, parse_xml_file, test_file_dir
 from .unitutil.mock import (
     class_mock, instance_mock, loose_mock, property_mock
 )
@@ -540,21 +537,36 @@ class Describe_Hyperlink(object):
 
 class Describe_Paragraph(object):
 
-    def it_can_add_a_run(self, paragraph, p_with_r_xml):
-        run = paragraph.add_run()
-        assert paragraph._p.xml == p_with_r_xml
-        assert isinstance(run, _Run)
+    def it_knows_its_horizontal_alignment(self, alignment_get_fixture):
+        paragraph, expected_value = alignment_get_fixture
+        assert paragraph.alignment == expected_value
 
-    def it_knows_the_alignment_setting_of_the_paragraph(
-            self, paragraph, paragraph_with_algn):
-        assert paragraph.alignment is None
-        assert paragraph_with_algn.alignment == PP_ALIGN.CENTER
+    def it_can_change_its_horizontal_alignment(self, alignment_set_fixture):
+        paragraph, new_value, expected_xml = alignment_set_fixture
+        paragraph.alignment = new_value
+        assert paragraph._element.xml == expected_xml
 
-    def it_can_change_its_alignment_setting(self, paragraph):
-        paragraph.alignment = PP_ALIGN.LEFT
-        assert paragraph._pPr.algn == PP_ALIGN.LEFT
-        paragraph.alignment = None
-        assert paragraph._pPr.algn is None
+    def it_knows_its_indentation_level(self, level_get_fixture):
+        paragraph, expected_value = level_get_fixture
+        assert paragraph.level == expected_value
+
+    def it_can_change_its_indentation_level(self, level_set_fixture):
+        paragraph, new_value, expected_xml = level_set_fixture
+        paragraph.level = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_can_change_its_text(self, text_set_fixture):
+        paragraph, new_value, expected_xml = text_set_fixture
+        paragraph.text = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_provides_access_to_its_runs(self, runs_fixture):
+        paragraph, expected_text = runs_fixture
+        runs = paragraph.runs
+        assert tuple(r.text for r in runs) == expected_text
+        for r in runs:
+            assert isinstance(r, _Run)
+            assert r._parent == paragraph
 
     def it_can_delete_the_text_it_contains(self, paragraph, p_):
         paragraph._p = p_
@@ -567,97 +579,80 @@ class Describe_Paragraph(object):
         Font_.assert_called_once_with(paragraph._defRPr)
         assert font == Font_.return_value
 
-    def test_level_setter_generates_correct_xml(self, paragraph_with_text):
-        """_Paragraph.level setter generates correct XML"""
-        # setup ------------------------
-        expected_xml = (
-            '<a:p %s>\n  <a:pPr lvl="2"/>\n  <a:r>\n    <a:t>test text</a:t>'
-            '\n  </a:r>\n</a:p>\n' % nsdecls('a')
-        )
-        # exercise ---------------------
-        paragraph_with_text.level = 2
-        # verify -----------------------
-        assert paragraph_with_text._p.xml == expected_xml
-
-    def test_level_default_is_zero(self, paragraph_with_text):
-        """_Paragraph.level defaults to zero on no lvl attribute"""
-        # verify -----------------------
-        assert paragraph_with_text.level == 0
-
-    def test_level_roundtrips_intact(self, paragraph_with_text):
-        """_Paragraph.level property round-trips intact"""
-        # exercise ---------------------
-        paragraph_with_text.level = 5
-        # verify -----------------------
-        assert paragraph_with_text.level == 5
-
-    def test_level_raises_on_bad_value(self, paragraph_with_text):
-        test_cases = ('0', 'foobar', 7.5)
-        for value in test_cases:
-            with pytest.raises(TypeError):
-                paragraph_with_text.level = value
-
-        test_cases = (-1, 9)
-        for value in test_cases:
-            with pytest.raises(ValueError):
-                paragraph_with_text.level = value
-
-    def test_runs_size(self, pList):
-        """_Paragraph.runs is expected size"""
-        # setup ------------------------
-        actual_lengths = []
-        for p in pList:
-            paragraph = _Paragraph(p, None)
-            # exercise ----------------
-            actual_lengths.append(len(paragraph.runs))
-        # verify ------------------
-        expected = [0, 0, 2, 1, 1, 1]
-        actual = actual_lengths
-        msg = "expected run count %s, got %s" % (expected, actual)
-        assert actual == expected, msg
-
-    def test_text_setter_sets_single_run_text(self, pList):
-        """assignment to _Paragraph.text creates single run containing value"""
-        # setup ------------------------
-        test_text = 'python-pptx was here!!'
-        p_elm = pList[2]
-        paragraph = _Paragraph(p_elm, None)
-        # exercise ---------------------
-        paragraph.text = test_text
-        # verify -----------------------
-        assert len(paragraph.runs) == 1
-        assert paragraph.runs[0].text == test_text
-
-    def test_text_accepts_non_ascii_strings(self, paragraph_with_text):
-        """assignment of non-ASCII string to text does not raise"""
-        # setup ------------------------
-        _7bit_string = 'String containing only 7-bit (ASCII) characters'
-        _8bit_string = '8-bit string: Hér er texti með íslenskum stöfum.'
-        _utf8_literal = u'unicode literal: Hér er texti með íslenskum stöfum.'
-        _utf8_from_8bit = unicode('utf-8 unicode: Hér er texti', 'utf-8')
-        # verify -----------------------
-        try:
-            text = _7bit_string
-            paragraph_with_text.text = text
-            text = _8bit_string
-            paragraph_with_text.text = text
-            text = _utf8_literal
-            paragraph_with_text.text = text
-            text = _utf8_from_8bit
-            paragraph_with_text.text = text
-        except ValueError:
-            msg = "_Paragraph.text rejects valid text string '%s'" % text
-            pytest.fail(msg)
+    def it_can_add_a_run(self, paragraph, p_with_r_xml):
+        run = paragraph.add_run()
+        assert paragraph._p.xml == p_with_r_xml
+        assert isinstance(run, _Run)
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        ('a:p',                 None),
+        ('a:p/a:pPr{algn=ctr}', PP_ALIGN.CENTER),
+        ('a:p/a:pPr{algn=r}',   PP_ALIGN.RIGHT),
+    ])
+    def alignment_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        return paragraph, expected_value
+
+    @pytest.fixture(params=[
+        ('a:p',                  PP_ALIGN.LEFT,    'a:p/a:pPr{algn=l}'),
+        ('a:p/a:pPr{algn=l}',    PP_ALIGN.JUSTIFY, 'a:p/a:pPr{algn=just}'),
+        ('a:p/a:pPr{algn=just}', None,             'a:p/a:pPr'),
+    ])
+    def alignment_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('a:p',              0),
+        ('a:p/a:pPr{lvl=2}', 2),
+    ])
+    def level_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        return paragraph, expected_value
+
+    @pytest.fixture(params=[
+        ('a:p',              1, 'a:p/a:pPr{lvl=1}'),
+        ('a:p/a:pPr{lvl=1}', 2, 'a:p/a:pPr{lvl=2}'),
+        ('a:p/a:pPr{lvl=2}', 0, 'a:p/a:pPr'),
+    ])
+    def level_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture
+    def runs_fixture(self):
+        p_cxml = 'a:p/(a:r/a:t"Foo",a:r/a:t"Bar",a:r/a:t"Baz")'
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_text = ('Foo', 'Bar', 'Baz')
+        return paragraph, expected_text
+
+    @pytest.fixture(params=[
+        ('a:p/(a:r/a:t"foo",a:r/a:t"bar")', 'foobar', 'a:p/a:r/a:t"foobar"'),
+        ('a:p', '7-bit str',     'a:p/a:r/a:t"7-bit str"'),
+        ('a:p', '8-ɓïȶ str',    u'a:p/a:r/a:t"8-ɓïȶ str"'),
+        ('a:p', u'ŮŦƑ literal', u'a:p/a:r/a:t"ŮŦƑ literal"'),
+        ('a:p', unicode('utf-8 unicode: Hér er texti', 'utf-8'),
+         u'a:p/a:r/a:t"utf-8 unicode: Hér er texti"'),
+    ])
+    def text_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    # fixture components -----------------------------------
 
     @pytest.fixture
     def Font_(self, request):
         return class_mock(request, 'pptx.text.Font')
-
-    @pytest.fixture
-    def pList(self, sld, xpath):
-        return sld.xpath(xpath)
 
     @pytest.fixture
     def p_(self, request):
@@ -673,43 +668,8 @@ class Describe_Paragraph(object):
         return a_p().with_nsdecls().with_child(run_bldr).xml()
 
     @pytest.fixture
-    def p_with_text(self, p_with_text_xml):
-        return parse_xml(p_with_text_xml)
-
-    @pytest.fixture
-    def p_with_text_xml(self, test_text):
-        return ('<a:p %s><a:r><a:t>%s</a:t></a:r></a:p>' %
-                (nsdecls('a'), test_text))
-
-    @pytest.fixture
     def paragraph(self, p_bldr):
         return _Paragraph(p_bldr.element, None)
-
-    @pytest.fixture
-    def paragraph_with_algn(self):
-        pPr_bldr = a_pPr().with_algn('ctr')
-        p_bldr = a_p().with_nsdecls().with_child(pPr_bldr)
-        return _Paragraph(p_bldr.element, None)
-
-    @pytest.fixture
-    def paragraph_with_text(self, p_with_text):
-        return _Paragraph(p_with_text, None)
-
-    @pytest.fixture
-    def path(self):
-        return absjoin(test_file_dir, 'slide1.xml')
-
-    @pytest.fixture
-    def sld(self, path):
-        return parse_xml_file(path).getroot()
-
-    @pytest.fixture
-    def test_text(self):
-        return 'test text'
-
-    @pytest.fixture
-    def xpath(self):
-        return './p:cSld/p:spTree/p:sp/p:txBody/a:p'
 
 
 class Describe_Run(object):

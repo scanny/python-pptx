@@ -10,14 +10,14 @@ from . import parse_xml
 from ..enum.text import (
     MSO_AUTO_SIZE, MSO_VERTICAL_ANCHOR, PP_PARAGRAPH_ALIGNMENT
 )
-from .ns import nsdecls, qn
+from .ns import nsdecls
 from .simpletypes import (
     ST_Coordinate32, ST_TextFontSize, ST_TextIndentLevelType,
     ST_TextTypeface, ST_TextWrappingType, XsdBoolean, XsdString
 )
 from .xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
-    RequiredAttribute, ZeroOrOne, ZeroOrOneChoice
+    RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
 )
 
 
@@ -214,6 +214,7 @@ class CT_TextParagraph(BaseOxmlElement):
     pPr = ZeroOrOne('a:pPr', successors=(
         'a:r', 'a:br', 'a:fld', 'a:endParaRPr'
     ))
+    r = ZeroOrMore('a:r', successors=('a:endParaRPr',))
     endParaRPr = ZeroOrOne('a:endParaRPr', successors=())
 
     def add_r(self):
@@ -221,10 +222,6 @@ class CT_TextParagraph(BaseOxmlElement):
         Return a newly appended <a:r> element.
         """
         return self._add_r()
-
-    @property
-    def r_lst(self):
-        return self.findall(qn('a:r'))
 
     def remove_child_r_elms(self):
         """
@@ -234,18 +231,9 @@ class CT_TextParagraph(BaseOxmlElement):
             self.remove(r)
         return self
 
-    def _add_r(self):
-        r = self._new_r()
-        self._insert_r(r)
-        return r
-
-    def _insert_r(self, r):
-        self.insert_element_before(r, 'a:endParaRPr')
-
     def _new_r(self):
         r_xml = '<a:r %s><a:t/></a:r>' % nsdecls('a')
-        r = parse_xml(r_xml)
-        return r
+        return parse_xml(r_xml)
 
 
 class CT_TextParagraphProperties(BaseOxmlElement):
