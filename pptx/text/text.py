@@ -227,7 +227,10 @@ class TextFrame(Subshape):
         A (cx, cy) 2-tuple representing the effective rendering area for text
         within this text frame when margins are taken into account.
         """
-        raise NotImplementedError
+        return (
+            self._parent.width - self.margin_left - self.margin_right,
+            self._parent.height - self.margin_top - self.margin_bottom
+        )
 
 
 class Font(object):

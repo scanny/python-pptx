@@ -13,6 +13,7 @@ from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
+from pptx.shapes.autoshape import Shape
 from pptx.text.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches, Pt
 
@@ -120,6 +121,14 @@ class DescribeTextFrame(object):
             text, extents, max_size, font_file_
         )
         assert font_size is font_size_
+
+    def it_calculates_its_effective_size_to_help_fit_text(self):
+        sp_cxml = (
+            'p:sp/(p:spPr/a:xfrm/(a:off{x=914400,y=914400},a:ext{cx=914400,c'
+            'y=914400}),p:txBody/(a:bodyPr,a:p))'
+        )
+        text_frame = Shape(element(sp_cxml), None).text_frame
+        assert text_frame._extents == (731520, 822960)
 
     # fixtures ---------------------------------------------
 
