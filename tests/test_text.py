@@ -555,6 +555,10 @@ class Describe_Paragraph(object):
         paragraph.level = new_value
         assert paragraph._element.xml == expected_xml
 
+    def it_knows_what_text_it_contains(self, text_get_fixture):
+        paragraph, expected_value = text_get_fixture
+        assert paragraph.text == expected_value
+
     def it_can_change_its_text(self, text_set_fixture):
         paragraph, new_value, expected_xml = text_set_fixture
         paragraph.text = new_value
@@ -635,7 +639,23 @@ class Describe_Paragraph(object):
         return paragraph, expected_text
 
     @pytest.fixture(params=[
+        ('a:p/a:r/a:t"foobar"',                             'foobar'),
+        ('a:p/(a:r/a:t"foo", a:r/a:t"bar")',                'foobar'),
+        ('a:p/(a:r/a:t"foo", a:br, a:r/a:t"bar")',          'foo\nbar'),
+        ('a:p/(a:r/a:t"foo", a:fld/a:t"42", a:r/a:t"bar")', 'foo42bar'),
+        ('a:p/(a:r/a:t" foo", a:br, a:fld/a:t"42")',        ' foo\n42'),
+        ('a:p/(a:pPr,a:r/a:t"foobar",a:endParaRPr)',        'foobar'),
+    ])
+    def text_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        return paragraph, expected_value
+
+    @pytest.fixture(params=[
         ('a:p/(a:r/a:t"foo",a:r/a:t"bar")', 'foobar', 'a:p/a:r/a:t"foobar"'),
+        ('a:p', 'foo\nbar',      'a:p/(a:r/a:t"foo",a:br,a:r/a:t"bar")'),
+        ('a:p', '\nfoo\n',       'a:p/(a:br,a:r/a:t"foo",a:br)'),
+        ('a:p', 'foo\n',         'a:p/(a:r/a:t"foo",a:br)'),
         ('a:p', '7-bit str',     'a:p/a:r/a:t"7-bit str"'),
         ('a:p', '8-ɓïȶ str',    u'a:p/a:r/a:t"8-ɓïȶ str"'),
         ('a:p', u'ŮŦƑ literal', u'a:p/a:r/a:t"ŮŦƑ literal"'),

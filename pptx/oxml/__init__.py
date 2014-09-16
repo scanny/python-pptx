@@ -243,12 +243,14 @@ register_element_cls('a:tr',      CT_TableRow)
 
 from .text import (
     CT_Hyperlink, CT_RegularTextRun, CT_TextBody, CT_TextBodyProperties,
-    CT_TextCharacterProperties, CT_TextFont, CT_TextParagraph,
-    CT_TextParagraphProperties
+    CT_TextCharacterProperties, CT_TextField, CT_TextFont, CT_TextLineBreak,
+    CT_TextParagraph, CT_TextParagraphProperties
 )
 register_element_cls('a:bodyPr',     CT_TextBodyProperties)
+register_element_cls('a:br',         CT_TextLineBreak)
 register_element_cls('a:defRPr',     CT_TextCharacterProperties)
 register_element_cls('a:endParaRPr', CT_TextCharacterProperties)
+register_element_cls('a:fld',        CT_TextField)
 register_element_cls('a:hlinkClick', CT_Hyperlink)
 register_element_cls('a:latin',      CT_TextFont)
 register_element_cls('a:r',          CT_RegularTextRun)

@@ -12,12 +12,10 @@ Feature: Access and mutate text in a shape
      When I assign a string to run.text
      Then run.text matches the assigned string
 
-  @wip
   Scenario: Access the text of a paragraph
     Given a paragraph containing text
      Then paragraph.text is the text in the paragraph
 
-  @wip
   Scenario: Change the text of a paragraph
     Given a paragraph
      When I assign a string to paragraph.text

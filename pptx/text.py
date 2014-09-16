@@ -4,6 +4,8 @@
 Text-related objects such as TextFrame and Paragraph.
 """
 
+from __future__ import absolute_import, print_function
+
 from .dml.fill import FillFormat
 from .enum.dml import MSO_FILL
 from .opc.constants import RELATIONSHIP_TYPE as RT
@@ -409,13 +411,12 @@ class _Paragraph(Subshape):
         a UTF-8 encoded 8-bit string, or unicode. String values are converted
         to unicode assuming UTF-8 encoding.
         """
-        raise NotImplementedError
+        return ''.join(elm.text for elm in self._element.content_children)
 
     @text.setter
     def text(self, text):
         self.clear()
-        r = self.add_run()
-        r.text = to_unicode(text)
+        self._element.append_text(to_unicode(text))
 
 
 class _Run(Subshape):
