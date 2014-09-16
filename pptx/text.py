@@ -59,13 +59,10 @@ class TextFrame(Subshape):
     @property
     def margin_bottom(self):
         """
-        Inset of text from textframe border in EMU. ``pptx.util.Inches``
-        provides a convenient way of setting the value, e.g.
-        ``textframe.margin_bottom = Inches(0.05)``. Returns |None| if there
-        is no explicit margin setting, meaning the setting is inherited from
-        a master or theme. Conversely, setting a margin to |None| removes any
-        explicit setting at the shape level and restores inheritance of the
-        effective value.
+        |BaseLength| value representing the inset of text from the bottom
+        textframe border. :meth:`pptx.util.Inches` provides a convenient way
+        of setting the value, e.g. ``textframe.margin_bottom
+        = Inches(0.05)``.
         """
         return self._bodyPr.bIns
 
@@ -75,6 +72,9 @@ class TextFrame(Subshape):
 
     @property
     def margin_left(self):
+        """
+        Inset of text from left textframe border as |BaseLength| value.
+        """
         return self._bodyPr.lIns
 
     @margin_left.setter
@@ -83,6 +83,9 @@ class TextFrame(Subshape):
 
     @property
     def margin_right(self):
+        """
+        Inset of text from right textframe border as |BaseLength| value.
+        """
         return self._bodyPr.rIns
 
     @margin_right.setter
@@ -91,6 +94,9 @@ class TextFrame(Subshape):
 
     @property
     def margin_top(self):
+        """
+        Inset of text from top textframe border as |BaseLength| value.
+        """
         return self._bodyPr.tIns
 
     @margin_top.setter

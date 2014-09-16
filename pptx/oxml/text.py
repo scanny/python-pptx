@@ -15,6 +15,7 @@ from .simpletypes import (
     ST_Coordinate32, ST_TextFontSize, ST_TextIndentLevelType,
     ST_TextTypeface, ST_TextWrappingType, XsdBoolean, XsdString
 )
+from ..util import Emu
 from .xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
@@ -132,10 +133,10 @@ class CT_TextBodyProperties(BaseOxmlElement):
         Choice('a:spAutoFit')),
         successors=('a:scene3d', 'a:sp3d', 'a:flatTx', 'a:extLst')
     )
-    lIns = OptionalAttribute('lIns', ST_Coordinate32)
-    tIns = OptionalAttribute('tIns', ST_Coordinate32)
-    rIns = OptionalAttribute('rIns', ST_Coordinate32)
-    bIns = OptionalAttribute('bIns', ST_Coordinate32)
+    lIns = OptionalAttribute('lIns', ST_Coordinate32, default=Emu(91440))
+    tIns = OptionalAttribute('tIns', ST_Coordinate32, default=Emu(45720))
+    rIns = OptionalAttribute('rIns', ST_Coordinate32, default=Emu(91440))
+    bIns = OptionalAttribute('bIns', ST_Coordinate32, default=Emu(45720))
     anchor = OptionalAttribute('anchor', MSO_VERTICAL_ANCHOR)
     wrap = OptionalAttribute('wrap', ST_TextWrappingType)
 

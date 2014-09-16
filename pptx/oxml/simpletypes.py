@@ -291,7 +291,10 @@ class ST_Coordinate32(BaseSimpleType):
 
 
 class ST_Coordinate32Unqualified(XsdInt):
-    pass
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        return Emu(int(str_value))
 
 
 class ST_CoordinateUnqualified(XsdLong):

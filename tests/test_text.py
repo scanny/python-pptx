@@ -59,9 +59,9 @@ class DescribeTextFrame(object):
         assert txBody.xml == txBody_with_text_xml
 
     def it_knows_its_margin_settings(self, margin_get_fixture):
-        textframe, prop_name, expected_value = margin_get_fixture
+        textframe, prop_name, unit, expected_value = margin_get_fixture
         margin_value = getattr(textframe, prop_name)
-        assert margin_value == expected_value
+        assert getattr(margin_value, unit) == expected_value
 
     def it_can_change_its_margin_settings(self, margin_set_fixture):
         textframe, prop_name, new_value, expected_xml = margin_set_fixture
@@ -131,23 +131,23 @@ class DescribeTextFrame(object):
         return textframe, value, expected_xml
 
     @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr',             'left',   None),
-        ('p:txBody/a:bodyPr',             'top',    None),
-        ('p:txBody/a:bodyPr',             'right',  None),
-        ('p:txBody/a:bodyPr',             'bottom', None),
-        ('p:txBody/a:bodyPr{lIns=9144}',  'left',   Inches(0.01)),
-        ('p:txBody/a:bodyPr{tIns=18288}', 'top',    Inches(0.02)),
-        ('p:txBody/a:bodyPr{rIns=27432}', 'right',  Inches(0.03)),
-        ('p:txBody/a:bodyPr{bIns=36576}', 'bottom', Inches(0.04)),
+        ('p:txBody/a:bodyPr',             'left',   'emu',    Inches(0.1)),
+        ('p:txBody/a:bodyPr',             'top',    'emu',    Inches(0.05)),
+        ('p:txBody/a:bodyPr',             'right',  'emu',    Inches(0.1)),
+        ('p:txBody/a:bodyPr',             'bottom', 'emu',    Inches(0.05)),
+        ('p:txBody/a:bodyPr{lIns=9144}',  'left',   'cm',     0.0254),
+        ('p:txBody/a:bodyPr{tIns=18288}', 'top',    'mm',     0.508),
+        ('p:txBody/a:bodyPr{rIns=76200}', 'right',  'pt',     6.0),
+        ('p:txBody/a:bodyPr{bIns=36576}', 'bottom', 'inches', 0.04),
     ])
     def margin_get_fixture(self, request):
-        txBody_cxml, side, expected_value = request.param
+        txBody_cxml, side, unit, expected_value = request.param
         textframe = TextFrame(element(txBody_cxml), None)
         prop_name = "margin_%s" % side
-        return textframe, prop_name, expected_value
+        return textframe, prop_name, unit, expected_value
 
     @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr',             'left',  Inches(0.11),
+        ('p:txBody/a:bodyPr',            'left',   Inches(0.11),
          'p:txBody/a:bodyPr{lIns=100584}'),
         ('p:txBody/a:bodyPr{tIns=1234}', 'top',    Inches(0.12),
          'p:txBody/a:bodyPr{tIns=109728}'),
@@ -155,6 +155,10 @@ class DescribeTextFrame(object):
          'p:txBody/a:bodyPr{rIns=118872}'),
         ('p:txBody/a:bodyPr{bIns=3456}', 'bottom', Inches(0.14),
          'p:txBody/a:bodyPr{bIns=128016}'),
+        ('p:txBody/a:bodyPr', 'left',   Inches(0.1),  'p:txBody/a:bodyPr'),
+        ('p:txBody/a:bodyPr', 'top',    Inches(0.05), 'p:txBody/a:bodyPr'),
+        ('p:txBody/a:bodyPr', 'right',  Inches(0.1),  'p:txBody/a:bodyPr'),
+        ('p:txBody/a:bodyPr', 'bottom', Inches(0.05), 'p:txBody/a:bodyPr'),
     ])
     def margin_set_fixture(self, request):
         txBody_cxml, side, new_value, expected_txBody_cxml = request.param
