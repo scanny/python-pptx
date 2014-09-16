@@ -48,6 +48,10 @@ class DescribeTextFrame(object):
         textframe.add_paragraph()
         assert textframe._txBody.xml == txBody_with_2_paras_xml
 
+    def it_knows_what_text_it_contains(self, text_get_fixture):
+        textframe, expected_value = text_get_fixture
+        assert textframe.text == expected_value
+
     def it_can_replace_the_text_it_contains(
             self, txBody, txBody_with_text_xml):
         textframe = TextFrame(txBody, None)
@@ -158,6 +162,18 @@ class DescribeTextFrame(object):
         prop_name = "margin_%s" % side
         expected_xml = xml(expected_txBody_cxml)
         return textframe, prop_name, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('p:txBody/a:p/a:r/a:t"foobar"',                     'foobar'),
+        ('p:txBody/(a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',     'foo\nbar'),
+        ('p:txBody/(a:p,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")', '\nfoo\nbar'),
+    ])
+    def text_get_fixture(self, request):
+        txBody_cxml, expected_value = request.param
+        textframe = TextFrame(element(txBody_cxml), None)
+        return textframe, expected_value
+
+    # fixture components -----------------------------------
 
     @pytest.fixture
     def textframe(self, txBody):

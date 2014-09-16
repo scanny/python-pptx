@@ -21,12 +21,10 @@ Feature: Access and mutate text in a shape
      When I assign a string to paragraph.text
      Then paragraph.text matches the assigned string
 
-  @wip
   Scenario: Access the text of a shape
     Given a textframe containing text
      Then textframe.text is the text in the shape
 
-  @wip
   Scenario: Change the text of a shape
     Given a textframe
      When I assign a string to textframe.text

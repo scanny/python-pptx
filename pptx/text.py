@@ -106,18 +106,22 @@ class TextFrame(Subshape):
         """
         return tuple([_Paragraph(p, self) for p in self._txBody.p_lst])
 
-    def _set_text(self, text):
-        """Replace all text in text frame with single run containing *text*"""
+    @property
+    def text(self):
+        """
+        All the text in this text frame as a single string. Assigning
+        a string to this property replaces all text in the text frame. After
+        assignment, the text frame contains exactly one paragraph containing
+        the assigned text. The assigned value can be a 7-bit ASCII string,
+        a UTF-8 encoded 8-bit string, or unicode. String values are converted
+        to unicode assuming UTF-8 encoding.
+        """
+        return '\n'.join(paragraph.text for paragraph in self.paragraphs)
+
+    @text.setter
+    def text(self, text):
         self.clear()
         self.paragraphs[0].text = to_unicode(text)
-
-    #: Write-only. Assignment to *text* replaces all text currently contained
-    #: in the text frame with the assigned expression. After assignment, the
-    #: text frame contains exactly one paragraph containing a single run
-    #: containing all the text. The assigned value can be a 7-bit ASCII
-    #: string, a UTF-8 encoded 8-bit string, or unicode. String values are
-    #: converted to unicode assuming UTF-8 encoding.
-    text = property(None, _set_text)
 
     def _set_vertical_anchor(self, value):
         """
