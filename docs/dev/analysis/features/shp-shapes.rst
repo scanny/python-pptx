@@ -1,127 +1,295 @@
-============
-``CT_Shape``
-============
+
+Shapes - In General
+===================
+
+Each visual element in a PowerPoint presentation is a *shape*. A shape
+appears on the "canvas" of a slide, which includes the various types of
+*master*. Within a slide, shapes appear in a *shape tree*, corresponding to
+an ``<p:spTree>`` element.
+
+The following table summarizes the six shape types:
+
+============  ====================
+shape type    element
+============  ====================
+auto shape    ``<p:sp>``
+group shape   ``<p:grpSp>``
+graphicFrame  ``<p:graphicFrame>``
+connector     ``<p:cxnSp>``
+picture       ``<p:pic>``
+content part  ``<p:contentPart>``
+============  ====================
+
+Some of these shape types have important sub-types. For example,
+a placeholder, a text box, and a preset geometry shape such as a circle, are
+all defined with an ``<p:sp>`` element.
+
+
+``<p:sp>`` shape elements
+-------------------------
+
+The ``<p:sp>`` element is used for three types of shape: placeholder, text
+box, and geometric shapes. A geometric shape with preset geometry is referred
+to as an *auto shape*. Placeholder shapes are documented on the
+:ref:`placeholder` page. Auto shapes are documented on the :ref:`autoshape`
+page.
+
+Geometric shapes are the familiar shapes that may be placed on a slide such
+as a rectangle or an ellipse. In the PowerPoint UI they are simply called
+shapes. There are two types of geometric shapes, preset geometry shapes and
+custom geometry shapes.
+
+
+``Shape.id`` and ``Shape.name``
+-------------------------------
+
+``Shape.id`` is read-only and is assigned by python-pptx when necessary.
+
+Proposed protocol::
+
+  >>> shape.id
+  42
+  >>> shape.name
+  u'Picture 5'
+  >>> shape.name = 'T501 - Foo; B. Baz; 2014'
+  >>> shape.name
+  u'T501 - Foo; B. Baz; 2014'
+
+
+Specimen XML
+------------
 
 .. highlight:: xml
 
-.. csv-table::
-   :header-rows: 0
-   :stub-columns: 1
-   :widths: 15, 50
-
-   Schema Name  , CT_Shape
-   Spec Name    , Shape
-   Tag(s)       , p:sp
-   Namespace    , presentationml (pml.xsd)
-   Schema Line  , 1209
-   Spec Section , 19.3.1.43
-
-
-Example
-=======
-
-::
-
-      <p:sp>
-        <p:nvSpPr>
-          <p:cNvPr id="2" name="TextBox 1"/>
-          <p:cNvSpPr txBox="1"/>
-          <p:nvPr/>
-        </p:nvSpPr>
-        <p:spPr>
-          <a:xfrm>
-            <a:off x="1997289" y="2529664"/>
-            <a:ext cx="2390398" cy="369332"/>
-          </a:xfrm>
-          <a:prstGeom prst="rect">
-            <a:avLst/>
-          </a:prstGeom>
-          <a:noFill/>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr wrap="none" rtlCol="0">
-            <a:spAutoFit/>
-          </a:bodyPr>
-          <a:lstStyle/>
-          <a:p>
-            <a:r>
-              <a:rPr lang="en-US" dirty="0" smtClean="0"/>
-              <a:t>This is text in a text box</a:t>
-            </a:r>
-            <a:endParaRPr lang="en-US" dirty="0"/>
-          </a:p>
-        </p:txBody>
-      </p:sp>
-
-
-Minimal text box ``sp`` shape
-=============================
-
-::
+Geometric shape (rounded rectangle)::
 
   <p:sp>
     <p:nvSpPr>
-      <p:cNvPr id="9" name="Text Box 8"/>
-      <p:cNvSpPr txBox="1"/>
+      <p:cNvPr id="3" name="Rounded Rectangle 2"/>
+      <p:cNvSpPr/>
       <p:nvPr/>
     </p:nvSpPr>
     <p:spPr>
       <a:xfrm>
-        <a:off x="9999" y="9999"/>
-        <a:ext cx="999999" cy="999999"/>
+        <a:off x="760096" y="562720"/>
+        <a:ext cx="2520824" cy="914400"/>
       </a:xfrm>
+      <a:prstGeom prst="roundRect">
+        <a:avLst>
+          <a:gd name="adj" fmla="val 30346"/>
+        </a:avLst>
+      </a:prstGeom>
     </p:spPr>
+    <p:style>
+      <a:lnRef idx="1">
+        <a:schemeClr val="accent1"/>
+      </a:lnRef>
+      <a:fillRef idx="3">
+        <a:schemeClr val="accent1"/>
+      </a:fillRef>
+      <a:effectRef idx="2">
+        <a:schemeClr val="accent1"/>
+      </a:effectRef>
+      <a:fontRef idx="minor">
+        <a:schemeClr val="lt1"/>
+      </a:fontRef>
+    </p:style>
     <p:txBody>
-      <a:bodyPr/>
+      <a:bodyPr rtlCol="0" anchor="ctr"/>
+      <a:lstStyle/>
       <a:p>
+        <a:pPr algn="ctr"/>
         <a:r>
-          <a:t>This is text in a text box</a:t>
+          <a:rPr lang="en-US" dirty="0" smtClean="0"/>
+          <a:t>This is text inside a rounded rectangle</a:t>
         </a:r>
+        <a:endParaRPr lang="en-US" dirty="0"/>
       </a:p>
     </p:txBody>
   </p:sp>
 
 
-Schema-minimal ``sp`` shape
-===========================
-
-The following XML represents the minimum valid ``<p:sp>`` element required by
-the schema. Note that in general schema-minimal elements are not guaranteed to
-be semantically valid and attempting to load a presentation that contains one
-will often trigger a load error by the PowerPoint® client. The schema-minimal
-element is useful, however, for understanding the duties of a constructor of
-that element::
+Default textbox shape as inserted by PowerPoint::
 
   <p:sp>
     <p:nvSpPr>
-      <p:cNvPr id="9" name="Text Box 8"/>
-      <p:cNvSpPr/>
+      <p:cNvPr id="2" name="TextBox 1"/>
+      <p:cNvSpPr txBox="1"/>
       <p:nvPr/>
     </p:nvSpPr>
-    <p:spPr/>
+    <p:spPr>
+      <a:xfrm>
+        <a:off x="1997289" y="2529664"/>
+        <a:ext cx="2390398" cy="369332"/>
+      </a:xfrm>
+      <a:prstGeom prst="rect">
+        <a:avLst/>
+      </a:prstGeom>
+      <a:noFill/>
+    </p:spPr>
+    <p:txBody>
+      <a:bodyPr wrap="none" rtlCol="0">
+        <a:spAutoFit/>
+      </a:bodyPr>
+      <a:lstStyle/>
+      <a:p>
+        <a:r>
+          <a:rPr lang="en-US" dirty="0" smtClean="0"/>
+          <a:t>This is text in a text box</a:t>
+        </a:r>
+        <a:endParaRPr lang="en-US" dirty="0"/>
+      </a:p>
+    </p:txBody>
   </p:sp>
 
 
-Analysis
-========
+Group shape (some contents elided for size)::
 
-The ``CT_Shape`` (``<p:sp>``) element is multi-purpose. One of the shape types
-it is used for is a text box.
+  <p:grpSp>
+    <p:nvGrpSpPr>
+      <p:cNvPr id="4" name="Group 3"/>
+      <p:cNvGrpSpPr/>
+      <p:nvPr/>
+    </p:nvGrpSpPr>
+    <p:grpSpPr>
+      <a:xfrm>
+        <a:off x="2438400" y="2971800"/>
+        <a:ext cx="4267200" cy="914400"/>
+        <a:chOff x="2438400" y="2971800"/>
+        <a:chExt cx="4267200" cy="914400"/>
+      </a:xfrm>
+    </p:grpSpPr>
+    <p:sp>
+      <p:nvSpPr>
+        <p:cNvPr id="2" name="Rectangle 1"/>
+        <p:cNvSpPr/>
+        <p:nvPr/>
+      </p:nvSpPr>
+      <!-- some contents elided -->
+    </p:sp>
+    <p:sp>
+      <p:nvSpPr>
+        <p:cNvPr id="3" name="Oval 2"/>
+        <p:cNvSpPr/>
+        <p:nvPr/>
+      </p:nvSpPr>
+      <!-- some contents elided -->
+    </p:sp>
+  </p:grpSp>
 
 
-Spec text
-^^^^^^^^^
+Graphical object (e.g. table, chart) in a graphic frame::
 
-   This element specifies the existence of a single shape. A shape can either
-   be a preset or a custom geometry, defined using the DrawingML framework. In
-   addition to a geometry each shape can have both visual and non-visual
-   properties attached. Text and corresponding styling information can also be
-   attached to a shape. This shape is specified along with all other shapes
-   within either the shape tree or group shape elements.
+  <p:graphicFrame>
+    <p:nvGraphicFramePr>
+      <p:cNvPr id="2" name="Table 1"/>
+      <p:cNvGraphicFramePr>
+        <a:graphicFrameLocks noGrp="1"/>
+      </p:cNvGraphicFramePr>
+      <p:nvPr/>
+    </p:nvGraphicFramePr>
+    <p:xfrm>
+      <a:off x="1524000" y="1397000"/>
+      <a:ext cx="6096000" cy="741680"/>
+    </p:xfrm>
+    <a:graphic>
+      <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
+        <!-- graphical object XML or ref goes here -->
+      </a:graphicData>
+    </a:graphic>
+  </p:graphicFrame>
+
+
+Connector shape::
+
+  <p:cxnSp>
+    <p:nvCxnSpPr>
+      <p:cNvPr id="6" name="Straight Connector 5"/>
+      <p:cNvCxnSpPr/>
+      <p:nvPr/>
+    </p:nvCxnSpPr>
+    <p:spPr>
+      <a:xfrm>
+        <a:off x="3131840" y="3068960"/>
+        <a:ext cx="2736304" cy="0"/>
+      </a:xfrm>
+      <a:prstGeom prst="line">
+        <a:avLst/>
+      </a:prstGeom>
+    </p:spPr>
+    <p:style>
+      <a:lnRef idx="2">
+        <a:schemeClr val="accent1"/>
+      </a:lnRef>
+      <a:fillRef idx="0">
+        <a:schemeClr val="accent1"/>
+      </a:fillRef>
+      <a:effectRef idx="1">
+        <a:schemeClr val="accent1"/>
+      </a:effectRef>
+      <a:fontRef idx="minor">
+        <a:schemeClr val="tx1"/>
+      </a:fontRef>
+    </p:style>
+  </p:cxnSp>
+
+
+Picture shape::
+
+  <p:pic>
+    <p:nvPicPr>
+      <p:cNvPr id="6" name="Picture 5" descr="python-logo.gif"/>
+      <p:cNvPicPr>
+        <a:picLocks noChangeAspect="1"/>
+      </p:cNvPicPr>
+      <p:nvPr/>
+    </p:nvPicPr>
+    <p:blipFill>
+      <a:blip r:embed="rId2"/>
+      <a:stretch>
+        <a:fillRect/>
+      </a:stretch>
+    </p:blipFill>
+    <p:spPr>
+      <a:xfrm>
+        <a:off x="5580112" y="1988840"/>
+        <a:ext cx="2679700" cy="901700"/>
+      </a:xfrm>
+      <a:prstGeom prst="rect">
+        <a:avLst/>
+      </a:prstGeom>
+      <a:ln>
+        <a:solidFill>
+          <a:schemeClr val="bg1">
+            <a:lumMod val="85000"/>
+          </a:schemeClr>
+        </a:solidFill>
+      </a:ln>
+    </p:spPr>
+  </p:pic>
+
+
+Resources
+---------
+
+* `DrawingML Shapes`_ on officeopenxml.com
+
+.. _DrawingML Shapes:
+   http://officeopenxml.com/drwShape.php
+
+* `Shape Object MSDN page`_
+
+.. _Shape Object MSDN page:
+   http://msdn.microsoft.com/en-us/library/office/ff744177(v=office.14).aspx
+
+* `MsoShapeType Enumeration`_
+
+.. _MsoShapeType Enumeration:
+   http://msdn.microsoft.com/en-us/library/office/aa432678(v=office.14).aspx
 
 
 Schema excerpt
-^^^^^^^^^^^^^^
+--------------
 
 ::
 

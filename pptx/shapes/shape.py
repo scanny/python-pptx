@@ -84,7 +84,8 @@ class BaseShape(object):
     @property
     def id(self):
         """
-        Id of this shape. Note that ids are constrained to positive integers.
+        Read-only positive integer identifying this shape. The id of a shape
+        is unique among all shapes on a slide.
         """
         return self._element.shape_id
 

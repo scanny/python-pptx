@@ -1,3 +1,5 @@
+.. _autoshape:
+
 ##########
 Auto Shape
 ##########
