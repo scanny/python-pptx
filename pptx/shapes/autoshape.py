@@ -312,6 +312,13 @@ class Shape(BaseShape):
         """
         return self._sp.get_or_add_ln()
 
+    @property
+    def has_textframe(self):
+        """
+        |True| if this shape can contain text.
+        """
+        return True
+
     @lazyproperty
     def line(self):
         """

@@ -312,6 +312,10 @@ class DescribeAutoShapeType(object):
 
 class DescribeShape(object):
 
+    def it_knows_it_has_a_textframe(self):
+        shape = Shape(None, None)
+        assert shape.has_textframe is True
+
     def it_knows_what_text_it_contains(self, text_get_fixture):
         shape, expected_value = text_get_fixture
         assert shape.text == expected_value

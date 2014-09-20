@@ -58,9 +58,9 @@ class DescribeBaseShape(object):
         part = shape.part
         assert part is parent_.part
 
-    def it_knows_whether_it_can_contain_text(self, has_textframe_fixture):
-        shape, has_textframe = has_textframe_fixture
-        assert shape.has_textframe is has_textframe
+    def it_knows_it_doesnt_have_a_textframe(self):
+        shape = BaseShape(None, None)
+        assert shape.has_textframe is False
 
     def it_knows_whether_it_is_a_placeholder(self, is_placeholder_fixture):
         shape, is_placeholder = is_placeholder_fixture
@@ -114,13 +114,6 @@ class DescribeBaseShape(object):
         ).element
         shape = BaseShape(shape_elm, None)
         return shape, shape_id
-
-    @pytest.fixture(params=[True, False])
-    def has_textframe_fixture(self, request, shape_elm_, txBody_):
-        has_textframe = request.param
-        shape_elm_.txBody = txBody_ if has_textframe else None
-        shape = BaseShape(shape_elm_, None)
-        return shape, has_textframe
 
     @pytest.fixture(params=[True, False])
     def is_placeholder_fixture(self, request, shape_elm_, txBody_):

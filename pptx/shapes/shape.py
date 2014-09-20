@@ -50,13 +50,10 @@ class BaseShape(object):
     @property
     def has_textframe(self):
         """
-        |True| if this shape has a txBody element and can contain text.
+        |True| if this shape can contain text.
         """
-        # TODO: This test might not be fully robust. txBody is an optional
-        # element and the schema decides where it can be present, not its
-        # presence or absence. This should probably be overridden on a shape
-        # shape basis and use get_or_add_txBody() to get it.
-        return self._element.txBody is not None
+        # overridden on Shape to return True. Only <p:sp> has text frame
+        return False
 
     @property
     def height(self):
