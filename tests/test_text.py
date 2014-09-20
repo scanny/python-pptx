@@ -576,7 +576,9 @@ class Describe_Paragraph(object):
 
     def it_knows_what_text_it_contains(self, text_get_fixture):
         paragraph, expected_value = text_get_fixture
-        assert paragraph.text == expected_value
+        text = paragraph.text
+        assert text == expected_value
+        assert isinstance(text, unicode)
 
     def it_can_change_its_text(self, text_set_fixture):
         paragraph, new_value, expected_xml = text_set_fixture
@@ -669,12 +671,14 @@ class Describe_Paragraph(object):
         return paragraph, expected_text
 
     @pytest.fixture(params=[
-        ('a:p/a:r/a:t"foobar"',                             'foobar'),
-        ('a:p/(a:r/a:t"foo", a:r/a:t"bar")',                'foobar'),
-        ('a:p/(a:r/a:t"foo", a:br, a:r/a:t"bar")',          'foo\nbar'),
-        ('a:p/(a:r/a:t"foo", a:fld/a:t"42", a:r/a:t"bar")', 'foo42bar'),
-        ('a:p/(a:r/a:t" foo", a:br, a:fld/a:t"42")',        ' foo\n42'),
-        ('a:p/(a:pPr,a:r/a:t"foobar",a:endParaRPr)',        'foobar'),
+        ('a:p/a:r/a:t"foobar"',                               'foobar'),
+        ('a:p/(a:r/a:t"foo", a:r/a:t"bar")',                  'foobar'),
+        ('a:p/(a:r/a:t"foo", a:br, a:r/a:t"bar")',            'foo\nbar'),
+        ('a:p/(a:r/a:t"foo ", a:fld/a:t"42", a:r/a:t" bar")', 'foo 42 bar'),
+        ('a:p/(a:r/a:t" foo", a:br, a:fld/a:t"42")',          ' foo\n42'),
+        ('a:p/(a:pPr,a:r/a:t"foobar",a:endParaRPr)',          'foobar'),
+        ('a:p/a:fld/a:t"42"',                                 '42'),
+        ('a:p/a:br',                                          '\n'),
     ])
     def text_get_fixture(self, request):
         p_cxml, expected_value = request.param
@@ -734,7 +738,9 @@ class Describe_Run(object):
 
     def it_can_get_the_text_of_the_run(self, text_get_fixture):
         run, expected_value = text_get_fixture
-        assert run.text == expected_value
+        text = run.text
+        assert text == expected_value
+        assert isinstance(text, unicode)
 
     def it_can_change_its_text(self, text_set_fixture):
         run, new_value, expected_xml = text_set_fixture

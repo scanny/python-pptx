@@ -115,17 +115,16 @@ class TextFrame(Subshape):
     @property
     def text(self):
         """
-        Read/write. All the text in this text frame as a single string.
-        A line feed character ('\\\\n') appears in the string for each
-        paragraph and line break in the shape, except the last paragraph.
-        A shape containing a single paragraph with no line breaks will
-        produce a string having no line feed characters. Assigning a string
-        to this property replaces all text in the text frame with a single
-        paragraph containing the assigned text. The assigned value can be
-        a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode.
-        String values are converted to unicode assuming UTF-8 encoding.  Each
-        line feed character in the assigned string is translated to a line
-        break within the single resulting paragraph.
+        Read/write. All the text in this text frame as a single unicode
+        string. A line feed character ('\\\\n') appears in the string for
+        each paragraph and line break in the shape, except the last
+        paragraph. A shape containing a single paragraph with no line breaks
+        will produce a string having no line feed characters. Assignment
+        replaces all text in the text frame with a single paragraph
+        containing the assigned text. The assigned value can be a 7-bit ASCII
+        string, a UTF-8 encoded 8-bit string, or unicode. String values are
+        converted to unicode assuming UTF-8 encoding. Each line feed
+        character in the assigned string is translated to a line break.
         """
         return '\n'.join(paragraph.text for paragraph in self.paragraphs)
 
@@ -401,16 +400,15 @@ class _Paragraph(Subshape):
     @property
     def text(self):
         """
-        Read/write. A single string containing all the text in this
+        Read/write. A single unicode string containing all the text in this
         paragraph. Formed by concatenating the text in each run and field
         making up the paragraph, adding a line feed character ('\\\\n') for
-        each line break element encountered. Assigning a string to this
-        property causes all content in the paragraph to be replaced by
-        a single run containing the assigned text. Each line feed character
-        in the assigned string is replaced with a line break. The assigned
-        value can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or
-        unicode. String values are converted to unicode assuming UTF-8
-        encoding.
+        each line break element encountered. Assignment causes all content in
+        the paragraph to be replaced by a single run containing the assigned
+        text. Each line feed character in the assigned text is replaced
+        with a line break. The assigned value can be a 7-bit ASCII string,
+        a UTF-8 encoded 8-bit string, or unicode. String values are converted
+        to unicode assuming UTF-8 encoding.
         """
         return ''.join(elm.text for elm in self._element.content_children)
 
@@ -473,13 +471,12 @@ class _Run(Subshape):
     @property
     def text(self):
         """
-        Read/Write. Text contained in the run. A regular text run is required
-        to contain exactly one ``<a:t>`` (text) element. Assignment to *text*
-        replaces the text currently contained in the run. The assigned value
-        can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode.
+        Read/write. A unicode string containing the text in this run.
+        Assignment replaces all text in the run. The assigned value can be
+        a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode.
         String values are converted to unicode assuming UTF-8 encoding.
         """
-        return self._r.t.text
+        return self._r.text
 
     @text.setter
     def text(self, str):

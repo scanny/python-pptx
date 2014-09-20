@@ -15,7 +15,7 @@ from .simpletypes import (
     ST_Coordinate32, ST_TextFontSize, ST_TextIndentLevelType,
     ST_TextTypeface, ST_TextWrappingType, XsdBoolean, XsdString
 )
-from ..util import Emu
+from ..util import Emu, to_unicode
 from .xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
@@ -42,8 +42,8 @@ class CT_RegularTextRun(BaseOxmlElement):
         The text of the ``<a:t>`` child element.
         """
         text = self.t.text
-        # t.text is None if t element is empty, e.g. '<a:t/>'
-        return text if text is not None else ''
+        # t.text is None when t element is empty, e.g. '<a:t/>'
+        return to_unicode(text) if text is not None else u''
 
 
 class CT_TextBody(BaseOxmlElement):
@@ -239,7 +239,10 @@ class CT_TextField(BaseOxmlElement):
         The text of the ``<a:t>`` child element.
         """
         t = self.t
-        return '' if t is None else t.text
+        if t is None:
+            return u''
+        text = t.text
+        return to_unicode(text) if text is not None else u''
 
 
 class CT_TextFont(BaseOxmlElement):
@@ -260,7 +263,7 @@ class CT_TextLineBreak(BaseOxmlElement):
         Unconditionally a single line feed character. A line break element
         can contain no text other than the implicit line feed it represents.
         """
-        return '\n'
+        return u'\n'
 
 
 class CT_TextParagraph(BaseOxmlElement):
