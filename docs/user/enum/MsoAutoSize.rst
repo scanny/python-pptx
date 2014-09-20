@@ -10,9 +10,9 @@ used to fit a shape's text within the shape bounding box, for example::
 
     from pptx.enum.text import MSO_AUTO_SIZE
 
-    shape.textframe.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
+    shape.text_frame.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
 
-The word-wrap setting of the textframe interacts with the auto-size setting
+The word-wrap setting of the text frame interacts with the auto-size setting
 to determine the specific auto-sizing behavior.
 
 Note that ``TextFrame.auto_size`` can also be set to |None|, which removes

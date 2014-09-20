@@ -202,5 +202,5 @@ def then_text_appears_in_first_cell_of_table(context):
     prs = Presentation(saved_pptx_path)
     sld = prs.slides[0]
     table = sld.shapes[0].table
-    text = table.cell(0, 0).textframe.paragraphs[0].runs[0].text
+    text = table.cell(0, 0).text_frame.paragraphs[0].runs[0].text
     assert text == 'test text'

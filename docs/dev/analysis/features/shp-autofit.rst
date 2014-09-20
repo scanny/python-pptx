@@ -24,22 +24,22 @@ Protocol
 
 ::
 
-    >>> textframe = shape.textframe
-    >>> textframe.auto_size
+    >>> text_frame = shape.text_frame
+    >>> text_frame.auto_size
     None
-    >>> textframe.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
-    >>> textframe.auto_size
+    >>> text_frame.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
+    >>> text_frame.auto_size
     1
-    >>> textframe.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
-    >>> textframe.auto_size
+    >>> text_frame.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
+    >>> text_frame.auto_size
     2
-    >>> str(textframe.auto_size)
+    >>> str(text_frame.auto_size)
     'MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE'
-    >>> textframe.auto_size = MSO_AUTO_SIZE.NONE
-    >>> textframe.auto_size
+    >>> text_frame.auto_size = MSO_AUTO_SIZE.NONE
+    >>> text_frame.auto_size
     0
-    >>> textframe.auto_size = None
-    >>> textframe.auto_size
+    >>> text_frame.auto_size = None
+    >>> text_frame.auto_size
     None
 
 

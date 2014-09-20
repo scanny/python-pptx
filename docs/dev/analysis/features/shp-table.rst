@@ -173,7 +173,7 @@ Properties and methods required for a |Table| shape.
 |_Cell| class
 ~~~~~~~~~~~~~
 
-* ``textframe`` -- container for text in the cell.
+* ``text_frame`` -- container for text in the cell.
 * borders, something like LineProperties on each side
 * inset (margins)
 * anchor and anchor_center

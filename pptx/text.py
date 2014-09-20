@@ -60,8 +60,8 @@ class TextFrame(Subshape):
     def margin_bottom(self):
         """
         |BaseLength| value representing the inset of text from the bottom
-        textframe border. :meth:`pptx.util.Inches` provides a convenient way
-        of setting the value, e.g. ``textframe.margin_bottom
+        text frame border. :meth:`pptx.util.Inches` provides a convenient way
+        of setting the value, e.g. ``text_frame.margin_bottom
         = Inches(0.05)``.
         """
         return self._bodyPr.bIns
@@ -73,7 +73,7 @@ class TextFrame(Subshape):
     @property
     def margin_left(self):
         """
-        Inset of text from left textframe border as |BaseLength| value.
+        Inset of text from left text frame border as |BaseLength| value.
         """
         return self._bodyPr.lIns
 
@@ -84,7 +84,7 @@ class TextFrame(Subshape):
     @property
     def margin_right(self):
         """
-        Inset of text from right textframe border as |BaseLength| value.
+        Inset of text from right text frame border as |BaseLength| value.
         """
         return self._bodyPr.rIns
 
@@ -95,7 +95,7 @@ class TextFrame(Subshape):
     @property
     def margin_top(self):
         """
-        Inset of text from top textframe border as |BaseLength| value.
+        Inset of text from top text frame border as |BaseLength| value.
         """
         return self._bodyPr.tIns
 

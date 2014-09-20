@@ -74,7 +74,7 @@ Candidate Protocol
 
 Add a hyperlink::
 
-    p = shape.textframe.paragraphs[0]
+    p = shape.text_frame.paragraphs[0]
     r = p.add_run()
     r.text = 'link to python-pptx @ GitHub'
     hlink = r.hyperlink

@@ -22,10 +22,10 @@ Feature: Access and mutate text in a shape
      Then paragraph.text matches the assigned string
 
   Scenario: Access the text of a shape
-    Given a textframe containing text
-     Then textframe.text is the text in the shape
+    Given a text frame containing text
+     Then text_frame.text is the text in the shape
 
   Scenario: Change the text of a shape
-    Given a textframe
-     When I assign a string to textframe.text
-     Then textframe.text matches the assigned string
+    Given a text frame
+     When I assign a string to text_frame.text
+     Then text_frame.text matches the assigned string

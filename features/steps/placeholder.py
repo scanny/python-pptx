@@ -57,7 +57,7 @@ def given_slide_placeholder_with_no_direct_pos_or_size_settings(context):
 
 @when('I indent the first paragraph')
 def step_when_indent_first_paragraph(context):
-    context.body.textframe.paragraphs[0].level = 1
+    context.body.text_frame.paragraphs[0].level = 1
 
 
 @when("I set the title text of the slide")
@@ -104,7 +104,7 @@ def then_paragraph_is_indented(context):
     prs = Presentation(saved_pptx_path)
     sld = prs.slides[0]
     body = sld.shapes.placeholders[1]
-    p = body.textframe.paragraphs[0]
+    p = body.text_frame.paragraphs[0]
     assert p.level == 1
 
 
@@ -112,5 +112,5 @@ def then_paragraph_is_indented(context):
 def step_then_text_appears_in_title_placeholder(context):
     prs = Presentation(saved_pptx_path)
     title_shape = prs.slides[0].shapes.title
-    title_text = title_shape.textframe.paragraphs[0].runs[0].text
+    title_text = title_shape.text_frame.paragraphs[0].runs[0].text
     assert title_text == test_text

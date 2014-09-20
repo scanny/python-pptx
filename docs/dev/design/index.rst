@@ -9,5 +9,3 @@ Design
    :maxdepth: 2
 
    design_sketches
-   protocols/index
-

@@ -28,13 +28,13 @@ from .unitutil.mock import (
 class DescribeTextFrame(object):
 
     def it_knows_its_autosize_setting(self, autosize_get_fixture):
-        textframe, expected_value = autosize_get_fixture
-        assert textframe.auto_size == expected_value
+        text_frame, expected_value = autosize_get_fixture
+        assert text_frame.auto_size == expected_value
 
     def it_can_change_its_autosize_setting(self, autosize_set_fixture):
-        textframe, value, expected_xml = autosize_set_fixture
-        textframe.auto_size = value
-        assert textframe._txBody.xml == expected_xml
+        text_frame, value, expected_xml = autosize_set_fixture
+        text_frame.auto_size = value
+        assert text_frame._txBody.xml == expected_xml
 
     def it_knows_the_number_of_paragraphs_it_contains(
             self, txBody, txBody_with_2_paras):
@@ -43,61 +43,61 @@ class DescribeTextFrame(object):
 
     def it_can_add_a_paragraph_to_the_text_it_contains(
             self, txBody, txBody_with_2_paras_xml):
-        textframe = TextFrame(txBody, None)
-        textframe.add_paragraph()
-        assert textframe._txBody.xml == txBody_with_2_paras_xml
+        text_frame = TextFrame(txBody, None)
+        text_frame.add_paragraph()
+        assert text_frame._txBody.xml == txBody_with_2_paras_xml
 
     def it_knows_what_text_it_contains(self, text_get_fixture):
-        textframe, expected_value = text_get_fixture
-        assert textframe.text == expected_value
+        text_frame, expected_value = text_get_fixture
+        assert text_frame.text == expected_value
 
     def it_can_replace_the_text_it_contains(
             self, txBody, txBody_with_text_xml):
-        textframe = TextFrame(txBody, None)
-        textframe.text = 'foobar'
+        text_frame = TextFrame(txBody, None)
+        text_frame.text = 'foobar'
         assert txBody.xml == txBody_with_text_xml
 
     def it_knows_its_margin_settings(self, margin_get_fixture):
-        textframe, prop_name, unit, expected_value = margin_get_fixture
-        margin_value = getattr(textframe, prop_name)
+        text_frame, prop_name, unit, expected_value = margin_get_fixture
+        margin_value = getattr(text_frame, prop_name)
         assert getattr(margin_value, unit) == expected_value
 
     def it_can_change_its_margin_settings(self, margin_set_fixture):
-        textframe, prop_name, new_value, expected_xml = margin_set_fixture
-        setattr(textframe, prop_name, new_value)
-        assert textframe._txBody.xml == expected_xml
+        text_frame, prop_name, new_value, expected_xml = margin_set_fixture
+        setattr(text_frame, prop_name, new_value)
+        assert text_frame._txBody.xml == expected_xml
 
-    def it_raises_on_attempt_to_set_margin_to_non_int(self, textframe):
+    def it_raises_on_attempt_to_set_margin_to_non_int(self, text_frame):
         with pytest.raises(TypeError):
-            textframe.margin_bottom = '0.1'
+            text_frame.margin_bottom = '0.1'
 
     def it_can_change_its_vertical_anchor_setting(
             self, txBody, txBody_with_anchor_ctr_xml):
-        textframe = TextFrame(txBody, None)
-        textframe.vertical_anchor = MSO_ANCHOR.MIDDLE
-        assert textframe._txBody.xml == txBody_with_anchor_ctr_xml
+        text_frame = TextFrame(txBody, None)
+        text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+        assert text_frame._txBody.xml == txBody_with_anchor_ctr_xml
 
     def it_can_change_the_word_wrap_setting(
             self, txBody, txBody_with_wrap_on_xml, txBody_with_wrap_off_xml,
             txBody_xml):
-        textframe = TextFrame(txBody, None)
-        assert textframe.word_wrap is None
+        text_frame = TextFrame(txBody, None)
+        assert text_frame.word_wrap is None
 
-        textframe.word_wrap = True
-        assert textframe._txBody.xml == txBody_with_wrap_on_xml
-        assert textframe.word_wrap is True
+        text_frame.word_wrap = True
+        assert text_frame._txBody.xml == txBody_with_wrap_on_xml
+        assert text_frame.word_wrap is True
 
-        textframe.word_wrap = False
-        assert textframe._txBody.xml == txBody_with_wrap_off_xml
-        assert textframe.word_wrap is False
+        text_frame.word_wrap = False
+        assert text_frame._txBody.xml == txBody_with_wrap_off_xml
+        assert text_frame.word_wrap is False
 
-        textframe.word_wrap = None
-        assert textframe._txBody.xml == txBody_xml
-        assert textframe.word_wrap is None
+        text_frame.word_wrap = None
+        assert text_frame._txBody.xml == txBody_xml
+        assert text_frame.word_wrap is None
 
-    def it_knows_the_part_it_belongs_to(self, textframe_with_parent_):
-        textframe, parent_ = textframe_with_parent_
-        part = textframe.part
+    def it_knows_the_part_it_belongs_to(self, text_frame_with_parent_):
+        text_frame, parent_ = text_frame_with_parent_
+        part = text_frame.part
         assert part is parent_.part
 
     # fixtures ---------------------------------------------
@@ -110,8 +110,8 @@ class DescribeTextFrame(object):
     ])
     def autosize_get_fixture(self, request):
         txBody_cxml, expected_value = request.param
-        textframe = TextFrame(element(txBody_cxml), None)
-        return textframe, expected_value
+        text_frame = TextFrame(element(txBody_cxml), None)
+        return text_frame, expected_value
 
     @pytest.fixture(params=[
         ('p:txBody/a:bodyPr',               MSO_AUTO_SIZE.NONE,
@@ -125,9 +125,9 @@ class DescribeTextFrame(object):
     ])
     def autosize_set_fixture(self, request):
         txBody_cxml, value, expected_cxml = request.param
-        textframe = TextFrame(element(txBody_cxml), None)
+        text_frame = TextFrame(element(txBody_cxml), None)
         expected_xml = xml(expected_cxml)
-        return textframe, value, expected_xml
+        return text_frame, value, expected_xml
 
     @pytest.fixture(params=[
         ('p:txBody/a:bodyPr',             'left',   'emu',    Inches(0.1)),
@@ -141,9 +141,9 @@ class DescribeTextFrame(object):
     ])
     def margin_get_fixture(self, request):
         txBody_cxml, side, unit, expected_value = request.param
-        textframe = TextFrame(element(txBody_cxml), None)
+        text_frame = TextFrame(element(txBody_cxml), None)
         prop_name = "margin_%s" % side
-        return textframe, prop_name, unit, expected_value
+        return text_frame, prop_name, unit, expected_value
 
     @pytest.fixture(params=[
         ('p:txBody/a:bodyPr',            'left',   Inches(0.11),
@@ -161,10 +161,10 @@ class DescribeTextFrame(object):
     ])
     def margin_set_fixture(self, request):
         txBody_cxml, side, new_value, expected_txBody_cxml = request.param
-        textframe = TextFrame(element(txBody_cxml), None)
+        text_frame = TextFrame(element(txBody_cxml), None)
         prop_name = "margin_%s" % side
         expected_xml = xml(expected_txBody_cxml)
-        return textframe, prop_name, new_value, expected_xml
+        return text_frame, prop_name, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('p:txBody/a:p/a:r/a:t"foobar"',                     'foobar'),
@@ -173,20 +173,20 @@ class DescribeTextFrame(object):
     ])
     def text_get_fixture(self, request):
         txBody_cxml, expected_value = request.param
-        textframe = TextFrame(element(txBody_cxml), None)
-        return textframe, expected_value
+        text_frame = TextFrame(element(txBody_cxml), None)
+        return text_frame, expected_value
 
     # fixture components -----------------------------------
 
     @pytest.fixture
-    def textframe(self, txBody):
+    def text_frame(self, txBody):
         return TextFrame(txBody, None)
 
     @pytest.fixture
-    def textframe_with_parent_(self, request):
+    def text_frame_with_parent_(self, request):
         parent_ = loose_mock(request, name='parent_')
-        textframe = TextFrame(None, parent_)
-        return textframe, parent_
+        text_frame = TextFrame(None, parent_)
+        return text_frame, parent_
 
     @pytest.fixture
     def txBody(self, txBody_bldr):

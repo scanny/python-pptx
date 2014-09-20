@@ -4,7 +4,10 @@
 Autoshape-related objects such as Shape and Adjustment.
 """
 
+from __future__ import absolute_import, print_function
+
 from numbers import Number
+from warnings import warn
 
 from ..dml.fill import FillFormat
 from ..dml.line import LineFormat
@@ -313,11 +316,24 @@ class Shape(BaseShape):
         return self._sp.get_or_add_ln()
 
     @property
-    def has_textframe(self):
+    def has_text_frame(self):
         """
-        |True| if this shape can contain text.
+        |True| if this shape can contain text. Always |True| for an
+        AutoShape.
         """
         return True
+
+    @property
+    def has_textframe(self):
+        """
+        Deprecated. Use :attr:`has_text_frame` property instead.
+        """
+        msg = (
+            'Shape.has_textframe property is deprecated. Use .has_text_frame'
+            ' instead.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+        return self.has_text_frame
 
     @lazyproperty
     def line(self):
@@ -365,17 +381,29 @@ class Shape(BaseShape):
         character in an assigned string is translated into a line break
         within the single resulting paragraph.
         """
-        return self.textframe.text
+        return self.text_frame.text
 
     @text.setter
     def text(self, text):
-        self.textframe.text = text
+        self.text_frame.text = text
 
     @property
-    def textframe(self):
+    def text_frame(self):
         """
         |TextFrame| instance for this shape, containing the text of the shape
         and providing access to text formatting properties.
         """
         txBody = self._element.get_or_add_txBody()
         return TextFrame(txBody, self)
+
+    @property
+    def textframe(self):
+        """
+        Deprecated. Use :attr:`text_frame` property instead.
+        """
+        msg = (
+            'Shape.textframe property is deprecated. Use .has_text_frame ins'
+            'tead.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+        return self.text_frame

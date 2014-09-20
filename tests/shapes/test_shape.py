@@ -58,9 +58,9 @@ class DescribeBaseShape(object):
         part = shape.part
         assert part is parent_.part
 
-    def it_knows_it_doesnt_have_a_textframe(self):
+    def it_knows_it_doesnt_have_a_text_frame(self):
         shape = BaseShape(None, None)
-        assert shape.has_textframe is False
+        assert shape.has_text_frame is False
 
     def it_knows_whether_it_is_a_placeholder(self, is_placeholder_fixture):
         shape, is_placeholder = is_placeholder_fixture
@@ -283,8 +283,8 @@ class DescribeBaseShape(object):
         return 'Foobar 41'
 
     @pytest.fixture
-    def shape_textframe_(self, request):
-        return property_mock(request, BaseShape, 'textframe')
+    def shape_text_frame_(self, request):
+        return property_mock(request, BaseShape, 'text_frame')
 
     @pytest.fixture
     def shapes_(self, request):

@@ -4,9 +4,9 @@ Feature: Get and change properties of shape text frame
   I need a set of properties on the text frame of a shape
 
 
-  Scenario Outline: Get textframe auto-size setting
-    Given a textframe having auto-size set to <setting>
-     Then textframe.auto_size is <value>
+  Scenario Outline: Get text frame auto-size setting
+    Given a text frame having auto-size set to <setting>
+     Then text_frame.auto_size is <value>
 
     Examples: Auto-size settings
       | setting           | value                           |
@@ -16,10 +16,10 @@ Feature: Get and change properties of shape text frame
       | fit text to shape | MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE |
 
 
-  Scenario Outline: Change textframe auto-size setting
-    Given a textframe
-     When I set textframe.auto_size to <value>
-     Then textframe.auto_size is <value>
+  Scenario Outline: Change text frame auto-size setting
+    Given a text frame
+     When I assign <value> to text_frame.auto_size
+     Then text_frame.auto_size is <value>
 
     Examples: Auto-size settings
       | value                           |
@@ -29,11 +29,11 @@ Feature: Get and change properties of shape text frame
       | MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE |
 
 
-  Scenario Outline: Set textframe margins
-    Given a textframe
+  Scenario Outline: Set text frame margins
+    Given a text frame
      When I set the <side> margin to <value>"
       And I reload the presentation
-     Then the textframe's <side> margin is <value>"
+     Then the text frame's <side> margin is <value>"
 
     Examples: Italics Settings
       | side   | value |
@@ -43,11 +43,11 @@ Feature: Get and change properties of shape text frame
       | bottom | 0.4   |
 
 
-  Scenario Outline: Set word wrap property of textframe
-    Given a textframe
-     When I set the textframe word wrap <value>
+  Scenario Outline: Set word wrap property of text frame
+    Given a text frame
+     When I assign <value> to text_frame.word_wrap
       And I reload the presentation
-     Then textframe.word_wrap is <value>
+     Then text_frame.word_wrap is <value>
 
     Examples: Word-wrap Settings
       | value   |

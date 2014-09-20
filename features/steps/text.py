@@ -26,32 +26,32 @@ def given_a_paragraph(context):
     slide = context.prs.slides.add_slide(blank_slide_layout)
     length = Inches(2.00)
     textbox = slide.shapes.add_textbox(length, length, length, length)
-    context.paragraph = textbox.textframe.paragraphs[0]
+    context.paragraph = textbox.text_frame.paragraphs[0]
 
 
 @given('a paragraph containing text')
 def given_a_paragraph_containing_text(context):
     prs = Presentation(test_pptx('txt-text'))
-    context.paragraph = prs.slides[0].shapes[0].textframe.paragraphs[0]
+    context.paragraph = prs.slides[0].shapes[0].text_frame.paragraphs[0]
 
 
 @given('a run')
 def given_a_run(context):
     prs = Presentation(test_pptx('txt-text'))
-    context.run = prs.slides[0].shapes[0].textframe.paragraphs[0].runs[0]
+    context.run = prs.slides[0].shapes[0].text_frame.paragraphs[0].runs[0]
 
 
 @given('a run containing text')
 def given_a_run_containing_text(context):
     prs = Presentation(test_pptx('txt-text'))
-    context.run = prs.slides[0].shapes[0].textframe.paragraphs[0].runs[0]
+    context.run = prs.slides[0].shapes[0].text_frame.paragraphs[0].runs[0]
 
 
 @given('a run with italics set {setting}')
 def given_run_with_italics_set_to_setting(context, setting):
     run_idx = {'on': 0, 'off': 1, 'to None': 2}[setting]
     context.prs = Presentation(test_pptx('txt-font-props'))
-    runs = context.prs.slides[0].shapes[0].textframe.paragraphs[0].runs
+    runs = context.prs.slides[0].shapes[0].text_frame.paragraphs[0].runs
     context.run = runs[run_idx]
 
 
@@ -61,7 +61,7 @@ def given_a_text_run(context):
     blank_slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_slide_layout)
     textbox = slide.shapes.add_textbox(0, 0, 0, 0)
-    p = textbox.textframe.paragraphs[0]
+    p = textbox.text_frame.paragraphs[0]
     context.r = p.add_run()
 
 
@@ -72,7 +72,7 @@ def given_a_text_run_in_a_table_cell(context):
     slide = prs.slides.add_slide(blank_slide_layout)
     table = slide.shapes.add_table(1, 1, 0, 0, 0, 0).table
     cell = table.cell(0, 0)
-    p = cell.textframe.paragraphs[0]
+    p = cell.text_frame.paragraphs[0]
     context.r = p.add_run()
 
 
@@ -82,7 +82,7 @@ def given_a_text_run_having_a_hyperlink(context):
     blank_slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_slide_layout)
     textbox = slide.shapes.add_textbox(0, 0, 0, 0)
-    p = textbox.textframe.paragraphs[0]
+    p = textbox.text_frame.paragraphs[0]
     r = p.add_run()
     r.hyperlink.address = 'http://foo/bar'
     context.r = r
@@ -117,13 +117,13 @@ def when_reload_presentation(context):
 def when_set_margin_to_value(context, side, inches):
     emu = Inches(float(inches))
     if side == 'left':
-        context.textframe.margin_left = emu
+        context.text_frame.margin_left = emu
     elif side == 'top':
-        context.textframe.margin_top = emu
+        context.text_frame.margin_top = emu
     elif side == 'right':
-        context.textframe.margin_right = emu
+        context.text_frame.margin_right = emu
     elif side == 'bottom':
-        context.textframe.margin_bottom = emu
+        context.text_frame.margin_bottom = emu
 
 
 @when('I indent the paragraph')
@@ -191,13 +191,13 @@ def then_font_name_matches_typeface_I_set(context):
 
 @then('the paragraph is aligned centered')
 def then_paragraph_is_aligned_centered(context):
-    p = context.prs.slides[0].shapes[0].textframe.paragraphs[0]
+    p = context.prs.slides[0].shapes[0].text_frame.paragraphs[0]
     assert p.alignment == PP_ALIGN.CENTER
 
 
 @then('the paragraph is indented to the second level')
 def then_paragraph_indented_to_second_level(context):
-    p = context.prs.slides[0].shapes[0].textframe.paragraphs[0]
+    p = context.prs.slides[0].shapes[0].text_frame.paragraphs[0]
     assert p.level == 1
 
 
@@ -208,7 +208,7 @@ def then_run_now_has_italics_set_to_setting(context, initial, setting):
         context.prs
                .slides[0]
                .shapes[0]
-               .textframe
+               .text_frame
                .paragraphs[0]
                .runs[run_idx]
     )

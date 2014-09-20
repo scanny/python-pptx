@@ -7,7 +7,7 @@ always manipulated the same way, regardless of its container.
 
 Text exists in a hierarchy of three levels:
 
-* :attr:`.Shape.textframe`
+* :attr:`.Shape.text_frame`
 * :attr:`.TextFrame.paragraphs`
 * :attr:`._Paragraph.runs`
 
@@ -30,27 +30,27 @@ Let's run through these one by one. Only features available in the current
 release are shown.
 
 
-Accessing the textframe
------------------------
+Accessing the text frame
+------------------------
 
-As mentioned, not all shapes have a textframe. So if you're not sure and you
+As mentioned, not all shapes have a text frame. So if you're not sure and you
 don't want to catch the possible exception, you'll want to check before
 attempting to access it::
 
     for shape in slide.shapes:
-        if not shape.has_textframe:
+        if not shape.has_text_frame:
             continue
-        textframe = shape.textframe
-        # do things with the textframe
+        text_frame = shape.text_frame
+        # do things with the text frame
         ...
 
 
 Accessing paragraphs
 --------------------
 
-A textframe always contains at least one paragraph. This causes the process of
-getting multiple paragraphs into a shape to be a little clunkier than one might
-like. Say for example you want a shape with three paragraphs::
+A text frame always contains at least one paragraph. This causes the process
+of getting multiple paragraphs into a shape to be a little clunkier than one
+might like. Say for example you want a shape with three paragraphs::
 
     paragraph_strs = [
         'Egg, bacon, sausage and spam.',
@@ -58,14 +58,14 @@ like. Say for example you want a shape with three paragraphs::
         'Spam, egg, spam, spam, bacon and spam.'
     ]
 
-    textframe = shape.textframe
-    textframe.clear()  # remove any existing paragraphs, leaving one empty one
+    text_frame = shape.text_frame
+    text_frame.clear()  # remove any existing paragraphs, leaving one empty one
 
-    p = textframe.paragraphs[0]
+    p = text_frame.paragraphs[0]
     p.text = paragraph_strs[0]
 
     for para_str in paragraph_strs[1:]:
-        p = textframe.add_paragraph()
+        p = text_frame.add_paragraph()
         p.text = para_str
 
 
@@ -81,33 +81,33 @@ the same result::
 
     # is equivalent to ...
 
-    textframe = shape.textframe
-    textframe.clear()
-    p = textframe.paragraphs[0]
+    text_frame = shape.text_frame
+    text_frame.clear()
+    p = text_frame.paragraphs[0]
     run = p.add_run()
     run.text = 'foobar'
 
 
-Applying textframe-level formatting
------------------------------------
+Applying text frame-level formatting
+------------------------------------
 
 The following produces a shape with a single paragraph, a slightly wider bottom
 than top margin (these default to 0.05"), no left margin, text aligned top, and
 word wrapping turned off. In addition, the auto-size behavior is set to
 adjust the width and height of the shape to fit its text. Note that vertical
-alignment is set on the textframe. Horizontal alignment is set on each
+alignment is set on the text frame. Horizontal alignment is set on each
 paragraph::
 
     from pptx.util import Inches
     from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE
 
-    textframe = shape.textframe
-    textframe.text = 'Spam, eggs, and spam'
-    textframe.margin_bottom = Inches(0.08)
-    textframe.margin_left = 0
-    textframe.vertical_anchor = MSO_ANCHOR.TOP
-    textframe.word_wrap = False
-    textframe.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
+    text_frame = shape.text_frame
+    text_frame.text = 'Spam, eggs, and spam'
+    text_frame.margin_bottom = Inches(0.08)
+    text_frame.margin_left = 0
+    text_frame.vertical_anchor = MSO_ANCHOR.TOP
+    text_frame.word_wrap = False
+    text_frame.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
 
 The possible values for ``TextFrame.auto_size`` and
 ``TextFrame.vertical_anchor`` are specified by the enumeration
@@ -128,15 +128,15 @@ second and third indented (like sub-bullets) under the first::
         'Spam, egg, spam, spam, bacon and spam.'
     ]
 
-    textframe = shape.textframe
-    textframe.clear()
+    text_frame = shape.text_frame
+    text_frame.clear()
 
-    p = textframe.paragraphs[0]
+    p = text_frame.paragraphs[0]
     p.text = paragraph_strs[0]
     p.alignment = PP_ALIGN.LEFT
 
     for para_str in paragraph_strs[1:]:
-        p = textframe.add_paragraph()
+        p = text_frame.add_paragraph()
         p.text = para_str
         p.alignment = PP_ALIGN.LEFT
         p.level = 1
@@ -155,10 +155,10 @@ the theme color Accent 1.
     from pptx.enum.dml import MSO_THEME_COLOR
     from pptx.util import Pt
 
-    textframe = shape.textframe
-    textframe.clear()  # not necessary for newly-created shape
+    text_frame = shape.text_frame
+    text_frame.clear()  # not necessary for newly-created shape
 
-    p = textframe.paragraphs[0]
+    p = text_frame.paragraphs[0]
     run = p.add_run()
     run.text = 'Spam, eggs, and spam'
 

@@ -31,7 +31,7 @@ Analysis
 
 * Seems like the most common lines are connectors
 * Connectors are a distinct shape type. They are very similar to
-  regular ``<p:sp>``-based auto shapes, but lack a textframe.
+  regular ``<p:sp>``-based auto shapes, but lack a text frame.
 * Hypothesis: There are really two types, connectors and free-form.
   
   + Connectors are based on the ``<p:cxnSp>`` element and have a preset

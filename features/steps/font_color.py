@@ -29,7 +29,7 @@ def step_given_font_with_color_type(context, color_type):
     }[color_type]
     context.prs = Presentation(font_color_pptx_path)
     textbox = context.prs.slides[0].shapes[context.textbox_idx]
-    context.font = textbox.textframe.paragraphs[0].runs[0].font
+    context.font = textbox.text_frame.paragraphs[0].runs[0].font
 
 
 @given('a font with a color brightness setting of {setting}')
@@ -41,7 +41,7 @@ def step_font_with_color_brightness(context, setting):
     }[setting]
     context.prs = Presentation(font_color_pptx_path)
     textbox = context.prs.slides[0].shapes[textbox_idx]
-    context.font = textbox.textframe.paragraphs[0].runs[0].font
+    context.font = textbox.text_frame.paragraphs[0].runs[0].font
 
 
 # when ====================================================
@@ -79,7 +79,7 @@ def step_then_font_color_type_is_value(context, color_type):
         'theme color': MSO_COLOR_TYPE.SCHEME,
     }[color_type]
     textbox = context.prs.slides[0].shapes[context.textbox_idx]
-    font = textbox.textframe.paragraphs[0].runs[0].font
+    font = textbox.text_frame.paragraphs[0].runs[0].font
     assert font.color.type == expected_value
 
 
@@ -91,7 +91,7 @@ def step_color_brightness_value_matches(context, value):
 @then("the font's {color_type} value matches the value I set")
 def step_color_type_value_matches(context, color_type):
     textbox = context.prs.slides[0].shapes[context.textbox_idx]
-    font = textbox.textframe.paragraphs[0].runs[0].font
+    font = textbox.text_frame.paragraphs[0].runs[0].font
     if color_type == 'RGB':
         assert font.color.rgb == RGBColor(0x12, 0x34, 0x56)
     else:
@@ -101,5 +101,5 @@ def step_color_type_value_matches(context, color_type):
 @then("the font's color brightness is {value}")
 def step_color_brightness_matches(context, value):
     textbox = context.prs.slides[0].shapes[context.textbox_idx]
-    font = textbox.textframe.paragraphs[0].runs[0].font
+    font = textbox.text_frame.paragraphs[0].runs[0].font
     assert font.color.brightness == float(value)

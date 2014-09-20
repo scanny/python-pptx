@@ -44,12 +44,12 @@ Feature: Query and change common shape properties
 
   Scenario Outline: determine whether a shape can contain text
      Given a <shape-type>
-      Then I can determine the shape <has_textframe status>
+      Then I can determine the shape <has_text_frame status>
 
     Examples: Shape types
-      | shape-type    | has_textframe status |
-      | shape         | has a text frame     |
-      | picture       | has no text frame    |
-      | graphic frame | has no text frame    |
-      | group shape   | has no text frame    |
-      | connector     | has no text frame    |
+      | shape-type    | has_text_frame status |
+      | shape         | has a text frame      |
+      | picture       | has no text frame     |
+      | graphic frame | has no text frame     |
+      | group shape   | has no text frame     |
+      | connector     | has no text frame     |

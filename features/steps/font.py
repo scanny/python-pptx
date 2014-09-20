@@ -20,7 +20,7 @@ def given_a_font(context):
     prs = Presentation(test_pptx('txt-font-props'))
     slide = prs.slides[1]
     textbox = slide.shapes[0]
-    run = textbox.textframe.paragraphs[0].runs[0]
+    run = textbox.text_frame.paragraphs[0].runs[0]
     context.font = run.font
 
 
@@ -33,7 +33,7 @@ def given_a_font_having_applied_size(context, applied_size):
     prs = Presentation(test_pptx('txt-font-props'))
     slide = prs.slides[1]
     textbox = slide.shapes[shape_idx]
-    run = textbox.textframe.paragraphs[0].runs[0]
+    run = textbox.text_frame.paragraphs[0].runs[0]
     context.font = run.font
 
 

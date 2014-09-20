@@ -61,7 +61,7 @@ Bullet slide example
 
     title_shape.text = 'Adding a Bullet Slide'
 
-    tf = body_shape.textframe
+    tf = body_shape.text_frame
     tf.text = 'Find the bullet slide layout'
 
     p = tf.add_paragraph()
@@ -76,15 +76,15 @@ Bullet slide example
 
 Not all shapes can contain text, but those that do always have at least one
 paragraph, even if that paragraph is empty and no text is visible within the
-shape. ``_BaseShape.has_textframe`` can be used to determine whether a shape
+shape. ``_BaseShape.has_text_frame`` can be used to determine whether a shape
 can contain text. (All shapes subclass ``_BaseShape``.) When
-``_BaseShape.has_textframe`` is ``True``,
-``_BaseShape.textframe.paragraphs[0]`` returns the first paragraph. The text
-of the first paragraph can be set using ``textframe.paragraphs[0].text``. As a
-shortcut, the writable properties ``_BaseShape.text`` and ``_TextFrame.text``
-are provided to accomplish the same thing. Note that these last two calls
-delete all the shape's paragraphs except the first one before setting the text
-it contains.
+``_BaseShape.has_text_frame`` is ``True``,
+``_BaseShape.text_frame.paragraphs[0]`` returns the first paragraph. The text
+of the first paragraph can be set using ``text_frame.paragraphs[0].text``. As
+a shortcut, the writable properties ``_BaseShape.text`` and
+``_TextFrame.text`` are provided to accomplish the same thing. Note that
+these last two calls delete all the shape's paragraphs except the first one
+before setting the text it contains.
 
 ----
 
@@ -106,7 +106,7 @@ it contains.
 
     left = top = width = height = Inches(1)
     txBox = slide.shapes.add_textbox(left, top, width, height)
-    tf = txBox.textframe
+    tf = txBox.text_frame
 
     tf.text = "This is text inside a textbox"
 
@@ -260,9 +260,9 @@ Extract all text from slides in presentation
 
     for slide in prs.slides:
         for shape in slide.shapes:
-            if not shape.has_textframe:
+            if not shape.has_text_frame:
                 continue
-            for paragraph in shape.textframe.paragraphs:
+            for paragraph in shape.text_frame.paragraphs:
                 for run in paragraph.runs:
                     text_runs.append(run.text)
 

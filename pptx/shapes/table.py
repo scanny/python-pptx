@@ -4,6 +4,10 @@
 Table-related objects such as Table and Cell.
 """
 
+from __future__ import absolute_import, print_function
+
+from warnings import warn
+
 from . import Subshape
 from ..dml.fill import FillFormat
 from ..text import TextFrame
@@ -217,7 +221,7 @@ class _Cell(Subshape):
         """
         Replace all text in cell with single run containing *text*
         """
-        self.textframe.text = to_unicode(text)
+        self.text_frame.text = to_unicode(text)
 
     #: Write-only. Assignment to *text* replaces all text currently contained
     #: in the cell, resulting in a text frame containing exactly one
@@ -227,12 +231,24 @@ class _Cell(Subshape):
     text = property(None, text)
 
     @property
-    def textframe(self):
+    def text_frame(self):
         """
         |TextFrame| instance containing the text that appears in the cell.
         """
         txBody = self._tc.get_or_add_txBody()
         return TextFrame(txBody, self)
+
+    @property
+    def textframe(self):
+        """
+        Deprecated. Use :attr:`text_frame` property instead.
+        """
+        msg = (
+            '_Cell.textframe property is deprecated. Use .has_text_frame ins'
+            'tead.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+        return self.text_frame
 
     @property
     def vertical_anchor(self):

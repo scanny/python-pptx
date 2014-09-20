@@ -208,7 +208,7 @@ def when_set_fore_color_to_RGB_value(context):
 def then_auto_shape_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
     sp = prs.slides[0].shapes[0]
-    sp_text = sp.textframe.paragraphs[0].runs[0].text
+    sp_text = sp.text_frame.paragraphs[0].runs[0].text
     assert sp.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
     assert sp.auto_shape_type == MSO_SHAPE.ROUNDED_RECTANGLE
     assert sp_text == test_text
@@ -257,13 +257,13 @@ def then_I_can_access_the_slide_from_the_shape(context):
     assert context.shape.part is context.slide
 
 
-@then('I can determine the shape {has_textframe_status}')
-def then_the_shape_has_textframe_status(context, has_textframe_status):
-    has_textframe = {
+@then('I can determine the shape {has_text_frame_status}')
+def then_the_shape_has_text_frame_status(context, has_text_frame_status):
+    has_text_frame = {
         'has a text frame':  True,
         'has no text frame': False,
-    }[has_textframe_status]
-    assert context.shape.has_textframe is has_textframe
+    }[has_text_frame_status]
+    assert context.shape.has_text_frame is has_text_frame
 
 
 @then('I can get the id of the {shape_type}')
@@ -376,5 +376,5 @@ def then_width_and_height_of_shape_match_new_values(context, shape_type):
 def then_text_box_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
     textbox = prs.slides[0].shapes[0]
-    textbox_text = textbox.textframe.paragraphs[0].runs[0].text
+    textbox_text = textbox.text_frame.paragraphs[0].runs[0].text
     assert textbox_text == test_text

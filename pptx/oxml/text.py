@@ -163,7 +163,7 @@ class CT_TextBodyProperties(BaseOxmlElement):
     @property
     def autofit(self):
         """
-        The autofit setting for the textframe, a member of the
+        The autofit setting for the text frame, a member of the
         ``MSO_AUTO_SIZE`` enumeration.
         """
         if self.noAutofit is not None:
