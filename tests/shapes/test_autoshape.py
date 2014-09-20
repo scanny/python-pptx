@@ -11,11 +11,12 @@ import pytest
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
+from pptx.oxml import parse_xml
+from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
-from pptx.oxml import parse_xml
-from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
+from pptx.text import TextFrame
 
 from ..oxml.unitdata.shape import (
     a_cNvSpPr, a_gd, a_prstGeom, an_avLst, an_nvSpPr, an_sp, an_spPr
@@ -363,6 +364,12 @@ class DescribeShape(object):
         with pytest.raises(NotImplementedError):
             shape.shape_type
 
+    def it_provides_access_to_its_text_frame(self, textframe_fixture):
+        shape, textframe_, TextFrame_, txBody = textframe_fixture
+        textframe = shape.textframe
+        TextFrame_.assert_called_once_with(txBody, shape)
+        assert textframe is textframe_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -381,6 +388,13 @@ class DescribeShape(object):
     def init_adjs_fixture_(
             self, request, shape, sp_, adjustments_, AdjustmentCollection_):
         return shape, adjustments_, AdjustmentCollection_, sp_
+
+    @pytest.fixture
+    def textframe_fixture(self, TextFrame_, textframe_):
+        sp = element('p:sp/p:txBody')
+        txBody = sp[0]
+        shape = Shape(sp, None)
+        return shape, textframe_, TextFrame_, txBody
 
     @pytest.fixture(params=[
         (u'p:sp/p:txBody/a:p/a:r/a:t"føøbår"', u'føøbår'),
@@ -450,3 +464,14 @@ class DescribeShape(object):
     @pytest.fixture
     def sp_(self, request, prst):
         return instance_mock(request, CT_Shape, prst=prst, is_autoshape=True)
+
+    @pytest.fixture
+    def TextFrame_(self, request, textframe_):
+        return class_mock(
+            request, 'pptx.shapes.autoshape.TextFrame',
+            return_value=textframe_
+        )
+
+    @pytest.fixture
+    def textframe_(self, request):
+        return instance_mock(request, TextFrame)

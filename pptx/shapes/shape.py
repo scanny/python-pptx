@@ -6,8 +6,6 @@ Base shape-related objects such as BaseShape.
 
 from __future__ import absolute_import, print_function
 
-from ..text import TextFrame
-
 
 class BaseShape(object):
     """
@@ -138,18 +136,6 @@ class BaseShape(object):
     @top.setter
     def top(self, value):
         self._element.y = value
-
-    @property
-    def textframe(self):
-        """
-        |TextFrame| instance for this shape. Raises |ValueError| if shape has
-        no text frame. Use :attr:`has_textframe` to check whether a shape has
-        a text frame.
-        """
-        txBody = self._element.txBody
-        if txBody is None:
-            raise ValueError('shape has no text frame')
-        return TextFrame(txBody, self)
 
     @property
     def width(self):

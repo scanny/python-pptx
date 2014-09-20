@@ -11,6 +11,7 @@ from ..dml.line import LineFormat
 from ..enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
 from .shape import BaseShape
 from ..spec import autoshape_types
+from ..text import TextFrame
 from ..util import lazyproperty
 
 
@@ -362,3 +363,12 @@ class Shape(BaseShape):
     @text.setter
     def text(self, text):
         self.textframe.text = text
+
+    @property
+    def textframe(self):
+        """
+        |TextFrame| instance for this shape, containing the text of the shape
+        and providing access to text formatting properties.
+        """
+        txBody = self._element.get_or_add_txBody()
+        return TextFrame(txBody, self)

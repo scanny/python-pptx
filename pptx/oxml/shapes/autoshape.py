@@ -79,6 +79,7 @@ class CT_Shape(BaseShapeElement):
     """
     nvSpPr = OneAndOnlyOne('p:nvSpPr')
     spPr = OneAndOnlyOne('p:spPr')
+    txBody = ZeroOrOne('p:txBody', successors=('p:extLst',))
 
     def get_or_add_ln(self):
         """
@@ -227,6 +228,9 @@ class CT_Shape(BaseShapeElement):
             '</p:sp>' %
             (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d', '%s')
         )
+
+    def _new_txBody(self):
+        return CT_TextBody.new_p_txBody()
 
     @staticmethod
     def _ph_sp_tmpl():

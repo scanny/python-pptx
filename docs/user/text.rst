@@ -7,9 +7,9 @@ always manipulated the same way, regardless of its container.
 
 Text exists in a hierarchy of three levels:
 
-* shape.textframe
-* textframe.paragraphs
-* paragraph.runs
+* :attr:`.Shape.textframe`
+* :attr:`.TextFrame.paragraphs`
+* :attr:`._Paragraph.runs`
 
 All the text in a shape is contained in its *text frame*. A text frame has
 vertical alignment, margins, wrapping and auto-fit behavior, a rotation angle,

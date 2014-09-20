@@ -87,6 +87,15 @@ class CT_TextBody(BaseOxmlElement):
         return txBody
 
     @classmethod
+    def new_p_txBody(cls):
+        """
+        Return a new ``<p:txBody>`` element tree, suitable for use in an
+        ``<p:sp>`` element.
+        """
+        xml = cls._p_txBody_tmpl()
+        return parse_xml(xml)
+
+    @classmethod
     def new_txPr(cls):
         """
         Return a ``<c:txPr>`` element tree suitable for use in a chart object
@@ -113,6 +122,15 @@ class CT_TextBody(BaseOxmlElement):
             '  <a:bodyPr/>\n'
             '  <a:p/>\n'
             '</a:txBody>\n' % (nsdecls('a'))
+        )
+
+    @classmethod
+    def _p_txBody_tmpl(cls):
+        return (
+            '<p:txBody %s>\n'
+            '  <a:bodyPr/>\n'
+            '  <a:p/>\n'
+            '</p:txBody>\n' % (nsdecls('p'))
         )
 
     @classmethod

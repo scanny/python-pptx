@@ -30,8 +30,8 @@ The following properties and methods are common to all shapes.
    :undoc-members:
 
 
-``Shape`` objects (AutoShapes)
-------------------------------
+|Shape| objects (AutoShapes)
+----------------------------
 
 The following properties and methods are defined for AutoShapes, which
 includes text boxes and placeholders.
