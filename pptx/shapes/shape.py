@@ -7,7 +7,6 @@ Base shape-related objects such as BaseShape.
 from __future__ import absolute_import, print_function
 
 from ..text import TextFrame
-from ..util import to_unicode
 
 
 class BaseShape(object):
@@ -139,21 +138,6 @@ class BaseShape(object):
     @top.setter
     def top(self, value):
         self._element.y = value
-
-    def _set_text(self, text):
-        """
-        Replace all text in the shape with a single run containing *text*
-        """
-        if not self.has_textframe:
-            raise TypeError("cannot set text of shape with no text frame")
-        self.textframe.text = to_unicode(text)
-
-    #: Write-only. Assignment to *text* replaces all text currently contained
-    #: by the shape, resulting in a text frame containing exactly one
-    #: paragraph, itself containing a single run. The assigned value can be a
-    #: 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. String
-    #: values are converted to unicode assuming UTF-8 encoding.
-    text = property(None, _set_text)
 
     @property
     def textframe(self):

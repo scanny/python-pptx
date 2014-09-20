@@ -20,6 +20,7 @@ from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 from ..oxml.unitdata.shape import (
     a_cNvSpPr, a_gd, a_prstGeom, an_avLst, an_nvSpPr, an_sp, an_spPr
 )
+from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock, property_mock
 
 
@@ -310,6 +311,11 @@ class DescribeAutoShapeType(object):
 
 class DescribeShape(object):
 
+    def it_can_change_its_text(self, text_set_fixture):
+        shape, new_value, expected_xml = text_set_fixture
+        shape.text = new_value
+        assert shape._element.xml == expected_xml
+
     def it_initializes_adjustments_on_first_ref(self, init_adjs_fixture_):
         shape, adjs_, AdjustmentCollection_, sp_ = init_adjs_fixture_
         assert shape.adjustments is adjs_
@@ -371,6 +377,16 @@ class DescribeShape(object):
     def init_adjs_fixture_(
             self, request, shape, sp_, adjustments_, AdjustmentCollection_):
         return shape, adjustments_, AdjustmentCollection_, sp_
+
+    @pytest.fixture(params=[
+        ('p:sp/p:txBody/a:p', 'føøbår',
+         u'p:sp/p:txBody/a:p/a:r/a:t"føøbår"'),
+    ])
+    def text_set_fixture(self, request):
+        sp_cxml, new_value, expected_sp_cxml = request.param
+        shape = Shape(element(sp_cxml), None)
+        expected_xml = xml(expected_sp_cxml)
+        return shape, new_value, expected_xml
 
     # fixture components ---------------------------------------------
 

@@ -88,17 +88,6 @@ class DescribeBaseShape(object):
         with pytest.raises(ValueError):
             shape.textframe
 
-    def it_can_set_the_shape_text_to_a_string(self, text_set_fixture):
-        shape = text_set_fixture
-        shape.text = 'føøbår'
-        assert shape.textframe.text == u'føøbår'
-
-    def it_raises_on_assign_text_where_no_textframe(
-            self, no_textframe_fixture):
-        shape = no_textframe_fixture
-        with pytest.raises(TypeError):
-            shape.text = 'foobar'
-
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -209,11 +198,6 @@ class DescribeBaseShape(object):
     def textframe_fixture(self, shape_elm_, TextFrame_, txBody_, textframe_):
         shape = BaseShape(shape_elm_, None)
         return shape, TextFrame_, txBody_, textframe_
-
-    @pytest.fixture
-    def text_set_fixture(self, shape_elm_, shape_textframe_):
-        shape = BaseShape(shape_elm_, None)
-        return shape
 
     # fixture components ---------------------------------------------
 

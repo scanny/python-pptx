@@ -11,7 +11,7 @@ from ..dml.line import LineFormat
 from ..enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
 from .shape import BaseShape
 from ..spec import autoshape_types
-from ..util import lazyproperty
+from ..util import lazyproperty, to_unicode
 
 
 class Adjustment(object):
@@ -341,3 +341,18 @@ class Shape(BaseShape):
             return MSO_SHAPE_TYPE.TEXT_BOX
         msg = 'Shape instance of unrecognized shape type'
         raise NotImplementedError(msg)
+
+    def _set_text(self, text):
+        """
+        Replace all text in the shape with a single run containing *text*
+        """
+        if not self.has_textframe:
+            raise TypeError("cannot set text of shape with no text frame")
+        self.textframe.text = to_unicode(text)
+
+    #: Write-only. Assignment to *text* replaces all text currently contained
+    #: by the shape, resulting in a text frame containing exactly one
+    #: paragraph, itself containing a single run. The assigned value can be a
+    #: 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. String
+    #: values are converted to unicode assuming UTF-8 encoding.
+    text = property(None, _set_text)
