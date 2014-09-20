@@ -99,6 +99,12 @@ def given_an_autoshape(context):
     context.shape = shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, cx, cy)
 
 
+@given('an autoshape having text')
+def given_an_autoshape_having_text(context):
+    prs = Presentation(test_pptx('shp-autoshape-props'))
+    context.shape = prs.slides[0].shapes[0]
+
+
 @given('I have a reference to a chevron shape')
 def given_ref_to_chevron_shape(context):
     context.prs = Presentation()
@@ -126,6 +132,11 @@ def when_I_add_an_auto_shape(context):
     cx, cy = (Inches(3.00), Inches(4.00))
     sp = shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, cx, cy)
     sp.text = test_text
+
+
+@when("I assign a string to shape.text")
+def when_I_assign_a_string_to_shape_text(context):
+    context.shape.text = u'F\xf8o\nBar'
 
 
 @when("I change the left and top of the {shape_type}")
@@ -279,6 +290,18 @@ def then_I_can_get_the_name_of_the_shape(context, shape_type):
     shape = context.shape
     msg = "expected shape name '%s', got '%s'" % (shape.name, expected_name)
     assert shape.name == expected_name, msg
+
+
+@then('shape.text is the string I assigned')
+def then_shape_text_is_the_string_I_assigned(context):
+    shape = context.shape
+    assert shape.text == u'F\xf8o\nBar'
+
+
+@then('shape.text is the text in the shape')
+def then_shape_text_is_the_text_in_the_shape(context):
+    shape = context.shape
+    assert shape.text == u'Fee Fi\nF\xf8\xf8 Fum\nI am a shape\nwith textium'
 
 
 @then('the chart is a Chart object')
