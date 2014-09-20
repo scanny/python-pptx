@@ -311,6 +311,10 @@ class DescribeAutoShapeType(object):
 
 class DescribeShape(object):
 
+    def it_knows_what_text_it_contains(self, text_get_fixture):
+        shape, expected_value = text_get_fixture
+        assert shape.text == expected_value
+
     def it_can_change_its_text(self, text_set_fixture):
         shape, new_value, expected_xml = text_set_fixture
         shape.text = new_value
@@ -377,6 +381,14 @@ class DescribeShape(object):
     def init_adjs_fixture_(
             self, request, shape, sp_, adjustments_, AdjustmentCollection_):
         return shape, adjustments_, AdjustmentCollection_, sp_
+
+    @pytest.fixture(params=[
+        (u'p:sp/p:txBody/a:p/a:r/a:t"føøbår"', u'føøbår'),
+    ])
+    def text_get_fixture(self, request):
+        sp_cxml, expected_value = request.param
+        shape = Shape(element(sp_cxml), None)
+        return shape, expected_value
 
     @pytest.fixture(params=[
         ('p:sp/p:txBody/a:p', 'føøbår',

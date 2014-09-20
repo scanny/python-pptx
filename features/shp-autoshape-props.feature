@@ -4,13 +4,11 @@ Feature: Get and set AutoShape properties
   I need a set of properties on Shape
 
 
-  @wip
   Scenario: Get AutoShape text
      Given an autoshape having text
       Then shape.text is the text in the shape
 
 
-  @wip
   Scenario: Set AutoShape text
      Given an autoshape having text
       When I assign a string to shape.text

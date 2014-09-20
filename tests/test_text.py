@@ -13,7 +13,6 @@ from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
-from pptx.oxml.text import CT_TextParagraph
 from pptx.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches, Pt
 
@@ -592,10 +591,10 @@ class Describe_Paragraph(object):
             assert isinstance(r, _Run)
             assert r._parent == paragraph
 
-    def it_can_delete_the_text_it_contains(self, paragraph, p_):
-        paragraph._p = p_
+    def it_can_clear_itself_of_content(self, clear_fixture):
+        paragraph, expected_xml = clear_fixture
         paragraph.clear()
-        p_.remove_child_r_elms.assert_called_once_with()
+        assert paragraph._element.xml == expected_xml
 
     def it_provides_access_to_the_default_paragraph_font(
             self, paragraph, Font_):
@@ -630,6 +629,17 @@ class Describe_Paragraph(object):
         paragraph = _Paragraph(element(p_cxml), None)
         expected_xml = xml(expected_p_cxml)
         return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('a:p/a:r/a:t"foo"',              'a:p'),
+        ('a:p/(a:br,a:r/a:t"foo")',       'a:p'),
+        ('a:p/(a:fld,a:br,a:r/a:t"foo")', 'a:p'),
+    ])
+    def clear_fixture(self, request):
+        p_cxml, expected_p_cxml = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, expected_xml
 
     @pytest.fixture(params=[
         ('a:p',              0),
@@ -693,10 +703,6 @@ class Describe_Paragraph(object):
     @pytest.fixture
     def Font_(self, request):
         return class_mock(request, 'pptx.text.Font')
-
-    @pytest.fixture
-    def p_(self, request):
-        return instance_mock(request, CT_TextParagraph)
 
     @pytest.fixture
     def p_bldr(self):

@@ -11,7 +11,7 @@ from ..dml.line import LineFormat
 from ..enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
 from .shape import BaseShape
 from ..spec import autoshape_types
-from ..util import lazyproperty, to_unicode
+from ..util import lazyproperty
 
 
 class Adjustment(object):
@@ -342,17 +342,23 @@ class Shape(BaseShape):
         msg = 'Shape instance of unrecognized shape type'
         raise NotImplementedError(msg)
 
-    def _set_text(self, text):
+    @property
+    def text(self):
         """
-        Replace all text in the shape with a single run containing *text*
+        Read/write. All the text in this shape as a single string. A line
+        feed character ('\\\\n') appears in the string for each paragraph and
+        line break in the shape, except the last paragraph. A shape
+        containing a single paragraph with no line breaks will produce
+        a string having no line feed characters. Assigning a string to this
+        property replaces all text in the shape with a single paragraph
+        containing the assigned text. The assigned value can be a 7-bit ASCII
+        string, a UTF-8 encoded 8-bit string, or unicode. String values are
+        converted to unicode assuming UTF-8 encoding. Each line feed
+        character in an assigned string is translated into a line break
+        within the single resulting paragraph.
         """
-        if not self.has_textframe:
-            raise TypeError("cannot set text of shape with no text frame")
-        self.textframe.text = to_unicode(text)
+        return self.textframe.text
 
-    #: Write-only. Assignment to *text* replaces all text currently contained
-    #: by the shape, resulting in a text frame containing exactly one
-    #: paragraph, itself containing a single run. The assigned value can be a
-    #: 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. String
-    #: values are converted to unicode assuming UTF-8 encoding.
-    text = property(None, _set_text)
+    @text.setter
+    def text(self, text):
+        self.textframe.text = text

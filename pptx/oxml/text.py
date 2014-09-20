@@ -41,7 +41,9 @@ class CT_RegularTextRun(BaseOxmlElement):
         """
         The text of the ``<a:t>`` child element.
         """
-        return self.t.text
+        text = self.t.text
+        # t.text is None if t element is empty, e.g. '<a:t/>'
+        return text if text is not None else ''
 
 
 class CT_TextBody(BaseOxmlElement):
@@ -284,14 +286,6 @@ class CT_TextParagraph(BaseOxmlElement):
         """
         text_types = (CT_RegularTextRun, CT_TextLineBreak, CT_TextField)
         return tuple(elm for elm in self if isinstance(elm, text_types))
-
-    def remove_child_r_elms(self):
-        """
-        Return self after removing all <a:r> child elements.
-        """
-        for r in self.r_lst:
-            self.remove(r)
-        return self
 
     def _new_r(self):
         r_xml = '<a:r %s><a:t/></a:r>' % nsdecls('a')
