@@ -82,7 +82,6 @@ Feature: Query and change common shape properties
       | connector     | 50.0  |
 
 
-  @wip
   Scenario Outline: Change shape rotation
      Given a <shape-type>
       When I assign <value> to shape.rotation

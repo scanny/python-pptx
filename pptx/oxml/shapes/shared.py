@@ -120,6 +120,10 @@ class BaseShapeElement(BaseOxmlElement):
             return 0.0
         return xfrm.rot
 
+    @rot.setter
+    def rot(self, value):
+        self.get_or_add_xfrm().rot = value
+
     @property
     def shape_id(self):
         """

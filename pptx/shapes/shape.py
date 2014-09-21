@@ -137,6 +137,10 @@ class BaseShape(object):
         """
         return self._element.rot
 
+    @rotation.setter
+    def rotation(self, value):
+        self._element.rot = value
+
     @property
     def shape_type(self):
         """

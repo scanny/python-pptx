@@ -67,6 +67,11 @@ class DescribeBaseShape(object):
         shape, expected_value = rotation_get_fixture
         assert shape.rotation == expected_value
 
+    def it_can_change_its_rotation_angle(self, rotation_set_fixture):
+        shape, new_value, expected_xml = rotation_set_fixture
+        shape.rotation = new_value
+        assert shape._element.xml == expected_xml
+
     def it_knows_the_part_it_belongs_to(self, part_fixture):
         shape, parent_ = part_fixture
         part = shape.part
@@ -210,6 +215,20 @@ class DescribeBaseShape(object):
         xSp_cxml, expected_value = request.param
         shape = BaseShapeFactory(element(xSp_cxml), None)
         return shape, expected_value
+
+    @pytest.fixture(params=[
+        ('p:sp/p:spPr/a:xfrm',               1.0,
+         'p:sp/p:spPr/a:xfrm{rot=60000}'),
+        ('p:sp/p:spPr/a:xfrm{rot=60000}',    0.0,
+         'p:sp/p:spPr/a:xfrm'),
+        ('p:sp/p:spPr/a:xfrm{rot=60000}', -420.0,
+         'p:sp/p:spPr/a:xfrm{rot=18000000}'),
+    ])
+    def rotation_set_fixture(self, request):
+        xSp_cxml, new_value, expected_xSp_cxml = request.param
+        shape = BaseShapeFactory(element(xSp_cxml), None)
+        expected_xml = xml(expected_xSp_cxml)
+        return shape, new_value, expected_xml
 
     # fixture components ---------------------------------------------
 
