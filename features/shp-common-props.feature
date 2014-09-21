@@ -69,7 +69,6 @@ Feature: Query and change common shape properties
       | connector     | has no text frame     |
 
 
-  @wip
   Scenario Outline: Get shape rotation
      Given a rotated <shape-type>
       Then shape.rotation is <value>

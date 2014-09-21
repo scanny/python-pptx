@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import qn
 from ..simpletypes import (
-    ST_Coordinate, ST_Direction, ST_DrawingElementId, ST_LineWidth,
+    ST_Angle, ST_Coordinate, ST_Direction, ST_DrawingElementId, ST_LineWidth,
     ST_PlaceholderSize, ST_PositiveCoordinate, XsdString, XsdUnsignedInt
 )
 from ...util import Emu
@@ -109,6 +109,16 @@ class BaseShapeElement(BaseOxmlElement):
         if ph is None:
             raise ValueError("not a placeholder shape")
         return ph.type
+
+    @property
+    def rot(self):
+        """
+        Float representing degrees this shape is rotated clockwise.
+        """
+        xfrm = self.xfrm
+        if xfrm is None:
+            return 0.0
+        return xfrm.rot
 
     @property
     def shape_id(self):
@@ -325,6 +335,7 @@ class CT_Transform2D(BaseOxmlElement):
     """
     Custom element class for <a:xfrm> element.
     """
+    rot = OptionalAttribute('rot', ST_Angle, default=0.0)
     off = ZeroOrOne('a:off', successors=('a:ext',))
     ext = ZeroOrOne('a:ext', successors=())
 

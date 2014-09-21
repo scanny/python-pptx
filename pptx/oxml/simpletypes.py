@@ -222,6 +222,34 @@ class XsdUnsignedShort(BaseIntType):
         cls.validate_int_in_range(value, 0, 65535)
 
 
+class ST_Angle(XsdInt):
+    """
+    Valid values for `rot` attribute on `<a:xfrm>` element. 60000ths of
+    a degree rotation.
+    """
+    DEGREE_INCREMENTS = 60000
+    THREE_SIXTY = 360 * DEGREE_INCREMENTS
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        rot = int(str_value) % cls.THREE_SIXTY
+        return float(rot) / cls.DEGREE_INCREMENTS
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        """
+        Convert signed angle float like -42.42 to int 60000 per degree,
+        normalized to positive value.
+        """
+        # modulo normalizes negative and >360 degree values
+        rot = int(round(value * cls.DEGREE_INCREMENTS)) % cls.THREE_SIXTY
+        return str(rot)
+
+    @classmethod
+    def validate(cls, value):
+        BaseFloatType.validate(value)
+
+
 class ST_AxisUnit(XsdDouble):
     """
     Valid values for val attribute on c:majorUnit and others.

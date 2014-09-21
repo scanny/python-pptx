@@ -16,6 +16,7 @@ from pptx.shapes.autoshape import Shape
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.shape import BaseShape
+from pptx.shapes.shapetree import BaseShapeFactory
 
 from ..oxml.unitdata.shape import (
     a_cNvPr, a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic,
@@ -45,22 +46,26 @@ class DescribeBaseShape(object):
         assert shape.left == expected_left
         assert shape.top == expected_top
 
-    def it_has_dimensions(self, dimensions_get_fixture):
-        shape, expected_width, expected_height = dimensions_get_fixture
-        assert shape.width == expected_width
-        assert shape.height == expected_height
-
     def it_can_change_its_position(self, position_set_fixture):
         shape, left, top, expected_xml = position_set_fixture
         shape.left = left
         shape.top = top
         assert shape._element.xml == expected_xml
 
+    def it_has_dimensions(self, dimensions_get_fixture):
+        shape, expected_width, expected_height = dimensions_get_fixture
+        assert shape.width == expected_width
+        assert shape.height == expected_height
+
     def it_can_change_its_dimensions(self, dimensions_set_fixture):
         shape, width, height, expected_xml = dimensions_set_fixture
         shape.width = width
         shape.height = height
         assert shape._element.xml == expected_xml
+
+    def it_knows_its_rotation_angle(self, rotation_get_fixture):
+        shape, expected_value = rotation_get_fixture
+        assert shape.rotation == expected_value
 
     def it_knows_the_part_it_belongs_to(self, part_fixture):
         shape, parent_ = part_fixture
@@ -194,6 +199,17 @@ class DescribeBaseShape(object):
         shape = BaseShape(start_elm, None)
         expected_xml = request.getfuncargvalue(expected_elm_fixt_name).xml
         return shape, left, top, expected_xml
+
+    @pytest.fixture(params=[
+        ('p:sp/p:spPr',                       0.0),
+        ('p:sp/p:spPr/a:xfrm{rot=60000}',     1.0),
+        ('p:sp/p:spPr/a:xfrm{rot=2545200}',  42.42),
+        ('p:sp/p:spPr/a:xfrm{rot=-60000}',  359.0),
+    ])
+    def rotation_get_fixture(self, request):
+        xSp_cxml, expected_value = request.param
+        shape = BaseShapeFactory(element(xSp_cxml), None)
+        return shape, expected_value
 
     # fixture components ---------------------------------------------
 

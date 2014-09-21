@@ -135,7 +135,7 @@ class BaseShape(object):
         be assigned to indicate counter-clockwise rotation, e.g. assigning
         -45.0 will change setting to 315.0.
         """
-        raise NotImplementedError
+        return self._element.rot
 
     @property
     def shape_type(self):
