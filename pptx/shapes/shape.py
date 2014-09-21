@@ -116,6 +116,10 @@ class BaseShape(object):
         """
         return self._element.shape_name
 
+    @name.setter
+    def name(self, value):
+        self._element._nvXxPr.cNvPr.name = value
+
     @property
     def part(self):
         """

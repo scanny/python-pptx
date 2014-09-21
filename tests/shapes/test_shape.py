@@ -12,12 +12,16 @@ from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
 from pptx.parts.slide import _SlideShapeTree
 from pptx.shapes import Subshape
+from pptx.shapes.autoshape import Shape
+from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.picture import Picture
 from pptx.shapes.shape import BaseShape
 
 from ..oxml.unitdata.shape import (
     a_cNvPr, a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic,
     an_ext, an_nvSpPr, an_off, an_sp, an_spPr, an_xfrm
 )
+from ..unitutil.cxml import element, xml
 from ..unitutil.mock import instance_mock, loose_mock, property_mock
 
 
@@ -27,9 +31,14 @@ class DescribeBaseShape(object):
         shape, shape_id = id_fixture
         assert shape.id == shape_id
 
-    def it_knows_its_name(self, name_fixture):
-        shape, name = name_fixture
+    def it_knows_its_name(self, name_get_fixture):
+        shape, name = name_get_fixture
         assert shape.name == name
+
+    def it_can_change_its_name(self, name_set_fixture):
+        shape, new_value, expected_xml = name_set_fixture
+        shape.name = new_value
+        assert shape._element.xml == expected_xml
 
     def it_has_a_position(self, position_get_fixture):
         shape, expected_left, expected_top = position_get_fixture
@@ -123,7 +132,7 @@ class DescribeBaseShape(object):
         return shape, is_placeholder
 
     @pytest.fixture
-    def name_fixture(self, shape_name):
+    def name_get_fixture(self, shape_name):
         shape_elm = (
             an_sp().with_nsdecls().with_child(
                 an_nvSpPr().with_child(
@@ -131,6 +140,25 @@ class DescribeBaseShape(object):
         ).element
         shape = BaseShape(shape_elm, None)
         return shape, shape_name
+
+    @pytest.fixture(params=[
+        ('p:sp/p:nvSpPr/p:cNvPr{id=1,name=foo}',       Shape,     'Shape1',
+         'p:sp/p:nvSpPr/p:cNvPr{id=1,name=Shape1}'),
+        ('p:grpSp/p:nvGrpSpPr/p:cNvPr{id=2,name=bar}', BaseShape, 'Shape2',
+         'p:grpSp/p:nvGrpSpPr/p:cNvPr{id=2,name=Shape2}'),
+        ('p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3,name=baz}',
+         GraphicFrame, 'Shape3',
+         'p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3,name=Shape3}'),
+        ('p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=4,name=boo}', BaseShape, 'Shape4',
+         'p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=4,name=Shape4}'),
+        ('p:pic/p:nvPicPr/p:cNvPr{id=5,name=far}',     Picture,   'Shape5',
+         'p:pic/p:nvPicPr/p:cNvPr{id=5,name=Shape5}'),
+    ])
+    def name_set_fixture(self, request):
+        xSp_cxml, ShapeCls, new_value, expected_xSp_cxml = request.param
+        shape = ShapeCls(element(xSp_cxml), None)
+        expected_xml = xml(expected_xSp_cxml)
+        return shape, new_value, expected_xml
 
     @pytest.fixture
     def part_fixture(self, shapes_):

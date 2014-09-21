@@ -29,7 +29,6 @@ Feature: Query and change common shape properties
       | connector     | Elbow Connector 10  |
 
 
-  @wip
   Scenario Outline: Change shape name
     Given a <shape-type>
      When I assign '<value>' to shape.name
