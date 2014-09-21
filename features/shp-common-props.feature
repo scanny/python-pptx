@@ -18,15 +18,30 @@ Feature: Query and change common shape properties
 
   Scenario Outline: get shape name
      Given a <shape-type>
-      Then I can get the name of the <shape-type>
+      Then shape.name is '<name>'
 
     Examples: Shape types
-      | shape-type    |
-      | shape         |
-      | picture       |
-      | graphic frame |
-      | group shape   |
-      | connector     |
+      | shape-type    | name                |
+      | shape         | Rounded Rectangle 1 |
+      | picture       | Picture 2           |
+      | graphic frame | Table 3             |
+      | group shape   | Group 8             |
+      | connector     | Elbow Connector 10  |
+
+
+  @wip
+  Scenario Outline: Change shape name
+    Given a <shape-type>
+     When I assign '<value>' to shape.name
+     Then shape.name is '<expected-value>'
+
+    Examples: Expected results of changing shape.name
+      | shape-type    | value                | expected-value       |
+      | shape         | New Shape 42         | New Shape 42         |
+      | picture       | New Picture 42       | New Picture 42       |
+      | graphic frame | New Graphic Frame 42 | New Graphic Frame 42 |
+      | group shape   | New Group Shape 42   | New Group Shape 42   |
+      | connector     | New Connector 42     | New Connector 42     |
 
 
   Scenario Outline: get slide on which shape appears

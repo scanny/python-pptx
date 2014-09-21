@@ -139,6 +139,11 @@ def when_I_assign_a_string_to_shape_text(context):
     context.shape.text = u'F\xf8o\nBar'
 
 
+@when("I assign '{value}' to shape.name")
+def when_I_assign_value_to_shape_name(context, value):
+    context.shape.name = value
+
+
 @when("I change the left and top of the {shape_type}")
 def when_I_change_the_position_of_the_shape(context, shape_type):
     left, top = {
@@ -278,18 +283,11 @@ def then_I_can_get_the_id_of_the_shape(context, shape_type):
     assert context.shape.id == expected_id
 
 
-@then('I can get the name of the {shape_type}')
-def then_I_can_get_the_name_of_the_shape(context, shape_type):
-    expected_name = {
-        'shape':         'Rounded Rectangle 1',
-        'picture':       'Picture 2',
-        'graphic frame': 'Table 3',
-        'group shape':   'Group 8',
-        'connector':     'Elbow Connector 10',
-    }[shape_type]
+@then("shape.name is '{expected_value}'")
+def then_shape_name_is_value(context, expected_value):
     shape = context.shape
-    msg = "expected shape name '%s', got '%s'" % (shape.name, expected_name)
-    assert shape.name == expected_name, msg
+    msg = "expected shape name '%s', got '%s'" % (shape.name, expected_value)
+    assert shape.name == expected_value, msg
 
 
 @then('shape.text is the string I assigned')
