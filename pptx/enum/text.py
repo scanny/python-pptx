@@ -31,10 +31,7 @@ class MSO_AUTO_SIZE(Enumeration):
     either from the layout placeholder, in the case of a placeholder shape, or
     from the theme.
     """
-    """
-    Corresponds to MsoAutoSize enumeration
-    http://msdn.microsoft.com/en-us/library/office/ff865367(v=office.15).aspx
-    """
+
     NONE = 0
     SHAPE_TO_FIT_TEXT = 1
     TEXT_TO_FIT_SHAPE = 2
@@ -66,6 +63,104 @@ class MSO_AUTO_SIZE(Enumeration):
         ReturnValueOnlyEnumMember(
             'MIXED', -2, 'Return value only; indicates a combination of auto'
             'matic sizing schemes are used.'
+        ),
+    )
+
+
+@alias('MSO_UNDERLINE')
+class MSO_TEXT_UNDERLINE_TYPE(XmlEnumeration):
+    """
+    Indicates the type of underline for text. Used with
+    :attr:`.Font.underline` to specify the style of text underlining.
+
+    Alias: ``MSO_UNDERLINE``
+
+    Example::
+
+        from pptx.enum.text import MSO_UNDERLINE
+
+        run.font.underline = MSO_UNDERLINE.DOUBLE_LINE
+    """
+
+    __ms_name__ = 'MsoTextUnderlineType'
+
+    __url__ = 'http://msdn.microsoft.com/en-us/library/aa432699.aspx'
+
+    __members__ = (
+        XmlMappedEnumMember(
+            'NONE',                     0, 'none',
+            'Specifies no underline.'
+        ),
+        XmlMappedEnumMember(
+            'DASH_HEAVY_LINE',          8, 'dashHeavy',
+            'Specifies a dash underline.'
+        ),
+        XmlMappedEnumMember(
+            'DASH_LINE',                7, 'dash',
+            'Specifies a dash line underline.'
+        ),
+        XmlMappedEnumMember(
+            'DASH_LONG_HEAVY_LINE',    10, 'dashLongHeavy',
+            'Specifies a long heavy line underline.'
+        ),
+        XmlMappedEnumMember(
+            'DASH_LONG_LINE',           9, 'dashLong',
+            'Specifies a dashed long line underline.'
+        ),
+        XmlMappedEnumMember(
+            'DOT_DASH_HEAVY_LINE',     12, 'dotDashHeavy',
+            'Specifies a dot dash heavy line underline.'
+        ),
+        XmlMappedEnumMember(
+            'DOT_DASH_LINE',           11, 'dotDash',
+            'Specifies a dot dash line underline.'
+        ),
+        XmlMappedEnumMember(
+            'DOT_DOT_DASH_HEAVY_LINE', 14, 'dotDotDashHeavy',
+            'Specifies a dot dot dash heavy line underline.'
+        ),
+        XmlMappedEnumMember(
+            'DOT_DOT_DASH_LINE',       13, 'dotDotDash',
+            'Specifies a dot dot dash line underline.'
+        ),
+        XmlMappedEnumMember(
+            'DOTTED_HEAVY_LINE',        6, 'dottedHeavy',
+            'Specifies a dotted heavy line underline.'
+        ),
+        XmlMappedEnumMember(
+            'DOTTED_LINE',              5, 'dotted',
+            'Specifies a dotted line underline.'
+        ),
+        XmlMappedEnumMember(
+            'DOUBLE_LINE',              3, 'dbl',
+            'Specifies a double line underline.'
+        ),
+        XmlMappedEnumMember(
+            'HEAVY_LINE',               4, 'heavy',
+            'Specifies a heavy line underline.'
+        ),
+        XmlMappedEnumMember(
+            'SINGLE_LINE',              2, 'sng',
+            'Specifies a single line underline.'
+        ),
+        XmlMappedEnumMember(
+            'WAVY_DOUBLE_LINE',        17, 'wavyDbl',
+            'Specifies a wavy double line underline.'
+        ),
+        XmlMappedEnumMember(
+            'WAVY_HEAVY_LINE',         16, 'wavyHeavy',
+            'Specifies a wavy heavy line underline.'
+        ),
+        XmlMappedEnumMember(
+            'WAVY_LINE',               15, 'wavy',
+            'Specifies a wavy line underline.'
+        ),
+        XmlMappedEnumMember(
+            'WORDS',                    1, 'words',
+            'Specifies underlining words.'
+        ),
+        ReturnValueOnlyEnumMember(
+            'MIXED', -2, 'Specifies a mixed of underline types.'
         ),
     )
 

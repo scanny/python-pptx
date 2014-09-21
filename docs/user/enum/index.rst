@@ -13,6 +13,7 @@ can be found here:
    MsoColorType
    MsoFillType
    MsoShapeType
+   MsoTextUnderlineType
    MsoThemeColorIndex
    MsoVerticalAnchor
 

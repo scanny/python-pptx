@@ -60,6 +60,7 @@ Text
    :maxdepth: 1
 
    features/txt-text
+   features/txt-font-underline
    features/txt-font-color
    features/txt-font-typeface
    features/txt-hyperlink
