@@ -129,6 +129,15 @@ class BaseShape(object):
         return self._parent.part
 
     @property
+    def rotation(self):
+        """
+        Read/write float. Degrees of clockwise rotation. Negative values can
+        be assigned to indicate counter-clockwise rotation, e.g. assigning
+        -45.0 will change setting to 315.0.
+        """
+        raise NotImplementedError
+
+    @property
     def shape_type(self):
         """
         Unique integer identifying the type of this shape, like

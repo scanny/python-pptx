@@ -67,3 +67,32 @@ Feature: Query and change common shape properties
       | graphic frame | has no text frame     |
       | group shape   | has no text frame     |
       | connector     | has no text frame     |
+
+
+  @wip
+  Scenario Outline: Get shape rotation
+     Given a rotated <shape-type>
+      Then shape.rotation is <value>
+
+    Examples: Shape types
+      | shape-type    | value |
+      | shape         | 10.0  |
+      | picture       | 20.0  |
+      | graphic frame | 0.0   |
+      | group shape   | 40.0  |
+      | connector     | 50.0  |
+
+
+  @wip
+  Scenario Outline: Change shape rotation
+     Given a <shape-type>
+      When I assign <value> to shape.rotation
+      Then shape.rotation is <expected-value>
+
+    Examples: Shape types
+      | shape-type    | value | expected-value |
+      | shape         |  12.3 |      12.3      |
+      | picture       | 520.4 |     160.4      |
+      | graphic frame |  10.0 |      10.0      |
+      | group shape   |  -5.2 |     354.8      |
+      | connector     |  50.0 |      50.0      |

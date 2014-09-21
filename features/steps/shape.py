@@ -62,6 +62,20 @@ def given_a_picture(context):
     context.shape = sld.shapes[1]
 
 
+@given('a rotated {shape_type}')
+def given_a_rotated_shape_type(context, shape_type):
+    shape_idx = {
+        'shape':         0,
+        'picture':       1,
+        'graphic frame': 2,
+        'group shape':   3,
+        'connector':     4,
+    }[shape_type]
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[1]
+    context.shape = sld.shapes[shape_idx]
+
+
 @given('a shape')
 def given_a_shape(context):
     prs = Presentation(test_pptx('shp-common-props'))
@@ -142,6 +156,11 @@ def when_I_assign_a_string_to_shape_text(context):
 @when("I assign '{value}' to shape.name")
 def when_I_assign_value_to_shape_name(context, value):
     context.shape.name = value
+
+
+@when("I assign {value} to shape.rotation")
+def when_I_assign_value_to_shape_rotation(context, value):
+    context.shape.rotation = float(value)
 
 
 @when("I change the left and top of the {shape_type}")
@@ -288,6 +307,13 @@ def then_shape_name_is_value(context, expected_value):
     shape = context.shape
     msg = "expected shape name '%s', got '%s'" % (shape.name, expected_value)
     assert shape.name == expected_value, msg
+
+
+@then("shape.rotation is {value}")
+def then_shape_rotation_is_value(context, value):
+    shape = context.shape
+    expected_value = float(value)
+    assert shape.rotation == expected_value, 'got %s' % expected_value
 
 
 @then('shape.text is the string I assigned')
