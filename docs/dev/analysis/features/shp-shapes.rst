@@ -56,6 +56,45 @@ Proposed protocol::
   u'T501 - Foo; B. Baz; 2014'
 
 
+:attr:`Shape.rotation`
+----------------------
+
+Read/write float degrees of clockwise rotation. Negative values can be used
+for counter-clockwise rotation.
+
+*XML Semantics*
+    ST_Angle is an integer value, 60,000 to each degree. PowerPoint appears
+    to only ever use positive values. Oddly, the UI uses positive values for
+    counter-clockwise rotation while the XML uses positive increase for
+    clockwise rotation.
+
+*PowerPoint behavior*
+    It appears graphic frame shapes can't be rotated. AutoShape, group,
+    connector, and picture all rotate fine.
+
+
+Proposed protocol::
+
+  >>> shape.rotation
+  0.0
+  >>> shape.rotation = 45.2
+  >>> shape.rotation
+  45.2
+
+
+Math::
+
+    def rot_from_angle(value):
+        """
+        Return positive integer rotation in 60,000ths of a degree
+        corresponding to *value* expressed as a float number of degrees.
+        """
+        DEGREE_INCREMENTS = 60000
+        THREE_SIXTY = 360 * DEGREE_INCREMENTS
+        # modulo normalizes negative and >360 degree values
+        return int(round(value * DEGREE_INCREMENTS)) % THREE_SIXTY
+
+
 Specimen XML
 ------------
 
@@ -474,4 +513,8 @@ Schema excerpt
 
   <xsd:simpleType name="ST_DrawingElementId">
     <xsd:restriction base="xsd:unsignedInt"/>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_Angle">
+    <xsd:restriction base="xsd:int"/>
   </xsd:simpleType>
