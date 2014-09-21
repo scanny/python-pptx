@@ -29,9 +29,15 @@ def given_a_blank_slide(context):
 
 @given('a slide')
 def given_a_slide(context):
-    context.prs = Presentation()
-    slide_layout = context.prs.slide_layouts[0]
-    context.sld = context.prs.slides.add_slide(slide_layout)
+    prs = Presentation(test_pptx('minimal'))
+    slide = prs.slides.add_slide(prs.slide_layouts[0])
+    context.prs, context.slide = prs, slide
+
+
+@given('a slide having a title')
+def given_a_slide_having_a_title(context):
+    prs = Presentation(test_pptx('sld-access-shapes'))
+    context.prs, context.slide = prs, prs.slides[0]
 
 
 @given('a slide having six shapes')

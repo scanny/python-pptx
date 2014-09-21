@@ -14,7 +14,7 @@ from pptx import Presentation
 from pptx.package import Package
 from pptx.util import Inches
 
-from .helpers import saved_pptx_path, test_image_path, test_pptx
+from .helpers import saved_pptx_path, test_image, test_pptx
 
 
 # given ===================================================
@@ -27,35 +27,36 @@ def given_a_picture_of_known_position_and_size(context):
 
 # when ====================================================
 
-@when("I add a picture stream to the slide's shape collection")
-def step_when_add_picture_stream(context):
-    shapes = context.sld.shapes
-    x, y = (Inches(1.25), Inches(1.25))
-    with open(test_image_path) as f:
+@when('I add the image {filename} using shapes.add_picture()')
+def when_I_add_the_image_filename_using_shapes_add_picture(context, filename):
+    shapes = context.slide.shapes
+    shapes.add_picture(test_image(filename), Inches(1.25), Inches(1.25))
+
+
+@when('I add the stream image {filename} using shapes.add_picture()')
+def when_I_add_the_stream_image_filename_using_add_picture(context, filename):
+    shapes = context.slide.shapes
+    with open(test_image(filename)) as f:
         stream = StringIO(f.read())
-    shapes.add_picture(stream, x, y)
-
-
-@when("I add a picture to the slide's shape collection")
-def step_when_add_picture(context):
-    shapes = context.sld.shapes
-    x, y = (Inches(1.25), Inches(1.25))
-    shapes.add_picture(test_image_path, x, y)
+    shapes.add_picture(stream, Inches(1.25), Inches(1.25))
 
 
 # then ====================================================
 
-@then('the image is saved in the pptx file')
-def step_then_img_saved_in_pptx_file(context):
+@then('a {ext} image part appears in the pptx file')
+def step_then_a_ext_image_part_appears_in_the_pptx_file(context, ext):
     pkg = Package().open(saved_pptx_path)
     partnames = [part.partname for part in pkg.parts]
-    assert '/ppt/media/image1.png' in partnames
+    image_partname = '/ppt/media/image1.%s' % ext
+    assert image_partname in partnames, (
+        'got %s' % [p for p in partnames if 'image' in p]
+    )
 
 
 @then('the picture appears in the slide')
 def step_then_picture_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
-    sld = prs.slides[0]
-    shapes = sld.shapes
+    slide = prs.slides[0]
+    shapes = slide.shapes
     cls_names = [sp.__class__.__name__ for sp in shapes]
     assert 'Picture' in cls_names

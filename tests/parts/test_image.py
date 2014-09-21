@@ -19,8 +19,8 @@ from ..unitutil.legacy import TestCase
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
-test_bmp_path = absjoin(test_file_dir, 'python.bmp')
 test_image_path = absjoin(test_file_dir, 'python-icon.jpeg')
+test_eps_path = absjoin(test_file_dir, 'cdw-logo.eps')
 new_image_path = absjoin(test_file_dir, 'monty-truth.png')
 
 
@@ -79,7 +79,7 @@ class TestImage(TestCase):
 
     def test__ext_from_image_stream_raises_on_incompatible_format(self):
         with self.assertRaises(ValueError):
-            with open(test_bmp_path) as stream:
+            with open(test_eps_path) as stream:
                 Image._ext_from_image_stream(stream)
 
     def test__image_ext_content_type_known_type(self):

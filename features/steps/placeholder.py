@@ -62,7 +62,7 @@ def step_when_indent_first_paragraph(context):
 
 @when("I set the title text of the slide")
 def step_when_set_slide_title_text(context):
-    context.sld.shapes.title.text = test_text
+    context.slide.shapes.title.text = test_text
 
 
 # then ====================================================
