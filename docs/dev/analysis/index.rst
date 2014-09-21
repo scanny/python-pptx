@@ -9,11 +9,12 @@ Feature Analysis
 
 Roughly in reverse chronological order of creation:
 
+Chart
+~~~~~
+
 .. toctree::
    :maxdepth: 1
 
-   features/shp-shapes
-   features/txt-text
    features/cht-line-chart
    features/cht-pie-chart
    features/cht-bar-chart
@@ -31,27 +32,53 @@ Roughly in reverse chronological order of creation:
    features/cht-access-xlsx
    features/cht-data-labels
    features/cht-axes
-   features/shp-graphfrm
    features/cht-chart-shape
    features/cht-chart
    features/cht-chart-overview
-   features/dml-line
+
+
+Shape
+~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   features/shp-shapes
+   features/shp-graphfrm
    features/shp-connector
-   features/enumerations
-   features/prs-properties
    features/shp-autofit
    features/shp-pos-and-size
    features/shp-placeholders
    features/shp-group-shape
-   features/sld-shape-tree
-   features/mst-slide-master
-   features/mst-slide-layout
-   features/dml-color
-   features/dml-fill
+   features/shp-table
+
+
+Text
+~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   features/txt-text
    features/txt-font-color
    features/txt-font-typeface
    features/txt-hyperlink
-   features/shp-table
+
+
+Odds & Ends
+~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   features/dml-color
+   features/dml-fill
+   features/dml-line
+   features/enumerations
+   features/prs-properties
+   features/sld-shape-tree
+   features/mst-slide-master
+   features/mst-slide-layout
 
 
 Object Analysis
