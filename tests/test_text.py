@@ -296,6 +296,11 @@ class DescribeFont(object):
         font, expected_value = underline_get_fixture
         assert font.underline is expected_value, 'got %s' % font.underline
 
+    def it_can_change_its_underline_setting(self, underline_set_fixture):
+        font, new_value, expected_xml = underline_set_fixture
+        font.underline = new_value
+        assert font._element.xml == expected_xml
+
     def it_knows_its_size(self, size_get_fixture):
         font, expected_value = size_get_fixture
         assert font.size == expected_value
@@ -416,6 +421,19 @@ class DescribeFont(object):
         rPr_cxml, expected_value = request.param
         font = Font(element(rPr_cxml))
         return font, expected_value
+
+    @pytest.fixture(params=[
+        ('a:rPr',         True,                    'a:rPr{u=sng}'),
+        ('a:rPr{u=sng}',  False,                   'a:rPr{u=none}'),
+        ('a:rPr{u=none}', MSO_UNDERLINE.WAVY_LINE, 'a:rPr{u=wavy}'),
+        ('a:rPr{u=wavy}', MSO_UNDERLINE.NONE,      'a:rPr{u=none}'),
+        ('a:rPr{u=wavy}', None,                    'a:rPr'),
+    ])
+    def underline_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
 
     # fixture components ---------------------------------------------
 

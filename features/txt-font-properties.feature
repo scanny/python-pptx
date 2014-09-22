@@ -75,7 +75,6 @@ Feature: Change appearance of font used to render text
       | to WAVY_LINE    | WAVY_LINE      |
 
 
-  @wip
   Scenario Outline: Change font.underline setting
     Given a font with underline set <initial-state>
      When I assign <new-value> to font.underline

@@ -308,6 +308,14 @@ class Font(object):
             return True
         return u
 
+    @underline.setter
+    def underline(self, value):
+        if value is True:
+            value = MSO_UNDERLINE.SINGLE_LINE
+        elif value is False:
+            value = MSO_UNDERLINE.NONE
+        self._element.u = value
+
 
 class _Hyperlink(Subshape):
     """
