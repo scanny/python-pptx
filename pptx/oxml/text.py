@@ -8,7 +8,8 @@ from __future__ import absolute_import
 
 from . import parse_xml
 from ..enum.text import (
-    MSO_AUTO_SIZE, MSO_VERTICAL_ANCHOR, PP_PARAGRAPH_ALIGNMENT
+    MSO_AUTO_SIZE, MSO_TEXT_UNDERLINE_TYPE, MSO_VERTICAL_ANCHOR,
+    PP_PARAGRAPH_ALIGNMENT
 )
 from .ns import nsdecls
 from .simpletypes import (
@@ -217,6 +218,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     sz = OptionalAttribute('sz', ST_TextFontSize)
     b = OptionalAttribute('b', XsdBoolean)
     i = OptionalAttribute('i', XsdBoolean)
+    u = OptionalAttribute('u', MSO_TEXT_UNDERLINE_TYPE)
 
     def add_hlinkClick(self, rId):
         """

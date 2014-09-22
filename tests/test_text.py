@@ -10,7 +10,7 @@ import pytest
 
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
-from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
+from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
@@ -291,6 +291,10 @@ class DescribeFont(object):
         font.bold = None
         assert font._rPr.xml == rPr_xml
 
+    def it_knows_its_underline_setting(self, underline_get_fixture):
+        font, expected_value = underline_get_fixture
+        assert font.underline is expected_value, 'got %s' % font.underline
+
     def it_has_a_color(self, font):
         assert isinstance(font.color, ColorFormat)
 
@@ -376,6 +380,17 @@ class DescribeFont(object):
             rPr_bldr.with_child(a_latin().with_typeface(after_typeface))
         rPr_with_latin_xml = rPr_bldr.xml()
         return font, after_typeface, rPr_with_latin_xml
+
+    @pytest.fixture(params=[
+        ('a:rPr',         None),
+        ('a:rPr{u=none}', False),
+        ('a:rPr{u=sng}',  True),
+        ('a:rPr{u=dbl}',  MSO_UNDERLINE.DOUBLE_LINE),
+    ])
+    def underline_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
 
     # fixture components ---------------------------------------------
 

@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 from .dml.fill import FillFormat
 from .enum.dml import MSO_FILL
+from .enum.text import MSO_UNDERLINE
 from .opc.constants import RELATIONSHIP_TYPE as RT
 from .oxml.simpletypes import ST_TextWrappingType
 from .shapes import Subshape
@@ -295,7 +296,12 @@ class Font(object):
         underlining are indicated with members of the
         :ref:`MsoTextUnderlineType` enumeration.
         """
-        raise NotImplementedError
+        u = self._rPr.u
+        if u is MSO_UNDERLINE.NONE:
+            return False
+        if u is MSO_UNDERLINE.SINGLE_LINE:
+            return True
+        return u
 
 
 class _Hyperlink(Subshape):

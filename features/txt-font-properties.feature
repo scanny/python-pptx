@@ -62,7 +62,6 @@ Feature: Change appearance of font used to render text
       | to inherit    | None      |
 
 
-  @wip
   Scenario Outline: Get underline setting
     Given a font with underline set <underline-state>
      Then font.underline is <expected-value>
