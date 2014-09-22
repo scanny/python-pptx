@@ -4,12 +4,41 @@ Feature: Change appearance of font used to render text
   I need a set of properties on the font used to render text
 
 
+  Scenario Outline: Get bold setting
+    Given a font with bold set <bold-state>
+     Then font.bold is <expected-value>
+
+    Examples: font.bold states
+      | bold-state | expected-value |
+      | on         | True           |
+      | off        | False          |
+      | to inherit | None           |
+
+
+  Scenario Outline: Change bold setting
+    Given a font with bold set <initial-state>
+     When I assign <new-value> to font.bold
+     Then font.bold is <new-value>
+
+    Examples: Expected results of changing font.bold setting
+      | initial-state | new-value |
+      | on            | True      |
+      | off           | True      |
+      | to inherit    | True      |
+      | on            | False     |
+      | off           | False     |
+      | to inherit    | False     |
+      | on            | None      |
+      | off           | None      |
+      | to inherit    | None      |
+
+
   Scenario Outline: Get font size
-    Given a font having <applied size>
-     Then the font size property value is <reported size>
+    Given a font having <applied-size>
+     Then font.size is <reported-size>
 
     Examples: Font sizes
-      | applied size                    | reported size |
+      | applied-size                    | reported-size |
       | a directly applied size of 42pt | 42.0 points   |
       | no directly applied size        | None          |
 
