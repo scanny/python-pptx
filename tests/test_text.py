@@ -17,7 +17,7 @@ from pptx.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches, Pt
 
 from .oxml.unitdata.text import (
-    a_bodyPr, a_latin, a_txBody, a_p, a_t, an_hlinkClick, an_r, an_rPr
+    a_bodyPr, a_txBody, a_p, a_t, an_hlinkClick, an_r, an_rPr
 )
 from .unitutil.cxml import element, xml
 from .unitutil.mock import (
@@ -274,112 +274,137 @@ class DescribeTextFrame(object):
 
 class DescribeFont(object):
 
-    def it_knows_the_bold_setting(self, font, bold_font, bold_off_font):
-        assert font.bold is None
-        assert bold_font.bold is True
-        assert bold_off_font.bold is False
+    def it_knows_its_bold_setting(self, bold_get_fixture):
+        font, expected_value = bold_get_fixture
+        assert font.bold == expected_value
 
-    def it_can_change_the_bold_setting(
-            self, font, bold_rPr_xml, bold_off_rPr_xml, rPr_xml):
-        assert font._rPr.xml == rPr_xml
-        font.bold = None
-        assert font._rPr.xml == rPr_xml
-        font.bold = True
-        assert font._rPr.xml == bold_rPr_xml
-        font.bold = False
-        assert font._rPr.xml == bold_off_rPr_xml
-        font.bold = None
-        assert font._rPr.xml == rPr_xml
+    def it_can_change_its_bold_setting(self, bold_set_fixture):
+        font, new_value, expected_xml = bold_set_fixture
+        font.bold = new_value
+        assert font._element.xml == expected_xml
+
+    def it_knows_its_italic_setting(self, italic_get_fixture):
+        font, expected_value = italic_get_fixture
+        assert font.italic == expected_value
+
+    def it_can_change_its_italic_setting(self, italic_set_fixture):
+        font, new_value, expected_xml = italic_set_fixture
+        font.italic = new_value
+        assert font._element.xml == expected_xml
 
     def it_knows_its_underline_setting(self, underline_get_fixture):
         font, expected_value = underline_get_fixture
         assert font.underline is expected_value, 'got %s' % font.underline
 
-    def it_has_a_color(self, font):
+    def it_knows_its_size(self, size_get_fixture):
+        font, expected_value = size_get_fixture
+        assert font.size == expected_value
+
+    def it_can_change_its_size(self, size_set_fixture):
+        font, new_value, expected_xml = size_set_fixture
+        font.size = new_value
+        assert font._element.xml == expected_xml
+
+    def it_knows_its_latin_typeface(self, name_get_fixture):
+        font, expected_value = name_get_fixture
+        assert font.name == expected_value
+
+    def it_can_change_its_latin_typeface(self, name_set_fixture):
+        font, new_value, expected_xml = name_set_fixture
+        font.name = new_value
+        assert font._element.xml == expected_xml
+
+    def it_provides_access_to_its_color(self, font):
         assert isinstance(font.color, ColorFormat)
 
-    def it_has_a_fill(self, font):
+    def it_provides_access_to_its_fill(self, font):
         assert isinstance(font.fill, FillFormat)
-
-    def it_knows_the_italic_setting(self, font, italic_font, italic_off_font):
-        assert font.italic is None
-        assert italic_font.italic is True
-        assert italic_off_font.italic is False
-
-    def it_can_change_the_italic_setting(
-            self, font, italic_rPr_xml, italic_off_rPr_xml, rPr_xml):
-        assert font._rPr.xml == rPr_xml
-        font.italic = None  # important to test None to None transition
-        assert font._rPr.xml == rPr_xml
-        font.italic = True
-        assert font._rPr.xml == italic_rPr_xml
-        font.italic = False
-        assert font._rPr.xml == italic_off_rPr_xml
-        font.italic = None
-        assert font._rPr.xml == rPr_xml
-
-    def it_knows_its_latin_typeface(self, typeface_get_fixture):
-        font, typeface = typeface_get_fixture
-        assert font.name == typeface
-
-    def it_can_change_its_latin_typeface(self, typeface_set_fixture):
-        font, typeface, rPr_with_latin_xml = typeface_set_fixture
-        font.name = typeface
-        assert font._rPr.xml == rPr_with_latin_xml
-
-    def it_knows_the_font_size(self, size_get_fixture):
-        font, expected_size = size_get_fixture
-        assert font.size == expected_size
-
-    def it_can_set_the_font_size(self, font):
-        font.size = Pt(24)
-        expected_xml = an_rPr().with_nsdecls().with_sz(2400).xml()
-        assert font._rPr.xml == expected_xml
 
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
-        (None, None),
-        (2400, 304800),
+        ('a:rPr',      None),
+        ('a:rPr{b=0}', False),
+        ('a:rPr{b=1}', True),
     ])
-    def size_get_fixture(self, request):
-        sz_val, expected_size = request.param
-        rPr_bldr = an_rPr().with_nsdecls()
-        if sz_val is not None:
-            rPr_bldr.with_sz(sz_val)
-        font = Font(rPr_bldr.element)
-        return font, expected_size
-
-    @pytest.fixture(params=[None, 'Foobar Light'])
-    def typeface_get_fixture(self, request):
-        typeface = request.param
-        rPr_bldr = an_rPr().with_nsdecls()
-        if typeface is not None:
-            rPr_bldr.with_child(a_latin().with_typeface(typeface))
-        rPr = rPr_bldr.element
-        font = Font(rPr)
-        return font, typeface
+    def bold_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
 
     @pytest.fixture(params=[
-        (None,            None),
-        (None,            'Foobar Light'),
-        ('Foobar Light',  'Foobar Medium'),
-        ('Foobar Medium', None),
+        ('a:rPr',      True,  'a:rPr{b=1}'),
+        ('a:rPr{b=1}', False, 'a:rPr{b=0}'),
+        ('a:rPr{b=0}', None,  'a:rPr'),
     ])
-    def typeface_set_fixture(self, request):
-        before_typeface, after_typeface = request.param
-        # starting font
-        rPr_bldr = an_rPr().with_nsdecls()
-        if before_typeface is not None:
-            rPr_bldr.with_child(a_latin().with_typeface(before_typeface))
-        rPr = rPr_bldr.element
-        font = Font(rPr)
-        # expected XML
-        rPr_bldr = an_rPr().with_nsdecls()
-        if after_typeface is not None:
-            rPr_bldr.with_child(a_latin().with_typeface(after_typeface))
-        rPr_with_latin_xml = rPr_bldr.xml()
-        return font, after_typeface, rPr_with_latin_xml
+    def bold_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('a:rPr',      None),
+        ('a:rPr{i=0}', False),
+        ('a:rPr{i=1}', True),
+    ])
+    def italic_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
+
+    @pytest.fixture(params=[
+        ('a:rPr',      True,  'a:rPr{i=1}'),
+        ('a:rPr{i=1}', False, 'a:rPr{i=0}'),
+        ('a:rPr{i=0}', None,  'a:rPr'),
+    ])
+    def italic_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('a:rPr',                          None),
+        ('a:rPr/a:latin{typeface=Foobar}', 'Foobar'),
+    ])
+    def name_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
+
+    @pytest.fixture(params=[
+        ('a:rPr',                           'Foobar',
+         'a:rPr/a:latin{typeface=Foobar}'),
+        ('a:rPr/a:latin{typeface=Foobar}',  'Barfoo',
+         'a:rPr/a:latin{typeface=Barfoo}'),
+        ('a:rPr/a:latin{typeface=Barfoo}',  None,
+         'a:rPr'),
+    ])
+    def name_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('a:rPr',          None),
+        ('a:rPr{sz=2400}', 304800),
+    ])
+    def size_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
+
+    @pytest.fixture(params=[
+        ('a:rPr',          Pt(24), 'a:rPr{sz=2400}'),
+        ('a:rPr{sz=2400}', None,   'a:rPr'),
+    ])
+    def size_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('a:rPr',         None),
@@ -395,49 +420,8 @@ class DescribeFont(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def bold_font(self):
-        bold_rPr = an_rPr().with_nsdecls().with_b(1).element
-        return Font(bold_rPr)
-
-    @pytest.fixture
-    def bold_off_font(self):
-        bold_off_rPr = an_rPr().with_nsdecls().with_b(0).element
-        return Font(bold_off_rPr)
-
-    @pytest.fixture
-    def bold_off_rPr_xml(self):
-        return an_rPr().with_nsdecls().with_b(0).xml()
-
-    @pytest.fixture
-    def bold_rPr_xml(self):
-        return an_rPr().with_nsdecls().with_b(1).xml()
-
-    @pytest.fixture
     def font(self):
-        rPr = an_rPr().with_nsdecls().element
-        return Font(rPr)
-
-    @pytest.fixture
-    def italic_font(self):
-        italic_rPr = an_rPr().with_nsdecls().with_i(1).element
-        return Font(italic_rPr)
-
-    @pytest.fixture
-    def italic_off_font(self):
-        italic_rPr = an_rPr().with_nsdecls().with_i(0).element
-        return Font(italic_rPr)
-
-    @pytest.fixture
-    def italic_off_rPr_xml(self):
-        return an_rPr().with_nsdecls().with_i(0).xml()
-
-    @pytest.fixture
-    def italic_rPr_xml(self):
-        return an_rPr().with_nsdecls().with_i(1).xml()
-
-    @pytest.fixture
-    def rPr_xml(self):
-        return an_rPr().with_nsdecls().xml()
+        return Font(element('a:rPr'))
 
 
 class Describe_Hyperlink(object):

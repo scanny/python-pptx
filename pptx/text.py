@@ -189,7 +189,7 @@ class Font(object):
     """
     def __init__(self, rPr):
         super(Font, self).__init__()
-        self._rPr = rPr
+        self._element = self._rPr = rPr
 
     @property
     def bold(self):
@@ -262,11 +262,13 @@ class Font(object):
     @property
     def size(self):
         """
-        Height of the font in English Metric Units (EMU). The value is
-        an instance of |BaseLength|, a subclass of |int| having properties
-        for convenient conversion into points or other length units.
-        Likewise, the :class:`pptx.util.Pt` class allows convenient
-        specification of point values::
+        Read/write |BaseLength| value or |None|, indicating the font height
+        in English Metric Units (EMU). |None| indicates the font size should
+        be inherited from its style hierarchy, such as a placeholder or
+        document defaults (usually 18pt). |BaseLength| is a subclass of |int|
+        having properties for convenient conversion into points or other
+        length units. Likewise, the :class:`pptx.util.Pt` class allows
+        convenient specification of point values::
 
             >> font.size = Pt(24)
             >> font.size
@@ -281,8 +283,11 @@ class Font(object):
 
     @size.setter
     def size(self, emu):
-        sz = Emu(emu).centipoints
-        self._rPr.sz = sz
+        if emu is None:
+            self._rPr.sz = None
+        else:
+            sz = Emu(emu).centipoints
+            self._rPr.sz = sz
 
     @property
     def underline(self):
