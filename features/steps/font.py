@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from behave import given, then, when
 
 from pptx import Presentation
+from pptx.enum.text import MSO_UNDERLINE
 
 from .helpers import test_pptx
 
@@ -53,6 +54,16 @@ def given_run_with_italic_set_to_state(context, state):
     context.font = runs[run_idx].font
 
 
+@given('a font with underline set {state}')
+def given_run_with_underline_set_to_state(context, state):
+    run_idx = [
+        'on', 'off', 'to inherit', 'to DOUBLE_LINE', 'to WAVY_LINE'
+    ].index(state)
+    prs = Presentation(test_pptx('txt-font-props'))
+    runs = prs.slides[3].shapes[0].text_frame.paragraphs[0].runs
+    context.font = runs[run_idx].font
+
+
 # when ===================================================
 
 @when('I assign {value} to font.bold')
@@ -65,6 +76,19 @@ def when_I_assign_value_to_font_bold(context, value):
 def when_I_assign_value_to_font_italic(context, value):
     new_value = {'True': True, 'False': False, 'None': None}[value]
     context.font.italic = new_value
+
+
+@when('I assign {value} to font.underline')
+def when_I_assign_value_to_font_underline(context, value):
+    new_value = {
+        'True':        True,
+        'False':       False,
+        'None':        None,
+        'DOUBLE_LINE': MSO_UNDERLINE.DOUBLE_LINE,
+        'NONE':        MSO_UNDERLINE.NONE,
+        'SINGLE_LINE': MSO_UNDERLINE.SINGLE_LINE,
+    }[value]
+    context.font.underline = new_value
 
 
 # then ===================================================
@@ -91,3 +115,17 @@ def then_font_size_is_value(context, value_str):
     assert value == expected_value, (
         'expected %s, got %s' % (expected_value, value)
     )
+
+
+@then('font.underline is {value}')
+def then_font_underline_is_value(context, value):
+    expected_value = {
+        'True':        True,
+        'False':       False,
+        'None':        None,
+        'DOUBLE_LINE': MSO_UNDERLINE.DOUBLE_LINE,
+        'SINGLE_LINE': MSO_UNDERLINE.SINGLE_LINE,
+        'WAVY_LINE':   MSO_UNDERLINE.WAVY_LINE,
+    }[value]
+    font = context.font
+    assert font.underline is expected_value

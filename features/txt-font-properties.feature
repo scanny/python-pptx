@@ -62,6 +62,38 @@ Feature: Change appearance of font used to render text
       | to inherit    | None      |
 
 
+  @wip
+  Scenario Outline: Get underline setting
+    Given a font with underline set <underline-state>
+     Then font.underline is <expected-value>
+
+    Examples: font.underline states
+      | underline-state | expected-value |
+      | on              | True           |
+      | off             | False          |
+      | to inherit      | None           |
+      | to DOUBLE_LINE  | DOUBLE_LINE    |
+      | to WAVY_LINE    | WAVY_LINE      |
+
+
+  @wip
+  Scenario Outline: Change font.underline setting
+    Given a font with underline set <initial-state>
+     When I assign <new-value> to font.underline
+     Then font.underline is <expected-value>
+
+    Examples: Expected results of changing font.underline setting
+      | initial-state  | new-value   | expected-value |
+      | on             | True        | True           |
+      | off            | SINGLE_LINE | True           |
+      | to inherit     | True        | True           |
+      | to WAVY_LINE   | False       | False          |
+      | to inherit     | NONE        | False          |
+      | to DOUBLE_LINE | None        | None           |
+      | off            | DOUBLE_LINE | DOUBLE_LINE    |
+      | to WAVY_LINE   | DOUBLE_LINE | DOUBLE_LINE    |
+
+
   Scenario Outline: Get font size
     Given a font having <applied-size>
      Then font.size is <reported-size>

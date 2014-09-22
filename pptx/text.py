@@ -283,6 +283,20 @@ class Font(object):
         sz = Emu(emu).centipoints
         self._rPr.sz = sz
 
+    @property
+    def underline(self):
+        """
+        Read/write. |True|, |False|, |None|, or a member of the
+        :ref:`MsoTextUnderlineType` enumeration indicating the underline
+        setting for this font. |None| is the default and indicates the
+        underline setting should be inherited from the style hierarchy, such
+        as from a placeholder. |True| indicates single underline. |False|
+        indicates no underline. Other settings such as double and wavy
+        underlining are indicated with members of the
+        :ref:`MsoTextUnderlineType` enumeration.
+        """
+        raise NotImplementedError
+
 
 class _Hyperlink(Subshape):
     """
