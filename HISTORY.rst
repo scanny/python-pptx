@@ -3,6 +3,20 @@
 Release History
 ---------------
 
+0.5.1 (2014-09-22)
+++++++++++++++++++
+
+- feature #120 - add Shape.rotation
+- feature #97 - add Font.underline
+- issue #117 - add BMP image support
+- issue #95 - add BaseShape.name setter
+- issue #107 - all .text properties should return unicode, not str
+- feature #106 - add .text getters to Shape, TextFrame, and Paragraph
+
+- Rename Shape.textframe to Shape.text_frame.
+  **Shape.textframe property (by that name) is deprecated.**
+
+
 0.5.0 (2014-09-13)
 ++++++++++++++++++
 
