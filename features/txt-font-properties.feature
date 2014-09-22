@@ -15,12 +15,41 @@ Feature: Change appearance of font used to render text
       | to inherit | None           |
 
 
-  Scenario Outline: Change bold setting
+  Scenario Outline: Change font.bold setting
     Given a font with bold set <initial-state>
      When I assign <new-value> to font.bold
      Then font.bold is <new-value>
 
     Examples: Expected results of changing font.bold setting
+      | initial-state | new-value |
+      | on            | True      |
+      | off           | True      |
+      | to inherit    | True      |
+      | on            | False     |
+      | off           | False     |
+      | to inherit    | False     |
+      | on            | None      |
+      | off           | None      |
+      | to inherit    | None      |
+
+
+  Scenario Outline: Get italic setting
+    Given a font with italic set <italic-state>
+     Then font.italic is <expected-value>
+
+    Examples: font.italic states
+      | italic-state | expected-value |
+      | on           | True           |
+      | off          | False          |
+      | to inherit   | None           |
+
+
+  Scenario Outline: Change font.italic setting
+    Given a font with italic set <initial-state>
+     When I assign <new-value> to font.italic
+     Then font.italic is <new-value>
+
+    Examples: Expected results of changing font.italic setting
       | initial-state | new-value |
       | on            | True      |
       | off           | True      |
@@ -47,25 +76,6 @@ Feature: Change appearance of font used to render text
     Given a font
      When I assign a typeface name to the font
      Then the font name matches the typeface I set
-
-
-  Scenario Outline: Set italics property of text
-    Given a run with italics set <initial>
-     When I set italics <new>
-      And I reload the presentation
-     Then the run that had italics set <initial> now has it set <new>
-
-    Examples: Italics Settings
-      | initial | new     |
-      | on      | on      |
-      | on      | off     |
-      | on      | to None |
-      | off     | on      |
-      | off     | off     |
-      | off     | to None |
-      | to None | on      |
-      | to None | off     |
-      | to None | to None |
 
 
   Scenario: Add hyperlink

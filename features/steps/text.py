@@ -47,14 +47,6 @@ def given_a_run_containing_text(context):
     context.run = prs.slides[0].shapes[0].text_frame.paragraphs[0].runs[0]
 
 
-@given('a run with italics set {setting}')
-def given_run_with_italics_set_to_setting(context, setting):
-    run_idx = {'on': 0, 'off': 1, 'to None': 2}[setting]
-    context.prs = Presentation(test_pptx('txt-font-props'))
-    runs = context.prs.slides[0].shapes[0].text_frame.paragraphs[0].runs
-    context.run = runs[run_idx]
-
-
 @given('a text run')
 def given_a_text_run(context):
     prs = Presentation()
@@ -131,12 +123,6 @@ def when_indent_first_paragraph(context):
     context.paragraph.level = 1
 
 
-@when("I set italics {setting}")
-def when_set_italics_to_setting(context, setting):
-    new_italics_value = {'on': True, 'off': False, 'to None': None}[setting]
-    context.run.font.italic = new_italics_value
-
-
 @when('I set the hyperlink address')
 def when_set_hyperlink_address(context):
     context.run_text = 'python-pptx @ GitHub'
@@ -199,21 +185,6 @@ def then_paragraph_is_aligned_centered(context):
 def then_paragraph_indented_to_second_level(context):
     p = context.prs.slides[0].shapes[0].text_frame.paragraphs[0]
     assert p.level == 1
-
-
-@then("the run that had italics set {initial} now has it set {setting}")
-def then_run_now_has_italics_set_to_setting(context, initial, setting):
-    run_idx = {'on': 0, 'off': 1, 'to None': 2}[initial]
-    run = (
-        context.prs
-               .slides[0]
-               .shapes[0]
-               .text_frame
-               .paragraphs[0]
-               .runs[run_idx]
-    )
-    expected_val = {'on': True, 'off': False, 'to None': None}[setting]
-    assert run.font.italic == expected_val
 
 
 @then('the text of the run is a hyperlink')
