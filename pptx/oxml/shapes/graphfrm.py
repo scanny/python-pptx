@@ -117,7 +117,7 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         return graphicFrame
 
     @classmethod
-    def new_table_graphicFrame(cls, id_, name, rows, cols, x, y, cx, cy):
+    def new_table_graphicFrame(cls, id_, name, rows, cols, x, y, cx, cy, tableStyleId=None):
         """
         Return a ``<p:graphicFrame>`` element tree populated with a table
         element.
@@ -125,7 +125,7 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         graphicFrame = cls.new_graphicFrame(id_, name, x, y, cx, cy)
         graphicFrame.graphic.graphicData.uri = GRAPHIC_DATA_URI_TABLE
         graphicFrame.graphic.graphicData.append(
-            CT_Table.new_tbl(rows, cols, cx, cy)
+            CT_Table.new_tbl(rows, cols, cx, cy, tableStyleId)
         )
         return graphicFrame
 
