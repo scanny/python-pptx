@@ -57,6 +57,22 @@ class TextFrame(Subshape):
         p = self.paragraphs[0]
         p.clear()
 
+    def fit_text(self, font_family='Calibri', max_size=18, bold=False,
+                 italic=False, font_file=None):
+        """
+        Make the text in this textframe fit entirely within the bounds of its
+        shape by setting word wrap on and applying the "best-fit" font size
+        to all the text it contains. :attr:`TextFrame.auto_size` is set to
+        :attr:`MSO_AUTO_SIZE.NONE`. The font size will not be set larger than
+        *max_size* points. The path to a matching TrueType font must be
+        provided as *font_file*; both typeface and bold and/or italic
+        formatting must match the font file provided.
+        """
+        font_size = self._best_fit_font_size(
+            font_family, max_size, bold, italic, font_file
+        )
+        self._apply_fit(font_family, font_size, bold, italic)
+
     @property
     def margin_bottom(self):
         """
@@ -176,6 +192,24 @@ class TextFrame(Subshape):
             False: ST_TextWrappingType.NONE,
             None:  None
         }[value]
+
+    def _apply_fit(self, font_family, font_size, is_bold, is_italic):
+        """
+        Arrange all the text in this text frame to fit inside its extents by
+        setting auto size off, wrap on, and setting the font of all its text
+        to *font_family*, *font_size*, *is_bold*, and *is_italic*.
+        """
+        raise NotImplementedError
+
+    def _best_fit_font_size(self, family, max_size, bold, italic, font_file):
+        """
+        Return the largest integer point size not greater than *max_size*
+        that allows all the text in this text frame to fit inside its extents
+        when rendered using the font described by *family*, *bold*, and
+        *italic*. If *font_file* is specified, it is used to calculate the
+        fit, whether or not it matches *family*, *bold*, and *italic*.
+        """
+        raise NotImplementedError
 
     @property
     def _bodyPr(self):

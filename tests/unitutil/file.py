@@ -66,7 +66,7 @@ def snippet_text(snippet_file_name):
     return snippet_bytes.decode('utf-8')
 
 
-def test_file(name):
+def testfile(name):
     """
     Return the absolute path to test file having *name*.
     """

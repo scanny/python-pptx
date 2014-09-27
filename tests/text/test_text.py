@@ -19,7 +19,7 @@ from pptx.util import Inches, Pt
 from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
-    class_mock, instance_mock, loose_mock, property_mock
+    class_mock, instance_mock, loose_mock, method_mock, property_mock
 )
 
 
@@ -94,6 +94,17 @@ class DescribeTextFrame(object):
         part = text_frame.part
         assert part is parent_.part
 
+    def it_can_resize_its_text_to_best_fit(self, fit_text_fixture):
+        text_frame, family, max_size = fit_text_fixture[:3]
+        bold, italic, font_file, font_size = fit_text_fixture[3:]
+        text_frame.fit_text(family, max_size, bold, italic, font_file)
+        text_frame._best_fit_font_size.assert_called_once_with(
+            family, max_size, bold, italic, font_file
+        )
+        text_frame._apply_fit.assert_called_once_with(
+            family, font_size, bold, italic
+        )
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -158,6 +169,17 @@ class DescribeTextFrame(object):
         text_frame = TextFrame(element(txBody_cxml), None)
         expected_xml = xml(expected_cxml)
         return text_frame, value, expected_xml
+
+    @pytest.fixture
+    def fit_text_fixture(self, _best_fit_font_size_, _apply_fit_):
+        text_frame = TextFrame(None, None)
+        family, max_size, bold, italic, font_file, font_size = (
+            'Family', 42, 'bold', 'italic', 'font_file', 21
+        )
+        _best_fit_font_size_.return_value = font_size
+        return (
+            text_frame, family, max_size, bold, italic, font_file, font_size
+        )
 
     @pytest.fixture(params=[
         ('p:txBody/a:bodyPr',             'left',   'emu',    Inches(0.1)),
@@ -257,6 +279,14 @@ class DescribeTextFrame(object):
         return text_frame, new_value, expected_xml
 
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _apply_fit_(self, request):
+        return method_mock(request, TextFrame, '_apply_fit')
+
+    @pytest.fixture
+    def _best_fit_font_size_(self, request):
+        return method_mock(request, TextFrame, '_best_fit_font_size')
 
     @pytest.fixture
     def text_frame_with_parent_(self, request):
