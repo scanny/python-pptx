@@ -43,6 +43,14 @@ def count(start=0, step=1):
         n += step
 
 
+def test_file(filename):
+    """
+    Return the absolute path to the file having *filename* in acceptance
+    test_files directory.
+    """
+    return absjoin(thisdir, 'test_files', filename)
+
+
 def test_image(filename):
     """
     Return the absolute path to image file having *filename* in test_files

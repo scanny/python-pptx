@@ -50,7 +50,7 @@ Feature: Get and change properties of shape text frame
      Then text_frame.word_wrap is <value>
 
     Examples: Word-wrap Settings
-      | value   |
-      | on      |
-      | off     |
-      | to None |
+      | value |
+      | True  |
+      | False |
+      | None  |
