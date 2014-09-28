@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.text.layout import _LineSource, TextFitter
+from pptx.text.layout import _BinarySearchTree, _LineSource, TextFitter
 
 from ..unitutil.mock import (
     class_mock, function_mock, initializer_mock, instance_mock, method_mock,
@@ -133,3 +133,27 @@ class DescribeTextFitter(object):
     @pytest.fixture
     def _wrap_lines_(self, request):
         return method_mock(request, TextFitter, '_wrap_lines')
+
+
+class Describe_BinarySearchTree(object):
+
+    def it_can_construct_from_an_ordered_sequence(self):
+        bst = _BinarySearchTree.from_ordered_sequence(range(10))
+
+        def in_order(node):
+            """
+            Traverse the tree depth first to produce a list of its values,
+            in order.
+            """
+            result = []
+            if node is None:
+                return result
+            result.extend(in_order(node._lesser))
+            result.append(node.value)
+            result.extend(in_order(node._greater))
+            return result
+
+        assert bst.value == 9
+        assert bst._lesser.value == 4
+        assert bst._greater is None
+        assert in_order(bst) == range(10)

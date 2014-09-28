@@ -93,7 +93,56 @@ class _BinarySearchTree(object):
         Return the root of a balanced binary search tree populated with the
         values in iterable *iseq*.
         """
-        raise NotImplementedError
+        seq = list(iseq)
+        # optimize for usually all fits by making longest first
+        bst = cls(seq.pop())
+        bst._insert_from_ordered_sequence(seq)
+        return bst
+
+    def insert(self, value):
+        """
+        Insert a new node containing *value* into this tree such that its
+        structure as a binary search tree is preserved.
+        """
+        side = '_lesser' if value < self.value else '_greater'
+        child = getattr(self, side)
+        if child is None:
+            setattr(self, side, _BinarySearchTree(value))
+        else:
+            child.insert(value)
+
+    @property
+    def value(self):
+        """
+        The value object contained in this node.
+        """
+        return self._value
+
+    @staticmethod
+    def _bisect(seq):
+        """
+        Return a (medial_value, greater_values, lesser_values) 3-tuple
+        obtained by bisecting sequence *seq*.
+        """
+        if len(seq) == 0:
+            return [], None, []
+        mid_idx = int(len(seq)/2)
+        mid = seq[mid_idx]
+        greater = seq[mid_idx+1:]
+        lesser = seq[:mid_idx]
+        return mid, greater, lesser
+
+    def _insert_from_ordered_sequence(self, seq):
+        """
+        Insert the new values contained in *seq* into this tree such that
+        a balanced tree is produced.
+        """
+        if len(seq) == 0:
+            return
+        mid, greater, lesser = self._bisect(seq)
+        self.insert(mid)
+        self._insert_from_ordered_sequence(greater)
+        self._insert_from_ordered_sequence(lesser)
 
 
 class _LineSource(object):
