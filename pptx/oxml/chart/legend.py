@@ -7,6 +7,7 @@ lxml custom element classes for legend-related XML elements.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from ...enum.chart import XL_LEGEND_POSITION
+from ..text import CT_TextBody
 from ..xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrOne
 
 
@@ -21,7 +22,18 @@ class CT_Legend(BaseOxmlElement):
     legendPos = ZeroOrOne('c:legendPos', successors=_tag_seq[1:])
     layout = ZeroOrOne('c:layout', successors=_tag_seq[3:])
     overlay = ZeroOrOne('c:overlay', successors=_tag_seq[4:])
+    txPr = ZeroOrOne('c:txPr', successors=_tag_seq[6:])
     del _tag_seq
+
+    @property
+    def defRPr(self):
+        """
+        `./c:txPr/a:p/a:pPr/a:defRPr` great-great-grandchild element, added
+        with its ancestors if not present.
+        """
+        txPr = self.get_or_add_txPr()
+        defRPr = txPr.defRPr
+        return defRPr
 
     @property
     def horz_offset(self):
@@ -44,6 +56,9 @@ class CT_Legend(BaseOxmlElement):
         """
         layout = self.get_or_add_layout()
         layout.horz_offset = offset
+
+    def _new_txPr(self):
+        return CT_TextBody.new_txPr()
 
 
 class CT_LegendPos(BaseOxmlElement):

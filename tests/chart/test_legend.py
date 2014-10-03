@@ -10,11 +10,19 @@ import pytest
 
 from pptx.chart.legend import Legend
 from pptx.enum.chart import XL_LEGEND_POSITION
+from pptx.text.text import Font
 
 from ..unitutil.cxml import element, xml
 
 
 class DescribeLegend(object):
+
+    def it_provides_access_to_its_font(self, font_fixture):
+        legend, expected_xml = font_fixture
+        font = legend.font
+        assert legend._element.xml == expected_xml
+        assert isinstance(font, Font)
+        assert font._element == legend._element.xpath('.//a:defRPr')[0]
 
     def it_knows_its_horizontal_offset(self, horz_offset_get_fixture):
         legend, expected_value = horz_offset_get_fixture
@@ -47,6 +55,16 @@ class DescribeLegend(object):
         assert legend._element.xml == expected_xml
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:legend{a:b=c}',
+         'c:legend{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)'),
+    ])
+    def font_fixture(self, request):
+        legend_cxml, expected_cxml = request.param
+        legend = Legend(element(legend_cxml))
+        expected_xml = xml(expected_cxml)
+        return legend, expected_xml
 
     @pytest.fixture(params=[
         ('c:legend',                                                 0.0),

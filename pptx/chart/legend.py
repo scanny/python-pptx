@@ -7,6 +7,8 @@ Legend of a chart.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from ..enum.chart import XL_LEGEND_POSITION
+from ..text.text import Font
+from ..util import lazyproperty
 
 
 class Legend(object):
@@ -16,6 +18,16 @@ class Legend(object):
     def __init__(self, legend_elm):
         super(Legend, self).__init__()
         self._element = legend_elm
+
+    @lazyproperty
+    def font(self):
+        """
+        The |Font| object that provides access to the text properties for
+        this legend, such as bold, italic, etc.
+        """
+        defRPr = self._element.defRPr
+        font = Font(defRPr)
+        return font
 
     @property
     def horz_offset(self):

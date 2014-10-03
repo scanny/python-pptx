@@ -4,7 +4,6 @@ Feature: Get and set legend properties
   I need a way to get and set legend properties
 
 
-  @wip
   Scenario: Access legend font
     Given a legend
      Then legend.font is a Font object
