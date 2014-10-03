@@ -54,16 +54,18 @@ register_element_cls('c:valAx',         CT_ValAx)
 
 
 from .chart.chart import (
-    CT_Chart, CT_ChartSpace, CT_ExternalData, CT_Legend, CT_LegendPos,
-    CT_PlotArea, CT_Style
+    CT_Chart, CT_ChartSpace, CT_ExternalData, CT_PlotArea, CT_Style
 )
 register_element_cls('c:chart',        CT_Chart)
 register_element_cls('c:chartSpace',   CT_ChartSpace)
 register_element_cls('c:externalData', CT_ExternalData)
-register_element_cls('c:legend',       CT_Legend)
-register_element_cls('c:legendPos',    CT_LegendPos)
 register_element_cls('c:plotArea',     CT_PlotArea)
 register_element_cls('c:style',        CT_Style)
+
+
+from .chart.legend import CT_Legend, CT_LegendPos
+register_element_cls('c:legend',    CT_Legend)
+register_element_cls('c:legendPos', CT_LegendPos)
 
 
 from .chart.plot import (
