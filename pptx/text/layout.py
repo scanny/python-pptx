@@ -161,6 +161,19 @@ class _BinarySearchTree(object):
         else:
             child.insert(value)
 
+    def tree(self, level=0, prefix=''):
+        """
+        A string representation of the tree rooted in this node, useful for
+        debugging purposes.
+        """
+        text = '%s%s\n' % (prefix, self.value.text)
+        prefix = '%s└── ' % ('    ' * level)
+        if self._lesser:
+            text += self._lesser.tree(level+1, prefix)
+        if self._greater:
+            text += self._greater.tree(level+1, prefix)
+        return text
+
     @property
     def value(self):
         """

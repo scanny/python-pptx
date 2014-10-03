@@ -13,8 +13,9 @@ from ..enum.text import (
 )
 from .ns import nsdecls
 from .simpletypes import (
-    ST_Coordinate32, ST_TextFontSize, ST_TextIndentLevelType,
-    ST_TextTypeface, ST_TextWrappingType, XsdBoolean, XsdString
+    ST_Coordinate32, ST_TextFontScalePercentOrPercentString, ST_TextFontSize,
+    ST_TextIndentLevelType, ST_TextTypeface, ST_TextWrappingType, XsdBoolean,
+    XsdString
 )
 from ..util import Emu, to_unicode
 from .xmlchemy import (
@@ -269,6 +270,15 @@ class CT_TextLineBreak(BaseOxmlElement):
         can contain no text other than the implicit line feed it represents.
         """
         return u'\n'
+
+
+class CT_TextNormalAutofit(BaseOxmlElement):
+    """
+    <a:normAutofit> element specifying fit text to shape font reduction, etc.
+    """
+    fontScale = OptionalAttribute(
+        'fontScale', ST_TextFontScalePercentOrPercentString, default=100.0
+    )
 
 
 class CT_TextParagraph(BaseOxmlElement):

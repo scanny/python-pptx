@@ -555,6 +555,30 @@ class ST_TargetMode(XsdString):
             )
 
 
+class ST_TextFontScalePercentOrPercentString(BaseFloatType):
+    """
+    Valid values for the `fontScale` attribute of ``<a:normAutofit>``.
+    Translates to a float value.
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if str_value.endswith('%'):
+            return float(str_value[:-1])  # trim off '%' character
+        return int(str_value) / 1000.0
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return str(int(value * 1000.0))
+
+    @classmethod
+    def validate(cls, value):
+        BaseFloatType.validate(value)
+        if value < 1.0 or value > 100.0:
+            raise ValueError(
+                "value must be in range 1.0..100.0 (percent), got %s" % value
+            )
+
+
 class ST_TextFontSize(BaseIntType):
 
     @classmethod
