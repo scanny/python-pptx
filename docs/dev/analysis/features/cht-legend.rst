@@ -23,6 +23,9 @@ Candidate protocol
     >>> legend
     <pptx.chart.chart.Legend object at 0xdeadbeef1>
 
+    >>> legend.font
+    <pptx.text.Font object at 0xdeadbeef2>
+
     >>> legend.horz_offset
     0.0
     >>> legend.horz_offset = 0.2
@@ -42,20 +45,21 @@ Candidate protocol
     XL_LEGEND_POSITION.BOTTOM (-4107)
 
 
+Feature Summary
+---------------
+
+* :attr:`.Chart.has_legend` -- Read/write boolean property
+* :attr:`.Chart.legend` -- Read-only |Legend| object or None
+* :attr:`.Legend.horz_offset` -- Read/write float (-1.0 -> 1.0).
+* :attr:`.Legend.include_in_layout` -- Read/write boolean.
+* :attr:`.Legend.position` -- Read/write :ref:`XlLegendPosition`
+* :attr:`.Legend.font` -- Read-only |Font| object.
+
+
 Enumerations
 ------------
 
 * :ref:`XlLegendPosition`
-
-
-Feature Summary
----------------
-
-* **Chart.has_legend** -- Read/write boolean property
-* **Chart.legend** -- Read/only Legend object or None
-* **Legend.horz_offset** -- Read/write float (-1.0 -> 1.0).
-* **Legend.include_in_layout** -- Read/write boolean.
-* **Legend.position** -- Read/write XL_LEGEND_POSITION
 
 
 Microsoft API
