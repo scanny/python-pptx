@@ -22,6 +22,7 @@ from pptx.enum.chart import (
 )
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
+from pptx.text.text import Font
 from pptx.util import Inches
 
 from .helpers import count, test_pptx
@@ -177,6 +178,12 @@ def given_a_chart_of_type_chart_type(context, chart_type):
     }[chart_type]
     prs = Presentation(test_pptx('cht-chart-type'))
     context.chart = prs.slides[slide_idx].shapes[shape_idx].chart
+
+
+@given('a legend')
+def given_a_legend(context):
+    prs = Presentation(test_pptx('cht-legend-props'))
+    context.legend = prs.slides[0].shapes[0].chart.legend
 
 
 @given('a legend having horizontal offset of {value}')
@@ -491,6 +498,12 @@ def then_I_can_access_the_chart_category_axis(context):
 def then_I_can_access_the_chart_value_axis(context):
     value_axis = context.chart.value_axis
     assert isinstance(value_axis, ValueAxis)
+
+
+@then('legend.font is a Font object')
+def then_legend_font_is_a_Font_object(context):
+    legend = context.legend
+    assert isinstance(legend.font, Font)
 
 
 @then('legend.horz_offset is {value}')
