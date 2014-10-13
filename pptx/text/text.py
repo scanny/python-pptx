@@ -23,7 +23,7 @@ class TextFrame(Subshape):
     """
     def __init__(self, txBody, parent):
         super(TextFrame, self).__init__(parent)
-        self._txBody = txBody
+        self._element = self._txBody = txBody
 
     def add_paragraph(self):
         """

@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Test suite for pptx.text module
+Test suite for pptx.text.text module
 """
 
 from __future__ import absolute_import, print_function
@@ -16,9 +16,7 @@ from pptx.opc.package import Part
 from pptx.text.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches, Pt
 
-from ..oxml.unitdata.text import (
-    a_bodyPr, a_txBody, a_p, a_t, an_hlinkClick, an_r, an_rPr
-)
+from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
     class_mock, instance_mock, loose_mock, property_mock
@@ -36,27 +34,6 @@ class DescribeTextFrame(object):
         text_frame.auto_size = value
         assert text_frame._txBody.xml == expected_xml
 
-    def it_knows_the_number_of_paragraphs_it_contains(
-            self, txBody, txBody_with_2_paras):
-        assert len(TextFrame(txBody, None).paragraphs) == 1
-        assert len(TextFrame(txBody_with_2_paras, None).paragraphs) == 2
-
-    def it_can_add_a_paragraph_to_the_text_it_contains(
-            self, txBody, txBody_with_2_paras_xml):
-        text_frame = TextFrame(txBody, None)
-        text_frame.add_paragraph()
-        assert text_frame._txBody.xml == txBody_with_2_paras_xml
-
-    def it_knows_what_text_it_contains(self, text_get_fixture):
-        text_frame, expected_value = text_get_fixture
-        assert text_frame.text == expected_value
-
-    def it_can_replace_the_text_it_contains(
-            self, txBody, txBody_with_text_xml):
-        text_frame = TextFrame(txBody, None)
-        text_frame.text = 'foobar'
-        assert txBody.xml == txBody_with_text_xml
-
     def it_knows_its_margin_settings(self, margin_get_fixture):
         text_frame, prop_name, unit, expected_value = margin_get_fixture
         margin_value = getattr(text_frame, prop_name)
@@ -67,33 +44,46 @@ class DescribeTextFrame(object):
         setattr(text_frame, prop_name, new_value)
         assert text_frame._txBody.xml == expected_xml
 
-    def it_raises_on_attempt_to_set_margin_to_non_int(self, text_frame):
+    def it_can_change_its_vertical_alignment(self, anchor_set_fixture):
+        text_frame, new_value, expected_xml = anchor_set_fixture
+        text_frame.vertical_anchor = new_value
+        assert text_frame._element.xml == expected_xml
+
+    def it_knows_its_word_wrap_setting(self, wrap_get_fixture):
+        text_frame, expected_value = wrap_get_fixture
+        assert text_frame.word_wrap == expected_value
+
+    def it_can_change_its_word_wrap_setting(self, wrap_set_fixture):
+        text_frame, new_value, expected_xml = wrap_set_fixture
+        text_frame.word_wrap = new_value
+        assert text_frame._element.xml == expected_xml
+
+    def it_provides_access_to_its_paragraphs(self, paragraphs_fixture):
+        text_frame, ps = paragraphs_fixture
+        paragraphs = text_frame.paragraphs
+        assert len(paragraphs) == len(ps)
+        for idx, paragraph in enumerate(paragraphs):
+            assert isinstance(paragraph, _Paragraph)
+            assert paragraph._element is ps[idx]
+
+    def it_can_add_a_paragraph_to_itself(self, add_paragraph_fixture):
+        text_frame, expected_xml = add_paragraph_fixture
+        text_frame.add_paragraph()
+        assert text_frame._txBody.xml == expected_xml
+
+    def it_knows_what_text_it_contains(self, text_get_fixture):
+        text_frame, expected_value = text_get_fixture
+        assert text_frame.text == expected_value
+
+    def it_can_replace_the_text_it_contains(self, text_set_fixture):
+        text_frame, text, expected_xml = text_set_fixture
+        text_frame.text = text
+        assert text_frame._element.xml == expected_xml
+
+    def it_raises_on_attempt_to_set_margin_to_non_int(self):
+        text_frame = TextFrame(element('p:txBody/a:bodyPr'), None)
         with pytest.raises(TypeError):
             text_frame.margin_bottom = '0.1'
-
-    def it_can_change_its_vertical_anchor_setting(
-            self, txBody, txBody_with_anchor_ctr_xml):
-        text_frame = TextFrame(txBody, None)
-        text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
-        assert text_frame._txBody.xml == txBody_with_anchor_ctr_xml
-
-    def it_can_change_the_word_wrap_setting(
-            self, txBody, txBody_with_wrap_on_xml, txBody_with_wrap_off_xml,
-            txBody_xml):
-        text_frame = TextFrame(txBody, None)
-        assert text_frame.word_wrap is None
-
-        text_frame.word_wrap = True
-        assert text_frame._txBody.xml == txBody_with_wrap_on_xml
-        assert text_frame.word_wrap is True
-
-        text_frame.word_wrap = False
-        assert text_frame._txBody.xml == txBody_with_wrap_off_xml
-        assert text_frame.word_wrap is False
-
-        text_frame.word_wrap = None
-        assert text_frame._txBody.xml == txBody_xml
-        assert text_frame.word_wrap is None
 
     def it_knows_the_part_it_belongs_to(self, text_frame_with_parent_):
         text_frame, parent_ = text_frame_with_parent_
@@ -101,6 +91,32 @@ class DescribeTextFrame(object):
         assert part is parent_.part
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        ('p:txBody/a:bodyPr',       'p:txBody/(a:bodyPr,a:p)'),
+        ('p:txBody/(a:bodyPr,a:p)', 'p:txBody/(a:bodyPr,a:p,a:p)'),
+    ])
+    def add_paragraph_fixture(self, request):
+        txBody_cxml, expected_cxml = request.param
+        text_frame = TextFrame(element(txBody_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return text_frame, expected_xml
+
+    @pytest.fixture(params=[
+        ('p:txBody/a:bodyPr',             MSO_ANCHOR.TOP,
+         'p:txBody/a:bodyPr{anchor=t}'),
+        ('p:txBody/a:bodyPr{anchor=t}',   MSO_ANCHOR.MIDDLE,
+         'p:txBody/a:bodyPr{anchor=ctr}'),
+        ('p:txBody/a:bodyPr{anchor=ctr}', MSO_ANCHOR.BOTTOM,
+         'p:txBody/a:bodyPr{anchor=b}'),
+        ('p:txBody/a:bodyPr{anchor=b}',   None,
+         'p:txBody/a:bodyPr'),
+    ])
+    def anchor_set_fixture(self, request):
+        txBody_cxml, new_value, expected_cxml = request.param
+        text_frame = TextFrame(element(txBody_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return text_frame, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('p:txBody/a:bodyPr', None),
@@ -167,6 +183,18 @@ class DescribeTextFrame(object):
         return text_frame, prop_name, new_value, expected_xml
 
     @pytest.fixture(params=[
+        'p:txBody',
+        'p:txBody/a:p',
+        'p:txBody/(a:p,a:p)',
+    ])
+    def paragraphs_fixture(self, request):
+        txBody_cxml = request.param
+        txBody = element(txBody_cxml)
+        text_frame = TextFrame(txBody, None)
+        ps = txBody.xpath('.//a:p')
+        return text_frame, ps
+
+    @pytest.fixture(params=[
         ('p:txBody/a:p/a:r/a:t"foobar"',                     'foobar'),
         ('p:txBody/(a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',     'foo\nbar'),
         ('p:txBody/(a:p,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")', '\nfoo\nbar'),
@@ -176,100 +204,51 @@ class DescribeTextFrame(object):
         text_frame = TextFrame(element(txBody_cxml), None)
         return text_frame, expected_value
 
-    # fixture components -----------------------------------
+    @pytest.fixture(params=[
+        ('p:txBody/(a:bodyPr,a:p)', 'foobar',
+         'p:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")'),
+        ('p:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")', 'barfoo',
+         'p:txBody/(a:bodyPr,a:p/a:r/a:t"barfoo")'),
+        ('p:txBody/(a:bodyPr,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")', 'barfoo',
+         'p:txBody/(a:bodyPr,a:p/a:r/a:t"barfoo")'),
+    ])
+    def text_set_fixture(self, request):
+        txBody_cxml, text, expected_cxml = request.param
+        text_frame = TextFrame(element(txBody_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return text_frame, text, expected_xml
 
-    @pytest.fixture
-    def text_frame(self, txBody):
-        return TextFrame(txBody, None)
+    @pytest.fixture(params=[
+        ('p:txBody/a:bodyPr',              None),
+        ('p:txBody/a:bodyPr{wrap=square}', True),
+        ('p:txBody/a:bodyPr{wrap=none}',   False),
+    ])
+    def wrap_get_fixture(self, request):
+        txBody_cxml, expected_value = request.param
+        text_frame = TextFrame(element(txBody_cxml), None)
+        return text_frame, expected_value
+
+    @pytest.fixture(params=[
+        ('p:txBody/a:bodyPr',              True,
+         'p:txBody/a:bodyPr{wrap=square}'),
+        ('p:txBody/a:bodyPr{wrap=square}', False,
+         'p:txBody/a:bodyPr{wrap=none}'),
+        ('p:txBody/a:bodyPr{wrap=none}',   None,
+         'p:txBody/a:bodyPr'),
+    ])
+    def wrap_set_fixture(self, request):
+        txBody_cxml, new_value, expected_txBody_cxml = request.param
+        text_frame = TextFrame(element(txBody_cxml), None)
+        expected_xml = xml(expected_txBody_cxml)
+        return text_frame, new_value, expected_xml
+
+    # fixture components -----------------------------------
 
     @pytest.fixture
     def text_frame_with_parent_(self, request):
         parent_ = loose_mock(request, name='parent_')
         text_frame = TextFrame(None, parent_)
         return text_frame, parent_
-
-    @pytest.fixture
-    def txBody(self, txBody_bldr):
-        return txBody_bldr.element
-
-    @pytest.fixture
-    def txBody_bldr(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr()
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-        )
-
-    @pytest.fixture
-    def txBody_xml(self, txBody_bldr):
-        return txBody_bldr.xml()
-
-    @pytest.fixture
-    def txBody_with_2_paras(self, _txBody_with_2_paras_bldr):
-        return _txBody_with_2_paras_bldr.element
-
-    @pytest.fixture
-    def txBody_with_2_paras_xml(self, _txBody_with_2_paras_bldr):
-        return _txBody_with_2_paras_bldr.xml()
-
-    @pytest.fixture
-    def txBody_with_anchor_ctr_xml(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr().with_anchor('ctr')
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-                      .xml()
-        )
-
-    @pytest.fixture
-    def txBody_with_text_xml(self):
-        t_bldr = a_t().with_text('foobar')
-        r_bldr = an_r().with_child(t_bldr)
-        p_bldr = a_p().with_child(r_bldr)
-        bodyPr_bldr = a_bodyPr()
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-                      .xml()
-        )
-
-    @pytest.fixture
-    def txBody_with_wrap_off_xml(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr().with_wrap('none')
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-                      .xml()
-        )
-
-    @pytest.fixture
-    def txBody_with_wrap_on_xml(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr().with_wrap('square')
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-                      .xml()
-        )
-
-    @pytest.fixture
-    def _txBody_with_2_paras_bldr(self):
-        p_bldr = a_p()
-        bodyPr_bldr = a_bodyPr()
-        return (
-            a_txBody().with_nsdecls()
-                      .with_child(bodyPr_bldr)
-                      .with_child(p_bldr)
-                      .with_child(p_bldr)
-        )
 
 
 class DescribeFont(object):
