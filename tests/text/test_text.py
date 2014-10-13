@@ -13,14 +13,14 @@ from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
-from pptx.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
+from pptx.text.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
 from pptx.util import Inches, Pt
 
-from .oxml.unitdata.text import (
+from ..oxml.unitdata.text import (
     a_bodyPr, a_txBody, a_p, a_t, an_hlinkClick, an_r, an_rPr
 )
-from .unitutil.cxml import element, xml
-from .unitutil.mock import (
+from ..unitutil.cxml import element, xml
+from ..unitutil.mock import (
     class_mock, instance_mock, loose_mock, property_mock
 )
 
@@ -723,7 +723,7 @@ class Describe_Paragraph(object):
 
     @pytest.fixture
     def Font_(self, request):
-        return class_mock(request, 'pptx.text.Font')
+        return class_mock(request, 'pptx.text.text.Font')
 
     @pytest.fixture
     def p_bldr(self):
@@ -799,7 +799,7 @@ class Describe_Run(object):
 
     @pytest.fixture
     def Font_(self, request, font_):
-        return class_mock(request, 'pptx.text.Font', return_value=font_)
+        return class_mock(request, 'pptx.text.text.Font', return_value=font_)
 
     @pytest.fixture
     def font_(self, request):
@@ -808,7 +808,7 @@ class Describe_Run(object):
     @pytest.fixture
     def _Hyperlink_(self, request, hlink_):
         return class_mock(
-            request, 'pptx.text._Hyperlink', return_value=hlink_
+            request, 'pptx.text.text._Hyperlink', return_value=hlink_
         )
 
     @pytest.fixture

@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from ..enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
 from ..oxml.ns import qn
-from ..text import Font
+from ..text.text import Font
 from ..util import lazyproperty
 
 

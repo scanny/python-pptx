@@ -16,7 +16,7 @@ from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
-from pptx.text import TextFrame
+from pptx.text.text import TextFrame
 
 from ..oxml.unitdata.shape import (
     a_cNvSpPr, a_gd, a_prstGeom, an_avLst, an_nvSpPr, an_sp, an_spPr
@@ -356,13 +356,13 @@ class DescribeShape(object):
         assert textbox_shape_.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
 
     def it_raises_when_shape_type_called_on_unrecognized_shape(self):
-        xml = (
+        xml_ = (
             '<p:sp xmlns:p="http://schemas.openxmlformats.org/presentationml/'
             '2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/'
             '2006/main"><p:nvSpPr><p:cNvPr id="9" name="Unknown Shape Type 8"'
             '/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/></p:sp>'
         )
-        sp = parse_xml(xml)
+        sp = parse_xml(xml_)
         shape = Shape(sp, None)
         # verify -----------------------
         with pytest.raises(NotImplementedError):

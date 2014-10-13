@@ -6,13 +6,13 @@ Text-related objects such as TextFrame and Paragraph.
 
 from __future__ import absolute_import, print_function
 
-from .dml.fill import FillFormat
-from .enum.dml import MSO_FILL
-from .enum.text import MSO_UNDERLINE
-from .opc.constants import RELATIONSHIP_TYPE as RT
-from .oxml.simpletypes import ST_TextWrappingType
-from .shapes import Subshape
-from .util import Centipoints, Emu, lazyproperty, to_unicode
+from ..dml.fill import FillFormat
+from ..enum.dml import MSO_FILL
+from ..enum.text import MSO_UNDERLINE
+from ..opc.constants import RELATIONSHIP_TYPE as RT
+from ..oxml.simpletypes import ST_TextWrappingType
+from ..shapes import Subshape
+from ..util import Centipoints, Emu, lazyproperty, to_unicode
 
 
 class TextFrame(Subshape):

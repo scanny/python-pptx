@@ -10,7 +10,7 @@ from warnings import warn
 
 from . import Subshape
 from ..dml.fill import FillFormat
-from ..text import TextFrame
+from ..text.text import TextFrame
 from ..util import lazyproperty, to_unicode
 
 

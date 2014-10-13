@@ -14,7 +14,7 @@ from ..dml.line import LineFormat
 from ..enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
 from .shape import BaseShape
 from ..spec import autoshape_types
-from ..text import TextFrame
+from ..text.text import TextFrame
 from ..util import lazyproperty
 
 

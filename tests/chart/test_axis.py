@@ -12,7 +12,7 @@ from pptx.chart.axis import _BaseAxis, TickLabels, ValueAxis
 from pptx.enum.chart import (
     XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
 )
-from pptx.text import Font
+from pptx.text.text import Font
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
