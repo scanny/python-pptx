@@ -134,18 +134,20 @@ class TextFrame(Subshape):
         self.clear()
         self.paragraphs[0].text = to_unicode(text)
 
-    def _set_vertical_anchor(self, value):
+    @property
+    def vertical_anchor(self):
         """
-        Set ``anchor`` attribute of ``<a:bodyPr>`` element
+        Read/write member of :ref:`MsoVerticalAnchor` enumeration or |None|,
+        representing the vertical alignment of text in this text frame.
+        |None| indicates the effective value should be inherited from this
+        object's style hierarchy.
         """
+        return self._txBody.bodyPr.anchor
+
+    @vertical_anchor.setter
+    def vertical_anchor(self, value):
         bodyPr = self._txBody.bodyPr
         bodyPr.anchor = value
-
-    #: Write-only. Assignment to *vertical_anchor* sets the vertical
-    #: alignment of the text frame to top, middle, or bottom. Valid values are
-    #: ``MSO_ANCHOR.TOP``, ``MSO_ANCHOR.MIDDLE``, or ``MSO_ANCHOR.BOTTOM``.
-    #: The ``MSO`` name is imported from ``pptx.constants``.
-    vertical_anchor = property(None, _set_vertical_anchor)
 
     @property
     def word_wrap(self):

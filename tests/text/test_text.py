@@ -44,6 +44,10 @@ class DescribeTextFrame(object):
         setattr(text_frame, prop_name, new_value)
         assert text_frame._txBody.xml == expected_xml
 
+    def it_knows_its_vertical_alignment(self, anchor_get_fixture):
+        text_frame, expected_value = anchor_get_fixture
+        assert text_frame.vertical_anchor == expected_value
+
     def it_can_change_its_vertical_alignment(self, anchor_set_fixture):
         text_frame, new_value, expected_xml = anchor_set_fixture
         text_frame.vertical_anchor = new_value
@@ -101,6 +105,16 @@ class DescribeTextFrame(object):
         text_frame = TextFrame(element(txBody_cxml), None)
         expected_xml = xml(expected_cxml)
         return text_frame, expected_xml
+
+    @pytest.fixture(params=[
+        ('p:txBody/a:bodyPr',           None),
+        ('p:txBody/a:bodyPr{anchor=t}', MSO_ANCHOR.TOP),
+        ('p:txBody/a:bodyPr{anchor=b}', MSO_ANCHOR.BOTTOM),
+    ])
+    def anchor_get_fixture(self, request):
+        txBody_cxml, expected_value = request.param
+        text_frame = TextFrame(element(txBody_cxml), None)
+        return text_frame, expected_value
 
     @pytest.fixture(params=[
         ('p:txBody/a:bodyPr',             MSO_ANCHOR.TOP,
