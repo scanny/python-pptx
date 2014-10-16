@@ -105,6 +105,22 @@ class DescribeTextFrame(object):
             family, font_size, bold, italic
         )
 
+    def it_calculates_its_best_fit_font_size_to_help_fit_text(
+            self, size_font_fixture):
+        text_frame, family, max_size, bold, italic = size_font_fixture[:5]
+        FontFiles_, TextFitter_, text, extents = size_font_fixture[5:9]
+        font_file_, font_size_ = size_font_fixture[9:]
+
+        font_size = text_frame._best_fit_font_size(
+            family, max_size, bold, italic, None
+        )
+
+        FontFiles_.find.assert_called_once_with(family, bold, italic)
+        TextFitter_.best_fit_font_size.assert_called_once_with(
+            text, extents, max_size, font_file_
+        )
+        assert font_size is font_size_
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -230,6 +246,21 @@ class DescribeTextFrame(object):
         ps = txBody.xpath('.//a:p')
         return text_frame, ps
 
+    @pytest.fixture
+    def size_font_fixture(
+            self, FontFiles_, TextFitter_, text_prop_, _extents_prop_):
+        text_frame = TextFrame(None, None)
+        family, max_size, bold, italic = 'Family', 42, True, False
+        text, extents, font_size, font_file = 'text', (111, 222), 21, 'f.ttf'
+        text_prop_.return_value = text
+        _extents_prop_.return_value = extents
+        FontFiles_.find.return_value = font_file
+        TextFitter_.best_fit_font_size.return_value = font_size
+        return (
+            text_frame, family, max_size, bold, italic, FontFiles_,
+            TextFitter_, text, extents, font_file, font_size
+        )
+
     @pytest.fixture(params=[
         ('p:txBody/a:p/a:r/a:t"foobar"',                     'foobar'),
         ('p:txBody/(a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',     'foo\nbar'),
@@ -289,10 +320,26 @@ class DescribeTextFrame(object):
         return method_mock(request, TextFrame, '_best_fit_font_size')
 
     @pytest.fixture
+    def _extents_prop_(self, request):
+        return property_mock(request, TextFrame, '_extents')
+
+    @pytest.fixture
+    def FontFiles_(self, request):
+        return class_mock(request, 'pptx.text.text.FontFiles')
+
+    @pytest.fixture
+    def TextFitter_(self, request):
+        return class_mock(request, 'pptx.text.text.TextFitter')
+
+    @pytest.fixture
     def text_frame_with_parent_(self, request):
         parent_ = loose_mock(request, name='parent_')
         text_frame = TextFrame(None, parent_)
         return text_frame, parent_
+
+    @pytest.fixture
+    def text_prop_(self, request):
+        return property_mock(request, TextFrame, 'text')
 
 
 class DescribeFont(object):

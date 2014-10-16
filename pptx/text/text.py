@@ -9,6 +9,8 @@ from __future__ import absolute_import, print_function
 from ..dml.fill import FillFormat
 from ..enum.dml import MSO_FILL
 from ..enum.text import MSO_UNDERLINE
+from .fonts import FontFiles
+from .layout import TextFitter
 from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..oxml.simpletypes import ST_TextWrappingType
 from ..shapes import Subshape
@@ -209,11 +211,23 @@ class TextFrame(Subshape):
         *italic*. If *font_file* is specified, it is used to calculate the
         fit, whether or not it matches *family*, *bold*, and *italic*.
         """
-        raise NotImplementedError
+        if font_file is None:
+            font_file = FontFiles.find(family, bold, italic)
+        return TextFitter.best_fit_font_size(
+            self.text, self._extents, max_size, font_file
+        )
 
     @property
     def _bodyPr(self):
         return self._txBody.bodyPr
+
+    @property
+    def _extents(self):
+        """
+        A (cx, cy) 2-tuple representing the effective rendering area for text
+        within this text frame when margins are taken into account.
+        """
+        raise NotImplementedError
 
 
 class Font(object):
