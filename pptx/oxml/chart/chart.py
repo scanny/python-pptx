@@ -105,18 +105,22 @@ class CT_ChartSpace(BaseOxmlElement):
     def sers(self):
         """
         An immutable sequence of the `c:ser` elements under this chartSpace
-        element, sorted in order of their `c:ser/c:idx/@val` value and with
-        any gaps in numbering collapsed.
+        element
         """
-        def ser_idx(ser):
-            return ser.idx.val
+        return self.xpath('.//c:ser')
 
-        sers = sorted(self.xpath('.//c:ser'), key=ser_idx)
+    def _sort_and_correct_order_sers(self, by_='order'):
+        """
+        Sorted in order of their `c:ser/c:order/@val` value or
+        `c:ser/c:idx/@val` value and with any gaps in numbering collapsed.
+        """
+        if not by_ in ['order', 'idx']:
+            raise NotImplementedError('Only support ordering by order or idx')
+        sers = sorted(self.xpath('.//c:ser'),
+                      key=lambda ser: ser.__getattribute__(by_))
         for idx, ser in enumerate(sers):
-            if ser.idx.val != idx:
-                ser.idx.val = idx
-                ser.order.val = idx
-        return sers
+            ser.idx.val = idx
+            ser.order.val = idx
 
     @property
     def valAx(self):
