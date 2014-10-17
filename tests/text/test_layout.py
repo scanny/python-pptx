@@ -157,3 +157,19 @@ class Describe_BinarySearchTree(object):
         assert bst._lesser.value == 4
         assert bst._greater is None
         assert in_order(bst) == range(10)
+
+    def it_can_find_the_max_value_satisfying_a_predicate(self, max_fixture):
+        bst, predicate, expected_value = max_fixture
+        assert bst.find_max(predicate) == expected_value
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        (range(10), lambda n: n < 6.5, 6),
+        (range(10), lambda n: n > 9.9, None),
+        (range(10), lambda n: n < 0.0, None),
+    ])
+    def max_fixture(self, request):
+        seq, predicate, expected_value = request.param
+        bst = _BinarySearchTree.from_ordered_sequence(seq)
+        return bst, predicate, expected_value

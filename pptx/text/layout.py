@@ -87,6 +87,20 @@ class _BinarySearchTree(object):
         self._lesser = None
         self._greater = None
 
+    def find_max(self, predicate, max_=None):
+        """
+        Return the largest item in or under this node that satisfies
+        *predicate*.
+        """
+        if predicate(self.value):
+            max_ = self.value
+            next_node = self._greater
+        else:
+            next_node = self._lesser
+        if next_node is None:
+            return max_
+        return next_node.find_max(predicate, max_)
+
     @classmethod
     def from_ordered_sequence(cls, iseq):
         """
