@@ -11,8 +11,8 @@ import pytest
 from pptx.text.layout import _BinarySearchTree, _LineSource, TextFitter
 
 from ..unitutil.mock import (
-    class_mock, function_mock, initializer_mock, instance_mock, method_mock,
-    property_mock
+    call, class_mock, function_mock, initializer_mock, instance_mock,
+    method_mock, property_mock
 )
 
 
@@ -59,6 +59,16 @@ class DescribeTextFitter(object):
         )
         assert result is expected_bool_value
 
+    def it_wraps_lines_to_help_best_fit(self, wrap_fixture):
+        text_fitter, line_source, point_size, remainder = wrap_fixture
+
+        text_fitter._wrap_lines(line_source, point_size)
+
+        assert text_fitter._break_line.call_args_list == [
+            call(line_source, point_size),
+            call(remainder, point_size)
+        ]
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -97,6 +107,17 @@ class DescribeTextFitter(object):
         _rendered_size_.return_value = (None, 50)
         return text_fitter, point_size, _rendered_size_, expected_value
 
+    @pytest.fixture
+    def wrap_fixture(self, _break_line_):
+        text_fitter = TextFitter(None, (None, None), None)
+        point_size = 21
+        line_source, remainder = _LineSource('foo bar'), _LineSource('bar')
+        _break_line_.side_effect = [
+            ('foo', remainder),
+            ('bar', _LineSource('')),
+        ]
+        return text_fitter, line_source, point_size, remainder
+
     # fixture components -----------------------------------
 
     @pytest.fixture
@@ -106,6 +127,10 @@ class DescribeTextFitter(object):
     @pytest.fixture
     def _BinarySearchTree_(self, request):
         return class_mock(request, 'pptx.text.layout._BinarySearchTree')
+
+    @pytest.fixture
+    def _break_line_(self, request):
+        return method_mock(request, TextFitter, '_break_line')
 
     @pytest.fixture
     def _fits_inside_predicate_(self, request):

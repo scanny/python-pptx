@@ -37,6 +37,14 @@ class TextFitter(tuple):
         )
         return sizes.find_max(predicate)
 
+    def _break_line(self, line_source, point_size):
+        """
+        Return a (line, remainder) pair where *line* is the longest line in
+        *line_source* that will fit in this fitter's width and *remainder* is
+        a |_LineSource| object containing the text following the break point.
+        """
+        raise NotImplementedError
+
     @property
     def _fits_inside_predicate(self):
         """
@@ -74,7 +82,11 @@ class TextFitter(tuple):
         *line_source* wrapped within this fitter when rendered at
         *point_size*.
         """
-        raise NotImplementedError
+        text, remainder = self._break_line(line_source, point_size)
+        lines = [text]
+        if remainder:
+            lines.extend(self._wrap_lines(remainder, point_size))
+        return lines
 
 
 class _BinarySearchTree(object):
@@ -169,6 +181,13 @@ class _LineSource(object):
     """
     def __init__(self, text):
         self._text = text
+
+    def __nonzero__(self):
+        """
+        Gives this object boolean behaviors. bool(line_source) is False if it
+        contains the empty string or whitespace only.
+        """
+        return self._text.strip() != ''
 
 
 def _rendered_size(text, point_size, font_file):
