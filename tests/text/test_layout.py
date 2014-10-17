@@ -69,6 +69,22 @@ class DescribeTextFitter(object):
             call(remainder, point_size)
         ]
 
+    def it_breaks_off_a_line_to_help_wrap(self, break_fixture):
+        text_fitter, line_source_, point_size = break_fixture[:3]
+        _BinarySearchTree_, bst_, predicate_ = break_fixture[3:6]
+        max_value_ = break_fixture[6]
+
+        value = text_fitter._break_line(line_source_, point_size)
+
+        _BinarySearchTree_.from_ordered_sequence.assert_called_once_with(
+            line_source_
+        )
+        text_fitter._fits_in_width_predicate.assert_called_once_with(
+            point_size
+        )
+        bst_.find_max.assert_called_once_with(predicate_)
+        assert value is max_value_
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -92,6 +108,20 @@ class DescribeTextFitter(object):
         return (
             text_fitter, max_size, _BinarySearchTree_, sizes_, predicate_,
             font_size_
+        )
+
+    @pytest.fixture
+    def break_fixture(
+            self, line_source_, _BinarySearchTree_, bst_,
+            _fits_in_width_predicate_):
+        text_fitter = TextFitter(None, (None, None), None)
+        point_size = 21
+        _BinarySearchTree_.from_ordered_sequence.return_value = bst_
+        predicate_ = _fits_in_width_predicate_.return_value
+        max_value_ = bst_.find_max.return_value
+        return (
+            text_fitter, line_source_, point_size, _BinarySearchTree_, bst_,
+            predicate_, max_value_
         )
 
     @pytest.fixture(params=[
@@ -131,6 +161,14 @@ class DescribeTextFitter(object):
     @pytest.fixture
     def _break_line_(self, request):
         return method_mock(request, TextFitter, '_break_line')
+
+    @pytest.fixture
+    def bst_(self, request):
+        return instance_mock(request, _BinarySearchTree)
+
+    @pytest.fixture
+    def _fits_in_width_predicate_(self, request):
+        return method_mock(request, TextFitter, '_fits_in_width_predicate')
 
     @pytest.fixture
     def _fits_inside_predicate_(self, request):
