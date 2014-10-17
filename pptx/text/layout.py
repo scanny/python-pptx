@@ -44,6 +44,36 @@ class TextFitter(tuple):
         |True| if the text in this fitter can be wrapped to fit entirely
         within its extents when rendered at that point size.
         """
+        def predicate(point_size):
+            """
+            Return |True| if the text in *line_source* can be wrapped to fit
+            entirely within *extents* when rendered at *point_size* using the
+            font defined in *font_file*.
+            """
+            text_lines = self._wrap_lines(self._line_source, point_size)
+            cy = _rendered_size('Ty', point_size, self._font_file)[1]
+            return (cy * len(text_lines)) <= self._height
+
+        return predicate
+
+    @property
+    def _font_file(self):
+        return self[3]
+
+    @property
+    def _height(self):
+        return self[2]
+
+    @property
+    def _line_source(self):
+        return self[0]
+
+    def _wrap_lines(self, line_source, point_size):
+        """
+        Return a sequence of str values representing the text in
+        *line_source* wrapped within this fitter when rendered at
+        *point_size*.
+        """
         raise NotImplementedError
 
 
@@ -76,3 +106,12 @@ class _LineSource(object):
     """
     def __init__(self, text):
         self._text = text
+
+
+def _rendered_size(text, point_size, font_file):
+    """
+    Return a (width, height) pair representing the size of *text* in English
+    Metric Units (EMU) when rendered at *point_size* in the font defined in
+    *font_file*.
+    """
+    raise NotImplementedError

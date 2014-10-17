@@ -11,7 +11,8 @@ import pytest
 from pptx.text.layout import _LineSource, TextFitter
 
 from ..unitutil.mock import (
-    class_mock, initializer_mock, instance_mock, method_mock, property_mock
+    class_mock, function_mock, initializer_mock, instance_mock, method_mock,
+    property_mock
 )
 
 
@@ -43,6 +44,21 @@ class DescribeTextFitter(object):
         sizes_.find_max.assert_called_once_with(predicate_)
         assert font_size is font_size_
 
+    def it_provides_a_fits_inside_predicate_fn(self, fits_pred_fixture):
+        text_fitter, point_size = fits_pred_fixture[:2]
+        _rendered_size_, expected_bool_value = fits_pred_fixture[2:]
+
+        predicate = text_fitter._fits_inside_predicate
+        result = predicate(point_size)
+
+        text_fitter._wrap_lines.assert_called_once_with(
+            text_fitter._line_source, point_size
+        )
+        _rendered_size_.assert_called_once_with(
+            'Ty', point_size, text_fitter._font_file
+        )
+        assert result is expected_bool_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -67,6 +83,19 @@ class DescribeTextFitter(object):
             text_fitter, max_size, _BinarySearchTree_, sizes_, predicate_,
             font_size_
         )
+
+    @pytest.fixture(params=[
+        ((66,  99), 6, ('foo', 'bar'), False),
+        ((66, 100), 6, ('foo', 'bar'), True),
+        ((66, 101), 6, ('foo', 'bar'), True),
+    ])
+    def fits_pred_fixture(
+            self, request, line_source_, _wrap_lines_, _rendered_size_):
+        extents, point_size, text_lines, expected_value = request.param
+        text_fitter = TextFitter(line_source_, extents, 'foobar.ttf')
+        _wrap_lines_.return_value = text_lines
+        _rendered_size_.return_value = (None, 50)
+        return text_fitter, point_size, _rendered_size_, expected_value
 
     # fixture components -----------------------------------
 
@@ -96,3 +125,11 @@ class DescribeTextFitter(object):
     @pytest.fixture
     def line_source_(self, request):
         return instance_mock(request, _LineSource)
+
+    @pytest.fixture
+    def _rendered_size_(self, request):
+        return function_mock(request, 'pptx.text.layout._rendered_size')
+
+    @pytest.fixture
+    def _wrap_lines_(self, request):
+        return method_mock(request, TextFitter, '_wrap_lines')
