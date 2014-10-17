@@ -277,6 +277,7 @@ class _SeriesRewriter(object):
         increasing order of the c:ser/c:idx value, starting with 0 and with
         any gaps in numbering collapsed.
         """
+        chartSpace.reindex_sers()
         ser_count_diff = new_ser_count - len(chartSpace.sers)
         if ser_count_diff > 0:
             cls._add_cloned_sers(chartSpace, ser_count_diff)
