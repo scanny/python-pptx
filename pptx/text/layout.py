@@ -31,6 +31,38 @@ class TextFitter(tuple):
         Return the largest whole-number point size less than or equal to
         *max_size* that this fitter can fit.
         """
+        predicate = self._fits_inside_predicate
+        sizes = _BinarySearchTree.from_ordered_sequence(
+            range(1, int(max_size)+1)
+        )
+        return sizes.find_max(predicate)
+
+    @property
+    def _fits_inside_predicate(self):
+        """
+        Return a function taking an integer point size argument that returns
+        |True| if the text in this fitter can be wrapped to fit entirely
+        within its extents when rendered at that point size.
+        """
+        raise NotImplementedError
+
+
+class _BinarySearchTree(object):
+    """
+    A node in a binary search tree. Uniform for root, subtree root, and leaf
+    nodes.
+    """
+    def __init__(self, value):
+        self._value = value
+        self._lesser = None
+        self._greater = None
+
+    @classmethod
+    def from_ordered_sequence(cls, iseq):
+        """
+        Return the root of a balanced binary search tree populated with the
+        values in iterable *iseq*.
+        """
         raise NotImplementedError
 
 
