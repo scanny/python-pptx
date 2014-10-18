@@ -12,7 +12,7 @@ from pptx import Presentation
 from pptx.enum.text import MSO_AUTO_SIZE
 from pptx.util import Inches, Pt
 
-from .helpers import test_file, test_pptx
+from .helpers import test_pptx
 
 
 # given ===================================================
@@ -79,8 +79,10 @@ def when_I_assign_value_to_text_frame_word_wrap(context, value):
 
 @when('I call TextFrame.fit_text()')
 def when_I_call_TextFrame_fit_text(context):
-    font_file = test_file('calibriz.ttf')
-    context.text_frame.fit_text(bold=True, italic=True, font_file=font_file)
+    # from .helpers import test_file
+    # font_file = test_file('calibriz.ttf')
+    # context.text_frame.fit_text(bold=True, italic=True, font_file=font_file)
+    context.text_frame.fit_text(font_family='Arial', bold=True, italic=True)
 
 
 # then ====================================================
