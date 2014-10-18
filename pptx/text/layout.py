@@ -6,6 +6,8 @@ Objects related to layout of rendered text, such as TextFitter.
 
 from __future__ import absolute_import, print_function
 
+from PIL import ImageFont
+
 
 class TextFitter(tuple):
     """
@@ -261,10 +263,34 @@ class _Line(tuple):
         return self[0]
 
 
+class _Fonts(object):
+    """
+    A memoizing cache for ImageFont objects.
+    """
+    fonts = {}
+
+    @classmethod
+    def font(cls, font_path, point_size):
+        if (font_path, point_size) not in cls.fonts:
+            cls.fonts[(font_path, point_size)] = ImageFont.truetype(
+                font_path, point_size
+            )
+        return cls.fonts[(font_path, point_size)]
+
+
 def _rendered_size(text, point_size, font_file):
     """
     Return a (width, height) pair representing the size of *text* in English
     Metric Units (EMU) when rendered at *point_size* in the font defined in
     *font_file*.
     """
-    raise NotImplementedError
+    emu_per_inch = 914400
+    px_per_inch = 72.0
+
+    font = _Fonts.font(font_file, point_size)
+    px_width, px_height = font.getsize(text)
+
+    emu_width = int(px_width / px_per_inch * emu_per_inch)
+    emu_height = int(px_height / px_per_inch * emu_per_inch)
+
+    return emu_width, emu_height

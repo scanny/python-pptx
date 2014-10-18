@@ -9,9 +9,10 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.text.layout import (
-    _BinarySearchTree, _Line, _LineSource, TextFitter
+    _BinarySearchTree, _Line, _LineSource, _rendered_size, TextFitter
 )
 
+from ..unitutil.file import testfile
 from ..unitutil.mock import (
     call, class_mock, function_mock, initializer_mock, instance_mock,
     method_mock, property_mock
@@ -272,3 +273,22 @@ class Describe_LineSource(object):
             ('foo bar baz', _LineSource('')),
         )
         assert all((a == b) for a, b in zip(expected, line_source))
+
+
+class Describe_rendered_size(object):
+
+    def it_calculates_the_rendered_size_of_text_at_point_size(self, fixture):
+        text, point_size, font_file, expected_value = fixture
+        extents = _rendered_size(text, point_size, font_file)
+        assert extents == expected_value
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        ('Typical',     18, (673100, 254000)),
+        ('foo bar baz', 12, (698500, 165100)),
+    ])
+    def fixture(self, request):
+        text, point_size, expected_value = request.param
+        font_file = testfile('calibriz.ttf')
+        return text, point_size, font_file, expected_value
