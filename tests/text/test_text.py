@@ -130,6 +130,15 @@ class DescribeTextFrame(object):
         text_frame = Shape(element(sp_cxml), None).text_frame
         assert text_frame._extents == (731520, 822960)
 
+    def it_applies_fit_to_help_fit_text(self, apply_fit_fixture):
+        text_frame, family, font_size, bold, italic = apply_fit_fixture
+        text_frame._apply_fit(family, font_size, bold, italic)
+        assert text_frame.auto_size is MSO_AUTO_SIZE.NONE
+        assert text_frame.word_wrap is True
+        text_frame._set_font.assert_called_once_with(
+            family, font_size, bold, italic
+        )
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -167,6 +176,13 @@ class DescribeTextFrame(object):
         text_frame = TextFrame(element(txBody_cxml), None)
         expected_xml = xml(expected_cxml)
         return text_frame, new_value, expected_xml
+
+    @pytest.fixture
+    def apply_fit_fixture(self, _set_font_):
+        txBody = element('p:txBody/a:bodyPr')
+        text_frame = TextFrame(txBody, None)
+        family, font_size, bold, italic = 'Family', 42, True, False
+        return text_frame, family, font_size, bold, italic
 
     @pytest.fixture(params=[
         ('p:txBody/a:bodyPr', None),
@@ -335,6 +351,10 @@ class DescribeTextFrame(object):
     @pytest.fixture
     def FontFiles_(self, request):
         return class_mock(request, 'pptx.text.text.FontFiles')
+
+    @pytest.fixture
+    def _set_font_(self, request):
+        return method_mock(request, TextFrame, '_set_font')
 
     @pytest.fixture
     def TextFitter_(self, request):

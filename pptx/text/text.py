@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 
 from ..dml.fill import FillFormat
 from ..enum.dml import MSO_FILL
-from ..enum.text import MSO_UNDERLINE
+from ..enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE
 from .fonts import FontFiles
 from .layout import TextFitter
 from ..opc.constants import RELATIONSHIP_TYPE as RT
@@ -201,7 +201,9 @@ class TextFrame(Subshape):
         setting auto size off, wrap on, and setting the font of all its text
         to *font_family*, *font_size*, *is_bold*, and *is_italic*.
         """
-        raise NotImplementedError
+        self.auto_size = MSO_AUTO_SIZE.NONE
+        self.word_wrap = True
+        self._set_font(font_family, font_size, is_bold, is_italic)
 
     def _best_fit_font_size(self, family, max_size, bold, italic, font_file):
         """
@@ -231,6 +233,13 @@ class TextFrame(Subshape):
             self._parent.width - self.margin_left - self.margin_right,
             self._parent.height - self.margin_top - self.margin_bottom
         )
+
+    def _set_font(self, family, size, bold, italic):
+        """
+        Set the font properties of all the text in this text frame to
+        *family*, *size*, *bold*, and *italic*.
+        """
+        raise NotImplementedError
 
 
 class Font(object):
