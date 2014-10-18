@@ -8,7 +8,9 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.text.layout import _BinarySearchTree, _LineSource, TextFitter
+from pptx.text.layout import (
+    _BinarySearchTree, _Line, _LineSource, TextFitter
+)
 
 from ..unitutil.mock import (
     call, class_mock, function_mock, initializer_mock, instance_mock,
@@ -58,6 +60,18 @@ class DescribeTextFitter(object):
             'Ty', point_size, text_fitter._font_file
         )
         assert result is expected_bool_value
+
+    def it_provides_a_fits_in_width_predicate_fn(self, fits_cx_pred_fixture):
+        text_fitter, point_size, line = fits_cx_pred_fixture[:3]
+        _rendered_size_, expected_value = fits_cx_pred_fixture[3:]
+
+        predicate = text_fitter._fits_in_width_predicate(point_size)
+        result = predicate(line)
+
+        _rendered_size_.assert_called_once_with(
+            line.text, point_size, text_fitter._font_file
+        )
+        assert result is expected_value
 
     def it_wraps_lines_to_help_best_fit(self, wrap_fixture):
         text_fitter, line_source, point_size, remainder = wrap_fixture
@@ -122,6 +136,16 @@ class DescribeTextFitter(object):
         return (
             text_fitter, line_source_, point_size, _BinarySearchTree_, bst_,
             predicate_, max_value_
+        )
+
+    @pytest.fixture(params=[(49, True), (50, True), (51, False)])
+    def fits_cx_pred_fixture(self, request, _rendered_size_):
+        rendered_width, expected_value = request.param
+        text_fitter = TextFitter(None, (50, None), 'foobar.ttf')
+        point_size, line = 12, _Line('foobar', None)
+        _rendered_size_.return_value = (rendered_width, None)
+        return (
+            text_fitter, point_size, line, _rendered_size_, expected_value
         )
 
     @pytest.fixture(params=[

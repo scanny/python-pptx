@@ -53,7 +53,15 @@ class TextFitter(tuple):
         that text fits in this fitter when rendered at *point_size*. Used as
         predicate for _break_line()
         """
-        raise NotImplementedError
+        def predicate(line):
+            """
+            Return |True| if *line* fits in this fitter when rendered at
+            *point_size*.
+            """
+            cx = _rendered_size(line.text, point_size, self._font_file)[0]
+            return cx <= self._width
+
+        return predicate
 
     @property
     def _fits_inside_predicate(self):
@@ -85,6 +93,10 @@ class TextFitter(tuple):
     @property
     def _line_source(self):
         return self[0]
+
+    @property
+    def _width(self):
+        return self[1]
 
     def _wrap_lines(self, line_source, point_size):
         """
