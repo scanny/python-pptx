@@ -192,12 +192,61 @@ class _LineSource(object):
     def __init__(self, text):
         self._text = text
 
+    def __eq__(self, other):
+        return self._text == other._text
+
+    def __iter__(self):
+        """
+        Generate a (text, remainder) pair for each possible even-word line
+        break in this line source, where *text* is a str value and remainder
+        is a |_LineSource| value.
+        """
+        words = self._text.split()
+        for idx in range(1, len(words)+1):
+            line_text = ' '.join(words[:idx])
+            remainder_text = ' '.join(words[idx:])
+            remainder = _LineSource(remainder_text)
+            yield _Line(line_text, remainder)
+
     def __nonzero__(self):
         """
         Gives this object boolean behaviors. bool(line_source) is False if it
         contains the empty string or whitespace only.
         """
         return self._text.strip() != ''
+
+    def __repr__(self):
+        return "<_LineSource('%s')>" % self._text
+
+
+class _Line(tuple):
+    """
+    A candidate line broken at an even word boundary from a string of text,
+    and a |_LineSource| value containing the text that remains after the line
+    is broken at this spot.
+    """
+    def __new__(cls, text, remainder):
+        return tuple.__new__(cls, (text, remainder))
+
+    def __gt__(self, other):
+        return len(self.text) > len(other.text)
+
+    def __lt__(self, other):
+        return not self.__gt__(other)
+
+    def __len__(self):
+        return len(self.text)
+
+    def __repr__(self):
+        return "'%s' => '%s'" % (self.text, self.remainder)
+
+    @property
+    def remainder(self):
+        return self[1]
+
+    @property
+    def text(self):
+        return self[0]
 
 
 def _rendered_size(text, point_size, font_file):

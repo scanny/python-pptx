@@ -236,3 +236,15 @@ class Describe_BinarySearchTree(object):
         seq, predicate, expected_value = request.param
         bst = _BinarySearchTree.from_ordered_sequence(seq)
         return bst, predicate, expected_value
+
+
+class Describe_LineSource(object):
+
+    def it_generates_text_remainder_pairs(self):
+        line_source = _LineSource('foo bar baz')
+        expected = (
+            ('foo',         _LineSource('bar baz')),
+            ('foo bar',     _LineSource('baz')),
+            ('foo bar baz', _LineSource('')),
+        )
+        assert all((a == b) for a, b in zip(expected, line_source))
