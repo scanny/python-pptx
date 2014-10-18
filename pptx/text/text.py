@@ -14,7 +14,7 @@ from .layout import TextFitter
 from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..oxml.simpletypes import ST_TextWrappingType
 from ..shapes import Subshape
-from ..util import Centipoints, Emu, lazyproperty, to_unicode
+from ..util import Centipoints, Emu, lazyproperty, Pt, to_unicode
 
 
 class TextFrame(Subshape):
@@ -239,7 +239,20 @@ class TextFrame(Subshape):
         Set the font properties of all the text in this text frame to
         *family*, *size*, *bold*, and *italic*.
         """
-        raise NotImplementedError
+        def iter_rPrs(txBody):
+            for p in txBody.p_lst:
+                for elm in p.content_children:
+                    yield elm.get_or_add_rPr()
+                # generate a:endParaRPr for each <a:p> element
+                yield p.get_or_add_endParaRPr()
+
+        def set_rPr_font(rPr, name, size, bold, italic):
+            f = Font(rPr)
+            f.name, f.size, f.bold, f.italic = family, Pt(size), bold, italic
+
+        txBody = self._element
+        for rPr in iter_rPrs(txBody):
+            set_rPr_font(rPr, family, size, bold, italic)
 
 
 class Font(object):

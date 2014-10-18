@@ -139,6 +139,13 @@ class DescribeTextFrame(object):
             family, font_size, bold, italic
         )
 
+    def it_sets_its_font_to_help_fit_text(self, set_font_fixture):
+        text_frame, family, size, bold, italic, expected_xml = (
+            set_font_fixture
+        )
+        text_frame._set_font(family, size, bold, italic)
+        assert text_frame._element.xml == expected_xml
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -270,6 +277,24 @@ class DescribeTextFrame(object):
         text_frame = TextFrame(txBody, None)
         ps = txBody.xpath('.//a:p')
         return text_frame, ps
+
+    @pytest.fixture(params=[
+        ('p:txBody/(a:bodyPr,a:p/a:r)', True, False,
+         'p:txBody/(a:bodyPr,a:p/(a:r/a:rPr{sz=600,b=1,i=0}/a:latin{typeface'
+         '=F},a:endParaRPr{sz=600,b=1,i=0}/a:latin{typeface=F}))'),
+        ('p:txBody/a:p/a:br', True, False,
+         'p:txBody/a:p/(a:br/a:rPr{sz=600,b=1,i=0}/a:latin{typeface=F},a:end'
+         'ParaRPr{sz=600,b=1,i=0}/a:latin{typeface=F})'),
+        ('p:txBody/a:p/a:fld', True, False,
+         'p:txBody/a:p/(a:fld/a:rPr{sz=600,b=1,i=0}/a:latin{typeface=F},a:en'
+         'dParaRPr{sz=600,b=1,i=0}/a:latin{typeface=F})'),
+    ])
+    def set_font_fixture(self, request):
+        txBody_cxml, bold, italic, expected_cxml = request.param
+        family, size = 'F', 6
+        text_frame = TextFrame(element(txBody_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return text_frame, family, size, bold, italic, expected_xml
 
     @pytest.fixture
     def size_font_fixture(

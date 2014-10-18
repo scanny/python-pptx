@@ -233,6 +233,7 @@ class CT_TextField(BaseOxmlElement):
     """
     <a:fld> field element, for either a slide number or date field
     """
+    rPr = ZeroOrOne('a:rPr', successors=('a:pPr', 'a:t'))
     t = ZeroOrOne('a:t', successors=())
 
     @property
@@ -259,6 +260,8 @@ class CT_TextLineBreak(BaseOxmlElement):
     """
     <a:br> line break element
     """
+    rPr = ZeroOrOne('a:rPr', successors=())
+
     @property
     def text(self):
         """
