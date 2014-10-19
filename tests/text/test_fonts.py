@@ -10,7 +10,8 @@ import pytest
 
 from pptx.text.fonts import FontFiles
 
-from ..unitutil.mock import call, method_mock, var_mock
+from ..unitutil.file import test_file_dir, testfile
+from ..unitutil.mock import call, class_mock, method_mock, var_mock
 
 
 class DescribeFontFiles(object):
@@ -39,6 +40,15 @@ class DescribeFontFiles(object):
         print(font_dirs)
         print(expected_dirs)
         assert font_dirs == expected_dirs
+
+    def it_iterates_over_fonts_in_dir_to_help_find(self, iter_fixture):
+        directory, _Font_, expected_calls, expected_paths = iter_fixture
+        paths = list(FontFiles._iter_font_files_in(directory))
+
+        print(directory)
+
+        assert _Font_.open.call_args_list == expected_calls
+        assert paths == expected_paths
 
     # fixtures ---------------------------------------------
 
@@ -83,6 +93,16 @@ class DescribeFontFiles(object):
         return expected_call_args, expected_values
 
     @pytest.fixture
+    def iter_fixture(self, _Font_):
+        directory = test_file_dir
+        font_file_path = testfile('calibriz.ttf')
+        font = _Font_.open.return_value.__enter__.return_value
+        font.family_name, font.is_bold, font.is_italic = 'Arial', True, True
+        expected_calls = [call(font_file_path)]
+        expected_paths = [(('Arial', True, True), font_file_path)]
+        return directory, _Font_, expected_calls, expected_paths
+
+    @pytest.fixture
     def osx_dirs_fixture(self, request):
         import os
         os_ = var_mock(request, 'pptx.text.fonts.os')
@@ -97,6 +117,10 @@ class DescribeFontFiles(object):
         ]
 
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _Font_(self, request):
+        return class_mock(request, 'pptx.text.fonts._Font')
 
     @pytest.fixture
     def _font_directories_(self, request):
