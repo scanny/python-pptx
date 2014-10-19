@@ -102,10 +102,39 @@ class _Font(object):
     A wrapper around an OTF/TTF font file stream that knows how to parse it
     for its name and style characteristics, e.g. bold and italic.
     """
+    def __init__(self, stream):
+        self._stream = stream
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, exception_value, exception_tb):
+        self._stream.close()
 
     @classmethod
     def open(cls, font_file_path):
         """
         Return a |_Font| instance loaded from *font_file_path*.
+        """
+        return cls(_Stream.open(font_file_path))
+
+
+class _Stream(object):
+    """
+    A thin wrapper around a file that facilitates reading C-struct values
+    from a binary file.
+    """
+    @classmethod
+    def open(cls, path):
+        """
+        Return a |_Stream| providing binary access to the contents of the
+        file at *path*.
+        """
+        raise NotImplementedError
+
+    def close(self):
+        """
+        Close the wrapped file. Using the stream after closing raises an
+        exception.
         """
         raise NotImplementedError

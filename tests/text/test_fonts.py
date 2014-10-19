@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.text.fonts import FontFiles
+from pptx.text.fonts import FontFiles, _Font
 
 from ..unitutil.file import test_file_dir, testfile
 from ..unitutil.mock import call, class_mock, method_mock, var_mock
@@ -149,3 +149,27 @@ class DescribeFontFiles(object):
     @pytest.fixture
     def _windows_font_directories_(self, request):
         return method_mock(request, FontFiles, '_windows_font_directories')
+
+
+class Describe_Font(object):
+
+    def it_can_construct_from_a_font_file_path(self, open_fixture):
+        path, _Stream_, stream_ = open_fixture
+        with _Font.open(path) as f:
+            _Stream_.open.assert_called_once_with(path)
+            assert isinstance(f, _Font)
+        stream_.close.assert_called_once_with()
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def open_fixture(self, _Stream_):
+        path = 'foobar.ttf'
+        stream_ = _Stream_.open.return_value
+        return path, _Stream_, stream_
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _Stream_(self, request):
+        return class_mock(request, 'pptx.text.fonts._Stream')
