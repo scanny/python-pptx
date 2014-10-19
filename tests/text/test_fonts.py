@@ -8,12 +8,12 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.text.fonts import FontFiles, _Font, _Stream
+from pptx.text.fonts import _Font, FontFiles, _NameTable, _Stream
 
 from ..unitutil.file import test_file_dir, testfile
 from ..unitutil.mock import (
     call, class_mock, initializer_mock, instance_mock, method_mock,
-    open_mock, var_mock
+    open_mock, property_mock, var_mock
 )
 
 
@@ -163,7 +163,20 @@ class Describe_Font(object):
             assert isinstance(f, _Font)
         stream_.close.assert_called_once_with()
 
+    def it_knows_its_family_name(self, family_fixture):
+        font, expected_name = family_fixture
+        family_name = font.family_name
+        assert family_name == expected_name
+
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def family_fixture(self, _tables_, name_table_):
+        font = _Font(None)
+        expected_name = 'Foobar'
+        _tables_.return_value = {'name': name_table_}
+        name_table_.family_name = expected_name
+        return font, expected_name
 
     @pytest.fixture
     def open_fixture(self, _Stream_):
@@ -176,6 +189,14 @@ class Describe_Font(object):
     @pytest.fixture
     def _Stream_(self, request):
         return class_mock(request, 'pptx.text.fonts._Stream')
+
+    @pytest.fixture
+    def name_table_(self, request):
+        return instance_mock(request, _NameTable)
+
+    @pytest.fixture
+    def _tables_(self, request):
+        return property_mock(request, _Font, '_tables')
 
 
 class Describe_Stream(object):

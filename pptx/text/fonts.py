@@ -9,6 +9,8 @@ from __future__ import absolute_import, print_function
 import os
 import sys
 
+from ..util import lazyproperty
+
 
 class FontFiles(object):
     """
@@ -118,6 +120,24 @@ class _Font(object):
         """
         return cls(_Stream.open(font_file_path))
 
+    @property
+    def family_name(self):
+        """
+        The name of the typeface family for this font, e.g. 'Arial'. The full
+        typeface name includes optional style names, such as 'Regular' or
+        'Bold Italic'. This attribute is only the common base name shared by
+        all fonts in the family.
+        """
+        return self._tables['name'].family_name
+
+    @lazyproperty
+    def _tables(self):
+        """
+        A mapping of OpenType table tag, e.g. 'name', to a table object
+        providing access to the contents of that table.
+        """
+        raise NotImplementedError
+
 
 class _Stream(object):
     """
@@ -141,3 +161,30 @@ class _Stream(object):
         exception.
         """
         self._file.close()
+
+
+class _BaseTable(object):
+    """
+    Base class for OpenType font file table objects.
+    """
+    def __init__(self, tag, stream, offset, length):
+        self._tag = tag
+        self._stream = stream
+        self._offset = offset
+        self._length = length
+
+
+class _NameTable(_BaseTable):
+    """
+    An OpenType font table having the tag 'name' and containing the
+    name-related strings for the font.
+    """
+    def __init__(self, stream, offset, length):
+        super(_NameTable, self).__init__('name', stream, offset, length)
+
+    @property
+    def family_name(self):
+        """
+        The name of the typeface family for this font, e.g. 'Arial'.
+        """
+        raise NotImplementedError
