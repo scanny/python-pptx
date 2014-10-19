@@ -130,13 +130,23 @@ class _Font(object):
         """
         return self._tables['name'].family_name
 
+    def _iter_table_records(self):
+        """
+        Generate a (tag, offset, length) 3-tuple for each of the tables in
+        this font file.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def _tables(self):
         """
         A mapping of OpenType table tag, e.g. 'name', to a table object
         providing access to the contents of that table.
         """
-        raise NotImplementedError
+        return dict(
+            (tag, _TableFactory(tag, self._stream, off, len_))
+            for tag, off, len_ in self._iter_table_records()
+        )
 
 
 class _Stream(object):
@@ -174,6 +184,15 @@ class _BaseTable(object):
         self._length = length
 
 
+class _HeadTable(_BaseTable):
+    """
+    OpenType font table having the tag 'head' and containing certain header
+    information for the font, including its bold and/or italic style.
+    """
+    def __init__(self, stream, offset, length):
+        super(_HeadTable, self).__init__('head', stream, offset, length)
+
+
 class _NameTable(_BaseTable):
     """
     An OpenType font table having the tag 'name' and containing the
@@ -188,3 +207,11 @@ class _NameTable(_BaseTable):
         The name of the typeface family for this font, e.g. 'Arial'.
         """
         raise NotImplementedError
+
+
+def _TableFactory(tag, font_file, offset, length):
+    """
+    Return an instance of |Table| appropriate to *tag*, loaded from
+    *font_file* with content of *length* starting at *offset*.
+    """
+    raise NotImplementedError

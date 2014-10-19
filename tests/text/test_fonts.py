@@ -8,12 +8,12 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.text.fonts import _Font, FontFiles, _NameTable, _Stream
+from pptx.text.fonts import _Font, FontFiles, _HeadTable, _NameTable, _Stream
 
 from ..unitutil.file import test_file_dir, testfile
 from ..unitutil.mock import (
-    call, class_mock, initializer_mock, instance_mock, method_mock,
-    open_mock, property_mock, var_mock
+    call, class_mock, function_mock, initializer_mock, instance_mock,
+    method_mock, open_mock, property_mock, var_mock
 )
 
 
@@ -168,6 +168,12 @@ class Describe_Font(object):
         family_name = font.family_name
         assert family_name == expected_name
 
+    def it_provides_access_to_its_tables(self, tables_fixture):
+        font, _TableFactory_, expected_calls, expected_tables = tables_fixture
+        tables = font._tables
+        assert _TableFactory_.call_args_list == expected_calls
+        assert tables == expected_tables
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -184,15 +190,52 @@ class Describe_Font(object):
         stream_ = _Stream_.open.return_value
         return path, _Stream_, stream_
 
+    @pytest.fixture
+    def tables_fixture(
+            self, stream_, name_table_, head_table_, _iter_table_records_,
+            _TableFactory_):
+        font = _Font(stream_)
+        _iter_table_records_.return_value = iter([
+            ('name', 11, 22),
+            ('head', 33, 44),
+        ])
+        _TableFactory_.side_effect = [name_table_, head_table_]
+
+        expected_calls = [
+            call('name', stream_, 11, 22),
+            call('head', stream_, 33, 44),
+        ]
+        expected_tables = {
+            'name': name_table_,
+            'head': head_table_
+        }
+        return font, _TableFactory_, expected_calls, expected_tables
+
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def head_table_(self, request):
+        return instance_mock(request, _HeadTable)
+
+    @pytest.fixture
+    def _iter_table_records_(self, request):
+        return method_mock(request, _Font, '_iter_table_records')
+
+    @pytest.fixture
+    def name_table_(self, request):
+        return instance_mock(request, _NameTable)
 
     @pytest.fixture
     def _Stream_(self, request):
         return class_mock(request, 'pptx.text.fonts._Stream')
 
     @pytest.fixture
-    def name_table_(self, request):
-        return instance_mock(request, _NameTable)
+    def stream_(self, request):
+        return instance_mock(request, _Stream)
+
+    @pytest.fixture
+    def _TableFactory_(self, request):
+        return function_mock(request, 'pptx.text.fonts._TableFactory')
 
     @pytest.fixture
     def _tables_(self, request):
