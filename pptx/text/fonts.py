@@ -31,4 +31,26 @@ class FontFiles(object):
         containing all the font files resident on the current machine. The
         font descriptor is a (family_name, is_bold, is_italic) 3-tuple.
         """
+        fonts = {}
+        for d in cls._font_directories():
+            for key, path in cls._iter_font_files_in(d):
+                fonts[key] = path
+        return fonts
+
+    @classmethod
+    def _font_directories(cls):
+        """
+        Return a sequence of directory paths likely to contain fonts on the
+        current platform.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def _iter_font_files_in(cls, directory):
+        """
+        Generate the OpenType font files found in and under *directory*. Each
+        item is a key/value pair. The key is a (family_name, is_bold,
+        is_italic) 3-tuple, like ('Arial', True, False), and the value is the
+        absolute path to the font file.
+        """
         raise NotImplementedError
