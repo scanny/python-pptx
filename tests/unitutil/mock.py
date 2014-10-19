@@ -11,11 +11,13 @@ import sys
 if sys.version_info >= (3, 3):
     from unittest import mock  # noqa
     from unittest.mock import call, MagicMock  # noqa
-    from unittest.mock import create_autospec, Mock, patch, PropertyMock
+    from unittest.mock import (
+        create_autospec, Mock, mock_open, patch, PropertyMock
+    )
 else:
     import mock  # noqa
     from mock import call, MagicMock  # noqa
-    from mock import create_autospec, Mock, patch, PropertyMock
+    from mock import create_autospec, Mock, mock_open, patch, PropertyMock
 
 
 def class_mock(request, q_class_name, autospec=True, **kwargs):
@@ -92,6 +94,16 @@ def method_mock(request, cls, method_name, **kwargs):
     reversed after pytest uses it.
     """
     _patch = patch.object(cls, method_name, **kwargs)
+    request.addfinalizer(_patch.stop)
+    return _patch.start()
+
+
+def open_mock(request, module_name, **kwargs):
+    """
+    Return a mock for the builtin `open()` method in *module_name*.
+    """
+    target = '%s.open' % module_name
+    _patch = patch(target, mock_open(), create=True, **kwargs)
     request.addfinalizer(_patch.stop)
     return _patch.start()
 
