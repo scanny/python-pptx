@@ -6,6 +6,7 @@ Objects related to system font file lookup.
 
 from __future__ import absolute_import, print_function
 
+import os
 import sys
 
 
@@ -67,7 +68,18 @@ class FontFiles(object):
         Return a sequence of directory paths on a Mac in which fonts are
         likely to be located.
         """
-        raise NotImplementedError
+        os_x_font_dirs = [
+            '/Library/Fonts',
+            '/Network/Library/Fonts',
+            '/System/Library/Fonts',
+        ]
+        home = os.environ.get('HOME')
+        if home is not None:
+            os_x_font_dirs.extend([
+                os.path.join(home, 'Library', 'Fonts'),
+                os.path.join(home, '.fonts')
+            ])
+        return os_x_font_dirs
 
     @classmethod
     def _windows_font_directories(cls):

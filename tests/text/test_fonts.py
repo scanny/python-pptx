@@ -33,6 +33,13 @@ class DescribeFontFiles(object):
         font_dirs = FontFiles._font_directories()
         assert font_dirs == expected_values
 
+    def it_knows_os_x_font_dirs_to_help_find(self, osx_dirs_fixture):
+        expected_dirs = osx_dirs_fixture
+        font_dirs = FontFiles._os_x_font_directories()
+        print(font_dirs)
+        print(expected_dirs)
+        assert font_dirs == expected_dirs
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -74,6 +81,20 @@ class DescribeFontFiles(object):
             ('B', False, True):  'b.ttf',
         }
         return expected_call_args, expected_values
+
+    @pytest.fixture
+    def osx_dirs_fixture(self, request):
+        import os
+        os_ = var_mock(request, 'pptx.text.fonts.os')
+        os_.path = os.path
+        os_.environ = {'HOME': '/Users/fbar'}
+        return [
+            '/Library/Fonts',
+            '/Network/Library/Fonts',
+            '/System/Library/Fonts',
+            '/Users/fbar/Library/Fonts',
+            '/Users/fbar/.fonts',
+        ]
 
     # fixture components -----------------------------------
 
