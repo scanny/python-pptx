@@ -8,10 +8,12 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.text.fonts import FontFiles, _Font
+from pptx.text.fonts import FontFiles, _Font, _Stream
 
 from ..unitutil.file import test_file_dir, testfile
-from ..unitutil.mock import call, class_mock, method_mock, var_mock
+from ..unitutil.mock import (
+    call, class_mock, initializer_mock, method_mock, open_mock, var_mock
+)
 
 
 class DescribeFontFiles(object):
@@ -173,3 +175,31 @@ class Describe_Font(object):
     @pytest.fixture
     def _Stream_(self, request):
         return class_mock(request, 'pptx.text.fonts._Stream')
+
+
+class Describe_Stream(object):
+
+    def it_can_construct_from_a_path(self, open_fixture):
+        path, open_, _init_, file_ = open_fixture
+        stream = _Stream.open(path)
+        open_.assert_called_once_with(path, 'rb')
+        _init_.assert_called_once_with(file_)
+        assert isinstance(stream, _Stream)
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def open_fixture(self, open_, _init_):
+        path = 'foobar.ttf'
+        file_ = open_.return_value
+        return path, open_, _init_, file_
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _init_(self, request):
+        return initializer_mock(request, _Stream)
+
+    @pytest.fixture
+    def open_(self, request):
+        return open_mock(request, 'pptx.text.fonts')

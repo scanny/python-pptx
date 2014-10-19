@@ -124,13 +124,16 @@ class _Stream(object):
     A thin wrapper around a file that facilitates reading C-struct values
     from a binary file.
     """
+    def __init__(self, file):
+        self._file = file
+
     @classmethod
     def open(cls, path):
         """
         Return a |_Stream| providing binary access to the contents of the
         file at *path*.
         """
-        raise NotImplementedError
+        return cls(open(path, 'rb'))
 
     def close(self):
         """
