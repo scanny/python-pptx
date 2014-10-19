@@ -140,4 +140,4 @@ class _Stream(object):
         Close the wrapped file. Using the stream after closing raises an
         exception.
         """
-        raise NotImplementedError
+        self._file.close()

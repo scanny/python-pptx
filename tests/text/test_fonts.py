@@ -12,7 +12,8 @@ from pptx.text.fonts import FontFiles, _Font, _Stream
 
 from ..unitutil.file import test_file_dir, testfile
 from ..unitutil.mock import (
-    call, class_mock, initializer_mock, method_mock, open_mock, var_mock
+    call, class_mock, initializer_mock, instance_mock, method_mock,
+    open_mock, var_mock
 )
 
 
@@ -186,7 +187,17 @@ class Describe_Stream(object):
         _init_.assert_called_once_with(file_)
         assert isinstance(stream, _Stream)
 
+    def it_can_be_closed(self, close_fixture):
+        stream, file_ = close_fixture
+        stream.close()
+        file_.close.assert_called_once_with()
+
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def close_fixture(self, file_):
+        stream = _Stream(file_)
+        return stream, file_
 
     @pytest.fixture
     def open_fixture(self, open_, _init_):
@@ -195,6 +206,10 @@ class Describe_Stream(object):
         return path, open_, _init_, file_
 
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def file_(self, request):
+        return instance_mock(request, file)
 
     @pytest.fixture
     def _init_(self, request):
