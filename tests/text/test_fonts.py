@@ -10,7 +10,7 @@ import pytest
 
 from pptx.text.fonts import FontFiles
 
-from ..unitutil.mock import call, method_mock
+from ..unitutil.mock import call, method_mock, var_mock
 
 
 class DescribeFontFiles(object):
@@ -28,6 +28,11 @@ class DescribeFontFiles(object):
         )
         assert installed_fonts == expected_values
 
+    def it_generates_font_dirs_to_help_find(self, font_dirs_fixture):
+        expected_values = font_dirs_fixture
+        font_dirs = FontFiles._font_directories()
+        assert font_dirs == expected_values
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -38,6 +43,23 @@ class DescribeFontFiles(object):
     def find_fixture(self, request, _installed_fonts_):
         family_name, is_bold, is_italic, expected_path = request.param
         return family_name, is_bold, is_italic, expected_path
+
+    @pytest.fixture(params=[
+        ('darwin', ['a', 'b']),
+        ('win32',  ['c', 'd']),
+    ])
+    def font_dirs_fixture(
+            self, request, _os_x_font_directories_,
+            _windows_font_directories_):
+        platform, expected_dirs = request.param
+        dirs_meth_mock = {
+            'darwin': _os_x_font_directories_,
+            'win32':  _windows_font_directories_,
+        }[platform]
+        sys_ = var_mock(request, 'pptx.text.fonts.sys')
+        sys_.platform = platform
+        dirs_meth_mock.return_value = expected_dirs
+        return expected_dirs
 
     @pytest.fixture
     def installed_fixture(self, _iter_font_files_in_, _font_directories_):
@@ -74,3 +96,11 @@ class DescribeFontFiles(object):
     @pytest.fixture
     def _iter_font_files_in_(self, request):
         return method_mock(request, FontFiles, '_iter_font_files_in')
+
+    @pytest.fixture
+    def _os_x_font_directories_(self, request):
+        return method_mock(request, FontFiles, '_os_x_font_directories')
+
+    @pytest.fixture
+    def _windows_font_directories_(self, request):
+        return method_mock(request, FontFiles, '_windows_font_directories')

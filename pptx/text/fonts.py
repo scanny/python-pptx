@@ -6,6 +6,8 @@ Objects related to system font file lookup.
 
 from __future__ import absolute_import, print_function
 
+import sys
+
 
 class FontFiles(object):
     """
@@ -43,7 +45,11 @@ class FontFiles(object):
         Return a sequence of directory paths likely to contain fonts on the
         current platform.
         """
-        raise NotImplementedError
+        if sys.platform.startswith('darwin'):
+            return cls._os_x_font_directories()
+        if sys.platform.startswith('win32'):
+            return cls._windows_font_directories()
+        raise OSError('unsupported operating system')
 
     @classmethod
     def _iter_font_files_in(cls, directory):
@@ -52,5 +58,21 @@ class FontFiles(object):
         item is a key/value pair. The key is a (family_name, is_bold,
         is_italic) 3-tuple, like ('Arial', True, False), and the value is the
         absolute path to the font file.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def _os_x_font_directories(cls):
+        """
+        Return a sequence of directory paths on a Mac in which fonts are
+        likely to be located.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def _windows_font_directories(cls):
+        """
+        Return a sequence of directory paths on Windows in which fonts are
+        likely to be located.
         """
         raise NotImplementedError
