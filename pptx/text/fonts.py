@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 import os
 import sys
 
-from struct import unpack_from
+from struct import calcsize, unpack_from
 
 from ..util import lazyproperty
 
@@ -207,7 +207,9 @@ class _Stream(object):
         Return a tuple containing the C-struct fields in this stream
         specified by *template* and starting at *offset*.
         """
-        raise NotImplementedError
+        self._file.seek(offset)
+        bufr = self._file.read(calcsize(template))
+        return unpack_from(template, bufr)
 
 
 class _BaseTable(object):

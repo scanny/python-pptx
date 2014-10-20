@@ -8,6 +8,8 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from struct import calcsize
+
 from pptx.text.fonts import _Font, FontFiles, _HeadTable, _NameTable, _Stream
 
 from ..unitutil.file import test_file_dir, testfile
@@ -313,6 +315,13 @@ class Describe_Stream(object):
         stream.close()
         file_.close.assert_called_once_with()
 
+    def it_can_read_fields_from_a_template(self, read_flds_fixture):
+        stream, tmpl, offset, file_, expected_values = read_flds_fixture
+        fields = stream.read_fields(tmpl, offset)
+        file_.seek.assert_called_once_with(offset)
+        file_.read.assert_called_once_with(calcsize(tmpl))
+        assert fields == expected_values
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -325,6 +334,14 @@ class Describe_Stream(object):
         path = 'foobar.ttf'
         file_ = open_.return_value
         return path, open_, _init_, file_
+
+    @pytest.fixture
+    def read_flds_fixture(self, file_):
+        stream = _Stream(file_)
+        tmpl, offset = '>4sHH', 0
+        file_.read.return_value = 'foob' '\x00\x2A' '\x00\x15'
+        expected_values = ('foob', 42, 21)
+        return stream, tmpl, offset, file_, expected_values
 
     # fixture components -----------------------------------
 
