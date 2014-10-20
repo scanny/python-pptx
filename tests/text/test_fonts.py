@@ -429,7 +429,23 @@ class Describe_NameTable(object):
         header = names_table._table_header
         assert header == expected_value
 
+    def it_buffers_the_table_bytes_to_help_read_names(self, bytes_fixture):
+        name_table, expected_value = bytes_fixture
+        table_bytes = name_table._table_bytes
+        name_table._stream.read.assert_called_once_with(
+            name_table._offset, name_table._length
+        )
+        assert table_bytes == expected_value
+
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def bytes_fixture(self, stream_):
+        name_table = _NameTable(None, stream_, 42, 360)
+        bytes_ = '\x00\x01\x02\x03\x04\x05'
+        stream_.read.return_value = bytes_
+        expected_value = bytes_
+        return name_table, expected_value
 
     @pytest.fixture(params=[
         ({(0, 1): 'Foobar', (1, 1): 'Barfoo'}, 'Foobar'),
@@ -490,6 +506,10 @@ class Describe_NameTable(object):
     @pytest.fixture
     def _read_name(self, request):
         return method_mock(request, _NameTable, '_read_name')
+
+    @pytest.fixture
+    def stream_(self, request):
+        return instance_mock(request, _Stream)
 
     @pytest.fixture
     def _table_bytes_(self, request):

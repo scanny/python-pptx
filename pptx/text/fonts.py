@@ -287,7 +287,7 @@ class _NameTable(_BaseTable):
         """
         The binary contents of this name table.
         """
-        raise NotImplementedError
+        return self._stream.read(self._offset, self._length)
 
     @property
     def _table_header(self):
