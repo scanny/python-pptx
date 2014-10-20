@@ -295,7 +295,7 @@ class _NameTable(_BaseTable):
         The (table_format, name_count, strings_offset) 3-tuple contained
         in the header of this table.
         """
-        raise NotImplementedError
+        return unpack_from('>HHH', self._table_bytes)
 
     @lazyproperty
     def _names(self):

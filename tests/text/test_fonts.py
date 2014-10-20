@@ -424,6 +424,11 @@ class Describe_NameTable(object):
         assert name_table._read_name.call_args_list == expected_calls
         assert names == expected_names
 
+    def it_reads_the_table_header_to_help_read_names(self, header_fixture):
+        names_table, expected_value = header_fixture
+        header = names_table._table_header
+        assert header == expected_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -436,6 +441,13 @@ class Describe_NameTable(object):
         names, expected_value = request.param
         name_table = _NameTable(None, None, None, None)
         _names_.return_value = names
+        return name_table, expected_value
+
+    @pytest.fixture
+    def header_fixture(self, _table_bytes_):
+        name_table = _NameTable(None, None, None, None)
+        _table_bytes_.return_value = '\x00\x00\x00\x02\x00\x2A'
+        expected_value = (0, 2, 42)
         return name_table, expected_value
 
     @pytest.fixture
