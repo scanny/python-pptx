@@ -451,6 +451,11 @@ class Describe_NameTable(object):
         )
         assert name == expected_value
 
+    def it_reads_a_name_header_to_help_read_names(self, name_hdr_fixture):
+        name_table, bufr, idx, expected_value = name_hdr_fixture
+        header = name_table._name_header(bufr, idx)
+        assert header == expected_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -500,6 +505,17 @@ class Describe_NameTable(object):
             ((3, 1), 'Barfoo')
         ]
         return name_table, expected_calls, expected_names
+
+    @pytest.fixture
+    def name_hdr_fixture(self):
+        name_table = _NameTable(None, None, None, None)
+        bufr = (
+            '123456' '123456789012'
+            '\x00\x00' '\x00\x01' '\x00\x02' '\x00\x03' '\x00\x04' '\x00\x05'
+        )
+        idx = 1
+        expected_value = (0, 1, 2, 3, 4, 5)
+        return name_table, bufr, idx, expected_value
 
     @pytest.fixture
     def names_fixture(self, _iter_names_):
