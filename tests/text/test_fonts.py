@@ -418,6 +418,12 @@ class Describe_NameTable(object):
         name_table._iter_names.assert_called_once_with()
         assert names == names_dict
 
+    def it_iterates_over_its_names_to_help_read_names(self, iter_fixture):
+        name_table, expected_calls, expected_names = iter_fixture
+        names = list(name_table._iter_names())
+        assert name_table._read_name.call_args_list == expected_calls
+        assert names == expected_names
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -431,6 +437,27 @@ class Describe_NameTable(object):
         name_table = _NameTable(None, None, None, None)
         _names_.return_value = names
         return name_table, expected_value
+
+    @pytest.fixture
+    def iter_fixture(self, _table_header_, _table_bytes_, _read_name):
+        name_table = _NameTable(None, None, None, None)
+        _table_header_.return_value = (0, 3, 42)
+        _table_bytes_.return_value = 'xXx'
+        _read_name.side_effect = [
+            (0, 1, 'Foobar'),
+            (3, 1, 'Barfoo'),
+            (9, 9, None),
+        ]
+        expected_calls = [
+            call('xXx', 0, 42),
+            call('xXx', 1, 42),
+            call('xXx', 2, 42),
+        ]
+        expected_names = [
+            ((0, 1), 'Foobar'),
+            ((3, 1), 'Barfoo')
+        ]
+        return name_table, expected_calls, expected_names
 
     @pytest.fixture
     def names_fixture(self, _iter_names_):
@@ -447,6 +474,18 @@ class Describe_NameTable(object):
     @pytest.fixture
     def _iter_names_(self, request):
         return method_mock(request, _NameTable, '_iter_names')
+
+    @pytest.fixture
+    def _read_name(self, request):
+        return method_mock(request, _NameTable, '_read_name')
+
+    @pytest.fixture
+    def _table_bytes_(self, request):
+        return property_mock(request, _NameTable, '_table_bytes')
+
+    @pytest.fixture
+    def _table_header_(self, request):
+        return property_mock(request, _NameTable, '_table_header')
 
     @pytest.fixture
     def _names_(self, request):

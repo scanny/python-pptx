@@ -261,6 +261,40 @@ class _NameTable(_BaseTable):
         (platform_id, name_id) 2-tuple and the value is the unicode text
         corresponding to that key.
         """
+        table_format, count, strings_offset = self._table_header
+        table_bytes = self._table_bytes
+
+        for idx in range(count):
+            platform_id, name_id, name = self._read_name(
+                table_bytes, idx, strings_offset
+            )
+            if name is None:
+                continue
+            yield ((platform_id, name_id), name)
+
+    @staticmethod
+    def _read_name(bufr, idx, strings_offset):
+        """
+        Return a (platform_id, name_id, name) 3-tuple like (0, 1, 'Arial')
+        for the name at *idx* position in *bufr*. *strings_offset* is the
+        index into *bufr* where actual name strings begin. The returned name
+        is a unicode string.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
+    def _table_bytes(self):
+        """
+        The binary contents of this name table.
+        """
+        raise NotImplementedError
+
+    @property
+    def _table_header(self):
+        """
+        The (table_format, name_count, strings_offset) 3-tuple contained
+        in the header of this table.
+        """
         raise NotImplementedError
 
     @lazyproperty
