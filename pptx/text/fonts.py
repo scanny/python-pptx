@@ -255,13 +255,21 @@ class _NameTable(_BaseTable):
         # keys for Unicode, Mac, and Windows family name, respectively
         return find_first(self._names, ((0, 1), (1, 1), (3, 1)))
 
+    def _iter_names(self):
+        """
+        Generate a key/value pair for each name in this table. The key is a
+        (platform_id, name_id) 2-tuple and the value is the unicode text
+        corresponding to that key.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def _names(self):
         """
         A mapping of (platform_id, name_id) keys to string names for this
         font.
         """
-        raise NotImplementedError
+        return dict(self._iter_names())
 
 
 def _TableFactory(tag, stream, offset, length):

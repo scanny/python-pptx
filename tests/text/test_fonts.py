@@ -412,6 +412,12 @@ class Describe_NameTable(object):
         family_name = name_table.family_name
         assert family_name == expected_value
 
+    def it_provides_access_to_its_names_to_help_props(self, names_fixture):
+        name_table, names_dict = names_fixture
+        names = name_table._names
+        name_table._iter_names.assert_called_once_with()
+        assert names == names_dict
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -426,7 +432,21 @@ class Describe_NameTable(object):
         _names_.return_value = names
         return name_table, expected_value
 
+    @pytest.fixture
+    def names_fixture(self, _iter_names_):
+        name_table = _NameTable(None, None, None, None)
+        _iter_names_.return_value = iter([
+            ((0, 1), 'Foobar'),
+            ((3, 1), 'Barfoo'),
+        ])
+        names_dict = {(0, 1): 'Foobar', (3, 1): 'Barfoo'}
+        return name_table, names_dict
+
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _iter_names_(self, request):
+        return method_mock(request, _NameTable, '_iter_names')
 
     @pytest.fixture
     def _names_(self, request):
