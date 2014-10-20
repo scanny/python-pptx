@@ -132,6 +132,15 @@ class _Font(object):
         """
         return self._tables['name'].family_name
 
+    @lazyproperty
+    def _fields(self):
+        """
+        A 5-tuple containing the fields read from the font file header, also
+        known as the offset table.
+        """
+        # sfnt_version, tbl_count, search_range, entry_selector, range_shift
+        raise NotImplementedError
+
     def _iter_table_records(self):
         """
         Generate a (tag, offset, length) 3-tuple for each of the tables in
@@ -161,7 +170,7 @@ class _Font(object):
         """
         The number of tables in this OpenType font file.
         """
-        raise NotImplementedError
+        return self._fields[1]
 
 
 class _Stream(object):

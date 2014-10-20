@@ -179,6 +179,10 @@ class Describe_Font(object):
         values = list(font._iter_table_records())
         assert values == expected_values
 
+    def it_knows_the_table_count_to_help_read(self, table_count_fixture):
+        font, expected_value = table_count_fixture
+        assert font._table_count == expected_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -228,7 +232,18 @@ class Describe_Font(object):
         }
         return font, _TableFactory_, expected_calls, expected_tables
 
+    @pytest.fixture
+    def table_count_fixture(self, _fields_):
+        font = _Font(None)
+        _fields_.return_value = (-666, 42)
+        expected_value = 42
+        return font, expected_value
+
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _fields_(self, request):
+        return property_mock(request, _Font, '_fields')
 
     @pytest.fixture
     def head_table_(self, request):
