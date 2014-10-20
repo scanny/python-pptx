@@ -273,12 +273,35 @@ class _NameTable(_BaseTable):
             yield ((platform_id, name_id), name)
 
     @staticmethod
-    def _read_name(bufr, idx, strings_offset):
+    def _name_header(bufr, idx):
+        """
+        The (platform_id, encoding_id, language_id, name_id, length,
+        name_str_offset) 6-tuple encoded in each name record C-struct.
+        """
+        raise NotImplementedError
+
+    def _read_name(self, bufr, idx, strings_offset):
         """
         Return a (platform_id, name_id, name) 3-tuple like (0, 1, 'Arial')
         for the name at *idx* position in *bufr*. *strings_offset* is the
         index into *bufr* where actual name strings begin. The returned name
         is a unicode string.
+        """
+        platform_id, encoding_id, lang_id, name_id, length, str_offset = (
+            self._name_header(bufr, idx)
+        )
+        name = self._read_name_text(
+            bufr, platform_id, encoding_id, strings_offset, str_offset,
+            length
+        )
+        return platform_id, name_id, name
+
+    def _read_name_text(
+            self, bufr, platform_id, encoding_id, strings_offset,
+            name_str_offset, length):
+        """
+        Return the unicode name string at *name_str_offset* or |None| if
+        decoding its format is not supported.
         """
         raise NotImplementedError
 

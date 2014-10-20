@@ -437,6 +437,20 @@ class Describe_NameTable(object):
         )
         assert table_bytes == expected_value
 
+    def it_reads_a_name_to_help_read_names(self, read_fixture):
+        name_table, bufr, idx, strs_offset, platform_id = read_fixture[:5]
+        encoding_id, name_str_offset, length = read_fixture[5:8]
+        expected_value = read_fixture[8]
+
+        name = name_table._read_name(bufr, idx, strs_offset)
+
+        name_table._name_header.assert_called_once_with(bufr, idx)
+        name_table._read_name_text.assert_called_once_with(
+            bufr, platform_id, encoding_id, strs_offset, name_str_offset,
+            length
+        )
+        assert name == expected_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -497,6 +511,21 @@ class Describe_NameTable(object):
         names_dict = {(0, 1): 'Foobar', (3, 1): 'Barfoo'}
         return name_table, names_dict
 
+    @pytest.fixture
+    def read_fixture(self, _name_header, _read_name_text):
+        name_table = _NameTable(None, None, None, None)
+        bufr, idx, strs_offset, platform_id, name_id = 'buffer', 3, 47, 0, 1
+        encoding_id, name_str_offset, length, name = 7, 36, 12, 'Arial'
+        _name_header.return_value = (
+            platform_id, encoding_id, 666, name_id, length, name_str_offset
+        )
+        _read_name_text.return_value = name
+        expected_value = (platform_id, name_id, name)
+        return (
+            name_table, bufr, idx, strs_offset, platform_id, encoding_id,
+            name_str_offset, length, expected_value
+        )
+
     # fixture components -----------------------------------
 
     @pytest.fixture
@@ -504,8 +533,16 @@ class Describe_NameTable(object):
         return method_mock(request, _NameTable, '_iter_names')
 
     @pytest.fixture
+    def _name_header(self, request):
+        return method_mock(request, _NameTable, '_name_header')
+
+    @pytest.fixture
     def _read_name(self, request):
         return method_mock(request, _NameTable, '_read_name')
+
+    @pytest.fixture
+    def _read_name_text(self, request):
+        return method_mock(request, _NameTable, '_read_name_text')
 
     @pytest.fixture
     def stream_(self, request):
