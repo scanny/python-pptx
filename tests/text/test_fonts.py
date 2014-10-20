@@ -174,6 +174,11 @@ class Describe_Font(object):
         assert _TableFactory_.call_args_list == expected_calls
         assert tables == expected_tables
 
+    def it_generates_table_records_to_help_read_tables(self, iter_fixture):
+        font, expected_values = iter_fixture
+        values = list(font._iter_table_records())
+        assert values == expected_values
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -183,6 +188,18 @@ class Describe_Font(object):
         _tables_.return_value = {'name': name_table_}
         name_table_.family_name = expected_name
         return font, expected_name
+
+    @pytest.fixture
+    def iter_fixture(self, _table_count_, stream_read_):
+        stream = _Stream(None)
+        font = _Font(stream)
+        _table_count_.return_value = 2
+        stream_read_.return_value = (
+            'name' 'xxxx' '\x00\x00\x00\x2A' '\x00\x00\x00\x15'
+            'head' 'xxxx' '\x00\x00\x00\x15' '\x00\x00\x00\x2A'
+        )
+        expected_values = [('name', 42, 21), ('head', 21, 42)]
+        return font, expected_values
 
     @pytest.fixture
     def open_fixture(self, _Stream_):
@@ -234,8 +251,16 @@ class Describe_Font(object):
         return instance_mock(request, _Stream)
 
     @pytest.fixture
+    def stream_read_(self, request):
+        return method_mock(request, _Stream, 'read')
+
+    @pytest.fixture
     def _TableFactory_(self, request):
         return function_mock(request, 'pptx.text.fonts._TableFactory')
+
+    @pytest.fixture
+    def _table_count_(self, request):
+        return property_mock(request, _Font, '_table_count')
 
     @pytest.fixture
     def _tables_(self, request):

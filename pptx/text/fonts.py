@@ -9,6 +9,8 @@ from __future__ import absolute_import, print_function
 import os
 import sys
 
+from struct import unpack_from
+
 from ..util import lazyproperty
 
 
@@ -135,7 +137,13 @@ class _Font(object):
         Generate a (tag, offset, length) 3-tuple for each of the tables in
         this font file.
         """
-        raise NotImplementedError
+        count = self._table_count
+        bufr = self._stream.read(offset=12, length=count*16)
+        tmpl = '>4sLLL'
+        for i in range(count):
+            offset = i * 16
+            tag, checksum, off, len_ = unpack_from(tmpl, bufr, offset)
+            yield tag, off, len_
 
     @lazyproperty
     def _tables(self):
@@ -147,6 +155,13 @@ class _Font(object):
             (tag, _TableFactory(tag, self._stream, off, len_))
             for tag, off, len_ in self._iter_table_records()
         )
+
+    @property
+    def _table_count(self):
+        """
+        The number of tables in this OpenType font file.
+        """
+        raise NotImplementedError
 
 
 class _Stream(object):
@@ -171,6 +186,12 @@ class _Stream(object):
         exception.
         """
         self._file.close()
+
+    def read(self, offset, length):
+        """
+        Return *length* bytes from this stream starting at *offset*.
+        """
+        raise NotImplementedError
 
 
 class _BaseTable(object):
