@@ -403,3 +403,31 @@ class Describe_TableFactory(object):
     @pytest.fixture
     def stream_(self, request):
         return instance_mock(request, _Stream)
+
+
+class Describe_NameTable(object):
+
+    def it_knows_the_font_family_name(self, family_fixture):
+        name_table, expected_value = family_fixture
+        family_name = name_table.family_name
+        assert family_name == expected_value
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        ({(0, 1): 'Foobar', (1, 1): 'Barfoo'}, 'Foobar'),
+        ({(1, 1): 'Barfoo', (3, 1): 'Farbaz'}, 'Barfoo'),
+        ({(3, 1): 'Farbaz', (6, 2): 'BazFoo'}, 'Farbaz'),
+        ({(9, 1): 'Foobar', (6, 1): 'Barfoo'}, None),
+    ])
+    def family_fixture(self, request, _names_):
+        names, expected_value = request.param
+        name_table = _NameTable(None, None, None, None)
+        _names_.return_value = names
+        return name_table, expected_value
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _names_(self, request):
+        return property_mock(request, _NameTable, '_names')

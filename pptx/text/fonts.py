@@ -246,6 +246,21 @@ class _NameTable(_BaseTable):
         """
         The name of the typeface family for this font, e.g. 'Arial'.
         """
+        def find_first(dict_, keys, default=None):
+            for key in keys:
+                value = dict_.get(key)
+                if value is not None:
+                    return value
+            return default
+        # keys for Unicode, Mac, and Windows family name, respectively
+        return find_first(self._names, ((0, 1), (1, 1), (3, 1)))
+
+    @lazyproperty
+    def _names(self):
+        """
+        A mapping of (platform_id, name_id) keys to string names for this
+        font.
+        """
         raise NotImplementedError
 
 
