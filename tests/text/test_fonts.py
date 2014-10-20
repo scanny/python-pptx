@@ -322,6 +322,13 @@ class Describe_Stream(object):
         file_.read.assert_called_once_with(calcsize(tmpl))
         assert fields == expected_values
 
+    def it_can_read_bytes(self, read_fixture):
+        stream, offset, length, file_, expected_value = read_fixture
+        bytes_ = stream.read(offset, length)
+        file_.seek.assert_called_once_with(offset)
+        file_.read.assert_called_once_with(length)
+        assert bytes_ == expected_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -334,6 +341,14 @@ class Describe_Stream(object):
         path = 'foobar.ttf'
         file_ = open_.return_value
         return path, open_, _init_, file_
+
+    @pytest.fixture
+    def read_fixture(self, file_):
+        stream = _Stream(file_)
+        offset, length = 42, 21
+        file_.read.return_value = 'foobar'
+        expected_value = 'foobar'
+        return stream, offset, length, file_, expected_value
 
     @pytest.fixture
     def read_flds_fixture(self, file_):

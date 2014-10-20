@@ -200,7 +200,8 @@ class _Stream(object):
         """
         Return *length* bytes from this stream starting at *offset*.
         """
-        raise NotImplementedError
+        self._file.seek(offset)
+        return self._file.read(length)
 
     def read_fields(self, template, offset=0):
         """
