@@ -183,6 +183,12 @@ class Describe_Font(object):
         font, expected_value = table_count_fixture
         assert font._table_count == expected_value
 
+    def it_reads_the_header_to_help_read_font(self, fields_fixture):
+        font, expected_values = fields_fixture
+        fields = font._fields
+        font._stream.read_fields.assert_called_once_with('>4sHHHH', 0)
+        assert fields == expected_values
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -192,6 +198,13 @@ class Describe_Font(object):
         _tables_.return_value = {'name': name_table_}
         name_table_.family_name = expected_name
         return font, expected_name
+
+    @pytest.fixture
+    def fields_fixture(self, read_fields_):
+        stream = _Stream(None)
+        font = _Font(stream)
+        read_fields_.return_value = expected_values = ('foob', 42, 64, 7, 16)
+        return font, expected_values
 
     @pytest.fixture
     def iter_fixture(self, _table_count_, stream_read_):
@@ -256,6 +269,10 @@ class Describe_Font(object):
     @pytest.fixture
     def name_table_(self, request):
         return instance_mock(request, _NameTable)
+
+    @pytest.fixture
+    def read_fields_(self, request):
+        return method_mock(request, _Stream, 'read_fields')
 
     @pytest.fixture
     def _Stream_(self, request):

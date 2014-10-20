@@ -139,7 +139,7 @@ class _Font(object):
         known as the offset table.
         """
         # sfnt_version, tbl_count, search_range, entry_selector, range_shift
-        raise NotImplementedError
+        return self._stream.read_fields('>4sHHHH', 0)
 
     def _iter_table_records(self):
         """
@@ -199,6 +199,13 @@ class _Stream(object):
     def read(self, offset, length):
         """
         Return *length* bytes from this stream starting at *offset*.
+        """
+        raise NotImplementedError
+
+    def read_fields(self, template, offset=0):
+        """
+        Return a tuple containing the C-struct fields in this stream
+        specified by *template* and starting at *offset*.
         """
         raise NotImplementedError
 
