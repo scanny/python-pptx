@@ -229,8 +229,8 @@ class _HeadTable(_BaseTable):
     OpenType font table having the tag 'head' and containing certain header
     information for the font, including its bold and/or italic style.
     """
-    def __init__(self, stream, offset, length):
-        super(_HeadTable, self).__init__('head', stream, offset, length)
+    def __init__(self, tag, stream, offset, length):
+        super(_HeadTable, self).__init__(tag, stream, offset, length)
 
 
 class _NameTable(_BaseTable):
@@ -238,8 +238,8 @@ class _NameTable(_BaseTable):
     An OpenType font table having the tag 'name' and containing the
     name-related strings for the font.
     """
-    def __init__(self, stream, offset, length):
-        super(_NameTable, self).__init__('name', stream, offset, length)
+    def __init__(self, tag, stream, offset, length):
+        super(_NameTable, self).__init__(tag, stream, offset, length)
 
     @property
     def family_name(self):
@@ -249,9 +249,13 @@ class _NameTable(_BaseTable):
         raise NotImplementedError
 
 
-def _TableFactory(tag, font_file, offset, length):
+def _TableFactory(tag, stream, offset, length):
     """
     Return an instance of |Table| appropriate to *tag*, loaded from
     *font_file* with content of *length* starting at *offset*.
     """
-    raise NotImplementedError
+    TableClass = {
+        'head': _HeadTable,
+        'name': _NameTable,
+    }.get(tag, _BaseTable)
+    return TableClass(tag, stream, offset, length)

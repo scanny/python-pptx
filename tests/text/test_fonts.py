@@ -10,7 +10,10 @@ import pytest
 
 from struct import calcsize
 
-from pptx.text.fonts import _Font, FontFiles, _HeadTable, _NameTable, _Stream
+from pptx.text.fonts import (
+    _BaseTable, _Font, FontFiles, _HeadTable, _NameTable, _Stream,
+    _TableFactory
+)
 
 from ..unitutil.file import test_file_dir, testfile
 from ..unitutil.mock import (
@@ -58,9 +61,9 @@ class DescribeFontFiles(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
-        ('Foobar',  False, False, 'foobar.ttf'),
-        ('Foobar',  True,  False, 'foobarb.ttf'),
-        ('Barfoo',  False, True,  'barfooi.ttf'),
+        ('Foobar', False, False, 'foobar.ttf'),
+        ('Foobar', True,  False, 'foobarb.ttf'),
+        ('Barfoo', False, True,  'barfooi.ttf'),
     ])
     def find_fixture(self, request, _installed_fonts_):
         family_name, is_bold, is_italic, expected_path = request.param
@@ -371,3 +374,32 @@ class Describe_Stream(object):
     @pytest.fixture
     def open_(self, request):
         return open_mock(request, 'pptx.text.fonts')
+
+
+class Describe_TableFactory(object):
+
+    def it_constructs_the_appropriate_table_object(self, fixture):
+        tag, stream_, offset, length, TableClass_, TableClass = fixture
+        table = _TableFactory(tag, stream_, offset, length)
+        TableClass_.assert_called_once_with(tag, stream_, offset, length)
+        assert isinstance(table, TableClass)
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=['name', 'head', 'foob'])
+    def fixture(self, request, stream_):
+        tag = request.param
+        offset, length = 42, 21
+        TableClass, target = {
+            'name': (_NameTable, 'pptx.text.fonts._NameTable'),
+            'head': (_HeadTable, 'pptx.text.fonts._HeadTable'),
+            'foob': (_BaseTable, 'pptx.text.fonts._BaseTable'),
+        }[tag]
+        TableClass_ = class_mock(request, target)
+        return tag, stream_, offset, length, TableClass_, TableClass
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def stream_(self, request):
+        return instance_mock(request, _Stream)
