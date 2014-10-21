@@ -116,8 +116,8 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
     @property
     def _barDir_xml(self):
         XL = XL_CHART_TYPE
-        bar_types = (XL.BAR_CLUSTERED, XL.BAR_STACKED_100)
-        col_types = (XL.COLUMN_CLUSTERED, XL.BAR_STACKED)
+        bar_types = (XL.BAR_CLUSTERED, XL.BAR_STACKED_100, XL.BAR_STACKED)
+        col_types = (XL.COLUMN_CLUSTERED,)
         if self._chart_type in bar_types:
             return '        <c:barDir val="bar"/>\n'
         elif self._chart_type in col_types:
@@ -132,7 +132,7 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             XL_CHART_TYPE.BAR_CLUSTERED:    'l',
             XL_CHART_TYPE.BAR_STACKED_100:  'l',
             XL_CHART_TYPE.COLUMN_CLUSTERED: 'b',
-            XL_CHART_TYPE.BAR_STACKED: 'b',
+            XL_CHART_TYPE.BAR_STACKED: 'l',
         }[self._chart_type]
 
     @property
@@ -181,7 +181,7 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             XL_CHART_TYPE.BAR_CLUSTERED:    'b',
             XL_CHART_TYPE.BAR_STACKED_100:  'b',
             XL_CHART_TYPE.COLUMN_CLUSTERED: 'l',
-            XL_CHART_TYPE.BAR_STACKED: 'l',
+            XL_CHART_TYPE.BAR_STACKED: 'b',
         }[self._chart_type]
 
 
