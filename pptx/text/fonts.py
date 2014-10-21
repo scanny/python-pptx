@@ -255,6 +255,13 @@ class _NameTable(_BaseTable):
         # keys for Unicode, Mac, and Windows family name, respectively
         return find_first(self._names, ((0, 1), (1, 1), (3, 1)))
 
+    def _decode_name(self, raw_name, platform_id, encoding_id):
+        """
+        Return the unicode name decoded from *raw_name* using the encoding
+        implied by the combination of *platform_id* and *encoding_id*.
+        """
+        raise NotImplementedError
+
     def _iter_names(self):
         """
         Generate a key/value pair for each name in this table. The key is a
@@ -281,6 +288,13 @@ class _NameTable(_BaseTable):
         name_hdr_offset = 6 + idx*12
         return unpack_from('>HHHHHH', bufr, name_hdr_offset)
 
+    def _raw_name_string(self, bufr, strings_offset, str_offset, length):
+        """
+        Return the *length* bytes comprising the encoded string in *bufr* at
+        *str_offset* in the strings area beginning at *strings_offset*.
+        """
+        raise NotImplementedError
+
     def _read_name(self, bufr, idx, strings_offset):
         """
         Return a (platform_id, name_id, name) 3-tuple like (0, 1, 'Arial')
@@ -304,7 +318,10 @@ class _NameTable(_BaseTable):
         Return the unicode name string at *name_str_offset* or |None| if
         decoding its format is not supported.
         """
-        raise NotImplementedError
+        raw_name = self._raw_name_string(
+            bufr, strings_offset, name_str_offset, length
+        )
+        return self._decode_name(raw_name, platform_id, encoding_id)
 
     @lazyproperty
     def _table_bytes(self):
