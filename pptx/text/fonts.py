@@ -288,12 +288,15 @@ class _NameTable(_BaseTable):
         name_hdr_offset = 6 + idx*12
         return unpack_from('>HHHHHH', bufr, name_hdr_offset)
 
-    def _raw_name_string(self, bufr, strings_offset, str_offset, length):
+    @staticmethod
+    def _raw_name_string(bufr, strings_offset, str_offset, length):
         """
         Return the *length* bytes comprising the encoded string in *bufr* at
         *str_offset* in the strings area beginning at *strings_offset*.
         """
-        raise NotImplementedError
+        offset = strings_offset + str_offset
+        tmpl = '%ds' % length
+        return unpack_from(tmpl, bufr, offset)[0]
 
     def _read_name(self, bufr, idx, strings_offset):
         """

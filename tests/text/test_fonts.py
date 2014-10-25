@@ -474,6 +474,14 @@ class Describe_NameTable(object):
         )
         assert name is name_
 
+    def it_reads_name_bytes_to_help_read_names(self, raw_fixture):
+        name_table, bufr, strings_offset, str_offset = raw_fixture[:4]
+        length, expected_bytes = raw_fixture[4:]
+        bytes_ = name_table._raw_name_string(
+            bufr, strings_offset, str_offset, length
+        )
+        assert bytes_ == expected_bytes
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -555,6 +563,17 @@ class Describe_NameTable(object):
         return (
             name_table, bufr, platform_id, encoding_id, strings_offset,
             name_str_offset, length, raw_name, name_
+        )
+
+    @pytest.fixture
+    def raw_fixture(self):
+        name_table = _NameTable(None, None, None, None)
+        bufr = b'xXxFoobarxXx'
+        strings_offset, str_offset, length = 1, 2, 6
+        expected_bytes = b'Foobar'
+        return (
+            name_table, bufr, strings_offset, str_offset, length,
+            expected_bytes
         )
 
     @pytest.fixture
