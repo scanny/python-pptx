@@ -178,6 +178,10 @@ class Describe_Font(object):
         font, expected_value = bold_fixture
         assert font.is_bold is expected_value
 
+    def it_knows_whether_it_is_italic(self, italic_fixture):
+        font, expected_value = italic_fixture
+        assert font.is_italic is expected_value
+
     def it_provides_access_to_its_tables(self, tables_fixture):
         font, _TableFactory_, expected_calls, expected_tables = tables_fixture
         tables = font._tables
@@ -227,6 +231,18 @@ class Describe_Font(object):
         font = _Font(stream)
         read_fields_.return_value = expected_values = ('foob', 42, 64, 7, 16)
         return font, expected_values
+
+    @pytest.fixture(params=[
+        ('head', True,  True),
+        ('head', False, False),
+        ('foob', True,  False),
+    ])
+    def italic_fixture(self, request, _tables_, head_table_):
+        key, is_italic, expected_value = request.param
+        head_table_.is_italic = is_italic
+        _tables_.return_value = {key: head_table_}
+        font = _Font(None)
+        return font, expected_value
 
     @pytest.fixture
     def iter_fixture(self, _table_count_, stream_read_):

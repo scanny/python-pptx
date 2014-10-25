@@ -126,6 +126,17 @@ class _Font(object):
             # some files don't have a head table
             return False
 
+    @property
+    def is_italic(self):
+        """
+        |True| if this font is marked as an italic style of its font family.
+        """
+        try:
+            return self._tables['head'].is_italic
+        except KeyError:
+            # some files don't have a head table
+            return False
+
     @classmethod
     def open(cls, font_file_path):
         """
@@ -249,6 +260,13 @@ class _HeadTable(_BaseTable):
         |True| if this font is marked as having emboldened characters.
         """
         return bool(self._macStyle & 1)
+
+    @property
+    def is_italic(self):
+        """
+        |True| if this font is marked as having italicized characters.
+        """
+        raise NotImplementedError
 
     @lazyproperty
     def _fields(self):
