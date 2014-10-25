@@ -482,6 +482,13 @@ class Describe_NameTable(object):
         )
         assert bytes_ == expected_bytes
 
+    def it_decodes_a_raw_name_to_help_read_names(self, decode_fixture):
+        name_table, raw_name, platform_id, encoding_id, expected_value = (
+            decode_fixture
+        )
+        name = name_table._decode_name(raw_name, platform_id, encoding_id)
+        assert name == expected_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -491,6 +498,18 @@ class Describe_NameTable(object):
         stream_.read.return_value = bytes_
         expected_value = bytes_
         return name_table, expected_value
+
+    @pytest.fixture(params=[
+        (1, 0, b'Foob\x8Ar',                  u'Foobär'),
+        (1, 1, b'Foobar',                     None),
+        (0, 9, u'Foobär'.encode('utf-16-be'), u'Foobär'),
+        (3, 6, u'Foobär'.encode('utf-16-be'), u'Foobär'),
+        (2, 0, 'Foobar',                      None),
+    ])
+    def decode_fixture(self, request):
+        platform_id, encoding_id, raw_name, expected_value = request.param
+        name_table = _NameTable(None, None, None, None)
+        return name_table, raw_name, platform_id, encoding_id, expected_value
 
     @pytest.fixture(params=[
         ({(0, 1): 'Foobar', (1, 1): 'Barfoo'}, 'Foobar'),

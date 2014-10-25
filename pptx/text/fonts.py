@@ -255,12 +255,21 @@ class _NameTable(_BaseTable):
         # keys for Unicode, Mac, and Windows family name, respectively
         return find_first(self._names, ((0, 1), (1, 1), (3, 1)))
 
-    def _decode_name(self, raw_name, platform_id, encoding_id):
+    @staticmethod
+    def _decode_name(raw_name, platform_id, encoding_id):
         """
         Return the unicode name decoded from *raw_name* using the encoding
         implied by the combination of *platform_id* and *encoding_id*.
         """
-        raise NotImplementedError
+        if platform_id == 1:
+            # reject non-Roman Mac font names
+            if encoding_id != 0:
+                return None
+            return raw_name.decode('mac-roman')
+        elif platform_id in (0, 3):
+            return raw_name.decode('utf-16-be')
+        else:
+            return None
 
     def _iter_names(self):
         """
