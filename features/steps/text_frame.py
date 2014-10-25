@@ -79,10 +79,10 @@ def when_I_assign_value_to_text_frame_word_wrap(context, value):
 
 @when('I call TextFrame.fit_text()')
 def when_I_call_TextFrame_fit_text(context):
-    # from .helpers import test_file
-    # font_file = test_file('calibriz.ttf')
-    # context.text_frame.fit_text(bold=True, italic=True, font_file=font_file)
-    context.text_frame.fit_text(font_family='Arial', bold=True, italic=True)
+    from .helpers import test_file
+    font_file = test_file('calibriz.ttf')
+    context.text_frame.fit_text(bold=True, italic=True, font_file=font_file)
+    # context.text_frame.fit_text(font_family='Arial', bold=True, italic=True)
 
 
 # then ====================================================
@@ -125,7 +125,7 @@ def then_the_size_of_the_text_is_10pt(context):
     text_frame = context.text_frame
     for paragraph in text_frame.paragraphs:
         for run in paragraph.runs:
-            assert run.font.size == Pt(10.0)
+            assert run.font.size == Pt(10.0), 'got %s' % run.font.size.pt
 
 
 @then('the text frame\'s {side} margin is {inches}"')
