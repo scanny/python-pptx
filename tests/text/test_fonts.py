@@ -173,6 +173,10 @@ class Describe_Font(object):
         family_name = font.family_name
         assert family_name == expected_name
 
+    def it_knows_whether_it_is_bold(self, bold_fixture):
+        font, expected_value = bold_fixture
+        assert font.is_bold is expected_value
+
     def it_provides_access_to_its_tables(self, tables_fixture):
         font, _TableFactory_, expected_calls, expected_tables = tables_fixture
         tables = font._tables
@@ -195,6 +199,18 @@ class Describe_Font(object):
         assert fields == expected_values
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        ('head', True,  True),
+        ('head', False, False),
+        ('foob', True,  False),
+    ])
+    def bold_fixture(self, request, _tables_, head_table_):
+        key, is_bold, expected_value = request.param
+        head_table_.is_bold = is_bold
+        _tables_.return_value = {key: head_table_}
+        font = _Font(None)
+        return font, expected_value
 
     @pytest.fixture
     def family_fixture(self, _tables_, name_table_):

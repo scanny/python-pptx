@@ -115,6 +115,17 @@ class _Font(object):
     def __exit__(self, exception_type, exception_value, exception_tb):
         self._stream.close()
 
+    @property
+    def is_bold(self):
+        """
+        |True| if this font is marked as a bold style of its font family.
+        """
+        try:
+            return self._tables['head'].is_bold
+        except KeyError:
+            # some files don't have a head table
+            return False
+
     @classmethod
     def open(cls, font_file_path):
         """
@@ -231,6 +242,13 @@ class _HeadTable(_BaseTable):
     """
     def __init__(self, tag, stream, offset, length):
         super(_HeadTable, self).__init__(tag, stream, offset, length)
+
+    @property
+    def is_bold(self):
+        """
+        |True| if this font is marked as having emboldened characters.
+        """
+        raise NotImplementedError
 
 
 class _NameTable(_BaseTable):
