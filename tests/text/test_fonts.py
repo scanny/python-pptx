@@ -46,8 +46,11 @@ class DescribeFontFiles(object):
     def it_knows_os_x_font_dirs_to_help_find(self, osx_dirs_fixture):
         expected_dirs = osx_dirs_fixture
         font_dirs = FontFiles._os_x_font_directories()
-        print(font_dirs)
-        print(expected_dirs)
+        assert font_dirs == expected_dirs
+
+    def it_knows_windows_font_dirs_to_help_find(self, win_dirs_fixture):
+        expected_dirs = win_dirs_fixture
+        font_dirs = FontFiles._windows_font_directories()
         assert font_dirs == expected_dirs
 
     def it_iterates_over_fonts_in_dir_to_help_find(self, iter_fixture):
@@ -124,6 +127,10 @@ class DescribeFontFiles(object):
             '/Users/fbar/Library/Fonts',
             '/Users/fbar/.fonts',
         ]
+
+    @pytest.fixture
+    def win_dirs_fixture(self, request):
+        return [r'C:\Windows\Fonts']
 
     # fixture components -----------------------------------
 

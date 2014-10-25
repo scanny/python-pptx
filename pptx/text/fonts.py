@@ -98,7 +98,7 @@ class FontFiles(object):
         Return a sequence of directory paths on Windows in which fonts are
         likely to be located.
         """
-        raise NotImplementedError
+        return [r'C:\Windows\Fonts']
 
 
 class _Font(object):
