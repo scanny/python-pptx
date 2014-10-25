@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from StringIO import StringIO as BytesIO
 from struct import calcsize
 
 from pptx.text.fonts import (
@@ -427,6 +428,10 @@ class Describe_HeadTable(object):
         head_table, expected_value = bold_fixture
         assert head_table.is_bold is expected_value
 
+    def it_reads_its_macStyle_field_to_help(self, macStyle_fixture):
+        head_table, expected_value = macStyle_fixture
+        assert head_table._macStyle == expected_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -437,6 +442,17 @@ class Describe_HeadTable(object):
         macStyle, expected_value = request.param
         _macStyle_.return_value = macStyle
         head_table = _HeadTable(None, None, None, None)
+        return head_table, expected_value
+
+    @pytest.fixture
+    def macStyle_fixture(self):
+        bytes_ = (
+            b'xxxxyyyy....................................\xF0\xBA........'
+        )
+        stream = _Stream(BytesIO(bytes_))
+        offset, length = 0, len(bytes_)
+        head_table = _HeadTable(None, stream, offset, length)
+        expected_value = 61626
         return head_table, expected_value
 
     # fixture components -----------------------------------

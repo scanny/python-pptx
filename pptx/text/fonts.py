@@ -250,12 +250,19 @@ class _HeadTable(_BaseTable):
         """
         return bool(self._macStyle & 1)
 
+    @lazyproperty
+    def _fields(self):
+        """
+        A 17-tuple containing the fields in this table.
+        """
+        return self._stream.read_fields('>4s4sLLHHqqhhhhHHHHH', self._offset)
+
     @property
     def _macStyle(self):
         """
         The unsigned short value of the 'macStyle' field in this head table.
         """
-        raise NotImplementedError
+        return self._fields[12]
 
 
 class _NameTable(_BaseTable):
