@@ -444,6 +444,10 @@ class Describe_HeadTable(object):
         head_table, expected_value = bold_fixture
         assert head_table.is_bold is expected_value
 
+    def it_knows_whether_the_font_is_italic(self, italic_fixture):
+        head_table, expected_value = italic_fixture
+        assert head_table.is_italic is expected_value
+
     def it_reads_its_macStyle_field_to_help(self, macStyle_fixture):
         head_table, expected_value = macStyle_fixture
         assert head_table._macStyle == expected_value
@@ -455,6 +459,16 @@ class Describe_HeadTable(object):
         (1, True),
     ])
     def bold_fixture(self, request, _macStyle_):
+        macStyle, expected_value = request.param
+        _macStyle_.return_value = macStyle
+        head_table = _HeadTable(None, None, None, None)
+        return head_table, expected_value
+
+    @pytest.fixture(params=[
+        (5, False),
+        (7, True),
+    ])
+    def italic_fixture(self, request, _macStyle_):
         macStyle, expected_value = request.param
         _macStyle_.return_value = macStyle
         head_table = _HeadTable(None, None, None, None)
