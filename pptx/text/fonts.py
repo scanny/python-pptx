@@ -248,6 +248,13 @@ class _HeadTable(_BaseTable):
         """
         |True| if this font is marked as having emboldened characters.
         """
+        return bool(self._macStyle & 1)
+
+    @property
+    def _macStyle(self):
+        """
+        The unsigned short value of the 'macStyle' field in this head table.
+        """
         raise NotImplementedError
 
 

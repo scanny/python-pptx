@@ -421,6 +421,31 @@ class Describe_TableFactory(object):
         return instance_mock(request, _Stream)
 
 
+class Describe_HeadTable(object):
+
+    def it_knows_whether_the_font_is_bold(self, bold_fixture):
+        head_table, expected_value = bold_fixture
+        assert head_table.is_bold is expected_value
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        (0, False),
+        (1, True),
+    ])
+    def bold_fixture(self, request, _macStyle_):
+        macStyle, expected_value = request.param
+        _macStyle_.return_value = macStyle
+        head_table = _HeadTable(None, None, None, None)
+        return head_table, expected_value
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _macStyle_(self, request):
+        return property_mock(request, _HeadTable, '_macStyle')
+
+
 class Describe_NameTable(object):
 
     def it_knows_the_font_family_name(self, family_fixture):
