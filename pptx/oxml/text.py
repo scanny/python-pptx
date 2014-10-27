@@ -131,7 +131,7 @@ class CT_TextBody(BaseOxmlElement):
             '<p:txBody %s>\n'
             '  <a:bodyPr/>\n'
             '  <a:p/>\n'
-            '</p:txBody>\n' % (nsdecls('p'))
+            '</p:txBody>\n' % (nsdecls('p', 'a'))
         )
 
     @classmethod

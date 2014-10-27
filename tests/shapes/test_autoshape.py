@@ -374,6 +374,11 @@ class DescribeShape(object):
         TextFrame_.assert_called_once_with(txBody, shape)
         assert text_frame is text_frame_
 
+    def it_creates_a_txBody_if_needed(self, txBody_fixture):
+        shape, expected_xml = txBody_fixture
+        text_frame = shape.text_frame
+        assert text_frame._txBody.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -417,6 +422,14 @@ class DescribeShape(object):
         shape = Shape(element(sp_cxml), None)
         expected_xml = xml(expected_sp_cxml)
         return shape, new_value, expected_xml
+
+    @pytest.fixture
+    def txBody_fixture(self, request):
+        sp_cxml = 'p:sp'
+        expected_cxml = 'p:txBody/(a:bodyPr,a:p)'
+        shape = Shape(element(sp_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return shape, expected_xml
 
     # fixture components ---------------------------------------------
 
