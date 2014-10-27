@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+0.5.2 (2014-10-26)
+++++++++++++++++++
+
+- fix #127 - Shape.text_frame fails on shape having no txBody
+
+
 0.5.1 (2014-09-22)
 ++++++++++++++++++
 
