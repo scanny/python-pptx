@@ -50,31 +50,28 @@ class CT_Picture(BaseShapeElement):
         return (
             '<p:pic %s>\n'
             '  <p:nvPicPr>\n'
-            '    <p:cNvPr id="%s" name="%s" descr="%s"/>\n'
+            '    <p:cNvPr id="%%d" name="%%s" descr="%%s"/>\n'
             '    <p:cNvPicPr>\n'
             '      <a:picLocks noChangeAspect="1"/>\n'
             '    </p:cNvPicPr>\n'
             '    <p:nvPr/>\n'
             '  </p:nvPicPr>\n'
             '  <p:blipFill>\n'
-            '    <a:blip r:embed="%s"/>\n'
+            '    <a:blip r:embed="%%s"/>\n'
             '    <a:stretch>\n'
             '      <a:fillRect/>\n'
             '    </a:stretch>\n'
             '  </p:blipFill>\n'
             '  <p:spPr>\n'
             '    <a:xfrm>\n'
-            '      <a:off x="%s" y="%s"/>\n'
-            '      <a:ext cx="%s" cy="%s"/>\n'
+            '      <a:off x="%%d" y="%%d"/>\n'
+            '      <a:ext cx="%%d" cy="%%d"/>\n'
             '    </a:xfrm>\n'
             '    <a:prstGeom prst="rect">\n'
             '      <a:avLst/>\n'
             '    </a:prstGeom>\n'
             '  </p:spPr>\n'
-            '</p:pic>' % (
-                nsdecls('a', 'p', 'r'), '%d', '%s', '%s', '%s', '%d', '%d',
-                '%d', '%d'
-            )
+            '</p:pic>' % nsdecls('a', 'p', 'r')
         )
 
 
