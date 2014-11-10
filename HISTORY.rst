@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+0.5.3 (2014-11-09)
+++++++++++++++++++
+
+- add experimental feature TextFrame.fit_text()
+
+
 0.5.2 (2014-10-26)
 ++++++++++++++++++
 
