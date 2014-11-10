@@ -66,9 +66,12 @@ class TextFrame(Subshape):
         shape by setting word wrap on and applying the "best-fit" font size
         to all the text it contains. :attr:`TextFrame.auto_size` is set to
         :attr:`MSO_AUTO_SIZE.NONE`. The font size will not be set larger than
-        *max_size* points. The path to a matching TrueType font must be
-        provided as *font_file*; both typeface and bold and/or italic
-        formatting must match the font file provided.
+        *max_size* points. If the path to a matching TrueType font is
+        provided as *font_file*, that font file will be used for the font
+        metrics. If *font_file* is |None|, best efforts are made to locate
+        a font file with mathching *font_family*, *bold*, and *italic*
+        installed on the current system (usually succeeds if the font is
+        installed).
         """
         font_size = self._best_fit_font_size(
             font_family, max_size, bold, italic, font_file
@@ -170,12 +173,12 @@ class TextFrame(Subshape):
     @property
     def word_wrap(self):
         """
-        Read-write value of the word wrap setting for this text frame, either
-        True, False, or None. Assignment to *word_wrap* sets the wrapping
-        behavior. True and False turn word wrap on and off, respectively.
-        Assigning None to word wrap causes its word wrap setting to be
-        removed entirely and the text frame wrapping behavior to be inherited
-        from a parent element.
+        Read-write setting determining whether lines of text in this shape
+        are wrapped to fit within the shape's width. Valid values are True,
+        False, or None. True and False turn word wrap on and off,
+        respectively. Assigning None to word wrap causes any word wrap
+        setting to be removed from the text frame, causing it to inherit this
+        setting from its style hierarchy.
         """
         return {
             ST_TextWrappingType.SQUARE: True,
