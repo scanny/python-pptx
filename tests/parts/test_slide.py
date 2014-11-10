@@ -25,7 +25,7 @@ from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import ST_Direction
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
-from pptx.parts.image import Image as ImagePart
+from pptx.parts.image import ImagePart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import (
     BaseSlide, Slide, SlideCollection, _SlidePlaceholder, _SlidePlaceholders,

@@ -44,14 +44,14 @@ class BaseSlide(XmlPart):
 
     def _add_image(self, img_file):
         """
-        Return 2-tuple ``(image, rId)`` representing an |Image| part
-        corresponding to the image in *img_file*, newly created if no
-        matching image part is already present. If the slide already has a
-        relationship to an existing image, that relationship is reused.
+        Return 2-tuple ``(image_part, rId)`` representing an |ImagePart|
+        object corresponding to the image in *img_file*, newly created if a
+        matching image part is not already present. If the slide already has
+        a relationship to an existing image, that relationship is reused.
         """
-        image = self._package._images.add_image(img_file)
-        rId = self.relate_to(image, RT.IMAGE)
-        return (image, rId)
+        image_part = self._package._images.add_image(img_file)
+        rId = self.relate_to(image_part, RT.IMAGE)
+        return (image_part, rId)
 
 
 class Slide(BaseSlide):

@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Image part objects, including Image
+ImagePart and related objects.
 """
 
 import hashlib
@@ -22,29 +22,25 @@ from pptx.parts.part import PartCollection
 from pptx.util import Px
 
 
-class Image(Part):
+class ImagePart(Part):
     """
-    Return new Image part instance. *file* may be |None|, a path to a file (a
-    string), or a file-like object. If *file* is |None|, no image is loaded
-    and :meth:`_load` must be called before using the instance. Otherwise, the
-    file referenced or contained in *file* is loaded. Corresponds to package
-    files ppt/media/image[1-9][0-9]*.*.
+    An image part, generally having a partname matching the regex
+    ``ppt/media/image[1-9][0-9]*.*``.
     """
     def __init__(self, partname, content_type, blob, ext, filepath=None):
-        super(Image, self).__init__(partname, content_type, blob)
+        super(ImagePart, self).__init__(partname, content_type, blob)
         self._ext = ext
         self._filepath = filepath
 
     @classmethod
-    def new(cls, partname, img_file):
+    def new(cls, partname, image_file):
         """
-        Return a new Image part instance from *img_file*, which may be a path
-        to a file (a string), or a file-like object. Corresponds to package
-        files ppt/media/image[1-9][0-9]*.*.
+        Return a new |ImagePart| instance loaded from *img_file*, which may
+        be a path to a file (a string), or a file-like object. *partname* is
+        assigned to the new image part.
         """
-        filepath, ext, content_type, blob = cls._load_from_file(img_file)
-        image = cls(partname, content_type, blob, ext, filepath)
-        return image
+        filepath, ext, content_type, blob = cls._load_from_file(image_file)
+        return cls(partname, content_type, blob, ext, filepath)
 
     @property
     def ext(self):
@@ -61,10 +57,10 @@ class Image(Part):
     @property
     def _desc(self):
         """
-        Return filename associated with this image, either the filename of the
-        original image file the image was created with or a synthetic name of
-        the form ``image.ext`` where ``ext`` is appropriate to the image file
-        format, e.g. ``'jpg'``.
+        Return filename associated with this image, either the filename of
+        the original image file the image was created with or a synthetic
+        name of the form ``image.ext`` where ``ext`` is appropriate to the
+        image file format, e.g. ``'jpg'``.
         """
         if self._filepath is not None:
             return os.path.split(self._filepath)[1]
@@ -101,23 +97,24 @@ class Image(Part):
         return content_type
 
     @classmethod
-    def _load_from_file(cls, img_file):
+    def _load_from_file(cls, image_file):
         """
-        Load image from *img_file*, which is either a path to an image file
+        Return a (path, ext, content_type, blob) 4-tuple for the image
+        located in *image_file*, which may be either a path to an image file
         or a file-like object.
         """
-        if isinstance(img_file, basestring):  # img_file is a path
-            filepath = img_file
+        if isinstance(image_file, basestring):  # image_file is a path
+            filepath = image_file
             ext = os.path.splitext(filepath)[1][1:]
             content_type = cls._image_ext_content_type(ext)
             with open(filepath, 'rb') as f:
                 blob = f.read()
-        else:  # assume img_file is a file-like object
+        else:  # assume image_file is a file-like object
             filepath = None
-            ext = cls._ext_from_image_stream(img_file)
+            ext = cls._ext_from_image_stream(image_file)
             content_type = cls._image_ext_content_type(ext)
-            img_file.seek(0)
-            blob = img_file.read()
+            image_file.seek(0)
+            blob = image_file.read()
         return filepath, ext, content_type, blob
 
     def _scale(self, width, height):
@@ -146,7 +143,9 @@ class Image(Part):
 
     @property
     def _sha1(self):
-        """Return SHA1 hash digest for image"""
+        """
+        Return SHA1 hash digest for image
+        """
         return hashlib.sha1(self._blob).hexdigest()
 
     @property
@@ -180,7 +179,7 @@ class ImageCollection(PartCollection):
         """
         # use Image constructor to validate and characterize image file
         partname = PackURI('/ppt/media/image1.jpeg')  # dummy just for baseURI
-        image = Image.new(partname, file)
+        image = ImagePart.new(partname, file)
         # return matching image if found
         for existing_image in self._values:
             if existing_image._sha1 == image._sha1:
@@ -197,7 +196,7 @@ class ImageCollection(PartCollection):
         """
         def is_image_part(part):
             return (
-                isinstance(part, Image) and
+                isinstance(part, ImagePart) and
                 part.partname.startswith('/ppt/media/')
             )
         for part in parts:

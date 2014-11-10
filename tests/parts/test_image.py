@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-Test suite for pptx.image module.
+Test suite for pptx.parts.image module.
 """
 
 from __future__ import absolute_import, print_function
@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 from StringIO import StringIO
 
 from pptx.opc.packuri import PackURI
-from pptx.parts.image import Image
+from pptx.parts.image import ImagePart
 from pptx.package import Package
 from pptx.util import Px
 
@@ -24,13 +24,13 @@ test_eps_path = absjoin(test_file_dir, 'cdw-logo.eps')
 new_image_path = absjoin(test_file_dir, 'monty-truth.png')
 
 
-class TestImage(TestCase):
-    """Test Image"""
+class TestImagePart(TestCase):
+    """Test ImagePart"""
     def test_construction_from_file(self):
-        """Image(path) constructor produces correct attribute values"""
+        """ImagePart(path) constructor produces correct attribute values"""
         # exercise ---------------------
         partname = PackURI('/ppt/media/image1.jpeg')
-        image = Image.new(partname, test_image_path)
+        image = ImagePart.new(partname, test_image_path)
         # verify -----------------------
         assert image.ext == 'jpeg'
         assert image.content_type == 'image/jpeg'
@@ -38,12 +38,12 @@ class TestImage(TestCase):
         assert image._desc == 'python-icon.jpeg'
 
     def test_construction_from_stream(self):
-        """Image(stream) construction produces correct attribute values"""
+        """ImagePart(stream) construction produces correct attribute values"""
         # exercise ---------------------
         partname = PackURI('/ppt/media/image1.jpeg')
         with open(test_image_path, 'rb') as f:
             stream = StringIO(f.read())
-        image = Image.new(partname, stream)
+        image = ImagePart.new(partname, stream)
         # verify -----------------------
         assert image.ext == 'jpg'
         assert image.content_type == 'image/jpeg'
@@ -51,13 +51,13 @@ class TestImage(TestCase):
         assert image._desc == 'image.jpg'
 
     def test_construction_from_file_raises_on_bad_path(self):
-        """Image(path) constructor raises on bad path"""
+        """ImagePart(path) constructor raises on bad path"""
         partname = PackURI('/ppt/media/image1.jpeg')
         with self.assertRaises(IOError):
-            Image.new(partname, 'foobar27.png')
+            ImagePart.new(partname, 'foobar27.png')
 
     def test__scale_calculates_correct_dimensions(self):
-        """Image._scale() calculates correct dimensions"""
+        """ImagePart._scale() calculates correct dimensions"""
         # setup ------------------------
         test_cases = (
             ((None, None), (Px(204), Px(204))),
@@ -65,29 +65,29 @@ class TestImage(TestCase):
             ((None, 3000), (3000, 3000)),
             ((3337, 9999), (3337, 9999)))
         partname = PackURI('/ppt/media/image1.png')
-        image = Image.new(partname, test_image_path)
+        image = ImagePart.new(partname, test_image_path)
         # verify -----------------------
         for params, expected in test_cases:
             width, height = params
             assert image._scale(width, height) == expected
 
     def test__size_returns_image_native_pixel_dimensions(self):
-        """Image._size is width, height tuple of image pixel dimensions"""
+        """ImagePart._size is width, height tuple of image pixel dimensions"""
         partname = PackURI('/ppt/media/image1.png')
-        image = Image.new(partname, test_image_path)
+        image = ImagePart.new(partname, test_image_path)
         assert image._size == (204, 204)
 
     def test__ext_from_image_stream_raises_on_incompatible_format(self):
         with self.assertRaises(ValueError):
             with open(test_eps_path) as stream:
-                Image._ext_from_image_stream(stream)
+                ImagePart._ext_from_image_stream(stream)
 
     def test__image_ext_content_type_known_type(self):
         """
-        Image._image_ext_content_type() correct for known content type
+        ImagePart._image_ext_content_type() correct for known content type
         """
         # exercise ---------------------
-        content_type = Image._image_ext_content_type('jPeG')
+        content_type = ImagePart._image_ext_content_type('jPeG')
         # verify -----------------------
         expected = 'image/jpeg'
         actual = content_type
@@ -96,7 +96,7 @@ class TestImage(TestCase):
 
     def test__image_ext_content_type_raises_on_bad_ext(self):
         with self.assertRaises(ValueError):
-            Image._image_ext_content_type('xj7')
+            ImagePart._image_ext_content_type('xj7')
 
 
 class TestImageCollection(TestCase):
