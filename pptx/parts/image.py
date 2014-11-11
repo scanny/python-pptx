@@ -27,10 +27,10 @@ class ImagePart(Part):
     An image part, generally having a partname matching the regex
     ``ppt/media/image[1-9][0-9]*.*``.
     """
-    def __init__(self, partname, content_type, blob, ext, filepath=None):
+    def __init__(self, partname, content_type, blob, ext, filename=None):
         super(ImagePart, self).__init__(partname, content_type, blob)
         self._ext = ext
-        self._filepath = filepath
+        self._filename = filename
 
     @classmethod
     def new(cls, partname, image_file):
@@ -39,8 +39,8 @@ class ImagePart(Part):
         be a path to a file (a string), or a file-like object. *partname* is
         assigned to the new image part.
         """
-        filepath, ext, content_type, blob = cls._load_from_file(image_file)
-        return cls(partname, content_type, blob, ext, filepath)
+        filename, ext, content_type, blob = cls._load_from_file(image_file)
+        return cls(partname, content_type, blob, ext, filename)
 
     @property
     def ext(self):
@@ -94,10 +94,10 @@ class ImagePart(Part):
         name of the form ``image.ext`` where ``ext`` is appropriate to the
         image file format, e.g. ``'jpg'``.
         """
-        if self._filepath is not None:
-            return os.path.split(self._filepath)[1]
         # return generic filename if original filename is unknown
-        return 'image.%s' % self.ext
+        if self._filename is None:
+            return 'image.%s' % self.ext
+        return self._filename
 
     @staticmethod
     def _ext_from_image_stream(stream):
@@ -136,18 +136,19 @@ class ImagePart(Part):
         or a file-like object.
         """
         if isinstance(image_file, basestring):  # image_file is a path
-            filepath = image_file
-            ext = os.path.splitext(filepath)[1][1:]
+            path = image_file
+            filename = os.path.split(path)[1]
+            ext = os.path.splitext(path)[1][1:]
             content_type = cls._image_ext_content_type(ext)
-            with open(filepath, 'rb') as f:
+            with open(path, 'rb') as f:
                 blob = f.read()
         else:  # assume image_file is a file-like object
-            filepath = None
+            filename = None
             ext = cls._ext_from_image_stream(image_file)
             content_type = cls._image_ext_content_type(ext)
             image_file.seek(0)
             blob = image_file.read()
-        return filepath, ext, content_type, blob
+        return filename, ext, content_type, blob
 
     @property
     def _size(self):
