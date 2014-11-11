@@ -4,11 +4,13 @@
 Test suite for pptx.parts.image module.
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, unicode_literals
+
+import pytest
 
 from StringIO import StringIO
 
-from pptx.opc.packuri import PackURI
+from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.parts.image import ImagePart
 from pptx.package import Package
 from pptx.util import Px
@@ -24,79 +26,73 @@ test_eps_path = absjoin(test_file_dir, 'cdw-logo.eps')
 new_image_path = absjoin(test_file_dir, 'monty-truth.png')
 
 
-class TestImagePart(TestCase):
-    """Test ImagePart"""
-    def test_construction_from_file(self):
-        """ImagePart(path) constructor produces correct attribute values"""
-        # exercise ---------------------
-        partname = PackURI('/ppt/media/image1.jpeg')
-        image = ImagePart.new(partname, test_image_path)
-        # verify -----------------------
-        assert image.ext == 'jpeg'
-        assert image.content_type == 'image/jpeg'
-        assert len(image._blob) == 3277
-        assert image._desc == 'python-icon.jpeg'
+class DescribeImagePart(object):
 
-    def test_construction_from_stream(self):
-        """ImagePart(stream) construction produces correct attribute values"""
-        # exercise ---------------------
-        partname = PackURI('/ppt/media/image1.jpeg')
-        with open(test_image_path, 'rb') as f:
-            stream = StringIO(f.read())
-        image = ImagePart.new(partname, stream)
-        # verify -----------------------
-        assert image.ext == 'jpg'
-        assert image.content_type == 'image/jpeg'
-        assert len(image._blob) == 3277
-        assert image._desc == 'image.jpg'
+    def it_can_construct_from_an_image_file(self, new_fixture):
+        """
+        Integration test over complete contruction from file.
+        """
+        partname, image_file, content_type, ext, sha1, filename = new_fixture
 
-    def test_construction_from_file_raises_on_bad_path(self):
-        """ImagePart(path) constructor raises on bad path"""
-        partname = PackURI('/ppt/media/image1.jpeg')
-        with self.assertRaises(IOError):
-            ImagePart.new(partname, 'foobar27.png')
+        image_part = ImagePart.new(partname, image_file)
 
-    def test__scale_calculates_correct_dimensions(self):
-        """ImagePart._scale() calculates correct dimensions"""
-        # setup ------------------------
-        test_cases = (
-            ((None, None), (Px(204), Px(204))),
-            ((1000, None), (1000, 1000)),
-            ((None, 3000), (3000, 3000)),
-            ((3337, 9999), (3337, 9999)))
-        partname = PackURI('/ppt/media/image1.png')
-        image = ImagePart.new(partname, test_image_path)
-        # verify -----------------------
-        for params, expected in test_cases:
-            width, height = params
-            assert image._scale(width, height) == expected
+        assert image_part.partname == partname
+        assert image_part.content_type == content_type
+        assert image_part.ext == ext
+        assert image_part._sha1 == sha1
+        assert image_part._desc == filename
 
-    def test__size_returns_image_native_pixel_dimensions(self):
-        """ImagePart._size is width, height tuple of image pixel dimensions"""
-        partname = PackURI('/ppt/media/image1.png')
-        image = ImagePart.new(partname, test_image_path)
-        assert image._size == (204, 204)
+    def it_can_scale_its_dimensions(self, scale_fixture):
+        image, width, height, expected_values = scale_fixture
+        assert image._scale(width, height) == expected_values
 
-    def test__ext_from_image_stream_raises_on_incompatible_format(self):
-        with self.assertRaises(ValueError):
+    def it_knows_its_pixel_dimensions(self, size_fixture):
+        image, expected_size = size_fixture
+        assert image._size == expected_size
+
+    def it_knows_its_image_content_type(self):
+        content_type = ImagePart._image_ext_content_type('jPeG')
+        assert content_type == CT.JPEG
+
+    def it_raises_on_unsupported_image_stream_type(self):
+        with pytest.raises(ValueError):
             with open(test_eps_path) as stream:
                 ImagePart._ext_from_image_stream(stream)
 
-    def test__image_ext_content_type_known_type(self):
-        """
-        ImagePart._image_ext_content_type() correct for known content type
-        """
-        # exercise ---------------------
-        content_type = ImagePart._image_ext_content_type('jPeG')
-        # verify -----------------------
-        expected = 'image/jpeg'
-        actual = content_type
-        msg = ("expected content type '%s', got '%s'" % (expected, actual))
-        self.assertEqual(expected, actual, msg)
+    # fixtures -------------------------------------------------------
 
-    def test__image_ext_content_type_raises_on_bad_ext(self):
-        with self.assertRaises(ValueError):
-            ImagePart._image_ext_content_type('xj7')
+    @pytest.fixture(params=[
+        (False, 'jpeg', 'python-icon.jpeg'),
+        (True,  'jpg',  'image.jpg'),
+    ])
+    def new_fixture(self, request):
+
+        def image_stream():
+            with open(test_image_path, 'rb') as f:
+                return StringIO(f.read())
+
+        use_stream, ext, filename = request.param
+        image_file = image_stream() if use_stream else test_image_path
+        partname = '/ppt/media/image1.png'
+        content_type = CT.JPEG
+        sha1 = '1be010ea47803b00e140b852765cdf84f491da47'
+        return partname, image_file, content_type, ext, sha1, filename
+
+    @pytest.fixture(params=[
+        (None, None, Px(204), Px(204)),
+        (1000, None, 1000,    1000),
+        (None, 3000, 3000,    3000),
+        (3337, 9999, 3337,    9999),
+    ])
+    def scale_fixture(self, request):
+        width, height, expected_width, expected_height = request.param
+        image = ImagePart.new(None, test_image_path)
+        return image, width, height, (expected_width, expected_height)
+
+    @pytest.fixture
+    def size_fixture(self):
+        image = ImagePart.new(None, test_image_path)
+        return image, (204, 204)
 
 
 class TestImageCollection(TestCase):
