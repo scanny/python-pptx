@@ -54,6 +54,30 @@ class ImagePart(Part):
         ext = posixpath.splitext(partname)[1]
         return cls(partname, content_type, blob, ext)
 
+    def scale(self, width, height):
+        """
+        Return scaled image dimensions based on supplied parameters. If
+        *width* and *height* are both |None|, the native image size is
+        returned. If neither *width* nor *height* is |None|, their values are
+        returned unchanged. If a value is provided for either *width* or
+        *height* and the other is |None|, the dimensions are scaled,
+        preserving the image's aspect ratio.
+        """
+        native_width_px, native_height_px = self._size
+        native_width = Px(native_width_px)
+        native_height = Px(native_height_px)
+
+        if width is None and height is None:
+            width = native_width
+            height = native_height
+        elif width is None:
+            scaling_factor = float(height) / float(native_height)
+            width = int(round(native_width * scaling_factor))
+        elif height is None:
+            scaling_factor = float(width) / float(native_width)
+            height = int(round(native_height * scaling_factor))
+        return width, height
+
     @lazyproperty
     def sha1(self):
         """
@@ -124,30 +148,6 @@ class ImagePart(Part):
             image_file.seek(0)
             blob = image_file.read()
         return filepath, ext, content_type, blob
-
-    def _scale(self, width, height):
-        """
-        Return scaled image dimensions based on supplied parameters. If
-        *width* and *height* are both |None|, the native image size is
-        returned. If neither *width* nor *height* is |None|, their values are
-        returned unchanged. If a value is provided for either *width* or
-        *height* and the other is |None|, the dimensions are scaled,
-        preserving the image's aspect ratio.
-        """
-        native_width_px, native_height_px = self._size
-        native_width = Px(native_width_px)
-        native_height = Px(native_height_px)
-
-        if width is None and height is None:
-            width = native_width
-            height = native_height
-        elif width is None:
-            scaling_factor = float(height) / float(native_height)
-            width = int(round(native_width * scaling_factor))
-        elif height is None:
-            scaling_factor = float(width) / float(native_width)
-            height = int(round(native_height * scaling_factor))
-        return width, height
 
     @property
     def _size(self):

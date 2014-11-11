@@ -638,7 +638,7 @@ class Describe_SlideShapeTree(object):
             image_part_, rId_, x_, y_, cx_, cy_
         )
         # verify -----------------------
-        image_part_._scale.assert_called_once_with(cx_, cy_)
+        image_part_.scale.assert_called_once_with(cx_, cy_)
         spTree_.add_pic.assert_called_once_with(
             id_, name, desc_, rId_, x_, y_, scaled_cx_, scaled_cy_
         )
@@ -1011,7 +1011,7 @@ class Describe_SlideShapeTree(object):
     def image_part_(self, request, desc_, scaled_cx_, scaled_cy_):
         image_part_ = instance_mock(request, ImagePart)
         image_part_._desc = desc_
-        image_part_._scale.return_value = scaled_cx_, scaled_cy_
+        image_part_.scale.return_value = scaled_cx_, scaled_cy_
         return image_part_
 
     @pytest.fixture

@@ -43,7 +43,7 @@ class DescribeImagePart(object):
 
     def it_can_scale_its_dimensions(self, scale_fixture):
         image, width, height, expected_values = scale_fixture
-        assert image._scale(width, height) == expected_values
+        assert image.scale(width, height) == expected_values
 
     def it_knows_its_pixel_dimensions(self, size_fixture):
         image, expected_size = size_fixture
