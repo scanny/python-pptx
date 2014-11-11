@@ -16,7 +16,6 @@ from pptx.package import Package
 from pptx.util import Px
 
 from ..unitutil.file import absjoin, test_file_dir
-from ..unitutil.legacy import TestCase
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -95,24 +94,20 @@ class DescribeImagePart(object):
         return image, (204, 204)
 
 
-class TestImageCollection(TestCase):
-    """Test ImageCollection"""
-    def test_add_image_returns_matching_image(self):
+class DescribeImageCollection(object):
+
+    def it_finds_a_matching_image_part_if_there_is_one(self):
         pkg = Package.open(images_pptx_path)
         matching_idx = 4
         matching_image = pkg._images[matching_idx]
         # exercise ---------------------
         image = pkg._images.add_image(test_image_path)
         # verify -----------------------
-        expected = matching_image
-        actual = image
         msg = ("expected images[%d], got images[%d]"
                % (matching_idx, pkg._images.index(image)))
-        self.assertEqual(expected, actual, msg)
+        assert image is matching_image, msg
 
-    def test_add_image_adds_new_image(self):
-        """ImageCollection.add_image() adds new image on no match"""
-        # setup ------------------------
+    def it_adds_an_image_part_if_no_matching_found(self):
         pkg = Package.open(images_pptx_path)
         expected_partname = '/ppt/media/image8.png'
         expected_len = len(pkg._images) + 1
@@ -123,4 +118,4 @@ class TestImageCollection(TestCase):
         expected = (expected_partname, expected_len, expected_sha1)
         actual = (image.partname, len(pkg._images), image._sha1)
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
-        self.assertEqual(expected, actual, msg)
+        assert actual == expected, msg
