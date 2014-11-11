@@ -19,7 +19,7 @@ from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.opc.spec import image_content_types
 from pptx.parts.part import PartCollection
-from pptx.util import Px
+from pptx.util import lazyproperty, Px
 
 
 class ImagePart(Part):
@@ -53,6 +53,14 @@ class ImagePart(Part):
     def load(cls, partname, content_type, blob, package):
         ext = posixpath.splitext(partname)[1]
         return cls(partname, content_type, blob, ext)
+
+    @lazyproperty
+    def sha1(self):
+        """
+        The SHA1 hash digest for the image binary of this image part, like:
+        ``'1be010ea47803b00e140b852765cdf84f491da47'``.
+        """
+        return hashlib.sha1(self._blob).hexdigest()
 
     @property
     def _desc(self):
@@ -142,13 +150,6 @@ class ImagePart(Part):
         return width, height
 
     @property
-    def _sha1(self):
-        """
-        Return SHA1 hash digest for image
-        """
-        return hashlib.sha1(self._blob).hexdigest()
-
-    @property
     def _size(self):
         """
         Return *width*, *height* tuple representing native dimensions of
@@ -182,7 +183,7 @@ class ImageCollection(PartCollection):
         image = ImagePart.new(partname, file)
         # return matching image if found
         for existing_image in self._values:
-            if existing_image._sha1 == image._sha1:
+            if existing_image.sha1 == image.sha1:
                 return existing_image
         # otherwise add it to collection and return new image
         self._values.append(image)

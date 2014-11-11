@@ -38,7 +38,7 @@ class DescribeImagePart(object):
         assert image_part.partname == partname
         assert image_part.content_type == content_type
         assert image_part.ext == ext
-        assert image_part._sha1 == sha1
+        assert image_part.sha1 == sha1
         assert image_part._desc == filename
 
     def it_can_scale_its_dimensions(self, scale_fixture):
@@ -116,6 +116,6 @@ class DescribeImageCollection(object):
         image = pkg._images.add_image(new_image_path)
         # verify -----------------------
         expected = (expected_partname, expected_len, expected_sha1)
-        actual = (image.partname, len(pkg._images), image._sha1)
+        actual = (image.partname, len(pkg._images), image.sha1)
         msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
         assert actual == expected, msg
