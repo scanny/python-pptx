@@ -222,12 +222,30 @@ class Image(object):
     Immutable value object representing an image such as a JPEG, PNG, or GIF.
     """
     @classmethod
+    def from_blob(cls, blob, filename=None):
+        """
+        Return a new |Image| object loaded from the image binary in *blob*.
+        """
+        raise NotImplementedError
+
+    @classmethod
     def from_file(cls, image_file):
         """
         Return a new |Image| object loaded from *image_file*, which can be
         either a path (string) or a file-like object.
         """
-        raise NotImplementedError
+        if isinstance(image_file, basestring):
+            # treat image_file as a path
+            with open(image_file, 'rb') as f:
+                blob = f.read()
+            filename = os.path.basename(image_file)
+        else:
+            # assume image_file is a file-like object
+            image_file.seek(0)
+            blob = image_file.read()
+            filename = None
+
+        return cls.from_blob(blob, filename)
 
     @lazyproperty
     def sha1(self):

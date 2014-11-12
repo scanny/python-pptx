@@ -11,11 +11,12 @@ import pytest
 from StringIO import StringIO
 
 from pptx.opc.constants import CONTENT_TYPE as CT
-from pptx.parts.image import ImagePart
+from pptx.parts.image import Image, ImagePart
 from pptx.package import Package
 from pptx.util import Px
 
 from ..unitutil.file import absjoin, test_file_dir
+from ..unitutil.mock import instance_mock, method_mock
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -92,6 +93,50 @@ class DescribeImagePart(object):
     def size_fixture(self):
         image = ImagePart.new(None, test_image_path)
         return image, (204, 204)
+
+
+class DescribeImage(object):
+
+    def it_can_construct_from_a_path(self, from_path_fixture):
+        image_file, blob, filename, image_ = from_path_fixture
+        image = Image.from_file(image_file)
+        Image.from_blob.assert_called_once_with(blob, filename)
+        assert image is image_
+
+    def it_can_construct_from_a_stream(self, from_stream_fixture):
+        image_file, blob, image_ = from_stream_fixture
+        image = Image.from_file(image_file)
+        Image.from_blob.assert_called_once_with(blob, None)
+        assert image is image_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def from_path_fixture(self, from_blob_, image_):
+        image_file = test_image_path
+        with open(test_image_path, 'rb') as f:
+            blob = f.read()
+        filename = 'python-icon.jpeg'
+        from_blob_.return_value = image_
+        return image_file, blob, filename, image_
+
+    @pytest.fixture
+    def from_stream_fixture(self, from_blob_, image_):
+        with open(test_image_path, 'rb') as f:
+            blob = f.read()
+            image_file = StringIO(blob)
+        from_blob_.return_value = image_
+        return image_file, blob, image_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def from_blob_(self, request):
+        return method_mock(request, Image, 'from_blob')
+
+    @pytest.fixture
+    def image_(self, request):
+        return instance_mock(request, Image)
 
 
 class DescribeImageCollection(object):
