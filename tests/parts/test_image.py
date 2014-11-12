@@ -16,7 +16,7 @@ from pptx.package import Package
 from pptx.util import Px
 
 from ..unitutil.file import absjoin, test_file_dir
-from ..unitutil.mock import instance_mock, method_mock
+from ..unitutil.mock import initializer_mock, instance_mock, method_mock
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -109,7 +109,18 @@ class DescribeImage(object):
         Image.from_blob.assert_called_once_with(blob, None)
         assert image is image_
 
+    def it_can_construct_from_a_blob(self, from_blob_fixture):
+        blob, filename = from_blob_fixture
+        image = Image.from_blob(blob, filename)
+        Image.__init__.assert_called_once_with(blob, filename)
+        assert isinstance(image, Image)
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def from_blob_fixture(self, _init_):
+        blob, filename = b'foobar', 'foo.png'
+        return blob, filename
 
     @pytest.fixture
     def from_path_fixture(self, from_blob_, image_):
@@ -137,6 +148,10 @@ class DescribeImage(object):
     @pytest.fixture
     def image_(self, request):
         return instance_mock(request, Image)
+
+    @pytest.fixture
+    def _init_(self, request):
+        return initializer_mock(request, Image)
 
 
 class DescribeImageCollection(object):

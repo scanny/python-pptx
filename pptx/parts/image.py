@@ -221,12 +221,17 @@ class Image(object):
     """
     Immutable value object representing an image such as a JPEG, PNG, or GIF.
     """
+    def __init__(self, blob, filename):
+        super(Image, self).__init__()
+        self._blob = blob
+        self._filename = filename
+
     @classmethod
     def from_blob(cls, blob, filename=None):
         """
         Return a new |Image| object loaded from the image binary in *blob*.
         """
-        raise NotImplementedError
+        return cls(blob, filename)
 
     @classmethod
     def from_file(cls, image_file):
