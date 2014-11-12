@@ -122,6 +122,11 @@ class Describe_ImageParts(object):
         ImagePart_.new.assert_called_once_with(package_, image_)
         assert image_part is image_part_
 
+    def it_can_find_an_image_part_by_sha1_hash(self, find_fixture):
+        image_parts, sha1, expected_value = find_fixture
+        image_part = image_parts._find_by_sha1(sha1)
+        assert image_part is expected_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -136,6 +141,20 @@ class Describe_ImageParts(object):
             image_parts, image_file, Image_, image_, ImagePart_, package_,
             image_part_
         )
+
+    @pytest.fixture(params=[True, False])
+    def find_fixture(self, request, _iter_, image_part_):
+        image_part_is_present = request.param
+        image_parts = _ImageParts(None)
+        _iter_.return_value = iter((image_part_,))
+        sha1 = 'foobar'
+        if image_part_is_present:
+            image_part_.sha1 = 'foobar'
+            expected_value = image_part_
+        else:
+            image_part_.sha1 = 'barfoo'
+            expected_value = None
+        return image_parts, sha1, expected_value
 
     @pytest.fixture
     def get_fixture(self, Image_, image_, image_part_, _find_by_sha1_):
@@ -166,6 +185,10 @@ class Describe_ImageParts(object):
     @pytest.fixture
     def image_part_(self, request):
         return instance_mock(request, ImagePart)
+
+    @pytest.fixture
+    def _iter_(self, request):
+        return method_mock(request, _ImageParts, '__iter__')
 
     @pytest.fixture
     def package_(self, request):

@@ -104,6 +104,12 @@ class _ImageParts(object):
         super(_ImageParts, self).__init__()
         self._package = package
 
+    def __iter__(self):
+        """
+        Generate a reference to each |ImagePart| object in the package.
+        """
+        raise NotImplementedError
+
     def get_or_add_image_part(self, image_file):
         """
         Return an |ImagePart| object containing the image in *image_file*,
@@ -124,4 +130,7 @@ class _ImageParts(object):
         no matching image part is found. The image part is identified by the
         SHA1 hash digest of the image binary it contains.
         """
-        raise NotImplementedError
+        for image_part in self:
+            if image_part.sha1 == sha1:
+                return image_part
+        return None
