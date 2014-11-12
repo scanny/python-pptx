@@ -257,4 +257,4 @@ class Image(object):
         """
         SHA1 hash digest of the image blob
         """
-        raise NotImplementedError
+        return hashlib.sha1(self._blob).hexdigest()

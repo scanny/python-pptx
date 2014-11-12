@@ -115,6 +115,10 @@ class DescribeImage(object):
         Image.__init__.assert_called_once_with(blob, filename)
         assert isinstance(image, Image)
 
+    def it_knows_its_sha1_hash(self):
+        image = Image(b'foobar', None)
+        assert image.sha1 == '8843d7f92416211de9ebb963ff4ce28125932878'
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
