@@ -3,6 +3,7 @@ Feature: Add a picture to a slide
   As a developer using python-pptx
   I need a way to place an image on a slide
 
+  @wip
   Scenario Outline: Add a picture to a slide
      Given a slide
       When I add the image <filename> using shapes.add_picture()
@@ -21,6 +22,7 @@ Feature: Add a picture to a slide
       | python.bmp       | bmp  |
 
 
+  @wip
   Scenario Outline: Add a picture stream to a slide
      Given a slide
       When I add the stream image <filename> using shapes.add_picture()

@@ -12,7 +12,7 @@ import os
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import OpcPackage
 from pptx.parts.coreprops import CoreProperties
-from pptx.parts.image import ImageCollection
+from pptx.parts.image import Image, ImageCollection, ImagePart
 from pptx.util import lazyproperty
 
 
@@ -59,7 +59,7 @@ class Package(OpcPackage):
         the image part already exists in this package, it is reused,
         otherwise a new one is created.
         """
-        return self._images.add_image(image_file)
+        return self._image_parts.get_or_add_image_part(image_file)
 
     @classmethod
     def open(cls, pkg_file=None):
@@ -86,3 +86,42 @@ class Package(OpcPackage):
         package.
         """
         return ImageCollection()
+
+    @lazyproperty
+    def _image_parts(self):
+        """
+        |_ImageParts| object providing access to the image parts in this
+        package.
+        """
+        return _ImageParts(self)
+
+
+class _ImageParts(object):
+    """
+    Provides access to the image parts in a package.
+    """
+    def __init__(self, package):
+        super(_ImageParts, self).__init__()
+        self._package = package
+
+    def get_or_add_image_part(self, image_file):
+        """
+        Return an |ImagePart| object containing the image in *image_file*,
+        which is either a path to an image file or a file-like object
+        containing an image. If an image part containing this same image
+        already exists, that instance is returned, otherwise a new image part
+        is created.
+        """
+        image = Image.from_file(image_file)
+        image_part = self._find_by_sha1(image.sha1)
+        if image_part is None:
+            image_part = ImagePart.new(self._package, image)
+        return image_part
+
+    def _find_by_sha1(self, sha1):
+        """
+        Return an |ImagePart| object belonging to this package or |None| if
+        no matching image part is found. The image part is identified by the
+        SHA1 hash digest of the image binary it contains.
+        """
+        raise NotImplementedError

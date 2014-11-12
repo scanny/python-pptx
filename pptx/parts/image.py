@@ -215,3 +215,23 @@ class ImageCollection(PartCollection):
         for idx, image in enumerate(self._values):
             partname_str = '/ppt/media/image%d.%s' % (idx+1, image.ext)
             image.partname = PackURI(partname_str)
+
+
+class Image(object):
+    """
+    Immutable value object representing an image such as a JPEG, PNG, or GIF.
+    """
+    @classmethod
+    def from_file(cls, image_file):
+        """
+        Return a new |Image| object loaded from *image_file*, which can be
+        either a path (string) or a file-like object.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
+    def sha1(self):
+        """
+        SHA1 hash digest of the image blob
+        """
+        raise NotImplementedError

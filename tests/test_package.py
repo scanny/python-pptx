@@ -8,14 +8,16 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.package import Package
+from pptx.package import _ImageParts, Package
 from pptx.parts.coreprops import CoreProperties
-from pptx.parts.image import ImagePart
+from pptx.parts.image import Image, ImagePart
 from pptx.parts.presentation import PresentationPart
 
 
 from .unitutil.file import absjoin, test_file_dir
-from .unitutil.mock import instance_mock, property_mock
+from .unitutil.mock import (
+    class_mock, instance_mock, method_mock, property_mock
+)
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -50,7 +52,9 @@ class DescribePackage(object):
 
         image_part = package.get_or_add_image_part(image_file)
 
-        package._images.add_image.assert_called_once_with(image_file)
+        package._image_parts.get_or_add_image_part.assert_called_once_with(
+            image_file
+        )
         assert image_part is image_part_
 
     def it_can_save_itself_to_a_pptx_file(self, temp_pptx_path):
@@ -75,10 +79,10 @@ class DescribePackage(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
-    def image_part_fixture(self, _images_, image_part_):
+    def image_part_fixture(self, _image_parts_, image_part_):
         package = Package()
         image_file = 'foobar.png'
-        package._images.add_image.return_value = image_part_
+        package._image_parts.get_or_add_image_part.return_value = image_part_
         return package, image_file, image_part_
 
     @pytest.fixture
@@ -92,5 +96,77 @@ class DescribePackage(object):
         return instance_mock(request, ImagePart)
 
     @pytest.fixture
-    def _images_(self, request):
-        return property_mock(request, Package, '_images')
+    def _image_parts_(self, request):
+        return property_mock(request, Package, '_image_parts')
+
+
+class Describe_ImageParts(object):
+
+    def it_can_get_a_matching_image_part(self, get_fixture):
+        image_parts, image_file, Image_, image_, image_part_ = get_fixture
+
+        image_part = image_parts.get_or_add_image_part(image_file)
+
+        Image_.from_file.assert_called_once_with(image_file)
+        image_parts._find_by_sha1.assert_called_once_with(image_.sha1)
+        assert image_part is image_part_
+
+    def it_can_add_an_image_part(self, add_fixture):
+        image_parts, image_file, Image_, image_ = add_fixture[:4]
+        ImagePart_, package_, image_part_ = add_fixture[4:]
+
+        image_part = image_parts.get_or_add_image_part(image_file)
+
+        Image_.from_file.assert_called_once_with(image_file)
+        image_parts._find_by_sha1.assert_called_once_with(image_.sha1)
+        ImagePart_.new.assert_called_once_with(package_, image_)
+        assert image_part is image_part_
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def add_fixture(self, package_, Image_, image_, _find_by_sha1_,
+                    ImagePart_, image_part_):
+        image_parts = _ImageParts(package_)
+        image_file = 'foobar.png'
+        Image_.from_file.return_value = image_
+        _find_by_sha1_.return_value = None
+        ImagePart_.new.return_value = image_part_
+        return (
+            image_parts, image_file, Image_, image_, ImagePart_, package_,
+            image_part_
+        )
+
+    @pytest.fixture
+    def get_fixture(self, Image_, image_, image_part_, _find_by_sha1_):
+        image_parts = _ImageParts(None)
+        image_file = 'foobar.png'
+        Image_.from_file.return_value = image_
+        _find_by_sha1_.return_value = image_part_
+        return image_parts, image_file, Image_, image_, image_part_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _find_by_sha1_(self, request):
+        return method_mock(request, _ImageParts, '_find_by_sha1')
+
+    @pytest.fixture
+    def Image_(self, request):
+        return class_mock(request, 'pptx.package.Image')
+
+    @pytest.fixture
+    def image_(self, request):
+        return instance_mock(request, Image)
+
+    @pytest.fixture
+    def ImagePart_(self, request):
+        return class_mock(request, 'pptx.package.ImagePart')
+
+    @pytest.fixture
+    def image_part_(self, request):
+        return instance_mock(request, ImagePart)
+
+    @pytest.fixture
+    def package_(self, request):
+        return instance_mock(request, Package)
