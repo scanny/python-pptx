@@ -67,7 +67,9 @@ class DescribeBaseSlide(object):
 
         image_part, rId = slide.get_or_add_image_part(image_file)
 
-        slide._package._images.add_image.assert_called_once_with(image_file)
+        slide._package.get_or_add_image_part.assert_called_once_with(
+            image_file
+        )
         slide.relate_to.assert_called_once_with(image_part_, RT.IMAGE)
         assert image_part is image_part_
         assert rId is rId_
@@ -79,7 +81,7 @@ class DescribeBaseSlide(object):
             self, partname_, package_, image_part_, relate_to_):
         slide = BaseSlide(partname_, None, None, package_)
         image_file, rId = 'foobar.png', 'rId6'
-        package_._images.add_image.return_value = image_part_
+        package_.get_or_add_image_part.return_value = image_part_
         relate_to_.return_value = rId
         return slide, image_file, image_part_, rId
 

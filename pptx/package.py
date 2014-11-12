@@ -53,6 +53,14 @@ class Package(OpcPackage):
             self.relate_to(core_props, RT.CORE_PROPERTIES)
             return core_props
 
+    def get_or_add_image_part(self, image_file):
+        """
+        Return an |ImagePart| object containing the image in *image_file*. If
+        the image part already exists in this package, it is reused,
+        otherwise a new one is created.
+        """
+        return self._images.add_image(image_file)
+
     @classmethod
     def open(cls, pkg_file=None):
         """

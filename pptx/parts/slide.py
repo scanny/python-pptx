@@ -36,7 +36,7 @@ class BaseSlide(XmlPart):
         relationship already exists, they are reused, otherwise they are
         newly created.
         """
-        image_part = self._package._images.add_image(image_file)
+        image_part = self._package.get_or_add_image_part(image_file)
         rId = self.relate_to(image_part, RT.IMAGE)
         return image_part, rId
 

@@ -10,10 +10,12 @@ import pytest
 
 from pptx.package import Package
 from pptx.parts.coreprops import CoreProperties
+from pptx.parts.image import ImagePart
 from pptx.parts.presentation import PresentationPart
 
 
 from .unitutil.file import absjoin, test_file_dir
+from .unitutil.mock import instance_mock, property_mock
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -39,9 +41,17 @@ class DescribePackage(object):
         pkg = Package.open()
         assert isinstance(pkg.presentation, PresentationPart)
 
-    def it_provides_ref_to_package_core_properties_part(self):
+    def it_provides_access_to_its_core_properties_part(self):
         pkg = Package.open()
         assert isinstance(pkg.core_properties, CoreProperties)
+
+    def it_can_get_or_add_an_image_part(self, image_part_fixture):
+        package, image_file, image_part_ = image_part_fixture
+
+        image_part = package.get_or_add_image_part(image_file)
+
+        package._images.add_image.assert_called_once_with(image_file)
+        assert image_part is image_part_
 
     def it_can_save_itself_to_a_pptx_file(self, temp_pptx_path):
         """
@@ -65,5 +75,22 @@ class DescribePackage(object):
     # fixtures ---------------------------------------------
 
     @pytest.fixture
+    def image_part_fixture(self, _images_, image_part_):
+        package = Package()
+        image_file = 'foobar.png'
+        package._images.add_image.return_value = image_part_
+        return package, image_file, image_part_
+
+    @pytest.fixture
     def temp_pptx_path(self, tmpdir):
         return absjoin(str(tmpdir), 'test-pptx.pptx')
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def image_part_(self, request):
+        return instance_mock(request, ImagePart)
+
+    @pytest.fixture
+    def _images_(self, request):
+        return property_mock(request, Package, '_images')
