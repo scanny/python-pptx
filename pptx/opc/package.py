@@ -56,6 +56,13 @@ class OpcPackage(object):
         for part in walk_parts(self):
             yield part
 
+    def iter_rels(self):
+        """
+        Generate exactly one reference to each relationship in the package by
+        performing a depth-first traversal of the rels graph.
+        """
+        raise NotImplementedError
+
     def load_rel(self, reltype, target, rId, is_external=False):
         """
         Return newly added |_Relationship| instance of *reltype* between this

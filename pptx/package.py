@@ -108,7 +108,17 @@ class _ImageParts(object):
         """
         Generate a reference to each |ImagePart| object in the package.
         """
-        raise NotImplementedError
+        image_parts = []
+        for rel in self._package.iter_rels():
+            if rel.is_external:
+                continue
+            if rel.reltype != RT.IMAGE:
+                continue
+            image_part = rel.target_part
+            if image_part in image_parts:
+                continue
+            image_parts.append(image_part)
+            yield image_part
 
     def get_or_add_image_part(self, image_file):
         """

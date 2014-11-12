@@ -8,6 +8,8 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.package import Part, _Relationship
 from pptx.package import _ImageParts, Package
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImagePart
@@ -102,6 +104,10 @@ class DescribePackage(object):
 
 class Describe_ImageParts(object):
 
+    def it_can_iterate_over_the_package_image_parts(self, iter_fixture):
+        image_parts, expected_parts = iter_fixture
+        assert list(image_parts) == expected_parts
+
     def it_can_get_a_matching_image_part(self, get_fixture):
         image_parts, image_file, Image_, image_, image_part_ = get_fixture
 
@@ -163,6 +169,29 @@ class Describe_ImageParts(object):
         Image_.from_file.return_value = image_
         _find_by_sha1_.return_value = image_part_
         return image_parts, image_file, Image_, image_, image_part_
+
+    @pytest.fixture
+    def iter_fixture(self, request, package_):
+
+        def rel(is_external, reltype):
+            part = instance_mock(request, Part)
+            return instance_mock(
+                request, _Relationship, is_external=is_external,
+                reltype=reltype, target_part=part
+            )
+
+        rels = (
+            rel(True,  RT.IMAGE),
+            rel(False, RT.SLIDE),
+            rel(False, RT.IMAGE),
+        )
+
+        package_.iter_rels.return_value = iter(
+            (rels[0], rels[1], rels[2], rels[2])
+        )
+        image_parts = _ImageParts(package_)
+        expected_parts = [rels[2].target_part]
+        return image_parts, expected_parts
 
     # fixture components ---------------------------------------------
 
