@@ -43,12 +43,11 @@ from ..oxml.unitdata.shape import (
     a_cNvPr, a_ph, a_pic, an_ext, an_nvPr, an_nvSpPr, an_sp, an_spPr,
     an_spTree, an_xfrm
 )
-from ..oxml.unitdata.slides import a_sld, a_cSld
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, test_file_dir
 from ..unitutil.mock import (
-    class_mock, function_mock, initializer_mock, instance_mock, loose_mock,
-    method_mock, property_mock
+    class_mock, function_mock, initializer_mock, instance_mock, method_mock,
+    property_mock
 )
 
 
@@ -63,32 +62,26 @@ class DescribeBaseSlide(object):
         base_slide, expected_value = name_fixture
         assert base_slide.name == expected_value
 
-    def it_can_add_an_image_part_to_the_slide(self, base_slide_fixture):
-        # fixture ----------------------
-        base_slide, img_file_, image_, rId_ = base_slide_fixture
-        # exercise ---------------------
-        image, rId = base_slide._add_image(img_file_)
-        # verify -----------------------
-        base_slide._package._images.add_image.assert_called_once_with(
-            img_file_)
-        base_slide.relate_to.assert_called_once_with(image, RT.IMAGE)
-        assert image is image_
+    def it_can_add_an_image_part(self, image_part_fixture):
+        slide, image_file, image_part_, rId_ = image_part_fixture
+
+        image_part, rId = slide.get_or_add_image_part(image_file)
+
+        slide._package._images.add_image.assert_called_once_with(image_file)
+        slide.relate_to.assert_called_once_with(image_part_, RT.IMAGE)
+        assert image_part is image_part_
         assert rId is rId_
 
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def base_slide_fixture(self, request, base_slide):
-        # mock BaseSlide._package._images.add_image() train wreck
-        img_file_ = loose_mock(request, name='img_file_')
-        image_ = loose_mock(request, name='image_')
-        pkg_ = loose_mock(request, name='_package', spec=Package)
-        pkg_._images.add_image.return_value = image_
-        base_slide._package = pkg_
-        # mock BaseSlide.relate_to()
-        rId_ = loose_mock(request, name='rId_')
-        method_mock(request, BaseSlide, 'relate_to', return_value=rId_)
-        return base_slide, img_file_, image_, rId_
+    def image_part_fixture(
+            self, partname_, package_, image_part_, relate_to_):
+        slide = BaseSlide(partname_, None, None, package_)
+        image_file, rId = 'foobar.png', 'rId6'
+        package_._images.add_image.return_value = image_part_
+        relate_to_.return_value = rId
+        return slide, image_file, image_part_, rId
 
     @pytest.fixture
     def name_fixture(self):
@@ -100,21 +93,24 @@ class DescribeBaseSlide(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def base_slide(self):
-        partname = PackURI('/foo/bar.xml')
-        return BaseSlide(partname, None, None, None)
+    def image_part_(self, request):
+        return instance_mock(request, ImagePart)
 
     @pytest.fixture
-    def sld(self):
-        sld_bldr = (
-            a_sld().with_nsdecls().with_child(
-                a_cSld().with_child(
-                    an_spTree()))
-        )
-        return sld_bldr.element
+    def package_(self, request):
+        return instance_mock(request, Package)
 
     @pytest.fixture
-    def slide(self, sld):
+    def partname_(self):
+        return PackURI('/foo/bar.xml')
+
+    @pytest.fixture
+    def relate_to_(self, request):
+        return method_mock(request, BaseSlide, 'relate_to')
+
+    @pytest.fixture
+    def slide(self):
+        sld = element('p:sld/p:cSld/p:spTree')
         return BaseSlide(None, None, sld, None)
 
 
@@ -524,19 +520,18 @@ class Describe_SlideShapeTree(object):
         assert shape is shape_
 
     def it_can_add_a_picture_shape(self, picture_fixture):
-        # fixture ----------------------
         shapes, image_file_, x_, y_, cx_, cy_ = picture_fixture[:6]
-        _get_or_add_image_part_, image_part_, rId_ = picture_fixture[6:9]
-        _add_pic_from_image_part_, pic_ = picture_fixture[9:11]
-        _shape_factory_, picture_ = picture_fixture[11:13]
-        # exercise ---------------------
+        image_part_, rId_, pic_, picture_ = picture_fixture[6:]
+
         picture = shapes.add_picture(image_file_, x_, y_, cx_, cy_)
-        # verify -----------------------
-        _get_or_add_image_part_.assert_called_once_with(image_file_)
-        _add_pic_from_image_part_.assert_called_once_with(
+
+        shapes._slide.get_or_add_image_part.assert_called_once_with(
+            image_file_
+        )
+        shapes._add_pic_from_image_part.assert_called_once_with(
             image_part_, rId_, x_, y_, cx_, cy_
         )
-        _shape_factory_.assert_called_once_with(pic_)
+        shapes._shape_factory.assert_called_once_with(pic_)
         assert picture is picture_
 
     def it_can_add_a_table(self, table_fixture):
@@ -620,13 +615,6 @@ class Describe_SlideShapeTree(object):
             id_, name, rows_, cols_, x_, y_, cx_, cy_
         )
         assert graphicFrame is graphicFrame_
-
-    def it_adds_an_image_to_help_add_picture(self, image_part_fixture):
-        shapes, image_file_, slide_, image_part_, rId_ = image_part_fixture
-        image_part, rId = shapes._get_or_add_image_part(image_file_)
-        slide_._add_image.assert_called_once_with(image_file_)
-        assert image_part == image_part_
-        assert rId == rId_
 
     def it_adds_a_pic_to_help_add_picture(self, pic_fixture):
         # fixture ----------------------
@@ -784,11 +772,6 @@ class Describe_SlideShapeTree(object):
         )
 
     @pytest.fixture
-    def image_part_fixture(self, slide_, image_file_, image_part_, rId_):
-        shapes = _SlideShapeTree(slide_)
-        return shapes, image_file_, slide_, image_part_, rId_
-
-    @pytest.fixture
     def index_fixture(self, slide_, shape_):
         shapes = _SlideShapeTree(slide_)
         expected_idx = 1
@@ -833,15 +816,14 @@ class Describe_SlideShapeTree(object):
 
     @pytest.fixture
     def picture_fixture(
-            self, image_file_, x_, y_, cx_, cy_, _get_or_add_image_part_,
-            image_part_, rId_,  _add_pic_from_image_part_, pic_,
-            _shape_factory_, picture_):
-        shapes = _SlideShapeTree(None)
+            self, slide_, image_file_, x_, y_, cx_, cy_, image_part_, rId_,
+            _add_pic_from_image_part_, pic_, _shape_factory_, picture_):
+        shapes = _SlideShapeTree(slide_)
+        slide_.get_or_add_image_part.return_value = (image_part_, rId_)
         _shape_factory_.return_value = picture_
         return (
-            shapes, image_file_, x_, y_, cx_, cy_, _get_or_add_image_part_,
-            image_part_, rId_,  _add_pic_from_image_part_, pic_,
-            _shape_factory_, picture_
+            shapes, image_file_, x_, y_, cx_, cy_, image_part_, rId_, pic_,
+            picture_
         )
 
     @pytest.fixture
@@ -985,13 +967,6 @@ class Describe_SlideShapeTree(object):
         return instance_mock(request, str)
 
     @pytest.fixture
-    def _get_or_add_image_part_(self, request, image_part_, rId_):
-        return method_mock(
-            request, _SlideShapeTree, '_get_or_add_image_part',
-            return_value=(image_part_, rId_)
-        )
-
-    @pytest.fixture
     def graphicFrame_(self, request):
         return instance_mock(request, CT_GraphicalObjectFrame)
 
@@ -1102,7 +1077,6 @@ class Describe_SlideShapeTree(object):
         slide_ = instance_mock(request, Slide)
         slide_.spTree = spTree_
         slide_.add_chart_part.return_value = rId_
-        slide_._add_image.return_value = image_part_, rId_
         return slide_
 
     @pytest.fixture

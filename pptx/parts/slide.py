@@ -28,6 +28,18 @@ class BaseSlide(XmlPart):
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.
     """
+    def get_or_add_image_part(self, image_file):
+        """
+        Return an ``(image_part, rId)`` 2-tuple corresponding to an
+        |ImagePart| object containing the image in *image_file*, and related
+        to this slide with the key *rId*. If either the image part or
+        relationship already exists, they are reused, otherwise they are
+        newly created.
+        """
+        image_part = self._package._images.add_image(image_file)
+        rId = self.relate_to(image_part, RT.IMAGE)
+        return image_part, rId
+
     @property
     def name(self):
         """
@@ -42,32 +54,11 @@ class BaseSlide(XmlPart):
         """
         return self._element.cSld.spTree
 
-    def _add_image(self, img_file):
-        """
-        Return 2-tuple ``(image_part, rId)`` representing an |ImagePart|
-        object corresponding to the image in *img_file*, newly created if a
-        matching image part is not already present. If the slide already has
-        a relationship to an existing image, that relationship is reused.
-        """
-        image_part = self._package._images.add_image(img_file)
-        rId = self.relate_to(image_part, RT.IMAGE)
-        return (image_part, rId)
-
 
 class Slide(BaseSlide):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
-    def add_chart_part(self, chart_type, chart_data):
-        """
-        Return the rId of a new |ChartPart| object containing a chart of
-        *chart_type*, displaying *chart_data*, and related to the slide
-        containing this shape tree.
-        """
-        chart_part = ChartPart.new(chart_type, chart_data, self.package)
-        rId = self.relate_to(chart_part, RT.CHART)
-        return rId
-
     @classmethod
     def new(cls, slide_layout, partname, package):
         """
@@ -79,6 +70,16 @@ class Slide(BaseSlide):
         slide.shapes.clone_layout_placeholders(slide_layout)
         slide.relate_to(slide_layout, RT.SLIDE_LAYOUT)
         return slide
+
+    def add_chart_part(self, chart_type, chart_data):
+        """
+        Return the rId of a new |ChartPart| object containing a chart of
+        *chart_type*, displaying *chart_data*, and related to the slide
+        containing this shape tree.
+        """
+        chart_part = ChartPart.new(chart_type, chart_data, self.package)
+        rId = self.relate_to(chart_part, RT.CHART)
+        return rId
 
     @lazyproperty
     def placeholders(self):
@@ -210,7 +211,7 @@ class _SlideShapeTree(BaseShapeTree):
         *image_file* can be either a path to a file (a string) or a file-like
         object.
         """
-        image_part, rId = self._get_or_add_image_part(image_file)
+        image_part, rId = self._slide.get_or_add_image_part(image_file)
         pic = self._add_pic_from_image_part(
             image_part, rId, left, top, width, height
         )
@@ -379,17 +380,6 @@ class _SlideShapeTree(BaseShapeTree):
         idx = layout_placeholder.idx
 
         self._spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
-
-    def _get_or_add_image_part(self, image_file):
-        """
-        Return an (image_part, rId) 2-tuple corresponding to an image part
-        containing the image in *image_file*, and related to this object's
-        part with the key *rId*. If the image part and/or relationship
-        already exists, they are reused, otherwise they are newly created.
-        """
-        slide = self._slide
-        image_part, rId = slide._add_image(image_file)
-        return image_part, rId
 
     def _next_ph_name(self, ph_type, id, orient):
         """
