@@ -129,6 +129,11 @@ class DescribeImage(object):
         image = Image(b'foobar', None)
         assert image.sha1 == '8843d7f92416211de9ebb963ff4ce28125932878'
 
+    def it_knows_its_PIL_properties_to_help(self, pil_fixture):
+        image, format = pil_fixture
+        assert image._format == format
+        assert image._pil_props == (format,)
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -162,6 +167,14 @@ class DescribeImage(object):
             image_file = StringIO(blob)
         from_blob_.return_value = image_
         return image_file, blob, image_
+
+    @pytest.fixture
+    def pil_fixture(self):
+        with open(test_image_path, 'rb') as f:
+            blob = f.read()
+        image = Image(blob, None)
+        format = 'JPEG'
+        return image, format
 
     # fixture components ---------------------------------------------
 

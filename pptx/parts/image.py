@@ -248,4 +248,15 @@ class Image(object):
         """
         The PIL Image format of this image, e.g. 'PNG'.
         """
-        raise NotImplementedError
+        return self._pil_props[0]
+
+    @lazyproperty
+    def _pil_props(self):
+        """
+        A tuple containing useful image properties extracted from this image
+        using Pillow (Python Imaging Library, or 'PIL').
+        """
+        stream = StringIO(self.blob)
+        pil_image = PIL_Image.open(stream)
+        format = pil_image.format
+        return (format,)
