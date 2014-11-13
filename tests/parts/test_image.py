@@ -124,9 +124,10 @@ class DescribeImage(object):
         assert image.sha1 == '8843d7f92416211de9ebb963ff4ce28125932878'
 
     def it_knows_its_PIL_properties_to_help(self, pil_fixture):
-        image, format = pil_fixture
+        image, size, format = pil_fixture
+        assert image.size == size
         assert image._format == format
-        assert image._pil_props == (format,)
+        assert image._pil_props == (format, size)
 
     # fixtures -------------------------------------------------------
 
@@ -177,8 +178,9 @@ class DescribeImage(object):
         with open(test_image_path, 'rb') as f:
             blob = f.read()
         image = Image(blob, None)
+        size = (204, 204)
         format = 'JPEG'
-        return image, format
+        return image, size, format
 
     # fixture components ---------------------------------------------
 

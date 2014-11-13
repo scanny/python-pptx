@@ -103,10 +103,8 @@ class ImagePart(Part):
         Return *width*, *height* tuple representing native dimensions of
         image in pixels.
         """
-        image_stream = StringIO(self._blob)
-        width_px, height_px = PIL_Image.open(image_stream).size
-        image_stream.close()
-        return width_px, height_px
+        image = Image.from_blob(self.blob)
+        return image.size
 
 
 class Image(object):
@@ -192,6 +190,14 @@ class Image(object):
         """
         return hashlib.sha1(self._blob).hexdigest()
 
+    @lazyproperty
+    def size(self):
+        """
+        A (width, height) 2-tuple specifying the dimensions of this image in
+        pixels.
+        """
+        return self._pil_props[1]
+
     @property
     def _format(self):
         """
@@ -208,4 +214,6 @@ class Image(object):
         stream = StringIO(self.blob)
         pil_image = PIL_Image.open(stream)
         format = pil_image.format
-        return (format,)
+        width_px, height_px = pil_image.size
+        stream.close()
+        return (format, (width_px, height_px))
