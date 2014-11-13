@@ -16,7 +16,9 @@ from pptx.parts.image import Image, ImagePart
 from pptx.util import Px
 
 from ..unitutil.file import absjoin, test_file_dir
-from ..unitutil.mock import initializer_mock, instance_mock, method_mock
+from ..unitutil.mock import (
+    initializer_mock, instance_mock, method_mock, property_mock
+)
 
 
 images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
@@ -119,11 +121,25 @@ class DescribeImage(object):
         Image.__init__.assert_called_once_with(blob, filename)
         assert isinstance(image, Image)
 
+    def it_knows_its_canonical_filename_extension(self, ext_fixture):
+        image, expected_value = ext_fixture
+        assert image.ext == expected_value
+
     def it_knows_its_sha1_hash(self):
         image = Image(b'foobar', None)
         assert image.sha1 == '8843d7f92416211de9ebb963ff4ce28125932878'
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('BMP', 'bmp'), ('GIF', 'gif'), ('JPEG', 'jpg'), ('PNG', 'png'),
+        ('TIFF', 'tiff'), ('WMF', 'wmf'),
+    ])
+    def ext_fixture(self, request, _format_):
+        format, expected_value = request.param
+        image = Image(None, None)
+        _format_.return_value = format
+        return image, expected_value
 
     @pytest.fixture
     def from_blob_fixture(self, _init_):
@@ -148,6 +164,10 @@ class DescribeImage(object):
         return image_file, blob, image_
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _format_(self, request):
+        return property_mock(request, Image, '_format')
 
     @pytest.fixture
     def from_blob_(self, request):

@@ -217,7 +217,15 @@ class Image(object):
         content type of this image, regardless of what extension may have
         been used in its filename, if any.
         """
-        raise NotImplementedError
+        ext_map = {
+            'BMP': 'bmp', 'GIF': 'gif', 'JPEG': 'jpg', 'PNG': 'png',
+            'TIFF': 'tiff', 'WMF': 'wmf'
+        }
+        format = self._format
+        if format not in ext_map:
+            tmpl = "unsupported image format, expected one of: %s, got '%s'"
+            raise ValueError(tmpl % (ext_map.keys(), format))
+        return ext_map[format]
 
     @lazyproperty
     def filename(self):
@@ -234,3 +242,10 @@ class Image(object):
         SHA1 hash digest of the image blob
         """
         return hashlib.sha1(self._blob).hexdigest()
+
+    @property
+    def _format(self):
+        """
+        The PIL Image format of this image, e.g. 'PNG'.
+        """
+        raise NotImplementedError
