@@ -5,5 +5,4 @@ mock>=1.0.1
 Pillow>=2.6.1
 pyparsing>=2.0.1
 pytest>=2.5
-unittest2>=0.5.1
 XlsxWriter>=0.5.7

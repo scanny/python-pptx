@@ -27,7 +27,7 @@ PACKAGE_DATA = {'pptx': ['templates/*']}
 
 INSTALL_REQUIRES = ['lxml>=3.1.0', 'Pillow>=2.6.1', 'XlsxWriter>=0.5.7']
 TEST_SUITE = 'tests'
-TESTS_REQUIRE = ['behave', 'mock', 'pyparsing>=2.0.1', 'pytest', 'unittest2']
+TESTS_REQUIRE = ['behave', 'mock', 'pyparsing>=2.0.1', 'pytest']
 
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',
