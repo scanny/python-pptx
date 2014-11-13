@@ -97,57 +97,6 @@ class ImagePart(Part):
             return 'image.%s' % self.ext
         return self._filename
 
-    @staticmethod
-    def _ext_from_image_stream(stream):
-        """
-        Return the filename extension appropriate to the image file contained
-        in *stream*.
-        """
-        ext_map = {
-            'BMP': 'bmp', 'GIF': 'gif', 'JPEG': 'jpg', 'PNG': 'png',
-            'TIFF': 'tiff', 'WMF': 'wmf'
-        }
-        stream.seek(0)
-        format = PIL_Image.open(stream).format
-        if format not in ext_map:
-            tmpl = "unsupported image format, expected one of: %s, got '%s'"
-            raise ValueError(tmpl % (ext_map.keys(), format))
-        return ext_map[format]
-
-    @staticmethod
-    def _image_ext_content_type(ext):
-        """
-        Return the content type corresponding to filename extension *ext*
-        """
-        key = ext.lower()
-        if key not in image_content_types:
-            tmpl = "unsupported image file extension '%s'"
-            raise ValueError(tmpl % (ext))
-        content_type = image_content_types[key]
-        return content_type
-
-    @classmethod
-    def _load_from_file(cls, image_file):
-        """
-        Return a (path, ext, content_type, blob) 4-tuple for the image
-        located in *image_file*, which may be either a path to an image file
-        or a file-like object.
-        """
-        if isinstance(image_file, basestring):  # image_file is a path
-            path = image_file
-            filename = os.path.split(path)[1]
-            ext = os.path.splitext(path)[1][1:]
-            content_type = cls._image_ext_content_type(ext)
-            with open(path, 'rb') as f:
-                blob = f.read()
-        else:  # assume image_file is a file-like object
-            filename = None
-            ext = cls._ext_from_image_stream(image_file)
-            content_type = cls._image_ext_content_type(ext)
-            image_file.seek(0)
-            blob = image_file.read()
-        return filename, ext, content_type, blob
-
     @property
     def _size(self):
         """

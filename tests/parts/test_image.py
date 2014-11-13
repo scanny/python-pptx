@@ -10,7 +10,6 @@ import pytest
 
 from StringIO import StringIO
 
-from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.package import Package
 from pptx.parts.image import Image, ImagePart
 from pptx.util import Px
@@ -49,15 +48,6 @@ class DescribeImagePart(object):
     def it_knows_its_pixel_dimensions(self, size_fixture):
         image, expected_size = size_fixture
         assert image._size == expected_size
-
-    def it_knows_its_image_content_type(self):
-        content_type = ImagePart._image_ext_content_type('jPeG')
-        assert content_type == CT.JPEG
-
-    def it_raises_on_unsupported_image_stream_type(self):
-        with pytest.raises(ValueError):
-            with open(test_eps_path) as stream:
-                ImagePart._ext_from_image_stream(stream)
 
     # fixtures -------------------------------------------------------
 
