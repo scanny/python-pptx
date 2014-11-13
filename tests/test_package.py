@@ -10,6 +10,7 @@ import pytest
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part, _Relationship
+from pptx.opc.packuri import PackURI
 from pptx.package import _ImageParts, Package
 from pptx.parts.coreprops import CoreProperties
 from pptx.parts.image import Image, ImagePart
@@ -71,6 +72,11 @@ class DescribePackage(object):
         assert slide_layouts is not None
         assert len(slide_layouts) == 11
 
+    def it_knows_the_next_available_image_partname(self, next_fixture):
+        package, ext, expected_value = next_fixture
+        partname = package.next_image_partname(ext)
+        assert partname == expected_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -79,6 +85,19 @@ class DescribePackage(object):
         image_file = 'foobar.png'
         package._image_parts.get_or_add_image_part.return_value = image_part_
         return package, image_file, image_part_
+
+    @pytest.fixture(params=[
+        ((3, 4, 2), 1),
+        ((4, 2, 1), 3),
+        ((2, 3, 1), 4),
+    ])
+    def next_fixture(self, request, iter_parts_):
+        idxs, idx = request.param
+        package = Package()
+        package.iter_parts.return_value = self.i_image_parts(request, idxs)
+        ext = 'foo'
+        expected_value = '/ppt/media/image%d.%s' % (idx, ext)
+        return package, ext, expected_value
 
     @pytest.fixture
     def temp_pptx_path(self, tmpdir):
@@ -93,6 +112,16 @@ class DescribePackage(object):
     @pytest.fixture
     def _image_parts_(self, request):
         return property_mock(request, Package, '_image_parts')
+
+    def i_image_parts(self, request, idxs):
+        def part(idx):
+            partname = PackURI('/ppt/media/image%d.png' % idx)
+            return instance_mock(request, Part, partname=partname)
+        return iter([part(idx) for idx in idxs])
+
+    @pytest.fixture
+    def iter_parts_(self, request):
+        return property_mock(request, Package, 'iter_parts')
 
 
 class Describe_ImageParts(object):

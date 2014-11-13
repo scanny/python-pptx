@@ -9,11 +9,12 @@ from __future__ import absolute_import
 
 import os
 
-from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.package import OpcPackage
-from pptx.parts.coreprops import CoreProperties
-from pptx.parts.image import Image, ImagePart
-from pptx.util import lazyproperty
+from .opc.constants import RELATIONSHIP_TYPE as RT
+from .opc.package import OpcPackage
+from .opc.packuri import PackURI
+from .parts.coreprops import CoreProperties
+from .parts.image import Image, ImagePart
+from .util import lazyproperty
 
 
 class Package(OpcPackage):
@@ -70,7 +71,19 @@ class Package(OpcPackage):
         partname, by sequence number. *ext* is used as the extention on the
         returned partname.
         """
-        raise NotImplementedError
+        def first_available_image_idx():
+            image_idxs = sorted([
+                part.partname.idx for part in self.iter_parts()
+                if part.partname.startswith('/ppt/media/image')
+            ])
+            for i, image_idx in enumerate(image_idxs):
+                idx = i + 1
+                if idx < image_idx:
+                    return idx
+            return len(image_idxs)+1
+
+        idx = first_available_image_idx()
+        return PackURI('/ppt/media/image%d.%s' % (idx, ext))
 
     @property
     def presentation(self):
