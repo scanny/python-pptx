@@ -31,6 +31,17 @@ class Package(OpcPackage):
         os.path.split(__file__)[0], 'templates', 'default.pptx'
     )
 
+    @classmethod
+    def open(cls, pkg_file=None):
+        """
+        Return |Package| instance loaded with contents of .pptx package at
+        *pkg_file*, or the default presentation package if *pkg_file* is
+        missing or |None|.
+        """
+        if pkg_file is None:
+            pkg_file = cls._default_pptx_path
+        return super(Package, cls).open(pkg_file)
+
     @lazyproperty
     def core_properties(self):
         """
@@ -53,16 +64,13 @@ class Package(OpcPackage):
         """
         return self._image_parts.get_or_add_image_part(image_file)
 
-    @classmethod
-    def open(cls, pkg_file=None):
+    def next_image_partname(self, ext):
         """
-        Return |Package| instance loaded with contents of .pptx package at
-        *pkg_file*, or the default presentation package if *pkg_file* is
-        missing or |None|.
+        Return a |PackURI| instance representing the next available image
+        partname, by sequence number. *ext* is used as the extention on the
+        returned partname.
         """
-        if pkg_file is None:
-            pkg_file = cls._default_pptx_path
-        return super(Package, cls).open(pkg_file)
+        raise NotImplementedError
 
     @property
     def presentation(self):

@@ -6,7 +6,6 @@ ImagePart and related objects.
 
 import hashlib
 import os
-import posixpath
 
 try:
     from PIL import Image as PIL_Image
@@ -25,32 +24,33 @@ class ImagePart(Part):
     An image part, generally having a partname matching the regex
     ``ppt/media/image[1-9][0-9]*.*``.
     """
-    def __init__(self, partname, content_type, blob, ext, filename=None):
-        super(ImagePart, self).__init__(partname, content_type, blob)
-        self._ext = ext
+    def __init__(self, partname, content_type, blob, package, filename=None):
+        super(ImagePart, self).__init__(
+            partname, content_type, blob, package
+        )
         self._filename = filename
 
     @classmethod
-    def new(cls, partname, image_file):
+    def new(cls, package, image):
         """
-        Return a new |ImagePart| instance loaded from *img_file*, which may
-        be a path to a file (a string), or a file-like object. *partname* is
-        assigned to the new image part.
+        Return a new |ImagePart| instance containing *image*, which is an
+        |Image| object.
         """
-        filename, ext, content_type, blob = cls._load_from_file(image_file)
-        return cls(partname, content_type, blob, ext, filename)
+        partname = package.next_image_partname(image.ext)
+        return cls(
+            partname, image.content_type, image.blob, package, image.filename
+        )
 
     @property
     def ext(self):
         """
         Return file extension for this image e.g. ``'png'``.
         """
-        return self._ext
+        return self.partname.ext
 
     @classmethod
     def load(cls, partname, content_type, blob, package):
-        ext = posixpath.splitext(partname)[1]
-        return cls(partname, content_type, blob, ext)
+        return cls(partname, content_type, blob, package)
 
     def scale(self, width, height):
         """
@@ -194,6 +194,39 @@ class Image(object):
             filename = None
 
         return cls.from_blob(blob, filename)
+
+    @lazyproperty
+    def blob(self):
+        """
+        The binary image bytestream of this image.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
+    def content_type(self):
+        """
+        MIME-type of this image, e.g. ``'image/jpeg'``.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
+    def ext(self):
+        """
+        Canonical file extension for this image e.g. ``'png'``. The returned
+        extension is all lowercase and is the canonical extension for the
+        content type of this image, regardless of what extension may have
+        been used in its filename, if any.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
+    def filename(self):
+        """
+        The filename from the path from which this image was loaded, if
+        loaded from the filesystem. |None| if no filename was used in
+        loading, such as when loaded from an in-memory stream.
+        """
+        raise NotImplementedError
 
     @lazyproperty
     def sha1(self):

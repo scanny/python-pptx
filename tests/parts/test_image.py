@@ -11,6 +11,7 @@ import pytest
 from StringIO import StringIO
 
 from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.package import Package
 from pptx.parts.image import Image, ImagePart
 from pptx.util import Px
 
@@ -27,23 +28,21 @@ new_image_path = absjoin(test_file_dir, 'monty-truth.png')
 
 class DescribeImagePart(object):
 
-    def it_can_construct_from_an_image_file(self, new_fixture):
-        """
-        Integration test over complete contruction from file.
-        """
-        partname, image_file, content_type, ext, sha1, filename = new_fixture
+    def it_can_construct_from_an_image_object(self, new_fixture):
+        package_, image_, _init_, partname_ = new_fixture
 
-        image_part = ImagePart.new(partname, image_file)
+        image_part = ImagePart.new(package_, image_)
 
-        assert image_part.partname == partname
-        assert image_part.content_type == content_type
-        assert image_part.ext == ext
-        assert image_part.sha1 == sha1
-        assert image_part._desc == filename
+        package_.next_image_partname.assert_called_once_with(image_.ext)
+        _init_.assert_called_once_with(
+            partname_, image_.content_type, image_.blob, package_,
+            image_.filename
+        )
+        assert isinstance(image_part, ImagePart)
 
     def it_can_scale_its_dimensions(self, scale_fixture):
-        image, width, height, expected_values = scale_fixture
-        assert image.scale(width, height) == expected_values
+        image_part, width, height, expected_values = scale_fixture
+        assert image_part.scale(width, height) == expected_values
 
     def it_knows_its_pixel_dimensions(self, size_fixture):
         image, expected_size = size_fixture
@@ -60,22 +59,10 @@ class DescribeImagePart(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        (False, 'jpeg', 'python-icon.jpeg'),
-        (True,  'jpg',  'image.jpg'),
-    ])
-    def new_fixture(self, request):
-
-        def image_stream():
-            with open(test_image_path, 'rb') as f:
-                return StringIO(f.read())
-
-        use_stream, ext, filename = request.param
-        image_file = image_stream() if use_stream else test_image_path
-        partname = '/ppt/media/image1.png'
-        content_type = CT.JPEG
-        sha1 = '1be010ea47803b00e140b852765cdf84f491da47'
-        return partname, image_file, content_type, ext, sha1, filename
+    @pytest.fixture
+    def new_fixture(self, request, package_, image_, _init_):
+        partname_ = package_.next_image_partname.return_value
+        return package_, image_, _init_, partname_
 
     @pytest.fixture(params=[
         (None, None, Px(204), Px(204)),
@@ -85,13 +72,31 @@ class DescribeImagePart(object):
     ])
     def scale_fixture(self, request):
         width, height, expected_width, expected_height = request.param
-        image = ImagePart.new(None, test_image_path)
+        with open(test_image_path, 'rb') as f:
+            blob = f.read()
+        image = ImagePart(None, None, blob, None)
         return image, width, height, (expected_width, expected_height)
 
     @pytest.fixture
     def size_fixture(self):
-        image = ImagePart.new(None, test_image_path)
+        with open(test_image_path, 'rb') as f:
+            blob = f.read()
+        image = ImagePart(None, None, blob, None)
         return image, (204, 204)
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def image_(self, request):
+        return instance_mock(request, Image)
+
+    @pytest.fixture
+    def _init_(self, request):
+        return initializer_mock(request, ImagePart)
+
+    @pytest.fixture
+    def package_(self, request):
+        return instance_mock(request, Package)
 
 
 class DescribeImage(object):
