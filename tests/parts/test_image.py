@@ -12,7 +12,6 @@ from StringIO import StringIO
 
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.parts.image import Image, ImagePart
-from pptx.package import Package
 from pptx.util import Px
 
 from ..unitutil.file import absjoin, test_file_dir
@@ -156,30 +155,3 @@ class DescribeImage(object):
     @pytest.fixture
     def _init_(self, request):
         return initializer_mock(request, Image)
-
-
-class DescribeImageCollection(object):
-
-    def it_finds_a_matching_image_part_if_there_is_one(self):
-        pkg = Package.open(images_pptx_path)
-        matching_idx = 4
-        matching_image = pkg._images[matching_idx]
-        # exercise ---------------------
-        image = pkg._images.add_image(test_image_path)
-        # verify -----------------------
-        msg = ("expected images[%d], got images[%d]"
-               % (matching_idx, pkg._images.index(image)))
-        assert image is matching_image, msg
-
-    def it_adds_an_image_part_if_no_matching_found(self):
-        pkg = Package.open(images_pptx_path)
-        expected_partname = '/ppt/media/image8.png'
-        expected_len = len(pkg._images) + 1
-        expected_sha1 = '79769f1e202add2e963158b532e36c2c0f76a70c'
-        # exercise ---------------------
-        image = pkg._images.add_image(new_image_path)
-        # verify -----------------------
-        expected = (expected_partname, expected_len, expected_sha1)
-        actual = (image.partname, len(pkg._images), image.sha1)
-        msg = "\nExpected: %s\n     Got: %s" % (expected, actual)
-        assert actual == expected, msg

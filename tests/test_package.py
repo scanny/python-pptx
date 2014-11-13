@@ -16,13 +16,10 @@ from pptx.parts.image import Image, ImagePart
 from pptx.parts.presentation import PresentationPart
 
 
-from .unitutil.file import absjoin, test_file_dir
+from .unitutil.file import absjoin
 from .unitutil.mock import (
     class_mock, instance_mock, method_mock, property_mock
 )
-
-
-images_pptx_path = absjoin(test_file_dir, 'with_images.pptx')
 
 
 class DescribePackage(object):
@@ -36,10 +33,6 @@ class DescribePackage(object):
         slide_layouts = slide_masters[0].slide_layouts
         assert slide_layouts is not None
         assert len(slide_layouts) == 11
-
-    def it_gathers_package_image_parts_on_open(self):
-        pkg = Package.open(images_pptx_path)
-        assert len(pkg._images) == 7
 
     def it_provides_ref_to_package_presentation_part(self):
         pkg = Package.open()

@@ -16,9 +16,7 @@ except ImportError:
 from StringIO import StringIO
 
 from pptx.opc.package import Part
-from pptx.opc.packuri import PackURI
 from pptx.opc.spec import image_content_types
-from pptx.parts.part import PartCollection
 from pptx.util import lazyproperty, Px
 
 
@@ -160,61 +158,6 @@ class ImagePart(Part):
         width_px, height_px = PIL_Image.open(image_stream).size
         image_stream.close()
         return width_px, height_px
-
-
-class ImageCollection(PartCollection):
-    """
-    Immutable sequence of images, typically belonging to an instance of
-    |Package|. An image part containing a particular image blob appears only
-    once in an instance, regardless of how many times it is referenced by a
-    pic shape in a slide.
-    """
-    def __init__(self):
-        super(ImageCollection, self).__init__()
-
-    def add_image(self, file):
-        """
-        Return image part containing the image in *file*, which is either a
-        path to an image file or a file-like object containing an image. If an
-        image instance containing this same image already exists, that
-        instance is returned. If it does not yet exist, a new one is created.
-        """
-        # use Image constructor to validate and characterize image file
-        partname = PackURI('/ppt/media/image1.jpeg')  # dummy just for baseURI
-        image = ImagePart.new(partname, file)
-        # return matching image if found
-        for existing_image in self._values:
-            if existing_image.sha1 == image.sha1:
-                return existing_image
-        # otherwise add it to collection and return new image
-        self._values.append(image)
-        self._rename_images()
-        return image
-
-    def load(self, parts):
-        """
-        Load the image collection with all the image parts in iterable
-        *parts*.
-        """
-        def is_image_part(part):
-            return (
-                isinstance(part, ImagePart) and
-                part.partname.startswith('/ppt/media/')
-            )
-        for part in parts:
-            if is_image_part(part):
-                self.add_part(part)
-
-    def _rename_images(self):
-        """
-        Assign partnames like ``/ppt/media/image9.png`` to all images in the
-        collection. The name portion is always ``image``. The number part
-        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
-        extension is preserved during renaming.
-        """
-        for idx, image in enumerate(self._values):
-            partname_str = '/ppt/media/image%d.%s' % (idx+1, image.ext)
-            image.partname = PackURI(partname_str)
 
 
 class Image(object):

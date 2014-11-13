@@ -12,7 +12,7 @@ import os
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import OpcPackage
 from pptx.parts.coreprops import CoreProperties
-from pptx.parts.image import Image, ImageCollection, ImagePart
+from pptx.parts.image import Image, ImagePart
 from pptx.util import lazyproperty
 
 
@@ -30,14 +30,6 @@ class Package(OpcPackage):
     _default_pptx_path = os.path.join(
         os.path.split(__file__)[0], 'templates', 'default.pptx'
     )
-
-    def after_unmarshal(self):
-        """
-        Called by loading code after all parts and relationships have been
-        loaded, to afford the opportunity for any required post-processing.
-        """
-        # gather image parts into _images
-        self._images.load(self.parts)
 
     @lazyproperty
     def core_properties(self):
@@ -78,14 +70,6 @@ class Package(OpcPackage):
         Reference to the |Presentation| instance contained in this package.
         """
         return self.main_document
-
-    @lazyproperty
-    def _images(self):
-        """
-        Collection containing a reference to each of the image parts in this
-        package.
-        """
-        return ImageCollection()
 
     @lazyproperty
     def _image_parts(self):
