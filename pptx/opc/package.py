@@ -61,7 +61,22 @@ class OpcPackage(object):
         Generate exactly one reference to each relationship in the package by
         performing a depth-first traversal of the rels graph.
         """
-        raise NotImplementedError
+        def walk_rels(source, visited=None):
+            visited = [] if visited is None else visited
+            for rel in source.rels.values():
+                yield rel
+                if rel.is_external:
+                    continue
+                part = rel.target_part
+                if part in visited:
+                    continue
+                visited.append(part)
+                new_source = part
+                for rel in walk_rels(new_source, visited):
+                    yield rel
+
+        for rel in walk_rels(self):
+            yield rel
 
     def load_rel(self, reltype, target, rId, is_external=False):
         """
