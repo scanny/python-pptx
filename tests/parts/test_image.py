@@ -111,6 +111,10 @@ class DescribeImage(object):
         Image.__init__.assert_called_once_with(blob, filename)
         assert isinstance(image, Image)
 
+    def it_knows_its_blob(self, blob_fixture):
+        image, expected_value = blob_fixture
+        assert image.blob == expected_value
+
     def it_knows_its_content_type(self, content_type_fixture):
         image, expected_value = content_type_fixture
         assert image.content_type == expected_value
@@ -134,6 +138,12 @@ class DescribeImage(object):
         assert image._pil_props == (format, size)
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def blob_fixture(self):
+        blob = b'foobar'
+        image = Image(blob, None)
+        return image, blob
 
     @pytest.fixture(params=[
         ('BMP', 'image/bmp'), ('GIF',  'image/gif'),  ('JPEG', 'image/jpeg'),

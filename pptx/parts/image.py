@@ -142,12 +142,12 @@ class Image(object):
 
         return cls.from_blob(blob, filename)
 
-    @lazyproperty
+    @property
     def blob(self):
         """
         The binary image bytestream of this image.
         """
-        raise NotImplementedError
+        return self._blob
 
     @lazyproperty
     def content_type(self):
@@ -211,7 +211,7 @@ class Image(object):
         A tuple containing useful image properties extracted from this image
         using Pillow (Python Imaging Library, or 'PIL').
         """
-        stream = StringIO(self.blob)
+        stream = StringIO(self._blob)
         pil_image = PIL_Image.open(stream)
         format = pil_image.format
         width_px, height_px = pil_image.size
