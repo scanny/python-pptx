@@ -174,14 +174,14 @@ class Image(object):
             raise ValueError(tmpl % (ext_map.keys(), format))
         return ext_map[format]
 
-    @lazyproperty
+    @property
     def filename(self):
         """
         The filename from the path from which this image was loaded, if
         loaded from the filesystem. |None| if no filename was used in
         loading, such as when loaded from an in-memory stream.
         """
-        raise NotImplementedError
+        return self._filename
 
     @lazyproperty
     def sha1(self):

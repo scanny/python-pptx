@@ -119,6 +119,10 @@ class DescribeImage(object):
         image, expected_value = ext_fixture
         assert image.ext == expected_value
 
+    def it_knows_its_filename(self, filename_fixture):
+        image, expected_value = filename_fixture
+        assert image.filename == expected_value
+
     def it_knows_its_sha1_hash(self):
         image = Image(b'foobar', None)
         assert image.sha1 == '8843d7f92416211de9ebb963ff4ce28125932878'
@@ -150,6 +154,12 @@ class DescribeImage(object):
         image = Image(None, None)
         _format_.return_value = format
         return image, expected_value
+
+    @pytest.fixture(params=['foo.bar', None])
+    def filename_fixture(self, request):
+        filename = request.param
+        image = Image(None, filename)
+        return image, filename
 
     @pytest.fixture
     def from_blob_fixture(self, _init_):
