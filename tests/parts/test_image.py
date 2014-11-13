@@ -121,6 +121,10 @@ class DescribeImage(object):
         Image.__init__.assert_called_once_with(blob, filename)
         assert isinstance(image, Image)
 
+    def it_knows_its_content_type(self, content_type_fixture):
+        image, expected_value = content_type_fixture
+        assert image.content_type == expected_value
+
     def it_knows_its_canonical_filename_extension(self, ext_fixture):
         image, expected_value = ext_fixture
         assert image.ext == expected_value
@@ -135,6 +139,16 @@ class DescribeImage(object):
         assert image._pil_props == (format,)
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('BMP', 'image/bmp'), ('GIF',  'image/gif'),  ('JPEG', 'image/jpeg'),
+        ('PNG', 'image/png'), ('TIFF', 'image/tiff'), ('WMF',  'image/x-wmf')
+    ])
+    def content_type_fixture(self, request, _format_):
+        format, expected_value = request.param
+        image = Image(None, None)
+        _format_.return_value = format
+        return image, expected_value
 
     @pytest.fixture(params=[
         ('BMP', 'bmp'), ('GIF', 'gif'), ('JPEG', 'jpg'), ('PNG', 'png'),

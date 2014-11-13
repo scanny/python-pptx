@@ -207,7 +207,7 @@ class Image(object):
         """
         MIME-type of this image, e.g. ``'image/jpeg'``.
         """
-        raise NotImplementedError
+        return image_content_types[self.ext]
 
     @lazyproperty
     def ext(self):
