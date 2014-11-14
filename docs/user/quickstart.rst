@@ -133,7 +133,7 @@ before setting the text it contains.
 ::
 
     from pptx import Presentation
-    from pptx.util import Inches, Px
+    from pptx.util import Inches
 
     img_path = 'monty-truth.png'
 
@@ -145,9 +145,8 @@ before setting the text it contains.
     pic = slide.shapes.add_picture(img_path, left, top)
 
     left = Inches(5)
-    width = Px(280)
-    height = int(width*1.427)
-    pic = slide.shapes.add_picture(img_path, left, top, width, height)
+    height = Inches(5.5)
+    pic = slide.shapes.add_picture(img_path, left, top, height=height)
 
     prs.save('test.pptx')
 

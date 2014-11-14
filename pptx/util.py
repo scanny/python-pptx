@@ -5,7 +5,11 @@ Utility functions and classes that come in handy when working with PowerPoint
 and Open XML.
 """
 
+from __future__ import absolute_import, print_function
+
 import platform
+
+from warnings import warn
 
 
 class Length(int):
@@ -74,6 +78,12 @@ class Length(int):
         using 96 pixels/inch on Windows, 72 pixels/inch on all other
         platforms.
         """
+        msg = (
+            'Length.px property is deprecated and will be removed in a futur'
+            'e release.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+
         # round can somtimes return values like x.999999 which are truncated
         # to x by int(); adding the 0.1 prevents this
         return int(round(self / float(self._EMUS_PER_PX)) + 0.1)
@@ -137,6 +147,14 @@ class Px(Length):
     Convenience constructor for length in pixels
     """
     def __new__(cls, px):
+        """
+        Deprecated. Use one of the other Length classes.
+        """
+        msg = (
+            'Px class is deprecated and will be removed in a future release.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+
         emu = int(px * Length._EMUS_PER_PX)
         return Length.__new__(cls, emu)
 
