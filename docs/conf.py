@@ -82,8 +82,6 @@ rst_epilog = """
 
 .. |BaseFileSystem| replace:: :class:`BaseFileSystem`
 
-.. |BaseLength| replace:: :class:`.BaseLength`
-
 .. |BaseShape| replace:: :class:`BaseShape`
 
 .. |_Cell| replace:: :class:`_Cell`
@@ -134,17 +132,19 @@ rst_epilog = """
 
 .. |KeyError| replace:: :exc:`KeyError`
 
-.. |list| replace:: :class:`list`
-
 .. |_LayoutPlaceholders| replace:: :class:`_LayoutPlaceholders`
 
 .. |_LayoutShapeTree| replace:: :class:`_LayoutShapeTree`
 
 .. |Legend| replace:: :class:`.Legend`
 
+.. |Length| replace:: :class:`.Length`
+
 .. |LineFormat| replace:: :class:`.LineFormat`
 
 .. |LineSeries| replace:: :class:`.LineSeries`
+
+.. |list| replace:: :class:`list`
 
 .. |_MasterPlaceholders| replace:: :class:`_MasterPlaceholders`
 

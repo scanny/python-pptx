@@ -81,10 +81,9 @@ class TextFrame(Subshape):
     @property
     def margin_bottom(self):
         """
-        |BaseLength| value representing the inset of text from the bottom
-        text frame border. :meth:`pptx.util.Inches` provides a convenient way
-        of setting the value, e.g. ``text_frame.margin_bottom
-        = Inches(0.05)``.
+        |Length| value representing the inset of text from the bottom text
+        frame border. :meth:`pptx.util.Inches` provides a convenient way of
+        setting the value, e.g. ``text_frame.margin_bottom = Inches(0.05)``.
         """
         return self._bodyPr.bIns
 
@@ -95,7 +94,7 @@ class TextFrame(Subshape):
     @property
     def margin_left(self):
         """
-        Inset of text from left text frame border as |BaseLength| value.
+        Inset of text from left text frame border as |Length| value.
         """
         return self._bodyPr.lIns
 
@@ -106,7 +105,7 @@ class TextFrame(Subshape):
     @property
     def margin_right(self):
         """
-        Inset of text from right text frame border as |BaseLength| value.
+        Inset of text from right text frame border as |Length| value.
         """
         return self._bodyPr.rIns
 
@@ -117,7 +116,7 @@ class TextFrame(Subshape):
     @property
     def margin_top(self):
         """
-        Inset of text from top text frame border as |BaseLength| value.
+        Inset of text from top text frame border as |Length| value.
         """
         return self._bodyPr.tIns
 
@@ -340,13 +339,13 @@ class Font(object):
     @property
     def size(self):
         """
-        Read/write |BaseLength| value or |None|, indicating the font height
-        in English Metric Units (EMU). |None| indicates the font size should
-        be inherited from its style hierarchy, such as a placeholder or
-        document defaults (usually 18pt). |BaseLength| is a subclass of |int|
-        having properties for convenient conversion into points or other
-        length units. Likewise, the :class:`pptx.util.Pt` class allows
-        convenient specification of point values::
+        Read/write |Length| value or |None|, indicating the font height in
+        English Metric Units (EMU). |None| indicates the font size should be
+        inherited from its style hierarchy, such as a placeholder or document
+        defaults (usually 18pt). |Length| is a subclass of |int| having
+        properties for convenient conversion into points or other length
+        units. Likewise, the :class:`pptx.util.Pt` class allows convenient
+        specification of point values::
 
             >> font.size = Pt(24)
             >> font.size

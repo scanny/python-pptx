@@ -16,7 +16,7 @@ from pptx.shapes.table import (
     _Cell, _CellCollection, _Column, _ColumnCollection, _Row, _RowCollection,
     Table
 )
-from pptx.util import Inches, BaseLength, Pt
+from pptx.util import Inches, Length, Pt
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
@@ -358,7 +358,7 @@ class Describe_Column(object):
         column, expected_value = width_get_fixture
         width = column.width
         assert width == expected_value
-        assert isinstance(width, BaseLength)
+        assert isinstance(width, Length)
 
     def it_can_change_its_width(self, width_set_fixture):
         column, new_width, expected_xml, parent_ = width_set_fixture
@@ -469,7 +469,7 @@ class Describe_Row(object):
         row, expected_value = height_get_fixture
         height = row.height
         assert height == expected_value
-        assert isinstance(height, BaseLength)
+        assert isinstance(height, Length)
 
     def it_can_change_its_height(self, height_set_fixture):
         row, new_height, expected_xml, parent_ = height_set_fixture

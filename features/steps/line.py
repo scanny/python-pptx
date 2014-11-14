@@ -11,7 +11,7 @@ from behave import given, then, when
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_COLOR_TYPE, MSO_FILL_TYPE, MSO_THEME_COLOR
-from pptx.util import BaseLength, Pt
+from pptx.util import Length, Pt
 
 from .helpers import test_pptx
 
@@ -127,4 +127,4 @@ def then_the_reported_line_width_is_value(context, line_width):
     }[line_width]
     line_width = context.line.width
     assert line_width == expected_value
-    assert isinstance(line_width, BaseLength)
+    assert isinstance(line_width, Length)

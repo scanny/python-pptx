@@ -8,7 +8,7 @@ and Open XML.
 import platform
 
 
-class BaseLength(int):
+class Length(int):
     """
     Base class for length classes Inches, Emu, Cm, Mm, Pt, and Px. Provides
     properties for converting length values to convenient units.
@@ -79,66 +79,66 @@ class BaseLength(int):
         return int(round(self / float(self._EMUS_PER_PX)) + 0.1)
 
 
-class Inches(BaseLength):
+class Inches(Length):
     """
     Convenience constructor for length in inches
     """
     def __new__(cls, inches):
-        emu = int(inches * BaseLength._EMUS_PER_INCH)
-        return BaseLength.__new__(cls, emu)
+        emu = int(inches * Length._EMUS_PER_INCH)
+        return Length.__new__(cls, emu)
 
 
-class Centipoints(BaseLength):
+class Centipoints(Length):
     """
     Convenience constructor for length in hundredths of a point
     """
     def __new__(cls, centipoints):
-        emu = int(centipoints * BaseLength._EMUS_PER_CENTIPOINT)
-        return BaseLength.__new__(cls, emu)
+        emu = int(centipoints * Length._EMUS_PER_CENTIPOINT)
+        return Length.__new__(cls, emu)
 
 
-class Cm(BaseLength):
+class Cm(Length):
     """
     Convenience constructor for length in centimeters
     """
     def __new__(cls, cm):
-        emu = int(cm * BaseLength._EMUS_PER_CM)
-        return BaseLength.__new__(cls, emu)
+        emu = int(cm * Length._EMUS_PER_CM)
+        return Length.__new__(cls, emu)
 
 
-class Emu(BaseLength):
+class Emu(Length):
     """
     Convenience constructor for length in english metric units
     """
     def __new__(cls, emu):
-        return BaseLength.__new__(cls, int(emu))
+        return Length.__new__(cls, int(emu))
 
 
-class Mm(BaseLength):
+class Mm(Length):
     """
     Convenience constructor for length in millimeters
     """
     def __new__(cls, mm):
-        emu = int(mm * BaseLength._EMUS_PER_MM)
-        return BaseLength.__new__(cls, emu)
+        emu = int(mm * Length._EMUS_PER_MM)
+        return Length.__new__(cls, emu)
 
 
-class Pt(BaseLength):
+class Pt(Length):
     """
     Convenience value class for specifying a length in points
     """
     def __new__(cls, points):
-        emu = int(points * BaseLength._EMUS_PER_PT)
-        return BaseLength.__new__(cls, emu)
+        emu = int(points * Length._EMUS_PER_PT)
+        return Length.__new__(cls, emu)
 
 
-class Px(BaseLength):
+class Px(Length):
     """
     Convenience constructor for length in pixels
     """
     def __new__(cls, px):
-        emu = int(px * BaseLength._EMUS_PER_PX)
-        return BaseLength.__new__(cls, emu)
+        emu = int(px * Length._EMUS_PER_PX)
+        return Length.__new__(cls, emu)
 
 
 def lazyproperty(f):

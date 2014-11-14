@@ -10,7 +10,7 @@ import platform
 import pytest
 
 from pptx.util import (
-    BaseLength, Centipoints, Cm, Emu, Inches, Mm, Pt, Px, to_unicode
+    Length, Centipoints, Cm, Emu, Inches, Mm, Pt, Px, to_unicode
 )
 
 
@@ -25,19 +25,19 @@ class DescribeLength(object):
     def it_can_construct_from_convenient_units(self, construct_fixture):
         UnitCls, units_val, emu = construct_fixture
         length = UnitCls(units_val)
-        assert isinstance(length, BaseLength)
+        assert isinstance(length, Length)
         assert length == emu
 
     def it_can_self_convert_to_convenient_units(self, units_fixture):
         emu, units_prop_name, expected_length_in_units = units_fixture
-        length = BaseLength(emu)
+        length = Length(emu)
         length_in_units = getattr(length, units_prop_name)
         assert length_in_units == expected_length_in_units
 
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        (BaseLength,  914400,  914400),
+        (Length,      914400,  914400),
         (Inches,      1.1,    1005840),
         (Centipoints, 12.5,      1587),
         (Cm,          2.53,    910799),

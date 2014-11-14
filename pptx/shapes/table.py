@@ -170,9 +170,9 @@ class _Cell(Subshape):
     @property
     def margin_left(self):
         """
-        Read/write integer value of left margin of cell as a |BaseLength|
-        value object. If assigned |None|, the default value is used, 0.1
-        inches for left and right margins and 0.05 inches for top and bottom.
+        Read/write integer value of left margin of cell as a |Length| value
+        object. If assigned |None|, the default value is used, 0.1 inches for
+        left and right margins and 0.05 inches for top and bottom.
         """
         return self._tc.marL
 
