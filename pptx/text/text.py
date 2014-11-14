@@ -500,12 +500,57 @@ class _Paragraph(Subshape):
         self._pPr.lvl = level
 
     @property
+    def line_spacing(self):
+        """
+        Numeric value specifying the space between baselines in successive
+        lines of this paragraph. A value of |None| indicates no explicit
+        value is assigned and its effective value is inherited from the
+        paragraph's style hierarchy. A `float` value indicates spacing is
+        applied in multiples of line heights. A |Length| value indicates
+        spacing is a fixed height. The |Pt| value class is a convenient way
+        to apply line spacing in units of points.
+        """
+        raise NotImplementedError
+
+    @line_spacing.setter
+    def line_spacing(self, value):
+        raise NotImplementedError
+
+    @property
     def runs(self):
         """
-        Immutable sequence of |_Run| instances corresponding to the runs in
+        Immutable sequence of |_Run| objects corresponding to the runs in
         this paragraph.
         """
         return tuple(_Run(r, self) for r in self._element.r_lst)
+
+    @property
+    def space_after(self):
+        """
+        |Length| value specifying the spacing to appear between this
+        paragraph and the subsequent paragraph. A value of |None| indicates
+        no explicit value is assigned and its effective value is inherited
+        from the paragraph's style hierarchy.
+        """
+        raise NotImplementedError
+
+    @space_after.setter
+    def space_after(self, value):
+        raise NotImplementedError
+
+    @property
+    def space_before(self):
+        """
+        |Length| value specifying the spacing to appear between this
+        paragraph and the prior paragraph. A value of |None| indicates no
+        explicit value is assigned and its effective value is inherited from
+        the paragraph's style hierarchy.
+        """
+        raise NotImplementedError
+
+    @space_before.setter
+    def space_before(self, value):
+        raise NotImplementedError
 
     @property
     def text(self):
