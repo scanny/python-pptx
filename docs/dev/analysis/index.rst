@@ -59,6 +59,7 @@ Text
 .. toctree::
    :maxdepth: 1
 
+   features/txt-para-spacing
    features/txt-fit-text
    features/txt-autofit-text
    features/txt-text

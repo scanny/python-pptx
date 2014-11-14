@@ -126,6 +126,10 @@ rst_epilog = """
 
 .. |_Hyperlink| replace:: :class:`_Hyperlink`
 
+.. |ImagePart| replace:: :class:`.ImagePart`
+
+.. |Inches| replace:: :class:`.Inches`
+
 .. |int| replace:: :class:`int`
 
 .. |InvalidXmlError| replace:: :exc:`InvalidXmlError`
@@ -175,6 +179,8 @@ rst_epilog = """
 .. |pp| replace:: ``python-pptx``
 
 .. |Presentation| replace:: :class:`~pptx.Presentation`
+
+.. |Pt| replace:: :class:`.Pt`
 
 .. |_Relationship| replace:: :class:`._Relationship`
 
