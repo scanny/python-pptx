@@ -16,7 +16,7 @@ from StringIO import StringIO
 
 from pptx.opc.package import Part
 from pptx.opc.spec import image_content_types
-from pptx.util import lazyproperty, Px
+from pptx.util import lazyproperty
 
 
 class ImagePart(Part):
@@ -52,29 +52,29 @@ class ImagePart(Part):
     def load(cls, partname, content_type, blob, package):
         return cls(partname, content_type, blob, package)
 
-    def scale(self, width, height):
+    def scale(self, scaled_cx, scaled_cy):
         """
-        Return scaled image dimensions based on supplied parameters. If
-        *width* and *height* are both |None|, the native image size is
-        returned. If neither *width* nor *height* is |None|, their values are
-        returned unchanged. If a value is provided for either *width* or
-        *height* and the other is |None|, the dimensions are scaled,
-        preserving the image's aspect ratio.
+        Return scaled image dimensions in EMU based on the combination of
+        parameters supplied. If *scaled_cx* and *scaled_cy* are both |None|,
+        the native image size is returned. If neither *scaled_cx* nor
+        *scaled_cy* is |None|, their values are returned unchanged. If
+        a value is provided for either *scaled_cx* or *scaled_cy* and the
+        other is |None|, the missing value is calculated such that the
+        image's aspect ratio is preserved.
         """
-        native_width_px, native_height_px = self._size
-        native_width = Px(native_width_px)
-        native_height = Px(native_height_px)
+        image_cx, image_cy = self._native_size
 
-        if width is None and height is None:
-            width = native_width
-            height = native_height
-        elif width is None:
-            scaling_factor = float(height) / float(native_height)
-            width = int(round(native_width * scaling_factor))
-        elif height is None:
-            scaling_factor = float(width) / float(native_width)
-            height = int(round(native_height * scaling_factor))
-        return width, height
+        if scaled_cx is None and scaled_cy is None:
+            scaled_cx = image_cx
+            scaled_cy = image_cy
+        elif scaled_cx is None:
+            scaling_factor = float(scaled_cy) / float(image_cy)
+            scaled_cx = int(round(image_cx * scaling_factor))
+        elif scaled_cy is None:
+            scaling_factor = float(scaled_cx) / float(image_cx)
+            scaled_cy = int(round(image_cy * scaling_factor))
+
+        return scaled_cx, scaled_cy
 
     @lazyproperty
     def sha1(self):
@@ -98,10 +98,35 @@ class ImagePart(Part):
         return self._filename
 
     @property
-    def _size(self):
+    def _dpi(self):
         """
-        Return *width*, *height* tuple representing native dimensions of
-        image in pixels.
+        A (horz_dpi, vert_dpi) 2-tuple (ints) representing the dots-per-inch
+        property of this image.
+        """
+        image = Image.from_blob(self.blob)
+        return image.dpi
+
+    @property
+    def _native_size(self):
+        """
+        A (width, height) 2-tuple representing the native dimensions of the
+        image in EMU, calculated based on the image DPI value, if present,
+        assuming 72 dpi as a default.
+        """
+        EMU_PER_INCH = 914400
+        horz_dpi, vert_dpi = self._dpi
+        width_px, height_px = self._px_size
+
+        width = EMU_PER_INCH * width_px / horz_dpi
+        height = EMU_PER_INCH * height_px / vert_dpi
+
+        return width, height
+
+    @property
+    def _px_size(self):
+        """
+        A (width, height) 2-tuple representing the dimensions of this image
+        in pixels.
         """
         image = Image.from_blob(self.blob)
         return image.size
@@ -155,6 +180,40 @@ class Image(object):
         MIME-type of this image, e.g. ``'image/jpeg'``.
         """
         return image_content_types[self.ext]
+
+    @lazyproperty
+    def dpi(self):
+        """
+        A (horz_dpi, vert_dpi) 2-tuple specifying the dots-per-inch
+        resolution of this image. A default value of (72, 72) is used if the
+        dpi is not specified in the image file.
+        """
+        def int_dpi(dpi):
+            """
+            Return an integer dots-per-inch value corresponding to *dpi*. If
+            *dpi* is |None|, a non-numeric type, less than 1 or greater than
+            2048, 72 is returned.
+            """
+            try:
+                int_dpi = int(round(float(dpi)))
+                if int_dpi < 1 or int_dpi > 2048:
+                    int_dpi = 72
+            except (TypeError, ValueError):
+                int_dpi = 72
+            return int_dpi
+
+        def normalize_pil_dpi(pil_dpi):
+            """
+            Return a (horz_dpi, vert_dpi) 2-tuple corresponding to *pil_dpi*,
+            the value for the 'dpi' key in the ``info`` dict of a PIL image.
+            If the 'dpi' key is not present or contains an invalid value,
+            ``(72, 72)`` is returned.
+            """
+            if isinstance(pil_dpi, tuple):
+                return (int_dpi(pil_dpi[0]), int_dpi(pil_dpi[1]))
+            return (72, 72)
+
+        return normalize_pil_dpi(self._pil_props[2])
 
     @lazyproperty
     def ext(self):
@@ -215,5 +274,6 @@ class Image(object):
         pil_image = PIL_Image.open(stream)
         format = pil_image.format
         width_px, height_px = pil_image.size
+        dpi = pil_image.info.get('dpi')
         stream.close()
-        return (format, (width_px, height_px))
+        return (format, (width_px, height_px), dpi)

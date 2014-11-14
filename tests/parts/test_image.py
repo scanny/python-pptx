@@ -47,7 +47,7 @@ class DescribeImagePart(object):
 
     def it_knows_its_pixel_dimensions(self, size_fixture):
         image, expected_size = size_fixture
-        assert image._size == expected_size
+        assert image._px_size == expected_size
 
     # fixtures -------------------------------------------------------
 
@@ -123,6 +123,10 @@ class DescribeImage(object):
         image, expected_value = ext_fixture
         assert image.ext == expected_value
 
+    def it_knows_its_dpi(self, dpi_fixture):
+        image, expected_value = dpi_fixture
+        assert image.dpi == expected_value
+
     def it_knows_its_filename(self, filename_fixture):
         image, expected_value = filename_fixture
         assert image.filename == expected_value
@@ -132,10 +136,11 @@ class DescribeImage(object):
         assert image.sha1 == '8843d7f92416211de9ebb963ff4ce28125932878'
 
     def it_knows_its_PIL_properties_to_help(self, pil_fixture):
-        image, size, format = pil_fixture
+        image, size, format, dpi = pil_fixture
         assert image.size == size
         assert image._format == format
-        assert image._pil_props == (format, size)
+        assert image.dpi == dpi
+        assert image._pil_props == (format, size, None)
 
     # fixtures -------------------------------------------------------
 
@@ -154,6 +159,19 @@ class DescribeImage(object):
         image = Image(None, None)
         _format_.return_value = format
         return image, expected_value
+
+    @pytest.fixture(params=[
+        ((42,   24),   (42, 24)),
+        ((42.1, 23.6), (42, 24)),
+        (None,         (72, 72)),
+        ((3047, 2388), (72, 72)),
+        ('foobar',     (72, 72)),
+    ])
+    def dpi_fixture(self, request, _pil_props_):
+        raw_dpi, expected_dpi = request.param
+        image = Image(None, None)
+        _pil_props_.return_value = (None, None, raw_dpi)
+        return image, expected_dpi
 
     @pytest.fixture(params=[
         ('BMP', 'bmp'), ('GIF', 'gif'), ('JPEG', 'jpg'), ('PNG', 'png'),
@@ -200,7 +218,8 @@ class DescribeImage(object):
         image = Image(blob, None)
         size = (204, 204)
         format = 'JPEG'
-        return image, size, format
+        dpi = (72, 72)
+        return image, size, format, dpi
 
     # fixture components ---------------------------------------------
 
@@ -219,3 +238,7 @@ class DescribeImage(object):
     @pytest.fixture
     def _init_(self, request):
         return initializer_mock(request, Image)
+
+    @pytest.fixture
+    def _pil_props_(self, request):
+        return property_mock(request, Image, '_pil_props')
