@@ -619,8 +619,13 @@ class ST_TextSpacingPoint(BaseIntType):
         return Centipoints(int(str_value))
 
     @classmethod
+    def convert_to_xml(cls, value):
+        length = Emu(value)  # just to make sure
+        return str(length.centipoints)
+
+    @classmethod
     def validate(cls, value):
-        cls.validate_int_in_range(value, 0, 158400)
+        cls.validate_int_in_range(value, 0, 20116800)
 
 
 class ST_TextTypeface(XsdString):

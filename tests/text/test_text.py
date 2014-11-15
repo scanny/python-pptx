@@ -719,6 +719,11 @@ class Describe_Paragraph(object):
         paragraph, expected_value = before_get_fixture
         assert paragraph.space_before == expected_value
 
+    def it_can_change_its_space_before(self, before_set_fixture):
+        paragraph, new_value, expected_xml = before_set_fixture
+        paragraph.space_before = new_value
+        assert paragraph._element.xml == expected_xml
+
     def it_knows_its_space_after(self, after_get_fixture):
         paragraph, expected_value = after_get_fixture
         assert paragraph.space_after == expected_value
@@ -806,6 +811,22 @@ class Describe_Paragraph(object):
         p_cxml, expected_value = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         return paragraph, expected_value
+
+    @pytest.fixture(params=[
+        ('a:p',                                     Pt(8.333),
+         'a:p/a:pPr/a:spcBef/a:spcPts{val=833}'),
+        ('a:p/a:pPr/a:spcBef/a:spcPts{val=600}',    Pt(42),
+         'a:p/a:pPr/a:spcBef/a:spcPts{val=4200}'),
+        ('a:p/a:pPr/a:spcBef/a:spcPct{val=150000}', Pt(24),
+         'a:p/a:pPr/a:spcBef/a:spcPts{val=2400}'),
+        ('a:p/a:pPr/a:spcBef/a:spcPts{val=600}',    None,
+         'a:p/a:pPr'),
+    ])
+    def before_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('a:p/a:r/a:t"foo"',              'a:p'),

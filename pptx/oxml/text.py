@@ -390,6 +390,12 @@ class CT_TextParagraphProperties(BaseOxmlElement):
             return None
         return spcPts.val
 
+    @space_before.setter
+    def space_before(self, value):
+        self._remove_spcBef()
+        if value is not None:
+            self._add_spcBef().set_spcPts(value)
+
 
 class CT_TextSpacing(BaseOxmlElement):
     """
@@ -399,6 +405,15 @@ class CT_TextSpacing(BaseOxmlElement):
     # implemented yet.
     spcPct = ZeroOrOne('a:spcPct')
     spcPts = ZeroOrOne('a:spcPts')
+
+    def set_spcPts(self, value):
+        """
+        Set spacing to *value* points. A ./a:spcPct child is removed if
+        present.
+        """
+        self._remove_spcPct()
+        spcPts = self.get_or_add_spcPts()
+        spcPts.val = value
 
 
 class CT_TextSpacingPercent(BaseOxmlElement):
