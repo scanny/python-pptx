@@ -340,9 +340,24 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     )
     defRPr = ZeroOrOne('a:defRPr', successors=_tag_seq[16:])
     spcBef = ZeroOrOne('a:spcBef', successors=_tag_seq[2:])
+    spcAft = ZeroOrOne('a:spcAft', successors=_tag_seq[3:])
     lvl = OptionalAttribute('lvl', ST_TextIndentLevelType, default=0)
     algn = OptionalAttribute('algn', PP_PARAGRAPH_ALIGNMENT)
     del _tag_seq
+
+    @property
+    def space_after(self):
+        """
+        The EMU equivalent of the centipoints value in
+        `./a:spcAft/a:spcPts/@val`.
+        """
+        spcAft = self.spcAft
+        if spcAft is None:
+            return None
+        spcPts = spcAft.spcPts
+        if spcPts is None:
+            return None
+        return spcPts.val
 
     @property
     def space_before(self):

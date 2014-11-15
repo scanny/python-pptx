@@ -3,7 +3,6 @@ Feature: Get and set paragraph spacing
   As a developer using python-pptx
   I need a way to get and set paragraph spacing
 
-  @wip
   Scenario Outline: Determine paragraph spacing
     Given a paragraph having space <before-after> of <setting>
      Then paragraph.space_<before-after> is <value>
