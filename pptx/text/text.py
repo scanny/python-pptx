@@ -517,7 +517,8 @@ class _Paragraph(Subshape):
 
     @line_spacing.setter
     def line_spacing(self, value):
-        raise NotImplementedError
+        pPr = self._p.get_or_add_pPr()
+        pPr.line_spacing = value
 
     @property
     def runs(self):

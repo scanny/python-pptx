@@ -18,7 +18,7 @@ from .simpletypes import (
     ST_TextSpacingPoint, ST_TextTypeface, ST_TextWrappingType, XsdBoolean,
     XsdString
 )
-from ..util import Emu, to_unicode
+from ..util import Emu, Length, to_unicode
 from .xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
@@ -362,6 +362,16 @@ class CT_TextParagraphProperties(BaseOxmlElement):
             return lnSpc.spcPts.val
         return lnSpc.spcPct.val
 
+    @line_spacing.setter
+    def line_spacing(self, value):
+        self._remove_lnSpc()
+        if value is None:
+            return
+        if isinstance(value, Length):
+            self._add_lnSpc().set_spcPts(value)
+        else:
+            self._add_lnSpc().set_spcPct(value)
+
     @property
     def space_after(self):
         """
@@ -411,6 +421,15 @@ class CT_TextSpacing(BaseOxmlElement):
     # implemented yet.
     spcPct = ZeroOrOne('a:spcPct')
     spcPts = ZeroOrOne('a:spcPts')
+
+    def set_spcPct(self, value):
+        """
+        Set spacing to *value* lines, e.g. 1.75 lines. A ./a:spcPts child is
+        removed if present.
+        """
+        self._remove_spcPts()
+        spcPct = self.get_or_add_spcPct()
+        spcPct.val = value
 
     def set_spcPts(self, value):
         """

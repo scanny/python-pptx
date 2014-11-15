@@ -43,7 +43,6 @@ Feature: Get and set paragraph spacing
       | after        | 6 pt                |   None    | None  |
 
 
-  @wip
   Scenario Outline: Set line spacing
     Given a paragraph having line spacing of <setting>
      When I assign <new-value> to paragraph.line_spacing

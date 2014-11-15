@@ -737,6 +737,11 @@ class Describe_Paragraph(object):
         paragraph, expected_value = spacing_get_fixture
         assert paragraph.line_spacing == expected_value
 
+    def it_can_change_its_line_spacing(self, spacing_set_fixture):
+        paragraph, new_value, expected_xml = spacing_set_fixture
+        paragraph.line_spacing = new_value
+        assert paragraph._element.xml == expected_xml
+
     def it_knows_what_text_it_contains(self, text_get_fixture):
         paragraph, expected_value = text_get_fixture
         text = paragraph.text
@@ -898,6 +903,30 @@ class Describe_Paragraph(object):
         p_cxml, expected_value = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         return paragraph, expected_value
+
+    @pytest.fixture(params=[
+        ('a:p',                                     1.42,
+         'a:p/a:pPr/a:lnSpc/a:spcPct{val=142000}'),
+        ('a:p',                                     Pt(42),
+         'a:p/a:pPr/a:lnSpc/a:spcPts{val=4200}'),
+        ('a:p/a:pPr/a:lnSpc/a:spcPct{val=110000}',  0.875,
+         'a:p/a:pPr/a:lnSpc/a:spcPct{val=87500}'),
+        ('a:p/a:pPr/a:lnSpc/a:spcPts{val=600}',     Pt(42),
+         'a:p/a:pPr/a:lnSpc/a:spcPts{val=4200}'),
+        ('a:p/a:pPr/a:lnSpc/a:spcPts{val=1900}',    0.925,
+         'a:p/a:pPr/a:lnSpc/a:spcPct{val=92500}'),
+        ('a:p/a:pPr/a:lnSpc/a:spcPct{val=150000}',  Pt(24),
+         'a:p/a:pPr/a:lnSpc/a:spcPts{val=2400}'),
+        ('a:p/a:pPr/a:lnSpc/a:spcPts{val=600}',     None,
+         'a:p/a:pPr'),
+        ('a:p/a:pPr/a:lnSpc/a:spcPct{val=150000}',  None,
+         'a:p/a:pPr'),
+    ])
+    def spacing_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('a:p/a:r/a:t"foobar"',                               'foobar'),

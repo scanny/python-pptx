@@ -25,10 +25,29 @@ class BaseSimpleType(object):
         return str_value
 
     @classmethod
+    def validate_float(cls, value):
+        """
+        Note that int values are accepted.
+        """
+        if not isinstance(value, (int, float)):
+            raise TypeError(
+                "value must be a number, got %s" % type(value)
+            )
+
+    @classmethod
     def validate_int(cls, value):
         if not isinstance(value, int):
             raise TypeError(
                 "value must be <type 'int'>, got %s" % type(value)
+            )
+
+    @classmethod
+    def validate_float_in_range(cls, value, min_inclusive, max_inclusive):
+        cls.validate_float(value)
+        if value < min_inclusive or value > max_inclusive:
+            raise ValueError(
+                "value must be in range %s to %s inclusive, got %s" %
+                (min_inclusive, max_inclusive, value)
             )
 
     @classmethod
@@ -593,7 +612,7 @@ class ST_TextIndentLevelType(BaseIntType):
         cls.validate_int_in_range(value, 0, 8)
 
 
-class ST_TextSpacingPercentOrPercentString(BaseIntType):
+class ST_TextSpacingPercentOrPercentString(BaseFloatType):
 
     @classmethod
     def convert_from_xml(cls, str_value):
@@ -607,6 +626,18 @@ class ST_TextSpacingPercentOrPercentString(BaseIntType):
         percent_value = float(float_part)
         lines_value = percent_value / 100.0
         return lines_value
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        """
+        1.75 -> '175000'
+        """
+        lines = value * 100000.0
+        return str(int(round(lines)))
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_float_in_range(value, 0.0, 132.0)
 
 
 class ST_TextSpacingPoint(BaseIntType):
