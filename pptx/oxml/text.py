@@ -14,8 +14,9 @@ from ..enum.text import (
 from .ns import nsdecls
 from .simpletypes import (
     ST_Coordinate32, ST_TextFontScalePercentOrPercentString, ST_TextFontSize,
-    ST_TextIndentLevelType, ST_TextSpacingPoint, ST_TextTypeface,
-    ST_TextWrappingType, XsdBoolean, XsdString
+    ST_TextIndentLevelType, ST_TextSpacingPercentOrPercentString,
+    ST_TextSpacingPoint, ST_TextTypeface, ST_TextWrappingType, XsdBoolean,
+    XsdString
 )
 from ..util import Emu, to_unicode
 from .xmlchemy import (
@@ -338,12 +339,28 @@ class CT_TextParagraphProperties(BaseOxmlElement):
         'a:buNone', 'a:buAutoNum', 'a:buChar', 'a:buBlip', 'a:tabLst',
         'a:defRPr', 'a:extLst',
     )
-    defRPr = ZeroOrOne('a:defRPr', successors=_tag_seq[16:])
+    lnSpc = ZeroOrOne('a:lnSpc', successors=_tag_seq[1:])
     spcBef = ZeroOrOne('a:spcBef', successors=_tag_seq[2:])
     spcAft = ZeroOrOne('a:spcAft', successors=_tag_seq[3:])
+    defRPr = ZeroOrOne('a:defRPr', successors=_tag_seq[16:])
     lvl = OptionalAttribute('lvl', ST_TextIndentLevelType, default=0)
     algn = OptionalAttribute('algn', PP_PARAGRAPH_ALIGNMENT)
     del _tag_seq
+
+    @property
+    def line_spacing(self):
+        """
+        The spacing between baselines of successive lines in this paragraph.
+        A float value indicates a number of lines. A |Length| value indicates
+        a fixed spacing. Value is contained in `./a:lnSpc/a:spcPts/@val` or
+        `./a:lnSpc/a:spcPct/@val`. Value is |None| if no element is present.
+        """
+        lnSpc = self.lnSpc
+        if lnSpc is None:
+            return None
+        if lnSpc.spcPts is not None:
+            return lnSpc.spcPts.val
+        return lnSpc.spcPct.val
 
     @property
     def space_after(self):
@@ -380,7 +397,16 @@ class CT_TextSpacing(BaseOxmlElement):
     """
     # this should actually be a OneAndOnlyOneChoice, but that's not
     # implemented yet.
+    spcPct = ZeroOrOne('a:spcPct')
     spcPts = ZeroOrOne('a:spcPts')
+
+
+class CT_TextSpacingPercent(BaseOxmlElement):
+    """
+    <a:spcPct> element, specifying spacing in thousandths of a percent in its
+    `val` attribute.
+    """
+    val = RequiredAttribute('val', ST_TextSpacingPercentOrPercentString)
 
 
 class CT_TextSpacingPoint(BaseOxmlElement):

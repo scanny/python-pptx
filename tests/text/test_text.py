@@ -723,6 +723,10 @@ class Describe_Paragraph(object):
         paragraph, expected_value = after_get_fixture
         assert paragraph.space_after == expected_value
 
+    def it_knows_its_line_spacing(self, spacing_get_fixture):
+        paragraph, expected_value = spacing_get_fixture
+        assert paragraph.line_spacing == expected_value
+
     def it_knows_what_text_it_contains(self, text_get_fixture):
         paragraph, expected_value = text_get_fixture
         text = paragraph.text
@@ -840,6 +844,18 @@ class Describe_Paragraph(object):
         paragraph = _Paragraph(element(p_cxml), None)
         expected_text = ('Foo', 'Bar', 'Baz')
         return paragraph, expected_text
+
+    @pytest.fixture(params=[
+        ('a:p',                                     None),
+        ('a:p/a:pPr',                               None),
+        ('a:p/a:pPr/a:lnSpc/a:spcPts{val=1800}',    228600),
+        ('a:p/a:pPr/a:lnSpc/a:spcPct{val=142000}',  1.42),
+        ('a:p/a:pPr/a:lnSpc/a:spcPct{val=124.64%}', 1.2464),
+    ])
+    def spacing_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        return paragraph, expected_value
 
     @pytest.fixture(params=[
         ('a:p/a:r/a:t"foobar"',                               'foobar'),

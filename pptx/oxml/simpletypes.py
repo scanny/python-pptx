@@ -593,6 +593,22 @@ class ST_TextIndentLevelType(BaseIntType):
         cls.validate_int_in_range(value, 0, 8)
 
 
+class ST_TextSpacingPercentOrPercentString(BaseIntType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if str_value.endswith('%'):
+            return cls._convert_from_percent_literal(str_value)
+        return int(str_value) / 100000.0
+
+    @classmethod
+    def _convert_from_percent_literal(cls, str_value):
+        float_part = str_value[:-1]  # trim off '%' character
+        percent_value = float(float_part)
+        lines_value = percent_value / 100.0
+        return lines_value
+
+
 class ST_TextSpacingPoint(BaseIntType):
 
     @classmethod

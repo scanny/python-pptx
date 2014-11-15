@@ -16,7 +16,6 @@ Feature: Get and set paragraph spacing
       | after        | 6 pt                | 76200 | == 6.0                |
 
 
-  @wip
   Scenario Outline: Determine line spacing
     Given a paragraph having line spacing of <setting>
      Then paragraph.line_spacing is <value>

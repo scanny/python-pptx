@@ -510,7 +510,10 @@ class _Paragraph(Subshape):
         spacing is a fixed height. The |Pt| value class is a convenient way
         to apply line spacing in units of points.
         """
-        raise NotImplementedError
+        pPr = self._p.pPr
+        if pPr is None:
+            return None
+        return pPr.line_spacing
 
     @line_spacing.setter
     def line_spacing(self, value):

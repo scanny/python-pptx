@@ -247,7 +247,7 @@ from .text import (
     CT_Hyperlink, CT_RegularTextRun, CT_TextBody, CT_TextBodyProperties,
     CT_TextCharacterProperties, CT_TextField, CT_TextFont, CT_TextLineBreak,
     CT_TextNormalAutofit, CT_TextParagraph, CT_TextParagraphProperties,
-    CT_TextSpacing, CT_TextSpacingPoint
+    CT_TextSpacing, CT_TextSpacingPercent, CT_TextSpacingPoint
 )
 register_element_cls('a:bodyPr',      CT_TextBodyProperties)
 register_element_cls('a:br',          CT_TextLineBreak)
@@ -256,6 +256,7 @@ register_element_cls('a:endParaRPr',  CT_TextCharacterProperties)
 register_element_cls('a:fld',         CT_TextField)
 register_element_cls('a:hlinkClick',  CT_Hyperlink)
 register_element_cls('a:latin',       CT_TextFont)
+register_element_cls('a:lnSpc',       CT_TextSpacing)
 register_element_cls('a:normAutofit', CT_TextNormalAutofit)
 register_element_cls('a:r',           CT_RegularTextRun)
 register_element_cls('a:p',           CT_TextParagraph)
@@ -263,6 +264,7 @@ register_element_cls('a:pPr',         CT_TextParagraphProperties)
 register_element_cls('a:rPr',         CT_TextCharacterProperties)
 register_element_cls('a:spcAft',      CT_TextSpacing)
 register_element_cls('a:spcBef',      CT_TextSpacing)
+register_element_cls('a:spcPct',      CT_TextSpacingPercent)
 register_element_cls('a:spcPts',      CT_TextSpacingPoint)
 register_element_cls('a:txBody',      CT_TextBody)
 register_element_cls('c:txPr',        CT_TextBody)
