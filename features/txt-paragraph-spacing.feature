@@ -28,7 +28,6 @@ Feature: Get and set paragraph spacing
       | 20 pt               | 254000 | is 20.0               |
 
 
-  @wip
   Scenario Outline: Set paragraph spacing
     Given a paragraph having space <before-after> of <setting>
      When I assign <new-value> to paragraph.space_<before-after>

@@ -542,7 +542,8 @@ class _Paragraph(Subshape):
 
     @space_after.setter
     def space_after(self, value):
-        raise NotImplementedError
+        pPr = self._p.get_or_add_pPr()
+        pPr.space_after = value
 
     @property
     def space_before(self):

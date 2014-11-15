@@ -376,6 +376,12 @@ class CT_TextParagraphProperties(BaseOxmlElement):
             return None
         return spcPts.val
 
+    @space_after.setter
+    def space_after(self, value):
+        self._remove_spcAft()
+        if value is not None:
+            self._add_spcAft().set_spcPts(value)
+
     @property
     def space_before(self):
         """
