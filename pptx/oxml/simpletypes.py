@@ -9,7 +9,7 @@ type in the associated XML schema.
 from __future__ import absolute_import, print_function
 
 from ..exc import InvalidXmlError
-from ..util import Emu
+from ..util import Centipoints, Emu
 
 
 class BaseSimpleType(object):
@@ -583,12 +583,7 @@ class ST_TextFontSize(BaseIntType):
 
     @classmethod
     def validate(cls, value):
-        cls.validate_int(value)
-        if value < 100 or value > 400000:
-            raise ValueError(
-                "value must be in range 100 -> 400000 (1-4000 points), got"
-                " %d" % value
-            )
+        cls.validate_int_in_range(value, 100, 400000)
 
 
 class ST_TextIndentLevelType(BaseIntType):
@@ -596,6 +591,20 @@ class ST_TextIndentLevelType(BaseIntType):
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 8)
+
+
+class ST_TextSpacingPoint(BaseIntType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        """
+        Reads string integer centipoints, returns |Length| value.
+        """
+        return Centipoints(int(str_value))
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 158400)
 
 
 class ST_TextTypeface(XsdString):

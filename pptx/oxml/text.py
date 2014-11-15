@@ -14,8 +14,8 @@ from ..enum.text import (
 from .ns import nsdecls
 from .simpletypes import (
     ST_Coordinate32, ST_TextFontScalePercentOrPercentString, ST_TextFontSize,
-    ST_TextIndentLevelType, ST_TextTypeface, ST_TextWrappingType, XsdBoolean,
-    XsdString
+    ST_TextIndentLevelType, ST_TextSpacingPoint, ST_TextTypeface,
+    ST_TextWrappingType, XsdBoolean, XsdString
 )
 from ..util import Emu, to_unicode
 from .xmlchemy import (
@@ -332,9 +332,48 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     """
     <a:pPr> custom element class
     """
-    defRPr = ZeroOrOne('a:defRPr', successors=('a:extLst',))
+    _tag_seq = (
+        'a:lnSpc', 'a:spcBef', 'a:spcAft', 'a:buClrTx', 'a:buClr',
+        'a:buSzTx', 'a:buSzPct', 'a:buSzPts', 'a:buFontTx', 'a:buFont',
+        'a:buNone', 'a:buAutoNum', 'a:buChar', 'a:buBlip', 'a:tabLst',
+        'a:defRPr', 'a:extLst',
+    )
+    defRPr = ZeroOrOne('a:defRPr', successors=_tag_seq[16:])
+    spcBef = ZeroOrOne('a:spcBef', successors=_tag_seq[2:])
     lvl = OptionalAttribute('lvl', ST_TextIndentLevelType, default=0)
     algn = OptionalAttribute('algn', PP_PARAGRAPH_ALIGNMENT)
+    del _tag_seq
+
+    @property
+    def space_before(self):
+        """
+        The EMU equivalent of the centipoints value in
+        `./a:spcBef/a:spcPts/@val`.
+        """
+        spcBef = self.spcBef
+        if spcBef is None:
+            return None
+        spcPts = spcBef.spcPts
+        if spcPts is None:
+            return None
+        return spcPts.val
+
+
+class CT_TextSpacing(BaseOxmlElement):
+    """
+    Used for <a:lnSpc>, <a:spcBef>, and <a:spcAft> elements.
+    """
+    # this should actually be a OneAndOnlyOneChoice, but that's not
+    # implemented yet.
+    spcPts = ZeroOrOne('a:spcPts')
+
+
+class CT_TextSpacingPoint(BaseOxmlElement):
+    """
+    <a:spcPts> element, specifying spacing in centipoints in its `val`
+    attribute.
+    """
+    val = RequiredAttribute('val', ST_TextSpacingPoint)
 
 
 class _ParagraphTextAppender(object):

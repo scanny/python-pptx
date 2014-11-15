@@ -715,6 +715,10 @@ class Describe_Paragraph(object):
         paragraph.level = new_value
         assert paragraph._element.xml == expected_xml
 
+    def it_knows_its_space_before(self, before_get_fixture):
+        paragraph, expected_value = before_get_fixture
+        assert paragraph.space_before == expected_value
+
     def it_knows_what_text_it_contains(self, text_get_fixture):
         paragraph, expected_value = text_get_fixture
         text = paragraph.text
@@ -772,6 +776,17 @@ class Describe_Paragraph(object):
         paragraph = _Paragraph(element(p_cxml), None)
         expected_xml = xml(expected_p_cxml)
         return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('a:p',                                     None),
+        ('a:p/a:pPr',                               None),
+        ('a:p/a:pPr/a:spcBef/a:spcPct{val=150000}', None),
+        ('a:p/a:pPr/a:spcBef/a:spcPts{val=600}',    76200),
+    ])
+    def before_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        return paragraph, expected_value
 
     @pytest.fixture(params=[
         ('a:p/a:r/a:t"foo"',              'a:p'),

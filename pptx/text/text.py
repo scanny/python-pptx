@@ -546,7 +546,10 @@ class _Paragraph(Subshape):
         explicit value is assigned and its effective value is inherited from
         the paragraph's style hierarchy.
         """
-        raise NotImplementedError
+        pPr = self._p.pPr
+        if pPr is None:
+            return None
+        return pPr.space_before
 
     @space_before.setter
     def space_before(self, value):
