@@ -38,6 +38,7 @@ includes text boxes and placeholders.
 
 .. autoclass:: pptx.shapes.autoshape.Shape()
    :members:
+   :exclude-members: get_or_add_ln, ln
    :member-order: bysource
    :undoc-members:
 

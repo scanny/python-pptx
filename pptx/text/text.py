@@ -502,13 +502,14 @@ class _Paragraph(Subshape):
     @property
     def line_spacing(self):
         """
-        Numeric value specifying the space between baselines in successive
-        lines of this paragraph. A value of |None| indicates no explicit
-        value is assigned and its effective value is inherited from the
-        paragraph's style hierarchy. A `float` value indicates spacing is
-        applied in multiples of line heights. A |Length| value indicates
-        spacing is a fixed height. The |Pt| value class is a convenient way
-        to apply line spacing in units of points.
+        Numeric or |Length| value specifying the space between baselines in
+        successive lines of this paragraph. A value of |None| indicates no
+        explicit value is assigned and its effective value is inherited from
+        the paragraph's style hierarchy. A numeric value, e.g. `2` or `1.5`,
+        indicates spacing is applied in multiples of line heights. A |Length|
+        value such as ``Pt(12)`` indicates spacing is a fixed height. The
+        |Pt| value class is a convenient way to apply line spacing in units
+        of points.
         """
         pPr = self._p.pPr
         if pPr is None:
@@ -534,7 +535,9 @@ class _Paragraph(Subshape):
         |Length| value specifying the spacing to appear between this
         paragraph and the subsequent paragraph. A value of |None| indicates
         no explicit value is assigned and its effective value is inherited
-        from the paragraph's style hierarchy.
+        from the paragraph's style hierarchy. |Length| objects provide
+        convenience properties, such as ``.pt`` and ``.inches``, that allow
+        easy conversion to various length units.
         """
         pPr = self._p.pPr
         if pPr is None:
@@ -552,7 +555,9 @@ class _Paragraph(Subshape):
         |Length| value specifying the spacing to appear between this
         paragraph and the prior paragraph. A value of |None| indicates no
         explicit value is assigned and its effective value is inherited from
-        the paragraph's style hierarchy.
+        the paragraph's style hierarchy. |Length| objects provide convenience
+        properties, such as ``.pt`` and ``.cm``, that allow easy conversion
+        to various length units.
         """
         pPr = self._p.pPr
         if pPr is None:
