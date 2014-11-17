@@ -285,7 +285,7 @@ class EnumValue(int):
         """
         The symbolic name and string value of this member, e.g. 'MIDDLE (3)'
         """
-        return "%s (%d)" % (self._member_name, self)
+        return "{0:s} ({1:d})".format(self._member_name, self)
 
 
 class ReturnValueOnlyEnumMember(EnumMember):
