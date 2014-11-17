@@ -6,6 +6,7 @@ Test suite for pptx.text.fonts module
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+import io
 import pytest
 
 from struct import calcsize
@@ -405,7 +406,7 @@ class Describe_Stream(object):
 
     @pytest.fixture
     def file_(self, request):
-        return instance_mock(request, file)
+        return instance_mock(request, io.RawIOBase)
 
     @pytest.fixture
     def _init_(self, request):
