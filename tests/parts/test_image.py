@@ -8,8 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
-from StringIO import StringIO
-
+from pptx.compat import BytesIO
 from pptx.package import Package
 from pptx.parts.image import Image, ImagePart
 from pptx.util import Px
@@ -207,7 +206,7 @@ class DescribeImage(object):
     def from_stream_fixture(self, from_blob_, image_):
         with open(test_image_path, 'rb') as f:
             blob = f.read()
-            image_file = StringIO(blob)
+            image_file = BytesIO(blob)
         from_blob_.return_value = image_
         return image_file, blob, image_
 

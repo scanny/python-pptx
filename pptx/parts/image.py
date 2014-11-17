@@ -12,11 +12,10 @@ try:
 except ImportError:
     import Image as PIL_Image
 
-from StringIO import StringIO
-
-from pptx.opc.package import Part
-from pptx.opc.spec import image_content_types
-from pptx.util import lazyproperty
+from ..compat import BytesIO
+from ..opc.package import Part
+from ..opc.spec import image_content_types
+from ..util import lazyproperty
 
 
 class ImagePart(Part):
@@ -270,7 +269,7 @@ class Image(object):
         A tuple containing useful image properties extracted from this image
         using Pillow (Python Imaging Library, or 'PIL').
         """
-        stream = StringIO(self._blob)
+        stream = BytesIO(self._blob)
         pil_image = PIL_Image.open(stream)
         format = pil_image.format
         width_px, height_px = pil_image.size

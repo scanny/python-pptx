@@ -8,9 +8,9 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from StringIO import StringIO as BytesIO
 from struct import calcsize
 
+from pptx.compat import BytesIO
 from pptx.text.fonts import (
     _BaseTable, _Font, FontFiles, _HeadTable, _NameTable, _Stream,
     _TableFactory

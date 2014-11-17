@@ -8,13 +8,13 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from StringIO import StringIO as BytesIO
 from zipfile import ZipFile
 
 from xlsxwriter.worksheet import Worksheet
 
 from pptx.chart.data import _SeriesData
 from pptx.chart.xlsx import WorkbookWriter
+from pptx.compat import BytesIO
 
 from ..unitutil.mock import call, class_mock, instance_mock, method_mock
 
