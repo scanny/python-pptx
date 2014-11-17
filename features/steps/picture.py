@@ -6,11 +6,10 @@ Gherkin step implementations for picture-related features.
 
 from __future__ import absolute_import
 
-from StringIO import StringIO
-
 from behave import given, when, then
 
 from pptx import Presentation
+from pptx.compat import BytesIO
 from pptx.package import Package
 from pptx.util import Inches
 
@@ -37,7 +36,7 @@ def when_I_add_the_image_filename_using_shapes_add_picture(context, filename):
 def when_I_add_the_stream_image_filename_using_add_picture(context, filename):
     shapes = context.slide.shapes
     with open(test_image(filename)) as f:
-        stream = StringIO(f.read())
+        stream = BytesIO(f.read())
     shapes.add_picture(stream, Inches(1.25), Inches(1.25))
 
 
