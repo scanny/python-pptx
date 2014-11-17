@@ -243,7 +243,7 @@ class Describe_BinarySearchTree(object):
         assert bst.value == 9
         assert bst._lesser.value == 4
         assert bst._greater is None
-        assert in_order(bst) == range(10)
+        assert in_order(bst) == list(range(10))
 
     def it_can_find_the_max_value_satisfying_a_predicate(self, max_fixture):
         bst, predicate, expected_value = max_fixture
