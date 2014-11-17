@@ -10,7 +10,8 @@ import os
 
 from zipfile import ZipFile, is_zipfile, ZIP_DEFLATED
 
-from pptx.exceptions import PackageNotFoundError
+from ..compat import is_string
+from ..exceptions import PackageNotFoundError
 
 from .packuri import CONTENT_TYPES_URI
 
@@ -21,7 +22,7 @@ class PhysPkgReader(object):
     """
     def __new__(cls, pkg_file):
         # if *pkg_file* is a string, treat it as a path
-        if isinstance(pkg_file, basestring):
+        if is_string(pkg_file):
             if os.path.isdir(pkg_file):
                 reader_cls = _DirPkgReader
             elif is_zipfile(pkg_file):

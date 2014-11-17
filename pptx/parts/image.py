@@ -12,7 +12,7 @@ try:
 except ImportError:
     import Image as PIL_Image
 
-from ..compat import BytesIO
+from ..compat import BytesIO, is_string
 from ..opc.package import Part
 from ..opc.spec import image_content_types
 from ..util import lazyproperty
@@ -153,7 +153,7 @@ class Image(object):
         Return a new |Image| object loaded from *image_file*, which can be
         either a path (string) or a file-like object.
         """
-        if isinstance(image_file, basestring):
+        if is_string(image_file):
             # treat image_file as a path
             with open(image_file, 'rb') as f:
                 blob = f.read()

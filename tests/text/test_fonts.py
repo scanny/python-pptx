@@ -4,7 +4,7 @@
 Test suite for pptx.text.fonts module
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
@@ -257,8 +257,8 @@ class Describe_Font(object):
         font = _Font(stream)
         _table_count_.return_value = 2
         stream_read_.return_value = (
-            'name' 'xxxx' '\x00\x00\x00\x2A' '\x00\x00\x00\x15'
-            'head' 'xxxx' '\x00\x00\x00\x15' '\x00\x00\x00\x2A'
+            b'name' b'xxxx' b'\x00\x00\x00\x2A' b'\x00\x00\x00\x15'
+            b'head' b'xxxx' b'\x00\x00\x00\x15' b'\x00\x00\x00\x2A'
         )
         expected_values = [('name', 42, 21), ('head', 21, 42)]
         return font, expected_values
@@ -396,9 +396,9 @@ class Describe_Stream(object):
     @pytest.fixture
     def read_flds_fixture(self, file_):
         stream = _Stream(file_)
-        tmpl, offset = '>4sHH', 0
-        file_.read.return_value = 'foob' '\x00\x2A' '\x00\x15'
-        expected_values = ('foob', 42, 21)
+        tmpl, offset = b'>4sHH', 0
+        file_.read.return_value = b'foob' b'\x00\x2A' b'\x00\x15'
+        expected_values = (b'foob', 42, 21)
         return stream, tmpl, offset, file_, expected_values
 
     # fixture components -----------------------------------
@@ -620,7 +620,7 @@ class Describe_NameTable(object):
     @pytest.fixture
     def header_fixture(self, _table_bytes_):
         name_table = _NameTable(None, None, None, None)
-        _table_bytes_.return_value = '\x00\x00\x00\x02\x00\x2A'
+        _table_bytes_.return_value = b'\x00\x00\x00\x02\x00\x2A'
         expected_value = (0, 2, 42)
         return name_table, expected_value
 
@@ -649,8 +649,9 @@ class Describe_NameTable(object):
     def name_hdr_fixture(self):
         name_table = _NameTable(None, None, None, None)
         bufr = (
-            '123456' '123456789012'
-            '\x00\x00' '\x00\x01' '\x00\x02' '\x00\x03' '\x00\x04' '\x00\x05'
+            b'123456' b'123456789012'
+            b'\x00\x00' b'\x00\x01' b'\x00\x02'
+            b'\x00\x03' b'\x00\x04' b'\x00\x05'
         )
         idx = 1
         expected_value = (0, 1, 2, 3, 4, 5)

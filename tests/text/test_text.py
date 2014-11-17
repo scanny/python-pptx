@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.compat import is_unicode
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
@@ -746,7 +747,7 @@ class Describe_Paragraph(object):
         paragraph, expected_value = text_get_fixture
         text = paragraph.text
         assert text == expected_value
-        assert isinstance(text, unicode)
+        assert is_unicode(text)
 
     def it_can_change_its_text(self, text_set_fixture):
         paragraph, new_value, expected_xml = text_set_fixture
@@ -951,7 +952,7 @@ class Describe_Paragraph(object):
         ('a:p', '7-bit str',     'a:p/a:r/a:t"7-bit str"'),
         ('a:p', '8-ɓïȶ str',    u'a:p/a:r/a:t"8-ɓïȶ str"'),
         ('a:p', u'ŮŦƑ literal', u'a:p/a:r/a:t"ŮŦƑ literal"'),
-        ('a:p', unicode('utf-8 unicode: Hér er texti', 'utf-8'),
+        ('a:p', u'utf-8 unicode: Hér er texti',
          u'a:p/a:r/a:t"utf-8 unicode: Hér er texti"'),
     ])
     def text_set_fixture(self, request):
@@ -998,7 +999,7 @@ class Describe_Run(object):
         run, expected_value = text_get_fixture
         text = run.text
         assert text == expected_value
-        assert isinstance(text, unicode)
+        assert is_unicode(text)
 
     def it_can_change_its_text(self, text_set_fixture):
         run, new_value, expected_xml = text_set_fixture
