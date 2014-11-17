@@ -219,6 +219,13 @@ class _LineSource(object):
     def __init__(self, text):
         self._text = text
 
+    def __bool__(self):
+        """
+        Gives this object boolean behaviors (in Python 3). bool(line_source)
+        is False if it contains the empty string or whitespace only.
+        """
+        return self._text.strip() != ''
+
     def __eq__(self, other):
         return self._text == other._text
 
@@ -237,8 +244,8 @@ class _LineSource(object):
 
     def __nonzero__(self):
         """
-        Gives this object boolean behaviors. bool(line_source) is False if it
-        contains the empty string or whitespace only.
+        Gives this object boolean behaviors (in Python 2). bool(line_source)
+        is False if it contains the empty string or whitespace only.
         """
         return self._text.strip() != ''
 
