@@ -8,8 +8,6 @@ from __future__ import absolute_import
 
 import pytest
 
-from mock import call, Mock, patch, PropertyMock
-
 from pptx.opc.oxml import CT_Relationships
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.package import (
@@ -22,8 +20,8 @@ from pptx.package import Package
 
 from ..unitutil.cxml import element
 from ..unitutil.mock import (
-    class_mock, cls_attr_mock, function_mock, initializer_mock,
-    instance_mock, loose_mock, method_mock
+    call, class_mock, cls_attr_mock, function_mock, initializer_mock,
+    instance_mock, loose_mock, method_mock, Mock, patch, PropertyMock
 )
 
 

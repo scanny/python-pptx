@@ -8,8 +8,6 @@ from __future__ import absolute_import
 
 import pytest
 
-from mock import ANY, call, MagicMock
-
 from pptx.chart.data import ChartData
 from pptx.enum.base import EnumValue
 from pptx.enum.shapes import PP_PLACEHOLDER
@@ -45,9 +43,10 @@ from ..oxml.unitdata.shape import (
 )
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, test_file_dir
+
 from ..unitutil.mock import (
-    class_mock, function_mock, initializer_mock, instance_mock, method_mock,
-    property_mock
+    ANY, call, class_mock, function_mock, initializer_mock, instance_mock,
+    MagicMock, method_mock, property_mock
 )
 
 
