@@ -12,6 +12,7 @@ import re
 from lxml import etree
 
 from . import oxml_parser
+from ..compat import Unicode
 from ..exc import InvalidXmlError
 from .ns import NamespacePrefixedTag, _nsmap, qn
 from ..util import lazyproperty
@@ -38,7 +39,7 @@ def serialize_for_reading(element):
     return XmlString(xml)
 
 
-class XmlString(unicode):
+class XmlString(Unicode):
     """
     Provides string comparison override suitable for serialized XML that is
     useful for tests.
