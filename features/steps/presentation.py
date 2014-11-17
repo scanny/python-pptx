@@ -80,7 +80,7 @@ def when_open_basic_pptx(context):
 
 @when('I open a presentation contained in a stream')
 def when_open_presentation_stream(context):
-    with open(test_pptx('test')) as f:
+    with open(test_pptx('test'), 'rb') as f:
         stream = BytesIO(f.read())
     context.prs = Presentation(stream)
     stream.close()

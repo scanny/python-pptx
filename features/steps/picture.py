@@ -35,7 +35,7 @@ def when_I_add_the_image_filename_using_shapes_add_picture(context, filename):
 @when('I add the stream image {filename} using shapes.add_picture()')
 def when_I_add_the_stream_image_filename_using_add_picture(context, filename):
     shapes = context.slide.shapes
-    with open(test_image(filename)) as f:
+    with open(test_image(filename), 'rb') as f:
         stream = BytesIO(f.read())
     shapes.add_picture(stream, Inches(1.25), Inches(1.25))
 
