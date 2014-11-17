@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 from warnings import warn
 
 from . import Subshape
-from ..compat import to_unicode
+from ..compat import is_integer, to_unicode
 from ..dml.fill import FillFormat
 from ..text.text import TextFrame
 from ..util import lazyproperty
@@ -277,8 +277,7 @@ class _Cell(Subshape):
         Raise ValueError if *margin_value* is not a positive integer value or
         |None|.
         """
-        if (not isinstance(margin_value, (int, long))
-                and margin_value is not None):
+        if (not is_integer(margin_value) and margin_value is not None):
             tmpl = "margin value must be integer or None, got '%s'"
             raise TypeError(tmpl % margin_value)
 
