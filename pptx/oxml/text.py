@@ -7,6 +7,7 @@ lxml custom element classes for text-related XML elements.
 from __future__ import absolute_import
 
 from . import parse_xml
+from ..compat import to_unicode
 from ..enum.text import (
     MSO_AUTO_SIZE, MSO_TEXT_UNDERLINE_TYPE, MSO_VERTICAL_ANCHOR,
     PP_PARAGRAPH_ALIGNMENT
@@ -18,7 +19,7 @@ from .simpletypes import (
     ST_TextSpacingPoint, ST_TextTypeface, ST_TextWrappingType, XsdBoolean,
     XsdString
 )
-from ..util import Emu, Length, to_unicode
+from ..util import Emu, Length
 from .xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice

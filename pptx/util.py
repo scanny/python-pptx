@@ -177,22 +177,3 @@ def lazyproperty(f):
             return value
 
     return property(get_prop_value, doc=docstring)
-
-
-def to_unicode(text):
-    """
-    Return *text* as a unicode string.
-
-    *text* can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or
-    unicode. String values are converted to unicode assuming UTF-8 encoding.
-    Unicode values are returned unchanged.
-    """
-    # both str and unicode inherit from basestring
-    if not isinstance(text, basestring):
-        tmpl = 'expected UTF-8 encoded string or unicode, got %s value %s'
-        raise TypeError(tmpl % (type(text), text))
-    # return unicode strings unchanged
-    if isinstance(text, unicode):
-        return text
-    # otherwise assume UTF-8 encoding, which also works for ASCII
-    return unicode(text, 'utf-8')

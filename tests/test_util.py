@@ -9,9 +9,8 @@ from __future__ import absolute_import
 import platform
 import pytest
 
-from pptx.util import (
-    Length, Centipoints, Cm, Emu, Inches, Mm, Pt, Px, to_unicode
-)
+from pptx.compat import to_unicode
+from pptx.util import Length, Centipoints, Cm, Emu, Inches, Mm, Pt, Px
 
 
 def test_to_unicode_raises_on_non_string():

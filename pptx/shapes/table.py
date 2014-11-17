@@ -9,9 +9,10 @@ from __future__ import absolute_import, print_function
 from warnings import warn
 
 from . import Subshape
+from ..compat import to_unicode
 from ..dml.fill import FillFormat
 from ..text.text import TextFrame
-from ..util import lazyproperty, to_unicode
+from ..util import lazyproperty
 
 
 class Table(object):
