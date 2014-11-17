@@ -13,7 +13,7 @@ from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_COLOR_TYPE, MSO_FILL_TYPE, MSO_THEME_COLOR
 from pptx.util import Length, Pt
 
-from .helpers import test_pptx
+from helpers import test_pptx
 
 
 # given ===================================================

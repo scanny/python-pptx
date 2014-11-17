@@ -17,7 +17,7 @@ from pptx.parts.presentation import _SlideMasters
 from pptx.parts.slidemaster import SlideMaster
 from pptx.util import Inches
 
-from .helpers import saved_pptx_path, test_pptx
+from helpers import saved_pptx_path, test_pptx
 
 
 # given ===================================================

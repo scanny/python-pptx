@@ -14,7 +14,7 @@ from pptx import Presentation
 from pptx.package import Package
 from pptx.util import Inches
 
-from .helpers import saved_pptx_path, test_image, test_pptx
+from helpers import saved_pptx_path, test_image, test_pptx
 
 
 # given ===================================================

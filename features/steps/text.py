@@ -14,7 +14,7 @@ from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Emu, Inches
 
-from .helpers import saved_pptx_path, test_pptx
+from helpers import saved_pptx_path, test_pptx
 
 
 # given ===================================================

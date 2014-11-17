@@ -16,7 +16,7 @@ from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.shape import BaseShape
 
-from .helpers import saved_pptx_path, test_pptx
+from helpers import saved_pptx_path, test_pptx
 
 
 # given ===================================================

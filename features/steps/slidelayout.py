@@ -15,7 +15,7 @@ from pptx.parts.slidelayout import (
 from pptx.shapes.picture import Picture
 from pptx.shapes.shape import BaseShape
 
-from .helpers import test_pptx
+from helpers import test_pptx
 
 
 SHAPE_COUNT = 3

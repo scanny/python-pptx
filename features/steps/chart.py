@@ -25,7 +25,7 @@ from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 from pptx.text.text import Font
 from pptx.util import Inches
 
-from .helpers import count, test_pptx
+from helpers import count, test_pptx
 
 
 # given ===================================================

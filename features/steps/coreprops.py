@@ -12,7 +12,7 @@ from behave import given, when, then
 
 from pptx import Presentation
 
-from .helpers import saved_pptx_path, no_core_props_pptx_path
+from helpers import saved_pptx_path, no_core_props_pptx_path
 
 
 # given ===================================================
