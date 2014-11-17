@@ -6,8 +6,6 @@ DrawingML objects related to color, ColorFormat being the most prominent.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from types import NoneType
-
 from ..enum.dml import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from ..oxml.dml.color import (
     CT_HslColor, CT_PresetColor, CT_SchemeColor, CT_ScRgbColor, CT_SRgbColor,
@@ -113,20 +111,19 @@ class _Color(object):
     class for all color type classes such as SRgbColor.
     """
     def __new__(cls, xClr):
-        subcls_map = {
-            NoneType:       _NoneColor,
+        color_cls = {
+            type(None):     _NoneColor,
             CT_HslColor:    _HslColor,
             CT_PresetColor: _PrstColor,
             CT_SchemeColor: _SchemeColor,
             CT_ScRgbColor:  _ScRgbColor,
             CT_SRgbColor:   _SRgbColor,
             CT_SystemColor: _SysColor,
-        }
-        color_cls = subcls_map[type(xClr)]
+        }[type(xClr)]
         return super(_Color, cls).__new__(color_cls)
 
     def __init__(self, xClr):
-        super(_Color, self).__init__(xClr)
+        super(_Color, self).__init__()
         self._xClr = xClr
 
     @property
