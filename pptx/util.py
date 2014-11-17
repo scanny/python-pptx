@@ -5,7 +5,7 @@ Utility functions and classes that come in handy when working with PowerPoint
 and Open XML.
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 import platform
 
@@ -41,7 +41,7 @@ class Length(int):
         Integer length in hundredths of a point (1/7200 inch). Used
         internally because PowerPoint stores font size in centipoints.
         """
-        return self / self._EMUS_PER_CENTIPOINT
+        return self // self._EMUS_PER_CENTIPOINT
 
     @property
     def cm(self):
