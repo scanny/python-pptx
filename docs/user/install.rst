@@ -3,14 +3,12 @@
 Installing
 ==========
 
-|pp| is hosted on PyPI, so installation is relatively simple, and just
-depends on what installation utilities you have installed.
-
-|pp| may be installed with ``pip`` if you have it available::
+|pp| is hosted on PyPI, so installing with `pip` is simple::
 
     pip install python-pptx
 
-It can also be installed using ``easy_install``::
+It can also be installed using ``easy_install``, but that is `not
+recommended`_::
 
     easy_install python-pptx
 
@@ -22,20 +20,21 @@ and running ``setup.py``::
     cd python-pptx-0.1.0a1
     python setup.py install
 
-|pp| depends on the ``lxml`` package and the Python Imaging Library (``PIL``).
-Both ``pip`` and ``easy_install`` will take care of satisfying those
-dependencies for you, but if you use this last method you will need to install
-those yourself.
+|pp| depends on the ``lxml`` package and ``Pillow``, the modern version of
+the Python Imaging Library (``PIL``). The charting features depend on
+``XlsxWriter``. Both ``pip`` and ``easy_install`` will take care of
+satisfying these dependencies for you, but if you use the ``setup.py``
+installation method you will need to install the dependencies yourself.
 
+Currently |pp| requires Python 2.6, 2.7, 3.3 or 3.4.
 
 Dependencies
 ------------
 
-* Python 2.6 or 2.7
+* Python 2.6, 2.7, 3.3, or 3.4
 * lxml
 * Pillow
+* XlsxWriter (to use charting features)
 
-Currently |pp| requires Python 2.6 or 2.7. Support for earlier versions is not
-planned as it complicates future support for Python 3.x, but if you have a
-compelling need please reach out via the mailing list. Support for Python 3.x
-is on the roadmap.
+.. _`not recommended`:
+   https://stackoverflow.com/questions/3220404/why-use-pip-over-easy-install
