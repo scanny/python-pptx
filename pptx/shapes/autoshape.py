@@ -402,8 +402,7 @@ class Shape(BaseShape):
         Deprecated. Use :attr:`text_frame` property instead.
         """
         msg = (
-            'Shape.textframe property is deprecated. Use .has_text_frame ins'
-            'tead.'
+            'Shape.textframe property is deprecated. Use .text_frame instead'
         )
         warn(msg, UserWarning, stacklevel=2)
         return self.text_frame
