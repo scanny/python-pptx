@@ -13,6 +13,7 @@ from .axis import CategoryAxis, ValueAxis
 from .legend import Legend
 from .plot import PlotFactory, PlotTypeInspector
 from .series import SeriesCollection
+from .title import ChartTitle
 from ..util import lazyproperty
 
 
@@ -68,6 +69,24 @@ class Chart(object):
         """
         first_plot = self.plots[0]
         return PlotTypeInspector.chart_type(first_plot)
+
+    @property
+    def has_title(self):
+        """
+        Read-only boolean. |True| if the chart has a title; |False| otherwise.
+        """
+        return self._chartSpace.chart.has_title
+
+    @property
+    def title(self):
+        """
+        A |Title| object providing access to the properties of this chart's
+        title.
+        """
+        title_elm = self._chartSpace.chart.title
+        if title_elm is None:
+            return None
+        return ChartTitle(title_elm)
 
     @property
     def has_legend(self):
