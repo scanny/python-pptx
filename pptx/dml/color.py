@@ -22,6 +22,7 @@ class ColorFormat(object):
         super(ColorFormat, self).__init__()
         self._xFill = eg_colorChoice_parent
         self._color = color
+        self._alpha_el = None
 
     @property
     def brightness(self):
@@ -36,6 +37,21 @@ class ColorFormat(object):
     def brightness(self, value):
         self._validate_brightness_value(value)
         self._color.brightness = value
+
+    @property
+    def alpha(self):
+        return self._alpha_el.alpha
+
+    @alpha.setter
+    def alpha(self, value):
+        if isinstance(self._color, _NoneColor):
+            raise ValueError('Alpha values are not supported for non-colored objects. '
+                             'Set a valid color first.')
+        if value < 0.0 or value > 1.0:
+            raise ValueError('Alpha must be number in range 0.0 to 1.0')
+        alpha_xml = self._color._srgbClr.get_or_change_to_alpha()
+        self._alpha_el = _AlphaElement(alpha_xml)
+        self._alpha_el.alpha = value
 
     @classmethod
     def from_colorchoice_parent(cls, eg_colorChoice_parent):
@@ -304,3 +320,29 @@ class RGBColor(tuple):
         g = int(rgb_hex_str[2:4], 16)
         b = int(rgb_hex_str[4:], 16)
         return cls(r, g, b)
+
+
+class _AlphaElement(object):
+    def __init__(self, xml_el):
+        self._xml_el = xml_el
+        self._val = None
+
+    @property
+    def alpha(self):
+        return AlphaValue.from_string(self._xml_el.val)
+
+    @alpha.setter
+    def alpha(self, value):
+        self._xml_el.val = AlphaValue.to_string(value)
+
+
+class AlphaValue(object):
+    _multiplier_constant = 100000.  # alpha value in pptx is in range [0 - 100000]
+    @classmethod
+    def from_string(cls, val):
+        val_str = int(val)
+        return int(val_str) / cls._multiplier_constant
+
+    @classmethod
+    def to_string(cls, val):
+        return str(int(cls._multiplier_constant * (1. - val)))
