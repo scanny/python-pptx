@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+0.5.6 (2014-12-06)
+++++++++++++++++++
+
+- fix #138 - UnicodeDecodeError in setup.py on Windows 7 Python 3.4
+
+
 0.5.5 (2014-11-17)
 ++++++++++++++++++
 
