@@ -4,15 +4,15 @@
 The shape tree, the structure that holds a slide's shapes.
 """
 
-from .autoshape import AutoShapeType, Shape
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
+
+from .autoshape import AutoShapeType
 from ..enum.shapes import PP_PLACEHOLDER
-from .graphfrm import GraphicFrame
-from ..oxml.ns import qn
+from .factory import BaseShapeFactory, SlideShapeFactory
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from ..oxml.simpletypes import ST_Direction
-from .picture import Picture
-from .placeholder import SlidePlaceholder
-from .shape import BaseShape
 
 
 class BaseShapeTree(object):
@@ -117,31 +117,6 @@ class BasePlaceholders(BaseShapeTree):
         True if *shape_elm* is a placeholder shape, False otherwise.
         """
         return shape_elm.has_ph_elm
-
-
-def BaseShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*.
-    """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp'):
-        return Shape(shape_elm, parent)
-    if tag_name == qn('p:pic'):
-        return Picture(shape_elm, parent)
-    if tag_name == qn('p:graphicFrame'):
-        return GraphicFrame(shape_elm, parent)
-    return BaseShape(shape_elm, parent)
-
-
-def SlideShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*
-    on a slide.
-    """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
-        return SlidePlaceholder(shape_elm, parent)
-    return BaseShapeFactory(shape_elm, parent)
 
 
 class SlideShapeTree(BaseShapeTree):

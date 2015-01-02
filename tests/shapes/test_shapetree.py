@@ -27,114 +27,16 @@ from pptx.shapes.placeholder import (
 )
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import (
-    BasePlaceholders, BaseShapeTree, BaseShapeFactory, SlideShapeFactory,
-    SlideShapeTree
+    BasePlaceholders, BaseShapeTree, SlideShapeTree
 )
 from pptx.shapes.table import Table
 
-from ..oxml.unitdata.shape import (
-    a_cNvPr, a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp, an_spPr, an_spTree
-)
+from ..oxml.unitdata.shape import a_cNvPr, an_sp, an_spPr, an_spTree
 from ..oxml.unitdata.slides import a_sld, a_cSld
-from ..unitutil.cxml import element
 from ..unitutil.mock import (
     call, class_mock, function_mock, instance_mock, method_mock,
     property_mock
 )
-
-
-class DescribeBaseShapeFactory(object):
-
-    def it_constructs_the_appropriate_shape_instance_for_a_shape_element(
-            self, factory_fixture):
-        shape_elm, parent_, ShapeClass_, shape_ = factory_fixture
-        shape = BaseShapeFactory(shape_elm, parent_)
-        ShapeClass_.assert_called_once_with(shape_elm, parent_)
-        assert shape is shape_
-
-    def it_finds_an_unused_shape_id_to_help_add_shape(self, next_id_fixture):
-        shapes, next_available_shape_id = next_id_fixture
-        shape_id = shapes._next_shape_id
-        assert shape_id == next_available_shape_id
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture(params=['sp', 'pic', 'graphicFrame', 'grpSp', 'cxnSp'])
-    def factory_fixture(
-            self, request, slide_, Shape_, shape_, Picture_, picture_,
-            GraphicFrame_, graphic_frame_, BaseShape_, base_shape_):
-        shape_cxml, ShapeClass_, shape_mock = {
-            'sp':           ('p:sp',           Shape_,        shape_),
-            'pic':          ('p:pic',          Picture_,      picture_),
-            'graphicFrame': ('p:graphicFrame', GraphicFrame_, graphic_frame_),
-            'grpSp':        ('p:grpSp',        BaseShape_,    base_shape_),
-            'cxnSp':        ('p:cxnSp',        BaseShape_,    base_shape_),
-        }[request.param]
-        shape_elm = element(shape_cxml)
-        return shape_elm, slide_, ShapeClass_, shape_mock
-
-    @pytest.fixture(params=[
-        ((), 1), ((0,), 1), ((1,), 2), ((2,), 1), ((1, 3,), 2),
-        (('foobar', 0, 1, 7), 2), (('1foo', 2, 2, 2), 1), ((1, 1, 1, 4), 2),
-    ])
-    def next_id_fixture(self, request, slide_):
-        used_ids, next_available_shape_id = request.param
-        nvSpPr_bldr = an_nvSpPr()
-        for used_id in used_ids:
-            nvSpPr_bldr.with_child(a_cNvPr().with_id(used_id))
-        spTree = an_spTree().with_nsdecls().with_child(nvSpPr_bldr).element
-        print(spTree.xml)
-        slide_.spTree = spTree
-        shapes = BaseShapeTree(slide_)
-        return shapes, next_available_shape_id
-
-    # fixture components -----------------------------------
-
-    @pytest.fixture
-    def BaseShape_(self, request, base_shape_):
-        return class_mock(
-            request, 'pptx.shapes.shapetree.BaseShape',
-            return_value=base_shape_
-        )
-
-    @pytest.fixture
-    def base_shape_(self, request):
-        return instance_mock(request, BaseShape)
-
-    @pytest.fixture
-    def GraphicFrame_(self, request, graphic_frame_):
-        return class_mock(
-            request, 'pptx.shapes.shapetree.GraphicFrame',
-            return_value=graphic_frame_
-        )
-
-    @pytest.fixture
-    def graphic_frame_(self, request):
-        return instance_mock(request, GraphicFrame)
-
-    @pytest.fixture
-    def Picture_(self, request, picture_):
-        return class_mock(
-            request, 'pptx.shapes.shapetree.Picture', return_value=picture_
-        )
-
-    @pytest.fixture
-    def picture_(self, request):
-        return instance_mock(request, Picture)
-
-    @pytest.fixture
-    def Shape_(self, request, shape_):
-        return class_mock(
-            request, 'pptx.shapes.shapetree.Shape', return_value=shape_
-        )
-
-    @pytest.fixture
-    def shape_(self, request):
-        return instance_mock(request, Shape)
-
-    @pytest.fixture
-    def slide_(self, request):
-        return instance_mock(request, Slide)
 
 
 class DescribeBaseShapeTree(object):
@@ -942,64 +844,3 @@ class DescribeSlideShapeTree(object):
     @pytest.fixture
     def y_(self, request):
         return instance_mock(request, int)
-
-
-class DescribeSlideShapeFactory(object):
-
-    def it_constructs_a_slide_placeholder_for_a_shape_element(
-            self, factory_fixture):
-        shape_elm, parent_, ShapeConstructor_, shape_ = factory_fixture
-        shape = SlideShapeFactory(shape_elm, parent_)
-        ShapeConstructor_.assert_called_once_with(shape_elm, parent_)
-        assert shape is shape_
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture(params=['ph', 'sp', 'pic'])
-    def factory_fixture(
-            self, request, ph_bldr, slide_, SlidePlaceholder_,
-            slide_placeholder_, BaseShapeFactory_, base_shape_):
-        shape_bldr, ShapeConstructor_, shape_mock = {
-            'ph':  (ph_bldr, SlidePlaceholder_, slide_placeholder_),
-            'sp':  (an_sp(), BaseShapeFactory_, base_shape_),
-            'pic': (a_pic(), BaseShapeFactory_, base_shape_),
-        }[request.param]
-        shape_elm = shape_bldr.with_nsdecls().element
-        return shape_elm, slide_, ShapeConstructor_, shape_mock
-
-    # fixture components -----------------------------------
-
-    @pytest.fixture
-    def BaseShapeFactory_(self, request, base_shape_):
-        return function_mock(
-            request, 'pptx.shapes.shapetree.BaseShapeFactory',
-            return_value=base_shape_
-        )
-
-    @pytest.fixture
-    def base_shape_(self, request):
-        return instance_mock(request, BaseShape)
-
-    @pytest.fixture
-    def SlidePlaceholder_(self, request, slide_placeholder_):
-        return class_mock(
-            request, 'pptx.shapes.shapetree.SlidePlaceholder',
-            return_value=slide_placeholder_
-        )
-
-    @pytest.fixture
-    def slide_placeholder_(self, request):
-        return instance_mock(request, SlidePlaceholder)
-
-    @pytest.fixture
-    def ph_bldr(self):
-        return (
-            an_sp().with_child(
-                an_nvSpPr().with_child(
-                    an_nvPr().with_child(
-                        a_ph().with_idx(1))))
-        )
-
-    @pytest.fixture
-    def slide_(self, request):
-        return instance_mock(request, Slide)
