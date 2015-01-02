@@ -7,13 +7,13 @@ The following classes provide access to the shapes that appear on a slide and
 the collections that contain them.
 
 
-|_SlideShapeTree| objects
--------------------------
+|SlideShapeTree| objects
+------------------------
 
-The |_SlideShapeTree| object is encountered as the :attr:`~BaseSlide.shapes`
+The |SlideShapeTree| object is encountered as the :attr:`~BaseSlide.shapes`
 property of |Slide|.
 
-.. autoclass:: pptx.parts.slide._SlideShapeTree()
+.. autoclass:: pptx.shapes.shapetree.SlideShapeTree()
    :members:
    :exclude-members: clone_layout_placeholders
 
@@ -34,7 +34,7 @@ The following properties and methods are common to all shapes.
 ----------------------------
 
 The following properties and methods are defined for AutoShapes, which
-includes text boxes and placeholders.
+include text boxes and placeholders.
 
 .. autoclass:: pptx.shapes.autoshape.Shape()
    :members:

@@ -9,8 +9,10 @@ from __future__ import absolute_import, print_function
 from warnings import warn
 
 from ..oxml.ns import qn
-from ..shapes.placeholder import BasePlaceholders, MasterPlaceholder
-from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
+from ..shapes.placeholder import MasterPlaceholder
+from ..shapes.shapetree import (
+    BasePlaceholders, BaseShapeFactory, BaseShapeTree
+)
 from .slide import BaseSlide
 from ..util import lazyproperty
 

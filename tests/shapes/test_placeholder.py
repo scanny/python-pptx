@@ -9,45 +9,20 @@ from __future__ import absolute_import, print_function, unicode_literals
 import pytest
 
 from pptx.enum.shapes import PP_PLACEHOLDER
-from pptx.oxml.shapes.shared import (
-    BaseShapeElement, ST_Direction, ST_PlaceholderSize
-)
-from pptx.parts.slide import Slide, _SlideShapeTree
+from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
+from pptx.parts.slide import Slide
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
 from pptx.shapes.placeholder import (
-    BasePlaceholder, BasePlaceholders, LayoutPlaceholder, MasterPlaceholder,
-    SlidePlaceholder
+    BasePlaceholder, LayoutPlaceholder, MasterPlaceholder, SlidePlaceholder
 )
-from pptx.shapes.shapetree import BaseShapeTree
+from pptx.shapes.shapetree import BaseShapeTree, SlideShapeTree
 
 from ..oxml.unitdata.shape import (
     an_ext, a_graphicFrame, a_ph, an_nvGraphicFramePr, an_nvPicPr, an_nvPr,
     an_nvSpPr, an_sp, an_spPr, an_xfrm
 )
 from ..unitutil.mock import instance_mock, method_mock, property_mock
-
-
-class DescribeBasePlaceholders(object):
-
-    def it_contains_only_placeholder_shapes(self, member_fixture):
-        shape_elm_, is_ph_shape = member_fixture
-        _is_ph_shape = BasePlaceholders._is_member_elm(shape_elm_)
-        assert _is_ph_shape == is_ph_shape
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture(params=[True, False])
-    def member_fixture(self, request, shape_elm_):
-        is_ph_shape = request.param
-        shape_elm_.has_ph_elm = is_ph_shape
-        return shape_elm_, is_ph_shape
-
-    # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def shape_elm_(self, request):
-        return instance_mock(request, BaseShapeElement)
 
 
 class DescribeBasePlaceholder(object):
@@ -477,7 +452,7 @@ class DescribeSlidePlaceholder(object):
 
     @pytest.fixture
     def parent_(self, request, slide_):
-        parent_ = instance_mock(request, _SlideShapeTree)
+        parent_ = instance_mock(request, SlideShapeTree)
         parent_.part = slide_
         return parent_
 

@@ -9,11 +9,12 @@ from __future__ import absolute_import
 from behave import given, when, then
 
 from pptx import Presentation
-from pptx.parts.slide import _SlidePlaceholders, _SlideShapeTree
+from pptx.parts.slide import _SlidePlaceholders
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import SlidePlaceholder
 from pptx.shapes.shape import BaseShape
+from pptx.shapes.shapetree import SlideShapeTree
 
 from helpers import saved_pptx_path, test_pptx
 
@@ -118,8 +119,8 @@ def then_can_access_placeholder_collection_of_slide(context):
 def then_can_access_shapes_of_slide(context):
     slide = context.slide
     shapes = slide.shapes
-    msg = 'Slide.shapes not instance of _SlideShapeTree'
-    assert isinstance(shapes, _SlideShapeTree), msg
+    msg = 'Slide.shapes not instance of SlideShapeTree'
+    assert isinstance(shapes, SlideShapeTree), msg
 
 
 @then('I can access the title placeholder')

@@ -11,8 +11,10 @@ from warnings import warn
 from ..enum.shapes import PP_PLACEHOLDER
 from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..oxml.ns import qn
-from ..shapes.placeholder import BasePlaceholders, LayoutPlaceholder
-from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
+from ..shapes.placeholder import LayoutPlaceholder
+from ..shapes.shapetree import (
+    BasePlaceholders, BaseShapeFactory, BaseShapeTree
+)
 from .slide import BaseSlide
 from ..util import lazyproperty
 

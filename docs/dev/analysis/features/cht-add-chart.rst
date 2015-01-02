@@ -1,6 +1,6 @@
 
-_SlideShapeTree.add_chart()
-===========================
+SlideShapeTree.add_chart()
+==========================
 
 A chart is added to a slide similarly to adding any other shape. Note that
 a chart is not itself a shape; the item returned by `.add_shape()` is

@@ -10,13 +10,12 @@ import pytest
 
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
-from pptx.parts.slide import _SlideShapeTree
 from pptx.shapes import Subshape
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.shape import BaseShape
-from pptx.shapes.shapetree import BaseShapeFactory
+from pptx.shapes.shapetree import BaseShapeFactory, SlideShapeTree
 
 from ..oxml.unitdata.shape import (
     a_cNvPr, a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic,
@@ -351,7 +350,7 @@ class DescribeBaseShape(object):
 
     @pytest.fixture
     def shapes_(self, request):
-        return instance_mock(request, _SlideShapeTree)
+        return instance_mock(request, SlideShapeTree)
 
     @pytest.fixture
     def sp(self):
