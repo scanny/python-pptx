@@ -18,7 +18,7 @@ from ..oxml.simpletypes import ST_Direction
 from ..oxml.parts.slide import CT_Slide
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from ..shapes.autoshape import AutoShapeType
-from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
+from ..shapes.placeholder import BasePlaceholders, SlidePlaceholder
 from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
 from ..util import lazyproperty
 
@@ -441,92 +441,8 @@ def _SlideShapeFactory(shape_elm, parent):
     """
     tag_name = shape_elm.tag
     if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
-        return _SlidePlaceholder(shape_elm, parent)
+        return SlidePlaceholder(shape_elm, parent)
     return BaseShapeFactory(shape_elm, parent)
-
-
-class _SlidePlaceholder(BasePlaceholder):
-    """
-    Placeholder shape on a slide. Inherits shape properties from its
-    corresponding slide layout placeholder.
-    """
-    @property
-    def height(self):
-        """
-        The effective height of this placeholder shape; its directly-applied
-        height if it has one, otherwise the height of its parent layout
-        placeholder.
-        """
-        return self._effective_value('height')
-
-    @property
-    def left(self):
-        """
-        The effective left of this placeholder shape; its directly-applied
-        left if it has one, otherwise the left of its parent layout
-        placeholder.
-        """
-        return self._effective_value('left')
-
-    @property
-    def top(self):
-        """
-        The effective top of this placeholder shape; its directly-applied
-        top if it has one, otherwise the top of its parent layout
-        placeholder.
-        """
-        return self._effective_value('top')
-
-    @property
-    def width(self):
-        """
-        The effective width of this placeholder shape; its directly-applied
-        width if it has one, otherwise the width of its parent layout
-        placeholder.
-        """
-        return self._effective_value('width')
-
-    def _effective_value(self, attr_name):
-        """
-        The effective value of *attr_name* on this placeholder shape; its
-        directly-applied value if it has one, otherwise the value on the
-        layout placeholder it inherits from.
-        """
-        directly_applied_value = getattr(
-            super(_SlidePlaceholder, self), attr_name
-        )
-        if directly_applied_value is not None:
-            return directly_applied_value
-        return self._inherited_value(attr_name)
-
-    def _inherited_value(self, attr_name):
-        """
-        The attribute value, e.g. 'width' of the layout placeholder this
-        slide placeholder inherits from
-        """
-        layout_placeholder = self._layout_placeholder
-        if layout_placeholder is None:
-            return None
-        inherited_value = getattr(layout_placeholder, attr_name)
-        return inherited_value
-
-    @property
-    def _layout_placeholder(self):
-        """
-        The layout placeholder shape this slide placeholder inherits from
-        """
-        layout = self._slide_layout
-        layout_placeholder = layout.placeholders.get(idx=self.idx)
-        return layout_placeholder
-
-    @property
-    def _slide_layout(self):
-        """
-        The slide layout from which the slide this placeholder belongs to
-        inherits.
-        """
-        slide = self.part
-        return slide.slide_layout
 
 
 class _SlidePlaceholders(BasePlaceholders):

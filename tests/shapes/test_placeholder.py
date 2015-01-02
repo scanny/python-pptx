@@ -12,13 +12,17 @@ from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import (
     BaseShapeElement, ST_Direction, ST_PlaceholderSize
 )
-from pptx.shapes.placeholder import BasePlaceholder, BasePlaceholders
+from pptx.parts.slide import Slide, _SlideShapeTree
+from pptx.parts.slidelayout import _LayoutPlaceholder, SlideLayout
+from pptx.shapes.placeholder import (
+    BasePlaceholder, BasePlaceholders, SlidePlaceholder
+)
 
 from ..oxml.unitdata.shape import (
-    a_graphicFrame, a_ph, an_nvGraphicFramePr, an_nvPicPr, an_nvPr,
-    an_nvSpPr, an_sp
+    an_ext, a_graphicFrame, a_ph, an_nvGraphicFramePr, an_nvPicPr, an_nvPr,
+    an_nvSpPr, an_sp, an_spPr, an_xfrm
 )
-from ..unitutil.mock import instance_mock
+from ..unitutil.mock import instance_mock, method_mock, property_mock
 
 
 class DescribeBasePlaceholders(object):
@@ -164,3 +168,170 @@ class DescribeBasePlaceholder(object):
                     an_nvPr().with_child(
                         ph_bldr)))
         ).element
+
+
+class DescribeSlidePlaceholder(object):
+
+    def it_considers_inheritance_when_computing_pos_and_size(
+            self, xfrm_fixture):
+        slide_placeholder, _direct_or_inherited_value_ = xfrm_fixture[:2]
+        attr_name, expected_value = xfrm_fixture[2:]
+        value = getattr(slide_placeholder, attr_name)
+        _direct_or_inherited_value_.assert_called_once_with(attr_name)
+        assert value == expected_value
+
+    def it_provides_direct_property_values_when_they_exist(
+            self, direct_fixture):
+        slide_placeholder, expected_width = direct_fixture
+        width = slide_placeholder.width
+        assert width == expected_width
+
+    def it_provides_inherited_property_values_when_no_direct_value(
+            self, inherited_fixture):
+        slide_placeholder, _inherited_value_, inherited_left_ = (
+            inherited_fixture
+        )
+        left = slide_placeholder.left
+        _inherited_value_.assert_called_once_with('left')
+        assert left == inherited_left_
+
+    def it_knows_how_to_get_a_property_value_from_its_layout(
+            self, layout_val_fixture):
+        slide_placeholder, attr_name, expected_value = layout_val_fixture
+        value = slide_placeholder._inherited_value(attr_name)
+        assert value == expected_value
+
+    def it_finds_its_corresponding_layout_placeholder_to_help_inherit(
+            self, layout_ph_fixture):
+        slide_placeholder, layout_, idx, layout_placeholder_ = (
+            layout_ph_fixture
+        )
+        layout_placeholder = slide_placeholder._layout_placeholder
+        layout_.placeholders.get.assert_called_once_with(idx=idx)
+        assert layout_placeholder is layout_placeholder_
+
+    def it_finds_its_slide_layout_to_help_inherit(
+            self, slide_layout_fixture):
+        slide_placeholder, slide_layout_ = slide_layout_fixture
+        slide_layout = slide_placeholder._slide_layout
+        assert slide_layout == slide_layout_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def direct_fixture(self, sp, width):
+        slide_placeholder = SlidePlaceholder(sp, None)
+        return slide_placeholder, width
+
+    @pytest.fixture
+    def inherited_fixture(self, sp, _inherited_value_, int_value_):
+        slide_placeholder = SlidePlaceholder(sp, None)
+        return slide_placeholder, _inherited_value_, int_value_
+
+    @pytest.fixture
+    def layout_ph_fixture(
+            self, request, idx_, int_value_, _slide_layout_, slide_layout_,
+            layout_placeholder_):
+        slide_placeholder = SlidePlaceholder(None, None)
+        idx_.return_value = int_value_
+        slide_layout_.placeholders.get.return_value = layout_placeholder_
+        return (
+            slide_placeholder, slide_layout_, int_value_, layout_placeholder_
+        )
+
+    @pytest.fixture(params=[(True, 42), (False, None)])
+    def layout_val_fixture(
+            self, request, _layout_placeholder_, layout_placeholder_):
+        has_layout_placeholder, expected_value = request.param
+        slide_placeholder = SlidePlaceholder(None, None)
+        attr_name = 'width'
+        if has_layout_placeholder:
+            setattr(layout_placeholder_, attr_name, expected_value)
+            _layout_placeholder_.return_value = layout_placeholder_
+        else:
+            _layout_placeholder_.return_value = None
+        return slide_placeholder, attr_name, expected_value
+
+    @pytest.fixture
+    def slide_layout_fixture(self, parent_, slide_layout_):
+        slide_placeholder = SlidePlaceholder(None, parent_)
+        return slide_placeholder, slide_layout_
+
+    @pytest.fixture(params=['left', 'top', 'width', 'height'])
+    def xfrm_fixture(self, request, _effective_value_, int_value_):
+        attr_name = request.param
+        slide_placeholder = SlidePlaceholder(None, None)
+        _effective_value_.return_value = int_value_
+        return (
+            slide_placeholder, _effective_value_, attr_name,
+            int_value_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _effective_value_(self, request):
+        return method_mock(
+            request, SlidePlaceholder, '_effective_value'
+        )
+
+    @pytest.fixture
+    def idx_(self, request):
+        return property_mock(request, SlidePlaceholder, 'idx')
+
+    @pytest.fixture
+    def _inherited_value_(self, request, int_value_):
+        return method_mock(
+            request, SlidePlaceholder, '_inherited_value',
+            return_value=int_value_
+        )
+
+    @pytest.fixture
+    def int_value_(self, request):
+        return instance_mock(request, int)
+
+    @pytest.fixture
+    def _layout_placeholder_(self, request):
+        return property_mock(
+            request, SlidePlaceholder, '_layout_placeholder'
+        )
+
+    @pytest.fixture
+    def layout_placeholder_(self, request):
+        return instance_mock(request, _LayoutPlaceholder)
+
+    @pytest.fixture
+    def parent_(self, request, slide_):
+        parent_ = instance_mock(request, _SlideShapeTree)
+        parent_.part = slide_
+        return parent_
+
+    @pytest.fixture
+    def slide_(self, request, slide_layout_):
+        slide_ = instance_mock(request, Slide)
+        slide_.slide_layout = slide_layout_
+        return slide_
+
+    @pytest.fixture
+    def _slide_layout_(self, request, slide_layout_):
+        return property_mock(
+            request, SlidePlaceholder, '_slide_layout',
+            return_value=slide_layout_
+        )
+
+    @pytest.fixture
+    def slide_layout_(self, request):
+        return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def sp(self, width):
+        return (
+            an_sp().with_nsdecls('p', 'a').with_child(
+                an_spPr().with_child(
+                    an_xfrm().with_child(
+                        an_ext().with_cx(width))))
+        ).element
+
+    @pytest.fixture
+    def width(self):
+        return 31416

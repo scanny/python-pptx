@@ -9,11 +9,10 @@ from __future__ import absolute_import
 from behave import given, when, then
 
 from pptx import Presentation
-from pptx.parts.slide import (
-    _SlidePlaceholder, _SlidePlaceholders, _SlideShapeTree
-)
+from pptx.parts.slide import _SlidePlaceholders, _SlideShapeTree
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
+from pptx.shapes.placeholder import SlidePlaceholder
 from pptx.shapes.shape import BaseShape
 
 from helpers import saved_pptx_path, test_pptx
@@ -83,8 +82,8 @@ def then_each_slide_shape_is_of_the_appropriate_type(context):
         )
 
     shapes = context.shapes
-    assertShapeType(shapes[0], _SlidePlaceholder)
-    assertShapeType(shapes[1], _SlidePlaceholder)
+    assertShapeType(shapes[0], SlidePlaceholder)
+    assertShapeType(shapes[1], SlidePlaceholder)
     assertShapeType(shapes[2], Picture)
     assertShapeType(shapes[3], GraphicFrame)
     assertShapeType(shapes[4], GraphicFrame)
@@ -104,7 +103,7 @@ def then_can_access_slide_placeholder_by_index(context):
     slide_placeholders = context.slide_placeholders
     for idx in range(2):
         slide_placeholder = slide_placeholders[idx]
-        assert isinstance(slide_placeholder, _SlidePlaceholder)
+        assert isinstance(slide_placeholder, SlidePlaceholder)
 
 
 @then('I can access the placeholder collection of the slide')
@@ -147,7 +146,7 @@ def then_can_iterate_over_the_slide_placeholders(context):
     actual_count = 0
     for slide_placeholder in slide_placeholders:
         actual_count += 1
-        assert isinstance(slide_placeholder, _SlidePlaceholder)
+        assert isinstance(slide_placeholder, SlidePlaceholder)
     assert actual_count == 2
 
 
