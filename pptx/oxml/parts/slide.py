@@ -26,10 +26,10 @@ class CT_Slide(BaseOxmlElement):
     """
     ``<p:sld>`` element, root of a slide part
     """
+    _tag_seq = ('cSld', 'clrMapOvr', 'transition', 'timing', 'extLst')
     cSld = OneAndOnlyOne('p:cSld')
-    clrMapOvr = ZeroOrOne('p:clrMapOvr', successors=(
-        'p:transition', 'p:timing', 'p:extLst'
-    ))
+    clrMapOvr = ZeroOrOne('p:clrMapOvr', successors=_tag_seq[2:])
+    del _tag_seq
 
     @classmethod
     def new(cls):
