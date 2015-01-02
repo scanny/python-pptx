@@ -29,11 +29,11 @@ from pptx.parts.slide import (
     BaseSlide, Slide, SlideCollection, SlidePlaceholder, _SlidePlaceholders,
     _SlideShapeFactory, _SlideShapeTree
 )
-from pptx.parts.slidelayout import _LayoutPlaceholder, SlideLayout
+from pptx.parts.slidelayout import SlideLayout
 from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
-from pptx.shapes.placeholder import BasePlaceholder
+from pptx.shapes.placeholder import BasePlaceholder, LayoutPlaceholder
 from pptx.shapes.shape import BaseShape
 from pptx.shapes.table import Table
 
@@ -996,7 +996,7 @@ class Describe_SlideShapeTree(object):
     @pytest.fixture
     def layout_placeholder_(self, request, ph_type_, orient_, sz_, idx_):
         return instance_mock(
-            request, _LayoutPlaceholder, ph_type=ph_type_, orient=orient_,
+            request, LayoutPlaceholder, ph_type=ph_type_, orient=orient_,
             sz=sz_, idx=idx_
         )
 

@@ -9,10 +9,9 @@ from __future__ import absolute_import
 from behave import given, then
 
 from pptx import Presentation
-from pptx.parts.slidelayout import (
-    _LayoutPlaceholder, _LayoutPlaceholders, _LayoutShapeTree
-)
+from pptx.parts.slidelayout import _LayoutPlaceholders, _LayoutShapeTree
 from pptx.shapes.picture import Picture
+from pptx.shapes.placeholder import LayoutPlaceholder
 from pptx.shapes.shape import BaseShape
 
 from helpers import test_pptx
@@ -52,7 +51,7 @@ def given_layout_having_two_placeholders(context):
 @then('each shape is of the appropriate type')
 def then_each_shape_is_of_appropriate_type(context):
     layout_shapes = context.layout_shapes
-    expected_types = [_LayoutPlaceholder, _LayoutPlaceholder, Picture]
+    expected_types = [LayoutPlaceholder, LayoutPlaceholder, Picture]
     for idx, layout_shape in enumerate(layout_shapes):
         assert type(layout_shape) == expected_types[idx], (
             "got \'%s\'" % type(layout_shape).__name__
@@ -73,7 +72,7 @@ def then_can_access_layout_placeholder_by_index(context):
     layout_placeholders = context.layout_placeholders
     for idx in range(2):
         layout_placeholder = layout_placeholders[idx]
-        assert isinstance(layout_placeholder, _LayoutPlaceholder)
+        assert isinstance(layout_placeholder, LayoutPlaceholder)
 
 
 @then('I can access a layout shape by index')
@@ -106,7 +105,7 @@ def then_can_iterate_over_the_layout_placeholders(context):
     actual_count = 0
     for layout_placeholder in layout_placeholders:
         actual_count += 1
-        assert isinstance(layout_placeholder, _LayoutPlaceholder)
+        assert isinstance(layout_placeholder, LayoutPlaceholder)
     assert actual_count == 2
 
 

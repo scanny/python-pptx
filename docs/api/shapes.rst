@@ -91,15 +91,15 @@ The following properties and methods are defined for placeholder shapes.
    :members:
    :undoc-members:
 
-.. autoclass:: pptx.parts.slide._SlidePlaceholder()
+.. autoclass:: pptx.shapes.placeholder.SlidePlaceholder()
    :members:
    :undoc-members:
 
-.. autoclass:: pptx.parts.slidelayout._LayoutPlaceholder()
+.. autoclass:: pptx.shapes.placeholder.LayoutPlaceholder()
    :members:
    :undoc-members:
 
-.. autoclass:: pptx.parts.slidemaster._MasterPlaceholder()
+.. autoclass:: pptx.shapes.placeholder.MasterPlaceholder()
    :members:
    :exclude-members:
       adjustments, get_or_add_ln, ln, part, shape_type

@@ -136,6 +136,8 @@ rst_epilog = """
 
 .. |KeyError| replace:: :exc:`KeyError`
 
+.. |LayoutPlaceholder| replace:: :class:`_LayoutPlaceholder`
+
 .. |_LayoutPlaceholders| replace:: :class:`_LayoutPlaceholders`
 
 .. |_LayoutShapeTree| replace:: :class:`_LayoutShapeTree`
