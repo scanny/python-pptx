@@ -59,6 +59,12 @@ class BasePlaceholder(Shape):
         return self._sp.ph_sz
 
 
+class MasterPlaceholder(BasePlaceholder):
+    """
+    Placeholder shape on a slide master.
+    """
+
+
 class SlidePlaceholder(BasePlaceholder):
     """
     Placeholder shape on a slide. Inherits shape properties from its

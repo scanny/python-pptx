@@ -12,9 +12,10 @@ from pptx.oxml.parts.slidemaster import CT_SlideLayoutIdList
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import (
-    _MasterPlaceholder, _MasterPlaceholders, _MasterShapeFactory,
-    _MasterShapeTree, _SlideLayouts, SlideMaster
+    _MasterPlaceholders, _MasterShapeFactory, _MasterShapeTree,
+    _SlideLayouts, SlideMaster
 )
+from pptx.shapes.placeholder import MasterPlaceholder
 from pptx.shapes.shape import BaseShape
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
@@ -197,13 +198,13 @@ class Describe_MasterShapeFactory(object):
     @pytest.fixture
     def _MasterPlaceholder_(self, request, master_placeholder_):
         return class_mock(
-            request, 'pptx.parts.slidemaster._MasterPlaceholder',
+            request, 'pptx.parts.slidemaster.MasterPlaceholder',
             return_value=master_placeholder_
         )
 
     @pytest.fixture
     def master_placeholder_(self, request):
-        return instance_mock(request, _MasterPlaceholder)
+        return instance_mock(request, MasterPlaceholder)
 
     @pytest.fixture
     def ph_bldr(self):
@@ -244,7 +245,7 @@ class Describe_MasterShapeTree(object):
 
     @pytest.fixture
     def master_placeholder_(self, request):
-        return instance_mock(request, _MasterPlaceholder)
+        return instance_mock(request, MasterPlaceholder)
 
     @pytest.fixture
     def _MasterShapeFactory_(self, request, master_placeholder_):
@@ -328,8 +329,8 @@ class Describe_MasterPlaceholders(object):
 
     @pytest.fixture
     def placeholder_(self, request):
-        return instance_mock(request, _MasterPlaceholder, ph_type='title')
+        return instance_mock(request, MasterPlaceholder, ph_type='title')
 
     @pytest.fixture
     def placeholder_2_(self, request):
-        return instance_mock(request, _MasterPlaceholder, ph_type='body')
+        return instance_mock(request, MasterPlaceholder, ph_type='body')

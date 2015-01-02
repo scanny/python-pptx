@@ -12,8 +12,9 @@ from pptx import Presentation
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import (
-    _MasterPlaceholder, _MasterPlaceholders, _MasterShapeTree, _SlideLayouts
+    _MasterPlaceholders, _MasterShapeTree, _SlideLayouts
 )
+from pptx.shapes.placeholder import MasterPlaceholder
 from pptx.shapes.shape import BaseShape
 
 from helpers import test_pptx
@@ -64,7 +65,7 @@ def then_can_access_master_placeholder_by_index(context):
     master_placeholders = context.master_placeholders
     for idx in range(2):
         master_placeholder = master_placeholders[idx]
-        assert isinstance(master_placeholder, _MasterPlaceholder)
+        assert isinstance(master_placeholder, MasterPlaceholder)
 
 
 @then('I can access a master placeholder by type')
@@ -122,7 +123,7 @@ def then_can_iterate_over_the_master_placeholders(context):
     actual_count = 0
     for master_placeholder in master_placeholders:
         actual_count += 1
-        assert isinstance(master_placeholder, _MasterPlaceholder)
+        assert isinstance(master_placeholder, MasterPlaceholder)
     assert actual_count == 2
 
 
