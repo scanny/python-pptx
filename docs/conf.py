@@ -208,7 +208,7 @@ rst_epilog = """
 
 .. |Slide| replace:: :class:`Slide`
 
-.. |SlideCollection| replace:: :class:`.SlideCollection`
+.. |_Slides| replace:: :class:`._Slides`
 
 .. |SlideLayout| replace:: :class:`.SlideLayout`
 

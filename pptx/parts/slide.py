@@ -12,7 +12,6 @@ from .chart import ChartPart
 from ..enum.shapes import PP_PLACEHOLDER
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
-from ..opc.packuri import PackURI
 from ..oxml.ns import qn
 from ..oxml.simpletypes import ST_Direction
 from ..oxml.parts.slide import CT_Slide
@@ -115,73 +114,6 @@ class Slide(BaseSlide):
         )
         warn(msg, UserWarning, stacklevel=2)
         return self.slide_layout
-
-
-class SlideCollection(object):
-    """
-    Sequence of slides belonging to an instance of |Presentation|, having list
-    semantics for access to individual slides. Supports indexed access,
-    len(), and iteration.
-    """
-    def __init__(self, sldIdLst, prs):
-        super(SlideCollection, self).__init__()
-        self._sldIdLst = sldIdLst
-        self._prs = prs
-
-    def __getitem__(self, idx):
-        """
-        Provide indexed access, (e.g. 'slides[0]').
-        """
-        if idx >= len(self._sldIdLst):
-            raise IndexError('slide index out of range')
-        rId = self._sldIdLst[idx].rId
-        return self._prs.related_parts[rId]
-
-    def __iter__(self):
-        """
-        Support iteration (e.g. 'for slide in slides:').
-        """
-        for sldId in self._sldIdLst:
-            rId = sldId.rId
-            yield self._prs.related_parts[rId]
-
-    def __len__(self):
-        """
-        Support len() built-in function (e.g. 'len(slides) == 4').
-        """
-        return len(self._sldIdLst)
-
-    def add_slide(self, slidelayout):
-        """
-        Return a newly added slide that inherits layout from *slidelayout*.
-        """
-        partname = self._next_partname
-        package = self._prs.package
-        slide = Slide.new(slidelayout, partname, package)
-        rId = self._prs.relate_to(slide, RT.SLIDE)
-        self._sldIdLst.add_sldId(rId)
-        return slide
-
-    def rename_slides(self):
-        """
-        Assign partnames like ``/ppt/slides/slide9.xml`` to all slides in the
-        collection. The name portion is always ``slide``. The number part
-        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
-        extension is always ``.xml``.
-        """
-        for idx, slide in enumerate(self):
-            partname_str = '/ppt/slides/slide%d.xml' % (idx+1)
-            slide.partname = PackURI(partname_str)
-
-    @property
-    def _next_partname(self):
-        """
-        Return |PackURI| instance containing the partname for a slide to be
-        appended to this slide collection, e.g. ``/ppt/slides/slide9.xml``
-        for a slide collection containing 8 slides.
-        """
-        partname_str = '/ppt/slides/slide%d.xml' % (len(self)+1)
-        return PackURI(partname_str)
 
 
 class _SlideShapeTree(BaseShapeTree):

@@ -8,19 +8,23 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.package import _Relationship
 from pptx.opc.packuri import PackURI
 from pptx.oxml.parts.presentation import (
-    CT_Presentation, CT_SlideIdList, CT_SlideMasterIdList
+    CT_Presentation, CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList
 )
-from pptx.parts.presentation import PresentationPart, _SlideMasters
+from pptx.parts.presentation import PresentationPart, _SlideMasters, _Slides
+from pptx.parts.slide import Slide
+from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
-from pptx.parts.slide import SlideCollection
 
 from ..oxml.unitdata.presentation import (
     a_presentation, a_sldMasterId, a_sldMasterIdLst, a_sldSz
 )
 from ..unitutil.mock import (
-    class_mock, instance_mock, method_mock, property_mock
+    ANY, call, class_mock, instance_mock, MagicMock, method_mock,
+    property_mock
 )
 
 
@@ -54,11 +58,11 @@ class DescribePresentationPart(object):
         assert isinstance(sldMasterIdLst, CT_SlideMasterIdList)
 
     def it_creates_slide_collection_on_first_reference(
-            self, prs, SlideCollection_, sldIdLst_, slides_):
+            self, prs, _Slides_, sldIdLst_, slides_):
         slides = prs.slides
         # verify -----------------------
         prs._element.get_or_add_sldIdLst.assert_called_once_with()
-        SlideCollection_.assert_called_once_with(sldIdLst_, prs)
+        _Slides_.assert_called_once_with(sldIdLst_, prs)
         slides.rename_slides.assert_called_once_with()
         assert slides == slides_
 
@@ -157,16 +161,16 @@ class DescribePresentationPart(object):
         return instance_mock(request, CT_SlideIdList)
 
     @pytest.fixture
-    def SlideCollection_(self, request, slides_):
-        SlideCollection_ = class_mock(
-            request, 'pptx.parts.presentation.SlideCollection'
+    def _Slides_(self, request, slides_):
+        _Slides_ = class_mock(
+            request, 'pptx.parts.presentation._Slides'
         )
-        SlideCollection_.return_value = slides_
-        return SlideCollection_
+        _Slides_.return_value = slides_
+        return _Slides_
 
     @pytest.fixture
     def slides_(self, request):
-        return instance_mock(request, SlideCollection)
+        return instance_mock(request, _Slides)
 
 
 class DescribeSlideMasters(object):
@@ -265,3 +269,160 @@ class DescribeSlideMasters(object):
     @pytest.fixture
     def slide_master_2_(self, request):
         return instance_mock(request, SlideMaster)
+
+
+class DescribeSlides(object):
+
+    def it_supports_indexed_access(self, slides_with_slide_parts_, rIds_):
+        slides, slide_, slide_2_ = slides_with_slide_parts_
+        rId_, rId_2_ = rIds_
+        # verify -----------------------
+        assert slides[0] is slide_
+        assert slides[1] is slide_2_
+        slides._sldIdLst.__getitem__.assert_has_calls(
+            [call(0), call(1)]
+        )
+        slides._prs.related_parts.__getitem__.assert_has_calls(
+            [call(rId_), call(rId_2_)]
+        )
+
+    def it_raises_on_slide_index_out_of_range(self, slides):
+        with pytest.raises(IndexError):
+            slides[2]
+
+    def it_can_iterate_over_the_slides(self, slides, slide_, slide_2_):
+        assert [s for s in slides] == [slide_, slide_2_]
+
+    def it_supports_len(self, slides):
+        assert len(slides) == 2
+
+    def it_can_add_a_new_slide(self, slides, slidelayout_, Slide_, slide_):
+        slide = slides.add_slide(slidelayout_)
+        Slide_.new.assert_called_once_with(
+            slidelayout_, PackURI('/ppt/slides/slide3.xml'),
+            slides._prs.package
+        )
+        slides._prs.relate_to.assert_called_once_with(slide_, RT.SLIDE)
+        slides._sldIdLst.add_sldId.assert_called_once_with(ANY)
+        assert slide is slide_
+
+    def it_knows_the_next_available_slide_partname(
+            self, slides_with_slide_parts_):
+        slides = slides_with_slide_parts_[0]
+        expected_partname = PackURI('/ppt/slides/slide3.xml')
+        partname = slides._next_partname
+        assert isinstance(partname, PackURI)
+        assert partname == expected_partname
+
+    def it_can_assign_partnames_to_the_slides(
+            self, slides, slide_, slide_2_):
+        slides.rename_slides()
+        assert slide_.partname == '/ppt/slides/slide1.xml'
+        assert slide_2_.partname == '/ppt/slides/slide2.xml'
+
+    # fixtures -------------------------------------------------------
+    #
+    #   slides
+    #   |
+    #   +- ._sldIdLst = [sldId_, sldId_2_]
+    #   |                |       |
+    #   |                |       +- .rId = rId_2_
+    #   |                |
+    #   |                +- .rId = rId_
+    #   +- ._prs
+    #       |
+    #       +- .related_parts = {rId_: slide_, rId_2_: slide_2_}
+    #
+    # ----------------------------------------------------------------
+
+    @pytest.fixture
+    def prs_(self, request, rel_, related_parts_):
+        prs_ = instance_mock(request, PresentationPart)
+        prs_.load_rel.return_value = rel_
+        prs_.related_parts = related_parts_
+        return prs_
+
+    @pytest.fixture
+    def rel_(self, request, rId_):
+        return instance_mock(request, _Relationship, rId=rId_)
+
+    @pytest.fixture
+    def related_parts_(self, request, rIds_, slide_parts_):
+        """
+        Return pass-thru mock dict that both operates as a dict an records
+        calls to __getitem__ for call asserts.
+        """
+        rId_, rId_2_ = rIds_
+        slide_, slide_2_ = slide_parts_
+        slide_rId_map = {rId_: slide_, rId_2_: slide_2_}
+
+        def getitem(key):
+            return slide_rId_map[key]
+
+        related_parts_ = MagicMock()
+        related_parts_.__getitem__.side_effect = getitem
+        return related_parts_
+
+    @pytest.fixture
+    def rename_slides_(self, request):
+        return method_mock(request, _Slides, 'rename_slides')
+
+    @pytest.fixture
+    def rId_(self, request):
+        return 'rId1'
+
+    @pytest.fixture
+    def rId_2_(self, request):
+        return 'rId2'
+
+    @pytest.fixture
+    def rIds_(self, request, rId_, rId_2_):
+        return rId_, rId_2_
+
+    @pytest.fixture
+    def Slide_(self, request, slide_):
+        Slide_ = class_mock(request, 'pptx.parts.presentation.Slide')
+        Slide_.new.return_value = slide_
+        return Slide_
+
+    @pytest.fixture
+    def sldId_(self, request, rId_):
+        return instance_mock(request, CT_SlideId, rId=rId_)
+
+    @pytest.fixture
+    def sldId_2_(self, request, rId_2_):
+        return instance_mock(request, CT_SlideId, rId=rId_2_)
+
+    @pytest.fixture
+    def sldIdLst_(self, request, sldId_, sldId_2_):
+        sldIdLst_ = instance_mock(request, CT_SlideIdList)
+        sldIdLst_.__getitem__.side_effect = [sldId_, sldId_2_]
+        sldIdLst_.__iter__.return_value = iter([sldId_, sldId_2_])
+        sldIdLst_.__len__.return_value = 2
+        return sldIdLst_
+
+    @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, Slide)
+
+    @pytest.fixture
+    def slide_2_(self, request):
+        return instance_mock(request, Slide)
+
+    @pytest.fixture
+    def slide_parts_(self, request, slide_, slide_2_):
+        return slide_, slide_2_
+
+    @pytest.fixture
+    def slidelayout_(self, request):
+        return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def slides(self, sldIdLst_, prs_):
+        return _Slides(sldIdLst_, prs_)
+
+    @pytest.fixture
+    def slides_with_slide_parts_(self, sldIdLst_, prs_, slide_parts_):
+        slide_, slide_2_ = slide_parts_
+        slides = _Slides(sldIdLst_, prs_)
+        return slides, slide_, slide_2_

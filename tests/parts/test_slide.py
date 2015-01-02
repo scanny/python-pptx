@@ -13,8 +13,7 @@ from pptx.enum.base import EnumValue
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
-from pptx.opc.package import Part, _Relationship
-from pptx.oxml.parts.presentation import CT_SlideId, CT_SlideIdList
+from pptx.opc.package import Part
 from pptx.oxml.parts.slide import CT_Slide
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
@@ -24,9 +23,8 @@ from pptx.oxml.shapes.shared import ST_Direction
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
 from pptx.parts.image import ImagePart
-from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import (
-    BaseSlide, Slide, SlideCollection, SlidePlaceholder, _SlidePlaceholders,
+    BaseSlide, Slide, SlidePlaceholder, _SlidePlaceholders,
     _SlideShapeFactory, _SlideShapeTree
 )
 from pptx.parts.slidelayout import SlideLayout
@@ -44,8 +42,8 @@ from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, test_file_dir
 
 from ..unitutil.mock import (
-    ANY, call, class_mock, function_mock, initializer_mock, instance_mock,
-    MagicMock, method_mock, property_mock
+    class_mock, function_mock, initializer_mock, instance_mock, method_mock,
+    property_mock
 )
 
 
@@ -306,163 +304,6 @@ class DescribeSlide(object):
     @pytest.fixture
     def slide_shape_tree_(self, request):
         return instance_mock(request, _SlideShapeTree)
-
-
-class DescribeSlideCollection(object):
-
-    def it_supports_indexed_access(self, slides_with_slide_parts_, rIds_):
-        slides, slide_, slide_2_ = slides_with_slide_parts_
-        rId_, rId_2_ = rIds_
-        # verify -----------------------
-        assert slides[0] is slide_
-        assert slides[1] is slide_2_
-        slides._sldIdLst.__getitem__.assert_has_calls(
-            [call(0), call(1)]
-        )
-        slides._prs.related_parts.__getitem__.assert_has_calls(
-            [call(rId_), call(rId_2_)]
-        )
-
-    def it_raises_on_slide_index_out_of_range(self, slides):
-        with pytest.raises(IndexError):
-            slides[2]
-
-    def it_can_iterate_over_the_slides(self, slides, slide_, slide_2_):
-        assert [s for s in slides] == [slide_, slide_2_]
-
-    def it_supports_len(self, slides):
-        assert len(slides) == 2
-
-    def it_can_add_a_new_slide(self, slides, slidelayout_, Slide_, slide_):
-        slide = slides.add_slide(slidelayout_)
-        Slide_.new.assert_called_once_with(
-            slidelayout_, PackURI('/ppt/slides/slide3.xml'),
-            slides._prs.package
-        )
-        slides._prs.relate_to.assert_called_once_with(slide_, RT.SLIDE)
-        slides._sldIdLst.add_sldId.assert_called_once_with(ANY)
-        assert slide is slide_
-
-    def it_knows_the_next_available_slide_partname(
-            self, slides_with_slide_parts_):
-        slides = slides_with_slide_parts_[0]
-        expected_partname = PackURI('/ppt/slides/slide3.xml')
-        partname = slides._next_partname
-        assert isinstance(partname, PackURI)
-        assert partname == expected_partname
-
-    def it_can_assign_partnames_to_the_slides(
-            self, slides, slide_, slide_2_):
-        slides.rename_slides()
-        assert slide_.partname == '/ppt/slides/slide1.xml'
-        assert slide_2_.partname == '/ppt/slides/slide2.xml'
-
-    # fixtures -------------------------------------------------------
-    #
-    #   slides
-    #   |
-    #   +- ._sldIdLst = [sldId_, sldId_2_]
-    #   |                |       |
-    #   |                |       +- .rId = rId_2_
-    #   |                |
-    #   |                +- .rId = rId_
-    #   +- ._prs
-    #       |
-    #       +- .related_parts = {rId_: slide_, rId_2_: slide_2_}
-    #
-    # ----------------------------------------------------------------
-
-    @pytest.fixture
-    def prs_(self, request, rel_, related_parts_):
-        prs_ = instance_mock(request, PresentationPart)
-        prs_.load_rel.return_value = rel_
-        prs_.related_parts = related_parts_
-        return prs_
-
-    @pytest.fixture
-    def rel_(self, request, rId_):
-        return instance_mock(request, _Relationship, rId=rId_)
-
-    @pytest.fixture
-    def related_parts_(self, request, rIds_, slide_parts_):
-        """
-        Return pass-thru mock dict that both operates as a dict an records
-        calls to __getitem__ for call asserts.
-        """
-        rId_, rId_2_ = rIds_
-        slide_, slide_2_ = slide_parts_
-        slide_rId_map = {rId_: slide_, rId_2_: slide_2_}
-
-        def getitem(key):
-            return slide_rId_map[key]
-
-        related_parts_ = MagicMock()
-        related_parts_.__getitem__.side_effect = getitem
-        return related_parts_
-
-    @pytest.fixture
-    def rename_slides_(self, request):
-        return method_mock(request, SlideCollection, 'rename_slides')
-
-    @pytest.fixture
-    def rId_(self, request):
-        return 'rId1'
-
-    @pytest.fixture
-    def rId_2_(self, request):
-        return 'rId2'
-
-    @pytest.fixture
-    def rIds_(self, request, rId_, rId_2_):
-        return rId_, rId_2_
-
-    @pytest.fixture
-    def Slide_(self, request, slide_):
-        Slide_ = class_mock(request, 'pptx.parts.slide.Slide')
-        Slide_.new.return_value = slide_
-        return Slide_
-
-    @pytest.fixture
-    def sldId_(self, request, rId_):
-        return instance_mock(request, CT_SlideId, rId=rId_)
-
-    @pytest.fixture
-    def sldId_2_(self, request, rId_2_):
-        return instance_mock(request, CT_SlideId, rId=rId_2_)
-
-    @pytest.fixture
-    def sldIdLst_(self, request, sldId_, sldId_2_):
-        sldIdLst_ = instance_mock(request, CT_SlideIdList)
-        sldIdLst_.__getitem__.side_effect = [sldId_, sldId_2_]
-        sldIdLst_.__iter__.return_value = iter([sldId_, sldId_2_])
-        sldIdLst_.__len__.return_value = 2
-        return sldIdLst_
-
-    @pytest.fixture
-    def slide_(self, request):
-        return instance_mock(request, Slide)
-
-    @pytest.fixture
-    def slide_2_(self, request):
-        return instance_mock(request, Slide)
-
-    @pytest.fixture
-    def slide_parts_(self, request, slide_, slide_2_):
-        return slide_, slide_2_
-
-    @pytest.fixture
-    def slidelayout_(self, request):
-        return instance_mock(request, SlideLayout)
-
-    @pytest.fixture
-    def slides(self, sldIdLst_, prs_):
-        return SlideCollection(sldIdLst_, prs_)
-
-    @pytest.fixture
-    def slides_with_slide_parts_(self, sldIdLst_, prs_, slide_parts_):
-        slide_, slide_2_ = slide_parts_
-        slides = SlideCollection(sldIdLst_, prs_)
-        return slides, slide_, slide_2_
 
 
 class Describe_SlideShapeTree(object):
