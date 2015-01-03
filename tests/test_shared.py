@@ -10,9 +10,11 @@ from __future__ import (
 
 import pytest
 
+from pptx.opc.package import XmlPart
 from pptx.shared import ElementProxy, ParentedElementProxy
 
 from .unitutil.cxml import element
+from .unitutil.mock import instance_mock
 
 
 class DescribeElementProxy(object):
@@ -61,6 +63,10 @@ class DescribeParentedElementProxy(object):
         proxy, parent = parent_fixture
         assert proxy.parent is parent
 
+    def it_knows_its_part(self, part_fixture):
+        proxy, part_ = part_fixture
+        assert proxy.part is part_
+
     # fixture --------------------------------------------------------
 
     @pytest.fixture
@@ -68,3 +74,19 @@ class DescribeParentedElementProxy(object):
         parent = 42
         proxy = ParentedElementProxy(element('w:p'), parent)
         return proxy, parent
+
+    @pytest.fixture
+    def part_fixture(self, other_proxy_, part_):
+        other_proxy_.part = part_
+        proxy = ParentedElementProxy(None, other_proxy_)
+        return proxy, part_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def other_proxy_(self, request):
+        return instance_mock(request, ParentedElementProxy)
+
+    @pytest.fixture
+    def part_(self, request):
+        return instance_mock(request, XmlPart)

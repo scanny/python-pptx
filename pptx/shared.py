@@ -68,3 +68,10 @@ class ParentedElementProxy(ElementProxy):
         a shape is generally the |SlideShapeTree| object that contains it.
         """
         return self._parent
+
+    @property
+    def part(self):
+        """
+        The package part containing this object
+        """
+        return self._parent.part
