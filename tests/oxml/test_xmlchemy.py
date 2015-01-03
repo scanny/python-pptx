@@ -22,35 +22,6 @@ from pptx.oxml.xmlchemy import (
 from ..unitdata import BaseBuilder
 
 
-# class DescribeBaseOxmlElement(object):
-
-#     def it_knows_which_tagnames_follow_a_given_child_tagname(
-#             self, child_tagnames_fixture):
-#         ElementClass, tagname, tagnames_after = child_tagnames_fixture
-#         assert ElementClass.child_tagnames_after(tagname) == tagnames_after
-
-#     # fixtures -------------------------------------------------------
-
-#     @pytest.fixture(params=[
-#         (('foo', 'bar', 'baz'), 'foo', ('bar', 'baz')),
-#         ((('foo', 'bar'), 'baz'), 'foo', ('baz',)),
-#         (('foo', ('bar', 'baz')), 'bar', ()),
-#         (('1', '2', ('3', ('4', '5'), ('6', '7'))), '2',
-#          ('3', '4', '5', '6', '7')),
-#         (('1', '2', ('3', ('4', '5'), ('6', '7'))), '3', ()),
-#     ])
-#     def child_tagnames_fixture(self, request):
-#         nested_sequence, tagname, tagnames_after = request.param
-#         from pptx.oxml.shared import BaseOxmlElement, ChildTagnames
-
-#         class ElementClass(BaseOxmlElement):
-#             child_tagnames = ChildTagnames.from_nested_sequence(
-#                 *nested_sequence
-#             )
-
-#         return ElementClass, tagname, tagnames_after
-
-
 class DescribeCustomElementClass(object):
 
     def it_has_the_MetaOxmlElement_metaclass(self):

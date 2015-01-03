@@ -711,6 +711,12 @@ class _OxmlElementBase(etree.ElementBase):
         """
         return cls.child_tagnames.tagnames_after(tagname)
 
+    def delete(self):
+        """
+        Remove this element from the XML tree.
+        """
+        self.getparent().remove(self)
+
     def first_child_found_in(self, *tagnames):
         """
         Return the first child found with tag in *tagnames*, or None if
