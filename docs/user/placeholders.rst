@@ -2,15 +2,82 @@
 Working with placeholders
 =========================
 
-Placeholders make adding content a lot easier. If you've ever added a new
-textbox to a slide from scratch and noticed how many adjustments it took to get
-it the way you wanted you understand why. The placeholder is in the right
+Placeholders can make adding content a lot easier. If you've ever added a new
+textbox to a slide from scratch and noticed how many adjustments it took to
+get it the way you wanted you understand why. The placeholder is in the right
 position with the right font size, paragraph alignment, bullet style, etc.,
-etc. Basically you can just click and blow in some text and you've got a slide.
+etc. Basically you can just click and type in some text and you've got
+a slide.
 
-The same is true of using a placeholder shape in |pp|. Once you have
-a reference to the placeholder shape, pretty much the only thing to do is set
-its ``.text`` attribute.
+
+Access a placeholder
+--------------------
+
+Every placeholder is also a shape, and so can be accessed using the
+:attr:`~.Slide.shapes` property of a slide. However, when looking for
+a particular placeholder, the :attr:`~.Slide.placeholders` property can make
+things easier.
+
+The most reliable way to access a known placeholder is by its
+:attr:`~.PlaceholderFormat.idx` value. The :attr:`idx` value of a placeholder
+is the integer key of the slide layout placeholder it inherits properties
+from. As such, it remains stable throughout the life of the slide and will be
+the same for any slide created using that layout.
+
+It's usually easy enough to take a look at the placeholders on a slide and
+pick out the one you want::
+
+    >>> prs = Presentation()
+    >>> slide = prs.slides.add_slide(prs.slide_layouts[8])
+    >>> for shape in slide.placeholders:
+    ...     print('%d %s' % (shape.placeholder_format.idx, shape.name))
+    ...
+    0  Title 1
+    1  Picture Placeholder 2
+    2  Text Placeholder 3
+
+... then, having the known index in hand, to access it directly::
+
+    >>> slide.placeholders[1]
+    <pptx.parts.slide.PicturePlaceholder object at 0x10d094590>
+    >>> slide.placeholders[2].name
+    'Text Placeholder 3'
+
+.. note:: Item access on the placeholders collection is like that of
+   a dictionary rather than a list. While the key used above is an integer,
+   the lookup is on `idx` values, not position in a sequence. If the provided
+   value does not match the `idx` value of one of the placeholders,
+   |KeyError| will be raised. `idx` values are not necessarily contiguous.
+
+
+Identify and Characterize a placeholder
+---------------------------------------
+
+A placeholder behaves differently that other shapes in some ways. In
+particular, the value of its :attr:`~.BaseShape.shape_type` attribute is
+unconditionally ``MSO_SHAPE_TYPE.PLACEHOLDER`` regardless of what type of
+placeholder it is or what type of content it contains::
+
+    >>> prs = Presentation()
+    >>> slide = prs.slides.add_slide(prs.slide_layouts[8])
+    >>> for shape in slide.shapes:
+    ...     print('%s' % shape.shape_type)
+    ...
+    PLACEHOLDER (14)
+    PLACEHOLDER (14)
+    PLACEHOLDER (14)
+
+To find out more, it's necessary to inspect the contents of the placeholder's
+:attr:`~.BaseShape.placeholder_format` attribute. All shapes have this
+attribute, but accessing it on a non-placeholder shape raises |ValueError|::
+
+    >>> for shape in slide.placeholders:
+    ...     phf = shape.placeholder_format
+    ...     print('%d, %s' % (phf.idx, phf.type))
+    ...
+    0, TITLE (1)
+    1, PICTURE (18)
+    2, BODY (2)
 
 
 Setting the slide title

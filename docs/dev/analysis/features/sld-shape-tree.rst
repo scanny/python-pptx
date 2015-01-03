@@ -15,16 +15,17 @@ Schema excerpt
 
   <xsd:element name="sld" type="CT_Slide"/>
 
-  <xsd:complexType name="CT_Slide">
+  <xsd:complexType name="CT_Slide">  <!-- denormalized -->
     <xsd:sequence minOccurs="1" maxOccurs="1">
-      <xsd:element name="cSld"         type="CT_CommonSlideData"/>
-      <xsd:group   ref="EG_ChildSlide"                               minOccurs="0"/>
-      <xsd:element name="transition"   type="CT_SlideTransition"     minOccurs="0"/>
-      <xsd:element name="timing"       type="CT_SlideTiming"         minOccurs="0"/>
-      <xsd:element name="extLst"       type="CT_ExtensionListModify" minOccurs="0"/>
+      <xsd:element name="cSld"       type="CT_CommonSlideData"/>
+      <xsd:element name="clrMapOvr"  type="a:CT_ColorMappingOverride" minOccurs="0"/>
+      <xsd:element name="transition" type="CT_SlideTransition"        minOccurs="0"/>
+      <xsd:element name="timing"     type="CT_SlideTiming"            minOccurs="0"/>
+      <xsd:element name="extLst"     type="CT_ExtensionListModify"    minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attributeGroup ref="AG_ChildSlide"/>
-    <xsd:attribute name="show" type="xsd:boolean" use="optional" default="true"/>
+    <xsd:attribute name="showMasterSp"     type="xsd:boolean" default="true"/>
+    <xsd:attribute name="showMasterPhAnim" type="xsd:boolean" default="true"/>
+    <xsd:attribute name="show"             type="xsd:boolean" default="true"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_CommonSlideData">
