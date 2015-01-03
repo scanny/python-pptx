@@ -15,8 +15,8 @@ from pptx.parts.slidemaster import (
     _MasterPlaceholders, _MasterShapeFactory, _MasterShapeTree,
     _SlideLayouts, SlideMaster
 )
+from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import MasterPlaceholder
-from pptx.shapes.shape import BaseShape
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..oxml.unitdata.slides import (

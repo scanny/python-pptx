@@ -7,8 +7,8 @@ container for table, chart, smart art, and media objects.
 
 from __future__ import absolute_import
 
+from .base import BaseShape
 from ..enum.shapes import MSO_SHAPE_TYPE
-from .shape import BaseShape
 from .table import Table
 
 

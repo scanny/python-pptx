@@ -20,12 +20,12 @@ from pptx.parts.image import ImagePart
 from pptx.parts.slide import Slide
 from pptx.parts.slidelayout import SlideLayout
 from pptx.shapes.autoshape import AutoShapeType, Shape
+from pptx.shapes.base import BaseShape
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import (
     BasePlaceholder, LayoutPlaceholder, SlidePlaceholder
 )
-from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import (
     BasePlaceholders, BaseShapeTree, SlideShapeTree
 )

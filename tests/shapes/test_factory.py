@@ -10,10 +10,10 @@ import pytest
 
 from pptx.parts.slide import Slide
 from pptx.shapes.autoshape import Shape
+from pptx.shapes.base import BaseShape
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import SlidePlaceholder
-from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import (
     BaseShapeTree, BaseShapeFactory, SlideShapeFactory
 )

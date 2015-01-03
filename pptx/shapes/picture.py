@@ -4,9 +4,9 @@
 Picture shape.
 """
 
+from .base import BaseShape
 from ..dml.line import LineFormat
 from ..enum.shapes import MSO_SHAPE_TYPE
-from .shape import BaseShape
 from ..util import lazyproperty
 
 

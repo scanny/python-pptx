@@ -10,9 +10,9 @@ from behave import given, then
 
 from pptx import Presentation
 from pptx.parts.slidelayout import _LayoutPlaceholders, _LayoutShapeTree
+from pptx.shapes.base import BaseShape
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import LayoutPlaceholder
-from pptx.shapes.shape import BaseShape
 
 from helpers import test_pptx
 

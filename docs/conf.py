@@ -174,6 +174,8 @@ rst_epilog = """
 
 .. |Picture| replace:: :class:`.Picture`
 
+.. |_PlaceholderFormat| replace:: :class:`._PlaceholderFormat`
+
 .. |Plot| replace:: :class:`.Plot`
 
 .. |Plots| replace:: :class:`.Plots`

@@ -12,9 +12,9 @@ from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
 from pptx.shapes import Subshape
 from pptx.shapes.autoshape import Shape
+from pptx.shapes.base import BaseShape
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
-from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import BaseShapeFactory, SlideShapeTree
 
 from ..oxml.unitdata.shape import (

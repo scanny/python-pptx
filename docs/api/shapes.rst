@@ -23,7 +23,7 @@ Shape objects in general
 
 The following properties and methods are common to all shapes.
 
-.. autoclass:: pptx.shapes.shape.BaseShape()
+.. autoclass:: pptx.shapes.base.BaseShape()
    :members:
    :exclude-members: part
    :member-order: bysource

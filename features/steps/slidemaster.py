@@ -14,8 +14,8 @@ from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import (
     _MasterPlaceholders, _MasterShapeTree, _SlideLayouts
 )
+from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import MasterPlaceholder
-from pptx.shapes.shape import BaseShape
 
 from helpers import test_pptx
 

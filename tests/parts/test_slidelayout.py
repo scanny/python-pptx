@@ -15,8 +15,8 @@ from pptx.parts.slidelayout import (
     _LayoutPlaceholders, _LayoutShapeFactory, _LayoutShapeTree, SlideLayout
 )
 from pptx.parts.slidemaster import SlideMaster
+from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import LayoutPlaceholder
-from pptx.shapes.shape import BaseShape
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..unitutil.mock import (

@@ -10,10 +10,10 @@ from behave import given, when, then
 
 from pptx import Presentation
 from pptx.parts.slide import _SlidePlaceholders
+from pptx.shapes.base import BaseShape
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import SlidePlaceholder
-from pptx.shapes.shape import BaseShape
 from pptx.shapes.shapetree import SlideShapeTree
 
 from helpers import saved_pptx_path, test_pptx

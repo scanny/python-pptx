@@ -9,11 +9,11 @@ from __future__ import (
 )
 
 from .autoshape import Shape
+from .base import BaseShape
 from .graphfrm import GraphicFrame
 from ..oxml.ns import qn
 from .picture import Picture
 from .placeholder import SlidePlaceholder
-from .shape import BaseShape
 
 
 def BaseShapeFactory(shape_elm, parent):
