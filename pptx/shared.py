@@ -21,3 +21,20 @@ class ElementProxy(object):
 
     def __init__(self, element):
         self._element = element
+
+    def __eq__(self, other):
+        """
+        Return |True| if this proxy object refers to the same oxml element as
+        does *other*. ElementProxy objects are value objects and should
+        maintain no mutable local state. Equality for proxy objects is
+        defined as referring to the same XML element, whether or not they are
+        the same proxy object instance.
+        """
+        if not isinstance(other, ElementProxy):
+            return False
+        return self._element is other._element
+
+    def __ne__(self, other):
+        if not isinstance(other, ElementProxy):
+            return True
+        return self._element is not other._element
