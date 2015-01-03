@@ -699,7 +699,7 @@ class DescribeSlideShapeTree(object):
     @pytest.fixture
     def image_part_(self, request, desc_, scaled_cx_, scaled_cy_):
         image_part_ = instance_mock(request, ImagePart)
-        image_part_._desc = desc_
+        image_part_.desc = desc_
         image_part_.scale.return_value = scaled_cx_, scaled_cy_
         return image_part_
 

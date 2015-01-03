@@ -41,6 +41,20 @@ class ImagePart(Part):
         )
 
     @property
+    def desc(self):
+        """
+        The filename associated with this image, either the filename of
+        the original image or a generic name of the form ``image.ext``
+        where ``ext`` is appropriate to the image file format, e.g.
+        ``'jpg'``. An image created using a path will have that filename; one
+        created with a file-like object will have a generic name.
+        """
+        # return generic filename if original filename is unknown
+        if self._filename is None:
+            return 'image.%s' % self.ext
+        return self._filename
+
+    @property
     def ext(self):
         """
         Return file extension for this image e.g. ``'png'``.
@@ -82,19 +96,6 @@ class ImagePart(Part):
         ``'1be010ea47803b00e140b852765cdf84f491da47'``.
         """
         return hashlib.sha1(self._blob).hexdigest()
-
-    @property
-    def _desc(self):
-        """
-        Return filename associated with this image, either the filename of
-        the original image file the image was created with or a synthetic
-        name of the form ``image.ext`` where ``ext`` is appropriate to the
-        image file format, e.g. ``'jpg'``.
-        """
-        # return generic filename if original filename is unknown
-        if self._filename is None:
-            return 'image.%s' % self.ext
-        return self._filename
 
     @property
     def _dpi(self):
