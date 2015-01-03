@@ -10,7 +10,7 @@ from __future__ import (
 
 import pytest
 
-from pptx.shared import ElementProxy
+from pptx.shared import ElementProxy, ParentedElementProxy
 
 from .unitutil.cxml import element
 
@@ -53,3 +53,18 @@ class DescribeElementProxy(object):
         proxy_3 = ElementProxy(q)
         not_a_proxy = 'Foobar'
         return proxy, proxy_2, proxy_3, not_a_proxy
+
+
+class DescribeParentedElementProxy(object):
+
+    def it_knows_its_parent(self, parent_fixture):
+        proxy, parent = parent_fixture
+        assert proxy.parent is parent
+
+    # fixture --------------------------------------------------------
+
+    @pytest.fixture
+    def parent_fixture(self):
+        parent = 42
+        proxy = ParentedElementProxy(element('w:p'), parent)
+        return proxy, parent

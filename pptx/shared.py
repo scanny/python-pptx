@@ -45,3 +45,26 @@ class ElementProxy(object):
         The lxml element proxied by this object.
         """
         return self._element
+
+
+class ParentedElementProxy(ElementProxy):
+    """
+    Provides common services for document elements that occur below a part
+    but may occasionally require an ancestor object to provide a service,
+    such as add or drop a relationship. Provides the :attr:`_parent`
+    attribute to subclasses and the public :attr:`parent` read-only property.
+    """
+
+    __slots__ = ('_parent',)
+
+    def __init__(self, element, parent):
+        super(ParentedElementProxy, self).__init__(element)
+        self._parent = parent
+
+    @property
+    def parent(self):
+        """
+        The ancestor proxy object to this one. For example, the parent of
+        a shape is generally the |SlideShapeTree| object that contains it.
+        """
+        return self._parent
