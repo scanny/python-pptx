@@ -38,3 +38,10 @@ class ElementProxy(object):
         if not isinstance(other, ElementProxy):
             return True
         return self._element is not other._element
+
+    @property
+    def element(self):
+        """
+        The lxml element proxied by this object.
+        """
+        return self._element
