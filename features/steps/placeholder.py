@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from behave import given, when, then
 
 from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 
 from helpers import saved_pptx_path, test_pptx, test_text
 
@@ -73,6 +74,16 @@ def given_a_slide_with_a_type_ph_with_content(context, type_, content):
     context.shape = prs.slides[slide_idx].shapes[0]
 
 
+@given('an unpopulated {placeholder_type} placeholder shape')
+def given_an_unpopulated_placeholder_shape(context, placeholder_type):
+    slide_idx = [
+        'title', 'content', 'text', 'chart', 'table', 'smart art', 'media',
+        'clip art', 'picture',
+    ].index(placeholder_type)
+    prs = Presentation(test_pptx('ph-unpopulated-placeholders'))
+    context.shape = prs.slides[slide_idx].shapes[0]
+
+
 # when ====================================================
 
 @when('I indent the first paragraph')
@@ -117,6 +128,12 @@ def then_I_get_inherited_settings_when_I_query_position_and_size(context):
     assert placeholder.top == 274638, 'got %s' % placeholder.top
     assert placeholder.width == 8229600, 'got %s' % placeholder.width
     assert placeholder.height == 1143000, 'got %s' % placeholder.height
+
+
+@then('shape.shape_type is MSO_SHAPE_TYPE.PLACEHOLDER')
+def then_shape_shape_type_is_PLACEHOLDER(context):
+    shape = context.shape
+    assert shape.shape_type == MSO_SHAPE_TYPE.PLACEHOLDER
 
 
 @then('slide.shapes[0] is a {cls} proxy object for that placeholder')
