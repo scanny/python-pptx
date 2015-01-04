@@ -10,7 +10,7 @@ from __future__ import (
 
 from .autoshape import Shape
 from .base import BaseShape
-from ..enum.shapes import PP_PLACEHOLDER
+from ..enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from .picture import Picture
 
 
@@ -19,6 +19,14 @@ class _BaseSlidePlaceholder(BaseShape):
     Base class for placeholders on slides. Provides common behaviors such as
     inherited dimensions.
     """
+    @property
+    def shape_type(self):
+        """
+        Member of :ref:`MsoShapeType` specifying the type of this shape.
+        Unconditionally ``MSO_SHAPE_TYPE.PLACEHOLDER`` in this case.
+        Read-only.
+        """
+        return MSO_SHAPE_TYPE.PLACEHOLDER
 
 
 class BasePlaceholder(Shape):

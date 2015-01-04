@@ -8,13 +8,14 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
-from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 from pptx.parts.slide import Slide
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
 from pptx.shapes.placeholder import (
-    BasePlaceholder, LayoutPlaceholder, MasterPlaceholder, SlidePlaceholder
+    BasePlaceholder, _BaseSlidePlaceholder, LayoutPlaceholder,
+    MasterPlaceholder, SlidePlaceholder
 )
 from pptx.shapes.shapetree import BaseShapeTree, SlideShapeTree
 
@@ -23,6 +24,13 @@ from ..oxml.unitdata.shape import (
     an_nvSpPr, an_sp, an_spPr, an_xfrm
 )
 from ..unitutil.mock import instance_mock, method_mock, property_mock
+
+
+class Describe_BaseSlidePlaceholder(object):
+
+    def it_knows_its_shape_type(self):
+        placeholder = _BaseSlidePlaceholder(None, None)
+        assert placeholder.shape_type == MSO_SHAPE_TYPE.PLACEHOLDER
 
 
 class DescribeBasePlaceholder(object):
