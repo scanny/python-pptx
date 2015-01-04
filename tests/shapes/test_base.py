@@ -436,3 +436,21 @@ class DescribeSubshape(object):
         parent_ = loose_mock(request, name='parent_')
         subshape = Subshape(parent_)
         return subshape, parent_
+
+
+class Describe_PlaceholderFormat(object):
+
+    def it_knows_its_idx(self, idx_get_fixture):
+        placeholder_format, expected_value = idx_get_fixture
+        assert placeholder_format.idx == expected_value
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        ('p:ph',          0),
+        ('p:ph{idx=42}', 42),
+    ])
+    def idx_get_fixture(self, request):
+        ph_cxml, expected_value = request.param
+        placeholder_format = _PlaceholderFormat(element(ph_cxml))
+        return placeholder_format, expected_value

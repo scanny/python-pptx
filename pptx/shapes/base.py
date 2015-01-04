@@ -198,3 +198,10 @@ class _PlaceholderFormat(ElementProxy):
     type.
     """
     # proxied element is a `p:ph`.
+
+    @property
+    def idx(self):
+        """
+        Integer placeholder 'idx' attribute.
+        """
+        return self._element.idx

@@ -4,7 +4,6 @@ Feature: Get placeholder format properties
   I need a set of placeholder format properties
 
 
-  @wip
   Scenario Outline: Get placeholder idx
      Given a known <type> placeholder shape
       Then placeholder_format.idx is <value>
