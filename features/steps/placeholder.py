@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from behave import given, when, then
 
 from pptx import Presentation
-from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.shapes.base import _PlaceholderFormat
 
 from helpers import saved_pptx_path, test_pptx, test_text
@@ -23,6 +23,13 @@ def given_a_bullet_body_placeholder(context):
     slide_layout = context.prs.slide_layouts[1]
     context.sld = context.prs.slides.add_slide(slide_layout)
     context.body = context.sld.shapes.placeholders[1]
+
+
+@given('a known {placeholder_type} placeholder shape')
+def given_a_known_placeholder_shape(context, placeholder_type):
+    context.execute_steps(
+        'given an unpopulated %s placeholder shape' % placeholder_type
+    )
 
 
 @given('a layout placeholder having directly set position and size')
@@ -129,6 +136,20 @@ def then_I_get_inherited_settings_when_I_query_position_and_size(context):
     assert placeholder.top == 274638, 'got %s' % placeholder.top
     assert placeholder.width == 8229600, 'got %s' % placeholder.width
     assert placeholder.height == 1143000, 'got %s' % placeholder.height
+
+
+@then('placeholder_format.idx is {value}')
+def then_placeholder_format_idx_is_value(context, value):
+    expected_value = int(value)
+    placeholder_format = context.shape.placeholder_format
+    assert placeholder_format.idx == expected_value
+
+
+@then('placeholder_format.type is {value}')
+def then_placeholder_format_type_is_value(context, value):
+    expected_value = getattr(PP_PLACEHOLDER, value.split('.')[1])
+    placeholder_format = context.shape.placeholder_format
+    assert placeholder_format.type == expected_value
 
 
 @then('shape.placeholder_format is its _PlaceholderFormat object')
