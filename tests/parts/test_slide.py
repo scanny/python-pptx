@@ -312,6 +312,10 @@ class Describe_SlidePlaceholders(object):
         assert SlideShapeFactory_.call_args_list == expected_calls
         assert ps == expected_values
 
+    def it_knows_how_many_placeholders_it_contains(self, len_fixture):
+        placeholders, expected_value = len_fixture
+        assert len(placeholders) == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -345,6 +349,20 @@ class Describe_SlidePlaceholders(object):
         calls = [call(spTree[i], placeholders) for i in sequence]
         values = [placeholder_] * len(sequence)
         return placeholders, SlideShapeFactory_, calls, values
+
+    @pytest.fixture(params=[
+        ('p:spTree',                                                    0),
+        ('p:spTree/(p:sp,p:pic,p:sp)',                                  0),
+        ('p:spTree/(p:sp,p:sp/p:nvSpPr/p:nvPr/p:ph{type=title},p:pic)', 1),
+        ('p:spTree/('
+         'p:sp/p:nvSpPr/p:nvPr/p:ph{type=body,idx=1},'
+         'p:sp/p:nvSpPr/p:nvPr/p:ph{type=title},'
+         'p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=3})',                3),
+    ])
+    def len_fixture(self, request):
+        spTree_cxml, length = request.param
+        placeholders = _NewSlidePlaceholders(element(spTree_cxml), None)
+        return placeholders, length
 
     # fixture components ---------------------------------------------
 

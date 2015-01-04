@@ -152,3 +152,9 @@ class _NewSlidePlaceholders(ParentedElementProxy):
             [e for e in self._element.iter_ph_elms()], key=lambda e: e.ph_idx
         )
         return (SlideShapeFactory(e, self) for e in ph_elms)
+
+    def __len__(self):
+        """
+        Return count of placeholder shapes.
+        """
+        return len(list(self._element.iter_ph_elms()))
