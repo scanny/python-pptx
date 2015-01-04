@@ -14,14 +14,15 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.opc.package import Part
 from pptx.oxml.parts.slide import CT_Slide
-from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import BaseSlide, Slide, _SlidePlaceholders
+from pptx.parts.slide import (
+    BaseSlide, _NewSlidePlaceholders, Slide, _SlidePlaceholders
+)
 from pptx.parts.slidelayout import SlideLayout
-from pptx.shapes.placeholder import SlidePlaceholder
+from pptx.shapes.placeholder import _BaseSlidePlaceholder
 from pptx.shapes.shapetree import SlideShapeTree
 
 from ..unitutil.cxml import element
@@ -294,40 +295,43 @@ class DescribeSlide(object):
 
 class Describe_SlidePlaceholders(object):
 
-    def it_constructs_a_slide_placeholder_for_a_placeholder_shape(
-            self, factory_fixture):
-        slide_placeholders, ph_elm_ = factory_fixture[:2]
-        SlideShapeFactory_, slide_placeholder_ = factory_fixture[2:]
-        slide_placeholder = slide_placeholders._shape_factory(ph_elm_)
-        SlideShapeFactory_.assert_called_once_with(
-            ph_elm_, slide_placeholders
-        )
-        assert slide_placeholder is slide_placeholder_
+    def it_can_get_a_placeholder_by_idx(self, getitem_fixture):
+        placeholders, idx, SlideShapeFactory_ = getitem_fixture[:3]
+        shape_elm, placeholder_ = getitem_fixture[3:]
+
+        placeholder = placeholders[idx]
+
+        SlideShapeFactory_.assert_called_once_with(shape_elm, placeholders)
+        assert placeholder is placeholder_
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture
-    def factory_fixture(
-            self, ph_elm_, SlideShapeFactory_, slide_placeholder_):
-        slide_placeholders = _SlidePlaceholders(None)
-        return (
-            slide_placeholders, ph_elm_, SlideShapeFactory_,
-            slide_placeholder_
-        )
+    @pytest.fixture(params=[
+        ('p:spTree/p:sp/p:nvSpPr/p:nvPr/p:ph{type=pic,idx=1}',    1, 0),
+        ('p:spTree/p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=1}',  1, 0),
+        ('p:spTree/(p:sp,p:sp/p:nvSpPr/p:nvPr/p:ph{type=title})', 0, 1),
+        ('p:spTree/(p:sp,p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=1})',
+         1, 1),
+        ('p:spTree/(p:sp/p:nvSpPr/p:nvPr/p:ph{type=title},'
+         'p:sp/p:nvSpPr/p:nvPr/p:ph{type=pic,idx=3})', 3, 1),
+    ])
+    def getitem_fixture(self, request, SlideShapeFactory_, placeholder_):
+        spTree_cxml, idx, offset = request.param
+        spTree = element(spTree_cxml)
+        placeholders = _NewSlidePlaceholders(spTree, None)
+        shape_elm = spTree[offset]
+        SlideShapeFactory_.return_value = placeholder_
+        return placeholders, idx, SlideShapeFactory_, shape_elm, placeholder_
 
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def slide_placeholder_(self, request):
-        return instance_mock(request, SlidePlaceholder)
+    def placeholder_(self, request):
+        return instance_mock(request, _BaseSlidePlaceholder)
 
     @pytest.fixture
-    def SlideShapeFactory_(self, request, slide_placeholder_):
+    def SlideShapeFactory_(self, request, placeholder_):
         return function_mock(
             request, 'pptx.parts.slide.SlideShapeFactory',
-            return_value=slide_placeholder_
+            return_value=placeholder_
         )
-
-    @pytest.fixture
-    def ph_elm_(self, request):
-        return instance_mock(request, CT_Shape)

@@ -83,6 +83,14 @@ class CT_GroupShape(BaseShapeElement):
         """
         return self.grpSpPr.get_or_add_xfrm()
 
+    def iter_ph_elms(self):
+        """
+        Generate each placeholder shape child element in document order.
+        """
+        for e in self.iter_shape_elms():
+            if e.has_ph_elm:
+                yield e
+
     def iter_shape_elms(self):
         """
         Generate each child of this ``<p:spTree>`` element that corresponds

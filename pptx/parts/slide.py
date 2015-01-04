@@ -15,6 +15,7 @@ from ..oxml.parts.slide import CT_Slide
 from ..shapes.shapetree import (
     BasePlaceholders, SlideShapeFactory, SlideShapeTree
 )
+from ..shared import ParentedElementProxy
 from ..util import lazyproperty
 
 
@@ -122,3 +123,23 @@ class _SlidePlaceholders(BasePlaceholders):
         *shape_elm* on a slide.
         """
         return SlideShapeFactory(shape_elm, self)
+
+
+class _NewSlidePlaceholders(ParentedElementProxy):
+    """
+    Sequence of placeholder shapes on a slide.
+    """
+
+    __slots__ = ()
+
+    def __getitem__(self, idx):
+        """
+        Access placeholder shape having *idx*. Note that while this looks
+        like list access, idx is actually a dictionary key and will raise
+        |KeyError| if no placeholder with that idx value is in the
+        collection.
+        """
+        for e in self._element.iter_ph_elms():
+            if e.ph_idx == idx:
+                return SlideShapeFactory(e, self)
+        raise KeyError('no placeholder on this slide with idx == %d' % idx)

@@ -9,7 +9,15 @@ from __future__ import (
 )
 
 from .autoshape import Shape
+from .base import BaseShape
 from ..enum.shapes import PP_PLACEHOLDER
+
+
+class _BaseSlidePlaceholder(BaseShape):
+    """
+    Base class for placeholders on slides. Provides common behaviors such as
+    inherited dimensions.
+    """
 
 
 class BasePlaceholder(Shape):
