@@ -152,6 +152,20 @@ def then_paragraph_is_indented(context):
     assert p.level == 1
 
 
+@then('the placeholder\'s position and size are inherited from its layout')
+def then_the_placeholders_position_and_size_are_inherited(context):
+    placeholder = context.shape
+    expected_values = (
+        ('left', 2743200),
+        ('top', 2057400),
+        ('width', 3657600),
+        ('height', 2743200),
+    )
+    for prop_name, expected_value in expected_values:
+        value = getattr(placeholder, prop_name)
+        assert value == expected_value, 'got %s' % value
+
+
 @then('the text appears in the title placeholder')
 def step_then_text_appears_in_title_placeholder(context):
     prs = Presentation(saved_pptx_path)
