@@ -12,7 +12,7 @@ from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
 from pptx.shapes import Subshape
 from pptx.shapes.autoshape import Shape
-from pptx.shapes.base import BaseShape
+from pptx.shapes.base import BaseShape, _PlaceholderFormat
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.shapetree import BaseShapeFactory, SlideShapeTree
@@ -22,7 +22,9 @@ from ..oxml.unitdata.shape import (
     an_ext, an_nvSpPr, an_off, an_sp, an_spPr, an_xfrm
 )
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import instance_mock, loose_mock, property_mock
+from ..unitutil.mock import (
+    class_mock, instance_mock, loose_mock, property_mock
+)
 
 
 class DescribeBaseShape(object):
@@ -83,6 +85,17 @@ class DescribeBaseShape(object):
     def it_knows_whether_it_is_a_placeholder(self, is_placeholder_fixture):
         shape, is_placeholder = is_placeholder_fixture
         assert shape.is_placeholder is is_placeholder
+
+    def it_provides_access_to_its_placeholder_format(self, phfmt_fixture):
+        shape, _PlaceholderFormat_, placeholder_format_, ph = phfmt_fixture
+        placeholder_format = shape.placeholder_format
+        _PlaceholderFormat_.assert_called_once_with(ph)
+        assert placeholder_format is placeholder_format_
+
+    def it_raises_when_shape_is_not_a_placeholder(self, phfmt_raise_fixture):
+        shape = phfmt_raise_fixture
+        with pytest.raises(ValueError):
+            shape.placeholder_format
 
     def it_knows_it_doesnt_contain_a_chart(self):
         shape = BaseShape(None, None)
@@ -174,6 +187,17 @@ class DescribeBaseShape(object):
         parent_ = shapes_
         shape = BaseShape(None, parent_)
         return shape, parent_
+
+    @pytest.fixture
+    def phfmt_fixture(self, _PlaceholderFormat_, placeholder_format_):
+        sp = element('p:sp/p:nvSpPr/p:nvPr/p:ph')
+        ph = sp.xpath('//p:ph')[0]
+        shape = BaseShape(sp, None)
+        return shape, _PlaceholderFormat_, placeholder_format_, ph
+
+    @pytest.fixture
+    def phfmt_raise_fixture(self):
+        return BaseShape(element('p:sp/p:nvSpPr/p:nvPr'), None)
 
     @pytest.fixture(params=[
         ('sp',           False), ('sp_with_off',           True),
@@ -328,6 +352,17 @@ class DescribeBaseShape(object):
                     an_xfrm().with_child(
                         an_ext().with_cx(width).with_cy(height))))
         ).element
+
+    @pytest.fixture
+    def _PlaceholderFormat_(self, request, placeholder_format_):
+        return class_mock(
+            request, 'pptx.shapes.base._PlaceholderFormat',
+            return_value=placeholder_format_
+        )
+
+    @pytest.fixture
+    def placeholder_format_(self, request):
+        return instance_mock(request, _PlaceholderFormat)
 
     @pytest.fixture
     def shape_elm_(self, request, shape_id, shape_name, txBody_):

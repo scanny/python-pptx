@@ -131,6 +131,17 @@ class BaseShape(object):
         return self._parent.part
 
     @property
+    def placeholder_format(self):
+        """
+        A |_PlaceholderFormat| object providing access to
+        placeholder-specific properties such as placeholder type. Raises
+        |ValueError| on access if the shape is not a placeholder.
+        """
+        if not self.is_placeholder:
+            raise ValueError('shape is not a placeholder')
+        return _PlaceholderFormat(self._element.ph)
+
+    @property
     def rotation(self):
         """
         Read/write float. Degrees of clockwise rotation. Negative values can

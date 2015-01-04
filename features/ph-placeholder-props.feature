@@ -37,7 +37,6 @@ Feature: Get and change common slide placeholder properties
       | picture   |
 
 
-  @wip
   Scenario Outline: Get placeholder format
      Given an unpopulated <type> placeholder shape
       Then shape.placeholder_format is its _PlaceholderFormat object
