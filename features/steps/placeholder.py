@@ -10,6 +10,7 @@ from behave import given, when, then
 
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.shapes.base import _PlaceholderFormat
 
 from helpers import saved_pptx_path, test_pptx, test_text
 
@@ -128,6 +129,14 @@ def then_I_get_inherited_settings_when_I_query_position_and_size(context):
     assert placeholder.top == 274638, 'got %s' % placeholder.top
     assert placeholder.width == 8229600, 'got %s' % placeholder.width
     assert placeholder.height == 1143000, 'got %s' % placeholder.height
+
+
+@then('shape.placeholder_format is its _PlaceholderFormat object')
+def then_shape_placeholder_format_is_its_PlaceholderFormat_object(context):
+    shape = context.shape
+    placeholder_format = shape.placeholder_format
+    assert isinstance(placeholder_format, _PlaceholderFormat)
+    assert placeholder_format.element is shape.element.ph
 
 
 @then('shape.shape_type is MSO_SHAPE_TYPE.PLACEHOLDER')

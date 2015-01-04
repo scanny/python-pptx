@@ -8,6 +8,8 @@ from __future__ import absolute_import, print_function
 
 from warnings import warn
 
+from ..shared import ElementProxy
+
 
 class BaseShape(object):
     """
@@ -177,3 +179,11 @@ class BaseShape(object):
     @width.setter
     def width(self, value):
         self._element.cx = value
+
+
+class _PlaceholderFormat(ElementProxy):
+    """
+    Provides properties specific to placeholders, such as the placeholder
+    type.
+    """
+    # proxied element is a `p:ph`.

@@ -35,3 +35,20 @@ Feature: Get and change common slide placeholder properties
       | media     |
       | clip art  |
       | picture   |
+
+
+  @wip
+  Scenario Outline: Get placeholder format
+     Given an unpopulated <type> placeholder shape
+      Then shape.placeholder_format is its _PlaceholderFormat object
+
+    Examples: Unpopulated placeholder types
+      | type      |
+      | content   |
+      | text      |
+      | chart     |
+      | table     |
+      | smart art |
+      | media     |
+      | clip art  |
+      | picture   |
