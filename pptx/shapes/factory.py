@@ -10,10 +10,13 @@ from __future__ import (
 
 from .autoshape import Shape
 from .base import BaseShape
+from ..enum.shapes import PP_PLACEHOLDER
 from .graphfrm import GraphicFrame
 from ..oxml.ns import qn
 from .picture import Picture
-from .placeholder import SlidePlaceholder
+from .placeholder import (
+    PicturePlaceholder, PlaceholderPicture, SlidePlaceholder
+)
 
 
 def BaseShapeFactory(shape_elm, parent):
@@ -44,7 +47,14 @@ def _SlidePlaceholderFactory(shape_elm, parent):
     """
     Return a placeholder shape of the appropriate type for *shape_elm*.
     """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp'):
-        return SlidePlaceholder(shape_elm, parent)
-    return BaseShapeFactory(shape_elm, parent)
+    tag = shape_elm.tag
+    if tag == qn('p:sp'):
+        Constructor = {
+            PP_PLACEHOLDER.PICTURE: PicturePlaceholder,
+            PP_PLACEHOLDER.BITMAP:  PicturePlaceholder,
+        }.get(shape_elm.ph_type, SlidePlaceholder)
+    elif tag == qn('p:pic'):
+        Constructor = PlaceholderPicture
+    else:
+        Constructor = BaseShapeFactory
+    return Constructor(shape_elm, parent)

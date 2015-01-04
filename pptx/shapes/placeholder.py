@@ -11,6 +11,7 @@ from __future__ import (
 from .autoshape import Shape
 from .base import BaseShape
 from ..enum.shapes import PP_PLACEHOLDER
+from .picture import Picture
 
 
 class _BaseSlidePlaceholder(BaseShape):
@@ -247,3 +248,15 @@ class SlidePlaceholder(BasePlaceholder):
         """
         slide = self.part
         return slide.slide_layout
+
+
+class PicturePlaceholder(_BaseSlidePlaceholder):
+    """
+    Placeholder shape that can only accept a picture.
+    """
+
+
+class PlaceholderPicture(Picture):
+    """
+    Placeholder shape populated with a picture.
+    """
