@@ -6,13 +6,16 @@ Gherkin step implementations for placeholder-related features.
 
 from __future__ import absolute_import
 
+import hashlib
+
 from behave import given, when, then
 
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.shapes.base import _PlaceholderFormat
+from pptx.shapes.placeholder import PlaceholderPicture
 
-from helpers import saved_pptx_path, test_pptx, test_text
+from helpers import saved_pptx_path, test_file, test_pptx, test_text
 
 
 # given ===================================================
@@ -94,8 +97,17 @@ def given_an_unpopulated_placeholder_shape(context, placeholder_type):
 
 # when ====================================================
 
+@when('I call placeholder.insert_picture(\'{filename}\')')
+def when_I_call_placeholder_insert_picture(context, filename):
+    placeholder = context.shape
+    path = test_file(filename)
+    with open(path, 'rb') as f:
+        context.image_sha1 = hashlib.sha1(f.read()).hexdigest()
+    context.placeholder_picture = placeholder.insert_picture(path)
+
+
 @when('I indent the first paragraph')
-def step_when_indent_first_paragraph(context):
+def when_I_indent_the_first_paragraph(context):
     context.body.text_frame.paragraphs[0].level = 1
 
 
@@ -173,13 +185,25 @@ def then_slide_shapes_0_is_a_cls_proxy_for_that_placeholder(context, cls):
     assert clsname == cls, 'got %s' % clsname
 
 
+@then('the return value is a PlaceholderPicture object')
+def then_the_return_value_is_a_PlaceholderPicture_object(context):
+    placeholder_picture = context.placeholder_picture
+    assert isinstance(placeholder_picture, PlaceholderPicture)
+
+
 @then('the paragraph is indented')
-def then_paragraph_is_indented(context):
+def then_the_paragraph_is_indented(context):
     prs = Presentation(saved_pptx_path)
     sld = prs.slides[0]
     body = sld.shapes.placeholders[1]
     p = body.text_frame.paragraphs[0]
     assert p.level == 1
+
+
+@then('the placeholder contains the image')
+def then_the_placeholder_contains_the_image(context):
+    placeholder_picture = context.placeholder_picture
+    assert placeholder_picture.image.sha1 == context.image_sha1
 
 
 @then('the placeholder\'s position and size are inherited from its layout')
@@ -194,6 +218,20 @@ def then_the_placeholders_position_and_size_are_inherited(context):
     for prop_name, expected_value in expected_values:
         value = getattr(placeholder, prop_name)
         assert value == expected_value, 'got %s' % value
+
+
+@then('the {sides} crop is {value}')
+def then_the_sides_crop_is_value(context, sides, value):
+    side_prop_names = {
+        'top and bottom': ('crop_top',  'crop_bottom'),
+        'left and right': ('crop_left', 'crop_right'),
+    }[sides]
+    expected_value = float(value)
+    placeholder_picture = context.placeholder_picture
+    for prop_name in side_prop_names:
+        value = getattr(placeholder_picture, prop_name)
+        difference = abs(expected_value - value)
+        assert difference < 0.000002, 'got %s for %s' % (value, prop_name)
 
 
 @then('the text appears in the title placeholder')
