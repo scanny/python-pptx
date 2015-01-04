@@ -205,3 +205,10 @@ class _PlaceholderFormat(ElementProxy):
         Integer placeholder 'idx' attribute.
         """
         return self._element.idx
+
+    @property
+    def type(self):
+        """
+        Placeholder type, e.g. PP_PLACEHOLDER.CHART
+        """
+        return self._element.type

@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import pytest
 
+from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
 from pptx.shapes import Subshape
@@ -444,6 +445,10 @@ class Describe_PlaceholderFormat(object):
         placeholder_format, expected_value = idx_get_fixture
         assert placeholder_format.idx == expected_value
 
+    def it_knows_its_type(self, type_get_fixture):
+        placeholder_format, expected_value = type_get_fixture
+        assert placeholder_format.type == expected_value
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -451,6 +456,15 @@ class Describe_PlaceholderFormat(object):
         ('p:ph{idx=42}', 42),
     ])
     def idx_get_fixture(self, request):
+        ph_cxml, expected_value = request.param
+        placeholder_format = _PlaceholderFormat(element(ph_cxml))
+        return placeholder_format, expected_value
+
+    @pytest.fixture(params=[
+        ('p:ph',           PP_PLACEHOLDER.OBJECT),
+        ('p:ph{type=pic}', PP_PLACEHOLDER.PICTURE),
+    ])
+    def type_get_fixture(self, request):
         ph_cxml, expected_value = request.param
         placeholder_format = _PlaceholderFormat(element(ph_cxml))
         return placeholder_format, expected_value

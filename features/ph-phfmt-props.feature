@@ -14,7 +14,6 @@ Feature: Get placeholder format properties
       | content   |  10   |
 
 
-  @wip
   Scenario Outline: Get placeholder type
      Given a known <type> placeholder shape
       Then placeholder_format.type is <value>
