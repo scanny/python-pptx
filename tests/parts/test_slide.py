@@ -27,10 +27,9 @@ from pptx.shapes.shapetree import SlideShapeTree
 
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, test_file_dir
-
 from ..unitutil.mock import (
-    class_mock, function_mock, initializer_mock, instance_mock, method_mock,
-    property_mock
+    call, class_mock, function_mock, initializer_mock, instance_mock,
+    method_mock, property_mock
 )
 
 
@@ -304,6 +303,15 @@ class Describe_SlidePlaceholders(object):
         SlideShapeFactory_.assert_called_once_with(shape_elm, placeholders)
         assert placeholder is placeholder_
 
+    def it_can_iterate_over_its_placeholders(self, iter_fixture):
+        placeholders, SlideShapeFactory_ = iter_fixture[:2]
+        expected_calls, expected_values = iter_fixture[2:]
+
+        ps = [p for p in placeholders]
+
+        assert SlideShapeFactory_.call_args_list == expected_calls
+        assert ps == expected_values
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -322,6 +330,21 @@ class Describe_SlidePlaceholders(object):
         shape_elm = spTree[offset]
         SlideShapeFactory_.return_value = placeholder_
         return placeholders, idx, SlideShapeFactory_, shape_elm, placeholder_
+
+    @pytest.fixture(params=[
+        ('p:spTree/('
+         'p:sp/p:nvSpPr/p:nvPr/p:ph{type=body,idx=1},'
+         'p:sp/p:nvSpPr/p:nvPr/p:ph{type=title},'
+         'p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=3})', (1, 0, 2)),
+    ])
+    def iter_fixture(self, request, SlideShapeFactory_, placeholder_):
+        spTree_cxml, sequence = request.param
+        spTree = element(spTree_cxml)
+        placeholders = _NewSlidePlaceholders(spTree, None)
+        SlideShapeFactory_.return_value = placeholder_
+        calls = [call(spTree[i], placeholders) for i in sequence]
+        values = [placeholder_] * len(sequence)
+        return placeholders, SlideShapeFactory_, calls, values
 
     # fixture components ---------------------------------------------
 

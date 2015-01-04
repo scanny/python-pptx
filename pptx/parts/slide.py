@@ -143,3 +143,12 @@ class _NewSlidePlaceholders(ParentedElementProxy):
             if e.ph_idx == idx:
                 return SlideShapeFactory(e, self)
         raise KeyError('no placeholder on this slide with idx == %d' % idx)
+
+    def __iter__(self):
+        """
+        Generate placeholder shapes in `idx` order.
+        """
+        ph_elms = sorted(
+            [e for e in self._element.iter_ph_elms()], key=lambda e: e.ph_idx
+        )
+        return (SlideShapeFactory(e, self) for e in ph_elms)
