@@ -35,7 +35,16 @@ def SlideShapeFactory(shape_elm, parent):
     Return an instance of the appropriate shape proxy class for *shape_elm*
     on a slide.
     """
+    if shape_elm.has_ph_elm:
+        return _SlidePlaceholderFactory(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
+
+
+def _SlidePlaceholderFactory(shape_elm, parent):
+    """
+    Return a placeholder shape of the appropriate type for *shape_elm*.
+    """
     tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+    if tag_name == qn('p:sp'):
         return SlidePlaceholder(shape_elm, parent)
     return BaseShapeFactory(shape_elm, parent)
