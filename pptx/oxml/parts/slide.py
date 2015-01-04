@@ -38,6 +38,13 @@ class CT_Slide(BaseOxmlElement):
         """
         return parse_xml(cls._sld_xml())
 
+    @property
+    def spTree(self):
+        """
+        Return required `p:cSld/p:spTree` grandchild.
+        """
+        return self.cSld.spTree
+
     @staticmethod
     def _sld_xml():
         return (

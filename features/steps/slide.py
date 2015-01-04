@@ -102,7 +102,7 @@ def then_can_access_shape_by_index(context):
 @then('I can access a slide placeholder by index')
 def then_can_access_slide_placeholder_by_index(context):
     slide_placeholders = context.slide_placeholders
-    for idx in range(2):
+    for idx in (0, 10):
         slide_placeholder = slide_placeholders[idx]
         assert isinstance(slide_placeholder, SlidePlaceholder)
 

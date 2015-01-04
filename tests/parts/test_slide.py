@@ -18,9 +18,7 @@ from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import (
-    BaseSlide, _NewSlidePlaceholders, Slide, _SlidePlaceholders
-)
+from pptx.parts.slide import BaseSlide, Slide, _SlidePlaceholders
 from pptx.parts.slidelayout import SlideLayout
 from pptx.shapes.placeholder import _BaseSlidePlaceholder
 from pptx.shapes.shapetree import SlideShapeTree
@@ -123,7 +121,10 @@ class DescribeSlide(object):
             placeholders_fixture
         )
         placeholders = slide.placeholders
-        _SlidePlaceholders_.assert_called_once_with(slide)
+
+        _SlidePlaceholders_.assert_called_once_with(
+            slide._element.spTree, slide
+        )
         assert placeholders is slide_placeholders_
 
     def it_can_create_a_new_slide(self, new_fixture):
@@ -174,9 +175,9 @@ class DescribeSlide(object):
         return slide, slide_layout_
 
     @pytest.fixture
-    def placeholders_fixture(
-            self, _SlidePlaceholders_, slide_placeholders_):
-        slide = Slide(None, None, None, None)
+    def placeholders_fixture(self, slide_elm_, _SlidePlaceholders_,
+                             slide_placeholders_):
+        slide = Slide(None, None, slide_elm_, None)
         return slide, _SlidePlaceholders_, slide_placeholders_
 
     @pytest.fixture
@@ -330,7 +331,7 @@ class Describe_SlidePlaceholders(object):
     def getitem_fixture(self, request, SlideShapeFactory_, placeholder_):
         spTree_cxml, idx, offset = request.param
         spTree = element(spTree_cxml)
-        placeholders = _NewSlidePlaceholders(spTree, None)
+        placeholders = _SlidePlaceholders(spTree, None)
         shape_elm = spTree[offset]
         SlideShapeFactory_.return_value = placeholder_
         return placeholders, idx, SlideShapeFactory_, shape_elm, placeholder_
@@ -344,7 +345,7 @@ class Describe_SlidePlaceholders(object):
     def iter_fixture(self, request, SlideShapeFactory_, placeholder_):
         spTree_cxml, sequence = request.param
         spTree = element(spTree_cxml)
-        placeholders = _NewSlidePlaceholders(spTree, None)
+        placeholders = _SlidePlaceholders(spTree, None)
         SlideShapeFactory_.return_value = placeholder_
         calls = [call(spTree[i], placeholders) for i in sequence]
         values = [placeholder_] * len(sequence)
@@ -361,7 +362,7 @@ class Describe_SlidePlaceholders(object):
     ])
     def len_fixture(self, request):
         spTree_cxml, length = request.param
-        placeholders = _NewSlidePlaceholders(element(spTree_cxml), None)
+        placeholders = _SlidePlaceholders(element(spTree_cxml), None)
         return placeholders, length
 
     # fixture components ---------------------------------------------

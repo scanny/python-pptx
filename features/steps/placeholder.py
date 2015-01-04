@@ -44,7 +44,7 @@ def given_a_master_placeholder(context):
 @given('a slide placeholder having directly set position and size')
 def given_slide_placeholder_with_directly_set_pos_and_size(context):
     prs = Presentation(test_pptx('ph-inherit-props'))
-    context.placeholder = prs.slides[0].placeholders[1]
+    context.placeholder = prs.slides[0].placeholders[10]
 
 
 @given('a slide placeholder having no direct position or size settings')

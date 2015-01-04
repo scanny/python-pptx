@@ -12,9 +12,7 @@ from .chart import ChartPart
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..oxml.parts.slide import CT_Slide
-from ..shapes.shapetree import (
-    BasePlaceholders, SlideShapeFactory, SlideShapeTree
-)
+from ..shapes.shapetree import SlideShapeFactory, SlideShapeTree
 from ..shared import ParentedElementProxy
 from ..util import lazyproperty
 
@@ -83,7 +81,7 @@ class Slide(BaseSlide):
         Instance of |_SlidePlaceholders| containing sequence of placeholder
         shapes in this slide.
         """
-        return _SlidePlaceholders(self)
+        return _SlidePlaceholders(self._element.spTree, self)
 
     @lazyproperty
     def shapes(self):
@@ -113,19 +111,7 @@ class Slide(BaseSlide):
         return self.slide_layout
 
 
-class _SlidePlaceholders(BasePlaceholders):
-    """
-    Sequence of placeholder shapes on a slide.
-    """
-    def _shape_factory(self, shape_elm):
-        """
-        Return an instance of the appropriate shape proxy class for
-        *shape_elm* on a slide.
-        """
-        return SlideShapeFactory(shape_elm, self)
-
-
-class _NewSlidePlaceholders(ParentedElementProxy):
+class _SlidePlaceholders(ParentedElementProxy):
     """
     Sequence of placeholder shapes on a slide.
     """
