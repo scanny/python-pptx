@@ -53,6 +53,26 @@ def given_slide_placeholder_with_no_direct_pos_or_size_settings(context):
     context.placeholder = prs.slides[0].placeholders[0]
 
 
+@given('a slide with an unpopulated {type_} placeholder')
+def given_a_slide_with_an_unpopulated_type_placeholder(context, type_):
+    slide_idx = [
+        'title', 'content', 'text', 'chart', 'table', 'smart art', 'media',
+        'clip art', 'picture',
+    ].index(type_)
+    prs = Presentation(test_pptx('ph-unpopulated-placeholders'))
+    context.shape = prs.slides[slide_idx].shapes[0]
+
+
+@given('a slide with a {type_} placeholder populated with {content}')
+def given_a_slide_with_a_type_ph_with_content(context, type_, content):
+    slide_idx = [
+        'picture', 'clip art', 'table', 'chart', 'title', 'content', 'text',
+        'smart art', 'media',
+    ].index(type_)
+    prs = Presentation(test_pptx('ph-populated-placeholders'))
+    context.shape = prs.slides[slide_idx].shapes[0]
+
+
 # when ====================================================
 
 @when('I indent the first paragraph')
@@ -97,6 +117,13 @@ def then_I_get_inherited_settings_when_I_query_position_and_size(context):
     assert placeholder.top == 274638, 'got %s' % placeholder.top
     assert placeholder.width == 8229600, 'got %s' % placeholder.width
     assert placeholder.height == 1143000, 'got %s' % placeholder.height
+
+
+@then('slide.shapes[0] is a {cls} proxy object for that placeholder')
+def then_slide_shapes_0_is_a_cls_proxy_for_that_placeholder(context, cls):
+    placeholder = context.shape
+    clsname = placeholder.__class__.__name__
+    assert clsname == cls, 'got %s' % clsname
 
 
 @then('the paragraph is indented')
