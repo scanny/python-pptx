@@ -6,7 +6,7 @@ Placeholders
 .. toctree::
    :titlesonly:
 
-   slide-placeholders
+   slide-placeholders/index
    layout-placeholders
    master-placeholders
 

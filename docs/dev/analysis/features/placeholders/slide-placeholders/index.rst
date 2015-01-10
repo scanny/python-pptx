@@ -2,6 +2,11 @@
 Slide Placeholders
 ==================
 
+.. toctree::
+   :titlesonly:
+
+   picture-placeholder
+
 
 Candidate protocol
 ------------------
@@ -31,38 +36,6 @@ Candidate protocol
     >>> table = slide_placeholders[1].insert_table(rows=2, cols=2)
     >>> len(slide_placeholders)
     2
-
-
-ContentPlaceholder protocol
----------------------------
-
-* ContentPlaceholder.insert_table()
-* TablePlaceholder.insert_table()
-
-* GraphicFramePlaceholder. ...
-* PicturePlaceholder. ...
-
-* add text
-* all? shape query operations? such as get effective size and position?
-* all? shape operations, such as set position and size
-
-* [ ] object_placeholder inherits from slide_layout_placeholder where one with
-      a matching `idx` value exists. Only `<p:pic>` and `<p:graphicFrame>`
-      elements can be object placeholders.
-
-Hypothesis: inheritance behaviors for an object placeholder are the same as
-those for a slide_placeholder. Only object insertion behaviors are different.
-There is some evidence object placeholder behaviors may be on a case-by-case
-basis.
-
-
-Shapes that can have a substituted placeholder
-----------------------------------------------
-
-Table, chart, smart art, picture, movie
-
-* Picture
-* GraphicFrame (Table, SmartArt and Chart)
 
 
 Inheritance behaviors
@@ -99,19 +72,6 @@ Operations
 * clone on slide create
 * query inherited property values
 * substitution
-
-
-Behavior
---------
-
-* Content of a placeholder shape is retained and displayed, even when the
-  slide layout is changed to one without a matching layout placeholder.
-
-* The behavior when placeholders are added to a slide layout (from the slide
-  master) may also be worth characterizing.
-
-  + ... show master placeholder ...
-  + ... add (arbitrary) placeholder ...
 
 
 Example XML
@@ -297,3 +257,10 @@ Experimental findings -- Applying layouts
   reset.
 * The "Reset Layout to Default Settings" option appears to reset all shape
   properties to inherited, without exception.
+* Content of a placeholder shape is retained and displayed, even when the
+  slide layout is changed to one without a matching layout placeholder.
+* The behavior when placeholders are added to a slide layout (from the slide
+  master) may also be worth characterizing.
+
+  + ... show master placeholder ...
+  + ... add (arbitrary) placeholder ...
