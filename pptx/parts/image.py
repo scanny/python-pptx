@@ -70,7 +70,7 @@ class ImagePart(Part):
         """
         An |Image| object containing the image in this image part.
         """
-        raise NotImplementedError
+        return Image(self.blob, self.desc)
 
     def scale(self, scaled_cx, scaled_cy):
         """

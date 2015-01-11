@@ -15,7 +15,7 @@ from pptx.util import Px
 
 from ..unitutil.file import absjoin, test_file_dir
 from ..unitutil.mock import (
-    initializer_mock, instance_mock, method_mock, property_mock
+    class_mock, initializer_mock, instance_mock, method_mock, property_mock
 )
 
 
@@ -40,6 +40,12 @@ class DescribeImagePart(object):
         )
         assert isinstance(image_part, ImagePart)
 
+    def it_provides_access_to_its_image(self, image_fixture):
+        image_part, Image_, blob, desc, image_ = image_fixture
+        image = image_part.image
+        Image_.assert_called_once_with(blob, desc)
+        assert image is image_
+
     def it_can_scale_its_dimensions(self, scale_fixture):
         image_part, width, height, expected_values = scale_fixture
         assert image_part.scale(width, height) == expected_values
@@ -49,6 +55,12 @@ class DescribeImagePart(object):
         assert image._px_size == expected_size
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def image_fixture(self, Image_, image_):
+        blob, filename = 'blob', 'foobar.png'
+        image_part = ImagePart(None, None, blob, None, filename)
+        return image_part, Image_, blob, filename, image_
 
     @pytest.fixture
     def new_fixture(self, request, package_, image_, _init_):
@@ -76,6 +88,12 @@ class DescribeImagePart(object):
         return image, (204, 204)
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def Image_(self, request, image_):
+        return class_mock(
+            request, 'pptx.parts.image.Image', return_value=image_
+        )
 
     @pytest.fixture
     def image_(self, request):
