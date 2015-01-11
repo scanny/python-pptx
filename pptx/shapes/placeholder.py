@@ -11,6 +11,7 @@ from __future__ import (
 from .autoshape import Shape
 from .base import BaseShape
 from ..enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
+from ..oxml.shapes.picture import CT_Picture
 from .picture import Picture
 
 
@@ -324,6 +325,17 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         suitable for use as a placeholder. In particular this means not
         having an `a:xfrm` element, allowing its extents to be inherited from
         its layout placeholder.
+        """
+        rId, desc, image_size = self._get_or_add_image(image_file)
+        id_, name = self.id, self.name
+        pic = CT_Picture.new_ph_pic(id_, name, desc, rId)
+        pic.crop_to_fit(image_size, (self.width, self.height))
+        return pic
+
+    def _get_or_add_image(self, image_file):
+        """
+        Return an (rId, description, image_size) 3-tuple identifying the
+        related image part containing *image_file* and describing the image.
         """
         raise NotImplementedError
 

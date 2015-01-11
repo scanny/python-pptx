@@ -128,8 +128,8 @@ register_element_cls('a:sysClr',    CT_SystemColor)
 
 from .dml.fill import (
     CT_BlipFillProperties, CT_GradientFillProperties, CT_GroupFillProperties,
-    CT_NoFillProperties, CT_PatternFillProperties,
-    CT_SolidColorFillProperties,
+    CT_NoFillProperties, CT_PatternFillProperties, CT_RelativeRect,
+    CT_SolidColorFillProperties
 )
 register_element_cls('a:blipFill',  CT_BlipFillProperties)
 register_element_cls('a:gradFill',  CT_GradientFillProperties)
@@ -137,6 +137,7 @@ register_element_cls('a:grpFill',   CT_GroupFillProperties)
 register_element_cls('a:noFill',    CT_NoFillProperties)
 register_element_cls('a:pattFill',  CT_PatternFillProperties)
 register_element_cls('a:solidFill', CT_SolidColorFillProperties)
+register_element_cls('a:srcRect',   CT_RelativeRect)
 
 
 from .parts.coreprops import CT_CoreProperties
@@ -209,8 +210,9 @@ register_element_cls('p:spTree',     CT_GroupShape)
 
 
 from .shapes.picture import CT_Picture, CT_PictureNonVisual
-register_element_cls('p:nvPicPr', CT_PictureNonVisual)
-register_element_cls('p:pic',     CT_Picture)
+register_element_cls('p:blipFill', CT_BlipFillProperties)
+register_element_cls('p:nvPicPr',  CT_PictureNonVisual)
+register_element_cls('p:pic',      CT_Picture)
 
 
 from .shapes.shared import (

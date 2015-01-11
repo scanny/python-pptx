@@ -473,6 +473,12 @@ class DescribePicturePlaceholder(object):
         PlaceholderPicture_.assert_called_once_with(pic, picture_ph._parent)
         assert placeholder_picture is placeholder_picture_
 
+    def it_creates_a_pic_element_to_help(self, pic_fixture):
+        picture_ph, image_file, expected_xml = pic_fixture
+        pic = picture_ph._new_placeholder_pic(image_file)
+        picture_ph._get_or_add_image.assert_called_once_with(image_file)
+        assert pic.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -487,7 +493,35 @@ class DescribePicturePlaceholder(object):
             placeholder_picture_
         )
 
+    @pytest.fixture(params=[
+        ((444, 333), ('l', 'r')),
+        ((333, 444), ('t', 'b')),
+    ])
+    def pic_fixture(self, request, _get_or_add_image_):
+        image_size, crop_attr_names = request.param
+        sp_cxml = (
+            'p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},p:spPr/a:xfrm/a:ext{cx=99'
+            ',cy=99})'
+        )
+        sp = element(sp_cxml)
+        picture_ph = PicturePlaceholder(sp, None)
+        image_file = 'foobar.png'
+        _get_or_add_image_.return_value = 42, 'bar', image_size
+        expected_xml = xml(
+            'p:pic/(p:nvPicPr/(p:cNvPr{id=2,name=foo,descr=bar},p:cNvPicPr/a'
+            ':picLocks{noGrp=1,noChangeAspect=1},p:nvPr),p:blipFill/(a:blip{'
+            'r:embed=42},a:srcRect{%s=12500,%s=12500},a:stretch/a:fillRect),'
+            'p:spPr)' % crop_attr_names
+        )
+        return picture_ph, image_file, expected_xml
+
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _get_or_add_image_(self, request):
+        return method_mock(
+            request, PicturePlaceholder, '_get_or_add_image'
+        )
 
     @pytest.fixture
     def _new_placeholder_pic_(self, request):
