@@ -137,6 +137,16 @@ class _BaseSlidePlaceholder(_InheritsDimensions, BaseShape):
         """
         return MSO_SHAPE_TYPE.PLACEHOLDER
 
+    def _replace_placeholder_with(self, element):
+        """
+        Substitute *element* for this placeholder element in the shapetree.
+        This placeholder's `._element` attribute is set to |None| and its
+        original element is free for garbage collection. Any attribute access
+        (including a method call) on this placeholder after this call raises
+        |AttributeError|.
+        """
+        raise NotImplementedError
+
 
 class BasePlaceholder(Shape):
     """
@@ -294,6 +304,28 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape that can only accept a picture.
     """
+    def insert_picture(self, image_file):
+        """
+        Return a |PlaceholderPicture| object depicting the image in
+        *image_file*, which may be either a path (string) or a file-like
+        object. The image is cropped to fill the entire space of the
+        placeholder. A |PlaceholderPicture| object has all the properties and
+        methods of a |Picture| shape. Except that the value of its
+        :attr:`~._BaseSlidePlaceholder.shape_type` property is
+        `MSO_SHAPE_TYPE.PLACEHOLDER` instead of `MSO_SHAPE_TYPE.PICTURE`.
+        """
+        pic = self._new_placeholder_pic(image_file)
+        self._replace_placeholder_with(pic)
+        return PlaceholderPicture(pic, self._parent)
+
+    def _new_placeholder_pic(self, image_file):
+        """
+        Return a new `p:pic` element depicting the image in *image_file*,
+        suitable for use as a placeholder. In particular this means not
+        having an `a:xfrm` element, allowing its extents to be inherited from
+        its layout placeholder.
+        """
+        raise NotImplementedError
 
 
 class PlaceholderPicture(_InheritsDimensions, Picture):

@@ -15,7 +15,7 @@ from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
 from pptx.shapes.placeholder import (
     BasePlaceholder, _BaseSlidePlaceholder, LayoutPlaceholder,
-    MasterPlaceholder
+    MasterPlaceholder, PicturePlaceholder, PlaceholderPicture
 )
 from pptx.shapes.shapetree import BaseShapeTree
 
@@ -24,7 +24,9 @@ from ..oxml.unitdata.shape import (
     an_nvSpPr, an_sp, an_spPr, an_xfrm
 )
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import instance_mock, method_mock, property_mock
+from ..unitutil.mock import (
+    class_mock, instance_mock, method_mock, property_mock
+)
 
 
 class Describe_BaseSlidePlaceholder(object):
@@ -456,3 +458,55 @@ class DescribeLayoutPlaceholder(object):
     @pytest.fixture
     def width(self):
         return 31416
+
+
+class DescribePicturePlaceholder(object):
+
+    def it_can_insert_a_picture_into_itself(self, insert_fixture):
+        picture_ph, image_file, pic = insert_fixture[:3]
+        PlaceholderPicture_, placeholder_picture_ = insert_fixture[3:]
+
+        placeholder_picture = picture_ph.insert_picture(image_file)
+
+        picture_ph._new_placeholder_pic.assert_called_once_with(image_file)
+        picture_ph._replace_placeholder_with.assert_called_once_with(pic)
+        PlaceholderPicture_.assert_called_once_with(pic, picture_ph._parent)
+        assert placeholder_picture is placeholder_picture_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def insert_fixture(self, PlaceholderPicture_, placeholder_picture_,
+                       _new_placeholder_pic_, _replace_placeholder_with_):
+        picture_ph = PicturePlaceholder(None, 'parent')
+        image_file, pic = 'foobar.png', element('p:pic')
+        _new_placeholder_pic_.return_value = pic
+        PlaceholderPicture_.return_value = placeholder_picture_
+        return (
+            picture_ph, image_file, pic, PlaceholderPicture_,
+            placeholder_picture_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _new_placeholder_pic_(self, request):
+        return method_mock(
+            request, PicturePlaceholder, '_new_placeholder_pic'
+        )
+
+    @pytest.fixture
+    def PlaceholderPicture_(self, request):
+        return class_mock(
+            request, 'pptx.shapes.placeholder.PlaceholderPicture'
+        )
+
+    @pytest.fixture
+    def placeholder_picture_(self, request):
+        return instance_mock(request, PlaceholderPicture)
+
+    @pytest.fixture
+    def _replace_placeholder_with_(self, request):
+        return method_mock(
+            request, PicturePlaceholder, '_replace_placeholder_with'
+        )
