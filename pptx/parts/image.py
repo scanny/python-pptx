@@ -30,6 +30,10 @@ class ImagePart(Part):
         self._filename = filename
 
     @classmethod
+    def load(cls, partname, content_type, blob, package):
+        return cls(partname, content_type, blob, package)
+
+    @classmethod
     def new(cls, package, image):
         """
         Return a new |ImagePart| instance containing *image*, which is an
@@ -60,10 +64,6 @@ class ImagePart(Part):
         Return file extension for this image e.g. ``'png'``.
         """
         return self.partname.ext
-
-    @classmethod
-    def load(cls, partname, content_type, blob, package):
-        return cls(partname, content_type, blob, package)
 
     def scale(self, scaled_cx, scaled_cy):
         """

@@ -33,11 +33,6 @@ from ..unitutil.mock import (
 
 class DescribeBaseSlide(object):
 
-    def it_provides_access_to_its_spTree_element_to_help_ShapeTree(
-            self, slide):
-        spTree = slide.spTree
-        assert isinstance(spTree, CT_GroupShape)
-
     def it_knows_its_name(self, name_fixture):
         base_slide, expected_value = name_fixture
         assert base_slide.name == expected_value
@@ -53,6 +48,10 @@ class DescribeBaseSlide(object):
         slide.relate_to.assert_called_once_with(image_part_, RT.IMAGE)
         assert image_part is image_part_
         assert rId is rId_
+
+    def it_provides_access_to_its_spTree_element_to_help(self, slide):
+        spTree = slide.spTree
+        assert isinstance(spTree, CT_GroupShape)
 
     # fixtures -------------------------------------------------------
 
