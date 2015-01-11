@@ -146,7 +146,10 @@ class _BaseSlidePlaceholder(_InheritsDimensions, BaseShape):
         (including a method call) on this placeholder after this call raises
         |AttributeError|.
         """
-        raise NotImplementedError
+        element._nvXxPr.nvPr._insert_ph(self._element.ph)
+        self._element.addprevious(element)
+        self._element.getparent().remove(self._element)
+        self._element = None
 
 
 class BasePlaceholder(Shape):

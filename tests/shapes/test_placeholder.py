@@ -67,6 +67,12 @@ class Describe_BaseSlidePlaceholder(object):
         setattr(placeholder, prop_name, value)
         assert placeholder._element.xml == expected_xml
 
+    def it_replaces_a_placeholder_element_to_help(self, replace_fixture):
+        placeholder, element, spTree, expected_xml = replace_fixture
+        placeholder._replace_placeholder_with(element)
+        assert spTree.xml == expected_xml
+        assert placeholder._element is None
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -123,6 +129,18 @@ class Describe_BaseSlidePlaceholder(object):
         prop_name, sp_cxml, value = request.param
         slide_placeholder = _BaseSlidePlaceholder(element(sp_cxml), None)
         return slide_placeholder, prop_name, value
+
+    @pytest.fixture
+    def replace_fixture(self):
+        spTree = element(
+            'p:spTree/p:sp/p:nvSpPr/p:nvPr/p:ph{type=pic,idx=10}'
+        )
+        pic = element('p:pic/p:nvPicPr/p:nvPr')
+        placeholder = _BaseSlidePlaceholder(spTree[0], None)
+        expected_xml = xml(
+            'p:spTree/p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=10}'
+        )
+        return placeholder, pic, spTree, expected_xml
 
     @pytest.fixture
     def slide_layout_fixture(self, part_prop_, slide_, slide_layout_):

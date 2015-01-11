@@ -145,3 +145,4 @@ class CT_PictureNonVisual(BaseOxmlElement):
     shape.
     """
     cNvPr = OneAndOnlyOne('p:cNvPr')
+    nvPr = OneAndOnlyOne('p:nvPr')
