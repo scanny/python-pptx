@@ -26,6 +26,15 @@ class Picture(BaseShape):
         """
         return self._pic.get_or_add_ln()
 
+    @property
+    def image(self):
+        """
+        An |Image| object providing access to the properties and bytes of the
+        image in this picture shape.
+        """
+        slide, rId = self.part, self._element.blip_rId
+        return slide.get_image(rId)
+
     @lazyproperty
     def line(self):
         """

@@ -22,6 +22,14 @@ class BaseSlide(XmlPart):
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.
     """
+    def get_image(self, rId):
+        """
+        Return an |Image| object containing the image related to this slide
+        by *rId*. Raises |KeyError| if no image is related by that id, which
+        would generally indicate a corrupted .pptx file.
+        """
+        raise NotImplementedError
+
     def get_or_add_image_part(self, image_file):
         """
         Return an ``(image_part, rId)`` 2-tuple corresponding to an

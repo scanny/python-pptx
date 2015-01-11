@@ -536,6 +536,10 @@ class ST_PositiveCoordinate(XsdLong):
         cls.validate_int_in_range(value, 0, 27273042316900)
 
 
+class ST_RelationshipId(XsdString):
+    pass
+
+
 class ST_SlideId(XsdUnsignedInt):
 
     @classmethod

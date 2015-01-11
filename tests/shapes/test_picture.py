@@ -10,13 +10,22 @@ import pytest
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.parts.image import Image
+from pptx.parts.slide import Slide
 from pptx.shapes.picture import Picture
 from pptx.util import Pt
 
-from ..oxml.unitdata.shape import a_pic, an_spPr
+from ..unitutil.cxml import element
+from ..unitutil.mock import instance_mock, property_mock
 
 
 class Describe_Picture(object):
+
+    def it_provides_access_to_its_image(self, image_fixture):
+        picture, slide_, rId, image_ = image_fixture
+        image = picture.image
+        slide_.get_image.assert_called_once_with(rId)
+        assert image is image_
 
     def it_has_a_line(self, picture):
         assert isinstance(picture.line, LineFormat)
@@ -30,6 +39,27 @@ class Describe_Picture(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
+    def image_fixture(self, part_prop_, slide_, image_):
+        pic_cxml, rId = 'p:pic/p:blipFill/a:blip{r:embed=rId42}', 'rId42'
+        picture = Picture(element(pic_cxml), None)
+        slide_.get_image.return_value = image_
+        return picture, slide_, rId, image_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def image_(self, request):
+        return instance_mock(request, Image)
+
+    @pytest.fixture
+    def part_prop_(self, request, slide_):
+        return property_mock(request, Picture, 'part', return_value=slide_)
+
+    @pytest.fixture
     def picture(self):
-        pic = a_pic().with_nsdecls().with_child(an_spPr()).element
-        return Picture(pic, None)
+        pic_cxml = 'p:pic/p:spPr'
+        return Picture(element(pic_cxml), None)
+
+    @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, Slide)

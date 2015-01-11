@@ -127,10 +127,11 @@ register_element_cls('a:sysClr',    CT_SystemColor)
 
 
 from .dml.fill import (
-    CT_BlipFillProperties, CT_GradientFillProperties, CT_GroupFillProperties,
-    CT_NoFillProperties, CT_PatternFillProperties, CT_RelativeRect,
-    CT_SolidColorFillProperties
+    CT_Blip, CT_BlipFillProperties, CT_GradientFillProperties,
+    CT_GroupFillProperties, CT_NoFillProperties, CT_PatternFillProperties,
+    CT_RelativeRect, CT_SolidColorFillProperties
 )
+register_element_cls('a:blip',      CT_Blip)
 register_element_cls('a:blipFill',  CT_BlipFillProperties)
 register_element_cls('a:gradFill',  CT_GradientFillProperties)
 register_element_cls('a:grpFill',   CT_GroupFillProperties)

@@ -6,10 +6,17 @@ lxml custom element classes for DrawingML-related XML elements.
 
 from __future__ import absolute_import
 
-from ..simpletypes import ST_Percentage
+from ..simpletypes import ST_Percentage, ST_RelationshipId
 from ..xmlchemy import (
     BaseOxmlElement, Choice, OptionalAttribute, ZeroOrOne, ZeroOrOneChoice
 )
+
+
+class CT_Blip(BaseOxmlElement):
+    """
+    <a:blip> element
+    """
+    rEmbed = OptionalAttribute('r:embed', ST_RelationshipId)
 
 
 class CT_BlipFillProperties(BaseOxmlElement):
@@ -17,6 +24,7 @@ class CT_BlipFillProperties(BaseOxmlElement):
     Custom element class for <a:blipFill> element.
     """
     _tag_seq = ('a:blip', 'a:srcRect', 'a:tile', 'a:stretch')
+    blip = ZeroOrOne('a:blip', successors=_tag_seq[1:])
     srcRect = ZeroOrOne('a:srcRect', successors=_tag_seq[2:])
     del _tag_seq
 
