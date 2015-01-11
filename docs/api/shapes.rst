@@ -105,3 +105,17 @@ The following properties and methods are defined for placeholder shapes.
       adjustments, get_or_add_ln, ln, part, shape_type
    :inherited-members:
    :undoc-members:
+
+.. autoclass:: pptx.shapes.placeholder.PicturePlaceholder()
+   :members:
+   :exclude-members:
+      has_chart, has_table, has_textframe, has_text_frame
+   :inherited-members:
+   :undoc-members:
+
+.. autoclass:: pptx.shapes.placeholder.PlaceholderPicture()
+   :members:
+   :inherited-members:
+   :exclude-members:
+      has_chart, has_table, has_textframe, has_text_frame, ln
+   :undoc-members:

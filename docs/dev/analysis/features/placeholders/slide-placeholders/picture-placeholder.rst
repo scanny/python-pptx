@@ -33,6 +33,8 @@ PicturePlaceholder.insert_picture()::
 Example XML
 -----------
 
+.. highlight:: xml
+
 A picture-only layout placholder::
 
   <p:sp>

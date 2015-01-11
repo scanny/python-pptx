@@ -74,6 +74,8 @@ rst_epilog = """
 
 .. |AdjustmentCollection| replace:: :class:`AdjustmentCollection`
 
+.. |AttributeError| replace:: :exc:`AttributeError`
+
 .. |Axis| replace:: :class:`Axis`
 
 .. |BarPlot| replace:: :class:`.BarPlot`
@@ -177,6 +179,10 @@ rst_epilog = """
 .. |Picture| replace:: :class:`.Picture`
 
 .. |_PlaceholderFormat| replace:: :class:`._PlaceholderFormat`
+
+.. |PlaceholderGraphicFrame| replace:: :class:`.PlaceholderGraphicFrame`
+
+.. |PlaceholderPicture| replace:: :class:`.PlaceholderPicture`
 
 .. |Plot| replace:: :class:`.Plot`
 

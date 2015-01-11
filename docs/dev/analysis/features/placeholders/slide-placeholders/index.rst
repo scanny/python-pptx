@@ -6,6 +6,7 @@ Slide Placeholders
    :titlesonly:
 
    picture-placeholder
+   table-placeholder
 
 
 Candidate protocol
