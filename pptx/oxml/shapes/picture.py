@@ -77,6 +77,34 @@ class CT_Picture(BaseShapeElement):
         pic = parse_xml(xml)
         return pic
 
+    @property
+    def srcRect_b(self):
+        """
+        Value of `p:blipFill/a:srcRect/@b` or 0.0 if not present.
+        """
+        return self._srcRect_x('b')
+
+    @property
+    def srcRect_l(self):
+        """
+        Value of `p:blipFill/a:srcRect/@l` or 0.0 if not present.
+        """
+        return self._srcRect_x('l')
+
+    @property
+    def srcRect_r(self):
+        """
+        Value of `p:blipFill/a:srcRect/@r` or 0.0 if not present.
+        """
+        return self._srcRect_x('r')
+
+    @property
+    def srcRect_t(self):
+        """
+        Value of `p:blipFill/a:srcRect/@t` or 0.0 if not present.
+        """
+        return self._srcRect_x('t')
+
     def _fill_cropping(self, image_size, view_size):
         """
         Return a (left, top, right, bottom) 4-tuple containing the cropping
@@ -148,6 +176,15 @@ class CT_Picture(BaseShapeElement):
             '  </p:spPr>\n'
             '</p:pic>' % nsdecls('a', 'p', 'r')
         )
+
+    def _srcRect_x(self, attr_name):
+        """
+        Value of `p:blipFill/a:srcRect/@{attr_name}` or 0.0 if not present.
+        """
+        srcRect = self.blipFill.srcRect
+        if srcRect is None:
+            return 0.0
+        return getattr(srcRect, attr_name)
 
 
 class CT_PictureNonVisual(BaseOxmlElement):

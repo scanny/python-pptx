@@ -19,6 +19,40 @@ class Picture(BaseShape):
         super(Picture, self).__init__(pic, parent)
         self._pic = pic
 
+    @property
+    def crop_bottom(self):
+        """
+        A |float| representing the relative portion cropped from the bottom
+        of this picture where 1.0 represents 100%. For example, 25% is
+        represented by 0.25. Negative values are valid as are values greater
+        than 1.0.
+        """
+        return self._element.srcRect_b
+
+    @property
+    def crop_left(self):
+        """
+        A |float| representing the relative portion cropped from the left
+        side of this picture where 1.0 represents 100%.
+        """
+        return self._element.srcRect_l
+
+    @property
+    def crop_right(self):
+        """
+        A |float| representing the relative portion cropped from the right
+        side of this picture where 1.0 represents 100%.
+        """
+        return self._element.srcRect_r
+
+    @property
+    def crop_top(self):
+        """
+        A |float| representing the relative portion cropped from the top of
+        this picture where 1.0 represents 100%.
+        """
+        return self._element.srcRect_t
+
     def get_or_add_ln(self):
         """
         Return the ``<a:ln>`` element containing the line format properties

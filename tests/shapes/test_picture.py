@@ -36,7 +36,27 @@ class Describe_Picture(object):
     def it_knows_its_shape_type(self, picture):
         assert picture.shape_type == MSO_SHAPE_TYPE.PICTURE
 
+    def it_knows_its_cropping(self, crop_get_fixture):
+        picture, prop_name, expected_value = crop_get_fixture
+        crop = getattr(picture, prop_name)
+        assert abs(crop - expected_value) < 0.000001
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('p:pic/p:blipFill',                     'left',    0.0),
+        ('p:pic/p:blipFill/a:srcRect',           'top',     0.0),
+        ('p:pic/p:blipFill/a:srcRect{l=99999}',  'bottom',  0.0),
+        ('p:pic/p:blipFill/a:srcRect{l=42424}',  'left',    0.42424),
+        ('p:pic/p:blipFill/a:srcRect{t=-10000}', 'top',    -0.1),
+        ('p:pic/p:blipFill/a:srcRect{r=250000}', 'right',   2.5),
+        ('p:pic/p:blipFill/a:srcRect{b=33333}',  'bottom',  0.33333),
+    ])
+    def crop_get_fixture(self, request):
+        pic_cxml, side, expected_value = request.param
+        picture = Picture(element(pic_cxml), None)
+        prop_name = 'crop_%s' % side
+        return picture, prop_name, expected_value
 
     @pytest.fixture
     def image_fixture(self, part_prop_, slide_, image_):
