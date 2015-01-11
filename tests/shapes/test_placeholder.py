@@ -10,6 +10,7 @@ import pytest
 
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
+from pptx.parts.image import ImagePart
 from pptx.parts.slide import Slide
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
@@ -479,7 +480,28 @@ class DescribePicturePlaceholder(object):
         picture_ph._get_or_add_image.assert_called_once_with(image_file)
         assert pic.xml == expected_xml
 
+    def it_adds_an_image_to_help(self, get_or_add_fixture):
+        placeholder, image_file, expected_value = get_or_add_fixture
+
+        value = placeholder._get_or_add_image(image_file)
+
+        placeholder.part.get_or_add_image_part.assert_called_once_with(
+            image_file
+        )
+        assert value == expected_value
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def get_or_add_fixture(self, part_prop_, image_part_):
+        placeholder = PicturePlaceholder(None, None)
+        image_file, rId, desc, image_size = 'f.png', 'rId6', 'desc', (42, 24)
+        part_prop_.return_value.get_or_add_image_part.return_value = (
+            image_part_, rId
+        )
+        image_part_.desc, image_part_._px_size = desc, image_size
+        expected_value = rId, desc, image_size
+        return placeholder, image_file, expected_value
 
     @pytest.fixture
     def insert_fixture(self, PlaceholderPicture_, placeholder_picture_,
@@ -524,9 +546,19 @@ class DescribePicturePlaceholder(object):
         )
 
     @pytest.fixture
+    def image_part_(self, request):
+        return instance_mock(request, ImagePart)
+
+    @pytest.fixture
     def _new_placeholder_pic_(self, request):
         return method_mock(
             request, PicturePlaceholder, '_new_placeholder_pic'
+        )
+
+    @pytest.fixture
+    def part_prop_(self, request, slide_):
+        return property_mock(
+            request, PicturePlaceholder, 'part', return_value=slide_
         )
 
     @pytest.fixture
@@ -544,3 +576,7 @@ class DescribePicturePlaceholder(object):
         return method_mock(
             request, PicturePlaceholder, '_replace_placeholder_with'
         )
+
+    @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, Slide)

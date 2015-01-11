@@ -337,7 +337,9 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         Return an (rId, description, image_size) 3-tuple identifying the
         related image part containing *image_file* and describing the image.
         """
-        raise NotImplementedError
+        image_part, rId = self.part.get_or_add_image_part(image_file)
+        desc, image_size = image_part.desc, image_part._px_size
+        return rId, desc, image_size
 
 
 class PlaceholderPicture(_InheritsDimensions, Picture):
