@@ -65,6 +65,13 @@ class ImagePart(Part):
         """
         return self.partname.ext
 
+    @property
+    def image(self):
+        """
+        An |Image| object containing the image in this image part.
+        """
+        raise NotImplementedError
+
     def scale(self, scaled_cx, scaled_cy):
         """
         Return scaled image dimensions in EMU based on the combination of

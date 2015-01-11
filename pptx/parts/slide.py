@@ -28,7 +28,7 @@ class BaseSlide(XmlPart):
         by *rId*. Raises |KeyError| if no image is related by that id, which
         would generally indicate a corrupted .pptx file.
         """
-        raise NotImplementedError
+        return self.related_parts[rId].image
 
     def get_or_add_image_part(self, image_file):
         """

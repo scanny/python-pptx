@@ -17,7 +17,7 @@ from pptx.oxml.parts.slide import CT_Slide
 from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
-from pptx.parts.image import ImagePart
+from pptx.parts.image import Image, ImagePart
 from pptx.parts.slide import BaseSlide, Slide, _SlidePlaceholders
 from pptx.parts.slidelayout import SlideLayout
 from pptx.shapes.placeholder import _BaseSlidePlaceholder
@@ -36,6 +36,10 @@ class DescribeBaseSlide(object):
     def it_knows_its_name(self, name_fixture):
         base_slide, expected_value = name_fixture
         assert base_slide.name == expected_value
+
+    def it_can_get_a_related_image_by_rId(self, get_image_fixture):
+        slide, rId, image_ = get_image_fixture
+        assert slide.get_image(rId) is image_
 
     def it_can_add_an_image_part(self, image_part_fixture):
         slide, image_file, image_part_, rId_ = image_part_fixture
@@ -56,6 +60,14 @@ class DescribeBaseSlide(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
+    def get_image_fixture(self, related_parts_prop_, image_part_, image_):
+        slide = BaseSlide(None, None, None, None)
+        rId = 'rId42'
+        related_parts_prop_.return_value = {rId: image_part_}
+        image_part_.image = image_
+        return slide, rId, image_
+
+    @pytest.fixture
     def image_part_fixture(
             self, partname_, package_, image_part_, relate_to_):
         slide = BaseSlide(partname_, None, None, package_)
@@ -74,6 +86,10 @@ class DescribeBaseSlide(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def image_(self, request):
+        return instance_mock(request, Image)
+
+    @pytest.fixture
     def image_part_(self, request):
         return instance_mock(request, ImagePart)
 
@@ -88,6 +104,10 @@ class DescribeBaseSlide(object):
     @pytest.fixture
     def relate_to_(self, request):
         return method_mock(request, BaseSlide, 'relate_to')
+
+    @pytest.fixture
+    def related_parts_prop_(self, request):
+        return property_mock(request, BaseSlide, 'related_parts')
 
     @pytest.fixture
     def slide(self):
