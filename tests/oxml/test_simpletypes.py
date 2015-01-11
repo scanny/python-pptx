@@ -232,17 +232,18 @@ class DescribeST_Percentage(object):
 
     def it_can_convert_from_xml_percent_literals(self, percent_fixture):
         str_value, expected_value = percent_fixture
-        assert ST_Percentage.convert_from_xml(str_value) == expected_value
+        value = ST_Percentage.convert_from_xml(str_value)
+        assert abs(value - expected_value) < 0.000001
 
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('12.34%',     12340),
-        ('42%',        42000),
-        ('024%',       24000),
-        ('-42%',      -42000),
-        ('-036.214%', -36214),
-        ('0%',             0),
+        ('12.34%',     0.1234),
+        ('42%',        0.42),
+        ('024%',       0.24),
+        ('-42%',      -0.42),
+        ('-036.214%', -0.36214),
+        ('0%',         0.0),
     ])
     def percent_fixture(self, request):
         str_value, expected_value = request.param

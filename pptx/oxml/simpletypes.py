@@ -502,14 +502,20 @@ class ST_Percentage(BaseIntType):
     def convert_from_xml(cls, str_value):
         if '%' in str_value:
             return cls._convert_from_percent_literal(str_value)
-        return int(str_value)
+        return int(str_value) / 100000.0
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return str(int(round(value*100000.0)))
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_float_in_range(value, -21474.83648, 21474.83647)
 
     @classmethod
     def _convert_from_percent_literal(cls, str_value):
         float_part = str_value[:-1]  # trim off '%' character
-        percent_value = float(float_part)
-        int_value = int(round(percent_value * 1000))
-        return int_value
+        return float(float_part) / 100.0
 
 
 class ST_PlaceholderSize(XsdTokenEnumeration):

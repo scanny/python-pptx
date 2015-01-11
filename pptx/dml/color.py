@@ -132,13 +132,11 @@ class _Color(object):
         # a tint is lighter, a shade is darker
         # only tints have lumOff child
         if lumOff is not None:
-            val = lumOff.val
-            brightness = val / 100000.0
+            brightness = lumOff.val
             return brightness
         # which leaves shades, if lumMod is present
         if lumMod is not None:
-            val = lumMod.val
-            brightness = -1.0 + (val/100000.0)
+            brightness = lumMod.val - 1.0
             return brightness
         # there's no brightness adjustment if no lum{Mod|Off} elements
         return 0
@@ -173,13 +171,13 @@ class _Color(object):
         return MSO_THEME_COLOR.NOT_THEME_COLOR
 
     def _shade(self, value):
-        lumMod_val = 100000 - int(abs(value) * 100000)
+        lumMod_val = 1.0 - abs(value)
         color_elm = self._xClr.clear_lum()
         color_elm.add_lumMod(lumMod_val)
 
     def _tint(self, value):
-        lumOff_val = int(value * 100000)
-        lumMod_val = 100000 - lumOff_val
+        lumOff_val = value
+        lumMod_val = 1.0 - lumOff_val
         color_elm = self._xClr.clear_lum()
         color_elm.add_lumMod(lumMod_val)
         color_elm.add_lumOff(lumOff_val)
