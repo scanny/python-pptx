@@ -307,6 +307,12 @@ class SlidePlaceholder(_InheritsDimensions, Shape):
     """
 
 
+class ChartPlaceholder(_BaseSlidePlaceholder):
+    """
+    Placeholder shape that can only accept a chart.
+    """
+
+
 class PicturePlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape that can only accept a picture.

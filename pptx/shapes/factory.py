@@ -15,8 +15,8 @@ from .graphfrm import GraphicFrame
 from ..oxml.ns import qn
 from .picture import Picture
 from .placeholder import (
-    PicturePlaceholder, PlaceholderGraphicFrame, PlaceholderPicture,
-    SlidePlaceholder, TablePlaceholder
+    ChartPlaceholder, PicturePlaceholder, PlaceholderGraphicFrame,
+    PlaceholderPicture, SlidePlaceholder, TablePlaceholder
 )
 
 
@@ -52,6 +52,7 @@ def _SlidePlaceholderFactory(shape_elm, parent):
     if tag == qn('p:sp'):
         Constructor = {
             PP_PLACEHOLDER.BITMAP:  PicturePlaceholder,
+            PP_PLACEHOLDER.CHART:   ChartPlaceholder,
             PP_PLACEHOLDER.PICTURE: PicturePlaceholder,
             PP_PLACEHOLDER.TABLE:   TablePlaceholder,
         }.get(shape_elm.ph_type, SlidePlaceholder)
