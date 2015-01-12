@@ -180,42 +180,42 @@ class Describe_SlidePlaceholderFactory(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('p:sp/p:nvSpPr/p:nvPr/p:ph{type=title}',           'sp'),
-        ('p:sp/p:nvSpPr/p:nvPr/p:ph{type=pic,idx=1}',       'pph'),
-        ('p:sp/p:nvSpPr/p:nvPr/p:ph{type=clipArt,idx=1}',   'pph'),
-        ('p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=1}',     'php'),
-        ('p:graphfrm/p:nvSpPr/p:nvPr/p:ph{type=tbl,idx=2}', 'bsf'),
+        ('p:sp/p:nvSpPr/p:nvPr/p:ph{type=title}',               'sp'),
+        ('p:sp/p:nvSpPr/p:nvPr/p:ph{type=pic,idx=1}',           'pph'),
+        ('p:sp/p:nvSpPr/p:nvPr/p:ph{type=clipArt,idx=1}',       'pph'),
+        ('p:sp/p:nvSpPr/p:nvPr/p:ph{type=tbl,idx=1}',           'tph'),
+        ('p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=1}',         'php'),
+        ('p:graphicFrame/p:nvSpPr/p:nvPr/p:ph{type=tbl,idx=2}', 'phgf'),
+        ('p:graphicFrame/p:nvSpPr/p:nvPr/p:ph{type=dgm,idx=2}', 'phgf'),
     ])
-    def factory_fixture(self, request, SlidePlaceholder_,
-                        PicturePlaceholder_, PlaceholderPicture_,
-                        placeholder_, BaseShapeFactory_, base_shape_):
+    def factory_fixture(
+            self, request, SlidePlaceholder_, PicturePlaceholder_,
+            TablePlaceholder_, PlaceholderGraphicFrame_, PlaceholderPicture_,
+            placeholder_):
         shape_cxml, constructor_key = request.param
         shape_elm = element(shape_cxml)
         Constructor_, shape_ = {
-            'sp':  (SlidePlaceholder_,   placeholder_),
-            'pph': (PicturePlaceholder_, placeholder_),
-            'php': (PlaceholderPicture_, placeholder_),
-            'bsf': (BaseShapeFactory_,   base_shape_),
+            'sp':   (SlidePlaceholder_,        placeholder_),
+            'pph':  (PicturePlaceholder_,      placeholder_),
+            'tph':  (TablePlaceholder_,        placeholder_),
+            'phgf': (PlaceholderGraphicFrame_, placeholder_),
+            'php':  (PlaceholderPicture_,      placeholder_),
         }[constructor_key]
         return shape_elm, 42, Constructor_, shape_
 
     # fixture components -----------------------------------
 
     @pytest.fixture
-    def BaseShapeFactory_(self, request, base_shape_):
-        return function_mock(
-            request, 'pptx.shapes.factory.BaseShapeFactory',
-            return_value=base_shape_
-        )
-
-    @pytest.fixture
-    def base_shape_(self, request):
-        return instance_mock(request, BaseShape)
-
-    @pytest.fixture
     def PicturePlaceholder_(self, request, placeholder_):
         return class_mock(
             request, 'pptx.shapes.factory.PicturePlaceholder',
+            return_value=placeholder_
+        )
+
+    @pytest.fixture
+    def PlaceholderGraphicFrame_(self, request, placeholder_):
+        return class_mock(
+            request, 'pptx.shapes.factory.PlaceholderGraphicFrame',
             return_value=placeholder_
         )
 
@@ -234,5 +234,12 @@ class Describe_SlidePlaceholderFactory(object):
     def SlidePlaceholder_(self, request, placeholder_):
         return class_mock(
             request, 'pptx.shapes.factory.SlidePlaceholder',
+            return_value=placeholder_
+        )
+
+    @pytest.fixture
+    def TablePlaceholder_(self, request, placeholder_):
+        return class_mock(
+            request, 'pptx.shapes.factory.TablePlaceholder',
             return_value=placeholder_
         )

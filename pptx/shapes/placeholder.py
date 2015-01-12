@@ -11,6 +11,7 @@ from __future__ import (
 from .autoshape import Shape
 from .base import BaseShape
 from ..enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
+from .graphfrm import GraphicFrame
 from ..oxml.shapes.picture import CT_Picture
 from .picture import Picture
 
@@ -345,7 +346,19 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         return rId, desc, image_size
 
 
+class PlaceholderGraphicFrame(GraphicFrame):
+    """
+    Placeholder shape populated with a table, chart, or smart art.
+    """
+
+
 class PlaceholderPicture(_InheritsDimensions, Picture):
     """
     Placeholder shape populated with a picture.
+    """
+
+
+class TablePlaceholder(_BaseSlidePlaceholder):
+    """
+    Placeholder shape that can only accept a picture.
     """
