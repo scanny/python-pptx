@@ -13,7 +13,6 @@ from behave import given, when, then
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.shapes.base import _PlaceholderFormat
-from pptx.shapes.placeholder import PlaceholderPicture
 
 from helpers import saved_pptx_path, test_file, test_pptx, test_text
 
@@ -103,7 +102,13 @@ def when_I_call_placeholder_insert_picture(context, filename):
     path = test_file(filename)
     with open(path, 'rb') as f:
         context.image_sha1 = hashlib.sha1(f.read()).hexdigest()
-    context.placeholder_picture = placeholder.insert_picture(path)
+    context.placeholder = placeholder.insert_picture(path)
+
+
+@when('I call placeholder.insert_table(rows=2, cols=3)')
+def when_I_call_placeholder_insert_table(context):
+    placeholder = context.shape
+    context.placeholder = placeholder.insert_table(2, 3)
 
 
 @when('I indent the first paragraph')
@@ -185,10 +190,11 @@ def then_slide_shapes_0_is_a_cls_proxy_for_that_placeholder(context, cls):
     assert clsname == cls, 'got %s' % clsname
 
 
-@then('the return value is a PlaceholderPicture object')
-def then_the_return_value_is_a_PlaceholderPicture_object(context):
-    placeholder_picture = context.placeholder_picture
-    assert isinstance(placeholder_picture, PlaceholderPicture)
+@then('the return value is a Placeholder{type} object')
+def then_the_return_value_is_a_PlaceholderType_object(context, type):
+    expected_type_name = 'Placeholder%s' % type
+    placeholder_type_name = context.placeholder.__class__.__name__
+    assert placeholder_type_name == expected_type_name
 
 
 @then('the paragraph is indented')
@@ -202,8 +208,15 @@ def then_the_paragraph_is_indented(context):
 
 @then('the placeholder contains the image')
 def then_the_placeholder_contains_the_image(context):
-    placeholder_picture = context.placeholder_picture
+    placeholder_picture = context.placeholder
     assert placeholder_picture.image.sha1 == context.image_sha1
+
+
+@then('the placeholder contains the table')
+def then_the_placeholder_contains_the_table(context):
+    placeholder_graphic_frame = context.placeholder
+    assert placeholder_graphic_frame.has_table
+    context.table_ = placeholder_graphic_frame.table
 
 
 @then('the placeholder\'s position and size are inherited from its layout')
@@ -227,11 +240,18 @@ def then_the_sides_crop_is_value(context, sides, value):
         'left and right': ('crop_left', 'crop_right'),
     }[sides]
     expected_value = float(value)
-    placeholder_picture = context.placeholder_picture
+    placeholder_picture = context.placeholder
     for prop_name in side_prop_names:
         value = getattr(placeholder_picture, prop_name)
         difference = abs(expected_value - value)
         assert difference < 0.000002, 'got %s for %s' % (value, prop_name)
+
+
+@then('the table has 2 rows and 3 columns')
+def then_the_table_has_2_rows_and_3_columns(context):
+    table = context.table_
+    assert len(table.rows) == 2
+    assert len(table.columns) == 3
 
 
 @then('the text appears in the title placeholder')
