@@ -11,6 +11,8 @@ import hashlib
 from behave import given, when, then
 
 from pptx import Presentation
+from pptx.chart.data import ChartData
+from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.shapes.base import _PlaceholderFormat
 
@@ -95,6 +97,17 @@ def given_an_unpopulated_placeholder_shape(context, placeholder_type):
 
 
 # when ====================================================
+
+@when('I call placeholder.insert_chart(XL_CHART_TYPE.PIE, chart_data)')
+def when_I_call_placeholder_insert_chart(context):
+    chart_data = ChartData()
+    chart_data.categories = ['Yes', 'No']
+    chart_data.add_series('Series 1', (42, 24))
+    placeholder = context.shape
+    context.placeholder = placeholder.insert_chart(
+        XL_CHART_TYPE.PIE, chart_data
+    )
+
 
 @when('I call placeholder.insert_picture(\'{filename}\')')
 def when_I_call_placeholder_insert_picture(context, filename):
@@ -190,6 +203,12 @@ def then_slide_shapes_0_is_a_cls_proxy_for_that_placeholder(context, cls):
     assert clsname == cls, 'got %s' % clsname
 
 
+@then('the chart is a pie chart')
+def then_the_chart_is_a_pie_chart(context):
+    chart = context.chart
+    assert chart.chart_type == XL_CHART_TYPE.PIE
+
+
 @then('the return value is a Placeholder{type} object')
 def then_the_return_value_is_a_PlaceholderType_object(context, type):
     expected_type_name = 'Placeholder%s' % type
@@ -204,6 +223,13 @@ def then_the_paragraph_is_indented(context):
     body = sld.shapes.placeholders[1]
     p = body.text_frame.paragraphs[0]
     assert p.level == 1
+
+
+@then('the placeholder contains the chart')
+def then_the_placeholder_contains_the_chart(context):
+    placeholder_graphic_frame = context.placeholder
+    assert placeholder_graphic_frame.has_chart
+    context.chart = placeholder_graphic_frame.chart
 
 
 @then('the placeholder contains the image')
