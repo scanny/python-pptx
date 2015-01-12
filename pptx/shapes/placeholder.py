@@ -311,6 +311,30 @@ class ChartPlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape that can only accept a chart.
     """
+    def insert_chart(self, chart_type, chart_data):
+        """
+        Insert a new chart of *chart_type* into this placeholder, having the
+        same extents as this placeholder and depicting *chart_data*.
+        *chart_type* is one of the :ref:`XlChartType` enumeration values.
+        *chart_data* is a |ChartData| object populated with the categories
+        and series values for the chart. Note that
+        a |PlaceholderGraphicFrame| object is returned, not the |Chart|
+        object contained in that graphic frame shape. The chart object may be
+        accessed using the :attr:`chart` property of the returned object.
+        """
+        rId = self.part.add_chart_part(chart_type, chart_data)
+        graphicFrame = self._new_chart_graphicFrame(
+            rId, self.left, self.top, self.width, self.height
+        )
+        self._replace_placeholder_with(graphicFrame)
+        return PlaceholderGraphicFrame(graphicFrame, self._parent)
+
+    def _new_chart_graphicFrame(self, rId, x, y, cx, cy):
+        """
+        Return a newly created `p:graphicFrame` element having the specified
+        position and size and containing the chart identified by *rId*.
+        """
+        raise NotImplementedError
 
 
 class PicturePlaceholder(_BaseSlidePlaceholder):

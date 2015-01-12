@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
+from pptx.chart.data import ChartData
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 from pptx.parts.image import ImagePart
@@ -15,9 +16,9 @@ from pptx.parts.slide import Slide
 from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
 from pptx.shapes.placeholder import (
-    BasePlaceholder, _BaseSlidePlaceholder, LayoutPlaceholder,
-    MasterPlaceholder, PicturePlaceholder, PlaceholderGraphicFrame,
-    PlaceholderPicture, TablePlaceholder
+    BasePlaceholder, _BaseSlidePlaceholder, ChartPlaceholder,
+    LayoutPlaceholder, MasterPlaceholder, PicturePlaceholder,
+    PlaceholderGraphicFrame, PlaceholderPicture, TablePlaceholder
 )
 from pptx.shapes.shapetree import BaseShapeTree
 
@@ -307,6 +308,85 @@ class DescribeBasePlaceholder(object):
                     an_nvPr().with_child(
                         ph_bldr)))
         ).element
+
+
+class DescribeChartPlaceholder(object):
+
+    def it_can_insert_a_chart_into_itself(self, insert_fixture):
+        chart_ph, chart_type, chart_data_, graphicFrame = insert_fixture[:4]
+        rId, PlaceholderGraphicFrame_, ph_graphic_frame_ = insert_fixture[4:]
+
+        ph_graphic_frame = chart_ph.insert_chart(chart_type, chart_data_)
+
+        chart_ph.part.add_chart_part.assert_called_once_with(
+            chart_type, chart_data_
+        )
+        chart_ph._new_chart_graphicFrame.assert_called_once_with(
+            rId, chart_ph.left, chart_ph.top, chart_ph.width, chart_ph.height
+        )
+        chart_ph._replace_placeholder_with.assert_called_once_with(
+            graphicFrame
+        )
+        PlaceholderGraphicFrame_.assert_called_once_with(
+            graphicFrame, chart_ph._parent
+        )
+        assert ph_graphic_frame is ph_graphic_frame_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def insert_fixture(
+            self, part_prop_, chart_data_, PlaceholderGraphicFrame_,
+            placeholder_graphic_frame_, _new_chart_graphicFrame_,
+            _replace_placeholder_with_):
+        sp_cxml = ('p:sp/p:spPr/a:xfrm/(a:off{x=1,y=2},a:ext{cx=3,cy=4})')
+        chart_ph = ChartPlaceholder(element(sp_cxml), 'parent')
+        chart_type, rId, graphicFrame = 42, 'rId6', element('p:graphicFrame')
+        part_prop_.return_value.add_chart_part.return_value = rId
+        _new_chart_graphicFrame_.return_value = graphicFrame
+        return (
+            chart_ph, chart_type, chart_data_, graphicFrame, rId,
+            PlaceholderGraphicFrame_, placeholder_graphic_frame_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, ChartData)
+
+    @pytest.fixture
+    def _new_chart_graphicFrame_(self, request):
+        return method_mock(
+            request, ChartPlaceholder, '_new_chart_graphicFrame'
+        )
+
+    @pytest.fixture
+    def part_prop_(self, request, slide_):
+        return property_mock(
+            request, ChartPlaceholder, 'part', return_value=slide_
+        )
+
+    @pytest.fixture
+    def PlaceholderGraphicFrame_(self, request, placeholder_graphic_frame_):
+        return class_mock(
+            request, 'pptx.shapes.placeholder.PlaceholderGraphicFrame',
+            return_value=placeholder_graphic_frame_
+        )
+
+    @pytest.fixture
+    def placeholder_graphic_frame_(self, request):
+        return instance_mock(request, PlaceholderGraphicFrame)
+
+    @pytest.fixture
+    def _replace_placeholder_with_(self, request):
+        return method_mock(
+            request, ChartPlaceholder, '_replace_placeholder_with'
+        )
+
+    @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, Slide)
 
 
 class DescribeLayoutPlaceholder(object):
