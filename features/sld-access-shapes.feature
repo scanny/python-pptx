@@ -27,6 +27,7 @@ Feature: Access shapes on a slide
       Then I can access the title placeholder
 
 
+  @wip
   Scenario Outline: Access unpopulated placeholder shape
     Given a slide with an unpopulated <type> placeholder
      Then slide.shapes[0] is a <cls> proxy object for that placeholder
@@ -35,13 +36,16 @@ Feature: Access shapes on a slide
       | type     | cls                |
       | picture  | PicturePlaceholder |
       | clip art | PicturePlaceholder |
+      | table    | TablePlaceholder   |
 
 
+  @wip
   Scenario Outline: Access populated placeholder shape
     Given a slide with a <type> placeholder populated with <content>
      Then slide.shapes[0] is a <cls> proxy object for that placeholder
 
     Examples: Populated placeholder shapes
-      | type     | content  | cls                |
-      | picture  | an image | PlaceholderPicture |
-      | clip art | an image | PlaceholderPicture |
+      | type     | content  | cls                     |
+      | picture  | an image | PlaceholderPicture      |
+      | clip art | an image | PlaceholderPicture      |
+      | table    | a table  | PlaceholderGraphicFrame |
