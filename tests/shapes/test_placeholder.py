@@ -16,7 +16,8 @@ from pptx.parts.slidelayout import SlideLayout
 from pptx.parts.slidemaster import SlideMaster
 from pptx.shapes.placeholder import (
     BasePlaceholder, _BaseSlidePlaceholder, LayoutPlaceholder,
-    MasterPlaceholder, PicturePlaceholder, PlaceholderPicture
+    MasterPlaceholder, PicturePlaceholder, PlaceholderGraphicFrame,
+    PlaceholderPicture, TablePlaceholder
 )
 from pptx.shapes.shapetree import BaseShapeTree
 
@@ -598,3 +599,60 @@ class DescribePicturePlaceholder(object):
     @pytest.fixture
     def slide_(self, request):
         return instance_mock(request, Slide)
+
+
+class DescribeTablePlaceholder(object):
+
+    def it_can_insert_a_table_into_itself(self, insert_fixture):
+        table_ph, rows, cols, graphicFrame = insert_fixture[:4]
+        PlaceholderGraphicFrame_, ph_graphic_frame_ = insert_fixture[4:]
+
+        ph_graphic_frame = table_ph.insert_table(rows, cols)
+
+        table_ph._new_placeholder_table.assert_called_once_with(rows, cols)
+        table_ph._replace_placeholder_with.assert_called_once_with(
+            graphicFrame
+        )
+        PlaceholderGraphicFrame_.assert_called_once_with(
+            graphicFrame, table_ph._parent
+        )
+        assert ph_graphic_frame is ph_graphic_frame_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def insert_fixture(
+            self, PlaceholderGraphicFrame_, placeholder_graphic_frame_,
+            _new_placeholder_table_, _replace_placeholder_with_):
+        table_ph = TablePlaceholder(None, 'parent')
+        rows, cols, graphicFrame = 4, 2, element('p:graphicFrame')
+        _new_placeholder_table_.return_value = graphicFrame
+        PlaceholderGraphicFrame_.return_value = placeholder_graphic_frame_
+        return (
+            table_ph, rows, cols, graphicFrame, PlaceholderGraphicFrame_,
+            placeholder_graphic_frame_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _new_placeholder_table_(self, request):
+        return method_mock(
+            request, TablePlaceholder, '_new_placeholder_table'
+        )
+
+    @pytest.fixture
+    def PlaceholderGraphicFrame_(self, request):
+        return class_mock(
+            request, 'pptx.shapes.placeholder.PlaceholderGraphicFrame'
+        )
+
+    @pytest.fixture
+    def placeholder_graphic_frame_(self, request):
+        return instance_mock(request, PlaceholderGraphicFrame)
+
+    @pytest.fixture
+    def _replace_placeholder_with_(self, request):
+        return method_mock(
+            request, TablePlaceholder, '_replace_placeholder_with'
+        )

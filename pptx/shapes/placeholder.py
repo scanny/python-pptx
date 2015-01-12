@@ -362,3 +362,29 @@ class TablePlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape that can only accept a picture.
     """
+    def insert_table(self, rows, cols):
+        """
+        Return a |PlaceholderGraphicFrame| object containing a table of
+        *rows* rows and *cols* columns. The position and width of the table
+        are those of the placeholder and its height is proportional to the
+        number of rows. A |PlaceholderGraphicFrame| object has all the
+        properties and methods of a |GraphicFrame| shape except that the
+        value of its :attr:`~._BaseSlidePlaceholder.shape_type` property is
+        unconditionally `MSO_SHAPE_TYPE.PLACEHOLDER`. Note that the return
+        value is not the new table but rather *contains* the new table. The
+        table can be accessed using the
+        :attr:`~.PlaceholderGraphicFrame.table` property of the returned
+        |PlaceholderGraphicFrame| object.
+        """
+        graphicFrame = self._new_placeholder_table(rows, cols)
+        self._replace_placeholder_with(graphicFrame)
+        return PlaceholderGraphicFrame(graphicFrame, self._parent)
+
+    def _new_placeholder_table(self, rows, cols):
+        """
+        Return a newly added `p:graphicFrame` element containing an empty
+        table with *rows* rows and *cols* columns, positioned at the location
+        of this placeholder and having its same width. The table's height is
+        determined by the number of rows.
+        """
+        raise NotImplementedError

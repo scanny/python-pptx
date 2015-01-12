@@ -106,12 +106,38 @@ The following properties and methods are defined for placeholder shapes.
    :inherited-members:
    :undoc-members:
 
+PicturePlaceholder objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. autoclass:: pptx.shapes.placeholder.PicturePlaceholder()
    :members:
    :exclude-members:
       has_chart, has_table, has_textframe, has_text_frame
    :inherited-members:
    :undoc-members:
+
+TablePlaceholder objects
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: pptx.shapes.placeholder.TablePlaceholder()
+   :members:
+   :inherited-members:
+   :exclude-members:
+      has_chart, has_table, has_textframe, has_text_frame, is_placeholder
+   :undoc-members:
+
+PlaceholderGraphicFrame objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: pptx.shapes.placeholder.PlaceholderGraphicFrame()
+   :members:
+   :inherited-members:
+   :exclude-members:
+      chart_part, has_textframe, has_text_frame, is_placeholder
+   :undoc-members:
+
+PlaceholderPicture objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: pptx.shapes.placeholder.PlaceholderPicture()
    :members:
