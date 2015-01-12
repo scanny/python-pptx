@@ -12,8 +12,10 @@ from .autoshape import Shape
 from .base import BaseShape
 from ..enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from .graphfrm import GraphicFrame
+from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from ..oxml.shapes.picture import CT_Picture
 from .picture import Picture
+from ..util import Emu
 
 
 class _InheritsDimensions(object):
@@ -387,4 +389,7 @@ class TablePlaceholder(_BaseSlidePlaceholder):
         of this placeholder and having its same width. The table's height is
         determined by the number of rows.
         """
-        raise NotImplementedError
+        id_, name, height = self.id, self.name, Emu(rows*370840)
+        return CT_GraphicalObjectFrame.new_table_graphicFrame(
+            id_, name, rows, cols, self.left, self.top, self.width, height
+        )

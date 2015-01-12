@@ -26,6 +26,7 @@ from ..oxml.unitdata.shape import (
     an_nvSpPr, an_sp, an_spPr, an_xfrm
 )
 from ..unitutil.cxml import element, xml
+from ..unitutil.file import snippet_seq
 from ..unitutil.mock import (
     class_mock, instance_mock, method_mock, property_mock
 )
@@ -618,6 +619,11 @@ class DescribeTablePlaceholder(object):
         )
         assert ph_graphic_frame is ph_graphic_frame_
 
+    def it_creates_a_graphicFrame_element_to_help(self, new_fixture):
+        table_ph, rows, cols, expected_xml = new_fixture
+        graphicFrame = table_ph._new_placeholder_table(rows, cols)
+        assert graphicFrame.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -632,6 +638,17 @@ class DescribeTablePlaceholder(object):
             table_ph, rows, cols, graphicFrame, PlaceholderGraphicFrame_,
             placeholder_graphic_frame_
         )
+
+    @pytest.fixture
+    def new_fixture(self):
+        sp_cxml = (
+            'p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},p:spPr/a:xfrm/(a:off{x=1,'
+            'y=2},a:ext{cx=3,cy=4}))'
+        )
+        table_ph = TablePlaceholder(element(sp_cxml), None)
+        rows, cols = 1, 1
+        expected_xml = snippet_seq('placeholders')[0]
+        return table_ph, rows, cols, expected_xml
 
     # fixture components ---------------------------------------------
 
