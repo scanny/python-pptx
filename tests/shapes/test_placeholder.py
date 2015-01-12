@@ -332,6 +332,11 @@ class DescribeChartPlaceholder(object):
         )
         assert ph_graphic_frame is ph_graphic_frame_
 
+    def it_creates_a_graphicFrame_element_to_help(self, new_fixture):
+        chart_ph, rId, x, y, cx, cy, expected_xml = new_fixture
+        graphicFrame = chart_ph._new_chart_graphicFrame(rId, x, y, cx, cy)
+        assert graphicFrame.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -348,6 +353,14 @@ class DescribeChartPlaceholder(object):
             chart_ph, chart_type, chart_data_, graphicFrame, rId,
             PlaceholderGraphicFrame_, placeholder_graphic_frame_
         )
+
+    @pytest.fixture
+    def new_fixture(self):
+        sp_cxml = ('p:sp/p:nvSpPr/p:cNvPr{id=4,name=bar}')
+        chart_ph = ChartPlaceholder(element(sp_cxml), None)
+        rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
+        expected_xml = snippet_seq('placeholders')[1]
+        return chart_ph, rId, x, y, cx, cy, expected_xml
 
     # fixture components ---------------------------------------------
 

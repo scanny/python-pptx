@@ -33,3 +33,22 @@
     </a:graphicData>
   </a:graphic>
 </p:graphicFrame>
+
+<p:graphicFrame xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:nvGraphicFramePr>
+    <p:cNvPr id="4" name="bar"/>
+    <p:cNvGraphicFramePr>
+      <a:graphicFrameLocks noGrp="1"/>
+    </p:cNvGraphicFramePr>
+    <p:nvPr/>
+  </p:nvGraphicFramePr>
+  <p:xfrm>
+    <a:off x="1" y="2"/>
+    <a:ext cx="3" cy="4"/>
+  </p:xfrm>
+  <a:graphic>
+    <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">
+      <c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rId42"/>
+    </a:graphicData>
+  </a:graphic>
+</p:graphicFrame>

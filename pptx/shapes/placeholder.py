@@ -334,7 +334,10 @@ class ChartPlaceholder(_BaseSlidePlaceholder):
         Return a newly created `p:graphicFrame` element having the specified
         position and size and containing the chart identified by *rId*.
         """
-        raise NotImplementedError
+        id_, name = self.id, self.name
+        return CT_GraphicalObjectFrame.new_chart_graphicFrame(
+            id_, name, rId, x, y, cx, cy
+        )
 
 
 class PicturePlaceholder(_BaseSlidePlaceholder):
