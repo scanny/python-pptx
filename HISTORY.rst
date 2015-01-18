@@ -3,6 +3,24 @@
 Release History
 ---------------
 
+0.5.7 (2015-01-17)
+++++++++++++++++++
+
+- add PicturePlaceholder with .insert_picture() method
+- add TablePlaceholder with .insert_table() method
+- add ChartPlaceholder with .insert_chart() method
+- add Picture.image property, returning Image object
+- add Picture.crop_left, .crop_top, .crop_right, and .crop_bottom
+- add Shape.placeholder_format and PlaceholderFormat object
+
+**BACKWARD INCOMPATIBILITIES:**
+
+Shape.shape_type is now unconditionally `MSO_SHAPE_TYPE.PLACEHOLDER` for all
+placeholder shapes. Previously, some placeholder shapes reported
+`MSO_SHAPE_TYPE.AUTO_SHAPE`, `MSO_SHAPE_TYPE.CHART`,
+`MSO_SHAPE_TYPE.PICTURE`, or `MSO_SHAPE_TYPE.TABLE` for that property.
+
+
 0.5.6 (2014-12-06)
 ++++++++++++++++++
 
