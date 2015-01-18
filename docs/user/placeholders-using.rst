@@ -10,6 +10,11 @@ position with the right font size, paragraph alignment, bullet style, etc.,
 etc. Basically you can just click and type in some text and you've got
 a slide.
 
+A placeholder can be also be used to place a rich-content object on a slide.
+A picture, table, or chart can each be inserted into a placeholder and so
+take on the position and size of the placeholder, as well as certain
+of its formatting attributes.
+
 
 Access a placeholder
 --------------------
@@ -50,6 +55,13 @@ pick out the one you want::
    value does not match the `idx` value of one of the placeholders,
    |KeyError| will be raised. `idx` values are not necessarily contiguous.
 
+In general, the :attr:`idx` value of a placeholder from a built-in slide
+layout (one provided with PowerPoint) will be between 0 and 5. The title
+placeholder will always have :attr:`idx` 0 if present and any other
+placeholders will follow in sequence, top to bottom and left to right.
+A placeholder added to a slide layout by a user in PowerPoint will receive an
+:attr:`idx` value starting at 10.
+
 
 Identify and Characterize a placeholder
 ---------------------------------------
@@ -70,15 +82,22 @@ placeholder it is or what type of content it contains::
 
 To find out more, it's necessary to inspect the contents of the placeholder's
 :attr:`~.BaseShape.placeholder_format` attribute. All shapes have this
-attribute, but accessing it on a non-placeholder shape raises |ValueError|::
+attribute, but accessing it on a non-placeholder shape raises |ValueError|.
+The :attr:`~.BaseShape.is_placeholder` attribute can be used to determine
+whether a shape is a placeholder::
 
-    >>> for shape in slide.placeholders:
-    ...     phf = shape.placeholder_format
-    ...     print('%d, %s' % (phf.idx, phf.type))
+    >>> for shape in slide.shapes:
+    ...     if shape.is_placeholder:
+    ...         phf = shape.placeholder_format
+    ...         print('%d, %s' % (phf.idx, phf.type))
     ...
     0, TITLE (1)
     1, PICTURE (18)
     2, BODY (2)
+
+Another way a placeholder acts differently is that it inherits its position
+and size from its layout placeholder. This inheritance is overridden if the
+position and size of a placeholder are changed.
 
 
 Insert content into a placeholder
@@ -115,15 +134,20 @@ method::
 
 A picture inserted in this way is stretched proportionately and cropped to
 fill the entire placeholder. Best results are achieved when the aspect ratio
-of the source image and placeholder are the same.
+of the source image and placeholder are the same. If the picture is taller
+in aspect than the placeholder, its top and bottom are cropped evenly to fit.
+If it is wider, its left and right sides are cropped evenly. Cropping can be
+adjusted using the crop properties on the placeholder, such as
+:attr:`~.PlaceholderPicture.crop_bottom`.
 
 :meth:`.TablePlaceholder.insert_table`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The table placeholder has an :meth:`~.TablePlaceholder.insert_table` method.
-The built-in template has no layout with a table placeholder, so this example
-assumes a starting presentation named ``having-table-placeholder.pptx``
-having a table placeholder with idx 10 on its second slide layout::
+The built-in template has no layout containing a table placeholder, so this
+example assumes a starting presentation named
+``having-table-placeholder.pptx`` having a table placeholder with idx 10 on
+its second slide layout::
 
     >>> prs = Presentation('having-table-placeholder.pptx')
     >>> slide = prs.slides.add_slide(prs.slide_layouts[1])
@@ -155,6 +179,56 @@ in this case.
    and methods of a |GraphicFrame| object along with those specific to
    placeholders. The inserted table is contained in the graphic frame and can
    be obtained using its :attr:`~.PlaceholderGraphicFrame.table` property.
+
+:meth:`.ChartPlaceholder.insert_chart`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The chart placeholder has an :meth:`~.ChartPlaceholder.insert_chart` method.
+The presentation template built into |pp| has no layout containing a chart
+placeholder, so this example assumes a starting presentation named
+``having-chart-placeholder.pptx`` having a chart placeholder with idx 10 on
+its second slide layout::
+
+    >>> from pptx.chart.data import ChartData
+    >>> from pptx.enum.chart import XL_CHART_TYPE
+
+    >>> prs = Presentation('having-chart-placeholder.pptx')
+    >>> slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+    >>> placeholder = slide.placeholders[10]  # idx key, not position
+    >>> placeholder.name
+    'Chart Placeholder 9'
+    >>> placeholder.placeholder_format.type
+    CHART (12)
+
+    >>> chart_data = ChartData()
+    >>> chart_data.categories = ['Yes', 'No']
+    >>> chart_data.add_series('Series 1', (42, 24))
+
+    >>> graphic_frame = placeholder.insert_chart(XL_CHART_TYPE.PIE, chart_data)
+    >>> chart = graphic_frame.chart
+    >>> chart.chart_type
+    PIE (5)
+
+A chart inserted in this way has the position and size of the original
+placeholder.
+
+Note the return value from :meth:`~.ChartPlaceholder.insert_chart` is
+a |PlaceholderGraphicFrame| object, not the chart itself.
+A |PlaceholderGraphicFrame| object has all the properties and methods of
+a |GraphicFrame| object along with those specific to placeholders. The
+inserted chart is contained in the graphic frame and can be obtained using
+its :attr:`~.PlaceholderGraphicFrame.chart` property.
+
+Like all rich-content insertion methods, a reference to a chart placeholder
+becomes invalid after its :meth:`~.ChartPlaceholder.insert_chart` method is
+called. This is because the process of inserting rich content replaces the
+original `p:sp` XML element with a new element, a `p:graphicFrame` in this
+case, containing the rich-content object. Any attempt to use the original
+placeholder reference after the call will raise |AttributeError|. The new
+placeholder is the return value of the :meth:`insert_chart` call and may also
+be obtained from the placeholders collection using the original `idx` key, 10
+in this case.
 
 
 Setting the slide title
