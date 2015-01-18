@@ -72,10 +72,12 @@ API Documentation
    api/presentation
    api/slides
    api/shapes
+   api/placeholders
    api/table
    api/chart
    api/text
    api/dml
+   api/image
    api/exc
    api/util
 

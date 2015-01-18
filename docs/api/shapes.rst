@@ -82,66 +82,16 @@ The following properties and methods are defined for picture shapes.
    :undoc-members:
 
 
-``Placeholder`` objects
------------------------
+|GraphicFrame| objects
+----------------------
 
-The following properties and methods are defined for placeholder shapes.
+The following properties and methods are defined for graphic frame shapes.
+A graphic frame is the shape containing a table, chart, or smart art.
 
-.. autoclass:: pptx.shapes.placeholder.BasePlaceholder()
-   :members:
-   :undoc-members:
-
-.. autoclass:: pptx.shapes.placeholder.SlidePlaceholder()
-   :members:
-   :undoc-members:
-
-.. autoclass:: pptx.shapes.placeholder.LayoutPlaceholder()
-   :members:
-   :undoc-members:
-
-.. autoclass:: pptx.shapes.placeholder.MasterPlaceholder()
+.. autoclass:: pptx.shapes.graphfrm.GraphicFrame()
+   :show-inheritance:
    :members:
    :exclude-members:
-      adjustments, get_or_add_ln, ln, part, shape_type
+       chart_part, has_text_frame, has_textframe, is_placeholder, part,
+       placeholder_format, shape_type
    :inherited-members:
-   :undoc-members:
-
-PicturePlaceholder objects
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: pptx.shapes.placeholder.PicturePlaceholder()
-   :members:
-   :exclude-members:
-      has_chart, has_table, has_textframe, has_text_frame
-   :inherited-members:
-   :undoc-members:
-
-TablePlaceholder objects
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: pptx.shapes.placeholder.TablePlaceholder()
-   :members:
-   :inherited-members:
-   :exclude-members:
-      has_chart, has_table, has_textframe, has_text_frame, is_placeholder
-   :undoc-members:
-
-PlaceholderGraphicFrame objects
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: pptx.shapes.placeholder.PlaceholderGraphicFrame()
-   :members:
-   :inherited-members:
-   :exclude-members:
-      chart_part, has_textframe, has_text_frame, is_placeholder
-   :undoc-members:
-
-PlaceholderPicture objects
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: pptx.shapes.placeholder.PlaceholderPicture()
-   :members:
-   :inherited-members:
-   :exclude-members:
-      has_chart, has_table, has_textframe, has_text_frame, ln
-   :undoc-members:

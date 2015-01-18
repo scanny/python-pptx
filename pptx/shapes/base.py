@@ -194,10 +194,16 @@ class BaseShape(object):
 
 class _PlaceholderFormat(ElementProxy):
     """
-    Provides properties specific to placeholders, such as the placeholder
-    type.
+    Accessed via the :attr:`~.BaseShape.placeholder_format` property of
+    a placeholder shape, provides properties specific to placeholders, such
+    as the placeholder type.
     """
-    # proxied element is a `p:ph`.
+    @property
+    def element(self):
+        """
+        The `p:ph` element proxied by this object.
+        """
+        return super(_PlaceholderFormat, self).element
 
     @property
     def idx(self):
@@ -209,6 +215,7 @@ class _PlaceholderFormat(ElementProxy):
     @property
     def type(self):
         """
-        Placeholder type, e.g. PP_PLACEHOLDER.CHART
+        Placeholder type, a member of the :ref:`PpPlaceholderType`
+        enumeration, e.g. PP_PLACEHOLDER.CHART
         """
         return self._element.type

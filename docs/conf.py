@@ -140,7 +140,7 @@ rst_epilog = """
 
 .. |KeyError| replace:: :exc:`KeyError`
 
-.. |LayoutPlaceholder| replace:: :class:`_LayoutPlaceholder`
+.. |LayoutPlaceholder| replace:: :class:`LayoutPlaceholder`
 
 .. |_LayoutPlaceholders| replace:: :class:`_LayoutPlaceholders`
 
@@ -155,6 +155,8 @@ rst_epilog = """
 .. |LineSeries| replace:: :class:`.LineSeries`
 
 .. |list| replace:: :class:`list`
+
+.. |MasterPlaceholder| replace:: :class:`MasterPlaceholder`
 
 .. |_MasterPlaceholders| replace:: :class:`_MasterPlaceholders`
 
@@ -188,7 +190,7 @@ rst_epilog = """
 
 .. |Plots| replace:: :class:`.Plots`
 
-.. |pp| replace:: ``python-pptx``
+.. |pp| replace:: `python-pptx`
 
 .. |Presentation| replace:: :class:`~pptx.Presentation`
 

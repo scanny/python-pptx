@@ -121,7 +121,9 @@ class Slide(BaseSlide):
 
 class _SlidePlaceholders(ParentedElementProxy):
     """
-    Sequence of placeholder shapes on a slide.
+    Collection of placeholder shapes on a slide. Supports iteration,
+    :func:`len`, and dictionary-style lookup on the `idx` value of the
+    placeholders it contains.
     """
 
     __slots__ = ()

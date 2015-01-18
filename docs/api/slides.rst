@@ -53,3 +53,12 @@ from ``slides.add_slide()``.
 .. autoclass:: SlideMaster
    :members:
    :exclude-members: sldLayoutIdLst
+
+
+|_SlidePlaceholders| objects
+----------------------------
+
+.. currentmodule:: pptx.parts.slide
+
+.. autoclass:: _SlidePlaceholders
+   :members:

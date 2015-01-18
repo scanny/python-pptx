@@ -133,6 +133,14 @@ class _BaseSlidePlaceholder(_InheritsDimensions, BaseShape):
     inherited dimensions.
     """
     @property
+    def is_placeholder(self):
+        """
+        Boolean indicating whether this shape is a placeholder.
+        Unconditionally |True| in this case.
+        """
+        return True
+
+    @property
     def shape_type(self):
         """
         Member of :ref:`MsoShapeType` specifying the type of this shape.
@@ -157,6 +165,12 @@ class _BaseSlidePlaceholder(_InheritsDimensions, BaseShape):
 
 class BasePlaceholder(Shape):
     """
+    NOTE: This class is deprecated and will be removed from a future release
+    along with the properties *idx*, *orient*, *ph_type*, and *sz*. The *idx*
+    property will be available via the .placeholder_format property. The
+    others will be accessed directly from the oxml layer as they are only
+    used for internal purposes.
+
     Base class for placeholder subclasses that differentiate the varying
     behaviors of placeholders on a master, layout, and slide.
     """
@@ -313,14 +327,15 @@ class ChartPlaceholder(_BaseSlidePlaceholder):
     """
     def insert_chart(self, chart_type, chart_data):
         """
-        Insert a new chart of *chart_type* into this placeholder, having the
-        same extents as this placeholder and depicting *chart_data*.
-        *chart_type* is one of the :ref:`XlChartType` enumeration values.
-        *chart_data* is a |ChartData| object populated with the categories
-        and series values for the chart. Note that
-        a |PlaceholderGraphicFrame| object is returned, not the |Chart|
-        object contained in that graphic frame shape. The chart object may be
-        accessed using the :attr:`chart` property of the returned object.
+        Return a |PlaceholderGraphicFrame| object containing a new chart of
+        *chart_type* depicting *chart_data* and having the same position and
+        size as this placeholder. *chart_type* is one of the
+        :ref:`XlChartType` enumeration values. *chart_data* is a |ChartData|
+        object populated with the categories and series values for the chart.
+        Note that the new |Chart| object is not returned directly. The chart
+        object may be accessed using the
+        :attr:`~.PlaceholderGraphicFrame.chart` property of the returned
+        |PlaceholderGraphicFrame| object.
         """
         rId = self.part.add_chart_part(chart_type, chart_data)
         graphicFrame = self._new_chart_graphicFrame(
@@ -350,7 +365,7 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         *image_file*, which may be either a path (string) or a file-like
         object. The image is cropped to fill the entire space of the
         placeholder. A |PlaceholderPicture| object has all the properties and
-        methods of a |Picture| shape. Except that the value of its
+        methods of a |Picture| shape except that the value of its
         :attr:`~._BaseSlidePlaceholder.shape_type` property is
         `MSO_SHAPE_TYPE.PLACEHOLDER` instead of `MSO_SHAPE_TYPE.PICTURE`.
         """
@@ -385,6 +400,13 @@ class PlaceholderGraphicFrame(GraphicFrame):
     """
     Placeholder shape populated with a table, chart, or smart art.
     """
+    @property
+    def is_placeholder(self):
+        """
+        Boolean indicating whether this shape is a placeholder.
+        Unconditionally |True| in this case.
+        """
+        return True
 
 
 class PlaceholderPicture(_InheritsDimensions, Picture):
