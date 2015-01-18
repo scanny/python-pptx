@@ -1,11 +1,5 @@
-.. raw:: html
-
-   <p>
-     <a href="https://travis-ci.org/scanny/python-pptx" >
-       <img style="margin: 0 0 0 0"
-            src="https://travis-ci.org/scanny/python-pptx.svg?branch=master"/>
-     </a>
-   </p>
+.. image:: https://travis-ci.org/scanny/python-pptx.svg?branch=master
+   :target: https://travis-ci.org/scanny/python-pptx
 
 *python-pptx* is a Python library for creating and updating PowerPoint (.pptx)
 files.
