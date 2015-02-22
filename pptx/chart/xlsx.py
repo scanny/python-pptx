@@ -25,7 +25,7 @@ class WorkbookWriter(object):
         """
         xlsx_file = BytesIO()
         with cls._open_worksheet(xlsx_file) as (workbook, worksheet):
-            cls._populate_worksheet(worksheet, categories, series)
+            cls._populate_worksheet(workbook, worksheet, categories, series)
         return xlsx_file.getvalue()
 
     @staticmethod
@@ -43,7 +43,7 @@ class WorkbookWriter(object):
         workbook.close()
 
     @classmethod
-    def _populate_worksheet(cls, worksheet, categories, series):
+    def _populate_worksheet(cls, workbook, worksheet, categories, series):
         """
         Write *categories* and *series* to *worksheet* in the standard
         layout, categories in first column starting in second row, and series
@@ -52,6 +52,9 @@ class WorkbookWriter(object):
         """
         worksheet.write_column(1, 0, categories)
         for series in series:
+            num_format = (
+                workbook.add_format({'num_format': series.number_format})
+            )
             series_col = series.index + 1
             worksheet.write(0, series_col, series.name)
-            worksheet.write_column(1, series_col, series.values)
+            worksheet.write_column(1, series_col, series.values, num_format)
