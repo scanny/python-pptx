@@ -95,10 +95,7 @@ MSDN documentation, the ISO/IEC 29500 spec, and other available sources.
    :maxdepth: 1
 
    objects/autoshape
-   objects/chart
    objects/coreprops
-   objects/font
-   objects/graphicframe
 
 
 Experimental Analysis
@@ -110,8 +107,6 @@ PowerPoint application.
 .. toctree::
    :maxdepth: 1
 
-   experiments/chart
-   experiments/manipulate-chart
    experiments/placeholders_in_new_slide
 
 
@@ -124,19 +119,9 @@ ISO/IEC 29500 spec.
 .. toctree::
    :maxdepth: 1
 
-   schema/ct_chart
-   schema/ct_graphicalobjectframe
    schema/ct_picture
-   schema/ct_presentation
    schema/ct_presetgeometry2d
-   schema/ct_regulartextrun
-   schema/ct_slide
-   schema/ct_solidcolorfillproperties
-   schema/ct_srgbcolor
    schema/ct_table
-   schema/ct_textcharacterproperties
-   schema/ct_textparagraph
-   schema/ct_textparagraphproperties
 
 
 Major discovery sources
