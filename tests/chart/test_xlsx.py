@@ -10,6 +10,7 @@ import pytest
 
 from zipfile import ZipFile
 
+from xlsxwriter import Workbook
 from xlsxwriter.worksheet import Worksheet
 
 from pptx.chart.data import _SeriesData
@@ -35,8 +36,9 @@ class Describe_WorkbookWriter(object):
 
     def it_can_open_a_worksheet_in_a_context(self):
         xlsx_file = BytesIO()
-        with WorkbookWriter._open_worksheet(xlsx_file) as worksheet:
-            assert isinstance(worksheet, Worksheet)
+        with WorkbookWriter._open_worksheet(xlsx_file) as (wrkbook, wrksht):
+            assert isinstance(wrkbook, Workbook)
+            assert isinstance(wrksht,  Worksheet)
         zipf = ZipFile(xlsx_file)
         assert 'xl/worksheets/sheet1.xml' in zipf.namelist()
         zipf.close
@@ -86,12 +88,14 @@ class Describe_WorkbookWriter(object):
         return ('Foo', 'Bar')
 
     @pytest.fixture
-    def _open_worksheet_(self, request, worksheet_):
+    def _open_worksheet_(self, request, workbook_, worksheet_):
         open_worksheet_ = method_mock(
             request, WorkbookWriter, '_open_worksheet'
         )
         # to make context manager behavior work
-        open_worksheet_.return_value.__enter__.return_value = worksheet_
+        open_worksheet_.return_value.__enter__.return_value = (
+            workbook_, worksheet_
+        )
         return open_worksheet_
 
     @pytest.fixture
@@ -101,6 +105,10 @@ class Describe_WorkbookWriter(object):
     @pytest.fixture
     def series_lst_(self, request):
         return instance_mock(request, list)
+
+    @pytest.fixture
+    def workbook_(self, request):
+        return instance_mock(request, Workbook)
 
     @pytest.fixture
     def worksheet_(self, request):

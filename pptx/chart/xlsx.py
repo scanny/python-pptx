@@ -24,7 +24,7 @@ class WorkbookWriter(object):
         a chart having *categories* and *series*.
         """
         xlsx_file = BytesIO()
-        with cls._open_worksheet(xlsx_file) as worksheet:
+        with cls._open_worksheet(xlsx_file) as (workbook, worksheet):
             cls._populate_worksheet(worksheet, categories, series)
         return xlsx_file.getvalue()
 
@@ -39,7 +39,7 @@ class WorkbookWriter(object):
         """
         workbook = Workbook(xlsx_file, {'in_memory': True})
         worksheet = workbook.add_worksheet()
-        yield worksheet
+        yield workbook, worksheet
         workbook.close()
 
     @classmethod
