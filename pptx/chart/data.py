@@ -24,13 +24,20 @@ class ChartData(object):
         self._categories = []
         self._series_lst = []
 
-    def add_series(self, name, values):
+    def add_series(self, name, values, number_format=0):
         """
-        Add a series to this data set entitled *name* and the data points
-        specified by *values*, an iterable of numeric values.
+        Add a series to this data set entitled *name* and having the data
+        points specified by *values*, an iterable of numeric values.
+        *num_fmt* specifies how the series values will be displayed, and may
+        be a string, e.g. '#,##0', or an integer in the range 0-22 or 37-49,
+        signifying one of the built-in Excel number formats. The valid
+        integer values and their meaning are documented on the
+        :ref:`ExcelNumFormat` page.
         """
         series_idx = len(self._series_lst)
-        series = _SeriesData(series_idx, name, values, self._categories, 0)
+        series = _SeriesData(
+            series_idx, name, values, self._categories, number_format
+        )
         self._series_lst.append(series)
 
     @property
