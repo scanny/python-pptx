@@ -25,3 +25,5 @@ can be found here:
    XlLegendPosition
    XlTickLabelPosition
    XlTickMark
+
+   ExcelNumFormat
