@@ -36,7 +36,7 @@ class DescribeChartData(object):
         )
         chart_data.add_series(name, values)
         _SeriesData_.assert_called_once_with(
-            0, name, values, chart_data._categories
+            0, name, values, chart_data._categories, 0
         )
         assert chart_data._series_lst[0] is series_data_
 

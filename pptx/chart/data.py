@@ -30,7 +30,7 @@ class ChartData(object):
         specified by *values*, an iterable of numeric values.
         """
         series_idx = len(self._series_lst)
-        series = _SeriesData(series_idx, name, values, self._categories)
+        series = _SeriesData(series_idx, name, values, self._categories, 0)
         self._series_lst.append(series)
 
     @property
@@ -88,12 +88,13 @@ class _SeriesData(object):
     specifying a series. In addition, this object also provides XML
     generation for the ``<c:ser>`` element subtree.
     """
-    def __init__(self, series_idx, name, values, categories):
+    def __init__(self, series_idx, name, values, categories, number_format):
         super(_SeriesData, self).__init__()
         self._series_idx = series_idx
         self._name = name
         self._values = values
         self._categories = categories
+        self._number_format = number_format
 
     def __len__(self):
         """
@@ -136,6 +137,15 @@ class _SeriesData(object):
         The name of this series.
         """
         return self._name
+
+    @property
+    def number_format(self):
+        """
+        The Excel number format to be used to display the values in this
+        series. May be a string such as '0.00%' or an integer specifying one
+        of the built-in Excel number formats.
+        """
+        return self._number_format
 
     @property
     def tx(self):

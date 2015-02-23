@@ -417,7 +417,7 @@ class Describe_SeriesRewriter(object):
     def rewrite_ser_fixture(self):
         ser_xml, expected_xml = snippet_seq('rewrite-ser')
         ser = parse_xml(ser_xml)
-        series_data = _SeriesData(2, 'Series 4', (1, 2), ('Foo', 'Bar'))
+        series_data = _SeriesData(2, 'Series 4', (1, 2), ('Foo', 'Bar'), 0)
         return ser, series_data, expected_xml
 
     # fixture components ---------------------------------------------

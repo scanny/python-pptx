@@ -52,8 +52,8 @@ class Describe_WorkbookWriter(object):
     def populate_fixture(self, worksheet_):
         categories = ('Foo', 'Bar')
         series = (
-            _SeriesData(0, 'Series 1', (1.1, 2.2), categories),
-            _SeriesData(1, 'Series 2', (3.3, 4.4), categories)
+            _SeriesData(0, 'Series 1', (1.1, 2.2), categories, 0),
+            _SeriesData(1, 'Series 2', (3.3, 4.4), categories, 0)
         )
         expected_calls = [
             call.write_column(1, 0, ('Foo', 'Bar')),
