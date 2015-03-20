@@ -17,7 +17,7 @@ class _BaseColorElement(BaseOxmlElement):
     """
     lumMod = ZeroOrOne('a:lumMod')
     lumOff = ZeroOrOne('a:lumOff')
-    alpha = ZeroOrOne('a:lumOff')
+    alpha = ZeroOrOne('a:alpha')
 
     def add_lumMod(self, value):
         """
