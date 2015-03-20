@@ -17,6 +17,7 @@ class _BaseColorElement(BaseOxmlElement):
     """
     lumMod = ZeroOrOne('a:lumMod')
     lumOff = ZeroOrOne('a:lumOff')
+    alpha = ZeroOrOne('a:lumOff')
 
     def add_lumMod(self, value):
         """
@@ -41,6 +42,21 @@ class _BaseColorElement(BaseOxmlElement):
         """
         self._remove_lumMod()
         self._remove_lumOff()
+        return self
+
+    def add_alpha(self, value):
+        """
+        Return a newly added <a:alpha> child element.
+        """
+        alpha = self._add_alpha()
+        alpha.val = value
+        return alpha
+
+    def clear_alpha(self):
+        """
+        Return self after removing any <a:alpha> child elements.
+        """
+        self._remove_alpha()
         return self
 
 
