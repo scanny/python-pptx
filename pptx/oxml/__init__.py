@@ -119,6 +119,7 @@ from .dml.color import (
 register_element_cls('a:hslClr',    CT_HslColor)
 register_element_cls('a:lumMod',    CT_Percentage)
 register_element_cls('a:lumOff',    CT_Percentage)
+register_element_cls('a:alpha',     CT_Percentage)
 register_element_cls('a:prstClr',   CT_PresetColor)
 register_element_cls('a:schemeClr', CT_SchemeColor)
 register_element_cls('a:scrgbClr',  CT_ScRgbColor)
