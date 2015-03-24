@@ -81,7 +81,7 @@ class CT_GroupShape(BaseShapeElement):
         Append a newly-created custom geometry shape with the specified
         position and size.
         """
-        sp = CT_Shape.new_custom_geometry_shape(id_, name, left, top, width, height)
+        sp = CT_Shape.new_custom_geometry_shape_sp(id_, name, left, top, width, height)
         self.insert_element_before(sp, 'p:extList')
         return sp
 
