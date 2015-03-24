@@ -167,6 +167,17 @@ class CT_Shape(BaseShapeElement):
         sp = parse_xml(xml)
         return sp
 
+    @staticmethod
+    def new_custom_geometry(id_, name, left, top, width, height):
+        """
+        Return a new ``<p:sp>`` element tree configured as a custom
+        geometry shape.
+        """
+        tmpl = CT_Shape._custgeom_sp_tmpl()
+        xml = tmpl % (id_, name, left, top, width, height)
+        sp = parse_xml(xml)
+        return sp
+
     @property
     def prst(self):
         """
@@ -277,6 +288,53 @@ class CT_Shape(BaseShapeElement):
             (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
         )
 
+    @staticmethod
+    def _custgeom_sp_tmpl():
+        return (
+            '<p:sp %s>\n'
+            '  <p:nvSpPr>\n'
+            '    <p:cNvPr id="%s" name="%s"/>\n'
+            '    <p:cNvSpPr/>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvSpPr>\n'
+            '  <p:spPr>\n'
+            '    <a:xfrm>\n'
+            '      <a:off x="%s" y="%s"/>\n'
+            '      <a:ext cx="%s" cy="%s"/>\n'
+            '    </a:xfrm>\n'
+            '    <a:custGeom>\n'
+            '      <a:avLst/>\n'
+            '      <a:gdLst/>\n'
+            '      <a:ahLst/>\n'
+            '      <a:cxnLst/>\n'
+            '      <a:rect l="0" t="0" r="0" b="0"/>\n'
+            '      <a:pathLst/>\n'
+            '    </a:custGeom>\n'
+            '  </p:spPr>\n'
+            '  <p:style>\n'
+            '    <a:lnRef idx="1">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:lnRef>\n'
+            '    <a:fillRef idx="3">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:fillRef>\n'
+            '    <a:effectRef idx="2">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:effectRef>\n'
+            '    <a:fontRef idx="minor">\n'
+            '      <a:schemeClr val="lt1"/>\n'
+            '    </a:fontRef>\n'
+            '  </p:style>\n'
+            '  <p:txBody>\n'
+            '    <a:bodyPr rtlCol="0" anchor="ctr"/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr algn="ctr"/>\n'
+            '    </a:p>\n'
+            '  </p:txBody>\n'
+            '</p:sp>' %
+            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+        )
 
 class CT_ShapeNonVisual(BaseShapeElement):
     """
