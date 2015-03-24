@@ -168,7 +168,7 @@ class CT_Shape(BaseShapeElement):
         return sp
 
     @staticmethod
-    def new_custom_geometry(id_, name, left, top, width, height):
+    def new_custom_geometry_sp(id_, name, left, top, width, height):
         """
         Return a new ``<p:sp>`` element tree configured as a custom
         geometry shape.
