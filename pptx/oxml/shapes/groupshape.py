@@ -83,7 +83,7 @@ class CT_GroupShape(BaseShapeElement):
         position and size.
         """
         sp = CT_Shape.new_custom_geometry_sp(id_, name, left, top, width, height)
-        self.insert_element_before(sp, 'p:extList')
+        self.insert_element_before(sp, 'p:extLst')
         return sp
 
     def add_groupshape(self, id_, name, x, y, cx, cy):
