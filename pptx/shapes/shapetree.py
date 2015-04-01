@@ -322,6 +322,7 @@ class SlideShapeTree(BaseShapeTree):
         sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
         return sp
 
+<<<<<<< HEAD
     def _add_cust_geom_sp(self, x, y, cx, cy):
         """
         Return a newly-added custom geometry ``<p:sp>`` element
@@ -331,6 +332,8 @@ class SlideShapeTree(BaseShapeTree):
         sp = self._spTree.add_custom_geometry(id_, name, x, y, cx, cy)
         return sp
 
+=======
+>>>>>>> 394152de810b94004991b9b0f0dc59af0ba112ea
     def _add_groupshape_sp(self, x, y, cx, cy):
         """
 
