@@ -1,28 +1,29 @@
 # encoding: utf-8
 
 """
-The shape tree, the structure that holds a slide's shapes.
+The group shape, the structure that holds a set of sub-shapes.
 """
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+from .base import BaseShape
 from .autoshape import AutoShapeType
 from ..enum.shapes import PP_PLACEHOLDER
-from .factory import BaseShapeFactory, SlideShapeFactory
+#from .factory import BaseShapeFactory
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from ..oxml.simpletypes import ST_Direction
 
 
-class BaseShapeTree(object):
+class BaseGroupShape(BaseShape):
     """
-    Base class for a shape collection appearing in a slide-type object,
-    include Slide, SlideLayout, and SlideMaster, providing common methods.
+    Base class for a shape collection.
     """
-    def __init__(self, slide):
-        super(BaseShapeTree, self).__init__()
-        self._slide = slide
+
+    def __init__(self, grpSp, parent):
+        super(BaseGroupShape, self).__init__(grpSp, parent)
+        self._grpSp = grpSp
 
     def __getitem__(self, idx):
         """
@@ -51,14 +52,6 @@ class BaseShapeTree(object):
         shape_elms = list(self._iter_member_elms())
         return len(shape_elms)
 
-    @property
-    def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
-        """
-        return self._slide
-
     @staticmethod
     def _is_member_elm(shape_elm):
         """
@@ -72,8 +65,8 @@ class BaseShapeTree(object):
         Generate each child of the ``<p:spTree>`` element that corresponds to
         a shape, in the sequence they appear in the XML.
         """
-        spTree = self._slide.spTree
-        for shape_elm in spTree.iter_shape_elms():
+        grp = self._sp
+        for shape_elm in grp.iter_shape_elms():
             if self._is_member_elm(shape_elm):
                 yield shape_elm
 
@@ -85,7 +78,7 @@ class BaseShapeTree(object):
         the minimum id is 2 because the spTree element is always assigned
         id="1".
         """
-        id_str_lst = self._spTree.xpath('//@id')
+        id_str_lst = self._sp.xpath('//@id')
         used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
         for n in range(1, len(used_ids)+2):
             if n not in used_ids:
@@ -96,35 +89,21 @@ class BaseShapeTree(object):
         Return an instance of the appropriate shape proxy class for
         *shape_elm*.
         """
+        from .factory import BaseShapeFactory
         return BaseShapeFactory(shape_elm, self)
 
     @property
-    def _spTree(self):
-        """
-        The ``<p:spTree>`` element underlying this shape tree object
-        """
-        return self._slide.spTree
-
     def _sp(self):
-        return self._spTree
-
-
-class BasePlaceholders(BaseShapeTree):
-    """
-    Base class for placeholder collections that differentiate behaviors for
-    a master, layout, and slide.
-    """
-    @staticmethod
-    def _is_member_elm(shape_elm):
         """
-        True if *shape_elm* is a placeholder shape, False otherwise.
+        Return the pointer to the current element. In a regular GroupShape,
+        this will be self._grpSp. In a SlideShapeTree, this will be
+        self._spTree
         """
-        return shape_elm.has_ph_elm
+        return self._grpSp
 
-
-class SlideShapeTree(BaseShapeTree):
+class GroupShape(BaseGroupShape):
     """
-    Sequence of shapes appearing on a slide. The first shape in the sequence
+    Grouping of shapes within a SlideShapeTree. The first shape in the sequence
     is the backmost in z-order and the last shape is topmost. Supports indexed
     access, len(), index(), and iteration.
     """
@@ -149,7 +128,7 @@ class SlideShapeTree(BaseShapeTree):
         *image_file* can be either a path to a file (a string) or a file-like
         object.
         """
-        image_part, rId = self._slide.get_or_add_image_part(image_file)
+        image_part, rId = self._sp.get_or_add_image_part(image_file)
         pic = self._add_pic_from_image_part(
             image_part, rId, left, top, width, height
         )
@@ -191,14 +170,6 @@ class SlideShapeTree(BaseShapeTree):
         textbox = self._shape_factory(sp)
         return textbox
 
-    def add_groupshape(self, left, top, width, height):
-        """
-        Add groupshape of specified size at specified position on slide.
-        """
-        sp = self._add_groupshape_sp(left, top, width, height)
-        groupshape = self._shape_factory(sp)
-        return groupshape
-
     def clone_layout_placeholders(self, slide_layout):
         """
         Add placeholder shapes based on those in *slide_layout*. Z-order of
@@ -214,7 +185,7 @@ class SlideShapeTree(BaseShapeTree):
         *shape* is not in the collection.
         """
         shape_elm = shape.element
-        for idx, elm in enumerate(self._spTree.iter_shape_elms()):
+        for idx, elm in enumerate(self._grpSp.iter_shape_elms()):
             if elm is shape_elm:
                 return idx
         raise ValueError('shape not in collection')
@@ -225,7 +196,7 @@ class SlideShapeTree(BaseShapeTree):
         Instance of |_SlidePlaceholders| containing sequence of placeholder
         shapes in this slide.
         """
-        return self._slide.placeholders
+        return self._sp.placeholders
 
     @property
     def title(self):
@@ -233,7 +204,7 @@ class SlideShapeTree(BaseShapeTree):
         The title placeholder shape on the slide or |None| if the slide has
         no title placeholder.
         """
-        for elm in self._spTree.iter_shape_elms():
+        for elm in self._grpSp.iter_shape_elms():
             if elm.ph_idx == 0:
                 return self._shape_factory(elm)
         return None
@@ -249,7 +220,7 @@ class SlideShapeTree(BaseShapeTree):
         graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
             shape_id, name, rId, x, y, cx, cy
         )
-        self._spTree.append(graphicFrame)
+        self._grpSp.append(graphicFrame)
         return graphicFrame
 
     def _add_chart_graphic_frame(self, rId, x, y, cx, cy):
@@ -268,7 +239,7 @@ class SlideShapeTree(BaseShapeTree):
         """
         id_ = self._next_shape_id
         name = 'Table %d' % (id_-1)
-        graphicFrame = self._spTree.add_table(
+        graphicFrame = self._grpSp.add_table(
             id_, name, rows, cols, x, y, cx, cy
         )
         return graphicFrame
@@ -285,7 +256,7 @@ class SlideShapeTree(BaseShapeTree):
         desc = image_part.desc
         scaled_cx, scaled_cy = image_part.scale(cx, cy)
 
-        pic = self._spTree.add_pic(
+        pic = self._grpSp.add_pic(
             id, name, desc, rId, x, y, scaled_cx, scaled_cy
         )
 
@@ -298,7 +269,7 @@ class SlideShapeTree(BaseShapeTree):
         """
         id_ = self._next_shape_id
         name = '%s %d' % (autoshape_type.basename, id_-1)
-        sp = self._spTree.add_autoshape(
+        sp = self._grpSp.add_autoshape(
             id_, name, autoshape_type.prst, x, y, cx, cy
         )
         return sp
@@ -310,16 +281,7 @@ class SlideShapeTree(BaseShapeTree):
         """
         id_ = self._next_shape_id
         name = 'TextBox %d' % (id_-1)
-        sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
-        return sp
-
-    def _add_groupshape_sp(self, x, y, cx, cy):
-        """
-
-        """
-        id_ = self._next_shape_id
-        name = 'GroupShape %d' % (id_-1)
-        sp = self._spTree.add_groupshape(id_, name, x, y, cx, cy)
+        sp = self._grpSp.add_textbox(id_, name, x, y, cx, cy)
         return sp
 
     def _clone_layout_placeholder(self, layout_placeholder):
@@ -334,7 +296,7 @@ class SlideShapeTree(BaseShapeTree):
         sz = layout_placeholder.sz
         idx = layout_placeholder.idx
 
-        self._spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
+        self._grpSp.add_placeholder(id_, name, ph_type, orient, sz, idx)
 
     def _next_ph_name(self, ph_type, id, orient):
         """
@@ -372,7 +334,7 @@ class SlideShapeTree(BaseShapeTree):
 
         # increment numpart as necessary to make name unique
         numpart = id - 1
-        names = self._spTree.xpath('//p:cNvPr/@name')
+        names = self._grpSp.xpath('//p:cNvPr/@name')
         while True:
             name = '%s %d' % (basename, numpart)
             if name not in names:
@@ -380,10 +342,3 @@ class SlideShapeTree(BaseShapeTree):
             numpart += 1
 
         return name
-
-    def _shape_factory(self, shape_elm):
-        """
-        Return an instance of the appropriate shape proxy class for
-        *shape_elm*.
-        """
-        return SlideShapeFactory(shape_elm, self)

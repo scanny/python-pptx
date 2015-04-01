@@ -9,6 +9,7 @@ from __future__ import (
 )
 
 from .autoshape import Shape
+from .groupshape import GroupShape
 from .base import BaseShape
 from ..enum.shapes import PP_PLACEHOLDER
 from .graphfrm import GraphicFrame
@@ -27,6 +28,8 @@ def BaseShapeFactory(shape_elm, parent):
     tag_name = shape_elm.tag
     if tag_name == qn('p:sp'):
         return Shape(shape_elm, parent)
+    if tag_name == qn('p:grpSp'):
+        return GroupShape(shape_elm, parent)
     if tag_name == qn('p:pic'):
         return Picture(shape_elm, parent)
     if tag_name == qn('p:graphicFrame'):
