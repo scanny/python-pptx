@@ -6,9 +6,10 @@ lxml custom element classes for shape tree-related XML elements.
 
 from __future__ import absolute_import
 
+from .. import parse_xml
 from .autoshape import CT_Shape
 from .graphfrm import CT_GraphicalObjectFrame
-from ..ns import qn
+from ..ns import qn, nsdecls
 from .picture import CT_Picture
 from .shared import BaseShapeElement
 from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
@@ -85,6 +86,15 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extList')
         return sp
 
+    def add_groupshape(self, id_, name, x, y, cx, cy):
+        """
+        Append a newly-created ``<p:grpSp>`` shape having the specified
+        position and size.
+        """
+        sp = CT_GroupShape.new_groupshape_sp(id_, name, x, y, cx, cy)
+        self.insert_element_before(sp, 'p:extLst')
+        return sp
+
     def get_or_add_xfrm(self):
         """
         Return the ``<a:xfrm>`` grandchild element, newly-added if not
@@ -116,6 +126,34 @@ class CT_GroupShape(BaseShapeElement):
         """
         return self.grpSpPr.xfrm
 
+    @staticmethod
+    def new_groupshape_sp(id_, name, left, top, width, height):
+        """
+
+        """
+        tmpl = CT_GroupShape._groupshape_tmpl()
+        xml = tmpl % (id_, name, left, top, width, height)
+        sp = parse_xml(xml)
+        return sp
+
+    @staticmethod
+    def _groupshape_tmpl():
+        return (
+            '<p:grpSp %s>\n'
+            '  <p:nvGrpSpPr>\n'
+            '    <p:cNvPr id="%s" name="%s"/>\n'
+            '    <p:cNvGrpSpPr/>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvGrpSpPr>\n'
+            '  <p:grpSpPr>\n'
+            '    <a:xfrm>\n'
+            '      <a:off x="%s" y="%s"/>\n'
+            '      <a:ext cx="%s" cy="%s"/>\n'
+            '    </a:xfrm>\n'
+            '  </p:grpSpPr>\n'
+            '</p:grpSp>\n' %
+            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+        )
 
 class CT_GroupShapeNonVisual(BaseShapeElement):
     """
