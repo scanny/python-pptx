@@ -128,7 +128,9 @@ class GroupShape(BaseGroupShape):
         *image_file* can be either a path to a file (a string) or a file-like
         object.
         """
-        image_part, rId = self._sp.get_or_add_image_part(image_file)
+
+        # FIXME: How do i find the parent slide object?
+        image_part, rId = self._parent._slide.get_or_add_image_part(image_file)
         pic = self._add_pic_from_image_part(
             image_part, rId, left, top, width, height
         )
