@@ -330,7 +330,7 @@ class MSO_AUTO_SHAPE_TYPE(XmlEnumeration):
             'Terminator flowchart symbol'
         ),
         XmlMappedEnumMember(
-            'FOLDED_CORNER', 16, 'foldedCorner', 'Folded corner'
+            'FOLDED_CORNER', 16, 'folderCorner', 'Folded corner'
         ),
         XmlMappedEnumMember(
             'FRAME', 158, 'frame', 'Frame'
