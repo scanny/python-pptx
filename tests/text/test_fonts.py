@@ -54,6 +54,11 @@ class DescribeFontFiles(object):
         font_dirs = FontFiles._windows_font_directories()
         assert font_dirs == expected_dirs
 
+    def it_knows_linuxdows_font_dirs_to_help_find(self, linux_dirs_fixture):
+        expected_dirs = linux_dirs_fixture
+        font_dirs = FontFiles._linux_font_directories()
+        assert font_dirs == expected_dirs
+
     def it_iterates_over_fonts_in_dir_to_help_find(self, iter_fixture):
         directory, _Font_, expected_calls, expected_paths = iter_fixture
         paths = list(FontFiles._iter_font_files_in(directory))
@@ -77,14 +82,17 @@ class DescribeFontFiles(object):
     @pytest.fixture(params=[
         ('darwin', ['a', 'b']),
         ('win32',  ['c', 'd']),
+        ('linux2', ['e', 'f']),
     ])
     def font_dirs_fixture(
             self, request, _os_x_font_directories_,
-            _windows_font_directories_):
+            _windows_font_directories_,
+            _linux_font_directories_):
         platform, expected_dirs = request.param
         dirs_meth_mock = {
             'darwin': _os_x_font_directories_,
             'win32':  _windows_font_directories_,
+            'linux2': _linux_font_directories_,
         }[platform]
         sys_ = var_mock(request, 'pptx.text.fonts.sys')
         sys_.platform = platform
@@ -133,6 +141,17 @@ class DescribeFontFiles(object):
     def win_dirs_fixture(self, request):
         return [r'C:\Windows\Fonts']
 
+    @pytest.fixture
+    def linux_dirs_fixture(self, request):
+        import os
+        os_ = var_mock(request, 'pptx.text.fonts.os')
+        os_.path = os.path
+        os_.environ = {'HOME': '/home/fbar'}
+        return [
+            '/usr/share/fonts',
+            '/home/fbar/.fonts',
+        ]
+
     # fixture components -----------------------------------
 
     @pytest.fixture
@@ -166,6 +185,10 @@ class DescribeFontFiles(object):
     @pytest.fixture
     def _windows_font_directories_(self, request):
         return method_mock(request, FontFiles, '_windows_font_directories')
+
+    @pytest.fixture
+    def _linux_font_directories_(self, request):
+        return method_mock(request, FontFiles, '_linux_font_directories')
 
 
 class Describe_Font(object):
