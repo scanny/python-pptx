@@ -12,7 +12,6 @@ Adding a chart
 The following code adds a single-series column chart in a new presentation::
 
     from pptx import Presentation
-    from pptx.chart.data import ChartData
     from pptx.enum.chart import XL_CHART_TYPE
     from pptx.util import Inches
 
