@@ -11,6 +11,7 @@ from __future__ import absolute_import, print_function
 from ..exc import InvalidXmlError
 from ..util import Centipoints, Emu
 
+import re
 
 class BaseSimpleType(object):
 
@@ -241,6 +242,12 @@ class XsdUnsignedShort(BaseIntType):
         cls.validate_int_in_range(value, 0, 65535)
 
 
+class ST_GeomGuideName(XsdToken):
+    """
+    specifies a geometry guide name
+    """
+
+
 class ST_Angle(XsdInt):
     """
     Valid values for `rot` attribute on `<a:xfrm>` element. 60000ths of
@@ -267,6 +274,27 @@ class ST_Angle(XsdInt):
     @classmethod
     def validate(cls, value):
         BaseFloatType.validate(value)
+
+
+class ST_AdjAngle(BaseSimpleType):
+    """
+    xsd:union of ST_Angle and ST_GeomGuideName
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        try:
+            int(str_value)
+            return ST_Angle.convert_from_xml(str_value)
+        except ValueError:
+            return ST_GeomGuideName.convert_from_xml(str_value)
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return ST_Angle.convert_to_xml(value)
+
+    @classmethod
+    def validate(cls, value):
+        return ST_Angle.validate(value)
 
 
 class ST_AxisUnit(XsdDouble):
@@ -316,6 +344,43 @@ class ST_Coordinate(BaseSimpleType):
     @classmethod
     def validate(cls, value):
         ST_CoordinateUnqualified.validate(value)
+
+
+class ST_AdjCoordinate(BaseSimpleType):
+    """
+    xsd:union of ST_Coordinate, ST_GeomGuideName
+    """
+    def _is_universal_measurement(str_value):
+        """
+        Check if str_value mateches universal measure type
+        """
+        p = re.compile("^\s*-?[0-9]+(\.[0-9]+)?(mm|cm|in|pt|pc|pi)\s*$")
+        return p.match(str_value)
+
+    def _is_emu(str_value):
+        """
+        Check if str_value is a number
+        """
+        try:
+            int(str_value)
+            return True
+        except ValueError:
+            return False
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if _is_universal_measurement(str_value) or _is_emu(str_value):
+            return ST_Coordinate.convert_from_xml(str_value)
+        else:
+            return ST_GeomGuideName.convert_from_xml(str_value)
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return ST_Coordinate.convert_to_xml(value)
+
+    @classmethod
+    def validate(cls, value):
+        ST_Coordinate.validate(value)
 
 
 class ST_Coordinate32(BaseSimpleType):
