@@ -354,7 +354,7 @@ class ST_AdjCoordinate(BaseSimpleType):
         """
         Check if str_value mateches universal measure type
         """
-        p = re.compile("-?[0-9]+(\.[0- 9]+)?(mm|cm|in|pt|pc|pi)")
+        p = re.compile("^\s*-?[0-9]+(\.[0-9]+)?(mm|cm|in|pt|pc|pi)\s*$")
         return p.match(str_value)
 
     def _is_emu(str_value):
