@@ -5,7 +5,7 @@ from pptx.oxml.xmlchemy import (
         OneOrMore, OptionalAttribute, RequiredAttribute
 )
 from pptx.oxml.simpletypes import (
-        ST_PositiveCoordinate,
+        ST_PositiveCoordinate, ST_AdjCoordinate, ST_AdjAngle
 )
 from pptx.oxml.ns import nsdecls
 
@@ -15,11 +15,13 @@ class CT_CustomGeometry2D(BaseOxmlElement):
     """
     pathLst = OneAndOnlyOne('a:pathLst')
 
+
 class CT_Path2DList(BaseOxmlElement):
     """
 
     """
     path = ZeroOrMore('a:path')
+
 
 class CT_Path2D(BaseOxmlElement):
     """
@@ -28,6 +30,7 @@ class CT_Path2D(BaseOxmlElement):
     moveTo     = ZeroOrMore('a:moveTo')
     lnTo       = ZeroOrMore('a:lnTo')
     cubicBezTo = ZeroOrMore('a:cubicBezTo')
+    arcTo      = ZeroOrMore('a:arcTo')
     close      = ZeroOrMore('a:close')
 
     w = RequiredAttribute('w', ST_PositiveCoordinate)
@@ -76,13 +79,20 @@ class CT_Path2D(BaseOxmlElement):
         """
         Create a arcTo element to provided info.
         """
-        pass
+        at = self._add_arcTo()
+
+        at.hR = hR
+        at.wR = wR
+        at.stAng = stAng
+        at.swAng = swAng
+        return at
 
     def _new_moveTo(self):
         return CT_Path2DMoveTo.new()
 
     def _new_lnTo(self):
         return CT_Path2DLineTo.new()
+
 
 class CT_Path2DMoveTo(BaseOxmlElement):
     """
@@ -104,6 +114,7 @@ class CT_Path2DMoveTo(BaseOxmlElement):
                 '</a:moveTo>'
         ) % (nsdecls('a'), '%d', '%d')
 
+
 class CT_Path2DLineTo(BaseOxmlElement):
     """
 
@@ -123,24 +134,6 @@ class CT_Path2DLineTo(BaseOxmlElement):
                 '</a:lnTo>'
         ) % (nsdecls('a'), '%d', '%d')
 
-class CT_Path2DClose(BaseOxmlElement):
-    """
-
-    """
-    pass
-
-class CT_AdjPoint2D(BaseOxmlElement):
-    """
-
-    """
-    x = RequiredAttribute('x', ST_PositiveCoordinate)
-    y = RequiredAttribute('y', ST_PositiveCoordinate)
-
-class CT_Path2DArcTo(BaseOxmlElement):
-    """
-
-    """
-    pass
 
 class CT_Path2DCubicBezierTo(BaseOxmlElement):
     """
@@ -162,4 +155,29 @@ class CT_Path2DCubicBezierTo(BaseOxmlElement):
                 '   <a:pt x="%s" y="%s" />\n'
                 '</a:cubicBezTo>'
         ) % (nsdecls('a'), '%d', '%d', '%d', '%d', '%d', '%d')
+
+
+class CT_Path2DClose(BaseOxmlElement):
+    """
+
+    """
+    pass
+
+
+class CT_AdjPoint2D(BaseOxmlElement):
+    """
+
+    """
+    x = RequiredAttribute('x', ST_PositiveCoordinate)
+    y = RequiredAttribute('y', ST_PositiveCoordinate)
+
+
+class CT_Path2DArcTo(BaseOxmlElement):
+    """
+
+    """
+    wR = RequiredAttribute('wR', ST_AdjCoordinate)
+    hR = RequiredAttribute('hR', ST_AdjCoordinate)
+    stAng = RequiredAttribute('stAng', ST_AdjAngle)
+    swAng = RequiredAttribute('swAng', ST_AdjAngle)
 

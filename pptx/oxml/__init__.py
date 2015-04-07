@@ -213,6 +213,7 @@ register_element_cls('p:spTree',     CT_GroupShape)
 from .shapes.cust_geom import (
     CT_CustomGeometry2D, CT_Path2DList, CT_Path2D, CT_Path2DMoveTo,
     CT_Path2DLineTo, CT_Path2DCubicBezierTo, CT_Path2DClose, CT_AdjPoint2D,
+    CT_Path2DArcTo
 )
 register_element_cls('a:custGeom',   CT_CustomGeometry2D)
 register_element_cls('a:pathLst',    CT_Path2DList)
@@ -220,6 +221,7 @@ register_element_cls('a:path',       CT_Path2D)
 register_element_cls('a:moveTo',     CT_Path2DMoveTo)
 register_element_cls('a:lnTo',       CT_Path2DLineTo)
 register_element_cls('a:cubicBezTo', CT_Path2DCubicBezierTo)
+register_element_cls('a:arcTo',      CT_Path2DArcTo)
 register_element_cls('a:close',      CT_Path2DClose)
 register_element_cls('a:pt',         CT_AdjPoint2D)
 
