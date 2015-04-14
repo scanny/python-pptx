@@ -61,11 +61,11 @@ class CT_Path2D(BaseOxmlElement):
         Create a cubicBezTo element to provided points.
         """
         cbt = self._add_cubicBezTo()
-        
+
         pt = cbt._add_pt()
         pt.x = x1
         pt.y = y1
-        
+
         pt = cbt._add_pt()
         pt.x = x2
         pt.y = y2
@@ -137,7 +137,7 @@ class CT_Path2DLineTo(BaseOxmlElement):
 
 class CT_Path2DCubicBezierTo(BaseOxmlElement):
     """
-    
+
     """
     pt = OneOrMore('a:pt')
 

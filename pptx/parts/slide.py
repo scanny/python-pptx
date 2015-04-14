@@ -12,6 +12,7 @@ from .chart import ChartPart
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..oxml.parts.slide import CT_Slide
+from ..oxml.parts.notes_slide import CT_NotesSlide
 from ..shapes.shapetree import SlideShapeFactory, SlideShapeTree
 from ..shared import ParentedElementProxy
 from ..util import lazyproperty
@@ -83,6 +84,17 @@ class Slide(BaseSlide):
         rId = self.relate_to(chart_part, RT.CHART)
         return rId
 
+    def get_or_add_notes_slide(self):
+        """
+
+        """
+        part_fmt = '/ppt/notesSlides/notesSlide%d.xml'
+        partname = self._package.next_partname(part_fmt)
+        notes_slide = NotesSlide.new(self, partname, self._package)
+        rId = self.relate_to(notes_slide, RT.NOTES_SLIDE)
+        notes_slide.relate_to(self, RT.SLIDE)
+        return notes_slide
+
     @lazyproperty
     def placeholders(self):
         """
@@ -117,6 +129,37 @@ class Slide(BaseSlide):
         )
         warn(msg, UserWarning, stacklevel=2)
         return self.slide_layout
+
+
+class NotesSlide(BaseSlide):
+    """
+    Notes Slide part. Corresponds to package files
+                    ppt/notesSlides/notesSlide[1-9][0-9]*.xml.
+    """
+    @classmethod
+    def new(cls, slide, partname, package):
+        """
+        Return a new slide based on *slide* and having *partname*,
+        created from scratch.
+        """
+        element = CT_NotesSlide.new()
+        notes_slide = cls(partname, CT.PML_NOTES_SLIDE, element, package)
+        return notes_slide
+
+    @property
+    def slide(self):
+        """
+        |SlideLayout| object this slide inherits appearance from.
+        """
+        return self.part_related_by(RT.SLIDE)
+
+    @lazyproperty
+    def shapes(self):
+        """
+        Instance of |SlideShapeTree| containing sequence of shape objects
+        appearing on this slide.
+        """
+        return SlideShapeTree(self)
 
 
 class _SlidePlaceholders(ParentedElementProxy):
