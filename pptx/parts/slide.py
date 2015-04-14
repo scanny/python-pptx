@@ -84,7 +84,8 @@ class Slide(BaseSlide):
         rId = self.relate_to(chart_part, RT.CHART)
         return rId
 
-    def get_or_add_notes_slide(self):
+    @lazyproperty
+    def notes_slide(self):
         """
 
         """
