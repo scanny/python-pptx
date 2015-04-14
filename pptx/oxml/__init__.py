@@ -174,6 +174,8 @@ register_element_cls('p:sldLayoutId',    CT_SlideLayoutIdListEntry)
 register_element_cls('p:sldLayoutIdLst', CT_SlideLayoutIdList)
 register_element_cls('p:sldMaster',      CT_SlideMaster)
 
+from .parts.notes_slide import CT_NotesSlide
+register_element_cls('p:notes', CT_NotesSlide)
 
 from .shapes.autoshape import (
     CT_GeomGuide, CT_GeomGuideList, CT_NonVisualDrawingShapeProps,
