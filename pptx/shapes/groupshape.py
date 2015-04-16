@@ -317,13 +317,14 @@ class GroupShape(BaseGroupShape):
         sp = self._grpSp.add_custom_geometry(id_, name, x, y, cx, cy)
         return sp
 
-    def _add_groupshape_sp(self, x, y, cx, cy):
+    def _add_groupshape_sp(self, x, y, cx, cy, ch_x, ch_y, ch_cx, ch_cy):
         """
 
         """
         id_ = self._next_shape_id
         name = 'GroupShape %d' % (id_-1)
-        sp = self._grpSp.add_groupshape(id_, name, x, y, cx, cy)
+        sp = self._grpSp.add_groupshape(id_, name, x, y, cx, cy, ch_x, ch_y,
+                ch_cx, ch_cy)
         return sp
 
     def _clone_layout_placeholder(self, layout_placeholder):

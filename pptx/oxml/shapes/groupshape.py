@@ -86,12 +86,14 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
-    def add_groupshape(self, id_, name, x, y, cx, cy):
+    def add_groupshape(self, id_, name, x, y, cx, cy,
+            ch_x, ch_y, ch_cx, ch_cy):
         """
         Append a newly-created ``<p:grpSp>`` shape having the specified
         position and size.
         """
-        sp = CT_GroupShape.new_groupshape_sp(id_, name, x, y, cx, cy)
+        sp = CT_GroupShape.new_groupshape_sp(id_, name, x, y, cx, cy,
+                ch_x, ch_y, ch_cx, ch_cy)
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
@@ -149,10 +151,13 @@ class CT_GroupShape(BaseShapeElement):
             '    <a:xfrm>\n'
             '      <a:off x="%s" y="%s"/>\n'
             '      <a:ext cx="%s" cy="%s"/>\n'
+            '      <a:chOff x="%s" y="%s"/>\n'
+            '      <a:chExt cy"%s" cy="%s"/>\n'
             '    </a:xfrm>\n'
             '  </p:grpSpPr>\n'
             '</p:grpSp>\n' %
-            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d', '%d',
+                '%d', '%d', '%d')
         )
 
 class CT_GroupShapeNonVisual(BaseShapeElement):
