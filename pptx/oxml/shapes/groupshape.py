@@ -154,7 +154,7 @@ class CT_GroupShape(BaseShapeElement):
             '      <a:off x="%s" y="%s"/>\n'
             '      <a:ext cx="%s" cy="%s"/>\n'
             '      <a:chOff x="%s" y="%s"/>\n'
-            '      <a:chExt cy"%s" cy="%s"/>\n'
+            '      <a:chExt cx"%s" cy="%s"/>\n'
             '    </a:xfrm>\n'
             '  </p:grpSpPr>\n'
             '</p:grpSp>\n' %
