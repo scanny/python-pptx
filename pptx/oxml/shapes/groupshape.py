@@ -129,12 +129,14 @@ class CT_GroupShape(BaseShapeElement):
         return self.grpSpPr.xfrm
 
     @staticmethod
-    def new_groupshape_sp(id_, name, left, top, width, height):
+    def new_groupshape_sp(id_, name, left, top, width, height, child_left,
+            child_top, child_width, child_height):
         """
 
         """
         tmpl = CT_GroupShape._groupshape_tmpl()
-        xml = tmpl % (id_, name, left, top, width, height)
+        xml = tmpl % (id_, name, left, top, width, height, child_left,
+                child_top, child_width, child_height)
         sp = parse_xml(xml)
         return sp
 
