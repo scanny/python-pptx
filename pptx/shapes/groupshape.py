@@ -186,11 +186,13 @@ class GroupShape(BaseGroupShape):
         cust_geom = self._shape_factory(sp)
         return cust_geom
 
-    def add_groupshape(self, left, top, width, height):
+    def add_groupshape(self, left, top, width, height, child_left=0, child_top=0,
+            child_width=0, child_height=0):
         """
         Add groupshape of specified size at specified position on slide.
         """
-        sp = self._add_groupshape_sp(left, top, width, height)
+        sp = self._add_groupshape_sp(left, top, width, height, child_left,
+                child_top, child_width, child_height)
         groupshape = self._shape_factory(sp)
         return groupshape
 
