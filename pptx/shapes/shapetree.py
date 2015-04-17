@@ -205,6 +205,9 @@ class SlideShapeTree(BaseShapeTree):
         """
         Add groupshape of specified size at specified position on slide.
         """
+        child_width = child_width or width
+        child_height = child_height or height
+
         sp = self._add_groupshape_sp(left, top, width, height, child_left,
                 child_top, child_width, child_height)
         groupshape = self._shape_factory(sp)
