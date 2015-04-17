@@ -186,11 +186,16 @@ class GroupShape(BaseGroupShape):
         cust_geom = self._shape_factory(sp)
         return cust_geom
 
-    def add_groupshape(self, left, top, width, height):
+    def add_groupshape(self, left, top, width, height, child_left=0, child_top=0,
+            child_width=0, child_height=0):
         """
         Add groupshape of specified size at specified position on slide.
         """
-        sp = self._add_groupshape_sp(left, top, width, height)
+        child_width = child_width or width
+        child_height = child_height or height
+
+        sp = self._add_groupshape_sp(left, top, width, height, child_left,
+                child_top, child_width, child_height)
         groupshape = self._shape_factory(sp)
         return groupshape
 
@@ -317,13 +322,14 @@ class GroupShape(BaseGroupShape):
         sp = self._grpSp.add_custom_geometry(id_, name, x, y, cx, cy)
         return sp
 
-    def _add_groupshape_sp(self, x, y, cx, cy):
+    def _add_groupshape_sp(self, x, y, cx, cy, ch_x, ch_y, ch_cx, ch_cy):
         """
 
         """
         id_ = self._next_shape_id
         name = 'GroupShape %d' % (id_-1)
-        sp = self._grpSp.add_groupshape(id_, name, x, y, cx, cy)
+        sp = self._grpSp.add_groupshape(id_, name, x, y, cx, cy, ch_x, ch_y,
+                ch_cx, ch_cy)
         return sp
 
     def _clone_layout_placeholder(self, layout_placeholder):
