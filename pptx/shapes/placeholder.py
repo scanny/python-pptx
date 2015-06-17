@@ -448,3 +448,10 @@ class TablePlaceholder(_BaseSlidePlaceholder):
         return CT_GraphicalObjectFrame.new_table_graphicFrame(
             id_, name, rows, cols, self.left, self.top, self.width, height
         )
+
+class ObjectPlaceholder(SlidePlaceholder, ChartPlaceholder, PicturePlaceholder, TablePlaceholder):
+    """
+    Placeholder shape that can behave as a Shape or can accept a chart,
+    picture or table.
+    """
+    pass
