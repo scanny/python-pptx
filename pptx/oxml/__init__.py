@@ -239,17 +239,17 @@ from .shapes.shared import (
     CT_Placeholder, CT_Point2D, CT_PositiveSize2D,
     CT_ShapeProperties, CT_Transform2D
 )
-register_element_cls('a:ext',   CT_PositiveSize2D)
-register_element_cls('a:ln',    CT_LineProperties)
+register_element_cls('a:ext',      CT_PositiveSize2D)
+register_element_cls('a:ln',       CT_LineProperties)
 register_element_cls('a:prstDash', CT_PresetLineDashProperties)
-register_element_cls('a:off',   CT_Point2D)
-register_element_cls('a:xfrm',  CT_Transform2D)
-register_element_cls('c:spPr',  CT_ShapeProperties)
-register_element_cls('p:cNvPr', CT_NonVisualDrawingProps)
-register_element_cls('p:nvPr',  CT_ApplicationNonVisualDrawingProps)
-register_element_cls('p:ph',    CT_Placeholder)
-register_element_cls('p:spPr',  CT_ShapeProperties)
-register_element_cls('p:xfrm',  CT_Transform2D)
+register_element_cls('a:off',      CT_Point2D)
+register_element_cls('a:xfrm',     CT_Transform2D)
+register_element_cls('c:spPr',     CT_ShapeProperties)
+register_element_cls('p:cNvPr',    CT_NonVisualDrawingProps)
+register_element_cls('p:nvPr',     CT_ApplicationNonVisualDrawingProps)
+register_element_cls('p:ph',       CT_Placeholder)
+register_element_cls('p:spPr',     CT_ShapeProperties)
+register_element_cls('p:xfrm',     CT_Transform2D)
 
 
 

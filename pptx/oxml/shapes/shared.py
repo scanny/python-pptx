@@ -213,6 +213,8 @@ class CT_LineProperties(BaseOxmlElement):
             'a:headEnd', 'a:tailEnd', 'a:extLst'
         )
     )
+    eg_lineDashProperties = ZeroOrOne('a:prstDash', successors=())
+
     w = OptionalAttribute('w', ST_LineWidth, default=Emu(0))
 
     @property
