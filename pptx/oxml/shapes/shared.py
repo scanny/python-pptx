@@ -10,7 +10,8 @@ from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import qn
 from ..simpletypes import (
     ST_Angle, ST_Coordinate, ST_Direction, ST_DrawingElementId, ST_LineWidth,
-    ST_PlaceholderSize, ST_PositiveCoordinate, XsdString, XsdUnsignedInt
+    ST_PlaceholderSize, ST_PositiveCoordinate, XsdString, XsdUnsignedInt,
+    ST_PresetLineDashVal
 )
 from ...util import Emu
 from ..xmlchemy import (
@@ -221,6 +222,12 @@ class CT_LineProperties(BaseOxmlElement):
         """
         return self.eg_lineFillProperties
 
+class CT_PresetLineDashProperties(BaseOxmlElement):
+    """
+    Custom element class for <a:prstDash> element
+    """
+    val = OptionalAttribute('val', ST_PresetLineDashVal,
+            default=ST_PresetLineDashVal.SOLID)
 
 class CT_NonVisualDrawingProps(BaseOxmlElement):
     """

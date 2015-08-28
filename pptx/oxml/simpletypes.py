@@ -760,3 +760,21 @@ class ST_UniversalMeasure(BaseSimpleType):
         }[units_part]
         emu_value = Emu(int(round(quantity * multiplier)))
         return emu_value
+
+
+class ST_PresetLineDashVal(XsdToken):
+    """
+    """
+    SOLID = 'slide'
+    SYSDASH = 'sysDash'
+    SYSDASHDOT = 'sysDashDot'
+    SYSDASHDOTDOT = 'sysDashDotDot'
+    DOT = 'dot'
+    DASH = 'dash'
+    LGDASH = 'lgDash'
+    DASHDOT = 'dashDot'
+    LGDASHDOT = 'lgDashDot'
+    LGDASHDOTDOT = 'lgDashDotDot'
+
+    _members = (SOLID, SYSDASH, SYSDASHDOT, SYSDASHDOTDOT,
+            DOT, DASH, LGDASH, DASHDOT, LGDASHDOT, LGDASHDOTDOT))
