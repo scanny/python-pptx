@@ -767,6 +767,7 @@ class ST_PresetLineDashVal(XsdToken):
     """
     SOLID = 'slide'
     SYSDASH = 'sysDash'
+    SYSDOT = 'sysDot'
     SYSDASHDOT = 'sysDashDot'
     SYSDASHDOTDOT = 'sysDashDotDot'
     DOT = 'dot'
