@@ -237,12 +237,28 @@ class _SeriesRewriter(object):
         Rewrite the ``<c:tx>``, ``<c:cat>`` and ``<c:val>`` child elements
         of *ser* based on the values in *series_data*.
         """
+
+        has_yVal = ser.xpath('./c:yVal').__len__() > 0
+        has_xVal = ser.xpath('./c:xVal').__len__() > 0
+
         ser._remove_tx()
         ser._remove_cat()
-        ser._remove_val()
+
+        if has_yVal or has_xVal:
+            ser._remove_yval()
+            ser._remove_xval()
+        else:
+            ser._remove_val()
+
         ser._insert_tx(series_data.tx)
         ser._insert_cat(series_data.cat)
-        ser._insert_val(series_data.val)
+
+        if has_yVal or has_xVal:
+            ser._insert_xval(series_data.xval)
+            ser._insert_yval(series_data.yval)
+        else:
+            ser._insert_val(series_data.val)
+        
 
     @classmethod
     def _trim_ser_count_by(cls, chartSpace, count):
@@ -257,7 +273,7 @@ class _SeriesRewriter(object):
             parent.remove(ser)
         extra_xCharts = [
             xChart for xChart in chartSpace.chart.plotArea.iter_plots()
-            if len(list(xChart.iter_sers())) == 0
+            if 'iter_sers' in xChart == 0 and len(list(xChart.iter_sers())) == 0
         ]
         for xChart in extra_xCharts:
             parent = xChart.getparent()

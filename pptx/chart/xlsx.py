@@ -52,6 +52,19 @@ class WorkbookWriter(object):
         """
         worksheet.write_column(1, 0, categories)
         for series in series:
-            series_col = series.index + 1
-            worksheet.write(0, series_col, series.name)
-            worksheet.write_column(1, series_col, series.values)
+			# If the first value is a tuple (1,2) then there must be a written
+            # column in the worksheet for each tuple value. (used by scatter)
+            if len(series.values) > 0 and isinstance(series.values[0], tuple):
+                series_col = (series.index * 2) + 1
+                worksheet.write(0, series_col, series.name + "_x")
+                values = [x[0] for x in series.values]
+                worksheet.write_column(1, series_col, values)
+
+                series_col = (series.index * 2) + 2
+                worksheet.write(0, series_col, series.name + "_y")
+                values = [y[0] for y in series.values]
+                worksheet.write_column(1, series_col, values)
+            else:
+                series_col = series.index + 1
+                worksheet.write(0, series_col, series.name)
+                worksheet.write_column(1, series_col, series.values)

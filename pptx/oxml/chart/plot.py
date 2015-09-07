@@ -225,7 +225,6 @@ class CT_Overlap(BaseOxmlElement):
     """
     val = OptionalAttribute('val', ST_Overlap, default=0)
 
-
 class CT_PieChart(BaseChartElement):
     """
     ``<c:pieChart>`` custom element class
@@ -236,3 +235,12 @@ class CT_PieChart(BaseChartElement):
     ser = ZeroOrMore('c:ser', successors=_tag_seq[2:])
     dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[3:])
     del _tag_seq
+
+
+class CT_ScatterChart(BaseChartElement):
+    """
+    ``<c:scatterChart>`` custom element class
+    """
+    yval = ZeroOrOne('c:yVal', successors=('c:smooth', 'c:shape', 'c:extLst'))
+    xval = ZeroOrOne('c:xVal', successors=('c:smooth', 'c:shape', 'c:extLst'))
+        
