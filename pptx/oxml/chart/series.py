@@ -26,9 +26,11 @@ class CT_SeriesComposite(BaseOxmlElement):
     spPr = ZeroOrOne('c:spPr')  # provide override for _insert_spPr()
     invertIfNegative = ZeroOrOne('c:invertIfNegative')  # provide _insert..()
     cat = ZeroOrOne('c:cat', successors=(
-        'c:val', 'c:smooth', 'c:shape', 'c:extLst'
+        'c:yVal', 'c:xVal', 'c:val', 'c:smooth', 'c:shape', 'c:extLst'
     ))
     val = ZeroOrOne('c:val', successors=('c:smooth', 'c:shape', 'c:extLst'))
+    yval = ZeroOrOne('c:yVal', successors=('c:smooth', 'c:shape', 'c:extLst'))
+    xval = ZeroOrOne('c:xVal', successors=('c:smooth', 'c:shape', 'c:extLst'))
     smooth = ZeroOrOne('c:smooth', successors=('c:extLst',))
 
     @property
@@ -37,7 +39,7 @@ class CT_SeriesComposite(BaseOxmlElement):
         The sequence of ``<c:pt>`` elements under the ``<c:val>`` child
         element, ordered by the value of their ``idx`` attribute.
         """
-        val_pts = self.xpath('./c:val//c:pt')
+        val_pts = self.xpath("./c:val//c:pt")
         return sorted(val_pts, key=lambda pt: pt.idx)
 
     def _insert_invertIfNegative(self, invertIfNegative):
@@ -69,7 +71,6 @@ class CT_SeriesComposite(BaseOxmlElement):
     def _insert_tx(self, tx):
         self.order.addnext(tx)
         return tx
-
 
 class CT_StrVal_NumVal_Composite(BaseOxmlElement):
     """

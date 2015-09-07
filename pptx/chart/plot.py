@@ -112,6 +112,10 @@ class AreaPlot(Plot):
     An area plot.
     """
 
+class ScatterPlot(Plot):
+    """
+    A Scatter chart-style plot.
+    """
 
 class Area3DPlot(Plot):
     """
@@ -271,6 +275,7 @@ def PlotFactory(xChart, chart):
             qn('c:barChart'):    BarPlot,
             qn('c:lineChart'):   LinePlot,
             qn('c:pieChart'):    PiePlot,
+            qn('c:scatterChart'):ScatterPlot,
         }[xChart.tag]
     except KeyError:
         raise ValueError('unsupported plot type %s' % xChart.tag)
@@ -296,7 +301,8 @@ class PlotTypeInspector(object):
                 'BarPlot':    cls._differentiate_bar_chart_type,
                 'LinePlot':   cls._differentiate_line_chart_type,
                 'PiePlot':    cls._differentiate_pie_chart_type,
-            }[plot.__class__.__name__]
+                'ScatterPlot':cls._differentiate_scatter_chart_type
+                }[plot.__class__.__name__]
         except KeyError:
             raise NotImplementedError(
                 "chart_type() not implemented for %s" %
@@ -369,3 +375,7 @@ class PlotTypeInspector(object):
         pieChart = plot._element
         explosion = pieChart.xpath('./c:ser/c:explosion')
         return XL.PIE_EXPLODED if explosion else XL.PIE
+
+    @classmethod
+    def _differentiate_scatter_chart_type(cls, plot):
+        return XL.XY_SCATTER

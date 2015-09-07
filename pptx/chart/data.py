@@ -94,6 +94,7 @@ class _SeriesData(object):
         self._name = name
         self._values = values
         self._categories = categories
+        self._xyval = False # Replaces val with (yVal or xVal)
 
     def __len__(self):
         """
@@ -161,11 +162,27 @@ class _SeriesData(object):
         )
 
     @property
+    def yval(self):
+        xml = self._val_tmpl.format(val_key="yVal",
+            wksht_ref=self._values_ref, val_count=len(self),
+            val_pt_xml=self._yval_pt_xml, nsdecls=' %s' % nsdecls('c')
+        )
+        return parse_xml(xml)
+
+    @property
+    def xval(self):
+        xml = self._val_tmpl.format(val_key="xVal",
+            wksht_ref=self._values_ref, val_count=len(self),
+            val_pt_xml=self._xval_pt_xml, nsdecls=' %s' % nsdecls('c')
+        )
+        return parse_xml(xml)
+
+    @property
     def val(self):
         """
         The ``<c:val>`` XML for this series, as an oxml element.
         """
-        xml = self._val_tmpl.format(
+        xml = self._val_tmpl.format(val_key="val",
             wksht_ref=self._values_ref, val_count=len(self),
             val_pt_xml=self._val_pt_xml, nsdecls=' %s' % nsdecls('c')
         )
@@ -266,6 +283,36 @@ class _SeriesData(object):
         )
 
     @property
+    def _yval_pt_xml(self):
+        """
+        The unicode XML snippet containing the ``<c:pt>`` elements for this
+        series.
+        """
+        xml = ''
+        for idx, value in enumerate([y[1] for y in self._values]):
+            xml += (
+                '                <c:pt idx="%d">\n'
+                '                  <c:v>%s</c:v>\n'
+                '                </c:pt>\n'
+            ) % (idx, value)
+        return xml
+
+    @property
+    def _xval_pt_xml(self):
+        """
+        The unicode XML snippet containing the ``<c:pt>`` elements for this
+        series.
+        """
+        xml = ''
+        for idx, value in enumerate([x[0] for x in self._values]):
+            xml += (
+                '                <c:pt idx="%d">\n'
+                '                  <c:v>%s</c:v>\n'
+                '                </c:pt>\n'
+            ) % (idx, value)
+        return xml
+
+    @property
     def _val_pt_xml(self):
         """
         The unicode XML snippet containing the ``<c:pt>`` elements for this
@@ -287,7 +334,7 @@ class _SeriesData(object):
         the series values and their spreadsheet range reference.
         """
         return (
-            '          <c:val{nsdecls}>\n'
+            '          <c:{val_key}{nsdecls}>\n'
             '            <c:numRef>\n'
             '              <c:f>{wksht_ref}</c:f>\n'
             '              <c:numCache>\n'
@@ -296,7 +343,7 @@ class _SeriesData(object):
             '{val_pt_xml}'
             '              </c:numCache>\n'
             '            </c:numRef>\n'
-            '          </c:val>\n'
+            '          </c:{val_key}>\n'
         )
 
     @property

@@ -144,6 +144,19 @@ class PieSeries(_BaseSeries):
     A data point series belonging to a pie plot.
     """
 
+class ScatterSeries(_BaseSeries):
+    """
+    A data point series belonging to a pie plot.
+    """
+    @property
+    def values(self):
+        """
+        Read-only. A sequence containing the float values for this series, in
+        the order they appear on the chart.
+        """
+        y_values = [float(f) for f in self._element.xpath("./c:yVal//c:v/text()")]
+        x_values = [float(f) for f in self._element.xpath("./c:xVal//c:v/text()")]
+        return zip(x_values, y_values)
 
 class SeriesCollection(Sequence):
     """
@@ -174,4 +187,6 @@ def _SeriesFactory(ser):
         return LineSeries(ser)
     if xChart_tag == qn('c:pieChart'):
         return PieSeries(ser)
+    if xChart_tag == qn('c:vChart'):
+        return ScatterSeries(ser)
     raise ValueError('unsupported series type %s' % xChart_tag)
