@@ -1134,7 +1134,10 @@ autoshape_types = {
     },
     MSO_SHAPE.UP_ARROW: {
         'basename': 'Up Arrow',
-        'avLst':    ()
+        'avLst':    (
+            ('adj1', 50000),
+            ('adj2', 50000),
+        )
     },
     MSO_SHAPE.UP_ARROW_CALLOUT: {
         'basename': 'Up Arrow Callout',
