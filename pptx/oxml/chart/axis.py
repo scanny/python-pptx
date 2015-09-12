@@ -42,6 +42,7 @@ class BaseAxisElement(BaseOxmlElement):
     tickLblPos = ZeroOrOne('c:tickLblPos', successors=(
         'c:spPr', 'c:txPr', 'c:crossAx'
     ))
+    spPr = ZeroOrOne('c:spPr', successors=('c:txPr', 'c:crossAx'))
     txPr = ZeroOrOne('c:txPr', successors=('c:crossAx',))
 
     @property

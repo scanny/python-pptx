@@ -6,6 +6,7 @@ Axis-related chart objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from ..dml.line import LineFormat
 from ..enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
 from ..oxml.ns import qn
 from ..text.text import Font
@@ -20,6 +21,16 @@ class _BaseAxis(object):
     def __init__(self, xAx_elm):
         super(_BaseAxis, self).__init__()
         self._element = xAx_elm
+
+    def get_or_add_ln(self):
+        """
+        Return the ``<a:ln>`` element containing the line format properties
+        XML for this shape. Part of the callback interface required by
+        |LineFormat|.
+        """
+        spPr = self._element.get_or_add_spPr()
+        ln = spPr.get_or_add_ln()
+        return ln
 
     @property
     def has_major_gridlines(self):
@@ -58,6 +69,26 @@ class _BaseAxis(object):
             self._element.get_or_add_minorGridlines()
         else:
             self._element._remove_minorGridlines()
+
+    @lazyproperty
+    def line(self):
+        """
+        |LineFormat| instance for this shape, providing access to line
+        properties such as line color and width.
+        """
+        return LineFormat(self)
+
+    @property
+    def ln(self):
+        """
+        The ``<a:ln>`` element containing the line format properties such as
+        line color and width. |None| if no ``<a:ln>`` element is present.
+        Part of the callback interface required by |LineFormat|.
+        """
+        spPr = self._element.spPr
+        if spPr is None:
+            return None
+        return spPr.ln
 
     @property
     def major_tick_mark(self):
