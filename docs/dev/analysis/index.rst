@@ -44,6 +44,7 @@ Shape
    :titlesonly:
 
    features/shp-shapes
+   features/shp-hyperlink
    features/shp-graphfrm
    features/shp-connector
    features/shp-autofit
