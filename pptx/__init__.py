@@ -26,6 +26,7 @@ from pptx.parts.slidemaster import SlideMaster
 
 content_type_to_part_class_map = {
     CT.PML_PRESENTATION_MAIN: PresentationPart,
+    CT.PML_PRES_MACRO_MAIN:   PresentationPart,
     CT.PML_TEMPLATE_MAIN:     PresentationPart,
     CT.PML_SLIDESHOW_MAIN:    PresentationPart,
     CT.OPC_CORE_PROPERTIES:   CoreProperties,
