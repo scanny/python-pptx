@@ -226,8 +226,12 @@ class CT_NonVisualDrawingProps(BaseOxmlElement):
     """
     ``<p:cNvPr>`` custom element class.
     """
+    _tag_seq = ('a:hlinkClick', 'a:hlinkHover', 'a:extLst')
+    hlinkClick = ZeroOrOne('a:hlinkClick', successors=_tag_seq[1:])
+    hlinkHover = ZeroOrOne('a:hlinkHover', successors=_tag_seq[2:])
     id = RequiredAttribute('id', ST_DrawingElementId)
     name = RequiredAttribute('name', XsdString)
+    del _tag_seq
 
 
 class CT_Placeholder(BaseOxmlElement):

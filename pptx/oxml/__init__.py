@@ -38,6 +38,10 @@ def register_element_cls(nsptagname, cls):
     namespace[nsptag.local_part] = cls
 
 
+from .action import CT_Hyperlink
+register_element_cls('a:hlinkClick', CT_Hyperlink)
+
+
 from .chart.axis import (
     CT_AxisUnit, CT_CatAx, CT_LblOffset, CT_Scaling, CT_TickLblPos,
     CT_TickMark, CT_ValAx
@@ -247,7 +251,7 @@ register_element_cls('a:tr',      CT_TableRow)
 
 
 from .text import (
-    CT_Hyperlink, CT_RegularTextRun, CT_TextBody, CT_TextBodyProperties,
+    CT_RegularTextRun, CT_TextBody, CT_TextBodyProperties,
     CT_TextCharacterProperties, CT_TextField, CT_TextFont, CT_TextLineBreak,
     CT_TextNormalAutofit, CT_TextParagraph, CT_TextParagraphProperties,
     CT_TextSpacing, CT_TextSpacingPercent, CT_TextSpacingPoint
@@ -257,7 +261,6 @@ register_element_cls('a:br',          CT_TextLineBreak)
 register_element_cls('a:defRPr',      CT_TextCharacterProperties)
 register_element_cls('a:endParaRPr',  CT_TextCharacterProperties)
 register_element_cls('a:fld',         CT_TextField)
-register_element_cls('a:hlinkClick',  CT_Hyperlink)
 register_element_cls('a:latin',       CT_TextFont)
 register_element_cls('a:lnSpc',       CT_TextSpacing)
 register_element_cls('a:normAutofit', CT_TextNormalAutofit)

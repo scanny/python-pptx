@@ -16,21 +16,13 @@ from .ns import nsdecls
 from .simpletypes import (
     ST_Coordinate32, ST_TextFontScalePercentOrPercentString, ST_TextFontSize,
     ST_TextIndentLevelType, ST_TextSpacingPercentOrPercentString,
-    ST_TextSpacingPoint, ST_TextTypeface, ST_TextWrappingType, XsdBoolean,
-    XsdString
+    ST_TextSpacingPoint, ST_TextTypeface, ST_TextWrappingType, XsdBoolean
 )
 from ..util import Emu, Length
 from .xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
 )
-
-
-class CT_Hyperlink(BaseOxmlElement):
-    """
-    Custom element class for <a:hlinkClick> elements.
-    """
-    rId = OptionalAttribute('r:id', XsdString)
 
 
 class CT_RegularTextRun(BaseOxmlElement):
