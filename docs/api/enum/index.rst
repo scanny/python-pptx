@@ -17,6 +17,7 @@ can be found here:
    MsoThemeColorIndex
    MsoVerticalAnchor
 
+   PpActionType
    PpParagraphAlignment
    PpPlaceholderType
 
