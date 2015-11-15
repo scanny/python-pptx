@@ -13,12 +13,20 @@ from pptx.chart.chart import Chart
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
+from pptx.action import ActionSetting
 from pptx.util import Inches
 
 from helpers import cls_qname, saved_pptx_path, test_pptx, test_text
 
 
 # given ===================================================
+
+@given('a chart')
+def given_a_chart(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[6]
+
 
 @given('a connector')
 def given_a_connector(context):
@@ -28,7 +36,7 @@ def given_a_connector(context):
 
 
 @given('a graphic frame')  # shouldn't matter, but this one contains a table
-def given_a_table(context):
+def given_a_graphic_frame(context):
     prs = Presentation(test_pptx('shp-common-props'))
     sld = prs.slides[0]
     context.shape = sld.shapes[2]
@@ -81,6 +89,20 @@ def given_a_shape(context):
     prs = Presentation(test_pptx('shp-common-props'))
     sld = prs.slides[0]
     context.shape = sld.shapes[0]
+
+
+@given('a table')
+def given_a_table(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[2]
+
+
+@given('a textbox')
+def given_a_textbox(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[5]
 
 
 @given('a {shape_type} on a slide')
@@ -300,6 +322,11 @@ def then_I_can_get_the_id_of_the_shape(context, shape_type):
         'connector':    11,
     }[shape_type]
     assert context.shape.id == expected_id
+
+
+@then("shape.click_action is an ActionSetting object")
+def then_shape_click_action_is_an_ActionSetting_object(context):
+    assert isinstance(context.shape.click_action, ActionSetting)
 
 
 @then("shape.name is '{expected_value}'")

@@ -94,3 +94,19 @@ Feature: Query and change common shape properties
       | graphic frame |  10.0 |      10.0      |
       | group shape   |  -5.2 |     354.8      |
       | connector     |  50.0 |      50.0      |
+
+
+  @wip
+  Scenario Outline: get click action
+     Given <shape-type>
+      Then shape.click_action is an ActionSetting object
+
+    Examples: Shape types
+      | shape-type    |
+      | an autoshape  |
+      | a textbox     |
+      | a picture     |
+      | a connector   |
+      | a chart       |
+      | a table       |
+      | a group shape |

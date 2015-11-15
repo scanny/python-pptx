@@ -23,6 +23,19 @@ sys.path.insert(0, os.path.abspath('..'))
 from pptx import __version__
 
 
+# -- Allow nonlocal image URI's to accommodate travis-ci status image -------
+
+import sphinx.environment
+from docutils.utils import get_source_line
+
+
+def _warn_node(self, msg, node):
+    if not msg.startswith('nonlocal image URI found:'):
+        self._warnfunc(msg, '%s:%s' % get_source_line(node))
+
+sphinx.environment.BuildEnvironment.warn_node = _warn_node
+
+
 # -- General configuration --------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -70,6 +83,8 @@ release = __version__
 # file that is read. This is the right place to add substitutions that should
 # be available in every file.
 rst_epilog = """
+.. |ActionSetting| replace:: :class:`.ActionSetting`
+
 .. |Adjustment| replace:: :class:`Adjustment`
 
 .. |AdjustmentCollection| replace:: :class:`AdjustmentCollection`
