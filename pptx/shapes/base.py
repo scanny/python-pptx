@@ -8,7 +8,9 @@ from __future__ import absolute_import, print_function
 
 from warnings import warn
 
+from ..action import ActionSetting
 from ..shared import ElementProxy
+from ..util import lazyproperty
 
 
 class BaseShape(object):
@@ -20,6 +22,16 @@ class BaseShape(object):
         super(BaseShape, self).__init__()
         self._element = shape_elm
         self._parent = parent
+
+    @lazyproperty
+    def click_action(self):
+        """
+        An |ActionSetting| instance providing access to the mouse click
+        behaviors defined on this shape. An |ActionSetting| object is always
+        returned, even when no click behavior is defined on the shape.
+        """
+        cNvPr = self._element._nvXxPr.cNvPr
+        return ActionSetting(cNvPr, self)
 
     @property
     def element(self):

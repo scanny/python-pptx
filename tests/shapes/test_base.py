@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import pytest
 
+from pptx.action import ActionSetting
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
@@ -29,6 +30,12 @@ from ..unitutil.mock import (
 
 
 class DescribeBaseShape(object):
+
+    def it_provides_access_to_its_click_action(self, click_action_fixture):
+        shape, ActionSetting_, cNvPr, click_action_ = click_action_fixture
+        click_action = shape.click_action
+        ActionSetting_.assert_called_once_with(cNvPr, shape)
+        assert click_action is click_action_
 
     def it_knows_its_shape_id(self, id_fixture):
         shape, shape_id = id_fixture
@@ -107,6 +114,20 @@ class DescribeBaseShape(object):
         assert shape.has_table is False
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        'p:sp/p:nvSpPr/p:cNvPr',
+        'p:grpSp/p:nvGrpSpPr/p:cNvPr',
+        'p:graphicFrame/p:nvGraphicFramePr/p:cNvPr',
+        'p:cxnSp/p:nvCxnSpPr/p:cNvPr',
+        'p:pic/p:nvPicPr/p:cNvPr',
+    ])
+    def click_action_fixture(self, request, ActionSetting_, action_setting_):
+        sp_cxml = request.param
+        sp = element(sp_cxml)
+        cNvPr = sp.xpath('//p:cNvPr')[0]
+        shape = BaseShape(sp, None)
+        return shape, ActionSetting_, cNvPr, action_setting_
 
     @pytest.fixture(params=[
         ('sp',           False), ('sp_with_ext',           True),
@@ -255,6 +276,17 @@ class DescribeBaseShape(object):
         return shape, new_value, expected_xml
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ActionSetting_(self, request, action_setting_):
+        return class_mock(
+            request, 'pptx.shapes.base.ActionSetting',
+            return_value=action_setting_
+        )
+
+    @pytest.fixture
+    def action_setting_(self, request):
+        return instance_mock(request, ActionSetting)
 
     @pytest.fixture
     def cxnSp(self):

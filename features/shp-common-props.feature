@@ -96,7 +96,6 @@ Feature: Query and change common shape properties
       | connector     |  50.0 |      50.0      |
 
 
-  @wip
   Scenario Outline: get click action
      Given <shape-type>
       Then shape.click_action is an ActionSetting object
