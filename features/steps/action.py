@@ -35,8 +35,9 @@ def given_a_shape_having_click_action_action(context, action):
         'run macro',
         'run program',
     ).index(action)
-    sld = Presentation(test_pptx('act-props')).slides[0]
-    context.shape = sld.shapes[shape_idx]
+    slides = Presentation(test_pptx('act-props')).slides
+    context.slides = slides
+    context.shape = slides[2].shapes[shape_idx]
 
 
 # when ====================================================
@@ -49,3 +50,10 @@ def then_click_action_action_is_value(context, member_name):
     click_action = context.shape.click_action
     expected_value = getattr(PP_ACTION, member_name)
     assert click_action.action == expected_value
+
+
+@then('click_action.target_slide is slide {idx}')
+def then_click_action_target_slide_is_slide_idx(context, idx):
+    expected_value = None if idx == 'None' else context.slides[int(idx)]
+    click_action = context.shape.click_action
+    assert click_action.target_slide == expected_value

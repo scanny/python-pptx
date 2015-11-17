@@ -24,3 +24,26 @@ Feature: Get and set click action properties
       | OLE action         | OLE_VERB          |
       | run macro          | RUN_MACRO         |
       | run program        | RUN_PROGRAM       |
+
+  @wip
+  Scenario Outline: get target slide
+     Given a shape having click action <action>
+      Then click_action.target_slide is slide <slide_idx>
+
+    Examples: Click actions
+      | action             | slide_idx |
+      | none               |    None   |
+      | first slide        |     0     |
+      | last slide         |     4     |
+      | previous slide     |     1     |
+      | next slide         |     3     |
+      | last slide viewed  |    None   |
+      | named slide        |     2     |
+      | end show           |    None   |
+      | hyperlink          |    None   |
+      | other presentation |    None   |
+      | open file          |    None   |
+      | custom slide show  |    None   |
+      | OLE action         |    None   |
+      | run macro          |    None   |
+      | run program        |    None   |
