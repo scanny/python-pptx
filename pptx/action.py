@@ -126,7 +126,7 @@ class ActionSetting(Subshape):
         Position in the slide collection of the slide containing the shape
         having this click action.
         """
-        raise NotImplementedError
+        return self._slides.index(self._slide)
 
     @lazyproperty
     def _slides(self):

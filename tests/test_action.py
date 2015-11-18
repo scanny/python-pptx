@@ -34,6 +34,12 @@ class DescribeActionSetting(object):
         with pytest.raises(ValueError):
             action_setting.target_slide
 
+    def it_knows_its_slide_index_to_help(self, _slide_index_fixture):
+        action_setting, slides, slide, expected_value = _slide_index_fixture
+        slide_index = action_setting._slide_index
+        slides.index.assert_called_once_with(slide)
+        assert slide_index == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -76,6 +82,15 @@ class DescribeActionSetting(object):
             cNvPr.hlinkClick.action = action_text
         action_setting = ActionSetting(cNvPr, None)
         return action_setting, expected_action
+
+    @pytest.fixture
+    def _slide_index_fixture(self, request, part_prop_):
+        action_setting = ActionSetting(None, None)
+        slide = part_prop_.return_value
+        slides = slide.package.presentation.slides
+        expected_value = 123
+        slides.index.return_value = expected_value
+        return action_setting, slides, slide, expected_value
 
     @pytest.fixture(params=[
         (PP_ACTION.NONE,                None),
