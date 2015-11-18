@@ -290,6 +290,16 @@ class DescribeSlides(object):
         with pytest.raises(IndexError):
             slides[2]
 
+    def it_can_find_the_index_of_a_slide(self, index_fixture):
+        slides, slide, expected_value = index_fixture
+        index = slides.index(slide)
+        assert index == expected_value
+
+    def it_raises_on_slide_not_in_collection(self, index_raise_fixture):
+        slides, slide = index_raise_fixture
+        with pytest.raises(ValueError):
+            slides.index(slide)
+
     def it_can_iterate_over_the_slides(self, slides, slide_, slide_2_):
         assert [s for s in slides] == [slide_, slide_2_]
 
@@ -334,6 +344,31 @@ class DescribeSlides(object):
     #       +- .related_parts = {rId_: slide_, rId_2_: slide_2_}
     #
     # ----------------------------------------------------------------
+
+    @pytest.fixture
+    def index_fixture(self, sldIdLst_, prs_, slide_2_):
+        slides = _Slides(sldIdLst_, prs_)
+        slide = slide_2_
+        expected_value = 1
+        return slides, slide, expected_value
+
+    @pytest.fixture
+    def index_raise_fixture(self, sldIdLst_, prs_):
+        slides = _Slides(sldIdLst_, prs_)
+        slide = "foobar"
+        return slides, slide
+
+    @pytest.fixture
+    def slides_with_slide_parts_(self, sldIdLst_, prs_, slide_parts_):
+        slide_, slide_2_ = slide_parts_
+        slides = _Slides(sldIdLst_, prs_)
+        return slides, slide_, slide_2_
+
+    @pytest.fixture
+    def slides(self, sldIdLst_, prs_):
+        return _Slides(sldIdLst_, prs_)
+
+    # fixture components ---------------------------------------------
 
     @pytest.fixture
     def prs_(self, request, rel_, related_parts_):
@@ -416,13 +451,3 @@ class DescribeSlides(object):
     @pytest.fixture
     def slidelayout_(self, request):
         return instance_mock(request, SlideLayout)
-
-    @pytest.fixture
-    def slides(self, sldIdLst_, prs_):
-        return _Slides(sldIdLst_, prs_)
-
-    @pytest.fixture
-    def slides_with_slide_parts_(self, sldIdLst_, prs_, slide_parts_):
-        slide_, slide_2_ = slide_parts_
-        slides = _Slides(sldIdLst_, prs_)
-        return slides, slide_, slide_2_

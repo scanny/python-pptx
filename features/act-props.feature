@@ -25,7 +25,6 @@ Feature: Get and set click action properties
       | run macro          | RUN_MACRO         |
       | run program        | RUN_PROGRAM       |
 
-  @wip
   Scenario Outline: get target slide
      Given a shape having click action <action>
       Then click_action.target_slide is slide <slide_idx>

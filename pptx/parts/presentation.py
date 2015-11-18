@@ -129,6 +129,18 @@ class _Slides(object):
         self._sldIdLst.add_sldId(rId)
         return slide
 
+    def index(self, item):
+        """
+        Map *item* to an integer representing its zero-based position in this
+        slide collection. Raises |ValueError| if *item* is not a slide in
+        this collection.
+        """
+        item_id = id(item)
+        for idx, slide in enumerate(self):
+            if id(slide) == item_id:
+                return idx
+        raise ValueError('%s is not in slide collection' % item)
+
     def rename_slides(self):
         """
         Assign partnames like ``/ppt/slides/slide9.xml`` to all slides in the
