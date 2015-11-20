@@ -147,12 +147,12 @@ class MetaEnumeration(type):
         )
 
 
-class Enumeration(object):
+class EnumerationBase(object):
     """
     Base class for all enumerations, used directly for enumerations requiring
-    only basic behavior.
+    only basic behavior. It's __dict__ is used below in the Python 2+3
+    compatible metaclass definition.
     """
-    __metaclass__ = MetaEnumeration
     __members__ = ()
     __ms_name__ = ''
 
@@ -165,6 +165,11 @@ class Enumeration(object):
             raise ValueError(
                 "%s not a member of %s enumeration" % (value, cls.__name__)
             )
+
+
+Enumeration = MetaEnumeration(
+    'Enumeration', (object,), dict(EnumerationBase.__dict__)
+)
 
 
 class XmlEnumeration(Enumeration):
@@ -280,7 +285,7 @@ class EnumValue(int):
         """
         The symbolic name and string value of this member, e.g. 'MIDDLE (3)'
         """
-        return "%s (%d)" % (self._member_name, self)
+        return "{0:s} ({1:d})".format(self._member_name, self)
 
 
 class ReturnValueOnlyEnumMember(EnumMember):

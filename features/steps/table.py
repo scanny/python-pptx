@@ -13,7 +13,7 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import MSO_ANCHOR
 from pptx.util import Inches
 
-from .helpers import saved_pptx_path
+from helpers import saved_pptx_path
 
 
 # given ===================================================

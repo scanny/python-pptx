@@ -15,7 +15,7 @@ from pptx.chart.plot import (
 )
 from pptx.chart.series import SeriesCollection
 from pptx.enum.chart import XL_CHART_TYPE as XL, XL_LABEL_POSITION
-from pptx.text import Font
+from pptx.text.text import Font
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock

@@ -9,8 +9,10 @@ from __future__ import absolute_import, print_function
 from warnings import warn
 
 from ..oxml.ns import qn
-from ..shapes.placeholder import BasePlaceholder, BasePlaceholders
-from ..shapes.shapetree import BaseShapeFactory, BaseShapeTree
+from ..shapes.placeholder import MasterPlaceholder
+from ..shapes.shapetree import (
+    BasePlaceholders, BaseShapeFactory, BaseShapeTree
+)
 from .slide import BaseSlide
 from ..util import lazyproperty
 
@@ -137,14 +139,8 @@ def _MasterShapeFactory(shape_elm, parent):
     """
     tag_name = shape_elm.tag
     if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
-        return _MasterPlaceholder(shape_elm, parent)
+        return MasterPlaceholder(shape_elm, parent)
     return BaseShapeFactory(shape_elm, parent)
-
-
-class _MasterPlaceholder(BasePlaceholder):
-    """
-    Placeholder shape on a slide master.
-    """
 
 
 class _MasterPlaceholders(BasePlaceholders):

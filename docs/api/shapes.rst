@@ -7,13 +7,13 @@ The following classes provide access to the shapes that appear on a slide and
 the collections that contain them.
 
 
-|_SlideShapeTree| objects
--------------------------
+|SlideShapeTree| objects
+------------------------
 
-The |_SlideShapeTree| object is encountered as the :attr:`~BaseSlide.shapes`
+The |SlideShapeTree| object is encountered as the :attr:`~BaseSlide.shapes`
 property of |Slide|.
 
-.. autoclass:: pptx.parts.slide._SlideShapeTree()
+.. autoclass:: pptx.shapes.shapetree.SlideShapeTree()
    :members:
    :exclude-members: clone_layout_placeholders
 
@@ -23,7 +23,7 @@ Shape objects in general
 
 The following properties and methods are common to all shapes.
 
-.. autoclass:: pptx.shapes.shape.BaseShape()
+.. autoclass:: pptx.shapes.base.BaseShape()
    :members:
    :exclude-members: part
    :member-order: bysource
@@ -34,10 +34,11 @@ The following properties and methods are common to all shapes.
 ----------------------------
 
 The following properties and methods are defined for AutoShapes, which
-includes text boxes and placeholders.
+include text boxes and placeholders.
 
 .. autoclass:: pptx.shapes.autoshape.Shape()
    :members:
+   :exclude-members: get_or_add_ln, ln
    :member-order: bysource
    :undoc-members:
 
@@ -81,26 +82,16 @@ The following properties and methods are defined for picture shapes.
    :undoc-members:
 
 
-``Placeholder`` objects
------------------------
+|GraphicFrame| objects
+----------------------
 
-The following properties and methods are defined for placeholder shapes.
+The following properties and methods are defined for graphic frame shapes.
+A graphic frame is the shape containing a table, chart, or smart art.
 
-.. autoclass:: pptx.shapes.placeholder.BasePlaceholder()
-   :members:
-   :undoc-members:
-
-.. autoclass:: pptx.parts.slide._SlidePlaceholder()
-   :members:
-   :undoc-members:
-
-.. autoclass:: pptx.parts.slidelayout._LayoutPlaceholder()
-   :members:
-   :undoc-members:
-
-.. autoclass:: pptx.parts.slidemaster._MasterPlaceholder()
+.. autoclass:: pptx.shapes.graphfrm.GraphicFrame()
+   :show-inheritance:
    :members:
    :exclude-members:
-      adjustments, get_or_add_ln, ln, part, shape_type
+       chart_part, has_text_frame, has_textframe, is_placeholder, part,
+       placeholder_format, shape_type
    :inherited-members:
-   :undoc-members:

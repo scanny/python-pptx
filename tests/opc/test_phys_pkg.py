@@ -14,7 +14,6 @@ except ImportError:
 import hashlib
 import pytest
 
-from mock import Mock
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from pptx.exceptions import PackageNotFoundError
@@ -24,7 +23,7 @@ from pptx.opc.phys_pkg import (
 )
 
 from ..unitutil.file import absjoin, test_file_dir
-from ..unitutil.mock import class_mock, loose_mock
+from ..unitutil.mock import class_mock, loose_mock, Mock
 
 
 test_pptx_path = absjoin(test_file_dir, 'test.pptx')

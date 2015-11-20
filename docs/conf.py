@@ -74,6 +74,8 @@ rst_epilog = """
 
 .. |AdjustmentCollection| replace:: :class:`AdjustmentCollection`
 
+.. |AttributeError| replace:: :exc:`AttributeError`
+
 .. |Axis| replace:: :class:`Axis`
 
 .. |BarPlot| replace:: :class:`.BarPlot`
@@ -81,8 +83,6 @@ rst_epilog = """
 .. |BarSeries| replace:: :class:`.BarSeries`
 
 .. |BaseFileSystem| replace:: :class:`BaseFileSystem`
-
-.. |BaseLength| replace:: :class:`.BaseLength`
 
 .. |BaseShape| replace:: :class:`BaseShape`
 
@@ -128,13 +128,19 @@ rst_epilog = """
 
 .. |_Hyperlink| replace:: :class:`_Hyperlink`
 
+.. |Image| replace:: :class:`.Image`
+
+.. |ImagePart| replace:: :class:`.ImagePart`
+
+.. |Inches| replace:: :class:`.Inches`
+
 .. |int| replace:: :class:`int`
 
 .. |InvalidXmlError| replace:: :exc:`InvalidXmlError`
 
 .. |KeyError| replace:: :exc:`KeyError`
 
-.. |list| replace:: :class:`list`
+.. |LayoutPlaceholder| replace:: :class:`LayoutPlaceholder`
 
 .. |_LayoutPlaceholders| replace:: :class:`_LayoutPlaceholders`
 
@@ -142,9 +148,15 @@ rst_epilog = """
 
 .. |Legend| replace:: :class:`.Legend`
 
+.. |Length| replace:: :class:`.Length`
+
 .. |LineFormat| replace:: :class:`.LineFormat`
 
 .. |LineSeries| replace:: :class:`.LineSeries`
+
+.. |list| replace:: :class:`list`
+
+.. |MasterPlaceholder| replace:: :class:`MasterPlaceholder`
 
 .. |_MasterPlaceholders| replace:: :class:`_MasterPlaceholders`
 
@@ -168,13 +180,21 @@ rst_epilog = """
 
 .. |Picture| replace:: :class:`.Picture`
 
+.. |_PlaceholderFormat| replace:: :class:`._PlaceholderFormat`
+
+.. |PlaceholderGraphicFrame| replace:: :class:`.PlaceholderGraphicFrame`
+
+.. |PlaceholderPicture| replace:: :class:`.PlaceholderPicture`
+
 .. |Plot| replace:: :class:`.Plot`
 
 .. |Plots| replace:: :class:`.Plots`
 
-.. |pp| replace:: ``python-pptx``
+.. |pp| replace:: `python-pptx`
 
 .. |Presentation| replace:: :class:`~pptx.Presentation`
+
+.. |Pt| replace:: :class:`.Pt`
 
 .. |_Relationship| replace:: :class:`._Relationship`
 
@@ -200,7 +220,7 @@ rst_epilog = """
 
 .. |Slide| replace:: :class:`Slide`
 
-.. |SlideCollection| replace:: :class:`.SlideCollection`
+.. |_Slides| replace:: :class:`._Slides`
 
 .. |SlideLayout| replace:: :class:`.SlideLayout`
 
@@ -208,7 +228,7 @@ rst_epilog = """
 
 .. |_SlidePlaceholders| replace:: :class:`._SlidePlaceholders`
 
-.. |_SlideShapeTree| replace:: :class:`._SlideShapeTree`
+.. |SlideShapeTree| replace:: :class:`.SlideShapeTree`
 
 .. |str| replace:: :class:`str`
 

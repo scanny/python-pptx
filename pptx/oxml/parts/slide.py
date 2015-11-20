@@ -26,10 +26,10 @@ class CT_Slide(BaseOxmlElement):
     """
     ``<p:sld>`` element, root of a slide part
     """
+    _tag_seq = ('cSld', 'clrMapOvr', 'transition', 'timing', 'extLst')
     cSld = OneAndOnlyOne('p:cSld')
-    clrMapOvr = ZeroOrOne('p:clrMapOvr', successors=(
-        'p:transition', 'p:timing', 'p:extLst'
-    ))
+    clrMapOvr = ZeroOrOne('p:clrMapOvr', successors=_tag_seq[2:])
+    del _tag_seq
 
     @classmethod
     def new(cls):
@@ -37,6 +37,13 @@ class CT_Slide(BaseOxmlElement):
         Return a new ``<p:sld>`` element configured as a base slide shape.
         """
         return parse_xml(cls._sld_xml())
+
+    @property
+    def spTree(self):
+        """
+        Return required `p:cSld/p:spTree` grandchild.
+        """
+        return self.cSld.spTree
 
     @staticmethod
     def _sld_xml():

@@ -13,11 +13,11 @@ Feature: Add a picture to a slide
     Examples: image files of supported types
       | filename         | ext  |
       | sonic.gif        | gif  |
-      | python-icon.jpeg | jpeg |
+      | python-icon.jpeg | jpg  |
       | monty-truth.png  | png  |
       | 72-dpi.tiff      | tiff |
-      | CVS_LOGO.WMF     | WMF  |
-      | pic.emf          | emf  |
+      | CVS_LOGO.WMF     | wmf  |
+      | pic.emf          | wmf  |
       | python.bmp       | bmp  |
 
 

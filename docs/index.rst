@@ -41,7 +41,8 @@ User Guide
    user/slides
    user/understanding-shapes
    user/autoshapes
-   user/placeholders
+   user/placeholders-understanding
+   user/placeholders-using
    user/text
    user/charts
    user/use-cases
@@ -71,10 +72,12 @@ API Documentation
    api/presentation
    api/slides
    api/shapes
+   api/placeholders
    api/table
    api/chart
    api/text
    api/dml
+   api/image
    api/exc
    api/util
 

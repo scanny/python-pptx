@@ -1,216 +1,286 @@
 # encoding: utf-8
 
 """
-Image part objects, including Image
+ImagePart and related objects.
 """
 
 import hashlib
 import os
-import posixpath
 
 try:
     from PIL import Image as PIL_Image
 except ImportError:
     import Image as PIL_Image
 
-from StringIO import StringIO
-
-from pptx.opc.package import Part
-from pptx.opc.packuri import PackURI
-from pptx.opc.spec import image_content_types
-from pptx.parts.part import PartCollection
-from pptx.util import Px
+from ..compat import BytesIO, is_string
+from ..opc.package import Part
+from ..opc.spec import image_content_types
+from ..util import lazyproperty
 
 
-class Image(Part):
+class ImagePart(Part):
     """
-    Return new Image part instance. *file* may be |None|, a path to a file (a
-    string), or a file-like object. If *file* is |None|, no image is loaded
-    and :meth:`_load` must be called before using the instance. Otherwise, the
-    file referenced or contained in *file* is loaded. Corresponds to package
-    files ppt/media/image[1-9][0-9]*.*.
+    An image part, generally having a partname matching the regex
+    ``ppt/media/image[1-9][0-9]*.*``.
     """
-    def __init__(self, partname, content_type, blob, ext, filepath=None):
-        super(Image, self).__init__(partname, content_type, blob)
-        self._ext = ext
-        self._filepath = filepath
+    def __init__(self, partname, content_type, blob, package, filename=None):
+        super(ImagePart, self).__init__(
+            partname, content_type, blob, package
+        )
+        self._filename = filename
 
     @classmethod
-    def new(cls, partname, img_file):
+    def load(cls, partname, content_type, blob, package):
+        return cls(partname, content_type, blob, package)
+
+    @classmethod
+    def new(cls, package, image):
         """
-        Return a new Image part instance from *img_file*, which may be a path
-        to a file (a string), or a file-like object. Corresponds to package
-        files ppt/media/image[1-9][0-9]*.*.
+        Return a new |ImagePart| instance containing *image*, which is an
+        |Image| object.
         """
-        filepath, ext, content_type, blob = cls._load_from_file(img_file)
-        image = cls(partname, content_type, blob, ext, filepath)
-        return image
+        partname = package.next_image_partname(image.ext)
+        return cls(
+            partname, image.content_type, image.blob, package, image.filename
+        )
+
+    @property
+    def desc(self):
+        """
+        The filename associated with this image, either the filename of
+        the original image or a generic name of the form ``image.ext``
+        where ``ext`` is appropriate to the image file format, e.g.
+        ``'jpg'``. An image created using a path will have that filename; one
+        created with a file-like object will have a generic name.
+        """
+        # return generic filename if original filename is unknown
+        if self._filename is None:
+            return 'image.%s' % self.ext
+        return self._filename
 
     @property
     def ext(self):
         """
         Return file extension for this image e.g. ``'png'``.
         """
-        return self._ext
-
-    @classmethod
-    def load(cls, partname, content_type, blob, package):
-        ext = posixpath.splitext(partname)[1]
-        return cls(partname, content_type, blob, ext)
+        return self.partname.ext
 
     @property
-    def _desc(self):
+    def image(self):
         """
-        Return filename associated with this image, either the filename of the
-        original image file the image was created with or a synthetic name of
-        the form ``image.ext`` where ``ext`` is appropriate to the image file
-        format, e.g. ``'jpg'``.
+        An |Image| object containing the image in this image part.
         """
-        if self._filepath is not None:
-            return os.path.split(self._filepath)[1]
-        # return generic filename if original filename is unknown
-        return 'image.%s' % self.ext
+        return Image(self.blob, self.desc)
 
-    @staticmethod
-    def _ext_from_image_stream(stream):
+    def scale(self, scaled_cx, scaled_cy):
         """
-        Return the filename extension appropriate to the image file contained
-        in *stream*.
+        Return scaled image dimensions in EMU based on the combination of
+        parameters supplied. If *scaled_cx* and *scaled_cy* are both |None|,
+        the native image size is returned. If neither *scaled_cx* nor
+        *scaled_cy* is |None|, their values are returned unchanged. If
+        a value is provided for either *scaled_cx* or *scaled_cy* and the
+        other is |None|, the missing value is calculated such that the
+        image's aspect ratio is preserved.
+        """
+        image_cx, image_cy = self._native_size
+
+        if scaled_cx is None and scaled_cy is None:
+            scaled_cx = image_cx
+            scaled_cy = image_cy
+        elif scaled_cx is None:
+            scaling_factor = float(scaled_cy) / float(image_cy)
+            scaled_cx = int(round(image_cx * scaling_factor))
+        elif scaled_cy is None:
+            scaling_factor = float(scaled_cx) / float(image_cx)
+            scaled_cy = int(round(image_cy * scaling_factor))
+
+        return scaled_cx, scaled_cy
+
+    @lazyproperty
+    def sha1(self):
+        """
+        The SHA1 hash digest for the image binary of this image part, like:
+        ``'1be010ea47803b00e140b852765cdf84f491da47'``.
+        """
+        return hashlib.sha1(self._blob).hexdigest()
+
+    @property
+    def _dpi(self):
+        """
+        A (horz_dpi, vert_dpi) 2-tuple (ints) representing the dots-per-inch
+        property of this image.
+        """
+        image = Image.from_blob(self.blob)
+        return image.dpi
+
+    @property
+    def _native_size(self):
+        """
+        A (width, height) 2-tuple representing the native dimensions of the
+        image in EMU, calculated based on the image DPI value, if present,
+        assuming 72 dpi as a default.
+        """
+        EMU_PER_INCH = 914400
+        horz_dpi, vert_dpi = self._dpi
+        width_px, height_px = self._px_size
+
+        width = EMU_PER_INCH * width_px / horz_dpi
+        height = EMU_PER_INCH * height_px / vert_dpi
+
+        return width, height
+
+    @property
+    def _px_size(self):
+        """
+        A (width, height) 2-tuple representing the dimensions of this image
+        in pixels.
+        """
+        image = Image.from_blob(self.blob)
+        return image.size
+
+
+class Image(object):
+    """
+    Immutable value object representing an image such as a JPEG, PNG, or GIF.
+    """
+    def __init__(self, blob, filename):
+        super(Image, self).__init__()
+        self._blob = blob
+        self._filename = filename
+
+    @classmethod
+    def from_blob(cls, blob, filename=None):
+        """
+        Return a new |Image| object loaded from the image binary in *blob*.
+        """
+        return cls(blob, filename)
+
+    @classmethod
+    def from_file(cls, image_file):
+        """
+        Return a new |Image| object loaded from *image_file*, which can be
+        either a path (string) or a file-like object.
+        """
+        if is_string(image_file):
+            # treat image_file as a path
+            with open(image_file, 'rb') as f:
+                blob = f.read()
+            filename = os.path.basename(image_file)
+        else:
+            # assume image_file is a file-like object
+            image_file.seek(0)
+            blob = image_file.read()
+            filename = None
+
+        return cls.from_blob(blob, filename)
+
+    @property
+    def blob(self):
+        """
+        The binary image bytestream of this image.
+        """
+        return self._blob
+
+    @lazyproperty
+    def content_type(self):
+        """
+        MIME-type of this image, e.g. ``'image/jpeg'``.
+        """
+        return image_content_types[self.ext]
+
+    @lazyproperty
+    def dpi(self):
+        """
+        A (horz_dpi, vert_dpi) 2-tuple specifying the dots-per-inch
+        resolution of this image. A default value of (72, 72) is used if the
+        dpi is not specified in the image file.
+        """
+        def int_dpi(dpi):
+            """
+            Return an integer dots-per-inch value corresponding to *dpi*. If
+            *dpi* is |None|, a non-numeric type, less than 1 or greater than
+            2048, 72 is returned.
+            """
+            try:
+                int_dpi = int(round(float(dpi)))
+                if int_dpi < 1 or int_dpi > 2048:
+                    int_dpi = 72
+            except (TypeError, ValueError):
+                int_dpi = 72
+            return int_dpi
+
+        def normalize_pil_dpi(pil_dpi):
+            """
+            Return a (horz_dpi, vert_dpi) 2-tuple corresponding to *pil_dpi*,
+            the value for the 'dpi' key in the ``info`` dict of a PIL image.
+            If the 'dpi' key is not present or contains an invalid value,
+            ``(72, 72)`` is returned.
+            """
+            if isinstance(pil_dpi, tuple):
+                return (int_dpi(pil_dpi[0]), int_dpi(pil_dpi[1]))
+            return (72, 72)
+
+        return normalize_pil_dpi(self._pil_props[2])
+
+    @lazyproperty
+    def ext(self):
+        """
+        Canonical file extension for this image e.g. ``'png'``. The returned
+        extension is all lowercase and is the canonical extension for the
+        content type of this image, regardless of what extension may have
+        been used in its filename, if any.
         """
         ext_map = {
             'BMP': 'bmp', 'GIF': 'gif', 'JPEG': 'jpg', 'PNG': 'png',
             'TIFF': 'tiff', 'WMF': 'wmf'
         }
-        stream.seek(0)
-        format = PIL_Image.open(stream).format
+        format = self._format
         if format not in ext_map:
             tmpl = "unsupported image format, expected one of: %s, got '%s'"
             raise ValueError(tmpl % (ext_map.keys(), format))
         return ext_map[format]
 
-    @staticmethod
-    def _image_ext_content_type(ext):
-        """
-        Return the content type corresponding to filename extension *ext*
-        """
-        key = ext.lower()
-        if key not in image_content_types:
-            tmpl = "unsupported image file extension '%s'"
-            raise ValueError(tmpl % (ext))
-        content_type = image_content_types[key]
-        return content_type
-
-    @classmethod
-    def _load_from_file(cls, img_file):
-        """
-        Load image from *img_file*, which is either a path to an image file
-        or a file-like object.
-        """
-        if isinstance(img_file, basestring):  # img_file is a path
-            filepath = img_file
-            ext = os.path.splitext(filepath)[1][1:]
-            content_type = cls._image_ext_content_type(ext)
-            with open(filepath, 'rb') as f:
-                blob = f.read()
-        else:  # assume img_file is a file-like object
-            filepath = None
-            ext = cls._ext_from_image_stream(img_file)
-            content_type = cls._image_ext_content_type(ext)
-            img_file.seek(0)
-            blob = img_file.read()
-        return filepath, ext, content_type, blob
-
-    def _scale(self, width, height):
-        """
-        Return scaled image dimensions based on supplied parameters. If
-        *width* and *height* are both |None|, the native image size is
-        returned. If neither *width* nor *height* is |None|, their values are
-        returned unchanged. If a value is provided for either *width* or
-        *height* and the other is |None|, the dimensions are scaled,
-        preserving the image's aspect ratio.
-        """
-        native_width_px, native_height_px = self._size
-        native_width = Px(native_width_px)
-        native_height = Px(native_height_px)
-
-        if width is None and height is None:
-            width = native_width
-            height = native_height
-        elif width is None:
-            scaling_factor = float(height) / float(native_height)
-            width = int(round(native_width * scaling_factor))
-        elif height is None:
-            scaling_factor = float(width) / float(native_width)
-            height = int(round(native_height * scaling_factor))
-        return width, height
-
     @property
-    def _sha1(self):
-        """Return SHA1 hash digest for image"""
+    def filename(self):
+        """
+        The filename from the path from which this image was loaded, if
+        loaded from the filesystem. |None| if no filename was used in
+        loading, such as when loaded from an in-memory stream.
+        """
+        return self._filename
+
+    @lazyproperty
+    def sha1(self):
+        """
+        SHA1 hash digest of the image blob
+        """
         return hashlib.sha1(self._blob).hexdigest()
 
+    @lazyproperty
+    def size(self):
+        """
+        A (width, height) 2-tuple specifying the dimensions of this image in
+        pixels.
+        """
+        return self._pil_props[1]
+
     @property
-    def _size(self):
+    def _format(self):
         """
-        Return *width*, *height* tuple representing native dimensions of
-        image in pixels.
+        The PIL Image format of this image, e.g. 'PNG'.
         """
-        image_stream = StringIO(self._blob)
-        width_px, height_px = PIL_Image.open(image_stream).size
-        image_stream.close()
-        return width_px, height_px
+        return self._pil_props[0]
 
-
-class ImageCollection(PartCollection):
-    """
-    Immutable sequence of images, typically belonging to an instance of
-    |Package|. An image part containing a particular image blob appears only
-    once in an instance, regardless of how many times it is referenced by a
-    pic shape in a slide.
-    """
-    def __init__(self):
-        super(ImageCollection, self).__init__()
-
-    def add_image(self, file):
+    @lazyproperty
+    def _pil_props(self):
         """
-        Return image part containing the image in *file*, which is either a
-        path to an image file or a file-like object containing an image. If an
-        image instance containing this same image already exists, that
-        instance is returned. If it does not yet exist, a new one is created.
+        A tuple containing useful image properties extracted from this image
+        using Pillow (Python Imaging Library, or 'PIL').
         """
-        # use Image constructor to validate and characterize image file
-        partname = PackURI('/ppt/media/image1.jpeg')  # dummy just for baseURI
-        image = Image.new(partname, file)
-        # return matching image if found
-        for existing_image in self._values:
-            if existing_image._sha1 == image._sha1:
-                return existing_image
-        # otherwise add it to collection and return new image
-        self._values.append(image)
-        self._rename_images()
-        return image
-
-    def load(self, parts):
-        """
-        Load the image collection with all the image parts in iterable
-        *parts*.
-        """
-        def is_image_part(part):
-            return (
-                isinstance(part, Image) and
-                part.partname.startswith('/ppt/media/')
-            )
-        for part in parts:
-            if is_image_part(part):
-                self.add_part(part)
-
-    def _rename_images(self):
-        """
-        Assign partnames like ``/ppt/media/image9.png`` to all images in the
-        collection. The name portion is always ``image``. The number part
-        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
-        extension is preserved during renaming.
-        """
-        for idx, image in enumerate(self._values):
-            partname_str = '/ppt/media/image%d.%s' % (idx+1, image.ext)
-            image.partname = PackURI(partname_str)
+        stream = BytesIO(self._blob)
+        pil_image = PIL_Image.open(stream)
+        format = pil_image.format
+        width_px, height_px = pil_image.size
+        dpi = pil_image.info.get('dpi')
+        stream.close()
+        return (format, (width_px, height_px), dpi)

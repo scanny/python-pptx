@@ -9,12 +9,12 @@ from __future__ import absolute_import, print_function
 from numbers import Number
 from warnings import warn
 
+from .base import BaseShape
 from ..dml.fill import FillFormat
 from ..dml.line import LineFormat
 from ..enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
-from .shape import BaseShape
 from ..spec import autoshape_types
-from ..text import TextFrame
+from ..text.text import TextFrame
 from ..util import lazyproperty
 
 
@@ -402,8 +402,7 @@ class Shape(BaseShape):
         Deprecated. Use :attr:`text_frame` property instead.
         """
         msg = (
-            'Shape.textframe property is deprecated. Use .has_text_frame ins'
-            'tead.'
+            'Shape.textframe property is deprecated. Use .text_frame instead'
         )
         warn(msg, UserWarning, stacklevel=2)
         return self.text_frame

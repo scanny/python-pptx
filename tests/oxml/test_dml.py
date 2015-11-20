@@ -37,13 +37,13 @@ class Describe_BaseColorElement(object):
 
     def it_can_add_a_lumMod_child_element(
             self, schemeClr, schemeClr_with_lumMod_xml):
-        lumMod = schemeClr.add_lumMod(75000)
+        lumMod = schemeClr.add_lumMod(0.75)
         assert schemeClr.xml == schemeClr_with_lumMod_xml
         assert schemeClr.find(qn('a:lumMod')) == lumMod
 
     def it_can_add_a_lumOff_child_element(
             self, schemeClr, schemeClr_with_lumOff_xml):
-        lumOff = schemeClr.add_lumOff(40000)
+        lumOff = schemeClr.add_lumOff(0.4)
         assert schemeClr.xml == schemeClr_with_lumOff_xml
         assert schemeClr.find(qn('a:lumOff')) == lumOff
 
@@ -97,7 +97,7 @@ class DescribeCT_Percentage(object):
         assert isinstance(lumMod, CT_Percentage)
 
     def it_knows_the_percentage_value(self, ct_percentage):
-        assert ct_percentage.val == 99999
+        assert ct_percentage.val == 0.99999
 
     # fixtures ---------------------------------------------
 

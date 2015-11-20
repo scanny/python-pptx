@@ -4,6 +4,11 @@ Feature: Get and set legend properties
   I need a way to get and set legend properties
 
 
+  Scenario: Access legend font
+    Given a legend
+     Then legend.font is a Font object
+
+
   Scenario Outline: Determine legend horizontal offset
     Given a legend having horizontal offset of <value>
      Then legend.horz_offset is <expected-value>

@@ -3,6 +3,57 @@
 Release History
 ---------------
 
+0.5.7 (2015-01-17)
+++++++++++++++++++
+
+- add PicturePlaceholder with .insert_picture() method
+- add TablePlaceholder with .insert_table() method
+- add ChartPlaceholder with .insert_chart() method
+- add Picture.image property, returning Image object
+- add Picture.crop_left, .crop_top, .crop_right, and .crop_bottom
+- add Shape.placeholder_format and PlaceholderFormat object
+
+**BACKWARD INCOMPATIBILITIES:**
+
+Shape.shape_type is now unconditionally `MSO_SHAPE_TYPE.PLACEHOLDER` for all
+placeholder shapes. Previously, some placeholder shapes reported
+`MSO_SHAPE_TYPE.AUTO_SHAPE`, `MSO_SHAPE_TYPE.CHART`,
+`MSO_SHAPE_TYPE.PICTURE`, or `MSO_SHAPE_TYPE.TABLE` for that property.
+
+
+0.5.6 (2014-12-06)
+++++++++++++++++++
+
+- fix #138 - UnicodeDecodeError in setup.py on Windows 7 Python 3.4
+
+
+0.5.5 (2014-11-17)
+++++++++++++++++++
+
+- feature #51 - add Python 3 support
+
+
+0.5.4 (2014-11-15)
+++++++++++++++++++
+
+- feature #43 - image native size in shapes.add_picture() is now calculated
+  based on DPI attribute in image file, if present, defaulting to 72 dpi.
+- feature #113 - Add Paragraph.space_before, Paragraph.space_after, and
+  Paragraph.line_spacing
+
+
+0.5.3 (2014-11-09)
+++++++++++++++++++
+
+- add experimental feature TextFrame.fit_text()
+
+
+0.5.2 (2014-10-26)
+++++++++++++++++++
+
+- fix #127 - Shape.text_frame fails on shape having no txBody
+
+
 0.5.1 (2014-09-22)
 ++++++++++++++++++
 

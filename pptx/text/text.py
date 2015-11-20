@@ -6,13 +6,16 @@ Text-related objects such as TextFrame and Paragraph.
 
 from __future__ import absolute_import, print_function
 
-from .dml.fill import FillFormat
-from .enum.dml import MSO_FILL
-from .enum.text import MSO_UNDERLINE
-from .opc.constants import RELATIONSHIP_TYPE as RT
-from .oxml.simpletypes import ST_TextWrappingType
-from .shapes import Subshape
-from .util import Centipoints, Emu, lazyproperty, to_unicode
+from ..compat import to_unicode
+from ..dml.fill import FillFormat
+from ..enum.dml import MSO_FILL
+from ..enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE
+from .fonts import FontFiles
+from .layout import TextFitter
+from ..opc.constants import RELATIONSHIP_TYPE as RT
+from ..oxml.simpletypes import ST_TextWrappingType
+from ..shapes import Subshape
+from ..util import Centipoints, Emu, lazyproperty, Pt
 
 
 class TextFrame(Subshape):
@@ -23,7 +26,7 @@ class TextFrame(Subshape):
     """
     def __init__(self, txBody, parent):
         super(TextFrame, self).__init__(parent)
-        self._txBody = txBody
+        self._element = self._txBody = txBody
 
     def add_paragraph(self):
         """
@@ -57,13 +60,31 @@ class TextFrame(Subshape):
         p = self.paragraphs[0]
         p.clear()
 
+    def fit_text(self, font_family='Calibri', max_size=18, bold=False,
+                 italic=False, font_file=None):
+        """
+        Make the text in this textframe fit entirely within the bounds of its
+        shape by setting word wrap on and applying the "best-fit" font size
+        to all the text it contains. :attr:`TextFrame.auto_size` is set to
+        :attr:`MSO_AUTO_SIZE.NONE`. The font size will not be set larger than
+        *max_size* points. If the path to a matching TrueType font is
+        provided as *font_file*, that font file will be used for the font
+        metrics. If *font_file* is |None|, best efforts are made to locate
+        a font file with mathching *font_family*, *bold*, and *italic*
+        installed on the current system (usually succeeds if the font is
+        installed).
+        """
+        font_size = self._best_fit_font_size(
+            font_family, max_size, bold, italic, font_file
+        )
+        self._apply_fit(font_family, font_size, bold, italic)
+
     @property
     def margin_bottom(self):
         """
-        |BaseLength| value representing the inset of text from the bottom
-        text frame border. :meth:`pptx.util.Inches` provides a convenient way
-        of setting the value, e.g. ``text_frame.margin_bottom
-        = Inches(0.05)``.
+        |Length| value representing the inset of text from the bottom text
+        frame border. :meth:`pptx.util.Inches` provides a convenient way of
+        setting the value, e.g. ``text_frame.margin_bottom = Inches(0.05)``.
         """
         return self._bodyPr.bIns
 
@@ -74,7 +95,7 @@ class TextFrame(Subshape):
     @property
     def margin_left(self):
         """
-        Inset of text from left text frame border as |BaseLength| value.
+        Inset of text from left text frame border as |Length| value.
         """
         return self._bodyPr.lIns
 
@@ -85,7 +106,7 @@ class TextFrame(Subshape):
     @property
     def margin_right(self):
         """
-        Inset of text from right text frame border as |BaseLength| value.
+        Inset of text from right text frame border as |Length| value.
         """
         return self._bodyPr.rIns
 
@@ -96,7 +117,7 @@ class TextFrame(Subshape):
     @property
     def margin_top(self):
         """
-        Inset of text from top text frame border as |BaseLength| value.
+        Inset of text from top text frame border as |Length| value.
         """
         return self._bodyPr.tIns
 
@@ -134,28 +155,30 @@ class TextFrame(Subshape):
         self.clear()
         self.paragraphs[0].text = to_unicode(text)
 
-    def _set_vertical_anchor(self, value):
+    @property
+    def vertical_anchor(self):
         """
-        Set ``anchor`` attribute of ``<a:bodyPr>`` element
+        Read/write member of :ref:`MsoVerticalAnchor` enumeration or |None|,
+        representing the vertical alignment of text in this text frame.
+        |None| indicates the effective value should be inherited from this
+        object's style hierarchy.
         """
+        return self._txBody.bodyPr.anchor
+
+    @vertical_anchor.setter
+    def vertical_anchor(self, value):
         bodyPr = self._txBody.bodyPr
         bodyPr.anchor = value
-
-    #: Write-only. Assignment to *vertical_anchor* sets the vertical
-    #: alignment of the text frame to top, middle, or bottom. Valid values are
-    #: ``MSO_ANCHOR.TOP``, ``MSO_ANCHOR.MIDDLE``, or ``MSO_ANCHOR.BOTTOM``.
-    #: The ``MSO`` name is imported from ``pptx.constants``.
-    vertical_anchor = property(None, _set_vertical_anchor)
 
     @property
     def word_wrap(self):
         """
-        Read-write value of the word wrap setting for this text frame, either
-        True, False, or None. Assignment to *word_wrap* sets the wrapping
-        behavior. True and False turn word wrap on and off, respectively.
-        Assigning None to word wrap causes its word wrap setting to be
-        removed entirely and the text frame wrapping behavior to be inherited
-        from a parent element.
+        Read-write setting determining whether lines of text in this shape
+        are wrapped to fit within the shape's width. Valid values are True,
+        False, or None. True and False turn word wrap on and off,
+        respectively. Assigning None to word wrap causes any word wrap
+        setting to be removed from the text frame, causing it to inherit this
+        setting from its style hierarchy.
         """
         return {
             ST_TextWrappingType.SQUARE: True,
@@ -175,9 +198,64 @@ class TextFrame(Subshape):
             None:  None
         }[value]
 
+    def _apply_fit(self, font_family, font_size, is_bold, is_italic):
+        """
+        Arrange all the text in this text frame to fit inside its extents by
+        setting auto size off, wrap on, and setting the font of all its text
+        to *font_family*, *font_size*, *is_bold*, and *is_italic*.
+        """
+        self.auto_size = MSO_AUTO_SIZE.NONE
+        self.word_wrap = True
+        self._set_font(font_family, font_size, is_bold, is_italic)
+
+    def _best_fit_font_size(self, family, max_size, bold, italic, font_file):
+        """
+        Return the largest integer point size not greater than *max_size*
+        that allows all the text in this text frame to fit inside its extents
+        when rendered using the font described by *family*, *bold*, and
+        *italic*. If *font_file* is specified, it is used to calculate the
+        fit, whether or not it matches *family*, *bold*, and *italic*.
+        """
+        if font_file is None:
+            font_file = FontFiles.find(family, bold, italic)
+        return TextFitter.best_fit_font_size(
+            self.text, self._extents, max_size, font_file
+        )
+
     @property
     def _bodyPr(self):
         return self._txBody.bodyPr
+
+    @property
+    def _extents(self):
+        """
+        A (cx, cy) 2-tuple representing the effective rendering area for text
+        within this text frame when margins are taken into account.
+        """
+        return (
+            self._parent.width - self.margin_left - self.margin_right,
+            self._parent.height - self.margin_top - self.margin_bottom
+        )
+
+    def _set_font(self, family, size, bold, italic):
+        """
+        Set the font properties of all the text in this text frame to
+        *family*, *size*, *bold*, and *italic*.
+        """
+        def iter_rPrs(txBody):
+            for p in txBody.p_lst:
+                for elm in p.content_children:
+                    yield elm.get_or_add_rPr()
+                # generate a:endParaRPr for each <a:p> element
+                yield p.get_or_add_endParaRPr()
+
+        def set_rPr_font(rPr, name, size, bold, italic):
+            f = Font(rPr)
+            f.name, f.size, f.bold, f.italic = family, Pt(size), bold, italic
+
+        txBody = self._element
+        for rPr in iter_rPrs(txBody):
+            set_rPr_font(rPr, family, size, bold, italic)
 
 
 class Font(object):
@@ -262,13 +340,13 @@ class Font(object):
     @property
     def size(self):
         """
-        Read/write |BaseLength| value or |None|, indicating the font height
-        in English Metric Units (EMU). |None| indicates the font size should
-        be inherited from its style hierarchy, such as a placeholder or
-        document defaults (usually 18pt). |BaseLength| is a subclass of |int|
-        having properties for convenient conversion into points or other
-        length units. Likewise, the :class:`pptx.util.Pt` class allows
-        convenient specification of point values::
+        Read/write |Length| value or |None|, indicating the font height in
+        English Metric Units (EMU). |None| indicates the font size should be
+        inherited from its style hierarchy, such as a placeholder or document
+        defaults (usually 18pt). |Length| is a subclass of |int| having
+        properties for convenient conversion into points or other length
+        units. Likewise, the :class:`pptx.util.Pt` class allows convenient
+        specification of point values::
 
             >> font.size = Pt(24)
             >> font.size
@@ -423,12 +501,74 @@ class _Paragraph(Subshape):
         self._pPr.lvl = level
 
     @property
+    def line_spacing(self):
+        """
+        Numeric or |Length| value specifying the space between baselines in
+        successive lines of this paragraph. A value of |None| indicates no
+        explicit value is assigned and its effective value is inherited from
+        the paragraph's style hierarchy. A numeric value, e.g. `2` or `1.5`,
+        indicates spacing is applied in multiples of line heights. A |Length|
+        value such as ``Pt(12)`` indicates spacing is a fixed height. The
+        |Pt| value class is a convenient way to apply line spacing in units
+        of points.
+        """
+        pPr = self._p.pPr
+        if pPr is None:
+            return None
+        return pPr.line_spacing
+
+    @line_spacing.setter
+    def line_spacing(self, value):
+        pPr = self._p.get_or_add_pPr()
+        pPr.line_spacing = value
+
+    @property
     def runs(self):
         """
-        Immutable sequence of |_Run| instances corresponding to the runs in
+        Immutable sequence of |_Run| objects corresponding to the runs in
         this paragraph.
         """
         return tuple(_Run(r, self) for r in self._element.r_lst)
+
+    @property
+    def space_after(self):
+        """
+        |Length| value specifying the spacing to appear between this
+        paragraph and the subsequent paragraph. A value of |None| indicates
+        no explicit value is assigned and its effective value is inherited
+        from the paragraph's style hierarchy. |Length| objects provide
+        convenience properties, such as ``.pt`` and ``.inches``, that allow
+        easy conversion to various length units.
+        """
+        pPr = self._p.pPr
+        if pPr is None:
+            return None
+        return pPr.space_after
+
+    @space_after.setter
+    def space_after(self, value):
+        pPr = self._p.get_or_add_pPr()
+        pPr.space_after = value
+
+    @property
+    def space_before(self):
+        """
+        |Length| value specifying the spacing to appear between this
+        paragraph and the prior paragraph. A value of |None| indicates no
+        explicit value is assigned and its effective value is inherited from
+        the paragraph's style hierarchy. |Length| objects provide convenience
+        properties, such as ``.pt`` and ``.cm``, that allow easy conversion
+        to various length units.
+        """
+        pPr = self._p.pPr
+        if pPr is None:
+            return None
+        return pPr.space_before
+
+    @space_before.setter
+    def space_before(self, value):
+        pPr = self._p.get_or_add_pPr()
+        pPr.space_before = value
 
     @property
     def text(self):

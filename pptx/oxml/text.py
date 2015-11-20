@@ -7,16 +7,19 @@ lxml custom element classes for text-related XML elements.
 from __future__ import absolute_import
 
 from . import parse_xml
+from ..compat import to_unicode
 from ..enum.text import (
     MSO_AUTO_SIZE, MSO_TEXT_UNDERLINE_TYPE, MSO_VERTICAL_ANCHOR,
     PP_PARAGRAPH_ALIGNMENT
 )
 from .ns import nsdecls
 from .simpletypes import (
-    ST_Coordinate32, ST_TextFontSize, ST_TextIndentLevelType,
-    ST_TextTypeface, ST_TextWrappingType, XsdBoolean, XsdString
+    ST_Coordinate32, ST_TextFontScalePercentOrPercentString, ST_TextFontSize,
+    ST_TextIndentLevelType, ST_TextSpacingPercentOrPercentString,
+    ST_TextSpacingPoint, ST_TextTypeface, ST_TextWrappingType, XsdBoolean,
+    XsdString
 )
-from ..util import Emu, to_unicode
+from ..util import Emu, Length
 from .xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
@@ -131,7 +134,7 @@ class CT_TextBody(BaseOxmlElement):
             '<p:txBody %s>\n'
             '  <a:bodyPr/>\n'
             '  <a:p/>\n'
-            '</p:txBody>\n' % (nsdecls('p'))
+            '</p:txBody>\n' % (nsdecls('p', 'a'))
         )
 
     @classmethod
@@ -233,6 +236,7 @@ class CT_TextField(BaseOxmlElement):
     """
     <a:fld> field element, for either a slide number or date field
     """
+    rPr = ZeroOrOne('a:rPr', successors=('a:pPr', 'a:t'))
     t = ZeroOrOne('a:t', successors=())
 
     @property
@@ -259,6 +263,8 @@ class CT_TextLineBreak(BaseOxmlElement):
     """
     <a:br> line break element
     """
+    rPr = ZeroOrOne('a:rPr', successors=())
+
     @property
     def text(self):
         """
@@ -266,6 +272,15 @@ class CT_TextLineBreak(BaseOxmlElement):
         can contain no text other than the implicit line feed it represents.
         """
         return u'\n'
+
+
+class CT_TextNormalAutofit(BaseOxmlElement):
+    """
+    <a:normAutofit> element specifying fit text to shape font reduction, etc.
+    """
+    fontScale = OptionalAttribute(
+        'fontScale', ST_TextFontScalePercentOrPercentString, default=100.0
+    )
 
 
 class CT_TextParagraph(BaseOxmlElement):
@@ -319,9 +334,128 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     """
     <a:pPr> custom element class
     """
-    defRPr = ZeroOrOne('a:defRPr', successors=('a:extLst',))
+    _tag_seq = (
+        'a:lnSpc', 'a:spcBef', 'a:spcAft', 'a:buClrTx', 'a:buClr',
+        'a:buSzTx', 'a:buSzPct', 'a:buSzPts', 'a:buFontTx', 'a:buFont',
+        'a:buNone', 'a:buAutoNum', 'a:buChar', 'a:buBlip', 'a:tabLst',
+        'a:defRPr', 'a:extLst',
+    )
+    lnSpc = ZeroOrOne('a:lnSpc', successors=_tag_seq[1:])
+    spcBef = ZeroOrOne('a:spcBef', successors=_tag_seq[2:])
+    spcAft = ZeroOrOne('a:spcAft', successors=_tag_seq[3:])
+    defRPr = ZeroOrOne('a:defRPr', successors=_tag_seq[16:])
     lvl = OptionalAttribute('lvl', ST_TextIndentLevelType, default=0)
     algn = OptionalAttribute('algn', PP_PARAGRAPH_ALIGNMENT)
+    del _tag_seq
+
+    @property
+    def line_spacing(self):
+        """
+        The spacing between baselines of successive lines in this paragraph.
+        A float value indicates a number of lines. A |Length| value indicates
+        a fixed spacing. Value is contained in `./a:lnSpc/a:spcPts/@val` or
+        `./a:lnSpc/a:spcPct/@val`. Value is |None| if no element is present.
+        """
+        lnSpc = self.lnSpc
+        if lnSpc is None:
+            return None
+        if lnSpc.spcPts is not None:
+            return lnSpc.spcPts.val
+        return lnSpc.spcPct.val
+
+    @line_spacing.setter
+    def line_spacing(self, value):
+        self._remove_lnSpc()
+        if value is None:
+            return
+        if isinstance(value, Length):
+            self._add_lnSpc().set_spcPts(value)
+        else:
+            self._add_lnSpc().set_spcPct(value)
+
+    @property
+    def space_after(self):
+        """
+        The EMU equivalent of the centipoints value in
+        `./a:spcAft/a:spcPts/@val`.
+        """
+        spcAft = self.spcAft
+        if spcAft is None:
+            return None
+        spcPts = spcAft.spcPts
+        if spcPts is None:
+            return None
+        return spcPts.val
+
+    @space_after.setter
+    def space_after(self, value):
+        self._remove_spcAft()
+        if value is not None:
+            self._add_spcAft().set_spcPts(value)
+
+    @property
+    def space_before(self):
+        """
+        The EMU equivalent of the centipoints value in
+        `./a:spcBef/a:spcPts/@val`.
+        """
+        spcBef = self.spcBef
+        if spcBef is None:
+            return None
+        spcPts = spcBef.spcPts
+        if spcPts is None:
+            return None
+        return spcPts.val
+
+    @space_before.setter
+    def space_before(self, value):
+        self._remove_spcBef()
+        if value is not None:
+            self._add_spcBef().set_spcPts(value)
+
+
+class CT_TextSpacing(BaseOxmlElement):
+    """
+    Used for <a:lnSpc>, <a:spcBef>, and <a:spcAft> elements.
+    """
+    # this should actually be a OneAndOnlyOneChoice, but that's not
+    # implemented yet.
+    spcPct = ZeroOrOne('a:spcPct')
+    spcPts = ZeroOrOne('a:spcPts')
+
+    def set_spcPct(self, value):
+        """
+        Set spacing to *value* lines, e.g. 1.75 lines. A ./a:spcPts child is
+        removed if present.
+        """
+        self._remove_spcPts()
+        spcPct = self.get_or_add_spcPct()
+        spcPct.val = value
+
+    def set_spcPts(self, value):
+        """
+        Set spacing to *value* points. A ./a:spcPct child is removed if
+        present.
+        """
+        self._remove_spcPct()
+        spcPts = self.get_or_add_spcPts()
+        spcPts.val = value
+
+
+class CT_TextSpacingPercent(BaseOxmlElement):
+    """
+    <a:spcPct> element, specifying spacing in thousandths of a percent in its
+    `val` attribute.
+    """
+    val = RequiredAttribute('val', ST_TextSpacingPercentOrPercentString)
+
+
+class CT_TextSpacingPoint(BaseOxmlElement):
+    """
+    <a:spcPts> element, specifying spacing in centipoints in its `val`
+    attribute.
+    """
+    val = RequiredAttribute('val', ST_TextSpacingPoint)
 
 
 class _ParagraphTextAppender(object):

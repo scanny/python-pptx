@@ -16,7 +16,7 @@ from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D, CT_Shape
 from pptx.shapes.autoshape import (
     Adjustment, AdjustmentCollection, AutoShapeType, Shape
 )
-from pptx.text import TextFrame
+from pptx.text.text import TextFrame
 
 from ..oxml.unitdata.shape import (
     a_cNvSpPr, a_gd, a_prstGeom, an_avLst, an_nvSpPr, an_sp, an_spPr
@@ -356,13 +356,13 @@ class DescribeShape(object):
         assert textbox_shape_.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
 
     def it_raises_when_shape_type_called_on_unrecognized_shape(self):
-        xml = (
+        xml_ = (
             '<p:sp xmlns:p="http://schemas.openxmlformats.org/presentationml/'
             '2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/'
             '2006/main"><p:nvSpPr><p:cNvPr id="9" name="Unknown Shape Type 8"'
             '/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/></p:sp>'
         )
-        sp = parse_xml(xml)
+        sp = parse_xml(xml_)
         shape = Shape(sp, None)
         # verify -----------------------
         with pytest.raises(NotImplementedError):
@@ -373,6 +373,11 @@ class DescribeShape(object):
         text_frame = shape.text_frame
         TextFrame_.assert_called_once_with(txBody, shape)
         assert text_frame is text_frame_
+
+    def it_creates_a_txBody_if_needed(self, txBody_fixture):
+        shape, expected_xml = txBody_fixture
+        text_frame = shape.text_frame
+        assert text_frame._txBody.xml == expected_xml
 
     # fixtures -------------------------------------------------------
 
@@ -417,6 +422,14 @@ class DescribeShape(object):
         shape = Shape(element(sp_cxml), None)
         expected_xml = xml(expected_sp_cxml)
         return shape, new_value, expected_xml
+
+    @pytest.fixture
+    def txBody_fixture(self, request):
+        sp_cxml = 'p:sp'
+        expected_cxml = 'p:txBody/(a:bodyPr,a:p)'
+        shape = Shape(element(sp_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return shape, expected_xml
 
     # fixture components ---------------------------------------------
 

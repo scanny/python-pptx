@@ -48,9 +48,9 @@ class LineFormat(object):
     def width(self):
         """
         The width of the line expressed as an integer number of :ref:`English
-        Metric Units <EMU>`. The returned value is an instance of
-        |BaseLength|, a value class having properties such as `.inches`,
-        `.cm`, and `.pt` for converting the value into convenient units.
+        Metric Units <EMU>`. The returned value is an instance of |Length|,
+        a value class having properties such as `.inches`, `.cm`, and `.pt`
+        for converting the value into convenient units.
         """
         ln = self._ln
         if ln is None:

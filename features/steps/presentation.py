@@ -9,15 +9,15 @@ from __future__ import absolute_import
 import os
 
 from behave import given, when, then
-from StringIO import StringIO
 
 from pptx import Presentation
+from pptx.compat import BytesIO
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.parts.presentation import _SlideMasters
 from pptx.parts.slidemaster import SlideMaster
 from pptx.util import Inches
 
-from .helpers import saved_pptx_path, test_pptx
+from helpers import saved_pptx_path, test_pptx
 
 
 # given ===================================================
@@ -80,8 +80,8 @@ def when_open_basic_pptx(context):
 
 @when('I open a presentation contained in a stream')
 def when_open_presentation_stream(context):
-    with open(test_pptx('test')) as f:
-        stream = StringIO(f.read())
+    with open(test_pptx('test'), 'rb') as f:
+        stream = BytesIO(f.read())
     context.prs = Presentation(stream)
     stream.close()
 
@@ -112,7 +112,7 @@ def when_save_presentation(context):
 
 @when('I save the presentation to a stream')
 def when_save_presentation_to_stream(context):
-    context.stream = StringIO()
+    context.stream = BytesIO()
     context.prs.save(context.stream)
 
 

@@ -12,7 +12,7 @@ from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_COLOR_TYPE, MSO_THEME_COLOR
 
-from .helpers import test_pptx
+from helpers import test_pptx
 
 
 font_color_pptx_path = test_pptx('font-color')

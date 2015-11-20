@@ -15,7 +15,7 @@ from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
 from pptx.util import Inches
 
-from .helpers import cls_qname, saved_pptx_path, test_pptx, test_text
+from helpers import cls_qname, saved_pptx_path, test_pptx, test_text
 
 
 # given ===================================================

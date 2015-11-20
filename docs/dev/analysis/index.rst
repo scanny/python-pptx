@@ -41,14 +41,14 @@ Shape
 ~~~~~
 
 .. toctree::
-   :maxdepth: 1
+   :titlesonly:
 
    features/shp-shapes
    features/shp-graphfrm
    features/shp-connector
    features/shp-autofit
    features/shp-pos-and-size
-   features/shp-placeholders
+   features/placeholders/index
    features/shp-group-shape
    features/shp-table
 
@@ -59,6 +59,9 @@ Text
 .. toctree::
    :maxdepth: 1
 
+   features/txt-para-spacing
+   features/txt-fit-text
+   features/txt-autofit-text
    features/txt-text
    features/txt-font-underline
    features/txt-font-color
@@ -96,7 +99,6 @@ MSDN documentation, the ISO/IEC 29500 spec, and other available sources.
    objects/coreprops
    objects/font
    objects/graphicframe
-   objects/placeholder
 
 
 Experimental Analysis
@@ -125,7 +127,6 @@ ISO/IEC 29500 spec.
    schema/ct_chart
    schema/ct_graphicalobjectframe
    schema/ct_picture
-   schema/ct_placeholder
    schema/ct_presentation
    schema/ct_presetgeometry2d
    schema/ct_regulartextrun

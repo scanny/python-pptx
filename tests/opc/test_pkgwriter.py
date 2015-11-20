@@ -6,15 +6,15 @@ Test suite for opc.pkgwriter module
 
 import pytest
 
-from mock import call, MagicMock, Mock, patch
-
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.opc.pkgwriter import _ContentTypesItem, PackageWriter
 
 from .unitdata.types import a_Default, a_Types, an_Override
-from ..unitutil.mock import function_mock, instance_mock, method_mock
+from ..unitutil.mock import (
+    call, function_mock, instance_mock, MagicMock, method_mock, Mock, patch
+)
 
 
 class DescribePackageWriter(object):

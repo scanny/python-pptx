@@ -6,8 +6,6 @@ DrawingML objects related to color, ColorFormat being the most prominent.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from types import NoneType
-
 from ..enum.dml import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from ..oxml.dml.color import (
     CT_HslColor, CT_PresetColor, CT_SchemeColor, CT_ScRgbColor, CT_SRgbColor,
@@ -113,20 +111,19 @@ class _Color(object):
     class for all color type classes such as SRgbColor.
     """
     def __new__(cls, xClr):
-        subcls_map = {
-            NoneType:       _NoneColor,
+        color_cls = {
+            type(None):     _NoneColor,
             CT_HslColor:    _HslColor,
             CT_PresetColor: _PrstColor,
             CT_SchemeColor: _SchemeColor,
             CT_ScRgbColor:  _ScRgbColor,
             CT_SRgbColor:   _SRgbColor,
             CT_SystemColor: _SysColor,
-        }
-        color_cls = subcls_map[type(xClr)]
+        }[type(xClr)]
         return super(_Color, cls).__new__(color_cls)
 
     def __init__(self, xClr):
-        super(_Color, self).__init__(xClr)
+        super(_Color, self).__init__()
         self._xClr = xClr
 
     @property
@@ -135,13 +132,11 @@ class _Color(object):
         # a tint is lighter, a shade is darker
         # only tints have lumOff child
         if lumOff is not None:
-            val = lumOff.val
-            brightness = val / 100000.0
+            brightness = lumOff.val
             return brightness
         # which leaves shades, if lumMod is present
         if lumMod is not None:
-            val = lumMod.val
-            brightness = -1.0 + (val/100000.0)
+            brightness = lumMod.val - 1.0
             return brightness
         # there's no brightness adjustment if no lum{Mod|Off} elements
         return 0
@@ -176,13 +171,13 @@ class _Color(object):
         return MSO_THEME_COLOR.NOT_THEME_COLOR
 
     def _shade(self, value):
-        lumMod_val = 100000 - int(abs(value) * 100000)
+        lumMod_val = 1.0 - abs(value)
         color_elm = self._xClr.clear_lum()
         color_elm.add_lumMod(lumMod_val)
 
     def _tint(self, value):
-        lumOff_val = int(value * 100000)
-        lumMod_val = 100000 - lumOff_val
+        lumOff_val = value
+        lumMod_val = 1.0 - lumOff_val
         color_elm = self._xClr.clear_lum()
         color_elm.add_lumMod(lumMod_val)
         color_elm.add_lumOff(lumOff_val)

@@ -158,3 +158,4 @@ class CT_GraphicalObjectFrameNonVisual(BaseOxmlElement):
     of a graphic frame, such as name, id, etc.
     """
     cNvPr = OneAndOnlyOne('p:cNvPr')
+    nvPr = OneAndOnlyOne('p:nvPr')

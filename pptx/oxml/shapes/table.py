@@ -4,7 +4,7 @@
 lxml custom element classes for table-related XML elements.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
 from .. import parse_xml
 from ...enum.text import MSO_VERTICAL_ANCHOR
@@ -126,8 +126,8 @@ class CT_Table(BaseOxmlElement):
         tbl = parse_xml(xml)
 
         # add specified number of rows and columns
-        rowheight = height/rows
-        colwidth = width/cols
+        rowheight = height//rows
+        colwidth = width//cols
 
         for col in range(cols):
             # adjust width of last col to absorb any div error

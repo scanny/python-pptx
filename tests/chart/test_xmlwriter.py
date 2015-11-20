@@ -128,5 +128,6 @@ def make_series_data_seq(cat_count, ser_count):
     for idx in range(ser_count):
         series_title = 'Series %d' % (idx+1)
         series_values = tuple(islice(point_values, cat_count))
+        series_values = [round(x*10)/10.0 for x in series_values]
         chart_data.add_series(series_title, series_values)
     return chart_data.series

@@ -119,8 +119,7 @@ class Presentation(object):
     @property
     def slides(self):
         """
-        |SlideCollection| object containing the slides in this
-        presentation.
+        |_Slides| object containing the slides in this presentation.
         """
         return self._presentation.slides
 

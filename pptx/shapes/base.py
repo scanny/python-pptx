@@ -8,6 +8,8 @@ from __future__ import absolute_import, print_function
 
 from warnings import warn
 
+from ..shared import ElementProxy
+
 
 class BaseShape(object):
     """
@@ -129,6 +131,17 @@ class BaseShape(object):
         return self._parent.part
 
     @property
+    def placeholder_format(self):
+        """
+        A |_PlaceholderFormat| object providing access to
+        placeholder-specific properties such as placeholder type. Raises
+        |ValueError| on access if the shape is not a placeholder.
+        """
+        if not self.is_placeholder:
+            raise ValueError('shape is not a placeholder')
+        return _PlaceholderFormat(self._element.ph)
+
+    @property
     def rotation(self):
         """
         Read/write float. Degrees of clockwise rotation. Negative values can
@@ -177,3 +190,32 @@ class BaseShape(object):
     @width.setter
     def width(self, value):
         self._element.cx = value
+
+
+class _PlaceholderFormat(ElementProxy):
+    """
+    Accessed via the :attr:`~.BaseShape.placeholder_format` property of
+    a placeholder shape, provides properties specific to placeholders, such
+    as the placeholder type.
+    """
+    @property
+    def element(self):
+        """
+        The `p:ph` element proxied by this object.
+        """
+        return super(_PlaceholderFormat, self).element
+
+    @property
+    def idx(self):
+        """
+        Integer placeholder 'idx' attribute.
+        """
+        return self._element.idx
+
+    @property
+    def type(self):
+        """
+        Placeholder type, a member of the :ref:`PpPlaceholderType`
+        enumeration, e.g. PP_PLACEHOLDER.CHART
+        """
+        return self._element.type

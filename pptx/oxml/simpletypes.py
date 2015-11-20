@@ -9,7 +9,7 @@ type in the associated XML schema.
 from __future__ import absolute_import, print_function
 
 from ..exc import InvalidXmlError
-from ..util import Emu
+from ..util import Centipoints, Emu
 
 
 class BaseSimpleType(object):
@@ -25,10 +25,29 @@ class BaseSimpleType(object):
         return str_value
 
     @classmethod
+    def validate_float(cls, value):
+        """
+        Note that int values are accepted.
+        """
+        if not isinstance(value, (int, float)):
+            raise TypeError(
+                "value must be a number, got %s" % type(value)
+            )
+
+    @classmethod
     def validate_int(cls, value):
         if not isinstance(value, int):
             raise TypeError(
                 "value must be <type 'int'>, got %s" % type(value)
+            )
+
+    @classmethod
+    def validate_float_in_range(cls, value, min_inclusive, max_inclusive):
+        cls.validate_float(value)
+        if value < min_inclusive or value > max_inclusive:
+            raise ValueError(
+                "value must be in range %s to %s inclusive, got %s" %
+                (min_inclusive, max_inclusive, value)
             )
 
     @classmethod
@@ -483,14 +502,20 @@ class ST_Percentage(BaseIntType):
     def convert_from_xml(cls, str_value):
         if '%' in str_value:
             return cls._convert_from_percent_literal(str_value)
-        return int(str_value)
+        return int(str_value) / 100000.0
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return str(int(round(value*100000.0)))
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_float_in_range(value, -21474.83648, 21474.83647)
 
     @classmethod
     def _convert_from_percent_literal(cls, str_value):
         float_part = str_value[:-1]  # trim off '%' character
-        percent_value = float(float_part)
-        int_value = int(round(percent_value * 1000))
-        return int_value
+        return float(float_part) / 100.0
 
 
 class ST_PlaceholderSize(XsdTokenEnumeration):
@@ -509,6 +534,10 @@ class ST_PositiveCoordinate(XsdLong):
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 27273042316900)
+
+
+class ST_RelationshipId(XsdString):
+    pass
 
 
 class ST_SlideId(XsdUnsignedInt):
@@ -555,16 +584,35 @@ class ST_TargetMode(XsdString):
             )
 
 
+class ST_TextFontScalePercentOrPercentString(BaseFloatType):
+    """
+    Valid values for the `fontScale` attribute of ``<a:normAutofit>``.
+    Translates to a float value.
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if str_value.endswith('%'):
+            return float(str_value[:-1])  # trim off '%' character
+        return int(str_value) / 1000.0
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return str(int(value * 1000.0))
+
+    @classmethod
+    def validate(cls, value):
+        BaseFloatType.validate(value)
+        if value < 1.0 or value > 100.0:
+            raise ValueError(
+                "value must be in range 1.0..100.0 (percent), got %s" % value
+            )
+
+
 class ST_TextFontSize(BaseIntType):
 
     @classmethod
     def validate(cls, value):
-        cls.validate_int(value)
-        if value < 100 or value > 400000:
-            raise ValueError(
-                "value must be in range 100 -> 400000 (1-4000 points), got"
-                " %d" % value
-            )
+        cls.validate_int_in_range(value, 100, 400000)
 
 
 class ST_TextIndentLevelType(BaseIntType):
@@ -572,6 +620,53 @@ class ST_TextIndentLevelType(BaseIntType):
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 8)
+
+
+class ST_TextSpacingPercentOrPercentString(BaseFloatType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if str_value.endswith('%'):
+            return cls._convert_from_percent_literal(str_value)
+        return int(str_value) / 100000.0
+
+    @classmethod
+    def _convert_from_percent_literal(cls, str_value):
+        float_part = str_value[:-1]  # trim off '%' character
+        percent_value = float(float_part)
+        lines_value = percent_value / 100.0
+        return lines_value
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        """
+        1.75 -> '175000'
+        """
+        lines = value * 100000.0
+        return str(int(round(lines)))
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_float_in_range(value, 0.0, 132.0)
+
+
+class ST_TextSpacingPoint(BaseIntType):
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        """
+        Reads string integer centipoints, returns |Length| value.
+        """
+        return Centipoints(int(str_value))
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        length = Emu(value)  # just to make sure
+        return str(length.centipoints)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 20116800)
 
 
 class ST_TextTypeface(XsdString):

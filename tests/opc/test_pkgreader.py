@@ -8,8 +8,6 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
-from mock import call, Mock, patch
-
 from pptx.opc.constants import (
     CONTENT_TYPE as CT, RELATIONSHIP_TARGET_MODE as RTM
 )
@@ -23,7 +21,8 @@ from pptx.opc.pkgreader import (
 
 from .unitdata.types import a_Default, a_Types, an_Override
 from ..unitutil.mock import (
-    class_mock, function_mock, initializer_mock, method_mock
+    call, class_mock, function_mock, initializer_mock, method_mock, Mock,
+    patch
 )
 
 

@@ -4,7 +4,7 @@ Text-related objects
 ====================
 
 
-.. currentmodule:: pptx.text
+.. currentmodule:: pptx.text.text
 
 
 |TextFrame| objects

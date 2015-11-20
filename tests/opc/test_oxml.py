@@ -72,7 +72,7 @@ class DescribeCT_Relationships(object):
             '<Relationships xmlns="http://schemas.openxmlformats.org/package'
             '/2006/relationships"/>'
         )
-        assert rels.xml == expected_xml
+        assert rels.xml.decode('utf-8') == expected_xml
 
     def it_can_build_rels_element_incrementally(self):
         # setup ------------------------

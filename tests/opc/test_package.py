@@ -8,8 +8,6 @@ from __future__ import absolute_import
 
 import pytest
 
-from mock import call, Mock, patch, PropertyMock
-
 from pptx.opc.oxml import CT_Relationships
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.package import (
@@ -22,8 +20,8 @@ from pptx.package import Package
 
 from ..unitutil.cxml import element
 from ..unitutil.mock import (
-    class_mock, cls_attr_mock, function_mock, initializer_mock,
-    instance_mock, loose_mock, method_mock
+    call, class_mock, cls_attr_mock, function_mock, initializer_mock,
+    instance_mock, loose_mock, method_mock, Mock, patch, PropertyMock
 )
 
 
@@ -74,31 +72,15 @@ class DescribeOpcPackage(object):
         with patch.object(OpcPackage, 'iter_parts', return_value=parts):
             assert pkg.parts == [parts[0], parts[1]]
 
-    def it_can_iterate_over_parts_by_walking_rels_graph(self):
-        # +----------+       +--------+
-        # | pkg_rels |-----> | part_1 |
-        # +----------+       +--------+
-        #      |               |    ^
-        #      v               v    |
-        #   external         +--------+
-        #                    | part_2 |
-        #                    +--------+
-        part1, part2 = (Mock(name='part1'), Mock(name='part2'))
-        part1.rels = {
-            1: Mock(name='rel1', is_external=False, target_part=part2)
-        }
-        part2.rels = {
-            1: Mock(name='rel2', is_external=False, target_part=part1)
-        }
-        pkg = OpcPackage()
-        pkg._rels = {
-            1: Mock(name='rel3', is_external=False, target_part=part1),
-            2: Mock(name='rel4', is_external=True),
-        }
-        # verify -----------------------
-        assert part1 in pkg.iter_parts()
-        assert part2 in pkg.iter_parts()
-        assert len([p for p in pkg.iter_parts()]) == 2
+    def it_can_iterate_over_its_parts(self, iter_parts_fixture):
+        package, expected_parts = iter_parts_fixture
+        parts = list(package.iter_parts())
+        assert parts == expected_parts
+
+    def it_can_iterate_over_its_relationships(self, iter_rels_fixture):
+        package, expected_rels = iter_rels_fixture
+        rels = list(package.iter_rels())
+        assert rels == expected_rels
 
     def it_can_find_a_part_related_by_reltype(self, related_part_fixture_):
         pkg, reltype, related_part_ = related_part_fixture_
@@ -127,6 +109,18 @@ class DescribeOpcPackage(object):
         pkg.after_unmarshal()
 
     # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def iter_parts_fixture(self, request, rels_fixture):
+        package, parts, rels = rels_fixture
+        expected_parts = list(parts)
+        return package, expected_parts
+
+    @pytest.fixture
+    def iter_rels_fixture(self, request, rels_fixture):
+        package, parts, rels = rels_fixture
+        expected_rels = list(rels)
+        return package, expected_rels
 
     @pytest.fixture(params=[
         ((), 1), ((1,), 2), ((1, 2), 3), ((2, 3), 1), ((1, 3), 2)
@@ -165,6 +159,34 @@ class DescribeOpcPackage(object):
         pkg._rels = rels_
         return pkg, reltype, related_part_
 
+    @pytest.fixture
+    def rels_fixture(self, request, part_1_, part_2_):
+        """
+        +----------+          +--------+
+        | pkg_rels |-- r1 --> | part_1 |
+        +----------+          +--------+
+             |     |            |    ^
+          r5 |     | r4      r2 |    | r3
+             |     |            |    |
+             v     |            v    |
+         external  |          +--------+
+                   +--------> | part_2 |
+                              +--------+
+        """
+        r1 = self.rel(request, False, part_1_, 'r1')
+        r2 = self.rel(request, False, part_2_, 'r2')
+        r3 = self.rel(request, False, part_1_, 'r3')
+        r4 = self.rel(request, False, part_2_, 'r4')
+        r5 = self.rel(request, True,  None,    'r5')
+
+        package = OpcPackage()
+
+        package._rels = self.rels(request, (r1, r4, r5))
+        part_1_.rels = self.rels(request, (r2,))
+        part_2_.rels = self.rels(request, (r3,))
+
+        return package, (part_1_, part_2_), (r1, r2, r3, r4, r5)
+
     # fixture components -----------------------------------
 
     @pytest.fixture
@@ -182,6 +204,14 @@ class DescribeOpcPackage(object):
     @pytest.fixture
     def PartFactory_(self, request):
         return class_mock(request, 'pptx.opc.package.PartFactory')
+
+    @pytest.fixture
+    def part_1_(self, request):
+        return instance_mock(request, Part)
+
+    @pytest.fixture
+    def part_2_(self, request):
+        return instance_mock(request, Part)
 
     @pytest.fixture
     def parts(self, request, parts_):
@@ -226,6 +256,17 @@ class DescribeOpcPackage(object):
         target_ = instance_mock(request, Part, name='target_')
         rId = 'rId99'
         return reltype, target_, rId
+
+    def rel(self, request, is_external, target_part, name):
+        return instance_mock(
+            request, _Relationship, is_external=is_external,
+            target_part=target_part, name=name
+        )
+
+    def rels(self, request, values):
+        rels = instance_mock(request, RelationshipCollection)
+        rels.values.return_value = values
+        return rels
 
     @pytest.fixture
     def rels_(self, request):

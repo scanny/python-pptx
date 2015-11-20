@@ -3,16 +3,15 @@
 Slides
 ======
 
-.. currentmodule:: pptx.parts.slide
+.. currentmodule:: pptx.parts.presentation
 
-|SlideCollection| objects
+|_Slides| objects
 --------------------------
 
-The |SlideCollection| object is typically encountered as the
-:attr:`~pptx.Presentation.slides` member of |Presentation|. It is not intended
-to be constructed directly.
+The |_Slides| object is encountered as the :attr:`~pptx.Presentation.slides`
+member of |Presentation|. It is not intended to be constructed directly.
 
-.. autoclass:: SlideCollection
+.. autoclass:: _Slides
    :members: add_slide
    :member-order: bysource
    :undoc-members:
@@ -20,6 +19,8 @@ to be constructed directly.
 
 |Slide| objects
 ---------------
+
+.. currentmodule:: pptx.parts.slide
 
 |Slide| objects are accessed by index from ``prs.slides`` or as a return value
 from ``slides.add_slide()``.
@@ -52,3 +53,12 @@ from ``slides.add_slide()``.
 .. autoclass:: SlideMaster
    :members:
    :exclude-members: sldLayoutIdLst
+
+
+|_SlidePlaceholders| objects
+----------------------------
+
+.. currentmodule:: pptx.parts.slide
+
+.. autoclass:: _SlidePlaceholders
+   :members:

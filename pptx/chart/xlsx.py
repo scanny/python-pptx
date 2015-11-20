@@ -7,9 +7,10 @@ Chart builder and related objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from contextlib import contextmanager
-from StringIO import StringIO as BytesIO
 
 from xlsxwriter import Workbook
+
+from ..compat import BytesIO
 
 
 class WorkbookWriter(object):

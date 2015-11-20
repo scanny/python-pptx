@@ -11,7 +11,7 @@ from behave import given, then, when
 from pptx import Presentation
 from pptx.enum.text import MSO_UNDERLINE
 
-from .helpers import test_pptx
+from helpers import test_pptx
 
 
 # given ===================================================

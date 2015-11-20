@@ -1,0 +1,54 @@
+<p:graphicFrame xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:nvGraphicFramePr>
+    <p:cNvPr id="2" name="foo"/>
+    <p:cNvGraphicFramePr>
+      <a:graphicFrameLocks noGrp="1"/>
+    </p:cNvGraphicFramePr>
+    <p:nvPr/>
+  </p:nvGraphicFramePr>
+  <p:xfrm>
+    <a:off x="1" y="2"/>
+    <a:ext cx="3" cy="370840"/>
+  </p:xfrm>
+  <a:graphic>
+    <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
+      <a:tbl>
+        <a:tblPr firstRow="1" bandRow="1">
+          <a:tableStyleId>{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}</a:tableStyleId>
+        </a:tblPr>
+        <a:tblGrid>
+          <a:gridCol w="3"/>
+        </a:tblGrid>
+        <a:tr h="370840">
+          <a:tc>
+            <a:txBody>
+              <a:bodyPr/>
+              <a:lstStyle/>
+              <a:p/>
+            </a:txBody>
+            <a:tcPr/>
+          </a:tc>
+        </a:tr>
+      </a:tbl>
+    </a:graphicData>
+  </a:graphic>
+</p:graphicFrame>
+
+<p:graphicFrame xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:nvGraphicFramePr>
+    <p:cNvPr id="4" name="bar"/>
+    <p:cNvGraphicFramePr>
+      <a:graphicFrameLocks noGrp="1"/>
+    </p:cNvGraphicFramePr>
+    <p:nvPr/>
+  </p:nvGraphicFramePr>
+  <p:xfrm>
+    <a:off x="1" y="2"/>
+    <a:ext cx="3" cy="4"/>
+  </p:xfrm>
+  <a:graphic>
+    <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">
+      <c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rId42"/>
+    </a:graphicData>
+  </a:graphic>
+</p:graphicFrame>

@@ -8,8 +8,10 @@ from __future__ import absolute_import
 
 from warnings import warn
 
+from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
-from .slide import SlideCollection
+from ..opc.packuri import PackURI
+from .slide import Slide
 from ..util import lazyproperty
 
 
@@ -74,12 +76,79 @@ class PresentationPart(XmlPart):
     @lazyproperty
     def slides(self):
         """
-        |SlideCollection| object containing the slides in this presentation.
+        |_Slides| object containing the slides in this presentation.
         """
         sldIdLst = self._element.get_or_add_sldIdLst()
-        slides = SlideCollection(sldIdLst, self)
+        slides = _Slides(sldIdLst, self)
         slides.rename_slides()  # start from known state
         return slides
+
+
+class _Slides(object):
+    """
+    Sequence of slides belonging to an instance of |Presentation|, having list
+    semantics for access to individual slides. Supports indexed access,
+    len(), and iteration.
+    """
+    def __init__(self, sldIdLst, prs):
+        super(_Slides, self).__init__()
+        self._sldIdLst = sldIdLst
+        self._prs = prs
+
+    def __getitem__(self, idx):
+        """
+        Provide indexed access, (e.g. 'slides[0]').
+        """
+        if idx >= len(self._sldIdLst):
+            raise IndexError('slide index out of range')
+        rId = self._sldIdLst[idx].rId
+        return self._prs.related_parts[rId]
+
+    def __iter__(self):
+        """
+        Support iteration (e.g. 'for slide in slides:').
+        """
+        for sldId in self._sldIdLst:
+            rId = sldId.rId
+            yield self._prs.related_parts[rId]
+
+    def __len__(self):
+        """
+        Support len() built-in function (e.g. 'len(slides) == 4').
+        """
+        return len(self._sldIdLst)
+
+    def add_slide(self, slidelayout):
+        """
+        Return a newly added slide that inherits layout from *slidelayout*.
+        """
+        partname = self._next_partname
+        package = self._prs.package
+        slide = Slide.new(slidelayout, partname, package)
+        rId = self._prs.relate_to(slide, RT.SLIDE)
+        self._sldIdLst.add_sldId(rId)
+        return slide
+
+    def rename_slides(self):
+        """
+        Assign partnames like ``/ppt/slides/slide9.xml`` to all slides in the
+        collection. The name portion is always ``slide``. The number part
+        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
+        extension is always ``.xml``.
+        """
+        for idx, slide in enumerate(self):
+            partname_str = '/ppt/slides/slide%d.xml' % (idx+1)
+            slide.partname = PackURI(partname_str)
+
+    @property
+    def _next_partname(self):
+        """
+        Return |PackURI| instance containing the partname for a slide to be
+        appended to this slide collection, e.g. ``/ppt/slides/slide9.xml``
+        for a slide collection containing 8 slides.
+        """
+        partname_str = '/ppt/slides/slide%d.xml' % (len(self)+1)
+        return PackURI(partname_str)
 
 
 class _SlideMasters(object):

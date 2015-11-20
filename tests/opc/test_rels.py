@@ -6,14 +6,14 @@ from __future__ import absolute_import
 
 import pytest
 
-from mock import call, Mock, patch, PropertyMock
-
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.oxml import CT_Relationships
 from pptx.opc.package import Part, _Relationship, RelationshipCollection
 from pptx.opc.packuri import PackURI
 
-from ..unitutil.mock import class_mock, instance_mock, loose_mock
+from ..unitutil.mock import (
+    call, class_mock, instance_mock, loose_mock, Mock, patch, PropertyMock
+)
 
 
 class Describe_Relationship(object):
