@@ -16,13 +16,17 @@ def ChartXmlWriter(chart_type, series_seq):
     """
     try:
         BuilderCls = {
-            XL_CHART_TYPE.BAR_CLUSTERED:    _BarChartXmlWriter,
-            XL_CHART_TYPE.BAR_STACKED_100:  _BarChartXmlWriter,
-            XL_CHART_TYPE.BAR_STACKED:      _BarChartXmlWriter,
-            XL_CHART_TYPE.COLUMN_CLUSTERED: _BarChartXmlWriter,
-            XL_CHART_TYPE.COLUMN_STACKED:   _BarChartXmlWriter,
-            XL_CHART_TYPE.LINE:             _LineChartXmlWriter,
-            XL_CHART_TYPE.PIE:              _PieChartXmlWriter,
+            XL_CHART_TYPE.AREA:               _AreaChartXmlWriter,
+            XL_CHART_TYPE.AREA_STACKED_100:   _AreaChartXmlWriter,
+            XL_CHART_TYPE.AREA_STACKED:       _AreaChartXmlWriter,
+            XL_CHART_TYPE.BAR_CLUSTERED:      _BarChartXmlWriter,
+            XL_CHART_TYPE.BAR_STACKED_100:    _BarChartXmlWriter,
+            XL_CHART_TYPE.BAR_STACKED:        _BarChartXmlWriter,
+            XL_CHART_TYPE.COLUMN_CLUSTERED:   _BarChartXmlWriter,
+            XL_CHART_TYPE.COLUMN_STACKED_100: _BarChartXmlWriter,
+            XL_CHART_TYPE.COLUMN_STACKED:     _BarChartXmlWriter,
+            XL_CHART_TYPE.LINE:               _LineChartXmlWriter,
+            XL_CHART_TYPE.PIE:                _PieChartXmlWriter,
         }[chart_type]
     except KeyError:
         raise NotImplementedError(
@@ -49,6 +53,94 @@ class _BaseChartXmlWriter(object):
         unicode text. This method must be overridden by each subclass.
         """
         raise NotImplementedError('must be implemented by all subclasses')
+
+
+class _AreaChartXmlWriter(_BaseChartXmlWriter):
+    """
+    Provides specialized methods particular to the ``<c:lineChart>`` element.
+    """
+    @property
+    def xml(self):
+        xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:chart>\n'
+            '    <c:plotArea>\n'
+            '      <c:areaChart>\n'
+            '%s%s'
+            '        <c:axId val="2118791784"/>\n'
+            '        <c:axId val="2140495176"/>\n'
+            '      </c:areaChart>\n'
+            '      <c:catAx>\n'
+            '        <c:axId val="2118791784"/>\n'
+            '        <c:scaling/>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="2140495176"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:lblAlgn val="ctr"/>\n'
+            '        <c:lblOffset val="100"/>\n'
+            '      </c:catAx>\n'
+            '      <c:valAx>\n'
+            '        <c:axId val="2140495176"/>\n'
+            '        <c:scaling/>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="l"/>\n'
+            '        <c:majorGridlines/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="2118791784"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '      </c:valAx>\n'
+            '    </c:plotArea>\n'
+            '  </c:chart>\n'
+            '  <c:txPr>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr>\n'
+            '        <a:defRPr sz="1800"/>\n'
+            '      </a:pPr>\n'
+            '      <a:endParaRPr lang="en-US"/>\n'
+            '    </a:p>\n'
+            '  </c:txPr>\n'
+            '</c:chartSpace>\n'
+        ) % (self._grouping_xml, self._ser_xml)
+        return xml
+
+    @property
+    def _grouping_xml(self):
+        grouping = {
+            XL_CHART_TYPE.AREA             : 'standard',
+            XL_CHART_TYPE.AREA_STACKED     : 'stacked',
+            XL_CHART_TYPE.AREA_STACKED_100 : 'percentStacked',
+        }.get(self._chart_type)
+        if grouping is not None:
+            return '        <c:grouping val="%s"/>\n' % grouping
+        raise NotImplementedError('no _grouping_xml() for chart type %s' % self._chart_type)
+
+    @property
+    def _ser_xml(self):
+        xml = ''
+        for series in self._series_lst:
+            xml += (
+                '        <c:ser>\n'
+                '          <c:idx val="%d"/>\n'
+                '          <c:order val="%d"/>\n'
+                '%s%s%s'
+                '        </c:ser>\n'
+            ) % (
+                series.index, series.index, series.tx_xml, series.cat_xml,
+                series.val_xml
+            )
+        return xml
 
 
 class _BarChartXmlWriter(_BaseChartXmlWriter):
@@ -118,7 +210,7 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
     def _barDir_xml(self):
         XL = XL_CHART_TYPE
         bar_types = (XL.BAR_CLUSTERED, XL.BAR_STACKED_100, XL.BAR_STACKED)
-        col_types = (XL.COLUMN_CLUSTERED, XL.COLUMN_STACKED)
+        col_types = (XL.COLUMN_CLUSTERED, XL.COLUMN_STACKED_100, XL.COLUMN_STACKED)
         if self._chart_type in bar_types:
             return '        <c:barDir val="bar"/>\n'
         elif self._chart_type in col_types:
@@ -134,6 +226,7 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             XL_CHART_TYPE.BAR_STACKED_100:  'l',
             XL_CHART_TYPE.BAR_STACKED: 'l',
             XL_CHART_TYPE.COLUMN_CLUSTERED: 'b',
+            XL_CHART_TYPE.COLUMN_STACKED_100: 'b',
             XL_CHART_TYPE.COLUMN_STACKED: 'b',
         }[self._chart_type]
 
@@ -141,8 +234,8 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
     def _grouping_xml(self):
         XL = XL_CHART_TYPE
         clustered_types = (XL.BAR_CLUSTERED, XL.COLUMN_CLUSTERED)
-	stacked_types = (XL.BAR_STACKED, XL.COLUMN_STACKED)
-        percentStacked_types = (XL.BAR_STACKED_100,)
+        stacked_types = (XL.BAR_STACKED, XL.COLUMN_STACKED)
+        percentStacked_types = (XL.BAR_STACKED_100, XL.COLUMN_STACKED_100)
         if self._chart_type in clustered_types:
             return '        <c:grouping val="clustered"/>\n'
         elif self._chart_type in percentStacked_types:
@@ -156,7 +249,7 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
     @property
     def _overlap_xml(self):
         XL = XL_CHART_TYPE
-        percentStacked_types = (XL.BAR_STACKED_100, XL.BAR_STACKED, XL.COLUMN_STACKED)
+        percentStacked_types = (XL.BAR_STACKED_100, XL.BAR_STACKED, XL.COLUMN_STACKED_100, XL.COLUMN_STACKED)
         if self._chart_type in percentStacked_types:
             return '        <c:overlap val="100"/>\n'
         return ''
@@ -184,6 +277,7 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             XL_CHART_TYPE.BAR_STACKED_100:  'b',
             XL_CHART_TYPE.BAR_STACKED: 'b',
             XL_CHART_TYPE.COLUMN_CLUSTERED: 'l',
+            XL_CHART_TYPE.COLUMN_STACKED_100: 'l',
             XL_CHART_TYPE.COLUMN_STACKED: 'l',
         }[self._chart_type]
 
