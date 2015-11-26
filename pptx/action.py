@@ -134,3 +134,15 @@ class ActionSetting(Subshape):
         Reference to the slide collection for this presentation.
         """
         return self.part.package.presentation.slides
+
+
+class Hyperlink(Subshape):
+    """
+    Represents a hyperlink action on a shape or text run.
+    """
+    def __init__(self, xPr, parent, hover=False):
+        super(Hyperlink, self).__init__(parent)
+        # xPr is either a cNvPr or rPr element
+        self._element = xPr
+        # _hover determines use of `a:hlinkClick` or `a:hlinkHover`
+        self._hover = hover

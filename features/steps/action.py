@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 from behave import given, then
 
 from pptx import Presentation
+from pptx.action import Hyperlink
 from pptx.enum.action import PP_ACTION
 
 from helpers import test_pptx
@@ -50,6 +51,12 @@ def then_click_action_action_is_value(context, member_name):
     click_action = context.shape.click_action
     expected_value = getattr(PP_ACTION, member_name)
     assert click_action.action == expected_value
+
+
+@then('click_action.hyperlink is a Hyperlink object')
+def then_click_action_hyperlink_is_a_Hyperlink_object(context):
+    hyperlink = context.shape.click_action.hyperlink
+    assert isinstance(hyperlink, Hyperlink)
 
 
 @then('click_action.target_slide is slide {idx}')

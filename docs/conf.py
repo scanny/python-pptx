@@ -143,6 +143,8 @@ rst_epilog = """
 
 .. |_Hyperlink| replace:: :class:`_Hyperlink`
 
+.. |Hyperlink| replace:: :class:`.Hyperlink`
+
 .. |Image| replace:: :class:`.Image`
 
 .. |ImagePart| replace:: :class:`.ImagePart`
