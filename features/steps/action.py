@@ -6,7 +6,7 @@ Gherkin step implementations for click action-related features.
 
 from __future__ import absolute_import, print_function
 
-from behave import given, then
+from behave import given, then, when
 
 from pptx import Presentation
 from pptx.action import Hyperlink
@@ -43,6 +43,11 @@ def given_a_shape_having_click_action_action(context, action):
 
 # when ====================================================
 
+@when('I assign {value} to click_action.hyperlink.address')
+def when_I_assign_value_to_click_action_hyperlink_address(context, value):
+    value = None if value == 'None' else value
+    context.shape.click_action.hyperlink.address = value
+
 
 # then ====================================================
 
@@ -57,6 +62,14 @@ def then_click_action_action_is_value(context, member_name):
 def then_click_action_hyperlink_is_a_Hyperlink_object(context):
     hyperlink = context.shape.click_action.hyperlink
     assert isinstance(hyperlink, Hyperlink)
+
+
+@then('click_action.hyperlink.address is {value}')
+def then_click_action_hyperlink_address_is_value(context, value):
+    expected_value = None if value == 'None' else value
+    hyperlink = context.shape.click_action.hyperlink
+    print('expected value %s != %s' % (expected_value, hyperlink.address))
+    assert hyperlink.address == expected_value
 
 
 @then('click_action.target_slide is slide {idx}')
