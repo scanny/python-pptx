@@ -64,6 +64,15 @@ class ActionSetting(Subshape):
             'program':      PP_ACTION.RUN_PROGRAM,
         }[action_verb]
 
+    @lazyproperty
+    def hyperlink(self):
+        """
+        A |Hyperlink| object representing the hyperlink action defined on
+        this click or hover mouse event. A |Hyperlink| object is always
+        returned, even if no hyperlink or other click action is defined.
+        """
+        return Hyperlink(self._element, self._parent, self._hover)
+
     @property
     def target_slide(self):
         """

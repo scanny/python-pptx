@@ -25,7 +25,6 @@ Feature: Get and set click action properties
       | run macro          | RUN_MACRO         |
       | run program        | RUN_PROGRAM       |
 
-  @wip
   Scenario Outline: get hyperlink
      Given a shape having click action <action>
       Then click_action.hyperlink is a Hyperlink object

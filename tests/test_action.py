@@ -10,11 +10,11 @@ from __future__ import (
 
 import pytest
 
-from pptx.action import ActionSetting
+from pptx.action import ActionSetting, Hyperlink
 from pptx.enum.action import PP_ACTION
 
 from .unitutil.cxml import element
-from .unitutil.mock import property_mock
+from .unitutil.mock import class_mock, instance_mock, property_mock
 
 
 class DescribeActionSetting(object):
@@ -23,6 +23,13 @@ class DescribeActionSetting(object):
         action_setting, expected_action = action_fixture
         action = action_setting.action
         assert action is expected_action
+
+    def it_provides_access_to_its_hyperlink(self, hyperlink_fixture):
+        action_setting, hyperlink_, Hyperlink_ = hyperlink_fixture[:3]
+        xPr, parent = hyperlink_fixture[3:]
+        hyperlink = action_setting.hyperlink
+        Hyperlink_.assert_called_once_with(xPr, parent, False)
+        assert hyperlink is hyperlink_
 
     def it_can_find_its_slide_jump_target(self, target_slide_fixture):
         action_setting, expected_value = target_slide_fixture
@@ -84,6 +91,12 @@ class DescribeActionSetting(object):
         return action_setting, expected_action
 
     @pytest.fixture
+    def hyperlink_fixture(self, Hyperlink_, hyperlink_):
+        xPr, parent = 'xPr', 'parent'
+        action_setting = ActionSetting(xPr, parent)
+        return action_setting, hyperlink_, Hyperlink_, xPr, parent
+
+    @pytest.fixture
     def _slide_index_fixture(self, request, part_prop_):
         action_setting = ActionSetting(None, None)
         slide = part_prop_.return_value
@@ -142,6 +155,16 @@ class DescribeActionSetting(object):
     @pytest.fixture
     def action_prop_(self, request):
         return property_mock(request, ActionSetting, 'action')
+
+    @pytest.fixture
+    def Hyperlink_(self, request, hyperlink_):
+        return class_mock(
+            request, 'pptx.action.Hyperlink', return_value=hyperlink_
+        )
+
+    @pytest.fixture
+    def hyperlink_(self, request):
+        return instance_mock(request, Hyperlink)
 
     @pytest.fixture
     def part_prop_(self, request):
