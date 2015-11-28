@@ -173,3 +173,43 @@ class DescribeActionSetting(object):
     @pytest.fixture
     def _slide_index_prop_(self, request):
         return property_mock(request, ActionSetting, '_slide_index')
+
+
+class DescribeHyperlink(object):
+
+    def it_knows_the_target_url_of_the_hyperlink(self, address_fixture):
+        hyperlink, rId, expected_address = address_fixture
+        address = hyperlink.address
+        hyperlink.part.target_ref.assert_called_once_with(rId)
+        assert address == expected_address
+
+    def it_knows_when_theres_no_url(self, no_address_fixture):
+        hyperlink = no_address_fixture
+        assert hyperlink.address is None
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def address_fixture(self, part_prop_):
+        cNvPr_cxml, rId = 'p:cNvPr/a:hlinkClick{r:id=rId1}', 'rId1'
+        expected_address = 'http://foobar.com'
+        cNvPr = element(cNvPr_cxml)
+        hyperlink = Hyperlink(cNvPr, None)
+        part_prop_.return_value.target_ref.return_value = expected_address
+        return hyperlink, rId, expected_address
+
+    @pytest.fixture(params=[
+        'p:cNvPr',
+        'p:cNvPr/a:hlinkClick',
+    ])
+    def no_address_fixture(self, request):
+        cNvPr_cxml = request.param
+        cNvPr = element(cNvPr_cxml)
+        hyperlink = Hyperlink(cNvPr, None)
+        return hyperlink
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def part_prop_(self, request):
+        return property_mock(request, Hyperlink, 'part')

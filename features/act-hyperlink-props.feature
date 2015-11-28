@@ -4,7 +4,6 @@ Feature: Get or set an external hyperlink on a shape or text run
   I need CRUD operations on the Hyperlink object
 
 
-  @wip
   Scenario Outline: Get hyperlink URL
     Given a shape having click action <action>
      Then click_action.hyperlink.address is <value>

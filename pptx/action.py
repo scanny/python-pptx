@@ -155,3 +155,32 @@ class Hyperlink(Subshape):
         self._element = xPr
         # _hover determines use of `a:hlinkClick` or `a:hlinkHover`
         self._hover = hover
+
+    @property
+    def address(self):
+        """
+        Read/write. The URL of the hyperlink. URL can be on http, https,
+        mailto, or file scheme; others may work.
+        """
+        hlink = self._hlink
+
+        # there's no URL if there's no click action
+        if hlink is None:
+            return None
+
+        # a click action without a relationship has no URL
+        rId = hlink.rId
+        if not rId:
+            return None
+
+        return self.part.target_ref(rId)
+
+    @property
+    def _hlink(self):
+        """
+        Reference to the `a:hlinkClick` or `h:hlinkHover` element for this
+        click action. Returns |None| if the element is not present.
+        """
+        if self._hover:
+            return self._element.hlinkHover
+        return self._element.hlinkClick
