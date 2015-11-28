@@ -52,6 +52,12 @@ class _BaseSeries(object):
         return tuple(pt.value for pt in value_pt_elms)
 
 
+class AreaSeries(_BaseSeries):
+    """
+    A data point series belonging to a line plot.
+    """
+
+
 class BarSeries(_BaseSeries):
     """
     A data point series belonging to a bar plot.
@@ -168,6 +174,8 @@ def _SeriesFactory(ser):
     xChart element *ser* appears in.
     """
     xChart_tag = ser.getparent().tag
+    if xChart_tag == qn('c:areaChart'):
+        return AreaSeries(ser)
     if xChart_tag == qn('c:barChart'):
         return BarSeries(ser)
     if xChart_tag == qn('c:lineChart'):

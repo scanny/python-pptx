@@ -13,7 +13,7 @@ import pytest
 
 from pptx.chart.data import ChartData
 from pptx.chart.xmlwriter import (
-    _BarChartXmlWriter, ChartXmlWriter, _LineChartXmlWriter,
+    _AreaChartXmlWriter, _BarChartXmlWriter, ChartXmlWriter, _LineChartXmlWriter,
     _PieChartXmlWriter
 )
 from pptx.enum.chart import XL_CHART_TYPE
@@ -34,11 +34,17 @@ class DescribeChartXmlWriter(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('BAR_CLUSTERED',    _BarChartXmlWriter),
-        ('BAR_STACKED_100',  _BarChartXmlWriter),
-        ('COLUMN_CLUSTERED', _BarChartXmlWriter),
-        ('LINE',             _LineChartXmlWriter),
-        ('PIE',              _PieChartXmlWriter),
+        ('AREA',                _AreaChartXmlWriter),
+        ('AREA_STACKED_100',    _AreaChartXmlWriter),
+        ('AREA_STACKED',        _AreaChartXmlWriter),
+        ('BAR_CLUSTERED',       _BarChartXmlWriter),
+        ('BAR_STACKED_100',     _BarChartXmlWriter),
+        ('BAR_STACKED',         _BarChartXmlWriter),
+        ('COLUMN_CLUSTERED',    _BarChartXmlWriter),
+        ('COLUMN_STACKED_100',  _BarChartXmlWriter),
+        ('COLUMN_STACKED',      _BarChartXmlWriter),
+        ('LINE',                _LineChartXmlWriter),
+        ('PIE',                 _PieChartXmlWriter),
     ])
     def call_fixture(self, request, series_seq_):
         chart_type_member, XmlWriterClass = request.param
@@ -57,6 +63,28 @@ class DescribeChartXmlWriter(object):
         return instance_mock(request, tuple)
 
 
+class Describe_AreaChartXmlWriter(object):
+
+    def it_can_generate_xml_for_area_type_charts(self, xml_fixture):
+        xml_writer, expected_xml = xml_fixture
+        assert xml_writer.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('AREA',               2, 2, '2x2-area'),
+        ('AREA_STACKED_100',   2, 2, '2x2-area-stacked-100'),
+        ('AREA_STACKED',       2, 2, '2x2-area-stacked'),
+    ])
+    def xml_fixture(self, request):
+        enum_member, cat_count, ser_count, snippet_name = request.param
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        series_data_seq = make_series_data_seq(cat_count, ser_count)
+        xml_writer = _AreaChartXmlWriter(chart_type, series_data_seq)
+        expected_xml = snippet_text(snippet_name)
+        return xml_writer, expected_xml
+
+
 class Describe_BarChartXmlWriter(object):
 
     def it_can_generate_xml_for_bar_type_charts(self, xml_fixture):
@@ -66,9 +94,12 @@ class Describe_BarChartXmlWriter(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('BAR_CLUSTERED',    2, 2, '2x2-bar-clustered'),
-        ('BAR_STACKED_100',  2, 2, '2x2-bar-stacked-100'),
-        ('COLUMN_CLUSTERED', 2, 2, '2x2-column-clustered'),
+        ('BAR_CLUSTERED',      2, 2, '2x2-bar-clustered'),
+        ('BAR_STACKED_100',    2, 2, '2x2-bar-stacked-100'),
+        ('BAR_STACKED',        2, 2, '2x2-bar-stacked'),
+        ('COLUMN_CLUSTERED',   2, 2, '2x2-column-clustered'),
+        ('COLUMN_STACKED_100', 2, 2, '2x2-column-stacked-100'),
+        ('COLUMN_STACKED',     2, 2, '2x2-column-stacked'),
     ])
     def xml_fixture(self, request):
         enum_member, cat_count, ser_count, snippet_name = request.param
