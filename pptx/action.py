@@ -161,7 +161,11 @@ class Hyperlink(Subshape):
     def address(self):
         """
         Read/write. The URL of the hyperlink. URL can be on http, https,
-        mailto, or file scheme; others may work.
+        mailto, or file scheme; others may work. Returns |None| if no
+        hyperlink is defined, including when another action such as
+        `RUN_MACRO` is defined on the object. Assigning |None| removes any
+        action defined on the object, whether it is a hyperlink action or
+        not.
         """
         hlink = self._hlink
 

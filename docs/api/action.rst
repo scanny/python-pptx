@@ -16,3 +16,11 @@ presentation or running a macro are also possible.
    :inherited-members:
    :undoc-members:
 
+
+|Hyperlink| objects
+-----------------------
+
+.. autoclass:: pptx.action.Hyperlink()
+   :members:
+   :inherited-members:
+   :undoc-members:
