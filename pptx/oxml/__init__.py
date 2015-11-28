@@ -40,6 +40,7 @@ def register_element_cls(nsptagname, cls):
 
 from .action import CT_Hyperlink
 register_element_cls('a:hlinkClick', CT_Hyperlink)
+register_element_cls('a:hlinkHover', CT_Hyperlink)
 
 
 from .chart.axis import (

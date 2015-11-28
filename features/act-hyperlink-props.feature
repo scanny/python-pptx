@@ -21,7 +21,6 @@ Feature: Get or set an external hyperlink on a shape or text run
       | run program        | /Applications/Calculator.app |
 
 
-  @wip
   Scenario Outline: Add hyperlink
     Given a shape having click action <action>
      When I assign <value> to click_action.hyperlink.address
@@ -36,7 +35,6 @@ Feature: Get or set an external hyperlink on a shape or text run
       | run program | http://booya.com  |
 
 
-  @wip
   Scenario Outline: Remove hyperlink
     Given a shape having click action <action>
      When I assign None to click_action.hyperlink.address

@@ -9,6 +9,7 @@ from __future__ import (
 )
 
 from .enum.action import PP_ACTION
+from .opc.constants import RELATIONSHIP_TYPE as RT
 from .shapes import Subshape
 from .util import lazyproperty
 
@@ -175,6 +176,26 @@ class Hyperlink(Subshape):
 
         return self.part.target_ref(rId)
 
+    @address.setter
+    def address(self, url):
+        # implements all three of add, change, and remove hyperlink
+        self._remove_hlink()
+
+        if url:
+            rId = self.part.relate_to(url, RT.HYPERLINK, is_external=True)
+            hlink = self._get_or_add_hlink()
+            hlink.rId = rId
+
+    def _get_or_add_hlink(self):
+        """
+        Get the `a:hlinkClick` or `a:hlinkHover` element for the Hyperlink
+        object, depending on the value of `self._hover`. Create one if not
+        present.
+        """
+        if self._hover:
+            return self._element.get_or_add_hlinkHover()
+        return self._element.get_or_add_hlinkClick()
+
     @property
     def _hlink(self):
         """
@@ -184,3 +205,16 @@ class Hyperlink(Subshape):
         if self._hover:
             return self._element.hlinkHover
         return self._element.hlinkClick
+
+    def _remove_hlink(self):
+        """
+        Remove the a:hlinkClick or a:hlinkHover element, including dropping
+        any relationship it might have.
+        """
+        hlink = self._hlink
+        if hlink is None:
+            return
+        rId = hlink.rId
+        if rId:
+            self.part.drop_rel(rId)
+        self._element.remove(hlink)

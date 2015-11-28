@@ -12,9 +12,10 @@ import pytest
 
 from pptx.action import ActionSetting, Hyperlink
 from pptx.enum.action import PP_ACTION
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 
-from .unitutil.cxml import element
-from .unitutil.mock import class_mock, instance_mock, property_mock
+from .unitutil.cxml import element, xml
+from .unitutil.mock import call, class_mock, instance_mock, property_mock
 
 
 class DescribeActionSetting(object):
@@ -187,6 +188,22 @@ class DescribeHyperlink(object):
         hyperlink = no_address_fixture
         assert hyperlink.address is None
 
+    def it_can_remove_its_url(self, remove_fixture):
+        hyperlink, calls, expected_xml = remove_fixture
+
+        hyperlink.address = None
+
+        assert hyperlink.part.drop_rel.call_args_list == calls
+        assert hyperlink._element.xml == expected_xml
+
+    def it_can_set_its_target_url(self, update_fixture):
+        hyperlink, url, calls, expected_xml = update_fixture
+
+        hyperlink.address = url
+
+        assert hyperlink.part.relate_to.call_args_list == calls
+        assert hyperlink._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -207,6 +224,41 @@ class DescribeHyperlink(object):
         cNvPr = element(cNvPr_cxml)
         hyperlink = Hyperlink(cNvPr, None)
         return hyperlink
+
+    @pytest.fixture(params=[
+        ('p:cNvPr{a:a=a,r:r=r}',                         []),
+        ('p:cNvPr{a:a=a,r:r=r}/a:hlinkClick',            []),
+        ('p:cNvPr{a:a=a,r:r=r}/a:hlinkClick{r:id=rId3}', [call('rId3')]),
+    ])
+    def remove_fixture(self, request, part_prop_):
+        cNvPr_cxml, calls = request.param
+        cNvPr = element(cNvPr_cxml)
+        expected_xml = xml('p:cNvPr{a:a=a,r:r=r}')
+        hyperlink = Hyperlink(cNvPr, None)
+        return hyperlink, calls, expected_xml
+
+    @pytest.fixture(params=[
+        ('p:cNvPr{a:a=a,r:r=r}', 'http://foo.com',              False, True,
+         'p:cNvPr{a:a=a,r:r=r}/a:hlinkClick{r:id=rId3}'),
+        ('p:cNvPr{a:a=a,r:r=r}', 'http://bar.com',              True,  True,
+         'p:cNvPr{a:a=a,r:r=r}/a:hlinkHover{r:id=rId3}'),
+        ('p:cNvPr/a:hlinkClick{r:id=rId6}', 'http://baz.com',   False, True,
+         'p:cNvPr/a:hlinkClick{r:id=rId3}'),
+        ('p:cNvPr/a:hlinkHover{r:id=rId6}', 'http://zab.com',   True,  True,
+         'p:cNvPr/a:hlinkHover{r:id=rId3}'),
+        ('p:cNvPr/a:hlinkHover{r:id=rId6}', 'http://boo.com',   False, True,
+         'p:cNvPr/(a:hlinkClick{r:id=rId3},a:hlinkHover{r:id=rId6})'),
+        ('p:cNvPr{a:a=a,r:r=r}/a:hlinkClick{r:id=rId6}', None,  False, False,
+         'p:cNvPr{a:a=a,r:r=r}'),
+    ])
+    def update_fixture(self, request, part_prop_):
+        cNvPr_cxml, url, hover, called, expected_cNvPr_cxml = request.param
+        cNvPr = element(cNvPr_cxml)
+        hyperlink = Hyperlink(cNvPr, None, hover)
+        calls = [call(url, RT.HYPERLINK, is_external=True)] if called else []
+        part_prop_.return_value.relate_to.return_value = 'rId3'
+        expected_xml = xml(expected_cNvPr_cxml)
+        return hyperlink, url, calls, expected_xml
 
     # fixture components ---------------------------------------------
 
