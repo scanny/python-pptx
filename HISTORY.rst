@@ -3,6 +3,15 @@
 Release History
 ---------------
 
+0.5.8 (2015-11-27)
+++++++++++++++++++
+
+- add Shape.click_action (hyperlink on shape)
+- fix: #128 Chart cat and ser names not escaped
+- fix: #153 shapes.title raises on no title shape
+- fix: #170 remove seek(0) from Image.from_file()
+
+
 0.5.7 (2015-01-17)
 ++++++++++++++++++
 
