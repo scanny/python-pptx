@@ -6,6 +6,8 @@ ChartData and related objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from xml.sax.saxutils import escape
+
 from ..oxml import parse_xml
 from ..oxml.ns import nsdecls
 from .xlsx import WorkbookWriter
@@ -160,8 +162,9 @@ class _SeriesData(object):
         Return a ``<c:tx>`` oxml element for this series, containing the
         series name.
         """
+        name = escape(self.name)
         xml = self._tx_tmpl.format(
-            wksht_ref=self._series_name_ref, series_name=self.name,
+            wksht_ref=self._series_name_ref, series_name=name,
             nsdecls=' %s' % nsdecls('c')
         )
         return parse_xml(xml)
@@ -172,9 +175,9 @@ class _SeriesData(object):
         Return the ``<c:tx>`` element for this series as unicode text. This
         element contains the series name.
         """
+        name = escape(self.name)
         return self._tx_tmpl.format(
-            wksht_ref=self._series_name_ref, series_name=self.name,
-            nsdecls=''
+            wksht_ref=self._series_name_ref, series_name=name, nsdecls=''
         )
 
     @property
@@ -226,7 +229,7 @@ class _SeriesData(object):
                 '                <c:pt idx="%d">\n'
                 '                  <c:v>%s</c:v>\n'
                 '                </c:pt>\n'
-            ) % (idx, name)
+            ) % (idx, escape(str(name)))
         return xml
 
     @property
