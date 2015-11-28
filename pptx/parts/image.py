@@ -168,7 +168,6 @@ class Image(object):
             filename = os.path.basename(image_file)
         else:
             # assume image_file is a file-like object
-            image_file.seek(0)
             blob = image_file.read()
             filename = None
 
