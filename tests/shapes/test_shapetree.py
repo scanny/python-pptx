@@ -33,6 +33,7 @@ from pptx.shapes.table import Table
 
 from ..oxml.unitdata.shape import a_cNvPr, an_sp, an_spPr, an_spTree
 from ..oxml.unitdata.slides import a_sld, a_cSld
+from ..unitutil.cxml import element
 from ..unitutil.mock import (
     call, class_mock, function_mock, instance_mock, method_mock,
     property_mock
@@ -207,15 +208,12 @@ class DescribeSlideShapeTree(object):
         assert slide_placeholder is slide_placeholder_
 
     def it_can_find_the_title_placeholder(self, title_fixture):
-        shapes, _shape_factory_, sp_2_, title_placeholder_ = title_fixture
-        title_placeholder = shapes.title
-        _shape_factory_.assert_called_once_with(sp_2_)
-        assert title_placeholder == title_placeholder_
+        shapes, _shape_factory_, calls, expected_value = title_fixture
 
-    def it_returns_None_when_slide_has_no_title_ph(self, no_title_fixture):
-        shapes = no_title_fixture
         title_placeholder = shapes.title
-        assert title_placeholder is None
+
+        assert _shape_factory_.call_args_list == calls
+        assert title_placeholder == expected_value
 
     def it_can_add_an_autoshape(self, autoshape_fixture):
         # fixture ----------------------
@@ -491,12 +489,6 @@ class DescribeSlideShapeTree(object):
         expected_idx = 1
         return shapes, shape_, expected_idx
 
-    @pytest.fixture
-    def no_title_fixture(self, slide_, spTree_, sp_):
-        shapes = SlideShapeTree(slide_)
-        spTree_.iter_shape_elms.return_value = [sp_, sp_]
-        return shapes
-
     @pytest.fixture(params=[
         (PP_PLACEHOLDER.OBJECT, 3, ST_Direction.HORZ,
          'Content Placeholder 2'),
@@ -583,12 +575,21 @@ class DescribeSlideShapeTree(object):
         name = 'TextBox 41'
         return shapes, x_, y_, cx_, cy_, spTree_, id_, name, sp_
 
-    @pytest.fixture
-    def title_fixture(self, slide_, sp_2_, _shape_factory_, shape_):
+    @pytest.fixture(params=[
+        ('p:spTree/(p:sp,p:sp/p:nvSpPr/p:nvPr/p:ph{idx=0})', True),
+        ('p:spTree/(p:sp,p:sp)',                             False),
+    ])
+    def title_fixture(self, request, slide_, _shape_factory_, shape_):
+        spTree_cxml, found = request.param
+        spTree = element(spTree_cxml)
+        sp = spTree.xpath('p:sp')[1]
+        slide_.spTree = spTree
+
         shapes = SlideShapeTree(slide_)
         _shape_factory_.return_value = shape_
-        title_placeholder_ = shape_
-        return shapes, _shape_factory_, sp_2_, title_placeholder_
+        calls = [call(sp)] if found else []
+        expected_value = shape_ if found else None
+        return shapes, _shape_factory_, calls, expected_value
 
     # fixture components ---------------------------------------------
 
@@ -813,7 +814,7 @@ class DescribeSlideShapeTree(object):
 
     @pytest.fixture
     def sp_2_(self, request):
-        return instance_mock(request, CT_Shape, ph_idx=0)
+        return instance_mock(request, CT_Shape)
 
     @pytest.fixture
     def spTree_(self, request, pic_, sp_, sp_2_, graphicFrame_):
