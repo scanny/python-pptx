@@ -9,13 +9,14 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import _BaseAxis, TickLabels, ValueAxis
+from pptx.chart.title import ChartTitle
 from pptx.enum.chart import (
     XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
 )
 from pptx.text.text import Font
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock
+from ..unitutil.mock import call, class_mock, instance_mock
 
 
 class Describe_BaseAxis(object):
@@ -106,6 +107,21 @@ class Describe_BaseAxis(object):
         tick_labels = axis.tick_labels
         TickLabels_.assert_called_once_with(xAx)
         assert tick_labels is tick_labels_
+
+    def it_knows_whether_it_has_a_title(self, has_title_get_fixture):
+        axis, expected_value = has_title_get_fixture
+        assert axis.has_title == expected_value
+
+    def it_can_change_whether_it_has_a_title(self, has_title_set_fixture):
+        axis, new_value, expected_xml = has_title_set_fixture
+        axis.has_title = new_value
+        assert axis._element.xml == expected_xml
+
+    def it_provides_access_to_its_title(self, title_fixture):
+        axis, ChartTitle_, expected_calls, expected_value = title_fixture
+        title = axis.title
+        assert ChartTitle_.call_args_list == expected_calls
+        assert title is expected_value
 
     # fixtures -------------------------------------------------------
 
@@ -324,6 +340,43 @@ class Describe_BaseAxis(object):
         expected_xml = xml(expected_xAx_cxml)
         return axis, new_value, expected_xml
 
+    @pytest.fixture(params=[
+        ('c:catAx',         False),
+        ('c:catAx/c:title', True),
+        ('c:valAx',         False),
+        ('c:valAx/c:title', True),
+    ])
+    def has_title_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        return axis, expected_value
+
+    @pytest.fixture(params=[
+        ('c:catAx', True, 'c:catAx/c:title'),
+        ('c:valAx', True, 'c:valAx/c:title'),
+    ])
+    def has_title_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        expected_xml = xml(expected_xAx_cxml)
+        return axis, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:catAx',         False),
+        ('c:catAx/c:title', True),
+        ('c:valAx',         False),
+        ('c:valAx/c:title', True),
+    ])
+    def title_fixture(self, request, ChartTitle_, title_):
+        xAx_cxml, has_title = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        expected_value, expected_calls = None, []
+        if has_title:
+            expected_value = title_
+            title_elm = axis._element.title
+            expected_calls.append(call(title_elm))
+        return axis, ChartTitle_, expected_calls, expected_value
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -337,6 +390,16 @@ class Describe_BaseAxis(object):
     def tick_labels_(self, request):
         return instance_mock(request, TickLabels)
 
+    @pytest.fixture
+    def ChartTitle_(self, request, title_):
+        return class_mock(
+            request, 'pptx.chart.axis.ChartTitle',
+            return_value=title_
+        )
+
+    @pytest.fixture
+    def title_(self, request):
+        return instance_mock(request, ChartTitle)
 
 class DescribeTickLabels(object):
 

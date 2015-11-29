@@ -6,6 +6,7 @@ lxml custom element classes for chart-related XML elements.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from .title import TitleMixin
 from .. import parse_xml
 from ..ns import nsdecls, qn
 from ..simpletypes import ST_Style, XsdString
@@ -14,13 +15,13 @@ from ..xmlchemy import (
 )
 
 
-class CT_Chart(BaseOxmlElement):
+class CT_Chart(BaseOxmlElement, TitleMixin):
     """
     ``<c:chart>`` custom element class
     """
     title = ZeroOrOne('c:title', successors=(
-        'autoTitleDeleted', 'pivotFmts', 'view3D', 'floor', 'sideWall',
-        'backWall', 'plotArea'
+        'c:autoTitleDeleted', 'c:pivotFmts', 'c:view3D',
+        'c:floor', 'c:sideWall', 'c:backWall', 'c:plotArea'
     ))
     plotArea = OneAndOnlyOne('c:plotArea')
     legend = ZeroOrOne('c:legend', successors=(
@@ -35,16 +36,6 @@ class CT_Chart(BaseOxmlElement):
     @property
     def catAx(self):
         return self.plotArea.catAx
-
-    @property
-    def has_title(self):
-        """
-        True if this chart has a title defined, False otherwise.
-        """
-        title = self.title
-        if title is None:
-            return False
-        return True
 
     @property
     def has_legend(self):
@@ -155,23 +146,6 @@ class CT_ChartSpace(BaseOxmlElement):
         externalData._add_autoUpdate(val=False)
         self._insert_externalData(externalData)
         return externalData
-
-
-class CT_Title(BaseOxmlElement):
-    """
-    ``<c:title>`` element.
-    """
-    _tag_seq = (
-        'c:tx', 'c:layout', 'c:overlay'
-    )
-    tx = ZeroOrOne('c:tx', successors=_tag_seq[1:])
-    layout = ZeroOrOne('c:layout', successors=_tag_seq[2:])
-    overlay = ZeroOrOne('c:overlay', successors=_tag_seq[3:])
-    del _tag_seq
-
-    @property
-    def text_frame(self):
-        return self.xpath('./c:tx/c:rich')[0]
 
 
 class CT_ExternalData(BaseOxmlElement):

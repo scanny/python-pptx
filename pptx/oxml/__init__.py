@@ -59,14 +59,17 @@ register_element_cls('c:valAx',         CT_ValAx)
 
 
 from .chart.chart import (
-    CT_Chart, CT_ChartSpace, CT_ExternalData, CT_PlotArea, CT_Style, CT_Title
+    CT_Chart, CT_ChartSpace, CT_ExternalData, CT_PlotArea, CT_Style
 )
 register_element_cls('c:chart',        CT_Chart)
 register_element_cls('c:chartSpace',   CT_ChartSpace)
-register_element_cls('c:title',        CT_Title)
 register_element_cls('c:externalData', CT_ExternalData)
 register_element_cls('c:plotArea',     CT_PlotArea)
 register_element_cls('c:style',        CT_Style)
+
+
+from .chart.title import CT_Title
+register_element_cls('c:title', CT_Title)
 
 
 from .chart.legend import CT_Legend, CT_LegendPos
@@ -99,7 +102,7 @@ register_element_cls('c:ser', CT_SeriesComposite)
 
 from .chart.shared import (
     CT_Boolean, CT_Double, CT_Layout, CT_LayoutMode, CT_ManualLayout,
-    CT_NumFmt, CT_UnsignedInt
+    CT_NumFmt, CT_UnsignedInt, CT_Tx
 )
 register_element_cls('c:autoUpdate',       CT_Boolean)
 register_element_cls('c:delete',           CT_Boolean)
@@ -116,6 +119,7 @@ register_element_cls('c:smooth',           CT_Boolean)
 register_element_cls('c:varyColors',       CT_Boolean)
 register_element_cls('c:x',                CT_Double)
 register_element_cls('c:xMode',            CT_LayoutMode)
+register_element_cls('c:tx',               CT_Tx)
 
 
 from .dml.color import (
