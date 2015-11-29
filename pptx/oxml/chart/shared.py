@@ -116,3 +116,10 @@ class CT_UnsignedInt(BaseOxmlElement):
     ``<c:idx>`` element and others.
     """
     val = RequiredAttribute('val', XsdUnsignedInt)
+
+
+class CT_Tx(BaseOxmlElement):
+    """
+    ``<c:tx>`` element.
+    """
+    rich = ZeroOrOne('c:rich')

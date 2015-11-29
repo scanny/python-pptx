@@ -21,11 +21,12 @@ class DescribeChartTitle(object):
         text_frame = title.text_frame
         assert isinstance(text_frame, TextFrame)
         assert text_frame._element.xml == xml(expected_text_frame_xml)
-
+    
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
         ('c:title/c:tx/c:rich/(a:bodyPr,a:p)', 'c:rich/(a:bodyPr,a:p)'),
+        ('c:title', 'c:rich'),
     ])
     def text_frame_get_fixture(self, request):
         title_cxml, expected_value = request.param

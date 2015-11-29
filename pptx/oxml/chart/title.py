@@ -49,4 +49,4 @@ class CT_Title(BaseOxmlElement):
 
     @property
     def text_frame(self):
-        return self.xpath('./c:tx/c:rich')[0]
+        return self.get_or_add_tx().get_or_add_rich()

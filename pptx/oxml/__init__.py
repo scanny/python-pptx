@@ -102,7 +102,7 @@ register_element_cls('c:ser', CT_SeriesComposite)
 
 from .chart.shared import (
     CT_Boolean, CT_Double, CT_Layout, CT_LayoutMode, CT_ManualLayout,
-    CT_NumFmt, CT_UnsignedInt
+    CT_NumFmt, CT_UnsignedInt, CT_Tx
 )
 register_element_cls('c:autoUpdate',       CT_Boolean)
 register_element_cls('c:delete',           CT_Boolean)
@@ -119,6 +119,7 @@ register_element_cls('c:smooth',           CT_Boolean)
 register_element_cls('c:varyColors',       CT_Boolean)
 register_element_cls('c:x',                CT_Double)
 register_element_cls('c:xMode',            CT_LayoutMode)
+register_element_cls('c:tx',               CT_Tx)
 
 
 from .dml.color import (
