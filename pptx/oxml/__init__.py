@@ -68,6 +68,10 @@ register_element_cls('c:plotArea',     CT_PlotArea)
 register_element_cls('c:style',        CT_Style)
 
 
+from .chart.title import CT_Title
+register_element_cls('c:title', CT_Title)
+
+
 from .chart.legend import CT_Legend, CT_LegendPos
 register_element_cls('c:legend',    CT_Legend)
 register_element_cls('c:legendPos', CT_LegendPos)
@@ -98,7 +102,7 @@ register_element_cls('c:ser', CT_SeriesComposite)
 
 from .chart.shared import (
     CT_Boolean, CT_Double, CT_Layout, CT_LayoutMode, CT_ManualLayout,
-    CT_NumFmt, CT_UnsignedInt
+    CT_NumFmt, CT_UnsignedInt, CT_Tx
 )
 register_element_cls('c:autoUpdate',       CT_Boolean)
 register_element_cls('c:delete',           CT_Boolean)
@@ -115,6 +119,7 @@ register_element_cls('c:smooth',           CT_Boolean)
 register_element_cls('c:varyColors',       CT_Boolean)
 register_element_cls('c:x',                CT_Double)
 register_element_cls('c:xMode',            CT_LayoutMode)
+register_element_cls('c:tx',               CT_Tx)
 
 
 from .dml.color import (
@@ -276,3 +281,4 @@ register_element_cls('a:spcPts',      CT_TextSpacingPoint)
 register_element_cls('a:txBody',      CT_TextBody)
 register_element_cls('c:txPr',        CT_TextBody)
 register_element_cls('p:txBody',      CT_TextBody)
+register_element_cls('c:rich',        CT_TextBody)

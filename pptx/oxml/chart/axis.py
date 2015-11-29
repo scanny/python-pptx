@@ -6,6 +6,7 @@ Axis-related oxml objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from .title import TitleMixin
 from ...enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
 from ..simpletypes import ST_AxisUnit, ST_LblOffset
 from ..text import CT_TextBody
@@ -15,7 +16,7 @@ from ..xmlchemy import (
 )
 
 
-class BaseAxisElement(BaseOxmlElement):
+class BaseAxisElement(BaseOxmlElement, TitleMixin):
     """
     Base class for catAx, valAx, and perhaps other axis elements.
     """
@@ -27,6 +28,10 @@ class BaseAxisElement(BaseOxmlElement):
     ))
     minorGridlines = ZeroOrOne('c:minorGridlines', successors=(
         'c:title', 'c:numFmt', 'c:majorTickMark', 'c:minorTickMark',
+        'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
+    ))
+    title = ZeroOrOne('c:title', successors=(
+        'c:numFmt', 'c:majorTickMark', 'c:minorTickMark',
         'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
     ))
     numFmt = ZeroOrOne('c:numFmt', successors=(

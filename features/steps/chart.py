@@ -14,7 +14,7 @@ from behave import given, then, when
 
 from pptx import Presentation
 from pptx.chart.axis import CategoryAxis, ValueAxis
-from pptx.chart.chart import Legend
+from pptx.chart.chart import ChartTitle, Legend
 from pptx.chart.data import ChartData
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import (
@@ -123,6 +123,16 @@ def given_a_bar_series_having_width_line(context, width):
     prs = Presentation(test_pptx('cht-series-props'))
     plot = prs.slides[0].shapes[0].chart.plots[0]
     context.series = plot.series[series_idx]
+
+
+@given('a chart {having_or_not} a title')
+def given_a_chart_having_or_not_a_title(context, having_or_not):
+    slide_idx = {
+        'having':     0,
+        'not having': 1,
+    }[having_or_not]
+    prs = Presentation(test_pptx('cht-chart-title'))
+    context.chart = prs.slides[slide_idx].shapes[0].chart
 
 
 @given('a chart {having_or_not} a legend')
@@ -242,6 +252,16 @@ def given_an_axis_not_having_major_or_minor_gridlines(context, major_or_minor):
     context.axis = chart.category_axis
 
 
+@given('an axis {having_or_not} a title')
+def given_an_axis_having_or_not_a_title(context, having_or_not):
+    slide_idx = {
+        'having':     0,
+        'not having': 1,
+    }[having_or_not]
+    prs = Presentation(test_pptx('cht-axis-title'))
+    context.axis = prs.slides[slide_idx].shapes[0].chart.category_axis
+
+
 @given('bar chart data labels positioned {relation_to} their data point')
 def given_bar_chart_data_labels_positioned_relation_to_their_data_point(
         context, relation_to):
@@ -263,6 +283,12 @@ def given_tick_labels_having_an_offset_of_setting(context, setting):
     prs = Presentation(test_pptx('cht-ticklabels-props'))
     chart = prs.slides[slide_idx].shapes[0].chart
     context.tick_labels = chart.category_axis.tick_labels
+
+
+@given('a title containing text')
+def given_a_title_containing_text(context):
+    prs = Presentation(test_pptx('cht-title'))
+    context.title = prs.slides[0].shapes[0].chart.title
 
 
 # when ====================================================
@@ -292,6 +318,15 @@ def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
     ).chart
 
 
+@when('I assign {value} to chart.has_title')
+def when_I_assign_value_to_chart_has_title(context, value):
+    new_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    context.chart.has_title = new_value
+
+
 @when('I assign {value} to chart.has_legend')
 def when_I_assign_value_to_chart_has_legend(context, value):
     new_value = {
@@ -317,6 +352,15 @@ def when_I_assign_value_to_axis_major_or_minor_unit(
     propname = '%s_unit' % major_or_minor
     new_value = {'8.4': 8.4, '5': 5, 'None': None}[value]
     setattr(axis, propname, new_value)
+
+
+@when('I assign {value} to axis.has_title')
+def when_I_assign_value_to_axis_has_title(context, value):
+    new_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    context.axis.has_title = new_value
 
 
 @when('I assign {value} to data_labels.position')
@@ -412,6 +456,11 @@ def when_I_replace_its_data_with_categories_and_series(context, cats, sers):
     context.chart.replace_data(chart_data)
 
 
+@when('I assign a string to title.text')
+def when_I_assign_a_string_to_title_text(context):
+    context.title.text = ' Boo Far \n Faz Foo '
+
+
 # then ====================================================
 
 @then('axis.has_{major_or_minor}_gridlines is {value}')
@@ -437,11 +486,39 @@ def then_axis_major_or_minor_unit_is_value(context, major_or_minor, value):
     assert actual_value == expected_value, 'got %s' % actual_value
 
 
+@then('axis.has_title is {value}')
+def then_axis_has_title_is_value(context, value):
+    expected_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    assert context.axis.has_title is expected_value
+
+
+@then('axis.title is a title object')
+def then_axis_title_is_a_title_object(context):
+    assert isinstance(context.axis.title, ChartTitle)
+
+
 @then('chart.chart_type is {enum_member}')
 def then_chart_chart_type_is_value(context, enum_member):
     expected_value = getattr(XL_CHART_TYPE, enum_member)
     chart = context.chart
     assert chart.chart_type is expected_value, 'got %s' % chart.chart_type
+
+
+@then('chart.has_title is {value}')
+def then_chart_has_title_is_value(context, value):
+    expected_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    assert context.chart.has_title is expected_value
+
+
+@then('chart.title is a title object')
+def then_chart_title_is_a_title_object(context):
+    assert isinstance(context.chart.title, ChartTitle)
 
 
 @then('chart.has_legend is {value}')
@@ -662,3 +739,8 @@ def then_tick_labels_offset_is_expected_value(context, value):
     assert tick_labels.offset == expected_value, (
         'got %s' % tick_labels.offset
     )
+
+
+@then('title.text_frame contains the text in the title')
+def then_title_text_frame_contains_the_text_in_the_title(context):
+    assert context.title.text_frame.text == 'Test Chart Title'

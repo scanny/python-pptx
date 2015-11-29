@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from ..simpletypes import (
     ST_LayoutMode, XsdBoolean, XsdDouble, XsdString, XsdUnsignedInt
 )
+from ..text import CT_TextBody
 from ..xmlchemy import (
     BaseOxmlElement, OptionalAttribute, RequiredAttribute, ZeroOrOne
 )
@@ -116,3 +117,13 @@ class CT_UnsignedInt(BaseOxmlElement):
     ``<c:idx>`` element and others.
     """
     val = RequiredAttribute('val', XsdUnsignedInt)
+
+
+class CT_Tx(BaseOxmlElement):
+    """
+    ``<c:tx>`` element.
+    """
+    rich = ZeroOrOne('c:rich')
+
+    def _new_rich(self):
+        return CT_TextBody.new_rich()
