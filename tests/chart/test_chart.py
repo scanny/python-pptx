@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import CategoryAxis, ValueAxis
-from pptx.chart.chart import Chart, Legend, _Plots, _SeriesRewriter
+from pptx.chart.chart import Chart, ChartTitle, Legend, _Plots, _SeriesRewriter
 from pptx.chart.data import ChartData, _SeriesData
 from pptx.chart.plot import Plot
 from pptx.chart.series import SeriesCollection
@@ -61,6 +61,21 @@ class DescribeChart(object):
         plots = chart.plots
         _Plots_.assert_called_once_with(plotArea, chart)
         assert plots is plots_
+
+    def it_knows_whether_it_has_a_title(self, has_title_get_fixture):
+        chart, expected_value = has_title_get_fixture
+        assert chart.has_title == expected_value
+
+    def it_can_change_whether_it_has_a_title(self, has_title_set_fixture):
+        chart, new_value, expected_xml = has_title_set_fixture
+        chart.has_title = new_value
+        assert chart._chartSpace.xml == expected_xml
+
+    def it_provides_access_to_its_title(self, title_fixture):
+        chart, ChartTitle_, expected_calls, expected_value = title_fixture
+        title = chart.title
+        assert ChartTitle_.call_args_list == expected_calls
+        assert title is expected_value
 
     def it_knows_whether_it_has_a_legend(self, has_legend_get_fixture):
         chart, expected_value = has_legend_get_fixture
@@ -123,6 +138,40 @@ class DescribeChart(object):
         chart = Chart(None, None)
         chart._plots = [plot_]
         return chart, PlotTypeInspector_, plot_, chart_type_
+
+    @pytest.fixture(params=[
+        ('c:chartSpace/c:chart',         False),
+        ('c:chartSpace/c:chart/c:title', True),
+    ])
+    def has_title_get_fixture(self, request):
+        chartSpace_cxml, expected_value = request.param
+        chart = Chart(element(chartSpace_cxml), None)
+        return chart, expected_value
+
+    @pytest.fixture(params=[
+        ('c:chartSpace/c:chart', True,
+         'c:chartSpace/c:chart/c:title'),
+    ])
+    def has_title_set_fixture(self, request):
+        chartSpace_cxml, new_value, expected_chartSpace_cxml = request.param
+        chart = Chart(element(chartSpace_cxml), None)
+        expected_xml = xml(expected_chartSpace_cxml)
+        return chart, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:chartSpace/c:chart',          False),
+        ('c:chartSpace/c:chart/c:title', True),
+    ])
+    def title_fixture(self, request, ChartTitle_, title_):
+        chartSpace_cxml, has_title = request.param
+        chartSpace = element(chartSpace_cxml)
+        chart = Chart(chartSpace, None)
+        expected_value, expected_calls = None, []
+        if has_title:
+            expected_value = title_
+            title_elm = chartSpace.chart.title
+            expected_calls.append(call(title_elm))
+        return chart, ChartTitle_, expected_calls, expected_value
 
     @pytest.fixture(params=[
         ('c:chartSpace/c:chart',          False),
@@ -241,6 +290,16 @@ class DescribeChart(object):
     @pytest.fixture
     def chart_type_(self, request):
         return instance_mock(request, EnumValue)
+
+    @pytest.fixture
+    def ChartTitle_(self, request, title_):
+        return class_mock(
+            request, 'pptx.chart.chart.ChartTitle', return_value=title_
+        )
+
+    @pytest.fixture
+    def title_(self, request):
+        return instance_mock(request, ChartTitle)
 
     @pytest.fixture
     def Legend_(self, request, legend_):

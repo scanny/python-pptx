@@ -73,15 +73,20 @@ class Chart(object):
     @property
     def has_title(self):
         """
-        Read-only boolean. |True| if the chart has a title; |False| otherwise.
+        Read/write boolean, |True| if the chart has a title. Assigning
+        |True| causes a title to be added to the chart if it doesn't already
+        have one. Assigning False removes any existing title definition.
         """
         return self._chartSpace.chart.has_title
+
+    @has_title.setter
+    def has_title(self, value):
+        self._chartSpace.chart.has_title = bool(value)
 
     @property
     def title(self):
         """
-        A |Title| object providing access to the properties of this chart's
-        title.
+        A |Title| object providing access to the properties of this chart's title.
         """
         title_elm = self._chartSpace.chart.title
         if title_elm is None:
