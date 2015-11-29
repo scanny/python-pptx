@@ -112,6 +112,25 @@ class CT_TextBody(BaseOxmlElement):
         return txPr
 
     @classmethod
+    def new_rich(cls):
+        """
+        Return a ``<c:rich>`` element tree suitable for use in a chart tx object
+        """
+        xml = (
+            '<c:rich %s>\n'
+            '  <a:bodyPr/>\n'
+            '  <a:lstStyle/>\n'
+            '  <a:p>\n'
+            '    <a:pPr>\n'
+            '      <a:defRPr/>\n'
+            '    </a:pPr>\n'
+            '  </a:p>\n'
+            '</c:rich>\n'
+        ) % nsdecls('c', 'a')
+        rich = parse_xml(xml)
+        return rich
+
+    @classmethod
     def _a_txBody_tmpl(cls):
         return (
             '<a:txBody %s>\n'

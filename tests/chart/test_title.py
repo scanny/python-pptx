@@ -26,7 +26,7 @@ class DescribeChartTitle(object):
 
     @pytest.fixture(params=[
         ('c:title/c:tx/c:rich/(a:bodyPr,a:p)', 'c:rich/(a:bodyPr,a:p)'),
-        ('c:title', 'c:rich'),
+        ('c:title', 'c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)'),
     ])
     def text_frame_get_fixture(self, request):
         title_cxml, expected_value = request.param
