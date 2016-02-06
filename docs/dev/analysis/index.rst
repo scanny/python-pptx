@@ -18,6 +18,7 @@ Chart
    features/cht-line-chart
    features/cht-pie-chart
    features/cht-bar-chart
+   features/cht-area-chart
    features/cht-plots
    features/cht-legend.rst
    features/cht-add-chart.rst
