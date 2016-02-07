@@ -12,7 +12,7 @@ XML specimens
 
 .. highlight:: xml
 
-Minimal working XML for a single-series column plot. Note this does not
+Minimal working XML for a single-series area plot. Note this does not
 reference values in a spreadsheet.::
 
   <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
@@ -28,24 +28,30 @@ reference values in a spreadsheet.::
             <c:order val="0"/>
             <c:cat>
               <c:strLit>
-                <c:ptCount val="1"/>
+                <c:ptCount val="2"/>
                 <c:pt idx="0">
-                  <c:v>Foo</c:v>
+                  <c:v>Jan</c:v>
+                </c:pt>
+                <c:pt idx="1">
+                  <c:v>Feb</c:v>
                 </c:pt>
               </c:strLit>
             </c:cat>
             <c:val>
               <c:numLit>
-                <c:ptCount val="1"/>
+                <c:ptCount val="2"/>
                 <c:pt idx="0">
-                  <c:v>4.3</c:v>
+                  <c:v>75</c:v>
+                </c:pt>
+                <c:pt idx="1">
+                  <c:v>27</c:v>
                 </c:pt>
               </c:numLit>
             </c:val>
           </c:ser>
           <c:axId val="-2068027336"/>
           <c:axId val="-2113994440"/>
-        </c:barChart>
+        </c:areaChart>
         <c:catAx>
           <c:axId val="-2068027336"/>
           <c:scaling/>
