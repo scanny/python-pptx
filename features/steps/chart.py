@@ -270,14 +270,17 @@ def given_tick_labels_having_an_offset_of_setting(context, setting):
 @when('I add a {kind} chart with {cats} categories and {sers} series')
 def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
     chart_type = {
-        'Area':              XL_CHART_TYPE.AREA,
-        '100% Stacked Area': XL_CHART_TYPE.AREA_STACKED_100,
-        'Stacked Area':      XL_CHART_TYPE.AREA_STACKED,
-        'Clustered Bar':     XL_CHART_TYPE.BAR_CLUSTERED,
-        '100% Stacked Bar':  XL_CHART_TYPE.BAR_STACKED_100,
-        'Clustered Column':  XL_CHART_TYPE.COLUMN_CLUSTERED,
-        'Line':              XL_CHART_TYPE.LINE,
-        'Pie':               XL_CHART_TYPE.PIE,
+        'Area':                XL_CHART_TYPE.AREA,
+        '100% Stacked Area':   XL_CHART_TYPE.AREA_STACKED_100,
+        'Stacked Area':        XL_CHART_TYPE.AREA_STACKED,
+        'Clustered Bar':       XL_CHART_TYPE.BAR_CLUSTERED,
+        '100% Stacked Bar':    XL_CHART_TYPE.BAR_STACKED_100,
+        'Stacked Bar':         XL_CHART_TYPE.BAR_STACKED,
+        'Clustered Column':    XL_CHART_TYPE.COLUMN_CLUSTERED,
+        '100% Stacked Column': XL_CHART_TYPE.COLUMN_STACKED_100,
+        'Stacked Column':      XL_CHART_TYPE.COLUMN_STACKED,
+        'Line':                XL_CHART_TYPE.LINE,
+        'Pie':                 XL_CHART_TYPE.PIE,
     }[kind]
     category_count, series_count = int(cats), int(sers)
     category_source = ('Foo', 'Bar', 'Baz', 'Boo', 'Far', 'Faz')

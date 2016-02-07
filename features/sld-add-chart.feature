@@ -19,6 +19,9 @@ Feature: Add a chart
       | Stacked Area        | AREA_STACKED        |   3  |   3  |
       | Clustered Bar       | BAR_CLUSTERED       |   3  |   3  |
       | 100% Stacked Bar    | BAR_STACKED_100     |   3  |   3  |
+      | Stacked Bar         | BAR_STACKED         |   3  |   3  |
       | Clustered Column    | COLUMN_CLUSTERED    |   3  |   3  |
+      | 100% Stacked Column | COLUMN_STACKED_100  |   3  |   3  |
+      | Stacked Column      | COLUMN_STACKED      |   3  |   3  |
       | Line                | LINE                |   3  |   2  |
       | Pie                 | PIE                 |   5  |   1  |
