@@ -163,6 +163,21 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:complexType>
 
+  <!-- grouping-->
+
+  <xsd:complexType name="CT_BarGrouping">
+    <xsd:attribute name="val" type="ST_BarGrouping" default="clustered"/>
+  </xsd:complexType>
+
+  <xsd:simpleType name="ST_BarGrouping">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="percentStacked"/>
+      <xsd:enumeration value="clustered"/>
+      <xsd:enumeration value="standard"/>
+      <xsd:enumeration value="stacked"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
   <!-- gap-width -->
 
   <xsd:complexType name="CT_GapAmount">
