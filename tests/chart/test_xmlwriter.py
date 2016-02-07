@@ -34,14 +34,17 @@ class DescribeChartXmlWriter(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('AREA',             _AreaChartXmlWriter),
-        ('AREA_STACKED_100', _AreaChartXmlWriter),
-        ('AREA_STACKED',     _AreaChartXmlWriter),
-        ('BAR_CLUSTERED',    _BarChartXmlWriter),
-        ('BAR_STACKED_100',  _BarChartXmlWriter),
-        ('COLUMN_CLUSTERED', _BarChartXmlWriter),
-        ('LINE',             _LineChartXmlWriter),
-        ('PIE',              _PieChartXmlWriter),
+        ('AREA',               _AreaChartXmlWriter),
+        ('AREA_STACKED_100',   _AreaChartXmlWriter),
+        ('AREA_STACKED',       _AreaChartXmlWriter),
+        ('BAR_CLUSTERED',      _BarChartXmlWriter),
+        ('BAR_STACKED_100',    _BarChartXmlWriter),
+        ('BAR_STACKED',        _BarChartXmlWriter),
+        ('COLUMN_CLUSTERED',   _BarChartXmlWriter),
+        ('COLUMN_STACKED_100', _BarChartXmlWriter),
+        ('COLUMN_STACKED',     _BarChartXmlWriter),
+        ('LINE',               _LineChartXmlWriter),
+        ('PIE',                _PieChartXmlWriter),
     ])
     def call_fixture(self, request, series_seq_):
         chart_type_member, XmlWriterClass = request.param
@@ -91,9 +94,12 @@ class Describe_BarChartXmlWriter(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('BAR_CLUSTERED',    2, 2, '2x2-bar-clustered'),
-        ('BAR_STACKED_100',  2, 2, '2x2-bar-stacked-100'),
-        ('COLUMN_CLUSTERED', 2, 2, '2x2-column-clustered'),
+        ('BAR_CLUSTERED',      2, 2, '2x2-bar-clustered'),
+        ('BAR_STACKED_100',    2, 2, '2x2-bar-stacked-100'),
+        ('BAR_STACKED',        2, 2, '2x2-bar-stacked'),
+        ('COLUMN_CLUSTERED',   2, 2, '2x2-column-clustered'),
+        ('COLUMN_STACKED_100', 2, 2, '2x2-column-stacked-100'),
+        ('COLUMN_STACKED',     2, 2, '2x2-column-stacked'),
     ])
     def xml_fixture(self, request):
         enum_member, cat_count, ser_count, snippet_name = request.param
