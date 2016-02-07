@@ -13,9 +13,12 @@ Feature: Add a chart
       And the chart has an Excel data worksheet
 
     Examples: Chart specs
-      | type             | chart-type       | cats | sers |
-      | Clustered Bar    | BAR_CLUSTERED    |   3  |   3  |
-      | 100% Stacked Bar | BAR_STACKED_100  |   3  |   3  |
-      | Clustered Column | COLUMN_CLUSTERED |   3  |   3  |
-      | Line             | LINE             |   3  |   2  |
-      | Pie              | PIE              |   5  |   1  |
+      | type                | chart-type          | cats | sers |
+      | Area                | AREA                |   3  |   3  |
+      | 100% Stacked Area   | AREA_STACKED_100    |   3  |   3  |
+      | Stacked Area        | AREA_STACKED        |   3  |   3  |
+      | Clustered Bar       | BAR_CLUSTERED       |   3  |   3  |
+      | 100% Stacked Bar    | BAR_STACKED_100     |   3  |   3  |
+      | Clustered Column    | COLUMN_CLUSTERED    |   3  |   3  |
+      | Line                | LINE                |   3  |   2  |
+      | Pie                 | PIE                 |   5  |   1  |
