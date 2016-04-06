@@ -6,6 +6,7 @@ lxml custom element classes for chart-related XML elements.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from .title import TitleMixin
 from .. import parse_xml
 from ..ns import nsdecls, qn
 from ..simpletypes import ST_Style, XsdString
@@ -14,10 +15,14 @@ from ..xmlchemy import (
 )
 
 
-class CT_Chart(BaseOxmlElement):
+class CT_Chart(BaseOxmlElement, TitleMixin):
     """
     ``<c:chart>`` custom element class
     """
+    title = ZeroOrOne('c:title', successors=(
+        'c:autoTitleDeleted', 'c:pivotFmts', 'c:view3D',
+        'c:floor', 'c:sideWall', 'c:backWall', 'c:plotArea'
+    ))
     plotArea = OneAndOnlyOne('c:plotArea')
     legend = ZeroOrOne('c:legend', successors=(
         'c:plotVisOnly', 'c:dispBlanksAs', 'c:showDLblsOverMax', 'c:extLst'
