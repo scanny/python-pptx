@@ -12,9 +12,8 @@ help:
 	@echo "  cleandocs delete cached HTML documentation and start fresh"
 	@echo "  coverage  run nosetests with coverage"
 	@echo "  docs      build HTML documentation using Sphinx (incremental)"
+	@echo "  opendocs  open local HTML documentation in browser"
 	@echo "  readme    update README.html from README.rst"
-	@echo "  register  update metadata (README.rst) on PyPI"
-	@echo "  test      run tests using setup.py"
 	@echo "  sdist     generate a source distribution into dist/"
 	@echo "  upload    upload distribution tarball to PyPI"
 
@@ -35,15 +34,11 @@ coverage:
 docs:
 	$(MAKE) -C docs html
 
-readme:
-	rst2html README.rst >README.html
-	open README.html
+opendocs:
+	open docs/.build/html/index.html
 
 sdist:
 	$(SETUP) sdist
-
-test:
-	$(SETUP) test
 
 upload:
 	$(SETUP) sdist upload
