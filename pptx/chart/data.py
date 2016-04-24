@@ -39,6 +39,29 @@ class _BaseChartData(Sequence):
         return self._series.append(series)
 
 
+class _BaseSeriesData(Sequence):
+    """
+    Base class providing common members for series data objects. A series
+    data object serves as proxy for a series data column in the Excel
+    worksheet. It operates as a sequence of data points, as well as providing
+    access to series-level attributes like the series label.
+    """
+    def __init__(self, chart_data, label):
+        super(_BaseSeriesData, self).__init__()
+        self._chart_data = chart_data
+        self._label = label
+        self._data_points = []
+
+    def __getitem__(self, index):
+        return self._data_points.__getitem__(index)
+
+    def __len__(self):
+        return self._data_points.__len__()
+
+    def append(self, data_point):
+        return self._data_points.append(data_point)
+
+
 class ChartData(object):
     """
     Accumulates data specifying the categories and series values for a plot
@@ -120,7 +143,28 @@ class XyChartData(_BaseChartData):
     """
     A specialized ChartData object suitable for use with an XY (aka. scatter)
     chart. Unlike ChartData, it has no category sequence. Rather, each data
-    point of each series specifies both an X and Y value.
+    point of each series specifies both an X and a Y value.
+    """
+    def add_series(self, label):
+        """
+        Return an |XySeriesData| object newly created and added at the end of
+        this sequence, and having series label *label*.
+        """
+        series_data = XySeriesData(self, label)
+        self.append(series_data)
+        return series_data
+
+
+class XySeriesData(_BaseSeriesData):
+    """
+    The data specific to a particular XY chart series. It provides access to
+    the series label, the series data points, and an optional number format
+    to be applied to each data point not having a specified number format.
+
+    The sequence of data points in an XY series is significant; lines are
+    plotted following the sequence of points, even if that causes a line
+    segment to "travel backward" (implying a multi-valued function). The data
+    points are not automatically sorted into increasing order by X value.
     """
 
 

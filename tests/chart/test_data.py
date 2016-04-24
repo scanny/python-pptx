@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import pytest
 
 
-from pptx.chart.data import ChartData, _SeriesData
+from pptx.chart.data import ChartData, _SeriesData, XyChartData, XySeriesData
 from pptx.enum.base import EnumValue
 
 from ..unitutil.mock import class_mock, instance_mock
@@ -156,3 +156,34 @@ class DescribeChartData(object):
     @pytest.fixture
     def xlsx_blob_(self, request):
         return instance_mock(request, bytes)
+
+
+class DescribeXyChartData(object):
+
+    def it_can_add_a_series(self, add_series_fixture):
+        chart_data, label, XySeriesData_, series_data_ = add_series_fixture
+        series_data = chart_data.add_series(label)
+        XySeriesData_.assert_called_once_with(chart_data, label)
+        assert chart_data[-1] is series_data_
+        assert series_data is series_data_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_series_fixture(self, request, XySeriesData_, series_data_):
+        chart_data = XyChartData()
+        label = 'Series Label'
+        return chart_data, label, XySeriesData_, series_data_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def XySeriesData_(self, request, series_data_):
+        return class_mock(
+            request, 'pptx.chart.data.XySeriesData',
+            return_value=series_data_
+        )
+
+    @pytest.fixture
+    def series_data_(self, request):
+        return instance_mock(request, XySeriesData)

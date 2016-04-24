@@ -23,6 +23,16 @@ a new chart and when replacing the data for an existing chart.
    :member-order: bysource
    :undoc-members:
 
+.. autoclass:: pptx.chart.data.XyChartData
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.chart.data.XySeriesData
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
 
 |Chart| objects
 ---------------

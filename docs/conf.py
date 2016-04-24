@@ -263,6 +263,10 @@ rst_epilog = """
 
 .. |WorkbookWriter| replace:: :class:`.WorkbookWriter`
 
+.. |XyChartData| replace:: :class:`.XyChartData`
+
+.. |XySeriesData| replace:: :class:`.XySeriesData`
+
 .. |ZipFileSystem| replace:: :class:`ZipFileSystem`
 """
 
