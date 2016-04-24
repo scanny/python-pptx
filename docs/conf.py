@@ -113,7 +113,7 @@ rst_epilog = """
 
 .. |Collection| replace:: :class:`Collection`
 
-.. |ColorFormat| replace:: :class:`ColorFormat`
+.. |ColorFormat| replace:: :class:`.ColorFormat`
 
 .. |_Column| replace:: :class:`_Column`
 

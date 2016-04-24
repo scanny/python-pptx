@@ -15,6 +15,7 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   features/cht-radar-chart
    features/cht-bubble-chart
    features/cht-xy-chart
    features/cht-line-chart
