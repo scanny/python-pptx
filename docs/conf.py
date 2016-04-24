@@ -99,6 +99,8 @@ rst_epilog = """
 
 .. |BaseFileSystem| replace:: :class:`BaseFileSystem`
 
+.. |_BasePlot| replace:: :class:`._BasePlot`
+
 .. |BaseShape| replace:: :class:`BaseShape`
 
 .. |_Cell| replace:: :class:`_Cell`
@@ -202,8 +204,6 @@ rst_epilog = """
 .. |PlaceholderGraphicFrame| replace:: :class:`.PlaceholderGraphicFrame`
 
 .. |PlaceholderPicture| replace:: :class:`.PlaceholderPicture`
-
-.. |Plot| replace:: :class:`.Plot`
 
 .. |Plots| replace:: :class:`.Plots`
 

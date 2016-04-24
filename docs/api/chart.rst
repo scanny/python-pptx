@@ -91,8 +91,8 @@ changing how these labels are displayed.
    :undoc-members:
 
 
-|Plot| objects
---------------
+|_BasePlot| objects
+-------------------
 
 A *plot* is a group of series all depicted using the same charting type, e.g.
 bar, column, line, etc. Most charts have only a single plot; however, a chart
@@ -105,7 +105,7 @@ Certain properties must be set at the plot level. Some of those properties
 are not present on plots of all chart types. For example, :attr:`gap_width`
 is only present on a bar or column plot.
 
-.. autoclass:: pptx.chart.plot.Plot()
+.. autoclass:: pptx.chart.plot._BasePlot()
    :members:
    :member-order: bysource
    :undoc-members:

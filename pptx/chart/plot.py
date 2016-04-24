@@ -16,14 +16,14 @@ from ..text.text import Font
 from ..util import lazyproperty
 
 
-class Plot(object):
+class _BasePlot(object):
     """
     A distinct plot that appears in the plot area of a chart. A chart may
     have more than one plot, in which case they appear as superimposed
     layers, such as a line plot appearing on top of a bar chart.
     """
     def __init__(self, xChart, chart):
-        super(Plot, self).__init__()
+        super(_BasePlot, self).__init__()
         self._element = xChart
         self._chart = chart
 
@@ -107,19 +107,19 @@ class Plot(object):
         self._element.get_or_add_varyColors().val = bool(value)
 
 
-class AreaPlot(Plot):
+class AreaPlot(_BasePlot):
     """
     An area plot.
     """
 
 
-class Area3DPlot(Plot):
+class Area3DPlot(_BasePlot):
     """
     A 3-dimensional area plot.
     """
 
 
-class BarPlot(Plot):
+class BarPlot(_BasePlot):
     """
     A bar chart-style plot.
     """
@@ -247,13 +247,13 @@ class DataLabels(object):
         self._element.get_or_add_dLblPos().val = value
 
 
-class LinePlot(Plot):
+class LinePlot(_BasePlot):
     """
     A line chart-style plot.
     """
 
 
-class PiePlot(Plot):
+class PiePlot(_BasePlot):
     """
     A pie chart-style plot.
     """
@@ -261,8 +261,8 @@ class PiePlot(Plot):
 
 def PlotFactory(xChart, chart):
     """
-    Return an instance of the appropriate subclass of Plot based on the
-    tagname of *plot_elm*.
+    Return an instance of the appropriate subclass of _BasePlot based on the
+    tagname of *xChart*.
     """
     try:
         PlotCls = {

@@ -118,7 +118,7 @@ is::
 
 .. image:: /_static/img/chart-04.png
 
-Here we needed to access a |Plot| object to gain access to the data labels.
+Here we needed to access a Plot object to gain access to the data labels.
 A plot is like a sub-chart, containing one or more series and drawn as
 a particular chart type, like column or line. This distinction is needed for
 charts that combine more than one type, like a line chart appearing on top of

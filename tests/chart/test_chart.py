@@ -11,7 +11,7 @@ import pytest
 from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Chart, Legend, _Plots, _SeriesRewriter
 from pptx.chart.data import ChartData, _SeriesData
-from pptx.chart.plot import Plot
+from pptx.chart.plot import _BasePlot
 from pptx.chart.series import SeriesCollection
 from pptx.enum.base import EnumValue
 from pptx.oxml import parse_xml
@@ -268,7 +268,7 @@ class DescribeChart(object):
 
     @pytest.fixture
     def plot_(self, request):
-        return instance_mock(request, Plot)
+        return instance_mock(request, _BasePlot)
 
     @pytest.fixture
     def plots_(self, request):
@@ -350,7 +350,7 @@ class Describe_Plots(object):
 
     @pytest.fixture
     def plot_(self, request):
-        return instance_mock(request, Plot)
+        return instance_mock(request, _BasePlot)
 
 
 class Describe_SeriesRewriter(object):

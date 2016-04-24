@@ -10,7 +10,7 @@ import pytest
 
 from pptx.chart.chart import Chart
 from pptx.chart.plot import (
-    AreaPlot, Area3DPlot, BarPlot, DataLabels, LinePlot, PiePlot, Plot,
+    _BasePlot, AreaPlot, Area3DPlot, BarPlot, DataLabels, LinePlot, PiePlot,
     PlotFactory, PlotTypeInspector
 )
 from pptx.chart.series import SeriesCollection
@@ -87,7 +87,7 @@ class DescribePlot(object):
 
     @pytest.fixture
     def chart_fixture(self, chart_):
-        plot = Plot(None, chart_)
+        plot = _BasePlot(None, chart_)
         expected_value = chart_
         return plot, expected_value
 
@@ -95,7 +95,7 @@ class DescribePlot(object):
     def data_labels_fixture(self, DataLabels_, data_labels_):
         barChart = element('c:barChart/c:dLbls')
         dLbls = barChart[0]
-        plot = Plot(barChart, None)
+        plot = _BasePlot(barChart, None)
         return plot, data_labels_, DataLabels_, dLbls
 
     @pytest.fixture(params=[
@@ -105,7 +105,7 @@ class DescribePlot(object):
     ])
     def has_data_labels_get_fixture(self, request):
         xChart_cxml, expected_value = request.param
-        plot = Plot(element(xChart_cxml), None)
+        plot = _BasePlot(element(xChart_cxml), None)
         return plot, expected_value
 
     @pytest.fixture(params=[
@@ -134,7 +134,7 @@ class DescribePlot(object):
     @pytest.fixture
     def series_fixture(self, SeriesCollection_, series_collection_):
         xChart = element('c:barChart')
-        plot = Plot(xChart, None)
+        plot = _BasePlot(xChart, None)
         return plot, series_collection_, SeriesCollection_, xChart
 
     @pytest.fixture(params=[
@@ -144,7 +144,7 @@ class DescribePlot(object):
     ])
     def vary_by_categories_get_fixture(self, request):
         xChart_cxml, expected_value = request.param
-        plot = Plot(element(xChart_cxml), None)
+        plot = _BasePlot(element(xChart_cxml), None)
         return plot, expected_value
 
     @pytest.fixture(params=[
@@ -157,7 +157,7 @@ class DescribePlot(object):
     ])
     def vary_by_categories_set_fixture(self, request):
         xChart_cxml, new_value, expected_xChart_cxml = request.param
-        plot = Plot(element(xChart_cxml), None)
+        plot = _BasePlot(element(xChart_cxml), None)
         expected_xml = xml(expected_xChart_cxml)
         return plot, new_value, expected_xml
 
