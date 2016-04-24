@@ -14,7 +14,7 @@ from behave import given, then, when
 
 from pptx import Presentation
 from pptx.chart.chart import Legend
-from pptx.chart.data import ChartData
+from pptx.chart.data import ChartData, XyChartData
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import (
     XL_CHART_TYPE, XL_DATA_LABEL_POSITION, XL_LEGEND_POSITION
@@ -290,6 +290,28 @@ def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
     ).chart
 
 
+@when('I add an {xy_type} chart having 2 series of 3 points each')
+def when_I_add_an_xy_chart_having_2_series_of_3_points(context, xy_type):
+    chart_type = getattr(XL_CHART_TYPE, xy_type)
+    data = (
+        ('Series 1', ((-0.1, 0.5), (16.2, 0.0), (8.0,  0.2))),
+        ('Series 2', ((12.4, 0.8), (-7.5, -0.5), (-5.1, -0.2)))
+    )
+
+    chart_data = XyChartData()
+
+    for series_data in data:
+        series_label, points = series_data
+        series = chart_data.add_series(series_label)
+        for point in points:
+            x, y = point
+            series.add_data_point(x, y)
+
+    context.chart = context.slide.shapes.add_chart(
+        chart_type, Inches(1), Inches(1), Inches(8), Inches(5), chart_data
+    ).chart
+
+
 @when('I assign {value} to chart.has_legend')
 def when_I_assign_value_to_chart_has_legend(context, value):
     new_value = {
@@ -528,6 +550,26 @@ def then_legend_position_is_value(context, value):
     assert legend.position is expected_position, 'got %s' % legend.position
 
 
+@then('len(plot.categories) is {count}')
+def then_len_plot_categories_is_count(context, count):
+    plot = context.chart.plots[0]
+    expected_count = int(count)
+    assert len(plot.categories) == expected_count
+
+
+@then('len(chart.series) is {count}')
+def then_len_chart_series_is_count(context, count):
+    expected_count = int(count)
+    assert len(context.chart.series) == expected_count
+
+
+@then('len(series.values) is {count} for each series')
+def then_len_series_values_is_count_for_each_series(context, count):
+    expected_count = int(count)
+    for series in context.chart.plots[0].series:
+        assert len(series.values) == expected_count
+
+
 @then('plot.categories contains the known category strings')
 def then_plot_categories_contains_the_known_category_strings(context):
     plot = context.plot
@@ -600,27 +642,6 @@ def then_the_chart_has_new_chart_data(context):
         context.chart._workbook.xlsx_part.blob
     ).hexdigest()
     assert new_xlsx_sha1 != orig_xlsx_sha1
-
-
-@then('the chart has {count} categories')
-def then_the_chart_has_count_categories(context, count):
-    expected_count = int(count)
-    actual_category_count = len(context.chart.plots[0].categories)
-    assert actual_category_count == expected_count
-
-
-@then('the chart has {count} series')
-def then_the_chart_has_count_series(context, count):
-    expected_count = int(count)
-    actual_series_count = len(context.chart.series)
-    assert actual_series_count == expected_count
-
-
-@then('the chart type is {chart_type}')
-def then_the_chart_type_is_type(context, chart_type):
-    chart_type = getattr(XL_CHART_TYPE, chart_type)
-    chart = context.chart
-    assert chart.chart_type is chart_type, 'got %s' % chart.chart_type
 
 
 @then('the series fill RGB color is FF6600')

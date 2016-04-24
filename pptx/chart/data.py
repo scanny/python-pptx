@@ -6,12 +6,37 @@ ChartData and related objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from collections import Sequence
 from xml.sax.saxutils import escape
 
 from ..oxml import parse_xml
 from ..oxml.ns import nsdecls
 from .xlsx import WorkbookWriter
 from .xmlwriter import ChartXmlWriter
+
+
+class _BaseChartData(Sequence):
+    """
+    Base class providing common members for chart data objects. A chart data
+    object serves as a proxy for the chart data table that will be written to
+    an Excel worksheet; operating as a sequence of series as well as
+    providing access to chart-level attributes. A chart data object is used
+    as a parameter in :meth:`shapes.add_chart` and
+    :meth:`Chart.replace_data`. The data structure varies between major chart
+    categories such as category charts and XY charts.
+    """
+    def __init__(self):
+        super(_BaseChartData, self).__init__()
+        self._series = []
+
+    def __getitem__(self, index):
+        return self._series.__getitem__(index)
+
+    def __len__(self):
+        return self._series.__len__()
+
+    def append(self, series):
+        return self._series.append(series)
 
 
 class ChartData(object):
@@ -89,6 +114,14 @@ class ChartData(object):
         UTF-8 encoding.
         """
         return ChartXmlWriter(chart_type, self._series_lst).xml
+
+
+class XyChartData(_BaseChartData):
+    """
+    A specialized ChartData object suitable for use with an XY (aka. scatter)
+    chart. Unlike ChartData, it has no category sequence. Rather, each data
+    point of each series specifies both an X and Y value.
+    """
 
 
 class _SeriesData(object):

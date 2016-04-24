@@ -6,9 +6,9 @@ Feature: Replace chart data
   Scenario Outline: Replace chart data
     Given a chart of size and type <spec>
      When I replace its data with <cats> categories and <sers> series
-     Then the chart has <cats> categories
-      And the chart has <sers> series
-      And each series has <cats> values
+     Then len(plot.categories) is <cats>
+      And len(chart.series) is <sers>
+      And len(series.values) is <cats> for each series
       And each series has a new name
       And the chart has new chart data
 
