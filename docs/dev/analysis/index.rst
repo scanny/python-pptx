@@ -15,6 +15,7 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   features/cht-xy-chart
    features/cht-line-chart
    features/cht-pie-chart
    features/cht-bar-chart
