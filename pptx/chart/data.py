@@ -166,6 +166,25 @@ class XySeriesData(_BaseSeriesData):
     segment to "travel backward" (implying a multi-valued function). The data
     points are not automatically sorted into increasing order by X value.
     """
+    def add_data_point(self, x, y):
+        """
+        Return an XyDataPoint object newly created with values *x* and *y*,
+        and appended to this sequence.
+        """
+        data_point = XyDataPoint(x, y)
+        self.append(data_point)
+        return data_point
+
+
+class XyDataPoint(object):
+    """
+    A data point in an XY chart series. Provides access to the x and y values
+    of the datapoint.
+    """
+    def __init__(self, x, y):
+        super(XyDataPoint, self).__init__()
+        self._x = x
+        self._y = y
 
 
 class _SeriesData(object):
