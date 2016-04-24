@@ -235,7 +235,6 @@ Create (unconventional) multi-series bubble chart in Excel::
     bubbleChart.chart.Axes(xlCategory).MinimumScale = 0
 
 
-
 Related Schema Definitions
 --------------------------
 
@@ -276,8 +275,46 @@ Bubble chart elements::
     </xsd:sequence>
   </xsd:complexType>
 
+  <xsd:complexType name="CT_AxDataSource">
+    <xsd:sequence>
+      <xsd:choice minOccurs="1" maxOccurs="1">
+        <xsd:element name="multiLvlStrRef" type="CT_MultiLvlStrRef"/>
+        <xsd:element name="numRef"         type="CT_NumRef"/>
+        <xsd:element name="numLit"         type="CT_NumData"/>
+        <xsd:element name="strRef"         type="CT_StrRef"/>
+        <xsd:element name="strLit"         type="CT_StrData"/>
+      </xsd:choice>
+    </xsd:sequence>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_BubbleScale">
     <xsd:attribute name="val" type="ST_BubbleScale" default="100%"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_NumData">
+    <xsd:sequence>
+      <xsd:element name="formatCode" type="s:ST_Xstring"     minOccurs="0"/>
+      <xsd:element name="ptCount"    type="CT_UnsignedInt"   minOccurs="0"/>
+      <xsd:element name="pt"         type="CT_NumVal"        minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_NumDataSource">
+    <xsd:sequence>
+      <xsd:choice minOccurs="1" maxOccurs="1">
+        <xsd:element name="numRef" type="CT_NumRef"/>
+        <xsd:element name="numLit" type="CT_NumData"/>
+      </xsd:choice>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_NumRef">
+    <xsd:sequence>
+      <xsd:element name="f"        type="xsd:string"/>
+      <xsd:element name="numCache" type="CT_NumData"       minOccurs="0"/>
+      <xsd:element name="extLst"   type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
   </xsd:complexType>
 
   <xsd:complexType name="CT_SizeRepresents">

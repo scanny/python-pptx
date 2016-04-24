@@ -263,6 +263,16 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:group>
 
+  <xsd:complexType name="CT_ChartLines">
+    <xsd:sequence>
+      <xsd:element name="spPr" type="a:CT_ShapeProperties" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_Crosses">
+    <xsd:attribute name="val" type="ST_Crosses" use="required"/>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_Scaling">
     <xsd:sequence>
       <xsd:element name="logBase"     type="CT_LogBase"       minOccurs="0"/>
@@ -293,6 +303,14 @@ Related Schema Definitions
   <xsd:complexType name="CT_Double">
     <xsd:attribute name="val" type="xsd:double" use="required"/>
   </xsd:complexType>
+
+  <xsd:simpleType name="ST_Crosses">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="autoZero"/>
+      <xsd:enumeration value="max"/>
+      <xsd:enumeration value="min"/>
+    </xsd:restriction>
+  </xsd:simpleType>
 
   <xsd:simpleType name="ST_TickLblPos">
     <xsd:restriction base="xsd:string">

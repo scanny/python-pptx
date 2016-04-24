@@ -180,13 +180,48 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:complexType>
 
+  <xsd:group name="Group_DLbl"> <!-- denormalized -->
+    <xsd:sequence>
+      <xsd:element name="layout"         type="CT_Layout"            minOccurs="0"/>
+      <xsd:element name="tx"             type="CT_Tx"                minOccurs="0"/>
+      <xsd:element name="numFmt"         type="CT_NumFmt"            minOccurs="0"/>
+      <xsd:element name="spPr"           type="a:CT_ShapeProperties" minOccurs="0"/>
+      <xsd:element name="txPr"           type="a:CT_TextBody"        minOccurs="0"/>
+      <xsd:element name="dLblPos"        type="CT_DLblPos"           minOccurs="0"/>
+      <xsd:element name="showLegendKey"  type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="showVal"        type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="showCatName"    type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="showSerName"    type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="showPercent"    type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="showBubbleSize" type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="separator"      type="xsd:string"           minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:group>
+
+  <xsd:complexType name="CT_DLblPos">
+    <xsd:attribute name="val" type="ST_DLblPos" use="required"/>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_NumFmt">
     <xsd:attribute name="formatCode"   type="xsd:string"  use="required"/>
     <xsd:attribute name="sourceLinked" type="xsd:boolean"/>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_DLblPos">
-    <xsd:attribute name="val" type="ST_DLblPos" use="required"/>
+  <xsd:complexType name="CT_TextBody">
+    <xsd:sequence>
+      <xsd:element name="bodyPr"   type="CT_TextBodyProperties"/>
+      <xsd:element name="lstStyle" type="CT_TextListStyle" minOccurs="0"/>
+      <xsd:element name="p"        type="CT_TextParagraph" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_Tx">
+    <xsd:sequence>
+      <xsd:choice minOccurs="1" maxOccurs="1">
+        <xsd:element name="strRef" type="CT_StrRef"/>
+        <xsd:element name="rich"   type="a:CT_TextBody"/>
+      </xsd:choice>
+    </xsd:sequence>
   </xsd:complexType>
 
   <xsd:simpleType name="ST_DLblPos">

@@ -2,9 +2,9 @@
 Chart - Series
 ==============
 
-A series in a sequence of *points* that correspond to the categories of a plot.
-A chart may have more than one series, which gives rise for example to
-a *clustered column chart* or a line chart with multiple lines plotted.
+A series in a sequence of *points* that correspond to the categories of
+a plot. A chart may have more than one series, which gives rise, for example,
+to a *clustered column chart* or a line chart with multiple lines plotted.
 
 A series belongs to a *plot*. When a chart has multiple plots, such as a bar
 chart with a superimposed line plot, each of the series in the chart belong to
@@ -160,21 +160,20 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:group>
 
-  <xsd:complexType name="CT_LineSer">  <!-- denormalized -->
+  <xsd:complexType name="CT_AreaSer">  <!-- denormalized -->
     <xsd:sequence>
-      <xsd:element name="idx"       type="CT_UnsignedInt"/>
-      <xsd:element name="order"     type="CT_UnsignedInt"/>
-      <xsd:element name="tx"        type="CT_SerTx"             minOccurs="0"/>
-      <xsd:element name="spPr"      type="a:CT_ShapeProperties" minOccurs="0"/>
-      <xsd:element name="marker"    type="CT_Marker"            minOccurs="0"/>
-      <xsd:element name="dPt"       type="CT_DPt"               minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"     type="CT_DLbls"             minOccurs="0"/>
-      <xsd:element name="trendline" type="CT_Trendline"         minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="errBars"   type="CT_ErrBars"           minOccurs="0"/>
-      <xsd:element name="cat"       type="CT_AxDataSource"      minOccurs="0"/>
-      <xsd:element name="val"       type="CT_NumDataSource"     minOccurs="0"/>
-      <xsd:element name="smooth"    type="CT_Boolean"           minOccurs="0"/>
-      <xsd:element name="extLst"    type="CT_ExtensionList"     minOccurs="0"/>
+      <xsd:element name="idx"            type="CT_UnsignedInt"/>
+      <xsd:element name="order"          type="CT_UnsignedInt"/>
+      <xsd:element name="tx"             type="CT_SerTx"             minOccurs="0"/>
+      <xsd:element name="spPr"           type="a:CT_ShapeProperties" minOccurs="0"/>
+      <xsd:element name="pictureOptions" type="CT_PictureOptions"    minOccurs="0"/>
+      <xsd:element name="dPt"            type="CT_DPt"               minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"          type="CT_DLbls"             minOccurs="0"/>
+      <xsd:element name="trendline"      type="CT_Trendline"         minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="errBars"        type="CT_ErrBars"           minOccurs="0" maxOccurs="2"/>
+      <xsd:element name="cat"            type="CT_AxDataSource"      minOccurs="0"/>
+      <xsd:element name="val"            type="CT_NumDataSource"     minOccurs="0"/>
+      <xsd:element name="extLst"         type="CT_ExtensionList"     minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
@@ -197,96 +196,112 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_ScatterSer">
+  <xsd:complexType name="CT_BubbleSer">  <!-- denormalized -->
     <xsd:sequence>
-      <xsd:group   ref="EG_SerShared"/>
-      <xsd:element name="marker"    type="CT_Marker"        minOccurs="0"/>
-      <xsd:element name="dPt"       type="CT_DPt"           minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"     type="CT_DLbls"         minOccurs="0"/>
-      <xsd:element name="trendline" type="CT_Trendline"     minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="errBars"   type="CT_ErrBars"       minOccurs="0" maxOccurs="2"/>
-      <xsd:element name="xVal"      type="CT_AxDataSource"  minOccurs="0"/>
-      <xsd:element name="yVal"      type="CT_NumDataSource" minOccurs="0"/>
-      <xsd:element name="smooth"    type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="extLst"    type="CT_ExtensionList" minOccurs="0"/>
+      <xsd:element name="idx"              type="CT_UnsignedInt"/>
+      <xsd:element name="order"            type="CT_UnsignedInt"/>
+      <xsd:element name="tx"               type="CT_SerTx"             minOccurs="0"/>
+      <xsd:element name="spPr"             type="a:CT_ShapeProperties" minOccurs="0"/>
+      <xsd:element name="invertIfNegative" type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="dPt"              type="CT_DPt"               minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"            type="CT_DLbls"             minOccurs="0"/>
+      <xsd:element name="trendline"        type="CT_Trendline"         minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="errBars"          type="CT_ErrBars"           minOccurs="0" maxOccurs="2"/>
+      <xsd:element name="xVal"             type="CT_AxDataSource"      minOccurs="0"/>
+      <xsd:element name="yVal"             type="CT_NumDataSource"     minOccurs="0"/>
+      <xsd:element name="bubbleSize"       type="CT_NumDataSource"     minOccurs="0"/>
+      <xsd:element name="bubble3D"         type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="extLst"           type="CT_ExtensionList"     minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_RadarSer">
+  <xsd:complexType name="CT_LineSer">  <!-- denormalized -->
     <xsd:sequence>
-      <xsd:group   ref="EG_SerShared"/>
-      <xsd:element name="marker" type="CT_Marker"        minOccurs="0"/>
-      <xsd:element name="dPt"    type="CT_DPt"           minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"  type="CT_DLbls"         minOccurs="0"/>
-      <xsd:element name="cat"    type="CT_AxDataSource"  minOccurs="0"/>
-      <xsd:element name="val"    type="CT_NumDataSource" minOccurs="0"/>
-      <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0"/>
+      <xsd:element name="idx"       type="CT_UnsignedInt"/>
+      <xsd:element name="order"     type="CT_UnsignedInt"/>
+      <xsd:element name="tx"        type="CT_SerTx"             minOccurs="0"/>
+      <xsd:element name="spPr"      type="a:CT_ShapeProperties" minOccurs="0"/>
+      <xsd:element name="marker"    type="CT_Marker"            minOccurs="0"/>
+      <xsd:element name="dPt"       type="CT_DPt"               minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"     type="CT_DLbls"             minOccurs="0"/>
+      <xsd:element name="trendline" type="CT_Trendline"         minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="errBars"   type="CT_ErrBars"           minOccurs="0"/>
+      <xsd:element name="cat"       type="CT_AxDataSource"      minOccurs="0"/>
+      <xsd:element name="val"       type="CT_NumDataSource"     minOccurs="0"/>
+      <xsd:element name="smooth"    type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="extLst"    type="CT_ExtensionList"     minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_BarSer">
+  <xsd:complexType name="CT_PieSer">  <!-- denormalized -->
     <xsd:sequence>
-      <xsd:group   ref="EG_SerShared"/>
-      <xsd:element name="invertIfNegative" type="CT_Boolean"        minOccurs="0"/>
-      <xsd:element name="pictureOptions"   type="CT_PictureOptions" minOccurs="0"/>
-      <xsd:element name="dPt"              type="CT_DPt"            minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"            type="CT_DLbls"          minOccurs="0"/>
-      <xsd:element name="trendline"        type="CT_Trendline"      minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="errBars"          type="CT_ErrBars"        minOccurs="0"/>
-      <xsd:element name="cat"              type="CT_AxDataSource"   minOccurs="0"/>
-      <xsd:element name="val"              type="CT_NumDataSource"  minOccurs="0"/>
-      <xsd:element name="shape"            type="CT_Shape"          minOccurs="0"/>
-      <xsd:element name="extLst"           type="CT_ExtensionList"  minOccurs="0"/>
+      <xsd:element name="idx"       type="CT_UnsignedInt"/>
+      <xsd:element name="order"     type="CT_UnsignedInt"/>
+      <xsd:element name="tx"        type="CT_SerTx"             minOccurs="0"/>
+      <xsd:element name="spPr"      type="a:CT_ShapeProperties" minOccurs="0"/>
+      <xsd:element name="explosion" type="CT_UnsignedInt"       minOccurs="0"/>
+      <xsd:element name="dPt"       type="CT_DPt"               minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"     type="CT_DLbls"             minOccurs="0"/>
+      <xsd:element name="cat"       type="CT_AxDataSource"      minOccurs="0"/>
+      <xsd:element name="val"       type="CT_NumDataSource"     minOccurs="0"/>
+      <xsd:element name="extLst"    type="CT_ExtensionList"     minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_AreaSer">
+  <xsd:complexType name="CT_RadarSer">  <!-- denormalized -->
     <xsd:sequence>
-      <xsd:group ref="EG_SerShared"/>
-      <xsd:element name="pictureOptions" type="CT_PictureOptions" minOccurs="0"/>
-      <xsd:element name="dPt"            type="CT_DPt"            minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"          type="CT_DLbls"          minOccurs="0"/>
-      <xsd:element name="trendline"      type="CT_Trendline"      minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="errBars"        type="CT_ErrBars"        minOccurs="0" maxOccurs="2"/>
-      <xsd:element name="cat"            type="CT_AxDataSource"   minOccurs="0"/>
-      <xsd:element name="val"            type="CT_NumDataSource"  minOccurs="0"/>
-      <xsd:element name="extLst"         type="CT_ExtensionList"  minOccurs="0"/>
+      <xsd:element name="idx"    type="CT_UnsignedInt"/>
+      <xsd:element name="order"  type="CT_UnsignedInt"/>
+      <xsd:element name="tx"     type="CT_SerTx"             minOccurs="0"/>
+      <xsd:element name="spPr"   type="a:CT_ShapeProperties" minOccurs="0"/>
+      <xsd:element name="marker" type="CT_Marker"            minOccurs="0"/>
+      <xsd:element name="dPt"    type="CT_DPt"               minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"  type="CT_DLbls"             minOccurs="0"/>
+      <xsd:element name="cat"    type="CT_AxDataSource"      minOccurs="0"/>
+      <xsd:element name="val"    type="CT_NumDataSource"     minOccurs="0"/>
+      <xsd:element name="extLst" type="CT_ExtensionList"     minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_PieSer">
+  <xsd:complexType name="CT_ScatterSer">  <!-- denormalized -->
     <xsd:sequence>
-      <xsd:group ref="EG_SerShared"/>
-      <xsd:element name="explosion" type="CT_UnsignedInt"   minOccurs="0"/>
-      <xsd:element name="dPt"       type="CT_DPt"           minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"     type="CT_DLbls"         minOccurs="0"/>
-      <xsd:element name="cat"       type="CT_AxDataSource"  minOccurs="0"/>
-      <xsd:element name="val"       type="CT_NumDataSource" minOccurs="0"/>
-      <xsd:element name="extLst"    type="CT_ExtensionList" minOccurs="0"/>
+      <xsd:element name="idx"       type="CT_UnsignedInt"/>
+      <xsd:element name="order"     type="CT_UnsignedInt"/>
+      <xsd:element name="tx"        type="CT_SerTx"             minOccurs="0"/>
+      <xsd:element name="spPr"      type="a:CT_ShapeProperties" minOccurs="0"/>
+      <xsd:element name="marker"    type="CT_Marker"            minOccurs="0"/>
+      <xsd:element name="dPt"       type="CT_DPt"               minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"     type="CT_DLbls"             minOccurs="0"/>
+      <xsd:element name="trendline" type="CT_Trendline"         minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="errBars"   type="CT_ErrBars"           minOccurs="0" maxOccurs="2"/>
+      <xsd:element name="xVal"      type="CT_AxDataSource"      minOccurs="0"/>
+      <xsd:element name="yVal"      type="CT_NumDataSource"     minOccurs="0"/>
+      <xsd:element name="smooth"    type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="extLst"    type="CT_ExtensionList"     minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_BubbleSer">
+  <xsd:complexType name="CT_SurfaceSer">  <!-- denormalized -->
     <xsd:sequence>
-      <xsd:group ref="EG_SerShared"/>
-      <xsd:element name="invertIfNegative" type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="dPt"              type="CT_DPt"           minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"            type="CT_DLbls"         minOccurs="0"/>
-      <xsd:element name="trendline"        type="CT_Trendline"     minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="errBars"          type="CT_ErrBars"       minOccurs="0" maxOccurs="2"/>
-      <xsd:element name="xVal"             type="CT_AxDataSource"  minOccurs="0"/>
-      <xsd:element name="yVal"             type="CT_NumDataSource" minOccurs="0"/>
-      <xsd:element name="bubbleSize"       type="CT_NumDataSource" minOccurs="0"/>
-      <xsd:element name="bubble3D"         type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="extLst"           type="CT_ExtensionList" minOccurs="0"/>
+      <xsd:element name="idx"    type="CT_UnsignedInt"/>
+      <xsd:element name="order"  type="CT_UnsignedInt"/>
+      <xsd:element name="tx"     type="CT_SerTx"             minOccurs="0"/>
+      <xsd:element name="spPr"   type="a:CT_ShapeProperties" minOccurs="0"/>
+      <xsd:element name="cat"    type="CT_AxDataSource"      minOccurs="0"/>
+      <xsd:element name="val"    type="CT_NumDataSource"     minOccurs="0"/>
+      <xsd:element name="extLst" type="CT_ExtensionList"     minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_SurfaceSer">
+  <xsd:complexType name="CT_DPt">
     <xsd:sequence>
-      <xsd:group ref="EG_SerShared"/>
-      <xsd:element name="cat"    type="CT_AxDataSource"  minOccurs="0"/>
-      <xsd:element name="val"    type="CT_NumDataSource" minOccurs="0"/>
-      <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0"/>
+      <xsd:element name="idx"              type="CT_UnsignedInt"/>
+      <xsd:element name="invertIfNegative" type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="marker"           type="CT_Marker"            minOccurs="0"/>
+      <xsd:element name="bubble3D"         type="CT_Boolean"           minOccurs="0"/>
+      <xsd:element name="explosion"        type="CT_UnsignedInt"       minOccurs="0"/>
+      <xsd:element name="spPr"             type="a:CT_ShapeProperties" minOccurs="0"/>
+      <xsd:element name="pictureOptions"   type="CT_PictureOptions"    minOccurs="0"/>
+      <xsd:element name="extLst"           type="CT_ExtensionList"     minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>

@@ -3,8 +3,6 @@ Charts - Main Chart Object
 ==========================
 
 
-
-
 Related Schema Definitions
 --------------------------
 
