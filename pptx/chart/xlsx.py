@@ -136,4 +136,10 @@ class XyWorkbookWriter(object):
         table, X values in column A and Y values in column B. Place the
         series label in the first (heading) cell of the column.
         """
-        raise NotImplementedError
+        for series in self._chart_data:
+            offset = self.series_table_row_offset(series)
+            # write X values
+            worksheet.write_column(offset+1, 0, series.x_values)
+            # write Y values
+            worksheet.write(offset, 1, series.name)
+            worksheet.write_column(offset+1, 1, series.y_values)
