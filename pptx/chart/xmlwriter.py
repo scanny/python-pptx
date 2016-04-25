@@ -21,6 +21,7 @@ def ChartXmlWriter(chart_type, series_seq):
             XL_CHART_TYPE.COLUMN_CLUSTERED: _BarChartXmlWriter,
             XL_CHART_TYPE.LINE:             _LineChartXmlWriter,
             XL_CHART_TYPE.PIE:              _PieChartXmlWriter,
+            XL_CHART_TYPE.XY_SCATTER:       _XyChartXmlWriter,
         }[chart_type]
     except KeyError:
         raise NotImplementedError(
@@ -307,3 +308,9 @@ class _PieChartXmlWriter(_BaseChartXmlWriter):
             '        </c:ser>\n'
         ) % (series.tx_xml, series.cat_xml, series.val_xml)
         return xml
+
+
+class _XyChartXmlWriter(_BaseChartXmlWriter):
+    """
+    Generates XML for the ``<c:scatterChart>`` element.
+    """

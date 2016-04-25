@@ -14,7 +14,7 @@ import pytest
 from pptx.chart.data import ChartData
 from pptx.chart.xmlwriter import (
     _BarChartXmlWriter, ChartXmlWriter, _LineChartXmlWriter,
-    _PieChartXmlWriter
+    _PieChartXmlWriter, _XyChartXmlWriter
 )
 from pptx.enum.chart import XL_CHART_TYPE
 
@@ -39,6 +39,7 @@ class DescribeChartXmlWriter(object):
         ('COLUMN_CLUSTERED', _BarChartXmlWriter),
         ('LINE',             _LineChartXmlWriter),
         ('PIE',              _PieChartXmlWriter),
+        ('XY_SCATTER',       _XyChartXmlWriter),
     ])
     def call_fixture(self, request, series_seq_):
         chart_type_member, XmlWriterClass = request.param
