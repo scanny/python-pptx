@@ -11,7 +11,7 @@ import pytest
 from pptx.chart.chart import Chart
 from pptx.chart.plot import (
     _BasePlot, AreaPlot, Area3DPlot, BarPlot, DataLabels, LinePlot, PiePlot,
-    PlotFactory, PlotTypeInspector
+    PlotFactory, PlotTypeInspector, XyPlot
 )
 from pptx.chart.series import SeriesCollection
 from pptx.enum.chart import XL_CHART_TYPE as XL, XL_LABEL_POSITION
@@ -422,11 +422,12 @@ class DescribePlotFactory(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('c:areaChart',   AreaPlot),
-        ('c:area3DChart', Area3DPlot),
-        ('c:barChart',    BarPlot),
-        ('c:lineChart',   LinePlot),
-        ('c:pieChart',    PiePlot),
+        ('c:areaChart',    AreaPlot),
+        ('c:area3DChart',  Area3DPlot),
+        ('c:barChart',     BarPlot),
+        ('c:lineChart',    LinePlot),
+        ('c:pieChart',     PiePlot),
+        ('c:scatterChart', XyPlot),
     ])
     def call_fixture(self, request, chart_):
         xChart_cxml, PlotCls = request.param

@@ -259,6 +259,12 @@ class PiePlot(_BasePlot):
     """
 
 
+class XyPlot(_BasePlot):
+    """
+    An XY (scatter) plot.
+    """
+
+
 def PlotFactory(xChart, chart):
     """
     Return an instance of the appropriate subclass of _BasePlot based on the
@@ -266,11 +272,12 @@ def PlotFactory(xChart, chart):
     """
     try:
         PlotCls = {
-            qn('c:areaChart'):   AreaPlot,
-            qn('c:area3DChart'): Area3DPlot,
-            qn('c:barChart'):    BarPlot,
-            qn('c:lineChart'):   LinePlot,
-            qn('c:pieChart'):    PiePlot,
+            qn('c:areaChart'):    AreaPlot,
+            qn('c:area3DChart'):  Area3DPlot,
+            qn('c:barChart'):     BarPlot,
+            qn('c:lineChart'):    LinePlot,
+            qn('c:pieChart'):     PiePlot,
+            qn('c:scatterChart'): XyPlot,
         }[xChart.tag]
     except KeyError:
         raise ValueError('unsupported plot type %s' % xChart.tag)
