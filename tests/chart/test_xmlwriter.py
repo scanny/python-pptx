@@ -11,7 +11,7 @@ from itertools import islice
 import pytest
 
 
-from pptx.chart.data import ChartData
+from pptx.chart.data import ChartData, XyChartData
 from pptx.chart.xmlwriter import (
     _BarChartXmlWriter, ChartXmlWriter, _LineChartXmlWriter,
     _PieChartXmlWriter, _XyChartXmlWriter
@@ -114,6 +114,26 @@ class Describe_PieChartXmlWriter(object):
         return xml_writer, expected_xml
 
 
+class Describe_XyChartXmlWriter(object):
+
+    def it_can_generate_xml_for_xy_charts(self, xml_fixture):
+        xml_writer, expected_xml = xml_fixture
+        assert xml_writer.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('XY_SCATTER', 2, 3, '2x3-xy'),
+    ])
+    def xml_fixture(self, request):
+        enum_member, ser_count, point_count, snippet_name = request.param
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        chart_data = make_xy_chart_data(ser_count, point_count)
+        xml_writer = _XyChartXmlWriter(chart_type, chart_data)
+        expected_xml = snippet_text(snippet_name)
+        return xml_writer, expected_xml
+
+
 # helpers ------------------------------------------------------------
 
 def make_series_data_seq(cat_count, ser_count):
@@ -132,3 +152,23 @@ def make_series_data_seq(cat_count, ser_count):
         series_values = [round(x*10)/10.0 for x in series_values]
         chart_data.add_series(series_title, series_values)
     return chart_data.series
+
+
+def make_xy_chart_data(ser_count, point_count):
+    """
+    Return an |XyChartData| object populated with *ser_count* series each
+    having *point_count* data points. Values are auto-generated.
+    """
+    points = (
+        (1.1, 11.1), (2.1, 12.1), (3.1, 13.1),
+        (1.2, 11.2), (2.2, 12.2), (3.2, 13.2),
+    )
+    chart_data = XyChartData()
+    for i in range(ser_count):
+        series_label = 'Series %d' % (i+1)
+        series = chart_data.add_series(series_label)
+        for j in range(point_count):
+            point_idx = (i * point_count) + j
+            x, y = points[point_idx]
+            series.add_data_point(x, y)
+    return chart_data

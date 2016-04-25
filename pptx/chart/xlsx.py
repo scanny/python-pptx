@@ -58,3 +58,49 @@ class WorkbookWriter(object):
             series_col = series.index + 1
             worksheet.write(0, series_col, series.name)
             worksheet.write_column(1, series_col, series.values, num_format)
+
+
+class XyWorkbookWriter(object):
+    """
+    Determines Excel worksheet layout and can write an Excel workbook from XY
+    chart data. Serves as the authority for Excel worksheet ranges.
+    """
+    def __init__(self, chart_data):
+        super(XyWorkbookWriter, self).__init__()
+        self._chart_data = chart_data
+
+    def series_name_ref(self, series):
+        """
+        Return the Excel worksheet reference to the cell containing the name
+        for *series*. This also serves as the column heading for the series
+        Y values.
+        """
+        row = self.series_table_row_offset(series) + 1
+        return 'Sheet1!$B$%d' % row
+
+    def series_table_row_offset(self, series):
+        """
+        Return the number of rows preceding the data table for *series* in
+        the Excel worksheet.
+        """
+        title_and_spacer_rows = series.index * 2
+        data_point_rows = series.data_point_offset
+        return title_and_spacer_rows + data_point_rows
+
+    def x_values_ref(self, series):
+        """
+        The Excel worksheet reference to the X values for this chart (not
+        including the column label).
+        """
+        top_row = self.series_table_row_offset(series) + 2
+        bottom_row = top_row + len(series) - 1
+        return "Sheet1!$A$%d:$A$%d" % (top_row, bottom_row)
+
+    def y_values_ref(self, series):
+        """
+        The Excel worksheet reference to the Y values for this chart (not
+        including the column label).
+        """
+        top_row = self.series_table_row_offset(series) + 2
+        bottom_row = top_row + len(series) - 1
+        return "Sheet1!$B$%d:$B$%d" % (top_row, bottom_row)

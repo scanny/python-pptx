@@ -6,6 +6,8 @@ Composers for default chart XML for various chart types.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from xml.sax.saxutils import escape
+
 from ..enum.chart import XL_CHART_TYPE
 
 
@@ -39,6 +41,7 @@ class _BaseChartXmlWriter(object):
     def __init__(self, chart_type, series_seq):
         super(_BaseChartXmlWriter, self).__init__()
         self._chart_type = chart_type
+        self._chart_data = series_seq
         self._series_lst = list(series_seq)
 
     @property
@@ -48,6 +51,87 @@ class _BaseChartXmlWriter(object):
         unicode text. This method must be overridden by each subclass.
         """
         raise NotImplementedError('must be implemented by all subclasses')
+
+
+class _BaseSeriesXmlWriter(object):
+    """
+    Provides shared members for series XML writers.
+    """
+    def __init__(self, series):
+        super(_BaseSeriesXmlWriter, self).__init__()
+        self._series = series
+
+    @property
+    def name(self):
+        """
+        The XML-escaped name for this series.
+        """
+        return escape(self._series.name)
+
+    def numRef_xml(self, wksht_ref, values):
+        """
+        Return the ``<c:numRef>`` element specified by the parameters as
+        unicode text.
+        """
+        pt_xml = self.pt_xml(values)
+        return (
+            '            <c:numRef>\n'
+            '              <c:f>{wksht_ref}</c:f>\n'
+            '              <c:numCache>\n'
+            '                <c:formatCode>General</c:formatCode>\n'
+            '{pt_xml}'
+            '              </c:numCache>\n'
+            '            </c:numRef>\n'
+        ).format(
+            wksht_ref=wksht_ref, pt_xml=pt_xml
+        )
+
+    def pt_xml(self, values):
+        """
+        Return the ``<c:ptCount>`` and sequence of ``<c:pt>`` elements
+        corresponding to *values* as a single unicode text string.
+        `c:ptCount` refers to the number of `c:pt` elements in this sequence.
+        The `idx` attribute value for `c:pt` elements locates the data point
+        in the overall data point sequence of the chart and is started at
+        *offset*.
+        """
+        xml = (
+            '                <c:ptCount val="{pt_count}"/>\n'
+        ).format(
+            pt_count=len(values)
+        )
+
+        pt_tmpl = (
+            '                <c:pt idx="{idx}">\n'
+            '                  <c:v>{value}</c:v>\n'
+            '                </c:pt>\n'
+        )
+        for idx, value in enumerate(values):
+            xml += pt_tmpl.format(idx=idx, value=value)
+
+        return xml
+
+    @property
+    def tx_xml(self):
+        """
+        Return the ``<c:tx>`` (tx is short for 'text') element for this
+        series as unicode text. This element contains the series name.
+        """
+        return (
+            '          <c:tx>\n'
+            '            <c:strRef>\n'
+            '              <c:f>{wksht_ref}</c:f>\n'
+            '              <c:strCache>\n'
+            '                <c:ptCount val="1"/>\n'
+            '                <c:pt idx="0">\n'
+            '                  <c:v>{series_name}</c:v>\n'
+            '                </c:pt>\n'
+            '              </c:strCache>\n'
+            '            </c:strRef>\n'
+            '          </c:tx>\n'
+        ).format(
+            wksht_ref=self._series.name_ref, series_name=self.name
+        )
 
 
 class _BarChartXmlWriter(_BaseChartXmlWriter):
@@ -314,3 +398,138 @@ class _XyChartXmlWriter(_BaseChartXmlWriter):
     """
     Generates XML for the ``<c:scatterChart>`` element.
     """
+    @property
+    def xml(self):
+        xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:chart>\n'
+            '    <c:plotArea>\n'
+            '      <c:scatterChart>\n'
+            '        <c:scatterStyle val="lineMarker"/>\n'
+            '        <c:varyColors val="0"/>\n'
+            '%s'
+            '        <c:axId val="-2128940872"/>\n'
+            '        <c:axId val="-2129643912"/>\n'
+            '      </c:scatterChart>\n'
+            '      <c:valAx>\n'
+            '        <c:axId val="-2128940872"/>\n'
+            '        <c:scaling>\n'
+            '          <c:orientation val="minMax"/>\n'
+            '        </c:scaling>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2129643912"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:crossBetween val="midCat"/>\n'
+            '      </c:valAx>\n'
+            '      <c:valAx>\n'
+            '        <c:axId val="-2129643912"/>\n'
+            '        <c:scaling>\n'
+            '          <c:orientation val="minMax"/>\n'
+            '        </c:scaling>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="l"/>\n'
+            '        <c:majorGridlines/>\n'
+            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2128940872"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:crossBetween val="midCat"/>\n'
+            '      </c:valAx>\n'
+            '    </c:plotArea>\n'
+            '    <c:legend>\n'
+            '      <c:legendPos val="r"/>\n'
+            '      <c:layout/>\n'
+            '      <c:overlay val="0"/>\n'
+            '    </c:legend>\n'
+            '    <c:plotVisOnly val="1"/>\n'
+            '    <c:dispBlanksAs val="gap"/>\n'
+            '    <c:showDLblsOverMax val="0"/>\n'
+            '  </c:chart>\n'
+            '  <c:txPr>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr>\n'
+            '        <a:defRPr sz="1800"/>\n'
+            '      </a:pPr>\n'
+            '      <a:endParaRPr lang="en-US"/>\n'
+            '    </a:p>\n'
+            '  </c:txPr>\n'
+            '</c:chartSpace>\n'
+        ) % self._ser_xml
+        return xml
+
+    @property
+    def _ser_xml(self):
+        xml = ''
+        for series in self._chart_data:
+            xml_writer = _XySeriesXmlWriter(series)
+            xml += (
+                '        <c:ser>\n'
+                '          <c:idx val="{ser_idx}"/>\n'
+                '          <c:order val="{ser_order}"/>\n'
+                '{tx_xml}'
+                '          <c:spPr>\n'
+                '            <a:ln w="47625">\n'
+                '              <a:noFill/>\n'
+                '            </a:ln>\n'
+                '          </c:spPr>\n'
+                '{xVal_xml}'
+                '{yVal_xml}'
+                '          <c:smooth val="0"/>\n'
+                '        </c:ser>\n'
+            ).format(
+                ser_idx=series.index, ser_order=series.index,
+                tx_xml=xml_writer.tx_xml, xVal_xml=xml_writer.xVal_xml,
+                yVal_xml=xml_writer.yVal_xml
+            )
+        return xml
+
+
+class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
+    """
+    Generates XML snippets particular to an XY series.
+    """
+    @property
+    def xVal_xml(self):
+        """
+        Return the ``<c:xVal>`` element for this series as unicode text. This
+        element contains the X values for this series (which is actually all
+        the X values for the entire chart).
+        """
+        return (
+            '          <c:xVal>\n'
+            '{numRef_xml}'
+            '          </c:xVal>\n'
+        ).format(
+            numRef_xml=self.numRef_xml(
+                self._series.x_values_ref, self._series.x_values
+            )
+        )
+
+    @property
+    def yVal_xml(self):
+        """
+        Return the ``<c:yVal>`` element for this series as unicode text. This
+        element contains the Y values for this series.
+        """
+        return (
+            '          <c:yVal>\n'
+            '{numRef_xml}'
+            '          </c:yVal>\n'
+        ).format(
+            numRef_xml=self.numRef_xml(
+                self._series.y_values_ref, self._series.y_values
+            )
+        )

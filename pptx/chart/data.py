@@ -11,7 +11,8 @@ from xml.sax.saxutils import escape
 
 from ..oxml import parse_xml
 from ..oxml.ns import nsdecls
-from .xlsx import WorkbookWriter
+from ..util import lazyproperty
+from .xlsx import WorkbookWriter, XyWorkbookWriter
 from .xmlwriter import ChartXmlWriter
 
 
@@ -38,6 +39,41 @@ class _BaseChartData(Sequence):
     def append(self, series):
         return self._series.append(series)
 
+    def data_point_offset(self, series):
+        """
+        The total integer number of data points appearing in the series of
+        this chart that are prior to *series* in this sequence.
+        """
+        count = 0
+        for this_series in self:
+            if series is this_series:
+                return count
+            count += len(this_series)
+        raise ValueError('series not in chart data object')
+
+    def series_index(self, series):
+        """
+        Return the integer index of *series* in this sequence.
+        """
+        for idx, s in enumerate(self):
+            if series is s:
+                return idx
+        raise ValueError('series not in chart data object')
+
+    def series_name_ref(self, series):
+        """
+        Return the Excel worksheet reference to the cell containing the name
+        for *series*.
+        """
+        return self._workbook_writer.series_name_ref(series)
+
+    def x_values_ref(self, series):
+        """
+        The Excel worksheet reference to the X values for *series* (not
+        including the column label).
+        """
+        return self._workbook_writer.x_values_ref(series)
+
     def xml_bytes(self, chart_type):
         """
         Return a blob containing the XML for a chart of *chart_type*
@@ -45,6 +81,21 @@ class _BaseChartData(Sequence):
         for writing directly to a file.
         """
         return self._xml(chart_type).encode('utf-8')
+
+    def y_values_ref(self, series):
+        """
+        The Excel worksheet reference to the Y values for *series* (not
+        including the column label).
+        """
+        return self._workbook_writer.y_values_ref(series)
+
+    @property
+    def _workbook_writer(self):
+        """
+        The worksheet writer object to which layout and writing of the Excel
+        worksheet for this chart will be delegated.
+        """
+        raise NotImplementedError('must be implemented by all subclasses')
 
     def _xml(self, chart_type):
         """
@@ -63,10 +114,10 @@ class _BaseSeriesData(Sequence):
     worksheet. It operates as a sequence of data points, as well as providing
     access to series-level attributes like the series label.
     """
-    def __init__(self, chart_data, label):
+    def __init__(self, chart_data, name):
         super(_BaseSeriesData, self).__init__()
         self._chart_data = chart_data
-        self._label = label
+        self._name = name
         self._data_points = []
 
     def __getitem__(self, index):
@@ -77,6 +128,71 @@ class _BaseSeriesData(Sequence):
 
     def append(self, data_point):
         return self._data_points.append(data_point)
+
+    @property
+    def data_point_offset(self):
+        """
+        The integer count of data points that appear in all chart series
+        prior to this one.
+        """
+        return self._chart_data.data_point_offset(self)
+
+    @property
+    def index(self):
+        """
+        Zero-based integer indicating the sequence position of this series in
+        its chart. For example, the second of three series would return `1`.
+        """
+        return self._chart_data.series_index(self)
+
+    @property
+    def name(self):
+        """
+        The name of this series, e.g. 'Series 1'. This name is used as the
+        column heading for the y-values of this series and may also appear in
+        the chart legend and perhaps other chart locations.
+        """
+        return self._name
+
+    @property
+    def name_ref(self):
+        """
+        The Excel worksheet reference to the cell containing the name for
+        this series.
+        """
+        return self._chart_data.series_name_ref(self)
+
+    @property
+    def x_values(self):
+        """
+        A sequence containing the X value of each datapoint in this series,
+        in data point order.
+        """
+        return [dp.x for dp in self._data_points]
+
+    @property
+    def x_values_ref(self):
+        """
+        The Excel worksheet reference to the X values for this chart (not
+        including the column heading).
+        """
+        return self._chart_data.x_values_ref(self)
+
+    @property
+    def y_values(self):
+        """
+        A sequence containing the Y value of each datapoint in this series,
+        in data point order.
+        """
+        return [dp.y for dp in self._data_points]
+
+    @property
+    def y_values_ref(self):
+        """
+        The Excel worksheet reference to the Y values for this chart (not
+        including the column heading).
+        """
+        return self._chart_data.y_values_ref(self)
 
 
 class ChartData(object):
@@ -171,6 +287,14 @@ class XyChartData(_BaseChartData):
         self.append(series_data)
         return series_data
 
+    @lazyproperty
+    def _workbook_writer(self):
+        """
+        The worksheet writer object to which layout and writing of the Excel
+        worksheet for this chart will be delegated.
+        """
+        return XyWorkbookWriter(self)
+
 
 class XySeriesData(_BaseSeriesData):
     """
@@ -202,6 +326,20 @@ class XyDataPoint(object):
         super(XyDataPoint, self).__init__()
         self._x = x
         self._y = y
+
+    @property
+    def x(self):
+        """
+        The X value for this XY data point.
+        """
+        return self._x
+
+    @property
+    def y(self):
+        """
+        The Y value for this XY data point.
+        """
+        return self._y
 
 
 class _SeriesData(object):
