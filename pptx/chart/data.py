@@ -38,6 +38,23 @@ class _BaseChartData(Sequence):
     def append(self, series):
         return self._series.append(series)
 
+    def xml_bytes(self, chart_type):
+        """
+        Return a blob containing the XML for a chart of *chart_type*
+        containing the series in this chart data object, as bytes suitable
+        for writing directly to a file.
+        """
+        return self._xml(chart_type).encode('utf-8')
+
+    def _xml(self, chart_type):
+        """
+        Return (as unicode text) the XML for a chart of *chart_type*
+        populated with the values in this chart data object. The XML is
+        a complete XML document, including an XML declaration specifying
+        UTF-8 encoding.
+        """
+        return ChartXmlWriter(chart_type, self).xml
+
 
 class _BaseSeriesData(Sequence):
     """

@@ -10,7 +10,8 @@ import pytest
 
 
 from pptx.chart.data import (
-    ChartData, _SeriesData, XyChartData, XyDataPoint, XySeriesData
+    _BaseChartData, ChartData, _SeriesData, XyChartData, XyDataPoint,
+    XySeriesData
 )
 from pptx.enum.base import EnumValue
 
@@ -158,6 +159,40 @@ class DescribeChartData(object):
     @pytest.fixture
     def xlsx_blob_(self, request):
         return instance_mock(request, bytes)
+
+
+class Describe_BaseChartData(object):
+
+    def it_can_generate_chart_part_XML_for_its_data(self, xml_bytes_fixture):
+        chart_data, chart_type_, ChartXmlWriter_, expected_bytes = (
+            xml_bytes_fixture
+        )
+        xml_bytes = chart_data.xml_bytes(chart_type_)
+
+        ChartXmlWriter_.assert_called_once_with(chart_type_, chart_data)
+        assert xml_bytes == expected_bytes
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def xml_bytes_fixture(self, chart_type_, ChartXmlWriter_):
+        chart_data = _BaseChartData()
+        expected_bytes = 'ƒøØßår'.encode('utf-8')
+        return chart_data, chart_type_, ChartXmlWriter_, expected_bytes
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ChartXmlWriter_(self, request):
+        ChartXmlWriter_ = class_mock(
+            request, 'pptx.chart.data.ChartXmlWriter'
+        )
+        ChartXmlWriter_.return_value.xml = 'ƒøØßår'
+        return ChartXmlWriter_
+
+    @pytest.fixture
+    def chart_type_(self, request):
+        return instance_mock(request, EnumValue)
 
 
 class DescribeXyChartData(object):
