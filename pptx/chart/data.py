@@ -74,6 +74,14 @@ class _BaseChartData(Sequence):
         """
         return self._workbook_writer.x_values_ref(series)
 
+    @property
+    def xlsx_blob(self):
+        """
+        Return a blob containing an Excel workbook file populated with the
+        contents of this chart data object.
+        """
+        return self._workbook_writer.xlsx_blob
+
     def xml_bytes(self, chart_type):
         """
         Return a blob containing the XML for a chart of *chart_type*

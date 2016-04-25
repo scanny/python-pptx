@@ -15,7 +15,7 @@ from xlsxwriter.format import Format
 from xlsxwriter.worksheet import Worksheet
 
 from pptx.chart.data import _SeriesData
-from pptx.chart.xlsx import WorkbookWriter
+from pptx.chart.xlsx import WorkbookWriter, XyWorkbookWriter
 from pptx.compat import BytesIO
 
 from ..unitutil.mock import call, class_mock, instance_mock, method_mock
@@ -116,6 +116,73 @@ class Describe_WorkbookWriter(object):
     @pytest.fixture
     def series_lst_(self, request):
         return instance_mock(request, list)
+
+    @pytest.fixture
+    def workbook_(self, request):
+        return instance_mock(request, Workbook)
+
+    @pytest.fixture
+    def worksheet_(self, request):
+        return instance_mock(request, Worksheet)
+
+    @pytest.fixture
+    def xlsx_blob_(self, request):
+        return instance_mock(request, bytes)
+
+    @pytest.fixture
+    def xlsx_file_(self, request, xlsx_blob_):
+        xlsx_file_ = instance_mock(request, BytesIO)
+        xlsx_file_.getvalue.return_value = xlsx_blob_
+        return xlsx_file_
+
+
+class Describe_XyWorkbookWriter(object):
+
+    def it_can_generate_a_chart_data_Excel_blob(self, xlsx_blob_fixture):
+        workbook_writer, _open_worksheet_, xlsx_file_ = xlsx_blob_fixture[:3]
+        _populate_worksheet_, workbook_, worksheet_ = xlsx_blob_fixture[3:6]
+        xlsx_blob_ = xlsx_blob_fixture[6]
+
+        xlsx_blob = workbook_writer.xlsx_blob
+
+        _open_worksheet_.assert_called_once_with(xlsx_file_)
+        _populate_worksheet_.assert_called_once_with(workbook_, worksheet_)
+        assert xlsx_blob is xlsx_blob_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def xlsx_blob_fixture(
+            self, request, xlsx_file_, BytesIO_, _open_worksheet_, workbook_,
+            worksheet_, _populate_worksheet_, xlsx_blob_):
+        workbook_writer = XyWorkbookWriter(None)
+        return (
+            workbook_writer, _open_worksheet_, xlsx_file_,
+            _populate_worksheet_, workbook_, worksheet_, xlsx_blob_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def BytesIO_(self, request, xlsx_file_):
+        return class_mock(
+            request, 'pptx.chart.xlsx.BytesIO', return_value=xlsx_file_
+        )
+
+    @pytest.fixture
+    def _open_worksheet_(self, request, workbook_, worksheet_):
+        open_worksheet_ = method_mock(
+            request, XyWorkbookWriter, '_open_worksheet'
+        )
+        # to make context manager behavior work
+        open_worksheet_.return_value.__enter__.return_value = (
+            workbook_, worksheet_
+        )
+        return open_worksheet_
+
+    @pytest.fixture
+    def _populate_worksheet_(self, request):
+        return method_mock(request, XyWorkbookWriter, '_populate_worksheet')
 
     @pytest.fixture
     def workbook_(self, request):

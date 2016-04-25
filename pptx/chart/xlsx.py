@@ -69,6 +69,19 @@ class XyWorkbookWriter(object):
         super(XyWorkbookWriter, self).__init__()
         self._chart_data = chart_data
 
+    @contextmanager
+    def _open_worksheet(self, xlsx_file):
+        """
+        Enable XlsxWriter Worksheet object to be opened, operated on, and
+        then automatically closed within a `with` statement. A filename or
+        stream object (such as a ``BytesIO`` instance) is expected as
+        *xlsx_file*.
+        """
+        workbook = Workbook(xlsx_file, {'in_memory': True})
+        worksheet = workbook.add_worksheet()
+        yield workbook, worksheet
+        workbook.close()
+
     def series_name_ref(self, series):
         """
         Return the Excel worksheet reference to the cell containing the name
@@ -96,6 +109,17 @@ class XyWorkbookWriter(object):
         bottom_row = top_row + len(series) - 1
         return "Sheet1!$A$%d:$A$%d" % (top_row, bottom_row)
 
+    @property
+    def xlsx_blob(self):
+        """
+        Return the byte stream of an Excel file formatted as chart data for
+        the XY chart specified in *chart_data*.
+        """
+        xlsx_file = BytesIO()
+        with self._open_worksheet(xlsx_file) as (workbook, worksheet):
+            self._populate_worksheet(workbook, worksheet)
+        return xlsx_file.getvalue()
+
     def y_values_ref(self, series):
         """
         The Excel worksheet reference to the Y values for this chart (not
@@ -104,3 +128,12 @@ class XyWorkbookWriter(object):
         top_row = self.series_table_row_offset(series) + 2
         bottom_row = top_row + len(series) - 1
         return "Sheet1!$B$%d:$B$%d" % (top_row, bottom_row)
+
+    def _populate_worksheet(self, workbook, worksheet):
+        """
+        Write chart data contents to *worksheet* in the standard XY chart
+        layout. Write the data for each series to a separate two-column
+        table, X values in column A and Y values in column B. Place the
+        series label in the first (heading) cell of the column.
+        """
+        raise NotImplementedError
