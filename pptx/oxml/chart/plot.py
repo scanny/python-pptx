@@ -236,3 +236,9 @@ class CT_PieChart(BaseChartElement):
     ser = ZeroOrMore('c:ser', successors=_tag_seq[2:])
     dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[3:])
     del _tag_seq
+
+
+class CT_ScatterChart(BaseOxmlElement):
+    """
+    ``<c:scatterChart>`` custom element class
+    """

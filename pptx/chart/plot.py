@@ -303,6 +303,7 @@ class PlotTypeInspector(object):
                 'BarPlot':    cls._differentiate_bar_chart_type,
                 'LinePlot':   cls._differentiate_line_chart_type,
                 'PiePlot':    cls._differentiate_pie_chart_type,
+                'XyPlot':     cls._differentiate_xy_chart_type,
             }[plot.__class__.__name__]
         except KeyError:
             raise NotImplementedError(
@@ -376,3 +377,32 @@ class PlotTypeInspector(object):
         pieChart = plot._element
         explosion = pieChart.xpath('./c:ser/c:explosion')
         return XL.PIE_EXPLODED if explosion else XL.PIE
+
+    @classmethod
+    def _differentiate_xy_chart_type(cls, plot):
+        scatterChart = plot._element
+
+        def noLine():
+            return bool(scatterChart.xpath('c:ser/c:spPr/a:ln/a:noFill'))
+
+        def noMarkers():
+            symbols = scatterChart.xpath('c:ser/c:marker/c:symbol')
+            if symbols and symbols[0].get('val') == 'none':
+                return True
+            return False
+
+        scatter_style = scatterChart.xpath('c:scatterStyle')[0].get('val')
+
+        if scatter_style == 'lineMarker':
+            if noLine():
+                return XL.XY_SCATTER
+            if noMarkers():
+                return XL.XY_SCATTER_LINES_NO_MARKERS
+            return XL.XY_SCATTER_LINES
+
+        if scatter_style == 'smoothMarker':
+            if noMarkers():
+                return XL.XY_SCATTER_SMOOTH_NO_MARKERS
+            return XL.XY_SCATTER_SMOOTH
+
+        return XL.XY_SCATTER

@@ -501,6 +501,25 @@ class DescribePlotTypeInspector(object):
 
         ('c:pieChart',                           XL.PIE),
         ('c:pieChart/c:ser/c:explosion{val=25}', XL.PIE_EXPLODED),
+
+        ('c:scatterChart/c:scatterStyle',
+         XL.XY_SCATTER),
+        ('c:scatterChart/(c:scatterStyle{val=lineMarker},c:ser/c:spPr/a:ln/a'
+         ':noFill)',
+         XL.XY_SCATTER),
+        ('c:scatterChart/c:scatterStyle{val=lineMarker}',
+         XL.XY_SCATTER_LINES),
+        ('c:scatterChart/(c:scatterStyle{val=lineMarker},c:ser/c:marker/c:sy'
+         'mbol{val=none})',
+         XL.XY_SCATTER_LINES_NO_MARKERS),
+        ('c:scatterChart/(c:scatterStyle{val=lineMarker},c:ser/c:marker/c:sy'
+         'mbol{val=diamond})',
+         XL.XY_SCATTER_LINES),
+        ('c:scatterChart/c:scatterStyle{val=smoothMarker}',
+         XL.XY_SCATTER_SMOOTH),
+        ('c:scatterChart/(c:scatterStyle{val=smoothMarker},c:ser/c:marker/c:'
+         'symbol{val=none})',
+         XL.XY_SCATTER_SMOOTH_NO_MARKERS),
     ])
     def chart_type_fixture(self, request):
         xChart_cxml, expected_chart_type = request.param
