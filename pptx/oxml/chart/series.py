@@ -20,16 +20,23 @@ class CT_SeriesComposite(BaseOxmlElement):
     depends on the caller not to do anything invalid for a series belonging
     to a particular plot type.
     """
+    _tag_seq = (
+        'c:idx', 'c:order', 'c:tx', 'c:spPr', 'c:invertIfNegative',
+        'c:pictureOptions', 'c:marker', 'c:explosion', 'c:dPt', 'c:dLbls',
+        'c:trendline', 'c:errBars', 'c:cat', 'c:val', 'c:xVal', 'c:yVal',
+        'c:shape', 'c:smooth', 'c:bubbleSize', 'c:bubble3D', 'c:extLst'
+    )
     idx = OneAndOnlyOne('c:idx')
     order = OneAndOnlyOne('c:order')
-    tx = ZeroOrOne('c:tx')      # provide override for _insert_tx()
-    spPr = ZeroOrOne('c:spPr')  # provide override for _insert_spPr()
-    invertIfNegative = ZeroOrOne('c:invertIfNegative')  # provide _insert..()
-    cat = ZeroOrOne('c:cat', successors=(
-        'c:val', 'c:smooth', 'c:shape', 'c:extLst'
-    ))
-    val = ZeroOrOne('c:val', successors=('c:smooth', 'c:shape', 'c:extLst'))
-    smooth = ZeroOrOne('c:smooth', successors=('c:extLst',))
+    tx = ZeroOrOne('c:tx', successors=_tag_seq[3:])
+    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[4:])
+    invertIfNegative = ZeroOrOne(
+        'c:invertIfNegative', successors=_tag_seq[5:]
+    )
+    cat = ZeroOrOne('c:cat', successors=_tag_seq[13:])
+    val = ZeroOrOne('c:val', successors=_tag_seq[14:])
+    smooth = ZeroOrOne('c:smooth', successors=_tag_seq[18:])
+    del _tag_seq
 
     @property
     def val_pts(self):
@@ -39,36 +46,6 @@ class CT_SeriesComposite(BaseOxmlElement):
         """
         val_pts = self.xpath('./c:val//c:pt')
         return sorted(val_pts, key=lambda pt: pt.idx)
-
-    def _insert_invertIfNegative(self, invertIfNegative):
-        """
-        invertIfNegative has a lot of successors and they vary depending on
-        the series type, so easier just to insert it "manually" as it's close
-        to a required element.
-        """
-        if self.spPr is not None:
-            self.spPr.addnext(invertIfNegative)
-        elif self.tx is not None:
-            self.tx.addnext(invertIfNegative)
-        else:
-            self.order.addnext(invertIfNegative)
-        return invertIfNegative
-
-    def _insert_spPr(self, spPr):
-        """
-        spPr has a lot of successors and it varies depending on the series
-        type, so easier just to insert it "manually" as it's close to a
-        required element.
-        """
-        if self.tx is not None:
-            self.tx.addnext(spPr)
-        else:
-            self.order.addnext(spPr)
-        return spPr
-
-    def _insert_tx(self, tx):
-        self.order.addnext(tx)
-        return tx
 
 
 class CT_StrVal_NumVal_Composite(BaseOxmlElement):
