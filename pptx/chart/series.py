@@ -145,6 +145,12 @@ class PieSeries(_BaseSeries):
     """
 
 
+class XySeries(_BaseSeries):
+    """
+    A data point series belonging to an XY (scatter) plot.
+    """
+
+
 class SeriesCollection(Sequence):
     """
     A sequence of |Series| objects.
@@ -168,10 +174,17 @@ def _SeriesFactory(ser):
     xChart element *ser* appears in.
     """
     xChart_tag = ser.getparent().tag
-    if xChart_tag == qn('c:barChart'):
-        return BarSeries(ser)
-    if xChart_tag == qn('c:lineChart'):
-        return LineSeries(ser)
-    if xChart_tag == qn('c:pieChart'):
-        return PieSeries(ser)
-    raise ValueError('unsupported series type %s' % xChart_tag)
+
+    try:
+        SeriesCls = {
+            qn('c:barChart'):     BarSeries,
+            qn('c:lineChart'):    LineSeries,
+            qn('c:pieChart'):     PieSeries,
+            qn('c:scatterChart'): XySeries,
+        }[xChart_tag]
+    except KeyError:
+        raise NotImplementedError(
+            'series class for %s not yet implemented' % xChart_tag
+        )
+
+    return SeriesCls(ser)

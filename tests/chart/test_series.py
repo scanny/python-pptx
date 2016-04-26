@@ -9,8 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.series import (
-    BarSeries, _BaseSeries, LineSeries, PieSeries, SeriesCollection,
-    _SeriesFactory
+    BarSeries, _BaseSeries, LineSeries, SeriesCollection, _SeriesFactory
 )
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
@@ -296,52 +295,14 @@ class Describe_SeriesFactory(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        'barChart',
-        'lineChart',
-        'pieChart'
+        ('c:barChart/c:ser',     'BarSeries'),
+        ('c:lineChart/c:ser',    'LineSeries'),
+        ('c:pieChart/c:ser',     'PieSeries'),
+        ('c:scatterChart/c:ser', 'XySeries'),
     ])
-    def call_fixture(
-            self, request, BarSeries_, bar_series_, LineSeries_,
-            line_series_, PieSeries_, pie_series_):
-        xChart_cxml, SeriesCls_, series_ = {
-            'barChart':  ('c:barChart/c:ser',  BarSeries_,  bar_series_),
-            'lineChart': ('c:lineChart/c:ser', LineSeries_, line_series_),
-            'pieChart':  ('c:pieChart/c:ser',  PieSeries_,  pie_series_),
-        }[request.param]
+    def call_fixture(self, request):
+        xChart_cxml, cls_name = request.param
         ser = element(xChart_cxml).ser_lst[0]
+        SeriesCls_ = class_mock(request, 'pptx.chart.series.%s' % cls_name)
+        series_ = SeriesCls_.return_value
         return ser, SeriesCls_, series_
-
-    # fixture components -----------------------------------
-
-    @pytest.fixture
-    def BarSeries_(self, request, bar_series_):
-        return class_mock(
-            request, 'pptx.chart.series.BarSeries',
-            return_value=bar_series_
-        )
-
-    @pytest.fixture
-    def bar_series_(self, request):
-        return instance_mock(request, BarSeries)
-
-    @pytest.fixture
-    def LineSeries_(self, request, line_series_):
-        return class_mock(
-            request, 'pptx.chart.series.LineSeries',
-            return_value=line_series_
-        )
-
-    @pytest.fixture
-    def line_series_(self, request):
-        return instance_mock(request, LineSeries)
-
-    @pytest.fixture
-    def PieSeries_(self, request, pie_series_):
-        return class_mock(
-            request, 'pptx.chart.series.PieSeries',
-            return_value=pie_series_
-        )
-
-    @pytest.fixture
-    def pie_series_(self, request):
-        return instance_mock(request, PieSeries)

@@ -21,13 +21,6 @@ class BaseChartElement(BaseOxmlElement):
     """
     Base class for barChart, lineChart, and other plot elements.
     """
-    # needs successors for all chart types; bar, pie, and line so far
-    varyColors = ZeroOrOne('c:varyColors', successors=(
-        'c:ser', 'c:dLbls', 'c:gapWidth', 'c:overlap', 'c:serLines',
-        'c:dropLines', 'c:hiLowLines', 'c:upDownBars', 'c:marker',
-        'c:smooth', 'c:axId', 'c:firstSliceAng', 'c:extLst'
-    ))
-
     @property
     def cat_pts(self):
         """
@@ -100,6 +93,7 @@ class CT_BarChart(BaseChartElement):
     )
     barDir = OneAndOnlyOne('c:barDir')
     grouping = ZeroOrOne('c:grouping', successors=_tag_seq[2:])
+    varyColors = ZeroOrOne('c:varyColors', successors=_tag_seq[3:])
     ser = ZeroOrMore('c:ser', successors=_tag_seq[4:])
     dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[5:])
     gapWidth = ZeroOrOne('c:gapWidth', successors=_tag_seq[6:])
@@ -227,6 +221,7 @@ class CT_LineChart(BaseChartElement):
         'c:extLst'
     )
     grouping = ZeroOrOne('c:grouping', successors=(_tag_seq[1:]))
+    varyColors = ZeroOrOne('c:varyColors', successors=_tag_seq[2:])
     ser = ZeroOrMore('c:ser', successors=_tag_seq[3:])
     dLbls = ZeroOrOne('c:dLbls', successors=(_tag_seq[4:]))
     del _tag_seq
@@ -247,12 +242,20 @@ class CT_PieChart(BaseChartElement):
     _tag_seq = (
         'c:varyColors', 'c:ser', 'c:dLbls', 'c:firstSliceAng', 'c:extLst'
     )
+    varyColors = ZeroOrOne('c:varyColors', successors=_tag_seq[1:])
     ser = ZeroOrMore('c:ser', successors=_tag_seq[2:])
     dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[3:])
     del _tag_seq
 
 
-class CT_ScatterChart(BaseOxmlElement):
+class CT_ScatterChart(BaseChartElement):
     """
     ``<c:scatterChart>`` custom element class
     """
+    _tag_seq = (
+        'c:scatterStyle', 'c:varyColors', 'c:ser', 'c:dLbls', 'c:axId',
+        'c:extLst'
+    )
+    varyColors = ZeroOrOne('c:varyColors', successors=_tag_seq[2:])
+    ser = ZeroOrMore('c:ser', successors=_tag_seq[3:])
+    del _tag_seq
