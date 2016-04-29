@@ -34,13 +34,16 @@ class DescribeChartXmlWriter(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('BAR_CLUSTERED',    _BarChartXmlWriter),
-        ('BAR_STACKED_100',  _BarChartXmlWriter),
-        ('COLUMN_CLUSTERED', _BarChartXmlWriter),
-        ('LINE',             _LineChartXmlWriter),
-        ('PIE',              _PieChartXmlWriter),
-        ('XY_SCATTER',       _XyChartXmlWriter),
-        ('XY_SCATTER_LINES', _XyChartXmlWriter),
+        ('BAR_CLUSTERED',                _BarChartXmlWriter),
+        ('BAR_STACKED_100',              _BarChartXmlWriter),
+        ('COLUMN_CLUSTERED',             _BarChartXmlWriter),
+        ('LINE',                         _LineChartXmlWriter),
+        ('PIE',                          _PieChartXmlWriter),
+        ('XY_SCATTER',                   _XyChartXmlWriter),
+        ('XY_SCATTER_LINES',             _XyChartXmlWriter),
+        ('XY_SCATTER_LINES_NO_MARKERS',  _XyChartXmlWriter),
+        ('XY_SCATTER_SMOOTH',            _XyChartXmlWriter),
+        ('XY_SCATTER_SMOOTH_NO_MARKERS', _XyChartXmlWriter),
     ])
     def call_fixture(self, request, series_seq_):
         chart_type_member, XmlWriterClass = request.param

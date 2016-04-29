@@ -18,13 +18,16 @@ def ChartXmlWriter(chart_type, series_seq):
     """
     try:
         BuilderCls = {
-            XL_CHART_TYPE.BAR_CLUSTERED:    _BarChartXmlWriter,
-            XL_CHART_TYPE.BAR_STACKED_100:  _BarChartXmlWriter,
-            XL_CHART_TYPE.COLUMN_CLUSTERED: _BarChartXmlWriter,
-            XL_CHART_TYPE.LINE:             _LineChartXmlWriter,
-            XL_CHART_TYPE.PIE:              _PieChartXmlWriter,
-            XL_CHART_TYPE.XY_SCATTER:       _XyChartXmlWriter,
-            XL_CHART_TYPE.XY_SCATTER_LINES: _XyChartXmlWriter,
+            XL_CHART_TYPE.BAR_CLUSTERED:                _BarChartXmlWriter,
+            XL_CHART_TYPE.BAR_STACKED_100:              _BarChartXmlWriter,
+            XL_CHART_TYPE.COLUMN_CLUSTERED:             _BarChartXmlWriter,
+            XL_CHART_TYPE.LINE:                         _LineChartXmlWriter,
+            XL_CHART_TYPE.PIE:                          _PieChartXmlWriter,
+            XL_CHART_TYPE.XY_SCATTER:                   _XyChartXmlWriter,
+            XL_CHART_TYPE.XY_SCATTER_LINES:             _XyChartXmlWriter,
+            XL_CHART_TYPE.XY_SCATTER_LINES_NO_MARKERS:  _XyChartXmlWriter,
+            XL_CHART_TYPE.XY_SCATTER_SMOOTH:            _XyChartXmlWriter,
+            XL_CHART_TYPE.XY_SCATTER_SMOOTH_NO_MARKERS: _XyChartXmlWriter,
         }[chart_type]
     except KeyError:
         raise NotImplementedError(
