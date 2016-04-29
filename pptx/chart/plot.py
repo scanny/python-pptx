@@ -166,6 +166,12 @@ class BarPlot(_BasePlot):
         self._element.get_or_add_overlap().val = value
 
 
+class BubblePlot(_BasePlot):
+    """
+    A bubble chart plot.
+    """
+
+
 class DataLabels(object):
     """
     Collection of data labels associated with a plot, and perhaps with
@@ -275,6 +281,7 @@ def PlotFactory(xChart, chart):
             qn('c:areaChart'):    AreaPlot,
             qn('c:area3DChart'):  Area3DPlot,
             qn('c:barChart'):     BarPlot,
+            qn('c:bubbleChart'):  BubblePlot,
             qn('c:lineChart'):    LinePlot,
             qn('c:pieChart'):     PiePlot,
             qn('c:scatterChart'): XyPlot,

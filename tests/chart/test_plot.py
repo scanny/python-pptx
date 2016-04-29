@@ -10,8 +10,8 @@ import pytest
 
 from pptx.chart.chart import Chart
 from pptx.chart.plot import (
-    _BasePlot, AreaPlot, Area3DPlot, BarPlot, DataLabels, LinePlot, PiePlot,
-    PlotFactory, PlotTypeInspector, XyPlot
+    _BasePlot, AreaPlot, Area3DPlot, BarPlot, BubblePlot, DataLabels,
+    LinePlot, PiePlot, PlotFactory, PlotTypeInspector, XyPlot
 )
 from pptx.chart.series import SeriesCollection
 from pptx.enum.chart import XL_CHART_TYPE as XL, XL_LABEL_POSITION
@@ -425,6 +425,7 @@ class DescribePlotFactory(object):
         ('c:areaChart',    AreaPlot),
         ('c:area3DChart',  Area3DPlot),
         ('c:barChart',     BarPlot),
+        ('c:bubbleChart',  BubblePlot),
         ('c:lineChart',    LinePlot),
         ('c:pieChart',     PiePlot),
         ('c:scatterChart', XyPlot),
