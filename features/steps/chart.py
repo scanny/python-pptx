@@ -14,7 +14,7 @@ from behave import given, then, when
 
 from pptx import Presentation
 from pptx.chart.chart import Legend
-from pptx.chart.data import ChartData, XyChartData
+from pptx.chart.data import BubbleChartData, ChartData, XyChartData
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import (
     XL_CHART_TYPE, XL_DATA_LABEL_POSITION, XL_LEGEND_POSITION
@@ -284,6 +284,28 @@ def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
         series_title = 'Series %d' % (idx+1)
         series_values = tuple(islice(series_value_source, category_count))
         chart_data.add_series(series_title, series_values)
+
+    context.chart = context.slide.shapes.add_chart(
+        chart_type, Inches(1), Inches(1), Inches(8), Inches(5), chart_data
+    ).chart
+
+
+@when('I add a {bubble_type} chart having 2 series of 3 points each')
+def when_I_add_a_bubble_chart_having_2_series_of_3_pts(context, bubble_type):
+    chart_type = getattr(XL_CHART_TYPE, bubble_type)
+    data = (
+        ('Series 1', ((-0.1, 0.5, 1.0), (16.2, 0.0, 2.0), (8.0, -0.2, 3.0))),
+        ('Series 2', ((12.4, 0.8, 4.0), (-7.5, 0.5, 5.0), (5.1, -0.5, 6.0))),
+    )
+
+    chart_data = BubbleChartData()
+
+    for series_data in data:
+        series_label, points = series_data
+        series = chart_data.add_series(series_label)
+        for point in points:
+            x, y, size = point
+            series.add_data_point(x, y, size)
 
     context.chart = context.slide.shapes.add_chart(
         chart_type, Inches(1), Inches(1), Inches(8), Inches(5), chart_data

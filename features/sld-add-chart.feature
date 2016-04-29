@@ -37,3 +37,18 @@ Feature: Add a chart
       | XY_SCATTER_LINES_NO_MARKERS  |
       | XY_SCATTER_SMOOTH            |
       | XY_SCATTER_SMOOTH_NO_MARKERS |
+
+
+  @wip
+  Scenario Outline: Add a bubble chart
+    Given a blank slide
+     When I add a <chart-type> chart having 2 series of 3 points each
+     Then chart.chart_type is <chart-type>
+      And len(chart.series) is 2
+      And len(series.values) is 3 for each series
+      And the chart has an Excel data worksheet
+
+    Examples: Chart specs
+      | chart-type            |
+      | BUBBLE                |
+      | BUBBLE_THREE_D_EFFECT |

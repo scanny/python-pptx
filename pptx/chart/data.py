@@ -304,6 +304,14 @@ class XyChartData(_BaseChartData):
         return XyWorkbookWriter(self)
 
 
+class BubbleChartData(XyChartData):
+    """
+    A specialized ChartData object suitable for use with a bubble chart.
+    A bubble chart is essentially an XY chart where the markers are scaled to
+    provide a third quantitative dimension to the exhibit.
+    """
+
+
 class XySeriesData(_BaseSeriesData):
     """
     The data specific to a particular XY chart series. It provides access to
