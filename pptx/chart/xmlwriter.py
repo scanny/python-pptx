@@ -16,18 +16,21 @@ def ChartXmlWriter(chart_type, series_seq):
     Factory function returning appropriate XML writer object for
     *chart_type*, loaded with *series_seq*.
     """
+    XL_CT = XL_CHART_TYPE
     try:
         BuilderCls = {
-            XL_CHART_TYPE.BAR_CLUSTERED:                _BarChartXmlWriter,
-            XL_CHART_TYPE.BAR_STACKED_100:              _BarChartXmlWriter,
-            XL_CHART_TYPE.COLUMN_CLUSTERED:             _BarChartXmlWriter,
-            XL_CHART_TYPE.LINE:                         _LineChartXmlWriter,
-            XL_CHART_TYPE.PIE:                          _PieChartXmlWriter,
-            XL_CHART_TYPE.XY_SCATTER:                   _XyChartXmlWriter,
-            XL_CHART_TYPE.XY_SCATTER_LINES:             _XyChartXmlWriter,
-            XL_CHART_TYPE.XY_SCATTER_LINES_NO_MARKERS:  _XyChartXmlWriter,
-            XL_CHART_TYPE.XY_SCATTER_SMOOTH:            _XyChartXmlWriter,
-            XL_CHART_TYPE.XY_SCATTER_SMOOTH_NO_MARKERS: _XyChartXmlWriter,
+            XL_CT.BAR_CLUSTERED:                _BarChartXmlWriter,
+            XL_CT.BAR_STACKED_100:              _BarChartXmlWriter,
+            XL_CT.BUBBLE:                       _BubbleChartXmlWriter,
+            XL_CT.BUBBLE_THREE_D_EFFECT:        _BubbleChartXmlWriter,
+            XL_CT.COLUMN_CLUSTERED:             _BarChartXmlWriter,
+            XL_CT.LINE:                         _LineChartXmlWriter,
+            XL_CT.PIE:                          _PieChartXmlWriter,
+            XL_CT.XY_SCATTER:                   _XyChartXmlWriter,
+            XL_CT.XY_SCATTER_LINES:             _XyChartXmlWriter,
+            XL_CT.XY_SCATTER_LINES_NO_MARKERS:  _XyChartXmlWriter,
+            XL_CT.XY_SCATTER_SMOOTH:            _XyChartXmlWriter,
+            XL_CT.XY_SCATTER_SMOOTH_NO_MARKERS: _XyChartXmlWriter,
         }[chart_type]
     except KeyError:
         raise NotImplementedError(
@@ -536,6 +539,13 @@ class _XyChartXmlWriter(_BaseChartXmlWriter):
                 '          </c:spPr>\n'
             )
         return ''
+
+
+class _BubbleChartXmlWriter(_XyChartXmlWriter):
+    """
+    Provides specialized methods particular to the ``<c:bubbleChart>``
+    element.
+    """
 
 
 class _XySeriesXmlWriter(_BaseSeriesXmlWriter):

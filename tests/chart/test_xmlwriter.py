@@ -13,8 +13,8 @@ import pytest
 
 from pptx.chart.data import ChartData, XyChartData
 from pptx.chart.xmlwriter import (
-    _BarChartXmlWriter, ChartXmlWriter, _LineChartXmlWriter,
-    _PieChartXmlWriter, _XyChartXmlWriter
+    _BarChartXmlWriter, _BubbleChartXmlWriter, ChartXmlWriter,
+    _LineChartXmlWriter, _PieChartXmlWriter, _XyChartXmlWriter
 )
 from pptx.enum.chart import XL_CHART_TYPE
 
@@ -36,6 +36,8 @@ class DescribeChartXmlWriter(object):
     @pytest.fixture(params=[
         ('BAR_CLUSTERED',                _BarChartXmlWriter),
         ('BAR_STACKED_100',              _BarChartXmlWriter),
+        ('BUBBLE',                       _BubbleChartXmlWriter),
+        ('BUBBLE_THREE_D_EFFECT',        _BubbleChartXmlWriter),
         ('COLUMN_CLUSTERED',             _BarChartXmlWriter),
         ('LINE',                         _LineChartXmlWriter),
         ('PIE',                          _PieChartXmlWriter),
