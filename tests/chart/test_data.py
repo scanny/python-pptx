@@ -10,8 +10,8 @@ import pytest
 
 
 from pptx.chart.data import (
-    _BaseChartData, ChartData, _SeriesData, XyChartData, XyDataPoint,
-    XySeriesData
+    _BaseChartData, BubbleChartData, BubbleSeriesData, ChartData,
+    _SeriesData, XyChartData, XyDataPoint, XySeriesData
 )
 from pptx.enum.base import EnumValue
 
@@ -193,6 +193,37 @@ class Describe_BaseChartData(object):
     @pytest.fixture
     def chart_type_(self, request):
         return instance_mock(request, EnumValue)
+
+
+class DescribeBubbleChartData(object):
+
+    def it_can_add_a_series(self, add_series_fixture):
+        chart_data, name, BubbleSeriesData_, series_data_ = add_series_fixture
+        series_data = chart_data.add_series(name)
+        BubbleSeriesData_.assert_called_once_with(chart_data, name)
+        assert chart_data[-1] is series_data_
+        assert series_data is series_data_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_series_fixture(self, request, BubbleSeriesData_, series_data_):
+        chart_data = BubbleChartData()
+        name = 'Series Name'
+        return chart_data, name, BubbleSeriesData_, series_data_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def BubbleSeriesData_(self, request, series_data_):
+        return class_mock(
+            request, 'pptx.chart.data.BubbleSeriesData',
+            return_value=series_data_
+        )
+
+    @pytest.fixture
+    def series_data_(self, request):
+        return instance_mock(request, BubbleSeriesData)
 
 
 class DescribeXyChartData(object):

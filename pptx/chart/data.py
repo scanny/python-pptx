@@ -310,6 +310,14 @@ class BubbleChartData(XyChartData):
     A bubble chart is essentially an XY chart where the markers are scaled to
     provide a third quantitative dimension to the exhibit.
     """
+    def add_series(self, name):
+        """
+        Return a |BubbleSeriesData| object newly created and added at the end
+        of this sequence, and having series named *name*.
+        """
+        series_data = BubbleSeriesData(self, name)
+        self.append(series_data)
+        return series_data
 
 
 class XySeriesData(_BaseSeriesData):
@@ -331,6 +339,19 @@ class XySeriesData(_BaseSeriesData):
         data_point = XyDataPoint(x, y)
         self.append(data_point)
         return data_point
+
+
+class BubbleSeriesData(XySeriesData):
+    """
+    The data specific to a particular Bubble chart series. It provides access
+    to the series label, the series data points, and an optional number
+    format to be applied to each data point not having a specified number
+    format.
+
+    The sequence of data points in a bubble chart series is maintained
+    throughout the chart building process because a data point has no unique
+    identifier and can only be retrieved by index.
+    """
 
 
 class XyDataPoint(object):
