@@ -22,7 +22,6 @@ Feature: Add a chart
       | Pie              | PIE              |   5  |   1  |
 
 
-  @wip
   Scenario Outline: Add an XY chart
     Given a blank slide
      When I add an <chart-type> chart having 2 series of 3 points each

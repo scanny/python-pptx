@@ -413,7 +413,7 @@ class _XyChartXmlWriter(_BaseChartXmlWriter):
             '  <c:chart>\n'
             '    <c:plotArea>\n'
             '      <c:scatterChart>\n'
-            '        <c:scatterStyle val="lineMarker"/>\n'
+            '        <c:scatterStyle val="%s"/>\n'
             '        <c:varyColors val="0"/>\n'
             '%s'
             '        <c:axId val="-2128940872"/>\n'
@@ -471,7 +471,7 @@ class _XyChartXmlWriter(_BaseChartXmlWriter):
             '    </a:p>\n'
             '  </c:txPr>\n'
             '</c:chartSpace>\n'
-        ) % self._ser_xml
+        ) % (self._scatterStyle_val, self._ser_xml)
         return xml
 
     @property
@@ -487,6 +487,16 @@ class _XyChartXmlWriter(_BaseChartXmlWriter):
                 '          </c:marker>\n'
             )
         return ''
+
+    @property
+    def _scatterStyle_val(self):
+        smooth_types = (
+            XL_CHART_TYPE.XY_SCATTER_SMOOTH,
+            XL_CHART_TYPE.XY_SCATTER_SMOOTH_NO_MARKERS,
+        )
+        if self._chart_type in smooth_types:
+            return 'smoothMarker'
+        return 'lineMarker'
 
     @property
     def _ser_xml(self):
