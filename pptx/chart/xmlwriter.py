@@ -472,6 +472,20 @@ class _XyChartXmlWriter(_BaseChartXmlWriter):
         return xml
 
     @property
+    def _marker_xml(self):
+        no_marker_types = (
+            XL_CHART_TYPE.XY_SCATTER_LINES_NO_MARKERS,
+            XL_CHART_TYPE.XY_SCATTER_SMOOTH_NO_MARKERS,
+        )
+        if self._chart_type in no_marker_types:
+            return (
+                '          <c:marker>\n'
+                '            <c:symbol val="none"/>\n'
+                '          </c:marker>\n'
+            )
+        return ''
+
+    @property
     def _ser_xml(self):
         xml = ''
         for series in self._chart_data:
@@ -481,21 +495,34 @@ class _XyChartXmlWriter(_BaseChartXmlWriter):
                 '          <c:idx val="{ser_idx}"/>\n'
                 '          <c:order val="{ser_order}"/>\n'
                 '{tx_xml}'
+                '{spPr_xml}'
+                '{marker_xml}'
+                '{xVal_xml}'
+                '{yVal_xml}'
+                '          <c:smooth val="0"/>\n'
+                '        </c:ser>\n'
+            ).format(**{
+                'ser_idx':    series.index,
+                'ser_order':  series.index,
+                'tx_xml':     xml_writer.tx_xml,
+                'spPr_xml':   self._spPr_xml,
+                'marker_xml': self._marker_xml,
+                'xVal_xml':   xml_writer.xVal_xml,
+                'yVal_xml':   xml_writer.yVal_xml,
+            })
+        return xml
+
+    @property
+    def _spPr_xml(self):
+        if self._chart_type == XL_CHART_TYPE.XY_SCATTER:
+            return (
                 '          <c:spPr>\n'
                 '            <a:ln w="47625">\n'
                 '              <a:noFill/>\n'
                 '            </a:ln>\n'
                 '          </c:spPr>\n'
-                '{xVal_xml}'
-                '{yVal_xml}'
-                '          <c:smooth val="0"/>\n'
-                '        </c:ser>\n'
-            ).format(
-                ser_idx=series.index, ser_order=series.index,
-                tx_xml=xml_writer.tx_xml, xVal_xml=xml_writer.xVal_xml,
-                yVal_xml=xml_writer.yVal_xml
             )
-        return xml
+        return ''
 
 
 class _XySeriesXmlWriter(_BaseSeriesXmlWriter):

@@ -124,7 +124,8 @@ class Describe_XyChartXmlWriter(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('XY_SCATTER', 2, 3, '2x3-xy'),
+        ('XY_SCATTER',       2, 3, '2x3-xy'),
+        ('XY_SCATTER_LINES', 2, 3, '2x3-xy-lines'),
     ])
     def xml_fixture(self, request):
         enum_member, ser_count, point_count, snippet_name = request.param
