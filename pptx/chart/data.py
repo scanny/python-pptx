@@ -12,7 +12,7 @@ from xml.sax.saxutils import escape
 from ..oxml import parse_xml
 from ..oxml.ns import nsdecls
 from ..util import lazyproperty
-from .xlsx import WorkbookWriter, XyWorkbookWriter
+from .xlsx import BubbleWorkbookWriter, WorkbookWriter, XyWorkbookWriter
 from .xmlwriter import ChartXmlWriter
 
 
@@ -319,6 +319,21 @@ class BubbleChartData(XyChartData):
         self.append(series_data)
         return series_data
 
+    def bubble_sizes_ref(self, series):
+        """
+        The Excel worksheet reference for the range containing the bubble
+        sizes for *series*.
+        """
+        return self._workbook_writer.bubble_sizes_ref(series)
+
+    @lazyproperty
+    def _workbook_writer(self):
+        """
+        The worksheet writer object to which layout and writing of the Excel
+        worksheet for this chart will be delegated.
+        """
+        return BubbleWorkbookWriter(self)
+
 
 class XySeriesData(_BaseSeriesData):
     """
@@ -361,6 +376,22 @@ class BubbleSeriesData(XySeriesData):
         self.append(data_point)
         return data_point
 
+    @property
+    def bubble_sizes(self):
+        """
+        A sequence containing the bubble size for each datapoint in this
+        series, in data point order.
+        """
+        return [dp.bubble_size for dp in self._data_points]
+
+    @property
+    def bubble_sizes_ref(self):
+        """
+        The Excel worksheet reference for the range containing the bubble
+        sizes for this series.
+        """
+        return self._chart_data.bubble_sizes_ref(self)
+
 
 class XyDataPoint(object):
     """
@@ -395,6 +426,13 @@ class BubbleDataPoint(XyDataPoint):
     def __init__(self, x, y, size):
         super(BubbleDataPoint, self).__init__(x, y)
         self._size = size
+
+    @property
+    def bubble_size(self):
+        """
+        The value representing the size of the bubble for this data point.
+        """
+        return self._size
 
 
 class _SeriesData(object):

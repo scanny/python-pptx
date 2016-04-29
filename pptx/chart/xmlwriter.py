@@ -546,6 +546,123 @@ class _BubbleChartXmlWriter(_XyChartXmlWriter):
     Provides specialized methods particular to the ``<c:bubbleChart>``
     element.
     """
+    @property
+    def xml(self):
+        xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:chart>\n'
+            '    <c:autoTitleDeleted val="0"/>\n'
+            '    <c:plotArea>\n'
+            '      <c:layout/>\n'
+            '      <c:bubbleChart>\n'
+            '        <c:varyColors val="0"/>\n'
+            '%s'
+            '        <c:dLbls>\n'
+            '          <c:showLegendKey val="0"/>\n'
+            '          <c:showVal val="0"/>\n'
+            '          <c:showCatName val="0"/>\n'
+            '          <c:showSerName val="0"/>\n'
+            '          <c:showPercent val="0"/>\n'
+            '          <c:showBubbleSize val="0"/>\n'
+            '        </c:dLbls>\n'
+            '        <c:bubbleScale val="100"/>\n'
+            '        <c:showNegBubbles val="0"/>\n'
+            '        <c:axId val="-2115720072"/>\n'
+            '        <c:axId val="-2115723560"/>\n'
+            '      </c:bubbleChart>\n'
+            '      <c:valAx>\n'
+            '        <c:axId val="-2115720072"/>\n'
+            '        <c:scaling>\n'
+            '          <c:orientation val="minMax"/>\n'
+            '        </c:scaling>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2115723560"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:crossBetween val="midCat"/>\n'
+            '      </c:valAx>\n'
+            '      <c:valAx>\n'
+            '        <c:axId val="-2115723560"/>\n'
+            '        <c:scaling>\n'
+            '          <c:orientation val="minMax"/>\n'
+            '        </c:scaling>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="l"/>\n'
+            '        <c:majorGridlines/>\n'
+            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2115720072"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:crossBetween val="midCat"/>\n'
+            '      </c:valAx>\n'
+            '    </c:plotArea>\n'
+            '    <c:legend>\n'
+            '      <c:legendPos val="r"/>\n'
+            '      <c:layout/>\n'
+            '      <c:overlay val="0"/>\n'
+            '    </c:legend>\n'
+            '    <c:plotVisOnly val="1"/>\n'
+            '    <c:dispBlanksAs val="gap"/>\n'
+            '    <c:showDLblsOverMax val="0"/>\n'
+            '  </c:chart>\n'
+            '  <c:txPr>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr>\n'
+            '        <a:defRPr sz="1800"/>\n'
+            '      </a:pPr>\n'
+            '      <a:endParaRPr lang="en-US"/>\n'
+            '    </a:p>\n'
+            '  </c:txPr>\n'
+            '</c:chartSpace>\n'
+        ) % self._ser_xml
+        return xml
+
+    @property
+    def _bubble3D_val(self):
+        if self._chart_type == XL_CHART_TYPE.BUBBLE_THREE_D_EFFECT:
+            return '1'
+        return '0'
+
+    @property
+    def _ser_xml(self):
+        xml = ''
+        for series in self._chart_data:
+            xml_writer = _BubbleSeriesXmlWriter(series)
+            xml += (
+                '        <c:ser>\n'
+                '          <c:idx val="{ser_idx}"/>\n'
+                '          <c:order val="{ser_order}"/>\n'
+                '{tx_xml}'
+                '          <c:invertIfNegative val="0"/>\n'
+                # '{dLbls_xml}'
+                '{xVal_xml}'
+                '{yVal_xml}'
+                '{bubbleSize_xml}'
+                '          <c:bubble3D val="{bubble3D_val}"/>\n'
+                '        </c:ser>\n'
+            ).format(**{
+                'ser_idx':        series.index,
+                'ser_order':      series.index,
+                'tx_xml':         xml_writer.tx_xml,
+                # 'dLbls_xml':      xml_writer.dLbls_xml,
+                'xVal_xml':       xml_writer.xVal_xml,
+                'yVal_xml':       xml_writer.yVal_xml,
+                'bubbleSize_xml': xml_writer.bubbleSize_xml,
+                'bubble3D_val':   self._bubble3D_val,
+            })
+        return xml
 
 
 class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
@@ -582,5 +699,27 @@ class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
         ).format(
             numRef_xml=self.numRef_xml(
                 self._series.y_values_ref, self._series.y_values
+            )
+        )
+
+
+class _BubbleSeriesXmlWriter(_XySeriesXmlWriter):
+    """
+    Generates XML snippets particular to a bubble chart series.
+    """
+    @property
+    def bubbleSize_xml(self):
+        """
+        Return the ``<c:bubbleSize>`` element for this series as unicode
+        text. This element contains the bubble size values for all the
+        data points in the chart.
+        """
+        return (
+            '          <c:bubbleSize>\n'
+            '{numRef_xml}'
+            '          </c:bubbleSize>\n'
+        ).format(
+            numRef_xml=self.numRef_xml(
+                self._series.bubble_sizes_ref, self._series.bubble_sizes
             )
         )

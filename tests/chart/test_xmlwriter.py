@@ -10,8 +10,7 @@ from itertools import islice
 
 import pytest
 
-
-from pptx.chart.data import ChartData, XyChartData
+from pptx.chart.data import BubbleChartData, ChartData, XyChartData
 from pptx.chart.xmlwriter import (
     _BarChartXmlWriter, _BubbleChartXmlWriter, ChartXmlWriter,
     _LineChartXmlWriter, _PieChartXmlWriter, _XyChartXmlWriter
@@ -86,6 +85,27 @@ class Describe_BarChartXmlWriter(object):
         return xml_writer, expected_xml
 
 
+class Describe_BubbleChartXmlWriter(object):
+
+    def it_can_generate_xml_for_bubble_charts(self, xml_fixture):
+        xml_writer, expected_xml = xml_fixture
+        assert xml_writer.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('BUBBLE',                2, 3, '2x3-bubble'),
+        ('BUBBLE_THREE_D_EFFECT', 2, 3, '2x3-bubble-3d'),
+    ])
+    def xml_fixture(self, request):
+        enum_member, ser_count, point_count, snippet_name = request.param
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        chart_data = make_bubble_chart_data(ser_count, point_count)
+        xml_writer = _BubbleChartXmlWriter(chart_type, chart_data)
+        expected_xml = snippet_text(snippet_name)
+        return xml_writer, expected_xml
+
+
 class Describe_LineChartXmlWriter(object):
 
     def it_can_generate_xml_for_a_line_chart(self, xml_fixture):
@@ -145,6 +165,26 @@ class Describe_XyChartXmlWriter(object):
 
 
 # helpers ------------------------------------------------------------
+
+def make_bubble_chart_data(ser_count, point_count):
+    """
+    Return an |BubbleChartData| object populated with *ser_count* series,
+    each having *point_count* data points.
+    """
+    points = (
+        (1.1, 11.1, 10.0), (2.1, 12.1, 20.0), (3.1, 13.1, 30.0),
+        (1.2, 11.2, 40.0), (2.2, 12.2, 50.0), (3.2, 13.2, 60.0),
+    )
+    chart_data = BubbleChartData()
+    for i in range(ser_count):
+        series_label = 'Series %d' % (i+1)
+        series = chart_data.add_series(series_label)
+        for j in range(point_count):
+            point_idx = (i * point_count) + j
+            x, y, size = points[point_idx]
+            series.add_data_point(x, y, size)
+    return chart_data
+
 
 def make_series_data_seq(cat_count, ser_count):
     """

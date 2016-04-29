@@ -143,3 +143,28 @@ class XyWorkbookWriter(object):
             # write Y values
             worksheet.write(offset, 1, series.name)
             worksheet.write_column(offset+1, 1, series.y_values)
+
+
+class BubbleWorkbookWriter(XyWorkbookWriter):
+    """
+    Service object that knows how to write an Excel workbook from bubble
+    chart data.
+    """
+    def bubble_sizes_ref(self, series):
+        """
+        The Excel worksheet reference to the range containing the bubble
+        sizes for *series* (not including the column heading cell).
+        """
+        top_row = self.series_table_row_offset(series) + 2
+        bottom_row = top_row + len(series) - 1
+        return "Sheet1!$C$%d:$C$%d" % (top_row, bottom_row)
+
+    def _populate_worksheet(self, workbook, worksheet):
+        """
+        Write chart data contents to *worksheet* in the bubble chart layout.
+        Write the data for each series to a separate three-column table with
+        X values in column A, Y values in column B, and bubble sizes in
+        column C. Place the series label in the first (heading) cell of the
+        values column.
+        """
+        raise NotImplementedError
