@@ -24,6 +24,7 @@ def ChartXmlWriter(chart_type, series_seq):
             XL_CHART_TYPE.LINE:             _LineChartXmlWriter,
             XL_CHART_TYPE.PIE:              _PieChartXmlWriter,
             XL_CHART_TYPE.XY_SCATTER:       _XyChartXmlWriter,
+            XL_CHART_TYPE.XY_SCATTER_LINES: _XyChartXmlWriter,
         }[chart_type]
     except KeyError:
         raise NotImplementedError(

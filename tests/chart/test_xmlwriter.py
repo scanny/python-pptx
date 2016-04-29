@@ -40,6 +40,7 @@ class DescribeChartXmlWriter(object):
         ('LINE',             _LineChartXmlWriter),
         ('PIE',              _PieChartXmlWriter),
         ('XY_SCATTER',       _XyChartXmlWriter),
+        ('XY_SCATTER_LINES', _XyChartXmlWriter),
     ])
     def call_fixture(self, request, series_seq_):
         chart_type_member, XmlWriterClass = request.param
