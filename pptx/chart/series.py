@@ -149,6 +149,26 @@ class XySeries(_BaseSeries):
     """
     A data point series belonging to an XY (scatter) plot.
     """
+    def iter_values(self):
+        """
+        Generate each float Y value in this series, in the order they appear
+        on the chart. A value of `None` represents a missing Y value
+        (corresponding to a blank Excel cell).
+        """
+        yVal = self._element.yVal
+        if yVal is None:
+            return
+
+        for idx in range(yVal.ptCount_val):
+            yield yVal.pt_v(idx)
+
+    @property
+    def values(self):
+        """
+        Read-only. A sequence containing the float values for this series, in
+        the order they appear on the chart.
+        """
+        return tuple(self.iter_values())
 
 
 class SeriesCollection(Sequence):

@@ -93,9 +93,12 @@ register_element_cls('c:pieChart',     CT_PieChart)
 register_element_cls('c:scatterChart', CT_ScatterChart)
 
 
-from .chart.series import CT_SeriesComposite, CT_StrVal_NumVal_Composite
-register_element_cls('c:pt',  CT_StrVal_NumVal_Composite)
-register_element_cls('c:ser', CT_SeriesComposite)
+from .chart.series import (
+    CT_NumDataSource, CT_SeriesComposite, CT_StrVal_NumVal_Composite
+)
+register_element_cls('c:pt',   CT_StrVal_NumVal_Composite)
+register_element_cls('c:ser',  CT_SeriesComposite)
+register_element_cls('c:yVal', CT_NumDataSource)
 
 
 from .chart.shared import (

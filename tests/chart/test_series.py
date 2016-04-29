@@ -9,7 +9,8 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.series import (
-    BarSeries, _BaseSeries, LineSeries, SeriesCollection, _SeriesFactory
+    BarSeries, _BaseSeries, LineSeries, SeriesCollection, _SeriesFactory,
+    XySeries
 )
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
@@ -227,6 +228,32 @@ class DescribeLineSeries(object):
         series = LineSeries(element(ser_cxml))
         expected_xml = xml(expected_ser_cxml)
         return series, new_value, expected_xml
+
+
+class Describe_XySeries(object):
+
+    def it_knows_its_values(self, values_get_fixture):
+        series, expected_values = values_get_fixture
+        assert series.values == expected_values
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:ser', ()),
+        ('c:ser/c:yVal/c:numRef', ()),
+        ('c:ser/c:val/c:numRef/c:numCache', ()),
+        ('c:ser/c:yVal/c:numRef/c:numCache/(c:ptCount{val=1},c:pt{idx=0}/c:v'
+         '"1.1")', (1.1,)),
+        ('c:ser/c:yVal/c:numRef/c:numCache/(c:ptCount{val=3},c:pt{idx=0}/c:v'
+         '"1.1",c:pt{idx=2}/c:v"3.3")', (1.1, None, 3.3)),
+        ('c:ser/c:val/c:numLit', ()),
+        ('c:ser/c:yVal/c:numLit/(c:ptCount{val=3},c:pt{idx=0}/c:v"1.1",c:pt{'
+         'idx=2}/c:v"3.3")', (1.1, None, 3.3)),
+    ])
+    def values_get_fixture(self, request):
+        ser_cxml, expected_values = request.param
+        series = XySeries(element(ser_cxml))
+        return series, expected_values
 
 
 class DescribeSeriesCollection(object):

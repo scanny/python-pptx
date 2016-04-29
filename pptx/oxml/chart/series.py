@@ -12,6 +12,34 @@ from ..xmlchemy import (
 )
 
 
+class CT_NumDataSource(BaseOxmlElement):
+    """
+    ``<c:yVal>`` custom element class used in XY and bubble charts, and
+    perhaps others.
+    """
+    numRef = OneAndOnlyOne('c:numRef')
+
+    @property
+    def ptCount_val(self):
+        """
+        Return the value of `./c:numRef/c:numCache/c:ptCount/@val`,
+        specifying how many `c:pt` elements are in this numeric data cache.
+        Returns 0 if no `c:ptCount` element is present, as this is the least
+        disruptive way to degrade when no cached point data is available.
+        This situation is not expected, but is valid according to the schema.
+        """
+        results = self.xpath('.//c:ptCount/@val')
+        return int(results[0]) if results else 0
+
+    def pt_v(self, idx):
+        """
+        Return the Y value for data point *idx* in this cache, or None if no
+        value is present for that data point.
+        """
+        results = self.xpath('.//c:pt[@idx=%d]' % idx)
+        return results[0].value if results else None
+
+
 class CT_SeriesComposite(BaseOxmlElement):
     """
     ``<c:ser>`` custom element class. Note there are several different series
@@ -35,6 +63,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     )
     cat = ZeroOrOne('c:cat', successors=_tag_seq[13:])
     val = ZeroOrOne('c:val', successors=_tag_seq[14:])
+    yVal = ZeroOrOne('c:yVal', successors=_tag_seq[16:])
     smooth = ZeroOrOne('c:smooth', successors=_tag_seq[18:])
     del _tag_seq
 
