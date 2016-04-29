@@ -352,6 +352,14 @@ class BubbleSeriesData(XySeriesData):
     throughout the chart building process because a data point has no unique
     identifier and can only be retrieved by index.
     """
+    def add_data_point(self, x, y, size):
+        """
+        Append a new BubbleDataPoint object having the values *x*, *y*, and
+        *size*.
+        """
+        data_point = BubbleDataPoint(x, y, size)
+        self.append(data_point)
+        return data_point
 
 
 class XyDataPoint(object):
@@ -377,6 +385,16 @@ class XyDataPoint(object):
         The Y value for this XY data point.
         """
         return self._y
+
+
+class BubbleDataPoint(XyDataPoint):
+    """
+    A data point in a bubble chart series. Provides access to the x, y, and
+    size values of the datapoint.
+    """
+    def __init__(self, x, y, size):
+        super(BubbleDataPoint, self).__init__(x, y)
+        self._size = size
 
 
 class _SeriesData(object):

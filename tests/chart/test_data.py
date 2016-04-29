@@ -10,8 +10,8 @@ import pytest
 
 
 from pptx.chart.data import (
-    _BaseChartData, BubbleChartData, BubbleSeriesData, ChartData,
-    _SeriesData, XyChartData, XyDataPoint, XySeriesData
+    _BaseChartData, BubbleChartData, BubbleDataPoint, BubbleSeriesData,
+    ChartData, _SeriesData, XyChartData, XyDataPoint, XySeriesData
 )
 from pptx.enum.base import EnumValue
 
@@ -255,6 +255,39 @@ class DescribeXyChartData(object):
     @pytest.fixture
     def series_data_(self, request):
         return instance_mock(request, XySeriesData)
+
+
+class DescribeBubbleSeriesData(object):
+
+    def it_can_add_a_data_point(self, add_data_point_fixture):
+        series_data, x, y, size, BubbleDataPoint_, data_point_ = (
+            add_data_point_fixture
+        )
+        data_point = series_data.add_data_point(x, y, size)
+        BubbleDataPoint_.assert_called_once_with(x, y, size)
+        assert series_data[-1] is data_point_
+        assert data_point is data_point_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_data_point_fixture(self, request, BubbleDataPoint_, data_point_):
+        series_data = BubbleSeriesData(None, None)
+        x, y, size = 42, 24, 17
+        return series_data, x, y, size, BubbleDataPoint_, data_point_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def BubbleDataPoint_(self, request, data_point_):
+        return class_mock(
+            request, 'pptx.chart.data.BubbleDataPoint',
+            return_value=data_point_
+        )
+
+    @pytest.fixture
+    def data_point_(self, request):
+        return instance_mock(request, BubbleDataPoint)
 
 
 class DescribeXySeriesData(object):
