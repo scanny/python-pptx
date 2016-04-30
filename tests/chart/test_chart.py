@@ -40,7 +40,7 @@ class DescribeChart(object):
             chart.category_axis
 
     def it_provides_access_to_the_value_axis(self, val_ax_fixture):
-        chart, value_axis_, ValueAxis_, valAx = val_ax_fixture
+        chart, ValueAxis_, valAx, value_axis_ = val_ax_fixture
         value_axis = chart.value_axis
         ValueAxis_.assert_called_once_with(valAx)
         assert value_axis is value_axis_
@@ -207,12 +207,16 @@ class DescribeChart(object):
         expected_xml = xml(expected_chartSpace_cxml)
         return chart, new_value, expected_xml
 
-    @pytest.fixture
-    def val_ax_fixture(self, ValueAxis_, value_axis_):
-        chartSpace = element('c:chartSpace/c:chart/c:plotArea/c:valAx')
-        valAx = chartSpace.xpath('./c:chart/c:plotArea/c:valAx')[0]
+    @pytest.fixture(params=[
+        ('c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)', 0),
+        ('c:chartSpace/c:chart/c:plotArea/(c:valAx,c:valAx)', 1),
+    ])
+    def val_ax_fixture(self, request, ValueAxis_, value_axis_):
+        chartSpace_xml, idx = request.param
+        chartSpace = element(chartSpace_xml)
         chart = Chart(chartSpace, None)
-        return chart, value_axis_, ValueAxis_, valAx
+        valAx = chartSpace.xpath('.//c:valAx')[idx]
+        return chart, ValueAxis_, valAx, value_axis_
 
     @pytest.fixture
     def val_ax_raise_fixture(self):

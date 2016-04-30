@@ -50,7 +50,6 @@ Feature: Get and set chart properties
       | Bubble       | ValueAxis    |
 
 
-  @wip
   Scenario Outline: Get value axis
     Given a chart of type <chart-type>
      Then chart.value_axis is a ValueAxis object

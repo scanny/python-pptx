@@ -140,12 +140,12 @@ class Chart(object):
         axis of this chart. Raises |ValueError| if the chart has no value
         axis.
         """
-        if len(self._chartSpace.xpath('.//c:valAx')) > 1:
-            raise NotImplementedError
         valAx_lst = self._chartSpace.valAx_lst
-        if valAx_lst:
-            return ValueAxis(valAx_lst[0])
-        raise ValueError('chart has no value axis')
+        if not valAx_lst:
+            raise ValueError('chart has no value axis')
+
+        idx = 1 if len(valAx_lst) > 1 else 0
+        return ValueAxis(valAx_lst[idx])
 
     @property
     def _workbook(self):
