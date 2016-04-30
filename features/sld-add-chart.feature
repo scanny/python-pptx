@@ -39,7 +39,6 @@ Feature: Add a chart
       | XY_SCATTER_SMOOTH_NO_MARKERS |
 
 
-  @wip
   Scenario Outline: Add a bubble chart
     Given a blank slide
      When I add a <chart-type> chart having 2 series of 3 points each

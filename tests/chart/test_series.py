@@ -323,6 +323,7 @@ class Describe_SeriesFactory(object):
 
     @pytest.fixture(params=[
         ('c:barChart/c:ser',     'BarSeries'),
+        ('c:bubbleChart/c:ser',  'BubbleSeries'),
         ('c:lineChart/c:ser',    'LineSeries'),
         ('c:pieChart/c:ser',     'PieSeries'),
         ('c:scatterChart/c:ser', 'XySeries'),

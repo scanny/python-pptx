@@ -171,6 +171,12 @@ class XySeries(_BaseSeries):
         return tuple(self.iter_values())
 
 
+class BubbleSeries(XySeries):
+    """
+    A data point series belonging to a bubble plot.
+    """
+
+
 class SeriesCollection(Sequence):
     """
     A sequence of |Series| objects.
@@ -198,6 +204,7 @@ def _SeriesFactory(ser):
     try:
         SeriesCls = {
             qn('c:barChart'):     BarSeries,
+            qn('c:bubbleChart'):  BubbleSeries,
             qn('c:lineChart'):    LineSeries,
             qn('c:pieChart'):     PieSeries,
             qn('c:scatterChart'): XySeries,
