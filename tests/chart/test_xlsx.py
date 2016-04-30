@@ -14,8 +14,10 @@ from xlsxwriter import Workbook
 from xlsxwriter.format import Format
 from xlsxwriter.worksheet import Worksheet
 
-from pptx.chart.data import _SeriesData, XyChartData
-from pptx.chart.xlsx import WorkbookWriter, XyWorkbookWriter
+from pptx.chart.data import BubbleChartData, _SeriesData, XyChartData
+from pptx.chart.xlsx import (
+    BubbleWorkbookWriter, WorkbookWriter, XyWorkbookWriter
+)
 from pptx.compat import BytesIO
 
 from ..unitutil.mock import call, class_mock, instance_mock, method_mock
@@ -134,6 +136,55 @@ class Describe_WorkbookWriter(object):
         xlsx_file_ = instance_mock(request, BytesIO)
         xlsx_file_.getvalue.return_value = xlsx_blob_
         return xlsx_file_
+
+
+class Describe_BubbleWorkbookWriter(object):
+
+    def it_can_populate_a_worksheet_with_chart_data(self, populate_fixture):
+        workbook_writer, workbook_, worksheet_, expected_calls = (
+            populate_fixture
+        )
+        workbook_writer._populate_worksheet(workbook_, worksheet_)
+        assert worksheet_.mock_calls == expected_calls
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def populate_fixture(self, workbook_, worksheet_):
+        chart_data = BubbleChartData()
+        series_1 = chart_data.add_series('Series 1')
+        for pt in ((1, 1.1, 10), (2, 2.2, 20)):
+            series_1.add_data_point(*pt)
+        series_2 = chart_data.add_series('Series 2')
+        for pt in ((3, 3.3, 30), (4, 4.4, 40)):
+            series_2.add_data_point(*pt)
+
+        workbook_writer = BubbleWorkbookWriter(chart_data)
+
+        expected_calls = [
+            call.write_column(1, 0, [1, 2]),
+            call.write(0, 1, 'Series 1'),
+            call.write_column(1, 1, [1.1, 2.2]),
+            call.write(0, 2, 'Size'),
+            call.write_column(1, 2, [10, 20]),
+
+            call.write_column(5, 0, [3, 4]),
+            call.write(4, 1, 'Series 2'),
+            call.write_column(5, 1, [3.3, 4.4]),
+            call.write(4, 2, 'Size'),
+            call.write_column(5, 2, [30, 40]),
+        ]
+        return workbook_writer, workbook_, worksheet_, expected_calls
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def workbook_(self, request):
+        return instance_mock(request, Workbook)
+
+    @pytest.fixture
+    def worksheet_(self, request):
+        return instance_mock(request, Worksheet)
 
 
 class Describe_XyWorkbookWriter(object):
