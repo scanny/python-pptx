@@ -28,13 +28,19 @@ class Chart(object):
     @property
     def category_axis(self):
         """
-        The category axis of this chart. Raises |ValueError| if no category
-        axis is defined.
+        The category axis of this chart. In the case of an XY or Bubble
+        chart, this is the X axis. Raises |ValueError| if no category
+        axis is defined (as is the case for a pie chart, for example).
         """
-        catAx = self._chartSpace.catAx
-        if catAx is None:
-            raise ValueError('chart has no category axis')
-        return CategoryAxis(catAx)
+        catAx_lst = self._chartSpace.catAx_lst
+        if catAx_lst:
+            return CategoryAxis(catAx_lst[0])
+
+        valAx_lst = self._chartSpace.valAx_lst
+        if valAx_lst:
+            return ValueAxis(valAx_lst[0])
+
+        raise ValueError('chart has no category axis')
 
     @property
     def chart_style(self):
@@ -136,10 +142,10 @@ class Chart(object):
         """
         if len(self._chartSpace.xpath('.//c:valAx')) > 1:
             raise NotImplementedError
-        valAx = self._chartSpace.valAx
-        if valAx is None:
-            raise ValueError('chart has no value axis')
-        return ValueAxis(valAx)
+        valAx_lst = self._chartSpace.valAx_lst
+        if valAx_lst:
+            return ValueAxis(valAx_lst[0])
+        raise ValueError('chart has no value axis')
 
     @property
     def _workbook(self):

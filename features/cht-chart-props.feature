@@ -39,7 +39,6 @@ Feature: Get and set chart properties
       | 3D-Bubble                | BUBBLE_THREE_D_EFFECT        |
 
 
-  @wip
   Scenario Outline: Get category axis
     Given a chart of type <chart-type>
      Then chart.category_axis is a <type-name> object

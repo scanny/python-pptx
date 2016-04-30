@@ -28,10 +28,10 @@ from ..unitutil.mock import (
 
 class DescribeChart(object):
 
-    def it_provides_access_to_the_category_axis(self, cat_ax_fixture):
-        chart, category_axis_, CategoryAxis_, catAx = cat_ax_fixture
+    def it_provides_access_to_the_category_axis(self, category_axis_fixture):
+        chart, category_axis_, AxisCls_, xAx = category_axis_fixture
         category_axis = chart.category_axis
-        CategoryAxis_.assert_called_once_with(catAx)
+        AxisCls_.assert_called_once_with(xAx)
         assert category_axis is category_axis_
 
     def it_raises_when_no_category_axis(self, cat_ax_raise_fixture):
@@ -106,12 +106,18 @@ class DescribeChart(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture
-    def cat_ax_fixture(self, CategoryAxis_, category_axis_):
-        chartSpace = element('c:chartSpace/c:chart/c:plotArea/c:catAx')
-        catAx = chartSpace.xpath('./c:chart/c:plotArea/c:catAx')[0]
+    @pytest.fixture(params=[
+        ('c:chartSpace/c:chart/c:plotArea/c:catAx', 'c:catAx'),
+        ('c:chartSpace/c:chart/c:plotArea/c:valAx', 'c:valAx'),
+    ])
+    def category_axis_fixture(self, request, CategoryAxis_, ValueAxis_):
+        chartSpace_cxml, ax_tag = request.param
+        chartSpace = element(chartSpace_cxml)
         chart = Chart(chartSpace, None)
-        return chart, category_axis_, CategoryAxis_, catAx
+        AxisCls_ = {'c:catAx': CategoryAxis_, 'c:valAx': ValueAxis_}[ax_tag]
+        axis_ = AxisCls_.return_value
+        xAx = chartSpace.xpath('./c:chart/c:plotArea/%s' % ax_tag)[0]
+        return chart, axis_, AxisCls_, xAx
 
     @pytest.fixture
     def cat_ax_raise_fixture(self):
