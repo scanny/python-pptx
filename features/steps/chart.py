@@ -13,7 +13,6 @@ from itertools import islice
 from behave import given, then, when
 
 from pptx import Presentation
-from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Legend
 from pptx.chart.data import ChartData
 from pptx.dml.color import RGBColor
@@ -29,14 +28,6 @@ from helpers import count, test_pptx
 
 
 # given ===================================================
-
-@given('a bar chart')
-def given_a_bar_chart(context):
-    prs = Presentation(test_pptx('cht-charts'))
-    sld = prs.slides[0]
-    graphic_frame = sld.shapes[0]
-    context.chart = graphic_frame.chart
-
 
 @given('a bar plot having known categories')
 def given_a_bar_plot_having_known_categories(context):
@@ -444,6 +435,12 @@ def then_axis_major_or_minor_unit_is_value(context, major_or_minor, value):
     assert actual_value == expected_value, 'got %s' % actual_value
 
 
+@then('chart.category_axis is a {type_name} object')
+def then_chart_category_axis_is_an_axis_type_object(context, type_name):
+    category_axis = context.chart.category_axis
+    assert type(category_axis).__name__ == type_name
+
+
 @then('chart.chart_type is {enum_member}')
 def then_chart_chart_type_is_value(context, enum_member):
     expected_value = getattr(XL_CHART_TYPE, enum_member)
@@ -465,6 +462,12 @@ def then_chart_has_legend_is_value(context, value):
 def then_chart_legend_is_a_legend_object(context):
     chart = context.chart
     assert isinstance(chart.legend, Legend)
+
+
+@then('chart.value_axis is a ValueAxis object')
+def then_chart_value_axis_is_a_ValueAxis_object(context):
+    value_axis = context.chart.value_axis
+    assert type(value_axis).__name__ == 'ValueAxis'
 
 
 @then('data_labels.position is {value}')
@@ -493,18 +496,6 @@ def then_each_series_has_count_values(context, count):
     for series in context.chart.plots[0].series:
         actual_value_count = len(series.values)
         assert actual_value_count == expected_count
-
-
-@then('I can access the chart category axis')
-def then_I_can_access_the_chart_category_axis(context):
-    category_axis = context.chart.category_axis
-    assert isinstance(category_axis, CategoryAxis)
-
-
-@then('I can access the chart value axis')
-def then_I_can_access_the_chart_value_axis(context):
-    value_axis = context.chart.value_axis
-    assert isinstance(value_axis, ValueAxis)
 
 
 @then('legend.font is a Font object')

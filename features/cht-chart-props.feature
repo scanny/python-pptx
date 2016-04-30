@@ -37,3 +37,27 @@ Feature: Get and set chart properties
       | XY Smooth No Markers     | XY_SCATTER_SMOOTH_NO_MARKERS |
       | Bubble                   | BUBBLE                       |
       | 3D-Bubble                | BUBBLE_THREE_D_EFFECT        |
+
+
+  @wip
+  Scenario Outline: Get category axis
+    Given a chart of type <chart-type>
+     Then chart.category_axis is a <type-name> object
+
+    Examples: category axis object types
+      | chart-type   | type-name    |
+      | Stacked Bar  | CategoryAxis |
+      | XY (Scatter) | ValueAxis    |
+      | Bubble       | ValueAxis    |
+
+
+  @wip
+  Scenario Outline: Get value axis
+    Given a chart of type <chart-type>
+     Then chart.value_axis is a ValueAxis object
+
+    Examples: value axis object types
+      | chart-type   |
+      | Stacked Bar  |
+      | XY (Scatter) |
+      | Bubble       |

@@ -134,6 +134,8 @@ class Chart(object):
         axis of this chart. Raises |ValueError| if the chart has no value
         axis.
         """
+        if len(self._chartSpace.xpath('.//c:valAx')) > 1:
+            raise NotImplementedError
         valAx = self._chartSpace.valAx
         if valAx is None:
             raise ValueError('chart has no value axis')
