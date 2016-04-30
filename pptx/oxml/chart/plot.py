@@ -129,6 +129,20 @@ class CT_BarDir(BaseOxmlElement):
     val = OptionalAttribute('val', ST_BarDir, default=ST_BarDir.COL)
 
 
+class CT_BubbleChart(BaseChartElement):
+    """
+    ``<c:bubbleChart>`` custom element class
+    """
+    _tag_seq = (
+        'c:varyColors', 'c:ser', 'c:dLbls', 'c:axId', 'c:bubble3D',
+        'c:bubbleScale', 'c:showNegBubbles', 'c:sizeRepresents', 'c:axId',
+        'c:extLst'
+    )
+    ser = ZeroOrMore('c:ser', successors=_tag_seq[2:])
+    bubble3D = ZeroOrOne('c:bubble3D', successors=_tag_seq[5:])
+    del _tag_seq
+
+
 class CT_DLblPos(BaseOxmlElement):
     """
     ``<c:dLblPos>`` element specifying the positioning of a data label with

@@ -521,6 +521,12 @@ class DescribePlotTypeInspector(object):
         ('c:scatterChart/(c:scatterStyle{val=smoothMarker},c:ser/c:marker/c:'
          'symbol{val=none})',
          XL.XY_SCATTER_SMOOTH_NO_MARKERS),
+
+        ('c:bubbleChart',                         XL.BUBBLE),
+        ('c:bubbleChart/c:ser',                   XL.BUBBLE),
+        ('c:bubbleChart/c:ser/c:bubble3D',        XL.BUBBLE_THREE_D_EFFECT),
+        ('c:bubbleChart/c:ser/c:bubble3D{val=0}', XL.BUBBLE),
+        ('c:bubbleChart/c:ser/c:bubble3D{val=1}', XL.BUBBLE_THREE_D_EFFECT),
     ])
     def chart_type_fixture(self, request):
         xChart_cxml, expected_chart_type = request.param

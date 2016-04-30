@@ -74,14 +74,15 @@ register_element_cls('c:legendPos', CT_LegendPos)
 
 
 from .chart.plot import (
-    CT_Area3DChart, CT_AreaChart, CT_BarChart, CT_BarDir, CT_DLblPos,
-    CT_DLbls, CT_GapAmount, CT_Grouping, CT_LineChart, CT_Overlap,
-    CT_PieChart, CT_ScatterChart
+    CT_Area3DChart, CT_AreaChart, CT_BarChart, CT_BarDir, CT_BubbleChart,
+    CT_DLblPos, CT_DLbls, CT_GapAmount, CT_Grouping, CT_LineChart,
+    CT_Overlap, CT_PieChart, CT_ScatterChart
 )
 register_element_cls('c:area3DChart',  CT_Area3DChart)
 register_element_cls('c:areaChart',    CT_AreaChart)
 register_element_cls('c:barChart',     CT_BarChart)
 register_element_cls('c:barDir',       CT_BarDir)
+register_element_cls('c:bubbleChart',  CT_BubbleChart)
 register_element_cls('c:dLblPos',      CT_DLblPos)
 register_element_cls('c:dLbls',        CT_DLbls)
 register_element_cls('c:gapWidth',     CT_GapAmount)
@@ -102,6 +103,7 @@ from .chart.shared import (
     CT_NumFmt, CT_UnsignedInt
 )
 register_element_cls('c:autoUpdate',       CT_Boolean)
+register_element_cls('c:bubble3D',         CT_Boolean)
 register_element_cls('c:delete',           CT_Boolean)
 register_element_cls('c:idx',              CT_UnsignedInt)
 register_element_cls('c:invertIfNegative', CT_Boolean)

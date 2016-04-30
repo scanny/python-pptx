@@ -308,6 +308,7 @@ class PlotTypeInspector(object):
                 'AreaPlot':   cls._differentiate_area_chart_type,
                 'Area3DPlot': cls._differentiate_area_3d_chart_type,
                 'BarPlot':    cls._differentiate_bar_chart_type,
+                'BubblePlot': cls._differentiate_bubble_chart_type,
                 'LinePlot':   cls._differentiate_line_chart_type,
                 'PiePlot':    cls._differentiate_pie_chart_type,
                 'XyPlot':     cls._differentiate_xy_chart_type,
@@ -353,6 +354,21 @@ class PlotTypeInspector(object):
         raise ValueError(
             "invalid barChart.barDir value '%s'" % barChart.barDir.val
         )
+
+    @classmethod
+    def _differentiate_bubble_chart_type(cls, plot):
+        def first_bubble3D(bubbleChart):
+            results = bubbleChart.xpath('c:ser/c:bubble3D')
+            return results[0] if results else None
+
+        bubbleChart = plot._element
+        bubble3D = first_bubble3D(bubbleChart)
+
+        if bubble3D is None:
+            return XL.BUBBLE
+        if bubble3D.val:
+            return XL.BUBBLE_THREE_D_EFFECT
+        return XL.BUBBLE
 
     @classmethod
     def _differentiate_line_chart_type(cls, plot):
