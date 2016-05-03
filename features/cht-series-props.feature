@@ -63,3 +63,14 @@ Feature: Get and set series properties
   Scenario: Get series values
     Given a bar series having known values
      Then series.values contains the known values
+
+
+  @wip
+  Scenario Outline: Get series points
+    Given a series of type <series-type>
+     Then series.points is a <type-name> object
+
+    Examples: series points classes
+      | series-type | type-name     |
+      | XY          | XyPoints      |
+      | Bubble      | BubblePoints  |

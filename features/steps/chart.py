@@ -217,6 +217,13 @@ def given_a_legend_with_overlay_setting_of_setting(context, setting):
     context.legend = prs.slides[slide_idx].shapes[0].chart.legend
 
 
+@given('a series of type {series_type}')
+def given_a_series_of_type_series_type(context, series_type):
+    slide_idx = {'XY': 2, 'Bubble': 3}[series_type]
+    prs = Presentation(test_pptx('cht-series-props'))
+    context.series = prs.slides[slide_idx].shapes[0].chart.plots[0].series[0]
+
+
 @given('an axis having {major_or_minor} gridlines')
 def given_an_axis_having_major_or_minor_gridlines(context, major_or_minor):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -672,6 +679,12 @@ def then_series_line_width_is_width(context, width):
     expected_width = int(width)
     line = context.series.line
     assert line.width == expected_width
+
+
+@then('series.points is a {type_name} object')
+def then_series_points_is_a_type_name_object(context, type_name):
+    series = context.series
+    assert type(series.points).__name__ == type_name
 
 
 @then('series.values contains the known values')
