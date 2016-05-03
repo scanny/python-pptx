@@ -68,6 +68,11 @@ register_element_cls('c:plotArea',     CT_PlotArea)
 register_element_cls('c:style',        CT_Style)
 
 
+from .chart.datalabel import CT_DLblPos, CT_DLbls
+register_element_cls('c:dLblPos', CT_DLblPos)
+register_element_cls('c:dLbls',   CT_DLbls)
+
+
 from .chart.legend import CT_Legend, CT_LegendPos
 register_element_cls('c:legend',    CT_Legend)
 register_element_cls('c:legendPos', CT_LegendPos)
@@ -75,16 +80,14 @@ register_element_cls('c:legendPos', CT_LegendPos)
 
 from .chart.plot import (
     CT_Area3DChart, CT_AreaChart, CT_BarChart, CT_BarDir, CT_BubbleChart,
-    CT_DLblPos, CT_DLbls, CT_GapAmount, CT_Grouping, CT_LineChart,
-    CT_Overlap, CT_PieChart, CT_ScatterChart
+    CT_GapAmount, CT_Grouping, CT_LineChart, CT_Overlap, CT_PieChart,
+    CT_ScatterChart
 )
 register_element_cls('c:area3DChart',  CT_Area3DChart)
 register_element_cls('c:areaChart',    CT_AreaChart)
 register_element_cls('c:barChart',     CT_BarChart)
 register_element_cls('c:barDir',       CT_BarDir)
 register_element_cls('c:bubbleChart',  CT_BubbleChart)
-register_element_cls('c:dLblPos',      CT_DLblPos)
-register_element_cls('c:dLbls',        CT_DLbls)
 register_element_cls('c:gapWidth',     CT_GapAmount)
 register_element_cls('c:grouping',     CT_Grouping)
 register_element_cls('c:lineChart',    CT_LineChart)
