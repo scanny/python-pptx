@@ -634,6 +634,29 @@ def then_plot_vary_by_categories_is_value(context, value):
     assert plot.vary_by_categories is expected_value
 
 
+@then('series.fill.fore_color.rgb is FF6600')
+def then_series_fill_fore_color_rgb_is_FF6600(context):
+    fill = context.series.fill
+    assert fill.fore_color.rgb == RGBColor(0xFF, 0x66, 0x00)
+
+
+@then('series.fill.fore_color.theme_color is Accent 1')
+def then_series_fill_fore_color_theme_color_is_Accent_1(context):
+    fill = context.series.fill
+    assert fill.fore_color.theme_color == MSO_THEME_COLOR.ACCENT_1
+
+
+@then('series.fill.type is {fill_type}')
+def then_series_fill_type_is_type(context, fill_type):
+    expected_fill_type = {
+        'None':                     None,
+        'MSO_FILL_TYPE.BACKGROUND': MSO_FILL_TYPE.BACKGROUND,
+        'MSO_FILL_TYPE.SOLID':      MSO_FILL_TYPE.SOLID,
+    }[fill_type]
+    fill = context.series.fill
+    assert fill.type == expected_fill_type
+
+
 @then('series.invert_if_negative is {value}')
 def then_series_invert_if_negative_is_value(context, value):
     expected_value = {
@@ -642,6 +665,13 @@ def then_series_invert_if_negative_is_value(context, value):
     }[value]
     series = context.series
     assert series.invert_if_negative is expected_value
+
+
+@then('series.line.width is {width}')
+def then_series_line_width_is_width(context, width):
+    expected_width = int(width)
+    line = context.series.line
+    assert line.width == expected_width
 
 
 @then('series.values contains the known values')
@@ -664,36 +694,6 @@ def then_the_chart_has_new_chart_data(context):
         context.chart._workbook.xlsx_part.blob
     ).hexdigest()
     assert new_xlsx_sha1 != orig_xlsx_sha1
-
-
-@then('the series fill RGB color is FF6600')
-def then_the_series_fill_RGB_color_is_FF6600(context):
-    fill = context.series.fill
-    assert fill.fore_color.rgb == RGBColor(0xFF, 0x66, 0x00)
-
-
-@then('the series fill theme color is Accent 1')
-def then_the_series_fill_theme_color_is_Accent_1(context):
-    fill = context.series.fill
-    assert fill.fore_color.theme_color == MSO_THEME_COLOR.ACCENT_1
-
-
-@then('the series has a fill type of {fill_type}')
-def then_the_series_has_a_fill_type_of_type(context, fill_type):
-    expected_fill_type = {
-        'None':                     None,
-        'MSO_FILL_TYPE.BACKGROUND': MSO_FILL_TYPE.BACKGROUND,
-        'MSO_FILL_TYPE.SOLID':      MSO_FILL_TYPE.SOLID,
-    }[fill_type]
-    fill = context.series.fill
-    assert fill.type == expected_fill_type
-
-
-@then('the series has a line width of {width}')
-def then_the_series_has_a_line_width_of_width(context, width):
-    expected_width = int(width)
-    line = context.series.line
-    assert line.width == expected_width
 
 
 @then('tick_labels.offset is {value}')
