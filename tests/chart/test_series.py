@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.chart.point import XyPoints
 from pptx.chart.series import (
     BarSeries, _BaseSeries, LineSeries, SeriesCollection, _SeriesFactory,
     XySeries
@@ -232,11 +233,23 @@ class DescribeLineSeries(object):
 
 class Describe_XySeries(object):
 
+    def it_provides_access_to_its_points(self, points_fixture):
+        series, XyPoints_, ser, points_ = points_fixture
+        points = series.points
+        XyPoints_.assert_called_once_with(ser)
+        assert points is points_
+
     def it_knows_its_values(self, values_get_fixture):
         series, expected_values = values_get_fixture
         assert series.values == expected_values
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def points_fixture(self, XyPoints_, points_):
+        ser = element('c:ser')
+        series = XySeries(ser)
+        return series, XyPoints_, ser, points_
 
     @pytest.fixture(params=[
         ('c:ser', ()),
@@ -254,6 +267,18 @@ class Describe_XySeries(object):
         ser_cxml, expected_values = request.param
         series = XySeries(element(ser_cxml))
         return series, expected_values
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def XyPoints_(self, request, points_):
+        return class_mock(
+            request, 'pptx.chart.series.XyPoints', return_value=points_
+        )
+
+    @pytest.fixture
+    def points_(self, request):
+        return instance_mock(request, XyPoints)
 
 
 class DescribeSeriesCollection(object):

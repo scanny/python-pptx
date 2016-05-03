@@ -11,6 +11,7 @@ from collections import Sequence
 from ..dml.fill import FillFormat
 from ..dml.line import LineFormat
 from ..oxml.ns import qn
+from .point import XyPoints
 from ..util import lazyproperty
 
 
@@ -21,6 +22,7 @@ class _BaseSeries(object):
     def __init__(self, ser):
         super(_BaseSeries, self).__init__()
         self._element = ser
+        self._ser = ser
 
     @property
     def index(self):
@@ -161,6 +163,14 @@ class XySeries(_BaseSeries):
 
         for idx in range(yVal.ptCount_val):
             yield yVal.pt_v(idx)
+
+    @lazyproperty
+    def points(self):
+        """
+        The |XyPoints| object providing access to individual data points in
+        this series.
+        """
+        return XyPoints(self._ser)
 
     @property
     def values(self):
