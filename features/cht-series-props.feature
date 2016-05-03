@@ -65,7 +65,6 @@ Feature: Get and set series properties
      Then series.values contains the known values
 
 
-  @wip
   Scenario Outline: Get series points
     Given a series of type <series-type>
      Then series.points is a <type-name> object

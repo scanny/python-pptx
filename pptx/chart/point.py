@@ -24,6 +24,14 @@ class _BasePoints(Sequence):
         raise NotImplementedError
 
 
+class BubblePoints(_BasePoints):
+    """
+    Sequence providing access to the individual data points in a series.
+    """
+    def __len__(self):
+        raise NotImplementedError
+
+
 class XyPoints(_BasePoints):
     """
     Sequence providing access to the individual data points in a series.

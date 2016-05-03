@@ -11,7 +11,7 @@ from collections import Sequence
 from ..dml.fill import FillFormat
 from ..dml.line import LineFormat
 from ..oxml.ns import qn
-from .point import XyPoints
+from .point import BubblePoints, XyPoints
 from ..util import lazyproperty
 
 
@@ -185,6 +185,14 @@ class BubbleSeries(XySeries):
     """
     A data point series belonging to a bubble plot.
     """
+    @lazyproperty
+    def points(self):
+        """
+        The |BubblePoints| object providing access to individual data point
+        objects used to discover and adjust the formatting and data labels of
+        a data point.
+        """
+        return BubblePoints(self._ser)
 
 
 class SeriesCollection(Sequence):

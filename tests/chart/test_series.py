@@ -8,10 +8,10 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.chart.point import XyPoints
+from pptx.chart.point import BubblePoints, XyPoints
 from pptx.chart.series import (
-    BarSeries, _BaseSeries, LineSeries, SeriesCollection, _SeriesFactory,
-    XySeries
+    BarSeries, _BaseSeries, BubbleSeries, LineSeries, SeriesCollection,
+    _SeriesFactory, XySeries
 )
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
@@ -191,6 +191,35 @@ class DescribeBarSeries(object):
     @pytest.fixture
     def line_(self, request):
         return instance_mock(request, LineFormat)
+
+
+class Describe_BubbleSeries(object):
+
+    def it_provides_access_to_its_points(self, points_fixture):
+        series, BubblePoints_, ser, points_ = points_fixture
+        points = series.points
+        BubblePoints_.assert_called_once_with(ser)
+        assert points is points_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def points_fixture(self, BubblePoints_, points_):
+        ser = element('c:ser')
+        series = BubbleSeries(ser)
+        return series, BubblePoints_, ser, points_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def BubblePoints_(self, request, points_):
+        return class_mock(
+            request, 'pptx.chart.series.BubblePoints', return_value=points_
+        )
+
+    @pytest.fixture
+    def points_(self, request):
+        return instance_mock(request, BubblePoints)
 
 
 class DescribeLineSeries(object):
