@@ -4,7 +4,6 @@ Feature: Get and set point properties
   I need a way to get and set point properties
 
 
-  @wip
   Scenario: Get point data label
     Given a point
      Then point.data_label is a DataLabel object

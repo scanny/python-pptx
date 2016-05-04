@@ -91,3 +91,14 @@ class DataLabels(object):
             self._element._remove_dLblPos()
             return
         self._element.get_or_add_dLblPos().val = value
+
+
+class DataLabel(object):
+    """
+    The data label associated with an individual data point.
+    """
+    def __init__(self, ser, idx):
+        super(DataLabel, self).__init__()
+        self._element = ser
+        self._ser = ser
+        self._idx = idx

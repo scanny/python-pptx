@@ -10,6 +10,7 @@ from __future__ import (
 
 import pytest
 
+from pptx.chart.datalabel import DataLabel
 from pptx.chart.point import BubblePoints, Point, XyPoints
 
 from ..unitutil.cxml import element
@@ -81,6 +82,35 @@ class DescribeBubblePoints(object):
         ser_cxml, expected_value = request.param
         points = BubblePoints(element(ser_cxml))
         return points, expected_value
+
+
+class DescribePoint(object):
+
+    def it_provides_access_to_its_data_label(self, data_label_fixture):
+        point, DataLabel_, ser, idx, data_label_ = data_label_fixture
+        data_label = point.data_label
+        DataLabel_.assert_called_once_with(ser, idx)
+        assert data_label is data_label_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def data_label_fixture(self, DataLabel_, data_label_):
+        ser, idx = element('c:ser'), 42
+        point = Point(ser, idx)
+        return point, DataLabel_, ser, idx, data_label_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def DataLabel_(self, request, data_label_):
+        return function_mock(
+            request, 'pptx.chart.point.DataLabel', return_value=data_label_
+        )
+
+    @pytest.fixture
+    def data_label_(self, request):
+        return instance_mock(request, DataLabel)
 
 
 class DescribeXyPoints(object):

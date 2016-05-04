@@ -10,6 +10,9 @@ from __future__ import (
 
 from collections import Sequence
 
+from .datalabel import DataLabel
+from ..util import lazyproperty
+
 
 class _BasePoints(Sequence):
     """
@@ -49,6 +52,13 @@ class Point(object):
         self._element = ser
         self._ser = ser
         self._idx = idx
+
+    @lazyproperty
+    def data_label(self):
+        """
+        The |DataLabel| object representing the label on this data point.
+        """
+        return DataLabel(self._ser, self._idx)
 
 
 class XyPoints(_BasePoints):
