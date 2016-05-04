@@ -15,6 +15,20 @@ from ..text import CT_TextBody
 from ..xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
 
 
+class CT_DLbl(BaseOxmlElement):
+    """
+    ``<c:dLbl>`` element specifying the properties of the data label for an
+    individual data point.
+    """
+    _tag_seq = (
+        'c:idx', 'c:layout', 'c:tx', 'c:numFmt', 'c:spPr', 'c:txPr',
+        'c:dLblPos', 'c:showLegendKey', 'c:showVal', 'c:showCatName',
+        'c:showSerName', 'c:showPercent', 'c:showBubbleSize', 'c:separator',
+        'c:extLst',
+    )
+    del _tag_seq
+
+
 class CT_DLblPos(BaseOxmlElement):
     """
     ``<c:dLblPos>`` element specifying the positioning of a data label with
@@ -58,6 +72,16 @@ class CT_DLbls(BaseOxmlElement):
         txPr = self.get_or_add_txPr()
         defRPr = txPr.defRPr
         return defRPr
+
+    def get_dLbl_for_point(self, idx):
+        """
+        Return the `c:dLbl` child representing the label for the data point
+        at index *idx*.
+        """
+        matches = self.xpath('c:dLbl[c:idx[@val="%d"]]' % idx)
+        if matches:
+            return matches[0]
+        return None
 
     @classmethod
     def new_default(cls):

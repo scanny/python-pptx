@@ -10,12 +10,35 @@ from __future__ import (
 
 import pytest
 
-from pptx.chart.datalabel import DataLabels
+from pptx.chart.datalabel import DataLabel, DataLabels
 from pptx.enum.chart import XL_LABEL_POSITION
 from pptx.text.text import Font
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
+
+
+class DescribeDataLabel(object):
+
+    def it_knows_whether_it_has_a_text_frame(self, has_text_frame_fixture):
+        data_label, expected_value = has_text_frame_fixture
+        value = data_label.has_text_frame
+        assert value is expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:ser',                                              False),
+        ('c:ser/c:dLbls',                                      False),
+        ('c:ser/c:dLbls/c:dLbl/c:idx{val=42}',                 False),
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)', False),
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)',   False),
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)',   True),
+    ])
+    def has_text_frame_fixture(self, request):
+        ser_cxml, expected_value = request.param
+        data_label = DataLabel(element(ser_cxml), 42)
+        return data_label, expected_value
 
 
 class DescribeDataLabels(object):

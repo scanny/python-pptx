@@ -4,7 +4,6 @@ Feature: DataLabel properties
   I need read/write properties on DataLabel
 
 
-  @wip
   Scenario Outline: Get DataLabel.has_text_frame
     Given a data label <having-or-not> custom text
      Then data_label.has_text_frame is <value>

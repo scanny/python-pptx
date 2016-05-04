@@ -68,7 +68,8 @@ register_element_cls('c:plotArea',     CT_PlotArea)
 register_element_cls('c:style',        CT_Style)
 
 
-from .chart.datalabel import CT_DLblPos, CT_DLbls
+from .chart.datalabel import CT_DLbl, CT_DLblPos, CT_DLbls
+register_element_cls('c:dLbl',    CT_DLbl)
 register_element_cls('c:dLblPos', CT_DLblPos)
 register_element_cls('c:dLbls',   CT_DLbls)
 

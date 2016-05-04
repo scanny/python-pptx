@@ -102,3 +102,28 @@ class DataLabel(object):
         self._element = ser
         self._ser = ser
         self._idx = idx
+
+    @property
+    def has_text_frame(self):
+        """
+        Return |True| if this data label has a text frame (implying it has
+        custom data label text), and |False| otherwise. Assigning |True|
+        causes a text frame to be added if not already present. Assigning
+        |False| causes any existing text frame to be removed along with any
+        text contained in the text frame.
+        """
+        dLbl = self._dLbl
+        if dLbl is None:
+            return False
+        if dLbl.xpath('c:tx/c:rich'):
+            return True
+        return False
+
+    @property
+    def _dLbl(self):
+        """
+        Return the |CT_DLbl| instance referring specifically to this
+        individual data label (having the same index value), or |None| if not
+        present.
+        """
+        return self._ser.get_dLbl(self._idx)

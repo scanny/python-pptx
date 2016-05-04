@@ -61,6 +61,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     invertIfNegative = ZeroOrOne(
         'c:invertIfNegative', successors=_tag_seq[5:]
     )
+    dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[10:])
     cat = ZeroOrOne('c:cat', successors=_tag_seq[13:])
     val = ZeroOrOne('c:val', successors=_tag_seq[14:])
     yVal = ZeroOrOne('c:yVal', successors=_tag_seq[16:])
@@ -77,6 +78,16 @@ class CT_SeriesComposite(BaseOxmlElement):
         if not vals:
             return 0
         return int(vals[0])
+
+    def get_dLbl(self, idx):
+        """
+        Return the `c:dLbl` element representing the label for the data point
+        at offset *idx* in this series, or |None| if not present.
+        """
+        dLbls = self.dLbls
+        if dLbls is None:
+            return None
+        return dLbls.get_dLbl_for_point(idx)
 
     @property
     def val_pts(self):
