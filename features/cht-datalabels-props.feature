@@ -8,7 +8,7 @@ Feature: Access and modify data labels properties
     Given bar chart data labels positioned <relation-to> their data point
      Then data_labels.position is <expected-value>
 
-    Examples: legend position values
+    Examples: data_labels position values
       | relation-to                | expected-value |
       | in unspecified relation to | None           |
       | inside, at the base of     | INSIDE_BASE    |

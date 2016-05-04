@@ -178,6 +178,17 @@ def given_a_chart_of_type_chart_type(context, chart_type):
     context.chart = prs.slides[slide_idx].shapes[shape_idx].chart
 
 
+@given('a data label {having_or_not} custom text')
+def given_a_data_label_having_or_not_custom_text(context, having_or_not):
+    point_idx = {
+        'having':    0,
+        'having no': 1,
+    }[having_or_not]
+    prs = Presentation(test_pptx('cht-point-props'))
+    plot = prs.slides[0].shapes[0].chart.plots[0]
+    context.data_label = plot.series[0].points[point_idx].data_label
+
+
 @given('a legend')
 def given_a_legend(context):
     prs = Presentation(test_pptx('cht-legend-props'))
@@ -383,6 +394,12 @@ def when_I_assign_value_to_axis_major_or_minor_unit(
     setattr(axis, propname, new_value)
 
 
+@when('I assign {value} to data_label.has_text_frame')
+def when_I_assign_value_to_data_label_has_text_frame(context, value):
+    new_value = {'True': True, 'False': False}[value]
+    context.data_label.has_text_frame = new_value
+
+
 @when('I assign {value} to data_labels.position')
 def when_I_assign_value_to_data_labels_position(context, value):
     new_value = {
@@ -534,6 +551,13 @@ def then_chart_legend_is_a_legend_object(context):
 def then_chart_value_axis_is_a_ValueAxis_object(context):
     value_axis = context.chart.value_axis
     assert type(value_axis).__name__ == 'ValueAxis'
+
+
+@then('data_label.has_text_frame is {value}')
+def then_data_label_has_text_frame_is_value(context, value):
+    expected_value = {'True': True, 'False': False}[value]
+    data_label = context.data_label
+    assert data_label.has_text_frame is expected_value
 
 
 @then('data_labels.position is {value}')
