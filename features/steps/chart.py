@@ -217,6 +217,13 @@ def given_a_legend_with_overlay_setting_of_setting(context, setting):
     context.legend = prs.slides[slide_idx].shapes[0].chart.legend
 
 
+@given('a point')
+def given_a_point(context):
+    prs = Presentation(test_pptx('cht-point-props'))
+    chart = prs.slides[0].shapes[0].chart
+    context.point = chart.plots[0].series[0].points[0]
+
+
 @given('a {points_type} object containing 3 points')
 def given_a_points_type_object_containing_3_points(context, points_type):
     slide_idx = {'XyPoints': 0, 'BubblePoints': 1}[points_type]
@@ -662,6 +669,12 @@ def then_plot_vary_by_categories_is_value(context, value):
     }[value]
     plot = context.plot
     assert plot.vary_by_categories is expected_value
+
+
+@then('point.data_label is a DataLabel object')
+def then_point_data_label_is_a_DataLabel_object(context):
+    point = context.point
+    assert type(point.data_label).__name__ == 'DataLabel'
 
 
 @then('points[2] is a Point object')
