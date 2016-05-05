@@ -10,7 +10,8 @@ from ..simpletypes import (
     ST_LayoutMode, XsdBoolean, XsdDouble, XsdString, XsdUnsignedInt
 )
 from ..xmlchemy import (
-    BaseOxmlElement, OptionalAttribute, RequiredAttribute, ZeroOrOne
+    BaseOxmlElement, OptionalAttribute, OxmlElement, RequiredAttribute,
+    ZeroOrOne
 )
 
 
@@ -109,6 +110,21 @@ class CT_NumFmt(BaseOxmlElement):
     """
     formatCode = RequiredAttribute('formatCode', XsdString)
     sourceLinked = OptionalAttribute('sourceLinked', XsdBoolean)
+
+
+class CT_Tx(BaseOxmlElement):
+    """
+    ``<c:tx>`` element containing the text for a label on a data point or
+    other chart item.
+    """
+    strRef = ZeroOrOne('c:strRef')
+    rich = ZeroOrOne('c:rich')
+
+    def _new_rich(self):
+        rich = OxmlElement('c:rich')
+        rich.append(OxmlElement('a:bodyPr'))
+        rich.add_p()
+        return rich
 
 
 class CT_UnsignedInt(BaseOxmlElement):

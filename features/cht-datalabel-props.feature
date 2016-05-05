@@ -14,7 +14,6 @@ Feature: DataLabel properties
       | having no     | False |
 
 
-  @wip
   Scenario Outline: Set DataLabel.has_text_frame
     Given a data label <having-or-not> custom text
      When I assign <new-value> to data_label.has_text_frame

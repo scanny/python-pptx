@@ -107,7 +107,7 @@ register_element_cls('c:yVal', CT_NumDataSource)
 
 from .chart.shared import (
     CT_Boolean, CT_Double, CT_Layout, CT_LayoutMode, CT_ManualLayout,
-    CT_NumFmt, CT_UnsignedInt
+    CT_NumFmt, CT_Tx, CT_UnsignedInt
 )
 register_element_cls('c:autoUpdate',       CT_Boolean)
 register_element_cls('c:bubble3D',         CT_Boolean)
@@ -121,7 +121,9 @@ register_element_cls('c:min',              CT_Double)
 register_element_cls('c:numFmt',           CT_NumFmt)
 register_element_cls('c:order',            CT_UnsignedInt)
 register_element_cls('c:overlay',          CT_Boolean)
+register_element_cls('c:showLegendKey',    CT_Boolean)
 register_element_cls('c:smooth',           CT_Boolean)
+register_element_cls('c:tx',               CT_Tx)
 register_element_cls('c:varyColors',       CT_Boolean)
 register_element_cls('c:x',                CT_Double)
 register_element_cls('c:xMode',            CT_LayoutMode)
@@ -278,6 +280,7 @@ register_element_cls('a:normAutofit', CT_TextNormalAutofit)
 register_element_cls('a:r',           CT_RegularTextRun)
 register_element_cls('a:p',           CT_TextParagraph)
 register_element_cls('a:pPr',         CT_TextParagraphProperties)
+register_element_cls('c:rich',        CT_TextBody)
 register_element_cls('a:rPr',         CT_TextCharacterProperties)
 register_element_cls('a:spcAft',      CT_TextSpacing)
 register_element_cls('a:spcBef',      CT_TextSpacing)

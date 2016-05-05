@@ -119,6 +119,13 @@ class DataLabel(object):
             return True
         return False
 
+    @has_text_frame.setter
+    def has_text_frame(self, value):
+        if bool(value) is True:
+            self._get_or_add_tx_rich()
+        else:
+            self._remove_tx_rich()
+
     @property
     def _dLbl(self):
         """
@@ -127,3 +134,28 @@ class DataLabel(object):
         present.
         """
         return self._ser.get_dLbl(self._idx)
+
+    def _get_or_add_dLbl(self):
+        """
+        The ``CT_DLbl`` instance referring specifically to this individual
+        data label, newly created if not yet present in the XML.
+        """
+        return self._ser.get_or_add_dLbl(self._idx)
+
+    def _get_or_add_tx_rich(self):
+        """
+        Return the `c:tx` element for this data label, with its `c:rich`
+        child and descendants, newly created if not yet present.
+        """
+        dLbl = self._get_or_add_dLbl()
+        return dLbl.get_or_add_tx_rich()
+
+    def _remove_tx_rich(self):
+        """
+        Remove any `c:tx/c:rich` child of the `c:dLbl` element for this data
+        label. Do nothing if that element is not present.
+        """
+        dLbl = self._dLbl
+        if dLbl is None:
+            return
+        dLbl.remove_tx_rich()

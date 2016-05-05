@@ -89,6 +89,14 @@ class CT_SeriesComposite(BaseOxmlElement):
             return None
         return dLbls.get_dLbl_for_point(idx)
 
+    def get_or_add_dLbl(self, idx):
+        """
+        Return the `c:dLbl` element representing the label of the point at
+        offset *idx* in this series, newly created if not yet present.
+        """
+        dLbls = self.get_or_add_dLbls()
+        return dLbls.get_or_add_dLbl_for_point(idx)
+
     @property
     def val_pts(self):
         """

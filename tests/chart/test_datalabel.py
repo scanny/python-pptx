@@ -20,10 +20,16 @@ from ..unitutil.mock import class_mock, instance_mock
 
 class DescribeDataLabel(object):
 
-    def it_knows_whether_it_has_a_text_frame(self, has_text_frame_fixture):
-        data_label, expected_value = has_text_frame_fixture
+    def it_knows_whether_it_has_a_text_frame(self, has_tf_get_fixture):
+        data_label, expected_value = has_tf_get_fixture
         value = data_label.has_text_frame
         assert value is expected_value
+
+    def it_can_change_whether_it_has_a_text_frame(self, has_tf_set_fixture):
+        data_label, value, expected_xml = has_tf_set_fixture
+        data_label.has_text_frame = value
+        print(data_label._element.xml)
+        assert data_label._element.xml == expected_xml
 
     # fixtures -------------------------------------------------------
 
@@ -35,10 +41,48 @@ class DescribeDataLabel(object):
         ('c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)',   False),
         ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)',   True),
     ])
-    def has_text_frame_fixture(self, request):
+    def has_tf_get_fixture(self, request):
         ser_cxml, expected_value = request.param
         data_label = DataLabel(element(ser_cxml), 42)
         return data_label, expected_value
+
+    @pytest.fixture(params=[
+        ('c:ser',                                                     False,
+         'c:ser'),
+        ('c:ser/c:dLbls',                                             False,
+         'c:ser/c:dLbls'),
+        ('c:ser/c:dLbls/c:dLbl/c:idx{val=42}',                        False,
+         'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)',        False,
+         'c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)'),
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)',          False,
+         'c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)'),
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)',          False,
+         'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
+        ('c:ser{a:b=c}',                                              True,
+         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
+         ':p),c:showLegendKey{val=0})'),
+        ('c:ser{a:b=c}/c:dLbls',                                      True,
+         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
+         ':p),c:showLegendKey{val=0})'),
+        ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}',                 True,
+         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
+         ':p))'),
+        ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)', True,
+         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
+         ':p))'),
+        ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)',   True,
+         'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=24},c:tx/c:rich),c:dLbl/(c'
+         ':idx{val=42},c:tx/c:rich/(a:bodyPr,a:p),c:showLegendKey{val=0}))'),
+        ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}',                 True,
+         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
+         ':p))'),
+    ])
+    def has_tf_set_fixture(self, request):
+        ser_cxml, value, expected_cxml = request.param
+        data_label = DataLabel(element(ser_cxml), 42)
+        expected_xml = xml(expected_cxml)
+        return data_label, value, expected_xml
 
 
 class DescribeDataLabels(object):
