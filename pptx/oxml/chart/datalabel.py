@@ -31,7 +31,18 @@ class CT_DLbl(BaseOxmlElement):
     )
     idx = OneAndOnlyOne('c:idx')
     tx = ZeroOrOne('c:tx', successors=_tag_seq[3:])
+    dLblPos = ZeroOrOne('c:dLblPos', successors=_tag_seq[7:])
     del _tag_seq
+
+    def get_or_add_rich(self):
+        """
+        Return the `c:rich` descendant representing the text frame of the
+        data label, newly created if not present. Any existing `c:strRef`
+        element is removed along with its contents.
+        """
+        tx = self.get_or_add_tx()
+        tx._remove_strRef()
+        return tx.get_or_add_rich()
 
     def get_or_add_tx_rich(self):
         """

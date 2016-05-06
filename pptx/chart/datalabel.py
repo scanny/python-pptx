@@ -8,7 +8,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from ..text.text import Font
+from ..text.text import Font, TextFrame
 from ..util import lazyproperty
 
 
@@ -127,6 +127,15 @@ class DataLabel(object):
             self._remove_tx_rich()
 
     @property
+    def text_frame(self):
+        """
+        |TextFrame| instance for this data label, containing the text of the
+        data label and providing access to its text formatting properties.
+        """
+        rich = self._get_or_add_rich()
+        return TextFrame(rich, self)
+
+    @property
     def _dLbl(self):
         """
         Return the |CT_DLbl| instance referring specifically to this
@@ -141,6 +150,14 @@ class DataLabel(object):
         data label, newly created if not yet present in the XML.
         """
         return self._ser.get_or_add_dLbl(self._idx)
+
+    def _get_or_add_rich(self):
+        """
+        Return the `c:rich` element representing the text frame for this data
+        label, newly created with its ancestors if not present.
+        """
+        dLbl = self._get_or_add_dLbl()
+        return dLbl.get_or_add_rich()
 
     def _get_or_add_tx_rich(self):
         """

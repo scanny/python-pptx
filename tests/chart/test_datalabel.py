@@ -15,7 +15,7 @@ from pptx.enum.chart import XL_LABEL_POSITION
 from pptx.text.text import Font
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock
+from ..unitutil.mock import class_mock, instance_mock, method_mock
 
 
 class DescribeDataLabel(object):
@@ -30,6 +30,18 @@ class DescribeDataLabel(object):
         data_label.has_text_frame = value
         print(data_label._element.xml)
         assert data_label._element.xml == expected_xml
+
+    def it_provides_access_to_its_text_frame(self, text_frame_fixture):
+        data_label, TextFrame_, rich_, text_frame_ = text_frame_fixture
+        text_frame = data_label.text_frame
+        TextFrame_.assert_called_once_with(rich_, data_label)
+        assert text_frame is text_frame_
+
+    def it_gets_or_adds_rich_element_to_help(self, rich_fixture):
+        data_label, expected_xml = rich_fixture
+        rich = data_label._get_or_add_rich()
+        assert data_label._ser.xml == expected_xml
+        assert rich is data_label._ser.xpath('c:dLbls/c:dLbl/c:tx/c:rich')[0]
 
     # fixtures -------------------------------------------------------
 
@@ -83,6 +95,37 @@ class DescribeDataLabel(object):
         data_label = DataLabel(element(ser_cxml), 42)
         expected_xml = xml(expected_cxml)
         return data_label, value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:ser{a:b=c}',
+         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
+         ':p),c:showLegendKey{val=0})'),
+        ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)',
+         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
+         ':p))'),
+    ])
+    def rich_fixture(self, request):
+        ser_cxml, expected_cxml = request.param
+        data_label = DataLabel(element(ser_cxml), 42)
+        expected_xml = xml(expected_cxml)
+        return data_label, expected_xml
+
+    @pytest.fixture
+    def text_frame_fixture(self, request, _get_or_add_rich_, TextFrame_):
+        data_label = DataLabel(None, None)
+        rich_ = _get_or_add_rich_.return_value
+        text_frame_ = TextFrame_.return_value
+        return data_label, TextFrame_, rich_, text_frame_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _get_or_add_rich_(self, request):
+        return method_mock(request, DataLabel, '_get_or_add_rich')
+
+    @pytest.fixture
+    def TextFrame_(self, request):
+        return class_mock(request, 'pptx.chart.datalabel.TextFrame')
 
 
 class DescribeDataLabels(object):
