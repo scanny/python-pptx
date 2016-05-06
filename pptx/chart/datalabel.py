@@ -127,6 +127,10 @@ class DataLabel(object):
             self._remove_tx_rich()
 
     @property
+    def position(self):
+        raise NotImplementedError
+
+    @property
     def text_frame(self):
         """
         |TextFrame| instance for this data label, containing the text of the

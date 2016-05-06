@@ -4,6 +4,30 @@ Feature: DataLabel properties
   I need read/write properties on DataLabel
 
 
+  @wip
+  Scenario Outline: Get data_label.position
+    Given a data label positioned <relation-to> its data point
+     Then data_label.position is <value>
+
+    Examples: data_label.position cases
+      | relation-to                | value  |
+      | in unspecified relation to | None   |
+      | centered on                | CENTER |
+
+
+  @wip
+  Scenario Outline: Set data_label.position
+    Given a data label positioned <relation-to> its data point
+     When I assign <value> to data_label.position
+     Then data_label.position is <value>
+
+    Examples: data_label.position assignment cases
+      | relation-to                | value  |
+      | in unspecified relation to | CENTER |
+      | centered on                | BELOW  |
+      | below                      | None   |
+
+
   Scenario Outline: Get DataLabel.has_text_frame
     Given a data label <having-or-not> custom text
      Then data_label.has_text_frame is <value>
