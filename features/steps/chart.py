@@ -560,6 +560,12 @@ def then_data_label_has_text_frame_is_value(context, value):
     assert data_label.has_text_frame is expected_value
 
 
+@then('data_label.text_frame is a TextFrame object')
+def then_data_label_text_frame_is_a_TextFrame_object(context):
+    text_frame = context.data_label.text_frame
+    assert type(text_frame).__name__ == 'TextFrame'
+
+
 @then('data_labels.position is {value}')
 def then_data_labels_position_is_value(context, value):
     expected_value = {

@@ -25,3 +25,14 @@ Feature: DataLabel properties
       | having        | False     | False |
       | having no     | False     | False |
       | having        | True      | True  |
+
+
+  @wip
+  Scenario Outline: Get DataLabel.text_frame
+    Given a data label <having-or-not> custom text
+     Then data_label.text_frame is a TextFrame object
+
+    Examples: text frame presence cases
+      | having-or-not |
+      | having        |
+      | having no     |
