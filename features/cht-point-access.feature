@@ -4,7 +4,6 @@ Feature: Access a point
   I need sequence operations on xPoints objects
 
 
-  @wip
   Scenario Outline: len(Points)
     Given a <type> object containing 3 points
      Then len(points) is 3

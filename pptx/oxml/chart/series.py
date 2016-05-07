@@ -68,6 +68,17 @@ class CT_SeriesComposite(BaseOxmlElement):
     del _tag_seq
 
     @property
+    def bubbleSize_ptCount_val(self):
+        """
+        Return the number of bubble size values as reflected in the `val`
+        attribute of `./c:bubbleSize//c:ptCount`, or 0 if not present.
+        """
+        vals = self.xpath('./c:bubbleSize//c:ptCount/@val')
+        if not vals:
+            return 0
+        return int(vals[0])
+
+    @property
     def val_pts(self):
         """
         The sequence of ``<c:pt>`` elements under the ``<c:val>`` child
