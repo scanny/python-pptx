@@ -1,10 +1,15 @@
-Feature: Get and set plot properties
-  In order to customize the formatting of a plot on a chart
+Feature: Plot properties
+  To customize the formatting of a plot on a chart
   As a developer using python-pptx
-  I need a way to get and set plot properties
+  I need read/write properties on plot objects
 
 
-  Scenario Outline: Determine whether a plot has data labels
+  Scenario: Get category_plot.categories
+    Given a bar plot having known categories
+     Then plot.categories contains the known category strings
+
+
+  Scenario Outline: Get plot.has_data_labels
     Given a bar plot <having-or-not> data labels
      Then plot.has_data_labels is <expected-value>
 
@@ -14,7 +19,7 @@ Feature: Get and set plot properties
       | not having    | False          |
 
 
-  Scenario Outline: Change whether a plot has data labels
+  Scenario Outline: Set plot.has_data_labels
     Given a bar plot <having-or-not> data labels
      When I assign <value> to plot.has_data_labels
      Then plot.has_data_labels is <expected-value>
@@ -27,7 +32,7 @@ Feature: Get and set plot properties
       | not having    | True  | True           |
 
 
-  Scenario Outline: Get bar plot gap width
+  Scenario Outline: Get bar_plot.gap_width
     Given a bar plot having gap width of <gap-width>
      Then plot.gap_width is <expected-value>
 
@@ -37,7 +42,7 @@ Feature: Get and set plot properties
       | 300               | 300            |
 
 
-  Scenario Outline: Set bar plot gap width
+  Scenario Outline: Set bar_plot.gap_width
     Given a bar plot having gap width of <gap-width>
      When I assign <new-value> to plot.gap_width
      Then plot.gap_width is <expected-value>
@@ -48,7 +53,7 @@ Feature: Get and set plot properties
       | 300               | 275       | 275            |
 
 
-  Scenario Outline: Get bar plot overlap
+  Scenario Outline: Get bar_plot.overlap
     Given a bar plot having overlap of <overlap>
      Then plot.overlap is <expected-value>
 
@@ -59,7 +64,7 @@ Feature: Get and set plot properties
       | -42               | -42            |
 
 
-  Scenario Outline: Set bar plot overlap
+  Scenario Outline: Set bar_plot.overlap
     Given a bar plot having overlap of <overlap>
      When I assign <new-value> to plot.overlap
      Then plot.overlap is <expected-value>
@@ -70,12 +75,7 @@ Feature: Get and set plot properties
       | 42                | -42       | -42            |
 
 
-  Scenario: Get plot categories
-    Given a bar plot having known categories
-     Then plot.categories contains the known category strings
-
-
-  Scenario Outline: Determine whether a plot varies color by category
+  Scenario Outline: Get plot.vary_by_categories
     Given a bar plot having vary color by category set to <setting>
      Then plot.vary_by_categories is <expected-value>
 
@@ -86,7 +86,7 @@ Feature: Get and set plot properties
       | False               | False          |
 
 
-  Scenario Outline: Change whether a plot varies color by category
+  Scenario Outline: Set plot.vary_by_categories
     Given a bar plot having vary color by category set to <setting>
      When I assign <value> to plot.vary_by_categories
      Then plot.vary_by_categories is <expected-value>
