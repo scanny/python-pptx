@@ -76,6 +76,28 @@ class CT_SeriesComposite(BaseOxmlElement):
         val_pts = self.xpath('./c:val//c:pt')
         return sorted(val_pts, key=lambda pt: pt.idx)
 
+    @property
+    def xVal_ptCount_val(self):
+        """
+        Return the number of X values as reflected in the `val` attribute of
+        `./c:xVals/c:ptCount`, or 0 if not present.
+        """
+        vals = self.xpath('./c:xVal//c:ptCount/@val')
+        if not vals:
+            return 0
+        return int(vals[0])
+
+    @property
+    def yVal_ptCount_val(self):
+        """
+        Return the number of Y values as reflected in the `val` attribute of
+        `./c:yVals/c:ptCount`, or 0 if not present.
+        """
+        vals = self.xpath('./c:yVal//c:ptCount/@val')
+        if not vals:
+            return 0
+        return int(vals[0])
+
 
 class CT_StrVal_NumVal_Composite(BaseOxmlElement):
     """
