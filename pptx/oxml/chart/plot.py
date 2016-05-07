@@ -8,7 +8,9 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from .datalabel import CT_DLbls
 from ..ns import qn
-from ..simpletypes import ST_BarDir, ST_GapAmount, ST_Grouping, ST_Overlap
+from ..simpletypes import (
+    ST_BarDir, ST_BubbleScale, ST_GapAmount, ST_Grouping, ST_Overlap
+)
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne, ZeroOrMore
 )
@@ -131,7 +133,15 @@ class CT_BubbleChart(BaseChartElement):
     )
     ser = ZeroOrMore('c:ser', successors=_tag_seq[2:])
     bubble3D = ZeroOrOne('c:bubble3D', successors=_tag_seq[5:])
+    bubbleScale = ZeroOrOne('c:bubbleScale', successors=_tag_seq[6:])
     del _tag_seq
+
+
+class CT_BubbleScale(BaseChartElement):
+    """
+    ``<c:bubbleScale>`` custom element class
+    """
+    val = OptionalAttribute('val', ST_BubbleScale, default=100)
 
 
 class CT_GapAmount(BaseOxmlElement):

@@ -292,6 +292,22 @@ class ST_BarDir(XsdStringEnumeration):
     _members = (BAR, COL)
 
 
+class ST_BubbleScale(BaseIntType):
+    """
+    String value is an integer in range 0-300, representing a percent,
+    optionally including a '%' suffix.
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if '%' in str_value:
+            return cls.convert_from_percent_literal(str_value)
+        return super(ST_BubbleScale, cls).convert_from_xml(str_value)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 300)
+
+
 class ST_ContentType(XsdString):
     """
     Has a pretty wicked regular expression it needs to match in the schema,

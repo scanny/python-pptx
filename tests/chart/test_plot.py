@@ -20,7 +20,7 @@ from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
 
 
-class DescribePlot(object):
+class Describe_BasePlot(object):
 
     def it_knows_which_chart_it_belongs_to(self, chart_fixture):
         plot, expected_value = chart_fixture
@@ -259,6 +259,26 @@ class DescribeBarPlot(object):
         bar_plot = BarPlot(element(barChart_cxml), None)
         expected_xml = xml(expected_barChart_cxml)
         return bar_plot, new_value, expected_xml
+
+
+class DescribeBubblePlot(object):
+
+    def it_knows_its_bubble_scale(self, bubble_scale_get_fixture):
+        bubble_plot, expected_value = bubble_scale_get_fixture
+        assert bubble_plot.bubble_scale == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:bubbleChart',                         100),
+        ('c:bubbleChart/c:bubbleScale',           100),
+        ('c:bubbleChart/c:bubbleScale{val=175}',  175),
+        ('c:bubbleChart/c:bubbleScale{val=070%}',  70),
+    ])
+    def bubble_scale_get_fixture(self, request):
+        bubbleChart_cxml, expected_value = request.param
+        bubble_plot = BubblePlot(element(bubbleChart_cxml), None)
+        return bubble_plot, expected_value
 
 
 class DescribePlotFactory(object):

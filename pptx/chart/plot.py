@@ -177,7 +177,10 @@ class BubblePlot(_BasePlot):
         the default size at which bubbles should be displayed. Assigning
         |None| produces the same behavior as assigning `100`.
         """
-        raise NotImplementedError
+        bubbleScale = self._element.bubbleScale
+        if bubbleScale is None:
+            return 100
+        return bubbleScale.val
 
 
 class LinePlot(_BasePlot):

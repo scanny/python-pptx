@@ -4,7 +4,6 @@ Feature: Plot properties
   I need read/write properties on plot objects
 
 
-  @wip
   Scenario Outline: Get bubble_plot.bubble_scale
     Given a bubble plot having bubble scale of <percent>
      Then bubble_plot.bubble_scale is <value>
