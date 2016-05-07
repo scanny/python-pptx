@@ -262,6 +262,13 @@ def given_a_series_of_type_series_type(context, series_type):
     context.series = prs.slides[slide_idx].shapes[0].chart.plots[0].series[0]
 
 
+@given('an axis')
+def given_an_axis(context):
+    prs = Presentation(test_pptx('cht-axis-props'))
+    chart = prs.slides[0].shapes[0].chart
+    context.axis = chart.value_axis
+
+
 @given('an axis having {major_or_minor} gridlines')
 def given_an_axis_having_major_or_minor_gridlines(context, major_or_minor):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -522,6 +529,12 @@ def then_axis_has_major_or_minor_gridlines_is_expected_value(
     }[major_or_minor]
     expected_value = {'True': True, 'False': False}[value]
     assert actual_value is expected_value, 'got %s' % actual_value
+
+
+@then('axis.major_gridlines is a MajorGridlines object')
+def then_axis_major_gridlines_is_a_MajorGridlines_object(context):
+    axis = context.axis
+    assert type(axis.major_gridlines).__name__ == 'MajorGridlines'
 
 
 @then('axis.{major_or_minor}_unit is {value}')
