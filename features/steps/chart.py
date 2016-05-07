@@ -240,6 +240,13 @@ def given_a_legend_with_overlay_setting_of_setting(context, setting):
     context.legend = prs.slides[slide_idx].shapes[0].chart.legend
 
 
+@given('a major gridlines')
+def given_a_major_gridlines(context):
+    prs = Presentation(test_pptx('cht-gridlines-props'))
+    axis = prs.slides[0].shapes[0].chart.value_axis
+    context.gridlines = axis.major_gridlines
+
+
 @given('a point')
 def given_a_point(context):
     prs = Presentation(test_pptx('cht-point-props'))
@@ -630,6 +637,24 @@ def then_each_series_has_count_values(context, count):
     for series in context.chart.plots[0].series:
         actual_value_count = len(series.values)
         assert actual_value_count == expected_count
+
+
+@then('gridlines.format is a ChartFormat object')
+def then_gridlines_format_is_a_ChartFormat_object(context):
+    gridlines = context.gridlines
+    assert type(gridlines.format).__name__ == 'ChartFormat'
+
+
+@then('gridlines.format.fill is a FillFormat object')
+def then_gridlines_format_fill_is_a_FillFormat_object(context):
+    gridlines = context.gridlines
+    assert type(gridlines.format.fill).__name__ == 'FillFormat'
+
+
+@then('gridlines.format.line is a LineFormat object')
+def then_gridlines_format_line_is_a_LineFormat_object(context):
+    gridlines = context.gridlines
+    assert type(gridlines.format.line).__name__ == 'LineFormat'
 
 
 @then('iterating points produces 3 Point objects')
