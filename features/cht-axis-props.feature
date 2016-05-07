@@ -1,14 +1,14 @@
-Feature: Get and set axis properties
+Feature: Axis properties
   In order to customize the formatting of an axis on a chart
   As a developer using python-pptx
-  I need a way to get and set axis properties
+  I need read/write properties on Axis
 
 
-  Scenario Outline: Determine whether an axis has major and/or minor gridlines
+  Scenario Outline: Get Axis.has_[major/minor]_gridlines
     Given an axis <having-or-not> <major-or-minor> gridlines
      Then axis.has_<major-or-minor>_gridlines is <expected-value>
 
-    Examples: having gridlines or not
+    Examples: gridlines presence cases
       | having-or-not | major-or-minor | expected-value |
       | having        | major          | True           |
       | not having    | major          | False          |
@@ -16,12 +16,12 @@ Feature: Get and set axis properties
       | not having    | minor          | False          |
 
 
-  Scenario Outline: Change whether an axis has major and/or minor gridlines
+  Scenario Outline: Set Axis.has_[major/minor]_gridlines
     Given an axis <having-or-not> <major-or-minor> gridlines
      When I assign <value> to axis.has_<major-or-minor>_gridlines
      Then axis.has_<major-or-minor>_gridlines is <expected-value>
 
-    Examples: expected results of changing has_<major-or-minor>_gridlines
+    Examples: has_major/minor_gridlines assignment cases
       | having-or-not | major-or-minor | value | expected-value |
       | having        | major          | False | False          |
       | having        | major          | True  | True           |
@@ -29,11 +29,11 @@ Feature: Get and set axis properties
       | not having    | minor          | True  | True           |
 
 
-  Scenario Outline: Determine axis major and minor unit
+  Scenario Outline: Get Axis.major/minor_unit
     Given an axis having <major-or-minor> unit of <value>
      Then axis.<major-or-minor>_unit is <expected-value>
 
-    Examples: axis unit values
+    Examples: axis unit cases
       | major-or-minor | value | expected-value |
       | major          | 20.0  | 20.0           |
       | major          | Auto  | None           |
@@ -41,12 +41,12 @@ Feature: Get and set axis properties
       | minor          | Auto  | None           |
 
 
-  Scenario Outline: Change axis major or minor unit
+  Scenario Outline: Set Axis.major/minor_unit
     Given an axis having <major-or-minor> unit of <value>
      When I assign <new-value> to axis.<major-or-minor>_unit
      Then axis.<major-or-minor>_unit is <expected-value>
 
-    Examples: expected results of changing <major-or-minor>_unit
+    Examples: major/minor_unit assignment cases
       | major-or-minor | value | new-value | expected-value |
       | major          | 20.0  | 5         | 5.0            |
       | major          | 20.0  | None      | None           |
