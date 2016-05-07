@@ -126,6 +126,13 @@ def given_a_bar_series_having_width_line(context, width):
     context.series = plot.series[series_idx]
 
 
+@given('a bubble plot having bubble scale of {percent}')
+def given_a_bubble_plot_having_bubble_scale_of_percent(context, percent):
+    slide_idx = {'no explicit value': 3, '70%': 4}[percent]
+    prs = Presentation(test_pptx('cht-plot-props'))
+    context.bubble_plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
+
+
 @given('a chart {having_or_not} a legend')
 def given_a_chart_having_or_not_a_legend(context, having_or_not):
     slide_idx = {
@@ -430,6 +437,12 @@ def when_I_assign_value_to_axis_major_or_minor_unit(
     setattr(axis, propname, new_value)
 
 
+@when('I assign {value} to bubble_plot.bubble_scale')
+def when_I_assign_value_to_bubble_plot_bubble_scale(context, value):
+    new_value = None if value == 'None' else int(value)
+    context.bubble_plot.bubble_scale = new_value
+
+
 @when('I assign {value} to data_label.has_text_frame')
 def when_I_assign_value_to_data_label_has_text_frame(context, value):
     new_value = {'True': True, 'False': False}[value]
@@ -581,6 +594,15 @@ def then_axis_major_or_minor_unit_is_value(context, major_or_minor, value):
         '20.0': 20.0, '8.4': 8.4, '5.0': 5.0, '4.2': 4.2, 'None': None
     }[value]
     assert actual_value == expected_value, 'got %s' % actual_value
+
+
+@then('bubble_plot.bubble_scale is {value}')
+def then_bubble_plot_bubble_scale_is_value(context, value):
+    expected_value = int(value)
+    bubble_plot = context.bubble_plot
+    assert bubble_plot.bubble_scale == expected_value, (
+        'got %s' % bubble_plot.bubble_scale
+    )
 
 
 @then('chart.category_axis is a {type_name} object')

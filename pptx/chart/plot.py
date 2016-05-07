@@ -170,6 +170,14 @@ class BubblePlot(_BasePlot):
     """
     A bubble chart plot.
     """
+    @property
+    def bubble_scale(self):
+        """
+        An integer between 0 and 300 inclusive indicating the percentage of
+        the default size at which bubbles should be displayed. Assigning
+        |None| produces the same behavior as assigning `100`.
+        """
+        raise NotImplementedError
 
 
 class LinePlot(_BasePlot):

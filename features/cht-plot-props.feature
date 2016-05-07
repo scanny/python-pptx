@@ -4,6 +4,31 @@ Feature: Plot properties
   I need read/write properties on plot objects
 
 
+  @wip
+  Scenario Outline: Get bubble_plot.bubble_scale
+    Given a bubble plot having bubble scale of <percent>
+     Then bubble_plot.bubble_scale is <value>
+
+    Examples: bubble_plot.bubble_scale values
+      | percent           | value |
+      | no explicit value |  100  |
+      | 70%               |   70  |
+
+
+  @wip
+  Scenario Outline: Set bubble_plot.bubble_scale
+    Given a bubble plot having bubble scale of <percent>
+     When I assign <new-value> to bubble_plot.bubble_scale
+     Then bubble_plot.bubble_scale is <value>
+
+    Examples: bubble_plot.bubble_scale assignment cases
+      | percent           | new-value | value |
+      | no explicit value | 70        |   70  |
+      | 70%               | 150       |  150  |
+      | 70%               | None      |  100  |
+      | no explicit value | None      |  100  |
+
+
   Scenario: Get category_plot.categories
     Given a bar plot having known categories
      Then plot.categories contains the known category strings
