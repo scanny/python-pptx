@@ -14,7 +14,6 @@ Feature: DataLabel properties
       | centered on                | CENTER |
 
 
-  @wip
   Scenario Outline: Set data_label.position
     Given a data label positioned <relation-to> its data point
      When I assign <value> to data_label.position

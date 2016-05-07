@@ -142,6 +142,17 @@ class DataLabel(object):
             return None
         return dLblPos.val
 
+    @position.setter
+    def position(self, value):
+        if value is None:
+            dLbl = self._dLbl
+            if dLbl is None:
+                return
+            dLbl._remove_dLblPos()
+            return
+        dLbl = self._get_or_add_dLbl()
+        dLbl.get_or_add_dLblPos().val = value
+
     @property
     def text_frame(self):
         """
