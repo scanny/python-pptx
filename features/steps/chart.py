@@ -217,6 +217,14 @@ def given_a_legend_with_overlay_setting_of_setting(context, setting):
     context.legend = prs.slides[slide_idx].shapes[0].chart.legend
 
 
+@given('a {points_type} object containing 3 points')
+def given_a_points_type_object_containing_3_points(context, points_type):
+    slide_idx = {'XyPoints': 0, 'BubblePoints': 1}[points_type]
+    prs = Presentation(test_pptx('cht-point-access'))
+    series = prs.slides[slide_idx].shapes[0].chart.plots[0].series[0]
+    context.points = series.points
+
+
 @given('a series of type {series_type}')
 def given_a_series_of_type_series_type(context, series_type):
     slide_idx = {'XY': 2, 'Bubble': 3}[series_type]
@@ -549,6 +557,15 @@ def then_each_series_has_count_values(context, count):
         assert actual_value_count == expected_count
 
 
+@then('iterating points produces 3 Point objects')
+def then_iterating_points_produces_3_point_objects(context):
+    points = context.points
+    idx = -1
+    for idx, point in enumerate(points):
+        assert type(point).__name__ == 'Point'
+    assert idx == 2
+
+
 @then('legend.font is a Font object')
 def then_legend_font_is_a_Font_object(context):
     legend = context.legend
@@ -579,6 +596,12 @@ def then_legend_position_is_value(context, value):
     assert legend.position is expected_position, 'got %s' % legend.position
 
 
+@then('len(chart.series) is {count}')
+def then_len_chart_series_is_count(context, count):
+    expected_count = int(count)
+    assert len(context.chart.series) == expected_count
+
+
 @then('len(plot.categories) is {count}')
 def then_len_plot_categories_is_count(context, count):
     plot = context.chart.plots[0]
@@ -586,10 +609,10 @@ def then_len_plot_categories_is_count(context, count):
     assert len(plot.categories) == expected_count
 
 
-@then('len(chart.series) is {count}')
-def then_len_chart_series_is_count(context, count):
-    expected_count = int(count)
-    assert len(context.chart.series) == expected_count
+@then('len(points) is 3')
+def then_len_points_is_3(context):
+    points = context.points
+    assert len(points) == 3
 
 
 @then('len(series.values) is {count} for each series')
@@ -639,6 +662,12 @@ def then_plot_vary_by_categories_is_value(context, value):
     }[value]
     plot = context.plot
     assert plot.vary_by_categories is expected_value
+
+
+@then('points[2] is a Point object')
+def then_points_2_is_a_Point_object(context):
+    points = context.points
+    assert type(points[2]).__name__ == 'Point'
 
 
 @then('series.fill.fore_color.rgb is FF6600')
