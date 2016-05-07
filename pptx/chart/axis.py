@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from ..enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
 from ..oxml.ns import qn
+from ..shared import ElementProxy
 from ..text.text import Font
 from ..util import lazyproperty
 
@@ -58,6 +59,14 @@ class _BaseAxis(object):
             self._element.get_or_add_minorGridlines()
         else:
             self._element._remove_minorGridlines()
+
+    @lazyproperty
+    def major_gridlines(self):
+        """
+        The |MajorGridlines| object representing the major gridlines for
+        this axis.
+        """
+        return MajorGridlines(self._element)
 
     @property
     def major_tick_mark(self):
@@ -178,6 +187,19 @@ class CategoryAxis(_BaseAxis):
     """
     A category axis of a chart.
     """
+
+
+class MajorGridlines(ElementProxy):
+    """
+    Provides access to the properties of the major gridlines appearing on an
+    axis.
+    """
+
+    __slots__ = ('_xAx', '_format')
+
+    def __init__(self, xAx):
+        super(MajorGridlines, self).__init__(xAx)
+        self._xAx = xAx  # axis element, catAx or valAx
 
 
 class TickLabels(object):

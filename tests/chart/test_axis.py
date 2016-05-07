@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.chart.axis import _BaseAxis, TickLabels, ValueAxis
+from pptx.chart.axis import _BaseAxis, MajorGridlines, TickLabels, ValueAxis
 from pptx.enum.chart import (
     XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
 )
@@ -101,6 +101,12 @@ class Describe_BaseAxis(object):
         axis.tick_label_position = new_value
         assert axis._element.xml == expected_xml
 
+    def it_provides_access_to_its_major_gridlines(self, maj_grdlns_fixture):
+        axis, MajorGridLines_, xAx, major_gridlines_ = maj_grdlns_fixture
+        major_gridlines = axis.major_gridlines
+        MajorGridLines_.assert_called_once_with(xAx)
+        assert major_gridlines is major_gridlines_
+
     def it_provides_access_to_the_tick_labels(self, tick_labels_fixture):
         axis, tick_labels_, TickLabels_, xAx = tick_labels_fixture
         tick_labels = axis.tick_labels
@@ -108,6 +114,12 @@ class Describe_BaseAxis(object):
         assert tick_labels is tick_labels_
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def maj_grdlns_fixture(self, MajorGridlines_, major_gridlines_):
+        xAx = element('c:valAx')
+        axis = _BaseAxis(xAx)
+        return axis, MajorGridlines_, xAx, major_gridlines_
 
     @pytest.fixture(params=[
         ('c:valAx',                  False),
@@ -325,6 +337,17 @@ class Describe_BaseAxis(object):
         return axis, new_value, expected_xml
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def MajorGridlines_(self, request, major_gridlines_):
+        return class_mock(
+            request, 'pptx.chart.axis.MajorGridlines',
+            return_value=major_gridlines_
+        )
+
+    @pytest.fixture
+    def major_gridlines_(self, request):
+        return instance_mock(request, MajorGridlines)
 
     @pytest.fixture
     def TickLabels_(self, request, tick_labels_):

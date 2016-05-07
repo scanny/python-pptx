@@ -58,7 +58,6 @@ Feature: Axis properties
       | minor          | Auto  | None      | None           |
 
 
-  @wip
   Scenario: Get Axis.major_gridlines
     Given an axis
      Then axis.major_gridlines is a MajorGridlines object
