@@ -14,7 +14,6 @@ Feature: Plot properties
       | 70%               |   70  |
 
 
-  @wip
   Scenario Outline: Set bubble_plot.bubble_scale
     Given a bubble plot having bubble scale of <percent>
      When I assign <new-value> to bubble_plot.bubble_scale

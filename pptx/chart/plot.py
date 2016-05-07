@@ -182,6 +182,15 @@ class BubblePlot(_BasePlot):
             return 100
         return bubbleScale.val
 
+    @bubble_scale.setter
+    def bubble_scale(self, value):
+        bubbleChart = self._element
+        bubbleChart._remove_bubbleScale()
+        if value is None:
+            return
+        bubbleScale = bubbleChart._add_bubbleScale()
+        bubbleScale.val = value
+
 
 class LinePlot(_BasePlot):
     """

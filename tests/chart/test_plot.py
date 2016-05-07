@@ -267,6 +267,11 @@ class DescribeBubblePlot(object):
         bubble_plot, expected_value = bubble_scale_get_fixture
         assert bubble_plot.bubble_scale == expected_value
 
+    def it_can_change_its_bubble_scale(self, bubble_scale_set_fixture):
+        bubble_plot, new_value, expected_xml = bubble_scale_set_fixture
+        bubble_plot.bubble_scale = new_value
+        assert bubble_plot._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -279,6 +284,26 @@ class DescribeBubblePlot(object):
         bubbleChart_cxml, expected_value = request.param
         bubble_plot = BubblePlot(element(bubbleChart_cxml), None)
         return bubble_plot, expected_value
+
+    @pytest.fixture(params=[
+        ('c:bubbleChart',                         42,
+         'c:bubbleChart/c:bubbleScale{val=42}'),
+        ('c:bubbleChart/c:bubbleScale{val=042%}', 150,
+         'c:bubbleChart/c:bubbleScale{val=150}'),
+        ('c:bubbleChart/c:bubbleScale{val=150}',  None,
+         'c:bubbleChart'),
+        ('c:bubbleChart/c:bubbleScale{val=150}',  100,
+         'c:bubbleChart/c:bubbleScale'),
+        ('c:bubbleChart',                         None,
+         'c:bubbleChart'),
+        ('c:bubbleChart',                         100,
+         'c:bubbleChart/c:bubbleScale'),
+    ])
+    def bubble_scale_set_fixture(self, request):
+        bubbleChart_cxml, new_value, expected_cxml = request.param
+        bubble_plot = BubblePlot(element(bubbleChart_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return bubble_plot, new_value, expected_xml
 
 
 class DescribePlotFactory(object):
