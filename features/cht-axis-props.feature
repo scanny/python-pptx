@@ -61,3 +61,16 @@ Feature: Axis properties
   Scenario: Get Axis.major_gridlines
     Given an axis
      Then axis.major_gridlines is a MajorGridlines object
+
+
+  @wip
+  Scenario Outline: Get Axis.format
+    Given a <axis-type> axis
+     Then axis.format is a ChartFormat object
+      And axis.format.fill is a FillFormat object
+      And axis.format.line is a LineFormat object
+
+    Examples: axis types
+      | axis-type |
+      | category  |
+      | value     |

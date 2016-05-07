@@ -29,6 +29,16 @@ from helpers import count, test_pptx
 
 # given ===================================================
 
+@given('a {axis_type} axis')
+def given_a_axis_type_axis(context, axis_type):
+    prs = Presentation(test_pptx('cht-axis-props'))
+    chart = prs.slides[0].shapes[0].chart
+    context.axis = {
+        'category': chart.category_axis,
+        'value':    chart.value_axis,
+    }[axis_type]
+
+
 @given('a bar plot having known categories')
 def given_a_bar_plot_having_known_categories(context):
     prs = Presentation(test_pptx('cht-plot-props'))
@@ -525,6 +535,24 @@ def when_I_replace_its_data_with_categories_and_series(context, cats, sers):
 
 
 # then ====================================================
+
+@then('axis.format is a ChartFormat object')
+def then_axis_format_is_a_ChartFormat_object(context):
+    axis = context.axis
+    assert type(axis.format).__name__ == 'ChartFormat'
+
+
+@then('axis.format.fill is a FillFormat object')
+def then_axis_format_fill_is_a_FillFormat_object(context):
+    axis = context.axis
+    assert type(axis.format.fill).__name__ == 'FillFormat'
+
+
+@then('axis.format.line is a LineFormat object')
+def then_axis_format_line_is_a_LineFormat_object(context):
+    axis = context.axis
+    assert type(axis.format.line).__name__ == 'LineFormat'
+
 
 @then('axis.has_{major_or_minor}_gridlines is {value}')
 def then_axis_has_major_or_minor_gridlines_is_expected_value(
