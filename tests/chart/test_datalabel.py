@@ -20,6 +20,11 @@ from ..unitutil.mock import class_mock, instance_mock, method_mock
 
 class DescribeDataLabel(object):
 
+    def it_knows_its_position(self, position_get_fixture):
+        data_label, expected_value = position_get_fixture
+        position = data_label.position
+        assert position == expected_value
+
     def it_knows_whether_it_has_a_text_frame(self, has_tf_get_fixture):
         data_label, expected_value = has_tf_get_fixture
         value = data_label.has_text_frame
@@ -95,6 +100,19 @@ class DescribeDataLabel(object):
         data_label = DataLabel(element(ser_cxml), 42)
         expected_xml = xml(expected_cxml)
         return data_label, value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:ser',                                                 None),
+        ('c:ser/c:dLbls/c:dLbl/c:idx{val=42}',                    None),
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})', 'BELOW'),
+    ])
+    def position_get_fixture(self, request):
+        ser_cxml, value = request.param
+        data_label = DataLabel(element(ser_cxml), 42)
+        expected_value = (
+            None if value is None else getattr(XL_LABEL_POSITION, value)
+        )
+        return data_label, expected_value
 
     @pytest.fixture(params=[
         ('c:ser{a:b=c}',

@@ -128,7 +128,19 @@ class DataLabel(object):
 
     @property
     def position(self):
-        raise NotImplementedError
+        """
+        Read/write :ref:`XlDataLabelPosition` member specifying the position
+        of this data label with respect to its data point, or |None| if no
+        position is specified. Assigning |None| causes PowerPoint to choose
+        the default position, which varies by chart type.
+        """
+        dLbl = self._dLbl
+        if dLbl is None:
+            return None
+        dLblPos = dLbl.dLblPos
+        if dLblPos is None:
+            return None
+        return dLblPos.val
 
     @property
     def text_frame(self):

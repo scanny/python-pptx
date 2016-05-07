@@ -4,7 +4,6 @@ Feature: DataLabel properties
   I need read/write properties on DataLabel
 
 
-  @wip
   Scenario Outline: Get data_label.position
     Given a data label positioned <relation-to> its data point
      Then data_label.position is <value>
