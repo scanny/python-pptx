@@ -10,9 +10,53 @@ from __future__ import (
 
 import pytest
 
-from pptx.chart.point import BubblePoints, XyPoints
+from pptx.chart.point import BubblePoints, Point, XyPoints
 
 from ..unitutil.cxml import element
+from ..unitutil.mock import function_mock, instance_mock
+
+
+class Describe_BasePoints(object):
+
+    def it_supports_indexed_access(self, getitem_fixture):
+        points, idx, Point_, ser, point_ = getitem_fixture
+        point = points[idx]
+        Point_.assert_called_once_with(ser, idx)
+        assert point is point_
+
+    def it_raises_on_indexed_access_out_of_range(self):
+        points = XyPoints(element(
+            'c:ser/(c:xVal/c:numRef/c:numCache/c:ptCount{val=3},c:yVal/c:num'
+            'Ref/c:numCache/c:ptCount{val=3})'
+        ))
+        with pytest.raises(IndexError):
+            points[-1]
+        with pytest.raises(IndexError):
+            points[3]
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def getitem_fixture(self, request, Point_, point_):
+        ser = element(
+            'c:ser/(c:xVal/c:numRef/c:numCache/c:ptCount{val=3},c:yVal/c:num'
+            'Ref/c:numCache/c:ptCount{val=3})'
+        )
+        points = XyPoints(ser)
+        idx = 2
+        return points, idx, Point_, ser, point_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def Point_(self, request, point_):
+        return function_mock(
+            request, 'pptx.chart.point.Point', return_value=point_
+        )
+
+    @pytest.fixture
+    def point_(self, request):
+        return instance_mock(request, Point)
 
 
 class DescribeBubblePoints(object):

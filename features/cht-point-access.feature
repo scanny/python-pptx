@@ -14,7 +14,6 @@ Feature: Access a point
       | BubblePoints |
 
 
-  @wip
   Scenario Outline: access point by index
     Given a <type> object containing 3 points
      Then points[2] is a Point object
@@ -25,7 +24,6 @@ Feature: Access a point
       | BubblePoints |
 
 
-  @wip
   Scenario Outline: iterate points
     Given a <type> object containing 3 points
      Then iterating points produces 3 Point objects

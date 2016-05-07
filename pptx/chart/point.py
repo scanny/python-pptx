@@ -21,7 +21,9 @@ class _BasePoints(Sequence):
         self._ser = ser
 
     def __getitem__(self, idx):
-        raise NotImplementedError
+        if idx < 0 or idx >= self.__len__():
+            raise IndexError('point index out of range')
+        return Point(self._ser, idx)
 
 
 class BubblePoints(_BasePoints):
@@ -34,6 +36,19 @@ class BubblePoints(_BasePoints):
             self._ser.yVal_ptCount_val,
             self._ser.bubbleSize_ptCount_val
         )
+
+
+class Point(object):
+    """
+    Provides access to the properties of an individual data point in
+    a series, such as the visual properties of its marker and the text and
+    font of its data label.
+    """
+    def __init__(self, ser, idx):
+        super(Point, self).__init__()
+        self._element = ser
+        self._ser = ser
+        self._idx = idx
 
 
 class XyPoints(_BasePoints):
