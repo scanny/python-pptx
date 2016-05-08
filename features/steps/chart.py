@@ -191,6 +191,9 @@ def given_a_chart_of_type_chart_type(context, chart_type):
         'XY Smooth No Markers':     (4, 4),
         'Bubble':                   (5, 0),
         '3D-Bubble':                (5, 1),
+        'Radar':                    (6, 0),
+        'Marked Radar':             (6, 1),
+        'Filled Radar':             (6, 2),
     }[chart_type]
     prs = Presentation(test_pptx('cht-chart-type'))
     context.chart = prs.slides[slide_idx].shapes[shape_idx].chart

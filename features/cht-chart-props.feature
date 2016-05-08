@@ -4,6 +4,7 @@ Feature: Chart properties
   I need read/write properties on Chart
 
 
+  @wip
   Scenario Outline: Get Chart.chart_type
     Given a chart of type <chart-type>
      Then chart.chart_type is <expected-enum-member>
@@ -37,6 +38,9 @@ Feature: Chart properties
       | XY Smooth No Markers     | XY_SCATTER_SMOOTH_NO_MARKERS |
       | Bubble                   | BUBBLE                       |
       | 3D-Bubble                | BUBBLE_THREE_D_EFFECT        |
+      | Radar                    | RADAR                        |
+      | Marked Radar             | RADAR_MARKERS                |
+      | Filled Radar             | RADAR_FILLED                 |
 
 
   Scenario Outline: Get Chart.category_axis
