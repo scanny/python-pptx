@@ -29,7 +29,6 @@ Feature: Axis properties
       | 2.75      | CUSTOM    |
 
 
-  @wip
   Scenario Outline: Get value_axis.crosses_at
     Given a value axis having category axis crossing of <crossing>
      Then value_axis.crosses_at is <value>

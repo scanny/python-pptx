@@ -344,7 +344,10 @@ class ValueAxis(_BaseAxis):
         Numeric value on this axis at which the perpendicular axis crosses.
         Returns |None| if no crossing value is set.
         """
-        raise NotImplementedError
+        crossesAt = self._cross_xAx.crossesAt
+        if crossesAt is None:
+            return None
+        return crossesAt.val
 
     @property
     def major_unit(self):

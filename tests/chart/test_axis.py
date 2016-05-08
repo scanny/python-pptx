@@ -589,6 +589,10 @@ class DescribeValueAxis(object):
         value_axis.crosses = new_value
         assert plotArea.xml == expected_xml
 
+    def it_knows_the_other_axis_crossing_value(self, crosses_at_get_fixture):
+        value_axis, expected_value = crosses_at_get_fixture
+        assert value_axis.crosses_at == expected_value
+
     def it_knows_its_major_unit(self, major_unit_get_fixture):
         value_axis, expected_value = major_unit_get_fixture
         assert value_axis.major_unit == expected_value
@@ -608,6 +612,21 @@ class DescribeValueAxis(object):
         assert value_axis._element.xml == expected_xml
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:plotArea/(c:valAx/c:axId{val=42},c:valAx/c:crossAx{val=42})',
+         None),
+        ('c:plotArea/(c:catAx/(c:axId{val=42},c:crossesAt{val=2.4}),c:valAx/'
+         'c:crossAx{val=42})', 2.4),
+        ('c:plotArea/(c:valAx/(c:axId{val=42},c:crossesAt{val=-1.2}),c:valAx'
+         '/c:crossAx{val=42})', -1.2),
+    ])
+    def crosses_at_get_fixture(self, request):
+        plotArea_cxml, expected_value = request.param
+        plotArea = element(plotArea_cxml)
+        valAx = plotArea.xpath('c:valAx[c:crossAx/@val="42"]')[0]
+        value_axis = ValueAxis(valAx)
+        return value_axis, expected_value
 
     @pytest.fixture(params=[
         ('c:plotArea/(c:valAx/c:axId{val=42},c:valAx/c:crossAx{val=42})',
