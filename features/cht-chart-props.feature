@@ -4,7 +4,6 @@ Feature: Chart properties
   I need read/write properties on Chart
 
 
-  @wip
   Scenario Outline: Get Chart.chart_type
     Given a chart of type <chart-type>
      Then chart.chart_type is <expected-enum-member>

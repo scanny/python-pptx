@@ -257,6 +257,7 @@ class PlotTypeInspector(object):
                 'BubblePlot': cls._differentiate_bubble_chart_type,
                 'LinePlot':   cls._differentiate_line_chart_type,
                 'PiePlot':    cls._differentiate_pie_chart_type,
+                'RadarPlot':  cls._differentiate_radar_chart_type,
                 'XyPlot':     cls._differentiate_xy_chart_type,
             }[plot.__class__.__name__]
         except KeyError:
@@ -319,7 +320,14 @@ class PlotTypeInspector(object):
     @classmethod
     def _differentiate_line_chart_type(cls, plot):
         lineChart = plot._element
-        if cls._has_line_markers(lineChart):
+
+        def has_line_markers():
+            matches = lineChart.xpath('c:ser/c:marker/c:symbol[@val="none"]')
+            if matches:
+                return False
+            return True
+
+        if has_line_markers():
             return {
                 ST_Grouping.STANDARD:        XL.LINE_MARKERS,
                 ST_Grouping.STACKED:         XL.LINE_MARKERS_STACKED,
@@ -333,19 +341,29 @@ class PlotTypeInspector(object):
             }[plot._element.grouping_val]
 
     @classmethod
-    def _has_line_markers(cls, lineChart):
-        none_marker_symbols = lineChart.xpath(
-            './c:ser/c:marker/c:symbol[@val="none"]'
-        )
-        if none_marker_symbols:
-            return False
-        return True
-
-    @classmethod
     def _differentiate_pie_chart_type(cls, plot):
         pieChart = plot._element
         explosion = pieChart.xpath('./c:ser/c:explosion')
         return XL.PIE_EXPLODED if explosion else XL.PIE
+
+    @classmethod
+    def _differentiate_radar_chart_type(cls, plot):
+        radarChart = plot._element
+        radar_style = radarChart.xpath('c:radarStyle')[0].get('val')
+
+        def noMarkers():
+            matches = radarChart.xpath('c:ser/c:marker/c:symbol')
+            if matches and matches[0].get('val') == 'none':
+                return True
+            return False
+
+        if radar_style is None:
+            return XL.RADAR
+        if radar_style == 'filled':
+            return XL.RADAR_FILLED
+        if noMarkers():
+            return XL.RADAR
+        return XL.RADAR_MARKERS
 
     @classmethod
     def _differentiate_xy_chart_type(cls, plot):

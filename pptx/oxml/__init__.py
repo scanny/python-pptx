@@ -84,7 +84,7 @@ register_element_cls('c:legendPos', CT_LegendPos)
 from .chart.plot import (
     CT_Area3DChart, CT_AreaChart, CT_BarChart, CT_BarDir, CT_BubbleChart,
     CT_BubbleScale, CT_GapAmount, CT_Grouping, CT_LineChart, CT_Overlap,
-    CT_PieChart, CT_ScatterChart
+    CT_PieChart, CT_RadarChart, CT_ScatterChart
 )
 register_element_cls('c:area3DChart',  CT_Area3DChart)
 register_element_cls('c:areaChart',    CT_AreaChart)
@@ -97,6 +97,7 @@ register_element_cls('c:grouping',     CT_Grouping)
 register_element_cls('c:lineChart',    CT_LineChart)
 register_element_cls('c:overlap',      CT_Overlap)
 register_element_cls('c:pieChart',     CT_PieChart)
+register_element_cls('c:radarChart',   CT_RadarChart)
 register_element_cls('c:scatterChart', CT_ScatterChart)
 
 

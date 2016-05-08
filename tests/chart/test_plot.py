@@ -423,6 +423,12 @@ class DescribePlotTypeInspector(object):
         ('c:bubbleChart/c:ser/c:bubble3D',        XL.BUBBLE_THREE_D_EFFECT),
         ('c:bubbleChart/c:ser/c:bubble3D{val=0}', XL.BUBBLE),
         ('c:bubbleChart/c:ser/c:bubble3D{val=1}', XL.BUBBLE_THREE_D_EFFECT),
+
+        ('c:radarChart/c:radarStyle',             XL.RADAR),
+        ('c:radarChart/c:radarStyle{val=marker}', XL.RADAR_MARKERS),
+        ('c:radarChart/c:radarStyle{val=filled}', XL.RADAR_FILLED),
+        ('c:radarChart/(c:radarStyle{val=marker},c:ser/c:marker/c:symbol{val'
+         '=none})',                               XL.RADAR),
     ])
     def chart_type_fixture(self, request):
         xChart_cxml, expected_chart_type = request.param

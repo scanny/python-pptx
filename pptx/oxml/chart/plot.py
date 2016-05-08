@@ -198,6 +198,19 @@ class CT_PieChart(BaseChartElement):
     del _tag_seq
 
 
+class CT_RadarChart(BaseChartElement):
+    """
+    ``<c:radarChart>`` custom element class
+    """
+    _tag_seq = (
+        'c:radarStyle', 'c:varyColors', 'c:ser', 'c:dLbls', 'c:axId',
+        'c:extLst'
+    )
+    varyColors = ZeroOrOne('c:varyColors', successors=_tag_seq[2:])
+    dLbls = ZeroOrOne('c:dLbls', successors=(_tag_seq[4:]))
+    del _tag_seq
+
+
 class CT_ScatterChart(BaseChartElement):
     """
     ``<c:scatterChart>`` custom element class
