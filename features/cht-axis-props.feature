@@ -42,7 +42,6 @@ Feature: Axis properties
       | -1.5      | -1.5  |
 
 
-  @wip
   Scenario Outline: Set value_axis.crosses_at
     Given a value axis having category axis crossing of <crossing>
      When I assign <value> to value_axis.crosses_at

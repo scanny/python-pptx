@@ -349,6 +349,15 @@ class ValueAxis(_BaseAxis):
             return None
         return crossesAt.val
 
+    @crosses_at.setter
+    def crosses_at(self, value):
+        cross_xAx = self._cross_xAx
+        cross_xAx._remove_crosses()
+        cross_xAx._remove_crossesAt()
+        if value is None:
+            return
+        cross_xAx._add_crossesAt(val=value)
+
     @property
     def major_unit(self):
         """

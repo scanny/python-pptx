@@ -593,6 +593,12 @@ class DescribeValueAxis(object):
         value_axis, expected_value = crosses_at_get_fixture
         assert value_axis.crosses_at == expected_value
 
+    def it_can_change_the_other_axis_crossing_value(
+            self, crosses_at_set_fixture):
+        value_axis, new_value, plotArea, expected_xml = crosses_at_set_fixture
+        value_axis.crosses_at = new_value
+        assert plotArea.xml == expected_xml
+
     def it_knows_its_major_unit(self, major_unit_get_fixture):
         value_axis, expected_value = major_unit_get_fixture
         assert value_axis.major_unit == expected_value
@@ -627,6 +633,31 @@ class DescribeValueAxis(object):
         valAx = plotArea.xpath('c:valAx[c:crossAx/@val="42"]')[0]
         value_axis = ValueAxis(valAx)
         return value_axis, expected_value
+
+    @pytest.fixture(params=[
+        ('c:plotArea/(c:valAx/c:axId{val=42},c:valAx/c:crossAx{val=42})',
+         2.4,
+         'c:plotArea/(c:valAx/(c:axId{val=42},c:crossesAt{val=2.4}),c:valAx/'
+         'c:crossAx{val=42})'),
+        ('c:plotArea/(c:catAx/(c:axId{val=42},c:crosses{val=min}),c:valAx/c:'
+         'crossAx{val=42})', 1.5,
+         'c:plotArea/(c:catAx/(c:axId{val=42},c:crossesAt{val=1.5}),c:valAx/'
+         'c:crossAx{val=42})'),
+        ('c:plotArea/(c:valAx/(c:axId{val=42},c:crossesAt{val=2.4}),c:valAx/'
+         'c:crossAx{val=42})', 1.5,
+         'c:plotArea/(c:valAx/(c:axId{val=42},c:crossesAt{val=1.5}),c:valAx/'
+         'c:crossAx{val=42})'),
+        ('c:plotArea/(c:catAx/(c:axId{val=42},c:crossesAt{val=1.5}),c:valAx/'
+         'c:crossAx{val=42})', None,
+         'c:plotArea/(c:catAx/(c:axId{val=42}),c:valAx/c:crossAx{val=42})'),
+    ])
+    def crosses_at_set_fixture(self, request):
+        plotArea_cxml, new_value, expected_cxml = request.param
+        plotArea = element(plotArea_cxml)
+        valAx = plotArea.xpath('c:valAx[c:crossAx/@val="42"]')[0]
+        value_axis = ValueAxis(valAx)
+        expected_xml = xml(expected_cxml)
+        return value_axis, new_value, plotArea, expected_xml
 
     @pytest.fixture(params=[
         ('c:plotArea/(c:valAx/c:axId{val=42},c:valAx/c:crossAx{val=42})',
