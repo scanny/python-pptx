@@ -204,6 +204,12 @@ class PiePlot(_BasePlot):
     """
 
 
+class RadarPlot(_BasePlot):
+    """
+    A radar-style plot.
+    """
+
+
 class XyPlot(_BasePlot):
     """
     An XY (scatter) plot.
@@ -223,6 +229,7 @@ def PlotFactory(xChart, chart):
             qn('c:bubbleChart'):  BubblePlot,
             qn('c:lineChart'):    LinePlot,
             qn('c:pieChart'):     PiePlot,
+            qn('c:radarChart'):   RadarPlot,
             qn('c:scatterChart'): XyPlot,
         }[xChart.tag]
     except KeyError:
