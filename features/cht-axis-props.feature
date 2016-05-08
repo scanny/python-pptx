@@ -16,7 +16,6 @@ Feature: Axis properties
       | 2.75      | CUSTOM    |
 
 
-  @wip
   Scenario Outline: Set value_axis.crosses
     Given a value axis having category axis crossing of <crossing>
      When I assign <member> to value_axis.crosses

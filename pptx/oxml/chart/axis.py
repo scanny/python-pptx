@@ -64,6 +64,7 @@ class CT_CatAx(BaseAxisElement):
     spPr = ZeroOrOne('c:spPr', successors=_tag_seq[12:])
     txPr = ZeroOrOne('c:txPr', successors=_tag_seq[13:])
     crosses = ZeroOrOne('c:crosses', successors=_tag_seq[15:])
+    crossesAt = ZeroOrOne('c:crossesAt', successors=_tag_seq[16:])
     lblOffset = ZeroOrOne('c:lblOffset', successors=_tag_seq[19:])
     del _tag_seq
 
@@ -181,6 +182,7 @@ class CT_ValAx(BaseAxisElement):
     txPr = ZeroOrOne('c:txPr', successors=_tag_seq[13:])
     crossAx = ZeroOrOne('c:crossAx', successors=_tag_seq[14:])
     crosses = ZeroOrOne('c:crosses', successors=_tag_seq[15:])
+    crossesAt = ZeroOrOne('c:crossesAt', successors=_tag_seq[16:])
     majorUnit = ZeroOrOne('c:majorUnit', successors=_tag_seq[18:])
     minorUnit = ZeroOrOne('c:minorUnit', successors=_tag_seq[19:])
     del _tag_seq

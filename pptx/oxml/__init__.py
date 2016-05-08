@@ -115,6 +115,7 @@ from .chart.shared import (
 register_element_cls('c:autoUpdate',       CT_Boolean)
 register_element_cls('c:bubble3D',         CT_Boolean)
 register_element_cls('c:crossAx',          CT_UnsignedInt)
+register_element_cls('c:crossesAt',        CT_Double)
 register_element_cls('c:delete',           CT_Boolean)
 register_element_cls('c:idx',              CT_UnsignedInt)
 register_element_cls('c:invertIfNegative', CT_Boolean)
