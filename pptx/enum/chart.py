@@ -12,6 +12,41 @@ from .base import (
 )
 
 
+class XL_AXIS_CROSSES(XmlEnumeration):
+    """
+    Specifies the point on the specified axis where the other axis crosses.
+
+    Example::
+
+        from pptx.enum.chart import XL_AXIS_CROSSES
+
+        value_axis.crosses = XL_AXIS_CROSSES.MAXIMUM
+    """
+
+    __ms_name__ = 'XlAxisCrosses'
+
+    __url__ = (
+        'https://msdn.microsoft.com/en-us/library/office/ff745402.aspx'
+    )
+
+    __members__ = (
+        XmlMappedEnumMember(
+            'AUTOMATIC', -4105, 'autoZero', 'The axis crossing point is set '
+            'automatically, often at zero.'
+        ),
+        ReturnValueOnlyEnumMember(
+            'CUSTOM', -4114, 'The .crosses_at property specifies the axis cr'
+            'ossing point.'
+        ),
+        XmlMappedEnumMember(
+            'MAXIMUM', 2, 'max', 'The axis crosses at the maximum value.'
+        ),
+        XmlMappedEnumMember(
+            'MINIMUM', 4, 'min', 'The axis crosses at the minimum value.'
+        ),
+    )
+
+
 class XL_CHART_TYPE(Enumeration):
     """
     Specifies the type of a chart.

@@ -306,8 +306,20 @@ class TickLabels(object):
 
 class ValueAxis(_BaseAxis):
     """
-    A value axis of a chart.
+    An axis having continuous (as opposed to discrete) values. The vertical
+    axis is generally a value axis, however both axes of an XY-type chart are
+    value axes.
     """
+    @property
+    def crosses(self):
+        """
+        Member of :ref:`XlAxisCrosses` enumeration specifying the point on
+        this axis where the other axis crosses, such as auto/zero, minimum,
+        or maximum. Returns `XL_AXIS_CROSSES.CUSTOM` when a specific numeric
+        crossing point (e.g. 1.5) is defined.
+        """
+        raise NotImplementedError
+
     @property
     def major_unit(self):
         """

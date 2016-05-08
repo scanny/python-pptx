@@ -4,6 +4,33 @@ Feature: Axis properties
   I need read/write properties on Axis
 
 
+  @wip
+  Scenario Outline: Get value_axis.crosses
+    Given a value axis having category axis crossing of <crossing>
+     Then value_axis.crosses is <member>
+
+    Examples: value_axis.crosses cases
+      | crossing  | member    |
+      | automatic | AUTOMATIC |
+      | maximum   | MAXIMUM   |
+      | minimum   | MINIMUM   |
+      | 2.75      | CUSTOM    |
+
+
+  @wip
+  Scenario Outline: Set value_axis.crosses
+    Given a value axis having category axis crossing of <crossing>
+     When I assign <member> to value_axis.crosses
+     Then value_axis.crosses is <member>
+
+    Examples: value_axis.crosses assignment cases
+      | crossing  | member    |
+      | automatic | MAXIMUM   |
+      | maximum   | MINIMUM   |
+      | minimum   | CUSTOM    |
+      | 2.75      | CUSTOM    |
+
+
   Scenario Outline: Get Axis.has_[major/minor]_gridlines
     Given an axis <having-or-not> <major-or-minor> gridlines
      Then axis.has_<major-or-minor>_gridlines is <expected-value>

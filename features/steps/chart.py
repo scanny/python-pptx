@@ -17,7 +17,8 @@ from pptx.chart.chart import Legend
 from pptx.chart.data import BubbleChartData, ChartData, XyChartData
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import (
-    XL_CHART_TYPE, XL_DATA_LABEL_POSITION, XL_LEGEND_POSITION
+    XL_AXIS_CROSSES, XL_CHART_TYPE, XL_DATA_LABEL_POSITION,
+    XL_LEGEND_POSITION
 )
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
@@ -286,6 +287,19 @@ def given_a_series_of_type_series_type(context, series_type):
     context.series = prs.slides[slide_idx].shapes[0].chart.plots[0].series[0]
 
 
+@given('a value axis having category axis crossing of {crossing}')
+def given_a_value_axis_having_cat_ax_crossing_of(context, crossing):
+    slide_idx = {
+        'automatic': 0,
+        'maximum':   2,
+        'minimum':   3,
+        '2.75':      4,
+        '-1.5':      5,
+    }[crossing]
+    prs = Presentation(test_pptx('cht-axis-props'))
+    context.value_axis = prs.slides[slide_idx].shapes[0].chart.value_axis
+
+
 @given('an axis')
 def given_an_axis(context):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -529,6 +543,12 @@ def when_I_assign_value_to_series_invert_if_negative(context, value):
 def when_I_assign_value_to_tick_labels_offset(context, value):
     new_value = int(value)
     context.tick_labels.offset = new_value
+
+
+@when('I assign {member} to value_axis.crosses')
+def when_I_assign_member_to_value_axis_crosses(context, member):
+    value_axis = context.value_axis
+    value_axis.crosses = getattr(XL_AXIS_CROSSES, member)
 
 
 @when('I replace its data with {cats} categories and {sers} series')
@@ -901,3 +921,10 @@ def then_tick_labels_offset_is_expected_value(context, value):
     assert tick_labels.offset == expected_value, (
         'got %s' % tick_labels.offset
     )
+
+
+@then('value_axis.crosses is {member}')
+def then_value_axis_crosses_is_value(context, member):
+    value_axis = context.value_axis
+    expected_value = getattr(XL_AXIS_CROSSES, member)
+    assert value_axis.crosses == expected_value, 'got %s' % value_axis.crosses

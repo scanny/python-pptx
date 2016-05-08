@@ -21,6 +21,7 @@ can be found here:
    PpParagraphAlignment
    PpPlaceholderType
 
+   XlAxisCrosses
    XlChartType
    XlDataLabelPosition
    XlLegendPosition
