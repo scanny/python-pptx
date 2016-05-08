@@ -366,6 +366,7 @@ def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
         'Clustered Column': XL_CHART_TYPE.COLUMN_CLUSTERED,
         'Line':             XL_CHART_TYPE.LINE,
         'Pie':              XL_CHART_TYPE.PIE,
+        'Radar':            XL_CHART_TYPE.RADAR,
     }[kind]
     category_count, series_count = int(cats), int(sers)
     category_source = ('Foo', 'Bar', 'Baz', 'Boo', 'Far', 'Faz')
