@@ -6,7 +6,9 @@ Axis-related oxml objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from ...enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
+from ...enum.chart import (
+    XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION, XL_TICK_MARK
+)
 from ..simpletypes import ST_AxisUnit, ST_LblOffset
 from ..text import CT_TextBody
 from ..xmlchemy import (
@@ -61,6 +63,7 @@ class CT_CatAx(BaseAxisElement):
     tickLblPos = ZeroOrOne('c:tickLblPos', successors=_tag_seq[11:])
     spPr = ZeroOrOne('c:spPr', successors=_tag_seq[12:])
     txPr = ZeroOrOne('c:txPr', successors=_tag_seq[13:])
+    crosses = ZeroOrOne('c:crosses', successors=_tag_seq[15:])
     lblOffset = ZeroOrOne('c:lblOffset', successors=_tag_seq[19:])
     del _tag_seq
 
@@ -71,6 +74,14 @@ class CT_ChartLines(BaseOxmlElement):
     visual properties such as color and width.
     """
     spPr = ZeroOrOne('c:spPr', successors=())
+
+
+class CT_Crosses(BaseAxisElement):
+    """
+    ``<c:crosses>`` element, specifying where the other axis crosses this
+    one.
+    """
+    val = RequiredAttribute('val', XL_AXIS_CROSSES)
 
 
 class CT_LblOffset(BaseOxmlElement):
@@ -168,6 +179,8 @@ class CT_ValAx(BaseAxisElement):
     tickLblPos = ZeroOrOne('c:tickLblPos', successors=_tag_seq[11:])
     spPr = ZeroOrOne('c:spPr', successors=_tag_seq[12:])
     txPr = ZeroOrOne('c:txPr', successors=_tag_seq[13:])
+    crossAx = ZeroOrOne('c:crossAx', successors=_tag_seq[14:])
+    crosses = ZeroOrOne('c:crosses', successors=_tag_seq[15:])
     majorUnit = ZeroOrOne('c:majorUnit', successors=_tag_seq[18:])
     minorUnit = ZeroOrOne('c:minorUnit', successors=_tag_seq[19:])
     del _tag_seq

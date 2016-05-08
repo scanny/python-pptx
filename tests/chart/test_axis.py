@@ -11,7 +11,7 @@ import pytest
 from pptx.chart.axis import _BaseAxis, MajorGridlines, TickLabels, ValueAxis
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import (
-    XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
+    XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
 )
 from pptx.text.text import Font
 
@@ -580,6 +580,10 @@ class DescribeTickLabels(object):
 
 class DescribeValueAxis(object):
 
+    def it_knows_the_other_axis_crossing_type(self, crosses_get_fixture):
+        value_axis, expected_value = crosses_get_fixture
+        assert value_axis.crosses == expected_value
+
     def it_knows_its_major_unit(self, major_unit_get_fixture):
         value_axis, expected_value = major_unit_get_fixture
         assert value_axis.major_unit == expected_value
@@ -599,6 +603,23 @@ class DescribeValueAxis(object):
         assert value_axis._element.xml == expected_xml
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:plotArea/(c:valAx/c:axId{val=42},c:valAx/c:crossAx{val=42})',
+         'CUSTOM'),
+        ('c:plotArea/(c:catAx/(c:axId{val=42},c:crosses{val=autoZero}),c:val'
+         'Ax/c:crossAx{val=42})',
+         'AUTOMATIC'),
+        ('c:plotArea/(c:valAx/(c:axId{val=42},c:crosses{val=min}),c:valAx/c:'
+         'crossAx{val=42})',
+         'MINIMUM'),
+    ])
+    def crosses_get_fixture(self, request):
+        cxml, member = request.param
+        valAx = element(cxml).xpath('c:valAx[c:crossAx/@val="42"]')[0]
+        value_axis = ValueAxis(valAx)
+        expected_value = getattr(XL_AXIS_CROSSES, member)
+        return value_axis, expected_value
 
     @pytest.fixture(params=[
         ('c:valAx', None),

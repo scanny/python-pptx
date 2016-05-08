@@ -4,7 +4,6 @@ Feature: Axis properties
   I need read/write properties on Axis
 
 
-  @wip
   Scenario Outline: Get value_axis.crosses
     Given a value axis having category axis crossing of <crossing>
      Then value_axis.crosses is <member>

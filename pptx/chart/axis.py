@@ -7,7 +7,9 @@ Axis-related chart objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from ..dml.chtfmt import ChartFormat
-from ..enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
+from ..enum.chart import (
+    XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION, XL_TICK_MARK
+)
 from ..oxml.ns import qn
 from ..shared import ElementProxy
 from ..text.text import Font
@@ -318,7 +320,10 @@ class ValueAxis(_BaseAxis):
         or maximum. Returns `XL_AXIS_CROSSES.CUSTOM` when a specific numeric
         crossing point (e.g. 1.5) is defined.
         """
-        raise NotImplementedError
+        crosses = self._cross_xAx.crosses
+        if crosses is None:
+            return XL_AXIS_CROSSES.CUSTOM
+        return crosses.val
 
     @property
     def major_unit(self):
@@ -359,3 +364,14 @@ class ValueAxis(_BaseAxis):
         if value is None:
             return
         self._element._add_minorUnit(val=value)
+
+    @property
+    def _cross_xAx(self):
+        """
+        The axis element in the same group (primary/secondary) that crosses
+        this axis.
+        """
+        crossAx_id = self._element.crossAx.val
+        expr = '(../c:catAx | ../c:valAx)/c:axId[@val="%d"]' % crossAx_id
+        cross_axId = self._element.xpath(expr)[0]
+        return cross_axId.getparent()
