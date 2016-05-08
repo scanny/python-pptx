@@ -1,10 +1,10 @@
-Feature: Get and set chart properties
+Feature: Chart properties
   In order to customize the formatting of a chart
   As a developer using python-pptx
-  I need a way to get and set chart properties
+  I need read/write properties on Chart
 
 
-  Scenario Outline: Get chart type
+  Scenario Outline: Get Chart.chart_type
     Given a chart of type <chart-type>
      Then chart.chart_type is <expected-enum-member>
 
@@ -39,7 +39,7 @@ Feature: Get and set chart properties
       | 3D-Bubble                | BUBBLE_THREE_D_EFFECT        |
 
 
-  Scenario Outline: Get category axis
+  Scenario Outline: Get Chart.category_axis
     Given a chart of type <chart-type>
      Then chart.category_axis is a <type-name> object
 
@@ -50,7 +50,7 @@ Feature: Get and set chart properties
       | Bubble       | ValueAxis    |
 
 
-  Scenario Outline: Get value axis
+  Scenario Outline: Get Chart.value_axis
     Given a chart of type <chart-type>
      Then chart.value_axis is a ValueAxis object
 
