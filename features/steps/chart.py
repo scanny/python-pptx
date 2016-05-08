@@ -551,6 +551,12 @@ def when_I_assign_member_to_value_axis_crosses(context, member):
     value_axis.crosses = getattr(XL_AXIS_CROSSES, member)
 
 
+@when('I assign {value} to value_axis.crosses_at')
+def when_I_assign_value_to_value_axis_crosses_at(context, value):
+    new_value = None if value == 'None' else float(value)
+    context.value_axis.crosses_at = new_value
+
+
 @when('I replace its data with {cats} categories and {sers} series')
 def when_I_replace_its_data_with_categories_and_series(context, cats, sers):
     category_count, series_count = int(cats), int(sers)
@@ -928,3 +934,12 @@ def then_value_axis_crosses_is_value(context, member):
     value_axis = context.value_axis
     expected_value = getattr(XL_AXIS_CROSSES, member)
     assert value_axis.crosses == expected_value, 'got %s' % value_axis.crosses
+
+
+@then('value_axis.crosses_at is {value}')
+def then_value_axis_crosses_at_is_value(context, value):
+    value_axis = context.value_axis
+    expected_value = None if value == 'None' else float(value)
+    assert value_axis.crosses_at == expected_value, (
+        'got %s' % value_axis.crosses_at
+    )

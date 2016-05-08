@@ -29,6 +29,34 @@ Feature: Axis properties
       | 2.75      | CUSTOM    |
 
 
+  @wip
+  Scenario Outline: Get value_axis.crosses_at
+    Given a value axis having category axis crossing of <crossing>
+     Then value_axis.crosses_at is <value>
+
+    Examples: value_axis.crosses_at cases
+      | crossing  | value |
+      | automatic | None  |
+      | maximum   | None  |
+      | minimum   | None  |
+      | 2.75      | 2.75  |
+      | -1.5      | -1.5  |
+
+
+  @wip
+  Scenario Outline: Set value_axis.crosses_at
+    Given a value axis having category axis crossing of <crossing>
+     When I assign <value> to value_axis.crosses_at
+     Then value_axis.crosses_at is <value>
+
+    Examples: value_axis.crosses_at assignment cases
+      | crossing  | value |
+      | automatic | 2.75  |
+      | 2.75      | -1.5  |
+      | -1.5      | None  |
+      | automatic | None  |
+
+
   Scenario Outline: Get Axis.has_[major/minor]_gridlines
     Given an axis <having-or-not> <major-or-minor> gridlines
      Then axis.has_<major-or-minor>_gridlines is <expected-value>

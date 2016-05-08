@@ -339,6 +339,14 @@ class ValueAxis(_BaseAxis):
             cross_xAx._add_crosses(val=value)
 
     @property
+    def crosses_at(self):
+        """
+        Numeric value on this axis at which the perpendicular axis crosses.
+        Returns |None| if no crossing value is set.
+        """
+        raise NotImplementedError
+
+    @property
     def major_unit(self):
         """
         The float number of units between major tick marks on this value
