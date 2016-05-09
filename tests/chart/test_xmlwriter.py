@@ -13,7 +13,8 @@ import pytest
 from pptx.chart.data import BubbleChartData, ChartData, XyChartData
 from pptx.chart.xmlwriter import (
     _BarChartXmlWriter, _BubbleChartXmlWriter, ChartXmlWriter,
-    _LineChartXmlWriter, _PieChartXmlWriter, _XyChartXmlWriter
+    _LineChartXmlWriter, _PieChartXmlWriter, _RadarChartXmlWriter,
+    _XyChartXmlWriter
 )
 from pptx.enum.chart import XL_CHART_TYPE
 
@@ -40,6 +41,9 @@ class DescribeChartXmlWriter(object):
         ('COLUMN_CLUSTERED',             _BarChartXmlWriter),
         ('LINE',                         _LineChartXmlWriter),
         ('PIE',                          _PieChartXmlWriter),
+        ('RADAR',                        _RadarChartXmlWriter),
+        ('RADAR_FILLED',                 _RadarChartXmlWriter),
+        ('RADAR_MARKERS',                _RadarChartXmlWriter),
         ('XY_SCATTER',                   _XyChartXmlWriter),
         ('XY_SCATTER_LINES',             _XyChartXmlWriter),
         ('XY_SCATTER_LINES_NO_MARKERS',  _XyChartXmlWriter),

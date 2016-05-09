@@ -26,6 +26,9 @@ def ChartXmlWriter(chart_type, series_seq):
             XL_CT.COLUMN_CLUSTERED:             _BarChartXmlWriter,
             XL_CT.LINE:                         _LineChartXmlWriter,
             XL_CT.PIE:                          _PieChartXmlWriter,
+            XL_CT.RADAR:                        _RadarChartXmlWriter,
+            XL_CT.RADAR_FILLED:                 _RadarChartXmlWriter,
+            XL_CT.RADAR_MARKERS:                _RadarChartXmlWriter,
             XL_CT.XY_SCATTER:                   _XyChartXmlWriter,
             XL_CT.XY_SCATTER_LINES:             _XyChartXmlWriter,
             XL_CT.XY_SCATTER_LINES_NO_MARKERS:  _XyChartXmlWriter,
@@ -399,6 +402,12 @@ class _PieChartXmlWriter(_BaseChartXmlWriter):
             '        </c:ser>\n'
         ) % (series.tx_xml, series.cat_xml, series.val_xml)
         return xml
+
+
+class _RadarChartXmlWriter(_BaseChartXmlWriter):
+    """
+    Generates XML for the ``<c:radarChart>`` element.
+    """
 
 
 class _XyChartXmlWriter(_BaseChartXmlWriter):
