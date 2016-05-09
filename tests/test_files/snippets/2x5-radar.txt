@@ -1,0 +1,204 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <c:date1904 val="0"/>
+  <c:roundedCorners val="0"/>
+  <mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+    <mc:Choice xmlns:c14="http://schemas.microsoft.com/office/drawing/2007/8/2/chart" Requires="c14">
+      <c14:style val="118"/>
+    </mc:Choice>
+    <mc:Fallback>
+      <c:style val="18"/>
+    </mc:Fallback>
+  </mc:AlternateContent>
+  <c:chart>
+    <c:plotArea>
+      <c:layout/>
+      <c:radarChart>
+        <c:radarStyle val="marker"/>
+        <c:varyColors val="0"/>
+        <c:ser>
+          <c:idx val="0"/>
+          <c:order val="0"/>
+          <c:tx>
+            <c:strRef>
+              <c:f>Sheet1!$B$1</c:f>
+              <c:strCache>
+                <c:ptCount val="1"/>
+                <c:pt idx="0">
+                  <c:v>Series 1</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:tx>
+          <c:marker>
+            <c:symbol val="none"/>
+          </c:marker>
+          <c:cat>
+            <c:strRef>
+              <c:f>Sheet1!$A$2:$A$6</c:f>
+              <c:strCache>
+                <c:ptCount val="5"/>
+                <c:pt idx="0">
+                  <c:v>Foo</c:v>
+                </c:pt>
+                <c:pt idx="1">
+                  <c:v>Bar</c:v>
+                </c:pt>
+                <c:pt idx="2">
+                  <c:v>Baz</c:v>
+                </c:pt>
+                <c:pt idx="3">
+                  <c:v>Boo</c:v>
+                </c:pt>
+                <c:pt idx="4">
+                  <c:v>Far</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:cat>
+          <c:val>
+            <c:numRef>
+              <c:f>Sheet1!$B$2:$B$6</c:f>
+              <c:numCache>
+                <c:formatCode>General</c:formatCode>
+                <c:ptCount val="5"/>
+                <c:pt idx="0">
+                  <c:v>1.1</c:v>
+                </c:pt>
+                <c:pt idx="1">
+                  <c:v>2.2</c:v>
+                </c:pt>
+                <c:pt idx="2">
+                  <c:v>3.3</c:v>
+                </c:pt>
+                <c:pt idx="3">
+                  <c:v>4.4</c:v>
+                </c:pt>
+                <c:pt idx="4">
+                  <c:v>5.5</c:v>
+                </c:pt>
+              </c:numCache>
+            </c:numRef>
+          </c:val>
+          <c:smooth val="0"/>
+        </c:ser>
+        <c:ser>
+          <c:idx val="1"/>
+          <c:order val="1"/>
+          <c:tx>
+            <c:strRef>
+              <c:f>Sheet1!$C$1</c:f>
+              <c:strCache>
+                <c:ptCount val="1"/>
+                <c:pt idx="0">
+                  <c:v>Series 2</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:tx>
+          <c:marker>
+            <c:symbol val="none"/>
+          </c:marker>
+          <c:cat>
+            <c:strRef>
+              <c:f>Sheet1!$A$2:$A$6</c:f>
+              <c:strCache>
+                <c:ptCount val="5"/>
+                <c:pt idx="0">
+                  <c:v>Foo</c:v>
+                </c:pt>
+                <c:pt idx="1">
+                  <c:v>Bar</c:v>
+                </c:pt>
+                <c:pt idx="2">
+                  <c:v>Baz</c:v>
+                </c:pt>
+                <c:pt idx="3">
+                  <c:v>Boo</c:v>
+                </c:pt>
+                <c:pt idx="4">
+                  <c:v>Far</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:cat>
+          <c:val>
+            <c:numRef>
+              <c:f>Sheet1!$C$2:$C$6</c:f>
+              <c:numCache>
+                <c:formatCode>General</c:formatCode>
+                <c:ptCount val="5"/>
+                <c:pt idx="0">
+                  <c:v>6.6</c:v>
+                </c:pt>
+                <c:pt idx="1">
+                  <c:v>7.7</c:v>
+                </c:pt>
+                <c:pt idx="2">
+                  <c:v>8.8</c:v>
+                </c:pt>
+                <c:pt idx="3">
+                  <c:v>9.9</c:v>
+                </c:pt>
+                <c:pt idx="4">
+                  <c:v>11.0</c:v>
+                </c:pt>
+              </c:numCache>
+            </c:numRef>
+          </c:val>
+          <c:smooth val="0"/>
+        </c:ser>
+        <c:axId val="2073612648"/>
+        <c:axId val="-2112772216"/>
+      </c:radarChart>
+      <c:catAx>
+        <c:axId val="2073612648"/>
+        <c:scaling>
+          <c:orientation val="minMax"/>
+        </c:scaling>
+        <c:delete val="0"/>
+        <c:axPos val="b"/>
+        <c:majorGridlines/>
+        <c:numFmt formatCode="m/d/yy" sourceLinked="1"/>
+        <c:majorTickMark val="out"/>
+        <c:minorTickMark val="none"/>
+        <c:tickLblPos val="nextTo"/>
+        <c:crossAx val="-2112772216"/>
+        <c:crosses val="autoZero"/>
+        <c:auto val="1"/>
+        <c:lblAlgn val="ctr"/>
+        <c:lblOffset val="100"/>
+        <c:noMultiLvlLbl val="0"/>
+      </c:catAx>
+      <c:valAx>
+        <c:axId val="-2112772216"/>
+        <c:scaling>
+          <c:orientation val="minMax"/>
+        </c:scaling>
+        <c:delete val="0"/>
+        <c:axPos val="l"/>
+        <c:majorGridlines/>
+        <c:numFmt formatCode="General" sourceLinked="1"/>
+        <c:majorTickMark val="cross"/>
+        <c:minorTickMark val="none"/>
+        <c:tickLblPos val="nextTo"/>
+        <c:crossAx val="2073612648"/>
+        <c:crosses val="autoZero"/>
+        <c:crossBetween val="between"/>
+      </c:valAx>
+    </c:plotArea>
+    <c:plotVisOnly val="1"/>
+    <c:dispBlanksAs val="gap"/>
+    <c:showDLblsOverMax val="0"/>
+  </c:chart>
+  <c:txPr>
+    <a:bodyPr/>
+    <a:lstStyle/>
+    <a:p>
+      <a:pPr>
+        <a:defRPr sz="1800"/>
+      </a:pPr>
+      <a:endParaRPr lang="en-US"/>
+    </a:p>
+  </c:txPr>
+</c:chartSpace>

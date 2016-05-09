@@ -144,6 +144,25 @@ class Describe_PieChartXmlWriter(object):
         return xml_writer, expected_xml
 
 
+class Describe_RadarChartXmlWriter(object):
+
+    def it_can_generate_xml_for_a_radar_chart(self, xml_fixture):
+        xml_writer, expected_xml = xml_fixture
+        print(xml_writer.xml)
+        assert xml_writer.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def xml_fixture(self, request):
+        series_data_seq = make_series_data_seq(cat_count=5, ser_count=2)
+        xml_writer = _RadarChartXmlWriter(
+            XL_CHART_TYPE.RADAR, series_data_seq
+        )
+        expected_xml = snippet_text('2x5-radar')
+        return xml_writer, expected_xml
+
+
 class Describe_XyChartXmlWriter(object):
 
     def it_can_generate_xml_for_xy_charts(self, xml_fixture):

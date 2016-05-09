@@ -52,7 +52,7 @@ class _BaseChartXmlWriter(object):
         super(_BaseChartXmlWriter, self).__init__()
         self._chart_type = chart_type
         self._chart_data = series_seq
-        self._series_lst = list(series_seq)
+        self._series_seq = list(series_seq)
 
     @property
     def xml(self):
@@ -252,7 +252,7 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
     @property
     def _ser_xml(self):
         xml = ''
-        for series in self._series_lst:
+        for series in self._series_seq:
             xml += (
                 '        <c:ser>\n'
                 '          <c:idx val="%d"/>\n'
@@ -338,7 +338,7 @@ class _LineChartXmlWriter(_BaseChartXmlWriter):
     @property
     def _ser_xml(self):
         xml = ''
-        for series in self._series_lst:
+        for series in self._series_seq:
             xml += (
                 '        <c:ser>\n'
                 '          <c:idx val="%d"/>\n'
@@ -393,7 +393,7 @@ class _PieChartXmlWriter(_BaseChartXmlWriter):
 
     @property
     def _ser_xml(self):
-        series = self._series_lst[0]
+        series = self._series_seq[0]
         xml = (
             '        <c:ser>\n'
             '          <c:idx val="0"/>\n'
@@ -408,6 +408,126 @@ class _RadarChartXmlWriter(_BaseChartXmlWriter):
     """
     Generates XML for the ``<c:radarChart>`` element.
     """
+    @property
+    def xml(self):
+        xml = (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:date1904 val="0"/>\n'
+            '  <c:roundedCorners val="0"/>\n'
+            '  <mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.'
+            'org/markup-compatibility/2006">\n'
+            '    <mc:Choice xmlns:c14="http://schemas.microsoft.com/office/d'
+            'rawing/2007/8/2/chart" Requires="c14">\n'
+            '      <c14:style val="118"/>\n'
+            '    </mc:Choice>\n'
+            '    <mc:Fallback>\n'
+            '      <c:style val="18"/>\n'
+            '    </mc:Fallback>\n'
+            '  </mc:AlternateContent>\n'
+            '  <c:chart>\n'
+            '    <c:plotArea>\n'
+            '      <c:layout/>\n'
+            '      <c:radarChart>\n'
+            '        <c:radarStyle val="%s"/>\n'
+            '        <c:varyColors val="0"/>\n'
+            '%s'
+            '        <c:axId val="2073612648"/>\n'
+            '        <c:axId val="-2112772216"/>\n'
+            '      </c:radarChart>\n'
+            '      <c:catAx>\n'
+            '        <c:axId val="2073612648"/>\n'
+            '        <c:scaling>\n'
+            '          <c:orientation val="minMax"/>\n'
+            '        </c:scaling>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:majorGridlines/>\n'
+            '        <c:numFmt formatCode="m/d/yy" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2112772216"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:auto val="1"/>\n'
+            '        <c:lblAlgn val="ctr"/>\n'
+            '        <c:lblOffset val="100"/>\n'
+            '        <c:noMultiLvlLbl val="0"/>\n'
+            '      </c:catAx>\n'
+            '      <c:valAx>\n'
+            '        <c:axId val="-2112772216"/>\n'
+            '        <c:scaling>\n'
+            '          <c:orientation val="minMax"/>\n'
+            '        </c:scaling>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="l"/>\n'
+            '        <c:majorGridlines/>\n'
+            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="cross"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="2073612648"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:crossBetween val="between"/>\n'
+            '      </c:valAx>\n'
+            '    </c:plotArea>\n'
+            '    <c:plotVisOnly val="1"/>\n'
+            '    <c:dispBlanksAs val="gap"/>\n'
+            '    <c:showDLblsOverMax val="0"/>\n'
+            '  </c:chart>\n'
+            '  <c:txPr>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr>\n'
+            '        <a:defRPr sz="1800"/>\n'
+            '      </a:pPr>\n'
+            '      <a:endParaRPr lang="en-US"/>\n'
+            '    </a:p>\n'
+            '  </c:txPr>\n'
+            '</c:chartSpace>\n'
+        ) % (
+            self._radar_style, self._ser_xml
+        )
+        return xml
+
+    @property
+    def _marker_xml(self):
+        if self._chart_type == XL_CHART_TYPE.RADAR:
+            return (
+                '          <c:marker>\n'
+                '            <c:symbol val="none"/>\n'
+                '          </c:marker>\n'
+            )
+        return ''
+
+    @property
+    def _radar_style(self):
+        if self._chart_type == XL_CHART_TYPE.RADAR_FILLED:
+            return 'filled'
+        return 'marker'
+
+    @property
+    def _ser_xml(self):
+        xml = ''
+        for series in self._series_seq:
+            xml += (
+                '        <c:ser>\n'
+                '          <c:idx val="%d"/>\n'
+                '          <c:order val="%d"/>\n'
+                '%s'
+                '%s'
+                '%s%s'
+                '          <c:smooth val="0"/>\n'
+                '        </c:ser>\n'
+            ) % (
+                series.index, series.index, series.tx_xml, self._marker_xml,
+                series.cat_xml, series.val_xml
+            )
+        return xml
 
 
 class _XyChartXmlWriter(_BaseChartXmlWriter):
