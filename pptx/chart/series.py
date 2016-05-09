@@ -147,6 +147,12 @@ class PieSeries(_BaseSeries):
     """
 
 
+class RadarSeries(_BaseSeries):
+    """
+    A data point series belonging to a radar plot.
+    """
+
+
 class XySeries(_BaseSeries):
     """
     A data point series belonging to an XY (scatter) plot.
@@ -225,6 +231,7 @@ def _SeriesFactory(ser):
             qn('c:bubbleChart'):  BubbleSeries,
             qn('c:lineChart'):    LineSeries,
             qn('c:pieChart'):     PieSeries,
+            qn('c:radarChart'):   RadarSeries,
             qn('c:scatterChart'): XySeries,
         }[xChart_tag]
     except KeyError:

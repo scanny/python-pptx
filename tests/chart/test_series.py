@@ -380,6 +380,7 @@ class Describe_SeriesFactory(object):
         ('c:bubbleChart/c:ser',  'BubbleSeries'),
         ('c:lineChart/c:ser',    'LineSeries'),
         ('c:pieChart/c:ser',     'PieSeries'),
+        ('c:radarChart/c:ser',   'RadarSeries'),
         ('c:scatterChart/c:ser', 'XySeries'),
     ])
     def call_fixture(self, request):
