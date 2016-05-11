@@ -8,8 +8,33 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from ..simpletypes import XsdUnsignedInt
 from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
+    BaseOxmlElement, OneAndOnlyOne, OxmlElement, RequiredAttribute,
+    ZeroOrMore, ZeroOrOne
 )
+
+
+class CT_DPt(BaseOxmlElement):
+    """
+    ``<c:dPt>`` custom element class, containing visual properties for a data
+    point.
+    """
+    _tag_seq = (
+        'c:idx', 'c:invertIfNegative', 'c:marker', 'c:bubble3D',
+        'c:explosion', 'c:spPr', 'c:pictureOptions', 'c:extLst'
+    )
+    idx = OneAndOnlyOne('c:idx')
+    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[6:])
+    del _tag_seq
+
+    @classmethod
+    def new_dPt(cls):
+        """
+        Return a newly created "loose" `c:dPt` element containing its default
+        subtree.
+        """
+        dPt = OxmlElement('c:dPt')
+        dPt.append(OxmlElement('c:idx'))
+        return dPt
 
 
 class CT_NumDataSource(BaseOxmlElement):
@@ -61,6 +86,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     invertIfNegative = ZeroOrOne(
         'c:invertIfNegative', successors=_tag_seq[5:]
     )
+    dPt = ZeroOrMore('c:dPt', successors=_tag_seq[9:])
     dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[10:])
     cat = ZeroOrOne('c:cat', successors=_tag_seq[13:])
     val = ZeroOrOne('c:val', successors=_tag_seq[14:])
@@ -97,6 +123,18 @@ class CT_SeriesComposite(BaseOxmlElement):
         dLbls = self.get_or_add_dLbls()
         return dLbls.get_or_add_dLbl_for_point(idx)
 
+    def get_or_add_dPt_for_point(self, idx):
+        """
+        Return the `c:dPt` child representing the visual properties of the
+        data point at index *idx*.
+        """
+        matches = self.xpath('c:dPt[c:idx[@val="%d"]]' % idx)
+        if matches:
+            return matches[0]
+        dPt = self._add_dPt()
+        dPt.idx.val = idx
+        return dPt
+
     @property
     def val_pts(self):
         """
@@ -127,6 +165,13 @@ class CT_SeriesComposite(BaseOxmlElement):
         if not vals:
             return 0
         return int(vals[0])
+
+    def _new_dPt(self):
+        """
+        Overrides the metaclass generated method to get `c:dPt` with minimal
+        subtree.
+        """
+        return CT_DPt.new_dPt()
 
 
 class CT_StrVal_NumVal_Composite(BaseOxmlElement):

@@ -43,6 +43,8 @@ class DescribeChartFormat(object):
     @pytest.fixture(params=[
         ('c:catAx',                 'c:catAx/c:spPr'),
         ('c:catAx/c:spPr',          'c:catAx/c:spPr'),
+        ('c:dPt',                   'c:dPt/c:spPr'),
+        ('c:dPt/c:spPr',            'c:dPt/c:spPr'),
         ('c:majorGridlines',        'c:majorGridlines/c:spPr'),
         ('c:majorGridlines/c:spPr', 'c:majorGridlines/c:spPr'),
         ('c:valAx',                 'c:valAx/c:spPr'),
@@ -58,6 +60,8 @@ class DescribeChartFormat(object):
     @pytest.fixture(params=[
         ('c:catAx',                 'c:catAx/c:spPr'),
         ('c:catAx/c:spPr',          'c:catAx/c:spPr'),
+        ('c:dPt',                   'c:dPt/c:spPr'),
+        ('c:dPt/c:spPr',            'c:dPt/c:spPr'),
         ('c:majorGridlines',        'c:majorGridlines/c:spPr'),
         ('c:majorGridlines/c:spPr', 'c:majorGridlines/c:spPr'),
         ('c:valAx',                 'c:valAx/c:spPr'),

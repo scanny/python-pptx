@@ -12,9 +12,10 @@ import pytest
 
 from pptx.chart.datalabel import DataLabel
 from pptx.chart.point import BubblePoints, Point, XyPoints
+from pptx.dml.chtfmt import ChartFormat
 
-from ..unitutil.cxml import element
-from ..unitutil.mock import function_mock, instance_mock
+from ..unitutil.cxml import element, xml
+from ..unitutil.mock import class_mock, instance_mock
 
 
 class Describe_BasePoints(object):
@@ -51,7 +52,7 @@ class Describe_BasePoints(object):
 
     @pytest.fixture
     def Point_(self, request, point_):
-        return function_mock(
+        return class_mock(
             request, 'pptx.chart.point.Point', return_value=point_
         )
 
@@ -92,6 +93,17 @@ class DescribePoint(object):
         DataLabel_.assert_called_once_with(ser, idx)
         assert data_label is data_label_
 
+    def it_provides_access_to_its_format(self, format_fixture):
+        point, ChartFormat_, ser, chart_format_, expected_xml = (
+            format_fixture
+        )
+        chart_format = point.format
+        ChartFormat_.assert_called_once_with(
+            ser.xpath('c:dPt[c:idx/@val="42"]')[0]
+        )
+        assert chart_format is chart_format_
+        assert point._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -100,11 +112,37 @@ class DescribePoint(object):
         point = Point(ser, idx)
         return point, DataLabel_, ser, idx, data_label_
 
+    @pytest.fixture(params=[
+        ('c:ser',
+         'c:ser/c:dPt/c:idx{val=42}'),
+        ('c:ser/c:dPt/c:idx{val=42}',
+         'c:ser/c:dPt/c:idx{val=42}'),
+        ('c:ser/c:dPt/c:idx{val=45}',
+         'c:ser/(c:dPt/c:idx{val=45},c:dPt/c:idx{val=42})'),
+    ])
+    def format_fixture(self, request, ChartFormat_, chart_format_):
+        ser_cxml, expected_cxml = request.param
+        ser = element(ser_cxml)
+        point = Point(ser, 42)
+        expected_xml = xml(expected_cxml)
+        return point, ChartFormat_, ser, chart_format_, expected_xml
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def ChartFormat_(self, request, chart_format_):
+        return class_mock(
+            request, 'pptx.chart.point.ChartFormat',
+            return_value=chart_format_
+        )
+
+    @pytest.fixture
+    def chart_format_(self, request):
+        return instance_mock(request, ChartFormat)
+
+    @pytest.fixture
     def DataLabel_(self, request, data_label_):
-        return function_mock(
+        return class_mock(
             request, 'pptx.chart.point.DataLabel', return_value=data_label_
         )
 

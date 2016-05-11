@@ -11,6 +11,7 @@ from __future__ import (
 from collections import Sequence
 
 from .datalabel import DataLabel
+from ..dml.chtfmt import ChartFormat
 from ..util import lazyproperty
 
 
@@ -59,6 +60,15 @@ class Point(object):
         The |DataLabel| object representing the label on this data point.
         """
         return DataLabel(self._ser, self._idx)
+
+    @lazyproperty
+    def format(self):
+        """
+        The |ChartFormat| object providing access to the shape formatting
+        properties of this data point, such as line and fill.
+        """
+        dPt = self._ser.get_or_add_dPt_for_point(self._idx)
+        return ChartFormat(dPt)
 
 
 class XyPoints(_BasePoints):

@@ -9,7 +9,6 @@ Feature: Get and set point properties
      Then point.data_label is a DataLabel object
 
 
-  @wip
   Scenario: Get Point.format
     Given a point
      Then point.format is a ChartFormat object
