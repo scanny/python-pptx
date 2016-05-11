@@ -4,6 +4,14 @@ Feature: Get and set point properties
   I need a way to get and set point properties
 
 
-  Scenario: Get point data label
+  Scenario: Get Point.data_label
     Given a point
      Then point.data_label is a DataLabel object
+
+
+  @wip
+  Scenario: Get Point.format
+    Given a point
+     Then point.format is a ChartFormat object
+      And point.format.fill is a FillFormat object
+      And point.format.line is a LineFormat object

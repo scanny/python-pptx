@@ -850,6 +850,24 @@ def then_point_data_label_is_a_DataLabel_object(context):
     assert type(point.data_label).__name__ == 'DataLabel'
 
 
+@then('point.format is a ChartFormat object')
+def then_point_format_is_a_ChartFormat_object(context):
+    point = context.point
+    assert type(point.format).__name__ == 'ChartFormat'
+
+
+@then('point.format.fill is a FillFormat object')
+def then_point_format_fill_is_a_FillFormat_object(context):
+    point = context.point
+    assert type(point.format.fill).__name__ == 'FillFormat'
+
+
+@then('point.format.line is a LineFormat object')
+def then_point_format_line_is_a_LineFormat_object(context):
+    point = context.point
+    assert type(point.format.line).__name__ == 'LineFormat'
+
+
 @then('points[2] is a Point object')
 def then_points_2_is_a_Point_object(context):
     points = context.points
