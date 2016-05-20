@@ -10,7 +10,9 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+from .fill import FillFormat
 from ..shared import ElementProxy
+from ..util import lazyproperty
 
 
 class ChartFormat(ElementProxy):
@@ -18,4 +20,13 @@ class ChartFormat(ElementProxy):
     Provides access to visual shape properties such as line and fill.
     """
 
-    __slots__ = ()
+    __slots__ = ('_fill',)
+
+    @lazyproperty
+    def fill(self):
+        """
+        |FillFormat| instance for this object, providing access to fill
+        properties such as fill color.
+        """
+        spPr = self._element.get_or_add_spPr()
+        return FillFormat.from_fill_parent(spPr)

@@ -74,6 +74,14 @@ class CT_CatAx(BaseAxisElement):
     ))
 
 
+class CT_ChartLines(BaseOxmlElement):
+    """
+    Used for c:majorGridlines and c:minorGridlines, specifies gridlines
+    visual properties such as color and width.
+    """
+    spPr = ZeroOrOne('c:spPr', successors=())
+
+
 class CT_LblOffset(BaseOxmlElement):
     """
     ``<c:lblOffset>`` custom element class
