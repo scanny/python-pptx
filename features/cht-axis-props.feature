@@ -63,7 +63,6 @@ Feature: Axis properties
      Then axis.major_gridlines is a MajorGridlines object
 
 
-  @wip
   Scenario Outline: Get Axis.format
     Given a <axis-type> axis
      Then axis.format is a ChartFormat object

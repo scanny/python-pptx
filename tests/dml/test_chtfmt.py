@@ -41,8 +41,12 @@ class DescribeChartFormat(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
+        ('c:catAx',                 'c:catAx/c:spPr'),
+        ('c:catAx/c:spPr',          'c:catAx/c:spPr'),
         ('c:majorGridlines',        'c:majorGridlines/c:spPr'),
         ('c:majorGridlines/c:spPr', 'c:majorGridlines/c:spPr'),
+        ('c:valAx',                 'c:valAx/c:spPr'),
+        ('c:valAx/c:spPr',          'c:valAx/c:spPr'),
     ])
     def fill_fixture(self, request, FillFormat_, fill_):
         dPt_cxml, expected_cxml = request.param
@@ -52,8 +56,12 @@ class DescribeChartFormat(object):
         return chart_format, FillFormat_, fill_, expected_xml
 
     @pytest.fixture(params=[
+        ('c:catAx',                 'c:catAx/c:spPr'),
+        ('c:catAx/c:spPr',          'c:catAx/c:spPr'),
         ('c:majorGridlines',        'c:majorGridlines/c:spPr'),
         ('c:majorGridlines/c:spPr', 'c:majorGridlines/c:spPr'),
+        ('c:valAx',                 'c:valAx/c:spPr'),
+        ('c:valAx/c:spPr',          'c:valAx/c:spPr'),
     ])
     def line_fixture(self, request, LineFormat_, line_):
         cxml, expected_cxml = request.param

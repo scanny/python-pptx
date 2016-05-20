@@ -102,6 +102,12 @@ class Describe_BaseAxis(object):
         axis.tick_label_position = new_value
         assert axis._element.xml == expected_xml
 
+    def it_provides_access_to_its_format(self, format_fixture):
+        axis, ChartFormat_, format_ = format_fixture
+        format = axis.format
+        ChartFormat_.assert_called_once_with(axis._xAx)
+        assert format is format_
+
     def it_provides_access_to_its_major_gridlines(self, maj_grdlns_fixture):
         axis, MajorGridLines_, xAx, major_gridlines_ = maj_grdlns_fixture
         major_gridlines = axis.major_gridlines
@@ -115,6 +121,12 @@ class Describe_BaseAxis(object):
         assert tick_labels is tick_labels_
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=['c:valAx', 'c:catAx'])
+    def format_fixture(self, request, ChartFormat_, format_):
+        xAx_cxml = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        return axis, ChartFormat_, format_
 
     @pytest.fixture
     def maj_grdlns_fixture(self, MajorGridlines_, major_gridlines_):
@@ -147,6 +159,9 @@ class Describe_BaseAxis(object):
         ('c:catAx',                          XL_TICK_MARK.CROSS),
         ('c:catAx/c:majorTickMark',          XL_TICK_MARK.CROSS),
         ('c:catAx/c:majorTickMark{val=out}', XL_TICK_MARK.OUTSIDE),
+        ('c:valAx',                          XL_TICK_MARK.CROSS),
+        ('c:valAx/c:majorTickMark',          XL_TICK_MARK.CROSS),
+        ('c:valAx/c:majorTickMark{val=in}',  XL_TICK_MARK.INSIDE),
     ])
     def major_tick_get_fixture(self, request):
         xAx_cxml, expected_value = request.param
@@ -223,7 +238,9 @@ class Describe_BaseAxis(object):
 
     @pytest.fixture(params=[
         ('c:catAx',                  False),
+        ('c:valAx',                  False),
         ('c:catAx/c:minorGridlines', True),
+        ('c:valAx/c:minorGridlines', True),
     ])
     def minor_gridlines_get_fixture(self, request):
         xAx_cxml, expected_value = request.param
@@ -243,6 +260,10 @@ class Describe_BaseAxis(object):
         return base_axis, new_value, expected_xml
 
     @pytest.fixture(params=[
+        ('c:catAx',                            XL_TICK_MARK.CROSS),
+        ('c:catAx/c:minorTickMark',            XL_TICK_MARK.CROSS),
+        ('c:catAx/c:minorTickMark{val=cross}', XL_TICK_MARK.CROSS),
+        ('c:catAx/c:minorTickMark{val=in}',    XL_TICK_MARK.INSIDE),
         ('c:valAx',                            XL_TICK_MARK.CROSS),
         ('c:valAx/c:minorTickMark',            XL_TICK_MARK.CROSS),
         ('c:valAx/c:minorTickMark{val=cross}', XL_TICK_MARK.CROSS),
@@ -338,6 +359,16 @@ class Describe_BaseAxis(object):
         return axis, new_value, expected_xml
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ChartFormat_(self, request, format_):
+        return class_mock(
+            request, 'pptx.chart.axis.ChartFormat', return_value=format_
+        )
+
+    @pytest.fixture
+    def format_(self, request):
+        return instance_mock(request, ChartFormat)
 
     @pytest.fixture
     def MajorGridlines_(self, request, major_gridlines_):

@@ -69,9 +69,16 @@ class CT_CatAx(BaseAxisElement):
     """
     ``<c:catAx>`` element, defining a category axis.
     """
-    lblOffset = ZeroOrOne('c:lblOffset', successors=(
+    _tag_seq = (
+        'c:axId', 'c:scaling', 'c:delete', 'c:axPos', 'c:majorGridlines',
+        'c:minorGridlines', 'c:title', 'c:numFmt', 'c:majorTickMark',
+        'c:minorTickMark', 'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx',
+        'c:crosses', 'c:crossesAt', 'c:auto', 'c:lblAlgn', 'c:lblOffset',
         'c:tickLblSkip', 'c:tickMarkSkip', 'c:noMultiLvlLbl', 'c:extLst'
-    ))
+    )
+    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[12:])
+    lblOffset = ZeroOrOne('c:lblOffset', successors=_tag_seq[19:])
+    del _tag_seq
 
 
 class CT_ChartLines(BaseOxmlElement):
@@ -160,9 +167,14 @@ class CT_ValAx(BaseAxisElement):
     """
     ``<c:valAx>`` element, defining a value axis.
     """
-    majorUnit = ZeroOrOne('c:majorUnit', successors=(
+    _tag_seq = (
+        'c:axId', 'c:scaling', 'c:delete', 'c:axPos', 'c:majorGridlines',
+        'c:minorGridlines', 'c:title', 'c:numFmt', 'c:majorTickMark',
+        'c:minorTickMark', 'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx',
+        'c:crosses', 'c:crossesAt', 'c:crossBetween', 'c:majorUnit',
         'c:minorUnit', 'c:dispUnits', 'c:extLst'
-    ))
-    minorUnit = ZeroOrOne('c:minorUnit', successors=(
-        'c:dispUnits', 'c:extLst'
-    ))
+    )
+    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[12:])
+    majorUnit = ZeroOrOne('c:majorUnit', successors=_tag_seq[18:])
+    minorUnit = ZeroOrOne('c:minorUnit', successors=_tag_seq[19:])
+    del _tag_seq

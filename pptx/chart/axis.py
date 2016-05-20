@@ -19,9 +19,18 @@ class _BaseAxis(object):
     Base class for chart axis objects. All axis objects share these
     properties.
     """
-    def __init__(self, xAx_elm):
+    def __init__(self, xAx):
         super(_BaseAxis, self).__init__()
-        self._element = xAx_elm
+        self._element = xAx  # axis element, c:catAx or c:valAx
+        self._xAx = xAx
+
+    @lazyproperty
+    def format(self):
+        """
+        The |ChartFormat| object providing access to the shape formatting
+        properties of this axis, such as its line color and fill.
+        """
+        return ChartFormat(self._element)
 
     @property
     def has_major_gridlines(self):
