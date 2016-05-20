@@ -11,6 +11,7 @@ from __future__ import (
 )
 
 from .fill import FillFormat
+from .line import LineFormat
 from ..shared import ElementProxy
 from ..util import lazyproperty
 
@@ -20,7 +21,7 @@ class ChartFormat(ElementProxy):
     Provides access to visual shape properties such as line and fill.
     """
 
-    __slots__ = ('_fill',)
+    __slots__ = ('_fill', '_line')
 
     @lazyproperty
     def fill(self):
@@ -30,3 +31,12 @@ class ChartFormat(ElementProxy):
         """
         spPr = self._element.get_or_add_spPr()
         return FillFormat.from_fill_parent(spPr)
+
+    @lazyproperty
+    def line(self):
+        """
+        The |LineFormat| object providing access to the visual properties of
+        this object, such as line color and line style.
+        """
+        spPr = self._element.get_or_add_spPr()
+        return LineFormat(spPr)

@@ -4,7 +4,6 @@ Feature: Gridlines properties
   I need read/write properties on major and minor gridlines objects
 
 
-  @wip
   Scenario: Get gridlines.format
     Given a major gridlines
      Then gridlines.format is a ChartFormat object
