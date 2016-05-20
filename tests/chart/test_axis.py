@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import _BaseAxis, MajorGridlines, TickLabels, ValueAxis
+from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import (
     XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
 )
@@ -359,6 +360,42 @@ class Describe_BaseAxis(object):
     @pytest.fixture
     def tick_labels_(self, request):
         return instance_mock(request, TickLabels)
+
+
+class DescribeMajorGridlines(object):
+
+    def it_provides_access_to_its_format(self, format_fixture):
+        gridlines, expected_xml, ChartFormat_, format_ = format_fixture
+        format = gridlines.format
+        assert gridlines._xAx.xml == expected_xml
+        ChartFormat_.assert_called_once_with(
+            gridlines._xAx.xpath('c:majorGridlines')[0]
+        )
+        assert format is format_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:valAx',                  'c:valAx/c:majorGridlines'),
+        ('c:catAx/c:majorGridlines', 'c:catAx/c:majorGridlines'),
+    ])
+    def format_fixture(self, request, ChartFormat_, format_):
+        xAx_cxml, expected_cxml = request.param
+        gridlines = MajorGridlines(element(xAx_cxml))
+        expected_xml = xml(expected_cxml)
+        return gridlines, expected_xml, ChartFormat_, format_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ChartFormat_(self, request, format_):
+        return class_mock(
+            request, 'pptx.chart.axis.ChartFormat', return_value=format_
+        )
+
+    @pytest.fixture
+    def format_(self, request):
+        return instance_mock(request, ChartFormat)
 
 
 class DescribeTickLabels(object):

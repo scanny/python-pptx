@@ -6,6 +6,7 @@ Axis-related chart objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from ..dml.chtfmt import ChartFormat
 from ..enum.chart import XL_TICK_LABEL_POSITION, XL_TICK_MARK
 from ..oxml.ns import qn
 from ..shared import ElementProxy
@@ -200,6 +201,15 @@ class MajorGridlines(ElementProxy):
     def __init__(self, xAx):
         super(MajorGridlines, self).__init__(xAx)
         self._xAx = xAx  # axis element, catAx or valAx
+
+    @lazyproperty
+    def format(self):
+        """
+        The |ChartFormat| object providing access to the shape formatting
+        properties of this data point, such as line and fill.
+        """
+        majorGridlines = self._xAx.get_or_add_majorGridlines()
+        return ChartFormat(majorGridlines)
 
 
 class TickLabels(object):
