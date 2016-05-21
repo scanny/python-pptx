@@ -1,4 +1,3 @@
-
 .. _dml_api:
 
 DrawingML objects
@@ -8,36 +7,34 @@ Low-level drawing elements like fill and color that appear repeatedly in
 various aspects of shapes.
 
 
-.. currentmodule:: pptx.dml.fill
+|ChartFormat| objects
+---------------------
+
+.. autoclass:: pptx.dml.chtfmt.ChartFormat
+   :members:
 
 
 |FillFormat| objects
 --------------------
 
-.. autoclass:: FillFormat
+.. autoclass:: pptx.dml.fill.FillFormat
    :members:
    :exclude-members: from_fill_parent
    :undoc-members:
 
 
-.. currentmodule:: pptx.dml.line
-
-
 |LineFormat| objects
 --------------------
 
-.. autoclass:: LineFormat
+.. autoclass:: pptx.dml.line.LineFormat
    :members:
    :undoc-members:
-
-
-.. currentmodule:: pptx.dml.color
 
 
 |ColorFormat| objects
 ---------------------
 
-.. autoclass:: ColorFormat
+.. autoclass:: pptx.dml.color.ColorFormat
    :members: brightness, rgb, theme_color, type
    :undoc-members:
 
@@ -45,6 +42,6 @@ various aspects of shapes.
 |RGBColor| objects
 ------------------
 
-.. autoclass:: RGBColor
+.. autoclass:: pptx.dml.color.RGBColor
    :members: from_string
    :undoc-members:

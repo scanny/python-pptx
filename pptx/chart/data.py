@@ -286,12 +286,12 @@ class XyChartData(_BaseChartData):
     chart. Unlike ChartData, it has no category sequence. Rather, each data
     point of each series specifies both an X and a Y value.
     """
-    def add_series(self, label):
+    def add_series(self, name):
         """
         Return an |XySeriesData| object newly created and added at the end of
-        this sequence, and having series label *label*.
+        this sequence, and having series named *name*.
         """
-        series_data = XySeriesData(self, label)
+        series_data = XySeriesData(self, name)
         self.append(series_data)
         return series_data
 

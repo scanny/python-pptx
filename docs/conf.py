@@ -101,7 +101,15 @@ rst_epilog = """
 
 .. |_BasePlot| replace:: :class:`._BasePlot`
 
-.. |BaseShape| replace:: :class:`BaseShape`
+.. |BaseShape| replace:: :class:`.BaseShape`
+
+.. |BubbleChartData| replace:: :class:`.BubbleChartData`
+
+.. |BubblePlot| replace:: :class:`.BubblePlot`
+
+.. |BubbleSeries| replace:: :class:`.BubbleSeries`
+
+.. |BubbleSeriesData| replace:: :class:`.BubbleSeriesData`
 
 .. |_Cell| replace:: :class:`_Cell`
 
@@ -124,6 +132,8 @@ rst_epilog = """
 .. |_ColumnCollection| replace:: :class:`_ColumnCollection`
 
 .. |CoreProperties| replace:: :class:`CoreProperties`
+
+.. |DataLabel| replace:: :class:`.DataLabel`
 
 .. |DataLabels| replace:: :class:`.DataLabels`
 
@@ -211,6 +221,8 @@ rst_epilog = """
 
 .. |Plots| replace:: :class:`.Plots`
 
+.. |Point| replace:: :class:`.Point`
+
 .. |pp| replace:: `python-pptx`
 
 .. |Presentation| replace:: :class:`~pptx.Presentation`
@@ -268,6 +280,10 @@ rst_epilog = """
 .. |WorkbookWriter| replace:: :class:`.WorkbookWriter`
 
 .. |XyChartData| replace:: :class:`.XyChartData`
+
+.. |XyPoints| replace:: :class:`.XyPoints`
+
+.. |XySeries| replace:: :class:`.XySeries`
 
 .. |XySeriesData| replace:: :class:`.XySeriesData`
 

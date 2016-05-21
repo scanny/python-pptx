@@ -62,10 +62,63 @@ Notice that we captured the shape reference returned by the
 :meth:`.add_chart` call as ``graphic_frame`` and then extracted the chart
 object from the graphic frame using its :attr:`~.GraphicFrame.chart`
 property. We'll need the chart reference to get to the properties we'll need
-in the next steps. Note that the :meth:`.add_chart` method doesn't directly
-return the chart object. That's because a chart is not itself a shape. Rather
-it's a graphical (DrawingML) object *contained* in the graphic frame shape.
-Tables work this way too, also being contained in a graphic frame shape.
+in the next steps. The :meth:`.add_chart` method doesn't directly return the
+chart object. That's because a chart is not itself a shape. Rather it's
+a graphical (DrawingML) object *contained* in the graphic frame shape. Tables
+work this way too, also being contained in a graphic frame shape.
+
+
+XY and Bubble charts
+--------------------
+
+The charts so far use a *discrete* set of values for the independent variable
+(the X axis, roughly speaking). These are perfect when your values fall into
+a well-defined set of categories. However, there are many cases, particularly
+in science and engineering, where the independent variable is a continuous
+value, such as temperature or frequency. These are supported in PowerPoint by
+XY (aka. scatter) charts. A bubble chart is essentially an XY chart where the
+marker size is used to reflect an additional value, effectively adding
+a third dimension to the chart.
+
+Because the independent variable is continuous, in general, the series do not
+all share the same X values. This requires a somewhat different data
+structure and that is provided for by distinct |XyChartData| and
+|BubbleChartData| objects used to specify the data behind charts of these
+types::
+
+    chart_data = XyChartData()
+
+    series_1 = chart_data.add_series('Model 1')
+    series_1.add_data_point(0.7, 2.7)
+    series_1.add_data_point(1.8, 3.2)
+    series_1.add_data_point(2.6, 0.8)
+
+    series_2 = chart_data.add_series('Model 2')
+    series_2.add_data_point(1.3, 3.7)
+    series_2.add_data_point(2.7, 2.3)
+    series_2.add_data_point(1.6, 1.8)
+
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.XY_SCATTER, x, y, cx, cy, chart_data
+    ).chart
+
+.. image:: /_static/img/chart-08.png
+
+Creation of a bubble chart is very similar, having an additional value for each data point that specifies the bubble size::
+
+    chart_data = BubbleChartData()
+
+    series_1 = chart_data.add_series('Series 1')
+    series_1.add_data_point(0.7, 2.7, 10)
+    series_1.add_data_point(1.8, 3.2, 4)
+    series_1.add_data_point(2.6, 0.8, 8)
+
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.BUBBLE, x, y, cx, cy, chart_data
+    ).chart
+
+.. image:: /_static/img/chart-09.png
+
 
 
 Axes

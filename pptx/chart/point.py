@@ -32,7 +32,8 @@ class _BasePoints(Sequence):
 
 class BubblePoints(_BasePoints):
     """
-    Sequence providing access to the individual data points in a series.
+    Sequence providing access to the individual data points in
+    a |BubbleSeries| object.
     """
     def __len__(self):
         return min(
@@ -73,7 +74,8 @@ class Point(object):
 
 class XyPoints(_BasePoints):
     """
-    Sequence providing access to the individual data points in a series.
+    Sequence providing access to the individual data points in an |XySeries|
+    object.
     """
     def __len__(self):
         return min(self._ser.xVal_ptCount_val, self._ser.yVal_ptCount_val)

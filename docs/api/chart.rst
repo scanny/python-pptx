@@ -26,12 +26,30 @@ a new chart and when replacing the data for an existing chart.
 .. autoclass:: pptx.chart.data.XyChartData
    :members:
    :member-order: bysource
-   :undoc-members:
+   :inherited-members:
+   :exclude-members:
+       count, data_point_offset, index, series_index, series_name_ref,
+       x_values_ref, xlsx_blob, xml_bytes, y_values_ref
+
+.. autoclass:: pptx.chart.data.BubbleChartData
+   :members:
+   :member-order: bysource
+   :inherited-members:
+   :exclude-members:
+       count, bubble_sizes_ref, data_point_offset, index, series_index,
+       series_name_ref, x_values_ref, xlsx_blob, xml_bytes, y_values_ref
 
 .. autoclass:: pptx.chart.data.XySeriesData
    :members:
    :member-order: bysource
-   :undoc-members:
+   :inherited-members:
+   :exclude-members: count, data_point_offset
+
+.. autoclass:: pptx.chart.data.BubbleSeriesData
+   :members:
+   :member-order: bysource
+   :inherited-members:
+   :exclude-members: count, data_point_offset
 
 
 |Chart| objects
@@ -88,6 +106,19 @@ related to numeric values rather than text category labels.
    :undoc-members:
 
 
+|MajorGridlines| objects
+------------------------
+
+Gridlines are the vertical and horizontal lines that extend major tick marks
+of an axis across the chart to ease comparison of a data point with the axis
+divisions.
+
+.. autoclass:: pptx.chart.axis.MajorGridlines()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |TickLabels| objects
 --------------------
 
@@ -133,6 +164,17 @@ both bar and column charts.
    :undoc-members:
 
 
+|BubblePlot| objects
+~~~~~~~~~~~~~~~~~~~~
+
+The following properties are only present on bubble-type plots.
+
+.. autoclass:: pptx.chart.plot.BubblePlot()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |DataLabels| objects
 --------------------
 
@@ -144,7 +186,12 @@ A |DataLabels| object is not a collection, such as a sequence, and it does
 not provide access to individual data points. Rather, it provides properties
 that allow all the data labels in its scope to be formatted at once.
 
-.. autoclass:: pptx.chart.plot.DataLabels()
+.. autoclass:: pptx.chart.datalabel.DataLabels()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.chart.datalabel.DataLabel()
    :members:
    :member-order: bysource
    :undoc-members:
@@ -186,6 +233,41 @@ These properties are only available on series belonging to a bar-type plot.
 These properties are only available on series belonging to a line-type plot.
 
 .. autoclass:: pptx.chart.series.LineSeries()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|XySeries| objects
+~~~~~~~~~~~~~~~~~~
+
+These properties are available on series belonging to an XY plot.
+
+.. autoclass:: pptx.chart.series.XySeries()
+   :members:
+   :member-order: bysource
+   :inherited-members:
+   :undoc-members:
+
+
+|Point| objects
+---------------
+
+An XY or bubble chart has a :attr:`points` attribute providing access to a
+sequence of |Point| objects. That sequence supports iteration, indexed
+access, and ``len()``.
+
+.. autoclass:: pptx.chart.point.BubblePoints()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.chart.point.XyPoints()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.chart.point.Point()
    :members:
    :member-order: bysource
    :undoc-members:
