@@ -19,31 +19,6 @@ class BaseAxisElement(BaseOxmlElement):
     """
     Base class for catAx, valAx, and perhaps other axis elements.
     """
-    scaling = OneAndOnlyOne('c:scaling')
-    delete = ZeroOrOne('c:delete', successors=('c:axPos',))
-    majorGridlines = ZeroOrOne('c:majorGridlines', successors=(
-        'c:minorGridlines', 'c:title', 'c:numFmt', 'c:majorTickMark',
-        'c:minorTickMark', 'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
-    ))
-    minorGridlines = ZeroOrOne('c:minorGridlines', successors=(
-        'c:title', 'c:numFmt', 'c:majorTickMark', 'c:minorTickMark',
-        'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
-    ))
-    numFmt = ZeroOrOne('c:numFmt', successors=(
-        'c:majorTickMark', 'c:minorTickMark', 'c:tickLblPos', 'c:spPr',
-        'c:txPr', 'c:crossAx'
-    ))
-    majorTickMark = ZeroOrOne('c:majorTickMark', successors=(
-        'c:minorTickMark', 'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
-    ))
-    minorTickMark = ZeroOrOne('c:minorTickMark', successors=(
-        'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx'
-    ))
-    tickLblPos = ZeroOrOne('c:tickLblPos', successors=(
-        'c:spPr', 'c:txPr', 'c:crossAx'
-    ))
-    txPr = ZeroOrOne('c:txPr', successors=('c:crossAx',))
-
     @property
     def defRPr(self):
         """
@@ -76,7 +51,16 @@ class CT_CatAx(BaseAxisElement):
         'c:crosses', 'c:crossesAt', 'c:auto', 'c:lblAlgn', 'c:lblOffset',
         'c:tickLblSkip', 'c:tickMarkSkip', 'c:noMultiLvlLbl', 'c:extLst'
     )
+    scaling = OneAndOnlyOne('c:scaling')
+    delete = ZeroOrOne('c:delete', successors=_tag_seq[3:])
+    majorGridlines = ZeroOrOne('c:majorGridlines', successors=_tag_seq[5:])
+    minorGridlines = ZeroOrOne('c:minorGridlines', successors=_tag_seq[6:])
+    numFmt = ZeroOrOne('c:numFmt', successors=_tag_seq[8:])
+    majorTickMark = ZeroOrOne('c:majorTickMark', successors=_tag_seq[9:])
+    minorTickMark = ZeroOrOne('c:minorTickMark', successors=_tag_seq[10:])
+    tickLblPos = ZeroOrOne('c:tickLblPos', successors=_tag_seq[11:])
     spPr = ZeroOrOne('c:spPr', successors=_tag_seq[12:])
+    txPr = ZeroOrOne('c:txPr', successors=_tag_seq[13:])
     lblOffset = ZeroOrOne('c:lblOffset', successors=_tag_seq[19:])
     del _tag_seq
 
@@ -174,7 +158,16 @@ class CT_ValAx(BaseAxisElement):
         'c:crosses', 'c:crossesAt', 'c:crossBetween', 'c:majorUnit',
         'c:minorUnit', 'c:dispUnits', 'c:extLst'
     )
+    scaling = OneAndOnlyOne('c:scaling')
+    delete = ZeroOrOne('c:delete', successors=_tag_seq[3:])
+    majorGridlines = ZeroOrOne('c:majorGridlines', successors=_tag_seq[5:])
+    minorGridlines = ZeroOrOne('c:minorGridlines', successors=_tag_seq[6:])
+    numFmt = ZeroOrOne('c:numFmt', successors=_tag_seq[8:])
+    majorTickMark = ZeroOrOne('c:majorTickMark', successors=_tag_seq[9:])
+    minorTickMark = ZeroOrOne('c:minorTickMark', successors=_tag_seq[10:])
+    tickLblPos = ZeroOrOne('c:tickLblPos', successors=_tag_seq[11:])
     spPr = ZeroOrOne('c:spPr', successors=_tag_seq[12:])
+    txPr = ZeroOrOne('c:txPr', successors=_tag_seq[13:])
     majorUnit = ZeroOrOne('c:majorUnit', successors=_tag_seq[18:])
     minorUnit = ZeroOrOne('c:minorUnit', successors=_tag_seq[19:])
     del _tag_seq
