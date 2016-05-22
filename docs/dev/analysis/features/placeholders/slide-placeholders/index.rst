@@ -7,6 +7,7 @@ Slide Placeholders
 
    picture-placeholder
    table-placeholder
+   placeholders-in-new-slide
 
 
 Candidate protocol

@@ -49,8 +49,11 @@ Shape
    :titlesonly:
 
    features/shp-shapes
+   features/shp-autoshape
+   features/shp-preset-geom
    features/shp-hyperlink
    features/shp-graphfrm
+   features/shp-picture
    features/shp-connector
    features/shp-autofit
    features/shp-pos-and-size
@@ -75,8 +78,28 @@ Text
    features/txt-hyperlink
 
 
-Odds & Ends
-~~~~~~~~~~~
+Slides
+~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   features/sld-shape-tree
+   features/mst-slide-master
+   features/mst-slide-layout
+
+
+Presentation
+~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   features/prs-properties
+
+
+DrawingML
+~~~~~~~~~
 
 .. toctree::
    :maxdepth: 1
@@ -84,50 +107,16 @@ Odds & Ends
    features/dml-color
    features/dml-fill
    features/dml-line
+
+
+Package
+~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   features/pkg-coreprops
    features/enumerations
-   features/prs-properties
-   features/sld-shape-tree
-   features/mst-slide-master
-   features/mst-slide-layout
-
-
-Object Analysis
----------------
-
-Collected bits and pieces on specific PowerPoint object types gathered from
-MSDN documentation, the ISO/IEC 29500 spec, and other available sources.
-
-.. toctree::
-   :maxdepth: 1
-
-   objects/autoshape
-   objects/coreprops
-
-
-Experimental Analysis
----------------------
-
-Determine behaviors not documented elsewhere by observing the behavior of the
-PowerPoint application.
-
-.. toctree::
-   :maxdepth: 1
-
-   experiments/placeholders_in_new_slide
-
-
-Schema Analysis
----------------
-
-Collected bits and pieces from the XML Schema docs, MSDN web pages, and the
-ISO/IEC 29500 spec.
-
-.. toctree::
-   :maxdepth: 1
-
-   schema/ct_picture
-   schema/ct_presetgeometry2d
-   schema/ct_table
 
 
 Major discovery sources

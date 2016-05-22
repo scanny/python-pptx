@@ -1,12 +1,11 @@
 .. _autoshape:
 
-##########
 Auto Shape
-##########
+==========
 
 
 Summary
-=======
+-------
 
 *AutoShape* is the name the MS Office API uses for a shape with preset
 geometry, those referred to in the PowerPoint UI simply as *shape*. Typical
@@ -18,7 +17,7 @@ Each auto shape is contained in an ``<p:sp>`` element.
 
 
 Auto shape type
-===============
+---------------
 
 There are 187 pre-defined auto shape types, each corresponding to a distinct
 preset geometry. Some types have one or more *adjustment value*, which
@@ -30,7 +29,7 @@ the corner radius of a rounded rectangle.
 
 
 Adjustment values
-=================
+-----------------
 
 Many auto shapes may be adjusted to change their shape beyond just their width,
 height, and rotation. In the PowerPoint application, this is accomplished by
@@ -59,7 +58,7 @@ guide
 Where are the custom geometries defined?
    The geometries for autoshapes are defined in ``presetShapeDefinitions.xml``,
    located in:
-   
+
    ``pptx/ref/ISO-IEC-29500-1/schemas/dml-geometries/OfficeOpenXML-DrawingMLGeometries/``.
 
 What is the range of the formula values?
@@ -104,7 +103,7 @@ useful web resources
 
 
 XML produced by PowerPoint® client
-==================================
+----------------------------------
 
 .. highlight:: xml
 
@@ -157,7 +156,7 @@ XML produced by PowerPoint® client
 
 
 Resources
-=========
+---------
 
 * `DrawingML Shapes`_ on officeopenxml.com
 
