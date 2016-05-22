@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.oxml.parts.coreprops import CT_CoreProperties
-from pptx.parts.coreprops import CoreProperties
+from pptx.parts.coreprops import CorePropertiesPart
 
 
 class DescribeCoreProperties(object):
@@ -49,9 +49,9 @@ class DescribeCoreProperties(object):
         assert core_properties._element.xml == expected_xml
 
     def it_can_construct_a_default_core_props(self):
-        core_props = CoreProperties.default()
+        core_props = CorePropertiesPart.default()
         # verify -----------------------
-        assert isinstance(core_props, CoreProperties)
+        assert isinstance(core_props, CorePropertiesPart)
         assert core_props.content_type is CT.OPC_CORE_PROPERTIES
         assert core_props.partname == '/docProps/core.xml'
         assert isinstance(core_props._element, CT_CoreProperties)
@@ -86,7 +86,7 @@ class DescribeCoreProperties(object):
     def date_prop_set_fixture(self, request):
         prop_name, tagname, value, str_val, attrs = request.param
         coreProperties = self.coreProperties(None, None)
-        core_properties = CoreProperties.load(
+        core_properties = CorePropertiesPart.load(
             None, None, coreProperties, None
         )
         expected_xml = self.coreProperties(tagname, str_val, attrs)
@@ -125,7 +125,7 @@ class DescribeCoreProperties(object):
     def str_prop_set_fixture(self, request):
         prop_name, tagname, value = request.param
         coreProperties = self.coreProperties(None, None)
-        core_properties = CoreProperties.load(
+        core_properties = CorePropertiesPart.load(
             None, None, coreProperties, None
         )
         expected_xml = self.coreProperties(tagname, value)
@@ -138,7 +138,7 @@ class DescribeCoreProperties(object):
         str_val, expected_revision = request.param
         tagname = '' if str_val is None else 'cp:revision'
         coreProperties = self.coreProperties(tagname, str_val)
-        core_properties = CoreProperties.load(
+        core_properties = CorePropertiesPart.load(
             None, None, coreProperties, None
         )
         return core_properties, expected_revision
@@ -149,7 +149,7 @@ class DescribeCoreProperties(object):
     def revision_set_fixture(self, request):
         value, str_val = request.param
         coreProperties = self.coreProperties(None, None)
-        core_properties = CoreProperties.load(
+        core_properties = CorePropertiesPart.load(
             None, None, coreProperties, None
         )
         expected_xml = self.coreProperties('cp:revision', str_val)
@@ -200,4 +200,4 @@ class DescribeCoreProperties(object):
             b'  <cp:version>1.2.88</cp:version>\n'
             b'</cp:coreProperties>\n'
         )
-        return CoreProperties.load(None, None, xml, None)
+        return CorePropertiesPart.load(None, None, xml, None)

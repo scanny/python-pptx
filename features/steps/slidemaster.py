@@ -4,18 +4,19 @@
 Step implementations for slide master-related features
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from behave import given, then
 
 from pptx import Presentation
 from pptx.enum.shapes import PP_PLACEHOLDER
-from pptx.parts.slidelayout import SlideLayout
-from pptx.parts.slidemaster import (
-    _MasterPlaceholders, _MasterShapeTree, _SlideLayouts
-)
+from pptx.parts.slidelayout import SlideLayoutPart
+from pptx.parts.slidemaster import _MasterPlaceholders, _MasterShapeTree
 from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import MasterPlaceholder
+from pptx.slide import SlideLayouts
 
 from helpers import test_pptx
 
@@ -90,7 +91,7 @@ def then_can_access_slide_layout_by_index(context):
     slide_layouts = context.slide_layouts
     for idx in range(2):
         slide_layout = slide_layouts[idx]
-        assert isinstance(slide_layout, SlideLayout)
+        assert isinstance(slide_layout, SlideLayoutPart)
 
 
 @then('I can access the placeholder collection of the slide master')
@@ -113,8 +114,8 @@ def then_can_access_shape_collection_of_slide_master(context):
 def then_can_access_slide_layouts_of_slide_master(context):
     slide_master = context.slide_master
     slide_layouts = slide_master.slide_layouts
-    msg = 'SlideMaster.slide_layouts not instance of _SlideLayouts'
-    assert isinstance(slide_layouts, _SlideLayouts), msg
+    msg = 'SlideMaster.slide_layouts not instance of SlideLayouts'
+    assert isinstance(slide_layouts, SlideLayouts), msg
 
 
 @then('I can iterate over the master placeholders')
@@ -143,7 +144,7 @@ def then_can_iterate_over_the_slide_layouts(context):
     actual_count = 0
     for slide_layout in slide_layouts:
         actual_count += 1
-        assert isinstance(slide_layout, SlideLayout)
+        assert isinstance(slide_layout, SlideLayoutPart)
     assert actual_count == 2
 
 

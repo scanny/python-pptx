@@ -101,7 +101,7 @@ class DescribeActionSetting(object):
     def _slide_index_fixture(self, request, part_prop_):
         action_setting = ActionSetting(None, None)
         slide = part_prop_.return_value
-        slides = slide.package.presentation.slides
+        slides = slide.package.presentation_part.presentation.slides
         expected_value = 123
         slides.index.return_value = expected_value
         return action_setting, slides, slide, expected_value
@@ -131,9 +131,8 @@ class DescribeActionSetting(object):
         action_prop_.return_value = action_type
         _slide_index_prop_.return_value = 2
         # this becomes the return value of ActionSetting._slides
-        part_prop_.return_value.package.presentation.slides = [
-            0, 1, 2, 3, 4, 5
-        ]
+        prs_part_ = part_prop_.return_value.package.presentation_part
+        prs_part_.presentation.slides = [0, 1, 2, 3, 4, 5]
         part_prop_.return_value.rels.related_parts = {'rId6': 4}
         return action_setting, expected_value
 

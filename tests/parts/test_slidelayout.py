@@ -12,9 +12,10 @@ from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.parts.slidelayout import (
-    _LayoutPlaceholders, _LayoutShapeFactory, _LayoutShapeTree, SlideLayout
+    _LayoutPlaceholders, _LayoutShapeFactory, _LayoutShapeTree,
+    SlideLayoutPart
 )
-from pptx.parts.slidemaster import SlideMaster
+from pptx.parts.slidemaster import SlideMasterPart
 from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import LayoutPlaceholder
 
@@ -24,7 +25,7 @@ from ..unitutil.mock import (
 )
 
 
-class DescribeSlideLayout(object):
+class DescribeSlideLayoutPart(object):
 
     def it_knows_the_slide_master_it_inherits_from(self, master_fixture):
         slide_layout, slide_master_ = master_fixture
@@ -65,7 +66,7 @@ class DescribeSlideLayout(object):
     def cloneable_fixture(
             self, request, placeholders_, placeholder_, placeholder_2_):
         ph_types, expected_indices = request.param
-        slide_layout = SlideLayout(None, None, None, None)
+        slide_layout = SlideLayoutPart(None, None, None, None)
         placeholder_.ph_type, placeholder_2_.ph_type = ph_types
         expected_placeholders = []
         for idx in expected_indices:
@@ -74,18 +75,18 @@ class DescribeSlideLayout(object):
 
     @pytest.fixture
     def master_fixture(self, slide_master_, part_related_by_):
-        slide_layout = SlideLayout(None, None, None, None)
+        slide_layout = SlideLayoutPart(None, None, None, None)
         return slide_layout, slide_master_
 
     @pytest.fixture
     def placeholders_fixture(
             self, _LayoutPlaceholders_, layout_placeholders_):
-        slide_layout = SlideLayout(None, None, None, None)
+        slide_layout = SlideLayoutPart(None, None, None, None)
         return slide_layout, _LayoutPlaceholders_, layout_placeholders_
 
     @pytest.fixture
     def shapes_fixture(self, _LayoutShapeTree_, layout_shape_tree_):
-        slide_layout = SlideLayout(None, None, None, None)
+        slide_layout = SlideLayoutPart(None, None, None, None)
         return slide_layout, _LayoutShapeTree_, layout_shape_tree_
 
     # fixture components -----------------------------------
@@ -115,7 +116,7 @@ class DescribeSlideLayout(object):
     @pytest.fixture
     def part_related_by_(self, request, slide_master_):
         return method_mock(
-            request, SlideLayout, 'part_related_by',
+            request, SlideLayoutPart, 'part_related_by',
             return_value=slide_master_
         )
 
@@ -130,13 +131,13 @@ class DescribeSlideLayout(object):
     @pytest.fixture
     def placeholders_(self, request, placeholder_, placeholder_2_):
         return property_mock(
-            request, SlideLayout, 'placeholders',
+            request, SlideLayoutPart, 'placeholders',
             return_value=[placeholder_, placeholder_2_]
         )
 
     @pytest.fixture
     def slide_master_(self, request):
-        return instance_mock(request, SlideMaster)
+        return instance_mock(request, SlideMasterPart)
 
 
 class Describe_LayoutShapeTree(object):
@@ -236,7 +237,7 @@ class Describe_LayoutShapeFactory(object):
 
     @pytest.fixture
     def slide_layout_(self, request):
-        return instance_mock(request, SlideLayout)
+        return instance_mock(request, SlideLayoutPart)
 
 
 class Describe_LayoutPlaceholders(object):

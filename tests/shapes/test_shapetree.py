@@ -18,7 +18,7 @@ from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
 from pptx.parts.image import ImagePart
 from pptx.parts.slide import Slide
-from pptx.parts.slidelayout import SlideLayout
+from pptx.parts.slidelayout import SlideLayoutPart
 from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.graphfrm import GraphicFrame
@@ -796,7 +796,7 @@ class DescribeSlideShapeTree(object):
 
     @pytest.fixture
     def slide_layout_(self, request):
-        return instance_mock(request, SlideLayout)
+        return instance_mock(request, SlideLayoutPart)
 
     @pytest.fixture
     def slide_placeholder_(self, request):

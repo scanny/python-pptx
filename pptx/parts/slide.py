@@ -6,8 +6,6 @@ Slide and related objects.
 
 from __future__ import absolute_import
 
-from warnings import warn
-
 from .chart import ChartPart
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
@@ -105,18 +103,6 @@ class Slide(BaseSlide):
         |SlideLayout| object this slide inherits appearance from.
         """
         return self.part_related_by(RT.SLIDE_LAYOUT)
-
-    @property
-    def slidelayout(self):
-        """
-        Deprecated. Use ``.slide_layout`` property instead.
-        """
-        msg = (
-            'Slide.slidelayout property is deprecated. Use .slide_layout '
-            'instead.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-        return self.slide_layout
 
 
 class _SlidePlaceholders(ParentedElementProxy):

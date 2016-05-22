@@ -7,125 +7,50 @@ provides some insulation so not so many classes in the other modules need to
 be named as internal (leading underscore).
 """
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from warnings import warn
+import os
 
-from pptx.package import Package
+from .opc.constants import CONTENT_TYPE as CT
+from .package import Package
 
 
-class Presentation(object):
+def Presentation(pptx=None):
     """
-    Return a |Presentation| instance loaded from *file_*, where *file_* can
-    be either a path to a ``.pptx`` file (a string) or a file-like object.
-    If *file_* is missing or ``None``, load the built-in default presentation
-    template.
+    Return a |Presentation| object loaded from *pptx*, where *pptx* can be
+    either a path to a ``.pptx`` file (a string) or a file-like object. If
+    *pptx* is missing or ``None``, the built-in default presentation
+    "template" is loaded.
     """
-    def __init__(self, pkg_file=None):
-        super(Presentation, self).__init__()
-        self._package = Package.open(pkg_file)
-        self._presentation = self._package.presentation
+    if pptx is None:
+        pptx = _default_pptx_path()
 
-    @property
-    def core_properties(self):
-        """
-        Instance of |CoreProperties| holding the read/write Dublin Core
-        document properties for this presentation.
-        """
-        return self._package.core_properties
+    presentation_part = Package.open(pptx).main_document_part
 
-    @property
-    def slide_layouts(self):
-        """
-        Sequence of |SlideLayout| instances belonging to the first
-        |SlideMaster| of this presentation.
-        """
-        return self._presentation.slide_masters[0].slide_layouts
+    if not _is_pptx_package(presentation_part):
+        tmpl = "file '%s' is not a PowerPoint file, content type is '%s'"
+        raise ValueError(tmpl % (pptx, presentation_part.content_type))
 
-    @property
-    def slidelayouts(self):
-        """
-        Deprecated. Use ``.slide_layouts`` property instead.
-        """
-        msg = (
-            'Presentation.slidelayouts property is deprecated. Use .slide_la'
-            'youts instead.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-        return self.slide_layouts
+    return presentation_part.presentation
 
-    @property
-    def slide_master(self):
-        """
-        First |SlideMaster| object belonging to this presentation. Typically,
-        presentations have only a single slide master. This property provides
-        simpler access in that common case.
-        """
-        return self._presentation.slide_masters[0]
 
-    @property
-    def slidemaster(self):
-        """
-        Deprecated. Use ``.slide_master`` property instead.
-        """
-        msg = (
-            'Presentation.slidemaster property is deprecated. Use .slide_m'
-            'aster instead.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-        return self.slide_masters
+def _default_pptx_path():
+    """
+    Return the path to the built-in default .pptx package.
+    """
+    _thisdir = os.path.split(__file__)[0]
+    return os.path.join(_thisdir, 'templates', 'default.pptx')
 
-    @property
-    def slide_masters(self):
-        """
-        List of |SlideMaster| objects belonging to this presentation.
-        """
-        return self._presentation.slide_masters
 
-    @property
-    def slidemasters(self):
-        """
-        Deprecated. Use ``.slide_masters`` property instead.
-        """
-        msg = (
-            'Presentation.slidemasters property is deprecated. Use .slide_'
-            'masters instead.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-        return self.slide_masters
-
-    @property
-    def slide_height(self):
-        """
-        Height of slides in this presentation, in English Metric Units (EMU)
-        """
-        return self._presentation.slide_height
-
-    @slide_height.setter
-    def slide_height(self, height):
-        self._presentation.slide_height = height
-
-    @property
-    def slide_width(self):
-        """
-        Width of slides in this presentation, in English Metric Units (EMU)
-        """
-        return self._presentation.slide_width
-
-    @slide_width.setter
-    def slide_width(self, width):
-        self._presentation.slide_width = width
-
-    @property
-    def slides(self):
-        """
-        |_Slides| object containing the slides in this presentation.
-        """
-        return self._presentation.slides
-
-    def save(self, file):
-        """
-        Save this presentation to *file*, where *file* can be either a path to
-        a file (a string) or a file-like object.
-        """
-        return self._package.save(file)
+def _is_pptx_package(prs_part):
+    """
+    Return |True| if *prs_part* is a valid main document part, |False|
+    otherwise.
+    """
+    valid_content_types = (
+        CT.PML_PRESENTATION_MAIN,
+        CT.PML_PRES_MACRO_MAIN,
+    )
+    return prs_part.content_type in valid_content_types

@@ -6,8 +6,6 @@ Slide layout-related objects.
 
 from __future__ import absolute_import
 
-from warnings import warn
-
 from ..enum.shapes import PP_PLACEHOLDER
 from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..oxml.ns import qn
@@ -19,7 +17,7 @@ from .slide import BaseSlide
 from ..util import lazyproperty
 
 
-class SlideLayout(BaseSlide):
+class SlideLayoutPart(BaseSlide):
     """
     Slide layout part. Corresponds to package files
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
@@ -60,18 +58,6 @@ class SlideLayout(BaseSlide):
         Slide master from which this slide layout inherits properties.
         """
         return self.part_related_by(RT.SLIDE_MASTER)
-
-    @property
-    def slidemaster(self):
-        """
-        Deprecated. Use ``.slide_master`` property instead.
-        """
-        msg = (
-            'SlideLayout.slidemaster property is deprecated. Use .slide_mast'
-            'er instead.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-        return self.slide_master
 
 
 class _LayoutShapeTree(BaseShapeTree):

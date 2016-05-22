@@ -2,17 +2,18 @@
 Presentations
 =============
 
-|Presentation|, the main API class for |pp|, in provided directly by the
-:mod:`pptx` package::
+A presentation is opened using the :func:`Presentation` function, provided
+directly by the :mod:`pptx` package::
 
     from pptx import Presentation
 
-The components that constitute a presentation, e.g. slides, shapes, etc., are
-lodged in a graph of which the |Presentation| object is the root. All existing
-presentation components are referenced by traversing the graph and new objects
-are added to the graph by calling a method on that object's container.
-Consequently, the only presentation object that is constructed directly is
-|Presentation|.
+
+This function returns a :class:`.Presentation` object which is the root of
+a graph containing the components that constitute a presentation, e.g.
+slides, shapes, etc. All existing presentation components are referenced by
+traversing the graph and new objects are added to the graph by calling
+a method on that object's container. Consequently, |pp| objects are generally
+not constructed directly.
 
 Example::
 
@@ -26,21 +27,25 @@ Example::
    pic = sld.shapes.add_picture(path, x, y, cx, cy)
 
 
+|Presentation| function
+-----------------------
+
+This function is the only reference that must be imported to work with
+presentation files. Typical use interacts with many other classes, but there
+is no need to construct them as they are accessed using a property or method
+of their containing object.
+
+.. autofunction:: pptx.Presentation
+
+
 |Presentation| objects
-----------------------
+-----------------------
 
-The |Presentation| class is the only reference that must be imported to work
-with presentation files. Typical use interacts with many other classes, but
-there is no need to construct them as they are accessed using a property or
-method of their containing object.
-
-.. autoclass:: pptx.Presentation
+.. autoclass:: pptx.presentation.Presentation()
    :members:
    :member-order: bysource
+   :exclude-members: part
    :undoc-members:
-
-
-.. currentmodule:: pptx.opc.packaging
 
 
 |CoreProperties| objects
@@ -66,7 +71,7 @@ the title, last_modified_by, revision, and modified properties. Client code
 should change properties like revision and last_modified_by explicitly if that
 behavior is desired.
 
-.. class:: CoreProperties
+.. class:: pptx.opc.coreprops.CoreProperties
 
    .. attribute:: author
 

@@ -5,14 +5,14 @@ API classes for dealing with presentations and other objects one typically
 encounters as an end-user of the PowerPoint user interface.
 """
 
-from __future__ import absolute_import
-
-import os
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from .opc.constants import RELATIONSHIP_TYPE as RT
 from .opc.package import OpcPackage
 from .opc.packuri import PackURI
-from .parts.coreprops import CoreProperties
+from .parts.coreprops import CorePropertiesPart
 from .parts.image import Image, ImagePart
 from .util import lazyproperty
 
@@ -26,23 +26,6 @@ class Package(OpcPackage):
     a `.pptx` file. If *file* is |None|, the default presentation template is
     loaded.
     """
-
-    # path of the default presentation, used when no path specified
-    _default_pptx_path = os.path.join(
-        os.path.split(__file__)[0], 'templates', 'default.pptx'
-    )
-
-    @classmethod
-    def open(cls, pkg_file=None):
-        """
-        Return |Package| instance loaded with contents of .pptx package at
-        *pkg_file*, or the default presentation package if *pkg_file* is
-        missing or |None|.
-        """
-        if pkg_file is None:
-            pkg_file = cls._default_pptx_path
-        return super(Package, cls).open(pkg_file)
-
     @lazyproperty
     def core_properties(self):
         """
@@ -53,7 +36,7 @@ class Package(OpcPackage):
         try:
             return self.part_related_by(RT.CORE_PROPERTIES)
         except KeyError:
-            core_props = CoreProperties.default()
+            core_props = CorePropertiesPart.default()
             self.relate_to(core_props, RT.CORE_PROPERTIES)
             return core_props
 
@@ -86,11 +69,11 @@ class Package(OpcPackage):
         return PackURI('/ppt/media/image%d.%s' % (idx, ext))
 
     @property
-    def presentation(self):
+    def presentation_part(self):
         """
         Reference to the |Presentation| instance contained in this package.
         """
-        return self.main_document
+        return self.main_document_part
 
     @lazyproperty
     def _image_parts(self):

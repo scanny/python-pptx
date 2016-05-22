@@ -13,8 +13,8 @@ from behave import given, when, then
 from pptx import Presentation
 from pptx.compat import BytesIO
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.parts.presentation import _SlideMasters
-from pptx.parts.slidemaster import SlideMaster
+from pptx.slide import SlideMasters
+from pptx.parts.slidemaster import SlideMasterPart
 from pptx.util import Inches
 
 from helpers import saved_pptx_path, test_pptx
@@ -123,7 +123,7 @@ def then_can_access_slide_master_by_index(context):
     slide_masters = context.slide_masters
     for idx in range(2):
         slide_master = slide_masters[idx]
-        assert isinstance(slide_master, SlideMaster)
+        assert isinstance(slide_master, SlideMasterPart)
 
 
 @then('I can access the slide master collection of the presentation')
@@ -131,7 +131,7 @@ def then_can_access_slide_masters_of_presentation(context):
     presentation = context.presentation
     slide_masters = presentation.slide_masters
     msg = 'Presentation.slide_masters not instance of _SlideMasters'
-    assert isinstance(slide_masters, _SlideMasters), msg
+    assert isinstance(slide_masters, SlideMasters), msg
 
 
 @then('I can iterate over the slide masters')
@@ -140,7 +140,7 @@ def then_can_iterate_over_the_slide_masters(context):
     actual_count = 0
     for slide_master in slide_masters:
         actual_count += 1
-        assert isinstance(slide_master, SlideMaster)
+        assert isinstance(slide_master, SlideMasterPart)
     assert actual_count == 2
 
 

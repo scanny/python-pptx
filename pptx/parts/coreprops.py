@@ -14,7 +14,7 @@ from ..opc.packuri import PackURI
 from ..oxml.parts.coreprops import CT_CoreProperties
 
 
-class CoreProperties(XmlPart):
+class CorePropertiesPart(XmlPart):
     """
     Corresponds to part named ``/docProps/core.xml``, containing the core
     document properties for this document package.
@@ -153,4 +153,4 @@ class CoreProperties(XmlPart):
         partname = PackURI('/docProps/core.xml')
         content_type = CT.OPC_CORE_PROPERTIES
         core_props_elm = CT_CoreProperties.new_coreProperties()
-        return CoreProperties(partname, content_type, core_props_elm)
+        return CorePropertiesPart(partname, content_type, core_props_elm)

@@ -4,7 +4,9 @@
 Test suite for pptx.package module
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 import pytest
 
@@ -12,12 +14,10 @@ from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part, _Relationship
 from pptx.opc.packuri import PackURI
 from pptx.package import _ImageParts, Package
-from pptx.parts.coreprops import CoreProperties
+from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.image import Image, ImagePart
-from pptx.parts.presentation import PresentationPart
 
 
-from .unitutil.file import absjoin
 from .unitutil.mock import (
     class_mock, instance_mock, method_mock, property_mock
 )
@@ -25,59 +25,24 @@ from .unitutil.mock import (
 
 class DescribePackage(object):
 
-    def it_loads_default_template_when_opened_with_no_path(self):
-        prs = Package.open().presentation
-        assert prs is not None
-        slide_masters = prs.slide_masters
-        assert slide_masters is not None
-        assert len(slide_masters) == 1
-        slide_layouts = slide_masters[0].slide_layouts
-        assert slide_layouts is not None
-        assert len(slide_layouts) == 11
-
-    def it_provides_ref_to_package_presentation_part(self):
-        pkg = Package.open()
-        assert isinstance(pkg.presentation, PresentationPart)
-
     def it_provides_access_to_its_core_properties_part(self):
-        pkg = Package.open()
-        assert isinstance(pkg.core_properties, CoreProperties)
+        pkg = Package.open('pptx/templates/default.pptx')
+        assert isinstance(pkg.core_properties, CorePropertiesPart)
 
     def it_can_get_or_add_an_image_part(self, image_part_fixture):
         package, image_file, image_part_ = image_part_fixture
-
         image_part = package.get_or_add_image_part(image_file)
-
         package._image_parts.get_or_add_image_part.assert_called_once_with(
             image_file
         )
         assert image_part is image_part_
-
-    def it_can_save_itself_to_a_pptx_file(self, temp_pptx_path):
-        """
-        Package.save produces a .pptx with plausible contents
-        """
-        # setup ------------------------
-        pkg = Package.open()
-        # exercise ---------------------
-        pkg.save(temp_pptx_path)
-        # verify -----------------------
-        pkg = Package.open(temp_pptx_path)
-        prs = pkg.presentation
-        assert prs is not None
-        slide_masters = prs.slide_masters
-        assert slide_masters is not None
-        assert len(slide_masters) == 1
-        slide_layouts = slide_masters[0].slide_layouts
-        assert slide_layouts is not None
-        assert len(slide_layouts) == 11
 
     def it_knows_the_next_available_image_partname(self, next_fixture):
         package, ext, expected_value = next_fixture
         partname = package.next_image_partname(ext)
         assert partname == expected_value
 
-    # fixtures ---------------------------------------------
+    # fixtures -------------------------------------------------------
 
     @pytest.fixture
     def image_part_fixture(self, _image_parts_, image_part_):
@@ -98,10 +63,6 @@ class DescribePackage(object):
         ext = 'foo'
         expected_value = '/ppt/media/image%d.%s' % (idx, ext)
         return package, ext, expected_value
-
-    @pytest.fixture
-    def temp_pptx_path(self, tmpdir):
-        return absjoin(str(tmpdir), 'test-pptx.pptx')
 
     # fixture components ---------------------------------------------
 

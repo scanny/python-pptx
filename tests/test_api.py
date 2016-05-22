@@ -4,76 +4,54 @@
 Test suite for pptx.api module
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
+
+import os
 
 import pytest
 
 from pptx.api import Presentation
+from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.parts.presentation import PresentationPart
 
-from .unitutil.mock import call, property_mock
+from .unitutil.mock import class_mock, instance_mock
 
 
 class DescribePresentation(object):
 
-    def it_knows_the_width_of_its_slides(self, slide_width_get_fixture):
-        prs, slide_width = slide_width_get_fixture
-        assert prs.slide_width == slide_width
-
-    def it_can_change_the_width_of_its_slides(
-            self, slide_width_set_fixture):
-        prs, slide_width, part_slide_width_ = slide_width_set_fixture
-        prs.slide_width = slide_width
-        assert part_slide_width_.mock_calls == [call(slide_width)]
-
-    def it_knows_the_height_of_its_slides(self, slide_height_get_fixture):
-        prs, slide_height = slide_height_get_fixture
-        assert prs.slide_height == slide_height
-
-    def it_can_change_the_height_of_its_slides(
-            self, slide_height_set_fixture):
-        prs, slide_height, part_slide_height_ = slide_height_set_fixture
-        prs.slide_height = slide_height
-        assert part_slide_height_.mock_calls == [call(slide_height)]
+    def it_opens_default_template_on_no_path_provided(self, call_fixture):
+        Package_, path, prs_ = call_fixture
+        prs = Presentation()
+        Package_.open.assert_called_once_with(path)
+        assert prs is prs_
 
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def slide_height_get_fixture(self, part_slide_height_, slide_height):
-        prs = Presentation()
-        part_slide_height_.return_value = slide_height
-        return prs, slide_height
+    def call_fixture(self, Package_, prs_, prs_part_):
+        path = os.path.abspath(
+            os.path.join(
+                os.path.split(__file__)[0], '../pptx/templates',
+                'default.pptx'
+            )
+        )
+        Package_.open.return_value.main_document_part = prs_part_
+        prs_part_.content_type = CT.PML_PRESENTATION_MAIN
+        prs_part_.presentation = prs_
+        return Package_, path, prs_
+
+    # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def slide_height_set_fixture(self, part_slide_height_, slide_height):
-        prs = Presentation()
-        return prs, slide_height, part_slide_height_
+    def Package_(self, request):
+        return class_mock(request, 'pptx.api.Package')
 
     @pytest.fixture
-    def slide_width_get_fixture(self, part_slide_width_, slide_width):
-        prs = Presentation()
-        part_slide_width_.return_value = slide_width
-        return prs, slide_width
+    def prs_(self, request):
+        return instance_mock(request, Presentation)
 
     @pytest.fixture
-    def slide_width_set_fixture(self, part_slide_width_, slide_width):
-        prs = Presentation()
-        return prs, slide_width, part_slide_width_
-
-    # fixtures components --------------------------------------------
-
-    @pytest.fixture
-    def part_slide_height_(self, request):
-        return property_mock(request, PresentationPart, 'slide_height')
-
-    @pytest.fixture
-    def part_slide_width_(self, request):
-        return property_mock(request, PresentationPart, 'slide_width')
-
-    @pytest.fixture
-    def slide_height(self):
-        return 7654321
-
-    @pytest.fixture
-    def slide_width(self):
-        return 9876543
+    def prs_part_(self, request):
+        return instance_mock(request, PresentationPart)

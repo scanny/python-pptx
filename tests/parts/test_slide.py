@@ -19,7 +19,7 @@ from pptx.package import Package
 from pptx.parts.chart import ChartPart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.slide import BaseSlide, Slide, _SlidePlaceholders
-from pptx.parts.slidelayout import SlideLayout
+from pptx.parts.slidelayout import SlideLayoutPart
 from pptx.shapes.placeholder import _BaseSlidePlaceholder
 from pptx.shapes.shapetree import SlideShapeTree
 
@@ -301,7 +301,7 @@ class DescribeSlide(object):
 
     @pytest.fixture
     def slide_layout_(self, request):
-        return instance_mock(request, SlideLayout)
+        return instance_mock(request, SlideLayoutPart)
 
     @pytest.fixture
     def slide_placeholders_(self, request):

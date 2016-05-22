@@ -143,7 +143,7 @@ class ActionSetting(Subshape):
         """
         Reference to the slide collection for this presentation.
         """
-        return self.part.package.presentation.slides
+        return self.part.package.presentation_part.presentation.slides
 
 
 class Hyperlink(Subshape):

@@ -131,7 +131,7 @@ rst_epilog = """
 
 .. |_ColumnCollection| replace:: :class:`_ColumnCollection`
 
-.. |CoreProperties| replace:: :class:`CoreProperties`
+.. |CoreProperties| replace:: :class:`.CoreProperties`
 
 .. |DataLabel| replace:: :class:`.DataLabel`
 
@@ -225,7 +225,9 @@ rst_epilog = """
 
 .. |pp| replace:: `python-pptx`
 
-.. |Presentation| replace:: :class:`~pptx.Presentation`
+.. |Presentation| replace:: :class:`~pptx.presentation.Presentation`
+
+.. |PresentationPart| replace:: :class:`.PresentationPart`
 
 .. |Pt| replace:: :class:`.Pt`
 
@@ -251,9 +253,9 @@ rst_epilog = """
 
 .. |ShapeTree| replace:: :class:`.ShapeTree`
 
-.. |Slide| replace:: :class:`Slide`
+.. |Slide| replace:: :class:`.Slide`
 
-.. |_Slides| replace:: :class:`._Slides`
+.. |Slides| replace:: :class:`.Slides`
 
 .. |SlideLayout| replace:: :class:`.SlideLayout`
 
