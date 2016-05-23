@@ -3,7 +3,7 @@ Feature: Get and set click action properties
   As a developer using python-pptx
   I need a set of properties on ActionSetting
 
-  Scenario Outline: get action
+  Scenario Outline: Get ActionSetting.action
      Given a shape having click action <action>
       Then click_action.action is <value>
 
@@ -25,7 +25,7 @@ Feature: Get and set click action properties
       | run macro          | RUN_MACRO         |
       | run program        | RUN_PROGRAM       |
 
-  Scenario Outline: get hyperlink
+  Scenario Outline: Get ActionSetting.hyperlink
      Given a shape having click action <action>
       Then click_action.hyperlink is a Hyperlink object
 
@@ -47,7 +47,7 @@ Feature: Get and set click action properties
       | run macro          |
       | run program        |
 
-  Scenario Outline: get target slide
+  Scenario Outline: Get ActionSetting.target slide
      Given a shape having click action <action>
       Then click_action.target_slide is slide <slide_idx>
 

@@ -10,12 +10,11 @@ from .chart import ChartPart
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..oxml.parts.slide import CT_Slide
-from ..shapes.factory import SlidePlaceholders
-from ..shapes.shapetree import SlideShapeTree
+from ..slide import Slide
 from ..util import lazyproperty
 
 
-class BaseSlide(XmlPart):
+class BaseSlidePart(XmlPart):
     """
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.
@@ -55,7 +54,7 @@ class BaseSlide(XmlPart):
         return self._element.cSld.spTree
 
 
-class Slide(BaseSlide):
+class SlidePart(BaseSlidePart):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
@@ -65,11 +64,11 @@ class Slide(BaseSlide):
         Return a new slide based on *slide_layout* and having *partname*,
         created from scratch.
         """
-        slide_elm = CT_Slide.new()
-        slide = cls(partname, CT.PML_SLIDE, slide_elm, package)
-        slide.shapes.clone_layout_placeholders(slide_layout)
-        slide.relate_to(slide_layout, RT.SLIDE_LAYOUT)
-        return slide
+        sld = CT_Slide.new()
+        slide_part = cls(partname, CT.PML_SLIDE, sld, package)
+        slide_part.slide.shapes.clone_layout_placeholders(slide_layout)
+        slide_part.relate_to(slide_layout, RT.SLIDE_LAYOUT)
+        return slide_part
 
     def add_chart_part(self, chart_type, chart_data):
         """
@@ -82,24 +81,16 @@ class Slide(BaseSlide):
         return rId
 
     @lazyproperty
-    def placeholders(self):
+    def slide(self):
         """
-        Instance of |SlidePlaceholders| containing sequence of placeholder
-        shapes in this slide.
+        The |Slide| object representing this slide part.
         """
-        return SlidePlaceholders(self._element.spTree, self)
-
-    @lazyproperty
-    def shapes(self):
-        """
-        Instance of |SlideShapeTree| containing sequence of shape objects
-        appearing on this slide.
-        """
-        return SlideShapeTree(self)
+        return Slide(self._element, self)
 
     @property
     def slide_layout(self):
         """
-        |SlideLayout| object this slide inherits appearance from.
+        |SlideLayout| object the slide in this part inherits from.
         """
-        return self.part_related_by(RT.SLIDE_LAYOUT)
+        slide_layout_part = self.part_related_by(RT.SLIDE_LAYOUT)
+        return slide_layout_part.slide_layout

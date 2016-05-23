@@ -10,8 +10,55 @@ from __future__ import (
 
 from .opc.constants import RELATIONSHIP_TYPE as RT
 from .opc.packuri import PackURI
-from .parts.slide import Slide
+from .shapes.factory import SlidePlaceholders
+from .shapes.shapetree import SlideShapeTree
 from .shared import ParentedElementProxy
+from .util import lazyproperty
+
+
+class Slide(ParentedElementProxy):
+    """
+    Slide object. Provides access to shapes and slide-level properties.
+    """
+    @property
+    def name(self):
+        """
+        Internal name of this slide.
+        """
+        return self._element.cSld.name
+
+    @lazyproperty
+    def placeholders(self):
+        """
+        Instance of |SlidePlaceholders| containing sequence of placeholder
+        shapes in this slide.
+        """
+        return SlidePlaceholders(self._element.spTree, self)
+
+    @lazyproperty
+    def shapes(self):
+        """
+        Instance of |SlideShapeTree| containing sequence of shape objects
+        appearing on this slide.
+        """
+        return SlideShapeTree(self)
+
+    @property
+    def slide_layout(self):
+        """
+        |SlideLayout| object this slide inherits appearance from.
+        """
+        return self.part.slide_layout
+
+    @property
+    def spTree(self):
+        """
+        Reference to ``<p:spTree>`` element for this slide
+        """
+        return self._element.cSld.spTree
+
+
+from .parts.slide import SlidePart
 
 
 class Slides(ParentedElementProxy):
@@ -31,14 +78,16 @@ class Slides(ParentedElementProxy):
         if idx >= len(self._sldIdLst):
             raise IndexError('slide index out of range')
         sldId = self._sldIdLst[idx]
-        return self.part.related_parts[sldId.rId]
+        slide_part = self.part.related_parts[sldId.rId]
+        return slide_part.slide
 
     def __iter__(self):
         """
         Support iteration (e.g. 'for slide in slides:').
         """
         for sldId in self._sldIdLst:
-            yield self.part.related_parts[sldId.rId]
+            slide_part = self.part.related_parts[sldId.rId]
+            yield slide_part.slide
 
     def __len__(self):
         """
@@ -50,12 +99,13 @@ class Slides(ParentedElementProxy):
         """
         Return a newly added slide that inherits layout from *slide_layout*.
         """
+        # TODO: Refactor me
         partname = self._next_partname
         package = self.part.package
-        slide = Slide.new(slide_layout, partname, package)
-        rId = self.part.relate_to(slide, RT.SLIDE)
+        slide_part = SlidePart.new(slide_layout, partname, package)
+        rId = self.part.relate_to(slide_part, RT.SLIDE)
         self._sldIdLst.add_sldId(rId)
-        return slide
+        return slide_part.slide
 
     def index(self, slide):
         """

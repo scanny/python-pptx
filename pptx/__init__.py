@@ -20,7 +20,7 @@ from pptx.parts.chart import ChartPart
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.image import ImagePart
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slide import Slide
+from pptx.parts.slide import SlidePart
 from pptx.parts.slidelayout import SlideLayoutPart
 from pptx.parts.slidemaster import SlideMasterPart
 
@@ -30,7 +30,7 @@ content_type_to_part_class_map = {
     CT.PML_TEMPLATE_MAIN:     PresentationPart,
     CT.PML_SLIDESHOW_MAIN:    PresentationPart,
     CT.OPC_CORE_PROPERTIES:   CorePropertiesPart,
-    CT.PML_SLIDE:             Slide,
+    CT.PML_SLIDE:             SlidePart,
     CT.PML_SLIDE_LAYOUT:      SlideLayoutPart,
     CT.PML_SLIDE_MASTER:      SlideMasterPart,
     CT.DML_CHART:             ChartPart,
@@ -47,6 +47,6 @@ content_type_to_part_class_map = {
 PartFactory.part_type_for.update(content_type_to_part_class_map)
 
 del (
-    ChartPart, CorePropertiesPart, ImagePart, Slide, SlideLayoutPart,
+    ChartPart, CorePropertiesPart, ImagePart, SlidePart, SlideLayoutPart,
     SlideMasterPart, PresentationPart, CT, PartFactory
 )

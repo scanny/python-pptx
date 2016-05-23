@@ -33,6 +33,10 @@ class DescribeSlideLayoutPart(object):
         slide_layout.part_related_by.assert_called_once_with(RT.SLIDE_MASTER)
         assert slide_master is slide_master_
 
+    def it_provides_access_to_its_layout_object(self, layout_fixture):
+        slide_layout_part, slide_layout_ = layout_fixture
+        assert slide_layout_part.slide_layout is slide_layout_
+
     def it_provides_access_to_its_shapes(self, shapes_fixture):
         slide_layout, _LayoutShapeTree_, layout_shape_tree_ = shapes_fixture
         shapes = slide_layout.shapes
@@ -72,6 +76,11 @@ class DescribeSlideLayoutPart(object):
         for idx in expected_indices:
             expected_placeholders.append(placeholders_.return_value[idx])
         return slide_layout, expected_placeholders
+
+    @pytest.fixture
+    def layout_fixture(self):
+        slide_layout_part = SlideLayoutPart(None, None, None, None)
+        return slide_layout_part, slide_layout_part
 
     @pytest.fixture
     def master_fixture(self, slide_master_, part_related_by_):

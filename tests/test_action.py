@@ -100,8 +100,9 @@ class DescribeActionSetting(object):
     @pytest.fixture
     def _slide_index_fixture(self, request, part_prop_):
         action_setting = ActionSetting(None, None)
-        slide = part_prop_.return_value
-        slides = slide.package.presentation_part.presentation.slides
+        slide_part = part_prop_.return_value
+        slides = slide_part.package.presentation_part.presentation.slides
+        slide = slide_part.slide
         expected_value = 123
         slides.index.return_value = expected_value
         return action_setting, slides, slide, expected_value
@@ -123,8 +124,8 @@ class DescribeActionSetting(object):
         (PP_ACTION.RUN_PROGRAM,         None),
         (PP_ACTION.LAST_SLIDE_VIEWED,   None),
     ])
-    def target_slide_fixture(self, request, action_prop_, _slide_index_prop_,
-                             part_prop_):
+    def target_slide_fixture(
+            self, request, action_prop_, _slide_index_prop_, part_prop_):
         action_type, expected_value = request.param
         cNvPr = element('p:cNvPr/a:hlinkClick{r:id=rId6}')
         action_setting = ActionSetting(cNvPr, None)
@@ -133,7 +134,8 @@ class DescribeActionSetting(object):
         # this becomes the return value of ActionSetting._slides
         prs_part_ = part_prop_.return_value.package.presentation_part
         prs_part_.presentation.slides = [0, 1, 2, 3, 4, 5]
-        part_prop_.return_value.rels.related_parts = {'rId6': 4}
+        related_parts_ = part_prop_.return_value.related_parts
+        related_parts_.__getitem__.return_value.slide = 4
         return action_setting, expected_value
 
     @pytest.fixture(params=[

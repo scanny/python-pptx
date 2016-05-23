@@ -57,7 +57,7 @@ class BaseShapeTree(object):
         The package part containing this object, a _BaseSlide subclass in
         this case.
         """
-        return self._slide
+        return self._slide.part
 
     @staticmethod
     def _is_member_elm(shape_elm):
@@ -146,12 +146,11 @@ class SlideShapeTree(BaseShapeTree):
         *image_file* can be either a path to a file (a string) or a file-like
         object.
         """
-        image_part, rId = self._slide.get_or_add_image_part(image_file)
+        image_part, rId = self.part.get_or_add_image_part(image_file)
         pic = self._add_pic_from_image_part(
             image_part, rId, left, top, width, height
         )
-        picture = self._shape_factory(pic)
-        return picture
+        return self._shape_factory(pic)
 
     def add_shape(self, autoshape_type_id, left, top, width, height):
         """

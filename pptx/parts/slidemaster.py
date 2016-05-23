@@ -13,12 +13,12 @@ from ..shapes.placeholder import MasterPlaceholder
 from ..shapes.shapetree import (
     BasePlaceholders, BaseShapeFactory, BaseShapeTree
 )
-from .slide import BaseSlide
+from .slide import BaseSlidePart
 from ..slide import SlideLayouts
 from ..util import lazyproperty
 
 
-class SlideMasterPart(BaseSlide):
+class SlideMasterPart(BaseSlidePart):
     """
     Slide master part. Corresponds to package files
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.

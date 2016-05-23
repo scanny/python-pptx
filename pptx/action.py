@@ -111,7 +111,7 @@ class ActionSetting(Subshape):
             return self._slides[prev_slide_idx]
         elif self.action == PP_ACTION.NAMED_SLIDE:
             rId = self._hlink.rId
-            return self._slide.rels.related_parts[rId]
+            return self.part.related_parts[rId].slide
 
     @property
     def _hlink(self):
@@ -128,7 +128,7 @@ class ActionSetting(Subshape):
         """
         Reference to the slide containing the shape having this click action.
         """
-        return self.part
+        return self.part.slide
 
     @lazyproperty
     def _slide_index(self):

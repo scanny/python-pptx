@@ -11,7 +11,7 @@ import pytest
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.parts.image import Image
-from pptx.parts.slide import Slide
+from pptx.parts.slide import SlidePart
 from pptx.shapes.picture import Picture
 from pptx.util import Pt
 
@@ -82,4 +82,4 @@ class Describe_Picture(object):
 
     @pytest.fixture
     def slide_(self, request):
-        return instance_mock(request, Slide)
+        return instance_mock(request, SlidePart)

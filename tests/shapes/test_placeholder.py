@@ -12,7 +12,7 @@ from pptx.chart.data import ChartData
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import Slide
+from pptx.parts.slide import SlidePart
 from pptx.parts.slidelayout import SlideLayoutPart
 from pptx.parts.slidemaster import SlideMasterPart
 from pptx.shapes.placeholder import (
@@ -176,7 +176,7 @@ class Describe_BaseSlidePlaceholder(object):
 
     @pytest.fixture
     def slide_(self, request):
-        return instance_mock(request, Slide)
+        return instance_mock(request, SlidePart)
 
     @pytest.fixture
     def slide_layout_(self, request):
@@ -399,7 +399,7 @@ class DescribeChartPlaceholder(object):
 
     @pytest.fixture
     def slide_(self, request):
-        return instance_mock(request, Slide)
+        return instance_mock(request, SlidePart)
 
 
 class DescribeLayoutPlaceholder(object):
@@ -692,7 +692,7 @@ class DescribePicturePlaceholder(object):
 
     @pytest.fixture
     def slide_(self, request):
-        return instance_mock(request, Slide)
+        return instance_mock(request, SlidePart)
 
 
 class DescribeTablePlaceholder(object):

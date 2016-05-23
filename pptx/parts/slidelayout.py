@@ -13,11 +13,11 @@ from ..shapes.placeholder import LayoutPlaceholder
 from ..shapes.shapetree import (
     BasePlaceholders, BaseShapeFactory, BaseShapeTree
 )
-from .slide import BaseSlide
+from .slide import BaseSlidePart
 from ..util import lazyproperty
 
 
-class SlideLayoutPart(BaseSlide):
+class SlideLayoutPart(BaseSlidePart):
     """
     Slide layout part. Corresponds to package files
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
@@ -51,6 +51,13 @@ class SlideLayoutPart(BaseSlide):
         appearing on this slide layout.
         """
         return _LayoutShapeTree(self)
+
+    @lazyproperty
+    def slide_layout(self):
+        """
+        The |SlideLayout| object representing this part.
+        """
+        return self
 
     @property
     def slide_master(self):

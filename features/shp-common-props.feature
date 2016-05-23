@@ -43,9 +43,9 @@ Feature: Query and change common shape properties
       | connector     | New Connector 42     | New Connector 42     |
 
 
-  Scenario Outline: get slide on which shape appears
+  Scenario Outline: Get shape.part
      Given a <shape-type> on a slide
-      Then I can access the slide from the shape
+      Then I can access the slide part from the shape
 
     Examples: Shape types
       | shape-type    |

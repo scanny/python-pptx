@@ -180,7 +180,7 @@ def then_see_pptx_file_in_working_dir(context):
 def then_ext_rels_are_preserved(context):
     prs = context.prs
     sld = prs.slides[0]
-    rel = sld._rels['rId2']
+    rel = sld.part._rels['rId2']
     assert rel.is_external
     assert rel.reltype == RT.HYPERLINK
     assert rel.target_ref == 'https://github.com/scanny/python-pptx'

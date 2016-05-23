@@ -12,16 +12,14 @@ from pptx.chart.data import ChartData
 from pptx.enum.base import EnumValue
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
-from pptx.opc.package import Part
 from pptx.oxml.parts.slide import CT_Slide
-from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
 from pptx.parts.image import Image, ImagePart
-from pptx.parts.slide import BaseSlide, Slide
+from pptx.parts.slide import BaseSlidePart, SlidePart
 from pptx.parts.slidelayout import SlideLayoutPart
-from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.shapetree import SlideShapeTree
+from pptx.slide import Slide
 
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, test_file_dir
@@ -30,7 +28,7 @@ from ..unitutil.mock import (
 )
 
 
-class DescribeBaseSlide(object):
+class DescribeBaseSlidePart(object):
 
     def it_knows_its_name(self, name_fixture):
         base_slide, expected_value = name_fixture
@@ -52,15 +50,16 @@ class DescribeBaseSlide(object):
         assert image_part is image_part_
         assert rId is rId_
 
-    def it_provides_access_to_its_spTree_element_to_help(self, slide):
+    def it_provides_access_to_its_spTree_element_to_help(self):
+        slide = BaseSlidePart(None, None, element('p:sld/p:cSld/p:spTree'))
         spTree = slide.spTree
-        assert isinstance(spTree, CT_GroupShape)
+        assert spTree is slide._element.xpath('//p:spTree')[0]
 
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
     def get_image_fixture(self, related_parts_prop_, image_part_, image_):
-        slide = BaseSlide(None, None, None, None)
+        slide = BaseSlidePart(None, None, None, None)
         rId = 'rId42'
         related_parts_prop_.return_value = {rId: image_part_}
         image_part_.image = image_
@@ -69,7 +68,7 @@ class DescribeBaseSlide(object):
     @pytest.fixture
     def image_part_fixture(
             self, partname_, package_, image_part_, relate_to_):
-        slide = BaseSlide(partname_, None, None, package_)
+        slide = BaseSlidePart(partname_, None, None, package_)
         image_file, rId = 'foobar.png', 'rId6'
         package_.get_or_add_image_part.return_value = image_part_
         relate_to_.return_value = rId
@@ -79,7 +78,7 @@ class DescribeBaseSlide(object):
     def name_fixture(self):
         sld_cxml, expected_value = 'p:sld/p:cSld{name=Foobar}', 'Foobar'
         sld = element(sld_cxml)
-        base_slide = BaseSlide(None, None, sld, None)
+        base_slide = BaseSlidePart(None, None, sld, None)
         return base_slide, expected_value
 
     # fixture components ---------------------------------------------
@@ -102,19 +101,14 @@ class DescribeBaseSlide(object):
 
     @pytest.fixture
     def relate_to_(self, request):
-        return method_mock(request, BaseSlide, 'relate_to')
+        return method_mock(request, BaseSlidePart, 'relate_to')
 
     @pytest.fixture
     def related_parts_prop_(self, request):
-        return property_mock(request, BaseSlide, 'related_parts')
-
-    @pytest.fixture
-    def slide(self):
-        sld = element('p:sld/p:cSld/p:spTree')
-        return BaseSlide(None, None, sld, None)
+        return property_mock(request, BaseSlidePart, 'related_parts')
 
 
-class DescribeSlide(object):
+class DescribeSlidePart(object):
 
     def it_can_add_a_chart_part(self, add_chart_part_fixture):
         slide, chart_type_, chart_data_ = add_chart_part_fixture[:3]
@@ -128,44 +122,36 @@ class DescribeSlide(object):
         slide.relate_to.assert_called_once_with(slide, chart_part_, RT.CHART)
         assert _rId is rId
 
-    def it_provides_access_to_the_shapes_on_the_slide(self, shapes_fixture):
-        slide, SlideShapeTree_, slide_shape_tree_ = shapes_fixture
-        shapes = slide.shapes
-        SlideShapeTree_.assert_called_once_with(slide)
-        assert shapes is slide_shape_tree_
-
-    def it_provides_access_to_its_placeholders(self, placeholders_fixture):
-        slide, SlidePlaceholders_, slide_placeholders_ = placeholders_fixture
-        placeholders = slide.placeholders
-        SlidePlaceholders_.assert_called_once_with(
-            slide._element.spTree, slide
-        )
-        assert placeholders is slide_placeholders_
-
     def it_can_create_a_new_slide(self, new_fixture):
-        slide_layout_, partname_, package_ = new_fixture[:3]
-        Slide_init_, slide_elm_, shapes_, relate_to_ = new_fixture[3:]
+        slide_layout_, partname, package_ = new_fixture[:3]
+        SlidePart_init_, sld, shapes_ = new_fixture[3:]
 
-        slide = Slide.new(slide_layout_, partname_, package_)
+        slide_part = SlidePart.new(slide_layout_, partname, package_)
 
-        Slide_init_.assert_called_once_with(
-            partname_, CT.PML_SLIDE, slide_elm_, package_
+        SlidePart_init_.assert_called_once_with(
+            partname, CT.PML_SLIDE, sld, package_
         )
         shapes_.clone_layout_placeholders.assert_called_once_with(
             slide_layout_
         )
-        relate_to_.assert_called_once_with(
-            slide, slide_layout_, RT.SLIDE_LAYOUT
+        slide_part.relate_to.assert_called_once_with(
+            slide_part, slide_layout_, RT.SLIDE_LAYOUT
         )
-        assert isinstance(slide, Slide)
+        assert isinstance(slide_part, SlidePart)
 
-    def it_knows_the_slide_layout_it_inherits_from(self, layout_fixture):
-        slide, slide_layout_ = layout_fixture
-        slide_layout = slide.slide_layout
-        slide.part_related_by.assert_called_once_with(RT.SLIDE_LAYOUT)
+    def it_provides_access_to_its_slide(self, slide_fixture):
+        slide_part, Slide_, sld, slide_ = slide_fixture
+        slide = slide_part.slide
+        Slide_.assert_called_once_with(sld, slide_part)
+        assert slide is slide_
+
+    def it_provides_access_to_the_slide_layout(self, layout_fixture):
+        slide_part, slide_layout_ = layout_fixture
+        slide_layout = slide_part.slide_layout
+        slide_part.part_related_by.assert_called_once_with(RT.SLIDE_LAYOUT)
         assert slide_layout is slide_layout_
 
-    def it_knows_the_minimal_element_xml_for_a_slide(self, slide):
+    def it_knows_the_minimal_element_xml_for_a_slide(self):
         path = absjoin(test_file_dir, 'minimal_slide.xml')
         sld = CT_Slide.new()
         with open(path, 'r') as f:
@@ -178,7 +164,7 @@ class DescribeSlide(object):
     def add_chart_part_fixture(
             self, package_, chart_type_, chart_data_, ChartPart_,
             chart_part_, rId, relate_to_):
-        slide = Slide(None, None, None, package_)
+        slide = SlidePart(None, None, None, package_)
         return (
             slide, chart_type_, chart_data_, ChartPart_, chart_part_,
             package_, rId
@@ -186,29 +172,27 @@ class DescribeSlide(object):
 
     @pytest.fixture
     def layout_fixture(self, slide_layout_, part_related_by_):
-        slide = Slide(None, None, None, None)
-        return slide, slide_layout_
-
-    @pytest.fixture
-    def placeholders_fixture(self, slide_elm_, SlidePlaceholders_,
-                             slide_placeholders_):
-        slide = Slide(None, None, slide_elm_, None)
-        return slide, SlidePlaceholders_, slide_placeholders_
-
-    @pytest.fixture
-    def shapes_fixture(self, SlideShapeTree_, slide_shape_tree_):
-        slide = Slide(None, None, None, None)
-        return slide, SlideShapeTree_, slide_shape_tree_
+        slide_part = SlidePart(None, None, None, None)
+        part_related_by_.return_value.slide_layout = slide_layout_
+        return slide_part, slide_layout_
 
     @pytest.fixture
     def new_fixture(
-            self, slide_layout_, partname_, package_, Slide_init_,
-            CT_Slide_, slide_elm_, shapes_prop_, shapes_,
-            relate_to_):
+            self, slide_layout_, package_, SlidePart_init_, CT_Slide_,
+            shapes_, slide_prop_, relate_to_):
+        partname = PackURI('/foobar.xml')
+        sld = element('c:sld')
+        CT_Slide_.new.return_value = sld
+        slide_prop_.return_value.shapes = shapes_
         return (
-            slide_layout_, partname_, package_, Slide_init_, slide_elm_,
-            shapes_, relate_to_
+            slide_layout_, partname, package_, SlidePart_init_, sld, shapes_
         )
+
+    @pytest.fixture
+    def slide_fixture(self, Slide_, slide_):
+        sld = element('p:sld')
+        slide_part = SlidePart(None, None, sld, None)
+        return slide_part, Slide_, sld, slide_
 
     # fixture components -----------------------------------
 
@@ -231,30 +215,21 @@ class DescribeSlide(object):
         return instance_mock(request, EnumValue)
 
     @pytest.fixture
-    def CT_Slide_(self, request, slide_elm_):
-        CT_Slide_ = class_mock(request, 'pptx.parts.slide.CT_Slide')
-        CT_Slide_.new.return_value = slide_elm_
-        return CT_Slide_
+    def CT_Slide_(self, request):
+        return class_mock(request, 'pptx.parts.slide.CT_Slide')
 
     @pytest.fixture
     def package_(self, request):
         return instance_mock(request, Package)
 
     @pytest.fixture
-    def part_related_by_(self, request, slide_layout_):
-        return method_mock(
-            request, Slide, 'part_related_by',
-            return_value=slide_layout_
-        )
-
-    @pytest.fixture
-    def partname_(self, request):
-        return instance_mock(request, PackURI)
+    def part_related_by_(self, request):
+        return method_mock(request, SlidePart, 'part_related_by')
 
     @pytest.fixture
     def relate_to_(self, request, rId):
         return method_mock(
-            request, Part, 'relate_to', autospec=True, return_value=rId
+            request, SlidePart, 'relate_to', autospec=True, return_value=rId
         )
 
     @pytest.fixture
@@ -266,43 +241,25 @@ class DescribeSlide(object):
         return instance_mock(request, SlideShapeTree)
 
     @pytest.fixture
-    def shapes_prop_(self, request, shapes_):
-        return property_mock(request, Slide, 'shapes', return_value=shapes_)
-
-    @pytest.fixture
-    def slide(self):
-        return Slide(None, None, None, None)
-
-    @pytest.fixture
-    def SlidePlaceholders_(self, request, slide_placeholders_):
+    def Slide_(self, request, slide_):
         return class_mock(
-            request, 'pptx.parts.slide.SlidePlaceholders',
-            return_value=slide_placeholders_
+            request, 'pptx.parts.slide.Slide', return_value=slide_
         )
 
     @pytest.fixture
-    def SlideShapeTree_(self, request, slide_shape_tree_):
-        return class_mock(
-            request, 'pptx.parts.slide.SlideShapeTree',
-            return_value=slide_shape_tree_
-        )
-
-    @pytest.fixture
-    def slide_elm_(self, request):
-        return instance_mock(request, CT_Slide)
-
-    @pytest.fixture
-    def Slide_init_(self, request):
-        return initializer_mock(request, Slide)
+    def slide_(self, request):
+        return instance_mock(request, Slide)
 
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayoutPart)
 
     @pytest.fixture
-    def slide_placeholders_(self, request):
-        return instance_mock(request, SlidePlaceholders)
+    def slide_prop_(self, request, slide_):
+        return property_mock(
+            request, SlidePart, 'slide', return_value=slide_
+        )
 
     @pytest.fixture
-    def slide_shape_tree_(self, request):
-        return instance_mock(request, SlideShapeTree)
+    def SlidePart_init_(self, request):
+        return initializer_mock(request, SlidePart)

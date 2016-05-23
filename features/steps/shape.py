@@ -298,9 +298,9 @@ def then_I_can_access_the_line_format_of_the_shape(context):
     )
 
 
-@then('I can access the slide from the shape')
-def then_I_can_access_the_slide_from_the_shape(context):
-    assert context.shape.part is context.slide
+@then('I can access the slide part from the shape')
+def then_I_can_access_the_slide_part_from_the_shape(context):
+    assert context.shape.part is context.slide.part
 
 
 @then('I can determine the shape {has_text_frame_status}')

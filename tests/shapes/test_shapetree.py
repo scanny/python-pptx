@@ -17,7 +17,7 @@ from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import Slide
+from pptx.parts.slide import SlidePart
 from pptx.parts.slidelayout import SlideLayoutPart
 from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.base import BaseShape
@@ -30,9 +30,9 @@ from pptx.shapes.shapetree import (
     BasePlaceholders, BaseShapeTree, SlideShapeTree
 )
 from pptx.shapes.table import Table
+from pptx.slide import Slide
 
-from ..oxml.unitdata.shape import a_cNvPr, an_sp, an_spPr, an_spTree
-from ..oxml.unitdata.slides import a_sld, a_cSld
+from ..oxml.unitdata.shape import a_cNvPr, an_spTree
 from ..unitutil.cxml import element
 from ..unitutil.mock import (
     call, class_mock, function_mock, instance_mock, method_mock,
@@ -77,9 +77,13 @@ class DescribeBaseShapeTree(object):
         with pytest.raises(IndexError):
             shapes[2]
 
-    def it_knows_the_part_it_belongs_to(self, slide):
-        shapes = BaseShapeTree(slide)
-        assert shapes.part is slide
+    def it_knows_the_part_it_belongs_to(self, part_fixture):
+        shapes, slide_part_ = part_fixture
+        assert shapes.part is slide_part_
+
+    def it_finds_an_unused_shape_id_to_help_add_shape(self, next_id_fixture):
+        shapes, expected_value = next_id_fixture
+        assert shapes._next_shape_id == expected_value
 
     # fixtures -------------------------------------------------------
 
@@ -98,16 +102,45 @@ class DescribeBaseShapeTree(object):
         return shapes, BaseShapeFactory_, sp_, sp_2_, shape_, shape_2_
 
     @pytest.fixture
-    def iter_elms_fixture(self, slide):
+    def iter_elms_fixture(self):
+        slide = Slide(
+            element('p:sld/p:cSld/p:spTree/(p:spPr,p:sp,p:sp)'), None
+        )
         shapes = BaseShapeTree(slide)
         expected_elm_count = 2
         return shapes, expected_elm_count
 
     @pytest.fixture
-    def len_fixture(self, slide):
+    def len_fixture(self):
+        slide = Slide(
+            element('p:sld/p:cSld/p:spTree/(p:spPr,p:sp,p:sp)'), None
+        )
         shapes = BaseShapeTree(slide)
         expected_count = 2
         return shapes, expected_count
+
+    @pytest.fixture(params=[
+        ('p:spTree/p:nvSpPr',                                 1),
+        ('p:spTree/p:nvSpPr/p:cNvPr{id=0}',                   1),
+        ('p:spTree/p:nvSpPr/p:cNvPr{id=1}',                   2),
+        ('p:spTree/p:nvSpPr/p:cNvPr{id=2}',                   1),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1},p:cNvPr{id=3})',   2),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=foo},p:cNvPr{id=2})', 1),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1fo},p:cNvPr{id=2})', 1),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1},p:cNvPr{id=1},p:'
+         'cNvPr{id=1},p:cNvPr{id=4})',                        2),
+    ])
+    def next_id_fixture(self, request, slide_):
+        spTree_cxml, expected_value = request.param
+        slide_.spTree = element(spTree_cxml)
+        shapes = BaseShapeTree(slide_)
+        return shapes, expected_value
+
+    @pytest.fixture
+    def part_fixture(self, slide_):
+        shapes = BaseShapeTree(slide_)
+        slide_part_ = slide_.part
+        return shapes, slide_part_
 
     # fixture components ---------------------------------------------
 
@@ -134,20 +167,8 @@ class DescribeBaseShapeTree(object):
         return instance_mock(request, BaseShape)
 
     @pytest.fixture
-    def sld(self):
-        sld_bldr = (
-            a_sld().with_nsdecls().with_child(
-                a_cSld().with_child(
-                    an_spTree().with_child(
-                        an_spPr()).with_child(
-                        an_sp()).with_child(
-                        an_sp())))
-        )
-        return sld_bldr.element
-
-    @pytest.fixture
-    def slide(self, sld):
-        return Slide(None, None, sld, None)
+    def slide_(self, request):
+        return instance_mock(request, Slide)
 
     @pytest.fixture
     def sp_(self, request):
@@ -232,16 +253,16 @@ class DescribeSlideShapeTree(object):
         assert shape is shape_
 
     def it_can_add_a_picture_shape(self, picture_fixture):
-        shapes, image_file_, x_, y_, cx_, cy_ = picture_fixture[:6]
+        shapes, image_file_, x, y, cx, cy = picture_fixture[:6]
         image_part_, rId_, pic_, picture_ = picture_fixture[6:]
 
-        picture = shapes.add_picture(image_file_, x_, y_, cx_, cy_)
+        picture = shapes.add_picture(image_file_, x, y, cx, cy)
 
-        shapes._slide.get_or_add_image_part.assert_called_once_with(
+        shapes.part.get_or_add_image_part.assert_called_once_with(
             image_file_
         )
         shapes._add_pic_from_image_part.assert_called_once_with(
-            image_part_, rId_, x_, y_, cx_, cy_
+            image_part_, rId_, x, y, cx, cy
         )
         shapes._shape_factory.assert_called_once_with(pic_)
         assert picture is picture_
@@ -522,13 +543,13 @@ class DescribeSlideShapeTree(object):
 
     @pytest.fixture
     def picture_fixture(
-            self, slide_, image_file_, x_, y_, cx_, cy_, image_part_, rId_,
+            self, slide_, image_file_, image_part_, rId_,
             _add_pic_from_image_part_, pic_, _shape_factory_, picture_):
         shapes = SlideShapeTree(slide_)
-        slide_.get_or_add_image_part.return_value = (image_part_, rId_)
+        slide_.part.get_or_add_image_part.return_value = (image_part_, rId_)
         _shape_factory_.return_value = picture_
         return (
-            shapes, image_file_, x_, y_, cx_, cy_, image_part_, rId_, pic_,
+            shapes, image_file_, 1, 2, 3, 4, image_part_, rId_, pic_,
             picture_
         )
 
@@ -789,9 +810,9 @@ class DescribeSlideShapeTree(object):
 
     @pytest.fixture
     def slide_(self, request, spTree_, image_part_, rId_):
-        slide_ = instance_mock(request, Slide)
+        slide_ = instance_mock(request, SlidePart)
         slide_.spTree = spTree_
-        slide_.add_chart_part.return_value = rId_
+        slide_.part.add_chart_part.return_value = rId_
         return slide_
 
     @pytest.fixture
