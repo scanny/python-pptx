@@ -12,7 +12,8 @@ from pptx.parts.slide import Slide
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.factory import (
-    BaseShapeFactory, _SlidePlaceholderFactory, SlideShapeFactory
+    BaseShapeFactory, _SlidePlaceholderFactory, SlidePlaceholders,
+    SlideShapeFactory
 )
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
@@ -21,7 +22,7 @@ from pptx.shapes.shapetree import BaseShapeTree
 
 from ..oxml.unitdata.shape import a_cNvPr, an_nvSpPr, an_spTree
 from ..unitutil.cxml import element
-from ..unitutil.mock import class_mock, function_mock, instance_mock
+from ..unitutil.mock import call, class_mock, function_mock, instance_mock
 
 
 class DescribeBaseShapeFactory(object):
@@ -116,6 +117,92 @@ class DescribeBaseShapeFactory(object):
     @pytest.fixture
     def slide_(self, request):
         return instance_mock(request, Slide)
+
+
+class DescribeSlidePlaceholders(object):
+
+    def it_can_get_a_placeholder_by_idx(self, getitem_fixture):
+        placeholders, idx, SlideShapeFactory_ = getitem_fixture[:3]
+        shape_elm, placeholder_ = getitem_fixture[3:]
+
+        placeholder = placeholders[idx]
+
+        SlideShapeFactory_.assert_called_once_with(shape_elm, placeholders)
+        assert placeholder is placeholder_
+
+    def it_can_iterate_over_its_placeholders(self, iter_fixture):
+        placeholders, SlideShapeFactory_ = iter_fixture[:2]
+        expected_calls, expected_values = iter_fixture[2:]
+
+        ps = [p for p in placeholders]
+
+        assert SlideShapeFactory_.call_args_list == expected_calls
+        assert ps == expected_values
+
+    def it_knows_how_many_placeholders_it_contains(self, len_fixture):
+        placeholders, expected_value = len_fixture
+        assert len(placeholders) == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('p:spTree/p:sp/p:nvSpPr/p:nvPr/p:ph{type=pic,idx=1}',    1, 0),
+        ('p:spTree/p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=1}',  1, 0),
+        ('p:spTree/(p:sp,p:sp/p:nvSpPr/p:nvPr/p:ph{type=title})', 0, 1),
+        ('p:spTree/(p:sp,p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=1})',
+         1, 1),
+        ('p:spTree/(p:sp/p:nvSpPr/p:nvPr/p:ph{type=title},'
+         'p:sp/p:nvSpPr/p:nvPr/p:ph{type=pic,idx=3})', 3, 1),
+    ])
+    def getitem_fixture(self, request, SlideShapeFactory_, placeholder_):
+        spTree_cxml, idx, offset = request.param
+        spTree = element(spTree_cxml)
+        placeholders = SlidePlaceholders(spTree, None)
+        shape_elm = spTree[offset]
+        SlideShapeFactory_.return_value = placeholder_
+        return placeholders, idx, SlideShapeFactory_, shape_elm, placeholder_
+
+    @pytest.fixture(params=[
+        ('p:spTree/('
+         'p:sp/p:nvSpPr/p:nvPr/p:ph{type=body,idx=1},'
+         'p:sp/p:nvSpPr/p:nvPr/p:ph{type=title},'
+         'p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=3})', (1, 0, 2)),
+    ])
+    def iter_fixture(self, request, SlideShapeFactory_, placeholder_):
+        spTree_cxml, sequence = request.param
+        spTree = element(spTree_cxml)
+        placeholders = SlidePlaceholders(spTree, None)
+        SlideShapeFactory_.return_value = placeholder_
+        calls = [call(spTree[i], placeholders) for i in sequence]
+        values = [placeholder_] * len(sequence)
+        return placeholders, SlideShapeFactory_, calls, values
+
+    @pytest.fixture(params=[
+        ('p:spTree',                                                    0),
+        ('p:spTree/(p:sp,p:pic,p:sp)',                                  0),
+        ('p:spTree/(p:sp,p:sp/p:nvSpPr/p:nvPr/p:ph{type=title},p:pic)', 1),
+        ('p:spTree/('
+         'p:sp/p:nvSpPr/p:nvPr/p:ph{type=body,idx=1},'
+         'p:sp/p:nvSpPr/p:nvPr/p:ph{type=title},'
+         'p:pic/p:nvPicPr/p:nvPr/p:ph{type=pic,idx=3})',                3),
+    ])
+    def len_fixture(self, request):
+        spTree_cxml, length = request.param
+        placeholders = SlidePlaceholders(element(spTree_cxml), None)
+        return placeholders, length
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def placeholder_(self, request):
+        return instance_mock(request, _BaseSlidePlaceholder)
+
+    @pytest.fixture
+    def SlideShapeFactory_(self, request, placeholder_):
+        return function_mock(
+            request, 'pptx.shapes.factory.SlideShapeFactory',
+            return_value=placeholder_
+        )
 
 
 class DescribeSlideShapeFactory(object):

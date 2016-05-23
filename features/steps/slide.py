@@ -9,8 +9,8 @@ from __future__ import absolute_import
 from behave import given, when, then
 
 from pptx import Presentation
-from pptx.parts.slide import _SlidePlaceholders
 from pptx.shapes.base import BaseShape
+from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import SlidePlaceholder
@@ -111,8 +111,8 @@ def then_can_access_slide_placeholder_by_index(context):
 def then_can_access_placeholder_collection_of_slide(context):
     slide = context.slide
     slide_placeholders = slide.placeholders
-    msg = 'Slide.placeholders not instance of _SlidePlaceholders'
-    assert isinstance(slide_placeholders, _SlidePlaceholders), msg
+    msg = 'Slide.placeholders not instance of SlidePlaceholders'
+    assert isinstance(slide_placeholders, SlidePlaceholders), msg
 
 
 @then('I can access the shape collection of the slide')

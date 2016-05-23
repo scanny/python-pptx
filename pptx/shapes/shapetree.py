@@ -211,7 +211,7 @@ class SlideShapeTree(BaseShapeTree):
     @property
     def placeholders(self):
         """
-        Instance of |_SlidePlaceholders| containing sequence of placeholder
+        Instance of |SlidePlaceholders| containing sequence of placeholder
         shapes in this slide.
         """
         return self._slide.placeholders

@@ -49,8 +49,8 @@ from ``slides.add_slide()``.
    :exclude-members: sldLayoutIdLst
 
 
-|_SlidePlaceholders| objects
-----------------------------
+|SlidePlaceholders| objects
+---------------------------
 
-.. autoclass:: pptx.parts.slide._SlidePlaceholders
+.. autoclass:: pptx.shapes.factory.SlidePlaceholders
    :members:
