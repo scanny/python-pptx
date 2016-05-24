@@ -112,6 +112,5 @@ class Presentation(ElementProxy):
         |Slides| object containing the slides in this presentation.
         """
         sldIdLst = self._element.get_or_add_sldIdLst()
-        slides = Slides(sldIdLst, self)
-        slides.rename_slides()  # start from known state
-        return slides
+        self.part.rename_slide_parts([sldId.rId for sldId in sldIdLst])
+        return Slides(sldIdLst, self)

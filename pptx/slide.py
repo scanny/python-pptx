@@ -75,19 +75,18 @@ class Slides(ParentedElementProxy):
         """
         Provide indexed access, (e.g. 'slides[0]').
         """
-        if idx >= len(self._sldIdLst):
+        try:
+            sldId = self._sldIdLst[idx]
+        except IndexError:
             raise IndexError('slide index out of range')
-        sldId = self._sldIdLst[idx]
-        slide_part = self.part.related_parts[sldId.rId]
-        return slide_part.slide
+        return self.part.related_slide(sldId.rId)
 
     def __iter__(self):
         """
         Support iteration (e.g. 'for slide in slides:').
         """
         for sldId in self._sldIdLst:
-            slide_part = self.part.related_parts[sldId.rId]
-            yield slide_part.slide
+            yield self.part.related_slide(sldId.rId)
 
     def __len__(self):
         """
@@ -112,21 +111,10 @@ class Slides(ParentedElementProxy):
         Map *slide* to an integer representing its zero-based position in
         this slide collection. Raises |ValueError| on *slide* not present.
         """
-        sld = slide._element
         for idx, this_slide in enumerate(self):
-            if this_slide._element is sld:
+            if this_slide == slide:
                 return idx
         raise ValueError('%s is not in slide collection' % slide)
-
-    def rename_slides(self):
-        """
-        Assign partnames like ``/ppt/slides/slide9.xml`` to all slides in the
-        collection. The name portion is always ``slide``. The number part
-        forms a continuous sequence starting at 1 (e.g. 1, 2, 3, ...). The
-        extension is always ``.xml``.
-        """
-        for idx, slide in enumerate(self):
-            slide.partname = PackURI('/ppt/slides/slide%d.xml' % (idx+1))
 
     @property
     def _next_partname(self):
@@ -135,6 +123,7 @@ class Slides(ParentedElementProxy):
         appended to this slide collection, e.g. ``/ppt/slides/slide9.xml``
         for a slide collection containing 8 slides.
         """
+        # TODO: This should be the responsibility of PresentationPart
         partname_str = '/ppt/slides/slide%d.xml' % (len(self)+1)
         return PackURI(partname_str)
 

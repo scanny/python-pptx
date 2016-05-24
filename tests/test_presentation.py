@@ -49,12 +49,13 @@ class DescribePresentation(object):
         assert prs.core_properties is core_properties_
 
     def it_provides_access_to_its_slides(self, slides_fixture):
-        prs, Slides_, slides_, expected_xml = slides_fixture
+        prs, rename_slide_parts_, rIds = slides_fixture[:3]
+        Slides_, slides_, expected_xml = slides_fixture[3:]
         slides = prs.slides
+        rename_slide_parts_.assert_called_once_with(rIds)
         Slides_.assert_called_once_with(
             prs._element.xpath('p:sldIdLst')[0], prs
         )
-        slides_.rename_slides.assert_called_once_with()
         assert prs._element.xml == expected_xml
         assert slides is slides_
 
@@ -171,14 +172,19 @@ class DescribePresentation(object):
         return prs, 914400, expected_xml
 
     @pytest.fixture(params=[
-        ('p:presentation',            'p:presentation/p:sldIdLst'),
-        ('p:presentation/p:sldIdLst', 'p:presentation/p:sldIdLst'),
+        ('p:presentation', [], 'p:presentation/p:sldIdLst'),
+        ('p:presentation/p:sldIdLst/p:sldId{r:id=a}', ['a'],
+         'p:presentation/p:sldIdLst/p:sldId{r:id=a}'),
+        ('p:presentation/p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b})',
+         ['a', 'b'],
+         'p:presentation/p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b})'),
     ])
-    def slides_fixture(self, request, Slides_, slides_):
-        prs_cxml, expected_cxml = request.param
+    def slides_fixture(self, request, part_prop_, Slides_, slides_):
+        prs_cxml, rIds, expected_cxml = request.param
         prs = Presentation(element(prs_cxml), None)
+        rename_slide_parts_ = part_prop_.return_value.rename_slide_parts
         expected_xml = xml(expected_cxml)
-        return prs, Slides_, slides_, expected_xml
+        return prs, rename_slide_parts_, rIds, Slides_, slides_, expected_xml
 
     # fixture components ---------------------------------------------
 
@@ -189,6 +195,10 @@ class DescribePresentation(object):
     @pytest.fixture
     def masters_prop_(self, request):
         return property_mock(request, Presentation, 'slide_masters')
+
+    @pytest.fixture
+    def part_prop_(self, request):
+        return property_mock(request, Presentation, 'part')
 
     @pytest.fixture
     def prs_part_(self, request):
