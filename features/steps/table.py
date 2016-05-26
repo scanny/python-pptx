@@ -13,7 +13,7 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import MSO_ANCHOR
 from pptx.util import Inches
 
-from helpers import saved_pptx_path
+from helpers import saved_pptx_path, test_pptx
 
 
 # given ===================================================
@@ -21,26 +21,16 @@ from helpers import saved_pptx_path
 
 @given('a 2x2 table')
 def given_a_2x2_table(context):
-    prs = Presentation()
-    slide_layout = prs.slide_layouts[6]
-    sld = prs.slides.add_slide(slide_layout)
-    shapes = sld.shapes
-    x, y = (Inches(1.00), Inches(2.00))
-    cx, cy = (Inches(3.00), Inches(1.00))
-    graphic_frame = shapes.add_table(2, 2, x, y, cx, cy)
+    prs = Presentation(test_pptx('sld-access-shapes'))
     context.prs = prs
-    context.table_ = graphic_frame.table
+    context.table_ = prs.slides[0].shapes[3].table
 
 
 @given('a table cell')
 def given_a_table_cell(context):
-    prs = Presentation()
-    slide_layout = prs.slide_layouts[6]
-    sld = prs.slides.add_slide(slide_layout)
-    length = 1000
-    table = sld.shapes.add_table(2, 2, length, length, length, length).table
+    prs = Presentation(test_pptx('sld-access-shapes'))
     context.prs = prs
-    context.cell = table.cell(0, 0)
+    context.cell = prs.slides[0].shapes[3].table.cell(0, 0)
 
 
 # when ====================================================
@@ -124,7 +114,7 @@ def when_set_table_column_widths(context):
 @then('the cell contents are inset by the margins')
 def then_cell_contents_are_inset_by_the_margins(context):
     prs = Presentation(saved_pptx_path)
-    table = prs.slides[0].shapes[0].table
+    table = prs.slides[0].shapes[3].table
     cell = table.cell(0, 0)
     assert cell.margin_top == 1000
     assert cell.margin_right == 2000
@@ -135,26 +125,26 @@ def then_cell_contents_are_inset_by_the_margins(context):
 @then('the cell contents are vertically centered')
 def then_cell_contents_are_vertically_centered(context):
     prs = Presentation(saved_pptx_path)
-    table = prs.slides[0].shapes[0].table
+    table = prs.slides[0].shapes[3].table
     cell = table.cell(0, 0)
     assert cell.vertical_anchor == MSO_ANCHOR.MIDDLE
 
 
 @then('the columns of the table have alternating shading')
 def then_columns_of_table_have_alternating_shading(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[0].table
+    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
     assert table.vert_banding is True
 
 
 @then('the first column of the table has special formatting')
 def then_first_column_of_table_has_special_formatting(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[0].table
+    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
     assert table.first_col is True
 
 
 @then('the first row of the table has special formatting')
 def then_first_row_of_table_has_special_formatting(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[0].table
+    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
     assert table.first_row is True
 
 
@@ -165,19 +155,19 @@ def then_cell_fore_color_is_RGB_value_I_set(context):
 
 @then('the last column of the table has special formatting')
 def then_last_column_of_table_has_special_formatting(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[0].table
+    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
     assert table.last_col is True
 
 
 @then('the last row of the table has special formatting')
 def then_last_row_of_table_has_special_formatting(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[0].table
+    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
     assert table.last_row is True
 
 
 @then('the rows of the table have alternating shading')
 def then_rows_of_table_have_alternating_shading(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[0].table
+    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
     assert table.horz_banding is True
 
 
@@ -191,8 +181,7 @@ def then_the_table_appears_in_the_slide(context):
 @then('the table appears with the new column widths')
 def then_table_appears_with_new_col_widths(context):
     prs = Presentation(saved_pptx_path)
-    sld = prs.slides[0]
-    table = sld.shapes[0].table
+    table = prs.slides[0].shapes[3].table
     assert table.columns[0].width == Inches(1.50)
     assert table.columns[1].width == Inches(3.00)
 
@@ -200,7 +189,6 @@ def then_table_appears_with_new_col_widths(context):
 @then('the text appears in the first cell of the table')
 def then_text_appears_in_first_cell_of_table(context):
     prs = Presentation(saved_pptx_path)
-    sld = prs.slides[0]
-    table = sld.shapes[0].table
+    table = prs.slides[0].shapes[3].table
     text = table.cell(0, 0).text_frame.paragraphs[0].runs[0].text
     assert text == 'test text'

@@ -111,16 +111,16 @@ Feature: Change appearance of font used to render text
   Scenario: Add hyperlink
     Given a text run
      When I set the hyperlink address
-     Then the text of the run is a hyperlink
+     Then run.text is a hyperlink
 
 
   Scenario: Add hyperlink in table cell
     Given a text run in a table cell
      When I set the hyperlink address
-     Then the text of the run is a hyperlink
+     Then run.text is a hyperlink
 
 
   Scenario: Remove hyperlink
     Given a text run having a hyperlink
-     When I set the hyperlink address to None
-     Then the text run is not a hyperlink
+     When I assign None to hyperlink.address
+     Then run.text is not a hyperlink

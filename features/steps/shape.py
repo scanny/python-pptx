@@ -28,6 +28,12 @@ def given_a_chart(context):
     context.shape = sld.shapes[6]
 
 
+@given('a chevron shape')
+def given_a_chevron_shape(context):
+    prs = Presentation(test_pptx('shp-autoshape-adjustments'))
+    context.shape = prs.slides[0].shapes[0]
+
+
 @given('a connector')
 def given_a_connector(context):
     prs = Presentation(test_pptx('shp-common-props'))
@@ -128,26 +134,14 @@ def given_a_shape_of_known_position_and_size(context):
 
 @given('an autoshape')
 def given_an_autoshape(context):
-    prs = Presentation()
-    blank_slide_layout = prs.slide_layouts[6]
-    shapes = prs.slides.add_slide(blank_slide_layout).shapes
-    x = y = cx = cy = 914400
-    context.shape = shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, cx, cy)
+    prs = Presentation(test_pptx('shp-autoshape-adjustments'))
+    context.shape = prs.slides[0].shapes[0]
 
 
 @given('an autoshape having text')
 def given_an_autoshape_having_text(context):
     prs = Presentation(test_pptx('shp-autoshape-props'))
     context.shape = prs.slides[0].shapes[0]
-
-
-@given('I have a reference to a chevron shape')
-def given_ref_to_chevron_shape(context):
-    context.prs = Presentation()
-    blank_slide_layout = context.prs.slide_layouts[6]
-    shapes = context.prs.slides.add_slide(blank_slide_layout).shapes
-    x = y = cx = cy = 914400
-    context.chevron_shape = shapes.add_shape(MSO_SHAPE.CHEVRON, x, y, cx, cy)
 
 
 # when ====================================================
@@ -168,6 +162,11 @@ def when_I_add_an_auto_shape(context):
     cx, cy = (Inches(3.00), Inches(4.00))
     sp = shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, cx, cy)
     sp.text = test_text
+
+
+@when("I assign 0.15 to shape.adjustments[0]")
+def when_I_assign_to_shape_adjustments(context):
+    context.shape.adjustments[0] = 0.15
 
 
 @when("I assign a string to shape.text")
@@ -228,11 +227,6 @@ def when_set_fill_type_to_solid(context):
     context.shape.fill.solid()
 
 
-@when("I set the first adjustment value to 0.15")
-def when_set_first_adjustment_value(context):
-    context.chevron_shape.adjustments[0] = 0.15
-
-
 @when("I set the foreground color brightness to 0.5")
 def when_set_fore_color_brightness_to_value(context):
     context.shape.fill.fore_color.brightness = 0.5
@@ -250,6 +244,12 @@ def when_set_fore_color_to_RGB_value(context):
 
 # then ====================================================
 
+@then('shape.adjustments[0] is 0.15')
+def then_shape_adjustments_is_value(context):
+    shape = context.shape
+    assert shape.adjustments[0] == 0.15
+
+
 @then('the auto shape appears in the slide')
 def then_auto_shape_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
@@ -258,12 +258,6 @@ def then_auto_shape_appears_in_slide(context):
     assert sp.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
     assert sp.auto_shape_type == MSO_SHAPE.ROUNDED_RECTANGLE
     assert sp_text == test_text
-
-
-@then('the chevron shape appears with a less acute arrow head')
-def then_chevron_shape_appears_with_less_acute_arrow_head(context):
-    chevron = Presentation(saved_pptx_path).slides[0].shapes[0]
-    assert chevron.adjustments[0] == 0.15
 
 
 @then('the fill type of the shape is background')

@@ -3,8 +3,8 @@ Feature: Adjust auto shape
   As a developer using python-pptx
   I need to set the adjustment values of an auto shape
 
-  Scenario: set shape adjustment value
-     Given I have a reference to a chevron shape
-      When I set the first adjustment value to 0.15
-       And I save the presentation
-      Then the chevron shape appears with a less acute arrow head
+
+  Scenario: Set AutoShape adjustment value
+     Given a chevron shape
+      When I assign 0.15 to shape.adjustments[0]
+      Then shape.adjustments[0] is 0.15

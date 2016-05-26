@@ -23,10 +23,10 @@ from helpers import saved_pptx_path, test_file, test_pptx, test_text
 
 @given('a bullet body placeholder')
 def given_a_bullet_body_placeholder(context):
-    context.prs = Presentation()
-    slide_layout = context.prs.slide_layouts[1]
-    context.sld = context.prs.slides.add_slide(slide_layout)
-    context.body = context.sld.shapes.placeholders[1]
+    prs = Presentation(test_pptx('ph-unpopulated-placeholders'))
+    context.prs = prs
+    context.sld = prs.slides[2]
+    context.body = prs.slides[2].shapes.placeholders[10]
 
 
 @given('a known {placeholder_type} placeholder shape')
@@ -219,9 +219,7 @@ def then_the_return_value_is_a_PlaceholderType_object(context, type):
 @then('the paragraph is indented')
 def then_the_paragraph_is_indented(context):
     prs = Presentation(saved_pptx_path)
-    sld = prs.slides[0]
-    body = sld.shapes.placeholders[1]
-    p = body.text_frame.paragraphs[0]
+    p = prs.slides[2].shapes.placeholders[10].text_frame.paragraphs[0]
     assert p.level == 1
 
 

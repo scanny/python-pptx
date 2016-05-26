@@ -21,12 +21,9 @@ from helpers import saved_pptx_path, test_pptx
 
 @given('a paragraph')
 def given_a_paragraph(context):
-    context.prs = Presentation()
-    blank_slide_layout = context.prs.slide_layouts[6]
-    slide = context.prs.slides.add_slide(blank_slide_layout)
-    length = Inches(2.00)
-    textbox = slide.shapes.add_textbox(length, length, length, length)
-    context.paragraph = textbox.text_frame.paragraphs[0]
+    prs = Presentation(test_pptx('txt-text'))
+    context.prs = prs
+    context.paragraph = prs.slides[0].shapes[0].text_frame.paragraphs[0]
 
 
 @given('a paragraph containing text')
@@ -77,35 +74,21 @@ def given_a_run_containing_text(context):
 
 @given('a text run')
 def given_a_text_run(context):
-    prs = Presentation()
-    blank_slide_layout = prs.slide_layouts[6]
-    slide = prs.slides.add_slide(blank_slide_layout)
-    textbox = slide.shapes.add_textbox(0, 0, 0, 0)
-    p = textbox.text_frame.paragraphs[0]
-    context.r = p.add_run()
+    prs = Presentation(test_pptx('txt-text'))
+    context.run = prs.slides[0].shapes[0].text_frame.paragraphs[0].runs[0]
 
 
 @given('a text run in a table cell')
 def given_a_text_run_in_a_table_cell(context):
-    prs = Presentation()
-    blank_slide_layout = prs.slide_layouts[6]
-    slide = prs.slides.add_slide(blank_slide_layout)
-    table = slide.shapes.add_table(1, 1, 0, 0, 0, 0).table
-    cell = table.cell(0, 0)
-    p = cell.text_frame.paragraphs[0]
-    context.r = p.add_run()
+    prs = Presentation(test_pptx('txt-text'))
+    cell = prs.slides[1].shapes[0].table.cell(0, 0)
+    context.run = cell.text_frame.paragraphs[0].runs[0]
 
 
 @given('a text run having a hyperlink')
 def given_a_text_run_having_a_hyperlink(context):
-    prs = Presentation()
-    blank_slide_layout = prs.slide_layouts[6]
-    slide = prs.slides.add_slide(blank_slide_layout)
-    textbox = slide.shapes.add_textbox(0, 0, 0, 0)
-    p = textbox.text_frame.paragraphs[0]
-    r = p.add_run()
-    r.hyperlink.address = 'http://foo/bar'
-    context.r = r
+    prs = Presentation(test_pptx('txt-text'))
+    context.run = prs.slides[0].shapes[0].text_frame.paragraphs[1].runs[0]
 
 
 # when ====================================================
@@ -123,6 +106,11 @@ def when_I_assign_a_string_to_run_text(context):
 @when('I assign a typeface name to the font')
 def when_assign_typeface_name_to_font(context):
     context.font.name = 'Verdana'
+
+
+@when('I assign None to hyperlink.address')
+def when_assign_None_to_hyperlink_address(context):
+    context.run.hyperlink.address = None
 
 
 @when('I assign {value_str} to paragraph.line_spacing')
@@ -185,15 +173,10 @@ def when_set_hyperlink_address(context):
     context.run_text = 'python-pptx @ GitHub'
     context.address = 'https://github.com/scanny/python-pptx'
 
-    r = context.r
-    r.text = context.run_text
-    hlink = r.hyperlink
+    run = context.run
+    run.text = context.run_text
+    hlink = run.hyperlink
     hlink.address = context.address
-
-
-@when('I set the hyperlink address to None')
-def when_set_hyperlink_address_to_None(context):
-    context.r.hyperlink.address = None
 
 
 @when("I set the paragraph alignment to centered")
@@ -279,6 +262,20 @@ def then_paragraph_text_matches_the_assigned_string(context):
     assert paragraph.text == ' Boo Far \n Faz Foo '
 
 
+@then('run.text is a hyperlink')
+def then_run_text_is_a_hyperlink(context):
+    run = context.run
+    hlink = run.hyperlink
+    assert run.text == context.run_text
+    assert hlink.address == context.address
+
+
+@then('run.text is not a hyperlink')
+def then_run_text_is_not_a_hyperlink(context):
+    hlink = context.run.hyperlink
+    assert hlink.address is None
+
+
 @then('run.text is the text in the run')
 def then_run_text_is_the_text_in_the_run(context):
     run = context.run
@@ -306,17 +303,3 @@ def then_paragraph_is_aligned_centered(context):
 def then_paragraph_indented_to_second_level(context):
     p = context.prs.slides[0].shapes[0].text_frame.paragraphs[0]
     assert p.level == 1
-
-
-@then('the text of the run is a hyperlink')
-def then_text_of_run_is_hyperlink(context):
-    r = context.r
-    hlink = r.hyperlink
-    assert r.text == context.run_text
-    assert hlink.address == context.address
-
-
-@then('the text run is not a hyperlink')
-def then_text_run_is_not_a_hyperlink(context):
-    hlink = context.r.hyperlink
-    assert hlink.address is None

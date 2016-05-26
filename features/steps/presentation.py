@@ -176,6 +176,12 @@ def then_see_pptx_file_in_working_dir(context):
     assert actual > minimum
 
 
+@then('prs.slides is a Slides object')
+def then_prs_slides_is_a_Slides_object(context):
+    prs = context.presentation
+    assert type(prs.slides).__name__ == 'Slides'
+
+
 @then('the external relationships are still there')
 def then_ext_rels_are_preserved(context):
     prs = context.prs

@@ -4,7 +4,7 @@ Feature: Add a picture to a slide
   I need a way to place an image on a slide
 
   Scenario Outline: Add a picture to a slide
-     Given a slide
+     Given a blank slide
       When I add the image <filename> using shapes.add_picture()
        And I save the presentation
       Then a <ext> image part appears in the pptx file
@@ -22,7 +22,7 @@ Feature: Add a picture to a slide
 
 
   Scenario Outline: Add a picture stream to a slide
-     Given a slide
+     Given a blank slide
       When I add the stream image <filename> using shapes.add_picture()
        And I save the presentation
       Then a <ext> image part appears in the pptx file

@@ -19,12 +19,9 @@ from helpers import test_pptx
 
 @given('a text frame')
 def given_a_text_frame(context):
-    context.prs = Presentation()
-    blank_slide_layout = context.prs.slide_layouts[6]
-    slide = context.prs.slides.add_slide(blank_slide_layout)
-    length = Inches(2.00)
-    textbox = slide.shapes.add_textbox(length, length, length, length)
-    context.text_frame = textbox.text_frame
+    prs = Presentation(test_pptx('txt-text'))
+    context.prs = prs
+    context.text_frame = prs.slides[0].shapes[0].text_frame
 
 
 @given('a text frame containing text')
@@ -104,7 +101,8 @@ def then_text_frame_autosize_is_value(context, value):
 @then('text_frame.text is the text in the shape')
 def then_text_frame_text_is_the_text_in_the_shape(context):
     text_frame = context.text_frame
-    assert text_frame.text == ' Foo Bar \n Baz Zoo \n1'
+    print(text_frame.text)
+    assert text_frame.text == ' Foo Bar \n Baz Zoo \n1\nyahoo.com'
 
 
 @then('text_frame.text matches the assigned string')
