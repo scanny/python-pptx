@@ -10,18 +10,14 @@ from __future__ import (
 
 import pytest
 
-from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.packuri import PackURI
-from pptx.package import Package
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slide import SlidePart
 from pptx.parts.slidelayout import SlideLayoutPart
 from pptx.parts.slidemaster import SlideMasterPart
 from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.shapetree import SlideShapeTree
 from pptx.slide import Slide, SlideLayouts, SlideMasters, Slides
 
-from .unitutil.cxml import element, xml
+from .unitutil.cxml import element
 from .unitutil.mock import call, class_mock, instance_mock, property_mock
 
 
@@ -140,38 +136,7 @@ class DescribeSlides(object):
         slides, expected_value = len_fixture
         assert len(slides) == expected_value
 
-    def it_can_add_a_new_slide(self, add_fixture):
-        slides, slide_layout_, SlidePart_, part_name = add_fixture[:4]
-        package_, slide_part_, slide_, expected_xml = add_fixture[4:]
-
-        slide = slides.add_slide(slide_layout_)
-
-        SlidePart_.new.assert_called_once_with(
-            slide_layout_, part_name, package_
-        )
-        slides.part.relate_to.assert_called_once_with(slide_part_, RT.SLIDE)
-        assert slides._sldIdLst.xml == expected_xml
-        assert slide is slide_
-
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def add_fixture(
-            self, part_prop_, slide_layout_, SlidePart_, package_,
-            slide_part_):
-        slides = Slides(element('p:sldIdLst/p:sldId{r:id=rId1}'), None)
-        part_name = PackURI('/ppt/slides/slide2.xml')
-        slide_ = slide_part_.slide
-        expected_xml = xml(
-            'p:sldIdLst/(p:sldId{r:id=rId1},p:sldId{r:id=rId2,id=256})'
-        )
-        SlidePart_.new.return_value = slide_part_
-        part_prop_.return_value.package = package_
-        part_prop_.return_value.relate_to.return_value = 'rId2'
-        return (
-            slides, slide_layout_, SlidePart_, part_name, package_,
-            slide_part_, slide_, expected_xml
-        )
 
     @pytest.fixture
     def getitem_fixture(self, prs_part_, slide_, part_prop_):
@@ -230,10 +195,6 @@ class DescribeSlides(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def package_(self, request):
-        return instance_mock(request, Package)
-
-    @pytest.fixture
     def part_prop_(self, request):
         return property_mock(request, Slides, 'part')
 
@@ -248,16 +209,6 @@ class DescribeSlides(object):
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayoutPart)
-
-    @pytest.fixture
-    def SlidePart_(self, request, slide_part_):
-        return class_mock(
-            request, 'pptx.slide.SlidePart', return_value=slide_part_
-        )
-
-    @pytest.fixture
-    def slide_part_(self, request):
-        return instance_mock(request, SlidePart)
 
 
 class DescribeSlideLayouts(object):

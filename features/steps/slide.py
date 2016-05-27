@@ -16,7 +16,7 @@ from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import SlidePlaceholder
 from pptx.shapes.shapetree import SlideShapeTree
 
-from helpers import saved_pptx_path, test_pptx
+from helpers import test_pptx
 
 
 # given ===================================================
@@ -57,12 +57,19 @@ def given_a_slide_shape_collection(context):
     context.shapes = presentation.slides[0].shapes
 
 
+@given('a Slides object containing 3 slides')
+def given_a_Slides_object_containing_3_slides(context):
+    prs = Presentation(test_pptx('sld-slide-access'))
+    context.prs = prs
+    context.slides = prs.slides
+
+
 # when ====================================================
 
-@when('I add a slide based on a layout')
-def when_I_add_a_slide_based_on_a_layout(context):
-    slide_layout = context.prs.slide_masters[0].slide_layouts[0]
-    context.prs.slides.add_slide(slide_layout)
+@when('I call slides.add_slide()')
+def when_I_call_slides_add_slide(context):
+    context.slide_layout = context.prs.slide_masters[0].slide_layouts[0]
+    context.slides.add_slide(context.slide_layout)
 
 
 # then ====================================================
@@ -144,6 +151,42 @@ def then_can_iterate_over_the_slide_placeholders(context):
     assert actual_count == 2
 
 
+@then('iterating slides produces 3 Slide objects')
+def then_iterating_slides_produces_3_slide_objects(context):
+    slides = context.slides
+    idx = -1
+    for idx, slide in enumerate(slides):
+        assert type(slide).__name__ == 'Slide'
+    assert idx == 2
+
+
+@then('len(slides) is {count}')
+def then_len_slides_is_count(context, count):
+    slides = context.slides
+    assert len(slides) == int(count)
+
+
+@then('slide.slide_layout is the one passed in the call')
+def then_slide_slide_layout_is_the_one_passed_in_the_call(context):
+    slide = context.prs.slides[3]
+    assert slide.slide_layout == context.slide_layout
+
+
+@then('slides[2] is a Slide object')
+def then_slides_2_is_a_Slide_object(context):
+    slides = context.slides
+    assert type(slides[2]).__name__ == 'Slide'
+
+
+@then('the index of each shape matches its position in the sequence')
+def then_index_of_each_shape_matches_its_position_in_the_sequence(context):
+    shapes = context.shapes
+    for idx, shape in enumerate(shapes):
+        assert idx == shapes.index(shape), (
+            "index doesn't match for idx == %s" % idx
+        )
+
+
 @then('the length of the shape collection is 6')
 def then_len_of_shape_collection_is_6(context):
     slide = context.slide
@@ -161,27 +204,3 @@ def then_len_of_placeholder_collection_is_2(context):
         'expected len(slide_placeholders) of 2, got %s' %
         len(slide_placeholders)
     )
-
-
-@then('the pptx file contains a single slide')
-def then_pptx_file_contains_single_slide(context):
-    context.prs = prs = Presentation(saved_pptx_path)
-    assert len(prs.slides) == 1
-
-
-@then('the index of each shape matches its position in the sequence')
-def then_index_of_each_shape_matches_its_position_in_the_sequence(context):
-    shapes = context.shapes
-    for idx, shape in enumerate(shapes):
-        assert idx == shapes.index(shape), (
-            "index doesn't match for idx == %s" % idx
-        )
-
-
-@then('the layout has been applied to the slide')
-def then_the_layout_has_been_applied_to_the_slide(context):
-    prs = context.prs
-    shapes = prs.slides[0].shapes
-    assert len(shapes) == 2, 'expected 2 shapes, got %d' % len(shapes)
-    assert shapes[0].name == 'Title 1'
-    assert shapes[1].name == 'Subtitle 2'

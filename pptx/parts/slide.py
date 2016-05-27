@@ -7,9 +7,8 @@ Slide and related objects.
 from __future__ import absolute_import
 
 from .chart import ChartPart
-from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
-from ..oxml.parts.slide import CT_Slide
 from ..slide import Slide
 from ..util import lazyproperty
 
@@ -58,18 +57,6 @@ class SlidePart(BaseSlidePart):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
-    @classmethod
-    def new(cls, slide_layout, partname, package):
-        """
-        Return a new slide based on *slide_layout* and having *partname*,
-        created from scratch.
-        """
-        sld = CT_Slide.new()
-        slide_part = cls(partname, CT.PML_SLIDE, sld, package)
-        slide_part.slide.shapes.clone_layout_placeholders(slide_layout)
-        slide_part.relate_to(slide_layout, RT.SLIDE_LAYOUT)
-        return slide_part
-
     def add_chart_part(self, chart_type, chart_data):
         """
         Return the rId of a new |ChartPart| object containing a chart of

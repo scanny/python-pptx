@@ -8,8 +8,6 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from .opc.constants import RELATIONSHIP_TYPE as RT
-from .opc.packuri import PackURI
 from .shapes.factory import SlidePlaceholders
 from .shapes.shapetree import SlideShapeTree
 from .shared import ParentedElementProxy
@@ -58,9 +56,6 @@ class Slide(ParentedElementProxy):
         return self._element.cSld.spTree
 
 
-from .parts.slide import SlidePart
-
-
 class Slides(ParentedElementProxy):
     """
     Sequence of slides belonging to an instance of |Presentation|, having
@@ -98,13 +93,7 @@ class Slides(ParentedElementProxy):
         """
         Return a newly added slide that inherits layout from *slide_layout*.
         """
-        # TODO: Refactor me
-        partname = self._next_partname
-        package = self.part.package
-        slide_part = SlidePart.new(slide_layout, partname, package)
-        rId = self.part.relate_to(slide_part, RT.SLIDE)
-        self._sldIdLst.add_sldId(rId)
-        return slide_part.slide
+        raise NotImplementedError
 
     def index(self, slide):
         """
@@ -115,17 +104,6 @@ class Slides(ParentedElementProxy):
             if this_slide == slide:
                 return idx
         raise ValueError('%s is not in slide collection' % slide)
-
-    @property
-    def _next_partname(self):
-        """
-        Return |PackURI| instance containing the partname for a slide to be
-        appended to this slide collection, e.g. ``/ppt/slides/slide9.xml``
-        for a slide collection containing 8 slides.
-        """
-        # TODO: This should be the responsibility of PresentationPart
-        partname_str = '/ppt/slides/slide%d.xml' % (len(self)+1)
-        return PackURI(partname_str)
 
 
 class SlideLayouts(ParentedElementProxy):

@@ -49,11 +49,6 @@ def given_slide_master_collection_containing_two_masters(context):
     context.slide_masters = prs.slide_masters
 
 
-@given('an empty presentation')
-def given_an_empty_presentation(context):
-    context.prs = Presentation()
-
-
 @given('an initialized pptx environment')
 def given_initialized_pptx_env(context):
     pass
