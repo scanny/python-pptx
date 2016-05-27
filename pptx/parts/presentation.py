@@ -17,6 +17,13 @@ class PresentationPart(XmlPart):
     Top level class in object model, represents the contents of the /ppt
     directory of a .pptx file.
     """
+    def add_slide(self, slide_layout):
+        """
+        Return an (rId, slide) pair of a newly created blank slide that
+        inherits appearance from *slide_layout*.
+        """
+        raise NotImplementedError
+
     @property
     def core_properties(self):
         """

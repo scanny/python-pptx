@@ -17,7 +17,7 @@ from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.shapetree import SlideShapeTree
 from pptx.slide import Slide, SlideLayouts, SlideMasters, Slides
 
-from .unitutil.cxml import element
+from .unitutil.cxml import element, xml
 from .unitutil.mock import call, class_mock, instance_mock, property_mock
 
 
@@ -136,13 +136,37 @@ class DescribeSlides(object):
         slides, expected_value = len_fixture
         assert len(slides) == expected_value
 
+    def it_can_add_a_new_slide(self, add_fixture):
+        slides, slide_layout_, part_ = add_fixture[:3]
+        clone_layout_placeholders_, expected_xml, slide_ = add_fixture[3:]
+
+        slide = slides.add_slide(slide_layout_)
+
+        part_.add_slide.assert_called_once_with(slide_layout_)
+        clone_layout_placeholders_.assert_called_once_with(slide_layout_)
+        assert slides._sldIdLst.xml == expected_xml
+        assert slide is slide_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_fixture(self, slide_layout_, part_prop_, slide_):
+        slides = Slides(element('p:sldIdLst/p:sldId{r:id=rId1}'), None)
+        part_ = part_prop_.return_value
+        clone_layout_placeholders_ = slide_.shapes.clone_layout_placeholders
+        expected_xml = xml(
+            'p:sldIdLst/(p:sldId{r:id=rId1},p:sldId{r:id=rId2,id=256})'
+        )
+        part_.add_slide.return_value = 'rId2', slide_
+        return (
+            slides, slide_layout_, part_, clone_layout_placeholders_,
+            expected_xml, slide_
+        )
 
     @pytest.fixture
     def getitem_fixture(self, prs_part_, slide_, part_prop_):
         sldIdLst = element('p:sldIdLst/p:sldId{r:id=rId1}')
         slides = Slides(sldIdLst, None)
-        part_prop_.return_value = prs_part_
         prs_part_.related_slide.return_value = slide_
         return slides, prs_part_, 'rId1', slide_
 
@@ -167,7 +191,7 @@ class DescribeSlides(object):
         return slides, _slides[idx], idx
 
     @pytest.fixture
-    def iter_fixture(self, part_prop_, prs_part_, slide_):
+    def iter_fixture(self, part_prop_, slide_):
         sldIdLst = element('p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b})')
         slides = Slides(sldIdLst, None)
         related_slide_ = part_prop_.return_value.related_slide
@@ -195,8 +219,8 @@ class DescribeSlides(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def part_prop_(self, request):
-        return property_mock(request, Slides, 'part')
+    def part_prop_(self, request, prs_part_):
+        return property_mock(request, Slides, 'part', return_value=prs_part_)
 
     @pytest.fixture
     def prs_part_(self, request):

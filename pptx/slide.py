@@ -93,7 +93,10 @@ class Slides(ParentedElementProxy):
         """
         Return a newly added slide that inherits layout from *slide_layout*.
         """
-        raise NotImplementedError
+        rId, slide = self.part.add_slide(slide_layout)
+        slide.shapes.clone_layout_placeholders(slide_layout)
+        self._sldIdLst.add_sldId(rId)
+        return slide
 
     def index(self, slide):
         """
