@@ -81,4 +81,6 @@ class PresentationPart(XmlPart):
         appended to this slide collection, e.g. ``/ppt/slides/slide9.xml``
         for a slide collection containing 8 slides.
         """
-        raise NotImplementedError
+        sldIdLst = self._element.get_or_add_sldIdLst()
+        partname_str = '/ppt/slides/slide%d.xml' % (len(sldIdLst)+1)
+        return PackURI(partname_str)

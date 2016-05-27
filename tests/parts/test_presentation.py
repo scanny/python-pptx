@@ -70,6 +70,10 @@ class DescribePresentationPart(object):
         assert rId is rId_
         assert slide is slide_
 
+    def it_knows_the_next_slide_partname_to_help(self, next_fixture):
+        prs_part, partname = next_fixture
+        assert prs_part._next_slide_partname == partname
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -92,6 +96,13 @@ class DescribePresentationPart(object):
         prs_part = PresentationPart(None, None, None, package_)
         package_.core_properties = core_properties_
         return prs_part, core_properties_
+
+    @pytest.fixture
+    def next_fixture(self):
+        prs_elm = element('p:presentation/p:sldIdLst/(p:sldId,p:sldId)')
+        prs_part = PresentationPart(None, None, prs_elm)
+        partname = PackURI('/ppt/slides/slide3.xml')
+        return prs_part, partname
 
     @pytest.fixture
     def prs_fixture(self, Presentation_, prs_):
