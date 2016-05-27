@@ -19,7 +19,6 @@ Feature: Access an individual slide
      Then iterating slides produces 3 Slide objects
 
 
-  @wip
   Scenario: Slides.add_slide()
      Given a Slides object containing 3 slides
       When I call slides.add_slide()

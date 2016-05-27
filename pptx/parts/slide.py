@@ -7,8 +7,9 @@ Slide and related objects.
 from __future__ import absolute_import
 
 from .chart import ChartPart
-from ..opc.constants import RELATIONSHIP_TYPE as RT
+from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
+from ..oxml.parts.slide import CT_Slide
 from ..slide import Slide
 from ..util import lazyproperty
 
@@ -63,7 +64,10 @@ class SlidePart(BaseSlidePart):
         Return a newly-created blank slide part having *partname* and related
         to *slide_layout_part*.
         """
-        raise NotImplementedError
+        sld = CT_Slide.new()
+        slide_part = cls(partname, CT.PML_SLIDE, sld, package)
+        slide_part.relate_to(slide_layout_part, RT.SLIDE_LAYOUT)
+        return slide_part
 
     def add_chart_part(self, chart_type, chart_data):
         """
