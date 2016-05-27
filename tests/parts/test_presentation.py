@@ -8,16 +8,20 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.package import Package
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import SlidePart
+from pptx.parts.slidelayout import SlideLayoutPart
 from pptx.presentation import Presentation
 from pptx.slide import Slide
 
 from ..unitutil.cxml import element
-from ..unitutil.mock import call, class_mock, instance_mock, property_mock
+from ..unitutil.mock import (
+    call, class_mock, instance_mock, method_mock, property_mock
+)
 
 
 class DescribePresentationPart(object):
@@ -51,7 +55,37 @@ class DescribePresentationPart(object):
         prs_part.save(file_)
         package_.save.assert_called_once_with(file_)
 
+    def it_can_add_a_new_slide(self, add_slide_fixture):
+        prs_part, slide_layout_, SlidePart_, partname = add_slide_fixture[:4]
+        package_, slide_part_, rId_, slide_ = add_slide_fixture[4:]
+
+        rId, slide = prs_part.add_slide(slide_layout_)
+
+        SlidePart_.new.assert_called_once_with(
+            partname, package_, slide_layout_
+        )
+        prs_part.relate_to.assert_called_once_with(
+            prs_part, slide_part_, RT.SLIDE
+        )
+        assert rId is rId_
+        assert slide is slide_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_slide_fixture(
+            self, package_, slide_layout_, SlidePart_, slide_part_, slide_,
+            _next_slide_partname_prop_, relate_to_):
+        prs_part = PresentationPart(None, None, None, package_)
+        partname = _next_slide_partname_prop_.return_value
+        rId_ = 'rId42'
+        SlidePart_.new.return_value = slide_part_
+        relate_to_.return_value = rId_
+        slide_part_.slide = slide_
+        return (
+            prs_part, slide_layout_, SlidePart_, partname, package_,
+            slide_part_, rId_, slide_
+        )
 
     @pytest.fixture
     def core_props_fixture(self, package_, core_properties_):
@@ -106,6 +140,12 @@ class DescribePresentationPart(object):
         return instance_mock(request, CorePropertiesPart)
 
     @pytest.fixture
+    def _next_slide_partname_prop_(self, request):
+        return property_mock(
+            request, PresentationPart, '_next_slide_partname'
+        )
+
+    @pytest.fixture
     def package_(self, request):
         return instance_mock(request, Package)
 
@@ -121,9 +161,27 @@ class DescribePresentationPart(object):
         return instance_mock(request, Presentation)
 
     @pytest.fixture
+    def relate_to_(self, request):
+        return method_mock(
+            request, PresentationPart, 'relate_to', autospec=True
+        )
+
+    @pytest.fixture
     def related_parts_prop_(self, request):
         return property_mock(request, PresentationPart, 'related_parts')
 
     @pytest.fixture
     def slide_(self, request):
         return instance_mock(request, Slide)
+
+    @pytest.fixture
+    def slide_layout_(self, request):
+        return instance_mock(request, SlideLayoutPart)
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
+
+    @pytest.fixture
+    def SlidePart_(self, request):
+        return class_mock(request, 'pptx.parts.presentation.SlidePart')

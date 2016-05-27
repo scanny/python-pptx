@@ -57,6 +57,14 @@ class SlidePart(BaseSlidePart):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
+    @classmethod
+    def new(cls, partname, package, slide_layout_part):
+        """
+        Return a newly-created blank slide part having *partname* and related
+        to *slide_layout_part*.
+        """
+        raise NotImplementedError
+
     def add_chart_part(self, chart_type, chart_data):
         """
         Return the rId of a new |ChartPart| object containing a chart of

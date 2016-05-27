@@ -6,9 +6,11 @@ Presentation part, the main part in a .pptx package.
 
 from __future__ import absolute_import
 
+from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..opc.packuri import PackURI
 from ..presentation import Presentation
+from .slide import SlidePart
 from ..util import lazyproperty
 
 
@@ -22,7 +24,10 @@ class PresentationPart(XmlPart):
         Return an (rId, slide) pair of a newly created blank slide that
         inherits appearance from *slide_layout*.
         """
-        raise NotImplementedError
+        partname = self._next_slide_partname
+        slide_part = SlidePart.new(partname, self.package, slide_layout)
+        rId = self.relate_to(slide_part, RT.SLIDE)
+        return rId, slide_part.slide
 
     @property
     def core_properties(self):
@@ -68,3 +73,12 @@ class PresentationPart(XmlPart):
         object.
         """
         self.package.save(path_or_stream)
+
+    @property
+    def _next_slide_partname(self):
+        """
+        Return |PackURI| instance containing the partname for a slide to be
+        appended to this slide collection, e.g. ``/ppt/slides/slide9.xml``
+        for a slide collection containing 8 slides.
+        """
+        raise NotImplementedError
