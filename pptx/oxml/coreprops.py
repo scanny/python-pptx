@@ -4,15 +4,17 @@
 lxml custom element classes for core properties-related XML elements.
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 import re
 
 from datetime import datetime, timedelta
 
-from .. import parse_xml
-from ..ns import nsdecls, qn
-from ..xmlchemy import BaseOxmlElement, ZeroOrOne
+from . import parse_xml
+from .ns import nsdecls, qn
+from .xmlchemy import BaseOxmlElement, ZeroOrOne
 
 
 class CT_CoreProperties(BaseOxmlElement):

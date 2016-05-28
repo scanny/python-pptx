@@ -5,7 +5,9 @@ Initializes lxml parser and makes available a handful of functions that wrap
 its typical uses.
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from lxml import etree
 
@@ -136,6 +138,10 @@ register_element_cls('c:x',                CT_Double)
 register_element_cls('c:xMode',            CT_LayoutMode)
 
 
+from .coreprops import CT_CoreProperties
+register_element_cls('cp:coreProperties', CT_CoreProperties)
+
+
 from .dml.color import (
     CT_HslColor, CT_Percentage, CT_PresetColor, CT_SchemeColor,
     CT_ScRgbColor, CT_SRgbColor, CT_SystemColor
@@ -165,11 +171,19 @@ register_element_cls('a:solidFill', CT_SolidColorFillProperties)
 register_element_cls('a:srcRect',   CT_RelativeRect)
 
 
-from .parts.coreprops import CT_CoreProperties
-register_element_cls('cp:coreProperties', CT_CoreProperties)
+from .slide import (
+    CT_CommonSlideData, CT_Slide, CT_SlideLayout, CT_SlideLayoutIdList,
+    CT_SlideLayoutIdListEntry, CT_SlideMaster
+)
+register_element_cls('p:cSld',           CT_CommonSlideData)
+register_element_cls('p:sld',            CT_Slide)
+register_element_cls('p:sldLayout',      CT_SlideLayout)
+register_element_cls('p:sldLayoutId',    CT_SlideLayoutIdListEntry)
+register_element_cls('p:sldLayoutIdLst', CT_SlideLayoutIdList)
+register_element_cls('p:sldMaster',      CT_SlideMaster)
 
 
-from .parts.presentation import (
+from .presentation import (
     CT_Presentation, CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList,
     CT_SlideMasterIdListEntry, CT_SlideSize
 )
@@ -179,23 +193,6 @@ register_element_cls('p:sldIdLst',       CT_SlideIdList)
 register_element_cls('p:sldMasterId',    CT_SlideMasterIdListEntry)
 register_element_cls('p:sldMasterIdLst', CT_SlideMasterIdList)
 register_element_cls('p:sldSz',          CT_SlideSize)
-
-
-from .parts.slide import CT_CommonSlideData, CT_Slide
-register_element_cls('p:cSld', CT_CommonSlideData)
-register_element_cls('p:sld',  CT_Slide)
-
-
-from .parts.slidelayout import CT_SlideLayout
-register_element_cls('p:sldLayout', CT_SlideLayout)
-
-
-from .parts.slidemaster import (
-    CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry, CT_SlideMaster
-)
-register_element_cls('p:sldLayoutId',    CT_SlideLayoutIdListEntry)
-register_element_cls('p:sldLayoutIdLst', CT_SlideLayoutIdList)
-register_element_cls('p:sldMaster',      CT_SlideMaster)
 
 
 from .shapes.autoshape import (

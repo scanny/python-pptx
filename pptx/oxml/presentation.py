@@ -4,10 +4,12 @@
 Custom element classes for presentation-related XML elements.
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from ..simpletypes import ST_SlideId, ST_SlideSizeCoordinate, XsdString
-from ..xmlchemy import (
+from .simpletypes import ST_SlideId, ST_SlideSizeCoordinate, XsdString
+from .xmlchemy import (
     BaseOxmlElement, RequiredAttribute, ZeroOrOne, ZeroOrMore
 )
 

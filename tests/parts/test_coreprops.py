@@ -4,14 +4,16 @@
 Test suite for pptx.coreprops module
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 import pytest
 
 from datetime import datetime, timedelta
 
 from pptx.opc.constants import CONTENT_TYPE as CT
-from pptx.oxml.parts.coreprops import CT_CoreProperties
+from pptx.oxml.coreprops import CT_CoreProperties
 from pptx.parts.coreprops import CorePropertiesPart
 
 

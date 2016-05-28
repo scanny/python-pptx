@@ -4,7 +4,9 @@
 Test suite for pptx.parts.slide module
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 import pytest
 
@@ -12,7 +14,7 @@ from pptx.chart.data import ChartData
 from pptx.enum.base import EnumValue
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
-from pptx.oxml.parts.slide import CT_Slide
+from pptx.oxml.slide import CT_Slide
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
 from pptx.parts.image import Image, ImagePart

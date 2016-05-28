@@ -4,13 +4,16 @@
 lxml custom element classes for slide master-related XML elements.
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from .. import parse_xml
-from ..ns import nsdecls
-from ..simpletypes import XsdString
-from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, ZeroOrOne
+from . import parse_xml
+from .ns import nsdecls
+from .simpletypes import XsdString
+from .xmlchemy import (
+    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
+    ZeroOrMore, ZeroOrOne
 )
 
 
@@ -64,3 +67,36 @@ class CT_Slide(BaseOxmlElement):
             '  </p:clrMapOvr>\n'
             '</p:sld>' % nsdecls('a', 'p', 'r')
         )
+
+
+class CT_SlideLayout(BaseOxmlElement):
+    """
+    ``<p:sldLayout>`` element, root of a slide layout part
+    """
+    cSld = OneAndOnlyOne('p:cSld')
+
+
+class CT_SlideLayoutIdList(BaseOxmlElement):
+    """
+    ``<p:sldLayoutIdLst>`` element, child of ``<p:sldMaster>`` containing
+    references to the slide layouts that inherit from the slide master.
+    """
+    sldLayoutId = ZeroOrMore('p:sldLayoutId')
+
+
+class CT_SlideLayoutIdListEntry(BaseOxmlElement):
+    """
+    ``<p:sldLayoutId>`` element, child of ``<p:sldLayoutIdLst>`` containing
+    a reference to a slide layout.
+    """
+    rId = RequiredAttribute('r:id', XsdString)
+
+
+class CT_SlideMaster(BaseOxmlElement):
+    """
+    ``<p:sldMaster>`` element, root of a slide master part
+    """
+    cSld = OneAndOnlyOne('p:cSld')
+    sldLayoutIdLst = ZeroOrOne('p:sldLayoutIdLst', successors=(
+        'p:transition', 'p:timing', 'p:hf', 'p:txStyles', 'p:extLst'
+    ))

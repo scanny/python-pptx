@@ -4,12 +4,14 @@
 Slide and related objects.
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from .chart import ChartPart
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
-from ..oxml.parts.slide import CT_Slide
+from ..oxml.slide import CT_Slide
 from ..slide import Slide
 from ..util import lazyproperty
 
