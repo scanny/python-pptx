@@ -10,11 +10,11 @@ from __future__ import (
 
 from .shapes.factory import SlidePlaceholders
 from .shapes.shapetree import SlideShapeTree
-from .shared import ParentedElementProxy
+from .shared import ParentedElementProxy, PartElementProxy
 from .util import lazyproperty
 
 
-class Slide(ParentedElementProxy):
+class Slide(PartElementProxy):
     """
     Slide object. Provides access to shapes and slide-level properties.
     """
@@ -107,6 +107,13 @@ class Slides(ParentedElementProxy):
             if this_slide == slide:
                 return idx
         raise ValueError('%s is not in slide collection' % slide)
+
+
+class SlideLayout(PartElementProxy):
+    """
+    Slide layout object. Provides access to placeholders, regular shapes, and
+    slide layout-level properties.
+    """
 
 
 class SlideLayouts(ParentedElementProxy):

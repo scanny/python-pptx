@@ -4,6 +4,7 @@ Feature: Insert a chart into a placeholder
   I need a way to insert a chart into a placeholder
 
 
+  @wip
   Scenario: Insert a chart into a chart placeholder
      Given an unpopulated chart placeholder shape
       When I call placeholder.insert_chart(XL_CHART_TYPE.PIE, chart_data)

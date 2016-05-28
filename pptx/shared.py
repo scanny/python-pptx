@@ -75,3 +75,23 @@ class ParentedElementProxy(ElementProxy):
         The package part containing this object
         """
         return self._parent.part
+
+
+class PartElementProxy(ElementProxy):
+    """
+    Provides common members for proxy objects that wrap the root element of
+    a part such as `p:sld`.
+    """
+
+    __slots__ = ('_part',)
+
+    def __init__(self, element, part):
+        super(PartElementProxy, self).__init__(element)
+        self._part = part
+
+    @property
+    def part(self):
+        """
+        The package part containing this object
+        """
+        return self._part

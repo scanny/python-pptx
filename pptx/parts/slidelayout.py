@@ -14,6 +14,7 @@ from ..shapes.shapetree import (
     BasePlaceholders, BaseShapeFactory, BaseShapeTree
 )
 from .slide import BaseSlidePart
+from ..slide import SlideLayout
 from ..util import lazyproperty
 
 
@@ -57,7 +58,7 @@ class SlideLayoutPart(BaseSlidePart):
         """
         The |SlideLayout| object representing this part.
         """
-        return self
+        return SlideLayout(self._element, self)
 
     @property
     def slide_master(self):
