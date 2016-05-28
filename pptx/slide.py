@@ -114,6 +114,21 @@ class SlideLayout(PartElementProxy):
     Slide layout object. Provides access to placeholders, regular shapes, and
     slide layout-level properties.
     """
+    @lazyproperty
+    def placeholders(self):
+        """
+        Instance of |_LayoutPlaceholders| containing sequence of placeholder
+        shapes in this slide layout, sorted in *idx* order.
+        """
+        from .parts.slidelayout import _LayoutPlaceholders
+        return _LayoutPlaceholders(self)
+
+    @property
+    def spTree(self):
+        """
+        Reference to ``<p:spTree>`` element for this slide
+        """
+        return self._element.cSld.spTree
 
 
 class SlideLayouts(ParentedElementProxy):

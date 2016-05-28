@@ -48,14 +48,6 @@ class DescribeSlideLayoutPart(object):
         _LayoutShapeTree_.assert_called_once_with(slide_layout)
         assert shapes is layout_shape_tree_
 
-    def it_provides_access_to_its_placeholders(self, placeholders_fixture):
-        slide_layout, _LayoutPlaceholders_, layout_placeholders_ = (
-            placeholders_fixture
-        )
-        placeholders = slide_layout.placeholders
-        _LayoutPlaceholders_.assert_called_once_with(slide_layout)
-        assert placeholders is layout_placeholders_
-
     def it_can_iterate_over_the_clonable_placeholders_it_contains(
             self, cloneable_fixture):
         slide_layout, expected_placeholders = cloneable_fixture
@@ -94,12 +86,6 @@ class DescribeSlideLayoutPart(object):
         return slide_layout, slide_master_
 
     @pytest.fixture
-    def placeholders_fixture(
-            self, _LayoutPlaceholders_, layout_placeholders_):
-        slide_layout = SlideLayoutPart(None, None, None, None)
-        return slide_layout, _LayoutPlaceholders_, layout_placeholders_
-
-    @pytest.fixture
     def shapes_fixture(self, _LayoutShapeTree_, layout_shape_tree_):
         slide_layout = SlideLayoutPart(None, None, None, None)
         return slide_layout, _LayoutShapeTree_, layout_shape_tree_
@@ -107,22 +93,11 @@ class DescribeSlideLayoutPart(object):
     # fixture components -----------------------------------
 
     @pytest.fixture
-    def _LayoutPlaceholders_(self, request, layout_placeholders_):
-        return class_mock(
-            request, 'pptx.parts.slidelayout._LayoutPlaceholders',
-            return_value=layout_placeholders_
-        )
-
-    @pytest.fixture
     def _LayoutShapeTree_(self, request, layout_shape_tree_):
         return class_mock(
             request, 'pptx.parts.slidelayout._LayoutShapeTree',
             return_value=layout_shape_tree_
         )
-
-    @pytest.fixture
-    def layout_placeholders_(self, request):
-        return instance_mock(request, _LayoutPlaceholders)
 
     @pytest.fixture
     def layout_shape_tree_(self, request):

@@ -11,11 +11,11 @@ from __future__ import (
 import pytest
 
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slidelayout import SlideLayoutPart
+from pptx.parts.slidelayout import _LayoutPlaceholders, SlideLayoutPart
 from pptx.parts.slidemaster import SlideMasterPart
 from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.shapetree import SlideShapeTree
-from pptx.slide import Slide, SlideLayouts, SlideMasters, Slides
+from pptx.slide import Slide, SlideLayout, SlideLayouts, SlideMasters, Slides
 
 from .unitutil.cxml import element, xml
 from .unitutil.mock import call, class_mock, instance_mock, property_mock
@@ -233,6 +233,38 @@ class DescribeSlides(object):
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayoutPart)
+
+
+class DescribeSlideLayout(object):
+
+    def it_provides_access_to_its_placeholders(self, placeholders_fixture):
+        slide_layout, _LayoutPlaceholders_, layout_placeholders_ = (
+            placeholders_fixture
+        )
+        placeholders = slide_layout.placeholders
+        _LayoutPlaceholders_.assert_called_once_with(slide_layout)
+        assert placeholders is layout_placeholders_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def placeholders_fixture(
+            self, _LayoutPlaceholders_, layout_placeholders_):
+        slide_layout = SlideLayout(None, None)
+        return slide_layout, _LayoutPlaceholders_, layout_placeholders_
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _LayoutPlaceholders_(self, request, layout_placeholders_):
+        return class_mock(
+            request, 'pptx.parts.slidelayout._LayoutPlaceholders',
+            return_value=layout_placeholders_
+        )
+
+    @pytest.fixture
+    def layout_placeholders_(self, request):
+        return instance_mock(request, _LayoutPlaceholders)
 
 
 class DescribeSlideLayouts(object):

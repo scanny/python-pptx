@@ -21,7 +21,6 @@ Feature: Get and change common slide placeholder properties
       | picture   |
 
 
-  @wip
   Scenario Outline: Get placeholder position and size
      Given an unpopulated <type> placeholder shape
       Then the placeholder's position and size are inherited from its layout

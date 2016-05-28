@@ -4,7 +4,6 @@ Feature: Insert a picture into a placeholder
   I need a way to insert an image into a placeholder
 
 
-  @wip
   Scenario Outline: Insert an image into a picture placeholder
      Given an unpopulated picture placeholder shape
       When I call placeholder.insert_picture('<filename>')
