@@ -110,15 +110,17 @@ class DescribeBaseSlidePart(object):
 class DescribeSlidePart(object):
 
     def it_can_add_a_chart_part(self, add_chart_part_fixture):
-        slide, chart_type_, chart_data_ = add_chart_part_fixture[:3]
+        slide_part, chart_type_, chart_data_ = add_chart_part_fixture[:3]
         ChartPart_, chart_part_, package_, rId = add_chart_part_fixture[3:]
 
-        _rId = slide.add_chart_part(chart_type_, chart_data_)
+        _rId = slide_part.add_chart_part(chart_type_, chart_data_)
 
         ChartPart_.new.assert_called_once_with(
             chart_type_, chart_data_, package_
         )
-        slide.relate_to.assert_called_once_with(slide, chart_part_, RT.CHART)
+        slide_part.relate_to.assert_called_once_with(
+            slide_part, chart_part_, RT.CHART
+        )
         assert _rId is rId
 
     def it_provides_access_to_its_slide(self, slide_fixture):
@@ -145,10 +147,12 @@ class DescribeSlidePart(object):
     @pytest.fixture
     def add_chart_part_fixture(
             self, package_, chart_type_, chart_data_, ChartPart_,
-            chart_part_, rId, relate_to_):
-        slide = SlidePart(None, None, None, package_)
+            chart_part_, relate_to_):
+        slide_part = SlidePart(None, None, None, package_)
+        ChartPart_.new.return_value = chart_part_
+        relate_to_.return_value = rId = 'rId42'
         return (
-            slide, chart_type_, chart_data_, ChartPart_, chart_part_,
+            slide_part, chart_type_, chart_data_, ChartPart_, chart_part_,
             package_, rId
         )
 
@@ -168,9 +172,9 @@ class DescribeSlidePart(object):
 
     @pytest.fixture
     def ChartPart_(self, request, chart_part_):
-        ChartPart_ = class_mock(request, 'pptx.parts.slide.ChartPart')
-        ChartPart_.new.return_value = chart_part_
-        return ChartPart_
+        return class_mock(
+            request, 'pptx.parts.slide.ChartPart', return_value=chart_part_
+        )
 
     @pytest.fixture
     def chart_data_(self, request):
@@ -193,14 +197,8 @@ class DescribeSlidePart(object):
         return method_mock(request, SlidePart, 'part_related_by')
 
     @pytest.fixture
-    def relate_to_(self, request, rId):
-        return method_mock(
-            request, SlidePart, 'relate_to', autospec=True, return_value=rId
-        )
-
-    @pytest.fixture
-    def rId(self):
-        return 'rId42'
+    def relate_to_(self, request):
+        return method_mock(request, SlidePart, 'relate_to', autospec=True)
 
     @pytest.fixture
     def Slide_(self, request, slide_):
