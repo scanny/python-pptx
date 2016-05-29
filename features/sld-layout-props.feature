@@ -14,7 +14,6 @@ Feature: Slide layout properties
       Then slide_layout.placeholders is a LayoutPlaceholders object
 
 
-  @wip
   Scenario: SlideLayout.slide_master
      Given a slide layout
       Then slide_layout.slide_master is a SlideMaster object
