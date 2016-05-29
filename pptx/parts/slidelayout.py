@@ -6,7 +6,6 @@ Slide layout-related objects.
 
 from __future__ import absolute_import
 
-from ..enum.shapes import PP_PLACEHOLDER
 from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..oxml.ns import qn
 from ..shapes.placeholder import LayoutPlaceholder
@@ -23,28 +22,6 @@ class SlideLayoutPart(BaseSlidePart):
     Slide layout part. Corresponds to package files
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
-    def iter_cloneable_placeholders(self):
-        """
-        Generate a reference to each layout placeholder on this slide layout
-        that should be cloned to a slide when the layout is applied to the
-        slide.
-        """
-        latent_ph_types = (
-            PP_PLACEHOLDER.DATE, PP_PLACEHOLDER.FOOTER,
-            PP_PLACEHOLDER.SLIDE_NUMBER
-        )
-        for ph in self.placeholders:
-            if ph.ph_type not in latent_ph_types:
-                yield ph
-
-    @lazyproperty
-    def placeholders(self):
-        """
-        Instance of |_LayoutPlaceholders| containing sequence of placeholder
-        shapes in this slide layout, sorted in *idx* order.
-        """
-        return _LayoutPlaceholders(self)
-
     @lazyproperty
     def slide_layout(self):
         """

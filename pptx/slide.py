@@ -8,6 +8,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+from .enum.shapes import PP_PLACEHOLDER
 from .shapes.factory import SlidePlaceholders
 from .shapes.shapetree import SlideShapeTree
 from .shared import ParentedElementProxy, PartElementProxy
@@ -114,6 +115,20 @@ class SlideLayout(PartElementProxy):
     Slide layout object. Provides access to placeholders, regular shapes, and
     slide layout-level properties.
     """
+    def iter_cloneable_placeholders(self):
+        """
+        Generate a reference to each layout placeholder on this slide layout
+        that should be cloned to a slide when the layout is applied to that
+        slide.
+        """
+        latent_ph_types = (
+            PP_PLACEHOLDER.DATE, PP_PLACEHOLDER.FOOTER,
+            PP_PLACEHOLDER.SLIDE_NUMBER
+        )
+        for ph in self.placeholders:
+            if ph.ph_type not in latent_ph_types:
+                yield ph
+
     @lazyproperty
     def placeholders(self):
         """

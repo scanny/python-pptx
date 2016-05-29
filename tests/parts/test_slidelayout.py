@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 import pytest
 
-from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.parts.slidelayout import (
@@ -23,7 +22,7 @@ from pptx.slide import SlideLayout
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..unitutil.cxml import element
 from ..unitutil.mock import (
-    class_mock, function_mock, instance_mock, method_mock, property_mock
+    class_mock, function_mock, instance_mock, method_mock
 )
 
 
@@ -42,31 +41,7 @@ class DescribeSlideLayoutPart(object):
         SlideLayout_.assert_called_once_with(sldLayout, slide_layout_part)
         assert slide_layout is slide_layout_
 
-    def it_can_iterate_over_the_clonable_placeholders_it_contains(
-            self, cloneable_fixture):
-        slide_layout, expected_placeholders = cloneable_fixture
-        cloneable_placeholders = (
-            list(slide_layout.iter_cloneable_placeholders())
-        )
-        assert cloneable_placeholders == expected_placeholders
-
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture(params=[
-        ((PP_PLACEHOLDER.TITLE, PP_PLACEHOLDER.BODY),   (0, 1)),
-        ((PP_PLACEHOLDER.TITLE, PP_PLACEHOLDER.DATE),   (0,)),
-        ((PP_PLACEHOLDER.DATE,  PP_PLACEHOLDER.OBJECT), (1,)),
-        ((PP_PLACEHOLDER.DATE,  PP_PLACEHOLDER.FOOTER), ()),
-    ])
-    def cloneable_fixture(
-            self, request, placeholders_, placeholder_, placeholder_2_):
-        ph_types, expected_indices = request.param
-        slide_layout = SlideLayoutPart(None, None, None, None)
-        placeholder_.ph_type, placeholder_2_.ph_type = ph_types
-        expected_placeholders = []
-        for idx in expected_indices:
-            expected_placeholders.append(placeholders_.return_value[idx])
-        return slide_layout, expected_placeholders
 
     @pytest.fixture
     def layout_fixture(self, SlideLayout_, slide_layout_):
@@ -86,21 +61,6 @@ class DescribeSlideLayoutPart(object):
         return method_mock(
             request, SlideLayoutPart, 'part_related_by',
             return_value=slide_master_
-        )
-
-    @pytest.fixture
-    def placeholder_(self, request):
-        return instance_mock(request, LayoutPlaceholder)
-
-    @pytest.fixture
-    def placeholder_2_(self, request):
-        return instance_mock(request, LayoutPlaceholder)
-
-    @pytest.fixture
-    def placeholders_(self, request, placeholder_, placeholder_2_):
-        return property_mock(
-            request, SlideLayoutPart, 'placeholders',
-            return_value=[placeholder_, placeholder_2_]
         )
 
     @pytest.fixture

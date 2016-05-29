@@ -123,8 +123,8 @@ class _InheritsDimensions(object):
         """
         The slide layout for this placeholder's slide.
         """
-        slide = self.part
-        return slide.slide_layout
+        slide_part = self.part
+        return slide_part.slide_layout
 
 
 class _BaseSlidePlaceholder(_InheritsDimensions, BaseShape):

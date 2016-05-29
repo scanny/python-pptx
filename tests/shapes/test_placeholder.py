@@ -21,6 +21,7 @@ from pptx.shapes.placeholder import (
     PlaceholderGraphicFrame, PlaceholderPicture, TablePlaceholder
 )
 from pptx.shapes.shapetree import BaseShapeTree
+from pptx.slide import SlideLayout
 
 from ..oxml.unitdata.shape import (
     an_ext, a_graphicFrame, a_ph, an_nvGraphicFramePr, an_nvPicPr, an_nvPr,
@@ -180,7 +181,7 @@ class Describe_BaseSlidePlaceholder(object):
 
     @pytest.fixture
     def slide_layout_(self, request):
-        return instance_mock(request, SlideLayoutPart)
+        return instance_mock(request, SlideLayout)
 
     @pytest.fixture
     def _slide_layout_prop_(self, request):
