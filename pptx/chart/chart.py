@@ -13,17 +13,17 @@ from .axis import CategoryAxis, ValueAxis
 from .legend import Legend
 from .plot import PlotFactory, PlotTypeInspector
 from .series import SeriesCollection
+from ..shared import PartElementProxy
 from ..util import lazyproperty
 
 
-class Chart(object):
+class Chart(PartElementProxy):
     """
     A chart object.
     """
     def __init__(self, chartSpace, chart_part):
-        super(Chart, self).__init__()
+        super(Chart, self).__init__(chartSpace, chart_part)
         self._chartSpace = chartSpace
-        self._chart_part = chart_part
 
     @property
     def category_axis(self):
@@ -153,7 +153,7 @@ class Chart(object):
         The |ChartWorkbook| object providing access to the Excel source data
         for this chart.
         """
-        return self._chart_part.chart_workbook
+        return self.part.chart_workbook
 
 
 class _Plots(Sequence):

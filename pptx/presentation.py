@@ -8,22 +8,18 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from .shared import ElementProxy
+from .shared import PartElementProxy
 from .slide import SlideMasters, Slides
 from .util import lazyproperty
 
 
-class Presentation(ElementProxy):
+class Presentation(PartElementProxy):
     """
     PresentationML (PML) presentation. Not intended to be constructed
     directly. Use :func:`pptx.Presentation` to open or create a presentation.
     """
 
-    __slots__ = ('_part', '_slide_masters', '_slides')
-
-    def __init__(self, element, part):
-        super(Presentation, self).__init__(element)
-        self._part = part
+    __slots__ = ('_slide_masters', '_slides')
 
     @property
     def core_properties(self):
@@ -32,13 +28,6 @@ class Presentation(ElementProxy):
         document properties for this presentation.
         """
         return self.part.core_properties
-
-    @property
-    def part(self):
-        """
-        The |PresentationPart| object containing this presentation.
-        """
-        return self._part
 
     def save(self, file):
         """
