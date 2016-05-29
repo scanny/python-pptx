@@ -13,16 +13,17 @@ from ..enum.shapes import PP_PLACEHOLDER
 from .factory import BaseShapeFactory, SlideShapeFactory
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from ..oxml.simpletypes import ST_Direction
+from ..shared import ParentedElementProxy
 
 
-class BaseShapeTree(object):
+class BaseShapeTree(ParentedElementProxy):
     """
     Base class for a shape collection appearing in a slide-type object,
     include Slide, SlideLayout, and SlideMaster, providing common methods.
     """
-    def __init__(self, slide):
-        super(BaseShapeTree, self).__init__()
-        self._slide = slide
+    def __init__(self, spTree, parent):
+        super(BaseShapeTree, self).__init__(spTree, parent)
+        self._spTree = spTree
 
     def __getitem__(self, idx):
         """
@@ -51,14 +52,6 @@ class BaseShapeTree(object):
         shape_elms = list(self._iter_member_elms())
         return len(shape_elms)
 
-    @property
-    def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
-        """
-        return self._slide.part
-
     @staticmethod
     def _is_member_elm(shape_elm):
         """
@@ -72,8 +65,7 @@ class BaseShapeTree(object):
         Generate each child of the ``<p:spTree>`` element that corresponds to
         a shape, in the sequence they appear in the XML.
         """
-        spTree = self._slide.spTree
-        for shape_elm in spTree.iter_shape_elms():
+        for shape_elm in self._spTree.iter_shape_elms():
             if self._is_member_elm(shape_elm):
                 yield shape_elm
 
@@ -97,13 +89,6 @@ class BaseShapeTree(object):
         *shape_elm*.
         """
         return BaseShapeFactory(shape_elm, self)
-
-    @property
-    def _spTree(self):
-        """
-        The ``<p:spTree>`` element underlying this shape tree object
-        """
-        return self._slide.spTree
 
 
 class BasePlaceholders(BaseShapeTree):
@@ -161,8 +146,7 @@ class SlideShapeTree(BaseShapeTree):
         sp = self._add_sp_from_autoshape_type(
             autoshape_type, left, top, width, height
         )
-        shape = self._shape_factory(sp)
-        return shape
+        return self._shape_factory(sp)
 
     def add_table(self, rows, cols, left, top, width, height):
         """
@@ -213,7 +197,7 @@ class SlideShapeTree(BaseShapeTree):
         Instance of |SlidePlaceholders| containing sequence of placeholder
         shapes in this slide.
         """
-        return self._slide.placeholders
+        return self.parent.placeholders
 
     @property
     def title(self):
@@ -254,10 +238,10 @@ class SlideShapeTree(BaseShapeTree):
         Return a newly added ``<p:graphicFrame>`` element containing a table
         as specified by the parameters.
         """
-        id_ = self._next_shape_id
-        name = 'Table %d' % (id_-1)
+        _id = self._next_shape_id
+        name = 'Table %d' % (_id-1)
         graphicFrame = self._spTree.add_table(
-            id_, name, rows, cols, x, y, cx, cy
+            _id, name, rows, cols, x, y, cx, cy
         )
         return graphicFrame
 

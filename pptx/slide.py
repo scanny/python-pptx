@@ -40,7 +40,7 @@ class Slide(PartElementProxy):
         Instance of |SlideShapeTree| containing sequence of shape objects
         appearing on this slide.
         """
-        return SlideShapeTree(self)
+        return SlideShapeTree(self._element.spTree, self)
 
     @property
     def slide_layout(self):
@@ -135,7 +135,7 @@ class SlideLayout(PartElementProxy):
         Instance of |_LayoutPlaceholders| containing sequence of placeholder
         shapes in this slide layout, sorted in *idx* order.
         """
-        return _LayoutPlaceholders(self)
+        return _LayoutPlaceholders(self._element.spTree, self)
 
     @lazyproperty
     def shapes(self):
@@ -143,7 +143,7 @@ class SlideLayout(PartElementProxy):
         Instance of |_LayoutShapeTree| containing the sequence of shapes
         appearing on this slide layout.
         """
-        return _LayoutShapeTree(self)
+        return _LayoutShapeTree(self._element.spTree, self)
 
     @property
     def slide_master(self):
@@ -151,13 +151,6 @@ class SlideLayout(PartElementProxy):
         Slide master from which this slide layout inherits properties.
         """
         return self.part.slide_master
-
-    @property
-    def spTree(self):
-        """
-        Reference to ``<p:spTree>`` element for this slide
-        """
-        return self._element.cSld.spTree
 
 
 from .parts.slidelayout import _LayoutPlaceholders, _LayoutShapeTree

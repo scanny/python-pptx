@@ -21,7 +21,12 @@ class CT_CommonSlideData(BaseOxmlElement):
     """
     ``<p:cSld>`` element.
     """
+    _tag_seq = (
+        'p:bg', 'p:spTree', 'p:custDataLst', 'p:controls', 'p:extLst'
+    )
     spTree = OneAndOnlyOne('p:spTree')
+    del _tag_seq
+
     name = OptionalAttribute('name', XsdString, default='')
 
 
@@ -29,7 +34,9 @@ class CT_Slide(BaseOxmlElement):
     """
     ``<p:sld>`` element, root of a slide part
     """
-    _tag_seq = ('cSld', 'clrMapOvr', 'transition', 'timing', 'extLst')
+    _tag_seq = (
+        'p:cSld', 'p:clrMapOvr', 'p:transition', 'p:timing', 'p:extLst'
+    )
     cSld = OneAndOnlyOne('p:cSld')
     clrMapOvr = ZeroOrOne('p:clrMapOvr', successors=_tag_seq[2:])
     del _tag_seq
@@ -73,7 +80,19 @@ class CT_SlideLayout(BaseOxmlElement):
     """
     ``<p:sldLayout>`` element, root of a slide layout part
     """
+    _tag_seq = (
+        'p:cSld', 'p:clrMapOvr', 'p:transition', 'p:timing', 'p:hf',
+        'p:extLst'
+    )
     cSld = OneAndOnlyOne('p:cSld')
+    del _tag_seq
+
+    @property
+    def spTree(self):
+        """
+        Return required `p:cSld/p:spTree` grandchild.
+        """
+        return self.cSld.spTree
 
 
 class CT_SlideLayoutIdList(BaseOxmlElement):
@@ -96,7 +115,17 @@ class CT_SlideMaster(BaseOxmlElement):
     """
     ``<p:sldMaster>`` element, root of a slide master part
     """
+    _tag_seq = (
+        'p:cSld', 'p:clrMap', 'p:sldLayoutIdLst', 'p:transition', 'p:timing',
+        'p:hf', 'p:txStyles', 'p:extLst'
+    )
     cSld = OneAndOnlyOne('p:cSld')
-    sldLayoutIdLst = ZeroOrOne('p:sldLayoutIdLst', successors=(
-        'p:transition', 'p:timing', 'p:hf', 'p:txStyles', 'p:extLst'
-    ))
+    sldLayoutIdLst = ZeroOrOne('p:sldLayoutIdLst', successors=_tag_seq[3:])
+    del _tag_seq
+
+    @property
+    def spTree(self):
+        """
+        Return required `p:cSld/p:spTree` grandchild.
+        """
+        return self.cSld.spTree

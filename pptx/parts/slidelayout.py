@@ -48,8 +48,7 @@ class _LayoutShapeTree(BaseShapeTree):
         Return an instance of the appropriate shape proxy class for
         *shape_elm*.
         """
-        parent = self
-        return _LayoutShapeFactory(shape_elm, parent)
+        return _LayoutShapeFactory(shape_elm, self)
 
 
 def _LayoutShapeFactory(shape_elm, parent):

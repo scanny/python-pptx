@@ -29,7 +29,7 @@ class SlideMasterPart(BaseSlidePart):
         Instance of |_MasterPlaceholders| containing sequence of placeholder
         shapes in this slide master, sorted in *idx* order.
         """
-        return _MasterPlaceholders(self)
+        return _MasterPlaceholders(self._element.spTree, self)
 
     def related_slide_layout(self, rId):
         """
@@ -44,7 +44,7 @@ class SlideMasterPart(BaseSlidePart):
         Instance of |_MasterShapeTree| containing sequence of shape objects
         appearing on this slide.
         """
-        return _MasterShapeTree(self)
+        return _MasterShapeTree(self._element.spTree, self)
 
     @lazyproperty
     def slide_layouts(self):
