@@ -12,7 +12,9 @@ import pytest
 
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slidelayout import _LayoutPlaceholders, _LayoutShapeTree
+from pptx.parts.slidelayout import (
+    _LayoutPlaceholders, _LayoutShapeTree, SlideLayoutPart
+)
 from pptx.parts.slidemaster import SlideMasterPart
 from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.placeholder import LayoutPlaceholder
@@ -239,6 +241,10 @@ class DescribeSlides(object):
 
 class DescribeSlideLayout(object):
 
+    def it_provides_access_to_its_slide_master(self, master_fixture):
+        slide_layout, slide_master_ = master_fixture
+        assert slide_layout.slide_master is slide_master_
+
     def it_provides_access_to_its_placeholders(self, placeholders_fixture):
         slide_layout, _LayoutPlaceholders_, layout_placeholders_ = (
             placeholders_fixture
@@ -279,6 +285,12 @@ class DescribeSlideLayout(object):
         return slide_layout, expected_placeholders
 
     @pytest.fixture
+    def master_fixture(self, slide_master_, part_prop_):
+        slide_layout = SlideLayout(None, None)
+        part_prop_.return_value.slide_master = slide_master_
+        return slide_layout, slide_master_
+
+    @pytest.fixture
     def placeholders_fixture(
             self, _LayoutPlaceholders_, layout_placeholders_):
         slide_layout = SlideLayout(None, None)
@@ -299,9 +311,19 @@ class DescribeSlideLayout(object):
         )
 
     @pytest.fixture
+    def layout_placeholders_(self, request):
+        return instance_mock(request, _LayoutPlaceholders)
+
+    @pytest.fixture
     def _LayoutShapeTree_(self, request, shapes_):
         return class_mock(
             request, 'pptx.slide._LayoutShapeTree', return_value=shapes_
+        )
+
+    @pytest.fixture
+    def part_prop_(self, request, slide_layout_part_):
+        return property_mock(
+            request, SlideLayout, 'part', return_value=slide_layout_part_
         )
 
     @pytest.fixture
@@ -327,8 +349,12 @@ class DescribeSlideLayout(object):
         return instance_mock(request, _LayoutShapeTree)
 
     @pytest.fixture
-    def layout_placeholders_(self, request):
-        return instance_mock(request, _LayoutPlaceholders)
+    def slide_layout_part_(self, request):
+        return instance_mock(request, SlideLayoutPart)
+
+    @pytest.fixture
+    def slide_master_(self, request):
+        return instance_mock(request, SlideMasterPart)
 
 
 class DescribeSlideLayouts(object):

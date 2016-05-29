@@ -146,6 +146,13 @@ class SlideLayout(PartElementProxy):
         return _LayoutShapeTree(self)
 
     @property
+    def slide_master(self):
+        """
+        Slide master from which this slide layout inherits properties.
+        """
+        return self.part.slide_master
+
+    @property
     def spTree(self):
         """
         Reference to ``<p:spTree>`` element for this slide
