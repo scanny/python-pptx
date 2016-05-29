@@ -34,6 +34,12 @@ def given_layout_shape_collection(context):
     context.layout_shapes = prs.slide_layouts[0].shapes
 
 
+@given('a slide layout')
+def given_a_slide_layout(context):
+    prs = Presentation(test_pptx('sld-slide-access'))
+    context.slide_layout = prs.slide_layouts[0]
+
+
 @given('a slide layout having three shapes')
 def given_slide_layout_having_three_shapes(context):
     prs = Presentation(test_pptx('lyt-shapes'))
@@ -117,6 +123,24 @@ def then_can_iterate_over_the_layout_shapes(context):
         actual_count += 1
         assert isinstance(layout_shape, BaseShape)
     assert actual_count == SHAPE_COUNT
+
+
+@then('slide_layout.slide_master is a SlideMaster object')
+def then_slide_layout_slide_master_is_a_SlideMaster_object(context):
+    slide_layout = context.slide_layout
+    assert type(slide_layout.slide_master).__name__ == 'SlideMasterPart'
+
+
+@then('slide_layout.placeholders is a LayoutPlaceholders object')
+def then_slide_layout_placeholders_is_a_LayoutPlaceholders_object(context):
+    slide_layout = context.slide_layout
+    assert type(slide_layout.placeholders).__name__ == '_LayoutPlaceholders'
+
+
+@then('slide_layout.shapes is a LayoutShapeTree object')
+def then_slide_layout_shapes_is_a_LayoutShapeTree_object(context):
+    slide_layout = context.slide_layout
+    assert type(slide_layout.shapes).__name__ == '_LayoutShapeTree'
 
 
 @then('the length of the layout placeholder collection is 2')
