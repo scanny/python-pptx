@@ -274,13 +274,16 @@ class DescribeSlideLayouts(object):
         assert len(slide_layouts) == expected_value
 
     def it_can_iterate_its_slide_layouts(self, iter_fixture):
-        slide_layouts, expected_value = iter_fixture
-        assert [s for s in slide_layouts] == expected_value
+        slide_layouts, related_slide_layout_ = iter_fixture[:2]
+        calls, expected_value = iter_fixture[2:]
+        slide_layout_lst = [sl for sl in slide_layouts]
+        assert related_slide_layout_.call_args_list == calls
+        assert slide_layout_lst == expected_value
 
     def it_supports_indexed_access(self, getitem_fixture):
         slide_layouts, part_, slide_layout_, rId = getitem_fixture
         slide_layout = slide_layouts[0]
-        part_.related_parts.__getitem__.assert_called_once_with(rId)
+        part_.related_slide_layout.assert_called_once_with(rId)
         assert slide_layout is slide_layout_
 
     def it_raises_on_index_out_of_range(self, getitem_raises_fixture):
@@ -295,8 +298,7 @@ class DescribeSlideLayouts(object):
         slide_layouts = SlideLayouts(
             element('p:sldLayoutIdLst/p:sldLayoutId{r:id=rId1}'), None
         )
-        part_prop_.return_value = part_
-        part_.related_parts.__getitem__.return_value = slide_layout_
+        part_.related_slide_layout.return_value = slide_layout_
         return slide_layouts, part_, slide_layout_, 'rId1'
 
     @pytest.fixture
@@ -306,19 +308,19 @@ class DescribeSlideLayouts(object):
         )
 
     @pytest.fixture
-    def iter_fixture(self, part_prop_):
+    def iter_fixture(self, part_prop_, part_):
         sldLayoutIdLst = element(
             'p:sldLayoutIdLst/(p:sldLayoutId{r:id=a},p:sldLayoutId{r:id=b})'
         )
         slide_layouts = SlideLayouts(sldLayoutIdLst, None)
         _slide_layouts = [
-            SlideLayoutPart(None, None, element('p:sldLayout')),
-            SlideLayoutPart(None, None, element('p:sldLayout')),
+            SlideLayout(element('p:sldLayout'), None),
+            SlideLayout(element('p:sldLayout'), None),
         ]
-        part_prop_.return_value.related_parts.__getitem__.side_effect = (
-            _slide_layouts
-        )
-        return slide_layouts, _slide_layouts
+        related_slide_layout_ = part_.related_slide_layout
+        related_slide_layout_.side_effect = _slide_layouts
+        calls = [call('a'), call('b')]
+        return slide_layouts, related_slide_layout_, calls, _slide_layouts
 
     @pytest.fixture(params=[
         ('p:sldLayoutIdLst',                               0),
@@ -337,8 +339,10 @@ class DescribeSlideLayouts(object):
         return instance_mock(request, SlideMasterPart)
 
     @pytest.fixture
-    def part_prop_(self, request):
-        return property_mock(request, SlideLayouts, 'part')
+    def part_prop_(self, request, part_):
+        return property_mock(
+            request, SlideLayouts, 'part', return_value=part_
+        )
 
     @pytest.fixture
     def slide_layout_(self, request):

@@ -152,7 +152,7 @@ class SlideLayouts(ParentedElementProxy):
             sldLayoutId = self._sldLayoutIdLst[idx]
         except IndexError:
             raise IndexError('slide layout index out of range')
-        return self.part.related_parts[sldLayoutId.rId]
+        return self.part.related_slide_layout(sldLayoutId.rId)
 
     def __iter__(self):
         """
@@ -160,7 +160,7 @@ class SlideLayouts(ParentedElementProxy):
         collection, in sequence.
         """
         for sldLayoutId in self._sldLayoutIdLst:
-            yield self.part.related_parts[sldLayoutId.rId]
+            yield self.part.related_slide_layout(sldLayoutId.rId)
 
     def __len__(self):
         """

@@ -31,6 +31,13 @@ class SlideMasterPart(BaseSlidePart):
         """
         return _MasterPlaceholders(self)
 
+    def related_slide_layout(self, rId):
+        """
+        Return the |SlideLayout| object of the related |SlideLayoutPart|
+        corresponding to relationship key *rId*.
+        """
+        return self.related_parts[rId].slide_layout
+
     @lazyproperty
     def shapes(self):
         """

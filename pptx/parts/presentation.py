@@ -25,7 +25,8 @@ class PresentationPart(XmlPart):
         inherits appearance from *slide_layout*.
         """
         partname = self._next_slide_partname
-        slide_part = SlidePart.new(partname, self.package, slide_layout)
+        slide_layout_part = slide_layout.part
+        slide_part = SlidePart.new(partname, self.package, slide_layout_part)
         rId = self.relate_to(slide_part, RT.SLIDE)
         return rId, slide_part.slide
 

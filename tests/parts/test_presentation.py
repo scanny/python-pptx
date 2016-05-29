@@ -57,12 +57,13 @@ class DescribePresentationPart(object):
 
     def it_can_add_a_new_slide(self, add_slide_fixture):
         prs_part, slide_layout_, SlidePart_, partname = add_slide_fixture[:4]
-        package_, slide_part_, rId_, slide_ = add_slide_fixture[4:]
+        package_, slide_layout_part_, slide_part_ = add_slide_fixture[4:7]
+        rId_, slide_ = add_slide_fixture[7:]
 
         rId, slide = prs_part.add_slide(slide_layout_)
 
         SlidePart_.new.assert_called_once_with(
-            partname, package_, slide_layout_
+            partname, package_, slide_layout_part_
         )
         prs_part.relate_to.assert_called_once_with(
             prs_part, slide_part_, RT.SLIDE
@@ -85,10 +86,11 @@ class DescribePresentationPart(object):
         rId_ = 'rId42'
         SlidePart_.new.return_value = slide_part_
         relate_to_.return_value = rId_
+        slide_layout_part_ = slide_layout_.part
         slide_part_.slide = slide_
         return (
             prs_part, slide_layout_, SlidePart_, partname, package_,
-            slide_part_, rId_, slide_
+            slide_layout_part_, slide_part_, rId_, slide_
         )
 
     @pytest.fixture

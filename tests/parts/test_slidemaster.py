@@ -17,12 +17,12 @@ from pptx.parts.slidemaster import (
 )
 from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import MasterPlaceholder
-from pptx.slide import SlideLayouts
+from pptx.slide import SlideLayout, SlideLayouts
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..oxml.unitdata.slides import a_sldLayoutIdLst, a_sldMaster
 from ..unitutil.mock import (
-    class_mock, function_mock, instance_mock, method_mock
+    class_mock, function_mock, instance_mock, method_mock, property_mock
 )
 
 
@@ -42,7 +42,25 @@ class DescribeSlideMasterPart(object):
         slide_layouts = slide_master.slide_layouts
         assert isinstance(slide_layouts, SlideLayouts)
 
+    def it_provides_access_to_a_related_slide_layout(self, related_fixture):
+        slide_master_part, rId, getitem_, slide_layout_ = related_fixture
+        slide_layout = slide_master_part.related_slide_layout(rId)
+        getitem_.assert_called_once_with(rId)
+        assert slide_layout is slide_layout_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def related_fixture(self, slide_layout_, related_parts_prop_):
+        slide_master_part = SlideMasterPart(None, None, None, None)
+        rId = 'rId42'
+        getitem_ = related_parts_prop_.return_value.__getitem__
+        getitem_.return_value.slide_layout = slide_layout_
+        return slide_master_part, rId, getitem_, slide_layout_
+
+    @pytest.fixture
+    def related_parts_prop_(self, request):
+        return property_mock(request, SlideMasterPart, 'related_parts')
 
     @pytest.fixture(params=[True, False])
     def sldMaster(self, request):
@@ -51,6 +69,10 @@ class DescribeSlideMasterPart(object):
         if has_sldLayoutIdLst:
             sldMaster_bldr.with_child(a_sldLayoutIdLst())
         return sldMaster_bldr.element
+
+    @pytest.fixture
+    def slide_layout_(self, request):
+        return instance_mock(request, SlideLayout)
 
     @pytest.fixture
     def slide_master(self, sldMaster):
