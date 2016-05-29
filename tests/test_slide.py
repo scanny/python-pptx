@@ -12,9 +12,7 @@ import pytest
 
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slidelayout import (
-    _LayoutPlaceholders, _LayoutShapeTree, SlideLayoutPart
-)
+from pptx.parts.slidelayout import _LayoutPlaceholders, _LayoutShapeTree
 from pptx.parts.slidemaster import SlideMasterPart
 from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.placeholder import LayoutPlaceholder
@@ -104,7 +102,7 @@ class DescribeSlide(object):
 
     @pytest.fixture
     def slide_layout_(self, request):
-        return instance_mock(request, SlideLayoutPart)
+        return instance_mock(request, SlideLayout)
 
 
 class DescribeSlides(object):
@@ -236,7 +234,7 @@ class DescribeSlides(object):
 
     @pytest.fixture
     def slide_layout_(self, request):
-        return instance_mock(request, SlideLayoutPart)
+        return instance_mock(request, SlideLayout)
 
 
 class DescribeSlideLayout(object):
@@ -412,7 +410,7 @@ class DescribeSlideLayouts(object):
 
     @pytest.fixture
     def slide_layout_(self, request):
-        return instance_mock(request, SlideLayoutPart)
+        return instance_mock(request, SlideLayout)
 
 
 class DescribeSlideMasters(object):

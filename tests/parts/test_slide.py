@@ -20,7 +20,7 @@ from pptx.parts.chart import ChartPart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.slide import BaseSlidePart, SlidePart
 from pptx.parts.slidelayout import SlideLayoutPart
-from pptx.slide import Slide
+from pptx.slide import Slide, SlideLayout
 
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, test_file_dir
@@ -240,7 +240,7 @@ class DescribeSlidePart(object):
 
     @pytest.fixture
     def slide_layout_(self, request):
-        return instance_mock(request, SlideLayoutPart)
+        return instance_mock(request, SlideLayout)
 
     @pytest.fixture
     def slide_layout_part_(self, request):

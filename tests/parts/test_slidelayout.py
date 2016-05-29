@@ -17,6 +17,7 @@ from pptx.parts.slidelayout import (
 from pptx.parts.slidemaster import SlideMasterPart
 from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import LayoutPlaceholder
+from pptx.shapes.shapetree import BasePlaceholders
 from pptx.slide import SlideLayout
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
@@ -28,10 +29,10 @@ from ..unitutil.mock import (
 
 class DescribeSlideLayoutPart(object):
 
-    def it_knows_the_slide_master_it_inherits_from(self, master_fixture):
-        slide_layout, slide_master_ = master_fixture
-        slide_master = slide_layout.slide_master
-        slide_layout.part_related_by.assert_called_once_with(RT.SLIDE_MASTER)
+    def it_provides_access_to_its_slide_master(self, master_fixture):
+        slide_layout_part, part_related_by_, slide_master_ = master_fixture
+        slide_master = slide_layout_part.slide_master
+        part_related_by_.assert_called_once_with(RT.SLIDE_MASTER)
         assert slide_master is slide_master_
 
     def it_provides_access_to_its_slide_layout(self, layout_fixture):
@@ -51,8 +52,8 @@ class DescribeSlideLayoutPart(object):
 
     @pytest.fixture
     def master_fixture(self, slide_master_, part_related_by_):
-        slide_layout = SlideLayoutPart(None, None, None, None)
-        return slide_layout, slide_master_
+        slide_layout_part = SlideLayoutPart(None, None, None, None)
+        return slide_layout_part, part_related_by_, slide_master_
 
     # fixture components -----------------------------------
 
@@ -131,7 +132,7 @@ class Describe_LayoutShapeFactory(object):
 
     @pytest.fixture(params=['ph', 'sp', 'pic'])
     def factory_fixture(
-            self, request, ph_bldr, slide_layout_, _LayoutPlaceholder_,
+            self, request, ph_bldr, parent_, _LayoutPlaceholder_,
             layout_placeholder_, BaseShapeFactory_, base_shape_):
         shape_bldr, ShapeConstructor_, shape_mock = {
             'ph':  (ph_bldr, _LayoutPlaceholder_, layout_placeholder_),
@@ -139,7 +140,7 @@ class Describe_LayoutShapeFactory(object):
             'pic': (a_pic(), BaseShapeFactory_,   base_shape_),
         }[request.param]
         shape_elm = shape_bldr.with_nsdecls().element
-        return shape_elm, slide_layout_, ShapeConstructor_, shape_mock
+        return shape_elm, parent_, ShapeConstructor_, shape_mock
 
     # fixture components -----------------------------------
 
@@ -166,6 +167,10 @@ class Describe_LayoutShapeFactory(object):
         return instance_mock(request, LayoutPlaceholder)
 
     @pytest.fixture
+    def parent_(self, request):
+        return instance_mock(request, BasePlaceholders)
+
+    @pytest.fixture
     def ph_bldr(self):
         return (
             an_sp().with_child(
@@ -173,10 +178,6 @@ class Describe_LayoutShapeFactory(object):
                     an_nvPr().with_child(
                         a_ph().with_idx(1))))
         )
-
-    @pytest.fixture
-    def slide_layout_(self, request):
-        return instance_mock(request, SlideLayoutPart)
 
 
 class Describe_LayoutPlaceholders(object):

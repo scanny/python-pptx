@@ -14,9 +14,8 @@ from pptx.package import Package
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import SlidePart
-from pptx.parts.slidelayout import SlideLayoutPart
 from pptx.presentation import Presentation
-from pptx.slide import Slide
+from pptx.slide import Slide, SlideLayout
 
 from ..unitutil.cxml import element
 from ..unitutil.mock import (
@@ -189,7 +188,7 @@ class DescribePresentationPart(object):
 
     @pytest.fixture
     def slide_layout_(self, request):
-        return instance_mock(request, SlideLayoutPart)
+        return instance_mock(request, SlideLayout)
 
     @pytest.fixture
     def slide_part_(self, request):

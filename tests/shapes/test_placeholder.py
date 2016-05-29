@@ -466,7 +466,7 @@ class DescribeLayoutPlaceholder(object):
         (PP_PLACEHOLDER.OBJECT, PP_PLACEHOLDER.BODY),
     ])
     def mstr_ph_fixture(
-            self, request, ph_type_, _slide_master_, slide_master_,
+            self, request, ph_type_, _slide_master_prop_, slide_master_,
             master_placeholder_):
         layout_placeholder = LayoutPlaceholder(None, None)
         ph_type, mstr_ph_type = request.param
@@ -491,8 +491,11 @@ class DescribeLayoutPlaceholder(object):
         return layout_placeholder, attr_name, expected_value
 
     @pytest.fixture
-    def slide_master_fixture(self, parent_, slide_master_):
+    def slide_master_fixture(
+            self, parent_, slide_layout_part_, slide_master_):
         layout_placeholder = LayoutPlaceholder(None, parent_)
+        parent_.part = slide_layout_part_
+        slide_layout_part_.slide_master = slide_master_
         return layout_placeholder, slide_master_
 
     @pytest.fixture(params=['left', 'top', 'width', 'height'])
@@ -535,23 +538,19 @@ class DescribeLayoutPlaceholder(object):
         return instance_mock(request, MasterPlaceholder)
 
     @pytest.fixture
-    def parent_(self, request, slide_layout_):
-        parent_ = instance_mock(request, BaseShapeTree)
-        parent_.part = slide_layout_
-        return parent_
+    def parent_(self, request):
+        return instance_mock(request, BaseShapeTree)
 
     @pytest.fixture
     def ph_type_(self, request):
         return property_mock(request, LayoutPlaceholder, 'ph_type')
 
     @pytest.fixture
-    def slide_layout_(self, request, slide_master_):
-        slide_layout_ = instance_mock(request, SlideLayoutPart)
-        slide_layout_.slide_master = slide_master_
-        return slide_layout_
+    def slide_layout_part_(self, request):
+        return instance_mock(request, SlideLayoutPart)
 
     @pytest.fixture
-    def _slide_master_(self, request, slide_master_):
+    def _slide_master_prop_(self, request, slide_master_):
         return property_mock(
             request, LayoutPlaceholder, '_slide_master',
             return_value=slide_master_
