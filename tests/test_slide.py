@@ -11,7 +11,9 @@ from __future__ import (
 import pytest
 
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slidelayout import _LayoutPlaceholders, SlideLayoutPart
+from pptx.parts.slidelayout import (
+    _LayoutPlaceholders, _LayoutShapeTree, SlideLayoutPart
+)
 from pptx.parts.slidemaster import SlideMasterPart
 from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.shapetree import SlideShapeTree
@@ -245,6 +247,12 @@ class DescribeSlideLayout(object):
         _LayoutPlaceholders_.assert_called_once_with(slide_layout)
         assert placeholders is layout_placeholders_
 
+    def it_provides_access_to_its_shapes(self, shapes_fixture):
+        slide_layout, _LayoutShapeTree_, shapes_ = shapes_fixture
+        shapes = slide_layout.shapes
+        _LayoutShapeTree_.assert_called_once_with(slide_layout)
+        assert shapes is shapes_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -253,14 +261,29 @@ class DescribeSlideLayout(object):
         slide_layout = SlideLayout(None, None)
         return slide_layout, _LayoutPlaceholders_, layout_placeholders_
 
+    @pytest.fixture
+    def shapes_fixture(self, _LayoutShapeTree_, shapes_):
+        slide_layout = SlideLayout(None, None)
+        return slide_layout, _LayoutShapeTree_, shapes_
+
     # fixture components -----------------------------------
 
     @pytest.fixture
     def _LayoutPlaceholders_(self, request, layout_placeholders_):
         return class_mock(
-            request, 'pptx.parts.slidelayout._LayoutPlaceholders',
+            request, 'pptx.slide._LayoutPlaceholders',
             return_value=layout_placeholders_
         )
+
+    @pytest.fixture
+    def _LayoutShapeTree_(self, request, shapes_):
+        return class_mock(
+            request, 'pptx.slide._LayoutShapeTree', return_value=shapes_
+        )
+
+    @pytest.fixture
+    def shapes_(self, request):
+        return instance_mock(request, _LayoutShapeTree)
 
     @pytest.fixture
     def layout_placeholders_(self, request):

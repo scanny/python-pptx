@@ -12,7 +12,6 @@ from behave import given, then
 
 from pptx import Presentation
 from pptx.enum.shapes import PP_PLACEHOLDER
-from pptx.parts.slidelayout import SlideLayoutPart
 from pptx.parts.slidemaster import _MasterPlaceholders, _MasterShapeTree
 from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import MasterPlaceholder
@@ -90,8 +89,7 @@ def then_can_access_master_shape_by_index(context):
 def then_can_access_slide_layout_by_index(context):
     slide_layouts = context.slide_layouts
     for idx in range(2):
-        slide_layout = slide_layouts[idx]
-        assert isinstance(slide_layout, SlideLayoutPart)
+        assert type(slide_layouts[idx]).__name__ == 'SlideLayout'
 
 
 @then('I can access the placeholder collection of the slide master')
@@ -138,14 +136,22 @@ def then_can_iterate_over_the_master_shapes(context):
     assert actual_count == 2
 
 
-@then('I can iterate over the slide layouts')
-def then_can_iterate_over_the_slide_layouts(context):
+@then('I can iterate slide_layouts')
+def then_I_can_iterate_slide_layouts(context):
     slide_layouts = context.slide_layouts
-    actual_count = 0
-    for slide_layout in slide_layouts:
-        actual_count += 1
-        assert isinstance(slide_layout, SlideLayoutPart)
-    assert actual_count == 2
+    idx = 0
+    for idx, slide_layout in enumerate(slide_layouts):
+        assert type(slide_layout).__name__ == 'SlideLayout'
+    assert idx == 1
+
+
+@then('len(slide_layouts) is 2')
+def then_len_slide_layouts_is_2(context):
+    slide_master = context.slide_master
+    slide_layouts = slide_master.slide_layouts
+    assert len(slide_layouts) == 2, (
+        'expected len(slide_layouts) of 2, got %s' % len(slide_layouts)
+    )
 
 
 @then('the length of the master shape collection is 2')
@@ -164,13 +170,4 @@ def then_len_of_placeholder_collection_is_2(context):
     assert len(master_placeholders) == 2, (
         'expected len(master_placeholders) of 2, got %s' %
         len(master_placeholders)
-    )
-
-
-@then('the length of the slide layout collection is 2')
-def then_len_of_slide_layout_collection_is_2(context):
-    slide_master = context.slide_master
-    slide_layouts = slide_master.slide_layouts
-    assert len(slide_layouts) == 2, (
-        'expected len(slide_layouts) of 2, got %s' % len(slide_layouts)
     )

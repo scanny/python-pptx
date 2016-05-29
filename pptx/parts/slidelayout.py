@@ -46,14 +46,6 @@ class SlideLayoutPart(BaseSlidePart):
         return _LayoutPlaceholders(self)
 
     @lazyproperty
-    def shapes(self):
-        """
-        Instance of |_LayoutShapeTree| containing sequence of shapes
-        appearing on this slide layout.
-        """
-        return _LayoutShapeTree(self)
-
-    @lazyproperty
     def slide_layout(self):
         """
         The |SlideLayout| object representing this part.

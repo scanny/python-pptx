@@ -120,8 +120,15 @@ class SlideLayout(PartElementProxy):
         Instance of |_LayoutPlaceholders| containing sequence of placeholder
         shapes in this slide layout, sorted in *idx* order.
         """
-        from .parts.slidelayout import _LayoutPlaceholders
         return _LayoutPlaceholders(self)
+
+    @lazyproperty
+    def shapes(self):
+        """
+        Instance of |_LayoutShapeTree| containing the sequence of shapes
+        appearing on this slide layout.
+        """
+        return _LayoutShapeTree(self)
 
     @property
     def spTree(self):
@@ -129,6 +136,9 @@ class SlideLayout(PartElementProxy):
         Reference to ``<p:spTree>`` element for this slide
         """
         return self._element.cSld.spTree
+
+
+from .parts.slidelayout import _LayoutPlaceholders, _LayoutShapeTree
 
 
 class SlideLayouts(ParentedElementProxy):

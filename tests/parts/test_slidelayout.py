@@ -42,12 +42,6 @@ class DescribeSlideLayoutPart(object):
         SlideLayout_.assert_called_once_with(sldLayout, slide_layout_part)
         assert slide_layout is slide_layout_
 
-    def it_provides_access_to_its_shapes(self, shapes_fixture):
-        slide_layout, _LayoutShapeTree_, layout_shape_tree_ = shapes_fixture
-        shapes = slide_layout.shapes
-        _LayoutShapeTree_.assert_called_once_with(slide_layout)
-        assert shapes is layout_shape_tree_
-
     def it_can_iterate_over_the_clonable_placeholders_it_contains(
             self, cloneable_fixture):
         slide_layout, expected_placeholders = cloneable_fixture
@@ -85,23 +79,7 @@ class DescribeSlideLayoutPart(object):
         slide_layout = SlideLayoutPart(None, None, None, None)
         return slide_layout, slide_master_
 
-    @pytest.fixture
-    def shapes_fixture(self, _LayoutShapeTree_, layout_shape_tree_):
-        slide_layout = SlideLayoutPart(None, None, None, None)
-        return slide_layout, _LayoutShapeTree_, layout_shape_tree_
-
     # fixture components -----------------------------------
-
-    @pytest.fixture
-    def _LayoutShapeTree_(self, request, layout_shape_tree_):
-        return class_mock(
-            request, 'pptx.parts.slidelayout._LayoutShapeTree',
-            return_value=layout_shape_tree_
-        )
-
-    @pytest.fixture
-    def layout_shape_tree_(self, request):
-        return instance_mock(request, _LayoutShapeTree)
 
     @pytest.fixture
     def part_related_by_(self, request, slide_master_):
