@@ -22,7 +22,7 @@ from pptx.parts.slide import (
     BaseSlidePart, SlideLayoutPart, SlideMasterPart, SlidePart
 )
 from pptx.shapes.shapetree import MasterPlaceholders, MasterShapes
-from pptx.slide import Slide, SlideLayout, SlideLayouts
+from pptx.slide import Slide, SlideLayout, SlideLayouts, SlideMaster
 
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, test_file_dir
@@ -267,7 +267,7 @@ class DescribeSlideLayoutPart(object):
 
     @pytest.fixture
     def layout_fixture(self, SlideLayout_, slide_layout_):
-        sldLayout = element('w:sldLayout')
+        sldLayout = element('p:sldLayout')
         slide_layout_part = SlideLayoutPart(None, None, sldLayout)
         return slide_layout_part, SlideLayout_, sldLayout, slide_layout_
 
@@ -302,6 +302,14 @@ class DescribeSlideLayoutPart(object):
 
 
 class DescribeSlideMasterPart(object):
+
+    def it_provides_access_to_its_slide_master(self, master_fixture):
+        slide_master_part, SlideMaster_, sldMaster, slide_master_ = (
+            master_fixture
+        )
+        slide_master = slide_master_part.slide_master
+        SlideMaster_.assert_called_once_with(sldMaster, slide_master_part)
+        assert slide_master is slide_master_
 
     def it_provides_access_to_its_placeholders(self, placeholders_fixture):
         slide_master, MasterPlaceholders_, spTree, placeholders_ = (
@@ -339,6 +347,12 @@ class DescribeSlideMasterPart(object):
         slide_master = SlideMasterPart(None, None, sldMaster)
         sldMasterIdLst = sldMaster.sldLayoutIdLst
         return slide_master, SlideLayouts_, sldMasterIdLst, slide_layouts_
+
+    @pytest.fixture
+    def master_fixture(self, SlideMaster_, slide_master_):
+        sldMaster = element('p:sldMaster')
+        slide_master_part = SlideMasterPart(None, None, sldMaster)
+        return slide_master_part, SlideMaster_, sldMaster, slide_master_
 
     @pytest.fixture
     def related_fixture(self, slide_layout_, related_parts_prop_):
@@ -404,3 +418,14 @@ class DescribeSlideMasterPart(object):
     @pytest.fixture
     def slide_layouts_(self, request):
         return instance_mock(request, SlideLayouts)
+
+    @pytest.fixture
+    def SlideMaster_(self, request, slide_master_):
+        return class_mock(
+            request, 'pptx.parts.slide.SlideMaster',
+            return_value=slide_master_
+        )
+
+    @pytest.fixture
+    def slide_master_(self, request):
+        return instance_mock(request, SlideMaster)

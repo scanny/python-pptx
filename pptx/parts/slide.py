@@ -13,7 +13,7 @@ from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..oxml.slide import CT_Slide
 from ..shapes.shapetree import MasterPlaceholders, MasterShapes
-from ..slide import Slide, SlideLayout, SlideLayouts
+from ..slide import Slide, SlideLayout, SlideLayouts, SlideMaster
 from ..util import lazyproperty
 
 
@@ -145,3 +145,10 @@ class SlideMasterPart(BaseSlidePart):
         Sequence of |SlideLayout| objects belonging to this slide master
         """
         return SlideLayouts(self._element.get_or_add_sldLayoutIdLst(), self)
+
+    @lazyproperty
+    def slide_master(self):
+        """
+        The |SlideMaster| object representing this part.
+        """
+        return SlideMaster(self._element, self)
