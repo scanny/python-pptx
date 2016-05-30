@@ -1,55 +1,117 @@
-Feature: Access shapes on a slide
+Feature: Access a shape on a slide
   In order to interact with a shape
   As a developer using python-pptx
   I need ways to access a shape on a slide
 
 
-  Scenario: Slide.shapes
-     Given a slide having six shapes
-      Then I can access the shape collection of the slide
-       And the length of the shape collection is 6
+  Scenario: SlideShapes.__len__()
+    Given a SlideShapes object containing 6 shapes
+     Then len(shapes) is 6
 
 
-  Scenario: SlideLayout.shapes
-     Given a slide layout having three shapes
-      Then I can access the shape collection of the slide layout
-       And the length of the layout shape collection counts all its shapes
+  Scenario: SlidePlaceholders.__len__()
+    Given a SlidePlaceholders object containing 2 placeholders
+     Then len(placeholders) is 2
 
 
-  Scenario: SlideMaster.shapes
-     Given a slide master having two shapes
-      Then I can access the shape collection of the slide master
-       And the length of the master shape collection is 2
+  Scenario: LayoutShapes.__len__()
+    Given a LayoutShapes object containing 3 shapes
+     Then len(layout_shapes) is 3
 
 
-  Scenario: Shapes.__iter__ and Shapes.__getitem__
-     Given a slide shape collection
-      Then I can iterate over the shapes
-       And I can access a shape by index
-       And each slide shape is of the appropriate type
+  Scenario: LayoutPlaceholders.__len__()
+    Given a LayoutPlaceholders object containing 2 placeholders
+     Then len(layout_placeholders) is 2
 
 
-  Scenario: LayoutShapes.__iter__ and LayoutShapes.__getitem__
-     Given a layout shape collection
-      Then I can iterate over the layout shapes
-       And I can access a layout shape by index
-       And each shape is of the appropriate type
+  Scenario: MasterShapes.__len__()
+    Given a MasterShapes object containing 2 shapes
+     Then len(master_shapes) is 2
 
 
-  Scenario: MasterShapes.__iter__ and __getitem__
-     Given a master shape collection containing two shapes
-      Then I can iterate over the master shapes
-       And I can access a master shape by index
+  Scenario: MasterPlaceholders.__len__()
+    Given a MasterPlaceholders object containing 2 placeholders
+     Then len(master_placeholders) is 2
+
+
+  Scenario: SlideShapes.__getitem__()
+    Given a SlideShapes object containing 6 shapes
+     Then shapes[4] is a GraphicFrame object
+
+
+  Scenario: SlidePlaceholders.__getitem__()
+    Given a SlidePlaceholders object containing 2 placeholders
+     Then placeholders[10] is a SlidePlaceholder object
+
+
+  Scenario: LayoutShapes.__getitem__()
+    Given a LayoutShapes object containing 3 shapes
+     Then layout_shapes[1] is a LayoutPlaceholder object
+
+
+  Scenario: LayoutPlaceholders.__getitem__
+    Given a LayoutPlaceholders object containing 2 placeholders
+     Then layout_placeholders[1] is a LayoutPlaceholder object
+
+
+  Scenario: MasterShapes.__getitem__()
+    Given a MasterShapes object containing 2 shapes
+     Then master_shapes[1] is a Picture object
+
+
+  Scenario: MasterPlaceholders.__getitem__
+    Given a MasterPlaceholders object containing 2 placeholders
+     Then master_placeholders[1] is a MasterPlaceholder object
+
+
+  Scenario: SlideShapes.__iter__()
+    Given a SlideShapes object containing 6 shapes
+     Then iterating shapes produces 6 BaseShape objects
+
+
+  Scenario: SlidePlaceholders.__iter__()
+    Given a SlidePlaceholders object containing 2 placeholders
+     Then iterating placeholders produces 2 SlidePlaceholder objects
+
+
+  Scenario: LayoutShapes.__iter__()
+    Given a LayoutShapes object containing 3 shapes
+     Then iterating layout_shapes produces 3 BaseShape objects
+
+
+  Scenario: LayoutPlaceholders.__iter__()
+    Given a LayoutPlaceholders object containing 2 placeholders
+     Then iterating layout_placeholders produces 2 LayoutPlaceholder objects
+
+
+  Scenario: MasterShapes.__iter__()
+    Given a MasterShapes object containing 2 shapes
+     Then iterating master_shapes produces 2 BaseShape objects
+
+
+  Scenario: MasterPlaceholders.__iter__()
+    Given a MasterPlaceholders object containing 2 placeholders
+     Then iterating master_placeholders produces 2 MasterPlaceholder objects
 
 
   Scenario: Shapes.index(shape)
-     Given a slide shape collection
-      Then the index of each shape matches its position in the sequence
+    Given a SlideShapes object containing 6 shapes
+     Then the index of each shape matches its position in the sequence
 
 
   Scenario: Shapes.title
-     Given a slide shape collection
-      Then I can access the title placeholder
+    Given a SlideShapes object containing 6 shapes
+     Then shapes.title is the title placeholder
+
+
+  Scenario: LayoutPlaceholders.get()
+    Given a LayoutPlaceholders object containing 2 placeholders
+     Then layout_placeholders.get(idx=10) is the body placeholder
+
+
+  Scenario: MasterPlaceholders.get()
+    Given a MasterPlaceholders object containing 2 placeholders
+     Then master_placeholders.get(PP_PLACEHOLDER.BODY) is the body placeholder
 
 
   Scenario Outline: Access unpopulated placeholder shape

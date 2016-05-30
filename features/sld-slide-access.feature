@@ -4,23 +4,53 @@ Feature: Access an individual slide
   I need ways to create, access, or delete a slide
 
 
+  Scenario: Slides.__getitem__()
+    Given a Slides object containing 3 slides
+     Then slides[2] is a Slide object
+
+
+  Scenario: Slides.__iter__()
+    Given a Slides object containing 3 slides
+     Then iterating slides produces 3 Slide objects
+
+
   Scenario: Slides.__len__()
     Given a Slides object containing 3 slides
      Then len(slides) is 3
 
 
-  Scenario: Slides indexed access
-    Given a Slides object containing 3 slides
-     Then slides[2] is a Slide object
-
-
-  Scenario: Iterate Slides
-    Given a Slides object containing 3 slides
-     Then iterating slides produces 3 Slide objects
-
-
   Scenario: Slides.add_slide()
-     Given a Slides object containing 3 slides
-      When I call slides.add_slide()
-      Then len(slides) is 4
-       And slide.slide_layout is the one passed in the call
+    Given a Slides object containing 3 slides
+     When I call slides.add_slide()
+     Then len(slides) is 4
+      And slide.slide_layout is the one passed in the call
+
+
+  Scenario: SlideLayouts.__getitem__()
+    Given a SlideLayouts object containing 2 layouts
+     Then slide_layouts[1] is a SlideLayout object
+
+
+  Scenario: SlideLayouts.__iter__()
+    Given a SlideLayouts object containing 2 layouts
+     Then iterating slide_layouts produces 2 SlideLayout objects
+
+
+  Scenario: SlideLayouts.__len__()
+    Given a SlideLayouts object containing 2 layouts
+     Then len(slide_layouts) is 2
+
+
+  Scenario: SlideMasters.__getitem__()
+    Given a SlideMasters object containing 2 masters
+     Then slide_masters[1] is a SlideMaster object
+
+
+  Scenario: SlideMasters.__iter__()
+    Given a SlideMasters object containing 2 masters
+     Then iterating slide_masters produces 2 SlideMaster objects
+
+
+  Scenario: SlideMasters.__len__()
+    Given a SlideMasters object containing 2 masters
+     Then len(slide_masters) is 2

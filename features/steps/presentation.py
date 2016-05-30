@@ -13,7 +13,6 @@ from behave import given, when, then
 from pptx import Presentation
 from pptx.compat import BytesIO
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.slide import SlideMaster, SlideMasters
 from pptx.util import Inches
 
 from helpers import saved_pptx_path, test_pptx
@@ -32,20 +31,9 @@ def given_a_presentation(context):
     context.presentation = Presentation(test_pptx('prs-properties'))
 
 
-@given('a presentation having two slide masters')
-def given_presentation_having_two_masters(context):
-    context.presentation = Presentation(test_pptx('prs-slide-masters'))
-
-
 @given('a presentation with external relationships')
 def given_prs_with_ext_rels(context):
     context.prs = Presentation(test_pptx('ext-rels'))
-
-
-@given('a slide master collection containing two masters')
-def given_slide_master_collection_containing_two_masters(context):
-    prs = Presentation(test_pptx('prs-slide-masters'))
-    context.slide_masters = prs.slide_masters
 
 
 @given('an initialized pptx environment')
@@ -112,32 +100,6 @@ def when_save_presentation_to_stream(context):
 
 # then ====================================================
 
-@then('I can access a slide master by index')
-def then_can_access_slide_master_by_index(context):
-    slide_masters = context.slide_masters
-    for idx in range(2):
-        slide_master = slide_masters[idx]
-        assert isinstance(slide_master, SlideMaster)
-
-
-@then('I can access the slide master collection of the presentation')
-def then_can_access_slide_masters_of_presentation(context):
-    presentation = context.presentation
-    slide_masters = presentation.slide_masters
-    msg = 'Presentation.slide_masters not instance of _SlideMasters'
-    assert isinstance(slide_masters, SlideMasters), msg
-
-
-@then('I can iterate over the slide masters')
-def then_can_iterate_over_the_slide_masters(context):
-    slide_masters = context.slide_masters
-    actual_count = 0
-    for slide_master in slide_masters:
-        actual_count += 1
-        assert isinstance(slide_master, SlideMaster)
-    assert actual_count == 2
-
-
 @then('I receive a presentation based on the default template')
 def then_receive_prs_based_on_def_tmpl(context):
     prs = context.prs
@@ -176,6 +138,12 @@ def then_prs_slides_is_a_Slides_object(context):
     assert type(prs.slides).__name__ == 'Slides'
 
 
+@then('prs.slide_masters is a SlideMasters object')
+def then_prs_slide_masters_is_a_SlideMasters_object(context):
+    prs = context.presentation
+    assert type(prs.slide_masters).__name__ == 'SlideMasters'
+
+
 @then('the external relationships are still there')
 def then_ext_rels_are_preserved(context):
     prs = context.prs
@@ -184,15 +152,6 @@ def then_ext_rels_are_preserved(context):
     assert rel.is_external
     assert rel.reltype == RT.HYPERLINK
     assert rel.target_ref == 'https://github.com/scanny/python-pptx'
-
-
-@then('the length of the slide master collection is 2')
-def then_len_of_slide_master_collection_is_2(context):
-    presentation = context.presentation
-    slide_masters = presentation.slide_masters
-    assert len(slide_masters) == 2, (
-        'expected len(slide_masters) of 2, got %s' % len(slide_masters)
-    )
 
 
 @then('the slide height matches the new value')

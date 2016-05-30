@@ -20,3 +20,8 @@ Feature: Presentation properties
   Scenario: Presentation.slides
     Given a presentation
      Then prs.slides is a Slides object
+
+
+  Scenario: Presentation.slide_masters
+    Given a presentation
+     Then prs.slide_masters is a SlideMasters object

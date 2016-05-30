@@ -4,7 +4,7 @@ Feature: Access a point
   I need sequence operations on xPoints objects
 
 
-  Scenario Outline: len(Points)
+  Scenario Outline: Points.__len__()
     Given a <type> object containing 3 points
      Then len(points) is 3
 
@@ -14,7 +14,7 @@ Feature: Access a point
       | BubblePoints |
 
 
-  Scenario Outline: access point by index
+  Scenario Outline: Points.__getitem__()
     Given a <type> object containing 3 points
      Then points[2] is a Point object
 
@@ -24,7 +24,7 @@ Feature: Access a point
       | BubblePoints |
 
 
-  Scenario Outline: iterate points
+  Scenario Outline: Points.__iter__()
     Given a <type> object containing 3 points
      Then iterating points produces 3 Point objects
 

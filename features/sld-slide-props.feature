@@ -4,6 +4,16 @@ Feature: slide properties
   I need properties and methods on Slide, SlideLayout, and SlideMaster
 
 
+  Scenario: Slide.shapes
+    Given a slide
+     Then slide.shapes is a SlideShapeTree object
+
+
+  Scenario: Slide.placeholders
+    Given a slide
+     Then slide.placeholders is a SlidePlaceholders object
+
+
   Scenario: SlideLayout.shapes
     Given a slide layout
      Then slide_layout.shapes is a LayoutShapes object
