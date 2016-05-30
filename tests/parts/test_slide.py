@@ -51,11 +51,6 @@ class DescribeBaseSlidePart(object):
         assert image_part is image_part_
         assert rId is rId_
 
-    def it_provides_access_to_its_spTree_element_to_help(self):
-        slide = BaseSlidePart(None, None, element('p:sld/p:cSld/p:spTree'))
-        spTree = slide.spTree
-        assert spTree is slide._element.xpath('//p:spTree')[0]
-
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

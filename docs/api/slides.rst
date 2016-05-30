@@ -19,16 +19,12 @@ is not intended to be constructed directly.
 |Slide| objects
 ---------------
 
-|Slide| objects are accessed by index from ``prs.slides`` or as a return value
-from ``slides.add_slide()``.
+An individual |Slide| object is accessed by index from |Slides| or as the
+return value of :meth:`add_slide`.
 
-.. autoclass:: pptx.parts.slide.Slide()
+.. autoclass:: pptx.slide.Slide()
    :members:
-   :exclude-members:
-      add_chart_part, after_unmarshal, before_marshal, blob, content_type,
-      drop_rel, get_image, get_or_add_image_part, load, load_rel, new,
-      package, part, part_related_by, relate_to, related_parts, rels,
-      spTree, target_ref
+   :exclude-members: part
    :inherited-members:
    :undoc-members:
 
@@ -36,7 +32,7 @@ from ``slides.add_slide()``.
 |SlideLayout| objects
 ---------------------
 
-.. autoclass:: pptx.parts.slidelayout.SlideLayoutPart
+.. autoclass:: pptx.slide.SlideLayout
    :members:
    :exclude-members: iter_cloneable_placeholders
 
@@ -46,7 +42,7 @@ from ``slides.add_slide()``.
 
 .. autoclass:: pptx.parts.slidemaster.SlideMasterPart
    :members:
-   :exclude-members: sldLayoutIdLst
+   :exclude-members: related_slide_layout, sldLayoutIdLst
 
 
 |SlidePlaceholders| objects

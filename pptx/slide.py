@@ -49,13 +49,6 @@ class Slide(PartElementProxy):
         """
         return self.part.slide_layout
 
-    @property
-    def spTree(self):
-        """
-        Reference to ``<p:spTree>`` element for this slide
-        """
-        return self._element.cSld.spTree
-
 
 class Slides(ParentedElementProxy):
     """

@@ -48,13 +48,6 @@ class BaseSlidePart(XmlPart):
         """
         return self._element.cSld.name
 
-    @property
-    def spTree(self):
-        """
-        Reference to ``<p:spTree>`` element for this slide
-        """
-        return self._element.cSld.spTree
-
 
 class SlidePart(BaseSlidePart):
     """
