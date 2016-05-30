@@ -12,13 +12,13 @@ import pytest
 
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slidelayout import (
-    _LayoutPlaceholders, _LayoutShapeTree, SlideLayoutPart
-)
+from pptx.parts.slidelayout import SlideLayoutPart
 from pptx.parts.slidemaster import SlideMasterPart
 from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.placeholder import LayoutPlaceholder
-from pptx.shapes.shapetree import SlideShapeTree
+from pptx.shapes.shapetree import (
+    LayoutPlaceholders, LayoutShapes, SlideShapeTree
+)
 from pptx.slide import Slide, SlideLayout, SlideLayouts, SlideMasters, Slides
 
 from .unitutil.cxml import element, xml
@@ -248,17 +248,17 @@ class DescribeSlideLayout(object):
         assert slide_layout.slide_master is slide_master_
 
     def it_provides_access_to_its_placeholders(self, placeholders_fixture):
-        slide_layout, _LayoutPlaceholders_, spTree, placeholders_ = (
+        slide_layout, LayoutPlaceholders_, spTree, placeholders_ = (
             placeholders_fixture
         )
         placeholders = slide_layout.placeholders
-        _LayoutPlaceholders_.assert_called_once_with(spTree, slide_layout)
+        LayoutPlaceholders_.assert_called_once_with(spTree, slide_layout)
         assert placeholders is placeholders_
 
     def it_provides_access_to_its_shapes(self, shapes_fixture):
-        slide_layout, _LayoutShapeTree_, spTree, shapes_ = shapes_fixture
+        slide_layout, LayoutShapes_, spTree, shapes_ = shapes_fixture
         shapes = slide_layout.shapes
-        _LayoutShapeTree_.assert_called_once_with(spTree, slide_layout)
+        LayoutShapes_.assert_called_once_with(spTree, slide_layout)
         assert shapes is shapes_
 
     def it_can_iterate_its_clonable_placeholders(self, cloneable_fixture):
@@ -293,32 +293,32 @@ class DescribeSlideLayout(object):
         return slide_layout, slide_master_
 
     @pytest.fixture
-    def placeholders_fixture(self, _LayoutPlaceholders_, placeholders_):
+    def placeholders_fixture(self, LayoutPlaceholders_, placeholders_):
         sldLayout = element('p:sldLayout/p:cSld/p:spTree')
         slide_layout = SlideLayout(sldLayout, None)
         spTree = sldLayout.xpath('//p:spTree')[0]
-        return slide_layout, _LayoutPlaceholders_, spTree, placeholders_
+        return slide_layout, LayoutPlaceholders_, spTree, placeholders_
 
     @pytest.fixture
-    def shapes_fixture(self, _LayoutShapeTree_, shapes_):
+    def shapes_fixture(self, LayoutShapes_, shapes_):
         sldLayout = element('p:sldLayout/p:cSld/p:spTree')
         slide_layout = SlideLayout(sldLayout, None)
         spTree = sldLayout.xpath('//p:spTree')[0]
-        return slide_layout, _LayoutShapeTree_, spTree, shapes_
+        return slide_layout, LayoutShapes_, spTree, shapes_
 
     # fixture components -----------------------------------
 
     @pytest.fixture
-    def _LayoutPlaceholders_(self, request, placeholders_):
+    def LayoutPlaceholders_(self, request, placeholders_):
         return class_mock(
-            request, 'pptx.slide._LayoutPlaceholders',
+            request, 'pptx.slide.LayoutPlaceholders',
             return_value=placeholders_
         )
 
     @pytest.fixture
-    def _LayoutShapeTree_(self, request, shapes_):
+    def LayoutShapes_(self, request, shapes_):
         return class_mock(
-            request, 'pptx.slide._LayoutShapeTree', return_value=shapes_
+            request, 'pptx.slide.LayoutShapes', return_value=shapes_
         )
 
     @pytest.fixture
@@ -337,7 +337,7 @@ class DescribeSlideLayout(object):
 
     @pytest.fixture
     def placeholders_(self, request):
-        return instance_mock(request, _LayoutPlaceholders)
+        return instance_mock(request, LayoutPlaceholders)
 
     @pytest.fixture
     def placeholders_prop_(self, request, placeholders_):
@@ -347,7 +347,7 @@ class DescribeSlideLayout(object):
 
     @pytest.fixture
     def shapes_(self, request):
-        return instance_mock(request, _LayoutShapeTree)
+        return instance_mock(request, LayoutShapes)
 
     @pytest.fixture
     def slide_layout_part_(self, request):

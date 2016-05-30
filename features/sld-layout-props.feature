@@ -6,7 +6,7 @@ Feature: Slide layout properties
 
   Scenario: SlideLayout.shapes
      Given a slide layout
-      Then slide_layout.shapes is a LayoutShapeTree object
+      Then slide_layout.shapes is a LayoutShapes object
 
 
   Scenario: SlideLayout.placeholders
@@ -17,4 +17,3 @@ Feature: Slide layout properties
   Scenario: SlideLayout.slide_master
      Given a slide layout
       Then slide_layout.slide_master is a SlideMaster object
-

@@ -171,11 +171,11 @@ rst_epilog = """
 
 .. |KeyError| replace:: :exc:`KeyError`
 
-.. |LayoutPlaceholder| replace:: :class:`LayoutPlaceholder`
+.. |LayoutPlaceholder| replace:: :class:`.LayoutPlaceholder`
 
-.. |_LayoutPlaceholders| replace:: :class:`_LayoutPlaceholders`
+.. |LayoutPlaceholders| replace:: :class:`.LayoutPlaceholders`
 
-.. |_LayoutShapeTree| replace:: :class:`_LayoutShapeTree`
+.. |LayoutShapes| replace:: :class:`.LayoutShapes`
 
 .. |Legend| replace:: :class:`.Legend`
 

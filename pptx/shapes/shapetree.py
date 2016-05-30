@@ -11,8 +11,10 @@ from __future__ import (
 from .autoshape import AutoShapeType
 from ..enum.shapes import PP_PLACEHOLDER
 from .factory import BaseShapeFactory, SlideShapeFactory
+from ..oxml.ns import qn
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from ..oxml.simpletypes import ST_Direction
+from .placeholder import LayoutPlaceholder
 from ..shared import ParentedElementProxy
 
 
@@ -102,6 +104,54 @@ class BasePlaceholders(BaseShapeTree):
         True if *shape_elm* is a placeholder shape, False otherwise.
         """
         return shape_elm.has_ph_elm
+
+
+class LayoutPlaceholders(BasePlaceholders):
+    """
+    Sequence of |LayoutPlaceholder| instances representing the placeholder
+    shapes on a slide layout.
+    """
+    def get(self, idx, default=None):
+        """
+        Return the first placeholder shape with matching *idx* value, or
+        *default* if not found.
+        """
+        for placeholder in self:
+            if placeholder.idx == idx:
+                return placeholder
+        return default
+
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _LayoutShapeFactory(shape_elm, self)
+
+
+def _LayoutShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a slide layout.
+    """
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return LayoutPlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
+
+
+class LayoutShapes(BaseShapeTree):
+    """
+    Sequence of shapes appearing on a slide layout. The first shape in the
+    sequence is the backmost in z-order and the last shape is topmost.
+    Supports indexed access, len(), index(), and iteration.
+    """
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _LayoutShapeFactory(shape_elm, self)
 
 
 class SlideShapeTree(BaseShapeTree):

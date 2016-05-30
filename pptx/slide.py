@@ -10,7 +10,9 @@ from __future__ import (
 
 from .enum.shapes import PP_PLACEHOLDER
 from .shapes.factory import SlidePlaceholders
-from .shapes.shapetree import SlideShapeTree
+from .shapes.shapetree import (
+    LayoutPlaceholders, LayoutShapes, SlideShapeTree
+)
 from .shared import ParentedElementProxy, PartElementProxy
 from .util import lazyproperty
 
@@ -125,18 +127,18 @@ class SlideLayout(PartElementProxy):
     @lazyproperty
     def placeholders(self):
         """
-        Instance of |_LayoutPlaceholders| containing sequence of placeholder
+        Instance of |LayoutPlaceholders| containing sequence of placeholder
         shapes in this slide layout, sorted in *idx* order.
         """
-        return _LayoutPlaceholders(self._element.spTree, self)
+        return LayoutPlaceholders(self._element.spTree, self)
 
     @lazyproperty
     def shapes(self):
         """
-        Instance of |_LayoutShapeTree| containing the sequence of shapes
+        Instance of |LayoutShapes| containing the sequence of shapes
         appearing on this slide layout.
         """
-        return _LayoutShapeTree(self._element.spTree, self)
+        return LayoutShapes(self._element.spTree, self)
 
     @property
     def slide_master(self):
@@ -144,9 +146,6 @@ class SlideLayout(PartElementProxy):
         Slide master from which this slide layout inherits properties.
         """
         return self.part.slide_master
-
-
-from .parts.slidelayout import _LayoutPlaceholders, _LayoutShapeTree
 
 
 class SlideLayouts(ParentedElementProxy):

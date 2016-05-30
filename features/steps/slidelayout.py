@@ -9,10 +9,10 @@ from __future__ import absolute_import
 from behave import given, then
 
 from pptx import Presentation
-from pptx.parts.slidelayout import _LayoutPlaceholders, _LayoutShapeTree
 from pptx.shapes.base import BaseShape
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import LayoutPlaceholder
+from pptx.shapes.shapetree import LayoutPlaceholders, LayoutShapes
 
 from helpers import test_pptx
 
@@ -93,16 +93,16 @@ def then_can_access_layout_shape_by_index(context):
 def then_can_access_placeholder_collection_of_slide_layout(context):
     slide_layout = context.slide_layout
     layout_placeholders = slide_layout.placeholders
-    msg = 'SlideLayout.placeholders not instance of _LayoutPlaceholders'
-    assert isinstance(layout_placeholders, _LayoutPlaceholders), msg
+    msg = 'SlideLayout.placeholders not instance of LayoutPlaceholders'
+    assert isinstance(layout_placeholders, LayoutPlaceholders), msg
 
 
 @then('I can access the shape collection of the slide layout')
 def then_can_access_shape_collection_of_slide_layout(context):
     slide_layout = context.slide_layout
     layout_shapes = slide_layout.shapes
-    msg = 'SlideLayout.shapes not instance of _LayoutShapeTree'
-    assert isinstance(layout_shapes, _LayoutShapeTree), msg
+    msg = 'SlideLayout.shapes not instance of LayoutShapes'
+    assert isinstance(layout_shapes, LayoutShapes), msg
 
 
 @then('I can iterate over the layout placeholders')
@@ -134,13 +134,13 @@ def then_slide_layout_slide_master_is_a_SlideMaster_object(context):
 @then('slide_layout.placeholders is a LayoutPlaceholders object')
 def then_slide_layout_placeholders_is_a_LayoutPlaceholders_object(context):
     slide_layout = context.slide_layout
-    assert type(slide_layout.placeholders).__name__ == '_LayoutPlaceholders'
+    assert type(slide_layout.placeholders).__name__ == 'LayoutPlaceholders'
 
 
-@then('slide_layout.shapes is a LayoutShapeTree object')
-def then_slide_layout_shapes_is_a_LayoutShapeTree_object(context):
+@then('slide_layout.shapes is a LayoutShapes object')
+def then_slide_layout_shapes_is_a_LayoutShapes_object(context):
     slide_layout = context.slide_layout
-    assert type(slide_layout.shapes).__name__ == '_LayoutShapeTree'
+    assert type(slide_layout.shapes).__name__ == 'LayoutShapes'
 
 
 @then('the length of the layout placeholder collection is 2')

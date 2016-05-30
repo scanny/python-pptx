@@ -12,12 +12,12 @@ Candidate protocol
     >>> slide_layout
     <pptx.parts.slidelayout.SlideLayout object at 0x10a5d42d0>
     >>> slide_layout.shapes
-    <pptx.parts.slidelayout._LayoutShapeTree object at 0x104e60000>
+    <pptx.shapes.shapetree.LayoutShapes object at 0x104e60000>
     >>> slide_layout.shapes[0]
     <pptx.shapes.placeholder.LayoutPlaceholder object at 0x104e60020>
     >>> layout_placeholders = slide_layout.placeholders
     >>> layout_placeholders
-    <pptx.shapes.placeholder.LayoutPlaceholders object at 0x104e60040>
+    <pptx.shapes.shapetree.LayoutPlaceholders object at 0x104e60040>
     >>> len(layout_placeholders)
     5
     >>> layout_placeholders[1].type
