@@ -16,7 +16,8 @@ from pptx.parts.slide import SlideLayoutPart, SlideMasterPart
 from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.placeholder import LayoutPlaceholder
 from pptx.shapes.shapetree import (
-    LayoutPlaceholders, LayoutShapes, MasterPlaceholders, SlideShapeTree
+    LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
+    SlideShapeTree
 )
 from pptx.slide import (
     Slide, SlideLayout, SlideLayouts, SlideMaster, SlideMasters, Slides
@@ -451,6 +452,12 @@ class DescribeSlideMaster(object):
         MasterPlaceholders_.assert_called_once_with(spTree, slide_master)
         assert placeholders is placeholders_
 
+    def it_provides_access_to_its_shapes(self, shapes_fixture):
+        slide_master, MasterShapes_, spTree, shapes_ = shapes_fixture
+        shapes = slide_master.shapes
+        MasterShapes_.assert_called_once_with(spTree, slide_master)
+        assert shapes is shapes_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -459,6 +466,13 @@ class DescribeSlideMaster(object):
         slide_master = SlideMaster(sldMaster, None)
         spTree = sldMaster.xpath('//p:spTree')[0]
         return slide_master, MasterPlaceholders_, spTree, placeholders_
+
+    @pytest.fixture
+    def shapes_fixture(self, MasterShapes_, shapes_):
+        sldMaster = element('p:sldMaster/p:cSld/p:spTree')
+        slide_master = SlideMaster(sldMaster, None)
+        spTree = sldMaster.xpath('//p:spTree')[0]
+        return slide_master, MasterShapes_, spTree, shapes_
 
     # fixture components -----------------------------------
 
@@ -470,8 +484,18 @@ class DescribeSlideMaster(object):
         )
 
     @pytest.fixture
+    def MasterShapes_(self, request, shapes_):
+        return class_mock(
+            request, 'pptx.slide.MasterShapes', return_value=shapes_
+        )
+
+    @pytest.fixture
     def placeholders_(self, request):
         return instance_mock(request, MasterPlaceholders)
+
+    @pytest.fixture
+    def shapes_(self, request):
+        return instance_mock(request, MasterShapes)
 
 
 class DescribeSlideMasters(object):

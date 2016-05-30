@@ -11,7 +11,8 @@ from __future__ import (
 from .enum.shapes import PP_PLACEHOLDER
 from .shapes.factory import SlidePlaceholders
 from .shapes.shapetree import (
-    LayoutPlaceholders, LayoutShapes, MasterPlaceholders, SlideShapeTree
+    LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
+    SlideShapeTree
 )
 from .shared import ParentedElementProxy, PartElementProxy
 from .util import lazyproperty
@@ -198,6 +199,14 @@ class SlideMaster(PartElementProxy):
         shapes in this slide master, sorted in *idx* order.
         """
         return MasterPlaceholders(self._element.spTree, self)
+
+    @lazyproperty
+    def shapes(self):
+        """
+        Instance of |MasterShapes| containing sequence of shape objects
+        appearing on this slide.
+        """
+        return MasterShapes(self._element.spTree, self)
 
 
 class SlideMasters(ParentedElementProxy):
