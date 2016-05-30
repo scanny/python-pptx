@@ -34,6 +34,12 @@ def given_master_shape_collection_containing_two_shapes(context):
     context.master_shapes = prs.slide_master.shapes
 
 
+@given('a slide master')
+def given_a_slide_master(context):
+    prs = Presentation(test_pptx('sld-slide-access'))
+    context.slide_master = prs.slide_masters[0]
+
+
 @given('a slide master having two placeholders')
 def given_master_having_two_placeholders(context):
     prs = Presentation(test_pptx('mst-placeholders'))
@@ -152,6 +158,24 @@ def then_len_slide_layouts_is_2(context):
     assert len(slide_layouts) == 2, (
         'expected len(slide_layouts) of 2, got %s' % len(slide_layouts)
     )
+
+
+@then('slide_master.placeholders is a MasterPlaceholders object')
+def then_slide_master_placeholders_is_a_MasterPlaceholders_object(context):
+    slide_master = context.slide_master
+    assert type(slide_master.placeholders).__name__ == 'MasterPlaceholders'
+
+
+@then('slide_master.shapes is a MasterShapes object')
+def then_slide_master_shapes_is_a_MasterShapes_object(context):
+    slide_master = context.slide_master
+    assert type(slide_master.shapes).__name__ == 'MasterShapes'
+
+
+@then('slide_master.slide_layouts is a SlideLayouts object')
+def then_slide_master_slide_layouts_is_a_SlideLayouts_object(context):
+    slide_master = context.slide_master
+    assert type(slide_master.slide_layouts).__name__ == 'SlideLayouts'
 
 
 @then('the length of the master shape collection is 2')
