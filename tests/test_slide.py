@@ -16,9 +16,11 @@ from pptx.parts.slide import SlideLayoutPart, SlideMasterPart
 from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.placeholder import LayoutPlaceholder
 from pptx.shapes.shapetree import (
-    LayoutPlaceholders, LayoutShapes, SlideShapeTree
+    LayoutPlaceholders, LayoutShapes, MasterPlaceholders, SlideShapeTree
 )
-from pptx.slide import Slide, SlideLayout, SlideLayouts, SlideMasters, Slides
+from pptx.slide import (
+    Slide, SlideLayout, SlideLayouts, SlideMaster, SlideMasters, Slides
+)
 
 from .unitutil.cxml import element, xml
 from .unitutil.mock import call, class_mock, instance_mock, property_mock
@@ -437,6 +439,39 @@ class DescribeSlideLayouts(object):
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayout)
+
+
+class DescribeSlideMaster(object):
+
+    def it_provides_access_to_its_placeholders(self, placeholders_fixture):
+        slide_master, MasterPlaceholders_, spTree, placeholders_ = (
+            placeholders_fixture
+        )
+        placeholders = slide_master.placeholders
+        MasterPlaceholders_.assert_called_once_with(spTree, slide_master)
+        assert placeholders is placeholders_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def placeholders_fixture(self, MasterPlaceholders_, placeholders_):
+        sldMaster = element('p:sldMaster/p:cSld/p:spTree')
+        slide_master = SlideMaster(sldMaster, None)
+        spTree = sldMaster.xpath('//p:spTree')[0]
+        return slide_master, MasterPlaceholders_, spTree, placeholders_
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def MasterPlaceholders_(self, request, placeholders_):
+        return class_mock(
+            request, 'pptx.slide.MasterPlaceholders',
+            return_value=placeholders_
+        )
+
+    @pytest.fixture
+    def placeholders_(self, request):
+        return instance_mock(request, MasterPlaceholders)
 
 
 class DescribeSlideMasters(object):

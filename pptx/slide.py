@@ -11,7 +11,7 @@ from __future__ import (
 from .enum.shapes import PP_PLACEHOLDER
 from .shapes.factory import SlidePlaceholders
 from .shapes.shapetree import (
-    LayoutPlaceholders, LayoutShapes, SlideShapeTree
+    LayoutPlaceholders, LayoutShapes, MasterPlaceholders, SlideShapeTree
 )
 from .shared import ParentedElementProxy, PartElementProxy
 from .util import lazyproperty
@@ -184,6 +184,20 @@ class SlideLayouts(ParentedElementProxy):
         Support len() built-in function (e.g. 'len(slides) == 4').
         """
         return len(self._sldLayoutIdLst)
+
+
+class SlideMaster(PartElementProxy):
+    """
+    Slide master object. Provides access to placeholders, regular shapes,
+    slide layouts, and slide master-level properties.
+    """
+    @lazyproperty
+    def placeholders(self):
+        """
+        Instance of |MasterPlaceholders| containing sequence of placeholder
+        shapes in this slide master, sorted in *idx* order.
+        """
+        return MasterPlaceholders(self._element.spTree, self)
 
 
 class SlideMasters(ParentedElementProxy):
