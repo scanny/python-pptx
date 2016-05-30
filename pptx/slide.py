@@ -208,6 +208,13 @@ class SlideMaster(PartElementProxy):
         """
         return MasterShapes(self._element.spTree, self)
 
+    @lazyproperty
+    def slide_layouts(self):
+        """
+        Sequence of |SlideLayout| objects belonging to this slide master
+        """
+        return SlideLayouts(self._element.get_or_add_sldLayoutIdLst(), self)
+
 
 class SlideMasters(ParentedElementProxy):
     """

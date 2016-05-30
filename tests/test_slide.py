@@ -458,7 +458,22 @@ class DescribeSlideMaster(object):
         MasterShapes_.assert_called_once_with(spTree, slide_master)
         assert shapes is shapes_
 
+    def it_provides_access_to_its_slide_layouts(self, layouts_fixture):
+        slide_master, SlideLayouts_, sldLayoutIdLst, slide_layouts_ = (
+            layouts_fixture
+        )
+        slide_layouts = slide_master.slide_layouts
+        SlideLayouts_.assert_called_once_with(sldLayoutIdLst, slide_master)
+        assert slide_layouts is slide_layouts_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def layouts_fixture(self, SlideLayouts_, slide_layouts_):
+        sldMaster = element('p:sldMaster/p:sldLayoutIdLst')
+        slide_master = SlideMaster(sldMaster, None)
+        sldMasterIdLst = sldMaster.sldLayoutIdLst
+        return slide_master, SlideLayouts_, sldMasterIdLst, slide_layouts_
 
     @pytest.fixture
     def placeholders_fixture(self, MasterPlaceholders_, placeholders_):
@@ -496,6 +511,16 @@ class DescribeSlideMaster(object):
     @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, MasterShapes)
+
+    @pytest.fixture
+    def SlideLayouts_(self, request, slide_layouts_):
+        return class_mock(
+            request, 'pptx.slide.SlideLayouts', return_value=slide_layouts_
+        )
+
+    @pytest.fixture
+    def slide_layouts_(self, request):
+        return instance_mock(request, SlideLayouts)
 
 
 class DescribeSlideMasters(object):
