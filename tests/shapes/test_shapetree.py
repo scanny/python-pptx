@@ -13,7 +13,7 @@ from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import SlideMasterPart, SlidePart
+from pptx.parts.slide import SlidePart
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.graphfrm import GraphicFrame
@@ -27,7 +27,7 @@ from pptx.shapes.shapetree import (
     _MasterShapeFactory, MasterShapes, SlideShapeTree
 )
 from pptx.shapes.table import Table
-from pptx.slide import SlideLayout
+from pptx.slide import SlideLayout, SlideMaster
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..unitutil.cxml import element
@@ -795,7 +795,7 @@ class Describe_MasterShapeFactory(object):
 
     @pytest.fixture
     def slide_master_(self, request):
-        return instance_mock(request, SlideMasterPart)
+        return instance_mock(request, SlideMaster)
 
 
 class DescribeMasterShapes(object):

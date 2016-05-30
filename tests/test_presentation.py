@@ -12,9 +12,8 @@ import pytest
 
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slide import SlideMasterPart
 from pptx.presentation import Presentation
-from pptx.slide import SlideLayouts, SlideMasters, Slides
+from pptx.slide import SlideLayouts, SlideMaster, SlideMasters, Slides
 
 from .unitutil.cxml import element, xml
 from .unitutil.mock import class_mock, instance_mock, property_mock
@@ -217,7 +216,7 @@ class DescribePresentation(object):
 
     @pytest.fixture
     def slide_master_(self, request):
-        return instance_mock(request, SlideMasterPart)
+        return instance_mock(request, SlideMaster)
 
     @pytest.fixture
     def slide_masters_(self, request):

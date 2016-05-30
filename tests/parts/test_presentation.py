@@ -15,7 +15,7 @@ from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import SlidePart
 from pptx.presentation import Presentation
-from pptx.slide import Slide, SlideLayout
+from pptx.slide import Slide, SlideLayout, SlideMaster
 
 from ..unitutil.cxml import element
 from ..unitutil.mock import (
@@ -41,6 +41,12 @@ class DescribePresentationPart(object):
         slide = prs_part.related_slide(rId)
         prs_part.related_parts.__getitem__.assert_called_once_with(rId)
         assert slide is slide_
+
+    def it_provides_access_to_a_related_master(self, master_fixture):
+        prs_part, rId, slide_master_ = master_fixture
+        slide_master = prs_part.related_slide_master(rId)
+        prs_part.related_parts.__getitem__.assert_called_once_with(rId)
+        assert slide_master is slide_master_
 
     def it_can_rename_related_slide_parts(self, rename_fixture):
         prs_part, rIds, getitem_ = rename_fixture[:3]
@@ -97,6 +103,14 @@ class DescribePresentationPart(object):
         prs_part = PresentationPart(None, None, None, package_)
         package_.core_properties = core_properties_
         return prs_part, core_properties_
+
+    @pytest.fixture
+    def master_fixture(self, slide_master_, related_parts_prop_):
+        prs_part = PresentationPart(None, None, None, None)
+        rId = 'rId42'
+        related_parts_ = related_parts_prop_.return_value
+        related_parts_.__getitem__.return_value.slide_master = slide_master_
+        return prs_part, rId, slide_master_
 
     @pytest.fixture
     def next_fixture(self):
@@ -189,6 +203,10 @@ class DescribePresentationPart(object):
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def slide_master_(self, request):
+        return instance_mock(request, SlideMaster)
 
     @pytest.fixture
     def slide_part_(self, request):

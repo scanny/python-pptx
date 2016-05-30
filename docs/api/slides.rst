@@ -40,7 +40,7 @@ return value of :meth:`add_slide`.
 |SlideMaster| objects
 ---------------------
 
-.. autoclass:: pptx.parts.slide.SlideMasterPart
+.. autoclass:: pptx.slide.SlideMaster
    :members:
    :exclude-members: related_slide_layout, sldLayoutIdLst
 

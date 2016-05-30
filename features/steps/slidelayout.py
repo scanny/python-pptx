@@ -128,7 +128,7 @@ def then_can_iterate_over_the_layout_shapes(context):
 @then('slide_layout.slide_master is a SlideMaster object')
 def then_slide_layout_slide_master_is_a_SlideMaster_object(context):
     slide_layout = context.slide_layout
-    assert type(slide_layout.slide_master).__name__ == 'SlideMasterPart'
+    assert type(slide_layout.slide_master).__name__ == 'SlideMaster'
 
 
 @then('slide_layout.placeholders is a LayoutPlaceholders object')

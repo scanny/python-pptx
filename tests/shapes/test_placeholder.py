@@ -12,14 +12,14 @@ from pptx.chart.data import ChartData
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
+from pptx.parts.slide import SlideLayoutPart, SlidePart
 from pptx.shapes.placeholder import (
     BasePlaceholder, _BaseSlidePlaceholder, ChartPlaceholder,
     LayoutPlaceholder, MasterPlaceholder, PicturePlaceholder,
     PlaceholderGraphicFrame, PlaceholderPicture, TablePlaceholder
 )
 from pptx.shapes.shapetree import BaseShapeTree
-from pptx.slide import SlideLayout
+from pptx.slide import SlideLayout, SlideMaster
 
 from ..oxml.unitdata.shape import (
     an_ext, a_graphicFrame, a_ph, an_nvGraphicFramePr, an_nvPicPr, an_nvPr,
@@ -556,7 +556,7 @@ class DescribeLayoutPlaceholder(object):
 
     @pytest.fixture
     def slide_master_(self, request):
-        return instance_mock(request, SlideMasterPart)
+        return instance_mock(request, SlideMaster)
 
     @pytest.fixture
     def sp(self, width):

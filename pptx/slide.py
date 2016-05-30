@@ -236,7 +236,7 @@ class SlideMasters(ParentedElementProxy):
             sldMasterId = self._sldMasterIdLst[idx]
         except IndexError:
             raise IndexError('slide master index out of range')
-        return self.part.related_parts[sldMasterId.rId]
+        return self.part.related_slide_master(sldMasterId.rId)
 
     def __iter__(self):
         """
@@ -244,7 +244,7 @@ class SlideMasters(ParentedElementProxy):
         collection, in sequence.
         """
         for smi in self._sldMasterIdLst:
-            yield self.part.related_parts[smi.rId]
+            yield self.part.related_slide_master(smi.rId)
 
     def __len__(self):
         """

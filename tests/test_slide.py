@@ -357,7 +357,7 @@ class DescribeSlideLayout(object):
 
     @pytest.fixture
     def slide_master_(self, request):
-        return instance_mock(request, SlideMasterPart)
+        return instance_mock(request, SlideMaster)
 
 
 class DescribeSlideLayouts(object):
@@ -530,13 +530,17 @@ class DescribeSlideMasters(object):
         assert len(slide_masters) == expected_value
 
     def it_can_iterate_the_slide_masters(self, iter_fixture):
-        slide_masters, expected_values = iter_fixture
-        assert [sm for sm in slide_masters] == expected_values
+        slide_masters, related_slide_master_, calls, expected_values = (
+            iter_fixture
+        )
+        _slide_masters = [sm for sm in slide_masters]
+        assert related_slide_master_.call_args_list == calls
+        assert _slide_masters == expected_values
 
     def it_supports_indexed_access(self, getitem_fixture):
         slide_masters, part_, slide_master_, rId = getitem_fixture
         slide_master = slide_masters[0]
-        part_.related_parts.__getitem__.assert_called_once_with(rId)
+        part_.related_slide_master.assert_called_once_with(rId)
         assert slide_master is slide_master_
 
     def it_raises_on_index_out_of_range(self, getitem_raises_fixture):
@@ -551,8 +555,7 @@ class DescribeSlideMasters(object):
         slide_masters = SlideMasters(
             element('p:sldMasterIdLst/p:sldMasterId{r:id=rId1}'), None
         )
-        part_prop_.return_value = part_
-        part_.related_parts.__getitem__.return_value = slide_master_
+        part_.related_slide_master.return_value = slide_master_
         return slide_masters, part_, slide_master_, 'rId1'
 
     @pytest.fixture
@@ -567,14 +570,14 @@ class DescribeSlideMasters(object):
             'p:sldMasterIdLst/(p:sldMasterId{r:id=a},p:sldMasterId{r:id=b})'
         )
         slide_masters = SlideMasters(sldMasterIdLst, None)
+        related_slide_master_ = part_prop_.return_value.related_slide_master
+        calls = [call('a'), call('b')]
         _slide_masters = [
-            SlideMasterPart(None, None, element('p:sldMaster')),
-            SlideMasterPart(None, None, element('p:sldMaster'))
+            SlideMaster(element('p:sldMaster'), None),
+            SlideMaster(element('p:sldMaster'), None)
         ]
-        part_prop_.return_value.related_parts.__getitem__.side_effect = (
-            _slide_masters
-        )
-        return slide_masters, _slide_masters
+        related_slide_master_.side_effect = _slide_masters
+        return slide_masters, related_slide_master_, calls, _slide_masters
 
     @pytest.fixture(params=[
         ('p:sldMasterIdLst',                               0),
@@ -593,9 +596,11 @@ class DescribeSlideMasters(object):
         return instance_mock(request, PresentationPart)
 
     @pytest.fixture
-    def part_prop_(self, request):
-        return property_mock(request, SlideMasters, 'part')
+    def part_prop_(self, request, part_):
+        return property_mock(
+            request, SlideMasters, 'part', return_value=part_
+        )
 
     @pytest.fixture
     def slide_master_(self, request):
-        return instance_mock(request, SlideMasterPart)
+        return instance_mock(request, SlideMaster)

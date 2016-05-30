@@ -53,6 +53,13 @@ class PresentationPart(XmlPart):
         """
         return self.related_parts[rId].slide
 
+    def related_slide_master(self, rId):
+        """
+        Return the |SlideMaster| object for the related |SlideMasterPart|
+        corresponding to relationship key *rId*.
+        """
+        return self.related_parts[rId].slide_master
+
     def rename_slide_parts(self, rIds):
         """
         Assign incrementing partnames like ``/ppt/slides/slide9.xml`` to the

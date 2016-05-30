@@ -12,8 +12,7 @@ from .chart import ChartPart
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..oxml.slide import CT_Slide
-from ..shapes.shapetree import MasterPlaceholders, MasterShapes
-from ..slide import Slide, SlideLayout, SlideLayouts, SlideMaster
+from ..slide import Slide, SlideLayout, SlideMaster
 from ..util import lazyproperty
 
 
@@ -108,7 +107,7 @@ class SlideLayoutPart(BaseSlidePart):
         """
         Slide master from which this slide layout inherits properties.
         """
-        return self.part_related_by(RT.SLIDE_MASTER)
+        return self.part_related_by(RT.SLIDE_MASTER).slide_master
 
 
 class SlideMasterPart(BaseSlidePart):
@@ -116,35 +115,12 @@ class SlideMasterPart(BaseSlidePart):
     Slide master part. Corresponds to package files
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     """
-    @lazyproperty
-    def placeholders(self):
-        """
-        Instance of |MasterPlaceholders| containing sequence of placeholder
-        shapes in this slide master, sorted in *idx* order.
-        """
-        return MasterPlaceholders(self._element.spTree, self)
-
     def related_slide_layout(self, rId):
         """
         Return the |SlideLayout| object of the related |SlideLayoutPart|
         corresponding to relationship key *rId*.
         """
         return self.related_parts[rId].slide_layout
-
-    @lazyproperty
-    def shapes(self):
-        """
-        Instance of |MasterShapes| containing sequence of shape objects
-        appearing on this slide.
-        """
-        return MasterShapes(self._element.spTree, self)
-
-    @lazyproperty
-    def slide_layouts(self):
-        """
-        Sequence of |SlideLayout| objects belonging to this slide master
-        """
-        return SlideLayouts(self._element.get_or_add_sldLayoutIdLst(), self)
 
     @lazyproperty
     def slide_master(self):
