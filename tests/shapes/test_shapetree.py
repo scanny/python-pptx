@@ -14,14 +14,18 @@ from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
 from pptx.parts.image import ImagePart
 from pptx.parts.slide import SlidePart
+from pptx.parts.slidemaster import SlideMasterPart
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
-from pptx.shapes.placeholder import BasePlaceholder, LayoutPlaceholder
+from pptx.shapes.placeholder import (
+    BasePlaceholder, LayoutPlaceholder, MasterPlaceholder
+)
 from pptx.shapes.shapetree import (
     BasePlaceholders, BaseShapeTree, LayoutPlaceholders,
-    _LayoutShapeFactory, LayoutShapes, SlideShapeTree
+    _LayoutShapeFactory, LayoutShapes, MasterPlaceholders,
+    _MasterShapeFactory, MasterShapes, SlideShapeTree
 )
 from pptx.shapes.table import Table
 from pptx.slide import SlideLayout
@@ -732,3 +736,158 @@ class DescribeLayoutPlaceholders(object):
     @pytest.fixture
     def placeholder_2_(self, request):
         return instance_mock(request, LayoutPlaceholder, idx=1)
+
+
+class Describe_MasterShapeFactory(object):
+
+    def it_constructs_a_master_placeholder_for_a_shape_element(
+            self, factory_fixture):
+        shape_elm, parent_, ShapeConstructor_, shape_ = factory_fixture
+        shape = _MasterShapeFactory(shape_elm, parent_)
+        ShapeConstructor_.assert_called_once_with(shape_elm, parent_)
+        assert shape is shape_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=['ph', 'sp', 'pic'])
+    def factory_fixture(
+            self, request, ph_bldr, slide_master_, _MasterPlaceholder_,
+            master_placeholder_, BaseShapeFactory_, base_shape_):
+        shape_bldr, ShapeConstructor_, shape_mock = {
+            'ph':  (ph_bldr, _MasterPlaceholder_, master_placeholder_),
+            'sp':  (an_sp(), BaseShapeFactory_,   base_shape_),
+            'pic': (a_pic(), BaseShapeFactory_,   base_shape_),
+        }[request.param]
+        shape_elm = shape_bldr.with_nsdecls().element
+        return shape_elm, slide_master_, ShapeConstructor_, shape_mock
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def BaseShapeFactory_(self, request, base_shape_):
+        return function_mock(
+            request, 'pptx.shapes.shapetree.BaseShapeFactory',
+            return_value=base_shape_
+        )
+
+    @pytest.fixture
+    def base_shape_(self, request):
+        return instance_mock(request, BaseShape)
+
+    @pytest.fixture
+    def _MasterPlaceholder_(self, request, master_placeholder_):
+        return class_mock(
+            request, 'pptx.shapes.shapetree.MasterPlaceholder',
+            return_value=master_placeholder_
+        )
+
+    @pytest.fixture
+    def master_placeholder_(self, request):
+        return instance_mock(request, MasterPlaceholder)
+
+    @pytest.fixture
+    def ph_bldr(self):
+        return (
+            an_sp().with_child(
+                an_nvSpPr().with_child(
+                    an_nvPr().with_child(
+                        a_ph().with_idx(1))))
+        )
+
+    @pytest.fixture
+    def slide_master_(self, request):
+        return instance_mock(request, SlideMasterPart)
+
+
+class DescribeMasterShapes(object):
+
+    def it_provides_access_to_its_shape_factory(self, factory_fixture):
+        shapes, sp, _MasterShapeFactory_, placeholder_ = factory_fixture
+        placeholder = shapes._shape_factory(sp)
+        _MasterShapeFactory_.assert_called_once_with(sp, shapes)
+        assert placeholder is placeholder_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def factory_fixture(self, _MasterShapeFactory_, placeholder_):
+        shapes = MasterShapes(None, None)
+        sp = element('p:sp')
+        return shapes, sp, _MasterShapeFactory_, placeholder_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _MasterShapeFactory_(self, request, placeholder_):
+        return function_mock(
+            request, 'pptx.shapes.shapetree._MasterShapeFactory',
+            return_value=placeholder_, autospec=True
+        )
+
+    @pytest.fixture
+    def placeholder_(self, request):
+        return instance_mock(request, MasterPlaceholder)
+
+
+class DescribeMasterPlaceholders(object):
+
+    def it_provides_access_to_its_shape_factory(self, factory_fixture):
+        placeholders, sp, _MasterShapeFactory_, placeholder_ = factory_fixture
+        placeholder = placeholders._shape_factory(sp)
+        _MasterShapeFactory_.assert_called_once_with(sp, placeholders)
+        assert placeholder is placeholder_
+
+    def it_can_find_a_placeholder_by_type(self, get_fixture):
+        placeholders, ph_type, placeholder_ = get_fixture
+        assert placeholders.get(ph_type) is placeholder_
+
+    def it_returns_default_on_ph_type_not_found(self, default_fixture):
+        placeholders, default = default_fixture
+        assert placeholders.get(42, default) is default
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def default_fixture(self, _iter_):
+        placeholders = MasterPlaceholders(None, None)
+        default = 'barfoo'
+        return placeholders, default
+
+    @pytest.fixture
+    def factory_fixture(self, _MasterShapeFactory_, placeholder_):
+        placeholders = MasterPlaceholders(None, None)
+        sp = element('p:sp')
+        return placeholders, sp, _MasterShapeFactory_, placeholder_
+
+    @pytest.fixture(params=['title', 'body'])
+    def get_fixture(self, request, _iter_, placeholder_, placeholder_2_):
+        ph_type = request.param
+        placeholders = MasterPlaceholders(None, None)
+        _placeholder_ = {
+            'title': placeholder_, 'body': placeholder_2_
+        }[ph_type]
+        return placeholders, ph_type, _placeholder_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _iter_(self, request, placeholder_, placeholder_2_):
+        return method_mock(
+            request, MasterPlaceholders, '__iter__',
+            return_value=iter([placeholder_, placeholder_2_])
+        )
+
+    @pytest.fixture
+    def _MasterShapeFactory_(self, request, placeholder_):
+        return function_mock(
+            request, 'pptx.shapes.shapetree._MasterShapeFactory',
+            return_value=placeholder_, autospec=True
+        )
+
+    @pytest.fixture
+    def placeholder_(self, request):
+        return instance_mock(request, MasterPlaceholder, ph_type='title')
+
+    @pytest.fixture
+    def placeholder_2_(self, request):
+        return instance_mock(request, MasterPlaceholder, ph_type='body')

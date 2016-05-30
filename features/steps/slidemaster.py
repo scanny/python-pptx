@@ -12,7 +12,7 @@ from behave import given, then
 
 from pptx import Presentation
 from pptx.enum.shapes import PP_PLACEHOLDER
-from pptx.parts.slidemaster import _MasterPlaceholders, _MasterShapeTree
+from pptx.parts.slidemaster import MasterPlaceholders, MasterShapes
 from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import MasterPlaceholder
 from pptx.slide import SlideLayouts
@@ -96,16 +96,16 @@ def then_can_access_slide_layout_by_index(context):
 def then_can_access_placeholder_collection_of_slide_master(context):
     slide_master = context.slide_master
     master_placeholders = slide_master.placeholders
-    msg = 'SlideMaster.placeholders not instance of _MasterPlaceholders'
-    assert isinstance(master_placeholders, _MasterPlaceholders), msg
+    msg = 'SlideMaster.placeholders not instance of MasterPlaceholders'
+    assert isinstance(master_placeholders, MasterPlaceholders), msg
 
 
 @then('I can access the shape collection of the slide master')
 def then_can_access_shape_collection_of_slide_master(context):
     slide_master = context.slide_master
     master_shapes = slide_master.shapes
-    msg = 'SlideMaster.shapes not instance of _MasterShapeTree'
-    assert isinstance(master_shapes, _MasterShapeTree), msg
+    msg = 'SlideMaster.shapes not instance of MasterShapes'
+    assert isinstance(master_shapes, MasterShapes), msg
 
 
 @then('I can access the slide layouts of the slide master')

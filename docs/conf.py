@@ -189,11 +189,11 @@ rst_epilog = """
 
 .. |MajorGridLines| replace:: :class:`.MajorGridlines`
 
-.. |MasterPlaceholder| replace:: :class:`MasterPlaceholder`
+.. |MasterPlaceholder| replace:: :class:`.MasterPlaceholder`
 
-.. |_MasterPlaceholders| replace:: :class:`_MasterPlaceholders`
+.. |MasterPlaceholders| replace:: :class:`.MasterPlaceholders`
 
-.. |_MasterShapeTree| replace:: :class:`_MasterShapeTree`
+.. |MasterShapes| replace:: :class:`.MasterShapes`
 
 .. |None| replace:: :class:`None`
 

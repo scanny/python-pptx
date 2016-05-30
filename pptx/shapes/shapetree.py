@@ -14,7 +14,7 @@ from .factory import BaseShapeFactory, SlideShapeFactory
 from ..oxml.ns import qn
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from ..oxml.simpletypes import ST_Direction
-from .placeholder import LayoutPlaceholder
+from .placeholder import LayoutPlaceholder, MasterPlaceholder
 from ..shared import ParentedElementProxy
 
 
@@ -152,6 +152,55 @@ class LayoutShapes(BaseShapeTree):
         *shape_elm*.
         """
         return _LayoutShapeFactory(shape_elm, self)
+
+
+class MasterPlaceholders(BasePlaceholders):
+    """
+    Sequence of _MasterPlaceholder instances representing the placeholder
+    shapes on a slide master.
+    """
+    def get(self, ph_type, default=None):
+        """
+        Return the first placeholder shape with type *ph_type* (e.g. 'body'),
+        or *default* if no such placeholder shape is present in the
+        collection.
+        """
+        for placeholder in self:
+            if placeholder.ph_type == ph_type:
+                return placeholder
+        return default
+
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _MasterShapeFactory(shape_elm, self)
+
+
+class MasterShapes(BaseShapeTree):
+    """
+    Sequence of shapes appearing on a slide master. The first shape in the
+    sequence is the backmost in z-order and the last shape is topmost.
+    Supports indexed access, len(), and iteration.
+    """
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _MasterShapeFactory(shape_elm, self)
+
+
+def _MasterShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a slide master.
+    """
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return MasterPlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
 
 
 class SlideShapeTree(BaseShapeTree):
