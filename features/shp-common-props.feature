@@ -1,9 +1,10 @@
-Feature: Query and change common shape properties
-  In order to identify and characterize shapes
+Feature: Common shape properties
+  In order to interact with shapes of assorted types
   As a developer using python-pptx
-  I need a set of common properties available for all shapes
+  I need a common set of properties available on all shapes
 
-  Scenario Outline: get shape id
+
+  Scenario Outline: Get shape.id
      Given a <shape-type>
       Then I can get the id of the <shape-type>
 
@@ -16,7 +17,7 @@ Feature: Query and change common shape properties
       | connector     |
 
 
-  Scenario Outline: get shape name
+  Scenario Outline: Get shape.name
      Given a <shape-type>
       Then shape.name is '<name>'
 
@@ -29,7 +30,7 @@ Feature: Query and change common shape properties
       | connector     | Elbow Connector 10  |
 
 
-  Scenario Outline: Change shape name
+  Scenario Outline: Set shape.name
     Given a <shape-type>
      When I assign '<value>' to shape.name
      Then shape.name is '<expected-value>'
@@ -56,7 +57,7 @@ Feature: Query and change common shape properties
       | connector     |
 
 
-  Scenario Outline: determine whether a shape can contain text
+  Scenario Outline: Get shape.has_text_frame
      Given a <shape-type>
       Then I can determine the shape <has_text_frame status>
 
@@ -69,7 +70,7 @@ Feature: Query and change common shape properties
       | connector     | has no text frame     |
 
 
-  Scenario Outline: Get shape rotation
+  Scenario Outline: Get shape.rotation
      Given a rotated <shape-type>
       Then shape.rotation is <value>
 
@@ -82,7 +83,7 @@ Feature: Query and change common shape properties
       | connector     | 50.0  |
 
 
-  Scenario Outline: Change shape rotation
+  Scenario Outline: Set shape.rotation
      Given a <shape-type>
       When I assign <value> to shape.rotation
       Then shape.rotation is <expected-value>
@@ -96,7 +97,7 @@ Feature: Query and change common shape properties
       | connector     |  50.0 |      50.0      |
 
 
-  Scenario Outline: get click action
+  Scenario Outline: Get shape.click_action
      Given <shape-type>
       Then shape.click_action is an ActionSetting object
 
@@ -109,3 +110,57 @@ Feature: Query and change common shape properties
       | a chart       |
       | a table       |
       | a group shape |
+
+
+  Scenario Outline: Get shape.left and shape.top
+    Given a <shape-type>
+     Then the left and top of the <shape-type> match their known values
+
+    Examples: Shape types
+      | shape-type    |
+      | shape         |
+      | picture       |
+      | graphic frame |
+      | group shape   |
+      | connector     |
+
+
+  Scenario Outline: Set shape.left and shape.top
+    Given a <shape-type>
+     When I change the left and top of the <shape-type>
+     Then the left and top of the <shape-type> match their new values
+
+    Examples: Shape types
+      | shape-type    |
+      | shape         |
+      | picture       |
+      | graphic frame |
+      | group shape   |
+      | connector     |
+
+
+  Scenario Outline: Get shape.width and shape.height
+    Given a <shape-type>
+     Then the width and height of the <shape-type> match their known values
+
+    Examples: Shape types
+      | shape-type    |
+      | shape         |
+      | picture       |
+      | graphic frame |
+      | group shape   |
+      | connector     |
+
+
+  Scenario Outline: Set shape.width and shape.height
+    Given a <shape-type>
+     When I change the width and height of the <shape-type>
+     Then the width and height of the <shape-type> match their new values
+
+    Examples: Shape types
+      | shape-type    |
+      | shape         |
+      | picture       |
+      | graphic frame |
+      | group shape   |
+      | connector     |
