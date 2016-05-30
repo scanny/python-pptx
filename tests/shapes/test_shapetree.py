@@ -13,8 +13,7 @@ from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import SlidePart
-from pptx.parts.slidemaster import SlideMasterPart
+from pptx.parts.slide import SlideMasterPart, SlidePart
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.graphfrm import GraphicFrame

@@ -12,9 +12,7 @@ from pptx.chart.data import ChartData
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import SlidePart
-from pptx.parts.slidelayout import SlideLayoutPart
-from pptx.parts.slidemaster import SlideMasterPart
+from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
 from pptx.shapes.placeholder import (
     BasePlaceholder, _BaseSlidePlaceholder, ChartPlaceholder,
     LayoutPlaceholder, MasterPlaceholder, PicturePlaceholder,

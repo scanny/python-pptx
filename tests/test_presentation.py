@@ -12,7 +12,7 @@ import pytest
 
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slidemaster import SlideMasterPart
+from pptx.parts.slide import SlideMasterPart
 from pptx.presentation import Presentation
 from pptx.slide import SlideLayouts, SlideMasters, Slides
 

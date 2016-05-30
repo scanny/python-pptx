@@ -20,9 +20,7 @@ from pptx.parts.chart import ChartPart
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.image import ImagePart
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slide import SlidePart
-from pptx.parts.slidelayout import SlideLayoutPart
-from pptx.parts.slidemaster import SlideMasterPart
+from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
 
 content_type_to_part_class_map = {
     CT.PML_PRESENTATION_MAIN: PresentationPart,

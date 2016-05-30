@@ -12,9 +12,9 @@ from behave import given, then
 
 from pptx import Presentation
 from pptx.enum.shapes import PP_PLACEHOLDER
-from pptx.parts.slidemaster import MasterPlaceholders, MasterShapes
 from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import MasterPlaceholder
+from pptx.shapes.shapetree import MasterPlaceholders, MasterShapes
 from pptx.slide import SlideLayouts
 
 from helpers import test_pptx

@@ -12,8 +12,7 @@ import pytest
 
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slidelayout import SlideLayoutPart
-from pptx.parts.slidemaster import SlideMasterPart
+from pptx.parts.slide import SlideLayoutPart, SlideMasterPart
 from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.placeholder import LayoutPlaceholder
 from pptx.shapes.shapetree import (

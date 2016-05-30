@@ -14,7 +14,7 @@ from pptx import Presentation
 from pptx.compat import BytesIO
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.slide import SlideMasters
-from pptx.parts.slidemaster import SlideMasterPart
+from pptx.parts.slide import SlideMasterPart
 from pptx.util import Inches
 
 from helpers import saved_pptx_path, test_pptx
