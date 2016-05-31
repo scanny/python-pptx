@@ -48,5 +48,5 @@ return value of :meth:`add_slide`.
 |SlidePlaceholders| objects
 ---------------------------
 
-.. autoclass:: pptx.shapes.factory.SlidePlaceholders
+.. autoclass:: pptx.shapes.shapetree.SlidePlaceholders
    :members:

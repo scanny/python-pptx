@@ -9,10 +9,9 @@ from __future__ import (
 )
 
 from .enum.shapes import PP_PLACEHOLDER
-from .shapes.factory import SlidePlaceholders
 from .shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
-    SlideShapes
+    SlidePlaceholders, SlideShapes
 )
 from .shared import ParentedElementProxy, PartElementProxy
 from .util import lazyproperty

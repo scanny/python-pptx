@@ -22,7 +22,7 @@ Candidate protocol
     <pptx.shapes.placeholder.ShapePlaceholder object at 0x104e60020>
     >>> slide_placeholders = slide.placeholders
     >>> slide_placeholders
-    <pptx.shapes.factory.SlidePlaceholders object at 0x104e60040>
+    <pptx.shapes.shapetree.SlidePlaceholders object at 0x104e60040>
     >>> len(slide_placeholders)
     2
     >>> slide_placeholders[1]

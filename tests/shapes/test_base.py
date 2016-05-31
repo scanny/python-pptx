@@ -15,10 +15,9 @@ from pptx.oxml.text import CT_TextBody
 from pptx.shapes import Subshape
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.base import BaseShape, _PlaceholderFormat
-from pptx.shapes.factory import BaseShapeFactory
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
-from pptx.shapes.shapetree import SlideShapes
+from pptx.shapes.shapetree import BaseShapeFactory, SlideShapes
 
 from ..oxml.unitdata.shape import (
     a_cNvPr, a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic,
