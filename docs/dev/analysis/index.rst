@@ -9,37 +9,48 @@ Feature Analysis
 
 Roughly in reverse chronological order of creation:
 
+
+Slides
+~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   sld-master
+   sld-layout
+
+
 Chart
 ~~~~~
 
 .. toctree::
    :maxdepth: 1
 
-   features/cht-title
-   features/cht-points
-   features/cht-radar-chart
-   features/cht-bubble-chart
-   features/cht-xy-chart
-   features/cht-line-chart
-   features/cht-pie-chart
-   features/cht-bar-chart
-   features/cht-plots
-   features/cht-legend.rst
-   features/cht-add-chart.rst
-   features/cht-chart-data.rst
-   features/cht-tick-labels.rst
-   features/cht-plot-data.rst
-   features/cht-axis-unit.rst
-   features/cht-chart-type
-   features/cht-invert-if-negative
-   features/cht-axis-has-gridlines
-   features/cht-series
-   features/cht-access-xlsx
-   features/cht-data-labels
-   features/cht-axes
-   features/cht-chart-shape
-   features/cht-chart
-   features/cht-chart-overview
+   cht-title
+   cht-points
+   cht-radar-chart
+   cht-bubble-chart
+   cht-xy-chart
+   cht-line-chart
+   cht-pie-chart
+   cht-bar-chart
+   cht-plots
+   cht-legend.rst
+   cht-add-chart.rst
+   cht-chart-data.rst
+   cht-tick-labels.rst
+   cht-plot-data.rst
+   cht-axis-unit.rst
+   cht-chart-type
+   cht-invert-if-negative
+   cht-axis-has-gridlines
+   cht-series
+   cht-access-xlsx
+   cht-data-labels
+   cht-axes
+   cht-chart-shape
+   cht-chart
+   cht-chart-overview
 
 
 Shape
@@ -48,18 +59,19 @@ Shape
 .. toctree::
    :titlesonly:
 
-   features/shp-shapes
-   features/shp-autoshape
-   features/shp-preset-geom
-   features/shp-hyperlink
-   features/shp-graphfrm
-   features/shp-picture
-   features/shp-connector
-   features/shp-autofit
-   features/shp-pos-and-size
-   features/placeholders/index
-   features/shp-group-shape
-   features/shp-table
+   shp-shapes
+   sld-slide-shapes
+   shp-autoshape
+   shp-preset-geom
+   shp-hyperlink
+   shp-graphfrm
+   shp-picture
+   shp-connector
+   shp-autofit
+   shp-pos-and-size
+   placeholders/index
+   shp-group-shape
+   shp-table
 
 
 Text
@@ -68,25 +80,14 @@ Text
 .. toctree::
    :maxdepth: 1
 
-   features/txt-para-spacing
-   features/txt-fit-text
-   features/txt-autofit-text
-   features/txt-text
-   features/txt-font-underline
-   features/txt-font-color
-   features/txt-font-typeface
-   features/txt-hyperlink
-
-
-Slides
-~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   features/sld-shape-tree
-   features/mst-slide-master
-   features/mst-slide-layout
+   txt-para-spacing
+   txt-fit-text
+   txt-autofit-text
+   txt-text
+   txt-font-underline
+   txt-font-color
+   txt-font-typeface
+   txt-hyperlink
 
 
 Presentation
@@ -95,7 +96,7 @@ Presentation
 .. toctree::
    :maxdepth: 1
 
-   features/prs-properties
+   prs-properties
 
 
 DrawingML
@@ -104,9 +105,9 @@ DrawingML
 .. toctree::
    :maxdepth: 1
 
-   features/dml-color
-   features/dml-fill
-   features/dml-line
+   dml-color
+   dml-fill
+   dml-line
 
 
 Package
@@ -115,8 +116,8 @@ Package
 .. toctree::
    :maxdepth: 1
 
-   features/pkg-coreprops
-   features/enumerations
+   pkg-coreprops
+   enumerations
 
 
 Major discovery sources
