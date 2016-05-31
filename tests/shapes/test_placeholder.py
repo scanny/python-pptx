@@ -18,7 +18,7 @@ from pptx.shapes.placeholder import (
     LayoutPlaceholder, MasterPlaceholder, PicturePlaceholder,
     PlaceholderGraphicFrame, PlaceholderPicture, TablePlaceholder
 )
-from pptx.shapes.shapetree import BaseShapeTree
+from pptx.shapes.shapetree import _BaseShapes
 from pptx.slide import SlideLayout, SlideMaster
 
 from ..oxml.unitdata.shape import (
@@ -537,7 +537,7 @@ class DescribeLayoutPlaceholder(object):
 
     @pytest.fixture
     def parent_(self, request):
-        return instance_mock(request, BaseShapeTree)
+        return instance_mock(request, _BaseShapes)
 
     @pytest.fixture
     def ph_type_(self, request):

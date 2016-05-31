@@ -22,7 +22,7 @@ from pptx.shapes.placeholder import (
     BasePlaceholder, LayoutPlaceholder, MasterPlaceholder
 )
 from pptx.shapes.shapetree import (
-    BasePlaceholders, BaseShapeTree, LayoutPlaceholders,
+    BasePlaceholders, _BaseShapes, LayoutPlaceholders,
     _LayoutShapeFactory, LayoutShapes, MasterPlaceholders,
     _MasterShapeFactory, MasterShapes, SlideShapes
 )
@@ -37,7 +37,7 @@ from ..unitutil.mock import (
 )
 
 
-class DescribeBaseShapeTree(object):
+class Describe_BaseShapes(object):
 
     def it_knows_how_many_shapes_it_contains(self, len_fixture):
         shapes, expected_count = len_fixture
@@ -72,7 +72,7 @@ class DescribeBaseShapeTree(object):
     @pytest.fixture
     def getitem_fixture(self, BaseShapeFactory_, shape_):
         spTree = element('p:spTree/(p:sp,p:sp)')
-        shapes = BaseShapeTree(spTree, None)
+        shapes = _BaseShapes(spTree, None)
         idx = 1
         sp = spTree.xpath('p:sp')[idx]
         return shapes, idx, BaseShapeFactory_, sp, shape_
@@ -80,14 +80,14 @@ class DescribeBaseShapeTree(object):
     @pytest.fixture
     def getitem_raises_fixture(self):
         spTree = element('p:spTree/(p:sp,p:sp)')
-        shapes = BaseShapeTree(spTree, None)
+        shapes = _BaseShapes(spTree, None)
         return shapes
 
     @pytest.fixture
     def iter_fixture(self, BaseShapeFactory_):
         spTree = element('p:spTree/(p:sp,p:sp)')
         sps = spTree.xpath('p:sp')
-        shapes = BaseShapeTree(spTree, None)
+        shapes = _BaseShapes(spTree, None)
         expected_shapes = [Shape(None, None), Shape(None, None)]
         calls = [call(sps[0], shapes), call(sps[1], shapes)]
         BaseShapeFactory_.side_effect = iter(expected_shapes)
@@ -97,12 +97,12 @@ class DescribeBaseShapeTree(object):
     def iter_elms_fixture(self):
         spTree = element('p:spTree/(p:sp,p:sp)')
         sps = spTree.xpath('p:sp')
-        shapes = BaseShapeTree(spTree, None)
+        shapes = _BaseShapes(spTree, None)
         return shapes, sps
 
     @pytest.fixture
     def len_fixture(self):
-        shapes = BaseShapeTree(element('p:spTree/(p:spPr,p:sp,p:sp)'), None)
+        shapes = _BaseShapes(element('p:spTree/(p:spPr,p:sp,p:sp)'), None)
         expected_count = 2
         return shapes, expected_count
 
@@ -119,7 +119,7 @@ class DescribeBaseShapeTree(object):
     ])
     def next_id_fixture(self, request):
         spTree_cxml, expected_value = request.param
-        shapes = BaseShapeTree(element(spTree_cxml), None)
+        shapes = _BaseShapes(element(spTree_cxml), None)
         return shapes, expected_value
 
     # fixture components ---------------------------------------------

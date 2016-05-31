@@ -18,13 +18,13 @@ from .placeholder import LayoutPlaceholder, MasterPlaceholder
 from ..shared import ParentedElementProxy
 
 
-class BaseShapeTree(ParentedElementProxy):
+class _BaseShapes(ParentedElementProxy):
     """
     Base class for a shape collection appearing in a slide-type object,
     include Slide, SlideLayout, and SlideMaster, providing common methods.
     """
     def __init__(self, spTree, parent):
-        super(BaseShapeTree, self).__init__(spTree, parent)
+        super(_BaseShapes, self).__init__(spTree, parent)
         self._spTree = spTree
 
     def __getitem__(self, idx):
@@ -93,7 +93,7 @@ class BaseShapeTree(ParentedElementProxy):
         return BaseShapeFactory(shape_elm, self)
 
 
-class BasePlaceholders(BaseShapeTree):
+class BasePlaceholders(_BaseShapes):
     """
     Base class for placeholder collections that differentiate behaviors for
     a master, layout, and slide.
@@ -140,7 +140,7 @@ def _LayoutShapeFactory(shape_elm, parent):
     return BaseShapeFactory(shape_elm, parent)
 
 
-class LayoutShapes(BaseShapeTree):
+class LayoutShapes(_BaseShapes):
     """
     Sequence of shapes appearing on a slide layout. The first shape in the
     sequence is the backmost in z-order and the last shape is topmost.
@@ -178,7 +178,7 @@ class MasterPlaceholders(BasePlaceholders):
         return _MasterShapeFactory(shape_elm, self)
 
 
-class MasterShapes(BaseShapeTree):
+class MasterShapes(_BaseShapes):
     """
     Sequence of shapes appearing on a slide master. The first shape in the
     sequence is the backmost in z-order and the last shape is topmost.
@@ -203,7 +203,7 @@ def _MasterShapeFactory(shape_elm, parent):
     return BaseShapeFactory(shape_elm, parent)
 
 
-class SlideShapes(BaseShapeTree):
+class SlideShapes(_BaseShapes):
     """
     Sequence of shapes appearing on a slide. The first shape in the sequence
     is the backmost in z-order and the last shape is topmost. Supports indexed
