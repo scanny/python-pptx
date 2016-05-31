@@ -6,7 +6,7 @@ Feature: slide properties
 
   Scenario: Slide.shapes
     Given a slide
-     Then slide.shapes is a SlideShapeTree object
+     Then slide.shapes is a SlideShapes object
 
 
   Scenario: Slide.placeholders

@@ -17,7 +17,7 @@ from pptx.shapes.factory import SlidePlaceholders
 from pptx.shapes.placeholder import LayoutPlaceholder
 from pptx.shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
-    SlideShapeTree
+    SlideShapes
 )
 from pptx.slide import (
     Slide, SlideLayout, SlideLayouts, SlideMaster, SlideMasters, Slides
@@ -34,9 +34,9 @@ class DescribeSlide(object):
         assert slide.name == expected_value
 
     def it_provides_access_to_its_shapes(self, shapes_fixture):
-        slide, SlideShapeTree_, spTree, shapes_ = shapes_fixture
+        slide, SlideShapes_, spTree, shapes_ = shapes_fixture
         shapes = slide.shapes
-        SlideShapeTree_.assert_called_once_with(spTree, slide)
+        SlideShapes_.assert_called_once_with(spTree, slide)
         assert shapes is shapes_
 
     def it_provides_access_to_its_placeholders(self, placeholders_fixture):
@@ -73,11 +73,11 @@ class DescribeSlide(object):
         return slide, SlidePlaceholders_, spTree, placeholders_
 
     @pytest.fixture
-    def shapes_fixture(self, SlideShapeTree_, shapes_):
+    def shapes_fixture(self, SlideShapes_, shapes_):
         sld = element('p:sld/p:cSld/p:spTree')
         spTree = sld.xpath('//p:spTree')[0]
         slide = Slide(sld, None)
-        return slide, SlideShapeTree_, spTree, shapes_
+        return slide, SlideShapes_, spTree, shapes_
 
     # fixture components -----------------------------------
 
@@ -97,14 +97,14 @@ class DescribeSlide(object):
         )
 
     @pytest.fixture
-    def SlideShapeTree_(self, request, shapes_):
+    def SlideShapes_(self, request, shapes_):
         return class_mock(
-            request, 'pptx.slide.SlideShapeTree', return_value=shapes_
+            request, 'pptx.slide.SlideShapes', return_value=shapes_
         )
 
     @pytest.fixture
     def shapes_(self, request):
-        return instance_mock(request, SlideShapeTree)
+        return instance_mock(request, SlideShapes)
 
     @pytest.fixture
     def slide_layout_(self, request):

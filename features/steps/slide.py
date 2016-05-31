@@ -317,10 +317,10 @@ def then_slide_placeholders_is_a_SlidePlaceholders_object(context):
     assert type(slide.placeholders).__name__ == 'SlidePlaceholders'
 
 
-@then('slide.shapes is a SlideShapeTree object')
-def then_slide_shapes_is_a_SlideShapeTree_object(context):
+@then('slide.shapes is a SlideShapes object')
+def then_slide_shapes_is_a_SlideShapes_object(context):
     slide = context.slide
-    assert type(slide.shapes).__name__ == 'SlideShapeTree'
+    assert type(slide.shapes).__name__ == 'SlideShapes'
 
 
 @then('slide.slide_layout is the one passed in the call')

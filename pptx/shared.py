@@ -65,7 +65,7 @@ class ParentedElementProxy(ElementProxy):
     def parent(self):
         """
         The ancestor proxy object to this one. For example, the parent of
-        a shape is generally the |SlideShapeTree| object that contains it.
+        a shape is generally the |SlideShapes| object that contains it.
         """
         return self._parent
 

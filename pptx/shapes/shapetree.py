@@ -203,7 +203,7 @@ def _MasterShapeFactory(shape_elm, parent):
     return BaseShapeFactory(shape_elm, parent)
 
 
-class SlideShapeTree(BaseShapeTree):
+class SlideShapes(BaseShapeTree):
     """
     Sequence of shapes appearing on a slide. The first shape in the sequence
     is the backmost in z-order and the last shape is topmost. Supports indexed

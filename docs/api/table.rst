@@ -11,7 +11,7 @@ Table-related objects
 ----------------
 
 A |Table| object is added to a slide using the
-:meth:`~.SlideShapeTree.add_table` method on |SlideShapeTree|.
+:meth:`~.SlideShapes.add_table` method on |SlideShapes|.
 
 .. autoclass:: Table()
    :members:

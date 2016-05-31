@@ -267,7 +267,7 @@ rst_epilog = """
 
 .. |SlidePlaceholders| replace:: :class:`.SlidePlaceholders`
 
-.. |SlideShapeTree| replace:: :class:`.SlideShapeTree`
+.. |SlideShapes| replace:: :class:`.SlideShapes`
 
 .. |str| replace:: :class:`str`
 

@@ -7,13 +7,13 @@ The following classes provide access to the shapes that appear on a slide and
 the collections that contain them.
 
 
-|SlideShapeTree| objects
-------------------------
+|SlideShapes| objects
+---------------------
 
-The |SlideShapeTree| object is encountered as the :attr:`~BaseSlide.shapes`
+The |SlideShapes| object is encountered as the :attr:`~BaseSlide.shapes`
 property of |Slide|.
 
-.. autoclass:: pptx.shapes.shapetree.SlideShapeTree()
+.. autoclass:: pptx.shapes.shapetree.SlideShapes()
    :members:
    :exclude-members: clone_layout_placeholders
 

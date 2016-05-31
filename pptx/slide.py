@@ -12,7 +12,7 @@ from .enum.shapes import PP_PLACEHOLDER
 from .shapes.factory import SlidePlaceholders
 from .shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
-    SlideShapeTree
+    SlideShapes
 )
 from .shared import ParentedElementProxy, PartElementProxy
 from .util import lazyproperty
@@ -40,10 +40,10 @@ class Slide(PartElementProxy):
     @lazyproperty
     def shapes(self):
         """
-        Instance of |SlideShapeTree| containing sequence of shape objects
+        Instance of |SlideShapes| containing sequence of shape objects
         appearing on this slide.
         """
-        return SlideShapeTree(self._element.spTree, self)
+        return SlideShapes(self._element.spTree, self)
 
     @property
     def slide_layout(self):

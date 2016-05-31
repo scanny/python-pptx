@@ -17,7 +17,7 @@ Candidate protocol
 
     >>> slide = prs.slides[0]
     >>> slide.shapes
-    <pptx.shapes.shapetree.SlideShapeTree object at 0x104e60000>
+    <pptx.shapes.shapetree.SlideShapes object at 0x104e60000>
     >>> slide.shapes[0]
     <pptx.shapes.placeholder.ShapePlaceholder object at 0x104e60020>
     >>> slide_placeholders = slide.placeholders

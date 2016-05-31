@@ -13,7 +13,7 @@ from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.parts.chart import ChartPart
 from pptx.shapes.graphfrm import GraphicFrame
-from pptx.shapes.shapetree import SlideShapeTree
+from pptx.shapes.shapetree import SlideShapes
 from pptx.spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
 
 from ..unitutil.cxml import element
@@ -128,6 +128,6 @@ class DescribeGraphicFrame(object):
 
     @pytest.fixture
     def parent_(self, request, chart_part_):
-        parent_ = instance_mock(request, SlideShapeTree)
+        parent_ = instance_mock(request, SlideShapes)
         parent_.part.related_parts = {'rId42': chart_part_}
         return parent_

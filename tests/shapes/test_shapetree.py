@@ -24,7 +24,7 @@ from pptx.shapes.placeholder import (
 from pptx.shapes.shapetree import (
     BasePlaceholders, BaseShapeTree, LayoutPlaceholders,
     _LayoutShapeFactory, LayoutShapes, MasterPlaceholders,
-    _MasterShapeFactory, MasterShapes, SlideShapeTree
+    _MasterShapeFactory, MasterShapes, SlideShapes
 )
 from pptx.shapes.table import Table
 from pptx.slide import SlideLayout, SlideMaster
@@ -158,7 +158,7 @@ class DescribeBasePlaceholders(object):
         return instance_mock(request, BaseShapeElement)
 
 
-class DescribeSlideShapeTree(object):
+class DescribeSlideShapes(object):
 
     def it_can_add_a_chart(self, add_chart_fixture):
         shapes, chart_type, x, y, cx, cy = add_chart_fixture[:6]
@@ -276,7 +276,7 @@ class DescribeSlideShapeTree(object):
     def add_chart_fixture(
             self, chart_data_, _add_chart_graphic_frame_, graphic_frame_,
             part_prop_):
-        shapes = SlideShapeTree(None, None)
+        shapes = SlideShapes(None, None)
         chart_type = 0
         rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
         part_prop_.return_value.add_chart_part.return_value = rId
@@ -287,7 +287,7 @@ class DescribeSlideShapeTree(object):
 
     @pytest.fixture
     def add_cht_gr_frm_fixture(self, graphic_frame_, _shape_factory_):
-        shapes = SlideShapeTree(element('p:spTree'), None)
+        shapes = SlideShapes(element('p:spTree'), None)
         rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
         expected_xml = (
             '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
@@ -309,7 +309,7 @@ class DescribeSlideShapeTree(object):
 
     @pytest.fixture
     def autoshape_fixture(self, _shape_factory_, shape_):
-        shapes = SlideShapeTree(element('p:spTree'), None)
+        shapes = SlideShapes(element('p:spTree'), None)
         autoshape_type_id = MSO_AUTO_SHAPE_TYPE.ROUNDED_RECTANGLE
         x, y, cx, cy = 1, 2, 3, 4
         expected_xml = (
@@ -336,7 +336,7 @@ class DescribeSlideShapeTree(object):
     @pytest.fixture
     def clone_fixture(
             self, slide_layout_, _clone_layout_placeholder_, placeholder_):
-        shapes = SlideShapeTree(None, None)
+        shapes = SlideShapes(None, None)
         calls = [call(shapes, placeholder_)]
         slide_layout_.iter_cloneable_placeholders.return_value = (
             iter([placeholder_])
@@ -345,7 +345,7 @@ class DescribeSlideShapeTree(object):
 
     @pytest.fixture
     def clone_ph_fixture(self, placeholder_):
-        shapes = SlideShapeTree(element('p:spTree'), None)
+        shapes = SlideShapes(element('p:spTree'), None)
         expected_xml = (
             '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
             'onml/2006/main">\n  <p:sp xmlns:a="http://schemas.openxmlformat'
@@ -364,7 +364,7 @@ class DescribeSlideShapeTree(object):
 
     @pytest.fixture
     def factory_fixture(self, SlideShapeFactory_, shape_):
-        shapes = SlideShapeTree(None, None)
+        shapes = SlideShapes(None, None)
         sp = element('p:sp')
         return shapes, sp, SlideShapeFactory_, shape_
 
@@ -373,7 +373,7 @@ class DescribeSlideShapeTree(object):
         idx = request.param
         spTree = element('p:spTree/(p:sp,p:sp,p:sp)')
         sps = spTree.xpath('p:sp')
-        shapes = SlideShapeTree(spTree, None)
+        shapes = SlideShapes(spTree, None)
         shape_.element = sps[idx]
         expected_value = idx
         return shapes, shape_, expected_value
@@ -381,7 +381,7 @@ class DescribeSlideShapeTree(object):
     @pytest.fixture
     def index_raises_fixture(self, shape_):
         spTree = element('p:spTree/(p:sp,p:sp,p:sp)')
-        shapes = SlideShapeTree(spTree, None)
+        shapes = SlideShapes(spTree, None)
         shape_.element = element('p:sp')
         return shapes, shape_
 
@@ -401,13 +401,13 @@ class DescribeSlideShapeTree(object):
             'p:spTree/(p:cNvPr{name=Title 1},p:cNvPr{name=Table Placeholder '
             '3})'
         )
-        shapes = SlideShapeTree(spTree, None)
+        shapes = SlideShapes(spTree, None)
         return shapes, ph_type, sp_id, orient, expected_name
 
     @pytest.fixture
     def picture_fixture(
             self, picture_, part_prop_, image_part_, _shape_factory_):
-        shapes = SlideShapeTree(element('p:spTree'), None)
+        shapes = SlideShapes(element('p:spTree'), None)
         image_file, x, y, cx, cy = 'foobar.png', 1, 2, 3, 4
         expected_xml = (
             '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
@@ -436,7 +436,7 @@ class DescribeSlideShapeTree(object):
 
     @pytest.fixture
     def table_fixture(self, table_, _shape_factory_):
-        shapes = SlideShapeTree(element('p:spTree'), None)
+        shapes = SlideShapes(element('p:spTree'), None)
         rows, cols, x, y, cx, cy = 1, 2, 10, 11, 12, 13
         _shape_factory_.return_value = table_
         expected_xml = (
@@ -468,7 +468,7 @@ class DescribeSlideShapeTree(object):
 
     @pytest.fixture
     def textbox_fixture(self, textbox_, _shape_factory_):
-        shapes = SlideShapeTree(element('p:spTree'), None)
+        shapes = SlideShapes(element('p:spTree'), None)
         x, y, cx, cy = 1, 2, 3, 4
         expected_xml = (
             '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
@@ -493,7 +493,7 @@ class DescribeSlideShapeTree(object):
     def title_fixture(self, request, _shape_factory_, shape_):
         spTree_cxml, found = request.param
         spTree = element(spTree_cxml)
-        shapes = SlideShapeTree(spTree, None)
+        shapes = SlideShapes(spTree, None)
         calls = [call(shapes, spTree.xpath('p:sp')[1])] if found else []
         _shape_ = shape_ if found else None
         return shapes, _shape_factory_, calls, _shape_
@@ -503,13 +503,13 @@ class DescribeSlideShapeTree(object):
     @pytest.fixture
     def _add_chart_graphicFrame_(self, request):
         return method_mock(
-            request, SlideShapeTree, '_add_chart_graphicFrame', autospec=True
+            request, SlideShapes, '_add_chart_graphicFrame', autospec=True
         )
 
     @pytest.fixture
     def _add_chart_graphic_frame_(self, request, graphic_frame_):
         return method_mock(
-            request, SlideShapeTree, '_add_chart_graphic_frame',
+            request, SlideShapes, '_add_chart_graphic_frame',
             autospec=True, return_value=graphic_frame_
         )
 
@@ -520,7 +520,7 @@ class DescribeSlideShapeTree(object):
     @pytest.fixture
     def _clone_layout_placeholder_(self, request):
         return method_mock(
-            request, SlideShapeTree, '_clone_layout_placeholder',
+            request, SlideShapes, '_clone_layout_placeholder',
             autospec=True
         )
 
@@ -535,7 +535,7 @@ class DescribeSlideShapeTree(object):
     @pytest.fixture
     def part_prop_(self, request, slide_part_):
         return property_mock(
-            request, SlideShapeTree, 'part', return_value=slide_part_
+            request, SlideShapes, 'part', return_value=slide_part_
         )
 
     @pytest.fixture
@@ -553,7 +553,7 @@ class DescribeSlideShapeTree(object):
     @pytest.fixture
     def _shape_factory_(self, request, shape_):
         return method_mock(
-            request, SlideShapeTree, '_shape_factory', return_value=shape_,
+            request, SlideShapes, '_shape_factory', return_value=shape_,
             autospec=True
         )
 
