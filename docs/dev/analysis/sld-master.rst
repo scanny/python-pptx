@@ -1,3 +1,4 @@
+.. _SlideMaster:
 
 Slide Master
 ============

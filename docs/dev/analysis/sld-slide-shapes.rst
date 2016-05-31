@@ -1,6 +1,6 @@
 
-Slide Shape Tree
-================
+SlideShapes
+===========
 
 Shapes on a slide are specified in the shape tree, a hierarchical data
 structure rooted in a ``<p:spTree>`` element.
