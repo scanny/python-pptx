@@ -154,6 +154,8 @@ class _BaseSeriesXmlWriter(object):
             '                </c:pt>\n'
         )
         for idx, value in enumerate(values):
+            if value is None:
+                continue
             xml += pt_tmpl.format(idx=idx, value=value)
 
         return xml
