@@ -87,7 +87,10 @@ class PresentationPart(XmlPart):
         Return the slide identifier associated with *slide_part* in this
         presentation.
         """
-        raise NotImplementedError
+        for sldId in self._element.sldIdLst:
+            if self.related_parts[sldId.rId] is slide_part:
+                return sldId.id
+        raise ValueError('matching slide_part not found')
 
     @property
     def _next_slide_partname(self):
