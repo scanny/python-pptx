@@ -54,13 +54,12 @@ class CT_SlideIdList(BaseOxmlElement):
     def _next_id(self):
         """
         Return the next available slide ID as an int. Valid slide IDs start
-        at 256. Unused ids in the sequences starting from 256 are used first.
+        at 256. The next integer value greater than the max value in use is
+        chosen, which minimizes that chance of reusing the id of a deleted
+        slide.
         """
         id_str_lst = self.xpath('./p:sldId/@id')
-        used_ids = [int(id_str) for id_str in id_str_lst]
-        for n in range(256, 258+len(used_ids)):
-            if n not in used_ids:
-                return n
+        return max([255]+[int(id_str) for id_str in id_str_lst])+1
 
 
 class CT_SlideMasterIdList(BaseOxmlElement):

@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
-from .unitdata.presentation import a_sldId, a_sldIdLst
+from ..unitutil.cxml import element, xml
 
 
 class DescribeCT_SlideIdList(object):
@@ -26,24 +26,20 @@ class DescribeCT_SlideIdList(object):
 
     @pytest.fixture
     def add_fixture(self):
-        sldIdLst = a_sldIdLst().with_nsdecls().element
-        expected_xml = (
-            a_sldIdLst().with_nsdecls('p', 'r').with_child(
-                a_sldId().with_id(256).with_rId('rId1'))
-        ).xml()
+        sldIdLst = element('p:sldIdLst/p:sldId{r:id=rId4,id=256}')
+        expected_xml = xml(
+            'p:sldIdLst/(p:sldId{r:id=rId4,id=256},p:sldId{r:id=rId1,id=257})'
+        )
         return sldIdLst, expected_xml
 
     @pytest.fixture(params=[
-        ((), 256),
-        ((256,), 257), ((257,), 256), ((300,), 256), ((255,), 256),
-        ((257, 259), 256), ((256, 258), 257), ((256, 257), 258),
-        ((257, 258, 259), 256), ((256, 258, 259), 257),
-        ((256, 257, 259), 258), ((258, 256, 257), 259),
+        ('p:sldIdLst',                                   256),
+        ('p:sldIdLst/p:sldId{id=42}',                    256),
+        ('p:sldIdLst/p:sldId{id=256}',                   257),
+        ('p:sldIdLst/(p:sldId{id=256},p:sldId{id=712})', 713),
+        ('p:sldIdLst/(p:sldId{id=280},p:sldId{id=257})', 281),
     ])
     def next_id_fixture(self, request):
-        existing_ids, expected_id = request.param
-        sldIdLst_bldr = a_sldIdLst().with_nsdecls()
-        for n in existing_ids:
-            sldIdLst_bldr.with_child(a_sldId().with_id(n))
-        sldIdLst = sldIdLst_bldr.element
-        return sldIdLst, expected_id
+        sldIdLst_cxml, expected_value = request.param
+        sldIdLst = element(sldIdLst_cxml)
+        return sldIdLst, expected_value
