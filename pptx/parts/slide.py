@@ -68,7 +68,7 @@ class SlidePart(BaseSlidePart):
         """
         Return the rId of a new |ChartPart| object containing a chart of
         *chart_type*, displaying *chart_data*, and related to the slide
-        containing this shape tree.
+        contained in this part.
         """
         chart_part = ChartPart.new(chart_type, chart_data, self.package)
         rId = self.relate_to(chart_part, RT.CHART)
@@ -87,7 +87,8 @@ class SlidePart(BaseSlidePart):
         Return the slide identifier stored in the presentation part for this
         slide part.
         """
-        raise NotImplementedError
+        presentation_part = self.package.presentation_part
+        return presentation_part.slide_id(self)
 
     @property
     def slide_layout(self):

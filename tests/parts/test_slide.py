@@ -18,6 +18,7 @@ from pptx.oxml.slide import CT_Slide
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
 from pptx.parts.image import Image, ImagePart
+from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import (
     BaseSlidePart, SlideLayoutPart, SlideMasterPart, SlidePart
 )
@@ -107,6 +108,12 @@ class DescribeBaseSlidePart(object):
 
 class DescribeSlidePart(object):
 
+    def it_knows_its_slide_id(self, slide_id_fixture):
+        slide_part, presentation_part_, slide_id = slide_id_fixture
+        _slide_id = slide_part.slide_id
+        presentation_part_.slide_id.assert_called_once_with(slide_part)
+        assert _slide_id is slide_id
+
     def it_can_add_a_chart_part(self, add_chart_part_fixture):
         slide_part, chart_type_, chart_data_ = add_chart_part_fixture[:3]
         ChartPart_, chart_part_, package_, rId = add_chart_part_fixture[3:]
@@ -188,6 +195,14 @@ class DescribeSlidePart(object):
         slide_part = SlidePart(None, None, sld, None)
         return slide_part, Slide_, sld, slide_
 
+    @pytest.fixture
+    def slide_id_fixture(self, package_, presentation_part_):
+        slide_part = SlidePart(None, None, None, package_)
+        slide_id = 256
+        package_.presentation_part = presentation_part_
+        presentation_part_.slide_id.return_value = slide_id
+        return slide_part, presentation_part_, slide_id
+
     # fixture components -----------------------------------
 
     @pytest.fixture
@@ -219,6 +234,10 @@ class DescribeSlidePart(object):
     @pytest.fixture
     def part_related_by_(self, request):
         return method_mock(request, SlidePart, 'part_related_by')
+
+    @pytest.fixture
+    def presentation_part_(self, request):
+        return instance_mock(request, PresentationPart)
 
     @pytest.fixture
     def relate_to_(self, request):

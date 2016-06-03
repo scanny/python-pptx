@@ -82,6 +82,13 @@ class PresentationPart(XmlPart):
         """
         self.package.save(path_or_stream)
 
+    def slide_id(self, slide_part):
+        """
+        Return the slide identifier associated with *slide_part* in this
+        presentation.
+        """
+        raise NotImplementedError
+
     @property
     def _next_slide_partname(self):
         """
