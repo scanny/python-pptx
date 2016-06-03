@@ -38,6 +38,13 @@ class PresentationPart(XmlPart):
         """
         return self.package.core_properties
 
+    def get_slide(self, slide_id):
+        """
+        Return the |Slide| object identified by *slide_id* (in this
+        presentation), or |None| if not found.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def presentation(self):
         """

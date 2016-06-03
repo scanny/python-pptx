@@ -172,6 +172,12 @@ class DescribeSlides(object):
         assert slides._sldIdLst.xml == expected_xml
         assert slide is slide_
 
+    def it_finds_a_slide_by_slide_id(self, get_fixture):
+        slides, slide_id, default, prs_part_, expected_value = get_fixture
+        slide = slides.get(slide_id, default)
+        prs_part_.get_slide.assert_called_once_with(slide_id)
+        assert slide is expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -187,6 +193,15 @@ class DescribeSlides(object):
             slides, slide_layout_, part_, clone_layout_placeholders_,
             expected_xml, slide_
         )
+
+    @pytest.fixture(params=[True, False])
+    def get_fixture(self, request, part_prop_, prs_part_, slide_):
+        found = request.param
+        slides = Slides(None, None)
+        slide_id, default = 256, 'foobar'
+        expected_value = slide_ if found else default
+        prs_part_.get_slide.return_value = slide_ if found else None
+        return slides, slide_id, default, prs_part_, expected_value
 
     @pytest.fixture
     def getitem_fixture(self, prs_part_, slide_, part_prop_):

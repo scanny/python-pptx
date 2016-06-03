@@ -104,6 +104,16 @@ class Slides(ParentedElementProxy):
         self._sldIdLst.add_sldId(rId)
         return slide
 
+    def get(self, slide_id, default=None):
+        """
+        Return the slide identified by integer *slide_id* in this
+        presentation, or *default* if not found.
+        """
+        slide = self.part.get_slide(slide_id)
+        if slide is None:
+            return default
+        return slide
+
     def index(self, slide):
         """
         Map *slide* to an integer representing its zero-based position in
