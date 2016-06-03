@@ -12,7 +12,7 @@ import pytest
 
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slide import SlideLayoutPart, SlideMasterPart
+from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
 from pptx.shapes.placeholder import LayoutPlaceholder
 from pptx.shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
@@ -31,6 +31,10 @@ class DescribeSlide(object):
     def it_knows_its_name(self, name_fixture):
         slide, expected_value = name_fixture
         assert slide.name == expected_value
+
+    def it_knows_its_slide_id(self, slide_id_fixture):
+        slide, expected_value = slide_id_fixture
+        assert slide.slide_id == expected_value
 
     def it_provides_access_to_its_shapes(self, shapes_fixture):
         slide, SlideShapes_, spTree, shapes_ = shapes_fixture
@@ -53,9 +57,10 @@ class DescribeSlide(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def layout_fixture(self, slide_layout_, part_prop_):
+    def layout_fixture(self, slide_layout_, part_prop_, slide_part_):
         slide = Slide(None, None)
-        part_prop_.return_value.slide_layout = slide_layout_
+        part_prop_.return_value = slide_part_
+        slide_part_.slide_layout = slide_layout_
         return slide, slide_layout_
 
     @pytest.fixture
@@ -78,11 +83,20 @@ class DescribeSlide(object):
         slide = Slide(sld, None)
         return slide, SlideShapes_, spTree, shapes_
 
+    @pytest.fixture
+    def slide_id_fixture(self, part_prop_, slide_part_):
+        slide = Slide(None, None)
+        slide_id = 256
+        slide_part_.slide_id = slide_id
+        return slide, slide_id
+
     # fixture components -----------------------------------
 
     @pytest.fixture
-    def part_prop_(self, request):
-        return property_mock(request, Slide, 'part')
+    def part_prop_(self, request, slide_part_):
+        return property_mock(
+            request, Slide, 'part', return_value=slide_part_
+        )
 
     @pytest.fixture
     def placeholders_(self, request):
@@ -108,6 +122,10 @@ class DescribeSlide(object):
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
 
 
 class DescribeSlides(object):

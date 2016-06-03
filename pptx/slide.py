@@ -45,6 +45,16 @@ class Slide(PartElementProxy):
         return SlideShapes(self._element.spTree, self)
 
     @property
+    def slide_id(self):
+        """
+        The integer value that uniquely identifies this slide within this
+        presentation. The slide id does not change if the position of this
+        slide in the slide sequence is changed by adding, rearranging, or
+        deleting slides.
+        """
+        return self.part.slide_id
+
+    @property
     def slide_layout(self):
         """
         |SlideLayout| object this slide inherits appearance from.

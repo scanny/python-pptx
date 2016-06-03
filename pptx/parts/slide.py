@@ -82,6 +82,14 @@ class SlidePart(BaseSlidePart):
         return Slide(self._element, self)
 
     @property
+    def slide_id(self):
+        """
+        Return the slide identifier stored in the presentation part for this
+        slide part.
+        """
+        raise NotImplementedError
+
+    @property
     def slide_layout(self):
         """
         |SlideLayout| object the slide in this part inherits from.
