@@ -61,6 +61,12 @@ def given_a_slide_having_a_title(context):
     context.prs, context.slide = prs, prs.slides[0]
 
 
+@given('a slide having slide id 256')
+def given_a_slide_having_slide_id_256(context):
+    presentation = Presentation(test_pptx('sld-access-shapes'))
+    context.slide = presentation.slides[0]
+
+
 @given('a slide layout')
 def given_a_slide_layout(context):
     prs = Presentation(test_pptx('sld-slide-access'))
@@ -321,6 +327,12 @@ def then_slide_placeholders_is_a_SlidePlaceholders_object(context):
 def then_slide_shapes_is_a_SlideShapes_object(context):
     slide = context.slide
     assert type(slide.shapes).__name__ == 'SlideShapes'
+
+
+@then('slide.slide_id is 256')
+def then_slide_slide_id_is_256(context):
+    slide = context.slide
+    assert slide.slide_id == 256
 
 
 @then('slide.slide_layout is the one passed in the call')

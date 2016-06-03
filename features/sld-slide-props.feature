@@ -14,6 +14,12 @@ Feature: slide properties
      Then slide.placeholders is a SlidePlaceholders object
 
 
+  @wip
+  Scenario: Slide.slide_id
+    Given a slide having slide id 256
+     Then slide.slide_id is 256
+
+
   Scenario: SlideLayout.shapes
     Given a slide layout
      Then slide_layout.shapes is a LayoutShapes object
