@@ -389,6 +389,18 @@ def then_slide_masters_1_is_a_SlideMaster_object(context):
     assert type(slide_masters[1]).__name__ == 'SlideMaster'
 
 
+@then('slides.get(256) is slides[0]')
+def then_slides_get_256_is_slides_0(context):
+    slides = context.slides
+    assert slides.get(256) is slides[0]
+
+
+@then('slides.get(666, default=slides[2]) is slides[2]')
+def then_slides_get_666_default_slides_2_is_slides_2(context):
+    slides = context.slides
+    assert slides.get(666, default=slides[2]) is slides[2]
+
+
 @then('slides[2] is a Slide object')
 def then_slides_2_is_a_Slide_object(context):
     slides = context.slides

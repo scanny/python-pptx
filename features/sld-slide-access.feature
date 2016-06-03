@@ -26,6 +26,13 @@ Feature: Access an individual slide
       And slide.slide_layout is the one passed in the call
 
 
+  @wip
+  Scenario: Slides.get()
+    Given a Slides object containing 3 slides
+     Then slides.get(256) is slides[0]
+      And slides.get(666, default=slides[2]) is slides[2]
+
+
   Scenario: SlideLayouts.__getitem__()
     Given a SlideLayouts object containing 2 layouts
      Then slide_layouts[1] is a SlideLayout object
