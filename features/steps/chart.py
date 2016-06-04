@@ -14,7 +14,9 @@ from behave import given, then, when
 
 from pptx import Presentation
 from pptx.chart.chart import Legend
-from pptx.chart.data import BubbleChartData, ChartData, XyChartData
+from pptx.chart.data import (
+    BubbleChartData, CategoryChartData, ChartData, XyChartData
+)
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import (
     XL_AXIS_CROSSES, XL_CHART_TYPE, XL_DATA_LABEL_POSITION,
@@ -132,6 +134,11 @@ def given_a_bubble_plot_having_bubble_scale_of_percent(context, percent):
     slide_idx = {'no explicit value': 3, '70%': 4}[percent]
     prs = Presentation(test_pptx('cht-plot-props'))
     context.bubble_plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
+
+
+@given('a CategoryChartData object')
+def given_a_CategoryChartData_object(context):
+    context.chart_data = CategoryChartData()
 
 
 @given('a chart {having_or_not} a legend')
@@ -668,6 +675,25 @@ def then_chart_legend_is_a_legend_object(context):
 def then_chart_value_axis_is_a_ValueAxis_object(context):
     value_axis = context.chart.value_axis
     assert type(value_axis).__name__ == 'ValueAxis'
+
+
+@then('chart_data.add_category(name) is a Category object')
+def then_chart_data_add_category_name_is_a_Category_object(context):
+    chart_data = context.chart_data
+    context.category = category = chart_data.add_category('foobar')
+    assert type(category).__name__ == 'Category'
+
+
+@then('chart_data.categories is a Categories object')
+def then_chart_data_categories_is_a_Categories_object(context):
+    chart_data = context.chart_data
+    assert type(chart_data.categories).__name__ == 'Categories'
+
+
+@then('chart_data.categories[-1] is the category')
+def then_chart_data_categories_minus_1_is_the_category(context):
+    chart_data, category = context.chart_data, context.category
+    assert chart_data.categories[-1] is category
 
 
 @then('data_label.has_text_frame is {value}')

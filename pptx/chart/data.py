@@ -203,6 +203,17 @@ class _BaseSeriesData(Sequence):
         return self._chart_data.y_values_ref(self)
 
 
+class CategoryChartData(_BaseChartData):
+    """
+    A ChartData object suitable for use with category charts, all those
+    having a discrete set of string values (categories) as the range of their
+    independent axis (X-axis) values. Unlike the continuous ChartData types
+    such as XyChartData, CategoryChartData has a single category sequence in
+    lieu of X values for each data point and its data points have only the
+    Y value.
+    """
+
+
 class ChartData(object):
     """
     Accumulates data specifying the categories and series values for a plot
