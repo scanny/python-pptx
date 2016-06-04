@@ -320,6 +320,7 @@ class Category(object):
         super(Category, self).__init__()
         self._name = name
         self._parent = parent
+        self._sub_categories = []
 
     @property
     def depth(self):
@@ -327,7 +328,14 @@ class Category(object):
         The number of hierarchy levels rooted at this category node. Returns
         1 if this category has no sub-categories.
         """
-        raise NotImplementedError
+        sub_categories = self._sub_categories
+        if not sub_categories:
+            return 1
+        first_depth = sub_categories[0].depth
+        for category in sub_categories[1:]:
+            if category.depth != first_depth:
+                raise ValueError('category depth not uniform')
+        return first_depth + 1
 
     @property
     def name(self):

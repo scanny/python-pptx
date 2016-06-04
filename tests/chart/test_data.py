@@ -363,11 +363,44 @@ class DescribeCategories(object):
 
 class DescribeCategory(object):
 
+    def it_knows_its_depth(self, depth_fixture):
+        category, expected_value = depth_fixture
+        assert category.depth == expected_value
+
+    def it_raises_on_depth_not_uniform(self, depth_raises_fixture):
+        category = depth_raises_fixture
+        with pytest.raises(ValueError):
+            category.depth
+
     def it_knows_its_name(self, name_fixture):
         category, expected_value = name_fixture
         assert category.name == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ((),        1),
+        ((1,),      2),
+        ((1, 1, 1), 2),
+        ((2, 2, 2), 3),
+    ])
+    def depth_fixture(self, request):
+        depths, expected_value = request.param
+        category = Category(None, None)
+        for depth in depths:
+            category._sub_categories.append(
+                instance_mock(request, Category, depth=depth)
+            )
+        return category, expected_value
+
+    @pytest.fixture
+    def depth_raises_fixture(self, request):
+        category = Category(None, None)
+        for depth in (1, 2, 1):
+            category._sub_categories.append(
+                instance_mock(request, Category, depth=depth)
+            )
+        return category
 
     @pytest.fixture
     def name_fixture(self):
