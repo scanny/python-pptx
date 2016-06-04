@@ -70,6 +70,22 @@ class CategoryWorkbookWriter(object):
         super(CategoryWorkbookWriter, self).__init__()
         self._chart_data = chart_data
 
+    def series_name_ref(self, series):
+        """
+        Return the Excel worksheet reference to the cell containing the name
+        for *series*. This also serves as the column heading for the series
+        values.
+        """
+        return "Sheet1!$%s$1" % self._series_col_letter(series)
+
+    def _series_col_letter(self, series):
+        """
+        The letter of the Excel worksheet column in which the data for a
+        series appears.
+        """
+        start_col_ascii = ord('A') + series.categories.depth
+        return chr(start_col_ascii + series.index)
+
 
 class XyWorkbookWriter(object):
     """

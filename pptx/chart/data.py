@@ -294,6 +294,14 @@ class Categories(Sequence):
         self._categories.append(category)
         return category
 
+    @property
+    def depth(self):
+        """
+        The number of hierarchy levels in this category graph. Returns 0 if
+        it contains no categories.
+        """
+        raise NotImplementedError
+
 
 class Category(object):
     """
@@ -410,6 +418,14 @@ class CategorySeriesData(_BaseSeriesData):
         data_point = CategoryDataPoint(value, number_format)
         self.append(data_point)
         return data_point
+
+    @property
+    def categories(self):
+        """
+        The |Categories| object that provides access to the category objects
+        for this series.
+        """
+        raise NotImplementedError
 
 
 class XyChartData(_BaseChartData):

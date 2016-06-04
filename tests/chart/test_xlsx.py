@@ -14,16 +14,19 @@ from xlsxwriter import Workbook
 from xlsxwriter.format import Format
 from xlsxwriter.worksheet import Worksheet
 
-from pptx.chart.data import BubbleChartData, _SeriesData, XyChartData
+from pptx.chart.data import (
+    BubbleChartData, Categories, CategorySeriesData, _SeriesData, XyChartData
+)
 from pptx.chart.xlsx import (
-    BubbleWorkbookWriter, WorkbookWriter, XyWorkbookWriter
+    BubbleWorkbookWriter, CategoryWorkbookWriter, WorkbookWriter,
+    XyWorkbookWriter
 )
 from pptx.compat import BytesIO
 
 from ..unitutil.mock import call, class_mock, instance_mock, method_mock
 
 
-class Describe_WorkbookWriter(object):
+class DescribeWorkbookWriter(object):
 
     def it_can_generate_a_chart_data_Excel_blob(self, xlsx_blob_fixture):
         categories_, series_, xlsx_file_ = xlsx_blob_fixture[:3]
@@ -138,7 +141,40 @@ class Describe_WorkbookWriter(object):
         return xlsx_file_
 
 
-class Describe_BubbleWorkbookWriter(object):
+class DescribeCategoryWorkbookWriter(object):
+
+    def it_knows_the_range_ref_for_a_series(self, ser_name_ref_fixture):
+        workbook_writer, series_, expected_value = ser_name_ref_fixture
+        assert workbook_writer.series_name_ref(series_) == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (1, 0, 'Sheet1!$B$1'),
+        (1, 3, 'Sheet1!$E$1'),
+        (3, 0, 'Sheet1!$D$1'),
+        (3, 3, 'Sheet1!$G$1'),
+    ])
+    def ser_name_ref_fixture(self, request, series_data_, categories_):
+        cat_depth, series_index, expected_value = request.param
+        workbook_writer = CategoryWorkbookWriter(None)
+        series_data_.categories = categories_
+        categories_.depth = cat_depth
+        series_data_.index = series_index
+        return workbook_writer, series_data_, expected_value
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def categories_(self, request):
+        return instance_mock(request, Categories)
+
+    @pytest.fixture
+    def series_data_(self, request):
+        return instance_mock(request, CategorySeriesData)
+
+
+class DescribeBubbleWorkbookWriter(object):
 
     def it_can_populate_a_worksheet_with_chart_data(self, populate_fixture):
         workbook_writer, workbook_, worksheet_, expected_calls = (
@@ -187,7 +223,7 @@ class Describe_BubbleWorkbookWriter(object):
         return instance_mock(request, Worksheet)
 
 
-class Describe_XyWorkbookWriter(object):
+class DescribeXyWorkbookWriter(object):
 
     def it_can_generate_a_chart_data_Excel_blob(self, xlsx_blob_fixture):
         workbook_writer, _open_worksheet_, xlsx_file_ = xlsx_blob_fixture[:3]
