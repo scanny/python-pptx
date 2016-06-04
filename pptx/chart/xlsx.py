@@ -60,6 +60,17 @@ class WorkbookWriter(object):
             worksheet.write_column(1, series_col, series.values, num_format)
 
 
+class CategoryWorkbookWriter(object):
+    """
+    Determines Excel worksheet layout and can write an Excel workbook from
+    a CategoryChartData object. Serves as the authority for Excel worksheet
+    ranges.
+    """
+    def __init__(self, chart_data):
+        super(CategoryWorkbookWriter, self).__init__()
+        self._chart_data = chart_data
+
+
 class XyWorkbookWriter(object):
     """
     Determines Excel worksheet layout and can write an Excel workbook from XY

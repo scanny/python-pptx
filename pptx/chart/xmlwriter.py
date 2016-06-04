@@ -127,8 +127,20 @@ class _BaseSeriesXmlWriter(object):
         Return the ``<c:tx>`` (tx is short for 'text') element for this
         series as unicode text. This element contains the series name.
         """
+        return self._tx_tmpl.format(**{
+            'wksht_ref':   self._series.name_ref,
+            'series_name': self.name,
+            'nsdecls':     '',
+        })
+
+    @property
+    def _tx_tmpl(self):
+        """
+        The string formatting template for the ``<c:tx>`` element for this
+        series, containing the series title and spreadsheet range reference.
+        """
         return (
-            '          <c:tx>\n'
+            '          <c:tx{nsdecls}>\n'
             '            <c:strRef>\n'
             '              <c:f>{wksht_ref}</c:f>\n'
             '              <c:strCache>\n'
@@ -139,8 +151,6 @@ class _BaseSeriesXmlWriter(object):
             '              </c:strCache>\n'
             '            </c:strRef>\n'
             '          </c:tx>\n'
-        ).format(
-            wksht_ref=self._series.name_ref, series_name=self.name
         )
 
 
@@ -252,17 +262,24 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
     @property
     def _ser_xml(self):
         xml = ''
-        for series in self._series_seq:
+        for series in self._chart_data:
+            xml_writer = _CategorySeriesXmlWriter(series)
             xml += (
                 '        <c:ser>\n'
-                '          <c:idx val="%d"/>\n'
-                '          <c:order val="%d"/>\n'
-                '%s%s%s'
+                '          <c:idx val="{ser_idx}"/>\n'
+                '          <c:order val="{ser_order}"/>\n'
+                '{tx_xml}'
+                '{cat_xml}'
+                '{val_xml}'
+                '          <c:smooth val="0"/>\n'
                 '        </c:ser>\n'
-            ) % (
-                series.index, series.index, series.tx_xml, series.cat_xml,
-                series.val_xml
-            )
+            ).format(**{
+                'ser_idx':    series.index,
+                'ser_order':  series.index,
+                'tx_xml':     xml_writer.tx_xml,
+                'cat_xml':    xml_writer.cat_xml,
+                'val_xml':    xml_writer.val_xml,
+            })
         return xml
 
     @property
@@ -792,6 +809,12 @@ class _BubbleChartXmlWriter(_XyChartXmlWriter):
                 'bubble3D_val':   self._bubble3D_val,
             })
         return xml
+
+
+class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
+    """
+    Generates XML snippets particular to a category chart series.
+    """
 
 
 class _XySeriesXmlWriter(_BaseSeriesXmlWriter):

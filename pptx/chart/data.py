@@ -12,7 +12,10 @@ from xml.sax.saxutils import escape
 from ..oxml import parse_xml
 from ..oxml.ns import nsdecls
 from ..util import lazyproperty
-from .xlsx import BubbleWorkbookWriter, WorkbookWriter, XyWorkbookWriter
+from .xlsx import (
+    BubbleWorkbookWriter, CategoryWorkbookWriter, WorkbookWriter,
+    XyWorkbookWriter
+)
 from .xmlwriter import ChartXmlWriter
 
 
@@ -251,6 +254,14 @@ class CategoryChartData(_BaseChartData):
         for name in category_names:
             categories.add_category(name)
         self._categories = categories
+
+    @lazyproperty
+    def _workbook_writer(self):
+        """
+        The worksheet writer object to which layout and writing of the Excel
+        worksheet for this chart will be delegated.
+        """
+        return CategoryWorkbookWriter(self)
 
 
 class Categories(Sequence):

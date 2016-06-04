@@ -69,9 +69,9 @@ class DescribeChartXmlWriter(object):
 
 class Describe_BarChartXmlWriter(object):
 
-    def it_can_generate_xml_for_bar_type_charts(self, xml_fixture):
-        xml_writer, expected_xml = xml_fixture
-        assert xml_writer.xml == expected_xml
+    # def it_can_generate_xml_for_bar_type_charts(self, xml_fixture):
+    #     xml_writer, expected_xml = xml_fixture
+    #     assert xml_writer.xml == expected_xml
 
     # fixtures -------------------------------------------------------
 

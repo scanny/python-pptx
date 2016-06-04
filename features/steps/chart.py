@@ -379,7 +379,7 @@ def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
     category_source = ('Foo', 'Bar', 'Baz', 'Boo', 'Far', 'Faz')
     series_value_source = count(1.1, 1.1)
 
-    chart_data = ChartData()
+    chart_data = CategoryChartData()
     chart_data.categories = category_source[:category_count]
     for idx in range(series_count):
         series_title = 'Series %d' % (idx+1)
