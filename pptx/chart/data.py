@@ -256,7 +256,9 @@ class Categories(Sequence):
         Return a newly created |Category| object having *name* and appended
         to the end of this category sequence.
         """
-        raise NotImplementedError
+        category = Category(name, self)
+        self._categories.append(category)
+        return category
 
 
 class Category(object):
@@ -265,6 +267,10 @@ class Category(object):
     axis, but also able to be configured in a hierarchy for support of
     multi-level category charts.
     """
+    def __init__(self, name, parent):
+        super(Category, self).__init__()
+        self._name = name
+        self._parent = parent
 
 
 class ChartData(object):

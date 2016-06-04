@@ -248,6 +248,36 @@ class DescribeCategoryChartData(object):
         return instance_mock(request, Category)
 
 
+class DescribeCategories(object):
+
+    def it_can_add_a_category(self, add_fixture):
+        categories, name, Category_, category_ = add_fixture
+        category = categories.add_category(name)
+        Category_.assert_called_once_with(name, categories)
+        assert categories._categories[-1] is category
+        assert category is category_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_fixture(self, Category_, category_):
+        categories = Categories()
+        name = 'foobar'
+        return categories, name, Category_, category_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def Category_(self, request, category_):
+        return class_mock(
+            request, 'pptx.chart.data.Category', return_value=category_
+        )
+
+    @pytest.fixture
+    def category_(self, request):
+        return instance_mock(request, Category)
+
+
 class DescribeBubbleChartData(object):
 
     def it_can_add_a_series(self, add_series_fixture):

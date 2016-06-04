@@ -9,7 +9,6 @@ Feature: chart_data properties
      Then chart_data.categories is a Categories object
 
 
-  @wip
   Scenario: CategoryChartData.add_category()
     Given a CategoryChartData object
      Then chart_data.add_category(name) is a Category object
