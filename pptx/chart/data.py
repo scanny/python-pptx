@@ -300,7 +300,14 @@ class Categories(Sequence):
         The number of hierarchy levels in this category graph. Returns 0 if
         it contains no categories.
         """
-        raise NotImplementedError
+        categories = self._categories
+        if not categories:
+            return 0
+        first_depth = categories[0].depth
+        for category in categories[1:]:
+            if category.depth != first_depth:
+                raise ValueError('category depth not uniform')
+        return first_depth
 
 
 class Category(object):
@@ -313,6 +320,14 @@ class Category(object):
         super(Category, self).__init__()
         self._name = name
         self._parent = parent
+
+    @property
+    def depth(self):
+        """
+        The number of hierarchy levels rooted at this category node. Returns
+        1 if this category has no sub-categories.
+        """
+        raise NotImplementedError
 
     @property
     def name(self):

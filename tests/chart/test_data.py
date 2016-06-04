@@ -299,6 +299,15 @@ class DescribeCategoryChartData(object):
 
 class DescribeCategories(object):
 
+    def it_knows_the_category_hierarchy_depth(self, depth_fixture):
+        categories, expected_value = depth_fixture
+        assert categories.depth == expected_value
+
+    def it_raises_on_category_depth_not_uniform(self, depth_raises_fixture):
+        categories = depth_raises_fixture
+        with pytest.raises(ValueError):
+            categories.depth
+
     def it_can_add_a_category(self, add_fixture):
         categories, name, Category_, category_ = add_fixture
         category = categories.add_category(name)
@@ -313,6 +322,31 @@ class DescribeCategories(object):
         categories = Categories()
         name = 'foobar'
         return categories, name, Category_, category_
+
+    @pytest.fixture(params=[
+        ((),        0),
+        ((1,),      1),
+        ((3,),      3),
+        ((1, 1, 1), 1),
+        ((3, 3, 3), 3),
+    ])
+    def depth_fixture(self, request):
+        depths, expected_value = request.param
+        categories = Categories()
+        for depth in depths:
+            categories._categories.append(
+                instance_mock(request, Category, depth=depth)
+            )
+        return categories, expected_value
+
+    @pytest.fixture
+    def depth_raises_fixture(self, request):
+        categories = Categories()
+        for depth in (1, 2, 1):
+            categories._categories.append(
+                instance_mock(request, Category, depth=depth)
+            )
+        return categories
 
     # fixture components ---------------------------------------------
 
