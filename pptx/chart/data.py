@@ -396,7 +396,9 @@ class CategorySeriesData(_BaseSeriesData):
         Return a CategoryDataPoint object newly created with value *value*,
         an optional *number_format*, and appended to this sequence.
         """
-        raise NotImplementedError
+        data_point = CategoryDataPoint(value, number_format)
+        self.append(data_point)
+        return data_point
 
 
 class XyChartData(_BaseChartData):
@@ -510,6 +512,18 @@ class BubbleSeriesData(XySeriesData):
         sizes for this series.
         """
         return self._chart_data.bubble_sizes_ref(self)
+
+
+class CategoryDataPoint(object):
+    """
+    A data point in a category chart series. Provides access to the value of
+    the datapoint and the number format with which it should appear in the
+    Excel file.
+    """
+    def __init__(self, value, number_format=None):
+        super(CategoryDataPoint, self).__init__()
+        self._value = value
+        self._number_format = number_format
 
 
 class XyDataPoint(object):

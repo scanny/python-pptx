@@ -21,7 +21,6 @@ Feature: chart_data properties
       And chart_data.categories[-1] is the category
 
 
-  @wip
   Scenario: CategoryChartData.add_series()
     Given a CategoryChartData object
      Then chart_data.add_series(name, values) is a CategorySeriesData object
