@@ -16,7 +16,7 @@ from pptx.chart.data import (
 )
 from pptx.enum.base import EnumValue
 
-from ..unitutil.mock import class_mock, instance_mock, property_mock
+from ..unitutil.mock import call, class_mock, instance_mock, property_mock
 
 
 class DescribeChartData(object):
@@ -210,6 +210,15 @@ class DescribeCategoryChartData(object):
         categories_.add_category.assert_called_once_with(name)
         assert category is category_
 
+    def it_can_set_its_categories(self, categories_set_fixture):
+        chart_data, names, Categories_, categories_, calls = (
+            categories_set_fixture
+        )
+        chart_data.categories = names
+        Categories_.assert_called_once_with()
+        assert categories_.add_category.call_args_list == calls
+        assert chart_data._categories is categories_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -223,6 +232,13 @@ class DescribeCategoryChartData(object):
     def categories_fixture(self, Categories_, categories_):
         chart_data = CategoryChartData()
         return chart_data, Categories_, categories_
+
+    @pytest.fixture
+    def categories_set_fixture(self, Categories_, categories_):
+        chart_data = CategoryChartData()
+        names = iter(('a', 'b', 'c'))
+        calls = [call('a'), call('b'), call('c')]
+        return chart_data, names, Categories_, categories_, calls
 
     # fixture components ---------------------------------------------
 

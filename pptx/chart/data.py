@@ -229,6 +229,13 @@ class CategoryChartData(_BaseChartData):
         """
         return Categories()
 
+    @categories.setter
+    def categories(self, category_names):
+        categories = Categories()
+        for name in category_names:
+            categories.add_category(name)
+        self._categories = categories
+
 
 class Categories(Sequence):
     """
