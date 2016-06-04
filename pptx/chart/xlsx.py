@@ -70,6 +70,14 @@ class CategoryWorkbookWriter(object):
         super(CategoryWorkbookWriter, self).__init__()
         self._chart_data = chart_data
 
+    @property
+    def categories_ref(self):
+        """
+        The Excel worksheet reference to the categories for this chart (not
+        including the column heading).
+        """
+        raise NotImplementedError
+
     def series_name_ref(self, series):
         """
         Return the Excel worksheet reference to the cell containing the name

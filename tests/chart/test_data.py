@@ -15,6 +15,7 @@ from pptx.chart.data import (
     CategorySeriesData, ChartData, _SeriesData, XyChartData, XyDataPoint,
     XySeriesData
 )
+from pptx.chart.xlsx import CategoryWorkbookWriter
 from pptx.enum.base import EnumValue
 
 from ..unitutil.mock import call, class_mock, instance_mock, property_mock
@@ -199,6 +200,10 @@ class Describe_BaseChartData(object):
 
 class DescribeCategoryChartData(object):
 
+    def it_knows_the_categories_range_ref(self, categories_ref_fixture):
+        chart_data, expected_value = categories_ref_fixture
+        assert chart_data.categories_ref == expected_value
+
     def it_provides_access_to_its_categories(self, categories_fixture):
         chart_data, Categories_, categories_ = categories_fixture
         categories = chart_data.categories
@@ -256,6 +261,14 @@ class DescribeCategoryChartData(object):
         return chart_data, Categories_, categories_
 
     @pytest.fixture
+    def categories_ref_fixture(
+            self, _workbook_writer_prop_, workbook_writer_):
+        chart_data = CategoryChartData()
+        expected_value = categories_ref = 'Sheet42!$G$24'
+        workbook_writer_.categories_ref = categories_ref
+        return chart_data, expected_value
+
+    @pytest.fixture
     def categories_set_fixture(self, Categories_, categories_):
         chart_data = CategoryChartData()
         names = iter(('a', 'b', 'c'))
@@ -295,6 +308,17 @@ class DescribeCategoryChartData(object):
     @pytest.fixture
     def series_(self, request):
         return instance_mock(request, CategorySeriesData)
+
+    @pytest.fixture
+    def workbook_writer_(self, request):
+        return instance_mock(request, CategoryWorkbookWriter)
+
+    @pytest.fixture
+    def _workbook_writer_prop_(self, request, workbook_writer_):
+        return property_mock(
+            request, CategoryChartData, '_workbook_writer',
+            return_value=workbook_writer_
+        )
 
 
 class DescribeCategories(object):
