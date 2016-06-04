@@ -344,6 +344,10 @@ class DescribeCategory(object):
 
 class DescribeCategorySeriesData(object):
 
+    def it_provides_access_to_the_chart_categories(self, categories_fixture):
+        series_data, categories_ = categories_fixture
+        assert series_data.categories is categories_
+
     def it_can_add_a_data_point(self, add_fixture):
         series_data, value, number_format = add_fixture[:3]
         CategoryDataPoint_, data_point_ = add_fixture[3:]
@@ -363,6 +367,12 @@ class DescribeCategorySeriesData(object):
             data_point_
         )
 
+    @pytest.fixture
+    def categories_fixture(self, chart_data_, categories_):
+        series_data = CategorySeriesData(None, None, chart_data_)
+        chart_data_.categories = categories_
+        return series_data, categories_
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -371,6 +381,14 @@ class DescribeCategorySeriesData(object):
             request, 'pptx.chart.data.CategoryDataPoint',
             return_value=data_point_
         )
+
+    @pytest.fixture
+    def categories_(self, request):
+        return instance_mock(request, Categories)
+
+    @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, CategoryChartData)
 
     @pytest.fixture
     def data_point_(self, request):

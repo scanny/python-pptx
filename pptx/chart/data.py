@@ -425,7 +425,7 @@ class CategorySeriesData(_BaseSeriesData):
         The |Categories| object that provides access to the category objects
         for this series.
         """
-        raise NotImplementedError
+        return self._chart_data.categories
 
 
 class XyChartData(_BaseChartData):
