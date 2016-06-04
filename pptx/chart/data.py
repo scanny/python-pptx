@@ -212,6 +212,37 @@ class CategoryChartData(_BaseChartData):
     lieu of X values for each data point and its data points have only the
     Y value.
     """
+    @lazyproperty
+    def categories(self):
+        """
+        A |Categories| object providing access to the hierarchy of category
+        objects for this chart data. Assigning an iterable of category names
+        (strings) replaces the |Categories| object with a new one containing
+        a category for each name.
+        """
+        return Categories()
+
+
+class Categories(Sequence):
+    """
+    A sequence of |Category| objects, also having certain hierarchical graph
+    behaviors for support of multi-level (nested) categories.
+    """
+    def __init__(self):
+        super(Categories, self).__init__()
+        self._categories = []
+
+    def __getitem__(self, idx):
+        return self._categories.__getitem__(idx)
+
+    def __len__(self):
+        """
+        Return the count of the highest level of category in this sequence.
+        If it contains hierarchical (multi-level) categories, this number
+        will differ from :attr:`category_count`, which is the number of leaf
+        nodes.
+        """
+        return self._categories.__len__()
 
 
 class ChartData(object):

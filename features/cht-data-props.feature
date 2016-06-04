@@ -4,7 +4,6 @@ Feature: chart_data properties
   I need chart data transfer objects
 
 
-  @wip
   Scenario: CategoryChartData.categories
     Given a CategoryChartData object
      Then chart_data.categories is a Categories object

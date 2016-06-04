@@ -11,7 +11,8 @@ import pytest
 
 from pptx.chart.data import (
     _BaseChartData, BubbleChartData, BubbleDataPoint, BubbleSeriesData,
-    ChartData, _SeriesData, XyChartData, XyDataPoint, XySeriesData
+    Categories, CategoryChartData, ChartData, _SeriesData, XyChartData,
+    XyDataPoint, XySeriesData
 )
 from pptx.enum.base import EnumValue
 
@@ -193,6 +194,34 @@ class Describe_BaseChartData(object):
     @pytest.fixture
     def chart_type_(self, request):
         return instance_mock(request, EnumValue)
+
+
+class DescribeCategoryChartData(object):
+
+    def it_provides_access_to_its_categories(self, categories_fixture):
+        chart_data, Categories_, categories_ = categories_fixture
+        categories = chart_data.categories
+        Categories_.assert_called_once_with()
+        assert categories is categories_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def categories_fixture(self, Categories_, categories_):
+        chart_data = CategoryChartData()
+        return chart_data, Categories_, categories_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def Categories_(self, request, categories_):
+        return class_mock(
+            request, 'pptx.chart.data.Categories', return_value=categories_
+        )
+
+    @pytest.fixture
+    def categories_(self, request):
+        return instance_mock(request, Categories)
 
 
 class DescribeBubbleChartData(object):
