@@ -86,6 +86,11 @@ class DescribePresentationPart(object):
         with pytest.raises(ValueError):
             prs_part.slide_id(slide_part_)
 
+    def it_finds_a_slide_by_slide_id(self, get_slide_fixture):
+        prs_part, slide_id, expected_value = get_slide_fixture
+        slide = prs_part.get_slide(slide_id)
+        assert slide == expected_value
+
     def it_knows_the_next_slide_partname_to_help(self, next_fixture):
         prs_part, partname = next_fixture
         assert prs_part._next_slide_partname == partname
@@ -113,6 +118,23 @@ class DescribePresentationPart(object):
         prs_part = PresentationPart(None, None, None, package_)
         package_.core_properties = core_properties_
         return prs_part, core_properties_
+
+    @pytest.fixture(params=[True, False])
+    def get_slide_fixture(
+            self, request, slide_, slide_part_, related_parts_prop_):
+        is_present = request.param
+        prs_elm = element(
+            'p:presentation/p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id='
+            'b,id=257},p:sldId{r:id=c,id=258})'
+        )
+        prs_part = PresentationPart(None, None, prs_elm)
+        slide_id = 257 if is_present else 666
+        expected_value = slide_ if is_present else None
+        related_parts_prop_.return_value = {
+            'a': None, 'b': slide_part_, 'c': None
+        }
+        slide_part_.slide = slide_
+        return prs_part, slide_id, expected_value
 
     @pytest.fixture
     def master_fixture(self, slide_master_, related_parts_prop_):

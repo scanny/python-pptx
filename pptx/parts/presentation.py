@@ -43,7 +43,10 @@ class PresentationPart(XmlPart):
         Return the |Slide| object identified by *slide_id* (in this
         presentation), or |None| if not found.
         """
-        raise NotImplementedError
+        for sldId in self._element.sldIdLst:
+            if sldId.id == slide_id:
+                return self.related_parts[sldId.rId].slide
+        return None
 
     @lazyproperty
     def presentation(self):

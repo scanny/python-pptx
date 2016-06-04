@@ -26,7 +26,6 @@ Feature: Access an individual slide
       And slide.slide_layout is the one passed in the call
 
 
-  @wip
   Scenario: Slides.get()
     Given a Slides object containing 3 slides
      Then slides.get(256) is slides[0]
