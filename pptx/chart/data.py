@@ -279,6 +279,13 @@ class Category(object):
         self._name = name
         self._parent = parent
 
+    @property
+    def name(self):
+        """
+        The string that appears on the axis for this category.
+        """
+        return self._name
+
 
 class ChartData(object):
     """

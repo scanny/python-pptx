@@ -9,7 +9,6 @@ Feature: chart_data properties
      Then chart_data.categories is a Categories object
 
 
-  @wip
   Scenario: CategoryChartData.categories setter
     Given a CategoryChartData object
      When I assign ['a', 'b', 'c'] to chart_data.categories

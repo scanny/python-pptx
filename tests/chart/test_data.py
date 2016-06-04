@@ -294,6 +294,21 @@ class DescribeCategories(object):
         return instance_mock(request, Category)
 
 
+class DescribeCategory(object):
+
+    def it_knows_its_name(self, name_fixture):
+        category, expected_value = name_fixture
+        assert category.name == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def name_fixture(self):
+        name = 'foobar'
+        category = Category(name, None)
+        return category, name
+
+
 class DescribeBubbleChartData(object):
 
     def it_can_add_a_series(self, add_series_fixture):
