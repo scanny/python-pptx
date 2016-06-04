@@ -212,6 +212,13 @@ class CategoryChartData(_BaseChartData):
     lieu of X values for each data point and its data points have only the
     Y value.
     """
+    def add_category(self, name):
+        """
+        Return a newly created |Category| object having *name* and appended
+        to the end of the category sequence for this chart.
+        """
+        return self.categories.add_category(name)
+
     @lazyproperty
     def categories(self):
         """
@@ -243,6 +250,21 @@ class Categories(Sequence):
         nodes.
         """
         return self._categories.__len__()
+
+    def add_category(self, name):
+        """
+        Return a newly created |Category| object having *name* and appended
+        to the end of this category sequence.
+        """
+        raise NotImplementedError
+
+
+class Category(object):
+    """
+    A chart category, primarily having a name to be displayed in the category
+    axis, but also able to be configured in a hierarchy for support of
+    multi-level category charts.
+    """
 
 
 class ChartData(object):

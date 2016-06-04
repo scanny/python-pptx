@@ -11,12 +11,12 @@ import pytest
 
 from pptx.chart.data import (
     _BaseChartData, BubbleChartData, BubbleDataPoint, BubbleSeriesData,
-    Categories, CategoryChartData, ChartData, _SeriesData, XyChartData,
-    XyDataPoint, XySeriesData
+    Categories, Category, CategoryChartData, ChartData, _SeriesData,
+    XyChartData, XyDataPoint, XySeriesData
 )
 from pptx.enum.base import EnumValue
 
-from ..unitutil.mock import class_mock, instance_mock
+from ..unitutil.mock import class_mock, instance_mock, property_mock
 
 
 class DescribeChartData(object):
@@ -204,7 +204,20 @@ class DescribeCategoryChartData(object):
         Categories_.assert_called_once_with()
         assert categories is categories_
 
+    def it_can_add_a_category(self, add_fixture):
+        chart_data, name, categories_, category_ = add_fixture
+        category = chart_data.add_category(name)
+        categories_.add_category.assert_called_once_with(name)
+        assert category is category_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_fixture(self, categories_prop_, categories_, category_):
+        chart_data = CategoryChartData()
+        name = 'foobar'
+        categories_.add_category.return_value = category_
+        return chart_data, name, categories_, category_
 
     @pytest.fixture
     def categories_fixture(self, Categories_, categories_):
@@ -222,6 +235,17 @@ class DescribeCategoryChartData(object):
     @pytest.fixture
     def categories_(self, request):
         return instance_mock(request, Categories)
+
+    @pytest.fixture
+    def categories_prop_(self, request, categories_):
+        return property_mock(
+            request, CategoryChartData, 'categories',
+            return_value=categories_
+        )
+
+    @pytest.fixture
+    def category_(self, request):
+        return instance_mock(request, Category)
 
 
 class DescribeBubbleChartData(object):
