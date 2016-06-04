@@ -11,8 +11,8 @@ import pytest
 
 from pptx.chart.data import (
     _BaseChartData, BubbleChartData, BubbleDataPoint, BubbleSeriesData,
-    Categories, Category, CategoryChartData, ChartData, _SeriesData,
-    XyChartData, XyDataPoint, XySeriesData
+    Categories, Category, CategoryChartData, CategorySeriesData, ChartData,
+    _SeriesData, XyChartData, XyDataPoint, XySeriesData
 )
 from pptx.enum.base import EnumValue
 
@@ -204,11 +204,22 @@ class DescribeCategoryChartData(object):
         Categories_.assert_called_once_with()
         assert categories is categories_
 
-    def it_can_add_a_category(self, add_fixture):
-        chart_data, name, categories_, category_ = add_fixture
+    def it_can_add_a_category(self, add_cat_fixture):
+        chart_data, name, categories_, category_ = add_cat_fixture
         category = chart_data.add_category(name)
         categories_.add_category.assert_called_once_with(name)
         assert category is category_
+
+    def it_can_add_a_series(self, add_ser_fixture):
+        chart_data, name, values, number_format = add_ser_fixture[:4]
+        CategorySeriesData_, calls, series_ = add_ser_fixture[4:]
+        series = chart_data.add_series(name, values, number_format)
+        CategorySeriesData_.assert_called_once_with(
+            name, number_format, chart_data
+        )
+        assert chart_data[-1] is series
+        assert series.add_data_point.call_args_list == calls
+        assert series is series_
 
     def it_can_set_its_categories(self, categories_set_fixture):
         chart_data, names, Categories_, categories_, calls = (
@@ -222,11 +233,21 @@ class DescribeCategoryChartData(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def add_fixture(self, categories_prop_, categories_, category_):
+    def add_cat_fixture(self, categories_prop_, categories_, category_):
         chart_data = CategoryChartData()
         name = 'foobar'
         categories_.add_category.return_value = category_
         return chart_data, name, categories_, category_
+
+    @pytest.fixture
+    def add_ser_fixture(self, CategorySeriesData_, series_):
+        chart_data = CategoryChartData()
+        name, values, number_format = 'foobar', iter((1, 2, 3)), '0.0'
+        calls = [call(1), call(2), call(3)]
+        return (
+            chart_data, name, values, number_format, CategorySeriesData_,
+            calls, series_
+        )
 
     @pytest.fixture
     def categories_fixture(self, Categories_, categories_):
@@ -249,6 +270,13 @@ class DescribeCategoryChartData(object):
         )
 
     @pytest.fixture
+    def CategorySeriesData_(self, request, series_):
+        return class_mock(
+            request, 'pptx.chart.data.CategorySeriesData',
+            return_value=series_
+        )
+
+    @pytest.fixture
     def categories_(self, request):
         return instance_mock(request, Categories)
 
@@ -262,6 +290,10 @@ class DescribeCategoryChartData(object):
     @pytest.fixture
     def category_(self, request):
         return instance_mock(request, Category)
+
+    @pytest.fixture
+    def series_(self, request):
+        return instance_mock(request, CategorySeriesData)
 
 
 class DescribeCategories(object):

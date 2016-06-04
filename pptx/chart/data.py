@@ -219,6 +219,22 @@ class CategoryChartData(_BaseChartData):
         """
         return self.categories.add_category(name)
 
+    def add_series(self, name, values=(), number_format=None):
+        """
+        Add a series to this data set entitled *name* and having the data
+        points specified by *values*, an iterable of numeric values.
+        *number_format* specifies how the series values will be displayed,
+        and may be a string, e.g. '#,##0', or an integer in the range 0-22 or
+        37-49, signifying one of the built-in Excel number formats. The valid
+        integer values and their meaning are documented on the
+        :ref:`ExcelNumFormat` page.
+        """
+        series_data = CategorySeriesData(name, number_format, self)
+        self.append(series_data)
+        for value in values:
+            series_data.add_data_point(value)
+        return series_data
+
     @lazyproperty
     def categories(self):
         """
@@ -362,6 +378,25 @@ class ChartData(object):
         UTF-8 encoding.
         """
         return ChartXmlWriter(chart_type, self._series_lst).xml
+
+
+class CategorySeriesData(_BaseSeriesData):
+    """
+    The data specific to a particular category chart series. It provides
+    access to the series label, the series data points, and an optional
+    number format to be applied to each data point not having a specified
+    number format.
+    """
+    def __init__(self, name, number_format, chart_data):
+        super(CategorySeriesData, self).__init__(chart_data, name)
+        self._number_format = number_format
+
+    def add_data_point(self, value, number_format=None):
+        """
+        Return a CategoryDataPoint object newly created with value *value*,
+        an optional *number_format*, and appended to this sequence.
+        """
+        raise NotImplementedError
 
 
 class XyChartData(_BaseChartData):
