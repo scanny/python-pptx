@@ -435,15 +435,6 @@ def when_I_add_an_xy_chart_having_2_series_of_3_points(context, xy_type):
     ).chart
 
 
-@when('I assign {value} to chart.has_legend')
-def when_I_assign_value_to_chart_has_legend(context, value):
-    new_value = {
-        'True':  True,
-        'False': False,
-    }[value]
-    context.chart.has_legend = new_value
-
-
 @when('I assign {value} to axis.has_{major_or_minor}_gridlines')
 def when_I_assign_value_to_axis_has_major_or_minor_gridlines(
         context, value, major_or_minor):
@@ -466,6 +457,21 @@ def when_I_assign_value_to_axis_major_or_minor_unit(
 def when_I_assign_value_to_bubble_plot_bubble_scale(context, value):
     new_value = None if value == 'None' else int(value)
     context.bubble_plot.bubble_scale = new_value
+
+
+@when("I assign ['a', 'b', 'c'] to chart_data.categories")
+def when_I_assign_a_b_c_to_chart_data_categories(context):
+    chart_data = context.chart_data
+    chart_data.categories = ['a', 'b', 'c']
+
+
+@when('I assign {value} to chart.has_legend')
+def when_I_assign_value_to_chart_has_legend(context, value):
+    new_value = {
+        'True':  True,
+        'False': False,
+    }[value]
+    context.chart.has_legend = new_value
 
 
 @when('I assign {value} to data_label.has_text_frame')
@@ -585,6 +591,12 @@ def when_I_replace_its_data_with_categories_and_series(context, cats, sers):
 
 
 # then ====================================================
+
+@then("[c.name for c in chart_data.categories] is ['a', 'b', 'c']")
+def then_c_name_for_c_in_chart_data_categories_is_a_b_c(context):
+    chart_data = context.chart_data
+    assert [c.name for c in chart_data.categories] == ['a', 'b', 'c']
+
 
 @then('axis.format is a ChartFormat object')
 def then_axis_format_is_a_ChartFormat_object(context):
