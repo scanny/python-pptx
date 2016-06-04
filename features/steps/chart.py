@@ -696,6 +696,13 @@ def then_chart_data_add_category_name_is_a_Category_object(context):
     assert type(category).__name__ == 'Category'
 
 
+@then('chart_data.add_series(name, values) is a CategorySeriesData object')
+def then_chart_data_add_series_is_a_CategorySeriesData_object(context):
+    chart_data = context.chart_data
+    context.series = series = chart_data.add_series('Series X', (1, 2, 3))
+    assert type(series).__name__ == 'CategorySeriesData'
+
+
 @then('chart_data.categories is a Categories object')
 def then_chart_data_categories_is_a_Categories_object(context):
     chart_data = context.chart_data
@@ -706,6 +713,12 @@ def then_chart_data_categories_is_a_Categories_object(context):
 def then_chart_data_categories_minus_1_is_the_category(context):
     chart_data, category = context.chart_data, context.category
     assert chart_data.categories[-1] is category
+
+
+@then('chart_data[-1] is the new series')
+def then_chart_data_minus_1_is_the_new_series(context):
+    chart_data, series = context.chart_data, context.series
+    assert chart_data[-1] is series
 
 
 @then('data_label.has_text_frame is {value}')
