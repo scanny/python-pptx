@@ -411,6 +411,10 @@ class DescribeCategory(object):
 
 class DescribeCategorySeriesData(object):
 
+    def it_knows_the_categories_range_ref(self, categories_ref_fixture):
+        series_data, expected_value = categories_ref_fixture
+        assert series_data.categories_ref == expected_value
+
     def it_provides_access_to_the_chart_categories(self, categories_fixture):
         series_data, categories_ = categories_fixture
         assert series_data.categories is categories_
@@ -439,6 +443,13 @@ class DescribeCategorySeriesData(object):
         series_data = CategorySeriesData(None, None, chart_data_)
         chart_data_.categories = categories_
         return series_data, categories_
+
+    @pytest.fixture
+    def categories_ref_fixture(self, chart_data_):
+        series_data = CategorySeriesData(None, None, chart_data_)
+        expected_value = categories_ref = 'Sheet1!$F$42'
+        chart_data_.categories_ref = categories_ref
+        return series_data, expected_value
 
     # fixture components ---------------------------------------------
 

@@ -255,6 +255,14 @@ class CategoryChartData(_BaseChartData):
             categories.add_category(name)
         self._categories = categories
 
+    @property
+    def categories_ref(self):
+        """
+        The Excel worksheet reference to the categories for this chart (not
+        including the column heading).
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def _workbook_writer(self):
         """
@@ -449,6 +457,14 @@ class CategorySeriesData(_BaseSeriesData):
         for this series.
         """
         return self._chart_data.categories
+
+    @property
+    def categories_ref(self):
+        """
+        The Excel worksheet reference to the categories for this chart (not
+        including the column heading).
+        """
+        return self._chart_data.categories_ref
 
 
 class XyChartData(_BaseChartData):

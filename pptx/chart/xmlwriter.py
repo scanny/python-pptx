@@ -815,6 +815,44 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
     """
     Generates XML snippets particular to a category chart series.
     """
+    @property
+    def cat_xml(self):
+        """
+        The unicode XML snippet for the ``<c:cat>`` element for this series,
+        containing the category labels and spreadsheet reference.
+        """
+        categories = self._series.categories
+        if categories.depth == 1:
+            return self._cat_tmpl.format(**{
+                'wksht_ref':  self._series.categories_ref,
+                'cat_count':  len(self._series.categories),
+                'cat_pt_xml': self._cat_pt_xml,
+                'nsdecls':    '',
+            })
+        return self._multiLvl_cat_tmpl.format(**{
+            'wksht_ref': self._series.categories_ref,
+            'cat_count': categories.leaf_count,
+            'lvl_xml':   self._lvl_xml(categories),
+            'nsdecls':   '',
+        })
+
+    @property
+    def _cat_tmpl(self):
+        """
+        The template for the ``<c:cat>`` element for this series, containing
+        the category labels and spreadsheet reference.
+        """
+        return (
+            '          <c:cat{nsdecls}>\n'
+            '            <c:strRef>\n'
+            '              <c:f>{wksht_ref}</c:f>\n'
+            '              <c:strCache>\n'
+            '                <c:ptCount val="{cat_count}"/>\n'
+            '{cat_pt_xml}'
+            '              </c:strCache>\n'
+            '            </c:strRef>\n'
+            '          </c:cat>\n'
+        )
 
 
 class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
