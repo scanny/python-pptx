@@ -329,7 +329,12 @@ class Categories(Sequence):
         The offset of *category* in the overall sequence of leaf categories.
         A non-leaf category gets the index of its first sub-category.
         """
-        raise NotImplementedError
+        index = 0
+        for this_category in self._categories:
+            if category is this_category:
+                return index
+            index += this_category.leaf_count
+        raise ValueError('category not in top-level categories')
 
     @property
     def leaf_count(self):
