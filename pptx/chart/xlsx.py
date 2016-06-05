@@ -91,6 +91,13 @@ class CategoryWorkbookWriter(object):
         """
         return "Sheet1!$%s$1" % self._series_col_letter(series)
 
+    def values_ref(self, series):
+        """
+        The Excel worksheet reference to the values for this series (not
+        including the column heading).
+        """
+        raise NotImplementedError
+
     def _series_col_letter(self, series):
         """
         The letter of the Excel worksheet column in which the data for a

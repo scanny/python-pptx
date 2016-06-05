@@ -268,7 +268,7 @@ class CategoryChartData(_BaseChartData):
         The Excel worksheet reference to the values for *series* (not
         including the column heading).
         """
-        raise NotImplementedError
+        return self._workbook_writer.values_ref(series)
 
     @lazyproperty
     def _workbook_writer(self):

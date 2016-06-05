@@ -204,6 +204,14 @@ class DescribeCategoryChartData(object):
         chart_data, expected_value = categories_ref_fixture
         assert chart_data.categories_ref == expected_value
 
+    def it_knows_the_values_range_ref_for_a_series(self, values_ref_fixture):
+        chart_data, workbook_writer_, series_, values_ref_ = (
+            values_ref_fixture
+        )
+        values_ref = chart_data.values_ref(series_)
+        workbook_writer_.values_ref.assert_called_once_with(series_)
+        assert values_ref is values_ref_
+
     def it_provides_access_to_its_categories(self, categories_fixture):
         chart_data, Categories_, categories_ = categories_fixture
         categories = chart_data.categories
@@ -274,6 +282,14 @@ class DescribeCategoryChartData(object):
         names = iter(('a', 'b', 'c'))
         calls = [call('a'), call('b'), call('c')]
         return chart_data, names, Categories_, categories_, calls
+
+    @pytest.fixture
+    def values_ref_fixture(
+            self, _workbook_writer_prop_, workbook_writer_, series_):
+        chart_data = CategoryChartData()
+        values_ref_ = 'Sheet1!$V$24'
+        workbook_writer_.values_ref.return_value = values_ref_
+        return chart_data, workbook_writer_, series_, values_ref_
 
     # fixture components ---------------------------------------------
 
