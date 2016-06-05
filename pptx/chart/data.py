@@ -263,6 +263,13 @@ class CategoryChartData(_BaseChartData):
         """
         return self._workbook_writer.categories_ref
 
+    def values_ref(self, series):
+        """
+        The Excel worksheet reference to the values for *series* (not
+        including the column heading).
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def _workbook_writer(self):
         """
@@ -484,6 +491,14 @@ class CategorySeriesData(_BaseSeriesData):
         including the column heading).
         """
         return self._chart_data.categories_ref
+
+    @property
+    def values_ref(self):
+        """
+        The Excel worksheet reference to the (Y) values for this series (not
+        including the column heading).
+        """
+        return self._chart_data.values_ref(self)
 
 
 class XyChartData(_BaseChartData):

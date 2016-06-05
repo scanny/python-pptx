@@ -837,6 +837,38 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
         })
 
     @property
+    def val_xml(self):
+        """
+        Return the unicode XML snippet for the ``<c:val>`` element describing
+        this series, containing the series values and their spreadsheet range
+        reference.
+        """
+        return self._val_tmpl.format(**{
+            'wksht_ref':  self._series.values_ref,
+            'val_count':  len(self._series),
+            'val_pt_xml': self._val_pt_xml,
+            'nsdecls':    '',
+        })
+
+    @property
+    def _cat_pt_xml(self):
+        """
+        The unicode XML snippet for the ``<c:pt>`` elements containing the
+        category names for this series.
+        """
+        xml = ''
+        for idx, category in enumerate(self._series.categories):
+            xml += (
+                '                <c:pt idx="{cat_name_idx}">\n'
+                '                  <c:v>{cat_name}</c:v>\n'
+                '                </c:pt>\n'
+            ).format(**{
+                'cat_name_idx': idx,
+                'cat_name':     escape(str(category.name)),
+            })
+        return xml
+
+    @property
     def _cat_tmpl(self):
         """
         The template for the ``<c:cat>`` element for this series, containing
@@ -852,6 +884,25 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
             '              </c:strCache>\n'
             '            </c:strRef>\n'
             '          </c:cat>\n'
+        )
+
+    @property
+    def _val_tmpl(self):
+        """
+        The template for the ``<c:val>`` element for this series, containing
+        the series values and their spreadsheet range reference.
+        """
+        return (
+            '          <c:val{nsdecls}>\n'
+            '            <c:numRef>\n'
+            '              <c:f>{wksht_ref}</c:f>\n'
+            '              <c:numCache>\n'
+            '                <c:formatCode>General</c:formatCode>\n'
+            '                <c:ptCount val="{val_count}"/>\n'
+            '{val_pt_xml}'
+            '              </c:numCache>\n'
+            '            </c:numRef>\n'
+            '          </c:val>\n'
         )
 
 
