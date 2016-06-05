@@ -409,6 +409,10 @@ class DescribeCategory(object):
         category, expected_value = depth_fixture
         assert category.depth == expected_value
 
+    def it_knows_its_leaf_category_count(self, leaf_fixture):
+        category, expected_value = leaf_fixture
+        assert category.leaf_count == expected_value
+
     def it_raises_on_depth_not_uniform(self, depth_raises_fixture):
         category = depth_raises_fixture
         with pytest.raises(ValueError):
@@ -443,6 +447,20 @@ class DescribeCategory(object):
                 instance_mock(request, Category, depth=depth)
             )
         return category
+
+    @pytest.fixture(params=[
+        ((),        1),
+        ((1,),      1),
+        ((1, 2, 3), 6),
+    ])
+    def leaf_fixture(self, request):
+        leaf_counts, expected_value = request.param
+        category = Category(None, None)
+        for leaf_count in leaf_counts:
+            category._sub_categories.append(
+                instance_mock(request, Category, leaf_count=leaf_count)
+            )
+        return category, expected_value
 
     @pytest.fixture
     def name_fixture(self):

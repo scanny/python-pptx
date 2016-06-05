@@ -360,7 +360,9 @@ class Category(object):
         The number of leaf category nodes under this category. Returns
         1 if this category has no sub-categories.
         """
-        raise NotImplementedError
+        if not self._sub_categories:
+            return 1
+        return sum(category.leaf_count for category in self._sub_categories)
 
     @property
     def name(self):
