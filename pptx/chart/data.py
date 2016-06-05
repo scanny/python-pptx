@@ -413,7 +413,7 @@ class Category(object):
         """
         The sequence of child categories for this category.
         """
-        raise NotImplementedError
+        return self._sub_categories
 
 
 class ChartData(object):

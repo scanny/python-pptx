@@ -465,6 +465,10 @@ class DescribeCategory(object):
         category, expected_value = name_fixture
         assert category.name == expected_value
 
+    def it_provides_access_to_its_sub_categories(self, subs_fixture):
+        category, sub_categories_ = subs_fixture
+        assert category.sub_categories is sub_categories_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -510,6 +514,13 @@ class DescribeCategory(object):
         name = 'foobar'
         category = Category(name, None)
         return category, name
+
+    @pytest.fixture
+    def subs_fixture(self):
+        sub_categories_ = [42, 24]
+        category = Category(None, None)
+        category._sub_categories = sub_categories_
+        return category, sub_categories_
 
 
 class DescribeCategorySeriesData(object):
