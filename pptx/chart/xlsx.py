@@ -60,16 +60,52 @@ class WorkbookWriter(object):
             worksheet.write_column(1, series_col, series.values, num_format)
 
 
-class CategoryWorkbookWriter(object):
+class _BaseWorkbookWriter(object):
+    """
+    Base class for workbook writers, providing shared members.
+    """
+    def __init__(self, chart_data):
+        super(_BaseWorkbookWriter, self).__init__()
+        self._chart_data = chart_data
+
+    @property
+    def xlsx_blob(self):
+        """
+        Return the byte stream of an Excel file formatted as chart data for
+        the category chart specified in the chart data object.
+        """
+        xlsx_file = BytesIO()
+        with self._open_worksheet(xlsx_file) as (workbook, worksheet):
+            self._populate_worksheet(workbook, worksheet)
+        return xlsx_file.getvalue()
+
+    @contextmanager
+    def _open_worksheet(self, xlsx_file):
+        """
+        Enable XlsxWriter Worksheet object to be opened, operated on, and
+        then automatically closed within a `with` statement. A filename or
+        stream object (such as a ``BytesIO`` instance) is expected as
+        *xlsx_file*.
+        """
+        workbook = Workbook(xlsx_file, {'in_memory': True})
+        worksheet = workbook.add_worksheet()
+        yield workbook, worksheet
+        workbook.close()
+
+    def _populate_worksheet(self, workbook, worksheet):
+        """
+        Must be overridden by each subclass to provide the particulars of
+        writing the spreadsheet data.
+        """
+        raise NotImplementedError('must be provided by each subclass')
+
+
+class CategoryWorkbookWriter(_BaseWorkbookWriter):
     """
     Determines Excel worksheet layout and can write an Excel workbook from
     a CategoryChartData object. Serves as the authority for Excel worksheet
     ranges.
     """
-    def __init__(self, chart_data):
-        super(CategoryWorkbookWriter, self).__init__()
-        self._chart_data = chart_data
-
     @property
     def categories_ref(self):
         """
@@ -110,28 +146,11 @@ class CategoryWorkbookWriter(object):
         return chr(start_col_ascii + series.index)
 
 
-class XyWorkbookWriter(object):
+class XyWorkbookWriter(_BaseWorkbookWriter):
     """
     Determines Excel worksheet layout and can write an Excel workbook from XY
     chart data. Serves as the authority for Excel worksheet ranges.
     """
-    def __init__(self, chart_data):
-        super(XyWorkbookWriter, self).__init__()
-        self._chart_data = chart_data
-
-    @contextmanager
-    def _open_worksheet(self, xlsx_file):
-        """
-        Enable XlsxWriter Worksheet object to be opened, operated on, and
-        then automatically closed within a `with` statement. A filename or
-        stream object (such as a ``BytesIO`` instance) is expected as
-        *xlsx_file*.
-        """
-        workbook = Workbook(xlsx_file, {'in_memory': True})
-        worksheet = workbook.add_worksheet()
-        yield workbook, worksheet
-        workbook.close()
-
     def series_name_ref(self, series):
         """
         Return the Excel worksheet reference to the cell containing the name
@@ -158,17 +177,6 @@ class XyWorkbookWriter(object):
         top_row = self.series_table_row_offset(series) + 2
         bottom_row = top_row + len(series) - 1
         return "Sheet1!$A$%d:$A$%d" % (top_row, bottom_row)
-
-    @property
-    def xlsx_blob(self):
-        """
-        Return the byte stream of an Excel file formatted as chart data for
-        the XY chart specified in *chart_data*.
-        """
-        xlsx_file = BytesIO()
-        with self._open_worksheet(xlsx_file) as (workbook, worksheet):
-            self._populate_worksheet(workbook, worksheet)
-        return xlsx_file.getvalue()
 
     def y_values_ref(self, series):
         """

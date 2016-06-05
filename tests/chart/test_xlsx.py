@@ -19,12 +19,106 @@ from pptx.chart.data import (
     _SeriesData, XyChartData
 )
 from pptx.chart.xlsx import (
-    BubbleWorkbookWriter, CategoryWorkbookWriter, WorkbookWriter,
-    XyWorkbookWriter
+    _BaseWorkbookWriter, BubbleWorkbookWriter, CategoryWorkbookWriter,
+    WorkbookWriter, XyWorkbookWriter
 )
 from pptx.compat import BytesIO
 
 from ..unitutil.mock import call, class_mock, instance_mock, method_mock
+
+
+class Describe_BaseWorkbookWriter(object):
+
+    def it_can_generate_a_chart_data_Excel_blob(self, xlsx_blob_fixture):
+        workbook_writer, xlsx_file_, workbook_, worksheet_, xlsx_blob = (
+            xlsx_blob_fixture
+        )
+        _xlsx_blob = workbook_writer.xlsx_blob
+
+        workbook_writer._open_worksheet.assert_called_once_with(xlsx_file_)
+        workbook_writer._populate_worksheet.assert_called_once_with(
+            workbook_writer, workbook_, worksheet_
+        )
+        assert _xlsx_blob is xlsx_blob
+
+    def it_can_open_a_worksheet_in_a_context(self, open_fixture):
+        wb_writer, xlsx_file_, workbook_, worksheet_, Workbook_ = open_fixture
+
+        with wb_writer._open_worksheet(xlsx_file_) as (workbook, worksheet):
+            Workbook_.assert_called_once_with(xlsx_file_, {'in_memory': True})
+            workbook_.add_worksheet.assert_called_once_with()
+            assert workbook is workbook_
+            assert worksheet is worksheet_
+        workbook_.close.assert_called_once_with()
+
+    def it_raises_on_no_override_of_populate(self, populate_fixture):
+        workbook_writer = populate_fixture
+        with pytest.raises(NotImplementedError):
+            workbook_writer._populate_worksheet(None, None)
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def open_fixture(self, xlsx_file_, workbook_, worksheet_, Workbook_):
+        workbook_writer = _BaseWorkbookWriter(None)
+        workbook_.add_worksheet.return_value = worksheet_
+        return workbook_writer, xlsx_file_, workbook_, worksheet_, Workbook_
+
+    @pytest.fixture
+    def populate_fixture(self):
+        workbook_writer = _BaseWorkbookWriter(None)
+        return workbook_writer
+
+    @pytest.fixture
+    def xlsx_blob_fixture(
+            self, request, xlsx_file_, workbook_, worksheet_,
+            _populate_worksheet_, _open_worksheet_, BytesIO_):
+        workbook_writer = _BaseWorkbookWriter(None)
+        xlsx_blob = 'fooblob'
+        BytesIO_.return_value = xlsx_file_
+        # to make context manager behavior work
+        _open_worksheet_.return_value.__enter__.return_value = (
+            workbook_, worksheet_
+        )
+        xlsx_file_.getvalue.return_value = xlsx_blob
+        return (
+            workbook_writer, xlsx_file_, workbook_, worksheet_, xlsx_blob
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def BytesIO_(self, request):
+        return class_mock(request, 'pptx.chart.xlsx.BytesIO')
+
+    @pytest.fixture
+    def _open_worksheet_(self, request):
+        return method_mock(request, _BaseWorkbookWriter, '_open_worksheet')
+
+    @pytest.fixture
+    def _populate_worksheet_(self, request):
+        return method_mock(
+            request, _BaseWorkbookWriter, '_populate_worksheet',
+            autospec=True
+        )
+
+    @pytest.fixture
+    def Workbook_(self, request, workbook_):
+        return class_mock(
+            request, 'pptx.chart.xlsx.Workbook', return_value=workbook_
+        )
+
+    @pytest.fixture
+    def workbook_(self, request):
+        return instance_mock(request, Workbook)
+
+    @pytest.fixture
+    def worksheet_(self, request):
+        return instance_mock(request, Worksheet)
+
+    @pytest.fixture
+    def xlsx_file_(self, request):
+        return instance_mock(request, BytesIO)
 
 
 class DescribeWorkbookWriter(object):
