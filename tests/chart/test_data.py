@@ -347,6 +347,10 @@ class DescribeCategories(object):
         categories, expected_value = leaf_fixture
         assert categories.leaf_count == expected_value
 
+    def it_knows_its_levels(self, levels_fixture):
+        categories, expected_value = levels_fixture
+        assert list(categories.levels) == expected_value
+
     def it_raises_on_category_depth_not_uniform(self, depth_raises_fixture):
         categories = depth_raises_fixture
         with pytest.raises(ValueError):
@@ -395,6 +399,29 @@ class DescribeCategories(object):
             categories._categories.append(
                 instance_mock(request, Category, leaf_count=leaf_count)
             )
+        return categories, expected_value
+
+    @pytest.fixture(params=[
+        ([(0, 'a', ()), (1, 'b', ())],
+         [[(0, 'a'), (1, 'b')]]),
+        ([(0, 'WEST', ((0, 'CA', ()), (1, 'LA', ()))),
+          (2, 'EAST', ((2, 'NY', ()), (3, 'NJ', ())))],
+         [[(0, 'CA'), (1, 'LA'), (2, 'NY'), (3, 'NJ')],
+          [(0, 'WEST'), (2, 'EAST')]]),
+    ])
+    def levels_fixture(self, request):
+        cat_data, expected_value = request.param
+        categories = Categories()
+
+        def iter_cats(cat_tree):
+            for idx, cat_name, sub_cats in cat_tree:
+                category_ = instance_mock(request, Category, idx=idx)
+                category_.name = cat_name
+                category_.sub_categories = list(iter_cats(sub_cats))
+                yield category_
+
+        categories._categories = list(iter_cats(cat_data))
+
         return categories, expected_value
 
     @pytest.fixture

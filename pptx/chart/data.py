@@ -340,7 +340,19 @@ class Categories(Sequence):
         hierarchy from the bottom up. The first level contains all leaf
         categories, and each subsequent is the next level up.
         """
-        raise NotImplementedError
+        def levels(categories):
+            # yield all lower levels
+            sub_categories = [
+                sc for c in categories for sc in c.sub_categories
+            ]
+            if sub_categories:
+                for level in levels(sub_categories):
+                    yield level
+            # yield this level
+            yield [(cat.idx, cat.name) for cat in categories]
+
+        for level in levels(self):
+            yield level
 
 
 class Category(object):
@@ -371,6 +383,15 @@ class Category(object):
         return first_depth + 1
 
     @property
+    def idx(self):
+        """
+        The offset of this category in the overall sequence of leaf
+        categories. A non-leaf category gets the index of its first
+        sub-category.
+        """
+        raise NotImplementedError
+
+    @property
     def leaf_count(self):
         """
         The number of leaf category nodes under this category. Returns
@@ -386,6 +407,13 @@ class Category(object):
         The string that appears on the axis for this category.
         """
         return self._name
+
+    @property
+    def sub_categories(self):
+        """
+        The sequence of child categories for this category.
+        """
+        raise NotImplementedError
 
 
 class ChartData(object):
