@@ -96,7 +96,10 @@ class CategoryWorkbookWriter(object):
         The Excel worksheet reference to the values for this series (not
         including the column heading).
         """
-        raise NotImplementedError
+        return 'Sheet1!${col_letter}$2:${col_letter}${bottom_row}'.format(**{
+            'col_letter': self._series_col_letter(series),
+            'bottom_row': len(series)+1
+        })
 
     def _series_col_letter(self, series):
         """

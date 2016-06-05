@@ -153,9 +153,13 @@ class DescribeCategoryWorkbookWriter(object):
         with pytest.raises(ValueError):
             workbook_writer.categories_ref
 
-    def it_knows_the_range_ref_for_a_series(self, ser_name_ref_fixture):
+    def it_knows_the_ref_for_a_series_name(self, ser_name_ref_fixture):
         workbook_writer, series_, expected_value = ser_name_ref_fixture
         assert workbook_writer.series_name_ref(series_) == expected_value
+
+    def it_knows_the_values_range_ref(self, values_ref_fixture):
+        workbook_writer, series_, expected_value = values_ref_fixture
+        assert workbook_writer.values_ref(series_) == expected_value
 
     # fixtures -------------------------------------------------------
 
@@ -191,6 +195,21 @@ class DescribeCategoryWorkbookWriter(object):
         series_data_.categories = categories_
         categories_.depth = cat_depth
         series_data_.index = series_index
+        return workbook_writer, series_data_, expected_value
+
+    @pytest.fixture(params=[
+        (1, 0, 3, 'Sheet1!$B$2:$B$4'),
+        (1, 1, 3, 'Sheet1!$C$2:$C$4'),
+        (2, 0, 5, 'Sheet1!$C$2:$C$6'),
+        (3, 2, 7, 'Sheet1!$F$2:$F$8'),
+    ])
+    def values_ref_fixture(self, request, series_data_, categories_):
+        cat_depth, ser_idx, val_count, expected_value = request.param
+        workbook_writer = CategoryWorkbookWriter(None)
+        series_data_.categories = categories_
+        categories_.depth = cat_depth
+        series_data_.index = ser_idx
+        series_data_.__len__.return_value = val_count
         return workbook_writer, series_data_, expected_value
 
     # fixture components ---------------------------------------------
