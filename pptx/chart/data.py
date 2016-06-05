@@ -324,7 +324,7 @@ class Categories(Sequence):
         value is the same as that of `len()` only when the hierarchy is
         single level.
         """
-        raise NotImplementedError
+        return sum(c.leaf_count for c in self._categories)
 
 
 class Category(object):
@@ -353,6 +353,14 @@ class Category(object):
             if category.depth != first_depth:
                 raise ValueError('category depth not uniform')
         return first_depth + 1
+
+    @property
+    def leaf_count(self):
+        """
+        The number of leaf category nodes under this category. Returns
+        1 if this category has no sub-categories.
+        """
+        raise NotImplementedError
 
     @property
     def name(self):
