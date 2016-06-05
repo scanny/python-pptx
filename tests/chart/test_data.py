@@ -699,3 +699,18 @@ class DescribeXySeriesData(object):
     @pytest.fixture
     def data_point_(self, request):
         return instance_mock(request, XyDataPoint)
+
+
+class DescribeCategoryDataPoint(object):
+
+    def it_knows_its_value(self, value_fixture):
+        data_point, expected_value = value_fixture
+        assert data_point.value == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def value_fixture(self):
+        value = 42
+        data_point = CategoryDataPoint(value)
+        return data_point, value

@@ -638,7 +638,7 @@ class CategoryDataPoint(object):
         """
         The (Y) value for this category data point.
         """
-        raise NotImplementedError
+        return self._value
 
 
 class XyDataPoint(object):
