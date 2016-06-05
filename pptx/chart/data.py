@@ -317,6 +317,15 @@ class Categories(Sequence):
                 raise ValueError('category depth not uniform')
         return first_depth
 
+    @property
+    def leaf_count(self):
+        """
+        The number of leaf-level categories in this hierarchy. The return
+        value is the same as that of `len()` only when the hierarchy is
+        single level.
+        """
+        raise NotImplementedError
+
 
 class Category(object):
     """

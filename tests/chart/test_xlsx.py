@@ -15,7 +15,8 @@ from xlsxwriter.format import Format
 from xlsxwriter.worksheet import Worksheet
 
 from pptx.chart.data import (
-    BubbleChartData, Categories, CategorySeriesData, _SeriesData, XyChartData
+    BubbleChartData, Categories, CategoryChartData, CategorySeriesData,
+    _SeriesData, XyChartData
 )
 from pptx.chart.xlsx import (
     BubbleWorkbookWriter, CategoryWorkbookWriter, WorkbookWriter,
@@ -143,11 +144,40 @@ class DescribeWorkbookWriter(object):
 
 class DescribeCategoryWorkbookWriter(object):
 
+    def it_knows_the_categories_range_ref(self, categories_ref_fixture):
+        workbook_writer, expected_value = categories_ref_fixture
+        assert workbook_writer.categories_ref == expected_value
+
+    def it_raises_on_cat_ref_on_no_categories(self, cat_ref_raises_fixture):
+        workbook_writer = cat_ref_raises_fixture
+        with pytest.raises(ValueError):
+            workbook_writer.categories_ref
+
     def it_knows_the_range_ref_for_a_series(self, ser_name_ref_fixture):
         workbook_writer, series_, expected_value = ser_name_ref_fixture
         assert workbook_writer.series_name_ref(series_) == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (1, 1, 'Sheet1!$A$2:$A$2'),
+        (1, 3, 'Sheet1!$A$2:$A$4'),
+        (2, 4, 'Sheet1!$A$2:$B$5'),
+        (3, 8, 'Sheet1!$A$2:$C$9'),
+    ])
+    def categories_ref_fixture(self, request, chart_data_, categories_):
+        depth, leaf_count, expected_value = request.param
+        workbook_writer = CategoryWorkbookWriter(chart_data_)
+        chart_data_.categories = categories_
+        categories_.depth, categories_.leaf_count = depth, leaf_count
+        return workbook_writer, expected_value
+
+    @pytest.fixture
+    def cat_ref_raises_fixture(self, request, chart_data_, categories_):
+        workbook_writer = CategoryWorkbookWriter(chart_data_)
+        chart_data_.categories = categories_
+        categories_.depth = 0
+        return workbook_writer
 
     @pytest.fixture(params=[
         (1, 0, 'Sheet1!$B$1'),
@@ -168,6 +198,10 @@ class DescribeCategoryWorkbookWriter(object):
     @pytest.fixture
     def categories_(self, request):
         return instance_mock(request, Categories)
+
+    @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, CategoryChartData)
 
     @pytest.fixture
     def series_data_(self, request):

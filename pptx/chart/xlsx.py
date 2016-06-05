@@ -76,7 +76,12 @@ class CategoryWorkbookWriter(object):
         The Excel worksheet reference to the categories for this chart (not
         including the column heading).
         """
-        raise NotImplementedError
+        categories = self._chart_data.categories
+        if categories.depth == 0:
+            raise ValueError('chart data contains no categories')
+        right_col = chr(ord('A') + categories.depth - 1)
+        bottom_row = categories.leaf_count + 1
+        return "Sheet1!$A$2:$%s$%d" % (right_col, bottom_row)
 
     def series_name_ref(self, series):
         """
