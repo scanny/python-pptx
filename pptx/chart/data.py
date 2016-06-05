@@ -403,7 +403,12 @@ class Category(object):
         The offset of *sub_category* in the overall sequence of leaf
         categories.
         """
-        raise NotImplementedError
+        index = self._parent.index(self)
+        for this_sub_category in self._sub_categories:
+            if sub_category is this_sub_category:
+                return index
+            index += this_sub_category.leaf_count
+        raise ValueError('sub_category not in this category')
 
     @property
     def leaf_count(self):

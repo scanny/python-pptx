@@ -452,11 +452,17 @@ class DescribeCategory(object):
         category, expected_value = depth_fixture
         assert category.depth == expected_value
 
-    def it_knows_its_idx(self, index_fixture):
-        category, parent_, idx_ = index_fixture
+    def it_knows_its_idx(self, idx_fixture):
+        category, parent_, idx_ = idx_fixture
         idx = category.idx
         parent_.index.assert_called_once_with(category)
         assert idx == idx_
+
+    def it_knows_the_index_of_a_sub_category(self, index_fixture):
+        category, sub_category_, expected_value = index_fixture
+        index = category.index(sub_category_)
+        category._parent.index.assert_called_once_with(category)
+        assert index == expected_value
 
     def it_knows_its_leaf_category_count(self, leaf_fixture):
         category, expected_value = leaf_fixture
@@ -502,12 +508,26 @@ class DescribeCategory(object):
         return category
 
     @pytest.fixture(params=[Categories, Category])
-    def index_fixture(self, request):
+    def idx_fixture(self, request):
         parent_cls = request.param
         parent_ = instance_mock(request, parent_cls)
         category = Category(None, parent_)
         parent_.index.return_value = idx_ = 42
         return category, parent_, idx_
+
+    @pytest.fixture
+    def index_fixture(self, request, categories_):
+        category = Category(None, categories_)
+        sub_categories_ = [
+            instance_mock(request, Category, leaf_count=2),
+            instance_mock(request, Category, leaf_count=4),
+            instance_mock(request, Category, leaf_count=6),
+        ]
+        sub_category_ = sub_categories_[1]
+        expected_value = 6
+        categories_.index.return_value = 4
+        category._sub_categories = sub_categories_
+        return category, sub_category_, expected_value
 
     @pytest.fixture(params=[
         ((),        1),
@@ -535,6 +555,12 @@ class DescribeCategory(object):
         category = Category(None, None)
         category._sub_categories = sub_categories_
         return category, sub_categories_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def categories_(self, request):
+        return instance_mock(request, Categories)
 
 
 class DescribeCategorySeriesData(object):
