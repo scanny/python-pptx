@@ -491,6 +491,10 @@ class DescribeCategorySeriesData(object):
         series_data, expected_value = categories_ref_fixture
         assert series_data.categories_ref == expected_value
 
+    def it_knows_its_values(self, values_fixture):
+        series_data, expected_values = values_fixture
+        assert series_data.values == expected_values
+
     def it_knows_its_values_range_ref(self, values_ref_fixture):
         series_data, chart_data_, values_ref_ = values_ref_fixture
         values_ref = series_data.values_ref
@@ -532,6 +536,16 @@ class DescribeCategorySeriesData(object):
         expected_value = categories_ref = 'Sheet1!$F$42'
         chart_data_.categories_ref = categories_ref
         return series_data, expected_value
+
+    @pytest.fixture
+    def values_fixture(self, request):
+        series_data = CategorySeriesData(None, None, None)
+        expected_values = [1, 2, 3]
+        for value in expected_values:
+            series_data._data_points.append(
+                instance_mock(request, CategoryDataPoint, value=value)
+            )
+        return series_data, expected_values
 
     @pytest.fixture
     def values_ref_fixture(self, chart_data_):

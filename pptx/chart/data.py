@@ -493,6 +493,14 @@ class CategorySeriesData(_BaseSeriesData):
         return self._chart_data.categories_ref
 
     @property
+    def values(self):
+        """
+        A sequence containing the (Y) value of each datapoint in this series,
+        in data point order.
+        """
+        return [dp.value for dp in self._data_points]
+
+    @property
     def values_ref(self):
         """
         The Excel worksheet reference to the (Y) values for this series (not
@@ -624,6 +632,13 @@ class CategoryDataPoint(object):
         super(CategoryDataPoint, self).__init__()
         self._value = value
         self._number_format = number_format
+
+    @property
+    def value(self):
+        """
+        The (Y) value for this category data point.
+        """
+        raise NotImplementedError
 
 
 class XyDataPoint(object):

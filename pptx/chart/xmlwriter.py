@@ -887,6 +887,26 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
         )
 
     @property
+    def _val_pt_xml(self):
+        """
+        The unicode XML snippet containing the ``<c:pt>`` elements containing
+        the values for this series.
+        """
+        xml = ''
+        for idx, value in enumerate(self._series.values):
+            if value is None:
+                continue
+            xml += (
+                '                <c:pt idx="{val_idx:d}">\n'
+                '                  <c:v>{value}</c:v>\n'
+                '                </c:pt>\n'
+            ).format(**{
+                'val_idx': idx,
+                'value':   value,
+            })
+        return xml
+
+    @property
     def _val_tmpl(self):
         """
         The template for the ``<c:val>`` element for this series, containing
