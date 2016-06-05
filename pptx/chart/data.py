@@ -333,6 +333,15 @@ class Categories(Sequence):
         """
         return sum(c.leaf_count for c in self._categories)
 
+    @property
+    def levels(self):
+        """
+        A generator of (idx, name) sequences representing the category
+        hierarchy from the bottom up. The first level contains all leaf
+        categories, and each subsequent is the next level up.
+        """
+        raise NotImplementedError
+
 
 class Category(object):
     """

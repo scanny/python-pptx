@@ -137,6 +137,29 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
             'bottom_row': len(series)+1
         })
 
+    def _populate_worksheet(self, workbook, worksheet):
+        """
+        Write the chart data contents to *worksheet* in category chart
+        layout. Write categories starting in the first column starting in
+        the second row, and proceeding one column per category level (for
+        charts having multi-level categories). Write series as columns
+        starting in the next following column, placing the series title in
+        the first cell.
+        """
+        # write categories
+        categories = self._chart_data.categories
+        depth = categories.depth
+        for idx, level in enumerate(categories.levels):
+            col = depth - idx - 1
+            for off, name in level:
+                row = off + 1
+                worksheet.write(row, col, name)
+        # write series
+        for series in self._chart_data:
+            series_col = series.index + depth
+            worksheet.write(0, series_col, series.name)
+            worksheet.write_column(1, series_col, series.values)
+
     def _series_col_letter(self, series):
         """
         The letter of the Excel worksheet column in which the data for a
