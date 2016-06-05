@@ -324,6 +324,13 @@ class Categories(Sequence):
                 raise ValueError('category depth not uniform')
         return first_depth
 
+    def index(self, category):
+        """
+        The offset of *category* in the overall sequence of leaf categories.
+        A non-leaf category gets the index of its first sub-category.
+        """
+        raise NotImplementedError
+
     @property
     def leaf_count(self):
         """
@@ -388,6 +395,13 @@ class Category(object):
         The offset of this category in the overall sequence of leaf
         categories. A non-leaf category gets the index of its first
         sub-category.
+        """
+        return self._parent.index(self)
+
+    def index(self, sub_category):
+        """
+        The offset of *sub_category* in the overall sequence of leaf
+        categories.
         """
         raise NotImplementedError
 

@@ -452,6 +452,12 @@ class DescribeCategory(object):
         category, expected_value = depth_fixture
         assert category.depth == expected_value
 
+    def it_knows_its_idx(self, index_fixture):
+        category, parent_, idx_ = index_fixture
+        idx = category.idx
+        parent_.index.assert_called_once_with(category)
+        assert idx == idx_
+
     def it_knows_its_leaf_category_count(self, leaf_fixture):
         category, expected_value = leaf_fixture
         assert category.leaf_count == expected_value
@@ -494,6 +500,14 @@ class DescribeCategory(object):
                 instance_mock(request, Category, depth=depth)
             )
         return category
+
+    @pytest.fixture(params=[Categories, Category])
+    def index_fixture(self, request):
+        parent_cls = request.param
+        parent_ = instance_mock(request, parent_cls)
+        category = Category(None, parent_)
+        parent_.index.return_value = idx_ = 42
+        return category, parent_, idx_
 
     @pytest.fixture(params=[
         ((),        1),
