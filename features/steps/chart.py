@@ -375,6 +375,26 @@ def given_tick_labels_having_an_offset_of_setting(context, setting):
 
 # when ====================================================
 
+@when('I add a Clustered bar chart with multi-level categories')
+def when_I_add_a_clustered_bar_chart_with_multi_level_categories(context):
+    chart_type = XL_CHART_TYPE.BAR_CLUSTERED
+    chart_data = CategoryChartData()
+
+    WEST = chart_data.add_category('WEST')
+    WEST.add_sub_category('SF')
+    WEST.add_sub_category('LA')
+    EAST = chart_data.add_category('EAST')
+    EAST.add_sub_category('NY')
+    EAST.add_sub_category('NJ')
+
+    chart_data.add_series('Series 1', (1, 2, None, 4))
+    chart_data.add_series('Series 2', (5, None, 7, 8))
+
+    context.chart = context.slide.shapes.add_chart(
+        chart_type, Inches(1), Inches(1), Inches(8), Inches(5), chart_data
+    ).chart
+
+
 @when('I add a {kind} chart with {cats} categories and {sers} series')
 def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
     chart_type = {

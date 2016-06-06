@@ -23,6 +23,15 @@ Feature: Add a chart
       | Radar            | RADAR            |   5  |   2  |
 
 
+  @wip
+  Scenario: Add a multi-level category chart
+    Given a blank slide
+     When I add a Clustered bar chart with multi-level categories
+     Then chart.chart_type is BAR_CLUSTERED
+      And len(plot.categories) is 4
+      And the chart has an Excel data worksheet
+
+
   Scenario Outline: Add an XY chart
     Given a blank slide
      When I add an <chart-type> chart having 2 series of 3 points each
