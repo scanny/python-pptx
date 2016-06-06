@@ -100,6 +100,7 @@
           </c:val>
           <c:smooth val="0"/>
         </c:ser>
+        <c:marker val="1"/>
         <c:axId val="2118791784"/>
         <c:axId val="2140495176"/>
       </c:lineChart>
@@ -115,6 +116,7 @@
         <c:crosses val="autoZero"/>
         <c:lblAlgn val="ctr"/>
         <c:lblOffset val="100"/>
+        <c:noMultiLvlLbl val="0"/>
       </c:catAx>
       <c:valAx>
         <c:axId val="2140495176"/>

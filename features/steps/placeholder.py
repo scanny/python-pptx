@@ -11,7 +11,7 @@ import hashlib
 from behave import given, when, then
 
 from pptx import Presentation
-from pptx.chart.data import ChartData
+from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.shapes.base import _PlaceholderFormat
@@ -100,7 +100,7 @@ def given_an_unpopulated_placeholder_shape(context, placeholder_type):
 
 @when('I call placeholder.insert_chart(XL_CHART_TYPE.PIE, chart_data)')
 def when_I_call_placeholder_insert_chart(context):
-    chart_data = ChartData()
+    chart_data = CategoryChartData()
     chart_data.categories = ['Yes', 'No']
     chart_data.add_series('Series 1', (42, 24))
     placeholder = context.shape

@@ -160,7 +160,7 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
     """
     @property
     def xml(self):
-        xml = (
+        return (
             '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
             '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
             'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
@@ -169,7 +169,10 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             '  <c:chart>\n'
             '    <c:plotArea>\n'
             '      <c:barChart>\n'
-            '%s%s%s%s'
+            '{barDir_xml}'
+            '{grouping_xml}'
+            '{ser_xml}'
+            '{overlap_xml}'
             '        <c:axId val="-2068027336"/>\n'
             '        <c:axId val="-2113994440"/>\n'
             '      </c:barChart>\n'
@@ -177,7 +180,7 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             '        <c:axId val="-2068027336"/>\n'
             '        <c:scaling/>\n'
             '        <c:delete val="0"/>\n'
-            '        <c:axPos val="%s"/>\n'
+            '        <c:axPos val="{cat_ax_pos}"/>\n'
             '        <c:majorTickMark val="out"/>\n'
             '        <c:minorTickMark val="none"/>\n'
             '        <c:tickLblPos val="nextTo"/>\n'
@@ -185,12 +188,13 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             '        <c:crosses val="autoZero"/>\n'
             '        <c:lblAlgn val="ctr"/>\n'
             '        <c:lblOffset val="100"/>\n'
+            '        <c:noMultiLvlLbl val="0"/>\n'
             '      </c:catAx>\n'
             '      <c:valAx>\n'
             '        <c:axId val="-2113994440"/>\n'
             '        <c:scaling/>\n'
             '        <c:delete val="0"/>\n'
-            '        <c:axPos val="%s"/>\n'
+            '        <c:axPos val="{val_ax_pos}"/>\n'
             '        <c:majorGridlines/>\n'
             '        <c:majorTickMark val="out"/>\n'
             '        <c:minorTickMark val="none"/>\n'
@@ -211,11 +215,14 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             '    </a:p>\n'
             '  </c:txPr>\n'
             '</c:chartSpace>\n'
-        ) % (
-            self._barDir_xml, self._grouping_xml, self._ser_xml,
-            self._overlap_xml, self._cat_ax_pos, self._val_ax_pos
-        )
-        return xml
+        ).format(**{
+            'barDir_xml':        self._barDir_xml,
+            'grouping_xml':      self._grouping_xml,
+            'ser_xml':           self._ser_xml,
+            'overlap_xml':       self._overlap_xml,
+            'cat_ax_pos':        self._cat_ax_pos,
+            'val_ax_pos':        self._val_ax_pos,
+        })
 
     @property
     def _barDir_xml(self):
@@ -271,7 +278,6 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
                 '{tx_xml}'
                 '{cat_xml}'
                 '{val_xml}'
-                '          <c:smooth val="0"/>\n'
                 '        </c:ser>\n'
             ).format(**{
                 'ser_idx':    series.index,
@@ -297,7 +303,7 @@ class _LineChartXmlWriter(_BaseChartXmlWriter):
     """
     @property
     def xml(self):
-        xml = (
+        return (
             '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
             '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
             'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
@@ -306,8 +312,9 @@ class _LineChartXmlWriter(_BaseChartXmlWriter):
             '  <c:chart>\n'
             '    <c:plotArea>\n'
             '      <c:lineChart>\n'
-            '        <c:grouping val="standard"/>\n'
-            '%s'
+            '{grouping_xml}'
+            '{ser_xml}'
+            '        <c:marker val="1"/>\n'
             '        <c:axId val="2118791784"/>\n'
             '        <c:axId val="2140495176"/>\n'
             '      </c:lineChart>\n'
@@ -323,6 +330,7 @@ class _LineChartXmlWriter(_BaseChartXmlWriter):
             '        <c:crosses val="autoZero"/>\n'
             '        <c:lblAlgn val="ctr"/>\n'
             '        <c:lblOffset val="100"/>\n'
+            '        <c:noMultiLvlLbl val="0"/>\n'
             '      </c:catAx>\n'
             '      <c:valAx>\n'
             '        <c:axId val="2140495176"/>\n'
@@ -349,28 +357,64 @@ class _LineChartXmlWriter(_BaseChartXmlWriter):
             '    </a:p>\n'
             '  </c:txPr>\n'
             '</c:chartSpace>\n'
-        ) % self._ser_xml
-        return xml
+        ).format(**{
+            'grouping_xml':      self._grouping_xml,
+            'ser_xml':           self._ser_xml,
+        })
+
+    @property
+    def _grouping_xml(self):
+        XL = XL_CHART_TYPE
+        standard_types = (XL.LINE, XL.LINE_MARKERS)
+        stacked_types = (XL.LINE_STACKED, XL.LINE_MARKERS_STACKED)
+        percentStacked_types = (
+            XL.LINE_STACKED_100, XL.LINE_MARKERS_STACKED_100
+        )
+        if self._chart_type in standard_types:
+            return '        <c:grouping val="standard"/>\n'
+        elif self._chart_type in stacked_types:
+            return '        <c:grouping val="stacked"/>\n'
+        elif self._chart_type in percentStacked_types:
+            return '        <c:grouping val="percentStacked"/>\n'
+        raise NotImplementedError(
+            'no _grouping_xml() for chart type %s' % self._chart_type
+        )
+
+    @property
+    def _marker_xml(self):
+        XL = XL_CHART_TYPE
+        no_marker_types = (XL.LINE, XL.LINE_STACKED, XL.LINE_STACKED_100)
+        if self._chart_type in no_marker_types:
+            return (
+                '          <c:marker>\n'
+                '            <c:symbol val="none"/>\n'
+                '          </c:marker>\n'
+            )
+        return ''
 
     @property
     def _ser_xml(self):
         xml = ''
-        for series in self._series_seq:
+        for series in self._chart_data:
+            xml_writer = _CategorySeriesXmlWriter(series)
             xml += (
                 '        <c:ser>\n'
-                '          <c:idx val="%d"/>\n'
-                '          <c:order val="%d"/>\n'
-                '%s'
-                '          <c:marker>\n'
-                '            <c:symbol val="none"/>\n'
-                '          </c:marker>\n'
-                '%s%s'
+                '          <c:idx val="{ser_idx}"/>\n'
+                '          <c:order val="{ser_order}"/>\n'
+                '{tx_xml}'
+                '{marker_xml}'
+                '{cat_xml}'
+                '{val_xml}'
                 '          <c:smooth val="0"/>\n'
                 '        </c:ser>\n'
-            ) % (
-                series.index, series.index, series.tx_xml, series.cat_xml,
-                series.val_xml
-            )
+            ).format(**{
+                'ser_idx':    series.index,
+                'ser_order':  series.index,
+                'tx_xml':     xml_writer.tx_xml,
+                'marker_xml': self._marker_xml,
+                'cat_xml':    xml_writer.cat_xml,
+                'val_xml':    xml_writer.val_xml,
+            })
         return xml
 
 
@@ -380,7 +424,7 @@ class _PieChartXmlWriter(_BaseChartXmlWriter):
     """
     @property
     def xml(self):
-        xml = (
+        return (
             '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
             '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
             'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
@@ -390,7 +434,7 @@ class _PieChartXmlWriter(_BaseChartXmlWriter):
             '    <c:plotArea>\n'
             '      <c:pieChart>\n'
             '        <c:varyColors val="1"/>\n'
-            '%s'
+            '{ser_xml}'
             '      </c:pieChart>\n'
             '    </c:plotArea>\n'
             '  </c:chart>\n'
@@ -405,19 +449,34 @@ class _PieChartXmlWriter(_BaseChartXmlWriter):
             '    </a:p>\n'
             '  </c:txPr>\n'
             '</c:chartSpace>\n'
-        ) % self._ser_xml
-        return xml
+        ).format(**{
+            'ser_xml': self._ser_xml,
+        })
+
+    @property
+    def _explosion_xml(self):
+        if self._chart_type == XL_CHART_TYPE.PIE_EXPLODED:
+            return '          <c:explosion val="25"/>\n'
+        return ''
 
     @property
     def _ser_xml(self):
-        series = self._series_seq[0]
+        xml_writer = _CategorySeriesXmlWriter(self._chart_data[0])
         xml = (
             '        <c:ser>\n'
             '          <c:idx val="0"/>\n'
             '          <c:order val="0"/>\n'
-            '%s%s%s'
+            '{tx_xml}'
+            '{explosion_xml}'
+            '{cat_xml}'
+            '{val_xml}'
             '        </c:ser>\n'
-        ) % (series.tx_xml, series.cat_xml, series.val_xml)
+        ).format(**{
+            'tx_xml':        xml_writer.tx_xml,
+            'explosion_xml': self._explosion_xml,
+            'cat_xml':       xml_writer.cat_xml,
+            'val_xml':       xml_writer.val_xml,
+        })
         return xml
 
 
@@ -427,7 +486,7 @@ class _RadarChartXmlWriter(_BaseChartXmlWriter):
     """
     @property
     def xml(self):
-        xml = (
+        return (
             '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
             '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
             'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
@@ -449,9 +508,9 @@ class _RadarChartXmlWriter(_BaseChartXmlWriter):
             '    <c:plotArea>\n'
             '      <c:layout/>\n'
             '      <c:radarChart>\n'
-            '        <c:radarStyle val="%s"/>\n'
+            '        <c:radarStyle val="{radar_style}"/>\n'
             '        <c:varyColors val="0"/>\n'
-            '%s'
+            '{ser_xml}'
             '        <c:axId val="2073612648"/>\n'
             '        <c:axId val="-2112772216"/>\n'
             '      </c:radarChart>\n'
@@ -506,10 +565,10 @@ class _RadarChartXmlWriter(_BaseChartXmlWriter):
             '    </a:p>\n'
             '  </c:txPr>\n'
             '</c:chartSpace>\n'
-        ) % (
-            self._radar_style, self._ser_xml
-        )
-        return xml
+        ).format(**{
+            'radar_style': self._radar_style,
+            'ser_xml':     self._ser_xml,
+        })
 
     @property
     def _marker_xml(self):
@@ -530,20 +589,26 @@ class _RadarChartXmlWriter(_BaseChartXmlWriter):
     @property
     def _ser_xml(self):
         xml = ''
-        for series in self._series_seq:
+        for series in self._chart_data:
+            xml_writer = _CategorySeriesXmlWriter(series)
             xml += (
                 '        <c:ser>\n'
-                '          <c:idx val="%d"/>\n'
-                '          <c:order val="%d"/>\n'
-                '%s'
-                '%s'
-                '%s%s'
+                '          <c:idx val="{ser_idx}"/>\n'
+                '          <c:order val="{ser_order}"/>\n'
+                '{tx_xml}'
+                '{marker_xml}'
+                '{cat_xml}'
+                '{val_xml}'
                 '          <c:smooth val="0"/>\n'
                 '        </c:ser>\n'
-            ) % (
-                series.index, series.index, series.tx_xml, self._marker_xml,
-                series.cat_xml, series.val_xml
-            )
+            ).format(**{
+                'ser_idx':    series.index,
+                'ser_order':  series.index,
+                'tx_xml':     xml_writer.tx_xml,
+                'marker_xml': self._marker_xml,
+                'cat_xml':    xml_writer.cat_xml,
+                'val_xml':    xml_writer.val_xml,
+            })
         return xml
 
 

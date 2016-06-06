@@ -10,7 +10,7 @@ from itertools import islice
 
 import pytest
 
-from pptx.chart.data import BubbleChartData, ChartData, XyChartData
+from pptx.chart.data import BubbleChartData, CategoryChartData, XyChartData
 from pptx.chart.xmlwriter import (
     _BarChartXmlWriter, _BubbleChartXmlWriter, ChartXmlWriter,
     _LineChartXmlWriter, _PieChartXmlWriter, _RadarChartXmlWriter,
@@ -69,9 +69,9 @@ class DescribeChartXmlWriter(object):
 
 class Describe_BarChartXmlWriter(object):
 
-    # def it_can_generate_xml_for_bar_type_charts(self, xml_fixture):
-    #     xml_writer, expected_xml = xml_fixture
-    #     assert xml_writer.xml == expected_xml
+    def it_can_generate_xml_for_bar_type_charts(self, xml_fixture):
+        xml_writer, expected_xml = xml_fixture
+        assert xml_writer.xml == expected_xml
 
     # fixtures -------------------------------------------------------
 
@@ -83,8 +83,8 @@ class Describe_BarChartXmlWriter(object):
     def xml_fixture(self, request):
         enum_member, cat_count, ser_count, snippet_name = request.param
         chart_type = getattr(XL_CHART_TYPE, enum_member)
-        series_data_seq = make_series_data_seq(cat_count, ser_count)
-        xml_writer = _BarChartXmlWriter(chart_type, series_data_seq)
+        chart_data = make_category_chart_data(cat_count, ser_count)
+        xml_writer = _BarChartXmlWriter(chart_type, chart_data)
         expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml
 
@@ -120,7 +120,7 @@ class Describe_LineChartXmlWriter(object):
 
     @pytest.fixture
     def xml_fixture(self, request):
-        series_data_seq = make_series_data_seq(cat_count=2, ser_count=2)
+        series_data_seq = make_category_chart_data(cat_count=2, ser_count=2)
         xml_writer = _LineChartXmlWriter(
             XL_CHART_TYPE.LINE, series_data_seq
         )
@@ -138,7 +138,7 @@ class Describe_PieChartXmlWriter(object):
 
     @pytest.fixture
     def xml_fixture(self, request):
-        series_data_seq = make_series_data_seq(cat_count=3, ser_count=1)
+        series_data_seq = make_category_chart_data(cat_count=3, ser_count=1)
         xml_writer = _PieChartXmlWriter(XL_CHART_TYPE.PIE, series_data_seq)
         expected_xml = snippet_text('3x1-pie')
         return xml_writer, expected_xml
@@ -155,7 +155,7 @@ class Describe_RadarChartXmlWriter(object):
 
     @pytest.fixture
     def xml_fixture(self, request):
-        series_data_seq = make_series_data_seq(cat_count=5, ser_count=2)
+        series_data_seq = make_category_chart_data(cat_count=5, ser_count=2)
         xml_writer = _RadarChartXmlWriter(
             XL_CHART_TYPE.RADAR, series_data_seq
         )
@@ -209,22 +209,21 @@ def make_bubble_chart_data(ser_count, point_count):
     return chart_data
 
 
-def make_series_data_seq(cat_count, ser_count):
+def make_category_chart_data(cat_count, ser_count):
     """
-    Return a sequence of |_SeriesData| objects populated with *cat_count*
-    category names and *ser_count* sequences of point values. Values are
-    auto-generated.
+    Return a |CategoryChartData| instance populated with *cat_count*
+    categories and *ser_count* series. Values are auto-generated.
     """
     category_names = ('Foo', 'Bar', 'Baz', 'Boo', 'Far', 'Faz')
     point_values = count(1.1, 1.1)
-    chart_data = ChartData()
+    chart_data = CategoryChartData()
     chart_data.categories = category_names[:cat_count]
     for idx in range(ser_count):
         series_title = 'Series %d' % (idx+1)
         series_values = tuple(islice(point_values, cat_count))
         series_values = [round(x*10)/10.0 for x in series_values]
         chart_data.add_series(series_title, series_values)
-    return chart_data.series
+    return chart_data
 
 
 def make_xy_chart_data(ser_count, point_count):
