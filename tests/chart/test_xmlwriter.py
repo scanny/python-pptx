@@ -73,7 +73,31 @@ class Describe_BarChartXmlWriter(object):
         xml_writer, expected_xml = xml_fixture
         assert xml_writer.xml == expected_xml
 
+    def it_can_generate_xml_for_multi_level_cat_charts(self, multi_fixture):
+        xml_writer, expected_xml = multi_fixture
+        assert xml_writer.xml == expected_xml
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def multi_fixture(self):
+        chart_data = CategoryChartData()
+
+        WEST = chart_data.add_category('WEST')
+        WEST.add_sub_category('SF')
+        WEST.add_sub_category('LA')
+        EAST = chart_data.add_category('EAST')
+        EAST.add_sub_category('NY')
+        EAST.add_sub_category('NJ')
+
+        chart_data.add_series('Series 1', (1, 2, None, 4))
+        chart_data.add_series('Series 2', (5, None, 7, 8))
+
+        xml_writer = _BarChartXmlWriter(
+            XL_CHART_TYPE.BAR_CLUSTERED, chart_data
+        )
+        expected_xml = snippet_text('4x2-multi-cat-bar')
+        return xml_writer, expected_xml
 
     @pytest.fixture(params=[
         ('BAR_CLUSTERED',    2, 2, '2x2-bar-clustered'),

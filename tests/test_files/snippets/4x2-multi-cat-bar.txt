@@ -1,0 +1,175 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <c:chart>
+    <c:plotArea>
+      <c:barChart>
+        <c:barDir val="bar"/>
+        <c:grouping val="clustered"/>
+        <c:ser>
+          <c:idx val="0"/>
+          <c:order val="0"/>
+          <c:tx>
+            <c:strRef>
+              <c:f>Sheet1!$C$1</c:f>
+              <c:strCache>
+                <c:ptCount val="1"/>
+                <c:pt idx="0">
+                  <c:v>Series 1</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:tx>
+          <c:cat>
+            <c:multiLvlStrRef>
+              <c:f>Sheet1!$A$2:$B$5</c:f>
+              <c:multiLvlStrCache>
+                <c:ptCount val="4"/>
+                <c:lvl>
+                  <c:pt idx="0">
+                    <c:v>SF</c:v>
+                  </c:pt>
+                  <c:pt idx="1">
+                    <c:v>LA</c:v>
+                  </c:pt>
+                  <c:pt idx="2">
+                    <c:v>NY</c:v>
+                  </c:pt>
+                  <c:pt idx="3">
+                    <c:v>NJ</c:v>
+                  </c:pt>
+                </c:lvl>
+                <c:lvl>
+                  <c:pt idx="0">
+                    <c:v>WEST</c:v>
+                  </c:pt>
+                  <c:pt idx="2">
+                    <c:v>EAST</c:v>
+                  </c:pt>
+                </c:lvl>
+              </c:multiLvlStrCache>
+            </c:multiLvlStrRef>
+          </c:cat>
+          <c:val>
+            <c:numRef>
+              <c:f>Sheet1!$C$2:$C$5</c:f>
+              <c:numCache>
+                <c:formatCode>General</c:formatCode>
+                <c:ptCount val="4"/>
+                <c:pt idx="0">
+                  <c:v>1</c:v>
+                </c:pt>
+                <c:pt idx="1">
+                  <c:v>2</c:v>
+                </c:pt>
+                <c:pt idx="3">
+                  <c:v>4</c:v>
+                </c:pt>
+              </c:numCache>
+            </c:numRef>
+          </c:val>
+        </c:ser>
+        <c:ser>
+          <c:idx val="1"/>
+          <c:order val="1"/>
+          <c:tx>
+            <c:strRef>
+              <c:f>Sheet1!$D$1</c:f>
+              <c:strCache>
+                <c:ptCount val="1"/>
+                <c:pt idx="0">
+                  <c:v>Series 2</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:tx>
+          <c:cat>
+            <c:multiLvlStrRef>
+              <c:f>Sheet1!$A$2:$B$5</c:f>
+              <c:multiLvlStrCache>
+                <c:ptCount val="4"/>
+                <c:lvl>
+                  <c:pt idx="0">
+                    <c:v>SF</c:v>
+                  </c:pt>
+                  <c:pt idx="1">
+                    <c:v>LA</c:v>
+                  </c:pt>
+                  <c:pt idx="2">
+                    <c:v>NY</c:v>
+                  </c:pt>
+                  <c:pt idx="3">
+                    <c:v>NJ</c:v>
+                  </c:pt>
+                </c:lvl>
+                <c:lvl>
+                  <c:pt idx="0">
+                    <c:v>WEST</c:v>
+                  </c:pt>
+                  <c:pt idx="2">
+                    <c:v>EAST</c:v>
+                  </c:pt>
+                </c:lvl>
+              </c:multiLvlStrCache>
+            </c:multiLvlStrRef>
+          </c:cat>
+          <c:val>
+            <c:numRef>
+              <c:f>Sheet1!$D$2:$D$5</c:f>
+              <c:numCache>
+                <c:formatCode>General</c:formatCode>
+                <c:ptCount val="4"/>
+                <c:pt idx="0">
+                  <c:v>5</c:v>
+                </c:pt>
+                <c:pt idx="2">
+                  <c:v>7</c:v>
+                </c:pt>
+                <c:pt idx="3">
+                  <c:v>8</c:v>
+                </c:pt>
+              </c:numCache>
+            </c:numRef>
+          </c:val>
+        </c:ser>
+        <c:axId val="-2068027336"/>
+        <c:axId val="-2113994440"/>
+      </c:barChart>
+      <c:catAx>
+        <c:axId val="-2068027336"/>
+        <c:scaling/>
+        <c:delete val="0"/>
+        <c:axPos val="l"/>
+        <c:majorTickMark val="out"/>
+        <c:minorTickMark val="none"/>
+        <c:tickLblPos val="nextTo"/>
+        <c:crossAx val="-2113994440"/>
+        <c:crosses val="autoZero"/>
+        <c:lblAlgn val="ctr"/>
+        <c:lblOffset val="100"/>
+        <c:noMultiLvlLbl val="0"/>
+      </c:catAx>
+      <c:valAx>
+        <c:axId val="-2113994440"/>
+        <c:scaling/>
+        <c:delete val="0"/>
+        <c:axPos val="b"/>
+        <c:majorGridlines/>
+        <c:majorTickMark val="out"/>
+        <c:minorTickMark val="none"/>
+        <c:tickLblPos val="nextTo"/>
+        <c:crossAx val="-2068027336"/>
+        <c:crosses val="autoZero"/>
+      </c:valAx>
+    </c:plotArea>
+  </c:chart>
+  <c:txPr>
+    <a:bodyPr/>
+    <a:lstStyle/>
+    <a:p>
+      <a:pPr>
+        <a:defRPr sz="1800"/>
+      </a:pPr>
+      <a:endParaRPr lang="en-US"/>
+    </a:p>
+  </c:txPr>
+</c:chartSpace>

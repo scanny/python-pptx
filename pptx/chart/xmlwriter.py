@@ -951,6 +951,50 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
             '          </c:cat>\n'
         )
 
+    def _lvl_xml(self, categories):
+        """
+        The unicode XML snippet for the ``<c:lvl>`` elements containing
+        multi-level category names.
+        """
+        def lvl_pt_xml(level):
+            xml = ''
+            for idx, name in level:
+                xml += (
+                    '                  <c:pt idx="%d">\n'
+                    '                    <c:v>%s</c:v>\n'
+                    '                  </c:pt>\n'
+                ) % (idx, escape(str(name)))
+            return xml
+
+        xml = ''
+        for level in categories.levels:
+            xml += (
+                '                <c:lvl>\n'
+                '{lvl_pt_xml}'
+                '                </c:lvl>\n'
+            ).format(**{
+                'lvl_pt_xml': lvl_pt_xml(level),
+            })
+        return xml
+
+    @property
+    def _multiLvl_cat_tmpl(self):
+        """
+        The template for the ``<c:cat>`` element for this series when there
+        are multi-level (nested) categories.
+        """
+        return (
+            '          <c:cat{nsdecls}>\n'
+            '            <c:multiLvlStrRef>\n'
+            '              <c:f>{wksht_ref}</c:f>\n'
+            '              <c:multiLvlStrCache>\n'
+            '                <c:ptCount val="{cat_count}"/>\n'
+            '{lvl_xml}'
+            '              </c:multiLvlStrCache>\n'
+            '            </c:multiLvlStrRef>\n'
+            '          </c:cat>\n'
+        )
+
     @property
     def _val_pt_xml(self):
         """
