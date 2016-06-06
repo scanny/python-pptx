@@ -2,6 +2,14 @@
 Chart - Chart Type
 ==================
 
+There are 73 distinct chart types supported by PowerPoint.
+
+These are implemented with 16 distinct elements (e.g. c:bar3DChart). Within
+an element tag name, they are further differentiated by child elements and
+attributes such as c:grouping and c:shape.
+
+These differentiators are summaried below.
+
 
 c:areaChart
 -----------

@@ -27,6 +27,7 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   cht-multilvl-cat
    cht-title
    cht-points
    cht-radar-chart
