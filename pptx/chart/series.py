@@ -49,9 +49,14 @@ class _BaseSeries(object):
         Read-only. A sequence containing the float values for this series, in
         the order they appear on the chart.
         """
-        ser = self._element
-        value_pt_elms = ser.val_pts
-        return tuple(pt.value for pt in value_pt_elms)
+        def iter_values():
+            val = self._element.val
+            if val is None:
+                return
+            for idx in range(val.ptCount_val):
+                yield val.pt_v(idx)
+
+        return tuple(iter_values())
 
 
 class BarSeries(_BaseSeries):

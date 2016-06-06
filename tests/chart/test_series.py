@@ -52,16 +52,23 @@ class Describe_BaseSeries(object):
         return series, expected_value
 
     @pytest.fixture(params=[
-        ('c:ser', ()),
-        ('c:ser/c:val/c:numRef', ()),
-        ('c:ser/c:val/c:numRef/c:numCache', ()),
-        ('c:ser/c:val/c:numRef/c:numCache/(c:pt{idx=1}/c:v"2.3",c:pt{idx=0}/'
-         'c:v"1.2",c:pt{idx=2}/c:v"3.4")',
-         (1.2, 2.3, 3.4)),
-        ('c:ser/c:val/c:numLit', ()),
-        ('c:ser/c:val/c:numLit/(c:pt{idx=2}/c:v"6.7",c:pt{idx=0}/'
-         'c:v"4.5",c:pt{idx=1}/c:v"5.6")',
-         (4.5, 5.6, 6.7)),
+        ('c:ser',                                            ()),
+        ('c:ser/c:val/c:numRef',                             ()),
+        ('c:ser/c:val/c:numLit',                             ()),
+        ('c:ser/c:val/c:numRef/c:numCache',                  ()),
+        ('c:ser/c:val/c:numRef/c:numCache/c:ptCount{val=0}', ()),
+        ('c:ser/c:val/c:numRef/c:numCache/(c:ptCount{val=1},c:pt{idx=0}/c:v"'
+         '1.1")',
+         (1.1,)),
+        ('c:ser/c:val/c:numRef/c:numCache/(c:ptCount{val=3},c:pt{idx=0}/c:v"'
+         '1.1",c:pt{idx=2}/c:v"3.3")',
+         (1.1, None, 3.3)),
+        ('c:ser/c:val/c:numLit/(c:ptCount{val=3},c:pt{idx=0}/c:v"1.1",c:pt{i'
+         'dx=2}/c:v"3.3")',
+         (1.1, None, 3.3)),
+        ('c:ser/c:val/c:numRef/c:numCache/(c:ptCount{val=3},c:pt{idx=2}/c:v"'
+         '3.3",c:pt{idx=0}/c:v"1.1")',
+         (1.1, None, 3.3)),
     ])
     def values_get_fixture(self, request):
         ser_cxml, expected_value = request.param

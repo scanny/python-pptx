@@ -109,6 +109,7 @@ from .chart.series import (
 register_element_cls('c:dPt',  CT_DPt)
 register_element_cls('c:pt',   CT_StrVal_NumVal_Composite)
 register_element_cls('c:ser',  CT_SeriesComposite)
+register_element_cls('c:val',  CT_NumDataSource)
 register_element_cls('c:yVal', CT_NumDataSource)
 
 

@@ -60,7 +60,6 @@ Feature: Get and set series properties
       | False               | False     | False          |
 
 
-  @wip
   Scenario Outline: Get series.values
     Given a bar series with values <values>
      Then series.values is <expected-value>

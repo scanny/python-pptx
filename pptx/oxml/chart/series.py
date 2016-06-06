@@ -136,15 +136,6 @@ class CT_SeriesComposite(BaseOxmlElement):
         return dPt
 
     @property
-    def val_pts(self):
-        """
-        The sequence of ``<c:pt>`` elements under the ``<c:val>`` child
-        element, ordered by the value of their ``idx`` attribute.
-        """
-        val_pts = self.xpath('./c:val//c:pt')
-        return sorted(val_pts, key=lambda pt: pt.idx)
-
-    @property
     def xVal_ptCount_val(self):
         """
         Return the number of X values as reflected in the `val` attribute of
