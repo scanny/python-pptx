@@ -498,7 +498,23 @@ class DescribeCategory(object):
         category, sub_categories_ = subs_fixture
         assert category.sub_categories is sub_categories_
 
+    def it_can_add_a_sub_category(self, add_sub_fixture):
+        category, name, Category_, sub_category_ = add_sub_fixture
+        sub_category = category.add_sub_category(name)
+        Category_.assert_called_once_with(name, category)
+        assert category._sub_categories[-1] is sub_category
+        assert sub_category is sub_category_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_sub_fixture(self, request, category_):
+        category = Category(None, None)
+        name = 'foobar'
+        Category_ = class_mock(
+            request, 'pptx.chart.data.Category', return_value=category_
+        )
+        return category, name, Category_, category_
 
     @pytest.fixture(params=[
         ((),        1),
@@ -578,6 +594,10 @@ class DescribeCategory(object):
     @pytest.fixture
     def categories_(self, request):
         return instance_mock(request, Categories)
+
+    @pytest.fixture
+    def category_(self, request):
+        return instance_mock(request, Category)
 
 
 class DescribeCategorySeriesData(object):

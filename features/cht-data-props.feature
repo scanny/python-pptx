@@ -27,7 +27,6 @@ Feature: chart_data properties
       And chart_data[-1] is the new series
 
 
-  @wip
   Scenario: Category.add_sub_category()
     Given a Category object
      Then category.add_sub_category(name) is a Category object

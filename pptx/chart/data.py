@@ -379,6 +379,15 @@ class Category(object):
         self._parent = parent
         self._sub_categories = []
 
+    def add_sub_category(self, name):
+        """
+        Return a newly created |Category| object having *name* and appended
+        to the end of the sub-category sequence for this category.
+        """
+        category = Category(name, self)
+        self._sub_categories.append(category)
+        return category
+
     @property
     def depth(self):
         """
