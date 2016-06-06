@@ -16,7 +16,7 @@ from behave import given, then, when
 from pptx import Presentation
 from pptx.chart.chart import Legend
 from pptx.chart.data import (
-    BubbleChartData, CategoryChartData, ChartData, XyChartData
+    BubbleChartData, Category, CategoryChartData, ChartData, XyChartData
 )
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import (
@@ -139,6 +139,11 @@ def given_a_bubble_plot_having_bubble_scale_of_percent(context, percent):
     slide_idx = {'no explicit value': 3, '70%': 4}[percent]
     prs = Presentation(test_pptx('cht-plot-props'))
     context.bubble_plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
+
+
+@given('a Category object')
+def given_a_Category_object(context):
+    context.category = Category(None, None)
 
 
 @given('a CategoryChartData object')
@@ -657,6 +662,19 @@ def then_bubble_plot_bubble_scale_is_value(context, value):
     assert bubble_plot.bubble_scale == expected_value, (
         'got %s' % bubble_plot.bubble_scale
     )
+
+
+@then('category.add_sub_category(name) is a Category object')
+def then_category_add_sub_category_is_a_Category_object(context):
+    category = context.category
+    context.sub_category = sub_category = category.add_sub_category('foobar')
+    assert type(sub_category).__name__ == 'Category'
+
+
+@then('category.sub_categories[-1] is the new category')
+def then_category_sub_categories_minus_1_is_the_new_category(context):
+    category, sub_category = context.category, context.sub_category
+    assert category.sub_categories[-1] is sub_category
 
 
 @then('chart.category_axis is a {type_name} object')
