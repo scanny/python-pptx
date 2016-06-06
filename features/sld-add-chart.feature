@@ -23,7 +23,6 @@ Feature: Add a chart
       | Radar            | RADAR            |   5  |   2  |
 
 
-  @wip
   Scenario: Add a multi-level category chart
     Given a blank slide
      When I add a Clustered bar chart with multi-level categories

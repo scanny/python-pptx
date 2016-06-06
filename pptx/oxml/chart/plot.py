@@ -27,7 +27,9 @@ class BaseChartElement(BaseOxmlElement):
         the first series in this xChart element, ordered by the value of
         their ``idx`` attribute.
         """
-        cat_pts = self.xpath('./c:ser[1]/c:cat//c:pt')
+        cat_pts = self.xpath('./c:ser[1]/c:cat//c:lvl[1]/c:pt')
+        if not cat_pts:
+            cat_pts = self.xpath('./c:ser[1]/c:cat//c:pt')
         return sorted(cat_pts, key=lambda pt: pt.idx)
 
     @property

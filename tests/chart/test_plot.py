@@ -78,6 +78,9 @@ class Describe_BasePlot(object):
         ('c:barChart/c:ser/c:cat/c:strLit/(c:pt{idx=2}/c:v"faz",c:pt{idx=0}/'
          'c:v"boo",c:pt{idx=1}/c:v"far")',
          ('boo', 'far', 'faz')),
+        ('c:barChart/c:ser/c:cat/c:multiLvlStrRef/c:multiLvlStrCache/(c:lvl/'
+         '(c:pt{idx=1}/c:v"bar",c:pt{idx=0}/c:v"foo",c:pt{idx=2}/c:v"baz"),c'
+         ':lvl/c:pt{idx=0}/c:v"BOO")', ('foo', 'bar', 'baz')),
     ])
     def categories_get_fixture(self, request):
         xChart_cxml, expected_value = request.param
