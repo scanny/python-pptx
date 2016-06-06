@@ -60,9 +60,15 @@ Feature: Get and set series properties
       | False               | False     | False          |
 
 
-  Scenario: Get series values
-    Given a bar series having known values
-     Then series.values contains the known values
+  @wip
+  Scenario Outline: Get series.values
+    Given a bar series with values <values>
+     Then series.values is <expected-value>
+
+    Examples: series values
+      | values         | expected-value   |
+      | 1.2, 2.3, 3.4  | (1.2, 2.3, 3.4)  |
+      | 4.5, None, 6.7 | (4.5, None, 6.7) |
 
 
   Scenario Outline: Get series points

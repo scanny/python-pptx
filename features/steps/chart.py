@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 import hashlib
 
+from ast import literal_eval
 from itertools import islice
 
 from behave import given, then, when
@@ -112,10 +113,14 @@ def given_a_bar_series_having_invert_if_negative_setting(context, setting):
     context.series = plot.series[series_idx]
 
 
-@given('a bar series having known values')
-def given_a_bar_series_having_known_values(context):
+@given('a bar series with values {values}')
+def given_a_bar_series_with_values(context, values):
     prs = Presentation(test_pptx('cht-series-props'))
-    context.series = prs.slides[1].shapes[0].chart.plots[0].series[0]
+    series_idx = {
+        '1.2, 2.3, 3.4':  0,
+        '4.5, None, 6.7': 1,
+    }[values]
+    context.series = prs.slides[1].shapes[0].chart.plots[0].series[series_idx]
 
 
 @given('a bar series having {width} line')
@@ -971,11 +976,11 @@ def then_series_points_is_a_type_name_object(context, type_name):
     assert type(series.points).__name__ == type_name
 
 
-@then('series.values contains the known values')
-def then_series_values_contains_the_known_values(context):
+@then('series.values is {values}')
+def then_series_values_is_values(context, values):
     series = context.series
-    expected_values = (1.2, 2.3, 3.4)
-    assert series.values == expected_values, 'got %s' % series.values
+    expected_values = literal_eval(values)
+    assert series.values == expected_values, 'got %s' % (series.values,)
 
 
 @then('the chart has an Excel data worksheet')
