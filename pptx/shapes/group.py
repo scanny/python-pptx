@@ -16,9 +16,6 @@ class Group(BaseShape):
     """
     is_group = True
 
-    def __init__(self, el, parent):
-        super(Group, self).__init__(el, parent)
-
     @lazyproperty
     def shapes(self):
         from .shapetree import GroupShapeTree
