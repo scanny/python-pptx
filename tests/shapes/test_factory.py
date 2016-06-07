@@ -15,6 +15,7 @@ from pptx.shapes.factory import (
     BaseShapeFactory, _SlidePlaceholderFactory, SlideShapeFactory
 )
 from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.group import Group
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import _BaseSlidePlaceholder
 from pptx.shapes.shapetree import BaseShapeTree
@@ -43,12 +44,13 @@ class DescribeBaseShapeFactory(object):
     @pytest.fixture(params=['sp', 'pic', 'graphicFrame', 'grpSp', 'cxnSp'])
     def factory_fixture(
             self, request, slide_, Shape_, shape_, Picture_, picture_,
-            GraphicFrame_, graphic_frame_, BaseShape_, base_shape_):
+            GraphicFrame_, graphic_frame_, Group_, group_,
+            BaseShape_, base_shape_):
         shape_cxml, ShapeClass_, shape_mock = {
             'sp':           ('p:sp',           Shape_,        shape_),
             'pic':          ('p:pic',          Picture_,      picture_),
             'graphicFrame': ('p:graphicFrame', GraphicFrame_, graphic_frame_),
-            'grpSp':        ('p:grpSp',        BaseShape_,    base_shape_),
+            'grpSp':        ('p:grpSp',        Group_,        group_),
             'cxnSp':        ('p:cxnSp',        BaseShape_,    base_shape_),
         }[request.param]
         shape_elm = element(shape_cxml)
@@ -92,6 +94,17 @@ class DescribeBaseShapeFactory(object):
     @pytest.fixture
     def graphic_frame_(self, request):
         return instance_mock(request, GraphicFrame)
+
+    @pytest.fixture
+    def Group_(self, request, group_):
+        return class_mock(
+            request, 'pptx.shapes.factory.Group',
+            return_value=group_
+        )
+
+    @pytest.fixture
+    def group_(self, request):
+        return instance_mock(request, Group)
 
     @pytest.fixture
     def Picture_(self, request, picture_):

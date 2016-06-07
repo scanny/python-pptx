@@ -72,7 +72,7 @@ class BaseShapeTree(object):
         Generate each child of the ``<p:spTree>`` element that corresponds to
         a shape, in the sequence they appear in the XML.
         """
-        spTree = self._slide.spTree
+        spTree = self._spTree
         for shape_elm in spTree.iter_shape_elms():
             if self._is_member_elm(shape_elm):
                 yield shape_elm
@@ -367,3 +367,16 @@ class SlideShapeTree(BaseShapeTree):
         *shape_elm*.
         """
         return SlideShapeFactory(shape_elm, self)
+
+
+class GroupShapeTree(BaseShapeTree):
+    def __init__(self, group, slide=None):
+        super(GroupShapeTree, self).__init__(slide)
+        self._group = group
+
+    @property
+    def _spTree(self):
+        """
+        The ``<p:grpSp>`` element underlying this shape tree object
+        """
+        return self._group._element

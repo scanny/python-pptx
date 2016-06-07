@@ -104,6 +104,17 @@ class BaseShape(object):
         return self._element.shape_id
 
     @property
+    def is_group(self):
+        """
+        |True| if this is a group shape, regardless whether it contains anything,
+        |False| otherwise. When |True|, the intertior objects can be accessed
+        using the ``.shapes`` property.
+        """
+        # This implementation is unconditionally False, the True version is
+        # on the Group subclass.
+        return False
+
+    @property
     def is_placeholder(self):
         """
         True if this shape is a placeholder. A shape is a placeholder if it

@@ -12,6 +12,7 @@ from .autoshape import Shape
 from .base import BaseShape
 from ..enum.shapes import PP_PLACEHOLDER
 from .graphfrm import GraphicFrame
+from .group import Group
 from ..oxml.ns import qn
 from .picture import Picture
 from .placeholder import (
@@ -31,6 +32,8 @@ def BaseShapeFactory(shape_elm, parent):
         return Picture(shape_elm, parent)
     if tag_name == qn('p:graphicFrame'):
         return GraphicFrame(shape_elm, parent)
+    if tag_name == qn('p:grpSp'):
+        return Group(shape_elm, parent)
     return BaseShape(shape_elm, parent)
 
 
