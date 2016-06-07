@@ -367,3 +367,16 @@ class SlideShapeTree(BaseShapeTree):
         *shape_elm*.
         """
         return SlideShapeFactory(shape_elm, self)
+
+
+class GroupShapeTree(BaseShapeTree):
+    def __init__(self, group, slide=None):
+        super(GroupShapeTree, self).__init__(slide)
+        self._group = group
+
+    @property
+    def _spTree(self):
+        """
+        The ``<p:grpSp>`` element underlying this shape tree object
+        """
+        return self._group._element
