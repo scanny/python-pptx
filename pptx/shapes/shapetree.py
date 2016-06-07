@@ -72,7 +72,7 @@ class BaseShapeTree(object):
         Generate each child of the ``<p:spTree>`` element that corresponds to
         a shape, in the sequence they appear in the XML.
         """
-        spTree = self._slide.spTree
+        spTree = self._spTree
         for shape_elm in spTree.iter_shape_elms():
             if self._is_member_elm(shape_elm):
                 yield shape_elm
