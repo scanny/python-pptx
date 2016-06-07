@@ -14,6 +14,8 @@ class Group(BaseShape):
     """
     A group shape. Contains an arbitrary number of other shape objects.
     """
+    is_group = True
+
     def __init__(self, el, parent):
         super(Group, self).__init__(el, parent)
 
