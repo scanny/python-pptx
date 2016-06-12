@@ -7,7 +7,6 @@ Chart shape-related objects such as Chart.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from collections import Sequence
-from copy import deepcopy
 
 from .axis import CategoryAxis, ValueAxis
 from .legend import Legend
@@ -116,15 +115,6 @@ class Chart(PartElementProxy):
         plotArea = self._chartSpace.chart.plotArea
         return _Plots(plotArea, self)
 
-    def replace_data(self, chart_data):
-        """
-        Use the categories and series values in the |ChartData| object
-        *chart_data* to replace those in the XML and Excel worksheet for this
-        chart.
-        """
-        _SeriesRewriter.replace_series_data(self._chartSpace, chart_data)
-        self._workbook.update_from_xlsx_blob(chart_data.xlsx_blob)
-
     @lazyproperty
     def series(self):
         """
@@ -180,93 +170,3 @@ class _Plots(Sequence):
     def __len__(self):
         plot_elms = [p for p in self._plotArea.iter_plots()]
         return len(plot_elms)
-
-
-class _SeriesRewriter(object):
-    """
-    Pure functional service class that knows how to rewrite the data in
-    a chart while disturbing the current formatting as little as possible.
-    All the data for a chart is located under its ``<c:ser>`` elements, so
-    updating the data for a chart requires changes to series element subtrees
-    only.
-    """
-    @classmethod
-    def replace_series_data(cls, chartSpace, chart_data):
-        """
-        Use the category and series data in *chart_data* to rewrite the
-        series name, category labels, and point values of the series
-        contained in the *chartSpace* element. All series-level formatting is
-        left undisturbed. If *chart_data* contains fewer series than
-        *chartSpace*, the excess series are deleted. If *chart_data* contains
-        more series than the *chartSpace* element, new series are added to
-        the last plot in the chart and series formatting is copied from the
-        last series in that plot.
-        """
-        sers = cls._adjust_ser_count(chartSpace, len(chart_data.series))
-        for ser, series_data in zip(sers, chart_data.series):
-            cls._rewrite_ser_data(ser, series_data)
-
-    @classmethod
-    def _add_cloned_sers(cls, chartSpace, count):
-        """
-        Add `c:ser` elements to the last xChart element in *chartSpace*,
-        cloned from the last `c:ser` child of that xChart.
-        """
-        def clone_ser(ser, idx):
-            new_ser = deepcopy(ser)
-            new_ser.idx.val = idx
-            new_ser.order.val = idx
-            ser.addnext(new_ser)
-            return new_ser
-
-        last_ser = chartSpace.last_doc_order_ser
-        starting_idx = len(chartSpace.sers)
-        for idx in range(starting_idx, starting_idx+count):
-            last_ser = clone_ser(last_ser, idx)
-
-    @classmethod
-    def _adjust_ser_count(cls, chartSpace, new_ser_count):
-        """
-        Return the ser elements in *chartSpace* after adjusting their number
-        to *new_ser_count*. The ser elements returned are sorted in
-        increasing order of the c:ser/c:idx value, starting with 0 and with
-        any gaps in numbering collapsed.
-        """
-        ser_count_diff = new_ser_count - len(chartSpace.sers)
-        if ser_count_diff > 0:
-            cls._add_cloned_sers(chartSpace, ser_count_diff)
-        elif ser_count_diff < 0:
-            cls._trim_ser_count_by(chartSpace, abs(ser_count_diff))
-        return chartSpace.sers
-
-    @classmethod
-    def _rewrite_ser_data(cls, ser, series_data):
-        """
-        Rewrite the ``<c:tx>``, ``<c:cat>`` and ``<c:val>`` child elements
-        of *ser* based on the values in *series_data*.
-        """
-        ser._remove_tx()
-        ser._remove_cat()
-        ser._remove_val()
-        ser._insert_tx(series_data.tx)
-        ser._insert_cat(series_data.cat)
-        ser._insert_val(series_data.val)
-
-    @classmethod
-    def _trim_ser_count_by(cls, chartSpace, count):
-        """
-        Remove the last *count* ser elements from *chartSpace*. Any xChart
-        elements having no ser child elements after trimming are also
-        removed.
-        """
-        extra_sers = chartSpace.sers[-count:]
-        for ser in extra_sers:
-            parent = ser.getparent()
-            parent.remove(ser)
-        extra_xCharts = [
-            xChart for xChart in chartSpace.chart.plotArea.iter_plots()
-            if len(list(xChart.iter_sers())) == 0
-        ]
-        for xChart in extra_xCharts:
-            parent = xChart.getparent()
-            parent.remove(xChart)
