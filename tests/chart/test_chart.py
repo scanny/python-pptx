@@ -10,12 +10,17 @@ import pytest
 
 from pptx.chart.axis import CategoryAxis, ValueAxis
 from pptx.chart.chart import Chart, Legend, _Plots
+from pptx.chart.data import ChartData
 from pptx.chart.plot import _BasePlot
 from pptx.chart.series import SeriesCollection
+from pptx.chart.xmlwriter import _BaseSeriesXmlRewriter
 from pptx.enum.chart import XL_CHART_TYPE
+from pptx.parts.chart import ChartWorkbook
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import call, class_mock, function_mock, instance_mock
+from ..unitutil.mock import (
+    call, class_mock, function_mock, instance_mock, property_mock
+)
 
 
 class DescribeChart(object):
@@ -83,6 +88,18 @@ class DescribeChart(object):
         chart, new_value, expected_xml = style_set_fixture
         chart.chart_style = new_value
         assert chart._chartSpace.xml == expected_xml
+
+    def it_can_replace_the_chart_data(self, replace_fixture):
+        (chart, chart_data_, SeriesXmlRewriterFactory_, chart_type,
+         rewriter_, chartSpace, workbook_, xlsx_blob) = replace_fixture
+
+        chart.replace_data(chart_data_)
+
+        SeriesXmlRewriterFactory_.assert_called_once_with(
+            chart_type, chart_data_
+        )
+        rewriter_.replace_series_data.assert_called_once_with(chartSpace)
+        workbook_.update_from_xlsx_blob.assert_called_once_with(xlsx_blob)
 
     # fixtures -------------------------------------------------------
 
@@ -154,6 +171,20 @@ class DescribeChart(object):
         return chart, plots_, _Plots_, plotArea
 
     @pytest.fixture
+    def replace_fixture(
+            self, chart_data_, SeriesXmlRewriterFactory_, series_rewriter_,
+            workbook_, workbook_prop_):
+        chartSpace = element('c:chartSpace/c:chart/c:plotArea/c:pieChart')
+        chart = Chart(chartSpace, None)
+        chart_type = XL_CHART_TYPE.PIE
+        xlsx_blob = 'fooblob'
+        chart_data_.xlsx_blob = xlsx_blob
+        return (
+            chart, chart_data_, SeriesXmlRewriterFactory_, chart_type,
+            series_rewriter_, chartSpace, workbook_, xlsx_blob
+        )
+
+    @pytest.fixture
     def series_fixture(self, SeriesCollection_, series_collection_):
         chartSpace = element('c:chartSpace')
         chart = Chart(chartSpace, None)
@@ -210,6 +241,10 @@ class DescribeChart(object):
         return instance_mock(request, CategoryAxis)
 
     @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, ChartData)
+
+    @pytest.fixture
     def Legend_(self, request, legend_):
         return class_mock(
             request, 'pptx.chart.chart.Legend', return_value=legend_
@@ -245,8 +280,19 @@ class DescribeChart(object):
         )
 
     @pytest.fixture
+    def SeriesXmlRewriterFactory_(self, request, series_rewriter_):
+        return function_mock(
+            request, 'pptx.chart.chart.SeriesXmlRewriterFactory',
+            return_value=series_rewriter_, autospec=True
+        )
+
+    @pytest.fixture
     def series_collection_(self, request):
         return instance_mock(request, SeriesCollection)
+
+    @pytest.fixture
+    def series_rewriter_(self, request):
+        return instance_mock(request, _BaseSeriesXmlRewriter)
 
     @pytest.fixture
     def ValueAxis_(self, request, value_axis_):
@@ -258,6 +304,16 @@ class DescribeChart(object):
     @pytest.fixture
     def value_axis_(self, request):
         return instance_mock(request, ValueAxis)
+
+    @pytest.fixture
+    def workbook_(self, request):
+        return instance_mock(request, ChartWorkbook)
+
+    @pytest.fixture
+    def workbook_prop_(self, request, workbook_):
+        return property_mock(
+            request, Chart, '_workbook', return_value=workbook_
+        )
 
 
 class Describe_Plots(object):

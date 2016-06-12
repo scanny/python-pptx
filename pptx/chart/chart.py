@@ -14,6 +14,7 @@ from .plot import PlotFactory, PlotTypeInspector
 from .series import SeriesCollection
 from ..shared import PartElementProxy
 from ..util import lazyproperty
+from .xmlwriter import SeriesXmlRewriterFactory
 
 
 class Chart(PartElementProxy):
@@ -114,6 +115,16 @@ class Chart(PartElementProxy):
         """
         plotArea = self._chartSpace.chart.plotArea
         return _Plots(plotArea, self)
+
+    def replace_data(self, chart_data):
+        """
+        Use the categories and series values in the |ChartData| object
+        *chart_data* to replace those in the XML and Excel worksheet for this
+        chart.
+        """
+        rewriter = SeriesXmlRewriterFactory(self.chart_type, chart_data)
+        rewriter.replace_series_data(self._chartSpace)
+        self._workbook.update_from_xlsx_blob(chart_data.xlsx_blob)
 
     @lazyproperty
     def series(self):

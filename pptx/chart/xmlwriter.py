@@ -42,6 +42,13 @@ def ChartXmlWriter(chart_type, series_seq):
     return BuilderCls(chart_type, series_seq)
 
 
+def SeriesXmlRewriterFactory(chart_type, chart_data):
+    """
+    Return a |_BaseSeriesXmlRewriter| subclass appropriate to *chart_type*.
+    """
+    raise NotImplementedError
+
+
 class _BaseChartXmlWriter(object):
     """
     Generates XML text (unicode) for a default chart, like the one added by
@@ -152,6 +159,27 @@ class _BaseSeriesXmlWriter(object):
             '            </c:strRef>\n'
             '          </c:tx>\n'
         )
+
+
+class _BaseSeriesXmlRewriter(object):
+    """
+    Base class for series XML rewriters.
+    """
+    def __init__(self, chart_data):
+        super(_BaseSeriesXmlRewriter, self).__init__()
+        self._chart_data = chart_data
+
+    def replace_series_data(self, chartSpace):
+        """
+        Rewrite the series data under *chartSpace* using the chart data
+        contents. All series-level formatting is left undisturbed. If
+        the chart data contains fewer series than *chartSpace*, the extra
+        series in *chartSpace* are deleted. If *chart_data* contains more
+        series than the *chartSpace* element, new series are added to the
+        last plot in the chart and series formatting is "cloned" from the
+        last series in that plot.
+        """
+        raise NotImplementedError
 
 
 class _BarChartXmlWriter(_BaseChartXmlWriter):
