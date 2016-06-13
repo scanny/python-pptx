@@ -203,7 +203,26 @@ class _BaseSeriesXmlRewriter(object):
         last plot in the chart and series formatting is "cloned" from the
         last series in that plot.
         """
+        chart_data = self._chart_data
+        sers = self._adjust_ser_count(chartSpace, len(chart_data))
+        for ser, series_data in zip(sers, chart_data):
+            self._rewrite_ser_data(ser, series_data)
+
+    def _adjust_ser_count(self, chartSpace, new_ser_count):
+        """
+        Return the ser elements in *chartSpace* after adjusting their number
+        to *new_ser_count*. The ser elements returned are ordered by
+        increasing c:ser/c:idx value, starting with 0 and with any gaps in
+        numbering collapsed.
+        """
         raise NotImplementedError
+
+    def _rewrite_ser_data(self, ser, series_data):
+        """
+        Rewrite selected child elements of *ser* based on the values in
+        *series_data*.
+        """
+        raise NotImplementedError('must be implemented by each subclass')
 
 
 class _BarChartXmlWriter(_BaseChartXmlWriter):

@@ -11,19 +11,22 @@ from itertools import islice
 import pytest
 
 from pptx.chart.data import (
-    _BaseChartData, BubbleChartData, CategoryChartData, XyChartData
+    _BaseChartData, _BaseSeriesData, BubbleChartData, CategoryChartData,
+    XyChartData
 )
 from pptx.chart.xmlwriter import (
-    _BarChartXmlWriter, _BubbleChartXmlWriter, _BubbleSeriesXmlRewriter,
-    _CategorySeriesXmlRewriter, ChartXmlWriter, _LineChartXmlWriter,
-    _PieChartXmlWriter, _PieSeriesXmlRewriter, _RadarChartXmlWriter,
-    SeriesXmlRewriterFactory, _XyChartXmlWriter, _XySeriesXmlRewriter
+    _BarChartXmlWriter, _BaseSeriesXmlRewriter, _BubbleChartXmlWriter,
+    _BubbleSeriesXmlRewriter, _CategorySeriesXmlRewriter, ChartXmlWriter,
+    _LineChartXmlWriter, _PieChartXmlWriter, _PieSeriesXmlRewriter,
+    _RadarChartXmlWriter, SeriesXmlRewriterFactory, _XyChartXmlWriter,
+    _XySeriesXmlRewriter
 )
 from pptx.enum.chart import XL_CHART_TYPE
 
 from ..unitutil import count
+from ..unitutil.cxml import element
 from ..unitutil.file import snippet_text
-from ..unitutil.mock import class_mock, instance_mock
+from ..unitutil.mock import call, class_mock, instance_mock, method_mock
 
 
 class DescribeChartXmlWriter(object):
@@ -261,6 +264,60 @@ class Describe_XyChartXmlWriter(object):
         xml_writer = _XyChartXmlWriter(chart_type, chart_data)
         expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml
+
+
+class Describe_BaseSeriesXmlRewriter(object):
+
+    def it_can_replace_series_data(self, replace_fixture):
+        rewriter, chartSpace, ser_count, calls = replace_fixture
+        rewriter.replace_series_data(chartSpace)
+        rewriter._adjust_ser_count.assert_called_once_with(
+            rewriter, chartSpace, ser_count
+        )
+        assert rewriter._rewrite_ser_data.call_args_list == calls
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def replace_fixture(
+            self, request, chart_data_, _adjust_ser_count_,
+            _rewrite_ser_data_):
+        rewriter = _BaseSeriesXmlRewriter(chart_data_)
+        chartSpace = element('c:chartSpace/(c:ser,c:ser)')
+        sers = chartSpace.xpath('c:ser')
+        ser_count = len(sers)
+        series_datas = [
+            instance_mock(request, _BaseSeriesData),
+            instance_mock(request, _BaseSeriesData),
+        ]
+        calls = [
+            call(rewriter, sers[0], series_datas[0]),
+            call(rewriter, sers[1], series_datas[1])
+        ]
+        chart_data_.__len__.return_value = len(series_datas)
+        chart_data_.__iter__.return_value = iter(series_datas)
+        _adjust_ser_count_.return_value = sers
+        return rewriter, chartSpace, ser_count, calls
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _adjust_ser_count_(self, request):
+        return method_mock(
+            request, _BaseSeriesXmlRewriter, '_adjust_ser_count',
+            autospec=True
+        )
+
+    @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, _BaseChartData)
+
+    @pytest.fixture
+    def _rewrite_ser_data_(self, request):
+        return method_mock(
+            request, _BaseSeriesXmlRewriter, '_rewrite_ser_data',
+            autospec=True
+        )
 
 
 # helpers ------------------------------------------------------------
