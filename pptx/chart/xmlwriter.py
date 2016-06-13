@@ -6,6 +6,7 @@ Composers for default chart XML for various chart types.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from copy import deepcopy
 from xml.sax.saxutils import escape
 
 from ..enum.chart import XL_CHART_TYPE
@@ -213,7 +214,17 @@ class _BaseSeriesXmlRewriter(object):
         Add `c:ser` elements to the last xChart element in *chartSpace*,
         cloned from the last `c:ser` child of that xChart.
         """
-        raise NotImplementedError
+        def clone_ser(ser, idx):
+            new_ser = deepcopy(ser)
+            new_ser.idx.val = idx
+            new_ser.order.val = idx
+            ser.addnext(new_ser)
+            return new_ser
+
+        last_ser = chartSpace.last_doc_order_ser
+        starting_idx = len(chartSpace.sers)
+        for idx in range(starting_idx, starting_idx+count):
+            last_ser = clone_ser(last_ser, idx)
 
     def _adjust_ser_count(self, chartSpace, new_ser_count):
         """

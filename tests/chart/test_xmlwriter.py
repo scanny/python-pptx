@@ -24,7 +24,7 @@ from pptx.chart.xmlwriter import (
 from pptx.enum.chart import XL_CHART_TYPE
 
 from ..unitutil import count
-from ..unitutil.cxml import element
+from ..unitutil.cxml import element, xml
 from ..unitutil.file import snippet_text
 from ..unitutil.mock import call, class_mock, instance_mock, method_mock
 
@@ -285,6 +285,11 @@ class Describe_BaseSeriesXmlRewriter(object):
         assert rewriter._trim_ser_count_by.call_args_list == trim_calls
         assert _sers == sers
 
+    def it_adds_cloned_sers_to_help(self, clone_fixture):
+        rewriter, chartSpace, count, expected_xml = clone_fixture
+        rewriter._add_cloned_sers(chartSpace, count)
+        assert chartSpace.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -303,6 +308,20 @@ class Describe_BaseSeriesXmlRewriter(object):
         add_calls = [call(rewriter, chartSpace, 1)] if add else []
         trim_calls = [call(rewriter, chartSpace, 1)] if trim else []
         return rewriter, chartSpace, ser_count, add_calls, trim_calls, sers
+
+    @pytest.fixture
+    def clone_fixture(self):
+        rewriter = _BaseSeriesXmlRewriter(None)
+        chartSpace = element(
+            'c:chartSpace/c:chart/c:plotArea/c:barChart/c:ser/(c:idx{val=3},'
+            'c:order{val=1})'
+        )
+        count = 1
+        expected_xml = xml(
+            'c:chartSpace/c:chart/c:plotArea/c:barChart/(c:ser/(c:idx{val=0}'
+            ',c:order{val=0}),c:ser/(c:idx{val=1},c:order{val=1}))'
+        )
+        return rewriter, chartSpace, count, expected_xml
 
     @pytest.fixture
     def replace_fixture(
