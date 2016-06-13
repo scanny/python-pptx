@@ -42,11 +42,11 @@
   <c:order val="0"/>
   <c:tx>
     <c:strRef>
-      <c:f>Sheet1!$D$1</c:f>
+      <c:f>Sheet1!$B$1</c:f>
       <c:strCache>
         <c:ptCount val="1"/>
         <c:pt idx="0">
-          <c:v>Series 4</c:v>
+          <c:v>Series 1</c:v>
         </c:pt>
       </c:strCache>
     </c:strRef>
@@ -57,17 +57,17 @@
       <c:strCache>
         <c:ptCount val="2"/>
         <c:pt idx="0">
-          <c:v>Foo</c:v>
+          <c:v>foo</c:v>
         </c:pt>
         <c:pt idx="1">
-          <c:v>Bar</c:v>
+          <c:v>bar</c:v>
         </c:pt>
       </c:strCache>
     </c:strRef>
   </c:cat>
   <c:val>
     <c:numRef>
-      <c:f>Sheet1!$D$2:$D$3</c:f>
+      <c:f>Sheet1!$B$2:$B$3</c:f>
       <c:numCache>
         <c:formatCode>General</c:formatCode>
         <c:ptCount val="2"/>

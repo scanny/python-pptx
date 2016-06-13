@@ -17,15 +17,15 @@ from pptx.chart.data import (
 from pptx.chart.xmlwriter import (
     _BarChartXmlWriter, _BaseSeriesXmlRewriter, _BubbleChartXmlWriter,
     _BubbleSeriesXmlRewriter, _CategorySeriesXmlRewriter, ChartXmlWriter,
-    _LineChartXmlWriter, _PieChartXmlWriter, _PieSeriesXmlRewriter,
-    _RadarChartXmlWriter, SeriesXmlRewriterFactory, _XyChartXmlWriter,
-    _XySeriesXmlRewriter
+    _LineChartXmlWriter, _PieChartXmlWriter, _RadarChartXmlWriter,
+    SeriesXmlRewriterFactory, _XyChartXmlWriter, _XySeriesXmlRewriter
 )
 from pptx.enum.chart import XL_CHART_TYPE
+from pptx.oxml import parse_xml
 
 from ..unitutil import count
 from ..unitutil.cxml import element, xml
-from ..unitutil.file import snippet_text
+from ..unitutil.file import snippet_seq, snippet_text
 from ..unitutil.mock import call, class_mock, instance_mock, method_mock
 
 
@@ -89,16 +89,8 @@ class DescribeSeriesXmlRewriterFactory(object):
 
     @pytest.fixture(params=[
         ('BAR_CLUSTERED',                _CategorySeriesXmlRewriter),
-        ('BAR_OF_PIE',                   _PieSeriesXmlRewriter),
         ('BUBBLE',                       _BubbleSeriesXmlRewriter),
         ('BUBBLE_THREE_D_EFFECT',        _BubbleSeriesXmlRewriter),
-        ('DOUGHNUT',                     _PieSeriesXmlRewriter),
-        ('DOUGHNUT_EXPLODED',            _PieSeriesXmlRewriter),
-        ('PIE',                          _PieSeriesXmlRewriter),
-        ('PIE_EXPLODED',                 _PieSeriesXmlRewriter),
-        ('PIE_OF_PIE',                   _PieSeriesXmlRewriter),
-        ('THREE_D_PIE',                  _PieSeriesXmlRewriter),
-        ('THREE_D_PIE_EXPLODED',         _PieSeriesXmlRewriter),
         ('XY_SCATTER',                   _XySeriesXmlRewriter),
         ('XY_SCATTER_LINES',             _XySeriesXmlRewriter),
         ('XY_SCATTER_LINES_NO_MARKERS',  _XySeriesXmlRewriter),
@@ -396,6 +388,26 @@ class Describe_BaseSeriesXmlRewriter(object):
             request, _BaseSeriesXmlRewriter, '_trim_ser_count_by',
             autospec=True
         )
+
+
+class Describe_CategorySeriesXmlRewriter(object):
+
+    def it_can_rewrite_a_ser_element(self, rewrite_fixture):
+        rewriter, ser, series_data, expected_xml = rewrite_fixture
+        rewriter._rewrite_ser_data(ser, series_data)
+        assert ser.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def rewrite_fixture(self):
+        ser_xml, expected_xml = snippet_seq('rewrite-ser')[:2]
+        chart_data = CategoryChartData()
+        chart_data.categories = ('foo', 'bar')
+        series_data = chart_data.add_series('Series 1', (1, 2))
+        rewriter = _CategorySeriesXmlRewriter(chart_data)
+        ser = parse_xml(ser_xml)
+        return rewriter, ser, series_data, expected_xml
 
 
 # helpers ------------------------------------------------------------

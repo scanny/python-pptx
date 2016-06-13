@@ -10,6 +10,8 @@ from copy import deepcopy
 from xml.sax.saxutils import escape
 
 from ..enum.chart import XL_CHART_TYPE
+from ..oxml import parse_xml
+from ..oxml.ns import nsdecls
 
 
 def ChartXmlWriter(chart_type, series_seq):
@@ -54,16 +56,8 @@ def SeriesXmlRewriterFactory(chart_type, chart_data):
         # types, others default to _CategorySeriesXmlRewriter. Stock-type
         # charts are multi-plot charts, so no guaratees on how they turn
         # out.
-        XL_CT.BAR_OF_PIE:                   _PieSeriesXmlRewriter,
         XL_CT.BUBBLE:                       _BubbleSeriesXmlRewriter,
         XL_CT.BUBBLE_THREE_D_EFFECT:        _BubbleSeriesXmlRewriter,
-        XL_CT.DOUGHNUT:                     _PieSeriesXmlRewriter,
-        XL_CT.DOUGHNUT_EXPLODED:            _PieSeriesXmlRewriter,
-        XL_CT.PIE:                          _PieSeriesXmlRewriter,
-        XL_CT.PIE_EXPLODED:                 _PieSeriesXmlRewriter,
-        XL_CT.PIE_OF_PIE:                   _PieSeriesXmlRewriter,
-        XL_CT.THREE_D_PIE:                  _PieSeriesXmlRewriter,
-        XL_CT.THREE_D_PIE_EXPLODED:         _PieSeriesXmlRewriter,
         XL_CT.XY_SCATTER:                   _XySeriesXmlRewriter,
         XL_CT.XY_SCATTER_LINES:             _XySeriesXmlRewriter,
         XL_CT.XY_SCATTER_LINES_NO_MARKERS:  _XySeriesXmlRewriter,
@@ -152,6 +146,19 @@ class _BaseSeriesXmlWriter(object):
             xml += pt_tmpl.format(idx=idx, value=value)
 
         return xml
+
+    @property
+    def tx(self):
+        """
+        Return a ``<c:tx>`` oxml element for this series, containing the
+        series name.
+        """
+        xml = self._tx_tmpl.format(**{
+            'wksht_ref':   self._series.name_ref,
+            'series_name': self.name,
+            'nsdecls':     ' %s' % nsdecls('c'),
+        })
+        return parse_xml(xml)
 
     @property
     def tx_xml(self):
@@ -993,6 +1000,31 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
     Generates XML snippets particular to a category chart series.
     """
     @property
+    def cat(self):
+        """
+        Return the ``<c:cat>`` element XML for this series, as an oxml
+        element.
+        """
+        categories = self._series.categories
+        if categories.depth == 1:
+            return parse_xml(
+                self._cat_tmpl.format(**{
+                    'wksht_ref':  self._series.categories_ref,
+                    'cat_count':  categories.leaf_count,
+                    'cat_pt_xml': self._cat_pt_xml,
+                    'nsdecls':    ' %s' % nsdecls('c'),
+                })
+            )
+        return parse_xml(
+            self._multiLvl_cat_tmpl.format(**{
+                'wksht_ref': self._series.categories_ref,
+                'cat_count': categories.leaf_count,
+                'lvl_xml':   self._lvl_xml(categories),
+                'nsdecls':   ' %s' % nsdecls('c'),
+            })
+        )
+
+    @property
     def cat_xml(self):
         """
         The unicode XML snippet for the ``<c:cat>`` element for this series,
@@ -1002,7 +1034,7 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
         if categories.depth == 1:
             return self._cat_tmpl.format(**{
                 'wksht_ref':  self._series.categories_ref,
-                'cat_count':  len(self._series.categories),
+                'cat_count':  categories.leaf_count,
                 'cat_pt_xml': self._cat_pt_xml,
                 'nsdecls':    '',
             })
@@ -1012,6 +1044,19 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
             'lvl_xml':   self._lvl_xml(categories),
             'nsdecls':   '',
         })
+
+    @property
+    def val(self):
+        """
+        The ``<c:val>`` XML for this series, as an oxml element.
+        """
+        xml = self._val_tmpl.format(**{
+            'wksht_ref':  self._series.values_ref,
+            'val_count':  len(self._series),
+            'val_pt_xml': self._val_pt_xml,
+            'nsdecls':    ' %s' % nsdecls('c'),
+        })
+        return parse_xml(xml)
 
     @property
     def val_xml(self):
@@ -1217,12 +1262,20 @@ class _CategorySeriesXmlRewriter(_BaseSeriesXmlRewriter):
     """
     A series rewriter suitable for category charts.
     """
+    def _rewrite_ser_data(self, ser, series_data):
+        """
+        Rewrite the ``<c:tx>``, ``<c:cat>`` and ``<c:val>`` child elements
+        of *ser* based on the values in *series_data*.
+        """
+        ser._remove_tx()
+        ser._remove_cat()
+        ser._remove_val()
 
+        xml_writer = _CategorySeriesXmlWriter(series_data)
 
-class _PieSeriesXmlRewriter(_CategorySeriesXmlRewriter):
-    """
-    A series rewriter suitable for pie charts.
-    """
+        ser._insert_tx(xml_writer.tx)
+        ser._insert_cat(xml_writer.cat)
+        ser._insert_val(xml_writer.val)
 
 
 class _XySeriesXmlRewriter(_BaseSeriesXmlRewriter):
