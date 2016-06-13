@@ -290,6 +290,11 @@ class Describe_BaseSeriesXmlRewriter(object):
         rewriter._add_cloned_sers(chartSpace, count)
         assert chartSpace.xml == expected_xml
 
+    def it_trims_sers_to_help(self, trim_fixture):
+        rewriter, chartSpace, count, expected_xml = trim_fixture
+        rewriter._trim_ser_count_by(chartSpace, count)
+        assert chartSpace.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -343,6 +348,20 @@ class Describe_BaseSeriesXmlRewriter(object):
         chart_data_.__iter__.return_value = iter(series_datas)
         _adjust_ser_count_.return_value = sers
         return rewriter, chartSpace, ser_count, calls
+
+    @pytest.fixture
+    def trim_fixture(self):
+        rewriter = _BaseSeriesXmlRewriter(None)
+        chartSpace = element(
+            'c:chartSpace/c:chart/c:plotArea/c:barChart/(c:ser/(c:idx{val=3},'
+            'c:order{val=1}),c:ser/(c:idx{val=2},c:order{val=0}))'
+        )
+        count = 1
+        expected_xml = xml(
+            'c:chartSpace/c:chart/c:plotArea/c:barChart/(c:ser/(c:idx{val=0}'
+            ',c:order{val=0}))'
+        )
+        return rewriter, chartSpace, count, expected_xml
 
     # fixture components ---------------------------------------------
 

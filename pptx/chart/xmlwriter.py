@@ -253,7 +253,17 @@ class _BaseSeriesXmlRewriter(object):
         elements having no ser child elements after trimming are also
         removed.
         """
-        raise NotImplementedError
+        extra_sers = chartSpace.sers[-count:]
+        for ser in extra_sers:
+            parent = ser.getparent()
+            parent.remove(ser)
+        extra_xCharts = [
+            xChart for xChart in chartSpace.chart.plotArea.iter_plots()
+            if len(list(xChart.iter_sers())) == 0
+        ]
+        for xChart in extra_xCharts:
+            parent = xChart.getparent()
+            parent.remove(xChart)
 
 
 class _BarChartXmlWriter(_BaseChartXmlWriter):
