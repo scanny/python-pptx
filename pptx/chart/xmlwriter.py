@@ -208,6 +208,13 @@ class _BaseSeriesXmlRewriter(object):
         for ser, series_data in zip(sers, chart_data):
             self._rewrite_ser_data(ser, series_data)
 
+    def _add_cloned_sers(self, chartSpace, count):
+        """
+        Add `c:ser` elements to the last xChart element in *chartSpace*,
+        cloned from the last `c:ser` child of that xChart.
+        """
+        raise NotImplementedError
+
     def _adjust_ser_count(self, chartSpace, new_ser_count):
         """
         Return the ser elements in *chartSpace* after adjusting their number
@@ -215,7 +222,12 @@ class _BaseSeriesXmlRewriter(object):
         increasing c:ser/c:idx value, starting with 0 and with any gaps in
         numbering collapsed.
         """
-        raise NotImplementedError
+        ser_count_diff = new_ser_count - len(chartSpace.sers)
+        if ser_count_diff > 0:
+            self._add_cloned_sers(chartSpace, ser_count_diff)
+        elif ser_count_diff < 0:
+            self._trim_ser_count_by(chartSpace, abs(ser_count_diff))
+        return chartSpace.sers
 
     def _rewrite_ser_data(self, ser, series_data):
         """
@@ -223,6 +235,14 @@ class _BaseSeriesXmlRewriter(object):
         *series_data*.
         """
         raise NotImplementedError('must be implemented by each subclass')
+
+    def _trim_ser_count_by(self, chartSpace, count):
+        """
+        Remove the last *count* ser elements from *chartSpace*. Any xChart
+        elements having no ser child elements after trimming are also
+        removed.
+        """
+        raise NotImplementedError
 
 
 class _BarChartXmlWriter(_BaseChartXmlWriter):

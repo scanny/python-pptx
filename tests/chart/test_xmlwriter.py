@@ -276,7 +276,33 @@ class Describe_BaseSeriesXmlRewriter(object):
         )
         assert rewriter._rewrite_ser_data.call_args_list == calls
 
+    def it_adjusts_the_ser_count_to_help(self, adjust_fixture):
+        rewriter, chartSpace, ser_count, add_calls, trim_calls, sers = (
+            adjust_fixture
+        )
+        _sers = rewriter._adjust_ser_count(chartSpace, ser_count)
+        assert rewriter._add_cloned_sers.call_args_list == add_calls
+        assert rewriter._trim_ser_count_by.call_args_list == trim_calls
+        assert _sers == sers
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (3, True, False),
+        (2, False, False),
+        (1, False, True),
+    ])
+    def adjust_fixture(self, request, _add_cloned_sers_, _trim_ser_count_by_):
+        ser_count, add, trim = request.param
+        rewriter = _BaseSeriesXmlRewriter(None)
+        chartSpace = element(
+            'c:chartSpace/(c:ser/(c:idx{val=3},c:order{val=1}),c:ser/(c:idx{'
+            'val=1},c:order{val=3}))'
+        )
+        sers = chartSpace.sers
+        add_calls = [call(rewriter, chartSpace, 1)] if add else []
+        trim_calls = [call(rewriter, chartSpace, 1)] if trim else []
+        return rewriter, chartSpace, ser_count, add_calls, trim_calls, sers
 
     @pytest.fixture
     def replace_fixture(
@@ -302,6 +328,13 @@ class Describe_BaseSeriesXmlRewriter(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def _add_cloned_sers_(self, request):
+        return method_mock(
+            request, _BaseSeriesXmlRewriter, '_add_cloned_sers',
+            autospec=True
+        )
+
+    @pytest.fixture
     def _adjust_ser_count_(self, request):
         return method_mock(
             request, _BaseSeriesXmlRewriter, '_adjust_ser_count',
@@ -316,6 +349,13 @@ class Describe_BaseSeriesXmlRewriter(object):
     def _rewrite_ser_data_(self, request):
         return method_mock(
             request, _BaseSeriesXmlRewriter, '_rewrite_ser_data',
+            autospec=True
+        )
+
+    @pytest.fixture
+    def _trim_ser_count_by_(self, request):
+        return method_mock(
+            request, _BaseSeriesXmlRewriter, '_trim_ser_count_by',
             autospec=True
         )
 
