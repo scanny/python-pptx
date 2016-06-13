@@ -10,11 +10,14 @@ from itertools import islice
 
 import pytest
 
-from pptx.chart.data import BubbleChartData, CategoryChartData, XyChartData
+from pptx.chart.data import (
+    _BaseChartData, BubbleChartData, CategoryChartData, XyChartData
+)
 from pptx.chart.xmlwriter import (
-    _BarChartXmlWriter, _BubbleChartXmlWriter, ChartXmlWriter,
-    _LineChartXmlWriter, _PieChartXmlWriter, _RadarChartXmlWriter,
-    _XyChartXmlWriter
+    _BarChartXmlWriter, _BubbleChartXmlWriter, _BubbleSeriesXmlRewriter,
+    _CategorySeriesXmlRewriter, ChartXmlWriter, _LineChartXmlWriter,
+    _PieChartXmlWriter, _PieSeriesXmlRewriter, _RadarChartXmlWriter,
+    SeriesXmlRewriterFactory, _XyChartXmlWriter, _XySeriesXmlRewriter
 )
 from pptx.enum.chart import XL_CHART_TYPE
 
@@ -65,6 +68,55 @@ class DescribeChartXmlWriter(object):
     @pytest.fixture
     def series_seq_(self, request):
         return instance_mock(request, tuple)
+
+
+class DescribeSeriesXmlRewriterFactory(object):
+
+    def it_contructs_an_xml_rewriter_for_a_chart_type(self, call_fixture):
+        chart_type, chart_data_, XmlRewriterClass_, xml_rewriter_ = (
+            call_fixture
+        )
+
+        xml_rewriter = SeriesXmlRewriterFactory(chart_type, chart_data_)
+
+        XmlRewriterClass_.assert_called_once_with(chart_data_)
+        assert xml_rewriter is xml_rewriter_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('BAR_CLUSTERED',                _CategorySeriesXmlRewriter),
+        ('BAR_OF_PIE',                   _PieSeriesXmlRewriter),
+        ('BUBBLE',                       _BubbleSeriesXmlRewriter),
+        ('BUBBLE_THREE_D_EFFECT',        _BubbleSeriesXmlRewriter),
+        ('DOUGHNUT',                     _PieSeriesXmlRewriter),
+        ('DOUGHNUT_EXPLODED',            _PieSeriesXmlRewriter),
+        ('PIE',                          _PieSeriesXmlRewriter),
+        ('PIE_EXPLODED',                 _PieSeriesXmlRewriter),
+        ('PIE_OF_PIE',                   _PieSeriesXmlRewriter),
+        ('THREE_D_PIE',                  _PieSeriesXmlRewriter),
+        ('THREE_D_PIE_EXPLODED',         _PieSeriesXmlRewriter),
+        ('XY_SCATTER',                   _XySeriesXmlRewriter),
+        ('XY_SCATTER_LINES',             _XySeriesXmlRewriter),
+        ('XY_SCATTER_LINES_NO_MARKERS',  _XySeriesXmlRewriter),
+        ('XY_SCATTER_SMOOTH',            _XySeriesXmlRewriter),
+        ('XY_SCATTER_SMOOTH_NO_MARKERS', _XySeriesXmlRewriter),
+    ])
+    def call_fixture(self, request, chart_data_):
+        chart_type_member, rewriter_cls = request.param
+        chart_type = getattr(XL_CHART_TYPE, chart_type_member)
+        xml_rewriter_ = instance_mock(request, rewriter_cls)
+        XmlRewriterClass_ = class_mock(
+            request, 'pptx.chart.xmlwriter.%s' % rewriter_cls.__name__,
+            return_value=xml_rewriter_
+        )
+        return chart_type, chart_data_, XmlRewriterClass_, xml_rewriter_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, _BaseChartData)
 
 
 class Describe_BarChartXmlWriter(object):

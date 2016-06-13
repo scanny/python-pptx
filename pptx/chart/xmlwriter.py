@@ -46,7 +46,31 @@ def SeriesXmlRewriterFactory(chart_type, chart_data):
     """
     Return a |_BaseSeriesXmlRewriter| subclass appropriate to *chart_type*.
     """
-    raise NotImplementedError
+    XL_CT = XL_CHART_TYPE
+
+    RewriterCls = {
+        # There are 73 distinct chart types, only specify non-category
+        # types, others default to _CategorySeriesXmlRewriter. Stock-type
+        # charts are multi-plot charts, so no guaratees on how they turn
+        # out.
+        XL_CT.BAR_OF_PIE:                   _PieSeriesXmlRewriter,
+        XL_CT.BUBBLE:                       _BubbleSeriesXmlRewriter,
+        XL_CT.BUBBLE_THREE_D_EFFECT:        _BubbleSeriesXmlRewriter,
+        XL_CT.DOUGHNUT:                     _PieSeriesXmlRewriter,
+        XL_CT.DOUGHNUT_EXPLODED:            _PieSeriesXmlRewriter,
+        XL_CT.PIE:                          _PieSeriesXmlRewriter,
+        XL_CT.PIE_EXPLODED:                 _PieSeriesXmlRewriter,
+        XL_CT.PIE_OF_PIE:                   _PieSeriesXmlRewriter,
+        XL_CT.THREE_D_PIE:                  _PieSeriesXmlRewriter,
+        XL_CT.THREE_D_PIE_EXPLODED:         _PieSeriesXmlRewriter,
+        XL_CT.XY_SCATTER:                   _XySeriesXmlRewriter,
+        XL_CT.XY_SCATTER_LINES:             _XySeriesXmlRewriter,
+        XL_CT.XY_SCATTER_LINES_NO_MARKERS:  _XySeriesXmlRewriter,
+        XL_CT.XY_SCATTER_SMOOTH:            _XySeriesXmlRewriter,
+        XL_CT.XY_SCATTER_SMOOTH_NO_MARKERS: _XySeriesXmlRewriter,
+    }.get(chart_type, _CategorySeriesXmlRewriter)
+
+    return RewriterCls(chart_data)
 
 
 class _BaseChartXmlWriter(object):
@@ -1121,3 +1145,27 @@ class _BubbleSeriesXmlWriter(_XySeriesXmlWriter):
                 self._series.bubble_sizes_ref, self._series.bubble_sizes
             )
         )
+
+
+class _BubbleSeriesXmlRewriter(_BaseSeriesXmlRewriter):
+    """
+    A series rewriter suitable for bubble charts.
+    """
+
+
+class _CategorySeriesXmlRewriter(_BaseSeriesXmlRewriter):
+    """
+    A series rewriter suitable for category charts.
+    """
+
+
+class _PieSeriesXmlRewriter(_CategorySeriesXmlRewriter):
+    """
+    A series rewriter suitable for pie charts.
+    """
+
+
+class _XySeriesXmlRewriter(_BaseSeriesXmlRewriter):
+    """
+    A series rewriter suitable for XY (aka. scatter) charts.
+    """
