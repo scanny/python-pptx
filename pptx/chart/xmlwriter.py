@@ -1197,21 +1197,42 @@ class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
     Generates XML snippets particular to an XY series.
     """
     @property
+    def xVal(self):
+        """
+        Return the ``<c:xVal>`` element for this series as an oxml element.
+        This element contains the X values for this series.
+        """
+        xml = self._xVal_tmpl.format(**{
+            'nsdecls':    ' %s' % nsdecls('c'),
+            'numRef_xml': self.numRef_xml(self._series.x_values_ref,
+                                          self._series.x_values)
+        })
+        return parse_xml(xml)
+
+    @property
     def xVal_xml(self):
         """
         Return the ``<c:xVal>`` element for this series as unicode text. This
-        element contains the X values for this series (which is actually all
-        the X values for the entire chart).
+        element contains the X values for this series.
         """
-        return (
-            '          <c:xVal>\n'
-            '{numRef_xml}'
-            '          </c:xVal>\n'
-        ).format(
-            numRef_xml=self.numRef_xml(
-                self._series.x_values_ref, self._series.x_values
-            )
-        )
+        return self._xVal_tmpl.format(**{
+            'nsdecls':    '',
+            'numRef_xml': self.numRef_xml(self._series.x_values_ref,
+                                          self._series.x_values)
+        })
+
+    @property
+    def yVal(self):
+        """
+        Return the ``<c:yVal>`` element for this series as an oxml element.
+        This element contains the Y values for this series.
+        """
+        xml = self._yVal_tmpl.format(**{
+            'nsdecls':    ' %s' % nsdecls('c'),
+            'numRef_xml': self.numRef_xml(self._series.y_values_ref,
+                                          self._series.y_values)
+        })
+        return parse_xml(xml)
 
     @property
     def yVal_xml(self):
@@ -1219,14 +1240,34 @@ class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
         Return the ``<c:yVal>`` element for this series as unicode text. This
         element contains the Y values for this series.
         """
+        return self._yVal_tmpl.format(**{
+            'nsdecls':    '',
+            'numRef_xml': self.numRef_xml(self._series.y_values_ref,
+                                          self._series.y_values)
+        })
+
+    @property
+    def _xVal_tmpl(self):
+        """
+        The template for the ``<c:xVal>`` element for this series, containing
+        the X values and their spreadsheet range reference.
+        """
         return (
-            '          <c:yVal>\n'
+            '          <c:xVal{nsdecls}>\n'
+            '{numRef_xml}'
+            '          </c:xVal>\n'
+        )
+
+    @property
+    def _yVal_tmpl(self):
+        """
+        The template for the ``<c:yVal>`` element for this series, containing
+        the Y values and their spreadsheet range reference.
+        """
+        return (
+            '          <c:yVal{nsdecls}>\n'
             '{numRef_xml}'
             '          </c:yVal>\n'
-        ).format(
-            numRef_xml=self.numRef_xml(
-                self._series.y_values_ref, self._series.y_values
-            )
         )
 
 
@@ -1282,3 +1323,17 @@ class _XySeriesXmlRewriter(_BaseSeriesXmlRewriter):
     """
     A series rewriter suitable for XY (aka. scatter) charts.
     """
+    def _rewrite_ser_data(self, ser, series_data):
+        """
+        Rewrite the ``<c:tx>``, ``<c:xVal>`` and ``<c:yVal>`` child elements
+        of *ser* based on the values in *series_data*.
+        """
+        ser._remove_tx()
+        ser._remove_xVal()
+        ser._remove_yVal()
+
+        xml_writer = _XySeriesXmlWriter(series_data)
+
+        ser._insert_tx(xml_writer.tx)
+        ser._insert_xVal(xml_writer.xVal)
+        ser._insert_yVal(xml_writer.yVal)

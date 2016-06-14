@@ -22,11 +22,10 @@ Feature: Replace chart data
       | 3x1 Pie              |   5  |   1  |
 
 
-  @wip
   Scenario: Replace XY chart data
     Given a chart of size and type 3x2 XY
      When I replace its data with 3 series of 3 points each
-     Then len(chart.series) is <sers>
+     Then len(chart.series) is 3
       And len(series.values) is 3 for each series
       And each series has a new name
       And the chart has new chart data

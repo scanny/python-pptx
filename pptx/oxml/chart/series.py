@@ -90,6 +90,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[10:])
     cat = ZeroOrOne('c:cat', successors=_tag_seq[13:])
     val = ZeroOrOne('c:val', successors=_tag_seq[14:])
+    xVal = ZeroOrOne('c:xVal', successors=_tag_seq[15:])
     yVal = ZeroOrOne('c:yVal', successors=_tag_seq[16:])
     smooth = ZeroOrOne('c:smooth', successors=_tag_seq[18:])
     del _tag_seq
