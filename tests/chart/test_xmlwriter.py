@@ -41,12 +41,21 @@ class DescribeChartXmlWriter(object):
 
     @pytest.fixture(params=[
         ('BAR_CLUSTERED',                _BarChartXmlWriter),
+        ('BAR_STACKED',                  _BarChartXmlWriter),
         ('BAR_STACKED_100',              _BarChartXmlWriter),
         ('BUBBLE',                       _BubbleChartXmlWriter),
         ('BUBBLE_THREE_D_EFFECT',        _BubbleChartXmlWriter),
         ('COLUMN_CLUSTERED',             _BarChartXmlWriter),
+        ('COLUMN_STACKED',               _BarChartXmlWriter),
+        ('COLUMN_STACKED_100',           _BarChartXmlWriter),
         ('LINE',                         _LineChartXmlWriter),
+        ('LINE_MARKERS',                 _LineChartXmlWriter),
+        ('LINE_MARKERS_STACKED',         _LineChartXmlWriter),
+        ('LINE_MARKERS_STACKED_100',     _LineChartXmlWriter),
+        ('LINE_STACKED',                 _LineChartXmlWriter),
+        ('LINE_STACKED_100',             _LineChartXmlWriter),
         ('PIE',                          _PieChartXmlWriter),
+        ('PIE_EXPLODED',                 _PieChartXmlWriter),
         ('RADAR',                        _RadarChartXmlWriter),
         ('RADAR_FILLED',                 _RadarChartXmlWriter),
         ('RADAR_MARKERS',                _RadarChartXmlWriter),
@@ -147,9 +156,12 @@ class Describe_BarChartXmlWriter(object):
         return xml_writer, expected_xml
 
     @pytest.fixture(params=[
-        ('BAR_CLUSTERED',    2, 2, '2x2-bar-clustered'),
-        ('BAR_STACKED_100',  2, 2, '2x2-bar-stacked-100'),
-        ('COLUMN_CLUSTERED', 2, 2, '2x2-column-clustered'),
+        ('BAR_CLUSTERED',      2, 2, '2x2-bar-clustered'),
+        ('BAR_STACKED',        2, 2, '2x2-bar-stacked'),
+        ('BAR_STACKED_100',    2, 2, '2x2-bar-stacked-100'),
+        ('COLUMN_CLUSTERED',   2, 2, '2x2-column-clustered'),
+        ('COLUMN_STACKED',     2, 2, '2x2-column-stacked'),
+        ('COLUMN_STACKED_100', 2, 2, '2x2-column-stacked-100'),
     ])
     def xml_fixture(self, request):
         enum_member, cat_count, ser_count, snippet_name = request.param
@@ -189,13 +201,20 @@ class Describe_LineChartXmlWriter(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture
+    @pytest.fixture(params=[
+        ('LINE',                     2, 2, '2x2-line'),
+        ('LINE_MARKERS',             2, 2, '2x2-line-markers'),
+        ('LINE_MARKERS_STACKED',     2, 2, '2x2-line-markers-stacked'),
+        ('LINE_MARKERS_STACKED_100', 2, 2, '2x2-line-markers-stacked-100'),
+        ('LINE_STACKED',             2, 2, '2x2-line-stacked'),
+        ('LINE_STACKED_100',         2, 2, '2x2-line-stacked-100'),
+    ])
     def xml_fixture(self, request):
-        series_data_seq = make_category_chart_data(cat_count=2, ser_count=2)
-        xml_writer = _LineChartXmlWriter(
-            XL_CHART_TYPE.LINE, series_data_seq
-        )
-        expected_xml = snippet_text('2x2-line')
+        enum_member, cat_count, ser_count, snippet_name = request.param
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        chart_data = make_category_chart_data(cat_count, ser_count)
+        xml_writer = _LineChartXmlWriter(chart_type, chart_data)
+        expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml
 
 
@@ -207,11 +226,16 @@ class Describe_PieChartXmlWriter(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture
+    @pytest.fixture(params=[
+        ('PIE',          3, 1, '3x1-pie'),
+        ('PIE_EXPLODED', 3, 1, '3x1-pie-exploded'),
+    ])
     def xml_fixture(self, request):
-        series_data_seq = make_category_chart_data(cat_count=3, ser_count=1)
-        xml_writer = _PieChartXmlWriter(XL_CHART_TYPE.PIE, series_data_seq)
-        expected_xml = snippet_text('3x1-pie')
+        enum_member, cat_count, ser_count, snippet_name = request.param
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        chart_data = make_category_chart_data(cat_count, ser_count)
+        xml_writer = _PieChartXmlWriter(chart_type, chart_data)
+        expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml
 
 

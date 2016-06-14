@@ -14,21 +14,30 @@ from ..oxml import parse_xml
 from ..oxml.ns import nsdecls
 
 
-def ChartXmlWriter(chart_type, series_seq):
+def ChartXmlWriter(chart_type, chart_data):
     """
     Factory function returning appropriate XML writer object for
-    *chart_type*, loaded with *series_seq*.
+    *chart_type*, loaded with *chart_type* and *chart_data*.
     """
     XL_CT = XL_CHART_TYPE
     try:
         BuilderCls = {
             XL_CT.BAR_CLUSTERED:                _BarChartXmlWriter,
+            XL_CT.BAR_STACKED:                  _BarChartXmlWriter,
             XL_CT.BAR_STACKED_100:              _BarChartXmlWriter,
             XL_CT.BUBBLE:                       _BubbleChartXmlWriter,
             XL_CT.BUBBLE_THREE_D_EFFECT:        _BubbleChartXmlWriter,
             XL_CT.COLUMN_CLUSTERED:             _BarChartXmlWriter,
+            XL_CT.COLUMN_STACKED:               _BarChartXmlWriter,
+            XL_CT.COLUMN_STACKED_100:           _BarChartXmlWriter,
             XL_CT.LINE:                         _LineChartXmlWriter,
+            XL_CT.LINE_MARKERS:                 _LineChartXmlWriter,
+            XL_CT.LINE_MARKERS_STACKED:         _LineChartXmlWriter,
+            XL_CT.LINE_MARKERS_STACKED_100:     _LineChartXmlWriter,
+            XL_CT.LINE_STACKED:                 _LineChartXmlWriter,
+            XL_CT.LINE_STACKED_100:             _LineChartXmlWriter,
             XL_CT.PIE:                          _PieChartXmlWriter,
+            XL_CT.PIE_EXPLODED:                 _PieChartXmlWriter,
             XL_CT.RADAR:                        _RadarChartXmlWriter,
             XL_CT.RADAR_FILLED:                 _RadarChartXmlWriter,
             XL_CT.RADAR_MARKERS:                _RadarChartXmlWriter,
@@ -42,7 +51,7 @@ def ChartXmlWriter(chart_type, series_seq):
         raise NotImplementedError(
             'XML writer for chart type %s not yet implemented' % chart_type
         )
-    return BuilderCls(chart_type, series_seq)
+    return BuilderCls(chart_type, chart_data)
 
 
 def SeriesXmlRewriterFactory(chart_type, chart_data):
@@ -335,19 +344,23 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             '  </c:txPr>\n'
             '</c:chartSpace>\n'
         ).format(**{
-            'barDir_xml':        self._barDir_xml,
-            'grouping_xml':      self._grouping_xml,
-            'ser_xml':           self._ser_xml,
-            'overlap_xml':       self._overlap_xml,
-            'cat_ax_pos':        self._cat_ax_pos,
-            'val_ax_pos':        self._val_ax_pos,
+            'barDir_xml':   self._barDir_xml,
+            'grouping_xml': self._grouping_xml,
+            'ser_xml':      self._ser_xml,
+            'overlap_xml':  self._overlap_xml,
+            'cat_ax_pos':   self._cat_ax_pos,
+            'val_ax_pos':   self._val_ax_pos,
         })
 
     @property
     def _barDir_xml(self):
         XL = XL_CHART_TYPE
-        bar_types = (XL.BAR_CLUSTERED, XL.BAR_STACKED_100)
-        col_types = (XL.COLUMN_CLUSTERED,)
+        bar_types = (
+            XL.BAR_CLUSTERED, XL.BAR_STACKED, XL.BAR_STACKED_100
+        )
+        col_types = (
+            XL.COLUMN_CLUSTERED, XL.COLUMN_STACKED, XL.COLUMN_STACKED_100
+        )
         if self._chart_type in bar_types:
             return '        <c:barDir val="bar"/>\n'
         elif self._chart_type in col_types:
@@ -359,18 +372,24 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
     @property
     def _cat_ax_pos(self):
         return {
-            XL_CHART_TYPE.BAR_CLUSTERED:    'l',
-            XL_CHART_TYPE.BAR_STACKED_100:  'l',
-            XL_CHART_TYPE.COLUMN_CLUSTERED: 'b',
+            XL_CHART_TYPE.BAR_CLUSTERED:      'l',
+            XL_CHART_TYPE.BAR_STACKED:        'l',
+            XL_CHART_TYPE.BAR_STACKED_100:    'l',
+            XL_CHART_TYPE.COLUMN_CLUSTERED:   'b',
+            XL_CHART_TYPE.COLUMN_STACKED:     'b',
+            XL_CHART_TYPE.COLUMN_STACKED_100: 'b',
         }[self._chart_type]
 
     @property
     def _grouping_xml(self):
         XL = XL_CHART_TYPE
         clustered_types = (XL.BAR_CLUSTERED, XL.COLUMN_CLUSTERED)
-        percentStacked_types = (XL.BAR_STACKED_100,)
+        stacked_types = (XL.BAR_STACKED, XL.COLUMN_STACKED)
+        percentStacked_types = (XL.BAR_STACKED_100, XL.COLUMN_STACKED_100)
         if self._chart_type in clustered_types:
             return '        <c:grouping val="clustered"/>\n'
+        elif self._chart_type in stacked_types:
+            return '        <c:grouping val="stacked"/>\n'
         elif self._chart_type in percentStacked_types:
             return '        <c:grouping val="percentStacked"/>\n'
         raise NotImplementedError(
@@ -380,7 +399,10 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
     @property
     def _overlap_xml(self):
         XL = XL_CHART_TYPE
-        percentStacked_types = (XL.BAR_STACKED_100,)
+        percentStacked_types = (
+            XL.BAR_STACKED, XL.BAR_STACKED_100, XL.COLUMN_STACKED,
+            XL.COLUMN_STACKED_100,
+        )
         if self._chart_type in percentStacked_types:
             return '        <c:overlap val="100"/>\n'
         return ''
@@ -410,9 +432,12 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
     @property
     def _val_ax_pos(self):
         return {
-            XL_CHART_TYPE.BAR_CLUSTERED:    'b',
-            XL_CHART_TYPE.BAR_STACKED_100:  'b',
-            XL_CHART_TYPE.COLUMN_CLUSTERED: 'l',
+            XL_CHART_TYPE.BAR_CLUSTERED:      'b',
+            XL_CHART_TYPE.BAR_STACKED:        'b',
+            XL_CHART_TYPE.BAR_STACKED_100:    'b',
+            XL_CHART_TYPE.COLUMN_CLUSTERED:   'l',
+            XL_CHART_TYPE.COLUMN_STACKED:     'l',
+            XL_CHART_TYPE.COLUMN_STACKED_100: 'l',
         }[self._chart_type]
 
 
@@ -477,8 +502,8 @@ class _LineChartXmlWriter(_BaseChartXmlWriter):
             '  </c:txPr>\n'
             '</c:chartSpace>\n'
         ).format(**{
-            'grouping_xml':      self._grouping_xml,
-            'ser_xml':           self._ser_xml,
+            'grouping_xml': self._grouping_xml,
+            'ser_xml':      self._ser_xml,
         })
 
     @property
