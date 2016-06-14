@@ -4,6 +4,7 @@ Feature: Add a chart
   I need a way to add a chart to a slide, specifying its type and data
 
 
+  @wip
   Scenario Outline: Add a category chart
     Given a blank slide
      When I add a <type> chart with <cats> categories and <sers> series
@@ -14,13 +15,24 @@ Feature: Add a chart
       And the chart has an Excel data worksheet
 
     Examples: Chart specs
-      | type             | chart-type       | cats | sers |
-      | Clustered Bar    | BAR_CLUSTERED    |   3  |   3  |
-      | 100% Stacked Bar | BAR_STACKED_100  |   3  |   3  |
-      | Clustered Column | COLUMN_CLUSTERED |   3  |   3  |
-      | Line             | LINE             |   3  |   2  |
-      | Pie              | PIE              |   5  |   1  |
-      | Radar            | RADAR            |   5  |   2  |
+      | type                      | chart-type               | cats | sers |
+      | Clustered Bar             | BAR_CLUSTERED            |   3  |   3  |
+      | Stacked Bar               | BAR_STACKED              |   3  |   3  |
+      | 100% Stacked Bar          | BAR_STACKED_100          |   3  |   3  |
+      | Clustered Column          | COLUMN_CLUSTERED         |   3  |   3  |
+      | Stacked Column            | COLUMN_STACKED           |   3  |   3  |
+      | 100% Stacked Column       | COLUMN_STACKED_100       |   3  |   3  |
+      | Line                      | LINE                     |   3  |   2  |
+      | Line with Markers         | LINE_MARKERS             |   3  |   2  |
+      | Line Markers Stacked      | LINE_MARKERS_STACKED     |   3  |   2  |
+      | 100% Line Markers Stacked | LINE_MARKERS_STACKED_100 |   3  |   2  |
+      | Line Stacked              | LINE_STACKED             |   3  |   2  |
+      | 100% Line Stacked         | LINE_STACKED_100         |   3  |   2  |
+      | Pie                       | PIE                      |   5  |   1  |
+      | Exploded Pie              | PIE_EXPLODED             |   5  |   1  |
+      | Radar                     | RADAR                    |   5  |   2  |
+      | Filled Radar              | RADAR_FILLED             |   5  |   2  |
+      | Radar with markers        | RADAR_MARKERS            |   5  |   2  |
 
 
   Scenario: Add a multi-level category chart

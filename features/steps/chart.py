@@ -400,12 +400,23 @@ def when_I_add_a_clustered_bar_chart_with_multi_level_categories(context):
 @when('I add a {kind} chart with {cats} categories and {sers} series')
 def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
     chart_type = {
-        'Clustered Bar':    XL_CHART_TYPE.BAR_CLUSTERED,
-        '100% Stacked Bar': XL_CHART_TYPE.BAR_STACKED_100,
-        'Clustered Column': XL_CHART_TYPE.COLUMN_CLUSTERED,
-        'Line':             XL_CHART_TYPE.LINE,
-        'Pie':              XL_CHART_TYPE.PIE,
-        'Radar':            XL_CHART_TYPE.RADAR,
+        'Clustered Bar':             XL_CHART_TYPE.BAR_CLUSTERED,
+        'Stacked Bar':               XL_CHART_TYPE.BAR_STACKED,
+        '100% Stacked Bar':          XL_CHART_TYPE.BAR_STACKED_100,
+        'Clustered Column':          XL_CHART_TYPE.COLUMN_CLUSTERED,
+        'Stacked Column':            XL_CHART_TYPE.COLUMN_STACKED,
+        '100% Stacked Column':       XL_CHART_TYPE.COLUMN_STACKED_100,
+        'Line':                      XL_CHART_TYPE.LINE,
+        'Line with Markers':         XL_CHART_TYPE.LINE_MARKERS,
+        'Line Markers Stacked':      XL_CHART_TYPE.LINE_MARKERS_STACKED,
+        '100% Line Markers Stacked': XL_CHART_TYPE.LINE_MARKERS_STACKED_100,
+        'Line Stacked':              XL_CHART_TYPE.LINE_STACKED,
+        '100% Line Stacked':         XL_CHART_TYPE.LINE_STACKED_100,
+        'Pie':                       XL_CHART_TYPE.PIE,
+        'Exploded Pie':              XL_CHART_TYPE.PIE_EXPLODED,
+        'Radar':                     XL_CHART_TYPE.RADAR,
+        'Filled Radar':              XL_CHART_TYPE.RADAR_FILLED,
+        'Radar with markers':        XL_CHART_TYPE.RADAR_MARKERS,
     }[kind]
     category_count, series_count = int(cats), int(sers)
     category_source = ('Foo', 'Bar', 'Baz', 'Boo', 'Far', 'Faz')
