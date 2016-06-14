@@ -169,6 +169,7 @@ def given_a_chart_of_size_and_type_spec(context, spec):
         '2x2 Clustered Column': 2,
         '4x3 Line':             3,
         '3x1 Pie':              4,
+        '3x2 XY':               5,
     }[spec]
     prs = Presentation(test_pptx('cht-replace-data'))
     chart = prs.slides[slide_idx].shapes[0].chart
@@ -616,6 +617,20 @@ def when_I_replace_its_data_with_categories_and_series(context, cats, sers):
         series_title = 'New Series %d' % (idx+1)
         series_values = tuple(islice(series_value_source, category_count))
         chart_data.add_series(series_title, series_values)
+
+    context.chart.replace_data(chart_data)
+
+
+@when('I replace its data with 3 series of 3 points each')
+def when_I_replace_its_data_with_3_series_of_three_points_each(context):
+    chart_data = XyChartData()
+    x = y = 0
+    for idx in range(3):
+        series_title = 'New Series %d' % (idx+1)
+        series = chart_data.add_series(series_title)
+        for jdx in range(3):
+            x, y = idx * 3 + jdx, idx * 2 + jdx
+            series.add_data_point(x, y)
 
     context.chart.replace_data(chart_data)
 
