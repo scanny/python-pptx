@@ -29,3 +29,13 @@ Feature: Replace chart data
       And len(series.values) is 3 for each series
       And each series has a new name
       And the chart has new chart data
+
+
+  @wip
+  Scenario: Replace Bubble chart data
+    Given a chart of size and type 3x2 Bubble
+     When I replace its data with 3 series of 3 bubble points each
+     Then len(chart.series) is 3
+      And len(series.values) is 3 for each series
+      And each series has a new name
+      And the chart has new chart data

@@ -170,6 +170,7 @@ def given_a_chart_of_size_and_type_spec(context, spec):
         '4x3 Line':             3,
         '3x1 Pie':              4,
         '3x2 XY':               5,
+        '3x2 Bubble':           6,
     }[spec]
     prs = Presentation(test_pptx('cht-replace-data'))
     chart = prs.slides[slide_idx].shapes[0].chart
@@ -617,6 +618,19 @@ def when_I_replace_its_data_with_categories_and_series(context, cats, sers):
         series_title = 'New Series %d' % (idx+1)
         series_values = tuple(islice(series_value_source, category_count))
         chart_data.add_series(series_title, series_values)
+
+    context.chart.replace_data(chart_data)
+
+
+@when('I replace its data with 3 series of 3 bubble points each')
+def when_I_replace_its_data_with_3_series_of_three_bubble_pts_each(context):
+    chart_data = BubbleChartData()
+    for idx in range(3):
+        series_title = 'New Series %d' % (idx+1)
+        series = chart_data.add_series(series_title)
+        for jdx in range(3):
+            x, y, size = idx * 3 + jdx, idx * 2 + jdx, idx + jdx
+            series.add_data_point(x, y, size)
 
     context.chart.replace_data(chart_data)
 
