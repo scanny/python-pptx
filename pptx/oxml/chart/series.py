@@ -93,6 +93,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     xVal = ZeroOrOne('c:xVal', successors=_tag_seq[15:])
     yVal = ZeroOrOne('c:yVal', successors=_tag_seq[16:])
     smooth = ZeroOrOne('c:smooth', successors=_tag_seq[18:])
+    bubbleSize = ZeroOrOne('c:bubbleSize', successors=_tag_seq[19:])
     del _tag_seq
 
     @property

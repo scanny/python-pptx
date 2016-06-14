@@ -390,6 +390,29 @@ class Describe_BaseSeriesXmlRewriter(object):
         )
 
 
+class Describe_BubbleSeriesXmlRewriter(object):
+
+    def it_can_rewrite_a_ser_element(self, rewrite_fixture):
+        rewriter, ser, series_data, expected_xml = rewrite_fixture
+        rewriter._rewrite_ser_data(ser, series_data)
+        assert ser.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def rewrite_fixture(self):
+        ser_xml, expected_xml = snippet_seq('rewrite-ser')[4:6]
+
+        chart_data = BubbleChartData()
+        series_data = chart_data.add_series('Series 1')
+        series_data.add_data_point(1, 2, 10)
+        series_data.add_data_point(3, 4, 20)
+
+        rewriter = _BubbleSeriesXmlRewriter(chart_data)
+        ser = parse_xml(ser_xml)
+        return rewriter, ser, series_data, expected_xml
+
+
 class Describe_CategorySeriesXmlRewriter(object):
 
     def it_can_rewrite_a_ser_element(self, rewrite_fixture):

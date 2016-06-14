@@ -31,7 +31,6 @@ Feature: Replace chart data
       And the chart has new chart data
 
 
-  @wip
   Scenario: Replace Bubble chart data
     Given a chart of size and type 3x2 Bubble
      When I replace its data with 3 series of 3 bubble points each

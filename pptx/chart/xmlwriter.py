@@ -1276,20 +1276,43 @@ class _BubbleSeriesXmlWriter(_XySeriesXmlWriter):
     Generates XML snippets particular to a bubble chart series.
     """
     @property
+    def bubbleSize(self):
+        """
+        Return the ``<c:bubbleSize>`` element for this series as an oxml
+        element. This element contains the bubble size values for this
+        series.
+        """
+        xml = self._bubbleSize_tmpl.format(**{
+            'nsdecls':    ' %s' % nsdecls('c'),
+            'numRef_xml': self.numRef_xml(self._series.bubble_sizes_ref,
+                                          self._series.bubble_sizes)
+        })
+        return parse_xml(xml)
+
+    @property
     def bubbleSize_xml(self):
         """
         Return the ``<c:bubbleSize>`` element for this series as unicode
         text. This element contains the bubble size values for all the
         data points in the chart.
         """
+        return self._bubbleSize_tmpl.format(**{
+            'nsdecls':    '',
+            'numRef_xml': self.numRef_xml(self._series.bubble_sizes_ref,
+                                          self._series.bubble_sizes)
+        })
+
+    @property
+    def _bubbleSize_tmpl(self):
+        """
+        The template for the ``<c:bubbleSize>`` element for this series,
+        containing the bubble size values and their spreadsheet range
+        reference.
+        """
         return (
-            '          <c:bubbleSize>\n'
+            '          <c:bubbleSize{nsdecls}>\n'
             '{numRef_xml}'
             '          </c:bubbleSize>\n'
-        ).format(
-            numRef_xml=self.numRef_xml(
-                self._series.bubble_sizes_ref, self._series.bubble_sizes
-            )
         )
 
 
@@ -1297,6 +1320,22 @@ class _BubbleSeriesXmlRewriter(_BaseSeriesXmlRewriter):
     """
     A series rewriter suitable for bubble charts.
     """
+    def _rewrite_ser_data(self, ser, series_data):
+        """
+        Rewrite the ``<c:tx>``, ``<c:cat>`` and ``<c:val>`` child elements
+        of *ser* based on the values in *series_data*.
+        """
+        ser._remove_tx()
+        ser._remove_xVal()
+        ser._remove_yVal()
+        ser._remove_bubbleSize()
+
+        xml_writer = _BubbleSeriesXmlWriter(series_data)
+
+        ser._insert_tx(xml_writer.tx)
+        ser._insert_xVal(xml_writer.xVal)
+        ser._insert_yVal(xml_writer.yVal)
+        ser._insert_bubbleSize(xml_writer.bubbleSize)
 
 
 class _CategorySeriesXmlRewriter(_BaseSeriesXmlRewriter):
