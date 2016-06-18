@@ -422,6 +422,11 @@ class DescribeFont(object):
         font, expected_value = language_id_get_fixture
         assert font.language_id == expected_value
 
+    def it_can_change_its_language_id_setting(self, language_id_set_fixture):
+        font, new_value, expected_xml = language_id_set_fixture
+        font.language_id = new_value
+        assert font._element.xml == expected_xml
+
     def it_knows_its_underline_setting(self, underline_get_fixture):
         font, expected_value = underline_get_fixture
         assert font.underline is expected_value, 'got %s' % font.underline
@@ -509,6 +514,20 @@ class DescribeFont(object):
         rPr_cxml, expected_value = request.param
         font = Font(element(rPr_cxml))
         return font, expected_value
+
+    @pytest.fixture(params=[
+        ('a:rPr',             MSO_LANGUAGE_ID.ZULU, 'a:rPr{lang=zu-ZA}'),
+        ('a:rPr{lang=zu-ZA}', MSO_LANGUAGE_ID.URDU, 'a:rPr{lang=ur-PK}'),
+        ('a:rPr{lang=ur-PK}', MSO_LANGUAGE_ID.NONE, 'a:rPr'),
+        ('a:rPr{lang=ur-PK}', None,                 'a:rPr'),
+        ('a:rPr',             MSO_LANGUAGE_ID.NONE, 'a:rPr'),
+        ('a:rPr',             None,                 'a:rPr'),
+    ])
+    def language_id_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('a:rPr',                          None),

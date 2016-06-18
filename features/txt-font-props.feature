@@ -72,7 +72,6 @@ Feature: Change appearance of font used to render text
       | MSO_LANGUAGE_ID.POLISH | POLISH |
 
 
-  @wip
   Scenario Outline: Set Font.language_id
     Given a font having language id <initial-state>
      When I assign <new-value> to font.language_id
