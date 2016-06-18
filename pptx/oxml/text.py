@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 from . import parse_xml
 from ..compat import to_unicode
+from ..enum.lang import MSO_LANGUAGE_ID
 from ..enum.text import (
     MSO_AUTO_SIZE, MSO_TEXT_UNDERLINE_TYPE, MSO_VERTICAL_ANCHOR,
     PP_PARAGRAPH_ALIGNMENT
@@ -210,6 +211,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
         'a:hlinkMouseOver', 'a:rtl', 'a:extLst'
     ))
 
+    lang = OptionalAttribute('lang', MSO_LANGUAGE_ID)
     sz = OptionalAttribute('sz', ST_TextFontSize)
     b = OptionalAttribute('b', XsdBoolean)
     i = OptionalAttribute('i', XsdBoolean)

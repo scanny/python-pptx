@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 from ..compat import to_unicode
 from ..dml.fill import FillFormat
 from ..enum.dml import MSO_FILL
+from ..enum.lang import MSO_LANGUAGE_ID
 from ..enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE
 from .fonts import FontFiles
 from .layout import TextFitter
@@ -323,7 +324,10 @@ class Font(object):
         removes any language setting, the same behavior as assigning
         `MSO_LANGUAGE_ID.NONE`.
         """
-        raise NotImplementedError
+        lang = self._rPr.lang
+        if lang is None:
+            return MSO_LANGUAGE_ID.NONE
+        return self._rPr.lang
 
     @property
     def name(self):

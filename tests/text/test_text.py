@@ -11,6 +11,7 @@ import pytest
 from pptx.compat import is_unicode
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
+from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
@@ -417,6 +418,10 @@ class DescribeFont(object):
         font.italic = new_value
         assert font._element.xml == expected_xml
 
+    def it_knows_its_language_id(self, language_id_get_fixture):
+        font, expected_value = language_id_get_fixture
+        assert font.language_id == expected_value
+
     def it_knows_its_underline_setting(self, underline_get_fixture):
         font, expected_value = underline_get_fixture
         assert font.underline is expected_value, 'got %s' % font.underline
@@ -493,6 +498,17 @@ class DescribeFont(object):
         font = Font(element(rPr_cxml))
         expected_xml = xml(expected_rPr_cxml)
         return font, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('a:rPr',             MSO_LANGUAGE_ID.NONE),
+        ('a:rPr{lang=pl-PL}', MSO_LANGUAGE_ID.POLISH),
+        ('a:rPr{lang=de-AT}', MSO_LANGUAGE_ID.GERMAN_AUSTRIA),
+        ('a:rPr{lang=fr-FR}', MSO_LANGUAGE_ID.FRENCH),
+    ])
+    def language_id_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
 
     @pytest.fixture(params=[
         ('a:rPr',                          None),

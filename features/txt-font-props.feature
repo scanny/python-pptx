@@ -62,7 +62,6 @@ Feature: Change appearance of font used to render text
       | to inherit    | None      |
 
 
-  @wip
   Scenario Outline: Get Font.language_id
     Given a font having language id <lang-id-state>
      Then font.language_id is MSO_LANGUAGE_ID.<member>
