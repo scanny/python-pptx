@@ -4,7 +4,7 @@ Feature: Change appearance of font used to render text
   I need a set of properties on the font used to render text
 
 
-  Scenario Outline: Get bold setting
+  Scenario Outline: Get Font.bold
     Given a font with bold set <bold-state>
      Then font.bold is <expected-value>
 
@@ -15,7 +15,7 @@ Feature: Change appearance of font used to render text
       | to inherit | None           |
 
 
-  Scenario Outline: Change font.bold setting
+  Scenario Outline: Set Font.bold
     Given a font with bold set <initial-state>
      When I assign <new-value> to font.bold
      Then font.bold is <new-value>
@@ -33,7 +33,7 @@ Feature: Change appearance of font used to render text
       | to inherit    | None      |
 
 
-  Scenario Outline: Get italic setting
+  Scenario Outline: Get Font.italic
     Given a font with italic set <italic-state>
      Then font.italic is <expected-value>
 
@@ -44,7 +44,7 @@ Feature: Change appearance of font used to render text
       | to inherit   | None           |
 
 
-  Scenario Outline: Change font.italic setting
+  Scenario Outline: Set Font.italic
     Given a font with italic set <initial-state>
      When I assign <new-value> to font.italic
      Then font.italic is <new-value>
@@ -62,7 +62,32 @@ Feature: Change appearance of font used to render text
       | to inherit    | None      |
 
 
-  Scenario Outline: Get underline setting
+  @wip
+  Scenario Outline: Get Font.language_id
+    Given a font having language id <lang-id-state>
+     Then font.language_id is MSO_LANGUAGE_ID.<member>
+
+    Examples: font.language_id states
+      | lang-id-state          | member |
+      | of no explicit setting | NONE   |
+      | MSO_LANGUAGE_ID.POLISH | POLISH |
+
+
+  @wip
+  Scenario Outline: Set Font.language_id
+    Given a font having language id <initial-state>
+     When I assign <new-value> to font.language_id
+     Then font.language_id is MSO_LANGUAGE_ID.<member>
+
+    Examples: font.language_id assignment state changes
+      | initial-state          | new-value              | member |
+      | of no explicit setting | MSO_LANGUAGE_ID.FRENCH | FRENCH |
+      | MSO_LANGUAGE_ID.FRENCH | MSO_LANGUAGE_ID.POLISH | POLISH |
+      | MSO_LANGUAGE_ID.POLISH | MSO_LANGUAGE_ID.NONE   | NONE   |
+      | MSO_LANGUAGE_ID.FRENCH | None                   | NONE   |
+
+
+  Scenario Outline: Get Font.underline
     Given a font with underline set <underline-state>
      Then font.underline is <expected-value>
 
@@ -75,7 +100,7 @@ Feature: Change appearance of font used to render text
       | to WAVY_LINE    | WAVY_LINE      |
 
 
-  Scenario Outline: Change font.underline setting
+  Scenario Outline: Set Font.underline
     Given a font with underline set <initial-state>
      When I assign <new-value> to font.underline
      Then font.underline is <expected-value>
@@ -92,17 +117,17 @@ Feature: Change appearance of font used to render text
       | to WAVY_LINE   | DOUBLE_LINE | DOUBLE_LINE    |
 
 
-  Scenario Outline: Get font size
-    Given a font having <applied-size>
+  Scenario Outline: Get Font.size
+    Given a font having size of <value>
      Then font.size is <reported-size>
 
     Examples: Font sizes
-      | applied-size                    | reported-size |
-      | a directly applied size of 42pt | 42.0 points   |
-      | no directly applied size        | None          |
+      | value             | reported-size |
+      | no explicit value | None          |
+      | 42pt              | 42.0 points   |
 
 
-  Scenario: Change font typeface
+  Scenario: Set Font.name
     Given a font
      When I assign a typeface name to the font
      Then the font name matches the typeface I set

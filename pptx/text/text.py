@@ -316,6 +316,16 @@ class Font(object):
         self._rPr.i = value
 
     @property
+    def language_id(self):
+        """
+        Get or set the language id of this |Font| instance. The language id
+        is a member of the :ref:`MsoLanguageId` enumeration. Assigning |None|
+        removes any language setting, the same behavior as assigning
+        `MSO_LANGUAGE_ID.NONE`.
+        """
+        raise NotImplementedError
+
+    @property
     def name(self):
         """
         Get or set the typeface name for this |Font| instance, causing the

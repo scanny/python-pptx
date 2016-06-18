@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from behave import given, then, when
 
 from pptx import Presentation
+from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import MSO_UNDERLINE
 
 from helpers import test_pptx
@@ -25,12 +26,25 @@ def given_a_font(context):
     context.font = run.font
 
 
-@given('a font having {applied_size}')
-def given_a_font_having_applied_size(context, applied_size):
+@given('a font having language id {value}')
+def given_a_font_having_language_id_value(context, value):
     shape_idx = {
-        'no directly applied size':        0,
-        'a directly applied size of 42pt': 1,
-    }[applied_size]
+        'of no explicit setting': 0,
+        'MSO_LANGUAGE_ID.FRENCH': 1,
+        'MSO_LANGUAGE_ID.POLISH': 2,
+    }[value]
+    prs = Presentation(test_pptx('txt-font-props'))
+    textbox = prs.slides[4].shapes[shape_idx]
+    run = textbox.text_frame.paragraphs[0].runs[0]
+    context.font = run.font
+
+
+@given('a font having size of {value}')
+def given_a_font_having_size_of_value(context, value):
+    shape_idx = {
+        'no explicit value': 0,
+        '42pt':              1,
+    }[value]
     prs = Presentation(test_pptx('txt-font-props'))
     slide = prs.slides[1]
     textbox = slide.shapes[shape_idx]
@@ -61,6 +75,7 @@ def given_run_with_underline_set_to_state(context, state):
     ].index(state)
     prs = Presentation(test_pptx('txt-font-props'))
     runs = prs.slides[3].shapes[0].text_frame.paragraphs[0].runs
+    print(runs[run_idx]._r.xml)
     context.font = runs[run_idx].font
 
 
@@ -76,6 +91,14 @@ def when_I_assign_value_to_font_bold(context, value):
 def when_I_assign_value_to_font_italic(context, value):
     new_value = {'True': True, 'False': False, 'None': None}[value]
     context.font.italic = new_value
+
+
+@when('I assign {value} to font.language_id')
+def when_I_assign_value_to_font_language_id(context, value):
+    new_value = (
+        None if value == 'None' else getattr(MSO_LANGUAGE_ID, value[16:])
+    )
+    context.font.language_id = new_value
 
 
 @when('I assign {value} to font.underline')
@@ -107,6 +130,13 @@ def then_font_italic_is_value(context, value):
     assert font.italic is expected_value
 
 
+@then('font.language_id is MSO_LANGUAGE_ID.{member}')
+def then_font_language_id_is_MSO_LANGUAGE_ID_(context, member):
+    expected_value = getattr(MSO_LANGUAGE_ID, member)
+    font = context.font
+    assert font.language_id is expected_value
+
+
 @then('font.size is {value_str}')
 def then_font_size_is_value(context, value_str):
     expected_value = {'42.0 points': 42.0, 'None': None}[value_str]
@@ -128,4 +158,5 @@ def then_font_underline_is_value(context, value):
         'WAVY_LINE':   MSO_UNDERLINE.WAVY_LINE,
     }[value]
     font = context.font
-    assert font.underline is expected_value
+    print(font._rPr.xml)
+    assert font.underline is expected_value, 'got %s' % font.underline
