@@ -141,6 +141,14 @@ def given_a_bubble_plot_having_bubble_scale_of_percent(context, percent):
     context.bubble_plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
 
 
+@given('a BubbleChartData object with number format {strval}')
+def given_a_BubbleChartData_object_with_number_format(context, strval):
+    params = {}
+    if strval != 'None':
+        params['number_format'] = int(strval)
+    context.chart_data = BubbleChartData(**params)
+
+
 @given('a Category object')
 def given_a_Category_object(context):
     context.category = Category(None, None)
@@ -392,6 +400,15 @@ def given_tick_labels_having_an_offset_of_setting(context, setting):
 
 
 # when ====================================================
+
+@when('I add a bubble data point with number format {strval}')
+def when_I_add_a_bubble_data_point_with_number_format(context, strval):
+    series_data = context.series_data
+    params = {'x': 1, 'y': 2, 'size': 10}
+    if strval != 'None':
+        params['number_format'] = int(strval)
+    context.data_point = series_data.add_data_point(**params)
+
 
 @when('I add a Clustered bar chart with multi-level categories')
 def when_I_add_a_clustered_bar_chart_with_multi_level_categories(context):
