@@ -133,10 +133,11 @@ class _BaseSeriesData(Sequence):
     worksheet. It operates as a sequence of data points, as well as providing
     access to series-level attributes like the series label.
     """
-    def __init__(self, chart_data, name):
+    def __init__(self, chart_data, name, number_format):
         super(_BaseSeriesData, self).__init__()
         self._chart_data = chart_data
         self._name = name
+        self._number_format = number_format
         self._data_points = []
 
     def __getitem__(self, index):
@@ -180,6 +181,19 @@ class _BaseSeriesData(Sequence):
         this series.
         """
         return self._chart_data.series_name_ref(self)
+
+    @property
+    def number_format(self):
+        """
+        The formatting template string that determines how a number in this
+        series is formatted, both in the chart and in the Excel spreadsheet;
+        for example '#,##0.0'. If not specified for this series, it is
+        inherited from the parent chart data object.
+        """
+        number_format = self._number_format
+        if number_format is None:
+            return self._chart_data.number_format
+        return number_format
 
     @property
     def x_values(self):
@@ -240,7 +254,7 @@ class CategoryChartData(_BaseChartData):
         integer values and their meaning are documented on the
         :ref:`ExcelNumFormat` page.
         """
-        series_data = CategorySeriesData(name, number_format, self)
+        series_data = CategorySeriesData(self, name, number_format)
         self.append(series_data)
         for value in values:
             series_data.add_data_point(value)
@@ -473,10 +487,6 @@ class CategorySeriesData(_BaseSeriesData):
     number format to be applied to each data point not having a specified
     number format.
     """
-    def __init__(self, name, number_format, chart_data):
-        super(CategorySeriesData, self).__init__(chart_data, name)
-        self._number_format = number_format
-
     def add_data_point(self, value, number_format=None):
         """
         Return a CategoryDataPoint object newly created with value *value*,
@@ -525,12 +535,13 @@ class XyChartData(_BaseChartData):
     chart. Unlike ChartData, it has no category sequence. Rather, each data
     point of each series specifies both an X and a Y value.
     """
-    def add_series(self, name):
+    def add_series(self, name, number_format=None):
         """
         Return an |XySeriesData| object newly created and added at the end of
-        this sequence, and having series named *name*.
+        this sequence, identified by *name* and values formatted with
+        *number_format*.
         """
-        series_data = XySeriesData(self, name)
+        series_data = XySeriesData(self, name, number_format)
         self.append(series_data)
         return series_data
 
@@ -549,12 +560,13 @@ class BubbleChartData(XyChartData):
     A bubble chart is essentially an XY chart where the markers are scaled to
     provide a third quantitative dimension to the exhibit.
     """
-    def add_series(self, name):
+    def add_series(self, name, number_format=None):
         """
         Return a |BubbleSeriesData| object newly created and added at the end
-        of this sequence, and having series named *name*.
+        of this sequence, and having series named *name* and values formatted
+        with *number_format*.
         """
-        series_data = BubbleSeriesData(self, name)
+        series_data = BubbleSeriesData(self, name, number_format)
         self.append(series_data)
         return series_data
 

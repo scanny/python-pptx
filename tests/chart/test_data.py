@@ -10,9 +10,10 @@ import pytest
 
 
 from pptx.chart.data import (
-    _BaseChartData, BubbleChartData, BubbleDataPoint, BubbleSeriesData,
-    Categories, Category, CategoryChartData, CategoryDataPoint,
-    CategorySeriesData, ChartData, XyChartData, XyDataPoint, XySeriesData
+    _BaseChartData, _BaseSeriesData, BubbleChartData, BubbleDataPoint,
+    BubbleSeriesData, Categories, Category, CategoryChartData,
+    CategoryDataPoint, CategorySeriesData, ChartData, XyChartData,
+    XyDataPoint, XySeriesData
 )
 from pptx.chart.xlsx import CategoryWorkbookWriter
 from pptx.enum.base import EnumValue
@@ -74,6 +75,31 @@ class Describe_BaseChartData(object):
         return instance_mock(request, EnumValue)
 
 
+class Describe_BaseSeriesData(object):
+
+    def it_knows_its_number_format(self, number_format_fixture):
+        series_data, expected_value = number_format_fixture
+        assert series_data.number_format == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('General', 42,   42),
+        ('General', None, 'General'),
+    ])
+    def number_format_fixture(self, request, chart_data_):
+        parent_number_format, number_format, expected_value = request.param
+        chart_data_.number_format = parent_number_format
+        series_data = _BaseSeriesData(chart_data_, 'Foobar', number_format)
+        return series_data, expected_value
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, _BaseChartData)
+
+
 class DescribeCategoryChartData(object):
 
     def it_is_a__BaseChartData_object(self):
@@ -108,7 +134,7 @@ class DescribeCategoryChartData(object):
         CategorySeriesData_, calls, series_ = add_ser_fixture[4:]
         series = chart_data.add_series(name, values, number_format)
         CategorySeriesData_.assert_called_once_with(
-            name, number_format, chart_data
+            chart_data, name, number_format
         )
         assert chart_data[-1] is series
         assert series.add_data_point.call_args_list == calls
@@ -520,13 +546,13 @@ class DescribeCategorySeriesData(object):
 
     @pytest.fixture
     def categories_fixture(self, chart_data_, categories_):
-        series_data = CategorySeriesData(None, None, chart_data_)
+        series_data = CategorySeriesData(chart_data_, None, None)
         chart_data_.categories = categories_
         return series_data, categories_
 
     @pytest.fixture
     def categories_ref_fixture(self, chart_data_):
-        series_data = CategorySeriesData(None, None, chart_data_)
+        series_data = CategorySeriesData(chart_data_, None, None)
         expected_value = categories_ref = 'Sheet1!$F$42'
         chart_data_.categories_ref = categories_ref
         return series_data, expected_value
@@ -543,7 +569,7 @@ class DescribeCategorySeriesData(object):
 
     @pytest.fixture
     def values_ref_fixture(self, chart_data_):
-        series_data = CategorySeriesData(None, None, chart_data_)
+        series_data = CategorySeriesData(chart_data_, None, None)
         values_ref_ = 'Sheet1!$V$42'
         chart_data_.values_ref.return_value = values_ref_
         return series_data, chart_data_, values_ref_
@@ -575,7 +601,7 @@ class DescribeBubbleChartData(object):
     def it_can_add_a_series(self, add_series_fixture):
         chart_data, name, BubbleSeriesData_, series_data_ = add_series_fixture
         series_data = chart_data.add_series(name)
-        BubbleSeriesData_.assert_called_once_with(chart_data, name)
+        BubbleSeriesData_.assert_called_once_with(chart_data, name, None)
         assert chart_data[-1] is series_data_
         assert series_data is series_data_
 
@@ -606,7 +632,7 @@ class DescribeXyChartData(object):
     def it_can_add_a_series(self, add_series_fixture):
         chart_data, label, XySeriesData_, series_data_ = add_series_fixture
         series_data = chart_data.add_series(label)
-        XySeriesData_.assert_called_once_with(chart_data, label)
+        XySeriesData_.assert_called_once_with(chart_data, label, None)
         assert chart_data[-1] is series_data_
         assert series_data is series_data_
 
@@ -647,7 +673,7 @@ class DescribeBubbleSeriesData(object):
 
     @pytest.fixture
     def add_data_point_fixture(self, request, BubbleDataPoint_, data_point_):
-        series_data = BubbleSeriesData(None, None)
+        series_data = BubbleSeriesData(None, None, None)
         x, y, size = 42, 24, 17
         return series_data, x, y, size, BubbleDataPoint_, data_point_
 
@@ -678,7 +704,7 @@ class DescribeXySeriesData(object):
 
     @pytest.fixture
     def add_data_point_fixture(self, request, XyDataPoint_, data_point_):
-        series_data = XySeriesData(None, None)
+        series_data = XySeriesData(None, None, None)
         x, y = 42, 24
         return series_data, x, y, XyDataPoint_, data_point_
 
