@@ -31,3 +31,24 @@ Feature: chart_data properties
     Given a Category object
      Then category.add_sub_category(name) is a Category object
       And category.sub_categories[-1] is the new category
+
+
+  @wip
+  Scenario Outline: CategoryChartData number format
+    Given a CategoryChartData object with number format <cht-nf>
+     When I add a series with number format <ser-nf>
+      And I add a data point with number format <dp-nf>
+     Then chart_data.number_format is <cht-val>
+      And series_data.number_format is <ser-val>
+      And data_point.number_format is <dp-val>
+
+    Examples: number format inheritance states
+      | cht-nf | ser-nf | dp-nf | cht-val | ser-val | dp-val  |
+      | None   | None   | None  | General | General | General |
+      | None   | None   | 42    | General | General | 42      |
+      | None   | 42     | None  | General | 42      | 42      |
+      | None   | 42     | 24    | General | 42      | 24      |
+      | 42     | None   | None  | 42      | 42      | 42      |
+      | 42     | None   | 24    | 42      | 42      | 24      |
+      | 42     | 24     | None  | 42      | 24      | 24      |
+      | 42     | 24     | 12    | 42      | 24      | 12      |

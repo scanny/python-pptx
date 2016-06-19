@@ -151,6 +151,14 @@ def given_a_CategoryChartData_object(context):
     context.chart_data = CategoryChartData()
 
 
+@given('a CategoryChartData object with number format {strval}')
+def given_a_CategoryChartData_object_with_number_format(context, strval):
+    params = {}
+    if strval != 'None':
+        params['number_format'] = int(strval)
+    context.chart_data = CategoryChartData(**params)
+
+
 @given('a chart {having_or_not} a legend')
 def given_a_chart_having_or_not_a_legend(context, having_or_not):
     slide_idx = {
@@ -454,6 +462,24 @@ def when_I_add_a_bubble_chart_having_2_series_of_3_pts(context, bubble_type):
     context.chart = context.slide.shapes.add_chart(
         chart_type, Inches(1), Inches(1), Inches(8), Inches(5), chart_data
     ).chart
+
+
+@when('I add a data point with number format {strval}')
+def when_I_add_a_data_point_with_number_format(context, strval):
+    series_data = context.series_data
+    params = {'value': 42}
+    if strval != 'None':
+        params['number_format'] = int(strval)
+    context.data_point = series_data.add_data_point(**params)
+
+
+@when('I add a series with number format {strval}')
+def when_I_add_a_series_with_number_format(context, strval):
+    chart_data = context.chart_data
+    params = {'name': 'Series Foo'}
+    if strval != 'None':
+        params['number_format'] = int(strval)
+    context.series_data = chart_data.add_series(**params)
 
 
 @when('I add an {xy_type} chart having 2 series of 3 points each')
@@ -798,6 +824,13 @@ def then_chart_data_categories_minus_1_is_the_category(context):
     assert chart_data.categories[-1] is category
 
 
+@then('chart_data.number_format is {value_str}')
+def then_chart_data_number_format_is(context, value_str):
+    chart_data = context.chart_data
+    number_format = value_str if value_str == 'General' else int(value_str)
+    assert chart_data.number_format == number_format
+
+
 @then('chart_data[-1] is the new series')
 def then_chart_data_minus_1_is_the_new_series(context):
     chart_data, series = context.chart_data, context.series
@@ -837,6 +870,13 @@ def then_data_labels_position_is_value(context, value):
     assert data_labels.position is expected_value, (
         'got %s' % data_labels.position
     )
+
+
+@then('data_point.number_format is {value_str}')
+def then_data_point_number_format_is(context, value_str):
+    data_point = context.data_point
+    number_format = value_str if value_str == 'General' else int(value_str)
+    assert data_point.number_format == number_format
 
 
 @then('each series has a new name')
@@ -1046,6 +1086,13 @@ def then_series_line_width_is_width(context, width):
     expected_width = int(width)
     line = context.series.line
     assert line.width == expected_width
+
+
+@then('series_data.number_format is {value_str}')
+def then_series_data_number_format_is(context, value_str):
+    series_data = context.series_data
+    number_format = value_str if value_str == 'General' else int(value_str)
+    assert series_data.number_format == number_format
 
 
 @then('series.points is a {type_name} object')
