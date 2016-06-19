@@ -33,7 +33,6 @@ Feature: chart_data properties
       And category.sub_categories[-1] is the new category
 
 
-  @wip
   Scenario Outline: CategoryChartData number format
     Given a CategoryChartData object with number format <cht-nf>
      When I add a series with number format <ser-nf>

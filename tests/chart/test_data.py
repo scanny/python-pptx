@@ -554,7 +554,9 @@ class DescribeCategorySeriesData(object):
         series_data, value, number_format = add_fixture[:3]
         CategoryDataPoint_, data_point_ = add_fixture[3:]
         data_point = series_data.add_data_point(value, number_format)
-        CategoryDataPoint_.assert_called_once_with(value, number_format)
+        CategoryDataPoint_.assert_called_once_with(
+            series_data, value, number_format
+        )
         assert series_data[-1] is data_point_
         assert data_point is data_point_
 
@@ -748,6 +750,12 @@ class DescribeXySeriesData(object):
 
 class DescribeCategoryDataPoint(object):
 
+    def it_is_a__BaseDataPoint_object(self, series_data_):
+        data_point = CategoryDataPoint(series_data_, 42, '#,##0.0')
+        assert isinstance(data_point, _BaseDataPoint)
+        assert data_point.number_format == '#,##0.0'
+        assert data_point._series_data is series_data_
+
     def it_knows_its_value(self, value_fixture):
         data_point, expected_value = value_fixture
         assert data_point.value == expected_value
@@ -757,5 +765,11 @@ class DescribeCategoryDataPoint(object):
     @pytest.fixture
     def value_fixture(self):
         value = 42
-        data_point = CategoryDataPoint(value)
+        data_point = CategoryDataPoint(None, value, None)
         return data_point, value
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def series_data_(self, request):
+        return instance_mock(request, CategorySeriesData)
