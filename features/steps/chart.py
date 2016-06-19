@@ -360,6 +360,14 @@ def given_an_axis_not_having_major_or_minor_gridlines(context, major_or_minor):
     context.axis = chart.category_axis
 
 
+@given('a XyChartData object with number format {strval}')
+def given_a_XyChartData_object_with_number_format(context, strval):
+    params = {}
+    if strval != 'None':
+        params['number_format'] = int(strval)
+    context.chart_data = XyChartData(**params)
+
+
 @given('bar chart data labels positioned {relation_to} their data point')
 def given_bar_chart_data_labels_positioned_relation_to_their_data_point(
         context, relation_to):
@@ -480,6 +488,15 @@ def when_I_add_a_series_with_number_format(context, strval):
     if strval != 'None':
         params['number_format'] = int(strval)
     context.series_data = chart_data.add_series(**params)
+
+
+@when('I add an XY data point with number format {strval}')
+def when_I_add_an_XY_data_point_with_number_format(context, strval):
+    series_data = context.series_data
+    params = {'x': 1, 'y': 2}
+    if strval != 'None':
+        params['number_format'] = int(strval)
+    context.data_point = series_data.add_data_point(**params)
 
 
 @when('I add an {xy_type} chart having 2 series of 3 points each')

@@ -51,3 +51,24 @@ Feature: chart_data properties
       | 42     | None   | 24    | 42      | 42      | 24      |
       | 42     | 24     | None  | 42      | 24      | 24      |
       | 42     | 24     | 12    | 42      | 24      | 12      |
+
+
+  @wip
+  Scenario Outline: XyChartData number format
+    Given a XyChartData object with number format <cht-nf>
+     When I add a series with number format <ser-nf>
+      And I add an XY data point with number format <dp-nf>
+     Then chart_data.number_format is <cht-val>
+      And series_data.number_format is <ser-val>
+      And data_point.number_format is <dp-val>
+
+    Examples: number format inheritance states
+      | cht-nf | ser-nf | dp-nf | cht-val | ser-val | dp-val  |
+      | None   | None   | None  | General | General | General |
+      | None   | None   | 42    | General | General | 42      |
+      | None   | 42     | None  | General | 42      | 42      |
+      | None   | 42     | 24    | General | 42      | 24      |
+      | 42     | None   | None  | 42      | 42      | 42      |
+      | 42     | None   | 24    | 42      | 42      | 24      |
+      | 42     | 24     | None  | 42      | 24      | 24      |
+      | 42     | 24     | 12    | 42      | 24      | 12      |
