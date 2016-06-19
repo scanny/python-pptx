@@ -37,7 +37,21 @@ class Describe_BaseChartData(object):
         ChartXmlWriter_.assert_called_once_with(chart_type_, chart_data)
         assert xml_bytes == expected_bytes
 
+    def it_knows_its_number_format(self, number_format_fixture):
+        chart_data, expected_value = number_format_fixture
+        assert chart_data.number_format == expected_value
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (None, 'General'),
+        (42,   42),
+    ])
+    def number_format_fixture(self, request):
+        number_format, expected_value = request.param
+        argv = [] if number_format is None else [number_format]
+        chart_data = _BaseChartData(*argv)
+        return chart_data, expected_value
 
     @pytest.fixture
     def xml_bytes_fixture(self, chart_type_, ChartXmlWriter_):
@@ -61,6 +75,9 @@ class Describe_BaseChartData(object):
 
 
 class DescribeCategoryChartData(object):
+
+    def it_is_a__BaseChartData_object(self):
+        assert isinstance(CategoryChartData(), _BaseChartData)
 
     def it_knows_the_categories_range_ref(self, categories_ref_fixture):
         chart_data, expected_value = categories_ref_fixture

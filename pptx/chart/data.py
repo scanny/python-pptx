@@ -25,8 +25,9 @@ class _BaseChartData(Sequence):
     :meth:`Chart.replace_data`. The data structure varies between major chart
     categories such as category charts and XY charts.
     """
-    def __init__(self):
+    def __init__(self, number_format='General'):
         super(_BaseChartData, self).__init__()
+        self._number_format = number_format
         self._series = []
 
     def __getitem__(self, index):
@@ -49,6 +50,17 @@ class _BaseChartData(Sequence):
                 return count
             count += len(this_series)
         raise ValueError('series not in chart data object')
+
+    @property
+    def number_format(self):
+        """
+        The formatting template string, e.g. '#,##0.0', that determines how
+        X and Y values are formatted in this chart and in the Excel
+        spreadsheet. A number format specified on a series will override this
+        value for that series. Likewise, a distinct number format can be
+        specified for a particular data point within a series.
+        """
+        return self._number_format
 
     def series_index(self, series):
         """
