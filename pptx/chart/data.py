@@ -228,6 +228,29 @@ class _BaseSeriesData(Sequence):
         return self._chart_data.y_values_ref(self)
 
 
+class _BaseDataPoint(object):
+    """
+    Base class providing common members for data point objects.
+    """
+    def __init__(self, series_data, number_format):
+        super(_BaseDataPoint, self).__init__()
+        self._series_data = series_data
+        self._number_format = number_format
+
+    @property
+    def number_format(self):
+        """
+        The formatting template string that determines how the value of this
+        data point is formatted, both in the chart and in the Excel
+        spreadsheet; for example '#,##0.0'. If not specified for this data
+        point, it is inherited from the parent series data object.
+        """
+        number_format = self._number_format
+        if number_format is None:
+            return self._series_data.number_format
+        return number_format
+
+
 class CategoryChartData(_BaseChartData):
     """
     A ChartData object suitable for use with category charts, all those

@@ -10,10 +10,10 @@ import pytest
 
 
 from pptx.chart.data import (
-    _BaseChartData, _BaseSeriesData, BubbleChartData, BubbleDataPoint,
-    BubbleSeriesData, Categories, Category, CategoryChartData,
-    CategoryDataPoint, CategorySeriesData, ChartData, XyChartData,
-    XyDataPoint, XySeriesData
+    _BaseChartData, _BaseDataPoint, _BaseSeriesData, BubbleChartData,
+    BubbleDataPoint, BubbleSeriesData, Categories, Category,
+    CategoryChartData, CategoryDataPoint, CategorySeriesData, ChartData,
+    XyChartData, XyDataPoint, XySeriesData
 )
 from pptx.chart.xlsx import CategoryWorkbookWriter
 from pptx.enum.base import EnumValue
@@ -98,6 +98,31 @@ class Describe_BaseSeriesData(object):
     @pytest.fixture
     def chart_data_(self, request):
         return instance_mock(request, _BaseChartData)
+
+
+class Describe_BaseDataPoint(object):
+
+    def it_knows_its_number_format(self, number_format_fixture):
+        data_point, expected_value = number_format_fixture
+        assert data_point.number_format == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (42, 24,   24),
+        (42, None, 42),
+    ])
+    def number_format_fixture(self, request, series_data_):
+        parent_number_format, number_format, expected_value = request.param
+        series_data_.number_format = parent_number_format
+        data_point = _BaseDataPoint(series_data_, number_format)
+        return data_point, expected_value
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def series_data_(self, request):
+        return instance_mock(request, _BaseSeriesData)
 
 
 class DescribeCategoryChartData(object):
