@@ -656,6 +656,9 @@ class DescribeBubbleChartData(object):
 
 class DescribeXyChartData(object):
 
+    def it_is_a__BaseChartData_object(self):
+        assert isinstance(XyChartData(), _BaseChartData)
+
     def it_can_add_a_series(self, add_series_fixture):
         chart_data, label, XySeriesData_, series_data_ = add_series_fixture
         series_data = chart_data.add_series(label)
@@ -692,7 +695,9 @@ class DescribeBubbleSeriesData(object):
             add_data_point_fixture
         )
         data_point = series_data.add_data_point(x, y, size)
-        BubbleDataPoint_.assert_called_once_with(x, y, size)
+        BubbleDataPoint_.assert_called_once_with(
+            series_data, x, y, size, None
+        )
         assert series_data[-1] is data_point_
         assert data_point is data_point_
 
@@ -720,10 +725,18 @@ class DescribeBubbleSeriesData(object):
 
 class DescribeXySeriesData(object):
 
+    def it_is_a__BaseSeriesData_object(self, chart_data_):
+        name, number_format = 'Series 42', '#0.0'
+        series_data = XySeriesData(chart_data_, name, number_format)
+        assert isinstance(series_data, _BaseSeriesData)
+        assert series_data._chart_data is chart_data_
+        assert series_data.name == name
+        assert series_data.number_format == number_format
+
     def it_can_add_a_data_point(self, add_data_point_fixture):
         series_data, x, y, XyDataPoint_, data_point_ = add_data_point_fixture
         data_point = series_data.add_data_point(x, y)
-        XyDataPoint_.assert_called_once_with(x, y)
+        XyDataPoint_.assert_called_once_with(series_data, x, y, None)
         assert series_data[-1] is data_point_
         assert data_point is data_point_
 
@@ -738,14 +751,18 @@ class DescribeXySeriesData(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def XyDataPoint_(self, request, data_point_):
-        return class_mock(
-            request, 'pptx.chart.data.XyDataPoint', return_value=data_point_
-        )
+    def chart_data_(self, request):
+        return instance_mock(request, _BaseChartData)
 
     @pytest.fixture
     def data_point_(self, request):
         return instance_mock(request, XyDataPoint)
+
+    @pytest.fixture
+    def XyDataPoint_(self, request, data_point_):
+        return class_mock(
+            request, 'pptx.chart.data.XyDataPoint', return_value=data_point_
+        )
 
 
 class DescribeCategoryDataPoint(object):
@@ -773,3 +790,63 @@ class DescribeCategoryDataPoint(object):
     @pytest.fixture
     def series_data_(self, request):
         return instance_mock(request, CategorySeriesData)
+
+
+class DescribeXyDataPoint(object):
+
+    def it_is_a__BaseDataPoint_object(self, series_data_):
+        data_point = XyDataPoint(series_data_, 42, 24, '00.0')
+        assert isinstance(data_point, _BaseDataPoint)
+        assert data_point._series_data is series_data_
+        assert data_point.number_format == '00.0'
+
+    def it_knows_its_x_y_values(self, value_fixture):
+        data_point, x, y = value_fixture
+        assert data_point.x == x
+        assert data_point.y == y
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def value_fixture(self):
+        x, y = 42, 24
+        data_point = XyDataPoint(None, x, y, None)
+        return data_point, x, y
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def series_data_(self, request):
+        return instance_mock(request, XySeriesData)
+
+
+class DescribeBubbleDataPoint(object):
+
+    def it_is_an_XyDataPoint_subclass(self, series_data_):
+        x, y, size, number_format = 1, 2, 10, '#00.0'
+        data_point = BubbleDataPoint(series_data_, x, y, size, number_format)
+        assert isinstance(data_point, XyDataPoint)
+        assert data_point._series_data is series_data_
+        assert data_point.x == x
+        assert data_point.y == y
+        assert data_point.number_format == number_format
+
+    def it_knows_its_x_y_size_values(self, value_fixture):
+        data_point, x, y, size = value_fixture
+        assert data_point.x == x
+        assert data_point.y == y
+        assert data_point.bubble_size == size
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def value_fixture(self):
+        x, y, size = 42, 24, 100
+        data_point = BubbleDataPoint(None, x, y, size, None)
+        return data_point, x, y, size
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def series_data_(self, request):
+        return instance_mock(request, BubbleSeriesData)

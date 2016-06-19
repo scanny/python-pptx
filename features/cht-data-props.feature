@@ -53,7 +53,6 @@ Feature: chart_data properties
       | 42     | 24     | 12    | 42      | 24      | 12      |
 
 
-  @wip
   Scenario Outline: XyChartData number format
     Given a XyChartData object with number format <cht-nf>
      When I add a series with number format <ser-nf>

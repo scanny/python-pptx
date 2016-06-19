@@ -620,12 +620,12 @@ class XySeriesData(_BaseSeriesData):
     segment to "travel backward" (implying a multi-valued function). The data
     points are not automatically sorted into increasing order by X value.
     """
-    def add_data_point(self, x, y):
+    def add_data_point(self, x, y, number_format=None):
         """
         Return an XyDataPoint object newly created with values *x* and *y*,
         and appended to this sequence.
         """
-        data_point = XyDataPoint(x, y)
+        data_point = XyDataPoint(self, x, y, number_format)
         self.append(data_point)
         return data_point
 
@@ -641,12 +641,13 @@ class BubbleSeriesData(XySeriesData):
     throughout the chart building process because a data point has no unique
     identifier and can only be retrieved by index.
     """
-    def add_data_point(self, x, y, size):
+    def add_data_point(self, x, y, size, number_format=None):
         """
         Append a new BubbleDataPoint object having the values *x*, *y*, and
-        *size*.
+        *size*. The optional *number_format* is used to format the Y value.
+        If not provided, the number format is inherited from the series data.
         """
-        data_point = BubbleDataPoint(x, y, size)
+        data_point = BubbleDataPoint(self, x, y, size, number_format)
         self.append(data_point)
         return data_point
 
@@ -685,13 +686,13 @@ class CategoryDataPoint(_BaseDataPoint):
         return self._value
 
 
-class XyDataPoint(object):
+class XyDataPoint(_BaseDataPoint):
     """
     A data point in an XY chart series. Provides access to the x and y values
     of the datapoint.
     """
-    def __init__(self, x, y):
-        super(XyDataPoint, self).__init__()
+    def __init__(self, series_data, x, y, number_format):
+        super(XyDataPoint, self).__init__(series_data, number_format)
         self._x = x
         self._y = y
 
@@ -715,8 +716,8 @@ class BubbleDataPoint(XyDataPoint):
     A data point in a bubble chart series. Provides access to the x, y, and
     size values of the datapoint.
     """
-    def __init__(self, x, y, size):
-        super(BubbleDataPoint, self).__init__(x, y)
+    def __init__(self, series_data, x, y, size, number_format):
+        super(BubbleDataPoint, self).__init__(series_data, x, y, number_format)
         self._size = size
 
     @property
