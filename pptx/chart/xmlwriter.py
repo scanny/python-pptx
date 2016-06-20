@@ -113,7 +113,7 @@ class _BaseSeriesXmlWriter(object):
         """
         return escape(self._series.name)
 
-    def numRef_xml(self, wksht_ref, values):
+    def numRef_xml(self, wksht_ref, number_format, values):
         """
         Return the ``<c:numRef>`` element specified by the parameters as
         unicode text.
@@ -123,13 +123,15 @@ class _BaseSeriesXmlWriter(object):
             '            <c:numRef>\n'
             '              <c:f>{wksht_ref}</c:f>\n'
             '              <c:numCache>\n'
-            '                <c:formatCode>General</c:formatCode>\n'
+            '                <c:formatCode>{number_format}</c:formatCode>\n'
             '{pt_xml}'
             '              </c:numCache>\n'
             '            </c:numRef>\n'
-        ).format(
-            wksht_ref=wksht_ref, pt_xml=pt_xml
-        )
+        ).format(**{
+            'wksht_ref':     wksht_ref,
+            'number_format': number_format,
+            'pt_xml':        pt_xml,
+        })
 
     def pt_xml(self, values):
         """
@@ -1001,7 +1003,6 @@ class _BubbleChartXmlWriter(_XyChartXmlWriter):
                 '          <c:order val="{ser_order}"/>\n'
                 '{tx_xml}'
                 '          <c:invertIfNegative val="0"/>\n'
-                # '{dLbls_xml}'
                 '{xVal_xml}'
                 '{yVal_xml}'
                 '{bubbleSize_xml}'
@@ -1011,7 +1012,6 @@ class _BubbleChartXmlWriter(_XyChartXmlWriter):
                 'ser_idx':        series.index,
                 'ser_order':      series.index,
                 'tx_xml':         xml_writer.tx_xml,
-                # 'dLbls_xml':      xml_writer.dLbls_xml,
                 'xVal_xml':       xml_writer.xVal_xml,
                 'yVal_xml':       xml_writer.yVal_xml,
                 'bubbleSize_xml': xml_writer.bubbleSize_xml,
@@ -1231,8 +1231,10 @@ class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
         """
         xml = self._xVal_tmpl.format(**{
             'nsdecls':    ' %s' % nsdecls('c'),
-            'numRef_xml': self.numRef_xml(self._series.x_values_ref,
-                                          self._series.x_values)
+            'numRef_xml': self.numRef_xml(
+                self._series.x_values_ref, self._series.number_format,
+                self._series.x_values
+            ),
         })
         return parse_xml(xml)
 
@@ -1244,8 +1246,10 @@ class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
         """
         return self._xVal_tmpl.format(**{
             'nsdecls':    '',
-            'numRef_xml': self.numRef_xml(self._series.x_values_ref,
-                                          self._series.x_values)
+            'numRef_xml': self.numRef_xml(
+                self._series.x_values_ref, self._series.number_format,
+                self._series.x_values
+            ),
         })
 
     @property
@@ -1256,8 +1260,10 @@ class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
         """
         xml = self._yVal_tmpl.format(**{
             'nsdecls':    ' %s' % nsdecls('c'),
-            'numRef_xml': self.numRef_xml(self._series.y_values_ref,
-                                          self._series.y_values)
+            'numRef_xml': self.numRef_xml(
+                self._series.y_values_ref, self._series.number_format,
+                self._series.y_values
+            ),
         })
         return parse_xml(xml)
 
@@ -1269,8 +1275,10 @@ class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
         """
         return self._yVal_tmpl.format(**{
             'nsdecls':    '',
-            'numRef_xml': self.numRef_xml(self._series.y_values_ref,
-                                          self._series.y_values)
+            'numRef_xml': self.numRef_xml(
+                self._series.y_values_ref, self._series.number_format,
+                self._series.y_values
+            ),
         })
 
     @property
@@ -1311,8 +1319,10 @@ class _BubbleSeriesXmlWriter(_XySeriesXmlWriter):
         """
         xml = self._bubbleSize_tmpl.format(**{
             'nsdecls':    ' %s' % nsdecls('c'),
-            'numRef_xml': self.numRef_xml(self._series.bubble_sizes_ref,
-                                          self._series.bubble_sizes)
+            'numRef_xml': self.numRef_xml(
+                self._series.bubble_sizes_ref, self._series.number_format,
+                self._series.bubble_sizes
+            ),
         })
         return parse_xml(xml)
 
@@ -1325,8 +1335,10 @@ class _BubbleSeriesXmlWriter(_XySeriesXmlWriter):
         """
         return self._bubbleSize_tmpl.format(**{
             'nsdecls':    '',
-            'numRef_xml': self.numRef_xml(self._series.bubble_sizes_ref,
-                                          self._series.bubble_sizes)
+            'numRef_xml': self.numRef_xml(
+                self._series.bubble_sizes_ref, self._series.number_format,
+                self._series.bubble_sizes
+            ),
         })
 
     @property

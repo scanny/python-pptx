@@ -16,10 +16,11 @@ from pptx.chart.data import (
 )
 from pptx.chart.xmlwriter import (
     _BarChartXmlWriter, _BaseSeriesXmlRewriter, _BubbleChartXmlWriter,
-    _BubbleSeriesXmlRewriter, _CategorySeriesXmlRewriter,
-    _CategorySeriesXmlWriter, ChartXmlWriter, _LineChartXmlWriter,
-    _PieChartXmlWriter, _RadarChartXmlWriter, SeriesXmlRewriterFactory,
-    _XyChartXmlWriter, _XySeriesXmlRewriter
+    _BubbleSeriesXmlRewriter, _BubbleSeriesXmlWriter,
+    _CategorySeriesXmlRewriter, _CategorySeriesXmlWriter, ChartXmlWriter,
+    _LineChartXmlWriter, _PieChartXmlWriter, _RadarChartXmlWriter,
+    SeriesXmlRewriterFactory, _XyChartXmlWriter, _XySeriesXmlRewriter,
+    _XySeriesXmlWriter
 )
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.oxml import parse_xml
@@ -283,6 +284,35 @@ class Describe_XyChartXmlWriter(object):
         return xml_writer, expected_xml
 
 
+class Describe_BubbleSeriesXmlWriter(object):
+
+    def it_knows_its_bubbleSize_XML(self, bubbleSize_fixture):
+        xml_writer, expected_xml = bubbleSize_fixture
+        bubbleSize = xml_writer.bubbleSize
+        assert bubbleSize.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (None, None, 'General'),
+        (None, 42,   '42'),
+        (24,   None, '24'),
+        (24,   42,   '42'),
+    ])
+    def bubbleSize_fixture(self, request):
+        cht_numfmt, ser_numfmt, expected_numfmt = request.param
+        expected_xml = xml(
+            'c:bubbleSize/c:numRef/(c:f"Sheet1!$C$2:$C$1",c:numCache/(c:form'
+            'atCode"%s",c:ptCount{val=0}))' % expected_numfmt
+        )
+        chart_number_format = () if cht_numfmt is None else (cht_numfmt,)
+        series_number_format = () if ser_numfmt is None else (ser_numfmt,)
+        chart_data = BubbleChartData(*chart_number_format)
+        series_data = chart_data.add_series(None, *series_number_format)
+        xml_writer = _BubbleSeriesXmlWriter(series_data)
+        return xml_writer, expected_xml
+
+
 class Describe_CategorySeriesXmlWriter(object):
 
     def it_knows_its_val_XML(self, val_fixture):
@@ -309,6 +339,59 @@ class Describe_CategorySeriesXmlWriter(object):
     @pytest.fixture
     def series_data_(self, request):
         return instance_mock(request, CategorySeriesData)
+
+
+class Describe_XySeriesXmlWriter(object):
+
+    def it_knows_its_xVal_XML(self, xVal_fixture):
+        xml_writer, expected_xml = xVal_fixture
+        xVal = xml_writer.xVal
+        assert xVal.xml == expected_xml
+
+    def it_knows_its_yVal_XML(self, yVal_fixture):
+        xml_writer, expected_xml = yVal_fixture
+        yVal = xml_writer.yVal
+        assert yVal.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (None, None, 'General'),
+        (None, 42,   '42'),
+        (24,   None, '24'),
+        (24,   42,   '42'),
+    ])
+    def xVal_fixture(self, request):
+        cht_numfmt, ser_numfmt, expected_numfmt = request.param
+        expected_xml = xml(
+            'c:xVal/c:numRef/(c:f"Sheet1!$A$2:$A$1",c:numCache/(c:formatCode'
+            '"%s",c:ptCount{val=0}))' % expected_numfmt
+        )
+        chart_number_format = () if cht_numfmt is None else (cht_numfmt,)
+        series_number_format = () if ser_numfmt is None else (ser_numfmt,)
+        chart_data = XyChartData(*chart_number_format)
+        series_data = chart_data.add_series(None, *series_number_format)
+        xml_writer = _XySeriesXmlWriter(series_data)
+        return xml_writer, expected_xml
+
+    @pytest.fixture(params=[
+        (None, None, 'General'),
+        (None, 42,   '42'),
+        (24,   None, '24'),
+        (24,   42,   '42'),
+    ])
+    def yVal_fixture(self, request):
+        cht_numfmt, ser_numfmt, expected_numfmt = request.param
+        expected_xml = xml(
+            'c:yVal/c:numRef/(c:f"Sheet1!$B$2:$B$1",c:numCache/(c:formatCode'
+            '"%s",c:ptCount{val=0}))' % expected_numfmt
+        )
+        chart_number_format = () if cht_numfmt is None else (cht_numfmt,)
+        series_number_format = () if ser_numfmt is None else (ser_numfmt,)
+        chart_data = XyChartData(*chart_number_format)
+        series_data = chart_data.add_series(None, *series_number_format)
+        xml_writer = _XySeriesXmlWriter(series_data)
+        return xml_writer, expected_xml
 
 
 class Describe_BaseSeriesXmlRewriter(object):
