@@ -109,9 +109,12 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
                 worksheet.write(row, col, name)
         # write series
         for series in self._chart_data:
+            num_format = (
+                workbook.add_format({'num_format': series.number_format})
+            )
             series_col = series.index + depth
             worksheet.write(0, series_col, series.name)
-            worksheet.write_column(1, series_col, series.values)
+            worksheet.write_column(1, series_col, series.values, num_format)
 
     def _series_col_letter(self, series):
         """
@@ -170,13 +173,23 @@ class XyWorkbookWriter(_BaseWorkbookWriter):
         table, X values in column A and Y values in column B. Place the
         series label in the first (heading) cell of the column.
         """
+        chart_num_format = workbook.add_format(
+            {'num_format': self._chart_data.number_format}
+        )
         for series in self._chart_data:
+            series_num_format = (
+                workbook.add_format({'num_format': series.number_format})
+            )
             offset = self.series_table_row_offset(series)
             # write X values
-            worksheet.write_column(offset+1, 0, series.x_values)
+            worksheet.write_column(
+                offset+1, 0, series.x_values, chart_num_format
+            )
             # write Y values
             worksheet.write(offset, 1, series.name)
-            worksheet.write_column(offset+1, 1, series.y_values)
+            worksheet.write_column(
+                offset+1, 1, series.y_values, series_num_format
+            )
 
 
 class BubbleWorkbookWriter(XyWorkbookWriter):
@@ -201,13 +214,25 @@ class BubbleWorkbookWriter(XyWorkbookWriter):
         column C. Place the series label in the first (heading) cell of the
         values column.
         """
+        chart_num_format = workbook.add_format(
+            {'num_format': self._chart_data.number_format}
+        )
         for series in self._chart_data:
+            series_num_format = (
+                workbook.add_format({'num_format': series.number_format})
+            )
             offset = self.series_table_row_offset(series)
             # write X values
-            worksheet.write_column(offset+1, 0, series.x_values)
+            worksheet.write_column(
+                offset+1, 0, series.x_values, chart_num_format
+            )
             # write Y values
             worksheet.write(offset, 1, series.name)
-            worksheet.write_column(offset+1, 1, series.y_values)
+            worksheet.write_column(
+                offset+1, 1, series.y_values, series_num_format
+            )
             # write bubble sizes
             worksheet.write(offset, 2, 'Size')
-            worksheet.write_column(offset+1, 2, series.bubble_sizes)
+            worksheet.write_column(
+                offset+1, 2, series.bubble_sizes, chart_num_format
+            )

@@ -21,7 +21,7 @@ from pptx.chart.xlsx import (
 )
 from pptx.compat import BytesIO
 
-from ..unitutil.mock import call, class_mock, instance_mock, method_mock
+from ..unitutil.mock import ANY, call, class_mock, instance_mock, method_mock
 
 
 class Describe_BaseWorkbookWriter(object):
@@ -170,16 +170,16 @@ class DescribeCategoryWorkbookWriter(object):
         ([[[0, 'a'], [1, 'b'], [2, 'c']]],
          [(1, 0, 'a'), (2, 0, 'b'), (3, 0, 'c')],
          [('s1', (1, 2, 3)), ('s2', (4, 5, 6))],
-         [((0, 1, 's1'), (1, 1, (1, 2, 3))),
-          ((0, 2, 's2'), (1, 2, (4, 5, 6)))]),
+         [((0, 1, 's1'), (1, 1, (1, 2, 3), ANY)),
+          ((0, 2, 's2'), (1, 2, (4, 5, 6), ANY))]),
 
         ([[[0, 'CA'], [1, 'NV'], [2, 'NY'], [3, 'NJ']],
           [[0, 'WEST'], [2, 'EAST']]],
          [(1, 1, 'CA'), (2, 1, 'NV'), (3, 1, 'NY'), (4, 1, 'NJ'),
           (1, 0, 'WEST'), (3, 0, 'EAST')],
          [('s1', (1, 2, 3, 4)), ('s2', (5, 6, 7, 8))],
-         [((0, 2, 's1'), (1, 2, (1, 2, 3, 4))),
-          ((0, 3, 's2'), (1, 3, (5, 6, 7, 8)))]),
+         [((0, 2, 's1'), (1, 2, (1, 2, 3, 4), ANY)),
+          ((0, 3, 's2'), (1, 3, (5, 6, 7, 8), ANY))]),
     ])
     def populate_fixture(
             self, request, chart_data_, workbook_, worksheet_, categories_):
@@ -283,17 +283,17 @@ class DescribeBubbleWorkbookWriter(object):
         workbook_writer = BubbleWorkbookWriter(chart_data)
 
         expected_calls = [
-            call.write_column(1, 0, [1, 2]),
+            call.write_column(1, 0, [1, 2], ANY),
             call.write(0, 1, 'Series 1'),
-            call.write_column(1, 1, [1.1, 2.2]),
+            call.write_column(1, 1, [1.1, 2.2], ANY),
             call.write(0, 2, 'Size'),
-            call.write_column(1, 2, [10, 20]),
+            call.write_column(1, 2, [10, 20], ANY),
 
-            call.write_column(5, 0, [3, 4]),
+            call.write_column(5, 0, [3, 4], ANY),
             call.write(4, 1, 'Series 2'),
-            call.write_column(5, 1, [3.3, 4.4]),
+            call.write_column(5, 1, [3.3, 4.4], ANY),
             call.write(4, 2, 'Size'),
-            call.write_column(5, 2, [30, 40]),
+            call.write_column(5, 2, [30, 40], ANY),
         ]
         return workbook_writer, workbook_, worksheet_, expected_calls
 
@@ -343,13 +343,13 @@ class DescribeXyWorkbookWriter(object):
         workbook_writer = XyWorkbookWriter(chart_data)
 
         expected_calls = [
-            call.write_column(1, 0, [1, 2]),
+            call.write_column(1, 0, [1, 2], ANY),
             call.write(0, 1, 'Series 1'),
-            call.write_column(1, 1, [1.1, 2.2]),
+            call.write_column(1, 1, [1.1, 2.2], ANY),
 
-            call.write_column(5, 0, [3, 4]),
+            call.write_column(5, 0, [3, 4], ANY),
             call.write(4, 1, 'Series 2'),
-            call.write_column(5, 1, [3.3, 4.4])
+            call.write_column(5, 1, [3.3, 4.4], ANY)
         ]
         return workbook_writer, workbook_, worksheet_, expected_calls
 
