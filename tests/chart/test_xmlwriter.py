@@ -12,13 +12,14 @@ import pytest
 
 from pptx.chart.data import (
     _BaseChartData, _BaseSeriesData, BubbleChartData, CategoryChartData,
-    XyChartData
+    CategorySeriesData, XyChartData
 )
 from pptx.chart.xmlwriter import (
     _BarChartXmlWriter, _BaseSeriesXmlRewriter, _BubbleChartXmlWriter,
-    _BubbleSeriesXmlRewriter, _CategorySeriesXmlRewriter, ChartXmlWriter,
-    _LineChartXmlWriter, _PieChartXmlWriter, _RadarChartXmlWriter,
-    SeriesXmlRewriterFactory, _XyChartXmlWriter, _XySeriesXmlRewriter
+    _BubbleSeriesXmlRewriter, _CategorySeriesXmlRewriter,
+    _CategorySeriesXmlWriter, ChartXmlWriter, _LineChartXmlWriter,
+    _PieChartXmlWriter, _RadarChartXmlWriter, SeriesXmlRewriterFactory,
+    _XyChartXmlWriter, _XySeriesXmlRewriter
 )
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.oxml import parse_xml
@@ -280,6 +281,34 @@ class Describe_XyChartXmlWriter(object):
         xml_writer = _XyChartXmlWriter(chart_type, chart_data)
         expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml
+
+
+class Describe_CategorySeriesXmlWriter(object):
+
+    def it_knows_its_val_XML(self, val_fixture):
+        xml_writer, expected_xml = val_fixture
+        val = xml_writer.val
+        assert val.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def val_fixture(self, series_data_):
+        values_ref, number_format = 'Sheet1!$B$2:$B$1', 'Foobar'
+        expected_xml = xml(
+            'c:val/c:numRef/(c:f"%s",c:numCache/(c:formatCode"%s",c:ptCount{'
+            'val=0}))' % (values_ref, number_format)
+        )
+        xml_writer = _CategorySeriesXmlWriter(series_data_)
+        series_data_.values_ref = values_ref
+        series_data_.number_format = number_format
+        return xml_writer, expected_xml
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def series_data_(self, request):
+        return instance_mock(request, CategorySeriesData)
 
 
 class Describe_BaseSeriesXmlRewriter(object):

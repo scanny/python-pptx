@@ -1076,10 +1076,11 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
         The ``<c:val>`` XML for this series, as an oxml element.
         """
         xml = self._val_tmpl.format(**{
-            'wksht_ref':  self._series.values_ref,
-            'val_count':  len(self._series),
-            'val_pt_xml': self._val_pt_xml,
-            'nsdecls':    ' %s' % nsdecls('c'),
+            'nsdecls':       ' %s' % nsdecls('c'),
+            'values_ref':    self._series.values_ref,
+            'number_format': self._series.number_format,
+            'val_count':     len(self._series),
+            'val_pt_xml':    self._val_pt_xml,
         })
         return parse_xml(xml)
 
@@ -1091,10 +1092,11 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
         reference.
         """
         return self._val_tmpl.format(**{
-            'wksht_ref':  self._series.values_ref,
-            'val_count':  len(self._series),
-            'val_pt_xml': self._val_pt_xml,
-            'nsdecls':    '',
+            'nsdecls':       '',
+            'values_ref':    self._series.values_ref,
+            'number_format': self._series.number_format,
+            'val_count':     len(self._series),
+            'val_pt_xml':    self._val_pt_xml,
         })
 
     @property
@@ -1206,9 +1208,9 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
         return (
             '          <c:val{nsdecls}>\n'
             '            <c:numRef>\n'
-            '              <c:f>{wksht_ref}</c:f>\n'
+            '              <c:f>{values_ref}</c:f>\n'
             '              <c:numCache>\n'
-            '                <c:formatCode>General</c:formatCode>\n'
+            '                <c:formatCode>{number_format}</c:formatCode>\n'
             '                <c:ptCount val="{val_count}"/>\n'
             '{val_pt_xml}'
             '              </c:numCache>\n'
