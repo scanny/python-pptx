@@ -18,12 +18,14 @@ Slide ID
 --------
 
 PowerPoint assigns a unique integer identifier to a slide when it is created.
-The identifier is only unique within a presentation, and takes the form of an
-integer starting at 256 and incrementing by one for each new slide. Changing
-the ordering of the slides does not change the id. The id of a deleted slide is
-not reused, although I'm not sure whether it's clever enough not to reuse the
-id of the last added slide when it's been deleted as there doesn't seem to be
-any record in the XML of the max value assigned.
+Note that this identifier is only present in the presentation part, and maps
+to a relationship ID; it is not recorded in the XML of the slide itself.
+Therefore the identifier is only unique within a presentation. The ID takes
+the form of an integer starting at 256 and incrementing by one for each new
+slide. Changing the ordering of the slides does not change the id. The id of
+a deleted slide is not reused, although I'm not sure whether it's clever
+enough not to reuse the id of the last added slide when it's been deleted as
+there doesn't seem to be any record in the XML of the max value assigned.
 
 
 XML specimens
