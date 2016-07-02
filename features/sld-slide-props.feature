@@ -4,6 +4,16 @@ Feature: slide properties
   I need properties and methods on Slide, SlideLayout, and SlideMaster
 
 
+  Scenario Outline: Slide.name
+    Given a slide having name <name>
+     Then slide.name is <value>
+
+    Examples: name scenarios
+      | name                 | value            |
+      | Overview             | Overview         |
+      | of no explicit value | the empty string |
+
+
   Scenario: Slide.shapes
     Given a slide
      Then slide.shapes is a SlideShapes object
@@ -17,6 +27,17 @@ Feature: slide properties
   Scenario: Slide.slide_id
     Given a slide having slide id 256
      Then slide.slide_id is 256
+
+
+  @wip
+  Scenario Outline: SlideLayout.name
+    Given a slide layout having name <name>
+     Then slide_layout.name is <value>
+
+    Examples: name scenarios
+      | name                 | value            |
+      | Bullet Layout        | Bullet Layout    |
+      | of no explicit value | the empty string |
 
 
   Scenario: SlideLayout.shapes

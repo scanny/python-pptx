@@ -61,6 +61,13 @@ def given_a_slide_having_a_title(context):
     context.prs, context.slide = prs, prs.slides[0]
 
 
+@given('a slide having name {name}')
+def given_a_slide_having_name_name(context, name):
+    slide_idx = 0 if name == 'Overview' else 1
+    presentation = Presentation(test_pptx('sld-slide-props'))
+    context.slide = presentation.slides[slide_idx]
+
+
 @given('a slide having slide id 256')
 def given_a_slide_having_slide_id_256(context):
     presentation = Presentation(test_pptx('sld-access-shapes'))
@@ -71,6 +78,13 @@ def given_a_slide_having_slide_id_256(context):
 def given_a_slide_layout(context):
     prs = Presentation(test_pptx('sld-slide-access'))
     context.slide_layout = prs.slide_layouts[0]
+
+
+@given('a slide layout having name {name}')
+def given_a_slide_layout_having_name_name(context, name):
+    slide_layout_idx = 0 if name == 'of no explicit value' else 1
+    presentation = Presentation(test_pptx('sld-slide-props'))
+    context.slide_layout = presentation.slide_layouts[slide_layout_idx]
 
 
 @given('a slide master')
@@ -317,6 +331,13 @@ def then_shapes_title_is_the_title_placeholder(context):
     assert title_placeholder.id == 4
 
 
+@then('slide.name is {value}')
+def then_slide_name_is_value(context, value):
+    expected_value = '' if value == 'the empty string' else value
+    slide = context.slide
+    assert slide.name == expected_value
+
+
 @then('slide.placeholders is a SlidePlaceholders object')
 def then_slide_placeholders_is_a_SlidePlaceholders_object(context):
     slide = context.slide
@@ -339,6 +360,13 @@ def then_slide_slide_id_is_256(context):
 def then_slide_slide_layout_is_the_one_passed_in_the_call(context):
     slide = context.prs.slides[3]
     assert slide.slide_layout == context.slide_layout
+
+
+@then('slide_layout.name is {value}')
+def then_slide_layout_name_is_value(context, value):
+    expected_value = '' if value == 'the empty string' else value
+    slide_layout = context.slide_layout
+    assert slide_layout.name == expected_value, 'got %s' % slide_layout.name
 
 
 @then('slide_layout.placeholders is a LayoutPlaceholders object')
