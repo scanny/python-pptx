@@ -29,7 +29,6 @@ Feature: slide properties
      Then slide.slide_id is 256
 
 
-  @wip
   Scenario Outline: SlideLayout.name
     Given a slide layout having name <name>
      Then slide_layout.name is <value>

@@ -143,11 +143,14 @@ class Slides(ParentedElementProxy):
         raise ValueError('%s is not in slide collection' % slide)
 
 
-class SlideLayout(PartElementProxy):
+class SlideLayout(_BaseSlide):
     """
     Slide layout object. Provides access to placeholders, regular shapes, and
     slide layout-level properties.
     """
+
+    __slots__ = ('_placeholders', '_shapes')
+
     def iter_cloneable_placeholders(self):
         """
         Generate a reference to each layout placeholder on this slide layout

@@ -313,6 +313,10 @@ class DescribeSlides(object):
 
 class DescribeSlideLayout(object):
 
+    def it_is_a_BaseSlide_subclass(self, subclass_fixture):
+        slide = subclass_fixture
+        assert isinstance(slide, _BaseSlide)
+
     def it_provides_access_to_its_slide_master(self, master_fixture):
         slide_layout, slide_master_ = master_fixture
         assert slide_layout.slide_master is slide_master_
@@ -375,6 +379,10 @@ class DescribeSlideLayout(object):
         slide_layout = SlideLayout(sldLayout, None)
         spTree = sldLayout.xpath('//p:spTree')[0]
         return slide_layout, LayoutShapes_, spTree, shapes_
+
+    @pytest.fixture
+    def subclass_fixture(self):
+        return SlideLayout(None, None)
 
     # fixture components -----------------------------------
 
