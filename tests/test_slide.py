@@ -66,9 +66,9 @@ class Describe_BaseSlide(object):
 
 class DescribeSlide(object):
 
-    def it_knows_its_name(self, name_fixture):
-        slide, expected_value = name_fixture
-        assert slide.name == expected_value
+    def it_is_a_BaseSlide_subclass(self, subclass_fixture):
+        slide = subclass_fixture
+        assert isinstance(slide, _BaseSlide)
 
     def it_knows_its_slide_id(self, slide_id_fixture):
         slide, expected_value = slide_id_fixture
@@ -102,12 +102,6 @@ class DescribeSlide(object):
         return slide, slide_layout_
 
     @pytest.fixture
-    def name_fixture(self):
-        sld_cxml = 'p:sld/p:cSld{name=Foobar}'
-        base_slide = Slide(element(sld_cxml), None)
-        return base_slide, 'Foobar'
-
-    @pytest.fixture
     def placeholders_fixture(self, SlidePlaceholders_, placeholders_):
         sld = element('p:sld/p:cSld/p:spTree')
         slide = Slide(sld, None)
@@ -127,6 +121,10 @@ class DescribeSlide(object):
         slide_id = 256
         slide_part_.slide_id = slide_id
         return slide, slide_id
+
+    @pytest.fixture
+    def subclass_fixture(self):
+        return Slide(None, None)
 
     # fixture components -----------------------------------
 

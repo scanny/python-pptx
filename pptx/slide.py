@@ -39,16 +39,12 @@ class _BaseSlide(PartElementProxy):
         self._element.cSld.name = new_value
 
 
-class Slide(PartElementProxy):
+class Slide(_BaseSlide):
     """
     Slide object. Provides access to shapes and slide-level properties.
     """
-    @property
-    def name(self):
-        """
-        Internal name of this slide.
-        """
-        return self._element.cSld.name
+
+    __slots__ = ('_placeholders', '_shapes')
 
     @lazyproperty
     def placeholders(self):
