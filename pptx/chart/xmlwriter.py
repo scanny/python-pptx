@@ -580,6 +580,89 @@ class _DoughnutChartXmlWriter(_BaseChartXmlWriter):
     Provides specialized methods particular to the ``<c:doughnutChart>``
     element.
     """
+    @property
+    def xml(self):
+        return (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:date1904 val="0"/>\n'
+            '  <c:roundedCorners val="0"/>\n'
+            '  <c:chart>\n'
+            '    <c:autoTitleDeleted val="0"/>\n'
+            '    <c:plotArea>\n'
+            '      <c:layout/>\n'
+            '      <c:doughnutChart>\n'
+            '        <c:varyColors val="1"/>\n'
+            '{ser_xml}'
+            '        <c:dLbls>\n'
+            '          <c:showLegendKey val="0"/>\n'
+            '          <c:showVal val="0"/>\n'
+            '          <c:showCatName val="0"/>\n'
+            '          <c:showSerName val="0"/>\n'
+            '          <c:showPercent val="0"/>\n'
+            '          <c:showBubbleSize val="0"/>\n'
+            '          <c:showLeaderLines val="1"/>\n'
+            '        </c:dLbls>\n'
+            '        <c:firstSliceAng val="0"/>\n'
+            '        <c:holeSize val="50"/>\n'
+            '      </c:doughnutChart>\n'
+            '    </c:plotArea>\n'
+            '    <c:legend>\n'
+            '      <c:legendPos val="r"/>\n'
+            '      <c:layout/>\n'
+            '      <c:overlay val="0"/>\n'
+            '    </c:legend>\n'
+            '    <c:plotVisOnly val="1"/>\n'
+            '    <c:dispBlanksAs val="gap"/>\n'
+            '    <c:showDLblsOverMax val="0"/>\n'
+            '  </c:chart>\n'
+            '  <c:txPr>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr>\n'
+            '        <a:defRPr sz="1800"/>\n'
+            '      </a:pPr>\n'
+            '      <a:endParaRPr/>\n'
+            '    </a:p>\n'
+            '  </c:txPr>\n'
+            '</c:chartSpace>\n'
+        ).format(**{
+            'ser_xml':      self._ser_xml,
+        })
+
+    @property
+    def _explosion_xml(self):
+        if self._chart_type == XL_CHART_TYPE.DOUGHNUT_EXPLODED:
+            return '          <c:explosion val="25"/>\n'
+        return ''
+
+    @property
+    def _ser_xml(self):
+        xml = ''
+        for series in self._chart_data:
+            xml_writer = _CategorySeriesXmlWriter(series)
+            xml += (
+                '        <c:ser>\n'
+                '          <c:idx val="{ser_idx}"/>\n'
+                '          <c:order val="{ser_order}"/>\n'
+                '{tx_xml}'
+                '{explosion_xml}'
+                '{cat_xml}'
+                '{val_xml}'
+                '        </c:ser>\n'
+            ).format(**{
+                'ser_idx':       series.index,
+                'ser_order':     series.index,
+                'tx_xml':        xml_writer.tx_xml,
+                'explosion_xml': self._explosion_xml,
+                'cat_xml':       xml_writer.cat_xml,
+                'val_xml':       xml_writer.val_xml,
+            })
+        return xml
 
 
 class _LineChartXmlWriter(_BaseChartXmlWriter):

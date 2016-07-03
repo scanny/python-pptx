@@ -222,6 +222,27 @@ class Describe_BubbleChartXmlWriter(object):
         return xml_writer, expected_xml
 
 
+class Describe_DoughnutChartXmlWriter(object):
+
+    def it_can_generate_xml_for_doughnut_type_charts(self, xml_fixture):
+        xml_writer, expected_xml = xml_fixture
+        assert xml_writer.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('DOUGHNUT',          3, 2, '3x2-doughnut'),
+        ('DOUGHNUT_EXPLODED', 3, 2, '3x2-doughnut-exploded'),
+    ])
+    def xml_fixture(self, request):
+        enum_member, cat_count, ser_count, snippet_name = request.param
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        chart_data = make_category_chart_data(cat_count, ser_count)
+        xml_writer = _DoughnutChartXmlWriter(chart_type, chart_data)
+        expected_xml = snippet_text(snippet_name)
+        return xml_writer, expected_xml
+
+
 class Describe_LineChartXmlWriter(object):
 
     def it_can_generate_xml_for_a_line_chart(self, xml_fixture):
