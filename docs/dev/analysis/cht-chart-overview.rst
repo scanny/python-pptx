@@ -2,32 +2,176 @@
 Charts - Overview
 =================
 
-* category and series data is arranged in columns
-  
-  + rows = data-points/series+1
+Adding a new chart - steps and tests
+------------------------------------
 
-What does the MS API look like?
+1. Analysis - add chart type page with schema for each new chart element and
+   see if there's anything distinctive about the chart type series
 
-Axis Members
-http://msdn.microsoft.com/en-us/library/office/ff745187.aspx
+2. feature/sld-add-chart .. add new chart types, steps/chart.py
 
-* loading one in to manipulate it is outside current scope. Current scope is
-  to add one to a new .pptx file
+3. pptx/chart/xmlwriter.py add new type to ChartXmlWriter
 
-Notes
------
+4. pptx/chart/xmlwriter.py add _AreaChartXmlWriter, one per new element type
 
-<c:layoutTarget> is not valid within c:chart/c:legend/c:layout. Probably only
-for laying out the chart proper or whatever.
+5. pptx/chart/series.py add AreaSeries, one per new element type
 
 
-Object graph
-------------
+There are 73 different possible chart types, but only 16 distinct XML
+chart-type elements. The implementation effort is largely proportional to the
+number of new XML chart-type elements.
 
-* Chart
+Here is an accounting of the implementation status of the 73 chart types:
 
-  + CategoryAxis(BaseAxis)
-  + ValueAxis(BaseAxis)
+
+24 - supported for creation so far
+++++++++++++++++++++++++++++++++++
+
+barChart
+~~~~~~~~
+
+* BAR_CLUSTERED
+* BAR_STACKED
+* BAR_STACKED_100
+* COLUMN_CLUSTERED
+* COLUMN_STACKED
+* COLUMN_STACKED_100
+
+bubbleChart
+~~~~~~~~~~~
+
+* BUBBLE
+* BUBBLE_THREE_D_EFFECT
+
+lineChart
+~~~~~~~~~
+
+* LINE
+* LINE_MARKERS
+* LINE_MARKERS_STACKED
+* LINE_MARKERS_STACKED_100
+* LINE_STACKED
+* LINE_STACKED_100
+
+pieChart
+~~~~~~~~
+
+* PIE
+* PIE_EXPLODED
+
+radarChart
+~~~~~~~~~~
+
+* RADAR
+* RADAR_FILLED
+* RADAR_MARKERS
+
+scatterChart
+~~~~~~~~~~~~
+
+* XY_SCATTER
+* XY_SCATTER_LINES
+* XY_SCATTER_LINES_NO_MARKERS
+* XY_SCATTER_SMOOTH
+* XY_SCATTER_SMOOTH_NO_MARKERS
+
+5 current candidates for implementation:
+++++++++++++++++++++++++++++++++++++++++
+
+areaChart
+~~~~~~~~~
+
+* AREA
+* AREA_STACKED
+* AREA_STACKED_100
+
+doughnutChart
+~~~~~~~~~~~~~
+
+* DOUGHNUT
+* DOUGHNUT_EXPLODED
+
+44 remaining:
++++++++++++++
+
+area3DChart
+~~~~~~~~~~~
+
+* THREE_D_AREA
+* THREE_D_AREA_STACKED
+* THREE_D_AREA_STACKED_100
+
+bar3DChart (28 types)
+~~~~~~~~~~~~~~~~~~~~~
+
+* THREE_D_BAR_CLUSTERED
+* THREE_D_BAR_STACKED
+* THREE_D_BAR_STACKED_100
+* THREE_D_COLUMN
+* THREE_D_COLUMN_CLUSTERED
+* THREE_D_COLUMN_STACKED
+* THREE_D_COLUMN_STACKED_100
+
+* CONE_BAR_CLUSTERED
+* CONE_BAR_STACKED
+* CONE_BAR_STACKED_100
+* CONE_COL
+* CONE_COL_CLUSTERED
+* CONE_COL_STACKED
+* CONE_COL_STACKED_100
+
+* CYLINDER_BAR_CLUSTERED
+* CYLINDER_BAR_STACKED
+* CYLINDER_BAR_STACKED_100
+* CYLINDER_COL
+* CYLINDER_COL_CLUSTERED
+* CYLINDER_COL_STACKED
+* CYLINDER_COL_STACKED_100
+
+* PYRAMID_BAR_CLUSTERED
+* PYRAMID_BAR_STACKED
+* PYRAMID_BAR_STACKED_100
+* PYRAMID_COL
+* PYRAMID_COL_CLUSTERED
+* PYRAMID_COL_STACKED
+* PYRAMID_COL_STACKED_100
+
+line3DChart
+~~~~~~~~~~~
+
+* THREE_D_LINE
+
+pie3DChart
+~~~~~~~~~~
+
+* THREE_D_PIE
+* THREE_D_PIE_EXPLODED
+
+ofPieChart
+~~~~~~~~~~
+
+* BAR_OF_PIE
+* PIE_OF_PIE
+
+stockChart
+~~~~~~~~~~
+
+* STOCK_HLC
+* STOCK_OHLC
+* STOCK_VHLC
+* STOCK_VOHLC
+
+surfaceChart
+~~~~~~~~~~~~
+
+* SURFACE
+* SURFACE_WIREFRAME
+
+surface3DChart
+~~~~~~~~~~~~~~
+
+* SURFACE_TOP_VIEW
+* SURFACE_TOP_VIEW_WIREFRAME
 
 
 Chart parts glossary
@@ -156,649 +300,6 @@ Chart types
   + radar
 
 
-XML specimens
--------------
-
-.. highlight:: xml
-
-Containing ``<p:graphicFrame>`` in shape tree::
-
-    <p:graphicFrame>
-      <p:nvGraphicFramePr>
-        <p:cNvPr id="7" name="Chart Placeholder 4"/>
-        <p:cNvGraphicFramePr>
-          <a:graphicFrameLocks noGrp="1"/>
-        </p:cNvGraphicFramePr>
-        <p:nvPr>
-          <p:ph sz="quarter" idx="23"/>
-          <p:custDataLst>
-            <p:tags r:id="rId1"/>
-          </p:custDataLst>
-          <p:extLst>
-            <p:ext uri="{D42A27DB-BD31-4B8C-83A1-F6EECF244321}">
-              <p14:modId xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"
-                         val="4163776498"/>
-            </p:ext>
-          </p:extLst>
-        </p:nvPr>
-      </p:nvGraphicFramePr>
-      <p:xfrm>
-        <a:off x="142874" y="1502410"/>
-        <a:ext cx="8838000" cy="4320000"/>
-      </p:xfrm>
-      <a:graphic>
-        <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">
-          <c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"
-                   xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-                   r:id="rId5"/>
-        </a:graphicData>
-      </a:graphic>
-    </p:graphicFrame>
-
-
-Pie Chart::
-
-  <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
-  <c:chartSpace
-      xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
-      xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"
-      xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-      >
-    <c:date1904 val="0"/>
-    <c:lang val="en-US"/>
-    <c:roundedCorners val="0"/>
-    <mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
-      <mc:Choice xmlns:c14="http://schemas.microsoft.com/office/drawing/2007/8/2/chart" Requires="c14">
-        <c14:style val="102"/>
-      </mc:Choice>
-      <mc:Fallback>
-        <c:style val="2"/>
-      </mc:Fallback>
-    </mc:AlternateContent>
-    <c:chart>
-      <c:autoTitleDeleted val="1"/>
-      <c:plotArea>
-        <c:layout/>
-        <c:pieChart>
-          <c:varyColors val="1"/>
-          <c:ser>
-            <c:idx val="0"/>
-            <c:order val="0"/>
-            <c:tx>
-              <c:strRef>
-                <c:f>Sheet1!$A$2</c:f>
-                <c:strCache>
-                  <c:ptCount val="1"/>
-                  <c:pt idx="0">
-                    <c:v>Base</c:v>
-                  </c:pt>
-                </c:strCache>
-              </c:strRef>
-            </c:tx>
-            <c:dLbls>
-              <c:numFmt formatCode="0%" sourceLinked="0"/>
-              <c:spPr>
-                <a:noFill/>
-                <a:ln>
-                  <a:noFill/>
-                </a:ln>
-                <a:effectLst/>
-              </c:spPr>
-              <c:txPr>
-                <a:bodyPr/>
-                <a:lstStyle/>
-                <a:p>
-                  <a:pPr>
-                    <a:defRPr sz="1000"/>
-                  </a:pPr>
-                  <a:endParaRPr lang="en-US"/>
-                </a:p>
-              </c:txPr>
-              <c:dLblPos val="outEnd"/>
-              <c:showLegendKey val="0"/>
-              <c:showVal val="1"/>
-              <c:showCatName val="0"/>
-              <c:showSerName val="0"/>
-              <c:showPercent val="0"/>
-              <c:showBubbleSize val="0"/>
-              <c:showLeaderLines val="1"/>
-              <c:extLst xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                        xmlns:c14="http://schemas.microsoft.com/office/drawing/2007/8/2/chart"
-                        xmlns:c15="http://schemas.microsoft.com/office/drawing/2012/chart">
-                <c:ext xmlns:c15="http://schemas.microsoft.com/office/drawing/2012/chart"
-                       uri="{CE6537A1-D6FC-4f65-9D91-7224C49458BB}"/>
-              </c:extLst>
-            </c:dLbls>
-            <c:cat>
-              <c:strRef>
-                <c:f>Sheet1!$B$1:$F$1</c:f>
-                <c:strCache>
-                  <c:ptCount val="5"/>
-                  <c:pt idx="0">
-                    <c:v>Très probable</c:v>
-                  </c:pt>
-                  <c:pt idx="1">
-                    <c:v>Plutôt probable</c:v>
-                  </c:pt>
-                  <c:pt idx="2">
-                    <c:v>Plutôt improbable</c:v>
-                  </c:pt>
-                  <c:pt idx="3">
-                    <c:v>Très improbable</c:v>
-                  </c:pt>
-                  <c:pt idx="4">
-                    <c:v>Je ne sais pas</c:v>
-                  </c:pt>
-                </c:strCache>
-              </c:strRef>
-            </c:cat>
-            <c:val>
-              <c:numRef>
-                <c:f>Sheet1!$B$2:$F$2</c:f>
-                <c:numCache>
-                  <c:formatCode>0.00%</c:formatCode>
-                  <c:ptCount val="5"/>
-                  <c:pt idx="0">
-                    <c:v>0.1348</c:v>
-                  </c:pt>
-                  <c:pt idx="1">
-                    <c:v>0.3238</c:v>
-                  </c:pt>
-                  <c:pt idx="2">
-                    <c:v>0.1803</c:v>
-                  </c:pt>
-                  <c:pt idx="3">
-                    <c:v>0.2349</c:v>
-                  </c:pt>
-                  <c:pt idx="4">
-                    <c:v>0.1262</c:v>
-                  </c:pt>
-                </c:numCache>
-              </c:numRef>
-            </c:val>
-          </c:ser>
-          <c:dLbls>
-            <c:dLblPos val="outEnd"/>
-            <c:showLegendKey val="0"/>
-            <c:showVal val="1"/>
-            <c:showCatName val="0"/>
-            <c:showSerName val="0"/>
-            <c:showPercent val="0"/>
-            <c:showBubbleSize val="0"/>
-            <c:showLeaderLines val="1"/>
-          </c:dLbls>
-          <c:firstSliceAng val="0"/>
-        </c:pieChart>
-      </c:plotArea>
-      <c:legend>
-        <c:legendPos val="b"/>
-        <c:layout/>
-        <c:overlay val="0"/>
-        <c:txPr>
-          <a:bodyPr/>
-          <a:lstStyle/>
-          <a:p>
-            <a:pPr>
-              <a:defRPr sz="1000"/>
-            </a:pPr>
-            <a:endParaRPr lang="en-US"/>
-          </a:p>
-        </c:txPr>
-      </c:legend>
-      <c:plotVisOnly val="1"/>
-      <c:dispBlanksAs val="gap"/>
-      <c:showDLblsOverMax val="0"/>
-    </c:chart>
-    <c:txPr>
-      <a:bodyPr/>
-      <a:lstStyle/>
-      <a:p>
-        <a:pPr>
-          <a:defRPr sz="1800"/>
-        </a:pPr>
-        <a:endParaRPr lang="en-US"/>
-      </a:p>
-    </c:txPr>
-    <c:externalData r:id="rId1">
-      <c:autoUpdate val="0"/>
-    </c:externalData>
-  </c:chartSpace>
-
-
-single series line chart::
-
-  <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
-  <c:chartSpace
-      xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
-      xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"
-      xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-      >
-    <c:date1904 val="0"/>
-    <c:lang val="en-US"/>
-    <c:roundedCorners val="0"/>
-    <mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
-      <mc:Choice xmlns:c14="http://schemas.microsoft.com/office/drawing/2007/8/2/chart" Requires="c14">
-        <c14:style val="102"/>
-      </mc:Choice>
-      <mc:Fallback>
-        <c:style val="2"/>
-      </mc:Fallback>
-    </mc:AlternateContent>
-    <c:chart>
-      <c:autoTitleDeleted val="1"/>
-      <c:plotArea>
-        <c:layout/>
-        <c:lineChart>
-          <c:grouping val="standard"/>
-          <c:varyColors val="0"/>
-          <c:ser>
-            <c:idx val="0"/>
-            <c:order val="0"/>
-            <c:tx>
-              <c:strRef>
-                <c:f>Sheet1!$A$2</c:f>
-                <c:strCache>
-                  <c:ptCount val="1"/>
-                  <c:pt idx="0">
-                    <c:v>Base</c:v>
-                  </c:pt>
-                </c:strCache>
-              </c:strRef>
-            </c:tx>
-            <c:marker>
-              <c:symbol val="none"/>
-            </c:marker>
-            <c:dLbls>
-              <c:numFmt formatCode="General" sourceLinked="0"/>
-              <c:spPr>
-                <a:noFill/>
-                <a:ln>
-                  <a:noFill/>
-                </a:ln>
-                <a:effectLst/>
-              </c:spPr>
-              <c:txPr>
-                <a:bodyPr/>
-                <a:lstStyle/>
-                <a:p>
-                  <a:pPr>
-                    <a:defRPr sz="1000"/>
-                  </a:pPr>
-                  <a:endParaRPr lang="en-US"/>
-                </a:p>
-              </c:txPr>
-              <c:showLegendKey val="0"/>
-              <c:showVal val="1"/>
-              <c:showCatName val="0"/>
-              <c:showSerName val="0"/>
-              <c:showPercent val="0"/>
-              <c:showBubbleSize val="0"/>
-              <c:showLeaderLines val="0"/>
-              <c:extLst xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                        xmlns:c14="http://schemas.microsoft.com/office/drawing/2007/8/2/chart"
-                        xmlns:c15="http://schemas.microsoft.com/office/drawing/2012/chart">
-                <c:ext xmlns:c15="http://schemas.microsoft.com/office/drawing/2012/chart"
-                       uri="{CE6537A1-D6FC-4f65-9D91-7224C49458BB}">
-                  <c15:layout/>
-                  <c15:showLeaderLines val="0"/>
-                </c:ext>
-              </c:extLst>
-            </c:dLbls>
-            <c:cat>
-              <c:strRef>
-                <c:f>Sheet1!$B$1:$F$1</c:f>
-                <c:strCache>
-                  <c:ptCount val="5"/>
-                  <c:pt idx="0">
-                    <c:v>Très probable</c:v>
-                  </c:pt>
-                  <c:pt idx="1">
-                    <c:v>Plutôt probable</c:v>
-                  </c:pt>
-                  <c:pt idx="2">
-                    <c:v>Plutôt improbable</c:v>
-                  </c:pt>
-                  <c:pt idx="3">
-                    <c:v>Très improbable</c:v>
-                  </c:pt>
-                  <c:pt idx="4">
-                    <c:v>Je ne sais pas</c:v>
-                  </c:pt>
-                </c:strCache>
-              </c:strRef>
-            </c:cat>
-            <c:val>
-              <c:numRef>
-                <c:f>Sheet1!$B$2:$F$2</c:f>
-                <c:numCache>
-                  <c:formatCode>0</c:formatCode>
-                  <c:ptCount val="5"/>
-                  <c:pt idx="0">
-                    <c:v>19.0</c:v>
-                  </c:pt>
-                  <c:pt idx="1">
-                    <c:v>13.0</c:v>
-                  </c:pt>
-                  <c:pt idx="2">
-                    <c:v>10.0</c:v>
-                  </c:pt>
-                  <c:pt idx="3">
-                    <c:v>46.0</c:v>
-                  </c:pt>
-                  <c:pt idx="4">
-                    <c:v>12.0</c:v>
-                  </c:pt>
-                </c:numCache>
-              </c:numRef>
-            </c:val>
-            <c:smooth val="0"/>
-          </c:ser>
-          <c:dLbls>
-            <c:showLegendKey val="0"/>
-            <c:showVal val="1"/>
-            <c:showCatName val="0"/>
-            <c:showSerName val="0"/>
-            <c:showPercent val="0"/>
-            <c:showBubbleSize val="0"/>
-          </c:dLbls>
-          <c:marker val="1"/>
-          <c:smooth val="0"/>
-          <c:axId val="-2097691448"/>
-          <c:axId val="-2097683336"/>
-        </c:lineChart>
-        <c:catAx>
-          <c:axId val="-2097691448"/>
-          <c:scaling>
-            <c:orientation val="minMax"/>
-          </c:scaling>
-          <c:delete val="0"/>
-          <c:axPos val="b"/>
-          <c:numFmt formatCode="General" sourceLinked="0"/>
-          <c:majorTickMark val="out"/>
-          <c:minorTickMark val="none"/>
-          <c:tickLblPos val="nextTo"/>
-          <c:txPr>
-            <a:bodyPr/>
-            <a:lstStyle/>
-            <a:p>
-              <a:pPr>
-                <a:defRPr sz="1000"/>
-              </a:pPr>
-              <a:endParaRPr lang="en-US"/>
-            </a:p>
-          </c:txPr>
-          <c:crossAx val="-2097683336"/>
-          <c:crosses val="autoZero"/>
-          <c:auto val="1"/>
-          <c:lblAlgn val="ctr"/>
-          <c:lblOffset val="100"/>
-          <c:noMultiLvlLbl val="0"/>
-        </c:catAx>
-        <c:valAx>
-          <c:axId val="-2097683336"/>
-          <c:scaling>
-            <c:orientation val="minMax"/>
-            <c:max val="100.0"/>
-          </c:scaling>
-          <c:delete val="0"/>
-          <c:axPos val="l"/>
-          <c:majorGridlines/>
-          <c:numFmt formatCode="0&quot;%&quot;" sourceLinked="0"/>
-          <c:majorTickMark val="out"/>
-          <c:minorTickMark val="none"/>
-          <c:tickLblPos val="nextTo"/>
-          <c:txPr>
-            <a:bodyPr/>
-            <a:lstStyle/>
-            <a:p>
-              <a:pPr>
-                <a:defRPr sz="1000" b="1"/>
-              </a:pPr>
-              <a:endParaRPr lang="en-US"/>
-            </a:p>
-          </c:txPr>
-          <c:crossAx val="-2097691448"/>
-          <c:crosses val="autoZero"/>
-          <c:crossBetween val="between"/>
-        </c:valAx>
-      </c:plotArea>
-      <c:plotVisOnly val="1"/>
-      <c:dispBlanksAs val="gap"/>
-      <c:showDLblsOverMax val="0"/>
-    </c:chart>
-    <c:txPr>
-      <a:bodyPr/>
-      <a:lstStyle/>
-      <a:p>
-        <a:pPr>
-          <a:defRPr sz="1800"/>
-        </a:pPr>
-        <a:endParaRPr lang="en-US"/>
-      </a:p>
-    </c:txPr>
-    <c:externalData r:id="rId1">
-      <c:autoUpdate val="0"/>
-    </c:externalData>
-  </c:chartSpace>
-
-
-simple column chart::
-
-  <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
-  <c:chartSpace
-      xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
-      xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"
-      xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-      >
-    <c:date1904 val="0"/>
-    <c:lang val="en-US"/>
-    <c:roundedCorners val="0"/>
-    <mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
-      <mc:Choice xmlns:c14="http://schemas.microsoft.com/office/drawing/2007/8/2/chart"
-                 Requires="c14">
-        <c14:style val="102"/>
-      </mc:Choice>
-      <mc:Fallback>
-        <c:style val="2"/>
-      </mc:Fallback>
-    </mc:AlternateContent>
-    <c:chart>
-      <c:autoTitleDeleted val="1"/>
-      <c:plotArea>
-        <c:layout/>
-        <c:barChart>
-          <c:barDir val="col"/>
-          <c:grouping val="clustered"/>
-          <c:varyColors val="0"/>
-          <c:ser>
-            <c:idx val="0"/>
-            <c:order val="0"/>
-            <c:tx>
-              <c:strRef>
-                <c:f>Sheet1!$A$2</c:f>
-                <c:strCache>
-                  <c:ptCount val="1"/>
-                  <c:pt idx="0">
-                    <c:v>Base</c:v>
-                  </c:pt>
-                </c:strCache>
-              </c:strRef>
-            </c:tx>
-            <c:invertIfNegative val="0"/>
-            <c:dLbls>
-              <c:numFmt formatCode="General" sourceLinked="0"/>
-              <c:spPr>
-                <a:noFill/>
-                <a:ln>
-                  <a:noFill/>
-                </a:ln>
-                <a:effectLst/>
-              </c:spPr>
-              <c:txPr>
-                <a:bodyPr/>
-                <a:lstStyle/>
-                <a:p>
-                  <a:pPr>
-                    <a:defRPr sz="1000"/>
-                  </a:pPr>
-                  <a:endParaRPr lang="en-US"/>
-                </a:p>
-              </c:txPr>
-              <c:dLblPos val="outEnd"/>
-              <c:showLegendKey val="0"/>
-              <c:showVal val="1"/>
-              <c:showCatName val="0"/>
-              <c:showSerName val="0"/>
-              <c:showPercent val="0"/>
-              <c:showBubbleSize val="0"/>
-              <c:showLeaderLines val="0"/>
-              <c:extLst xmlns:c15="http://schemas.microsoft.com/office/drawing/2012/chart"
-                        xmlns:c14="http://schemas.microsoft.com/office/drawing/2007/8/2/chart"
-                        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
-                <c:ext xmlns:c15="http://schemas.microsoft.com/office/drawing/2012/chart"
-                       uri="{CE6537A1-D6FC-4f65-9D91-7224C49458BB}">
-                  <c15:layout/>
-                  <c15:showLeaderLines val="0"/>
-                </c:ext>
-              </c:extLst>
-            </c:dLbls>
-            <c:cat>
-              <c:strRef>
-                <c:f>Sheet1!$B$1:$F$1</c:f>
-                <c:strCache>
-                  <c:ptCount val="5"/>
-                  <c:pt idx="0">
-                    <c:v>Très probable</c:v>
-                  </c:pt>
-                  <c:pt idx="1">
-                    <c:v>Plutôt probable</c:v>
-                  </c:pt>
-                  <c:pt idx="2">
-                    <c:v>Plutôt improbable</c:v>
-                  </c:pt>
-                  <c:pt idx="3">
-                    <c:v>Très improbable</c:v>
-                  </c:pt>
-                  <c:pt idx="4">
-                    <c:v>Je ne sais pas</c:v>
-                  </c:pt>
-                </c:strCache>
-              </c:strRef>
-            </c:cat>
-            <c:val>
-              <c:numRef>
-                <c:f>Sheet1!$B$2:$F$2</c:f>
-                <c:numCache>
-                  <c:formatCode>0</c:formatCode>
-                  <c:ptCount val="5"/>
-                  <c:pt idx="0">
-                    <c:v>19.0</c:v>
-                  </c:pt>
-                  <c:pt idx="1">
-                    <c:v>13.0</c:v>
-                  </c:pt>
-                  <c:pt idx="2">
-                    <c:v>10.0</c:v>
-                  </c:pt>
-                  <c:pt idx="3">
-                    <c:v>46.0</c:v>
-                  </c:pt>
-                  <c:pt idx="4">
-                    <c:v>12.0</c:v>
-                  </c:pt>
-                </c:numCache>
-              </c:numRef>
-            </c:val>
-          </c:ser>
-          <c:dLbls>
-            <c:dLblPos val="outEnd"/>
-            <c:showLegendKey val="0"/>
-            <c:showVal val="1"/>
-            <c:showCatName val="0"/>
-            <c:showSerName val="0"/>
-            <c:showPercent val="0"/>
-            <c:showBubbleSize val="0"/>
-          </c:dLbls>
-          <c:gapWidth val="150"/>
-          <c:axId val="-2053894120"/>
-          <c:axId val="-2053699928"/>
-        </c:barChart>
-        <c:catAx>
-          <c:axId val="-2053894120"/>
-          <c:scaling>
-            <c:orientation val="minMax"/>
-          </c:scaling>
-          <c:delete val="0"/>
-          <c:axPos val="b"/>
-          <c:numFmt formatCode="General" sourceLinked="0"/>
-          <c:majorTickMark val="out"/>
-          <c:minorTickMark val="none"/>
-          <c:tickLblPos val="nextTo"/>
-          <c:txPr>
-            <a:bodyPr/>
-            <a:lstStyle/>
-            <a:p>
-              <a:pPr>
-                <a:defRPr sz="1000"/>
-              </a:pPr>
-              <a:endParaRPr lang="en-US"/>
-            </a:p>
-          </c:txPr>
-          <c:crossAx val="-2053699928"/>
-          <c:crosses val="autoZero"/>
-          <c:auto val="1"/>
-          <c:lblAlgn val="ctr"/>
-          <c:lblOffset val="100"/>
-          <c:noMultiLvlLbl val="0"/>
-        </c:catAx>
-        <c:valAx>
-          <c:axId val="-2053699928"/>
-          <c:scaling>
-            <c:orientation val="minMax"/>
-            <c:max val="100.0"/>
-          </c:scaling>
-          <c:delete val="0"/>
-          <c:axPos val="l"/>
-          <c:majorGridlines/>
-          <c:numFmt formatCode="0&quot;%&quot;" sourceLinked="0"/>
-          <c:majorTickMark val="out"/>
-          <c:minorTickMark val="none"/>
-          <c:tickLblPos val="nextTo"/>
-          <c:txPr>
-            <a:bodyPr/>
-            <a:lstStyle/>
-            <a:p>
-              <a:pPr>
-                <a:defRPr sz="1000" b="1"/>
-              </a:pPr>
-              <a:endParaRPr lang="en-US"/>
-            </a:p>
-          </c:txPr>
-          <c:crossAx val="-2053894120"/>
-          <c:crosses val="autoZero"/>
-          <c:crossBetween val="between"/>
-        </c:valAx>
-      </c:plotArea>
-      <c:plotVisOnly val="1"/>
-      <c:dispBlanksAs val="gap"/>
-      <c:showDLblsOverMax val="0"/>
-    </c:chart>
-    <c:txPr>
-      <a:bodyPr/>
-      <a:lstStyle/>
-      <a:p>
-        <a:pPr>
-          <a:defRPr sz="1800"/>
-        </a:pPr>
-        <a:endParaRPr lang="en-US"/>
-      </a:p>
-    </c:txPr>
-    <c:externalData r:id="rId1">
-      <c:autoUpdate val="0"/>
-    </c:externalData>
-  </c:chartSpace>
-
-
 Related Schema Definitions
 --------------------------
 
@@ -886,21 +387,6 @@ Related Schema Definitions
       <xsd:element name="dTable" type="CT_DTable"            minOccurs="0"/>
       <xsd:element name="spPr"   type="a:CT_ShapeProperties" minOccurs="0"/>
       <xsd:element name="extLst" type="CT_ExtensionList"     minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_BarChart">  <!-- denormalized -->
-    <xsd:sequence>
-      <xsd:element name="barDir"     type="CT_BarDir"/>
-      <xsd:element name="grouping"   type="CT_BarGrouping"   minOccurs="0"/>
-      <xsd:element name="varyColors" type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="ser"        type="CT_BarSer"        minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"      type="CT_DLbls"         minOccurs="0"/>
-      <xsd:element name="gapWidth"   type="CT_GapAmount"     minOccurs="0"/>
-      <xsd:element name="overlap"    type="CT_Overlap"       minOccurs="0"/>
-      <xsd:element name="serLines"   type="CT_ChartLines"    minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="axId"       type="CT_UnsignedInt"   minOccurs="2" maxOccurs="2"/>
-      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
@@ -1038,59 +524,6 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:group>
 
-  <xsd:complexType name="CT_LineChart">  <!-- denormalized -->
-    <xsd:sequence>
-      <xsd:element name="grouping"   type="CT_Grouping"/>
-      <xsd:element name="varyColors" type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="ser"        type="CT_LineSer"       minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"      type="CT_DLbls"         minOccurs="0"/>
-      <xsd:element name="dropLines"  type="CT_ChartLines"    minOccurs="0"/>
-      <xsd:element name="hiLowLines" type="CT_ChartLines"    minOccurs="0"/>
-      <xsd:element name="upDownBars" type="CT_UpDownBars"    minOccurs="0"/>
-      <xsd:element name="marker"     type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="smooth"     type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="axId"       type="CT_UnsignedInt"   minOccurs="2" maxOccurs="2"/>
-      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_LineSer">  <!-- denormalized -->
-    <xsd:sequence>
-      <xsd:element name="idx"       type="CT_UnsignedInt"/>
-      <xsd:element name="order"     type="CT_UnsignedInt"/>
-      <xsd:element name="tx"        type="CT_SerTx"             minOccurs="0"/>
-      <xsd:element name="spPr"      type="a:CT_ShapeProperties" minOccurs="0"/>
-      <xsd:element name="marker"    type="CT_Marker"            minOccurs="0"/>
-      <xsd:element name="dPt"       type="CT_DPt"               minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"     type="CT_DLbls"             minOccurs="0"/>
-      <xsd:element name="trendline" type="CT_Trendline"         minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="errBars"   type="CT_ErrBars"           minOccurs="0"/>
-      <xsd:element name="cat"       type="CT_AxDataSource"      minOccurs="0"/>
-      <xsd:element name="val"       type="CT_NumDataSource"     minOccurs="0"/>
-      <xsd:element name="smooth"    type="CT_Boolean"           minOccurs="0"/>
-      <xsd:element name="extLst"    type="CT_ExtensionList"     minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:complexType name="CT_BarSer">  <!-- denormalized -->
-    <xsd:sequence>
-      <xsd:element name="idx"              type="CT_UnsignedInt"/>
-      <xsd:element name="order"            type="CT_UnsignedInt"/>
-      <xsd:element name="tx"               type="CT_SerTx"             minOccurs="0"/>
-      <xsd:element name="spPr"             type="a:CT_ShapeProperties" minOccurs="0"/>
-      <xsd:element name="invertIfNegative" type="CT_Boolean"           minOccurs="0"/>
-      <xsd:element name="pictureOptions"   type="CT_PictureOptions"    minOccurs="0"/>
-      <xsd:element name="dPt"              type="CT_DPt"               minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"            type="CT_DLbls"             minOccurs="0"/>
-      <xsd:element name="trendline"        type="CT_Trendline"         minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="errBars"          type="CT_ErrBars"           minOccurs="0"/>
-      <xsd:element name="cat"              type="CT_AxDataSource"      minOccurs="0"/>
-      <xsd:element name="val"              type="CT_NumDataSource"     minOccurs="0"/>
-      <xsd:element name="shape"            type="CT_Shape"             minOccurs="0"/>
-      <xsd:element name="extLst"           type="CT_ExtensionList"     minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
   <xsd:complexType name="CT_Style">
     <xsd:attribute name="val" type="ST_Style" use="required"/>
   </xsd:complexType>
@@ -1101,16 +534,6 @@ Related Schema Definitions
       <xsd:maxInclusive value="48"/>
     </xsd:restriction>
   </xsd:simpleType>
-
-  <xsd:complexType name="CT_PieChart">  <!-- denormalized -->
-    <xsd:sequence>
-      <xsd:element name="varyColors"    type="CT_Boolean"       minOccurs="0"/>
-      <xsd:element name="ser"           type="CT_PieSer"        minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"         type="CT_DLbls"         minOccurs="0"/>
-      <xsd:element name="firstSliceAng" type="CT_FirstSliceAng" minOccurs="0"/>
-      <xsd:element name="extLst"        type="CT_ExtensionList" minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
 
   <xsd:complexType name="CT_Legend">
     <xsd:sequence>

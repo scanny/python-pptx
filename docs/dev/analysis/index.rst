@@ -28,6 +28,9 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   cht-chart-overview
+   cht-area-chart
+   cht-doughnut-chart
    cht-multilvl-cat
    cht-title
    cht-points
@@ -53,7 +56,6 @@ Chart
    cht-axes
    cht-chart-shape
    cht-chart
-   cht-chart-overview
 
 
 Shape
