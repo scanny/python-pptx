@@ -224,11 +224,14 @@ class SlideLayouts(ParentedElementProxy):
         return len(self._sldLayoutIdLst)
 
 
-class SlideMaster(PartElementProxy):
+class SlideMaster(_BaseSlide):
     """
     Slide master object. Provides access to placeholders, regular shapes,
     slide layouts, and slide master-level properties.
     """
+
+    __slots__ = ('_placeholders', '_shapes', '_slide_layouts')
+
     @lazyproperty
     def placeholders(self):
         """
