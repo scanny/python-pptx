@@ -19,11 +19,30 @@ from pptx.shapes.shapetree import (
     SlidePlaceholders, SlideShapes
 )
 from pptx.slide import (
-    Slide, SlideLayout, SlideLayouts, SlideMaster, SlideMasters, Slides
+    _BaseSlide, Slide, SlideLayout, SlideLayouts, SlideMaster, SlideMasters,
+    Slides
 )
 
 from .unitutil.cxml import element, xml
 from .unitutil.mock import call, class_mock, instance_mock, property_mock
+
+
+class Describe_BaseSlide(object):
+
+    def it_knows_its_name(self, name_get_fixture):
+        base_slide, expected_value = name_get_fixture
+        assert base_slide.name == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('p:sld/p:cSld',              ''),
+        ('p:sld/p:cSld{name=Foobar}', 'Foobar'),
+    ])
+    def name_get_fixture(self, request):
+        sld_cxml, expected_name = request.param
+        base_slide = _BaseSlide(element(sld_cxml), None)
+        return base_slide, expected_name
 
 
 class DescribeSlide(object):

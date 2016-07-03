@@ -17,6 +17,23 @@ from .shared import ParentedElementProxy, PartElementProxy
 from .util import lazyproperty
 
 
+class _BaseSlide(PartElementProxy):
+    """
+    Slide object. Provides access to shapes and slide-level properties.
+    """
+
+    __slots__ = ()
+
+    @property
+    def name(self):
+        """
+        String representing the internal name of this slide. Returns an empty
+        string (`''`) if no name is assigned. Assigning an empty string or
+        |None| to this property causes any name to be removed.
+        """
+        return self._element.cSld.name
+
+
 class Slide(PartElementProxy):
     """
     Slide object. Provides access to shapes and slide-level properties.
