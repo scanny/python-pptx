@@ -22,6 +22,9 @@ def ChartXmlWriter(chart_type, chart_data):
     XL_CT = XL_CHART_TYPE
     try:
         BuilderCls = {
+            XL_CT.AREA:                         _AreaChartXmlWriter,
+            XL_CT.AREA_STACKED:                 _AreaChartXmlWriter,
+            XL_CT.AREA_STACKED_100:             _AreaChartXmlWriter,
             XL_CT.BAR_CLUSTERED:                _BarChartXmlWriter,
             XL_CT.BAR_STACKED:                  _BarChartXmlWriter,
             XL_CT.BAR_STACKED_100:              _BarChartXmlWriter,
@@ -30,6 +33,8 @@ def ChartXmlWriter(chart_type, chart_data):
             XL_CT.COLUMN_CLUSTERED:             _BarChartXmlWriter,
             XL_CT.COLUMN_STACKED:               _BarChartXmlWriter,
             XL_CT.COLUMN_STACKED_100:           _BarChartXmlWriter,
+            XL_CT.DOUGHNUT:                     _DoughnutChartXmlWriter,
+            XL_CT.DOUGHNUT_EXPLODED:            _DoughnutChartXmlWriter,
             XL_CT.LINE:                         _LineChartXmlWriter,
             XL_CT.LINE_MARKERS:                 _LineChartXmlWriter,
             XL_CT.LINE_MARKERS_STACKED:         _LineChartXmlWriter,
@@ -286,6 +291,12 @@ class _BaseSeriesXmlRewriter(object):
             parent.remove(xChart)
 
 
+class _AreaChartXmlWriter(_BaseChartXmlWriter):
+    """
+    Provides specialized methods particular to the ``<c:areaChart>`` element.
+    """
+
+
 class _BarChartXmlWriter(_BaseChartXmlWriter):
     """
     Provides specialized methods particular to the ``<c:barChart>`` element.
@@ -443,6 +454,13 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             XL_CHART_TYPE.COLUMN_STACKED:     'l',
             XL_CHART_TYPE.COLUMN_STACKED_100: 'l',
         }[self._chart_type]
+
+
+class _DoughnutChartXmlWriter(_BaseChartXmlWriter):
+    """
+    Provides specialized methods particular to the ``<c:doughnutChart>``
+    element.
+    """
 
 
 class _LineChartXmlWriter(_BaseChartXmlWriter):

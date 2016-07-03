@@ -15,12 +15,12 @@ from pptx.chart.data import (
     CategorySeriesData, XyChartData
 )
 from pptx.chart.xmlwriter import (
-    _BarChartXmlWriter, _BaseSeriesXmlRewriter, _BubbleChartXmlWriter,
-    _BubbleSeriesXmlRewriter, _BubbleSeriesXmlWriter,
+    _AreaChartXmlWriter, _BarChartXmlWriter, _BaseSeriesXmlRewriter,
+    _BubbleChartXmlWriter, _BubbleSeriesXmlRewriter, _BubbleSeriesXmlWriter,
     _CategorySeriesXmlRewriter, _CategorySeriesXmlWriter, ChartXmlWriter,
-    _LineChartXmlWriter, _PieChartXmlWriter, _RadarChartXmlWriter,
-    SeriesXmlRewriterFactory, _XyChartXmlWriter, _XySeriesXmlRewriter,
-    _XySeriesXmlWriter
+    _DoughnutChartXmlWriter, _LineChartXmlWriter, _PieChartXmlWriter,
+    _RadarChartXmlWriter, SeriesXmlRewriterFactory, _XyChartXmlWriter,
+    _XySeriesXmlRewriter, _XySeriesXmlWriter
 )
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.oxml import parse_xml
@@ -42,6 +42,9 @@ class DescribeChartXmlWriter(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
+        ('AREA',                         _AreaChartXmlWriter),
+        ('AREA_STACKED',                 _AreaChartXmlWriter),
+        ('AREA_STACKED_100',             _AreaChartXmlWriter),
         ('BAR_CLUSTERED',                _BarChartXmlWriter),
         ('BAR_STACKED',                  _BarChartXmlWriter),
         ('BAR_STACKED_100',              _BarChartXmlWriter),
@@ -50,6 +53,8 @@ class DescribeChartXmlWriter(object):
         ('COLUMN_CLUSTERED',             _BarChartXmlWriter),
         ('COLUMN_STACKED',               _BarChartXmlWriter),
         ('COLUMN_STACKED_100',           _BarChartXmlWriter),
+        ('DOUGHNUT',                     _DoughnutChartXmlWriter),
+        ('DOUGHNUT_EXPLODED',            _DoughnutChartXmlWriter),
         ('LINE',                         _LineChartXmlWriter),
         ('LINE_MARKERS',                 _LineChartXmlWriter),
         ('LINE_MARKERS_STACKED',         _LineChartXmlWriter),
