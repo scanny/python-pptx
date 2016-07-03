@@ -33,6 +33,11 @@ class Describe_BaseSlide(object):
         base_slide, expected_value = name_get_fixture
         assert base_slide.name == expected_value
 
+    def it_can_change_its_name(self, name_set_fixture):
+        base_slide, new_value, expected_xml = name_set_fixture
+        base_slide.name = new_value
+        assert base_slide._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -43,6 +48,20 @@ class Describe_BaseSlide(object):
         sld_cxml, expected_name = request.param
         base_slide = _BaseSlide(element(sld_cxml), None)
         return base_slide, expected_name
+
+    @pytest.fixture(params=[
+        ('p:sld/p:cSld',           'foo', 'p:sld/p:cSld{name=foo}'),
+        ('p:sld/p:cSld{name=foo}', 'bar', 'p:sld/p:cSld{name=bar}'),
+        ('p:sld/p:cSld{name=bar}', '',    'p:sld/p:cSld'),
+        ('p:sld/p:cSld{name=bar}', None,  'p:sld/p:cSld'),
+        ('p:sld/p:cSld',           '',    'p:sld/p:cSld'),
+        ('p:sld/p:cSld',           None,  'p:sld/p:cSld'),
+    ])
+    def name_set_fixture(self, request):
+        xSld_cxml, new_value, expected_cxml = request.param
+        base_slide = _BaseSlide(element(xSld_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return base_slide, new_value, expected_xml
 
 
 class DescribeSlide(object):

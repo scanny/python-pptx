@@ -33,6 +33,11 @@ class _BaseSlide(PartElementProxy):
         """
         return self._element.cSld.name
 
+    @name.setter
+    def name(self, value):
+        new_value = '' if value is None else value
+        self._element.cSld.name = new_value
+
 
 class Slide(PartElementProxy):
     """
