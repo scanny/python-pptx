@@ -79,9 +79,15 @@ class CT_AreaChart(BaseChartElement):
     """
     ``<c:areaChart>`` element.
     """
-    grouping = ZeroOrOne('c:grouping', successors=(
-        'c:varyColors', 'c:ser', 'c:dLbls', 'c:dropLines', 'c:axId'
-    ))
+    _tag_seq = (
+        'c:grouping', 'c:varyColors', 'c:ser', 'c:dLbls', 'c:dropLines',
+        'c:axId', 'c:extLst'
+    )
+    grouping = ZeroOrOne('c:grouping', successors=_tag_seq[1:])
+    varyColors = ZeroOrOne('c:varyColors', successors=_tag_seq[2:])
+    ser = ZeroOrMore('c:ser', successors=_tag_seq[3:])
+    dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[4:])
+    del _tag_seq
 
 
 class CT_BarChart(BaseChartElement):
@@ -144,6 +150,20 @@ class CT_BubbleScale(BaseChartElement):
     ``<c:bubbleScale>`` custom element class
     """
     val = OptionalAttribute('val', ST_BubbleScale, default=100)
+
+
+class CT_DoughnutChart(BaseChartElement):
+    """
+    ``<c:doughnutChart>`` element.
+    """
+    _tag_seq = (
+        'c:varyColors', 'c:ser', 'c:dLbls', 'c:firstSliceAng', 'c:holeSize',
+        'c:extLst'
+    )
+    varyColors = ZeroOrOne('c:varyColors', successors=_tag_seq[1:])
+    ser = ZeroOrMore('c:ser', successors=_tag_seq[2:])
+    dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[3:])
+    del _tag_seq
 
 
 class CT_GapAmount(BaseOxmlElement):

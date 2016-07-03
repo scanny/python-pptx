@@ -383,12 +383,14 @@ class Describe_SeriesFactory(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('c:barChart/c:ser',     'BarSeries'),
-        ('c:bubbleChart/c:ser',  'BubbleSeries'),
-        ('c:lineChart/c:ser',    'LineSeries'),
-        ('c:pieChart/c:ser',     'PieSeries'),
-        ('c:radarChart/c:ser',   'RadarSeries'),
-        ('c:scatterChart/c:ser', 'XySeries'),
+        ('c:areaChart/c:ser',     'AreaSeries'),
+        ('c:barChart/c:ser',      'BarSeries'),
+        ('c:bubbleChart/c:ser',   'BubbleSeries'),
+        ('c:doughnutChart/c:ser', 'PieSeries'),
+        ('c:lineChart/c:ser',     'LineSeries'),
+        ('c:pieChart/c:ser',      'PieSeries'),
+        ('c:radarChart/c:ser',    'RadarSeries'),
+        ('c:scatterChart/c:ser',  'XySeries'),
     ])
     def call_fixture(self, request):
         xChart_cxml, cls_name = request.param

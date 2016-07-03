@@ -59,6 +59,12 @@ class _BaseSeries(object):
         return tuple(iter_values())
 
 
+class AreaSeries(_BaseSeries):
+    """
+    A data point series belonging to an area plot.
+    """
+
+
 class BarSeries(_BaseSeries):
     """
     A data point series belonging to a bar plot.
@@ -232,12 +238,14 @@ def _SeriesFactory(ser):
 
     try:
         SeriesCls = {
-            qn('c:barChart'):     BarSeries,
-            qn('c:bubbleChart'):  BubbleSeries,
-            qn('c:lineChart'):    LineSeries,
-            qn('c:pieChart'):     PieSeries,
-            qn('c:radarChart'):   RadarSeries,
-            qn('c:scatterChart'): XySeries,
+            qn('c:areaChart'):     AreaSeries,
+            qn('c:barChart'):      BarSeries,
+            qn('c:bubbleChart'):   BubbleSeries,
+            qn('c:doughnutChart'): PieSeries,
+            qn('c:lineChart'):     LineSeries,
+            qn('c:pieChart'):      PieSeries,
+            qn('c:radarChart'):    RadarSeries,
+            qn('c:scatterChart'):  XySeries,
         }[xChart_tag]
     except KeyError:
         raise NotImplementedError(
