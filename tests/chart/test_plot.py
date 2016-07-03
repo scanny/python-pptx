@@ -11,7 +11,8 @@ import pytest
 from pptx.chart.chart import Chart
 from pptx.chart.plot import (
     _BasePlot, AreaPlot, Area3DPlot, BarPlot, BubblePlot, DataLabels,
-    LinePlot, PiePlot, PlotFactory, PlotTypeInspector, RadarPlot, XyPlot
+    DoughnutPlot, LinePlot, PiePlot, PlotFactory, PlotTypeInspector,
+    RadarPlot, XyPlot
 )
 from pptx.chart.series import SeriesCollection
 from pptx.enum.chart import XL_CHART_TYPE as XL
@@ -320,14 +321,15 @@ class DescribePlotFactory(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('c:areaChart',    AreaPlot),
-        ('c:area3DChart',  Area3DPlot),
-        ('c:barChart',     BarPlot),
-        ('c:bubbleChart',  BubblePlot),
-        ('c:lineChart',    LinePlot),
-        ('c:pieChart',     PiePlot),
-        ('c:radarChart',   RadarPlot),
-        ('c:scatterChart', XyPlot),
+        ('c:areaChart',     AreaPlot),
+        ('c:area3DChart',   Area3DPlot),
+        ('c:barChart',      BarPlot),
+        ('c:bubbleChart',   BubblePlot),
+        ('c:doughnutChart', DoughnutPlot),
+        ('c:lineChart',     LinePlot),
+        ('c:pieChart',      PiePlot),
+        ('c:radarChart',    RadarPlot),
+        ('c:scatterChart',  XyPlot),
     ])
     def call_fixture(self, request, chart_):
         xChart_cxml, PlotCls = request.param
