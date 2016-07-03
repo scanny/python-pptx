@@ -389,6 +389,9 @@ class DescribePlotTypeInspector(object):
         ('c:barChart/(c:barDir{val=bar},c:grouping{val=percentStacked})',
          XL.BAR_STACKED_100),
 
+        ('c:doughnutChart',                           XL.DOUGHNUT),
+        ('c:doughnutChart/c:ser/c:explosion{val=25}', XL.DOUGHNUT_EXPLODED),
+
         ('c:lineChart',                          XL.LINE_MARKERS),
         ('c:lineChart/c:grouping',               XL.LINE_MARKERS),
         ('c:lineChart/c:grouping{val=standard}', XL.LINE_MARKERS),

@@ -258,14 +258,15 @@ class PlotTypeInspector(object):
         """
         try:
             chart_type_method = {
-                'AreaPlot':   cls._differentiate_area_chart_type,
-                'Area3DPlot': cls._differentiate_area_3d_chart_type,
-                'BarPlot':    cls._differentiate_bar_chart_type,
-                'BubblePlot': cls._differentiate_bubble_chart_type,
-                'LinePlot':   cls._differentiate_line_chart_type,
-                'PiePlot':    cls._differentiate_pie_chart_type,
-                'RadarPlot':  cls._differentiate_radar_chart_type,
-                'XyPlot':     cls._differentiate_xy_chart_type,
+                'AreaPlot':     cls._differentiate_area_chart_type,
+                'Area3DPlot':   cls._differentiate_area_3d_chart_type,
+                'BarPlot':      cls._differentiate_bar_chart_type,
+                'BubblePlot':   cls._differentiate_bubble_chart_type,
+                'DoughnutPlot': cls._differentiate_doughnut_chart_type,
+                'LinePlot':     cls._differentiate_line_chart_type,
+                'PiePlot':      cls._differentiate_pie_chart_type,
+                'RadarPlot':    cls._differentiate_radar_chart_type,
+                'XyPlot':       cls._differentiate_xy_chart_type,
             }[plot.__class__.__name__]
         except KeyError:
             raise NotImplementedError(
@@ -323,6 +324,12 @@ class PlotTypeInspector(object):
         if bubble3D.val:
             return XL.BUBBLE_THREE_D_EFFECT
         return XL.BUBBLE
+
+    @classmethod
+    def _differentiate_doughnut_chart_type(cls, plot):
+        doughnutChart = plot._element
+        explosion = doughnutChart.xpath('./c:ser/c:explosion')
+        return XL.DOUGHNUT_EXPLODED if explosion else XL.DOUGHNUT
 
     @classmethod
     def _differentiate_line_chart_type(cls, plot):
