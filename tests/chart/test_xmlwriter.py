@@ -130,6 +130,28 @@ class DescribeSeriesXmlRewriterFactory(object):
         return instance_mock(request, _BaseChartData)
 
 
+class Describe_AreaChartXmlWriter(object):
+
+    def it_can_generate_xml_for_area_type_charts(self, xml_fixture):
+        xml_writer, expected_xml = xml_fixture
+        assert xml_writer.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('AREA',             2, 2, '2x2-area'),
+        ('AREA_STACKED',     2, 2, '2x2-area-stacked'),
+        ('AREA_STACKED_100', 2, 2, '2x2-area-stacked-100'),
+    ])
+    def xml_fixture(self, request):
+        enum_member, cat_count, ser_count, snippet_name = request.param
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        chart_data = make_category_chart_data(cat_count, ser_count)
+        xml_writer = _AreaChartXmlWriter(chart_type, chart_data)
+        expected_xml = snippet_text(snippet_name)
+        return xml_writer, expected_xml
+
+
 class Describe_BarChartXmlWriter(object):
 
     def it_can_generate_xml_for_bar_type_charts(self, xml_fixture):

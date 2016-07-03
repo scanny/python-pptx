@@ -295,6 +295,125 @@ class _AreaChartXmlWriter(_BaseChartXmlWriter):
     """
     Provides specialized methods particular to the ``<c:areaChart>`` element.
     """
+    @property
+    def xml(self):
+        return (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n'
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:date1904 val="0"/>\n'
+            '  <c:roundedCorners val="0"/>\n'
+            '  <c:chart>\n'
+            '    <c:autoTitleDeleted val="0"/>\n'
+            '    <c:plotArea>\n'
+            '      <c:layout/>\n'
+            '      <c:areaChart>\n'
+            '{grouping_xml}'
+            '        <c:varyColors val="0"/>\n'
+            '{ser_xml}'
+            '        <c:dLbls>\n'
+            '          <c:showLegendKey val="0"/>\n'
+            '          <c:showVal val="0"/>\n'
+            '          <c:showCatName val="0"/>\n'
+            '          <c:showSerName val="0"/>\n'
+            '          <c:showPercent val="0"/>\n'
+            '          <c:showBubbleSize val="0"/>\n'
+            '        </c:dLbls>\n'
+            '        <c:axId val="-2101159928"/>\n'
+            '        <c:axId val="-2100718248"/>\n'
+            '      </c:areaChart>\n'
+            '      <c:catAx>\n'
+            '        <c:axId val="-2101159928"/>\n'
+            '        <c:scaling>\n'
+            '          <c:orientation val="minMax"/>\n'
+            '        </c:scaling>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2100718248"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:auto val="1"/>\n'
+            '        <c:lblAlgn val="ctr"/>\n'
+            '        <c:lblOffset val="100"/>\n'
+            '        <c:noMultiLvlLbl val="0"/>\n'
+            '      </c:catAx>\n'
+            '      <c:valAx>\n'
+            '        <c:axId val="-2100718248"/>\n'
+            '        <c:scaling>\n'
+            '          <c:orientation val="minMax"/>\n'
+            '        </c:scaling>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="l"/>\n'
+            '        <c:majorGridlines/>\n'
+            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2101159928"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:crossBetween val="midCat"/>\n'
+            '      </c:valAx>\n'
+            '    </c:plotArea>\n'
+            '    <c:legend>\n'
+            '      <c:legendPos val="r"/>\n'
+            '      <c:layout/>\n'
+            '      <c:overlay val="0"/>\n'
+            '    </c:legend>\n'
+            '    <c:plotVisOnly val="1"/>\n'
+            '    <c:dispBlanksAs val="zero"/>\n'
+            '    <c:showDLblsOverMax val="0"/>\n'
+            '  </c:chart>\n'
+            '  <c:txPr>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr>\n'
+            '        <a:defRPr sz="1800"/>\n'
+            '      </a:pPr>\n'
+            '      <a:endParaRPr/>\n'
+            '    </a:p>\n'
+            '  </c:txPr>\n'
+            '</c:chartSpace>\n'
+        ).format(**{
+            'grouping_xml': self._grouping_xml,
+            'ser_xml':      self._ser_xml,
+        })
+
+    @property
+    def _grouping_xml(self):
+        val = {
+            XL_CHART_TYPE.AREA:             'standard',
+            XL_CHART_TYPE.AREA_STACKED:     'stacked',
+            XL_CHART_TYPE.AREA_STACKED_100: 'percentStacked',
+        }[self._chart_type]
+        return '        <c:grouping val="%s"/>\n' % val
+
+    @property
+    def _ser_xml(self):
+        xml = ''
+        for series in self._chart_data:
+            xml_writer = _CategorySeriesXmlWriter(series)
+            xml += (
+                '        <c:ser>\n'
+                '          <c:idx val="{ser_idx}"/>\n'
+                '          <c:order val="{ser_order}"/>\n'
+                '{tx_xml}'
+                '{cat_xml}'
+                '{val_xml}'
+                '        </c:ser>\n'
+            ).format(**{
+                'ser_idx':    series.index,
+                'ser_order':  series.index,
+                'tx_xml':     xml_writer.tx_xml,
+                'cat_xml':    xml_writer.cat_xml,
+                'val_xml':    xml_writer.val_xml,
+            })
+        return xml
 
 
 class _BarChartXmlWriter(_BaseChartXmlWriter):
