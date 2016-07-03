@@ -433,12 +433,17 @@ def when_I_add_a_clustered_bar_chart_with_multi_level_categories(context):
 @when('I add a {kind} chart with {cats} categories and {sers} series')
 def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
     chart_type = {
+        'Area':                      XL_CHART_TYPE.AREA,
+        'Stacked Area':              XL_CHART_TYPE.AREA_STACKED,
+        '100% Stacked Area':         XL_CHART_TYPE.AREA_STACKED_100,
         'Clustered Bar':             XL_CHART_TYPE.BAR_CLUSTERED,
         'Stacked Bar':               XL_CHART_TYPE.BAR_STACKED,
         '100% Stacked Bar':          XL_CHART_TYPE.BAR_STACKED_100,
         'Clustered Column':          XL_CHART_TYPE.COLUMN_CLUSTERED,
         'Stacked Column':            XL_CHART_TYPE.COLUMN_STACKED,
         '100% Stacked Column':       XL_CHART_TYPE.COLUMN_STACKED_100,
+        'Doughnut':                  XL_CHART_TYPE.DOUGHNUT,
+        'Exploded Doughnut':         XL_CHART_TYPE.DOUGHNUT_EXPLODED,
         'Line':                      XL_CHART_TYPE.LINE,
         'Line with Markers':         XL_CHART_TYPE.LINE_MARKERS,
         'Line Markers Stacked':      XL_CHART_TYPE.LINE_MARKERS_STACKED,

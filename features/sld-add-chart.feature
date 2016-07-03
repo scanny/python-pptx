@@ -4,6 +4,7 @@ Feature: Add a chart
   I need a way to add a chart to a slide, specifying its type and data
 
 
+  @wip
   Scenario Outline: Add a category chart
     Given a blank slide
      When I add a <type> chart with <cats> categories and <sers> series
@@ -15,12 +16,17 @@ Feature: Add a chart
 
     Examples: Chart specs
       | type                      | chart-type               | cats | sers |
+      | Area                      | AREA                     |   3  |   3  |
+      | Stacked Area              | AREA_STACKED             |   3  |   3  |
+      | 100% Stacked Area         | AREA_STACKED_100         |   3  |   3  |
       | Clustered Bar             | BAR_CLUSTERED            |   3  |   3  |
       | Stacked Bar               | BAR_STACKED              |   3  |   3  |
       | 100% Stacked Bar          | BAR_STACKED_100          |   3  |   3  |
       | Clustered Column          | COLUMN_CLUSTERED         |   3  |   3  |
       | Stacked Column            | COLUMN_STACKED           |   3  |   3  |
       | 100% Stacked Column       | COLUMN_STACKED_100       |   3  |   3  |
+      | Doughnut                  | DOUGHNUT                 |   5  |   1  |
+      | Exploded Doughnut         | DOUGHNUT_EXPLODED        |   5  |   1  |
       | Line                      | LINE                     |   3  |   2  |
       | Line with Markers         | LINE_MARKERS             |   3  |   2  |
       | Line Markers Stacked      | LINE_MARKERS_STACKED     |   3  |   2  |
