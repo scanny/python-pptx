@@ -15,6 +15,36 @@ a chart, it also has the same method for accessing the series of a plot
 (ChartGroup in MS API).
 
 
+Properties
+----------
+
+Series.points
+~~~~~~~~~~~~~
+
+Perhaps counterintuitively, a Point object does not provide access to all the
+attributes one might think. It only provides access to attributes of the
+visual representation of the point in that chart, such as the color, datum
+label, or marker. It does not provide access to the data point values, such
+as the Y value or the bubble size.
+
+Surface charts do not have a distinct data point representation (rather just
+an inflection in the surface. So series of surface charts will not have the
+.points member. Since surface charts are not yet implemented, this will come
+into play sometime later.
+
+Note that bubble and XY have a different way of organizing their data points
+so have a distinct implementation from that of category charts.
+
+**Implementation notes:**
+
+* Introduce _BaseCategorySeries and subclass all category series types from
+  it. Add tests to test inheritance. No acceptance test since this is
+  internals-only.
+
+* It's possible the only requirement is to create CategoryPoints. The rest of
+  the implementation might work all on its own. Better spike it and see.
+
+
 Protocol
 --------
 
@@ -150,15 +180,6 @@ Related Schema Definitions
 --------------------------
 
 ::
-
-  <xsd:group name="EG_SerShared">
-    <xsd:sequence>
-      <xsd:element name="idx"   type="CT_UnsignedInt"/>
-      <xsd:element name="order" type="CT_UnsignedInt"/>
-      <xsd:element name="tx"    type="CT_SerTx"             minOccurs="0"/>
-      <xsd:element name="spPr"  type="a:CT_ShapeProperties" minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:group>
 
   <xsd:complexType name="CT_AreaSer">  <!-- denormalized -->
     <xsd:sequence>

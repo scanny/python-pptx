@@ -235,57 +235,85 @@ Related Schema Definitions
 
 ::
 
-  <xsd:complexType name="CT_BarChart">
+  <!-- implemented chart types -->
+
+  <xsd:complexType name="CT_AreaChart">  <!-- denormalized -->
     <xsd:sequence>
-      <xsd:group    ref="EG_BarChartShared"/>
-      <xsd:element name="gapWidth" type="CT_GapAmount"     minOccurs="0"/>
-      <xsd:element name="overlap"  type="CT_Overlap"       minOccurs="0"/>
-      <xsd:element name="serLines" type="CT_ChartLines"    minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="axId"     type="CT_UnsignedInt"   minOccurs="2" maxOccurs="2"/>
-      <xsd:element name="extLst"   type="CT_ExtensionList" minOccurs="0"/>
+      <xsd:element name="grouping"   type="CT_Grouping"      minOccurs="0"/>
+      <xsd:element name="varyColors" type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"        type="CT_AreaSer"       minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"      type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="dropLines"  type="CT_ChartLines"    minOccurs="0"/>
+      <xsd:element name="axId"       type="CT_UnsignedInt"   minOccurs="2" maxOccurs="2"/>
+      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_Bar3DChart">
-    <xsd:sequence>
-      <xsd:group    ref="EG_BarChartShared"/>
-      <xsd:element name="gapWidth" type="CT_GapAmount"     minOccurs="0"/>
-      <xsd:element name="gapDepth" type="CT_GapAmount"     minOccurs="0"/>
-      <xsd:element name="shape"    type="CT_Shape"         minOccurs="0"/>
-      <xsd:element name="axId"     type="CT_UnsignedInt"   minOccurs="2" maxOccurs="3"/>
-      <xsd:element name="extLst"   type="CT_ExtensionList" minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:group name="EG_BarChartShared">
+  <xsd:complexType name="CT_BarChart">  <!-- denormalized -->
     <xsd:sequence>
       <xsd:element name="barDir"     type="CT_BarDir"/>
-      <xsd:element name="grouping"   type="CT_BarGrouping" minOccurs="0"/>
-      <xsd:element name="varyColors" type="CT_Boolean"     minOccurs="0"/>
-      <xsd:element name="ser"        type="CT_BarSer"      minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="dLbls"      type="CT_DLbls"       minOccurs="0"/>
+      <xsd:element name="grouping"   type="CT_BarGrouping"   minOccurs="0"/>
+      <xsd:element name="varyColors" type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"        type="CT_BarSer"        minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"      type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="gapWidth"   type="CT_GapAmount"     minOccurs="0"/>
+      <xsd:element name="overlap"    type="CT_Overlap"       minOccurs="0"/>
+      <xsd:element name="serLines"   type="CT_ChartLines"    minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="axId"       type="CT_UnsignedInt"   minOccurs="2" maxOccurs="2"/>
+      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
     </xsd:sequence>
-  </xsd:group>
+  </xsd:complexType>
 
-  <xsd:simpleType name="ST_BarGrouping">
-    <xsd:restriction base="xsd:string">
-      <xsd:enumeration value="percentStacked"/>
-      <xsd:enumeration value="clustered"/>
-      <xsd:enumeration value="standard"/>
-      <xsd:enumeration value="stacked"/>
-    </xsd:restriction>
-  </xsd:simpleType>
+  <xsd:complexType name="CT_BubbleChart">
+    <xsd:sequence>
+      <xsd:element name="varyColors"     type="CT_Boolean"        minOccurs="0"/>
+      <xsd:element name="ser"            type="CT_BubbleSer"      minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"          type="CT_DLbls"          minOccurs="0"/>
+      <xsd:element name="bubble3D"       type="CT_Boolean"        minOccurs="0"/>
+      <xsd:element name="bubbleScale"    type="CT_BubbleScale"    minOccurs="0"/>
+      <xsd:element name="showNegBubbles" type="CT_Boolean"        minOccurs="0"/>
+      <xsd:element name="sizeRepresents" type="CT_SizeRepresents" minOccurs="0"/>
+      <xsd:element name="axId"           type="CT_UnsignedInt"    minOccurs="2" maxOccurs="2"/>
+      <xsd:element name="extLst"         type="CT_ExtensionList"  minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
 
-  <xsd:simpleType name="ST_Shape">
-    <xsd:restriction base="xsd:string">
-      <xsd:enumeration value="cone"/>
-      <xsd:enumeration value="coneToMax"/>
-      <xsd:enumeration value="box"/>
-      <xsd:enumeration value="cylinder"/>
-      <xsd:enumeration value="pyramid"/>
-      <xsd:enumeration value="pyramidToMax"/>
-    </xsd:restriction>
-  </xsd:simpleType>
+  <xsd:complexType name="CT_DoughnutChart">  <!-- denormalized -->
+    <xsd:sequence>
+      <xsd:element name="varyColors"    type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"           type="CT_PieSer"        minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"         type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="firstSliceAng" type="CT_FirstSliceAng" minOccurs="0"/>
+      <xsd:element name="holeSize"      type="CT_HoleSize"      minOccurs="0"/>
+      <xsd:element name="extLst"        type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_LineChart">  <!-- denormalized -->
+    <xsd:sequence>
+      <xsd:element name="grouping"   type="CT_Grouping"/>
+      <xsd:element name="varyColors" type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"        type="CT_LineSer"       minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"      type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="dropLines"  type="CT_ChartLines"    minOccurs="0"/>
+      <xsd:element name="hiLowLines" type="CT_ChartLines"    minOccurs="0"/>
+      <xsd:element name="upDownBars" type="CT_UpDownBars"    minOccurs="0"/>
+      <xsd:element name="marker"     type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="smooth"     type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="axId"       type="CT_UnsignedInt"   minOccurs="2" maxOccurs="2"/>
+      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_PieChart">  <!-- denormalized -->
+    <xsd:sequence>
+      <xsd:element name="varyColors"    type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"           type="CT_PieSer"        minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"         type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="firstSliceAng" type="CT_FirstSliceAng" minOccurs="0"/>
+      <xsd:element name="extLst"        type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
 
   <xsd:complexType name="CT_RadarChart">
     <xsd:sequence>
@@ -298,18 +326,6 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_RadarStyle">
-    <xsd:attribute name="val" type="ST_RadarStyle" default="standard"/>
-  </xsd:complexType>
-
-  <xsd:simpleType name="ST_RadarStyle">
-    <xsd:restriction base="xsd:string">
-      <xsd:enumeration value="standard"/>
-      <xsd:enumeration value="marker"/>
-      <xsd:enumeration value="filled"/>
-    </xsd:restriction>
-  </xsd:simpleType>
-
   <xsd:complexType name="CT_ScatterChart">
     <xsd:sequence>
       <xsd:element name="scatterStyle" type="CT_ScatterStyle"/>
@@ -321,20 +337,73 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:complexType name="CT_ScatterStyle">
-    <xsd:attribute name="val" type="ST_ScatterStyle" default="marker"/>
+
+  <!-- not-yet-implemented chart types -->
+
+  <xsd:complexType name="CT_Area3DChart">  <!-- denormalized -->
+    <xsd:sequence>
+      <xsd:element name="grouping"   type="CT_Grouping"      minOccurs="0"/>
+      <xsd:element name="varyColors" type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"        type="CT_AreaSer"       minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"      type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="dropLines"  type="CT_ChartLines"    minOccurs="0"/>
+      <xsd:element name="gapDepth"   type="CT_GapAmount"     minOccurs="0"/>
+      <xsd:element name="axId"       type="CT_UnsignedInt"   minOccurs="2" maxOccurs="3"/>
+      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
   </xsd:complexType>
 
-  <xsd:simpleType name="ST_ScatterStyle">
-    <xsd:restriction base="xsd:string">
-      <xsd:enumeration value="none"/>
-      <xsd:enumeration value="line"/>
-      <xsd:enumeration value="lineMarker"/>
-      <xsd:enumeration value="marker"/>
-      <xsd:enumeration value="smooth"/>
-      <xsd:enumeration value="smoothMarker"/>
-    </xsd:restriction>
-  </xsd:simpleType>
+  <xsd:complexType name="CT_Bar3DChart">  <!-- denormalized -->
+    <xsd:sequence>
+      <xsd:element name="barDir"     type="CT_BarDir"/>
+      <xsd:element name="grouping"   type="CT_BarGrouping"   minOccurs="0"/>
+      <xsd:element name="varyColors" type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"        type="CT_BarSer"        minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"      type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="gapWidth"   type="CT_GapAmount"     minOccurs="0"/>
+      <xsd:element name="gapDepth"   type="CT_GapAmount"     minOccurs="0"/>
+      <xsd:element name="shape"      type="CT_Shape"         minOccurs="0"/>
+      <xsd:element name="axId"       type="CT_UnsignedInt"   minOccurs="2" maxOccurs="3"/>
+      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_Line3DChart">  <!-- denormalized -->
+    <xsd:sequence>
+      <xsd:element name="grouping"   type="CT_Grouping"/>
+      <xsd:element name="varyColors" type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"        type="CT_LineSer"       minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"      type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="dropLines"  type="CT_ChartLines"    minOccurs="0"/>
+      <xsd:element name="gapDepth"   type="CT_GapAmount"     minOccurs="0"/>
+      <xsd:element name="axId"       type="CT_UnsignedInt"   minOccurs="3" maxOccurs="3"/>
+      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_OfPieChart">  <!-- denormalized -->
+    <xsd:sequence>
+      <xsd:element name="ofPieType"     type="CT_OfPieType"/>
+      <xsd:element name="varyColors"    type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"           type="CT_PieSer"        minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"         type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="gapWidth"      type="CT_GapAmount"     minOccurs="0"/>
+      <xsd:element name="splitType"     type="CT_SplitType"     minOccurs="0"/>
+      <xsd:element name="splitPos"      type="CT_Double"        minOccurs="0"/>
+      <xsd:element name="custSplit"     type="CT_CustSplit"     minOccurs="0"/>
+      <xsd:element name="secondPieSize" type="CT_SecondPieSize" minOccurs="0"/>
+      <xsd:element name="serLines"      type="CT_ChartLines"    minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="extLst"        type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+
+  <xsd:complexType name="CT_Pie3DChart">  <!-- denormalized -->
+    <xsd:sequence>
+      <xsd:element name="varyColors" type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"        type="CT_PieSer"        minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dLbls"      type="CT_DLbls"         minOccurs="0"/>
+      <xsd:element name="extLst"     type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
 
   <xsd:complexType name="CT_StockChart">
     <xsd:sequence>
@@ -350,24 +419,20 @@ Related Schema Definitions
 
   <xsd:complexType name="CT_SurfaceChart">
     <xsd:sequence>
-      <xsd:group    ref="EG_SurfaceChartShared"/>
-      <xsd:element name="axId"   type="CT_UnsignedInt"   minOccurs="2" maxOccurs="3"/>
-      <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0"/>
+      <xsd:element name="wireframe" type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"       type="CT_SurfaceSer"    minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="bandFmts"  type="CT_BandFmts"      minOccurs="0"/>
+      <xsd:element name="axId"      type="CT_UnsignedInt"   minOccurs="2" maxOccurs="3"/>
+      <xsd:element name="extLst"    type="CT_ExtensionList" minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
 
   <xsd:complexType name="CT_Surface3DChart">
     <xsd:sequence>
-      <xsd:group ref="EG_SurfaceChartShared"/>
-      <xsd:element name="axId"   type="CT_UnsignedInt"   minOccurs="3" maxOccurs="3"/>
-      <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0"/>
+      <xsd:element name="wireframe" type="CT_Boolean"       minOccurs="0"/>
+      <xsd:element name="ser"       type="CT_SurfaceSer"    minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="bandFmts"  type="CT_BandFmts"      minOccurs="0"/>
+      <xsd:element name="axId"      type="CT_UnsignedInt"   minOccurs="3" maxOccurs="3"/>
+      <xsd:element name="extLst"    type="CT_ExtensionList" minOccurs="0"/>
     </xsd:sequence>
   </xsd:complexType>
-
-  <xsd:group name="EG_SurfaceChartShared">
-    <xsd:sequence>
-      <xsd:element name="wireframe" type="CT_Boolean"    minOccurs="0"/>
-      <xsd:element name="ser"       type="CT_SurfaceSer" minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="bandFmts"  type="CT_BandFmts"   minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:group>

@@ -24,8 +24,15 @@ number of new XML chart-type elements.
 Here is an accounting of the implementation status of the 73 chart types:
 
 
-24 - supported for creation so far
+29 - supported for creation so far
 ++++++++++++++++++++++++++++++++++
+
+areaChart
+~~~~~~~~~
+
+* AREA
+* AREA_STACKED
+* AREA_STACKED_100
 
 barChart
 ~~~~~~~~
@@ -42,6 +49,12 @@ bubbleChart
 
 * BUBBLE
 * BUBBLE_THREE_D_EFFECT
+
+doughnutChart
+~~~~~~~~~~~~~
+
+* DOUGHNUT
+* DOUGHNUT_EXPLODED
 
 lineChart
 ~~~~~~~~~
@@ -74,22 +87,6 @@ scatterChart
 * XY_SCATTER_LINES_NO_MARKERS
 * XY_SCATTER_SMOOTH
 * XY_SCATTER_SMOOTH_NO_MARKERS
-
-5 current candidates for implementation:
-++++++++++++++++++++++++++++++++++++++++
-
-areaChart
-~~~~~~~~~
-
-* AREA
-* AREA_STACKED
-* AREA_STACKED_100
-
-doughnutChart
-~~~~~~~~~~~~~
-
-* DOUGHNUT
-* DOUGHNUT_EXPLODED
 
 44 remaining:
 +++++++++++++
