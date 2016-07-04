@@ -10,8 +10,9 @@ import pytest
 
 from pptx.chart.point import BubblePoints, XyPoints
 from pptx.chart.series import (
-    BarSeries, _BaseCategorySeries, _BaseSeries, BubbleSeries, LineSeries,
-    SeriesCollection, _SeriesFactory, XySeries
+    AreaSeries, BarSeries, _BaseCategorySeries, _BaseSeries, BubbleSeries,
+    LineSeries, PieSeries, RadarSeries, SeriesCollection, _SeriesFactory,
+    XySeries
 )
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
@@ -89,7 +90,24 @@ class Describe_BaseCategorySeries(object):
         return _BaseCategorySeries(None)
 
 
+class DescribeAreaSeries(object):
+
+    def it_is_a_BaseCategorySeries_subclass(self, subclass_fixture):
+        area_series = subclass_fixture
+        assert isinstance(area_series, _BaseCategorySeries)
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def subclass_fixture(self):
+        return AreaSeries(None)
+
+
 class DescribeBarSeries(object):
+
+    def it_is_a_BaseCategorySeries_subclass(self, subclass_fixture):
+        bar_series = subclass_fixture
+        assert isinstance(bar_series, _BaseCategorySeries)
 
     def it_provides_access_to_the_series_fill_format(self, fill_fixture):
         bar_series, FillFormat_, spPr, fill_ = fill_fixture
@@ -190,6 +208,10 @@ class DescribeBarSeries(object):
         expected_xml = xml('c:ser{a:foo=bar}/(c:order,c:spPr/a:ln{w=12700})')
         return bar_series, width, expected_xml
 
+    @pytest.fixture
+    def subclass_fixture(self):
+        return BarSeries(None)
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -244,6 +266,10 @@ class Describe_BubbleSeries(object):
 
 class DescribeLineSeries(object):
 
+    def it_is_a_BaseCategorySeries_subclass(self, subclass_fixture):
+        line_series = subclass_fixture
+        assert isinstance(line_series, _BaseCategorySeries)
+
     def it_knows_whether_it_should_use_curve_smoothing(
             self, smooth_get_fixture):
         series, expected_value = smooth_get_fixture
@@ -278,6 +304,36 @@ class DescribeLineSeries(object):
         series = LineSeries(element(ser_cxml))
         expected_xml = xml(expected_ser_cxml)
         return series, new_value, expected_xml
+
+    @pytest.fixture
+    def subclass_fixture(self):
+        return LineSeries(None)
+
+
+class DescribePieSeries(object):
+
+    def it_is_a_BaseCategorySeries_subclass(self, subclass_fixture):
+        pie_series = subclass_fixture
+        assert isinstance(pie_series, _BaseCategorySeries)
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def subclass_fixture(self):
+        return PieSeries(None)
+
+
+class DescribeRadarSeries(object):
+
+    def it_is_a_BaseCategorySeries_subclass(self, subclass_fixture):
+        radar_series = subclass_fixture
+        assert isinstance(radar_series, _BaseCategorySeries)
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def subclass_fixture(self):
+        return RadarSeries(None)
 
 
 class Describe_XySeries(object):

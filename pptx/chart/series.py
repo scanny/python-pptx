@@ -65,13 +65,13 @@ class _BaseCategorySeries(_BaseSeries):
     """
 
 
-class AreaSeries(_BaseSeries):
+class AreaSeries(_BaseCategorySeries):
     """
     A data point series belonging to an area plot.
     """
 
 
-class BarSeries(_BaseSeries):
+class BarSeries(_BaseCategorySeries):
     """
     A data point series belonging to a bar plot.
     """
@@ -136,7 +136,7 @@ class BarSeries(_BaseSeries):
         return spPr.ln
 
 
-class LineSeries(_BaseSeries):
+class LineSeries(_BaseCategorySeries):
     """
     A data point series belonging to a line plot.
     """
@@ -158,13 +158,13 @@ class LineSeries(_BaseSeries):
         self._element.get_or_add_smooth().val = value
 
 
-class PieSeries(_BaseSeries):
+class PieSeries(_BaseCategorySeries):
     """
     A data point series belonging to a pie plot.
     """
 
 
-class RadarSeries(_BaseSeries):
+class RadarSeries(_BaseCategorySeries):
     """
     A data point series belonging to a radar plot.
     """
