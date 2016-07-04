@@ -8,11 +8,11 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.chart.point import BubblePoints, XyPoints
+from pptx.chart.point import BubblePoints, CategoryPoints, XyPoints
 from pptx.chart.series import (
     AreaSeries, BarSeries, _BaseCategorySeries, _BaseSeries, BubbleSeries,
-    LineSeries, PieSeries, RadarSeries, SeriesCollection, _SeriesFactory,
-    XySeries
+    LineSeries, PieSeries, RadarSeries, SeriesCollection,
+    _SeriesFactory, XySeries
 )
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
@@ -55,11 +55,23 @@ class Describe_BaseCategorySeries(object):
         base_category_series = subclass_fixture
         assert isinstance(base_category_series, _BaseSeries)
 
+    def it_provides_access_to_its_points(self, points_fixture):
+        series, CategoryPoints_, ser, points_ = points_fixture
+        points = series.points
+        CategoryPoints_.assert_called_once_with(ser)
+        assert points is points_
+
     def it_knows_its_values(self, values_get_fixture):
         series, expected_value = values_get_fixture
         assert series.values == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def points_fixture(self, CategoryPoints_, points_):
+        ser = element('c:ser')
+        series = _BaseCategorySeries(ser)
+        return series, CategoryPoints_, ser, points_
 
     @pytest.fixture
     def subclass_fixture(self):
@@ -88,6 +100,18 @@ class Describe_BaseCategorySeries(object):
         ser_cxml, expected_value = request.param
         series = _BaseCategorySeries(element(ser_cxml))
         return series, expected_value
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def CategoryPoints_(self, request, points_):
+        return class_mock(
+            request, 'pptx.chart.series.CategoryPoints', return_value=points_
+        )
+
+    @pytest.fixture
+    def points_(self, request):
+        return instance_mock(request, CategoryPoints)
 
 
 class DescribeAreaSeries(object):

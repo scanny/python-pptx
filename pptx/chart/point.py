@@ -43,6 +43,14 @@ class BubblePoints(_BasePoints):
         )
 
 
+class CategoryPoints(_BasePoints):
+    """
+    Sequence providing access to individual |Point| objects, each
+    representing the visual properties of a data point in the specified
+    category series.
+    """
+
+
 class Point(object):
     """
     Provides access to the properties of an individual data point in

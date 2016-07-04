@@ -11,7 +11,7 @@ from collections import Sequence
 from ..dml.fill import FillFormat
 from ..dml.line import LineFormat
 from ..oxml.ns import qn
-from .point import BubblePoints, XyPoints
+from .point import BubblePoints, CategoryPoints, XyPoints
 from ..util import lazyproperty
 
 
@@ -48,6 +48,14 @@ class _BaseCategorySeries(_BaseSeries):
     """
     Base class for |BarSeries| and other category chart series classes.
     """
+    @lazyproperty
+    def points(self):
+        """
+        The |CategoryPoints| object providing access to individual data
+        points in this series.
+        """
+        return CategoryPoints(self._ser)
+
     @property
     def values(self):
         """
