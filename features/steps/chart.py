@@ -320,7 +320,7 @@ def given_a_points_type_object_containing_3_points(context, points_type):
 
 @given('a series of type {series_type}')
 def given_a_series_of_type_series_type(context, series_type):
-    slide_idx = {'XY': 2, 'Bubble': 3}[series_type]
+    slide_idx = {'Category': 1, 'XY': 2, 'Bubble': 3}[series_type]
     prs = Presentation(test_pptx('cht-series-props'))
     context.series = prs.slides[slide_idx].shapes[0].chart.plots[0].series[0]
 

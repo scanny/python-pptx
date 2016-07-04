@@ -70,11 +70,13 @@ Feature: Get and set series properties
       | 4.5, None, 6.7 | (4.5, None, 6.7) |
 
 
+  @wip
   Scenario Outline: Get series points
     Given a series of type <series-type>
      Then series.points is a <type-name> object
 
     Examples: series points classes
-      | series-type | type-name     |
-      | XY          | XyPoints      |
-      | Bubble      | BubblePoints  |
+      | series-type | type-name      |
+      | XY          | XyPoints       |
+      | Bubble      | BubblePoints   |
+      | Category    | CategoryPoints |
