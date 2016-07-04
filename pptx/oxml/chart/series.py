@@ -107,6 +107,17 @@ class CT_SeriesComposite(BaseOxmlElement):
             return 0
         return int(vals[0])
 
+    @property
+    def cat_ptCount_val(self):
+        """
+        Return the number of categories as reflected in the `val` attribute
+        of `./c:cat//c:ptCount`, or 0 if not present.
+        """
+        vals = self.xpath('./c:cat//c:ptCount/@val')
+        if not vals:
+            return 0
+        return int(vals[0])
+
     def get_dLbl(self, idx):
         """
         Return the `c:dLbl` element representing the label for the data point
@@ -141,7 +152,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     def xVal_ptCount_val(self):
         """
         Return the number of X values as reflected in the `val` attribute of
-        `./c:xVals/c:ptCount`, or 0 if not present.
+        `./c:xVal//c:ptCount`, or 0 if not present.
         """
         vals = self.xpath('./c:xVal//c:ptCount/@val')
         if not vals:
@@ -152,7 +163,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     def yVal_ptCount_val(self):
         """
         Return the number of Y values as reflected in the `val` attribute of
-        `./c:yVals/c:ptCount`, or 0 if not present.
+        `./c:yVal//c:ptCount`, or 0 if not present.
         """
         vals = self.xpath('./c:yVal//c:ptCount/@val')
         if not vals:

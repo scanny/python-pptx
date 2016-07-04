@@ -49,6 +49,8 @@ class CategoryPoints(_BasePoints):
     representing the visual properties of a data point in the specified
     category series.
     """
+    def __len__(self):
+        return self._ser.cat_ptCount_val
 
 
 class Point(object):

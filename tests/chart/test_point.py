@@ -11,7 +11,7 @@ from __future__ import (
 import pytest
 
 from pptx.chart.datalabel import DataLabel
-from pptx.chart.point import BubblePoints, Point, XyPoints
+from pptx.chart.point import BubblePoints, CategoryPoints, Point, XyPoints
 from pptx.dml.chtfmt import ChartFormat
 
 from ..unitutil.cxml import element, xml
@@ -82,6 +82,25 @@ class DescribeBubblePoints(object):
     def len_fixture(self, request):
         ser_cxml, expected_value = request.param
         points = BubblePoints(element(ser_cxml))
+        return points, expected_value
+
+
+class DescribeCategoryPoints(object):
+
+    def it_supports_len(self, len_fixture):
+        points, expected_value = len_fixture
+        assert len(points) == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:ser', 0),
+        ('c:ser/c:cat/c:numRef/c:numCache/c:ptCount{val=42}', 42),
+        ('c:ser/c:cat/c:numRef/c:numCache/c:ptCount{val=24}', 24),
+    ])
+    def len_fixture(self, request):
+        ser_cxml, expected_value = request.param
+        points = CategoryPoints(element(ser_cxml))
         return points, expected_value
 
 
