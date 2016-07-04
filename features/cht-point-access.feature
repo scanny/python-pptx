@@ -9,9 +9,10 @@ Feature: Access a point
      Then len(points) is 3
 
     Examples: point container types
-      | type         |
-      | XyPoints     |
-      | BubblePoints |
+      | type           |
+      | XyPoints       |
+      | BubblePoints   |
+      | CategoryPoints |
 
 
   Scenario Outline: Points.__getitem__()
@@ -19,9 +20,10 @@ Feature: Access a point
      Then points[2] is a Point object
 
     Examples: point container types
-      | type         |
-      | XyPoints     |
-      | BubblePoints |
+      | type           |
+      | XyPoints       |
+      | BubblePoints   |
+      | CategoryPoints |
 
 
   Scenario Outline: Points.__iter__()
@@ -29,6 +31,7 @@ Feature: Access a point
      Then iterating points produces 3 Point objects
 
     Examples: point container types
-      | type         |
-      | XyPoints     |
-      | BubblePoints |
+      | type           |
+      | XyPoints       |
+      | BubblePoints   |
+      | CategoryPoints |

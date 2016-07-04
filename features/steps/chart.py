@@ -312,7 +312,11 @@ def given_a_point(context):
 
 @given('a {points_type} object containing 3 points')
 def given_a_points_type_object_containing_3_points(context, points_type):
-    slide_idx = {'XyPoints': 0, 'BubblePoints': 1}[points_type]
+    slide_idx = {
+        'XyPoints':       0,
+        'BubblePoints':   1,
+        'CategoryPoints': 2,
+    }[points_type]
     prs = Presentation(test_pptx('cht-point-access'))
     series = prs.slides[slide_idx].shapes[0].chart.plots[0].series[0]
     context.points = series.points
@@ -956,7 +960,7 @@ def then_iterating_points_produces_3_point_objects(context):
     idx = -1
     for idx, point in enumerate(points):
         assert type(point).__name__ == 'Point'
-    assert idx == 2
+    assert idx == 2, 'got %s' % idx
 
 
 @then('legend.font is a Font object')
