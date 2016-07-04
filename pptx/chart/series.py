@@ -59,6 +59,12 @@ class _BaseSeries(object):
         return tuple(iter_values())
 
 
+class _BaseCategorySeries(_BaseSeries):
+    """
+    Base class for |BarSeries| and other category chart series classes.
+    """
+
+
 class AreaSeries(_BaseSeries):
     """
     A data point series belonging to an area plot.

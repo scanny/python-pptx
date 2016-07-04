@@ -10,8 +10,8 @@ import pytest
 
 from pptx.chart.point import BubblePoints, XyPoints
 from pptx.chart.series import (
-    BarSeries, _BaseSeries, BubbleSeries, LineSeries, SeriesCollection,
-    _SeriesFactory, XySeries
+    BarSeries, _BaseCategorySeries, _BaseSeries, BubbleSeries, LineSeries,
+    SeriesCollection, _SeriesFactory, XySeries
 )
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
@@ -74,6 +74,19 @@ class Describe_BaseSeries(object):
         ser_cxml, expected_value = request.param
         series = _BaseSeries(element(ser_cxml))
         return series, expected_value
+
+
+class Describe_BaseCategorySeries(object):
+
+    def it_is_a_BaseSeries_subclass(self, subclass_fixture):
+        base_category_series = subclass_fixture
+        assert isinstance(base_category_series, _BaseSeries)
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def subclass_fixture(self):
+        return _BaseCategorySeries(None)
 
 
 class DescribeBarSeries(object):
