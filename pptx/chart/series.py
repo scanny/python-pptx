@@ -43,6 +43,11 @@ class _BaseSeries(object):
         name = names[0] if names else ''
         return name
 
+
+class _BaseCategorySeries(_BaseSeries):
+    """
+    Base class for |BarSeries| and other category chart series classes.
+    """
     @property
     def values(self):
         """
@@ -57,12 +62,6 @@ class _BaseSeries(object):
                 yield val.pt_v(idx)
 
         return tuple(iter_values())
-
-
-class _BaseCategorySeries(_BaseSeries):
-    """
-    Base class for |BarSeries| and other category chart series classes.
-    """
 
 
 class AreaSeries(_BaseCategorySeries):

@@ -31,10 +31,6 @@ class Describe_BaseSeries(object):
         series, expected_value = index_fixture
         assert series.index == expected_value
 
-    def it_knows_its_values(self, values_get_fixture):
-        series, expected_value = values_get_fixture
-        assert series.values == expected_value
-
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -51,6 +47,23 @@ class Describe_BaseSeries(object):
         ser_cxml, expected_value = request.param
         series = _BaseSeries(element(ser_cxml))
         return series, expected_value
+
+
+class Describe_BaseCategorySeries(object):
+
+    def it_is_a_BaseSeries_subclass(self, subclass_fixture):
+        base_category_series = subclass_fixture
+        assert isinstance(base_category_series, _BaseSeries)
+
+    def it_knows_its_values(self, values_get_fixture):
+        series, expected_value = values_get_fixture
+        assert series.values == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def subclass_fixture(self):
+        return _BaseCategorySeries(None)
 
     @pytest.fixture(params=[
         ('c:ser',                                            ()),
@@ -73,21 +86,8 @@ class Describe_BaseSeries(object):
     ])
     def values_get_fixture(self, request):
         ser_cxml, expected_value = request.param
-        series = _BaseSeries(element(ser_cxml))
+        series = _BaseCategorySeries(element(ser_cxml))
         return series, expected_value
-
-
-class Describe_BaseCategorySeries(object):
-
-    def it_is_a_BaseSeries_subclass(self, subclass_fixture):
-        base_category_series = subclass_fixture
-        assert isinstance(base_category_series, _BaseSeries)
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def subclass_fixture(self):
-        return _BaseCategorySeries(None)
 
 
 class DescribeAreaSeries(object):
