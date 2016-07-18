@@ -322,6 +322,12 @@ def given_a_points_type_object_containing_3_points(context, points_type):
     context.points = series.points
 
 
+@given('a series')
+def given_a_series(context):
+    prs = Presentation(test_pptx('cht-series-props'))
+    context.series = prs.slides[0].shapes[0].chart.plots[0].series[0]
+
+
 @given('a series of type {series_type}')
 def given_a_series_of_type_series_type(context, series_type):
     slide_idx = {'Category': 1, 'XY': 2, 'Bubble': 3}[series_type]
@@ -1136,6 +1142,12 @@ def then_series_data_number_format_is(context, value_str):
     series_data = context.series_data
     number_format = value_str if value_str == 'General' else int(value_str)
     assert series_data.number_format == number_format
+
+
+@then('series.format is a ChartFormat object')
+def then_series_points_is_a_ChartFormat_object(context):
+    series = context.series
+    assert type(series.format).__name__ == 'ChartFormat'
 
 
 @then('series.points is a {type_name} object')
