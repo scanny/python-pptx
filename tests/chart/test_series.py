@@ -14,6 +14,7 @@ from pptx.chart.series import (
     LineSeries, PieSeries, RadarSeries, SeriesCollection,
     _SeriesFactory, XySeries
 )
+from pptx.dml.chtfmt import ChartFormat
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
 
@@ -31,7 +32,19 @@ class Describe_BaseSeries(object):
         series, expected_value = index_fixture
         assert series.index == expected_value
 
+    def it_provides_access_to_its_format(self, format_fixture):
+        series, ChartFormat_, ser, format_ = format_fixture
+        format = series.format
+        ChartFormat_.assert_called_once_with(ser)
+        assert format is format_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def format_fixture(self, ChartFormat_, chart_format_):
+        ser = element('c:ser')
+        series = _BaseSeries(ser)
+        return series, ChartFormat_, ser, chart_format_
 
     @pytest.fixture
     def index_fixture(self):
@@ -47,6 +60,19 @@ class Describe_BaseSeries(object):
         ser_cxml, expected_value = request.param
         series = _BaseSeries(element(ser_cxml))
         return series, expected_value
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ChartFormat_(self, request, chart_format_):
+        return class_mock(
+            request, 'pptx.chart.series.ChartFormat',
+            return_value=chart_format_
+        )
+
+    @pytest.fixture
+    def chart_format_(self, request):
+        return instance_mock(request, ChartFormat)
 
 
 class Describe_BaseCategorySeries(object):

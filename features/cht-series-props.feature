@@ -4,7 +4,6 @@ Feature: Get and set series properties
   I need a way to get and set series properties
 
 
-  @wip
   Scenario: Get Series.format
     Given a series
      Then series.format is a ChartFormat object

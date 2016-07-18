@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from collections import Sequence
 
+from ..dml.chtfmt import ChartFormat
 from ..dml.fill import FillFormat
 from ..dml.line import LineFormat
 from ..oxml.ns import qn
@@ -23,6 +24,14 @@ class _BaseSeries(object):
         super(_BaseSeries, self).__init__()
         self._element = ser
         self._ser = ser
+
+    @lazyproperty
+    def format(self):
+        """
+        The |ChartFormat| instance for this series, providing access to shape
+        properties such as fill and line.
+        """
+        return ChartFormat(self._ser)
 
     @property
     def index(self):
