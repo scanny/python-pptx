@@ -14,9 +14,20 @@ Although the Microsoft API has a method on Chart to access all the series in
 a chart, it also has the same method for accessing the series of a plot
 (ChartGroup in MS API).
 
+There are eight distinct series types, corresponding to major chart types.
+They all share a common base of attributes and others appear on one or more
+of the types.
+
 
 Properties
 ----------
+
+Series.format
+~~~~~~~~~~~~~
+
+All series have an optional `c:spPr` element that control the drawing shape
+properties of the series such as fill and line, including transparency and
+shadow.
 
 Series.points
 ~~~~~~~~~~~~~
