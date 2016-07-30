@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.chart.marker import Marker
 from pptx.chart.point import BubblePoints, CategoryPoints, XyPoints
 from pptx.chart.series import (
     AreaSeries, BarSeries, _BaseCategorySeries, _BaseSeries, BubbleSeries,
@@ -138,6 +139,35 @@ class Describe_BaseCategorySeries(object):
     @pytest.fixture
     def points_(self, request):
         return instance_mock(request, CategoryPoints)
+
+
+class Describe_MarkerMixin(object):
+
+    def it_provides_access_to_the_series_marker(self, marker_fixture):
+        series, Marker_, ser, marker_ = marker_fixture
+        marker = series.marker
+        Marker_.assert_called_once_with(ser)
+        assert marker is marker_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def marker_fixture(self, Marker_, marker_):
+        ser = element('c:ser')
+        series = LineSeries(ser)
+        return series, Marker_, ser, marker_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def Marker_(self, request, marker_):
+        return class_mock(
+            request, 'pptx.chart.series.Marker', return_value=marker_
+        )
+
+    @pytest.fixture
+    def marker_(self, request):
+        return instance_mock(request, Marker)
 
 
 class DescribeAreaSeries(object):

@@ -11,6 +11,7 @@ from collections import Sequence
 from ..dml.chtfmt import ChartFormat
 from ..dml.fill import FillFormat
 from ..dml.line import LineFormat
+from .marker import Marker
 from ..oxml.ns import qn
 from .point import BubblePoints, CategoryPoints, XyPoints
 from ..util import lazyproperty
@@ -86,6 +87,15 @@ class _MarkerMixin(object):
     Mixin class providing `.marker` property for line-type chart series. The
     line-type charts are Line, XY, and Radar.
     """
+    @lazyproperty
+    def marker(self):
+        """
+        The |Marker| instance for this series, providing access to data point
+        marker properties such as fill and line. Setting these properties
+        determines the appearance of markers for all points in this series
+        that are not overridden by settings at the point level.
+        """
+        return Marker(self._ser)
 
 
 class AreaSeries(_BaseCategorySeries):

@@ -9,7 +9,6 @@ Feature: Get and set series properties
      Then series.format is a ChartFormat object
 
 
-  @wip
   Scenario Outline: Get Series.marker
     Given a series of type <type>
      Then series.marker is a Marker object
