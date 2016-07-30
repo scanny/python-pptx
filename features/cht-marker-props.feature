@@ -35,7 +35,6 @@ Feature: Get and set marker properties
       | no explicit value | None  |
 
 
-  @wip
   Scenario Outline: Get Marker.style
     Given a marker having style of <shape>
      Then marker.style is <value>

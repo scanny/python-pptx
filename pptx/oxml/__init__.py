@@ -83,9 +83,10 @@ register_element_cls('c:legend',    CT_Legend)
 register_element_cls('c:legendPos', CT_LegendPos)
 
 
-from .chart.marker import CT_Marker, CT_MarkerSize
+from .chart.marker import CT_Marker, CT_MarkerSize, CT_MarkerStyle
 register_element_cls('c:marker', CT_Marker)
 register_element_cls('c:size',   CT_MarkerSize)
+register_element_cls('c:symbol', CT_MarkerStyle)
 
 
 from .chart.plot import (

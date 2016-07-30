@@ -53,3 +53,15 @@ class Marker(ElementProxy):
             return
         size = marker._add_size()
         size.val = value
+
+    @property
+    def style(self):
+        """
+        A member of the :ref:`XlMarkerStyle` enumeration indicating the shape
+        of this marker. Returns |None| if no explicit style has been set,
+        which corresponds to the "Automatic" option in the PowerPoint UI.
+        """
+        marker = self._element.marker
+        if marker is None:
+            return None
+        return marker.symbol_val

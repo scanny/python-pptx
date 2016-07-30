@@ -12,6 +12,7 @@ import pytest
 
 from pptx.chart.marker import Marker
 from pptx.dml.chtfmt import ChartFormat
+from pptx.enum.chart import XL_MARKER_STYLE
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock
@@ -27,6 +28,10 @@ class DescribeMarker(object):
         marker, value, expected_xml = size_set_fixture
         marker.size = value
         assert marker._element.xml == expected_xml
+
+    def it_knows_its_style(self, style_get_fixture):
+        marker, expected_value = style_get_fixture
+        assert marker.style == expected_value
 
     def it_provides_access_to_its_format(self, format_fixture):
         marker, ChartFormat_, _element, chart_format_, expected_xml = (
@@ -82,6 +87,19 @@ class DescribeMarker(object):
         marker = Marker(element(cxml))
         expected_xml = xml(expected_cxml)
         return marker, value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:ser',                               None),
+        ('c:ser/c:marker',                      None),
+        ('c:ser/c:marker/c:symbol{val=circle}', XL_MARKER_STYLE.CIRCLE),
+        ('c:dPt',                               None),
+        ('c:dPt/c:marker',                      None),
+        ('c:dPt/c:marker/c:symbol{val=square}', XL_MARKER_STYLE.SQUARE),
+    ])
+    def style_get_fixture(self, request):
+        cxml, expected_value = request.param
+        marker = Marker(element(cxml))
+        return marker, expected_value
 
     # fixture components ---------------------------------------------
 

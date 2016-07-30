@@ -8,6 +8,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+from ...enum.chart import XL_MARKER_STYLE
 from ..simpletypes import ST_MarkerSize
 from ..xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
 
@@ -20,6 +21,7 @@ class CT_Marker(BaseOxmlElement):
     _tag_seq = (
         'c:symbol', 'c:size', 'c:spPr', 'c:extLst'
     )
+    symbol = ZeroOrOne('c:symbol', successors=_tag_seq[1:])
     size = ZeroOrOne('c:size', successors=_tag_seq[2:])
     spPr = ZeroOrOne('c:spPr', successors=_tag_seq[3:])
     del _tag_seq
@@ -36,6 +38,17 @@ class CT_Marker(BaseOxmlElement):
             return None
         return size.val
 
+    @property
+    def symbol_val(self):
+        """
+        Return the value of `./c:symbol/@val`, specifying the shape of this
+        marker. Returns |None| if no `c:symbol` element is present.
+        """
+        symbol = self.symbol
+        if symbol is None:
+            return None
+        return symbol.val
+
 
 class CT_MarkerSize(BaseOxmlElement):
     """
@@ -43,3 +56,11 @@ class CT_MarkerSize(BaseOxmlElement):
     point marker for a line, XY, or radar chart.
     """
     val = RequiredAttribute('val', ST_MarkerSize)
+
+
+class CT_MarkerStyle(BaseOxmlElement):
+    """
+    `c:symbol` custom element class, specifying the shape of a data point
+    marker for a line, XY, or radar chart.
+    """
+    val = RequiredAttribute('val', XL_MARKER_STYLE)
