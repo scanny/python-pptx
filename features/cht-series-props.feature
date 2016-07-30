@@ -9,6 +9,18 @@ Feature: Get and set series properties
      Then series.format is a ChartFormat object
 
 
+  @wip
+  Scenario Outline: Get Series.marker
+    Given a series of type <type>
+     Then series.marker is a Marker object
+
+    Examples: Series types having .marker property
+      | type  |
+      | Line  |
+      | XY    |
+      | Radar |
+
+
   Scenario Outline: Get series fill type
     Given a bar series having fill of <fill>
      Then series.fill.type is <expected-fill-type>

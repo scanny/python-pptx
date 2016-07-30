@@ -330,7 +330,13 @@ def given_a_series(context):
 
 @given('a series of type {series_type}')
 def given_a_series_of_type_series_type(context, series_type):
-    slide_idx = {'Category': 1, 'XY': 2, 'Bubble': 3}[series_type]
+    slide_idx = {
+        'Category': 1,
+        'XY':       2,
+        'Bubble':   3,
+        'Line':     4,
+        'Radar':    5,
+    }[series_type]
     prs = Presentation(test_pptx('cht-series-props'))
     context.series = prs.slides[slide_idx].shapes[0].chart.plots[0].series[0]
 
@@ -1137,17 +1143,16 @@ def then_series_line_width_is_width(context, width):
     assert line.width == expected_width
 
 
-@then('series_data.number_format is {value_str}')
-def then_series_data_number_format_is(context, value_str):
-    series_data = context.series_data
-    number_format = value_str if value_str == 'General' else int(value_str)
-    assert series_data.number_format == number_format
-
-
 @then('series.format is a ChartFormat object')
 def then_series_points_is_a_ChartFormat_object(context):
     series = context.series
     assert type(series.format).__name__ == 'ChartFormat'
+
+
+@then('series.marker is a Marker object')
+def then_series_marker_is_a_Marker_object(context):
+    series = context.series
+    assert type(series.marker).__name__ == 'Marker'
 
 
 @then('series.points is a {type_name} object')
@@ -1161,6 +1166,13 @@ def then_series_values_is_values(context, values):
     series = context.series
     expected_values = literal_eval(values)
     assert series.values == expected_values, 'got %s' % (series.values,)
+
+
+@then('series_data.number_format is {value_str}')
+def then_series_data_number_format_is(context, value_str):
+    series_data = context.series_data
+    number_format = value_str if value_str == 'General' else int(value_str)
+    assert series_data.number_format == number_format
 
 
 @then('the chart has an Excel data worksheet')
