@@ -493,6 +493,13 @@ class ST_LineWidth(XsdInt):
             )
 
 
+class ST_MarkerSize(XsdUnsignedByte):
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 2, 72)
+
+
 class ST_Overlap(BaseIntType):
     """
     String value is an integer in range -100..100, representing a percent,

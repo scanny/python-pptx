@@ -30,3 +30,17 @@ class Marker(ElementProxy):
         """
         marker = self._element.get_or_add_marker()
         return ChartFormat(marker)
+
+    @property
+    def size(self):
+        """
+        An integer between 2 and 72 inclusive indicating the size of this
+        marker in points. A value of |None| indicates no explicit value is
+        set and the size is inherited from a higher-level setting or the
+        PowerPoint default (which may be 9). Assigning |None| removes any
+        explicitly assigned size, causing this value to be inherited.
+        """
+        marker = self._element.marker
+        if marker is None:
+            return None
+        return marker.size_val

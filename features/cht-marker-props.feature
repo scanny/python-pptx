@@ -11,7 +11,6 @@ Feature: Get and set marker properties
       And marker.format.line is a LineFormat object
 
 
-  @wip
   Scenario Outline: Get Marker.size
     Given a marker having size of <size>
      Then marker.size is <value>

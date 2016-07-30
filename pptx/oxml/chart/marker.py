@@ -8,7 +8,8 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from ..xmlchemy import BaseOxmlElement, ZeroOrOne
+from ..simpletypes import ST_MarkerSize
+from ..xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
 
 
 class CT_Marker(BaseOxmlElement):
@@ -19,5 +20,26 @@ class CT_Marker(BaseOxmlElement):
     _tag_seq = (
         'c:symbol', 'c:size', 'c:spPr', 'c:extLst'
     )
+    size = ZeroOrOne('c:size', successors=_tag_seq[2:])
     spPr = ZeroOrOne('c:spPr', successors=_tag_seq[3:])
     del _tag_seq
+
+    @property
+    def size_val(self):
+        """
+        Return the value of `./c:size/@val`, specifying the size of this
+        marker in points. Returns |None| if no `c:size` element is present or
+        its val attribute is not present.
+        """
+        size = self.size
+        if size is None:
+            return None
+        return size.val
+
+
+class CT_MarkerSize(BaseOxmlElement):
+    """
+    `c:size` custom element class, specifying the size (in points) of a data
+    point marker for a line, XY, or radar chart.
+    """
+    val = RequiredAttribute('val', ST_MarkerSize)

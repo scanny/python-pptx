@@ -19,6 +19,10 @@ from ..unitutil.mock import class_mock, instance_mock
 
 class DescribeMarker(object):
 
+    def it_knows_its_size(self, size_get_fixture):
+        marker, expected_value = size_get_fixture
+        assert marker.size == expected_value
+
     def it_provides_access_to_its_format(self, format_fixture):
         marker, ChartFormat_, _element, chart_format_, expected_xml = (
             format_fixture
@@ -42,6 +46,19 @@ class DescribeMarker(object):
         marker = Marker(_element)
         expected_xml = xml(expected_cxml)
         return marker, ChartFormat_, _element, chart_format_, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:ser',                         None),
+        ('c:ser/c:marker',                None),
+        ('c:ser/c:marker/c:size{val=24}', 24),
+        ('c:dPt',                         None),
+        ('c:dPt/c:marker',                None),
+        ('c:dPt/c:marker/c:size{val=36}', 36),
+    ])
+    def size_get_fixture(self, request):
+        cxml, expected_value = request.param
+        marker = Marker(element(cxml))
+        return marker, expected_value
 
     # fixture components ---------------------------------------------
 
