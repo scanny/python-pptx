@@ -21,7 +21,7 @@ from pptx.chart.data import (
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import (
     XL_AXIS_CROSSES, XL_CHART_TYPE, XL_DATA_LABEL_POSITION,
-    XL_LEGEND_POSITION
+    XL_LEGEND_POSITION, XL_MARKER_STYLE
 )
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
@@ -301,6 +301,37 @@ def given_a_major_gridlines(context):
     prs = Presentation(test_pptx('cht-gridlines-props'))
     axis = prs.slides[0].shapes[0].chart.value_axis
     context.gridlines = axis.major_gridlines
+
+
+@given('a marker')
+def given_a_marker(context):
+    prs = Presentation(test_pptx('cht-marker-props'))
+    series = prs.slides[0].shapes[0].chart.series[0]
+    context.marker = series.marker
+
+
+@given('a marker having size of {case}')
+def given_a_marker_having_size_of_case(context, case):
+    series_idx = {
+        'no explicit value': 0,
+        '24 points':         1,
+        '36 points':         2,
+    }[case]
+    prs = Presentation(test_pptx('cht-marker-props'))
+    series = prs.slides[0].shapes[0].chart.series[series_idx]
+    context.marker = series.marker
+
+
+@given('a marker having style of {case}')
+def given_a_marker_having_style_of_case(context, case):
+    series_idx = {
+        'no explicit value': 0,
+        'circle':            1,
+        'triangle':          2,
+    }[case]
+    prs = Presentation(test_pptx('cht-marker-props'))
+    series = prs.slides[0].shapes[0].chart.series[series_idx]
+    context.marker = series.marker
 
 
 @given('a point')
@@ -639,6 +670,18 @@ def when_I_assign_value_to_legend_include_in_layout(context, value):
 def when_I_assign_value_to_legend_position(context, value):
     enum_value = getattr(XL_LEGEND_POSITION, value)
     context.legend.position = enum_value
+
+
+@when('I assign {value} to marker.size')
+def when_I_assign_value_to_marker_size(context, value):
+    new_value = None if value == 'None' else int(value)
+    context.marker.size = new_value
+
+
+@when('I assign {value} to marker.style')
+def when_I_assign_value_to_marker_style(context, value):
+    new_value = None if value == 'None' else getattr(XL_MARKER_STYLE, value)
+    context.marker.style = new_value
 
 
 @when('I assign {value} to plot.gap_width')
@@ -1031,6 +1074,38 @@ def then_len_series_values_is_count_for_each_series(context, count):
         assert len(series.values) == expected_count
 
 
+@then('marker.format is a ChartFormat object')
+def then_marker_format_is_a_ChartFormat_object(context):
+    marker = context.marker
+    assert type(marker.format).__name__ == 'ChartFormat'
+
+
+@then('marker.format.fill is a FillFormat object')
+def then_marker_format_fill_is_a_FillFormat_object(context):
+    marker = context.marker
+    assert type(marker.format.fill).__name__ == 'FillFormat'
+
+
+@then('marker.format.line is a LineFormat object')
+def then_marker_format_line_is_a_LineFormat_object(context):
+    marker = context.marker
+    assert type(marker.format.line).__name__ == 'LineFormat'
+
+
+@then('marker.size is {case}')
+def then_marker_size_is_case(context, case):
+    expected_value = None if case == 'None' else int(case)
+    marker = context.marker
+    assert marker.size == expected_value, 'got %s' % marker.size
+
+
+@then('marker.style is {case}')
+def then_marker_style_is_case(context, case):
+    expected_value = None if case == 'None' else getattr(XL_MARKER_STYLE, case)
+    marker = context.marker
+    assert marker.style == expected_value, 'got %s' % marker.style
+
+
 @then('plot.categories contains the known category strings')
 def then_plot_categories_contains_the_known_category_strings(context):
     plot = context.plot
@@ -1150,7 +1225,7 @@ def then_series_line_width_is_width(context, width):
 
 
 @then('series.format is a ChartFormat object')
-def then_series_points_is_a_ChartFormat_object(context):
+def then_series_format_is_a_ChartFormat_object(context):
     series = context.series
     assert type(series.format).__name__ == 'ChartFormat'
 

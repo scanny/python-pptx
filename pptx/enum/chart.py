@@ -392,6 +392,64 @@ class XL_LEGEND_POSITION(XmlEnumeration):
     )
 
 
+class XL_MARKER_STYLE(XmlEnumeration):
+    """
+    Specifies the marker style for a point or series in a line chart, scatter
+    chart, or radar chart.
+
+    Example::
+
+        from pptx.enum.chart import XL_MARKER_STYLE
+
+        series.marker.style = XL_MARKER_STYLE.CIRCLE
+    """
+
+    __ms_name__ = 'XlMarkerStyle'
+
+    __url__ = (
+        'http://msdn.microsoft.com/en-us/library/office/ff197219.aspx'
+    )
+
+    __members__ = (
+        XmlMappedEnumMember(
+            'AUTOMATIC', -4105, 'auto', 'Automatic markers'
+        ),
+        XmlMappedEnumMember(
+            'CIRCLE', 8, 'circle', 'Circular markers'
+        ),
+        XmlMappedEnumMember(
+            'DASH', -4115, 'dash', 'Long bar markers'
+        ),
+        XmlMappedEnumMember(
+            'DIAMOND', 2, 'diamond', 'Diamond-shaped markers'
+        ),
+        XmlMappedEnumMember(
+            'DOT', -4118, 'dot', 'Short bar markers'
+        ),
+        XmlMappedEnumMember(
+            'NONE', -4142, 'none', 'No markers'
+        ),
+        XmlMappedEnumMember(
+            'PICTURE', -4147, 'picture', 'Picture markers'
+        ),
+        XmlMappedEnumMember(
+            'PLUS', 9, 'plus', 'Square markers with a plus sign'
+        ),
+        XmlMappedEnumMember(
+            'SQUARE', 1, 'square', 'Square markers'
+        ),
+        XmlMappedEnumMember(
+            'STAR', 5, 'star', 'Square markers with an  asterisk'
+        ),
+        XmlMappedEnumMember(
+            'TRIANGLE', 3, 'triangle', 'Triangular markers'
+        ),
+        XmlMappedEnumMember(
+            'X', -4168, 'x', 'Square markers with an X'
+        ),
+    )
+
+
 class XL_TICK_MARK(XmlEnumeration):
     """
     Specifies a type of axis tick for a chart.

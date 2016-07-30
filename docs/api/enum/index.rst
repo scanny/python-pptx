@@ -26,6 +26,7 @@ can be found here:
    XlChartType
    XlDataLabelPosition
    XlLegendPosition
+   XlMarkerStyle
    XlTickLabelPosition
    XlTickMark
 
