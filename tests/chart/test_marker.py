@@ -23,6 +23,11 @@ class DescribeMarker(object):
         marker, expected_value = size_get_fixture
         assert marker.size == expected_value
 
+    def it_can_change_its_size(self, size_set_fixture):
+        marker, value, expected_xml = size_set_fixture
+        marker.size = value
+        assert marker._element.xml == expected_xml
+
     def it_provides_access_to_its_format(self, format_fixture):
         marker, ChartFormat_, _element, chart_format_, expected_xml = (
             format_fixture
@@ -59,6 +64,24 @@ class DescribeMarker(object):
         cxml, expected_value = request.param
         marker = Marker(element(cxml))
         return marker, expected_value
+
+    @pytest.fixture(params=[
+        ('c:ser',                         42,
+         'c:ser/c:marker/c:size{val=42}'),
+        ('c:ser/c:marker',                42,
+         'c:ser/c:marker/c:size{val=42}'),
+        ('c:ser/c:marker/c:size{val=42}', 24,
+         'c:ser/c:marker/c:size{val=24}'),
+        ('c:ser/c:marker/c:size{val=24}', None,
+         'c:ser/c:marker'),
+        ('c:ser',                         None,
+         'c:ser/c:marker'),
+    ])
+    def size_set_fixture(self, request):
+        cxml, value, expected_cxml = request.param
+        marker = Marker(element(cxml))
+        expected_xml = xml(expected_cxml)
+        return marker, value, expected_xml
 
     # fixture components ---------------------------------------------
 

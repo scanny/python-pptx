@@ -44,3 +44,12 @@ class Marker(ElementProxy):
         if marker is None:
             return None
         return marker.size_val
+
+    @size.setter
+    def size(self, value):
+        marker = self._element.get_or_add_marker()
+        marker._remove_size()
+        if value is None:
+            return
+        size = marker._add_size()
+        size.val = value

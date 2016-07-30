@@ -22,7 +22,6 @@ Feature: Get and set marker properties
       | 36 points         | 36    |
 
 
-  @wip
   Scenario Outline: Set Marker.size
     Given a marker having size of <size>
      When I assign <value> to marker.size
