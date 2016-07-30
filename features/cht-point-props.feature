@@ -16,7 +16,6 @@ Feature: Get and set point properties
       And point.format.line is a LineFormat object
 
 
-  @wip
   Scenario: Get Point.marker
     Given a point
      Then point.marker is a Marker object

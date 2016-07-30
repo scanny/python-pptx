@@ -12,6 +12,7 @@ from collections import Sequence
 
 from .datalabel import DataLabel
 from ..dml.chtfmt import ChartFormat
+from .marker import Marker
 from ..util import lazyproperty
 
 
@@ -80,6 +81,16 @@ class Point(object):
         """
         dPt = self._ser.get_or_add_dPt_for_point(self._idx)
         return ChartFormat(dPt)
+
+    @lazyproperty
+    def marker(self):
+        """
+        The |Marker| instance for this point, providing access to the visual
+        properties of the data point marker, such as fill and line. Setting
+        these properties overrides any value set at the series level.
+        """
+        dPt = self._ser.get_or_add_dPt_for_point(self._idx)
+        return Marker(dPt)
 
 
 class XyPoints(_BasePoints):

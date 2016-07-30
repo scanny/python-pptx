@@ -11,6 +11,7 @@ from __future__ import (
 import pytest
 
 from pptx.chart.datalabel import DataLabel
+from pptx.chart.marker import Marker
 from pptx.chart.point import BubblePoints, CategoryPoints, Point, XyPoints
 from pptx.dml.chtfmt import ChartFormat
 
@@ -123,6 +124,12 @@ class DescribePoint(object):
         assert chart_format is chart_format_
         assert point._element.xml == expected_xml
 
+    def it_provides_access_to_its_marker(self, marker_fixture):
+        point, Marker_, dPt, marker_ = marker_fixture
+        marker = point.marker
+        Marker_.assert_called_once_with(dPt)
+        assert marker is marker_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -146,6 +153,13 @@ class DescribePoint(object):
         expected_xml = xml(expected_cxml)
         return point, ChartFormat_, ser, chart_format_, expected_xml
 
+    @pytest.fixture
+    def marker_fixture(self, Marker_, marker_):
+        ser = element('c:ser/c:dPt/c:idx{val=42}')
+        point = Point(ser, 42)
+        dPt = ser[0]
+        return point, Marker_, dPt, marker_
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -168,6 +182,16 @@ class DescribePoint(object):
     @pytest.fixture
     def data_label_(self, request):
         return instance_mock(request, DataLabel)
+
+    @pytest.fixture
+    def Marker_(self, request, marker_):
+        return class_mock(
+            request, 'pptx.chart.point.Marker', return_value=marker_
+        )
+
+    @pytest.fixture
+    def marker_(self, request):
+        return instance_mock(request, Marker)
 
 
 class DescribeXyPoints(object):
