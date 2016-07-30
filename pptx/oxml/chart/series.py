@@ -23,6 +23,7 @@ class CT_DPt(BaseOxmlElement):
         'c:explosion', 'c:spPr', 'c:pictureOptions', 'c:extLst'
     )
     idx = OneAndOnlyOne('c:idx')
+    marker = ZeroOrOne('c:marker', successors=_tag_seq[3:])
     spPr = ZeroOrOne('c:spPr', successors=_tag_seq[6:])
     del _tag_seq
 
@@ -86,6 +87,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     invertIfNegative = ZeroOrOne(
         'c:invertIfNegative', successors=_tag_seq[5:]
     )
+    marker = ZeroOrOne('c:marker', successors=_tag_seq[7:])
     dPt = ZeroOrMore('c:dPt', successors=_tag_seq[9:])
     dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[10:])
     cat = ZeroOrOne('c:cat', successors=_tag_seq[13:])

@@ -4,7 +4,6 @@ Feature: Get and set marker properties
   I need a way to get and set marker properties
 
 
-  @wip
   Scenario: Get Marker.format
     Given a marker
      Then marker.format is a ChartFormat object

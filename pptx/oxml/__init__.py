@@ -83,6 +83,10 @@ register_element_cls('c:legend',    CT_Legend)
 register_element_cls('c:legendPos', CT_LegendPos)
 
 
+from .chart.marker import CT_Marker
+register_element_cls('c:marker', CT_Marker)
+
+
 from .chart.plot import (
     CT_Area3DChart, CT_AreaChart, CT_BarChart, CT_BarDir, CT_BubbleChart,
     CT_BubbleScale, CT_DoughnutChart, CT_GapAmount, CT_Grouping,
