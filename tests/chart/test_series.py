@@ -11,7 +11,7 @@ import pytest
 from pptx.chart.point import BubblePoints, CategoryPoints, XyPoints
 from pptx.chart.series import (
     AreaSeries, BarSeries, _BaseCategorySeries, _BaseSeries, BubbleSeries,
-    LineSeries, PieSeries, RadarSeries, SeriesCollection,
+    LineSeries, _MarkerMixin, PieSeries, RadarSeries, SeriesCollection,
     _SeriesFactory, XySeries
 )
 from pptx.dml.chtfmt import ChartFormat
@@ -320,6 +320,10 @@ class DescribeLineSeries(object):
         line_series = subclass_fixture
         assert isinstance(line_series, _BaseCategorySeries)
 
+    def it_uses__MarkerMixin(self, subclass_fixture):
+        line_series = subclass_fixture
+        assert isinstance(line_series, _MarkerMixin)
+
     def it_knows_whether_it_should_use_curve_smoothing(
             self, smooth_get_fixture):
         series, expected_value = smooth_get_fixture
@@ -379,6 +383,10 @@ class DescribeRadarSeries(object):
         radar_series = subclass_fixture
         assert isinstance(radar_series, _BaseCategorySeries)
 
+    def it_uses__MarkerMixin(self, subclass_fixture):
+        line_series = subclass_fixture
+        assert isinstance(line_series, _MarkerMixin)
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -387,6 +395,10 @@ class DescribeRadarSeries(object):
 
 
 class Describe_XySeries(object):
+
+    def it_uses__MarkerMixin(self, subclass_fixture):
+        line_series = subclass_fixture
+        assert isinstance(line_series, _MarkerMixin)
 
     def it_provides_access_to_its_points(self, points_fixture):
         series, XyPoints_, ser, points_ = points_fixture
@@ -405,6 +417,10 @@ class Describe_XySeries(object):
         ser = element('c:ser')
         series = XySeries(ser)
         return series, XyPoints_, ser, points_
+
+    @pytest.fixture
+    def subclass_fixture(self):
+        return XySeries(None)
 
     @pytest.fixture(params=[
         ('c:ser', ()),

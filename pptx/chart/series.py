@@ -81,6 +81,13 @@ class _BaseCategorySeries(_BaseSeries):
         return tuple(iter_values())
 
 
+class _MarkerMixin(object):
+    """
+    Mixin class providing `.marker` property for line-type chart series. The
+    line-type charts are Line, XY, and Radar.
+    """
+
+
 class AreaSeries(_BaseCategorySeries):
     """
     A data point series belonging to an area plot.
@@ -152,7 +159,7 @@ class BarSeries(_BaseCategorySeries):
         return spPr.ln
 
 
-class LineSeries(_BaseCategorySeries):
+class LineSeries(_BaseCategorySeries, _MarkerMixin):
     """
     A data point series belonging to a line plot.
     """
@@ -180,13 +187,13 @@ class PieSeries(_BaseCategorySeries):
     """
 
 
-class RadarSeries(_BaseCategorySeries):
+class RadarSeries(_BaseCategorySeries, _MarkerMixin):
     """
     A data point series belonging to a radar plot.
     """
 
 
-class XySeries(_BaseSeries):
+class XySeries(_BaseSeries, _MarkerMixin):
     """
     A data point series belonging to an XY (scatter) plot.
     """
