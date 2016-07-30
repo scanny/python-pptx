@@ -65,3 +65,12 @@ class Marker(ElementProxy):
         if marker is None:
             return None
         return marker.symbol_val
+
+    @style.setter
+    def style(self, value):
+        marker = self._element.get_or_add_marker()
+        marker._remove_symbol()
+        if value is None:
+            return
+        symbol = marker._add_symbol()
+        symbol.val = value

@@ -33,6 +33,11 @@ class DescribeMarker(object):
         marker, expected_value = style_get_fixture
         assert marker.style == expected_value
 
+    def it_can_change_its_style(self, style_set_fixture):
+        marker, value, expected_xml = style_set_fixture
+        marker.style = value
+        assert marker._element.xml == expected_xml
+
     def it_provides_access_to_its_format(self, format_fixture):
         marker, ChartFormat_, _element, chart_format_, expected_xml = (
             format_fixture
@@ -100,6 +105,24 @@ class DescribeMarker(object):
         cxml, expected_value = request.param
         marker = Marker(element(cxml))
         return marker, expected_value
+
+    @pytest.fixture(params=[
+        ('c:ser',                               XL_MARKER_STYLE.CIRCLE,
+         'c:ser/c:marker/c:symbol{val=circle}'),
+        ('c:ser/c:marker',                      XL_MARKER_STYLE.SQUARE,
+         'c:ser/c:marker/c:symbol{val=square}'),
+        ('c:ser/c:marker/c:symbol{val=square}', XL_MARKER_STYLE.AUTOMATIC,
+         'c:ser/c:marker/c:symbol{val=auto}'),
+        ('c:ser/c:marker/c:symbol{val=auto}',   None,
+         'c:ser/c:marker'),
+        ('c:ser',                               None,
+         'c:ser/c:marker'),
+    ])
+    def style_set_fixture(self, request):
+        cxml, value, expected_cxml = request.param
+        marker = Marker(element(cxml))
+        expected_xml = xml(expected_cxml)
+        return marker, value, expected_xml
 
     # fixture components ---------------------------------------------
 

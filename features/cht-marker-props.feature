@@ -46,7 +46,6 @@ Feature: Get and set marker properties
       | triangle          | TRIANGLE |
 
 
-  @wip
   Scenario Outline: Set Marker.style
     Given a marker having style of <style>
      When I assign <value> to marker.style
