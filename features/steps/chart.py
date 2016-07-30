@@ -1097,6 +1097,12 @@ def then_point_format_line_is_a_LineFormat_object(context):
     assert type(point.format.line).__name__ == 'LineFormat'
 
 
+@then('point.marker is a Marker object')
+def then_point_marker_is_a_Marker_object(context):
+    point = context.point
+    assert type(point.marker).__name__ == 'Marker'
+
+
 @then('points[2] is a Point object')
 def then_points_2_is_a_Point_object(context):
     points = context.points

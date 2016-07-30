@@ -14,3 +14,9 @@ Feature: Get and set point properties
      Then point.format is a ChartFormat object
       And point.format.fill is a FillFormat object
       And point.format.line is a LineFormat object
+
+
+  @wip
+  Scenario: Get Point.marker
+    Given a point
+     Then point.marker is a Marker object
