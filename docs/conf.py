@@ -187,7 +187,9 @@ rst_epilog = """
 
 .. |list| replace:: :class:`list`
 
-.. |MajorGridLines| replace:: :class:`.MajorGridlines`
+.. |MajorGridlines| replace:: :class:`.MajorGridlines`
+
+.. |Marker| replace:: :class:`.Marker`
 
 .. |MasterPlaceholder| replace:: :class:`.MasterPlaceholder`
 

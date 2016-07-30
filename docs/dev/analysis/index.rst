@@ -28,6 +28,7 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   cht-marker
    cht-chart-overview
    cht-area-chart
    cht-doughnut-chart

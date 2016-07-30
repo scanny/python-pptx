@@ -109,9 +109,9 @@ class Describe_BaseAxis(object):
         assert format is format_
 
     def it_provides_access_to_its_major_gridlines(self, maj_grdlns_fixture):
-        axis, MajorGridLines_, xAx, major_gridlines_ = maj_grdlns_fixture
+        axis, MajorGridlines_, xAx, major_gridlines_ = maj_grdlns_fixture
         major_gridlines = axis.major_gridlines
-        MajorGridLines_.assert_called_once_with(xAx)
+        MajorGridlines_.assert_called_once_with(xAx)
         assert major_gridlines is major_gridlines_
 
     def it_provides_access_to_the_tick_labels(self, tick_labels_fixture):
