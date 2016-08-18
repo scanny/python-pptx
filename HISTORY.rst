@@ -3,6 +3,32 @@
 Release History
 ---------------
 
+0.6.0 (2016-08-18)
+++++++++++++++++++
+
+- add XY chart types
+- add Bubble chart types
+- add Radar chart types
+- add Area chart types
+- add Doughnut chart types
+- add Series.points and Point
+- add Point.data_label
+- add DataLabel.text_frame
+- add DataLabel.position
+- add Axis.major_gridlines
+- add ChartFormat with .fill and .line
+- add Axis.format (fill and line formatting)
+- add ValueAxis.crosses and .crosses_at
+- add Point.format (fill and line formatting)
+- add Slide.slide_id
+- add Slides.get() (by slide id)
+- add Font.language_id
+- support blank (None) data points in created charts
+- add Series.marker
+- add Point.marker
+- add Marker.format, .style, and .size
+
+
 0.5.8 (2015-11-27)
 ++++++++++++++++++
 
