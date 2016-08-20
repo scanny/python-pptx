@@ -3,55 +3,75 @@ Line/Connector Shape
 ====================
 
 Lines are a sub-category of auto shape that differ in certain properties and
-behaviors.
+behaviors. In particular, they have a start point and end point in addition
+to extents (left, top, width, height).
 
-Initial scope is limited to connectors, shapes based on the ``<p:cxnSp>``
-element and having a preset geometry such as ``'line'``.
+Connectors are based on the ``<p:cxnSp>`` element and have one of a handful
+of different preset geometry values, such as ``line``. Freeform connectors,
+despite the name, are not connectors, and are a custom geometry shape based
+on the p:sp element.
 
+Connectors can be "connected" to an auto shape such that a connected end
+point remains connected when the auto shape is moved. This relies on
+a concept of "connection points" on the auto shape. These connections points
+are preset features of the auto shape, similar to how adjustment points are
+pre-defined. Connection points are identified by index.
 
-Notes
------
-
-* Might be a good idea to get LineFormat (e.g. shape.line) object in place
-  before developing this, so it can be connected up to set color and so on.
-* Might want to move adjustments to shapes.shared
-* Probably worth adding LockAspectRatio to shape properties along the way, also
-  have a look at shp-properties.feature to see if it's current with coding
-  standards. Rotation is another property that might be good to pop in along
-  the way.
-* Rename AdjustmentCollection to Adjustments
-* Might want to review AdjustmentCollection for thin-proxy refactoring
-* Add backlog item for ConnectorFormat object, allowing connectors to be
-  attached to shape connection sites such that their connected end points are
-  moved when the shape is moved.
+Connector shapes do not have a text frame and cannot have text that is
+anchored to the shape.
 
 
-Analysis
---------
+Design Issues
+-------------
 
-* Seems like the most common lines are connectors
-* Connectors are a distinct shape type. They are very similar to
-  regular ``<p:sp>``-based auto shapes, but lack a text frame.
-* Hypothesis: There are really two types, connectors and free-form.
+* See how PowerPoint interprets the remaining connector types like
+  bentConnector2
+
+
+Unimplemented Scope
+-------------------
+
+* Connector.shape_type = MSO_LINE
+* BaseShape.is_connector + ConnectorShape.is_connector (not yet implemented)
+
+* [ ] see how a connector returns for `connector.AutoShapeType` in MS API.
+
+
+PowerPoint behaviors
+--------------------
+
+* Once connected, moving the target shape moves the connector the same
+  amount, however, the relative position of the connector end-point is not
+  adjusted to align to the connection point; rather, the relative offset is
+  maintained.
   
-  + Connectors are based on the ``<p:cxnSp>`` element and have a preset
-    geometry (``<a:prstGeom>`` child of ``<p:spPr>``). 
-  + Free-form lines are based on the ``<p:sp>`` element and have a custom
-    geometry (``<a:custGeom>`` child of ``<p:spPr>``).
+  Also, when the connector is selected, the connected point is highlighted in
+  red, even though it is not coincident with the connection point.
 
-* Connectors don't have a fill. Free-form shapes do. Fill of free-form shapes
-  extends between the line and a line connecting the end points, whether
-  present or not. Since the lines can cross, this produces some possibly
-  surprising fill behaviors; there is no clear concept of inside and outside
-  for such a shape.
+* Arrow heads are not a direct property of a connector, despite perhaps
+  appearing so in the UI. Line endings are a property of the line style of
+  the connector (and other shapes).
 
 
-Experiments
------------
+MS API
+------
 
-* [ ] see how a connector returns for `connector.AutoShapeType`
-* [ ] what behaviors for height and width on a connector? There are no StartX
-      or EndY properties on shape.
+`Shapes Object Members <https://msdn.microsoft.com/en-us/library/office/ff745286.aspx>`_
+
+* AddConnector(Type, BeginX, BeginY, EndX, EndY)
+
+
+`MsoConnectorType Enumeration <https://msdn.microsoft.com/en-us/library/office/ff860918.aspx>`_
+
++-----------------------+----+-----------------------------------------------+
+| msoConnectorCurve     | 3  | Curved connector.                             |
++-----------------------+----+-----------------------------------------------+
+| msoConnectorElbow     | 2  | Elbow connector.                              |
++-----------------------+----+-----------------------------------------------+
+| msoConnectorStraight  | 1  | Straight line connector.                      |
++-----------------------+----+-----------------------------------------------+
+| msoConnectorTypeMixed | -2 | Return only; indicates combination of states. |
++-----------------------+----+-----------------------------------------------+
 
 
 Protocols
@@ -125,74 +145,76 @@ Specimen XML
 
 .. highlight:: xml
 
+Default connector shapes inserted from PowerPoint UI.
+
 Straight line (Connector)::
 
-   <p:cxnSp>
-     <p:nvCxnSpPr>
-       <p:cNvPr id="5" name="Straight Connector 4"/>
-       <p:cNvCxnSpPr/>
-       <p:nvPr/>
-     </p:nvCxnSpPr>
-     <p:spPr>
-       <a:xfrm>
-         <a:off x="950964" y="1101493"/>
-         <a:ext cx="1257921" cy="0"/>
-       </a:xfrm>
-       <a:prstGeom prst="line">
-         <a:avLst/>
-       </a:prstGeom>
-     </p:spPr>
-     <p:style>
-       <a:lnRef idx="2">
-         <a:schemeClr val="accent1"/>
-       </a:lnRef>
-       <a:fillRef idx="0">
-         <a:schemeClr val="accent1"/>
-       </a:fillRef>
-       <a:effectRef idx="1">
-         <a:schemeClr val="accent1"/>
-       </a:effectRef>
-       <a:fontRef idx="minor">
-         <a:schemeClr val="tx1"/>
-       </a:fontRef>
-     </p:style>
-   </p:cxnSp>
+  <p:cxnSp>
+    <p:nvCxnSpPr>
+      <p:cNvPr id="3" name="Straight Connector 2"/>
+      <p:cNvCxnSpPr/>
+      <p:nvPr/>
+    </p:nvCxnSpPr>
+    <p:spPr>
+      <a:xfrm>
+        <a:off x="611560" y="620688"/>
+        <a:ext cx="914400" cy="914400"/>
+      </a:xfrm>
+      <a:prstGeom prst="line">
+        <a:avLst/>
+      </a:prstGeom>
+    </p:spPr>
+    <p:style>
+      <a:lnRef idx="2">
+        <a:schemeClr val="accent1"/>
+      </a:lnRef>
+      <a:fillRef idx="0">
+        <a:schemeClr val="accent1"/>
+      </a:fillRef>
+      <a:effectRef idx="1">
+        <a:schemeClr val="accent1"/>
+      </a:effectRef>
+      <a:fontRef idx="minor">
+        <a:schemeClr val="tx1"/>
+      </a:fontRef>
+    </p:style>
+  </p:cxnSp>
 
 Straight arrow Connector::
 
-   <p:cxnSp>
-     <p:nvCxnSpPr>
-       <p:cNvPr id="7" name="Straight Arrow Connector 6"/>
-       <p:cNvCxnSpPr/>
-       <p:nvPr/>
-     </p:nvCxnSpPr>
-     <p:spPr>
-       <a:xfrm>
-         <a:off x="950964" y="1673307"/>
-         <a:ext cx="1257921" cy="0"/>
-       </a:xfrm>
-       <a:prstGeom prst="straightConnector1">
-         <a:avLst/>
-       </a:prstGeom>
-       <a:ln>
-         <a:tailEnd type="arrow"/>
-       </a:ln>
-     </p:spPr>
-     <p:style>
-       <a:lnRef idx="2">
-         <a:schemeClr val="accent1"/>
-       </a:lnRef>
-       <a:fillRef idx="0">
-         <a:schemeClr val="accent1"/>
-       </a:fillRef>
-       <a:effectRef idx="1">
-         <a:schemeClr val="accent1"/>
-       </a:effectRef>
-       <a:fontRef idx="minor">
-         <a:schemeClr val="tx1"/>
-       </a:fontRef>
-     </p:style>
-   </p:cxnSp>
+  <p:cxnSp>
+    <p:nvCxnSpPr>
+      <p:cNvPr id="7" name="Straight Arrow Connector 6"/>
+      <p:cNvCxnSpPr/>
+      <p:nvPr/>
+    </p:nvCxnSpPr>
+    <p:spPr>
+      <a:xfrm>
+        <a:off x="950964" y="1673307"/>
+        <a:ext cx="1257921" cy="0"/>
+      </a:xfrm>
+      <a:prstGeom prst="straightConnector1">
+        <a:avLst/>
+      </a:prstGeom>
+      <a:ln>
+        <a:tailEnd type="arrow"/>
+      </a:ln>
+    </p:spPr>
+    <p:style>
+      <a:lnRef idx="2">
+        <a:schemeClr val="accent1"/>
+      </a:lnRef>
+      <a:fillRef idx="0">
+        <a:schemeClr val="accent1"/>
+      </a:fillRef>
+      <a:effectRef idx="1">
+        <a:schemeClr val="accent1"/>
+      </a:effectRef>
+      <a:fontRef idx="minor">
+        <a:schemeClr val="tx1"/>
+      </a:fontRef>
+    </p:style>
+  </p:cxnSp>
 
 Straight segment jointed connector::
 
@@ -450,6 +472,34 @@ Completely free-form line::
    </p:sp>
 
 
+Analysis
+--------
+
+* The p:style element represents indirection of the connector visual
+  attributes to the theme part.
+
+* What's up with the p:style element? Does that have to be there? What
+  happens if we just leave that out? Is the `accent1` default universal
+  enough to pop in there without consideration?
+
+* Seems like the most common lines are connectors
+* Connectors are a distinct shape type. They are very similar to
+  regular ``<p:sp>``-based auto shapes, but lack a text frame.
+* Hypothesis: There are really two types, connectors and free-form.
+  
+  + Connectors are based on the ``<p:cxnSp>`` element and have a preset
+    geometry (``<a:prstGeom>`` child of ``<p:spPr>``). 
+  + Free-form lines are based on the ``<p:sp>`` element and have a custom
+    geometry (``<a:custGeom>`` child of ``<p:spPr>``).
+
+* Connectors don't have a fill. Free-form shapes do. Fill of free-form shapes
+  extends between the line and a line connecting the end points, whether
+  present or not. Since the lines can cross, this produces some possibly
+  surprising fill behaviors; there is no clear concept of inside and outside
+  for such a shape.
+
+
+
 Related Schema Definitions
 --------------------------
 
@@ -490,19 +540,70 @@ Related Schema Definitions
     </xsd:sequence>
   </xsd:complexType>
 
+  <xsd:complexType name="CT_Connection">
+    <xsd:attribute name="id"  type="ST_DrawingElementId" use="required"/>
+    <xsd:attribute name="idx" type="xsd:unsignedInt"     use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_NonVisualConnectorProperties">
+    <xsd:sequence>
+      <xsd:element name="cxnSpLocks" type="CT_ConnectorLocking"       minOccurs="0"/>
+      <xsd:element name="stCxn"      type="CT_Connection"             minOccurs="0"/>
+      <xsd:element name="endCxn"     type="CT_Connection"             minOccurs="0"/>
+      <xsd:element name="extLst"     type="CT_OfficeArtExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_ShapeProperties">
     <xsd:sequence>
-      <xsd:element name="xfrm"               type="CT_Transform2D"            minOccurs="0"/>
-      <xsd:group   ref="EG_Geometry"                                          minOccurs="0"/>
-      <xsd:group   ref="EG_FillProperties"                                    minOccurs="0"/>
-      <xsd:element name="ln"                 type="CT_LineProperties"         minOccurs="0"/>
-      <xsd:group   ref="EG_EffectProperties"                                  minOccurs="0"/>
-      <xsd:element name="scene3d"            type="CT_Scene3D"                minOccurs="0"/>
-      <xsd:element name="sp3d"               type="CT_Shape3D"                minOccurs="0"/>
-      <xsd:element name="extLst"             type="CT_OfficeArtExtensionList" minOccurs="0"/>
+      <xsd:element name="xfrm"                type="CT_Transform2D"            minOccurs="0"/>
+      <xsd:group    ref="EG_Geometry"                                          minOccurs="0"/>
+      <xsd:group    ref="EG_FillProperties"                                    minOccurs="0"/>
+      <xsd:element name="ln"                  type="CT_LineProperties"         minOccurs="0"/>
+      <xsd:group    ref="EG_EffectProperties"                                  minOccurs="0"/>
+      <xsd:element name="scene3d"             type="CT_Scene3D"                minOccurs="0"/>
+      <xsd:element name="sp3d"                type="CT_Shape3D"                minOccurs="0"/>
+      <xsd:element name="extLst"              type="CT_OfficeArtExtensionList" minOccurs="0"/>
     </xsd:sequence>
     <xsd:attribute name="bwMode" type="ST_BlackWhiteMode" use="optional"/>
   </xsd:complexType>
+
+  <xsd:complexType name="CT_ShapeStyle">
+    <xsd:sequence>
+      <xsd:element name="lnRef"     type="CT_StyleMatrixReference"/>
+      <xsd:element name="fillRef"   type="CT_StyleMatrixReference"/>
+      <xsd:element name="effectRef" type="CT_StyleMatrixReference"/>
+      <xsd:element name="fontRef"   type="CT_FontReference"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_StyleMatrixReference">
+    <xsd:choice minOccurs="0">
+      <xsd:element name="scrgbClr"  type="CT_ScRgbColor"/>
+      <xsd:element name="srgbClr"   type="CT_SRgbColor"/>
+      <xsd:element name="hslClr"    type="CT_HslColor"/>
+      <xsd:element name="sysClr"    type="CT_SystemColor"/>
+      <xsd:element name="schemeClr" type="CT_SchemeColor"/>
+      <xsd:element name="prstClr"   type="CT_PresetColor"/>
+    </xsd:choice>
+    <xsd:attribute name="idx" type="ST_StyleMatrixColumnIndex" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_FontReference">
+    <xsd:choice minOccurs="0">
+      <xsd:element name="scrgbClr"  type="CT_ScRgbColor"/>
+      <xsd:element name="srgbClr"   type="CT_SRgbColor"/>
+      <xsd:element name="hslClr"    type="CT_HslColor"/>
+      <xsd:element name="sysClr"    type="CT_SystemColor"/>
+      <xsd:element name="schemeClr" type="CT_SchemeColor"/>
+      <xsd:element name="prstClr"   type="CT_PresetColor"/>
+    </xsd:choice>
+    <xsd:attribute name="idx" type="ST_FontCollectionIndex" use="required"/>
+  </xsd:complexType>
+
+  <xsd:simpleType name="ST_DrawingElementId">
+    <xsd:restriction base="xsd:unsignedInt"/>
+  </xsd:simpleType>
 
   <xsd:simpleType name="ST_ShapeType">
     <xsd:restriction base="xsd:token">
