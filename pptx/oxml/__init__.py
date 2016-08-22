@@ -181,18 +181,6 @@ register_element_cls('a:solidFill', CT_SolidColorFillProperties)
 register_element_cls('a:srcRect',   CT_RelativeRect)
 
 
-from .slide import (
-    CT_CommonSlideData, CT_Slide, CT_SlideLayout, CT_SlideLayoutIdList,
-    CT_SlideLayoutIdListEntry, CT_SlideMaster
-)
-register_element_cls('p:cSld',           CT_CommonSlideData)
-register_element_cls('p:sld',            CT_Slide)
-register_element_cls('p:sldLayout',      CT_SlideLayout)
-register_element_cls('p:sldLayoutId',    CT_SlideLayoutIdListEntry)
-register_element_cls('p:sldLayoutIdLst', CT_SlideLayoutIdList)
-register_element_cls('p:sldMaster',      CT_SlideMaster)
-
-
 from .presentation import (
     CT_Presentation, CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList,
     CT_SlideMasterIdListEntry, CT_SlideSize
@@ -281,6 +269,18 @@ register_element_cls('a:tblPr',   CT_TableProperties)
 register_element_cls('a:tc',      CT_TableCell)
 register_element_cls('a:tcPr',    CT_TableCellProperties)
 register_element_cls('a:tr',      CT_TableRow)
+
+
+from .slide import (
+    CT_CommonSlideData, CT_Slide, CT_SlideLayout, CT_SlideLayoutIdList,
+    CT_SlideLayoutIdListEntry, CT_SlideMaster
+)
+register_element_cls('p:cSld',           CT_CommonSlideData)
+register_element_cls('p:sld',            CT_Slide)
+register_element_cls('p:sldLayout',      CT_SlideLayout)
+register_element_cls('p:sldLayoutId',    CT_SlideLayoutIdListEntry)
+register_element_cls('p:sldLayoutIdLst', CT_SlideLayoutIdList)
+register_element_cls('p:sldMaster',      CT_SlideMaster)
 
 
 from .text import (
