@@ -13,7 +13,7 @@ import pytest
 from pptx.shapes.connector import Connector
 from pptx.util import Emu
 
-from ..unitutil.cxml import element
+from ..unitutil.cxml import element, xml
 
 
 class DescribeConnector(object):
@@ -23,6 +23,11 @@ class DescribeConnector(object):
         begin_x = connector.begin_x
         assert isinstance(begin_x, Emu)
         assert connector.begin_x == expected_value
+
+    def it_can_change_its_begin_point_x_location(self, begin_x_set_fixture):
+        connector, new_x, expected_xml = begin_x_set_fixture
+        connector.begin_x = new_x
+        assert connector._element.xml == expected_xml
 
     def it_knows_its_begin_point_y_location(self, begin_y_get_fixture):
         connector, expected_value = begin_y_get_fixture
@@ -56,6 +61,28 @@ class DescribeConnector(object):
         )
         connector = Connector(cxnSp, None)
         return connector, expected_value
+
+    @pytest.fixture(params=[
+        ('a:xfrm/(a:off{x=10,y=1},a:ext{cx=10,cy=1})',          5,
+         'a:xfrm/(a:off{x=5,y=1},a:ext{cx=15,cy=1})'),
+        ('a:xfrm/(a:off{x=10,y=1},a:ext{cx=10,cy=1})',          15,
+         'a:xfrm/(a:off{x=15,y=1},a:ext{cx=5,cy=1})'),
+        ('a:xfrm/(a:off{x=10,y=1},a:ext{cx=10,cy=1})',          25,
+         'a:xfrm{flipH=1}/(a:off{x=20,y=1},a:ext{cx=5,cy=1})'),
+        ('a:xfrm{flipH=1}/(a:off{x=10,y=1},a:ext{cx=10,cy=1})', 25,
+         'a:xfrm{flipH=1}/(a:off{x=10,y=1},a:ext{cx=15,cy=1})'),
+        ('a:xfrm{flipH=1}/(a:off{x=10,y=1},a:ext{cx=10,cy=1})', 15,
+         'a:xfrm{flipH=1}/(a:off{x=10,y=1},a:ext{cx=5,cy=1})'),
+        ('a:xfrm{flipH=1}/(a:off{x=10,y=1},a:ext{cx=10,cy=1})', 5,
+         'a:xfrm/(a:off{x=5,y=1},a:ext{cx=5,cy=1})'),
+    ])
+    def begin_x_set_fixture(self, request):
+        xfrm_cxml, new_x, expected_cxml = request.param
+        tmpl = 'p:cxnSp/p:spPr/%s'
+        cxnSp = element(tmpl % xfrm_cxml)
+        expected_xml = xml(tmpl % expected_cxml)
+        connector = Connector(cxnSp, None)
+        return connector, new_x, expected_xml
 
     @pytest.fixture(params=[
         (40, 60, False, 40),

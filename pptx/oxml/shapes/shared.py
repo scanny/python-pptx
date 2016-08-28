@@ -45,6 +45,10 @@ class BaseShapeElement(BaseOxmlElement):
     def flipH(self):
         return bool(self._get_xfrm_attr('flipH'))
 
+    @flipH.setter
+    def flipH(self, value):
+        self._set_xfrm_attr('flipH', value)
+
     @property
     def flipV(self):
         return bool(self._get_xfrm_attr('flipV'))
