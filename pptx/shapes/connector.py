@@ -41,3 +41,14 @@ class Connector(BaseShape):
         y, cy, flipV = cxnSp.y, cxnSp.cy, cxnSp.flipV
         begin_y = y+cy if flipV else y
         return Emu(begin_y)
+
+    @property
+    def end_x(self):
+        """
+        Return the X-position of the end point of this connector, in English
+        Metric Units (as an |Emu| object).
+        """
+        cxnSp = self._element
+        x, cx, flipH = cxnSp.x, cxnSp.cx, cxnSp.flipH
+        end_x = x if flipH else x+cx
+        return Emu(end_x)
