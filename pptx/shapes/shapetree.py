@@ -10,6 +10,7 @@ from __future__ import (
 
 from .autoshape import AutoShapeType, Shape
 from .base import BaseShape
+from .connector import Connector
 from ..enum.shapes import PP_PLACEHOLDER
 from .graphfrm import GraphicFrame
 from ..oxml.ns import qn
@@ -28,14 +29,14 @@ def BaseShapeFactory(shape_elm, parent):
     """
     Return an instance of the appropriate shape proxy class for *shape_elm*.
     """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp'):
-        return Shape(shape_elm, parent)
-    if tag_name == qn('p:pic'):
-        return Picture(shape_elm, parent)
-    if tag_name == qn('p:graphicFrame'):
-        return GraphicFrame(shape_elm, parent)
-    return BaseShape(shape_elm, parent)
+    shape_cls = {
+        qn('p:cxnSp'):        Connector,
+        qn('p:sp'):           Shape,
+        qn('p:pic'):          Picture,
+        qn('p:graphicFrame'): GraphicFrame,
+    }.get(shape_elm.tag, BaseShape)
+
+    return shape_cls(shape_elm, parent)
 
 
 class _BaseShapes(ParentedElementProxy):

@@ -138,7 +138,6 @@ Feature: Access a shape on a slide
       | chart    | a chart  | PlaceholderGraphicFrame |
 
 
-  @wip
   Scenario Outline: Access a shape
     Given a SlideShapes object having a <type> shape at offset <idx>
      Then shapes[<idx>] is a <cls> object

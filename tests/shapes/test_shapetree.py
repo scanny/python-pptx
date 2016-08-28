@@ -16,6 +16,7 @@ from pptx.parts.image import ImagePart
 from pptx.parts.slide import SlidePart
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.base import BaseShape
+from pptx.shapes.connector import Connector
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import (
@@ -49,67 +50,28 @@ class DescribeBaseShapeFactory(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=['sp', 'pic', 'graphicFrame', 'grpSp', 'cxnSp'])
-    def factory_fixture(
-            self, request, parent_, Shape_, shape_, Picture_, picture_,
-            GraphicFrame_, graphic_frame_, BaseShape_, base_shape_):
-        shape_cxml, ShapeClass_, shape_mock = {
-            'sp':           ('p:sp',           Shape_,        shape_),
-            'pic':          ('p:pic',          Picture_,      picture_),
-            'graphicFrame': ('p:graphicFrame', GraphicFrame_, graphic_frame_),
-            'grpSp':        ('p:grpSp',        BaseShape_,    base_shape_),
-            'cxnSp':        ('p:cxnSp',        BaseShape_,    base_shape_),
-        }[request.param]
+    @pytest.fixture(params=[
+        ('p:sp',           Shape),
+        ('p:pic',          Picture),
+        ('p:graphicFrame', GraphicFrame),
+        ('p:grpSp',        BaseShape),
+        ('p:cxnSp',        Connector),
+    ])
+    def factory_fixture(self, request, parent_):
+        shape_cxml, ShapeCls = request.param
         shape_elm = element(shape_cxml)
+        shape_mock = instance_mock(request, ShapeCls)
+        ShapeClass_ = class_mock(
+            request, 'pptx.shapes.shapetree.%s' % ShapeCls.__name__,
+            return_value=shape_mock
+        )
         return shape_elm, parent_, ShapeClass_, shape_mock
 
     # fixture components -----------------------------------
 
     @pytest.fixture
-    def BaseShape_(self, request, base_shape_):
-        return class_mock(
-            request, 'pptx.shapes.shapetree.BaseShape',
-            return_value=base_shape_
-        )
-
-    @pytest.fixture
-    def base_shape_(self, request):
-        return instance_mock(request, BaseShape)
-
-    @pytest.fixture
-    def GraphicFrame_(self, request, graphic_frame_):
-        return class_mock(
-            request, 'pptx.shapes.shapetree.GraphicFrame',
-            return_value=graphic_frame_
-        )
-
-    @pytest.fixture
-    def graphic_frame_(self, request):
-        return instance_mock(request, GraphicFrame)
-
-    @pytest.fixture
     def parent_(self, request):
-        return instance_mock(request, SlidePlaceholders)
-
-    @pytest.fixture
-    def Picture_(self, request, picture_):
-        return class_mock(
-            request, 'pptx.shapes.shapetree.Picture', return_value=picture_
-        )
-
-    @pytest.fixture
-    def picture_(self, request):
-        return instance_mock(request, Picture)
-
-    @pytest.fixture
-    def Shape_(self, request, shape_):
-        return class_mock(
-            request, 'pptx.shapes.shapetree.Shape', return_value=shape_
-        )
-
-    @pytest.fixture
-    def shape_(self, request):
-        return instance_mock(request, Shape)
+        return instance_mock(request, SlideShapes)
 
 
 class Describe_BaseShapes(object):
