@@ -14,7 +14,6 @@ Feature: Get and set Connector properties
       | 914400 | 914400 |
 
 
-  @wip
   Scenario Outline: Get Connector.end_x/y
     Given a connector having its end point at (<x>, <y>)
      Then connector.end_x is an Emu object with value <x>

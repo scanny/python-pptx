@@ -36,6 +36,12 @@ class DescribeConnector(object):
         assert isinstance(end_x, Emu)
         assert connector.end_x == expected_value
 
+    def it_knows_its_end_point_y_location(self, end_y_get_fixture):
+        connector, expected_value = end_y_get_fixture
+        end_y = connector.end_y
+        assert isinstance(end_y, Emu)
+        assert connector.end_y == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -73,6 +79,19 @@ class DescribeConnector(object):
         cxnSp = element(
             'p:cxnSp/p:spPr/a:xfrm{flipH=%d}/(a:off{x=%d,y=6},a:ext{cx=%d,cy'
             '=60})' % (flipH, x, cx)
+        )
+        connector = Connector(cxnSp, None)
+        return connector, expected_value
+
+    @pytest.fixture(params=[
+        (31, 42, False, 73),
+        (53, 14, True,  53),
+    ])
+    def end_y_get_fixture(self, request):
+        y, cy, flipV, expected_value = request.param
+        cxnSp = element(
+            'p:cxnSp/p:spPr/a:xfrm{flipV=%d}/(a:off{x=6,y=%d},a:ext{cx=32,cy'
+            '=%d})' % (flipV, y, cy)
         )
         connector = Connector(cxnSp, None)
         return connector, expected_value
