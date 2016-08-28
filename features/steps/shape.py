@@ -14,7 +14,7 @@ from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
 from pptx.action import ActionSetting
-from pptx.util import Inches
+from pptx.util import Emu, Inches
 
 from helpers import cls_qname, saved_pptx_path, test_pptx, test_text
 
@@ -39,6 +39,20 @@ def given_a_connector(context):
     prs = Presentation(test_pptx('shp-common-props'))
     sld = prs.slides[0]
     context.shape = sld.shapes[4]
+
+
+@given('a connector having its begin point at ({x}, {y})')
+def given_a_connector_having_its_begin_point_at_x_y(context, x, y):
+    prs = Presentation(test_pptx('shp-connector-props'))
+    sld = prs.slides[0]
+    context.connector = sld.shapes[0]
+
+
+@given('a connector having its end point at ({x}, {y})')
+def given_a_connector_having_its_end_point_at_x_y(context, x, y):
+    prs = Presentation(test_pptx('shp-connector-props'))
+    sld = prs.slides[0]
+    context.connector = sld.shapes[0]
 
 
 @given('a graphic frame')  # shouldn't matter, but this one contains a table
@@ -174,6 +188,26 @@ def when_I_assign_a_string_to_shape_text(context):
     context.shape.text = u'F\xf8o\nBar'
 
 
+@when('I assign {value} to connector.begin_x')
+def when_I_assign_value_to_connector_begin_x(context, value):
+    context.connector.begin_x = int(value)
+
+
+@when('I assign {value} to connector.begin_y')
+def when_I_assign_value_to_connector_begin_y(context, value):
+    context.connector.begin_y = int(value)
+
+
+@when('I assign {value} to connector.end_x')
+def when_I_assign_value_to_connector_end_x(context, value):
+    context.connector.end_x = int(value)
+
+
+@when('I assign {value} to connector.end_y')
+def when_I_assign_value_to_connector_end_y(context, value):
+    context.connector.end_y = int(value)
+
+
 @when("I assign '{value}' to shape.name")
 def when_I_assign_value_to_shape_name(context, value):
     context.shape.name = value
@@ -243,6 +277,34 @@ def when_set_fore_color_to_RGB_value(context):
 
 
 # then ====================================================
+
+@then('connector.begin_x is an Emu object with value {x}')
+def then_connector_begin_x_is_an_Emu_object_with_value_x(context, x):
+    begin_x = context.connector.begin_x
+    assert isinstance(begin_x, Emu)
+    assert begin_x == int(x)
+
+
+@then('connector.begin_y is an Emu object with value {y}')
+def then_connector_begin_y_is_an_Emu_object_with_value_y(context, y):
+    begin_y = context.connector.begin_y
+    assert isinstance(begin_y, Emu)
+    assert begin_y == int(y)
+
+
+@then('connector.end_x is an Emu object with value {x}')
+def then_connector_end_x_is_an_Emu_object_with_value_x(context, x):
+    end_x = context.connector.end_x
+    assert isinstance(end_x, Emu)
+    assert end_x == int(x)
+
+
+@then('connector.end_y is an Emu object with value {y}')
+def then_connector_end_y_is_an_Emu_object_with_value_y(context, y):
+    end_y = context.connector.end_y
+    assert isinstance(end_y, Emu)
+    assert end_y == int(y)
+
 
 @then('shape.adjustments[0] is 0.15')
 def then_shape_adjustments_is_value(context):
