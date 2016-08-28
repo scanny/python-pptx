@@ -4,7 +4,6 @@ Feature: Get and set Connector properties
   I need a set of properties on Connector
 
 
-  @wip
   Scenario Outline: Get Connector.begin_x/y
     Given a connector having its begin point at (<x>, <y>)
      Then connector.begin_x is an Emu object with value <x>

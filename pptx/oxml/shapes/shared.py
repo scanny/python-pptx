@@ -45,6 +45,10 @@ class BaseShapeElement(BaseOxmlElement):
     def flipH(self):
         return bool(self._get_xfrm_attr('flipH'))
 
+    @property
+    def flipV(self):
+        return bool(self._get_xfrm_attr('flipV'))
+
     def get_or_add_xfrm(self):
         """
         Return the ``<a:xfrm>`` grandchild element, newly-added if not
@@ -354,6 +358,7 @@ class CT_Transform2D(BaseOxmlElement):
     del _tag_seq
     rot = OptionalAttribute('rot', ST_Angle, default=0.0)
     flipH = OptionalAttribute('flipH', XsdBoolean, default=False)
+    flipV = OptionalAttribute('flipV', XsdBoolean, default=False)
 
     @property
     def x(self):
