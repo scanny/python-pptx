@@ -51,13 +51,13 @@ def given_a_MasterShapes_object_containing_2_shapes(context):
 
 @given('a slide')
 def given_a_slide(context):
-    presentation = Presentation(test_pptx('sld-access-shapes'))
+    presentation = Presentation(test_pptx('shp-shape-access'))
     context.slide = presentation.slides[0]
 
 
 @given('a slide having a title')
 def given_a_slide_having_a_title(context):
-    prs = Presentation(test_pptx('sld-access-shapes'))
+    prs = Presentation(test_pptx('shp-shape-access'))
     context.prs, context.slide = prs, prs.slides[0]
 
 
@@ -70,7 +70,7 @@ def given_a_slide_having_name_name(context, name):
 
 @given('a slide having slide id 256')
 def given_a_slide_having_slide_id_256(context):
-    presentation = Presentation(test_pptx('sld-access-shapes'))
+    presentation = Presentation(test_pptx('shp-shape-access'))
     context.slide = presentation.slides[0]
 
 
@@ -107,7 +107,7 @@ def given_a_SlideMasters_object_containing_2_masters(context):
 
 @given('a SlidePlaceholders object containing 2 placeholders')
 def given_a_SlidePlaceholders_object_containing_2_placeholders(context):
-    prs = Presentation(test_pptx('sld-access-shapes'))
+    prs = Presentation(test_pptx('shp-shape-access'))
     context.placeholders = prs.slides[0].placeholders
 
 
@@ -120,8 +120,14 @@ def given_a_Slides_object_containing_3_slides(context):
 
 @given('a SlideShapes object containing 6 shapes')
 def given_a_SlideShapes_object_containing_6_shapes(context):
-    presentation = Presentation(test_pptx('sld-access-shapes'))
+    presentation = Presentation(test_pptx('shp-shape-access'))
     context.shapes = presentation.slides[0].shapes
+
+
+@given('a SlideShapes object having a {type} shape at offset {idx}')
+def given_a_SlideShapes_obj_having_type_shape_at_off_idx(context, type, idx):
+    presentation = Presentation(test_pptx('shp-shape-access'))
+    context.shapes = presentation.slides[1].shapes
 
 
 # when ====================================================
@@ -317,10 +323,11 @@ def then_placeholders_10_is_a_SlidePlaceholder_object(context):
     assert type(placeholders[10]).__name__ == 'SlidePlaceholder'
 
 
-@then('shapes[4] is a GraphicFrame object')
-def then_shapes_4_is_a_GraphicFrame_object(context):
+@then('shapes[{idx}] is a {type_} object')
+def then_shapes_idx_is_a_type_object(context, idx, type_):
     shapes = context.shapes
-    assert type(shapes[4]).__name__ == 'GraphicFrame'
+    type_name = type(shapes[int(idx)]).__name__
+    assert type_name == type_, 'got %s' % type_name
 
 
 @then('shapes.title is the title placeholder')

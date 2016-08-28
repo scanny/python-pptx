@@ -136,3 +136,15 @@ Feature: Access a shape on a slide
       | clip art | an image | PlaceholderPicture      |
       | table    | a table  | PlaceholderGraphicFrame |
       | chart    | a chart  | PlaceholderGraphicFrame |
+
+
+  @wip
+  Scenario Outline: Access a shape
+    Given a SlideShapes object having a <type> shape at offset <idx>
+     Then shapes[<idx>] is a <cls> object
+
+    Examples: Shape object types
+      | type      | idx | cls       |
+      | connector |  0  | Connector |
+      | picture   |  1  | Picture   |
+      | rectangle |  2  | Shape     |
