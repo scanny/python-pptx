@@ -10,7 +10,8 @@ from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import qn
 from ..simpletypes import (
     ST_Angle, ST_Coordinate, ST_Direction, ST_DrawingElementId, ST_LineWidth,
-    ST_PlaceholderSize, ST_PositiveCoordinate, XsdString, XsdUnsignedInt
+    ST_PlaceholderSize, ST_PositiveCoordinate, XsdBoolean, XsdString,
+    XsdUnsignedInt
 )
 from ...util import Emu
 from ..xmlchemy import (
@@ -39,6 +40,10 @@ class BaseShapeElement(BaseOxmlElement):
     @cy.setter
     def cy(self, value):
         self._set_xfrm_attr('cy', value)
+
+    @property
+    def flipH(self):
+        return bool(self._get_xfrm_attr('flipH'))
 
     def get_or_add_xfrm(self):
         """
@@ -343,9 +348,12 @@ class CT_Transform2D(BaseOxmlElement):
     """
     Custom element class for <a:xfrm> element.
     """
+    _tag_seq = ('a:off', 'a:ext')
+    off = ZeroOrOne('a:off', successors=_tag_seq[1:])
+    ext = ZeroOrOne('a:ext', successors=_tag_seq[2:])
+    del _tag_seq
     rot = OptionalAttribute('rot', ST_Angle, default=0.0)
-    off = ZeroOrOne('a:off', successors=('a:ext',))
-    ext = ZeroOrOne('a:ext', successors=())
+    flipH = OptionalAttribute('flipH', XsdBoolean, default=False)
 
     @property
     def x(self):

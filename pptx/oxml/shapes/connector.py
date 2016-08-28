@@ -14,7 +14,11 @@ class CT_Connector(BaseShapeElement):
     """
     A line/connector shape ``<p:cxnSp>`` element
     """
+    _tag_seq = (
+        'p:nvCxnSpPr', 'p:spPr', 'p:style', 'p:extLst'
+    )
     spPr = OneAndOnlyOne('p:spPr')
+    del _tag_seq
 
 
 class CT_ConnectorNonVisual(BaseOxmlElement):

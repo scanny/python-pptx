@@ -11,6 +11,7 @@ from __future__ import (
 )
 
 from .base import BaseShape
+from ..util import Emu
 
 
 class Connector(BaseShape):
@@ -19,3 +20,13 @@ class Connector(BaseShape):
     that can be connected to other objects (but not to other connectors).
     A line can be straight, have elbows, or can be curved.
     """
+    @property
+    def begin_x(self):
+        """
+        Return the X-position of the begin point of this connector, in
+        English Metric Units (as an |Emu| object).
+        """
+        cxnSp = self._element
+        x, cx, flipH = cxnSp.x, cxnSp.cx, cxnSp.flipH
+        begin_x = x+cx if flipH else x
+        return Emu(begin_x)
