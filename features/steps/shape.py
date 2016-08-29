@@ -41,6 +41,14 @@ def given_a_connector(context):
     context.shape = sld.shapes[4]
 
 
+@given('a connector and a 1 inch square picture at 0, 0')
+def given_a_connector_and_a_1_inch_square_picture_at_0_0(context):
+    prs = Presentation(test_pptx('shp-connector-props'))
+    shapes = prs.slides[1].shapes
+    context.picture = shapes[0]
+    context.connector = shapes[1]
+
+
 @given('a connector having its begin point at ({x}, {y})')
 def given_a_connector_having_its_begin_point_at_x_y(context, x, y):
     prs = Presentation(test_pptx('shp-connector-props'))
@@ -234,6 +242,12 @@ def when_I_assign_value_to_shape_name(context, value):
 @when("I assign {value} to shape.rotation")
 def when_I_assign_value_to_shape_rotation(context, value):
     context.shape.rotation = float(value)
+
+
+@when('I call connector.begin_connect(picture, 3)')
+def when_I_call_connector_begin_connect_picture_3(context):
+    connector, picture = context.connector, context.picture
+    connector.begin_connect(picture, 3)
 
 
 @when('I call shapes.add_connector(MSO_CONNECTOR.STRAIGHT, 1, 2, 3, 4)')
