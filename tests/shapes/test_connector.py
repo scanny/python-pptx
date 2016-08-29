@@ -35,6 +35,11 @@ class DescribeConnector(object):
         assert isinstance(begin_y, Emu)
         assert connector.begin_y == expected_value
 
+    def it_can_change_its_begin_point_y_location(self, begin_y_set_fixture):
+        connector, new_y, expected_xml = begin_y_set_fixture
+        connector.begin_y = new_y
+        assert connector._element.xml == expected_xml
+
     def it_knows_its_end_point_x_location(self, end_x_get_fixture):
         connector, expected_value = end_x_get_fixture
         end_x = connector.end_x
@@ -96,6 +101,28 @@ class DescribeConnector(object):
         )
         connector = Connector(cxnSp, None)
         return connector, expected_value
+
+    @pytest.fixture(params=[
+        ('a:xfrm/(a:off{x=1,y=10},a:ext{cx=1,cy=10})',          5,
+         'a:xfrm/(a:off{x=1,y=5},a:ext{cx=1,cy=15})'),
+        ('a:xfrm/(a:off{x=1,y=10},a:ext{cx=1,cy=10})',          15,
+         'a:xfrm/(a:off{x=1,y=15},a:ext{cx=1,cy=5})'),
+        ('a:xfrm/(a:off{x=1,y=10},a:ext{cx=1,cy=10})',          25,
+         'a:xfrm{flipV=1}/(a:off{x=1,y=20},a:ext{cx=1,cy=5})'),
+        ('a:xfrm{flipV=1}/(a:off{x=1,y=10},a:ext{cx=1,cy=10})', 30,
+         'a:xfrm{flipV=1}/(a:off{x=1,y=10},a:ext{cx=1,cy=20})'),
+        ('a:xfrm{flipV=1}/(a:off{x=1,y=10},a:ext{cx=1,cy=10})', 15,
+         'a:xfrm{flipV=1}/(a:off{x=1,y=10},a:ext{cx=1,cy=5})'),
+        ('a:xfrm{flipV=1}/(a:off{x=1,y=10},a:ext{cx=1,cy=10})',  5,
+         'a:xfrm/(a:off{x=1,y=5},a:ext{cx=1,cy=5})'),
+    ])
+    def begin_y_set_fixture(self, request):
+        xfrm_cxml, new_y, expected_cxml = request.param
+        tmpl = 'p:cxnSp/p:spPr/%s'
+        cxnSp = element(tmpl % xfrm_cxml)
+        expected_xml = xml(tmpl % expected_cxml)
+        connector = Connector(cxnSp, None)
+        return connector, new_y, expected_xml
 
     @pytest.fixture(params=[
         (21, 32, False, 53),

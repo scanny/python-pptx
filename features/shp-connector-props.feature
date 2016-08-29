@@ -34,7 +34,6 @@ Feature: Get and set Connector properties
       | 914400 | 914400 | 1828800 |
 
 
-  @wip
   Scenario Outline: Set Connector.begin_y
     Given a connector having its begin point at (<x>, <y>)
      When I assign <value> to connector.begin_y
