@@ -44,7 +44,6 @@ Feature: Get and set Connector properties
       | 914400 | 914400 | 1828800 |
 
 
-  @wip
   Scenario Outline: Set Connector.end_x
     Given a connector having its end point at (<x>, <y>)
      When I assign <value> to connector.end_x
