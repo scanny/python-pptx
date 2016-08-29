@@ -313,6 +313,17 @@ class SlideShapes(_BaseShapes):
         graphic_frame = self._add_chart_graphic_frame(rId, x, y, cx, cy)
         return graphic_frame
 
+    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
+        """
+        Add a newly created connector shape to the end of this shape tree.
+        The connector is of type *connector_type* and has begin and end
+        points as specified.
+        """
+        cxnSp = self._add_cxnSp(
+            connector_type, begin_x, begin_y, end_x, end_y
+        )
+        return self._shape_factory(cxnSp)
+
     def add_picture(self, image_file, left, top, width=None, height=None):
         """
         Add picture shape displaying image in *image_file*, where
@@ -420,6 +431,14 @@ class SlideShapes(_BaseShapes):
         graphicFrame = self._add_chart_graphicFrame(rId, x, y, cx, cy)
         graphic_frame = self._shape_factory(graphicFrame)
         return graphic_frame
+
+    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
+        """
+        Return a newly-added `p:cxnSp` element for a connector of
+        *connector_type* beginning at (*begin_x*, *begin_y*) and extending to
+        (*end_x*, *end_y*).
+        """
+        raise NotImplementedError
 
     def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
         """

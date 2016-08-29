@@ -9,7 +9,9 @@ from __future__ import absolute_import
 import pytest
 
 from pptx.chart.data import ChartData
-from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, PP_PLACEHOLDER
+from pptx.enum.shapes import (
+    MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR, PP_PLACEHOLDER
+)
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
 from pptx.parts.image import ImagePart
@@ -460,6 +462,20 @@ class DescribeSlideShapes(object):
         assert shape is shape_
         assert shapes._element.xml == expected_xml
 
+    def it_can_add_a_connector(self, connector_fixture):
+        shapes, connector_type, begin_x, begin_y = connector_fixture[:4]
+        end_x, end_y, cxnSp_, connector_ = connector_fixture[4:]
+
+        connector = shapes.add_connector(
+            connector_type, begin_x, begin_y, end_x, end_y
+        )
+
+        shapes._add_cxnSp.assert_called_once_with(
+            shapes, connector_type, begin_x, begin_y, end_x, end_y
+        )
+        shapes._shape_factory.assert_called_once_with(shapes, cxnSp_)
+        assert connector is connector_
+
     def it_can_add_a_picture_shape(self, picture_fixture):
         shapes, image_file, x, y, cx, cy, picture_, expected_xml = (
             picture_fixture
@@ -623,6 +639,19 @@ class DescribeSlideShapes(object):
         return shapes, placeholder_, expected_xml
 
     @pytest.fixture
+    def connector_fixture(self, _add_cxnSp_, _shape_factory_, connector_):
+        shapes = SlideShapes(element('p:spTree'), None)
+        connector_type = MSO_CONNECTOR.STRAIGHT
+        begin_x, begin_y, end_x, end_y = 1, 2, 3, 4
+        cxnSp = element('p:cxnSp')
+        _add_cxnSp_.return_value = cxnSp
+        _shape_factory_.return_value = connector_
+        return (
+            shapes, connector_type, begin_x, begin_y, end_x, end_y, cxnSp,
+            connector_
+        )
+
+    @pytest.fixture
     def factory_fixture(self, SlideShapeFactory_, shape_):
         shapes = SlideShapes(None, None)
         sp = element('p:sp')
@@ -774,6 +803,10 @@ class DescribeSlideShapes(object):
         )
 
     @pytest.fixture
+    def _add_cxnSp_(self, request):
+        return method_mock(request, SlideShapes, '_add_cxnSp', autospec=True)
+
+    @pytest.fixture
     def chart_data_(self, request):
         return instance_mock(request, ChartData)
 
@@ -783,6 +816,10 @@ class DescribeSlideShapes(object):
             request, SlideShapes, '_clone_layout_placeholder',
             autospec=True
         )
+
+    @pytest.fixture
+    def connector_(self, request):
+        return instance_mock(request, Connector)
 
     @pytest.fixture
     def graphic_frame_(self, request):
