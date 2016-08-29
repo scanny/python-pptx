@@ -7,6 +7,8 @@ lxml custom element classes for shape tree-related XML elements.
 from __future__ import absolute_import
 
 from .autoshape import CT_Shape
+from .connector import CT_Connector
+from ...enum.shapes import MSO_CONNECTOR_TYPE
 from .graphfrm import CT_GraphicalObjectFrame
 from ..ns import qn
 from .picture import CT_Picture
@@ -35,6 +37,18 @@ class CT_GroupShape(BaseShapeElement):
         sp = CT_Shape.new_autoshape_sp(id_, name, prst, x, y, cx, cy)
         self.insert_element_before(sp, 'p:extLst')
         return sp
+
+    def add_cxnSp(self, id_, name, type_member, x, y, cx, cy, flipH, flipV):
+        """
+        Append a new ``<p:cxnSp>`` shape to the group/shapetree having the
+        properties specified in call.
+        """
+        prst = MSO_CONNECTOR_TYPE.to_xml(type_member)
+        cxnSp = CT_Connector.new_cxnSp(
+            id_, name, prst, x, y, cx, cy, flipH, flipV
+        )
+        self.insert_element_before(cxnSp, 'p:extLst')
+        return cxnSp
 
     def add_pic(self, id_, name, desc, rId, x, y, cx, cy):
         """

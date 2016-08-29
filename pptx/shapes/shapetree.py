@@ -438,7 +438,16 @@ class SlideShapes(_BaseShapes):
         *connector_type* beginning at (*begin_x*, *begin_y*) and extending to
         (*end_x*, *end_y*).
         """
-        raise NotImplementedError
+        id_ = self._next_shape_id
+        name = 'Connector %d' % (id_-1)
+
+        flipH, flipV = begin_x > end_x, begin_y > end_y
+        x, y = min(begin_x, end_x), min(begin_y, end_y)
+        cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
+
+        return self._spTree.add_cxnSp(
+            id_, name, connector_type, x, y, cx, cy, flipH, flipV
+        )
 
     def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
         """
