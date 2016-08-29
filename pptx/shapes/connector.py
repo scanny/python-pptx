@@ -150,3 +150,32 @@ class Connector(BaseShape):
         y, cy, flipV = cxnSp.y, cxnSp.cy, cxnSp.flipV
         end_y = y if flipV else y+cy
         return Emu(end_y)
+
+    @end_y.setter
+    def end_y(self, value):
+        cxnSp = self._element
+        y, cy, flipV, new_y = cxnSp.y, cxnSp.cy, cxnSp.flipV, int(value)
+
+        if flipV:
+            dy = abs(new_y - y)
+            if new_y <= y:
+                cxnSp.y = new_y
+                cxnSp.cy = cy + dy
+            elif dy <= cy:
+                cxnSp.y = new_y
+                cxnSp.cy = cy - dy
+            else:
+                cxnSp.flipV = False
+                cxnSp.y = y + cy
+                cxnSp.cy = dy - cy
+        else:
+            old_y = y + cy
+            dy = abs(new_y - old_y)
+            if new_y >= old_y:
+                cxnSp.cy = cy + dy
+            elif dy <= cy:
+                cxnSp.cy = cy - dy
+            else:
+                cxnSp.flipV = True
+                cxnSp.y = new_y
+                cxnSp.cy = dy - cy
