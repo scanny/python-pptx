@@ -11,6 +11,7 @@ can be found here:
    MsoAutoShapeType
    MsoAutoSize
    MsoColorType
+   MsoConnectorType
    MsoFillType
    MsoLanguageId
    MsoShapeType

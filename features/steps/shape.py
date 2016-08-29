@@ -12,7 +12,7 @@ from pptx import Presentation
 from pptx.chart.chart import Chart
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
-from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
+from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE
 from pptx.action import ActionSetting
 from pptx.util import Emu, Inches
 
@@ -109,6 +109,24 @@ def given_a_shape(context):
     prs = Presentation(test_pptx('shp-common-props'))
     sld = prs.slides[0]
     context.shape = sld.shapes[0]
+
+
+@given('a SlideShapes object')
+def given_a_SlideShapes_object(context):
+    prs = Presentation(test_pptx('shp-shape-access'))
+    context.shapes = prs.slides[0].shapes
+
+
+@given('a SlideShapes object containing 6 shapes')
+def given_a_SlideShapes_object_containing_6_shapes(context):
+    prs = Presentation(test_pptx('shp-shape-access'))
+    context.shapes = prs.slides[0].shapes
+
+
+@given('a SlideShapes object having a {type} shape at offset {idx}')
+def given_a_SlideShapes_obj_having_type_shape_at_off_idx(context, type, idx):
+    prs = Presentation(test_pptx('shp-shape-access'))
+    context.shapes = prs.slides[1].shapes
 
 
 @given('a table')
@@ -218,6 +236,13 @@ def when_I_assign_value_to_shape_rotation(context, value):
     context.shape.rotation = float(value)
 
 
+@when('I call shapes.add_connector(MSO_CONNECTOR.STRAIGHT, 1, 2, 3, 4)')
+def when_I_call_shapes_add_connector(context):
+    context.connector = context.shapes.add_connector(
+        MSO_CONNECTOR.STRAIGHT, 1, 2, 3, 4
+    )
+
+
 @when("I change the left and top of the {shape_type}")
 def when_I_change_the_position_of_the_shape(context, shape_type):
     left, top = {
@@ -278,11 +303,26 @@ def when_set_fore_color_to_RGB_value(context):
 
 # then ====================================================
 
+@then('connector is a Connector object')
+def then_connector_is_a_Connector_object(context):
+    assert type(context.connector).__name__ == 'Connector'
+
+
+@then('connector.begin_x == {value}')
+def then_connector_begin_x_equals_value(context, value):
+    assert context.connector.begin_x == int(value)
+
+
 @then('connector.begin_x is an Emu object with value {x}')
 def then_connector_begin_x_is_an_Emu_object_with_value_x(context, x):
     begin_x = context.connector.begin_x
     assert isinstance(begin_x, Emu)
     assert begin_x == int(x)
+
+
+@then('connector.begin_y == {value}')
+def then_connector_begin_y_equals_value(context, value):
+    assert context.connector.begin_y == int(value)
 
 
 @then('connector.begin_y is an Emu object with value {y}')
@@ -292,11 +332,21 @@ def then_connector_begin_y_is_an_Emu_object_with_value_y(context, y):
     assert begin_y == int(y)
 
 
+@then('connector.end_x == {value}')
+def then_connector_end_x_equals_value(context, value):
+    assert context.connector.end_x == int(value)
+
+
 @then('connector.end_x is an Emu object with value {x}')
 def then_connector_end_x_is_an_Emu_object_with_value_x(context, x):
     end_x = context.connector.end_x
     assert isinstance(end_x, Emu)
     assert end_x == int(x)
+
+
+@then('connector.end_y == {value}')
+def then_connector_end_y_equals_value(context, value):
+    assert context.connector.end_y == int(value)
 
 
 @then('connector.end_y is an Emu object with value {y}')

@@ -689,6 +689,46 @@ class MSO_AUTO_SHAPE_TYPE(XmlEnumeration):
     )
 
 
+@alias('MSO_CONNECTOR')
+class MSO_CONNECTOR_TYPE(XmlEnumeration):
+    """
+    Specifies a type of connector.
+
+    Alias: ``MSO_CONNECTOR``
+
+    Example::
+
+        from pptx.enum.shapes import MSO_CONNECTOR
+        from pptx.util import Cm
+
+        shapes = prs.slides[0].shapes
+        connector = shapes.add_connector(
+            MSO_CONNECTOR.STRAIGHT, Cm(2), Cm(2), Cm(10), Cm(10)
+        )
+        assert connector.left.cm == 2
+    """
+
+    __ms_name__ = 'MsoConnectorType'
+
+    __url__ = 'http://msdn.microsoft.com/en-us/library/office/ff860918.aspx'
+
+    __members__ = (
+        XmlMappedEnumMember(
+            'CURVE', 3, 'curvedConnector3', 'Curved connector.'
+        ),
+        XmlMappedEnumMember(
+            'ELBOW', 2, 'bentConnector3', 'Elbow connector.'
+        ),
+        XmlMappedEnumMember(
+            'STRAIGHT', 1, 'line', 'Straight line connector.'
+        ),
+        ReturnValueOnlyEnumMember(
+            'MIXED', -2, 'Return value only; indicates a combination of othe'
+            'r states.'
+        ),
+    )
+
+
 @alias('MSO')
 class MSO_SHAPE_TYPE(Enumeration):
     """

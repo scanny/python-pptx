@@ -118,18 +118,6 @@ def given_a_Slides_object_containing_3_slides(context):
     context.slides = prs.slides
 
 
-@given('a SlideShapes object containing 6 shapes')
-def given_a_SlideShapes_object_containing_6_shapes(context):
-    presentation = Presentation(test_pptx('shp-shape-access'))
-    context.shapes = presentation.slides[0].shapes
-
-
-@given('a SlideShapes object having a {type} shape at offset {idx}')
-def given_a_SlideShapes_obj_having_type_shape_at_off_idx(context, type, idx):
-    presentation = Presentation(test_pptx('shp-shape-access'))
-    context.shapes = presentation.slides[1].shapes
-
-
 # when ====================================================
 
 @when('I call slides.add_slide()')
