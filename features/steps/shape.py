@@ -250,6 +250,12 @@ def when_I_call_connector_begin_connect_picture_3(context):
     connector.begin_connect(picture, 3)
 
 
+@when('I call connector.end_connect(picture, 3)')
+def when_I_call_connector_end_connect_picture_3(context):
+    connector, picture = context.connector, context.picture
+    connector.end_connect(picture, 3)
+
+
 @when('I call shapes.add_connector(MSO_CONNECTOR.STRAIGHT, 1, 2, 3, 4)')
 def when_I_call_shapes_add_connector(context):
     context.connector = context.shapes.add_connector(
