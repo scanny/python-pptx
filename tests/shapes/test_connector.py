@@ -103,6 +103,11 @@ class DescribeConnector(object):
         connector._connect_end_to(shape, cxn_idx)
         assert connector._element.xml == expected_xml
 
+    def it_moves_its_end_point_to_help(self, move_end_fixture):
+        connector, shape, cxn_idx, expected_xml = move_end_fixture
+        connector._move_end_to_cxn(shape, cxn_idx)
+        assert connector._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -298,6 +303,22 @@ class DescribeConnector(object):
         )
         connector = Connector(cxnSp, None)
         shape_.left, shape_.top, shape_.width, shape_.height = 10, 15, 30, 36
+        expected_xml = xml(expected_cxml)
+        return connector, shape_, cxn_idx, expected_xml
+
+    @pytest.fixture(params=[
+        (0, 'p:cxnSp/p:spPr/a:xfrm/(a:off{x=10,y=15},a:ext{cx=50,cy=10})'),
+        (1, 'p:cxnSp/p:spPr/a:xfrm/(a:off{x=10,y=15},a:ext{cx=40,cy=19})'),
+        (2, 'p:cxnSp/p:spPr/a:xfrm/(a:off{x=10,y=15},a:ext{cx=50,cy=28})'),
+        (3, 'p:cxnSp/p:spPr/a:xfrm/(a:off{x=10,y=15},a:ext{cx=60,cy=19})'),
+    ])
+    def move_end_fixture(self, request, shape_):
+        cxn_idx, expected_cxml = request.param
+        cxnSp = element(
+            'p:cxnSp/p:spPr/a:xfrm/(a:off{x=10,y=15},a:ext{cx=10,cy=5})'
+        )
+        connector = Connector(cxnSp, None)
+        shape_.left, shape_.top, shape_.width, shape_.height = 50, 25, 20, 18
         expected_xml = xml(expected_cxml)
         return connector, shape_, cxn_idx, expected_xml
 

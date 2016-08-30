@@ -241,4 +241,10 @@ class Connector(BaseShape):
         Move the end point of this connector to the coordinates of the
         connection point of *shape* specified by *cxn_pt_idx*.
         """
-        raise NotImplementedError
+        x, y, cx, cy = shape.left, shape.top, shape.width, shape.height
+        self.end_x, self.end_y = {
+            0: (int(x + cx/2), y),
+            1: (x, int(y + cy/2)),
+            2: (int(x + cx/2), y + cy),
+            3: (x + cx, int(y + cy/2)),
+        }[cxn_pt_idx]

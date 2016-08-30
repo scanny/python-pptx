@@ -11,7 +11,6 @@ Feature: Connector methods
       And connector.begin_y == 457200
 
 
-  @wip
   Scenario: Connector.end_connect()
     Given a connector and a 1 inch square picture at 0, 0 
      When I call connector.end_connect(picture, 3)
