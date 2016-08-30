@@ -14,6 +14,7 @@ from pptx.shapes.connector import Connector
 from pptx.util import Emu
 
 from ..unitutil.cxml import element, xml
+from ..unitutil.mock import method_mock
 
 
 class DescribeConnector(object):
@@ -62,7 +63,25 @@ class DescribeConnector(object):
         connector.end_y = new_y
         assert connector._element.xml == expected_xml
 
+    def it_can_connect_its_begin_point_to_a_shape(self, begin_conn_fixture):
+        connector, shape, cxn_idx = begin_conn_fixture
+
+        connector.begin_connect(shape, cxn_idx)
+
+        connector._connect_begin_to.assert_called_once_with(
+            connector, shape, cxn_idx
+        )
+        connector._move_begin_to_cxn.assert_called_once_with(
+            connector, shape, cxn_idx
+        )
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def begin_conn_fixture(self, _connect_begin_to_, _move_begin_to_cxn_):
+        connector = Connector(None, None)
+        shape, cxn_idx = 42, 24
+        return connector, shape, cxn_idx
 
     @pytest.fixture(params=[
         (42, 24, False, 42),
@@ -203,3 +222,17 @@ class DescribeConnector(object):
         expected_xml = xml(tmpl % expected_cxml)
         connector = Connector(cxnSp, None)
         return connector, new_y, expected_xml
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _connect_begin_to_(self, request):
+        return method_mock(
+            request, Connector, '_connect_begin_to', autospec=True
+        )
+
+    @pytest.fixture
+    def _move_begin_to_cxn_(self, request):
+        return method_mock(
+            request, Connector, '_move_begin_to_cxn', autospec=True
+        )

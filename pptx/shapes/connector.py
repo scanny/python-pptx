@@ -20,6 +20,19 @@ class Connector(BaseShape):
     that can be connected to other objects (but not to other connectors).
     A line can be straight, have elbows, or can be curved.
     """
+    def begin_connect(self, shape, cxn_pt_idx):
+        """
+        Connect the beginning of this connector to *shape* at the connection
+        point specified by *cxn_pt_idx*. Each shape has zero or more
+        connection points and they are identified by index, starting with 0.
+        Generally, the first connection point of a shape is at the top center
+        of its bounding box and numbering proceeds counter-clockwise from
+        there. However this is only a convention and may vary, especially
+        with non built-in shapes.
+        """
+        self._connect_begin_to(shape, cxn_pt_idx)
+        self._move_begin_to_cxn(shape, cxn_pt_idx)
+
     @property
     def begin_x(self):
         """
@@ -179,3 +192,18 @@ class Connector(BaseShape):
                 cxnSp.flipV = True
                 cxnSp.y = new_y
                 cxnSp.cy = dy - cy
+
+    def _connect_begin_to(self, shape, cxn_pt_idx):
+        """
+        Add or update a stCxn element for this connector that connects its
+        begin point to the connection point of *shape* specified by
+        *cxn_pt_idx*.
+        """
+        raise NotImplementedError
+
+    def _move_begin_to_cxn(self, shape, cxn_pt_idx):
+        """
+        Move the begin point of this connector to coordinates of the
+        connection point of *shape* specified by *cxn_pt_idx*.
+        """
+        raise NotImplementedError
