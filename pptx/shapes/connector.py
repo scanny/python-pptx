@@ -209,4 +209,10 @@ class Connector(BaseShape):
         Move the begin point of this connector to coordinates of the
         connection point of *shape* specified by *cxn_pt_idx*.
         """
-        raise NotImplementedError
+        x, y, cx, cy = shape.left, shape.top, shape.width, shape.height
+        self.begin_x, self.begin_y = {
+            0: (int(x + cx/2), y),
+            1: (x, int(y + cy/2)),
+            2: (int(x + cx/2), y + cy),
+            3: (x + cx, int(y + cy/2)),
+        }[cxn_pt_idx]

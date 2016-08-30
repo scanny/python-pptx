@@ -4,7 +4,6 @@ Feature: Connector methods
   I need a set of methods on Connector objects
 
 
-  @wip
   Scenario: Connector.begin_connect()
     Given a connector and a 1 inch square picture at 0, 0 
      When I call connector.begin_connect(picture, 3)
