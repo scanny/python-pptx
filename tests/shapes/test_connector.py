@@ -86,6 +86,18 @@ class DescribeConnector(object):
         connector._move_begin_to_cxn(shape, cxn_idx)
         assert connector._element.xml == expected_xml
 
+    def it_can_connect_its_end_point_to_a_shape(self, end_conn_fixture):
+        connector, shape, cxn_idx = end_conn_fixture
+
+        connector.end_connect(shape, cxn_idx)
+
+        connector._connect_end_to.assert_called_once_with(
+            connector, shape, cxn_idx
+        )
+        connector._move_end_to_cxn.assert_called_once_with(
+            connector, shape, cxn_idx
+        )
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -177,6 +189,12 @@ class DescribeConnector(object):
         shape_.id, cxn_idx = 42, 3
         expected_xml = xml(expected_cxml)
         return connector, shape_, cxn_idx, expected_xml
+
+    @pytest.fixture
+    def end_conn_fixture(self, _connect_end_to_, _move_end_to_cxn_):
+        connector = Connector(None, None)
+        shape, cxn_idx = 42, 24
+        return connector, shape, cxn_idx
 
     @pytest.fixture(params=[
         (21, 32, False, 53),
@@ -273,9 +291,21 @@ class DescribeConnector(object):
         )
 
     @pytest.fixture
+    def _connect_end_to_(self, request):
+        return method_mock(
+            request, Connector, '_connect_end_to', autospec=True
+        )
+
+    @pytest.fixture
     def _move_begin_to_cxn_(self, request):
         return method_mock(
             request, Connector, '_move_begin_to_cxn', autospec=True
+        )
+
+    @pytest.fixture
+    def _move_end_to_cxn_(self, request):
+        return method_mock(
+            request, Connector, '_move_end_to_cxn', autospec=True
         )
 
     @pytest.fixture

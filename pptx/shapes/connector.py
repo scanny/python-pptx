@@ -113,6 +113,14 @@ class Connector(BaseShape):
                 cxnSp.y = y + cy
                 cxnSp.cy = dy - cy
 
+    def end_connect(self, shape, cxn_pt_idx):
+        """
+        Connect the ending of this connector to *shape* at the connection
+        point specified by *cxn_pt_idx*.
+        """
+        self._connect_end_to(shape, cxn_pt_idx)
+        self._move_end_to_cxn(shape, cxn_pt_idx)
+
     @property
     def end_x(self):
         """
@@ -204,6 +212,14 @@ class Connector(BaseShape):
         stCxn.id = shape.id
         stCxn.idx = cxn_pt_idx
 
+    def _connect_end_to(self, shape, cxn_pt_idx):
+        """
+        Add or update an endCxn element for this connector that connects its
+        end point to the connection point of *shape* specified by
+        *cxn_pt_idx*.
+        """
+        raise NotImplementedError
+
     def _move_begin_to_cxn(self, shape, cxn_pt_idx):
         """
         Move the begin point of this connector to coordinates of the
@@ -216,3 +232,10 @@ class Connector(BaseShape):
             2: (int(x + cx/2), y + cy),
             3: (x + cx, int(y + cy/2)),
         }[cxn_pt_idx]
+
+    def _move_end_to_cxn(self, shape, cxn_pt_idx):
+        """
+        Move the end point of this connector to the coordinates of the
+        connection point of *shape* specified by *cxn_pt_idx*.
+        """
+        raise NotImplementedError
