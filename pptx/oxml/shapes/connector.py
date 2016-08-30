@@ -113,4 +113,5 @@ class CT_NonVisualConnectorProperties(BaseOxmlElement):
         'a:cxnSpLocks', 'a:stCxn', 'a:endCxn', 'a:extLst'
     )
     stCxn = ZeroOrOne('a:stCxn', successors=_tag_seq[2:])
+    endCxn = ZeroOrOne('a:endCxn', successors=_tag_seq[3:])
     del _tag_seq

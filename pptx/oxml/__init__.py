@@ -221,6 +221,7 @@ from .shapes.connector import (
     CT_Connection, CT_Connector, CT_ConnectorNonVisual,
     CT_NonVisualConnectorProperties
 )
+register_element_cls('a:endCxn',     CT_Connection)
 register_element_cls('a:stCxn',      CT_Connection)
 register_element_cls('p:cNvCxnSpPr', CT_NonVisualConnectorProperties)
 register_element_cls('p:cxnSp',      CT_Connector)

@@ -218,7 +218,10 @@ class Connector(BaseShape):
         end point to the connection point of *shape* specified by
         *cxn_pt_idx*.
         """
-        raise NotImplementedError
+        cNvCxnSpPr = self._element.nvCxnSpPr.cNvCxnSpPr
+        endCxn = cNvCxnSpPr.get_or_add_endCxn()
+        endCxn.id = shape.id
+        endCxn.idx = cxn_pt_idx
 
     def _move_begin_to_cxn(self, shape, cxn_pt_idx):
         """
