@@ -199,7 +199,10 @@ class Connector(BaseShape):
         begin point to the connection point of *shape* specified by
         *cxn_pt_idx*.
         """
-        raise NotImplementedError
+        cNvCxnSpPr = self._element.nvCxnSpPr.cNvCxnSpPr
+        stCxn = cNvCxnSpPr.get_or_add_stCxn()
+        stCxn.id = shape.id
+        stCxn.idx = cxn_pt_idx
 
     def _move_begin_to_cxn(self, shape, cxn_pt_idx):
         """

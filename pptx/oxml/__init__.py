@@ -217,9 +217,14 @@ register_element_cls('p:nvSpPr',   CT_ShapeNonVisual)
 register_element_cls('p:sp',       CT_Shape)
 
 
-from .shapes.connector import CT_Connector, CT_ConnectorNonVisual
-register_element_cls('p:cxnSp',     CT_Connector)
-register_element_cls('p:nvCxnSpPr', CT_ConnectorNonVisual)
+from .shapes.connector import (
+    CT_Connection, CT_Connector, CT_ConnectorNonVisual,
+    CT_NonVisualConnectorProperties
+)
+register_element_cls('a:stCxn',      CT_Connection)
+register_element_cls('p:cNvCxnSpPr', CT_NonVisualConnectorProperties)
+register_element_cls('p:cxnSp',      CT_Connector)
+register_element_cls('p:nvCxnSpPr',  CT_ConnectorNonVisual)
 
 
 from .shapes.graphfrm import (

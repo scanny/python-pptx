@@ -10,11 +10,12 @@ from __future__ import (
 
 import pytest
 
+from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.util import Emu
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import method_mock
+from ..unitutil.mock import instance_mock, method_mock
 
 
 class DescribeConnector(object):
@@ -74,6 +75,11 @@ class DescribeConnector(object):
         connector._move_begin_to_cxn.assert_called_once_with(
             connector, shape, cxn_idx
         )
+
+    def it_connects_its_begin_point_to_help(self, connect_begin_fixture):
+        connector, shape, cxn_idx, expected_xml = connect_begin_fixture
+        connector._connect_begin_to(shape, cxn_idx)
+        assert connector._element.xml == expected_xml
 
     # fixtures -------------------------------------------------------
 
@@ -152,6 +158,20 @@ class DescribeConnector(object):
         expected_xml = xml(tmpl % expected_cxml)
         connector = Connector(cxnSp, None)
         return connector, new_y, expected_xml
+
+    @pytest.fixture(params=[
+        ('p:cxnSp{a:b=c}/p:nvCxnSpPr/p:cNvCxnSpPr',
+         'p:cxnSp{a:b=c}/p:nvCxnSpPr/p:cNvCxnSpPr/a:stCxn{id=42,idx=3}'),
+        ('p:cxnSp/p:nvCxnSpPr/p:cNvCxnSpPr/a:stCxn{id=66,idx=6}',
+         'p:cxnSp/p:nvCxnSpPr/p:cNvCxnSpPr/a:stCxn{id=42,idx=3}'),
+    ])
+    def connect_begin_fixture(self, request, shape_):
+        cxnSp_cxml, expected_cxml = request.param
+        cxnSp = element(cxnSp_cxml)
+        connector = Connector(cxnSp, None)
+        shape_.id, cxn_idx = 42, 3
+        expected_xml = xml(expected_cxml)
+        return connector, shape_, cxn_idx, expected_xml
 
     @pytest.fixture(params=[
         (21, 32, False, 53),
@@ -236,3 +256,7 @@ class DescribeConnector(object):
         return method_mock(
             request, Connector, '_move_begin_to_cxn', autospec=True
         )
+
+    @pytest.fixture
+    def shape_(self, request):
+        return instance_mock(request, BaseShape)

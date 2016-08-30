@@ -9,7 +9,19 @@ from __future__ import absolute_import
 from .. import parse_xml
 from ..ns import nsdecls
 from .shared import BaseShapeElement
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne
+from ..simpletypes import ST_DrawingElementId, XsdUnsignedInt
+from ..xmlchemy import (
+    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
+)
+
+
+class CT_Connection(BaseShapeElement):
+    """
+    A `a:stCxn` or `a:endCxn` element specifying a connection between
+    an end-point of a connector and a shape connection point.
+    """
+    id = RequiredAttribute('id', ST_DrawingElementId)
+    idx = RequiredAttribute('idx', XsdUnsignedInt)
 
 
 class CT_Connector(BaseShapeElement):
@@ -19,6 +31,7 @@ class CT_Connector(BaseShapeElement):
     _tag_seq = (
         'p:nvCxnSpPr', 'p:spPr', 'p:style', 'p:extLst'
     )
+    nvCxnSpPr = OneAndOnlyOne('p:nvCxnSpPr')
     spPr = OneAndOnlyOne('p:spPr')
     del _tag_seq
 
@@ -87,3 +100,17 @@ class CT_ConnectorNonVisual(BaseOxmlElement):
     a connector, such as name, id, etc.
     """
     cNvPr = OneAndOnlyOne('p:cNvPr')
+    cNvCxnSpPr = OneAndOnlyOne('p:cNvCxnSpPr')
+    nvPr = OneAndOnlyOne('p:nvPr')
+
+
+class CT_NonVisualConnectorProperties(BaseOxmlElement):
+    """
+    `p:cNvCxnSpPr` element, container for the non-visual properties specific
+    to a connector shape, such as connections and connector locking.
+    """
+    _tag_seq = (
+        'a:cxnSpLocks', 'a:stCxn', 'a:endCxn', 'a:extLst'
+    )
+    stCxn = ZeroOrOne('a:stCxn', successors=_tag_seq[2:])
+    del _tag_seq
