@@ -131,6 +131,8 @@ rst_epilog = """
 
 .. |_ColumnCollection| replace:: :class:`_ColumnCollection`
 
+.. |Connector| replace:: :class:`.Connector`
+
 .. |CoreProperties| replace:: :class:`.CoreProperties`
 
 .. |DataLabel| replace:: :class:`.DataLabel`

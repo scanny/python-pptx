@@ -70,6 +70,17 @@ The |AdjustmentCollection| instance for an AutoShape is accessed using the
    :undoc-members:
 
 
+|Connector| objects
+-------------------
+
+The following properties and methods are defined for Connector shapes:
+
+.. autoclass:: pptx.shapes.connector.Connector()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 ``Picture`` objects
 -------------------
 

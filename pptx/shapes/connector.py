@@ -22,6 +22,14 @@ class Connector(BaseShape):
     """
     def begin_connect(self, shape, cxn_pt_idx):
         """
+        **EXPERIMENTAL** - *The current implementation only works properly
+        with rectangular shapes, such as pictures and rectangles. Use with
+        other shape types may cause unexpected visual alignment of the
+        connected end-point and could lead to a load error if cxn_pt_idx
+        exceeds the connection point count available on the connected shape.
+        That said, a quick test should reveal what to expect when using this
+        method with other shape types.*
+
         Connect the beginning of this connector to *shape* at the connection
         point specified by *cxn_pt_idx*. Each shape has zero or more
         connection points and they are identified by index, starting with 0.
@@ -37,7 +45,7 @@ class Connector(BaseShape):
     def begin_x(self):
         """
         Return the X-position of the begin point of this connector, in
-        English Metric Units (as an |Emu| object).
+        English Metric Units (as a |Length| object).
         """
         cxnSp = self._element
         x, cx, flipH = cxnSp.x, cxnSp.cx, cxnSp.flipH
@@ -77,7 +85,7 @@ class Connector(BaseShape):
     def begin_y(self):
         """
         Return the Y-position of the begin point of this connector, in
-        English Metric Units (as an |Emu| object).
+        English Metric Units (as a |Length| object).
         """
         cxnSp = self._element
         y, cy, flipV = cxnSp.y, cxnSp.cy, cxnSp.flipV
@@ -115,6 +123,14 @@ class Connector(BaseShape):
 
     def end_connect(self, shape, cxn_pt_idx):
         """
+        **EXPERIMENTAL** - *The current implementation only works properly
+        with rectangular shapes, such as pictures and rectangles. Use with
+        other shape types may cause unexpected visual alignment of the
+        connected end-point and could lead to a load error if cxn_pt_idx
+        exceeds the connection point count available on the connected shape.
+        That said, a quick test should reveal what to expect when using this
+        method with other shape types.*
+
         Connect the ending of this connector to *shape* at the connection
         point specified by *cxn_pt_idx*.
         """
@@ -125,7 +141,7 @@ class Connector(BaseShape):
     def end_x(self):
         """
         Return the X-position of the end point of this connector, in English
-        Metric Units (as an |Emu| object).
+        Metric Units (as a |Length| object).
         """
         cxnSp = self._element
         x, cx, flipH = cxnSp.x, cxnSp.cx, cxnSp.flipH
@@ -165,7 +181,7 @@ class Connector(BaseShape):
     def end_y(self):
         """
         Return the Y-position of the end point of this connector, in English
-        Metric Units (as an |Emu| object).
+        Metric Units (as a |Length| object).
         """
         cxnSp = self._element
         y, cy, flipV = cxnSp.y, cxnSp.cy, cxnSp.flipV

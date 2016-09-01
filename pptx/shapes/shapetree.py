@@ -316,7 +316,9 @@ class SlideShapes(_BaseShapes):
     def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
         """
         Add a newly created connector shape to the end of this shape tree.
-        The connector is of type *connector_type* and has begin and end
+        *connector_type* is a member of the :ref:`MsoConnectorType`
+        enumeration and the end-point values are specified as EMU values. The
+        returned connector is of type *connector_type* and has begin and end
         points as specified.
         """
         cxnSp = self._add_cxnSp(
