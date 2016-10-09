@@ -18,7 +18,11 @@ from ..util import lazyproperty
 
 class ChartFormat(ElementProxy):
     """
-    Provides access to visual shape properties such as line and fill.
+    The |ChartFormat| object provides access to visual shape properties for
+    chart elements like |Axis|, |Series|, and |MajorGridlines|. It has two
+    properties, :attr:`fill` and :attr:`line`, which return a |FillFormat|
+    and |LineFormat| object respectively. The |ChartFormat| object is
+    provided by the :attr:`format` property on the target axis, series, etc.
     """
 
     __slots__ = ('_fill', '_line')
