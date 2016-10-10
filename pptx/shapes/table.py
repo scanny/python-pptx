@@ -245,7 +245,7 @@ class _Cell(Subshape):
         Deprecated. Use :attr:`text_frame` property instead.
         """
         msg = (
-            '_Cell.textframe property is deprecated. Use .has_text_frame ins'
+            '_Cell.textframe property is deprecated. Use .text_frame ins'
             'tead.'
         )
         warn(msg, UserWarning, stacklevel=2)
