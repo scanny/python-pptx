@@ -16,6 +16,7 @@ Slides
 .. toctree::
    :maxdepth: 1
 
+   sld-notes-master
    sld-base
    sld-slide
    sld-master
