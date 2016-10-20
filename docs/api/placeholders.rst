@@ -39,7 +39,7 @@ ChartPlaceholder objects
 .. autoclass:: pptx.shapes.placeholder.ChartPlaceholder()
    :members:
    :exclude-members:
-      has_chart, has_table, has_textframe, has_text_frame, part
+      has_chart, has_table, has_text_frame, part
    :inherited-members:
    :undoc-members:
 
@@ -50,7 +50,7 @@ PicturePlaceholder objects
 .. autoclass:: pptx.shapes.placeholder.PicturePlaceholder()
    :members:
    :exclude-members:
-      has_chart, has_table, has_textframe, has_text_frame, part
+      has_chart, has_table, has_text_frame, part
    :inherited-members:
    :undoc-members:
 
@@ -62,7 +62,7 @@ TablePlaceholder objects
    :members:
    :inherited-members:
    :exclude-members:
-      has_chart, has_table, has_textframe, has_text_frame, is_placeholder,
+      has_chart, has_table, has_text_frame, is_placeholder,
       part
    :undoc-members:
 
@@ -74,7 +74,7 @@ PlaceholderGraphicFrame objects
    :members:
    :inherited-members:
    :exclude-members:
-      chart_part, has_textframe, has_text_frame, is_placeholder, part
+      chart_part, has_text_frame, is_placeholder, part
    :undoc-members:
 
 
@@ -85,7 +85,7 @@ PlaceholderPicture objects
    :members:
    :inherited-members:
    :exclude-members:
-      get_or_add_ln, has_chart, has_table, has_textframe, has_text_frame, ln,
+      get_or_add_ln, has_chart, has_table, has_text_frame, ln,
       part
    :undoc-members:
 

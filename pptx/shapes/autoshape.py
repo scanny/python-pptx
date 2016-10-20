@@ -7,7 +7,6 @@ Autoshape-related objects such as Shape and Adjustment.
 from __future__ import absolute_import, print_function
 
 from numbers import Number
-from warnings import warn
 
 from .base import BaseShape
 from ..dml.fill import FillFormat
@@ -323,18 +322,6 @@ class Shape(BaseShape):
         """
         return True
 
-    @property
-    def has_textframe(self):
-        """
-        Deprecated. Use :attr:`has_text_frame` property instead.
-        """
-        msg = (
-            'Shape.has_textframe property is deprecated. Use .has_text_frame'
-            ' instead.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-        return self.has_text_frame
-
     @lazyproperty
     def line(self):
         """
@@ -395,14 +382,3 @@ class Shape(BaseShape):
         """
         txBody = self._element.get_or_add_txBody()
         return TextFrame(txBody, self)
-
-    @property
-    def textframe(self):
-        """
-        Deprecated. Use :attr:`text_frame` property instead.
-        """
-        msg = (
-            'Shape.textframe property is deprecated. Use .text_frame instead'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-        return self.text_frame

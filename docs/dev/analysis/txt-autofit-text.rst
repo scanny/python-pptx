@@ -11,11 +11,11 @@ to fit shape" behavior.
 A robust implementation would be complex and would lead the project outside
 the currently intended scope. In particular, because the shape size, text
 content, the "full" point size of the text, and the autofit and wrap settings
-of the textframe all interact to determine the proper "fit" of adjusted text,
-all events that could change the state of any of these five factors would
-need to be coupled to an "update" method. There would also need to be at
-least two "fitting" algorithms, one for when wrap was turned on and another
-for when it was off.
+of the text frame all interact to determine the proper "fit" of adjusted
+text, all events that could change the state of any of these five factors
+would need to be coupled to an "update" method. There would also need to be
+at least two "fitting" algorithms, one for when wrap was turned on and
+another for when it was off.
 
 The initial solution we'll pursue is a special-purpose method on TextFrame
 that reduces the permutations of these variables to one and places

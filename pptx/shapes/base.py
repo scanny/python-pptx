@@ -6,8 +6,6 @@ Base shape-related objects such as BaseShape.
 
 from __future__ import absolute_import, print_function
 
-from warnings import warn
-
 from ..action import ActionSetting
 from ..shared import ElementProxy
 from ..util import lazyproperty
@@ -70,18 +68,6 @@ class BaseShape(object):
         """
         # overridden on Shape to return True. Only <p:sp> has text frame
         return False
-
-    @property
-    def has_textframe(self):
-        """
-        Deprecated. Use :attr:`has_text_frame` property instead.
-        """
-        msg = (
-            'Shape.has_textframe property is deprecated. Use .has_text_frame'
-            ' instead.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-        return self.has_text_frame
 
     @property
     def height(self):

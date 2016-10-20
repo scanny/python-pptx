@@ -17,8 +17,7 @@ A |Table| object is added to a slide using the
    :members:
    :inherited-members:
    :exclude-members:
-      element, has_textframe, notify_height_changed, notify_width_changed,
-      part, text, textframe
+      element, notify_height_changed, notify_width_changed, part, text
    :undoc-members:
 
 

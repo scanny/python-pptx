@@ -103,6 +103,6 @@ A graphic frame is the shape containing a table, chart, or smart art.
    :show-inheritance:
    :members:
    :exclude-members:
-       chart_part, has_text_frame, has_textframe, is_placeholder, part,
-       placeholder_format, shape_type
+       chart_part, has_text_frame, is_placeholder, part, placeholder_format,
+       shape_type
    :inherited-members:
