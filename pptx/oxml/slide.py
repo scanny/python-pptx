@@ -1,7 +1,8 @@
 # encoding: utf-8
 
 """
-lxml custom element classes for slide master-related XML elements.
+lxml custom element classes for slide-related XML elements, including all
+masters.
 """
 
 from __future__ import (
@@ -17,6 +18,18 @@ from .xmlchemy import (
 )
 
 
+class _BaseSlideElement(BaseOxmlElement):
+    """
+    Base class for the six slide types, providing common methods.
+    """
+    @property
+    def spTree(self):
+        """
+        Return required `p:cSld/p:spTree` grandchild.
+        """
+        return self.cSld.spTree
+
+
 class CT_CommonSlideData(BaseOxmlElement):
     """
     ``<p:cSld>`` element.
@@ -30,7 +43,7 @@ class CT_CommonSlideData(BaseOxmlElement):
     name = OptionalAttribute('name', XsdString, default='')
 
 
-class CT_Slide(BaseOxmlElement):
+class CT_Slide(_BaseSlideElement):
     """
     ``<p:sld>`` element, root of a slide part
     """
@@ -47,13 +60,6 @@ class CT_Slide(BaseOxmlElement):
         Return a new ``<p:sld>`` element configured as a base slide shape.
         """
         return parse_xml(cls._sld_xml())
-
-    @property
-    def spTree(self):
-        """
-        Return required `p:cSld/p:spTree` grandchild.
-        """
-        return self.cSld.spTree
 
     @staticmethod
     def _sld_xml():
@@ -76,7 +82,7 @@ class CT_Slide(BaseOxmlElement):
         )
 
 
-class CT_SlideLayout(BaseOxmlElement):
+class CT_SlideLayout(_BaseSlideElement):
     """
     ``<p:sldLayout>`` element, root of a slide layout part
     """
@@ -86,13 +92,6 @@ class CT_SlideLayout(BaseOxmlElement):
     )
     cSld = OneAndOnlyOne('p:cSld')
     del _tag_seq
-
-    @property
-    def spTree(self):
-        """
-        Return required `p:cSld/p:spTree` grandchild.
-        """
-        return self.cSld.spTree
 
 
 class CT_SlideLayoutIdList(BaseOxmlElement):
@@ -111,7 +110,7 @@ class CT_SlideLayoutIdListEntry(BaseOxmlElement):
     rId = RequiredAttribute('r:id', XsdString)
 
 
-class CT_SlideMaster(BaseOxmlElement):
+class CT_SlideMaster(_BaseSlideElement):
     """
     ``<p:sldMaster>`` element, root of a slide master part
     """
@@ -122,10 +121,3 @@ class CT_SlideMaster(BaseOxmlElement):
     cSld = OneAndOnlyOne('p:cSld')
     sldLayoutIdLst = ZeroOrOne('p:sldLayoutIdLst', successors=_tag_seq[3:])
     del _tag_seq
-
-    @property
-    def spTree(self):
-        """
-        Return required `p:cSld/p:spTree` grandchild.
-        """
-        return self.cSld.spTree
