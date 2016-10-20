@@ -17,6 +17,18 @@ Feature: Presentation properties
       And the slide height matches the new value
 
 
+  @wip
+  Scenario Outline: Presentation.notes_master
+    Given a presentation having <a-or-no> notes master
+     Then prs.notes_master is a NotesMaster object
+      And len(notes_master.shapes) is <shape-count>
+
+    Examples: Notes master states
+      | a-or-no | shape-count |
+      | a       |      7      |
+      | no      |      6      |
+
+
   Scenario: Presentation.slides
     Given a presentation
      Then prs.slides is a Slides object

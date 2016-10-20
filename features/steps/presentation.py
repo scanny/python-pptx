@@ -31,6 +31,16 @@ def given_a_presentation(context):
     context.presentation = Presentation(test_pptx('prs-properties'))
 
 
+@given('a presentation having a notes master')
+def given_a_presentation_having_a_notes_master(context):
+    context.prs = Presentation(test_pptx('prs-notes'))
+
+
+@given('a presentation having no notes master')
+def given_a_presentation_having_no_notes_master(context):
+    context.prs = Presentation(test_pptx('prs-properties'))
+
+
 @given('a presentation with external relationships')
 def given_prs_with_ext_rels(context):
     context.prs = Presentation(test_pptx('ext-rels'))
@@ -130,6 +140,20 @@ def then_see_pptx_file_in_working_dir(context):
     minimum = 30000
     actual = os.path.getsize(saved_pptx_path)
     assert actual > minimum
+
+
+@then('len(notes_master.shapes) is {shape_count}')
+def then_len_notes_master_shapes_is_shape_count(context, shape_count):
+    notes_master = context.prs.notes_master
+    expected = int(shape_count)
+    actual = len(notes_master.shapes)
+    assert actual == expected, 'got %s' % actual
+
+
+@then('prs.notes_master is a NotesMaster object')
+def then_prs_notes_master_is_a_NotesMaster_object(context):
+    prs = context.prs
+    assert type(prs.notes_master).__name__ == 'NotesMaster'
 
 
 @then('prs.slides is a Slides object')
