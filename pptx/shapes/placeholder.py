@@ -2,6 +2,9 @@
 
 """
 Placeholder-related objects, specific to shapes having a `p:ph` element.
+A placeholder has distinct behaviors depending on whether it appears on
+a slide, layout, or master. Hence there is a non-trivial class inheritance
+structure.
 """
 
 from __future__ import (
@@ -86,6 +89,16 @@ class _InheritsDimensions(object):
     def width(self, value):
         self._element.cx = value
 
+    @property
+    def _base_placeholder(self):
+        """
+        Return the layout or master placeholder shape this placeholder
+        inherits from. Not to be confused with an instance of
+        |BasePlaceholder| (necessarily).
+        """
+        layout, idx = self._slide_layout, self._element.ph_idx
+        return layout.placeholders.get(idx=idx)
+
     def _effective_value(self, attr_name):
         """
         The effective value of *attr_name* on this placeholder shape; its
@@ -101,22 +114,14 @@ class _InheritsDimensions(object):
 
     def _inherited_value(self, attr_name):
         """
-        The attribute value, e.g. 'width' of the layout placeholder this
-        slide placeholder inherits from
+        Return the attribute value, e.g. 'width' of the base placeholder this
+        placeholder inherits from.
         """
-        layout_placeholder = self._layout_placeholder
-        if layout_placeholder is None:
+        base_placeholder = self._base_placeholder
+        if base_placeholder is None:
             return None
-        inherited_value = getattr(layout_placeholder, attr_name)
+        inherited_value = getattr(base_placeholder, attr_name)
         return inherited_value
-
-    @property
-    def _layout_placeholder(self):
-        """
-        The layout placeholder shape this slide placeholder inherits from
-        """
-        layout, idx = self._slide_layout, self._element.ph_idx
-        return layout.placeholders.get(idx=idx)
 
     @property
     def _slide_layout(self):

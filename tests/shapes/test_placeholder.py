@@ -53,11 +53,11 @@ class Describe_BaseSlidePlaceholder(object):
         value = placeholder._inherited_value(attr_name)
         assert value == expected_value
 
-    def it_finds_its_layout_placeholder_to_help(self, layout_ph_fixture):
-        placeholder, layout_, idx, layout_placeholder_ = layout_ph_fixture
-        layout_placeholder = placeholder._layout_placeholder
+    def it_finds_its_base_placeholder_to_help(self, base_ph_fixture):
+        placeholder, layout_, idx, layout_placeholder_ = base_ph_fixture
+        base_placeholder = placeholder._base_placeholder
         layout_.placeholders.get.assert_called_once_with(idx=idx)
-        assert layout_placeholder is layout_placeholder_
+        assert base_placeholder is layout_placeholder_
 
     def it_finds_its_slide_layout_to_help(self, slide_layout_fixture):
         placeholder, slide_layout_ = slide_layout_fixture
@@ -76,6 +76,15 @@ class Describe_BaseSlidePlaceholder(object):
         assert placeholder._element is None
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def base_ph_fixture(self, request, _slide_layout_prop_, slide_layout_,
+                        layout_placeholder_):
+        sp_cxml = 'p:sp/p:nvSpPr/p:nvPr/p:ph{type=pic,idx=1}'
+        placeholder = _BaseSlidePlaceholder(element(sp_cxml), None)
+        _slide_layout_prop_.return_value = slide_layout_
+        slide_layout_.placeholders.get.return_value = layout_placeholder_
+        return placeholder, slide_layout_, 1, layout_placeholder_
 
     @pytest.fixture(params=[
         ('p:sp/p:spPr/a:xfrm', 'left',   1,
@@ -110,15 +119,15 @@ class Describe_BaseSlidePlaceholder(object):
         return placeholder, slide_layout_, 1, layout_placeholder_
 
     @pytest.fixture(params=[(True, 42), (False, None)])
-    def layout_val_fixture(self, request, _layout_placeholder_,
+    def layout_val_fixture(self, request, _base_placeholder_,
                            layout_placeholder_):
         has_layout_placeholder, expected_value = request.param
         placeholder = _BaseSlidePlaceholder(None, None)
         if has_layout_placeholder:
             layout_placeholder_.width = expected_value
-            _layout_placeholder_.return_value = layout_placeholder_
+            _base_placeholder_.return_value = layout_placeholder_
         else:
-            _layout_placeholder_.return_value = None
+            _base_placeholder_.return_value = None
         return placeholder, 'width', expected_value
 
     @pytest.fixture(params=[
@@ -154,15 +163,15 @@ class Describe_BaseSlidePlaceholder(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def _inherited_value_(self, request):
-        return method_mock(
-            request, _BaseSlidePlaceholder, '_inherited_value',
+    def _base_placeholder_(self, request):
+        return property_mock(
+            request, _BaseSlidePlaceholder, '_base_placeholder'
         )
 
     @pytest.fixture
-    def _layout_placeholder_(self, request):
-        return property_mock(
-            request, _BaseSlidePlaceholder, '_layout_placeholder'
+    def _inherited_value_(self, request):
+        return method_mock(
+            request, _BaseSlidePlaceholder, '_inherited_value',
         )
 
     @pytest.fixture

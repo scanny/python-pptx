@@ -101,6 +101,8 @@ rst_epilog = """
 
 .. |_BaseMaster| replace:: :class:`._BaseMaster`
 
+.. |BasePlaceholder| replace:: :class:`.BasePlaceholder`
+
 .. |_BasePlot| replace:: :class:`._BasePlot`
 
 .. |BaseShape| replace:: :class:`.BaseShape`
