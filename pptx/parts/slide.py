@@ -49,6 +49,13 @@ class BaseSlidePart(XmlPart):
         return self._element.cSld.name
 
 
+class NotesMasterPart(BaseSlidePart):
+    """
+    Notes master part. Corresponds to package file
+    `ppt/notesMasters/notesMaster1.xml`.
+    """
+
+
 class SlidePart(BaseSlidePart):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.

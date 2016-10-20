@@ -49,6 +49,16 @@ class PresentationPart(XmlPart):
         return None
 
     @lazyproperty
+    def notes_master(self):
+        """
+        Return the |NotesMaster| object for this presentation. If the
+        presentation does not have a notes master, one is created from
+        a default template. The same single instance is returned on each
+        call.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
     def presentation(self):
         """
         A |Presentation| object providing access to the content of this

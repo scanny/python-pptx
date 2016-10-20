@@ -29,6 +29,15 @@ class Presentation(PartElementProxy):
         """
         return self.part.core_properties
 
+    @property
+    def notes_master(self):
+        """
+        Instance of |NotesMaster| for this presentation. If the presentation
+        does not have a notes master, one is created from a default template
+        and returned. The same single instance is returned on each call.
+        """
+        return self.part.notes_master
+
     def save(self, file):
         """
         Save this presentation to *file*, where *file* can be either a path

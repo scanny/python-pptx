@@ -12,6 +12,7 @@ import pytest
 
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.presentation import PresentationPart
+from pptx.parts.slide import NotesMasterPart
 from pptx.presentation import Presentation
 from pptx.slide import SlideLayouts, SlideMaster, SlideMasters, Slides
 
@@ -46,6 +47,10 @@ class DescribePresentation(object):
     def it_provides_access_to_its_core_properties(self, core_props_fixture):
         prs, core_properties_ = core_props_fixture
         assert prs.core_properties is core_properties_
+
+    def it_provides_access_to_its_notes_master(self, notes_master_fixture):
+        prs, notes_master_ = notes_master_fixture
+        assert prs.notes_master is notes_master_
 
     def it_provides_access_to_its_slides(self, slides_fixture):
         prs, rename_slide_parts_, rIds = slides_fixture[:3]
@@ -116,6 +121,12 @@ class DescribePresentation(object):
         prs = Presentation(element(prs_cxml), None)
         expected_xml = xml(expected_cxml)
         return prs, SlideMasters_, slide_masters_, expected_xml
+
+    @pytest.fixture
+    def notes_master_fixture(self, prs_part_, notes_master_):
+        prs = Presentation(None, prs_part_)
+        prs_part_.notes_master = notes_master_
+        return prs, notes_master_
 
     @pytest.fixture
     def part_fixture(self, prs_part_):
@@ -194,6 +205,10 @@ class DescribePresentation(object):
     @pytest.fixture
     def masters_prop_(self, request):
         return property_mock(request, Presentation, 'slide_masters')
+
+    @pytest.fixture
+    def notes_master_(self, request):
+        return instance_mock(request, NotesMasterPart)
 
     @pytest.fixture
     def part_prop_(self, request):
