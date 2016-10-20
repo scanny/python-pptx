@@ -99,6 +99,8 @@ rst_epilog = """
 
 .. |BaseFileSystem| replace:: :class:`BaseFileSystem`
 
+.. |_BaseMaster| replace:: :class:`._BaseMaster`
+
 .. |_BasePlot| replace:: :class:`._BasePlot`
 
 .. |BaseShape| replace:: :class:`.BaseShape`

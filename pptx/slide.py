@@ -39,6 +39,31 @@ class _BaseSlide(PartElementProxy):
         self._element.cSld.name = new_value
 
 
+class _BaseMaster(_BaseSlide):
+    """
+    Base class for master objects such as |SlideMaster| and |NotesMaster|.
+    Provides access to placeholders and regular shapes.
+    """
+
+    __slots__ = ('_placeholders', '_shapes')
+
+    @lazyproperty
+    def placeholders(self):
+        """
+        Instance of |MasterPlaceholders| containing sequence of placeholder
+        shapes in this master, sorted in *idx* order.
+        """
+        return MasterPlaceholders(self._element.spTree, self)
+
+    @lazyproperty
+    def shapes(self):
+        """
+        Instance of |MasterShapes| containing sequence of shape objects
+        appearing on this slide.
+        """
+        return MasterShapes(self._element.spTree, self)
+
+
 class Slide(_BaseSlide):
     """
     Slide object. Provides access to shapes and slide-level properties.
@@ -227,29 +252,14 @@ class SlideLayouts(ParentedElementProxy):
         return len(self._sldLayoutIdLst)
 
 
-class SlideMaster(_BaseSlide):
+class SlideMaster(_BaseMaster):
     """
-    Slide master object. Provides access to placeholders, regular shapes,
-    slide layouts, and slide master-level properties.
+    Slide master object. Provides access to slide layouts. Access to
+    placeholders, regular shapes, and slide master-level properties is
+    inherited from |_BaseMaster|.
     """
 
-    __slots__ = ('_placeholders', '_shapes', '_slide_layouts')
-
-    @lazyproperty
-    def placeholders(self):
-        """
-        Instance of |MasterPlaceholders| containing sequence of placeholder
-        shapes in this slide master, sorted in *idx* order.
-        """
-        return MasterPlaceholders(self._element.spTree, self)
-
-    @lazyproperty
-    def shapes(self):
-        """
-        Instance of |MasterShapes| containing sequence of shape objects
-        appearing on this slide.
-        """
-        return MasterShapes(self._element.spTree, self)
+    __slots__ = ('_slide_layouts',)
 
     @lazyproperty
     def slide_layouts(self):
