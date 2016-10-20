@@ -100,6 +100,35 @@ class DescribePresentationPart(object):
         prs_part, partname = next_fixture
         assert prs_part._next_slide_partname == partname
 
+    def it_gets_the_notes_master_part_to_help(self, nmp_get_fixture):
+        """
+        This is the first of a two-part test to cover the existing notes
+        master case. The notes master not-present case follows.
+        """
+        prs_part, notes_master_part_ = nmp_get_fixture
+        notes_master_part = prs_part._notes_master_part
+        prs_part.part_related_by.assert_called_once_with(
+            prs_part, RT.NOTES_MASTER
+        )
+        assert notes_master_part is notes_master_part_
+
+    def it_adds_a_notes_master_part_to_help(self, nmp_add_fixture):
+        """
+        This is the second of a two-part test to cover the
+        notes-master-not-present case. The notes master present case is just
+        above.
+        """
+        prs_part, NotesMasterPart_ = nmp_add_fixture[:2]
+        package_, notes_master_part_ = nmp_add_fixture[2:]
+
+        notes_master_part = prs_part._notes_master_part
+
+        NotesMasterPart_.create_default.assert_called_once_with(package_)
+        prs_part.relate_to.assert_called_once_with(
+            prs_part, notes_master_part_, RT.NOTES_MASTER
+        )
+        assert notes_master_part is notes_master_part_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -163,6 +192,20 @@ class DescribePresentationPart(object):
         _notes_master_part_prop_.return_value = notes_master_part_
         notes_master_part_.notes_master = notes_master_
         return prs_part, notes_master_
+
+    @pytest.fixture
+    def nmp_add_fixture(self, package_, NotesMasterPart_, notes_master_part_,
+                        part_related_by_, relate_to_):
+        prs_part = PresentationPart(None, None, None, package_)
+        part_related_by_.side_effect = KeyError
+        NotesMasterPart_.create_default.return_value = notes_master_part_
+        return prs_part, NotesMasterPart_, package_, notes_master_part_
+
+    @pytest.fixture
+    def nmp_get_fixture(self, notes_master_part_, part_related_by_):
+        prs_part = PresentationPart(None, None, None, None)
+        part_related_by_.return_value = notes_master_part_
+        return prs_part, notes_master_part_
 
     @pytest.fixture
     def prs_fixture(self, Presentation_, prs_):
@@ -240,6 +283,10 @@ class DescribePresentationPart(object):
         )
 
     @pytest.fixture
+    def NotesMasterPart_(self, request, prs_):
+        return class_mock(request, 'pptx.parts.presentation.NotesMasterPart')
+
+    @pytest.fixture
     def notes_master_(self, request):
         return instance_mock(request, NotesMaster)
 
@@ -254,6 +301,12 @@ class DescribePresentationPart(object):
     @pytest.fixture
     def package_(self, request):
         return instance_mock(request, Package)
+
+    @pytest.fixture
+    def part_related_by_(self, request):
+        return method_mock(
+            request, PresentationPart, 'part_related_by', autospec=True
+        )
 
     @pytest.fixture
     def Presentation_(self, request, prs_):

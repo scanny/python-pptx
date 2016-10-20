@@ -10,7 +10,7 @@ from ..opc.constants import RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..opc.packuri import PackURI
 from ..presentation import Presentation
-from .slide import SlidePart
+from .slide import NotesMasterPart, SlidePart
 from ..util import lazyproperty
 
 
@@ -131,4 +131,9 @@ class PresentationPart(XmlPart):
         a default template. The same single instance is returned on each
         call.
         """
-        raise NotImplementedError
+        try:
+            return self.part_related_by(RT.NOTES_MASTER)
+        except KeyError:
+            notes_master_part = NotesMasterPart.create_default(self.package)
+            self.relate_to(notes_master_part, RT.NOTES_MASTER)
+            return notes_master_part

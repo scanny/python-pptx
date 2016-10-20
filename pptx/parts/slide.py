@@ -54,6 +54,14 @@ class NotesMasterPart(BaseSlidePart):
     Notes master part. Corresponds to package file
     `ppt/notesMasters/notesMaster1.xml`.
     """
+    @classmethod
+    def create_default(cls, package):
+        """
+        Create and return a default notes master part, including creating the
+        new theme it requires.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def notes_master(self):
         """
