@@ -12,7 +12,6 @@ from __future__ import (
 )
 
 from .autoshape import Shape
-from .base import BaseShape
 from ..enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from .graphfrm import GraphicFrame
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
@@ -26,7 +25,9 @@ class _InheritsDimensions(object):
     Mixin class that provides inherited dimension behavior. Specifically,
     left, top, width, and height report the value from the layout placeholder
     where they would have otherwise reported |None|. This behavior is
-    distinctive to placeholders.
+    distinctive to placeholders. :meth:`_base_placeholder` must be overridden
+    by all subclasses to provide lookup of the appropriate base placeholder
+    to inherit from.
     """
     @property
     def height(self):
@@ -96,8 +97,7 @@ class _InheritsDimensions(object):
         inherits from. Not to be confused with an instance of
         |BasePlaceholder| (necessarily).
         """
-        layout, idx = self._slide_layout, self._element.ph_idx
-        return layout.placeholders.get(idx=idx)
+        raise NotImplementedError('Must be implemented by all subclasses.')
 
     def _effective_value(self, attr_name):
         """
@@ -123,16 +123,8 @@ class _InheritsDimensions(object):
         inherited_value = getattr(base_placeholder, attr_name)
         return inherited_value
 
-    @property
-    def _slide_layout(self):
-        """
-        The slide layout for this placeholder's slide.
-        """
-        slide_part = self.part
-        return slide_part.slide_layout
 
-
-class _BaseSlidePlaceholder(_InheritsDimensions, BaseShape):
+class _BaseSlidePlaceholder(_InheritsDimensions, Shape):
     """
     Base class for placeholders on slides. Provides common behaviors such as
     inherited dimensions.
@@ -153,6 +145,16 @@ class _BaseSlidePlaceholder(_InheritsDimensions, BaseShape):
         Read-only.
         """
         return MSO_SHAPE_TYPE.PLACEHOLDER
+
+    @property
+    def _base_placeholder(self):
+        """
+        Return the layout placeholder this slide placeholder inherits from.
+        Not to be confused with an instance of |BasePlaceholder|
+        (necessarily).
+        """
+        layout, idx = self.part.slide_layout, self._element.ph_idx
+        return layout.placeholders.get(idx=idx)
 
     def _replace_placeholder_with(self, element):
         """
@@ -319,7 +321,7 @@ class MasterPlaceholder(BasePlaceholder):
     """
 
 
-class SlidePlaceholder(_InheritsDimensions, Shape):
+class SlidePlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape on a slide. Inherits shape properties from its
     corresponding slide layout placeholder.
@@ -418,6 +420,13 @@ class PlaceholderPicture(_InheritsDimensions, Picture):
     """
     Placeholder shape populated with a picture.
     """
+    @property
+    def _base_placeholder(self):
+        """
+        Return the layout placeholder this picture placeholder inherits from.
+        """
+        layout, idx = self.part.slide_layout, self._element.ph_idx
+        return layout.placeholders.get(idx=idx)
 
 
 class TablePlaceholder(_BaseSlidePlaceholder):
