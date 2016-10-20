@@ -54,6 +54,12 @@ class NotesMasterPart(BaseSlidePart):
     Notes master part. Corresponds to package file
     `ppt/notesMasters/notesMaster1.xml`.
     """
+    @lazyproperty
+    def notes_master(self):
+        """
+        Return the |NotesMaster| object that proxies this notes master part.
+        """
+        raise NotImplementedError
 
 
 class SlidePart(BaseSlidePart):

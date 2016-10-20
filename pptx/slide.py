@@ -64,6 +64,15 @@ class _BaseMaster(_BaseSlide):
         return MasterShapes(self._element.spTree, self)
 
 
+class NotesMaster(_BaseMaster):
+    """
+    Proxy for the notes master XML document. Provides access to shapes, the
+    most commonly used of which are placeholders.
+    """
+
+    __slots__ = ()
+
+
 class Slide(_BaseSlide):
     """
     Slide object. Provides access to shapes and slide-level properties.

@@ -13,9 +13,9 @@ from pptx.opc.packuri import PackURI
 from pptx.package import Package
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slide import SlidePart
+from pptx.parts.slide import NotesMasterPart, SlidePart
 from pptx.presentation import Presentation
-from pptx.slide import Slide, SlideLayout, SlideMaster
+from pptx.slide import NotesMaster, Slide, SlideLayout, SlideMaster
 
 from ..unitutil.cxml import element
 from ..unitutil.mock import (
@@ -35,6 +35,11 @@ class DescribePresentationPart(object):
         prs_part, core_properties_ = core_props_fixture
         core_properties = prs_part.core_properties
         assert core_properties is core_properties_
+
+    def it_provides_access_to_its_notes_master(self, notes_master_fixture):
+        prs_part, notes_master_ = notes_master_fixture
+        notes_master = prs_part.notes_master
+        assert notes_master is notes_master_
 
     def it_provides_access_to_a_related_slide(self, slide_fixture):
         prs_part, rId, slide_ = slide_fixture
@@ -152,6 +157,14 @@ class DescribePresentationPart(object):
         return prs_part, partname
 
     @pytest.fixture
+    def notes_master_fixture(self, _notes_master_part_prop_,
+                             notes_master_part_, notes_master_):
+        prs_part = PresentationPart(None, None, None, None)
+        _notes_master_part_prop_.return_value = notes_master_part_
+        notes_master_part_.notes_master = notes_master_
+        return prs_part, notes_master_
+
+    @pytest.fixture
     def prs_fixture(self, Presentation_, prs_):
         prs_elm = element('p:presentation')
         prs_part = PresentationPart(None, None, prs_elm)
@@ -225,6 +238,18 @@ class DescribePresentationPart(object):
         return property_mock(
             request, PresentationPart, '_next_slide_partname'
         )
+
+    @pytest.fixture
+    def notes_master_(self, request):
+        return instance_mock(request, NotesMaster)
+
+    @pytest.fixture
+    def notes_master_part_(self, request):
+        return instance_mock(request, NotesMasterPart)
+
+    @pytest.fixture
+    def _notes_master_part_prop_(self, request, notes_master_part_):
+        return property_mock(request, PresentationPart, '_notes_master_part')
 
     @pytest.fixture
     def package_(self, request):
