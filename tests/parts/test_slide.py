@@ -20,9 +20,10 @@ from pptx.parts.chart import ChartPart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import (
-    BaseSlidePart, SlideLayoutPart, SlideMasterPart, SlidePart
+    BaseSlidePart, NotesMasterPart, SlideLayoutPart, SlideMasterPart,
+    SlidePart
 )
-from pptx.slide import Slide, SlideLayout, SlideMaster
+from pptx.slide import NotesMaster, Slide, SlideLayout, SlideMaster
 
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, test_file_dir
@@ -104,6 +105,39 @@ class DescribeBaseSlidePart(object):
     @pytest.fixture
     def related_parts_prop_(self, request):
         return property_mock(request, BaseSlidePart, 'related_parts')
+
+
+class DescribeNotesMasterPart(object):
+
+    def it_provides_access_to_its_notes_master(self, notes_master_fixture):
+        notes_master_part, NotesMaster_ = notes_master_fixture[:2]
+        notesMaster, notes_master_ = notes_master_fixture[2:]
+
+        notes_master = notes_master_part.notes_master
+
+        NotesMaster_.assert_called_once_with(notesMaster, notes_master_part)
+        assert notes_master is notes_master_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def notes_master_fixture(self, NotesMaster_, notes_master_):
+        notesMaster = element('p:notesMaster')
+        notes_master_part = NotesMasterPart(None, None, notesMaster, None)
+        return notes_master_part, NotesMaster_, notesMaster, notes_master_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def NotesMaster_(self, request, notes_master_):
+        return class_mock(
+            request, 'pptx.parts.slide.NotesMaster',
+            return_value=notes_master_
+        )
+
+    @pytest.fixture
+    def notes_master_(self, request):
+        return instance_mock(request, NotesMaster)
 
 
 class DescribeSlidePart(object):
@@ -203,7 +237,7 @@ class DescribeSlidePart(object):
         presentation_part_.slide_id.return_value = slide_id
         return slide_part, presentation_part_, slide_id
 
-    # fixture components -----------------------------------
+    # fixture components ---------------------------------------------
 
     @pytest.fixture
     def ChartPart_(self, request, chart_part_):

@@ -43,6 +43,15 @@ class CT_CommonSlideData(BaseOxmlElement):
     name = OptionalAttribute('name', XsdString, default='')
 
 
+class CT_NotesMaster(_BaseSlideElement):
+    """
+    ``<p:notesMaster>`` element, root of a notes master part
+    """
+    _tag_seq = ('p:cSld', 'p:clrMap', 'p:hf', 'p:notesStyle', 'p:extLst')
+    cSld = OneAndOnlyOne('p:cSld')
+    del _tag_seq
+
+
 class CT_Slide(_BaseSlideElement):
     """
     ``<p:sld>`` element, root of a slide part

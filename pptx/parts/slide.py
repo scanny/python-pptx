@@ -12,7 +12,7 @@ from .chart import ChartPart
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..oxml.slide import CT_Slide
-from ..slide import Slide, SlideLayout, SlideMaster
+from ..slide import NotesMaster, Slide, SlideLayout, SlideMaster
 from ..util import lazyproperty
 
 
@@ -67,7 +67,7 @@ class NotesMasterPart(BaseSlidePart):
         """
         Return the |NotesMaster| object that proxies this notes master part.
         """
-        raise NotImplementedError
+        return NotesMaster(self._element, self)
 
 
 class SlidePart(BaseSlidePart):
