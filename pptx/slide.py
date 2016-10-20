@@ -187,7 +187,7 @@ class SlideLayout(_BaseSlide):
             PP_PLACEHOLDER.SLIDE_NUMBER
         )
         for ph in self.placeholders:
-            if ph.ph_type not in latent_ph_types:
+            if ph.element.ph_type not in latent_ph_types:
                 yield ph
 
     @lazyproperty

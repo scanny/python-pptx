@@ -1038,9 +1038,10 @@ class DescribeLayoutPlaceholders(object):
 
     @pytest.fixture(params=[0, 1])
     def get_fixture(self, request, _iter_, placeholder_, placeholder_2_):
-        layout_placeholders = LayoutPlaceholders(None, None)
         idx = request.param
+        layout_placeholders = LayoutPlaceholders(None, None)
         _placeholder_ = (placeholder_, placeholder_2_)[idx]
+        placeholder_.element.ph_idx, placeholder_2_.element.ph_idx = 0, 1
         return layout_placeholders, idx, _placeholder_
 
     # fixture components ---------------------------------------------
@@ -1065,11 +1066,11 @@ class DescribeLayoutPlaceholders(object):
 
     @pytest.fixture
     def placeholder_(self, request):
-        return instance_mock(request, LayoutPlaceholder, idx=0)
+        return instance_mock(request, LayoutPlaceholder)
 
     @pytest.fixture
     def placeholder_2_(self, request):
-        return instance_mock(request, LayoutPlaceholder, idx=1)
+        return instance_mock(request, LayoutPlaceholder)
 
 
 class Describe_MasterShapeFactory(object):

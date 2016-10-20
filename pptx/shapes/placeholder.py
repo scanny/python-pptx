@@ -210,7 +210,7 @@ class BasePlaceholder(Shape):
         return self._sp.ph_sz
 
 
-class LayoutPlaceholder(BasePlaceholder):
+class LayoutPlaceholder(_InheritsDimensions, Shape):
     """
     Placeholder shape on a slide layout, providing differentiated behavior
     for slide layout placeholders, in particular, inheriting shape properties
@@ -218,72 +218,11 @@ class LayoutPlaceholder(BasePlaceholder):
     exists.
     """
     @property
-    def height(self):
+    def _base_placeholder(self):
         """
-        The effective height of this placeholder shape; its directly-applied
-        height if it has one, otherwise the height of its parent master
-        placeholder.
+        Return the master placeholder this layout placeholder inherits from.
         """
-        return self._direct_or_inherited_value('height')
-
-    @property
-    def left(self):
-        """
-        The effective left of this placeholder shape; its directly-applied
-        left if it has one, otherwise the left of its parent master
-        placeholder.
-        """
-        return self._direct_or_inherited_value('left')
-
-    @property
-    def top(self):
-        """
-        The effective top of this placeholder shape; its directly-applied
-        top if it has one, otherwise the top of its parent master
-        placeholder.
-        """
-        return self._direct_or_inherited_value('top')
-
-    @property
-    def width(self):
-        """
-        The effective width of this placeholder shape; its directly-applied
-        width if it has one, otherwise the width of its parent master
-        placeholder.
-        """
-        return self._direct_or_inherited_value('width')
-
-    def _direct_or_inherited_value(self, attr_name):
-        """
-        The effective value of *attr_name* on this placeholder shape; its
-        directly-applied value if it has one, otherwise the value on the
-        master placeholder it inherits from.
-        """
-        directly_applied_value = getattr(
-            super(LayoutPlaceholder, self), attr_name
-        )
-        if directly_applied_value is not None:
-            return directly_applied_value
-        inherited_value = self._inherited_value(attr_name)
-        return inherited_value
-
-    def _inherited_value(self, attr_name):
-        """
-        The attribute value, e.g. 'width' of the parent master placeholder of
-        this placeholder shape
-        """
-        master_placeholder = self._master_placeholder
-        if master_placeholder is None:
-            return None
-        inherited_value = getattr(master_placeholder, attr_name)
-        return inherited_value
-
-    @property
-    def _master_placeholder(self):
-        """
-        The master placeholder shape this layout placeholder inherits from.
-        """
-        inheritee_ph_type = {
+        base_ph_type = {
             PP_PLACEHOLDER.BODY:         PP_PLACEHOLDER.BODY,
             PP_PLACEHOLDER.CHART:        PP_PLACEHOLDER.BODY,
             PP_PLACEHOLDER.BITMAP:       PP_PLACEHOLDER.BODY,
@@ -298,21 +237,9 @@ class LayoutPlaceholder(BasePlaceholder):
             PP_PLACEHOLDER.SUBTITLE:     PP_PLACEHOLDER.BODY,
             PP_PLACEHOLDER.TABLE:        PP_PLACEHOLDER.BODY,
             PP_PLACEHOLDER.TITLE:        PP_PLACEHOLDER.TITLE,
-        }[self.ph_type]
-        slide_master = self._slide_master
-        master_placeholder = slide_master.placeholders.get(
-            inheritee_ph_type, None
-        )
-        return master_placeholder
-
-    @property
-    def _slide_master(self):
-        """
-        The slide master this placeholder inherits from.
-        """
-        slide_layout = self.part
-        slide_master = slide_layout.slide_master
-        return slide_master
+        }[self._element.ph_type]
+        slide_master = self.part.slide_master
+        return slide_master.placeholders.get(base_ph_type, None)
 
 
 class MasterPlaceholder(BasePlaceholder):

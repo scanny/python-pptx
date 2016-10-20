@@ -416,7 +416,8 @@ class DescribeSlideLayout(object):
             self, request, placeholders_prop_, placeholder_, placeholder_2_):
         ph_types, expected_indices = request.param
         slide_layout = SlideLayout(None, None)
-        placeholder_.ph_type, placeholder_2_.ph_type = ph_types
+        placeholder_.element.ph_type = ph_types[0]
+        placeholder_2_.element.ph_type = ph_types[1]
         _placeholders = (placeholder_, placeholder_2_)
         expected_placeholders = [
             _placeholders[idx] for idx in expected_indices

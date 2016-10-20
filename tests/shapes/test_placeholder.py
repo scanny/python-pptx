@@ -15,15 +15,15 @@ from pptx.parts.image import ImagePart
 from pptx.parts.slide import SlideLayoutPart, SlidePart
 from pptx.shapes.placeholder import (
     BasePlaceholder, _BaseSlidePlaceholder, ChartPlaceholder,
-    LayoutPlaceholder, MasterPlaceholder, PicturePlaceholder,
-    PlaceholderGraphicFrame, PlaceholderPicture, TablePlaceholder
+    _InheritsDimensions, LayoutPlaceholder, MasterPlaceholder,
+    PicturePlaceholder, PlaceholderGraphicFrame, PlaceholderPicture,
+    TablePlaceholder
 )
-from pptx.shapes.shapetree import _BaseShapes
 from pptx.slide import SlideLayout, SlideMaster
 
 from ..oxml.unitdata.shape import (
-    an_ext, a_graphicFrame, a_ph, an_nvGraphicFramePr, an_nvPicPr, an_nvPr,
-    an_nvSpPr, an_sp, an_spPr, an_xfrm
+    a_graphicFrame, a_ph, an_nvGraphicFramePr, an_nvPicPr, an_nvPr,
+    an_nvSpPr, an_sp
 )
 from ..unitutil.cxml import element, xml
 from ..unitutil.file import snippet_seq
@@ -389,173 +389,57 @@ class DescribeChartPlaceholder(object):
 
 class DescribeLayoutPlaceholder(object):
 
-    def it_considers_inheritance_when_computing_pos_and_size(
-            self, xfrm_fixture):
-        layout_placeholder, _direct_or_inherited_value_ = xfrm_fixture[:2]
-        attr_name, expected_value = xfrm_fixture[2:]
-        value = getattr(layout_placeholder, attr_name)
-        _direct_or_inherited_value_.assert_called_once_with(attr_name)
-        assert value == expected_value
+    def it_uses_InheritsDimensions_mixin(self):
+        layout_placeholder = LayoutPlaceholder(None, None)
+        assert isinstance(layout_placeholder, _InheritsDimensions)
 
-    def it_provides_direct_property_values_when_they_exist(
-            self, direct_fixture):
-        layout_placeholder, expected_width = direct_fixture
-        width = layout_placeholder.width
-        assert width == expected_width
-
-    def it_provides_inherited_property_values_when_no_direct_value(
-            self, inherited_fixture):
-        layout_placeholder, _inherited_value_, inherited_left_ = (
-            inherited_fixture
-        )
-        left = layout_placeholder.left
-        _inherited_value_.assert_called_once_with('left')
-        assert left == inherited_left_
-
-    def it_knows_how_to_get_a_property_value_from_its_master(
-            self, mstr_val_fixture):
-        layout_placeholder, attr_name, expected_value = mstr_val_fixture
-        value = layout_placeholder._inherited_value(attr_name)
-        assert value == expected_value
-
-    def it_finds_its_corresponding_master_placeholder_to_help_inherit(
-            self, mstr_ph_fixture):
+    def it_finds_its_base_placeholder_to_help(self, base_ph_fixture):
         layout_placeholder, master_, mstr_ph_type, master_placeholder_ = (
-            mstr_ph_fixture
+            base_ph_fixture
         )
-        master_placeholder = layout_placeholder._master_placeholder
+        master_placeholder = layout_placeholder._base_placeholder
         master_.placeholders.get.assert_called_once_with(mstr_ph_type, None)
         assert master_placeholder is master_placeholder_
 
-    def it_finds_its_slide_master_to_help_inherit(self, slide_master_fixture):
-        layout_placeholder, slide_master_ = slide_master_fixture
-        slide_master = layout_placeholder._slide_master
-        assert slide_master == slide_master_
-
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture
-    def direct_fixture(self, sp, width):
-        layout_placeholder = LayoutPlaceholder(sp, None)
-        return layout_placeholder, width
-
-    @pytest.fixture
-    def inherited_fixture(self, sp, _inherited_value_, int_value_):
-        layout_placeholder = LayoutPlaceholder(sp, None)
-        return layout_placeholder, _inherited_value_, int_value_
-
     @pytest.fixture(params=[
-        (PP_PLACEHOLDER.TABLE,  PP_PLACEHOLDER.BODY),
-        (PP_PLACEHOLDER.BODY,   PP_PLACEHOLDER.BODY),
-        (PP_PLACEHOLDER.OBJECT, PP_PLACEHOLDER.BODY),
+        ('p:sp/p:nvSpPr/p:nvPr/p:ph{type=body}',   PP_PLACEHOLDER.BODY),
+        ('p:sp/p:nvSpPr/p:nvPr/p:ph{type=tbl}',    PP_PLACEHOLDER.BODY),
+        ('p:sp/p:nvSpPr/p:nvPr/p:ph{type=title}',  PP_PLACEHOLDER.TITLE),
     ])
-    def mstr_ph_fixture(
-            self, request, ph_type_, _slide_master_prop_, slide_master_,
-            master_placeholder_):
-        layout_placeholder = LayoutPlaceholder(None, None)
-        ph_type, mstr_ph_type = request.param
-        ph_type_.return_value = ph_type
+    def base_ph_fixture(self, request, slide_master_, master_placeholder_,
+                        part_prop_):
+        sp_cxml, mstr_ph_type = request.param
+        sp = element(sp_cxml)
+        layout_placeholder = LayoutPlaceholder(sp, None)
+        part_prop_.return_value.slide_master = slide_master_
         slide_master_.placeholders.get.return_value = master_placeholder_
         return (
             layout_placeholder, slide_master_, mstr_ph_type,
             master_placeholder_
         )
 
-    @pytest.fixture(params=[(True, 42), (False, None)])
-    def mstr_val_fixture(
-            self, request, _master_placeholder_, master_placeholder_):
-        has_master_placeholder, expected_value = request.param
-        layout_placeholder = LayoutPlaceholder(None, None)
-        attr_name = 'width'
-        if has_master_placeholder:
-            setattr(master_placeholder_, attr_name, expected_value)
-            _master_placeholder_.return_value = master_placeholder_
-        else:
-            _master_placeholder_.return_value = None
-        return layout_placeholder, attr_name, expected_value
-
-    @pytest.fixture
-    def slide_master_fixture(
-            self, parent_, slide_layout_part_, slide_master_):
-        layout_placeholder = LayoutPlaceholder(None, parent_)
-        parent_.part = slide_layout_part_
-        slide_layout_part_.slide_master = slide_master_
-        return layout_placeholder, slide_master_
-
-    @pytest.fixture(params=['left', 'top', 'width', 'height'])
-    def xfrm_fixture(self, request, _direct_or_inherited_value_, int_value_):
-        attr_name = request.param
-        layout_placeholder = LayoutPlaceholder(None, None)
-        _direct_or_inherited_value_.return_value = int_value_
-        return (
-            layout_placeholder, _direct_or_inherited_value_, attr_name,
-            int_value_
-        )
-
     # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def _direct_or_inherited_value_(self, request):
-        return method_mock(
-            request, LayoutPlaceholder, '_direct_or_inherited_value'
-        )
-
-    @pytest.fixture
-    def _inherited_value_(self, request, int_value_):
-        return method_mock(
-            request, LayoutPlaceholder, '_inherited_value',
-            return_value=int_value_
-        )
-
-    @pytest.fixture
-    def int_value_(self, request):
-        return instance_mock(request, int)
-
-    @pytest.fixture
-    def _master_placeholder_(self, request):
-        return property_mock(
-            request, LayoutPlaceholder, '_master_placeholder'
-        )
 
     @pytest.fixture
     def master_placeholder_(self, request):
         return instance_mock(request, MasterPlaceholder)
 
     @pytest.fixture
-    def parent_(self, request):
-        return instance_mock(request, _BaseShapes)
-
-    @pytest.fixture
-    def ph_type_(self, request):
-        return property_mock(request, LayoutPlaceholder, 'ph_type')
+    def part_prop_(self, request, slide_layout_part_):
+        return property_mock(
+            request, LayoutPlaceholder, 'part',
+            return_value=slide_layout_part_
+        )
 
     @pytest.fixture
     def slide_layout_part_(self, request):
         return instance_mock(request, SlideLayoutPart)
 
     @pytest.fixture
-    def _slide_master_prop_(self, request, slide_master_):
-        return property_mock(
-            request, LayoutPlaceholder, '_slide_master',
-            return_value=slide_master_
-        )
-
-    @pytest.fixture
     def slide_master_(self, request):
         return instance_mock(request, SlideMaster)
-
-    @pytest.fixture
-    def sp(self, width):
-        return (
-            an_sp().with_nsdecls('p', 'a').with_child(
-                an_spPr().with_child(
-                    an_xfrm().with_child(
-                        an_ext().with_cx(width))))
-        ).element
-
-    @pytest.fixture
-    def width(self):
-        return 31416
 
 
 class DescribePicturePlaceholder(object):

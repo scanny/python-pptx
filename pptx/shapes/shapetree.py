@@ -138,7 +138,7 @@ class LayoutPlaceholders(BasePlaceholders):
         *default* if not found.
         """
         for placeholder in self:
-            if placeholder.idx == idx:
+            if placeholder.element.ph_idx == idx:
                 return placeholder
         return default
 
