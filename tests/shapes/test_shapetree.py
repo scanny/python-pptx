@@ -22,8 +22,7 @@ from pptx.shapes.connector import Connector
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import (
-    BasePlaceholder, _BaseSlidePlaceholder, LayoutPlaceholder,
-    MasterPlaceholder
+    _BaseSlidePlaceholder, LayoutPlaceholder, MasterPlaceholder
 )
 from pptx.shapes.shapetree import (
     BasePlaceholders, BaseShapeFactory, _BaseShapes, LayoutPlaceholders,
@@ -102,11 +101,30 @@ class Describe_BaseShapes(object):
         with pytest.raises(IndexError):
             shapes[2]
 
+    def it_can_clone_a_placeholder(self, clone_ph_fixture):
+        shapes, placeholder_, expected_xml = clone_ph_fixture
+        shapes.clone_placeholder(placeholder_)
+        assert shapes._element.xml == expected_xml
+
     def it_finds_an_unused_shape_id_to_help_add_shape(self, next_id_fixture):
         shapes, expected_value = next_id_fixture
         assert shapes._next_shape_id == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def clone_ph_fixture(self, placeholder_):
+        shapes = SlideShapes(element('p:spTree{a:b=c}'), None)
+        expected_xml = xml(
+            'p:spTree{a:b=c}/p:sp/(p:nvSpPr/(p:cNvPr{id=1,name=Vertical Char'
+            't Placeholder 0},p:cNvSpPr/a:spLocks{noGrp=1},p:nvPr/p:ph{type='
+            'chart,idx=42,orient=vert,sz=half}),p:spPr)'
+        )
+        placeholder_.element = element(
+            'p:sp/p:nvSpPr/p:nvPr/p:ph{type=chart,idx=42,orient=vert,sz=half'
+            '}'
+        )
+        return shapes, placeholder_, expected_xml
 
     @pytest.fixture
     def getitem_fixture(self, BaseShapeFactory_, shape_):
@@ -169,6 +187,10 @@ class Describe_BaseShapes(object):
             request, 'pptx.shapes.shapetree.BaseShapeFactory',
             return_value=shape_, autospec=True
         )
+
+    @pytest.fixture
+    def placeholder_(self, request):
+        return instance_mock(request, Shape)
 
     @pytest.fixture
     def shape_(self, request):
@@ -514,7 +536,7 @@ class DescribeSlideShapes(object):
     def it_can_clone_placeholder_shapes_from_a_layout(self, clone_fixture):
         shapes, slide_layout_, calls = clone_fixture
         shapes.clone_layout_placeholders(slide_layout_)
-        assert shapes._clone_layout_placeholder.call_args_list == calls
+        assert shapes.clone_placeholder.call_args_list == calls
 
     def it_knows_the_index_of_each_shape(self, index_fixture):
         shapes, shape_, expected_value = index_fixture
@@ -547,11 +569,6 @@ class DescribeSlideShapes(object):
 
         assert cxnSp is shapes._element.xpath('p:cxnSp')[0]
         assert cxnSp.xml == expected_xml
-
-    def it_clones_a_placeholder_to_help(self, clone_ph_fixture):
-        shapes, placeholder_, expected_xml = clone_ph_fixture
-        shapes._clone_layout_placeholder(placeholder_)
-        assert shapes._element.xml == expected_xml
 
     def it_knows_the_next_placeholder_name_to_help(self, ph_name_fixture):
         shapes, ph_type, sp_id, orient, expected_value = ph_name_fixture
@@ -648,33 +665,13 @@ class DescribeSlideShapes(object):
         return shapes, autoshape_type_id, x, y, cx, cy, shape_, expected_xml
 
     @pytest.fixture
-    def clone_fixture(
-            self, slide_layout_, _clone_layout_placeholder_, placeholder_):
+    def clone_fixture(self, slide_layout_, clone_placeholder_, placeholder_):
         shapes = SlideShapes(None, None)
         calls = [call(shapes, placeholder_)]
         slide_layout_.iter_cloneable_placeholders.return_value = (
             iter([placeholder_])
         )
         return shapes, slide_layout_, calls
-
-    @pytest.fixture
-    def clone_ph_fixture(self, placeholder_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        expected_xml = (
-            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
-            'onml/2006/main">\n  <p:sp xmlns:a="http://schemas.openxmlformat'
-            's.org/drawingml/2006/main">\n    <p:nvSpPr>\n      <p:cNvPr id='
-            '"1" name="Vertical Chart Placeholder 0"/>\n      <p:cNvSpPr>\n '
-            '       <a:spLocks noGrp="1"/>\n      </p:cNvSpPr>\n      <p:nvP'
-            'r>\n        <p:ph type="chart" idx="42" orient="vert" sz="half"'
-            '/>\n      </p:nvPr>\n    </p:nvSpPr>\n    <p:spPr/>\n  </p:sp>'
-            '\n</p:spTree>'
-        )
-        placeholder_.ph_type = PP_PLACEHOLDER.CHART
-        placeholder_.idx = 42
-        placeholder_.orient = 'vert'
-        placeholder_.sz = 'half'
-        return shapes, placeholder_, expected_xml
 
     @pytest.fixture
     def connector_fixture(self, _add_cxnSp_, _shape_factory_, connector_):
@@ -849,10 +846,9 @@ class DescribeSlideShapes(object):
         return instance_mock(request, ChartData)
 
     @pytest.fixture
-    def _clone_layout_placeholder_(self, request):
+    def clone_placeholder_(self, request):
         return method_mock(
-            request, SlideShapes, '_clone_layout_placeholder',
-            autospec=True
+            request, SlideShapes, 'clone_placeholder', autospec=True
         )
 
     @pytest.fixture
@@ -879,7 +875,7 @@ class DescribeSlideShapes(object):
 
     @pytest.fixture
     def placeholder_(self, request):
-        return instance_mock(request, BasePlaceholder)
+        return instance_mock(request, Shape)
 
     @pytest.fixture
     def shape_(self, request):

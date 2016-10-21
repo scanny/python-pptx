@@ -75,6 +75,18 @@ class _BaseShapes(ParentedElementProxy):
         shape_elms = list(self._iter_member_elms())
         return len(shape_elms)
 
+    def clone_placeholder(self, placeholder):
+        """
+        Add a new placeholder shape based on *placeholder*.
+        """
+        sp = placeholder.element
+        ph_type, orient, sz, idx = (
+            sp.ph_type, sp.ph_orient, sp.ph_sz, sp.ph_idx
+        )
+        id_ = self._next_shape_id
+        name = self._next_ph_name(ph_type, id_, orient)
+        self._spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
+
     @staticmethod
     def _is_member_elm(shape_elm):
         """
@@ -379,7 +391,7 @@ class SlideShapes(_BaseShapes):
         and footer) are not cloned.
         """
         for placeholder in slide_layout.iter_cloneable_placeholders():
-            self._clone_layout_placeholder(placeholder)
+            self.clone_placeholder(placeholder)
 
     def index(self, shape):
         """
@@ -502,20 +514,6 @@ class SlideShapes(_BaseShapes):
         name = 'TextBox %d' % (id_-1)
         sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
         return sp
-
-    def _clone_layout_placeholder(self, layout_placeholder):
-        """
-        Add a new placeholder shape based on the slide layout placeholder
-        *layout_ph*.
-        """
-        id_ = self._next_shape_id
-        ph_type = layout_placeholder.ph_type
-        orient = layout_placeholder.orient
-        name = self._next_ph_name(ph_type, id_, orient)
-        sz = layout_placeholder.sz
-        idx = layout_placeholder.idx
-
-        self._spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
 
     def _next_ph_name(self, ph_type, id, orient):
         """
