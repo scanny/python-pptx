@@ -16,6 +16,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.oxml.slide import CT_NotesMaster, CT_Slide
+from pptx.oxml.theme import CT_OfficeStyleSheet
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
 from pptx.parts.image import Image, ImagePart
@@ -133,15 +134,28 @@ class DescribeNotesMasterPart(object):
 
     def it_creates_a_new_notes_master_part_to_help(self, new_fixture):
         package_, NotesMasterPart_, partname = new_fixture[:3]
-        notesMaster, notes_master_part_ = new_fixture[3:]
+        notesMaster_, notes_master_part_ = new_fixture[3:]
 
         notes_master_part = NotesMasterPart._new(package_)
 
         CT_NotesMaster.new_default.assert_called_once_with()
         NotesMasterPart_.assert_called_once_with(
-            partname, CT.PML_NOTES_MASTER, notesMaster, package_
+            partname, CT.PML_NOTES_MASTER, notesMaster_, package_
         )
         assert notes_master_part is notes_master_part_
+
+    def it_creates_a_new_theme_part_to_help(self, theme_fixture):
+        package_, pn_tmpl, XmlPart_, partname = theme_fixture[:4]
+        theme_elm_, theme_part_ = theme_fixture[4:]
+
+        theme_part = NotesMasterPart._new_theme_part(package_)
+
+        package_.next_partname.assert_called_once_with(pn_tmpl)
+        CT_OfficeStyleSheet.new_default.assert_called_once_with()
+        XmlPart_.assert_called_once_with(
+            partname, CT.OFC_THEME, theme_elm_, package_
+        )
+        assert theme_part is theme_part_
 
     # fixtures -------------------------------------------------------
 
@@ -164,6 +178,16 @@ class DescribeNotesMasterPart(object):
         notesMaster = element('p:notesMaster')
         notes_master_part = NotesMasterPart(None, None, notesMaster, None)
         return notes_master_part, NotesMaster_, notesMaster, notes_master_
+
+    @pytest.fixture
+    def theme_fixture(self, package_, XmlPart_, theme_elm_, theme_part_,
+                      theme_new_default_):
+        pn_tmpl = '/ppt/theme/theme%d.xml'
+        partname = PackURI('/ppt/theme/theme2.xml')
+        package_.next_partname.return_value = partname
+        return (
+            package_, pn_tmpl, XmlPart_, partname, theme_elm_, theme_part_
+        )
 
     # fixture components ---------------------------------------------
 
@@ -217,8 +241,25 @@ class DescribeNotesMasterPart(object):
         return instance_mock(request, Package)
 
     @pytest.fixture
+    def theme_elm_(self, request):
+        return instance_mock(request, CT_OfficeStyleSheet)
+
+    @pytest.fixture
+    def theme_new_default_(self, request, theme_elm_):
+        return method_mock(
+            request, CT_OfficeStyleSheet, 'new_default',
+            return_value=theme_elm_
+        )
+
+    @pytest.fixture
     def theme_part_(self, request):
         return instance_mock(request, Part)
+
+    @pytest.fixture
+    def XmlPart_(self, request, theme_part_):
+        return class_mock(
+            request, 'pptx.parts.slide.XmlPart', return_value=theme_part_
+        )
 
 
 class DescribeSlidePart(object):

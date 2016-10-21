@@ -13,6 +13,7 @@ from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..opc.packuri import PackURI
 from ..oxml.slide import CT_NotesMaster, CT_Slide
+from ..oxml.theme import CT_OfficeStyleSheet
 from ..slide import NotesMaster, Slide, SlideLayout, SlideMaster
 from ..util import lazyproperty
 
@@ -90,7 +91,10 @@ class NotesMasterPart(BaseSlidePart):
         Create and return a default theme part suitable for use with a notes
         master.
         """
-        raise NotImplementedError
+        partname = package.next_partname('/ppt/theme/theme%d.xml')
+        content_type = CT.OFC_THEME
+        theme = CT_OfficeStyleSheet.new_default()
+        return XmlPart(partname, content_type, theme, package)
 
 
 class SlidePart(BaseSlidePart):
