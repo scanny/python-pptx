@@ -110,6 +110,10 @@ class Describe_BaseShapes(object):
         shapes, expected_value = next_id_fixture
         assert shapes._next_shape_id == expected_value
 
+    def it_finds_the_next_placeholder_name_to_help(self, ph_name_fixture):
+        shapes, ph_type, sp_id, orient, expected_value = ph_name_fixture
+        assert shapes._next_ph_name(ph_type, sp_id, orient) == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -178,6 +182,25 @@ class Describe_BaseShapes(object):
         spTree_cxml, expected_value = request.param
         shapes = _BaseShapes(element(spTree_cxml), None)
         return shapes, expected_value
+
+    @pytest.fixture(params=[
+        (PP_PLACEHOLDER.OBJECT, 3, ST_Direction.HORZ,
+         'Content Placeholder 2'),
+        (PP_PLACEHOLDER.TABLE,  4, ST_Direction.HORZ,
+         'Table Placeholder 4'),
+        (PP_PLACEHOLDER.TABLE,  7, ST_Direction.VERT,
+         'Vertical Table Placeholder 6'),
+        (PP_PLACEHOLDER.TITLE,  2, ST_Direction.HORZ,
+         'Title 2'),
+    ])
+    def ph_name_fixture(self, request):
+        ph_type, sp_id, orient, expected_name = request.param
+        spTree = element(
+            'p:spTree/(p:cNvPr{name=Title 1},p:cNvPr{name=Table Placeholder '
+            '3})'
+        )
+        shapes = SlideShapes(spTree, None)
+        return shapes, ph_type, sp_id, orient, expected_name
 
     # fixture components ---------------------------------------------
 
@@ -570,10 +593,6 @@ class DescribeSlideShapes(object):
         assert cxnSp is shapes._element.xpath('p:cxnSp')[0]
         assert cxnSp.xml == expected_xml
 
-    def it_knows_the_next_placeholder_name_to_help(self, ph_name_fixture):
-        shapes, ph_type, sp_id, orient, expected_value = ph_name_fixture
-        assert shapes._next_ph_name(ph_type, sp_id, orient) == expected_value
-
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -708,25 +727,6 @@ class DescribeSlideShapes(object):
         shapes = SlideShapes(spTree, None)
         shape_.element = element('p:sp')
         return shapes, shape_
-
-    @pytest.fixture(params=[
-        (PP_PLACEHOLDER.OBJECT, 3, ST_Direction.HORZ,
-         'Content Placeholder 2'),
-        (PP_PLACEHOLDER.TABLE,  4, ST_Direction.HORZ,
-         'Table Placeholder 4'),
-        (PP_PLACEHOLDER.TABLE,  7, ST_Direction.VERT,
-         'Vertical Table Placeholder 6'),
-        (PP_PLACEHOLDER.TITLE,  2, ST_Direction.HORZ,
-         'Title 2'),
-    ])
-    def ph_name_fixture(self, request):
-        ph_type, sp_id, orient, expected_name = request.param
-        spTree = element(
-            'p:spTree/(p:cNvPr{name=Title 1},p:cNvPr{name=Table Placeholder '
-            '3})'
-        )
-        shapes = SlideShapes(spTree, None)
-        return shapes, ph_type, sp_id, orient, expected_name
 
     @pytest.fixture
     def picture_fixture(

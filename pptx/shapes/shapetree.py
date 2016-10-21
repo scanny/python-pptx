@@ -87,6 +87,31 @@ class _BaseShapes(ParentedElementProxy):
         name = self._next_ph_name(ph_type, id_, orient)
         self._spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
 
+    def ph_basename(self, ph_type):
+        """
+        Return the base name for a placeholder of *ph_type* in this shape
+        collection. There is some variance between slide types, for example
+        a notes slide uses a different name for the body placeholder, so this
+        method can be overriden by subclasses.
+        """
+        return {
+            PP_PLACEHOLDER.BITMAP:       'ClipArt Placeholder',
+            PP_PLACEHOLDER.BODY:         'Text Placeholder',
+            PP_PLACEHOLDER.CENTER_TITLE: 'Title',
+            PP_PLACEHOLDER.CHART:        'Chart Placeholder',
+            PP_PLACEHOLDER.DATE:         'Date Placeholder',
+            PP_PLACEHOLDER.FOOTER:       'Footer Placeholder',
+            PP_PLACEHOLDER.HEADER:       'Header Placeholder',
+            PP_PLACEHOLDER.MEDIA_CLIP:   'Media Placeholder',
+            PP_PLACEHOLDER.OBJECT:       'Content Placeholder',
+            PP_PLACEHOLDER.ORG_CHART:    'SmartArt Placeholder',
+            PP_PLACEHOLDER.PICTURE:      'Picture Placeholder',
+            PP_PLACEHOLDER.SLIDE_NUMBER: 'Slide Number Placeholder',
+            PP_PLACEHOLDER.SUBTITLE:     'Subtitle',
+            PP_PLACEHOLDER.TABLE:        'Table Placeholder',
+            PP_PLACEHOLDER.TITLE:        'Title',
+        }[ph_type]
+
     @staticmethod
     def _is_member_elm(shape_elm):
         """
@@ -103,6 +128,33 @@ class _BaseShapes(ParentedElementProxy):
         for shape_elm in self._spTree.iter_shape_elms():
             if self._is_member_elm(shape_elm):
                 yield shape_elm
+
+    def _next_ph_name(self, ph_type, id, orient):
+        """
+        Next unique placeholder name for placeholder shape of type *ph_type*,
+        with id number *id* and orientation *orient*. Usually will be standard
+        placeholder root name suffixed with id-1, e.g.
+        _next_ph_name(ST_PlaceholderType.TBL, 4, 'horz') ==>
+        'Table Placeholder 3'. The number is incremented as necessary to make
+        the name unique within the collection. If *orient* is ``'vert'``, the
+        placeholder name is prefixed with ``'Vertical '``.
+        """
+        basename = self.ph_basename(ph_type)
+
+        # prefix rootname with 'Vertical ' if orient is 'vert'
+        if orient == ST_Direction.VERT:
+            basename = 'Vertical %s' % basename
+
+        # increment numpart as necessary to make name unique
+        numpart = id - 1
+        names = self._spTree.xpath('//p:cNvPr/@name')
+        while True:
+            name = '%s %d' % (basename, numpart)
+            if name not in names:
+                break
+            numpart += 1
+
+        return name
 
     @property
     def _next_shape_id(self):
@@ -514,51 +566,6 @@ class SlideShapes(_BaseShapes):
         name = 'TextBox %d' % (id_-1)
         sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
         return sp
-
-    def _next_ph_name(self, ph_type, id, orient):
-        """
-        Next unique placeholder name for placeholder shape of type *ph_type*,
-        with id number *id* and orientation *orient*. Usually will be standard
-        placeholder root name suffixed with id-1, e.g.
-        _next_ph_name(ST_PlaceholderType.TBL, 4, 'horz') ==>
-        'Table Placeholder 3'. The number is incremented as necessary to make
-        the name unique within the collection. If *orient* is ``'vert'``, the
-        placeholder name is prefixed with ``'Vertical '``.
-        """
-        basename = {
-            # BODY is named 'Notes Placeholder' in a notes master
-            PP_PLACEHOLDER.BODY:         'Text Placeholder',
-            PP_PLACEHOLDER.CHART:        'Chart Placeholder',
-            PP_PLACEHOLDER.BITMAP:       'ClipArt Placeholder',
-            PP_PLACEHOLDER.CENTER_TITLE: 'Title',
-            PP_PLACEHOLDER.ORG_CHART:    'SmartArt Placeholder',
-            PP_PLACEHOLDER.DATE:         'Date Placeholder',
-            PP_PLACEHOLDER.FOOTER:       'Footer Placeholder',
-            PP_PLACEHOLDER.HEADER:       'Header Placeholder',
-            PP_PLACEHOLDER.MEDIA_CLIP:   'Media Placeholder',
-            PP_PLACEHOLDER.OBJECT:       'Content Placeholder',
-            PP_PLACEHOLDER.PICTURE:      'Picture Placeholder',
-            # PP_PLACEHOLDER.SLIDE_IMAGE:  'Slide Image Placeholder',
-            PP_PLACEHOLDER.SLIDE_NUMBER: 'Slide Number Placeholder',
-            PP_PLACEHOLDER.SUBTITLE:     'Subtitle',
-            PP_PLACEHOLDER.TABLE:        'Table Placeholder',
-            PP_PLACEHOLDER.TITLE:        'Title',
-        }[ph_type]
-
-        # prefix rootname with 'Vertical ' if orient is 'vert'
-        if orient == ST_Direction.VERT:
-            basename = 'Vertical %s' % basename
-
-        # increment numpart as necessary to make name unique
-        numpart = id - 1
-        names = self._spTree.xpath('//p:cNvPr/@name')
-        while True:
-            name = '%s %d' % (basename, numpart)
-            if name not in names:
-                break
-            numpart += 1
-
-        return name
 
     def _shape_factory(self, shape_elm):
         """
