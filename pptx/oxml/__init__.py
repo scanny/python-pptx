@@ -9,6 +9,8 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+import os
+
 from lxml import etree
 
 from .ns import NamespacePrefixedTag
@@ -18,6 +20,20 @@ from .ns import NamespacePrefixedTag
 element_class_lookup = etree.ElementNamespaceClassLookup()
 oxml_parser = etree.XMLParser(remove_blank_text=True, resolve_entities=False)
 oxml_parser.set_element_class_lookup(element_class_lookup)
+
+
+def parse_from_template(template_name):
+    """
+    Return an element loaded from the XML in the template file identified by
+    *template_name*.
+    """
+    thisdir = os.path.split(__file__)[0]
+    filename = os.path.join(
+        thisdir, '..', 'templates', '%s.xml' % template_name
+    )
+    with open(filename, 'rb') as f:
+        xml = f.read()
+    return parse_xml(xml)
 
 
 def parse_xml(xml):

@@ -9,7 +9,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from . import parse_xml
+from . import parse_from_template, parse_xml
 from .ns import nsdecls
 from .simpletypes import XsdString
 from .xmlchemy import (
@@ -57,7 +57,7 @@ class CT_NotesMaster(_BaseSlideElement):
         Return a new ``<p:notesMaster>`` element based on the built-in
         default template.
         """
-        raise NotImplementedError
+        return parse_from_template('notesMaster')
 
 
 class CT_Slide(_BaseSlideElement):
