@@ -11,7 +11,8 @@ from __future__ import (
 from .chart import ChartPart
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
-from ..oxml.slide import CT_Slide
+from ..opc.packuri import PackURI
+from ..oxml.slide import CT_NotesMaster, CT_Slide
 from ..slide import NotesMaster, Slide, SlideLayout, SlideMaster
 from ..util import lazyproperty
 
@@ -78,7 +79,10 @@ class NotesMasterPart(BaseSlidePart):
         Create and return a standalone, default notes master part based on
         the built-in template (without any related parts, such as theme).
         """
-        raise NotImplementedError
+        partname = PackURI('/ppt/notesMasters/notesMaster1.xml')
+        content_type = CT.PML_NOTES_MASTER
+        notesMaster = CT_NotesMaster.new_default()
+        return NotesMasterPart(partname, content_type, notesMaster, package)
 
     @classmethod
     def _new_theme_part(cls, package):

@@ -51,6 +51,14 @@ class CT_NotesMaster(_BaseSlideElement):
     cSld = OneAndOnlyOne('p:cSld')
     del _tag_seq
 
+    @classmethod
+    def new_default(cls):
+        """
+        Return a new ``<p:notesMaster>`` element based on the built-in
+        default template.
+        """
+        raise NotImplementedError
+
 
 class CT_Slide(_BaseSlideElement):
     """
