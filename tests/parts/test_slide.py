@@ -13,6 +13,7 @@ import pytest
 from pptx.chart.data import ChartData
 from pptx.enum.base import EnumValue
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.oxml.slide import CT_Slide
 from pptx.package import Package
@@ -109,6 +110,18 @@ class DescribeBaseSlidePart(object):
 
 class DescribeNotesMasterPart(object):
 
+    def it_can_create_a_notes_master_part(self, create_fixture):
+        package_, theme_part_, notes_master_part_ = create_fixture
+
+        notes_master_part = NotesMasterPart.create_default(package_)
+
+        NotesMasterPart._new.assert_called_once_with(package_)
+        NotesMasterPart._new_theme_part.assert_called_once_with(package_)
+        notes_master_part.relate_to.assert_called_once_with(
+            theme_part_, RT.THEME
+        )
+        assert notes_master_part is notes_master_part_
+
     def it_provides_access_to_its_notes_master(self, notes_master_fixture):
         notes_master_part, NotesMaster_ = notes_master_fixture[:2]
         notesMaster, notes_master_ = notes_master_fixture[2:]
@@ -121,12 +134,30 @@ class DescribeNotesMasterPart(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
+    def create_fixture(self, package_, theme_part_, notes_master_part_,
+                       _new_, _new_theme_part_):
+        return package_, theme_part_, notes_master_part_
+
+    @pytest.fixture
     def notes_master_fixture(self, NotesMaster_, notes_master_):
         notesMaster = element('p:notesMaster')
         notes_master_part = NotesMasterPart(None, None, notesMaster, None)
         return notes_master_part, NotesMaster_, notesMaster, notes_master_
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _new_(self, request, notes_master_part_):
+        return method_mock(
+            request, NotesMasterPart, '_new', return_value=notes_master_part_
+        )
+
+    @pytest.fixture
+    def _new_theme_part_(self, request, theme_part_):
+        return method_mock(
+            request, NotesMasterPart, '_new_theme_part',
+            return_value=theme_part_
+        )
 
     @pytest.fixture
     def NotesMaster_(self, request, notes_master_):
@@ -138,6 +169,18 @@ class DescribeNotesMasterPart(object):
     @pytest.fixture
     def notes_master_(self, request):
         return instance_mock(request, NotesMaster)
+
+    @pytest.fixture
+    def notes_master_part_(self, request):
+        return instance_mock(request, NotesMasterPart)
+
+    @pytest.fixture
+    def package_(self, request):
+        return instance_mock(request, Package)
+
+    @pytest.fixture
+    def theme_part_(self, request):
+        return instance_mock(request, Part)
 
 
 class DescribeSlidePart(object):

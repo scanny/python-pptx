@@ -60,7 +60,10 @@ class NotesMasterPart(BaseSlidePart):
         Create and return a default notes master part, including creating the
         new theme it requires.
         """
-        raise NotImplementedError
+        notes_master_part = cls._new(package)
+        theme_part = cls._new_theme_part(package)
+        notes_master_part.relate_to(theme_part, RT.THEME)
+        return notes_master_part
 
     @lazyproperty
     def notes_master(self):
@@ -68,6 +71,22 @@ class NotesMasterPart(BaseSlidePart):
         Return the |NotesMaster| object that proxies this notes master part.
         """
         return NotesMaster(self._element, self)
+
+    @classmethod
+    def _new(cls, package):
+        """
+        Create and return a standalone, default notes master part based on
+        the built-in template (without any related parts, such as theme).
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def _new_theme_part(cls, package):
+        """
+        Create and return a default theme part suitable for use with a notes
+        master.
+        """
+        raise NotImplementedError
 
 
 class SlidePart(BaseSlidePart):
