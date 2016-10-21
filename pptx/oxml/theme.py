@@ -8,6 +8,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+from . import parse_from_template
 from .xmlchemy import BaseOxmlElement
 
 
@@ -27,4 +28,4 @@ class CT_OfficeStyleSheet(BaseOxmlElement):
         Return a new ``<a:theme>`` element containing default settings
         suitable for use with a notes master.
         """
-        raise NotImplementedError
+        return parse_from_template('theme')

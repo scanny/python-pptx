@@ -326,3 +326,7 @@ register_element_cls('a:spcPts',      CT_TextSpacingPoint)
 register_element_cls('a:txBody',      CT_TextBody)
 register_element_cls('c:txPr',        CT_TextBody)
 register_element_cls('p:txBody',      CT_TextBody)
+
+
+from .theme import CT_OfficeStyleSheet
+register_element_cls('a:theme', CT_OfficeStyleSheet)

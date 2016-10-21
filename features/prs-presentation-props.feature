@@ -17,7 +17,6 @@ Feature: Presentation properties
       And the slide height matches the new value
 
 
-  @wip
   Scenario Outline: Presentation.notes_master
     Given a presentation having <a-or-no> notes master
      Then prs.notes_master is a NotesMaster object
