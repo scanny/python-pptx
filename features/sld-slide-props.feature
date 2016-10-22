@@ -24,6 +24,18 @@ Feature: slide properties
       | of no explicit value | the empty string |
 
 
+  @wip
+  Scenario Outline: Slide.notes_slide
+    Given a slide having <a-or-no> notes slide
+     Then slide.notes_slide is a NotesSlide object
+      And len(notes_slide.shapes) is <shape-count>
+
+    Examples: Slide.notes_slide states
+      | a-or-no | shape-count |
+      | a       |      3      |
+      | no      |      3      |
+
+
   Scenario: Slide.shapes
     Given a slide
      Then slide.shapes is a SlideShapes object

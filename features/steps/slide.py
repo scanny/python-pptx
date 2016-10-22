@@ -264,6 +264,12 @@ def then_len_master_shapes_is_2(context):
     assert len(master_shapes) == 2
 
 
+@then('len(notes_slide.shapes) is {count}')
+def then_len_notes_slide_shapes_is_count(context, count):
+    shapes = context.notes_slide.shapes
+    assert len(shapes) == int(count)
+
+
 @then('len(placeholders) is 2')
 def then_len_placeholders_is_2(context):
     placeholders = context.placeholders
@@ -348,6 +354,12 @@ def then_slide_name_is_value(context, value):
     expected_value = '' if value == 'the empty string' else value
     slide = context.slide
     assert slide.name == expected_value
+
+
+@then('slide.notes_slide is a NotesSlide object')
+def then_slide_notes_slide_is_a_NotesSlide_object(context):
+    notes_slide = context.notes_slide = context.slide.notes_slide
+    assert type(notes_slide).__name__ == 'NotesSlide'
 
 
 @then('slide.placeholders is a SlidePlaceholders object')
