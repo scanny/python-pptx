@@ -205,6 +205,10 @@ rst_epilog = """
 
 .. |None| replace:: :class:`None`
 
+.. |NotesMaster| replace:: :class:`.NotesMaster`
+
+.. |NotesSlide| replace:: :class:`.NotesSlide`
+
 .. |NotImplementedError| replace:: :exc:`NotImplementedError`
 
 .. |OpcPackage| replace:: :class:`.OpcPackage`
