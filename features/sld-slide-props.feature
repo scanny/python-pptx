@@ -4,7 +4,6 @@ Feature: slide properties
   I need properties and methods on Slide, SlideLayout, and SlideMaster
 
 
-  @wip
   Scenario Outline: Slide.has_notes_slide
     Given a slide having <a-or-no> notes slide
      Then slide.has_notes_slide is <value>

@@ -130,7 +130,11 @@ class SlidePart(BaseSlidePart):
         exist; use this property to test for a notes slide without the
         possible side-effect of creating one.
         """
-        raise NotImplementedError
+        try:
+            self.part_related_by(RT.NOTES_SLIDE)
+        except KeyError:
+            return False
+        return True
 
     @lazyproperty
     def slide(self):

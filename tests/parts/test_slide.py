@@ -270,6 +270,14 @@ class DescribeSlidePart(object):
         presentation_part_.slide_id.assert_called_once_with(slide_part)
         assert _slide_id is slide_id
 
+    def it_knows_whether_it_has_a_notes_slide(self, has_notes_slide_fixture):
+        slide_part, expected_value = has_notes_slide_fixture
+        value = slide_part.has_notes_slide
+        slide_part.part_related_by.assert_called_once_with(
+            slide_part, RT.NOTES_SLIDE
+        )
+        assert value is expected_value
+
     def it_can_add_a_chart_part(self, add_chart_part_fixture):
         slide_part, chart_type_, chart_data_ = add_chart_part_fixture[:3]
         ChartPart_, chart_part_, package_, rId = add_chart_part_fixture[3:]
@@ -307,7 +315,9 @@ class DescribeSlidePart(object):
     def it_provides_access_to_the_slide_layout(self, layout_fixture):
         slide_part, slide_layout_ = layout_fixture
         slide_layout = slide_part.slide_layout
-        slide_part.part_related_by.assert_called_once_with(RT.SLIDE_LAYOUT)
+        slide_part.part_related_by.assert_called_once_with(
+            slide_part, RT.SLIDE_LAYOUT
+        )
         assert slide_layout is slide_layout_
 
     def it_knows_the_minimal_element_xml_for_a_slide(self):
@@ -330,6 +340,14 @@ class DescribeSlidePart(object):
             slide_part, chart_type_, chart_data_, ChartPart_, chart_part_,
             package_, rId
         )
+
+    @pytest.fixture(params=[True, False])
+    def has_notes_slide_fixture(self, request, part_related_by_):
+        has_notes_slide = request.param
+        slide_part = SlidePart(None, None, None, None)
+        part_related_by_.side_effect = None if has_notes_slide else KeyError
+        expected_value = has_notes_slide
+        return slide_part, expected_value
 
     @pytest.fixture
     def layout_fixture(self, slide_layout_, part_related_by_):
@@ -389,7 +407,9 @@ class DescribeSlidePart(object):
 
     @pytest.fixture
     def part_related_by_(self, request):
-        return method_mock(request, SlidePart, 'part_related_by')
+        return method_mock(
+            request, SlidePart, 'part_related_by', autospec=True
+        )
 
     @pytest.fixture
     def presentation_part_(self, request):
