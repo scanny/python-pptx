@@ -55,6 +55,16 @@ def given_a_slide(context):
     context.slide = presentation.slides[0]
 
 
+@given('a slide having a notes slide')
+def given_a_slide_having_a_notes_slide(context):
+    context.slide = Presentation(test_pptx('sld-notes')).slides[0]
+
+
+@given('a slide having no notes slide')
+def given_a_slide_having_no_notes_slide(context):
+    context.slide = Presentation(test_pptx('sld-notes')).slides[1]
+
+
 @given('a slide having a title')
 def given_a_slide_having_a_title(context):
     prs = Presentation(test_pptx('shp-shape-access'))
@@ -324,6 +334,13 @@ def then_shapes_title_is_the_title_placeholder(context):
     title_placeholder = shapes.title
     assert title_placeholder.element is shapes[0].element
     assert title_placeholder.id == 4
+
+
+@then('slide.has_notes_slide is {value}')
+def then_slide_has_notes_slide_is_value(context, value):
+    expected_value = {'True': True, 'False': False}[value]
+    slide = context.slide
+    assert slide.has_notes_slide is expected_value
 
 
 @then('slide.name is {value}')
