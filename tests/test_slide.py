@@ -134,6 +134,10 @@ class DescribeSlide(object):
         slide = subclass_fixture
         assert isinstance(slide, _BaseSlide)
 
+    def it_knows_whether_it_has_a_notes_slide(self, has_notes_slide_fixture):
+        slide, expected_value = has_notes_slide_fixture
+        assert slide.has_notes_slide is expected_value
+
     def it_knows_its_slide_id(self, slide_id_fixture):
         slide, expected_value = slide_id_fixture
         assert slide.slide_id == expected_value
@@ -157,6 +161,12 @@ class DescribeSlide(object):
         assert slide.slide_layout is slide_layout_
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def has_notes_slide_fixture(self, part_prop_, slide_part_):
+        slide = Slide(None, None)
+        expected_value = slide_part_.has_notes_slide = 42
+        return slide, expected_value
 
     @pytest.fixture
     def layout_fixture(self, slide_layout_, part_prop_, slide_part_):

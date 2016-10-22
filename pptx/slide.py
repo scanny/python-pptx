@@ -80,6 +80,16 @@ class Slide(_BaseSlide):
 
     __slots__ = ('_placeholders', '_shapes')
 
+    @property
+    def has_notes_slide(self):
+        """
+        Return True if this slide has a notes slide, False otherwise. A notes
+        slide is created by :attr:`notes_slide` when one doesn't exist; use
+        this property to test for a notes slide without the possible side
+        effect of creating one.
+        """
+        return self.part.has_notes_slide
+
     @lazyproperty
     def placeholders(self):
         """

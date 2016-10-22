@@ -122,6 +122,16 @@ class SlidePart(BaseSlidePart):
         rId = self.relate_to(chart_part, RT.CHART)
         return rId
 
+    @property
+    def has_notes_slide(self):
+        """
+        Return True if this slide has a notes slide, False otherwise. A notes
+        slide is created by the :attr:`notes_slide` property when one doesn't
+        exist; use this property to test for a notes slide without the
+        possible side-effect of creating one.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def slide(self):
         """
