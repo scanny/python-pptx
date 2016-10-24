@@ -17,7 +17,7 @@ from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import LayoutPlaceholder
 from pptx.shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
-    NotesSlideShapes, SlidePlaceholders, SlideShapes
+    NotesSlidePlaceholders, NotesSlideShapes, SlidePlaceholders, SlideShapes
 )
 from pptx.slide import (
     _BaseMaster, _BaseSlide, NotesMaster, NotesSlide, Slide, SlideLayout,
@@ -144,6 +144,14 @@ class DescribeNotesSlide(object):
         NotesSlideShapes_.assert_called_once_with(spTree, notes_slide)
         assert shapes is shapes_
 
+    def it_provides_access_to_its_placeholders(self, placeholders_fixture):
+        notes_slide, NotesSlidePlaceholders_, spTree, placeholders_ = (
+            placeholders_fixture
+        )
+        placeholders = notes_slide.placeholders
+        NotesSlidePlaceholders_.assert_called_once_with(spTree, notes_slide)
+        assert placeholders is placeholders_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -157,6 +165,13 @@ class DescribeNotesSlide(object):
         calls = [call(placeholders[0])]
         shapes_.clone_placeholder = clone_placeholder_
         return notes_slide, notes_master_, clone_placeholder_, calls
+
+    @pytest.fixture
+    def placeholders_fixture(self, NotesSlidePlaceholders_, placeholders_):
+        notes = element('p:notes/p:cSld/p:spTree')
+        notes_slide = NotesSlide(notes, None)
+        spTree = notes.xpath('//p:spTree')[0]
+        return notes_slide, NotesSlidePlaceholders_, spTree, placeholders_
 
     @pytest.fixture
     def shapes_fixture(self, NotesSlideShapes_, shapes_):
@@ -176,10 +191,21 @@ class DescribeNotesSlide(object):
         return instance_mock(request, NotesMaster)
 
     @pytest.fixture
+    def NotesSlidePlaceholders_(self, request, placeholders_):
+        return class_mock(
+            request, 'pptx.slide.NotesSlidePlaceholders',
+            return_value=placeholders_
+        )
+
+    @pytest.fixture
     def NotesSlideShapes_(self, request, shapes_):
         return class_mock(
             request, 'pptx.slide.NotesSlideShapes', return_value=shapes_
         )
+
+    @pytest.fixture
+    def placeholders_(self, request):
+        return instance_mock(request, NotesSlidePlaceholders)
 
     @pytest.fixture
     def shapes_(self, request):

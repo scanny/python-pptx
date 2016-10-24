@@ -11,7 +11,7 @@ from __future__ import (
 from .enum.shapes import PP_PLACEHOLDER
 from .shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
-    NotesSlideShapes, SlidePlaceholders, SlideShapes
+    NotesSlidePlaceholders, NotesSlideShapes, SlidePlaceholders, SlideShapes
 )
 from .shared import ParentedElementProxy, PartElementProxy
 from .util import lazyproperty
@@ -79,7 +79,7 @@ class NotesSlide(_BaseSlide):
     shapes on the notes handout page.
     """
 
-    __slots__ = ('_shapes',)
+    __slots__ = ('_placeholders', '_shapes')
 
     def clone_master_placeholders(self, notes_master):
         """
@@ -106,6 +106,14 @@ class NotesSlide(_BaseSlide):
         shapes = self.shapes
         for placeholder in iter_cloneable_placeholders(notes_master):
             shapes.clone_placeholder(placeholder)
+
+    @lazyproperty
+    def placeholders(self):
+        """
+        Instance of |NotesSlidePlaceholders| containing sequence of
+        placeholder shapes in this notes slide.
+        """
+        return NotesSlidePlaceholders(self.element.spTree, self)
 
     @lazyproperty
     def shapes(self):

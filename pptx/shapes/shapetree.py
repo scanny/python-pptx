@@ -288,6 +288,12 @@ def _MasterShapeFactory(shape_elm, parent):
     return BaseShapeFactory(shape_elm, parent)
 
 
+class NotesSlidePlaceholders(BasePlaceholders):
+    """
+    Sequence of placeholder shapes on a notes slide.
+    """
+
+
 class NotesSlideShapes(_BaseShapes):
     """
     Sequence of shapes appearing on a notes slide. The first shape in the
