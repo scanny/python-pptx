@@ -19,8 +19,8 @@ from pptx.shapes.shapetree import (
     SlidePlaceholders, SlideShapes
 )
 from pptx.slide import (
-    _BaseMaster, _BaseSlide, Slide, SlideLayout, SlideLayouts, SlideMaster,
-    SlideMasters, Slides
+    _BaseMaster, _BaseSlide, NotesSlide, Slide, SlideLayout, SlideLayouts,
+    SlideMaster, SlideMasters, Slides
 )
 
 from .unitutil.cxml import element, xml
@@ -160,6 +160,10 @@ class DescribeSlide(object):
         slide, slide_layout_ = layout_fixture
         assert slide.slide_layout is slide_layout_
 
+    def it_provides_access_to_its_notes_slide(self, notes_slide_fixture):
+        slide, notes_slide_ = notes_slide_fixture
+        assert slide.notes_slide is notes_slide_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -174,6 +178,12 @@ class DescribeSlide(object):
         part_prop_.return_value = slide_part_
         slide_part_.slide_layout = slide_layout_
         return slide, slide_layout_
+
+    @pytest.fixture
+    def notes_slide_fixture(self, notes_slide_, part_prop_, slide_part_):
+        slide = Slide(None, None)
+        slide_part_.notes_slide = notes_slide_
+        return slide, notes_slide_
 
     @pytest.fixture
     def placeholders_fixture(self, SlidePlaceholders_, placeholders_):
@@ -201,6 +211,10 @@ class DescribeSlide(object):
         return Slide(None, None)
 
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def notes_slide_(self, request):
+        return instance_mock(request, NotesSlide)
 
     @pytest.fixture
     def part_prop_(self, request, slide_part_):

@@ -137,6 +137,15 @@ class SlidePart(BaseSlidePart):
         return True
 
     @lazyproperty
+    def notes_slide(self):
+        """
+        The |NotesSlide| instance associated with this slide. If the slide
+        does not have a notes slide, a new one is created. The same single
+        instance is returned on each call.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
     def slide(self):
         """
         The |Slide| object representing this slide part.

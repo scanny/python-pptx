@@ -73,6 +73,15 @@ class NotesMaster(_BaseMaster):
     __slots__ = ()
 
 
+class NotesSlide(_BaseSlide):
+    """
+    Notes slide object. Provides access to slide notes placeholder and other
+    shapes on the notes handout page.
+    """
+
+    __slots__ = ()
+
+
 class Slide(_BaseSlide):
     """
     Slide object. Provides access to shapes and slide-level properties.
@@ -89,6 +98,15 @@ class Slide(_BaseSlide):
         effect of creating one.
         """
         return self.part.has_notes_slide
+
+    @property
+    def notes_slide(self):
+        """
+        Return the |NotesSlide| instance for this slide. If the slide does
+        not have a notes slide, one is created. The same single instance is
+        returned on each call.
+        """
+        return self.part.notes_slide
 
     @lazyproperty
     def placeholders(self):
