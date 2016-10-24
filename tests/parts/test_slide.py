@@ -22,15 +22,18 @@ from pptx.parts.chart import ChartPart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import (
-    BaseSlidePart, NotesMasterPart, SlideLayoutPart, SlideMasterPart,
-    SlidePart
+    BaseSlidePart, NotesMasterPart, NotesSlidePart, SlideLayoutPart,
+    SlideMasterPart, SlidePart
 )
-from pptx.slide import NotesMaster, Slide, SlideLayout, SlideMaster
+from pptx.slide import (
+    NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
+)
 
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, test_file_dir
 from ..unitutil.mock import (
-    class_mock, initializer_mock, instance_mock, method_mock, property_mock
+    call, class_mock, initializer_mock, instance_mock, method_mock,
+    property_mock
 )
 
 
@@ -327,6 +330,17 @@ class DescribeSlidePart(object):
             expected_xml = f.read()
         assert sld.xml == expected_xml
 
+    def it_gets_its_notes_slide_to_help(self, notes_slide_fixture):
+        slide_part, calls, notes_slide_ = notes_slide_fixture
+
+        notes_slide = slide_part.notes_slide
+
+        slide_part.part_related_by.assert_called_once_with(
+            slide_part, RT.NOTES_SLIDE
+        )
+        assert slide_part._add_notes_slide_part.call_args_list == calls
+        assert notes_slide is notes_slide_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -363,6 +377,19 @@ class DescribeSlidePart(object):
         CT_Slide_.new.return_value = sld = element('c:sld')
         return slide_layout_part_, partname, package_, SlidePart_init_, sld
 
+    @pytest.fixture(params=[True, False])
+    def notes_slide_fixture(self, request, notes_slide_, part_related_by_,
+                            _add_notes_slide_part_, notes_slide_part_):
+        has_notes_slide = request.param
+        slide_part = SlidePart(None, None, None, None)
+        part_related_by_.return_value = notes_slide_part_
+        add_calls = []
+        if not has_notes_slide:
+            part_related_by_.side_effect = KeyError
+            add_calls.append(call(slide_part))
+        notes_slide_part_.notes_slide = notes_slide_
+        return slide_part, add_calls, notes_slide_
+
     @pytest.fixture
     def slide_fixture(self, Slide_, slide_):
         sld = element('p:sld')
@@ -378,6 +405,13 @@ class DescribeSlidePart(object):
         return slide_part, presentation_part_, slide_id
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _add_notes_slide_part_(self, request, notes_slide_part_):
+        return method_mock(
+            request, SlidePart, '_add_notes_slide_part',
+            return_value=notes_slide_part_, autospec=True
+        )
 
     @pytest.fixture
     def ChartPart_(self, request, chart_part_):
@@ -400,6 +434,14 @@ class DescribeSlidePart(object):
     @pytest.fixture
     def CT_Slide_(self, request):
         return class_mock(request, 'pptx.parts.slide.CT_Slide')
+
+    @pytest.fixture
+    def notes_slide_(self, request):
+        return instance_mock(request, NotesSlide)
+
+    @pytest.fixture
+    def notes_slide_part_(self, request):
+        return instance_mock(request, NotesSlidePart)
 
     @pytest.fixture
     def package_(self, request):

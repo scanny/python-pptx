@@ -97,6 +97,20 @@ class NotesMasterPart(BaseSlidePart):
         return XmlPart(partname, content_type, theme, package)
 
 
+class NotesSlidePart(BaseSlidePart):
+    """
+    Notes slide part. Contains the slide notes content and the layout for the
+    slide handout page. Corresponds to package file
+    `ppt/notesSlides/notesSlide[1-9][0-9]*.xml`.
+    """
+    @lazyproperty
+    def notes_slide(self):
+        """
+        Return the |NotesSlide| object that proxies this notes slide part.
+        """
+        raise NotImplementedError
+
+
 class SlidePart(BaseSlidePart):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
@@ -143,7 +157,11 @@ class SlidePart(BaseSlidePart):
         does not have a notes slide, a new one is created. The same single
         instance is returned on each call.
         """
-        raise NotImplementedError
+        try:
+            notes_slide_part = self.part_related_by(RT.NOTES_SLIDE)
+        except KeyError:
+            notes_slide_part = self._add_notes_slide_part()
+        return notes_slide_part.notes_slide
 
     @lazyproperty
     def slide(self):
@@ -168,6 +186,14 @@ class SlidePart(BaseSlidePart):
         """
         slide_layout_part = self.part_related_by(RT.SLIDE_LAYOUT)
         return slide_layout_part.slide_layout
+
+    def _add_notes_slide_part(self):
+        """
+        Return a newly created |NotesSlidePart| object related to this slide
+        part. Caller is responsible for ensuring this slide doesn't already
+        have a notes slide part.
+        """
+        raise NotImplementedError
 
 
 class SlideLayoutPart(BaseSlidePart):
