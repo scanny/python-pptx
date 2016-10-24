@@ -103,6 +103,15 @@ class NotesSlidePart(BaseSlidePart):
     slide handout page. Corresponds to package file
     `ppt/notesSlides/notesSlide[1-9][0-9]*.xml`.
     """
+    @classmethod
+    def new(cls, package, slide_part):
+        """
+        Create and return a new notes slide part based on the notes master
+        and related to both the notes master part and *slide_part*. If no
+        notes master is present, create one based on the default template.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def notes_slide(self):
         """
@@ -193,7 +202,9 @@ class SlidePart(BaseSlidePart):
         part. Caller is responsible for ensuring this slide doesn't already
         have a notes slide part.
         """
-        raise NotImplementedError
+        notes_slide_part = NotesSlidePart.new(self.package, self)
+        self.relate_to(notes_slide_part, RT.NOTES_SLIDE)
+        return notes_slide_part
 
 
 class SlideLayoutPart(BaseSlidePart):

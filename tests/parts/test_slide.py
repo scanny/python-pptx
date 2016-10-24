@@ -372,6 +372,18 @@ class DescribeSlidePart(object):
         assert slide_part._add_notes_slide_part.call_args_list == calls
         assert notes_slide is notes_slide_
 
+    def it_adds_a_notes_slide_part_to_help(self, add_notes_part_fixture):
+        slide_part, NotesSlidePart_, package_, notes_slide_part_ = (
+            add_notes_part_fixture
+        )
+        notes_slide_part = slide_part._add_notes_slide_part()
+
+        assert notes_slide_part is notes_slide_part_
+        NotesSlidePart_.new.assert_called_once_with(package_, slide_part)
+        slide_part.relate_to.assert_called_once_with(
+            slide_part, notes_slide_part, RT.NOTES_SLIDE
+        )
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -385,6 +397,13 @@ class DescribeSlidePart(object):
             slide_part, chart_type_, chart_data_, ChartPart_, chart_part_,
             package_, rId
         )
+
+    @pytest.fixture
+    def add_notes_part_fixture(self, package_, NotesSlidePart_,
+                               notes_slide_part_, relate_to_):
+        slide_part = SlidePart(None, None, None, package_)
+        NotesSlidePart_.new.return_value = notes_slide_part_
+        return slide_part, NotesSlidePart_, package_, notes_slide_part_
 
     @pytest.fixture(params=[True, False])
     def has_notes_slide_fixture(self, request, part_related_by_):
@@ -469,6 +488,13 @@ class DescribeSlidePart(object):
     @pytest.fixture
     def notes_slide_(self, request):
         return instance_mock(request, NotesSlide)
+
+    @pytest.fixture
+    def NotesSlidePart_(self, request, notes_slide_part_):
+        return class_mock(
+            request, 'pptx.parts.slide.NotesSlidePart',
+            return_value=notes_slide_part_
+        )
 
     @pytest.fixture
     def notes_slide_part_(self, request):
