@@ -56,7 +56,22 @@ class PresentationPart(XmlPart):
         a default template. The same single instance is returned on each
         call.
         """
-        return self._notes_master_part.notes_master
+        return self.notes_master_part.notes_master
+
+    @lazyproperty
+    def notes_master_part(self):
+        """
+        Return the |NotesMasterPart| object for this presentation. If the
+        presentation does not have a notes master, one is created from
+        a default template. The same single instance is returned on each
+        call.
+        """
+        try:
+            return self.part_related_by(RT.NOTES_MASTER)
+        except KeyError:
+            notes_master_part = NotesMasterPart.create_default(self.package)
+            self.relate_to(notes_master_part, RT.NOTES_MASTER)
+            return notes_master_part
 
     @lazyproperty
     def presentation(self):
@@ -122,18 +137,3 @@ class PresentationPart(XmlPart):
         sldIdLst = self._element.get_or_add_sldIdLst()
         partname_str = '/ppt/slides/slide%d.xml' % (len(sldIdLst)+1)
         return PackURI(partname_str)
-
-    @lazyproperty
-    def _notes_master_part(self):
-        """
-        Return the |NotesMasterPart| object for this presentation. If the
-        presentation does not have a notes master, one is created from
-        a default template. The same single instance is returned on each
-        call.
-        """
-        try:
-            return self.part_related_by(RT.NOTES_MASTER)
-        except KeyError:
-            notes_master_part = NotesMasterPart.create_default(self.package)
-            self.relate_to(notes_master_part, RT.NOTES_MASTER)
-            return notes_master_part

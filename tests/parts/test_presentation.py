@@ -36,6 +36,35 @@ class DescribePresentationPart(object):
         core_properties = prs_part.core_properties
         assert core_properties is core_properties_
 
+    def it_provides_access_to_the_notes_master_part(self, nmp_get_fixture):
+        """
+        This is the first of a two-part test to cover the existing notes
+        master case. The notes master not-present case follows.
+        """
+        prs_part, notes_master_part_ = nmp_get_fixture
+        notes_master_part = prs_part.notes_master_part
+        prs_part.part_related_by.assert_called_once_with(
+            prs_part, RT.NOTES_MASTER
+        )
+        assert notes_master_part is notes_master_part_
+
+    def it_adds_a_notes_master_part_when_needed(self, nmp_add_fixture):
+        """
+        This is the second of a two-part test to cover the
+        notes-master-not-present case. The notes master present case is just
+        above.
+        """
+        prs_part, NotesMasterPart_ = nmp_add_fixture[:2]
+        package_, notes_master_part_ = nmp_add_fixture[2:]
+
+        notes_master_part = prs_part.notes_master_part
+
+        NotesMasterPart_.create_default.assert_called_once_with(package_)
+        prs_part.relate_to.assert_called_once_with(
+            prs_part, notes_master_part_, RT.NOTES_MASTER
+        )
+        assert notes_master_part is notes_master_part_
+
     def it_provides_access_to_its_notes_master(self, notes_master_fixture):
         prs_part, notes_master_ = notes_master_fixture
         notes_master = prs_part.notes_master
@@ -100,35 +129,6 @@ class DescribePresentationPart(object):
         prs_part, partname = next_fixture
         assert prs_part._next_slide_partname == partname
 
-    def it_gets_the_notes_master_part_to_help(self, nmp_get_fixture):
-        """
-        This is the first of a two-part test to cover the existing notes
-        master case. The notes master not-present case follows.
-        """
-        prs_part, notes_master_part_ = nmp_get_fixture
-        notes_master_part = prs_part._notes_master_part
-        prs_part.part_related_by.assert_called_once_with(
-            prs_part, RT.NOTES_MASTER
-        )
-        assert notes_master_part is notes_master_part_
-
-    def it_adds_a_notes_master_part_to_help(self, nmp_add_fixture):
-        """
-        This is the second of a two-part test to cover the
-        notes-master-not-present case. The notes master present case is just
-        above.
-        """
-        prs_part, NotesMasterPart_ = nmp_add_fixture[:2]
-        package_, notes_master_part_ = nmp_add_fixture[2:]
-
-        notes_master_part = prs_part._notes_master_part
-
-        NotesMasterPart_.create_default.assert_called_once_with(package_)
-        prs_part.relate_to.assert_called_once_with(
-            prs_part, notes_master_part_, RT.NOTES_MASTER
-        )
-        assert notes_master_part is notes_master_part_
-
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -186,10 +186,10 @@ class DescribePresentationPart(object):
         return prs_part, partname
 
     @pytest.fixture
-    def notes_master_fixture(self, _notes_master_part_prop_,
+    def notes_master_fixture(self, notes_master_part_prop_,
                              notes_master_part_, notes_master_):
         prs_part = PresentationPart(None, None, None, None)
-        _notes_master_part_prop_.return_value = notes_master_part_
+        notes_master_part_prop_.return_value = notes_master_part_
         notes_master_part_.notes_master = notes_master_
         return prs_part, notes_master_
 
@@ -295,8 +295,8 @@ class DescribePresentationPart(object):
         return instance_mock(request, NotesMasterPart)
 
     @pytest.fixture
-    def _notes_master_part_prop_(self, request, notes_master_part_):
-        return property_mock(request, PresentationPart, '_notes_master_part')
+    def notes_master_part_prop_(self, request, notes_master_part_):
+        return property_mock(request, PresentationPart, 'notes_master_part')
 
     @pytest.fixture
     def package_(self, request):
