@@ -13,18 +13,21 @@ import pytest
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
+from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import LayoutPlaceholder
 from pptx.shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
     NotesSlideShapes, SlidePlaceholders, SlideShapes
 )
 from pptx.slide import (
-    _BaseMaster, _BaseSlide, NotesSlide, Slide, SlideLayout, SlideLayouts,
-    SlideMaster, SlideMasters, Slides
+    _BaseMaster, _BaseSlide, NotesMaster, NotesSlide, Slide, SlideLayout,
+    SlideLayouts, SlideMaster, SlideMasters, Slides
 )
 
 from .unitutil.cxml import element, xml
-from .unitutil.mock import call, class_mock, instance_mock, property_mock
+from .unitutil.mock import (
+    call, class_mock, instance_mock, method_mock, property_mock
+)
 
 
 class Describe_BaseSlide(object):
@@ -130,6 +133,11 @@ class Describe_BaseMaster(object):
 
 class DescribeNotesSlide(object):
 
+    def it_can_clone_the_notes_master_placeholders(self, clone_fixture):
+        notes_slide, notes_master_, clone_placeholder_, calls = clone_fixture
+        notes_slide.clone_master_placeholders(notes_master_)
+        assert clone_placeholder_.call_args_list == calls
+
     def it_provides_access_to_its_shapes(self, shapes_fixture):
         notes_slide, NotesSlideShapes_, spTree, shapes_ = shapes_fixture
         shapes = notes_slide.shapes
@@ -137,6 +145,18 @@ class DescribeNotesSlide(object):
         assert shapes is shapes_
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def clone_fixture(self, notes_master_, clone_placeholder_, shapes_prop_,
+                      shapes_):
+        notes_slide = NotesSlide(None, None)
+        placeholders = notes_master_.placeholders = (
+            BaseShape(element('p:sp/p:nvSpPr/p:nvPr/p:ph{type=body}'), None),
+            BaseShape(element('p:sp/p:nvSpPr/p:nvPr/p:ph{type=dt}'), None),
+        )
+        calls = [call(placeholders[0])]
+        shapes_.clone_placeholder = clone_placeholder_
+        return notes_slide, notes_master_, clone_placeholder_, calls
 
     @pytest.fixture
     def shapes_fixture(self, NotesSlideShapes_, shapes_):
@@ -148,6 +168,14 @@ class DescribeNotesSlide(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def clone_placeholder_(self, request):
+        return method_mock(request, NotesSlideShapes, 'clone_placeholder')
+
+    @pytest.fixture
+    def notes_master_(self, request):
+        return instance_mock(request, NotesMaster)
+
+    @pytest.fixture
     def NotesSlideShapes_(self, request, shapes_):
         return class_mock(
             request, 'pptx.slide.NotesSlideShapes', return_value=shapes_
@@ -156,6 +184,12 @@ class DescribeNotesSlide(object):
     @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, NotesSlideShapes)
+
+    @pytest.fixture
+    def shapes_prop_(self, request, shapes_):
+        return property_mock(
+            request, NotesSlide, 'shapes', return_value=shapes_
+        )
 
 
 class DescribeSlide(object):

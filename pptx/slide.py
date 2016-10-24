@@ -88,7 +88,24 @@ class NotesSlide(_BaseSlide):
         preserved. Certain placeholders (header, date, footer) are not
         cloned.
         """
-        raise NotImplementedError
+        def iter_cloneable_placeholders(notes_master):
+            """
+            Generate a reference to each placeholder in *notes_master* that
+            should be cloned to a notes slide when the a new notes slide is
+            created.
+            """
+            cloneable = (
+                PP_PLACEHOLDER.SLIDE_IMAGE,
+                PP_PLACEHOLDER.BODY,
+                PP_PLACEHOLDER.SLIDE_NUMBER,
+            )
+            for placeholder in notes_master.placeholders:
+                if placeholder.element.ph_type in cloneable:
+                    yield placeholder
+
+        shapes = self.shapes
+        for placeholder in iter_cloneable_placeholders(notes_master):
+            shapes.clone_placeholder(placeholder)
 
     @lazyproperty
     def shapes(self):

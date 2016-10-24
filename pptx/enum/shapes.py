@@ -890,6 +890,9 @@ class PP_PLACEHOLDER_TYPE(XmlEnumeration):
             'PICTURE', 18, 'pic', 'Picture'
         ),
         XmlMappedEnumMember(
+            'SLIDE_IMAGE', 101, 'sldImg', 'Slide Image'
+        ),
+        XmlMappedEnumMember(
             'SLIDE_NUMBER', 13, 'sldNum', 'Slide Number'
         ),
         XmlMappedEnumMember(
