@@ -68,6 +68,15 @@ class CT_NotesSlide(_BaseSlideElement):
     cSld = OneAndOnlyOne('p:cSld')
     del _tag_seq
 
+    @classmethod
+    def new(cls):
+        """
+        Return a new ``<p:notes>`` element based on the default template.
+        Note that the template does not include placeholders, which must be
+        subsequently cloned from the notes master.
+        """
+        raise NotImplementedError
+
 
 class CT_Slide(_BaseSlideElement):
     """

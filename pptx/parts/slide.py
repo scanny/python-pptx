@@ -12,7 +12,7 @@ from .chart import ChartPart
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from ..opc.package import XmlPart
 from ..opc.packuri import PackURI
-from ..oxml.slide import CT_NotesMaster, CT_Slide
+from ..oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from ..oxml.theme import CT_OfficeStyleSheet
 from ..slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
 from ..util import lazyproperty
@@ -131,7 +131,15 @@ class NotesSlidePart(BaseSlidePart):
         Create and return a new notes slide part that is fully related, but
         has no shape content (i.e. placeholders not cloned).
         """
-        raise NotImplementedError
+        partname = package.next_partname('/ppt/notesSlides/notesSlide%d.xml')
+        content_type = CT.PML_NOTES_SLIDE
+        notes = CT_NotesSlide.new()
+        notes_slide_part = NotesSlidePart(
+            partname, content_type, notes, package
+        )
+        notes_slide_part.relate_to(notes_master_part, RT.NOTES_MASTER)
+        notes_slide_part.relate_to(slide_part, RT.SLIDE)
+        return notes_slide_part
 
 
 class SlidePart(BaseSlidePart):

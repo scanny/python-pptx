@@ -15,7 +15,7 @@ from pptx.enum.base import EnumValue
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
-from pptx.oxml.slide import CT_NotesMaster, CT_Slide
+from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from pptx.oxml.theme import CT_OfficeStyleSheet
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
@@ -289,7 +289,43 @@ class DescribeNotesSlidePart(object):
         NotesSlide_.assert_called_once_with(notes, notes_slide_part)
         assert notes_slide is notes_slide_
 
+    def it_adds_a_notes_slide_part_to_help(self, add_fixture):
+        package_, slide_part_, notes_master_part_ = add_fixture[:3]
+        notes_slide_part_, NotesSlidePart_, partname = add_fixture[3:6]
+        content_type, notes, calls = add_fixture[6:]
+
+        notes_slide_part = NotesSlidePart._add_notes_slide_part(
+            package_, slide_part_, notes_master_part_
+        )
+
+        package_.next_partname.assert_called_once_with(
+            '/ppt/notesSlides/notesSlide%d.xml'
+        )
+        CT_NotesSlide.new.assert_called_once_with()
+        NotesSlidePart_.assert_called_once_with(
+            partname, content_type, notes, package_
+        )
+        assert notes_slide_part_.relate_to.call_args_list == calls
+        assert notes_slide_part is notes_slide_part_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_fixture(self, package_, slide_part_, notes_master_part_,
+                    notes_slide_part_, NotesSlidePart_, new_):
+        partname = PackURI('/ppt/notesSlides/notesSlide42.xml')
+        content_type = CT.PML_NOTES_SLIDE
+        notes = element('p:notes')
+        calls = [
+            call(notes_master_part_, RT.NOTES_MASTER),
+            call(slide_part_, RT.SLIDE),
+        ]
+        package_.next_partname.return_value = partname
+        new_.return_value = notes
+        return (
+            package_, slide_part_, notes_master_part_, notes_slide_part_,
+            NotesSlidePart_, partname, content_type, notes, calls
+        )
 
     @pytest.fixture
     def new_fixture(self, package_, slide_part_, notes_master_part_,
@@ -320,6 +356,10 @@ class DescribeNotesSlidePart(object):
         )
 
     @pytest.fixture
+    def new_(self, request):
+        return method_mock(request, CT_NotesSlide, 'new')
+
+    @pytest.fixture
     def notes_master_(self, request):
         return instance_mock(request, NotesMaster)
 
@@ -336,6 +376,13 @@ class DescribeNotesSlidePart(object):
     @pytest.fixture
     def notes_slide_(self, request):
         return instance_mock(request, NotesSlide)
+
+    @pytest.fixture
+    def NotesSlidePart_(self, request, notes_slide_part_):
+        return class_mock(
+            request, 'pptx.parts.slide.NotesSlidePart',
+            return_value=notes_slide_part_
+        )
 
     @pytest.fixture
     def notes_slide_part_(self, request):
