@@ -75,7 +75,7 @@ class CT_NotesSlide(_BaseSlideElement):
         Note that the template does not include placeholders, which must be
         subsequently cloned from the notes master.
         """
-        raise NotImplementedError
+        return parse_from_template('notes')
 
 
 class CT_Slide(_BaseSlideElement):
