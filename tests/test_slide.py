@@ -16,7 +16,7 @@ from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
 from pptx.shapes.placeholder import LayoutPlaceholder
 from pptx.shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
-    SlidePlaceholders, SlideShapes
+    NotesSlideShapes, SlidePlaceholders, SlideShapes
 )
 from pptx.slide import (
     _BaseMaster, _BaseSlide, NotesSlide, Slide, SlideLayout, SlideLayouts,
@@ -128,6 +128,36 @@ class Describe_BaseMaster(object):
         return instance_mock(request, MasterShapes)
 
 
+class DescribeNotesSlide(object):
+
+    def it_provides_access_to_its_shapes(self, shapes_fixture):
+        notes_slide, NotesSlideShapes_, spTree, shapes_ = shapes_fixture
+        shapes = notes_slide.shapes
+        NotesSlideShapes_.assert_called_once_with(spTree, notes_slide)
+        assert shapes is shapes_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def shapes_fixture(self, NotesSlideShapes_, shapes_):
+        notes = element('p:notes/p:cSld/p:spTree')
+        notes_slide = NotesSlide(notes, None)
+        spTree = notes.xpath('//p:spTree')[0]
+        return notes_slide, NotesSlideShapes_, spTree, shapes_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def NotesSlideShapes_(self, request, shapes_):
+        return class_mock(
+            request, 'pptx.slide.NotesSlideShapes', return_value=shapes_
+        )
+
+    @pytest.fixture
+    def shapes_(self, request):
+        return instance_mock(request, NotesSlideShapes)
+
+
 class DescribeSlide(object):
 
     def it_is_a_BaseSlide_subclass(self, subclass_fixture):
@@ -210,7 +240,7 @@ class DescribeSlide(object):
     def subclass_fixture(self):
         return Slide(None, None)
 
-    # fixture components -----------------------------------
+    # fixture components ---------------------------------------------
 
     @pytest.fixture
     def notes_slide_(self, request):

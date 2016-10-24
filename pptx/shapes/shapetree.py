@@ -288,6 +288,14 @@ def _MasterShapeFactory(shape_elm, parent):
     return BaseShapeFactory(shape_elm, parent)
 
 
+class NotesSlideShapes(_BaseShapes):
+    """
+    Sequence of shapes appearing on a notes slide. The first shape in the
+    sequence is the backmost in z-order and the last shape is topmost.
+    Supports indexed access, len(), index(), and iteration.
+    """
+
+
 def _SlidePlaceholderFactory(shape_elm, parent):
     """
     Return a placeholder shape of the appropriate type for *shape_elm*.

@@ -288,10 +288,12 @@ register_element_cls('a:tr',      CT_TableRow)
 
 
 from .slide import (
-    CT_CommonSlideData, CT_NotesMaster, CT_Slide, CT_SlideLayout,
-    CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry, CT_SlideMaster
+    CT_CommonSlideData, CT_NotesMaster, CT_NotesSlide, CT_Slide,
+    CT_SlideLayout, CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry,
+    CT_SlideMaster
 )
 register_element_cls('p:cSld',           CT_CommonSlideData)
+register_element_cls('p:notes',          CT_NotesSlide)
 register_element_cls('p:notesMaster',    CT_NotesMaster)
 register_element_cls('p:sld',            CT_Slide)
 register_element_cls('p:sldLayout',      CT_SlideLayout)

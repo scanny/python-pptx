@@ -60,6 +60,15 @@ class CT_NotesMaster(_BaseSlideElement):
         return parse_from_template('notesMaster')
 
 
+class CT_NotesSlide(_BaseSlideElement):
+    """
+    ``<p:notes>`` element, root of a notes slide part
+    """
+    _tag_seq = ('p:cSld', 'p:clrMapOvr', 'p:extLst')
+    cSld = OneAndOnlyOne('p:cSld')
+    del _tag_seq
+
+
 class CT_Slide(_BaseSlideElement):
     """
     ``<p:sld>`` element, root of a slide part
