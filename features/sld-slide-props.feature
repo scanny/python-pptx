@@ -24,7 +24,6 @@ Feature: slide properties
       | of no explicit value | the empty string |
 
 
-  @wip
   Scenario Outline: Slide.notes_slide
     Given a slide having <a-or-no> notes slide
      Then slide.notes_slide is a NotesSlide object

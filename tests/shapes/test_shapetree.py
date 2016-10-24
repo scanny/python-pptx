@@ -27,8 +27,9 @@ from pptx.shapes.placeholder import (
 from pptx.shapes.shapetree import (
     BasePlaceholders, BaseShapeFactory, _BaseShapes, LayoutPlaceholders,
     _LayoutShapeFactory, LayoutShapes, MasterPlaceholders,
-    _MasterShapeFactory, MasterShapes, _SlidePlaceholderFactory,
-    SlidePlaceholders, SlideShapeFactory, SlideShapes
+    _MasterShapeFactory, MasterShapes, NotesSlideShapes,
+    _SlidePlaceholderFactory, SlidePlaceholders, SlideShapeFactory,
+    SlideShapes
 )
 from pptx.shapes.table import Table
 from pptx.slide import SlideLayout, SlideMaster
@@ -240,6 +241,24 @@ class DescribeBasePlaceholders(object):
     @pytest.fixture
     def shape_elm_(self, request):
         return instance_mock(request, BaseShapeElement)
+
+
+class DescribeNotesSlideShapes(object):
+
+    def it_knows_notes_slide_placeholder_basenames(self, basename_fixture):
+        notes_slide_shapes, ph_type, expected_value = basename_fixture
+        assert notes_slide_shapes.ph_basename(ph_type) == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (PP_PLACEHOLDER.BODY,   'Notes Placeholder'),
+        (PP_PLACEHOLDER.HEADER, 'Header Placeholder'),
+    ])
+    def basename_fixture(self, request):
+        ph_type, expected_value = request.param
+        notes_slide_shapes = NotesSlideShapes(None, None)
+        return notes_slide_shapes, ph_type, expected_value
 
 
 class DescribeSlidePlaceholders(object):

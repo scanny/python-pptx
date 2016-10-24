@@ -294,6 +294,21 @@ class NotesSlideShapes(_BaseShapes):
     sequence is the backmost in z-order and the last shape is topmost.
     Supports indexed access, len(), index(), and iteration.
     """
+    def ph_basename(self, ph_type):
+        """
+        Return the base name for a placeholder of *ph_type* in this shape
+        collection. A notes slide uses a different name for the body
+        placeholder and has some unique placeholder types, so this
+        method overrides the default in the base class.
+        """
+        return {
+            PP_PLACEHOLDER.BODY:         'Notes Placeholder',
+            PP_PLACEHOLDER.DATE:         'Date Placeholder',
+            PP_PLACEHOLDER.FOOTER:       'Footer Placeholder',
+            PP_PLACEHOLDER.HEADER:       'Header Placeholder',
+            PP_PLACEHOLDER.SLIDE_IMAGE:  'Slide Image Placeholder',
+            PP_PLACEHOLDER.SLIDE_NUMBER: 'Slide Number Placeholder',
+        }[ph_type]
 
 
 def _SlidePlaceholderFactory(shape_elm, parent):
