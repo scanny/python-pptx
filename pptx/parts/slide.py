@@ -110,7 +110,13 @@ class NotesSlidePart(BaseSlidePart):
         and related to both the notes master part and *slide_part*. If no
         notes master is present, create one based on the default template.
         """
-        raise NotImplementedError
+        notes_master_part = package.presentation_part.notes_master_part
+        notes_slide_part = cls._add_notes_slide_part(
+            package, slide_part, notes_master_part
+        )
+        notes_slide = notes_slide_part.notes_slide
+        notes_slide.clone_master_placeholders(notes_master_part.notes_master)
+        return notes_slide_part
 
     @lazyproperty
     def notes_slide(self):
@@ -118,6 +124,14 @@ class NotesSlidePart(BaseSlidePart):
         Return the |NotesSlide| object that proxies this notes slide part.
         """
         return NotesSlide(self._element, self)
+
+    @classmethod
+    def _add_notes_slide_part(cls, package, slide_part, notes_master_part):
+        """
+        Create and return a new notes slide part that is fully related, but
+        has no shape content (i.e. placeholders not cloned).
+        """
+        raise NotImplementedError
 
 
 class SlidePart(BaseSlidePart):

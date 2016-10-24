@@ -267,6 +267,20 @@ class DescribeNotesMasterPart(object):
 
 class DescribeNotesSlidePart(object):
 
+    def it_can_create_a_notes_slide_part(self, new_fixture):
+        package_, slide_part_, notes_master_part_ = new_fixture[:3]
+        notes_slide_, notes_master_, notes_slide_part_ = new_fixture[3:]
+
+        notes_slide_part = NotesSlidePart.new(package_, slide_part_)
+
+        NotesSlidePart._add_notes_slide_part.assert_called_once_with(
+            package_, slide_part_, notes_master_part_
+        )
+        notes_slide_.clone_master_placeholders.assert_called_once_with(
+            notes_master_
+        )
+        assert notes_slide_part is notes_slide_part_
+
     def it_provides_access_to_its_notes_slide(self, notes_slide_fixture):
         notes_slide_part, NotesSlide_, notes, notes_slide_ = (
             notes_slide_fixture
@@ -278,12 +292,40 @@ class DescribeNotesSlidePart(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
+    def new_fixture(self, package_, slide_part_, notes_master_part_,
+                    notes_slide_, notes_master_, notes_slide_part_,
+                    _add_notes_slide_part_, presentation_part_):
+        package_.presentation_part = presentation_part_
+        presentation_part_.notes_master_part = notes_master_part_
+        notes_slide_part_.notes_slide = notes_slide_
+        notes_master_part_.notes_master = notes_master_
+        return (
+            package_, slide_part_, notes_master_part_, notes_slide_,
+            notes_master_, notes_slide_part_
+        )
+
+    @pytest.fixture
     def notes_slide_fixture(self, NotesSlide_, notes_slide_):
         notes = element('p:notes')
         notes_slide_part = NotesSlidePart(None, None, notes, None)
         return notes_slide_part, NotesSlide_, notes, notes_slide_
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _add_notes_slide_part_(self, request, notes_slide_part_):
+        return method_mock(
+            request, NotesSlidePart, '_add_notes_slide_part',
+            return_value=notes_slide_part_
+        )
+
+    @pytest.fixture
+    def notes_master_(self, request):
+        return instance_mock(request, NotesMaster)
+
+    @pytest.fixture
+    def notes_master_part_(self, request):
+        return instance_mock(request, NotesMasterPart)
 
     @pytest.fixture
     def NotesSlide_(self, request, notes_slide_):
@@ -294,6 +336,22 @@ class DescribeNotesSlidePart(object):
     @pytest.fixture
     def notes_slide_(self, request):
         return instance_mock(request, NotesSlide)
+
+    @pytest.fixture
+    def notes_slide_part_(self, request):
+        return instance_mock(request, NotesSlidePart)
+
+    @pytest.fixture
+    def presentation_part_(self, request):
+        return instance_mock(request, PresentationPart)
+
+    @pytest.fixture
+    def package_(self, request):
+        return instance_mock(request, Package)
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
 
 
 class DescribeSlidePart(object):

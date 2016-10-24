@@ -81,6 +81,15 @@ class NotesSlide(_BaseSlide):
 
     __slots__ = ('_shapes',)
 
+    def clone_master_placeholders(self, notes_master):
+        """
+        Selectively add placeholder shape elements from *notes_master* to the
+        shapes collection of this notes slide. Z-order of placeholders is
+        preserved. Certain placeholders (header, date, footer) are not
+        cloned.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def shapes(self):
         """
