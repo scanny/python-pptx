@@ -49,6 +49,12 @@ def given_a_MasterShapes_object_containing_2_shapes(context):
     context.master_shapes = prs.slide_masters[0].shapes
 
 
+@given('a notes slide')
+def given_a_notes_slide(context):
+    prs = Presentation(test_pptx('sld-notes'))
+    context.notes_slide = prs.slides[0].notes_slide
+
+
 @given('a slide')
 def given_a_slide(context):
     presentation = Presentation(test_pptx('shp-shape-access'))
@@ -181,6 +187,15 @@ def then_iterating_placeholders_produces_2_SlidePlaceholder_objects(context):
     for idx, placeholder in enumerate(placeholders):
         assert type(placeholder).__name__ == 'SlidePlaceholder'
     assert idx == 1
+
+
+@then('iterating produces 3 NotesSlidePlaceholder objects')
+def then_iterating_produces_3_NotesSlidePlaceholder_objects(context):
+    idx = -1
+    for idx, placeholder in enumerate(context.notes_slide.placeholders):
+        typename = type(placeholder).__name__
+        assert typename == 'NotesSlidePlaceholder', 'got %s' % typename
+    assert idx == 2
 
 
 @then('iterating shapes produces 6 BaseShape objects')
@@ -319,6 +334,12 @@ def then_master_placeholders_get_PP_PLACEHOLDER_BODY_is_the_body_ph(context):
 def then_master_shapes_1_is_a_Picture_object(context):
     master_shapes = context.master_shapes
     assert type(master_shapes[1]).__name__ == 'Picture'
+
+
+@then('notes_slide.placeholders is a NotesSlidePlaceholders object')
+def then_notes_slide_placeholders_is_a_NotesSlidePlaceholders_object(context):
+    notes_slide = context.notes_slide
+    assert type(notes_slide.placeholders).__name__ == 'NotesSlidePlaceholders'
 
 
 @then('placeholders[10] is a SlidePlaceholder object')
