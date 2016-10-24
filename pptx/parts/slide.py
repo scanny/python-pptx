@@ -14,7 +14,7 @@ from ..opc.package import XmlPart
 from ..opc.packuri import PackURI
 from ..oxml.slide import CT_NotesMaster, CT_Slide
 from ..oxml.theme import CT_OfficeStyleSheet
-from ..slide import NotesMaster, Slide, SlideLayout, SlideMaster
+from ..slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
 from ..util import lazyproperty
 
 
@@ -108,7 +108,7 @@ class NotesSlidePart(BaseSlidePart):
         """
         Return the |NotesSlide| object that proxies this notes slide part.
         """
-        raise NotImplementedError
+        return NotesSlide(self._element, self)
 
 
 class SlidePart(BaseSlidePart):

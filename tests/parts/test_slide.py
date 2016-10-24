@@ -265,6 +265,37 @@ class DescribeNotesMasterPart(object):
         )
 
 
+class DescribeNotesSlidePart(object):
+
+    def it_provides_access_to_its_notes_slide(self, notes_slide_fixture):
+        notes_slide_part, NotesSlide_, notes, notes_slide_ = (
+            notes_slide_fixture
+        )
+        notes_slide = notes_slide_part.notes_slide
+        NotesSlide_.assert_called_once_with(notes, notes_slide_part)
+        assert notes_slide is notes_slide_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def notes_slide_fixture(self, NotesSlide_, notes_slide_):
+        notes = element('p:notes')
+        notes_slide_part = NotesSlidePart(None, None, notes, None)
+        return notes_slide_part, NotesSlide_, notes, notes_slide_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def NotesSlide_(self, request, notes_slide_):
+        return class_mock(
+            request, 'pptx.parts.slide.NotesSlide', return_value=notes_slide_
+        )
+
+    @pytest.fixture
+    def notes_slide_(self, request):
+        return instance_mock(request, NotesSlide)
+
+
 class DescribeSlidePart(object):
 
     def it_knows_its_slide_id(self, slide_id_fixture):
