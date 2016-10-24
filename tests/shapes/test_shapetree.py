@@ -22,14 +22,15 @@ from pptx.shapes.connector import Connector
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.placeholder import (
-    _BaseSlidePlaceholder, LayoutPlaceholder, MasterPlaceholder
+    _BaseSlidePlaceholder, LayoutPlaceholder, MasterPlaceholder,
+    NotesSlidePlaceholder
 )
 from pptx.shapes.shapetree import (
     BasePlaceholders, BaseShapeFactory, _BaseShapes, LayoutPlaceholders,
     _LayoutShapeFactory, LayoutShapes, MasterPlaceholders,
-    _MasterShapeFactory, MasterShapes, NotesSlideShapes,
-    _SlidePlaceholderFactory, SlidePlaceholders, SlideShapeFactory,
-    SlideShapes
+    _MasterShapeFactory, MasterShapes, NotesSlidePlaceholders,
+    NotesSlideShapes, _SlidePlaceholderFactory, SlidePlaceholders,
+    SlideShapeFactory, SlideShapes
 )
 from pptx.shapes.table import Table
 from pptx.slide import SlideLayout, SlideMaster
@@ -241,6 +242,38 @@ class DescribeBasePlaceholders(object):
     @pytest.fixture
     def shape_elm_(self, request):
         return instance_mock(request, BaseShapeElement)
+
+
+class DescribeNotesSlidePlaceholders(object):
+
+    def it_brokers_access_to_its_shape_factory(self, factory_fixture):
+        placeholders, sp, _NotesSlideShapeFactory_, placeholder_ = (
+            factory_fixture
+        )
+        placeholder = placeholders._shape_factory(sp)
+        _NotesSlideShapeFactory_.assert_called_once_with(sp, placeholders)
+        assert placeholder is placeholder_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def factory_fixture(self, _NotesSlideShapeFactory_, placeholder_):
+        placeholders = NotesSlidePlaceholders(None, None)
+        sp = element('p:sp')
+        return placeholders, sp, _NotesSlideShapeFactory_, placeholder_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _NotesSlideShapeFactory_(self, request, placeholder_):
+        return function_mock(
+            request, 'pptx.shapes.shapetree._NotesSlideShapeFactory',
+            return_value=placeholder_, autospec=True
+        )
+
+    @pytest.fixture
+    def placeholder_(self, request):
+        return instance_mock(request, NotesSlidePlaceholder)
 
 
 class DescribeNotesSlideShapes(object):

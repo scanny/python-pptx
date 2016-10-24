@@ -248,6 +248,13 @@ class MasterPlaceholder(BasePlaceholder):
     """
 
 
+class NotesSlidePlaceholder(_InheritsDimensions, Shape):
+    """
+    Placeholder shape on a notes slide. Inherits shape properties from the
+    placeholder on the notes master that has the same type (e.g. 'body').
+    """
+
+
 class SlidePlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape on a slide. Inherits shape properties from its

@@ -292,6 +292,20 @@ class NotesSlidePlaceholders(BasePlaceholders):
     """
     Sequence of placeholder shapes on a notes slide.
     """
+    def _shape_factory(self, placeholder_elm):
+        """
+        Return an instance of the appropriate placeholder proxy class for
+        *placeholder_elm*.
+        """
+        return _NotesSlideShapeFactory(placeholder_elm, self)
+
+
+def _NotesSlideShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a notes slide.
+    """
+    raise NotImplementedError
 
 
 class NotesSlideShapes(_BaseShapes):
