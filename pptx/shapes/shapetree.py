@@ -19,8 +19,8 @@ from ..oxml.simpletypes import ST_Direction
 from .picture import Picture
 from .placeholder import (
     ChartPlaceholder, LayoutPlaceholder, MasterPlaceholder,
-    PicturePlaceholder, PlaceholderGraphicFrame, PlaceholderPicture,
-    SlidePlaceholder, TablePlaceholder
+    NotesSlidePlaceholder, PicturePlaceholder, PlaceholderGraphicFrame,
+    PlaceholderPicture, SlidePlaceholder, TablePlaceholder
 )
 from ..shared import ParentedElementProxy
 
@@ -305,7 +305,10 @@ def _NotesSlideShapeFactory(shape_elm, parent):
     Return an instance of the appropriate shape proxy class for *shape_elm*
     on a notes slide.
     """
-    raise NotImplementedError
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return NotesSlidePlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
 
 
 class NotesSlideShapes(_BaseShapes):

@@ -4,7 +4,6 @@ Feature: Notes slide properties
   I need properties and methods on NotesSlide
 
 
-  @wip
   Scenario: NotesSlide.placeholders
     Given a notes slide
      Then notes_slide.placeholders is a NotesSlidePlaceholders object

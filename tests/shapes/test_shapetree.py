@@ -29,8 +29,8 @@ from pptx.shapes.shapetree import (
     BasePlaceholders, BaseShapeFactory, _BaseShapes, LayoutPlaceholders,
     _LayoutShapeFactory, LayoutShapes, MasterPlaceholders,
     _MasterShapeFactory, MasterShapes, NotesSlidePlaceholders,
-    NotesSlideShapes, _SlidePlaceholderFactory, SlidePlaceholders,
-    SlideShapeFactory, SlideShapes
+    _NotesSlideShapeFactory, NotesSlideShapes, _SlidePlaceholderFactory,
+    SlidePlaceholders, SlideShapeFactory, SlideShapes
 )
 from pptx.shapes.table import Table
 from pptx.slide import SlideLayout, SlideMaster
@@ -1016,7 +1016,7 @@ class Describe_LayoutShapeFactory(object):
         shape_elm = shape_bldr.with_nsdecls().element
         return shape_elm, parent_, ShapeConstructor_, shape_mock
 
-    # fixture components -----------------------------------
+    # fixture components ---------------------------------------------
 
     @pytest.fixture
     def BaseShapeFactory_(self, request, base_shape_):
@@ -1274,3 +1274,37 @@ class DescribeMasterPlaceholders(object):
     @pytest.fixture
     def placeholder_2_(self, request):
         return instance_mock(request, MasterPlaceholder, ph_type='body')
+
+
+class Describe_NotesSlideShapeFactory(object):
+
+    def it_constructs_the_right_shape_for_an_element(self, factory_fixture):
+        shape_elm, parent_, ShapeConstructor_, shape_ = factory_fixture
+        shape = _NotesSlideShapeFactory(shape_elm, parent_)
+        ShapeConstructor_.assert_called_once_with(shape_elm, parent_)
+        assert shape is shape_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('p:sp',                      'BaseShapeFactory'),
+        ('p:sp/p:nvSpPr/p:nvPr/p:ph', 'NotesSlidePlaceholder'),
+    ])
+    def factory_fixture(self, request, shapes_, shape_):
+        sp_cxml, shape_cls_name = request.param
+        shape_elm = element(sp_cxml)
+        ShapeConstructor_ = class_mock(
+            request, 'pptx.shapes.shapetree.%s' % shape_cls_name,
+            return_value=shape_
+        )
+        return shape_elm, shapes_, ShapeConstructor_, shape_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def shape_(self, request):
+        return instance_mock(request, BaseShape)
+
+    @pytest.fixture
+    def shapes_(self, request):
+        return instance_mock(request, _BaseShapes)
