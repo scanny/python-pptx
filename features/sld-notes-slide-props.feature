@@ -10,7 +10,6 @@ Feature: Notes slide properties
       And iterating produces 3 NotesSlidePlaceholder objects
 
 
-  @wip
   Scenario: NotesSlide.notes_placeholder
      Given a notes slide
       Then notes_slide.notes_placeholder is a NotesSlidePlaceholder object

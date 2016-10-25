@@ -14,7 +14,7 @@ from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
 from pptx.shapes.base import BaseShape
-from pptx.shapes.placeholder import LayoutPlaceholder
+from pptx.shapes.placeholder import LayoutPlaceholder, NotesSlidePlaceholder
 from pptx.shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
     NotesSlidePlaceholders, NotesSlideShapes, SlidePlaceholders, SlideShapes
@@ -152,6 +152,11 @@ class DescribeNotesSlide(object):
         NotesSlidePlaceholders_.assert_called_once_with(spTree, notes_slide)
         assert placeholders is placeholders_
 
+    def it_provides_access_to_its_notes_placeholder(self, notes_ph_fixture):
+        notes_slide, expected_value = notes_ph_fixture
+        placeholder = notes_slide.notes_placeholder
+        assert placeholder is expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -165,6 +170,28 @@ class DescribeNotesSlide(object):
         calls = [call(placeholders[0])]
         shapes_.clone_placeholder = clone_placeholder_
         return notes_slide, notes_master_, clone_placeholder_, calls
+
+    @pytest.fixture(params=[
+        (('SLIDE_IMAGE', 'BODY', 'SLIDE_NUMBER'), 1),
+        (('DATE', 'SLIDE_IMAGE', 'FOOTER'), None),
+
+    ])
+    def notes_ph_fixture(self, request, placeholders_prop_):
+        type_names, match = request.param
+        notes_slide = NotesSlide(None, None)
+        placeholders_ = []
+        for type_name in type_names:
+            placeholder_ = instance_mock(
+                request, NotesSlidePlaceholder,
+                name='%s-placeholder' % type_name
+            )
+            placeholder_.placeholder_format.type = getattr(
+                PP_PLACEHOLDER, type_name
+            )
+            placeholders_.append(placeholder_)
+        placeholders_prop_.return_value = placeholders_
+        expected_value = None if match is None else placeholders_[match]
+        return notes_slide, expected_value
 
     @pytest.fixture
     def placeholders_fixture(self, NotesSlidePlaceholders_, placeholders_):
@@ -206,6 +233,12 @@ class DescribeNotesSlide(object):
     @pytest.fixture
     def placeholders_(self, request):
         return instance_mock(request, NotesSlidePlaceholders)
+
+    @pytest.fixture
+    def placeholders_prop_(self, request, placeholders_):
+        return property_mock(
+            request, NotesSlide, 'placeholders', return_value=placeholders_
+        )
 
     @pytest.fixture
     def shapes_(self, request):

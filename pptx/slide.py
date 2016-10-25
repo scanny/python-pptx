@@ -107,6 +107,20 @@ class NotesSlide(_BaseSlide):
         for placeholder in iter_cloneable_placeholders(notes_master):
             shapes.clone_placeholder(placeholder)
 
+    @property
+    def notes_placeholder(self):
+        """
+        Return the notes placeholder on this notes slide, the shape that
+        contains the actual notes text. Return |None| if no notes placeholder
+        is present; while this is probably uncommon, it can happen if the
+        notes master does not have a body placeholder, or if the notes
+        placeholder has been deleted from the notes slide.
+        """
+        for placeholder in self.placeholders:
+            if placeholder.placeholder_format.type == PP_PLACEHOLDER.BODY:
+                return placeholder
+        return None
+
     @lazyproperty
     def placeholders(self):
         """
