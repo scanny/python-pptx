@@ -281,6 +281,14 @@ class DescribeNotesSlidePart(object):
         )
         assert notes_slide_part is notes_slide_part_
 
+    def it_provides_access_to_the_notes_master(self, notes_master_fixture):
+        notes_slide_part, notes_master_ = notes_master_fixture
+        notes_master = notes_slide_part.notes_master
+        notes_slide_part.part_related_by.assert_called_once_with(
+            notes_slide_part, RT.NOTES_MASTER
+        )
+        assert notes_master is notes_master_
+
     def it_provides_access_to_its_notes_slide(self, notes_slide_fixture):
         notes_slide_part, NotesSlide_, notes, notes_slide_ = (
             notes_slide_fixture
@@ -341,6 +349,14 @@ class DescribeNotesSlidePart(object):
         )
 
     @pytest.fixture
+    def notes_master_fixture(self, notes_master_, part_related_by_,
+                             notes_master_part_):
+        notes_slide_part = NotesSlidePart(None, None, None, None)
+        part_related_by_.return_value = notes_master_part_
+        notes_master_part_.notes_master = notes_master_
+        return notes_slide_part, notes_master_
+
+    @pytest.fixture
     def notes_slide_fixture(self, NotesSlide_, notes_slide_):
         notes = element('p:notes')
         notes_slide_part = NotesSlidePart(None, None, notes, None)
@@ -387,6 +403,12 @@ class DescribeNotesSlidePart(object):
     @pytest.fixture
     def notes_slide_part_(self, request):
         return instance_mock(request, NotesSlidePart)
+
+    @pytest.fixture
+    def part_related_by_(self, request):
+        return method_mock(
+            request, NotesSlidePart, 'part_related_by', autospec=True
+        )
 
     @pytest.fixture
     def presentation_part_(self, request):

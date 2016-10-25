@@ -123,7 +123,8 @@ class NotesSlidePart(BaseSlidePart):
         """
         Return the |NotesMaster| object this notes slide inherits from.
         """
-        raise NotImplementedError
+        notes_master_part = self.part_related_by(RT.NOTES_MASTER)
+        return notes_master_part.notes_master
 
     @lazyproperty
     def notes_slide(self):
