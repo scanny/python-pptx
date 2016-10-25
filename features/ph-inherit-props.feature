@@ -16,6 +16,16 @@ Feature: Placeholder inherits properties
      Given a layout placeholder having no direct position or size settings
       Then I get inherited settings when I query position and size
 
+  @wip
+  Scenario: NotesSlide placeholder direct property settings
+     Given a notes slide placeholder having directly set position and size
+      Then I get the direct settings when I query position and size
+
+  @wip
+  Scenario: NotesSlide placeholder inherited property settings
+     Given a notes slide placeholder having no direct position or size settings
+      Then I get inherited settings when I query position and size
+
   Scenario: Slide placeholder direct property settings
      Given a slide placeholder having directly set position and size
       Then I get the direct settings when I query position and size

@@ -54,6 +54,18 @@ def given_a_master_placeholder(context):
     context.master_placeholder = prs.slide_master.placeholders[1]
 
 
+@given('a notes slide placeholder having directly set position and size')
+def given_notes_slide_placeholder_having_directly_set_pos_and_size(context):
+    prs = Presentation(test_pptx('ph-inherit-props'))
+    context.placeholder = prs.slides[1].notes_slide.placeholders[1]
+
+
+@given('a notes slide placeholder having no direct position or size settings')
+def given_notes_slide_placeholder_having_no_direct_pos_or_size(context):
+    prs = Presentation(test_pptx('ph-inherit-props'))
+    context.placeholder = prs.slides[0].notes_slide.placeholders[1]
+
+
 @given('a slide placeholder having directly set position and size')
 def given_slide_placeholder_with_directly_set_pos_and_size(context):
     prs = Presentation(test_pptx('ph-inherit-props'))
