@@ -121,6 +121,18 @@ class NotesSlide(_BaseSlide):
                 return placeholder
         return None
 
+    @property
+    def notes_text_frame(self):
+        """
+        Return the text frame of notes placeholder on this notes slide, or
+        |None| if there is no notes placeholder. While perhaps uncommon, the
+        caller should provide for the possiblity of a |None| return value.
+        """
+        notes_placeholder = self.notes_placeholder
+        if notes_placeholder is None:
+            return None
+        return notes_placeholder.text_frame
+
     @lazyproperty
     def placeholders(self):
         """

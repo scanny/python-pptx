@@ -23,6 +23,7 @@ from pptx.slide import (
     _BaseMaster, _BaseSlide, NotesMaster, NotesSlide, Slide, SlideLayout,
     SlideLayouts, SlideMaster, SlideMasters, Slides
 )
+from pptx.text.text import TextFrame
 
 from .unitutil.cxml import element, xml
 from .unitutil.mock import (
@@ -157,6 +158,11 @@ class DescribeNotesSlide(object):
         placeholder = notes_slide.notes_placeholder
         assert placeholder is expected_value
 
+    def it_provides_access_to_its_notes_text_frame(self, notes_tf_fixture):
+        notes_slide, expected_value = notes_tf_fixture
+        text_frame = notes_slide.notes_text_frame
+        assert text_frame is expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -193,6 +199,20 @@ class DescribeNotesSlide(object):
         expected_value = None if match is None else placeholders_[match]
         return notes_slide, expected_value
 
+    @pytest.fixture(params=[True, False])
+    def notes_tf_fixture(self, request, notes_placeholder_prop_,
+                         placeholder_, text_frame_):
+        has_text_frame = request.param
+        notes_slide = NotesSlide(None, None)
+        if has_text_frame:
+            notes_placeholder_prop_.return_value = placeholder_
+            placeholder_.text_frame = text_frame_
+            expected_value = text_frame_
+        else:
+            notes_placeholder_prop_.return_value = None
+            expected_value = None
+        return notes_slide, expected_value
+
     @pytest.fixture
     def placeholders_fixture(self, NotesSlidePlaceholders_, placeholders_):
         notes = element('p:notes/p:cSld/p:spTree')
@@ -218,6 +238,13 @@ class DescribeNotesSlide(object):
         return instance_mock(request, NotesMaster)
 
     @pytest.fixture
+    def notes_placeholder_prop_(self, request, placeholder_):
+        return property_mock(
+            request, NotesSlide, 'notes_placeholder',
+            return_value=placeholder_
+        )
+
+    @pytest.fixture
     def NotesSlidePlaceholders_(self, request, placeholders_):
         return class_mock(
             request, 'pptx.slide.NotesSlidePlaceholders',
@@ -229,6 +256,10 @@ class DescribeNotesSlide(object):
         return class_mock(
             request, 'pptx.slide.NotesSlideShapes', return_value=shapes_
         )
+
+    @pytest.fixture
+    def placeholder_(self, request):
+        return instance_mock(request, NotesSlidePlaceholder)
 
     @pytest.fixture
     def placeholders_(self, request):
@@ -249,6 +280,10 @@ class DescribeNotesSlide(object):
         return property_mock(
             request, NotesSlide, 'shapes', return_value=shapes_
         )
+
+    @pytest.fixture
+    def text_frame_(self, request):
+        return instance_mock(request, TextFrame)
 
 
 class DescribeSlide(object):
