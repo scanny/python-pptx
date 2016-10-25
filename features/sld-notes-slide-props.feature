@@ -13,3 +13,9 @@ Feature: Notes slide properties
   Scenario: NotesSlide.notes_placeholder
      Given a notes slide
       Then notes_slide.notes_placeholder is a NotesSlidePlaceholder object
+
+
+  @wip
+  Scenario: NotesSlide.notes_text_frame
+     Given a notes slide
+      Then notes_slide.notes_text_frame is a TextFrame object

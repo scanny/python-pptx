@@ -343,6 +343,13 @@ def then_notes_slide_notes_placeholder_is_a_NotesSlidePlacehldr_obj(context):
     assert cls_name == 'NotesSlidePlaceholder', 'got %s' % cls_name
 
 
+@then('notes_slide.notes_text_frame is a TextFrame object')
+def then_notes_slide_notes_text_frame_is_a_TextFrame_object(context):
+    notes_slide = context.notes_slide
+    cls_name = type(notes_slide.notes_text_frame).__name__
+    assert cls_name == 'TextFrame', 'got %s' % cls_name
+
+
 @then('notes_slide.placeholders is a NotesSlidePlaceholders object')
 def then_notes_slide_placeholders_is_a_NotesSlidePlaceholders_object(context):
     notes_slide = context.notes_slide
