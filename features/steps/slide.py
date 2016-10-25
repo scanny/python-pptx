@@ -336,6 +336,13 @@ def then_master_shapes_1_is_a_Picture_object(context):
     assert type(master_shapes[1]).__name__ == 'Picture'
 
 
+@then('notes_slide.notes_placeholder is a NotesSlidePlaceholder object')
+def then_notes_slide_notes_placeholder_is_a_NotesSlidePlacehldr_obj(context):
+    notes_slide = context.notes_slide
+    cls_name = type(notes_slide.notes_placeholder).__name__
+    assert cls_name == 'NotesSlidePlaceholder', 'got %s' % cls_name
+
+
 @then('notes_slide.placeholders is a NotesSlidePlaceholders object')
 def then_notes_slide_placeholders_is_a_NotesSlidePlaceholders_object(context):
     notes_slide = context.notes_slide
