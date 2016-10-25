@@ -119,6 +119,13 @@ class NotesSlidePart(BaseSlidePart):
         return notes_slide_part
 
     @lazyproperty
+    def notes_master(self):
+        """
+        Return the |NotesMaster| object this notes slide inherits from.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
     def notes_slide(self):
         """
         Return the |NotesSlide| object that proxies this notes slide part.

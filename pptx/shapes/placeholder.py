@@ -253,6 +253,16 @@ class NotesSlidePlaceholder(_InheritsDimensions, Shape):
     Placeholder shape on a notes slide. Inherits shape properties from the
     placeholder on the notes master that has the same type (e.g. 'body').
     """
+    @property
+    def _base_placeholder(self):
+        """
+        Return the notes master placeholder this notes slide placeholder
+        inherits from, or |None| if no placeholder of the matching type is
+        present.
+        """
+        notes_master = self.part.notes_master
+        ph_type = self.element.ph_type
+        return notes_master.placeholders.get(ph_type=ph_type)
 
 
 class SlidePlaceholder(_BaseSlidePlaceholder):

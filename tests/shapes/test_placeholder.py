@@ -12,14 +12,15 @@ from pptx.chart.data import ChartData
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import SlideLayoutPart, SlidePart
+from pptx.parts.slide import NotesSlidePart, SlideLayoutPart, SlidePart
 from pptx.shapes.placeholder import (
     BasePlaceholder, _BaseSlidePlaceholder, ChartPlaceholder,
     _InheritsDimensions, LayoutPlaceholder, MasterPlaceholder,
-    PicturePlaceholder, PlaceholderGraphicFrame, PlaceholderPicture,
-    TablePlaceholder
+    NotesSlidePlaceholder, PicturePlaceholder, PlaceholderGraphicFrame,
+    PlaceholderPicture, TablePlaceholder
 )
-from pptx.slide import SlideLayout, SlideMaster
+from pptx.shapes.shapetree import NotesSlidePlaceholders
+from pptx.slide import NotesMaster, SlideLayout, SlideMaster
 
 from ..oxml.unitdata.shape import (
     a_graphicFrame, a_ph, an_nvGraphicFramePr, an_nvPicPr, an_nvPr,
@@ -440,6 +441,60 @@ class DescribeLayoutPlaceholder(object):
     @pytest.fixture
     def slide_master_(self, request):
         return instance_mock(request, SlideMaster)
+
+
+class DescribeNotesSlidePlaceholder(object):
+
+    def it_finds_its_base_placeholder_to_help(self, base_ph_fixture):
+        placeholder, notes_master_, ph_type, master_placeholder_ = (
+            base_ph_fixture
+        )
+        base_placeholder = placeholder._base_placeholder
+        notes_master_.placeholders.get.assert_called_once_with(
+            ph_type=ph_type
+        )
+        assert base_placeholder is master_placeholder_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def base_ph_fixture(self, request, notes_master_, master_placeholder_,
+                        part_prop_, notes_slide_part_,
+                        notes_slide_placeholders_):
+        sp_cxml = 'p:sp/p:nvSpPr/p:nvPr/p:ph{type=body}'
+        placeholder = NotesSlidePlaceholder(element(sp_cxml), None)
+        notes_slide_part_.notes_master = notes_master_
+        notes_master_.placeholders = notes_slide_placeholders_
+        notes_slide_placeholders_.get.return_value = master_placeholder_
+        return (
+            placeholder, notes_master_, PP_PLACEHOLDER.BODY,
+            master_placeholder_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def notes_slide_placeholders_(self, request):
+        return instance_mock(request, NotesSlidePlaceholders)
+
+    @pytest.fixture
+    def master_placeholder_(self, request):
+        return instance_mock(request, MasterPlaceholder)
+
+    @pytest.fixture
+    def notes_master_(self, request):
+        return instance_mock(request, NotesMaster)
+
+    @pytest.fixture
+    def notes_slide_part_(self, request):
+        return instance_mock(request, NotesSlidePart)
+
+    @pytest.fixture
+    def part_prop_(self, request, notes_slide_part_):
+        return property_mock(
+            request, NotesSlidePlaceholder, 'part',
+            return_value=notes_slide_part_
+        )
 
 
 class DescribePicturePlaceholder(object):
