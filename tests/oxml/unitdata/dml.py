@@ -122,6 +122,10 @@ def a_lumOff():
     return CT_PercentageBuilder('a:lumOff')
 
 
+def a_alpha():
+    return CT_PercentageBuilder('a:alpha')
+
+
 def a_noFill():
     return CT_NoFillPropertiesBuilder()
 

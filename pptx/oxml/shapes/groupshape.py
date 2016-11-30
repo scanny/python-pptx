@@ -90,6 +90,15 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
+    def add_custom_geometry(self, id_, name, left, top, width, height):
+        """
+        Append a newly-created custom geometry shape with the specified
+        position and size.
+        """
+        sp = CT_Shape.new_custom_geometry_sp(id_, name, left, top, width, height)
+        self.insert_element_before(sp, 'p:extList')
+        return sp
+
     def get_or_add_xfrm(self):
         """
         Return the ``<a:xfrm>`` grandchild element, newly-added if not

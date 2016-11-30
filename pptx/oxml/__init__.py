@@ -159,6 +159,7 @@ from .dml.color import (
 register_element_cls('a:hslClr',    CT_HslColor)
 register_element_cls('a:lumMod',    CT_Percentage)
 register_element_cls('a:lumOff',    CT_Percentage)
+register_element_cls('a:alpha',     CT_Percentage)
 register_element_cls('a:prstClr',   CT_PresetColor)
 register_element_cls('a:schemeClr', CT_SchemeColor)
 register_element_cls('a:scrgbClr',  CT_ScRgbColor)
@@ -234,6 +235,17 @@ register_element_cls('p:grpSpPr',    CT_GroupShapeProperties)
 register_element_cls('p:nvGrpSpPr',  CT_GroupShapeNonVisual)
 register_element_cls('p:spTree',     CT_GroupShape)
 
+from .shapes.cust_geom import (
+    CT_CustomGeometry2D, CT_Path2DList, CT_Path2D, CT_Path2DMoveTo,
+    CT_Path2DLineTo, CT_Path2DClose, CT_AdjPoint2D,
+)
+register_element_cls('a:custGeom', CT_CustomGeometry2D)
+register_element_cls('a:pathLst',  CT_Path2DList)
+register_element_cls('a:path',     CT_Path2D)
+register_element_cls('a:moveTo',   CT_Path2DMoveTo)
+register_element_cls('a:lnTo',     CT_Path2DLineTo)
+register_element_cls('a:close',    CT_Path2DClose)
+register_element_cls('a:pt',       CT_AdjPoint2D)
 
 from .shapes.picture import CT_Picture, CT_PictureNonVisual
 register_element_cls('p:blipFill', CT_BlipFillProperties)

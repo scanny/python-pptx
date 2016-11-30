@@ -372,6 +372,15 @@ class SlideShapes(_BaseShapes):
         textbox = self._shape_factory(sp)
         return textbox
 
+    def add_custom_geometry(self, left, top, width, height):
+        """
+        Add a custom geometry shpane of specified size at specified position
+        on slide.
+        """
+        sp = self._add_cust_geom_sp(left, top, width, height)
+        cust_geom = self._shape_factory(sp)
+        return cust_geom
+
     def clone_layout_placeholders(self, slide_layout):
         """
         Add placeholder shapes based on those in *slide_layout*. Z-order of
@@ -501,6 +510,15 @@ class SlideShapes(_BaseShapes):
         id_ = self._next_shape_id
         name = 'TextBox %d' % (id_-1)
         sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
+        return sp
+
+    def _add_cust_geom_sp(self, x, y, cx, cy):
+        """
+        Return a newly-added custom geometry ``<p:sp>`` element
+        """
+        id_ = self._next_shape_id
+        name = 'CustGeom %s' % id_
+        sp = self._spTree.add_custom_geometry(id_, name, x, y, cx, cy)
         return sp
 
     def _clone_layout_placeholder(self, layout_placeholder):
