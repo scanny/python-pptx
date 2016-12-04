@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from pptx.chart.category import Categories
 from pptx.chart.chart import Chart
 from pptx.chart.plot import (
     _BasePlot, AreaPlot, Area3DPlot, BarPlot, BubblePlot, DataLabels,
@@ -26,10 +27,6 @@ class Describe_BasePlot(object):
     def it_knows_which_chart_it_belongs_to(self, chart_fixture):
         plot, expected_value = chart_fixture
         assert plot.chart == expected_value
-
-    def it_knows_its_categories(self, categories_get_fixture):
-        plot, expected_value = categories_get_fixture
-        assert plot.categories == expected_value
 
     def it_knows_whether_it_has_data_labels(
             self, has_data_labels_get_fixture):
@@ -53,6 +50,12 @@ class Describe_BasePlot(object):
         plot.vary_by_categories = new_value
         assert plot._element.xml == expected_xml
 
+    def it_provides_access_to_its_categories(self, categories_fixture):
+        plot, categories_, Categories_, xChart = categories_fixture
+        categories = plot.categories
+        Categories_.assert_called_once_with(xChart)
+        assert categories is categories_
+
     def it_provides_access_to_the_data_labels(self, data_labels_fixture):
         plot, data_labels_, DataLabels_, dLbls = data_labels_fixture
         data_labels = plot.data_labels
@@ -67,26 +70,11 @@ class Describe_BasePlot(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        ('c:barChart', ()),
-        ('c:barChart/c:ser', ()),
-        ('c:barChart/c:ser/c:cat/c:strRef', ()),
-        ('c:barChart/c:ser/c:cat/c:strRef/c:strCache', ()),
-        ('c:barChart/c:ser/c:cat/c:strRef/c:strCache/(c:pt{idx=1}/c:v"bar",c'
-         ':pt{idx=0}/c:v"foo",c:pt{idx=2}/c:v"baz")',
-         ('foo', 'bar', 'baz')),
-        ('c:barChart/c:ser/c:cat/c:strLit', ()),
-        ('c:barChart/c:ser/c:cat/c:strLit/(c:pt{idx=2}/c:v"faz",c:pt{idx=0}/'
-         'c:v"boo",c:pt{idx=1}/c:v"far")',
-         ('boo', 'far', 'faz')),
-        ('c:barChart/c:ser/c:cat/c:multiLvlStrRef/c:multiLvlStrCache/(c:lvl/'
-         '(c:pt{idx=1}/c:v"bar",c:pt{idx=0}/c:v"foo",c:pt{idx=2}/c:v"baz"),c'
-         ':lvl/c:pt{idx=0}/c:v"BOO")', ('foo', 'bar', 'baz')),
-    ])
-    def categories_get_fixture(self, request):
-        xChart_cxml, expected_value = request.param
-        plot = PlotFactory(element(xChart_cxml), None)
-        return plot, expected_value
+    @pytest.fixture
+    def categories_fixture(self, categories_, Categories_):
+        xChart = element('c:barChart')
+        plot = _BasePlot(xChart, None)
+        return plot, categories_, Categories_, xChart
 
     @pytest.fixture
     def chart_fixture(self, chart_):
@@ -165,6 +153,17 @@ class Describe_BasePlot(object):
         return plot, new_value, expected_xml
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def Categories_(self, request, categories_):
+        return class_mock(
+            request, 'pptx.chart.plot.Categories',
+            return_value=categories_
+        )
+
+    @pytest.fixture
+    def categories_(self, request):
+        return instance_mock(request, Categories)
 
     @pytest.fixture
     def chart_(self, request):

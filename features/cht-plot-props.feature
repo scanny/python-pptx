@@ -27,7 +27,6 @@ Feature: Plot properties
       | no explicit value | None      |  100  |
 
 
-  @wip
   Scenario: Get category_plot.categories
     Given a category plot
      Then plot.categories is a Categories object
