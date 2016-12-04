@@ -30,11 +30,11 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   cht-categories
    cht-marker
    cht-chart-overview
    cht-area-chart
    cht-doughnut-chart
-   cht-multilvl-cat
    cht-title
    cht-points
    cht-radar-chart
