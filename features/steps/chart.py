@@ -43,12 +43,6 @@ def given_a_axis_type_axis(context, axis_type):
     }[axis_type]
 
 
-@given('a bar plot having known categories')
-def given_a_bar_plot_having_known_categories(context):
-    prs = Presentation(test_pptx('cht-plot-props'))
-    context.plot = prs.slides[2].shapes[0].chart.plots[0]
-
-
 @given('a bar plot {having_or_not} data labels')
 def given_a_bar_plot_having_or_not_data_labels(context, having_or_not):
     slide_idx = {
@@ -152,6 +146,12 @@ def given_a_BubbleChartData_object_with_number_format(context, strval):
 @given('a Category object')
 def given_a_Category_object(context):
     context.category = Category(None, None)
+
+
+@given("a category plot")
+def given_a_category_plot(context):
+    prs = Presentation(test_pptx('cht-plot-props'))
+    context.plot = prs.slides[2].shapes[0].chart.plots[0]
 
 
 @given('a CategoryChartData object')
@@ -1155,13 +1155,11 @@ def then_marker_style_is_case(context, case):
     assert marker.style == expected_value, 'got %s' % marker.style
 
 
-@then('plot.categories contains the known category strings')
-def then_plot_categories_contains_the_known_category_strings(context):
+@then('plot.categories is a Categories object')
+def then_plot_categories_is_a_Categories_object(context):
     plot = context.plot
-    expected_categories = ('Foo', 'Bar', 'Baz')
-    assert plot.categories == expected_categories, (
-        'got %s' % plot.categories
-    )
+    type_name = type(plot.categories).__name__
+    assert type_name == 'Categories', 'got %s' % type_name
 
 
 @then('plot.gap_width is {value}')

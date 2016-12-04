@@ -27,9 +27,10 @@ Feature: Plot properties
       | no explicit value | None      |  100  |
 
 
+  @wip
   Scenario: Get category_plot.categories
-    Given a bar plot having known categories
-     Then plot.categories contains the known category strings
+    Given a category plot
+     Then plot.categories is a Categories object
 
 
   Scenario Outline: Get plot.has_data_labels
