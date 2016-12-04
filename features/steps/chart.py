@@ -143,6 +143,12 @@ def given_a_BubbleChartData_object_with_number_format(context, strval):
     context.chart_data = BubbleChartData(**params)
 
 
+@given('a Categories object containing 3 categories')
+def given_a_Categories_object_containing_3_categories(context):
+    prs = Presentation(test_pptx('cht-category-access'))
+    context.categories = prs.slides[0].shapes[0].chart.plots[0].categories
+
+
 @given('a Category object')
 def given_a_Category_object(context):
     context.category = Category(None, None)
@@ -874,6 +880,12 @@ def then_bubble_plot_bubble_scale_is_value(context, value):
     )
 
 
+@then('categories[2] is a Category object')
+def then_categories_2_is_a_Category_object(context):
+    type_name = type(context.categories[2]).__name__
+    assert type_name == 'Category', 'got %s' % type_name
+
+
 @then('category.add_sub_category(name) is a Category object')
 def then_category_add_sub_category_is_a_Category_object(context):
     category = context.category
@@ -1041,6 +1053,15 @@ def then_gridlines_format_line_is_a_LineFormat_object(context):
     assert type(gridlines.format.line).__name__ == 'LineFormat'
 
 
+@then('iterating categories produces 3 Category objects')
+def then_iterating_categories_produces_3_category_objects(context):
+    categories = context.categories
+    idx = -1
+    for idx, category in enumerate(categories):
+        assert type(category).__name__ == 'Category'
+    assert idx == 2, 'got %s' % idx
+
+
 @then('iterating points produces 3 Point objects')
 def then_iterating_points_produces_3_point_objects(context):
     points = context.points
@@ -1090,6 +1111,12 @@ def then_legend_position_is_value(context, value):
     assert legend.position is expected_position, 'got %s' % legend.position
 
 
+@then('len(categories) is {count}')
+def then_len_categories_is_count(context, count):
+    expected_count = int(count)
+    assert len(context.categories) == expected_count
+
+
 @then('len(chart.series) is {count}')
 def then_len_chart_series_is_count(context, count):
     expected_count = int(count)
@@ -1121,6 +1148,12 @@ def then_len_series_values_is_count_for_each_series(context, count):
     expected_count = int(count)
     for series in context.chart.plots[0].series:
         assert len(series.values) == expected_count
+
+
+@then('list(categories) == [\'Foo\', \'\', \'Baz\']')
+def then_list_categories_is_Foo_empty_Baz(context):
+    cats_list = list(context.categories)
+    assert cats_list == ['Foo', '', 'Baz'], 'got %s' % cats_list
 
 
 @then('marker.format is a ChartFormat object')
