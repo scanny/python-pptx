@@ -50,3 +50,12 @@ return value of :meth:`add_slide`.
 
 .. autoclass:: pptx.shapes.shapetree.SlidePlaceholders
    :members:
+
+
+|NotesSlide| objects
+--------------------
+
+.. autoclass:: pptx.slide.NotesSlide
+   :members:
+   :exclude-members: clone_master_placeholders
+   :inherited-members:

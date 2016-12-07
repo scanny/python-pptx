@@ -124,9 +124,10 @@ class NotesSlide(_BaseSlide):
     @property
     def notes_text_frame(self):
         """
-        Return the text frame of notes placeholder on this notes slide, or
-        |None| if there is no notes placeholder. While perhaps uncommon, the
-        caller should provide for the possiblity of a |None| return value.
+        Return the text frame of the notes placeholder on this notes slide,
+        or |None| if there is no notes placeholder. This is a shortcut to
+        accommodate the common case of simply adding "notes" text to the
+        notes "page".
         """
         notes_placeholder = self.notes_placeholder
         if notes_placeholder is None:
@@ -136,7 +137,7 @@ class NotesSlide(_BaseSlide):
     @lazyproperty
     def placeholders(self):
         """
-        Instance of |NotesSlidePlaceholders| containing sequence of
+        An instance of |NotesSlidePlaceholders| containing the sequence of
         placeholder shapes in this notes slide.
         """
         return NotesSlidePlaceholders(self.element.spTree, self)
@@ -144,8 +145,8 @@ class NotesSlide(_BaseSlide):
     @lazyproperty
     def shapes(self):
         """
-        Instance of |NotesSlideShapes| containing sequence of shape objects
-        appearing on this notes slide.
+        An instance of |NotesSlideShapes| containing the sequence of shape
+        objects appearing on this notes slide.
         """
         return NotesSlideShapes(self._element.spTree, self)
 
@@ -161,7 +162,7 @@ class Slide(_BaseSlide):
     def has_notes_slide(self):
         """
         Return True if this slide has a notes slide, False otherwise. A notes
-        slide is created by :attr:`notes_slide` when one doesn't exist; use
+        slide is created by :attr:`.notes_slide` when one doesn't exist; use
         this property to test for a notes slide without the possible side
         effect of creating one.
         """

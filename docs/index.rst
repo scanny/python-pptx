@@ -44,6 +44,7 @@ User Guide
    user/placeholders-understanding
    user/placeholders-using
    user/text
+   user/notes
    user/charts
    user/use-cases
    user/concepts

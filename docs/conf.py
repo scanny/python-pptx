@@ -209,6 +209,10 @@ rst_epilog = """
 
 .. |NotesSlide| replace:: :class:`.NotesSlide`
 
+.. |NotesSlidePlaceholders| replace:: :class:`.NotesSlidePlaceholders`
+
+.. |NotesSlideShapes| replace:: :class:`.NotesSlideShapes`
+
 .. |NotImplementedError| replace:: :exc:`NotImplementedError`
 
 .. |OpcPackage| replace:: :class:`.OpcPackage`
