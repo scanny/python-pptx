@@ -282,6 +282,12 @@ class DescribeNotesSlideShapes(object):
         notes_slide_shapes, ph_type, expected_value = basename_fixture
         assert notes_slide_shapes.ph_basename(ph_type) == expected_value
 
+    def it_brokers_access_to_its_shape_factory(self, factory_fixture):
+        shapes, sp, _NotesSlideShapeFactory_, shape_ = factory_fixture
+        shape = shapes._shape_factory(sp)
+        _NotesSlideShapeFactory_.assert_called_once_with(sp, shapes)
+        assert shape is shape_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -292,6 +298,25 @@ class DescribeNotesSlideShapes(object):
         ph_type, expected_value = request.param
         notes_slide_shapes = NotesSlideShapes(None, None)
         return notes_slide_shapes, ph_type, expected_value
+
+    @pytest.fixture
+    def factory_fixture(self, _NotesSlideShapeFactory_, shape_):
+        shapes = NotesSlideShapes(None, None)
+        sp = element('p:sp')
+        return shapes, sp, _NotesSlideShapeFactory_, shape_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _NotesSlideShapeFactory_(self, request, shape_):
+        return function_mock(
+            request, 'pptx.shapes.shapetree._NotesSlideShapeFactory',
+            return_value=shape_, autospec=True
+        )
+
+    @pytest.fixture
+    def shape_(self, request):
+        return instance_mock(request, Shape)
 
 
 class DescribeSlidePlaceholders(object):

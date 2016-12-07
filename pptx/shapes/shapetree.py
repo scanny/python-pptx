@@ -181,7 +181,9 @@ class _BaseShapes(ParentedElementProxy):
 class BasePlaceholders(_BaseShapes):
     """
     Base class for placeholder collections that differentiate behaviors for
-    a master, layout, and slide.
+    a master, layout, and slide. By default, placeholder shapes are
+    constructed using |BaseShapeFactory|. Subclasses should override
+    :method:`_shape_factory` to use custom placeholder classes.
     """
     @staticmethod
     def _is_member_elm(shape_elm):
@@ -332,6 +334,13 @@ class NotesSlideShapes(_BaseShapes):
             PP_PLACEHOLDER.SLIDE_IMAGE:  'Slide Image Placeholder',
             PP_PLACEHOLDER.SLIDE_NUMBER: 'Slide Number Placeholder',
         }[ph_type]
+
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm* appearing on a notes slide.
+        """
+        return _NotesSlideShapeFactory(shape_elm, self)
 
 
 def _SlidePlaceholderFactory(shape_elm, parent):
