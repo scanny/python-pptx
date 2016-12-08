@@ -283,7 +283,7 @@ class _BaseSeriesXmlRewriter(object):
             parent = ser.getparent()
             parent.remove(ser)
         extra_xCharts = [
-            xChart for xChart in chartSpace.chart.plotArea.iter_plots()
+            xChart for xChart in chartSpace.chart.plotArea.iter_xCharts()
             if len(list(xChart.iter_sers())) == 0
         ]
         for xChart in extra_xCharts:

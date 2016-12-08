@@ -85,7 +85,7 @@ class CT_ChartSpace(BaseOxmlElement):
         on document order. Note this is not necessarily the same element as
         ``self.sers[-1]``.
         """
-        last_xChart = list(self.chart.plotArea.iter_plots())[-1]
+        last_xChart = self.chart.plotArea.xCharts[-1]
         sers = list(last_xChart.iter_sers())
         if not sers:
             return None
@@ -151,9 +151,9 @@ class CT_PlotArea(BaseOxmlElement):
     catAx = ZeroOrMore('c:catAx')
     valAx = ZeroOrMore('c:valAx')
 
-    def iter_plots(self):
+    def iter_xCharts(self):
         """
-        Generate each xChart child element in the order it appears.
+        Generate each xChart child element in document.
         """
         plot_tags = (
             qn('c:area3DChart'), qn('c:areaChart'), qn('c:bar3DChart'),
@@ -168,6 +168,14 @@ class CT_PlotArea(BaseOxmlElement):
             if child.tag not in plot_tags:
                 continue
             yield child
+
+    @property
+    def xCharts(self):
+        """
+        Return a sequence containing all the `c:{x}Chart` elements in this
+        chart, in document order.
+        """
+        return tuple(self.iter_xCharts())
 
 
 class CT_Style(BaseOxmlElement):

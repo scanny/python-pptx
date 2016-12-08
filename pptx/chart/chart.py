@@ -172,7 +172,7 @@ class _Plots(Sequence):
         self._chart = chart
 
     def __getitem__(self, index):
-        xCharts = list(self._plotArea.iter_plots())
+        xCharts = self._plotArea.xCharts
         if isinstance(index, slice):
             plots = [PlotFactory(xChart, self._chart) for xChart in xCharts]
             return plots[index]
@@ -181,5 +181,4 @@ class _Plots(Sequence):
             return PlotFactory(xChart, self._chart)
 
     def __len__(self):
-        plot_elms = [p for p in self._plotArea.iter_plots()]
-        return len(plot_elms)
+        return len(self._plotArea.xCharts)
