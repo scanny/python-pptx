@@ -129,8 +129,10 @@ class Chart(PartElementProxy):
     @lazyproperty
     def series(self):
         """
-        The |SeriesCollection| object containing all the series in this
-        chart.
+        A |SeriesCollection| object containing all the series in this
+        chart. When the chart has multiple plots, all the series for the
+        first plot appear before all those for the second, and so on. Series
+        within a plot have an explicit ordering and appear in that sequence.
         """
         return SeriesCollection(self._chartSpace)
 

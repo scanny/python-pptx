@@ -19,6 +19,27 @@ They all share a common base of attributes and others appear on one or more
 of the types.
 
 
+Series Access
+-------------
+
+Series are perhaps most naturally accessed from a plot, to which they
+belong::
+
+    >>> plot.series
+    <pptx.chart.series.SeriesCollection instance at x11091e750>
+
+However, there is also a property on |Chart| which allows access to all
+the series in the chart::
+
+    >>> chart.series
+    <pptx.chart.series.SeriesCollection instance at x11091f970>
+
+Each series in a chart has an explicit sequence indicator, the value of its
+required `c:order` child element. The series for a plot appear in order of
+this value. The series for a chart appear in plot order, then their order
+within that plot, such that all series for the first plot appear before those
+in the next plot, and so on.
+
 Properties
 ----------
 
