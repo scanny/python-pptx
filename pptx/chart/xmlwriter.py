@@ -234,10 +234,10 @@ class _BaseSeriesXmlRewriter(object):
         for ser, series_data in zip(sers, chart_data):
             self._rewrite_ser_data(ser, series_data)
 
-    def _add_cloned_sers(self, chartSpace, count):
+    def _add_cloned_sers(self, plotArea, count):
         """
-        Add `c:ser` elements to the last xChart element in *chartSpace*,
-        cloned from the last `c:ser` child of that xChart.
+        Add `c:ser` elements to the last xChart element in *plotArea*, cloned
+        from the last `c:ser` child of that last xChart.
         """
         def clone_ser(ser, idx):
             new_ser = deepcopy(ser)
@@ -246,8 +246,8 @@ class _BaseSeriesXmlRewriter(object):
             ser.addnext(new_ser)
             return new_ser
 
-        last_ser = chartSpace.last_doc_order_ser
-        starting_idx = len(chartSpace.sers)
+        last_ser = plotArea.last_ser
+        starting_idx = len(plotArea.sers)
         for idx in range(starting_idx, starting_idx+count):
             last_ser = clone_ser(last_ser, idx)
 
@@ -260,7 +260,7 @@ class _BaseSeriesXmlRewriter(object):
         """
         ser_count_diff = new_ser_count - len(chartSpace.sers)
         if ser_count_diff > 0:
-            self._add_cloned_sers(chartSpace, ser_count_diff)
+            self._add_cloned_sers(chartSpace.plotArea, ser_count_diff)
         elif ser_count_diff < 0:
             self._trim_ser_count_by(chartSpace, abs(ser_count_diff))
         return chartSpace.sers

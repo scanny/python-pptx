@@ -87,19 +87,6 @@ class CT_ChartSpace(BaseOxmlElement):
         return self.chart.plotArea
 
     @property
-    def last_doc_order_ser(self):
-        """
-        Return the last `<c:ser>` element in the last xChart element, based
-        on document order. Note this is not necessarily the same element as
-        ``self.sers[-1]``.
-        """
-        last_xChart = self.chart.plotArea.xCharts[-1]
-        sers = list(last_xChart.iter_sers())
-        if not sers:
-            return None
-        return sers[-1]
-
-    @property
     def sers(self):
         """
         An immutable sequence of the `c:ser` elements under this chartSpace
@@ -186,6 +173,18 @@ class CT_PlotArea(BaseOxmlElement):
             if child.tag not in plot_tags:
                 continue
             yield child
+
+    @property
+    def last_ser(self):
+        """
+        Return the last `<c:ser>` element in the last xChart element, based
+        on series order (not necessarily the same element as document order).
+        """
+        last_xChart = self.xCharts[-1]
+        sers = last_xChart.sers
+        if not sers:
+            return None
+        return sers[-1]
 
     @property
     def sers(self):

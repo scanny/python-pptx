@@ -462,9 +462,9 @@ class Describe_BaseSeriesXmlRewriter(object):
         assert _sers == sers
 
     def it_adds_cloned_sers_to_help(self, clone_fixture):
-        rewriter, chartSpace, count, expected_xml = clone_fixture
-        rewriter._add_cloned_sers(chartSpace, count)
-        assert chartSpace.xml == expected_xml
+        rewriter, plotArea, count, expected_xml = clone_fixture
+        rewriter._add_cloned_sers(plotArea, count)
+        assert plotArea.xml == expected_xml
 
     def it_trims_sers_to_help(self, trim_fixture):
         rewriter, chartSpace, count, expected_xml = trim_fixture
@@ -482,27 +482,27 @@ class Describe_BaseSeriesXmlRewriter(object):
         ser_count, add, trim = request.param
         rewriter = _BaseSeriesXmlRewriter(None)
         chartSpace = element(
-            'c:chartSpace/(c:ser/(c:idx{val=3},c:order{val=1}),c:ser/(c:idx{'
-            'val=1},c:order{val=3}))'
+            'c:chartSpace/c:chart/c:plotArea/(c:ser/(c:idx{val=3},c:order{va'
+            'l=1}),c:ser/(c:idx{val=1},c:order{val=3}))'
         )
+        plotArea = chartSpace.xpath('.//c:plotArea')[0]
         sers = chartSpace.sers
-        add_calls = [call(rewriter, chartSpace, 1)] if add else []
+        add_calls = [call(rewriter, plotArea, 1)] if add else []
         trim_calls = [call(rewriter, chartSpace, 1)] if trim else []
         return rewriter, chartSpace, ser_count, add_calls, trim_calls, sers
 
     @pytest.fixture
     def clone_fixture(self):
         rewriter = _BaseSeriesXmlRewriter(None)
-        chartSpace = element(
-            'c:chartSpace/c:chart/c:plotArea/c:barChart/c:ser/(c:idx{val=3},'
-            'c:order{val=1})'
+        plotArea = element(
+            'c:plotArea/c:barChart/c:ser/(c:idx{val=0},c:order{val=0})'
         )
         count = 1
         expected_xml = xml(
-            'c:chartSpace/c:chart/c:plotArea/c:barChart/(c:ser/(c:idx{val=0}'
-            ',c:order{val=0}),c:ser/(c:idx{val=1},c:order{val=1}))'
+            'c:plotArea/c:barChart/(c:ser/(c:idx{val=0},c:order{val=0}),c:se'
+            'r/(c:idx{val=1},c:order{val=1}))'
         )
-        return rewriter, chartSpace, count, expected_xml
+        return rewriter, plotArea, count, expected_xml
 
     @pytest.fixture
     def replace_fixture(
