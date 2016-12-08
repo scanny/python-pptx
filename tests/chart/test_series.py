@@ -501,8 +501,8 @@ class DescribeSeriesCollection(object):
     @pytest.fixture(params=[
         ('c:barChart/c:ser',               0),
         ('c:barChart/(c:ser,c:ser,c:ser)', 2),
-        ('c:chartSpace/(c:barChart/(c:ser/c:idx{val=0},c:ser/c:idx{val=1}),c'
-         ':lineChart/c:ser/c:idx{val=2})', 2),
+        ('c:plotArea/(c:barChart/(c:ser/c:idx{val=0},c:ser/c:idx{val=1}),c:l'
+         'ineChart/c:ser/c:idx{val=2})', 2),
     ])
     def getitem_fixture(self, request, _SeriesFactory_, series_):
         cxml, idx = request.param
@@ -516,12 +516,12 @@ class DescribeSeriesCollection(object):
         ('c:barChart/c:ser',               1),
         ('c:barChart/(c:ser,c:ser)',       2),
         ('c:barChart/(c:idx,c:tx,c:ser)',  1),
-        ('c:chartSpace/(c:barChart/(c:ser/c:idx{val=0},c:ser/c:idx{val=1}),c'
-         ':lineChart/c:ser/c:idx{val=2})', 3),
+        ('c:plotArea/(c:barChart/(c:ser/c:idx{val=0},c:ser/c:idx{val=1}),c:l'
+         'ineChart/c:ser/c:idx{val=2})', 3),
     ])
     def len_fixture(self, request):
-        xChart_cxml, expected_len = request.param
-        series_collection = SeriesCollection(element(xChart_cxml))
+        cxml, expected_len = request.param
+        series_collection = SeriesCollection(element(cxml))
         return series_collection, expected_len
 
     # fixture components ---------------------------------------------

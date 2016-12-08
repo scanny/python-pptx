@@ -79,6 +79,14 @@ class CT_ChartSpace(BaseOxmlElement):
         return self.chart.plotArea.catAx_lst
 
     @property
+    def plotArea(self):
+        """
+        Return the required `c:chartSpace/c:chart/c:plotArea` grandchild
+        element.
+        """
+        return self.chart.plotArea
+
+    @property
     def last_doc_order_ser(self):
         """
         Return the last `<c:ser>` element in the last xChart element, based
@@ -151,6 +159,16 @@ class CT_PlotArea(BaseOxmlElement):
     catAx = ZeroOrMore('c:catAx')
     valAx = ZeroOrMore('c:valAx')
 
+    def iter_sers(self):
+        """
+        Generate each of the `c:ser` elements in this chart, ordered first by
+        the document order of the containing xChart element, then by their
+        ordering within the xChart element (not necessarily document order).
+        """
+        for xChart in self.iter_xCharts():
+            for ser in xChart.iter_sers():
+                yield ser
+
     def iter_xCharts(self):
         """
         Generate each xChart child element in document.
@@ -168,6 +186,16 @@ class CT_PlotArea(BaseOxmlElement):
             if child.tag not in plot_tags:
                 continue
             yield child
+
+    @property
+    def sers(self):
+        """
+        Return a sequence containing all the `c:ser` elements in this chart,
+        ordered first by the document order of the containing xChart element,
+        then by their ordering within the xChart element (not necessarily
+        document order).
+        """
+        return tuple(self.iter_sers())
 
     @property
     def xCharts(self):

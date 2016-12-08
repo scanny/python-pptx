@@ -48,9 +48,9 @@ class DescribeChart(object):
             chart.value_axis
 
     def it_provides_access_to_its_series(self, series_fixture):
-        chart, SeriesCollection_, chartSpace, series_ = series_fixture
+        chart, SeriesCollection_, plotArea, series_ = series_fixture
         series = chart.series
-        SeriesCollection_.assert_called_once_with(chartSpace)
+        SeriesCollection_.assert_called_once_with(plotArea)
         assert series is series_
 
     def it_provides_access_to_its_plots(self, plots_fixture):
@@ -186,9 +186,10 @@ class DescribeChart(object):
 
     @pytest.fixture
     def series_fixture(self, SeriesCollection_, series_collection_):
-        chartSpace = element('c:chartSpace')
+        chartSpace = element('c:chartSpace/c:chart/c:plotArea')
+        plotArea = chartSpace.xpath('.//c:plotArea')[0]
         chart = Chart(chartSpace, None)
-        return chart, SeriesCollection_, chartSpace, series_collection_
+        return chart, SeriesCollection_, plotArea, series_collection_
 
     @pytest.fixture(params=[
         ('c:chartSpace/c:style{val=42}', 42),

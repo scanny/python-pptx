@@ -256,7 +256,7 @@ class SeriesCollection(Sequence):
     A sequence of |Series| objects.
     """
     def __init__(self, parent_elm):
-        # *parent_elm* can be either a c:chartSpace or xChart element
+        # *parent_elm* can be either a c:plotArea or xChart element
         super(SeriesCollection, self).__init__()
         self._element = parent_elm
 
