@@ -366,6 +366,25 @@ def given_a_series(context):
     context.series = prs.slides[0].shapes[0].chart.plots[0].series[0]
 
 
+@given('a series collection for a plot having {count} series')
+def given_a_series_collection_for_a_plot_having_count_series(context, count):
+    prs = Presentation(test_pptx('cht-series-access'))
+    plot = prs.slides[0].shapes[0].chart.plots[0]
+    context.series_collection = plot.series
+    context.series_count = int(count)
+
+
+@given('a series collection for a {type_} chart having {count} series')
+def given_a_series_collection_for_chart_having_series(context, type_, count):
+    slide_idx = {
+        'single-plot': 0,
+        'multi-plot':  1,
+    }[type_]
+    prs = Presentation(test_pptx('cht-series-access'))
+    context.series_collection = prs.slides[slide_idx].shapes[0].chart.series
+    context.series_count = int(count)
+
+
 @given('a series of type {series_type}')
 def given_a_series_of_type_series_type(context, series_type):
     slide_idx = {
@@ -1031,6 +1050,16 @@ def then_iterating_points_produces_3_point_objects(context):
     assert idx == 2, 'got %s' % idx
 
 
+@then('iterating series_collection produces {count} Series objects')
+def then_iterating_series_collection_produces_count_series(context, count):
+    expected_idx = int(count) - 1
+    idx = -1
+    for idx, series in enumerate(context.series_collection):
+        type_name = type(series).__name__
+        assert type_name.endswith('Series'), 'got %s' % type_name
+    assert idx == expected_idx, 'got %s' % idx
+
+
 @then('legend.font is a Font object')
 def then_legend_font_is_a_Font_object(context):
     legend = context.legend
@@ -1078,6 +1107,13 @@ def then_len_plot_categories_is_count(context, count):
 def then_len_points_is_3(context):
     points = context.points
     assert len(points) == 3
+
+
+@then('len(series_collection) is {count}')
+def then_len_series_collection_is_count(context, count):
+    expected_len = int(count)
+    actual_len = len(context.series_collection)
+    assert actual_len == expected_len, 'got %s' % actual_len
 
 
 @then('len(series.values) is {count} for each series')
@@ -1195,6 +1231,12 @@ def then_point_marker_is_a_Marker_object(context):
 def then_points_2_is_a_Point_object(context):
     points = context.points
     assert type(points[2]).__name__ == 'Point'
+
+
+@then('series_collection[2] is a Series object')
+def then_series_collection_2_is_a_Series_object(context):
+    type_name = type(context.series_collection[2]).__name__
+    assert type_name.endswith('Series'), 'got %s' % type_name
 
 
 @then('series.fill.fore_color.rgb is FF6600')
