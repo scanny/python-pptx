@@ -62,3 +62,8 @@ Feature: Chart properties
       | Stacked Bar  |
       | XY (Scatter) |
       | Bubble       |
+
+
+  Scenario: Get Chart.series
+    Given a chart
+     Then chart.series is a SeriesCollection object

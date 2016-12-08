@@ -167,6 +167,13 @@ def given_a_CategoryChartData_object_with_number_format(context, strval):
     context.chart_data = CategoryChartData(**params)
 
 
+@given('a chart')
+def given_a_chart(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.chart = sld.shapes[6].chart
+
+
 @given('a chart {having_or_not} a legend')
 def given_a_chart_having_or_not_a_legend(context, having_or_not):
     slide_idx = {
@@ -888,6 +895,12 @@ def then_chart_has_legend_is_value(context, value):
 def then_chart_legend_is_a_legend_object(context):
     chart = context.chart
     assert isinstance(chart.legend, Legend)
+
+
+@then('chart.series is a SeriesCollection object')
+def then_chart_series_is_a_SeriesCollection_object(context):
+    type_name = type(context.chart.series).__name__
+    assert type_name == 'SeriesCollection', 'got %s' % type_name
 
 
 @then('chart.value_axis is a ValueAxis object')

@@ -102,14 +102,13 @@ Feature: Common shape properties
       Then shape.click_action is an ActionSetting object
 
     Examples: Shape types
-      | shape-type    |
-      | an autoshape  |
-      | a textbox     |
-      | a picture     |
-      | a connector   |
-      | a chart       |
-      | a table       |
-      | a group shape |
+      | shape-type      |
+      | an autoshape    |
+      | a textbox       |
+      | a picture       |
+      | a connector     |
+      | a graphic frame |
+      | a group shape   |
 
 
   Scenario Outline: Get shape.left and shape.top

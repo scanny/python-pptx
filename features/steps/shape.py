@@ -21,13 +21,6 @@ from helpers import cls_qname, saved_pptx_path, test_pptx, test_text
 
 # given ===================================================
 
-@given('a chart')
-def given_a_chart(context):
-    prs = Presentation(test_pptx('shp-common-props'))
-    sld = prs.slides[0]
-    context.shape = sld.shapes[6]
-
-
 @given('a chevron shape')
 def given_a_chevron_shape(context):
     prs = Presentation(test_pptx('shp-autoshape-adjustments'))
@@ -135,13 +128,6 @@ def given_a_SlideShapes_object_containing_6_shapes(context):
 def given_a_SlideShapes_obj_having_type_shape_at_off_idx(context, type, idx):
     prs = Presentation(test_pptx('shp-shape-access'))
     context.shapes = prs.slides[1].shapes
-
-
-@given('a table')
-def given_a_table(context):
-    prs = Presentation(test_pptx('shp-common-props'))
-    sld = prs.slides[0]
-    context.shape = sld.shapes[2]
 
 
 @given('a textbox')
