@@ -7,7 +7,6 @@ Plot-related oxml objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from .datalabel import CT_DLbls
-from ..ns import qn
 from ..simpletypes import (
     ST_BarDir, ST_BubbleScale, ST_GapAmount, ST_Grouping, ST_Overlap
 )
@@ -48,18 +47,21 @@ class BaseChartElement(BaseOxmlElement):
 
     def iter_sers(self):
         """
-        Generate each ``<c:ser>`` child element in the order it appears.
+        Generate each ``<c:ser>`` child element in this xChart in
+        c:order/@val sequence (not document or c:idx order).
         """
-        for child in self.iterchildren():
-            if child.tag == qn('c:ser'):
-                yield child
+        def ser_order(ser):
+            return ser.order.val
+
+        return (ser for ser in sorted(self.xpath('./c:ser'), key=ser_order))
 
     @property
     def sers(self):
         """
-        Sequence of ``<c:ser>`` child elements in document order.
+        Sequence of ``<c:ser>`` child elements in this xChart in c:order/@val
+        sequence (not document or c:idx order).
         """
-        return list(self.iter_sers())
+        return tuple(self.iter_sers())
 
     def _new_dLbls(self):
         return CT_DLbls.new_default()

@@ -489,17 +489,22 @@ class Describe_BaseSeriesXmlRewriter(object):
         trim_calls = [call(rewriter, plotArea, 1)] if trim else []
         return rewriter, plotArea, new_ser_count, add_calls, trim_calls, sers
 
-    @pytest.fixture
-    def clone_fixture(self):
+    @pytest.fixture(params=[
+        ('c:plotArea/c:barChart/c:ser/(c:idx{val=3},c:order{val=1})', 1,
+         'c:plotArea/c:barChart/(c:ser/(c:idx{val=3},c:order{val=1}),c:ser/('
+         'c:idx{val=4},c:order{val=2}))'),
+        ('c:plotArea/(c:barChart/c:ser/(c:idx{val=3},c:order{val=1}),c:lineC'
+         'hart/(c:ser/(c:idx{val=4},c:order{val=7}),c:ser/(c:idx{val=1},c:or'
+         'der{val=2})))', 1,
+         'c:plotArea/(c:barChart/c:ser/(c:idx{val=3},c:order{val=1}),c:lineC'
+         'hart/(c:ser/(c:idx{val=4},c:order{val=7}),c:ser/(c:idx{val=5},c:or'
+         'der{val=8}),c:ser/(c:idx{val=1},c:order{val=2})))'),
+    ])
+    def clone_fixture(self, request):
+        plotArea_cxml, count, expected_cxml = request.param
         rewriter = _BaseSeriesXmlRewriter(None)
-        plotArea = element(
-            'c:plotArea/c:barChart/c:ser/(c:idx{val=0},c:order{val=0})'
-        )
-        count = 1
-        expected_xml = xml(
-            'c:plotArea/c:barChart/(c:ser/(c:idx{val=0},c:order{val=0}),c:se'
-            'r/(c:idx{val=1},c:order{val=1}))'
-        )
+        plotArea = element(plotArea_cxml)
+        expected_xml = xml(expected_cxml)
         return rewriter, plotArea, count, expected_xml
 
     @pytest.fixture
@@ -507,7 +512,8 @@ class Describe_BaseSeriesXmlRewriter(object):
                         _rewrite_ser_data_):
         rewriter = _BaseSeriesXmlRewriter(chart_data_)
         chartSpace = element(
-            'c:chartSpace/c:chart/c:plotArea/c:barChart/(c:ser,c:ser)'
+            'c:chartSpace/c:chart/c:plotArea/c:barChart/(c:ser/c:order{val=0'
+            '},c:ser/c:order{val=1})'
         )
         plotArea = chartSpace.xpath('c:chart/c:plotArea')[0]
         sers = chartSpace.xpath('.//c:ser')
@@ -524,17 +530,22 @@ class Describe_BaseSeriesXmlRewriter(object):
         chart_data_.__iter__.return_value = iter(series_datas)
         return rewriter, chartSpace, plotArea, ser_count, calls
 
-    @pytest.fixture
-    def trim_fixture(self):
+    @pytest.fixture(params=[
+        # --single xChart, remove single ser--
+        ('c:plotArea/c:barChart/(c:ser/(c:idx{val=3},c:order{val=4}),c:ser/('
+         'c:idx{val=1},c:order{val=2}))', 1,
+         'c:plotArea/c:barChart/(c:ser/(c:idx{val=1},c:order{val=2}))'),
+        # --two xCharts, remove two sers (and emptied second xChart)--
+        ('c:plotArea/(c:barChart/c:ser/(c:idx{val=3},c:order{val=1}),c:lineC'
+         'hart/(c:ser/(c:idx{val=4},c:order{val=7}),c:ser/(c:idx{val=1},c:or'
+         'der{val=2})))', 2,
+         'c:plotArea/(c:barChart/c:ser/(c:idx{val=3},c:order{val=1}))'),
+    ])
+    def trim_fixture(self, request):
+        plotArea_cxml, count, expected_cxml = request.param
         rewriter = _BaseSeriesXmlRewriter(None)
-        plotArea = element(
-            'c:plotArea/c:barChart/(c:ser/(c:idx{val=3},c:order{val=1}),c:se'
-            'r/(c:idx{val=2},c:order{val=0}))'
-        )
-        count = 1
-        expected_xml = xml(
-            'c:plotArea/c:barChart/(c:ser/(c:idx{val=3},c:order{val=1}))'
-        )
+        plotArea = element(plotArea_cxml)
+        expected_xml = xml(expected_cxml)
         return rewriter, plotArea, count, expected_xml
 
     # fixture components ---------------------------------------------

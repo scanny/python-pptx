@@ -485,10 +485,10 @@ class Describe_XySeries(object):
 class DescribeSeriesCollection(object):
 
     def it_supports_indexed_access(self, getitem_fixture):
-        series_collection, idx, _SeriesFactory_, ser, series_ = (
+        series_collection, index, _SeriesFactory_, ser, series_ = (
             getitem_fixture
         )
-        series = series_collection[idx]
+        series = series_collection[index]
         _SeriesFactory_.assert_called_once_with(ser)
         assert series is series_
 
@@ -499,25 +499,29 @@ class DescribeSeriesCollection(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('c:barChart/c:ser',               0),
-        ('c:barChart/(c:ser,c:ser,c:ser)', 2),
-        ('c:plotArea/(c:barChart/(c:ser/c:idx{val=0},c:ser/c:idx{val=1}),c:l'
-         'ineChart/c:ser/c:idx{val=2})', 2),
+        ('c:barChart/c:ser/c:order{val=42}', 0, 0),
+        ('c:barChart/(c:ser/c:order{val=9},c:ser/c:order{val=6},c:ser/c:orde'
+         'r{val=3})', 2, 0),
+        ('c:plotArea/(c:barChart/(c:ser/(c:idx{val=1},c:order{val=3}),c:ser/'
+         '(c:idx{val=0},c:order{val=0})),c:lineChart/c:ser/(c:idx{val=2},c:o'
+         'rder{val=1}))', 1, 0),
     ])
     def getitem_fixture(self, request, _SeriesFactory_, series_):
-        cxml, idx = request.param
+        cxml, index, _offset = request.param
         parent_elm = element(cxml)
-        ser = parent_elm.xpath('.//c:ser')[idx]
+        ser = parent_elm.xpath('.//c:ser')[_offset]
         series_collection = SeriesCollection(parent_elm)
-        return series_collection, idx, _SeriesFactory_, ser, series_
+        return series_collection, index, _SeriesFactory_, ser, series_
 
     @pytest.fixture(params=[
-        ('c:barChart',                     0),
-        ('c:barChart/c:ser',               1),
-        ('c:barChart/(c:ser,c:ser)',       2),
-        ('c:barChart/(c:idx,c:tx,c:ser)',  1),
-        ('c:plotArea/(c:barChart/(c:ser/c:idx{val=0},c:ser/c:idx{val=1}),c:l'
-         'ineChart/c:ser/c:idx{val=2})', 3),
+        ('c:barChart', 0),
+        ('c:barChart/c:ser/c:order{val=4}', 1),
+        ('c:barChart/(c:ser/c:order{val=4},c:ser/c:order{val=1},c:ser/c:orde'
+         'r{val=6})', 3),
+        ('c:plotArea/c:barChart', 0),
+        ('c:plotArea/c:barChart/c:ser/c:order{val=4}', 1),
+        ('c:plotArea/c:barChart/(c:ser/c:order{val=4},c:ser/c:order{val=1},c'
+         ':ser/c:order{val=6})', 3),
     ])
     def len_fixture(self, request):
         cxml, expected_len = request.param
