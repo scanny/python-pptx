@@ -445,21 +445,20 @@ class Describe_XySeriesXmlWriter(object):
 class Describe_BaseSeriesXmlRewriter(object):
 
     def it_can_replace_series_data(self, replace_fixture):
-        rewriter, chartSpace, ser_count, calls = replace_fixture
+        rewriter, chartSpace, plotArea, ser_count, calls = replace_fixture
         rewriter.replace_series_data(chartSpace)
         rewriter._adjust_ser_count.assert_called_once_with(
-            rewriter, chartSpace, ser_count
+            rewriter, plotArea, ser_count
         )
         assert rewriter._rewrite_ser_data.call_args_list == calls
 
     def it_adjusts_the_ser_count_to_help(self, adjust_fixture):
-        rewriter, chartSpace, ser_count, add_calls, trim_calls, sers = (
+        rewriter, plotArea, new_ser_count, add_calls, trim_calls, sers = (
             adjust_fixture
         )
-        _sers = rewriter._adjust_ser_count(chartSpace, ser_count)
+        rewriter._adjust_ser_count(plotArea, new_ser_count)
         assert rewriter._add_cloned_sers.call_args_list == add_calls
         assert rewriter._trim_ser_count_by.call_args_list == trim_calls
-        assert _sers == sers
 
     def it_adds_cloned_sers_to_help(self, clone_fixture):
         rewriter, plotArea, count, expected_xml = clone_fixture
@@ -479,17 +478,16 @@ class Describe_BaseSeriesXmlRewriter(object):
         (1, False, True),
     ])
     def adjust_fixture(self, request, _add_cloned_sers_, _trim_ser_count_by_):
-        ser_count, add, trim = request.param
+        new_ser_count, add, trim = request.param
         rewriter = _BaseSeriesXmlRewriter(None)
-        chartSpace = element(
-            'c:chartSpace/c:chart/c:plotArea/(c:ser/(c:idx{val=3},c:order{va'
-            'l=1}),c:ser/(c:idx{val=1},c:order{val=3}))'
+        plotArea = element(
+            'c:plotArea/c:barChart/(c:ser/(c:idx{val=3},c:order{val=1}),c:se'
+            'r/(c:idx{val=1},c:order{val=3}))'
         )
-        plotArea = chartSpace.xpath('.//c:plotArea')[0]
-        sers = chartSpace.sers
+        sers = plotArea.sers
         add_calls = [call(rewriter, plotArea, 1)] if add else []
         trim_calls = [call(rewriter, plotArea, 1)] if trim else []
-        return rewriter, chartSpace, ser_count, add_calls, trim_calls, sers
+        return rewriter, plotArea, new_ser_count, add_calls, trim_calls, sers
 
     @pytest.fixture
     def clone_fixture(self):
@@ -505,12 +503,14 @@ class Describe_BaseSeriesXmlRewriter(object):
         return rewriter, plotArea, count, expected_xml
 
     @pytest.fixture
-    def replace_fixture(
-            self, request, chart_data_, _adjust_ser_count_,
-            _rewrite_ser_data_):
+    def replace_fixture(self, request, chart_data_, _adjust_ser_count_,
+                        _rewrite_ser_data_):
         rewriter = _BaseSeriesXmlRewriter(chart_data_)
-        chartSpace = element('c:chartSpace/(c:ser,c:ser)')
-        sers = chartSpace.xpath('c:ser')
+        chartSpace = element(
+            'c:chartSpace/c:chart/c:plotArea/c:barChart/(c:ser,c:ser)'
+        )
+        plotArea = chartSpace.xpath('c:chart/c:plotArea')[0]
+        sers = chartSpace.xpath('.//c:ser')
         ser_count = len(sers)
         series_datas = [
             instance_mock(request, _BaseSeriesData),
@@ -522,8 +522,7 @@ class Describe_BaseSeriesXmlRewriter(object):
         ]
         chart_data_.__len__.return_value = len(series_datas)
         chart_data_.__iter__.return_value = iter(series_datas)
-        _adjust_ser_count_.return_value = sers
-        return rewriter, chartSpace, ser_count, calls
+        return rewriter, chartSpace, plotArea, ser_count, calls
 
     @pytest.fixture
     def trim_fixture(self):

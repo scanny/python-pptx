@@ -229,9 +229,9 @@ class _BaseSeriesXmlRewriter(object):
         last plot in the chart and series formatting is "cloned" from the
         last series in that plot.
         """
-        chart_data = self._chart_data
-        sers = self._adjust_ser_count(chartSpace, len(chart_data))
-        for ser, series_data in zip(sers, chart_data):
+        plotArea, chart_data = chartSpace.plotArea, self._chart_data
+        self._adjust_ser_count(plotArea, len(chart_data))
+        for ser, series_data in zip(plotArea.sers, chart_data):
             self._rewrite_ser_data(ser, series_data)
 
     def _add_cloned_sers(self, plotArea, count):
@@ -251,19 +251,20 @@ class _BaseSeriesXmlRewriter(object):
         for idx in range(starting_idx, starting_idx+count):
             last_ser = clone_ser(last_ser, idx)
 
-    def _adjust_ser_count(self, chartSpace, new_ser_count):
+    def _adjust_ser_count(self, plotArea, new_ser_count):
         """
-        Return the ser elements in *chartSpace* after adjusting their number
-        to *new_ser_count*. The ser elements returned are ordered by
-        increasing c:ser/c:idx value, starting with 0 and with any gaps in
-        numbering collapsed.
+        Adjust the number of c:ser elements in *plotArea* to *new_ser_count*.
+        Excess c:ser elements are deleted from the end, along with any xChart
+        elements that are left empty as a result. Series elements are
+        considered in xChart + series order. Any new c:ser elements required
+        are added to the last xChart element and cloned from the last c:ser
+        element in that xChart.
         """
-        ser_count_diff = new_ser_count - len(chartSpace.sers)
+        ser_count_diff = new_ser_count - len(plotArea.sers)
         if ser_count_diff > 0:
-            self._add_cloned_sers(chartSpace.plotArea, ser_count_diff)
+            self._add_cloned_sers(plotArea, ser_count_diff)
         elif ser_count_diff < 0:
-            self._trim_ser_count_by(chartSpace.plotArea, abs(ser_count_diff))
-        return chartSpace.sers
+            self._trim_ser_count_by(plotArea, abs(ser_count_diff))
 
     def _rewrite_ser_data(self, ser, series_data):
         """
