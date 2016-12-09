@@ -170,6 +170,30 @@ class CT_PlotArea(BaseOxmlElement):
         return sers[-1]
 
     @property
+    def next_idx(self):
+        """
+        Return the next available `c:ser/c:idx` value within the scope of
+        this chart, the maximum idx value found on existing series,
+        incremented by one.
+        """
+        idx_vals = [s.idx.val for s in self.sers]
+        if not idx_vals:
+            return 0
+        return max(idx_vals)+1
+
+    @property
+    def next_order(self):
+        """
+        Return the next available `c:ser/c:order` value within the scope of
+        this chart, the maximum order value found on existing series,
+        incremented by one.
+        """
+        order_vals = [s.order.val for s in self.sers]
+        if not order_vals:
+            return 0
+        return max(order_vals)+1
+
+    @property
     def sers(self):
         """
         Return a sequence containing all the `c:ser` elements in this chart,

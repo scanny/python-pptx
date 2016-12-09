@@ -239,17 +239,16 @@ class _BaseSeriesXmlRewriter(object):
         Add `c:ser` elements to the last xChart element in *plotArea*, cloned
         from the last `c:ser` child of that last xChart.
         """
-        def clone_ser(ser, idx):
+        def clone_ser(ser):
             new_ser = deepcopy(ser)
-            new_ser.idx.val = idx
-            new_ser.order.val = idx
+            new_ser.idx.val = plotArea.next_idx
+            new_ser.order.val = plotArea.next_order
             ser.addnext(new_ser)
             return new_ser
 
         last_ser = plotArea.last_ser
-        starting_idx = len(plotArea.sers)
-        for idx in range(starting_idx, starting_idx+count):
-            last_ser = clone_ser(last_ser, idx)
+        for _ in range(count):
+            last_ser = clone_ser(last_ser)
 
     def _adjust_ser_count(self, plotArea, new_ser_count):
         """
