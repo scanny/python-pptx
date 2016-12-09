@@ -262,7 +262,7 @@ class _BaseSeriesXmlRewriter(object):
         if ser_count_diff > 0:
             self._add_cloned_sers(chartSpace.plotArea, ser_count_diff)
         elif ser_count_diff < 0:
-            self._trim_ser_count_by(chartSpace, abs(ser_count_diff))
+            self._trim_ser_count_by(chartSpace.plotArea, abs(ser_count_diff))
         return chartSpace.sers
 
     def _rewrite_ser_data(self, ser, series_data):
@@ -272,19 +272,19 @@ class _BaseSeriesXmlRewriter(object):
         """
         raise NotImplementedError('must be implemented by each subclass')
 
-    def _trim_ser_count_by(self, chartSpace, count):
+    def _trim_ser_count_by(self, plotArea, count):
         """
-        Remove the last *count* ser elements from *chartSpace*. Any xChart
+        Remove the last *count* ser elements from *plotArea*. Any xChart
         elements having no ser child elements after trimming are also
         removed.
         """
-        extra_sers = chartSpace.sers[-count:]
+        extra_sers = plotArea.sers[-count:]
         for ser in extra_sers:
             parent = ser.getparent()
             parent.remove(ser)
         extra_xCharts = [
-            xChart for xChart in chartSpace.chart.plotArea.iter_xCharts()
-            if len(list(xChart.iter_sers())) == 0
+            xChart for xChart in plotArea.iter_xCharts()
+            if len(xChart.sers) == 0
         ]
         for xChart in extra_xCharts:
             parent = xChart.getparent()

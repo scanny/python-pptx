@@ -467,9 +467,9 @@ class Describe_BaseSeriesXmlRewriter(object):
         assert plotArea.xml == expected_xml
 
     def it_trims_sers_to_help(self, trim_fixture):
-        rewriter, chartSpace, count, expected_xml = trim_fixture
-        rewriter._trim_ser_count_by(chartSpace, count)
-        assert chartSpace.xml == expected_xml
+        rewriter, plotArea, count, expected_xml = trim_fixture
+        rewriter._trim_ser_count_by(plotArea, count)
+        assert plotArea.xml == expected_xml
 
     # fixtures -------------------------------------------------------
 
@@ -488,7 +488,7 @@ class Describe_BaseSeriesXmlRewriter(object):
         plotArea = chartSpace.xpath('.//c:plotArea')[0]
         sers = chartSpace.sers
         add_calls = [call(rewriter, plotArea, 1)] if add else []
-        trim_calls = [call(rewriter, chartSpace, 1)] if trim else []
+        trim_calls = [call(rewriter, plotArea, 1)] if trim else []
         return rewriter, chartSpace, ser_count, add_calls, trim_calls, sers
 
     @pytest.fixture
@@ -528,16 +528,15 @@ class Describe_BaseSeriesXmlRewriter(object):
     @pytest.fixture
     def trim_fixture(self):
         rewriter = _BaseSeriesXmlRewriter(None)
-        chartSpace = element(
-            'c:chartSpace/c:chart/c:plotArea/c:barChart/(c:ser/(c:idx{val=3},'
-            'c:order{val=1}),c:ser/(c:idx{val=2},c:order{val=0}))'
+        plotArea = element(
+            'c:plotArea/c:barChart/(c:ser/(c:idx{val=3},c:order{val=1}),c:se'
+            'r/(c:idx{val=2},c:order{val=0}))'
         )
         count = 1
         expected_xml = xml(
-            'c:chartSpace/c:chart/c:plotArea/c:barChart/(c:ser/(c:idx{val=0}'
-            ',c:order{val=0}))'
+            'c:plotArea/c:barChart/(c:ser/(c:idx{val=3},c:order{val=1}))'
         )
-        return rewriter, chartSpace, count, expected_xml
+        return rewriter, plotArea, count, expected_xml
 
     # fixture components ---------------------------------------------
 
