@@ -25,7 +25,8 @@ class Categories(Sequence):
         self._xChart = xChart
 
     def __getitem__(self, idx):
-        raise NotImplementedError
+        pt = self._xChart.cat_pts[idx]
+        return Category(pt, idx)
 
     def __len__(self):
         # a category can be "null", meaning the Excel cell for it is empty.
@@ -33,3 +34,19 @@ class Categories(Sequence):
         # will, however, be accounted for in c:cat//c:ptCount/@val, which
         # reflects the true length of the categories collection.
         return self._xChart.cat_pt_count
+
+
+class Category(object):
+    """
+    An extension of `str` that provides the category label as its string
+    value, and additional attributes representing other aspects of the
+    category.
+    """
+    def __init__(self, pt, idx=None):
+        """
+        *idx* is a required attribute of a c:pt element, but must be
+        specified when pt is None, as when a "placeholder" category is
+        created to represent a missing c:pt element.
+        """
+        self._element = self._pt = pt
+        self._idx = idx
