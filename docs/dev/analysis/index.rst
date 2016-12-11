@@ -30,6 +30,7 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   cht-date-axis
    cht-categories
    cht-marker
    cht-chart-overview
