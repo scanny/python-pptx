@@ -4,7 +4,6 @@ Feature: Access a category
   I need sequence operations on the Categories object
 
 
-  @wip
   Scenario: Categories.__len__()
     Given a Categories object containing 3 categories
      Then len(categories) is 3

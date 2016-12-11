@@ -28,4 +28,8 @@ class Categories(Sequence):
         raise NotImplementedError
 
     def __len__(self):
-        raise NotImplementedError
+        # a category can be "null", meaning the Excel cell for it is empty.
+        # In this case, there is no c:pt element for it. The "empty" category
+        # will, however, be accounted for in c:cat//c:ptCount/@val, which
+        # reflects the true length of the categories collection.
+        return self._xChart.cat_pt_count

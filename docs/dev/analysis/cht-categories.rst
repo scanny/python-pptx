@@ -3,6 +3,12 @@
 Chart - Categories
 ==================
 
+* A category can be |None|, meaning the category exists, but there is no
+  label for it.
+
+  + The string value of it can be '', since it needs to be a string. But the
+    .label value will be |None|.
+
 Caveats
 -------
 

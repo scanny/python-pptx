@@ -20,6 +20,21 @@ class BaseChartElement(BaseOxmlElement):
     Base class for barChart, lineChart, and other plot elements.
     """
     @property
+    def cat_pt_count(self):
+        """
+        Return the value of the `c:ptCount` descendent of this xChart
+        element. Its parent can be one of three element types. This value
+        represents the true number of (leaf) categories, although they might
+        not all have a corresponding `c:pt` sibling; a category with no label
+        does not get a `c:pt` element. Returns 0 if there is no `c:ptCount`
+        descendent.
+        """
+        cat_ptCounts = self.xpath('./c:ser//c:cat//c:ptCount')
+        if not cat_ptCounts:
+            return 0
+        return cat_ptCounts[0].val
+
+    @property
     def cat_pts(self):
         """
         The sequence of ``<c:pt>`` elements under the ``<c:cat>`` element of

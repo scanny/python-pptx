@@ -4,7 +4,6 @@ Feature: Add a chart
   I need a way to add a chart to a slide, specifying its type and data
 
 
-  @wip
   Scenario Outline: Add a category chart
     Given a blank slide
      When I add a <type> chart with <cats> categories and <sers> series
@@ -40,7 +39,6 @@ Feature: Add a chart
       | Radar with markers        | RADAR_MARKERS            |   5  |   2  |
 
 
-  @wip
   Scenario: Add a multi-level category chart
     Given a blank slide
      When I add a Clustered bar chart with multi-level categories
