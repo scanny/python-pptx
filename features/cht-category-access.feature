@@ -20,7 +20,6 @@ Feature: Access a category
       And list(categories) == ['Foo', '', 'Baz']
 
 
-  @wip
   Scenario Outline: Categories.depth
     Given a Categories object having <depth> category levels
      Then categories.depth is <depth>

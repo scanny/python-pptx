@@ -33,11 +33,30 @@ class DescribeCategories(object):
         assert [c for c in categories] == expected_categories
         assert Category_.call_args_list == calls
 
+    def it_knows_its_depth(self, depth_fixture):
+        categories, expected_value = depth_fixture
+        assert categories.depth == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('c:barChart/c:ser/c:cat/(c:ptCount{val=2},c:pt{idx=1})', 1, 0),
+        ('c:barChart',                                                  0),
+        ('c:barChart/c:ser/c:cat',                                      1),
+        ('c:barChart/c:ser/c:cat/c:multiLvlStrRef/c:lvl',               1),
+        ('c:barChart/c:ser/c:cat/c:multiLvlStrRef/(c:lvl,c:lvl)',       2),
+        ('c:barChart/c:ser/c:cat/c:multiLvlStrRef/(c:lvl,c:lvl,c:lvl)', 3),
+    ])
+    def depth_fixture(self, request):
+        xChart_cxml, expected_value = request.param
+        categories = Categories(element(xChart_cxml))
+        return categories, expected_value
+
+    @pytest.fixture(params=[
+        ('c:barChart/c:ser/c:cat/(c:ptCount{val=2})',             0, None),
         ('c:barChart/c:ser/c:cat/(c:ptCount{val=2},c:pt{idx=1})', 0, None),
+        ('c:barChart/c:ser/c:cat/(c:ptCount{val=2},c:pt{idx=1})', 1, 0),
+        ('c:barChart/c:ser/c:cat/c:lvl/(c:ptCount{val=2},c:pt{idx=1})',
+         1, 0),
     ])
     def getitem_fixture(self, request, Category_, category_):
         xChart_cxml, idx, pt_offset = request.param

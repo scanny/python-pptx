@@ -20,6 +20,15 @@ class BaseChartElement(BaseOxmlElement):
     Base class for barChart, lineChart, and other plot elements.
     """
     @property
+    def cat(self):
+        """
+        Return the `c:cat` element of the first series in this xChart, or
+        |None| if not present.
+        """
+        cats = self.xpath('./c:ser[1]/c:cat')
+        return cats[0] if cats else None
+
+    @property
     def cat_pt_count(self):
         """
         Return the value of the `c:ptCount` descendent of this xChart

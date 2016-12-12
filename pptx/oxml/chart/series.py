@@ -13,6 +13,24 @@ from ..xmlchemy import (
 )
 
 
+class CT_AxDataSource(BaseOxmlElement):
+    """
+    ``<c:cat>`` custom element class used in category charts to specify
+    category labels and hierarchy.
+    """
+    multiLvlStrRef = ZeroOrOne('c:multiLvlStrRef', successors=())
+
+    @property
+    def lvls(self):
+        """
+        Return a list containing the `c:lvl` descendent elements in document
+        order. These will only be present when the required single child
+        is a `c:multiLvlStrRef` element. Returns an empty list when no
+        `c:lvl` descendent elements are present.
+        """
+        return self.xpath('.//c:lvl')
+
+
 class CT_DPt(BaseOxmlElement):
     """
     ``<c:dPt>`` custom element class, containing visual properties for a data

@@ -40,6 +40,21 @@ class Categories(Sequence):
         # reflects the true length of the categories collection.
         return self._xChart.cat_pt_count
 
+    @property
+    def depth(self):
+        """
+        Return an integer representing the number of hierarchical levels in
+        this category collection. Returns 1 for non-hierarchical categories
+        and 0 if no categories are present (generally meaning no series are
+        present).
+        """
+        cat = self._xChart.cat
+        if cat is None:
+            return 0
+        if cat.multiLvlStrRef is None:
+            return 1
+        return len(cat.lvls)
+
 
 class Category(str):
     """
