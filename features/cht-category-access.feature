@@ -14,7 +14,6 @@ Feature: Access a category
      Then categories[2] is a Category object
 
 
-  @wip
   Scenario: Categories.__iter__()
     Given a Categories object containing 3 categories
      Then iterating categories produces 3 Category objects

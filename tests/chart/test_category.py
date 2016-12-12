@@ -77,3 +77,23 @@ class DescribeCategories(object):
     @pytest.fixture
     def category_(self, request):
         return instance_mock(request, Category)
+
+
+class DescribeCategory(object):
+
+    def it_extends_str(self, base_class_fixture):
+        category, str_value = base_class_fixture
+        assert isinstance(category, str)
+        assert category == str_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (None,            ''),
+        ('c:pt/c:v"Foo"', 'Foo'),
+    ])
+    def base_class_fixture(self, request):
+        pt_cxml, str_value = request.param
+        pt = None if pt_cxml is None else element(pt_cxml)
+        category = Category(pt)
+        return category, str_value

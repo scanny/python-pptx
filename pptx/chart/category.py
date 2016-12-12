@@ -41,12 +41,16 @@ class Categories(Sequence):
         return self._xChart.cat_pt_count
 
 
-class Category(object):
+class Category(str):
     """
     An extension of `str` that provides the category label as its string
     value, and additional attributes representing other aspects of the
     category.
     """
+    def __new__(cls, pt, *args):
+        category_label = '' if pt is None else pt.v.text
+        return str.__new__(cls, category_label)
+
     def __init__(self, pt, idx=None):
         """
         *idx* is a required attribute of a c:pt element, but must be
