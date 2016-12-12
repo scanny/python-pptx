@@ -44,7 +44,6 @@ Feature: Access a category
       |   3   |  3  |
 
 
-  @wip
   Scenario Outline: Categories.flattened_labels
     Given a Categories object having <leafs> categories and <levels> levels
      Then categories.flattened_labels is a tuple of <leafs> tuples

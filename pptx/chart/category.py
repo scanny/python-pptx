@@ -56,6 +56,29 @@ class Categories(Sequence):
         return len(cat.lvls)
 
     @property
+    def flattened_labels(self):
+        """
+        Return a sequence of tuples, each containing the flattened hierarchy
+        of category labels for a leaf category. Each tuple is in parent ->
+        child order, e.g. ``('US', 'CA', 'San Francisco')``, with the leaf
+        category appearing last. If this categories collection is
+        non-hierarchical, each tuple will contain only a leaf category label.
+        If the plot has no series (and therefore no categories), an empty
+        tuple is returned.
+        """
+        cat = self._xChart.cat
+        if cat is None:
+            return ()
+
+        if cat.multiLvlStrRef is None:
+            return tuple([(category.label,) for category in self])
+
+        return tuple(
+            [tuple([category.label for category in reversed(flat_cat)])
+             for flat_cat in self._iter_flattened_categories()]
+        )
+
+    @property
     def levels(self):
         """
         Return a sequence of |CategoryLevel| objects representing the
@@ -69,6 +92,54 @@ class Categories(Sequence):
         if cat is None:
             return []
         return [CategoryLevel(lvl) for lvl in cat.lvls]
+
+    def _iter_flattened_categories(self):
+        """
+        Generate a ``tuple`` object for each leaf category in this
+        collection, containing the leaf category followed by its "parent"
+        categories, e.g. ``('San Francisco', 'CA', 'USA'). Each tuple will be
+        the same length as the number of levels (excepting certain edge
+        cases which I believe always indicate a chart construction error).
+        """
+        levels = self.levels
+        if not levels:
+            return
+        leaf_level, remaining_levels = levels[0], levels[1:]
+        for category in leaf_level:
+            yield self._parentage((category,), remaining_levels)
+
+    def _parentage(self, categories, levels):
+        """
+        Return a tuple formed by recursively concatenating *categories* with
+        its next ancestor from *levels*. The idx value of the first category
+        in *categories* determines parentage in all levels. The returned
+        sequence is in child -> parent order. A parent category is the
+        Category object in a next level having the maximum idx value not
+        exceeding that of the leaf category.
+        """
+        # exhausting levels is the expected recursion termination condition
+        if not levels:
+            return tuple(categories)
+
+        # guard against edge case where next level is present but empty. That
+        # situation is not prohibited for some reason.
+        if not levels[0]:
+            return tuple(categories)
+
+        parent_level, remaining_levels = levels[0], levels[1:]
+        leaf_node = categories[0]
+
+        # Make the first parent the default. A possible edge case is where no
+        # parent is defined for one or more leading values, e.g. idx > 0 for
+        # the first parent.
+        parent = parent_level[0]
+        for category in parent_level:
+            if category.idx > leaf_node.idx:
+                break
+            parent = category
+
+        extended_categories = tuple(categories) + (parent,)
+        return self._parentage(extended_categories, remaining_levels)
 
 
 class Category(str):

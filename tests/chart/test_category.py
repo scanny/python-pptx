@@ -11,8 +11,10 @@ from __future__ import (
 import pytest
 
 from pptx.chart.category import Categories, Category, CategoryLevel
+from pptx.oxml import parse_xml
 
 from ..unitutil.cxml import element
+from ..unitutil.file import snippet_seq
 from ..unitutil.mock import call, class_mock, instance_mock
 
 
@@ -37,6 +39,11 @@ class DescribeCategories(object):
         categories, expected_value = depth_fixture
         assert categories.depth == expected_value
 
+    def it_provides_a_flattened_representation(self, flat_fixture):
+        categories, expected_values = flat_fixture
+        flattened_labels = categories.flattened_labels
+        assert flattened_labels == expected_values
+
     def it_provides_access_to_its_levels(self, levels_fixture):
         categories, CategoryLevel_, calls, expected_levels = levels_fixture
         levels = categories.levels
@@ -56,6 +63,25 @@ class DescribeCategories(object):
         xChart_cxml, expected_value = request.param
         categories = Categories(element(xChart_cxml))
         return categories, expected_value
+
+    @pytest.fixture(params=[
+        # non-hierarchical (no lvls), 3 categories, one "none"
+        (0, (('Foo',), ('',), ('Baz',))),
+        # 2-lvls
+        (1, (('CA', 'SF'), ('CA', 'LA'), ('NY', 'NY'), ('NY', 'Albany'))),
+        # 3-lvls
+        (2, (('USA', 'CA', 'SF'),      ('USA', 'CA', 'LA'),
+             ('USA', 'NY', 'NY'),      ('USA', 'NY', 'Albany'),
+             ('CAN', 'AL', 'Calgary'), ('CAN', 'AL', 'Edmonton'),
+             ('CAN', 'ON', 'Toronto'), ('CAN', 'ON', 'Ottawa'))),
+        # 1-lvl; not seen in wild but spec does not prohibit
+        (3, (('SF',), ('LA',), ('NY',))),
+    ])
+    def flat_fixture(self, request):
+        snippet_idx, expected_values = request.param
+        xChart_xml = snippet_seq('cat-labels')[snippet_idx]
+        categories = Categories(parse_xml(xChart_xml))
+        return categories, expected_values
 
     @pytest.fixture(params=[
         ('c:barChart/c:ser/c:cat/(c:ptCount{val=2})',             0, None),
