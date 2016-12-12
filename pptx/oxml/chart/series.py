@@ -56,6 +56,14 @@ class CT_DPt(BaseOxmlElement):
         return dPt
 
 
+class CT_Lvl(BaseOxmlElement):
+    """
+    ``<c:lvl>`` custom element class used in multi-level categories to
+    specify a level of hierarchy.
+    """
+    pt = ZeroOrMore('c:pt', successors=())
+
+
 class CT_NumDataSource(BaseOxmlElement):
     """
     ``<c:yVal>`` custom element class used in XY and bubble charts, and

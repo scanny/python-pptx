@@ -127,12 +127,13 @@ register_element_cls('c:scatterChart',  CT_ScatterChart)
 
 
 from .chart.series import (
-    CT_AxDataSource, CT_DPt, CT_NumDataSource, CT_SeriesComposite,
+    CT_AxDataSource, CT_DPt, CT_Lvl, CT_NumDataSource, CT_SeriesComposite,
     CT_StrVal_NumVal_Composite
 )
 register_element_cls('c:bubbleSize', CT_NumDataSource)
 register_element_cls('c:cat',        CT_AxDataSource)
 register_element_cls('c:dPt',        CT_DPt)
+register_element_cls('c:lvl',        CT_Lvl)
 register_element_cls('c:pt',         CT_StrVal_NumVal_Composite)
 register_element_cls('c:ser',        CT_SeriesComposite)
 register_element_cls('c:val',        CT_NumDataSource)

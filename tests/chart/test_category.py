@@ -149,3 +149,23 @@ class DescribeCategory(object):
         pt = None if pt_cxml is None else element(pt_cxml)
         category = Category(pt)
         return category, str_value
+
+
+class DescribeCategoryLevel(object):
+
+    def it_knows_its_length(self, len_fixture):
+        category_level, expected_len = len_fixture
+        assert len(category_level) == expected_len
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:lvl',                  0),
+        ('c:lvl/c:pt',             1),
+        ('c:lvl/(c:pt,c:pt)',      2),
+        ('c:lvl/(c:pt,c:pt,c:pt)', 3),
+    ])
+    def len_fixture(self, request):
+        lvl_cxml, expected_len = request.param
+        category_level = CategoryLevel(element(lvl_cxml))
+        return category_level, expected_len

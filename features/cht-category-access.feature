@@ -44,7 +44,6 @@ Feature: Access a category
       |   3   |  3  |
 
 
-  @wip
   Scenario: CategoryLevel.__len__()
     Given a CategoryLevel object containing 4 categories
      Then len(category_level) is 4
