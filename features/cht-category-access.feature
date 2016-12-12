@@ -42,3 +42,21 @@ Feature: Access a category
       |   1   |  0  |
       |   2   |  2  |
       |   3   |  3  |
+
+
+  @wip
+  Scenario: CategoryLevel.__len__()
+    Given a CategoryLevel object containing 4 categories
+     Then len(category_level) is 4
+
+
+  @wip
+  Scenario: CategoryLevel.__getitem__()
+    Given a CategoryLevel object containing 4 categories
+     Then category_level[2] is a Category object
+
+
+  @wip
+  Scenario: CategoryLevel.__iter__()
+    Given a CategoryLevel object containing 4 categories
+     Then iterating category_level produces 4 Category objects

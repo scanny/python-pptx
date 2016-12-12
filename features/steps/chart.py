@@ -180,6 +180,13 @@ def given_a_CategoryChartData_object_with_number_format(context, strval):
     context.chart_data = CategoryChartData(**params)
 
 
+@given('a CategoryLevel object containing 4 categories')
+def given_a_CategoryLevel_object_containing_4_categories(context):
+    slide = Presentation(test_pptx('cht-category-access')).slides[1]
+    chart = slide.shapes[0].chart
+    context.category_level = chart.plots[0].categories.levels[1]
+
+
 @given('a chart')
 def given_a_chart(context):
     prs = Presentation(test_pptx('shp-common-props'))
@@ -917,6 +924,12 @@ def then_category_add_sub_category_is_a_Category_object(context):
     assert type(sub_category).__name__ == 'Category'
 
 
+@then('category_level[2] is a Category object')
+def then_category_level_2_is_a_Category_object(context):
+    type_name = type(context.category_level[2]).__name__
+    assert type_name == 'Category', 'got %s' % type_name
+
+
 @then('category.sub_categories[-1] is the new category')
 def then_category_sub_categories_minus_1_is_the_new_category(context):
     category, sub_category = context.category, context.sub_category
@@ -1086,6 +1099,15 @@ def then_iterating_categories_produces_3_category_objects(context):
     assert idx == 2, 'got %s' % idx
 
 
+@then('iterating category_level produces 4 Category objects')
+def then_iterating_category_level_produces_4_Category_objects(context):
+    idx = -1
+    for idx, category in enumerate(context.category_level):
+        type_name = type(category).__name__
+        assert type_name == 'Category', 'got %s' % type_name
+    assert idx == 3, 'got %s' % idx
+
+
 @then('iterating points produces 3 Point objects')
 def then_iterating_points_produces_3_point_objects(context):
     points = context.points
@@ -1139,6 +1161,13 @@ def then_legend_position_is_value(context, value):
 def then_len_categories_is_count(context, count):
     expected_count = int(count)
     assert len(context.categories) == expected_count
+
+
+@then('len(category_level) is {count}')
+def then_len_category_level_is_count(context, count):
+    expected_count = int(count)
+    actual_count = len(context.category_level)
+    assert actual_count == expected_count, 'got %s' % actual_count
 
 
 @then('len(chart.series) is {count}')
