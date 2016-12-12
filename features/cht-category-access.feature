@@ -44,6 +44,20 @@ Feature: Access a category
       |   3   |  3  |
 
 
+  @wip
+  Scenario Outline: Categories.flattened_labels
+    Given a Categories object having <leafs> categories and <levels> levels
+     Then categories.flattened_labels is a tuple of <leafs> tuples
+      And each label tuple contains <levels> labels
+
+    Examples: hierarchical category combinations
+      | leafs | levels |
+      |   3   |    1   |
+      |   8   |    3   |
+      |   0   |    0   |
+      |   4   |    2   |
+
+
   Scenario: CategoryLevel.__len__()
     Given a CategoryLevel object containing 4 categories
      Then len(category_level) is 4

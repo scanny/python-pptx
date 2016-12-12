@@ -156,6 +156,18 @@ def given_a_Categories_object_having_count_category_levels(context, count):
     context.categories = slide.shapes[0].chart.plots[0].categories
 
 
+@given('a Categories object having {leafs} categories and {levels} levels')
+def given_a_Categories_obj_having_leafs_and_levels(context, leafs, levels):
+    slide_idx = {
+        (3, 1): 0,
+        (8, 3): 1,
+        (0, 0): 2,
+        (4, 2): 3,
+    }[(int(leafs), int(levels))]
+    slide = Presentation(test_pptx('cht-category-access')).slides[slide_idx]
+    context.categories = slide.shapes[0].chart.plots[0].categories
+
+
 @given('a Category object')
 def given_a_Category_object(context):
     context.category = Category(None, None)
@@ -921,6 +933,18 @@ def then_categories_depth_is_value(context, value):
     assert depth == expected_value, 'got %s' % expected_value
 
 
+@then('categories.flattened_labels is a tuple of {leafs} tuples')
+def then_categories_flattened_labels_is_tuple_of_tuples(context, leafs):
+    flattened_labels = context.categories.flattened_labels
+    type_name = type(flattened_labels).__name__
+    length = len(flattened_labels)
+    assert type_name == 'tuple', 'got %s' % type_name
+    assert length == int(leafs), 'got %s' % length
+    for labels in flattened_labels:
+        type_name = type(labels).__name__
+        assert type_name == 'tuple', 'got %s' % type_name
+
+
 @then('categories.levels contains {count} CategoryLevel objects')
 def then_categories_levels_contains_count_CategoryLevel_objs(context, count):
     expected_idx = int(count) - 1
@@ -1098,6 +1122,17 @@ def then_each_series_has_count_values(context, count):
     for series in context.chart.plots[0].series:
         actual_value_count = len(series.values)
         assert actual_value_count == expected_count
+
+
+@then('each label tuple contains {levels} labels')
+def then_each_label_tuple_contains_levels_labels(context, levels):
+    flattened_labels = context.categories.flattened_labels
+    for labels in flattened_labels:
+        length = len(labels)
+        assert length == int(levels), 'got %s' % levels
+        for label in labels:
+            type_name = type(label).__name__
+            assert type_name == 'str', 'got %s' % type_name
 
 
 @then('gridlines.format is a ChartFormat object')
