@@ -149,6 +149,13 @@ def given_a_Categories_object_containing_3_categories(context):
     context.categories = prs.slides[0].shapes[0].chart.plots[0].categories
 
 
+@given('a Categories object having {count} category levels')
+def given_a_Categories_object_having_count_category_levels(context, count):
+    slide_idx = [2, 0, 3, 1][int(count)]
+    slide = Presentation(test_pptx('cht-category-access')).slides[slide_idx]
+    context.categories = slide.shapes[0].chart.plots[0].categories
+
+
 @given('a Category object')
 def given_a_Category_object(context):
     context.category = Category(None, None)
@@ -884,6 +891,13 @@ def then_bubble_plot_bubble_scale_is_value(context, value):
 def then_categories_2_is_a_Category_object(context):
     type_name = type(context.categories[2]).__name__
     assert type_name == 'Category', 'got %s' % type_name
+
+
+@then('categories.depth is {value}')
+def then_categories_depth_is_value(context, value):
+    expected_value = int(value)
+    depth = context.categories.depth
+    assert depth == expected_value, 'got %s' % expected_value
 
 
 @then('category.add_sub_category(name) is a Category object')

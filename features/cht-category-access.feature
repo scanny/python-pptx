@@ -18,3 +18,16 @@ Feature: Access a category
     Given a Categories object containing 3 categories
      Then iterating categories produces 3 Category objects
       And list(categories) == ['Foo', '', 'Baz']
+
+
+  @wip
+  Scenario Outline: Categories.depth
+    Given a Categories object having <depth> category levels
+     Then categories.depth is <depth>
+
+    Examples: hierarchical category depths
+      | depth |
+      |   0   |
+      |   1   |
+      |   2   |
+      |   3   |
