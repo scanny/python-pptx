@@ -161,6 +161,20 @@ def given_a_Category_object(context):
     context.category = Category(None, None)
 
 
+@given('a Category object having idx value {idx}')
+def given_a_Category_object_having_idx_value_idx(context, idx):
+    cat_offset = int(idx)
+    slide = Presentation(test_pptx('cht-category-access')).slides[0]
+    context.category = slide.shapes[0].chart.plots[0].categories[cat_offset]
+
+
+@given('a Category object having {label}')
+def given_a_Category_object_having_label(context, label):
+    cat_offset = {'label \'Foo\'': 0, 'no label': 1}[label]
+    slide = Presentation(test_pptx('cht-category-access')).slides[0]
+    context.category = slide.shapes[0].chart.plots[0].categories[cat_offset]
+
+
 @given("a category plot")
 def given_a_category_plot(context):
     prs = Presentation(test_pptx('cht-plot-props'))
@@ -922,6 +936,20 @@ def then_category_add_sub_category_is_a_Category_object(context):
     category = context.category
     context.sub_category = sub_category = category.add_sub_category('foobar')
     assert type(sub_category).__name__ == 'Category'
+
+
+@then('category.idx is {value}')
+def then_category_idx_is_value(context, value):
+    expected_value = None if value == 'None' else int(value)
+    idx = context.category.idx
+    assert idx == expected_value, 'got %s' % idx
+
+
+@then('category.label is {value}')
+def then_category_label_is_value(context, value):
+    expected_value = {'\'Foo\'': 'Foo', '\'\'': ''}[value]
+    label = context.category.label
+    assert label == expected_value, 'got %s' % label
 
 
 @then('category_level[2] is a Category object')
