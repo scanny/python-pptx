@@ -900,6 +900,16 @@ def then_categories_depth_is_value(context, value):
     assert depth == expected_value, 'got %s' % expected_value
 
 
+@then('categories.levels contains {count} CategoryLevel objects')
+def then_categories_levels_contains_count_CategoryLevel_objs(context, count):
+    expected_idx = int(count) - 1
+    idx = -1
+    for idx, category_level in enumerate(context.categories.levels):
+        type_name = type(category_level).__name__
+        assert type_name == 'CategoryLevel', 'got %s' % type_name
+    assert idx == expected_idx, 'got %s' % idx
+
+
 @then('category.add_sub_category(name) is a Category object')
 def then_category_add_sub_category_is_a_Category_object(context):
     category = context.category
