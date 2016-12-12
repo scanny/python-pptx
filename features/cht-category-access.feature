@@ -32,7 +32,6 @@ Feature: Access a category
       |   3   |
 
 
-  @wip
   Scenario Outline: Categories.levels
     Given a Categories object having <depth> category levels
      Then categories.levels contains <len> CategoryLevel objects

@@ -55,6 +55,21 @@ class Categories(Sequence):
             return 1
         return len(cat.lvls)
 
+    @property
+    def levels(self):
+        """
+        Return a sequence of |CategoryLevel| objects representing the
+        hierarchy of this category collection. The sequence is empty when the
+        category collection is not hierarchical, that is, contains only
+        leaf-level categories. The levels are ordered from the leaf level to
+        the root level; so the first level will contain the same categories
+        as this category collection.
+        """
+        cat = self._xChart.cat
+        if cat is None:
+            return []
+        return [CategoryLevel(lvl) for lvl in cat.lvls]
+
 
 class Category(str):
     """
@@ -74,3 +89,20 @@ class Category(str):
         """
         self._element = self._pt = pt
         self._idx = idx
+
+
+class CategoryLevel(Sequence):
+    """
+    A sequence of |Category| objects representing a single level in
+    a hierarchical category collection. This object is only used when the
+    categories are hierarchical, meaning they have more than one level and
+    higher level categories group those at lower levels.
+    """
+    def __init__(self, lvl):
+        self._element = self._lvl = lvl
+
+    def __getitem__(self, offset):
+        raise NotImplementedError
+
+    def __len__(self):
+        raise NotImplementedError

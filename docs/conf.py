@@ -119,6 +119,8 @@ rst_epilog = """
 
 .. |Category| replace:: :class:`.Category`
 
+.. |CategoryLevel| replace:: :class:`.CategoryLevel`
+
 .. |_Cell| replace:: :class:`_Cell`
 
 .. |Chart| replace:: :class:`.Chart`

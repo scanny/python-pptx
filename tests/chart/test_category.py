@@ -10,7 +10,7 @@ from __future__ import (
 
 import pytest
 
-from pptx.chart.category import Categories, Category
+from pptx.chart.category import Categories, Category, CategoryLevel
 
 from ..unitutil.cxml import element
 from ..unitutil.mock import call, class_mock, instance_mock
@@ -36,6 +36,12 @@ class DescribeCategories(object):
     def it_knows_its_depth(self, depth_fixture):
         categories, expected_value = depth_fixture
         assert categories.depth == expected_value
+
+    def it_provides_access_to_its_levels(self, levels_fixture):
+        categories, CategoryLevel_, calls, expected_levels = levels_fixture
+        levels = categories.levels
+        assert CategoryLevel_.call_args_list == calls
+        assert levels == expected_levels
 
     # fixtures -------------------------------------------------------
 
@@ -85,6 +91,22 @@ class DescribeCategories(object):
         categories = Categories(element(xChart_cxml))
         return categories, expected_len
 
+    @pytest.fixture(params=[
+        ('c:barChart',                                                  0),
+        ('c:barChart/c:ser/c:cat',                                      0),
+        ('c:barChart/c:ser/c:cat/c:multiLvlStrRef/c:lvl',               1),
+        ('c:barChart/c:ser/c:cat/c:multiLvlStrRef/(c:lvl,c:lvl)',       2),
+        ('c:barChart/c:ser/c:cat/c:multiLvlStrRef/(c:lvl,c:lvl,c:lvl)', 3),
+    ])
+    def levels_fixture(self, request, CategoryLevel_, category_level_):
+        xChart_cxml, level_count = request.param
+        xChart = element(xChart_cxml)
+        lvls = xChart.xpath('.//c:lvl')
+        categories = Categories(xChart)
+        calls = [call(lvl) for lvl in lvls]
+        expected_levels = [category_level_ for _ in range(level_count)]
+        return categories, CategoryLevel_, calls, expected_levels
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -96,6 +118,17 @@ class DescribeCategories(object):
     @pytest.fixture
     def category_(self, request):
         return instance_mock(request, Category)
+
+    @pytest.fixture
+    def CategoryLevel_(self, request, category_level_):
+        return class_mock(
+            request, 'pptx.chart.category.CategoryLevel',
+            return_value=category_level_
+        )
+
+    @pytest.fixture
+    def category_level_(self, request):
+        return instance_mock(request, CategoryLevel)
 
 
 class DescribeCategory(object):
