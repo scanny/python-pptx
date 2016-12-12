@@ -157,7 +157,22 @@ class DescribeCategoryLevel(object):
         category_level, expected_len = len_fixture
         assert len(category_level) == expected_len
 
+    def it_supports_indexed_access(self, getitem_fixture):
+        category_level, idx, Category_, pt, category_ = getitem_fixture
+        category = category_level[idx]
+        Category_.assert_called_once_with(pt)
+        assert category is category_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[0, 1, 2])
+    def getitem_fixture(self, request, Category_, category_):
+        idx = request.param
+        lvl_cxml = 'c:lvl/(c:pt,c:pt,c:pt)'
+        lvl = element(lvl_cxml)
+        pt = lvl.xpath('./c:pt')[idx]
+        category_level = CategoryLevel(lvl)
+        return category_level, idx, Category_, pt, category_
 
     @pytest.fixture(params=[
         ('c:lvl',                  0),
@@ -169,3 +184,15 @@ class DescribeCategoryLevel(object):
         lvl_cxml, expected_len = request.param
         category_level = CategoryLevel(element(lvl_cxml))
         return category_level, expected_len
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def Category_(self, request, category_):
+        return class_mock(
+            request, 'pptx.chart.category.Category', return_value=category_
+        )
+
+    @pytest.fixture
+    def category_(self, request):
+        return instance_mock(request, Category)

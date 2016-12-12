@@ -102,7 +102,7 @@ class CategoryLevel(Sequence):
         self._element = self._lvl = lvl
 
     def __getitem__(self, offset):
-        raise NotImplementedError
+        return Category(self._lvl.pt_lst[offset])
 
     def __len__(self):
         return len(self._lvl.pt_lst)
