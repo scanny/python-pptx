@@ -90,6 +90,18 @@ class Category(str):
         self._element = self._pt = pt
         self._idx = idx
 
+    @property
+    def idx(self):
+        """
+        Return an integer representing the index reference of this category.
+        For a leaf node, the index identifies the category. For a parent (or
+        other ancestor) category, the index specifies the first leaf category
+        that ancestor encloses.
+        """
+        if self._pt is None:
+            return self._idx
+        return self._pt.idx
+
 
 class CategoryLevel(Sequence):
     """

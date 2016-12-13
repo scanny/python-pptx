@@ -138,6 +138,11 @@ class DescribeCategory(object):
         assert isinstance(category, str)
         assert category == str_value
 
+    def it_knows_its_idx(self, idx_fixture):
+        category, expected_value = idx_fixture
+        idx = category.idx
+        assert idx == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -149,6 +154,16 @@ class DescribeCategory(object):
         pt = None if pt_cxml is None else element(pt_cxml)
         category = Category(pt)
         return category, str_value
+
+    @pytest.fixture(params=[
+        (None,                   42,   42),
+        ('c:pt{idx=9}/c:v"Bar"', None,  9),
+    ])
+    def idx_fixture(self, request):
+        pt_cxml, idx, expected_value = request.param
+        pt = None if pt_cxml is None else element(pt_cxml)
+        category = Category(pt, idx)
+        return category, expected_value
 
 
 class DescribeCategoryLevel(object):

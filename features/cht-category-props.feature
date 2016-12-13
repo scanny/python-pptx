@@ -4,7 +4,6 @@ Feature: Category properties
   I need properties on the Category object
 
 
-  @wip
   Scenario Outline: Category.idx
     Given a Category object having idx value <idx>
      Then category.idx is <idx>
