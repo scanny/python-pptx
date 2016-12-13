@@ -102,6 +102,13 @@ class Category(str):
             return self._idx
         return self._pt.idx
 
+    @property
+    def label(self):
+        """
+        Return the label of this category as a string.
+        """
+        return str(self)
+
 
 class CategoryLevel(Sequence):
     """

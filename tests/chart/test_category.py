@@ -143,6 +143,11 @@ class DescribeCategory(object):
         idx = category.idx
         assert idx == expected_value
 
+    def it_knows_its_label(self, label_fixture):
+        category, expected_value = label_fixture
+        label = category.label
+        assert label == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -163,6 +168,16 @@ class DescribeCategory(object):
         pt_cxml, idx, expected_value = request.param
         pt = None if pt_cxml is None else element(pt_cxml)
         category = Category(pt, idx)
+        return category, expected_value
+
+    @pytest.fixture(params=[
+        (None,                   ''),
+        ('c:pt{idx=9}/c:v"Bar"', 'Bar'),
+    ])
+    def label_fixture(self, request):
+        pt_cxml, expected_value = request.param
+        pt = None if pt_cxml is None else element(pt_cxml)
+        category = Category(pt)
         return category, expected_value
 
 

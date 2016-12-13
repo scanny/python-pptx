@@ -14,7 +14,6 @@ Feature: Category properties
       |  2  |
 
 
-  @wip
   Scenario Outline: Category.label
     Given a Category object having <label>
      Then category.label is <value>
