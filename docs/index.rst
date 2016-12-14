@@ -96,5 +96,4 @@ Contributor Guide
    dev/development_practices
    dev/philosophy
    dev/analysis/index
-   dev/design/index
    dev/resources/index
