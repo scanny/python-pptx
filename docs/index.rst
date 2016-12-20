@@ -74,6 +74,7 @@ API Documentation
    api/shapes
    api/placeholders
    api/table
+   api/chart-data
    api/chart
    api/text
    api/action

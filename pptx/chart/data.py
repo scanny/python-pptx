@@ -253,7 +253,12 @@ class _BaseDataPoint(object):
 
 class CategoryChartData(_BaseChartData):
     """
-    A ChartData object suitable for use with category charts, all those
+    Accumulates data specifying the categories and series values for a chart
+    and acts as a proxy for the chart data table that will be written to an
+    Excel worksheet. Used as a parameter in :meth:`shapes.add_chart` and
+    :meth:`Chart.replace_data`.
+
+    This object is suitable for use with category charts, i.e. all those
     having a discrete set of string values (categories) as the range of their
     independent axis (X-axis) values. Unlike the continuous ChartData types
     such as XyChartData, CategoryChartData has a single category sequence in
@@ -262,8 +267,8 @@ class CategoryChartData(_BaseChartData):
     """
     def add_category(self, name):
         """
-        Return a newly created |Category| object having *name* and appended
-        to the end of the category sequence for this chart.
+        Return a newly created |data.Category| object having *name* and
+        appended to the end of the category sequence for this chart.
         """
         return self.categories.add_category(name)
 
@@ -286,10 +291,10 @@ class CategoryChartData(_BaseChartData):
     @lazyproperty
     def categories(self):
         """
-        A |Categories| object providing access to the hierarchy of category
-        objects for this chart data. Assigning an iterable of category names
-        (strings) replaces the |Categories| object with a new one containing
-        a category for each name.
+        A |data.Categories| object providing access to the hierarchy of
+        category objects for this chart data. Assigning an iterable of
+        category labels (strings) replaces the |data.Categories| object with
+        a new one containing a category for each label.
         """
         return Categories()
 
@@ -326,8 +331,8 @@ class CategoryChartData(_BaseChartData):
 
 class Categories(Sequence):
     """
-    A sequence of |Category| objects, also having certain hierarchical graph
-    behaviors for support of multi-level (nested) categories.
+    A sequence of |data.Category| objects, also having certain hierarchical
+    graph behaviors for support of multi-level (nested) categories.
     """
     def __init__(self):
         super(Categories, self).__init__()
@@ -347,8 +352,8 @@ class Categories(Sequence):
 
     def add_category(self, name):
         """
-        Return a newly created |Category| object having *name* and appended
-        to the end of this category sequence.
+        Return a newly created |data.Category| object having *name* and
+        appended to the end of this category sequence.
         """
         category = Category(name, self)
         self._categories.append(category)
@@ -426,8 +431,8 @@ class Category(object):
 
     def add_sub_category(self, name):
         """
-        Return a newly created |Category| object having *name* and appended
-        to the end of the sub-category sequence for this category.
+        Return a newly created |data.Category| object having *name* and
+        appended to the end of the sub-category sequence for this category.
         """
         category = Category(name, self)
         self._sub_categories.append(category)
@@ -496,10 +501,10 @@ class Category(object):
 
 class ChartData(CategoryChartData):
     """
-    Accumulates data specifying the categories and series values for a plot
-    and acts as a proxy for the chart data table that will be written to an
-    Excel worksheet. Used as a parameter in :meth:`shapes.add_chart` and
-    :meth:`Chart.replace_data`.
+    |ChartData| is simply an alias for |CategoryChartData| and may be removed
+    in a future release. All new development should use |CategoryChartData|
+    for creating or replacing the data in chart types other than XY and
+    Bubble.
     """
 
 
@@ -522,8 +527,8 @@ class CategorySeriesData(_BaseSeriesData):
     @property
     def categories(self):
         """
-        The |Categories| object that provides access to the category objects
-        for this series.
+        The |data.Categories| object that provides access to the category
+        objects for this series.
         """
         return self._chart_data.categories
 

@@ -10,48 +10,6 @@ name, are provided by the graphic frame shape. The chart itself is accessed
 using the :attr:`chart` property on the graphic frame shape.
 
 
-|ChartData| objects
--------------------
-
-A |ChartData| object is used to specify the categories and series that
-together comprise the data depicted in a chart. It is used when creating
-a new chart and when replacing the data for an existing chart.
-
-.. autoclass:: pptx.chart.data.ChartData
-   :exclude-members: series, xlsx_blob, xml_bytes
-   :members:
-   :member-order: bysource
-   :undoc-members:
-
-.. autoclass:: pptx.chart.data.XyChartData
-   :members:
-   :member-order: bysource
-   :inherited-members:
-   :exclude-members:
-       count, data_point_offset, index, series_index, series_name_ref,
-       x_values_ref, xlsx_blob, xml_bytes, y_values_ref
-
-.. autoclass:: pptx.chart.data.BubbleChartData
-   :members:
-   :member-order: bysource
-   :inherited-members:
-   :exclude-members:
-       count, bubble_sizes_ref, data_point_offset, index, series_index,
-       series_name_ref, x_values_ref, xlsx_blob, xml_bytes, y_values_ref
-
-.. autoclass:: pptx.chart.data.XySeriesData
-   :members:
-   :member-order: bysource
-   :inherited-members:
-   :exclude-members: count, data_point_offset
-
-.. autoclass:: pptx.chart.data.BubbleSeriesData
-   :members:
-   :member-order: bysource
-   :inherited-members:
-   :exclude-members: count, data_point_offset
-
-
 |Chart| objects
 ---------------
 
@@ -170,6 +128,36 @@ both bar and column charts.
 The following properties are only present on bubble-type plots.
 
 .. autoclass:: pptx.chart.plot.BubblePlot()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|category.Categories| objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Category plots provide access to a |category.Categories| object with their
+`.categories` property.
+
+.. autoclass:: pptx.chart.category.Categories()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|category.Category| objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: pptx.chart.category.Category()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
+|CategoryLevel| objects
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: pptx.chart.category.CategoryLevel()
    :members:
    :member-order: bysource
    :undoc-members:

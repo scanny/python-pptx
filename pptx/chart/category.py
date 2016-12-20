@@ -1,11 +1,11 @@
 # encoding: utf-8
 
 """
-Category-related objects. The |Categories| object is returned by
-``Plot.categories`` and contains zero or more |Category| objects, each
-representing one of the category labels associated with the plot. Categories
-can be hierarchical, so there are members allowing discovery of the depth of
-that hierarchy and means to navigate it.
+Category-related objects. The |category.Categories| object is returned by
+``Plot.categories`` and contains zero or more |category.Category| objects,
+each representing one of the category labels associated with the plot.
+Categories can be hierarchical, so there are members allowing discovery of
+the depth of that hierarchy and providing means to navigate it.
 """
 
 from __future__ import (
@@ -17,8 +17,9 @@ from collections import Sequence
 
 class Categories(Sequence):
     """
-    A sequence of |Category| objects, each representing a category label on
-    the chart. Provides properties for dealing with hierarchical categories.
+    A sequence of |category.Category| objects, each representing a category
+    label on the chart. Provides properties for dealing with hierarchical
+    categories.
     """
     def __init__(self, xChart):
         super(Categories, self).__init__()
@@ -183,7 +184,7 @@ class Category(str):
 
 class CategoryLevel(Sequence):
     """
-    A sequence of |Category| objects representing a single level in
+    A sequence of |category.Category| objects representing a single level in
     a hierarchical category collection. This object is only used when the
     categories are hierarchical, meaning they have more than one level and
     higher level categories group those at lower levels.

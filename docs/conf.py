@@ -115,9 +115,15 @@ rst_epilog = """
 
 .. |BubbleSeriesData| replace:: :class:`.BubbleSeriesData`
 
-.. |Categories| replace:: :class:`.Categories`
+.. |category.Categories| replace:: :class:`~.category.Categories`
 
-.. |Category| replace:: :class:`.Category`
+.. |data.Categories| replace:: :class:`~.data.Categories`
+
+.. |category.Category| replace:: :class:`~.category.Category`
+
+.. |data.Category| replace:: :class:`~.data.Category`
+
+.. |CategoryChartData| replace:: :class:`.CategoryChartData`
 
 .. |CategoryLevel| replace:: :class:`.CategoryLevel`
 

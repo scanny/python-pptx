@@ -31,13 +31,14 @@ class _BasePlot(object):
     @lazyproperty
     def categories(self):
         """
-        Returns a |Categories| sequence object containing a |Category| object
-        for each of the category labels associated with this plot. The
-        |Category| class derives from ``str``, so the returned value can be
-        treated as a simple sequence of strings for the common case where all
-        you need is the labels in the order they appear on the chart.
-        |Categories| provides additional properties for dealing with
-        hierarchical categories when required.
+        Returns a |category.Categories| sequence object containing
+        a |category.Category| object for each of the category labels
+        associated with this plot. The |category.Category| class derives from
+        ``str``, so the returned value can be treated as a simple sequence of
+        strings for the common case where all you need is the labels in the
+        order they appear on the chart. |category.Categories| provides
+        additional properties for dealing with hierarchical categories when
+        required.
         """
         return Categories(self._element)
 
