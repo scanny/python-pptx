@@ -20,7 +20,7 @@ from pptx.chart.data import (
 )
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import (
-    XL_AXIS_CROSSES, XL_CHART_TYPE, XL_DATA_LABEL_POSITION,
+    XL_AXIS_CROSSES, XL_CATEGORY_TYPE, XL_CHART_TYPE, XL_DATA_LABEL_POSITION,
     XL_LEGEND_POSITION, XL_MARKER_STYLE
 )
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
@@ -481,6 +481,17 @@ def given_an_axis_having_major_or_minor_unit_of_value(
     context.axis = chart.value_axis
 
 
+@given('an axis of type {cls_name}')
+def given_an_axis_of_type_cls_name(context, cls_name):
+    slide_idx = {
+        'CategoryAxis': 0,
+        'DateAxis':     1,
+    }[cls_name]
+    prs = Presentation(test_pptx('cht-axis-props'))
+    chart = prs.slides[slide_idx].shapes[0].chart
+    context.axis = chart.category_axis
+
+
 @given('an axis not having {major_or_minor} gridlines')
 def given_an_axis_not_having_major_or_minor_gridlines(context, major_or_minor):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -863,6 +874,13 @@ def when_I_replace_its_data_with_3_series_of_three_points_each(context):
 def then_c_label_for_c_in_chart_data_categories_is_a_b_c(context):
     chart_data = context.chart_data
     assert [c.label for c in chart_data.categories] == ['a', 'b', 'c']
+
+
+@then('axis.category_type is XL_CATEGORY_TYPE.{member}')
+def then_axis_category_type_is_XL_CATEGORY_TYPE_member(context, member):
+    expected_value = getattr(XL_CATEGORY_TYPE, member)
+    category_type = context.axis.category_type
+    assert category_type is expected_value, 'got %s' % category_type
 
 
 @then('axis.format is a ChartFormat object')

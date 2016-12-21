@@ -24,6 +24,7 @@ can be found here:
    PpPlaceholderType
 
    XlAxisCrosses
+   XlCategoryType
    XlChartType
    XlDataLabelPosition
    XlLegendPosition

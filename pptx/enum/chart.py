@@ -47,6 +47,40 @@ class XL_AXIS_CROSSES(XmlEnumeration):
     )
 
 
+class XL_CATEGORY_TYPE(Enumeration):
+    """
+    Specifies the type of the category axis.
+
+    Example::
+
+        from pptx.enum.chart import XL_CATEGORY_TYPE
+
+        date_axis = chart.category_axis
+        assert date_axis.category_type == XL_CATEGORY_TYPE.TIME_SCALE
+    """
+
+    __ms_name__ = 'XlCategoryType'
+
+    __url__ = (
+        'https://msdn.microsoft.com/EN-US/library/office/ff746136.aspx'
+    )
+
+    __members__ = (
+        EnumMember(
+            'AUTOMATIC_SCALE', -4105, 'The application controls the axis '
+            'type.'
+        ),
+        EnumMember(
+            'CATEGORY_SCALE', 2, 'Axis groups data by an arbitrary set of '
+            'categories'
+        ),
+        EnumMember(
+            'TIME_SCALE', 3, 'Axis groups data on a time scale of days, '
+            'months, or years.'
+        ),
+    )
+
+
 class XL_CHART_TYPE(Enumeration):
     """
     Specifies the type of a chart.

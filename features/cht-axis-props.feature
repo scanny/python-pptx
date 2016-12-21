@@ -4,6 +4,17 @@ Feature: Axis properties
   I need read/write properties on Axis
 
 
+  @wip
+  Scenario Outline: Get Axis.category_type
+    Given an axis of type <axis-type>
+     Then axis.category_type is XL_CATEGORY_TYPE.<member>
+
+    Examples: axis category type cases
+      | axis-type    | member         |
+      | CategoryAxis | CATEGORY_SCALE |
+      | DateAxis     | TIME_SCALE     |
+
+
   Scenario Outline: Get value_axis.crosses
     Given a value axis having category axis crossing of <crossing>
      Then value_axis.crosses is <member>
