@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from collections import Sequence
 
-from .axis import CategoryAxis, ValueAxis
+from .axis import CategoryAxis, DateAxis, ValueAxis
 from .legend import Legend
 from .plot import PlotFactory, PlotTypeInspector
 from .series import SeriesCollection
@@ -35,6 +35,10 @@ class Chart(PartElementProxy):
         catAx_lst = self._chartSpace.catAx_lst
         if catAx_lst:
             return CategoryAxis(catAx_lst[0])
+
+        dateAx_lst = self._chartSpace.dateAx_lst
+        if dateAx_lst:
+            return DateAxis(dateAx_lst[0])
 
         valAx_lst = self._chartSpace.valAx_lst
         if valAx_lst:

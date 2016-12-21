@@ -79,6 +79,10 @@ class CT_ChartSpace(BaseOxmlElement):
         return self.chart.plotArea.catAx_lst
 
     @property
+    def dateAx_lst(self):
+        return self.xpath('c:chart/c:plotArea/c:dateAx')
+
+    @property
     def plotArea(self):
         """
         Return the required `c:chartSpace/c:chart/c:plotArea` grandchild

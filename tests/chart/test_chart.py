@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.chart.axis import CategoryAxis, ValueAxis
+from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
 from pptx.chart.chart import Chart, Legend, _Plots
 from pptx.chart.data import ChartData
 from pptx.chart.plot import _BasePlot
@@ -103,17 +103,20 @@ class DescribeChart(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        ('c:chartSpace/c:chart/c:plotArea/c:catAx', 'c:catAx'),
-        ('c:chartSpace/c:chart/c:plotArea/c:valAx', 'c:valAx'),
-    ])
-    def category_axis_fixture(self, request, CategoryAxis_, ValueAxis_):
-        chartSpace_cxml, ax_tag = request.param
+    @pytest.fixture(params=['c:catAx', 'c:dateAx', 'c:valAx'])
+    def category_axis_fixture(self, request, CategoryAxis_, DateAxis_,
+                              ValueAxis_):
+        ax_tag = request.param
+        chartSpace_cxml = 'c:chartSpace/c:chart/c:plotArea/%s' % ax_tag
         chartSpace = element(chartSpace_cxml)
         chart = Chart(chartSpace, None)
-        AxisCls_ = {'c:catAx': CategoryAxis_, 'c:valAx': ValueAxis_}[ax_tag]
+        AxisCls_ = {
+            'c:catAx':  CategoryAxis_,
+            'c:dateAx': DateAxis_,
+            'c:valAx':  ValueAxis_
+        }[ax_tag]
         axis_ = AxisCls_.return_value
-        xAx = chartSpace.xpath('./c:chart/c:plotArea/%s' % ax_tag)[0]
+        xAx = chartSpace.xpath('.//%s' % ax_tag)[0]
         return chart, axis_, AxisCls_, xAx
 
     @pytest.fixture
@@ -244,6 +247,16 @@ class DescribeChart(object):
     @pytest.fixture
     def chart_data_(self, request):
         return instance_mock(request, ChartData)
+
+    @pytest.fixture
+    def DateAxis_(self, request, date_axis_):
+        return class_mock(
+            request, 'pptx.chart.chart.DateAxis', return_value=date_axis_
+        )
+
+    @pytest.fixture
+    def date_axis_(self, request):
+        return instance_mock(request, DateAxis)
 
     @pytest.fixture
     def Legend_(self, request, legend_):

@@ -201,6 +201,14 @@ class CategoryAxis(_BaseAxis):
     """
 
 
+class DateAxis(_BaseAxis):
+    """
+    A category axis with dates as its category labels and having some special
+    display behaviors such as making length of equal periods equal and
+    normalizing month start dates despite unequal month lengths.
+    """
+
+
 class MajorGridlines(ElementProxy):
     """
     Provides access to the properties of the major gridlines appearing on an

@@ -42,7 +42,6 @@ Feature: Chart properties
       | Filled Radar             | RADAR_FILLED                 |
 
 
-  @wip
   Scenario Outline: Get Chart.category_axis
     Given a chart of type <chart-type>
      Then chart.category_axis is a <type-name> object
