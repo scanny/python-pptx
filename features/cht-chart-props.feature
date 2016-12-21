@@ -42,15 +42,17 @@ Feature: Chart properties
       | Filled Radar             | RADAR_FILLED                 |
 
 
+  @wip
   Scenario Outline: Get Chart.category_axis
     Given a chart of type <chart-type>
      Then chart.category_axis is a <type-name> object
 
     Examples: category axis object types
-      | chart-type   | type-name    |
-      | Stacked Bar  | CategoryAxis |
-      | XY (Scatter) | ValueAxis    |
-      | Bubble       | ValueAxis    |
+      | chart-type                  | type-name    |
+      | Stacked Bar                 | CategoryAxis |
+      | Line (with date categories) | DateAxis     |
+      | XY (Scatter)                | ValueAxis    |
+      | Bubble                      | ValueAxis    |
 
 
   Scenario Outline: Get Chart.value_axis

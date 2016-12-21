@@ -252,36 +252,37 @@ def given_a_chart_of_size_and_type_spec(context, spec):
 @given('a chart of type {chart_type}')
 def given_a_chart_of_type_chart_type(context, chart_type):
     slide_idx, shape_idx = {
-        'Area':                     (0, 0),
-        'Stacked Area':             (0, 1),
-        '100% Stacked Area':        (0, 2),
-        '3-D Area':                 (0, 3),
-        '3-D Stacked Area':         (0, 4),
-        '3-D 100% Stacked Area':    (0, 5),
-        'Clustered Bar':            (1, 0),
-        'Stacked Bar':              (1, 1),
-        '100% Stacked Bar':         (1, 2),
-        'Clustered Column':         (1, 3),
-        'Stacked Column':           (1, 4),
-        '100% Stacked Column':      (1, 5),
-        'Line':                     (2, 0),
-        'Stacked Line':             (2, 1),
-        '100% Stacked Line':        (2, 2),
-        'Marked Line':              (2, 3),
-        'Stacked Marked Line':      (2, 4),
-        '100% Stacked Marked Line': (2, 5),
-        'Pie':                      (3, 0),
-        'Exploded Pie':             (3, 1),
-        'XY (Scatter)':             (4, 0),
-        'XY Lines':                 (4, 1),
-        'XY Lines No Markers':      (4, 2),
-        'XY Smooth Lines':          (4, 3),
-        'XY Smooth No Markers':     (4, 4),
-        'Bubble':                   (5, 0),
-        '3D-Bubble':                (5, 1),
-        'Radar':                    (6, 0),
-        'Marked Radar':             (6, 1),
-        'Filled Radar':             (6, 2),
+        'Area':                        (0, 0),
+        'Stacked Area':                (0, 1),
+        '100% Stacked Area':           (0, 2),
+        '3-D Area':                    (0, 3),
+        '3-D Stacked Area':            (0, 4),
+        '3-D 100% Stacked Area':       (0, 5),
+        'Clustered Bar':               (1, 0),
+        'Stacked Bar':                 (1, 1),
+        '100% Stacked Bar':            (1, 2),
+        'Clustered Column':            (1, 3),
+        'Stacked Column':              (1, 4),
+        '100% Stacked Column':         (1, 5),
+        'Line':                        (2, 0),
+        'Stacked Line':                (2, 1),
+        '100% Stacked Line':           (2, 2),
+        'Marked Line':                 (2, 3),
+        'Stacked Marked Line':         (2, 4),
+        '100% Stacked Marked Line':    (2, 5),
+        'Pie':                         (3, 0),
+        'Exploded Pie':                (3, 1),
+        'XY (Scatter)':                (4, 0),
+        'XY Lines':                    (4, 1),
+        'XY Lines No Markers':         (4, 2),
+        'XY Smooth Lines':             (4, 3),
+        'XY Smooth No Markers':        (4, 4),
+        'Bubble':                      (5, 0),
+        '3D-Bubble':                   (5, 1),
+        'Radar':                       (6, 0),
+        'Marked Radar':                (6, 1),
+        'Filled Radar':                (6, 2),
+        'Line (with date categories)': (7, 0),
     }[chart_type]
     prs = Presentation(test_pptx('cht-chart-type'))
     context.chart = prs.slides[slide_idx].shapes[shape_idx].chart
@@ -988,10 +989,11 @@ def then_category_sub_categories_minus_1_is_the_new_category(context):
     assert category.sub_categories[-1] is sub_category
 
 
-@then('chart.category_axis is a {type_name} object')
-def then_chart_category_axis_is_an_axis_type_object(context, type_name):
+@then('chart.category_axis is a {cls_name} object')
+def then_chart_category_axis_is_a_cls_name_object(context, cls_name):
     category_axis = context.chart.category_axis
-    assert type(category_axis).__name__ == type_name
+    type_name = type(category_axis).__name__
+    assert type_name == cls_name, 'got %s' % type_name
 
 
 @then('chart.chart_type is {enum_member}')
