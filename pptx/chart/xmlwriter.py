@@ -1330,12 +1330,12 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
         xml = ''
         for idx, category in enumerate(self._series.categories):
             xml += (
-                '                <c:pt idx="{cat_name_idx}">\n'
-                '                  <c:v>{cat_name}</c:v>\n'
+                '                <c:pt idx="{cat_idx}">\n'
+                '                  <c:v>{cat_label}</c:v>\n'
                 '                </c:pt>\n'
             ).format(**{
-                'cat_name_idx': idx,
-                'cat_name':     escape(str(category.name)),
+                'cat_idx':   idx,
+                'cat_label': escape(str(category.label)),
             })
         return xml
 

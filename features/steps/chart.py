@@ -858,10 +858,10 @@ def when_I_replace_its_data_with_3_series_of_three_points_each(context):
 
 # then ====================================================
 
-@then("[c.name for c in chart_data.categories] is ['a', 'b', 'c']")
-def then_c_name_for_c_in_chart_data_categories_is_a_b_c(context):
+@then("[c.label for c in chart_data.categories] is ['a', 'b', 'c']")
+def then_c_label_for_c_in_chart_data_categories_is_a_b_c(context):
     chart_data = context.chart_data
-    assert [c.name for c in chart_data.categories] == ['a', 'b', 'c']
+    assert [c.label for c in chart_data.categories] == ['a', 'b', 'c']
 
 
 @then('axis.format is a ChartFormat object')

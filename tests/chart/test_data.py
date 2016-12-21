@@ -361,9 +361,9 @@ class DescribeCategories(object):
         categories = Categories()
 
         def iter_cats(cat_tree):
-            for idx, cat_name, sub_cats in cat_tree:
+            for idx, cat_label, sub_cats in cat_tree:
                 category_ = instance_mock(request, Category, idx=idx)
-                category_.name = cat_name
+                category_.label = cat_label
                 category_.sub_categories = list(iter_cats(sub_cats))
                 yield category_
 
@@ -420,9 +420,9 @@ class DescribeCategory(object):
         with pytest.raises(ValueError):
             category.depth
 
-    def it_knows_its_name(self, name_fixture):
-        category, expected_value = name_fixture
-        assert category.name == expected_value
+    def it_knows_its_label(self, label_fixture):
+        category, expected_value = label_fixture
+        assert category.label == expected_value
 
     def it_provides_access_to_its_sub_categories(self, subs_fixture):
         category, sub_categories_ = subs_fixture
@@ -492,6 +492,12 @@ class DescribeCategory(object):
         category._sub_categories = sub_categories_
         return category, sub_category_, expected_value
 
+    @pytest.fixture
+    def label_fixture(self):
+        label = 'foobar'
+        category = Category(label, None)
+        return category, label
+
     @pytest.fixture(params=[
         ((),        1),
         ((1,),      1),
@@ -505,12 +511,6 @@ class DescribeCategory(object):
                 instance_mock(request, Category, leaf_count=leaf_count)
             )
         return category, expected_value
-
-    @pytest.fixture
-    def name_fixture(self):
-        name = 'foobar'
-        category = Category(name, None)
-        return category, name
 
     @pytest.fixture
     def subs_fixture(self):

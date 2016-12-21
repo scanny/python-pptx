@@ -17,24 +17,25 @@ require a distinct chart data object.
 
 .. autoclass:: pptx.chart.data.CategoryChartData
    :members:
+   :member-order: bysource
    :inherited-members:
    :exclude-members:
        append, categories_ref, count, data_point_offset, index, series_index,
        series_name_ref, x_values_ref, xlsx_blob, xml_bytes, y_values_ref
-   :member-order: bysource
    :undoc-members:
 
 .. autoclass:: pptx.chart.data.Categories
    :members:
-   :inherited-members:
    :member-order: bysource
+   :inherited-members:
+   :exclude-members: count
    :undoc-members:
 
 .. autoclass:: pptx.chart.data.Category
    :members:
+   :member-order: bysource
    :inherited-members:
    :exclude-members: depth, idx, index, leaf_count
-   :member-order: bysource
    :undoc-members:
 
 .. autoclass:: pptx.chart.data.XyChartData
@@ -57,11 +58,13 @@ require a distinct chart data object.
    :members:
    :member-order: bysource
    :inherited-members:
-   :exclude-members: count, data_point_offset
+   :exclude-members:
+       count, data_point_offset, name_ref, x_values_ref, y_values_ref
 
 .. autoclass:: pptx.chart.data.BubbleSeriesData
    :members:
    :member-order: bysource
    :inherited-members:
-   :exclude-members: count, data_point_offset
+   :exclude-members:
+       count, bubble_sizes_ref, name_ref, x_values_ref, y_values_ref
 

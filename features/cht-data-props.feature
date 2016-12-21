@@ -12,7 +12,7 @@ Feature: chart_data properties
   Scenario: CategoryChartData.categories setter
     Given a CategoryChartData object
      When I assign ['a', 'b', 'c'] to chart_data.categories
-     Then [c.name for c in chart_data.categories] is ['a', 'b', 'c']
+     Then [c.label for c in chart_data.categories] is ['a', 'b', 'c']
 
 
   Scenario: CategoryChartData.add_category()

@@ -259,18 +259,23 @@ class CategoryChartData(_BaseChartData):
     :meth:`Chart.replace_data`.
 
     This object is suitable for use with category charts, i.e. all those
-    having a discrete set of string values (categories) as the range of their
-    independent axis (X-axis) values. Unlike the continuous ChartData types
-    such as XyChartData, CategoryChartData has a single category sequence in
-    lieu of X values for each data point and its data points have only the
-    Y value.
+    having a discrete set of label values (categories) as the range of their
+    independent variable (X-axis) values. Unlike the ChartData types for
+    charts supporting a continuous range of independent variable values (such
+    as XyChartData), CategoryChartData has a single collection of category
+    (X) values and each data point in its series specifies only the Y value.
+    The corresponding X value is inferred by its position in the sequence.
     """
-    def add_category(self, name):
+    def add_category(self, label):
         """
-        Return a newly created |data.Category| object having *name* and
-        appended to the end of the category sequence for this chart.
+        Return a newly created |data.Category| object having *label* and
+        appended to the end of the category collection for this chart.
+        *label* can be a string, a number, a datetime.date, or
+        datetime.datetime object. All category labels in a chart must be the
+        same type. All category labels in a chart having multi-level
+        categories must be strings.
         """
-        return self.categories.add_category(name)
+        return self.categories.add_category(label)
 
     def add_series(self, name, values=(), number_format=None):
         """
@@ -293,16 +298,17 @@ class CategoryChartData(_BaseChartData):
         """
         A |data.Categories| object providing access to the hierarchy of
         category objects for this chart data. Assigning an iterable of
-        category labels (strings) replaces the |data.Categories| object with
-        a new one containing a category for each label.
+        category labels (strings, numbers, or dates) replaces the
+        |data.Categories| object with a new one containing a category for
+        each label in the sequence.
         """
         return Categories()
 
     @categories.setter
-    def categories(self, category_names):
+    def categories(self, category_labels):
         categories = Categories()
-        for name in category_names:
-            categories.add_category(name)
+        for label in category_labels:
+            categories.add_category(label)
         self._categories = categories
 
     @property
@@ -350,12 +356,15 @@ class Categories(Sequence):
         """
         return self._categories.__len__()
 
-    def add_category(self, name):
+    def add_category(self, label):
         """
-        Return a newly created |data.Category| object having *name* and
-        appended to the end of this category sequence.
+        Return a newly created |data.Category| object having *label* and
+        appended to the end of this category sequence. *label* can be
+        a string, a number, a datetime.date, or datetime.datetime object. All
+        category labels in a chart must be the same type. All category labels
+        in a chart having multi-level categories must be strings.
         """
-        category = Category(name, self)
+        category = Category(label, self)
         self._categories.append(category)
         return category
 
@@ -398,7 +407,7 @@ class Categories(Sequence):
     @property
     def levels(self):
         """
-        A generator of (idx, name) sequences representing the category
+        A generator of (idx, label) sequences representing the category
         hierarchy from the bottom up. The first level contains all leaf
         categories, and each subsequent is the next level up.
         """
@@ -411,7 +420,7 @@ class Categories(Sequence):
                 for level in levels(sub_categories):
                     yield level
             # yield this level
-            yield [(cat.idx, cat.name) for cat in categories]
+            yield [(cat.idx, cat.label) for cat in categories]
 
         for level in levels(self):
             yield level
@@ -419,22 +428,22 @@ class Categories(Sequence):
 
 class Category(object):
     """
-    A chart category, primarily having a name to be displayed in the category
-    axis, but also able to be configured in a hierarchy for support of
-    multi-level category charts.
+    A chart category, primarily having a label to be displayed on the
+    category axis, but also able to be configured in a hierarchy for support
+    of multi-level category charts.
     """
-    def __init__(self, name, parent):
+    def __init__(self, label, parent):
         super(Category, self).__init__()
-        self._name = name
+        self._label = label
         self._parent = parent
         self._sub_categories = []
 
-    def add_sub_category(self, name):
+    def add_sub_category(self, label):
         """
-        Return a newly created |data.Category| object having *name* and
+        Return a newly created |data.Category| object having *label* and
         appended to the end of the sub-category sequence for this category.
         """
-        category = Category(name, self)
+        category = Category(label, self)
         self._sub_categories.append(category)
         return category
 
@@ -485,11 +494,13 @@ class Category(object):
         return sum(category.leaf_count for category in self._sub_categories)
 
     @property
-    def name(self):
+    def label(self):
         """
-        The string that appears on the axis for this category.
+        The value that appears on the axis for this category. The label can
+        be a string, a number, or a datetime.date or datetime.datetime
+        object.
         """
-        return self._name
+        return self._label
 
     @property
     def sub_categories(self):
