@@ -43,13 +43,34 @@ specified via the API.
 
 A chart typically has two axes, a category axis and a value axis. In general,
 one of these is horizontal and the other is vertical, where which is which
-depends on the chart type. Perhaps the most prominent exception is a pie
-chart, which has neither a category or value axis.
+depends on the chart type. For example, the category axis is horizontal on
+a column chart, but vertical on a bar chart.
+
+A chart where the independent variable is in a continuous (numeric) range,
+such as an XY/scatter chart, does not have a category axis. Rather it has two
+value axes.
+
+A category is perhaps most commonly a string label, such as ``'East'`` or
+``'Revenue'``; however a category can also be a number or a date (although
+all categories in a chart must be the same type).
+
+When a chart's categories are dates, the category axis is generally, but not
+necessarily a |DateAxis| object.
+
+A Chart may have zero to four axes. A pie chart, for example, has neither
+a category nor a value axis.
 
 .. autoclass:: pptx.chart.axis._BaseAxis()
    :members:
    :member-order: bysource
-   :undoc-members:
+
+.. autoclass:: pptx.chart.axis.CategoryAxis()
+   :members:
+   :member-order: bysource
+
+.. autoclass:: pptx.chart.axis.DateAxis()
+   :members:
+   :member-order: bysource
 
 
 Value Axes

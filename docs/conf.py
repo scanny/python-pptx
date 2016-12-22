@@ -123,6 +123,8 @@ rst_epilog = """
 
 .. |data.Category| replace:: :class:`~.data.Category`
 
+.. |CategoryAxis| replace:: :class:`.CategoryAxis`
+
 .. |CategoryChartData| replace:: :class:`.CategoryChartData`
 
 .. |CategoryLevel| replace:: :class:`.CategoryLevel`
@@ -154,6 +156,8 @@ rst_epilog = """
 .. |DataLabel| replace:: :class:`.DataLabel`
 
 .. |DataLabels| replace:: :class:`.DataLabels`
+
+.. |DateAxis| replace:: :class:`.DateAxis`
 
 .. |datetime| replace:: :class:`datetime.datetime`
 
