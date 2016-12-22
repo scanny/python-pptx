@@ -8,10 +8,13 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pptx.chart.axis import _BaseAxis, MajorGridlines, TickLabels, ValueAxis
+from pptx.chart.axis import (
+    _BaseAxis, CategoryAxis, MajorGridlines, TickLabels, ValueAxis
+)
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import (
-    XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
+    XL_AXIS_CROSSES, XL_CATEGORY_TYPE,
+    XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS, XL_TICK_MARK
 )
 from pptx.text.text import Font
 
@@ -391,6 +394,21 @@ class Describe_BaseAxis(object):
     @pytest.fixture
     def tick_labels_(self, request):
         return instance_mock(request, TickLabels)
+
+
+class DescribeCategoryAxis(object):
+
+    def it_knows_its_category_type(self, cat_type_get_fixture):
+        category_axis, expected_value = cat_type_get_fixture
+        assert category_axis.category_type is expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def cat_type_get_fixture(self):
+        category_axis = CategoryAxis(None)
+        expected_value = XL_CATEGORY_TYPE.CATEGORY_SCALE
+        return category_axis, expected_value
 
 
 class DescribeMajorGridlines(object):

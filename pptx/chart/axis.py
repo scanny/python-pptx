@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from ..dml.chtfmt import ChartFormat
 from ..enum.chart import (
-    XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION, XL_TICK_MARK
+    XL_AXIS_CROSSES, XL_CATEGORY_TYPE, XL_TICK_LABEL_POSITION, XL_TICK_MARK
 )
 from ..oxml.ns import qn
 from ..shared import ElementProxy
@@ -199,6 +199,13 @@ class CategoryAxis(_BaseAxis):
     """
     A category axis of a chart.
     """
+    @property
+    def category_type(self):
+        """
+        A member of :ref:`XlCategoryType` specifying the scale type of this
+        axis. Unconditionally ``CATEGORY_SCALE`` for a |CategoryAxis| object.
+        """
+        return XL_CATEGORY_TYPE.CATEGORY_SCALE
 
 
 class DateAxis(_BaseAxis):
