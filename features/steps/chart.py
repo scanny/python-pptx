@@ -485,7 +485,7 @@ def given_an_axis_having_major_or_minor_unit_of_value(
 def given_an_axis_of_type_cls_name(context, cls_name):
     slide_idx = {
         'CategoryAxis': 0,
-        'DateAxis':     1,
+        'DateAxis':     6,
     }[cls_name]
     prs = Presentation(test_pptx('cht-axis-props'))
     chart = prs.slides[slide_idx].shapes[0].chart

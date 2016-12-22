@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import (
-    _BaseAxis, CategoryAxis, MajorGridlines, TickLabels, ValueAxis
+    _BaseAxis, CategoryAxis, DateAxis, MajorGridlines, TickLabels, ValueAxis
 )
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import (
@@ -409,6 +409,21 @@ class DescribeCategoryAxis(object):
         category_axis = CategoryAxis(None)
         expected_value = XL_CATEGORY_TYPE.CATEGORY_SCALE
         return category_axis, expected_value
+
+
+class DescribeDateAxis(object):
+
+    def it_knows_its_category_type(self, cat_type_get_fixture):
+        date_axis, expected_value = cat_type_get_fixture
+        assert date_axis.category_type is expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def cat_type_get_fixture(self):
+        date_axis = DateAxis(None)
+        expected_value = XL_CATEGORY_TYPE.TIME_SCALE
+        return date_axis, expected_value
 
 
 class DescribeMajorGridlines(object):

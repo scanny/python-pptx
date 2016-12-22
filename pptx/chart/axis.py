@@ -214,6 +214,13 @@ class DateAxis(_BaseAxis):
     display behaviors such as making length of equal periods equal and
     normalizing month start dates despite unequal month lengths.
     """
+    @property
+    def category_type(self):
+        """
+        A member of :ref:`XlCategoryType` specifying the scale type of this
+        axis. Unconditionally ``TIME_SCALE`` for a |DateAxis| object.
+        """
+        return XL_CATEGORY_TYPE.TIME_SCALE
 
 
 class MajorGridlines(ElementProxy):

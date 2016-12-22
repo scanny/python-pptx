@@ -4,7 +4,6 @@ Feature: Axis properties
   I need read/write properties on Axis
 
 
-  @wip
   Scenario Outline: Get Axis.category_type
     Given an axis of type <axis-type>
      Then axis.category_type is XL_CATEGORY_TYPE.<member>
