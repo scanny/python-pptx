@@ -6,8 +6,9 @@ Test suite for pptx.chart.data module
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-import pytest
+from datetime import date
 
+import pytest
 
 from pptx.chart.data import (
     _BaseChartData, _BaseDataPoint, _BaseSeriesData, BubbleChartData,
@@ -269,6 +270,10 @@ class DescribeCategoryChartData(object):
 
 class DescribeCategories(object):
 
+    def it_knows_when_its_categories_are_numeric(self, are_numeric_fixture):
+        categories, expected_value = are_numeric_fixture
+        assert categories.are_numeric == expected_value
+
     def it_knows_the_category_hierarchy_depth(self, depth_fixture):
         categories, expected_value = depth_fixture
         assert categories.depth == expected_value
@@ -304,6 +309,20 @@ class DescribeCategories(object):
         categories = Categories()
         name = 'foobar'
         return categories, name, Category_, category_
+
+    @pytest.fixture(params=[
+        ((),                    False),
+        (('foo', 'bar'),        False),
+        ((1, 2),                True),
+        ((1.2, 2.3),            True),
+        ((date(2016, 12, 21),), True),
+    ])
+    def are_numeric_fixture(self, request):
+        labels, expected_value = request.param
+        categories = Categories()
+        for label in labels:
+            categories.add_category(label)
+        return categories, expected_value
 
     @pytest.fixture(params=[
         ((),        0),

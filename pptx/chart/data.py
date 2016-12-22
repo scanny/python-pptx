@@ -6,6 +6,7 @@ ChartData and related objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+import datetime
 from collections import Sequence
 
 from ..util import lazyproperty
@@ -367,6 +368,29 @@ class Categories(Sequence):
         category = Category(label, self)
         self._categories.append(category)
         return category
+
+    @property
+    def are_numeric(self):
+        """
+        Return |True| if the first category in this collection has a numeric
+        label (as opposed to a string label), including if that value is
+        a datetime.date or datetime.datetime object (as those are converted
+        to integers for storage in Excel). Returns |False| otherwise,
+        including when this category collection is empty. It also returns
+        False when this category collection is hierarchical, because
+        hierarchical categories can only be written as string labels.
+        """
+        if self.depth != 1:
+            return False
+        # This method only tests the first category. The categories must
+        # be of uniform type, and if they're not, there will be problems
+        # later in the process, but it's not this method's job to validate
+        # the caller's input.
+        first_cat_label = self[0].label
+        numeric_types = (float, datetime.date, int, datetime.datetime)
+        if isinstance(first_cat_label, numeric_types):
+            return True
+        return False
 
     @property
     def depth(self):
