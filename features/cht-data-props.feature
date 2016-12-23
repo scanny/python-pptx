@@ -91,3 +91,18 @@ Feature: chart_data properties
       | 42     | None   | 24    | 42      | 42      | 24      |
       | 42     | 24     | None  | 42      | 24      | 24      |
       | 42     | 24     | 12    | 42      | 24      | 12      |
+
+
+  @wip
+  Scenario Outline: Get Categories.number format
+    Given a Categories object with number format <initial-nf>
+      And the categories are of type <cat-type>
+     Then categories.number_format is <value>
+
+    Examples: number format inheritance states
+      | initial-nf      | cat-type | value        |
+      | left as default | str      | General      |
+      | left as default | int      | General      |
+      | left as default | date     | yyyy\-mm-\dd |
+      | mmm-dd          | date     | mmm-dd       |
+      | 0.0             | float    | 0.0          |

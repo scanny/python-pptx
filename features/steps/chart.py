@@ -6,6 +6,7 @@ Gherkin step implementations for chart features.
 
 from __future__ import absolute_import, print_function
 
+import datetime
 import hashlib
 
 from ast import literal_eval
@@ -166,6 +167,14 @@ def given_a_Categories_obj_having_leafs_and_levels(context, leafs, levels):
     }[(int(leafs), int(levels))]
     slide = Presentation(test_pptx('cht-category-access')).slides[slide_idx]
     context.categories = slide.shapes[0].chart.plots[0].categories
+
+
+@given('a Categories object with number format {init_nf}')
+def given_a_Categories_object_with_number_format_init_nf(context, init_nf):
+    categories = CategoryChartData().categories
+    if init_nf != 'left as default':
+        categories.number_format = init_nf
+    context.categories = categories
 
 
 @given('a Category object')
@@ -517,6 +526,17 @@ def given_bar_chart_data_labels_positioned_relation_to_their_data_point(
     prs = Presentation(test_pptx('cht-datalabels-props'))
     chart = prs.slides[slide_idx].shapes[0].chart
     context.data_labels = chart.plots[0].data_labels
+
+
+@given('the categories are of type {type_}')
+def given_the_categories_are_of_type(context, type_):
+    label = {
+        'date':  datetime.date(2016, 12, 22),
+        'float': 42.24,
+        'int':   42,
+        'str':   'foobar',
+    }[type_]
+    context.categories.add_category(label)
 
 
 @given('tick labels having an offset of {setting}')
@@ -972,6 +992,13 @@ def then_categories_levels_contains_count_CategoryLevel_objs(context, count):
         type_name = type(category_level).__name__
         assert type_name == 'CategoryLevel', 'got %s' % type_name
     assert idx == expected_idx, 'got %s' % idx
+
+
+@then('categories.number_format is {value}')
+def then_categories_number_format_is_value(context, value):
+    expected_value = value
+    number_format = context.categories.number_format
+    assert number_format == expected_value, 'got %s' % expected_value
 
 
 @then('category.add_sub_category(name) is a Category object')
