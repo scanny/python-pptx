@@ -6,7 +6,7 @@ Test suite for pptx.chart.data module
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 
@@ -509,6 +509,11 @@ class DescribeCategory(object):
         assert category._sub_categories[-1] is sub_category
         assert sub_category is sub_category_
 
+    def it_calculates_an_excel_date_number_to_help(self, excel_date_fixture):
+        category, date_1904, expected_value = excel_date_fixture
+        date_number = category._excel_date_number(date_1904)
+        assert date_number == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -543,6 +548,17 @@ class DescribeCategory(object):
                 instance_mock(request, Category, depth=depth)
             )
         return category
+
+    @pytest.fixture(params=[
+        (date(2016, 12, 22),    False, 42726),
+        (date(1999, 12, 31),    True,  35063),
+        (datetime(1900, 2, 28), False,    59),
+        (datetime(1990, 9, 1),  True,  31655),
+    ])
+    def excel_date_fixture(self, request):
+        label, date_1904, expected_value = request.param
+        category = Category(label, None)
+        return category, date_1904, expected_value
 
     @pytest.fixture(params=[Categories, Category])
     def idx_fixture(self, request):

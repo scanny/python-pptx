@@ -583,6 +583,25 @@ class Category(object):
         """
         return self._sub_categories
 
+    def _excel_date_number(self, date_1904):
+        """
+        Return an integer representing the date label of this category as the
+        number of days since January 1, 1900 (or 1904 if date_1904 is
+        |True|).
+        """
+        date, label = datetime.date, self._label
+        # -- get date from label in type-independent-ish way
+        date_ = date(label.year, label.month, label.day)
+        epoch = date(1904, 1, 1) if date_1904 else date(1899, 12, 31)
+        delta = date_ - epoch
+        excel_day_number = delta.days
+
+        # -- adjust for Excel mistaking 1900 for a leap year --
+        if not date_1904 and excel_day_number > 59:
+            excel_day_number += 1
+
+        return excel_day_number
+
 
 class ChartData(CategoryChartData):
     """
