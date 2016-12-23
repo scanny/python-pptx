@@ -998,7 +998,7 @@ def then_categories_levels_contains_count_CategoryLevel_objs(context, count):
 def then_categories_number_format_is_value(context, value):
     expected_value = value
     number_format = context.categories.number_format
-    assert number_format == expected_value, 'got %s' % expected_value
+    assert number_format == expected_value, 'got %s' % number_format
 
 
 @then('category.add_sub_category(name) is a Category object')

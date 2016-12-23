@@ -344,6 +344,7 @@ class Categories(Sequence):
     def __init__(self):
         super(Categories, self).__init__()
         self._categories = []
+        self._number_format = None
 
     def __getitem__(self, idx):
         return self._categories.__getitem__(idx)
@@ -466,6 +467,32 @@ class Categories(Sequence):
 
         for level in levels(self):
             yield level
+
+    @property
+    def number_format(self):
+        """
+        Return a string representing the number format used in Excel to
+        format these category values, e.g. '0.0' or 'mm/dd/yyyy'. This string
+        is only relevant when the categories are numeric or date type,
+        although it returns 'General' without error when the categories are
+        string labels.
+        """
+        GENERAL = 'General'
+
+        # defined value takes precedence
+        if self._number_format is not None:
+            return self._number_format
+
+        # multi-level (should) always be string labels
+        # zero depth means empty in which case we can't tell anyway
+        if self.depth != 1:
+            return GENERAL
+
+        # everything except dates gets 'General'
+        first_cat_label = self[0].label
+        if isinstance(first_cat_label, (datetime.date, datetime.datetime)):
+            return 'yyyy\-mm\-dd'
+        return GENERAL
 
 
 class Category(object):

@@ -103,6 +103,6 @@ Feature: chart_data properties
       | initial-nf      | cat-type | value        |
       | left as default | str      | General      |
       | left as default | int      | General      |
-      | left as default | date     | yyyy\-mm-\dd |
+      | left as default | date     | yyyy\-mm\-dd |
       | mmm-dd          | date     | mmm-dd       |
       | 0.0             | float    | 0.0          |

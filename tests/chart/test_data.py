@@ -294,6 +294,10 @@ class DescribeCategories(object):
         categories, expected_value = levels_fixture
         assert list(categories.levels) == expected_value
 
+    def it_knows_its_number_format(self, number_format_get_fixture):
+        categories, expected_value = number_format_get_fixture
+        assert categories.number_format == expected_value
+
     def it_raises_on_category_depth_not_uniform(self, depth_raises_fixture):
         categories = depth_raises_fixture
         with pytest.raises(ValueError):
@@ -359,6 +363,15 @@ class DescribeCategories(object):
         return categories, expected_value
 
     @pytest.fixture
+    def depth_raises_fixture(self, request):
+        categories = Categories()
+        for depth in (1, 2, 1):
+            categories._categories.append(
+                instance_mock(request, Category, depth=depth)
+            )
+        return categories
+
+    @pytest.fixture
     def index_fixture(self, request):
         categories = Categories()
         categories_ = [
@@ -408,14 +421,24 @@ class DescribeCategories(object):
 
         return categories, expected_value
 
-    @pytest.fixture
-    def depth_raises_fixture(self, request):
+    @pytest.fixture(params=[
+        (None, None,                None,  'General'),
+        (None, 'foo',               None,  'General'),
+        (None, 'foo',               'bar', 'General'),
+        (None, date(2016, 12, 22),  None,  'yyyy\-mm\-dd'),
+        (None, date(2016, 12, 22),  'foo', 'General'),
+        ('#0', 42.24,               None,  '#0'),
+    ])
+    def number_format_get_fixture(self, request):
+        number_format, cat, subcat, expected_value = request.param
         categories = Categories()
-        for depth in (1, 2, 1):
-            categories._categories.append(
-                instance_mock(request, Category, depth=depth)
-            )
-        return categories
+        if cat is not None:
+            category = categories.add_category(cat)
+            if subcat is not None:
+                category.add_sub_category(subcat)
+        if number_format is not None:
+            categories._number_format = number_format
+        return categories, expected_value
 
     # fixture components ---------------------------------------------
 
