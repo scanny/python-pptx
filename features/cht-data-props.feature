@@ -93,7 +93,6 @@ Feature: chart_data properties
       | 42     | 24     | 12    | 42      | 24      | 12      |
 
 
-  @wip
   Scenario Outline: Get Categories.number format
     Given a Categories object with number format <initial-nf>
       And the categories are of type <cat-type>

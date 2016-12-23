@@ -298,6 +298,11 @@ class DescribeCategories(object):
         categories, expected_value = number_format_get_fixture
         assert categories.number_format == expected_value
 
+    def it_can_change_its_number_format(self, number_format_set_fixture):
+        categories, new_value, expected_value = number_format_set_fixture
+        categories.number_format = new_value
+        assert categories.number_format == expected_value
+
     def it_raises_on_category_depth_not_uniform(self, depth_raises_fixture):
         categories = depth_raises_fixture
         with pytest.raises(ValueError):
@@ -439,6 +444,15 @@ class DescribeCategories(object):
         if number_format is not None:
             categories._number_format = number_format
         return categories, expected_value
+
+    @pytest.fixture(params=[
+        ('0.0', '0.0'),
+        (None,  'General'),
+    ])
+    def number_format_set_fixture(self, request):
+        new_value, expected_value = request.param
+        categories = Categories()
+        return categories, new_value, expected_value
 
     # fixture components ---------------------------------------------
 

@@ -471,11 +471,12 @@ class Categories(Sequence):
     @property
     def number_format(self):
         """
-        Return a string representing the number format used in Excel to
-        format these category values, e.g. '0.0' or 'mm/dd/yyyy'. This string
-        is only relevant when the categories are numeric or date type,
-        although it returns 'General' without error when the categories are
-        string labels.
+        Read/write. Return a string representing the number format used in
+        Excel to format these category values, e.g. '0.0' or 'mm/dd/yyyy'.
+        This string is only relevant when the categories are numeric or date
+        type, although it returns 'General' without error when the categories
+        are string labels. Assigning |None| causes the default number format
+        to be used, based on the type of the category labels.
         """
         GENERAL = 'General'
 
@@ -493,6 +494,10 @@ class Categories(Sequence):
         if isinstance(first_cat_label, (datetime.date, datetime.datetime)):
             return 'yyyy\-mm\-dd'
         return GENERAL
+
+    @number_format.setter
+    def number_format(self, value):
+        self._number_format = value
 
 
 class Category(object):
