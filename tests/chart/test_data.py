@@ -498,6 +498,10 @@ class DescribeCategory(object):
         category, expected_value = label_fixture
         assert category.label == expected_value
 
+    def it_knows_its_numeric_string_value(self, num_str_fixture):
+        category, date_1904, expected_value = num_str_fixture
+        assert category.numeric_str_val(date_1904) == expected_value
+
     def it_provides_access_to_its_sub_categories(self, subs_fixture):
         category, sub_categories_ = subs_fixture
         assert category.sub_categories is sub_categories_
@@ -601,6 +605,17 @@ class DescribeCategory(object):
                 instance_mock(request, Category, leaf_count=leaf_count)
             )
         return category, expected_value
+
+    @pytest.fixture(params=[
+        (date(2016, 12, 23), False, '42727.0'),
+        (42.24,              False, '42.24'),
+        (42,                 False, '42'),
+        ('foobar',           False, 'foobar'),
+    ])
+    def num_str_fixture(self, request):
+        label, date_1904, expected_value = request.param
+        category = Category(label, None)
+        return category, date_1904, expected_value
 
     @pytest.fixture
     def subs_fixture(self):

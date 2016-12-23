@@ -576,6 +576,18 @@ class Category(object):
         """
         return self._label
 
+    def numeric_str_val(self, date_1904=False):
+        """
+        The string representation of the numeric (or date) label of this
+        category, suitable for use in the XML `c:pt` element for this
+        category. The optional *date_1904* parameter specifies the epoch used
+        for calculating Excel date numbers.
+        """
+        label = self._label
+        if isinstance(label, (datetime.date, datetime.datetime)):
+            return '%.1f' % self._excel_date_number(date_1904)
+        return str(self._label)
+
     @property
     def sub_categories(self):
         """
