@@ -6,6 +6,7 @@ Test suite for pptx.chart.xmlwriter module
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from datetime import date
 from itertools import islice
 
 import pytest
@@ -523,8 +524,8 @@ class Describe_BaseSeriesXmlRewriter(object):
             instance_mock(request, _BaseSeriesData),
         ]
         calls = [
-            call(rewriter, sers[0], series_datas[0]),
-            call(rewriter, sers[1], series_datas[1])
+            call(rewriter, sers[0], series_datas[0], False),
+            call(rewriter, sers[1], series_datas[1], False)
         ]
         chart_data_.__len__.return_value = len(series_datas)
         chart_data_.__iter__.return_value = iter(series_datas)
@@ -587,7 +588,7 @@ class Describe_BubbleSeriesXmlRewriter(object):
 
     def it_can_rewrite_a_ser_element(self, rewrite_fixture):
         rewriter, ser, series_data, expected_xml = rewrite_fixture
-        rewriter._rewrite_ser_data(ser, series_data)
+        rewriter._rewrite_ser_data(ser, series_data, None)
         assert ser.xml == expected_xml
 
     # fixtures -------------------------------------------------------
@@ -610,19 +611,26 @@ class Describe_CategorySeriesXmlRewriter(object):
 
     def it_can_rewrite_a_ser_element(self, rewrite_fixture):
         rewriter, ser, series_data, expected_xml = rewrite_fixture
-        rewriter._rewrite_ser_data(ser, series_data)
+        rewriter._rewrite_ser_data(ser, series_data, False)
         assert ser.xml == expected_xml
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture
-    def rewrite_fixture(self):
-        ser_xml, expected_xml = snippet_seq('rewrite-ser')[:2]
+    @pytest.fixture(params=[
+        (0, ('foo', 'bar')),
+        (6, (42, 24)),
+        (8, (date(2016, 12, 22), date(2016, 12, 23))),
+    ])
+    def rewrite_fixture(self, request):
+        snippet_offset, categories = request.param
         chart_data = CategoryChartData()
-        chart_data.categories = ('foo', 'bar')
-        series_data = chart_data.add_series('Series 1', (1, 2))
+        chart_data.categories = categories
         rewriter = _CategorySeriesXmlRewriter(chart_data)
+        snippets = snippet_seq('rewrite-ser')
+        ser_xml = snippets[snippet_offset]
         ser = parse_xml(ser_xml)
+        series_data = chart_data.add_series('Series 1', (1, 2))
+        expected_xml = snippets[snippet_offset+1]
         return rewriter, ser, series_data, expected_xml
 
 
@@ -630,7 +638,7 @@ class Describe_XySeriesXmlRewriter(object):
 
     def it_can_rewrite_a_ser_element(self, rewrite_fixture):
         rewriter, ser, series_data, expected_xml = rewrite_fixture
-        rewriter._rewrite_ser_data(ser, series_data)
+        rewriter._rewrite_ser_data(ser, series_data, None)
         assert ser.xml == expected_xml
 
     # fixtures -------------------------------------------------------

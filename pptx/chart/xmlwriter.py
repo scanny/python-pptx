@@ -107,9 +107,10 @@ class _BaseSeriesXmlWriter(object):
     """
     Provides shared members for series XML writers.
     """
-    def __init__(self, series):
+    def __init__(self, series, date_1904=False):
         super(_BaseSeriesXmlWriter, self).__init__()
         self._series = series
+        self._date_1904 = date_1904
 
     @property
     def name(self):
@@ -229,10 +230,11 @@ class _BaseSeriesXmlRewriter(object):
         last plot in the chart and series formatting is "cloned" from the
         last series in that plot.
         """
-        plotArea, chart_data = chartSpace.plotArea, self._chart_data
+        plotArea, date_1904 = chartSpace.plotArea, chartSpace.date_1904
+        chart_data = self._chart_data
         self._adjust_ser_count(plotArea, len(chart_data))
         for ser, series_data in zip(plotArea.sers, chart_data):
-            self._rewrite_ser_data(ser, series_data)
+            self._rewrite_ser_data(ser, series_data, date_1904)
 
     def _add_cloned_sers(self, plotArea, count):
         """
@@ -265,7 +267,7 @@ class _BaseSeriesXmlRewriter(object):
         elif ser_count_diff < 0:
             self._trim_ser_count_by(plotArea, abs(ser_count_diff))
 
-    def _rewrite_ser_data(self, ser, series_data):
+    def _rewrite_ser_data(self, ser, series_data, date_1904):
         """
         Rewrite selected child elements of *ser* based on the values in
         *series_data*.
@@ -1253,6 +1255,18 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
         element.
         """
         categories = self._series.categories
+
+        if categories.are_numeric:
+            return parse_xml(
+                self._numRef_cat_tmpl.format(**{
+                    'wksht_ref':     self._series.categories_ref,
+                    'number_format': categories.number_format,
+                    'cat_count':     categories.leaf_count,
+                    'cat_pt_xml':    self._cat_num_pt_xml,
+                    'nsdecls':       ' %s' % nsdecls('c'),
+                })
+            )
+
         if categories.depth == 1:
             return parse_xml(
                 self._cat_tmpl.format(**{
@@ -1262,6 +1276,7 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
                     'nsdecls':    ' %s' % nsdecls('c'),
                 })
             )
+
         return parse_xml(
             self._multiLvl_cat_tmpl.format(**{
                 'wksht_ref': self._series.categories_ref,
@@ -1320,6 +1335,24 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
             'val_count':     len(self._series),
             'val_pt_xml':    self._val_pt_xml,
         })
+
+    @property
+    def _cat_num_pt_xml(self):
+        """
+        The unicode XML snippet for the ``<c:pt>`` elements when category
+        labels are numeric (including date type).
+        """
+        xml = ''
+        for idx, category in enumerate(self._series.categories):
+            xml += (
+                '                <c:pt idx="{cat_idx}">\n'
+                '                  <c:v>{cat_lbl_str}</c:v>\n'
+                '                </c:pt>\n'
+            ).format(**{
+                'cat_idx':     idx,
+                'cat_lbl_str': category.numeric_str_val(self._date_1904),
+            })
+        return xml
 
     @property
     def _cat_pt_xml(self):
@@ -1398,6 +1431,25 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
             '{lvl_xml}'
             '              </c:multiLvlStrCache>\n'
             '            </c:multiLvlStrRef>\n'
+            '          </c:cat>\n'
+        )
+
+    @property
+    def _numRef_cat_tmpl(self):
+        """
+        The template for the ``<c:cat>`` element for this series when the
+        labels are numeric (or date) values.
+        """
+        return (
+            '          <c:cat{nsdecls}>\n'
+            '            <c:numRef>\n'
+            '              <c:f>{wksht_ref}</c:f>\n'
+            '              <c:numCache>\n'
+            '                <c:formatCode>{number_format}</c:formatCode>\n'
+            '                <c:ptCount val="{cat_count}"/>\n'
+            '{cat_pt_xml}'
+            '              </c:numCache>\n'
+            '            </c:numRef>\n'
             '          </c:cat>\n'
         )
 
@@ -1581,7 +1633,7 @@ class _BubbleSeriesXmlRewriter(_BaseSeriesXmlRewriter):
     """
     A series rewriter suitable for bubble charts.
     """
-    def _rewrite_ser_data(self, ser, series_data):
+    def _rewrite_ser_data(self, ser, series_data, date_1904):
         """
         Rewrite the ``<c:tx>``, ``<c:cat>`` and ``<c:val>`` child elements
         of *ser* based on the values in *series_data*.
@@ -1603,7 +1655,7 @@ class _CategorySeriesXmlRewriter(_BaseSeriesXmlRewriter):
     """
     A series rewriter suitable for category charts.
     """
-    def _rewrite_ser_data(self, ser, series_data):
+    def _rewrite_ser_data(self, ser, series_data, date_1904):
         """
         Rewrite the ``<c:tx>``, ``<c:cat>`` and ``<c:val>`` child elements
         of *ser* based on the values in *series_data*.
@@ -1612,7 +1664,7 @@ class _CategorySeriesXmlRewriter(_BaseSeriesXmlRewriter):
         ser._remove_cat()
         ser._remove_val()
 
-        xml_writer = _CategorySeriesXmlWriter(series_data)
+        xml_writer = _CategorySeriesXmlWriter(series_data, date_1904)
 
         ser._insert_tx(xml_writer.tx)
         ser._insert_cat(xml_writer.cat)
@@ -1623,7 +1675,7 @@ class _XySeriesXmlRewriter(_BaseSeriesXmlRewriter):
     """
     A series rewriter suitable for XY (aka. scatter) charts.
     """
-    def _rewrite_ser_data(self, ser, series_data):
+    def _rewrite_ser_data(self, ser, series_data, date_1904):
         """
         Rewrite the ``<c:tx>``, ``<c:xVal>`` and ``<c:yVal>`` child elements
         of *ser* based on the values in *series_data*.

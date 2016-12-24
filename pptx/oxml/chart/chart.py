@@ -66,17 +66,32 @@ class CT_ChartSpace(BaseOxmlElement):
     """
     ``<c:chartSpace>`` element class, the root element of a chart part.
     """
-    style = ZeroOrOne('c:style', successors=(
-        'c:clrMapOvr', 'c:pivotSource', 'c:protection', 'c:chart'
-    ))
+    _tag_seq = (
+        'c:date1904', 'c:lang', 'c:roundedCorners', 'c:style', 'c:clrMapOvr',
+        'c:pivotSource', 'c:protection', 'c:chart', 'c:spPr', 'c:txPr',
+        'c:externalData', 'c:printSettings', 'c:userShapes', 'c:extLst',
+    )
+    date1904 = ZeroOrOne('c:date1904', successors=_tag_seq[1:])
+    style = ZeroOrOne('c:style', successors=_tag_seq[4:])
     chart = OneAndOnlyOne('c:chart')
-    externalData = ZeroOrOne('c:externalData', successors=(
-        'c:printSettings', 'c:userShapes', 'c:extLst'
-    ))
+    externalData = ZeroOrOne('c:externalData', successors=_tag_seq[11:])
+    del _tag_seq
 
     @property
     def catAx_lst(self):
         return self.chart.plotArea.catAx_lst
+
+    @property
+    def date_1904(self):
+        """
+        Return |True| if the `c:date1904` child element resolves truthy,
+        |False| otherwise. This value indicates whether date number values
+        are based on the 1900 or 1904 epoch.
+        """
+        date1904 = self.date1904
+        if date1904 is None:
+            return False
+        return date1904.val
 
     @property
     def dateAx_lst(self):
