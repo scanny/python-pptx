@@ -13,7 +13,7 @@ import pytest
 from pptx.chart.category import Categories, Category
 
 from ..unitutil.cxml import element
-from ..unitutil.mock import class_mock, instance_mock
+from ..unitutil.mock import call, class_mock, instance_mock
 
 
 class DescribeCategories(object):
@@ -28,6 +28,11 @@ class DescribeCategories(object):
         Category_.assert_called_once_with(pt, idx)
         assert category is category_
 
+    def it_can_iterate_over_the_categories_it_contains(self, iter_fixture):
+        categories, expected_categories, Category_, calls, = iter_fixture
+        assert [c for c in categories] == expected_categories
+        assert Category_.call_args_list == calls
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -40,6 +45,17 @@ class DescribeCategories(object):
         pt = None if pt_offset is None else xChart.xpath('.//c:pt')[pt_offset]
         categories = Categories(xChart)
         return categories, idx, Category_, pt, category_
+
+    @pytest.fixture
+    def iter_fixture(self, Category_, category_):
+        xChart = element(
+            'c:barChart/c:ser/c:cat/(c:ptCount{val=2},c:pt{idx=1})'
+        )
+        pt = xChart.xpath('.//c:pt')[0]
+        categories = Categories(xChart)
+        expected_categories = [category_, category_]
+        calls = [call(None, 0), call(pt, 1)]
+        return categories, expected_categories, Category_, calls
 
     @pytest.fixture(params=[
         ('c:barChart', 0),

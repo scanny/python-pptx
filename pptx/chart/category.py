@@ -28,6 +28,11 @@ class Categories(Sequence):
         pt = self._xChart.cat_pts[idx]
         return Category(pt, idx)
 
+    def __iter__(self):
+        cat_pts = self._xChart.cat_pts
+        for idx, pt in enumerate(cat_pts):
+            yield Category(pt, idx)
+
     def __len__(self):
         # a category can be "null", meaning the Excel cell for it is empty.
         # In this case, there is no c:pt element for it. The "empty" category
