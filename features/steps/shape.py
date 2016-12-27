@@ -11,6 +11,7 @@ from behave import given, when, then
 from pptx import Presentation
 from pptx.chart.chart import Chart
 from pptx.dml.color import RGBColor
+from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
 from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE
 from pptx.action import ActionSetting
@@ -240,6 +241,14 @@ def when_I_call_connector_begin_connect_picture_3(context):
 def when_I_call_connector_end_connect_picture_3(context):
     connector, picture = context.connector, context.picture
     connector.end_connect(picture, 3)
+
+
+@when('I call shapes.add_chart({type_}, chart_data)')
+def when_I_call_shapes_add_chart(context, type_):
+    chart_type = getattr(XL_CHART_TYPE, type_)
+    context.chart = context.shapes.add_chart(
+        chart_type, 0, 0, 0, 0, context.chart_data
+    ).chart
 
 
 @when('I call shapes.add_connector(MSO_CONNECTOR.STRAIGHT, 1, 2, 3, 4)')

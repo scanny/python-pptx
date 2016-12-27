@@ -207,6 +207,17 @@ def given_a_CategoryChartData_object(context):
     context.chart_data = CategoryChartData()
 
 
+@given('a CategoryChartData object having date categories')
+def given_a_CategoryChartData_object_having_date_categories(context):
+    chart_data = CategoryChartData()
+    chart_data.categories = [
+        datetime.date(2016, 12, 27),
+        datetime.date(2016, 12, 28),
+        datetime.date(2016, 12, 29),
+    ]
+    context.chart_data = chart_data
+
+
 @given('a CategoryChartData object with number format {strval}')
 def given_a_CategoryChartData_object_with_number_format(context, strval):
     params = {}

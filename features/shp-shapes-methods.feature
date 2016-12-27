@@ -56,6 +56,21 @@ Feature: Shape collection methods
       | Radar with markers        | RADAR_MARKERS            |   5  |   2  |
 
 
+  @wip
+  Scenario Outline: Add a category chart with date axis
+    Given a SlideShapes object
+      And a CategoryChartData object having date categories
+     When I call shapes.add_chart(<chart-type>, chart_data)
+     Then chart.category_axis is a DateAxis object
+
+    Examples: Chart specs
+      | chart-type       |
+      | AREA             |
+      | BAR_CLUSTERED    |
+      | COLUMN_CLUSTERED |
+      | LINE             |
+
+
   Scenario: Add a multi-level category chart
     Given a blank slide
      When I add a Clustered bar chart with multi-level categories
