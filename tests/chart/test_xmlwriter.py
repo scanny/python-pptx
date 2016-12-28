@@ -257,17 +257,20 @@ class Describe_LineChartXmlWriter(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('LINE',                     2, 2, '2x2-line'),
-        ('LINE_MARKERS',             2, 2, '2x2-line-markers'),
-        ('LINE_MARKERS_STACKED',     2, 2, '2x2-line-markers-stacked'),
-        ('LINE_MARKERS_STACKED_100', 2, 2, '2x2-line-markers-stacked-100'),
-        ('LINE_STACKED',             2, 2, '2x2-line-stacked'),
-        ('LINE_STACKED_100',         2, 2, '2x2-line-stacked-100'),
+        ('LINE',                     2, 2, str,   '2x2-line'),
+        ('LINE',                     2, 2, date,  '2x2-line-date'),
+        ('LINE',                     2, 2, float, '2x2-line-float'),
+        ('LINE_MARKERS',             2, 2, str,   '2x2-line-markers'),
+        ('LINE_MARKERS_STACKED',     2, 2, str,   '2x2-line-markers-stacked'),
+        ('LINE_MARKERS_STACKED_100', 2, 2, str,
+         '2x2-line-markers-stacked-100'),
+        ('LINE_STACKED',             2, 2, str,   '2x2-line-stacked'),
+        ('LINE_STACKED_100',         2, 2, str,   '2x2-line-stacked-100'),
     ])
     def xml_fixture(self, request):
-        enum_member, cat_count, ser_count, snippet_name = request.param
-        chart_type = getattr(XL_CHART_TYPE, enum_member)
-        chart_data = make_category_chart_data(cat_count, str, ser_count)
+        member, cat_count, ser_count, cat_type, snippet_name = request.param
+        chart_type = getattr(XL_CHART_TYPE, member)
+        chart_data = make_category_chart_data(cat_count, cat_type, ser_count)
         xml_writer = _LineChartXmlWriter(chart_type, chart_data)
         expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml

@@ -21,19 +21,23 @@
               </c:strCache>
             </c:strRef>
           </c:tx>
+          <c:marker>
+            <c:symbol val="none"/>
+          </c:marker>
           <c:cat>
-            <c:strRef>
+            <c:numRef>
               <c:f>Sheet1!$A$2:$A$3</c:f>
-              <c:strCache>
+              <c:numCache>
+                <c:formatCode>General</c:formatCode>
                 <c:ptCount val="2"/>
                 <c:pt idx="0">
-                  <c:v>Foo</c:v>
+                  <c:v>1.1</c:v>
                 </c:pt>
                 <c:pt idx="1">
-                  <c:v>Bar</c:v>
+                  <c:v>2.2</c:v>
                 </c:pt>
-              </c:strCache>
-            </c:strRef>
+              </c:numCache>
+            </c:numRef>
           </c:cat>
           <c:val>
             <c:numRef>
@@ -66,19 +70,23 @@
               </c:strCache>
             </c:strRef>
           </c:tx>
+          <c:marker>
+            <c:symbol val="none"/>
+          </c:marker>
           <c:cat>
-            <c:strRef>
+            <c:numRef>
               <c:f>Sheet1!$A$2:$A$3</c:f>
-              <c:strCache>
+              <c:numCache>
+                <c:formatCode>General</c:formatCode>
                 <c:ptCount val="2"/>
                 <c:pt idx="0">
-                  <c:v>Foo</c:v>
+                  <c:v>1.1</c:v>
                 </c:pt>
                 <c:pt idx="1">
-                  <c:v>Bar</c:v>
+                  <c:v>2.2</c:v>
                 </c:pt>
-              </c:strCache>
-            </c:strRef>
+              </c:numCache>
+            </c:numRef>
           </c:cat>
           <c:val>
             <c:numRef>

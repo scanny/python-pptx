@@ -750,29 +750,20 @@ class _LineChartXmlWriter(_BaseChartXmlWriter):
             'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
             'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
             'iceDocument/2006/relationships">\n'
+            '  <c:date1904 val="0"/>\n'
             '  <c:chart>\n'
+            '    <c:autoTitleDeleted val="0"/>\n'
             '    <c:plotArea>\n'
             '      <c:lineChart>\n'
             '{grouping_xml}'
+            '        <c:varyColors val="0"/>\n'
             '{ser_xml}'
             '        <c:marker val="1"/>\n'
+            '        <c:smooth val="0"/>\n'
             '        <c:axId val="2118791784"/>\n'
             '        <c:axId val="2140495176"/>\n'
             '      </c:lineChart>\n'
-            '      <c:catAx>\n'
-            '        <c:axId val="2118791784"/>\n'
-            '        <c:scaling/>\n'
-            '        <c:delete val="0"/>\n'
-            '        <c:axPos val="b"/>\n'
-            '        <c:majorTickMark val="out"/>\n'
-            '        <c:minorTickMark val="none"/>\n'
-            '        <c:tickLblPos val="nextTo"/>\n'
-            '        <c:crossAx val="2140495176"/>\n'
-            '        <c:crosses val="autoZero"/>\n'
-            '        <c:lblAlgn val="ctr"/>\n'
-            '        <c:lblOffset val="100"/>\n'
-            '        <c:noMultiLvlLbl val="0"/>\n'
-            '      </c:catAx>\n'
+            '{cat_ax_xml}'
             '      <c:valAx>\n'
             '        <c:axId val="2140495176"/>\n'
             '        <c:scaling/>\n'
@@ -786,6 +777,14 @@ class _LineChartXmlWriter(_BaseChartXmlWriter):
             '        <c:crosses val="autoZero"/>\n'
             '      </c:valAx>\n'
             '    </c:plotArea>\n'
+            '    <c:legend>\n'
+            '      <c:legendPos val="r"/>\n'
+            '      <c:layout/>\n'
+            '      <c:overlay val="0"/>\n'
+            '    </c:legend>\n'
+            '    <c:plotVisOnly val="1"/>\n'
+            '    <c:dispBlanksAs val="gap"/>\n'
+            '    <c:showDLblsOverMax val="0"/>\n'
             '  </c:chart>\n'
             '  <c:txPr>\n'
             '    <a:bodyPr/>\n'
@@ -801,7 +800,55 @@ class _LineChartXmlWriter(_BaseChartXmlWriter):
         ).format(**{
             'grouping_xml': self._grouping_xml,
             'ser_xml':      self._ser_xml,
+            'cat_ax_xml':   self._cat_ax_xml,
         })
+
+    @property
+    def _cat_ax_xml(self):
+        categories = self._chart_data.categories
+
+        if categories.are_dates:
+            return (
+                '      <c:dateAx>\n'
+                '        <c:axId val="2118791784"/>\n'
+                '        <c:scaling>\n'
+                '          <c:orientation val="minMax"/>\n'
+                '        </c:scaling>\n'
+                '        <c:delete val="0"/>\n'
+                '        <c:axPos val="b"/>\n'
+                '        <c:numFmt formatCode="{nf}" sourceLinked="1"/>\n'
+                '        <c:majorTickMark val="out"/>\n'
+                '        <c:minorTickMark val="none"/>\n'
+                '        <c:tickLblPos val="nextTo"/>\n'
+                '        <c:crossAx val="2140495176"/>\n'
+                '        <c:crosses val="autoZero"/>\n'
+                '        <c:auto val="1"/>\n'
+                '        <c:lblOffset val="100"/>\n'
+                '        <c:baseTimeUnit val="days"/>\n'
+                '      </c:dateAx>\n'
+            ).format(**{
+                'nf': categories.number_format,
+            })
+
+        return (
+            '      <c:catAx>\n'
+            '        <c:axId val="2118791784"/>\n'
+            '        <c:scaling>\n'
+            '          <c:orientation val="minMax"/>\n'
+            '        </c:scaling>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="2140495176"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:auto val="1"/>\n'
+            '        <c:lblAlgn val="ctr"/>\n'
+            '        <c:lblOffset val="100"/>\n'
+            '        <c:noMultiLvlLbl val="0"/>\n'
+            '      </c:catAx>\n'
+        )
 
     @property
     def _grouping_xml(self):

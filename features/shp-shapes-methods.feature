@@ -56,7 +56,6 @@ Feature: Shape collection methods
       | Radar with markers        | RADAR_MARKERS            |   5  |   2  |
 
 
-  @wip
   Scenario Outline: Add a category chart with date axis
     Given a SlideShapes object
       And a CategoryChartData object having date categories

@@ -1,9 +1,12 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <c:date1904 val="0"/>
   <c:chart>
+    <c:autoTitleDeleted val="0"/>
     <c:plotArea>
       <c:lineChart>
         <c:grouping val="percentStacked"/>
+        <c:varyColors val="0"/>
         <c:ser>
           <c:idx val="0"/>
           <c:order val="0"/>
@@ -101,12 +104,15 @@
           <c:smooth val="0"/>
         </c:ser>
         <c:marker val="1"/>
+        <c:smooth val="0"/>
         <c:axId val="2118791784"/>
         <c:axId val="2140495176"/>
       </c:lineChart>
       <c:catAx>
         <c:axId val="2118791784"/>
-        <c:scaling/>
+        <c:scaling>
+          <c:orientation val="minMax"/>
+        </c:scaling>
         <c:delete val="0"/>
         <c:axPos val="b"/>
         <c:majorTickMark val="out"/>
@@ -114,6 +120,7 @@
         <c:tickLblPos val="nextTo"/>
         <c:crossAx val="2140495176"/>
         <c:crosses val="autoZero"/>
+        <c:auto val="1"/>
         <c:lblAlgn val="ctr"/>
         <c:lblOffset val="100"/>
         <c:noMultiLvlLbl val="0"/>
@@ -131,6 +138,14 @@
         <c:crosses val="autoZero"/>
       </c:valAx>
     </c:plotArea>
+    <c:legend>
+      <c:legendPos val="r"/>
+      <c:layout/>
+      <c:overlay val="0"/>
+    </c:legend>
+    <c:plotVisOnly val="1"/>
+    <c:dispBlanksAs val="gap"/>
+    <c:showDLblsOverMax val="0"/>
   </c:chart>
   <c:txPr>
     <a:bodyPr/>
