@@ -140,14 +140,16 @@ class Describe_AreaChartXmlWriter(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('AREA',             2, 2, '2x2-area'),
-        ('AREA_STACKED',     2, 2, '2x2-area-stacked'),
-        ('AREA_STACKED_100', 2, 2, '2x2-area-stacked-100'),
+        ('AREA',             2, 2, str,   '2x2-area'),
+        ('AREA',             2, 2, date,  '2x2-area-date'),
+        ('AREA',             2, 2, float, '2x2-area-float'),
+        ('AREA_STACKED',     2, 2, str,   '2x2-area-stacked'),
+        ('AREA_STACKED_100', 2, 2, str,   '2x2-area-stacked-100'),
     ])
     def xml_fixture(self, request):
-        enum_member, cat_count, ser_count, snippet_name = request.param
-        chart_type = getattr(XL_CHART_TYPE, enum_member)
-        chart_data = make_category_chart_data(cat_count, ser_count)
+        member, cat_count, ser_count, cat_type, snippet_name = request.param
+        chart_type = getattr(XL_CHART_TYPE, member)
+        chart_data = make_category_chart_data(cat_count, cat_type, ser_count)
         xml_writer = _AreaChartXmlWriter(chart_type, chart_data)
         expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml
@@ -196,7 +198,7 @@ class Describe_BarChartXmlWriter(object):
     def xml_fixture(self, request):
         enum_member, cat_count, ser_count, snippet_name = request.param
         chart_type = getattr(XL_CHART_TYPE, enum_member)
-        chart_data = make_category_chart_data(cat_count, ser_count)
+        chart_data = make_category_chart_data(cat_count, str, ser_count)
         xml_writer = _BarChartXmlWriter(chart_type, chart_data)
         expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml
@@ -238,7 +240,7 @@ class Describe_DoughnutChartXmlWriter(object):
     def xml_fixture(self, request):
         enum_member, cat_count, ser_count, snippet_name = request.param
         chart_type = getattr(XL_CHART_TYPE, enum_member)
-        chart_data = make_category_chart_data(cat_count, ser_count)
+        chart_data = make_category_chart_data(cat_count, str, ser_count)
         xml_writer = _DoughnutChartXmlWriter(chart_type, chart_data)
         expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml
@@ -263,7 +265,7 @@ class Describe_LineChartXmlWriter(object):
     def xml_fixture(self, request):
         enum_member, cat_count, ser_count, snippet_name = request.param
         chart_type = getattr(XL_CHART_TYPE, enum_member)
-        chart_data = make_category_chart_data(cat_count, ser_count)
+        chart_data = make_category_chart_data(cat_count, str, ser_count)
         xml_writer = _LineChartXmlWriter(chart_type, chart_data)
         expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml
@@ -284,7 +286,7 @@ class Describe_PieChartXmlWriter(object):
     def xml_fixture(self, request):
         enum_member, cat_count, ser_count, snippet_name = request.param
         chart_type = getattr(XL_CHART_TYPE, enum_member)
-        chart_data = make_category_chart_data(cat_count, ser_count)
+        chart_data = make_category_chart_data(cat_count, str, ser_count)
         xml_writer = _PieChartXmlWriter(chart_type, chart_data)
         expected_xml = snippet_text(snippet_name)
         return xml_writer, expected_xml
@@ -301,7 +303,9 @@ class Describe_RadarChartXmlWriter(object):
 
     @pytest.fixture
     def xml_fixture(self, request):
-        series_data_seq = make_category_chart_data(cat_count=5, ser_count=2)
+        series_data_seq = make_category_chart_data(
+            cat_count=5, cat_type=str, ser_count=2
+        )
         xml_writer = _RadarChartXmlWriter(
             XL_CHART_TYPE.RADAR, series_data_seq
         )
@@ -679,15 +683,24 @@ def make_bubble_chart_data(ser_count, point_count):
     return chart_data
 
 
-def make_category_chart_data(cat_count, ser_count):
+def make_category_chart_data(cat_count, cat_type, ser_count):
     """
     Return a |CategoryChartData| instance populated with *cat_count*
-    categories and *ser_count* series. Values are auto-generated.
+    categories of type *cat_type* and *ser_count* series. Values are
+    auto-generated.
     """
-    category_names = ('Foo', 'Bar', 'Baz', 'Boo', 'Far', 'Faz')
+    category_labels = {
+        date: (
+            date(2016, 12, 27),
+            date(2016, 12, 28),
+            date(2016, 12, 29),
+        ),
+        float: (1.1, 2.2, 3.3, 4.4, 5.5),
+        str: ('Foo', 'Bar', 'Baz', 'Boo', 'Far', 'Faz'),
+    }[cat_type]
     point_values = count(1.1, 1.1)
     chart_data = CategoryChartData()
-    chart_data.categories = category_names[:cat_count]
+    chart_data.categories = category_labels[:cat_count]
     for idx in range(ser_count):
         series_title = 'Series %d' % (idx+1)
         series_values = tuple(islice(point_values, cat_count))

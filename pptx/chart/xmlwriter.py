@@ -326,24 +326,7 @@ class _AreaChartXmlWriter(_BaseChartXmlWriter):
             '        <c:axId val="-2101159928"/>\n'
             '        <c:axId val="-2100718248"/>\n'
             '      </c:areaChart>\n'
-            '      <c:catAx>\n'
-            '        <c:axId val="-2101159928"/>\n'
-            '        <c:scaling>\n'
-            '          <c:orientation val="minMax"/>\n'
-            '        </c:scaling>\n'
-            '        <c:delete val="0"/>\n'
-            '        <c:axPos val="b"/>\n'
-            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
-            '        <c:majorTickMark val="out"/>\n'
-            '        <c:minorTickMark val="none"/>\n'
-            '        <c:tickLblPos val="nextTo"/>\n'
-            '        <c:crossAx val="-2100718248"/>\n'
-            '        <c:crosses val="autoZero"/>\n'
-            '        <c:auto val="1"/>\n'
-            '        <c:lblAlgn val="ctr"/>\n'
-            '        <c:lblOffset val="100"/>\n'
-            '        <c:noMultiLvlLbl val="0"/>\n'
-            '      </c:catAx>\n'
+            '{cat_ax_xml}'
             '      <c:valAx>\n'
             '        <c:axId val="-2100718248"/>\n'
             '        <c:scaling>\n'
@@ -384,7 +367,56 @@ class _AreaChartXmlWriter(_BaseChartXmlWriter):
         ).format(**{
             'grouping_xml': self._grouping_xml,
             'ser_xml':      self._ser_xml,
+            'cat_ax_xml':   self._cat_ax_xml,
         })
+
+    @property
+    def _cat_ax_xml(self):
+        categories = self._chart_data.categories
+
+        if categories.are_dates:
+            return (
+                '      <c:dateAx>\n'
+                '        <c:axId val="-2101159928"/>\n'
+                '        <c:scaling>\n'
+                '          <c:orientation val="minMax"/>\n'
+                '        </c:scaling>\n'
+                '        <c:delete val="0"/>\n'
+                '        <c:axPos val="b"/>\n'
+                '        <c:numFmt formatCode="{nf}" sourceLinked="1"/>\n'
+                '        <c:majorTickMark val="out"/>\n'
+                '        <c:minorTickMark val="none"/>\n'
+                '        <c:tickLblPos val="nextTo"/>\n'
+                '        <c:crossAx val="-2100718248"/>\n'
+                '        <c:crosses val="autoZero"/>\n'
+                '        <c:auto val="1"/>\n'
+                '        <c:lblOffset val="100"/>\n'
+                '        <c:baseTimeUnit val="days"/>\n'
+                '      </c:dateAx>\n'
+            ).format(**{
+                'nf': categories.number_format,
+            })
+
+        return (
+            '      <c:catAx>\n'
+            '        <c:axId val="-2101159928"/>\n'
+            '        <c:scaling>\n'
+            '          <c:orientation val="minMax"/>\n'
+            '        </c:scaling>\n'
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2100718248"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:auto val="1"/>\n'
+            '        <c:lblAlgn val="ctr"/>\n'
+            '        <c:lblOffset val="100"/>\n'
+            '        <c:noMultiLvlLbl val="0"/>\n'
+            '      </c:catAx>\n'
+        )
 
     @property
     def _grouping_xml(self):
@@ -1293,6 +1325,16 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
         containing the category labels and spreadsheet reference.
         """
         categories = self._series.categories
+
+        if categories.are_numeric:
+            return self._numRef_cat_tmpl.format(**{
+                'wksht_ref':     self._series.categories_ref,
+                'number_format': categories.number_format,
+                'cat_count':     categories.leaf_count,
+                'cat_pt_xml':    self._cat_num_pt_xml,
+                'nsdecls':       '',
+            })
+
         if categories.depth == 1:
             return self._cat_tmpl.format(**{
                 'wksht_ref':  self._series.categories_ref,
@@ -1300,6 +1342,7 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
                 'cat_pt_xml': self._cat_pt_xml,
                 'nsdecls':    '',
             })
+
         return self._multiLvl_cat_tmpl.format(**{
             'wksht_ref': self._series.categories_ref,
             'cat_count': categories.leaf_count,
