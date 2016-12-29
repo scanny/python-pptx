@@ -274,6 +274,10 @@ class DescribeCategories(object):
         categories, expected_value = are_numeric_fixture
         assert categories.are_numeric == expected_value
 
+    def it_knows_when_its_categories_are_dates(self, are_dates_fixture):
+        categories, expected_value = are_dates_fixture
+        assert categories.are_dates == expected_value
+
     def it_knows_the_category_hierarchy_depth(self, depth_fixture):
         categories, expected_value = depth_fixture
         assert categories.depth == expected_value
@@ -309,6 +313,20 @@ class DescribeCategories(object):
         categories = Categories()
         name = 'foobar'
         return categories, name, Category_, category_
+
+    @pytest.fixture(params=[
+        ((),                    False),
+        (('foo', 'bar'),        False),
+        ((1, 2),                False),
+        ((1.2, 2.3),            False),
+        ((date(2016, 12, 21),), True),
+    ])
+    def are_dates_fixture(self, request):
+        labels, expected_value = request.param
+        categories = Categories()
+        for label in labels:
+            categories.add_category(label)
+        return categories, expected_value
 
     @pytest.fixture(params=[
         ((),                    False),

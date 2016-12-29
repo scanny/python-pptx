@@ -370,6 +370,24 @@ class Categories(Sequence):
         return category
 
     @property
+    def are_dates(self):
+        """
+        Return |True| if the first category in this collection has a date
+        label (as opposed to str or numeric). A date label is one of type
+        datetime.date or datetime.datetime. Returns |False| otherwise,
+        including when this category collection is empty. It also returns
+        False when this category collection is hierarchical, because
+        hierarchical categories can only be written as string labels.
+        """
+        if self.depth != 1:
+            return False
+        first_cat_label = self[0].label
+        date_types = (datetime.date, datetime.datetime)
+        if isinstance(first_cat_label, date_types):
+            return True
+        return False
+
+    @property
     def are_numeric(self):
         """
         Return |True| if the first category in this collection has a numeric
