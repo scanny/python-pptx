@@ -138,11 +138,36 @@ class DescribeCategoryWorkbookWriter(object):
         assert workbook_writer.values_ref(series_) == expected_value
 
     def it_can_populate_a_worksheet_with_chart_data(self, populate_fixture):
-        workbook_writer, workbook_, worksheet_, expected_calls = (
-            populate_fixture
-        )
+        workbook_writer, workbook_, worksheet_ = populate_fixture
         workbook_writer._populate_worksheet(workbook_, worksheet_)
-        assert worksheet_.mock_calls == expected_calls
+        workbook_writer._write_categories.assert_called_once_with(
+            workbook_writer, workbook_, worksheet_
+        )
+        workbook_writer._write_series.assert_called_once_with(
+            workbook_writer, workbook_, worksheet_
+        )
+
+    def it_writes_categories_to_help(self, write_cats_fixture):
+        workbook_writer, workbook_, worksheet_ = write_cats_fixture[:3]
+        number_format, calls = write_cats_fixture[3:]
+
+        workbook_writer._write_categories(workbook_, worksheet_)
+
+        workbook_.add_format.assert_called_once_with({
+            'num_format': number_format
+        })
+        assert workbook_writer._write_cat_column.call_args_list == calls
+
+    def it_writes_a_category_column_to_help(self, write_cat_fixture):
+        workbook_writer, worksheet_, col = write_cat_fixture[:3]
+        level, num_format_, calls = write_cat_fixture[3:]
+        workbook_writer._write_cat_column(worksheet_, col, level, num_format_)
+        assert worksheet_.mock_calls == calls
+
+    def it_writes_series_to_help(self, write_sers_fixture):
+        workbook_writer, workbook_, worksheet_, calls = write_sers_fixture
+        workbook_writer._write_series(workbook_, worksheet_)
+        assert worksheet_.mock_calls == calls
 
     # fixtures -------------------------------------------------------
 
@@ -166,46 +191,11 @@ class DescribeCategoryWorkbookWriter(object):
         categories_.depth = 0
         return workbook_writer
 
-    @pytest.fixture(params=[
-        ([[[0, 'a'], [1, 'b'], [2, 'c']]],
-         [(1, 0, 'a'), (2, 0, 'b'), (3, 0, 'c')],
-         [('s1', (1, 2, 3)), ('s2', (4, 5, 6))],
-         [((0, 1, 's1'), (1, 1, (1, 2, 3), ANY)),
-          ((0, 2, 's2'), (1, 2, (4, 5, 6), ANY))]),
-
-        ([[[0, 'CA'], [1, 'NV'], [2, 'NY'], [3, 'NJ']],
-          [[0, 'WEST'], [2, 'EAST']]],
-         [(1, 1, 'CA'), (2, 1, 'NV'), (3, 1, 'NY'), (4, 1, 'NJ'),
-          (1, 0, 'WEST'), (3, 0, 'EAST')],
-         [('s1', (1, 2, 3, 4)), ('s2', (5, 6, 7, 8))],
-         [((0, 2, 's1'), (1, 2, (1, 2, 3, 4), ANY)),
-          ((0, 3, 's2'), (1, 3, (5, 6, 7, 8), ANY))]),
-    ])
-    def populate_fixture(
-            self, request, chart_data_, workbook_, worksheet_, categories_):
-        levels, cat_call_args, ser_data, ser_call_args = request.param
-
-        workbook_writer = CategoryWorkbookWriter(chart_data_)
-
-        sers = []
-        for idx, (name, values) in enumerate(ser_data):
-            ser = instance_mock(
-                request, CategorySeriesData, index=idx, values=values
-            )
-            ser.name = name
-            sers.append(ser)
-
-        expected_calls = [call.write(*args) for args in cat_call_args]
-        for name_args, col_args in ser_call_args:
-            expected_calls.extend([
-                call.write(*name_args), call.write_column(*col_args)
-            ])
-
-        chart_data_.categories = categories_
-        categories_.depth = len(levels)
-        categories_.levels = levels
-        chart_data_.__iter__.return_value = iter(sers)
-        return workbook_writer, workbook_, worksheet_, expected_calls
+    @pytest.fixture
+    def populate_fixture(self, workbook_, worksheet_, _write_categories_,
+                         _write_series_):
+        workbook_writer = CategoryWorkbookWriter(None)
+        return workbook_writer, workbook_, worksheet_
 
     @pytest.fixture(params=[
         (1, 0, 'Sheet1!$B$1'),
@@ -236,6 +226,59 @@ class DescribeCategoryWorkbookWriter(object):
         series_data_.__len__.return_value = val_count
         return workbook_writer, series_data_, expected_value
 
+    @pytest.fixture
+    def write_cat_fixture(self, worksheet_):
+        workbook_writer = CategoryWorkbookWriter(None)
+        col, level = 6, ([0, 'Foo'], [1, 'Bar'])
+        num_format = object()
+        calls = [
+            call.set_column(col, col, 10),
+            call.write(1, col, 'Foo', num_format),
+            call.write(2, col, 'Bar', num_format),
+        ]
+        return workbook_writer, worksheet_, col, level, num_format, calls
+
+    @pytest.fixture(params=[
+        [
+            [[0, 'Foo'], [1, 'Bar'], [2, 'Baz']]
+        ],
+        [
+            [[0, 'CA'], [1, 'NV'], [2, 'NY'], [3, 'NJ']],
+            [[0, 'WEST'], [2, 'EAST']]
+        ],
+    ])
+    def write_cats_fixture(self, request, chart_data_, workbook_,
+                           worksheet_, categories_, _write_cat_column_):
+        levels = request.param
+        workbook_writer = CategoryWorkbookWriter(chart_data_)
+        number_format = categories_.number_format = '$#0.#'
+        num_format = workbook_.add_format.return_value
+        _depth = len(levels)
+        calls = [
+            call(workbook_writer, worksheet_, _depth-idx-1, level, num_format)
+            for (idx, level) in enumerate(levels)
+        ]
+        chart_data_.categories = categories_
+        categories_.depth = len(levels)
+        categories_.levels = levels
+        return workbook_writer, workbook_, worksheet_, number_format, calls
+
+    @pytest.fixture
+    def write_sers_fixture(self, request, chart_data_, workbook_, worksheet_,
+                           categories_):
+        workbook_writer = CategoryWorkbookWriter(chart_data_)
+        num_format = workbook_.add_format.return_value
+        calls = [
+            call.write(0, 1, 'S1'),
+            call.write_column(1, 1, (42, 24), num_format),
+        ]
+        ser = instance_mock(request, CategorySeriesData, values=(42, 24))
+        ser.name = 'S1'
+        chart_data_.categories = categories_
+        categories_.depth = 1
+        chart_data_.__iter__.return_value = iter([ser])
+        return workbook_writer, workbook_, worksheet_, calls
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -257,6 +300,27 @@ class DescribeCategoryWorkbookWriter(object):
     @pytest.fixture
     def worksheet_(self, request):
         return instance_mock(request, Worksheet)
+
+    @pytest.fixture
+    def _write_cat_column_(self, request):
+        return method_mock(
+            request, CategoryWorkbookWriter, '_write_cat_column',
+            autospec=True
+        )
+
+    @pytest.fixture
+    def _write_categories_(self, request):
+        return method_mock(
+            request, CategoryWorkbookWriter, '_write_categories',
+            autospec=True
+        )
+
+    @pytest.fixture
+    def _write_series_(self, request):
+        return method_mock(
+            request, CategoryWorkbookWriter, '_write_series',
+            autospec=True
+        )
 
 
 class DescribeBubbleWorkbookWriter(object):

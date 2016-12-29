@@ -99,22 +99,8 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
         starting in the next following column, placing the series title in
         the first cell.
         """
-        # write categories
-        categories = self._chart_data.categories
-        depth = categories.depth
-        for idx, level in enumerate(categories.levels):
-            col = depth - idx - 1
-            for off, name in level:
-                row = off + 1
-                worksheet.write(row, col, name)
-        # write series
-        for series in self._chart_data:
-            num_format = (
-                workbook.add_format({'num_format': series.number_format})
-            )
-            series_col = series.index + depth
-            worksheet.write(0, series_col, series.name)
-            worksheet.write_column(1, series_col, series.values, num_format)
+        self._write_categories(workbook, worksheet)
+        self._write_series(workbook, worksheet)
 
     def _series_col_letter(self, series):
         """
@@ -123,6 +109,48 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
         """
         start_col_ascii = ord('A') + series.categories.depth
         return chr(start_col_ascii + series.index)
+
+    def _write_categories(self, workbook, worksheet):
+        """
+        Write the categories column(s) to *worksheet*. Categories start in
+        the first column starting in the second row, and proceeding one
+        column per category level (for charts having multi-level categories).
+        A date category is formatted as a date. All others are formatted
+        `General`.
+        """
+        categories = self._chart_data.categories
+        num_format = workbook.add_format({
+            'num_format': categories.number_format,
+        })
+        depth = categories.depth
+        for idx, level in enumerate(categories.levels):
+            col = depth - idx - 1
+            self._write_cat_column(worksheet, col, level, num_format)
+
+    def _write_cat_column(self, worksheet, col, level, num_format):
+        """
+        Write a category column defined by *level* to *worksheet* at offset
+        *col* and formatted with *num_format*.
+        """
+        worksheet.set_column(col, col, 10)  # wide enough for a date
+        for off, name in level:
+            row = off + 1
+            worksheet.write(row, col, name, num_format)
+
+    def _write_series(self, workbook, worksheet):
+        """
+        Write the series column(s) to *worksheet*. Series start in the column
+        following the last categories column, placing the series title in the
+        first cell.
+        """
+        col_offset = self._chart_data.categories.depth
+        for idx, series in enumerate(self._chart_data):
+            num_format = (
+                workbook.add_format({'num_format': series.number_format})
+            )
+            series_col = idx + col_offset
+            worksheet.write(0, series_col, series.name)
+            worksheet.write_column(1, series_col, series.values, num_format)
 
 
 class XyWorkbookWriter(_BaseWorkbookWriter):
