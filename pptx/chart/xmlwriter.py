@@ -925,6 +925,7 @@ class _PieChartXmlWriter(_BaseChartXmlWriter):
             '{ser_xml}'
             '      </c:pieChart>\n'
             '    </c:plotArea>\n'
+            '    <c:dispBlanksAs val="gap"/>\n'
             '  </c:chart>\n'
             '  <c:txPr>\n'
             '    <a:bodyPr/>\n'

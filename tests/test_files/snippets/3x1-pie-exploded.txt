@@ -57,6 +57,7 @@
         </c:ser>
       </c:pieChart>
     </c:plotArea>
+    <c:dispBlanksAs val="gap"/>
   </c:chart>
   <c:txPr>
     <a:bodyPr/>
