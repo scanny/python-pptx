@@ -302,6 +302,9 @@ class CategoryChartData(_BaseChartData):
         category labels (strings, numbers, or dates) replaces the
         |data.Categories| object with a new one containing a category for
         each label in the sequence.
+
+        Creating a chart from chart data having date categories will cause
+        the chart to have a |DateAxis| for its category axis.
         """
         return Categories()
 
@@ -365,6 +368,9 @@ class Categories(Sequence):
         a string, a number, a datetime.date, or datetime.datetime object. All
         category labels in a chart must be the same type. All category labels
         in a chart having multi-level categories must be strings.
+
+        Creating a chart from chart data having date categories will cause
+        the chart to have a |DateAxis| for its category axis.
         """
         category = Category(label, self)
         self._categories.append(category)
