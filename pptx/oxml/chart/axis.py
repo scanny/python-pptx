@@ -54,7 +54,7 @@ class CT_CatAx(BaseAxisElement):
         'c:tickLblSkip', 'c:tickMarkSkip', 'c:noMultiLvlLbl', 'c:extLst'
     )
     scaling = OneAndOnlyOne('c:scaling')
-    delete = ZeroOrOne('c:delete', successors=_tag_seq[3:])
+    delete_ = ZeroOrOne('c:delete', successors=_tag_seq[3:])
     majorGridlines = ZeroOrOne('c:majorGridlines', successors=_tag_seq[5:])
     minorGridlines = ZeroOrOne('c:minorGridlines', successors=_tag_seq[6:])
     numFmt = ZeroOrOne('c:numFmt', successors=_tag_seq[8:])
@@ -83,6 +83,34 @@ class CT_Crosses(BaseAxisElement):
     one.
     """
     val = RequiredAttribute('val', XL_AXIS_CROSSES)
+
+
+class CT_DateAx(BaseAxisElement):
+    """
+    ``<c:dateAx>`` element, defining a date (category) axis.
+    """
+    _tag_seq = (
+        'c:axId', 'c:scaling', 'c:delete', 'c:axPos', 'c:majorGridlines',
+        'c:minorGridlines', 'c:title', 'c:numFmt', 'c:majorTickMark',
+        'c:minorTickMark', 'c:tickLblPos', 'c:spPr', 'c:txPr', 'c:crossAx',
+        'c:crosses', 'c:crossesAt', 'c:auto', 'c:lblOffset',
+        'c:baseTimeUnit', 'c:majorUnit', 'c:majorTimeUnit', 'c:minorUnit',
+        'c:minorTimeUnit', 'c:extLst'
+    )
+    scaling = OneAndOnlyOne('c:scaling')
+    delete_ = ZeroOrOne('c:delete', successors=_tag_seq[3:])
+    majorGridlines = ZeroOrOne('c:majorGridlines', successors=_tag_seq[5:])
+    minorGridlines = ZeroOrOne('c:minorGridlines', successors=_tag_seq[6:])
+    numFmt = ZeroOrOne('c:numFmt', successors=_tag_seq[8:])
+    majorTickMark = ZeroOrOne('c:majorTickMark', successors=_tag_seq[9:])
+    minorTickMark = ZeroOrOne('c:minorTickMark', successors=_tag_seq[10:])
+    tickLblPos = ZeroOrOne('c:tickLblPos', successors=_tag_seq[11:])
+    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[12:])
+    txPr = ZeroOrOne('c:txPr', successors=_tag_seq[13:])
+    crosses = ZeroOrOne('c:crosses', successors=_tag_seq[15:])
+    crossesAt = ZeroOrOne('c:crossesAt', successors=_tag_seq[16:])
+    lblOffset = ZeroOrOne('c:lblOffset', successors=_tag_seq[18:])
+    del _tag_seq
 
 
 class CT_LblOffset(BaseOxmlElement):
@@ -171,7 +199,7 @@ class CT_ValAx(BaseAxisElement):
         'c:minorUnit', 'c:dispUnits', 'c:extLst'
     )
     scaling = OneAndOnlyOne('c:scaling')
-    delete = ZeroOrOne('c:delete', successors=_tag_seq[3:])
+    delete_ = ZeroOrOne('c:delete', successors=_tag_seq[3:])
     majorGridlines = ZeroOrOne('c:majorGridlines', successors=_tag_seq[5:])
     minorGridlines = ZeroOrOne('c:minorGridlines', successors=_tag_seq[6:])
     numFmt = ZeroOrOne('c:numFmt', successors=_tag_seq[8:])

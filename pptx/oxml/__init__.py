@@ -62,11 +62,12 @@ register_element_cls('a:hlinkHover', CT_Hyperlink)
 
 
 from .chart.axis import (
-    CT_AxisUnit, CT_CatAx, CT_ChartLines, CT_Crosses, CT_LblOffset,
-    CT_Scaling, CT_TickLblPos, CT_TickMark, CT_ValAx
+    CT_AxisUnit, CT_CatAx, CT_ChartLines, CT_Crosses, CT_DateAx,
+    CT_LblOffset, CT_Scaling, CT_TickLblPos, CT_TickMark, CT_ValAx
 )
 register_element_cls('c:catAx',          CT_CatAx)
 register_element_cls('c:crosses',        CT_Crosses)
+register_element_cls('c:dateAx',         CT_DateAx)
 register_element_cls('c:lblOffset',      CT_LblOffset)
 register_element_cls('c:majorGridlines', CT_ChartLines)
 register_element_cls('c:majorTickMark',  CT_TickMark)

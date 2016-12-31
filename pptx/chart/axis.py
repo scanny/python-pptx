@@ -180,7 +180,7 @@ class _BaseAxis(object):
         """
         Read/write. |True| if axis is visible, |False| otherwise.
         """
-        delete = self._element.delete
+        delete = self._element.delete_
         if delete is None:
             return False
         return False if delete.val else True
@@ -191,7 +191,7 @@ class _BaseAxis(object):
             raise ValueError(
                 "assigned value must be True or False, got: %s" % value
             )
-        delete = self._element.get_or_add_delete()
+        delete = self._element.get_or_add_delete_()
         delete.val = not value
 
 

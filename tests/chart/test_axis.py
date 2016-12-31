@@ -125,21 +125,26 @@ class Describe_BaseAxis(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=['c:valAx', 'c:catAx'])
+    @pytest.fixture(params=['c:catAx', 'c:dateAx', 'c:valAx'])
     def format_fixture(self, request, ChartFormat_, format_):
         xAx_cxml = request.param
         axis = _BaseAxis(element(xAx_cxml))
         return axis, ChartFormat_, format_
 
-    @pytest.fixture
-    def maj_grdlns_fixture(self, MajorGridlines_, major_gridlines_):
-        xAx = element('c:valAx')
+    @pytest.fixture(params=['c:catAx', 'c:dateAx', 'c:valAx'])
+    def maj_grdlns_fixture(self, request, MajorGridlines_, major_gridlines_):
+        xAx_cxml = request.param
+        xAx = element(xAx_cxml)
         axis = _BaseAxis(xAx)
         return axis, MajorGridlines_, xAx, major_gridlines_
 
     @pytest.fixture(params=[
-        ('c:valAx',                  False),
-        ('c:valAx/c:majorGridlines', True),
+        ('c:catAx',                   False),
+        ('c:catAx/c:majorGridlines',  True),
+        ('c:dateAx',                  False),
+        ('c:dateAx/c:majorGridlines', True),
+        ('c:valAx',                   False),
+        ('c:valAx/c:majorGridlines',  True),
     ])
     def major_gridlines_get_fixture(self, request):
         xAx_cxml, expected_value = request.param
@@ -147,10 +152,18 @@ class Describe_BaseAxis(object):
         return base_axis, expected_value
 
     @pytest.fixture(params=[
-        ('c:catAx',                  True,  'c:catAx/c:majorGridlines'),
-        ('c:catAx/c:majorGridlines', True,  'c:catAx/c:majorGridlines'),
-        ('c:catAx',                  False, 'c:catAx'),
-        ('c:catAx/c:majorGridlines', False, 'c:catAx'),
+        ('c:catAx',                   True,  'c:catAx/c:majorGridlines'),
+        ('c:catAx/c:majorGridlines',  True,  'c:catAx/c:majorGridlines'),
+        ('c:catAx/c:majorGridlines',  False, 'c:catAx'),
+        ('c:catAx',                   False, 'c:catAx'),
+        ('c:dateAx',                  True,  'c:dateAx/c:majorGridlines'),
+        ('c:dateAx/c:majorGridlines', True,  'c:dateAx/c:majorGridlines'),
+        ('c:dateAx/c:majorGridlines', False, 'c:dateAx'),
+        ('c:dateAx',                  False, 'c:dateAx'),
+        ('c:valAx',                   True,  'c:valAx/c:majorGridlines'),
+        ('c:valAx/c:majorGridlines',  True,  'c:valAx/c:majorGridlines'),
+        ('c:valAx/c:majorGridlines',  False, 'c:valAx'),
+        ('c:valAx',                   False, 'c:valAx'),
     ])
     def major_gridlines_set_fixture(self, request):
         xAx_cxml, new_value, expected_xAx_cxml = request.param
@@ -159,12 +172,15 @@ class Describe_BaseAxis(object):
         return base_axis, new_value, expected_xml
 
     @pytest.fixture(params=[
-        ('c:catAx',                          XL_TICK_MARK.CROSS),
-        ('c:catAx/c:majorTickMark',          XL_TICK_MARK.CROSS),
-        ('c:catAx/c:majorTickMark{val=out}', XL_TICK_MARK.OUTSIDE),
-        ('c:valAx',                          XL_TICK_MARK.CROSS),
-        ('c:valAx/c:majorTickMark',          XL_TICK_MARK.CROSS),
-        ('c:valAx/c:majorTickMark{val=in}',  XL_TICK_MARK.INSIDE),
+        ('c:catAx',                           XL_TICK_MARK.CROSS),
+        ('c:catAx/c:majorTickMark',           XL_TICK_MARK.CROSS),
+        ('c:catAx/c:majorTickMark{val=out}',  XL_TICK_MARK.OUTSIDE),
+        ('c:dateAx',                          XL_TICK_MARK.CROSS),
+        ('c:dateAx/c:majorTickMark',          XL_TICK_MARK.CROSS),
+        ('c:dateAx/c:majorTickMark{val=out}', XL_TICK_MARK.OUTSIDE),
+        ('c:valAx',                           XL_TICK_MARK.CROSS),
+        ('c:valAx/c:majorTickMark',           XL_TICK_MARK.CROSS),
+        ('c:valAx/c:majorTickMark{val=in}',   XL_TICK_MARK.INSIDE),
     ])
     def major_tick_get_fixture(self, request):
         xAx_cxml, expected_value = request.param
@@ -172,14 +188,36 @@ class Describe_BaseAxis(object):
         return axis, expected_value
 
     @pytest.fixture(params=[
-        ('c:catAx',                         XL_TICK_MARK.INSIDE,
+        ('c:catAx',                             XL_TICK_MARK.INSIDE,
          'c:catAx/c:majorTickMark{val=in}'),
-        ('c:catAx',                         XL_TICK_MARK.CROSS,
-         'c:catAx'),
-        ('c:catAx/c:majorTickMark{val=in}', XL_TICK_MARK.OUTSIDE,
+        ('c:catAx/c:majorTickMark{val=in}',     XL_TICK_MARK.OUTSIDE,
          'c:catAx/c:majorTickMark{val=out}'),
-        ('c:catAx/c:majorTickMark{val=in}', XL_TICK_MARK.CROSS,
+        ('c:catAx/c:majorTickMark{val=out}',    XL_TICK_MARK.CROSS,
          'c:catAx'),
+        ('c:catAx',                             XL_TICK_MARK.CROSS,
+         'c:catAx'),
+        ('c:catAx/c:majorTickMark{val=cross}',  XL_TICK_MARK.CROSS,
+         'c:catAx'),
+        ('c:dateAx',                            XL_TICK_MARK.INSIDE,
+         'c:dateAx/c:majorTickMark{val=in}'),
+        ('c:dateAx/c:majorTickMark{val=in}',    XL_TICK_MARK.OUTSIDE,
+         'c:dateAx/c:majorTickMark{val=out}'),
+        ('c:dateAx/c:majorTickMark{val=out}',   XL_TICK_MARK.CROSS,
+         'c:dateAx'),
+        ('c:dateAx',                            XL_TICK_MARK.CROSS,
+         'c:dateAx'),
+        ('c:dateAx/c:majorTickMark{val=cross}', XL_TICK_MARK.CROSS,
+         'c:dateAx'),
+        ('c:valAx',                             XL_TICK_MARK.INSIDE,
+         'c:valAx/c:majorTickMark{val=in}'),
+        ('c:valAx/c:majorTickMark{val=in}',     XL_TICK_MARK.OUTSIDE,
+         'c:valAx/c:majorTickMark{val=out}'),
+        ('c:valAx/c:majorTickMark{val=out}',    XL_TICK_MARK.CROSS,
+         'c:valAx'),
+        ('c:valAx',                             XL_TICK_MARK.CROSS,
+         'c:valAx'),
+        ('c:valAx/c:majorTickMark{val=cross}',  XL_TICK_MARK.CROSS,
+         'c:valAx'),
     ])
     def major_tick_set_fixture(self, request):
         xAx_cxml, new_value, expected_xAx_cxml = request.param
@@ -188,10 +226,12 @@ class Describe_BaseAxis(object):
         return axis, new_value, expected_xml
 
     @pytest.fixture(params=[
-        ('c:catAx/c:scaling/c:max{val=12.34}', 12.34),
-        ('c:valAx/c:scaling/c:max{val=23.45}', 23.45),
-        ('c:catAx/c:scaling',                  None),
-        ('c:valAx/c:scaling',                  None),
+        ('c:catAx/c:scaling',                   None),
+        ('c:catAx/c:scaling/c:max{val=12.34}',  12.34),
+        ('c:dateAx/c:scaling',                  None),
+        ('c:dateAx/c:scaling/c:max{val=42.24}', 42.24),
+        ('c:valAx/c:scaling',                   None),
+        ('c:valAx/c:scaling/c:max{val=23.45}',  23.45),
     ])
     def maximum_scale_get_fixture(self, request):
         xAx_cxml, expected_value = request.param
@@ -200,12 +240,20 @@ class Describe_BaseAxis(object):
 
     @pytest.fixture(params=[
         ('c:catAx/c:scaling', 34.56, 'c:catAx/c:scaling/c:max{val=34.56}'),
-        ('c:valAx/c:scaling', 45.67, 'c:valAx/c:scaling/c:max{val=45.67}'),
-        ('c:catAx/c:scaling', None,  'c:catAx/c:scaling'),
-        ('c:valAx/c:scaling/c:max{val=42.42}', 12.34,
-         'c:valAx/c:scaling/c:max{val=12.34}'),
-        ('c:catAx/c:scaling/c:max{val=42.42}', None,
-         'c:catAx/c:scaling'),
+        ('c:catAx/c:scaling/c:max{val=34.56}', 42.42,
+         'c:catAx/c:scaling/c:max{val=42.42}'),
+        ('c:catAx/c:scaling/c:max{val=42.42}', None, 'c:catAx/c:scaling'),
+        ('c:catAx/c:scaling', None, 'c:catAx/c:scaling'),
+        ('c:dateAx/c:scaling', 45.67, 'c:dateAx/c:scaling/c:max{val=45.67}'),
+        ('c:dateAx/c:scaling/c:max{val=45.67}', 42.42,
+         'c:dateAx/c:scaling/c:max{val=42.42}'),
+        ('c:dateAx/c:scaling/c:max{val=42.42}', None, 'c:dateAx/c:scaling'),
+        ('c:dateAx/c:scaling', None, 'c:dateAx/c:scaling'),
+        ('c:valAx/c:scaling', 56.78, 'c:valAx/c:scaling/c:max{val=56.78}'),
+        ('c:valAx/c:scaling/c:max{val=56.78}', 42.42,
+         'c:valAx/c:scaling/c:max{val=42.42}'),
+        ('c:valAx/c:scaling/c:max{val=42.42}', None, 'c:valAx/c:scaling'),
+        ('c:valAx/c:scaling', None, 'c:valAx/c:scaling'),
     ])
     def maximum_scale_set_fixture(self, request):
         xAx_cxml, new_value, expected_xAx_cxml = request.param
@@ -214,10 +262,12 @@ class Describe_BaseAxis(object):
         return axis, new_value, expected_xml
 
     @pytest.fixture(params=[
-        ('c:catAx/c:scaling/c:min{val=12.34}', 12.34),
-        ('c:valAx/c:scaling/c:min{val=23.45}', 23.45),
-        ('c:catAx/c:scaling',                  None),
-        ('c:valAx/c:scaling',                  None),
+        ('c:catAx/c:scaling',                   None),
+        ('c:catAx/c:scaling/c:min{val=12.34}',  12.34),
+        ('c:dateAx/c:scaling',                  None),
+        ('c:dateAx/c:scaling/c:min{val=42.24}', 42.24),
+        ('c:valAx/c:scaling',                   None),
+        ('c:valAx/c:scaling/c:min{val=23.45}',  23.45),
     ])
     def minimum_scale_get_fixture(self, request):
         xAx_cxml, expected_value = request.param
@@ -226,12 +276,20 @@ class Describe_BaseAxis(object):
 
     @pytest.fixture(params=[
         ('c:catAx/c:scaling', 34.56, 'c:catAx/c:scaling/c:min{val=34.56}'),
-        ('c:valAx/c:scaling', 45.67, 'c:valAx/c:scaling/c:min{val=45.67}'),
-        ('c:catAx/c:scaling', None,  'c:catAx/c:scaling'),
-        ('c:valAx/c:scaling/c:min{val=42.42}', 12.34,
-         'c:valAx/c:scaling/c:min{val=12.34}'),
-        ('c:catAx/c:scaling/c:min{val=42.42}', None,
-         'c:catAx/c:scaling'),
+        ('c:catAx/c:scaling/c:min{val=34.56}', 42.42,
+         'c:catAx/c:scaling/c:min{val=42.42}'),
+        ('c:catAx/c:scaling/c:min{val=42.42}', None, 'c:catAx/c:scaling'),
+        ('c:catAx/c:scaling', None, 'c:catAx/c:scaling'),
+        ('c:dateAx/c:scaling', 45.67, 'c:dateAx/c:scaling/c:min{val=45.67}'),
+        ('c:dateAx/c:scaling/c:min{val=45.67}', 42.42,
+         'c:dateAx/c:scaling/c:min{val=42.42}'),
+        ('c:dateAx/c:scaling/c:min{val=42.42}', None, 'c:dateAx/c:scaling'),
+        ('c:dateAx/c:scaling', None, 'c:dateAx/c:scaling'),
+        ('c:valAx/c:scaling', 56.78, 'c:valAx/c:scaling/c:min{val=56.78}'),
+        ('c:valAx/c:scaling/c:min{val=56.78}', 42.42,
+         'c:valAx/c:scaling/c:min{val=42.42}'),
+        ('c:valAx/c:scaling/c:min{val=42.42}', None, 'c:valAx/c:scaling'),
+        ('c:valAx/c:scaling', None, 'c:valAx/c:scaling'),
     ])
     def minimum_scale_set_fixture(self, request):
         xAx_cxml, new_value, expected_xAx_cxml = request.param
@@ -240,10 +298,12 @@ class Describe_BaseAxis(object):
         return axis, new_value, expected_xml
 
     @pytest.fixture(params=[
-        ('c:catAx',                  False),
-        ('c:valAx',                  False),
-        ('c:catAx/c:minorGridlines', True),
-        ('c:valAx/c:minorGridlines', True),
+        ('c:catAx',                   False),
+        ('c:catAx/c:minorGridlines',  True),
+        ('c:dateAx',                  False),
+        ('c:dateAx/c:minorGridlines', True),
+        ('c:valAx',                   False),
+        ('c:valAx/c:minorGridlines',  True),
     ])
     def minor_gridlines_get_fixture(self, request):
         xAx_cxml, expected_value = request.param
@@ -251,10 +311,18 @@ class Describe_BaseAxis(object):
         return base_axis, expected_value
 
     @pytest.fixture(params=[
-        ('c:catAx',                  True,  'c:catAx/c:minorGridlines'),
-        ('c:catAx/c:minorGridlines', True,  'c:catAx/c:minorGridlines'),
-        ('c:catAx',                  False, 'c:catAx'),
-        ('c:catAx/c:minorGridlines', False, 'c:catAx'),
+        ('c:catAx',                   True,  'c:catAx/c:minorGridlines'),
+        ('c:catAx/c:minorGridlines',  True,  'c:catAx/c:minorGridlines'),
+        ('c:catAx/c:minorGridlines',  False, 'c:catAx'),
+        ('c:catAx',                   False, 'c:catAx'),
+        ('c:dateAx',                  True,  'c:dateAx/c:minorGridlines'),
+        ('c:dateAx/c:minorGridlines', True,  'c:dateAx/c:minorGridlines'),
+        ('c:dateAx/c:minorGridlines', False, 'c:dateAx'),
+        ('c:dateAx',                  False, 'c:dateAx'),
+        ('c:valAx',                   True,  'c:valAx/c:minorGridlines'),
+        ('c:valAx/c:minorGridlines',  True,  'c:valAx/c:minorGridlines'),
+        ('c:valAx/c:minorGridlines',  False, 'c:valAx'),
+        ('c:valAx',                   False, 'c:valAx'),
     ])
     def minor_gridlines_set_fixture(self, request):
         xAx_cxml, new_value, expected_xAx_cxml = request.param
@@ -263,14 +331,15 @@ class Describe_BaseAxis(object):
         return base_axis, new_value, expected_xml
 
     @pytest.fixture(params=[
-        ('c:catAx',                            XL_TICK_MARK.CROSS),
-        ('c:catAx/c:minorTickMark',            XL_TICK_MARK.CROSS),
-        ('c:catAx/c:minorTickMark{val=cross}', XL_TICK_MARK.CROSS),
-        ('c:catAx/c:minorTickMark{val=in}',    XL_TICK_MARK.INSIDE),
-        ('c:valAx',                            XL_TICK_MARK.CROSS),
-        ('c:valAx/c:minorTickMark',            XL_TICK_MARK.CROSS),
-        ('c:valAx/c:minorTickMark{val=cross}', XL_TICK_MARK.CROSS),
-        ('c:valAx/c:minorTickMark{val=out}',   XL_TICK_MARK.OUTSIDE),
+        ('c:catAx',                           XL_TICK_MARK.CROSS),
+        ('c:catAx/c:minorTickMark',           XL_TICK_MARK.CROSS),
+        ('c:catAx/c:minorTickMark{val=out}',  XL_TICK_MARK.OUTSIDE),
+        ('c:dateAx',                          XL_TICK_MARK.CROSS),
+        ('c:dateAx/c:minorTickMark',          XL_TICK_MARK.CROSS),
+        ('c:dateAx/c:minorTickMark{val=out}', XL_TICK_MARK.OUTSIDE),
+        ('c:valAx',                           XL_TICK_MARK.CROSS),
+        ('c:valAx/c:minorTickMark',           XL_TICK_MARK.CROSS),
+        ('c:valAx/c:minorTickMark{val=in}',   XL_TICK_MARK.INSIDE),
     ])
     def minor_tick_get_fixture(self, request):
         xAx_cxml, expected_value = request.param
@@ -278,13 +347,35 @@ class Describe_BaseAxis(object):
         return axis, expected_value
 
     @pytest.fixture(params=[
-        ('c:valAx',                         XL_TICK_MARK.INSIDE,
+        ('c:catAx',                             XL_TICK_MARK.INSIDE,
+         'c:catAx/c:minorTickMark{val=in}'),
+        ('c:catAx/c:minorTickMark{val=in}',     XL_TICK_MARK.OUTSIDE,
+         'c:catAx/c:minorTickMark{val=out}'),
+        ('c:catAx/c:minorTickMark{val=out}',    XL_TICK_MARK.CROSS,
+         'c:catAx'),
+        ('c:catAx',                             XL_TICK_MARK.CROSS,
+         'c:catAx'),
+        ('c:catAx/c:minorTickMark{val=cross}',  XL_TICK_MARK.CROSS,
+         'c:catAx'),
+        ('c:dateAx',                            XL_TICK_MARK.INSIDE,
+         'c:dateAx/c:minorTickMark{val=in}'),
+        ('c:dateAx/c:minorTickMark{val=in}',    XL_TICK_MARK.OUTSIDE,
+         'c:dateAx/c:minorTickMark{val=out}'),
+        ('c:dateAx/c:minorTickMark{val=out}',   XL_TICK_MARK.CROSS,
+         'c:dateAx'),
+        ('c:dateAx',                            XL_TICK_MARK.CROSS,
+         'c:dateAx'),
+        ('c:dateAx/c:minorTickMark{val=cross}', XL_TICK_MARK.CROSS,
+         'c:dateAx'),
+        ('c:valAx',                             XL_TICK_MARK.INSIDE,
          'c:valAx/c:minorTickMark{val=in}'),
-        ('c:valAx',                         XL_TICK_MARK.CROSS,
-         'c:valAx'),
-        ('c:valAx/c:minorTickMark{val=in}', XL_TICK_MARK.OUTSIDE,
+        ('c:valAx/c:minorTickMark{val=in}',     XL_TICK_MARK.OUTSIDE,
          'c:valAx/c:minorTickMark{val=out}'),
-        ('c:valAx/c:minorTickMark{val=in}', XL_TICK_MARK.CROSS,
+        ('c:valAx/c:minorTickMark{val=out}',    XL_TICK_MARK.CROSS,
+         'c:valAx'),
+        ('c:valAx',                             XL_TICK_MARK.CROSS,
+         'c:valAx'),
+        ('c:valAx/c:minorTickMark{val=cross}',  XL_TICK_MARK.CROSS,
          'c:valAx'),
     ])
     def minor_tick_set_fixture(self, request):
@@ -293,17 +384,23 @@ class Describe_BaseAxis(object):
         expected_xml = xml(expected_xAx_cxml)
         return axis, new_value, expected_xml
 
-    @pytest.fixture
-    def tick_labels_fixture(self, TickLabels_, tick_labels_):
-        xAx = element('c:valAx')
+    @pytest.fixture(params=['c:catAx', 'c:dateAx', 'c:valAx'])
+    def tick_labels_fixture(self, request, TickLabels_, tick_labels_):
+        xAx_cxml = request.param
+        xAx = element(xAx_cxml)
         axis = _BaseAxis(xAx)
         return axis, tick_labels_, TickLabels_, xAx
 
     @pytest.fixture(params=[
-        ('c:valAx',                          XL_TICK_LBL_POS.NEXT_TO_AXIS),
-        ('c:catAx/c:tickLblPos',             XL_TICK_LBL_POS.NEXT_TO_AXIS),
-        ('c:valAx/c:tickLblPos{val=nextTo}', XL_TICK_LBL_POS.NEXT_TO_AXIS),
-        ('c:catAx/c:tickLblPos{val=low}',    XL_TICK_LBL_POS.LOW),
+        ('c:catAx',                        XL_TICK_LBL_POS.NEXT_TO_AXIS),
+        ('c:catAx/c:tickLblPos',           XL_TICK_LBL_POS.NEXT_TO_AXIS),
+        ('c:catAx/c:tickLblPos{val=high}', XL_TICK_LBL_POS.HIGH),
+        ('c:dateAx',                       XL_TICK_LBL_POS.NEXT_TO_AXIS),
+        ('c:dateAx/c:tickLblPos',          XL_TICK_LBL_POS.NEXT_TO_AXIS),
+        ('c:dateAx/c:tickLblPos{val=low}', XL_TICK_LBL_POS.LOW),
+        ('c:valAx',                        XL_TICK_LBL_POS.NEXT_TO_AXIS),
+        ('c:valAx/c:tickLblPos',           XL_TICK_LBL_POS.NEXT_TO_AXIS),
+        ('c:valAx/c:tickLblPos{val=none}', XL_TICK_LBL_POS.NONE),
     ])
     def tick_lbl_pos_get_fixture(self, request):
         xAx_cxml, expected_value = request.param
@@ -311,14 +408,24 @@ class Describe_BaseAxis(object):
         return axis, expected_value
 
     @pytest.fixture(params=[
-        ('c:valAx',                           XL_TICK_LBL_POS.LOW,
-         'c:valAx/c:tickLblPos{val=low}'),
-        ('c:valAx',                           XL_TICK_LBL_POS.NEXT_TO_AXIS,
-         'c:valAx/c:tickLblPos{val=nextTo}'),
-        ('c:valAx/c:tickLblPos{val=low}',     XL_TICK_LBL_POS.HIGH,
+        ('c:catAx',                           XL_TICK_LBL_POS.HIGH,
+         'c:catAx/c:tickLblPos{val=high}'),
+        ('c:catAx/c:tickLblPos{val=high}',    XL_TICK_LBL_POS.LOW,
+         'c:catAx/c:tickLblPos{val=low}'),
+        ('c:catAx/c:tickLblPos{val=low}',     None,
+         'c:catAx/c:tickLblPos'),
+        ('c:catAx',                           None,
+         'c:catAx/c:tickLblPos'),
+        ('c:dateAx',                          XL_TICK_LBL_POS.NEXT_TO_AXIS,
+         'c:dateAx/c:tickLblPos{val=nextTo}'),
+        ('c:dateAx/c:tickLblPos{val=nextTo}', XL_TICK_LBL_POS.NONE,
+         'c:dateAx/c:tickLblPos{val=none}'),
+        ('c:dateAx/c:tickLblPos{val=none}',   None,
+         'c:dateAx/c:tickLblPos'),
+        ('c:valAx',                           XL_TICK_LBL_POS.HIGH,
          'c:valAx/c:tickLblPos{val=high}'),
-        ('c:valAx/c:tickLblPos{val=low}',     XL_TICK_LBL_POS.NEXT_TO_AXIS,
-         'c:valAx/c:tickLblPos{val=nextTo}'),
+        ('c:valAx/c:tickLblPos{val=high}',    XL_TICK_LBL_POS.LOW,
+         'c:valAx/c:tickLblPos{val=low}'),
         ('c:valAx/c:tickLblPos{val=low}',     None,
          'c:valAx/c:tickLblPos'),
     ])
@@ -329,16 +436,21 @@ class Describe_BaseAxis(object):
         return axis, new_value, expected_xml
 
     @pytest.fixture(params=[
-        ('c:catAx',                     False),
-        ('c:catAx/c:delete',            False),
-        ('c:catAx/c:delete{val=0}',     True),
-        ('c:catAx/c:delete{val=1}',     False),
-        ('c:catAx/c:delete{val=false}', True),
-        ('c:valAx',                     False),
-        ('c:valAx/c:delete',            False),
-        ('c:valAx/c:delete{val=0}',     True),
-        ('c:valAx/c:delete{val=1}',     False),
-        ('c:valAx/c:delete{val=false}', True),
+        ('c:catAx',                      False),
+        ('c:catAx/c:delete',             False),
+        ('c:catAx/c:delete{val=0}',      True),
+        ('c:catAx/c:delete{val=1}',      False),
+        ('c:catAx/c:delete{val=false}',  True),
+        ('c:dateAx',                     False),
+        ('c:dateAx/c:delete',            False),
+        ('c:dateAx/c:delete{val=0}',     True),
+        ('c:dateAx/c:delete{val=1}',     False),
+        ('c:dateAx/c:delete{val=false}', True),
+        ('c:valAx',                      False),
+        ('c:valAx/c:delete',             False),
+        ('c:valAx/c:delete{val=0}',      True),
+        ('c:valAx/c:delete{val=1}',      False),
+        ('c:valAx/c:delete{val=false}',  True),
     ])
     def visible_get_fixture(self, request):
         xAx_cxml, expected_bool_value = request.param
@@ -346,14 +458,18 @@ class Describe_BaseAxis(object):
         return axis, expected_bool_value
 
     @pytest.fixture(params=[
-        ('c:catAx',                 True,  'c:catAx/c:delete{val=0}'),
-        ('c:catAx',                 False, 'c:catAx/c:delete'),
-        ('c:valAx/c:delete',        True,  'c:valAx/c:delete{val=0}'),
-        ('c:catAx/c:delete',        False, 'c:catAx/c:delete'),
-        ('c:catAx/c:delete{val=1}', True,  'c:catAx/c:delete{val=0}'),
-        ('c:valAx/c:delete{val=1}', False, 'c:valAx/c:delete'),
-        ('c:valAx/c:delete{val=0}', True,  'c:valAx/c:delete{val=0}'),
-        ('c:catAx/c:delete{val=0}', False, 'c:catAx/c:delete'),
+        ('c:catAx',                  False, 'c:catAx/c:delete'),
+        ('c:catAx/c:delete',         True,  'c:catAx/c:delete{val=0}'),
+        ('c:catAx/c:delete{val=1}',  True,  'c:catAx/c:delete{val=0}'),
+        ('c:catAx/c:delete{val=0}',  False, 'c:catAx/c:delete'),
+        ('c:catAx',                  True,  'c:catAx/c:delete{val=0}'),
+        ('c:dateAx',                 False, 'c:dateAx/c:delete'),
+        ('c:dateAx/c:delete',        True,  'c:dateAx/c:delete{val=0}'),
+        ('c:dateAx/c:delete{val=0}', False, 'c:dateAx/c:delete'),
+        ('c:dateAx',                 True,  'c:dateAx/c:delete{val=0}'),
+        ('c:valAx/c:delete',         True,  'c:valAx/c:delete{val=0}'),
+        ('c:valAx/c:delete{val=1}',  False, 'c:valAx/c:delete'),
+        ('c:valAx/c:delete{val=0}',  True,  'c:valAx/c:delete{val=0}'),
     ])
     def visible_set_fixture(self, request):
         xAx_cxml, new_value, expected_xAx_cxml = request.param
