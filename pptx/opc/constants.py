@@ -28,6 +28,9 @@ class CONTENT_TYPE(object):
         'application/vnd.openxmlformats-officedocument.drawingml.diagramData'
         '+xml'
     )
+    DML_DIAGRAM_DRAWING = (
+        'application/vnd.ms-office.drawingml.diagramDrawing+xml'
+    )
     DML_DIAGRAM_LAYOUT = (
         'application/vnd.openxmlformats-officedocument.drawingml.diagramLayo'
         'ut+xml'
@@ -39,11 +42,23 @@ class CONTENT_TYPE(object):
     GIF = (
         'image/gif'
     )
+    INK = (
+        'application/inkml+xml'
+    )
     JPEG = (
         'image/jpeg'
     )
     MS_PHOTO = (
         'image/vnd.ms-photo'
+    )
+    OFC_CHART_COLORS = (
+        'application/vnd.ms-office.chartcolorstyle+xml'
+    )
+    OFC_CHART_EX = (
+        'application/vnd.ms-office.chartex+xml'
+    )
+    OFC_CHART_STYLE = (
+        'application/vnd.ms-office.chartstyle+xml'
     )
     OFC_CUSTOM_PROPERTIES = (
         'application/vnd.openxmlformats-officedocument.custom-properties+xml'

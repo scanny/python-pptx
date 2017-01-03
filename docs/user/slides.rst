@@ -4,7 +4,7 @@ Working with Slides
 
 Every slide in a presentation is based on a slide layout. Not surprising then
 that you have to specify which slide layout to use when you create a new slide.
-Let's take a minute to understand a few things abot slide layouts that we'll
+Let's take a minute to understand a few things about slide layouts that we'll
 need so the slide we add looks the way we want it to.
 
 
