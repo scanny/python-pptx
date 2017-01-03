@@ -3,6 +3,28 @@
 Release History
 ---------------
 
+0.6.2 (2017-01-03)
+++++++++++++++++++
+
+- add support for NotesSlide (slide notes, aka. notes page)
+- add support for arbitrary series ordering in XML
+- add Plot.categories providing access to hierarchical categories in an
+  existing chart.
+- add support for date axes on category charts, including writing a dateAx
+  element for the category axis when ChartData categories are date or
+  datetime.
+
+**BACKWARD INCOMPATIBILITIES:**
+
+Some changes were made to the boilerplate XML used to create new charts. This
+was done to more closely adhere to the settings PowerPoint uses when creating
+a chart using the UI. This may result in some appearance changes in charts
+after upgrading. In particular:
+
+* Chart.has_legend now defaults to True for Line charts.
+* Plot.vary_by_categories now defaults to False for Line charts.
+
+
 0.6.1 (2016-10-09)
 ++++++++++++++++++
 
