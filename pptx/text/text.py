@@ -71,7 +71,7 @@ class TextFrame(Subshape):
         than *max_size* points. If the path to a matching TrueType font is
         provided as *font_file*, that font file will be used for the font
         metrics. If *font_file* is |None|, best efforts are made to locate
-        a font file with mathching *font_family*, *bold*, and *italic*
+        a font file with matching *font_family*, *bold*, and *italic*
         installed on the current system (usually succeeds if the font is
         installed).
         """
