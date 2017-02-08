@@ -8,6 +8,28 @@ have any combination of its series name, category name, and value. A number
 format may also be applied to the value displayed.
 
 
+Object access
+-------------
+
+The `DataLabels` object is not a collection of `DataLabel` objects.
+`DataLabels` controls the formatting of the data labels for a whole series,
+so "global" settings in a way of thinking. An individual `DataLabel` object
+is accessed using it's associated `Point` object::
+
+    data_label = chart.plot[0].series[0].points[0].data_label
+
+The two object types share many attributes.
+
+
+DataLabel.font
+--------------
+
+Proposed protocol::
+
+    >>> font = data_label.font
+    >>> font.color.rgb = RGBColor(0x3C, 0xEB, 0x27)
+
+
 Position
 --------
 
@@ -61,6 +83,86 @@ Proposed protocol::
     INSIDE_END (3)
 
 
+MS API
+------
+
+The following properties from the MS API DataLabel object are of most
+interest:
+
+Delete()
+    Deletes the DataLabel object, which might be useful for "undoing" data
+    label overrides and restoring inherited behaviors.
+
+AutoText
+    True if the object automatically generates appropriate text based on
+    context. Read/write Boolean.
+
+Caption
+    Returns or sets the data label text. Read/write String.
+
+Format
+    Returns the line, fill, and effect formatting for the object. Read-only
+    ChartFormat.
+
+NumberFormat
+    Returns or sets the format code for the object. Read/write String.
+
+NumberFormatLinked
+    True if the number format is linked to the cells (so that the number
+    format changes in the labels when it changes in the cells). Read/write
+    Boolean.
+
+Orientation
+    Returns or sets the text orientation. Read/write Long in range -90 to 90
+    (degrees).
+
+Position
+    Returns or sets the position of the data label. Read/write
+    XlDataLabelPosition.
+
+Separator
+    Returns or sets the separator used for the data labels on a chart. Used
+    when more than one value is shown, like category+value. Read/write
+    Variant.
+
+Shadow
+    Returns or sets a value that indicates whether the object has a shadow.
+    Read/write Boolean.
+
+ShowBubbleSize
+    True to show the bubble size for the data labels on a chart. False to
+    hide the bubble size. Read/write Boolean.
+
+ShowCategoryName
+    True to display the category name for the data labels on a chart. False
+    to hide the category name. Read/write Boolean.
+
+ShowLegendKey
+    True if the data label legend key is visible. This is a small square of
+    the series color shown in the legend, and appears adjacent to the data
+    label. Read/write Boolean.
+
+ShowPercentage
+    True to display the percentage value for the data labels on a chart.
+    False to hide the value. This might only be relevant for pie charts and
+    similar. Read/write Boolean.
+
+ShowSeriesName
+    True to show the series name for the data labels on a chart. False to
+    hide the series name. Read/write Boolean.
+
+ShowValue
+    True to display a specified chart's data label values. False to hide the
+    values. Read/write Boolean.
+
+Text
+    Returns or sets the text for the specified object. Read/write String.
+
+VerticalAlignment
+    Returns or sets the vertical alignment of the specified object.
+    Read/write Variant.
+
+
 PowerPoint behavior
 -------------------
 
@@ -83,6 +185,9 @@ XML Semantics
   overridden completely by a ``<c:dLbls>`` element at the series level.
   Unless overridden, a ``<c:dLbls>`` element at the plot level determines the
   content and formatting for data labels on all the plot's series.
+
+* A ``<c:dLbl>`` element appears as a child of ``<c:dLbls>`` only when the
+  data label for its associated data point has overrides.
 
 
 XML specimens
@@ -134,6 +239,43 @@ Italic Arial Narrow, color Accent 6, 25% Darker::
       <c:showBubbleSize val="0"/>
     </c:dLbls>
 
+A ``<c:dLbls>`` element having an individual point override for font color
+and outline box::
+
+    <c:dLbls>
+      <c:dLbl>
+        <c:idx val="0"/>
+        <c:spPr>
+          <!-- ouline color (Red) -->
+          <a:ln>
+            <a:solidFill>
+              <a:srgbClr val="FF0000"/>
+            </a:solidFill>
+          </a:ln>
+        </c:spPr>
+        <c:txPr>
+          <a:bodyPr/>
+          <a:lstStyle/>
+          <a:p>
+            <a:pPr>
+              <!-- font color (Green) -->
+              <a:defRPr>
+                <a:solidFill>
+                  <a:srgbClr val="00FF00"/>
+                </a:solidFill>
+              </a:defRPr>
+            </a:pPr>
+            <a:endParaRPr lang="en-US"/>
+          </a:p>
+        </c:txPr>
+        <c:showLegendKey val="0"/>
+        <c:showCatName val="0"/>
+        <c:showSerName val="0"/>
+      </c:dLbl>
+      <c:spPr/>
+      <!-- ... -->
+    </c:dLbls>
+
 
 Related Schema Definitions
 --------------------------
@@ -145,7 +287,7 @@ Related Schema Definitions
       <xsd:element name="dLbl" type="CT_DLbl" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:choice>
         <xsd:element name="delete"      type="CT_Boolean"/>
-        <xsd:group    ref="Group_DLbls"/>
+        <xsd:group   ref="Group_DLbls"/>
       </xsd:choice>
       <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0"/>
     </xsd:sequence>
@@ -174,7 +316,7 @@ Related Schema Definitions
       <xsd:element name="idx" type="CT_UnsignedInt"/>
       <xsd:choice>
         <xsd:element name="delete"     type="CT_Boolean"/>
-        <xsd:group    ref="Group_DLbl"/>
+        <xsd:group   ref="Group_DLbl"/>
       </xsd:choice>
       <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0"/>
     </xsd:sequence>

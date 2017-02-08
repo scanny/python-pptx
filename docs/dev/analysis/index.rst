@@ -30,6 +30,7 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   cht-data-labels
    cht-date-axis
    cht-categories
    cht-marker
@@ -56,7 +57,6 @@ Chart
    cht-axis-has-gridlines
    cht-series
    cht-access-xlsx
-   cht-data-labels
    cht-axes
    cht-chart-shape
    cht-chart
