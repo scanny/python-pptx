@@ -20,6 +20,12 @@ from ..unitutil.mock import class_mock, instance_mock, method_mock
 
 class DescribeDataLabel(object):
 
+    def it_has_a_font(self, font_fixture):
+        data_label, expected_xml = font_fixture
+        font = data_label.font
+        assert data_label._ser.xml == expected_xml
+        assert isinstance(font, Font)
+
     def it_knows_its_position(self, position_get_fixture):
         data_label, expected_value = position_get_fixture
         position = data_label.position
@@ -56,6 +62,22 @@ class DescribeDataLabel(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
+        ('c:ser{a:b=c}',
+         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:spPr,c:txPr/(a:bodyPr,'
+         'a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{va'
+         'l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0'
+         '},c:showBubbleSize{val=0})'),
+        ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p))',
+         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p/a:p'
+         'Pr/a:defRPr))'),
+    ])
+    def font_fixture(self, request):
+        ser_cxml, expected_cxml = request.param
+        data_label = DataLabel(element(ser_cxml), 9)
+        expected_xml = xml(expected_cxml)
+        return data_label, expected_xml
+
+    @pytest.fixture(params=[
         ('c:ser',                                              False),
         ('c:ser/c:dLbls',                                      False),
         ('c:ser/c:dLbls/c:dLbl/c:idx{val=42}',                 False),
@@ -83,10 +105,14 @@ class DescribeDataLabel(object):
          'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
         ('c:ser{a:b=c}',                                              True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':p),c:showLegendKey{val=0})'),
+         ':p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),c:showL'
+         'egendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerNam'
+         'e{val=0},c:showPercent{val=0},c:showBubbleSize{val=0})'),
         ('c:ser{a:b=c}/c:dLbls',                                      True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':p),c:showLegendKey{val=0})'),
+         ':p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),c:showL'
+         'egendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerNam'
+         'e{val=0},c:showPercent{val=0},c:showBubbleSize{val=0})'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}',                 True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
          ':p))'),
@@ -95,7 +121,10 @@ class DescribeDataLabel(object):
          ':p))'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)',   True,
          'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=24},c:tx/c:rich),c:dLbl/(c'
-         ':idx{val=42},c:tx/c:rich/(a:bodyPr,a:p),c:showLegendKey{val=0}))'),
+         ':idx{val=42},c:tx/c:rich/(a:bodyPr,a:p),c:spPr,c:txPr/(a:bodyPr,a:'
+         'lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{val='
+         '1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},'
+         'c:showBubbleSize{val=0}))'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}',                 True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
          ':p))'),
@@ -120,15 +149,16 @@ class DescribeDataLabel(object):
         return data_label, expected_value
 
     @pytest.fixture(params=[
-        ('c:ser',                                                   'CENTER',
-         'c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=ctr},c:showLegen'
-         'dKey{val=0})'),
+        ('c:ser{a:b=c}', 'CENTER',
+         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:spPr,c:txPr/(a:bodyPr'
+         ',a:lstStyle,a:p/a:pPr/a:defRPr),c:dLblPos{val=ctr},c:showLegendKey'
+         '{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerName{val=0}'
+         ',c:showPercent{val=0},c:showBubbleSize{val=0})'),
         ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=ctr})', 'BELOW',
          'c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})'),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})',   None,
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})', None,
          'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
-        ('c:ser',                                                   None,
-         'c:ser'),
+        ('c:ser', None, 'c:ser'),
     ])
     def position_set_fixture(self, request):
         ser_cxml, value, expected_cxml = request.param
@@ -142,7 +172,9 @@ class DescribeDataLabel(object):
     @pytest.fixture(params=[
         ('c:ser{a:b=c}',
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':p),c:showLegendKey{val=0})'),
+         ':p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),c:showL'
+         'egendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerNam'
+         'e{val=0},c:showPercent{val=0},c:showBubbleSize{val=0})'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)',
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
          ':p))'),

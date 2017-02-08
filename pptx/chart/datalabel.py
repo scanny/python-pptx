@@ -99,9 +99,23 @@ class DataLabel(object):
     """
     def __init__(self, ser, idx):
         super(DataLabel, self).__init__()
-        self._element = ser
-        self._ser = ser
+        self._ser = self._element = ser
         self._idx = idx
+
+    @lazyproperty
+    def font(self):
+        """The |Font| object providing text formatting for this data label.
+
+        This font object is used to customize the appearance of automatically
+        inserted text, such as the data point value. The font applies to the
+        entire data label. More granular control of the appearance of custom
+        data label text is controlled by a font object on runs in the text
+        frame.
+        """
+        txPr = self._get_or_add_txPr()
+        text_frame = TextFrame(txPr, self)
+        paragraph = text_frame.paragraphs[0]
+        return paragraph.font
 
     @property
     def has_text_frame(self):
@@ -193,6 +207,15 @@ class DataLabel(object):
         """
         dLbl = self._get_or_add_dLbl()
         return dLbl.get_or_add_tx_rich()
+
+    def _get_or_add_txPr(self):
+        """Return the `c:txPr` element for this data label.
+
+        The `c:txPr` element and its parent `c:dLbl` element are created if
+        not yet present.
+        """
+        dLbl = self._get_or_add_dLbl()
+        return dLbl.get_or_add_txPr()
 
     def _remove_tx_rich(self):
         """

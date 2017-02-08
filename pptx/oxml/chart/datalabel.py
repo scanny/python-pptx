@@ -13,8 +13,7 @@ from ...enum.chart import XL_DATA_LABEL_POSITION
 from ..ns import nsdecls
 from ..text import CT_TextBody
 from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OxmlElement, RequiredAttribute,
-    ZeroOrMore, ZeroOrOne
+    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrMore, ZeroOrOne
 )
 
 
@@ -31,6 +30,7 @@ class CT_DLbl(BaseOxmlElement):
     )
     idx = OneAndOnlyOne('c:idx')
     tx = ZeroOrOne('c:tx', successors=_tag_seq[3:])
+    txPr = ZeroOrOne('c:txPr', successors=_tag_seq[6:])
     dLblPos = ZeroOrOne('c:dLblPos', successors=_tag_seq[7:])
     del _tag_seq
 
@@ -63,17 +63,35 @@ class CT_DLbl(BaseOxmlElement):
 
     @classmethod
     def new_dLbl(cls):
+        """Return a newly created "loose" `c:dLbl` element.
+
+        The `c:dLbl` element contains the same (fairly extensive) default
+        subtree added by PowerPoint when an individual data label is
+        customized in the UI. Note that the idx value must be set by the
+        client. Failure to set the idx value will likely result in any
+        changes not being visible and may result in a repair error on open.
         """
-        Return a newly created "loose" `c:dLbl` element containing its
-        default subtree.
-        """
-        dLbl = OxmlElement('c:dLbl')
-        idx = OxmlElement('c:idx')
-        showLegendKey = OxmlElement('c:showLegendKey')
-        showLegendKey.val = False
-        dLbl.append(idx)
-        dLbl.append(showLegendKey)
-        return dLbl
+        return parse_xml(
+            '<c:dLbl %s>\n'
+            '  <c:idx val="666"/>\n'
+            '  <c:spPr/>\n'
+            '  <c:txPr>\n'
+            '    <a:bodyPr/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr>\n'
+            '        <a:defRPr/>\n'
+            '      </a:pPr>\n'
+            '    </a:p>\n'
+            '  </c:txPr>\n'
+            '  <c:showLegendKey val="0"/>\n'
+            '  <c:showVal val="1"/>\n'
+            '  <c:showCatName val="0"/>\n'
+            '  <c:showSerName val="0"/>\n'
+            '  <c:showPercent val="0"/>\n'
+            '  <c:showBubbleSize val="0"/>\n'
+            '</c:dLbl>' % nsdecls('c', 'a')
+        )
 
     def remove_tx_rich(self):
         """
@@ -84,6 +102,9 @@ class CT_DLbl(BaseOxmlElement):
             return
         tx = matches[0]
         self.remove(tx)
+
+    def _new_txPr(self):
+        return CT_TextBody.new_txPr()
 
 
 class CT_DLblPos(BaseOxmlElement):

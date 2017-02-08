@@ -4,7 +4,6 @@ Feature: DataLabel properties
   I need read/write properties on DataLabel
 
 
-  @wip
   Scenario Outline: Get DataLabel.font
     Given a data label <having-or-not> custom font
      Then data_label.font is a Font object
