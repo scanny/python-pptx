@@ -4,7 +4,18 @@ Feature: DataLabel properties
   I need read/write properties on DataLabel
 
 
-  Scenario Outline: Get data_label.position
+  @wip
+  Scenario Outline: Get DataLabel.font
+    Given a data label <having-or-not> custom font
+     Then data_label.font is a Font object
+
+    Examples: data_label.font states
+      | having-or-not |
+      | having a      |
+      | having no     |
+
+
+  Scenario Outline: Get DataLabel.position
     Given a data label positioned <relation-to> its data point
      Then data_label.position is <value>
 
@@ -14,7 +25,7 @@ Feature: DataLabel properties
       | centered on                | CENTER |
 
 
-  Scenario Outline: Set data_label.position
+  Scenario Outline: Set DataLabel.position
     Given a data label positioned <relation-to> its data point
      When I assign <value> to data_label.position
      Then data_label.position is <value>

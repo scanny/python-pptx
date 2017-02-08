@@ -308,6 +308,17 @@ def given_a_chart_of_type_chart_type(context, chart_type):
     context.chart = prs.slides[slide_idx].shapes[shape_idx].chart
 
 
+@given('a data label {having_or_not} custom font')
+def given_a_data_label_having_or_not_custom_font(context, having_or_not):
+    point_idx = {
+        'having a':  0,
+        'having no': 1,
+    }[having_or_not]
+    prs = Presentation(test_pptx('cht-point-props'))
+    points = prs.slides[2].shapes[0].chart.plots[0].series[0].points
+    context.data_label = points[point_idx].data_label
+
+
 @given('a data label {having_or_not} custom text')
 def given_a_data_label_having_or_not_custom_text(context, having_or_not):
     point_idx = {
@@ -1124,6 +1135,12 @@ def then_chart_data_number_format_is(context, value_str):
 def then_chart_data_minus_1_is_the_new_series(context):
     chart_data, series = context.chart_data, context.series
     assert chart_data[-1] is series
+
+
+@then('data_label.font is a Font object')
+def then_data_label_font_is_a_Font_object(context):
+    font = context.data_label.font
+    assert type(font).__name__ == 'Font'
 
 
 @then('data_label.has_text_frame is {value}')
