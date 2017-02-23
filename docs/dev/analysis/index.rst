@@ -30,6 +30,7 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   cht-axis-title
    cht-data-labels
    cht-date-axis
    cht-categories

@@ -91,7 +91,9 @@ rst_epilog = """
 
 .. |AttributeError| replace:: :exc:`AttributeError`
 
-.. |Axis| replace:: :class:`Axis`
+.. |Axis| replace:: :class:`.Axis`
+
+.. |AxisTitle| replace:: :class:`.AxisTitle`
 
 .. |BarPlot| replace:: :class:`.BarPlot`
 
