@@ -90,6 +90,31 @@ Feature: Axis properties
       | not having    | minor          | True  | True           |
 
 
+  @wip
+  Scenario Outline: Get Axis.has_title
+    Given an axis having <a-or-no> title
+     Then axis.has_title is <expected-value>
+
+    Examples: axis title presence cases
+      | a-or-no | expected-value |
+      | a       | True           |
+      | no      | False          |
+
+
+  @wip
+  Scenario Outline: Set Axis.has_title
+    Given an axis having <a-or-no> title
+     When I assign <value> to axis.has_title
+     Then axis.has_title is <expected-value>
+
+    Examples: axis title assignment cases
+      | a-or-no | value | expected-value |
+      | a       | True  | True           |
+      | a       | False | False          |
+      | no      | True  | True           |
+      | no      | False | False          |
+
+
   Scenario Outline: Get Axis.major/minor_unit
     Given an axis having <major-or-minor> unit of <value>
      Then axis.<major-or-minor>_unit is <expected-value>

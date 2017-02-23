@@ -496,6 +496,16 @@ def given_an_axis(context):
     context.axis = chart.value_axis
 
 
+@given('an axis having {a_or_no} title')
+def given_an_axis_having_a_or_no_title(context, a_or_no):
+    prs = Presentation(test_pptx('cht-axis-props'))
+    chart = prs.slides[7].shapes[0].chart
+    context.axis = {
+        'a':  chart.value_axis,
+        'no': chart.category_axis,
+    }[a_or_no]
+
+
 @given('an axis having {major_or_minor} gridlines')
 def given_an_axis_having_major_or_minor_gridlines(context, major_or_minor):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -714,6 +724,11 @@ def when_I_add_an_xy_chart_having_2_series_of_3_points(context, xy_type):
     context.chart = context.slide.shapes.add_chart(
         chart_type, Inches(1), Inches(1), Inches(8), Inches(5), chart_data
     ).chart
+
+
+@when('I assign {value} to axis.has_title')
+def when_I_assign_value_to_axis_has_title(context, value):
+    context.axis.has_title = {'True': True, 'False': False}[value]
 
 
 @when('I assign {value} to axis.has_{major_or_minor}_gridlines')
@@ -941,6 +956,14 @@ def then_axis_format_fill_is_a_FillFormat_object(context):
 def then_axis_format_line_is_a_LineFormat_object(context):
     axis = context.axis
     assert type(axis.format.line).__name__ == 'LineFormat'
+
+
+@then('axis.has_title is {value}')
+def then_axis_has_title_is_value(context, value):
+    axis = context.axis
+    actual_value = axis.has_title
+    expected_value = {'True': True, 'False': False}[value]
+    assert actual_value is expected_value, 'got %s' % actual_value
 
 
 @then('axis.has_{major_or_minor}_gridlines is {value}')
