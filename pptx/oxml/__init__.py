@@ -144,7 +144,7 @@ register_element_cls('c:yVal',       CT_NumDataSource)
 
 from .chart.shared import (
     CT_Boolean, CT_Double, CT_Layout, CT_LayoutMode, CT_ManualLayout,
-    CT_NumFmt, CT_Tx, CT_UnsignedInt
+    CT_NumFmt, CT_Title, CT_Tx, CT_UnsignedInt
 )
 register_element_cls('c:autoUpdate',       CT_Boolean)
 register_element_cls('c:bubble3D',         CT_Boolean)
@@ -164,6 +164,7 @@ register_element_cls('c:overlay',          CT_Boolean)
 register_element_cls('c:ptCount',          CT_UnsignedInt)
 register_element_cls('c:showLegendKey',    CT_Boolean)
 register_element_cls('c:smooth',           CT_Boolean)
+register_element_cls('c:title',            CT_Title)
 register_element_cls('c:tx',               CT_Tx)
 register_element_cls('c:varyColors',       CT_Boolean)
 register_element_cls('c:x',                CT_Double)

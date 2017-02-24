@@ -100,7 +100,6 @@ Feature: Axis properties
       | no      | False          |
 
 
-  @wip
   Scenario Outline: Set Axis.has_title
     Given an axis having <a-or-no> title
      When I assign <value> to axis.has_title

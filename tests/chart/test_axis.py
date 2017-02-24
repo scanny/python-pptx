@@ -50,6 +50,11 @@ class Describe_BaseAxis(object):
         axis, expected_value = has_title_get_fixture
         assert axis.has_title is expected_value
 
+    def it_can_change_whether_it_has_a_title(self, has_title_set_fixture):
+        axis, new_value, expected_xml = has_title_set_fixture
+        axis.has_title = new_value
+        assert axis._element.xml == expected_xml
+
     def it_knows_whether_it_is_visible(self, visible_get_fixture):
         axis, expected_bool_value = visible_get_fixture
         assert axis.visible is expected_bool_value
@@ -147,6 +152,26 @@ class Describe_BaseAxis(object):
         xAx_cxml, expected_value = request.param
         axis = _BaseAxis(element(xAx_cxml))
         return axis, expected_value
+
+    @pytest.fixture(params=[
+        ('c:catAx',  True, 'c:catAx/c:title/(c:layout,c:overlay{val=0})'),
+        ('c:catAx/c:title',  True,  'c:catAx/c:title'),
+        ('c:catAx/c:title',  False, 'c:catAx'),
+        ('c:catAx',          False, 'c:catAx'),
+        ('c:dateAx', True, 'c:dateAx/c:title/(c:layout,c:overlay{val=0})'),
+        ('c:dateAx/c:title', True,  'c:dateAx/c:title'),
+        ('c:dateAx/c:title', False, 'c:dateAx'),
+        ('c:dateAx',         False, 'c:dateAx'),
+        ('c:valAx',  True, 'c:valAx/c:title/(c:layout,c:overlay{val=0})'),
+        ('c:valAx/c:title',  True,  'c:valAx/c:title'),
+        ('c:valAx/c:title',  False, 'c:valAx'),
+        ('c:valAx',          False, 'c:valAx'),
+    ])
+    def has_title_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        expected_xml = xml(expected_xAx_cxml)
+        return axis, new_value, expected_xml
 
     @pytest.fixture(params=['c:catAx', 'c:dateAx', 'c:valAx'])
     def maj_grdlns_fixture(self, request, MajorGridlines_, major_gridlines_):

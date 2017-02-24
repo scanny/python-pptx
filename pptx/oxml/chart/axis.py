@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from ...enum.chart import (
     XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION, XL_TICK_MARK
 )
+from .shared import CT_Title
 from ..simpletypes import ST_AxisUnit, ST_LblOffset
 from ..text import CT_TextBody
 from ..xmlchemy import (
@@ -30,6 +31,9 @@ class BaseAxisElement(BaseOxmlElement):
         txPr = self.get_or_add_txPr()
         defRPr = txPr.defRPr
         return defRPr
+
+    def _new_title(self):
+        return CT_Title.new_title()
 
     def _new_txPr(self):
         return CT_TextBody.new_txPr()

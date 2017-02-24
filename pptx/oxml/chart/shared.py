@@ -6,6 +6,8 @@ Shared oxml objects for charts.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from .. import parse_xml
+from ..ns import nsdecls
 from ..simpletypes import (
     ST_LayoutMode, XsdBoolean, XsdDouble, XsdString, XsdUnsignedInt
 )
@@ -110,6 +112,20 @@ class CT_NumFmt(BaseOxmlElement):
     """
     formatCode = RequiredAttribute('formatCode', XsdString)
     sourceLinked = OptionalAttribute('sourceLinked', XsdBoolean)
+
+
+class CT_Title(BaseOxmlElement):
+    """`c:title` custom element class."""
+
+    @staticmethod
+    def new_title():
+        """Return "loose" `c:title` element containing default children."""
+        return parse_xml(
+            '<c:title %s>'
+            '  <c:layout/>'
+            '  <c:overlay val="0"/>'
+            '</c:title>' % nsdecls('c')
+        )
 
 
 class CT_Tx(BaseOxmlElement):

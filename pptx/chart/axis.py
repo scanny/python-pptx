@@ -84,6 +84,13 @@ class _BaseAxis(object):
             return False
         return True
 
+    @has_title.setter
+    def has_title(self, value):
+        if bool(value) is True:
+            self._element.get_or_add_title()
+        else:
+            self._element._remove_title()
+
     @lazyproperty
     def major_gridlines(self):
         """
