@@ -117,6 +117,20 @@ class CT_NumFmt(BaseOxmlElement):
 class CT_Title(BaseOxmlElement):
     """`c:title` custom element class."""
 
+    _tag_seq = (
+        'c:tx', 'c:layout', 'c:overlay', 'c:spPr', 'c:txPr', 'c:extLst'
+    )
+    tx = ZeroOrOne('c:tx', successors=_tag_seq[1:])
+    del _tag_seq
+
+    @property
+    def tx_rich(self):
+        """Return `c:tx/c:rich` or |None| if not present."""
+        richs = self.xpath('c:tx/c:rich')
+        if not richs:
+            return None
+        return richs[0]
+
     @staticmethod
     def new_title():
         """Return "loose" `c:title` element containing default children."""

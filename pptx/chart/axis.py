@@ -234,6 +234,19 @@ class AxisTitle(ElementProxy):
         super(AxisTitle, self).__init__(title)
         self._title = title
 
+    @property
+    def has_text_frame(self):
+        """Read/write Boolean specifying presence of a text frame.
+
+        Return |True| if this axis title has a text frame, and |False|
+        otherwise. Assigning |True| causes a text frame to be added if not
+        already present. Assigning |False| causes any existing text frame to
+        be removed along with any text contained in the text frame.
+        """
+        if self._title.tx_rich is None:
+            return False
+        return True
+
 
 class CategoryAxis(_BaseAxis):
     """

@@ -577,6 +577,27 @@ class Describe_BaseAxis(object):
         return instance_mock(request, TickLabels)
 
 
+class DescribeAxisTitle(object):
+
+    def it_knows_whether_it_has_a_text_frame(self, has_tf_get_fixture):
+        axis_title, expected_value = has_tf_get_fixture
+        value = axis_title.has_text_frame
+        assert value is expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:title',               False),
+        ('c:title/c:tx',          False),
+        ('c:title/c:tx/c:strRef', False),
+        ('c:title/c:tx/c:rich',   True),
+    ])
+    def has_tf_get_fixture(self, request):
+        title_cxml, expected_value = request.param
+        axis_title = AxisTitle(element(title_cxml))
+        return axis_title, expected_value
+
+
 class DescribeCategoryAxis(object):
 
     def it_knows_its_category_type(self, cat_type_get_fixture):

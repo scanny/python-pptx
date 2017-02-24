@@ -4,7 +4,6 @@ Feature: Axis Title properties
   I need read/write properties on AxisTitle
 
 
-  @wip
   Scenario Outline: Get AxisTitle.has_text_frame
     Given an axis title having <a-or-no> text frame
      Then axis_title.has_text_frame is <value>
