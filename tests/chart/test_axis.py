@@ -9,7 +9,8 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import (
-    _BaseAxis, CategoryAxis, DateAxis, MajorGridlines, TickLabels, ValueAxis
+    AxisTitle, _BaseAxis, CategoryAxis, DateAxis, MajorGridlines, TickLabels,
+    ValueAxis
 )
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import (
@@ -113,6 +114,12 @@ class Describe_BaseAxis(object):
         axis, new_value, expected_xml = tick_lbl_pos_set_fixture
         axis.tick_label_position = new_value
         assert axis._element.xml == expected_xml
+
+    def it_provides_access_to_its_title(self, title_fixture):
+        axis, AxisTitle_, axis_title_ = title_fixture
+        axis_title = axis.axis_title
+        AxisTitle_.assert_called_once_with(axis._element.title)
+        assert axis_title is axis_title_
 
     def it_provides_access_to_its_format(self, format_fixture):
         axis, ChartFormat_, format_ = format_fixture
@@ -477,6 +484,12 @@ class Describe_BaseAxis(object):
         expected_xml = xml(expected_xAx_cxml)
         return axis, new_value, expected_xml
 
+    @pytest.fixture(params=['c:catAx', 'c:dateAx', 'c:valAx'])
+    def title_fixture(self, request, AxisTitle_, axis_title_):
+        xAx_cxml = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        return axis, AxisTitle_, axis_title_
+
     @pytest.fixture(params=[
         ('c:catAx',                      False),
         ('c:catAx/c:delete',             False),
@@ -520,6 +533,16 @@ class Describe_BaseAxis(object):
         return axis, new_value, expected_xml
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def AxisTitle_(self, request, axis_title_):
+        return class_mock(
+            request, 'pptx.chart.axis.AxisTitle', return_value=axis_title_
+        )
+
+    @pytest.fixture
+    def axis_title_(self, request):
+        return instance_mock(request, AxisTitle)
 
     @pytest.fixture
     def ChartFormat_(self, request, format_):

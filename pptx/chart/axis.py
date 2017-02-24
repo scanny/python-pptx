@@ -26,6 +26,17 @@ class _BaseAxis(object):
         self._element = xAx  # axis element, c:catAx or c:valAx
         self._xAx = xAx
 
+    @property
+    def axis_title(self):
+        """An |AxisTitle| object providing access to title properties.
+
+        Calling this property is destructive in the sense that it adds an
+        axis title element (`c:title`) to the axis XML if one is not already
+        present. Use :attr:`has_axis_title` to test for presence of axis
+        title non-destructively.
+        """
+        return AxisTitle(self._element.get_or_add_title())
+
     @lazyproperty
     def format(self):
         """
@@ -212,6 +223,16 @@ class _BaseAxis(object):
             )
         delete = self._element.get_or_add_delete_()
         delete.val = not value
+
+
+class AxisTitle(ElementProxy):
+    """Provides properties for manipulating axis title."""
+
+    __slots__ = ('_title',)
+
+    def __init__(self, title):
+        super(AxisTitle, self).__init__(title)
+        self._title = title
 
 
 class CategoryAxis(_BaseAxis):

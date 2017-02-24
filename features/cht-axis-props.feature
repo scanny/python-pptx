@@ -4,7 +4,6 @@ Feature: Axis properties
   I need read/write properties on Axis
 
 
-  @wip
   Scenario: Get Axis.axis_title
     Given an axis
      Then axis.axis_title is an AxisTitle object
