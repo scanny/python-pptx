@@ -12,7 +12,7 @@ from ..enum.chart import (
 )
 from ..oxml.ns import qn
 from ..shared import ElementProxy
-from ..text.text import Font
+from ..text.text import Font, TextFrame
 from ..util import lazyproperty
 
 
@@ -253,6 +253,18 @@ class AxisTitle(ElementProxy):
             self._title.get_or_add_tx_rich()
         else:
             self._title._remove_tx()
+
+    @property
+    def text_frame(self):
+        """|TextFrame| instance for this axis title.
+
+        Return a |TextFrame| instance allowing read/write access to the text
+        of this axis title and its text formatting properties. Accessing this
+        property is destructive as it adds a new text frame if not already
+        present.
+        """
+        rich = self._title.get_or_add_tx_rich()
+        return TextFrame(rich, self)
 
 
 class CategoryAxis(_BaseAxis):

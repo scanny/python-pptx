@@ -27,7 +27,6 @@ Feature: Axis Title properties
       | a       | True      | True  |
 
 
-  @wip
   Scenario Outline: Get AxisTitle.text_frame
     Given an axis title having <a-or-no> text frame
      Then axis_title.text_frame is a TextFrame object

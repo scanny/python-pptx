@@ -589,6 +589,14 @@ class DescribeAxisTitle(object):
         axis_title.has_text_frame = value
         assert axis_title._element.xml == expected_xml
 
+    def it_provides_access_to_its_text_frame(self, text_frame_fixture):
+        axis_title, TextFrame_, text_frame_ = text_frame_fixture
+        text_frame = axis_title.text_frame
+        TextFrame_.assert_called_once_with(
+            axis_title._element.tx.rich, axis_title
+        )
+        assert text_frame is text_frame_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -620,6 +628,18 @@ class DescribeAxisTitle(object):
         axis_title = AxisTitle(element(title_cxml))
         expected_xml = xml(expected_cxml)
         return axis_title, value, expected_xml
+
+    @pytest.fixture
+    def text_frame_fixture(self, request, TextFrame_):
+        axis_title = AxisTitle(element('c:title'))
+        text_frame_ = TextFrame_.return_value
+        return axis_title, TextFrame_, text_frame_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def TextFrame_(self, request):
+        return class_mock(request, 'pptx.chart.axis.TextFrame')
 
 
 class DescribeCategoryAxis(object):
