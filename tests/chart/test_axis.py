@@ -46,6 +46,10 @@ class Describe_BaseAxis(object):
         base_axis.has_minor_gridlines = new_value
         assert base_axis._element.xml == expected_xml
 
+    def it_knows_whether_it_has_a_title(self, has_title_get_fixture):
+        axis, expected_value = has_title_get_fixture
+        assert axis.has_title is expected_value
+
     def it_knows_whether_it_is_visible(self, visible_get_fixture):
         axis, expected_bool_value = visible_get_fixture
         assert axis.visible is expected_bool_value
@@ -130,6 +134,19 @@ class Describe_BaseAxis(object):
         xAx_cxml = request.param
         axis = _BaseAxis(element(xAx_cxml))
         return axis, ChartFormat_, format_
+
+    @pytest.fixture(params=[
+        ('c:catAx',          False),
+        ('c:catAx/c:title',  True),
+        ('c:dateAx',         False),
+        ('c:dateAx/c:title', True),
+        ('c:valAx',          False),
+        ('c:valAx/c:title',  True),
+    ])
+    def has_title_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        return axis, expected_value
 
     @pytest.fixture(params=['c:catAx', 'c:dateAx', 'c:valAx'])
     def maj_grdlns_fixture(self, request, MajorGridlines_, major_gridlines_):

@@ -90,7 +90,6 @@ Feature: Axis properties
       | not having    | minor          | True  | True           |
 
 
-  @wip
   Scenario Outline: Get Axis.has_title
     Given an axis having <a-or-no> title
      Then axis.has_title is <expected-value>

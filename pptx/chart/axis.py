@@ -72,6 +72,18 @@ class _BaseAxis(object):
         else:
             self._element._remove_minorGridlines()
 
+    @property
+    def has_title(self):
+        """Read/write boolean specifying whether this axis has a title.
+
+        |True| if this axis has a title, |False| otherwise. Assigning |True|
+        causes an axis title to be added if not already present. Assigning
+        |False| causes any existing title to be deleted.
+        """
+        if self._element.title is None:
+            return False
+        return True
+
     @lazyproperty
     def major_gridlines(self):
         """
