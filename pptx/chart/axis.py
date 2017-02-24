@@ -247,6 +247,13 @@ class AxisTitle(ElementProxy):
             return False
         return True
 
+    @has_text_frame.setter
+    def has_text_frame(self, value):
+        if bool(value) is True:
+            self._title.get_or_add_tx_rich()
+        else:
+            self._title._remove_tx()
+
 
 class CategoryAxis(_BaseAxis):
     """

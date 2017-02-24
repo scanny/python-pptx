@@ -14,7 +14,6 @@ Feature: Axis Title properties
       | no      | False |
 
 
-  @wip
   Scenario Outline: Set AxisTitle.has_text_frame
     Given an axis title having <a-or-no> text frame
      When I assign <new-value> to axis_title.has_text_frame

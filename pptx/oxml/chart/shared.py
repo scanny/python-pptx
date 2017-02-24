@@ -123,6 +123,19 @@ class CT_Title(BaseOxmlElement):
     tx = ZeroOrOne('c:tx', successors=_tag_seq[1:])
     del _tag_seq
 
+    def get_or_add_tx_rich(self):
+        """Return `c:tx/c:rich`, newly created if not present.
+
+        Return the `c:rich` grandchild at `c:tx/c:rich`. Both the `c:tx` and
+        `c:rich` elements are created if not already present. Any
+        `c:tx/c:strRef` element is removed. (Such an element would contain
+        a cell reference for the axis title text in the chart's Excel
+        worksheet.)
+        """
+        tx = self.get_or_add_tx()
+        tx._remove_strRef()
+        return tx.get_or_add_rich()
+
     @property
     def tx_rich(self):
         """Return `c:tx/c:rich` or |None| if not present."""
@@ -153,6 +166,7 @@ class CT_Tx(BaseOxmlElement):
     def _new_rich(self):
         rich = OxmlElement('c:rich')
         rich.append(OxmlElement('a:bodyPr'))
+        rich.append(OxmlElement('a:lstStyle'))
         rich.add_p()
         return rich
 

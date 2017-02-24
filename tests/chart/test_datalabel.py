@@ -44,7 +44,6 @@ class DescribeDataLabel(object):
     def it_can_change_whether_it_has_a_text_frame(self, has_tf_set_fixture):
         data_label, value, expected_xml = has_tf_set_fixture
         data_label.has_text_frame = value
-        print(data_label._element.xml)
         assert data_label._element.xml == expected_xml
 
     def it_provides_access_to_its_text_frame(self, text_frame_fixture):
@@ -105,29 +104,31 @@ class DescribeDataLabel(object):
          'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
         ('c:ser{a:b=c}',                                              True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),c:showL'
-         'egendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerNam'
-         'e{val=0},c:showPercent{val=0},c:showBubbleSize{val=0})'),
+         ':lstStyle,a:p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defR'
+         'Pr),c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c'
+         ':showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val=0}'
+         ')'),
         ('c:ser{a:b=c}/c:dLbls',                                      True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),c:showL'
-         'egendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerNam'
-         'e{val=0},c:showPercent{val=0},c:showBubbleSize{val=0})'),
+         ':lstStyle,a:p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defR'
+         'Pr),c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c'
+         ':showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val=0}'
+         ')'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}',                 True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':p))'),
+         ':lstStyle,a:p))'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)', True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':p))'),
+         ':lstStyle,a:p))'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)',   True,
          'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=24},c:tx/c:rich),c:dLbl/(c'
-         ':idx{val=42},c:tx/c:rich/(a:bodyPr,a:p),c:spPr,c:txPr/(a:bodyPr,a:'
-         'lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{val='
-         '1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},'
-         'c:showBubbleSize{val=0}))'),
+         ':idx{val=42},c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p),c:spPr,c:txPr/('
+         'a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:s'
+         'howVal{val=1},c:showCatName{val=0},c:showSerName{val=0},c:showPerc'
+         'ent{val=0},c:showBubbleSize{val=0}))'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}',                 True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':p))'),
+         ':lstStyle,a:p))'),
     ])
     def has_tf_set_fixture(self, request):
         ser_cxml, value, expected_cxml = request.param
@@ -172,12 +173,13 @@ class DescribeDataLabel(object):
     @pytest.fixture(params=[
         ('c:ser{a:b=c}',
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),c:showL'
-         'egendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerNam'
-         'e{val=0},c:showPercent{val=0},c:showBubbleSize{val=0})'),
+         ':lstStyle,a:p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defR'
+         'Pr),c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c'
+         ':showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val=0}'
+         ')'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)',
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':p))'),
+         ':lstStyle,a:p))'),
     ])
     def rich_fixture(self, request):
         ser_cxml, expected_cxml = request.param
