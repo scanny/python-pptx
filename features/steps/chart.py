@@ -933,6 +933,12 @@ def then_c_label_for_c_in_chart_data_categories_is_a_b_c(context):
     assert [c.label for c in chart_data.categories] == ['a', 'b', 'c']
 
 
+@then('axis.axis_title is an AxisTitle object')
+def then_axis_axis_title_is_an_AxisTitle_object(context):
+    class_name = type(context.axis.axis_title).__name__
+    assert class_name == 'AxisTitle', 'got %s' % class_name
+
+
 @then('axis.category_type is XL_CATEGORY_TYPE.{member}')
 def then_axis_category_type_is_XL_CATEGORY_TYPE_member(context, member):
     expected_value = getattr(XL_CATEGORY_TYPE, member)
