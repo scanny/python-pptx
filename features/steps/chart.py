@@ -540,6 +540,17 @@ def given_an_axis_not_having_major_or_minor_gridlines(context, major_or_minor):
     context.axis = chart.category_axis
 
 
+@given('an axis title having {a_or_no} text frame')
+def given_an_axis_title_having_a_or_no_text_frame(context, a_or_no):
+    prs = Presentation(test_pptx('cht-axis-props'))
+    chart = prs.slides[7].shapes[0].chart
+    axis = {
+        'a':  chart.value_axis,
+        'no': chart.category_axis,
+    }[a_or_no]
+    context.axis_title = axis.axis_title
+
+
 @given('a XyChartData object with number format {strval}')
 def given_a_XyChartData_object_with_number_format(context, strval):
     params = {}
@@ -747,6 +758,11 @@ def when_I_assign_value_to_axis_major_or_minor_unit(
     propname = '%s_unit' % major_or_minor
     new_value = {'8.4': 8.4, '5': 5, 'None': None}[value]
     setattr(axis, propname, new_value)
+
+
+@when('I assign {value} to axis_title.has_text_frame')
+def when_I_assign_value_to_axis_title_has_text_frame(context, value):
+    context.axis_title.has_text_frame = {'True': True, 'False': False}[value]
 
 
 @when('I assign {value} to bubble_plot.bubble_scale')
@@ -999,6 +1015,19 @@ def then_axis_major_or_minor_unit_is_value(context, major_or_minor, value):
         '20.0': 20.0, '8.4': 8.4, '5.0': 5.0, '4.2': 4.2, 'None': None
     }[value]
     assert actual_value == expected_value, 'got %s' % actual_value
+
+
+@then('axis_title.has_text_frame is {value}')
+def then_axis_title_has_text_frame_is_value(context, value):
+    actual_value = context.axis_title.has_text_frame
+    expected_value = {'True': True, 'False': False}[value]
+    assert actual_value is expected_value, 'got %s' % actual_value
+
+
+@then('axis_title.text_frame is a TextFrame object')
+def then_axis_title_text_frame_is_a_TextFrame_object(context):
+    class_name = type(context.axis_title.text_frame).__name__
+    assert class_name == 'TextFrame', 'got %s' % class_name
 
 
 @then('bubble_plot.bubble_scale is {value}')
