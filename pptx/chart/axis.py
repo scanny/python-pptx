@@ -228,11 +228,20 @@ class _BaseAxis(object):
 class AxisTitle(ElementProxy):
     """Provides properties for manipulating axis title."""
 
-    __slots__ = ('_title',)
+    __slots__ = ('_title', '_format')
 
     def __init__(self, title):
         super(AxisTitle, self).__init__(title)
         self._title = title
+
+    @lazyproperty
+    def format(self):
+        """|ChartFormat| object providing access to shape formatting.
+
+        Return the |ChartFormat| object providing shape formatting properties
+        for this axis title, such as its line color and fill.
+        """
+        return ChartFormat(self._element)
 
     @property
     def has_text_frame(self):

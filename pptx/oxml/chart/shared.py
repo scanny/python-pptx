@@ -121,6 +121,7 @@ class CT_Title(BaseOxmlElement):
         'c:tx', 'c:layout', 'c:overlay', 'c:spPr', 'c:txPr', 'c:extLst'
     )
     tx = ZeroOrOne('c:tx', successors=_tag_seq[1:])
+    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[4:])
     del _tag_seq
 
     def get_or_add_tx_rich(self):

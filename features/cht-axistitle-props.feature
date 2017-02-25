@@ -4,7 +4,6 @@ Feature: Axis Title properties
   I need read/write properties on AxisTitle
 
 
-  @wip
   Scenario: Axis.format
     Given an axis title
      Then axis_title.format is a ChartFormat object

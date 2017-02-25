@@ -589,6 +589,12 @@ class DescribeAxisTitle(object):
         axis_title.has_text_frame = value
         assert axis_title._element.xml == expected_xml
 
+    def it_provides_access_to_its_format(self, format_fixture):
+        axis_title, ChartFormat_, format_ = format_fixture
+        format = axis_title.format
+        ChartFormat_.assert_called_once_with(axis_title._element)
+        assert format is format_
+
     def it_provides_access_to_its_text_frame(self, text_frame_fixture):
         axis_title, TextFrame_, text_frame_ = text_frame_fixture
         text_frame = axis_title.text_frame
@@ -598,6 +604,11 @@ class DescribeAxisTitle(object):
         assert text_frame is text_frame_
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def format_fixture(self, request, ChartFormat_, format_):
+        axis_title = AxisTitle(element('c:title'))
+        return axis_title, ChartFormat_, format_
 
     @pytest.fixture(params=[
         ('c:title',               False),
@@ -636,6 +647,16 @@ class DescribeAxisTitle(object):
         return axis_title, TextFrame_, text_frame_
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ChartFormat_(self, request, format_):
+        return class_mock(
+            request, 'pptx.chart.axis.ChartFormat', return_value=format_
+        )
+
+    @pytest.fixture
+    def format_(self, request):
+        return instance_mock(request, ChartFormat)
 
     @pytest.fixture
     def TextFrame_(self, request):
