@@ -4,6 +4,14 @@ Feature: Axis Title properties
   I need read/write properties on AxisTitle
 
 
+  @wip
+  Scenario: Axis.format
+    Given an axis title
+     Then axis_title.format is a ChartFormat object
+      And axis_title.format.fill is a FillFormat object
+      And axis_title.format.line is a LineFormat object
+
+
   Scenario Outline: Get AxisTitle.has_text_frame
     Given an axis title having <a-or-no> text frame
      Then axis_title.has_text_frame is <value>

@@ -540,6 +540,12 @@ def given_an_axis_not_having_major_or_minor_gridlines(context, major_or_minor):
     context.axis = chart.category_axis
 
 
+@given('an axis title')
+def given_an_axis_title(context):
+    prs = Presentation(test_pptx('cht-axis-props'))
+    context.axis_title = prs.slides[7].shapes[0].chart.value_axis.axis_title
+
+
 @given('an axis title having {a_or_no} text frame')
 def given_an_axis_title_having_a_or_no_text_frame(context, a_or_no):
     prs = Presentation(test_pptx('cht-axis-props'))
@@ -1015,6 +1021,24 @@ def then_axis_major_or_minor_unit_is_value(context, major_or_minor, value):
         '20.0': 20.0, '8.4': 8.4, '5.0': 5.0, '4.2': 4.2, 'None': None
     }[value]
     assert actual_value == expected_value, 'got %s' % actual_value
+
+
+@then('axis_title.format is a ChartFormat object')
+def then_axis_title_format_is_a_ChartFormat_object(context):
+    class_name = type(context.axis_title.format).__name__
+    assert class_name == 'ChartFormat', 'got %s' % class_name
+
+
+@then('axis_title.format.fill is a FillFormat object')
+def then_axis_title_format_fill_is_a_FillFormat_object(context):
+    class_name = type(context.axis_title.format.fill).__name__
+    assert class_name == 'FillFormat', 'got %s' % class_name
+
+
+@then('axis_title.format.line is a LineFormat object')
+def then_axis_title_format_line_is_a_LineFormat_object(context):
+    class_name = type(context.axis_title.format.line).__name__
+    assert class_name == 'LineFormat', 'got %s' % class_name
 
 
 @then('axis_title.has_text_frame is {value}')
