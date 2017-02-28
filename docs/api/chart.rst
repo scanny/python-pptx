@@ -72,6 +72,10 @@ a category nor a value axis.
    :members:
    :member-order: bysource
 
+.. autoclass:: pptx.chart.axis.AxisTitle()
+   :members:
+   :member-order: bysource
+
 
 Value Axes
 ~~~~~~~~~~
@@ -227,10 +231,11 @@ The following properties are available on series objects of all types.
 |BarSeries| objects
 ~~~~~~~~~~~~~~~~~~~
 
-These properties are only available on series belonging to a bar-type plot.
+These properties are available on a series belonging to a bar-type plot.
 
 .. autoclass:: pptx.chart.series.BarSeries()
    :exclude-members: get_or_add_ln, ln
+   :inherited-members:
    :members:
    :member-order: bysource
    :undoc-members:
@@ -239,9 +244,10 @@ These properties are only available on series belonging to a bar-type plot.
 |LineSeries| objects
 ~~~~~~~~~~~~~~~~~~~~
 
-These properties are only available on series belonging to a line-type plot.
+These properties are available on a series belonging to a line-type plot.
 
 .. autoclass:: pptx.chart.series.LineSeries()
+   :inherited-members:
    :members:
    :member-order: bysource
    :undoc-members:
@@ -265,6 +271,11 @@ These properties are available on series belonging to an XY plot.
 An XY or bubble chart has a :attr:`points` attribute providing access to a
 sequence of |Point| objects. That sequence supports iteration, indexed
 access, and ``len()``.
+
+.. autoclass:: pptx.chart.point.CategoryPoints()
+   :members:
+   :member-order: bysource
+   :undoc-members:
 
 .. autoclass:: pptx.chart.point.BubblePoints()
    :members:

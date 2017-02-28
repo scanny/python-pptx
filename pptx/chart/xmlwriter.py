@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from copy import deepcopy
 from xml.sax.saxutils import escape
 
+from ..compat import to_unicode
 from ..enum.chart import XL_CHART_TYPE
 from ..oxml import parse_xml
 from ..oxml.ns import nsdecls
@@ -1498,7 +1499,7 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
                 '                </c:pt>\n'
             ).format(**{
                 'cat_idx':   idx,
-                'cat_label': escape(str(category.label)),
+                'cat_label': escape(to_unicode(category.label)),
             })
         return xml
 

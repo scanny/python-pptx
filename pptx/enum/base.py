@@ -58,6 +58,10 @@ class _DocsPageFormatter(object):
             cls_docstring = self._clsdict['__doc__']
         except KeyError:
             cls_docstring = ''
+
+        if cls_docstring is None:
+            return ''
+
         return textwrap.dedent(cls_docstring).strip()
 
     def _member_def(self, member):

@@ -20,6 +20,7 @@ positioned one inch from the top-left corner of the slide::
 
     from pptx.enum.shapes import MSO_SHAPE
 
+    shapes = slide.shapes
     left = top = width = height = Inches(1.0)
     shape = shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height

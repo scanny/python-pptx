@@ -4,7 +4,11 @@
 Base shape-related objects such as BaseShape.
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
+
+from warnings import warn
 
 from ..action import ActionSetting
 from ..shared import ElementProxy
@@ -83,11 +87,14 @@ class BaseShape(object):
 
     @property
     def id(self):
-        """
-        Read-only positive integer identifying this shape. The id of a shape
-        is unique among all shapes on a slide.
-        """
-        return self._element.shape_id
+        """**DEPRECATED**. Use `.shape_id` instead."""
+        msg = (
+            'BaseShape.shape_id property is deprecated and will be removed i'
+            'n a future release.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+
+        return self.shape_id
 
     @property
     def is_placeholder(self):
@@ -151,6 +158,14 @@ class BaseShape(object):
     @rotation.setter
     def rotation(self, value):
         self._element.rot = value
+
+    @property
+    def shape_id(self):
+        """Read-only positive integer identifying this shape.
+
+        The id of a shape is unique among all shapes on a slide.
+        """
+        return self._element.shape_id
 
     @property
     def shape_type(self):

@@ -11,7 +11,7 @@ The |Slides| object is accessed using the
 is not intended to be constructed directly.
 
 .. autoclass:: pptx.slide.Slides()
-   :members: add_slide
+   :members:
    :member-order: bysource
    :undoc-members:
 

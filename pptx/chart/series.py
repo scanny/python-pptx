@@ -7,6 +7,7 @@ Series-related objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 from collections import Sequence
+from warnings import warn
 
 from ..dml.chtfmt import ChartFormat
 from ..dml.fill import FillFormat
@@ -110,10 +111,17 @@ class BarSeries(_BaseCategorySeries):
     """
     @lazyproperty
     def fill(self):
+        """**DEPRECATED**. Use `.format.fill` instead.
+
+        Return the |FillFormat| object providing access to fill properties
+        such as fill color.
         """
-        |FillFormat| instance for this series, providing access to fill
-        properties such as fill color.
-        """
+        msg = (
+            'BarSeries.fill property is deprecated and will be removed in a '
+            'future release.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+
         spPr = self._element.get_or_add_spPr()
         return FillFormat.from_fill_parent(spPr)
 
@@ -150,10 +158,17 @@ class BarSeries(_BaseCategorySeries):
 
     @lazyproperty
     def line(self):
+        """**DEPRECATED**. Use `.format.line` instead.
+
+        Return the |LineFormat| object providing access to line properties
+        such as line color and width.
         """
-        |LineFormat| instance for this shape, providing access to line
-        properties such as line color and width.
-        """
+        msg = (
+            'BarSeries.line property is deprecated and will be removed in a '
+            'future release.'
+        )
+        warn(msg, UserWarning, stacklevel=2)
+
         return LineFormat(self)
 
     @property
