@@ -1,8 +1,8 @@
 .. _ChartTitle:
 
 
-Chart Title
-===========
+Chart - Chart Title
+===================
 
 A chart can have a title. The title is a rich text container, and can contain
 arbitrary text with arbitrary formatting (font, size, color, etc.). There is
@@ -18,45 +18,63 @@ the XML as a cell reference in the Excel worksheet. In general, any
 constructive operations on the title will remove this.
 
 
+Proposed Scope
+--------------
+
+* Chart.has_title
+* Chart.chart_title
+* ChartTitle.has_text_frame
+* ChartTitle.text_frame
+* ChartTitle.format
+
+
 Candidate protocol
 ------------------
+
+Chart title presence
+~~~~~~~~~~~~~~~~~~~~
+
+The presence of a chart title is reported by ``Chart.has_title``. Reading
+this property is non-destructive. Starting with a newly-created chart, which
+has no title::
+
+    >>> chart = shapes.add_chart(...).chart
+    >>> chart.has_title
+    False
+
+Assigning |True| to ``.has_title`` causes an empty title element to be added
+along with its text frame elements (when not already present). This
+assignment is idempotent, such that assigning |True| when a chart title is
+present leaves the chart unchanged::
+
+    >>> chart.has_title = True
+    >>> chart.has_title
+    True
+
+Assigning |False| to ``.has_title`` removes the title element from the XML
+along with its contents. This assignment is also idempotent::
+
+    >>> chart.has_title = False
+    >>> chart.has_title
+    False
+
 
 Chart title access
 ~~~~~~~~~~~~~~~~~~
 
-A newly created chart has no title. ``Chart.chart_title`` is a valid call in
-this state, but returns |None|::
+Access to the chart title is provided by ``Chart.chart_title``. This property
+always provides a |ChartTitle| object; a new one is created if not present.
+This behavior produces cleaner code for the common "get or add" case;
+``Chart.has_title`` is provided to avoid this potentially destructive
+behavior when required::
 
     >>> chart = shapes.add_chart(...).chart
     >>> chart.has_title
     False
     >>> chart.chart_title
-    None
-
-Assigning |True| to ``.has_title`` causes an empty title element to be added
-along with its text frame elements (when not already present)::
-
-    >>> chart.has_title = True
+    <pptx.chart.ChartTitle object at 0x65432fd>
     >>> chart.has_title
     True
-    >>> chart.chart_title
-    <pptx.chart.ChartTitle object at 0x65432fd>
-
-Assigning |False| to ``.has_title`` removes the title element from the XML
-along with its contents::
-
-    >>> chart.has_title = False
-    >>> chart.has_title
-    False
-    >>> chart.chart_title
-    None
-
-Assigning |None| to ``Chart.chart_title`` has the same effect (not sure we'll
-actually implement this as a priority)::
-
-    >>> chart.chart_title = None
-    >>> chart.chart_title
-    None
 
 
 ChartTitle.text_frame
@@ -78,24 +96,23 @@ frame is already present, no changes are made::
     >>> chart_title.has_text_frame
     True
 
-The text frame can be accessed using ``ChartTitle.text_frame``. This call is
-always valid, and will create a text frame if one is not present::
+Assigning |False| to ``.has_text_frame`` removes the text frame element from
+the XML along with its contents. This assignment is also idempotent::
 
+    >>> chart.has_text_frame = False
+    >>> chart.has_text_frame
+    False
+
+The text frame can be accessed using ``ChartTitle.text_frame``. This property
+always provides a |TextFrame| object; one is added if not present and any
+``c:strRef`` element is removed::
+
+    >>> chart.has_text_frame
+    False
     >>> chart_title.text_frame
     <pptx.text.text.TextFrame object at 0x65432fe>
-
-As a shortcut, the plain text string of a title can be accessed or set using
-``Chart.title``. If no text frame is present, |None| is returned from
-``.title`` used as a RHS expression. It is essentially identical to
-``Chart.chart_title.text_frame.text``::
-
-    >>> chart_title.has_text_frame
-    False
-    >>> chart.title
-    None
-    >>> chart.title = 'Foobar'
-    >>> chart.title
-    'Foobar'
+    >>> chart.has_text_frame
+    True
 
 
 XML semantics

@@ -30,6 +30,7 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   cht-chart-title
    cht-axis-title
    cht-data-labels
    cht-date-axis
@@ -38,7 +39,6 @@ Chart
    cht-chart-overview
    cht-area-chart
    cht-doughnut-chart
-   cht-title
    cht-points
    cht-radar-chart
    cht-bubble-chart

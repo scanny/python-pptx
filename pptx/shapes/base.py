@@ -89,8 +89,8 @@ class BaseShape(object):
     def id(self):
         """**DEPRECATED**. Use `.shape_id` instead."""
         msg = (
-            'BaseShape.shape_id property is deprecated and will be removed i'
-            'n a future release.'
+            'BaseShape.id property is deprecated and will be removed in a fu'
+            'ture release. Use .shape_id instead.'
         )
         warn(msg, UserWarning, stacklevel=2)
 
