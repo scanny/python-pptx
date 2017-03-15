@@ -240,6 +240,13 @@ def given_a_chart(context):
     context.chart = sld.shapes[6].chart
 
 
+@given('a chart having {a_or_no} title')
+def given_a_chart_having_a_or_no_title(context, a_or_no):
+    shape_idx = {'no': 0, 'a': 1}[a_or_no]
+    prs = Presentation(test_pptx('cht-chart-props'))
+    context.chart = prs.slides[0].shapes[shape_idx].chart
+
+
 @given('a chart {having_or_not} a legend')
 def given_a_chart_having_or_not_a_legend(context, having_or_not):
     slide_idx = {
@@ -792,6 +799,11 @@ def when_I_assign_value_to_chart_has_legend(context, value):
     context.chart.has_legend = new_value
 
 
+@when('I assign {value} to chart.has_title')
+def when_I_assign_value_to_chart_has_title(context, value):
+    context.chart.has_title = {'True': True, 'False': False}[value]
+
+
 @when('I assign {value} to data_label.has_text_frame')
 def when_I_assign_value_to_data_label_has_text_frame(context, value):
     new_value = {'True': True, 'False': False}[value]
@@ -1145,6 +1157,12 @@ def then_chart_category_axis_is_a_cls_name_object(context, cls_name):
     assert type_name == cls_name, 'got %s' % type_name
 
 
+@then('chart.chart_title is a ChartTitle object')
+def then_chart_chart_title_is_a_ChartTitle_object(context):
+    class_name = type(context.chart.chart_title).__name__
+    assert class_name == 'ChartTitle', 'got %s' % class_name
+
+
 @then('chart.chart_type is {enum_member}')
 def then_chart_chart_type_is_value(context, enum_member):
     expected_value = getattr(XL_CHART_TYPE, enum_member)
@@ -1160,6 +1178,14 @@ def then_chart_has_legend_is_value(context, value):
     }[value]
     chart = context.chart
     assert chart.has_legend is expected_value
+
+
+@then('chart.has_title is {value}')
+def then_chart_has_title_is_value(context, value):
+    chart = context.chart
+    actual_value = chart.has_title
+    expected_value = {'True': True, 'False': False}[value]
+    assert actual_value is expected_value, 'got %s' % actual_value
 
 
 @then('chart.legend is a legend object')

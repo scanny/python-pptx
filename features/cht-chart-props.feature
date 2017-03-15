@@ -4,6 +4,17 @@ Feature: Chart properties
   I need read/write properties on Chart
 
 
+  @wip
+  Scenario Outline: Chart.chart_title
+    Given a chart having <a-or-no> title
+     Then chart.chart_title is a ChartTitle object
+
+    Examples: chart title presence cases
+      | a-or-no |
+      | a       |
+      | no      |
+
+
   Scenario Outline: Get Chart.chart_type
     Given a chart of type <chart-type>
      Then chart.chart_type is <expected-enum-member>
@@ -52,6 +63,31 @@ Feature: Chart properties
       | Line (with date categories) | DateAxis     |
       | XY (Scatter)                | ValueAxis    |
       | Bubble                      | ValueAxis    |
+
+
+  @wip
+  Scenario Outline: Get Chart.has_title
+    Given a chart having <a-or-no> title
+     Then chart.has_title is <expected-value>
+
+    Examples: chart title presence cases
+      | a-or-no | expected-value |
+      | a       | True           |
+      | no      | False          |
+
+
+  @wip
+  Scenario Outline: Set Chart.has_title
+    Given a chart having <a-or-no> title
+     When I assign <value> to chart.has_title
+     Then chart.has_title is <expected-value>
+
+    Examples: chart title assignment cases
+      | a-or-no | value | expected-value |
+      | a       | True  | True           |
+      | a       | False | False          |
+      | no      | True  | True           |
+      | no      | False | False          |
 
 
   Scenario Outline: Get Chart.value_axis
