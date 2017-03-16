@@ -108,6 +108,19 @@ def given_a_chart_of_type_chart_type(context, chart_type):
     context.chart = prs.slides[slide_idx].shapes[shape_idx].chart
 
 
+@given('a chart title')
+def given_a_chart_title(context):
+    prs = Presentation(test_pptx('cht-chart-props'))
+    context.chart_title = prs.slides[0].shapes[1].chart.chart_title
+
+
+@given('a chart title having {a_or_no} text frame')
+def given_a_chart_title_having_a_or_no_text_frame(context, a_or_no):
+    prs = Presentation(test_pptx('cht-chart-props'))
+    shape_idx = {'no': 0, 'a': 1}[a_or_no]
+    context.chart_title = prs.slides[1].shapes[shape_idx].chart.chart_title
+
+
 # when ====================================================
 
 @when('I add a Clustered bar chart with multi-level categories')
@@ -206,6 +219,14 @@ def when_I_assign_value_to_chart_has_legend(context, value):
 @when('I assign {value} to chart.has_title')
 def when_I_assign_value_to_chart_has_title(context, value):
     context.chart.has_title = {'True': True, 'False': False}[value]
+
+
+@when('I assign {value} to chart_title.has_text_frame')
+def when_I_assign_value_to_chart_title_has_text_frame(context, value):
+    context.chart_title.has_text_frame = {
+        'True':  True,
+        'False': False
+    }[value]
 
 
 @when('I replace its data with {cats} categories and {sers} series')
@@ -307,6 +328,37 @@ def then_chart_series_is_a_SeriesCollection_object(context):
 def then_chart_value_axis_is_a_ValueAxis_object(context):
     value_axis = context.chart.value_axis
     assert type(value_axis).__name__ == 'ValueAxis'
+
+
+@then('chart_title.format is a ChartFormat object')
+def then_chart_title_format_is_a_ChartFormat_object(context):
+    class_name = type(context.chart_title.format).__name__
+    assert class_name == 'ChartFormat', 'got %s' % class_name
+
+
+@then('chart_title.format.fill is a FillFormat object')
+def then_chart_title_format_fill_is_a_FillFormat_object(context):
+    class_name = type(context.chart_title.format.fill).__name__
+    assert class_name == 'FillFormat', 'got %s' % class_name
+
+
+@then('chart_title.format.line is a LineFormat object')
+def then_chart_title_format_line_is_a_LineFormat_object(context):
+    class_name = type(context.chart_title.format.line).__name__
+    assert class_name == 'LineFormat', 'got %s' % class_name
+
+
+@then('chart_title.has_text_frame is {value}')
+def then_chart_title_has_text_frame_is_value(context, value):
+    actual_value = context.chart_title.has_text_frame
+    expected_value = {'True': True, 'False': False}[value]
+    assert actual_value is expected_value, 'got %s' % actual_value
+
+
+@then('chart_title.text_frame is a TextFrame object')
+def then_chart_title_text_frame_is_a_TextFrame_object(context):
+    class_name = type(context.chart_title.text_frame).__name__
+    assert class_name == 'TextFrame', 'got %s' % class_name
 
 
 @then('each series has a new name')
