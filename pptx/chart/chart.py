@@ -105,6 +105,19 @@ class Chart(PartElementProxy):
         self._chartSpace.chart.has_legend = bool(value)
 
     @property
+    def has_title(self):
+        """Read/write boolean, specifying whether this chart has a title.
+
+        Assigning |True| causes a title to be added to the chart if it
+        doesn't already have one. Assigning |False| removes any existing
+        title along with its text and settings.
+        """
+        title = self._chartSpace.chart.title
+        if title is None:
+            return False
+        return True
+
+    @property
     def legend(self):
         """
         A |Legend| object providing access to the properties of the legend

@@ -64,7 +64,6 @@ Feature: Chart properties
       | Bubble                      | ValueAxis    |
 
 
-  @wip
   Scenario Outline: Get Chart.has_title
     Given a chart having <a-or-no> title
      Then chart.has_title is <expected-value>

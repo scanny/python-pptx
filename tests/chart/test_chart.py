@@ -25,6 +25,10 @@ from ..unitutil.mock import (
 
 class DescribeChart(object):
 
+    def it_knows_whether_it_has_a_title(self, has_title_get_fixture):
+        chart, expected_value = has_title_get_fixture
+        assert chart.has_title is expected_value
+
     def it_provides_access_to_the_chart_title(self, title_fixture):
         chart, expected_xml, ChartTitle_, chart_title_ = title_fixture
 
@@ -159,6 +163,15 @@ class DescribeChart(object):
         chart = Chart(element(chartSpace_cxml), None)
         expected_xml = xml(expected_chartSpace_cxml)
         return chart, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:chartSpace/c:chart',         False),
+        ('c:chartSpace/c:chart/c:title', True),
+    ])
+    def has_title_get_fixture(self, request):
+        chartSpace_cxml, expected_value = request.param
+        chart = Chart(element(chartSpace_cxml), None)
+        return chart, expected_value
 
     @pytest.fixture(params=[
         ('c:chartSpace/c:chart',          False),
