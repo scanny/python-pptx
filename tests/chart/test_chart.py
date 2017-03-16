@@ -29,6 +29,11 @@ class DescribeChart(object):
         chart, expected_value = has_title_get_fixture
         assert chart.has_title is expected_value
 
+    def it_can_change_whether_it_has_a_title(self, has_title_set_fixture):
+        chart, new_value, expected_xml = has_title_set_fixture
+        chart.has_title = new_value
+        assert chart._chartSpace.chart.xml == expected_xml
+
     def it_provides_access_to_the_chart_title(self, title_fixture):
         chart, expected_xml, ChartTitle_, chart_title_ = title_fixture
 
@@ -172,6 +177,19 @@ class DescribeChart(object):
         chartSpace_cxml, expected_value = request.param
         chart = Chart(element(chartSpace_cxml), None)
         return chart, expected_value
+
+    @pytest.fixture(params=[
+        ('c:chart',         True,  'c:chart/c:title/(c:layout,c:overlay{val='
+                                   '0})'),
+        ('c:chart/c:title', True,  'c:chart/c:title'),
+        ('c:chart/c:title', False, 'c:chart'),
+        ('c:chart',         False, 'c:chart'),
+    ])
+    def has_title_set_fixture(self, request):
+        chart_cxml, new_value, expected_cxml = request.param
+        chart = Chart(element('c:chartSpace/%s' % chart_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return chart, new_value, expected_xml
 
     @pytest.fixture(params=[
         ('c:chartSpace/c:chart',          False),

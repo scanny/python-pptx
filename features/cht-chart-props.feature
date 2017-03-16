@@ -74,7 +74,6 @@ Feature: Chart properties
       | no      | False          |
 
 
-  @wip
   Scenario Outline: Set Chart.has_title
     Given a chart having <a-or-no> title
      When I assign <value> to chart.has_title

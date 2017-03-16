@@ -117,6 +117,14 @@ class Chart(PartElementProxy):
             return False
         return True
 
+    @has_title.setter
+    def has_title(self, value):
+        chart = self._chartSpace.chart
+        if bool(value) is False:
+            chart._remove_title()
+            return
+        chart.get_or_add_title()
+
     @property
     def legend(self):
         """
