@@ -214,6 +214,19 @@ class ChartTitle(ElementProxy):
         """
         return ChartFormat(self._title)
 
+    @property
+    def has_text_frame(self):
+        """Read/write Boolean specifying whether this title has a text frame.
+
+        Return |True| if this chart title has a text frame, and |False|
+        otherwise. Assigning |True| causes a text frame to be added if not
+        already present. Assigning |False| causes any existing text frame to
+        be removed along with its text and formatting.
+        """
+        if self._title.tx_rich is None:
+            return False
+        return True
+
 
 class _Plots(Sequence):
     """

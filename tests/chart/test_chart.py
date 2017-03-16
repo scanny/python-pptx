@@ -401,12 +401,28 @@ class DescribeChartTitle(object):
         ChartFormat_.assert_called_once_with(chart_title.element)
         assert format is format_
 
+    def it_knows_whether_it_has_a_text_frame(self, has_tf_get_fixture):
+        chart_title, expected_value = has_tf_get_fixture
+        value = chart_title.has_text_frame
+        assert value is expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
     def format_fixture(self, request, ChartFormat_, format_):
         chart_title = ChartTitle(element('c:title'))
         return chart_title, ChartFormat_, format_
+
+    @pytest.fixture(params=[
+        ('c:title',               False),
+        ('c:title/c:tx',          False),
+        ('c:title/c:tx/c:strRef', False),
+        ('c:title/c:tx/c:rich',   True),
+    ])
+    def has_tf_get_fixture(self, request):
+        title_cxml, expected_value = request.param
+        chart_title = ChartTitle(element(title_cxml))
+        return chart_title, expected_value
 
     # fixture components ---------------------------------------------
 

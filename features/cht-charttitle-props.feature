@@ -11,7 +11,6 @@ Feature: Chart Title properties
       And chart_title.format.line is a LineFormat object
 
 
-  @wip
   Scenario Outline: Get ChartTitle.has_text_frame
     Given a chart title having <a-or-no> text frame
      Then chart_title.has_text_frame is <value>
