@@ -12,7 +12,7 @@ from .axis import CategoryAxis, DateAxis, ValueAxis
 from .legend import Legend
 from .plot import PlotFactory, PlotTypeInspector
 from .series import SeriesCollection
-from ..shared import PartElementProxy
+from ..shared import ElementProxy, PartElementProxy
 from ..util import lazyproperty
 from .xmlwriter import SeriesXmlRewriterFactory
 
@@ -67,6 +67,17 @@ class Chart(PartElementProxy):
         if value is None:
             return
         self._chartSpace._add_style(val=value)
+
+    @property
+    def chart_title(self):
+        """A |ChartTitle| object providing access to title properties.
+
+        Calling this property is destructive in the sense that it adds an
+        chart title element (`c:title`) to the chart XML if one is not already
+        present. Use :attr:`has_title` to test for presence of chart title
+        non-destructively.
+        """
+        return ChartTitle(self._element.get_or_add_title())
 
     @property
     def chart_type(self):
@@ -161,6 +172,16 @@ class Chart(PartElementProxy):
         for this chart.
         """
         return self.part.chart_workbook
+
+
+class ChartTitle(ElementProxy):
+    """Provides properties for manipulating a chart title."""
+
+    __slots__ = ('_title',)
+
+    def __init__(self, title):
+        super(ChartTitle, self).__init__(title)
+        self._title = title
 
 
 class _Plots(Sequence):

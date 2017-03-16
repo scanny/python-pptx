@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
-from pptx.chart.chart import Chart, Legend, _Plots
+from pptx.chart.chart import Chart, ChartTitle, Legend, _Plots
 from pptx.chart.data import ChartData
 from pptx.chart.plot import _BasePlot
 from pptx.chart.series import SeriesCollection
@@ -24,6 +24,15 @@ from ..unitutil.mock import (
 
 
 class DescribeChart(object):
+
+    def it_provides_access_to_the_chart_title(self, title_fixture):
+        chart, expected_xml, ChartTitle_, chart_title_ = title_fixture
+
+        chart_title = chart.chart_title
+
+        assert chart.element.xpath('c:chart/c:title')[0].xml == expected_xml
+        ChartTitle_.assert_called_once_with(chart.element.chart.title)
+        assert chart_title is chart_title_
 
     def it_provides_access_to_the_category_axis(self, category_axis_fixture):
         chart, category_axis_, AxisCls_, xAx = category_axis_fixture
@@ -216,6 +225,18 @@ class DescribeChart(object):
         return chart, new_value, expected_xml
 
     @pytest.fixture(params=[
+        ('c:chartSpace/c:chart',
+         'c:title/(c:layout,c:overlay{val=0})'),
+        ('c:chartSpace/c:chart/c:title/c:layout',
+         'c:title/c:layout'),
+    ])
+    def title_fixture(self, request, ChartTitle_, chart_title_):
+        chartSpace_cxml, expected_cxml = request.param
+        chart = Chart(element(chartSpace_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return chart, expected_xml, ChartTitle_, chart_title_
+
+    @pytest.fixture(params=[
         ('c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)', 0),
         ('c:chartSpace/c:chart/c:plotArea/(c:valAx,c:valAx)', 1),
     ])
@@ -247,6 +268,16 @@ class DescribeChart(object):
     @pytest.fixture
     def chart_data_(self, request):
         return instance_mock(request, ChartData)
+
+    @pytest.fixture
+    def ChartTitle_(self, request, chart_title_):
+        return class_mock(
+            request, 'pptx.chart.chart.ChartTitle', return_value=chart_title_
+        )
+
+    @pytest.fixture
+    def chart_title_(self, request):
+        return instance_mock(request, ChartTitle)
 
     @pytest.fixture
     def DateAxis_(self, request, date_axis_):

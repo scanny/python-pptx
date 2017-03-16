@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from .. import parse_xml
 from ..ns import nsdecls, qn
+from .shared import CT_Title
 from ..simpletypes import ST_Style, XsdString
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrMore, ZeroOrOne
@@ -15,13 +16,15 @@ from ..xmlchemy import (
 
 
 class CT_Chart(BaseOxmlElement):
-    """
-    ``<c:chart>`` custom element class
-    """
+    """`c:chart` custom element class."""
+    _tag_seq = (
+        'c:title', 'c:autoTitleDeleted', 'c:pivotFmts', 'c:view3D',
+        'c:floor', 'c:sideWall', 'c:backWall', 'c:plotArea', 'c:legend',
+        'c:plotVisOnly', 'c:dispBlanksAs', 'c:showDLblsOverMax', 'c:extLst',
+    )
+    title = ZeroOrOne('c:title', successors=_tag_seq[1:])
     plotArea = OneAndOnlyOne('c:plotArea')
-    legend = ZeroOrOne('c:legend', successors=(
-        'c:plotVisOnly', 'c:dispBlanksAs', 'c:showDLblsOverMax', 'c:extLst'
-    ))
+    legend = ZeroOrOne('c:legend', successors=_tag_seq[9:])
     rId = RequiredAttribute('r:id', XsdString)
 
     _chart_tmpl = (
@@ -61,11 +64,12 @@ class CT_Chart(BaseOxmlElement):
         chart = parse_xml(xml)
         return chart
 
+    def _new_title(self):
+        return CT_Title.new_title()
+
 
 class CT_ChartSpace(BaseOxmlElement):
-    """
-    ``<c:chartSpace>`` element class, the root element of a chart part.
-    """
+    """`c:chartSpace` element class, the root element of a chart part."""
     _tag_seq = (
         'c:date1904', 'c:lang', 'c:roundedCorners', 'c:style', 'c:clrMapOvr',
         'c:pivotSource', 'c:protection', 'c:chart', 'c:spPr', 'c:txPr',
@@ -96,6 +100,10 @@ class CT_ChartSpace(BaseOxmlElement):
     @property
     def dateAx_lst(self):
         return self.xpath('c:chart/c:plotArea/c:dateAx')
+
+    def get_or_add_title(self):
+        """Return the `c:title` grandchild, newly created if not present."""
+        return self.chart.get_or_add_title()
 
     @property
     def plotArea(self):

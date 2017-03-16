@@ -32,8 +32,8 @@ class _BaseAxis(object):
 
         Calling this property is destructive in the sense that it adds an
         axis title element (`c:title`) to the axis XML if one is not already
-        present. Use :attr:`has_axis_title` to test for presence of axis
-        title non-destructively.
+        present. Use :attr:`has_title` to test for presence of axis title
+        non-destructively.
         """
         return AxisTitle(self._element.get_or_add_title())
 

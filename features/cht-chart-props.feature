@@ -4,7 +4,6 @@ Feature: Chart properties
   I need read/write properties on Chart
 
 
-  @wip
   Scenario Outline: Chart.chart_title
     Given a chart having <a-or-no> title
      Then chart.chart_title is a ChartTitle object
