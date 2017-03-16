@@ -406,6 +406,11 @@ class DescribeChartTitle(object):
         value = chart_title.has_text_frame
         assert value is expected_value
 
+    def it_can_change_whether_it_has_a_text_frame(self, has_tf_set_fixture):
+        chart_title, value, expected_xml = has_tf_set_fixture
+        chart_title.has_text_frame = value
+        assert chart_title._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -423,6 +428,25 @@ class DescribeChartTitle(object):
         title_cxml, expected_value = request.param
         chart_title = ChartTitle(element(title_cxml))
         return chart_title, expected_value
+
+    @pytest.fixture(params=[
+        ('c:title{a:b=c}', True,
+         'c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p)'),
+        ('c:title{a:b=c}/c:tx', True,
+         'c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p)'),
+        ('c:title{a:b=c}/c:tx/c:strRef', True,
+         'c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p)'),
+        ('c:title/c:tx/c:rich',   True,  'c:title/c:tx/c:rich'),
+        ('c:title',               False, 'c:title'),
+        ('c:title/c:tx',          False, 'c:title'),
+        ('c:title/c:tx/c:rich',   False, 'c:title'),
+        ('c:title/c:tx/c:strRef', False, 'c:title'),
+    ])
+    def has_tf_set_fixture(self, request):
+        title_cxml, value, expected_cxml = request.param
+        chart_title = ChartTitle(element(title_cxml))
+        expected_xml = xml(expected_cxml)
+        return chart_title, value, expected_xml
 
     # fixture components ---------------------------------------------
 

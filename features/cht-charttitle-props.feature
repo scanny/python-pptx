@@ -21,7 +21,6 @@ Feature: Chart Title properties
       | no      | False |
 
 
-  @wip
   Scenario Outline: Set ChartTitle.has_text_frame
     Given a chart title having <a-or-no> text frame
      When I assign <new-value> to chart_title.has_text_frame

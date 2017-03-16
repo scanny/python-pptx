@@ -199,6 +199,10 @@ class Chart(PartElementProxy):
 class ChartTitle(ElementProxy):
     """Provides properties for manipulating a chart title."""
 
+    # This shares functionality with AxisTitle, which could be factored out
+    # into a base class. I suspect they actually differ in certain fuller
+    # behaviors, but at present they're essentially identical.
+
     __slots__ = ('_title', '_format')
 
     def __init__(self, title):
@@ -226,6 +230,13 @@ class ChartTitle(ElementProxy):
         if self._title.tx_rich is None:
             return False
         return True
+
+    @has_text_frame.setter
+    def has_text_frame(self, value):
+        if bool(value) is False:
+            self._title._remove_tx()
+            return
+        self._title.get_or_add_tx_rich()
 
 
 class _Plots(Sequence):
