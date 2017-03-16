@@ -4,7 +4,6 @@ Feature: Chart Title properties
   I need read/write properties on ChartTitle
 
 
-  @wip
   Scenario: ChartTitle.format
     Given a chart title
      Then chart_title.format is a ChartFormat object

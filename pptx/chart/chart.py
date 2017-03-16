@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from collections import Sequence
 
 from .axis import CategoryAxis, DateAxis, ValueAxis
+from ..dml.chtfmt import ChartFormat
 from .legend import Legend
 from .plot import PlotFactory, PlotTypeInspector
 from .series import SeriesCollection
@@ -198,11 +199,20 @@ class Chart(PartElementProxy):
 class ChartTitle(ElementProxy):
     """Provides properties for manipulating a chart title."""
 
-    __slots__ = ('_title',)
+    __slots__ = ('_title', '_format')
 
     def __init__(self, title):
         super(ChartTitle, self).__init__(title)
         self._title = title
+
+    @lazyproperty
+    def format(self):
+        """|ChartFormat| object providing access to line and fill formatting.
+
+        Return the |ChartFormat| object providing shape formatting properties
+        for this chart title, such as its line color and fill.
+        """
+        return ChartFormat(self._title)
 
 
 class _Plots(Sequence):

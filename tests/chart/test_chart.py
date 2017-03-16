@@ -14,6 +14,7 @@ from pptx.chart.data import ChartData
 from pptx.chart.plot import _BasePlot
 from pptx.chart.series import SeriesCollection
 from pptx.chart.xmlwriter import _BaseSeriesXmlRewriter
+from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.parts.chart import ChartWorkbook
 
@@ -390,6 +391,34 @@ class DescribeChart(object):
         return property_mock(
             request, Chart, '_workbook', return_value=workbook_
         )
+
+
+class DescribeChartTitle(object):
+
+    def it_provides_access_to_its_format(self, format_fixture):
+        chart_title, ChartFormat_, format_ = format_fixture
+        format = chart_title.format
+        ChartFormat_.assert_called_once_with(chart_title.element)
+        assert format is format_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def format_fixture(self, request, ChartFormat_, format_):
+        chart_title = ChartTitle(element('c:title'))
+        return chart_title, ChartFormat_, format_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ChartFormat_(self, request, format_):
+        return class_mock(
+            request, 'pptx.chart.chart.ChartFormat', return_value=format_
+        )
+
+    @pytest.fixture
+    def format_(self, request):
+        return instance_mock(request, ChartFormat)
 
 
 class Describe_Plots(object):
