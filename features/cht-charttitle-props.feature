@@ -34,7 +34,6 @@ Feature: Chart Title properties
       | a       | True      | True  |
 
 
-  @wip
   Scenario Outline: Get ChartTitle.text_frame
     Given a chart title having <a-or-no> text frame
      Then chart_title.text_frame is a TextFrame object

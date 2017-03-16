@@ -14,6 +14,7 @@ from .legend import Legend
 from .plot import PlotFactory, PlotTypeInspector
 from .series import SeriesCollection
 from ..shared import ElementProxy, PartElementProxy
+from ..text.text import TextFrame
 from ..util import lazyproperty
 from .xmlwriter import SeriesXmlRewriterFactory
 
@@ -200,8 +201,9 @@ class ChartTitle(ElementProxy):
     """Provides properties for manipulating a chart title."""
 
     # This shares functionality with AxisTitle, which could be factored out
-    # into a base class. I suspect they actually differ in certain fuller
-    # behaviors, but at present they're essentially identical.
+    # into a base class, perhaps pptx.chart.shared.BaseTitle. I suspect they
+    # actually differ in certain fuller behaviors, but at present they're
+    # essentially identical.
 
     __slots__ = ('_title', '_format')
 
@@ -237,6 +239,18 @@ class ChartTitle(ElementProxy):
             self._title._remove_tx()
             return
         self._title.get_or_add_tx_rich()
+
+    @property
+    def text_frame(self):
+        """|TextFrame| instance for this chart title.
+
+        Return a |TextFrame| instance allowing read/write access to the text
+        of this chart title and its text formatting properties. Accessing this
+        property is destructive as it adds a new text frame if not already
+        present.
+        """
+        rich = self._title.get_or_add_tx_rich()
+        return TextFrame(rich, self)
 
 
 class _Plots(Sequence):

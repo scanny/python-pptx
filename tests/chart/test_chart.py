@@ -411,6 +411,14 @@ class DescribeChartTitle(object):
         chart_title.has_text_frame = value
         assert chart_title._element.xml == expected_xml
 
+    def it_provides_access_to_its_text_frame(self, text_frame_fixture):
+        chart_title, TextFrame_, text_frame_ = text_frame_fixture
+        text_frame = chart_title.text_frame
+        TextFrame_.assert_called_once_with(
+            chart_title._element.tx.rich, chart_title
+        )
+        assert text_frame is text_frame_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -448,6 +456,12 @@ class DescribeChartTitle(object):
         expected_xml = xml(expected_cxml)
         return chart_title, value, expected_xml
 
+    @pytest.fixture
+    def text_frame_fixture(self, request, TextFrame_):
+        chart_title = ChartTitle(element('c:title'))
+        text_frame_ = TextFrame_.return_value
+        return chart_title, TextFrame_, text_frame_
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -459,6 +473,10 @@ class DescribeChartTitle(object):
     @pytest.fixture
     def format_(self, request):
         return instance_mock(request, ChartFormat)
+
+    @pytest.fixture
+    def TextFrame_(self, request):
+        return class_mock(request, 'pptx.chart.chart.TextFrame')
 
 
 class Describe_Plots(object):
