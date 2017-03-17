@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+0.6.4 (2017-03-17)
+++++++++++++++++++
+
+- add Chart.chart_title and ChartTitle object
+- #263 Use Number type to test for numeric category
+
+
 0.6.3 (2017-02-28)
 ++++++++++++++++++
 
