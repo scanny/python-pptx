@@ -118,7 +118,7 @@ class BarSeries(_BaseCategorySeries):
         """
         msg = (
             'BarSeries.fill property is deprecated and will be removed in a '
-            'future release.'
+            'future release Use .format.fill instead.'
         )
         warn(msg, UserWarning, stacklevel=2)
 
