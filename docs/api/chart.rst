@@ -22,6 +22,10 @@ to specify and format a chart.
    :member-order: bysource
    :undoc-members:
 
+.. autoclass:: pptx.chart.chart.ChartTitle()
+   :members:
+   :member-order: bysource
+
 
 |Legend| objects
 ----------------

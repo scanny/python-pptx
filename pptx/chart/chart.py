@@ -74,9 +74,9 @@ class Chart(PartElementProxy):
     def chart_title(self):
         """A |ChartTitle| object providing access to title properties.
 
-        Calling this property is destructive in the sense that it adds an
-        chart title element (`c:title`) to the chart XML if one is not already
-        present. Use :attr:`has_title` to test for presence of chart title
+        Calling this property is destructive in the sense it adds a chart
+        title element (`c:title`) to the chart XML if one is not already
+        present. Use :attr:`has_title` to test for presence of a chart title
         non-destructively.
         """
         return ChartTitle(self._element.get_or_add_title())
@@ -110,9 +110,9 @@ class Chart(PartElementProxy):
     def has_title(self):
         """Read/write boolean, specifying whether this chart has a title.
 
-        Assigning |True| causes a title to be added to the chart if it
-        doesn't already have one. Assigning |False| removes any existing
-        title along with its text and settings.
+        Assigning |True| causes a title to be added if not already present.
+        Assigning |False| removes any existing title along with its text and
+        settings.
         """
         title = self._chartSpace.chart.title
         if title is None:
@@ -246,8 +246,9 @@ class ChartTitle(ElementProxy):
 
         Return a |TextFrame| instance allowing read/write access to the text
         of this chart title and its text formatting properties. Accessing this
-        property is destructive as it adds a new text frame if not already
-        present.
+        property is destructive in the sense it adds a text frame if one is
+        not present. Use :attr:`has_text_frame` to test for the presence of
+        a text frame non-destructively.
         """
         rich = self._title.get_or_add_tx_rich()
         return TextFrame(rich, self)
