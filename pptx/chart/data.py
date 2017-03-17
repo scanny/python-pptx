@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import datetime
 from collections import Sequence
+from numbers import Number
 
 from ..util import lazyproperty
 from .xlsx import (
@@ -412,7 +413,7 @@ class Categories(Sequence):
         # later in the process, but it's not this method's job to validate
         # the caller's input.
         first_cat_label = self[0].label
-        numeric_types = (float, datetime.date, int, datetime.datetime)
+        numeric_types = (Number, datetime.date, datetime.datetime)
         if isinstance(first_cat_label, numeric_types):
             return True
         return False
