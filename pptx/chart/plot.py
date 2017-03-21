@@ -85,7 +85,7 @@ class _BasePlot(object):
         else:
             if self._element.dLbls is None:
                 dLbls = self._element._add_dLbls()
-                dLbls.showVal.set('val', '1')
+                dLbls.showVal.val = True
 
     @lazyproperty
     def series(self):

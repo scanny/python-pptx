@@ -45,9 +45,14 @@ class Legend(object):
 
     @property
     def include_in_layout(self):
-        """
-        Read/write boolean specifying whether the legend should occupy the
-        chart layout space, causing it to overlap the chart.
+        """|True| if legend should be located inside plot area.
+
+        Read/write boolean specifying whether legend should be placed inside
+        the plot area. In many cases this will cause it to be superimposed on
+        the chart itself. Assigning |None| to this property causes any
+        `c:overlay` element to be removed, which is interpreted the same as
+        |True|. This use case should rarely be required and assigning
+        a boolean value is recommended.
         """
         overlay = self._element.overlay
         if overlay is None:
@@ -56,6 +61,9 @@ class Legend(object):
 
     @include_in_layout.setter
     def include_in_layout(self, value):
+        if value is None:
+            self._element._remove_overlay()
+            return
         self._element.get_or_add_overlay().val = bool(value)
 
     @property

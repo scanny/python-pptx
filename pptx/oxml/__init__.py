@@ -143,8 +143,8 @@ register_element_cls('c:yVal',       CT_NumDataSource)
 
 
 from .chart.shared import (
-    CT_Boolean, CT_Double, CT_Layout, CT_LayoutMode, CT_ManualLayout,
-    CT_NumFmt, CT_Title, CT_Tx, CT_UnsignedInt
+    CT_Boolean, CT_Boolean_Explicit, CT_Double, CT_Layout, CT_LayoutMode,
+    CT_ManualLayout, CT_NumFmt, CT_Title, CT_Tx, CT_UnsignedInt
 )
 register_element_cls('c:autoUpdate',       CT_Boolean)
 register_element_cls('c:bubble3D',         CT_Boolean)
@@ -160,9 +160,10 @@ register_element_cls('c:max',              CT_Double)
 register_element_cls('c:min',              CT_Double)
 register_element_cls('c:numFmt',           CT_NumFmt)
 register_element_cls('c:order',            CT_UnsignedInt)
-register_element_cls('c:overlay',          CT_Boolean)
+register_element_cls('c:overlay',          CT_Boolean_Explicit)
 register_element_cls('c:ptCount',          CT_UnsignedInt)
-register_element_cls('c:showLegendKey',    CT_Boolean)
+register_element_cls('c:showLegendKey',    CT_Boolean_Explicit)
+register_element_cls('c:showVal',          CT_Boolean_Explicit)
 register_element_cls('c:smooth',           CT_Boolean)
 register_element_cls('c:title',            CT_Title)
 register_element_cls('c:tx',               CT_Tx)

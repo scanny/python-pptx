@@ -24,6 +24,28 @@ class CT_Boolean(BaseOxmlElement):
     val = OptionalAttribute('val', XsdBoolean, default=True)
 
 
+class CT_Boolean_Explicit(BaseOxmlElement):
+    """Always spells out the `val` attribute, e.g. `val=1`.
+
+    At least one boolean element is improperly interpreted by one or more
+    versions of PowerPoint. The `c:overlay` element is interpreted as |False|
+    when no `val` attribute is present, contrary to the behavior described in
+    the schema. A remedy for this is to interpret a missing `val` attribute
+    as |True| (consistent with the spec), but always write the attribute
+    whenever there is occasion for changing the element.
+    """
+    _val = OptionalAttribute('val', XsdBoolean, default=True)
+
+    @property
+    def val(self):
+        return self._val
+
+    @val.setter
+    def val(self, value):
+        val_str = '1' if bool(value) is True else '0'
+        self.set('val', val_str)
+
+
 class CT_Double(BaseOxmlElement):
     """
     Used for floating point values.

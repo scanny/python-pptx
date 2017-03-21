@@ -114,10 +114,11 @@ class DescribeLegend(object):
         return legend, expected_value
 
     @pytest.fixture(params=[
-        ('c:legend',                  True,  'c:legend/c:overlay'),
+        ('c:legend',                  True,  'c:legend/c:overlay{val=1}'),
         ('c:legend',                  False, 'c:legend/c:overlay{val=0}'),
-        ('c:legend/c:overlay{val=0}', True,  'c:legend/c:overlay'),
+        ('c:legend/c:overlay{val=0}', True,  'c:legend/c:overlay{val=1}'),
         ('c:legend/c:overlay{val=1}', False, 'c:legend/c:overlay{val=0}'),
+        ('c:legend/c:overlay{val=1}', None,  'c:legend'),
     ])
     def include_in_layout_set_fixture(self, request):
         legend_cxml, new_value, expected_legend_cxml = request.param

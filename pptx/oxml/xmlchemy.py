@@ -165,6 +165,19 @@ class OptionalAttribute(BaseAttribute):
         self._default = default
 
     @property
+    def _docstring(self):
+        """
+        Return the string to use as the ``__doc__`` attribute of the property
+        for this attribute.
+        """
+        return (
+            '%s type-converted value of ``%s`` attribute, or |None| (or spec'
+            'ified default value) if not present. Assigning the default valu'
+            'e causes the attribute to be removed from the element.' %
+            (self._simple_type.__name__, self._attr_name)
+        )
+
+    @property
     def _getter(self):
         """
         Return a function object suitable for the "get" side of the attribute
@@ -177,19 +190,6 @@ class OptionalAttribute(BaseAttribute):
             return self._simple_type.from_xml(attr_str_value)
         get_attr_value.__doc__ = self._docstring
         return get_attr_value
-
-    @property
-    def _docstring(self):
-        """
-        Return the string to use as the ``__doc__`` attribute of the property
-        for this attribute.
-        """
-        return (
-            '%s type-converted value of ``%s`` attribute, or |None| (or spec'
-            'ified default value) if not present. Assigning the default valu'
-            'e causes the attribute to be removed from the element.' %
-            (self._simple_type.__name__, self._attr_name)
-        )
 
     @property
     def _setter(self):
