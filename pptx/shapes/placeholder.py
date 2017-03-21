@@ -402,7 +402,8 @@ class TablePlaceholder(_BaseSlidePlaceholder):
         of this placeholder and having its same width. The table's height is
         determined by the number of rows.
         """
-        id_, name, height = self.id, self.name, Emu(rows*370840)
+        shape_id, name, height = self.shape_id, self.name, Emu(rows*370840)
         return CT_GraphicalObjectFrame.new_table_graphicFrame(
-            id_, name, rows, cols, self.left, self.top, self.width, height
+            shape_id, name, rows, cols, self.left, self.top, self.width,
+            height
         )

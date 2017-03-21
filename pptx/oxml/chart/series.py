@@ -6,6 +6,7 @@ Series-related oxml objects.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+from .datalabel import CT_DLbls
 from ..simpletypes import XsdUnsignedInt
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OxmlElement, RequiredAttribute,
@@ -197,6 +198,10 @@ class CT_SeriesComposite(BaseOxmlElement):
         if not vals:
             return 0
         return int(vals[0])
+
+    def _new_dLbls(self):
+        """Override metaclass method that creates `c:dLbls` element."""
+        return CT_DLbls.new_dLbls()
 
     def _new_dPt(self):
         """

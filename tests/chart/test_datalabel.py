@@ -62,10 +62,12 @@ class DescribeDataLabel(object):
 
     @pytest.fixture(params=[
         ('c:ser{a:b=c}',
-         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:spPr,c:txPr/(a:bodyPr,'
-         'a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{va'
-         'l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0'
-         '},c:showBubbleSize{val=0})'),
+         'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=9},c:spPr,c:txPr/(a:bodyPr'
+         ',a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{v'
+         'al=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val='
+         '0},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0'
+         '},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c'
+         ':showBubbleSize{val=0})'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p))',
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p/a:p'
          'Pr/a:defRPr))'),
@@ -103,17 +105,17 @@ class DescribeDataLabel(object):
         ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)',          False,
          'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
         ('c:ser{a:b=c}',                                              True,
-         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defR'
-         'Pr),c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c'
-         ':showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val=0}'
-         ')'),
+         'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,'
+         'a:lstStyle,a:p),c:showLegendKey{val=0},c:showVal{val=1},c:showCatN'
+         'ame{val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleS'
+         'ize{val=0}),c:showLegendKey{val=0},c:showVal{val=0},c:showCatName{'
+         'val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{'
+         'val=0})'),
         ('c:ser{a:b=c}/c:dLbls',                                      True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defR'
-         'Pr),c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c'
-         ':showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val=0}'
-         ')'),
+         ':lstStyle,a:p),c:showLegendKey{val=0},c:showVal{val=1},c:showCatNa'
+         'me{val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSi'
+         'ze{val=0})'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}',                 True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
          ':lstStyle,a:p))'),
@@ -122,10 +124,9 @@ class DescribeDataLabel(object):
          ':lstStyle,a:p))'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)',   True,
          'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=24},c:tx/c:rich),c:dLbl/(c'
-         ':idx{val=42},c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p),c:spPr,c:txPr/('
-         'a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:s'
-         'howVal{val=1},c:showCatName{val=0},c:showSerName{val=0},c:showPerc'
-         'ent{val=0},c:showBubbleSize{val=0}))'),
+         ':idx{val=42},c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p),c:showLegendKey'
+         '{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerName{val=0}'
+         ',c:showPercent{val=0},c:showBubbleSize{val=0}))'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}',                 True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
          ':lstStyle,a:p))'),
@@ -151,10 +152,12 @@ class DescribeDataLabel(object):
 
     @pytest.fixture(params=[
         ('c:ser{a:b=c}', 'CENTER',
-         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:spPr,c:txPr/(a:bodyPr'
-         ',a:lstStyle,a:p/a:pPr/a:defRPr),c:dLblPos{val=ctr},c:showLegendKey'
-         '{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerName{val=0}'
-         ',c:showPercent{val=0},c:showBubbleSize{val=0})'),
+         'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:spPr,c:txPr/(a:bodyP'
+         'r,a:lstStyle,a:p/a:pPr/a:defRPr),c:dLblPos{val=ctr},c:showLegendKe'
+         'y{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerName{val=0'
+         '},c:showPercent{val=0},c:showBubbleSize{val=0}),c:showLegendKey{va'
+         'l=0},c:showVal{val=0},c:showCatName{val=0},c:showSerName{val=0},c:'
+         'showPercent{val=0},c:showBubbleSize{val=0})'),
         ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=ctr})', 'BELOW',
          'c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})'),
         ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})', None,
@@ -172,11 +175,12 @@ class DescribeDataLabel(object):
 
     @pytest.fixture(params=[
         ('c:ser{a:b=c}',
-         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p),c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defR'
-         'Pr),c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c'
-         ':showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val=0}'
-         ')'),
+         'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,'
+         'a:lstStyle,a:p),c:showLegendKey{val=0},c:showVal{val=1},c:showCatN'
+         'ame{val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleS'
+         'ize{val=0}),c:showLegendKey{val=0},c:showVal{val=0},c:showCatName{'
+         'val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{'
+         'val=0})'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)',
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
          ':lstStyle,a:p))'),

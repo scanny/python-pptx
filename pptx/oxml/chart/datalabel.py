@@ -30,6 +30,7 @@ class CT_DLbl(BaseOxmlElement):
     )
     idx = OneAndOnlyOne('c:idx')
     tx = ZeroOrOne('c:tx', successors=_tag_seq[3:])
+    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[5:])
     txPr = ZeroOrOne('c:txPr', successors=_tag_seq[6:])
     dLblPos = ZeroOrOne('c:dLblPos', successors=_tag_seq[7:])
     del _tag_seq
@@ -129,18 +130,8 @@ class CT_DLbls(BaseOxmlElement):
     numFmt = ZeroOrOne('c:numFmt', successors=_tag_seq[2:])
     txPr = ZeroOrOne('c:txPr', successors=_tag_seq[4:])
     dLblPos = ZeroOrOne('c:dLblPos', successors=_tag_seq[5:])
+    showVal = ZeroOrOne('c:showVal', successors=_tag_seq[7:])
     del _tag_seq
-
-    _default_xml = (
-        '<c:dLbls %s>\n'
-        '  <c:showLegendKey val="0"/>\n'
-        '  <c:showVal val="1"/>\n'
-        '  <c:showCatName val="0"/>\n'
-        '  <c:showSerName val="0"/>\n'
-        '  <c:showPercent val="0"/>\n'
-        '  <c:showBubbleSize val="0"/>\n'
-        '</c:dLbls>' % nsdecls('c')
-    )
 
     @property
     def defRPr(self):
@@ -173,13 +164,18 @@ class CT_DLbls(BaseOxmlElement):
         return self._insert_dLbl_in_sequence(idx)
 
     @classmethod
-    def new_default(cls):
-        """
-        Return a new default ``<c:dLbls>`` element.
-        """
-        xml = cls._default_xml
-        dLbls = parse_xml(xml)
-        return dLbls
+    def new_dLbls(cls):
+        """Return a newly created "loose" `c:dLbls` element."""
+        return parse_xml(
+            '<c:dLbls %s>\n'
+            '  <c:showLegendKey val="0"/>\n'
+            '  <c:showVal val="0"/>\n'
+            '  <c:showCatName val="0"/>\n'
+            '  <c:showSerName val="0"/>\n'
+            '  <c:showPercent val="0"/>\n'
+            '  <c:showBubbleSize val="0"/>\n'
+            '</c:dLbls>' % nsdecls('c')
+        )
 
     def _insert_dLbl_in_sequence(self, idx):
         """

@@ -100,26 +100,28 @@ class Describe_BasePlot(object):
         return plot, expected_value
 
     @pytest.fixture(params=[
-        ('c:barChart',          True,  'c:barChart/c:dLbls/+'),
-        ('c:barChart/c:dLbls',  True,  'c:barChart/c:dLbls'),
-        ('c:barChart',          False, 'c:barChart'),
-        ('c:barChart/c:dLbls',  False, 'c:barChart'),
-        ('c:lineChart',         True,  'c:lineChart/c:dLbls/+'),
-        ('c:lineChart/c:dLbls', False, 'c:lineChart'),
-        ('c:pieChart',          True,  'c:pieChart/c:dLbls/+'),
-        ('c:pieChart/c:dLbls',  False, 'c:pieChart'),
+        ('c:barChart',            True,  'c:barChart/c:dLbls/+'),
+        ('c:barChart/c:dLbls',    True,  'c:barChart/c:dLbls'),
+        ('c:barChart',            False, 'c:barChart'),
+        ('c:barChart/c:dLbls',    False, 'c:barChart'),
+        ('c:bubbleChart',         True,  'c:bubbleChart/c:dLbls/+'),
+        ('c:bubbleChart/c:dLbls', False, 'c:bubbleChart'),
+        ('c:lineChart',           True,  'c:lineChart/c:dLbls/+'),
+        ('c:lineChart/c:dLbls',   False, 'c:lineChart'),
+        ('c:pieChart',            True,  'c:pieChart/c:dLbls/+'),
+        ('c:pieChart/c:dLbls',    False, 'c:pieChart'),
     ])
     def has_data_labels_set_fixture(self, request):
-        xChart_cxml, new_value, expected_xChart_cxml = request.param
+        xChart_cxml, new_value, expected_cxml = request.param
         # apply extended suffix to replace trailing '+' where present
-        if expected_xChart_cxml.endswith('+'):
-            expected_xChart_cxml = expected_xChart_cxml[:-1] + (
+        if expected_cxml.endswith('+'):
+            expected_cxml = expected_cxml[:-1] + (
                 '(c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val='
                 '0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSi'
                 'ze{val=0})'
             )
         plot = PlotFactory(element(xChart_cxml), None)
-        expected_xml = xml(expected_xChart_cxml)
+        expected_xml = xml(expected_cxml)
         return plot, new_value, expected_xml
 
     @pytest.fixture

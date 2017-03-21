@@ -95,7 +95,7 @@ class BaseChartElement(BaseOxmlElement):
         return tuple(self.iter_sers())
 
     def _new_dLbls(self):
-        return CT_DLbls.new_default()
+        return CT_DLbls.new_dLbls()
 
 
 class CT_Area3DChart(BaseChartElement):
@@ -173,6 +173,7 @@ class CT_BubbleChart(BaseChartElement):
         'c:extLst'
     )
     ser = ZeroOrMore('c:ser', successors=_tag_seq[2:])
+    dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[3:])
     bubble3D = ZeroOrOne('c:bubble3D', successors=_tag_seq[5:])
     bubbleScale = ZeroOrOne('c:bubbleScale', successors=_tag_seq[6:])
     del _tag_seq

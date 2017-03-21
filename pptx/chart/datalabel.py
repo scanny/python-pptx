@@ -198,6 +198,12 @@ class DataLabel(object):
         label, newly created with its ancestors if not present.
         """
         dLbl = self._get_or_add_dLbl()
+
+        # having a c:spPr or c:txPr when a c:tx is present causes the "can't
+        # save" bug on bubble charts. Remove c:spPr and c:txPr when present.
+        dLbl._remove_spPr()
+        dLbl._remove_txPr()
+
         return dLbl.get_or_add_rich()
 
     def _get_or_add_tx_rich(self):
@@ -206,6 +212,12 @@ class DataLabel(object):
         child and descendants, newly created if not yet present.
         """
         dLbl = self._get_or_add_dLbl()
+
+        # having a c:spPr or c:txPr when a c:tx is present causes the "can't
+        # save" bug on bubble charts. Remove c:spPr and c:txPr when present.
+        dLbl._remove_spPr()
+        dLbl._remove_txPr()
+
         return dLbl.get_or_add_tx_rich()
 
     def _get_or_add_txPr(self):
