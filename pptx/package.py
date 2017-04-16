@@ -58,6 +58,7 @@ class Package(OpcPackage):
             image_idxs = sorted([
                 part.partname.idx for part in self.iter_parts()
                 if part.partname.startswith('/ppt/media/image')
+                and part.partname.idx is not None
             ])
             for i, image_idx in enumerate(image_idxs):
                 idx = i + 1
