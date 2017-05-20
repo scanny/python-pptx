@@ -13,7 +13,9 @@ from pptx.chart.chart import Chart
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
-from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE
+from pptx.enum.shapes import (
+    MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+)
 from pptx.action import ActionSetting
 from pptx.util import Emu, Inches
 
@@ -83,6 +85,12 @@ def given_a_group_shape(context):
     prs = Presentation(test_pptx('shp-common-props'))
     sld = prs.slides[0]
     context.shape = sld.shapes[3]
+
+
+@given('a movie shape')
+def given_a_movie_shape(context):
+    prs = Presentation(test_pptx('shp-movie-props'))
+    context.movie = prs.slides[0].shapes[0]
 
 
 @given('a picture')
@@ -369,6 +377,30 @@ def then_connector_end_y_is_an_Emu_object_with_value_y(context, y):
     end_y = context.connector.end_y
     assert isinstance(end_y, Emu)
     assert end_y == int(y)
+
+
+@then('movie is a Movie object')
+def then_movie_is_a_Movie_object(context):
+    class_name = context.movie.__class__.__name__
+    assert class_name == 'Movie', 'got %s' % class_name
+
+
+@then('movie.media_format is a _MediaFormat object')
+def then_movie_media_format_is_a_MediaFormat_object(context):
+    class_name = context.movie.media_format.__class__.__name__
+    assert class_name == '_MediaFormat', 'got %s' % class_name
+
+
+@then('movie.media_type is PP_MEDIA_TYPE.MOVIE')
+def then_movie_media_type_is_PP_MEDIA_TYPE_MOVIE(context):
+    media_type = context.movie.media_type
+    assert media_type == PP_MEDIA_TYPE.MOVIE, 'got %s' % media_type
+
+
+@then('movie.shape_type is MSO_SHAPE_TYPE.MEDIA')
+def then_movie_shape_type_is_MSO_SHAPE_TYPE_MEDIA(context):
+    shape_type = context.movie.shape_type
+    assert shape_type == MSO_SHAPE_TYPE.MEDIA, 'got %s' % shape_type
 
 
 @then('shape.adjustments[0] is 0.15')
