@@ -9,7 +9,6 @@ Feature: Movie shape properties
      Then movie is a Movie object
 
 
-  @wip
   Scenario: Movie.shape_type
     Given a movie shape
      Then movie.shape_type is MSO_SHAPE_TYPE.MEDIA

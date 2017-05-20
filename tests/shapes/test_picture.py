@@ -12,7 +12,7 @@ from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.parts.image import Image
 from pptx.parts.slide import SlidePart
-from pptx.shapes.picture import _BasePicture, Picture
+from pptx.shapes.picture import _BasePicture, Movie, Picture
 from pptx.util import Pt
 
 from ..unitutil.cxml import element
@@ -54,6 +54,19 @@ class Describe_BasePicture(object):
     @pytest.fixture
     def line_fixture(self):
         return _BasePicture(element('p:pic/p:spPr'), None)
+
+
+class DescribeMovie(object):
+
+    def it_knows_its_shape_type(self, shape_type_fixture):
+        movie = shape_type_fixture
+        assert movie.shape_type == MSO_SHAPE_TYPE.MEDIA
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def shape_type_fixture(self):
+        return Movie(None, None)
 
 
 class DescribePicture(object):

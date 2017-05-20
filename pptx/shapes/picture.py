@@ -83,6 +83,14 @@ class Movie(_BasePicture):
     represents the video before it is played.
     """
 
+    @property
+    def shape_type(self):
+        """
+        Unique integer identifying the type of this shape, unconditionally
+        ``MSO_SHAPE_TYPE.MEDIA`` in this case.
+        """
+        return MSO_SHAPE_TYPE.MEDIA
+
 
 class Picture(_BasePicture):
     """A picture shape, one that places an image on a slide.
