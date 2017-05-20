@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import pytest
 
 from pptx.dml.line import LineFormat
-from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 from pptx.parts.image import Image
 from pptx.parts.slide import SlidePart
 from pptx.shapes.picture import _BasePicture, Movie, Picture
@@ -62,7 +62,15 @@ class DescribeMovie(object):
         movie = shape_type_fixture
         assert movie.shape_type == MSO_SHAPE_TYPE.MEDIA
 
+    def it_knows_its_media_type(self, media_type_fixture):
+        movie = media_type_fixture
+        assert movie.media_type == PP_MEDIA_TYPE.MOVIE
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def media_type_fixture(self):
+        return Movie(None, None)
 
     @pytest.fixture
     def shape_type_fixture(self):

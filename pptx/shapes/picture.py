@@ -6,7 +6,7 @@ Picture shape.
 
 from .base import BaseShape
 from ..dml.line import LineFormat
-from ..enum.shapes import MSO_SHAPE_TYPE
+from ..enum.shapes import MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 from ..util import lazyproperty
 
 
@@ -84,10 +84,20 @@ class Movie(_BasePicture):
     """
 
     @property
-    def shape_type(self):
+    def media_type(self):
+        """Member of :ref:`PpMediaType` describing this shape.
+
+        The return value is unconditionally `PP_MEDIA_TYPE.MOVIE` in this
+        case.
         """
-        Unique integer identifying the type of this shape, unconditionally
-        ``MSO_SHAPE_TYPE.MEDIA`` in this case.
+        return PP_MEDIA_TYPE.MOVIE
+
+    @property
+    def shape_type(self):
+        """Return member of :ref:`MsoShapeType` describing this shape.
+
+        The return value is unconditionally ``MSO_SHAPE_TYPE.MEDIA`` in this
+        case.
         """
         return MSO_SHAPE_TYPE.MEDIA
 

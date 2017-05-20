@@ -14,7 +14,6 @@ Feature: Movie shape properties
      Then movie.shape_type is MSO_SHAPE_TYPE.MEDIA
 
 
-  @wip
   Scenario: Movie.media_type
     Given a movie shape
      Then movie.media_type is PP_MEDIA_TYPE.MOVIE
