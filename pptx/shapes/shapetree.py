@@ -16,7 +16,7 @@ from .graphfrm import GraphicFrame
 from ..oxml.ns import qn
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from ..oxml.simpletypes import ST_Direction
-from .picture import Picture
+from .picture import Movie, Picture
 from .placeholder import (
     ChartPlaceholder, LayoutPlaceholder, MasterPlaceholder,
     NotesSlidePlaceholder, PicturePlaceholder, PlaceholderGraphicFrame,
@@ -29,12 +29,19 @@ def BaseShapeFactory(shape_elm, parent):
     """
     Return an instance of the appropriate shape proxy class for *shape_elm*.
     """
+    tag = shape_elm.tag
+
+    if tag == qn('p:pic'):
+        videoFiles = shape_elm.xpath('./p:nvPicPr/p:nvPr/a:videoFile')
+        if videoFiles:
+            return Movie(shape_elm, parent)
+        return Picture(shape_elm, parent)
+
     shape_cls = {
         qn('p:cxnSp'):        Connector,
         qn('p:sp'):           Shape,
-        qn('p:pic'):          Picture,
         qn('p:graphicFrame'): GraphicFrame,
-    }.get(shape_elm.tag, BaseShape)
+    }.get(tag, BaseShape)
 
     return shape_cls(shape_elm, parent)
 

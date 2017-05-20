@@ -4,7 +4,6 @@ Feature: Movie shape properties
   I need a set of properties describing a movie shape
 
 
-  @wip
   Scenario: Movie shape
     Given a movie shape
      Then movie is a Movie object

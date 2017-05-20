@@ -20,7 +20,7 @@ from pptx.shapes.autoshape import Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.graphfrm import GraphicFrame
-from pptx.shapes.picture import Picture
+from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
     _BaseSlidePlaceholder, LayoutPlaceholder, MasterPlaceholder,
     NotesSlidePlaceholder
@@ -54,11 +54,12 @@ class DescribeBaseShapeFactory(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('p:sp',           Shape),
-        ('p:pic',          Picture),
+        ('p:sp', Shape),
+        ('p:pic', Picture),
+        ('p:pic/p:nvPicPr/p:nvPr/a:videoFile', Movie),
         ('p:graphicFrame', GraphicFrame),
-        ('p:grpSp',        BaseShape),
-        ('p:cxnSp',        Connector),
+        ('p:grpSp', BaseShape),
+        ('p:cxnSp', Connector),
     ])
     def factory_fixture(self, request, parent_):
         shape_cxml, ShapeCls = request.param
