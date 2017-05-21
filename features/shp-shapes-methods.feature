@@ -145,6 +145,22 @@ Feature: Shape collection methods
       | python.bmp       | bmp  |
 
 
+  @wip
+  Scenario Outline: SlideShapes.add_movie()
+    Given a SlideShapes object containing <a-or-no> movies
+     When I call shapes.add_movie(file, x, y, cx, cy, poster_frame)
+      And I save the presentation
+     Then movie is a Movie object
+      And movie.left, movie.top == x, y
+      And movie.width, movie.height == cx, cy
+      And movie.poster_frame is the same image as poster_frame
+
+    Examples: add_movie() preconditions
+      | a-or-no     |
+      | one or more |
+      | no          |
+
+
   Scenario: Add a table to a slide
      Given a blank slide
       When I add a table to the slide's shape collection

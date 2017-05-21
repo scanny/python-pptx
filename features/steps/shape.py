@@ -6,6 +6,8 @@ Gherkin step implementations for shape-related features.
 
 from __future__ import absolute_import, print_function
 
+import hashlib
+
 from behave import given, when, then
 
 from pptx import Presentation
@@ -19,7 +21,9 @@ from pptx.enum.shapes import (
 from pptx.action import ActionSetting
 from pptx.util import Emu, Inches
 
-from helpers import cls_qname, saved_pptx_path, test_pptx, test_text
+from helpers import (
+    cls_qname, saved_pptx_path, test_file, test_pptx, test_text
+)
 
 
 # given ===================================================
@@ -124,6 +128,17 @@ def given_a_shape(context):
 @given('a SlideShapes object')
 def given_a_SlideShapes_object(context):
     prs = Presentation(test_pptx('shp-shape-access'))
+    context.shapes = prs.slides[0].shapes
+
+
+@given('a SlideShapes object containing {a_or_no} movies')
+def given_a_SlideShapes_object_containing_a_or_no_movies(context, a_or_no):
+    pptx = {
+        'one or more': 'shp-movie-props',
+        'no':          'shp-shape-access',
+    }[a_or_no]
+    prs = Presentation(test_pptx(pptx))
+    context.prs = prs
     context.shapes = prs.slides[0].shapes
 
 
@@ -266,6 +281,16 @@ def when_I_call_shapes_add_connector(context):
     )
 
 
+@when('I call shapes.add_movie(file, x, y, cx, cy, poster_frame)')
+def when_I_call_shapes_add_movie(context):
+    shapes = context.shapes
+    x, y, cx, cy = Emu(2590800), Emu(571500), Emu(3962400), Emu(5715000)
+    context.movie = shapes.add_movie(
+        test_file('just-two-mice.mp4'), x, y, cx, cy,
+        test_file('just-two-mice.png')
+    )
+
+
 @when("I change the left and top of the {shape_type}")
 def when_I_change_the_position_of_the_shape(context, shape_type):
     left, top = {
@@ -385,6 +410,13 @@ def then_movie_is_a_Movie_object(context):
     assert class_name == 'Movie', 'got %s' % class_name
 
 
+@then("movie.left, movie.top == x, y")
+def then_movie_left_movie_top_eq_x_y(context):
+    movie = context.movie
+    position = movie.left, movie.top
+    assert position == (Emu(2590800), Emu(571500)), 'got %s' % position
+
+
 @then('movie.media_format is a _MediaFormat object')
 def then_movie_media_format_is_a_MediaFormat_object(context):
     class_name = context.movie.media_format.__class__.__name__
@@ -397,10 +429,25 @@ def then_movie_media_type_is_PP_MEDIA_TYPE_MOVIE(context):
     assert media_type == PP_MEDIA_TYPE.MOVIE, 'got %s' % media_type
 
 
+@then("movie.poster_frame is the same image as poster_frame")
+def then_movie_poster_frame_is_the_same_image_as_poster_frame(context):
+    actual_sha1 = context.movie.poster_frame.sha1
+    with open(test_file('just-two-mice.png'), 'rb') as f:
+        expected_sha1 = hashlib.sha1(f.read()).hexdigest()
+    assert actual_sha1 == expected_sha1, 'not the same image'
+
+
 @then('movie.shape_type is MSO_SHAPE_TYPE.MEDIA')
 def then_movie_shape_type_is_MSO_SHAPE_TYPE_MEDIA(context):
     shape_type = context.movie.shape_type
     assert shape_type == MSO_SHAPE_TYPE.MEDIA, 'got %s' % shape_type
+
+
+@then("movie.width, movie.height == cx, cy")
+def then_movie_width_movie_height_eq_cx_cy(context):
+    movie = context.movie
+    size = movie.width, movie.height
+    assert size == (Emu(3962400), Emu(5715000)), 'got %s' % size
 
 
 @then('shape.adjustments[0] is 0.15')
