@@ -7,6 +7,7 @@ Picture shape.
 from .base import BaseShape
 from ..dml.line import LineFormat
 from ..enum.shapes import MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from ..shared import ParentedElementProxy
 from ..util import lazyproperty
 
 
@@ -83,6 +84,15 @@ class Movie(_BasePicture):
     represents the video before it is played.
     """
 
+    @lazyproperty
+    def media_format(self):
+        """The |_MediaFormat| object for this movie.
+
+        The |_MediaFormat| object provides access to formatting properties
+        for the movie.
+        """
+        return _MediaFormat(self._element, self)
+
     @property
     def media_type(self):
         """Member of :ref:`PpMediaType` describing this shape.
@@ -124,3 +134,11 @@ class Picture(_BasePicture):
         ``MSO_SHAPE_TYPE.PICTURE`` in this case.
         """
         return MSO_SHAPE_TYPE.PICTURE
+
+
+class _MediaFormat(ParentedElementProxy):
+    """Provides access to formatting properties for a Media object.
+
+    Media format properties are things like start point, volume, and
+    compression type.
+    """

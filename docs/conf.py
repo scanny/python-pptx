@@ -225,6 +225,8 @@ rst_epilog = """
 
 .. |MasterShapes| replace:: :class:`.MasterShapes`
 
+.. |_MediaFormat| replace:: :class:`._MediaFormat`
+
 .. |None| replace:: :class:`None`
 
 .. |NotesMaster| replace:: :class:`.NotesMaster`

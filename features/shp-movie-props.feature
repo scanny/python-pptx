@@ -19,7 +19,6 @@ Feature: Movie shape properties
      Then movie.media_type is PP_MEDIA_TYPE.MOVIE
 
 
-  @wip
   Scenario: Movie.media_format
     Given a movie shape
      Then movie.media_format is a _MediaFormat object

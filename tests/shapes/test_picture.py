@@ -12,11 +12,11 @@ from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 from pptx.parts.image import Image
 from pptx.parts.slide import SlidePart
-from pptx.shapes.picture import _BasePicture, Movie, Picture
+from pptx.shapes.picture import _BasePicture, _MediaFormat, Movie, Picture
 from pptx.util import Pt
 
 from ..unitutil.cxml import element
-from ..unitutil.mock import instance_mock, property_mock
+from ..unitutil.mock import class_mock, instance_mock, property_mock
 
 
 class Describe_BasePicture(object):
@@ -66,7 +66,19 @@ class DescribeMovie(object):
         movie = media_type_fixture
         assert movie.media_type == PP_MEDIA_TYPE.MOVIE
 
+    def it_provides_access_to_its_media_format(self, format_fixture):
+        movie, MediaFormat_, pic, parent, media_format_ = format_fixture
+        media_format = movie.media_format
+        MediaFormat_.assert_called_once_with(pic, parent)
+        assert media_format is media_format_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def format_fixture(self, _MediaFormat_, media_format_):
+        pic = element('p:pic')
+        parent = movie = Movie(pic, None)
+        return movie, _MediaFormat_, pic, parent, media_format_
 
     @pytest.fixture
     def media_type_fixture(self):
@@ -75,6 +87,19 @@ class DescribeMovie(object):
     @pytest.fixture
     def shape_type_fixture(self):
         return Movie(None, None)
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _MediaFormat_(self, request, media_format_):
+        return class_mock(
+            request, 'pptx.shapes.picture._MediaFormat',
+            return_value=media_format_
+        )
+
+    @pytest.fixture
+    def media_format_(self, request):
+        return instance_mock(request, _MediaFormat)
 
 
 class DescribePicture(object):
