@@ -13,6 +13,7 @@ from .base import BaseShape
 from .connector import Connector
 from ..enum.shapes import PP_PLACEHOLDER
 from .graphfrm import GraphicFrame
+from ..opc.constants import CONTENT_TYPE as CT
 from ..oxml.ns import qn
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from ..oxml.simpletypes import ST_Direction
@@ -165,11 +166,12 @@ class _BaseShapes(ParentedElementProxy):
 
     @property
     def _next_shape_id(self):
-        """
-        Next available positive integer drawing object id in shape tree,
-        starting from 1 and making use of any gaps in numbering. In practice,
-        the minimum id is 2 because the spTree element is always assigned
-        id="1".
+        """Return a unique shape id suitable for use with a new shape.
+
+        The returned id is the next available positive integer drawing object
+        id in shape tree, starting from 1 and making use of any gaps in
+        numbering. In practice, the minimum id is 2 because the spTree
+        element is always assigned id="1".
         """
         id_str_lst = self._spTree.xpath('//@id')
         used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
@@ -419,11 +421,12 @@ def SlideShapeFactory(shape_elm, parent):
 
 
 class SlideShapes(_BaseShapes):
+    """Sequence of shapes appearing on a slide.
+
+    The first shape in the sequence is the backmost in z-order and the last
+    shape is topmost. Supports indexed access, len(), index(), and iteration.
     """
-    Sequence of shapes appearing on a slide. The first shape in the sequence
-    is the backmost in z-order and the last shape is topmost. Supports indexed
-    access, len(), index(), and iteration.
-    """
+
     def add_chart(self, chart_type, x, y, cx, cy, chart_data):
         """
         Add a new chart of *chart_type* to the slide, positioned at (*x*,
@@ -451,6 +454,35 @@ class SlideShapes(_BaseShapes):
             connector_type, begin_x, begin_y, end_x, end_y
         )
         return self._shape_factory(cxnSp)
+
+    def add_movie(self, movie_file, left, top, width, height,
+                  poster_frame_image=None, mime_type=CT.VIDEO):
+        """Return newly added movie shape displaying video in *movie_file*.
+
+        **EXPERIMENTAL.** This method has important limitations:
+
+        * The size must be specified; no auto-scaling such as that provided
+          by :meth:`add_picture` is performed.
+        * The MIME type of the video file should be specified, e.g.
+          'video/mp4'. The provided video file is not interrogated for its
+          type. The MIME type `video/unknown` is used by default (and works
+          fine in tests as of this writing).
+        * A poster frame image must be provided, it cannot be automatically
+          extracted from the video file. If no poster frame is provided, the
+          default "media loudspeaker" image will be used.
+
+        Return a newly added movie shape to the slide, positioned at (*left*,
+        *top*), having size (*width*, *height*), and containing *movie_file*.
+        Before the video is started, *poster_frame_image* is displayed as
+        a placeholder for the video.
+        """
+        movie_pic = _MoviePicElementCreator.new_movie_pic(
+            self, self._next_shape_id, movie_file, left, top, width, height,
+            poster_frame_image, mime_type
+        )
+        self._spTree.append(movie_pic)
+        self._add_video_timing(movie_pic)
+        return self._shape_factory(movie_pic)
 
     def add_picture(self, image_file, left, top, width=None, height=None):
         """
@@ -629,9 +661,34 @@ class SlideShapes(_BaseShapes):
         sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
         return sp
 
+    def _add_video_timing(self, pic):
+        """Add a `p:video` element under `p:sld/p:timing`.
+
+        The element will refer to the specified *pic* element by its shape
+        id, and cause the video play controls to appear for that video.
+        """
+        raise NotImplementedError
+
     def _shape_factory(self, shape_elm):
         """
         Return an instance of the appropriate shape proxy class for
         *shape_elm*.
         """
         return SlideShapeFactory(shape_elm, self)
+
+
+class _MoviePicElementCreator(object):
+    """Functional service object for creating a new movie p:pic element.
+
+    It's entire external interface is its :meth:`new_movie_pic` class method
+    that returns a new `p:pic` element containing the specified video. This
+    class is not intended to be constructed or an instance of it retained by
+    the caller; it is a "one-shot" object, really a function wrapped in
+    a object such that its helper methods can be organized here.
+    """
+
+    @classmethod
+    def new_movie_pic(cls, shapes, shape_id, movie_file, x, y, cx, cy,
+                      poster_frame_image, mime_type):
+        """Return a new `p:pic` element containing video in *movie_file*."""
+        raise NotImplementedError

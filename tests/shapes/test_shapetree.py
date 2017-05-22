@@ -599,6 +599,25 @@ class DescribeSlideShapes(object):
         shapes._shape_factory.assert_called_once_with(shapes, cxnSp_)
         assert connector is connector_
 
+    def it_can_add_a_movie(self, movie_fixture):
+        shapes, movie_file, x, y, cx, cy = movie_fixture[:6]
+        poster_frame_image, mime_type, shape_id_ = movie_fixture[6:9]
+        _MoviePicElementCreator_, movie_pic = movie_fixture[9:11]
+        _add_video_timing_, _shape_factory_, movie_ = movie_fixture[11:]
+
+        movie = shapes.add_movie(
+            movie_file, x, y, cx, cy, poster_frame_image, mime_type
+        )
+
+        _MoviePicElementCreator_.new_movie_pic.assert_called_once_with(
+            shapes, shape_id_, movie_file, x, y, cx, cy, poster_frame_image,
+            mime_type
+        )
+        shapes._spTree[-1] is movie_pic
+        _add_video_timing_.assert_called_once_with(shapes, movie_pic)
+        _shape_factory_.assert_called_once_with(shapes, movie_pic)
+        assert movie is movie_
+
     def it_can_add_a_picture_shape(self, picture_fixture):
         shapes, image_file, x, y, cx, cy, picture_, expected_xml = (
             picture_fixture
@@ -807,6 +826,22 @@ class DescribeSlideShapes(object):
         return shapes, shape_
 
     @pytest.fixture
+    def movie_fixture(self, _MoviePicElementCreator_, _add_video_timing_,
+                      _shape_factory_, movie_, _next_shape_id_prop_):
+        shapes = SlideShapes(element('p:spTree'), None)
+        movie_file, x, y, cx, cy = 'foobar.mp4', 1, 2, 3, 4
+        poster_frame_image, mime_type = 'foobar.png', 'video/mp4'
+        movie_pic = element('p:pic')
+        _MoviePicElementCreator_.new_movie_pic.return_value = movie_pic
+        _shape_factory_.return_value = movie_
+        shape_id_ = _next_shape_id_prop_.return_value
+        return (
+            shapes, movie_file, x, y, cx, cy, poster_frame_image, mime_type,
+            shape_id_, _MoviePicElementCreator_, movie_pic,
+            _add_video_timing_, _shape_factory_, movie_
+        )
+
+    @pytest.fixture
     def picture_fixture(
             self, picture_, part_prop_, image_part_, _shape_factory_):
         shapes = SlideShapes(element('p:spTree'), None)
@@ -920,6 +955,12 @@ class DescribeSlideShapes(object):
         return method_mock(request, SlideShapes, '_add_cxnSp', autospec=True)
 
     @pytest.fixture
+    def _add_video_timing_(self, request):
+        return method_mock(
+            request, SlideShapes, '_add_video_timing', autospec=True
+        )
+
+    @pytest.fixture
     def chart_data_(self, request):
         return instance_mock(request, ChartData)
 
@@ -942,6 +983,23 @@ class DescribeSlideShapes(object):
         return instance_mock(request, ImagePart)
 
     @pytest.fixture
+    def movie_(self, request):
+        return instance_mock(request, Movie)
+
+    @pytest.fixture
+    def _MoviePicElementCreator_(self, request):
+        return class_mock(
+            request, 'pptx.shapes.shapetree._MoviePicElementCreator',
+            autospec=True
+        )
+
+    @pytest.fixture
+    def _next_shape_id_prop_(self, request, shape_id_):
+        return property_mock(
+            request, SlideShapes, '_next_shape_id', return_value=shape_id_
+        )
+
+    @pytest.fixture
     def part_prop_(self, request, slide_part_):
         return property_mock(
             request, SlideShapes, 'part', return_value=slide_part_
@@ -958,6 +1016,10 @@ class DescribeSlideShapes(object):
     @pytest.fixture
     def shape_(self, request):
         return instance_mock(request, Shape)
+
+    @pytest.fixture
+    def shape_id_(self):
+        return 42
 
     @pytest.fixture
     def _shape_factory_(self, request, shape_):

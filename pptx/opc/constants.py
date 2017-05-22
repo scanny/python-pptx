@@ -282,6 +282,9 @@ class CONTENT_TYPE(object):
     TIFF = (
         'image/tiff'
     )
+    VIDEO = (
+        'video/unknown'
+    )
     WML_COMMENTS = (
         'application/vnd.openxmlformats-officedocument.wordprocessingml.comm'
         'ents+xml'
