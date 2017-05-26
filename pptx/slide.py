@@ -367,9 +367,11 @@ class SlideLayouts(ParentedElementProxy):
             and then checks if the name is valid identifier 
             and it is available for given instance.
             """
-            new_name = name.title().replace(' ', '')
-            if new_name.isidentifier() and not hasattr(instance, new_name):
-                return new_name
+            from .compat import is_string
+            if is_string(name):
+                new_name = name.title().replace(' ', '')
+                if new_name.isidentifier() and not hasattr(instance, new_name):
+                    return new_name
 
         available_layouts = []
         for layout_id in self._sldLayoutIdLst:
@@ -380,8 +382,8 @@ class SlideLayouts(ParentedElementProxy):
             attr_name = name_to_attr(layout_name, self)
             if attr_name:
                 setattr(self, attr_name, layout)
-            if not hasattr(self, 'available_layouts'):
-                setattr(self, 'available_layouts', available_layouts)
+        if available_layouts and not hasattr(self, 'available_layouts'):
+            setattr(self, 'available_layouts', available_layouts)
 
 
 class SlideMaster(_BaseMaster):
