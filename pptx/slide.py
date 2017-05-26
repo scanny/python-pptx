@@ -327,11 +327,10 @@ class SlideLayouts(ParentedElementProxy):
     iteration.
     """
 
-    __slots__ = ('_sldLayoutIdLst',)
-
     def __init__(self, sldLayoutIdLst, parent):
         super(SlideLayouts, self).__init__(sldLayoutIdLst, parent)
         self._sldLayoutIdLst = sldLayoutIdLst
+        self._init_attrs()
 
     def __getitem__(self, idx):
         """
@@ -356,6 +355,33 @@ class SlideLayouts(ParentedElementProxy):
         Support len() built-in function (e.g. 'len(slides) == 4').
         """
         return len(self._sldLayoutIdLst)
+    
+    def _init_attrs(self):
+        """
+        Adds available layout names as attribute to `slide_layouts`.
+        Layouts can then be accessed like `slide_layouts.Blank`
+        """
+        def name_to_attr(name, instance):
+            """
+            Formats given attribute name to CamelCase removing spaces 
+            and then checks if the name is valid identifier 
+            and it is available for given instance.
+            """
+            new_name = name.title().replace(' ', '')
+            if new_name.isidentifier() and not hasattr(instance, new_name):
+                return new_name
+
+        available_layouts = []
+        for layout_id in self._sldLayoutIdLst:
+            layout_rid = layout_id.rId
+            layout = self.part.related_slide_layout(layout_rid)
+            layout_name = layout.name
+            available_layouts.append(layout_name)
+            attr_name = name_to_attr(layout_name, self)
+            if attr_name:
+                setattr(self, attr_name, layout)
+            if not hasattr(self, 'available_layouts'):
+                setattr(self, 'available_layouts', available_layouts)
 
 
 class SlideMaster(_BaseMaster):
