@@ -363,9 +363,8 @@ class SlideLayouts(ParentedElementProxy):
         """
         def name_to_attr(name, instance):
             """
-            Formats given attribute name to CamelCase removing spaces 
-            and then checks if the name is valid identifier 
             Formats given attribute name to CamelCase removing spaces
+            and then checks if the name is valid identifier
             and it is available for given instance.
             """
             from .compat import is_string
