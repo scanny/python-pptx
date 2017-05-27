@@ -355,7 +355,7 @@ class SlideLayouts(ParentedElementProxy):
         Support len() built-in function (e.g. 'len(slides) == 4').
         """
         return len(self._sldLayoutIdLst)
-    
+
     def _init_attrs(self):
         """
         Adds available layout names as attribute to `slide_layouts`.
@@ -365,6 +365,7 @@ class SlideLayouts(ParentedElementProxy):
             """
             Formats given attribute name to CamelCase removing spaces 
             and then checks if the name is valid identifier 
+            Formats given attribute name to CamelCase removing spaces
             and it is available for given instance.
             """
             from .compat import is_string
@@ -374,16 +375,15 @@ class SlideLayouts(ParentedElementProxy):
                     return new_name
 
         available_layouts = []
-        for layout_id in self._sldLayoutIdLst:
-            layout_rid = layout_id.rId
-            layout = self.part.related_slide_layout(layout_rid)
-            layout_name = layout.name
-            available_layouts.append(layout_name)
-            attr_name = name_to_attr(layout_name, self)
-            if attr_name:
-                setattr(self, attr_name, layout)
-        if available_layouts and not hasattr(self, 'available_layouts'):
-            setattr(self, 'available_layouts', available_layouts)
+        for sldLayoutId in self._sldLayoutIdLst:
+            if self._parent:
+                layout = self.part.related_slide_layout(sldLayoutId.rId)
+                layout_name = layout.name
+                available_layouts.append(layout_name)
+                attr_name = name_to_attr(layout_name, self)
+                if attr_name:
+                    setattr(self, attr_name, layout)
+        setattr(self, 'available_layouts', available_layouts)
 
 
 class SlideMaster(_BaseMaster):
