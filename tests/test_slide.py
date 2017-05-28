@@ -699,7 +699,7 @@ class DescribeSlideLayouts(object):
     def it_supports_indexed_access(self, getitem_fixture):
         slide_layouts, part_, slide_layout_, rId = getitem_fixture
         slide_layout = slide_layouts[0]
-        part_.related_slide_layout.assert_called_with(rId)
+        part_.related_slide_layout.assert_called_once_with(rId)
         assert slide_layout is slide_layout_
 
     def it_raises_on_index_out_of_range(self, getitem_raises_fixture):

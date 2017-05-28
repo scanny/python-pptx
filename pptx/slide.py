@@ -327,20 +327,31 @@ class SlideLayouts(ParentedElementProxy):
     iteration.
     """
 
+    __slots__ = ('_sldLayoutIdLst',)
+
     def __init__(self, sldLayoutIdLst, parent):
         super(SlideLayouts, self).__init__(sldLayoutIdLst, parent)
         self._sldLayoutIdLst = sldLayoutIdLst
-        self._init_attrs()
 
-    def __getitem__(self, idx):
+    def __getitem__(self, item):
         """
-        Provide indexed access, (e.g. ``slide_layouts[2]``).
+        Provide both indexed access, (e.g. ``slide_layouts[2]``)
+        and access via slide layout name (e.g. ``slide_layouts['Blank']``).
         """
         try:
-            sldLayoutId = self._sldLayoutIdLst[idx]
+            sldLayoutId = self._sldLayoutIdLst[item]
+            return self.part.related_slide_layout(sldLayoutId.rId)
         except IndexError:
             raise IndexError('slide layout index out of range')
-        return self.part.related_slide_layout(sldLayoutId.rId)
+        except TypeError:
+            key = str(item).lower()
+            names_lower = [n.lower() for n in self.names]
+            if key in names_lower:
+                idx_lower = names_lower.index(key)
+                idx = self.names[(list(self.names.keys())[idx_lower])]
+                sldLayoutId = self._sldLayoutIdLst[idx]
+                return self.part.related_slide_layout(sldLayoutId.rId)
+        raise KeyError("there is no slide layout with name: '%s'" % item)
 
     def __iter__(self):
         """
@@ -356,34 +367,14 @@ class SlideLayouts(ParentedElementProxy):
         """
         return len(self._sldLayoutIdLst)
 
-    def _init_attrs(self):
-        """
-        Adds available layout names as attribute to `slide_layouts`.
-        Layouts can then be accessed like `slide_layouts.Blank`
-        """
-        def name_to_attr(name, instance):
-            """
-            Formats given attribute name to CamelCase removing spaces
-            and then checks if the name is valid identifier
-            and it is available for given instance.
-            """
-            from .compat import is_string
-            if is_string(name):
-                new_name = name.title().replace(' ', '')
-                if new_name.isidentifier() and not hasattr(instance, new_name):
-                    return new_name
-
-        available_layouts = []
+    @property
+    def names(self):
+        names = {}
         for sldLayoutId in self._sldLayoutIdLst:
             if self._parent:
                 layout = self.part.related_slide_layout(sldLayoutId.rId)
-                layout_name = layout.name
-                available_layouts.append(layout_name)
-                attr_name = name_to_attr(layout_name, self)
-                if attr_name:
-                    setattr(self, attr_name, layout)
-        setattr(self, 'available_layouts', available_layouts)
-
+                names[layout.name]= sldLayoutId
+        return names
 
 class SlideMaster(_BaseMaster):
     """
