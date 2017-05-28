@@ -45,4 +45,18 @@ def to_unicode(text):
     return unicode(text, 'utf-8')
 
 
+def is_identifier(text):
+    """
+    Return true if the string is a valid identifier according to
+    the language definition. See section 'Identifiers and keywords' (
+    https://docs.python.org/reference/lexical_analysis.html#identifiers
+    ).
+    """
+    from re import match, I
+    from keyword import kwlist
+
+    if text in kwlist:
+        return False
+    return match(r'^[a-z_][a-z0-9_]*$', s, I) is not None
+
 Unicode = unicode

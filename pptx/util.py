@@ -177,3 +177,16 @@ def lazyproperty(f):
             return value
 
     return property(get_prop_value, doc=docstring)
+
+
+def name_to_attr(name, instance):
+    """
+    Formats given attribute name to CamelCase removing spaces
+    and then checks if the name is valid identifier
+    and it is available for given instance.
+    """
+    from .compat import is_string, is_identifier
+    if is_string(name):
+        new_name = name.title().replace(' ', '')
+        if is_identifier(new_name) and not hasattr(instance, new_name):
+            return new_name
