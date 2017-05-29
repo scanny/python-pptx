@@ -45,6 +45,16 @@ class Video(object):
         return cls.from_blob(blob, mime_type, filename)
 
     @property
+    def ext(self):
+        """Return the file extension for this video, e.g. 'mp4'.
+
+        The extension is that from the actual filename if known. Otherwise
+        it is the lowercase canonical extension for the video's MIME type.
+        'vid' is used if the MIME type is 'video/unknown'.
+        """
+        raise NotImplementedError
+
+    @property
     def filename(self):
         """Return a filename.ext string appropriate to this video.
 
@@ -54,4 +64,6 @@ class Video(object):
         'movie.{ext}' is used where 'ext' is suitable to the video format,
         such as 'mp4'.
         """
-        raise NotImplementedError
+        if self._filename is not None:
+            return self._filename
+        return 'movie.%s' % self.ext
