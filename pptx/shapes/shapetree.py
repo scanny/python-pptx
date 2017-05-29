@@ -750,6 +750,11 @@ class _MoviePicElementCreator(object):
         """
         return self._video.filename
 
+    @property
+    def _slide_part(self):
+        """Return SlidePart object for slide containing this movie."""
+        raise NotImplementedError
+
     @lazyproperty
     def _video(self):
         """Return a |Video| object containing the movie file."""
@@ -764,7 +769,10 @@ class _MoviePicElementCreator(object):
         This is where the media part and its relationships to the slide are
         actually created.
         """
-        raise NotImplementedError
+        media_rId, video_rId = self._slide_part.get_or_add_video_media_part(
+            self._video
+        )
+        return media_rId, video_rId
 
     @property
     def _video_rId(self):

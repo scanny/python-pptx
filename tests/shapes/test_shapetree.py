@@ -1420,6 +1420,17 @@ class Describe_MoviePicElementCreator(object):
         movie_pic_element_creator, expected_value = video_rId_fixture
         assert movie_pic_element_creator._video_rId == expected_value
 
+    def it_gets_the_video_part_rIds_to_help(self, part_rIds_fixture):
+        movie_pic_element_creator, slide_part_ = part_rIds_fixture[:2]
+        video_, media_rId, video_rId = part_rIds_fixture[2:]
+
+        result = movie_pic_element_creator._video_part_rIds
+
+        slide_part_.get_or_add_video_media_part.assert_called_once_with(
+            video_
+        )
+        assert result == (media_rId, video_rId)
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -1430,6 +1441,23 @@ class Describe_MoviePicElementCreator(object):
         return (
             shapes_, shape_id, movie_file, x, y, cx, cy, poster_frame_image,
             mime_type, _MoviePicElementCreator_init_, _pic_prop_, pic_
+        )
+
+    @pytest.fixture
+    def part_rIds_fixture(self, slide_part_, video_, _slide_part_prop_,
+                          _video_prop_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+        media_rId, video_rId = 'rId42', 'rId24'
+        _slide_part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_video_media_part.return_value = (
+            media_rId, video_rId
+        )
+        _video_prop_.return_value = video_
+        return (
+            movie_pic_element_creator, slide_part_, video_, media_rId,
+            video_rId
         )
 
     @pytest.fixture
@@ -1520,6 +1548,14 @@ class Describe_MoviePicElementCreator(object):
     @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, _BaseShapes)
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
+
+    @pytest.fixture
+    def _slide_part_prop_(self, request):
+        return property_mock(request, _MoviePicElementCreator, '_slide_part')
 
     @pytest.fixture
     def video_(self, request):

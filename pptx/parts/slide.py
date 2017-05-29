@@ -175,6 +175,18 @@ class SlidePart(BaseSlidePart):
         rId = self.relate_to(chart_part, RT.CHART)
         return rId
 
+    def get_or_add_video_media_part(self, video):
+        """Return rIds for media and video relationships to media part.
+
+        A new |MediaPart| object is created if it does not already exist
+        (such as would occur if the same video appeared more than once in
+         a presentation). Two relationships to the media part are created,
+        one each with MEDIA and VIDEO relationship types. The need for two
+        appears to be for legacy support for an earlier (pre-Office 2010)
+        PowerPoint media embedding strategy.
+        """
+        raise NotImplementedError
+
     @property
     def has_notes_slide(self):
         """
