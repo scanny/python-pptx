@@ -14,10 +14,16 @@ from .compat import is_string
 class Video(object):
     """Immutable value object representing a video such as MP4."""
 
+    def __init__(self, blob, mime_type, filename):
+        super(Video, self).__init__()
+        self._blob = blob
+        self._mime_type = mime_type
+        self._filename = filename
+
     @classmethod
     def from_blob(cls, blob, mime_type, filename=None):
         """Return a new |Video| object loaded from image binary in *blob*."""
-        raise NotImplementedError
+        return cls(blob, mime_type, filename)
 
     @classmethod
     def from_path_or_file_like(cls, movie_file, mime_type):

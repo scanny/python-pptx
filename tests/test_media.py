@@ -12,7 +12,7 @@ from pptx.compat import BytesIO
 from pptx.media import Video
 
 from .unitutil.file import absjoin, test_file_dir
-from .unitutil.mock import instance_mock, method_mock
+from .unitutil.mock import initializer_mock, instance_mock, method_mock
 
 
 TEST_VIDEO_PATH = absjoin(test_file_dir, 'dummy.mp4')
@@ -32,7 +32,18 @@ class DescribeVideo(object):
         Video.from_blob.assert_called_once_with(blob, mime_type, None)
         assert video is video_
 
+    def it_can_construct_from_a_blob(self, from_blob_fixture):
+        blob, mime_type, filename, Video_init_ = from_blob_fixture
+        video = Video.from_blob(blob, mime_type, filename)
+        Video_init_.assert_called_once_with(video, blob, mime_type, filename)
+        assert isinstance(video, Video)
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def from_blob_fixture(self, Video_init_):
+        blob, mime_type, filename = '01234', 'video/mp4', 'movie.mp4'
+        return blob, mime_type, filename, Video_init_
 
     @pytest.fixture
     def from_path_fixture(self, video_, from_blob_):
@@ -61,3 +72,7 @@ class DescribeVideo(object):
     @pytest.fixture
     def video_(self, request):
         return instance_mock(request, Video)
+
+    @pytest.fixture
+    def Video_init_(self, request):
+        return initializer_mock(request, Video, autospec=True)
