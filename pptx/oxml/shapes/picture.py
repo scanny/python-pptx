@@ -77,6 +77,12 @@ class CT_Picture(BaseShapeElement):
         pic = parse_xml(xml)
         return pic
 
+    @classmethod
+    def new_video_pic(cls, shape_id, shape_name, video_rId, media_rId,
+                      poster_frame_rId, x, y, cx, cy):
+        """Return a new `p:pic` populated with the specified video."""
+        raise NotImplementedError
+
     @property
     def srcRect_b(self):
         """

@@ -13,6 +13,7 @@ from pptx.enum.shapes import (
     MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR, PP_PLACEHOLDER
 )
 from pptx.oxml.shapes.autoshape import CT_Shape
+from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
 from pptx.parts.image import ImagePart
 from pptx.parts.slide import SlidePart
@@ -1385,6 +1386,19 @@ class Describe_MoviePicElementCreator(object):
         _pic_prop_.assert_called_once_with()
         assert pic is pic_
 
+    def it_creates_a_pic_element(self, pic_fixture):
+        movie_pic_element_creator, new_video_pic_, shape_id = pic_fixture[:3]
+        shape_name, video_rId, media_rId, poster_frame_rId = pic_fixture[3:7]
+        x, y, cx, cy, pic_ = pic_fixture[7:]
+
+        pic = movie_pic_element_creator._pic
+
+        new_video_pic_.assert_called_once_with(
+            shape_id, shape_name, video_rId, media_rId, poster_frame_rId, x,
+            y, cx, cy
+        )
+        assert pic is pic_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -1397,13 +1411,39 @@ class Describe_MoviePicElementCreator(object):
             mime_type, _MoviePicElementCreator_init_, _pic_prop_, pic_
         )
 
+    @pytest.fixture
+    def pic_fixture(self, new_video_pic_, pic_, _shape_name_prop_,
+                    _video_rId_prop_, _media_rId_prop_,
+                    _poster_frame_rId_prop_):
+        shape_id, x, y, cx, cy = 42, 1, 2, 3, 4
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, shape_id, None, x, y, cx, cy, None, None
+        )
+        _shape_name_prop_.return_value = shape_name = 'movie.mp4'
+        _video_rId_prop_.return_value = video_rId = 'rId1'
+        _media_rId_prop_.return_value = media_rId = 'rId2',
+        _poster_frame_rId_prop_.return_value = poster_frame_rId = 'rId3'
+        new_video_pic_.return_value = pic_
+        return (
+            movie_pic_element_creator, new_video_pic_, shape_id, shape_name,
+            video_rId, media_rId, poster_frame_rId, x, y, cx, cy, pic_
+        )
+
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _media_rId_prop_(self, request):
+        return property_mock(request, _MoviePicElementCreator, '_media_rId')
 
     @pytest.fixture
     def _MoviePicElementCreator_init_(self, request):
         return initializer_mock(
             request, _MoviePicElementCreator, autospec=True
         )
+
+    @pytest.fixture
+    def new_video_pic_(self, request):
+        return method_mock(request, CT_Picture, 'new_video_pic')
 
     @pytest.fixture
     def pic_(self):
@@ -1416,8 +1456,22 @@ class Describe_MoviePicElementCreator(object):
         )
 
     @pytest.fixture
+    def _poster_frame_rId_prop_(self, request):
+        return property_mock(
+            request, _MoviePicElementCreator, '_poster_frame_rId'
+        )
+
+    @pytest.fixture
+    def _shape_name_prop_(self, request):
+        return property_mock(request, _MoviePicElementCreator, '_shape_name')
+
+    @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, _BaseShapes)
+
+    @pytest.fixture
+    def _video_rId_prop_(self, request):
+        return property_mock(request, _MoviePicElementCreator, '_video_rId')
 
 
 class Describe_NotesSlideShapeFactory(object):

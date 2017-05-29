@@ -16,6 +16,7 @@ from .graphfrm import GraphicFrame
 from ..opc.constants import CONTENT_TYPE as CT
 from ..oxml.ns import qn
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
+from ..oxml.shapes.picture import CT_Picture
 from ..oxml.simpletypes import ST_Direction
 from .picture import Movie, Picture
 from .placeholder import (
@@ -713,7 +714,46 @@ class _MoviePicElementCreator(object):
         )._pic
         return
 
+    @property
+    def _media_rId(self):
+        """Return the rId of RT.MEDIA relationship to video part.
+
+        For historical reasons, there are two relationships to the same part;
+        one is the video rId and the other is the media rId.
+        """
+        raise NotImplementedError
+
     @lazyproperty
     def _pic(self):
         """Return the new `p:pic` element referencing the video."""
+        return CT_Picture.new_video_pic(
+            self._shape_id, self._shape_name, self._video_rId,
+            self._media_rId, self._poster_frame_rId, self._x, self._y,
+            self._cx, self._cy
+        )
+
+    @lazyproperty
+    def _poster_frame_rId(self):
+        """Return the rId of relationship to poster frame image.
+
+        The poster frame is the image used to represent the video before it's
+        played.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
+    def _shape_name(self):
+        """Return the appropriate shape name for the p:pic shape.
+
+        A movie shape is named with the base filename of the video.
+        """
+        raise NotImplementedError
+
+    @property
+    def _video_rId(self):
+        """Return the rId of RT.VIDEO relationship to video part.
+
+        For historical reasons, there are two relationships to the same part;
+        one is the video rId and the other is the media rId.
+        """
         raise NotImplementedError
