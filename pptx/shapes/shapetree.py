@@ -13,6 +13,7 @@ from .base import BaseShape
 from .connector import Connector
 from ..enum.shapes import PP_PLACEHOLDER
 from .graphfrm import GraphicFrame
+from ..media import Video
 from ..opc.constants import CONTENT_TYPE as CT
 from ..oxml.ns import qn
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
@@ -752,7 +753,9 @@ class _MoviePicElementCreator(object):
     @lazyproperty
     def _video(self):
         """Return a |Video| object containing the movie file."""
-        raise NotImplementedError
+        return Video.from_path_or_file_like(
+            self._movie_file, self._mime_type
+        )
 
     @property
     def _video_rId(self):

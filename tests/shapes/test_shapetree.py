@@ -1405,6 +1405,15 @@ class Describe_MoviePicElementCreator(object):
         shape_name = movie_pic_element_creator._shape_name
         assert shape_name == filename
 
+    def it_constructs_the_video_to_help(self, video_fixture):
+        movie_pic_element_creator, movie_file = video_fixture[:2]
+        mime_type, video_ = video_fixture[2:]
+        video = movie_pic_element_creator._video
+        Video.from_path_or_file_like.assert_called_once_with(
+            movie_file, mime_type
+        )
+        assert video is video_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -1444,7 +1453,20 @@ class Describe_MoviePicElementCreator(object):
         video_.filename = filename = 'movie.mp4'
         return movie_pic_element_creator, filename
 
+    @pytest.fixture
+    def video_fixture(self, video_, from_path_or_file_like_):
+        movie_file, mime_type = 'movie.mp4', 'video/mp4'
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, movie_file, None, None, None, None, None, mime_type
+        )
+        from_path_or_file_like_.return_value = video_
+        return (movie_pic_element_creator, movie_file, mime_type, video_)
+
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def from_path_or_file_like_(self, request):
+        return method_mock(request, Video, 'from_path_or_file_like')
 
     @pytest.fixture
     def _media_rId_prop_(self, request):
