@@ -198,13 +198,31 @@ class LayoutPlaceholders(BasePlaceholders):
     Sequence of |LayoutPlaceholder| instances representing the placeholder
     shapes on a slide layout.
     """
+    def __getitem__(self, item):
+        """
+        Provide both index based and name based access to placeholder instances
+        :param item: index of placeholder or name of placeholder
+        :return: The first LayoutPlaceholder object found, raises
+        KeyError for names, IndexError for indexes if placeholder not found
+        """
+        placeholder = self.get(item)
+        if not placeholder:
+            if isinstance(item, int):
+                raise IndexError("index out of range: '%d'" % item)
+            raise KeyError("placeholder not found: '%s'" % item)
+        return placeholder
+
     def get(self, idx, default=None):
         """
         Return the first placeholder shape with matching *idx* value, or
         *default* if not found.
         """
+        from ..compat import is_string, is_integer
         for placeholder in self:
-            if placeholder.element.ph_idx == idx:
+            name = placeholder.element.shape_name
+            if is_integer(idx) and placeholder.element.ph_idx == idx:
+                return placeholder
+            elif is_string(idx) and name and name.lower() == idx.lower():
                 return placeholder
         return default
 
@@ -214,6 +232,19 @@ class LayoutPlaceholders(BasePlaceholders):
         *shape_elm*.
         """
         return _LayoutShapeFactory(shape_elm, self)
+    
+    @property
+    def ids_names(self):
+        """
+        Return a list of tuples with (placeholder_id, placeholder_name)
+        both `id` and `name` can be used to get specific placeholder via:
+        placeholders[id] or placeholders['name']
+        :return: LayoutPlaceholder object
+        """
+        return [
+            (placeholder.element.ph_idx, placeholder.element.shape_name)
+            for placeholder in self
+        ]
 
 
 def _LayoutShapeFactory(shape_elm, parent):
@@ -380,10 +411,15 @@ class SlidePlaceholders(ParentedElementProxy):
         |KeyError| if no placeholder with that idx value is in the
         collection.
         """
+        from ..exc import InvalidXmlError
         for e in self._element.iter_ph_elms():
-            if e.ph_idx == idx:
-                return SlideShapeFactory(e, self)
-        raise KeyError('no placeholder on this slide with idx == %d' % idx)
+            try:
+                if (e.ph_idx == idx) or (e.shape_name == idx):
+                    return SlideShapeFactory(e, self)
+            except InvalidXmlError:
+                pass
+        raise KeyError("no placeholder on this slide with index or name: "
+                       "'%s'" % idx)
 
     def __iter__(self):
         """
@@ -399,6 +435,19 @@ class SlidePlaceholders(ParentedElementProxy):
         Return count of placeholder shapes.
         """
         return len(list(self._element.iter_ph_elms()))
+
+    @property
+    def ids_names(self):
+        """
+        Return a list of tuples with (placeholder_id, placeholder_name)
+        both `id` and `name` can be used to get specific placeholder via:
+        placeholders[id] or placeholders['name']
+        :return: Placeholder object
+        """
+        return [
+            (placeholder.element.ph_idx, placeholder.element.shape_name)
+            for placeholder in self
+        ]
 
 
 def SlideShapeFactory(shape_elm, parent):
