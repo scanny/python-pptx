@@ -333,25 +333,15 @@ class SlideLayouts(ParentedElementProxy):
         super(SlideLayouts, self).__init__(sldLayoutIdLst, parent)
         self._sldLayoutIdLst = sldLayoutIdLst
 
-    def __getitem__(self, item):
+    def __getitem__(self, idx):
         """
-        Provide both indexed access, (e.g. ``slide_layouts[2]``)
-        and access via slide layout name (e.g. ``slide_layouts['Blank']``).
+        Provide indexed access, (e.g. ``slide_layouts[2]``).
         """
         try:
-            sldLayoutId = self._sldLayoutIdLst[item]
-            return self.part.related_slide_layout(sldLayoutId.rId)
+            sldLayoutId = self._sldLayoutIdLst[idx]
         except IndexError:
             raise IndexError('slide layout index out of range')
-        except TypeError:
-            key = str(item).lower()
-            names_lower = [n.lower() for n in self.names]
-            if key in names_lower:
-                idx_lower = names_lower.index(key)
-                idx = self.names[(list(self.names.keys())[idx_lower])]
-                sldLayoutId = self._sldLayoutIdLst[idx]
-                return self.part.related_slide_layout(sldLayoutId.rId)
-        raise KeyError("there is no slide layout with name: '%s'" % item)
+        return self.part.related_slide_layout(sldLayoutId.rId)
 
     def __iter__(self):
         """
@@ -367,14 +357,6 @@ class SlideLayouts(ParentedElementProxy):
         """
         return len(self._sldLayoutIdLst)
 
-    @property
-    def names(self):
-        names = {}
-        for sldLayoutId in self._sldLayoutIdLst:
-            if self._parent:
-                layout = self.part.related_slide_layout(sldLayoutId.rId)
-                names[layout.name]= sldLayoutId
-        return names
 
 class SlideMaster(_BaseMaster):
     """
