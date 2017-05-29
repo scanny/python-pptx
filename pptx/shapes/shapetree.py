@@ -741,12 +741,17 @@ class _MoviePicElementCreator(object):
         """
         raise NotImplementedError
 
-    @lazyproperty
+    @property
     def _shape_name(self):
         """Return the appropriate shape name for the p:pic shape.
 
         A movie shape is named with the base filename of the video.
         """
+        return self._video.filename
+
+    @lazyproperty
+    def _video(self):
+        """Return a |Video| object containing the movie file."""
         raise NotImplementedError
 
     @property

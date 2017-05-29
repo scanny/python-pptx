@@ -15,6 +15,7 @@ from pptx.enum.shapes import (
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
+from pptx.media import Video
 from pptx.parts.image import ImagePart
 from pptx.parts.slide import SlidePart
 from pptx.shapes.autoshape import Shape
@@ -1399,6 +1400,11 @@ class Describe_MoviePicElementCreator(object):
         )
         assert pic is pic_
 
+    def it_knows_the_shape_name_to_help(self, shape_name_fixture):
+        movie_pic_element_creator, filename = shape_name_fixture
+        shape_name = movie_pic_element_creator._shape_name
+        assert shape_name == filename
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -1428,6 +1434,15 @@ class Describe_MoviePicElementCreator(object):
             movie_pic_element_creator, new_video_pic_, shape_id, shape_name,
             video_rId, media_rId, poster_frame_rId, x, y, cx, cy, pic_
         )
+
+    @pytest.fixture
+    def shape_name_fixture(self, _video_prop_, video_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+        _video_prop_.return_value = video_
+        video_.filename = filename = 'movie.mp4'
+        return movie_pic_element_creator, filename
 
     # fixture components ---------------------------------------------
 
@@ -1468,6 +1483,14 @@ class Describe_MoviePicElementCreator(object):
     @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, _BaseShapes)
+
+    @pytest.fixture
+    def video_(self, request):
+        return instance_mock(request, Video)
+
+    @pytest.fixture
+    def _video_prop_(self, request):
+        return property_mock(request, _MoviePicElementCreator, '_video')
 
     @pytest.fixture
     def _video_rId_prop_(self, request):
