@@ -251,11 +251,11 @@ class DescribeBarSeries(object):
 
     @pytest.fixture(params=[
         ('c:ser/c:order', True,
-         'c:ser/(c:order,c:invertIfNegative)'),
+         'c:ser/(c:order,c:invertIfNegative{val=1})'),
         ('c:ser/c:order', False,
          'c:ser/(c:order,c:invertIfNegative{val=0})'),
         ('c:ser/(c:spPr,c:invertIfNegative{val=0})', True,
-         'c:ser/(c:spPr,c:invertIfNegative)'),
+         'c:ser/(c:spPr,c:invertIfNegative{val=1})'),
         ('c:ser/(c:tx,c:invertIfNegative{val=1})', False,
          'c:ser/(c:tx,c:invertIfNegative{val=0})'),
     ])
