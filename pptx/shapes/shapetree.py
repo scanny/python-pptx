@@ -757,6 +757,15 @@ class _MoviePicElementCreator(object):
             self._movie_file, self._mime_type
         )
 
+    @lazyproperty
+    def _video_part_rIds(self):
+        """Return the rIds for relationships to media part for video.
+
+        This is where the media part and its relationships to the slide are
+        actually created.
+        """
+        raise NotImplementedError
+
     @property
     def _video_rId(self):
         """Return the rId of RT.VIDEO relationship to video part.
@@ -764,4 +773,4 @@ class _MoviePicElementCreator(object):
         For historical reasons, there are two relationships to the same part;
         one is the video rId and the other is the media rId.
         """
-        raise NotImplementedError
+        return self._video_part_rIds[1]

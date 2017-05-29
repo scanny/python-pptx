@@ -1416,6 +1416,10 @@ class Describe_MoviePicElementCreator(object):
         )
         assert video is video_
 
+    def it_knows_the_video_rId_to_help(self, video_rId_fixture):
+        movie_pic_element_creator, expected_value = video_rId_fixture
+        assert movie_pic_element_creator._video_rId == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -1456,13 +1460,22 @@ class Describe_MoviePicElementCreator(object):
         return movie_pic_element_creator, filename
 
     @pytest.fixture
+    def video_rId_fixture(self, _video_part_rIds_prop_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+        expected_value = 'rId42'
+        _video_part_rIds_prop_.return_value = ('rId666', expected_value)
+        return movie_pic_element_creator, expected_value
+
+    @pytest.fixture
     def video_fixture(self, video_, from_path_or_file_like_):
         movie_file, mime_type = 'movie.mp4', 'video/mp4'
         movie_pic_element_creator = _MoviePicElementCreator(
             None, None, movie_file, None, None, None, None, None, mime_type
         )
         from_path_or_file_like_.return_value = video_
-        return (movie_pic_element_creator, movie_file, mime_type, video_)
+        return movie_pic_element_creator, movie_file, mime_type, video_
 
     # fixture components ---------------------------------------------
 
@@ -1519,6 +1532,12 @@ class Describe_MoviePicElementCreator(object):
     @pytest.fixture
     def _video_rId_prop_(self, request):
         return property_mock(request, _MoviePicElementCreator, '_video_rId')
+
+    @pytest.fixture
+    def _video_part_rIds_prop_(self, request):
+        return property_mock(
+            request, _MoviePicElementCreator, '_video_part_rIds'
+        )
 
 
 class Describe_NotesSlideShapeFactory(object):
