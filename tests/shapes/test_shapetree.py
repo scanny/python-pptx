@@ -1431,6 +1431,11 @@ class Describe_MoviePicElementCreator(object):
         )
         assert result == (media_rId, video_rId)
 
+    def it_gets_the_slide_part_to_help(self, slide_part_fixture):
+        movie_pic_element_creator, slide_part_ = slide_part_fixture
+        slide_part = movie_pic_element_creator._slide_part
+        assert slide_part is slide_part_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -1486,6 +1491,14 @@ class Describe_MoviePicElementCreator(object):
         _video_prop_.return_value = video_
         video_.filename = filename = 'movie.mp4'
         return movie_pic_element_creator, filename
+
+    @pytest.fixture
+    def slide_part_fixture(self, shapes_, slide_part_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            shapes_, None, None, None, None, None, None, None, None
+        )
+        shapes_.part = slide_part_
+        return movie_pic_element_creator, slide_part_
 
     @pytest.fixture
     def video_rId_fixture(self, _video_part_rIds_prop_):

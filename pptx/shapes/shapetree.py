@@ -753,7 +753,7 @@ class _MoviePicElementCreator(object):
     @property
     def _slide_part(self):
         """Return SlidePart object for slide containing this movie."""
-        raise NotImplementedError
+        return self._shapes.part
 
     @lazyproperty
     def _video(self):
