@@ -57,6 +57,6 @@ def is_identifier(text):
 
     if text in kwlist:
         return False
-    return match(r'^[a-z_][a-z0-9_]*$', s, I) is not None
+    return match(r'^[a-z_][a-z0-9_]*$', text, I) is not None
 
 Unicode = unicode
