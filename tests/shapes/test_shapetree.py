@@ -28,9 +28,10 @@ from pptx.shapes.placeholder import (
 from pptx.shapes.shapetree import (
     BasePlaceholders, BaseShapeFactory, _BaseShapes, LayoutPlaceholders,
     _LayoutShapeFactory, LayoutShapes, MasterPlaceholders,
-    _MasterShapeFactory, MasterShapes, NotesSlidePlaceholders,
-    _NotesSlideShapeFactory, NotesSlideShapes, _SlidePlaceholderFactory,
-    SlidePlaceholders, SlideShapeFactory, SlideShapes
+    _MasterShapeFactory, MasterShapes, _MoviePicElementCreator,
+    NotesSlidePlaceholders, _NotesSlideShapeFactory, NotesSlideShapes,
+    _SlidePlaceholderFactory, SlidePlaceholders, SlideShapeFactory,
+    SlideShapes
 )
 from pptx.shapes.table import Table
 from pptx.slide import SlideLayout, SlideMaster
@@ -38,8 +39,8 @@ from pptx.slide import SlideLayout, SlideMaster
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
-    call, class_mock, function_mock, instance_mock, method_mock,
-    property_mock
+    ANY, call, class_mock, function_mock, initializer_mock, instance_mock,
+    method_mock, property_mock
 )
 
 
@@ -1362,6 +1363,61 @@ class DescribeMasterPlaceholders(object):
     @pytest.fixture
     def placeholder_2_(self, request):
         return instance_mock(request, MasterPlaceholder, ph_type='body')
+
+
+class Describe_MoviePicElementCreator(object):
+
+    def it_creates_a_new_movie_pic_element(self, movie_pic_fixture):
+        shapes_, shape_id, movie_file, x, y, cx, cy = movie_pic_fixture[:7]
+        poster_frame_image, mime_type = movie_pic_fixture[7:9]
+        _MoviePicElementCreator_init_, _pic_prop_ = movie_pic_fixture[9:11]
+        pic_ = movie_pic_fixture[11]
+
+        pic = _MoviePicElementCreator.new_movie_pic(
+            shapes_, shape_id, movie_file, x, y, cx, cy, poster_frame_image,
+            mime_type
+        )
+
+        _MoviePicElementCreator_init_.assert_called_once_with(
+            ANY, shapes_, shape_id, movie_file, x, y, cx, cy,
+            poster_frame_image, mime_type
+        )
+        _pic_prop_.assert_called_once_with()
+        assert pic is pic_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def movie_pic_fixture(self, shapes_, _MoviePicElementCreator_init_,
+                          _pic_prop_, pic_):
+        shape_id, movie_file, x, y, cx, cy = 42, 'movie.mp4', 1, 2, 3, 4
+        poster_frame_image, mime_type = 'image.png', 'video/mp4'
+        return (
+            shapes_, shape_id, movie_file, x, y, cx, cy, poster_frame_image,
+            mime_type, _MoviePicElementCreator_init_, _pic_prop_, pic_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _MoviePicElementCreator_init_(self, request):
+        return initializer_mock(
+            request, _MoviePicElementCreator, autospec=True
+        )
+
+    @pytest.fixture
+    def pic_(self):
+        return element('p:pic')
+
+    @pytest.fixture
+    def _pic_prop_(self, request, pic_):
+        return property_mock(
+            request, _MoviePicElementCreator, '_pic', return_value=pic_
+        )
+
+    @pytest.fixture
+    def shapes_(self, request):
+        return instance_mock(request, _BaseShapes)
 
 
 class Describe_NotesSlideShapeFactory(object):

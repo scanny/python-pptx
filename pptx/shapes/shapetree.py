@@ -24,6 +24,7 @@ from .placeholder import (
     PlaceholderPicture, SlidePlaceholder, TablePlaceholder
 )
 from ..shared import ParentedElementProxy
+from ..util import lazyproperty
 
 
 def BaseShapeFactory(shape_elm, parent):
@@ -687,8 +688,32 @@ class _MoviePicElementCreator(object):
     a object such that its helper methods can be organized here.
     """
 
+    def __init__(self, shapes, shape_id, movie_file, x, y, cx, cy,
+                 poster_frame_image, mime_type):
+        super(_MoviePicElementCreator, self).__init__()
+        self._shapes = shapes
+        self._shape_id = shape_id
+        self._movie_file = movie_file
+        self._x, self._y, self._cx, self._cy = x, y, cx, cy
+        self._poster_frame_image = poster_frame_image
+        self._mime_type = mime_type
+
     @classmethod
     def new_movie_pic(cls, shapes, shape_id, movie_file, x, y, cx, cy,
                       poster_frame_image, mime_type):
-        """Return a new `p:pic` element containing video in *movie_file*."""
+        """Return a new `p:pic` element containing video in *movie_file*.
+
+        If *mime_type* is None, 'video/unknown' is used. If
+        *poster_frame_file* is None, the default "media loudspeaker" image is
+        used.
+        """
+        return cls(
+            shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_image,
+            mime_type
+        )._pic
+        return
+
+    @lazyproperty
+    def _pic(self):
+        """Return the new `p:pic` element referencing the video."""
         raise NotImplementedError
