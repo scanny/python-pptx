@@ -9,6 +9,7 @@ from __future__ import (
 import os
 
 from .compat import is_string
+from .opc.constants import CONTENT_TYPE as CT
 
 
 class Video(object):
@@ -52,7 +53,20 @@ class Video(object):
         it is the lowercase canonical extension for the video's MIME type.
         'vid' is used if the MIME type is 'video/unknown'.
         """
-        raise NotImplementedError
+        if self._filename:
+            return os.path.splitext(self._filename)[1].lstrip('.')
+        return {
+            CT.ASF:            'asf',
+            CT.AVI:            'avi',
+            'video/avi':       'avi',
+            'video/msvideo':   'avi',
+            'video/x-msvideo': 'avi',
+            CT.MOV:            'mov',
+            CT.MP4:            'mp4',
+            CT.MPG:            'mpg',
+            CT.SWF:            'swf',
+            CT.WMV:            'wmv',
+        }.get(self._mime_type, 'vid')
 
     @property
     def filename(self):

@@ -44,7 +44,21 @@ class DescribeVideo(object):
         video, expected_value = filename_fixture
         assert video.filename == expected_value
 
+    def it_can_knows_an_extension_for_the_video(self, ext_fixture):
+        video, expected_value = ext_fixture
+        assert video.ext == expected_value
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (None,        'foo.bar', 'bar'),
+        ('video/mp4', None,      'mp4'),
+        ('video/xyz', None,      'vid'),
+    ])
+    def ext_fixture(self, request):
+        mime_type, filename, expected_value = request.param
+        video = Video(None, mime_type, filename)
+        return video, expected_value
 
     @pytest.fixture(params=[
         ('foobar.mp4', None,  'foobar.mp4'),

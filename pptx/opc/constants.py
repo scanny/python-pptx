@@ -10,6 +10,13 @@ class CONTENT_TYPE(object):
     """
     Content type URIs (like MIME-types) that specify a part's format
     """
+
+    ASF = (
+        'video/x-ms-asf'
+    )
+    AVI = (
+        'video/avi'
+    )
     BMP = (
         'image/bmp'
     )
@@ -47,6 +54,15 @@ class CONTENT_TYPE(object):
     )
     JPEG = (
         'image/jpeg'
+    )
+    MOV = (
+        'video/quicktime'
+    )
+    MP4 = (
+        'video/mp4'
+    )
+    MPG = (
+        'video/mpeg'
     )
     MS_PHOTO = (
         'image/vnd.ms-photo'
@@ -279,6 +295,9 @@ class CONTENT_TYPE(object):
         'application/vnd.openxmlformats-officedocument.spreadsheetml.workshe'
         'et+xml'
     )
+    SWF = (
+        'application/x-shockwave-flash'
+    )
     TIFF = (
         'image/tiff'
     )
@@ -336,6 +355,9 @@ class CONTENT_TYPE(object):
     WML_WEB_SETTINGS = (
         'application/vnd.openxmlformats-officedocument.wordprocessingml.webS'
         'ettings+xml'
+    )
+    WMV = (
+        'video/x-ms-wmv'
     )
     XML = (
         'application/xml'
