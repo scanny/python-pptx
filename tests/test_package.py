@@ -52,6 +52,12 @@ class DescribePackage(object):
         partname = package.next_image_partname(ext)
         assert partname == expected_value
 
+    def it_provides_access_to_its_MediaParts_object(self, m_parts_fixture):
+        package, _MediaParts_, media_parts_ = m_parts_fixture
+        media_parts = package._media_parts
+        _MediaParts_.assert_called_once_with(package)
+        assert media_parts is media_parts_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -70,6 +76,12 @@ class DescribePackage(object):
         _media_parts_prop_.return_value = media_parts_
         media_parts_.get_or_add_media_part.return_value = media_part_
         return package, media_, media_part_
+
+    @pytest.fixture
+    def m_parts_fixture(self, _MediaParts_, media_parts_):
+        package = Package()
+        _MediaParts_.return_value = media_parts_
+        return package, _MediaParts_, media_parts_
 
     @pytest.fixture(params=[
         ((3, 4, 2), 1),
@@ -115,6 +127,10 @@ class DescribePackage(object):
     @pytest.fixture
     def media_part_(self, request):
         return instance_mock(request, MediaPart)
+
+    @pytest.fixture
+    def _MediaParts_(self, request):
+        return class_mock(request, 'pptx.package._MediaParts')
 
     @pytest.fixture
     def media_parts_(self, request):

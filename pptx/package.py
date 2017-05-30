@@ -98,13 +98,12 @@ class Package(OpcPackage):
         The media parts object provides access to all the media parts in this
         package.
         """
-        raise NotImplementedError
+        return _MediaParts(self)
 
 
 class _ImageParts(object):
-    """
-    Provides access to the image parts in a package.
-    """
+    """Provides access to the image parts in a package."""
+
     def __init__(self, package):
         super(_ImageParts, self).__init__()
         self._package = package
@@ -157,6 +156,10 @@ class _MediaParts(object):
     Supports iteration and :meth:`get()` using the media object SHA1 hash as
     its key.
     """
+
+    def __init__(self, package):
+        super(_MediaParts, self).__init__()
+        self._package = package
 
     def get_or_add_media_part(self, media):
         """Return a |MediaPart| object containing the media in *media*.
