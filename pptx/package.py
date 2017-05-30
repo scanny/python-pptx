@@ -162,6 +162,13 @@ class _MediaParts(object):
         super(_MediaParts, self).__init__()
         self._package = package
 
+    def __iter__(self):
+        """Generate a reference to each |MediaPart| object in the package."""
+        # A media part can appear in more than one relationship (and commonly
+        # does in the case of video). Use media_parts to keep track of those
+        # that have been "yielded"; they can be skipped if they occur again.
+        raise NotImplementedError
+
     def get_or_add_media_part(self, media):
         """Return a |MediaPart| object containing the media in *media*.
 
@@ -181,4 +188,7 @@ class _MediaParts(object):
         part is identified by the SHA1 hash digest of its bytestream
         ("file").
         """
-        raise NotImplementedError
+        for media_part in self:
+            if media_part.sha1 == sha1:
+                return media_part
+        return None

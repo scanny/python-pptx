@@ -7,6 +7,7 @@ from __future__ import (
 )
 
 from ..opc.package import Part
+from ..util import lazyproperty
 
 
 class MediaPart(Part):
@@ -21,5 +22,13 @@ class MediaPart(Part):
         """Return new |MediaPart| instance containing *media*.
 
         *media* must be a |Media| object.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
+    def sha1(self):
+        """The SHA1 hash digest for the media binary of this media part.
+
+        Example: `'1be010ea47803b00e140b852765cdf84f491da47'`
         """
         raise NotImplementedError

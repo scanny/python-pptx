@@ -275,7 +275,29 @@ class Describe_MediaParts(object):
         assert MediaPart_.new.call_args_list == calls
         assert media_part is media_part_
 
+    def it_can_find_a_media_part_by_sha1(self, find_fixture):
+        media_parts, sha1, expected_value = find_fixture
+        media_part = media_parts._find_by_sha1(sha1)
+        assert media_part is expected_value
+
     # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        True,
+        False
+    ])
+    def find_fixture(self, request, _iter_, media_part_):
+        media_part_is_present = request.param
+        media_parts = _MediaParts(None)
+        _iter_.return_value = iter((media_part_,))
+        sha1 = 'foobar'
+        if media_part_is_present:
+            media_part_.sha1 = 'foobar'
+            expected_value = media_part_
+        else:
+            media_part_.sha1 = 'barfoo'
+            expected_value = None
+        return media_parts, sha1, expected_value
 
     @pytest.fixture(params=[
         True,
@@ -298,6 +320,10 @@ class Describe_MediaParts(object):
         return method_mock(
             request, _MediaParts, '_find_by_sha1', autospec=True
         )
+
+    @pytest.fixture
+    def _iter_(self, request):
+        return method_mock(request, _MediaParts, '__iter__')
 
     @pytest.fixture
     def media_(self, request):

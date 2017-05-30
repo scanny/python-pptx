@@ -86,7 +86,7 @@ class Video(object):
 
     @lazyproperty
     def sha1(self):
-        """The SHA1 hash digest for the media binary of this media part.
+        """The SHA1 hash digest for the binary "file" of this video.
 
         Example: `'1be010ea47803b00e140b852765cdf84f491da47'`
         """
