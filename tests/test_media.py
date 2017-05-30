@@ -48,6 +48,10 @@ class DescribeVideo(object):
         video, expected_value = ext_fixture
         assert video.ext == expected_value
 
+    def it_knows_its_sha1_hash(self, sha1_fixture):
+        video, expected_value = sha1_fixture
+        assert video.sha1 == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -92,6 +96,13 @@ class DescribeVideo(object):
         mime_type = 'video/mp4'
         from_blob_.return_value = video_
         return movie_stream, mime_type, blob, video_
+
+    @pytest.fixture
+    def sha1_fixture(self):
+        blob = b'blobish'
+        video = Video(blob, None, None)
+        expected_value = 'de731a6eed12f427642325193b8e57af3c624d62'
+        return video, expected_value
 
     # fixture components ---------------------------------------------
 
