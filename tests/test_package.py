@@ -10,12 +10,14 @@ from __future__ import (
 
 import pytest
 
+from pptx.media import Video
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part, _Relationship
 from pptx.opc.packuri import PackURI
-from pptx.package import _ImageParts, Package
+from pptx.package import _ImageParts, _MediaParts, Package
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.image import Image, ImagePart
+from pptx.parts.media import MediaPart
 
 
 from .unitutil.mock import (
@@ -30,12 +32,20 @@ class DescribePackage(object):
         assert isinstance(pkg.core_properties, CorePropertiesPart)
 
     def it_can_get_or_add_an_image_part(self, image_part_fixture):
-        package, image_file, image_part_ = image_part_fixture
+        package, image_file, image_parts_, image_part_ = image_part_fixture
         image_part = package.get_or_add_image_part(image_file)
-        package._image_parts.get_or_add_image_part.assert_called_once_with(
+        image_parts_.get_or_add_image_part.assert_called_once_with(
             image_file
         )
         assert image_part is image_part_
+
+    def it_can_get_or_add_a_media_part(self, media_part_fixture):
+        package, media, media_part_ = media_part_fixture
+        media_part = package.get_or_add_media_part(media)
+        package._media_parts.get_or_add_media_part.assert_called_once_with(
+            media
+        )
+        assert media_part is media_part_
 
     def it_knows_the_next_available_image_partname(self, next_fixture):
         package, ext, expected_value = next_fixture
@@ -45,11 +55,21 @@ class DescribePackage(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def image_part_fixture(self, _image_parts_, image_part_):
+    def image_part_fixture(self, image_parts_, image_part_,
+                           _image_parts_prop_):
         package = Package()
         image_file = 'foobar.png'
-        package._image_parts.get_or_add_image_part.return_value = image_part_
-        return package, image_file, image_part_
+        _image_parts_prop_.return_value = image_parts_
+        image_parts_.get_or_add_image_part.return_value = image_part_
+        return package, image_file, image_parts_, image_part_
+
+    @pytest.fixture
+    def media_part_fixture(self, media_, media_part_, _media_parts_prop_,
+                           media_parts_):
+        package = Package()
+        _media_parts_prop_.return_value = media_parts_
+        media_parts_.get_or_add_media_part.return_value = media_part_
+        return package, media_, media_part_
 
     @pytest.fixture(params=[
         ((3, 4, 2), 1),
@@ -71,7 +91,11 @@ class DescribePackage(object):
         return instance_mock(request, ImagePart)
 
     @pytest.fixture
-    def _image_parts_(self, request):
+    def image_parts_(self, request):
+        return instance_mock(request, _ImageParts)
+
+    @pytest.fixture
+    def _image_parts_prop_(self, request):
         return property_mock(request, Package, '_image_parts')
 
     def i_image_parts(self, request, idxs):
@@ -83,6 +107,22 @@ class DescribePackage(object):
     @pytest.fixture
     def iter_parts_(self, request):
         return property_mock(request, Package, 'iter_parts')
+
+    @pytest.fixture
+    def media_(self, request):
+        return instance_mock(request, Video)
+
+    @pytest.fixture
+    def media_part_(self, request):
+        return instance_mock(request, MediaPart)
+
+    @pytest.fixture
+    def media_parts_(self, request):
+        return instance_mock(request, _MediaParts)
+
+    @pytest.fixture
+    def _media_parts_prop_(self, request):
+        return property_mock(request, Package, '_media_parts')
 
 
 class Describe_ImageParts(object):

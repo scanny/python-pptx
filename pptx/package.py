@@ -54,7 +54,7 @@ class Package(OpcPackage):
         If a media part for this media bytestream ("file") is already present
         in this package, it is reused, otherwise a new one is created.
         """
-        raise NotImplementedError
+        return self._media_parts.get_or_add_media_part(media)
 
     def next_image_partname(self, ext):
         """
@@ -90,6 +90,15 @@ class Package(OpcPackage):
         package.
         """
         return _ImageParts(self)
+
+    @lazyproperty
+    def _media_parts(self):
+        """Return |_MediaParts| object for this package.
+
+        The media parts object provides access to all the media parts in this
+        package.
+        """
+        raise NotImplementedError
 
 
 class _ImageParts(object):
@@ -140,3 +149,20 @@ class _ImageParts(object):
             if image_part.sha1 == sha1:
                 return image_part
         return None
+
+
+class _MediaParts(object):
+    """Provides access to the media parts in a package.
+
+    Supports iteration and :meth:`get()` using the media object SHA1 hash as
+    its key.
+    """
+
+    def get_or_add_media_part(self, media):
+        """Return a |MediaPart| object containing the media in *media*.
+
+        If this package already contains a media part for the same
+        bytestream, that instance is returned, otherwise a new media part is
+        created.
+        """
+        raise NotImplementedError
