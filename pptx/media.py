@@ -10,6 +10,7 @@ import os
 
 from .compat import is_string
 from .opc.constants import CONTENT_TYPE as CT
+from .util import lazyproperty
 
 
 class Video(object):
@@ -81,3 +82,11 @@ class Video(object):
         if self._filename is not None:
             return self._filename
         return 'movie.%s' % self.ext
+
+    @lazyproperty
+    def sha1(self):
+        """The SHA1 hash digest for the media binary of this media part.
+
+        Example: `'1be010ea47803b00e140b852765cdf84f491da47'`
+        """
+        raise NotImplementedError

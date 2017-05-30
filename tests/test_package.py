@@ -21,7 +21,7 @@ from pptx.parts.media import MediaPart
 
 
 from .unitutil.mock import (
-    class_mock, instance_mock, method_mock, property_mock
+    call, class_mock, instance_mock, method_mock, property_mock
 )
 
 
@@ -257,6 +257,59 @@ class Describe_ImageParts(object):
     @pytest.fixture
     def _iter_(self, request):
         return method_mock(request, _ImageParts, '__iter__')
+
+    @pytest.fixture
+    def package_(self, request):
+        return instance_mock(request, Package)
+
+
+class Describe_MediaParts(object):
+
+    def it_can_get_or_add_a_media_part(self, get_or_add_fixture):
+        media_parts, media_, sha1, MediaPart_, calls = get_or_add_fixture[:5]
+        media_part_ = get_or_add_fixture[5]
+
+        media_part = media_parts.get_or_add_media_part(media_)
+
+        media_parts._find_by_sha1.assert_called_once_with(media_parts, sha1)
+        assert MediaPart_.new.call_args_list == calls
+        assert media_part is media_part_
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(params=[
+        True,
+        False
+    ])
+    def get_or_add_fixture(self, request, package_, media_, MediaPart_,
+                           media_part_, _find_by_sha1_):
+        media_present = request.param
+        media_parts = _MediaParts(package_)
+        media_.sha1 = sha1 = '2468'
+        calls = [] if media_present else [call(package_, media_)]
+        _find_by_sha1_.return_value = media_part_ if media_present else None
+        MediaPart_.new.return_value = None if media_present else media_part_
+        return media_parts, media_, sha1, MediaPart_, calls, media_part_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _find_by_sha1_(self, request):
+        return method_mock(
+            request, _MediaParts, '_find_by_sha1', autospec=True
+        )
+
+    @pytest.fixture
+    def media_(self, request):
+        return instance_mock(request, Video)
+
+    @pytest.fixture
+    def MediaPart_(self, request):
+        return class_mock(request, 'pptx.package.MediaPart')
+
+    @pytest.fixture
+    def media_part_(self, request):
+        return instance_mock(request, MediaPart)
 
     @pytest.fixture
     def package_(self, request):

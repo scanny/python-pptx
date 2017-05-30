@@ -14,6 +14,7 @@ from .opc.package import OpcPackage
 from .opc.packuri import PackURI
 from .parts.coreprops import CorePropertiesPart
 from .parts.image import Image, ImagePart
+from .parts.media import MediaPart
 from .util import lazyproperty
 
 
@@ -167,5 +168,17 @@ class _MediaParts(object):
         If this package already contains a media part for the same
         bytestream, that instance is returned, otherwise a new media part is
         created.
+        """
+        media_part = self._find_by_sha1(media.sha1)
+        if media_part is None:
+            media_part = MediaPart.new(self._package, media)
+        return media_part
+
+    def _find_by_sha1(self, sha1):
+        """Return |MediaPart| object having *sha1* hash or None if not found.
+
+        All media parts belonging to this package are considered. A media
+        part is identified by the SHA1 hash digest of its bytestream
+        ("file").
         """
         raise NotImplementedError

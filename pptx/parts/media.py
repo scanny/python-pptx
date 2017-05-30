@@ -15,3 +15,11 @@ class MediaPart(Part):
     A media part generally has a partname matching the regex
     ``ppt/media/media[1-9][0-9]*.*``.
     """
+
+    @classmethod
+    def new(cls, package, media):
+        """Return new |MediaPart| instance containing *media*.
+
+        *media* must be a |Media| object.
+        """
+        raise NotImplementedError
