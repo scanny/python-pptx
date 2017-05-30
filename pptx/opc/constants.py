@@ -539,6 +539,9 @@ class RELATIONSHIP_TYPE(object):
         'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
         '/image'
     )
+    MEDIA = (
+        'http://schemas.microsoft.com/office/2007/relationships/media'
+    )
     NOTES_MASTER = (
         'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
         '/notesMaster'

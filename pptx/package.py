@@ -48,6 +48,14 @@ class Package(OpcPackage):
         """
         return self._image_parts.get_or_add_image_part(image_file)
 
+    def get_or_add_media_part(self, media):
+        """Return a |MediaPart| object containing the media in *media*.
+
+        If a media part for this media bytestream ("file") is already present
+        in this package, it is reused, otherwise a new one is created.
+        """
+        raise NotImplementedError
+
     def next_image_partname(self, ext):
         """
         Return a |PackURI| instance representing the next available image

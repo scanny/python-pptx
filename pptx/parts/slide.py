@@ -185,7 +185,10 @@ class SlidePart(BaseSlidePart):
         appears to be for legacy support for an earlier (pre-Office 2010)
         PowerPoint media embedding strategy.
         """
-        raise NotImplementedError
+        media_part = self._package.get_or_add_media_part(video)
+        media_rId = self.relate_to(media_part, RT.MEDIA)
+        video_rId = self.relate_to(media_part, RT.VIDEO)
+        return media_rId, video_rId
 
     @property
     def has_notes_slide(self):
