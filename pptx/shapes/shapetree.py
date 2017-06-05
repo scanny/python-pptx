@@ -734,13 +734,25 @@ class _MoviePicElementCreator(object):
         )
 
     @lazyproperty
+    def _poster_frame_image_file(self):
+        """Return the image file for video placeholder image.
+
+        If no poster frame file is provided, the default "media loudspeaker"
+        image is used.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
     def _poster_frame_rId(self):
         """Return the rId of relationship to poster frame image.
 
         The poster frame is the image used to represent the video before it's
         played.
         """
-        raise NotImplementedError
+        _, poster_frame_rId = self._slide_part.get_or_add_image_part(
+            self._poster_frame_image_file
+        )
+        return poster_frame_rId
 
     @property
     def _shape_name(self):

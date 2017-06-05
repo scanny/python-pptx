@@ -1424,6 +1424,17 @@ class Describe_MoviePicElementCreator(object):
         movie_pic_element_creator, expected_value = video_rId_fixture
         assert movie_pic_element_creator._video_rId == expected_value
 
+    def it_adds_the_poster_frame_image_to_help(self, pfrm_rId_fixture):
+        movie_pic_element_creator, slide_part_ = pfrm_rId_fixture[:2]
+        poster_frame_image_file, expected_value = pfrm_rId_fixture[2:]
+
+        poster_frame_rId = movie_pic_element_creator._poster_frame_rId
+
+        slide_part_.get_or_add_image_part.assert_called_once_with(
+            poster_frame_image_file
+        )
+        assert poster_frame_rId == expected_value
+
     def it_gets_the_video_part_rIds_to_help(self, part_rIds_fixture):
         movie_pic_element_creator, slide_part_ = part_rIds_fixture[:2]
         video_, media_rId, video_rId = part_rIds_fixture[2:]
@@ -1476,6 +1487,23 @@ class Describe_MoviePicElementCreator(object):
         return (
             movie_pic_element_creator, slide_part_, video_, media_rId,
             video_rId
+        )
+
+    @pytest.fixture
+    def pfrm_rId_fixture(self, _slide_part_prop_, slide_part_,
+                         _poster_frame_image_file_prop_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+        poster_frame_image_file, expected_value = 'image.png', 'rId42'
+        _slide_part_prop_.return_value = slide_part_
+        _poster_frame_image_file_prop_.return_value = poster_frame_image_file
+        slide_part_.get_or_add_image_part.return_value = (
+            None, expected_value
+        )
+        return (
+            movie_pic_element_creator, slide_part_, poster_frame_image_file,
+            expected_value
         )
 
     @pytest.fixture
@@ -1559,6 +1587,12 @@ class Describe_MoviePicElementCreator(object):
     def _pic_prop_(self, request, pic_):
         return property_mock(
             request, _MoviePicElementCreator, '_pic', return_value=pic_
+        )
+
+    @pytest.fixture
+    def _poster_frame_image_file_prop_(self, request):
+        return property_mock(
+            request, _MoviePicElementCreator, '_poster_frame_image_file'
         )
 
     @pytest.fixture
