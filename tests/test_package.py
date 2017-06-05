@@ -265,6 +265,10 @@ class Describe_ImageParts(object):
 
 class Describe_MediaParts(object):
 
+    def it_can_iterate_the_media_parts_in_the_package(self, iter_fixture):
+        media_parts, expected_parts = iter_fixture
+        assert list(media_parts) == expected_parts
+
     def it_can_get_or_add_a_media_part(self, get_or_add_fixture):
         media_parts, media_, sha1, MediaPart_, calls = get_or_add_fixture[:5]
         media_part_ = get_or_add_fixture[5]
@@ -312,6 +316,35 @@ class Describe_MediaParts(object):
         _find_by_sha1_.return_value = media_part_ if media_present else None
         MediaPart_.new.return_value = None if media_present else media_part_
         return media_parts, media_, sha1, MediaPart_, calls, media_part_
+
+    @pytest.fixture
+    def iter_fixture(self, request, package_):
+
+        def rel(is_external, reltype, part):
+            return instance_mock(
+                request, _Relationship, is_external=is_external,
+                reltype=reltype, target_part=part
+            )
+
+        part_mocks = (
+            instance_mock(request, Part, name='linked-media'),
+            instance_mock(request, Part, name='slide'),
+            instance_mock(request, Part, name='embeded-media'),
+        )
+
+        rels = (
+            rel(True,  RT.MEDIA, part_mocks[0]),
+            rel(True,  RT.VIDEO, part_mocks[0]),
+            rel(False, RT.SLIDE, part_mocks[1]),
+            rel(False, RT.MEDIA, part_mocks[2]),
+            rel(False, RT.VIDEO, part_mocks[2]),
+        )
+
+        package_.iter_rels.return_value = iter(rels)
+
+        media_parts = _MediaParts(package_)
+        expected_parts = [part_mocks[2]]
+        return media_parts, expected_parts
 
     # fixture components ---------------------------------------------
 
