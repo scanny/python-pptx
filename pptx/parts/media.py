@@ -6,6 +6,8 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+import hashlib
+
 from ..opc.package import Part
 from ..util import lazyproperty
 
@@ -31,4 +33,4 @@ class MediaPart(Part):
 
         Example: `'1be010ea47803b00e140b852765cdf84f491da47'`
         """
-        raise NotImplementedError
+        return hashlib.sha1(self._blob).hexdigest()
