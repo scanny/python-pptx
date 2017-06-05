@@ -722,7 +722,7 @@ class _MoviePicElementCreator(object):
         For historical reasons, there are two relationships to the same part;
         one is the video rId and the other is the media rId.
         """
-        raise NotImplementedError
+        return self._video_part_rIds[0]
 
     @lazyproperty
     def _pic(self):

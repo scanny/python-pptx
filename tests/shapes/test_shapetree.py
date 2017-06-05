@@ -1416,6 +1416,10 @@ class Describe_MoviePicElementCreator(object):
         )
         assert video is video_
 
+    def it_knows_the_media_rId_to_help(self, media_rId_fixture):
+        movie_pic_element_creator, expected_value = media_rId_fixture
+        assert movie_pic_element_creator._media_rId == expected_value
+
     def it_knows_the_video_rId_to_help(self, video_rId_fixture):
         movie_pic_element_creator, expected_value = video_rId_fixture
         assert movie_pic_element_creator._video_rId == expected_value
@@ -1437,6 +1441,15 @@ class Describe_MoviePicElementCreator(object):
         assert slide_part is slide_part_
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def media_rId_fixture(self, _video_part_rIds_prop_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+        expected_value = 'rId24'
+        _video_part_rIds_prop_.return_value = (expected_value, 'rId666')
+        return movie_pic_element_creator, expected_value
 
     @pytest.fixture
     def movie_pic_fixture(self, shapes_, _MoviePicElementCreator_init_,
