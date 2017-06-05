@@ -58,16 +58,15 @@ class Video(object):
         if self._filename:
             return os.path.splitext(self._filename)[1].lstrip('.')
         return {
-            CT.ASF:            'asf',
-            CT.AVI:            'avi',
-            'video/avi':       'avi',
-            'video/msvideo':   'avi',
-            'video/x-msvideo': 'avi',
-            CT.MOV:            'mov',
-            CT.MP4:            'mp4',
-            CT.MPG:            'mpg',
-            CT.SWF:            'swf',
-            CT.WMV:            'wmv',
+            CT.ASF:        'asf',
+            CT.AVI:        'avi',
+            CT.MOV:        'mov',
+            CT.MP4:        'mp4',
+            CT.MPG:        'mpg',
+            CT.MS_VIDEO:   'avi',
+            CT.SWF:        'swf',
+            CT.WMV:        'wmv',
+            CT.X_MS_VIDEO: 'avi',
         }.get(self._mime_type, 'vid')
 
     @property
