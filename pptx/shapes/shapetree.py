@@ -10,10 +10,11 @@ from __future__ import (
 
 from .autoshape import AutoShapeType, Shape
 from .base import BaseShape
+from ..compat import BytesIO
 from .connector import Connector
 from ..enum.shapes import PP_PLACEHOLDER
 from .graphfrm import GraphicFrame
-from ..media import Video
+from ..media import SPEAKER_IMAGE_BYTES, Video
 from ..opc.constants import CONTENT_TYPE as CT
 from ..oxml.ns import qn
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
@@ -691,13 +692,13 @@ class _MoviePicElementCreator(object):
     """
 
     def __init__(self, shapes, shape_id, movie_file, x, y, cx, cy,
-                 poster_frame_image, mime_type):
+                 poster_frame_file, mime_type):
         super(_MoviePicElementCreator, self).__init__()
         self._shapes = shapes
         self._shape_id = shape_id
         self._movie_file = movie_file
         self._x, self._y, self._cx, self._cy = x, y, cx, cy
-        self._poster_frame_image = poster_frame_image
+        self._poster_frame_file = poster_frame_file
         self._mime_type = mime_type
 
     @classmethod
@@ -740,7 +741,10 @@ class _MoviePicElementCreator(object):
         If no poster frame file is provided, the default "media loudspeaker"
         image is used.
         """
-        raise NotImplementedError
+        poster_frame_file = self._poster_frame_file
+        if poster_frame_file is None:
+            return BytesIO(SPEAKER_IMAGE_BYTES)
+        return poster_frame_file
 
     @lazyproperty
     def _poster_frame_rId(self):

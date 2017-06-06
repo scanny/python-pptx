@@ -10,6 +10,7 @@ from __future__ import (
 
 import pytest
 
+from pptx.compat import BytesIO
 from pptx.chart.data import ChartData
 from pptx.enum.shapes import (
     MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR, PP_PLACEHOLDER
@@ -17,7 +18,7 @@ from pptx.enum.shapes import (
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
-from pptx.media import Video
+from pptx.media import SPEAKER_IMAGE_BYTES, Video
 from pptx.parts.image import ImagePart
 from pptx.parts.slide import SlidePart
 from pptx.shapes.autoshape import Shape
@@ -1435,6 +1436,13 @@ class Describe_MoviePicElementCreator(object):
         )
         assert poster_frame_rId == expected_value
 
+    def it_gets_the_poster_frame_image_file_to_help(self, pfrm_img_fixture):
+        movie_pic_element_creator, BytesIO_ = pfrm_img_fixture[:2]
+        calls, expected_value = pfrm_img_fixture[2:]
+        image_file = movie_pic_element_creator._poster_frame_image_file
+        assert BytesIO_.call_args_list == calls
+        assert image_file == expected_value
+
     def it_gets_the_video_part_rIds_to_help(self, part_rIds_fixture):
         movie_pic_element_creator, slide_part_ = part_rIds_fixture[:2]
         video_, media_rId, video_rId = part_rIds_fixture[2:]
@@ -1488,6 +1496,24 @@ class Describe_MoviePicElementCreator(object):
             movie_pic_element_creator, slide_part_, video_, media_rId,
             video_rId
         )
+
+    @pytest.fixture(params=[
+        'image.png',
+        None,
+    ])
+    def pfrm_img_fixture(self, request, BytesIO_, stream_):
+        poster_frame_file = request.param
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, poster_frame_file, None
+        )
+        if poster_frame_file is None:
+            calls = [call(SPEAKER_IMAGE_BYTES)]
+            BytesIO_.return_value = stream_
+            expected_value = stream_
+        else:
+            calls = []
+            expected_value = poster_frame_file
+        return movie_pic_element_creator, BytesIO_, calls, expected_value
 
     @pytest.fixture
     def pfrm_rId_fixture(self, _slide_part_prop_, slide_part_,
@@ -1562,6 +1588,10 @@ class Describe_MoviePicElementCreator(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def BytesIO_(self, request):
+        return class_mock(request, 'pptx.shapes.shapetree.BytesIO')
+
+    @pytest.fixture
     def from_path_or_file_like_(self, request):
         return method_mock(request, Video, 'from_path_or_file_like')
 
@@ -1616,6 +1646,10 @@ class Describe_MoviePicElementCreator(object):
     @pytest.fixture
     def _slide_part_prop_(self, request):
         return property_mock(request, _MoviePicElementCreator, '_slide_part')
+
+    @pytest.fixture
+    def stream_(self, request):
+        return instance_mock(request, BytesIO)
 
     @pytest.fixture
     def video_(self, request):
