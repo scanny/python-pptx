@@ -5,16 +5,16 @@ Feature: Common shape properties
 
 
   Scenario Outline: Get shape.id
-     Given a <shape-type>
-      Then I can get the id of the <shape-type>
+    Given a <shape-of-type>
+     Then shape.shape_id == <value>
 
     Examples: Shape types
-      | shape-type    |
-      | shape         |
-      | picture       |
-      | graphic frame |
-      | group shape   |
-      | connector     |
+      | shape-of-type | value |
+      | shape         |   2   |
+      | picture       |   3   |
+      | graphic frame |   4   |
+      | group shape   |   9   |
+      | connector     |  11   |
 
 
   Scenario Outline: Get shape.name
@@ -46,7 +46,7 @@ Feature: Common shape properties
 
   Scenario Outline: Get shape.part
      Given a <shape-type> on a slide
-      Then I can access the slide part from the shape
+      Then shape.part is the SlidePart of the shape
 
     Examples: Shape types
       | shape-type    |
@@ -58,16 +58,16 @@ Feature: Common shape properties
 
 
   Scenario Outline: Get shape.has_text_frame
-     Given a <shape-type>
-      Then I can determine the shape <has_text_frame status>
+     Given a <shape-of-type>
+      Then shape.has_text_frame is <value>
 
     Examples: Shape types
-      | shape-type    | has_text_frame status |
-      | shape         | has a text frame      |
-      | picture       | has no text frame     |
-      | graphic frame | has no text frame     |
-      | group shape   | has no text frame     |
-      | connector     | has no text frame     |
+      | shape-of-type | value |
+      | shape         | True  |
+      | picture       | False |
+      | graphic frame | False |
+      | group shape   | False |
+      | connector     | False |
 
 
   Scenario Outline: Get shape.rotation

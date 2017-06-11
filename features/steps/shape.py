@@ -377,6 +377,67 @@ def then_shape_adjustments_is_value(context):
     assert shape.adjustments[0] == 0.15
 
 
+@then("shape.click_action is an ActionSetting object")
+def then_shape_click_action_is_an_ActionSetting_object(context):
+    assert isinstance(context.shape.click_action, ActionSetting)
+
+
+@then('shape.has_text_frame is {value_str}')
+def then_shape_has_text_frame_is(context, value_str):
+    expected_value = {'True': True, 'False': False}[value_str]
+    has_text_frame = context.shape.has_text_frame
+    assert has_text_frame is expected_value, 'got %s' % has_text_frame
+
+
+@then('shape.line is a LineFormat object')
+def then_shape_line_is_a_LineFormat_object(context):
+    shape = context.shape
+    line_format = shape.line
+    line_format_cls_name = cls_qname(line_format)
+    expected_cls_name = 'pptx.dml.line.LineFormat'
+    assert line_format_cls_name == expected_cls_name, (
+        "expected '%s', got '%s'" % (expected_cls_name, line_format_cls_name)
+    )
+
+
+@then("shape.name is '{expected_value}'")
+def then_shape_name_is_value(context, expected_value):
+    shape = context.shape
+    msg = "expected shape name '%s', got '%s'" % (shape.name, expected_value)
+    assert shape.name == expected_value, msg
+
+
+@then('shape.part is the SlidePart of the shape')
+def then_shape_part_is_the_SlidePart_of_the_shape(context):
+    assert context.shape.part is context.slide.part
+
+
+@then("shape.rotation is {value}")
+def then_shape_rotation_is_value(context, value):
+    shape = context.shape
+    expected_value = float(value)
+    assert shape.rotation == expected_value, 'got %s' % expected_value
+
+
+@then('shape.shape_id == {value_str}')
+def then_shape_shape_id_equals(context, value_str):
+    expected_value = int(value_str)
+    shape_id = context.shape.shape_id
+    assert shape_id == expected_value, 'got %s' % shape_id
+
+
+@then('shape.text is the string I assigned')
+def then_shape_text_is_the_string_I_assigned(context):
+    shape = context.shape
+    assert shape.text == u'F\xf8o\nBar'
+
+
+@then('shape.text is the text in the shape')
+def then_shape_text_is_the_text_in_the_shape(context):
+    shape = context.shape
+    assert shape.text == u'Fee Fi\nF\xf8\xf8 Fum\nI am a shape\nwith textium'
+
+
 @then('the auto shape appears in the slide')
 def then_auto_shape_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
@@ -406,74 +467,6 @@ def then_fore_color_is_RGB_value_I_set(context):
 def then_fore_color_is_theme_color_I_set(context):
     fore_color = context.shape.fill.fore_color
     assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
-
-
-@then('I can access the line format of the shape')
-def then_I_can_access_the_line_format_of_the_shape(context):
-    shape = context.shape
-    line_format = shape.line
-    line_format_cls_name = cls_qname(line_format)
-    expected_cls_name = 'pptx.dml.line.LineFormat'
-    assert line_format_cls_name == expected_cls_name, (
-        "expected '%s', got '%s'" % (expected_cls_name, line_format_cls_name)
-    )
-
-
-@then('I can access the slide part from the shape')
-def then_I_can_access_the_slide_part_from_the_shape(context):
-    assert context.shape.part is context.slide.part
-
-
-@then('I can determine the shape {has_text_frame_status}')
-def then_the_shape_has_text_frame_status(context, has_text_frame_status):
-    has_text_frame = {
-        'has a text frame':  True,
-        'has no text frame': False,
-    }[has_text_frame_status]
-    assert context.shape.has_text_frame is has_text_frame
-
-
-@then('I can get the id of the {shape_type}')
-def then_I_can_get_the_id_of_the_shape(context, shape_type):
-    expected_id = {
-        'shape':         2,
-        'picture':       3,
-        'graphic frame': 4,
-        'group shape':   9,
-        'connector':    11,
-    }[shape_type]
-    assert context.shape.id == expected_id
-
-
-@then("shape.click_action is an ActionSetting object")
-def then_shape_click_action_is_an_ActionSetting_object(context):
-    assert isinstance(context.shape.click_action, ActionSetting)
-
-
-@then("shape.name is '{expected_value}'")
-def then_shape_name_is_value(context, expected_value):
-    shape = context.shape
-    msg = "expected shape name '%s', got '%s'" % (shape.name, expected_value)
-    assert shape.name == expected_value, msg
-
-
-@then("shape.rotation is {value}")
-def then_shape_rotation_is_value(context, value):
-    shape = context.shape
-    expected_value = float(value)
-    assert shape.rotation == expected_value, 'got %s' % expected_value
-
-
-@then('shape.text is the string I assigned')
-def then_shape_text_is_the_string_I_assigned(context):
-    shape = context.shape
-    assert shape.text == u'F\xf8o\nBar'
-
-
-@then('shape.text is the text in the shape')
-def then_shape_text_is_the_text_in_the_shape(context):
-    shape = context.shape
-    assert shape.text == u'Fee Fi\nF\xf8\xf8 Fum\nI am a shape\nwith textium'
 
 
 @then('the chart is a Chart object')

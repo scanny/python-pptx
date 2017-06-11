@@ -6,9 +6,9 @@ Feature: Get and change shape line properties
 
   Scenario: Access AutoShape line format
      Given an autoshape
-      Then I can access the line format of the shape
+      Then shape.line is a LineFormat object
 
 
   Scenario: Access Picture line format
      Given a picture
-      Then I can access the line format of the shape
+      Then shape.line is a LineFormat object
