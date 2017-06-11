@@ -1,8 +1,10 @@
 # encoding: utf-8
 
-"""
-Picture shape.
-"""
+"""Shapes based on the `p:pic` element, including Picture and Movie."""
+
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from .base import BaseShape
 from ..dml.line import LineFormat
@@ -103,6 +105,17 @@ class Movie(_BasePicture):
         return PP_MEDIA_TYPE.MOVIE
 
     @property
+    def poster_frame(self):
+        """Return |Image| object containing poster frame for this movie.
+
+        Returns |None| if this movie has no poster frame (uncommon).
+        """
+        slide_part, rId = self.part, self._element.blip_rId
+        if rId is None:
+            return None
+        return slide_part.get_image(rId)
+
+    @property
     def shape_type(self):
         """Return member of :ref:`MsoShapeType` describing this shape.
 
@@ -124,8 +137,10 @@ class Picture(_BasePicture):
         An |Image| object providing access to the properties and bytes of the
         image in this picture shape.
         """
-        slide, rId = self.part, self._element.blip_rId
-        return slide.get_image(rId)
+        slide_part, rId = self.part, self._element.blip_rId
+        if rId is None:
+            raise ValueError('no embedded image')
+        return slide_part.get_image(rId)
 
     @property
     def shape_type(self):

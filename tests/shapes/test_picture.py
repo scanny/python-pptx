@@ -1,10 +1,10 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.shapes.picture module
-"""
+"""Test suite for pptx.shapes.picture module."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 import pytest
 
@@ -16,7 +16,7 @@ from pptx.shapes.picture import _BasePicture, _MediaFormat, Movie, Picture
 from pptx.util import Pt
 
 from ..unitutil.cxml import element
-from ..unitutil.mock import class_mock, instance_mock, property_mock
+from ..unitutil.mock import call, class_mock, instance_mock, property_mock
 
 
 class Describe_BasePicture(object):
@@ -72,6 +72,12 @@ class DescribeMovie(object):
         MediaFormat_.assert_called_once_with(pic, parent)
         assert media_format is media_format_
 
+    def it_provides_access_to_its_poster_frame_image(self, pfrm_fixture):
+        movie, slide_part_, calls, expected_value = pfrm_fixture
+        poster_frame = movie.poster_frame
+        assert slide_part_.get_image.call_args_list == calls
+        assert poster_frame == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -84,11 +90,30 @@ class DescribeMovie(object):
     def media_type_fixture(self):
         return Movie(None, None)
 
+    @pytest.fixture(params=[
+        ('p:pic/p:blipFill/a:blip{r:embed=rId42}', True),
+        ('p:pic/p:blipFill/a:blip',                False),
+    ])
+    def pfrm_fixture(self, request, slide_part_, image_, part_prop_):
+        cxml, is_present = request.param
+        movie = Movie(element(cxml), None)
+        calls, expected_value = [], None
+        part_prop_.return_value = slide_part_
+        slide_part_.get_image.return_value = image_
+        if is_present:
+            calls.append(call('rId42'))
+            expected_value = image_
+        return movie, slide_part_, calls, expected_value
+
     @pytest.fixture
     def shape_type_fixture(self):
         return Movie(None, None)
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def image_(self, request):
+        return instance_mock(request, Image)
 
     @pytest.fixture
     def _MediaFormat_(self, request, media_format_):
@@ -101,6 +126,14 @@ class DescribeMovie(object):
     def media_format_(self, request):
         return instance_mock(request, _MediaFormat)
 
+    @pytest.fixture
+    def part_prop_(self, request):
+        return property_mock(request, Movie, 'part')
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
+
 
 class DescribePicture(object):
 
@@ -109,19 +142,19 @@ class DescribePicture(object):
         assert picture.shape_type == MSO_SHAPE_TYPE.PICTURE
 
     def it_provides_access_to_its_image(self, image_fixture):
-        picture, slide_, rId, image_ = image_fixture
+        picture, slide_part_, rId, image_ = image_fixture
         image = picture.image
-        slide_.get_image.assert_called_once_with(rId)
+        slide_part_.get_image.assert_called_once_with(rId)
         assert image is image_
 
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def image_fixture(self, part_prop_, slide_, image_):
+    def image_fixture(self, part_prop_, slide_part_, image_):
         pic_cxml, rId = 'p:pic/p:blipFill/a:blip{r:embed=rId42}', 'rId42'
         picture = Picture(element(pic_cxml), None)
-        slide_.get_image.return_value = image_
-        return picture, slide_, rId, image_
+        slide_part_.get_image.return_value = image_
+        return picture, slide_part_, rId, image_
 
     @pytest.fixture
     def shape_type_fixture(self):
@@ -134,9 +167,11 @@ class DescribePicture(object):
         return instance_mock(request, Image)
 
     @pytest.fixture
-    def part_prop_(self, request, slide_):
-        return property_mock(request, Picture, 'part', return_value=slide_)
+    def part_prop_(self, request, slide_part_):
+        return property_mock(
+            request, Picture, 'part', return_value=slide_part_
+        )
 
     @pytest.fixture
-    def slide_(self, request):
+    def slide_part_(self, request):
         return instance_mock(request, SlidePart)

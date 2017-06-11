@@ -25,14 +25,14 @@ class CT_Picture(BaseShapeElement):
 
     @property
     def blip_rId(self):
-        """
-        Value of `p:blipFill/a:blip/@r:embed`. Raises |ValueError| if not
-        present.
+        """Value of `p:blipFill/a:blip/@r:embed`.
+
+        Returns |None| if not present.
         """
         blip = self.blipFill.blip
         if blip is not None and blip.rEmbed is not None:
             return blip.rEmbed
-        raise ValueError('no embedded image')
+        return None
 
     def crop_to_fit(self, image_size, view_size):
         """
