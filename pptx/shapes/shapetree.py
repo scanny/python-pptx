@@ -671,7 +671,9 @@ class SlideShapes(_BaseShapes):
         The element will refer to the specified *pic* element by its shape
         id, and cause the video play controls to appear for that video.
         """
-        raise NotImplementedError
+        sld = self._spTree.xpath('/p:sld')[0]
+        childTnLst = sld.get_or_add_childTnLst()
+        childTnLst.add_video(pic.shape_id)
 
     def _shape_factory(self, shape_elm):
         """

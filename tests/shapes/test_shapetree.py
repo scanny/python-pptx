@@ -15,6 +15,7 @@ from pptx.chart.data import ChartData
 from pptx.enum.shapes import (
     MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR, PP_PLACEHOLDER
 )
+from pptx.oxml import parse_xml
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
@@ -43,6 +44,7 @@ from pptx.slide import SlideLayout, SlideMaster
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..unitutil.cxml import element, xml
+from ..unitutil.file import snippet_seq
 from ..unitutil.mock import (
     ANY, call, class_mock, function_mock, initializer_mock, instance_mock,
     method_mock, property_mock
@@ -696,6 +698,11 @@ class DescribeSlideShapes(object):
         assert cxnSp is shapes._element.xpath('p:cxnSp')[0]
         assert cxnSp.xml == expected_xml
 
+    def it_adds_a_video_timing_to_help(self, add_timing_fixture):
+        shapes, pic, sld, expected_xml = add_timing_fixture
+        shapes._add_video_timing(pic)
+        assert sld.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -759,6 +766,21 @@ class DescribeSlideShapes(object):
             shapes, connector_type, begin_x, begin_y, end_x, end_y,
             expected_xml
         )
+
+    @pytest.fixture(params=[
+        (0, 1),  # no timing gets timing with one video
+        (1, 2),  # timing with one video gets a second video
+        (3, 1),  # timing without p:childTnLst parent gets replaced
+    ])
+    def add_timing_fixture(self, request):
+        before_idx, after_idx = request.param
+        snippets = snippet_seq('timing')
+        sld = parse_xml(snippets[before_idx])
+        spTree = sld.xpath('.//p:spTree')[0]
+        shapes = SlideShapes(spTree, None)
+        pic = element('p:pic/p:nvPicPr/p:cNvPr{id=42}')
+        expected_xml = snippets[after_idx]
+        return shapes, pic, sld, expected_xml
 
     @pytest.fixture
     def autoshape_fixture(self, _shape_factory_, shape_):
