@@ -418,8 +418,10 @@ class SlidePlaceholders(ParentedElementProxy):
                     return SlideShapeFactory(e, self)
             except InvalidXmlError:
                 pass
-        raise KeyError("no placeholder on this slide with index or name: "
-                       "'%s'" % idx)
+        if isinstance(idx, int):
+            raise IndexError('placeholder index out of range')
+        raise KeyError("no placeholder named '%s' on slide_layout '%s'"
+                       % (idx, self.parent.slide_layout.name))
 
     def __iter__(self):
         """
