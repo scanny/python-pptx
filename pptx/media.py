@@ -56,7 +56,7 @@ class Video(object):
     @property
     def content_type(self):
         """MIME-type of this media, e.g. `'video/mp4'`."""
-        raise NotImplementedError
+        return self._mime_type
 
     @property
     def ext(self):

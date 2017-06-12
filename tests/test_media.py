@@ -40,11 +40,15 @@ class DescribeVideo(object):
         Video_init_.assert_called_once_with(video, blob, mime_type, filename)
         assert isinstance(video, Video)
 
-    def it_can_knows_a_filename_for_the_video(self, filename_fixture):
+    def it_knows_its_content_type(self, content_type_fixture):
+        video, expected_value = content_type_fixture
+        assert video.content_type == expected_value
+
+    def it_knows_a_filename_for_the_video(self, filename_fixture):
         video, expected_value = filename_fixture
         assert video.filename == expected_value
 
-    def it_can_knows_an_extension_for_the_video(self, ext_fixture):
+    def it_knows_an_extension_for_the_video(self, ext_fixture):
         video, expected_value = ext_fixture
         assert video.ext == expected_value
 
@@ -53,6 +57,13 @@ class DescribeVideo(object):
         assert video.sha1 == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def content_type_fixture(self):
+        mime_type = 'video/mp4'
+        video = Video(None, mime_type, None)
+        expected_value = mime_type
+        return video, expected_value
 
     @pytest.fixture(params=[
         (None,        'foo.bar', 'bar'),
