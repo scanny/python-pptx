@@ -49,6 +49,16 @@ class Video(object):
         return cls.from_blob(blob, mime_type, filename)
 
     @property
+    def blob(self):
+        """The bytestream of the media "file"."""
+        raise NotImplementedError
+
+    @property
+    def content_type(self):
+        """MIME-type of this media, e.g. `'video/mp4'`."""
+        raise NotImplementedError
+
+    @property
     def ext(self):
         """Return the file extension for this video, e.g. 'mp4'.
 

@@ -25,7 +25,8 @@ class MediaPart(Part):
 
         *media* must be a |Media| object.
         """
-        raise NotImplementedError
+        partname = package.next_media_partname(media.ext)
+        return cls(partname, media.content_type, media.blob, package)
 
     @lazyproperty
     def sha1(self):

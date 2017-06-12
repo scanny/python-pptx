@@ -77,6 +77,15 @@ class Package(OpcPackage):
         idx = first_available_image_idx()
         return PackURI('/ppt/media/image%d.%s' % (idx, ext))
 
+    def next_media_partname(self, ext):
+        """Return |PackURI| instance for next available media partname.
+
+        Partname is first available, starting at sequence number 1. Empty
+        sequence numbers are reused. *ext* is used as the extension on the
+        returned partname.
+        """
+        raise NotImplementedError
+
     @property
     def presentation_part(self):
         """
