@@ -84,7 +84,19 @@ class Package(OpcPackage):
         sequence numbers are reused. *ext* is used as the extension on the
         returned partname.
         """
-        raise NotImplementedError
+        def first_available_media_idx():
+            media_idxs = sorted([
+                part.partname.idx for part in self.iter_parts()
+                if part.partname.startswith('/ppt/media/media')
+            ])
+            for i, media_idx in enumerate(media_idxs):
+                idx = i + 1
+                if idx < media_idx:
+                    return idx
+            return len(media_idxs)+1
+
+        idx = first_available_media_idx()
+        return PackURI('/ppt/media/media%d.%s' % (idx, ext))
 
     @property
     def presentation_part(self):

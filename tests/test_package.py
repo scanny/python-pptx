@@ -52,6 +52,11 @@ class DescribePackage(object):
         partname = package.next_image_partname(ext)
         assert partname == expected_value
 
+    def it_knows_the_next_available_media_partname(self, nmp_fixture):
+        package, ext, expected_value = nmp_fixture
+        partname = package.next_media_partname(ext)
+        assert partname == expected_value
+
     def it_provides_access_to_its_MediaParts_object(self, m_parts_fixture):
         package, _MediaParts_, media_parts_ = m_parts_fixture
         media_parts = package._media_parts
@@ -96,6 +101,19 @@ class DescribePackage(object):
         expected_value = '/ppt/media/image%d.%s' % (idx, ext)
         return package, ext, expected_value
 
+    @pytest.fixture(params=[
+        ((3, 4, 2), 1),
+        ((4, 2, 1), 3),
+        ((2, 3, 1), 4),
+    ])
+    def nmp_fixture(self, request, iter_parts_):
+        idxs, idx = request.param
+        package = Package()
+        package.iter_parts.return_value = self.i_media_parts(request, idxs)
+        ext = 'foo'
+        expected_value = '/ppt/media/media%d.%s' % (idx, ext)
+        return package, ext, expected_value
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -113,6 +131,12 @@ class DescribePackage(object):
     def i_image_parts(self, request, idxs):
         def part(idx):
             partname = PackURI('/ppt/media/image%d.png' % idx)
+            return instance_mock(request, Part, partname=partname)
+        return iter([part(idx) for idx in idxs])
+
+    def i_media_parts(self, request, idxs):
+        def part(idx):
+            partname = PackURI('/ppt/media/media%d.mp4' % idx)
             return instance_mock(request, Part, partname=partname)
         return iter([part(idx) for idx in idxs])
 
