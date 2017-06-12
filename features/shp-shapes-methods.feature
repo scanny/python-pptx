@@ -145,7 +145,6 @@ Feature: Shape collection methods
       | python.bmp       | bmp  |
 
 
-  @wip
   Scenario Outline: SlideShapes.add_movie()
     Given a SlideShapes object containing <a-or-no> movies
      When I call shapes.add_movie(file, x, y, cx, cy, poster_frame)

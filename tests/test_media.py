@@ -40,6 +40,10 @@ class DescribeVideo(object):
         Video_init_.assert_called_once_with(video, blob, mime_type, filename)
         assert isinstance(video, Video)
 
+    def it_provides_access_to_the_video_bytestream(self, blob_fixture):
+        video, expected_value = blob_fixture
+        assert video.blob == expected_value
+
     def it_knows_its_content_type(self, content_type_fixture):
         video, expected_value = content_type_fixture
         assert video.content_type == expected_value
@@ -57,6 +61,13 @@ class DescribeVideo(object):
         assert video.sha1 == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def blob_fixture(self):
+        blob = b'blob-bytes'
+        video = Video(blob, None, None)
+        expected_value = blob
+        return video, expected_value
 
     @pytest.fixture
     def content_type_fixture(self):

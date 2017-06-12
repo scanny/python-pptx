@@ -51,7 +51,7 @@ class Video(object):
     @property
     def blob(self):
         """The bytestream of the media "file"."""
-        raise NotImplementedError
+        return self._blob
 
     @property
     def content_type(self):
