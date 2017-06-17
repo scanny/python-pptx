@@ -1533,7 +1533,7 @@ class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
                     '                  <c:pt idx="%d">\n'
                     '                    <c:v>%s</c:v>\n'
                     '                  </c:pt>\n'
-                ) % (idx, escape(unicode(name)))
+                ) % (idx, escape('%s' % name))
             return xml
 
         xml = ''

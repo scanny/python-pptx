@@ -1,17 +1,12 @@
 # encoding: utf-8
 
-"""
-Series-related objects.
-"""
+"""Series-related objects."""
 
 from __future__ import absolute_import, print_function, unicode_literals
 
 from collections import Sequence
-from warnings import warn
 
 from ..dml.chtfmt import ChartFormat
-from ..dml.fill import FillFormat
-from ..dml.line import LineFormat
 from .marker import Marker
 from ..oxml.ns import qn
 from .point import BubblePoints, CategoryPoints, XyPoints
@@ -106,34 +101,7 @@ class AreaSeries(_BaseCategorySeries):
 
 
 class BarSeries(_BaseCategorySeries):
-    """
-    A data point series belonging to a bar plot.
-    """
-    @lazyproperty
-    def fill(self):
-        """**DEPRECATED**. Use `.format.fill` instead.
-
-        Return the |FillFormat| object providing access to fill properties
-        such as fill color.
-        """
-        msg = (
-            'BarSeries.fill property is deprecated and will be removed in a '
-            'future release Use .format.fill instead.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-
-        spPr = self._element.get_or_add_spPr()
-        return FillFormat.from_fill_parent(spPr)
-
-    def get_or_add_ln(self):
-        """
-        Return the ``<a:ln>`` element containing the line format properties
-        XML for this shape. Part of the callback interface required by
-        |LineFormat|.
-        """
-        spPr = self._element.get_or_add_spPr()
-        ln = spPr.get_or_add_ln()
-        return ln
+    """A data point series belonging to a bar plot."""
 
     @property
     def invert_if_negative(self):
@@ -155,33 +123,6 @@ class BarSeries(_BaseCategorySeries):
     def invert_if_negative(self, value):
         invertIfNegative = self._element.get_or_add_invertIfNegative()
         invertIfNegative.val = value
-
-    @lazyproperty
-    def line(self):
-        """**DEPRECATED**. Use `.format.line` instead.
-
-        Return the |LineFormat| object providing access to line properties
-        such as line color and width.
-        """
-        msg = (
-            'BarSeries.line property is deprecated and will be removed in a '
-            'future release.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-
-        return LineFormat(self)
-
-    @property
-    def ln(self):
-        """
-        The ``<a:ln>`` element containing the line format properties such as
-        line color and width. |None| if no ``<a:ln>`` element is present.
-        Part of the callback interface required by |LineFormat|.
-        """
-        spPr = self._element.spPr
-        if spPr is None:
-            return None
-        return spPr.ln
 
 
 class LineSeries(_BaseCategorySeries, _MarkerMixin):

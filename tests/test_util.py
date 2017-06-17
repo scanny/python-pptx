@@ -6,11 +6,10 @@ Test suite for pptx.util module.
 
 from __future__ import absolute_import
 
-import platform
 import pytest
 
 from pptx.compat import to_unicode
-from pptx.util import Length, Centipoints, Cm, Emu, Inches, Mm, Pt, Px
+from pptx.util import Length, Centipoints, Cm, Emu, Inches, Mm, Pt
 
 
 def test_to_unicode_raises_on_non_string():
@@ -43,8 +42,6 @@ class DescribeLength(object):
         (Emu,         9144.9,    9144),
         (Mm,          13.8,    496800),
         (Pt,          24.5,    311150),
-        (Px,          10,
-         95250 if platform.system() == 'Windows' else 127000),
     ])
     def construct_fixture(self, request):
         UnitCls, units_val, emu = request.param
@@ -57,7 +54,6 @@ class DescribeLength(object):
         (914400, 'emu', 914400),
         (914400, 'mm', 25.4),
         (914400, 'pt', 72.0),
-        (914400, 'px', 96 if platform.system() == 'Windows' else 72),
     ])
     def units_fixture(self, request):
         emu, units_prop_name, expected_length_in_units = request.param

@@ -4,7 +4,7 @@ Feature: Common shape properties
   I need a common set of properties available on all shapes
 
 
-  Scenario Outline: Get shape.id
+  Scenario Outline: Get shape.shape_id
     Given a <shape-of-type>
      Then shape.shape_id == <value>
 

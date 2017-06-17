@@ -11,7 +11,7 @@ import pytest
 from pptx.compat import BytesIO
 from pptx.package import Package
 from pptx.parts.image import Image, ImagePart
-from pptx.util import Px
+from pptx.util import Emu
 
 from ..unitutil.file import absjoin, test_file_dir
 from ..unitutil.mock import (
@@ -68,10 +68,10 @@ class DescribeImagePart(object):
         return package_, image_, _init_, partname_
 
     @pytest.fixture(params=[
-        (None, None, Px(204), Px(204)),
-        (1000, None, 1000,    1000),
-        (None, 3000, 3000,    3000),
-        (3337, 9999, 3337,    9999),
+        (None, None, Emu(2590800), Emu(2590800)),
+        (1000, None, 1000, 1000),
+        (None, 3000, 3000, 3000),
+        (3337, 9999, 3337, 9999),
     ])
     def scale_fixture(self, request):
         width, height, expected_width, expected_height = request.param
