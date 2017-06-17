@@ -14,7 +14,7 @@ class PackURI(str):
     Provides access to pack URI components such as the baseURI and the
     filename slice. Behaves as |str| otherwise.
     """
-    _filename_re = re.compile('([a-zA-Z]+)([1-9][0-9]*)?')
+    _filename_re = re.compile('([a-zA-Z]+)([0-9][0-9]*)?')
 
     def __new__(cls, pack_uri_str):
         if not pack_uri_str[0] == '/':
