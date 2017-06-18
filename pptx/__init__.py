@@ -1,10 +1,8 @@
 # encoding: utf-8
 
-"""
-Initialization module for python-pptx
-"""
+"""Initialization module for python-pptx package."""
 
-__version__ = '0.6.5'
+__version__ = '0.6.6'
 
 
 import pptx.exc as exceptions
