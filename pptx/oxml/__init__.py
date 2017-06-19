@@ -178,7 +178,7 @@ register_element_cls('cp:coreProperties', CT_CoreProperties)
 
 from .dml.color import (
     CT_HslColor, CT_Percentage, CT_PresetColor, CT_SchemeColor,
-    CT_ScRgbColor, CT_SRgbColor, CT_SystemColor
+    CT_ScRgbColor, CT_SRgbColor, CT_SystemColor, CT_Alpha
 )
 register_element_cls('a:hslClr',    CT_HslColor)
 register_element_cls('a:lumMod',    CT_Percentage)
@@ -188,6 +188,7 @@ register_element_cls('a:schemeClr', CT_SchemeColor)
 register_element_cls('a:scrgbClr',  CT_ScRgbColor)
 register_element_cls('a:srgbClr',   CT_SRgbColor)
 register_element_cls('a:sysClr',    CT_SystemColor)
+register_element_cls('a:alpha',     CT_Alpha)
 
 
 from .dml.fill import (
