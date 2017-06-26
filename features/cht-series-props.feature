@@ -22,7 +22,7 @@ Feature: Get and set series properties
 
   Scenario Outline: Get series fill type
     Given a bar series having fill of <fill>
-     Then series.fill.type is <expected-fill-type>
+     Then series.format.fill.type is <expected-fill-type>
 
     Examples: Fill types
       | fill      | expected-fill-type       |
@@ -34,17 +34,17 @@ Feature: Get and set series properties
 
   Scenario: Get series RGB color
     Given a bar series having fill of Orange
-     Then series.fill.fore_color.rgb is FF6600
+     Then series.format.fill.fore_color.rgb is FF6600
 
 
   Scenario: Get series theme color
     Given a bar series having fill of Accent 1
-     Then series.fill.fore_color.theme_color is Accent 1
+     Then series.format.fill.fore_color.theme_color is Accent 1
 
 
   Scenario Outline: Get series line width
     Given a bar series having <width> line
-     Then series.line.width is <expected-width>
+     Then series.format.line.width is <expected-width>
 
     Examples: line widths
       | width   | expected-width |

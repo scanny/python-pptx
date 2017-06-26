@@ -3,6 +3,17 @@
 Release History
 ---------------
 
+0.6.6 (2017-06-17)
+++++++++++++++++++
+
+- Add `SlideShapes.add_movie()`, allowing video media to be added to a slide.
+
+- fix #190 Accommodate non-conforming part names having '00' index segment.
+- fix #273 Accommodate non-conforming part names having no index segment.
+- fix #277 ASCII/Unicode error on non-ASCII multi-level category names
+- fix #279 BaseShape.id warning appearing on placeholder access.
+
+
 0.6.5 (2017-03-21)
 ++++++++++++++++++
 

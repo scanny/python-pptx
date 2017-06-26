@@ -374,7 +374,7 @@ def then_shapes_title_is_the_title_placeholder(context):
     shapes = context.shapes
     title_placeholder = shapes.title
     assert title_placeholder.element is shapes[0].element
-    assert title_placeholder.id == 4
+    assert title_placeholder.shape_id == 4
 
 
 @then('slide.has_notes_slide is {value}')

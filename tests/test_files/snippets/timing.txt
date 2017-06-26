@@ -1,0 +1,101 @@
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree/>
+  </p:cSld>
+</p:sld>
+
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree/>
+  </p:cSld>
+  <p:timing>
+    <p:tnLst>
+      <p:par>
+        <p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot">
+          <p:childTnLst>
+            <p:video>
+              <p:cMediaNode vol="80000">
+                <p:cTn id="2" fill="hold" display="0">
+                  <p:stCondLst>
+                    <p:cond delay="indefinite"/>
+                  </p:stCondLst>
+                </p:cTn>
+                <p:tgtEl>
+                  <p:spTgt spid="42"/>
+                </p:tgtEl>
+              </p:cMediaNode>
+            </p:video>
+          </p:childTnLst>
+        </p:cTn>
+      </p:par>
+    </p:tnLst>
+  </p:timing>
+</p:sld>
+
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree/>
+  </p:cSld>
+  <p:timing>
+    <p:tnLst>
+      <p:par>
+        <p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot">
+          <p:childTnLst>
+            <p:video>
+              <p:cMediaNode vol="80000">
+                <p:cTn id="2" fill="hold" display="0">
+                  <p:stCondLst>
+                    <p:cond delay="indefinite"/>
+                  </p:stCondLst>
+                </p:cTn>
+                <p:tgtEl>
+                  <p:spTgt spid="42"/>
+                </p:tgtEl>
+              </p:cMediaNode>
+            </p:video>
+            <p:video>
+              <p:cMediaNode vol="80000">
+                <p:cTn id="3" fill="hold" display="0">
+                  <p:stCondLst>
+                    <p:cond delay="indefinite"/>
+                  </p:stCondLst>
+                </p:cTn>
+                <p:tgtEl>
+                  <p:spTgt spid="42"/>
+                </p:tgtEl>
+              </p:cMediaNode>
+            </p:video>
+          </p:childTnLst>
+        </p:cTn>
+      </p:par>
+    </p:tnLst>
+  </p:timing>
+</p:sld>
+
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree/>
+  </p:cSld>
+  <p:timing>
+    <p:tnLst>
+      <p:seq>
+        <p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot">
+          <p:childTnLst>
+            <p:video>
+              <p:cMediaNode vol="80000">
+                <p:cTn id="2" fill="hold" display="0">
+                  <p:stCondLst>
+                    <p:cond delay="indefinite"/>
+                  </p:stCondLst>
+                </p:cTn>
+                <p:tgtEl>
+                  <p:spTgt spid="42"/>
+                </p:tgtEl>
+              </p:cMediaNode>
+            </p:video>
+          </p:childTnLst>
+        </p:cTn>
+      </p:seq>
+    </p:tnLst>
+  </p:timing>
+</p:sld>

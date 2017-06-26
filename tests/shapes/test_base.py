@@ -39,7 +39,7 @@ class DescribeBaseShape(object):
 
     def it_knows_its_shape_id(self, id_fixture):
         shape, shape_id = id_fixture
-        assert shape.id == shape_id
+        assert shape.shape_id == shape_id
 
     def it_knows_its_name(self, name_get_fixture):
         shape, name = name_get_fixture

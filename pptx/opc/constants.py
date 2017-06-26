@@ -10,6 +10,13 @@ class CONTENT_TYPE(object):
     """
     Content type URIs (like MIME-types) that specify a part's format
     """
+
+    ASF = (
+        'video/x-ms-asf'
+    )
+    AVI = (
+        'video/avi'
+    )
     BMP = (
         'image/bmp'
     )
@@ -48,8 +55,20 @@ class CONTENT_TYPE(object):
     JPEG = (
         'image/jpeg'
     )
+    MOV = (
+        'video/quicktime'
+    )
+    MP4 = (
+        'video/mp4'
+    )
+    MPG = (
+        'video/mpeg'
+    )
     MS_PHOTO = (
         'image/vnd.ms-photo'
+    )
+    MS_VIDEO = (
+        'video/msvideo'
     )
     OFC_CHART_COLORS = (
         'application/vnd.ms-office.chartcolorstyle+xml'
@@ -279,8 +298,14 @@ class CONTENT_TYPE(object):
         'application/vnd.openxmlformats-officedocument.spreadsheetml.workshe'
         'et+xml'
     )
+    SWF = (
+        'application/x-shockwave-flash'
+    )
     TIFF = (
         'image/tiff'
+    )
+    VIDEO = (
+        'video/unknown'
     )
     WML_COMMENTS = (
         'application/vnd.openxmlformats-officedocument.wordprocessingml.comm'
@@ -334,6 +359,9 @@ class CONTENT_TYPE(object):
         'application/vnd.openxmlformats-officedocument.wordprocessingml.webS'
         'ettings+xml'
     )
+    WMV = (
+        'video/x-ms-wmv'
+    )
     XML = (
         'application/xml'
     )
@@ -345,6 +373,9 @@ class CONTENT_TYPE(object):
     )
     X_FONT_TTF = (
         'application/x-font-ttf'
+    )
+    X_MS_VIDEO = (
+        'video/x-msvideo'
     )
     X_WMF = (
         'image/x-wmf'
@@ -513,6 +544,9 @@ class RELATIONSHIP_TYPE(object):
     IMAGE = (
         'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
         '/image'
+    )
+    MEDIA = (
+        'http://schemas.microsoft.com/office/2007/relationships/media'
     )
     NOTES_MASTER = (
         'http://schemas.openxmlformats.org/officeDocument/2006/relationships'

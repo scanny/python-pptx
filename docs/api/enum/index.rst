@@ -20,6 +20,7 @@ can be found here:
    MsoVerticalAnchor
 
    PpActionType
+   PpMediaType
    PpParagraphAlignment
    PpPlaceholderType
 

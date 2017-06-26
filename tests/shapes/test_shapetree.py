@@ -4,23 +4,29 @@
 Test suite for pptx.shapes.shapetree module
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 import pytest
 
+from pptx.compat import BytesIO
 from pptx.chart.data import ChartData
 from pptx.enum.shapes import (
     MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR, PP_PLACEHOLDER
 )
+from pptx.oxml import parse_xml
 from pptx.oxml.shapes.autoshape import CT_Shape
+from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
+from pptx.media import SPEAKER_IMAGE_BYTES, Video
 from pptx.parts.image import ImagePart
 from pptx.parts.slide import SlidePart
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.graphfrm import GraphicFrame
-from pptx.shapes.picture import Picture
+from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
     _BaseSlidePlaceholder, LayoutPlaceholder, MasterPlaceholder,
     NotesSlidePlaceholder
@@ -28,18 +34,20 @@ from pptx.shapes.placeholder import (
 from pptx.shapes.shapetree import (
     BasePlaceholders, BaseShapeFactory, _BaseShapes, LayoutPlaceholders,
     _LayoutShapeFactory, LayoutShapes, MasterPlaceholders,
-    _MasterShapeFactory, MasterShapes, NotesSlidePlaceholders,
-    _NotesSlideShapeFactory, NotesSlideShapes, _SlidePlaceholderFactory,
-    SlidePlaceholders, SlideShapeFactory, SlideShapes
+    _MasterShapeFactory, MasterShapes, _MoviePicElementCreator,
+    NotesSlidePlaceholders, _NotesSlideShapeFactory, NotesSlideShapes,
+    _SlidePlaceholderFactory, SlidePlaceholders, SlideShapeFactory,
+    SlideShapes
 )
 from pptx.shapes.table import Table
 from pptx.slide import SlideLayout, SlideMaster
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..unitutil.cxml import element, xml
+from ..unitutil.file import snippet_seq
 from ..unitutil.mock import (
-    call, class_mock, function_mock, instance_mock, method_mock,
-    property_mock
+    ANY, call, class_mock, function_mock, initializer_mock, instance_mock,
+    method_mock, property_mock
 )
 
 
@@ -54,11 +62,12 @@ class DescribeBaseShapeFactory(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
-        ('p:sp',           Shape),
-        ('p:pic',          Picture),
+        ('p:sp', Shape),
+        ('p:pic', Picture),
+        ('p:pic/p:nvPicPr/p:nvPr/a:videoFile', Movie),
         ('p:graphicFrame', GraphicFrame),
-        ('p:grpSp',        BaseShape),
-        ('p:cxnSp',        Connector),
+        ('p:grpSp', BaseShape),
+        ('p:cxnSp', Connector),
     ])
     def factory_fixture(self, request, parent_):
         shape_cxml, ShapeCls = request.param
@@ -598,6 +607,25 @@ class DescribeSlideShapes(object):
         shapes._shape_factory.assert_called_once_with(shapes, cxnSp_)
         assert connector is connector_
 
+    def it_can_add_a_movie(self, movie_fixture):
+        shapes, movie_file, x, y, cx, cy = movie_fixture[:6]
+        poster_frame_image, mime_type, shape_id_ = movie_fixture[6:9]
+        _MoviePicElementCreator_, movie_pic = movie_fixture[9:11]
+        _add_video_timing_, _shape_factory_, movie_ = movie_fixture[11:]
+
+        movie = shapes.add_movie(
+            movie_file, x, y, cx, cy, poster_frame_image, mime_type
+        )
+
+        _MoviePicElementCreator_.new_movie_pic.assert_called_once_with(
+            shapes, shape_id_, movie_file, x, y, cx, cy, poster_frame_image,
+            mime_type
+        )
+        shapes._spTree[-1] is movie_pic
+        _add_video_timing_.assert_called_once_with(shapes, movie_pic)
+        _shape_factory_.assert_called_once_with(shapes, movie_pic)
+        assert movie is movie_
+
     def it_can_add_a_picture_shape(self, picture_fixture):
         shapes, image_file, x, y, cx, cy, picture_, expected_xml = (
             picture_fixture
@@ -670,6 +698,11 @@ class DescribeSlideShapes(object):
         assert cxnSp is shapes._element.xpath('p:cxnSp')[0]
         assert cxnSp.xml == expected_xml
 
+    def it_adds_a_video_timing_to_help(self, add_timing_fixture):
+        shapes, pic, sld, expected_xml = add_timing_fixture
+        shapes._add_video_timing(pic)
+        assert sld.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -733,6 +766,21 @@ class DescribeSlideShapes(object):
             shapes, connector_type, begin_x, begin_y, end_x, end_y,
             expected_xml
         )
+
+    @pytest.fixture(params=[
+        (0, 1),  # no timing gets timing with one video
+        (1, 2),  # timing with one video gets a second video
+        (3, 1),  # timing without p:childTnLst parent gets replaced
+    ])
+    def add_timing_fixture(self, request):
+        before_idx, after_idx = request.param
+        snippets = snippet_seq('timing')
+        sld = parse_xml(snippets[before_idx])
+        spTree = sld.xpath('.//p:spTree')[0]
+        shapes = SlideShapes(spTree, None)
+        pic = element('p:pic/p:nvPicPr/p:cNvPr{id=42}')
+        expected_xml = snippets[after_idx]
+        return shapes, pic, sld, expected_xml
 
     @pytest.fixture
     def autoshape_fixture(self, _shape_factory_, shape_):
@@ -804,6 +852,22 @@ class DescribeSlideShapes(object):
         shapes = SlideShapes(spTree, None)
         shape_.element = element('p:sp')
         return shapes, shape_
+
+    @pytest.fixture
+    def movie_fixture(self, _MoviePicElementCreator_, _add_video_timing_,
+                      _shape_factory_, movie_, _next_shape_id_prop_):
+        shapes = SlideShapes(element('p:spTree'), None)
+        movie_file, x, y, cx, cy = 'foobar.mp4', 1, 2, 3, 4
+        poster_frame_image, mime_type = 'foobar.png', 'video/mp4'
+        movie_pic = element('p:pic')
+        _MoviePicElementCreator_.new_movie_pic.return_value = movie_pic
+        _shape_factory_.return_value = movie_
+        shape_id_ = _next_shape_id_prop_.return_value
+        return (
+            shapes, movie_file, x, y, cx, cy, poster_frame_image, mime_type,
+            shape_id_, _MoviePicElementCreator_, movie_pic,
+            _add_video_timing_, _shape_factory_, movie_
+        )
 
     @pytest.fixture
     def picture_fixture(
@@ -919,6 +983,12 @@ class DescribeSlideShapes(object):
         return method_mock(request, SlideShapes, '_add_cxnSp', autospec=True)
 
     @pytest.fixture
+    def _add_video_timing_(self, request):
+        return method_mock(
+            request, SlideShapes, '_add_video_timing', autospec=True
+        )
+
+    @pytest.fixture
     def chart_data_(self, request):
         return instance_mock(request, ChartData)
 
@@ -941,6 +1011,23 @@ class DescribeSlideShapes(object):
         return instance_mock(request, ImagePart)
 
     @pytest.fixture
+    def movie_(self, request):
+        return instance_mock(request, Movie)
+
+    @pytest.fixture
+    def _MoviePicElementCreator_(self, request):
+        return class_mock(
+            request, 'pptx.shapes.shapetree._MoviePicElementCreator',
+            autospec=True
+        )
+
+    @pytest.fixture
+    def _next_shape_id_prop_(self, request, shape_id_):
+        return property_mock(
+            request, SlideShapes, '_next_shape_id', return_value=shape_id_
+        )
+
+    @pytest.fixture
     def part_prop_(self, request, slide_part_):
         return property_mock(
             request, SlideShapes, 'part', return_value=slide_part_
@@ -957,6 +1044,10 @@ class DescribeSlideShapes(object):
     @pytest.fixture
     def shape_(self, request):
         return instance_mock(request, Shape)
+
+    @pytest.fixture
+    def shape_id_(self):
+        return 42
 
     @pytest.fixture
     def _shape_factory_(self, request, shape_):
@@ -1299,6 +1390,306 @@ class DescribeMasterPlaceholders(object):
     @pytest.fixture
     def placeholder_2_(self, request):
         return instance_mock(request, MasterPlaceholder, ph_type='body')
+
+
+class Describe_MoviePicElementCreator(object):
+
+    def it_creates_a_new_movie_pic_element(self, movie_pic_fixture):
+        shapes_, shape_id, movie_file, x, y, cx, cy = movie_pic_fixture[:7]
+        poster_frame_image, mime_type = movie_pic_fixture[7:9]
+        _MoviePicElementCreator_init_, _pic_prop_ = movie_pic_fixture[9:11]
+        pic_ = movie_pic_fixture[11]
+
+        pic = _MoviePicElementCreator.new_movie_pic(
+            shapes_, shape_id, movie_file, x, y, cx, cy, poster_frame_image,
+            mime_type
+        )
+
+        _MoviePicElementCreator_init_.assert_called_once_with(
+            ANY, shapes_, shape_id, movie_file, x, y, cx, cy,
+            poster_frame_image, mime_type
+        )
+        _pic_prop_.assert_called_once_with()
+        assert pic is pic_
+
+    def it_creates_a_pic_element(self, pic_fixture):
+        movie_pic_element_creator, new_video_pic_, shape_id = pic_fixture[:3]
+        shape_name, video_rId, media_rId, poster_frame_rId = pic_fixture[3:7]
+        x, y, cx, cy, pic_ = pic_fixture[7:]
+
+        pic = movie_pic_element_creator._pic
+
+        new_video_pic_.assert_called_once_with(
+            shape_id, shape_name, video_rId, media_rId, poster_frame_rId, x,
+            y, cx, cy
+        )
+        assert pic is pic_
+
+    def it_knows_the_shape_name_to_help(self, shape_name_fixture):
+        movie_pic_element_creator, filename = shape_name_fixture
+        shape_name = movie_pic_element_creator._shape_name
+        assert shape_name == filename
+
+    def it_constructs_the_video_to_help(self, video_fixture):
+        movie_pic_element_creator, movie_file = video_fixture[:2]
+        mime_type, video_ = video_fixture[2:]
+        video = movie_pic_element_creator._video
+        Video.from_path_or_file_like.assert_called_once_with(
+            movie_file, mime_type
+        )
+        assert video is video_
+
+    def it_knows_the_media_rId_to_help(self, media_rId_fixture):
+        movie_pic_element_creator, expected_value = media_rId_fixture
+        assert movie_pic_element_creator._media_rId == expected_value
+
+    def it_knows_the_video_rId_to_help(self, video_rId_fixture):
+        movie_pic_element_creator, expected_value = video_rId_fixture
+        assert movie_pic_element_creator._video_rId == expected_value
+
+    def it_adds_the_poster_frame_image_to_help(self, pfrm_rId_fixture):
+        movie_pic_element_creator, slide_part_ = pfrm_rId_fixture[:2]
+        poster_frame_image_file, expected_value = pfrm_rId_fixture[2:]
+
+        poster_frame_rId = movie_pic_element_creator._poster_frame_rId
+
+        slide_part_.get_or_add_image_part.assert_called_once_with(
+            poster_frame_image_file
+        )
+        assert poster_frame_rId == expected_value
+
+    def it_gets_the_poster_frame_image_file_to_help(self, pfrm_img_fixture):
+        movie_pic_element_creator, BytesIO_ = pfrm_img_fixture[:2]
+        calls, expected_value = pfrm_img_fixture[2:]
+        image_file = movie_pic_element_creator._poster_frame_image_file
+        assert BytesIO_.call_args_list == calls
+        assert image_file == expected_value
+
+    def it_gets_the_video_part_rIds_to_help(self, part_rIds_fixture):
+        movie_pic_element_creator, slide_part_ = part_rIds_fixture[:2]
+        video_, media_rId, video_rId = part_rIds_fixture[2:]
+
+        result = movie_pic_element_creator._video_part_rIds
+
+        slide_part_.get_or_add_video_media_part.assert_called_once_with(
+            video_
+        )
+        assert result == (media_rId, video_rId)
+
+    def it_gets_the_slide_part_to_help(self, slide_part_fixture):
+        movie_pic_element_creator, slide_part_ = slide_part_fixture
+        slide_part = movie_pic_element_creator._slide_part
+        assert slide_part is slide_part_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def media_rId_fixture(self, _video_part_rIds_prop_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+        expected_value = 'rId24'
+        _video_part_rIds_prop_.return_value = (expected_value, 'rId666')
+        return movie_pic_element_creator, expected_value
+
+    @pytest.fixture
+    def movie_pic_fixture(self, shapes_, _MoviePicElementCreator_init_,
+                          _pic_prop_, pic_):
+        shape_id, movie_file, x, y, cx, cy = 42, 'movie.mp4', 1, 2, 3, 4
+        poster_frame_image, mime_type = 'image.png', 'video/mp4'
+        return (
+            shapes_, shape_id, movie_file, x, y, cx, cy, poster_frame_image,
+            mime_type, _MoviePicElementCreator_init_, _pic_prop_, pic_
+        )
+
+    @pytest.fixture
+    def part_rIds_fixture(self, slide_part_, video_, _slide_part_prop_,
+                          _video_prop_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+        media_rId, video_rId = 'rId42', 'rId24'
+        _slide_part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_video_media_part.return_value = (
+            media_rId, video_rId
+        )
+        _video_prop_.return_value = video_
+        return (
+            movie_pic_element_creator, slide_part_, video_, media_rId,
+            video_rId
+        )
+
+    @pytest.fixture(params=[
+        'image.png',
+        None,
+    ])
+    def pfrm_img_fixture(self, request, BytesIO_, stream_):
+        poster_frame_file = request.param
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, poster_frame_file, None
+        )
+        if poster_frame_file is None:
+            calls = [call(SPEAKER_IMAGE_BYTES)]
+            BytesIO_.return_value = stream_
+            expected_value = stream_
+        else:
+            calls = []
+            expected_value = poster_frame_file
+        return movie_pic_element_creator, BytesIO_, calls, expected_value
+
+    @pytest.fixture
+    def pfrm_rId_fixture(self, _slide_part_prop_, slide_part_,
+                         _poster_frame_image_file_prop_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+        poster_frame_image_file, expected_value = 'image.png', 'rId42'
+        _slide_part_prop_.return_value = slide_part_
+        _poster_frame_image_file_prop_.return_value = poster_frame_image_file
+        slide_part_.get_or_add_image_part.return_value = (
+            None, expected_value
+        )
+        return (
+            movie_pic_element_creator, slide_part_, poster_frame_image_file,
+            expected_value
+        )
+
+    @pytest.fixture
+    def pic_fixture(self, new_video_pic_, pic_, _shape_name_prop_,
+                    _video_rId_prop_, _media_rId_prop_,
+                    _poster_frame_rId_prop_):
+        shape_id, x, y, cx, cy = 42, 1, 2, 3, 4
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, shape_id, None, x, y, cx, cy, None, None
+        )
+        _shape_name_prop_.return_value = shape_name = 'movie.mp4'
+        _video_rId_prop_.return_value = video_rId = 'rId1'
+        _media_rId_prop_.return_value = media_rId = 'rId2',
+        _poster_frame_rId_prop_.return_value = poster_frame_rId = 'rId3'
+        new_video_pic_.return_value = pic_
+        return (
+            movie_pic_element_creator, new_video_pic_, shape_id, shape_name,
+            video_rId, media_rId, poster_frame_rId, x, y, cx, cy, pic_
+        )
+
+    @pytest.fixture
+    def shape_name_fixture(self, _video_prop_, video_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+        _video_prop_.return_value = video_
+        video_.filename = filename = 'movie.mp4'
+        return movie_pic_element_creator, filename
+
+    @pytest.fixture
+    def slide_part_fixture(self, shapes_, slide_part_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            shapes_, None, None, None, None, None, None, None, None
+        )
+        shapes_.part = slide_part_
+        return movie_pic_element_creator, slide_part_
+
+    @pytest.fixture
+    def video_rId_fixture(self, _video_part_rIds_prop_):
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+        expected_value = 'rId42'
+        _video_part_rIds_prop_.return_value = ('rId666', expected_value)
+        return movie_pic_element_creator, expected_value
+
+    @pytest.fixture
+    def video_fixture(self, video_, from_path_or_file_like_):
+        movie_file, mime_type = 'movie.mp4', 'video/mp4'
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, movie_file, None, None, None, None, None, mime_type
+        )
+        from_path_or_file_like_.return_value = video_
+        return movie_pic_element_creator, movie_file, mime_type, video_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def BytesIO_(self, request):
+        return class_mock(request, 'pptx.shapes.shapetree.BytesIO')
+
+    @pytest.fixture
+    def from_path_or_file_like_(self, request):
+        return method_mock(request, Video, 'from_path_or_file_like')
+
+    @pytest.fixture
+    def _media_rId_prop_(self, request):
+        return property_mock(request, _MoviePicElementCreator, '_media_rId')
+
+    @pytest.fixture
+    def _MoviePicElementCreator_init_(self, request):
+        return initializer_mock(
+            request, _MoviePicElementCreator, autospec=True
+        )
+
+    @pytest.fixture
+    def new_video_pic_(self, request):
+        return method_mock(request, CT_Picture, 'new_video_pic')
+
+    @pytest.fixture
+    def pic_(self):
+        return element('p:pic')
+
+    @pytest.fixture
+    def _pic_prop_(self, request, pic_):
+        return property_mock(
+            request, _MoviePicElementCreator, '_pic', return_value=pic_
+        )
+
+    @pytest.fixture
+    def _poster_frame_image_file_prop_(self, request):
+        return property_mock(
+            request, _MoviePicElementCreator, '_poster_frame_image_file'
+        )
+
+    @pytest.fixture
+    def _poster_frame_rId_prop_(self, request):
+        return property_mock(
+            request, _MoviePicElementCreator, '_poster_frame_rId'
+        )
+
+    @pytest.fixture
+    def _shape_name_prop_(self, request):
+        return property_mock(request, _MoviePicElementCreator, '_shape_name')
+
+    @pytest.fixture
+    def shapes_(self, request):
+        return instance_mock(request, _BaseShapes)
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
+
+    @pytest.fixture
+    def _slide_part_prop_(self, request):
+        return property_mock(request, _MoviePicElementCreator, '_slide_part')
+
+    @pytest.fixture
+    def stream_(self, request):
+        return instance_mock(request, BytesIO)
+
+    @pytest.fixture
+    def video_(self, request):
+        return instance_mock(request, Video)
+
+    @pytest.fixture
+    def _video_prop_(self, request):
+        return property_mock(request, _MoviePicElementCreator, '_video')
+
+    @pytest.fixture
+    def _video_rId_prop_(self, request):
+        return property_mock(request, _MoviePicElementCreator, '_video_rId')
+
+    @pytest.fixture
+    def _video_part_rIds_prop_(self, request):
+        return property_mock(
+            request, _MoviePicElementCreator, '_video_part_rIds'
+        )
 
 
 class Describe_NotesSlideShapeFactory(object):

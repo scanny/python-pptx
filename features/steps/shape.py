@@ -6,6 +6,8 @@ Gherkin step implementations for shape-related features.
 
 from __future__ import absolute_import, print_function
 
+import hashlib
+
 from behave import given, when, then
 
 from pptx import Presentation
@@ -13,11 +15,15 @@ from pptx.chart.chart import Chart
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
-from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE
+from pptx.enum.shapes import (
+    MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+)
 from pptx.action import ActionSetting
 from pptx.util import Emu, Inches
 
-from helpers import cls_qname, saved_pptx_path, test_pptx, test_text
+from helpers import (
+    cls_qname, saved_pptx_path, test_file, test_pptx, test_text
+)
 
 
 # given ===================================================
@@ -85,6 +91,12 @@ def given_a_group_shape(context):
     context.shape = sld.shapes[3]
 
 
+@given('a movie shape')
+def given_a_movie_shape(context):
+    prs = Presentation(test_pptx('shp-movie-props'))
+    context.movie = prs.slides[0].shapes[0]
+
+
 @given('a picture')
 def given_a_picture(context):
     prs = Presentation(test_pptx('shp-common-props'))
@@ -116,6 +128,17 @@ def given_a_shape(context):
 @given('a SlideShapes object')
 def given_a_SlideShapes_object(context):
     prs = Presentation(test_pptx('shp-shape-access'))
+    context.shapes = prs.slides[0].shapes
+
+
+@given('a SlideShapes object containing {a_or_no} movies')
+def given_a_SlideShapes_object_containing_a_or_no_movies(context, a_or_no):
+    pptx = {
+        'one or more': 'shp-movie-props',
+        'no':          'shp-shape-access',
+    }[a_or_no]
+    prs = Presentation(test_pptx(pptx))
+    context.prs = prs
     context.shapes = prs.slides[0].shapes
 
 
@@ -258,6 +281,16 @@ def when_I_call_shapes_add_connector(context):
     )
 
 
+@when('I call shapes.add_movie(file, x, y, cx, cy, poster_frame)')
+def when_I_call_shapes_add_movie(context):
+    shapes = context.shapes
+    x, y, cx, cy = Emu(2590800), Emu(571500), Emu(3962400), Emu(5715000)
+    context.movie = shapes.add_movie(
+        test_file('just-two-mice.mp4'), x, y, cx, cy,
+        test_file('just-two-mice.png')
+    )
+
+
 @when("I change the left and top of the {shape_type}")
 def when_I_change_the_position_of_the_shape(context, shape_type):
     left, top = {
@@ -371,10 +404,117 @@ def then_connector_end_y_is_an_Emu_object_with_value_y(context, y):
     assert end_y == int(y)
 
 
+@then('movie is a Movie object')
+def then_movie_is_a_Movie_object(context):
+    class_name = context.movie.__class__.__name__
+    assert class_name == 'Movie', 'got %s' % class_name
+
+
+@then("movie.left, movie.top == x, y")
+def then_movie_left_movie_top_eq_x_y(context):
+    movie = context.movie
+    position = movie.left, movie.top
+    assert position == (Emu(2590800), Emu(571500)), 'got %s' % position
+
+
+@then('movie.media_format is a _MediaFormat object')
+def then_movie_media_format_is_a_MediaFormat_object(context):
+    class_name = context.movie.media_format.__class__.__name__
+    assert class_name == '_MediaFormat', 'got %s' % class_name
+
+
+@then('movie.media_type is PP_MEDIA_TYPE.MOVIE')
+def then_movie_media_type_is_PP_MEDIA_TYPE_MOVIE(context):
+    media_type = context.movie.media_type
+    assert media_type == PP_MEDIA_TYPE.MOVIE, 'got %s' % media_type
+
+
+@then("movie.poster_frame is the same image as poster_frame")
+def then_movie_poster_frame_is_the_same_image_as_poster_frame(context):
+    actual_sha1 = context.movie.poster_frame.sha1
+    with open(test_file('just-two-mice.png'), 'rb') as f:
+        expected_sha1 = hashlib.sha1(f.read()).hexdigest()
+    assert actual_sha1 == expected_sha1, 'not the same image'
+
+
+@then('movie.shape_type is MSO_SHAPE_TYPE.MEDIA')
+def then_movie_shape_type_is_MSO_SHAPE_TYPE_MEDIA(context):
+    shape_type = context.movie.shape_type
+    assert shape_type == MSO_SHAPE_TYPE.MEDIA, 'got %s' % shape_type
+
+
+@then("movie.width, movie.height == cx, cy")
+def then_movie_width_movie_height_eq_cx_cy(context):
+    movie = context.movie
+    size = movie.width, movie.height
+    assert size == (Emu(3962400), Emu(5715000)), 'got %s' % size
+
+
 @then('shape.adjustments[0] is 0.15')
 def then_shape_adjustments_is_value(context):
     shape = context.shape
     assert shape.adjustments[0] == 0.15
+
+
+@then("shape.click_action is an ActionSetting object")
+def then_shape_click_action_is_an_ActionSetting_object(context):
+    assert isinstance(context.shape.click_action, ActionSetting)
+
+
+@then('shape.has_text_frame is {value_str}')
+def then_shape_has_text_frame_is(context, value_str):
+    expected_value = {'True': True, 'False': False}[value_str]
+    has_text_frame = context.shape.has_text_frame
+    assert has_text_frame is expected_value, 'got %s' % has_text_frame
+
+
+@then('shape.line is a LineFormat object')
+def then_shape_line_is_a_LineFormat_object(context):
+    shape = context.shape
+    line_format = shape.line
+    line_format_cls_name = cls_qname(line_format)
+    expected_cls_name = 'pptx.dml.line.LineFormat'
+    assert line_format_cls_name == expected_cls_name, (
+        "expected '%s', got '%s'" % (expected_cls_name, line_format_cls_name)
+    )
+
+
+@then("shape.name is '{expected_value}'")
+def then_shape_name_is_value(context, expected_value):
+    shape = context.shape
+    msg = "expected shape name '%s', got '%s'" % (shape.name, expected_value)
+    assert shape.name == expected_value, msg
+
+
+@then('shape.part is the SlidePart of the shape')
+def then_shape_part_is_the_SlidePart_of_the_shape(context):
+    assert context.shape.part is context.slide.part
+
+
+@then("shape.rotation is {value}")
+def then_shape_rotation_is_value(context, value):
+    shape = context.shape
+    expected_value = float(value)
+    assert shape.rotation == expected_value, 'got %s' % expected_value
+
+
+@then('shape.shape_id == {value_str}')
+def then_shape_shape_id_equals(context, value_str):
+    expected_value = int(value_str)
+    shape_id = context.shape.shape_id
+    assert shape_id == expected_value, 'got %s' % shape_id
+
+
+@then('shape.text is the string I assigned')
+def then_shape_text_is_the_string_I_assigned(context):
+    shape = context.shape
+    assert shape.text == u'F\xf8o\nBar'
+
+
+@then('shape.text is the text in the shape')
+def then_shape_text_is_the_text_in_the_shape(context):
+    shape = context.shape
+    assert shape.text == u'Fee Fi\nF\xf8\xf8 Fum\nI am a shape\nwith textium'
 
 
 @then('the auto shape appears in the slide')
@@ -406,74 +546,6 @@ def then_fore_color_is_RGB_value_I_set(context):
 def then_fore_color_is_theme_color_I_set(context):
     fore_color = context.shape.fill.fore_color
     assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
-
-
-@then('I can access the line format of the shape')
-def then_I_can_access_the_line_format_of_the_shape(context):
-    shape = context.shape
-    line_format = shape.line
-    line_format_cls_name = cls_qname(line_format)
-    expected_cls_name = 'pptx.dml.line.LineFormat'
-    assert line_format_cls_name == expected_cls_name, (
-        "expected '%s', got '%s'" % (expected_cls_name, line_format_cls_name)
-    )
-
-
-@then('I can access the slide part from the shape')
-def then_I_can_access_the_slide_part_from_the_shape(context):
-    assert context.shape.part is context.slide.part
-
-
-@then('I can determine the shape {has_text_frame_status}')
-def then_the_shape_has_text_frame_status(context, has_text_frame_status):
-    has_text_frame = {
-        'has a text frame':  True,
-        'has no text frame': False,
-    }[has_text_frame_status]
-    assert context.shape.has_text_frame is has_text_frame
-
-
-@then('I can get the id of the {shape_type}')
-def then_I_can_get_the_id_of_the_shape(context, shape_type):
-    expected_id = {
-        'shape':         2,
-        'picture':       3,
-        'graphic frame': 4,
-        'group shape':   9,
-        'connector':    11,
-    }[shape_type]
-    assert context.shape.id == expected_id
-
-
-@then("shape.click_action is an ActionSetting object")
-def then_shape_click_action_is_an_ActionSetting_object(context):
-    assert isinstance(context.shape.click_action, ActionSetting)
-
-
-@then("shape.name is '{expected_value}'")
-def then_shape_name_is_value(context, expected_value):
-    shape = context.shape
-    msg = "expected shape name '%s', got '%s'" % (shape.name, expected_value)
-    assert shape.name == expected_value, msg
-
-
-@then("shape.rotation is {value}")
-def then_shape_rotation_is_value(context, value):
-    shape = context.shape
-    expected_value = float(value)
-    assert shape.rotation == expected_value, 'got %s' % expected_value
-
-
-@then('shape.text is the string I assigned')
-def then_shape_text_is_the_string_I_assigned(context):
-    shape = context.shape
-    assert shape.text == u'F\xf8o\nBar'
-
-
-@then('shape.text is the text in the shape')
-def then_shape_text_is_the_text_in_the_shape(context):
-    shape = context.shape
-    assert shape.text == u'Fee Fi\nF\xf8\xf8 Fum\nI am a shape\nwith textium'
 
 
 @then('the chart is a Chart object')

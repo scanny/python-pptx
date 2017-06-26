@@ -40,14 +40,15 @@ shapes. There are two types of geometric shapes, preset geometry shapes and
 custom geometry shapes.
 
 
-``Shape.id`` and ``Shape.name``
--------------------------------
+``Shape.shape_id`` and ``Shape.name``
+-------------------------------------
 
-``Shape.id`` is read-only and is assigned by python-pptx when necessary.
+``Shape.shape_id`` is read-only and is assigned by python-pptx when
+necessary.
 
 Proposed protocol::
 
-  >>> shape.id
+  >>> shape.shape_id
   42
   >>> shape.name
   u'Picture 5'
