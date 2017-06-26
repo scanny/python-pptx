@@ -308,27 +308,27 @@ def then_series_collection_2_is_a_Series_object(context):
     assert type_name.endswith('Series'), 'got %s' % type_name
 
 
-@then('series.fill.fore_color.rgb is FF6600')
-def then_series_fill_fore_color_rgb_is_FF6600(context):
-    fill = context.series.fill
-    assert fill.fore_color.rgb == RGBColor(0xFF, 0x66, 0x00)
+@then('series.format.fill.fore_color.rgb is FF6600')
+def then_series_format_fill_fore_color_rgb_is_FF6600(context):
+    rgb_color = context.series.format.fill.fore_color.rgb
+    assert rgb_color == RGBColor(0xFF, 0x66, 0x00), 'got %s' % rgb_color
 
 
-@then('series.fill.fore_color.theme_color is Accent 1')
-def then_series_fill_fore_color_theme_color_is_Accent_1(context):
-    fill = context.series.fill
-    assert fill.fore_color.theme_color == MSO_THEME_COLOR.ACCENT_1
+@then('series.format.fill.fore_color.theme_color is Accent 1')
+def then_series_format_fill_fore_color_theme_color_is_Accent_1(context):
+    theme_color = context.series.format.fill.fore_color.theme_color
+    assert theme_color == MSO_THEME_COLOR.ACCENT_1, 'got %s' % theme_color
 
 
-@then('series.fill.type is {fill_type}')
-def then_series_fill_type_is_type(context, fill_type):
+@then('series.format.fill.type is {fill_type}')
+def then_series_format_fill_type_is_type(context, fill_type):
     expected_fill_type = {
         'None':                     None,
         'MSO_FILL_TYPE.BACKGROUND': MSO_FILL_TYPE.BACKGROUND,
         'MSO_FILL_TYPE.SOLID':      MSO_FILL_TYPE.SOLID,
     }[fill_type]
-    fill = context.series.fill
-    assert fill.type == expected_fill_type
+    fill_type = context.series.format.fill.type
+    assert fill_type == expected_fill_type, 'got %s' % fill_type
 
 
 @then('series.invert_if_negative is {value}')
@@ -341,11 +341,11 @@ def then_series_invert_if_negative_is_value(context, value):
     assert series.invert_if_negative is expected_value
 
 
-@then('series.line.width is {width}')
-def then_series_line_width_is_width(context, width):
+@then('series.format.line.width is {width}')
+def then_series_format_line_width_is_width(context, width):
     expected_width = int(width)
-    line = context.series.line
-    assert line.width == expected_width
+    line_width = context.series.format.line.width
+    assert line_width == expected_width, 'got %s' % line_width
 
 
 @then('series.format is a ChartFormat object')

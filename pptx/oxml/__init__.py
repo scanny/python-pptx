@@ -153,7 +153,7 @@ register_element_cls('c:crossesAt',        CT_Double)
 register_element_cls('c:date1904',         CT_Boolean)
 register_element_cls('c:delete',           CT_Boolean)
 register_element_cls('c:idx',              CT_UnsignedInt)
-register_element_cls('c:invertIfNegative', CT_Boolean)
+register_element_cls('c:invertIfNegative', CT_Boolean_Explicit)
 register_element_cls('c:layout',           CT_Layout)
 register_element_cls('c:manualLayout',     CT_ManualLayout)
 register_element_cls('c:max',              CT_Double)
@@ -298,8 +298,9 @@ register_element_cls('a:tr',      CT_TableRow)
 from .slide import (
     CT_CommonSlideData, CT_NotesMaster, CT_NotesSlide, CT_Slide,
     CT_SlideLayout, CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry,
-    CT_SlideMaster
+    CT_SlideMaster, CT_SlideTiming, CT_TimeNodeList, CT_TLMediaNodeVideo
 )
+register_element_cls('p:childTnLst',     CT_TimeNodeList)
 register_element_cls('p:cSld',           CT_CommonSlideData)
 register_element_cls('p:notes',          CT_NotesSlide)
 register_element_cls('p:notesMaster',    CT_NotesMaster)
@@ -308,6 +309,8 @@ register_element_cls('p:sldLayout',      CT_SlideLayout)
 register_element_cls('p:sldLayoutId',    CT_SlideLayoutIdListEntry)
 register_element_cls('p:sldLayoutIdLst', CT_SlideLayoutIdList)
 register_element_cls('p:sldMaster',      CT_SlideMaster)
+register_element_cls('p:timing',         CT_SlideTiming)
+register_element_cls('p:video',          CT_TLMediaNodeVideo)
 
 
 from .text import (

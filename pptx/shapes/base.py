@@ -8,8 +8,6 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from warnings import warn
-
 from ..action import ActionSetting
 from ..shared import ElementProxy
 from ..util import lazyproperty
@@ -84,17 +82,6 @@ class BaseShape(object):
     @height.setter
     def height(self, value):
         self._element.cy = value
-
-    @property
-    def id(self):
-        """**DEPRECATED**. Use `.shape_id` instead."""
-        msg = (
-            'BaseShape.id property is deprecated and will be removed in a fu'
-            'ture release. Use .shape_id instead.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-
-        return self.shape_id
 
     @property
     def is_placeholder(self):

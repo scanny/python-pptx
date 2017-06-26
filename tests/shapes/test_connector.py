@@ -196,7 +196,7 @@ class DescribeConnector(object):
         cxnSp_cxml, expected_cxml = request.param
         cxnSp = element(cxnSp_cxml)
         connector = Connector(cxnSp, None)
-        shape_.id, cxn_idx = 42, 3
+        shape_.shape_id, cxn_idx = 42, 3
         expected_xml = xml(expected_cxml)
         return connector, shape_, cxn_idx, expected_xml
 
@@ -210,7 +210,7 @@ class DescribeConnector(object):
         cxnSp_cxml, expected_cxml = request.param
         cxnSp = element(cxnSp_cxml)
         connector = Connector(cxnSp, None)
-        shape_.id, cxn_idx = 24, 2
+        shape_.shape_id, cxn_idx = 24, 2
         expected_xml = xml(expected_cxml)
         return connector, shape_, cxn_idx, expected_xml
 

@@ -832,6 +832,40 @@ class MSO_SHAPE_TYPE(Enumeration):
     )
 
 
+class PP_MEDIA_TYPE(Enumeration):
+    """
+    Indicates the OLE media type.
+
+    Example::
+
+        from pptx.enum.shapes import PP_MEDIA_TYPE
+
+        movie = slide.shapes[0]
+        assert movie.media_type == PP_MEDIA_TYPE.MOVIE
+    """
+
+    __ms_name__ = 'PpMediaType'
+
+    __url__ = 'https://msdn.microsoft.com/en-us/library/office/ff746008.aspx'
+
+    __members__ = (
+        EnumMember(
+            'MOVIE', 3, 'Video media such as MP4.'
+        ),
+        EnumMember(
+            'OTHER', 1, 'Other media types'
+        ),
+        EnumMember(
+            'SOUND', 1, 'Audio media such as MP3.'
+        ),
+        ReturnValueOnlyEnumMember(
+            'MIXED', -2, 'Return value only; indicates multiple media types,'
+            ' typically for a collection of shapes. May not be applicable in'
+            ' python-pptx.'
+        ),
+    )
+
+
 @alias('PP_PLACEHOLDER')
 class PP_PLACEHOLDER_TYPE(XmlEnumeration):
     """

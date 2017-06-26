@@ -7,10 +7,6 @@ and Open XML.
 
 from __future__ import absolute_import, division, print_function
 
-import platform
-
-from warnings import warn
-
 
 class Length(int):
     """
@@ -23,7 +19,6 @@ class Length(int):
     _EMUS_PER_CM = 360000
     _EMUS_PER_MM = 36000
     _EMUS_PER_PT = 12700
-    _EMUS_PER_PX = 9525 if platform.system() == 'Windows' else 12700
 
     def __new__(cls, emu):
         return int.__new__(cls, emu)
@@ -70,23 +65,6 @@ class Length(int):
         Floating point length in points
         """
         return self / float(self._EMUS_PER_PT)
-
-    @property
-    def px(self):
-        """
-        Integer length in pixels. Note this value is platform dependent,
-        using 96 pixels/inch on Windows, 72 pixels/inch on all other
-        platforms.
-        """
-        msg = (
-            'Length.px property is deprecated and will be removed in a futur'
-            'e release.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-
-        # round can somtimes return values like x.999999 which are truncated
-        # to x by int(); adding the 0.1 prevents this
-        return int(round(self / float(self._EMUS_PER_PX)) + 0.1)
 
 
 class Inches(Length):
@@ -139,23 +117,6 @@ class Pt(Length):
     """
     def __new__(cls, points):
         emu = int(points * Length._EMUS_PER_PT)
-        return Length.__new__(cls, emu)
-
-
-class Px(Length):
-    """
-    Convenience constructor for length in pixels
-    """
-    def __new__(cls, px):
-        """
-        Deprecated. Use one of the other Length classes.
-        """
-        msg = (
-            'Px class is deprecated and will be removed in a future release.'
-        )
-        warn(msg, UserWarning, stacklevel=2)
-
-        emu = int(px * Length._EMUS_PER_PX)
         return Length.__new__(cls, emu)
 
 

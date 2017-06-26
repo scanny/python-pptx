@@ -10,31 +10,43 @@ from __future__ import (
 
 from .autoshape import AutoShapeType, Shape
 from .base import BaseShape
+from ..compat import BytesIO
 from .connector import Connector
 from ..enum.shapes import PP_PLACEHOLDER
 from .graphfrm import GraphicFrame
+from ..media import SPEAKER_IMAGE_BYTES, Video
+from ..opc.constants import CONTENT_TYPE as CT
 from ..oxml.ns import qn
 from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
+from ..oxml.shapes.picture import CT_Picture
 from ..oxml.simpletypes import ST_Direction
-from .picture import Picture
+from .picture import Movie, Picture
 from .placeholder import (
     ChartPlaceholder, LayoutPlaceholder, MasterPlaceholder,
     NotesSlidePlaceholder, PicturePlaceholder, PlaceholderGraphicFrame,
     PlaceholderPicture, SlidePlaceholder, TablePlaceholder
 )
 from ..shared import ParentedElementProxy
+from ..util import lazyproperty
 
 
 def BaseShapeFactory(shape_elm, parent):
     """
     Return an instance of the appropriate shape proxy class for *shape_elm*.
     """
+    tag = shape_elm.tag
+
+    if tag == qn('p:pic'):
+        videoFiles = shape_elm.xpath('./p:nvPicPr/p:nvPr/a:videoFile')
+        if videoFiles:
+            return Movie(shape_elm, parent)
+        return Picture(shape_elm, parent)
+
     shape_cls = {
         qn('p:cxnSp'):        Connector,
         qn('p:sp'):           Shape,
-        qn('p:pic'):          Picture,
         qn('p:graphicFrame'): GraphicFrame,
-    }.get(shape_elm.tag, BaseShape)
+    }.get(tag, BaseShape)
 
     return shape_cls(shape_elm, parent)
 
@@ -158,11 +170,12 @@ class _BaseShapes(ParentedElementProxy):
 
     @property
     def _next_shape_id(self):
-        """
-        Next available positive integer drawing object id in shape tree,
-        starting from 1 and making use of any gaps in numbering. In practice,
-        the minimum id is 2 because the spTree element is always assigned
-        id="1".
+        """Return a unique shape id suitable for use with a new shape.
+
+        The returned id is the next available positive integer drawing object
+        id in shape tree, starting from 1 and making use of any gaps in
+        numbering. In practice, the minimum id is 2 because the spTree
+        element is always assigned id="1".
         """
         id_str_lst = self._spTree.xpath('//@id')
         used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
@@ -412,11 +425,12 @@ def SlideShapeFactory(shape_elm, parent):
 
 
 class SlideShapes(_BaseShapes):
+    """Sequence of shapes appearing on a slide.
+
+    The first shape in the sequence is the backmost in z-order and the last
+    shape is topmost. Supports indexed access, len(), index(), and iteration.
     """
-    Sequence of shapes appearing on a slide. The first shape in the sequence
-    is the backmost in z-order and the last shape is topmost. Supports indexed
-    access, len(), index(), and iteration.
-    """
+
     def add_chart(self, chart_type, x, y, cx, cy, chart_data):
         """
         Add a new chart of *chart_type* to the slide, positioned at (*x*,
@@ -444,6 +458,35 @@ class SlideShapes(_BaseShapes):
             connector_type, begin_x, begin_y, end_x, end_y
         )
         return self._shape_factory(cxnSp)
+
+    def add_movie(self, movie_file, left, top, width, height,
+                  poster_frame_image=None, mime_type=CT.VIDEO):
+        """Return newly added movie shape displaying video in *movie_file*.
+
+        **EXPERIMENTAL.** This method has important limitations:
+
+        * The size must be specified; no auto-scaling such as that provided
+          by :meth:`add_picture` is performed.
+        * The MIME type of the video file should be specified, e.g.
+          'video/mp4'. The provided video file is not interrogated for its
+          type. The MIME type `video/unknown` is used by default (and works
+          fine in tests as of this writing).
+        * A poster frame image must be provided, it cannot be automatically
+          extracted from the video file. If no poster frame is provided, the
+          default "media loudspeaker" image will be used.
+
+        Return a newly added movie shape to the slide, positioned at (*left*,
+        *top*), having size (*width*, *height*), and containing *movie_file*.
+        Before the video is started, *poster_frame_image* is displayed as
+        a placeholder for the video.
+        """
+        movie_pic = _MoviePicElementCreator.new_movie_pic(
+            self, self._next_shape_id, movie_file, left, top, width, height,
+            poster_frame_image, mime_type
+        )
+        self._spTree.append(movie_pic)
+        self._add_video_timing(movie_pic)
+        return self._shape_factory(movie_pic)
 
     def add_picture(self, image_file, left, top, width=None, height=None):
         """
@@ -622,9 +665,138 @@ class SlideShapes(_BaseShapes):
         sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
         return sp
 
+    def _add_video_timing(self, pic):
+        """Add a `p:video` element under `p:sld/p:timing`.
+
+        The element will refer to the specified *pic* element by its shape
+        id, and cause the video play controls to appear for that video.
+        """
+        sld = self._spTree.xpath('/p:sld')[0]
+        childTnLst = sld.get_or_add_childTnLst()
+        childTnLst.add_video(pic.shape_id)
+
     def _shape_factory(self, shape_elm):
         """
         Return an instance of the appropriate shape proxy class for
         *shape_elm*.
         """
         return SlideShapeFactory(shape_elm, self)
+
+
+class _MoviePicElementCreator(object):
+    """Functional service object for creating a new movie p:pic element.
+
+    It's entire external interface is its :meth:`new_movie_pic` class method
+    that returns a new `p:pic` element containing the specified video. This
+    class is not intended to be constructed or an instance of it retained by
+    the caller; it is a "one-shot" object, really a function wrapped in
+    a object such that its helper methods can be organized here.
+    """
+
+    def __init__(self, shapes, shape_id, movie_file, x, y, cx, cy,
+                 poster_frame_file, mime_type):
+        super(_MoviePicElementCreator, self).__init__()
+        self._shapes = shapes
+        self._shape_id = shape_id
+        self._movie_file = movie_file
+        self._x, self._y, self._cx, self._cy = x, y, cx, cy
+        self._poster_frame_file = poster_frame_file
+        self._mime_type = mime_type
+
+    @classmethod
+    def new_movie_pic(cls, shapes, shape_id, movie_file, x, y, cx, cy,
+                      poster_frame_image, mime_type):
+        """Return a new `p:pic` element containing video in *movie_file*.
+
+        If *mime_type* is None, 'video/unknown' is used. If
+        *poster_frame_file* is None, the default "media loudspeaker" image is
+        used.
+        """
+        return cls(
+            shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_image,
+            mime_type
+        )._pic
+        return
+
+    @property
+    def _media_rId(self):
+        """Return the rId of RT.MEDIA relationship to video part.
+
+        For historical reasons, there are two relationships to the same part;
+        one is the video rId and the other is the media rId.
+        """
+        return self._video_part_rIds[0]
+
+    @lazyproperty
+    def _pic(self):
+        """Return the new `p:pic` element referencing the video."""
+        return CT_Picture.new_video_pic(
+            self._shape_id, self._shape_name, self._video_rId,
+            self._media_rId, self._poster_frame_rId, self._x, self._y,
+            self._cx, self._cy
+        )
+
+    @lazyproperty
+    def _poster_frame_image_file(self):
+        """Return the image file for video placeholder image.
+
+        If no poster frame file is provided, the default "media loudspeaker"
+        image is used.
+        """
+        poster_frame_file = self._poster_frame_file
+        if poster_frame_file is None:
+            return BytesIO(SPEAKER_IMAGE_BYTES)
+        return poster_frame_file
+
+    @lazyproperty
+    def _poster_frame_rId(self):
+        """Return the rId of relationship to poster frame image.
+
+        The poster frame is the image used to represent the video before it's
+        played.
+        """
+        _, poster_frame_rId = self._slide_part.get_or_add_image_part(
+            self._poster_frame_image_file
+        )
+        return poster_frame_rId
+
+    @property
+    def _shape_name(self):
+        """Return the appropriate shape name for the p:pic shape.
+
+        A movie shape is named with the base filename of the video.
+        """
+        return self._video.filename
+
+    @property
+    def _slide_part(self):
+        """Return SlidePart object for slide containing this movie."""
+        return self._shapes.part
+
+    @lazyproperty
+    def _video(self):
+        """Return a |Video| object containing the movie file."""
+        return Video.from_path_or_file_like(
+            self._movie_file, self._mime_type
+        )
+
+    @lazyproperty
+    def _video_part_rIds(self):
+        """Return the rIds for relationships to media part for video.
+
+        This is where the media part and its relationships to the slide are
+        actually created.
+        """
+        media_rId, video_rId = self._slide_part.get_or_add_video_media_part(
+            self._video
+        )
+        return media_rId, video_rId
+
+    @property
+    def _video_rId(self):
+        """Return the rId of RT.VIDEO relationship to video part.
+
+        For historical reasons, there are two relationships to the same part;
+        one is the video rId and the other is the media rId.
+        """
+        return self._video_part_rIds[1]

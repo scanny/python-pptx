@@ -25,14 +25,14 @@ class CT_Picture(BaseShapeElement):
 
     @property
     def blip_rId(self):
-        """
-        Value of `p:blipFill/a:blip/@r:embed`. Raises |ValueError| if not
-        present.
+        """Value of `p:blipFill/a:blip/@r:embed`.
+
+        Returns |None| if not present.
         """
         blip = self.blipFill.blip
         if blip is not None and blip.rEmbed is not None:
             return blip.rEmbed
-        raise ValueError('no embedded image')
+        return None
 
     def crop_to_fit(self, image_size, view_size):
         """
@@ -76,6 +76,17 @@ class CT_Picture(BaseShapeElement):
         )
         pic = parse_xml(xml)
         return pic
+
+    @classmethod
+    def new_video_pic(cls, shape_id, shape_name, video_rId, media_rId,
+                      poster_frame_rId, x, y, cx, cy):
+        """Return a new `p:pic` populated with the specified video."""
+        return parse_xml(
+            cls._pic_video_tmpl() % (
+                shape_id, shape_name, video_rId, media_rId, poster_frame_rId,
+                x, y, cx, cy
+            )
+        )
 
     @property
     def srcRect_b(self):
@@ -158,6 +169,45 @@ class CT_Picture(BaseShapeElement):
             '      <a:picLocks noChangeAspect="1"/>\n'
             '    </p:cNvPicPr>\n'
             '    <p:nvPr/>\n'
+            '  </p:nvPicPr>\n'
+            '  <p:blipFill>\n'
+            '    <a:blip r:embed="%%s"/>\n'
+            '    <a:stretch>\n'
+            '      <a:fillRect/>\n'
+            '    </a:stretch>\n'
+            '  </p:blipFill>\n'
+            '  <p:spPr>\n'
+            '    <a:xfrm>\n'
+            '      <a:off x="%%d" y="%%d"/>\n'
+            '      <a:ext cx="%%d" cy="%%d"/>\n'
+            '    </a:xfrm>\n'
+            '    <a:prstGeom prst="rect">\n'
+            '      <a:avLst/>\n'
+            '    </a:prstGeom>\n'
+            '  </p:spPr>\n'
+            '</p:pic>' % nsdecls('a', 'p', 'r')
+        )
+
+    @classmethod
+    def _pic_video_tmpl(cls):
+        return (
+            '<p:pic %s>\n'
+            '  <p:nvPicPr>\n'
+            '    <p:cNvPr id="%%d" name="%%s">\n'
+            '      <a:hlinkClick r:id="" action="ppaction://media"/>\n'
+            '    </p:cNvPr>\n'
+            '    <p:cNvPicPr>\n'
+            '      <a:picLocks noChangeAspect="1"/>\n'
+            '    </p:cNvPicPr>\n'
+            '    <p:nvPr>\n'
+            '      <a:videoFile r:link="%%s"/>\n'
+            '      <p:extLst>\n'
+            '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">\n'
+            '          <p14:media xmlns:p14="http://schemas.microsoft.com/of'
+            'fice/powerpoint/2010/main" r:embed="%%s"/>\n'
+            '        </p:ext>\n'
+            '      </p:extLst>\n'
+            '    </p:nvPr>\n'
             '  </p:nvPicPr>\n'
             '  <p:blipFill>\n'
             '    <a:blip r:embed="%%s"/>\n'
