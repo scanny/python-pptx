@@ -162,10 +162,10 @@ class CT_Picture(BaseShapeElement):
 
         if ar_view < ar_image:  # image too wide
             crop = (ar_view/ar_image - 1.0) / 2.0
-            return (crop, 0.0, crop, 0.0)
+            return (0.0, crop, 0.0, crop)
         if ar_view > ar_image:  # image too tall
             crop = (ar_image/ar_view - 1.0) / 2.0
-            return (0.0, crop, 0.0, crop)
+            return (crop, 0.0, crop, 0.0)
         return (0.0, 0.0, 0.0, 0.0)
 
     @classmethod
