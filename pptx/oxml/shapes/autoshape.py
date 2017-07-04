@@ -10,12 +10,30 @@ from .. import parse_xml
 from ...enum.shapes import MSO_AUTO_SHAPE_TYPE, PP_PLACEHOLDER
 from ..ns import nsdecls
 from .shared import BaseShapeElement
-from ..simpletypes import XsdBoolean, XsdString
+from ..simpletypes import (
+    ST_Coordinate, ST_PositiveCoordinate, XsdBoolean, XsdString
+)
 from ..text import CT_TextBody
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
     ZeroOrOne, ZeroOrMore
 )
+
+
+class CT_AdjPoint2D(BaseOxmlElement):
+    """`a:pt` custom element class."""
+
+    x = RequiredAttribute('x', ST_Coordinate)
+    y = RequiredAttribute('y', ST_Coordinate)
+
+
+class CT_CustomGeometry2D(BaseOxmlElement):
+    """`a:custGeom` custom element class."""
+
+    _tag_seq = (
+        'a:avLst', 'a:gdLst', 'a:ahLst', 'a:cxnLst', 'a:rect', 'a:pathLst'
+    )
+    pathLst = ZeroOrOne('a:pathLst', successors=_tag_seq[6:])
 
 
 class CT_GeomGuide(BaseOxmlElement):
@@ -40,6 +58,59 @@ class CT_NonVisualDrawingShapeProps(BaseShapeElement):
     """
     spLocks = ZeroOrOne('a:spLocks')
     txBox = OptionalAttribute('txBox', XsdBoolean)
+
+
+class CT_Path2D(BaseOxmlElement):
+    """`a:path` custom element class."""
+
+    moveTo = ZeroOrMore('a:moveTo', successors=())
+    lnTo = ZeroOrMore('a:lnTo', successors=())
+    w = OptionalAttribute('w', ST_PositiveCoordinate)
+    h = OptionalAttribute('h', ST_PositiveCoordinate)
+
+    def add_lnTo(self, x, y):
+        """Return a newly created `a:lnTo` subtree with end point *(x, y)*.
+
+        The new `a:lnTo` element is appended to this `a:pathLst` element.
+        """
+        lnTo = self._add_lnTo()
+        pt = lnTo._add_pt()
+        pt.x, pt.y = x, y
+        return lnTo
+
+    def add_moveTo(self, x, y):
+        """Return a newly created `a:moveTo` subtree with point *(x, y)*.
+
+        The new `a:moveTo` element is appended to this `a:pathLst` element.
+        """
+        moveTo = self._add_moveTo()
+        pt = moveTo._add_pt()
+        pt.x, pt.y = x, y
+        return moveTo
+
+
+class CT_Path2DLineTo(BaseOxmlElement):
+    """`a:lnTo` custom element class."""
+
+    pt = ZeroOrOne('a:pt', successors=())
+
+
+class CT_Path2DList(BaseOxmlElement):
+    """`a:pathLst` custom element class."""
+
+    path = ZeroOrMore('a:path', successors=())
+
+    def add_path(self, w, h):
+        """Return a newly created `a:path` child element."""
+        path = self._add_path()
+        path.w, path.h = w, h
+        return path
+
+
+class CT_Path2DMoveTo(BaseOxmlElement):
+    """`a:moveTo` custom element class."""
+
+    pt = ZeroOrOne('a:pt', successors=())
 
 
 class CT_PresetGeometry2D(BaseOxmlElement):
@@ -80,6 +151,11 @@ class CT_Shape(BaseShapeElement):
     nvSpPr = OneAndOnlyOne('p:nvSpPr')
     spPr = OneAndOnlyOne('p:spPr')
     txBody = ZeroOrOne('p:txBody', successors=('p:extLst',))
+
+    @property
+    def custGeom(self):
+        """Reference to `a:custGeom` descendant or |None| if not present."""
+        return self.spPr.custGeom
 
     def get_or_add_ln(self):
         """
@@ -126,6 +202,18 @@ class CT_Shape(BaseShapeElement):
         """
         tmpl = CT_Shape._autoshape_sp_tmpl()
         xml = tmpl % (id_, name, left, top, width, height, prst)
+        sp = parse_xml(xml)
+        return sp
+
+    @staticmethod
+    def new_freeform_sp(shape_id, name, x, y, cx, cy):
+        """Return new `p:sp` element tree configured as freeform shape.
+
+        The returned shape has a `a:custGeom` subtree but no paths in its
+        path list.
+        """
+        tmpl = CT_Shape._freeform_sp_tmpl()
+        xml = tmpl % (shape_id, name, x, y, cx, cy)
         sp = parse_xml(xml)
         return sp
 
@@ -227,6 +315,54 @@ class CT_Shape(BaseShapeElement):
             '  </p:txBody>\n'
             '</p:sp>' %
             (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d', '%s')
+        )
+
+    @staticmethod
+    def _freeform_sp_tmpl():
+        return (
+            '<p:sp %s>\n'
+            '  <p:nvSpPr>\n'
+            '    <p:cNvPr id="%s" name="%s"/>\n'
+            '    <p:cNvSpPr/>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvSpPr>\n'
+            '  <p:spPr>\n'
+            '    <a:xfrm>\n'
+            '      <a:off x="%s" y="%s"/>\n'
+            '      <a:ext cx="%s" cy="%s"/>\n'
+            '    </a:xfrm>\n'
+            '    <a:custGeom>\n'
+            '      <a:avLst/>\n'
+            '      <a:gdLst/>\n'
+            '      <a:ahLst/>\n'
+            '      <a:cxnLst/>\n'
+            '      <a:rect l="l" t="t" r="r" b="b"/>\n'
+            '      <a:pathLst/>\n'
+            '    </a:custGeom>\n'
+            '  </p:spPr>\n'
+            '  <p:style>\n'
+            '    <a:lnRef idx="1">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:lnRef>\n'
+            '    <a:fillRef idx="3">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:fillRef>\n'
+            '    <a:effectRef idx="2">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:effectRef>\n'
+            '    <a:fontRef idx="minor">\n'
+            '      <a:schemeClr val="lt1"/>\n'
+            '    </a:fontRef>\n'
+            '  </p:style>\n'
+            '  <p:txBody>\n'
+            '    <a:bodyPr rtlCol="0" anchor="ctr"/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr algn="ctr"/>\n'
+            '    </a:p>\n'
+            '  </p:txBody>\n'
+            '</p:sp>' %
+            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
         )
 
     def _new_txBody(self):

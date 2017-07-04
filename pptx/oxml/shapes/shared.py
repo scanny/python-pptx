@@ -284,26 +284,32 @@ class CT_PositiveSize2D(BaseOxmlElement):
 
 
 class CT_ShapeProperties(BaseOxmlElement):
+    """Custom element class for `p:spPr` element.
+
+    Shared by ``<p:sp>``, ``<p:pic>``, and ``<p:cxnSp>`` elements as well as
+    a few more obscure ones.
     """
-    Custom element class for <p:spPr> element. Shared by ``<p:sp>``,
-    ``<p:pic>``, and ``<p:cxnSp>`` elements as well as a few more obscure
-    ones.
-    """
-    xfrm = ZeroOrOne('a:xfrm', successors=(
-        'a:custGeom', 'a:prstGeom', 'a:ln', 'a:effectLst', 'a:effectDag',
-        'a:scene3d', 'a:sp3d', 'a:extLst'
-    ))
-    eg_fillProperties = ZeroOrOneChoice(
-        (Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
-         Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
-        successors=(
-            'a:ln', 'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:sp3d',
-            'a:extLst'
-        )
+
+    _tag_seq = (
+        'a:xfrm', 'a:custGeom', 'a:prstGeom', 'a:noFill', 'a:solidFill',
+        'a:gradFill', 'a:blipFill', 'a:pattFill', 'a:grpFill', 'a:ln',
+        'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:sp3d', 'a:extLst',
     )
-    ln = ZeroOrOne('a:ln', successors=(
-        'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:sp3d', 'a:extLst'
-    ))
+    xfrm = ZeroOrOne('a:xfrm', successors=_tag_seq[1:])
+    eg_fillProperties = ZeroOrOneChoice(
+        (
+            Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
+            Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')
+        ),
+        successors=_tag_seq[9:]
+    )
+    ln = ZeroOrOne('a:ln', successors=_tag_seq[10:])
+    del _tag_seq
+
+    @property
+    def custGeom(self):
+        """The `a:custGeom` child element, or None if not present."""
+        return self.find(qn('a:custGeom'))
 
     @property
     def cx(self):
