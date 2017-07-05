@@ -152,10 +152,12 @@ class CT_Shape(BaseShapeElement):
     spPr = OneAndOnlyOne('p:spPr')
     txBody = ZeroOrOne('p:txBody', successors=('p:extLst',))
 
-    @property
-    def custGeom(self):
+    def add_path(self, w, h):
         """Reference to `a:custGeom` descendant or |None| if not present."""
-        return self.spPr.custGeom
+        custGeom = self.spPr.custGeom
+        if custGeom is None:
+            raise ValueError('shape must be freeform')
+        return custGeom.pathLst.add_path(w=w, h=h)
 
     def get_or_add_ln(self):
         """

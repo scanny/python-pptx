@@ -11,7 +11,7 @@ from collections import Sequence
 from pptx.util import lazyproperty
 
 
-class FreeformBuilder(object):
+class FreeformBuilder(Sequence):
     """Allows a freeform shape to be specified and created.
 
     The initial pen position is provided on construction. From there, drawing
@@ -31,6 +31,15 @@ class FreeformBuilder(object):
         self._start_y = start_y
         self._scale = scale
 
+    def __getitem__(self, idx):
+        return self._drawing_operations.__getitem__(idx)
+
+    def __iter__(self):
+        return self._drawing_operations.__iter__()
+
+    def __len__(self):
+        return self._drawing_operations.__len__()
+
     @classmethod
     def new(cls, shapes, start_x, start_y, scale):
         """Return a new |FreeformBuilder| object."""
@@ -42,9 +51,8 @@ class FreeformBuilder(object):
         *vertices* must be an iterable of (x, y) pairs (2-tuples). Each x and
         y value is rounded to the nearest integer before use.
         """
-        drawing_operations = self._drawing_operations
         for x, y in vertices:
-            drawing_operations.add_line_segment(x, y)
+            self._add_line_segment(x, y)
 
     def convert_to_shape(self, origin_left=0, origin_top=0):
         """Return a new freeform shape positioned at the specified offset.
@@ -56,40 +64,80 @@ class FreeformBuilder(object):
         Note that this method may be called more than once to add multiple
         shapes of the same geometry in different locations on the slide.
         """
-        drawing_operations = self._drawing_operations
-        # ---add the empty shape with position and size---
-        sp = self._spTree.add_freeform_sp(
+        sp = self._add_freeform_sp(origin_left, origin_top)
+        path = self._start_path(sp)
+        for drawing_operation in self:
+            drawing_operation.apply_operation_to(path)
+        print(sp.xml)
+        return self._shapes._shape_factory(sp)
+
+    @property
+    def shape_offset_x(self):
+        """Return x distance of shape origin from local coordinate origin.
+
+        The returned integer represents the leftmost extent of the freeform
+        shape, in local coordinates. Note that the bounding box of the shape
+        need not start at the local origin.
+        """
+        min_x = self._start_x
+        for drawing_operation in self:
+            min_x = min(min_x, drawing_operation.x)
+        return min_x
+
+    @property
+    def shape_offset_y(self):
+        """Return y distance of shape origin from local coordinate origin.
+
+        The returned integer represents the topmost extent of the freeform
+        shape, in local coordinates. Note that the bounding box of the shape
+        need not start at the local origin.
+        """
+        min_y = self._start_y
+        for drawing_operation in self:
+            min_y = min(min_y, drawing_operation.y)
+        return min_y
+
+    def _add_freeform_sp(self, origin_left, origin_top):
+        """Add a freeform `p:sp` element having no drawing elements.
+
+        *origin_left* and *origin_top* are specified in slide coordinates,
+        and represent the location of the local coordinates origin on the
+        slide.
+        """
+        spTree = self._shapes._spTree
+        return spTree.add_freeform_sp(
             origin_left + self._left,
             origin_top + self._top,
             self._width,
             self._height
         )
-        # ---start path---
-        custGeom = sp.custGeom
-        pathLst = custGeom.pathLst
-        path = pathLst.add_path(
-            w=drawing_operations.dx,
-            h=drawing_operations.dy
-        )
-        offset_x, offset_y = (
-            drawing_operations.min_x,
-            drawing_operations.min_y
-        )
-        path.add_moveTo(
-            self._start_x - offset_x,
-            self._start_y - offset_y
-        )
-        # ---add line segments---
-        for drawing_operation in drawing_operations:
-            drawing_operation.apply_operation_to(path, (offset_x, offset_y))
-        print(sp.xml)
-        # ---create and return proxy shape---
-        return self._shapes._shape_factory(sp)
+
+    def _add_line_segment(self, x, y):
+        """Add a |LineSegment| operation to the sequence."""
+        self._drawing_operations.append(_LineSegment.new(self, x, y))
 
     @lazyproperty
     def _drawing_operations(self):
-        """Return the |DrawingOperations| sequence for this freeform."""
-        return _DrawingOperations.new(self._start_x, self._start_y)
+        """Return the sequence of drawing operation objects for freeform."""
+        return []
+
+    @property
+    def _dx(self):
+        """Return integer width of this shape in local units."""
+        min_x = max_x = self._start_x
+        for drawing_operation in self:
+            min_x = min(min_x, drawing_operation.x)
+            max_x = max(max_x, drawing_operation.x)
+        return max_x - min_x
+
+    @property
+    def _dy(self):
+        """Return integer height of this shape in local units."""
+        min_y = max_y = self._start_y
+        for drawing_operation in self:
+            min_y = min(min_y, drawing_operation.y)
+            max_y = max(max_y, drawing_operation.y)
+        return max_y - min_y
 
     @property
     def _height(self):
@@ -98,7 +146,7 @@ class FreeformBuilder(object):
         This value is based on the actual extents of the shape and does not
         include any positioning offset.
         """
-        return int(round(self._drawing_operations.dy * self._scale))
+        return int(round(self._dy * self._scale))
 
     @property
     def _left(self):
@@ -108,28 +156,43 @@ class FreeformBuilder(object):
         assumes the drawing (local) coordinate origin is at (0, 0) on the
         slide.
         """
-        print(
-            self._drawing_operations.min_x,
-            self._scale,
-            self._scale,
-            int(round(self._drawing_operations.min_x * self._scale))
-        )
-        return int(round(self._drawing_operations.min_x * self._scale))
+        return int(round(self.shape_offset_x * self._scale))
 
-    @lazyproperty
-    def _spTree(self):
-        """Return the `p:spTree` element this freeform will be added to."""
-        return self._shapes._spTree
+    def _local_to_shape(self, local_x, local_y):
+        """Translate local coordinates point to shape coordinates.
+
+        Shape coordinates have the same unit as local coordinates, but are
+        offset such that the origin of the shape coordinate system (0, 0) is
+        located at the top-left corner of the shape bounding box.
+        """
+        return (
+            local_x - self.shape_offset_x,
+            local_y - self.shape_offset_y
+        )
+
+    def _start_path(self, sp):
+        """Return a newly created `a:path` element added to *sp*.
+
+        The returned `a:path` element has an `a:moveTo` element representing
+        the shape starting point as its only child.
+        """
+        path = sp.add_path(w=self._dx, h=self._dy)
+        path.add_moveTo(
+            *self._local_to_shape(
+                self._start_x, self._start_y
+            )
+        )
+        return path
 
     @property
     def _top(self):
         """Return the topmost extent of this shape in slide coordinates.
 
         Note that this value does not include any positioning offset; it
-        assumes the drawing (local) coordinate origin is at (0, 0) on the
-        slide.
+        assumes the drawing (local) coordinate origin is located at slide
+        coordinates (0, 0) (top-left corner of slide).
         """
-        return int(round(self._drawing_operations.min_y * self._scale))
+        return int(round(self.shape_offset_y * self._scale))
 
     @property
     def _width(self):
@@ -138,136 +201,31 @@ class FreeformBuilder(object):
         This value is based on the actual extents of the shape and does not
         include any positioning offset.
         """
-        return int(round(self._drawing_operations.dx * self._scale))
-
-
-class _DrawingOperations(Sequence):
-    """Sequence of drawing operation objects for a freeform shape."""
-
-    def __init__(self, start_x, start_y):
-        super(_DrawingOperations, self).__init__()
-        self._start_x = start_x
-        self._start_y = start_y
-
-    def __getitem__(self, idx):
-        return self._operations.__getitem__(idx)
-
-    def __iter__(self):
-        return self._operations.__iter__()
-
-    def __len__(self):
-        return self._operations.__len__()
-
-    @classmethod
-    def new(cls, start_x, start_y):
-        """Return |_DrawingOperations| object with specified starting point.
-
-        Both *start_x* and *start_y* are rounded to the nearest integer
-        before use.
-        """
-        return cls(int(round(start_x)), int(round(start_y)))
-
-    def add_line_segment(self, x, y):
-        """Add a |LineSegment| operation to the sequence."""
-        self._operations.append(_LineSegment.new(x, y))
-
-    @property
-    def dx(self):
-        """Return integer representing width (delta-x) extent of this shape.
-
-        The returned value is in local coordinates.
-        """
-        min_x = max_x = self._start_x
-        for drawing_operation in self:
-            min_x = min(min_x, drawing_operation.x)
-            max_x = max(max_x, drawing_operation.x)
-        return max_x - min_x
-
-    @property
-    def dy(self):
-        """Return integer representing width (delta-y) extent of this shape.
-
-        The returned value is in local coordinates.
-        """
-        min_y = max_y = self._start_y
-        for drawing_operation in self:
-            min_y = min(min_y, drawing_operation.y)
-            max_y = max(max_y, drawing_operation.y)
-        return max_y - min_y
-
-    @property
-    def max_x(self):
-        """Return integer representing the rightmost extent of this shape.
-
-        The returned value is in local coordinates. Note that the bounding
-        box of this shape need not include the local origin.
-        """
-        max_x = self._start_x
-        for drawing_operation in self:
-            max_x = max(max_x, drawing_operation.x)
-        return max_x
-
-    @property
-    def max_y(self):
-        """Return integer representing the bottommost extent of this shape.
-
-        The returned value is in local coordinates.
-        """
-        max_y = self._start_y
-        for drawing_operation in self:
-            max_y = max(max_y, drawing_operation.y)
-        return max_y
-
-    @property
-    def min_x(self):
-        """Return integer representing the leftmost extent of this shape.
-
-        The returned value is in local coordinates.
-        """
-        min_x = self._start_x
-        for drawing_operation in self:
-            min_x = min(min_x, drawing_operation.x)
-        return min_x
-
-    @property
-    def min_y(self):
-        """Return integer representing the topmost extent of this shape.
-
-        The returned value is in local coordinates.
-        """
-        min_y = self._start_y
-        for drawing_operation in self:
-            min_y = min(min_y, drawing_operation.y)
-        return min_y
-
-    @lazyproperty
-    def _operations(self):
-        """Return the list composed to hold drawing operation objects."""
-        return []
+        return int(round(self._dx * self._scale))
 
 
 class _LineSegment(object):
     """Specifies a straight line segment to the specified point."""
 
-    def __init__(self, x, y):
+    def __init__(self, freeform_builder, x, y):
         super(_LineSegment, self).__init__()
+        self._freeform_builder = freeform_builder
         self._x = x
         self._y = y
 
     @classmethod
-    def new(cls, x, y):
+    def new(cls, freeform_builder, x, y):
         """Return a new _LineSegment object to point *(x, y)*.
 
         Both *x* and *y* are rounded to the nearest integer before use.
         """
-        return cls(int(round(x)), int(round(y)))
+        return cls(freeform_builder, int(round(x)), int(round(y)))
 
-    def apply_operation_to(self, path, offset):
+    def apply_operation_to(self, path):
         """Add `a:moveTo` element to *path* for this line segment."""
-        offset_x, offset_y = offset
         return path.add_lnTo(
-            self._x - offset_x,
-            self._y - offset_y
+            self._x - self._freeform_builder.shape_offset_x,
+            self._y - self._freeform_builder.shape_offset_y
         )
 
     @property
