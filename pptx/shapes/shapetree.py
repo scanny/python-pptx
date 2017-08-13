@@ -29,12 +29,15 @@ from .placeholder import (
 from ..shared import ParentedElementProxy
 from ..util import lazyproperty
 
+import copy
+
 
 def BaseShapeFactory(shape_elm, parent):
     """
     Return an instance of the appropriate shape proxy class for *shape_elm*.
     """
     tag = shape_elm.tag
+    print(shape_elm)
 
     if tag == qn('p:pic'):
         videoFiles = shape_elm.xpath('./p:nvPicPr/p:nvPr/a:videoFile')
@@ -511,6 +514,17 @@ class SlideShapes(_BaseShapes):
         )
         return self._shape_factory(sp)
 
+    def clone_shape(self, shape, left=None, top=None, width=None, height=None):
+        """
+        Clone a *shape* of specified size at specified position. *shape* doesn't need to come from the same slide.
+        """
+        _element = copy.deepcopy(shape.element)
+        sp = self._add_sp_from_existing_shape(
+            _element, left, top, width, height
+        )
+
+        return self._shape_factory(sp)
+
     def add_table(self, rows, cols, left, top, width, height):
         """
         Add a |GraphicFrame| object containing a table with the specified
@@ -652,6 +666,29 @@ class SlideShapes(_BaseShapes):
         name = '%s %d' % (autoshape_type.basename, id_-1)
         sp = self._spTree.add_autoshape(
             id_, name, autoshape_type.prst, x, y, cx, cy
+        )
+        return sp
+
+    def _add_sp_from_existing_shape(self, element, x=None, y=None, cx=None, cy=None):
+        """
+        Return a newly-added ``<p:sp>`` or ``<p:grpSp>`` element whose content exactly matches an existing shape *element* at position (x, y) and of size (cx, cy).
+        """
+        ids_ = []
+        names = []
+        grouped = False
+
+        ids_.append(self._next_shape_id)
+        names.append('Cloned shape %d' % (ids_[0]-1))
+
+        if len(element.xpath('./p:nvGrpSpPr')) > 0: # grouped
+            grouped = True
+            num_shapes = len(element.xpath('.//p:nvSpPr/p:cNvPr[@id]'))
+            for i in range(num_shapes):
+                ids_.append(self._next_shape_id)
+                names.append('Cloned sub shape %d' % (ids_[i+1]-1))
+
+        sp = self._spTree.add_cloned_shape(
+            ids_, names, element, grouped, x, y, cx, cy
         )
         return sp
 
