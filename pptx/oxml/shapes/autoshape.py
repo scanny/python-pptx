@@ -315,6 +315,7 @@ class CT_Shape(BaseShapeElement):
             '    <a:prstGeom prst="%s">\n'
             '      <a:avLst/>\n'
             '    </a:prstGeom>\n'
+            '    <a:effectLst />\n'
             '  </p:spPr>\n'
             '  <p:style>\n'
             '    <a:lnRef idx="1">\n'
