@@ -90,15 +90,15 @@ class DescribeCT_Shape(object):
             'p:cNvSpPr/>\n    <p:nvPr/>\n  </p:nvSpPr>\n  <p:spPr>\n    <a:xf'
             'rm>\n      <a:off x="%d" y="%d"/>\n      <a:ext cx="%d" cy="%d"/'
             '>\n    </a:xfrm>\n    <a:prstGeom prst="%s">\n      <a:avLst/>\n'
-            '    </a:prstGeom>\n  </p:spPr>\n  <p:style>\n    <a:lnRef idx="1'
-            '">\n      <a:schemeClr val="accent1"/>\n    </a:lnRef>\n    <a:f'
-            'illRef idx="3">\n      <a:schemeClr val="accent1"/>\n    </a:fil'
-            'lRef>\n    <a:effectRef idx="2">\n      <a:schemeClr val="accent'
-            '1"/>\n    </a:effectRef>\n    <a:fontRef idx="minor">\n      <a:'
-            'schemeClr val="lt1"/>\n    </a:fontRef>\n  </p:style>\n  <p:txBo'
-            'dy>\n    <a:bodyPr rtlCol="0" anchor="ctr"/>\n    <a:lstStyle/>'
-            '\n    <a:p>\n      <a:pPr algn="ctr"/>\n    </a:p>\n  </p:txBody'
-            '>\n</p:sp>\n' %
+            '    </a:prstGeom>\n    <a:effectLst/>\n  </p:spPr>\n  <p:style>\n'
+            '    <a:lnRef idx="1">\n      <a:schemeClr val="accent1"/>\n    <'
+            '/a:lnRef>\n    <a:fillRef idx="3">\n      <a:schemeClr val="acce'
+            'nt1"/>\n    </a:fillRef>\n    <a:effectRef idx="2">\n      <a:sc'
+            'hemeClr val="accent1"/>\n    </a:effectRef>\n    <a:fontRef idx='
+            '"minor">\n      <a:schemeClr val="lt1"/>\n    </a:fontRef>\n  </'
+            'p:style>\n  <p:txBody>\n    <a:bodyPr rtlCol="0" anchor="ctr"/>\n'
+            '    <a:lstStyle/>\n    <a:p>\n      <a:pPr algn="ctr"/>\n    </a'
+            ':p>\n  </p:txBody>\n</p:sp>\n' %
             (nsdecls('a', 'p'), id_, name, left, top, width, height, prst)
         )
         # exercise ---------------------
