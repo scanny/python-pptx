@@ -1,10 +1,12 @@
 language: python
 python:
+  - "2.6"
   - "2.7"
   - "3.4"
   - "3.6"
 # command to install dependencies, e.g. pip install -r requirements.txt
 install:
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pip install --use-mirrors importlib; fi
   - pip install -r requirements.txt
   - pip install flake8
 before_script:
