@@ -1,13 +1,16 @@
 language: python
 python:
-  - "3.4"
-  - "3.3"
   - "2.7"
-  - "2.6"
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+  - "3.4"
+  - "3.6"
+# command to install dependencies, e.g. pip install -r requirements.txt
 install:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pip install --use-mirrors importlib; fi
   - pip install -r requirements.txt
+  - pip install flake8
+before_script:
+  # stop the build if there are Python syntax errors or undefined names
+  - flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
+  # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
+  - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 # command to run tests, e.g. python setup.py test
-sudo:    false
 script:  py.test && behave --stop
