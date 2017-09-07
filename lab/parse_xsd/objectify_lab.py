@@ -12,6 +12,7 @@ oxml custom element classes.
 from lxml import etree
 from lxml import objectify
 from lxml.objectify import Element, SubElement
+from .parse_xsd import reverse_nsmap
 
 # ============================================================================
 # utility items
