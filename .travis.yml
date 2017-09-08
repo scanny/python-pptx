@@ -6,7 +6,7 @@ python:
   - "2.6"
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pip install --use-mirrors importlib; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pip install importlib; fi
   - pip install -r requirements.txt
 # command to run tests, e.g. python setup.py test
 sudo:    false
