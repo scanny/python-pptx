@@ -11,7 +11,7 @@ import os
 from zipfile import ZipFile, is_zipfile, ZIP_DEFLATED
 
 from ..compat import is_string
-from ..exceptions import PackageNotFoundError
+from ..exc import PackageNotFoundError
 
 from .packuri import CONTENT_TYPES_URI
 
