@@ -24,12 +24,13 @@ class FreeformBuilder(Sequence):
     are "subtracted".
     """
 
-    def __init__(self, shapes, start_x, start_y, scale):
+    def __init__(self, shapes, start_x, start_y, x_scale, y_scale):
         super(FreeformBuilder, self).__init__()
         self._shapes = shapes
         self._start_x = start_x
         self._start_y = start_y
-        self._scale = scale
+        self._x_scale = x_scale
+        self._y_scale = y_scale
 
     def __getitem__(self, idx):
         return self._drawing_operations.__getitem__(idx)
@@ -41,18 +42,25 @@ class FreeformBuilder(Sequence):
         return self._drawing_operations.__len__()
 
     @classmethod
-    def new(cls, shapes, start_x, start_y, scale):
+    def new(cls, shapes, start_x, start_y, x_scale, y_scale):
         """Return a new |FreeformBuilder| object."""
-        return cls(shapes, int(round(start_x)), int(round(start_y)), scale)
+        return cls(
+            shapes, int(round(start_x)), int(round(start_y)),
+            x_scale, y_scale
+        )
 
-    def add_line_segments(self, vertices):
+    def add_line_segments(self, vertices, close=True):
         """Add a straight line segment to each point in *vertices*.
 
         *vertices* must be an iterable of (x, y) pairs (2-tuples). Each x and
-        y value is rounded to the nearest integer before use.
+        y value is rounded to the nearest integer before use. The optional
+        *close* parameter determines whether the resulting contour is
+        *closed* or left *open*.
         """
         for x, y in vertices:
             self._add_line_segment(x, y)
+        if close:
+            self._add_close()
 
     def convert_to_shape(self, origin_left=0, origin_top=0):
         """Return a new freeform shape positioned at the specified offset.
@@ -68,8 +76,11 @@ class FreeformBuilder(Sequence):
         path = self._start_path(sp)
         for drawing_operation in self:
             drawing_operation.apply_operation_to(path)
-        print(sp.xml)
         return self._shapes._shape_factory(sp)
+
+    def move_to(self, x, y):
+        """Move pen to (x, y) without drawing line."""
+        self._drawing_operations.append(_MoveTo.new(self, x, y))
 
     @property
     def shape_offset_x(self):
@@ -81,7 +92,8 @@ class FreeformBuilder(Sequence):
         """
         min_x = self._start_x
         for drawing_operation in self:
-            min_x = min(min_x, drawing_operation.x)
+            if hasattr(drawing_operation, 'x'):
+                min_x = min(min_x, drawing_operation.x)
         return min_x
 
     @property
@@ -94,8 +106,13 @@ class FreeformBuilder(Sequence):
         """
         min_y = self._start_y
         for drawing_operation in self:
-            min_y = min(min_y, drawing_operation.y)
+            if hasattr(drawing_operation, 'y'):
+                min_y = min(min_y, drawing_operation.y)
         return min_y
+
+    def _add_close(self):
+        """Add a |LineSegment| operation to the sequence."""
+        self._drawing_operations.append(_Close.new())
 
     def _add_freeform_sp(self, origin_left, origin_top):
         """Add a freeform `p:sp` element having no drawing elements.
@@ -126,8 +143,9 @@ class FreeformBuilder(Sequence):
         """Return integer width of this shape in local units."""
         min_x = max_x = self._start_x
         for drawing_operation in self:
-            min_x = min(min_x, drawing_operation.x)
-            max_x = max(max_x, drawing_operation.x)
+            if hasattr(drawing_operation, 'x'):
+                min_x = min(min_x, drawing_operation.x)
+                max_x = max(max_x, drawing_operation.x)
         return max_x - min_x
 
     @property
@@ -135,8 +153,9 @@ class FreeformBuilder(Sequence):
         """Return integer height of this shape in local units."""
         min_y = max_y = self._start_y
         for drawing_operation in self:
-            min_y = min(min_y, drawing_operation.y)
-            max_y = max(max_y, drawing_operation.y)
+            if hasattr(drawing_operation, 'y'):
+                min_y = min(min_y, drawing_operation.y)
+                max_y = max(max_y, drawing_operation.y)
         return max_y - min_y
 
     @property
@@ -146,7 +165,7 @@ class FreeformBuilder(Sequence):
         This value is based on the actual extents of the shape and does not
         include any positioning offset.
         """
-        return int(round(self._dy * self._scale))
+        return int(round(self._dy * self._y_scale))
 
     @property
     def _left(self):
@@ -156,7 +175,7 @@ class FreeformBuilder(Sequence):
         assumes the drawing (local) coordinate origin is at (0, 0) on the
         slide.
         """
-        return int(round(self.shape_offset_x * self._scale))
+        return int(round(self.shape_offset_x * self._x_scale))
 
     def _local_to_shape(self, local_x, local_y):
         """Translate local coordinates point to shape coordinates.
@@ -192,7 +211,7 @@ class FreeformBuilder(Sequence):
         assumes the drawing (local) coordinate origin is located at slide
         coordinates (0, 0) (top-left corner of slide).
         """
-        return int(round(self.shape_offset_y * self._scale))
+        return int(round(self.shape_offset_y * self._y_scale))
 
     @property
     def _width(self):
@@ -201,17 +220,58 @@ class FreeformBuilder(Sequence):
         This value is based on the actual extents of the shape and does not
         include any positioning offset.
         """
-        return int(round(self._dx * self._scale))
+        return int(round(self._dx * self._x_scale))
 
 
-class _LineSegment(object):
-    """Specifies a straight line segment to the specified point."""
+class _BaseDrawingOperation(object):
+    """Base class for freeform drawing operations.
+
+    A drawing operation has at least one location (x, y) in local
+    coordinates.
+    """
 
     def __init__(self, freeform_builder, x, y):
-        super(_LineSegment, self).__init__()
+        super(_BaseDrawingOperation, self).__init__()
         self._freeform_builder = freeform_builder
         self._x = x
         self._y = y
+
+    def apply_operation_to(self, path):
+        """Add `a:lnTo` element to *path* for this line segment."""
+        raise NotImplementedError('must be implemented by each subclass')
+
+    @property
+    def x(self):
+        """Return the horizontal (x) target location of this operation.
+
+        The returned value is an integer in local coordinates.
+        """
+        return self._x
+
+    @property
+    def y(self):
+        """Return the vertical (y) target location of this operation.
+
+        The returned value is an integer in local coordinates.
+        """
+        return self._y
+
+
+class _Close(object):
+    """Specifies adding a `<a:close/>` element to the current contour."""
+
+    @classmethod
+    def new(cls):
+        """Return a new _Close object."""
+        return cls()
+
+    def apply_operation_to(self, path):
+        """Add `a:close` element to *path* for this line segment."""
+        return path.add_close()
+
+
+class _LineSegment(_BaseDrawingOperation):
+    """Specifies a straight line segment to the specified point."""
 
     @classmethod
     def new(cls, freeform_builder, x, y):
@@ -222,24 +282,27 @@ class _LineSegment(object):
         return cls(freeform_builder, int(round(x)), int(round(y)))
 
     def apply_operation_to(self, path):
-        """Add `a:moveTo` element to *path* for this line segment."""
+        """Add `a:lnTo` element to *path* for this line segment."""
         return path.add_lnTo(
             self._x - self._freeform_builder.shape_offset_x,
             self._y - self._freeform_builder.shape_offset_y
         )
 
-    @property
-    def x(self):
-        """Return the horizontal location of this segment's end point.
 
-        The returned value is an integer in local coordinates.
+class _MoveTo(_BaseDrawingOperation):
+    """Specifies a new pen position."""
+
+    @classmethod
+    def new(cls, freeform_builder, x, y):
+        """Return a new _MoveTo object for move to point *(x, y)*.
+
+        Both *x* and *y* are rounded to the nearest integer before use.
         """
-        return self._x
+        return cls(freeform_builder, int(round(x)), int(round(y)))
 
-    @property
-    def y(self):
-        """Return the vertical location of this segment's end point.
-
-        The returned value is an integer in local coordinates.
-        """
-        return self._y
+    def apply_operation_to(self, path):
+        """Add `a:moveTo` element to *path* for this line segment."""
+        return path.add_moveTo(
+            self._x - self._freeform_builder.shape_offset_x,
+            self._y - self._freeform_builder.shape_offset_y
+        )

@@ -19,14 +19,18 @@ lineTo, and other drawing commands.
 Vocabulary
 ----------
 
-* A freeform shape is composed of one or more *contours*.
+* A freeform shape is composed of one or more *paths*. The purpose of
+  multiple paths in a single shape is obscure and only a single path will be
+  supported in the initial implementation.
   
-* A contour is composed of one or more *segments*. A contour can be a *closed
-  contour* or and *open contour*. A closed contour has a stroked outline and
-  is filled. An open contour receives only a stroke.
+* A path is composed of one or more *contours*. A contour can be a *closed
+  contour* or and *open contour*. The closure state only affects the
+  continuity of the contour outline (although it also adds a straight line
+  between start and end if needed).
 
-* A segment can be a (straight) line segment or a curve. Curve segments will
-  not be supported in the initial implementation.
+* A contour is specified by a starting point (`<a:moveTo>`) followed by
+  a sequence of line segments, each of which can be a straight or curved.
+  Curve segments will not be supported in the initial implementation.
 
 
 Scope
@@ -119,11 +123,11 @@ Use Case 3 - Specify origin for custom coordinates
 --------------------------------------------------
 
 This is perhaps the most natural approach for doing something fancy, like
-creating individual shapes for each of the 50 states within a particular area
-of the slide such that their boundaries all align with adjacent states to
-make a map of the US. 
+creating individual shapes for each of the 50 US states within a particular
+area of the slide such that their boundaries all align with adjacent states
+to make a map of the United States. 
 
-Line in the prior use case, verticies are specified in custom coordinates
+Like in the prior use case, verticies are specified in custom coordinates
 and a scaling factor is provided. In addition, an origin in provided in slide
 coordinates (EMU). This would correspond to the origin of the entire map of
 the US in our example and represents where you want the top-left corner of
@@ -134,13 +138,15 @@ represent their position relative to this origin in the custom coordinates
 provided. It is also up to the client to get the scaling factor right such
 that the entire map fits in the intended area of the slide.
 
-In this scenario, `top` and `left` arguments are added to the call. These
-will take the same values for each of the "interlocking" shapes. These two
-arguments each independently take on the value of zero when omitted, which
-produces the behavior of the prior use case::
+In this scenario, `top` and `left` arguments are added to the
+`.build_freeform()` call. These arguments should be given the same values for
+each of the "interlocking" shapes. These two arguments each independently
+take on the value of zero when omitted, which produces the behavior of the
+prior use case::
 
    >>> freeform_builder = shapes.build_freeform(
-   ...     1500, 1000, scale=1000/Inches(1), top=Inches(1), left=Inches(2)
+   ...     start_x=1500, start_y=1000, scale=1000/Inches(1),
+   ...     top=Inches(1), left=Inches(2)
    ... )
    >>> freeform_builder.add_line_segments((
    ...     (2000, 2000),
@@ -153,8 +159,9 @@ produces the behavior of the prior use case::
    >>> freeform_shape.width.inches, freeform_shape.height.inches
    1.0, 1.0
 
-As we can see here, the size of the shape is exactly the same, but its
-position has been translated by location of the origin provided.
+As we can see here, the size of the shape is exactly the same, but it has
+been translated to be relative to the slide coordinates provided in the
+`.build_freeform()` call.
 
 
 Use Case 4 - Specify position on conversion
@@ -175,6 +182,22 @@ times to "rubber stamp" the shape in various positions around the slide.
 Can you call `.convert_to_shape()` multiple times? Maybe that would be good!
 
 
+Usage Notes
+-----------
+
+**Closing a contour.** A contour is only *truly* closed if it ends with
+a `<a:close>` element. It can *appear* closed if its end point is the same as
+its start point, but close inspection of the line-ends will reveal there is
+no smooth transition around the starting corner. This is more apparent when
+a wide line style is used for the outline.
+
+A `<a:close>` element will cause a straight line segment to be drawn between
+the last point point of the contour and the first. So it's not necessary to
+repeat the first point as the last one if a straight line segment suits. The
+advantage is small however, and might only be an optimization to consider
+when thousands of freeform shapes were being drawn in a single presentation.
+
+
 Candidate Protocol
 ------------------
 
@@ -184,42 +207,38 @@ Obtain a FreeformBuilder object::
     >>> freeform_builder
     <pptx.shapes.freeform.FreeformBuilder objext at 0x...>
 
-The `x` and `y` arguments specify the location of the top-left corner of the
-freeform shape's bounding box on the slide. The `scale` argument determines
-the rendered size of the shape relative to the values specified for the
-vertices.
+The `x` and `y` arguments specify the starting pen location in local
+coordinates. The `scale` argument determines the rendered size of the shape
+relative to the values specified for the vertices. The `scale` argument can
+be an `(x_scale, y_scale)` pair to specify a shape coordinate system that is
+rectangular rather than square.
 
-Add vertices to the freeform shape::
+**Add vertices to the freeform shape** an arbitrary number of straight line
+segments can be added to the shape using the `add_line_segments()` method::
 
     >>> vertices = ((100, 200), (200, 300), (300, 400))
-    >>> freeform_builder.add_line_segments(vertices)
-    >>> freeform_builder
+    >>> freeform_builder.add_line_segments(vertices, close=True)
 
-**Close a contour.** A contour can be closed explicitly by calling the
-`.close()` method on the freeform builder. Closing a contour causes its end
-point to be connected to its starting point with a straight line segment::
+The method also specifies whether the contour so generated should be closed
+(`True` by default). Closing a contour causes its end point to be connected
+to its starting point with a straight line segment. It also causes the
+contour to form a smooth perimeter outline. A contour that is not closed will
+have line end caps and may be assigned line ends like arrowheads.
 
-    >>> freeform_builder.close()
+Although PowerPoint supports a variety of curved line segments, those will
+not be implemented in this initial effort.
 
-A contour is automatically closed by the `.convert_to_shape()` call if its
-last vertex has the same location as its starting point. This behavior can be
-overridden by setting the optional `autoclose=True` argument to `False`
-(although I'm not sure why anyone would).
+**Add second and further contours** A path can have multiple distinct
+contours. These contours can be separate and distinct or they can overlap.
+A contour that is completely enclosed by another contour forms a "cutout" in
+the enclosing contour. Where two contours partially overlap, the fill begins
+at the outermost boundary and stops when it reaches another boundary.
 
-A contour can also be closed and a new contour begun, to create
-a multi-contour shape::
+.. image:: /_static/img/freeform-03.png
 
-    >>> freeform_builder.close_and_move_to(x, y)
+A new contour is begun by calling the `.move_to()` method::
 
-A multi-contour shape produces a cutout wherever the two contours overlap.
-The fill begins at the outermost boundary and stops when it reaches another
-boundary. The more complex behaviors are best understood by trying some
-examples.
-
-**Insert a moveTo.** A discontinuity can be added to a contour by inserting
-a `.move_to()` call.::
-
-    >>> freeform_builder.move_to(50, 25)
+    >>> freeform_builder.move_to(x, y)
 
 * Set freeform coordinate system (extents)
 
@@ -231,38 +250,6 @@ a `.move_to()` call.::
 
   This is also unnecessary to specify as it is implied by the scaling factor
   provided and the maxima and minima of the vertices specified.
-
-* Specify pen starting location
-
-  The initial pen location (`a:moveTo/a:pt`) is specified in the
-  `.build_freeform()` call. Its actual values are calculated based on other
-  known quantities about the vertices.
-
-**MS API approach:**
-
-* Specify pen starting point in initial `BuildFreeform` call.
-
-* All points are specified in slide coordinates.
-
-* Specify each vertex separately in an `.AddNodes()` method call.
-
-  A line segment can be specified by specifying the x, y vertex of the ending
-  point.
-
-  A curve segment can be specified by specifying additional control points
-  (nodes). The vertex can be specified to be a corner (one control point on
-  starting vertex), smooth (tangent at the vertex), or symmetric (we'd have
-  to experiment to see what that does exactly, no ready available
-  documentation).
-
-* The path is closed (or not) when the `.ConvertToShape()` method is called
-  on the `FreeformBuilder` object. It looks like it's closed if the last
-  point is coincident with the first and open otherwise.
-
-* There is no way to make a multi-path shape as far as I can tell.
-
-* There is no way to "lift the pen" to make a discontinuous path as far as
-  I can tell.
 
 
 **Possible approach:**
@@ -349,46 +336,26 @@ A. The `moveTo` operation essentially resets the "starting" point for closure
 
 ----
 
+Q. What happens when the last point is the same as the first point but there
+   is no `a:close` element?
+
+A. The shape outline is discontinuous at the start/end point and does not
+   form a smooth contour at that point. The visual appearance depends on the
+   line ends and line end caps chosen.
+
+----
+
 * [ ] What happens when negative coordinate values are used?
 
 * [ ] What happens when you close a contour right after an `a:moveTo`?
 
-* [ ] What happens when negative numbers are used for coordinates?
+* [ ] What is the point of having multiple paths? The only difference I can
+      see is that overlapping areas are not "subtracted" and you can have
+      a different coordinate system. I'm inclined to think it's all about
+      needing distinct coordinate systems for some reason, perhaps when
+      variables (guides `<a:gd>`) are used.
 
-* [ ] What happens when the last point is the same as the first point but
-      there is no `a:close` element?
-
-* [X] Start with an isoceles triangle inscribed in a 1" x 1" square.
-
-* Hypothesis: PowerPoint uses an arbitrary scale of 10,000 (period, not per
-  inch) as the coordinate space for a freeform shape added or edited using
-  the UI. The rules are more complicated, not sure what they are, but it
-  seems to start with a square of about that and move from there.
-
-* Get a test opc extract going for iterative manual editing to see how things
-  behave. Start with a single line segment and work out from there.
-
-  + [ ] What happens if you don't close path 1 and then start path 2 with
-        an `a:moveTo` element?
-
-  + [ ] What is the point of having multiple paths? The only difference I can
-        see is that overlapping areas are not "subtracted" and you can have
-        a different coordinate system.
-
-  + [ ] What's up with z-order in paths? Do all lines show through one
-        another or is there some sort of stacking behavior?
-
-  + [ ] What about stroke on path? Seems like this could just be determined
-        with None on like fill.
-
-* Work out scaling strategy. Offset (position) is determined by `a:xfrm`, so
-  working with a local coordinate space makes sense, but that would be top,
-  left == (0, 0). Has to be integers I'll bet. I expect they need to fit in
-  a long int, so maybe limited to 4E9.
-
-* Experiment: see if PowerPoint likes it okay if we leave out all the
-  "guides" and connection points, i.e. if the `a:gdLst` and `a:cxnLst`
-  elements are empty.
+* [ ] What is the purpose of the boolean `stroke` attribute on path?
 
 
 PowerPoint UI behaviors
@@ -408,9 +375,17 @@ PowerPoint UI behaviors
 * Once created, an "Edit Points" option appears on the context menu when
   right-clicking the shape. This allows the points to be fine-tuned.
 
+* Hypothesis: PowerPoint uses an arbitrary scale of 10,000 (period, not per
+  inch) as the coordinate space for a freeform shape added or edited using
+  the UI. The rules are more complicated, not sure what they are, but it
+  seems to start with a square of about that and move from there.
+
 
 MS API
 ------
+
+MS API protocol
+~~~~~~~~~~~~~~~
 
 .. highlight:: vbnet
 
@@ -426,6 +401,37 @@ Example::
         .AddNodes msoSegmentLine, msoEditingAuto, 360, 200
         .ConvertToShape
     End With
+
+* Specify pen starting point in initial `BuildFreeform` call.
+
+* All points are specified in slide coordinates.
+
+* Specify each vertex separately in an `.AddNodes()` method call. It seems
+  like it should actually be named `.AddNode()`, but perhaps they consider
+  control points to be nodes separate from the vertex point.
+
+  A line segment can be specified by specifying the x, y vertex of the ending
+  point.
+
+  A curve segment can be specified by specifying additional control points
+  (nodes). The vertex can be specified to be a corner (one control point on
+  starting vertex), smooth (tangent at the vertex), or symmetric (we'd have
+  to experiment to see what that does exactly, no ready available
+  documentation).
+
+* The path is closed (or not) when the `.ConvertToShape()` method is called
+  on the `FreeformBuilder` object. It looks like it's closed if the last
+  point is coincident with the first and open otherwise.
+
+* There is no way to make a multi-path shape as far as I can tell.
+
+* The MS API provides no way to "lift the pen" to make a discontinuous path
+  as far as I can tell. (And so does not provide a way to make "cutouts" like
+  a lake within a landmass shape.)
+
+
+MS API Objects
+~~~~~~~~~~~~~~
 
 * | Shapes.BuildFreeform(x, y)
   | https://msdn.microsoft.com/VBA/PowerPoint-VBA/articles/shapes-buildfreeform-method-powerpoint
@@ -503,7 +509,9 @@ XML Semantics
   A path may begin with an `a:moveTo` element. This essentially locates the
   starting location of the "pen". Each subsequent drawing command extends the
   shape by adding a line segment. If the path does not begin with an
-  `a:moveTo` element, the origin (0, 0) is used as the initial pen location.
+  `a:moveTo` element, the path does not appear (it is not drawn). Note this
+  is contrary to the (unofficial) documentation indicating that (0, 0) is
+  used as the default starting pen location.
 
   A path can be open or closed. If an `a:close` element is added, a straight
   line segment is drawn from the current pen location to the initial location
@@ -522,7 +530,7 @@ XML Semantics
   segment is drawn between the prior location and the new location. This can
   be used to produce a discontinuous outline.
 
-  A path has boolean a `stroke` attribute (default True) that specifies
+  A path has a boolean `stroke` attribute (default True) that specifies
   whether a line should appear on the path.
 
 * The `a:pathLst` element can contain multiple `a:path` elements. In this
@@ -536,6 +544,24 @@ XML Semantics
   a single plane such that all outlines appear, even when they intersect.
   There is no cropping behavior such as occurs for individual shapes on
   a slide.
+
+
+Fill behavior
+~~~~~~~~~~~~~
+
+Hypothesis: Any shape can have a fill, even an "open" shape. The question of
+whether a shape has a fill is not determined by whether it is closed, but by
+whether a fill is *applied* to the shape.
+
+In the PowerPoint UI, a closed shape is automatically assigned a fill when it
+is drawn. Conversely, an open shape is not assigned a fill. This behavior is
+built into the drawing code and is not dependent solely on the "closed-ness"
+of the shape.
+
+The XML template for a freeform shape (as of this writing) includes an
+element for a fill and effect, consistent with the PowerPoint defaults for
+a closed shape. The fill would need to be removed from an open shape if the
+user didn't want it.
 
 
 Coordinate system
@@ -564,32 +590,49 @@ XML Specimens
 
 .. highlight:: xml
 
+Hand-built, as-written by PowerPoint
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. image:: /_static/img/freeform-01.png
+
+This triangle is hand-built using the 'Freeform' shape tool in the PowerPoint
+UI. A couple things to notice:
+
+* The shape includes a full complement of `<a:gd>` and `<a:cxn>` elements.
+  The shape works fine without these and providing a way to specify these is
+  out of scope for the current effort.
+
+* The freeform shape itself is specified in `p:sp/p:spPr/a:custGeom`. That's
+  a little interesting that the geometry is considered a shape property
+  (spPr) rather than somehow more core to the shape.
+
+* The `<a:pathLst>` element contains only a single path. I haven't yet
+  discovered how to add a second path to a shape using the UI.
+
 ::
 
   <p:sp>
     <p:nvSpPr>
-      <p:cNvPr id="7" name="Freeform 6"/>
+      <p:cNvPr id="2" name="Freeform 1"/>
       <p:cNvSpPr/>
       <p:nvPr/>
     </p:nvSpPr>
     <p:spPr>
       <a:xfrm>
-        <a:off x="5259090" y="708978"/>
-        <a:ext cx="2719145" cy="1012826"/>
+        <a:off x="700718" y="642282"/>
+        <a:ext cx="897794" cy="773657"/>
       </a:xfrm>
       <a:custGeom>
         <a:avLst/>
         <a:gdLst>
-          <a:gd name="connsiteX0" fmla="*/ 0 w 2719145"/>
-          <a:gd name="connsiteY0" fmla="*/ 0 h 1012826"/>
-          <a:gd name="connsiteX1" fmla="*/ 498640 w 2719145"/>
-          <a:gd name="connsiteY1" fmla="*/ 724560 h 1012826"/>
-          <a:gd name="connsiteX2" fmla="*/ 1862108 w 2719145"/>
-          <a:gd name="connsiteY2" fmla="*/ 1012826 h 1012826"/>
-          <a:gd name="connsiteX3" fmla="*/ 2687980 w 2719145"/>
-          <a:gd name="connsiteY3" fmla="*/ 599905 h 1012826"/>
-          <a:gd name="connsiteX4" fmla="*/ 2719145 w 2719145"/>
-          <a:gd name="connsiteY4" fmla="*/ 475249 h 1012826"/>
+          <a:gd name="connsiteX0" fmla="*/ 423350 w 897794"/>
+          <a:gd name="connsiteY0" fmla="*/ 0 h 773657"/>
+          <a:gd name="connsiteX1" fmla="*/ 897794 w 897794"/>
+          <a:gd name="connsiteY1" fmla="*/ 773657 h 773657"/>
+          <a:gd name="connsiteX2" fmla="*/ 0 w 897794"/>
+          <a:gd name="connsiteY2" fmla="*/ 766359 h 773657"/>
+          <a:gd name="connsiteX3" fmla="*/ 423350 w 897794"/>
+          <a:gd name="connsiteY3" fmla="*/ 0 h 773657"/>
         </a:gdLst>
         <a:ahLst/>
         <a:cxnLst>
@@ -605,50 +648,44 @@ XML Specimens
           <a:cxn ang="0">
             <a:pos x="connsiteX3" y="connsiteY3"/>
           </a:cxn>
-          <a:cxn ang="0">
-            <a:pos x="connsiteX4" y="connsiteY4"/>
-          </a:cxn>
         </a:cxnLst>
         <a:rect l="l" t="t" r="r" b="b"/>
         <a:pathLst>
-          <a:path w="2719145" h="1012826">
+          <a:path w="897794" h="773657">
             <a:moveTo>
-              <a:pt x="0" y="0"/>
+              <a:pt x="423350" y="0"/>
             </a:moveTo>
             <a:lnTo>
-              <a:pt x="498640" y="724560"/>
+              <a:pt x="897794" y="773657"/>
             </a:lnTo>
             <a:lnTo>
-              <a:pt x="1862108" y="1012826"/>
+              <a:pt x="0" y="766359"/>
             </a:lnTo>
             <a:lnTo>
-              <a:pt x="2687980" y="599905"/>
+              <a:pt x="423350" y="0"/>
             </a:lnTo>
-            <a:lnTo>
-              <a:pt x="2719145" y="475249"/>
-            </a:lnTo>
+            <a:close/>
           </a:path>
         </a:pathLst>
       </a:custGeom>
-      <a:ln w="50800">
+      <a:ln w="57150" cmpd="sng">
         <a:solidFill>
-          <a:schemeClr val="accent2"/>
+          <a:schemeClr val="accent6"/>
         </a:solidFill>
-        <a:prstDash val="sysDot"/>
       </a:ln>
     </p:spPr>
     <p:style>
-      <a:lnRef idx="2">
+      <a:lnRef idx="1">
         <a:schemeClr val="accent1"/>
       </a:lnRef>
-      <a:fillRef idx="0">
+      <a:fillRef idx="3">
         <a:schemeClr val="accent1"/>
       </a:fillRef>
-      <a:effectRef idx="1">
+      <a:effectRef idx="2">
         <a:schemeClr val="accent1"/>
       </a:effectRef>
       <a:fontRef idx="minor">
-        <a:schemeClr val="tx1"/>
+        <a:schemeClr val="lt1"/>
       </a:fontRef>
     </p:style>
     <p:txBody>
@@ -660,6 +697,30 @@ XML Specimens
       </a:p>
     </p:txBody>
   </p:sp>
+
+The rest of these shape subtrees have the `<a:gdLst>` and `<a:cxnLst>`
+elements removed for brevity and many focus simply on the `a:pathLst` element
+for compact presentation.
+
+
+Effect of `<a:close>` element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. image:: /_static/img/freeform-02.png
+
+This one is a little tricky to see, but if you look closely, you'll see that
+the outline at the apex of the triangle is not "closed". This behavior arises
+when there is no `<a:close/>` element at the end of the path, even when the
+end-point is the same as the start-point::
+
+  <a:pathLst>
+    <a:path w="100" h="100">
+      <a:moveTo><a:pt x="50" y="0"/></a:moveTo>
+      <a:lnTo><a:pt x="100" y="100"/></a:lnTo>
+      <a:lnTo><a:pt x="0" y="100"/></a:lnTo>
+      <a:lnTo><a:pt x="50" y="0"/></a:lnTo>
+    </a:path>
+  </a:pathLst>
 
 
 XML Schema excerpt
