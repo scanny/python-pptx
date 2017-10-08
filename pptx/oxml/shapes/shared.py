@@ -1,10 +1,10 @@
 # encoding: utf-8
 
-"""
-Common shape-related oxml objects
-"""
+"""Common shape-related oxml objects."""
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from ...enum.shapes import PP_PLACEHOLDER
 from ..ns import qn
@@ -221,14 +221,21 @@ class CT_LineProperties(BaseOxmlElement):
     """
     Custom element class for <a:ln> element
     """
-    eg_lineFillProperties = ZeroOrOneChoice(
-        (Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
-         Choice('a:pattFill')),
-        successors=(
-            'a:prstDash', 'a:custDash', 'a:round', 'a:bevel', 'a:miter',
-            'a:headEnd', 'a:tailEnd', 'a:extLst'
-        )
+    _tag_seq = (
+        'a:noFill', 'a:solidFill', 'a:gradFill', 'a:pattFill', 'a:prstDash',
+        'a:custDash', 'a:round', 'a:bevel', 'a:miter', 'a:headEnd',
+        'a:tailEnd', 'a:extLst'
     )
+    eg_lineFillProperties = ZeroOrOneChoice(
+        (
+            Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
+            Choice('a:pattFill')
+        ),
+        successors=_tag_seq[4:]
+    )
+    prstDash = ZeroOrOne('a:prstDash', successors=_tag_seq[5:])
+    custDash = ZeroOrOne('a:custDash', successors=_tag_seq[6:])
+    del _tag_seq
     w = OptionalAttribute('w', ST_LineWidth, default=Emu(0))
 
     @property
@@ -237,6 +244,23 @@ class CT_LineProperties(BaseOxmlElement):
         Required to fulfill the interface used by dml.fill.
         """
         return self.eg_lineFillProperties
+
+    @property
+    def prstDash_val(self):
+        """Return value of `val` attribute of `a:prstDash` child.
+
+        Return |None| if not present.
+        """
+        prstDash = self.prstDash
+        if prstDash is None:
+            return None
+        return prstDash.val
+
+    @prstDash_val.setter
+    def prstDash_val(self, val):
+        self._remove_custDash()
+        prstDash = self.get_or_add_prstDash()
+        prstDash.val = val
 
 
 class CT_NonVisualDrawingProps(BaseOxmlElement):

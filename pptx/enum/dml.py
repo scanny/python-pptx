@@ -109,6 +109,59 @@ class MSO_FILL_TYPE(Enumeration):
     )
 
 
+@alias('MSO_LINE')
+class MSO_LINE_DASH_STYLE(XmlEnumeration):
+    """Specifies the dash style for a line.
+
+    Alias: ``MSO_LINE``
+
+    Example::
+
+        from pptx.enum.dml import MSO_LINE
+
+        shape.line.dash_style == MSO_LINE.DASH_DOT_DOT
+    """
+
+    __ms_name__ = 'MsoLineDashStyle'
+
+    __url__ = (
+        'https://msdn.microsoft.com/en-us/vba/office-shared-vba/articles/mso'
+        'linedashstyle-enumeration-office'
+    )
+
+    __members__ = (
+        XmlMappedEnumMember(
+            'DASH', 4, 'dash', 'Line consists of dashes only.'
+        ),
+        XmlMappedEnumMember(
+            'DASH_DOT', 5, 'dashDot', 'Line is a dash-dot pattern.'
+        ),
+        XmlMappedEnumMember(
+            'DASH_DOT_DOT', 6, 'lgDashDotDot', 'Line is a dash-dot-dot patte'
+            'rn.'
+        ),
+        XmlMappedEnumMember(
+            'LONG_DASH', 7, 'lgDash', 'Line consists of long dashes.'
+        ),
+        XmlMappedEnumMember(
+            'LONG_DASH_DOT', 8, 'lgDashDot', 'Line is a long dash-dot patter'
+            'n.'
+        ),
+        XmlMappedEnumMember(
+            'ROUND_DOT', 3, 'dot', 'Line is made up of round dots.'
+        ),
+        XmlMappedEnumMember(
+            'SOLID', 1, 'solid', 'Line is solid.'
+        ),
+        XmlMappedEnumMember(
+            'SQUARE_DOT', 2, 'sysDash', 'Line is made up of square dots.'
+        ),
+        ReturnValueOnlyEnumMember(
+            'DASH_STYLE_MIXED', -2, 'Not supported.'
+        ),
+    )
+
+
 @alias('MSO_THEME_COLOR')
 class MSO_THEME_COLOR_INDEX(XmlEnumeration):
     """

@@ -160,6 +160,20 @@ Solid RGB color on autoshape::
     </p:spPr>
 
 
+
+Resources
+---------
+
+* `MSDN FillFormat Object`_
+* `MSDN MsoFillType Enumeration`_
+
+
+.. _`MSDN FillFormat Object`:
+   http://msdn.microsoft.com/en-us/library/office/ff744967.aspx
+
+.. _`MSDN MsoFillType Enumeration`:
+   http://msdn.microsoft.com/EN-US/library/office/ff861408.aspx
+
 Related Schema Definitions
 --------------------------
 
@@ -253,16 +267,61 @@ Related Schema Definitions
     </xsd:choice>
   </xsd:group>
 
-
-Resources
----------
-
-* `MSDN FillFormat Object`_
-* `MSDN MsoFillType Enumeration`_
-
-
-.. _`MSDN FillFormat Object`:
-   http://msdn.microsoft.com/en-us/library/office/ff744967.aspx
-
-.. _`MSDN MsoFillType Enumeration`:
-   http://msdn.microsoft.com/EN-US/library/office/ff861408.aspx
+  <xsd:simpleType name="ST_PresetPatternVal">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="pct5"/>
+      <xsd:enumeration value="pct10"/>
+      <xsd:enumeration value="pct20"/>
+      <xsd:enumeration value="pct25"/>
+      <xsd:enumeration value="pct30"/>
+      <xsd:enumeration value="pct40"/>
+      <xsd:enumeration value="pct50"/>
+      <xsd:enumeration value="pct60"/>
+      <xsd:enumeration value="pct70"/>
+      <xsd:enumeration value="pct75"/>
+      <xsd:enumeration value="pct80"/>
+      <xsd:enumeration value="pct90"/>
+      <xsd:enumeration value="horz"/>
+      <xsd:enumeration value="vert"/>
+      <xsd:enumeration value="ltHorz"/>
+      <xsd:enumeration value="ltVert"/>
+      <xsd:enumeration value="dkHorz"/>
+      <xsd:enumeration value="dkVert"/>
+      <xsd:enumeration value="narHorz"/>
+      <xsd:enumeration value="narVert"/>
+      <xsd:enumeration value="dashHorz"/>
+      <xsd:enumeration value="dashVert"/>
+      <xsd:enumeration value="cross"/>
+      <xsd:enumeration value="dnDiag"/>
+      <xsd:enumeration value="upDiag"/>
+      <xsd:enumeration value="ltDnDiag"/>
+      <xsd:enumeration value="ltUpDiag"/>
+      <xsd:enumeration value="dkDnDiag"/>
+      <xsd:enumeration value="dkUpDiag"/>
+      <xsd:enumeration value="wdDnDiag"/>
+      <xsd:enumeration value="wdUpDiag"/>
+      <xsd:enumeration value="dashDnDiag"/>
+      <xsd:enumeration value="dashUpDiag"/>
+      <xsd:enumeration value="diagCross"/>
+      <xsd:enumeration value="smCheck"/>
+      <xsd:enumeration value="lgCheck"/>
+      <xsd:enumeration value="smGrid"/>
+      <xsd:enumeration value="lgGrid"/>
+      <xsd:enumeration value="dotGrid"/>
+      <xsd:enumeration value="smConfetti"/>
+      <xsd:enumeration value="lgConfetti"/>
+      <xsd:enumeration value="horzBrick"/>
+      <xsd:enumeration value="diagBrick"/>
+      <xsd:enumeration value="solidDmnd"/>
+      <xsd:enumeration value="openDmnd"/>
+      <xsd:enumeration value="dotDmnd"/>
+      <xsd:enumeration value="plaid"/>
+      <xsd:enumeration value="sphere"/>
+      <xsd:enumeration value="weave"/>
+      <xsd:enumeration value="divot"/>
+      <xsd:enumeration value="shingle"/>
+      <xsd:enumeration value="wave"/>
+      <xsd:enumeration value="trellis"/>
+      <xsd:enumeration value="zigZag"/>
+    </xsd:restriction>
+  </xsd:simpleType>

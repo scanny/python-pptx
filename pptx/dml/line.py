@@ -35,6 +35,33 @@ class LineFormat(object):
             self.fill.solid()
         return self.fill.fore_color
 
+    @property
+    def dash_style(self):
+        """Return value indicating line style.
+
+        Returns a member of :ref:`MsoLineDashStyle` indicating line style, or
+        |None| if no explicit value has been set. When no explicit value has
+        been set, the line dash style is inherited from the style hierarchy.
+
+        Assigning |None| removes any existing explicitly-defined dash style.
+        """
+        ln = self._ln
+        if ln is None:
+            return None
+        return ln.prstDash_val
+
+    @dash_style.setter
+    def dash_style(self, dash_style):
+        if dash_style is None:
+            ln = self._ln
+            if ln is None:
+                return
+            ln._remove_prstDash
+            ln._remove_custDash
+            return
+        ln = self._get_or_add_ln()
+        ln.prstDash_val = dash_style
+
     @lazyproperty
     def fill(self):
         """
