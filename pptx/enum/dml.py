@@ -162,6 +162,203 @@ class MSO_LINE_DASH_STYLE(XmlEnumeration):
     )
 
 
+@alias('MSO_PATTERN')
+class MSO_PATTERN_TYPE(XmlEnumeration):
+    """Specifies the fill pattern used in a shape.
+
+    Alias: ``MSO_PATTERN``
+
+    Example::
+
+        from pptx.enum.dml import MSO_PATTERN
+
+        fill = shape.fill
+        fill.patterned()
+        fill.pattern == MSO_PATTERN.WAVE
+    """
+
+    __ms_name__ = 'MsoPatternType'
+
+    __url__ = (
+        'https://msdn.microsoft.com/VBA/Office-Shared-VBA/articles/msopatter'
+        'ntype-enumeration-office'
+    )
+
+    __members__ = (
+
+        XmlMappedEnumMember(
+            'CROSS', 51, 'cross', 'Cross'
+        ),
+        XmlMappedEnumMember(
+            'DARK_DOWNWARD_DIAGONAL', 15, 'dkDnDiag', 'Dark Downward Diagona'
+            'l'
+        ),
+        XmlMappedEnumMember(
+            'DARK_HORIZONTAL', 13, 'dkHorz', 'Dark Horizontal'
+        ),
+        XmlMappedEnumMember(
+            'DARK_UPWARD_DIAGONAL', 16, 'dkUpDiag', 'Dark Upward Diagonal'
+        ),
+        XmlMappedEnumMember(
+            'DARK_VERTICAL', 14, 'dkVert', 'Dark Vertical'
+        ),
+        XmlMappedEnumMember(
+            'DASHED_DOWNWARD_DIAGONAL', 28, 'dashDnDiag', 'Dashed Downward D'
+            'iagonal'
+        ),
+        XmlMappedEnumMember(
+            'DASHED_HORIZONTAL', 32, 'dashHorz', 'Dashed Horizontal'
+        ),
+        XmlMappedEnumMember(
+            'DASHED_UPWARD_DIAGONAL', 27, 'dashUpDiag', 'Dashed Upward Diago'
+            'nal'
+        ),
+        XmlMappedEnumMember(
+            'DASHED_VERTICAL', 31, 'dashVert', 'Dashed Vertical'
+        ),
+        XmlMappedEnumMember(
+            'DIAGONAL_BRICK', 40, 'diagBrick', 'Diagonal Brick'
+        ),
+        XmlMappedEnumMember(
+            'DIAGONAL_CROSS', 54, 'diagCross', 'Diagonal Cross'
+        ),
+        XmlMappedEnumMember(
+            'DIVOT', 46, 'divot', 'Pattern Divot'
+        ),
+        XmlMappedEnumMember(
+            'DOTTED_DIAMOND', 24, 'dotDmnd', 'Dotted Diamond'
+        ),
+        XmlMappedEnumMember(
+            'DOTTED_GRID', 45, 'dotGrid', 'Dotted Grid'
+        ),
+        XmlMappedEnumMember(
+            'DOWNWARD_DIAGONAL', 52, 'dnDiag', 'Downward Diagonal'
+        ),
+        XmlMappedEnumMember(
+            'HORIZONTAL', 49, 'horz', 'Horizontal'
+        ),
+        XmlMappedEnumMember(
+            'HORIZONTAL_BRICK', 35, 'horzBrick', 'Horizontal Brick'
+        ),
+        XmlMappedEnumMember(
+            'LARGE_CHECKER_BOARD', 36, 'lgCheck', 'Large Checker Board'
+        ),
+        XmlMappedEnumMember(
+            'LARGE_CONFETTI', 33, 'lgConfetti', 'Large Confetti'
+        ),
+        XmlMappedEnumMember(
+            'LARGE_GRID', 34, 'lgGrid', 'Large Grid'
+        ),
+        XmlMappedEnumMember(
+            'LIGHT_DOWNWARD_DIAGONAL', 21, 'ltDnDiag', 'Light Downward Diago'
+            'nal'
+        ),
+        XmlMappedEnumMember(
+            'LIGHT_HORIZONTAL', 19, 'ltHorz', 'Light Horizontal'
+        ),
+        XmlMappedEnumMember(
+            'LIGHT_UPWARD_DIAGONAL', 22, 'ltUpDiag', 'Light Upward Diagonal'
+        ),
+        XmlMappedEnumMember(
+            'LIGHT_VERTICAL', 20, 'ltVert', 'Light Vertical'
+        ),
+        XmlMappedEnumMember(
+            'NARROW_HORIZONTAL', 30, 'narHorz', 'Narrow Horizontal'
+        ),
+        XmlMappedEnumMember(
+            'NARROW_VERTICAL', 29, 'narVert', 'Narrow Vertical'
+        ),
+        XmlMappedEnumMember(
+            'OUTLINED_DIAMOND', 41, 'openDmnd', 'Outlined Diamond'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_10', 2, 'pct10', '10% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_20', 3, 'pct20', '20% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_25', 4, 'pct25', '25% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_30', 5, 'pct30', '30% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_40', 6, 'pct40', '40% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_5', 1, 'pct5', '5% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_50', 7, 'pct50', '50% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_60', 8, 'pct60', '60% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_70', 9, 'pct70', '70% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_75', 10, 'pct75', '75% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_80', 11, 'pct80', '80% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PERCENT_90', 12, 'pct90', '90% of the foreground color.'
+        ),
+        XmlMappedEnumMember(
+            'PLAID', 42, 'plaid', 'Plaid'
+        ),
+        XmlMappedEnumMember(
+            'SHINGLE', 47, 'shingle', 'Shingle'
+        ),
+        XmlMappedEnumMember(
+            'SMALL_CHECKER_BOARD', 17, 'smCheck', 'Small Checker Board'
+        ),
+        XmlMappedEnumMember(
+            'SMALL_CONFETTI', 37, 'smConfetti', 'Small Confetti'
+        ),
+        XmlMappedEnumMember(
+            'SMALL_GRID', 23, 'smGrid', 'Small Grid'
+        ),
+        XmlMappedEnumMember(
+            'SOLID_DIAMOND', 39, 'solidDmnd', 'Solid Diamond'
+        ),
+        XmlMappedEnumMember(
+            'SPHERE', 43, 'sphere', 'Sphere'
+        ),
+        XmlMappedEnumMember(
+            'TRELLIS', 18, 'trellis', 'Trellis'
+        ),
+        XmlMappedEnumMember(
+            'UPWARD_DIAGONAL', 53, 'upDiag', 'Upward Diagonal'
+        ),
+        XmlMappedEnumMember(
+            'VERTICAL', 50, 'vert', 'Vertical'
+        ),
+        XmlMappedEnumMember(
+            'WAVE', 48, 'wave', 'Wave'
+        ),
+        XmlMappedEnumMember(
+            'WEAVE', 44, 'weave', 'Weave'
+        ),
+        XmlMappedEnumMember(
+            'WIDE_DOWNWARD_DIAGONAL', 25, 'wdDnDiag', 'Wide Downward Diagona'
+            'l'
+        ),
+        XmlMappedEnumMember(
+            'WIDE_UPWARD_DIAGONAL', 26, 'wdUpDiag', 'Wide Upward Diagonal'
+        ),
+        XmlMappedEnumMember(
+            'ZIG_ZAG', 38, 'zigZag', 'Zig Zag'
+        ),
+        ReturnValueOnlyEnumMember(
+            'MIXED', -2, 'Mixed pattern.'
+        ),
+    )
+
+
 @alias('MSO_THEME_COLOR')
 class MSO_THEME_COLOR_INDEX(XmlEnumeration):
     """

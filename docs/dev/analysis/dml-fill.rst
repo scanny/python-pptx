@@ -42,23 +42,28 @@ Minimum viable feature
 Start with solid fill since that's the most frequently asked for and it reuses
 the work completed on ColorFormat for font color feature::
 
-    fill = sp.fill
+    fill = shape.fill
     fill.solid()
     fill.fore_color.rgb = RGBColor(0x01, 0x23, 0x45)
     fill.fore_color.theme_color = MSO_THEME_COLOR.ACCENT_1
     fill.fore_color.brightness = 0.25
     fill.transparency = 0.25
-    sp.fill = None
+    shape.fill = None
     fill.background()  # is almost free once the rest is in place
 
 
-Candidate API
--------------
+Protocol
+--------
 
-Protocol::
+**Accessing fill.** A shape object unconditionally has a `FillFormat` object
+on `.fill`. The `.fill` property is idempotent; it always returns the same
+`FillFormat` object for a given shape object::
 
-    >>> fill = sp.fill
+    >>> fill = shape.fill
     >>> assert(isinstance(fill, FillFormat)
+
+**Fill type.** A fill has a type, which may be |None|. The fill type
+partially determines the valid calls on the fill::
 
     >>> fill.type
     None
@@ -71,7 +76,7 @@ Protocol::
     >>> fore_color = fill.fore_color
     >>> assert(isinstance(fore_color, ColorFormat))
 
-    >>> fore_color.rgb = RGB(0x3F, 0x2c, 0x36)
+    >>> fore_color.rgb = RGBColor(0x3F, 0x2c, 0x36)
     >>> fore_color.theme_color = MSO_THEME_COLOR.ACCENT_1
     >>> fore_color.brightness = -0.25
 
@@ -81,10 +86,16 @@ Protocol::
 
     >>> sp.fill = None  # removes any fill, fill is inherited from theme
 
+**Pattern Fill.** ::
 
-API
-
-* ``Shape.fill`` (instance of ``FillFormat``)
+    >>> fill = shape.fill
+    >>> fill.type
+    None
+    >>> fill.patterned()
+    >>> fill.type
+    2  # MSO_FILL.PATTERNED
+    >>> fill.fore_color.rgb = RGBColor(79, 129, 189)
+    >>> fill.back_color.rgb = RGBColor(239, 169, 6)
 
 
 *fill type get/set*
@@ -158,6 +169,29 @@ Solid RGB color on autoshape::
         <a:srgbClr val="2CB731"/>
       </a:solidFill>
     </p:spPr>
+
+Patterned fill::
+
+    <a:pattFill prst="ltDnDiag">
+      <a:fgClr>
+        <a:schemeClr val="accent1"/>
+      </a:fgClr>
+      <a:bgClr>
+        <a:schemeClr val="accent6"/>
+      </a:bgClr>
+    </a:pattFill>
+
+
+XML semantics
+-------------
+
+* **No `prst` attribute.** When an `a:pattFill` element contains
+  no `prst` attribute, the pattern default to 5% (dotted). This is the first
+  one in the list on the PowerPoint UI.
+
+* **No `fgClr` or `bgClr` elements.** When an `a:pattFill` element contains
+  no `fgClr` or `bgClr` chile elements, the colors default to black and white
+  respectively.
 
 
 
@@ -248,6 +282,12 @@ Related Schema Definitions
       <xsd:element name="bgClr" type="CT_Color" minOccurs="0"/>
     </xsd:sequence>
     <xsd:attribute name="prst" type="ST_PresetPatternVal"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_Color">
+    <xsd:sequence>
+      <xsd:group ref="EG_ColorChoice"/>
+    </xsd:sequence>
   </xsd:complexType>
 
   <xsd:complexType name="CT_SolidColorFillProperties">

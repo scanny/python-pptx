@@ -8,7 +8,9 @@ from __future__ import absolute_import
 
 from ...enum.dml import MSO_THEME_COLOR
 from ..simpletypes import ST_HexColorRGB, ST_Percentage
-from ..xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
+from ..xmlchemy import (
+    BaseOxmlElement, Choice, RequiredAttribute, ZeroOrOne, ZeroOrOneChoice
+)
 
 
 class _BaseColorElement(BaseOxmlElement):
@@ -42,6 +44,15 @@ class _BaseColorElement(BaseOxmlElement):
         self._remove_lumMod()
         self._remove_lumOff()
         return self
+
+
+class CT_Color(BaseOxmlElement):
+    """`a:fgClr` and `a:bgClr` custom element class and perhaps others."""
+    eg_colorChoice = ZeroOrOneChoice((
+        Choice('a:scrgbClr'), Choice('a:srgbClr'), Choice('a:hslClr'),
+        Choice('a:sysClr'), Choice('a:schemeClr'), Choice('a:prstClr')),
+        successors=()
+    )
 
 
 class CT_HslColor(_BaseColorElement):

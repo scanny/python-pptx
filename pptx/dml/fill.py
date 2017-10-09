@@ -27,6 +27,14 @@ class FillFormat(object):
         self._xPr = eg_fill_properties_parent
         self._fill = fill_obj
 
+    @property
+    def back_color(self):
+        """Return a |ColorFormat| object representing background color.
+
+        This property is only applicable to patter fills and lines.
+        """
+        return self._fill.back_color
+
     def background(self):
         """
         Sets the fill type to noFill, i.e. transparent.
@@ -53,6 +61,34 @@ class FillFormat(object):
         fill = _Fill(fill_elm)
         fill_format = cls(eg_fillProperties_parent, fill)
         return fill_format
+
+    @property
+    def pattern(self):
+        """Return member of :ref:`MSO_PATTERN_TYPE` indicating fill pattern.
+
+        Raises |TypeError| when fill is not patterned (call
+        `fill.patterned()` first). Returns |None| if no pattern has been set;
+        PowerPoint may display the default `PERCENT_5` pattern in this case.
+        Assigning |None| will remove any explicit pattern setting, although
+        relying on the default behavior is discouraged and may produce
+        rendering differences across client applications.
+        """
+        return self._fill.pattern
+
+    @pattern.setter
+    def pattern(self, pattern_type):
+        self._fill.pattern = pattern_type
+
+    def patterned(self):
+        """Selects the pattern fill type.
+
+        Note that calling this method does not by itself set a foreground or
+        background color of the pattern. Rather it enables subsequent
+        assignments to properties like fore_color to set the patter and
+        colors.
+        """
+        pattFill = self._xPr.get_or_change_to_pattFill()
+        self._fill = _PattFill(pattFill)
 
     def solid(self):
         """
@@ -181,6 +217,37 @@ class _NoneFill(_Fill):
 
 
 class _PattFill(_Fill):
+    """Provides access to patterned fill properties."""
+
+    def __init__(self, pattFill):
+        super(_PattFill, self).__init__()
+        self._element = self._pattFill = pattFill
+
+    @lazyproperty
+    def back_color(self):
+        """Return |ColorFormat| object that controls background color."""
+        bgClr = self._pattFill.get_or_add_bgClr()
+        return ColorFormat.from_colorchoice_parent(bgClr)
+
+    @lazyproperty
+    def fore_color(self):
+        """Return |ColorFormat| object that controls foreground color."""
+        fgClr = self._pattFill.get_or_add_fgClr()
+        return ColorFormat.from_colorchoice_parent(fgClr)
+
+    @property
+    def pattern(self):
+        """Return member of :ref:`MSO_PATTERN_TYPE` indicating fill pattern.
+
+        Returns |None| if no pattern has been set; PowerPoint may display the
+        default `PERCENT_5` pattern in this case. Assigning |None| will
+        remove any explicit pattern setting.
+        """
+        return self._pattFill.prst
+
+    @pattern.setter
+    def pattern(self, pattern_type):
+        self._pattFill.prst = pattern_type
 
     @property
     def type(self):
