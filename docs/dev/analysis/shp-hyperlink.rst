@@ -64,7 +64,7 @@ Candidate Protocol
 .. highlight:: python
 
 * Shape
-  
+
   + `.click_action` - unconditionally returns an `ActionSetting` object,
     regardless of whether a click action is defined. Returns an
     `ActionSetting` object even when the shape type does not support a click
@@ -225,7 +225,7 @@ Hyperlink autoshape to other slide by title
 * Right-click > Hyperlink... (Cmd-K)
 * Select Document panel
 * Anchor: > Locate... > Slide Titles
-* select slide by number and title, e.g. "2 
+* select slide by number and title, e.g. "2
 
 Add Anchor point in a document (or perhaps a slide)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -251,14 +251,14 @@ ActionSetting
 * Shape.ActionSettings(ppMouseClick | ppMouseOver) => ActionSetting
 
 * ActionSetting.Action
-  
+
   + one of: ppActionHyperlink, ppActionFirstSlide, ppActionPlay, or several
     others: https://msdn.microsoft.com/EN-US/library/office/ff744511.aspx
 
 * ActionSetting.Hyperlink => Hyperlink
 
 * Hyperlink members:
-  
+
   + Address
   + SubAddress
   + TextToDisplay

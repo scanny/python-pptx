@@ -3,7 +3,7 @@ Enumerations
 ============
 
 Documentation for the various enumerations used for |pp| property settings
-can be found here: 
+can be found here:
 
 .. toctree::
    :titlesonly:

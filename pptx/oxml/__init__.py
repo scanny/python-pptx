@@ -56,12 +56,12 @@ def register_element_cls(nsptagname, cls):
     namespace[nsptag.local_part] = cls
 
 
-from .action import CT_Hyperlink
+from .action import CT_Hyperlink  # noqa: E402
 register_element_cls('a:hlinkClick', CT_Hyperlink)
 register_element_cls('a:hlinkHover', CT_Hyperlink)
 
 
-from .chart.axis import (
+from .chart.axis import (  # noqa: E402
     CT_AxisUnit, CT_CatAx, CT_ChartLines, CT_Crosses, CT_DateAx,
     CT_LblOffset, CT_Scaling, CT_TickLblPos, CT_TickMark, CT_ValAx
 )
@@ -79,7 +79,7 @@ register_element_cls('c:tickLblPos',     CT_TickLblPos)
 register_element_cls('c:valAx',          CT_ValAx)
 
 
-from .chart.chart import (
+from .chart.chart import (  # noqa: E402
     CT_Chart, CT_ChartSpace, CT_ExternalData, CT_PlotArea, CT_Style
 )
 register_element_cls('c:chart',        CT_Chart)
@@ -89,24 +89,26 @@ register_element_cls('c:plotArea',     CT_PlotArea)
 register_element_cls('c:style',        CT_Style)
 
 
-from .chart.datalabel import CT_DLbl, CT_DLblPos, CT_DLbls
+from .chart.datalabel import CT_DLbl, CT_DLblPos, CT_DLbls  # noqa: E402
 register_element_cls('c:dLbl',    CT_DLbl)
 register_element_cls('c:dLblPos', CT_DLblPos)
 register_element_cls('c:dLbls',   CT_DLbls)
 
 
-from .chart.legend import CT_Legend, CT_LegendPos
+from .chart.legend import CT_Legend, CT_LegendPos  # noqa: E402
 register_element_cls('c:legend',    CT_Legend)
 register_element_cls('c:legendPos', CT_LegendPos)
 
 
-from .chart.marker import CT_Marker, CT_MarkerSize, CT_MarkerStyle
+from .chart.marker import (  # noqa: E402
+    CT_Marker, CT_MarkerSize, CT_MarkerStyle
+)
 register_element_cls('c:marker', CT_Marker)
 register_element_cls('c:size',   CT_MarkerSize)
 register_element_cls('c:symbol', CT_MarkerStyle)
 
 
-from .chart.plot import (
+from .chart.plot import (  # noqa: E402
     CT_Area3DChart, CT_AreaChart, CT_BarChart, CT_BarDir, CT_BubbleChart,
     CT_BubbleScale, CT_DoughnutChart, CT_GapAmount, CT_Grouping,
     CT_LineChart, CT_Overlap, CT_PieChart, CT_RadarChart, CT_ScatterChart
@@ -127,7 +129,7 @@ register_element_cls('c:radarChart',    CT_RadarChart)
 register_element_cls('c:scatterChart',  CT_ScatterChart)
 
 
-from .chart.series import (
+from .chart.series import (  # noqa: E402
     CT_AxDataSource, CT_DPt, CT_Lvl, CT_NumDataSource, CT_SeriesComposite,
     CT_StrVal_NumVal_Composite
 )
@@ -142,7 +144,7 @@ register_element_cls('c:xVal',       CT_NumDataSource)
 register_element_cls('c:yVal',       CT_NumDataSource)
 
 
-from .chart.shared import (
+from .chart.shared import (  # noqa: E402
     CT_Boolean, CT_Boolean_Explicit, CT_Double, CT_Layout, CT_LayoutMode,
     CT_ManualLayout, CT_NumFmt, CT_Title, CT_Tx, CT_UnsignedInt
 )
@@ -172,11 +174,11 @@ register_element_cls('c:x',                CT_Double)
 register_element_cls('c:xMode',            CT_LayoutMode)
 
 
-from .coreprops import CT_CoreProperties
+from .coreprops import CT_CoreProperties  # noqa: E402
 register_element_cls('cp:coreProperties', CT_CoreProperties)
 
 
-from .dml.color import (
+from .dml.color import (  # noqa: E402
     CT_HslColor, CT_Percentage, CT_PresetColor, CT_SchemeColor,
     CT_ScRgbColor, CT_SRgbColor, CT_SystemColor
 )
@@ -190,7 +192,7 @@ register_element_cls('a:srgbClr',   CT_SRgbColor)
 register_element_cls('a:sysClr',    CT_SystemColor)
 
 
-from .dml.fill import (
+from .dml.fill import (  # noqa: E402
     CT_Blip, CT_BlipFillProperties, CT_GradientFillProperties,
     CT_GroupFillProperties, CT_NoFillProperties, CT_PatternFillProperties,
     CT_RelativeRect, CT_SolidColorFillProperties
@@ -205,7 +207,7 @@ register_element_cls('a:solidFill', CT_SolidColorFillProperties)
 register_element_cls('a:srcRect',   CT_RelativeRect)
 
 
-from .presentation import (
+from .presentation import (  # noqa: E402
     CT_Presentation, CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList,
     CT_SlideMasterIdListEntry, CT_SlideSize
 )
@@ -217,7 +219,7 @@ register_element_cls('p:sldMasterIdLst', CT_SlideMasterIdList)
 register_element_cls('p:sldSz',          CT_SlideSize)
 
 
-from .shapes.autoshape import (
+from .shapes.autoshape import (  # noqa: E402
     CT_GeomGuide, CT_GeomGuideList, CT_NonVisualDrawingShapeProps,
     CT_PresetGeometry2D, CT_Shape, CT_ShapeNonVisual
 )
@@ -229,7 +231,7 @@ register_element_cls('p:nvSpPr',   CT_ShapeNonVisual)
 register_element_cls('p:sp',       CT_Shape)
 
 
-from .shapes.connector import (
+from .shapes.connector import (  # noqa: E402
     CT_Connection, CT_Connector, CT_ConnectorNonVisual,
     CT_NonVisualConnectorProperties
 )
@@ -240,7 +242,7 @@ register_element_cls('p:cxnSp',      CT_Connector)
 register_element_cls('p:nvCxnSpPr',  CT_ConnectorNonVisual)
 
 
-from .shapes.graphfrm import (
+from .shapes.graphfrm import (  # noqa: E402
     CT_GraphicalObject, CT_GraphicalObjectData, CT_GraphicalObjectFrame,
     CT_GraphicalObjectFrameNonVisual
 )
@@ -250,7 +252,7 @@ register_element_cls('p:graphicFrame',     CT_GraphicalObjectFrame)
 register_element_cls('p:nvGraphicFramePr', CT_GraphicalObjectFrameNonVisual)
 
 
-from .shapes.groupshape import (
+from .shapes.groupshape import (  # noqa: E402
     CT_GroupShape, CT_GroupShapeNonVisual, CT_GroupShapeProperties
 )
 register_element_cls('p:grpSp',      CT_GroupShape)
@@ -259,13 +261,13 @@ register_element_cls('p:nvGrpSpPr',  CT_GroupShapeNonVisual)
 register_element_cls('p:spTree',     CT_GroupShape)
 
 
-from .shapes.picture import CT_Picture, CT_PictureNonVisual
+from .shapes.picture import CT_Picture, CT_PictureNonVisual  # noqa: E402
 register_element_cls('p:blipFill', CT_BlipFillProperties)
 register_element_cls('p:nvPicPr',  CT_PictureNonVisual)
 register_element_cls('p:pic',      CT_Picture)
 
 
-from .shapes.shared import (
+from .shapes.shared import (  # noqa: E402
     CT_ApplicationNonVisualDrawingProps, CT_LineProperties,
     CT_NonVisualDrawingProps, CT_Placeholder, CT_Point2D, CT_PositiveSize2D,
     CT_ShapeProperties, CT_Transform2D
@@ -282,7 +284,7 @@ register_element_cls('p:spPr',  CT_ShapeProperties)
 register_element_cls('p:xfrm',  CT_Transform2D)
 
 
-from .shapes.table import (
+from .shapes.table import (  # noqa: E402
     CT_Table, CT_TableCell, CT_TableCellProperties, CT_TableCol,
     CT_TableGrid, CT_TableProperties, CT_TableRow
 )
@@ -295,7 +297,7 @@ register_element_cls('a:tcPr',    CT_TableCellProperties)
 register_element_cls('a:tr',      CT_TableRow)
 
 
-from .slide import (
+from .slide import (  # noqa: E402
     CT_CommonSlideData, CT_NotesMaster, CT_NotesSlide, CT_Slide,
     CT_SlideLayout, CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry,
     CT_SlideMaster, CT_SlideTiming, CT_TimeNodeList, CT_TLMediaNodeVideo
@@ -313,7 +315,7 @@ register_element_cls('p:timing',         CT_SlideTiming)
 register_element_cls('p:video',          CT_TLMediaNodeVideo)
 
 
-from .text import (
+from .text import (  # noqa: E402
     CT_RegularTextRun, CT_TextBody, CT_TextBodyProperties,
     CT_TextCharacterProperties, CT_TextField, CT_TextFont, CT_TextLineBreak,
     CT_TextNormalAutofit, CT_TextParagraph, CT_TextParagraphProperties,
@@ -341,5 +343,5 @@ register_element_cls('c:txPr',        CT_TextBody)
 register_element_cls('p:txBody',      CT_TextBody)
 
 
-from .theme import CT_OfficeStyleSheet
+from .theme import CT_OfficeStyleSheet  # noqa: E402
 register_element_cls('a:theme', CT_OfficeStyleSheet)
