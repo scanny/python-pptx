@@ -123,8 +123,8 @@ def given_a_shape(context):
     context.shape = sld.shapes[0]
 
 
-@given('a SlideShapes object')
-def given_a_SlideShapes_object(context):
+@given('a SlideShapes object as shapes')
+def given_a_SlideShapes_object_as_shapes(context):
     prs = Presentation(test_pptx('shp-shape-access'))
     context.shapes = prs.slides[0].shapes
 

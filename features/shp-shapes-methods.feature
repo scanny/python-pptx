@@ -5,7 +5,7 @@ Feature: Shape collection methods
 
 
   Scenario: SlideShapes.add_connector()
-    Given a SlideShapes object
+    Given a SlideShapes object as shapes
      When I call shapes.add_connector(MSO_CONNECTOR.STRAIGHT, 1, 2, 3, 4)
      Then connector is a Connector object
       And connector.begin_x == 1
@@ -14,14 +14,14 @@ Feature: Shape collection methods
       And connector.end_y == 4
 
 
-  Scenario: Add an auto shape to a slide
-     Given a blank slide
-      When I add an auto shape to the slide's shape collection
-       And I save the presentation
-      Then the auto shape appears in the slide
+  Scenario: SlideShapes.add_shape()
+    Given a blank slide
+     When I add an auto shape to the slide's shape collection
+      And I save the presentation
+     Then the auto shape appears in the slide
 
 
-  Scenario Outline: Add a category chart
+  Scenario Outline: SlideShapes.add_chart() (category chart)
     Given a blank slide
      When I add a <type> chart with <cats> categories and <sers> series
      Then chart.chart_type is <chart-type>
@@ -56,8 +56,8 @@ Feature: Shape collection methods
       | Radar with markers        | RADAR_MARKERS            |   5  |   2  |
 
 
-  Scenario Outline: Add a category chart with date axis
-    Given a SlideShapes object
+  Scenario Outline: SlideShapes.add_chart() (category chart with date axis)
+    Given a SlideShapes object as shapes
       And a CategoryChartData object having date categories
      When I call shapes.add_chart(<chart-type>, chart_data)
      Then chart.category_axis is a DateAxis object
@@ -70,7 +70,7 @@ Feature: Shape collection methods
       | LINE             |
 
 
-  Scenario: Add a multi-level category chart
+  Scenario: SlideShapes.add_chart() (multi-level category chart)
     Given a blank slide
      When I add a Clustered bar chart with multi-level categories
      Then chart.chart_type is BAR_CLUSTERED
@@ -78,7 +78,7 @@ Feature: Shape collection methods
       And the chart has an Excel data worksheet
 
 
-  Scenario Outline: Add an XY chart
+  Scenario Outline: SlideShapes.add_chart() (XY chart)
     Given a blank slide
      When I add an <chart-type> chart having 2 series of 3 points each
      Then chart.chart_type is <chart-type>
@@ -95,7 +95,7 @@ Feature: Shape collection methods
       | XY_SCATTER_SMOOTH_NO_MARKERS |
 
 
-  Scenario Outline: Add a bubble chart
+  Scenario Outline: SlideShapes.add_chart() (bubble chart)
     Given a blank slide
      When I add a <chart-type> chart having 2 series of 3 points each
      Then chart.chart_type is <chart-type>
@@ -109,12 +109,12 @@ Feature: Shape collection methods
       | BUBBLE_THREE_D_EFFECT |
 
 
-  Scenario Outline: Add a picture to a slide
-     Given a blank slide
-      When I add the image <filename> using shapes.add_picture()
-       And I save the presentation
-      Then a <ext> image part appears in the pptx file
-       And the picture appears in the slide
+  Scenario Outline: SlideShapes.add_picture() (using filename)
+    Given a blank slide
+     When I add the image <filename> using shapes.add_picture()
+      And I save the presentation
+     Then a <ext> image part appears in the pptx file
+      And the picture appears in the slide
 
     Examples: image files of supported types
       | filename         | ext  |
@@ -127,12 +127,12 @@ Feature: Shape collection methods
       | python.bmp       | bmp  |
 
 
-  Scenario Outline: Add a picture stream to a slide
-     Given a blank slide
-      When I add the stream image <filename> using shapes.add_picture()
-       And I save the presentation
-      Then a <ext> image part appears in the pptx file
-       And the picture appears in the slide
+  Scenario Outline: SlideShapes.add_picture() (using file-like object)
+    Given a blank slide
+     When I add the stream image <filename> using shapes.add_picture()
+      And I save the presentation
+     Then a <ext> image part appears in the pptx file
+      And the picture appears in the slide
 
     Examples: image files of supported types
       | filename         | ext  |
@@ -160,15 +160,15 @@ Feature: Shape collection methods
       | no          |
 
 
-  Scenario: Add a table to a slide
-     Given a blank slide
-      When I add a table to the slide's shape collection
-       And I save the presentation
-      Then the table appears in the slide
+  Scenario: SlideShapes.add_table()
+    Given a blank slide
+     When I add a table to the slide's shape collection
+      And I save the presentation
+     Then the table appears in the slide
 
 
-  Scenario: Add a text box to a slide
-     Given a blank slide
-      When I add a text box to the slide's shape collection
-       And I save the presentation
-      Then the text box appears in the slide
+  Scenario: SlideShapes.add_textbox()
+    Given a blank slide
+     When I add a text box to the slide's shape collection
+      And I save the presentation
+     Then the text box appears in the slide
