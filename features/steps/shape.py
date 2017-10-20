@@ -13,7 +13,6 @@ from behave import given, when, then
 from pptx import Presentation
 from pptx.chart.chart import Chart
 from pptx.enum.chart import XL_CHART_TYPE
-from pptx.enum.dml import MSO_FILL
 from pptx.enum.shapes import (
     MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 )
@@ -323,16 +322,6 @@ def when_I_get_the_chart_from_its_graphic_frame(context):
     context.chart = context.shape.chart
 
 
-@when("I set the fill type to background")
-def when_set_fill_type_to_background(context):
-    context.shape.fill.background()
-
-
-@when("I set the fill type to solid")
-def when_set_fill_type_to_solid(context):
-    context.shape.fill.solid()
-
-
 # then ====================================================
 
 @then('connector is a Connector object')
@@ -509,11 +498,6 @@ def then_auto_shape_appears_in_slide(context):
     assert sp.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
     assert sp.auto_shape_type == MSO_SHAPE.ROUNDED_RECTANGLE
     assert sp_text == test_text
-
-
-@then('the fill type of the shape is background')
-def then_fill_type_is_background(context):
-    assert context.shape.fill.type == MSO_FILL.BACKGROUND
 
 
 @then('the chart is a Chart object')
