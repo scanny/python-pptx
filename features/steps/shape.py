@@ -12,9 +12,8 @@ from behave import given, when, then
 
 from pptx import Presentation
 from pptx.chart.chart import Chart
-from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
-from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
+from pptx.enum.dml import MSO_FILL
 from pptx.enum.shapes import (
     MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 )
@@ -334,21 +333,6 @@ def when_set_fill_type_to_solid(context):
     context.shape.fill.solid()
 
 
-@when("I set the foreground color brightness to 0.5")
-def when_set_fore_color_brightness_to_value(context):
-    context.shape.fill.fore_color.brightness = 0.5
-
-
-@when("I set the foreground color to a theme color")
-def when_set_fore_color_to_theme_color(context):
-    context.shape.fill.fore_color.theme_color = MSO_THEME_COLOR.ACCENT_6
-
-
-@when("I set the foreground color to an RGB value")
-def when_set_fore_color_to_RGB_value(context):
-    context.shape.fill.fore_color.rgb = RGBColor(0x12, 0x34, 0x56)
-
-
 # then ====================================================
 
 @then('connector is a Connector object')
@@ -530,22 +514,6 @@ def then_auto_shape_appears_in_slide(context):
 @then('the fill type of the shape is background')
 def then_fill_type_is_background(context):
     assert context.shape.fill.type == MSO_FILL.BACKGROUND
-
-
-@then('the foreground color brightness of the shape is 0.5')
-def then_fore_color_brightness_is_value(context):
-    assert context.shape.fill.fore_color.brightness == 0.5
-
-
-@then('the foreground color of the shape is the RGB value I set')
-def then_fore_color_is_RGB_value_I_set(context):
-    assert context.shape.fill.fore_color.rgb == RGBColor(0x12, 0x34, 0x56)
-
-
-@then('the foreground color of the shape is the theme color I set')
-def then_fore_color_is_theme_color_I_set(context):
-    fore_color = context.shape.fill.fore_color
-    assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
 
 
 @then('the chart is a Chart object')

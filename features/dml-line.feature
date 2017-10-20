@@ -4,7 +4,12 @@ Feature: Get and change line properties
   I need a set of read/write line properties on line elements
 
 
-  Scenario Outline: Get line fill type
+  Scenario: LineFormat.color
+    Given a LineFormat object as line
+     Then line.color is a ColorFormat object
+
+
+  Scenario Outline: LineFormat.fill
     Given an autoshape outline having <outline type>
      Then the line fill type is <line fill type>
 
@@ -15,18 +20,7 @@ Feature: Get and change line properties
       | a solid outline             | MSO_FILL_TYPE.SOLID      |
 
 
-  Scenario Outline: Get line color type
-    Given a line with <color type> color
-     Then the line's color type is <value>
-
-    Examples: Color type settings
-      | color type | value       |
-      | no         | None        |
-      | an RGB     | RGB         |
-      | a theme    | theme color |
-
-
-  Scenario Outline: Get line width
+  Scenario Outline: LineFormat.width getter
     Given a line of <line width> width
      Then the reported line width is <reported line width>
 
@@ -48,18 +42,7 @@ Feature: Get and change line properties
       | no outline                  | solid      | MSO_FILL_TYPE.SOLID      |
 
 
-  Scenario Outline: Set line color
-    Given a line with no color
-     When I set the line <color type> value
-     Then the line's <color type> value matches the new value
-
-    Examples: Color types
-      | color type  |
-      | RGB         |
-      | theme color |
-
-
-  Scenario Outline: Set line width
+  Scenario Outline: LineFormat.width setter
     Given a line of <line width> width
      When I set the line width to <new line width>
      Then the reported line width is <reported line width>

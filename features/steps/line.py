@@ -9,8 +9,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from behave import given, then, when
 
 from pptx import Presentation
-from pptx.dml.color import RGBColor
-from pptx.enum.dml import MSO_COLOR_TYPE, MSO_FILL_TYPE, MSO_THEME_COLOR
+from pptx.enum.dml import MSO_FILL_TYPE
 from pptx.util import Length, Pt
 
 from helpers import test_pptx
@@ -24,21 +23,15 @@ def given_a_line_of_width(context, line_width):
         'no explicit': 0,
         '1 pt':        1,
     }[line_width]
-    prs = Presentation(test_pptx('shp-line-props'))
+    prs = Presentation(test_pptx('dml-line'))
     shape = prs.slides[2].shapes[shape_idx]
     context.line = shape.line
 
 
-@given('a line with {color_type} color')
-def given_a_line_with_color_type_color(context, color_type):
-    shape_idx = {
-        'no':      0,
-        'an RGB':  1,
-        'a theme': 2
-    }[color_type]
-    prs = Presentation(test_pptx('shp-line-props'))
-    shape = prs.slides[1].shapes[shape_idx]
-    context.line = shape.line
+@given('a LineFormat object as line')
+def given_a_LineFormat_object_as_line(context):
+    line = Presentation(test_pptx('dml-line')).slides[0].shapes[0].line
+    context.line = line
 
 
 @given('an autoshape outline having {outline_type}')
@@ -48,20 +41,12 @@ def given_autoshape_outline_having_outline_type(context, outline_type):
         'no outline':                  1,
         'a solid outline':             2,
     }[outline_type]
-    prs = Presentation(test_pptx('shp-line-props'))
+    prs = Presentation(test_pptx('dml-line'))
     autoshape = prs.slides[0].shapes[shape_idx]
     context.line = autoshape.line
 
 
 # when ====================================================
-
-@when('I set the line {color_type} value')
-def when_I_set_the_line_color_value(context, color_type):
-    if color_type == 'RGB':
-        context.line.color.rgb = RGBColor(0x12, 0x34, 0x56)
-    elif color_type == 'theme color':
-        context.line.color.theme_color = MSO_THEME_COLOR.DARK_1
-
 
 @when('I set the line width to {line_width}')
 def when_I_set_the_line_width_to_value(context, line_width):
@@ -98,24 +83,13 @@ def then_the_line_file_type_is_fill_type(context, fill_type):
     )
 
 
-@then("the line's color type is {color_type}")
-def then_the_line_color_type_is_value(context, color_type):
-    expected_value = {
-        'None':        None,
-        'RGB':         MSO_COLOR_TYPE.RGB,
-        'theme color': MSO_COLOR_TYPE.SCHEME,
-    }[color_type]
-    line = context.line
-    assert line.color.type == expected_value
-
-
-@then("the line's {color_type} value matches the new value")
-def then_the_line_color_type_value_matches(context, color_type):
-    line = context.line
-    if color_type == 'RGB':
-        assert line.color.rgb == RGBColor(0x12, 0x34, 0x56)
-    else:
-        assert line.color.theme_color == MSO_THEME_COLOR.DARK_1
+@then('line.color is a ColorFormat object')
+def then_line_color_is_a_ColorFormat_object(context):
+    class_name = context.line.color.__class__.__name__
+    expected_value = 'ColorFormat'
+    assert class_name == expected_value, (
+        'expected \'%s\', got \'%s\'' % (expected_value, class_name)
+    )
 
 
 @then("the reported line width is {line_width}")
