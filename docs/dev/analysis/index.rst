@@ -69,6 +69,7 @@ Shape
 .. toctree::
    :titlesonly:
 
+   shp-freeform
    shp-movie
    shp-shapes
    sld-slide-shapes
