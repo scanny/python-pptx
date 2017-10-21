@@ -115,8 +115,11 @@ class _Fill(object):
         Raise NotImplementedError for all fill types that are still skeleton
         subclasses.
         """
-        tmpl = ".fore_color property not implemented yet for %s"
-        raise NotImplementedError(tmpl % self.__class__.__name__)
+        tmpl = (
+            'fill type %s has no foreground color, call .solid() or .pattern'
+            'ed() first'
+        )
+        raise TypeError(tmpl % self.__class__.__name__)
 
     @property
     def type(self):  # pragma: no cover
@@ -125,14 +128,6 @@ class _Fill(object):
 
 
 class _BlipFill(_Fill):
-
-    @property
-    def fore_color(self):
-        """
-        Raise TypeError with message explaining why this doesn't make sense.
-        """
-        tmpl = "a picture fill has no foreground color"
-        raise TypeError(tmpl)
 
     @property
     def type(self):
@@ -149,14 +144,6 @@ class _GradFill(_Fill):
 class _GrpFill(_Fill):
 
     @property
-    def fore_color(self):
-        """
-        Raise TypeError with message explaining why this doesn't make sense.
-        """
-        tmpl = "a group fill has no foreground color"
-        raise TypeError(tmpl)
-
-    @property
     def type(self):
         return MSO_FILL.GROUP
 
@@ -164,27 +151,11 @@ class _GrpFill(_Fill):
 class _NoFill(_Fill):
 
     @property
-    def fore_color(self):
-        """
-        Raise TypeError with message explaining why this doesn't make sense.
-        """
-        tmpl = "a transparent (background) fill has no foreground color"
-        raise TypeError(tmpl)
-
-    @property
     def type(self):
         return MSO_FILL.BACKGROUND
 
 
 class _NoneFill(_Fill):
-
-    @property
-    def fore_color(self):
-        """
-        Raise TypeError with message explaining why this doesn't make sense.
-        """
-        tmpl = "can't set .fore_color on no fill, call .solid() first"
-        raise TypeError(tmpl)
 
     @property
     def type(self):
@@ -212,6 +183,7 @@ class _SolidFill(_Fill):
 
     @lazyproperty
     def fore_color(self):
+        """Return |ColorFormat| object controlling fill color."""
         return ColorFormat.from_colorchoice_parent(self._solidFill)
 
     @property

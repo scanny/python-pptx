@@ -9,11 +9,14 @@ from __future__ import (
 import pytest
 
 from pptx.dml.color import ColorFormat
-from pptx.dml.fill import FillFormat, _NoFill, _PattFill, _SolidFill
+from pptx.dml.fill import (
+    _BlipFill, _Fill, FillFormat, _GradFill, _GrpFill, _NoFill, _NoneFill,
+    _PattFill, _SolidFill
+)
 from pptx.enum.dml import MSO_FILL
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock
+from ..unitutil.mock import class_mock, instance_mock, method_mock
 
 
 class DescribeFillFormat(object):
@@ -45,24 +48,15 @@ class DescribeFillFormat(object):
         _PattFill_.assert_called_once_with(fill._xPr.eg_fillProperties)
         assert fill._fill is patt_fill_
 
+    def it_provides_access_to_its_foreground_color(self, fore_color_fixture):
+        fill, color_ = fore_color_fixture
+        color = fill.fore_color
+        assert color is color_
+
     def it_knows_its_fill_type(self, fill_type_fixture):
         fill, expected_value = fill_type_fixture
         fill_type = fill.type
         assert fill_type == expected_value
-
-    def it_provides_access_to_its_foreground_color(self, fore_color_fixture):
-        fill, ColorFormat_, xFill, color_ = fore_color_fixture
-
-        color = fill.fore_color
-
-        ColorFormat_.from_colorchoice_parent.assert_called_once_with(xFill)
-        assert color is color_
-
-    def it_raises_on_fore_color_get_for_fill_types_that_dont_have_one(
-            self, fore_color_raise_fixture):
-        fill, exception_type = fore_color_raise_fixture
-        with pytest.raises(exception_type):
-            fill.fore_color
 
     # fixtures -------------------------------------------------------
 
@@ -87,49 +81,17 @@ class DescribeFillFormat(object):
         expected_xml = xml(expected_cxml)
         return fill, _NoFill_, expected_xml, no_fill_
 
-    @pytest.fixture(params=[
-        ('p:spPr',                None),
-        ('a:rPr/a:blipFill',      MSO_FILL.PICTURE),
-        ('a:tcPr/a:gradFill',     MSO_FILL.GRADIENT),
-        ('a:defRPr/a:grpFill',    MSO_FILL.GROUP),
-        ('a:endParaRPr/a:noFill', MSO_FILL.BACKGROUND),
-        ('p:spPr/a:pattFill',     MSO_FILL.PATTERNED),
-        ('a:rPr/a:solidFill',     MSO_FILL.SOLID),
-    ])
-    def fill_type_fixture(self, request):
-        xPr_cxml, expected_value = request.param
-        xPr = element(xPr_cxml)
-
-        fill = FillFormat.from_fill_parent(xPr)
+    @pytest.fixture
+    def fill_type_fixture(self, fill_):
+        expected_value = fill_.type = 42
+        fill = FillFormat(None, fill_)
         return fill, expected_value
 
-    @pytest.fixture(params=[
-        ('p:spPr/a:solidFill', _SolidFill),
-    ])
-    def fore_color_fixture(self, request, ColorFormat_, color_):
-        xPr_cxml, FillCls = request.param
-        xPr = element(xPr_cxml)
-        xFill = xPr[0]
-        x_fill = FillCls(xFill)
-        ColorFormat_.from_colorchoice_parent.return_value = color_
-
-        fill = FillFormat(xPr, x_fill)
-        return fill, ColorFormat_, xFill, color_
-
-    @pytest.fixture(params=[
-        ('p:spPr',                TypeError),
-        ('a:rPr/a:blipFill',      TypeError),
-        ('a:tcPr/a:gradFill',     NotImplementedError),
-        ('a:defRPr/a:grpFill',    TypeError),
-        ('a:endParaRPr/a:noFill', TypeError),
-        ('p:spPr/a:pattFill',     NotImplementedError),
-    ])
-    def fore_color_raise_fixture(self, request):
-        xPr_cxml, exception_type = request.param
-        xPr = element(xPr_cxml)
-
-        fill = FillFormat.from_fill_parent(xPr)
-        return fill, exception_type
+    @pytest.fixture
+    def fore_color_fixture(self, fill_, color_):
+        fill_.fore_color = color_
+        fill_format = FillFormat(None, fill_)
+        return fill_format, color_
 
     @pytest.fixture(params=[
         ('p:spPr{a:b=c}',           'p:spPr{a:b=c}/a:pattFill'),
@@ -176,12 +138,12 @@ class DescribeFillFormat(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def ColorFormat_(self, request):
-        return class_mock(request, 'pptx.dml.fill.ColorFormat')
-
-    @pytest.fixture
     def color_(self, request):
         return instance_mock(request, ColorFormat)
+
+    @pytest.fixture
+    def fill_(self, request):
+        return instance_mock(request, _Fill)
 
     @pytest.fixture
     def no_fill_(self, request):
@@ -194,3 +156,168 @@ class DescribeFillFormat(object):
     @pytest.fixture
     def solid_fill_(self, request):
         return instance_mock(request, _SolidFill)
+
+
+class Describe_Fill(object):
+
+    def it_raises_on_fore_color_access(self, raise_fixture):
+        fill, exception_type = raise_fixture
+        with pytest.raises(exception_type):
+            fill.fore_color
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def raise_fixture(self):
+        fill = _Fill('foobar')
+        exception_type = TypeError
+        return fill, exception_type
+
+
+class Describe_BlipFill(object):
+
+    def it_knows_its_fill_type(self, fill_type_fixture):
+        blip_fill, expected_value = fill_type_fixture
+        fill_type = blip_fill.type
+        assert fill_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def fill_type_fixture(self):
+        xFill = element('a:blipFill')
+        blip_fill = _BlipFill(xFill)
+        expected_value = MSO_FILL.PICTURE
+        return blip_fill, expected_value
+
+
+class Describe_GradFill(object):
+
+    def it_knows_its_fill_type(self, fill_type_fixture):
+        grad_fill, expected_value = fill_type_fixture
+        fill_type = grad_fill.type
+        assert fill_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def fill_type_fixture(self):
+        xFill = element('a:gradFill')
+        grad_fill = _GradFill(xFill)
+        expected_value = MSO_FILL.GRADIENT
+        return grad_fill, expected_value
+
+
+class Describe_GrpFill(object):
+
+    def it_knows_its_fill_type(self, fill_type_fixture):
+        grp_fill, expected_value = fill_type_fixture
+        fill_type = grp_fill.type
+        assert fill_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def fill_type_fixture(self):
+        xFill = element('a:grpFill')
+        grp_fill = _GrpFill(xFill)
+        expected_value = MSO_FILL.GROUP
+        return grp_fill, expected_value
+
+
+class Describe_NoFill(object):
+
+    def it_knows_its_fill_type(self, fill_type_fixture):
+        no_fill, expected_value = fill_type_fixture
+        fill_type = no_fill.type
+        assert fill_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def fill_type_fixture(self):
+        xFill = element('a:noFill')
+        no_fill = _NoFill(xFill)
+        expected_value = MSO_FILL.BACKGROUND
+        return no_fill, expected_value
+
+
+class Describe_NoneFill(object):
+
+    def it_knows_its_fill_type(self, fill_type_fixture):
+        none_fill, expected_value = fill_type_fixture
+        fill_type = none_fill.type
+        assert fill_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def fill_type_fixture(self):
+        none_fill = _NoneFill(None)
+        expected_value = None
+        return none_fill, expected_value
+
+
+class Describe_PattFill(object):
+
+    def it_knows_its_fill_type(self, fill_type_fixture):
+        patt_fill, expected_value = fill_type_fixture
+        fill_type = patt_fill.type
+        assert fill_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def fill_type_fixture(self):
+        patt_fill = _PattFill(element('a:pattFill'))
+        expected_value = MSO_FILL.PATTERNED
+        return patt_fill, expected_value
+
+
+class Describe_SolidFill(object):
+
+    def it_knows_its_fill_type(self, fill_type_fixture):
+        solid_fill, expected_value = fill_type_fixture
+        fill_type = solid_fill.type
+        assert fill_type == expected_value
+
+    def it_provides_access_to_its_foreground_color(self, fore_color_fixture):
+        solid_fill, solidFill, color_ = fore_color_fixture[:3]
+        ColorFormat_from_colorchoice_parent_ = fore_color_fixture[3]
+
+        color = solid_fill.fore_color
+
+        ColorFormat_from_colorchoice_parent_.assert_called_once_with(
+            solidFill
+        )
+        assert color is color_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def fill_type_fixture(self):
+        solid_fill = _SolidFill(element('a:solidFill'))
+        expected_value = MSO_FILL.SOLID
+        return solid_fill, expected_value
+
+    @pytest.fixture
+    def fore_color_fixture(self, ColorFormat_from_colorchoice_parent_,
+                           color_):
+        ColorFormat_from_colorchoice_parent_.return_value = color_
+        solidFill = element('a:solidFill')
+
+        solid_fill = _SolidFill(solidFill)
+        return (
+            solid_fill, solidFill, color_,
+            ColorFormat_from_colorchoice_parent_
+        )
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ColorFormat_from_colorchoice_parent_(self, request):
+        return method_mock(request, ColorFormat, 'from_colorchoice_parent')
+
+    @pytest.fixture
+    def color_(self, request):
+        return instance_mock(request, ColorFormat)
