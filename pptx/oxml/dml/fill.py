@@ -59,6 +59,7 @@ class CT_NoFillProperties(BaseOxmlElement):
 class CT_PatternFillProperties(BaseOxmlElement):
     """`a:pattFill` custom element class"""
     _tag_seq = ('a:fgClr', 'a:bgClr')
+    fgClr = ZeroOrOne('a:fgClr', successors=_tag_seq[1:])
     bgClr = ZeroOrOne('a:bgClr', successors=_tag_seq[2:])
     del _tag_seq
 
@@ -71,6 +72,16 @@ class CT_PatternFillProperties(BaseOxmlElement):
         ) % nsdecls('a')
         bgClr = parse_xml(xml)
         return bgClr
+
+    def _new_fgClr(self):
+        """Override default to add minimum subtree."""
+        xml = (
+            '<a:fgClr %s>\n'
+            ' <a:srgbClr val="000000"/>\n'
+            '</a:fgClr>\n'
+        ) % nsdecls('a')
+        fgClr = parse_xml(xml)
+        return fgClr
 
 
 class CT_RelativeRect(BaseOxmlElement):

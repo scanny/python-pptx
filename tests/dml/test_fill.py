@@ -287,6 +287,18 @@ class Describe_PattFill(object):
         fill_type = patt_fill.type
         assert fill_type == expected_value
 
+    def it_provides_access_to_its_foreground_color(self, fore_color_fixture):
+        patt_fill, pattFill, expected_xml, color_ = fore_color_fixture[:4]
+        ColorFormat_from_colorchoice_parent_ = fore_color_fixture[4]
+
+        color = patt_fill.fore_color
+
+        assert pattFill.xml == expected_xml
+        ColorFormat_from_colorchoice_parent_.assert_called_once_with(
+            pattFill.fgClr
+        )
+        assert color is color_
+
     def it_provides_access_to_its_background_color(self, back_color_fixture):
         patt_fill, pattFill, expected_xml, color_ = back_color_fixture[:4]
         ColorFormat_from_colorchoice_parent_ = back_color_fixture[4]
@@ -310,6 +322,27 @@ class Describe_PattFill(object):
          'a:pattFill/a:bgClr/a:schemeClr{val=accent1}'),
     ])
     def back_color_fixture(self, request, color_,
+                           ColorFormat_from_colorchoice_parent_):
+        pattFill_cxml, expected_cxml = request.param
+        pattFill = element(pattFill_cxml)
+        expected_xml = xml(expected_cxml)
+        ColorFormat_from_colorchoice_parent_.return_value = color_
+
+        patt_fill = _PattFill(pattFill)
+        return (
+            patt_fill, pattFill, expected_xml, color_,
+            ColorFormat_from_colorchoice_parent_
+        )
+
+    @pytest.fixture(params=[
+        ('a:pattFill',
+         'a:pattFill/a:fgClr/a:srgbClr{val=000000}'),
+        ('a:pattFill/a:fgClr',
+         'a:pattFill/a:fgClr'),
+        ('a:pattFill/a:fgClr/a:schemeClr{val=accent2}',
+         'a:pattFill/a:fgClr/a:schemeClr{val=accent2}'),
+    ])
+    def fore_color_fixture(self, request, color_,
                            ColorFormat_from_colorchoice_parent_):
         pattFill_cxml, expected_cxml = request.param
         pattFill = element(pattFill_cxml)

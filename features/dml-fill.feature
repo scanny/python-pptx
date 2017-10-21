@@ -22,7 +22,6 @@ Feature: Control fill
      Then fill.back_color is a ColorFormat object
 
 
-  @wip
   Scenario Outline: FillFormat.fore_color
     Given a FillFormat object as fill
      When I call fill.<type-setter>()
