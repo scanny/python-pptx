@@ -75,6 +75,10 @@ class FillFormat(object):
         """
         return self._fill.pattern
 
+    @pattern.setter
+    def pattern(self, pattern_type):
+        self._fill.pattern = pattern_type
+
     def patterned(self):
         """Selects the pattern fill type.
 

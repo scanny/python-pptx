@@ -63,10 +63,15 @@ class DescribeFillFormat(object):
         fill_type = fill.type
         assert fill_type == expected_value
 
-    def it_knows_its_pattern_type(self, pattern_type_fixture):
-        fill, expected_value = pattern_type_fixture
+    def it_knows_its_pattern(self, pattern_get_fixture):
+        fill, expected_value = pattern_get_fixture
         pattern = fill.pattern
         assert pattern == expected_value
+
+    def it_can_change_its_pattern(self, pattern_set_fixture):
+        fill, pattern = pattern_set_fixture
+        fill.pattern = pattern
+        assert fill.pattern is pattern
 
     # fixtures -------------------------------------------------------
 
@@ -110,10 +115,16 @@ class DescribeFillFormat(object):
         return fill_format, color_
 
     @pytest.fixture
-    def pattern_type_fixture(self, fill_):
+    def pattern_get_fixture(self, fill_):
         expected_value = fill_.pattern = MSO_PATTERN.WAVE
         fill = FillFormat(None, fill_)
         return fill, expected_value
+
+    @pytest.fixture
+    def pattern_set_fixture(self, fill_):
+        pattern = MSO_PATTERN.DIVOT
+        fill = FillFormat(None, fill_)
+        return fill, pattern
 
     @pytest.fixture(params=[
         ('p:spPr{a:b=c}',           'p:spPr{a:b=c}/a:pattFill'),
