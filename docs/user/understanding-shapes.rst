@@ -18,7 +18,7 @@ auto shape
    contain text. Some auto shapes have adjustments, the little yellow diamonds
    you can drag to adjust how round the corners of a rounded rectangle are for
    example. A text box is also an autoshape, a rectangular one, just by default
-   without a fill and without an outline. 
+   without a fill and without an outline.
 
 picture
    A raster image, like a photograph or clip art is referred to as a *picture*
