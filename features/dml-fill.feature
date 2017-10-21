@@ -33,7 +33,6 @@ Feature: Control fill
       | solid       |
 
 
-  @wip
   Scenario Outline: FillFormat.pattern getter
     Given a FillFormat object as fill having <pattern> fill
      Then fill.pattern is <value>

@@ -214,6 +214,16 @@ class _PattFill(_Fill):
         return ColorFormat.from_colorchoice_parent(fgClr)
 
     @property
+    def pattern(self):
+        """Return member of :ref:`MSO_PATTERN_TYPE` indicating fill pattern.
+
+        Returns |None| if no pattern has been set; PowerPoint may display the
+        default `PERCENT_5` pattern in this case. Assigning |None| will
+        remove any explicit pattern setting.
+        """
+        return self._pattFill.prst
+
+    @property
     def type(self):
         return MSO_FILL.PATTERNED
 
