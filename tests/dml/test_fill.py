@@ -13,7 +13,7 @@ from pptx.dml.fill import (
     _BlipFill, _Fill, FillFormat, _GradFill, _GrpFill, _NoFill, _NoneFill,
     _PattFill, _SolidFill
 )
-from pptx.enum.dml import MSO_FILL
+from pptx.enum.dml import MSO_FILL, MSO_PATTERN
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock, method_mock
@@ -63,6 +63,11 @@ class DescribeFillFormat(object):
         fill_type = fill.type
         assert fill_type == expected_value
 
+    def it_knows_its_pattern_type(self, pattern_type_fixture):
+        fill, expected_value = pattern_type_fixture
+        pattern = fill.pattern
+        assert pattern == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -103,6 +108,12 @@ class DescribeFillFormat(object):
         fill_.fore_color = color_
         fill_format = FillFormat(None, fill_)
         return fill_format, color_
+
+    @pytest.fixture
+    def pattern_type_fixture(self, fill_):
+        expected_value = fill_.pattern = MSO_PATTERN.WAVE
+        fill = FillFormat(None, fill_)
+        return fill, expected_value
 
     @pytest.fixture(params=[
         ('p:spPr{a:b=c}',           'p:spPr{a:b=c}/a:pattFill'),
@@ -181,6 +192,11 @@ class Describe_Fill(object):
         with pytest.raises(exception_type):
             fill.back_color
 
+    def it_raises_on_pattern_access(self, pattern_raise_fixture):
+        fill, exception_type = pattern_raise_fixture
+        with pytest.raises(exception_type):
+            fill.pattern
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -192,6 +208,12 @@ class Describe_Fill(object):
     @pytest.fixture
     def fore_raise_fixture(self):
         fill = _Fill('foobar')
+        exception_type = TypeError
+        return fill, exception_type
+
+    @pytest.fixture
+    def pattern_raise_fixture(self):
+        fill = _Fill('barfoo')
         exception_type = TypeError
         return fill, exception_type
 

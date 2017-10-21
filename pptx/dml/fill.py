@@ -62,6 +62,19 @@ class FillFormat(object):
         fill_format = cls(eg_fillProperties_parent, fill)
         return fill_format
 
+    @property
+    def pattern(self):
+        """Return member of :ref:`MSO_PATTERN_TYPE` indicating fill pattern.
+
+        Raises |TypeError| when fill is not patterned (call
+        `fill.patterned()` first). Returns |None| if no pattern has been set;
+        PowerPoint may display the default `PERCENT_5` pattern in this case.
+        Assigning |None| will remove any explicit pattern setting, although
+        relying on the default behavior is discouraged and may produce
+        rendering differences across client applications.
+        """
+        return self._fill.pattern
+
     def patterned(self):
         """Selects the pattern fill type.
 
@@ -132,6 +145,12 @@ class _Fill(object):
             'fill type %s has no foreground color, call .solid() or .pattern'
             'ed() first'
         )
+        raise TypeError(tmpl % self.__class__.__name__)
+
+    @property
+    def pattern(self):
+        """Raise TypeError for fills that do not override this property."""
+        tmpl = 'fill type %s has no pattern, call .patterned() first'
         raise TypeError(tmpl % self.__class__.__name__)
 
     @property
