@@ -6,8 +6,10 @@ lxml custom element classes for DrawingML-related XML elements.
 
 from __future__ import absolute_import
 
-from ..simpletypes import ST_Percentage, ST_RelationshipId
-from ..xmlchemy import (
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.simpletypes import ST_Percentage, ST_RelationshipId
+from pptx.oxml.xmlchemy import (
     BaseOxmlElement, Choice, OptionalAttribute, ZeroOrOne, ZeroOrOneChoice
 )
 
@@ -55,9 +57,20 @@ class CT_NoFillProperties(BaseOxmlElement):
 
 
 class CT_PatternFillProperties(BaseOxmlElement):
-    """
-    Custom element class for <a:pattFill> element.
-    """
+    """`a:pattFill` custom element class"""
+    _tag_seq = ('a:fgClr', 'a:bgClr')
+    bgClr = ZeroOrOne('a:bgClr', successors=_tag_seq[2:])
+    del _tag_seq
+
+    def _new_bgClr(self):
+        """Override default to add minimum subtree."""
+        xml = (
+            '<a:bgClr %s>\n'
+            ' <a:srgbClr val="FFFFFF"/>\n'
+            '</a:bgClr>\n'
+        ) % nsdecls('a')
+        bgClr = parse_xml(xml)
+        return bgClr
 
 
 class CT_RelativeRect(BaseOxmlElement):

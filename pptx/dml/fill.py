@@ -27,6 +27,14 @@ class FillFormat(object):
         self._xPr = eg_fill_properties_parent
         self._fill = fill_obj
 
+    @property
+    def back_color(self):
+        """Return a |ColorFormat| object representing background color.
+
+        This property is only applicable to pattern fills and lines.
+        """
+        return self._fill.back_color
+
     def background(self):
         """
         Sets the fill type to noFill, i.e. transparent.
@@ -110,11 +118,16 @@ class _Fill(object):
         return super(_Fill, cls).__new__(fill_cls)
 
     @property
+    def back_color(self):
+        """Raise TypeError for types that do not override this property."""
+        tmpl = (
+            'fill type %s has no background color, call .patterned() first'
+        )
+        raise TypeError(tmpl % self.__class__.__name__)
+
+    @property
     def fore_color(self):
-        """
-        Raise NotImplementedError for all fill types that are still skeleton
-        subclasses.
-        """
+        """Raise TypeError for types that do not override this property."""
         tmpl = (
             'fill type %s has no foreground color, call .solid() or .pattern'
             'ed() first'
@@ -168,6 +181,12 @@ class _PattFill(_Fill):
     def __init__(self, pattFill):
         super(_PattFill, self).__init__()
         self._element = self._pattFill = pattFill
+
+    @lazyproperty
+    def back_color(self):
+        """Return |ColorFormat| object that controls background color."""
+        bgClr = self._pattFill.get_or_add_bgClr()
+        return ColorFormat.from_colorchoice_parent(bgClr)
 
     @property
     def type(self):

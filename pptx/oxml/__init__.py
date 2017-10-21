@@ -179,9 +179,10 @@ register_element_cls('cp:coreProperties', CT_CoreProperties)
 
 
 from .dml.color import (  # noqa: E402
-    CT_HslColor, CT_Percentage, CT_PresetColor, CT_SchemeColor,
+    CT_Color, CT_HslColor, CT_Percentage, CT_PresetColor, CT_SchemeColor,
     CT_ScRgbColor, CT_SRgbColor, CT_SystemColor
 )
+register_element_cls('a:bgClr',     CT_Color)
 register_element_cls('a:hslClr',    CT_HslColor)
 register_element_cls('a:lumMod',    CT_Percentage)
 register_element_cls('a:lumOff',    CT_Percentage)

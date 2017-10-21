@@ -16,7 +16,6 @@ Feature: Control fill
       | solid       | SOLID      |
 
 
-  @wip
   Scenario: FillFormat.back_color
     Given a FillFormat object as fill
      When I call fill.patterned()
