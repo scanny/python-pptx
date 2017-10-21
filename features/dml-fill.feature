@@ -44,7 +44,6 @@ Feature: Control fill
       | MSO_PATTERN.WAVE  | MSO_PATTERN.WAVE  |
 
 
-  @wip
   Scenario: FillFormat.pattern setter
     Given a FillFormat object as fill
      When I call fill.patterned()

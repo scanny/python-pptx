@@ -320,10 +320,15 @@ class Describe_PattFill(object):
         fill_type = patt_fill.type
         assert fill_type == expected_value
 
-    def it_knows_its_pattern_type(self, pattern_get_fixture):
+    def it_knows_its_pattern(self, pattern_get_fixture):
         patt_fill, expected_value = pattern_get_fixture
         pattern = patt_fill.pattern
         assert pattern == expected_value
+
+    def it_can_change_its_pattern(self, pattern_set_fixture):
+        patt_fill, pattern, pattFill, expected_xml = pattern_set_fixture
+        patt_fill.pattern = pattern
+        assert pattFill.xml == expected_xml
 
     def it_provides_access_to_its_foreground_color(self, fore_color_fixture):
         patt_fill, pattFill, expected_xml, color_ = fore_color_fixture[:4]
@@ -410,6 +415,22 @@ class Describe_PattFill(object):
 
         patt_fill = _PattFill(pattFill)
         return patt_fill, expected_value
+
+    @pytest.fixture(params=[
+        ('a:pattFill',             MSO_PATTERN.WAVE,
+         'a:pattFill{prst=wave}'),
+        ('a:pattFill{prst=wave}',  MSO_PATTERN.DIVOT,
+         'a:pattFill{prst=divot}'),
+        ('a:pattFill{prst=divot}', None,
+         'a:pattFill'),
+    ])
+    def pattern_set_fixture(self, request):
+        pattFill_cxml, pattern, expected_cxml = request.param
+        pattFill = element(pattFill_cxml)
+        expected_xml = xml(expected_cxml)
+
+        patt_fill = _PattFill(pattFill)
+        return patt_fill, pattern, pattFill, expected_xml
 
     # fixture components ---------------------------------------------
 

@@ -227,6 +227,10 @@ class _PattFill(_Fill):
         """
         return self._pattFill.prst
 
+    @pattern.setter
+    def pattern(self, pattern_type):
+        self._pattFill.prst = pattern_type
+
     @property
     def type(self):
         return MSO_FILL.PATTERNED
