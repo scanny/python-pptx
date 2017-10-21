@@ -14,6 +14,7 @@ can be found here:
    MsoConnectorType
    MsoFillType
    MsoLanguageId
+   MsoPatternType
    MsoShapeType
    MsoTextUnderlineType
    MsoThemeColorIndex
