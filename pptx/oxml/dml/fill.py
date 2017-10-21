@@ -61,9 +61,7 @@ class CT_PatternFillProperties(BaseOxmlElement):
 
 
 class CT_RelativeRect(BaseOxmlElement):
-    """
-    `a:srcRect` element and perhaps others.
-    """
+    """`a:srcRect` element and perhaps others."""
     l = OptionalAttribute('l', ST_Percentage, default=0.0)
     t = OptionalAttribute('t', ST_Percentage, default=0.0)
     r = OptionalAttribute('r', ST_Percentage, default=0.0)
@@ -71,9 +69,7 @@ class CT_RelativeRect(BaseOxmlElement):
 
 
 class CT_SolidColorFillProperties(BaseOxmlElement):
-    """
-    Custom element class for <a:solidFill> element.
-    """
+    """`a:solidFill` custom element class."""
     eg_colorChoice = ZeroOrOneChoice((
         Choice('a:scrgbClr'), Choice('a:srgbClr'), Choice('a:hslClr'),
         Choice('a:sysClr'), Choice('a:schemeClr'), Choice('a:prstClr')),

@@ -1,8 +1,8 @@
 # encoding: utf-8
 
-"""
-Initializes lxml parser and makes available a handful of functions that wrap
-its typical uses.
+"""Initializes lxml parser, particularly the custom element classes.
+
+Also makes available a handful of functions that wrap its typical uses.
 """
 
 from __future__ import (

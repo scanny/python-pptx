@@ -54,6 +54,17 @@ class FillFormat(object):
         fill_format = cls(eg_fillProperties_parent, fill)
         return fill_format
 
+    def patterned(self):
+        """Selects the pattern fill type.
+
+        Note that calling this method does not by itself set a foreground or
+        background color of the pattern. Rather it enables subsequent
+        assignments to properties like fore_color to set the pattern and
+        colors.
+        """
+        pattFill = self._xPr.get_or_change_to_pattFill()
+        self._fill = _PattFill(pattFill)
+
     def solid(self):
         """
         Sets the fill type to solid, i.e. a solid color. Note that calling
@@ -181,6 +192,11 @@ class _NoneFill(_Fill):
 
 
 class _PattFill(_Fill):
+    """Provides access to patterned fill properties."""
+
+    def __init__(self, pattFill):
+        super(_PattFill, self).__init__()
+        self._element = self._pattFill = pattFill
 
     @property
     def type(self):
@@ -188,9 +204,8 @@ class _PattFill(_Fill):
 
 
 class _SolidFill(_Fill):
-    """
-    Provides access to fill properties such as color for solid fills.
-    """
+    """Provides access to fill properties such as color for solid fills."""
+
     def __init__(self, solidFill):
         super(_SolidFill, self).__init__()
         self._solidFill = solidFill

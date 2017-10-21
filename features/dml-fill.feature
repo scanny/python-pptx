@@ -4,7 +4,6 @@ Feature: Control fill
   I need properties and methods on FillFormat
 
 
-  @wip
   Scenario Outline: FillFormat type setters
     Given a FillFormat object as fill
      When I call fill.<type-setter>()
