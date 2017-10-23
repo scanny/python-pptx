@@ -8,6 +8,8 @@ from __future__ import (
 
 from collections import Sequence
 
+from pptx.util import lazyproperty
+
 
 class FreeformBuilder(Sequence):
     """Allows a freeform shape to be specified and created.
@@ -23,7 +25,36 @@ class FreeformBuilder(Sequence):
     `.move_to()` method.
     """
 
+    def __init__(self, shapes, start_x, start_y, x_scale, y_scale):
+        super(FreeformBuilder, self).__init__()
+        self._shapes = shapes
+        self._start_x = start_x
+        self._start_y = start_y
+        self._x_scale = x_scale
+        self._y_scale = y_scale
+
+    def __getitem__(self, idx):
+        return self._drawing_operations.__getitem__(idx)
+
+    def __iter__(self):
+        return self._drawing_operations.__iter__()
+
+    def __len__(self):
+        return self._drawing_operations.__len__()
+
     @classmethod
     def new(cls, shapes, start_x, start_y, x_scale, y_scale):
-        """Return a new |FreeformBuilder| object."""
-        raise NotImplementedError
+        """Return a new |FreeformBuilder| object.
+
+        The initial pen location is specified (in local coordinates) by
+        (*start_x*, *start_y*).
+        """
+        return cls(
+            shapes, int(round(start_x)), int(round(start_y)),
+            x_scale, y_scale
+        )
+
+    @lazyproperty
+    def _drawing_operations(self):
+        """Return the sequence of drawing operation objects for freeform."""
+        return []
