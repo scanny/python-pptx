@@ -77,9 +77,29 @@ class FreeformBuilder(Sequence):
 
     def _add_line_segment(self, x, y):
         """Add a |_LineSegment| operation to the drawing sequence."""
-        raise NotImplementedError
+        self._drawing_operations.append(_LineSegment.new(self, x, y))
 
     @lazyproperty
     def _drawing_operations(self):
         """Return the sequence of drawing operation objects for freeform."""
         return []
+
+
+class _BaseDrawingOperation(object):
+    """Base class for freeform drawing operations.
+
+    A drawing operation has at least one location (x, y) in local
+    coordinates.
+    """
+
+
+class _LineSegment(_BaseDrawingOperation):
+    """Specifies a straight line segment ending at the specified point."""
+
+    @classmethod
+    def new(cls, freeform_builder, x, y):
+        """Return a new _LineSegment object ending at point *(x, y)*.
+
+        Both *x* and *y* are rounded to the nearest integer before use.
+        """
+        raise NotImplementedError

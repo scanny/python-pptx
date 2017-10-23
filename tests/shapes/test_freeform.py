@@ -8,7 +8,7 @@ from __future__ import (
 
 import pytest
 
-from pptx.shapes.freeform import FreeformBuilder
+from pptx.shapes.freeform import FreeformBuilder, _LineSegment
 from pptx.shapes.shapetree import SlideShapes
 
 from ..unitutil.mock import (
@@ -31,8 +31,8 @@ class DescribeFreeformBuilder(object):
         )
         assert isinstance(builder, FreeformBuilder)
 
-    def it_can_add_straight_line_segments(self, add_seg_fixture):
-        builder, vertices, close, add_calls, close_calls = add_seg_fixture
+    def it_can_add_straight_line_segments(self, add_segs_fixture):
+        builder, vertices, close, add_calls, close_calls = add_segs_fixture
 
         return_value = builder.add_line_segments(vertices, close)
 
@@ -40,13 +40,29 @@ class DescribeFreeformBuilder(object):
         assert builder._add_close.call_args_list == close_calls
         assert return_value is builder
 
+    def it_adds_a_line_segment_to_help(self, add_seg_fixture):
+        builder, x, y, _LineSegment_new_, line_segment_ = add_seg_fixture
+
+        builder._add_line_segment(x, y)
+
+        _LineSegment_new_.assert_called_once_with(builder, x, y)
+        assert builder._drawing_operations == [line_segment_]
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_seg_fixture(self, _LineSegment_new_, line_segment_):
+        x, y = 4, 2
+        _LineSegment_new_.return_value = line_segment_
+
+        builder = FreeformBuilder(None, None, None, None, None)
+        return builder, x, y, _LineSegment_new_, line_segment_
 
     @pytest.fixture(params=[
         (True,  [call()]),
         (False, []),
     ])
-    def add_seg_fixture(self, request, _add_line_segment_, _add_close_):
+    def add_segs_fixture(self, request, _add_line_segment_, _add_close_):
         close, close_calls = request.param
         vertices = ((1, 2), (3, 4), (5, 6))
         builder = FreeformBuilder(None, None, None, None, None)
@@ -75,6 +91,14 @@ class DescribeFreeformBuilder(object):
     @pytest.fixture
     def _init_(self, request):
         return initializer_mock(request, FreeformBuilder, autospec=True)
+
+    @pytest.fixture
+    def line_segment_(self, request):
+        return instance_mock(request, _LineSegment)
+
+    @pytest.fixture
+    def _LineSegment_new_(self, request):
+        return method_mock(request, _LineSegment, 'new')
 
     @pytest.fixture
     def shapes_(self, request):
