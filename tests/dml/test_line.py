@@ -16,7 +16,7 @@ from pptx.oxml.shapes.shared import CT_LineProperties
 from pptx.shapes.autoshape import Shape
 
 from ..oxml.unitdata.dml import an_ln
-from ..unitutil.cxml import element
+from ..unitutil.cxml import element, xml
 from ..unitutil.mock import call, class_mock, instance_mock, property_mock
 
 
@@ -25,6 +25,11 @@ class DescribeLineFormat(object):
     def it_knows_its_dash_style(self, dash_style_get_fixture):
         line, expected_value = dash_style_get_fixture
         assert line.dash_style == expected_value
+
+    def it_can_change_its_dash_style(self, dash_style_set_fixture):
+        line, dash_style, spPr, expected_xml = dash_style_set_fixture
+        line.dash_style = dash_style
+        assert spPr.xml == expected_xml
 
     def it_knows_its_width(self, width_get_fixture):
         line, expected_line_width = width_get_fixture
@@ -72,6 +77,29 @@ class DescribeLineFormat(object):
         spPr = element(spPr_cxml)
         line = LineFormat(spPr)
         return line, expected_value
+
+    @pytest.fixture(params=[
+        ('p:spPr{a:b=c}',                      MSO_LINE.DASH,
+         'p:spPr{a:b=c}/a:ln/a:prstDash{val=dash}'),
+        ('p:spPr/a:ln',                        MSO_LINE.ROUND_DOT,
+         'p:spPr/a:ln/a:prstDash{val=dot}'),
+        ('p:spPr/a:ln/a:prstDash',             MSO_LINE.SOLID,
+         'p:spPr/a:ln/a:prstDash{val=solid}'),
+        ('p:spPr/a:ln/a:custDash',             MSO_LINE.DASH_DOT,
+         'p:spPr/a:ln/a:prstDash{val=dashDot}'),
+        ('p:spPr/a:ln/a:prstDash{val=dash}',   MSO_LINE.LONG_DASH,
+         'p:spPr/a:ln/a:prstDash{val=lgDash}'),
+        ('p:spPr/a:ln/a:prstDash{val=dash}',   None,
+         'p:spPr/a:ln'),
+        ('p:spPr/a:ln/a:custDash',             None,
+         'p:spPr/a:ln'),
+    ])
+    def dash_style_set_fixture(self, request):
+        spPr_cxml, dash_style, expected_cxml = request.param
+        spPr = element(spPr_cxml)
+        line = LineFormat(spPr)
+        expected_xml = xml(expected_cxml)
+        return line, dash_style, spPr, expected_xml
 
     @pytest.fixture
     def fill_fixture(self, line, FillFormat_, ln_, fill_):

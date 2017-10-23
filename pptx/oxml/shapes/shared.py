@@ -232,6 +232,7 @@ class CT_LineProperties(BaseOxmlElement):
         successors=_tag_seq[4:]
     )
     prstDash = ZeroOrOne('a:prstDash', successors=_tag_seq[5:])
+    custDash = ZeroOrOne('a:custDash', successors=_tag_seq[6:])
     del _tag_seq
     w = OptionalAttribute('w', ST_LineWidth, default=Emu(0))
 
@@ -252,6 +253,12 @@ class CT_LineProperties(BaseOxmlElement):
         if prstDash is None:
             return None
         return prstDash.val
+
+    @prstDash_val.setter
+    def prstDash_val(self, val):
+        self._remove_custDash()
+        prstDash = self.get_or_add_prstDash()
+        prstDash.val = val
 
 
 class CT_NonVisualDrawingProps(BaseOxmlElement):

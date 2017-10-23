@@ -21,7 +21,6 @@ Feature: Get and change line properties
       | dash-dot    | MSO_LINE.DASH_DOT |
 
 
-  @wip
   Scenario Outline: LineFormat.width setter
     Given a LineFormat object as line having <current> dash style
      When I assign <dash-style> to line.dash_style

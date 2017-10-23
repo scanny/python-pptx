@@ -51,6 +51,18 @@ class LineFormat(object):
             return None
         return ln.prstDash_val
 
+    @dash_style.setter
+    def dash_style(self, dash_style):
+        if dash_style is None:
+            ln = self._ln
+            if ln is None:
+                return
+            ln._remove_prstDash()
+            ln._remove_custDash()
+            return
+        ln = self._get_or_add_ln()
+        ln.prstDash_val = dash_style
+
     @lazyproperty
     def fill(self):
         """
