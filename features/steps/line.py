@@ -7,6 +7,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from behave import given, then, when
 
 from pptx import Presentation
+from pptx.enum.dml import MSO_LINE
 from pptx.util import Length, Pt
 
 from helpers import test_pptx
@@ -18,6 +19,18 @@ from helpers import test_pptx
 def given_a_LineFormat_object_as_line(context):
     line = Presentation(test_pptx('dml-line')).slides[0].shapes[0].line
     context.line = line
+
+
+@given('a LineFormat object as line having {current} dash style')
+def given_a_LineFormat_object_as_line_having_dash_style(context, current):
+    shape_idx = {
+        'no explicit': 0,
+        'solid':       1,
+        'dashed':      2,
+        'dash-dot':    3,
+    }[current]
+    shape = Presentation(test_pptx('dml-line')).slides[3].shapes[shape_idx]
+    context.line = shape.line
 
 
 @given('a LineFormat object as line having {line_width} width')
@@ -32,6 +45,17 @@ def given_a_LineFormat_object_as_line_having_width(context, line_width):
 
 
 # when ====================================================
+
+@when('I assign {value_key} to line.dash_style')
+def when_I_assign_value_to_line_dash_style(context, value_key):
+    value = {
+        'None':              None,
+        'MSO_LINE.DASH':     MSO_LINE.DASH,
+        'MSO_LINE.DASH_DOT': MSO_LINE.DASH_DOT,
+        'MSO_LINE.SOLID':    MSO_LINE.SOLID,
+    }[value_key]
+    context.line.dash_style = value
+
 
 @when('I assign {line_width} to line.width')
 def when_I_assign_value_to_line_width(context, line_width):
@@ -51,6 +75,20 @@ def then_line_color_is_a_ColorFormat_object(context):
     expected_value = 'ColorFormat'
     assert class_name == expected_value, (
         'expected \'%s\', got \'%s\'' % (expected_value, class_name)
+    )
+
+
+@then("line.dash_style is {dash_style}")
+def then_line_dash_style_is_value(context, dash_style):
+    expected_value = {
+        'None':              None,
+        'MSO_LINE.DASH':     MSO_LINE.DASH,
+        'MSO_LINE.DASH_DOT': MSO_LINE.DASH_DOT,
+        'MSO_LINE.SOLID':    MSO_LINE.SOLID,
+    }[dash_style]
+    actual_value = context.line.dash_style
+    assert actual_value == expected_value, (
+        'expected %s, got %s' % (expected_value, actual_value)
     )
 
 

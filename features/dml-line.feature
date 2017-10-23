@@ -9,6 +9,32 @@ Feature: Get and change line properties
      Then line.color is a ColorFormat object
 
 
+  @wip
+  Scenario Outline: LineFormat.dash_style getter
+    Given a LineFormat object as line having <current> dash style
+     Then line.dash_style is <dash-style>
+
+    Examples: Line dash styles
+      | current     | dash-style        |
+      | no explicit | None              |
+      | solid       | MSO_LINE.SOLID    |
+      | dashed      | MSO_LINE.DASH     |
+      | dash-dot    | MSO_LINE.DASH_DOT |
+
+
+  @wip
+  Scenario Outline: LineFormat.width setter
+    Given a LineFormat object as line having <current> dash style
+     When I assign <dash-style> to line.dash_style
+     Then line.dash_style is <dash-style>
+
+    Examples: Line dash style assignment scenarios
+      | current     | dash-style        |
+      | no explicit | MSO_LINE.DASH     |
+      | dashed      | MSO_LINE.SOLID    |
+      | solid       | None              |
+
+
   Scenario: LineFormat.fill
     Given a LineFormat object as line
      Then line.fill is a FillFormat object
