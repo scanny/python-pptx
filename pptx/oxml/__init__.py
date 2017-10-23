@@ -209,6 +209,10 @@ register_element_cls('a:solidFill', CT_SolidColorFillProperties)
 register_element_cls('a:srcRect',   CT_RelativeRect)
 
 
+from .dml.line import CT_PresetLineDashProperties  # noqa: E402
+register_element_cls('a:prstDash', CT_PresetLineDashProperties)
+
+
 from .presentation import (  # noqa: E402
     CT_Presentation, CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList,
     CT_SlideMasterIdListEntry, CT_SlideSize

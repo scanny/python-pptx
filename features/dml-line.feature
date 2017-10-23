@@ -9,7 +9,6 @@ Feature: Get and change line properties
      Then line.color is a ColorFormat object
 
 
-  @wip
   Scenario Outline: LineFormat.dash_style getter
     Given a LineFormat object as line having <current> dash style
      Then line.dash_style is <dash-style>
