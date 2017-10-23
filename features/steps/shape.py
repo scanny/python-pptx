@@ -26,6 +26,30 @@ from helpers import (
 
 # given ===================================================
 
+@given('an autoshape')
+def given_an_autoshape(context):
+    prs = Presentation(test_pptx('shp-autoshape-adjustments'))
+    context.shape = prs.slides[0].shapes[0]
+
+
+@given('an autoshape having text')
+def given_an_autoshape_having_text(context):
+    prs = Presentation(test_pptx('shp-autoshape-props'))
+    context.shape = prs.slides[0].shapes[0]
+
+
+@given("(builder._start_x, builder._start_y) is ({x_str}, {y_str})")
+def given_builder_start_x_builder_start_y_is_x_y(context, x_str, y_str):
+    builder = context.builder
+    builder._start_x, builder._start_y = int(x_str), int(y_str)
+
+
+@given("(builder._x_scale, builder._y_scale) is ({p_str}, {q_str})")
+def given_builder_x_scale_builder_y_scale_is_p_q(context, p_str, q_str):
+    builder = context.builder
+    builder._x_scale, builder._y_scale = float(p_str), float(q_str)
+
+
 @given('a chevron shape')
 def given_a_chevron_shape(context):
     prs = Presentation(test_pptx('shp-autoshape-adjustments'))
@@ -59,6 +83,13 @@ def given_a_connector_having_its_end_point_at_x_y(context, x, y):
     prs = Presentation(test_pptx('shp-connector-props'))
     sld = prs.slides[0]
     context.connector = sld.shapes[0]
+
+
+@given('a FreeformBuilder object as builder')
+def given_a_FreeformBuilder_object_as_builder(context):
+    shapes = Presentation(test_pptx('shp-freeform')).slides[0].shapes
+    builder = shapes.build_freeform()
+    context.builder = builder
 
 
 @given('a graphic frame')  # shouldn't matter, but this one contains a table
@@ -180,18 +211,6 @@ def given_a_shape_of_known_position_and_size(context):
     context.shape = prs.slides[0].shapes[0]
 
 
-@given('an autoshape')
-def given_an_autoshape(context):
-    prs = Presentation(test_pptx('shp-autoshape-adjustments'))
-    context.shape = prs.slides[0].shapes[0]
-
-
-@given('an autoshape having text')
-def given_an_autoshape_having_text(context):
-    prs = Presentation(test_pptx('shp-autoshape-props'))
-    context.shape = prs.slides[0].shapes[0]
-
-
 # when ====================================================
 
 @when("I add a text box to the slide's shape collection")
@@ -220,6 +239,19 @@ def when_I_assign_to_shape_adjustments(context):
 @when("I assign a string to shape.text")
 def when_I_assign_a_string_to_shape_text(context):
     context.shape.text = u'F\xf8o\nBar'
+
+
+@when("I assign builder.convert_to_shape() to shape")
+def when_I_assign_builder_convert_to_shape_to_shape(context):
+    builder = context.builder
+    context.shape = builder.convert_to_shape()
+
+
+@when("I assign builder.convert_to_shape({x_str}, {y_str}) to shape")
+def when_I_assign_builder_convert_to_shape_origin_x_y(context, x_str, y_str):
+    builder = context.builder
+    origin_x, origin_y = int(x_str), int(y_str)
+    context.shape = builder.convert_to_shape(origin_x, origin_y)
 
 
 @when("I assign shapes.build_freeform() to builder")
@@ -278,6 +310,12 @@ def when_I_assign_value_to_shape_name(context, value):
 @when("I assign {value} to shape.rotation")
 def when_I_assign_value_to_shape_rotation(context, value):
     context.shape.rotation = float(value)
+
+
+@when('I call builder.add_line_segments([(100, 25), (25, 100)])')
+def when_I_call_builder_add_line_segments_100_25_25_100(context):
+    builder = context.builder
+    builder.add_line_segments([(100, 25), (25, 100)])
 
 
 @when('I call connector.begin_connect(picture, 3)')
@@ -500,6 +538,16 @@ def then_shape_has_text_frame_is(context, value_str):
     assert has_text_frame is expected_value, 'got %s' % has_text_frame
 
 
+@then("(shape.left, shape.top) is ({x_str}, {y_str})")
+def then_shape_left_shape_top_is_x_y(context, x_str, y_str):
+    shape = context.shape
+    actual_value = shape.left, shape.top
+    expected_value = int(x_str), int(y_str)
+    assert actual_value == expected_value, (
+        'Expected %s, got %s' % (expected_value, actual_value)
+    )
+
+
 @then('shape.line is a LineFormat object')
 def then_shape_line_is_a_LineFormat_object(context):
     shape = context.shape
@@ -547,6 +595,16 @@ def then_shape_text_is_the_string_I_assigned(context):
 def then_shape_text_is_the_text_in_the_shape(context):
     shape = context.shape
     assert shape.text == u'Fee Fi\nF\xf8\xf8 Fum\nI am a shape\nwith textium'
+
+
+@then("(shape.width, shape.height) is ({cx_str}, {cy_str})")
+def then_shape_width_shape_height_is_cx_cy(context, cx_str, cy_str):
+    shape = context.shape
+    actual_value = shape.width, shape.height
+    expected_value = int(cx_str), int(cy_str)
+    assert actual_value == expected_value, (
+        'Expected %s, got %s' % (expected_value, actual_value)
+    )
 
 
 @then('the auto shape appears in the slide')
