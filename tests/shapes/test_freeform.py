@@ -11,7 +11,9 @@ import pytest
 from pptx.shapes.freeform import FreeformBuilder
 from pptx.shapes.shapetree import SlideShapes
 
-from ..unitutil.mock import initializer_mock, instance_mock
+from ..unitutil.mock import (
+    call, initializer_mock, instance_mock, method_mock
+)
 
 
 class DescribeFreeformBuilder(object):
@@ -29,7 +31,27 @@ class DescribeFreeformBuilder(object):
         )
         assert isinstance(builder, FreeformBuilder)
 
+    def it_can_add_straight_line_segments(self, add_seg_fixture):
+        builder, vertices, close, add_calls, close_calls = add_seg_fixture
+
+        return_value = builder.add_line_segments(vertices, close)
+
+        assert builder._add_line_segment.call_args_list == add_calls
+        assert builder._add_close.call_args_list == close_calls
+        assert return_value is builder
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        (True,  [call()]),
+        (False, []),
+    ])
+    def add_seg_fixture(self, request, _add_line_segment_, _add_close_):
+        close, close_calls = request.param
+        vertices = ((1, 2), (3, 4), (5, 6))
+        builder = FreeformBuilder(None, None, None, None, None)
+        add_calls = [call(1, 2), call(3, 4), call(5, 6)]
+        return builder, vertices, close, add_calls, close_calls
 
     @pytest.fixture
     def new_fixture(self, shapes_, _init_):
@@ -41,6 +63,14 @@ class DescribeFreeformBuilder(object):
         )
 
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _add_close_(self, request):
+        return method_mock(request, FreeformBuilder, '_add_close')
+
+    @pytest.fixture
+    def _add_line_segment_(self, request):
+        return method_mock(request, FreeformBuilder, '_add_line_segment')
 
     @pytest.fixture
     def _init_(self, request):

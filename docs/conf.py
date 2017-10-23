@@ -148,6 +148,8 @@ rst_epilog = """
 
 .. |ChartXmlWriter| replace:: :class:`.ChartXmlWriter`
 
+.. |_Close| replace:: :class:`_Close`
+
 .. |Collection| replace:: :class:`Collection`
 
 .. |ColorFormat| replace:: :class:`.ColorFormat`
@@ -211,6 +213,8 @@ rst_epilog = """
 .. |Length| replace:: :class:`.Length`
 
 .. |LineFormat| replace:: :class:`.LineFormat`
+
+.. |_LineSegment| replace:: :class:`._LineSegment`
 
 .. |LineSeries| replace:: :class:`.LineSeries`
 

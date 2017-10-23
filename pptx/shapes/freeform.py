@@ -54,6 +54,31 @@ class FreeformBuilder(Sequence):
             x_scale, y_scale
         )
 
+    def add_line_segments(self, vertices, close=True):
+        """Add a straight line segment to each point in *vertices*.
+
+        *vertices* must be an iterable of (x, y) pairs (2-tuples). Each x and
+        y value is rounded to the nearest integer before use. The optional
+        *close* parameter determines whether the resulting contour is
+        *closed* or left *open*.
+
+        Returns this |FreeformBuilder| object so it can be used in chained
+        calls.
+        """
+        for x, y in vertices:
+            self._add_line_segment(x, y)
+        if close:
+            self._add_close()
+        return self
+
+    def _add_close(self):
+        """Add a close |_Close| operation to the drawing sequence."""
+        raise NotImplementedError
+
+    def _add_line_segment(self, x, y):
+        """Add a |_LineSegment| operation to the drawing sequence."""
+        raise NotImplementedError
+
     @lazyproperty
     def _drawing_operations(self):
         """Return the sequence of drawing operation objects for freeform."""
