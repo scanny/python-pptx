@@ -222,6 +222,34 @@ def when_I_assign_a_string_to_shape_text(context):
     context.shape.text = u'F\xf8o\nBar'
 
 
+@when("I assign shapes.build_freeform() to builder")
+def when_I_assign_shapes_build_freeform_to_builder(context):
+    shapes = context.shapes
+    builder = shapes.build_freeform()
+    context.builder = builder
+
+
+@when("I assign shapes.build_freeform(scale=100.0) to builder")
+def when_I_assign_shapes_build_freeform_scale_to_builder(context):
+    shapes = context.shapes
+    builder = shapes.build_freeform(scale=100.0)
+    context.builder = builder
+
+
+@when("I assign shapes.build_freeform(scale=(200.0, 100.0)) to builder")
+def when_I_assign_shapes_build_freeform_scale_rectnglr_to_builder(context):
+    shapes = context.shapes
+    builder = shapes.build_freeform(scale=(200.0, 100.0))
+    context.builder = builder
+
+
+@when("I assign shapes.build_freeform(start_x=25, start_y=125) to builder")
+def when_I_assign_shapes_build_freeform_start_x_start_y_to_builder(context):
+    shapes = context.shapes
+    builder = shapes.build_freeform(25, 125)
+    context.builder = builder
+
+
 @when('I assign {value} to connector.begin_x')
 def when_I_assign_value_to_connector_begin_x(context, value):
     context.connector.begin_x = int(value)
@@ -323,6 +351,37 @@ def when_I_get_the_chart_from_its_graphic_frame(context):
 
 
 # then ====================================================
+
+@then("builder is a FreeformBuilder object")
+def then_builder_is_a_FreeformBuilder_object(context):
+    builder = context.builder
+    class_name = builder.__class__.__name__
+    expected_value = 'FreeformBuilder'
+    assert class_name == expected_value, (
+        'Expected class name \'%s\', got \'%s\'' %
+        (expected_value, class_name)
+    )
+
+
+@then("(builder._start_x, builder._start_y) is ({x_str}, {y_str})")
+def then_builder_start_x_builder_start_y_is_x_y(context, x_str, y_str):
+    builder = context.builder
+    actual_value = builder._start_x, builder._start_y
+    expected_value = int(x_str), int(y_str)
+    assert actual_value == expected_value, (
+        'Expected %s, got %s' % (expected_value, actual_value)
+    )
+
+
+@then("(builder._x_scale, builder._y_scale) is ({p_str}, {q_str})")
+def then_builder_x_scale_builder_y_scale_is_x_y(context, p_str, q_str):
+    builder = context.builder
+    actual_value = builder._x_scale, builder._y_scale
+    expected_value = float(p_str), float(q_str)
+    assert actual_value == expected_value, (
+        'Expected %s, got %s' % (expected_value, actual_value)
+    )
+
 
 @then('connector is a Connector object')
 def then_connector_is_a_Connector_object(context):

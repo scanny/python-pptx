@@ -172,3 +172,36 @@ Feature: Shape collection methods
      When I add a text box to the slide's shape collection
       And I save the presentation
      Then the text box appears in the slide
+
+
+  @wip
+  Scenario: SlideShapes.build_freeform() (no parameters)
+    Given a SlideShapes object as shapes
+     When I assign shapes.build_freeform() to builder
+     Then builder is a FreeformBuilder object
+      And (builder._start_x, builder._start_y) is (0, 0)
+      And (builder._x_scale, builder._y_scale) is (1.0, 1.0)
+
+
+  @wip
+  Scenario: SlideShapes.build_freeform() (with pen start position)
+    Given a SlideShapes object as shapes
+    When I assign shapes.build_freeform(start_x=25, start_y=125) to builder
+     Then builder is a FreeformBuilder object
+      And (builder._start_x, builder._start_y) is (25, 125)
+
+
+  @wip
+  Scenario: SlideShapes.build_freeform() (square scaling)
+    Given a SlideShapes object as shapes
+     When I assign shapes.build_freeform(scale=100.0) to builder
+     Then builder is a FreeformBuilder object
+      And (builder._x_scale, builder._y_scale) is (100.0, 100.0)
+
+
+  @wip
+  Scenario: SlideShapes.build_freeform() (rectangular scaling)
+    Given a SlideShapes object as shapes
+     When I assign shapes.build_freeform(scale=(200.0, 100.0)) to builder
+     Then builder is a FreeformBuilder object
+      And (builder._x_scale, builder._y_scale) is (200.0, 100.0)
