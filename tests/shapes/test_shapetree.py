@@ -25,6 +25,7 @@ from pptx.parts.slide import SlidePart
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
+from pptx.shapes.freeform import FreeformBuilder
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
@@ -607,6 +608,17 @@ class DescribeSlideShapes(object):
         shapes._shape_factory.assert_called_once_with(shapes, cxnSp_)
         assert connector is connector_
 
+    def it_can_provide_a_freeform_builder(self, build_fixture):
+        shapes, start_x, start_y, scale = build_fixture[:4]
+        FreeformBuilder_new_, x_scale, y_scale, builder_ = build_fixture[4:]
+
+        builder = shapes.build_freeform(start_x, start_y, scale)
+
+        FreeformBuilder_new_.assert_called_once_with(
+            shapes, start_x, start_y, x_scale, y_scale
+        )
+        assert builder is builder_
+
     def it_can_add_a_movie(self, movie_fixture):
         shapes, movie_file, x, y, cx, cy = movie_fixture[:6]
         poster_frame_image, mime_type, shape_id_ = movie_fixture[6:9]
@@ -808,6 +820,20 @@ class DescribeSlideShapes(object):
         )
         return shapes, autoshape_type_id, x, y, cx, cy, shape_, expected_xml
 
+    @pytest.fixture(params=[
+        (0,   0,   1.0,        1.0, 1.0),
+        (100, 200, 2.0,        2.0, 2.0),
+        (100, 200, (4.2, 2.4), 4.2, 2.4),
+    ])
+    def build_fixture(self, request, FreeformBuilder_new_, builder_):
+        start_x, start_y, scale, x_scale, y_scale = request.param
+        FreeformBuilder_new_.return_value = builder_
+        shapes = SlideShapes(None, None)
+        return (
+            shapes, start_x, start_y, scale, FreeformBuilder_new_, x_scale,
+            y_scale, builder_
+        )
+
     @pytest.fixture
     def clone_fixture(self, slide_layout_, clone_placeholder_, placeholder_):
         shapes = SlideShapes(None, None)
@@ -989,6 +1015,10 @@ class DescribeSlideShapes(object):
         )
 
     @pytest.fixture
+    def builder_(self, request):
+        return instance_mock(request, FreeformBuilder)
+
+    @pytest.fixture
     def chart_data_(self, request):
         return instance_mock(request, ChartData)
 
@@ -1001,6 +1031,10 @@ class DescribeSlideShapes(object):
     @pytest.fixture
     def connector_(self, request):
         return instance_mock(request, Connector)
+
+    @pytest.fixture
+    def FreeformBuilder_new_(self, request):
+        return method_mock(request, FreeformBuilder, 'new')
 
     @pytest.fixture
     def graphic_frame_(self, request):
