@@ -64,7 +64,7 @@ class FillFormat(object):
 
     @property
     def pattern(self):
-        """Return member of :ref:`MSO_PATTERN_TYPE` indicating fill pattern.
+        """Return member of :ref:`MsoPatternType` indicating fill pattern.
 
         Raises |TypeError| when fill is not patterned (call
         `fill.patterned()` first). Returns |None| if no pattern has been set;
@@ -219,7 +219,7 @@ class _PattFill(_Fill):
 
     @property
     def pattern(self):
-        """Return member of :ref:`MSO_PATTERN_TYPE` indicating fill pattern.
+        """Return member of :ref:`MsoPatternType` indicating fill pattern.
 
         Returns |None| if no pattern has been set; PowerPoint may display the
         default `PERCENT_5` pattern in this case. Assigning |None| will

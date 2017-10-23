@@ -20,18 +20,19 @@ import sys
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
 
-from pptx import __version__
+from pptx import __version__  # noqa: E402
 
 
 # -- Allow nonlocal image URI's to accommodate travis-ci status image -------
 
-import sphinx.environment
-from docutils.utils import get_source_line
+import sphinx.environment  # noqa: E402
+from docutils.utils import get_source_line  # noqa: E402
 
 
 def _warn_node(self, msg, node, **kwargs):
     if not msg.startswith('nonlocal image URI found:'):
         self._warnfunc(msg, '%s:%s' % get_source_line(node), **kwargs)
+
 
 sphinx.environment.BuildEnvironment.warn_node = _warn_node
 
@@ -316,6 +317,8 @@ rst_epilog = """
 .. |TickLabels| replace:: :class:`.TickLabels`
 
 .. |True| replace:: :class:`True`
+
+.. |TypeError| replace:: :exc:`TypeError`
 
 .. |ValueAxis| replace:: :class:`.ValueAxis`
 

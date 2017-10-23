@@ -54,6 +54,41 @@ Issue: How to accommodate these competing requirements:
   + parent.remove_ln()
 
 
+MS API
+------
+
+* | LineFormat
+  | https://msdn.microsoft.com/en-us/vba/powerpoint-vba/articles/lineformat-object-powerpoint
+
+* | LineFormat.DashStyle
+  | https://msdn.microsoft.com/en-us/vba/powerpoint-vba/articles/lineformat-dashstyle-property-powerpoint
+
+* | MsoLineDashStyle Enumeration
+  | https://msdn.microsoft.com/en-us/library/aa432639(v=office.12).aspx
+
+  +-----------------------+-------+----------------------------------+
+  | Name                  | Value | Description                      |
+  +-----------------------+-------+----------------------------------+
+  | msoLineDash           | 4     | Line consists of dashes only.    |
+  +-----------------------+-------+----------------------------------+
+  | msoLineDashDot        | 5     | Line is a dash-dot pattern.      |
+  +-----------------------+-------+----------------------------------+
+  | msoLineDashDotDot     | 6     | Line is a dash-dot-dot pattern.  |
+  +-----------------------+-------+----------------------------------+
+  | msoLineDashStyleMixed | -2    | Not supported.                   |
+  +-----------------------+-------+----------------------------------+
+  | msoLineLongDash       | 7     | Line consists of long dashes.    |
+  +-----------------------+-------+----------------------------------+
+  | msoLineLongDashDot    | 8     | Line is a long dash-dot pattern. |
+  +-----------------------+-------+----------------------------------+
+  | msoLineRoundDot       | 3     | Line is made up of round dots.   |
+  +-----------------------+-------+----------------------------------+
+  | msoLineSolid          | 1     | Line is solid.                   |
+  +-----------------------+-------+----------------------------------+
+  | msoLineSquareDot      | 2     | Line is made up of square dots.  |
+  +-----------------------+-------+----------------------------------+
+
+
 Specimen XML
 ------------
 
@@ -159,6 +194,10 @@ Related Schema Definitions
     </xsd:choice>
   </xsd:group>
 
+  <xsd:complexType name="CT_PresetLineDashProperties">
+    <xsd:attribute name="val" type="ST_PresetLineDashVal" use="optional"/>
+  </xsd:complexType>
+
   <xsd:group name="EG_LineJoinProperties">
     <xsd:choice>
       <xsd:element name="round" type="CT_LineJoinRound"/>
@@ -183,4 +222,20 @@ Related Schema Definitions
 
   <xsd:simpleType name="ST_Coordinate32Unqualified">
     <xsd:restriction base="xsd:int"/>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_PresetLineDashVal">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="solid"/>
+      <xsd:enumeration value="dot"/>
+      <xsd:enumeration value="dash"/>
+      <xsd:enumeration value="lgDash"/>
+      <xsd:enumeration value="dashDot"/>
+      <xsd:enumeration value="lgDashDot"/>
+      <xsd:enumeration value="lgDashDotDot"/>
+      <xsd:enumeration value="sysDash"/>
+      <xsd:enumeration value="sysDot"/>
+      <xsd:enumeration value="sysDashDot"/>
+      <xsd:enumeration value="sysDashDotDot"/>
+    </xsd:restriction>
   </xsd:simpleType>
