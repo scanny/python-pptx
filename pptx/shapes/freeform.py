@@ -87,6 +87,16 @@ class FreeformBuilder(Sequence):
             drawing_operation.apply_operation_to(path)
         return self._shapes._shape_factory(sp)
 
+    @property
+    def shape_offset_x(self):
+        """Return x distance of shape origin from local coordinate origin.
+
+        The returned integer represents the leftmost extent of the freeform
+        shape, in local coordinates. Note that the bounding box of the shape
+        need not start at the local origin.
+        """
+        raise NotImplementedError
+
     def _add_close(self):
         """Add a close |_Close| operation to the drawing sequence."""
         self._drawing_operations.append(_Close.new())
@@ -131,7 +141,7 @@ class FreeformBuilder(Sequence):
         assumes the drawing (local) coordinate origin is at (0, 0) on the
         slide.
         """
-        raise NotImplementedError
+        return int(round(self.shape_offset_x * self._x_scale))
 
     def _start_path(self, sp):
         """Return a newly created `a:path` element added to *sp*.

@@ -83,6 +83,11 @@ class DescribeFreeformBuilder(object):
         _Close_new_.assert_called_once_with()
         assert builder._drawing_operations == [close_]
 
+    def it_knows_the_freeform_left_extent(self, left_fixture):
+        builder, expected_value = left_fixture
+        left = builder._left
+        assert left == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -130,6 +135,18 @@ class DescribeFreeformBuilder(object):
             builder, origin_x, origin_y, sp, apply_operation_to_, calls,
             shape_
         )
+
+    @pytest.fixture(params=[
+        (0,      1.0,   0),
+        (4,      10.0,  40),
+        (914400, 914.3, 836035920),
+    ])
+    def left_fixture(self, request, shape_offset_x_prop_):
+        offset_x, x_scale, expected_value = request.param
+        shape_offset_x_prop_.return_value = offset_x
+
+        builder = FreeformBuilder(None, None, None, x_scale, None)
+        return builder, expected_value
 
     @pytest.fixture
     def new_fixture(self, shapes_, _init_):
@@ -207,6 +224,10 @@ class DescribeFreeformBuilder(object):
     @pytest.fixture
     def shape_(self, request):
         return instance_mock(request, Shape)
+
+    @pytest.fixture
+    def shape_offset_x_prop_(self, request):
+        return property_mock(request, FreeformBuilder, 'shape_offset_x')
 
     @pytest.fixture
     def shapes_(self, request):
