@@ -118,6 +118,11 @@ class DescribeFreeformBuilder(object):
         dx = builder._dx
         assert dx == expected_value
 
+    def it_knows_the_local_coordinate_height_to_help(self, dy_fixture):
+        builder, expected_value = dy_fixture
+        dy = builder._dy
+        assert dy == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -181,6 +186,24 @@ class DescribeFreeformBuilder(object):
                 drawing_ops.append(_BaseDrawingOperation(None, x, None))
 
         builder = FreeformBuilder(None, start_x, None, None, None)
+        builder._drawing_operations.extend(drawing_ops)
+        return builder, expected_value
+
+    @pytest.fixture(params=[
+        (0,  (1, None, 2, 3),      3),
+        (2,  (1, None, 2, 3),      2),
+        (32, (160, -8, None, 101), 168),
+    ])
+    def dy_fixture(self, request):
+        start_y, ys, expected_value = request.param
+        drawing_ops = []
+        for y in ys:
+            if y is None:
+                drawing_ops.append(_Close())
+            else:
+                drawing_ops.append(_BaseDrawingOperation(None, None, y))
+
+        builder = FreeformBuilder(None, None, start_y, None, None)
         builder._drawing_operations.extend(drawing_ops)
         return builder, expected_value
 
