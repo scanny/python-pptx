@@ -103,6 +103,11 @@ class DescribeFreeformBuilder(object):
         top = builder._top
         assert top == expected_value
 
+    def it_knows_the_freeform_width_to_help(self, width_fixture):
+        builder, expected_value = width_fixture
+        width = builder._width
+        assert width == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -233,6 +238,18 @@ class DescribeFreeformBuilder(object):
         builder = FreeformBuilder(None, None, None, None, y_scale)
         return builder, expected_value
 
+    @pytest.fixture(params=[
+        (0,      1.0,   0),
+        (42,     10.0,  420),
+        (914400, 914.4, 836127360),
+    ])
+    def width_fixture(self, request, _dx_prop_):
+        dx, x_scale, expected_value = request.param
+        _dx_prop_.return_value = dx
+
+        builder = FreeformBuilder(None, None, None, x_scale, None)
+        return builder, expected_value
+
     # fixture components -----------------------------------
 
     @pytest.fixture
@@ -263,6 +280,10 @@ class DescribeFreeformBuilder(object):
     @pytest.fixture
     def _Close_new_(self, request):
         return method_mock(request, _Close, 'new')
+
+    @pytest.fixture
+    def _dx_prop_(self, request):
+        return property_mock(request, FreeformBuilder, '_dx')
 
     @pytest.fixture
     def _height_prop_(self, request):

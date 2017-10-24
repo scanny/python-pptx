@@ -143,6 +143,11 @@ class FreeformBuilder(Sequence):
         return []
 
     @property
+    def _dx(self):
+        """Return integer width of this shape's path in local units."""
+        raise NotImplementedError
+
+    @property
     def _height(self):
         """Return vertical size of this shape's path in slide coordinates.
 
@@ -186,7 +191,7 @@ class FreeformBuilder(Sequence):
         This value is based on the actual extents of the shape path and does
         not include any positioning offset.
         """
-        raise NotImplementedError
+        return int(round(self._dx * self._x_scale))
 
 
 class _BaseDrawingOperation(object):
