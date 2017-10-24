@@ -73,7 +73,7 @@ class FreeformBuilder(Sequence):
 
     def _add_close(self):
         """Add a close |_Close| operation to the drawing sequence."""
-        raise NotImplementedError
+        self._drawing_operations.append(_Close.new())
 
     def _add_line_segment(self, x, y):
         """Add a |_LineSegment| operation to the drawing sequence."""
@@ -97,6 +97,15 @@ class _BaseDrawingOperation(object):
         self._freeform_builder = freeform_builder
         self._x = x
         self._y = y
+
+
+class _Close(object):
+    """Specifies adding a `<a:close/>` element to the current contour."""
+
+    @classmethod
+    def new(cls):
+        """Return a new _Close object."""
+        raise NotImplementedError
 
 
 class _LineSegment(_BaseDrawingOperation):

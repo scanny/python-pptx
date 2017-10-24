@@ -8,7 +8,7 @@ from __future__ import (
 
 import pytest
 
-from pptx.shapes.freeform import FreeformBuilder, _LineSegment
+from pptx.shapes.freeform import _Close, FreeformBuilder, _LineSegment
 from pptx.shapes.shapetree import SlideShapes
 
 from ..unitutil.mock import (
@@ -48,7 +48,21 @@ class DescribeFreeformBuilder(object):
         _LineSegment_new_.assert_called_once_with(builder, x, y)
         assert builder._drawing_operations == [line_segment_]
 
+    def it_closes_a_contour_to_help(self, add_close_fixture):
+        builder, _Close_new_, close_ = add_close_fixture
+
+        builder._add_close()
+
+        _Close_new_.assert_called_once_with()
+        assert builder._drawing_operations == [close_]
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_close_fixture(self, _Close_new_, close_):
+        _Close_new_.return_value = close_
+        builder = FreeformBuilder(None, None, None, None, None)
+        return builder, _Close_new_, close_
 
     @pytest.fixture
     def add_seg_fixture(self, _LineSegment_new_, line_segment_):
@@ -87,6 +101,14 @@ class DescribeFreeformBuilder(object):
     @pytest.fixture
     def _add_line_segment_(self, request):
         return method_mock(request, FreeformBuilder, '_add_line_segment')
+
+    @pytest.fixture
+    def close_(self, request):
+        return instance_mock(request, _Close)
+
+    @pytest.fixture
+    def _Close_new_(self, request):
+        return method_mock(request, _Close, 'new')
 
     @pytest.fixture
     def _init_(self, request):
