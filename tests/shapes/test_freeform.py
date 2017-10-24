@@ -15,8 +15,9 @@ from pptx.shapes.freeform import (
 from pptx.shapes.shapetree import SlideShapes
 
 from ..unitutil.cxml import element
+from ..unitutil.file import snippet_seq
 from ..unitutil.mock import (
-    call, initializer_mock, instance_mock, method_mock
+    call, initializer_mock, instance_mock, method_mock, property_mock
 )
 
 
@@ -57,6 +58,14 @@ class DescribeFreeformBuilder(object):
         assert apply_operation_to_.call_args_list == calls
         builder._shapes._shape_factory.assert_called_once_with(sp)
         assert shape is shape_
+
+    def it_adds_a_freeform_sp_to_help(self, sp_fixture):
+        builder, origin_x, origin_y, spTree, expected_xml = sp_fixture
+
+        sp = builder._add_freeform_sp(origin_x, origin_y)
+
+        assert spTree.xml == expected_xml
+        assert sp is spTree.xpath('p:sp')[0]
 
     def it_adds_a_line_segment_to_help(self, add_seg_fixture):
         builder, x, y, _LineSegment_new_, line_segment_ = add_seg_fixture
@@ -131,6 +140,19 @@ class DescribeFreeformBuilder(object):
             start_y_int
         )
 
+    @pytest.fixture
+    def sp_fixture(self, _left_prop_, _top_prop_, _width_prop_,
+                   _height_prop_):
+        origin_x, origin_y = 42, 24
+        spTree = element('p:spTree')
+        shapes = SlideShapes(spTree, None)
+        _left_prop_.return_value, _top_prop_.return_value = 12, 34
+        _width_prop_.return_value, _height_prop_.return_value = 56, 78
+
+        builder = FreeformBuilder(shapes, None, None, None, None)
+        expected_xml = snippet_seq('freeform')[0]
+        return builder, origin_x, origin_y, spTree, expected_xml
+
     # fixture components -----------------------------------
 
     @pytest.fixture
@@ -163,8 +185,16 @@ class DescribeFreeformBuilder(object):
         return method_mock(request, _Close, 'new')
 
     @pytest.fixture
+    def _height_prop_(self, request):
+        return property_mock(request, FreeformBuilder, '_height')
+
+    @pytest.fixture
     def _init_(self, request):
         return initializer_mock(request, FreeformBuilder, autospec=True)
+
+    @pytest.fixture
+    def _left_prop_(self, request):
+        return property_mock(request, FreeformBuilder, '_left')
 
     @pytest.fixture
     def line_segment_(self, request):
@@ -187,6 +217,14 @@ class DescribeFreeformBuilder(object):
         return method_mock(
             request, FreeformBuilder, '_start_path', autospec=True
         )
+
+    @pytest.fixture
+    def _top_prop_(self, request):
+        return property_mock(request, FreeformBuilder, '_top')
+
+    @pytest.fixture
+    def _width_prop_(self, request):
+        return property_mock(request, FreeformBuilder, '_width')
 
 
 class Describe_Close(object):

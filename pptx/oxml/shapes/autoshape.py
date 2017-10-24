@@ -130,6 +130,18 @@ class CT_Shape(BaseShapeElement):
         return sp
 
     @staticmethod
+    def new_freeform_sp(shape_id, name, x, y, cx, cy):
+        """Return new `p:sp` element tree configured as freeform shape.
+
+        The returned shape has a `a:custGeom` subtree but no paths in its
+        path list.
+        """
+        tmpl = CT_Shape._freeform_sp_tmpl()
+        xml = tmpl % (shape_id, name, x, y, cx, cy)
+        sp = parse_xml(xml)
+        return sp
+
+    @staticmethod
     def new_placeholder_sp(id_, name, ph_type, orient, sz, idx):
         """
         Return a new ``<p:sp>`` element tree configured as a placeholder
@@ -227,6 +239,54 @@ class CT_Shape(BaseShapeElement):
             '  </p:txBody>\n'
             '</p:sp>' %
             (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d', '%s')
+        )
+
+    @staticmethod
+    def _freeform_sp_tmpl():
+        return (
+            '<p:sp %s>\n'
+            '  <p:nvSpPr>\n'
+            '    <p:cNvPr id="%s" name="%s"/>\n'
+            '    <p:cNvSpPr/>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvSpPr>\n'
+            '  <p:spPr>\n'
+            '    <a:xfrm>\n'
+            '      <a:off x="%s" y="%s"/>\n'
+            '      <a:ext cx="%s" cy="%s"/>\n'
+            '    </a:xfrm>\n'
+            '    <a:custGeom>\n'
+            '      <a:avLst/>\n'
+            '      <a:gdLst/>\n'
+            '      <a:ahLst/>\n'
+            '      <a:cxnLst/>\n'
+            '      <a:rect l="l" t="t" r="r" b="b"/>\n'
+            '      <a:pathLst/>\n'
+            '    </a:custGeom>\n'
+            '  </p:spPr>\n'
+            '  <p:style>\n'
+            '    <a:lnRef idx="1">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:lnRef>\n'
+            '    <a:fillRef idx="3">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:fillRef>\n'
+            '    <a:effectRef idx="2">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:effectRef>\n'
+            '    <a:fontRef idx="minor">\n'
+            '      <a:schemeClr val="lt1"/>\n'
+            '    </a:fontRef>\n'
+            '  </p:style>\n'
+            '  <p:txBody>\n'
+            '    <a:bodyPr rtlCol="0" anchor="ctr"/>\n'
+            '    <a:lstStyle/>\n'
+            '    <a:p>\n'
+            '      <a:pPr algn="ctr"/>\n'
+            '    </a:p>\n'
+            '  </p:txBody>\n'
+            '</p:sp>' %
+            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
         )
 
     def _new_txBody(self):

@@ -50,6 +50,14 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(cxnSp, 'p:extLst')
         return cxnSp
 
+    def add_freeform_sp(self, x, y, cx, cy):
+        """Append a new freeform `p:sp` with specified position and size."""
+        shape_id = self._next_shape_id
+        name = 'Freeform %d' % (shape_id-1,)
+        sp = CT_Shape.new_freeform_sp(shape_id, name, x, y, cx, cy)
+        self.insert_element_before(sp, 'p:extLst')
+        return sp
+
     def add_pic(self, id_, name, desc, rId, x, y, cx, cy):
         """
         Append a ``<p:pic>`` shape to the group/shapetree having properties
@@ -120,6 +128,21 @@ class CT_GroupShape(BaseShapeElement):
         The ``<a:xfrm>`` grandchild element or |None| if not found
         """
         return self.grpSpPr.xfrm
+
+    @property
+    def _next_shape_id(self):
+        """Return unique shape id suitable for use with a new shape element.
+
+        The returned id is the next available positive integer drawing object
+        id in shape tree, starting from 1 and making use of any gaps in
+        numbering. In practice, the minimum id is 2 because the spTree
+        element itself is always assigned id="1".
+        """
+        id_str_lst = self.xpath('//@id')
+        used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
+        for n in range(1, len(used_ids)+2):
+            if n not in used_ids:
+                return n
 
 
 class CT_GroupShapeNonVisual(BaseShapeElement):

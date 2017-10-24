@@ -97,7 +97,13 @@ class FreeformBuilder(Sequence):
         *origin_x* and *origin_y* are specified in slide coordinates, and
         represent the location of the local coordinates origin on the slide.
         """
-        raise NotImplementedError
+        spTree = self._shapes._spTree
+        return spTree.add_freeform_sp(
+            origin_x + self._left,
+            origin_y + self._top,
+            self._width,
+            self._height
+        )
 
     def _add_line_segment(self, x, y):
         """Add a |_LineSegment| operation to the drawing sequence."""
@@ -108,11 +114,49 @@ class FreeformBuilder(Sequence):
         """Return the sequence of drawing operation objects for freeform."""
         return []
 
+    @property
+    def _height(self):
+        """Return vertical size of this shape's path in slide coordinates.
+
+        This value is based on the actual extents of the shape and does not
+        include any positioning offset.
+        """
+        raise NotImplementedError
+
+    @property
+    def _left(self):
+        """Return leftmost extent of this shape's path in slide coordinates.
+
+        Note that this value does not include any positioning offset; it
+        assumes the drawing (local) coordinate origin is at (0, 0) on the
+        slide.
+        """
+        raise NotImplementedError
+
     def _start_path(self, sp):
         """Return a newly created `a:path` element added to *sp*.
 
         The returned `a:path` element has an `a:moveTo` element representing
         the shape starting point as its only child.
+        """
+        raise NotImplementedError
+
+    @property
+    def _top(self):
+        """Return topmost extent of this shape's path in slide coordinates.
+
+        Note that this value does not include any positioning offset; it
+        assumes the drawing (local) coordinate origin is located at slide
+        coordinates (0, 0) (top-left corner of slide).
+        """
+        raise NotImplementedError
+
+    @property
+    def _width(self):
+        """Return width of this shape's path in slide coordinates.
+
+        This value is based on the actual extents of the shape path and does
+        not include any positioning offset.
         """
         raise NotImplementedError
 
