@@ -59,6 +59,11 @@ class DescribeFreeformBuilder(object):
         builder._shapes._shape_factory.assert_called_once_with(sp)
         assert shape is shape_
 
+    def it_knows_the_shape_x_offset(self, shape_offset_x_fixture):
+        builder, expected_value = shape_offset_x_fixture
+        x_offset = builder.shape_offset_x
+        assert x_offset == expected_value
+
     def it_adds_a_freeform_sp_to_help(self, sp_fixture):
         builder, origin_x, origin_y, spTree, expected_xml = sp_fixture
 
@@ -83,7 +88,7 @@ class DescribeFreeformBuilder(object):
         _Close_new_.assert_called_once_with()
         assert builder._drawing_operations == [close_]
 
-    def it_knows_the_freeform_left_extent(self, left_fixture):
+    def it_knows_the_freeform_left_extent_to_help(self, left_fixture):
         builder, expected_value = left_fixture
         left = builder._left
         assert left == expected_value
@@ -156,6 +161,23 @@ class DescribeFreeformBuilder(object):
             shapes_, start_x, start_y, x_scale, y_scale, _init_, start_x_int,
             start_y_int
         )
+
+    @pytest.fixture(params=[
+        (0,  (1, None, 2, 3),       0),
+        (50, (150, -5, None, 100), -5),
+    ])
+    def shape_offset_x_fixture(self, request):
+        start_x, xs, expected_value = request.param
+        drawing_ops = []
+        for x in xs:
+            if x is None:
+                drawing_ops.append(_Close())
+            else:
+                drawing_ops.append(_BaseDrawingOperation(None, x, None))
+
+        builder = FreeformBuilder(None, start_x, None, None, None)
+        builder._drawing_operations.extend(drawing_ops)
+        return builder, expected_value
 
     @pytest.fixture
     def sp_fixture(self, _left_prop_, _top_prop_, _width_prop_,
