@@ -103,3 +103,32 @@ class DescribeFreeformBuilder(object):
     @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, SlideShapes)
+
+
+class Describe_LineSegment(object):
+
+    def it_provides_a_constructor(self, new_fixture):
+        builder_, x, y, _init_, x_int, y_int = new_fixture
+
+        line_segment = _LineSegment.new(builder_, x, y)
+
+        _init_.assert_called_once_with(line_segment, builder_, x_int, y_int)
+        assert isinstance(line_segment, _LineSegment)
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def new_fixture(self, builder_, _init_):
+        x, y, x_int, y_int = 99.51, 200.49, 100, 200
+        # start_x_int, start_y_int = 100, 200
+        return builder_, x, y, _init_, x_int, y_int
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def builder_(self, request):
+        return instance_mock(request, FreeformBuilder)
+
+    @pytest.fixture
+    def _init_(self, request):
+        return initializer_mock(request, _LineSegment, autospec=True)

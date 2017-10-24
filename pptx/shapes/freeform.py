@@ -92,6 +92,12 @@ class _BaseDrawingOperation(object):
     coordinates.
     """
 
+    def __init__(self, freeform_builder, x, y):
+        super(_BaseDrawingOperation, self).__init__()
+        self._freeform_builder = freeform_builder
+        self._x = x
+        self._y = y
+
 
 class _LineSegment(_BaseDrawingOperation):
     """Specifies a straight line segment ending at the specified point."""
@@ -102,4 +108,4 @@ class _LineSegment(_BaseDrawingOperation):
 
         Both *x* and *y* are rounded to the nearest integer before use.
         """
-        raise NotImplementedError
+        return cls(freeform_builder, int(round(x)), int(round(y)))
