@@ -14,7 +14,7 @@ from pptx.shapes.freeform import (
 )
 from pptx.shapes.shapetree import SlideShapes
 
-from ..unitutil.cxml import element
+from ..unitutil.cxml import element, xml
 from ..unitutil.file import snippet_seq
 from ..unitutil.mock import (
     call, initializer_mock, instance_mock, method_mock, property_mock
@@ -122,6 +122,16 @@ class DescribeFreeformBuilder(object):
         builder, expected_value = dy_fixture
         dy = builder._dy
         assert dy == expected_value
+
+    def it_can_start_a_new_path_to_help(self, start_path_fixture):
+        builder, sp, _local_to_shape_ = start_path_fixture[:3]
+        start_x, start_y, expected_xml = start_path_fixture[3:]
+
+        path = builder._start_path(sp)
+
+        _local_to_shape_.assert_called_once_with(start_x, start_y)
+        assert sp.xml == expected_xml
+        assert path is sp.xpath('.//a:path')[-1]
 
     # fixtures -------------------------------------------------------
 
@@ -289,6 +299,20 @@ class DescribeFreeformBuilder(object):
         expected_xml = snippet_seq('freeform')[0]
         return builder, origin_x, origin_y, spTree, expected_xml
 
+    @pytest.fixture
+    def start_path_fixture(self, _dx_prop_, _dy_prop_, _local_to_shape_):
+        sp = element('p:sp/p:spPr/a:custGeom')
+        start_x, start_y = 42, 24
+        _dx_prop_.return_value, _dy_prop_.return_value = 1001, 2002
+        _local_to_shape_.return_value = 101, 202
+
+        builder = FreeformBuilder(None, start_x, start_y, None, None)
+        expected_xml = xml(
+            'p:sp/p:spPr/a:custGeom/a:pathLst/a:path{w=1001,h=2002}/a:moveTo'
+            '/a:pt{x=101,y=202}'
+        )
+        return builder, sp, _local_to_shape_, start_x, start_y, expected_xml
+
     @pytest.fixture(params=[
         (0,      11.0,  0),
         (100,    10.36, 1036),
@@ -371,6 +395,10 @@ class DescribeFreeformBuilder(object):
     @pytest.fixture
     def _LineSegment_new_(self, request):
         return method_mock(request, _LineSegment, 'new')
+
+    @pytest.fixture
+    def _local_to_shape_(self, request):
+        return method_mock(request, FreeformBuilder, '_local_to_shape')
 
     @pytest.fixture
     def shape_(self, request):

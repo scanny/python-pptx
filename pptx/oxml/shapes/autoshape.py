@@ -6,16 +6,34 @@ lxml custom element classes for shape-related XML elements.
 
 from __future__ import absolute_import
 
-from .. import parse_xml
-from ...enum.shapes import MSO_AUTO_SHAPE_TYPE, PP_PLACEHOLDER
-from ..ns import nsdecls
-from .shared import BaseShapeElement
-from ..simpletypes import XsdBoolean, XsdString
-from ..text import CT_TextBody
-from ..xmlchemy import (
+from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, PP_PLACEHOLDER
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.shapes.shared import BaseShapeElement
+from pptx.oxml.simpletypes import (
+    ST_Coordinate, ST_PositiveCoordinate, XsdBoolean, XsdString
+)
+from pptx.oxml.text import CT_TextBody
+from pptx.oxml.xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
     ZeroOrOne, ZeroOrMore
 )
+
+
+class CT_AdjPoint2D(BaseOxmlElement):
+    """`a:pt` custom element class."""
+
+    x = RequiredAttribute('x', ST_Coordinate)
+    y = RequiredAttribute('y', ST_Coordinate)
+
+
+class CT_CustomGeometry2D(BaseOxmlElement):
+    """`a:custGeom` custom element class."""
+
+    _tag_seq = (
+        'a:avLst', 'a:gdLst', 'a:ahLst', 'a:cxnLst', 'a:rect', 'a:pathLst'
+    )
+    pathLst = ZeroOrOne('a:pathLst', successors=_tag_seq[6:])
 
 
 class CT_GeomGuide(BaseOxmlElement):
@@ -40,6 +58,42 @@ class CT_NonVisualDrawingShapeProps(BaseShapeElement):
     """
     spLocks = ZeroOrOne('a:spLocks')
     txBox = OptionalAttribute('txBox', XsdBoolean)
+
+
+class CT_Path2D(BaseOxmlElement):
+    """`a:path` custom element class."""
+
+    moveTo = ZeroOrMore('a:moveTo', successors=())
+    w = OptionalAttribute('w', ST_PositiveCoordinate)
+    h = OptionalAttribute('h', ST_PositiveCoordinate)
+
+    def add_moveTo(self, x, y):
+        """Return a newly created `a:moveTo` subtree with point *(x, y)*.
+
+        The new `a:moveTo` element is appended to this `a:pathLst` element.
+        """
+        moveTo = self._add_moveTo()
+        pt = moveTo._add_pt()
+        pt.x, pt.y = x, y
+        return moveTo
+
+
+class CT_Path2DList(BaseOxmlElement):
+    """`a:pathLst` custom element class."""
+
+    path = ZeroOrMore('a:path', successors=())
+
+    def add_path(self, w, h):
+        """Return a newly created `a:path` child element."""
+        path = self._add_path()
+        path.w, path.h = w, h
+        return path
+
+
+class CT_Path2DMoveTo(BaseOxmlElement):
+    """`a:moveTo` custom element class."""
+
+    pt = ZeroOrOne('a:pt', successors=())
 
 
 class CT_PresetGeometry2D(BaseOxmlElement):
@@ -80,6 +134,14 @@ class CT_Shape(BaseShapeElement):
     nvSpPr = OneAndOnlyOne('p:nvSpPr')
     spPr = OneAndOnlyOne('p:spPr')
     txBody = ZeroOrOne('p:txBody', successors=('p:extLst',))
+
+    def add_path(self, w, h):
+        """Reference to `a:custGeom` descendant or |None| if not present."""
+        custGeom = self.spPr.custGeom
+        if custGeom is None:
+            raise ValueError('shape must be freeform')
+        pathLst = custGeom.get_or_add_pathLst()
+        return pathLst.add_path(w=w, h=h)
 
     def get_or_add_ln(self):
         """

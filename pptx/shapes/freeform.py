@@ -181,13 +181,28 @@ class FreeformBuilder(Sequence):
         """
         return int(round(self.shape_offset_x * self._x_scale))
 
+    def _local_to_shape(self, local_x, local_y):
+        """Translate local coordinates point to shape coordinates.
+
+        Shape coordinates have the same unit as local coordinates, but are
+        offset such that the origin of the shape coordinate system (0, 0) is
+        located at the top-left corner of the shape bounding box.
+        """
+        raise NotImplementedError
+
     def _start_path(self, sp):
         """Return a newly created `a:path` element added to *sp*.
 
         The returned `a:path` element has an `a:moveTo` element representing
         the shape starting point as its only child.
         """
-        raise NotImplementedError
+        path = sp.add_path(w=self._dx, h=self._dy)
+        path.add_moveTo(
+            *self._local_to_shape(
+                self._start_x, self._start_y
+            )
+        )
+        return path
 
     @property
     def _top(self):
