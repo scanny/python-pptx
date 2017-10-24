@@ -64,6 +64,11 @@ class DescribeFreeformBuilder(object):
         x_offset = builder.shape_offset_x
         assert x_offset == expected_value
 
+    def it_knows_the_shape_y_offset(self, shape_offset_y_fixture):
+        builder, expected_value = shape_offset_y_fixture
+        y_offset = builder.shape_offset_y
+        assert y_offset == expected_value
+
     def it_adds_a_freeform_sp_to_help(self, sp_fixture):
         builder, origin_x, origin_y, spTree, expected_xml = sp_fixture
 
@@ -169,6 +174,7 @@ class DescribeFreeformBuilder(object):
 
     @pytest.fixture(params=[
         (0,  (1, None, 2, 3),       0),
+        (6,  (1, None, 2, 3),       1),
         (50, (150, -5, None, 100), -5),
     ])
     def shape_offset_x_fixture(self, request):
@@ -181,6 +187,24 @@ class DescribeFreeformBuilder(object):
                 drawing_ops.append(_BaseDrawingOperation(None, x, None))
 
         builder = FreeformBuilder(None, start_x, None, None, None)
+        builder._drawing_operations.extend(drawing_ops)
+        return builder, expected_value
+
+    @pytest.fixture(params=[
+        (0,  (2, None, 6, 8),        0),
+        (4,  (2, None, 6, 8),        2),
+        (19, (213, -22, None, 100), -22),
+    ])
+    def shape_offset_y_fixture(self, request):
+        start_y, ys, expected_value = request.param
+        drawing_ops = []
+        for y in ys:
+            if y is None:
+                drawing_ops.append(_Close())
+            else:
+                drawing_ops.append(_BaseDrawingOperation(None, None, y))
+
+        builder = FreeformBuilder(None, None, start_y, None, None)
         builder._drawing_operations.extend(drawing_ops)
         return builder, expected_value
 
@@ -298,6 +322,11 @@ class Describe_BaseDrawingOperation(object):
         x = drawing_operation.x
         assert x == expected_value
 
+    def it_knows_its_y_coordinate(self, y_fixture):
+        drawing_operation, expected_value = y_fixture
+        y = drawing_operation.y
+        assert y == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -305,6 +334,13 @@ class Describe_BaseDrawingOperation(object):
         x = 42
         drawing_operation = _BaseDrawingOperation(None, x, None)
         expected_value = x
+        return drawing_operation, expected_value
+
+    @pytest.fixture
+    def y_fixture(self):
+        y = 24
+        drawing_operation = _BaseDrawingOperation(None, None, y)
+        expected_value = y
         return drawing_operation, expected_value
 
 

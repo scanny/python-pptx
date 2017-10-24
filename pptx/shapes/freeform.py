@@ -109,7 +109,11 @@ class FreeformBuilder(Sequence):
         shape, in local coordinates. Note that the bounding box of the shape
         need not start at the local origin.
         """
-        raise NotImplementedError
+        min_y = self._start_y
+        for drawing_operation in self:
+            if hasattr(drawing_operation, 'y'):
+                min_y = min(min_y, drawing_operation.y)
+        return min_y
 
     def _add_close(self):
         """Add a close |_Close| operation to the drawing sequence."""
@@ -212,6 +216,14 @@ class _BaseDrawingOperation(object):
         The returned value is an integer in local coordinates.
         """
         return self._x
+
+    @property
+    def y(self):
+        """Return the vertical (y) target location of this operation.
+
+        The returned value is an integer in local coordinates.
+        """
+        return self._y
 
 
 class _Close(object):
