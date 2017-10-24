@@ -93,6 +93,11 @@ class DescribeFreeformBuilder(object):
         left = builder._left
         assert left == expected_value
 
+    def it_knows_the_freeform_top_extent_to_help(self, top_fixture):
+        builder, expected_value = top_fixture
+        top = builder._top
+        assert top == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -192,6 +197,18 @@ class DescribeFreeformBuilder(object):
         expected_xml = snippet_seq('freeform')[0]
         return builder, origin_x, origin_y, spTree, expected_xml
 
+    @pytest.fixture(params=[
+        (0,      11.0,  0),
+        (100,    10.36, 1036),
+        (914242, 943.1, 862221630),
+    ])
+    def top_fixture(self, request, shape_offset_y_prop_):
+        offset_y, y_scale, expected_value = request.param
+        shape_offset_y_prop_.return_value = offset_y
+
+        builder = FreeformBuilder(None, None, None, None, y_scale)
+        return builder, expected_value
+
     # fixture components -----------------------------------
 
     @pytest.fixture
@@ -250,6 +267,10 @@ class DescribeFreeformBuilder(object):
     @pytest.fixture
     def shape_offset_x_prop_(self, request):
         return property_mock(request, FreeformBuilder, 'shape_offset_x')
+
+    @pytest.fixture
+    def shape_offset_y_prop_(self, request):
+        return property_mock(request, FreeformBuilder, 'shape_offset_y')
 
     @pytest.fixture
     def shapes_(self, request):

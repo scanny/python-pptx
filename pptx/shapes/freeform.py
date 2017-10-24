@@ -101,6 +101,16 @@ class FreeformBuilder(Sequence):
                 min_x = min(min_x, drawing_operation.x)
         return min_x
 
+    @property
+    def shape_offset_y(self):
+        """Return y distance of shape origin from local coordinate origin.
+
+        The returned integer represents the topmost extent of the freeform
+        shape, in local coordinates. Note that the bounding box of the shape
+        need not start at the local origin.
+        """
+        raise NotImplementedError
+
     def _add_close(self):
         """Add a close |_Close| operation to the drawing sequence."""
         self._drawing_operations.append(_Close.new())
@@ -163,7 +173,7 @@ class FreeformBuilder(Sequence):
         assumes the drawing (local) coordinate origin is located at slide
         coordinates (0, 0) (top-left corner of slide).
         """
-        raise NotImplementedError
+        return int(round(self.shape_offset_y * self._y_scale))
 
     @property
     def _width(self):
