@@ -145,7 +145,12 @@ class FreeformBuilder(Sequence):
     @property
     def _dx(self):
         """Return integer width of this shape's path in local units."""
-        raise NotImplementedError
+        min_x = max_x = self._start_x
+        for drawing_operation in self:
+            if hasattr(drawing_operation, 'x'):
+                min_x = min(min_x, drawing_operation.x)
+                max_x = max(max_x, drawing_operation.x)
+        return max_x - min_x
 
     @property
     def _height(self):

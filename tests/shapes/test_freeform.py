@@ -108,6 +108,11 @@ class DescribeFreeformBuilder(object):
         width = builder._width
         assert width == expected_value
 
+    def it_knows_the_local_coordinate_width_to_help(self, dx_fixture):
+        builder, expected_value = dx_fixture
+        dx = builder._dx
+        assert dx == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -155,6 +160,24 @@ class DescribeFreeformBuilder(object):
             builder, origin_x, origin_y, sp, apply_operation_to_, calls,
             shape_
         )
+
+    @pytest.fixture(params=[
+        (0,  (1, None, 2, 3),      3),
+        (6,  (1, None, 2, 3),      5),
+        (50, (150, -5, None, 100), 155),
+    ])
+    def dx_fixture(self, request):
+        start_x, xs, expected_value = request.param
+        drawing_ops = []
+        for x in xs:
+            if x is None:
+                drawing_ops.append(_Close())
+            else:
+                drawing_ops.append(_BaseDrawingOperation(None, x, None))
+
+        builder = FreeformBuilder(None, start_x, None, None, None)
+        builder._drawing_operations.extend(drawing_ops)
+        return builder, expected_value
 
     @pytest.fixture(params=[
         (0,      1.0,   0),
