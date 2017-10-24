@@ -508,7 +508,25 @@ class Describe_LineSegment(object):
         _init_.assert_called_once_with(line_segment, builder_, x_int, y_int)
         assert isinstance(line_segment, _LineSegment)
 
+    def it_can_add_its_line_segment_to_a_path(self, apply_fixture):
+        line_segment, path, expected_xml = apply_fixture
+
+        lnTo = line_segment.apply_operation_to(path)
+
+        assert path.xml == expected_xml
+        assert lnTo is path.xpath('a:lnTo')[-1]
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def apply_fixture(self, builder_):
+        x, y = 420, 240
+        path = element('a:path')
+        builder_.shape_offset_x, builder_.shape_offset_y = 100, 200
+
+        line_segment = _LineSegment(builder_, x, y)
+        expected_xml = xml('a:path/a:lnTo/a:pt{x=320,y=40}')
+        return line_segment, path, expected_xml
 
     @pytest.fixture
     def new_fixture(self, builder_, _init_):

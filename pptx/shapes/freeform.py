@@ -283,3 +283,13 @@ class _LineSegment(_BaseDrawingOperation):
         Both *x* and *y* are rounded to the nearest integer before use.
         """
         return cls(freeform_builder, int(round(x)), int(round(y)))
+
+    def apply_operation_to(self, path):
+        """Add `a:lnTo` element to *path* for this line segment.
+
+        Returns the `a:lnTo` element newly added to the path.
+        """
+        return path.add_lnTo(
+            self._x - self._freeform_builder.shape_offset_x,
+            self._y - self._freeform_builder.shape_offset_y
+        )
