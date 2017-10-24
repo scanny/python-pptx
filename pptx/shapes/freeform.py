@@ -105,7 +105,7 @@ class _Close(object):
     @classmethod
     def new(cls):
         """Return a new _Close object."""
-        raise NotImplementedError
+        return cls()
 
 
 class _LineSegment(_BaseDrawingOperation):
