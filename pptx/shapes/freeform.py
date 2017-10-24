@@ -71,9 +71,33 @@ class FreeformBuilder(Sequence):
             self._add_close()
         return self
 
+    def convert_to_shape(self, origin_x=0, origin_y=0):
+        """Return new freeform shape positioned relative to specified offset.
+
+        *origin_x* and *origin_y* locate the origin of the local coordinate
+        system in slide coordinates (EMU), perhaps most conveniently by use
+        of a |Length| object.
+
+        Note that this method may be called more than once to add multiple
+        shapes of the same geometry in different locations on the slide.
+        """
+        sp = self._add_freeform_sp(origin_x, origin_y)
+        path = self._start_path(sp)
+        for drawing_operation in self:
+            drawing_operation.apply_operation_to(path)
+        return self._shapes._shape_factory(sp)
+
     def _add_close(self):
         """Add a close |_Close| operation to the drawing sequence."""
         self._drawing_operations.append(_Close.new())
+
+    def _add_freeform_sp(self, origin_x, origin_y):
+        """Add a freeform `p:sp` element having no drawing elements.
+
+        *origin_x* and *origin_y* are specified in slide coordinates, and
+        represent the location of the local coordinates origin on the slide.
+        """
+        raise NotImplementedError
 
     def _add_line_segment(self, x, y):
         """Add a |_LineSegment| operation to the drawing sequence."""
@@ -83,6 +107,14 @@ class FreeformBuilder(Sequence):
     def _drawing_operations(self):
         """Return the sequence of drawing operation objects for freeform."""
         return []
+
+    def _start_path(self, sp):
+        """Return a newly created `a:path` element added to *sp*.
+
+        The returned `a:path` element has an `a:moveTo` element representing
+        the shape starting point as its only child.
+        """
+        raise NotImplementedError
 
 
 class _BaseDrawingOperation(object):
@@ -97,6 +129,13 @@ class _BaseDrawingOperation(object):
         self._freeform_builder = freeform_builder
         self._x = x
         self._y = y
+
+    def apply_operation_to(self, path):
+        """Add the XML element(s) implementing this operation to *path*.
+
+        Must be implemented by each subclass.
+        """
+        raise NotImplementedError('must be implemented by each subclass')
 
 
 class _Close(object):

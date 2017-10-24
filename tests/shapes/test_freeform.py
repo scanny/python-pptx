@@ -8,9 +8,13 @@ from __future__ import (
 
 import pytest
 
-from pptx.shapes.freeform import _Close, FreeformBuilder, _LineSegment
+from pptx.shapes.autoshape import Shape
+from pptx.shapes.freeform import (
+    _BaseDrawingOperation, _Close, FreeformBuilder, _LineSegment
+)
 from pptx.shapes.shapetree import SlideShapes
 
+from ..unitutil.cxml import element
 from ..unitutil.mock import (
     call, initializer_mock, instance_mock, method_mock
 )
@@ -39,6 +43,20 @@ class DescribeFreeformBuilder(object):
         assert builder._add_line_segment.call_args_list == add_calls
         assert builder._add_close.call_args_list == close_calls
         assert return_value is builder
+
+    def it_can_build_the_specified_freeform_shape(self, convert_fixture):
+        builder, origin_x, origin_y, sp = convert_fixture[:4]
+        apply_operation_to_, calls, shape_ = convert_fixture[4:]
+
+        shape = builder.convert_to_shape(origin_x, origin_y)
+
+        builder._add_freeform_sp.assert_called_once_with(
+            builder, origin_x, origin_y
+        )
+        builder._start_path.assert_called_once_with(builder, sp)
+        assert apply_operation_to_.call_args_list == calls
+        builder._shapes._shape_factory.assert_called_once_with(sp)
+        assert shape is shape_
 
     def it_adds_a_line_segment_to_help(self, add_seg_fixture):
         builder, x, y, _LineSegment_new_, line_segment_ = add_seg_fixture
@@ -84,6 +102,27 @@ class DescribeFreeformBuilder(object):
         return builder, vertices, close, add_calls, close_calls
 
     @pytest.fixture
+    def convert_fixture(self, shapes_, apply_operation_to_,
+                        _add_freeform_sp_, _start_path_, shape_):
+        origin_x, origin_y = 42, 24
+        sp, path = element('p:sp'), element('a:path')
+        drawing_ops = (
+            _BaseDrawingOperation(None, None, None),
+            _BaseDrawingOperation(None, None, None),
+        )
+        shapes_._shape_factory.return_value = shape_
+        _add_freeform_sp_.return_value = sp
+        _start_path_.return_value = path
+
+        builder = FreeformBuilder(shapes_, None, None, None, None)
+        builder._drawing_operations.extend(drawing_ops)
+        calls = [call(drawing_ops[0], path), call(drawing_ops[1], path)]
+        return (
+            builder, origin_x, origin_y, sp, apply_operation_to_, calls,
+            shape_
+        )
+
+    @pytest.fixture
     def new_fixture(self, shapes_, _init_):
         start_x, start_y, x_scale, y_scale = 99.56, 200.49, 4.2, 2.4
         start_x_int, start_y_int = 100, 200
@@ -99,8 +138,21 @@ class DescribeFreeformBuilder(object):
         return method_mock(request, FreeformBuilder, '_add_close')
 
     @pytest.fixture
+    def _add_freeform_sp_(self, request):
+        return method_mock(
+            request, FreeformBuilder, '_add_freeform_sp', autospec=True
+        )
+
+    @pytest.fixture
     def _add_line_segment_(self, request):
         return method_mock(request, FreeformBuilder, '_add_line_segment')
+
+    @pytest.fixture
+    def apply_operation_to_(self, request):
+        return method_mock(
+            request, _BaseDrawingOperation, 'apply_operation_to',
+            autospec=True
+        )
 
     @pytest.fixture
     def close_(self, request):
@@ -123,8 +175,18 @@ class DescribeFreeformBuilder(object):
         return method_mock(request, _LineSegment, 'new')
 
     @pytest.fixture
+    def shape_(self, request):
+        return instance_mock(request, Shape)
+
+    @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, SlideShapes)
+
+    @pytest.fixture
+    def _start_path_(self, request):
+        return method_mock(
+            request, FreeformBuilder, '_start_path', autospec=True
+        )
 
 
 class Describe_Close(object):
