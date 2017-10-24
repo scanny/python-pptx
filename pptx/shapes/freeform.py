@@ -153,13 +153,18 @@ class FreeformBuilder(Sequence):
         return max_x - min_x
 
     @property
+    def _dy(self):
+        """Return integer height of this shape's path in local units."""
+        raise NotImplementedError
+
+    @property
     def _height(self):
         """Return vertical size of this shape's path in slide coordinates.
 
         This value is based on the actual extents of the shape and does not
         include any positioning offset.
         """
-        raise NotImplementedError
+        return int(round(self._dy * self._y_scale))
 
     @property
     def _left(self):
