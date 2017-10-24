@@ -270,6 +270,23 @@ class DescribeFreeformBuilder(object):
         return property_mock(request, FreeformBuilder, '_width')
 
 
+class Describe_BaseDrawingOperation(object):
+
+    def it_knows_its_x_coordinate(self, x_fixture):
+        drawing_operation, expected_value = x_fixture
+        x = drawing_operation.x
+        assert x == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def x_fixture(self):
+        x = 42
+        drawing_operation = _BaseDrawingOperation(None, x, None)
+        expected_value = x
+        return drawing_operation, expected_value
+
+
 class Describe_Close(object):
 
     def it_provides_a_constructor(self, new_fixture):
