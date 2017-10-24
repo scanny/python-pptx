@@ -133,6 +133,11 @@ class DescribeFreeformBuilder(object):
         assert sp.xml == expected_xml
         assert path is sp.xpath('.//a:path')[-1]
 
+    def it_translates_local_to_shape_coordinates_to_help(self, local_fixture):
+        builder, local_x, local_y, expected_value = local_fixture
+        shape_x_y = builder._local_to_shape(local_x, local_y)
+        assert shape_x_y == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -240,6 +245,16 @@ class DescribeFreeformBuilder(object):
 
         builder = FreeformBuilder(None, None, None, x_scale, None)
         return builder, expected_value
+
+    @pytest.fixture
+    def local_fixture(self, shape_offset_x_prop_, shape_offset_y_prop_):
+        local_x, local_y = 123, 456
+        shape_offset_x_prop_.return_value = 23
+        shape_offset_y_prop_.return_value = 156
+
+        builder = FreeformBuilder(None, None, None, None, None)
+        expected_value = (100, 300)
+        return builder, local_x, local_y, expected_value
 
     @pytest.fixture
     def new_fixture(self, shapes_, _init_):

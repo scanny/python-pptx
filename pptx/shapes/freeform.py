@@ -188,7 +188,10 @@ class FreeformBuilder(Sequence):
         offset such that the origin of the shape coordinate system (0, 0) is
         located at the top-left corner of the shape bounding box.
         """
-        raise NotImplementedError
+        return (
+            local_x - self.shape_offset_x,
+            local_y - self.shape_offset_y
+        )
 
     def _start_path(self, sp):
         """Return a newly created `a:path` element added to *sp*.
