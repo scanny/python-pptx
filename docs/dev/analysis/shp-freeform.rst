@@ -19,9 +19,18 @@ lineTo, and other drawing commands.
 Vocabulary
 ----------
 
-* A freeform shape is composed of one or more *paths*. The purpose of
-  multiple paths in a single shape is obscure and only a single path will be
-  supported in the initial implementation.
+* A freeform shape is composed of one or more *paths*. Each path may be
+  configured to get a stroke, a fill, both, or neither. This allows drawing
+  some shapes such as call-outs where, say, a reference line should be
+  stroked but not filled, and the callout balloon contour should be filled
+  but not stroked.
+
+  Each path also has its own local coordinate system, which may come in handy
+  when using guides. I haven't seen any clear examples of this yet but
+  I haven't gone looking either.
+
+  In any case, only a single path will be supported in the initial
+  implementation.
 
 * A path is composed of one or more *contours*. A contour can be a *closed
   contour* or and *open contour*. The closure state only affects the
@@ -31,6 +40,10 @@ Vocabulary
 * A contour is specified by a starting point (`<a:moveTo>`) followed by
   a sequence of line segments, each of which can be a straight or curved.
   Curve segments will not be supported in the initial implementation.
+
+  The term *contour* is not "official", but there are behaviors that depend
+  on "continuous pen-down strokes", such as "cut-out" behavior. Consequently,
+  a term is needed.
 
 
 Scope

@@ -172,6 +172,8 @@ rst_epilog = """
 
 .. |DirectoryFileSystem| replace:: :class:`DirectoryFileSystem`
 
+.. |DrawingOperations| replace:: :class:`.DrawingOperations`
+
 .. |Emu| replace:: :class:`.Emu`
 
 .. |False| replace:: :class:`False`
@@ -183,6 +185,8 @@ rst_epilog = """
 .. |float| replace:: :class:`float`
 
 .. |Font| replace:: :class:`.Font`
+
+.. |FreeformBuilder| replace:: :class:`.FreeformBuilder`
 
 .. |GraphicFrame| replace:: :class:`.GraphicFrame`
 
