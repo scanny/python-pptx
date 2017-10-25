@@ -317,4 +317,11 @@ class _MoveTo(_BaseDrawingOperation):
 
         Both *x* and *y* are rounded to the nearest integer before use.
         """
-        raise NotImplementedError
+        return cls(freeform_builder, int(round(x)), int(round(y)))
+
+    def apply_operation_to(self, path):
+        """Add `a:moveTo` element to *path* for this line segment."""
+        return path.add_moveTo(
+            self._x - self._freeform_builder.shape_offset_x,
+            self._y - self._freeform_builder.shape_offset_y
+        )

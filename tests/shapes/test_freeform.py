@@ -582,3 +582,49 @@ class Describe_LineSegment(object):
     @pytest.fixture
     def _init_(self, request):
         return initializer_mock(request, _LineSegment, autospec=True)
+
+
+class Describe_MoveTo(object):
+
+    def it_provides_a_constructor(self, new_fixture):
+        builder_, x, y, _init_, x_int, y_int = new_fixture
+
+        move_to = _MoveTo.new(builder_, x, y)
+
+        _init_.assert_called_once_with(move_to, builder_, x_int, y_int)
+        assert isinstance(move_to, _MoveTo)
+
+    def it_can_add_its_move_to_a_path(self, apply_fixture):
+        move_to, path, expected_xml = apply_fixture
+
+        moveTo = move_to.apply_operation_to(path)
+
+        assert path.xml == expected_xml
+        assert moveTo is path.xpath('a:moveTo')[-1]
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def apply_fixture(self, builder_):
+        x, y = 120, 340
+        path = element('a:path')
+        builder_.shape_offset_x, builder_.shape_offset_y = 100, 200
+
+        move_to = _MoveTo(builder_, x, y)
+        expected_xml = xml('a:path/a:moveTo/a:pt{x=20,y=140}')
+        return move_to, path, expected_xml
+
+    @pytest.fixture
+    def new_fixture(self, builder_, _init_):
+        x, y, x_int, y_int = 99.51, 200.49, 100, 200
+        return builder_, x, y, _init_, x_int, y_int
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def builder_(self, request):
+        return instance_mock(request, FreeformBuilder)
+
+    @pytest.fixture
+    def _init_(self, request):
+        return initializer_mock(request, _MoveTo, autospec=True)
