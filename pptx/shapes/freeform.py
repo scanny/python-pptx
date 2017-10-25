@@ -87,6 +87,15 @@ class FreeformBuilder(Sequence):
             drawing_operation.apply_operation_to(path)
         return self._shapes._shape_factory(sp)
 
+    def move_to(self, x, y):
+        """Move pen to (x, y) (local coordinates) without drawing line.
+
+        Returns this |FreeformBuilder| object so it can be used in chained
+        calls.
+        """
+        self._drawing_operations.append(_MoveTo.new(self, x, y))
+        return self
+
     @property
     def shape_offset_x(self):
         """Return x distance of shape origin from local coordinate origin.
@@ -297,3 +306,15 @@ class _LineSegment(_BaseDrawingOperation):
             self._x - self._freeform_builder.shape_offset_x,
             self._y - self._freeform_builder.shape_offset_y
         )
+
+
+class _MoveTo(_BaseDrawingOperation):
+    """Specifies a new pen position."""
+
+    @classmethod
+    def new(cls, freeform_builder, x, y):
+        """Return a new _MoveTo object for move to point *(x, y)*.
+
+        Both *x* and *y* are rounded to the nearest integer before use.
+        """
+        raise NotImplementedError

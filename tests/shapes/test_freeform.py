@@ -10,7 +10,7 @@ import pytest
 
 from pptx.shapes.autoshape import Shape
 from pptx.shapes.freeform import (
-    _BaseDrawingOperation, _Close, FreeformBuilder, _LineSegment
+    _BaseDrawingOperation, _Close, FreeformBuilder, _LineSegment, _MoveTo
 )
 from pptx.shapes.shapetree import SlideShapes
 
@@ -43,6 +43,15 @@ class DescribeFreeformBuilder(object):
 
         assert builder._add_line_segment.call_args_list == add_calls
         assert builder._add_close.call_args_list == close_calls
+        assert return_value is builder
+
+    def it_can_move_the_pen_location(self, move_to_fixture):
+        builder, x, y, _MoveTo_new_, move_to_ = move_to_fixture
+
+        return_value = builder.move_to(x, y)
+
+        _MoveTo_new_.assert_called_once_with(builder, x, y)
+        assert builder._drawing_operations[-1] is move_to_
         assert return_value is builder
 
     def it_can_build_the_specified_freeform_shape(self, convert_fixture):
@@ -257,6 +266,14 @@ class DescribeFreeformBuilder(object):
         return builder, local_x, local_y, expected_value
 
     @pytest.fixture
+    def move_to_fixture(self, _MoveTo_new_, move_to_):
+        x, y = 42, 24
+        _MoveTo_new_.return_value = move_to_
+
+        builder = FreeformBuilder(None, None, None, None, None)
+        return builder, x, y, _MoveTo_new_, move_to_
+
+    @pytest.fixture
     def new_fixture(self, shapes_, _init_):
         start_x, start_y, x_scale, y_scale = 99.56, 200.49, 4.2, 2.4
         start_x_int, start_y_int = 100, 200
@@ -414,6 +431,14 @@ class DescribeFreeformBuilder(object):
     @pytest.fixture
     def _local_to_shape_(self, request):
         return method_mock(request, FreeformBuilder, '_local_to_shape')
+
+    @pytest.fixture
+    def move_to_(self, request):
+        return instance_mock(request, _MoveTo)
+
+    @pytest.fixture
+    def _MoveTo_new_(self, request):
+        return method_mock(request, _MoveTo, 'new')
 
     @pytest.fixture
     def shape_(self, request):
