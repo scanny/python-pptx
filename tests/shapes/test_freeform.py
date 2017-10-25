@@ -485,6 +485,14 @@ class Describe_Close(object):
         _init_.assert_called_once_with()
         assert isinstance(close, _Close)
 
+    def it_can_add_close_a_contour(self, apply_fixture):
+        close, path, expected_xml = apply_fixture
+
+        close_elm = close.apply_operation_to(path)
+
+        assert path.xml == expected_xml
+        assert close_elm is path.xpath('a:close')[-1]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -492,6 +500,13 @@ class Describe_Close(object):
         return _init_
 
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def apply_fixture(self):
+        path = element('a:path')
+        close = _Close()
+        expected_xml = xml('a:path/a:close')
+        return close, path, expected_xml
 
     @pytest.fixture
     def _init_(self, request):

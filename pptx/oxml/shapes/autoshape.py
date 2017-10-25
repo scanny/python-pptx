@@ -63,10 +63,18 @@ class CT_NonVisualDrawingShapeProps(BaseShapeElement):
 class CT_Path2D(BaseOxmlElement):
     """`a:path` custom element class."""
 
+    close = ZeroOrMore('a:close', successors=())
     lnTo = ZeroOrMore('a:lnTo', successors=())
     moveTo = ZeroOrMore('a:moveTo', successors=())
     w = OptionalAttribute('w', ST_PositiveCoordinate)
     h = OptionalAttribute('h', ST_PositiveCoordinate)
+
+    def add_close(self):
+        """Return a newly created `a:close` element.
+
+        The new `a:close` element is appended to this `a:path` element.
+        """
+        return self._add_close()
 
     def add_lnTo(self, x, y):
         """Return a newly created `a:lnTo` subtree with end point *(x, y)*.
@@ -87,6 +95,10 @@ class CT_Path2D(BaseOxmlElement):
         pt = moveTo._add_pt()
         pt.x, pt.y = x, y
         return moveTo
+
+
+class CT_Path2DClose(BaseOxmlElement):
+    """`a:close` custom element class."""
 
 
 class CT_Path2DLineTo(BaseOxmlElement):

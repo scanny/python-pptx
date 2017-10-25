@@ -272,6 +272,10 @@ class _Close(object):
         """Return a new _Close object."""
         return cls()
 
+    def apply_operation_to(self, path):
+        """Add `a:close` element to *path*."""
+        return path.add_close()
+
 
 class _LineSegment(_BaseDrawingOperation):
     """Specifies a straight line segment ending at the specified point."""

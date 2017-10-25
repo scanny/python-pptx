@@ -4,7 +4,6 @@ Feature: Build a freeform shape
   I need a set of properties and methods on a FreeformBuilder object
 
 
-  @wip
   Scenario Outline: FreeformBuilder.add_vertices()
     Given a FreeformBuilder object as builder
       And (builder._start_x, builder._start_y) is (<start_x>, <start_y>)
@@ -23,7 +22,6 @@ Feature: Build a freeform shape
       | 25      | 10      | 2.0     | 3.0     | 50   | 30  | 150   | 270    |
 
 
-  @wip
   Scenario Outline: FreeformBuilder.convert_to_shape()
     Given a FreeformBuilder object as builder
       And (builder._start_x, builder._start_y) is (<start_x>, <start_y>)

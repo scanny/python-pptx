@@ -799,6 +799,14 @@ XML Schema excerpt
     <xsd:attribute name="extrusionOk" type="xsd:boolean"           default="true"/>
   </xsd:complexType>
 
+  <xsd:complexType name="CT_Path2DClose"/>
+
+  <xsd:complexType name="CT_Path2DLineTo">
+    <xsd:sequence>
+      <xsd:element name="pt" type="CT_AdjPoint2D"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_Path2DMoveTo">
     <xsd:sequence>
       <xsd:element name="pt" type="CT_AdjPoint2D"/>
