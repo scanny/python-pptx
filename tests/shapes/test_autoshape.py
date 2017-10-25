@@ -351,9 +351,10 @@ class DescribeShape(object):
 
     def it_knows_its_shape_type_when_its_not_a_placeholder(
             self, non_placeholder_shapes_):
-        autoshape_shape_, textbox_shape_ = non_placeholder_shapes_
+        autoshape_shape_, textbox_shape_, freeform_ = non_placeholder_shapes_
         assert autoshape_shape_.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
         assert textbox_shape_.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
+        assert freeform_.shape_type == MSO_SHAPE_TYPE.FREEFORM
 
     def it_raises_when_shape_type_called_on_unrecognized_shape(self):
         xml_ = (
@@ -453,16 +454,21 @@ class DescribeShape(object):
     def non_placeholder_shapes_(self, request):
         autoshape_sp_ = instance_mock(
             request, CT_Shape, name='autoshape_sp_', is_autoshape=True,
-            is_textbox=False
+            is_textbox=False, has_custom_geometry=False
         )
         autoshape_shape_ = Shape(autoshape_sp_, None)
         textbox_sp_ = instance_mock(
             request, CT_Shape, name='textbox_sp_', is_autoshape=False,
-            is_textbox=True
+            is_textbox=True, has_custom_geometry=False
         )
         textbox_shape_ = Shape(textbox_sp_, None)
+        freeform_sp_ = instance_mock(
+            request, CT_Shape, name='freeform_sp_', is_autoshape=True,
+            is_textbox=False, has_custom_geometry=True
+        )
+        freeform_ = Shape(freeform_sp_, None)
         property_mock(request, Shape, 'is_placeholder', return_value=False)
-        return autoshape_shape_, textbox_shape_
+        return autoshape_shape_, textbox_shape_, freeform_
 
     @pytest.fixture
     def placeholder_shape_(self, request, sp_):

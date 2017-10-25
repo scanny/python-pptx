@@ -89,7 +89,7 @@ class CT_Path2D(BaseOxmlElement):
     def add_moveTo(self, x, y):
         """Return a newly created `a:moveTo` subtree with point *(x, y)*.
 
-        The new `a:moveTo` element is appended to this `a:pathLst` element.
+        The new `a:moveTo` element is appended to this `a:path` element.
         """
         moveTo = self._add_moveTo()
         pt = moveTo._add_pt()
@@ -177,6 +177,15 @@ class CT_Shape(BaseShapeElement):
         Return the <a:ln> grandchild element, newly added if not present.
         """
         return self.spPr.get_or_add_ln()
+
+    @property
+    def has_custom_geometry(self):
+        """True if this shape has custom geometry, i.e. is a freeform shape.
+
+        A shape has custom geometry if it has a `p:spPr/a:custGeom`
+        descendant (instead of `p:spPr/a:prstGeom`).
+        """
+        return self.spPr.custGeom is not None
 
     @property
     def is_autoshape(self):
