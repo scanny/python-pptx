@@ -127,7 +127,7 @@ Resources
 
 .. _`Python Packaging: Hate, hate, hate everywhere`:
    http://lucumr.pocoo.org/2012/6/22/hate-hate-hate-everywhere/
-   
+
 .. _How To Package Your Python Code:
    http://www.scotttorborg.com/python-packaging/
 

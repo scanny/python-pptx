@@ -1,10 +1,10 @@
 # encoding: utf-8
 
-"""
-DrawingML objects related to line formatting
-"""
+"""DrawingML objects related to line formatting."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from ..enum.dml import MSO_FILL
 from .fill import FillFormat
@@ -12,11 +12,12 @@ from ..util import Emu, lazyproperty
 
 
 class LineFormat(object):
+    """Provides access to line properties such as color, style, and width.
+
+    A LineFormat object is typically accessed via the ``.line`` property of
+    a shape such as |Shape| or |Picture|.
     """
-    Provides access to line properties such as line color, style, and width.
-    Typically accessed via the ``.line`` property of a shape such as |Shape|
-    or |Picture|.
-    """
+
     def __init__(self, parent):
         super(LineFormat, self).__init__()
         self._parent = parent
@@ -34,6 +35,33 @@ class LineFormat(object):
         if self.fill.type != MSO_FILL.SOLID:
             self.fill.solid()
         return self.fill.fore_color
+
+    @property
+    def dash_style(self):
+        """Return value indicating line style.
+
+        Returns a member of :ref:`MsoLineDashStyle` indicating line style, or
+        |None| if no explicit value has been set. When no explicit value has
+        been set, the line dash style is inherited from the style hierarchy.
+
+        Assigning |None| removes any existing explicitly-defined dash style.
+        """
+        ln = self._ln
+        if ln is None:
+            return None
+        return ln.prstDash_val
+
+    @dash_style.setter
+    def dash_style(self, dash_style):
+        if dash_style is None:
+            ln = self._ln
+            if ln is None:
+                return
+            ln._remove_prstDash()
+            ln._remove_custDash()
+            return
+        ln = self._get_or_add_ln()
+        ln.prstDash_val = dash_style
 
     @lazyproperty
     def fill(self):

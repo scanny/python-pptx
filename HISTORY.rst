@@ -3,6 +3,16 @@
 Release History
 ---------------
 
+0.6.7 (2017-10-30)
+++++++++++++++++++
+
+- Add `SlideShapes.build_freeform()`, allowing freeform shapes (such as maps)
+  to be specified and added to a slide.
+- Add support for patterned fills.
+- Add `LineFormat.dash_style` to allow interrogation and setting of dashed
+  line styles.
+
+
 0.6.6 (2017-06-17)
 ++++++++++++++++++
 

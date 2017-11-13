@@ -1,3 +1,4 @@
+
 Font Color
 ==========
 
@@ -488,7 +489,7 @@ Example test criteria::
        <a:srgbClr val="123456"/>
      </a:solidFill>
    </a:ln>
-   
+
    assert font.color.type == MSO_COLOR_TYPE.RGB
    assert font.color.rgb == RGB(0x12, 0x34, 0x56)
    assert font.color.schemeClr == MSO_THEME_COLOR.NONE

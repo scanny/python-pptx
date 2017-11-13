@@ -391,7 +391,7 @@ Schema excerpt
   </xsd:complexType>
 
   <!-- Supporting elements -->
-  
+
   <xsd:complexType name="CT_NonVisualDrawingProps">
     <xsd:sequence>
       <xsd:element name="hlinkClick" type="CT_Hyperlink"              minOccurs="0"/>

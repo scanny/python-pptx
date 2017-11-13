@@ -44,7 +44,7 @@ PowerPoint behaviors
   amount, however, the relative position of the connector end-point is not
   adjusted to align to the connection point; rather, the relative offset is
   maintained.
-  
+
   Also, when the connector is selected, the connected point is highlighted in
   red, even though it is not coincident with the connection point.
 
@@ -486,9 +486,9 @@ Analysis
 * Connectors are a distinct shape type. They are very similar to
   regular ``<p:sp>``-based auto shapes, but lack a text frame.
 * Hypothesis: There are really two types, connectors and free-form.
-  
+
   + Connectors are based on the ``<p:cxnSp>`` element and have a preset
-    geometry (``<a:prstGeom>`` child of ``<p:spPr>``). 
+    geometry (``<a:prstGeom>`` child of ``<p:spPr>``).
   + Free-form lines are based on the ``<p:sp>`` element and have a custom
     geometry (``<a:custGeom>`` child of ``<p:spPr>``).
 

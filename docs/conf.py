@@ -20,18 +20,19 @@ import sys
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
 
-from pptx import __version__
+from pptx import __version__  # noqa: E402
 
 
 # -- Allow nonlocal image URI's to accommodate travis-ci status image -------
 
-import sphinx.environment
-from docutils.utils import get_source_line
+import sphinx.environment  # noqa: E402
+from docutils.utils import get_source_line  # noqa: E402
 
 
 def _warn_node(self, msg, node, **kwargs):
     if not msg.startswith('nonlocal image URI found:'):
         self._warnfunc(msg, '%s:%s' % get_source_line(node), **kwargs)
+
 
 sphinx.environment.BuildEnvironment.warn_node = _warn_node
 
@@ -147,6 +148,8 @@ rst_epilog = """
 
 .. |ChartXmlWriter| replace:: :class:`.ChartXmlWriter`
 
+.. |_Close| replace:: :class:`_Close`
+
 .. |Collection| replace:: :class:`Collection`
 
 .. |ColorFormat| replace:: :class:`.ColorFormat`
@@ -169,6 +172,8 @@ rst_epilog = """
 
 .. |DirectoryFileSystem| replace:: :class:`DirectoryFileSystem`
 
+.. |DrawingOperations| replace:: :class:`.DrawingOperations`
+
 .. |Emu| replace:: :class:`.Emu`
 
 .. |False| replace:: :class:`False`
@@ -180,6 +185,8 @@ rst_epilog = """
 .. |float| replace:: :class:`float`
 
 .. |Font| replace:: :class:`.Font`
+
+.. |FreeformBuilder| replace:: :class:`.FreeformBuilder`
 
 .. |GraphicFrame| replace:: :class:`.GraphicFrame`
 
@@ -210,6 +217,8 @@ rst_epilog = """
 .. |Length| replace:: :class:`.Length`
 
 .. |LineFormat| replace:: :class:`.LineFormat`
+
+.. |_LineSegment| replace:: :class:`._LineSegment`
 
 .. |LineSeries| replace:: :class:`.LineSeries`
 
@@ -316,6 +325,8 @@ rst_epilog = """
 .. |TickLabels| replace:: :class:`.TickLabels`
 
 .. |True| replace:: :class:`True`
+
+.. |TypeError| replace:: :exc:`TypeError`
 
 .. |ValueAxis| replace:: :class:`.ValueAxis`
 

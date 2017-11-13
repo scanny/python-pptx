@@ -81,6 +81,19 @@ The following properties and methods are defined for Connector shapes:
    :undoc-members:
 
 
+|FreeformBuilder| objects
+-------------------------
+
+The following properties and methods are defined for FreeformBuilder objects.
+A freeform builder is used to create a shape with custom geometry:
+
+.. autoclass:: pptx.shapes.freeform.FreeformBuilder()
+   :exclude-members: new, shape_offset_x, shape_offset_y
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 ``Picture`` objects
 -------------------
 

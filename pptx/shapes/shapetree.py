@@ -1,33 +1,32 @@
 # encoding: utf-8
 
-"""
-The shape tree, the structure that holds a slide's shapes.
-"""
+"""The shape tree, the structure that holds a slide's shapes."""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from .autoshape import AutoShapeType, Shape
-from .base import BaseShape
-from ..compat import BytesIO
-from .connector import Connector
-from ..enum.shapes import PP_PLACEHOLDER
-from .graphfrm import GraphicFrame
-from ..media import SPEAKER_IMAGE_BYTES, Video
-from ..opc.constants import CONTENT_TYPE as CT
-from ..oxml.ns import qn
-from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
-from ..oxml.shapes.picture import CT_Picture
-from ..oxml.simpletypes import ST_Direction
-from .picture import Movie, Picture
-from .placeholder import (
+from pptx.compat import BytesIO
+from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.media import SPEAKER_IMAGE_BYTES, Video
+from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.oxml.ns import qn
+from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
+from pptx.oxml.shapes.picture import CT_Picture
+from pptx.oxml.simpletypes import ST_Direction
+from pptx.shapes.autoshape import AutoShapeType, Shape
+from pptx.shapes.base import BaseShape
+from pptx.shapes.connector import Connector
+from pptx.shapes.freeform import FreeformBuilder
+from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.picture import Movie, Picture
+from pptx.shapes.placeholder import (
     ChartPlaceholder, LayoutPlaceholder, MasterPlaceholder,
     NotesSlidePlaceholder, PicturePlaceholder, PlaceholderGraphicFrame,
     PlaceholderPicture, SlidePlaceholder, TablePlaceholder
 )
-from ..shared import ParentedElementProxy
-from ..util import lazyproperty
+from pptx.shared import ParentedElementProxy
+from pptx.util import lazyproperty
 
 
 def BaseShapeFactory(shape_elm, parent):
@@ -533,6 +532,32 @@ class SlideShapes(_BaseShapes):
         sp = self._add_textbox_sp(left, top, width, height)
         textbox = self._shape_factory(sp)
         return textbox
+
+    def build_freeform(self, start_x=0, start_y=0, scale=1.0):
+        """Return |FreeformBuilder| object to specify a freeform shape.
+
+        The optional *start_x* and *start_y* arguments specify the starting
+        pen position in local coordinates. They will be rounded to the
+        nearest integer before use and each default to zero.
+
+        The optional *scale* argument specifies the size of local coordinates
+        proportional to slide coordinates (EMU). If the vertical scale is
+        different than the horizontal scale (local coordinate units are
+        "rectangular"), a pair of numeric values can be provided as the
+        *scale* argument, e.g. `scale=(1.0, 2.0)`. In this case the first
+        number is interpreted as the horizontal (X) scale and the second as
+        the vertical (Y) scale.
+
+        A convenient method for calculating scale is to divide a |Length|
+        object by an equivalent count of local coordinate units, e.g. `scale
+        = Inches(1)/1000` for 1000 local units per inch.
+        """
+        try:
+            x_scale, y_scale = scale
+        except TypeError:
+            x_scale = y_scale = scale
+
+        return FreeformBuilder.new(self, start_x, start_y, x_scale, y_scale)
 
     def clone_layout_placeholders(self, slide_layout):
         """

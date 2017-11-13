@@ -15,7 +15,7 @@ Candidate protocol
 ------------------
 
 The properties ``ValueAxis.major_unit`` and ``ValueAxis.minor_unit`` are used
-to access and change this setting. 
+to access and change this setting.
 
 |None| is used as an out-of-band value to signify `Auto` behavior. No
 separate boolean properties are required.

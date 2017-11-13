@@ -1,0 +1,44 @@
+<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:sp xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:nvSpPr>
+      <p:cNvPr id="1" name="Freeform 0"/>
+      <p:cNvSpPr/>
+      <p:nvPr/>
+    </p:nvSpPr>
+    <p:spPr>
+      <a:xfrm>
+        <a:off x="54" y="58"/>
+        <a:ext cx="56" cy="78"/>
+      </a:xfrm>
+      <a:custGeom>
+        <a:avLst/>
+        <a:gdLst/>
+        <a:ahLst/>
+        <a:cxnLst/>
+        <a:rect l="l" t="t" r="r" b="b"/>
+        <a:pathLst/>
+      </a:custGeom>
+    </p:spPr>
+    <p:style>
+      <a:lnRef idx="1">
+        <a:schemeClr val="accent1"/>
+      </a:lnRef>
+      <a:fillRef idx="3">
+        <a:schemeClr val="accent1"/>
+      </a:fillRef>
+      <a:effectRef idx="2">
+        <a:schemeClr val="accent1"/>
+      </a:effectRef>
+      <a:fontRef idx="minor">
+        <a:schemeClr val="lt1"/>
+      </a:fontRef>
+    </p:style>
+    <p:txBody>
+      <a:bodyPr rtlCol="0" anchor="ctr"/>
+      <a:lstStyle/>
+      <a:p>
+        <a:pPr algn="ctr"/>
+      </a:p>
+    </p:txBody>
+  </p:sp>
+</p:spTree>

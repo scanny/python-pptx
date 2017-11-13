@@ -99,7 +99,7 @@ Behaviors
       inherits position.
     - result: slide layout still appears with the proper position and size,
       however the slide placeholder appears at (0, 0) and apparently with
-      size of (0, 0). 
+      size of (0, 0).
 
   + What behavior is exhibited when a slide layout contains two body
     placeholders, neither of which has a matching idx value and neither of

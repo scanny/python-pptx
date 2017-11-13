@@ -54,13 +54,13 @@ the main parts of the package. So one approach might be:
    know how to load themselves from the xml and a list of relationships.
    These classes are what OpenXML4J calls an *unmarshaller*. These would
    each look something like::
-   
+
       { 'application/vnd...slide+xml'       : Slide
       , 'application/vnd...slideLayout+xml' : SlideLayout
       , ...
       }
 
-2. Have a ContentType class that can load from a content type item and allow 
+2. Have a ContentType class that can load from a content type item and allow
    lookups by partname. Have it load the content type item from the package.
    Lookups on it first look for an explicit override, but then fall back to
    defaults. Not sure yet whether it should try to be smart about whether a

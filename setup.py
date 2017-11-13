@@ -17,6 +17,7 @@ def ascii_bytes_from(path, *paths):
         ascii_bytes = f.read()
     return ascii_bytes
 
+
 # read required text from files
 thisdir = os.path.dirname(__file__)
 init_py = ascii_bytes_from(thisdir, 'pptx', '__init__.py')

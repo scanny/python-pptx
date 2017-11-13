@@ -27,6 +27,14 @@ class FillFormat(object):
         self._xPr = eg_fill_properties_parent
         self._fill = fill_obj
 
+    @property
+    def back_color(self):
+        """Return a |ColorFormat| object representing background color.
+
+        This property is only applicable to pattern fills and lines.
+        """
+        return self._fill.back_color
+
     def background(self):
         """
         Sets the fill type to noFill, i.e. transparent.
@@ -53,6 +61,34 @@ class FillFormat(object):
         fill = _Fill(fill_elm)
         fill_format = cls(eg_fillProperties_parent, fill)
         return fill_format
+
+    @property
+    def pattern(self):
+        """Return member of :ref:`MsoPatternType` indicating fill pattern.
+
+        Raises |TypeError| when fill is not patterned (call
+        `fill.patterned()` first). Returns |None| if no pattern has been set;
+        PowerPoint may display the default `PERCENT_5` pattern in this case.
+        Assigning |None| will remove any explicit pattern setting, although
+        relying on the default behavior is discouraged and may produce
+        rendering differences across client applications.
+        """
+        return self._fill.pattern
+
+    @pattern.setter
+    def pattern(self, pattern_type):
+        self._fill.pattern = pattern_type
+
+    def patterned(self):
+        """Selects the pattern fill type.
+
+        Note that calling this method does not by itself set a foreground or
+        background color of the pattern. Rather it enables subsequent
+        assignments to properties like fore_color to set the pattern and
+        colors.
+        """
+        pattFill = self._xPr.get_or_change_to_pattFill()
+        self._fill = _PattFill(pattFill)
 
     def solid(self):
         """
@@ -99,13 +135,27 @@ class _Fill(object):
         return super(_Fill, cls).__new__(fill_cls)
 
     @property
+    def back_color(self):
+        """Raise TypeError for types that do not override this property."""
+        tmpl = (
+            'fill type %s has no background color, call .patterned() first'
+        )
+        raise TypeError(tmpl % self.__class__.__name__)
+
+    @property
     def fore_color(self):
-        """
-        Raise NotImplementedError for all fill types that are still skeleton
-        subclasses.
-        """
-        tmpl = ".fore_color property not implemented yet for %s"
-        raise NotImplementedError(tmpl % self.__class__.__name__)
+        """Raise TypeError for types that do not override this property."""
+        tmpl = (
+            'fill type %s has no foreground color, call .solid() or .pattern'
+            'ed() first'
+        )
+        raise TypeError(tmpl % self.__class__.__name__)
+
+    @property
+    def pattern(self):
+        """Raise TypeError for fills that do not override this property."""
+        tmpl = 'fill type %s has no pattern, call .patterned() first'
+        raise TypeError(tmpl % self.__class__.__name__)
 
     @property
     def type(self):  # pragma: no cover
@@ -114,14 +164,6 @@ class _Fill(object):
 
 
 class _BlipFill(_Fill):
-
-    @property
-    def fore_color(self):
-        """
-        Raise TypeError with message explaining why this doesn't make sense.
-        """
-        tmpl = "a picture fill has no foreground color"
-        raise TypeError(tmpl)
 
     @property
     def type(self):
@@ -138,27 +180,11 @@ class _GradFill(_Fill):
 class _GrpFill(_Fill):
 
     @property
-    def fore_color(self):
-        """
-        Raise TypeError with message explaining why this doesn't make sense.
-        """
-        tmpl = "a group fill has no foreground color"
-        raise TypeError(tmpl)
-
-    @property
     def type(self):
         return MSO_FILL.GROUP
 
 
 class _NoFill(_Fill):
-
-    @property
-    def fore_color(self):
-        """
-        Raise TypeError with message explaining why this doesn't make sense.
-        """
-        tmpl = "a transparent (background) fill has no foreground color"
-        raise TypeError(tmpl)
 
     @property
     def type(self):
@@ -168,19 +194,42 @@ class _NoFill(_Fill):
 class _NoneFill(_Fill):
 
     @property
-    def fore_color(self):
-        """
-        Raise TypeError with message explaining why this doesn't make sense.
-        """
-        tmpl = "can't set .fore_color on no fill, call .solid() first"
-        raise TypeError(tmpl)
-
-    @property
     def type(self):
         return None
 
 
 class _PattFill(_Fill):
+    """Provides access to patterned fill properties."""
+
+    def __init__(self, pattFill):
+        super(_PattFill, self).__init__()
+        self._element = self._pattFill = pattFill
+
+    @lazyproperty
+    def back_color(self):
+        """Return |ColorFormat| object that controls background color."""
+        bgClr = self._pattFill.get_or_add_bgClr()
+        return ColorFormat.from_colorchoice_parent(bgClr)
+
+    @lazyproperty
+    def fore_color(self):
+        """Return |ColorFormat| object that controls foreground color."""
+        fgClr = self._pattFill.get_or_add_fgClr()
+        return ColorFormat.from_colorchoice_parent(fgClr)
+
+    @property
+    def pattern(self):
+        """Return member of :ref:`MsoPatternType` indicating fill pattern.
+
+        Returns |None| if no pattern has been set; PowerPoint may display the
+        default `PERCENT_5` pattern in this case. Assigning |None| will
+        remove any explicit pattern setting.
+        """
+        return self._pattFill.prst
+
+    @pattern.setter
+    def pattern(self, pattern_type):
+        self._pattFill.prst = pattern_type
 
     @property
     def type(self):
@@ -188,15 +237,15 @@ class _PattFill(_Fill):
 
 
 class _SolidFill(_Fill):
-    """
-    Provides access to fill properties such as color for solid fills.
-    """
+    """Provides access to fill properties such as color for solid fills."""
+
     def __init__(self, solidFill):
         super(_SolidFill, self).__init__()
         self._solidFill = solidFill
 
     @lazyproperty
     def fore_color(self):
+        """Return |ColorFormat| object controlling fill color."""
         return ColorFormat.from_colorchoice_parent(self._solidFill)
 
     @property

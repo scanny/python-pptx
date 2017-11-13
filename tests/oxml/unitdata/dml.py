@@ -9,24 +9,6 @@ from __future__ import absolute_import, print_function
 from ...unitdata import BaseBuilder
 
 
-class CT_BlipFillPropertiesBuilder(BaseBuilder):
-    __tag__ = 'a:blipFill'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('dpi', 'rotWithShape')
-
-
-class CT_GradientFillPropertiesBuilder(BaseBuilder):
-    __tag__ = 'a:gradFill'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('flip', 'rotWithShape')
-
-
-class CT_GroupFillPropertiesBuilder(BaseBuilder):
-    __tag__ = 'a:grpFill'
-    __nspfxs__ = ('a',)
-    __attrs__ = ()
-
-
 class CT_HslColorBuilder(BaseBuilder):
     __tag__ = 'a:hslClr'
     __nspfxs__ = ('a',)
@@ -37,18 +19,6 @@ class CT_LinePropertiesBuilder(BaseBuilder):
     __tag__ = 'a:ln'
     __nspfxs__ = ('a',)
     __attrs__ = ('w', 'cap', 'cmpd', 'algn')
-
-
-class CT_NoFillPropertiesBuilder(BaseBuilder):
-    __tag__ = 'a:noFill'
-    __nspfxs__ = ('a',)
-    __attrs__ = ()
-
-
-class CT_PatternFillPropertiesBuilder(BaseBuilder):
-    __tag__ = 'a:pattFill'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('prst',)
 
 
 class CT_PercentageBuilder(BaseBuilder):
@@ -84,12 +54,6 @@ class CT_ScRgbColorBuilder(BaseBuilder):
     __attrs__ = ('r', 'g', 'b')
 
 
-class CT_ShapePropertiesBuilder(BaseBuilder):
-    __tag__ = 'p:spPr'
-    __nspfxs__ = ('p', 'a')
-    __attrs__ = ('bwMode',)
-
-
 class CT_SRgbColorBuilder(BaseBuilder):
     __tag__ = 'a:srgbClr'
     __nspfxs__ = ('a',)
@@ -102,32 +66,12 @@ class CT_SystemColorBuilder(BaseBuilder):
     __attrs__ = ('val', 'lastClr')
 
 
-def a_blipFill():
-    return CT_BlipFillPropertiesBuilder()
-
-
-def a_gradFill():
-    return CT_GradientFillPropertiesBuilder()
-
-
-def a_grpFill():
-    return CT_GroupFillPropertiesBuilder()
-
-
 def a_lumMod():
     return CT_PercentageBuilder('a:lumMod')
 
 
 def a_lumOff():
     return CT_PercentageBuilder('a:lumOff')
-
-
-def a_noFill():
-    return CT_NoFillPropertiesBuilder()
-
-
-def a_pattFill():
-    return CT_PatternFillPropertiesBuilder()
 
 
 def a_prstClr():
@@ -148,10 +92,6 @@ def an_hslClr():
 
 def an_ln():
     return CT_LinePropertiesBuilder()
-
-
-def an_spPr():
-    return CT_ShapePropertiesBuilder()
 
 
 def an_scrgbClr():

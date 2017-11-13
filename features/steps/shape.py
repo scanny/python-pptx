@@ -12,9 +12,7 @@ from behave import given, when, then
 
 from pptx import Presentation
 from pptx.chart.chart import Chart
-from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
-from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
 from pptx.enum.shapes import (
     MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 )
@@ -27,6 +25,30 @@ from helpers import (
 
 
 # given ===================================================
+
+@given('an autoshape')
+def given_an_autoshape(context):
+    prs = Presentation(test_pptx('shp-autoshape-adjustments'))
+    context.shape = prs.slides[0].shapes[0]
+
+
+@given('an autoshape having text')
+def given_an_autoshape_having_text(context):
+    prs = Presentation(test_pptx('shp-autoshape-props'))
+    context.shape = prs.slides[0].shapes[0]
+
+
+@given("(builder._start_x, builder._start_y) is ({x_str}, {y_str})")
+def given_builder_start_x_builder_start_y_is_x_y(context, x_str, y_str):
+    builder = context.builder
+    builder._start_x, builder._start_y = int(x_str), int(y_str)
+
+
+@given("(builder._x_scale, builder._y_scale) is ({p_str}, {q_str})")
+def given_builder_x_scale_builder_y_scale_is_p_q(context, p_str, q_str):
+    builder = context.builder
+    builder._x_scale, builder._y_scale = float(p_str), float(q_str)
+
 
 @given('a chevron shape')
 def given_a_chevron_shape(context):
@@ -61,6 +83,13 @@ def given_a_connector_having_its_end_point_at_x_y(context, x, y):
     prs = Presentation(test_pptx('shp-connector-props'))
     sld = prs.slides[0]
     context.connector = sld.shapes[0]
+
+
+@given('a FreeformBuilder object as builder')
+def given_a_FreeformBuilder_object_as_builder(context):
+    shapes = Presentation(test_pptx('shp-freeform')).slides[0].shapes
+    builder = shapes.build_freeform()
+    context.builder = builder
 
 
 @given('a graphic frame')  # shouldn't matter, but this one contains a table
@@ -125,8 +154,8 @@ def given_a_shape(context):
     context.shape = sld.shapes[0]
 
 
-@given('a SlideShapes object')
-def given_a_SlideShapes_object(context):
+@given('a SlideShapes object as shapes')
+def given_a_SlideShapes_object_as_shapes(context):
     prs = Presentation(test_pptx('shp-shape-access'))
     context.shapes = prs.slides[0].shapes
 
@@ -182,18 +211,6 @@ def given_a_shape_of_known_position_and_size(context):
     context.shape = prs.slides[0].shapes[0]
 
 
-@given('an autoshape')
-def given_an_autoshape(context):
-    prs = Presentation(test_pptx('shp-autoshape-adjustments'))
-    context.shape = prs.slides[0].shapes[0]
-
-
-@given('an autoshape having text')
-def given_an_autoshape_having_text(context):
-    prs = Presentation(test_pptx('shp-autoshape-props'))
-    context.shape = prs.slides[0].shapes[0]
-
-
 # when ====================================================
 
 @when("I add a text box to the slide's shape collection")
@@ -224,6 +241,47 @@ def when_I_assign_a_string_to_shape_text(context):
     context.shape.text = u'F\xf8o\nBar'
 
 
+@when("I assign builder.convert_to_shape() to shape")
+def when_I_assign_builder_convert_to_shape_to_shape(context):
+    builder = context.builder
+    context.shape = builder.convert_to_shape()
+
+
+@when("I assign builder.convert_to_shape({x_str}, {y_str}) to shape")
+def when_I_assign_builder_convert_to_shape_origin_x_y(context, x_str, y_str):
+    builder = context.builder
+    origin_x, origin_y = int(x_str), int(y_str)
+    context.shape = builder.convert_to_shape(origin_x, origin_y)
+
+
+@when("I assign shapes.build_freeform() to builder")
+def when_I_assign_shapes_build_freeform_to_builder(context):
+    shapes = context.shapes
+    builder = shapes.build_freeform()
+    context.builder = builder
+
+
+@when("I assign shapes.build_freeform(scale=100.0) to builder")
+def when_I_assign_shapes_build_freeform_scale_to_builder(context):
+    shapes = context.shapes
+    builder = shapes.build_freeform(scale=100.0)
+    context.builder = builder
+
+
+@when("I assign shapes.build_freeform(scale=(200.0, 100.0)) to builder")
+def when_I_assign_shapes_build_freeform_scale_rectnglr_to_builder(context):
+    shapes = context.shapes
+    builder = shapes.build_freeform(scale=(200.0, 100.0))
+    context.builder = builder
+
+
+@when("I assign shapes.build_freeform(start_x=25, start_y=125) to builder")
+def when_I_assign_shapes_build_freeform_start_x_start_y_to_builder(context):
+    shapes = context.shapes
+    builder = shapes.build_freeform(25, 125)
+    context.builder = builder
+
+
 @when('I assign {value} to connector.begin_x')
 def when_I_assign_value_to_connector_begin_x(context, value):
     context.connector.begin_x = int(value)
@@ -252,6 +310,12 @@ def when_I_assign_value_to_shape_name(context, value):
 @when("I assign {value} to shape.rotation")
 def when_I_assign_value_to_shape_rotation(context, value):
     context.shape.rotation = float(value)
+
+
+@when('I call builder.add_line_segments([(100, 25), (25, 100)])')
+def when_I_call_builder_add_line_segments_100_25_25_100(context):
+    builder = context.builder
+    builder.add_line_segments([(100, 25), (25, 100)])
 
 
 @when('I call connector.begin_connect(picture, 3)')
@@ -324,32 +388,38 @@ def when_I_get_the_chart_from_its_graphic_frame(context):
     context.chart = context.shape.chart
 
 
-@when("I set the fill type to background")
-def when_set_fill_type_to_background(context):
-    context.shape.fill.background()
-
-
-@when("I set the fill type to solid")
-def when_set_fill_type_to_solid(context):
-    context.shape.fill.solid()
-
-
-@when("I set the foreground color brightness to 0.5")
-def when_set_fore_color_brightness_to_value(context):
-    context.shape.fill.fore_color.brightness = 0.5
-
-
-@when("I set the foreground color to a theme color")
-def when_set_fore_color_to_theme_color(context):
-    context.shape.fill.fore_color.theme_color = MSO_THEME_COLOR.ACCENT_6
-
-
-@when("I set the foreground color to an RGB value")
-def when_set_fore_color_to_RGB_value(context):
-    context.shape.fill.fore_color.rgb = RGBColor(0x12, 0x34, 0x56)
-
-
 # then ====================================================
+
+@then("builder is a FreeformBuilder object")
+def then_builder_is_a_FreeformBuilder_object(context):
+    builder = context.builder
+    class_name = builder.__class__.__name__
+    expected_value = 'FreeformBuilder'
+    assert class_name == expected_value, (
+        'Expected class name \'%s\', got \'%s\'' %
+        (expected_value, class_name)
+    )
+
+
+@then("(builder._start_x, builder._start_y) is ({x_str}, {y_str})")
+def then_builder_start_x_builder_start_y_is_x_y(context, x_str, y_str):
+    builder = context.builder
+    actual_value = builder._start_x, builder._start_y
+    expected_value = int(x_str), int(y_str)
+    assert actual_value == expected_value, (
+        'Expected %s, got %s' % (expected_value, actual_value)
+    )
+
+
+@then("(builder._x_scale, builder._y_scale) is ({p_str}, {q_str})")
+def then_builder_x_scale_builder_y_scale_is_x_y(context, p_str, q_str):
+    builder = context.builder
+    actual_value = builder._x_scale, builder._y_scale
+    expected_value = float(p_str), float(q_str)
+    assert actual_value == expected_value, (
+        'Expected %s, got %s' % (expected_value, actual_value)
+    )
+
 
 @then('connector is a Connector object')
 def then_connector_is_a_Connector_object(context):
@@ -468,6 +538,16 @@ def then_shape_has_text_frame_is(context, value_str):
     assert has_text_frame is expected_value, 'got %s' % has_text_frame
 
 
+@then("(shape.left, shape.top) is ({x_str}, {y_str})")
+def then_shape_left_shape_top_is_x_y(context, x_str, y_str):
+    shape = context.shape
+    actual_value = shape.left, shape.top
+    expected_value = int(x_str), int(y_str)
+    assert actual_value == expected_value, (
+        'Expected %s, got %s' % (expected_value, actual_value)
+    )
+
+
 @then('shape.line is a LineFormat object')
 def then_shape_line_is_a_LineFormat_object(context):
     shape = context.shape
@@ -517,6 +597,16 @@ def then_shape_text_is_the_text_in_the_shape(context):
     assert shape.text == u'Fee Fi\nF\xf8\xf8 Fum\nI am a shape\nwith textium'
 
 
+@then("(shape.width, shape.height) is ({cx_str}, {cy_str})")
+def then_shape_width_shape_height_is_cx_cy(context, cx_str, cy_str):
+    shape = context.shape
+    actual_value = shape.width, shape.height
+    expected_value = int(cx_str), int(cy_str)
+    assert actual_value == expected_value, (
+        'Expected %s, got %s' % (expected_value, actual_value)
+    )
+
+
 @then('the auto shape appears in the slide')
 def then_auto_shape_appears_in_slide(context):
     prs = Presentation(saved_pptx_path)
@@ -525,27 +615,6 @@ def then_auto_shape_appears_in_slide(context):
     assert sp.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
     assert sp.auto_shape_type == MSO_SHAPE.ROUNDED_RECTANGLE
     assert sp_text == test_text
-
-
-@then('the fill type of the shape is background')
-def then_fill_type_is_background(context):
-    assert context.shape.fill.type == MSO_FILL.BACKGROUND
-
-
-@then('the foreground color brightness of the shape is 0.5')
-def then_fore_color_brightness_is_value(context):
-    assert context.shape.fill.fore_color.brightness == 0.5
-
-
-@then('the foreground color of the shape is the RGB value I set')
-def then_fore_color_is_RGB_value_I_set(context):
-    assert context.shape.fill.fore_color.rgb == RGBColor(0x12, 0x34, 0x56)
-
-
-@then('the foreground color of the shape is the theme color I set')
-def then_fore_color_is_theme_color_I_set(context):
-    fore_color = context.shape.fill.fore_color
-    assert fore_color.theme_color == MSO_THEME_COLOR.ACCENT_6
 
 
 @then('the chart is a Chart object')
