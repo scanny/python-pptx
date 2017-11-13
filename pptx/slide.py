@@ -332,16 +332,28 @@ class SlideLayouts(ParentedElementProxy):
     def __init__(self, sldLayoutIdLst, parent):
         super(SlideLayouts, self).__init__(sldLayoutIdLst, parent)
         self._sldLayoutIdLst = sldLayoutIdLst
+        self._init_props()
 
-    def __getitem__(self, idx):
+    def __getitem__(self, item):
         """
-        Provide indexed access, (e.g. ``slide_layouts[2]``).
+        Provide both indexed access, (e.g. ``slide_layouts[2]``)
+        and access via slide layout name (e.g. ``slide_layouts['Blank']``).
         """
         try:
-            sldLayoutId = self._sldLayoutIdLst[idx]
+            sldLayoutId = self._sldLayoutIdLst[item]
+            return self.part.related_slide_layout(sldLayoutId.rId)
         except IndexError:
             raise IndexError('slide layout index out of range')
-        return self.part.related_slide_layout(sldLayoutId.rId)
+        except TypeError:
+            key = str(item).lower()
+            names_lower = [n.lower() for n in self.names]
+            if key in names_lower:
+                idx_lower = names_lower.index(key)
+                name = list(self.names.keys())[idx_lower]
+                idx = self.names[name]
+                sldLayoutId = self._sldLayoutIdLst[idx]
+                return self.part.related_slide_layout(sldLayoutId.rId)
+        raise KeyError("there is no slide layout with name: '%s'" % item)
 
     def __iter__(self):
         """
@@ -356,6 +368,27 @@ class SlideLayouts(ParentedElementProxy):
         Support len() built-in function (e.g. 'len(slides) == 4').
         """
         return len(self._sldLayoutIdLst)
+
+    @property
+    def names(self):
+        names = {}
+        for i, sldLayoutId in enumerate(self._sldLayoutIdLst):
+            if self._parent:
+                layout = self.part.related_slide_layout(sldLayoutId.rId)
+                names[layout.name] = i
+        return names
+
+    def _init_props(self):
+        """
+        Adds available layout names as propeties to `slide_layouts`.
+        Layouts can then be accessed like `slide_layouts.Blank`
+        """
+        from .util import name_to_attr
+        for layout_name in self.names:
+            attr_name = name_to_attr(layout_name, self)
+            if attr_name:
+                setattr(type(self), attr_name,
+                    property(lambda self, name=layout_name: self[name]))
 
 
 class SlideMaster(_BaseMaster):
