@@ -310,7 +310,7 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape that can only accept a picture.
     """
-    def insert_picture(self, image_file):
+    def insert_picture(self, image_file, crop=True):
         """
         Return a |PlaceholderPicture| object depicting the image in
         *image_file*, which may be either a path (string) or a file-like
@@ -320,21 +320,30 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         :attr:`~._BaseSlidePlaceholder.shape_type` property is
         `MSO_SHAPE_TYPE.PLACEHOLDER` instead of `MSO_SHAPE_TYPE.PICTURE`.
         """
-        pic = self._new_placeholder_pic(image_file)
+        pic = self._new_placeholder_pic(image_file, crop=crop)
         self._replace_placeholder_with(pic)
         return PlaceholderPicture(pic, self._parent)
 
-    def _new_placeholder_pic(self, image_file):
+    def _new_placeholder_pic(self, image_file, crop=True):
         """
         Return a new `p:pic` element depicting the image in *image_file*,
         suitable for use as a placeholder. In particular this means not
         having an `a:xfrm` element, allowing its extents to be inherited from
         its layout placeholder.
         """
+
         rId, desc, image_size = self._get_or_add_image(image_file)
         shape_id, name = self.shape_id, self.name
+
         pic = CT_Picture.new_ph_pic(shape_id, name, desc, rId)
-        pic.crop_to_fit(image_size, (self.width, self.height))
+
+        if crop:
+            pic.crop_to_fit(image_size, (self.width, self.height))
+
+        # Adjusting image to placeholder size and replace placeholder.
+        else:
+            pic.fit_no_crop(image_size, (self.width, self.height))
+
         return pic
 
     def _get_or_add_image(self, image_file):
