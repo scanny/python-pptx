@@ -177,6 +177,9 @@ register_element_cls('c:xMode',            CT_LayoutMode)
 from .coreprops import CT_CoreProperties  # noqa: E402
 register_element_cls('cp:coreProperties', CT_CoreProperties)
 
+from .customprops import CT_CustomProperties
+#register_element_cls('Properties', CT_CustomProperties)
+
 
 from .dml.color import (  # noqa: E402
     CT_Color, CT_HslColor, CT_Percentage, CT_PresetColor, CT_SchemeColor,

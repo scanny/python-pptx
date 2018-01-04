@@ -30,6 +30,14 @@ class Presentation(PartElementProxy):
         return self.part.core_properties
 
     @property
+    def custom_properties(self):
+        """
+        A |CustomProperties| object providing read/write access to the custom
+        properties of this document.
+        """
+        return self.part.custom_properties
+
+    @property
     def notes_master(self):
         """
         Instance of |NotesMaster| for this presentation. If the presentation

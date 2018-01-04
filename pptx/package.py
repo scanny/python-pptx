@@ -13,6 +13,7 @@ from .opc.constants import RELATIONSHIP_TYPE as RT
 from .opc.package import OpcPackage
 from .opc.packuri import PackURI
 from .parts.coreprops import CorePropertiesPart
+from .parts.customprops import CustomPropertiesPart
 from .parts.image import Image, ImagePart
 from .parts.media import MediaPart
 from .util import lazyproperty
@@ -40,6 +41,19 @@ class Package(OpcPackage):
             core_props = CorePropertiesPart.default()
             self.relate_to(core_props, RT.CORE_PROPERTIES)
             return core_props
+
+    @property
+    def custom_properties(self):
+        """
+        |CustomPropertiesPart| object related to this package. Creates
+        a default custom properties part if one is not present (not common).
+        """
+        try:
+            return self.part_related_by(RT.CUSTOM_PROPERTIES)
+        except KeyError:
+            custom_properties = CustomPropertiesPart.default(self)
+            self.relate_to(custom_properties, RT.CUSTOM_PROPERTIES)
+            return custom_properties
 
     def get_or_add_image_part(self, image_file):
         """

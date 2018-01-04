@@ -16,6 +16,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT  # noqa: E402
 from pptx.opc.package import PartFactory  # noqa: E402
 from pptx.parts.chart import ChartPart  # noqa: E402
 from pptx.parts.coreprops import CorePropertiesPart  # noqa: E402
+from pptx.parts.customprops import CustomPropertiesPart  # noqa: E402
 from pptx.parts.image import ImagePart  # noqa: E402
 from pptx.parts.media import MediaPart  # noqa: E402
 from pptx.parts.presentation import PresentationPart  # noqa: E402
@@ -30,6 +31,7 @@ content_type_to_part_class_map = {
     CT.PML_TEMPLATE_MAIN:     PresentationPart,
     CT.PML_SLIDESHOW_MAIN:    PresentationPart,
     CT.OPC_CORE_PROPERTIES:   CorePropertiesPart,
+    CT.OPC_CUSTOM_PROPERTIES: CustomPropertiesPart,
     CT.PML_NOTES_MASTER:      NotesMasterPart,
     CT.PML_NOTES_SLIDE:       NotesSlidePart,
     CT.PML_SLIDE:             SlidePart,
@@ -59,6 +61,6 @@ content_type_to_part_class_map = {
 PartFactory.part_type_for.update(content_type_to_part_class_map)
 
 del (
-    ChartPart, CorePropertiesPart, ImagePart, MediaPart, SlidePart,
+    ChartPart, CorePropertiesPart, CustomPropertiesPart, ImagePart, MediaPart, SlidePart,
     SlideLayoutPart, SlideMasterPart, PresentationPart, CT, PartFactory
 )
