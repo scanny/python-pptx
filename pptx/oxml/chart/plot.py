@@ -197,6 +197,7 @@ class CT_DoughnutChart(BaseChartElement):
     varyColors = ZeroOrOne('c:varyColors', successors=_tag_seq[1:])
     ser = ZeroOrMore('c:ser', successors=_tag_seq[2:])
     dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[3:])
+    firstSliceAng = ZeroOrOne('c:firstSliceAng', successors=_tag_seq[4:])
     del _tag_seq
 
 

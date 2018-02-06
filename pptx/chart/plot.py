@@ -112,6 +112,17 @@ class _BasePlot(object):
     def vary_by_categories(self, value):
         self._element.get_or_add_varyColors().val = bool(value)
 
+    @property
+    def first_slice_ang(self):
+        firstSliceAng = self._element.firstSliceAng.val
+        if firstSliceAng is None:
+            return 0
+        return firstSliceAng.val
+
+    @first_slice_ang.setter
+    def first_slice_ang(self, value):
+        self._element.get_or_add_firstSliceAng().val = value
+
 
 class AreaPlot(_BasePlot):
     """

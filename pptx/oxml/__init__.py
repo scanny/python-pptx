@@ -174,6 +174,7 @@ register_element_cls('c:smooth',           CT_Boolean)
 register_element_cls('c:title',            CT_Title)
 register_element_cls('c:tx',               CT_Tx)
 register_element_cls('c:varyColors',       CT_Boolean)
+register_element_cls('c:firstSliceAng',    CT_UnsignedInt)
 register_element_cls('c:x',                CT_Double)
 register_element_cls('c:xMode',            CT_LayoutMode)
 
