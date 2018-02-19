@@ -2,8 +2,41 @@
 Group Shape
 ===========
 
-Group of shapes that appear as a single shape ...
+Group of shapes that appear as a single shape.
 
+Example usecase
+---------------
+
+Support for groups allows to do things like this::
+
+    group = slide.shapes.add_group()
+    shapes = group.shapes
+    left = top = width = height = Inches(1.0)
+
+    rect = shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
+    rect.fill.solid()
+
+    text = shapes.add_textbox(left + width, top, width, height)
+    text.text = "Hello World"
+
+API requirements
+----------------
+
+|SlideShapes| class
+~~~~~~~~~~~~~
+
+Extra properties and methods required:
+
+* ``add_group()`` -- Add a new group to the slide, and returns a new |GroupShape|
+  object
+
+|GroupShape| class
+~~~~~~~~~~~~~
+
+Properties and methods required:
+
+* ``shapes`` -- Instance of |GroupShapes| containing sequence of shapes
+  appearing in this group
 
 Related Schema Definitions
 --------------------------
