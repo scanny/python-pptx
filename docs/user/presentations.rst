@@ -70,6 +70,25 @@ Things to note:
   what you intend.
 
 
+Defining page setup
+~~~~~~~~~~~~~~~~~~~
+
+Here's how to set the size of the presentation canvas.  Example for US letter
+size::
+
+    from pptx.util import Inches
+
+    prs.slide_width = Inches(11)
+    prs.slide_height = Inches(8.5)
+
+European people will rather do::
+
+    from pptx.util import Cm
+
+    prs.slide_width = Cm(29.7)
+    prs.slide_height = Cm(21)
+
+
 Opening a 'file-like' presentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
