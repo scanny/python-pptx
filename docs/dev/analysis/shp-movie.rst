@@ -456,9 +456,9 @@ XML Semantics
 .. _media extension:
    https://msdn.microsoft.com/en-us/library/dd947021(v=office.12).aspx
 
-* This and other extensions are documented in `this PDF <media-pdf>`_.
+* This and other extensions are documented in `this PDF <media_pdf>`_.
 
-.. _media-pdf:
+.. _media_pdf:
    http://interoperability.blob.core.windows.net/files/MS-PPTX/[MS-PPTX].pdf
 
 

@@ -1,8 +1,56 @@
+.. _GroupShape:
 
 Group Shape
 ===========
 
-Group of shapes that appear as a single shape ...
+A *group shape* is a container for other shapes.
+
+In the PowerPoint UI, a group shape may be selected and moved as a unit, such
+that the contained shapes retain their relative position to one another.
+
+Certain operations can also be applied to all the shapes in a group by
+applying that operation to the group shape.
+
+
+Scope
+-----
+
+::
+
+    Given a SlideShapes object as shapes containing a group shape
+     Then shapes[0] is a GroupShape object
+
+    * BaseShapeFactory() update
+    * add tests.shapes.test_group_shape
+
+Group shape inherits `BaseShape` properties and behaviors:
+
+Group shape also inherits from `SlideShapes`
+--------------------------------------------
+
+Or maybe it's better if `GroupShape` has a `.shapes` property.
+
+Maybe separate out `_BaseSingleShape` (i.e. not a group shape) for things
+like `.has_chart`, `.is_placeholder`, etc. But actually most of the
+properties are legitimate, only one or two like click_action aren't, maybe
+better just to override those with a property that raises an exception.
+
+* [ ] A group shape has no click action.
+
+Maybe an iter_all() method on `SlideShapes` that does a depth-first traversal
+of the shape graph.
+
+Possible Scope
+--------------
+
+* `group_shape = shapes.group(shape_lst)` returns a newly-created group shape
+  containing each shape in `shape_lst`.
+
+
+MS API
+------
+
+* `Shape.GroupItems` - corresponds to `GroupShape.shapes`
 
 
 Related Schema Definitions

@@ -10,7 +10,7 @@ A run or shape can actually have two distinct mouse event behaviors, one for
 (left) clicking and another for rolling over with the mouse. These are
 independent; a run or shape can have one, the other, both, or neither. These
 are the two hyperlink types reported by the Hyperlink.type attribute and
-using enumeration values from MsoHyperlinkType.
+using enumeration values from `MsoHyperlinkType`.
 
 A "true" hyperlink in PowerPoint is indicated by having no `action` attribute
 on the `a:hlinkClick` element. The general hyperlink mechanism of storing
@@ -18,7 +18,87 @@ a URL in a mapped relationship is used by other verbs such as `hlinkfile` and
 `program`, but these are considered distinct from hyperlinks for the sake of
 this analysis. That distinction is reflected in the API.
 
-See also: _Run.hyperlink, pptx.text._Hyperlink
+See also: _Run.hyperlink, `pptx.text._Hyperlink`
+
+
+Adding mutability to shape click action
+---------------------------------------
+
+
+Protocol
+--------
+
+::
+
+    # ---maybe---
+
+    click_action = shape.click_action
+    click_action.target_slide = target_slide
+    # ---implies `click_action.action = PP_ACTION.NAMED_SLIDE`---
+    # ---might need to disallow assignment of PP_ACTION.NAMED_SLIDE` with
+    #    exception that says just assign target slide---
+
+    # ---or explicit way---
+
+    click_action = shape.click_action
+    click_action.action = PP_ACTION.NAMED_SLIDE
+    click_action.target_slide = slides[4]
+
+    # OR maybe
+
+    click_action = shape.click_action
+    click_action.jump_to_slide(target_slide)
+    # ---which does the same thing, but harder to screw up---
+
+
+Scope
+-----
+
+::
+
+    # ---Shape.click_action is an ActionSetting object---
+    ActionSetting.action = (
+        PP_ACTION.FIRST_SLIDE or
+        PP_ACTION.LAST_SLIDE or
+        PP_ACTION.NEXT_SLIDE or
+        PP_ACTION.PREVIOUS_SLIDE
+    )
+
+Each of these assignments takes immediate effect and is "self-contained"; no
+further assignments are necessary to produce the specified behavior.
+
+::
+
+    ActionSetting.action = PP_ACTION.NAMED_SLIDE
+
+While this will be a valid assignment, it may cause an repair error if not
+followed by::
+
+    click_action.target_slide = target slide  # e.g. slides[4]
+
+
+* [ ] The `rId` for a target slide will need to be added and perhaps
+      de-duplicated and I believe removed afterward if left unused by
+      deletion or replacement.
+
+* [ ] See what happens if assign `PP_ACTION.NAMED_SLIDE` but don't assign
+      `.target_slide`. Maybe can make that operation safe by using current
+      slide.
+
+      Another option might be to automatically set action to
+      `PP_ACTION.NAMED_SLIDE` when a slide object is assigned to
+      `.target_slide`.
+
+* [ ] See about other actions like `PP_ACTION.END_SHOW` and implement if
+      that's easier that raising a `ValueError` exception.
+
+* [ ] Check whether replacing a hyperlink relationship leaves a "dangling"
+      hyperlink relationship in the `.rels` file. In this case, might need to
+      resolve any re-use of a particular hyperlink or just live with the
+      cruft it may leave behind.
+
+
+Note: add slides.find_by_slide_id(242)
 
 
 Glossary
@@ -154,7 +234,7 @@ hlink entry to be removed if present.
             'nextslide':       PP_ACTION.NEXT_SLIDE,
             'previousslide':   PP_ACTION.PREVIOUS_SLIDE,
             'endshow':         PP_ACTION.END_SHOW,
-        }.relative_target
+        }[relative_target]
 
     return {
         None:           PP_ACTION.HYPERLINK,
@@ -165,7 +245,7 @@ hlink entry to be removed if present.
         'ole':          PP_ACTION.OLE_VERB,
         'macro':        PP_ACTION.RUN_MACRO,
         'program':      PP_ACTION.RUN_PROGRAM,
-    }.action_verb
+    }[action_verb]
 
 
 PowerPoint® application behavior

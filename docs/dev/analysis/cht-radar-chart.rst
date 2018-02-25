@@ -261,6 +261,8 @@ XML for default radar chart (simplified)::
 MS API Protocol
 ---------------
 
+.. highlight:: vb.net
+
 Make a radar chart::
 
   Public Sub MakeGraph()
