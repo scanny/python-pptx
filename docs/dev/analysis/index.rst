@@ -16,6 +16,7 @@ Slides
 .. toctree::
    :maxdepth: 1
 
+   sld-background
    sld-notes-slide
    sld-notes-master
    sld-base
@@ -70,6 +71,7 @@ Shape
    :titlesonly:
 
    shp-group-shape
+   shp-shadow
    shp-freeform
    shp-movie
    shp-shapes
