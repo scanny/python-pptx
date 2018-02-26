@@ -388,9 +388,11 @@ class CT_Transform2D(BaseOxmlElement):
     """
     Custom element class for <a:xfrm> element.
     """
-    _tag_seq = ('a:off', 'a:ext')
+    _tag_seq = ('a:off', 'a:ext', 'a:chOff', 'a:chExt')
     off = ZeroOrOne('a:off', successors=_tag_seq[1:])
     ext = ZeroOrOne('a:ext', successors=_tag_seq[2:])
+    chOff = ZeroOrOne('a:chOff', successors=_tag_seq[3:])
+    chExt = ZeroOrOne('a:chExt', successors=_tag_seq[4:])
     del _tag_seq
     rot = OptionalAttribute('rot', ST_Angle, default=0.0)
     flipH = OptionalAttribute('flipH', XsdBoolean, default=False)
@@ -452,6 +454,66 @@ class CT_Transform2D(BaseOxmlElement):
 
     def _new_off(self):
         off = OxmlElement('a:off')
+        off.x = 0
+        off.y = 0
+        return off
+
+    @property
+    def child_x(self):
+        off = self.chOff
+        if off is None:
+            return None
+        return off.x
+
+    @x.setter
+    def child_x(self, value):
+        off = self.get_or_add_chOff()
+        off.x = value
+
+    @property
+    def child_y(self):
+        off = self.chOff
+        if off is None:
+            return None
+        return off.y
+
+    @y.setter
+    def child_y(self, value):
+        off = self.get_or_add_chOff()
+        off.y = value
+
+    @property
+    def child_cx(self):
+        ext = self.chExt
+        if ext is None:
+            return None
+        return ext.cx
+
+    @cx.setter
+    def child_cx(self, value):
+        ext = self.get_or_add_chExt()
+        ext.cx = value
+
+    @property
+    def child_cy(self):
+        ext = self.chExt
+        if ext is None:
+            return None
+        return ext.cy
+
+    @cy.setter
+    def child_cy(self, value):
+        ext = self.get_or_add_chExt()
+        ext.cy = value
+
+    def _new_chExt(self):
+        ext = OxmlElement('a:chExt')
+        ext.cx = 0
+        ext.cy = 0
+        return ext
+
+    def _new_chOff(self):
+        off = OxmlElement('a:chOff')
         off.x = 0
         off.y = 0
         return off

@@ -19,6 +19,7 @@ from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.freeform import FreeformBuilder
 from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
     ChartPlaceholder, LayoutPlaceholder, MasterPlaceholder,
@@ -45,6 +46,7 @@ def BaseShapeFactory(shape_elm, parent):
         qn('p:cxnSp'):        Connector,
         qn('p:sp'):           Shape,
         qn('p:graphicFrame'): GraphicFrame,
+        qn('p:grpSp'):        GroupShape,
     }.get(tag, BaseShape)
 
     return shape_cls(shape_elm, parent)
@@ -533,6 +535,12 @@ class SlideShapes(_BaseShapes):
         textbox = self._shape_factory(sp)
         return textbox
 
+    def add_group(self):
+        """
+        Add group shape on slide
+        """
+        return self._shape_factory(self._add_group_sp())
+
     def build_freeform(self, start_x=0, start_y=0, scale=1.0):
         """Return |FreeformBuilder| object to specify a freeform shape.
 
@@ -690,6 +698,15 @@ class SlideShapes(_BaseShapes):
         sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
         return sp
 
+    def _add_group_sp(self):
+        """
+        Return a newly-added group ``<p:grpSp>`` element
+        """
+        id_ = self._next_shape_id
+        name = 'Group %d' % (id_-1)
+        sp = self._spTree.add_group(id_, name)
+        return sp
+
     def _add_video_timing(self, pic):
         """Add a `p:video` element under `p:sld/p:timing`.
 
@@ -825,3 +842,39 @@ class _MoviePicElementCreator(object):
         one is the video rId and the other is the media rId.
         """
         return self._video_part_rIds[1]
+
+class GroupShapes(SlideShapes):
+    """Sequence of shapes appearing on a group.
+
+    The first shape in the sequence is the backmost in z-order and the last
+    shape is topmost. Supports indexed access, len(), index(), and iteration.
+    """
+
+    def add_textbox(self, left, top, width, height):
+        """
+        Add text box shape of specified size at specified position on group.
+        """
+        self._parent._adjustExtents(left, top, width, height)
+        return super(GroupShapes, self).add_textbox(left, top, width, height)
+
+    def add_shape(self, autoshape_type_id, left, top, width, height):
+        """
+        Add auto shape of type specified by *autoshape_type_id* (like
+        ``MSO_SHAPE.RECTANGLE``) and of specified size at specified position.
+        """
+        self._parent._adjustExtents(left, top, width, height)
+        return super(GroupShapes, self).add_shape(autoshape_type_id, left, top, width, height)
+
+    def add_chart(self, chart_type, x, y, cx, cy, chart_data):
+        """
+        Add a new chart of *chart_type* to the group, positioned at (*x*,
+        *y*), having size (*cx*, *cy*), and depicting *chart_data*.
+        *chart_type* is one of the :ref:`XlChartType` enumeration values.
+        *chart_data* is a |ChartData| object populated with the categories
+        and series values for the chart. Note that a |GraphicFrame| shape
+        object is returned, not the |Chart| object contained in that graphic
+        frame shape. The chart object may be accessed using the :attr:`chart`
+        property of the returned |GraphicFrame| object.
+        """
+        self._parent._adjustExtents(x, y, cx, cy)
+        return super(GroupShapes, self).add_chart(chart_type, x, y, cx, cy, chart_data)
