@@ -9,6 +9,7 @@ from __future__ import (
 )
 
 import pytest
+import textwrap
 
 from pptx.compat import BytesIO
 from pptx.chart.data import ChartData
@@ -27,6 +28,7 @@ from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.freeform import FreeformBuilder
 from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
     _BaseSlidePlaceholder, LayoutPlaceholder, MasterPlaceholder,
@@ -38,7 +40,7 @@ from pptx.shapes.shapetree import (
     _MasterShapeFactory, MasterShapes, _MoviePicElementCreator,
     NotesSlidePlaceholders, _NotesSlideShapeFactory, NotesSlideShapes,
     _SlidePlaceholderFactory, SlidePlaceholders, SlideShapeFactory,
-    SlideShapes
+    SlideShapes, GroupShapes
 )
 from pptx.shapes.table import Table
 from pptx.slide import SlideLayout, SlideMaster
@@ -67,7 +69,7 @@ class DescribeBaseShapeFactory(object):
         ('p:pic', Picture),
         ('p:pic/p:nvPicPr/p:nvPr/a:videoFile', Movie),
         ('p:graphicFrame', GraphicFrame),
-        ('p:grpSp', BaseShape),
+        ('p:grpSp', GroupShape),
         ('p:cxnSp', Connector),
     ])
     def factory_fixture(self, request, parent_):
@@ -663,6 +665,16 @@ class DescribeSlideShapes(object):
         assert table is table_
         assert shapes._element.xml == expected_xml
 
+    def it_can_add_a_group(self, group_fixture):
+        shapes, group_, expected_xml = group_fixture
+
+        group = shapes.add_group()
+
+        sp = shapes._element.xpath('p:grpSp')[0]
+        shapes._shape_factory.assert_called_once_with(shapes, sp)
+        assert group is group_
+        assert shapes._element.xml == expected_xml
+
     def it_can_add_a_textbox(self, textbox_fixture):
         shapes, x, y, cx, cy, textbox_, expected_xml = textbox_fixture
 
@@ -977,6 +989,24 @@ class DescribeSlideShapes(object):
         _shape_factory_.return_value = textbox_
         return shapes, x, y, cx, cy, textbox_, expected_xml
 
+    @pytest.fixture
+    def group_fixture(self, group_, _shape_factory_):
+        shapes = SlideShapes(element('p:spTree'), None)
+        expected_xml = textwrap.dedent("""
+            <p:spTree xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+              <p:grpSp xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                <p:nvGrpSpPr>
+                  <p:cNvPr id="1" name="Group 0"/>
+                  <p:cNvGrpSpPr/>
+                  <p:nvPr/>
+                </p:nvGrpSpPr>
+                <p:grpSpPr/>
+              </p:grpSp>
+            </p:spTree>
+            """).lstrip()
+        _shape_factory_.return_value = group_
+        return shapes, group_, expected_xml
+
     @pytest.fixture(params=[
         ('p:spTree/(p:sp,p:sp/p:nvSpPr/p:nvPr/p:ph{idx=0})', True),
         ('p:spTree/(p:sp,p:sp)',                             False),
@@ -1112,6 +1142,10 @@ class DescribeSlideShapes(object):
     @pytest.fixture
     def textbox_(self, request):
         return instance_mock(request, Shape)
+
+    @pytest.fixture
+    def group_(self, request):
+        return instance_mock(request, GroupShape)
 
 
 class DescribeLayoutShapes(object):

@@ -98,12 +98,33 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
+    def add_group(self, id_, name):
+        """
+        Append a newly-created group ``<p:grpSp>`` shape
+        """
+        sp = CT_Shape.new_group_sp(id_, name)
+        self.insert_element_before(sp, 'p:extLst')
+        return sp
+
     def get_or_add_xfrm(self):
         """
         Return the ``<a:xfrm>`` grandchild element, newly-added if not
         present.
         """
         return self.grpSpPr.get_or_add_xfrm()
+
+    def add_or_replace_extents(self, x, y, cx, cy):
+        xfrm = self.get_or_add_xfrm()
+
+        xfrm.x = x
+        xfrm.y = y
+        xfrm.cx = cx
+        xfrm.cy = cy
+
+        xfrm.child_x = x
+        xfrm.child_y = y
+        xfrm.child_cx = cx
+        xfrm.child_cy = cy
 
     def iter_ph_elms(self):
         """

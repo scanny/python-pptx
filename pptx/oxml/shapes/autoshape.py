@@ -18,6 +18,7 @@ from pptx.oxml.xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
     ZeroOrOne, ZeroOrMore
 )
+import textwrap
 
 
 class CT_AdjPoint2D(BaseOxmlElement):
@@ -279,6 +280,17 @@ class CT_Shape(BaseShapeElement):
         sp = parse_xml(xml)
         return sp
 
+    @staticmethod
+    def new_group_sp(id_, name):
+        """
+        Return a new ``<p:grpSp>`` element tree configured as a base group
+        shape.
+        """
+        tmpl = CT_Shape._group_sp_tmpl()
+        xml = tmpl % (id_, name)
+        sp = parse_xml(xml)
+        return sp
+
     @property
     def prst(self):
         """
@@ -435,6 +447,21 @@ class CT_Shape(BaseShapeElement):
             '  </p:txBody>\n'
             '</p:sp>' %
             (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+        )
+
+    @staticmethod
+    def _group_sp_tmpl():
+        return (textwrap.dedent("""
+            <p:grpSp %s>
+              <p:nvGrpSpPr>
+                <p:cNvPr id="%s" name="%s"/>
+                <p:cNvGrpSpPr/>
+                <p:nvPr/>
+              </p:nvGrpSpPr>
+              <p:grpSpPr/>
+            </p:grpSp>
+            """) %
+            (nsdecls('a', 'p'), '%d', '%s')
         )
 
 

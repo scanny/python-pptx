@@ -288,8 +288,10 @@ from .shapes.shared import (  # noqa: E402
     CT_ShapeProperties, CT_Transform2D
 )
 register_element_cls('a:ext',   CT_PositiveSize2D)
+register_element_cls('a:chExt', CT_PositiveSize2D)
 register_element_cls('a:ln',    CT_LineProperties)
 register_element_cls('a:off',   CT_Point2D)
+register_element_cls('a:chOff', CT_Point2D)
 register_element_cls('a:xfrm',  CT_Transform2D)
 register_element_cls('c:spPr',  CT_ShapeProperties)
 register_element_cls('p:cNvPr', CT_NonVisualDrawingProps)
