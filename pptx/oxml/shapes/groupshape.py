@@ -78,13 +78,13 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
-    def add_table(self, id_, name, rows, cols, x, y, cx, cy):
+    def add_table(self, id_, name, rows, cols, x, y, cx, cy, tableStyleId=None):
         """
         Append a ``<p:graphicFrame>`` shape containing a table as specified
         in call.
         """
         graphicFrame = CT_GraphicalObjectFrame.new_table_graphicFrame(
-            id_, name, rows, cols, x, y, cx, cy
+            id_, name, rows, cols, x, y, cx, cy, tableStyleId
         )
         self.insert_element_before(graphicFrame, 'p:extLst')
         return graphicFrame
