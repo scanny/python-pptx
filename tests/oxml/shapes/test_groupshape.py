@@ -28,7 +28,7 @@ class DescribeCT_GroupShape(object):
         graphicFrame = spTree.add_table(id_, name, rows, cols, x, y, cx, cy)
 
         new_table_graphicFrame_.assert_called_once_with(
-            id_, name, rows, cols, x, y, cx, cy
+            id_, name, rows, cols, x, y, cx, cy, None
         )
         insert_element_before_.assert_called_once_with(
             graphicFrame_, 'p:extLst'
