@@ -108,7 +108,6 @@ Feature: Common shape properties
       | a picture       |
       | a connector     |
       | a graphic frame |
-      | a group shape   |
 
 
   Scenario Outline: Get shape.left and shape.top

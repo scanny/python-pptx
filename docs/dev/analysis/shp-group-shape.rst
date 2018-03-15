@@ -25,6 +25,35 @@ Scope
 
 Group shape inherits `BaseShape` properties and behaviors:
 
+* [ ] Apparently, a chart can be a member of a group, but a table cannot. Also
+      `SmartArt` and placeholders can only appear at the top level of the slide
+      shape tree.
+
+* [ ] Consider whether existing tests for things like `.add_connector()` should
+      be moved to `GroupShape` instead. I think they should be.
+
+* [ ] Class `GroupShape` needs to override `._next_shape_id` and use parent
+      version or something.
+
+* [ ] Consider updating `BaseShape.shape_type` to raise an exception (or at
+      least a warning.
+
+* [ ] Should height be settable? What happens if you change it? Does the group
+      automatically scale?
+
+      Consider overriding then calling super after documenting any behavior
+      unique to a group shape.
+
+* [ ] Consider whether `GroupShapes` should be located in
+      `pptx.shapes.shapetree` module.
+
+* [ ] Consider adding mixin `PlaceholderCloner` to host `.clone_placeholder()`
+      and perhaps `.ph_basename` and `._next_ph_name` that can be added to
+      `SlideShapes` and `NotesSlideShapes`.
+
+      Maybe `_BaseShapes.ph_basename` moves to `SlideShapes`.
+
+
 Group shape also inherits from `SlideShapes`
 --------------------------------------------
 

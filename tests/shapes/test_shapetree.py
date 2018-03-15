@@ -27,6 +27,7 @@ from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.freeform import FreeformBuilder
 from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
     _BaseSlidePlaceholder, LayoutPlaceholder, MasterPlaceholder,
@@ -67,7 +68,7 @@ class DescribeBaseShapeFactory(object):
         ('p:pic', Picture),
         ('p:pic/p:nvPicPr/p:nvPr/a:videoFile', Movie),
         ('p:graphicFrame', GraphicFrame),
-        ('p:grpSp', BaseShape),
+        ('p:grpSp', GroupShape),
         ('p:cxnSp', Connector),
     ])
     def factory_fixture(self, request, parent_):

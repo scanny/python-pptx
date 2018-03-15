@@ -35,9 +35,11 @@ class BaseShape(object):
 
     @property
     def element(self):
-        """
-        Reference to the lxml element for this shape, e.g. a CT_Shape
-        instance.
+        """`lxml` element for this shape, e.g. a CT_Shape instance.
+
+        Note that manipulating this element improperly can produce an invalid
+        presentation file. Make sure you know what you're doing if you use
+        this to change the underlying XML.
         """
         return self._element
 
@@ -116,9 +118,11 @@ class BaseShape(object):
 
     @property
     def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
+        """The package part containing this shape.
+
+        A |BaseSlidePart| subclass in this case. Access to a slide part
+        should only be required if you are extending the behavior of |pp| API
+        objects.
         """
         return self._parent.part
 

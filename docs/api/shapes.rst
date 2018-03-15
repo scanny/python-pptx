@@ -119,3 +119,22 @@ A graphic frame is the shape containing a table, chart, or smart art.
        chart_part, has_text_frame, is_placeholder, part, placeholder_format,
        shape_type
    :inherited-members:
+
+
+|GroupShape| objects
+--------------------
+
+The following properties and methods are defined for group shapes. A group
+shape acts as a container for other shapes.
+
+Note that:
+
+* A group shape has no text frame and cannot have one.
+* A group shape cannot have a click action, such as a hyperlink.
+
+.. autoclass:: pptx.shapes.group.GroupShape()
+   :show-inheritance:
+   :members:
+   :exclude-members:
+       has_chart, has_table, is_placeholder, placeholder_format
+   :inherited-members:

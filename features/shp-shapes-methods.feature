@@ -1,7 +1,7 @@
 Feature: Shape collection methods
-  In order to add a shape to a shape collection
+  To manipulate shapes on a slide
   As a developer using python-pptx
-  I need a set of methods on Shapes objects
+  I need properties and methods on Shapes objects
 
 
   Scenario: SlideShapes.add_connector()
