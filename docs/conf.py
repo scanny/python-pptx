@@ -86,11 +86,13 @@ release = __version__
 rst_epilog = """
 .. |ActionSetting| replace:: :class:`.ActionSetting`
 
-.. |Adjustment| replace:: :class:`Adjustment`
+.. |Adjustment| replace:: :class:`.Adjustment`
 
-.. |AdjustmentCollection| replace:: :class:`AdjustmentCollection`
+.. |AdjustmentCollection| replace:: :class:`.AdjustmentCollection`
 
-.. |AttributeError| replace:: :exc:`AttributeError`
+.. |AreaSeries| replace:: :class:`.AreaSeries`
+
+.. |AttributeError| replace:: :exc:`.AttributeError`
 
 .. |Axis| replace:: :class:`.Axis`
 
@@ -110,9 +112,13 @@ rst_epilog = """
 
 .. |BaseShape| replace:: :class:`.BaseShape`
 
+.. |BaseSlidePart| replace:: :class:`.BaseSlidePart`
+
 .. |BubbleChartData| replace:: :class:`.BubbleChartData`
 
 .. |BubblePlot| replace:: :class:`.BubblePlot`
+
+.. |BubblePoints| replace:: :class:`.BubblePoints`
 
 .. |BubbleSeries| replace:: :class:`.BubbleSeries`
 
@@ -190,6 +196,10 @@ rst_epilog = """
 
 .. |GraphicFrame| replace:: :class:`.GraphicFrame`
 
+.. |GroupShape| replace:: :class:`.GroupShape`
+
+.. |GroupShapes| replace:: :class:`.GroupShapes`
+
 .. |_Hyperlink| replace:: :class:`_Hyperlink`
 
 .. |Hyperlink| replace:: :class:`.Hyperlink`
@@ -262,6 +272,8 @@ rst_epilog = """
 
 .. |Picture| replace:: :class:`.Picture`
 
+.. |PieSeries| replace:: :class:`.PieSeries`
+
 .. |_PlaceholderFormat| replace:: :class:`._PlaceholderFormat`
 
 .. |PlaceholderGraphicFrame| replace:: :class:`.PlaceholderGraphicFrame`
@@ -279,6 +291,8 @@ rst_epilog = """
 .. |PresentationPart| replace:: :class:`.PresentationPart`
 
 .. |Pt| replace:: :class:`.Pt`
+
+.. |RadarSeries| replace:: :class:`.RadarSeries`
 
 .. |_Relationship| replace:: :class:`._Relationship`
 

@@ -148,6 +148,23 @@ Schema excerpt
     <xsd:attribute name="name" type="xsd:string" use="optional" default=""/>
   </xsd:complexType>
 
+  <xsd:complexType name="CT_Background">
+    <xsd:choice>
+      <xsd:element name="bgPr"  type="CT_BackgroundProperties"/>
+      <xsd:element name="bgRef" type="a:CT_StyleMatrixReference"/>
+    </xsd:choice>
+    <xsd:attribute name="bwMode" type="a:ST_BlackWhiteMode" use="optional" default="white"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_BackgroundProperties">
+    <xsd:sequence>
+      <xsd:group ref="a:EG_FillProperties"/>
+      <xsd:group ref="a:EG_EffectProperties" minOccurs="0"/>
+      <xsd:element name="extLst" type="CT_ExtensionList" minOccurs="0"/>
+    </xsd:sequence>
+    <xsd:attribute name="shadeToTitle" type="xsd:boolean" use="optional" default="false"/>
+  </xsd:complexType>
+
   <xsd:simpleType name="ST_SlideId">
     <xsd:restriction base="xsd:unsignedInt">
       <xsd:minInclusive value="256"/>

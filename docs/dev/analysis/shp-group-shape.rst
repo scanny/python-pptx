@@ -1,8 +1,85 @@
+.. _GroupShape:
 
 Group Shape
 ===========
 
-Group of shapes that appear as a single shape ...
+A *group shape* is a container for other shapes.
+
+In the PowerPoint UI, a group shape may be selected and moved as a unit, such
+that the contained shapes retain their relative position to one another.
+
+Certain operations can also be applied to all the shapes in a group by
+applying that operation to the group shape.
+
+
+Scope
+-----
+
+::
+
+    Given a SlideShapes object as shapes containing a group shape
+     Then shapes[0] is a GroupShape object
+
+    * BaseShapeFactory() update
+    * add tests.shapes.test_group_shape
+
+Group shape inherits `BaseShape` properties and behaviors:
+
+* [ ] Apparently, a chart can be a member of a group, but a table cannot. Also
+      `SmartArt` and placeholders can only appear at the top level of the slide
+      shape tree.
+
+* [ ] Consider whether existing tests for things like `.add_connector()` should
+      be moved to `GroupShape` instead. I think they should be.
+
+* [ ] Class `GroupShape` needs to override `._next_shape_id` and use parent
+      version or something.
+
+* [ ] Consider updating `BaseShape.shape_type` to raise an exception (or at
+      least a warning.
+
+* [ ] Should height be settable? What happens if you change it? Does the group
+      automatically scale?
+
+      Consider overriding then calling super after documenting any behavior
+      unique to a group shape.
+
+* [ ] Consider whether `GroupShapes` should be located in
+      `pptx.shapes.shapetree` module.
+
+* [ ] Consider adding mixin `PlaceholderCloner` to host `.clone_placeholder()`
+      and perhaps `.ph_basename` and `._next_ph_name` that can be added to
+      `SlideShapes` and `NotesSlideShapes`.
+
+      Maybe `_BaseShapes.ph_basename` moves to `SlideShapes`.
+
+
+Group shape also inherits from `SlideShapes`
+--------------------------------------------
+
+Or maybe it's better if `GroupShape` has a `.shapes` property.
+
+Maybe separate out `_BaseSingleShape` (i.e. not a group shape) for things
+like `.has_chart`, `.is_placeholder`, etc. But actually most of the
+properties are legitimate, only one or two like click_action aren't, maybe
+better just to override those with a property that raises an exception.
+
+* [ ] A group shape has no click action.
+
+Maybe an iter_all() method on `SlideShapes` that does a depth-first traversal
+of the shape graph.
+
+Possible Scope
+--------------
+
+* `group_shape = shapes.group(shape_lst)` returns a newly-created group shape
+  containing each shape in `shape_lst`.
+
+
+MS API
+------
+
+* `Shape.GroupItems` - corresponds to `GroupShape.shapes`
 
 
 Related Schema Definitions

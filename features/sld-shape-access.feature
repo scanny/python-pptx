@@ -143,7 +143,8 @@ Feature: Access a shape on a slide
      Then shapes[<idx>] is a <cls> object
 
     Examples: Shape object types
-      | type      | idx | cls       |
-      | connector |  0  | Connector |
-      | picture   |  1  | Picture   |
-      | rectangle |  2  | Shape     |
+      | type      | idx | cls        |
+      | connector |  0  | Connector  |
+      | picture   |  1  | Picture    |
+      | rectangle |  2  | Shape      |
+      | group     |  3  | GroupShape |

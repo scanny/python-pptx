@@ -19,6 +19,7 @@ from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.freeform import FreeformBuilder
 from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
     ChartPlaceholder, LayoutPlaceholder, MasterPlaceholder,
@@ -45,6 +46,7 @@ def BaseShapeFactory(shape_elm, parent):
         qn('p:cxnSp'):        Connector,
         qn('p:sp'):           Shape,
         qn('p:graphicFrame'): GraphicFrame,
+        qn('p:grpSp'):        GroupShape,
     }.get(tag, BaseShape)
 
     return shape_cls(shape_elm, parent)
@@ -423,7 +425,42 @@ def SlideShapeFactory(shape_elm, parent):
     return BaseShapeFactory(shape_elm, parent)
 
 
-class SlideShapes(_BaseShapes):
+class GroupShapes(_BaseShapes):
+    """A shape that acts as a container for other shapes."""
+
+    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
+        """Add a newly created connector shape to the end of this shape tree.
+
+        *connector_type* is a member of the :ref:`MsoConnectorType`
+        enumeration and the end-point values are specified as EMU values. The
+        returned connector is of type *connector_type* and has begin and end
+        points as specified.
+        """
+        cxnSp = self._add_cxnSp(
+            connector_type, begin_x, begin_y, end_x, end_y
+        )
+        return self._shape_factory(cxnSp)
+
+    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
+        """Return a newly-added `p:cxnSp` element as specified.
+
+        The `p:cxnSp` element is for a connector of *connector_type*
+        beginning at (*begin_x*, *begin_y*) and extending to
+        (*end_x*, *end_y*).
+        """
+        id_ = self._next_shape_id
+        name = 'Connector %d' % (id_-1)
+
+        flipH, flipV = begin_x > end_x, begin_y > end_y
+        x, y = min(begin_x, end_x), min(begin_y, end_y)
+        cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
+
+        return self._spTree.add_cxnSp(
+            id_, name, connector_type, x, y, cx, cy, flipH, flipV
+        )
+
+
+class SlideShapes(GroupShapes):
     """Sequence of shapes appearing on a slide.
 
     The first shape in the sequence is the backmost in z-order and the last
@@ -444,19 +481,6 @@ class SlideShapes(_BaseShapes):
         rId = self.part.add_chart_part(chart_type, chart_data)
         graphic_frame = self._add_chart_graphic_frame(rId, x, y, cx, cy)
         return graphic_frame
-
-    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
-        """
-        Add a newly created connector shape to the end of this shape tree.
-        *connector_type* is a member of the :ref:`MsoConnectorType`
-        enumeration and the end-point values are specified as EMU values. The
-        returned connector is of type *connector_type* and has begin and end
-        points as specified.
-        """
-        cxnSp = self._add_cxnSp(
-            connector_type, begin_x, begin_y, end_x, end_y
-        )
-        return self._shape_factory(cxnSp)
 
     def add_movie(self, movie_file, left, top, width, height,
                   poster_frame_image=None, mime_type=CT.VIDEO):
@@ -620,23 +644,6 @@ class SlideShapes(_BaseShapes):
         graphicFrame = self._add_chart_graphicFrame(rId, x, y, cx, cy)
         graphic_frame = self._shape_factory(graphicFrame)
         return graphic_frame
-
-    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
-        """
-        Return a newly-added `p:cxnSp` element for a connector of
-        *connector_type* beginning at (*begin_x*, *begin_y*) and extending to
-        (*end_x*, *end_y*).
-        """
-        id_ = self._next_shape_id
-        name = 'Connector %d' % (id_-1)
-
-        flipH, flipV = begin_x > end_x, begin_y > end_y
-        x, y = min(begin_x, end_x), min(begin_y, end_y)
-        cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
-
-        return self._spTree.add_cxnSp(
-            id_, name, connector_type, x, y, cx, cy, flipH, flipV
-        )
 
     def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
         """

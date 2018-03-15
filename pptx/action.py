@@ -83,6 +83,13 @@ class ActionSetting(Subshape):
         `PREVIOUS_SLIDE`, and `NAMED_SLIDE`. Returns |None| for all other
         actions. In particular, the `LAST_SLIDE_VIEWED` action and the `PLAY`
         (start other presentation) actions are not supported.
+
+        A slide object may be assigned to this property, which makes the
+        shape an "internal hyperlink" to the assigened slide::
+
+            slide, target_slide = prs.slides[0], prs.slides[1]
+            shape = slide.shapes[0]
+            shape.target_slide = target_slide
         """
         slide_jump_actions = (
             PP_ACTION.FIRST_SLIDE,
@@ -112,6 +119,26 @@ class ActionSetting(Subshape):
         elif self.action == PP_ACTION.NAMED_SLIDE:
             rId = self._hlink.rId
             return self.part.related_parts[rId].slide
+
+    @target_slide.setter
+    def target_slide(self, slide):
+        self._clear_click_action()
+        if slide is None:
+            return
+        hlink = self._element.get_or_add_hlinkClick()
+        hlink.action = "ppaction://hlinksldjump"
+        this_part, target_part = self.part, slide.part
+        hlink.rId = this_part.relate_to(target_part, RT.SLIDE)
+
+    def _clear_click_action(self):
+        """Remove any existing click action."""
+        hlink = self._hlink
+        if hlink is None:
+            return
+        rId = hlink.rId
+        if rId:
+            self.part.drop_rel(rId)
+        self._element.remove(hlink)
 
     @property
     def _hlink(self):

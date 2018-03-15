@@ -18,7 +18,7 @@ Hyperlinks in PowerPoint can have four types of targets:
   with subject specifiable using a '?subject=xyz' suffix.
 
 * another file, e.g. another PowerPoint file, including an optional anchor to,
-  for example, a specific slide. A file:// URI is used to specify the file
+  for example, a specific slide. A `file://` URI is used to specify the file
   path.
 
 * another part in the same presentation. This uses an internal relationship
