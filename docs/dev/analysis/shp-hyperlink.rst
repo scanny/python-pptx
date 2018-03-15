@@ -28,27 +28,18 @@ Adding mutability to shape click action
 Protocol
 --------
 
-::
+The trick here is to keep the developer from doing something stupid that
+triggers a repair error::
 
-    # ---maybe---
-
-    click_action = shape.click_action
-    click_action.target_slide = target_slide
-    # ---implies `click_action.action = PP_ACTION.NAMED_SLIDE`---
-    # ---might need to disallow assignment of PP_ACTION.NAMED_SLIDE` with
-    #    exception that says just assign target slide---
-
-    # ---or explicit way---
+    # ---just assign slide object to `.target_slide`---
 
     click_action = shape.click_action
-    click_action.action = PP_ACTION.NAMED_SLIDE
     click_action.target_slide = slides[4]
-
-    # OR maybe
-
-    click_action = shape.click_action
-    click_action.jump_to_slide(target_slide)
-    # ---which does the same thing, but harder to screw up---
+    # ---automatically produces condition that gives click_action.action the
+    #    value => PP_ACTION.NAMED_SLIDE---
+    # ---need exception on action assignment (if we end up having that) to
+    #    disallow assignment of PP_ACTION.NAMED_SLIDE` with
+    #    message directing developer to just assign target slide---
 
 
 Scope

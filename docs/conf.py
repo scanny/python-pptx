@@ -198,6 +198,8 @@ rst_epilog = """
 
 .. |GroupShape| replace:: :class:`.GroupShape`
 
+.. |GroupShapes| replace:: :class:`.GroupShapes`
+
 .. |_Hyperlink| replace:: :class:`_Hyperlink`
 
 .. |Hyperlink| replace:: :class:`.Hyperlink`
