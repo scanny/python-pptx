@@ -1,7 +1,14 @@
-Feature: Get and set Connector properties
+Feature: Connector properties and methods
   In order to characterize and adjust Connectors
   As a developer using python-pptx
-  I need a set of properties on Connector
+  I need properties and methods on Connector
+
+
+  Scenario: Connector.begin_connect()
+    Given a connector and a 1 inch square picture at 0, 0
+     When I call connector.begin_connect(picture, 3)
+     Then connector.begin_x == 914400
+      And connector.begin_y == 457200
 
 
   Scenario Outline: Get Connector.begin_x/y
@@ -42,6 +49,13 @@ Feature: Get and set Connector properties
     Examples: Connector begin point assignment results
       |   x    |   y    | value   |
       | 914400 | 914400 | 1828800 |
+
+
+  Scenario: Connector.end_connect()
+    Given a connector and a 1 inch square picture at 0, 0
+     When I call connector.end_connect(picture, 3)
+     Then connector.end_x == 914400
+      And connector.end_y == 457200
 
 
   Scenario Outline: Set Connector.end_x

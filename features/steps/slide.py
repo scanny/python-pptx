@@ -1,16 +1,14 @@
 # encoding: utf-8
 
-"""
-Gherkin step implementations for slide-related features.
-"""
+"""Gherkin step implementations for slide-related features."""
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from behave import given, when, then
 
 from pptx import Presentation
-from pptx.enum.shapes import PP_PLACEHOLDER
-from pptx.shapes.base import BaseShape
 
 from helpers import test_pptx
 
@@ -25,30 +23,6 @@ def given_a_blank_slide(context):
     context.slide = context.prs.slides[0]
 
 
-@given('a LayoutPlaceholders object containing 2 placeholders')
-def given_a_LayoutPlaceholders_object_containing_2_placeholders(context):
-    prs = Presentation(test_pptx('lyt-shapes'))
-    context.layout_placeholders = prs.slide_layouts[0].placeholders
-
-
-@given('a LayoutShapes object containing 3 shapes')
-def given_a_LayoutShapes_object_containing_3_shapes(context):
-    prs = Presentation(test_pptx('lyt-shapes'))
-    context.layout_shapes = prs.slide_layouts[0].shapes
-
-
-@given('a MasterPlaceholders object containing 2 placeholders')
-def given_a_MasterPlaceholders_object_containing_2_placeholders(context):
-    prs = Presentation(test_pptx('mst-placeholders'))
-    context.master_placeholders = prs.slide_masters[0].placeholders
-
-
-@given('a MasterShapes object containing 2 shapes')
-def given_a_MasterShapes_object_containing_2_shapes(context):
-    prs = Presentation(test_pptx('mst-shapes'))
-    context.master_shapes = prs.slide_masters[0].shapes
-
-
 @given('a notes slide')
 def given_a_notes_slide(context):
     prs = Presentation(test_pptx('sld-notes'))
@@ -57,7 +31,7 @@ def given_a_notes_slide(context):
 
 @given('a slide')
 def given_a_slide(context):
-    presentation = Presentation(test_pptx('shp-shape-access'))
+    presentation = Presentation(test_pptx('shp-shapes'))
     context.slide = presentation.slides[0]
 
 
@@ -73,7 +47,7 @@ def given_a_slide_having_no_notes_slide(context):
 
 @given('a slide having a title')
 def given_a_slide_having_a_title(context):
-    prs = Presentation(test_pptx('shp-shape-access'))
+    prs = Presentation(test_pptx('shp-shapes'))
     context.prs, context.slide = prs, prs.slides[0]
 
 
@@ -86,7 +60,7 @@ def given_a_slide_having_name_name(context, name):
 
 @given('a slide having slide id 256')
 def given_a_slide_having_slide_id_256(context):
-    presentation = Presentation(test_pptx('shp-shape-access'))
+    presentation = Presentation(test_pptx('shp-shapes'))
     context.slide = presentation.slides[0]
 
 
@@ -121,12 +95,6 @@ def given_a_SlideMasters_object_containing_2_masters(context):
     context.slide_masters = prs.slide_masters
 
 
-@given('a SlidePlaceholders object containing 2 placeholders')
-def given_a_SlidePlaceholders_object_containing_2_placeholders(context):
-    prs = Presentation(test_pptx('shp-shape-access'))
-    context.placeholders = prs.slides[0].placeholders
-
-
 @given('a Slides object containing 3 slides')
 def given_a_Slides_object_containing_3_slides(context):
     prs = Presentation(test_pptx('sld-slide-access'))
@@ -144,51 +112,6 @@ def when_I_call_slides_add_slide(context):
 
 # then ====================================================
 
-@then('iterating layout_placeholders produces 2 LayoutPlaceholder objects')
-def then_iterating_layout_placeholders_produces_2_objects(context):
-    layout_placeholders = context.layout_placeholders
-    idx = -1
-    for idx, layout_placeholder in enumerate(layout_placeholders):
-        assert type(layout_placeholder).__name__ == 'LayoutPlaceholder'
-    assert idx == 1
-
-
-@then('iterating layout_shapes produces 3 BaseShape objects')
-def then_iterating_layout_shapes_produces_3_BaseShape_objects(context):
-    layout_shapes = context.layout_shapes
-    idx = -1
-    for idx, layout_shape in enumerate(layout_shapes):
-        assert isinstance(layout_shape, BaseShape)
-    assert idx == 2
-
-
-@then('iterating master_placeholders produces 2 MasterPlaceholder objects')
-def then_iterating_master_placeholders_produces_2_objects(context):
-    master_placeholders = context.master_placeholders
-    idx = -1
-    for idx, master_placeholder in enumerate(master_placeholders):
-        assert type(master_placeholder).__name__ == 'MasterPlaceholder'
-    assert idx == 1
-
-
-@then('iterating master_shapes produces 2 BaseShape objects')
-def then_iterating_master_shapes_produces_2_BaseShape_objects(context):
-    master_shapes = context.master_shapes
-    idx = -1
-    for idx, master_shape in enumerate(master_shapes):
-        assert isinstance(master_shape, BaseShape)
-    assert idx == 1
-
-
-@then('iterating placeholders produces 2 SlidePlaceholder objects')
-def then_iterating_placeholders_produces_2_SlidePlaceholder_objects(context):
-    placeholders = context.placeholders
-    idx = -1
-    for idx, placeholder in enumerate(placeholders):
-        assert type(placeholder).__name__ == 'SlidePlaceholder'
-    assert idx == 1
-
-
 @then('iterating produces 3 NotesSlidePlaceholder objects')
 def then_iterating_produces_3_NotesSlidePlaceholder_objects(context):
     idx = -1
@@ -196,15 +119,6 @@ def then_iterating_produces_3_NotesSlidePlaceholder_objects(context):
         typename = type(placeholder).__name__
         assert typename == 'NotesSlidePlaceholder', 'got %s' % typename
     assert idx == 2
-
-
-@then('iterating shapes produces 6 BaseShape objects')
-def then_iterating_shapes_produces_6_BaseShape_objects(context):
-    shapes = context.shapes
-    idx = -1
-    for idx, shape in enumerate(shapes):
-        assert isinstance(shape, BaseShape)
-    assert idx == 5
 
 
 @then('iterating slide_layouts produces 2 SlideLayout objects')
@@ -234,67 +148,10 @@ def then_iterating_slides_produces_3_Slide_objects(context):
     assert idx == 2
 
 
-@then('layout_placeholders[1] is a LayoutPlaceholder object')
-def then_layout_placeholders_1_is_a_LayoutPlaceholder_object(context):
-    layout_placeholders = context.layout_placeholders
-    assert type(layout_placeholders[1]).__name__ == 'LayoutPlaceholder'
-
-
-@then('layout_placeholders.get(idx=10) is the body placeholder')
-def then_layout_placeholders_get_10_is_the_body_placeholder(context):
-    layout_placeholders = context.layout_placeholders
-    title_placeholder = layout_placeholders.get(idx=0)
-    body_placeholder = layout_placeholders.get(idx=10)
-    assert title_placeholder._element is layout_placeholders[0]._element
-    assert body_placeholder._element is layout_placeholders[1]._element
-
-
-@then('layout_shapes[1] is a LayoutPlaceholder object')
-def then_layout_shapes_1_is_a_LayoutPlaceholder_object(context):
-    layout_shapes = context.layout_shapes
-    assert type(layout_shapes[1]).__name__ == 'LayoutPlaceholder'
-
-
-@then('len(layout_placeholders) is 2')
-def then_len_layout_placeholders_is_2(context):
-    layout_placeholders = context.layout_placeholders
-    assert len(layout_placeholders) == 2
-
-
-@then('len(layout_shapes) is 3')
-def then_len_layout_shapes_is_3(context):
-    layout_shapes = context.layout_shapes
-    assert len(layout_shapes) == 3
-
-
-@then('len(master_placeholders) is 2')
-def then_len_master_placeholders_is_2(context):
-    master_placeholders = context.master_placeholders
-    assert len(master_placeholders) == 2
-
-
-@then('len(master_shapes) is 2')
-def then_len_master_shapes_is_2(context):
-    master_shapes = context.master_shapes
-    assert len(master_shapes) == 2
-
-
 @then('len(notes_slide.shapes) is {count}')
 def then_len_notes_slide_shapes_is_count(context, count):
     shapes = context.notes_slide.shapes
     assert len(shapes) == int(count)
-
-
-@then('len(placeholders) is 2')
-def then_len_placeholders_is_2(context):
-    placeholders = context.placeholders
-    assert len(placeholders) == 2
-
-
-@then('len(shapes) is 6')
-def then_len_shapes_is_6(context):
-    shapes = context.shapes
-    assert len(shapes) == 6
 
 
 @then('len(slides) is {count}')
@@ -315,27 +172,6 @@ def then_len_slide_masters_is_2(context):
     assert len(slide_masters) == 2
 
 
-@then('master_placeholders[1] is a MasterPlaceholder object')
-def then_master_placeholders_1_is_a_MasterPlaceholder_object(context):
-    master_placeholders = context.master_placeholders
-    assert type(master_placeholders[1]).__name__ == 'MasterPlaceholder'
-
-
-@then('master_placeholders.get(PP_PLACEHOLDER.BODY) is the body placeholder')
-def then_master_placeholders_get_PP_PLACEHOLDER_BODY_is_the_body_ph(context):
-    master_placeholders = context.master_placeholders
-    title_placeholder = master_placeholders.get(PP_PLACEHOLDER.TITLE)
-    body_placeholder = master_placeholders.get(PP_PLACEHOLDER.BODY)
-    assert title_placeholder._element is master_placeholders[0]._element
-    assert body_placeholder._element is master_placeholders[1]._element
-
-
-@then('master_shapes[1] is a Picture object')
-def then_master_shapes_1_is_a_Picture_object(context):
-    master_shapes = context.master_shapes
-    assert type(master_shapes[1]).__name__ == 'Picture'
-
-
 @then('notes_slide.notes_placeholder is a NotesSlidePlaceholder object')
 def then_notes_slide_notes_placeholder_is_a_NotesSlidePlacehldr_obj(context):
     notes_slide = context.notes_slide
@@ -354,27 +190,6 @@ def then_notes_slide_notes_text_frame_is_a_TextFrame_object(context):
 def then_notes_slide_placeholders_is_a_NotesSlidePlaceholders_object(context):
     notes_slide = context.notes_slide
     assert type(notes_slide.placeholders).__name__ == 'NotesSlidePlaceholders'
-
-
-@then('placeholders[10] is a SlidePlaceholder object')
-def then_placeholders_10_is_a_SlidePlaceholder_object(context):
-    placeholders = context.placeholders
-    assert type(placeholders[10]).__name__ == 'SlidePlaceholder'
-
-
-@then('shapes[{idx}] is a {type_} object')
-def then_shapes_idx_is_a_type_object(context, idx, type_):
-    shapes = context.shapes
-    type_name = type(shapes[int(idx)]).__name__
-    assert type_name == type_, 'got %s' % type_name
-
-
-@then('shapes.title is the title placeholder')
-def then_shapes_title_is_the_title_placeholder(context):
-    shapes = context.shapes
-    title_placeholder = shapes.title
-    assert title_placeholder.element is shapes[0].element
-    assert title_placeholder.shape_id == 4
 
 
 @then('slide.has_notes_slide is {value}')
@@ -492,12 +307,3 @@ def then_slides_get_666_default_slides_2_is_slides_2(context):
 def then_slides_2_is_a_Slide_object(context):
     slides = context.slides
     assert type(slides[2]).__name__ == 'Slide'
-
-
-@then('the index of each shape matches its position in the sequence')
-def then_index_of_each_shape_matches_its_position_in_the_sequence(context):
-    shapes = context.shapes
-    for idx, shape in enumerate(shapes):
-        assert idx == shapes.index(shape), (
-            "index doesn't match for idx == %s" % idx
-        )
