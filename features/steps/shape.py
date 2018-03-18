@@ -281,6 +281,19 @@ def when_I_call_connector_end_connect_picture_3(context):
 
 # then ====================================================
 
+@then("accessing shape.click_action raises TypeError")
+def then_accessing_shape_click_action_raises_TypeError(context):
+    try:
+        context.shape.click_action
+    except TypeError:
+        return
+    except Exception as e:
+        raise AssertionError(
+            'Accessing GroupShape.click_action raised %s' % type(e).__name__
+        )
+    raise AssertionError('Accessing GroupShape.click_action did not raise')
+
+
 @then("builder is a FreeformBuilder object")
 def then_builder_is_a_FreeformBuilder_object(context):
     builder = context.builder
