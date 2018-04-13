@@ -69,6 +69,7 @@ Shape
 .. toctree::
    :titlesonly:
 
+   shp-group-shape
    shp-freeform
    shp-movie
    shp-shapes
@@ -82,7 +83,6 @@ Shape
    shp-autofit
    shp-pos-and-size
    placeholders/index
-   shp-group-shape
    shp-table
 
 

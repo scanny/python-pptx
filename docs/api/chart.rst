@@ -278,6 +278,18 @@ These properties are available on a series belonging to a line-type plot.
    :member-order: bysource
 
 
+|Marker| objects
+~~~~~~~~~~~~~~~~
+
+A marker is the small shape (e.g. diamond or circle) that "marks" each
+individual data point connected by a series line in a line-type plot.
+
+.. autoclass:: pptx.chart.marker.Marker()
+   :inherited-members:
+   :members:
+   :member-order: bysource
+
+
 |PieSeries| objects
 ~~~~~~~~~~~~~~~~~~~
 
