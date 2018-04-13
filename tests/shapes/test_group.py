@@ -8,6 +8,7 @@ from __future__ import (
 
 import pytest
 
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.group import GroupShape
 
 
@@ -18,8 +19,16 @@ class DescribeGroupShape(object):
         with pytest.raises(TypeError):
             group.click_action
 
+    def it_knows_its_shape_type(self, shape_type_fixture):
+        group = shape_type_fixture
+        assert group.shape_type == MSO_SHAPE_TYPE.GROUP
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
     def click_action_fixture(self):
+        return GroupShape(None, None)
+
+    @pytest.fixture
+    def shape_type_fixture(self):
         return GroupShape(None, None)

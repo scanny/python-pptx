@@ -6,6 +6,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
 
 
@@ -19,3 +20,11 @@ class GroupShape(BaseShape):
         A group shape cannot have a click action or hover action.
         """
         raise TypeError('a group shape cannot have a click action')
+
+    @property
+    def shape_type(self):
+        """Member of :ref:`MsoShapeType` identifying the type of this shape.
+
+        Unconditionally `MSO_SHAPE_TYPE.GROUP` in this case
+        """
+        return MSO_SHAPE_TYPE.GROUP

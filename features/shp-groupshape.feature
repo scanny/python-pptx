@@ -9,7 +9,6 @@ Feature: GroupShape properties and methods
      Then accessing shape.click_action raises TypeError
 
 
-  @wip
   Scenario: GroupShape.shape_type
     Given a GroupShape object as shape
      Then shape.shape_type == MSO_SHAPE_TYPE.GROUP
