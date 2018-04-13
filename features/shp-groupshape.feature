@@ -4,7 +4,6 @@ Feature: GroupShape properties and methods
   I need properties and methods on GroupShape
 
 
-  @wip
   Scenario: Get GroupShape.click_action raises TypeError
     Given a GroupShape object as shape
      Then accessing shape.click_action raises TypeError
