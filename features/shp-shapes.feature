@@ -277,6 +277,7 @@ Feature: Access a shape on a slide
       | chart    | a chart  | PlaceholderGraphicFrame |
 
 
+  @wip
   Scenario Outline: ShapeFactory contructs appropriate proxy object
     Given a SlideShapes object having a <type> shape at offset <idx>
      Then shapes[<idx>] is a <cls> object
@@ -286,3 +287,4 @@ Feature: Access a shape on a slide
       | connector |  0  | Connector  |
       | picture   |  1  | Picture    |
       | rectangle |  2  | Shape      |
+      | group     |  3  | GroupShape |
