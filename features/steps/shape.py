@@ -117,6 +117,13 @@ def given_a_GroupShape_object_as_group_shape(context):
     context.group_shape = sld.shapes[0]
 
 
+@given('a GroupShape object as shape')
+def given_a_GroupShape_object_as_shape(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[3]
+
+
 @given('a movie shape')
 def given_a_movie_shape(context):
     prs = Presentation(test_pptx('shp-movie-props'))
