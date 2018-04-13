@@ -100,10 +100,10 @@ A freeform builder is used to create a shape with custom geometry:
 The following properties and methods are defined for picture shapes.
 
 .. autoclass:: pptx.shapes.picture.Picture()
+   :inherited-members:
    :members:
    :exclude-members: get_or_add_ln, ln
    :member-order: bysource
-   :undoc-members:
 
 
 |GraphicFrame| objects

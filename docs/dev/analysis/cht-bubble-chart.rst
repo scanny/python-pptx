@@ -203,6 +203,8 @@ XML for default bubble chart::
 MS API Protocol
 ---------------
 
+.. highlight:: vb.net
+
 Create (unconventional) multi-series bubble chart in Excel::
 
     If (selection.Columns.Count <> 4 Or selection.Rows.Count < 3) Then
