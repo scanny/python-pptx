@@ -19,6 +19,7 @@ from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.freeform import FreeformBuilder
 from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
     ChartPlaceholder, LayoutPlaceholder, MasterPlaceholder,
@@ -43,6 +44,7 @@ def BaseShapeFactory(shape_elm, parent):
 
     shape_cls = {
         qn('p:cxnSp'):        Connector,
+        qn('p:grpSp'):        GroupShape,
         qn('p:sp'):           Shape,
         qn('p:graphicFrame'): GraphicFrame,
     }.get(tag, BaseShape)
