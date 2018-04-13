@@ -38,8 +38,8 @@ class DescribeBaseShape(object):
         assert click_action is click_action_
 
     def it_knows_its_shape_id(self, id_fixture):
-        shape, shape_id = id_fixture
-        assert shape.shape_id == shape_id
+        shape, expected_value = id_fixture
+        assert shape.shape_id == expected_value
 
     def it_knows_its_name(self, name_get_fixture):
         shape, name = name_get_fixture
@@ -158,15 +158,17 @@ class DescribeBaseShape(object):
         expected_xml = request.getfuncargvalue(expected_elm_fixt_name).xml
         return shape, width, height, expected_xml
 
-    @pytest.fixture
-    def id_fixture(self, shape_id):
-        shape_elm = (
-            an_sp().with_nsdecls().with_child(
-                an_nvSpPr().with_child(
-                    a_cNvPr().with_id(shape_id)))
-        ).element
-        shape = BaseShape(shape_elm, None)
-        return shape, shape_id
+    @pytest.fixture(params=[
+        ('p:sp/p:nvSpPr/p:cNvPr{id=1}', 1),
+        ('p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=2}', 2),
+        ('p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3}', 3),
+        ('p:grpSp/p:nvGrpSpPr/p:cNvPr{id=4}', 4),
+        ('p:pic/p:nvPicPr/p:cNvPr{id=5}', 5),
+    ])
+    def id_fixture(self, request):
+        xSp_cxml, expected_value = request.param
+        shape = BaseShape(element(xSp_cxml), None)
+        return shape, expected_value
 
     @pytest.fixture(params=[True, False])
     def is_placeholder_fixture(self, request, shape_elm_, txBody_):
@@ -251,10 +253,11 @@ class DescribeBaseShape(object):
         return shape, left, top, expected_xml
 
     @pytest.fixture(params=[
-        ('p:sp/p:spPr',                       0.0),
-        ('p:sp/p:spPr/a:xfrm{rot=60000}',     1.0),
-        ('p:sp/p:spPr/a:xfrm{rot=2545200}',  42.42),
-        ('p:sp/p:spPr/a:xfrm{rot=-60000}',  359.0),
+        ('p:sp/p:spPr', 0.0),
+        ('p:sp/p:spPr/a:xfrm{rot=60000}', 1.0),
+        ('p:sp/p:spPr/a:xfrm{rot=2545200}', 42.42),
+        ('p:sp/p:spPr/a:xfrm{rot=-60000}', 359.0),
+        ('p:grpSp/p:grpSpPr/a:xfrm{rot=2545200}', 42.42),
     ])
     def rotation_get_fixture(self, request):
         xSp_cxml, expected_value = request.param
@@ -262,12 +265,14 @@ class DescribeBaseShape(object):
         return shape, expected_value
 
     @pytest.fixture(params=[
-        ('p:sp/p:spPr/a:xfrm',               1.0,
+        ('p:sp/p:spPr/a:xfrm', 1.0,
          'p:sp/p:spPr/a:xfrm{rot=60000}'),
-        ('p:sp/p:spPr/a:xfrm{rot=60000}',    0.0,
+        ('p:sp/p:spPr/a:xfrm{rot=60000}', 0.0,
          'p:sp/p:spPr/a:xfrm'),
         ('p:sp/p:spPr/a:xfrm{rot=60000}', -420.0,
          'p:sp/p:spPr/a:xfrm{rot=18000000}'),
+        ('p:grpSp/p:grpSpPr/a:xfrm', 1.0,
+         'p:grpSp/p:grpSpPr/a:xfrm{rot=60000}'),
     ])
     def rotation_set_fixture(self, request):
         xSp_cxml, new_value, expected_xSp_cxml = request.param

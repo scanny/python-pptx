@@ -16,7 +16,6 @@ Feature: Common shape properties
       | Connector    |
 
 
-  @wip
   Scenario Outline: shape.has_chart for shapes that never contain a chart
     Given a <shape-type> object as shape
      Then shape.has_chart is False
@@ -29,7 +28,6 @@ Feature: Common shape properties
       | GroupShape |
 
 
-  @wip
   Scenario Outline: shape.has_table for shapes that never contain a table
     Given a <shape-type> object as shape
      Then shape.has_table is False
@@ -42,7 +40,6 @@ Feature: Common shape properties
       | GroupShape |
 
 
-  @wip
   Scenario Outline: Get shape.has_text_frame
     Given a <shape-type> object as shape
      Then shape.has_text_frame is <value>
@@ -56,7 +53,6 @@ Feature: Common shape properties
       | Connector    | False |
 
 
-  @wip
   Scenario Outline: Get shape.left and shape.top
     Given a <shape-type> object as shape
      Then shape.left == <left>
@@ -71,7 +67,6 @@ Feature: Common shape properties
       | Connector    | 6825952 | 5264696 |
 
 
-  @wip
   Scenario Outline: Set shape.left and shape.top
     Given a <shape-type> object as shape
      When I assign <left> to shape.left
@@ -88,7 +83,6 @@ Feature: Common shape properties
       | Connector    | 5264696 | 6825952 |
 
 
-  @wip
   Scenario Outline: Get shape.name
     Given a <shape-type> object as shape
      Then shape.name == '<name>'
@@ -102,7 +96,6 @@ Feature: Common shape properties
       | Connector    | Elbow Connector 10  |
 
 
-  @wip
   Scenario Outline: Set shape.name
     Given a <shape-type> object as shape
      When I assign '<value>' to shape.name
@@ -117,7 +110,6 @@ Feature: Common shape properties
       | Connector    | New Connector 42     | New Connector 42     |
 
 
-  @wip
   Scenario Outline: Get shape.part
     Given a <shape-type> object on a slide as shape
      Then shape.part is a SlidePart object
@@ -132,7 +124,6 @@ Feature: Common shape properties
       | Connector    |
 
 
-  @wip
   Scenario Outline: Get shape.rotation
     Given a rotated <shape-type> object as shape
      Then shape.rotation == <value>
@@ -146,7 +137,6 @@ Feature: Common shape properties
       | Connector    | 50.0  |
 
 
-  @wip
   Scenario Outline: Set shape.rotation
     Given a <shape-type> object as shape
      When I assign <value> to shape.rotation
@@ -161,7 +151,6 @@ Feature: Common shape properties
       | Connector    |  50.0 |      50.0      |
 
 
-  @wip
   Scenario Outline: Get shape.shape_id
     Given a <shape-type> object as shape
      Then shape.shape_id == <value>
@@ -175,7 +164,6 @@ Feature: Common shape properties
       | Connector    |  11   |
 
 
-  @wip
   Scenario Outline: Get shape.width and shape.height
     Given a <shape-type> object as shape
      Then shape.width == <width>
@@ -190,7 +178,6 @@ Feature: Common shape properties
       | Connector    | 986408 | 828600 |
 
 
-  @wip
   Scenario Outline: Set shape.width and shape.height
     Given a <shape-type> object as shape
      When I assign <width> to shape.width
