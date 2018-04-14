@@ -218,6 +218,20 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(graphicFrame)
 
+    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
+        """Add a newly created connector shape to the end of this shape tree.
+
+        *connector_type* is a member of the :ref:`MsoConnectorType`
+        enumeration and the end-point values are specified as EMU values. The
+        returned connector is of type *connector_type* and has begin and end
+        points as specified.
+        """
+        cxnSp = self._add_cxnSp(
+            connector_type, begin_x, begin_y, end_x, end_y
+        )
+        self._recalculate_extents()
+        return self._shape_factory(cxnSp)
+
     def index(self, shape):
         """Return the index of *shape* in this sequence.
 
@@ -239,6 +253,15 @@ class _BaseGroupShapes(_BaseShapes):
         )
         self._spTree.append(graphicFrame)
         return graphicFrame
+
+    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
+        """Return a newly-added `p:cxnSp` element as specified.
+
+        The `p:cxnSp` element is for a connector of *connector_type*
+        beginning at (*begin_x*, *begin_y*) and extending to
+        (*end_x*, *end_y*).
+        """
+        raise NotImplementedError
 
     def _recalculate_extents(self):
         """Adjust position and size to incorporate all contained shapes.
@@ -494,19 +517,6 @@ class SlideShapes(_BaseGroupShapes):
     The first shape in the sequence is the backmost in z-order and the last
     shape is topmost. Supports indexed access, len(), index(), and iteration.
     """
-
-    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
-        """
-        Add a newly created connector shape to the end of this shape tree.
-        *connector_type* is a member of the :ref:`MsoConnectorType`
-        enumeration and the end-point values are specified as EMU values. The
-        returned connector is of type *connector_type* and has begin and end
-        points as specified.
-        """
-        cxnSp = self._add_cxnSp(
-            connector_type, begin_x, begin_y, end_x, end_y
-        )
-        return self._shape_factory(cxnSp)
 
     def add_movie(self, movie_file, left, top, width, height,
                   poster_frame_image=None, mime_type=CT.VIDEO):

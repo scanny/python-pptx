@@ -253,6 +253,21 @@ class Describe_BaseGroupShapes(object):
         shapes._shape_factory.assert_called_once_with(shapes, graphicFrame)
         assert graphic_frame is graphic_frame_
 
+    def it_can_add_a_connector_shape(self, connector_fixture):
+        shapes, connector_type, begin_x, begin_y = connector_fixture[:4]
+        end_x, end_y, cxnSp_, connector_ = connector_fixture[4:]
+
+        connector = shapes.add_connector(
+            connector_type, begin_x, begin_y, end_x, end_y
+        )
+
+        shapes._add_cxnSp.assert_called_once_with(
+            shapes, connector_type, begin_x, begin_y, end_x, end_y
+        )
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, cxnSp_)
+        assert connector is connector_
+
     def it_knows_the_index_of_each_of_its_shapes(self, index_fixture):
         shapes, shape_, expected_value = index_fixture
         assert shapes.index(shape_) == expected_value
@@ -312,6 +327,22 @@ class Describe_BaseGroupShapes(object):
         )
         return shapes, rId, x, y, cx, cy, expected_xml
 
+    @pytest.fixture
+    def connector_fixture(self, _add_cxnSp_, _shape_factory_,
+                          _recalculate_extents_, connector_):
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        connector_type = MSO_CONNECTOR.STRAIGHT
+        begin_x, begin_y, end_x, end_y = 1, 2, 3, 4
+        cxnSp = element('p:cxnSp')
+
+        _add_cxnSp_.return_value = cxnSp
+        _shape_factory_.return_value = connector_
+
+        return (
+            shapes, connector_type, begin_x, begin_y, end_x, end_y, cxnSp,
+            connector_
+        )
+
     @pytest.fixture(params=[
         ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 0),
         ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 1),
@@ -349,8 +380,18 @@ class Describe_BaseGroupShapes(object):
         )
 
     @pytest.fixture
+    def _add_cxnSp_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_add_cxnSp', autospec=True
+        )
+
+    @pytest.fixture
     def chart_data_(self, request):
         return instance_mock(request, ChartData)
+
+    @pytest.fixture
+    def connector_(self, request):
+        return instance_mock(request, Connector)
 
     @pytest.fixture
     def graphic_frame_(self, request):
@@ -727,20 +768,6 @@ class DescribeSlideShapes(object):
         assert shape is shape_
         assert shapes._element.xml == expected_xml
 
-    def it_can_add_a_connector(self, connector_fixture):
-        shapes, connector_type, begin_x, begin_y = connector_fixture[:4]
-        end_x, end_y, cxnSp_, connector_ = connector_fixture[4:]
-
-        connector = shapes.add_connector(
-            connector_type, begin_x, begin_y, end_x, end_y
-        )
-
-        shapes._add_cxnSp.assert_called_once_with(
-            shapes, connector_type, begin_x, begin_y, end_x, end_y
-        )
-        shapes._shape_factory.assert_called_once_with(shapes, cxnSp_)
-        assert connector is connector_
-
     def it_can_provide_a_freeform_builder(self, build_fixture):
         shapes, start_x, start_y, scale = build_fixture[:4]
         FreeformBuilder_new_, x_scale, y_scale, builder_ = build_fixture[4:]
@@ -921,19 +948,6 @@ class DescribeSlideShapes(object):
         return shapes, slide_layout_, calls
 
     @pytest.fixture
-    def connector_fixture(self, _add_cxnSp_, _shape_factory_, connector_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        connector_type = MSO_CONNECTOR.STRAIGHT
-        begin_x, begin_y, end_x, end_y = 1, 2, 3, 4
-        cxnSp = element('p:cxnSp')
-        _add_cxnSp_.return_value = cxnSp
-        _shape_factory_.return_value = connector_
-        return (
-            shapes, connector_type, begin_x, begin_y, end_x, end_y, cxnSp,
-            connector_
-        )
-
-    @pytest.fixture
     def factory_fixture(self, SlideShapeFactory_, shape_):
         shapes = SlideShapes(None, None)
         sp = element('p:sp')
@@ -1052,10 +1066,6 @@ class DescribeSlideShapes(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def _add_cxnSp_(self, request):
-        return method_mock(request, SlideShapes, '_add_cxnSp', autospec=True)
-
-    @pytest.fixture
     def _add_video_timing_(self, request):
         return method_mock(
             request, SlideShapes, '_add_video_timing', autospec=True
@@ -1070,10 +1080,6 @@ class DescribeSlideShapes(object):
         return method_mock(
             request, SlideShapes, 'clone_placeholder', autospec=True
         )
-
-    @pytest.fixture
-    def connector_(self, request):
-        return instance_mock(request, Connector)
 
     @pytest.fixture
     def FreeformBuilder_new_(self, request):
