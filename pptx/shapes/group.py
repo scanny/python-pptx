@@ -8,6 +8,7 @@ from __future__ import (
 
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
+from pptx.util import lazyproperty
 
 
 class GroupShape(BaseShape):
@@ -28,3 +29,13 @@ class GroupShape(BaseShape):
         Unconditionally `MSO_SHAPE_TYPE.GROUP` in this case
         """
         return MSO_SHAPE_TYPE.GROUP
+
+    @lazyproperty
+    def shapes(self):
+        """|GroupShapes| object for this group.
+
+        The |GroupShapes| object provides access to the group's member shapes
+        and provides methods for adding new ones.
+        """
+        from pptx.shapes.shapetree import GroupShapes
+        return GroupShapes(self._element, self)

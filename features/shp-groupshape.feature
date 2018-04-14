@@ -14,7 +14,6 @@ Feature: GroupShape properties and methods
      Then shape.shape_type == MSO_SHAPE_TYPE.GROUP
 
 
-  @wip
   Scenario: GroupShape.shapes
     Given a GroupShape object as group_shape
      Then group_shape.shapes is a GroupShapes object

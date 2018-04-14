@@ -425,6 +425,10 @@ def SlideShapeFactory(shape_elm, parent):
     return BaseShapeFactory(shape_elm, parent)
 
 
+class GroupShapes(_BaseShapes):
+    """The sequence of child shapes belonging to a group shape."""
+
+
 class SlideShapes(_BaseShapes):
     """Sequence of shapes appearing on a slide.
 
