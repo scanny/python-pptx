@@ -9,16 +9,18 @@ from __future__ import (
 from behave import given, then, when
 
 from pptx import Presentation
+from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, PP_PLACEHOLDER
 from pptx.shapes.base import BaseShape
 from pptx.util import Emu, Inches
 
-from helpers import test_file, test_pptx, test_text
+from helpers import test_file, test_image, test_pptx
 
 
 # given ===================================================
 
+@given('a GroupShapes object as shapes')
 @given('a GroupShapes object of length 3 as shapes')
 def given_a_GroupShapes_object_of_length_3_as_shapes(context):
     prs = Presentation(test_pptx('shp-groupshape'))
@@ -87,22 +89,51 @@ def given_a_SlideShapes_obj_having_type_shape_at_off_idx(context, type, idx):
 
 # when ====================================================
 
-@when("I add a text box to the slide's shape collection")
-def when_I_add_a_text_box(context):
-    shapes = context.slide.shapes
-    x, y = (Inches(1.00), Inches(2.00))
-    cx, cy = (Inches(3.00), Inches(1.00))
-    sp = shapes.add_textbox(x, y, cx, cy)
-    sp.text = test_text
+@when('I assign shapes.add_chart() to shape')
+def when_I_assign_shapes_add_chart_to_shape(context):
+    chart_data = CategoryChartData()
+    chart_data.categories = ('Foo', 'Bar')
+    chart_data.add_series('East', (1.0, 2.0))
+    chart_data.add_series('West', (3.0, 4.0))
+
+    context.shape = context.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED,
+        Inches(1), Inches(1), Inches(8), Inches(5), chart_data
+    )
 
 
-@when("I add an auto shape to the slide's shape collection")
-def when_I_add_an_auto_shape(context):
-    shapes = context.slide.shapes
-    x, y = (Inches(1.00), Inches(2.00))
-    cx, cy = (Inches(3.00), Inches(4.00))
-    sp = shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, cx, cy)
-    sp.text = test_text
+@when('I assign shapes.add_connector() to shape')
+def when_I_assign_shapes_add_connector_to_shape(context):
+    context.shape = context.shapes.add_connector(
+        MSO_CONNECTOR.CURVE, 4, 3, 2, 1
+    )
+
+
+@when('I assign shapes.add_group_shape() to shape')
+def when_I_assign_shapes_add_group_shape_to_shape(context):
+    context.shape = context.shapes.add_group_shape()
+
+
+@when('I assign shapes.add_picture() to shape')
+def when_I_assign_shapes_add_picture_to_shape(context):
+    context.shape = context.shapes.add_picture(
+        test_image('sonic.gif'), Inches(1), Inches(2)
+    )
+
+
+@when('I assign shapes.add_shape() to shape')
+def when_I_assign_shapes_add_shape_to_shape(context):
+    context.shape = context.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        Inches(2), Inches(3), Inches(1), Inches(0.5)
+    )
+
+
+@when('I assign shapes.add_textbox() to shape')
+def when_I_assign_shapes_add_textbox_to_shape(context):
+    context.shape = context.shapes.add_textbox(
+        Inches(1), Inches(2), Inches(3), Inches(0.5)
+    )
 
 
 @when("I assign shapes.build_freeform() to builder")
@@ -195,6 +226,21 @@ def then_len_shapes_eq_value(context, value):
     expected_len = int(value)
     actual_len = len(context.shapes)
     assert actual_len == expected_len, 'len(shapes) == %s' % actual_len
+
+
+@then('shape is a {clsname} object')
+def then_shape_is_a_type_object(context, clsname):
+    actual_class_name = context.shape.__class__.__name__
+    expected_class_name = clsname
+    assert actual_class_name == expected_class_name, (
+        'shape is a %s object' % actual_class_name
+    )
+
+
+@then('shapes[-1] == shape')
+def then_shapes_minus_1_eq_shape(context):
+    shapes, shape = context.shapes, context.shape
+    assert shapes[-1] == shape
 
 
 @then('shapes[{idx}] is a {type_} object')

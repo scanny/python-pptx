@@ -23,6 +23,21 @@ class BaseShape(object):
         self._element = shape_elm
         self._parent = parent
 
+    def __eq__(self, other):
+        """|True| if this shape object proxies the same element as *other*.
+
+        Equality for proxy objects is defined as referring to the same XML
+        element, whether or not they are the same proxy object instance.
+        """
+        if not isinstance(other, BaseShape):
+            return False
+        return self._element is other._element
+
+    def __ne__(self, other):
+        if not isinstance(other, BaseShape):
+            return True
+        return self._element is not other._element
+
     @lazyproperty
     def click_action(self):
         """

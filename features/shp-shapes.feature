@@ -12,6 +12,61 @@ Feature: Access a shape on a slide
       And shapes.index(shape) for each shape matches its sequence position
 
 
+  @wip
+  Scenario: GroupShapes.add_chart()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_chart() to shape
+     Then shape is a GraphicFrame object
+      And shapes[-1] == shape
+
+
+  @wip
+  Scenario: GroupShapes.add_connector()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_connector() to shape
+     Then shape is a Connector object
+      And shapes[-1] == shape
+
+
+  @wip
+  Scenario: GroupShapes.add_group_shape()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_group_shape() to shape
+     Then shape is a GroupShape object
+      And shapes[-1] == shape
+
+
+  @wip
+  Scenario: GroupShapes.add_picture()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_picture() to shape
+     Then shape is a Picture object
+      And shapes[-1] == shape
+
+
+  @wip
+  Scenario: GroupShapes.add_shape()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_shape() to shape
+     Then shape is a Shape object
+      And shapes[-1] == shape
+
+
+  @wip
+  Scenario: GroupShapes.add_textbox()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_textbox() to shape
+     Then shape is a Shape object
+      And shapes[-1] == shape
+
+
+  @wip
+  Scenario: GroupShapes.build_freeform()
+    Given a GroupShapes object as shapes
+     When I assign shapes.build_freeform() to builder
+     Then builder is a FreeformBuilder object
+
+
   Scenario: LayoutPlaceholders is a sequence
     Given a LayoutPlaceholders object of length 2 as shapes
      Then len(shapes) == 2
@@ -148,6 +203,14 @@ Feature: Access a shape on a slide
       And connector.end_y == 4
 
 
+  @wip
+  Scenario: SlideShapes.add_group_shape()
+    Given a SlideShapes object as shapes
+     When I assign shapes.add_group_shape() to shape
+     Then shape is a GroupShape object
+      And shapes[-1] == shape
+
+
   Scenario Outline: SlideShapes.add_movie()
     Given a SlideShapes object containing <a-or-no> movies
      When I call shapes.add_movie(file, x, y, cx, cy, poster_frame)
@@ -200,10 +263,10 @@ Feature: Access a shape on a slide
 
 
   Scenario: SlideShapes.add_shape()
-    Given a blank slide
-     When I add an auto shape to the slide's shape collection
-      And I save the presentation
-     Then the auto shape appears in the slide
+    Given a SlideShapes object as shapes
+     When I assign shapes.add_shape() to shape
+     Then shape is a Shape object
+      And shapes[-1] == shape
 
 
   Scenario: SlideShapes.add_table()
@@ -214,10 +277,10 @@ Feature: Access a shape on a slide
 
 
   Scenario: SlideShapes.add_textbox()
-    Given a blank slide
-     When I add a text box to the slide's shape collection
-      And I save the presentation
-     Then the text box appears in the slide
+    Given a SlideShapes object as shapes
+     When I assign shapes.add_textbox() to shape
+     Then shape is a Shape object
+      And shapes[-1] == shape
 
 
   Scenario: SlideShapes.build_freeform() (no parameters)

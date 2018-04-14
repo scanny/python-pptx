@@ -11,13 +11,11 @@ import hashlib
 from behave import given, when, then
 
 from pptx import Presentation
-from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 from pptx.action import ActionSetting
 from pptx.util import Emu
 
-from helpers import (
-    cls_qname, saved_pptx_path, test_file, test_pptx, test_text
-)
+from helpers import cls_qname, test_file, test_pptx
 
 
 # given ===================================================
@@ -568,21 +566,3 @@ def then_shape_width_eq_value(context, value):
     expected_width = int(value)
     actual_width = context.shape.width
     assert actual_width == expected_width, 'shape.width == %s' % actual_width
-
-
-@then('the auto shape appears in the slide')
-def then_auto_shape_appears_in_slide(context):
-    prs = Presentation(saved_pptx_path)
-    sp = prs.slides[0].shapes[0]
-    sp_text = sp.text_frame.paragraphs[0].runs[0].text
-    assert sp.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
-    assert sp.auto_shape_type == MSO_SHAPE.ROUNDED_RECTANGLE
-    assert sp_text == test_text
-
-
-@then('the text box appears in the slide')
-def then_text_box_appears_in_slide(context):
-    prs = Presentation(saved_pptx_path)
-    textbox = prs.slides[0].shapes[0]
-    textbox_text = textbox.text_frame.paragraphs[0].runs[0].text
-    assert textbox_text == test_text
