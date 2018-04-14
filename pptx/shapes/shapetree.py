@@ -261,7 +261,16 @@ class _BaseGroupShapes(_BaseShapes):
         beginning at (*begin_x*, *begin_y*) and extending to
         (*end_x*, *end_y*).
         """
-        raise NotImplementedError
+        id_ = self._next_shape_id
+        name = 'Connector %d' % (id_-1)
+
+        flipH, flipV = begin_x > end_x, begin_y > end_y
+        x, y = min(begin_x, end_x), min(begin_y, end_y)
+        cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
+
+        return self._element.add_cxnSp(
+            id_, name, connector_type, x, y, cx, cy, flipH, flipV
+        )
 
     def _recalculate_extents(self):
         """Adjust position and size to incorporate all contained shapes.
@@ -646,23 +655,6 @@ class SlideShapes(_BaseGroupShapes):
             if elm.ph_idx == 0:
                 return self._shape_factory(elm)
         return None
-
-    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
-        """
-        Return a newly-added `p:cxnSp` element for a connector of
-        *connector_type* beginning at (*begin_x*, *begin_y*) and extending to
-        (*end_x*, *end_y*).
-        """
-        id_ = self._next_shape_id
-        name = 'Connector %d' % (id_-1)
-
-        flipH, flipV = begin_x > end_x, begin_y > end_y
-        x, y = min(begin_x, end_x), min(begin_y, end_y)
-        cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
-
-        return self._spTree.add_cxnSp(
-            id_, name, connector_type, x, y, cx, cy, flipH, flipV
-        )
 
     def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
         """

@@ -285,6 +285,17 @@ class Describe_BaseGroupShapes(object):
         assert shapes._element.xml == expected_xml
         assert graphicFrame is shapes._element.xpath('p:graphicFrame')[0]
 
+    def it_adds_a_cxnSp_to_help(self, add_cxnSp_fixture):
+        shapes, connector_type, begin_x, begin_y = add_cxnSp_fixture[:4]
+        end_x, end_y, expected_xml = add_cxnSp_fixture[4:]
+
+        cxnSp = shapes._add_cxnSp(
+            connector_type, begin_x, begin_y, end_x, end_y
+        )
+
+        assert cxnSp is shapes._element.xpath('p:cxnSp')[0]
+        assert cxnSp.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -326,6 +337,33 @@ class Describe_BaseGroupShapes(object):
             'cData>\n    </a:graphic>\n  </p:graphicFrame>\n</p:spTree>'
         )
         return shapes, rId, x, y, cx, cy, expected_xml
+
+    @pytest.fixture(params=[
+        (1, 2, 3, 5,
+         'p:spPr/(a:xfrm/(a:off{x=1,y=2},a:ext{cx=2,cy=3})'),
+        (8, 3, 4, 9,
+         'p:spPr/(a:xfrm{flipH=1}/(a:off{x=4,y=3},a:ext{cx=4,cy=6})'),
+        (1, 6, 5, 2,
+         'p:spPr/(a:xfrm{flipV=1}/(a:off{x=1,y=2},a:ext{cx=4,cy=4})'),
+        (9, 8, 2, 3,
+         'p:spPr/(a:xfrm{flipH=1,flipV=1}/(a:off{x=2,y=3},a:ext{cx=7,cy=5})'),
+    ])
+    def add_cxnSp_fixture(self, request):
+        begin_x, begin_y, end_x, end_y, spPr_cxml = request.param
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        connector_type = MSO_CONNECTOR.STRAIGHT
+        tmpl_cxml = (
+            'p:cxnSp/(p:nvCxnSpPr/(p:cNvPr{id=1,name=Connector 0},p:cNvCxnSp'
+            'Pr,p:nvPr),%s,a:prstGeom{prst=line}/a:avLst),p:style/(a:lnRef{i'
+            'dx=2}/a:schemeClr{val=accent1},a:fillRef{idx=0}/a:schemeClr{val'
+            '=accent1},a:effectRef{idx=1}/a:schemeClr{val=accent1},a:fontRef'
+            '{idx=minor}/a:schemeClr{val=tx1}))'
+        )
+        expected_xml = xml(tmpl_cxml % spPr_cxml)
+        return (
+            shapes, connector_type, begin_x, begin_y, end_x, end_y,
+            expected_xml
+        )
 
     @pytest.fixture
     def connector_fixture(self, _add_cxnSp_, _shape_factory_,
@@ -838,50 +876,12 @@ class DescribeSlideShapes(object):
         shapes.clone_layout_placeholders(slide_layout_)
         assert shapes.clone_placeholder.call_args_list == calls
 
-    def it_adds_a_cxnSp_to_help(self, add_cxnSp_fixture):
-        shapes, connector_type, begin_x, begin_y = add_cxnSp_fixture[:4]
-        end_x, end_y, expected_xml = add_cxnSp_fixture[4:]
-
-        cxnSp = shapes._add_cxnSp(
-            connector_type, begin_x, begin_y, end_x, end_y
-        )
-
-        assert cxnSp is shapes._element.xpath('p:cxnSp')[0]
-        assert cxnSp.xml == expected_xml
-
     def it_adds_a_video_timing_to_help(self, add_timing_fixture):
         shapes, pic, sld, expected_xml = add_timing_fixture
         shapes._add_video_timing(pic)
         assert sld.xml == expected_xml
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture(params=[
-        (1, 2, 3, 5,
-         'p:spPr/(a:xfrm/(a:off{x=1,y=2},a:ext{cx=2,cy=3})'),
-        (8, 3, 4, 9,
-         'p:spPr/(a:xfrm{flipH=1}/(a:off{x=4,y=3},a:ext{cx=4,cy=6})'),
-        (1, 6, 5, 2,
-         'p:spPr/(a:xfrm{flipV=1}/(a:off{x=1,y=2},a:ext{cx=4,cy=4})'),
-        (9, 8, 2, 3,
-         'p:spPr/(a:xfrm{flipH=1,flipV=1}/(a:off{x=2,y=3},a:ext{cx=7,cy=5})'),
-    ])
-    def add_cxnSp_fixture(self, request):
-        begin_x, begin_y, end_x, end_y, spPr_cxml = request.param
-        shapes = SlideShapes(element('p:spTree'), None)
-        connector_type = MSO_CONNECTOR.STRAIGHT
-        tmpl_cxml = (
-            'p:cxnSp/(p:nvCxnSpPr/(p:cNvPr{id=1,name=Connector 0},p:cNvCxnSp'
-            'Pr,p:nvPr),%s,a:prstGeom{prst=line}/a:avLst),p:style/(a:lnRef{i'
-            'dx=2}/a:schemeClr{val=accent1},a:fillRef{idx=0}/a:schemeClr{val'
-            '=accent1},a:effectRef{idx=1}/a:schemeClr{val=accent1},a:fontRef'
-            '{idx=minor}/a:schemeClr{val=tx1}))'
-        )
-        expected_xml = xml(tmpl_cxml % spPr_cxml)
-        return (
-            shapes, connector_type, begin_x, begin_y, end_x, end_y,
-            expected_xml
-        )
 
     @pytest.fixture(params=[
         (0, 1),  # no timing gets timing with one video
