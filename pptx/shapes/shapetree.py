@@ -192,6 +192,10 @@ class _BaseShapes(ParentedElementProxy):
         return BaseShapeFactory(shape_elm, self)
 
 
+class _BaseGroupShapes(_BaseShapes):
+    """Base class for shape-trees that can add shapes."""
+
+
 class BasePlaceholders(_BaseShapes):
     """
     Base class for placeholder collections that differentiate behaviors for
@@ -425,11 +429,11 @@ def SlideShapeFactory(shape_elm, parent):
     return BaseShapeFactory(shape_elm, parent)
 
 
-class GroupShapes(_BaseShapes):
+class GroupShapes(_BaseGroupShapes):
     """The sequence of child shapes belonging to a group shape."""
 
 
-class SlideShapes(_BaseShapes):
+class SlideShapes(_BaseGroupShapes):
     """Sequence of shapes appearing on a slide.
 
     The first shape in the sequence is the backmost in z-order and the last
