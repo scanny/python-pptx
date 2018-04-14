@@ -4,7 +4,6 @@ Feature: Access a shape on a slide
   I need ways to access a shape on a slide
 
 
-  @wip
   Scenario: GroupShapes is a sequence
     Given a GroupShapes object of length 3 as shapes
      Then len(shapes) == 3

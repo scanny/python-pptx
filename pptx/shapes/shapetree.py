@@ -57,6 +57,7 @@ class _BaseShapes(ParentedElementProxy):
     Base class for a shape collection appearing in a slide-type object,
     include Slide, SlideLayout, and SlideMaster, providing common methods.
     """
+
     def __init__(self, spTree, parent):
         super(_BaseShapes, self).__init__(spTree, parent)
         self._spTree = spTree
@@ -194,6 +195,18 @@ class _BaseShapes(ParentedElementProxy):
 
 class _BaseGroupShapes(_BaseShapes):
     """Base class for shape-trees that can add shapes."""
+
+    def __init__(self, grpSp, parent):
+        super(_BaseGroupShapes, self).__init__(grpSp, parent)
+        self._grpSp = grpSp
+
+    def index(self, shape):
+        """Return the index of *shape* in this sequence.
+
+        Raises |ValueError| if *shape* is not in the collection.
+        """
+        shape_elms = list(self._element.iter_shape_elms())
+        return shape_elms.index(shape.element)
 
 
 class BasePlaceholders(_BaseShapes):
@@ -577,17 +590,6 @@ class SlideShapes(_BaseGroupShapes):
         """
         for placeholder in slide_layout.iter_cloneable_placeholders():
             self.clone_placeholder(placeholder)
-
-    def index(self, shape):
-        """
-        Return the index of *shape* in this sequence, raising |ValueError| if
-        *shape* is not in the collection.
-        """
-        shape_elm = shape.element
-        for idx, elm in enumerate(self._spTree.iter_shape_elms()):
-            if elm is shape_elm:
-                return idx
-        raise ValueError('shape not in collection')
 
     @property
     def placeholders(self):

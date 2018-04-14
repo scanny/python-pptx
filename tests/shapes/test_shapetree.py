@@ -34,12 +34,12 @@ from pptx.shapes.placeholder import (
     NotesSlidePlaceholder
 )
 from pptx.shapes.shapetree import (
-    BasePlaceholders, BaseShapeFactory, _BaseShapes, LayoutPlaceholders,
-    _LayoutShapeFactory, LayoutShapes, MasterPlaceholders,
-    _MasterShapeFactory, MasterShapes, _MoviePicElementCreator,
-    NotesSlidePlaceholders, _NotesSlideShapeFactory, NotesSlideShapes,
-    _SlidePlaceholderFactory, SlidePlaceholders, SlideShapeFactory,
-    SlideShapes
+    BasePlaceholders, BaseShapeFactory, _BaseShapes, GroupShapes,
+    LayoutPlaceholders, _LayoutShapeFactory, LayoutShapes,
+    MasterPlaceholders, _MasterShapeFactory, MasterShapes,
+    _MoviePicElementCreator, NotesSlidePlaceholders, _NotesSlideShapeFactory,
+    NotesSlideShapes, _SlidePlaceholderFactory, SlidePlaceholders,
+    SlideShapeFactory, SlideShapes
 )
 from pptx.shapes.table import Table
 from pptx.slide import SlideLayout, SlideMaster
@@ -231,6 +231,53 @@ class Describe_BaseShapes(object):
     @pytest.fixture
     def shape_(self, request):
         return instance_mock(request, BaseShape)
+
+
+class Describe_BaseGroupShapes(object):
+
+    def it_knows_the_index_of_each_of_its_shapes(self, index_fixture):
+        shapes, shape_, expected_value = index_fixture
+        assert shapes.index(shape_) == expected_value
+
+    def it_raises_on_index_where_shape_not_found(self, index_raises_fixture):
+        shapes, shape_ = index_raises_fixture
+        with pytest.raises(ValueError):
+            shapes.index(shape_)
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 0),
+        ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 1),
+        ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 2),
+        ('p:grpSp/(p:sp,p:sp,p:sp)', GroupShapes, 0),
+        ('p:grpSp/(p:sp,p:sp,p:sp)', GroupShapes, 1),
+        ('p:grpSp/(p:sp,p:sp,p:sp)', GroupShapes, 2),
+    ])
+    def index_fixture(self, request, shape_):
+        grpSp_cxml, ShapesCls, idx = request.param
+        grpSp = element(grpSp_cxml)
+        sps = grpSp.xpath('p:sp')
+        shapes = ShapesCls(grpSp, None)
+        shape_.element = sps[idx]
+        expected_value = idx
+        return shapes, shape_, expected_value
+
+    @pytest.fixture(params=[
+        ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes),
+        ('p:grpSp/(p:sp,p:sp,p:sp)',  GroupShapes),
+    ])
+    def index_raises_fixture(self, request, shape_):
+        grpSp_cxml, ShapesCls = request.param
+        shapes = SlideShapes(element(grpSp_cxml), None)
+        shape_.element = element('p:sp')
+        return shapes, shape_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def shape_(self, request):
+        return instance_mock(request, Shape)
 
 
 class DescribeBasePlaceholders(object):
@@ -679,15 +726,6 @@ class DescribeSlideShapes(object):
         shapes.clone_layout_placeholders(slide_layout_)
         assert shapes.clone_placeholder.call_args_list == calls
 
-    def it_knows_the_index_of_each_shape(self, index_fixture):
-        shapes, shape_, expected_value = index_fixture
-        assert shapes.index(shape_) == expected_value
-
-    def it_raises_on_index_where_shape_not_found(self, index_raises_fixture):
-        shapes, shape_ = index_raises_fixture
-        with pytest.raises(ValueError):
-            shapes.index(shape_)
-
     def it_adds_a_chart_graphic_frame_to_help(self, add_cht_gr_frm_fixture):
         shapes, rId, x, y, cx, cy, graphic_frame_, expected_xml = (
             add_cht_gr_frm_fixture
@@ -862,23 +900,6 @@ class DescribeSlideShapes(object):
         shapes = SlideShapes(None, None)
         sp = element('p:sp')
         return shapes, sp, SlideShapeFactory_, shape_
-
-    @pytest.fixture(params=[0, 1, 2])
-    def index_fixture(self, request, shape_):
-        idx = request.param
-        spTree = element('p:spTree/(p:sp,p:sp,p:sp)')
-        sps = spTree.xpath('p:sp')
-        shapes = SlideShapes(spTree, None)
-        shape_.element = sps[idx]
-        expected_value = idx
-        return shapes, shape_, expected_value
-
-    @pytest.fixture
-    def index_raises_fixture(self, shape_):
-        spTree = element('p:spTree/(p:sp,p:sp,p:sp)')
-        shapes = SlideShapes(spTree, None)
-        shape_.element = element('p:sp')
-        return shapes, shape_
 
     @pytest.fixture
     def movie_fixture(self, _MoviePicElementCreator_, _add_video_timing_,
