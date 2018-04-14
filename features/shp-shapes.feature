@@ -4,6 +4,15 @@ Feature: Access a shape on a slide
   I need ways to access a shape on a slide
 
 
+  @wip
+  Scenario: GroupShapes is a sequence
+    Given a GroupShapes object of length 3 as shapes
+     Then len(shapes) == 3
+      And shapes[1] is a Shape object
+      And iterating shapes produces 3 objects that subclass BaseShape
+      And shapes.index(shape) for each shape matches its sequence position
+
+
   Scenario: LayoutPlaceholders is a sequence
     Given a LayoutPlaceholders object of length 2 as shapes
      Then len(shapes) == 2
@@ -39,7 +48,7 @@ Feature: Access a shape on a slide
      Then len(shapes) == 6
       And shapes[4] is a GraphicFrame object
       And iterating shapes produces 6 objects that subclass BaseShape
-      And the index of each shape matches its position in the sequence
+      And shapes.index(shape) for each shape matches its sequence position
 
 
   Scenario Outline: SlideShapes.add_chart() (category chart)

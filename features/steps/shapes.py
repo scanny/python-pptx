@@ -19,6 +19,12 @@ from helpers import test_file, test_pptx, test_text
 
 # given ===================================================
 
+@given('a GroupShapes object of length 3 as shapes')
+def given_a_GroupShapes_object_of_length_3_as_shapes(context):
+    prs = Presentation(test_pptx('shp-groupshape'))
+    group_shape = prs.slides[0].shapes[0]
+    context.shapes = group_shape.shapes
+
 
 @given('a LayoutPlaceholders object of length 2 as shapes')
 def given_a_LayoutPlaceholders_object_of_length_2_as_shapes(context):
@@ -216,18 +222,18 @@ def then_shapes_get_PP_PLACEHOLDER_BODY_is_the_body_ph(context):
     assert body_placeholder._element is shapes[1]._element
 
 
+@then('shapes.index(shape) for each shape matches its sequence position')
+def then_shapes_index_for_each_shape_matches_sequence_position(context):
+    shapes = context.shapes
+    for idx, shape in enumerate(shapes):
+        assert idx == shapes.index(shape), (
+            "index doesn't match for idx == %s" % idx
+        )
+
+
 @then('shapes.title is the title placeholder')
 def then_shapes_title_is_the_title_placeholder(context):
     shapes = context.shapes
     title_placeholder = shapes.title
     assert title_placeholder.element is shapes[0].element
     assert title_placeholder.shape_id == 4
-
-
-@then('the index of each shape matches its position in the sequence')
-def then_index_of_each_shape_matches_its_position_in_the_sequence(context):
-    shapes = context.shapes
-    for idx, shape in enumerate(shapes):
-        assert idx == shapes.index(shape), (
-            "index doesn't match for idx == %s" % idx
-        )
