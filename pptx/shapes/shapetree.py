@@ -232,7 +232,13 @@ class _BaseGroupShapes(_BaseShapes):
         The `p:graphicFrame` element has the specified position and size and
         refers to the chart part identified by *rId*.
         """
-        raise NotImplementedError
+        shape_id = self._next_shape_id
+        name = 'Chart %d' % (shape_id-1)
+        graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
+            shape_id, name, rId, x, y, cx, cy
+        )
+        self._spTree.append(graphicFrame)
+        return graphicFrame
 
     def _recalculate_extents(self):
         """Adjust position and size to incorporate all contained shapes.
@@ -630,29 +636,6 @@ class SlideShapes(_BaseGroupShapes):
             if elm.ph_idx == 0:
                 return self._shape_factory(elm)
         return None
-
-    def _add_chart_graphicFrame(self, rId, x, y, cx, cy):
-        """
-        Add a new ``<p:graphicFrame>`` element to this shape tree having the
-        specified position and size and referring to the chart part
-        identified by *rId*.
-        """
-        shape_id = self._next_shape_id
-        name = 'Chart %d' % (shape_id-1)
-        graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
-            shape_id, name, rId, x, y, cx, cy
-        )
-        self._spTree.append(graphicFrame)
-        return graphicFrame
-
-    def _add_chart_graphic_frame(self, rId, x, y, cx, cy):
-        """
-        Return a |GraphicFrame| object having the specified position and size
-        and referring to the chart part identified by *rId*.
-        """
-        graphicFrame = self._add_chart_graphicFrame(rId, x, y, cx, cy)
-        graphic_frame = self._shape_factory(graphicFrame)
-        return graphic_frame
 
     def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
         """

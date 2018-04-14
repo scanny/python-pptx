@@ -12,7 +12,6 @@ Feature: Access a shape on a slide
       And shapes.index(shape) for each shape matches its sequence position
 
 
-  @wip
   Scenario: GroupShapes.add_chart()
     Given a GroupShapes object as shapes
      When I assign shapes.add_chart() to shape

@@ -262,6 +262,14 @@ class Describe_BaseGroupShapes(object):
         with pytest.raises(ValueError):
             shapes.index(shape_)
 
+    def it_adds_a_chart_graphicFrame_to_help(self, add_cht_gr_frm_fixture):
+        shapes, rId, x, y, cx, cy, expected_xml = add_cht_gr_frm_fixture
+
+        graphicFrame = shapes._add_chart_graphicFrame(rId, x, y, cx, cy)
+
+        assert shapes._element.xml == expected_xml
+        assert graphicFrame is shapes._element.xpath('p:graphicFrame')[0]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -282,6 +290,27 @@ class Describe_BaseGroupShapes(object):
             shapes, chart_type, x, y, cx, cy, chart_data_, rId,
             graphicFrame, graphic_frame_
         )
+
+    @pytest.fixture
+    def add_cht_gr_frm_fixture(self):
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
+        expected_xml = (
+            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
+            'onml/2006/main">\n  <p:graphicFrame xmlns:a="http://schemas.ope'
+            'nxmlformats.org/drawingml/2006/main">\n    <p:nvGraphicFramePr>'
+            '\n      <p:cNvPr id="1" name="Chart 0"/>\n      <p:cNvGraphicFr'
+            'amePr>\n        <a:graphicFrameLocks noGrp="1"/>\n      </p:cNv'
+            'GraphicFramePr>\n      <p:nvPr/>\n    </p:nvGraphicFramePr>\n  '
+            '  <p:xfrm>\n      <a:off x="1" y="2"/>\n      <a:ext cx="3" cy='
+            '"4"/>\n    </p:xfrm>\n    <a:graphic>\n      <a:graphicData uri'
+            '="http://schemas.openxmlformats.org/drawingml/2006/chart">\n   '
+            '     <c:chart xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/offi'
+            'ceDocument/2006/relationships" r:id="rId42"/>\n      </a:graphi'
+            'cData>\n    </a:graphic>\n  </p:graphicFrame>\n</p:spTree>'
+        )
+        return shapes, rId, x, y, cx, cy, expected_xml
 
     @pytest.fixture(params=[
         ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 0),
@@ -782,18 +811,6 @@ class DescribeSlideShapes(object):
         shapes.clone_layout_placeholders(slide_layout_)
         assert shapes.clone_placeholder.call_args_list == calls
 
-    def it_adds_a_chart_graphic_frame_to_help(self, add_cht_gr_frm_fixture):
-        shapes, rId, x, y, cx, cy, graphic_frame_, expected_xml = (
-            add_cht_gr_frm_fixture
-        )
-
-        graphic_frame = shapes._add_chart_graphic_frame(rId, x, y, cx, cy)
-
-        graphicFrame = shapes._element.xpath('p:graphicFrame')[0]
-        shapes._shape_factory.assert_called_once_with(shapes, graphicFrame)
-        assert graphic_frame is graphic_frame_
-        assert shapes._element.xml == expected_xml
-
     def it_adds_a_cxnSp_to_help(self, add_cxnSp_fixture):
         shapes, connector_type, begin_x, begin_y = add_cxnSp_fixture[:4]
         end_x, end_y, expected_xml = add_cxnSp_fixture[4:]
@@ -811,28 +828,6 @@ class DescribeSlideShapes(object):
         assert sld.xml == expected_xml
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def add_cht_gr_frm_fixture(self, graphic_frame_, _shape_factory_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
-        expected_xml = (
-            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
-            'onml/2006/main">\n  <p:graphicFrame xmlns:a="http://schemas.ope'
-            'nxmlformats.org/drawingml/2006/main">\n    <p:nvGraphicFramePr>'
-            '\n      <p:cNvPr id="1" name="Chart 0"/>\n      <p:cNvGraphicFr'
-            'amePr>\n        <a:graphicFrameLocks noGrp="1"/>\n      </p:cNv'
-            'GraphicFramePr>\n      <p:nvPr/>\n    </p:nvGraphicFramePr>\n  '
-            '  <p:xfrm>\n      <a:off x="1" y="2"/>\n      <a:ext cx="3" cy='
-            '"4"/>\n    </p:xfrm>\n    <a:graphic>\n      <a:graphicData uri'
-            '="http://schemas.openxmlformats.org/drawingml/2006/chart">\n   '
-            '     <c:chart xmlns:c="http://schemas.openxmlformats.org/drawin'
-            'gml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/offi'
-            'ceDocument/2006/relationships" r:id="rId42"/>\n      </a:graphi'
-            'cData>\n    </a:graphic>\n  </p:graphicFrame>\n</p:spTree>'
-        )
-        _shape_factory_.return_value = graphic_frame_
-        return shapes, rId, x, y, cx, cy, graphic_frame_, expected_xml
 
     @pytest.fixture(params=[
         (1, 2, 3, 5,
@@ -1083,10 +1078,6 @@ class DescribeSlideShapes(object):
     @pytest.fixture
     def FreeformBuilder_new_(self, request):
         return method_mock(request, FreeformBuilder, 'new')
-
-    @pytest.fixture
-    def graphic_frame_(self, request):
-        return instance_mock(request, GraphicFrame)
 
     @pytest.fixture
     def image_part_(self, request):
