@@ -200,6 +200,24 @@ class _BaseGroupShapes(_BaseShapes):
         super(_BaseGroupShapes, self).__init__(grpSp, parent)
         self._grpSp = grpSp
 
+    def add_chart(self, chart_type, x, y, cx, cy, chart_data):
+        """Add a new chart of *chart_type* to the slide.
+
+        The chart is positioned at (*x*, *y*), has size (*cx*, *cy*), and
+        depicts *chart_data*. *chart_type* is one of the :ref:`XlChartType`
+        enumeration values. *chart_data* is a |ChartData| object populated
+        with the categories and series values for the chart.
+
+        Note that a |GraphicFrame| shape object is returned, not the |Chart|
+        object contained in that graphic frame shape. The chart object may be
+        accessed using the :attr:`chart` property of the returned
+        |GraphicFrame| object.
+        """
+        rId = self.part.add_chart_part(chart_type, chart_data)
+        graphicFrame = self._add_chart_graphicFrame(rId, x, y, cx, cy)
+        self._recalculate_extents()
+        return self._shape_factory(graphicFrame)
+
     def index(self, shape):
         """Return the index of *shape* in this sequence.
 
@@ -207,6 +225,24 @@ class _BaseGroupShapes(_BaseShapes):
         """
         shape_elms = list(self._element.iter_shape_elms())
         return shape_elms.index(shape.element)
+
+    def _add_chart_graphicFrame(self, rId, x, y, cx, cy):
+        """Return new `p:graphicFrame` element appended to this shape tree.
+
+        The `p:graphicFrame` element has the specified position and size and
+        refers to the chart part identified by *rId*.
+        """
+        raise NotImplementedError
+
+    def _recalculate_extents(self):
+        """Adjust position and size to incorporate all contained shapes.
+
+        This would typically be called when a contained shape is added,
+        removed, or its position or size updated.
+        """
+        # ---default behavior is to do nothing, GroupShapes overrides to
+        #    produce the distinctive behavior of groups and subgroups.---
+        pass
 
 
 class BasePlaceholders(_BaseShapes):
@@ -452,21 +488,6 @@ class SlideShapes(_BaseGroupShapes):
     The first shape in the sequence is the backmost in z-order and the last
     shape is topmost. Supports indexed access, len(), index(), and iteration.
     """
-
-    def add_chart(self, chart_type, x, y, cx, cy, chart_data):
-        """
-        Add a new chart of *chart_type* to the slide, positioned at (*x*,
-        *y*), having size (*cx*, *cy*), and depicting *chart_data*.
-        *chart_type* is one of the :ref:`XlChartType` enumeration values.
-        *chart_data* is a |ChartData| object populated with the categories
-        and series values for the chart. Note that a |GraphicFrame| shape
-        object is returned, not the |Chart| object contained in that graphic
-        frame shape. The chart object may be accessed using the :attr:`chart`
-        property of the returned |GraphicFrame| object.
-        """
-        rId = self.part.add_chart_part(chart_type, chart_data)
-        graphic_frame = self._add_chart_graphic_frame(rId, x, y, cx, cy)
-        return graphic_frame
 
     def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
         """

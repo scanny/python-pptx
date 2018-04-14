@@ -34,8 +34,8 @@ from pptx.shapes.placeholder import (
     NotesSlidePlaceholder
 )
 from pptx.shapes.shapetree import (
-    BasePlaceholders, BaseShapeFactory, _BaseShapes, GroupShapes,
-    LayoutPlaceholders, _LayoutShapeFactory, LayoutShapes,
+    _BaseGroupShapes, BasePlaceholders, BaseShapeFactory, _BaseShapes,
+    GroupShapes, LayoutPlaceholders, _LayoutShapeFactory, LayoutShapes,
     MasterPlaceholders, _MasterShapeFactory, MasterShapes,
     _MoviePicElementCreator, NotesSlidePlaceholders, _NotesSlideShapeFactory,
     NotesSlideShapes, _SlidePlaceholderFactory, SlidePlaceholders,
@@ -235,6 +235,24 @@ class Describe_BaseShapes(object):
 
 class Describe_BaseGroupShapes(object):
 
+    def it_can_add_a_chart(self, add_chart_fixture):
+        shapes, chart_type, x, y, cx, cy, chart_data_ = add_chart_fixture[:7]
+        rId_, graphicFrame, graphic_frame_ = add_chart_fixture[7:]
+
+        graphic_frame = shapes.add_chart(
+            chart_type, x, y, cx, cy, chart_data_
+        )
+
+        shapes.part.add_chart_part.assert_called_once_with(
+            chart_type, chart_data_
+        )
+        shapes._add_chart_graphicFrame.assert_called_once_with(
+            shapes, rId_, x, y, cx, cy
+        )
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, graphicFrame)
+        assert graphic_frame is graphic_frame_
+
     def it_knows_the_index_of_each_of_its_shapes(self, index_fixture):
         shapes, shape_, expected_value = index_fixture
         assert shapes.index(shape_) == expected_value
@@ -245,6 +263,25 @@ class Describe_BaseGroupShapes(object):
             shapes.index(shape_)
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_chart_fixture(
+            self, chart_data_, _add_chart_graphicFrame_, graphic_frame_,
+            part_prop_, slide_part_, _recalculate_extents_, _shape_factory_):
+        shapes = _BaseGroupShapes(None, None)
+        chart_type = 0
+        rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
+        graphicFrame = element('p:graphicFrame')
+
+        part_prop_.return_value = slide_part_
+        slide_part_.add_chart_part.return_value = rId
+        _add_chart_graphicFrame_.return_value = graphicFrame
+        _shape_factory_.return_value = graphic_frame_
+
+        return (
+            shapes, chart_type, x, y, cx, cy, chart_data_, rId,
+            graphicFrame, graphic_frame_
+        )
 
     @pytest.fixture(params=[
         ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 0),
@@ -276,8 +313,43 @@ class Describe_BaseGroupShapes(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def _add_chart_graphicFrame_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_add_chart_graphicFrame',
+            autospec=True
+        )
+
+    @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, ChartData)
+
+    @pytest.fixture
+    def graphic_frame_(self, request):
+        return instance_mock(request, GraphicFrame)
+
+    @pytest.fixture
+    def part_prop_(self, request):
+        return property_mock(request, _BaseGroupShapes, 'part')
+
+    @pytest.fixture
+    def _recalculate_extents_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_recalculate_extents', autospec=True
+        )
+
+    @pytest.fixture
     def shape_(self, request):
         return instance_mock(request, Shape)
+
+    @pytest.fixture
+    def _shape_factory_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_shape_factory', autospec=True
+        )
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
 
 
 class DescribeBasePlaceholders(object):
@@ -602,22 +674,6 @@ class DescribeSlideShapeFactory(object):
 
 class DescribeSlideShapes(object):
 
-    def it_can_add_a_chart(self, add_chart_fixture):
-        shapes, chart_type, x, y, cx, cy = add_chart_fixture[:6]
-        chart_data_, rId_, graphic_frame_ = add_chart_fixture[6:]
-
-        graphic_frame = shapes.add_chart(
-            chart_type, x, y, cx, cy, chart_data_
-        )
-
-        shapes.part.add_chart_part.assert_called_once_with(
-            chart_type, chart_data_
-        )
-        shapes._add_chart_graphic_frame.assert_called_once_with(
-            shapes, rId_, x, y, cx, cy
-        )
-        assert graphic_frame is graphic_frame_
-
     def it_provides_access_to_its_shape_factory(self, factory_fixture):
         shapes, sp, SlideShapeFactory_, shape_ = factory_fixture
         shape = shapes._shape_factory(sp)
@@ -755,19 +811,6 @@ class DescribeSlideShapes(object):
         assert sld.xml == expected_xml
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def add_chart_fixture(
-            self, chart_data_, _add_chart_graphic_frame_, graphic_frame_,
-            part_prop_):
-        shapes = SlideShapes(None, None)
-        chart_type = 0
-        rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
-        part_prop_.return_value.add_chart_part.return_value = rId
-        return (
-            shapes, chart_type, x, y, cx, cy, chart_data_, rId,
-            graphic_frame_
-        )
 
     @pytest.fixture
     def add_cht_gr_frm_fixture(self, graphic_frame_, _shape_factory_):
@@ -1014,19 +1057,6 @@ class DescribeSlideShapes(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def _add_chart_graphicFrame_(self, request):
-        return method_mock(
-            request, SlideShapes, '_add_chart_graphicFrame', autospec=True
-        )
-
-    @pytest.fixture
-    def _add_chart_graphic_frame_(self, request, graphic_frame_):
-        return method_mock(
-            request, SlideShapes, '_add_chart_graphic_frame',
-            autospec=True, return_value=graphic_frame_
-        )
-
-    @pytest.fixture
     def _add_cxnSp_(self, request):
         return method_mock(request, SlideShapes, '_add_cxnSp', autospec=True)
 
@@ -1039,10 +1069,6 @@ class DescribeSlideShapes(object):
     @pytest.fixture
     def builder_(self, request):
         return instance_mock(request, FreeformBuilder)
-
-    @pytest.fixture
-    def chart_data_(self, request):
-        return instance_mock(request, ChartData)
 
     @pytest.fixture
     def clone_placeholder_(self, request):
