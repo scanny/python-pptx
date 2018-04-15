@@ -235,9 +235,5 @@ def an_spPr():
     return CT_ShapePropertiesBuilder()
 
 
-def an_spTree():
-    return CT_GroupShapeBuilder('p:spTree')
-
-
 def an_xfrm():
     return CT_Transform2DBuilder('a:xfrm')

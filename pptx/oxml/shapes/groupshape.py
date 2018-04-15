@@ -1,19 +1,20 @@
 # encoding: utf-8
 
-"""
-lxml custom element classes for shape tree-related XML elements.
-"""
+"""lxml custom element classes for shape-tree-related XML elements."""
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from .autoshape import CT_Shape
-from .connector import CT_Connector
-from ...enum.shapes import MSO_CONNECTOR_TYPE
-from .graphfrm import CT_GraphicalObjectFrame
-from ..ns import qn
-from .picture import CT_Picture
-from .shared import BaseShapeElement
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
+from pptx.enum.shapes import MSO_CONNECTOR_TYPE
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.shapes.autoshape import CT_Shape
+from pptx.oxml.shapes.connector import CT_Connector
+from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
+from pptx.oxml.shapes.picture import CT_Picture
+from pptx.oxml.shapes.shared import BaseShapeElement
+from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
 
 
 class CT_GroupShape(BaseShapeElement):
@@ -64,7 +65,11 @@ class CT_GroupShape(BaseShapeElement):
         The element contains no sub-shapes, is positioned at (0, 0), and has
         width and height of zero.
         """
-        raise NotImplementedError
+        shape_id = self._next_shape_id
+        name = 'Group %d' % (shape_id-1,)
+        grpSp = CT_GroupShape.new_grpSp(shape_id, name)
+        self.insert_element_before(grpSp, 'p:extLst')
+        return grpSp
 
     def add_pic(self, id_, name, desc, rId, x, y, cx, cy):
         """
@@ -129,6 +134,29 @@ class CT_GroupShape(BaseShapeElement):
         for elm in self.iterchildren():
             if elm.tag in self._shape_tags:
                 yield elm
+
+    @classmethod
+    def new_grpSp(cls, id_, name):
+        """Return new "loose" `p:grpSp` element having *id_* and *name*."""
+        xml = (
+            '<p:grpSp %s>\n'
+            '  <p:nvGrpSpPr>\n'
+            '    <p:cNvPr id="%%d" name="%%s"/>\n'
+            '    <p:cNvGrpSpPr/>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvGrpSpPr>\n'
+            '  <p:grpSpPr>\n'
+            '    <a:xfrm>\n'
+            '      <a:off x="0" y="0"/>\n'
+            '      <a:ext cx="0" cy="0"/>\n'
+            '      <a:chOff x="0" y="0"/>\n'
+            '      <a:chExt cx="0" cy="0"/>\n'
+            '    </a:xfrm>\n'
+            '  </p:grpSpPr>\n'
+            '</p:grpSp>' % nsdecls('a', 'p', 'r')
+        ) % (id_, name)
+        grpSp = parse_xml(xml)
+        return grpSp
 
     @property
     def xfrm(self):

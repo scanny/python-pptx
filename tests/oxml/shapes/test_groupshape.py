@@ -1,10 +1,10 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.oxml.shapetree module
-"""
+"""Test suite for pptx.oxml.shapes.shapetree module."""
 
-from __future__ import absolute_import, print_function
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 import pytest
 
@@ -13,7 +13,7 @@ from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
 
-from ..unitdata.shape import an_spTree
+from ...unitutil.cxml import element, xml
 from ...unitutil.mock import class_mock, instance_mock, method_mock
 
 
@@ -34,6 +34,14 @@ class DescribeCT_GroupShape(object):
             graphicFrame_, 'p:extLst'
         )
         assert graphicFrame is graphicFrame_
+
+    def it_can_add_a_grpSp_element(self, add_grpSp_fixture):
+        spTree, expected_grpSp_xml, expected_xml = add_grpSp_fixture
+
+        grpSp = spTree.add_grpSp()
+
+        assert grpSp.xml == expected_grpSp_xml
+        assert spTree.xml == expected_xml
 
     def it_can_add_a_pic_element_representing_a_picture(self, add_pic_fixt):
         spTree, id_, name, desc, rId, x, y, cx, cy = add_pic_fixt[:9]
@@ -87,6 +95,28 @@ class DescribeCT_GroupShape(object):
             spTree, id_, name, prst, x, y, cx, cy, CT_Shape_,
             insert_element_before_, sp_
         )
+
+    @pytest.fixture
+    def add_grpSp_fixture(self):
+        spTree = element('p:spTree{a:b=c,r:s=t}')
+        expected_grpSp_xml = (
+            # ---can't get the namespaces right with cxml, using full text--
+            '<p:grpSp xmlns:p="http://schemas.openxmlformats.org/presentatio'
+            'nml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawi'
+            'ngml/2006/main" xmlns:r="http://schemas.openxmlformats.org/offi'
+            'ceDocument/2006/relationships">\n  <p:nvGrpSpPr>\n    <p:cNvPr '
+            'id="1" name="Group 0"/>\n    <p:cNvGrpSpPr/>\n    <p:nvPr/>\n  '
+            '</p:nvGrpSpPr>\n  <p:grpSpPr>\n    <a:xfrm>\n      <a:off x="0"'
+            ' y="0"/>\n      <a:ext cx="0" cy="0"/>\n      <a:chOff x="0" y='
+            '"0"/>\n      <a:chExt cx="0" cy="0"/>\n    </a:xfrm>\n  </p:grp'
+            'SpPr>\n</p:grpSp>\n'
+        )
+        expected_xml = xml(
+            'p:spTree{a:b=c,r:s=t}/p:grpSp/(p:nvGrpSpPr/(p:cNvPr{id=1,name=G'
+            'roup 0},p:cNvGrpSpPr,p:nvPr),p:grpSpPr/a:xfrm/(a:off{x=0,y=0},a'
+            ':ext{cx=0,cy=0},a:chOff{x=0,y=0},a:chExt{cx=0,cy=0}))'
+        )
+        return spTree, expected_grpSp_xml, expected_xml
 
     @pytest.fixture
     def add_pic_fixt(
@@ -180,4 +210,4 @@ class DescribeCT_GroupShape(object):
 
     @pytest.fixture
     def spTree(self):
-        return an_spTree().with_nsdecls().element
+        return element('p:spTree')
