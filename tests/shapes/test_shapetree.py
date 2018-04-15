@@ -17,6 +17,7 @@ from pptx.enum.shapes import (
 )
 from pptx.oxml import parse_xml
 from pptx.oxml.shapes.autoshape import CT_Shape
+from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
 from pptx.media import SPEAKER_IMAGE_BYTES, Video
@@ -268,6 +269,16 @@ class Describe_BaseGroupShapes(object):
         shapes._shape_factory.assert_called_once_with(shapes, cxnSp_)
         assert connector is connector_
 
+    def it_can_add_a_group_shape(self, group_fixture):
+        shapes, spTree, grpSp, group_shape_ = group_fixture
+
+        group_shape = shapes.add_group_shape()
+
+        spTree.add_grpSp.assert_called_once_with(spTree)
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, grpSp)
+        assert group_shape is group_shape_
+
     def it_knows_the_index_of_each_of_its_shapes(self, index_fixture):
         shapes, shape_, expected_value = index_fixture
         assert shapes.index(shape_) == expected_value
@@ -381,6 +392,18 @@ class Describe_BaseGroupShapes(object):
             connector_
         )
 
+    @pytest.fixture
+    def group_fixture(self, CT_GroupShape_add_grpSp_, _shape_factory_,
+                      group_shape_, _recalculate_extents_):
+        spTree = element('p:spTree{id=2e838acdc755e83113ed03904d2fe081f}')
+        grpSp = element('p:grpSp{id=052874e154b48f9bec4266f80913cae38f}')
+        shapes = _BaseGroupShapes(spTree, None)
+
+        CT_GroupShape_add_grpSp_.return_value = grpSp
+        _shape_factory_.return_value = group_shape_
+
+        return shapes, spTree, grpSp, group_shape_
+
     @pytest.fixture(params=[
         ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 0),
         ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 1),
@@ -432,8 +455,18 @@ class Describe_BaseGroupShapes(object):
         return instance_mock(request, Connector)
 
     @pytest.fixture
+    def CT_GroupShape_add_grpSp_(self, request):
+        return method_mock(
+            request, CT_GroupShape, 'add_grpSp', autospec=True
+        )
+
+    @pytest.fixture
     def graphic_frame_(self, request):
         return instance_mock(request, GraphicFrame)
+
+    @pytest.fixture
+    def group_shape_(self, request):
+        return instance_mock(request, GroupShape)
 
     @pytest.fixture
     def part_prop_(self, request):

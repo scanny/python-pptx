@@ -58,6 +58,14 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
+    def add_grpSp(self):
+        """Return `p:grpSp` element newly appended to this shape tree.
+
+        The element contains no sub-shapes, is positioned at (0, 0), and has
+        width and height of zero.
+        """
+        raise NotImplementedError
+
     def add_pic(self, id_, name, desc, rId, x, y, cx, cy):
         """
         Append a ``<p:pic>`` shape to the group/shapetree having properties

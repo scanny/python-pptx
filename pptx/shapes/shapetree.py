@@ -232,6 +232,19 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(cxnSp)
 
+    def add_group_shape(self):
+        """Return a |GroupShape| object newly appended to this shape tree.
+
+        The group shape is empty and must be populated with shapes using
+        methods on its shape tree, available on its `.shapes` property. The
+        position and extents of the group shape are determined by the shapes
+        it contains; its position and extents are recalculated each time
+        a shape is added to it.
+        """
+        grpSp = self._element.add_grpSp()
+        self._recalculate_extents()
+        return self._shape_factory(grpSp)
+
     def index(self, shape):
         """Return the index of *shape* in this sequence.
 
