@@ -321,6 +321,16 @@ class Describe_BaseGroupShapes(object):
         assert cxnSp is shapes._element.xpath('p:cxnSp')[0]
         assert cxnSp.xml == expected_xml
 
+    def it_adds_a_pic_element_to_help(self, add_pic_fixture):
+        shapes, image_part_, rId, x, y, cx, cy = add_pic_fixture[:7]
+        expected_xml = add_pic_fixture[7]
+
+        pic = shapes._add_pic_from_image_part(image_part_, rId, x, y, cx, cy)
+
+        image_part_.scale.assert_called_once_with(cx, cy)
+        assert shapes._element.xml == expected_xml
+        assert pic is shapes._element.xpath('p:pic')[0]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -391,6 +401,31 @@ class Describe_BaseGroupShapes(object):
         )
 
     @pytest.fixture
+    def add_pic_fixture(self, image_part_, _next_shape_id_prop_):
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        rId, x, y, cx, cy = 'rId24', 10, 11, 12, 13
+
+        _next_shape_id_prop_.return_value = 42
+        image_part_.scale.return_value = (101, 102)
+        image_part_.desc = 'sprocket.jpg'
+        expected_xml = (
+            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
+            'onml/2006/main">\n  <p:pic xmlns:a="http://schemas.openxmlforma'
+            'ts.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlform'
+            'ats.org/officeDocument/2006/relationships">\n    <p:nvPicPr>\n '
+            '     <p:cNvPr id="42" name="Picture 41" descr="sprocket.jpg"/>'
+            '\n      <p:cNvPicPr>\n        <a:picLocks noChangeAspect="1"/>'
+            '\n      </p:cNvPicPr>\n      <p:nvPr/>\n    </p:nvPicPr>\n    <'
+            'p:blipFill>\n      <a:blip r:embed="rId24"/>\n      <a:stretch>'
+            '\n        <a:fillRect/>\n      </a:stretch>\n    </p:blipFill>'
+            '\n    <p:spPr>\n      <a:xfrm>\n        <a:off x="10" y="11"/>'
+            '\n        <a:ext cx="101" cy="102"/>\n      </a:xfrm>\n      <a'
+            ':prstGeom prst="rect">\n        <a:avLst/>\n      </a:prstGeom>'
+            '\n    </p:spPr>\n  </p:pic>\n</p:spTree>'
+        )
+        return shapes, image_part_, rId, x, y, cx, cy, expected_xml
+
+    @pytest.fixture
     def connector_fixture(self, _add_cxnSp_, _shape_factory_,
                           _recalculate_extents_, connector_):
         shapes = _BaseGroupShapes(element('p:spTree'), None)
@@ -444,6 +479,10 @@ class Describe_BaseGroupShapes(object):
         shapes = SlideShapes(element(grpSp_cxml), None)
         shape_.element = element('p:sp')
         return shapes, shape_
+
+    @pytest.fixture
+    def _next_shape_id_prop_(self, request):
+        return property_mock(request, _BaseGroupShapes, '_next_shape_id')
 
     @pytest.fixture
     def picture_fixture(self, part_prop_, slide_part_, image_part_,

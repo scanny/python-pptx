@@ -311,7 +311,14 @@ class _BaseGroupShapes(_BaseShapes):
         appended to the shape tree, causing it to be displayed first in
         z-order on the slide.
         """
-        raise NotImplementedError
+        id_ = self._next_shape_id
+        scaled_cx, scaled_cy = image_part.scale(cx, cy)
+        name = 'Picture %d' % (id_-1)
+        desc = image_part.desc
+        pic = self._grpSp.add_pic(
+            id_, name, desc, rId, x, y, scaled_cx, scaled_cy
+        )
+        return pic
 
     def _recalculate_extents(self):
         """Adjust position and size to incorporate all contained shapes.
@@ -696,24 +703,6 @@ class SlideShapes(_BaseGroupShapes):
             _id, name, rows, cols, x, y, cx, cy
         )
         return graphicFrame
-
-    def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):
-        """
-        Return a newly added ``<p:pic>`` element specifying a picture shape
-        displaying *image_part* with size and position specified by *x*, *y*,
-        *cx*, and *cy*. The element is appended to the shape tree, causing it
-        to be displayed first in z-order on the slide.
-        """
-        id = self._next_shape_id
-        name = 'Picture %d' % (id-1)
-        desc = image_part.desc
-        scaled_cx, scaled_cy = image_part.scale(cx, cy)
-
-        pic = self._spTree.add_pic(
-            id, name, desc, rId, x, y, scaled_cx, scaled_cy
-        )
-
-        return pic
 
     def _add_sp_from_autoshape_type(self, autoshape_type, x, y, cx, cy):
         """

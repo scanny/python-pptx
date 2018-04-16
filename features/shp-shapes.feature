@@ -33,7 +33,6 @@ Feature: Access a shape on a slide
       And shapes[-1] == shape
 
 
-  @wip
   Scenario: GroupShapes.add_picture()
     Given a GroupShapes object as shapes
      When I assign shapes.add_picture() to shape
