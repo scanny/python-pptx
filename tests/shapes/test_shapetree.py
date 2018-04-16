@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.shapes.shapetree module
-"""
+"""Unit test suite for pptx.shapes.shapetree module"""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
@@ -279,6 +277,22 @@ class Describe_BaseGroupShapes(object):
         shapes._shape_factory.assert_called_once_with(shapes, grpSp)
         assert group_shape is group_shape_
 
+    def it_can_add_a_picture(self, picture_fixture):
+        shapes, image_file, x, y, cx, cy = picture_fixture[:6]
+        image_part_, rId, pic, picture_ = picture_fixture[6:]
+
+        picture = shapes.add_picture(image_file, x, y, cx, cy)
+
+        shapes.part.get_or_add_image_part.assert_called_once_with(
+            image_file
+        )
+        shapes._add_pic_from_image_part.assert_called_once_with(
+            shapes, image_part_, rId, x, y, cx, cy
+        )
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, pic)
+        assert picture is picture_
+
     def it_knows_the_index_of_each_of_its_shapes(self, index_fixture):
         shapes, shape_, expected_value = index_fixture
         assert shapes.index(shape_) == expected_value
@@ -431,6 +445,22 @@ class Describe_BaseGroupShapes(object):
         shape_.element = element('p:sp')
         return shapes, shape_
 
+    @pytest.fixture
+    def picture_fixture(self, part_prop_, slide_part_, image_part_,
+                        _add_pic_from_image_part_, _recalculate_extents_,
+                        _shape_factory_, picture_):
+        shapes = _BaseGroupShapes(None, None)
+        image_file, x, y, cx, cy, rId = 'foobar.png', 1, 2, 3, 4, 'rId42'
+        pic = element('p:pic')
+
+        part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_image_part.return_value = image_part_, rId
+        _add_pic_from_image_part_.return_value = pic
+        _shape_factory_.return_value = picture_
+        return (
+            shapes, image_file, x, y, cx, cy, image_part_, rId, pic, picture_
+        )
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -444,6 +474,13 @@ class Describe_BaseGroupShapes(object):
     def _add_cxnSp_(self, request):
         return method_mock(
             request, _BaseGroupShapes, '_add_cxnSp', autospec=True
+        )
+
+    @pytest.fixture
+    def _add_pic_from_image_part_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_add_pic_from_image_part',
+            autospec=True
         )
 
     @pytest.fixture
@@ -469,8 +506,16 @@ class Describe_BaseGroupShapes(object):
         return instance_mock(request, GroupShape)
 
     @pytest.fixture
+    def image_part_(self, request):
+        return instance_mock(request, ImagePart)
+
+    @pytest.fixture
     def part_prop_(self, request):
         return property_mock(request, _BaseGroupShapes, 'part')
+
+    @pytest.fixture
+    def picture_(self, request):
+        return instance_mock(request, Picture)
 
     @pytest.fixture
     def _recalculate_extents_(self, request):
@@ -869,21 +914,6 @@ class DescribeSlideShapes(object):
         _shape_factory_.assert_called_once_with(shapes, movie_pic)
         assert movie is movie_
 
-    def it_can_add_a_picture_shape(self, picture_fixture):
-        shapes, image_file, x, y, cx, cy, picture_, expected_xml = (
-            picture_fixture
-        )
-
-        picture = shapes.add_picture(image_file, x, y, cx, cy)
-
-        shapes.part.get_or_add_image_part.assert_called_once_with(
-            image_file
-        )
-        pic = shapes._element.xpath('p:pic')[0]
-        shapes._shape_factory.assert_called_once_with(shapes, pic)
-        assert picture is picture_
-        assert shapes._element.xml == expected_xml
-
     def it_can_add_a_table(self, table_fixture):
         shapes, rows, cols, x, y, cx, cy, table_, expected_xml = table_fixture
 
@@ -1003,36 +1033,6 @@ class DescribeSlideShapes(object):
         )
 
     @pytest.fixture
-    def picture_fixture(
-            self, picture_, part_prop_, image_part_, _shape_factory_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        image_file, x, y, cx, cy = 'foobar.png', 1, 2, 3, 4
-        expected_xml = (
-            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
-            'onml/2006/main">\n  <p:pic xmlns:a="http://schemas.openxmlforma'
-            'ts.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlform'
-            'ats.org/officeDocument/2006/relationships">\n    <p:nvPicPr>\n '
-            '     <p:cNvPr id="1" name="Picture 0" descr="Image Description"'
-            '/>\n      <p:cNvPicPr>\n        <a:picLocks noChangeAspect="1"/'
-            '>\n      </p:cNvPicPr>\n      <p:nvPr/>\n    </p:nvPicPr>\n    '
-            '<p:blipFill>\n      <a:blip r:embed="rId42"/>\n      <a:stretch'
-            '>\n        <a:fillRect/>\n      </a:stretch>\n    </p:blipFill>'
-            '\n    <p:spPr>\n      <a:xfrm>\n        <a:off x="1" y="2"/>\n '
-            '       <a:ext cx="101" cy="102"/>\n      </a:xfrm>\n      <a:pr'
-            'stGeom prst="rect">\n        <a:avLst/>\n      </a:prstGeom>\n '
-            '   </p:spPr>\n  </p:pic>\n</p:spTree>'
-        )
-        slide_part_ = part_prop_.return_value
-        get_or_add_image_part_ = slide_part_.get_or_add_image_part
-        get_or_add_image_part_.return_value = image_part_, 'rId42'
-        image_part_.scale.return_value = 101, 102
-        image_part_.desc = 'Image Description'
-        _shape_factory_.return_value = picture_
-        return (
-            shapes, image_file, x, y, cx, cy, picture_, expected_xml
-        )
-
-    @pytest.fixture
     def table_fixture(self, table_, _shape_factory_):
         shapes = SlideShapes(element('p:spTree'), None)
         rows, cols, x, y, cx, cy = 1, 2, 10, 11, 12, 13
@@ -1119,10 +1119,6 @@ class DescribeSlideShapes(object):
         return method_mock(request, FreeformBuilder, 'new')
 
     @pytest.fixture
-    def image_part_(self, request):
-        return instance_mock(request, ImagePart)
-
-    @pytest.fixture
     def movie_(self, request):
         return instance_mock(request, Movie)
 
@@ -1138,16 +1134,6 @@ class DescribeSlideShapes(object):
         return property_mock(
             request, SlideShapes, '_next_shape_id', return_value=shape_id_
         )
-
-    @pytest.fixture
-    def part_prop_(self, request, slide_part_):
-        return property_mock(
-            request, SlideShapes, 'part', return_value=slide_part_
-        )
-
-    @pytest.fixture
-    def picture_(self, request):
-        return instance_mock(request, Picture)
 
     @pytest.fixture
     def placeholder_(self, request):
@@ -1171,10 +1157,6 @@ class DescribeSlideShapes(object):
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayout)
-
-    @pytest.fixture
-    def slide_part_(self, request):
-        return instance_mock(request, SlidePart)
 
     @pytest.fixture
     def SlideShapeFactory_(self, request, shape_):

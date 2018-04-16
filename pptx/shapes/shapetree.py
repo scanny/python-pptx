@@ -245,6 +245,24 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(grpSp)
 
+    def add_picture(self, image_file, left, top, width=None, height=None):
+        """Add picture shape displaying image in *image_file*.
+
+        *image_file* can be either a path to a file (a string) or a file-like
+        object. The picture is positioned with its top-left corner at (*top*,
+        *left*). If *width* and *height* are both |None|, the native size of
+        the image is used. If only one of *width* or *height* is used, the
+        unspecified dimension is calculated to preserve the aspect ratio of
+        the image. If both are specified, the picture is stretched to fit,
+        without regard to its native aspect ratio.
+        """
+        image_part, rId = self.part.get_or_add_image_part(image_file)
+        pic = self._add_pic_from_image_part(
+            image_part, rId, left, top, width, height
+        )
+        self._recalculate_extents()
+        return self._shape_factory(pic)
+
     def index(self, shape):
         """Return the index of *shape* in this sequence.
 
@@ -284,6 +302,16 @@ class _BaseGroupShapes(_BaseShapes):
         return self._element.add_cxnSp(
             id_, name, connector_type, x, y, cx, cy, flipH, flipV
         )
+
+    def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):
+        """Return a newly appended `p:pic` element as specified.
+
+        The `p:pic` element displays the image in *image_part* with size and
+        position specified by *x*, *y*, *cx*, and *cy*. The element is
+        appended to the shape tree, causing it to be displayed first in
+        z-order on the slide.
+        """
+        raise NotImplementedError
 
     def _recalculate_extents(self):
         """Adjust position and size to incorporate all contained shapes.
@@ -568,18 +596,6 @@ class SlideShapes(_BaseGroupShapes):
         self._spTree.append(movie_pic)
         self._add_video_timing(movie_pic)
         return self._shape_factory(movie_pic)
-
-    def add_picture(self, image_file, left, top, width=None, height=None):
-        """
-        Add picture shape displaying image in *image_file*, where
-        *image_file* can be either a path to a file (a string) or a file-like
-        object.
-        """
-        image_part, rId = self.part.get_or_add_image_part(image_file)
-        pic = self._add_pic_from_image_part(
-            image_part, rId, left, top, width, height
-        )
-        return self._shape_factory(pic)
 
     def add_shape(self, autoshape_type_id, left, top, width, height):
         """
