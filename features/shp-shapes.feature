@@ -258,6 +258,7 @@ Feature: Access a shape on a slide
       | python.bmp       | bmp  |
 
 
+  @wip
   Scenario: SlideShapes.add_shape()
     Given a SlideShapes object as shapes
      When I assign shapes.add_shape() to shape

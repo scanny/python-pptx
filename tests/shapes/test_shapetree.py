@@ -21,7 +21,7 @@ from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
 from pptx.media import SPEAKER_IMAGE_BYTES, Video
 from pptx.parts.image import ImagePart
 from pptx.parts.slide import SlidePart
-from pptx.shapes.autoshape import Shape
+from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.freeform import FreeformBuilder
@@ -293,6 +293,20 @@ class Describe_BaseGroupShapes(object):
         shapes._shape_factory.assert_called_once_with(shapes, pic)
         assert picture is picture_
 
+    def it_can_add_a_shape(self, shape_fixture):
+        shapes, autoshape_type_id, x, y, cx, cy = shape_fixture[:6]
+        AutoShapeType_, autoshape_type_, sp, shape_ = shape_fixture[6:]
+
+        shape = shapes.add_shape(autoshape_type_id, x, y, cx, cy)
+
+        AutoShapeType_.assert_called_once_with(autoshape_type_id)
+        shapes._add_sp.assert_called_once_with(
+            shapes, autoshape_type_, x, y, cx, cy
+        )
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, sp)
+        assert shape is shape_
+
     def it_knows_the_index_of_each_of_its_shapes(self, index_fixture):
         shapes, shape_, expected_value = index_fixture
         assert shapes.index(shape_) == expected_value
@@ -500,6 +514,23 @@ class Describe_BaseGroupShapes(object):
             shapes, image_file, x, y, cx, cy, image_part_, rId, pic, picture_
         )
 
+    @pytest.fixture
+    def shape_fixture(self, AutoShapeType_, autoshape_type_, _add_sp_,
+                      _recalculate_extents_, _shape_factory_, shape_):
+        shapes = _BaseGroupShapes(None, None)
+        autoshape_type_id = MSO_AUTO_SHAPE_TYPE.ROUNDED_RECTANGLE
+        x, y, cx, cy = 21, 22, 23, 24
+        sp = element('p:sp')
+
+        AutoShapeType_.return_value = autoshape_type_
+        _add_sp_.return_value = sp
+        _shape_factory_.return_value = shape_
+
+        return (
+            shapes, autoshape_type_id, x, y, cx, cy, AutoShapeType_,
+            autoshape_type_, sp, shape_
+        )
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -521,6 +552,20 @@ class Describe_BaseGroupShapes(object):
             request, _BaseGroupShapes, '_add_pic_from_image_part',
             autospec=True
         )
+
+    @pytest.fixture
+    def _add_sp_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_add_sp', autospec=True
+        )
+
+    @pytest.fixture
+    def autoshape_type_(self, request):
+        return instance_mock(request, AutoShapeType)
+
+    @pytest.fixture
+    def AutoShapeType_(self, request):
+        return class_mock(request, 'pptx.shapes.shapetree.AutoShapeType')
 
     @pytest.fixture
     def chart_data_(self, request):
@@ -911,18 +956,6 @@ class DescribeSlideShapes(object):
         assert _shape_factory_.call_args_list == calls
         assert title_placeholder is shape_
 
-    def it_can_add_an_autoshape(self, autoshape_fixture):
-        shapes, autoshape_type_id, x, y, cx, cy, shape_, expected_xml = (
-            autoshape_fixture
-        )
-
-        shape = shapes.add_shape(autoshape_type_id, x, y, cx, cy)
-
-        sp = shapes._element.xpath('p:sp')[0]
-        shapes._shape_factory.assert_called_once_with(shapes, sp)
-        assert shape is shape_
-        assert shapes._element.xml == expected_xml
-
     def it_can_provide_a_freeform_builder(self, build_fixture):
         shapes, start_x, start_y, scale = build_fixture[:4]
         FreeformBuilder_new_, x_scale, y_scale, builder_ = build_fixture[4:]
@@ -999,32 +1032,6 @@ class DescribeSlideShapes(object):
         pic = element('p:pic/p:nvPicPr/p:cNvPr{id=42}')
         expected_xml = snippets[after_idx]
         return shapes, pic, sld, expected_xml
-
-    @pytest.fixture
-    def autoshape_fixture(self, _shape_factory_, shape_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        autoshape_type_id = MSO_AUTO_SHAPE_TYPE.ROUNDED_RECTANGLE
-        x, y, cx, cy = 1, 2, 3, 4
-        expected_xml = (
-            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
-            'onml/2006/main">\n  <p:sp xmlns:a="http://schemas.openxmlformat'
-            's.org/drawingml/2006/main">\n    <p:nvSpPr>\n      <p:cNvPr id='
-            '"1" name="Rounded Rectangle 0"/>\n      <p:cNvSpPr/>\n      <p:'
-            'nvPr/>\n    </p:nvSpPr>\n    <p:spPr>\n      <a:xfrm>\n        '
-            '<a:off x="1" y="2"/>\n        <a:ext cx="3" cy="4"/>\n      </a'
-            ':xfrm>\n      <a:prstGeom prst="roundRect">\n        <a:avLst/>'
-            '\n      </a:prstGeom>\n    </p:spPr>\n    <p:style>\n      <a:l'
-            'nRef idx="1">\n        <a:schemeClr val="accent1"/>\n      </a:'
-            'lnRef>\n      <a:fillRef idx="3">\n        <a:schemeClr val="ac'
-            'cent1"/>\n      </a:fillRef>\n      <a:effectRef idx="2">\n    '
-            '    <a:schemeClr val="accent1"/>\n      </a:effectRef>\n      <'
-            'a:fontRef idx="minor">\n        <a:schemeClr val="lt1"/>\n     '
-            ' </a:fontRef>\n    </p:style>\n    <p:txBody>\n      <a:bodyPr '
-            'rtlCol="0" anchor="ctr"/>\n      <a:lstStyle/>\n      <a:p>\n  '
-            '      <a:pPr algn="ctr"/>\n      </a:p>\n    </p:txBody>\n  </p'
-            ':sp>\n</p:spTree>'
-        )
-        return shapes, autoshape_type_id, x, y, cx, cy, shape_, expected_xml
 
     @pytest.fixture(params=[
         (0,   0,   1.0,        1.0, 1.0),

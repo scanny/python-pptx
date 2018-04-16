@@ -263,6 +263,17 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(pic)
 
+    def add_shape(self, autoshape_type_id, left, top, width, height):
+        """Return new |Shape| object appended to this shape tree.
+
+        Auto shape is of type specified by *autoshape_type_id* (like
+        ``MSO_SHAPE.RECTANGLE``) and of specified size at specified position.
+        """
+        autoshape_type = AutoShapeType(autoshape_type_id)
+        sp = self._add_sp(autoshape_type, left, top, width, height)
+        self._recalculate_extents()
+        return self._shape_factory(sp)
+
     def index(self, shape):
         """Return the index of *shape* in this sequence.
 
@@ -319,6 +330,14 @@ class _BaseGroupShapes(_BaseShapes):
             id_, name, desc, rId, x, y, scaled_cx, scaled_cy
         )
         return pic
+
+    def _add_sp(self, autoshape_type, x, y, cx, cy):
+        """Return newly-added `p:sp` element as specified.
+
+        `p:sp` element is of *autoshape_type* at position (*x*, *y*) and of
+        size (*cx*, *cy*).
+        """
+        raise NotImplementedError
 
     def _recalculate_extents(self):
         """Adjust position and size to incorporate all contained shapes.
@@ -603,17 +622,6 @@ class SlideShapes(_BaseGroupShapes):
         self._spTree.append(movie_pic)
         self._add_video_timing(movie_pic)
         return self._shape_factory(movie_pic)
-
-    def add_shape(self, autoshape_type_id, left, top, width, height):
-        """
-        Add auto shape of type specified by *autoshape_type_id* (like
-        ``MSO_SHAPE.RECTANGLE``) and of specified size at specified position.
-        """
-        autoshape_type = AutoShapeType(autoshape_type_id)
-        sp = self._add_sp_from_autoshape_type(
-            autoshape_type, left, top, width, height
-        )
-        return self._shape_factory(sp)
 
     def add_table(self, rows, cols, left, top, width, height):
         """
