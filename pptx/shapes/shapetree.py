@@ -284,6 +284,32 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(sp)
 
+    def build_freeform(self, start_x=0, start_y=0, scale=1.0):
+        """Return |FreeformBuilder| object to specify a freeform shape.
+
+        The optional *start_x* and *start_y* arguments specify the starting
+        pen position in local coordinates. They will be rounded to the
+        nearest integer before use and each default to zero.
+
+        The optional *scale* argument specifies the size of local coordinates
+        proportional to slide coordinates (EMU). If the vertical scale is
+        different than the horizontal scale (local coordinate units are
+        "rectangular"), a pair of numeric values can be provided as the
+        *scale* argument, e.g. `scale=(1.0, 2.0)`. In this case the first
+        number is interpreted as the horizontal (X) scale and the second as
+        the vertical (Y) scale.
+
+        A convenient method for calculating scale is to divide a |Length|
+        object by an equivalent count of local coordinate units, e.g.
+        `scale = Inches(1)/1000` for 1000 local units per inch.
+        """
+        try:
+            x_scale, y_scale = scale
+        except TypeError:
+            x_scale = y_scale = scale
+
+        return FreeformBuilder.new(self, start_x, start_y, x_scale, y_scale)
+
     def index(self, shape):
         """Return the index of *shape* in this sequence.
 
@@ -662,32 +688,6 @@ class SlideShapes(_BaseGroupShapes):
         )
         graphic_frame = self._shape_factory(graphicFrame)
         return graphic_frame
-
-    def build_freeform(self, start_x=0, start_y=0, scale=1.0):
-        """Return |FreeformBuilder| object to specify a freeform shape.
-
-        The optional *start_x* and *start_y* arguments specify the starting
-        pen position in local coordinates. They will be rounded to the
-        nearest integer before use and each default to zero.
-
-        The optional *scale* argument specifies the size of local coordinates
-        proportional to slide coordinates (EMU). If the vertical scale is
-        different than the horizontal scale (local coordinate units are
-        "rectangular"), a pair of numeric values can be provided as the
-        *scale* argument, e.g. `scale=(1.0, 2.0)`. In this case the first
-        number is interpreted as the horizontal (X) scale and the second as
-        the vertical (Y) scale.
-
-        A convenient method for calculating scale is to divide a |Length|
-        object by an equivalent count of local coordinate units, e.g. `scale
-        = Inches(1)/1000` for 1000 local units per inch.
-        """
-        try:
-            x_scale, y_scale = scale
-        except TypeError:
-            x_scale = y_scale = scale
-
-        return FreeformBuilder.new(self, start_x, start_y, x_scale, y_scale)
 
     def clone_layout_placeholders(self, slide_layout):
         """

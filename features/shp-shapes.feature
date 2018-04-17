@@ -54,7 +54,6 @@ Feature: Access a shape on a slide
       And shapes[-1] == shape
 
 
-  @wip
   Scenario: GroupShapes.build_freeform()
     Given a GroupShapes object as shapes
      When I assign shapes.build_freeform() to builder
@@ -197,7 +196,6 @@ Feature: Access a shape on a slide
       And connector.end_y == 4
 
 
-  @wip
   Scenario: SlideShapes.add_group_shape()
     Given a SlideShapes object as shapes
      When I assign shapes.add_group_shape() to shape
