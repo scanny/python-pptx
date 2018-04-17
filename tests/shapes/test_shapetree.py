@@ -307,6 +307,16 @@ class Describe_BaseGroupShapes(object):
         shapes._shape_factory.assert_called_once_with(shapes, sp)
         assert shape is shape_
 
+    def it_can_add_a_textbox(self, textbox_fixture):
+        shapes, x, y, cx, cy, sp, shape_ = textbox_fixture
+
+        shape = shapes.add_textbox(x, y, cx, cy)
+
+        shapes._add_textbox_sp.assert_called_once_with(shapes, x, y, cx, cy)
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, sp)
+        assert shape is shape_
+
     def it_knows_the_index_of_each_of_its_shapes(self, index_fixture):
         shapes, shape_, expected_value = index_fixture
         assert shapes.index(shape_) == expected_value
@@ -569,6 +579,18 @@ class Describe_BaseGroupShapes(object):
             autoshape_type_, sp, shape_
         )
 
+    @pytest.fixture
+    def textbox_fixture(self, _add_textbox_sp_, _recalculate_extents_,
+                        _shape_factory_, shape_):
+        shapes = _BaseGroupShapes(None, None)
+        x, y, cx, cy = 31, 32, 33, 34
+        sp = element('p:sp')
+
+        _add_textbox_sp_.return_value = sp
+        _shape_factory_.return_value = shape_
+
+        return shapes, x, y, cx, cy, sp, shape_
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -595,6 +617,12 @@ class Describe_BaseGroupShapes(object):
     def _add_sp_(self, request):
         return method_mock(
             request, _BaseGroupShapes, '_add_sp', autospec=True
+        )
+
+    @pytest.fixture
+    def _add_textbox_sp_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_add_textbox_sp', autospec=True
         )
 
     @pytest.fixture
@@ -1034,16 +1062,6 @@ class DescribeSlideShapes(object):
         assert table is table_
         assert shapes._element.xml == expected_xml
 
-    def it_can_add_a_textbox(self, textbox_fixture):
-        shapes, x, y, cx, cy, textbox_, expected_xml = textbox_fixture
-
-        textbox = shapes.add_textbox(x, y, cx, cy)
-
-        sp = shapes._element.xpath('p:sp')[0]
-        shapes._shape_factory.assert_called_once_with(shapes, sp)
-        assert textbox is textbox_
-        assert shapes._element.xml == expected_xml
-
     def it_can_clone_placeholder_shapes_from_a_layout(self, clone_fixture):
         shapes, slide_layout_, calls = clone_fixture
         shapes.clone_layout_placeholders(slide_layout_)
@@ -1148,26 +1166,6 @@ class DescribeSlideShapes(object):
         )
         return shapes, rows, cols, x, y, cx, cy, table_, expected_xml
 
-    @pytest.fixture
-    def textbox_fixture(self, textbox_, _shape_factory_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        x, y, cx, cy = 1, 2, 3, 4
-        expected_xml = (
-            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
-            'onml/2006/main">\n  <p:sp xmlns:a="http://schemas.openxmlformat'
-            's.org/drawingml/2006/main">\n    <p:nvSpPr>\n      <p:cNvPr id='
-            '"1" name="TextBox 0"/>\n      <p:cNvSpPr txBox="1"/>\n      <p:'
-            'nvPr/>\n    </p:nvSpPr>\n    <p:spPr>\n      <a:xfrm>\n        '
-            '<a:off x="1" y="2"/>\n        <a:ext cx="3" cy="4"/>\n      </a'
-            ':xfrm>\n      <a:prstGeom prst="rect">\n        <a:avLst/>\n   '
-            '   </a:prstGeom>\n      <a:noFill/>\n    </p:spPr>\n    <p:txBo'
-            'dy>\n      <a:bodyPr wrap="none">\n        <a:spAutoFit/>\n    '
-            '  </a:bodyPr>\n      <a:lstStyle/>\n      <a:p/>\n    </p:txBod'
-            'y>\n  </p:sp>\n</p:spTree>'
-        )
-        _shape_factory_.return_value = textbox_
-        return shapes, x, y, cx, cy, textbox_, expected_xml
-
     @pytest.fixture(params=[
         ('p:spTree/(p:sp,p:sp/p:nvSpPr/p:nvPr/p:ph{idx=0})', True),
         ('p:spTree/(p:sp,p:sp)',                             False),
@@ -1252,10 +1250,6 @@ class DescribeSlideShapes(object):
     @pytest.fixture
     def table_(self, request):
         return instance_mock(request, Table)
-
-    @pytest.fixture
-    def textbox_(self, request):
-        return instance_mock(request, Shape)
 
 
 class DescribeLayoutShapes(object):

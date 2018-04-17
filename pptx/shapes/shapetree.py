@@ -274,6 +274,16 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(sp)
 
+    def add_textbox(self, left, top, width, height):
+        """Return newly added text box shape appended to this shape tree.
+
+        The text box is of the specified size, located at the specified
+        position on the slide.
+        """
+        sp = self._add_textbox_sp(left, top, width, height)
+        self._recalculate_extents()
+        return self._shape_factory(sp)
+
     def index(self, shape):
         """Return the index of *shape* in this sequence.
 
@@ -343,6 +353,13 @@ class _BaseGroupShapes(_BaseShapes):
             id_, name, autoshape_type.prst, x, y, cx, cy
         )
         return sp
+
+    def _add_textbox_sp(self, x, y, cx, cy):
+        """Return newly-appended textbox `p:sp` element.
+
+        Element has position (*x*, *y*) and size (*cx*, *cy*).
+        """
+        raise NotImplementedError
 
     def _recalculate_extents(self):
         """Adjust position and size to incorporate all contained shapes.
@@ -642,14 +659,6 @@ class SlideShapes(_BaseGroupShapes):
         )
         graphic_frame = self._shape_factory(graphicFrame)
         return graphic_frame
-
-    def add_textbox(self, left, top, width, height):
-        """
-        Add text box shape of specified size at specified position on slide.
-        """
-        sp = self._add_textbox_sp(left, top, width, height)
-        textbox = self._shape_factory(sp)
-        return textbox
 
     def build_freeform(self, start_x=0, start_y=0, scale=1.0):
         """Return |FreeformBuilder| object to specify a freeform shape.
