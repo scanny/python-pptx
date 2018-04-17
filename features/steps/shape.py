@@ -11,7 +11,7 @@ import hashlib
 from behave import given, when, then
 
 from pptx import Presentation
-from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 from pptx.action import ActionSetting
 from pptx.util import Emu
 
@@ -77,6 +77,13 @@ def given_a_connector_having_its_end_point_at_x_y(context, x, y):
     prs = Presentation(test_pptx('shp-connector-props'))
     sld = prs.slides[0]
     context.connector = sld.shapes[0]
+
+
+@given('an empty GroupShape object as shape')
+def given_an_empty_GroupShape_object_as_shape(context):
+    prs = Presentation(test_pptx('shp-common-props'))
+    sld = prs.slides[0]
+    context.shape = sld.shapes.add_group_shape()
 
 
 @given('a FreeformBuilder object as builder')
@@ -185,6 +192,13 @@ def given_a_shape_of_known_position_and_size(context):
 
 
 # when ====================================================
+
+@when('I add a {cx} x {cy} shape at ({x}, {y})')
+def when_I_add_a_cx_cy_shape_at_x_y(context, cx, cy, x, y):
+    context.shape.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, int(x), int(y), int(cx), int(cy)
+    )
+
 
 @when("I assign 0.15 to shape.adjustments[0]")
 def when_I_assign_to_shape_adjustments(context):
