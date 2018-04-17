@@ -359,7 +359,10 @@ class _BaseGroupShapes(_BaseShapes):
 
         Element has position (*x*, *y*) and size (*cx*, *cy*).
         """
-        raise NotImplementedError
+        id_ = self._next_shape_id
+        name = 'TextBox %d' % (id_-1)
+        sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
+        return sp
 
     def _recalculate_extents(self):
         """Adjust position and size to incorporate all contained shapes.
@@ -725,16 +728,6 @@ class SlideShapes(_BaseGroupShapes):
             _id, name, rows, cols, x, y, cx, cy
         )
         return graphicFrame
-
-    def _add_textbox_sp(self, x, y, cx, cy):
-        """
-        Return a newly-added textbox ``<p:sp>`` element at position (x, y)
-        and of size (cx, cy).
-        """
-        id_ = self._next_shape_id
-        name = 'TextBox %d' % (id_-1)
-        sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
-        return sp
 
     def _add_video_timing(self, pic):
         """Add a `p:video` element under `p:sld/p:timing`.

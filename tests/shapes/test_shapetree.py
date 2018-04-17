@@ -363,6 +363,14 @@ class Describe_BaseGroupShapes(object):
         assert shapes._element.xml == expected_xml
         assert sp is shapes._element.xpath('p:sp')[0]
 
+    def it_adds_a_textbox_sp_element_to_help(self, add_textbox_sp_fixture):
+        shapes, x, y, cx, cy, expected_xml = add_textbox_sp_fixture
+
+        sp = shapes._add_textbox_sp(x, y, cx, cy)
+
+        assert shapes._element.xml == expected_xml
+        assert sp is shapes._element.xpath('p:sp')[0]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -486,6 +494,28 @@ class Describe_BaseGroupShapes(object):
             ':sp>\n</p:spTree>'
         )
         return shapes, autoshape_type_, x, y, cx, cy, expected_xml
+
+    @pytest.fixture
+    def add_textbox_sp_fixture(self, _next_shape_id_prop_):
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        x, y, cx, cy = 1, 2, 3, 4
+
+        _next_shape_id_prop_.return_value = 6
+
+        expected_xml = (
+            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
+            'onml/2006/main">\n  <p:sp xmlns:a="http://schemas.openxmlformat'
+            's.org/drawingml/2006/main">\n    <p:nvSpPr>\n      <p:cNvPr id='
+            '"6" name="TextBox 5"/>\n      <p:cNvSpPr txBox="1"/>\n      <p:'
+            'nvPr/>\n    </p:nvSpPr>\n    <p:spPr>\n      <a:xfrm>\n        '
+            '<a:off x="1" y="2"/>\n        <a:ext cx="3" cy="4"/>\n      </a'
+            ':xfrm>\n      <a:prstGeom prst="rect">\n        <a:avLst/>\n   '
+            '   </a:prstGeom>\n      <a:noFill/>\n    </p:spPr>\n    <p:txBo'
+            'dy>\n      <a:bodyPr wrap="none">\n        <a:spAutoFit/>\n    '
+            '  </a:bodyPr>\n      <a:lstStyle/>\n      <a:p/>\n    </p:txBod'
+            'y>\n  </p:sp>\n</p:spTree>'
+        )
+        return shapes, x, y, cx, cy, expected_xml
 
     @pytest.fixture
     def connector_fixture(self, _add_cxnSp_, _shape_factory_,
