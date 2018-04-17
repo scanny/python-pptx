@@ -8,8 +8,10 @@ type in the associated XML schema.
 
 from __future__ import absolute_import, print_function
 
-from ..exc import InvalidXmlError
-from ..util import Centipoints, Emu
+import numbers
+
+from pptx.exc import InvalidXmlError
+from pptx.util import Centipoints, Emu
 
 
 class BaseSimpleType(object):
@@ -36,9 +38,9 @@ class BaseSimpleType(object):
 
     @classmethod
     def validate_int(cls, value):
-        if not isinstance(value, int):
+        if not isinstance(value, numbers.Integral):
             raise TypeError(
-                "value must be <type 'int'>, got %s" % type(value)
+                "value must be an integral type, got %s" % type(value)
             )
 
     @classmethod
