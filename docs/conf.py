@@ -112,6 +112,8 @@ rst_epilog = """
 
 .. |BaseShape| replace:: :class:`.BaseShape`
 
+.. |BaseSlidePart| replace:: :class:`.BaseSlidePart`
+
 .. |BubbleChartData| replace:: :class:`.BubbleChartData`
 
 .. |BubblePlot| replace:: :class:`.BubblePlot`
@@ -193,6 +195,10 @@ rst_epilog = """
 .. |FreeformBuilder| replace:: :class:`.FreeformBuilder`
 
 .. |GraphicFrame| replace:: :class:`.GraphicFrame`
+
+.. |GroupShape| replace:: :class:`.GroupShape`
+
+.. |GroupShapes| replace:: :class:`.GroupShapes`
 
 .. |_Hyperlink| replace:: :class:`_Hyperlink`
 

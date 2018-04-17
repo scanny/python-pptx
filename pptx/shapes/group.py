@@ -23,6 +23,16 @@ class GroupShape(BaseShape):
         raise TypeError('a group shape cannot have a click action')
 
     @property
+    def has_text_frame(self):
+        """Unconditionally |False|.
+
+        A group shape does not have a textframe and cannot itself contain
+        text. This does not impact the ability of shapes contained by the
+        group to each have their own text.
+        """
+        return False
+
+    @property
     def shape_type(self):
         """Member of :ref:`MsoShapeType` identifying the type of this shape.
 
