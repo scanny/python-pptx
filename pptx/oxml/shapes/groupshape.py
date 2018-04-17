@@ -158,6 +158,17 @@ class CT_GroupShape(BaseShapeElement):
         grpSp = parse_xml(xml)
         return grpSp
 
+    def recalculate_extents(self):
+        """Adjust x, y, cx, and cy to incorporate all contained shapes.
+
+        This would typically be called when a contained shape is added,
+        removed, or its position or size updated.
+
+        This method is recursive "upwards" since a change in a group shape
+        can change the position and size of its containing group.
+        """
+        raise NotImplementedError
+
     @property
     def xfrm(self):
         """

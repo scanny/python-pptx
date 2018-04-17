@@ -637,6 +637,14 @@ def SlideShapeFactory(shape_elm, parent):
 class GroupShapes(_BaseGroupShapes):
     """The sequence of child shapes belonging to a group shape."""
 
+    def _recalculate_extents(self):
+        """Adjust position and size to incorporate all contained shapes.
+
+        This would typically be called when a contained shape is added,
+        removed, or its position or size updated.
+        """
+        self._grpSp.recalculate_extents()
+
 
 class SlideShapes(_BaseGroupShapes):
     """Sequence of shapes appearing on a slide.

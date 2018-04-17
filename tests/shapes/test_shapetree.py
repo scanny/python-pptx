@@ -752,6 +752,26 @@ class Describe_BaseGroupShapes(object):
         return instance_mock(request, SlidePart)
 
 
+class DescribeGroupShapes(object):
+
+    def it_recalculates_its_extents_to_help(self, recalc_fixture):
+        shapes = recalc_fixture
+        shapes._recalculate_extents()
+        shapes._grpSp.recalculate_extents.assert_called_once_with()
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def recalc_fixture(self, grpSp_):
+        return GroupShapes(grpSp_, None)
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def grpSp_(self, request):
+        return instance_mock(request, CT_GroupShape)
+
+
 class DescribeBasePlaceholders(object):
 
     def it_contains_only_placeholder_shapes(self, member_fixture):
