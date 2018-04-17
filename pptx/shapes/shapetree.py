@@ -337,7 +337,12 @@ class _BaseGroupShapes(_BaseShapes):
         `p:sp` element is of *autoshape_type* at position (*x*, *y*) and of
         size (*cx*, *cy*).
         """
-        raise NotImplementedError
+        id_ = self._next_shape_id
+        name = '%s %d' % (autoshape_type.basename, id_-1)
+        sp = self._grpSp.add_autoshape(
+            id_, name, autoshape_type.prst, x, y, cx, cy
+        )
+        return sp
 
     def _recalculate_extents(self):
         """Adjust position and size to incorporate all contained shapes.
@@ -711,18 +716,6 @@ class SlideShapes(_BaseGroupShapes):
             _id, name, rows, cols, x, y, cx, cy
         )
         return graphicFrame
-
-    def _add_sp_from_autoshape_type(self, autoshape_type, x, y, cx, cy):
-        """
-        Return a newly-added ``<p:sp>`` element for a shape of
-        *autoshape_type* at position (x, y) and of size (cx, cy).
-        """
-        id_ = self._next_shape_id
-        name = '%s %d' % (autoshape_type.basename, id_-1)
-        sp = self._spTree.add_autoshape(
-            id_, name, autoshape_type.prst, x, y, cx, cy
-        )
-        return sp
 
     def _add_textbox_sp(self, x, y, cx, cy):
         """

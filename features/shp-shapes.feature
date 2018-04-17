@@ -40,7 +40,6 @@ Feature: Access a shape on a slide
       And shapes[-1] == shape
 
 
-  @wip
   Scenario: GroupShapes.add_shape()
     Given a GroupShapes object as shapes
      When I assign shapes.add_shape() to shape
@@ -258,7 +257,6 @@ Feature: Access a shape on a slide
       | python.bmp       | bmp  |
 
 
-  @wip
   Scenario: SlideShapes.add_shape()
     Given a SlideShapes object as shapes
      When I assign shapes.add_shape() to shape

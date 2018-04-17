@@ -345,6 +345,14 @@ class Describe_BaseGroupShapes(object):
         assert shapes._element.xml == expected_xml
         assert pic is shapes._element.xpath('p:pic')[0]
 
+    def it_adds_an_sp_element_to_help(self, add_sp_fixture):
+        shapes, autoshape_type_, x, y, cx, cy, expected_xml = add_sp_fixture
+
+        sp = shapes._add_sp(autoshape_type_, x, y, cx, cy)
+
+        assert shapes._element.xml == expected_xml
+        assert sp is shapes._element.xpath('p:sp')[0]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -438,6 +446,36 @@ class Describe_BaseGroupShapes(object):
             '\n    </p:spPr>\n  </p:pic>\n</p:spTree>'
         )
         return shapes, image_part_, rId, x, y, cx, cy, expected_xml
+
+    @pytest.fixture
+    def add_sp_fixture(self, autoshape_type_, _next_shape_id_prop_):
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        x, y, cx, cy = 8, 7, 6, 5
+
+        _next_shape_id_prop_.return_value = 7
+        autoshape_type_.basename = 'Rounded Rectangle'
+        autoshape_type_.prst = 'roundRect'
+
+        expected_xml = (
+            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
+            'onml/2006/main">\n  <p:sp xmlns:a="http://schemas.openxmlformat'
+            's.org/drawingml/2006/main">\n    <p:nvSpPr>\n      <p:cNvPr id='
+            '"7" name="Rounded Rectangle 6"/>\n      <p:cNvSpPr/>\n      <p:'
+            'nvPr/>\n    </p:nvSpPr>\n    <p:spPr>\n      <a:xfrm>\n        '
+            '<a:off x="8" y="7"/>\n        <a:ext cx="6" cy="5"/>\n      </a'
+            ':xfrm>\n      <a:prstGeom prst="roundRect">\n        <a:avLst/>'
+            '\n      </a:prstGeom>\n    </p:spPr>\n    <p:style>\n      <a:l'
+            'nRef idx="1">\n        <a:schemeClr val="accent1"/>\n      </a:'
+            'lnRef>\n      <a:fillRef idx="3">\n        <a:schemeClr val="ac'
+            'cent1"/>\n      </a:fillRef>\n      <a:effectRef idx="2">\n    '
+            '    <a:schemeClr val="accent1"/>\n      </a:effectRef>\n      <'
+            'a:fontRef idx="minor">\n        <a:schemeClr val="lt1"/>\n     '
+            ' </a:fontRef>\n    </p:style>\n    <p:txBody>\n      <a:bodyPr '
+            'rtlCol="0" anchor="ctr"/>\n      <a:lstStyle/>\n      <a:p>\n  '
+            '      <a:pPr algn="ctr"/>\n      </a:p>\n    </p:txBody>\n  </p'
+            ':sp>\n</p:spTree>'
+        )
+        return shapes, autoshape_type_, x, y, cx, cy, expected_xml
 
     @pytest.fixture
     def connector_fixture(self, _add_cxnSp_, _shape_factory_,
