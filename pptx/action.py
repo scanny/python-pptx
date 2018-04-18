@@ -15,10 +15,8 @@ from .util import lazyproperty
 
 
 class ActionSetting(Subshape):
-    """
-    Properties that specify how a shape or text run reacts to mouse actions
-    during a slide show.
-    """
+    """Properties specifying how a shape or run reacts to mouse actions."""
+
     # Subshape superclass provides access to the Slide Part, which is needed
     # to access relationships.
     def __init__(self, xPr, parent, hover=False):
@@ -112,6 +110,10 @@ class ActionSetting(Subshape):
         elif self.action == PP_ACTION.NAMED_SLIDE:
             rId = self._hlink.rId
             return self.part.related_parts[rId].slide
+
+    @target_slide.setter
+    def target_slide(self, slide):
+        raise NotImplementedError
 
     @property
     def _hlink(self):
