@@ -113,6 +113,16 @@ class ActionSetting(Subshape):
 
     @target_slide.setter
     def target_slide(self, slide):
+        self._clear_click_action()
+        if slide is None:
+            return
+        hlink = self._element.get_or_add_hlinkClick()
+        hlink.action = "ppaction://hlinksldjump"
+        this_part, target_part = self.part, slide.part
+        hlink.rId = this_part.relate_to(target_part, RT.SLIDE)
+
+    def _clear_click_action(self):
+        """Remove any existing click action."""
         raise NotImplementedError
 
     @property
