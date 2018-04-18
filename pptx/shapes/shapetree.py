@@ -404,7 +404,11 @@ class _BaseGroupShapes(_BaseShapes):
 
 
 class GroupShapes(_BaseGroupShapes):
-    """The sequence of child shapes belonging to a group shape."""
+    """The sequence of child shapes belonging to a group shape.
+
+    Note that this collection can itself contain a group shape, making this
+    part of a recursive, tree data structure (acyclic graph).
+    """
 
     def _recalculate_extents(self):
         """Adjust position and size to incorporate all contained shapes.

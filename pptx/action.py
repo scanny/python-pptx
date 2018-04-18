@@ -88,6 +88,10 @@ class ActionSetting(Subshape):
             slide, target_slide = prs.slides[0], prs.slides[1]
             shape = slide.shapes[0]
             shape.target_slide = target_slide
+
+        Assigning |None| removes any slide jump action. Note that this is
+        accomplished by removing any action present (such as a hyperlink),
+        without first checking that it is a slide jump action.
         """
         slide_jump_actions = (
             PP_ACTION.FIRST_SLIDE,

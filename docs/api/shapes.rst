@@ -15,7 +15,21 @@ property of |Slide|.
 
 .. autoclass:: pptx.shapes.shapetree.SlideShapes()
    :members:
-   :exclude-members: clone_layout_placeholders
+   :inherited-members:
+   :exclude-members: clone_placeholder, clone_layout_placeholders,
+                     ph_basename
+
+
+|GroupShapes| objects
+---------------------
+
+The |GroupShapes| object is encountered as the :attr:`~GroupShape.shapes`
+property of |GroupShape|.
+
+.. autoclass:: pptx.shapes.shapetree.GroupShapes()
+   :members:
+   :inherited-members:
+   :exclude-members: clone_placeholder, ph_basename
 
 
 Shape objects in general
