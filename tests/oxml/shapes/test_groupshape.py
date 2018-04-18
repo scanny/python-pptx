@@ -14,7 +14,9 @@ from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
 
 from ...unitutil.cxml import element, xml
-from ...unitutil.mock import class_mock, instance_mock, method_mock
+from ...unitutil.mock import (
+    call, class_mock, instance_mock, method_mock, property_mock
+)
 
 
 class DescribeCT_GroupShape(object):
@@ -83,6 +85,14 @@ class DescribeCT_GroupShape(object):
         )
         insert_element_before_.assert_called_once_with(sp_, 'p:extLst')
         assert sp is sp_
+
+    def it_can_recalculate_its_pos_and_size(self, recalc_fixture):
+        xSp, expected_xml, parent_sp, calls = recalc_fixture
+
+        xSp.recalculate_extents()
+
+        assert xSp.xml == expected_xml
+        assert parent_sp.recalculate_extents.call_args_list == calls
 
     # fixtures ---------------------------------------------
 
@@ -162,7 +172,27 @@ class DescribeCT_GroupShape(object):
             insert_element_before_, sp_
         )
 
+    @pytest.fixture(params=[
+        ('p:spTree', None, [], 'p:spTree'),
+        ('p:grpSp/p:grpSpPr/a:xfrm', (1, 2, 3, 4), [call()],
+         'p:grpSp/p:grpSpPr/a:xfrm/(a:off{x=1,y=2},a:ext{cx=3,cy=4},a:chOff{'
+         'x=1,y=2},a:chExt{cx=3,cy=4})'),
+    ])
+    def recalc_fixture(self, request, _child_extents_prop_, getparent_,
+                       grpSp_):
+        xSp_cxml, extents, calls, expected_cxml = request.param
+        xSp = element(xSp_cxml)
+
+        _child_extents_prop_.return_value = extents
+        expected_xml = xml(expected_cxml)
+        getparent_.return_value = parent_sp = grpSp_
+        return xSp, expected_xml, parent_sp, calls
+
     # fixture components -----------------------------------
+
+    @pytest.fixture
+    def _child_extents_prop_(self, request):
+        return property_mock(request, CT_GroupShape, '_child_extents')
 
     @pytest.fixture
     def CT_GraphicalObjectFrame_(self, request, graphicFrame_):
@@ -193,8 +223,16 @@ class DescribeCT_GroupShape(object):
         return CT_Shape_
 
     @pytest.fixture
+    def getparent_(self, request):
+        return method_mock(request, CT_GroupShape, 'getparent')
+
+    @pytest.fixture
     def graphicFrame_(self, request):
         return instance_mock(request, CT_GraphicalObjectFrame)
+
+    @pytest.fixture
+    def grpSp_(self, request):
+        return instance_mock(request, CT_GroupShape)
 
     @pytest.fixture
     def insert_element_before_(self, request):

@@ -111,6 +111,16 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
+    @property
+    def chExt(self):
+        """Descendent `p:grpSpPr/a:xfrm/a:chExt` element."""
+        return self.grpSpPr.get_or_add_xfrm().get_or_add_chExt()
+
+    @property
+    def chOff(self):
+        """Descendent `p:grpSpPr/a:xfrm/a:chOff` element."""
+        return self.grpSpPr.get_or_add_xfrm().get_or_add_chOff()
+
     def get_or_add_xfrm(self):
         """
         Return the ``<a:xfrm>`` grandchild element, newly-added if not
@@ -167,7 +177,16 @@ class CT_GroupShape(BaseShapeElement):
         This method is recursive "upwards" since a change in a group shape
         can change the position and size of its containing group.
         """
-        raise NotImplementedError
+        if not self.tag == qn('p:grpSp'):
+            return
+
+        x, y, cx, cy = self._child_extents
+
+        self.chOff.x = self.x = x
+        self.chOff.y = self.y = y
+        self.chExt.cx = self.cx = cx
+        self.chExt.cy = self.cy = cy
+        self.getparent().recalculate_extents()
 
     @property
     def xfrm(self):
@@ -175,6 +194,14 @@ class CT_GroupShape(BaseShapeElement):
         The ``<a:xfrm>`` grandchild element or |None| if not found
         """
         return self.grpSpPr.xfrm
+
+    @property
+    def _child_extents(self):
+        """(x, y, cx, cy) tuple representing net position and size.
+
+        The values are formed as a composite of the contained child shapes.
+        """
+        raise NotImplementedError
 
     @property
     def _next_shape_id(self):
