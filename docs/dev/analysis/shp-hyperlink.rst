@@ -3,14 +3,12 @@ Shape hyperlink
 ===============
 
 In addition to hyperlinks in text, PowerPoint supports hyperlinks on shapes.
-However, this feature is just a subset of the more general *click action*
-functionality on shapes.
+This feature is a subset of the more general *click action* functionality on
+shapes.
 
-A run or shape can actually have two distinct mouse event behaviors, one for
-(left) clicking and another for rolling over with the mouse. These are
-independent; a run or shape can have one, the other, both, or neither. These
-are the two hyperlink types reported by the Hyperlink.type attribute and
-using enumeration values from MsoHyperlinkType.
+A run or shape can have two distinct mouse event behaviors, one for (left)
+clicking and another for rolling over with the mouse (hover). These are
+independent; a run or shape can have one, the other, both, or neither.
 
 A "true" hyperlink in PowerPoint is indicated by having no `action` attribute
 on the `a:hlinkClick` element. The general hyperlink mechanism of storing
@@ -18,7 +16,110 @@ a URL in a mapped relationship is used by other verbs such as `hlinkfile` and
 `program`, but these are considered distinct from hyperlinks for the sake of
 this analysis. That distinction is reflected in the API.
 
-See also: _Run.hyperlink, pptx.text._Hyperlink
+See also: _Run.hyperlink, `pptx.text._Hyperlink`
+
+
+Candidate Protocol
+------------------
+
+.. highlight:: python
+
+* `Shape`
+
+  + `.click_action` - unconditionally returns an `ActionSetting` object,
+    regardless of whether a click action is defined. Returns an
+    `ActionSetting` object even when the shape type does not support a click
+    action (such as a table).
+
+* `ActionSetting`
+
+  + `.action` - returns a member of the `PP_ACTION_TYPE` (`PP_ACTION`)
+    enumeration
+
+  + `.action_url` - returns the `ppaction://` URL as a string, in its
+    entirety, or None if no action attribute is present. Maybe this should
+    do XML character entity decoding.
+
+  + `.action_verb` - returns the verb in the `ppaction://` URL, or None if no
+    action URL is present. e.g. `'hlinksldjump'`
+
+  + `.action_fields` - returns a dictionary containing the fields in the query
+    string of the action URL.
+
+  + `.hyperlink` - returns a Hyperlink object that represents the hyperlink
+    defined for the shape. A Hyperlink object is always returned.
+
+  + `.target_slide` - returns a Slide object when the action is a jump to
+    another slide in the same presentation. This is the case when action is
+    `FIRST_SLIDE`, `LAST_SLIDE`, `PREVIOUS_SLIDE`, `NEXT_SLIDE`, or
+    `NAMED_SLIDE`.
+
+    Supports assignment of a slide object, after which `.action` returns
+    `NAMED_SLIDE`.
+
+* Hyperlink
+
+  + `.address` - returns the URL contained in the relationship for this
+    hyperlink.
+
+  + `.screen_tip` - tool-tip text displayed on mouse rollover is slideshow
+    mode. Put in the XML hooks for this but API call is second priority
+
+Detect that a shape has a hyperlink::
+
+    for shape in shapes:
+        click_action = shape.click_action
+        if click_action.action == PP_ACTION.HYPERLINK:
+            print(click_action.hyperlink)
+
+
+Add a hyperlink::
+
+    p = shape.text_frame.paragraphs[0]
+    r = p.add_run()
+    r.text = 'link to python-pptx @ GitHub'
+    hlink = r.hyperlink
+    hlink.address = 'https://github.com/scanny/python-pptx'
+
+Delete a hyperlink::
+
+    r.hyperlink = None
+
+    # or -----------
+
+    r.hyperlink.address = None  # empty string '' will do it too
+
+A Hyperlink instance is lazy-created on first reference. The object persists
+until garbage collected once created. The link XML is not written until
+.address is specified. Setting ``hlink.address`` to None or '' causes the
+`hlink` entry to be removed if present.
+
+Add "Jump to slide" click action::
+
+    >>> click_action = shape.click_action
+    >>> click_action.target_slide = slides[4]
+    >>> click_action.action
+    NAMED_SLIDE (101)
+
+
+Future Scope
+------------
+
+`ActionSetting.action` supports these alternate assignments::
+
+    # ---Shape.click_action is an ActionSetting object---
+    ActionSetting.action = (
+        PP_ACTION.FIRST_SLIDE or
+        PP_ACTION.LAST_SLIDE or
+        PP_ACTION.NEXT_SLIDE or
+        PP_ACTION.PREVIOUS_SLIDE
+    )
+
+Each of these assignments takes immediate effect and is "self-contained"; no
+further assignments are necessary to produce the specified behavior.
+
+Assigning `NAMED_SLIDE` to `ActionSetting.action` raises an exception. This
+action is created by assigning a `Slide` object.
 
 
 Glossary
@@ -58,79 +159,6 @@ Glossary
     as `Open` or `Edit`. This is not to be confused with an `action verb`.
 
 
-Candidate Protocol
-------------------
-
-.. highlight:: python
-
-* Shape
-
-  + `.click_action` - unconditionally returns an `ActionSetting` object,
-    regardless of whether a click action is defined. Returns an
-    `ActionSetting` object even when the shape type does not support a click
-    action (such as a table).
-
-* ActionSetting
-
-  + `.action` - returns a member of the `PP_ACTION_TYPE` (`PP_ACTION`)
-    enumeration
-
-  + `.action_url` - returns the `ppaction://` URL as a string, in its
-    entirety, or None if no action attribute is present. Maybe this should
-    do XML character entity decoding.
-
-  + `.action_verb` - returns the verb in the `ppaction://` URL, or None if no
-    action URL is present. e.g. `'hlinksldjump'`
-
-  + `.action_fields` - returns a dictionary containing the fields in the query
-    string of the action URL.
-
-  + `.hyperlink` - returns a Hyperlink object that represents the hyperlink
-    defined for the shape. A Hyperlink object is always returned.
-
-  + `.target_slide` - returns a Slide object when the action is a jump to
-    another slide in the same presentation. This is the case when action is
-    `FIRST_SLIDE`, `LAST_SLIDE`, `PREVIOUS_SLIDE`, `NEXT_SLIDE`, or
-    `NAMED_SLIDE`.
-
-* Hyperlink
-
-  + `.address` - returns the URL contained in the relationship for this
-    hyperlink.
-
-  + `.screen_tip` - tool-tip text displayed on mouse rollover is slideshow
-    mode. Put in the XML hooks for this but API call is second priority
-
-Detect that a shape has a hyperlink::
-
-    for shape in shapes:
-        click_action = shape.click_action
-        if click_action.action == PP_ACTION.HYPERLINK:
-            print(click_action.hyperlink)
-
-
-Add a hyperlink::
-
-    p = shape.text_frame.paragraphs[0]
-    r = p.add_run()
-    r.text = 'link to python-pptx @ GitHub'
-    hlink = r.hyperlink
-    hlink.address = 'https://github.com/scanny/python-pptx'
-
-Delete a hyperlink::
-
-    r.hyperlink = None
-
-    # or -----------
-
-    r.hyperlink.address = None  # empty string '' will do it too
-
-A Hyperlink instance is lazy-created on first reference. The object persists
-until garbage collected once created. The link XML is not written until
-.address is specified. Setting ``hlink.address`` to None or '' causes the
-hlink entry to be removed if present.
-
-
 `PP_ACTION_TYPE` mapping logic
 ------------------------------
 
@@ -154,7 +182,7 @@ hlink entry to be removed if present.
             'nextslide':       PP_ACTION.NEXT_SLIDE,
             'previousslide':   PP_ACTION.PREVIOUS_SLIDE,
             'endshow':         PP_ACTION.END_SHOW,
-        }.relative_target
+        }[relative_target]
 
     return {
         None:           PP_ACTION.HYPERLINK,
@@ -165,7 +193,7 @@ hlink entry to be removed if present.
         'ole':          PP_ACTION.OLE_VERB,
         'macro':        PP_ACTION.RUN_MACRO,
         'program':      PP_ACTION.RUN_PROGRAM,
-    }.action_verb
+    }[action_verb]
 
 
 PowerPoint® application behavior
@@ -194,7 +222,8 @@ The following behaviors can be triggered by a click:
 * Run an arbitrary program
 * Execute an OLE action
 
-In addition to performing one of these actions, zero, one, or both of two auxiliarly actions can be triggered by clicking:
+In addition to performing one of these actions, zero, one, or both of two
+auxiliary actions can be triggered by clicking:
 
 * Play a sound
 * Highlight the shape with a dashed line for a short time
@@ -204,16 +233,16 @@ Hyperlinkable shapes
 
 These shape types can have hyperlinks:
 
-  + Autoshapes
-  + Textbox
-  + Picture
-  + Connector (Line)
-  + Chart
+  + `Autoshapes`
+  + `Textbox`
+  + `Picture`
+  + `Connector`
+  + `Chart`
 
 These shape types cannot:
 
-  + Table
-  + Group shape
+  + `Table`
+  + `Group Shape`
 
 
 UI procedures
