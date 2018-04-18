@@ -73,7 +73,6 @@ Feature: Get and set click action properties
       | run program        |   None    |
 
 
-  @wip
   Scenario Outline: Set ActionSetting.target_slide
     Given an ActionSetting object having action <action> as click_action
       And another slide in the deck as slide

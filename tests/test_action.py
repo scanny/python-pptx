@@ -62,6 +62,14 @@ class DescribeActionSetting(object):
         slides.index.assert_called_once_with(slide)
         assert slide_index == expected_value
 
+    def it_clears_the_click_action_to_help(self, clear_fixture):
+        action_setting, calls, expected_xml = clear_fixture
+
+        action_setting._clear_click_action()
+
+        assert action_setting.part.drop_rel.call_args_list == calls
+        assert action_setting._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -104,6 +112,22 @@ class DescribeActionSetting(object):
             cNvPr.hlinkClick.action = action_text
         action_setting = ActionSetting(cNvPr, None)
         return action_setting, expected_action
+
+    @pytest.fixture(params=[
+        ('p:cNvPr', None,
+         'p:cNvPr'),
+        ('p:cNvPr{a:b=c,r:s=t}/a:hlinkClick{r:id=rId42}', 'rId42',
+         'p:cNvPr{a:b=c,r:s=t}'),
+    ])
+    def clear_fixture(self, request, part_prop_, slide_part_):
+        xPr_cxml, rId, expected_cxml = request.param
+        action_setting = ActionSetting(element(xPr_cxml), None)
+
+        part_prop_.return_value = slide_part_
+
+        calls = [call(rId)] if rId else []
+        expected_xml = xml(expected_cxml)
+        return action_setting, calls, expected_xml
 
     @pytest.fixture
     def hyperlink_fixture(self, Hyperlink_, hyperlink_):
