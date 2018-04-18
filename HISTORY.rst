@@ -3,6 +3,20 @@
 Release History
 ---------------
 
+0.6.8 (2018-04-18)
+++++++++++++++++++
+
+- Add `GroupShape`, providing properties specific to a group shape, including
+  its `shapes` property.
+- Add `GroupShapes`, providing access to shapes contained in a group shape.
+- Add `SlideShapes.add_group_shape()`, allowing a group shape to be added to
+  a slide.
+- Add `GroupShapes.add_group_shape()`, allowing a group shape to be added to
+  a group shape, enabling recursive, multi-level groups.
+- Add support for adding jump-to-named-slide behavior to shape and run
+  hyperlinks.
+
+
 0.6.7 (2017-10-30)
 ++++++++++++++++++
 
