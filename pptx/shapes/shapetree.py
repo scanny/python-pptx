@@ -29,27 +29,29 @@ from pptx.shapes.placeholder import (
 from pptx.shared import ParentedElementProxy
 from pptx.util import lazyproperty
 
-
-def BaseShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*.
-    """
-    tag = shape_elm.tag
-
-    if tag == qn('p:pic'):
-        videoFiles = shape_elm.xpath('./p:nvPicPr/p:nvPr/a:videoFile')
-        if videoFiles:
-            return Movie(shape_elm, parent)
-        return Picture(shape_elm, parent)
-
-    shape_cls = {
-        qn('p:cxnSp'):        Connector,
-        qn('p:grpSp'):        GroupShape,
-        qn('p:sp'):           Shape,
-        qn('p:graphicFrame'): GraphicFrame,
-    }.get(tag, BaseShape)
-
-    return shape_cls(shape_elm, parent)
+# +-- _BaseShapes
+# |   |
+# |   +-- _BaseGroupShapes
+# |   |   |
+# |   |   +-- GroupShapes
+# |   |   |
+# |   |   +-- SlideShapes
+# |   |
+# |   +-- LayoutShapes
+# |   |
+# |   +-- MasterShapes
+# |   |
+# |   +-- NotesSlideShapes
+# |   |
+# |   +-- BasePlaceholders
+# |       |
+# |       +-- LayoutPlaceholders
+# |       |
+# |       +-- MasterPlaceholders
+# |           |
+# |           +-- NotesSlidePlaceholders
+# |
+# +-- SlidePlaceholders
 
 
 class _BaseShapes(ParentedElementProxy):
@@ -401,239 +403,6 @@ class _BaseGroupShapes(_BaseShapes):
         pass
 
 
-class BasePlaceholders(_BaseShapes):
-    """
-    Base class for placeholder collections that differentiate behaviors for
-    a master, layout, and slide. By default, placeholder shapes are
-    constructed using |BaseShapeFactory|. Subclasses should override
-    :method:`_shape_factory` to use custom placeholder classes.
-    """
-    @staticmethod
-    def _is_member_elm(shape_elm):
-        """
-        True if *shape_elm* is a placeholder shape, False otherwise.
-        """
-        return shape_elm.has_ph_elm
-
-
-class LayoutPlaceholders(BasePlaceholders):
-    """
-    Sequence of |LayoutPlaceholder| instances representing the placeholder
-    shapes on a slide layout.
-    """
-    def get(self, idx, default=None):
-        """
-        Return the first placeholder shape with matching *idx* value, or
-        *default* if not found.
-        """
-        for placeholder in self:
-            if placeholder.element.ph_idx == idx:
-                return placeholder
-        return default
-
-    def _shape_factory(self, shape_elm):
-        """
-        Return an instance of the appropriate shape proxy class for
-        *shape_elm*.
-        """
-        return _LayoutShapeFactory(shape_elm, self)
-
-
-def _LayoutShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*
-    on a slide layout.
-    """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
-        return LayoutPlaceholder(shape_elm, parent)
-    return BaseShapeFactory(shape_elm, parent)
-
-
-class LayoutShapes(_BaseShapes):
-    """
-    Sequence of shapes appearing on a slide layout. The first shape in the
-    sequence is the backmost in z-order and the last shape is topmost.
-    Supports indexed access, len(), index(), and iteration.
-    """
-    def _shape_factory(self, shape_elm):
-        """
-        Return an instance of the appropriate shape proxy class for
-        *shape_elm*.
-        """
-        return _LayoutShapeFactory(shape_elm, self)
-
-
-class MasterPlaceholders(BasePlaceholders):
-    """
-    Sequence of _MasterPlaceholder instances representing the placeholder
-    shapes on a slide master.
-    """
-    def get(self, ph_type, default=None):
-        """
-        Return the first placeholder shape with type *ph_type* (e.g. 'body'),
-        or *default* if no such placeholder shape is present in the
-        collection.
-        """
-        for placeholder in self:
-            if placeholder.ph_type == ph_type:
-                return placeholder
-        return default
-
-    def _shape_factory(self, shape_elm):
-        """
-        Return an instance of the appropriate shape proxy class for
-        *shape_elm*.
-        """
-        return _MasterShapeFactory(shape_elm, self)
-
-
-class MasterShapes(_BaseShapes):
-    """
-    Sequence of shapes appearing on a slide master. The first shape in the
-    sequence is the backmost in z-order and the last shape is topmost.
-    Supports indexed access, len(), and iteration.
-    """
-    def _shape_factory(self, shape_elm):
-        """
-        Return an instance of the appropriate shape proxy class for
-        *shape_elm*.
-        """
-        return _MasterShapeFactory(shape_elm, self)
-
-
-def _MasterShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*
-    on a slide master.
-    """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
-        return MasterPlaceholder(shape_elm, parent)
-    return BaseShapeFactory(shape_elm, parent)
-
-
-class NotesSlidePlaceholders(MasterPlaceholders):
-    """
-    Sequence of placeholder shapes on a notes slide.
-    """
-    def _shape_factory(self, placeholder_elm):
-        """
-        Return an instance of the appropriate placeholder proxy class for
-        *placeholder_elm*.
-        """
-        return _NotesSlideShapeFactory(placeholder_elm, self)
-
-
-def _NotesSlideShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*
-    on a notes slide.
-    """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
-        return NotesSlidePlaceholder(shape_elm, parent)
-    return BaseShapeFactory(shape_elm, parent)
-
-
-class NotesSlideShapes(_BaseShapes):
-    """
-    Sequence of shapes appearing on a notes slide. The first shape in the
-    sequence is the backmost in z-order and the last shape is topmost.
-    Supports indexed access, len(), index(), and iteration.
-    """
-    def ph_basename(self, ph_type):
-        """
-        Return the base name for a placeholder of *ph_type* in this shape
-        collection. A notes slide uses a different name for the body
-        placeholder and has some unique placeholder types, so this
-        method overrides the default in the base class.
-        """
-        return {
-            PP_PLACEHOLDER.BODY:         'Notes Placeholder',
-            PP_PLACEHOLDER.DATE:         'Date Placeholder',
-            PP_PLACEHOLDER.FOOTER:       'Footer Placeholder',
-            PP_PLACEHOLDER.HEADER:       'Header Placeholder',
-            PP_PLACEHOLDER.SLIDE_IMAGE:  'Slide Image Placeholder',
-            PP_PLACEHOLDER.SLIDE_NUMBER: 'Slide Number Placeholder',
-        }[ph_type]
-
-    def _shape_factory(self, shape_elm):
-        """
-        Return an instance of the appropriate shape proxy class for
-        *shape_elm* appearing on a notes slide.
-        """
-        return _NotesSlideShapeFactory(shape_elm, self)
-
-
-def _SlidePlaceholderFactory(shape_elm, parent):
-    """
-    Return a placeholder shape of the appropriate type for *shape_elm*.
-    """
-    tag = shape_elm.tag
-    if tag == qn('p:sp'):
-        Constructor = {
-            PP_PLACEHOLDER.BITMAP:  PicturePlaceholder,
-            PP_PLACEHOLDER.CHART:   ChartPlaceholder,
-            PP_PLACEHOLDER.PICTURE: PicturePlaceholder,
-            PP_PLACEHOLDER.TABLE:   TablePlaceholder,
-        }.get(shape_elm.ph_type, SlidePlaceholder)
-    elif tag == qn('p:graphicFrame'):
-        Constructor = PlaceholderGraphicFrame
-    elif tag == qn('p:pic'):
-        Constructor = PlaceholderPicture
-    else:
-        Constructor = BaseShapeFactory
-    return Constructor(shape_elm, parent)
-
-
-class SlidePlaceholders(ParentedElementProxy):
-    """
-    Collection of placeholder shapes on a slide. Supports iteration,
-    :func:`len`, and dictionary-style lookup on the `idx` value of the
-    placeholders it contains.
-    """
-
-    __slots__ = ()
-
-    def __getitem__(self, idx):
-        """
-        Access placeholder shape having *idx*. Note that while this looks
-        like list access, idx is actually a dictionary key and will raise
-        |KeyError| if no placeholder with that idx value is in the
-        collection.
-        """
-        for e in self._element.iter_ph_elms():
-            if e.ph_idx == idx:
-                return SlideShapeFactory(e, self)
-        raise KeyError('no placeholder on this slide with idx == %d' % idx)
-
-    def __iter__(self):
-        """
-        Generate placeholder shapes in `idx` order.
-        """
-        ph_elms = sorted(
-            [e for e in self._element.iter_ph_elms()], key=lambda e: e.ph_idx
-        )
-        return (SlideShapeFactory(e, self) for e in ph_elms)
-
-    def __len__(self):
-        """
-        Return count of placeholder shapes.
-        """
-        return len(list(self._element.iter_ph_elms()))
-
-
-def SlideShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*
-    on a slide.
-    """
-    if shape_elm.has_ph_elm:
-        return _SlidePlaceholderFactory(shape_elm, parent)
-    return BaseShapeFactory(shape_elm, parent)
-
-
 class GroupShapes(_BaseGroupShapes):
     """The sequence of child shapes belonging to a group shape."""
 
@@ -753,6 +522,261 @@ class SlideShapes(_BaseGroupShapes):
         *shape_elm*.
         """
         return SlideShapeFactory(shape_elm, self)
+
+
+class LayoutShapes(_BaseShapes):
+    """
+    Sequence of shapes appearing on a slide layout. The first shape in the
+    sequence is the backmost in z-order and the last shape is topmost.
+    Supports indexed access, len(), index(), and iteration.
+    """
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _LayoutShapeFactory(shape_elm, self)
+
+
+class MasterShapes(_BaseShapes):
+    """
+    Sequence of shapes appearing on a slide master. The first shape in the
+    sequence is the backmost in z-order and the last shape is topmost.
+    Supports indexed access, len(), and iteration.
+    """
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _MasterShapeFactory(shape_elm, self)
+
+
+class NotesSlideShapes(_BaseShapes):
+    """
+    Sequence of shapes appearing on a notes slide. The first shape in the
+    sequence is the backmost in z-order and the last shape is topmost.
+    Supports indexed access, len(), index(), and iteration.
+    """
+    def ph_basename(self, ph_type):
+        """
+        Return the base name for a placeholder of *ph_type* in this shape
+        collection. A notes slide uses a different name for the body
+        placeholder and has some unique placeholder types, so this
+        method overrides the default in the base class.
+        """
+        return {
+            PP_PLACEHOLDER.BODY:         'Notes Placeholder',
+            PP_PLACEHOLDER.DATE:         'Date Placeholder',
+            PP_PLACEHOLDER.FOOTER:       'Footer Placeholder',
+            PP_PLACEHOLDER.HEADER:       'Header Placeholder',
+            PP_PLACEHOLDER.SLIDE_IMAGE:  'Slide Image Placeholder',
+            PP_PLACEHOLDER.SLIDE_NUMBER: 'Slide Number Placeholder',
+        }[ph_type]
+
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm* appearing on a notes slide.
+        """
+        return _NotesSlideShapeFactory(shape_elm, self)
+
+
+class BasePlaceholders(_BaseShapes):
+    """
+    Base class for placeholder collections that differentiate behaviors for
+    a master, layout, and slide. By default, placeholder shapes are
+    constructed using |BaseShapeFactory|. Subclasses should override
+    :method:`_shape_factory` to use custom placeholder classes.
+    """
+    @staticmethod
+    def _is_member_elm(shape_elm):
+        """
+        True if *shape_elm* is a placeholder shape, False otherwise.
+        """
+        return shape_elm.has_ph_elm
+
+
+class LayoutPlaceholders(BasePlaceholders):
+    """
+    Sequence of |LayoutPlaceholder| instances representing the placeholder
+    shapes on a slide layout.
+    """
+    def get(self, idx, default=None):
+        """
+        Return the first placeholder shape with matching *idx* value, or
+        *default* if not found.
+        """
+        for placeholder in self:
+            if placeholder.element.ph_idx == idx:
+                return placeholder
+        return default
+
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _LayoutShapeFactory(shape_elm, self)
+
+
+class MasterPlaceholders(BasePlaceholders):
+    """
+    Sequence of _MasterPlaceholder instances representing the placeholder
+    shapes on a slide master.
+    """
+    def get(self, ph_type, default=None):
+        """
+        Return the first placeholder shape with type *ph_type* (e.g. 'body'),
+        or *default* if no such placeholder shape is present in the
+        collection.
+        """
+        for placeholder in self:
+            if placeholder.ph_type == ph_type:
+                return placeholder
+        return default
+
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _MasterShapeFactory(shape_elm, self)
+
+
+class NotesSlidePlaceholders(MasterPlaceholders):
+    """
+    Sequence of placeholder shapes on a notes slide.
+    """
+    def _shape_factory(self, placeholder_elm):
+        """
+        Return an instance of the appropriate placeholder proxy class for
+        *placeholder_elm*.
+        """
+        return _NotesSlideShapeFactory(placeholder_elm, self)
+
+
+class SlidePlaceholders(ParentedElementProxy):
+    """
+    Collection of placeholder shapes on a slide. Supports iteration,
+    :func:`len`, and dictionary-style lookup on the `idx` value of the
+    placeholders it contains.
+    """
+
+    __slots__ = ()
+
+    def __getitem__(self, idx):
+        """
+        Access placeholder shape having *idx*. Note that while this looks
+        like list access, idx is actually a dictionary key and will raise
+        |KeyError| if no placeholder with that idx value is in the
+        collection.
+        """
+        for e in self._element.iter_ph_elms():
+            if e.ph_idx == idx:
+                return SlideShapeFactory(e, self)
+        raise KeyError('no placeholder on this slide with idx == %d' % idx)
+
+    def __iter__(self):
+        """
+        Generate placeholder shapes in `idx` order.
+        """
+        ph_elms = sorted(
+            [e for e in self._element.iter_ph_elms()], key=lambda e: e.ph_idx
+        )
+        return (SlideShapeFactory(e, self) for e in ph_elms)
+
+    def __len__(self):
+        """
+        Return count of placeholder shapes.
+        """
+        return len(list(self._element.iter_ph_elms()))
+
+
+def BaseShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*.
+    """
+    tag = shape_elm.tag
+
+    if tag == qn('p:pic'):
+        videoFiles = shape_elm.xpath('./p:nvPicPr/p:nvPr/a:videoFile')
+        if videoFiles:
+            return Movie(shape_elm, parent)
+        return Picture(shape_elm, parent)
+
+    shape_cls = {
+        qn('p:cxnSp'):        Connector,
+        qn('p:grpSp'):        GroupShape,
+        qn('p:sp'):           Shape,
+        qn('p:graphicFrame'): GraphicFrame,
+    }.get(tag, BaseShape)
+
+    return shape_cls(shape_elm, parent)
+
+
+def _LayoutShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a slide layout.
+    """
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return LayoutPlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
+
+
+def _MasterShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a slide master.
+    """
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return MasterPlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
+
+
+def _NotesSlideShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a notes slide.
+    """
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return NotesSlidePlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
+
+
+def _SlidePlaceholderFactory(shape_elm, parent):
+    """
+    Return a placeholder shape of the appropriate type for *shape_elm*.
+    """
+    tag = shape_elm.tag
+    if tag == qn('p:sp'):
+        Constructor = {
+            PP_PLACEHOLDER.BITMAP:  PicturePlaceholder,
+            PP_PLACEHOLDER.CHART:   ChartPlaceholder,
+            PP_PLACEHOLDER.PICTURE: PicturePlaceholder,
+            PP_PLACEHOLDER.TABLE:   TablePlaceholder,
+        }.get(shape_elm.ph_type, SlidePlaceholder)
+    elif tag == qn('p:graphicFrame'):
+        Constructor = PlaceholderGraphicFrame
+    elif tag == qn('p:pic'):
+        Constructor = PlaceholderPicture
+    else:
+        Constructor = BaseShapeFactory
+    return Constructor(shape_elm, parent)
+
+
+def SlideShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a slide.
+    """
+    if shape_elm.has_ph_elm:
+        return _SlidePlaceholderFactory(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
 
 
 class _MoviePicElementCreator(object):
