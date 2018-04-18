@@ -27,7 +27,6 @@ Feature: GroupShape properties and methods
       And shape.height == 0
 
 
-  @wip
   Scenario: GroupShape position and size, 1 shapes
     Given an empty GroupShape object as shape
      When I add a 100 x 200 shape at (300, 400)
@@ -37,7 +36,6 @@ Feature: GroupShape properties and methods
       And shape.height == 200
 
 
-  @wip
   Scenario: GroupShape position and size, 2 shapes
     Given an empty GroupShape object as shape
      When I add a 100 x 200 shape at (300, 400)

@@ -15,6 +15,7 @@ from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
+from pptx.util import Emu
 
 
 class CT_GroupShape(BaseShapeElement):
@@ -201,7 +202,22 @@ class CT_GroupShape(BaseShapeElement):
 
         The values are formed as a composite of the contained child shapes.
         """
-        raise NotImplementedError
+        child_shape_elms = list(self.iter_shape_elms())
+
+        if not child_shape_elms:
+            return Emu(0), Emu(0), Emu(0), Emu(0)
+
+        min_x = min([xSp.x for xSp in child_shape_elms])
+        min_y = min([xSp.y for xSp in child_shape_elms])
+        max_x = max([(xSp.x + xSp.cx) for xSp in child_shape_elms])
+        max_y = max([(xSp.y + xSp.cy) for xSp in child_shape_elms])
+
+        x = min_x
+        y = min_y
+        cx = max_x - min_x
+        cy = max_y - min_y
+
+        return x, y, cx, cy
 
     @property
     def _next_shape_id(self):

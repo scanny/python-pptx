@@ -94,6 +94,11 @@ class DescribeCT_GroupShape(object):
         assert xSp.xml == expected_xml
         assert parent_sp.recalculate_extents.call_args_list == calls
 
+    def it_calculates_its_child_extents_to_help(self, child_exts_fixture):
+        xSp, expected_values = child_exts_fixture
+        x, y, cx, cy = xSp._child_extents
+        assert (x, y, cx, cy) == expected_values
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -171,6 +176,23 @@ class DescribeCT_GroupShape(object):
             spTree, id_, name, x, y, cx, cy, CT_Shape_,
             insert_element_before_, sp_
         )
+
+    @pytest.fixture(params=[
+        ('p:grpSp', (0, 0, 0, 0)),
+        ('p:grpSp/p:sp/p:spPr/a:xfrm/(a:off{x=1,y=2},a:ext{cx=3,cy=4})',
+         (1, 2, 3, 4)),
+        ('p:grpSp/(p:sp/p:spPr/a:xfrm/(a:off{x=1,y=2},a:ext{cx=3,cy=4}),p:sp'
+         '/p:spPr/a:xfrm/(a:off{x=10,y=20},a:ext{cx=30,cy=40}))',
+         (1, 2, 39, 58)),
+        ('p:grpSp/(p:sp/p:spPr/a:xfrm/(a:off{x=100,y=50},a:ext{cx=25,cy=25})'
+         ',p:sp/p:spPr/a:xfrm/(a:off{x=50,y=100},a:ext{cx=25,cy=25}),p:sp/p:'
+         'spPr/a:xfrm/(a:off{x=150,y=75},a:ext{cx=25,cy=25}))',
+         (50, 50, 125, 75)),
+    ])
+    def child_exts_fixture(self, request):
+        xSp_cxml, expected_values = request.param
+        xSp = element(xSp_cxml)
+        return xSp, expected_values
 
     @pytest.fixture(params=[
         ('p:spTree', None, [], 'p:spTree'),

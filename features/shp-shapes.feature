@@ -12,7 +12,6 @@ Feature: Access a shape on a slide
       And shapes.index(shape) for each shape matches its sequence position
 
 
-  @wip
   Scenario: GroupShapes.add_chart()
     Given a GroupShapes object as shapes
      When I assign shapes.add_chart() to shape
@@ -20,7 +19,6 @@ Feature: Access a shape on a slide
       And shapes[-1] == shape
 
 
-  @wip
   Scenario: GroupShapes.add_connector()
     Given a GroupShapes object as shapes
      When I assign shapes.add_connector() to shape
@@ -28,7 +26,6 @@ Feature: Access a shape on a slide
       And shapes[-1] == shape
 
 
-  @wip
   Scenario: GroupShapes.add_group_shape()
     Given a GroupShapes object as shapes
      When I assign shapes.add_group_shape() to shape
@@ -36,7 +33,6 @@ Feature: Access a shape on a slide
       And shapes[-1] == shape
 
 
-  @wip
   Scenario: GroupShapes.add_picture()
     Given a GroupShapes object as shapes
      When I assign shapes.add_picture() to shape
@@ -44,7 +40,6 @@ Feature: Access a shape on a slide
       And shapes[-1] == shape
 
 
-  @wip
   Scenario: GroupShapes.add_shape()
     Given a GroupShapes object as shapes
      When I assign shapes.add_shape() to shape
@@ -52,7 +47,6 @@ Feature: Access a shape on a slide
       And shapes[-1] == shape
 
 
-  @wip
   Scenario: GroupShapes.add_textbox()
     Given a GroupShapes object as shapes
      When I assign shapes.add_textbox() to shape
