@@ -4,7 +4,6 @@ Feature: slide properties
   I need properties and methods on the slide object
 
 
-  @wip
   Scenario Outline: Slide.background
     Given a Slide object having <default-or-overridden> background as slide
      Then slide.background is a _Background object
@@ -86,7 +85,6 @@ Feature: slide properties
      Then slide_layout.slide_master is a SlideMaster object
 
 
-  @wip
   Scenario: SlideMaster.background
     Given a SlideMaster object as slide
      Then slide.background is a _Background object

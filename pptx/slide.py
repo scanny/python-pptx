@@ -1,28 +1,36 @@
 # encoding: utf-8
 
-"""
-Slide-related objects.
-"""
+"""Slide-related objects, including masters, layouts, and notes."""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from .enum.shapes import PP_PLACEHOLDER
-from .shapes.shapetree import (
+from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
     NotesSlidePlaceholders, NotesSlideShapes, SlidePlaceholders, SlideShapes
 )
-from .shared import ParentedElementProxy, PartElementProxy
-from .util import lazyproperty
+from pptx.shared import ElementProxy, ParentedElementProxy, PartElementProxy
+from pptx.util import lazyproperty
 
 
 class _BaseSlide(PartElementProxy):
-    """
-    Slide object. Provides access to shapes and slide-level properties.
-    """
+    """Base class for slide objects, including masters, layouts and notes."""
 
-    __slots__ = ()
+    __slots__ = ('_background',)
+
+    @lazyproperty
+    def background(self):
+        """|_Background| object providing slide background properties.
+
+        This property returns a |_Background| object whether or not the
+        slide, master, or layout has an explicitly defined background.
+
+        The same |_Background| object is returned on every call for the same
+        slide object.
+        """
+        return _Background(self._element.cSld)
 
     @property
     def name(self):
@@ -152,11 +160,23 @@ class NotesSlide(_BaseSlide):
 
 
 class Slide(_BaseSlide):
-    """
-    Slide object. Provides access to shapes and slide-level properties.
-    """
+    """Slide object. Provides access to shapes and slide-level properties."""
 
     __slots__ = ('_placeholders', '_shapes')
+
+    @property
+    def background(self):
+        """|_Background| object providing slide background properties.
+
+        This property returns a |_Background| object whether or not the slide
+        overrides the default background or inherits it. Determining which of
+        those conditions applies for this slide is accomplished using the
+        :attr:`follow_master_background` property.
+
+        The same |_Background| object is returned on every call for the same
+        slide object.
+        """
+        return super(Slide, self).background
 
     @property
     def has_notes_slide(self):
@@ -410,3 +430,18 @@ class SlideMasters(ParentedElementProxy):
         Support len() built-in function (e.g. 'len(slide_masters) == 4').
         """
         return len(self._sldMasterIdLst)
+
+
+class _Background(ElementProxy):
+    """Provides access to slide background properties.
+
+    Note that the presence of this object does not by itself imply an
+    explicitly-defined background; a slide with an inherited background still
+    has a |_Background| object.
+    """
+
+    __slots__ = ('_cSld',)
+
+    def __init__(self, cSld):
+        super(_Background, self).__init__(cSld)
+        self._cSld = cSld

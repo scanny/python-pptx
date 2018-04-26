@@ -98,6 +98,8 @@ rst_epilog = """
 
 .. |AxisTitle| replace:: :class:`.AxisTitle`
 
+.. |_Background| replace:: :class:`._Background`
+
 .. |BarPlot| replace:: :class:`.BarPlot`
 
 .. |BarSeries| replace:: :class:`.BarSeries`

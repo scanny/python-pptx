@@ -20,8 +20,8 @@ from pptx.shapes.shapetree import (
     NotesSlidePlaceholders, NotesSlideShapes, SlidePlaceholders, SlideShapes
 )
 from pptx.slide import (
-    _BaseMaster, _BaseSlide, NotesMaster, NotesSlide, Slide, SlideLayout,
-    SlideLayouts, SlideMaster, SlideMasters, Slides
+    _Background, _BaseMaster, _BaseSlide, NotesMaster, NotesSlide, Slide,
+    SlideLayout, SlideLayouts, SlideMaster, SlideMasters, Slides
 )
 from pptx.text.text import TextFrame
 
@@ -42,7 +42,23 @@ class Describe_BaseSlide(object):
         base_slide.name = new_value
         assert base_slide._element.xml == expected_xml
 
+    def it_provides_access_to_its_background(self, background_fixture):
+        slide, _Background_, cSld, background_ = background_fixture
+
+        background = slide.background
+
+        _Background_.assert_called_once_with(cSld)
+        assert background is background_
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def background_fixture(self, _Background_, background_):
+        sld = element('p:sld/p:cSld')
+        slide = _BaseSlide(sld, None)
+        cSld = sld.xpath('//p:cSld')[0]
+        _Background_.return_value = background_
+        return slide, _Background_, cSld, background_
 
     @pytest.fixture(params=[
         ('p:sld/p:cSld',              ''),
@@ -66,6 +82,16 @@ class Describe_BaseSlide(object):
         base_slide = _BaseSlide(element(xSld_cxml), None)
         expected_xml = xml(expected_cxml)
         return base_slide, new_value, expected_xml
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _Background_(self, request):
+        return class_mock(request, 'pptx.slide._Background')
+
+    @pytest.fixture
+    def background_(self, request):
+        return instance_mock(request, _Background)
 
 
 class Describe_BaseMaster(object):
@@ -292,6 +318,14 @@ class DescribeSlide(object):
         slide = subclass_fixture
         assert isinstance(slide, _BaseSlide)
 
+    def it_provides_access_to_its_background(self, background_fixture):
+        slide, _BaseSlide_background_, background_ = background_fixture
+
+        background = slide.background
+
+        _BaseSlide_background_.assert_called_once_with()
+        assert background is background_
+
     def it_knows_whether_it_has_a_notes_slide(self, has_notes_slide_fixture):
         slide, expected_value = has_notes_slide_fixture
         assert slide.has_notes_slide is expected_value
@@ -323,6 +357,12 @@ class DescribeSlide(object):
         assert slide.notes_slide is notes_slide_
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def background_fixture(self, _BaseSlide_background_, background_):
+        slide = Slide(None, None)
+        _BaseSlide_background_.return_value = background_
+        return slide, _BaseSlide_background_, background_
 
     @pytest.fixture
     def has_notes_slide_fixture(self, part_prop_, slide_part_):
@@ -369,6 +409,14 @@ class DescribeSlide(object):
         return Slide(None, None)
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _BaseSlide_background_(self, request):
+        return property_mock(request, _BaseSlide, 'background')
+
+    @pytest.fixture
+    def background_(self, request):
+        return instance_mock(request, _Background)
 
     @pytest.fixture
     def notes_slide_(self, request):
