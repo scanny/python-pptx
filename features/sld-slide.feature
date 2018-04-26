@@ -14,6 +14,17 @@ Feature: slide properties
       | an overridden         |
 
 
+  @wip
+  Scenario Outline: Slide.follow_master_background
+    Given a Slide object having <default-or-overridden> background as slide
+     Then slide.follow_master_background is <value>
+
+    Examples: Slide.follow_master_background cases
+      | default-or-overridden | value |
+      | the default           | True  |
+      | an overridden         | False |
+
+
   Scenario Outline: Slide.has_notes_slide
     Given a slide having <a-or-no> notes slide
      Then slide.has_notes_slide is <value>

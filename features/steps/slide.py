@@ -128,6 +128,15 @@ def then_slide_background_is_a_Background_object(context):
     )
 
 
+@then('slide.follow_master_background is {value}')
+def then_slide_follow_master_background_is_value(context, value):
+    expected_value = {'True': True, 'False': False}[value]
+    actual_value = context.slide.follow_master_background
+    assert actual_value is expected_value, (
+        'slide.follow_master_background is %s' % actual_value
+    )
+
+
 @then('slide.has_notes_slide is {value}')
 def then_slide_has_notes_slide_is_value(context, value):
     expected_value = {'True': True, 'False': False}[value]
