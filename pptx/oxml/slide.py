@@ -153,10 +153,13 @@ class CT_Slide(_BaseSlideElement):
 
     @classmethod
     def new(cls):
-        """
-        Return a new ``<p:sld>`` element configured as a base slide shape.
-        """
+        """Return new `p:sld` element configured as base slide shape."""
         return parse_xml(cls._sld_xml())
+
+    @property
+    def bg(self):
+        """Return `p:bg` grandchild or None if not present."""
+        return self.cSld.bg
 
     def get_or_add_childTnLst(self):
         """Return parent element for a new `p:video` child element.

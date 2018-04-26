@@ -180,6 +180,20 @@ class Slide(_BaseSlide):
         return super(Slide, self).background
 
     @property
+    def follow_master_background(self):
+        """|True| if this slide inherits the slide master background.
+
+        Assigning |False| causes background inheritance from the master to be
+        interrupted; if there is no custom background for this slide,
+        a default background is added. If a custom background already exists
+        for this slide, assigning |False| has no effect.
+
+        Assigning |True| causes any custom background for this slide to be
+        deleted and inheritance from the master restored.
+        """
+        return self._element.bg is None
+
+    @property
     def has_notes_slide(self):
         """
         Return True if this slide has a notes slide, False otherwise. A notes

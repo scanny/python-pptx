@@ -327,6 +327,11 @@ class DescribeSlide(object):
         _BaseSlide_background_.assert_called_once_with()
         assert background is background_
 
+    def it_knows_whether_it_follows_the_mstr_bkgd(self, follow_get_fixture):
+        slide, expected_value = follow_get_fixture
+        follows = slide.follow_master_background
+        assert follows is expected_value
+
     def it_knows_whether_it_has_a_notes_slide(self, has_notes_slide_fixture):
         slide, expected_value = has_notes_slide_fixture
         assert slide.has_notes_slide is expected_value
@@ -364,6 +369,15 @@ class DescribeSlide(object):
         slide = Slide(None, None)
         _BaseSlide_background_.return_value = background_
         return slide, _BaseSlide_background_, background_
+
+    @pytest.fixture(params=[
+        ('p:sld/p:cSld',      True),
+        ('p:sld/p:cSld/p:bg', False),
+    ])
+    def follow_get_fixture(self, request):
+        pSld_cxml, expected_value = request.param
+        slide = Slide(element(pSld_cxml), None)
+        return slide, expected_value
 
     @pytest.fixture
     def has_notes_slide_fixture(self, part_prop_, slide_part_):

@@ -14,7 +14,6 @@ Feature: slide properties
       | an overridden         |
 
 
-  @wip
   Scenario Outline: Slide.follow_master_background
     Given a Slide object having <default-or-overridden> background as slide
      Then slide.follow_master_background is <value>
