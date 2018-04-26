@@ -1,7 +1,7 @@
 Feature: slide properties
-  In order to interact with a slide, layout, or master
+  In order to interact with a slide, layout, master, or notes slide
   As a developer using python-pptx
-  I need properties and methods on Slide, SlideLayout, and SlideMaster
+  I need properties and methods on the slide object
 
 
   Scenario Outline: Slide.has_notes_slide
@@ -51,8 +51,8 @@ Feature: slide properties
 
 
   Scenario Outline: SlideLayout.name
-    Given a slide layout having name <name>
-     Then slide_layout.name is <value>
+    Given a SlideLayout object having name <name> as slide
+     Then slide.name is <value>
 
     Examples: name scenarios
       | name                 | value            |
@@ -61,30 +61,46 @@ Feature: slide properties
 
 
   Scenario: SlideLayout.shapes
-    Given a slide layout
-     Then slide_layout.shapes is a LayoutShapes object
+    Given a SlideLayout object as slide
+     Then slide.shapes is a LayoutShapes object
 
 
   Scenario: SlideLayout.placeholders
-    Given a slide layout
-     Then slide_layout.placeholders is a LayoutPlaceholders object
+    Given a SlideLayout object as slide
+     Then slide.placeholders is a LayoutPlaceholders object
 
 
   Scenario: SlideLayout.slide_master
-    Given a slide layout
+    Given a SlideLayout object as slide_layout
      Then slide_layout.slide_master is a SlideMaster object
 
 
   Scenario: SlideMaster.shapes
-    Given a slide master
-     Then slide_master.shapes is a MasterShapes object
+    Given a SlideMaster object as slide
+     Then slide.shapes is a MasterShapes object
 
 
   Scenario: SlideMaster.placeholders
-    Given a slide master
-     Then slide_master.placeholders is a MasterPlaceholders object
+    Given a SlideMaster object as slide
+     Then slide.placeholders is a MasterPlaceholders object
 
 
   Scenario: SlideMaster.slide_layouts
-    Given a slide master
+    Given a SlideMaster object as slide_master
      Then slide_master.slide_layouts is a SlideLayouts object
+
+
+  Scenario: NotesSlide.placeholders
+    Given a notes slide
+     Then notes_slide.placeholders is a NotesSlidePlaceholders object
+      And iterating produces 3 NotesSlidePlaceholder objects
+
+
+  Scenario: NotesSlide.notes_placeholder
+     Given a notes slide
+      Then notes_slide.notes_placeholder is a NotesSlidePlaceholder object
+
+
+  Scenario: NotesSlide.notes_text_frame
+     Given a notes slide
+      Then notes_slide.notes_text_frame is a TextFrame object
