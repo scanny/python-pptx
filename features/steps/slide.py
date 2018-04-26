@@ -62,6 +62,15 @@ def given_a_slide_having_slide_id_256(context):
     context.slide = presentation.slides[0]
 
 
+@given('a Slide object having {def_or_ovr} background as slide')
+def given_a_Slide_object_having_background_as_slide(context, def_or_ovr):
+    slide_idx = {
+        'the default': 0,
+        'an overridden': 1,
+    }[def_or_ovr]
+    context.slide = Presentation(test_pptx('sld-slide')).slides[slide_idx]
+
+
 @given('a SlideLayout object as slide')
 @given('a SlideLayout object as slide_layout')
 def given_a_SlideLayout_object_as_slide(context):
@@ -109,6 +118,14 @@ def then_notes_slide_notes_text_frame_is_a_TextFrame_object(context):
 def then_notes_slide_placeholders_is_a_NotesSlidePlaceholders_object(context):
     notes_slide = context.notes_slide
     assert type(notes_slide.placeholders).__name__ == 'NotesSlidePlaceholders'
+
+
+@then('slide.background is a _Background object')
+def then_slide_background_is_a_Background_object(context):
+    cls_name = context.slide.background.__class__.__name__
+    assert cls_name == '_Background', (
+        'slide.background is a %s object' % cls_name
+    )
 
 
 @then('slide.has_notes_slide is {value}')

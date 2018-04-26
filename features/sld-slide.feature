@@ -4,6 +4,17 @@ Feature: slide properties
   I need properties and methods on the slide object
 
 
+  @wip
+  Scenario Outline: Slide.background
+    Given a Slide object having <default-or-overridden> background as slide
+     Then slide.background is a _Background object
+
+    Examples: Slide.background cases
+      | default-or-overridden |
+      | the default           |
+      | an overridden         |
+
+
   Scenario Outline: Slide.has_notes_slide
     Given a slide having <a-or-no> notes slide
      Then slide.has_notes_slide is <value>
@@ -73,6 +84,12 @@ Feature: slide properties
   Scenario: SlideLayout.slide_master
     Given a SlideLayout object as slide_layout
      Then slide_layout.slide_master is a SlideMaster object
+
+
+  @wip
+  Scenario: SlideMaster.background
+    Given a SlideMaster object as slide
+     Then slide.background is a _Background object
 
 
   Scenario: SlideMaster.shapes
