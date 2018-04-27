@@ -90,31 +90,39 @@ class CT_Picture(BaseShapeElement):
 
     @property
     def srcRect_b(self):
-        """
-        Value of `p:blipFill/a:srcRect/@b` or 0.0 if not present.
-        """
+        """Value of `p:blipFill/a:srcRect/@b` or 0.0 if not present."""
         return self._srcRect_x('b')
+
+    @srcRect_b.setter
+    def srcRect_b(self, value):
+        self.blipFill.get_or_add_srcRect().b = value
 
     @property
     def srcRect_l(self):
-        """
-        Value of `p:blipFill/a:srcRect/@l` or 0.0 if not present.
-        """
+        """Value of `p:blipFill/a:srcRect/@l` or 0.0 if not present."""
         return self._srcRect_x('l')
+
+    @srcRect_l.setter
+    def srcRect_l(self, value):
+        self.blipFill.get_or_add_srcRect().l = value
 
     @property
     def srcRect_r(self):
-        """
-        Value of `p:blipFill/a:srcRect/@r` or 0.0 if not present.
-        """
+        """Value of `p:blipFill/a:srcRect/@r` or 0.0 if not present."""
         return self._srcRect_x('r')
+
+    @srcRect_r.setter
+    def srcRect_r(self, value):
+        self.blipFill.get_or_add_srcRect().r = value
 
     @property
     def srcRect_t(self):
-        """
-        Value of `p:blipFill/a:srcRect/@t` or 0.0 if not present.
-        """
+        """Value of `p:blipFill/a:srcRect/@t` or 0.0 if not present."""
         return self._srcRect_x('t')
+
+    @srcRect_t.setter
+    def srcRect_t(self, value):
+        self.blipFill.get_or_add_srcRect().t = value
 
     def _fill_cropping(self, image_size, view_size):
         """

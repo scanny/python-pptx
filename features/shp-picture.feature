@@ -17,7 +17,6 @@ Feature: Picture properties and methods
       | cropping    | .15479 | .25571 | .10463 | .25572 |
 
 
-  @wip
   Scenario Outline: Picture.crop_x() setters
     Given a Picture object with <crop-or-no> as picture
      When I assign <value> to picture.crop_<side>

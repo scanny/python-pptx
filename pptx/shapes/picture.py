@@ -22,37 +22,53 @@ class _BasePicture(BaseShape):
 
     @property
     def crop_bottom(self):
-        """
-        A |float| representing the relative portion cropped from the bottom
-        of this shape where 1.0 represents 100%. For example, 25% is
-        represented by 0.25. Negative values are valid as are values greater
-        than 1.0.
+        """|float| representing relative portion cropped from shape bottom.
+
+        Read/write. 1.0 represents 100%. For example, 25% is represented by
+        0.25. Negative values are valid as are values greater than 1.0.
         """
         return self._element.srcRect_b
 
+    @crop_bottom.setter
+    def crop_bottom(self, value):
+        self._element.srcRect_b = value
+
     @property
     def crop_left(self):
-        """
-        A |float| representing the relative portion cropped from the left
-        side of this shape where 1.0 represents 100%.
+        """|float| representing relative portion cropped from left of shape.
+
+        Read/write. 1.0 represents 100%. A negative value extends the side
+        beyond the image boundary.
         """
         return self._element.srcRect_l
 
+    @crop_left.setter
+    def crop_left(self, value):
+        self._element.srcRect_l = value
+
     @property
     def crop_right(self):
-        """
-        A |float| representing the relative portion cropped from the right
-        side of this shape where 1.0 represents 100%.
+        """|float| representing relative portion cropped from right of shape.
+
+        Read/write. 1.0 represents 100%.
         """
         return self._element.srcRect_r
 
+    @crop_right.setter
+    def crop_right(self, value):
+        self._element.srcRect_r = value
+
     @property
     def crop_top(self):
-        """
-        A |float| representing the relative portion cropped from the top of
-        this shape where 1.0 represents 100%.
+        """|float| representing relative portion cropped from shape top.
+
+        Read/write. 1.0 represents 100%.
         """
         return self._element.srcRect_t
+
+    @crop_top.setter
+    def crop_top(self, value):
+        self._element.srcRect_t = value
 
     def get_or_add_ln(self):
         """
