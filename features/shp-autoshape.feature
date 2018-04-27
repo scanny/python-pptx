@@ -13,3 +13,9 @@ Feature: Get and set AutoShape properties
      Given an autoshape having text
       When I assign a string to shape.text
       Then shape.text is the string I assigned
+
+
+  Scenario: Set AutoShape adjustment value
+     Given a chevron shape
+      When I assign 0.15 to shape.adjustments[0]
+      Then shape.adjustments[0] is 0.15

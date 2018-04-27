@@ -135,11 +135,26 @@ def given_a_movie_shape(context):
     context.movie = prs.slides[0].shapes[0]
 
 
+@given('a Picture object as picture')
+def given_a_Picture_object_as_picture(context):
+    slide = Presentation(test_pptx('shp-picture')).slides[0]
+    context.picture = slide.shapes[0]
+
+
 @given('a Picture object as shape')
 def given_a_Picture_object_as_shape(context):
-    prs = Presentation(test_pptx('shp-common-props'))
-    sld = prs.slides[0]
-    context.shape = sld.shapes[1]
+    slide = Presentation(test_pptx('shp-common-props')).slides[0]
+    context.shape = slide.shapes[1]
+
+
+@given('a Picture object with {crop_or_no} as picture')
+def given_a_Picture_object_with_crop_or_no_as_picture(context, crop_or_no):
+    shape_idx = {
+        'no cropping': 0,
+        'cropping': 1,
+    }[crop_or_no]
+    slide = Presentation(test_pptx('shp-picture')).slides[0]
+    context.picture = slide.shapes[shape_idx]
 
 
 @given('a rotated {shape_type} object as shape')
@@ -241,6 +256,16 @@ def when_I_assign_value_to_connector_end_x(context, value):
 @when('I assign {value} to connector.end_y')
 def when_I_assign_value_to_connector_end_y(context, value):
     context.connector.end_y = int(value)
+
+
+@when('I assign {value} to picture.crop_{side}')
+def when_I_assign_value_to_picture_crop_side(context, value, side):
+    new_value = (
+        None if value == 'None' else
+        float(value) if '.' in value else
+        int(value)
+    )
+    setattr(context.picture, 'crop_%s' % side, new_value)
 
 
 @when('I assign {value} to shape.height')
@@ -440,6 +465,31 @@ def then_movie_width_movie_height_eq_cx_cy(context):
     movie = context.movie
     size = movie.width, movie.height
     assert size == (Emu(3962400), Emu(5715000)), 'got %s' % size
+
+
+@then('picture.crop_{side} == {value}')
+def then_picture_crop_side_eq_value(context, side, value):
+    expected_value = round(float(value), 5)
+    actual_value = round(getattr(context.picture, 'crop_%s' % side), 5)
+    assert actual_value == expected_value, (
+        'picture.crop_%s == %s' % (side, actual_value)
+    )
+
+
+@then('picture.image is an Image object')
+def then_picture_image_is_an_Image_object(context):
+    class_name = context.picture.image.__class__.__name__
+    assert class_name == 'Image', (
+        'picture.image is a %s object' % class_name
+    )
+
+
+@then('picture.line is a LineFormat object')
+def then_picture_line_is_an_LineFormat_object(context):
+    class_name = context.picture.line.__class__.__name__
+    assert class_name == 'LineFormat', (
+        'picture.line is a %s object' % class_name
+    )
 
 
 @then('shape.adjustments[0] is 0.15')
