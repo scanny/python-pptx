@@ -13,8 +13,8 @@ from . import parse_from_template, parse_xml
 from .ns import nsdecls
 from .simpletypes import XsdString
 from .xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
-    ZeroOrMore, ZeroOrOne
+    BaseOxmlElement, Choice, OneAndOnlyOne, OptionalAttribute,
+    RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
 )
 
 
@@ -30,17 +30,79 @@ class _BaseSlideElement(BaseOxmlElement):
         return self.cSld.spTree
 
 
+class CT_Background(BaseOxmlElement):
+    """`p:bg` element."""
+
+    # ---these two are actually a choice, not a sequence, but simpler for
+    # ---present purposes this way.
+    _tag_seq = (
+        'p:bgPr', 'p:bgRef'
+    )
+    bgPr = ZeroOrOne('p:bgPr', successors=())
+    bgRef = ZeroOrOne('p:bgRef', successors=())
+    del _tag_seq
+
+    def add_noFill_bgPr(self):
+        """Return a new `p:bgPr` element with noFill properties."""
+        xml = (
+            '<p:bgPr %s>\n'
+            '  <a:noFill/>\n'
+            '  <a:effectLst/>\n'
+            '</p:bgPr>' % nsdecls('a', 'p')
+        )
+        bgPr = parse_xml(xml)
+        self._insert_bgPr(bgPr)
+        return bgPr
+
+
+class CT_BackgroundProperties(BaseOxmlElement):
+    """`p:bgPr` element."""
+
+    _tag_seq = (
+        'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill',
+        'a:grpFill', 'a:effectLst', 'a:effectDag', 'a:extLst',
+    )
+    eg_fillProperties = ZeroOrOneChoice(
+        (
+            Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
+            Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')
+        ),
+        successors=_tag_seq[6:]
+    )
+    del _tag_seq
+
+
 class CT_CommonSlideData(BaseOxmlElement):
-    """
-    ``<p:cSld>`` element.
-    """
+    """`p:cSld` element."""
+
     _tag_seq = (
         'p:bg', 'p:spTree', 'p:custDataLst', 'p:controls', 'p:extLst'
     )
+    bg = ZeroOrOne('p:bg', successors=_tag_seq[1:])
     spTree = OneAndOnlyOne('p:spTree')
     del _tag_seq
-
     name = OptionalAttribute('name', XsdString, default='')
+
+    def get_or_add_bgPr(self):
+        """Return `p:bg/p:bgPr` grandchild.
+
+        If no such grandchild is present, any existing `p:bg` child is first
+        removed and a new default `p:bg` with noFill settings is added.
+        """
+        bg = self.bg
+        if bg is None or bg.bgPr is None:
+            self._change_to_noFill_bg()
+        return self.bg.bgPr
+
+    def _change_to_noFill_bg(self):
+        """Establish a `p:bg` child with no-fill settings.
+
+        Any existing `p:bg` child is first removed.
+        """
+        self._remove_bg()
+        bg = self.get_or_add_bg()
+        bg.add_noFill_bgPr()
+        return bg
 
 
 class CT_NotesMaster(_BaseSlideElement):

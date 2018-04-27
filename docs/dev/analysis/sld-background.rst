@@ -115,7 +115,7 @@ Schema excerpt
   </xsd:complexType>
 
   <xsd:complexType name="CT_Background">
-    <xsd:choice>  <!-- one and only one -->
+    <xsd:choice>  <!-- EG_Background - one and only one -->
       <xsd:element name="bgPr"  type="CT_BackgroundProperties"/>
       <xsd:element name="bgRef" type="a:CT_StyleMatrixReference"/>
     </xsd:choice>

@@ -6,6 +6,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
@@ -440,8 +441,37 @@ class _Background(ElementProxy):
     has a |_Background| object.
     """
 
-    __slots__ = ('_cSld',)
+    __slots__ = ('_cSld', '_fill')
 
     def __init__(self, cSld):
         super(_Background, self).__init__(cSld)
         self._cSld = cSld
+
+    @lazyproperty
+    def fill(self):
+        """|FillFormat| instance for this background.
+
+        This |FillFormat| object is used to interrogate or specify the fill
+        of the slide background.
+
+        Note that accessing this property is potentially destructive. A slide
+        background can also be specified by a background style reference and
+        accessing this property will remove that reference, if present, and
+        replace it with NoFill. This is frequently the case for a slide
+        master background.
+
+        This is also the case when there is no explicitly defined background
+        (background is inherited); merely accessing this property will cause
+        the background to be set to NoFill and the inheritance link will be
+        interrupted. This is frequently the case for a slide background.
+
+        Of course, if you are accessing this property in order to set the
+        fill, then these changes are of no consequence, but the existing
+        background cannot be reliably interrogated using this property unless
+        you have already established it is an explicit fill.
+
+        If the background is already a fill, then accessing this property
+        makes no changes to the current background.
+        """
+        bgPr = self._cSld.get_or_add_bgPr()
+        return FillFormat.from_fill_parent(bgPr)

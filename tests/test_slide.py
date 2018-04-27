@@ -10,6 +10,7 @@ from __future__ import (
 
 import pytest
 
+from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
@@ -934,3 +935,48 @@ class DescribeSlideMasters(object):
     @pytest.fixture
     def slide_master_(self, request):
         return instance_mock(request, SlideMaster)
+
+
+class Describe_Background(object):
+
+    def it_provides_access_to_its_fill(self, fill_fixture):
+        background, cSld, expected_xml = fill_fixture[:3]
+        from_fill_parent_, fill_ = fill_fixture[3:]
+
+        fill = background.fill
+
+        assert cSld.xml == expected_xml
+        from_fill_parent_.assert_called_once_with(
+            cSld.xpath('p:bg/p:bgPr')[0]
+        )
+        assert fill is fill_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('p:cSld{a:b=c}',
+         'p:cSld{a:b=c}/p:bg/p:bgPr/(a:noFill,a:effectLst)'),
+        ('p:cSld{a:b=c}/p:bg/p:bgRef',
+         'p:cSld{a:b=c}/p:bg/p:bgPr/(a:noFill,a:effectLst)'),
+        ('p:cSld/p:bg/p:bgPr/a:solidFill',
+         'p:cSld/p:bg/p:bgPr/a:solidFill'),
+    ])
+    def fill_fixture(self, request, from_fill_parent_, fill_):
+        cSld_xml, expected_cxml = request.param
+        cSld = element(cSld_xml)
+        background = _Background(cSld)
+
+        from_fill_parent_.return_value = fill_
+
+        expected_xml = xml(expected_cxml)
+        return background, cSld, expected_xml, from_fill_parent_, fill_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def fill_(self, request):
+        return instance_mock(request, FillFormat)
+
+    @pytest.fixture
+    def from_fill_parent_(self, request):
+        return method_mock(request, FillFormat, 'from_fill_parent')

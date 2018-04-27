@@ -4,7 +4,6 @@ Feature: slide background
   I need properties and methods on the _Background object
 
 
-  @wip
   Scenario Outline: _Background.fill
     Given a _Background object having <type> background as background
      Then background.fill is a FillFormat object
