@@ -234,7 +234,7 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(cxnSp)
 
-    def add_group_shape(self):
+    def add_group_shape(self, shapes=[]):
         """Return a |GroupShape| object newly appended to this shape tree.
 
         The group shape is empty and must be populated with shapes using
@@ -244,7 +244,10 @@ class _BaseGroupShapes(_BaseShapes):
         a shape is added to it.
         """
         grpSp = self._element.add_grpSp()
-        self._recalculate_extents()
+        for shape in shapes:
+            grpSp.insert_element_before(shape._element, 'p:extLst')
+        if shapes:
+            grpSp.recalculate_extents()
         return self._shape_factory(grpSp)
 
     def add_picture(self, image_file, left, top, width=None, height=None):

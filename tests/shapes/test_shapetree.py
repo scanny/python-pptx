@@ -285,7 +285,6 @@ class Describe_BaseGroupShapes(object):
         group_shape = shapes.add_group_shape()
 
         spTree.add_grpSp.assert_called_once_with(spTree)
-        shapes._recalculate_extents.assert_called_once_with(shapes)
         shapes._shape_factory.assert_called_once_with(shapes, grpSp)
         assert group_shape is group_shape_
 
@@ -561,7 +560,7 @@ class Describe_BaseGroupShapes(object):
 
     @pytest.fixture
     def group_fixture(self, CT_GroupShape_add_grpSp_, _shape_factory_,
-                      group_shape_, _recalculate_extents_):
+                      group_shape_):
         spTree = element('p:spTree{id=2e838acdc755e83113ed03904d2fe081f}')
         grpSp = element('p:grpSp{id=052874e154b48f9bec4266f80913cae38f}')
         shapes = _BaseGroupShapes(spTree, None)
