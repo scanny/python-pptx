@@ -257,11 +257,11 @@ class Describe_BaseGroupShapes(object):
         end_x, end_y, cxnSp_, connector_ = connector_fixture[4:]
 
         connector = shapes.add_connector(
-            connector_type, begin_x, begin_y, end_x, end_y
+            connector_type, begin_x, begin_y, end_x, end_y, "none", "none"
         )
 
         shapes._add_cxnSp.assert_called_once_with(
-            shapes, connector_type, begin_x, begin_y, end_x, end_y
+            shapes, connector_type, begin_x, begin_y, end_x, end_y, "none", "none"
         )
         shapes._recalculate_extents.assert_called_once_with(shapes)
         shapes._shape_factory.assert_called_once_with(shapes, cxnSp_)
@@ -351,7 +351,7 @@ class Describe_BaseGroupShapes(object):
         end_x, end_y, expected_xml = add_cxnSp_fixture[4:]
 
         cxnSp = shapes._add_cxnSp(
-            connector_type, begin_x, begin_y, end_x, end_y
+            connector_type, begin_x, begin_y, end_x, end_y, "none", "none"
         )
 
         assert cxnSp is shapes._element.xpath('p:cxnSp')[0]
