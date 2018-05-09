@@ -176,16 +176,15 @@ class _BaseShapes(ParentedElementProxy):
     def _next_shape_id(self):
         """Return a unique shape id suitable for use with a new shape.
 
-        The returned id is the next available positive integer drawing object
-        id in shape tree, starting from 1 and making use of any gaps in
-        numbering. In practice, the minimum id is 2 because the spTree
-        element is always assigned id="1".
+        The returned id is 1 greater than the maximum shape id used so far.
+        In practice, the minimum id is 2 because the spTree element is always
+        assigned id="1".
         """
         id_str_lst = self._spTree.xpath('//@id')
         used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
-        for n in range(1, len(used_ids)+2):
-            if n not in used_ids:
-                return n
+        if not used_ids:
+            return 1
+        return max(used_ids) + 1
 
     def _shape_factory(self, shape_elm):
         """

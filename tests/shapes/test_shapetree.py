@@ -118,7 +118,7 @@ class Describe_BaseShapes(object):
         shapes.clone_placeholder(placeholder_)
         assert shapes._element.xml == expected_xml
 
-    def it_finds_an_unused_shape_id_to_help_add_shape(self, next_id_fixture):
+    def it_finds_an_available_shape_id_to_help(self, next_id_fixture):
         shapes, expected_value = next_id_fixture
         assert shapes._next_shape_id == expected_value
 
@@ -183,12 +183,12 @@ class Describe_BaseShapes(object):
         ('p:spTree/p:nvSpPr',                                 1),
         ('p:spTree/p:nvSpPr/p:cNvPr{id=0}',                   1),
         ('p:spTree/p:nvSpPr/p:cNvPr{id=1}',                   2),
-        ('p:spTree/p:nvSpPr/p:cNvPr{id=2}',                   1),
-        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1},p:cNvPr{id=3})',   2),
-        ('p:spTree/p:nvSpPr/(p:cNvPr{id=foo},p:cNvPr{id=2})', 1),
-        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1fo},p:cNvPr{id=2})', 1),
+        ('p:spTree/p:nvSpPr/p:cNvPr{id=2}',                   3),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1},p:cNvPr{id=3})',   4),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=foo},p:cNvPr{id=2})', 3),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1fo},p:cNvPr{id=2})', 3),
         ('p:spTree/p:nvSpPr/(p:cNvPr{id=1},p:cNvPr{id=1},p:'
-         'cNvPr{id=1},p:cNvPr{id=4})',                        2),
+         'cNvPr{id=1},p:cNvPr{id=4})',                        5),
     ])
     def next_id_fixture(self, request):
         spTree_cxml, expected_value = request.param
