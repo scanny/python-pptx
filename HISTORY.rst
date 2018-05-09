@@ -3,6 +3,20 @@
 Release History
 ---------------
 
+0.6.9 (2018-05-08)
+++++++++++++++++++
+
+- Add `Picture.crop_x` setters, allowing picture cropping values to be set,
+  in addition to interrogated.
+- Add `Slide.background` and `SlideMaster.background`, allowing the
+  background fill to be set for an individual slide or for all slides based
+  on a slide master.
+- Add option `shapes` parameter to `Shapes.add_group_shape`, allowing a group
+  shape to be formed from a number of existing shapes.
+- Improve efficiency of `Shapes._next_shape_id` property to improve
+  performance on high shape-count slides.
+
+
 0.6.8 (2018-04-18)
 ++++++++++++++++++
 
