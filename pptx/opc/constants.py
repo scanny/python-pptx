@@ -58,6 +58,9 @@ class CONTENT_TYPE(object):
     MOV = (
         'video/quicktime'
     )
+    MP3 = (
+        'audio/mp3'
+    )
     MP4 = (
         'video/mp4'
     )

@@ -48,6 +48,7 @@ content_type_to_part_class_map = {
     CT.ASF:                   MediaPart,
     CT.AVI:                   MediaPart,
     CT.MOV:                   MediaPart,
+    CT.MP3:                   MediaPart,
     CT.MP4:                   MediaPart,
     CT.MPG:                   MediaPart,
     CT.MS_VIDEO:              MediaPart,
