@@ -220,8 +220,22 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(graphicFrame)
 
-    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR):
+    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
         """Add a newly created connector shape to the end of this shape tree.
+
+        *connector_type* is a member of the :ref:`MsoConnectorType`
+        enumeration and the end-point values are specified as EMU values. The
+        returned connector is of type *connector_type* and has begin and end
+        points as specified.
+        """
+        cxnSp = self._add_cxnSp(
+            connector_type, begin_x, begin_y, end_x, end_y
+        )
+        self._recalculate_extents()
+        return self._shape_factory(cxnSp)
+
+    def add_connector_with_head_end(self, connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR):
+        """Add a newly created connector shape with connector head and end styles to the end of this shape tree.
 
         *connector_type* is a member of the :ref:`MsoConnectorType`
         enumeration and the end-point values are specified as EMU values. The
@@ -334,7 +348,7 @@ class _BaseGroupShapes(_BaseShapes):
         self._spTree.append(graphicFrame)
         return graphicFrame
 
-    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR):
+    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
         """Return a newly-added `p:cxnSp` element as specified.
 
         The `p:cxnSp` element is for a connector of *connector_type*
@@ -349,6 +363,23 @@ class _BaseGroupShapes(_BaseShapes):
         cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
 
         return self._element.add_cxnSp(
+            id_, name, connector_type, x, y, cx, cy, flipH, flipV
+        )
+    def _add_cxnSp_with_head_end(self, connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR):
+        """Return a newly-added `p:cxnSp` element as specified.
+
+        The `p:cxnSp` element is for a connector of *connector_type*
+        beginning at (*begin_x*, *begin_y*) and extending to
+        (*end_x*, *end_y*).
+        """
+        id_ = self._next_shape_id
+        name = 'Connector %d' % (id_-1)
+
+        flipH, flipV = begin_x > end_x, begin_y > end_y
+        x, y = min(begin_x, end_x), min(begin_y, end_y)
+        cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
+
+        return self._element._add_cxnSp_with_head_end(
             id_, name, connector_type, x, y, cx, cy, flipH, flipV, arrowL, arrowR
         )
 
