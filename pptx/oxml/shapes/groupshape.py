@@ -52,6 +52,18 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(cxnSp, 'p:extLst')
         return cxnSp
 
+    def add_cxnSp_with_head_end(self, id_, name, type_member, x, y, cx, cy, flipH, flipV, arrowL, arrowR):
+        """
+        Append a new ``<p:cxnSp>`` shape to the group/shapetree having the
+        properties specified in call.
+        """
+        prst = MSO_CONNECTOR_TYPE.to_xml(type_member)
+        cxnSp = CT_Connector.new_cxnSp_with_head_end(
+            id_, name, prst, x, y, cx, cy, flipH, flipV, arrowL, arrowR
+        )
+        self.insert_element_before(cxnSp, 'p:extLst')
+        return cxnSp
+
     def add_freeform_sp(self, x, y, cx, cy):
         """Append a new freeform `p:sp` with specified position and size."""
         shape_id = self._next_shape_id

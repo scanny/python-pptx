@@ -40,14 +40,14 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
-    def add_cxnSp(self, id_, name, type_member, x, y, cx, cy, flipH, flipV, arrowL, arrowR):
+    def add_cxnSp(self, id_, name, type_member, x, y, cx, cy, flipH, flipV):
         """
         Append a new ``<p:cxnSp>`` shape to the group/shapetree having the
         properties specified in call.
         """
         prst = MSO_CONNECTOR_TYPE.to_xml(type_member)
         cxnSp = CT_Connector.new_cxnSp(
-            id_, name, prst, x, y, cx, cy, flipH, flipV, arrowL, arrowR
+            id_, name, prst, x, y, cx, cy, flipH, flipV
         )
         self.insert_element_before(cxnSp, 'p:extLst')
         return cxnSp

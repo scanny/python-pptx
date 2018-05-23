@@ -220,7 +220,7 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(graphicFrame)
 
-    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR):
+    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
         """Add a newly created connector shape to the end of this shape tree.
 
         *connector_type* is a member of the :ref:`MsoConnectorType`
@@ -229,7 +229,7 @@ class _BaseGroupShapes(_BaseShapes):
         points as specified.
         """
         cxnSp = self._add_cxnSp(
-            connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR
+            connector_type, begin_x, begin_y, end_x, end_y
         )
         self._recalculate_extents()
         return self._shape_factory(cxnSp)
@@ -334,7 +334,7 @@ class _BaseGroupShapes(_BaseShapes):
         self._spTree.append(graphicFrame)
         return graphicFrame
 
-    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR):
+    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
         """Return a newly-added `p:cxnSp` element as specified.
 
         The `p:cxnSp` element is for a connector of *connector_type*
@@ -349,7 +349,7 @@ class _BaseGroupShapes(_BaseShapes):
         cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
 
         return self._element.add_cxnSp(
-            id_, name, connector_type, x, y, cx, cy, flipH, flipV, arrowL, arrowR
+            id_, name, connector_type, x, y, cx, cy, flipH, flipV
         )
 
     def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):

@@ -36,7 +36,7 @@ class CT_Connector(BaseShapeElement):
     del _tag_seq
 
     @classmethod
-    def new_cxnSp(cls, id_, name, prst, x, y, cx, cy, flipH, flipV, arrowL, arrowR):
+    def new_cxnSp(cls, id_, name, prst, x, y, cx, cy, flipH, flipV):
         """
         Return a new ``<p:cxnSp>`` element tree configured as a base
         connector.
@@ -55,8 +55,6 @@ class CT_Connector(BaseShapeElement):
             'cy':      cy,
             'prst':    prst,
             'flip':    flip,
-            'arrowLeft':    arrowL,
-            'arrowRight':   arrowR
         })
         return parse_xml(xml)
 
@@ -77,10 +75,6 @@ class CT_Connector(BaseShapeElement):
             '    <a:prstGeom prst="{prst}">\n'
             '      <a:avLst/>\n'
             '    </a:prstGeom>\n'
-            '    <a:ln>\n'
-            '      <a:headEnd type="{arrowLeft}"/>\n'
-            '      <a:tailEnd type="{arrowRight}"/>\n'
-            '    </a:ln>\n'
             '  </p:spPr>\n'
             '  <p:style>\n'
             '    <a:lnRef idx="2">\n'

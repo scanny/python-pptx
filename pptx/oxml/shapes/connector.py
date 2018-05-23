@@ -93,6 +93,70 @@ class CT_Connector(BaseShapeElement):
             '</p:cxnSp>'
         )
 
+    @classmethod
+    def new_cxnSp_with_head_end(cls, id_, name, prst, x, y, cx, cy, flipH, flipV, arrowL, arrowR):
+        """
+        Return a new ``<p:cxnSp>`` element tree configured as a base
+        connector.
+        """
+        tmpl = cls._cxnSp_tmpl_with_head_end()
+        flip = (
+            (' flipH="1"' if flipH else '') + (' flipV="1"' if flipV else '')
+        )
+        xml = tmpl.format(**{
+            'nsdecls': nsdecls('a', 'p'),
+            'id':      id_,
+            'name':    name,
+            'x':       x,
+            'y':       y,
+            'cx':      cx,
+            'cy':      cy,
+            'prst':    prst,
+            'flip':    flip,
+            'arrowL':  arrowL,
+            'arrowR':  arrowR,
+        })
+        return parse_xml(xml)
+
+    @staticmethod
+    def _cxnSp_tmpl_with_head_end():
+        return (
+            '<p:cxnSp {nsdecls}>\n'
+            '  <p:nvCxnSpPr>\n'
+            '    <p:cNvPr id="{id}" name="{name}"/>\n'
+            '    <p:cNvCxnSpPr/>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvCxnSpPr>\n'
+            '  <p:spPr>\n'
+            '    <a:xfrm{flip}>\n'
+            '      <a:off x="{x}" y="{y}"/>\n'
+            '      <a:ext cx="{cx}" cy="{cy}"/>\n'
+            '    </a:xfrm>\n'
+            '    <a:prstGeom prst="{prst}">\n'
+            '      <a:avLst/>\n'
+            '    </a:prstGeom>\n'
+            '    <a:ln>\n'
+            '      <a:headEnd type="{arrowL}"/>\n'
+            '      <a:tailEnd type="{arrowR}"/>\n'
+            '    </a:ln>\n'
+            '  </p:spPr>\n'
+            '  <p:style>\n'
+            '    <a:lnRef idx="2">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:lnRef>\n'
+            '    <a:fillRef idx="0">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:fillRef>\n'
+            '    <a:effectRef idx="1">\n'
+            '      <a:schemeClr val="accent1"/>\n'
+            '    </a:effectRef>\n'
+            '    <a:fontRef idx="minor">\n'
+            '      <a:schemeClr val="tx1"/>\n'
+            '    </a:fontRef>\n'
+            '  </p:style>\n'
+            '</p:cxnSp>'
+        )
+
 
 class CT_ConnectorNonVisual(BaseOxmlElement):
     """
