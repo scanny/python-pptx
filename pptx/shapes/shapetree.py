@@ -234,6 +234,20 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(cxnSp)
 
+    def add_connector_with_head_end(self, connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR):
+        """Add a newly created connector shape to the end of this shape tree.
+
+        *connector_type* is a member of the :ref:`MsoConnectorType`
+        enumeration and the end-point values are specified as EMU values. The
+        returned connector is of type *connector_type* and has begin and end
+        points as specified.
+        """
+        cxnSp = self._add_cxnSp_with_head_end(
+            connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR
+        )
+        self._recalculate_extents()
+        return self._shape_factory(cxnSp)
+
     def add_group_shape(self, shapes=[]):
         """Return a |GroupShape| object newly appended to this shape tree.
 
