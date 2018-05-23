@@ -234,7 +234,7 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(cxnSp)
 
-    def add_group_shape(self, shales=[]):
+    def add_group_shape(self, shapes=[]):
         """Return a |GroupShape| object newly appended to this shape tree.
 
         The group shape is empty and must be populated with shapes using
