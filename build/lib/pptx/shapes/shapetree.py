@@ -220,7 +220,8 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(graphicFrame)
 
-    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
+    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR):
+        print("I'm in add_connector")
         """Add a newly created connector shape to the end of this shape tree.
 
         *connector_type* is a member of the :ref:`MsoConnectorType`
@@ -229,12 +230,12 @@ class _BaseGroupShapes(_BaseShapes):
         points as specified.
         """
         cxnSp = self._add_cxnSp(
-            connector_type, begin_x, begin_y, end_x, end_y
+            connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR
         )
         self._recalculate_extents()
         return self._shape_factory(cxnSp)
 
-    def add_group_shape(self):
+    def add_group_shape(self, shapes=[]):
         """Return a |GroupShape| object newly appended to this shape tree.
 
         The group shape is empty and must be populated with shapes using
@@ -266,6 +267,7 @@ class _BaseGroupShapes(_BaseShapes):
         return self._shape_factory(pic)
 
     def add_shape(self, autoshape_type_id, left, top, width, height):
+        print("I'm in add_shape !!!!")
         """Return new |Shape| object appended to this shape tree.
 
         Auto shape is of type specified by *autoshape_type_id* (like
@@ -334,7 +336,7 @@ class _BaseGroupShapes(_BaseShapes):
         self._spTree.append(graphicFrame)
         return graphicFrame
 
-    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
+    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y, arrowL, arrowR):
         """Return a newly-added `p:cxnSp` element as specified.
 
         The `p:cxnSp` element is for a connector of *connector_type*
@@ -349,7 +351,7 @@ class _BaseGroupShapes(_BaseShapes):
         cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
 
         return self._element.add_cxnSp(
-            id_, name, connector_type, x, y, cx, cy, flipH, flipV
+            id_, name, connector_type, x, y, cx, cy, flipH, flipV, arrowL, arrowR
         )
 
     def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):
