@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import pytest
 
 from pptx.action import ActionSetting
+from pptx.dml.effect import ShadowFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
@@ -80,6 +81,14 @@ class DescribeBaseShape(object):
         shape, new_value, expected_xml = rotation_set_fixture
         shape.rotation = new_value
         assert shape._element.xml == expected_xml
+
+    def it_provides_access_to_its_shadow(self, shadow_fixture):
+        shape, ShadowFormat_, spPr, shadow_ = shadow_fixture
+
+        shadow = shape.shadow
+
+        ShadowFormat_.assert_called_once_with(spPr)
+        assert shadow is shadow_
 
     def it_knows_the_part_it_belongs_to(self, part_fixture):
         shape, parent_ = part_fixture
@@ -280,6 +289,21 @@ class DescribeBaseShape(object):
         expected_xml = xml(expected_xSp_cxml)
         return shape, new_value, expected_xml
 
+    @pytest.fixture(params=[
+        'p:sp/p:spPr',
+        'p:cxnSp/p:spPr',
+        'p:pic/p:spPr',
+        # ---group and graphic frame shapes override this property---
+    ])
+    def shadow_fixture(self, request, ShadowFormat_, shadow_):
+        sp_cxml = request.param
+        sp = element(sp_cxml)
+        spPr = sp.xpath('//p:spPr')[0]
+        ShadowFormat_.return_value = shadow_
+
+        shape = BaseShape(sp, None)
+        return shape, ShadowFormat_, spPr, shadow_
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -401,6 +425,14 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def placeholder_format_(self, request):
         return instance_mock(request, _PlaceholderFormat)
+
+    @pytest.fixture
+    def shadow_(self, request):
+        return instance_mock(request, ShadowFormat)
+
+    @pytest.fixture
+    def ShadowFormat_(self, request):
+        return class_mock(request, 'pptx.shapes.base.ShadowFormat')
 
     @pytest.fixture
     def shape_elm_(self, request, shape_id, shape_name, txBody_):
