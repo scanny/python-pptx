@@ -151,7 +151,6 @@ Feature: Common shape properties
       | Connector    |  50.0 |      50.0      |
 
 
-  @wip
   Scenario Outline: shape.shadow
     Given a <shape-type> object as shape
      Then shape.shadow is a ShadowFormat object

@@ -8,12 +8,13 @@ from __future__ import (
 
 import pytest
 
+from pptx.dml.effect import ShadowFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.group import GroupShape
 from pptx.shapes.shapetree import GroupShapes
 
 from ..unitutil.cxml import element
-from ..unitutil.mock import initializer_mock
+from ..unitutil.mock import class_mock, initializer_mock, instance_mock
 
 
 class DescribeGroupShape(object):
@@ -22,6 +23,17 @@ class DescribeGroupShape(object):
         group = click_action_fixture
         with pytest.raises(TypeError):
             group.click_action
+
+    def it_provides_access_to_its_shadow(self, ShadowFormat_, shadow_):
+        grpSp = element('p:grpSp/p:grpSpPr')
+        grpSpPr = grpSp.xpath('//p:grpSpPr')[0]
+        ShadowFormat_.return_value = shadow_
+        group_shape = GroupShape(grpSp, None)
+
+        shadow = group_shape.shadow
+
+        ShadowFormat_.assert_called_once_with(grpSpPr)
+        assert shadow is shadow_
 
     def it_knows_its_shape_type(self, shape_type_fixture):
         group = shape_type_fixture
@@ -56,3 +68,11 @@ class DescribeGroupShape(object):
     @pytest.fixture
     def GroupShapes_init_(self, request):
         return initializer_mock(request, GroupShapes, autospec=True)
+
+    @pytest.fixture
+    def shadow_(self, request):
+        return instance_mock(request, ShadowFormat)
+
+    @pytest.fixture
+    def ShadowFormat_(self, request):
+        return class_mock(request, 'pptx.shapes.group.ShadowFormat')

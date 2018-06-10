@@ -6,6 +6,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+from pptx.dml.effect import ShadowFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
 from pptx.util import lazyproperty
@@ -31,6 +32,16 @@ class GroupShape(BaseShape):
         group to each have their own text.
         """
         return False
+
+    @lazyproperty
+    def shadow(self):
+        """|ShadowFormat| object representing shadow effect for this group.
+
+        A |ShadowFormat| object is always returned, even when no shadow is
+        explicitly defined on this group shape (i.e. when the group inherits
+        its shadow behavior).
+        """
+        return ShadowFormat(self._element.grpSpPr)
 
     @property
     def shape_type(self):
