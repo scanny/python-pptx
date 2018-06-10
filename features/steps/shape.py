@@ -590,6 +590,27 @@ def then_shape_rotation_eq_value(context, value):
     assert shape.rotation == expected_value, 'got %s' % expected_value
 
 
+@then('shape.shadow is a ShadowFormat object')
+def then_shape_shadow_is_a_ShadowFormat_object(context):
+    cls_name = type(context.shape.shadow).__name__
+    assert cls_name == 'ShadowFormat', (
+        "shape.shadow is a '%s' object" % cls_name
+    )
+
+
+@then("shape.shadow raises NotImplementedError")
+def then_shape_shadow_raises_NotImplementedError(context):
+    try:
+        context.shape.shadow
+    except NotImplementedError:
+        return
+    except Exception as e:
+        raise AssertionError(
+            'shape.shadow raises %s' % type(e).__name__
+        )
+    raise AssertionError('shape.shadow did not raise')
+
+
 @then('shape.shape_id == {value_str}')
 def then_shape_shape_id_equals(context, value_str):
     expected_value = int(value_str)

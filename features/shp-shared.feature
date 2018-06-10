@@ -151,6 +151,25 @@ Feature: Common shape properties
       | Connector    |  50.0 |      50.0      |
 
 
+  @wip
+  Scenario Outline: shape.shadow
+    Given a <shape-type> object as shape
+     Then shape.shadow is a ShadowFormat object
+
+    Examples: Shape types
+      | shape-type   |
+      | Shape        |
+      | Picture      |
+      | GroupShape   |
+      | Connector    |
+
+
+  @wip
+  Scenario: GraphicFrame.shadow (not-implemented)
+    Given a GraphicFrame object as shape
+     Then shape.shadow raises NotImplementedError
+
+
   Scenario Outline: Get shape.shape_id
     Given a <shape-type> object as shape
      Then shape.shape_id == <value>
