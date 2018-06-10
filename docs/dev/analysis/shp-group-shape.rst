@@ -231,6 +231,13 @@ Related Schema Definitions
     <xsd:attribute name="flipV" type="xsd:boolean" default="false"/>
   </xsd:complexType>
 
+  <xsd:group name="EG_EffectProperties">
+    <xsd:choice>
+      <xsd:element name="effectLst" type="CT_EffectList"/>
+      <xsd:element name="effectDag" type="CT_EffectContainer"/>
+    </xsd:choice>
+  </xsd:group>
+
   <xsd:group name="EG_FillProperties">
     <xsd:choice>
       <xsd:element name="noFill"    type="CT_NoFillProperties"/>

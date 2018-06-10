@@ -312,6 +312,8 @@ rst_epilog = """
 
 .. |SeriesCollection| replace:: :class:`.SeriesCollection`
 
+.. |ShadowFormat| replace:: :class:`.ShadowFormat`
+
 .. |Shape| replace:: :class:`.Shape`
 
 .. |ShapeCollection| replace:: :class:`.ShapeCollection`

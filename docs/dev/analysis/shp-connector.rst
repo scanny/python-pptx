@@ -101,7 +101,6 @@ MS API Protocol
 ---------------
 
 
-
 Behaviors
 ---------
 
@@ -497,7 +496,6 @@ Analysis
   present or not. Since the lines can cross, this produces some possibly
   surprising fill behaviors; there is no clear concept of inside and outside
   for such a shape.
-
 
 
 Related Schema Definitions
