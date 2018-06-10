@@ -163,7 +163,6 @@ Feature: Common shape properties
       | Connector    |
 
 
-  @wip
   Scenario: GraphicFrame.shadow (not-implemented)
     Given a GraphicFrame object as shape
      Then shape.shadow raises NotImplementedError

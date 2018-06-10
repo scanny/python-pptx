@@ -1,22 +1,26 @@
 # encoding: utf-8
 
-"""
-Graphic Frame shape and related objects. A graphic frame is a common
-container for table, chart, smart art, and media objects.
+"""Graphic Frame shape and related objects.
+
+A graphic frame is a common container for table, chart, smart art, and media
+objects.
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from .base import BaseShape
-from ..enum.shapes import MSO_SHAPE_TYPE
-from .table import Table
+from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.shapes.base import BaseShape
+from pptx.shapes.table import Table
 
 
 class GraphicFrame(BaseShape):
-    """
-    Container shape for table, chart, smart art, and media objects.
+    """Container shape for table, chart, smart art, and media objects.
+
     Corresponds to a ``<p:graphicFrame>`` element in the shape tree.
     """
+
     @property
     def chart(self):
         """
@@ -53,6 +57,18 @@ class GraphicFrame(BaseShape):
         ``.table`` property.
         """
         return self._element.has_table
+
+    @property
+    def shadow(self):
+        """Unconditionally raises |NotImplementedError|.
+
+        Access to the shadow effect for graphic-frame objects is
+        content-specific (i.e. different for charts, tables, etc.) and has
+        not yet been implemented.
+        """
+        raise NotImplementedError(
+            'shadow property on GraphicFrame not yet supported'
+        )
 
     @property
     def shape_type(self):
