@@ -45,3 +45,11 @@ various aspects of shapes.
 .. autoclass:: pptx.dml.color.RGBColor
    :members: from_string
    :undoc-members:
+
+
+|ShadowFormat| objects
+----------------------
+
+.. autoclass:: pptx.dml.effect.ShadowFormat
+   :members:
+   :undoc-members:
