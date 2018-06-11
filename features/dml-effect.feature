@@ -14,7 +14,6 @@ Feature: ShadowFormat
       | does not inherit | False |
 
 
-  @wip
   Scenario Outline: ShadowFormat.inherit setter
     Given a ShadowFormat object that <inherits-or-not> as shadow
      When I assign <new-value> to shadow.inherit

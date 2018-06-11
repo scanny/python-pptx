@@ -26,3 +26,13 @@ class ShadowFormat(object):
         if self._element.effectLst is None:
             return True
         return False
+
+    @inherit.setter
+    def inherit(self, value):
+        inherit = bool(value)
+        if inherit:
+            # ---remove any explicitly-defined effects
+            self._element._remove_effectLst()
+        else:
+            # ---ensure at least the effectLst element is present
+            self._element.get_or_add_effectLst()
