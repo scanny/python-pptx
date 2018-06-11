@@ -239,22 +239,21 @@ class _Cell(Subshape):
 
     @property
     def vertical_anchor(self):
-        """
-        Vertical anchor of this table cell, determines the vertical alignment
-        of text in the cell. Value is like ``MSO_ANCHOR.MIDDLE``. Can be
-        |None|, meaning the cell has no vertical anchor setting and its
-        effective value is inherited from a higher-level object.
+        """Vertical alignment of this cell.
+
+        This value is a member of the :ref:`MsoVerticalAnchor` enumeration or
+        |None|. A value of |None| indicates the cell has no explicitly
+        applied vertical anchor setting and its effective value is inherited
+        from its style-hierarchy ancestors.
+
+        Assigning |None| to this property causes any explicitly applied
+        vertical anchor setting to be cleared and inheritance of its
+        effective value to be restored.
         """
         return self._tc.anchor
 
     @vertical_anchor.setter
     def vertical_anchor(self, mso_anchor_idx):
-        """
-        Set vertical_anchor of this cell to *vertical_anchor*, a constant
-        value like ``MSO_ANCHOR.MIDDLE``. If *vertical_anchor* is |None|, any
-        vertical anchor setting is cleared and its effective value is
-        inherited.
-        """
         self._tc.anchor = mso_anchor_idx
 
     @staticmethod

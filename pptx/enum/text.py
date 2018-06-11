@@ -173,7 +173,7 @@ class MSO_VERTICAL_ANCHOR(XmlEnumeration):
     ``vertical_anchor`` property can also have the value None, indicating
     there is no directly specified vertical anchor setting and its effective
     value is inherited from its placeholder if it has one or from the theme.
-    None may also be assigned to remove an explicitly specified vertical
+    |None| may also be assigned to remove an explicitly specified vertical
     anchor setting.
     """
 
