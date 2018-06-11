@@ -3,6 +3,15 @@
 Release History
 ---------------
 
+0.6.10 (2018-06-11)
+++++++++++++++++++
+
+- Add `shape.shadow` property to autoshape, connector, picture, and group
+  shape, returning a `ShadowFormat` object.
+- Add `ShadowFormat` object with read/write (boolean) `.inherit` property.
+- Fix #328 add support for 26+ series in a chart
+
+
 0.6.9 (2018-05-08)
 ++++++++++++++++++
 
