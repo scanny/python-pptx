@@ -243,10 +243,12 @@ class CT_GroupShapeNonVisual(BaseShapeElement):
 
 
 class CT_GroupShapeProperties(BaseOxmlElement):
-    """
-    The ``<p:grpSpPr>`` element
-    """
-    xfrm = ZeroOrOne('a:xfrm', successors=(
-        'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill',
-        'a:grpFill', 'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:extLst'
-    ))
+    """p:grpSpPr element """
+    _tag_seq = (
+        'a:xfrm', 'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill',
+        'a:pattFill', 'a:grpFill', 'a:effectLst', 'a:effectDag', 'a:scene3d',
+        'a:extLst',
+    )
+    xfrm = ZeroOrOne('a:xfrm', successors=_tag_seq[1:])
+    effectLst = ZeroOrOne('a:effectLst', successors=_tag_seq[8:])
+    del _tag_seq

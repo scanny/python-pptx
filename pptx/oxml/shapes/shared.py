@@ -308,8 +308,8 @@ class CT_PositiveSize2D(BaseOxmlElement):
 class CT_ShapeProperties(BaseOxmlElement):
     """Custom element class for `p:spPr` element.
 
-    Shared by ``<p:sp>``, ``<p:pic>``, and ``<p:cxnSp>`` elements as well as
-    a few more obscure ones.
+    Shared by `p:sp`, `p:cxnSp`,  and `p:pic` elements as well as a few more
+    obscure ones.
     """
 
     _tag_seq = (
@@ -326,6 +326,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         successors=_tag_seq[9:]
     )
     ln = ZeroOrOne('a:ln', successors=_tag_seq[10:])
+    effectLst = ZeroOrOne('a:effectLst', successors=_tag_seq[11:])
     del _tag_seq
 
     @property

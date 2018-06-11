@@ -4,7 +4,6 @@ Feature: ShadowFormat
   I need properties and methods on ShadowFormat
 
 
-  @wip
   Scenario Outline: ShadowFormat.inherit getter
     Given a ShadowFormat object that <inherits-or-not> as shadow
      Then shadow.inherit is <value>
