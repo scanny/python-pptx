@@ -10,5 +10,5 @@ Feature: Get and change shape line properties
 
 
   Scenario: Access Picture line format
-     Given a picture
+     Given a Picture object as shape
       Then shape.line is a LineFormat object

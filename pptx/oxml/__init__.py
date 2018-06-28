@@ -287,6 +287,8 @@ from .shapes.shared import (  # noqa: E402
     CT_NonVisualDrawingProps, CT_Placeholder, CT_Point2D, CT_PositiveSize2D,
     CT_ShapeProperties, CT_Transform2D
 )
+register_element_cls('a:chExt', CT_PositiveSize2D)
+register_element_cls('a:chOff', CT_Point2D)
 register_element_cls('a:ext',   CT_PositiveSize2D)
 register_element_cls('a:ln',    CT_LineProperties)
 register_element_cls('a:off',   CT_Point2D)
@@ -313,10 +315,13 @@ register_element_cls('a:tr',      CT_TableRow)
 
 
 from .slide import (  # noqa: E402
-    CT_CommonSlideData, CT_NotesMaster, CT_NotesSlide, CT_Slide,
-    CT_SlideLayout, CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry,
-    CT_SlideMaster, CT_SlideTiming, CT_TimeNodeList, CT_TLMediaNodeVideo
+    CT_Background, CT_BackgroundProperties, CT_CommonSlideData,
+    CT_NotesMaster, CT_NotesSlide, CT_Slide, CT_SlideLayout,
+    CT_SlideLayoutIdList, CT_SlideLayoutIdListEntry, CT_SlideMaster,
+    CT_SlideTiming, CT_TimeNodeList, CT_TLMediaNodeVideo
 )
+register_element_cls('p:bg',             CT_Background)
+register_element_cls('p:bgPr',           CT_BackgroundProperties)
 register_element_cls('p:childTnLst',     CT_TimeNodeList)
 register_element_cls('p:cSld',           CT_CommonSlideData)
 register_element_cls('p:notes',          CT_NotesSlide)

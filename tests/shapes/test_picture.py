@@ -15,7 +15,7 @@ from pptx.parts.slide import SlidePart
 from pptx.shapes.picture import _BasePicture, _MediaFormat, Movie, Picture
 from pptx.util import Pt
 
-from ..unitutil.cxml import element
+from ..unitutil.cxml import element, xml
 from ..unitutil.mock import call, class_mock, instance_mock, property_mock
 
 
@@ -25,6 +25,11 @@ class Describe_BasePicture(object):
         picture, prop_name, expected_value = crop_get_fixture
         crop = getattr(picture, prop_name)
         assert abs(crop - expected_value) < 0.000001
+
+    def it_can_change_its_cropping(self, crop_set_fixture):
+        picture, prop_name, value, expected_xml = crop_set_fixture
+        setattr(picture, prop_name, value)
+        assert picture._element.xml == expected_xml
 
     def it_provides_access_to_its_outline(self, line_fixture):
         picture = line_fixture
@@ -50,6 +55,42 @@ class Describe_BasePicture(object):
         picture = Picture(element(pic_cxml), None)
         prop_name = 'crop_%s' % side
         return picture, prop_name, expected_value
+
+    @pytest.fixture(params=[
+        ('p:pic{a:b=c}/p:blipFill', 'left', 0.11,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect{l=11000}'),
+        ('p:pic{a:b=c}/p:blipFill', 'top', 0.21,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect{t=21000}'),
+        ('p:pic{a:b=c}/p:blipFill', 'right', 0.31,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect{r=31000}'),
+        ('p:pic{a:b=c}/p:blipFill', 'bottom', 0.41,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect{b=41000}'),
+
+        ('p:pic{a:b=c}/p:blipFill/a:srcRect{l=80000}', 'left', 0.21,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect{l=21000}'),
+        ('p:pic{a:b=c}/p:blipFill/a:srcRect{t=70000}', 'top', 0.22,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect{t=22000}'),
+        ('p:pic{a:b=c}/p:blipFill/a:srcRect{r=60000}', 'right', 0.23,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect{r=23000}'),
+        ('p:pic{a:b=c}/p:blipFill/a:srcRect{b=50000}', 'bottom', 0.24,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect{b=24000}'),
+
+        ('p:pic{a:b=c}/p:blipFill/a:srcRect{l=90000}', 'left', 0,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect'),
+        ('p:pic{a:b=c}/p:blipFill/a:srcRect{t=91000}', 'top', 0.0,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect'),
+        ('p:pic{a:b=c}/p:blipFill/a:srcRect{r=92000}', 'right', 0,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect'),
+        ('p:pic{a:b=c}/p:blipFill/a:srcRect{b=93000}', 'bottom', 0.0,
+         'p:pic{a:b=c}/p:blipFill/a:srcRect'),
+    ])
+    def crop_set_fixture(self, request):
+        pic_cxml, side, value, expected_cxml = request.param
+        pic = element(pic_cxml)
+        picture = Picture(pic, None)
+        prop_name = 'crop_%s' % side
+        expected_xml = xml(expected_cxml)
+        return picture, prop_name, value, expected_xml
 
     @pytest.fixture
     def line_fixture(self):

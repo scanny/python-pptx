@@ -30,6 +30,11 @@ class DescribeGraphicFrame(object):
         graphic_frame, expected_value = has_table_fixture
         assert graphic_frame.has_table is expected_value
 
+    def it_raises_on_shadow(self):
+        graphic_frame = GraphicFrame(None, None)
+        with pytest.raises(NotImplementedError):
+            graphic_frame.shadow
+
     def it_knows_its_shape_type(self, type_fixture):
         graphic_frame, expected_type = type_fixture
         assert graphic_frame.shape_type is expected_type

@@ -1,28 +1,37 @@
 # encoding: utf-8
 
-"""
-Slide-related objects.
-"""
+"""Slide-related objects, including masters, layouts, and notes."""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from .enum.shapes import PP_PLACEHOLDER
-from .shapes.shapetree import (
+from pptx.dml.fill import FillFormat
+from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.shapes.shapetree import (
     LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
     NotesSlidePlaceholders, NotesSlideShapes, SlidePlaceholders, SlideShapes
 )
-from .shared import ParentedElementProxy, PartElementProxy
-from .util import lazyproperty
+from pptx.shared import ElementProxy, ParentedElementProxy, PartElementProxy
+from pptx.util import lazyproperty
 
 
 class _BaseSlide(PartElementProxy):
-    """
-    Slide object. Provides access to shapes and slide-level properties.
-    """
+    """Base class for slide objects, including masters, layouts and notes."""
 
-    __slots__ = ()
+    __slots__ = ('_background',)
+
+    @lazyproperty
+    def background(self):
+        """|_Background| object providing slide background properties.
+
+        This property returns a |_Background| object whether or not the
+        slide, master, or layout has an explicitly defined background.
+
+        The same |_Background| object is returned on every call for the same
+        slide object.
+        """
+        return _Background(self._element.cSld)
 
     @property
     def name(self):
@@ -152,11 +161,37 @@ class NotesSlide(_BaseSlide):
 
 
 class Slide(_BaseSlide):
-    """
-    Slide object. Provides access to shapes and slide-level properties.
-    """
+    """Slide object. Provides access to shapes and slide-level properties."""
 
     __slots__ = ('_placeholders', '_shapes')
+
+    @property
+    def background(self):
+        """|_Background| object providing slide background properties.
+
+        This property returns a |_Background| object whether or not the slide
+        overrides the default background or inherits it. Determining which of
+        those conditions applies for this slide is accomplished using the
+        :attr:`follow_master_background` property.
+
+        The same |_Background| object is returned on every call for the same
+        slide object.
+        """
+        return super(Slide, self).background
+
+    @property
+    def follow_master_background(self):
+        """|True| if this slide inherits the slide master background.
+
+        Assigning |False| causes background inheritance from the master to be
+        interrupted; if there is no custom background for this slide,
+        a default background is added. If a custom background already exists
+        for this slide, assigning |False| has no effect.
+
+        Assigning |True| causes any custom background for this slide to be
+        deleted and inheritance from the master restored.
+        """
+        return self._element.bg is None
 
     @property
     def has_notes_slide(self):
@@ -443,3 +478,47 @@ class SlideMasters(ParentedElementProxy):
         Support len() built-in function (e.g. 'len(slide_masters) == 4').
         """
         return len(self._sldMasterIdLst)
+
+
+class _Background(ElementProxy):
+    """Provides access to slide background properties.
+
+    Note that the presence of this object does not by itself imply an
+    explicitly-defined background; a slide with an inherited background still
+    has a |_Background| object.
+    """
+
+    __slots__ = ('_cSld', '_fill')
+
+    def __init__(self, cSld):
+        super(_Background, self).__init__(cSld)
+        self._cSld = cSld
+
+    @lazyproperty
+    def fill(self):
+        """|FillFormat| instance for this background.
+
+        This |FillFormat| object is used to interrogate or specify the fill
+        of the slide background.
+
+        Note that accessing this property is potentially destructive. A slide
+        background can also be specified by a background style reference and
+        accessing this property will remove that reference, if present, and
+        replace it with NoFill. This is frequently the case for a slide
+        master background.
+
+        This is also the case when there is no explicitly defined background
+        (background is inherited); merely accessing this property will cause
+        the background to be set to NoFill and the inheritance link will be
+        interrupted. This is frequently the case for a slide background.
+
+        Of course, if you are accessing this property in order to set the
+        fill, then these changes are of no consequence, but the existing
+        background cannot be reliably interrogated using this property unless
+        you have already established it is an explicit fill.
+
+        If the background is already a fill, then accessing this property
+        makes no changes to the current background.
+        """
+        bgPr = self._cSld.get_or_add_bgPr()
+        return FillFormat.from_fill_parent(bgPr)

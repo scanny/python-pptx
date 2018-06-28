@@ -1,24 +1,101 @@
-Feature: Shape collection methods
-  In order to add a shape to a shape collection
+Feature: Access a shape on a slide
+  In order to interact with a shape
   As a developer using python-pptx
-  I need a set of methods on Shapes objects
+  I need ways to access a shape on a slide
 
 
-  Scenario: SlideShapes.add_connector()
-    Given a SlideShapes object as shapes
-     When I call shapes.add_connector(MSO_CONNECTOR.STRAIGHT, 1, 2, 3, 4)
-     Then connector is a Connector object
-      And connector.begin_x == 1
-      And connector.begin_y == 2
-      And connector.end_x == 3
-      And connector.end_y == 4
+  Scenario: GroupShapes is a sequence
+    Given a GroupShapes object of length 3 as shapes
+     Then len(shapes) == 3
+      And shapes[1] is a Shape object
+      And iterating shapes produces 3 objects that subclass BaseShape
+      And shapes.index(shape) for each shape matches its sequence position
 
 
-  Scenario: SlideShapes.add_shape()
-    Given a blank slide
-     When I add an auto shape to the slide's shape collection
-      And I save the presentation
-     Then the auto shape appears in the slide
+  Scenario: GroupShapes.add_chart()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_chart() to shape
+     Then shape is a GraphicFrame object
+      And shapes[-1] == shape
+
+
+  Scenario: GroupShapes.add_connector()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_connector() to shape
+     Then shape is a Connector object
+      And shapes[-1] == shape
+
+
+  Scenario: GroupShapes.add_group_shape()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_group_shape() to shape
+     Then shape is a GroupShape object
+      And shapes[-1] == shape
+
+
+  Scenario: GroupShapes.add_picture()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_picture() to shape
+     Then shape is a Picture object
+      And shapes[-1] == shape
+
+
+  Scenario: GroupShapes.add_shape()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_shape() to shape
+     Then shape is a Shape object
+      And shapes[-1] == shape
+
+
+  Scenario: GroupShapes.add_textbox()
+    Given a GroupShapes object as shapes
+     When I assign shapes.add_textbox() to shape
+     Then shape is a Shape object
+      And shapes[-1] == shape
+
+
+  Scenario: GroupShapes.build_freeform()
+    Given a GroupShapes object as shapes
+     When I assign shapes.build_freeform() to builder
+     Then builder is a FreeformBuilder object
+
+
+  Scenario: LayoutPlaceholders is a sequence
+    Given a LayoutPlaceholders object of length 2 as shapes
+     Then len(shapes) == 2
+      And shapes[1] is a LayoutPlaceholder object
+      And iterating shapes produces 2 objects of type LayoutPlaceholder
+      And shapes.get(idx=10) is the body placeholder
+
+
+  Scenario: LayoutShapes is a sequence
+    Given a LayoutShapes object of length 3 as shapes
+     Then len(shapes) == 3
+      And shapes[1] is a LayoutPlaceholder object
+      And iterating shapes produces 3 objects that subclass BaseShape
+
+
+  Scenario: MasterPlaceholders is a sequence
+    Given a MasterPlaceholders object of length 2 as shapes
+     Then len(shapes) == 2
+      And shapes[1] is a MasterPlaceholder object
+      And iterating shapes produces 2 objects of type MasterPlaceholder
+      And shapes.get(PP_PLACEHOLDER.BODY) is the body placeholder
+
+
+  Scenario: MasterShapes is a sequence
+    Given a MasterShapes object of length 2 as shapes
+     Then len(shapes) == 2
+      And shapes[1] is a Picture object
+      And iterating shapes produces 2 objects that subclass BaseShape
+
+
+  Scenario: SlideShapes is a sequence
+    Given a SlideShapes object of length 6 shapes as shapes
+     Then len(shapes) == 6
+      And shapes[4] is a GraphicFrame object
+      And iterating shapes produces 6 objects that subclass BaseShape
+      And shapes.index(shape) for each shape matches its sequence position
 
 
   Scenario Outline: SlideShapes.add_chart() (category chart)
@@ -109,6 +186,38 @@ Feature: Shape collection methods
       | BUBBLE_THREE_D_EFFECT |
 
 
+  Scenario: SlideShapes.add_connector()
+    Given a SlideShapes object as shapes
+     When I call shapes.add_connector(MSO_CONNECTOR.STRAIGHT, 1, 2, 3, 4)
+     Then connector is a Connector object
+      And connector.begin_x == 1
+      And connector.begin_y == 2
+      And connector.end_x == 3
+      And connector.end_y == 4
+
+
+  Scenario: SlideShapes.add_group_shape()
+    Given a SlideShapes object as shapes
+     When I assign shapes.add_group_shape() to shape
+     Then shape is a GroupShape object
+      And shapes[-1] == shape
+
+
+  Scenario Outline: SlideShapes.add_movie()
+    Given a SlideShapes object containing <a-or-no> movies
+     When I call shapes.add_movie(file, x, y, cx, cy, poster_frame)
+      And I save the presentation
+     Then movie is a Movie object
+      And movie.left, movie.top == x, y
+      And movie.width, movie.height == cx, cy
+      And movie.poster_frame is the same image as poster_frame
+
+    Examples: add_movie() preconditions
+      | a-or-no     |
+      | one or more |
+      | no          |
+
+
   Scenario Outline: SlideShapes.add_picture() (using filename)
     Given a blank slide
      When I add the image <filename> using shapes.add_picture()
@@ -145,19 +254,11 @@ Feature: Shape collection methods
       | python.bmp       | bmp  |
 
 
-  Scenario Outline: SlideShapes.add_movie()
-    Given a SlideShapes object containing <a-or-no> movies
-     When I call shapes.add_movie(file, x, y, cx, cy, poster_frame)
-      And I save the presentation
-     Then movie is a Movie object
-      And movie.left, movie.top == x, y
-      And movie.width, movie.height == cx, cy
-      And movie.poster_frame is the same image as poster_frame
-
-    Examples: add_movie() preconditions
-      | a-or-no     |
-      | one or more |
-      | no          |
+  Scenario: SlideShapes.add_shape()
+    Given a SlideShapes object as shapes
+     When I assign shapes.add_shape() to shape
+     Then shape is a Shape object
+      And shapes[-1] == shape
 
 
   Scenario: SlideShapes.add_table()
@@ -168,10 +269,10 @@ Feature: Shape collection methods
 
 
   Scenario: SlideShapes.add_textbox()
-    Given a blank slide
-     When I add a text box to the slide's shape collection
-      And I save the presentation
-     Then the text box appears in the slide
+    Given a SlideShapes object as shapes
+     When I assign shapes.add_textbox() to shape
+     Then shape is a Shape object
+      And shapes[-1] == shape
 
 
   Scenario: SlideShapes.build_freeform() (no parameters)
@@ -201,3 +302,51 @@ Feature: Shape collection methods
      When I assign shapes.build_freeform(scale=(200.0, 100.0)) to builder
      Then builder is a FreeformBuilder object
       And (builder._x_scale, builder._y_scale) is (200.0, 100.0)
+
+
+  Scenario: SlideShapes.title
+    Given a SlideShapes object as shapes
+     Then shapes.title is the title placeholder
+
+
+  Scenario: SlidePlaceholders is a sequence
+    Given a SlidePlaceholders object of length 2 as shapes
+     Then len(shapes) == 2
+      And shapes[10] is a SlidePlaceholder object
+      And iterating shapes produces 2 objects of type SlidePlaceholder
+
+
+  Scenario Outline: Access unpopulated placeholder shape
+    Given a slide with an unpopulated <type> placeholder
+     Then slide.shapes[0] is a <cls> proxy object for that placeholder
+
+    Examples: Unpopulated placeholder shapes
+      | type     | cls                |
+      | picture  | PicturePlaceholder |
+      | clip art | PicturePlaceholder |
+      | table    | TablePlaceholder   |
+      | chart    | ChartPlaceholder   |
+
+
+  Scenario Outline: Access populated placeholder shape
+    Given a slide with a <type> placeholder populated with <content>
+     Then slide.shapes[0] is a <cls> proxy object for that placeholder
+
+    Examples: Populated placeholder shapes
+      | type     | content  | cls                     |
+      | picture  | an image | PlaceholderPicture      |
+      | clip art | an image | PlaceholderPicture      |
+      | table    | a table  | PlaceholderGraphicFrame |
+      | chart    | a chart  | PlaceholderGraphicFrame |
+
+
+  Scenario Outline: ShapeFactory contructs appropriate proxy object
+    Given a SlideShapes object having a <type> shape at offset <idx>
+     Then shapes[<idx>] is a <cls> object
+
+    Examples: Shape object types
+      | type      | idx | cls        |
+      | connector |  0  | Connector  |
+      | picture   |  1  | Picture    |
+      | rectangle |  2  | Shape      |
+      | group     |  3  | GroupShape |

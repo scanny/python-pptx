@@ -14,4 +14,3 @@ Feature: Change text of a placeholder shape
       When I indent the first paragraph
        And I save the presentation
       Then the paragraph is indented
-

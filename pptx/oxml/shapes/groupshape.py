@@ -1,19 +1,21 @@
 # encoding: utf-8
 
-"""
-lxml custom element classes for shape tree-related XML elements.
-"""
+"""lxml custom element classes for shape-tree-related XML elements."""
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from .autoshape import CT_Shape
-from .connector import CT_Connector
-from ...enum.shapes import MSO_CONNECTOR_TYPE
-from .graphfrm import CT_GraphicalObjectFrame
-from ..ns import qn
-from .picture import CT_Picture
-from .shared import BaseShapeElement
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
+from pptx.enum.shapes import MSO_CONNECTOR_TYPE
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.shapes.autoshape import CT_Shape
+from pptx.oxml.shapes.connector import CT_Connector
+from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
+from pptx.oxml.shapes.picture import CT_Picture
+from pptx.oxml.shapes.shared import BaseShapeElement
+from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
+from pptx.util import Emu
 
 
 class CT_GroupShape(BaseShapeElement):
@@ -58,6 +60,18 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
+    def add_grpSp(self):
+        """Return `p:grpSp` element newly appended to this shape tree.
+
+        The element contains no sub-shapes, is positioned at (0, 0), and has
+        width and height of zero.
+        """
+        shape_id = self._next_shape_id
+        name = 'Group %d' % (shape_id-1,)
+        grpSp = CT_GroupShape.new_grpSp(shape_id, name)
+        self.insert_element_before(grpSp, 'p:extLst')
+        return grpSp
+
     def add_pic(self, id_, name, desc, rId, x, y, cx, cy):
         """
         Append a ``<p:pic>`` shape to the group/shapetree having properties
@@ -98,6 +112,16 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, 'p:extLst')
         return sp
 
+    @property
+    def chExt(self):
+        """Descendent `p:grpSpPr/a:xfrm/a:chExt` element."""
+        return self.grpSpPr.get_or_add_xfrm().get_or_add_chExt()
+
+    @property
+    def chOff(self):
+        """Descendent `p:grpSpPr/a:xfrm/a:chOff` element."""
+        return self.grpSpPr.get_or_add_xfrm().get_or_add_chOff()
+
     def get_or_add_xfrm(self):
         """
         Return the ``<a:xfrm>`` grandchild element, newly-added if not
@@ -122,12 +146,78 @@ class CT_GroupShape(BaseShapeElement):
             if elm.tag in self._shape_tags:
                 yield elm
 
+    @classmethod
+    def new_grpSp(cls, id_, name):
+        """Return new "loose" `p:grpSp` element having *id_* and *name*."""
+        xml = (
+            '<p:grpSp %s>\n'
+            '  <p:nvGrpSpPr>\n'
+            '    <p:cNvPr id="%%d" name="%%s"/>\n'
+            '    <p:cNvGrpSpPr/>\n'
+            '    <p:nvPr/>\n'
+            '  </p:nvGrpSpPr>\n'
+            '  <p:grpSpPr>\n'
+            '    <a:xfrm>\n'
+            '      <a:off x="0" y="0"/>\n'
+            '      <a:ext cx="0" cy="0"/>\n'
+            '      <a:chOff x="0" y="0"/>\n'
+            '      <a:chExt cx="0" cy="0"/>\n'
+            '    </a:xfrm>\n'
+            '  </p:grpSpPr>\n'
+            '</p:grpSp>' % nsdecls('a', 'p', 'r')
+        ) % (id_, name)
+        grpSp = parse_xml(xml)
+        return grpSp
+
+    def recalculate_extents(self):
+        """Adjust x, y, cx, and cy to incorporate all contained shapes.
+
+        This would typically be called when a contained shape is added,
+        removed, or its position or size updated.
+
+        This method is recursive "upwards" since a change in a group shape
+        can change the position and size of its containing group.
+        """
+        if not self.tag == qn('p:grpSp'):
+            return
+
+        x, y, cx, cy = self._child_extents
+
+        self.chOff.x = self.x = x
+        self.chOff.y = self.y = y
+        self.chExt.cx = self.cx = cx
+        self.chExt.cy = self.cy = cy
+        self.getparent().recalculate_extents()
+
     @property
     def xfrm(self):
         """
         The ``<a:xfrm>`` grandchild element or |None| if not found
         """
         return self.grpSpPr.xfrm
+
+    @property
+    def _child_extents(self):
+        """(x, y, cx, cy) tuple representing net position and size.
+
+        The values are formed as a composite of the contained child shapes.
+        """
+        child_shape_elms = list(self.iter_shape_elms())
+
+        if not child_shape_elms:
+            return Emu(0), Emu(0), Emu(0), Emu(0)
+
+        min_x = min([xSp.x for xSp in child_shape_elms])
+        min_y = min([xSp.y for xSp in child_shape_elms])
+        max_x = max([(xSp.x + xSp.cx) for xSp in child_shape_elms])
+        max_y = max([(xSp.y + xSp.cy) for xSp in child_shape_elms])
+
+        x = min_x
+        y = min_y
+        cx = max_x - min_x
+        cy = max_y - min_y
+
+        return x, y, cx, cy
 
     @property
     def _next_shape_id(self):
@@ -153,10 +243,12 @@ class CT_GroupShapeNonVisual(BaseShapeElement):
 
 
 class CT_GroupShapeProperties(BaseOxmlElement):
-    """
-    The ``<p:grpSpPr>`` element
-    """
-    xfrm = ZeroOrOne('a:xfrm', successors=(
-        'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill',
-        'a:grpFill', 'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:extLst'
-    ))
+    """p:grpSpPr element """
+    _tag_seq = (
+        'a:xfrm', 'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill',
+        'a:pattFill', 'a:grpFill', 'a:effectLst', 'a:effectDag', 'a:scene3d',
+        'a:extLst',
+    )
+    xfrm = ZeroOrOne('a:xfrm', successors=_tag_seq[1:])
+    effectLst = ZeroOrOne('a:effectLst', successors=_tag_seq[8:])
+    del _tag_seq

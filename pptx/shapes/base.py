@@ -1,43 +1,63 @@
 # encoding: utf-8
 
-"""
-Base shape-related objects such as BaseShape.
-"""
+"""Base shape-related objects such as BaseShape."""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from ..action import ActionSetting
-from ..shared import ElementProxy
-from ..util import lazyproperty
+from pptx.action import ActionSetting
+from pptx.dml.effect import ShadowFormat
+from pptx.shared import ElementProxy
+from pptx.util import lazyproperty
 
 
 class BaseShape(object):
+    """Base class for shape objects.
+
+    Subclasses include |Shape|, |Picture|, and |GraphicFrame|.
     """
-    Base class for shape objects, including |Shape|, |Picture|, and
-    |GraphicFrame|.
-    """
+
     def __init__(self, shape_elm, parent):
         super(BaseShape, self).__init__()
         self._element = shape_elm
         self._parent = parent
 
+    def __eq__(self, other):
+        """|True| if this shape object proxies the same element as *other*.
+
+        Equality for proxy objects is defined as referring to the same XML
+        element, whether or not they are the same proxy object instance.
+        """
+        if not isinstance(other, BaseShape):
+            return False
+        return self._element is other._element
+
+    def __ne__(self, other):
+        if not isinstance(other, BaseShape):
+            return True
+        return self._element is not other._element
+
     @lazyproperty
     def click_action(self):
-        """
-        An |ActionSetting| instance providing access to the mouse click
-        behaviors defined on this shape. An |ActionSetting| object is always
-        returned, even when no click behavior is defined on the shape.
+        """|ActionSetting| instance providing access to click behaviors.
+
+        Click behaviors are hyperlink-like behaviors including jumping to
+        a hyperlink (web page) or to another slide in the presentation. The
+        click action is that defined on the overall shape, not a run of text
+        within the shape. An |ActionSetting| object is always returned, even
+        when no click behavior is defined on the shape.
         """
         cNvPr = self._element._nvXxPr.cNvPr
         return ActionSetting(cNvPr, self)
 
     @property
     def element(self):
-        """
-        Reference to the lxml element for this shape, e.g. a CT_Shape
-        instance.
+        """`lxml` element for this shape, e.g. a CT_Shape instance.
+
+        Note that manipulating this element improperly can produce an invalid
+        presentation file. Make sure you know what you're doing if you use
+        this to change the underlying XML.
         """
         return self._element
 
@@ -116,9 +136,11 @@ class BaseShape(object):
 
     @property
     def part(self):
-        """
-        The package part containing this object, a _BaseSlide subclass in
-        this case.
+        """The package part containing this shape.
+
+        A |BaseSlidePart| subclass in this case. Access to a slide part
+        should only be required if you are extending the behavior of |pp| API
+        objects.
         """
         return self._parent.part
 
@@ -145,6 +167,16 @@ class BaseShape(object):
     @rotation.setter
     def rotation(self, value):
         self._element.rot = value
+
+    @lazyproperty
+    def shadow(self):
+        """|ShadowFormat| object providing access to shadow for this shape.
+
+        A |ShadowFormat| object is always returned, even when no shadow is
+        explicitly defined on this shape (i.e. it inherits its shadow
+        behavior).
+        """
+        return ShadowFormat(self._element.spPr)
 
     @property
     def shape_id(self):

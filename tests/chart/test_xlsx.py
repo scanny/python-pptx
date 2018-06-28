@@ -147,6 +147,16 @@ class DescribeCategoryWorkbookWriter(object):
             workbook_writer, workbook_, worksheet_
         )
 
+    def it_calculates_a_column_reference_to_help(self, col_ref_fixture):
+        col_num, expected_value = col_ref_fixture
+        column_reference = CategoryWorkbookWriter._column_reference(col_num)
+        assert column_reference == expected_value
+
+    def it_raises_on_col_number_out_of_range(self, raises_fixture):
+        col_num = raises_fixture
+        with pytest.raises(ValueError):
+            CategoryWorkbookWriter._column_reference(col_num)
+
     def it_writes_categories_to_help(self, write_cats_fixture):
         workbook_writer, workbook_, worksheet_ = write_cats_fixture[:3]
         number_format, calls = write_cats_fixture[3:]
@@ -191,11 +201,25 @@ class DescribeCategoryWorkbookWriter(object):
         categories_.depth = 0
         return workbook_writer
 
+    @pytest.fixture(params=[
+        (2, 'B'), (26, 'Z'), (27, 'AA'), (52, 'AZ'), (53, 'BA'), (676, 'YZ'),
+        (677, 'ZA'), (702, 'ZZ'), (703, 'AAA'), (728, 'AAZ'), (729, 'ABA'),
+        (1378, 'AZZ'), (1379, 'BAA'), (16384, 'XFD'),
+    ])
+    def col_ref_fixture(self, request):
+        column_number, expected_value = request.param
+        return column_number, expected_value
+
     @pytest.fixture
     def populate_fixture(self, workbook_, worksheet_, _write_categories_,
                          _write_series_):
         workbook_writer = CategoryWorkbookWriter(None)
         return workbook_writer, workbook_, worksheet_
+
+    @pytest.fixture(params=[0, -1, 16385, 30433])
+    def raises_fixture(self, request):
+        column_number = request.param
+        return column_number
 
     @pytest.fixture(params=[
         (1, 0, 'Sheet1!$B$1'),

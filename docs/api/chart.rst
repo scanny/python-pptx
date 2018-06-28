@@ -232,17 +232,39 @@ The following properties are available on series objects of all types.
    :undoc-members:
 
 
-|BarSeries| objects
-~~~~~~~~~~~~~~~~~~~
+|AreaSeries| objects
+~~~~~~~~~~~~~~~~~~~~
 
-These properties are available on a series belonging to a bar-type plot.
+These properties are available on a series belonging to an area-type plot
+such as AREA_STACKED.
 
-.. autoclass:: pptx.chart.series.BarSeries()
-   :exclude-members: get_or_add_ln, ln
+.. autoclass:: pptx.chart.series.AreaSeries()
    :inherited-members:
    :members:
    :member-order: bysource
-   :undoc-members:
+
+
+|BarSeries| objects
+~~~~~~~~~~~~~~~~~~~
+
+These properties are available on a series belonging to a bar-type plot. Note
+that column charts are also bar-type charts.
+
+.. autoclass:: pptx.chart.series.BarSeries()
+   :inherited-members:
+   :members:
+   :member-order: bysource
+
+
+|BubbleSeries| objects
+~~~~~~~~~~~~~~~~~~~~~~
+
+These properties are available on series belonging to a bubble chart.
+
+.. autoclass:: pptx.chart.series.BubbleSeries()
+   :inherited-members:
+   :members:
+   :member-order: bysource
 
 
 |LineSeries| objects
@@ -254,7 +276,40 @@ These properties are available on a series belonging to a line-type plot.
    :inherited-members:
    :members:
    :member-order: bysource
-   :undoc-members:
+
+
+|Marker| objects
+~~~~~~~~~~~~~~~~
+
+A marker is the small shape (e.g. diamond or circle) that "marks" each
+individual data point connected by a series line in a line-type plot.
+
+.. autoclass:: pptx.chart.marker.Marker()
+   :inherited-members:
+   :members:
+   :member-order: bysource
+
+
+|PieSeries| objects
+~~~~~~~~~~~~~~~~~~~
+
+These properties are available on a series belonging to a pie chart.
+
+.. autoclass:: pptx.chart.series.PieSeries()
+   :inherited-members:
+   :members:
+   :member-order: bysource
+
+
+|RadarSeries| objects
+~~~~~~~~~~~~~~~~~~~~~
+
+These properties are available on a series belonging to a radar chart.
+
+.. autoclass:: pptx.chart.series.RadarSeries()
+   :inherited-members:
+   :members:
+   :member-order: bysource
 
 
 |XySeries| objects

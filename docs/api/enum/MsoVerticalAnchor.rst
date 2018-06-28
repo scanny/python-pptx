@@ -11,6 +11,15 @@ value is inherited from its placeholder if it has one or from the theme.
 None may also be assigned to remove an explicitly specified vertical
 anchor setting.
 
+Alias: ``MSO_ANCHOR``
+
+Example::
+
+    from pptx.enum.text import MSO_ANCHOR
+
+    cell = table.cell(row_idx=2, col_idx=3)
+    cell.vertical_anchor = MSO_ANCHOR.BOTTOM
+
 ----
 
 TOP

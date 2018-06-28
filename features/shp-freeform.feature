@@ -10,8 +10,10 @@ Feature: Build a freeform shape
       And (builder._x_scale, builder._y_scale) is (<x_scale>, <y_scale>)
      When I call builder.add_line_segments([(100, 25), (25, 100)])
       And I assign builder.convert_to_shape() to shape
-     Then (shape.left, shape.top) is (<left>, <top>)
-      And (shape.width, shape.height) is (<width>, <height>)
+     Then shape.left == <left>
+      And shape.top == <top>
+      And shape.width == <width>
+      And shape.height == <height>
 
     Examples: Pen start position and scaling factor
       | start_x | start_y | x_scale | y_scale | left | top | width | height |
@@ -27,8 +29,10 @@ Feature: Build a freeform shape
       And (builder._start_x, builder._start_y) is (<start_x>, <start_y>)
      When I call builder.add_line_segments([(100, 25), (25, 100)])
       And I assign builder.convert_to_shape(<origin_x>, <origin_y>) to shape
-     Then (shape.left, shape.top) is (<x>, <y>)
-      And (shape.width, shape.height) is (<cx>, <cy>)
+     Then shape.left == <x>
+      And shape.top == <y>
+      And shape.width == <cx>
+      And shape.height == <cy>
 
     Examples: Local origin position
       | start_x | start_y | origin_x | origin_y | x  | y  | cx  | cy  |

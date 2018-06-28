@@ -456,9 +456,9 @@ XML Semantics
 .. _media extension:
    https://msdn.microsoft.com/en-us/library/dd947021(v=office.12).aspx
 
-* This and other extensions are documented in `this PDF <media-pdf>`_.
+* This and other extensions are documented in `this PDF <media_pdf>`_.
 
-.. _media-pdf:
+.. _media_pdf:
    http://interoperability.blob.core.windows.net/files/MS-PPTX/[MS-PPTX].pdf
 
 
@@ -593,26 +593,26 @@ The root element of a picture shape is a `p:pic (CT_Picture)` element::
 
   <xsd:complexType name="CT_ShapeProperties">
     <xsd:sequence>
-      <xsd:element name="xfrm"    type="CT_Transform2D"            minOccurs="0" maxOccurs="1"/>
-      <xsd:group ref="EG_Geometry"                                 minOccurs="0" maxOccurs="1"/>
-      <xsd:group ref="EG_FillProperties"                           minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="ln"      type="CT_LineProperties"         minOccurs="0" maxOccurs="1"/>
-      <xsd:group ref="EG_EffectProperties"                         minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="scene3d" type="CT_Scene3D"                minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="sp3d"    type="CT_Shape3D"                minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="extLst"  type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="xfrm"    type="CT_Transform2D"            minOccurs="0"/>
+      <xsd:group ref="EG_Geometry"                                 minOccurs="0"/>
+      <xsd:group ref="EG_FillProperties"                           minOccurs="0"/>
+      <xsd:element name="ln"      type="CT_LineProperties"         minOccurs="0"/>
+      <xsd:group ref="EG_EffectProperties"                         minOccurs="0"/>
+      <xsd:element name="scene3d" type="CT_Scene3D"                minOccurs="0"/>
+      <xsd:element name="sp3d"    type="CT_Shape3D"                minOccurs="0"/>
+      <xsd:element name="extLst"  type="CT_OfficeArtExtensionList" minOccurs="0"/>
     </xsd:sequence>
     <xsd:attribute name="bwMode" type="ST_BlackWhiteMode" use="optional"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_Transform2D">
     <xsd:sequence>
-      <xsd:element name="off" type="CT_Point2D" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="ext" type="CT_PositiveSize2D" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="off" type="CT_Point2D"        minOccurs="0"/>
+      <xsd:element name="ext" type="CT_PositiveSize2D" minOccurs="0"/>
     </xsd:sequence>
-    <xsd:attribute name="rot" type="ST_Angle" use="optional" default="0"/>
-    <xsd:attribute name="flipH" type="xsd:boolean" use="optional" default="false"/>
-    <xsd:attribute name="flipV" type="xsd:boolean" use="optional" default="false"/>
+    <xsd:attribute name="rot"   type="ST_Angle"    default="0"/>
+    <xsd:attribute name="flipH" type="xsd:boolean" default="false"/>
+    <xsd:attribute name="flipV" type="xsd:boolean" default="false"/>
   </xsd:complexType>
 
   <xsd:complexType name="CT_Point2D">
@@ -627,35 +627,35 @@ The root element of a picture shape is a `p:pic (CT_Picture)` element::
 
   <xsd:group name="EG_Geometry">
     <xsd:choice>
-      <xsd:element name="custGeom" type="CT_CustomGeometry2D" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="prstGeom" type="CT_PresetGeometry2D" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="custGeom" type="CT_CustomGeometry2D"/>
+      <xsd:element name="prstGeom" type="CT_PresetGeometry2D"/>
     </xsd:choice>
   </xsd:group>
 
   <xsd:group name="EG_FillProperties">
     <xsd:choice>
-      <xsd:element name="noFill"    type="CT_NoFillProperties"         minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="solidFill" type="CT_SolidColorFillProperties" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="gradFill"  type="CT_GradientFillProperties"   minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="blipFill"  type="CT_BlipFillProperties"       minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="pattFill"  type="CT_PatternFillProperties"    minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="grpFill"   type="CT_GroupFillProperties"      minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="noFill"    type="CT_NoFillProperties"/>
+      <xsd:element name="solidFill" type="CT_SolidColorFillProperties"/>
+      <xsd:element name="gradFill"  type="CT_GradientFillProperties"/>
+      <xsd:element name="blipFill"  type="CT_BlipFillProperties"/>
+      <xsd:element name="pattFill"  type="CT_PatternFillProperties"/>
+      <xsd:element name="grpFill"   type="CT_GroupFillProperties"/>
     </xsd:choice>
   </xsd:group>
 
   <xsd:group name="EG_EffectProperties">
     <xsd:choice>
-      <xsd:element name="effectLst" type="CT_EffectList"      minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="effectDag" type="CT_EffectContainer" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="effectLst" type="CT_EffectList"/>
+      <xsd:element name="effectDag" type="CT_EffectContainer"/>
     </xsd:choice>
   </xsd:group>
 
   <xsd:complexType name="CT_ShapeStyle">
     <xsd:sequence>
-      <xsd:element name="lnRef"     type="CT_StyleMatrixReference" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="fillRef"   type="CT_StyleMatrixReference" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="effectRef" type="CT_StyleMatrixReference" minOccurs="1" maxOccurs="1"/>
-      <xsd:element name="fontRef"   type="CT_FontReference"        minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="lnRef"     type="CT_StyleMatrixReference"/>
+      <xsd:element name="fillRef"   type="CT_StyleMatrixReference"/>
+      <xsd:element name="effectRef" type="CT_StyleMatrixReference"/>
+      <xsd:element name="fontRef"   type="CT_FontReference"/>
     </xsd:sequence>
   </xsd:complexType>
 

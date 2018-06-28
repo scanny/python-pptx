@@ -42,14 +42,6 @@ class CT_Picture(BaseShapeElement):
         """
         self.blipFill.crop(self._fill_cropping(image_size, view_size))
 
-    def fit_no_crop(self, image_size, view_size):
-        """
-        Set cropping values in `p:blipFill/a:srcRect` such that an image of
-        *image_size* will shrink to exactly fit *view_size* when its aspect
-        ratio is preserved.
-        """
-        self.blipFill.crop(self._fit_resizing(image_size, view_size))
-
     def get_or_add_ln(self):
         """
         Return the <a:ln> grandchild element, newly added if not present.
@@ -98,35 +90,39 @@ class CT_Picture(BaseShapeElement):
 
     @property
     def srcRect_b(self):
-        """
-        Value of `p:blipFill/a:srcRect/@b` or 0.0 if not present.
-        """
+        """Value of `p:blipFill/a:srcRect/@b` or 0.0 if not present."""
         return self._srcRect_x('b')
+
+    @srcRect_b.setter
+    def srcRect_b(self, value):
+        self.blipFill.get_or_add_srcRect().b = value
 
     @property
     def srcRect_l(self):
-        """
-        Value of `p:blipFill/a:srcRect/@l` or 0.0 if not present.
-        """
+        """Value of `p:blipFill/a:srcRect/@l` or 0.0 if not present."""
         return self._srcRect_x('l')
+
+    @srcRect_l.setter
+    def srcRect_l(self, value):
+        self.blipFill.get_or_add_srcRect().l = value
 
     @property
     def srcRect_r(self):
-        """
-        Value of `p:blipFill/a:srcRect/@r` or 0.0 if not present.
-        """
+        """Value of `p:blipFill/a:srcRect/@r` or 0.0 if not present."""
         return self._srcRect_x('r')
+
+    @srcRect_r.setter
+    def srcRect_r(self, value):
+        self.blipFill.get_or_add_srcRect().r = value
 
     @property
     def srcRect_t(self):
-        """
-        Value of `p:blipFill/a:srcRect/@t` or 0.0 if not present.
-        """
+        """Value of `p:blipFill/a:srcRect/@t` or 0.0 if not present."""
         return self._srcRect_x('t')
 
-    @staticmethod
-    def aspect_ratio(width, height):
-        return width / height
+    @srcRect_t.setter
+    def srcRect_t(self, value):
+        self.blipFill.get_or_add_srcRect().t = value
 
     def _fill_cropping(self, image_size, view_size):
         """
@@ -136,9 +132,11 @@ class CT_Picture(BaseShapeElement):
         as a fraction of 1.0, e.g. 0.425 represents 42.5%. *image_size* and
         *view_size* are each (width, height) pairs.
         """
+        def aspect_ratio(width, height):
+            return width / height
 
-        ar_view = self.aspect_ratio(*view_size)
-        ar_image = self.aspect_ratio(*image_size)
+        ar_view = aspect_ratio(*view_size)
+        ar_image = aspect_ratio(*image_size)
 
         if ar_view < ar_image:  # image too wide
             crop = (1.0 - (ar_view/ar_image)) / 2.0
@@ -146,26 +144,6 @@ class CT_Picture(BaseShapeElement):
         if ar_view > ar_image:  # image too tall
             crop = (1.0 - (ar_image/ar_view)) / 2.0
             return (0.0, crop, 0.0, crop)
-        return (0.0, 0.0, 0.0, 0.0)
-
-    def _fit_resizing(self, image_size, view_size):
-        """
-        Return a (left, top, right, bottom) 4-tuple containing the cropping
-        values required to display an image of *image_size* in *view_size*
-        when shrinking proportionately. Each value is a percentage expressed
-        as a fraction of 1.0, e.g. 0.425 represents 42.5%. *image_size* and
-        *view_size* are each (width, height) pairs.
-        """
-
-        ar_view = self.aspect_ratio(*view_size)
-        ar_image = self.aspect_ratio(*image_size)
-
-        if ar_view < ar_image:  # image too wide
-            crop = (ar_view/ar_image - 1.0) / 2.0
-            return (0.0, crop, 0.0, crop)
-        if ar_view > ar_image:  # image too tall
-            crop = (ar_image/ar_view - 1.0) / 2.0
-            return (crop, 0.0, crop, 0.0)
         return (0.0, 0.0, 0.0, 0.0)
 
     @classmethod

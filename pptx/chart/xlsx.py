@@ -90,6 +90,38 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
             'bottom_row': len(series)+1
         })
 
+    @staticmethod
+    def _column_reference(column_number):
+        """Return str Excel column reference like 'BQ' for *column_number*.
+
+        *column_number* is an int in the range 1-16384 inclusive, where
+        1 maps to column 'A'.
+        """
+        if column_number < 1 or column_number > 16384:
+            raise ValueError('column_number must be in range 1-16384')
+
+        # ---Work right-to-left, one order of magnitude at a time. Note there
+        #    is no zero representation in Excel address scheme, so this is
+        #    not just a conversion to base-26---
+
+        col_ref = ''
+        while column_number:
+            remainder = column_number % 26
+            if remainder == 0:
+                remainder = 26
+
+            col_letter = chr(ord('A') + remainder - 1)
+            col_ref = col_letter + col_ref
+
+            # ---Advance to next order of magnitude or terminate loop. The
+            # minus-one in this expression reflects the fact the next lower
+            # order of magnitude has a minumum value of 1 (not zero). This is
+            # essentially the complement to the "if it's 0 make it 26' step
+            # above.---
+            column_number = (column_number - 1) // 26
+
+        return col_ref
+
     def _populate_worksheet(self, workbook, worksheet):
         """
         Write the chart data contents to *worksheet* in category chart
@@ -107,8 +139,8 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
         The letter of the Excel worksheet column in which the data for a
         series appears.
         """
-        start_col_ascii = ord('A') + series.categories.depth
-        return chr(start_col_ascii + series.index)
+        column_number = 1 + series.categories.depth + series.index
+        return self._column_reference(column_number)
 
     def _write_categories(self, workbook, worksheet):
         """

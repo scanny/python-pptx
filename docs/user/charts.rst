@@ -59,13 +59,14 @@ examples::
 .. image:: /_static/img/chart-02.png
 
 Notice that we captured the shape reference returned by the
-:meth:`.add_chart` call as ``graphic_frame`` and then extracted the chart
-object from the graphic frame using its :attr:`~.GraphicFrame.chart`
-property. We'll need the chart reference to get to the properties we'll need
-in the next steps. The :meth:`.add_chart` method doesn't directly return the
-chart object. That's because a chart is not itself a shape. Rather it's
-a graphical (DrawingML) object *contained* in the graphic frame shape. Tables
-work this way too, also being contained in a graphic frame shape.
+:meth:`~.SlideShapes.add_chart` call as ``graphic_frame`` and then extracted
+the chart object from the graphic frame using its
+:attr:`~.GraphicFrame.chart` property. We'll need the chart reference to get
+to the properties we'll need in the next steps. The
+:meth:`~.SlideShapes.add_chart` method doesn't directly return the chart
+object. That's because a chart is not itself a shape. Rather it's a graphical
+(DrawingML) object *contained* in the graphic frame shape. Tables work this
+way too, also being contained in a graphic frame shape.
 
 
 XY and Bubble charts

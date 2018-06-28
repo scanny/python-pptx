@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.shapes.shapetree module
-"""
+"""Unit test suite for pptx.shapes.shapetree module"""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
@@ -17,28 +15,30 @@ from pptx.enum.shapes import (
 )
 from pptx.oxml import parse_xml
 from pptx.oxml.shapes.autoshape import CT_Shape
+from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
 from pptx.media import SPEAKER_IMAGE_BYTES, Video
 from pptx.parts.image import ImagePart
 from pptx.parts.slide import SlidePart
-from pptx.shapes.autoshape import Shape
+from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.freeform import FreeformBuilder
 from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
     _BaseSlidePlaceholder, LayoutPlaceholder, MasterPlaceholder,
     NotesSlidePlaceholder
 )
 from pptx.shapes.shapetree import (
-    BasePlaceholders, BaseShapeFactory, _BaseShapes, LayoutPlaceholders,
-    _LayoutShapeFactory, LayoutShapes, MasterPlaceholders,
-    _MasterShapeFactory, MasterShapes, _MoviePicElementCreator,
-    NotesSlidePlaceholders, _NotesSlideShapeFactory, NotesSlideShapes,
-    _SlidePlaceholderFactory, SlidePlaceholders, SlideShapeFactory,
-    SlideShapes
+    _BaseGroupShapes, BasePlaceholders, BaseShapeFactory, _BaseShapes,
+    GroupShapes, LayoutPlaceholders, _LayoutShapeFactory, LayoutShapes,
+    MasterPlaceholders, _MasterShapeFactory, MasterShapes,
+    _MoviePicElementCreator, NotesSlidePlaceholders, _NotesSlideShapeFactory,
+    NotesSlideShapes, _SlidePlaceholderFactory, SlidePlaceholders,
+    SlideShapeFactory, SlideShapes
 )
 from pptx.shapes.table import Table
 from pptx.slide import SlideLayout, SlideMaster
@@ -67,7 +67,7 @@ class DescribeBaseShapeFactory(object):
         ('p:pic', Picture),
         ('p:pic/p:nvPicPr/p:nvPr/a:videoFile', Movie),
         ('p:graphicFrame', GraphicFrame),
-        ('p:grpSp', BaseShape),
+        ('p:grpSp', GroupShape),
         ('p:cxnSp', Connector),
     ])
     def factory_fixture(self, request, parent_):
@@ -118,7 +118,7 @@ class Describe_BaseShapes(object):
         shapes.clone_placeholder(placeholder_)
         assert shapes._element.xml == expected_xml
 
-    def it_finds_an_unused_shape_id_to_help_add_shape(self, next_id_fixture):
+    def it_finds_an_available_shape_id_to_help(self, next_id_fixture):
         shapes, expected_value = next_id_fixture
         assert shapes._next_shape_id == expected_value
 
@@ -183,12 +183,12 @@ class Describe_BaseShapes(object):
         ('p:spTree/p:nvSpPr',                                 1),
         ('p:spTree/p:nvSpPr/p:cNvPr{id=0}',                   1),
         ('p:spTree/p:nvSpPr/p:cNvPr{id=1}',                   2),
-        ('p:spTree/p:nvSpPr/p:cNvPr{id=2}',                   1),
-        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1},p:cNvPr{id=3})',   2),
-        ('p:spTree/p:nvSpPr/(p:cNvPr{id=foo},p:cNvPr{id=2})', 1),
-        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1fo},p:cNvPr{id=2})', 1),
+        ('p:spTree/p:nvSpPr/p:cNvPr{id=2}',                   3),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1},p:cNvPr{id=3})',   4),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=foo},p:cNvPr{id=2})', 3),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1fo},p:cNvPr{id=2})', 3),
         ('p:spTree/p:nvSpPr/(p:cNvPr{id=1},p:cNvPr{id=1},p:'
-         'cNvPr{id=1},p:cNvPr{id=4})',                        2),
+         'cNvPr{id=1},p:cNvPr{id=4})',                        5),
     ])
     def next_id_fixture(self, request):
         spTree_cxml, expected_value = request.param
@@ -230,6 +230,545 @@ class Describe_BaseShapes(object):
     @pytest.fixture
     def shape_(self, request):
         return instance_mock(request, BaseShape)
+
+
+class Describe_BaseGroupShapes(object):
+
+    def it_can_add_a_chart(self, add_chart_fixture):
+        shapes, chart_type, x, y, cx, cy, chart_data_ = add_chart_fixture[:7]
+        rId_, graphicFrame, graphic_frame_ = add_chart_fixture[7:]
+
+        graphic_frame = shapes.add_chart(
+            chart_type, x, y, cx, cy, chart_data_
+        )
+
+        shapes.part.add_chart_part.assert_called_once_with(
+            chart_type, chart_data_
+        )
+        shapes._add_chart_graphicFrame.assert_called_once_with(
+            shapes, rId_, x, y, cx, cy
+        )
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, graphicFrame)
+        assert graphic_frame is graphic_frame_
+
+    def it_can_add_a_connector_shape(self, connector_fixture):
+        shapes, connector_type, begin_x, begin_y = connector_fixture[:4]
+        end_x, end_y, cxnSp_, connector_ = connector_fixture[4:]
+
+        connector = shapes.add_connector(
+            connector_type, begin_x, begin_y, end_x, end_y
+        )
+
+        shapes._add_cxnSp.assert_called_once_with(
+            shapes, connector_type, begin_x, begin_y, end_x, end_y
+        )
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, cxnSp_)
+        assert connector is connector_
+
+    def it_can_provide_a_freeform_builder(self, freeform_fixture):
+        shapes, start_x, start_y, scale = freeform_fixture[:4]
+        FreeformBuilder_new_, x_scale, y_scale = freeform_fixture[4:7]
+        builder_ = freeform_fixture[7]
+
+        builder = shapes.build_freeform(start_x, start_y, scale)
+
+        FreeformBuilder_new_.assert_called_once_with(
+            shapes, start_x, start_y, x_scale, y_scale
+        )
+        assert builder is builder_
+
+    def it_can_add_a_group_shape(self, group_fixture):
+        shapes, spTree, grpSp, group_shape_ = group_fixture
+
+        group_shape = shapes.add_group_shape()
+
+        spTree.add_grpSp.assert_called_once_with(spTree)
+        shapes._shape_factory.assert_called_once_with(shapes, grpSp)
+        assert group_shape is group_shape_
+
+    def it_can_add_a_picture(self, picture_fixture):
+        shapes, image_file, x, y, cx, cy = picture_fixture[:6]
+        image_part_, rId, pic, picture_ = picture_fixture[6:]
+
+        picture = shapes.add_picture(image_file, x, y, cx, cy)
+
+        shapes.part.get_or_add_image_part.assert_called_once_with(
+            image_file
+        )
+        shapes._add_pic_from_image_part.assert_called_once_with(
+            shapes, image_part_, rId, x, y, cx, cy
+        )
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, pic)
+        assert picture is picture_
+
+    def it_can_add_a_shape(self, shape_fixture):
+        shapes, autoshape_type_id, x, y, cx, cy = shape_fixture[:6]
+        AutoShapeType_, autoshape_type_, sp, shape_ = shape_fixture[6:]
+
+        shape = shapes.add_shape(autoshape_type_id, x, y, cx, cy)
+
+        AutoShapeType_.assert_called_once_with(autoshape_type_id)
+        shapes._add_sp.assert_called_once_with(
+            shapes, autoshape_type_, x, y, cx, cy
+        )
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, sp)
+        assert shape is shape_
+
+    def it_can_add_a_textbox(self, textbox_fixture):
+        shapes, x, y, cx, cy, sp, shape_ = textbox_fixture
+
+        shape = shapes.add_textbox(x, y, cx, cy)
+
+        shapes._add_textbox_sp.assert_called_once_with(shapes, x, y, cx, cy)
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        shapes._shape_factory.assert_called_once_with(shapes, sp)
+        assert shape is shape_
+
+    def it_knows_the_index_of_each_of_its_shapes(self, index_fixture):
+        shapes, shape_, expected_value = index_fixture
+        assert shapes.index(shape_) == expected_value
+
+    def it_raises_on_index_where_shape_not_found(self, index_raises_fixture):
+        shapes, shape_ = index_raises_fixture
+        with pytest.raises(ValueError):
+            shapes.index(shape_)
+
+    def it_adds_a_chart_graphicFrame_to_help(self, add_cht_gr_frm_fixture):
+        shapes, rId, x, y, cx, cy, expected_xml = add_cht_gr_frm_fixture
+
+        graphicFrame = shapes._add_chart_graphicFrame(rId, x, y, cx, cy)
+
+        assert shapes._element.xml == expected_xml
+        assert graphicFrame is shapes._element.xpath('p:graphicFrame')[0]
+
+    def it_adds_a_cxnSp_to_help(self, add_cxnSp_fixture):
+        shapes, connector_type, begin_x, begin_y = add_cxnSp_fixture[:4]
+        end_x, end_y, expected_xml = add_cxnSp_fixture[4:]
+
+        cxnSp = shapes._add_cxnSp(
+            connector_type, begin_x, begin_y, end_x, end_y
+        )
+
+        assert cxnSp is shapes._element.xpath('p:cxnSp')[0]
+        assert cxnSp.xml == expected_xml
+
+    def it_adds_a_pic_element_to_help(self, add_pic_fixture):
+        shapes, image_part_, rId, x, y, cx, cy = add_pic_fixture[:7]
+        expected_xml = add_pic_fixture[7]
+
+        pic = shapes._add_pic_from_image_part(image_part_, rId, x, y, cx, cy)
+
+        image_part_.scale.assert_called_once_with(cx, cy)
+        assert shapes._element.xml == expected_xml
+        assert pic is shapes._element.xpath('p:pic')[0]
+
+    def it_adds_an_sp_element_to_help(self, add_sp_fixture):
+        shapes, autoshape_type_, x, y, cx, cy, expected_xml = add_sp_fixture
+
+        sp = shapes._add_sp(autoshape_type_, x, y, cx, cy)
+
+        assert shapes._element.xml == expected_xml
+        assert sp is shapes._element.xpath('p:sp')[0]
+
+    def it_adds_a_textbox_sp_element_to_help(self, add_textbox_sp_fixture):
+        shapes, x, y, cx, cy, expected_xml = add_textbox_sp_fixture
+
+        sp = shapes._add_textbox_sp(x, y, cx, cy)
+
+        assert shapes._element.xml == expected_xml
+        assert sp is shapes._element.xpath('p:sp')[0]
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_chart_fixture(
+            self, chart_data_, _add_chart_graphicFrame_, graphic_frame_,
+            part_prop_, slide_part_, _recalculate_extents_, _shape_factory_):
+        shapes = _BaseGroupShapes(None, None)
+        chart_type = 0
+        rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
+        graphicFrame = element('p:graphicFrame')
+
+        part_prop_.return_value = slide_part_
+        slide_part_.add_chart_part.return_value = rId
+        _add_chart_graphicFrame_.return_value = graphicFrame
+        _shape_factory_.return_value = graphic_frame_
+
+        return (
+            shapes, chart_type, x, y, cx, cy, chart_data_, rId,
+            graphicFrame, graphic_frame_
+        )
+
+    @pytest.fixture
+    def add_cht_gr_frm_fixture(self):
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
+        expected_xml = (
+            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
+            'onml/2006/main">\n  <p:graphicFrame xmlns:a="http://schemas.ope'
+            'nxmlformats.org/drawingml/2006/main">\n    <p:nvGraphicFramePr>'
+            '\n      <p:cNvPr id="1" name="Chart 0"/>\n      <p:cNvGraphicFr'
+            'amePr>\n        <a:graphicFrameLocks noGrp="1"/>\n      </p:cNv'
+            'GraphicFramePr>\n      <p:nvPr/>\n    </p:nvGraphicFramePr>\n  '
+            '  <p:xfrm>\n      <a:off x="1" y="2"/>\n      <a:ext cx="3" cy='
+            '"4"/>\n    </p:xfrm>\n    <a:graphic>\n      <a:graphicData uri'
+            '="http://schemas.openxmlformats.org/drawingml/2006/chart">\n   '
+            '     <c:chart xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/offi'
+            'ceDocument/2006/relationships" r:id="rId42"/>\n      </a:graphi'
+            'cData>\n    </a:graphic>\n  </p:graphicFrame>\n</p:spTree>'
+        )
+        return shapes, rId, x, y, cx, cy, expected_xml
+
+    @pytest.fixture(params=[
+        (1, 2, 3, 5,
+         'p:spPr/(a:xfrm/(a:off{x=1,y=2},a:ext{cx=2,cy=3})'),
+        (8, 3, 4, 9,
+         'p:spPr/(a:xfrm{flipH=1}/(a:off{x=4,y=3},a:ext{cx=4,cy=6})'),
+        (1, 6, 5, 2,
+         'p:spPr/(a:xfrm{flipV=1}/(a:off{x=1,y=2},a:ext{cx=4,cy=4})'),
+        (9, 8, 2, 3,
+         'p:spPr/(a:xfrm{flipH=1,flipV=1}/(a:off{x=2,y=3},a:ext{cx=7,cy=5})'),
+    ])
+    def add_cxnSp_fixture(self, request):
+        begin_x, begin_y, end_x, end_y, spPr_cxml = request.param
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        connector_type = MSO_CONNECTOR.STRAIGHT
+        tmpl_cxml = (
+            'p:cxnSp/(p:nvCxnSpPr/(p:cNvPr{id=1,name=Connector 0},p:cNvCxnSp'
+            'Pr,p:nvPr),%s,a:prstGeom{prst=line}/a:avLst),p:style/(a:lnRef{i'
+            'dx=2}/a:schemeClr{val=accent1},a:fillRef{idx=0}/a:schemeClr{val'
+            '=accent1},a:effectRef{idx=1}/a:schemeClr{val=accent1},a:fontRef'
+            '{idx=minor}/a:schemeClr{val=tx1}))'
+        )
+        expected_xml = xml(tmpl_cxml % spPr_cxml)
+        return (
+            shapes, connector_type, begin_x, begin_y, end_x, end_y,
+            expected_xml
+        )
+
+    @pytest.fixture
+    def add_pic_fixture(self, image_part_, _next_shape_id_prop_):
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        rId, x, y, cx, cy = 'rId24', 10, 11, 12, 13
+
+        _next_shape_id_prop_.return_value = 42
+        image_part_.scale.return_value = (101, 102)
+        image_part_.desc = 'sprocket.jpg'
+        expected_xml = (
+            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
+            'onml/2006/main">\n  <p:pic xmlns:a="http://schemas.openxmlforma'
+            'ts.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlform'
+            'ats.org/officeDocument/2006/relationships">\n    <p:nvPicPr>\n '
+            '     <p:cNvPr id="42" name="Picture 41" descr="sprocket.jpg"/>'
+            '\n      <p:cNvPicPr>\n        <a:picLocks noChangeAspect="1"/>'
+            '\n      </p:cNvPicPr>\n      <p:nvPr/>\n    </p:nvPicPr>\n    <'
+            'p:blipFill>\n      <a:blip r:embed="rId24"/>\n      <a:stretch>'
+            '\n        <a:fillRect/>\n      </a:stretch>\n    </p:blipFill>'
+            '\n    <p:spPr>\n      <a:xfrm>\n        <a:off x="10" y="11"/>'
+            '\n        <a:ext cx="101" cy="102"/>\n      </a:xfrm>\n      <a'
+            ':prstGeom prst="rect">\n        <a:avLst/>\n      </a:prstGeom>'
+            '\n    </p:spPr>\n  </p:pic>\n</p:spTree>'
+        )
+        return shapes, image_part_, rId, x, y, cx, cy, expected_xml
+
+    @pytest.fixture
+    def add_sp_fixture(self, autoshape_type_, _next_shape_id_prop_):
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        x, y, cx, cy = 8, 7, 6, 5
+
+        _next_shape_id_prop_.return_value = 7
+        autoshape_type_.basename = 'Rounded Rectangle'
+        autoshape_type_.prst = 'roundRect'
+
+        expected_xml = (
+            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
+            'onml/2006/main">\n  <p:sp xmlns:a="http://schemas.openxmlformat'
+            's.org/drawingml/2006/main">\n    <p:nvSpPr>\n      <p:cNvPr id='
+            '"7" name="Rounded Rectangle 6"/>\n      <p:cNvSpPr/>\n      <p:'
+            'nvPr/>\n    </p:nvSpPr>\n    <p:spPr>\n      <a:xfrm>\n        '
+            '<a:off x="8" y="7"/>\n        <a:ext cx="6" cy="5"/>\n      </a'
+            ':xfrm>\n      <a:prstGeom prst="roundRect">\n        <a:avLst/>'
+            '\n      </a:prstGeom>\n    </p:spPr>\n    <p:style>\n      <a:l'
+            'nRef idx="1">\n        <a:schemeClr val="accent1"/>\n      </a:'
+            'lnRef>\n      <a:fillRef idx="3">\n        <a:schemeClr val="ac'
+            'cent1"/>\n      </a:fillRef>\n      <a:effectRef idx="2">\n    '
+            '    <a:schemeClr val="accent1"/>\n      </a:effectRef>\n      <'
+            'a:fontRef idx="minor">\n        <a:schemeClr val="lt1"/>\n     '
+            ' </a:fontRef>\n    </p:style>\n    <p:txBody>\n      <a:bodyPr '
+            'rtlCol="0" anchor="ctr"/>\n      <a:lstStyle/>\n      <a:p>\n  '
+            '      <a:pPr algn="ctr"/>\n      </a:p>\n    </p:txBody>\n  </p'
+            ':sp>\n</p:spTree>'
+        )
+        return shapes, autoshape_type_, x, y, cx, cy, expected_xml
+
+    @pytest.fixture
+    def add_textbox_sp_fixture(self, _next_shape_id_prop_):
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        x, y, cx, cy = 1, 2, 3, 4
+
+        _next_shape_id_prop_.return_value = 6
+
+        expected_xml = (
+            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
+            'onml/2006/main">\n  <p:sp xmlns:a="http://schemas.openxmlformat'
+            's.org/drawingml/2006/main">\n    <p:nvSpPr>\n      <p:cNvPr id='
+            '"6" name="TextBox 5"/>\n      <p:cNvSpPr txBox="1"/>\n      <p:'
+            'nvPr/>\n    </p:nvSpPr>\n    <p:spPr>\n      <a:xfrm>\n        '
+            '<a:off x="1" y="2"/>\n        <a:ext cx="3" cy="4"/>\n      </a'
+            ':xfrm>\n      <a:prstGeom prst="rect">\n        <a:avLst/>\n   '
+            '   </a:prstGeom>\n      <a:noFill/>\n    </p:spPr>\n    <p:txBo'
+            'dy>\n      <a:bodyPr wrap="none">\n        <a:spAutoFit/>\n    '
+            '  </a:bodyPr>\n      <a:lstStyle/>\n      <a:p/>\n    </p:txBod'
+            'y>\n  </p:sp>\n</p:spTree>'
+        )
+        return shapes, x, y, cx, cy, expected_xml
+
+    @pytest.fixture
+    def connector_fixture(self, _add_cxnSp_, _shape_factory_,
+                          _recalculate_extents_, connector_):
+        shapes = _BaseGroupShapes(element('p:spTree'), None)
+        connector_type = MSO_CONNECTOR.STRAIGHT
+        begin_x, begin_y, end_x, end_y = 1, 2, 3, 4
+        cxnSp = element('p:cxnSp')
+
+        _add_cxnSp_.return_value = cxnSp
+        _shape_factory_.return_value = connector_
+
+        return (
+            shapes, connector_type, begin_x, begin_y, end_x, end_y, cxnSp,
+            connector_
+        )
+
+    @pytest.fixture(params=[
+        (0,   0,   1.0,        1.0, 1.0),
+        (100, 200, 2.0,        2.0, 2.0),
+        (100, 200, (4.2, 2.4), 4.2, 2.4),
+    ])
+    def freeform_fixture(self, request, FreeformBuilder_new_, builder_):
+        start_x, start_y, scale, x_scale, y_scale = request.param
+        shapes = _BaseGroupShapes(None, None)
+        FreeformBuilder_new_.return_value = builder_
+        return (
+            shapes, start_x, start_y, scale, FreeformBuilder_new_, x_scale,
+            y_scale, builder_
+        )
+
+    @pytest.fixture
+    def group_fixture(self, CT_GroupShape_add_grpSp_, _shape_factory_,
+                      group_shape_):
+        spTree = element('p:spTree{id=2e838acdc755e83113ed03904d2fe081f}')
+        grpSp = element('p:grpSp{id=052874e154b48f9bec4266f80913cae38f}')
+        shapes = _BaseGroupShapes(spTree, None)
+
+        CT_GroupShape_add_grpSp_.return_value = grpSp
+        _shape_factory_.return_value = group_shape_
+
+        return shapes, spTree, grpSp, group_shape_
+
+    @pytest.fixture(params=[
+        ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 0),
+        ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 1),
+        ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes, 2),
+        ('p:grpSp/(p:sp,p:sp,p:sp)', GroupShapes, 0),
+        ('p:grpSp/(p:sp,p:sp,p:sp)', GroupShapes, 1),
+        ('p:grpSp/(p:sp,p:sp,p:sp)', GroupShapes, 2),
+    ])
+    def index_fixture(self, request, shape_):
+        grpSp_cxml, ShapesCls, idx = request.param
+        grpSp = element(grpSp_cxml)
+        sps = grpSp.xpath('p:sp')
+        shapes = ShapesCls(grpSp, None)
+        shape_.element = sps[idx]
+        expected_value = idx
+        return shapes, shape_, expected_value
+
+    @pytest.fixture(params=[
+        ('p:spTree/(p:sp,p:sp,p:sp)', SlideShapes),
+        ('p:grpSp/(p:sp,p:sp,p:sp)',  GroupShapes),
+    ])
+    def index_raises_fixture(self, request, shape_):
+        grpSp_cxml, ShapesCls = request.param
+        shapes = SlideShapes(element(grpSp_cxml), None)
+        shape_.element = element('p:sp')
+        return shapes, shape_
+
+    @pytest.fixture
+    def _next_shape_id_prop_(self, request):
+        return property_mock(request, _BaseGroupShapes, '_next_shape_id')
+
+    @pytest.fixture
+    def picture_fixture(self, part_prop_, slide_part_, image_part_,
+                        _add_pic_from_image_part_, _recalculate_extents_,
+                        _shape_factory_, picture_):
+        shapes = _BaseGroupShapes(None, None)
+        image_file, x, y, cx, cy, rId = 'foobar.png', 1, 2, 3, 4, 'rId42'
+        pic = element('p:pic')
+
+        part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_image_part.return_value = image_part_, rId
+        _add_pic_from_image_part_.return_value = pic
+        _shape_factory_.return_value = picture_
+        return (
+            shapes, image_file, x, y, cx, cy, image_part_, rId, pic, picture_
+        )
+
+    @pytest.fixture
+    def shape_fixture(self, AutoShapeType_, autoshape_type_, _add_sp_,
+                      _recalculate_extents_, _shape_factory_, shape_):
+        shapes = _BaseGroupShapes(None, None)
+        autoshape_type_id = MSO_AUTO_SHAPE_TYPE.ROUNDED_RECTANGLE
+        x, y, cx, cy = 21, 22, 23, 24
+        sp = element('p:sp')
+
+        AutoShapeType_.return_value = autoshape_type_
+        _add_sp_.return_value = sp
+        _shape_factory_.return_value = shape_
+
+        return (
+            shapes, autoshape_type_id, x, y, cx, cy, AutoShapeType_,
+            autoshape_type_, sp, shape_
+        )
+
+    @pytest.fixture
+    def textbox_fixture(self, _add_textbox_sp_, _recalculate_extents_,
+                        _shape_factory_, shape_):
+        shapes = _BaseGroupShapes(None, None)
+        x, y, cx, cy = 31, 32, 33, 34
+        sp = element('p:sp')
+
+        _add_textbox_sp_.return_value = sp
+        _shape_factory_.return_value = shape_
+
+        return shapes, x, y, cx, cy, sp, shape_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _add_chart_graphicFrame_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_add_chart_graphicFrame',
+            autospec=True
+        )
+
+    @pytest.fixture
+    def _add_cxnSp_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_add_cxnSp', autospec=True
+        )
+
+    @pytest.fixture
+    def _add_pic_from_image_part_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_add_pic_from_image_part',
+            autospec=True
+        )
+
+    @pytest.fixture
+    def _add_sp_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_add_sp', autospec=True
+        )
+
+    @pytest.fixture
+    def _add_textbox_sp_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_add_textbox_sp', autospec=True
+        )
+
+    @pytest.fixture
+    def autoshape_type_(self, request):
+        return instance_mock(request, AutoShapeType)
+
+    @pytest.fixture
+    def AutoShapeType_(self, request):
+        return class_mock(request, 'pptx.shapes.shapetree.AutoShapeType')
+
+    @pytest.fixture
+    def builder_(self, request):
+        return instance_mock(request, FreeformBuilder)
+
+    @pytest.fixture
+    def chart_data_(self, request):
+        return instance_mock(request, ChartData)
+
+    @pytest.fixture
+    def connector_(self, request):
+        return instance_mock(request, Connector)
+
+    @pytest.fixture
+    def CT_GroupShape_add_grpSp_(self, request):
+        return method_mock(
+            request, CT_GroupShape, 'add_grpSp', autospec=True
+        )
+
+    @pytest.fixture
+    def FreeformBuilder_new_(self, request):
+        return method_mock(request, FreeformBuilder, 'new')
+
+    @pytest.fixture
+    def graphic_frame_(self, request):
+        return instance_mock(request, GraphicFrame)
+
+    @pytest.fixture
+    def group_shape_(self, request):
+        return instance_mock(request, GroupShape)
+
+    @pytest.fixture
+    def image_part_(self, request):
+        return instance_mock(request, ImagePart)
+
+    @pytest.fixture
+    def part_prop_(self, request):
+        return property_mock(request, _BaseGroupShapes, 'part')
+
+    @pytest.fixture
+    def picture_(self, request):
+        return instance_mock(request, Picture)
+
+    @pytest.fixture
+    def _recalculate_extents_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_recalculate_extents', autospec=True
+        )
+
+    @pytest.fixture
+    def shape_(self, request):
+        return instance_mock(request, Shape)
+
+    @pytest.fixture
+    def _shape_factory_(self, request):
+        return method_mock(
+            request, _BaseGroupShapes, '_shape_factory', autospec=True
+        )
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
+
+
+class DescribeGroupShapes(object):
+
+    def it_recalculates_its_extents_to_help(self, recalc_fixture):
+        shapes = recalc_fixture
+        shapes._recalculate_extents()
+        shapes._grpSp.recalculate_extents.assert_called_once_with()
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def recalc_fixture(self, grpSp_):
+        return GroupShapes(grpSp_, None)
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def grpSp_(self, request):
+        return instance_mock(request, CT_GroupShape)
 
 
 class DescribeBasePlaceholders(object):
@@ -554,22 +1093,6 @@ class DescribeSlideShapeFactory(object):
 
 class DescribeSlideShapes(object):
 
-    def it_can_add_a_chart(self, add_chart_fixture):
-        shapes, chart_type, x, y, cx, cy = add_chart_fixture[:6]
-        chart_data_, rId_, graphic_frame_ = add_chart_fixture[6:]
-
-        graphic_frame = shapes.add_chart(
-            chart_type, x, y, cx, cy, chart_data_
-        )
-
-        shapes.part.add_chart_part.assert_called_once_with(
-            chart_type, chart_data_
-        )
-        shapes._add_chart_graphic_frame.assert_called_once_with(
-            shapes, rId_, x, y, cx, cy
-        )
-        assert graphic_frame is graphic_frame_
-
     def it_provides_access_to_its_shape_factory(self, factory_fixture):
         shapes, sp, SlideShapeFactory_, shape_ = factory_fixture
         shape = shapes._shape_factory(sp)
@@ -581,43 +1104,6 @@ class DescribeSlideShapes(object):
         title_placeholder = shapes.title
         assert _shape_factory_.call_args_list == calls
         assert title_placeholder is shape_
-
-    def it_can_add_an_autoshape(self, autoshape_fixture):
-        shapes, autoshape_type_id, x, y, cx, cy, shape_, expected_xml = (
-            autoshape_fixture
-        )
-
-        shape = shapes.add_shape(autoshape_type_id, x, y, cx, cy)
-
-        sp = shapes._element.xpath('p:sp')[0]
-        shapes._shape_factory.assert_called_once_with(shapes, sp)
-        assert shape is shape_
-        assert shapes._element.xml == expected_xml
-
-    def it_can_add_a_connector(self, connector_fixture):
-        shapes, connector_type, begin_x, begin_y = connector_fixture[:4]
-        end_x, end_y, cxnSp_, connector_ = connector_fixture[4:]
-
-        connector = shapes.add_connector(
-            connector_type, begin_x, begin_y, end_x, end_y
-        )
-
-        shapes._add_cxnSp.assert_called_once_with(
-            shapes, connector_type, begin_x, begin_y, end_x, end_y
-        )
-        shapes._shape_factory.assert_called_once_with(shapes, cxnSp_)
-        assert connector is connector_
-
-    def it_can_provide_a_freeform_builder(self, build_fixture):
-        shapes, start_x, start_y, scale = build_fixture[:4]
-        FreeformBuilder_new_, x_scale, y_scale, builder_ = build_fixture[4:]
-
-        builder = shapes.build_freeform(start_x, start_y, scale)
-
-        FreeformBuilder_new_.assert_called_once_with(
-            shapes, start_x, start_y, x_scale, y_scale
-        )
-        assert builder is builder_
 
     def it_can_add_a_movie(self, movie_fixture):
         shapes, movie_file, x, y, cx, cy = movie_fixture[:6]
@@ -638,21 +1124,6 @@ class DescribeSlideShapes(object):
         _shape_factory_.assert_called_once_with(shapes, movie_pic)
         assert movie is movie_
 
-    def it_can_add_a_picture_shape(self, picture_fixture):
-        shapes, image_file, x, y, cx, cy, picture_, expected_xml = (
-            picture_fixture
-        )
-
-        picture = shapes.add_picture(image_file, x, y, cx, cy)
-
-        shapes.part.get_or_add_image_part.assert_called_once_with(
-            image_file
-        )
-        pic = shapes._element.xpath('p:pic')[0]
-        shapes._shape_factory.assert_called_once_with(shapes, pic)
-        assert picture is picture_
-        assert shapes._element.xml == expected_xml
-
     def it_can_add_a_table(self, table_fixture):
         shapes, rows, cols, x, y, cx, cy, table_, expected_xml = table_fixture
 
@@ -663,52 +1134,10 @@ class DescribeSlideShapes(object):
         assert table is table_
         assert shapes._element.xml == expected_xml
 
-    def it_can_add_a_textbox(self, textbox_fixture):
-        shapes, x, y, cx, cy, textbox_, expected_xml = textbox_fixture
-
-        textbox = shapes.add_textbox(x, y, cx, cy)
-
-        sp = shapes._element.xpath('p:sp')[0]
-        shapes._shape_factory.assert_called_once_with(shapes, sp)
-        assert textbox is textbox_
-        assert shapes._element.xml == expected_xml
-
     def it_can_clone_placeholder_shapes_from_a_layout(self, clone_fixture):
         shapes, slide_layout_, calls = clone_fixture
         shapes.clone_layout_placeholders(slide_layout_)
         assert shapes.clone_placeholder.call_args_list == calls
-
-    def it_knows_the_index_of_each_shape(self, index_fixture):
-        shapes, shape_, expected_value = index_fixture
-        assert shapes.index(shape_) == expected_value
-
-    def it_raises_on_index_where_shape_not_found(self, index_raises_fixture):
-        shapes, shape_ = index_raises_fixture
-        with pytest.raises(ValueError):
-            shapes.index(shape_)
-
-    def it_adds_a_chart_graphic_frame_to_help(self, add_cht_gr_frm_fixture):
-        shapes, rId, x, y, cx, cy, graphic_frame_, expected_xml = (
-            add_cht_gr_frm_fixture
-        )
-
-        graphic_frame = shapes._add_chart_graphic_frame(rId, x, y, cx, cy)
-
-        graphicFrame = shapes._element.xpath('p:graphicFrame')[0]
-        shapes._shape_factory.assert_called_once_with(shapes, graphicFrame)
-        assert graphic_frame is graphic_frame_
-        assert shapes._element.xml == expected_xml
-
-    def it_adds_a_cxnSp_to_help(self, add_cxnSp_fixture):
-        shapes, connector_type, begin_x, begin_y = add_cxnSp_fixture[:4]
-        end_x, end_y, expected_xml = add_cxnSp_fixture[4:]
-
-        cxnSp = shapes._add_cxnSp(
-            connector_type, begin_x, begin_y, end_x, end_y
-        )
-
-        assert cxnSp is shapes._element.xpath('p:cxnSp')[0]
-        assert cxnSp.xml == expected_xml
 
     def it_adds_a_video_timing_to_help(self, add_timing_fixture):
         shapes, pic, sld, expected_xml = add_timing_fixture
@@ -716,68 +1145,6 @@ class DescribeSlideShapes(object):
         assert sld.xml == expected_xml
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def add_chart_fixture(
-            self, chart_data_, _add_chart_graphic_frame_, graphic_frame_,
-            part_prop_):
-        shapes = SlideShapes(None, None)
-        chart_type = 0
-        rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
-        part_prop_.return_value.add_chart_part.return_value = rId
-        return (
-            shapes, chart_type, x, y, cx, cy, chart_data_, rId,
-            graphic_frame_
-        )
-
-    @pytest.fixture
-    def add_cht_gr_frm_fixture(self, graphic_frame_, _shape_factory_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        rId, x, y, cx, cy = 'rId42', 1, 2, 3, 4
-        expected_xml = (
-            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
-            'onml/2006/main">\n  <p:graphicFrame xmlns:a="http://schemas.ope'
-            'nxmlformats.org/drawingml/2006/main">\n    <p:nvGraphicFramePr>'
-            '\n      <p:cNvPr id="1" name="Chart 0"/>\n      <p:cNvGraphicFr'
-            'amePr>\n        <a:graphicFrameLocks noGrp="1"/>\n      </p:cNv'
-            'GraphicFramePr>\n      <p:nvPr/>\n    </p:nvGraphicFramePr>\n  '
-            '  <p:xfrm>\n      <a:off x="1" y="2"/>\n      <a:ext cx="3" cy='
-            '"4"/>\n    </p:xfrm>\n    <a:graphic>\n      <a:graphicData uri'
-            '="http://schemas.openxmlformats.org/drawingml/2006/chart">\n   '
-            '     <c:chart xmlns:c="http://schemas.openxmlformats.org/drawin'
-            'gml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/offi'
-            'ceDocument/2006/relationships" r:id="rId42"/>\n      </a:graphi'
-            'cData>\n    </a:graphic>\n  </p:graphicFrame>\n</p:spTree>'
-        )
-        _shape_factory_.return_value = graphic_frame_
-        return shapes, rId, x, y, cx, cy, graphic_frame_, expected_xml
-
-    @pytest.fixture(params=[
-        (1, 2, 3, 5,
-         'p:spPr/(a:xfrm/(a:off{x=1,y=2},a:ext{cx=2,cy=3})'),
-        (8, 3, 4, 9,
-         'p:spPr/(a:xfrm{flipH=1}/(a:off{x=4,y=3},a:ext{cx=4,cy=6})'),
-        (1, 6, 5, 2,
-         'p:spPr/(a:xfrm{flipV=1}/(a:off{x=1,y=2},a:ext{cx=4,cy=4})'),
-        (9, 8, 2, 3,
-         'p:spPr/(a:xfrm{flipH=1,flipV=1}/(a:off{x=2,y=3},a:ext{cx=7,cy=5})'),
-    ])
-    def add_cxnSp_fixture(self, request):
-        begin_x, begin_y, end_x, end_y, spPr_cxml = request.param
-        shapes = SlideShapes(element('p:spTree'), None)
-        connector_type = MSO_CONNECTOR.STRAIGHT
-        tmpl_cxml = (
-            'p:cxnSp/(p:nvCxnSpPr/(p:cNvPr{id=1,name=Connector 0},p:cNvCxnSp'
-            'Pr,p:nvPr),%s,a:prstGeom{prst=line}/a:avLst),p:style/(a:lnRef{i'
-            'dx=2}/a:schemeClr{val=accent1},a:fillRef{idx=0}/a:schemeClr{val'
-            '=accent1},a:effectRef{idx=1}/a:schemeClr{val=accent1},a:fontRef'
-            '{idx=minor}/a:schemeClr{val=tx1}))'
-        )
-        expected_xml = xml(tmpl_cxml % spPr_cxml)
-        return (
-            shapes, connector_type, begin_x, begin_y, end_x, end_y,
-            expected_xml
-        )
 
     @pytest.fixture(params=[
         (0, 1),  # no timing gets timing with one video
@@ -795,46 +1162,6 @@ class DescribeSlideShapes(object):
         return shapes, pic, sld, expected_xml
 
     @pytest.fixture
-    def autoshape_fixture(self, _shape_factory_, shape_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        autoshape_type_id = MSO_AUTO_SHAPE_TYPE.ROUNDED_RECTANGLE
-        x, y, cx, cy = 1, 2, 3, 4
-        expected_xml = (
-            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
-            'onml/2006/main">\n  <p:sp xmlns:a="http://schemas.openxmlformat'
-            's.org/drawingml/2006/main">\n    <p:nvSpPr>\n      <p:cNvPr id='
-            '"1" name="Rounded Rectangle 0"/>\n      <p:cNvSpPr/>\n      <p:'
-            'nvPr/>\n    </p:nvSpPr>\n    <p:spPr>\n      <a:xfrm>\n        '
-            '<a:off x="1" y="2"/>\n        <a:ext cx="3" cy="4"/>\n      </a'
-            ':xfrm>\n      <a:prstGeom prst="roundRect">\n        <a:avLst/>'
-            '\n      </a:prstGeom>\n    </p:spPr>\n    <p:style>\n      <a:l'
-            'nRef idx="1">\n        <a:schemeClr val="accent1"/>\n      </a:'
-            'lnRef>\n      <a:fillRef idx="3">\n        <a:schemeClr val="ac'
-            'cent1"/>\n      </a:fillRef>\n      <a:effectRef idx="2">\n    '
-            '    <a:schemeClr val="accent1"/>\n      </a:effectRef>\n      <'
-            'a:fontRef idx="minor">\n        <a:schemeClr val="lt1"/>\n     '
-            ' </a:fontRef>\n    </p:style>\n    <p:txBody>\n      <a:bodyPr '
-            'rtlCol="0" anchor="ctr"/>\n      <a:lstStyle/>\n      <a:p>\n  '
-            '      <a:pPr algn="ctr"/>\n      </a:p>\n    </p:txBody>\n  </p'
-            ':sp>\n</p:spTree>'
-        )
-        return shapes, autoshape_type_id, x, y, cx, cy, shape_, expected_xml
-
-    @pytest.fixture(params=[
-        (0,   0,   1.0,        1.0, 1.0),
-        (100, 200, 2.0,        2.0, 2.0),
-        (100, 200, (4.2, 2.4), 4.2, 2.4),
-    ])
-    def build_fixture(self, request, FreeformBuilder_new_, builder_):
-        start_x, start_y, scale, x_scale, y_scale = request.param
-        FreeformBuilder_new_.return_value = builder_
-        shapes = SlideShapes(None, None)
-        return (
-            shapes, start_x, start_y, scale, FreeformBuilder_new_, x_scale,
-            y_scale, builder_
-        )
-
-    @pytest.fixture
     def clone_fixture(self, slide_layout_, clone_placeholder_, placeholder_):
         shapes = SlideShapes(None, None)
         calls = [call(shapes, placeholder_)]
@@ -844,40 +1171,10 @@ class DescribeSlideShapes(object):
         return shapes, slide_layout_, calls
 
     @pytest.fixture
-    def connector_fixture(self, _add_cxnSp_, _shape_factory_, connector_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        connector_type = MSO_CONNECTOR.STRAIGHT
-        begin_x, begin_y, end_x, end_y = 1, 2, 3, 4
-        cxnSp = element('p:cxnSp')
-        _add_cxnSp_.return_value = cxnSp
-        _shape_factory_.return_value = connector_
-        return (
-            shapes, connector_type, begin_x, begin_y, end_x, end_y, cxnSp,
-            connector_
-        )
-
-    @pytest.fixture
     def factory_fixture(self, SlideShapeFactory_, shape_):
         shapes = SlideShapes(None, None)
         sp = element('p:sp')
         return shapes, sp, SlideShapeFactory_, shape_
-
-    @pytest.fixture(params=[0, 1, 2])
-    def index_fixture(self, request, shape_):
-        idx = request.param
-        spTree = element('p:spTree/(p:sp,p:sp,p:sp)')
-        sps = spTree.xpath('p:sp')
-        shapes = SlideShapes(spTree, None)
-        shape_.element = sps[idx]
-        expected_value = idx
-        return shapes, shape_, expected_value
-
-    @pytest.fixture
-    def index_raises_fixture(self, shape_):
-        spTree = element('p:spTree/(p:sp,p:sp,p:sp)')
-        shapes = SlideShapes(spTree, None)
-        shape_.element = element('p:sp')
-        return shapes, shape_
 
     @pytest.fixture
     def movie_fixture(self, _MoviePicElementCreator_, _add_video_timing_,
@@ -893,36 +1190,6 @@ class DescribeSlideShapes(object):
             shapes, movie_file, x, y, cx, cy, poster_frame_image, mime_type,
             shape_id_, _MoviePicElementCreator_, movie_pic,
             _add_video_timing_, _shape_factory_, movie_
-        )
-
-    @pytest.fixture
-    def picture_fixture(
-            self, picture_, part_prop_, image_part_, _shape_factory_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        image_file, x, y, cx, cy = 'foobar.png', 1, 2, 3, 4
-        expected_xml = (
-            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
-            'onml/2006/main">\n  <p:pic xmlns:a="http://schemas.openxmlforma'
-            'ts.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlform'
-            'ats.org/officeDocument/2006/relationships">\n    <p:nvPicPr>\n '
-            '     <p:cNvPr id="1" name="Picture 0" descr="Image Description"'
-            '/>\n      <p:cNvPicPr>\n        <a:picLocks noChangeAspect="1"/'
-            '>\n      </p:cNvPicPr>\n      <p:nvPr/>\n    </p:nvPicPr>\n    '
-            '<p:blipFill>\n      <a:blip r:embed="rId42"/>\n      <a:stretch'
-            '>\n        <a:fillRect/>\n      </a:stretch>\n    </p:blipFill>'
-            '\n    <p:spPr>\n      <a:xfrm>\n        <a:off x="1" y="2"/>\n '
-            '       <a:ext cx="101" cy="102"/>\n      </a:xfrm>\n      <a:pr'
-            'stGeom prst="rect">\n        <a:avLst/>\n      </a:prstGeom>\n '
-            '   </p:spPr>\n  </p:pic>\n</p:spTree>'
-        )
-        slide_part_ = part_prop_.return_value
-        get_or_add_image_part_ = slide_part_.get_or_add_image_part
-        get_or_add_image_part_.return_value = image_part_, 'rId42'
-        image_part_.scale.return_value = 101, 102
-        image_part_.desc = 'Image Description'
-        _shape_factory_.return_value = picture_
-        return (
-            shapes, image_file, x, y, cx, cy, picture_, expected_xml
         )
 
     @pytest.fixture
@@ -957,26 +1224,6 @@ class DescribeSlideShapes(object):
         )
         return shapes, rows, cols, x, y, cx, cy, table_, expected_xml
 
-    @pytest.fixture
-    def textbox_fixture(self, textbox_, _shape_factory_):
-        shapes = SlideShapes(element('p:spTree'), None)
-        x, y, cx, cy = 1, 2, 3, 4
-        expected_xml = (
-            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
-            'onml/2006/main">\n  <p:sp xmlns:a="http://schemas.openxmlformat'
-            's.org/drawingml/2006/main">\n    <p:nvSpPr>\n      <p:cNvPr id='
-            '"1" name="TextBox 0"/>\n      <p:cNvSpPr txBox="1"/>\n      <p:'
-            'nvPr/>\n    </p:nvSpPr>\n    <p:spPr>\n      <a:xfrm>\n        '
-            '<a:off x="1" y="2"/>\n        <a:ext cx="3" cy="4"/>\n      </a'
-            ':xfrm>\n      <a:prstGeom prst="rect">\n        <a:avLst/>\n   '
-            '   </a:prstGeom>\n      <a:noFill/>\n    </p:spPr>\n    <p:txBo'
-            'dy>\n      <a:bodyPr wrap="none">\n        <a:spAutoFit/>\n    '
-            '  </a:bodyPr>\n      <a:lstStyle/>\n      <a:p/>\n    </p:txBod'
-            'y>\n  </p:sp>\n</p:spTree>'
-        )
-        _shape_factory_.return_value = textbox_
-        return shapes, x, y, cx, cy, textbox_, expected_xml
-
     @pytest.fixture(params=[
         ('p:spTree/(p:sp,p:sp/p:nvSpPr/p:nvPr/p:ph{idx=0})', True),
         ('p:spTree/(p:sp,p:sp)',                             False),
@@ -992,57 +1239,16 @@ class DescribeSlideShapes(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def _add_chart_graphicFrame_(self, request):
-        return method_mock(
-            request, SlideShapes, '_add_chart_graphicFrame', autospec=True
-        )
-
-    @pytest.fixture
-    def _add_chart_graphic_frame_(self, request, graphic_frame_):
-        return method_mock(
-            request, SlideShapes, '_add_chart_graphic_frame',
-            autospec=True, return_value=graphic_frame_
-        )
-
-    @pytest.fixture
-    def _add_cxnSp_(self, request):
-        return method_mock(request, SlideShapes, '_add_cxnSp', autospec=True)
-
-    @pytest.fixture
     def _add_video_timing_(self, request):
         return method_mock(
             request, SlideShapes, '_add_video_timing', autospec=True
         )
 
     @pytest.fixture
-    def builder_(self, request):
-        return instance_mock(request, FreeformBuilder)
-
-    @pytest.fixture
-    def chart_data_(self, request):
-        return instance_mock(request, ChartData)
-
-    @pytest.fixture
     def clone_placeholder_(self, request):
         return method_mock(
             request, SlideShapes, 'clone_placeholder', autospec=True
         )
-
-    @pytest.fixture
-    def connector_(self, request):
-        return instance_mock(request, Connector)
-
-    @pytest.fixture
-    def FreeformBuilder_new_(self, request):
-        return method_mock(request, FreeformBuilder, 'new')
-
-    @pytest.fixture
-    def graphic_frame_(self, request):
-        return instance_mock(request, GraphicFrame)
-
-    @pytest.fixture
-    def image_part_(self, request):
-        return instance_mock(request, ImagePart)
 
     @pytest.fixture
     def movie_(self, request):
@@ -1060,16 +1266,6 @@ class DescribeSlideShapes(object):
         return property_mock(
             request, SlideShapes, '_next_shape_id', return_value=shape_id_
         )
-
-    @pytest.fixture
-    def part_prop_(self, request, slide_part_):
-        return property_mock(
-            request, SlideShapes, 'part', return_value=slide_part_
-        )
-
-    @pytest.fixture
-    def picture_(self, request):
-        return instance_mock(request, Picture)
 
     @pytest.fixture
     def placeholder_(self, request):
@@ -1095,10 +1291,6 @@ class DescribeSlideShapes(object):
         return instance_mock(request, SlideLayout)
 
     @pytest.fixture
-    def slide_part_(self, request):
-        return instance_mock(request, SlidePart)
-
-    @pytest.fixture
     def SlideShapeFactory_(self, request, shape_):
         return function_mock(
             request, 'pptx.shapes.shapetree.SlideShapeFactory',
@@ -1108,10 +1300,6 @@ class DescribeSlideShapes(object):
     @pytest.fixture
     def table_(self, request):
         return instance_mock(request, Table)
-
-    @pytest.fixture
-    def textbox_(self, request):
-        return instance_mock(request, Shape)
 
 
 class DescribeLayoutShapes(object):

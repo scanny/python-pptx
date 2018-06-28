@@ -308,8 +308,8 @@ class CT_PositiveSize2D(BaseOxmlElement):
 class CT_ShapeProperties(BaseOxmlElement):
     """Custom element class for `p:spPr` element.
 
-    Shared by ``<p:sp>``, ``<p:pic>``, and ``<p:cxnSp>`` elements as well as
-    a few more obscure ones.
+    Shared by `p:sp`, `p:cxnSp`,  and `p:pic` elements as well as a few more
+    obscure ones.
     """
 
     _tag_seq = (
@@ -326,6 +326,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         successors=_tag_seq[9:]
     )
     ln = ZeroOrOne('a:ln', successors=_tag_seq[10:])
+    effectLst = ZeroOrOne('a:effectLst', successors=_tag_seq[11:])
     del _tag_seq
 
     @property
@@ -385,12 +386,16 @@ class CT_ShapeProperties(BaseOxmlElement):
 
 
 class CT_Transform2D(BaseOxmlElement):
+    """`a:xfrm` custom element class.
+
+    NOTE: this is a composite including CT_GroupTransform2D, which appears
+    with the `a:xfrm` tag in a group shape (including a slide `p:spTree`).
     """
-    Custom element class for <a:xfrm> element.
-    """
-    _tag_seq = ('a:off', 'a:ext')
+    _tag_seq = ('a:off', 'a:ext', 'a:chOff', 'a:chExt')
     off = ZeroOrOne('a:off', successors=_tag_seq[1:])
     ext = ZeroOrOne('a:ext', successors=_tag_seq[2:])
+    chOff = ZeroOrOne('a:chOff', successors=_tag_seq[3:])
+    chExt = ZeroOrOne('a:chExt', successors=_tag_seq[4:])
     del _tag_seq
     rot = OptionalAttribute('rot', ST_Angle, default=0.0)
     flipH = OptionalAttribute('flipH', XsdBoolean, default=False)

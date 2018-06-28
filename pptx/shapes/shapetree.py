@@ -19,6 +19,7 @@ from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.freeform import FreeformBuilder
 from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
     ChartPlaceholder, LayoutPlaceholder, MasterPlaceholder,
@@ -28,26 +29,29 @@ from pptx.shapes.placeholder import (
 from pptx.shared import ParentedElementProxy
 from pptx.util import lazyproperty
 
-
-def BaseShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*.
-    """
-    tag = shape_elm.tag
-
-    if tag == qn('p:pic'):
-        videoFiles = shape_elm.xpath('./p:nvPicPr/p:nvPr/a:videoFile')
-        if videoFiles:
-            return Movie(shape_elm, parent)
-        return Picture(shape_elm, parent)
-
-    shape_cls = {
-        qn('p:cxnSp'):        Connector,
-        qn('p:sp'):           Shape,
-        qn('p:graphicFrame'): GraphicFrame,
-    }.get(tag, BaseShape)
-
-    return shape_cls(shape_elm, parent)
+# +-- _BaseShapes
+# |   |
+# |   +-- _BaseGroupShapes
+# |   |   |
+# |   |   +-- GroupShapes
+# |   |   |
+# |   |   +-- SlideShapes
+# |   |
+# |   +-- LayoutShapes
+# |   |
+# |   +-- MasterShapes
+# |   |
+# |   +-- NotesSlideShapes
+# |   |
+# |   +-- BasePlaceholders
+# |       |
+# |       +-- LayoutPlaceholders
+# |       |
+# |       +-- MasterPlaceholders
+# |           |
+# |           +-- NotesSlidePlaceholders
+# |
+# +-- SlidePlaceholders
 
 
 class _BaseShapes(ParentedElementProxy):
@@ -55,6 +59,7 @@ class _BaseShapes(ParentedElementProxy):
     Base class for a shape collection appearing in a slide-type object,
     include Slide, SlideLayout, and SlideMaster, providing common methods.
     """
+
     def __init__(self, spTree, parent):
         super(_BaseShapes, self).__init__(spTree, parent)
         self._spTree = spTree
@@ -171,16 +176,15 @@ class _BaseShapes(ParentedElementProxy):
     def _next_shape_id(self):
         """Return a unique shape id suitable for use with a new shape.
 
-        The returned id is the next available positive integer drawing object
-        id in shape tree, starting from 1 and making use of any gaps in
-        numbering. In practice, the minimum id is 2 because the spTree
-        element is always assigned id="1".
+        The returned id is 1 greater than the maximum shape id used so far.
+        In practice, the minimum id is 2 because the spTree element is always
+        assigned id="1".
         """
         id_str_lst = self._spTree.xpath('//@id')
         used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
-        for n in range(1, len(used_ids)+2):
-            if n not in used_ids:
-                return n
+        if not used_ids:
+            return 1
+        return max(used_ids) + 1
 
     def _shape_factory(self, shape_elm):
         """
@@ -190,84 +194,340 @@ class _BaseShapes(ParentedElementProxy):
         return BaseShapeFactory(shape_elm, self)
 
 
-class BasePlaceholders(_BaseShapes):
-    """
-    Base class for placeholder collections that differentiate behaviors for
-    a master, layout, and slide. By default, placeholder shapes are
-    constructed using |BaseShapeFactory|. Subclasses should override
-    :method:`_shape_factory` to use custom placeholder classes.
-    """
-    @staticmethod
-    def _is_member_elm(shape_elm):
+class _BaseGroupShapes(_BaseShapes):
+    """Base class for shape-trees that can add shapes."""
+
+    def __init__(self, grpSp, parent):
+        super(_BaseGroupShapes, self).__init__(grpSp, parent)
+        self._grpSp = grpSp
+
+    def add_chart(self, chart_type, x, y, cx, cy, chart_data):
+        """Add a new chart of *chart_type* to the slide.
+
+        The chart is positioned at (*x*, *y*), has size (*cx*, *cy*), and
+        depicts *chart_data*. *chart_type* is one of the :ref:`XlChartType`
+        enumeration values. *chart_data* is a |ChartData| object populated
+        with the categories and series values for the chart.
+
+        Note that a |GraphicFrame| shape object is returned, not the |Chart|
+        object contained in that graphic frame shape. The chart object may be
+        accessed using the :attr:`chart` property of the returned
+        |GraphicFrame| object.
         """
-        True if *shape_elm* is a placeholder shape, False otherwise.
+        rId = self.part.add_chart_part(chart_type, chart_data)
+        graphicFrame = self._add_chart_graphicFrame(rId, x, y, cx, cy)
+        self._recalculate_extents()
+        return self._shape_factory(graphicFrame)
+
+    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
+        """Add a newly created connector shape to the end of this shape tree.
+
+        *connector_type* is a member of the :ref:`MsoConnectorType`
+        enumeration and the end-point values are specified as EMU values. The
+        returned connector is of type *connector_type* and has begin and end
+        points as specified.
         """
-        return shape_elm.has_ph_elm
+        cxnSp = self._add_cxnSp(
+            connector_type, begin_x, begin_y, end_x, end_y
+        )
+        self._recalculate_extents()
+        return self._shape_factory(cxnSp)
+
+    def add_group_shape(self, shapes=[]):
+        """Return a |GroupShape| object newly appended to this shape tree.
+
+        The group shape is empty and must be populated with shapes using
+        methods on its shape tree, available on its `.shapes` property. The
+        position and extents of the group shape are determined by the shapes
+        it contains; its position and extents are recalculated each time
+        a shape is added to it.
+        """
+        grpSp = self._element.add_grpSp()
+        for shape in shapes:
+            grpSp.insert_element_before(shape._element, 'p:extLst')
+        if shapes:
+            grpSp.recalculate_extents()
+        return self._shape_factory(grpSp)
+
+    def add_picture(self, image_file, left, top, width=None, height=None):
+        """Add picture shape displaying image in *image_file*.
+
+        *image_file* can be either a path to a file (a string) or a file-like
+        object. The picture is positioned with its top-left corner at (*top*,
+        *left*). If *width* and *height* are both |None|, the native size of
+        the image is used. If only one of *width* or *height* is used, the
+        unspecified dimension is calculated to preserve the aspect ratio of
+        the image. If both are specified, the picture is stretched to fit,
+        without regard to its native aspect ratio.
+        """
+        image_part, rId = self.part.get_or_add_image_part(image_file)
+        pic = self._add_pic_from_image_part(
+            image_part, rId, left, top, width, height
+        )
+        self._recalculate_extents()
+        return self._shape_factory(pic)
+
+    def add_shape(self, autoshape_type_id, left, top, width, height):
+        """Return new |Shape| object appended to this shape tree.
+
+        Auto shape is of type specified by *autoshape_type_id* (like
+        ``MSO_SHAPE.RECTANGLE``) and of specified size at specified position.
+        """
+        autoshape_type = AutoShapeType(autoshape_type_id)
+        sp = self._add_sp(autoshape_type, left, top, width, height)
+        self._recalculate_extents()
+        return self._shape_factory(sp)
+
+    def add_textbox(self, left, top, width, height):
+        """Return newly added text box shape appended to this shape tree.
+
+        The text box is of the specified size, located at the specified
+        position on the slide.
+        """
+        sp = self._add_textbox_sp(left, top, width, height)
+        self._recalculate_extents()
+        return self._shape_factory(sp)
+
+    def build_freeform(self, start_x=0, start_y=0, scale=1.0):
+        """Return |FreeformBuilder| object to specify a freeform shape.
+
+        The optional *start_x* and *start_y* arguments specify the starting
+        pen position in local coordinates. They will be rounded to the
+        nearest integer before use and each default to zero.
+
+        The optional *scale* argument specifies the size of local coordinates
+        proportional to slide coordinates (EMU). If the vertical scale is
+        different than the horizontal scale (local coordinate units are
+        "rectangular"), a pair of numeric values can be provided as the
+        *scale* argument, e.g. `scale=(1.0, 2.0)`. In this case the first
+        number is interpreted as the horizontal (X) scale and the second as
+        the vertical (Y) scale.
+
+        A convenient method for calculating scale is to divide a |Length|
+        object by an equivalent count of local coordinate units, e.g.
+        `scale = Inches(1)/1000` for 1000 local units per inch.
+        """
+        try:
+            x_scale, y_scale = scale
+        except TypeError:
+            x_scale = y_scale = scale
+
+        return FreeformBuilder.new(self, start_x, start_y, x_scale, y_scale)
+
+    def index(self, shape):
+        """Return the index of *shape* in this sequence.
+
+        Raises |ValueError| if *shape* is not in the collection.
+        """
+        shape_elms = list(self._element.iter_shape_elms())
+        return shape_elms.index(shape.element)
+
+    def _add_chart_graphicFrame(self, rId, x, y, cx, cy):
+        """Return new `p:graphicFrame` element appended to this shape tree.
+
+        The `p:graphicFrame` element has the specified position and size and
+        refers to the chart part identified by *rId*.
+        """
+        shape_id = self._next_shape_id
+        name = 'Chart %d' % (shape_id-1)
+        graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
+            shape_id, name, rId, x, y, cx, cy
+        )
+        self._spTree.append(graphicFrame)
+        return graphicFrame
+
+    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
+        """Return a newly-added `p:cxnSp` element as specified.
+
+        The `p:cxnSp` element is for a connector of *connector_type*
+        beginning at (*begin_x*, *begin_y*) and extending to
+        (*end_x*, *end_y*).
+        """
+        id_ = self._next_shape_id
+        name = 'Connector %d' % (id_-1)
+
+        flipH, flipV = begin_x > end_x, begin_y > end_y
+        x, y = min(begin_x, end_x), min(begin_y, end_y)
+        cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
+
+        return self._element.add_cxnSp(
+            id_, name, connector_type, x, y, cx, cy, flipH, flipV
+        )
+
+    def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):
+        """Return a newly appended `p:pic` element as specified.
+
+        The `p:pic` element displays the image in *image_part* with size and
+        position specified by *x*, *y*, *cx*, and *cy*. The element is
+        appended to the shape tree, causing it to be displayed first in
+        z-order on the slide.
+        """
+        id_ = self._next_shape_id
+        scaled_cx, scaled_cy = image_part.scale(cx, cy)
+        name = 'Picture %d' % (id_-1)
+        desc = image_part.desc
+        pic = self._grpSp.add_pic(
+            id_, name, desc, rId, x, y, scaled_cx, scaled_cy
+        )
+        return pic
+
+    def _add_sp(self, autoshape_type, x, y, cx, cy):
+        """Return newly-added `p:sp` element as specified.
+
+        `p:sp` element is of *autoshape_type* at position (*x*, *y*) and of
+        size (*cx*, *cy*).
+        """
+        id_ = self._next_shape_id
+        name = '%s %d' % (autoshape_type.basename, id_-1)
+        sp = self._grpSp.add_autoshape(
+            id_, name, autoshape_type.prst, x, y, cx, cy
+        )
+        return sp
+
+    def _add_textbox_sp(self, x, y, cx, cy):
+        """Return newly-appended textbox `p:sp` element.
+
+        Element has position (*x*, *y*) and size (*cx*, *cy*).
+        """
+        id_ = self._next_shape_id
+        name = 'TextBox %d' % (id_-1)
+        sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
+        return sp
+
+    def _recalculate_extents(self):
+        """Adjust position and size to incorporate all contained shapes.
+
+        This would typically be called when a contained shape is added,
+        removed, or its position or size updated.
+        """
+        # ---default behavior is to do nothing, GroupShapes overrides to
+        #    produce the distinctive behavior of groups and subgroups.---
+        pass
 
 
-class LayoutPlaceholders(BasePlaceholders):
-    """
-    Sequence of |LayoutPlaceholder| instances representing the placeholder
-    shapes on a slide layout.
-    """
-    def __getitem__(self, item):
-        """
-        Provide both index based and name based access to placeholder instances
-        :param item: index of placeholder or name of placeholder
-        :return: The first LayoutPlaceholder object found, raises
-        KeyError for names, IndexError for indexes if placeholder not found
-        """
-        placeholder = self.get(item)
-        if not placeholder:
-            if isinstance(item, int):
-                raise IndexError("index out of range: '%d'" % item)
-            raise KeyError("placeholder not found: '%s'" % item)
-        return placeholder
+class GroupShapes(_BaseGroupShapes):
+    """The sequence of child shapes belonging to a group shape.
 
-    def get(self, idx, default=None):
+    Note that this collection can itself contain a group shape, making this
+    part of a recursive, tree data structure (acyclic graph).
+    """
+
+    def _recalculate_extents(self):
+        """Adjust position and size to incorporate all contained shapes.
+
+        This would typically be called when a contained shape is added,
+        removed, or its position or size updated.
         """
-        Return the first placeholder shape with matching *idx* value, or
-        *default* if not found.
+        self._grpSp.recalculate_extents()
+
+
+class SlideShapes(_BaseGroupShapes):
+    """Sequence of shapes appearing on a slide.
+
+    The first shape in the sequence is the backmost in z-order and the last
+    shape is topmost. Supports indexed access, len(), index(), and iteration.
+    """
+
+    def add_movie(self, movie_file, left, top, width, height,
+                  poster_frame_image=None, mime_type=CT.VIDEO):
+        """Return newly added movie shape displaying video in *movie_file*.
+
+        **EXPERIMENTAL.** This method has important limitations:
+
+        * The size must be specified; no auto-scaling such as that provided
+          by :meth:`add_picture` is performed.
+        * The MIME type of the video file should be specified, e.g.
+          'video/mp4'. The provided video file is not interrogated for its
+          type. The MIME type `video/unknown` is used by default (and works
+          fine in tests as of this writing).
+        * A poster frame image must be provided, it cannot be automatically
+          extracted from the video file. If no poster frame is provided, the
+          default "media loudspeaker" image will be used.
+
+        Return a newly added movie shape to the slide, positioned at (*left*,
+        *top*), having size (*width*, *height*), and containing *movie_file*.
+        Before the video is started, *poster_frame_image* is displayed as
+        a placeholder for the video.
         """
-        from ..compat import is_string, is_integer
-        for placeholder in self:
-            name = placeholder.element.shape_name
-            if is_integer(idx) and placeholder.element.ph_idx == idx:
-                return placeholder
-            elif is_string(idx) and name and name.lower() == idx.lower():
-                return placeholder
-        return default
+        movie_pic = _MoviePicElementCreator.new_movie_pic(
+            self, self._next_shape_id, movie_file, left, top, width, height,
+            poster_frame_image, mime_type
+        )
+        self._spTree.append(movie_pic)
+        self._add_video_timing(movie_pic)
+        return self._shape_factory(movie_pic)
+
+    def add_table(self, rows, cols, left, top, width, height):
+        """
+        Add a |GraphicFrame| object containing a table with the specified
+        number of *rows* and *cols* and the specified position and size.
+        *width* is evenly distributed between the columns of the new table.
+        Likewise, *height* is evenly distributed between the rows. Note that
+        the ``.table`` property on the returned |GraphicFrame| shape must be
+        used to access the enclosed |Table| object.
+        """
+        graphicFrame = self._add_graphicFrame_containing_table(
+            rows, cols, left, top, width, height
+        )
+        graphic_frame = self._shape_factory(graphicFrame)
+        return graphic_frame
+
+    def clone_layout_placeholders(self, slide_layout):
+        """
+        Add placeholder shapes based on those in *slide_layout*. Z-order of
+        placeholders is preserved. Latent placeholders (date, slide number,
+        and footer) are not cloned.
+        """
+        for placeholder in slide_layout.iter_cloneable_placeholders():
+            self.clone_placeholder(placeholder)
+
+    @property
+    def placeholders(self):
+        """
+        Instance of |SlidePlaceholders| containing sequence of placeholder
+        shapes in this slide.
+        """
+        return self.parent.placeholders
+
+    @property
+    def title(self):
+        """
+        The title placeholder shape on the slide or |None| if the slide has
+        no title placeholder.
+        """
+        for elm in self._spTree.iter_ph_elms():
+            if elm.ph_idx == 0:
+                return self._shape_factory(elm)
+        return None
+
+    def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
+        """
+        Return a newly added ``<p:graphicFrame>`` element containing a table
+        as specified by the parameters.
+        """
+        _id = self._next_shape_id
+        name = 'Table %d' % (_id-1)
+        graphicFrame = self._spTree.add_table(
+            _id, name, rows, cols, x, y, cx, cy
+        )
+        return graphicFrame
+
+    def _add_video_timing(self, pic):
+        """Add a `p:video` element under `p:sld/p:timing`.
+
+        The element will refer to the specified *pic* element by its shape
+        id, and cause the video play controls to appear for that video.
+        """
+        sld = self._spTree.xpath('/p:sld')[0]
+        childTnLst = sld.get_or_add_childTnLst()
+        childTnLst.add_video(pic.shape_id)
 
     def _shape_factory(self, shape_elm):
         """
         Return an instance of the appropriate shape proxy class for
         *shape_elm*.
         """
-        return _LayoutShapeFactory(shape_elm, self)
-    
-    @property
-    def ids_names(self):
-        """
-        Return a list of tuples with (placeholder_id, placeholder_name)
-        both `id` and `name` can be used to get specific placeholder via:
-        placeholders[id] or placeholders['name']
-        :return: LayoutPlaceholder object
-        """
-        return [
-            (placeholder.element.ph_idx, placeholder.element.shape_name)
-            for placeholder in self
-        ]
-
-
-def _LayoutShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*
-    on a slide layout.
-    """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
-        return LayoutPlaceholder(shape_elm, parent)
-    return BaseShapeFactory(shape_elm, parent)
+        return SlideShapeFactory(shape_elm, self)
 
 
 class LayoutShapes(_BaseShapes):
@@ -284,30 +544,6 @@ class LayoutShapes(_BaseShapes):
         return _LayoutShapeFactory(shape_elm, self)
 
 
-class MasterPlaceholders(BasePlaceholders):
-    """
-    Sequence of _MasterPlaceholder instances representing the placeholder
-    shapes on a slide master.
-    """
-    def get(self, ph_type, default=None):
-        """
-        Return the first placeholder shape with type *ph_type* (e.g. 'body'),
-        or *default* if no such placeholder shape is present in the
-        collection.
-        """
-        for placeholder in self:
-            if placeholder.ph_type == ph_type:
-                return placeholder
-        return default
-
-    def _shape_factory(self, shape_elm):
-        """
-        Return an instance of the appropriate shape proxy class for
-        *shape_elm*.
-        """
-        return _MasterShapeFactory(shape_elm, self)
-
-
 class MasterShapes(_BaseShapes):
     """
     Sequence of shapes appearing on a slide master. The first shape in the
@@ -320,40 +556,6 @@ class MasterShapes(_BaseShapes):
         *shape_elm*.
         """
         return _MasterShapeFactory(shape_elm, self)
-
-
-def _MasterShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*
-    on a slide master.
-    """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
-        return MasterPlaceholder(shape_elm, parent)
-    return BaseShapeFactory(shape_elm, parent)
-
-
-class NotesSlidePlaceholders(MasterPlaceholders):
-    """
-    Sequence of placeholder shapes on a notes slide.
-    """
-    def _shape_factory(self, placeholder_elm):
-        """
-        Return an instance of the appropriate placeholder proxy class for
-        *placeholder_elm*.
-        """
-        return _NotesSlideShapeFactory(placeholder_elm, self)
-
-
-def _NotesSlideShapeFactory(shape_elm, parent):
-    """
-    Return an instance of the appropriate shape proxy class for *shape_elm*
-    on a notes slide.
-    """
-    tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
-        return NotesSlidePlaceholder(shape_elm, parent)
-    return BaseShapeFactory(shape_elm, parent)
 
 
 class NotesSlideShapes(_BaseShapes):
@@ -386,6 +588,172 @@ class NotesSlideShapes(_BaseShapes):
         return _NotesSlideShapeFactory(shape_elm, self)
 
 
+class BasePlaceholders(_BaseShapes):
+    """
+    Base class for placeholder collections that differentiate behaviors for
+    a master, layout, and slide. By default, placeholder shapes are
+    constructed using |BaseShapeFactory|. Subclasses should override
+    :method:`_shape_factory` to use custom placeholder classes.
+    """
+    @staticmethod
+    def _is_member_elm(shape_elm):
+        """
+        True if *shape_elm* is a placeholder shape, False otherwise.
+        """
+        return shape_elm.has_ph_elm
+
+
+class LayoutPlaceholders(BasePlaceholders):
+    """
+    Sequence of |LayoutPlaceholder| instances representing the placeholder
+    shapes on a slide layout.
+    """
+    def get(self, idx, default=None):
+        """
+        Return the first placeholder shape with matching *idx* value, or
+        *default* if not found.
+        """
+        for placeholder in self:
+            if placeholder.element.ph_idx == idx:
+                return placeholder
+        return default
+
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _LayoutShapeFactory(shape_elm, self)
+
+
+class MasterPlaceholders(BasePlaceholders):
+    """
+    Sequence of _MasterPlaceholder instances representing the placeholder
+    shapes on a slide master.
+    """
+    def get(self, ph_type, default=None):
+        """
+        Return the first placeholder shape with type *ph_type* (e.g. 'body'),
+        or *default* if no such placeholder shape is present in the
+        collection.
+        """
+        for placeholder in self:
+            if placeholder.ph_type == ph_type:
+                return placeholder
+        return default
+
+    def _shape_factory(self, shape_elm):
+        """
+        Return an instance of the appropriate shape proxy class for
+        *shape_elm*.
+        """
+        return _MasterShapeFactory(shape_elm, self)
+
+
+class NotesSlidePlaceholders(MasterPlaceholders):
+    """
+    Sequence of placeholder shapes on a notes slide.
+    """
+    def _shape_factory(self, placeholder_elm):
+        """
+        Return an instance of the appropriate placeholder proxy class for
+        *placeholder_elm*.
+        """
+        return _NotesSlideShapeFactory(placeholder_elm, self)
+
+
+class SlidePlaceholders(ParentedElementProxy):
+    """
+    Collection of placeholder shapes on a slide. Supports iteration,
+    :func:`len`, and dictionary-style lookup on the `idx` value of the
+    placeholders it contains.
+    """
+
+    __slots__ = ()
+
+    def __getitem__(self, idx):
+        """
+        Access placeholder shape having *idx*. Note that while this looks
+        like list access, idx is actually a dictionary key and will raise
+        |KeyError| if no placeholder with that idx value is in the
+        collection.
+        """
+        for e in self._element.iter_ph_elms():
+            if e.ph_idx == idx:
+                return SlideShapeFactory(e, self)
+        raise KeyError('no placeholder on this slide with idx == %d' % idx)
+
+    def __iter__(self):
+        """
+        Generate placeholder shapes in `idx` order.
+        """
+        ph_elms = sorted(
+            [e for e in self._element.iter_ph_elms()], key=lambda e: e.ph_idx
+        )
+        return (SlideShapeFactory(e, self) for e in ph_elms)
+
+    def __len__(self):
+        """
+        Return count of placeholder shapes.
+        """
+        return len(list(self._element.iter_ph_elms()))
+
+
+def BaseShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*.
+    """
+    tag = shape_elm.tag
+
+    if tag == qn('p:pic'):
+        videoFiles = shape_elm.xpath('./p:nvPicPr/p:nvPr/a:videoFile')
+        if videoFiles:
+            return Movie(shape_elm, parent)
+        return Picture(shape_elm, parent)
+
+    shape_cls = {
+        qn('p:cxnSp'):        Connector,
+        qn('p:grpSp'):        GroupShape,
+        qn('p:sp'):           Shape,
+        qn('p:graphicFrame'): GraphicFrame,
+    }.get(tag, BaseShape)
+
+    return shape_cls(shape_elm, parent)
+
+
+def _LayoutShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a slide layout.
+    """
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return LayoutPlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
+
+
+def _MasterShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a slide master.
+    """
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return MasterPlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
+
+
+def _NotesSlideShapeFactory(shape_elm, parent):
+    """
+    Return an instance of the appropriate shape proxy class for *shape_elm*
+    on a notes slide.
+    """
+    tag_name = shape_elm.tag
+    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+        return NotesSlidePlaceholder(shape_elm, parent)
+    return BaseShapeFactory(shape_elm, parent)
+
+
 def _SlidePlaceholderFactory(shape_elm, parent):
     """
     Return a placeholder shape of the appropriate type for *shape_elm*.
@@ -407,63 +775,6 @@ def _SlidePlaceholderFactory(shape_elm, parent):
     return Constructor(shape_elm, parent)
 
 
-class SlidePlaceholders(ParentedElementProxy):
-    """
-    Collection of placeholder shapes on a slide. Supports iteration,
-    :func:`len`, and dictionary-style lookup on the `idx` value of the
-    placeholders it contains.
-    """
-
-    __slots__ = ()
-
-    def __getitem__(self, idx):
-        """
-        Access placeholder shape having *idx*. Note that while this looks
-        like list access, idx is actually a dictionary key and will raise
-        |KeyError| if no placeholder with that idx value is in the
-        collection.
-        """
-        from ..exc import InvalidXmlError
-        for e in self._element.iter_ph_elms():
-            try:
-                if (e.ph_idx == idx) or (e.shape_name == idx):
-                    return SlideShapeFactory(e, self)
-            except InvalidXmlError:
-                pass
-        if isinstance(idx, int):
-            raise IndexError('placeholder index out of range')
-        raise KeyError("no placeholder named '%s' on slide_layout '%s'"
-                       % (idx, self.parent.slide_layout.name))
-
-    def __iter__(self):
-        """
-        Generate placeholder shapes in `idx` order.
-        """
-        ph_elms = sorted(
-            [e for e in self._element.iter_ph_elms()], key=lambda e: e.ph_idx
-        )
-        return (SlideShapeFactory(e, self) for e in ph_elms)
-
-    def __len__(self):
-        """
-        Return count of placeholder shapes.
-        """
-        return len(list(self._element.iter_ph_elms()))
-
-    @property
-    def ids_names(self):
-        """
-        Return a list of tuples with (placeholder_id, placeholder_name)
-        both `id` and `name` can be used to get specific placeholder via:
-        placeholders[id] or placeholders['name']
-        :return: Placeholder object
-        """
-        return [
-            (placeholder.element.ph_idx, placeholder.element.shape_name)
-            for placeholder in self
-        ]
-
-
 def SlideShapeFactory(shape_elm, parent):
     """
     Return an instance of the appropriate shape proxy class for *shape_elm*
@@ -472,291 +783,6 @@ def SlideShapeFactory(shape_elm, parent):
     if shape_elm.has_ph_elm:
         return _SlidePlaceholderFactory(shape_elm, parent)
     return BaseShapeFactory(shape_elm, parent)
-
-
-class SlideShapes(_BaseShapes):
-    """Sequence of shapes appearing on a slide.
-
-    The first shape in the sequence is the backmost in z-order and the last
-    shape is topmost. Supports indexed access, len(), index(), and iteration.
-    """
-
-    def add_chart(self, chart_type, x, y, cx, cy, chart_data):
-        """
-        Add a new chart of *chart_type* to the slide, positioned at (*x*,
-        *y*), having size (*cx*, *cy*), and depicting *chart_data*.
-        *chart_type* is one of the :ref:`XlChartType` enumeration values.
-        *chart_data* is a |ChartData| object populated with the categories
-        and series values for the chart. Note that a |GraphicFrame| shape
-        object is returned, not the |Chart| object contained in that graphic
-        frame shape. The chart object may be accessed using the :attr:`chart`
-        property of the returned |GraphicFrame| object.
-        """
-        rId = self.part.add_chart_part(chart_type, chart_data)
-        graphic_frame = self._add_chart_graphic_frame(rId, x, y, cx, cy)
-        return graphic_frame
-
-    def add_connector(self, connector_type, begin_x, begin_y, end_x, end_y):
-        """
-        Add a newly created connector shape to the end of this shape tree.
-        *connector_type* is a member of the :ref:`MsoConnectorType`
-        enumeration and the end-point values are specified as EMU values. The
-        returned connector is of type *connector_type* and has begin and end
-        points as specified.
-        """
-        cxnSp = self._add_cxnSp(
-            connector_type, begin_x, begin_y, end_x, end_y
-        )
-        return self._shape_factory(cxnSp)
-
-    def add_movie(self, movie_file, left, top, width, height,
-                  poster_frame_image=None, mime_type=CT.VIDEO):
-        """Return newly added movie shape displaying video in *movie_file*.
-
-        **EXPERIMENTAL.** This method has important limitations:
-
-        * The size must be specified; no auto-scaling such as that provided
-          by :meth:`add_picture` is performed.
-        * The MIME type of the video file should be specified, e.g.
-          'video/mp4'. The provided video file is not interrogated for its
-          type. The MIME type `video/unknown` is used by default (and works
-          fine in tests as of this writing).
-        * A poster frame image must be provided, it cannot be automatically
-          extracted from the video file. If no poster frame is provided, the
-          default "media loudspeaker" image will be used.
-
-        Return a newly added movie shape to the slide, positioned at (*left*,
-        *top*), having size (*width*, *height*), and containing *movie_file*.
-        Before the video is started, *poster_frame_image* is displayed as
-        a placeholder for the video.
-        """
-        movie_pic = _MoviePicElementCreator.new_movie_pic(
-            self, self._next_shape_id, movie_file, left, top, width, height,
-            poster_frame_image, mime_type
-        )
-        self._spTree.append(movie_pic)
-        self._add_video_timing(movie_pic)
-        return self._shape_factory(movie_pic)
-
-    def add_picture(self, image_file, left, top, width=None, height=None):
-        """
-        Add picture shape displaying image in *image_file*, where
-        *image_file* can be either a path to a file (a string) or a file-like
-        object.
-        """
-        image_part, rId = self.part.get_or_add_image_part(image_file)
-        pic = self._add_pic_from_image_part(
-            image_part, rId, left, top, width, height
-        )
-        return self._shape_factory(pic)
-
-    def add_shape(self, autoshape_type_id, left, top, width, height):
-        """
-        Add auto shape of type specified by *autoshape_type_id* (like
-        ``MSO_SHAPE.RECTANGLE``) and of specified size at specified position.
-        """
-        autoshape_type = AutoShapeType(autoshape_type_id)
-        sp = self._add_sp_from_autoshape_type(
-            autoshape_type, left, top, width, height
-        )
-        return self._shape_factory(sp)
-
-    def add_table(self, rows, cols, left, top, width, height):
-        """
-        Add a |GraphicFrame| object containing a table with the specified
-        number of *rows* and *cols* and the specified position and size.
-        *width* is evenly distributed between the columns of the new table.
-        Likewise, *height* is evenly distributed between the rows. Note that
-        the ``.table`` property on the returned |GraphicFrame| shape must be
-        used to access the enclosed |Table| object.
-        """
-        graphicFrame = self._add_graphicFrame_containing_table(
-            rows, cols, left, top, width, height
-        )
-        graphic_frame = self._shape_factory(graphicFrame)
-        return graphic_frame
-
-    def add_textbox(self, left, top, width, height):
-        """
-        Add text box shape of specified size at specified position on slide.
-        """
-        sp = self._add_textbox_sp(left, top, width, height)
-        textbox = self._shape_factory(sp)
-        return textbox
-
-    def build_freeform(self, start_x=0, start_y=0, scale=1.0):
-        """Return |FreeformBuilder| object to specify a freeform shape.
-
-        The optional *start_x* and *start_y* arguments specify the starting
-        pen position in local coordinates. They will be rounded to the
-        nearest integer before use and each default to zero.
-
-        The optional *scale* argument specifies the size of local coordinates
-        proportional to slide coordinates (EMU). If the vertical scale is
-        different than the horizontal scale (local coordinate units are
-        "rectangular"), a pair of numeric values can be provided as the
-        *scale* argument, e.g. `scale=(1.0, 2.0)`. In this case the first
-        number is interpreted as the horizontal (X) scale and the second as
-        the vertical (Y) scale.
-
-        A convenient method for calculating scale is to divide a |Length|
-        object by an equivalent count of local coordinate units, e.g. `scale
-        = Inches(1)/1000` for 1000 local units per inch.
-        """
-        try:
-            x_scale, y_scale = scale
-        except TypeError:
-            x_scale = y_scale = scale
-
-        return FreeformBuilder.new(self, start_x, start_y, x_scale, y_scale)
-
-    def clone_layout_placeholders(self, slide_layout):
-        """
-        Add placeholder shapes based on those in *slide_layout*. Z-order of
-        placeholders is preserved. Latent placeholders (date, slide number,
-        and footer) are not cloned.
-        """
-        for placeholder in slide_layout.iter_cloneable_placeholders():
-            self.clone_placeholder(placeholder)
-
-    def index(self, shape):
-        """
-        Return the index of *shape* in this sequence, raising |ValueError| if
-        *shape* is not in the collection.
-        """
-        shape_elm = shape.element
-        for idx, elm in enumerate(self._spTree.iter_shape_elms()):
-            if elm is shape_elm:
-                return idx
-        raise ValueError('shape not in collection')
-
-    @property
-    def placeholders(self):
-        """
-        Instance of |SlidePlaceholders| containing sequence of placeholder
-        shapes in this slide.
-        """
-        return self.parent.placeholders
-
-    @property
-    def title(self):
-        """
-        The title placeholder shape on the slide or |None| if the slide has
-        no title placeholder.
-        """
-        for elm in self._spTree.iter_ph_elms():
-            if elm.ph_idx == 0:
-                return self._shape_factory(elm)
-        return None
-
-    def _add_chart_graphicFrame(self, rId, x, y, cx, cy):
-        """
-        Add a new ``<p:graphicFrame>`` element to this shape tree having the
-        specified position and size and referring to the chart part
-        identified by *rId*.
-        """
-        shape_id = self._next_shape_id
-        name = 'Chart %d' % (shape_id-1)
-        graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
-            shape_id, name, rId, x, y, cx, cy
-        )
-        self._spTree.append(graphicFrame)
-        return graphicFrame
-
-    def _add_chart_graphic_frame(self, rId, x, y, cx, cy):
-        """
-        Return a |GraphicFrame| object having the specified position and size
-        and referring to the chart part identified by *rId*.
-        """
-        graphicFrame = self._add_chart_graphicFrame(rId, x, y, cx, cy)
-        graphic_frame = self._shape_factory(graphicFrame)
-        return graphic_frame
-
-    def _add_cxnSp(self, connector_type, begin_x, begin_y, end_x, end_y):
-        """
-        Return a newly-added `p:cxnSp` element for a connector of
-        *connector_type* beginning at (*begin_x*, *begin_y*) and extending to
-        (*end_x*, *end_y*).
-        """
-        id_ = self._next_shape_id
-        name = 'Connector %d' % (id_-1)
-
-        flipH, flipV = begin_x > end_x, begin_y > end_y
-        x, y = min(begin_x, end_x), min(begin_y, end_y)
-        cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
-
-        return self._spTree.add_cxnSp(
-            id_, name, connector_type, x, y, cx, cy, flipH, flipV
-        )
-
-    def _add_graphicFrame_containing_table(self, rows, cols, x, y, cx, cy):
-        """
-        Return a newly added ``<p:graphicFrame>`` element containing a table
-        as specified by the parameters.
-        """
-        _id = self._next_shape_id
-        name = 'Table %d' % (_id-1)
-        graphicFrame = self._spTree.add_table(
-            _id, name, rows, cols, x, y, cx, cy
-        )
-        return graphicFrame
-
-    def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):
-        """
-        Return a newly added ``<p:pic>`` element specifying a picture shape
-        displaying *image_part* with size and position specified by *x*, *y*,
-        *cx*, and *cy*. The element is appended to the shape tree, causing it
-        to be displayed first in z-order on the slide.
-        """
-        id = self._next_shape_id
-        name = 'Picture %d' % (id-1)
-        desc = image_part.desc
-        scaled_cx, scaled_cy = image_part.scale(cx, cy)
-
-        pic = self._spTree.add_pic(
-            id, name, desc, rId, x, y, scaled_cx, scaled_cy
-        )
-
-        return pic
-
-    def _add_sp_from_autoshape_type(self, autoshape_type, x, y, cx, cy):
-        """
-        Return a newly-added ``<p:sp>`` element for a shape of
-        *autoshape_type* at position (x, y) and of size (cx, cy).
-        """
-        id_ = self._next_shape_id
-        name = '%s %d' % (autoshape_type.basename, id_-1)
-        sp = self._spTree.add_autoshape(
-            id_, name, autoshape_type.prst, x, y, cx, cy
-        )
-        return sp
-
-    def _add_textbox_sp(self, x, y, cx, cy):
-        """
-        Return a newly-added textbox ``<p:sp>`` element at position (x, y)
-        and of size (cx, cy).
-        """
-        id_ = self._next_shape_id
-        name = 'TextBox %d' % (id_-1)
-        sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
-        return sp
-
-    def _add_video_timing(self, pic):
-        """Add a `p:video` element under `p:sld/p:timing`.
-
-        The element will refer to the specified *pic* element by its shape
-        id, and cause the video play controls to appear for that video.
-        """
-        sld = self._spTree.xpath('/p:sld')[0]
-        childTnLst = sld.get_or_add_childTnLst()
-        childTnLst.add_video(pic.shape_id)
-
-    def _shape_factory(self, shape_elm):
-        """
-        Return an instance of the appropriate shape proxy class for
-        *shape_elm*.
-        """
-        return SlideShapeFactory(shape_elm, self)
 
 
 class _MoviePicElementCreator(object):

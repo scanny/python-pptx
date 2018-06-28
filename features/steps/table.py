@@ -21,14 +21,14 @@ from helpers import saved_pptx_path, test_pptx
 
 @given('a 2x2 table')
 def given_a_2x2_table(context):
-    prs = Presentation(test_pptx('shp-shape-access'))
+    prs = Presentation(test_pptx('shp-shapes'))
     context.prs = prs
     context.table_ = prs.slides[0].shapes[3].table
 
 
 @given('a table cell')
 def given_a_table_cell(context):
-    prs = Presentation(test_pptx('shp-shape-access'))
+    prs = Presentation(test_pptx('shp-shapes'))
     context.prs = prs
     context.cell = prs.slides[0].shapes[3].table.cell(0, 0)
 
