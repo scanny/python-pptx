@@ -14,7 +14,8 @@ While having a solid color fill is perhaps most common, it is just one of
 several possible fill types. A shape can have the following types of fill:
 
 * solid (color)
-* gradient -- a smooth transition between multiple colors
+* gradient -- a smooth transition between multiple colors (see
+  :ref:`gradientfill`)
 * picture -- in which an image "shows through" and is cropped by the boundaries
   of the shape
 * pattern -- in which a small square of pixels (tile) is repeated to fill the
@@ -29,44 +30,46 @@ glyph as a shape), table, table cell, and slide background.
 Scope
 -----
 
-This analysis focuses on solid fill for an autoshape (including text box).
-This relatively narrow initial focus is to enable getting to feature
-implementation as quickly as possible, while understanding enough to design the
-top-level of the API in a way that will allow other fill types to be added
-incrementally.
+This analysis initially focused on solid fill for an autoshape (including
+text box). Later, pattern fills were added and then analysis for gradient
+fills. Picture fills are still outstanding.
 
+* ``FillFormat.type`` -- ``MSO_FILL.SOLID`` or |None| for a start
+* ``FillFormat.solid()`` -- changes fill type to `<a:solidFill>`
+* ``FillFormat.patterned()`` -- changes fill type to `<a:pattFill>`
+* ``FillFormat.fore_color`` -- read/write foreground color
 
-Minimum viable feature
-----------------------
+**maybe later:**
 
-Start with solid fill since that's the most frequently asked for and it reuses
-the work completed on ColorFormat for font color feature::
-
-    fill = shape.fill
-    fill.solid()
-    fill.fore_color.rgb = RGBColor(0x01, 0x23, 0x45)
-    fill.fore_color.theme_color = MSO_THEME_COLOR.ACCENT_1
-    fill.fore_color.brightness = 0.25
-    fill.transparency = 0.25
-    shape.fill = None
-    fill.background()  # is almost free once the rest is in place
+* ``FillFormat.transparency`` -- adds/changes <a:alpha> or something
 
 
 Protocol
 --------
 
-**Accessing fill.** A shape object unconditionally has a `FillFormat` object
-on `.fill`. The `.fill` property is idempotent; it always returns the same
-`FillFormat` object for a given shape object::
+**Accessing fill.** A shape object has a `.fill` property that returns
+a `FillFormat` object. The `.fill` property is idempotent; it always returns
+the same `FillFormat` object for a given shape object::
 
     >>> fill = shape.fill
     >>> assert(isinstance(fill, FillFormat)
 
-**Fill type.** A fill has a type, which may be |None|. The fill type
-partially determines the valid calls on the fill::
+**Fill type.** A fill has a type, indicated by a member of `MSO_FILL` on
+`FillFormat.type`::
 
     >>> fill.type
+    MSO_FILL.SOLID (1)
+
+The fill type may also be |None|, indicating the shape's fill is inherited
+from the style hierarchy (generally the theme linked to the slide master).
+This is the default for a new shape::
+
+    >>> shape = shapes.add_shape(...)
+    >>> shape.fill.type
     None
+
+The fill type partially determines the valid calls on the fill::
+
     >>> fill.solid()
     >>> fill.type
     1  # MSO_FILL.SOLID
@@ -86,6 +89,14 @@ partially determines the valid calls on the fill::
 
     >>> sp.fill = None  # removes any fill, fill is inherited from theme
 
+    fill.solid()
+    fill.fore_color.rgb = RGBColor(0x01, 0x23, 0x45)
+    fill.fore_color.theme_color = MSO_THEME_COLOR.ACCENT_1
+    fill.fore_color.brightness = 0.25
+    fill.transparency = 0.25
+    shape.fill = None
+    fill.background()  # is almost free once the rest is in place
+
 **Pattern Fill.** ::
 
     >>> fill = shape.fill
@@ -98,46 +109,44 @@ partially determines the valid calls on the fill::
     >>> fill.back_color.rgb = RGBColor(239, 169, 6)
 
 
-*fill type get/set*
-
-* ``FillFormat.type`` -- ``MSO_FILL.SOLID`` or |None| for a start
-* ``FillFormat.solid()`` -- changes fill type to <a:solidFill>
-* ``FillFormat.fore_color`` -- changes fill type to <a:solidFill>
-* ``FillFormat.transparency`` -- adds/changes <a:alpha> or something
+Related items from Microsoft VBA API
+------------------------------------
 
 * `MSDN FillFormat Object`_
 
 .. _`MSDN FillFormat Object`:
-   http://msdn.microsoft.com/en-us/library/office/ff744967.aspx
+   https://msdn.microsoft.com/en-us/vba/powerpoint-vba/articles/fillformat-o
+   bject-powerpoint
 
 
 Enumerations
 ------------
 
-**MsoFillType**
+MsoFillType
+~~~~~~~~~~~
 
 http://msdn.microsoft.com/EN-US/library/office/ff861408.aspx
 
-*msoFillBackground*
+**msoFillBackground**
     5 -- Fill is the same as the background.
 
-*msoFillGradient*
+**msoFillGradient**
     3 -- Gradient fill.
 
-*msoFillMixed*
-    -2 -- Mixed fill.
-
-*msoFillPatterned*
+**msoFillPatterned**
     2 -- Patterned fill.
 
-*msoFillPicture*
+**msoFillPicture**
     6 -- Picture fill.
 
-*msoFillSolid*
+**msoFillSolid**
     1 -- Solid fill.
 
-*msoFillTextured*
+**msoFillTextured**
     4 -- Textured fill.
+
+**msoFillMixed**
+    -2 -- Mixed fill.
 
 
 XML specimens
@@ -177,6 +186,7 @@ Patterned fill::
         <a:schemeClr val="accent6"/>
       </a:bgClr>
     </a:pattFill>
+
 
 
 XML semantics

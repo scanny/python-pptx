@@ -4,7 +4,7 @@ Release History
 ---------------
 
 0.6.10 (2018-06-11)
-++++++++++++++++++
++++++++++++++++++++
 
 - Add `shape.shadow` property to autoshape, connector, picture, and group
   shape, returning a `ShadowFormat` object.

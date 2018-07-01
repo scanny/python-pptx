@@ -196,6 +196,8 @@ rst_epilog = """
 
 .. |FreeformBuilder| replace:: :class:`.FreeformBuilder`
 
+.. |GradientStops| replace:: :class:`.GradientStops`
+
 .. |GraphicFrame| replace:: :class:`.GraphicFrame`
 
 .. |GroupShape| replace:: :class:`.GroupShape`

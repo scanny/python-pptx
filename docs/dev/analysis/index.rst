@@ -121,6 +121,7 @@ DrawingML
 
    dml-color
    dml-fill
+   dml-gradient
    dml-line
 
 
