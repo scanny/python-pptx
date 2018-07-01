@@ -62,6 +62,20 @@ class FillFormat(object):
         return self._fill.fore_color
 
     @property
+    def gradient_angle(self):
+        """Angle in float degrees of line of a linear gradient.
+
+        Read/Write. May be |None|, indicating the angle should be inherited
+        from the style hierarchy. An angle of 0.0 corresponds to
+        a left-to-right gradient. Increasing angles represent
+        counter-clockwise rotation of the line, for example 90.0 represents
+        a bottom-to-top gradient. Raises |TypeError| when the fill type is
+        not MSO_FILL_TYPE.GRADIENT. Raises |ValueError| for a non-linear
+        gradient (e.g. a radial gradient).
+        """
+        raise NotImplementedError
+
+    @property
     def pattern(self):
         """Return member of :ref:`MsoPatternType` indicating fill pattern.
 

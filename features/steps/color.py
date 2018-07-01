@@ -19,7 +19,7 @@ from helpers import test_pptx
 
 @given('a ColorFormat object as color')
 def given_a_ColorFormat_object_as_color(context):
-    shape = Presentation(test_pptx('dml-fill')).slides[0].shapes[1]
+    shape = Presentation(test_pptx('dml-fill')).slides[0].shapes[2]
     color = shape.fill.fore_color
     context.color = color
 
