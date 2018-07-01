@@ -1,17 +1,18 @@
 # encoding: utf-8
 
-"""
-lxml custom element classes for table-related XML elements.
-"""
+"""Custom element classes for table-related XML elements"""
 
-from __future__ import absolute_import, division
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from .. import parse_xml
-from ...enum.text import MSO_VERTICAL_ANCHOR
-from ..ns import nsdecls
-from ..simpletypes import ST_Coordinate, ST_Coordinate32, XsdBoolean
-from ..text import CT_TextBody
-from ..xmlchemy import (
+from pptx.enum.text import MSO_VERTICAL_ANCHOR
+from pptx.oxml import parse_xml
+from pptx.oxml.dml.fill import CT_GradientFillProperties
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.simpletypes import ST_Coordinate, ST_Coordinate32, XsdBoolean
+from pptx.oxml.text import CT_TextBody
+from pptx.oxml.xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
 )
@@ -280,9 +281,8 @@ class CT_TableCell(BaseOxmlElement):
 
 
 class CT_TableCellProperties(BaseOxmlElement):
-    """
-    ``<a:tcPr>`` custom element class
-    """
+    """`a:tcPr` custom element class"""
+
     eg_fillProperties = ZeroOrOneChoice((
         Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
         Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
@@ -293,6 +293,9 @@ class CT_TableCellProperties(BaseOxmlElement):
     marR = OptionalAttribute('marR', ST_Coordinate32)
     marT = OptionalAttribute('marT', ST_Coordinate32)
     marB = OptionalAttribute('marB', ST_Coordinate32)
+
+    def _new_gradFill(self):
+        return CT_GradientFillProperties.new_gradFill()
 
 
 class CT_TableCol(BaseOxmlElement):

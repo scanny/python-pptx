@@ -40,9 +40,32 @@ class CT_BlipFillProperties(BaseOxmlElement):
 
 
 class CT_GradientFillProperties(BaseOxmlElement):
-    """
-    Custom element class for <a:gradFill> element.
-    """
+    """`a:gradFill` custom element class."""
+
+    @classmethod
+    def new_gradFill(cls):
+        """Return newly-created "loose" default gradient subtree."""
+        return parse_xml(
+            '<a:gradFill %s rotWithShape="1">\n'
+            '  <a:gsLst>\n'
+            '    <a:gs pos="0">\n'
+            '      <a:schemeClr val="accent1">\n'
+            '        <a:tint val="100000"/>\n'
+            '        <a:shade val="100000"/>\n'
+            '        <a:satMod val="130000"/>\n'
+            '      </a:schemeClr>\n'
+            '    </a:gs>\n'
+            '    <a:gs pos="100000">\n'
+            '      <a:schemeClr val="accent1">\n'
+            '        <a:tint val="50000"/>\n'
+            '        <a:shade val="100000"/>\n'
+            '        <a:satMod val="350000"/>\n'
+            '      </a:schemeClr>\n'
+            '    </a:gs>\n'
+            '  </a:gsLst>\n'
+            '  <a:lin scaled="0"/>\n'
+            '</a:gradFill>\n' % nsdecls('a')
+        )
 
 
 class CT_GroupFillProperties(BaseOxmlElement):

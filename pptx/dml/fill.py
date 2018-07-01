@@ -61,6 +61,19 @@ class FillFormat(object):
         """
         return self._fill.fore_color
 
+    def gradient(self):
+        """Sets the fill type to gradient.
+
+        If the fill is not already a gradient, a default gradient is added.
+        The default gradient corresponds to the default in the built-in
+        PowerPoint "White" template. This gradient is linear at angle
+        90-degrees (upward), with two stops. The first stop is Accent-1 with
+        tint 100%, shade 100%, and satMod 130%. The second stop is Accent-1
+        with tint 50%, shade 100%, and satMod 350%.
+        """
+        gradFill = self._xPr.get_or_change_to_gradFill()
+        self._fill = _GradFill(gradFill)
+
     @property
     def gradient_angle(self):
         """Angle in float degrees of line of a linear gradient.

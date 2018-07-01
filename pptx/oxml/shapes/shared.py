@@ -6,6 +6,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+from pptx.dml.fill import CT_GradientFillProperties
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import (
@@ -383,6 +384,9 @@ class CT_ShapeProperties(BaseOxmlElement):
         if not y_str_lst:
             return None
         return Emu(y_str_lst[0])
+
+    def _new_gradFill(self):
+        return CT_GradientFillProperties.new_gradFill()
 
 
 class CT_Transform2D(BaseOxmlElement):

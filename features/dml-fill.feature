@@ -18,7 +18,6 @@ Feature: Control fill
       | a patterned   | MSO_FILL.PATTERNED  |
 
 
-  @wip
   Scenario Outline: FillFormat type setters
     Given a FillFormat object as fill
      When I call fill.<type-setter>()

@@ -1,18 +1,16 @@
 # encoding: utf-8
 
-"""
-lxml custom element classes for slide-related XML elements, including all
-masters.
-"""
+"""Slide-related custom element classes, including those for masters."""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from . import parse_from_template, parse_xml
-from .ns import nsdecls
-from .simpletypes import XsdString
-from .xmlchemy import (
+from pptx.oxml import parse_from_template, parse_xml
+from pptx.oxml.dml.fill import CT_GradientFillProperties
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.simpletypes import XsdString
+from pptx.oxml.xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
 )
@@ -70,6 +68,10 @@ class CT_BackgroundProperties(BaseOxmlElement):
         successors=_tag_seq[6:]
     )
     del _tag_seq
+
+    def _new_gradFill(self):
+        """Override default to add default gradient subtree."""
+        return CT_GradientFillProperties.new_gradFill()
 
 
 class CT_CommonSlideData(BaseOxmlElement):

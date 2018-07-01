@@ -1,29 +1,30 @@
 # encoding: utf-8
 
-"""
-lxml custom element classes for text-related XML elements.
-"""
+"""Custom element classes for text-related XML elements"""
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from . import parse_xml
-from ..compat import to_unicode
-from ..enum.lang import MSO_LANGUAGE_ID
-from ..enum.text import (
+from pptx.compat import to_unicode
+from pptx.enum.lang import MSO_LANGUAGE_ID
+from pptx.enum.text import (
     MSO_AUTO_SIZE, MSO_TEXT_UNDERLINE_TYPE, MSO_VERTICAL_ANCHOR,
     PP_PARAGRAPH_ALIGNMENT
 )
-from .ns import nsdecls
-from .simpletypes import (
+from pptx.oxml import parse_xml
+from pptx.oxml.dml.fill import CT_GradientFillProperties
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.simpletypes import (
     ST_Coordinate32, ST_TextFontScalePercentOrPercentString, ST_TextFontSize,
     ST_TextIndentLevelType, ST_TextSpacingPercentOrPercentString,
     ST_TextSpacingPoint, ST_TextTypeface, ST_TextWrappingType, XsdBoolean
 )
-from ..util import Emu, Length
-from .xmlchemy import (
+from pptx.oxml.xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
 )
+from pptx.util import Emu, Length
 
 
 class CT_RegularTextRun(BaseOxmlElement):
@@ -189,11 +190,12 @@ class CT_TextBodyProperties(BaseOxmlElement):
 
 
 class CT_TextCharacterProperties(BaseOxmlElement):
+    """`a:rPr, a:defRPr, and `a:endParaRPr` custom element class.
+
+    'rPr' is short for 'run properties', and it corresponds to the |Font|
+    proxy class.
     """
-    Custom element class for all of <a:rPr>, <a:defRPr>, and <a:endParaRPr>
-    elements. 'rPr' is short for 'run properties', and it corresponds to the
-    |Font| proxy class.
-    """
+
     eg_fillProperties = ZeroOrOneChoice((
         Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
         Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
@@ -216,6 +218,9 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     b = OptionalAttribute('b', XsdBoolean)
     i = OptionalAttribute('i', XsdBoolean)
     u = OptionalAttribute('u', MSO_TEXT_UNDERLINE_TYPE)
+
+    def _new_gradFill(self):
+        return CT_GradientFillProperties.new_gradFill()
 
     def add_hlinkClick(self, rId):
         """

@@ -30,6 +30,15 @@ class DescribeFillFormat(object):
         _NoFill_.assert_called_once_with(fill._xPr.eg_fillProperties)
         assert fill._fill is no_fill_
 
+    def it_can_set_the_fill_type_to_gradient(self, gradient_fixture):
+        fill, _GradFill_, expected_xml, grad_fill_ = gradient_fixture
+
+        fill.gradient()
+
+        assert fill._xPr.xml == expected_xml
+        _GradFill_.assert_called_once_with(fill._xPr.eg_fillProperties)
+        assert fill._fill is grad_fill_
+
     def it_can_set_the_fill_type_to_solid(self, solid_fixture):
         fill, _SolidFill_, expected_xml, solid_fill_ = solid_fixture
 
@@ -114,6 +123,33 @@ class DescribeFillFormat(object):
         fill_format = FillFormat(None, fill_)
         return fill_format, color_
 
+    @pytest.fixture(params=[
+        ('p:spPr{a:b=c}',           'p:spPr{a:b=c}/a:gradFill'),
+        ('p:bgPr/a:noFill',         'p:bgPr/a:gradFill'),
+        ('a:tcPr/a:blipFill',       'a:tcPr/a:gradFill'),
+        ('a:rPr/a:grpFill',         'a:rPr/a:gradFill'),
+        ('a:tcPr/a:noFill',         'a:tcPr/a:gradFill'),
+        ('a:defRPr/a:solidFill',    'a:defRPr/a:gradFill'),
+        ('a:endParaRPr/a:blipFill', 'a:endParaRPr/a:gradFill'),
+    ])
+    def gradient_fixture(self, request, grad_fill_):
+        cxml, expected_cxml = request.param
+
+        fill = FillFormat.from_fill_parent(element(cxml))
+        # --mock must be after FillFormat call to avoid poss. contructor call
+        _GradFill_ = class_mock(
+            request, 'pptx.dml.fill._GradFill', return_value=grad_fill_,
+            autospec=True
+        )
+        expected_xml = xml(
+            expected_cxml + '{rotWithShape=1}/(a:gsLst/(a:gs{pos=0}/a:scheme'
+            'Clr{val=accent1}/(a:tint{val=100000},a:shade{val=100000},a:satM'
+            'od{val=130000}),a:gs{pos=100000}/a:schemeClr{val=accent1}/(a:ti'
+            'nt{val=50000},a:shade{val=100000},a:satMod{val=350000})),a:lin{'
+            'scaled=0})'
+        )
+        return fill, _GradFill_, expected_xml, grad_fill_
+
     @pytest.fixture
     def pattern_get_fixture(self, fill_):
         expected_value = fill_.pattern = MSO_PATTERN.WAVE
@@ -177,6 +213,10 @@ class DescribeFillFormat(object):
     @pytest.fixture
     def fill_(self, request):
         return instance_mock(request, _Fill)
+
+    @pytest.fixture
+    def grad_fill_(self, request):
+        return instance_mock(request, _GradFill)
 
     @pytest.fixture
     def no_fill_(self, request):
