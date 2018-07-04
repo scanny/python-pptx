@@ -16,7 +16,9 @@ from pptx.dml.fill import (
 from pptx.enum.dml import MSO_FILL, MSO_PATTERN
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock, method_mock
+from ..unitutil.mock import (
+    class_mock, instance_mock, method_mock, property_mock
+)
 
 
 class DescribeFillFormat(object):
@@ -71,6 +73,21 @@ class DescribeFillFormat(object):
         fill, expected_value = fill_type_fixture
         fill_type = fill.type
         assert fill_type == expected_value
+
+    def it_knows_the_angle_of_a_linear_gradient(self, grad_fill_, type_prop_):
+        grad_fill_.gradient_angle = 42.0
+        type_prop_.return_value = MSO_FILL.GRADIENT
+        fill = FillFormat(None, grad_fill_)
+
+        angle = fill.gradient_angle
+
+        assert angle == 42.0
+
+    def it_raises_on_non_gradient_fill(self, type_prop_):
+        type_prop_.return_value = None
+        fill = FillFormat(None, None)
+        with pytest.raises(TypeError):
+            fill.gradient_angle
 
     def it_knows_its_pattern(self, pattern_get_fixture):
         fill, expected_value = pattern_get_fixture
@@ -229,6 +246,10 @@ class DescribeFillFormat(object):
     @pytest.fixture
     def solid_fill_(self, request):
         return instance_mock(request, _SolidFill)
+
+    @pytest.fixture
+    def type_prop_(self, request):
+        return property_mock(request, FillFormat, 'type')
 
 
 class Describe_Fill(object):

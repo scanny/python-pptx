@@ -86,7 +86,9 @@ class FillFormat(object):
         not MSO_FILL_TYPE.GRADIENT. Raises |ValueError| for a non-linear
         gradient (e.g. a radial gradient).
         """
-        raise NotImplementedError
+        if self.type != MSO_FILL.GRADIENT:
+            raise TypeError('Fill is not of type MSO_FILL_TYPE.GRADIENT')
+        return self._fill.gradient_angle
 
     @property
     def pattern(self):
@@ -197,6 +199,20 @@ class _BlipFill(_Fill):
 
 
 class _GradFill(_Fill):
+    """Proxies an `a:gradFill` element."""
+
+    @property
+    def gradient_angle(self):
+        """Angle in float degrees of line of a linear gradient.
+
+        Read/Write. May be |None|, indicating the angle is inherited from the
+        style hierarchy. An angle of 0.0 corresponds to a left-to-right
+        gradient. Increasing angles represent clockwise rotation of the line,
+        for example 90.0 represents a top-to-bottom gradient. Raises
+        |TypeError| when the fill type is not MSO_FILL_TYPE.GRADIENT. Raises
+        |ValueError| for a non-linear gradient (e.g. a radial gradient).
+        """
+        raise NotImplementedError
 
     @property
     def type(self):
