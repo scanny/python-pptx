@@ -243,6 +243,13 @@ class _GradFill(_Fill):
         )
         return counter_clockwise_angle
 
+    @gradient_angle.setter
+    def gradient_angle(self, value):
+        lin = self._gradFill.lin
+        if lin is None:
+            raise ValueError('not a linear gradient')
+        lin.ang = 360.0 - value
+
     @property
     def type(self):
         return MSO_FILL.GRADIENT

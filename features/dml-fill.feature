@@ -53,7 +53,6 @@ Feature: Control fill
      Then fill.gradient_angle == 90.0
 
 
-  @wip
   Scenario Outline: FillFormat.gradient_angle setter
     Given a gradient FillFormat object as fill
      When I assign <new-value> to fill.gradient_angle

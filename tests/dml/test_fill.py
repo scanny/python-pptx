@@ -325,11 +325,18 @@ class Describe_GradFill(object):
         angle = grad_fill.gradient_angle
         assert angle == expected_value
 
+    def it_can_change_the_gradient_angle(self, angle_set_fixture):
+        grad_fill, angle, expected_xml = angle_set_fixture
+        grad_fill.gradient_angle = angle
+        assert grad_fill._gradFill.xml == expected_xml
+
     def it_raises_on_non_linear_gradient(self):
         gradFill = element('a:gradFill/a:path')
         grad_fill = _GradFill(gradFill)
         with pytest.raises(ValueError):
             grad_fill.gradient_angle
+        with pytest.raises(ValueError):
+            grad_fill.gradient_angle = 43.21
 
     def it_knows_its_fill_type(self, fill_type_fixture):
         grad_fill, expected_value = fill_type_fixture
@@ -346,9 +353,20 @@ class Describe_GradFill(object):
     ])
     def angle_fixture(self, request):
         cxml, expected_value = request.param
-        gradFill = element(cxml)
-        grad_fill = _GradFill(gradFill)
+        grad_fill = _GradFill(element(cxml))
         return grad_fill, expected_value
+
+    @pytest.fixture(params=[
+        (301.2, 'a:gradFill/a:lin{ang=3528000}'),
+        (31.22, 'a:gradFill/a:lin{ang=19726800}'),
+        (0, 'a:gradFill/a:lin{ang=0}'),
+        (-460.0, 'a:gradFill/a:lin{ang=6000000}'),
+    ])
+    def angle_set_fixture(self, request):
+        angle, expected_cxml = request.param
+        grad_fill = _GradFill(element('a:gradFill/a:lin{ang=0}'))
+        expected_xml = xml(expected_cxml)
+        return grad_fill, angle, expected_xml
 
     @pytest.fixture
     def fill_type_fixture(self):
