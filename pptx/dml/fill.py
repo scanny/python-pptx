@@ -201,6 +201,9 @@ class _BlipFill(_Fill):
 class _GradFill(_Fill):
     """Proxies an `a:gradFill` element."""
 
+    def __init__(self, gradFill):
+        self._element = self._gradFill = gradFill
+
     @property
     def gradient_angle(self):
         """Angle in float degrees of line of a linear gradient.
@@ -212,7 +215,27 @@ class _GradFill(_Fill):
         |TypeError| when the fill type is not MSO_FILL_TYPE.GRADIENT. Raises
         |ValueError| for a non-linear gradient (e.g. a radial gradient).
         """
-        raise NotImplementedError
+        # ---case 1: gradient path is explicit, but not linear---
+        path = self._gradFill.path
+        if path is not None:
+            raise ValueError('not a linear gradient')
+
+        # ---case 2: gradient path is inherited (no a:lin OR a:path)---
+        lin = self._gradFill.lin
+        if lin is None:
+            return None
+
+        # ---case 3: gradient path is explicitly linear---
+        # angle is stored in XML as a clockwise angle, whereas the UI
+        # reports it as counter-clockwise from horizontal-pointing-right.
+        # Since the UI is consistent with trigonometry conventions, we
+        # respect that in the API.
+        clockwise_angle = lin.ang
+        counter_clockwise_angle = (
+            0.0 if clockwise_angle == 0.0
+            else (360.0 - clockwise_angle)
+        )
+        return counter_clockwise_angle
 
     @property
     def type(self):

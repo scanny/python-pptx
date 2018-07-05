@@ -9,7 +9,9 @@ from __future__ import absolute_import
 from pptx.enum.dml import MSO_PATTERN_TYPE
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.simpletypes import ST_Percentage, ST_RelationshipId
+from pptx.oxml.simpletypes import (
+    ST_Percentage, ST_PositiveFixedAngle, ST_RelationshipId
+)
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement, Choice, OptionalAttribute, ZeroOrOne, ZeroOrOneChoice
 )
@@ -42,6 +44,11 @@ class CT_BlipFillProperties(BaseOxmlElement):
 class CT_GradientFillProperties(BaseOxmlElement):
     """`a:gradFill` custom element class."""
 
+    _tag_seq = ('a:gsLst', 'a:lin', 'a:path', 'a:tileRect')
+    lin = ZeroOrOne('a:lin', successors=_tag_seq[2:])
+    path = ZeroOrOne('a:path', successors=_tag_seq[3:])
+    del _tag_seq
+
     @classmethod
     def new_gradFill(cls):
         """Return newly-created "loose" default gradient subtree."""
@@ -69,9 +76,13 @@ class CT_GradientFillProperties(BaseOxmlElement):
 
 
 class CT_GroupFillProperties(BaseOxmlElement):
-    """
-    Custom element class for <a:grpFill> element.
-    """
+    """`a:grpFill` custom element class"""
+
+
+class CT_LinearShadeProperties(BaseOxmlElement):
+    """`a:lin` custom element class"""
+
+    ang = OptionalAttribute('ang', ST_PositiveFixedAngle)
 
 
 class CT_NoFillProperties(BaseOxmlElement):

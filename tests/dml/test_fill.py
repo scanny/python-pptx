@@ -309,12 +309,35 @@ class Describe_BlipFill(object):
 
 class Describe_GradFill(object):
 
+    def it_knows_the_gradient_angle(self, angle_fixture):
+        grad_fill, expected_value = angle_fixture
+        angle = grad_fill.gradient_angle
+        assert angle == expected_value
+
+    def it_raises_on_non_linear_gradient(self):
+        gradFill = element('a:gradFill/a:path')
+        grad_fill = _GradFill(gradFill)
+        with pytest.raises(ValueError):
+            grad_fill.gradient_angle
+
     def it_knows_its_fill_type(self, fill_type_fixture):
         grad_fill, expected_value = fill_type_fixture
         fill_type = grad_fill.type
         assert fill_type == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('a:gradFill', None),
+        ('a:gradFill/a:lin{ang=0}', 0.0),
+        ('a:gradFill/a:lin{ang=2730000}', 314.5),
+        ('a:gradFill/a:lin{ang=16200000}', 90.0),
+    ])
+    def angle_fixture(self, request):
+        cxml, expected_value = request.param
+        gradFill = element(cxml)
+        grad_fill = _GradFill(gradFill)
+        return grad_fill, expected_value
 
     @pytest.fixture
     def fill_type_fixture(self):

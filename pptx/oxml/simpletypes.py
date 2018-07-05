@@ -561,6 +561,28 @@ class ST_PositiveCoordinate(XsdLong):
         cls.validate_int_in_range(value, 0, 27273042316900)
 
 
+class ST_PositiveFixedAngle(ST_Angle):
+    """Valid values for `a:lin@ang`.
+
+    60000ths of a degree rotation, constained to positive angles less than
+    360 degrees.
+    """
+
+    @classmethod
+    def convert_to_xml(cls, degrees):
+        """Convert signed angle float like -427.42 to int 60000 per degree.
+
+        Value is normalized to a positive value less than 360 degrees.
+        """
+        if degrees < 0.0:
+            degrees %= -360
+            degrees += 360
+        elif degrees > 0.0:
+            degrees %= 360
+
+        return str(int(round(degrees * cls.DEGREE_INCREMENTS)))
+
+
 class ST_RelationshipId(XsdString):
     pass
 

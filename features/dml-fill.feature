@@ -48,7 +48,6 @@ Feature: Control fill
       | solid       |
 
 
-  @wip
   Scenario: FillFormat.gradient_angle getter
     Given a gradient FillFormat object as fill
      Then fill.gradient_angle == 90.0
