@@ -90,6 +90,12 @@ class FillFormat(object):
             raise TypeError('Fill is not of type MSO_FILL_TYPE.GRADIENT')
         return self._fill.gradient_angle
 
+    @gradient_angle.setter
+    def gradient_angle(self, value):
+        if self.type != MSO_FILL.GRADIENT:
+            raise TypeError('Fill is not of type MSO_FILL_TYPE.GRADIENT')
+        self._fill.gradient_angle = value
+
     @property
     def pattern(self):
         """Return member of :ref:`MsoPatternType` indicating fill pattern.

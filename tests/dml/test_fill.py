@@ -83,11 +83,22 @@ class DescribeFillFormat(object):
 
         assert angle == 42.0
 
-    def it_raises_on_non_gradient_fill(self, type_prop_):
+    def it_can_change_the_angle_of_a_linear_gradient(
+            self, grad_fill_, type_prop_):
+        type_prop_.return_value = MSO_FILL.GRADIENT
+        fill = FillFormat(None, grad_fill_)
+
+        fill.gradient_angle = 42.24
+
+        assert grad_fill_.gradient_angle == 42.24
+
+    def it_raises_on_non_gradient_fill(self, grad_fill_, type_prop_):
         type_prop_.return_value = None
-        fill = FillFormat(None, None)
+        fill = FillFormat(None, grad_fill_)
         with pytest.raises(TypeError):
             fill.gradient_angle
+        with pytest.raises(TypeError):
+            fill.gradient_angle = 123.4
 
     def it_knows_its_pattern(self, pattern_get_fixture):
         fill, expected_value = pattern_get_fixture
