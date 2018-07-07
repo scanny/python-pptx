@@ -45,6 +45,7 @@ class CT_GradientFillProperties(BaseOxmlElement):
     """`a:gradFill` custom element class."""
 
     _tag_seq = ('a:gsLst', 'a:lin', 'a:path', 'a:tileRect')
+    gsLst = ZeroOrOne('a:gsLst', successors=_tag_seq[1:])
     lin = ZeroOrOne('a:lin', successors=_tag_seq[2:])
     path = ZeroOrOne('a:path', successors=_tag_seq[3:])
     del _tag_seq
@@ -72,6 +73,40 @@ class CT_GradientFillProperties(BaseOxmlElement):
             '  </a:gsLst>\n'
             '  <a:lin scaled="0"/>\n'
             '</a:gradFill>\n' % nsdecls('a')
+        )
+
+    def _new_gsLst(self):
+        """Override default to add minimum subtree."""
+        return CT_GradientStopList.new_gsLst()
+
+
+class CT_GradientStopList(BaseOxmlElement):
+    """`a:gsLst` custom element class."""
+
+    @classmethod
+    def new_gsLst(cls):
+        """Return newly-created "loose" default stop-list subtree.
+
+        An `a:gsLst` element must have at least two `a:gs` children. These
+        are the default from the PowerPoint built-in "White" template.
+        """
+        return parse_xml(
+            '<a:gsLst %s>\n'
+            '  <a:gs pos="0">\n'
+            '    <a:schemeClr val="accent1">\n'
+            '      <a:tint val="100000"/>\n'
+            '      <a:shade val="100000"/>\n'
+            '      <a:satMod val="130000"/>\n'
+            '    </a:schemeClr>\n'
+            '  </a:gs>\n'
+            '  <a:gs pos="100000">\n'
+            '    <a:schemeClr val="accent1">\n'
+            '      <a:tint val="50000"/>\n'
+            '      <a:shade val="100000"/>\n'
+            '      <a:satMod val="350000"/>\n'
+            '    </a:schemeClr>\n'
+            '  </a:gs>\n'
+            '</a:gsLst>\n' % nsdecls('a')
         )
 
 

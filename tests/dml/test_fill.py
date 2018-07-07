@@ -346,6 +346,17 @@ class Describe_GradFill(object):
         grad_fill.gradient_angle = angle
         assert grad_fill._gradFill.xml == expected_xml
 
+    def it_provides_access_to_the_gradient_stops(self, stops_fixture):
+        grad_fill, _GradientStops_ = stops_fixture[:2]
+        expected_xml, gradient_stops_ = stops_fixture[2:]
+
+        gradient_stops = grad_fill.gradient_stops
+
+        gradFill = grad_fill._gradFill
+        _GradientStops_.assert_called_once_with(gradFill[0])
+        assert gradFill.xml == expected_xml
+        assert gradient_stops is gradient_stops_
+
     def it_raises_on_non_linear_gradient(self):
         gradFill = element('a:gradFill/a:path')
         grad_fill = _GradFill(gradFill)
@@ -390,6 +401,35 @@ class Describe_GradFill(object):
         grad_fill = _GradFill(xFill)
         expected_value = MSO_FILL.GRADIENT
         return grad_fill, expected_value
+
+    @pytest.fixture(params=[
+        ('a:gradFill', 'a:gradFill', True),
+        ('a:gradFill/a:gsLst', 'a:gradFill/a:gsLst', False),
+    ])
+    def stops_fixture(self, request, _GradientStops_, gradient_stops_):
+        gradFill_cxml, expected_cxml, add_gsLst = request.param
+        _GradientStops_.return_value = gradient_stops_
+        grad_fill = _GradFill(element(gradFill_cxml))
+        if add_gsLst:
+            expected_xml = xml(
+                expected_cxml + '/a:gsLst/(a:gs{pos=0}/a:schemeClr{val=accen'
+                't1}/(a:tint{val=100000},a:shade{val=100000},a:satMod{val=13'
+                '0000}),a:gs{pos=100000}/a:schemeClr{val=accent1}/(a:tint{va'
+                'l=50000},a:shade{val=100000},a:satMod{val=350000}))'
+            )
+        else:
+            expected_xml = xml(expected_cxml)
+        return grad_fill, _GradientStops_, expected_xml, gradient_stops_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _GradientStops_(self, request):
+        return class_mock(request, 'pptx.dml.fill._GradientStops')
+
+    @pytest.fixture
+    def gradient_stops_(self, request):
+        return instance_mock(request, _GradientStops)
 
 
 class Describe_GrpFill(object):

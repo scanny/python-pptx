@@ -15,6 +15,7 @@ from pptx.oxml.dml.fill import (
     CT_NoFillProperties, CT_PatternFillProperties,
     CT_SolidColorFillProperties,
 )
+from pptx.shared import ElementProxy
 from pptx.util import lazyproperty
 
 
@@ -271,7 +272,7 @@ class _GradFill(_Fill):
         Each stop represents a color between which the gradient smoothly
         transitions.
         """
-        raise NotImplementedError
+        return _GradientStops(self._gradFill.get_or_add_gsLst())
 
     @property
     def type(self):
@@ -361,4 +362,20 @@ class _GradientStops(Sequence):
     than that as required to achieve the desired effect (three is perhaps
     most common). Stops are sequenced in the order they are transitioned
     through.
+    """
+
+    def __init__(self, gsLst):
+        self._gsLst = gsLst
+
+    def __getitem__(self, idx):
+        return _GradientStop(self._gsLst[idx])
+
+    def __len__(self):
+        return len(self._gsLst)
+
+
+class _GradientStop(ElementProxy):
+    """A single gradient stop.
+
+    A gradient stop defines a color and a position.
     """

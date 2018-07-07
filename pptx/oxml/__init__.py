@@ -196,13 +196,15 @@ register_element_cls('a:sysClr',    CT_SystemColor)
 
 from .dml.fill import (  # noqa: E402
     CT_Blip, CT_BlipFillProperties, CT_GradientFillProperties,
-    CT_GroupFillProperties, CT_LinearShadeProperties, CT_NoFillProperties,
-    CT_PatternFillProperties, CT_RelativeRect, CT_SolidColorFillProperties
+    CT_GradientStopList, CT_GroupFillProperties, CT_LinearShadeProperties,
+    CT_NoFillProperties, CT_PatternFillProperties, CT_RelativeRect,
+    CT_SolidColorFillProperties
 )
 register_element_cls('a:blip',      CT_Blip)
 register_element_cls('a:blipFill',  CT_BlipFillProperties)
 register_element_cls('a:gradFill',  CT_GradientFillProperties)
 register_element_cls('a:grpFill',   CT_GroupFillProperties)
+register_element_cls('a:gsLst',     CT_GradientStopList)
 register_element_cls('a:lin',       CT_LinearShadeProperties)
 register_element_cls('a:noFill',    CT_NoFillProperties)
 register_element_cls('a:pattFill',  CT_PatternFillProperties)

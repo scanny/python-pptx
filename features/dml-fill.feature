@@ -67,7 +67,6 @@ Feature: Control fill
       | -942.4    | 137.6 |
 
 
-  @wip
   Scenario: FillFormat.gradient_stops
     Given a gradient FillFormat object as fill
      Then fill.gradient_stops is a _GradientStops object
