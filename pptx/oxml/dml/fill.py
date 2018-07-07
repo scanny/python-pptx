@@ -81,6 +81,16 @@ class CT_GradientFillProperties(BaseOxmlElement):
         return CT_GradientStopList.new_gsLst()
 
 
+class CT_GradientStop(BaseOxmlElement):
+    """`a:gs` custom element class."""
+
+    eg_colorChoice = ZeroOrOneChoice((
+        Choice('a:scrgbClr'), Choice('a:srgbClr'), Choice('a:hslClr'),
+        Choice('a:sysClr'), Choice('a:schemeClr'), Choice('a:prstClr')),
+        successors=()
+    )
+
+
 class CT_GradientStopList(BaseOxmlElement):
     """`a:gsLst` custom element class."""
 

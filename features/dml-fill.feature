@@ -90,7 +90,6 @@ Feature: Control fill
      Then fill.pattern is MSO_PATTERN.CROSS
 
 
-  @wip
   Scenario: _GradientStop.color
     Given a _GradientStop object as stop
      Then stop.color is a ColorFormat object

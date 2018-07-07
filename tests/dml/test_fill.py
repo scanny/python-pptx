@@ -670,3 +670,18 @@ class Describe_GradientStops(object):
         assert len(stops) == 2
         for stop in stops:
             assert isinstance(stop, _GradientStop)
+
+
+class Describe_GradientStop(object):
+
+    def it_provides_access_to_its_color(self, request):
+        gs = element('a:gs')
+        ColorFormat_ = class_mock(request, 'pptx.dml.fill.ColorFormat')
+        color_ = instance_mock(request, ColorFormat)
+        ColorFormat_.from_colorchoice_parent.return_value = color_
+        stop = _GradientStop(gs)
+
+        color = stop.color
+
+        ColorFormat_.from_colorchoice_parent.assert_called_once_with(gs)
+        assert color is color_
