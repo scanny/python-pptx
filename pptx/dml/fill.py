@@ -6,6 +6,8 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+from collections import Sequence
+
 from pptx.dml.color import ColorFormat
 from pptx.enum.dml import MSO_FILL
 from pptx.oxml.dml.fill import (
@@ -95,6 +97,18 @@ class FillFormat(object):
         if self.type != MSO_FILL.GRADIENT:
             raise TypeError('Fill is not of type MSO_FILL_TYPE.GRADIENT')
         self._fill.gradient_angle = value
+
+    @property
+    def gradient_stops(self):
+        """|GradientStops| object providing access to stops of this gradient.
+
+        Raises |TypeError| when fill is not gradient (call `fill.gradient()`
+        first). Each stop represents a color between which the gradient
+        smoothly transitions.
+        """
+        if self.type != MSO_FILL.GRADIENT:
+            raise TypeError('Fill is not of type MSO_FILL_TYPE.GRADIENT')
+        return self._fill.gradient_stops
 
     @property
     def pattern(self):
@@ -250,6 +264,15 @@ class _GradFill(_Fill):
             raise ValueError('not a linear gradient')
         lin.ang = 360.0 - value
 
+    @lazyproperty
+    def gradient_stops(self):
+        """|_GradientStops| object providing access to gradient colors.
+
+        Each stop represents a color between which the gradient smoothly
+        transitions.
+        """
+        raise NotImplementedError
+
     @property
     def type(self):
         return MSO_FILL.GRADIENT
@@ -329,3 +352,13 @@ class _SolidFill(_Fill):
     @property
     def type(self):
         return MSO_FILL.SOLID
+
+
+class _GradientStops(Sequence):
+    """Collection of |GradientStop| objects defining gradient colors.
+
+    A gradient must have a minimum of two stops, but can have as many more
+    than that as required to achieve the desired effect (three is perhaps
+    most common). Stops are sequenced in the order they are transitioned
+    through.
+    """

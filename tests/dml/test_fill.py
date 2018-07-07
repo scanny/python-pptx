@@ -10,8 +10,8 @@ import pytest
 
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import (
-    _BlipFill, _Fill, FillFormat, _GradFill, _GrpFill, _NoFill, _NoneFill,
-    _PattFill, _SolidFill
+    _BlipFill, _Fill, FillFormat, _GradFill, _GradientStops, _GrpFill,
+    _NoFill, _NoneFill, _PattFill, _SolidFill
 )
 from pptx.enum.dml import MSO_FILL, MSO_PATTERN
 
@@ -92,6 +92,16 @@ class DescribeFillFormat(object):
 
         assert grad_fill_.gradient_angle == 42.24
 
+    def it_provides_access_to_the_gradient_stops(
+            self, type_prop_, grad_fill_, gradient_stops_):
+        type_prop_.return_value = MSO_FILL.GRADIENT
+        grad_fill_.gradient_stops = gradient_stops_
+        fill = FillFormat(None, grad_fill_)
+
+        gradient_stops = fill.gradient_stops
+
+        assert gradient_stops is gradient_stops_
+
     def it_raises_on_non_gradient_fill(self, grad_fill_, type_prop_):
         type_prop_.return_value = None
         fill = FillFormat(None, grad_fill_)
@@ -99,6 +109,8 @@ class DescribeFillFormat(object):
             fill.gradient_angle
         with pytest.raises(TypeError):
             fill.gradient_angle = 123.4
+        with pytest.raises(TypeError):
+            fill.gradient_stops
 
     def it_knows_its_pattern(self, pattern_get_fixture):
         fill, expected_value = pattern_get_fixture
@@ -245,6 +257,10 @@ class DescribeFillFormat(object):
     @pytest.fixture
     def grad_fill_(self, request):
         return instance_mock(request, _GradFill)
+
+    @pytest.fixture
+    def gradient_stops_(self, request):
+        return instance_mock(request, _GradientStops)
 
     @pytest.fixture
     def no_fill_(self, request):
