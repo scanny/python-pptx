@@ -1,20 +1,19 @@
 # encoding: utf-8
 
-"""
-DrawingML objects related to fill, FillFormat being the top-most.
-"""
+"""DrawingML objects related to fill."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from ..enum.dml import MSO_FILL
-from ..oxml.dml.fill import (
+from pptx.dml.color import ColorFormat
+from pptx.enum.dml import MSO_FILL
+from pptx.oxml.dml.fill import (
     CT_BlipFillProperties, CT_GradientFillProperties, CT_GroupFillProperties,
     CT_NoFillProperties, CT_PatternFillProperties,
     CT_SolidColorFillProperties,
 )
 from pptx.util import lazyproperty
-
-from .color import ColorFormat
 
 
 class FillFormat(object):
@@ -26,6 +25,18 @@ class FillFormat(object):
         super(FillFormat, self).__init__()
         self._xPr = eg_fill_properties_parent
         self._fill = fill_obj
+
+    @classmethod
+    def from_fill_parent(cls, eg_fillProperties_parent):
+        """
+        Return a |FillFormat| instance initialized to the settings contained
+        in *eg_fillProperties_parent*, which must be an element having
+        EG_FillProperties in its child element sequence in the XML schema.
+        """
+        fill_elm = eg_fillProperties_parent.eg_fillProperties
+        fill = _Fill(fill_elm)
+        fill_format = cls(eg_fillProperties_parent, fill)
+        return fill_format
 
     @property
     def back_color(self):
@@ -49,18 +60,6 @@ class FillFormat(object):
         this fill.
         """
         return self._fill.fore_color
-
-    @classmethod
-    def from_fill_parent(cls, eg_fillProperties_parent):
-        """
-        Return a |FillFormat| instance initialized to the settings contained
-        in *eg_fillProperties_parent*, which must be an element having
-        EG_FillProperties in its child element sequence in the XML schema.
-        """
-        fill_elm = eg_fillProperties_parent.eg_fillProperties
-        fill = _Fill(fill_elm)
-        fill_format = cls(eg_fillProperties_parent, fill)
-        return fill_format
 
     @property
     def pattern(self):
