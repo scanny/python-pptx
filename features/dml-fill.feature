@@ -95,7 +95,6 @@ Feature: Control fill
      Then stop.color is a ColorFormat object
 
 
-  @wip
   Scenario: _GradientStop.position getter
     Given a _GradientStop object as stop
      Then stop.position == 0.20

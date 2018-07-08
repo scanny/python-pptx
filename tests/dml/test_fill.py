@@ -685,3 +685,20 @@ class Describe_GradientStop(object):
 
         ColorFormat_.from_colorchoice_parent.assert_called_once_with(gs)
         assert color is color_
+
+    def it_knows_its_position(self, pos_get_fixture):
+        stop, expected_value = pos_get_fixture
+        position = stop.position
+        assert position == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('a:gs{pos=0}', 0.0),
+        ('a:gs{pos=42240}', 0.4224),
+        ('a:gs{pos=100000}', 1.0),
+    ])
+    def pos_get_fixture(self, request):
+        gs_cxml, expected_value = request.param
+        stop = _GradientStop(element(gs_cxml))
+        return stop, expected_value

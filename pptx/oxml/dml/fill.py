@@ -10,11 +10,12 @@ from pptx.enum.dml import MSO_PATTERN_TYPE
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.simpletypes import (
-    ST_Percentage, ST_PositiveFixedAngle, ST_RelationshipId
+    ST_Percentage, ST_PositiveFixedAngle, ST_PositiveFixedPercentage,
+    ST_RelationshipId
 )
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, Choice, OneOrMore, OptionalAttribute, ZeroOrOne,
-    ZeroOrOneChoice
+    BaseOxmlElement, Choice, OneOrMore, OptionalAttribute, RequiredAttribute,
+    ZeroOrOne, ZeroOrOneChoice
 )
 
 
@@ -89,6 +90,7 @@ class CT_GradientStop(BaseOxmlElement):
         Choice('a:sysClr'), Choice('a:schemeClr'), Choice('a:prstClr')),
         successors=()
     )
+    pos = RequiredAttribute('pos', ST_PositiveFixedPercentage)
 
 
 class CT_GradientStopList(BaseOxmlElement):

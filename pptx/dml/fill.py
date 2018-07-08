@@ -390,3 +390,14 @@ class _GradientStop(ElementProxy):
     def color(self):
         """Return |ColorFormat| object controlling stop color."""
         return ColorFormat.from_colorchoice_parent(self._gs)
+
+    @property
+    def position(self):
+        """Location of stop in gradient path as float between 0.0 and 1.0.
+
+        The value represents a percentage, where 0.0 (0%) represents the
+        start of the path and 1.0 (100%) represents the end of the path. For
+        a linear gradient, these would represent opposing extents of the
+        filled area.
+        """
+        return self._gs.pos
