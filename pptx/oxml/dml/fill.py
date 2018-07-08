@@ -13,7 +13,8 @@ from pptx.oxml.simpletypes import (
     ST_Percentage, ST_PositiveFixedAngle, ST_RelationshipId
 )
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, Choice, OptionalAttribute, ZeroOrOne, ZeroOrOneChoice
+    BaseOxmlElement, Choice, OneOrMore, OptionalAttribute, ZeroOrOne,
+    ZeroOrOneChoice
 )
 
 
@@ -83,6 +84,8 @@ class CT_GradientFillProperties(BaseOxmlElement):
 class CT_GradientStopList(BaseOxmlElement):
     """`a:gsLst` custom element class."""
 
+    gs = OneOrMore('a:gs')
+
     @classmethod
     def new_gsLst(cls):
         """Return newly-created "loose" default stop-list subtree.
@@ -121,9 +124,7 @@ class CT_LinearShadeProperties(BaseOxmlElement):
 
 
 class CT_NoFillProperties(BaseOxmlElement):
-    """
-    Custom element class for <a:NoFill> element.
-    """
+    """`a:noFill` custom element class"""
 
 
 class CT_PatternFillProperties(BaseOxmlElement):

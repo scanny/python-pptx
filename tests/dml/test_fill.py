@@ -10,10 +10,11 @@ import pytest
 
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import (
-    _BlipFill, _Fill, FillFormat, _GradFill, _GradientStops, _GrpFill,
-    _NoFill, _NoneFill, _PattFill, _SolidFill
+    _BlipFill, _Fill, FillFormat, _GradFill, _GradientStop, _GradientStops,
+    _GrpFill, _NoFill, _NoneFill, _PattFill, _SolidFill
 )
 from pptx.enum.dml import MSO_FILL, MSO_PATTERN
+from pptx.oxml.dml.fill import CT_GradientStopList
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
@@ -659,3 +660,13 @@ class Describe_SolidFill(object):
     @pytest.fixture
     def color_(self, request):
         return instance_mock(request, ColorFormat)
+
+
+class Describe_GradientStops(object):
+
+    def it_provides_access_to_its_stops(self):
+        stops = _GradientStops(CT_GradientStopList.new_gsLst())
+
+        assert len(stops) == 2
+        for stop in stops:
+            assert isinstance(stop, _GradientStop)
