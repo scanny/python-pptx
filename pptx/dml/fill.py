@@ -401,3 +401,7 @@ class _GradientStop(ElementProxy):
         filled area.
         """
         return self._gs.pos
+
+    @position.setter
+    def position(self, value):
+        self._gs.pos = float(value)

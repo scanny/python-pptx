@@ -100,7 +100,6 @@ Feature: Control fill
      Then stop.position == 0.20
 
 
-  @wip
   Scenario: _GradientStop.position setter
     Given a _GradientStop object as stop
      When I assign 0.42 to stop.position

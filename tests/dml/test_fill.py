@@ -691,6 +691,16 @@ class Describe_GradientStop(object):
         position = stop.position
         assert position == expected_value
 
+    def it_can_change_its_position(self, pos_set_fixture):
+        stop, new_value, expected_value = pos_set_fixture
+        stop.position = new_value
+        assert stop.position == expected_value
+
+    def it_raises_on_position_out_of_range(self, raises_fixture):
+        stop, out_of_range_value = raises_fixture
+        with pytest.raises(ValueError):
+            stop.position = out_of_range_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -702,3 +712,19 @@ class Describe_GradientStop(object):
         gs_cxml, expected_value = request.param
         stop = _GradientStop(element(gs_cxml))
         return stop, expected_value
+
+    @pytest.fixture(params=[
+        ('a:gs{pos=0}', 0.42, 0.42),
+        ('a:gs{pos=42000}', 1.0, 1.0),
+        ('a:gs{pos=100000}', 0.0, 0.0),
+    ])
+    def pos_set_fixture(self, request):
+        gs_cxml, new_value, expected_value = request.param
+        stop = _GradientStop(element(gs_cxml))
+        return stop, new_value, expected_value
+
+    @pytest.fixture(params=[-0.42, 1.001])
+    def raises_fixture(self, request):
+        out_of_range_value = request.param
+        stop = _GradientStop(element('a:gs{pos=50000}'))
+        return stop, out_of_range_value
