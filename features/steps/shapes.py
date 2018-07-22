@@ -20,6 +20,12 @@ from helpers import test_file, test_image, test_pptx
 
 # given ===================================================
 
+@given('a _BaseShapes object as shapes')
+def given_a_BaseShapes_object_as_shapes(context):
+    prs = Presentation()
+    context.shapes = prs.slides.add_slide(prs.slide_layouts[6]).shapes
+
+
 @given('a GroupShapes object as shapes')
 @given('a GroupShapes object of length 3 as shapes')
 def given_a_GroupShapes_object_of_length_3_as_shapes(context):
@@ -88,6 +94,27 @@ def given_a_SlideShapes_obj_having_type_shape_at_off_idx(context, type, idx):
 
 
 # when ====================================================
+
+@when('I add 100 shapes')
+def when_I_add_100_shapes(context):
+    X_ORIG = Y_ORIG = Inches(.0625)
+    X_INCR = Y_INCR = Inches(.5)
+    CX = CY = Inches(.375)
+
+    def iter_corner():
+        y = Y_ORIG
+        while True:
+            for i in range(20):
+                x = X_ORIG + (X_INCR * i)
+                yield x, y
+            y += Y_INCR
+
+    shapes = context.shapes
+    corners = iter_corner()
+    for i in range(100):
+        x, y = corners.next()
+        shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, CX, CY)
+
 
 @when('I assign shapes.add_chart() to shape')
 def when_I_assign_shapes_add_chart_to_shape(context):
@@ -162,6 +189,11 @@ def when_I_assign_shapes_build_freeform_start_x_start_y_to_builder(context):
     shapes = context.shapes
     builder = shapes.build_freeform(25, 125)
     context.builder = builder
+
+
+@when('I assign True to shapes.turbo_add_enabled')
+def when_I_assign_True_to_shapes_turbo_add_enabled(context):
+    context.shapes.turbo_add_enabled = True
 
 
 @when('I call shapes.add_chart({type_}, chart_data)')
@@ -283,3 +315,9 @@ def then_shapes_title_is_the_title_placeholder(context):
     title_placeholder = shapes.title
     assert title_placeholder.element is shapes[0].element
     assert title_placeholder.shape_id == 4
+
+
+@then('shapes.turbo_add_enabled is False')
+def then_shapes_turbo_add_enabled_is_False(context):
+    shapes = context.shapes
+    assert shapes.turbo_add_enabled is False
