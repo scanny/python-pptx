@@ -63,6 +63,7 @@ class _BaseShapes(ParentedElementProxy):
     def __init__(self, spTree, parent):
         super(_BaseShapes, self).__init__(spTree, parent)
         self._spTree = spTree
+        self._cached_max_shape_id = None
 
     def __getitem__(self, idx):
         """
@@ -127,6 +128,30 @@ class _BaseShapes(ParentedElementProxy):
             PP_PLACEHOLDER.TABLE:        'Table Placeholder',
             PP_PLACEHOLDER.TITLE:        'Title',
         }[ph_type]
+
+    @property
+    def turbo_add_enabled(self):
+        """True if "turbo-add" mode is enabled. Read/Write.
+
+        EXPERIMENTAL: This feature can radically improve performance when
+        adding large numbers (hundreds of shapes) to a slide. It works by
+        caching the last shape ID used and incrementing that value to assign
+        the next shape id. This avoids repeatedly searching all shape ids in
+        the slide each time a new ID is required.
+
+        Performance is not noticeably improved for a slide with a relatively
+        small number of shapes, but because the search time rises with the
+        square of the shape count, this option can be useful for optimizing
+        generation of a slide composed of many shapes.
+
+        Shape-id collisions can occur (causing a repair error on load) if
+        more than one |Slide| object is used to interact with the same slide
+        in the presentation. Note that the |Slides| collection creates a new
+        |Slide| object each time a slide is accessed
+        (e.g. `slide = prs.slides[0]`, so you must be careful to limit use to
+        a single |Slide| object.
+        """
+        return self._cached_max_shape_id is not None
 
     @staticmethod
     def _is_member_elm(shape_elm):

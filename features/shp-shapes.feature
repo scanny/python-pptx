@@ -4,7 +4,6 @@ Feature: Access a shape on a slide
   I need ways to access a shape on a slide
 
 
-  @wip
   Scenario: _BaseShapes.turbo_add_enabled default
     Given a _BaseShapes object as shapes
      Then shapes.turbo_add_enabled is False

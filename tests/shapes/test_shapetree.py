@@ -118,6 +118,11 @@ class Describe_BaseShapes(object):
         shapes.clone_placeholder(placeholder_)
         assert shapes._element.xml == expected_xml
 
+    def it_knows_if_turbo_add_is_enabled(self, turbo_fixture):
+        shapes, expected_value = turbo_fixture
+        turbo_add_enabled = shapes.turbo_add_enabled
+        assert turbo_add_enabled == expected_value
+
     def it_finds_the_next_shape_id_to_help(self, next_id_fixture):
         shapes, expected_value = next_id_fixture
         assert shapes._next_shape_id == expected_value
@@ -213,6 +218,17 @@ class Describe_BaseShapes(object):
         )
         shapes = SlideShapes(spTree, None)
         return shapes, ph_type, sp_id, orient, expected_name
+
+    @pytest.fixture(params=[
+        (None, False),
+        (42, True),
+    ])
+    def turbo_fixture(self, request):
+        cached_max_shape_id, expected_value = request.param
+        shapes = _BaseShapes(None, None)
+        if cached_max_shape_id:
+            shapes._cached_max_shape_id = cached_max_shape_id
+        return shapes, expected_value
 
     # fixture components ---------------------------------------------
 
