@@ -9,7 +9,6 @@ Feature: Access a shape on a slide
      Then shapes.turbo_add_enabled is False
 
 
-  @wip
   Scenario: _BaseShapes.turbo_add_enabled turned on
     Given a _BaseShapes object as shapes
      When I assign True to shapes.turbo_add_enabled

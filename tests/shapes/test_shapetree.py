@@ -123,6 +123,11 @@ class Describe_BaseShapes(object):
         turbo_add_enabled = shapes.turbo_add_enabled
         assert turbo_add_enabled == expected_value
 
+    def it_can_change_turbo_add_enabled(self, turbo_set_fixture):
+        shapes, value, expected_value = turbo_set_fixture
+        shapes.turbo_add_enabled = value
+        assert shapes.turbo_add_enabled == expected_value
+
     def it_finds_the_next_shape_id_to_help(self, next_id_fixture):
         shapes, expected_value = next_id_fixture
         assert shapes._next_shape_id == expected_value
@@ -229,6 +234,19 @@ class Describe_BaseShapes(object):
         if cached_max_shape_id:
             shapes._cached_max_shape_id = cached_max_shape_id
         return shapes, expected_value
+
+    @pytest.fixture(params=[
+        ('p:spTree/p:nvSpPr',                                 True),
+        ('p:spTree/p:nvSpPr/p:cNvPr{id=2}',                   True),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1},p:cNvPr{id=3})',   False),
+        ('p:spTree/p:nvSpPr/(p:cNvPr{id=1},p:cNvPr{id=1},p:'
+         'cNvPr{id=1},p:cNvPr{id=4})',                        True),
+    ])
+    def turbo_set_fixture(self, request):
+        spTree_cxml, value = request.param
+        shapes = _BaseShapes(element(spTree_cxml), None)
+        expected_value = value
+        return shapes, value, expected_value
 
     # fixture components ---------------------------------------------
 

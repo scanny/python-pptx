@@ -112,7 +112,7 @@ def when_I_add_100_shapes(context):
     shapes = context.shapes
     corners = iter_corner()
     for i in range(100):
-        x, y = corners.next()
+        x, y = next(corners)
         shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, CX, CY)
 
 

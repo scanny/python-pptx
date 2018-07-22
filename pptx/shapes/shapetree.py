@@ -153,6 +153,13 @@ class _BaseShapes(ParentedElementProxy):
         """
         return self._cached_max_shape_id is not None
 
+    @turbo_add_enabled.setter
+    def turbo_add_enabled(self, value):
+        enable = bool(value)
+        self._cached_max_shape_id = (
+            self._spTree.max_shape_id if enable else None
+        )
+
     @staticmethod
     def _is_member_elm(shape_elm):
         """
@@ -205,6 +212,11 @@ class _BaseShapes(ParentedElementProxy):
         In practice, the minimum id is 2 because the spTree element is always
         assigned id="1".
         """
+        # ---presence of cached-max-shape-id indicates turbo mode is on---
+        if self._cached_max_shape_id is not None:
+            self._cached_max_shape_id += 1
+            return self._cached_max_shape_id
+
         return self._spTree.max_shape_id + 1
 
     def _shape_factory(self, shape_elm):
