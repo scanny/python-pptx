@@ -180,11 +180,7 @@ class _BaseShapes(ParentedElementProxy):
         In practice, the minimum id is 2 because the spTree element is always
         assigned id="1".
         """
-        id_str_lst = self._spTree.xpath('//@id')
-        used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
-        if not used_ids:
-            return 1
-        return max(used_ids) + 1
+        return self._spTree.max_shape_id + 1
 
     def _shape_factory(self, shape_elm):
         """

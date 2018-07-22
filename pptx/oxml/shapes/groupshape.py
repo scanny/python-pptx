@@ -146,6 +146,21 @@ class CT_GroupShape(BaseShapeElement):
             if elm.tag in self._shape_tags:
                 yield elm
 
+    @property
+    def max_shape_id(self):
+        """Maximum int value assigned as @id in this slide.
+
+        This is generally a shape-id, but ids can be assigned to other
+        objects so we just check all @id values anywhere in the document
+        (XML id-values have document scope).
+
+        In practice, its minimum value is 1 because the spTree element itself
+        is always assigned id="1".
+        """
+        id_str_lst = self.xpath('//@id')
+        used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
+        return max(used_ids) if used_ids else 0
+
     @classmethod
     def new_grpSp(cls, id_, name):
         """Return new "loose" `p:grpSp` element having *id_* and *name*."""
