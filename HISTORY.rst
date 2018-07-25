@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+0.6.11 (2018-07-25)
++++++++++++++++++++
+
+- Add gradient fill.
+- Add experimental "turbo-add" option for producing large shape-count slides.
+
+
 0.6.10 (2018-06-11)
 +++++++++++++++++++
 
