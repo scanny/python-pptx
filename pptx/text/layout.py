@@ -240,7 +240,7 @@ class _LineSource(object):
         words = self._text.split()
         first_word = words[0]
         # If the first word is long, we can linebreak in the middle of it
-        for idx in range(1, len(first_word) + 1):
+        for idx in range(1, len(first_word)):
             line_text = first_word[:idx]
             remainder_text = ' '.join([first_word[idx:]] + words[1:])
             remainder = _LineSource(remainder_text)
