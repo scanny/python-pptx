@@ -12,6 +12,8 @@ from ..oxml.dml.color import (
     CT_SystemColor
 )
 from ..dml.preset_colors import PRESET_COLORS
+from colorsys import hls_to_rgb
+
 
 class ColorFormat(object):
     """
@@ -188,6 +190,14 @@ class _HslColor(_Color):
     @property
     def color_type(self):
         return MSO_COLOR_TYPE.HSL
+
+    @property
+    def rgb(self):
+        h = int(self._xClr.attrib['hue'])
+        l = int(self._xClr.attrib['lum'][:-1])
+        s = int(self._xClr.attrib['sat'][:-1])
+        r, g, b = hls_to_rgb(h, l, s)
+        return RGBColor(r, g, b)
 
 
 class _NoneColor(_Color):
