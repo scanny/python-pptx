@@ -11,7 +11,7 @@ from ..oxml.dml.color import (
     CT_HslColor, CT_PresetColor, CT_SchemeColor, CT_ScRgbColor, CT_SRgbColor,
     CT_SystemColor
 )
-
+from ..dml.preset_colors import PRESET_COLORS
 
 class ColorFormat(object):
     """
@@ -211,6 +211,12 @@ class _PrstColor(_Color):
     @property
     def color_type(self):
         return MSO_COLOR_TYPE.PRESET
+
+    @property
+    def rgb(self):
+        color_name = self._xClr.attrib['val']
+        rgb = RGBColor.from_string(PRESET_COLORS[color_name])
+        return rgb
 
 
 class _SchemeColor(_Color):
