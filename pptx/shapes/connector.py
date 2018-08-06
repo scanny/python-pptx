@@ -11,7 +11,8 @@ from __future__ import (
 )
 
 from .base import BaseShape
-from ..util import Emu
+from ..util import Emu, lazyproperty
+from ..dml.line import LineFormat
 
 
 class Connector(BaseShape):
@@ -264,3 +265,26 @@ class Connector(BaseShape):
             2: (int(x + cx/2), y + cy),
             3: (x + cx, int(y + cy/2)),
         }[cxn_pt_idx]
+
+    def get_or_add_ln(self):
+        """
+        Return the ``<a:ln>`` element containing the line format properties
+        XML for this connector.
+        """
+        return self._element.spPr.get_or_add_ln()
+
+    @lazyproperty
+    def line(self):
+        """
+        |LineFormat| instance for this shape, providing access to line
+        properties such as line color.
+        """
+        return LineFormat(self)
+
+    @property
+    def ln(self):
+        """
+        The ``<a:ln>`` element containing the line format properties such as
+        line color and width. |None| if no ``<a:ln>`` element is present.
+        """
+        return self._element.spPr.ln
