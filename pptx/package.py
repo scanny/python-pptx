@@ -168,6 +168,9 @@ class _ImageParts(object):
         SHA1 hash digest of the image binary it contains.
         """
         for image_part in self:
+            # ---skip unknown/unsupported image types, like SVG---
+            if not hasattr(image_part, 'sha1'):
+                continue
             if image_part.sha1 == sha1:
                 return image_part
         return None
