@@ -9,7 +9,9 @@ from __future__ import (
 import pytest
 
 from pptx.dml.line import LineFormat
-from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.enum.shapes import (
+    MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+)
 from pptx.parts.image import Image
 from pptx.parts.slide import SlidePart
 from pptx.shapes.picture import _BasePicture, _MediaFormat, Movie, Picture
@@ -178,6 +180,11 @@ class DescribeMovie(object):
 
 class DescribePicture(object):
 
+    def it_knows_its_masking_shape(self, autoshape_get_fixture):
+        picture, expected_value = autoshape_get_fixture
+        auto_shape_type = picture.auto_shape_type
+        assert auto_shape_type == expected_value
+
     def it_knows_its_shape_type(self, shape_type_fixture):
         picture = shape_type_fixture
         assert picture.shape_type == MSO_SHAPE_TYPE.PICTURE
@@ -189,6 +196,17 @@ class DescribePicture(object):
         assert image is image_
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('', None),
+        ('/a:prstGeom{prst=rect}', MSO_AUTO_SHAPE_TYPE.RECTANGLE),
+        ('/a:prstGeom{prst=hexagon}', MSO_AUTO_SHAPE_TYPE.HEXAGON),
+    ])
+    def autoshape_get_fixture(self, request):
+        prstGeom_cxml, expected_value = request.param
+        pic_cxml = 'p:pic/p:spPr%s' % prstGeom_cxml
+        picture = Picture(element(pic_cxml), None)
+        return picture, expected_value
 
     @pytest.fixture
     def image_fixture(self, part_prop_, slide_part_, image_):

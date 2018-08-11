@@ -148,6 +148,34 @@ class Picture(_BasePicture):
     """
 
     @property
+    def auto_shape_type(self):
+        """Member of MSO_SHAPE indicating masking shape.
+
+        A picture can be masked by any of the so-called "auto-shapes"
+        available in PowerPoint, such as an ellipse or triangle. When
+        a picture is masked by a shape, the shape assumes the same dimensions
+        as the picture and the portion of the picture outside the shape
+        boundaries does not appear. Note the default value for
+        a newly-inserted picture is `MSO_AUTO_SHAPE_TYPE.RECTANGLE`, which
+        performs no cropping because the extents of the rectangle exactly
+        correspond to the extents of the picture.
+
+        The available shapes correspond to the members of
+        :ref:`MsoAutoShapeType`.
+
+        The return value can also be |None|, indicating the picture either
+        has no geometry (not expected) or has custom geometry, like
+        a freeform shape. A picture with no geometry will have no visible
+        representation on the slide, although it can be selected. This is
+        because without geometry, there is no "inside-the-shape" for it to
+        appear in.
+        """
+        prstGeom = self._pic.spPr.prstGeom
+        if prstGeom is None:  # ---generally means cropped with freeform---
+            return None
+        return prstGeom.prst
+
+    @property
     def image(self):
         """
         An |Image| object providing access to the properties and bytes of the

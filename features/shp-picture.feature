@@ -4,7 +4,6 @@ Feature: Picture properties and methods
   I need a set of properties and methods on the Picture object
 
 
-  @wip
   Scenario Outline: Picture.auto_shape_type getter
     Given a Picture object masked by a <shape> as picture
      Then picture.auto_shape_type == MSO_AUTO_SHAPE_TYPE.<member>
