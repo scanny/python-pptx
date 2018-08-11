@@ -813,6 +813,11 @@ class Describe_Paragraph(object):
         assert paragraph._p.xml == p_with_r_xml
         assert isinstance(run, _Run)
 
+    def it_can_add_a_line_break(self, line_break_fixture):
+        paragraph, expected_xml = line_break_fixture
+        paragraph.add_line_break()
+        assert paragraph._p.xml == expected_xml
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[
@@ -920,6 +925,17 @@ class Describe_Paragraph(object):
         paragraph = _Paragraph(element(p_cxml), None)
         expected_xml = xml(expected_p_cxml)
         return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('a:p', 'a:p/a:br'),
+        ('a:p/a:r', 'a:p/(a:r,a:br)'),
+        ('a:p/a:br', 'a:p/(a:br,a:br)'),
+    ])
+    def line_break_fixture(self, request):
+        cxml, expected_cxml = request.param
+        paragraph = _Paragraph(element(cxml), None)
+        expected_xml = xml(expected_cxml)
+        return paragraph, expected_xml
 
     @pytest.fixture
     def runs_fixture(self):

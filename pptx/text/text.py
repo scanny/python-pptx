@@ -464,6 +464,10 @@ class _Paragraph(Subshape):
         super(_Paragraph, self).__init__(parent)
         self._element = self._p = p
 
+    def add_line_break(self):
+        """Add line break at end of this paragraph."""
+        self._p.add_br()
+
     def add_run(self):
         """
         Return a new run appended to the runs in this paragraph.
