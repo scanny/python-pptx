@@ -3,18 +3,14 @@
 Excel Number Formats
 ====================
 
-The following integer values can be used in :meth:`.ChartData.add_series`
-calls to specify a numeric display format to use for the values of that
-series.
+The following integer values correspond to built-in Excel number formats.
+While they cannot be used directly in |pp|, this reference can be used to
+determine the format strings that can be substituted in
+:meth:`.ChartData.add_series` to specify a numeric display format for series
+values.
 
-Example::
-
-    chart_data = ChartData()
-    # 10 signifies a percentange with two digits after the decimal point
-    chart_data.add_series('Series 1', (0.25, 0.45, 0.3), 10)
-
-Information on string number format codes (such as '#,##0') can be found on
-`this web page`_.
+Further information on string number format codes (such as '#,##0') can be
+found on `this web page`_.
 
 .. _`this web page`:
    https://support.office.com/en-GB/article/

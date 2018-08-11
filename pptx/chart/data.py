@@ -284,10 +284,8 @@ class CategoryChartData(_BaseChartData):
         Add a series to this data set entitled *name* and having the data
         points specified by *values*, an iterable of numeric values.
         *number_format* specifies how the series values will be displayed,
-        and may be a string, e.g. '#,##0', or an integer in the range 0-22 or
-        37-49, signifying one of the built-in Excel number formats. The valid
-        integer values and their meaning are documented on the
-        :ref:`ExcelNumFormat` page.
+        and may be a string, e.g. '#,##0' corresponding to an Excel number
+        format.
         """
         series_data = CategorySeriesData(self, name, number_format)
         self.append(series_data)
