@@ -14,7 +14,6 @@ Feature: Picture properties and methods
       | circle    | OVAL      |
 
 
-  @wip
   Scenario Outline: Picture.auto_shape_type setter
     Given a Picture object masked by a <shape> as picture
      When I assign MSO_AUTO_SHAPE_TYPE.<member> to picture.auto_shape_type

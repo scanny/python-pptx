@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""
-lxml custom element classes for picture-related XML elements.
-"""
+"""lxml custom element classes for picture-related XML elements."""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals

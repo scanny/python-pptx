@@ -6,11 +6,11 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from .base import BaseShape
-from ..dml.line import LineFormat
-from ..enum.shapes import MSO_SHAPE_TYPE, PP_MEDIA_TYPE
-from ..shared import ParentedElementProxy
-from ..util import lazyproperty
+from pptx.dml.line import LineFormat
+from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.shapes.base import BaseShape
+from pptx.shared import ParentedElementProxy
+from pptx.util import lazyproperty
 
 
 class _BasePicture(BaseShape):
@@ -174,6 +174,16 @@ class Picture(_BasePicture):
         if prstGeom is None:  # ---generally means cropped with freeform---
             return None
         return prstGeom.prst
+
+    @auto_shape_type.setter
+    def auto_shape_type(self, member):
+        MSO_SHAPE.validate(member)
+        spPr = self._pic.spPr
+        prstGeom = spPr.prstGeom
+        if prstGeom is None:
+            spPr._remove_custGeom()
+            prstGeom = spPr._add_prstGeom()
+        prstGeom.prst = member
 
     @property
     def image(self):

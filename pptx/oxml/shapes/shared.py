@@ -319,6 +319,8 @@ class CT_ShapeProperties(BaseOxmlElement):
         'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:sp3d', 'a:extLst',
     )
     xfrm = ZeroOrOne('a:xfrm', successors=_tag_seq[1:])
+    custGeom = ZeroOrOne('a:custGeom', successors=_tag_seq[2:])
+    prstGeom = ZeroOrOne('a:prstGeom', successors=_tag_seq[3:])
     eg_fillProperties = ZeroOrOneChoice(
         (
             Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
@@ -329,11 +331,6 @@ class CT_ShapeProperties(BaseOxmlElement):
     ln = ZeroOrOne('a:ln', successors=_tag_seq[10:])
     effectLst = ZeroOrOne('a:effectLst', successors=_tag_seq[11:])
     del _tag_seq
-
-    @property
-    def custGeom(self):
-        """The `a:custGeom` child element, or None if not present."""
-        return self.find(qn('a:custGeom'))
 
     @property
     def cx(self):
@@ -354,13 +351,6 @@ class CT_ShapeProperties(BaseOxmlElement):
         if not cy_str_lst:
             return None
         return Emu(cy_str_lst[0])
-
-    @property
-    def prstGeom(self):
-        """
-        The <a:prstGeom> child element, or None if not present.
-        """
-        return self.find(qn('a:prstGeom'))
 
     @property
     def x(self):

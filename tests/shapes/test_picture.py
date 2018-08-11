@@ -10,7 +10,7 @@ import pytest
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import (
-    MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+    MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 )
 from pptx.parts.image import Image
 from pptx.parts.slide import SlidePart
@@ -185,6 +185,11 @@ class DescribePicture(object):
         auto_shape_type = picture.auto_shape_type
         assert auto_shape_type == expected_value
 
+    def it_can_change_its_masking_shape(self, autoshape_set_fixture):
+        picture, new_value, expected_xml = autoshape_set_fixture
+        picture.auto_shape_type = new_value
+        assert picture._element.xml == expected_xml
+
     def it_knows_its_shape_type(self, shape_type_fixture):
         picture = shape_type_fixture
         assert picture.shape_type == MSO_SHAPE_TYPE.PICTURE
@@ -199,14 +204,28 @@ class DescribePicture(object):
 
     @pytest.fixture(params=[
         ('', None),
-        ('/a:prstGeom{prst=rect}', MSO_AUTO_SHAPE_TYPE.RECTANGLE),
-        ('/a:prstGeom{prst=hexagon}', MSO_AUTO_SHAPE_TYPE.HEXAGON),
+        ('/a:prstGeom{prst=rect}', MSO_SHAPE.RECTANGLE),
+        ('/a:prstGeom{prst=hexagon}', MSO_SHAPE.HEXAGON),
     ])
     def autoshape_get_fixture(self, request):
         prstGeom_cxml, expected_value = request.param
         pic_cxml = 'p:pic/p:spPr%s' % prstGeom_cxml
         picture = Picture(element(pic_cxml), None)
         return picture, expected_value
+
+    @pytest.fixture(params=[
+        ('p:pic/p:spPr/a:custGeom', MSO_SHAPE.RECTANGLE,
+         'p:pic/p:spPr/a:prstGeom{prst=rect}'),
+        ('p:pic/p:spPr/a:prstGeom{prst=rect}', MSO_SHAPE.OVAL,
+         'p:pic/p:spPr/a:prstGeom{prst=ellipse}'),
+        ('p:pic/p:spPr/a:prstGeom{prst=ellipse}', MSO_SHAPE.PIE,
+         'p:pic/p:spPr/a:prstGeom{prst=pie}'),
+    ])
+    def autoshape_set_fixture(self, request):
+        pic_cxml, new_value, expected_cxml = request.param
+        picture = Picture(element(pic_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return picture, new_value, expected_xml
 
     @pytest.fixture
     def image_fixture(self, part_prop_, slide_part_, image_):
