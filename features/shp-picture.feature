@@ -4,6 +4,29 @@ Feature: Picture properties and methods
   I need a set of properties and methods on the Picture object
 
 
+  @wip
+  Scenario Outline: Picture.auto_shape_type getter
+    Given a Picture object masked by a <shape> as picture
+     Then picture.auto_shape_type == MSO_AUTO_SHAPE_TYPE.<member>
+
+    Examples: auto-shape-type getter cases
+      | shape     | member    |
+      | rectangle | RECTANGLE |
+      | circle    | OVAL      |
+
+
+  @wip
+  Scenario Outline: Picture.auto_shape_type setter
+    Given a Picture object masked by a <shape> as picture
+     When I assign MSO_AUTO_SHAPE_TYPE.<member> to picture.auto_shape_type
+     Then picture.auto_shape_type == MSO_AUTO_SHAPE_TYPE.<member>
+
+    Examples: auto-shape-type getter cases
+      | shape     | member      |
+      | rectangle | OVAL      |
+      | circle    | RECTANGLE |
+
+
   Scenario Outline: Picture.crop_x() getters
     Given a Picture object with <crop-or-no> as picture
      Then picture.crop_left == <l-crop>

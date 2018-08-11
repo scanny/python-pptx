@@ -170,7 +170,7 @@ class CT_PatternFillProperties(BaseOxmlElement):
 
 class CT_RelativeRect(BaseOxmlElement):
     """`a:srcRect` element and perhaps others."""
-    l = OptionalAttribute('l', ST_Percentage, default=0.0)
+    l = OptionalAttribute('l', ST_Percentage, default=0.0)  # noqa
     t = OptionalAttribute('t', ST_Percentage, default=0.0)
     r = OptionalAttribute('r', ST_Percentage, default=0.0)
     b = OptionalAttribute('b', ST_Percentage, default=0.0)
