@@ -19,3 +19,8 @@ Feature: Get and set AutoShape properties
      Given a chevron shape
       When I assign 0.15 to shape.adjustments[0]
       Then shape.adjustments[0] is 0.15
+
+
+  Scenario: Shape.line
+     Given a Shape object as shape
+      Then shape.line is a LineFormat object

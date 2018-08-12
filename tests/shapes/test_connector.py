@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""
-Unit test suite for pptx.shapes.connector module.
-"""
+"""Unit test suite for pptx.shapes.connector module."""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
@@ -10,6 +8,7 @@ from __future__ import (
 
 import pytest
 
+from pptx.dml.line import LineFormat
 from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.util import Emu
@@ -107,6 +106,16 @@ class DescribeConnector(object):
         connector, shape, cxn_idx, expected_xml = move_end_fixture
         connector._move_end_to_cxn(shape, cxn_idx)
         assert connector._element.xml == expected_xml
+
+    def it_provides_access_to_its_line_format(self):
+        connector = Connector(element('p:cxnSp/p:spPr'), None)
+
+        line = connector.line
+
+        assert isinstance(line, LineFormat)
+        # exercise line to test parent interface, .ln and .get_or_add_ln()
+        line.width = 91440
+        assert line.width == 91440
 
     # fixtures -------------------------------------------------------
 

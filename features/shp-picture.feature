@@ -69,5 +69,5 @@ Feature: Picture properties and methods
 
 
   Scenario: Picture.line
-    Given a Picture object as picture
-     Then picture.line is a LineFormat object
+    Given a Picture object as shape
+     Then shape.line is a LineFormat object

@@ -92,7 +92,7 @@ The following properties and methods are defined for Connector shapes:
 .. autoclass:: pptx.shapes.connector.Connector()
    :members:
    :member-order: bysource
-   :undoc-members:
+   :exclude-members: get_or_add_ln, ln
 
 
 |FreeformBuilder| objects

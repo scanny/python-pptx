@@ -1,24 +1,27 @@
 # encoding: utf-8
 
-"""
-Connector (line) shape and related objects. A connector is a line shape
-having end-points that can be connected to other objects (but not to other
-connectors). A line can be straight, have elbows, or can be curved.
+"""Connector (line) shape and related objects.
+
+A connector is a line shape having end-points that can be connected to other
+objects (but not to other connectors). A connector can be straight, have
+elbows, or can be curved.
 """
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from .base import BaseShape
-from ..util import Emu
+from pptx.dml.line import LineFormat
+from pptx.shapes.base import BaseShape
+from pptx.util import Emu, lazyproperty
 
 
 class Connector(BaseShape):
-    """
-    Connector (line) shape. A connector is a linear shape having end-points
-    that can be connected to other objects (but not to other connectors).
-    A line can be straight, have elbows, or can be curved.
+    """Connector (line) shape.
+
+    A connector is a linear shape having end-points that can be connected to
+    other objects (but not to other connectors). A connector can be straight,
+    have elbows, or can be curved.
     """
     def begin_connect(self, shape, cxn_pt_idx):
         """
@@ -216,6 +219,28 @@ class Connector(BaseShape):
                 cxnSp.flipV = True
                 cxnSp.y = new_y
                 cxnSp.cy = dy - cy
+
+    def get_or_add_ln(self):
+        """Helper method required by |LineFormat|."""
+        return self._element.spPr.get_or_add_ln()
+
+    @lazyproperty
+    def line(self):
+        """|LineFormat| instance for this connector.
+
+        Provides access to line properties such as line color, width, and
+        line style.
+        """
+        return LineFormat(self)
+
+    @property
+    def ln(self):
+        """Helper method required by |LineFormat|.
+
+        The ``<a:ln>`` element containing the line format properties such as
+        line color and width. |None| if no `<a:ln>` element is present.
+        """
+        return self._element.spPr.ln
 
     def _connect_begin_to(self, shape, cxn_pt_idx):
         """

@@ -484,14 +484,6 @@ def then_picture_image_is_an_Image_object(context):
     )
 
 
-@then('picture.line is a LineFormat object')
-def then_picture_line_is_an_LineFormat_object(context):
-    class_name = context.picture.line.__class__.__name__
-    assert class_name == 'LineFormat', (
-        'picture.line is a %s object' % class_name
-    )
-
-
 @then('shape.adjustments[0] is 0.15')
 def then_shape_adjustments_is_value(context):
     shape = context.shape
