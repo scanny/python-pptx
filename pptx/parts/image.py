@@ -170,6 +170,9 @@ class Image(object):
             filename = os.path.basename(image_file)
         else:
             # assume image_file is a file-like object
+            # ---reposition file cursor if it has one---
+            if callable(getattr(image_file, 'seek')):
+                image_file.seek(0)
             blob = image_file.read()
             filename = None
 
