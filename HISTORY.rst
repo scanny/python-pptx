@@ -3,6 +3,17 @@
 Release History
 ---------------
 
+0.6.12 (2018-08-11)
++++++++++++++++++++
+
+- Add Picture.auto_shape_type
+- Remove Python 2.6 testing from build
+- Update dependencies to avoid vulnerable Pillow version
+- Fix #260, #301, #382, #401
+- Add _Paragraph.add_line_break()
+- Add Connector.line
+
+
 0.6.11 (2018-07-25)
 +++++++++++++++++++
 
