@@ -63,7 +63,8 @@ class TextFrame(Subshape):
 
     def fit_text(self, font_family='Calibri', max_size=18, bold=False,
                  italic=False, font_file=None):
-        """
+        """Fit text-frame text entirely within bounds of its shape.
+
         Make the text in this text frame fit entirely within the bounds of
         its shape by setting word wrap on and applying the "best-fit" font
         size to all the text it contains. :attr:`TextFrame.auto_size` is set
@@ -75,6 +76,10 @@ class TextFrame(Subshape):
         installed on the current system (usually succeeds if the font is
         installed).
         """
+        # ---no-op when empty as fit behavior not defined for that case---
+        if self.text == '':
+            return
+
         font_size = self._best_fit_font_size(
             font_family, max_size, bold, italic, font_file
         )

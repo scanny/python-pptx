@@ -97,10 +97,17 @@ class DescribeTextFrame(object):
         part = text_frame.part
         assert part is parent_.part
 
-    def it_can_resize_its_text_to_best_fit(self, fit_text_fixture):
-        text_frame, family, max_size = fit_text_fixture[:3]
-        bold, italic, font_file, font_size = fit_text_fixture[3:]
+    def it_can_resize_its_text_to_best_fit(
+            self, text_prop_, _best_fit_font_size_, _apply_fit_):
+        family, max_size, bold, italic, font_file, font_size = (
+            'Family', 42, 'bold', 'italic', 'font_file', 21
+        )
+        text_prop_.return_value = 'some text'
+        _best_fit_font_size_.return_value = font_size
+        text_frame = TextFrame(None, None)
+
         text_frame.fit_text(family, max_size, bold, italic, font_file)
+
         text_frame._best_fit_font_size.assert_called_once_with(
             family, max_size, bold, italic, font_file
         )
@@ -219,17 +226,6 @@ class DescribeTextFrame(object):
         text_frame = TextFrame(element(txBody_cxml), None)
         expected_xml = xml(expected_cxml)
         return text_frame, value, expected_xml
-
-    @pytest.fixture
-    def fit_text_fixture(self, _best_fit_font_size_, _apply_fit_):
-        text_frame = TextFrame(None, None)
-        family, max_size, bold, italic, font_file, font_size = (
-            'Family', 42, 'bold', 'italic', 'font_file', 21
-        )
-        _best_fit_font_size_.return_value = font_size
-        return (
-            text_frame, family, max_size, bold, italic, font_file, font_size
-        )
 
     @pytest.fixture(params=[
         ('p:txBody/a:bodyPr',             'left',   'emu',    Inches(0.1)),
