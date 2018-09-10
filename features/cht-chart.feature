@@ -64,7 +64,6 @@ Feature: Chart properties
       | Bubble                      | ValueAxis    |
 
 
-  @wip
   Scenario: Chart.font
     Given a Chart object as chart
      Then chart.font is a Font object

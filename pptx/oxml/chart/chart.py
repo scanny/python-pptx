@@ -10,6 +10,7 @@ from pptx.oxml import parse_xml
 from pptx.oxml.chart.shared import CT_Title
 from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.simpletypes import ST_Style, XsdString
+from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrMore, ZeroOrOne
 )
@@ -72,7 +73,7 @@ class CT_Chart(BaseOxmlElement):
 
 
 class CT_ChartSpace(BaseOxmlElement):
-    """`c:chartSpace` element class, the root element of a chart part."""
+    """`c:chartSpace` root element of a chart part."""
     _tag_seq = (
         'c:date1904', 'c:lang', 'c:roundedCorners', 'c:style', 'c:clrMapOvr',
         'c:pivotSource', 'c:protection', 'c:chart', 'c:spPr', 'c:txPr',
@@ -81,6 +82,7 @@ class CT_ChartSpace(BaseOxmlElement):
     date1904 = ZeroOrOne('c:date1904', successors=_tag_seq[1:])
     style = ZeroOrOne('c:style', successors=_tag_seq[4:])
     chart = OneAndOnlyOne('c:chart')
+    txPr = ZeroOrOne('c:txPr', successors=_tag_seq[10:])
     externalData = ZeroOrOne('c:externalData', successors=_tag_seq[11:])
     del _tag_seq
 
@@ -141,6 +143,9 @@ class CT_ChartSpace(BaseOxmlElement):
         externalData._add_autoUpdate(val=False)
         self._insert_externalData(externalData)
         return externalData
+
+    def _new_txPr(self):
+        return CT_TextBody.new_txPr()
 
 
 class CT_ExternalData(BaseOxmlElement):

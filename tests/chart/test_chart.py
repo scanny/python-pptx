@@ -17,6 +17,7 @@ from pptx.chart.xmlwriter import _BaseSeriesXmlRewriter
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.parts.chart import ChartWorkbook
+from pptx.text.text import Font
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
@@ -25,6 +26,19 @@ from ..unitutil.mock import (
 
 
 class DescribeChart(object):
+
+    def it_provides_access_to_its_font(self, font_fixture, Font_, font_):
+        chartSpace, expected_xml = font_fixture
+        Font_.return_value = font_
+        chart = Chart(chartSpace, None)
+
+        font = chart.font
+
+        assert chartSpace.xml == expected_xml
+        Font_.assert_called_once_with(
+            chartSpace.xpath('./c:txPr/a:p/a:pPr/a:defRPr')[0]
+        )
+        assert font is font_
 
     def it_knows_whether_it_has_a_title(self, has_title_get_fixture):
         chart, expected_value = has_title_get_fixture
@@ -150,6 +164,21 @@ class DescribeChart(object):
         chart_type = XL_CHART_TYPE.PIE
         PlotTypeInspector_.chart_type.return_value = chart_type
         return chart, PlotTypeInspector_, plot_, chart_type
+
+    @pytest.fixture(params=[
+        ('c:chartSpace{a:b=c}',
+         'c:chartSpace{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr'
+         ')'),
+        ('c:chartSpace/c:txPr/a:p',
+         'c:chartSpace/c:txPr/a:p/a:pPr/a:defRPr'),
+        ('c:chartSpace/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)',
+         'c:chartSpace/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)'),
+    ])
+    def font_fixture(self, request):
+        chartSpace_cxml, expected_cxml = request.param
+        chartSpace = element(chartSpace_cxml)
+        expected_xml = xml(expected_cxml)
+        return chartSpace, expected_xml
 
     @pytest.fixture(params=[
         ('c:chartSpace/c:chart', False),
@@ -319,6 +348,14 @@ class DescribeChart(object):
     @pytest.fixture
     def date_axis_(self, request):
         return instance_mock(request, DateAxis)
+
+    @pytest.fixture
+    def Font_(self, request):
+        return class_mock(request, 'pptx.chart.chart.Font')
+
+    @pytest.fixture
+    def font_(self, request):
+        return instance_mock(request, Font)
 
     @pytest.fixture
     def Legend_(self, request, legend_):

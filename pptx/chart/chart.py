@@ -1,28 +1,27 @@
 # encoding: utf-8
 
-"""
-Chart shape-related objects such as Chart.
-"""
+"""Chart-related objects such as Chart and ChartTitle."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from collections import Sequence
 
-from .axis import CategoryAxis, DateAxis, ValueAxis
-from ..dml.chtfmt import ChartFormat
-from .legend import Legend
-from .plot import PlotFactory, PlotTypeInspector
-from .series import SeriesCollection
-from ..shared import ElementProxy, PartElementProxy
-from ..text.text import TextFrame
-from ..util import lazyproperty
-from .xmlwriter import SeriesXmlRewriterFactory
+from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
+from pptx.chart.legend import Legend
+from pptx.chart.plot import PlotFactory, PlotTypeInspector
+from pptx.chart.series import SeriesCollection
+from pptx.chart.xmlwriter import SeriesXmlRewriterFactory
+from pptx.dml.chtfmt import ChartFormat
+from pptx.shared import ElementProxy, PartElementProxy
+from pptx.text.text import Font, TextFrame
+from pptx.util import lazyproperty
 
 
 class Chart(PartElementProxy):
-    """
-    A chart object.
-    """
+    """A chart object."""
+
     def __init__(self, chartSpace, chart_part):
         super(Chart, self).__init__(chartSpace, chart_part)
         self._chartSpace = chartSpace
@@ -91,6 +90,18 @@ class Chart(PartElementProxy):
         """
         first_plot = self.plots[0]
         return PlotTypeInspector.chart_type(first_plot)
+
+    @lazyproperty
+    def font(self):
+        """Font object controlling text format defaults for this chart."""
+        defRPr = (
+            self._chartSpace
+                .get_or_add_txPr()
+                .p_lst[0]
+                .get_or_add_pPr()
+                .get_or_add_defRPr()
+        )
+        return Font(defRPr)
 
     @property
     def has_legend(self):
