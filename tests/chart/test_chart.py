@@ -1,10 +1,10 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.chart.chart module
-"""
+"""Test suite for pptx.chart.chart module"""
 
-from __future__ import absolute_import, print_function
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 import pytest
 
@@ -439,11 +439,14 @@ class DescribeChartTitle(object):
 
     @pytest.fixture(params=[
         ('c:title{a:b=c}', True,
-         'c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p)'),
+         'c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr'
+         ')'),
         ('c:title{a:b=c}/c:tx', True,
-         'c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p)'),
+         'c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr'
+         ')'),
         ('c:title{a:b=c}/c:tx/c:strRef', True,
-         'c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p)'),
+         'c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr'
+         ')'),
         ('c:title/c:tx/c:rich',   True,  'c:title/c:tx/c:rich'),
         ('c:title',               False, 'c:title'),
         ('c:title/c:tx',          False, 'c:title'),

@@ -1,19 +1,18 @@
 # encoding: utf-8
 
-"""
-Shared oxml objects for charts.
-"""
+"""Shared oxml objects for charts."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from .. import parse_xml
-from ..ns import nsdecls
-from ..simpletypes import (
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.simpletypes import (
     ST_LayoutMode, XsdBoolean, XsdDouble, XsdString, XsdUnsignedInt
 )
-from ..xmlchemy import (
-    BaseOxmlElement, OptionalAttribute, OxmlElement, RequiredAttribute,
-    ZeroOrOne
+from pptx.oxml.xmlchemy import (
+    BaseOxmlElement, OptionalAttribute, RequiredAttribute, ZeroOrOne
 )
 
 
@@ -187,11 +186,17 @@ class CT_Tx(BaseOxmlElement):
     rich = ZeroOrOne('c:rich')
 
     def _new_rich(self):
-        rich = OxmlElement('c:rich')
-        rich.append(OxmlElement('a:bodyPr'))
-        rich.append(OxmlElement('a:lstStyle'))
-        rich.add_p()
-        return rich
+        return parse_xml(
+            '<c:rich %s>'
+            '  <a:bodyPr/>'
+            '  <a:lstStyle/>'
+            '  <a:p>'
+            '    <a:pPr>'
+            '      <a:defRPr/>'
+            '    </a:pPr>'
+            '  </a:p>'
+            '</c:rich>' % nsdecls('c', 'a')
+        )
 
 
 class CT_UnsignedInt(BaseOxmlElement):

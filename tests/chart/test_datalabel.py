@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""
-Unit test suite for the pptx.chart.datalabel module.
-"""
+"""Unit test suite for the pptx.chart.datalabel module"""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
@@ -92,44 +90,42 @@ class DescribeDataLabel(object):
         return data_label, expected_value
 
     @pytest.fixture(params=[
-        ('c:ser',                                                     False,
-         'c:ser'),
-        ('c:ser/c:dLbls',                                             False,
-         'c:ser/c:dLbls'),
-        ('c:ser/c:dLbls/c:dLbl/c:idx{val=42}',                        False,
+        ('c:ser', False, 'c:ser'),
+        ('c:ser/c:dLbls', False, 'c:ser/c:dLbls'),
+        ('c:ser/c:dLbls/c:dLbl/c:idx{val=42}', False,
          'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)',        False,
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)', False,
          'c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)'),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)',          False,
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)', False,
          'c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)'),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)',          False,
+        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)', False,
          'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
-        ('c:ser{a:b=c}',                                              True,
+        ('c:ser{a:b=c}', True,
          'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,'
-         'a:lstStyle,a:p),c:showLegendKey{val=0},c:showVal{val=1},c:showCatN'
-         'ame{val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleS'
-         'ize{val=0}),c:showLegendKey{val=0},c:showVal{val=0},c:showCatName{'
-         'val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{'
-         'val=0})'),
-        ('c:ser{a:b=c}/c:dLbls',                                      True,
+         'a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{va'
+         'l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0'
+         '},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0}'
+         ',c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c:'
+         'showBubbleSize{val=0})'),
+        ('c:ser{a:b=c}/c:dLbls', True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p),c:showLegendKey{val=0},c:showVal{val=1},c:showCatNa'
-         'me{val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSi'
-         'ze{val=0})'),
-        ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}',                 True,
+         ':lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{val'
+         '=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0}'
+         ',c:showBubbleSize{val=0})'),
+        ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}', True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p))'),
+         ':lstStyle,a:p/a:pPr/a:defRPr))'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)', True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p))'),
-        ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)',   True,
+         ':lstStyle,a:p/a:pPr/a:defRPr))'),
+        ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)', True,
          'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=24},c:tx/c:rich),c:dLbl/(c'
-         ':idx{val=42},c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p),c:showLegendKey'
-         '{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerName{val=0}'
-         ',c:showPercent{val=0},c:showBubbleSize{val=0}))'),
-        ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}',                 True,
+         ':idx{val=42},c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),'
+         'c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c:sho'
+         'wSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val=0}))'),
+        ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}', True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p))'),
+         ':lstStyle,a:p/a:pPr/a:defRPr))'),
     ])
     def has_tf_set_fixture(self, request):
         ser_cxml, value, expected_cxml = request.param
@@ -176,14 +172,14 @@ class DescribeDataLabel(object):
     @pytest.fixture(params=[
         ('c:ser{a:b=c}',
          'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,'
-         'a:lstStyle,a:p),c:showLegendKey{val=0},c:showVal{val=1},c:showCatN'
-         'ame{val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleS'
-         'ize{val=0}),c:showLegendKey{val=0},c:showVal{val=0},c:showCatName{'
-         'val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{'
-         'val=0})'),
+         'a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{va'
+         'l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0'
+         '},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0}'
+         ',c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c:'
+         'showBubbleSize{val=0})'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)',
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p))'),
+         ':lstStyle,a:p/a:pPr/a:defRPr))'),
     ])
     def rich_fixture(self, request):
         ser_cxml, expected_cxml = request.param
