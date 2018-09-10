@@ -3,6 +3,15 @@
 Release History
 ---------------
 
+0.6.13 (2018-09-10)
++++++++++++++++++++
+
+- Add Chart.font
+- Fix #293 Can't hide title of single-series Chart
+- Fix shape.width value is not type Emu
+- Fix add a:defRPr with c:rich (fixes some font inheritance breakage)
+
+
 0.6.12 (2018-08-11)
 +++++++++++++++++++
 
