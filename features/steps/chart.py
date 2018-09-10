@@ -26,11 +26,10 @@ from helpers import count, test_pptx
 
 # given ===================================================
 
-@given('a chart')
-def given_a_chart(context):
-    prs = Presentation(test_pptx('shp-common-props'))
-    sld = prs.slides[0]
-    context.chart = sld.shapes[6].chart
+@given('a Chart object as chart')
+def given_a_Chart_object_as_chart(context):
+    slide = Presentation(test_pptx('shp-common-props')).slides[0]
+    context.chart = slide.shapes[6].chart
 
 
 @given('a chart having {a_or_no} title')
@@ -292,6 +291,13 @@ def then_chart_chart_type_is_value(context, enum_member):
     expected_value = getattr(XL_CHART_TYPE, enum_member)
     chart = context.chart
     assert chart.chart_type is expected_value, 'got %s' % chart.chart_type
+
+
+@then('chart.font is a Font object')
+def then_chart_font_is_a_Font_object(context):
+    actual = type(context.chart.font).__name__
+    expected = 'Font'
+    assert actual == expected, 'chart.font is a %s object' % actual
 
 
 @then('chart.has_legend is {value}')

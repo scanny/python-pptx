@@ -1,7 +1,7 @@
 Feature: Chart properties
   In order to customize the formatting of a chart
   As a developer using python-pptx
-  I need read/write properties on Chart
+  I need read/write properties and methods on Chart
 
 
   Scenario Outline: Chart.chart_title
@@ -64,6 +64,12 @@ Feature: Chart properties
       | Bubble                      | ValueAxis    |
 
 
+  @wip
+  Scenario: Chart.font
+    Given a Chart object as chart
+     Then chart.font is a Font object
+
+
   Scenario Outline: Get Chart.has_title
     Given a chart having <a-or-no> title
      Then chart.has_title is <expected-value>
@@ -98,6 +104,6 @@ Feature: Chart properties
       | Bubble       |
 
 
-  Scenario: Get Chart.series
-    Given a chart
+  Scenario: Chart.series
+    Given a Chart object as chart
      Then chart.series is a SeriesCollection object
