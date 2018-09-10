@@ -1,16 +1,16 @@
 # encoding: utf-8
 
-"""
-lxml custom element classes for chart-related XML elements.
-"""
+"""Custom element classes for top-level chart-related XML elements."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from .. import parse_xml
-from ..ns import nsdecls, qn
-from .shared import CT_Title
-from ..simpletypes import ST_Style, XsdString
-from ..xmlchemy import (
+from pptx.oxml import parse_xml
+from pptx.oxml.chart.shared import CT_Title
+from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.simpletypes import ST_Style, XsdString
+from pptx.oxml.xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrMore, ZeroOrOne
 )
 
@@ -23,6 +23,9 @@ class CT_Chart(BaseOxmlElement):
         'c:plotVisOnly', 'c:dispBlanksAs', 'c:showDLblsOverMax', 'c:extLst',
     )
     title = ZeroOrOne('c:title', successors=_tag_seq[1:])
+    autoTitleDeleted = ZeroOrOne(
+        'c:autoTitleDeleted', successors=_tag_seq[2:]
+    )
     plotArea = OneAndOnlyOne('c:plotArea')
     legend = ZeroOrOne('c:legend', successors=_tag_seq[9:])
     rId = RequiredAttribute('r:id', XsdString)

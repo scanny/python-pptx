@@ -124,6 +124,8 @@ class Chart(PartElementProxy):
         chart = self._chartSpace.chart
         if bool(value) is False:
             chart._remove_title()
+            autoTitleDeleted = chart.get_or_add_autoTitleDeleted()
+            autoTitleDeleted.val = True
             return
         chart.get_or_add_title()
 

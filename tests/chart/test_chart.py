@@ -152,7 +152,7 @@ class DescribeChart(object):
         return chart, PlotTypeInspector_, plot_, chart_type
 
     @pytest.fixture(params=[
-        ('c:chartSpace/c:chart',          False),
+        ('c:chartSpace/c:chart', False),
         ('c:chartSpace/c:chart/c:legend', True),
     ])
     def has_legend_get_fixture(self, request):
@@ -171,7 +171,7 @@ class DescribeChart(object):
         return chart, new_value, expected_xml
 
     @pytest.fixture(params=[
-        ('c:chartSpace/c:chart',         False),
+        ('c:chartSpace/c:chart', False),
         ('c:chartSpace/c:chart/c:title', True),
     ])
     def has_title_get_fixture(self, request):
@@ -180,11 +180,10 @@ class DescribeChart(object):
         return chart, expected_value
 
     @pytest.fixture(params=[
-        ('c:chart',         True,  'c:chart/c:title/(c:layout,c:overlay{val='
-                                   '0})'),
-        ('c:chart/c:title', True,  'c:chart/c:title'),
-        ('c:chart/c:title', False, 'c:chart'),
-        ('c:chart',         False, 'c:chart'),
+        ('c:chart', True, 'c:chart/c:title/(c:layout,c:overlay{val=0})'),
+        ('c:chart/c:title', True, 'c:chart/c:title'),
+        ('c:chart/c:title', False, 'c:chart/c:autoTitleDeleted{val=1}'),
+        ('c:chart', False, 'c:chart/c:autoTitleDeleted{val=1}'),
     ])
     def has_title_set_fixture(self, request):
         chart_cxml, new_value, expected_cxml = request.param
@@ -193,7 +192,7 @@ class DescribeChart(object):
         return chart, new_value, expected_xml
 
     @pytest.fixture(params=[
-        ('c:chartSpace/c:chart',          False),
+        ('c:chartSpace/c:chart', False),
         ('c:chartSpace/c:chart/c:legend', True),
     ])
     def legend_fixture(self, request, Legend_, legend_):

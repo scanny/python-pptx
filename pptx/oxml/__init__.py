@@ -148,6 +148,7 @@ from .chart.shared import (  # noqa: E402
     CT_Boolean, CT_Boolean_Explicit, CT_Double, CT_Layout, CT_LayoutMode,
     CT_ManualLayout, CT_NumFmt, CT_Title, CT_Tx, CT_UnsignedInt
 )
+register_element_cls('c:autoTitleDeleted', CT_Boolean_Explicit)
 register_element_cls('c:autoUpdate',       CT_Boolean)
 register_element_cls('c:bubble3D',         CT_Boolean)
 register_element_cls('c:crossAx',          CT_UnsignedInt)
