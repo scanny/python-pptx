@@ -68,12 +68,13 @@ class ColorFormat(object):
 
     @property
     def theme_color(self):
-        """
-        Theme color value of this color, one of those defined in the
-        MSO_THEME_COLOR enumeration, e.g. MSO_THEME_COLOR.ACCENT_1. Raises
-        AttributeError on access if the color is not type
-        ``MSO_COLOR_TYPE.SCHEME``. Assigning a value in ``MSO_THEME_COLOR``
-        causes the color's type to change to ``MSO_COLOR_TYPE.SCHEME``.
+        """Theme color value of this color.
+
+        Value is a member of :ref:`MsoThemeColorIndex`, e.g.
+        ``MSO_THEME_COLOR.ACCENT_1``. Raises AttributeError on access if the
+        color is not type ``MSO_COLOR_TYPE.SCHEME``. Assigning a member of
+        :ref:`MsoThemeColorIndex` causes the color's type to change to
+        ``MSO_COLOR_TYPE.SCHEME``.
         """
         return self._color.theme_color
 

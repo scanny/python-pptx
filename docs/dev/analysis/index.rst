@@ -31,6 +31,7 @@ Chart
 .. toctree::
    :maxdepth: 1
 
+   cht-chart
    cht-chart-title
    cht-axis-title
    cht-data-labels
@@ -61,7 +62,16 @@ Chart
    cht-access-xlsx
    cht-axes
    cht-chart-shape
-   cht-chart
+
+
+Table
+~~~~~
+
+.. toctree::
+   :titlesonly:
+
+   shp-table
+   tbl-table-style
 
 
 Shape
@@ -85,7 +95,6 @@ Shape
    shp-autofit
    shp-pos-and-size
    placeholders/index
-   shp-table
 
 
 Text

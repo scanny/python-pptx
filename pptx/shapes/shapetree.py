@@ -303,8 +303,9 @@ class _BaseGroupShapes(_BaseShapes):
     def add_shape(self, autoshape_type_id, left, top, width, height):
         """Return new |Shape| object appended to this shape tree.
 
-        Auto shape is of type specified by *autoshape_type_id* (like
-        ``MSO_SHAPE.RECTANGLE``) and of specified size at specified position.
+        *autoshape_type_id* is a member of :ref:`MsoAutoShapeType` e.g.
+        ``MSO_SHAPE.RECTANGLE`` specifying the type of shape to be added. The
+        remaining arguments specify the new shape's position and size.
         """
         autoshape_type = AutoShapeType(autoshape_type_id)
         sp = self._add_sp(autoshape_type, left, top, width, height)
