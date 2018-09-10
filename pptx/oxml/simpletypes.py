@@ -560,6 +560,13 @@ class ST_PlaceholderSize(XsdTokenEnumeration):
 class ST_PositiveCoordinate(XsdLong):
 
     @classmethod
+    def convert_from_xml(cls, str_value):
+        int_value = super(
+            ST_PositiveCoordinate, cls
+        ).convert_from_xml(str_value)
+        return Emu(int_value)
+
+    @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 27273042316900)
 
