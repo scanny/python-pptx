@@ -927,8 +927,8 @@ class DescribeValueAxis(object):
          None),
         ('c:plotArea/(c:catAx/(c:axId{val=42},c:crossesAt{val=2.4}),c:valAx/'
          'c:crossAx{val=42})', 2.4),
-        ('c:plotArea/(c:valAx/(c:axId{val=42},c:crossesAt{val=-1.2}),c:valAx'
-         '/c:crossAx{val=42})', -1.2),
+        ('c:plotArea/(c:dateAx/(c:axId{val=42},c:crossesAt{val=-1.2}),c:valA'
+         'x/c:crossAx{val=42})', -1.2),
     ])
     def crosses_at_get_fixture(self, request):
         plotArea_cxml, expected_value = request.param
@@ -946,10 +946,10 @@ class DescribeValueAxis(object):
          'crossAx{val=42})', 1.5,
          'c:plotArea/(c:catAx/(c:axId{val=42},c:crossesAt{val=1.5}),c:valAx/'
          'c:crossAx{val=42})'),
-        ('c:plotArea/(c:valAx/(c:axId{val=42},c:crossesAt{val=2.4}),c:valAx/'
-         'c:crossAx{val=42})', 1.5,
-         'c:plotArea/(c:valAx/(c:axId{val=42},c:crossesAt{val=1.5}),c:valAx/'
-         'c:crossAx{val=42})'),
+        ('c:plotArea/(c:dateAx/(c:axId{val=42},c:crossesAt{val=2.4}),c:valAx'
+         '/c:crossAx{val=42})', 1.5,
+         'c:plotArea/(c:dateAx/(c:axId{val=42},c:crossesAt{val=1.5}),c:valAx'
+         '/c:crossAx{val=42})'),
         ('c:plotArea/(c:catAx/(c:axId{val=42},c:crossesAt{val=1.5}),c:valAx/'
          'c:crossAx{val=42})', None,
          'c:plotArea/(c:catAx/(c:axId{val=42}),c:valAx/c:crossAx{val=42})'),

@@ -508,6 +508,9 @@ class ValueAxis(_BaseAxis):
         this axis.
         """
         crossAx_id = self._element.crossAx.val
-        expr = '(../c:catAx | ../c:valAx)/c:axId[@val="%d"]' % crossAx_id
+        expr = (
+            '(../c:catAx | ../c:valAx | ../c:dateAx)/c:axId[@val="%d"]'
+            % crossAx_id
+        )
         cross_axId = self._element.xpath(expr)[0]
         return cross_axId.getparent()
