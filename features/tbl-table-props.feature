@@ -51,3 +51,31 @@ Feature: Change properties of table
       When I set the vert_banding property to True
        And I save the presentation
       Then the columns of the table have alternating shading
+
+
+  Scenario: Append table row
+     Given a 2x2 table
+      When I add a row to a table
+       And I save the presentation
+      Then the table now has 3 rows
+
+
+  Scenario: Remove table row
+     Given a 2x2 table
+      When I remove a row from a table
+       And I save the presentation
+      Then the table now has 1 row
+
+
+  Scenario: Append table column
+     Given a 2x2 table
+      When I add a column to a table
+       And I save the presentation
+      Then the table now has 3 columns
+
+
+  Scenario: Append table column
+     Given a 2x2 table
+      When I remove a column from a table
+       And I save the presentation
+      Then the table now has 1 column

@@ -425,6 +425,14 @@ class Describe_ColumnCollection(object):
         with pytest.raises(IndexError):
             columns[9]
 
+    def it_supports_appending_column(self, append_fixture):
+        columns, expected_count = append_fixture
+        assert len(columns) == expected_count
+
+    def it_supports_removing_column(self, remove_fixture):
+        columns, expected_count = remove_fixture
+        assert len(columns) == expected_count
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -460,6 +468,28 @@ class Describe_ColumnCollection(object):
     def len_fixture(self, request):
         tbl_cxml, expected_len = request.param
         columns = _ColumnCollection(element(tbl_cxml), None)
+        return columns, expected_len
+
+    @pytest.fixture(params=[
+        ('a:tbl/a:tblGrid/a:gridCol', 2),
+        ('a:tbl/a:tblGrid/(a:gridCol, a:gridCol)', 3),
+    ])
+    def append_fixture(self, request):
+        tbl_cxml, expected_len = request.param
+        columns = _ColumnCollection(element(tbl_cxml), None)
+        columns.add_column()
+
+        return columns, expected_len
+
+    @pytest.fixture(params=[
+        ('a:tbl/a:tblGrid/a:gridCol', 0),
+        ('a:tbl/a:tblGrid/(a:gridCol, a:gridCol)', 1),
+    ])
+    def remove_fixture(self, request):
+        tbl_cxml, expected_len = request.param
+        columns = _ColumnCollection(element(tbl_cxml), None)
+        columns.remove(columns[0])
+
         return columns, expected_len
 
 
@@ -555,6 +585,14 @@ class Describe_RowCollection(object):
         with pytest.raises(IndexError):
             rows[9]
 
+    def it_supports_appending_row(self, append_fixture):
+        rows, expected_count = append_fixture
+        assert len(rows) == expected_count
+
+    def it_supports_removing_row(self, remove_fixture):
+        rows, expected_count = remove_fixture
+        assert len(rows) == expected_count
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -583,4 +621,24 @@ class Describe_RowCollection(object):
     def len_fixture(self, request):
         tbl_cxml, expected_len = request.param
         rows = _RowCollection(element(tbl_cxml), None)
+        return rows, expected_len
+
+    @pytest.fixture(params=[
+        ('a:tbl/a:tr', 2), ('a:tbl/(a:tr, a:tr)', 3),
+    ])
+    def append_fixture(self, request):
+        tbl_cxml, expected_len = request.param
+        rows = _RowCollection(element(tbl_cxml), None)
+        rows.add_row()
+
+        return rows, expected_len
+
+    @pytest.fixture(params=[
+        ('a:tbl/a:tr', 0), ('a:tbl/(a:tr, a:tr)', 1),
+    ])
+    def remove_fixture(self, request):
+        tbl_cxml, expected_len = request.param
+        rows = _RowCollection(element(tbl_cxml), None)
+        rows.remove(rows[0])
+
         return rows, expected_len
