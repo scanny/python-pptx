@@ -324,7 +324,7 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         self._replace_placeholder_with(pic)
         return PlaceholderPicture(pic, self._parent)
 
-    def _new_placeholder_pic(self, image_file, crop, vcenter):
+    def _new_placeholder_pic(self, image_file, crop=True, vcenter=False):
         """
         Return a new `p:pic` element depicting the image in *image_file*,
         suitable for use as a placeholder. In particular this means not
