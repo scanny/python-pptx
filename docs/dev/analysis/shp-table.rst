@@ -10,19 +10,6 @@ sub-shapes that each have properties of their own. Prominent among these
 sub-element types are row, column, and cell.
 
 
-Open questions
---------------
-
-* not sure of the semantics of the ``<a:tableStyleId>`` element. Assuming the
-  GUID it contains somehow maps to a style in the tableStyles.xml, or perhaps
-  some contant values defined elsewhere.
-
-* What would be the Pythonic way to delete a row or column from a table? The MS
-  API has a ``delete()`` method on the row or column itself. I'm inclined to
-  believe it would be more Pythonic to use the ``del`` keyword on the indexed
-  list, e.g. ``del rows[2]``.
-
-
 Table Properties
 ----------------
 
@@ -53,67 +40,23 @@ Table Properties
    should be applied to the table columns.
 
 
-Attribute Names
-~~~~~~~~~~~~~~~
-
-+---------------+-----------+-------------+
-| property name | attribute | optionality |
-+===============+===========+=============+
-| first_row     | firstRow  | optional    |
-+---------------+-----------+-------------+
-| first_col     | firstCol  | optional    |
-+---------------+-----------+-------------+
-| last_row      | lastRow   | optional    |
-+---------------+-----------+-------------+
-| last_col      | lastCol   | optional    |
-+---------------+-----------+-------------+
-| horz_banding  | bandRow   | optional    |
-+---------------+-----------+-------------+
-| vert_banding  | bandCol   | optional    |
-+---------------+-----------+-------------+
-
-
-Characteristics
-~~~~~~~~~~~~~~~
-
-+------------+---------------+
-| value type | boolean, None |
-+------------+---------------+
-| mode       | read/write    |
-+------------+---------------+
-
-
-XML location
-~~~~~~~~~~~~
-
-.. highlight:: xml
-
-::
-
-   <a:tbl>
-     <a:tblPr firstRow="1" lastCol="1" bandRow="1">
-
-``<a:tblPr>`` is an optional element. If it appears, it is the first child of
-``<a:tbl>``
-
-
-Observed behavior
-~~~~~~~~~~~~~~~~~
+PowerPoint UI behavior
+----------------------
 
 The MS PowerPoint® client exhibits the following behavior related to table
 properties:
 
-upon insertion of a default, empty table
-   ``<a:tblPr firstRow="1" bandRow="1">`` A tblPr element is present with a
-   ``firstRow`` and ``bandRow`` attribute, each set to True.
+Upon insertion of a default, empty table
+   `<a:tblPr firstRow="1" bandRow="1">` A `tblPr` element is present with a
+   `firstRow` and `bandRow` attribute, each set to True.
 
-after setting ``firstRow`` property off
-   ``<a:tblPr bandRow="1">`` The ``firstRow`` attribute is removed, not set
-   to ``0`` or ``false``.
+After setting `firstRow` property off
+   `<a:tblPr bandRow="1">` The `firstRow` attribute is removed, not set to
+   `0` or `false`.
 
-The ``<a:tblPr>`` element is always present, even when it contains no
-attributes, because it contains an ``<a:tableStyleId>`` element, even when
-the table style is set to none using the UI.
+The `<a:tblPr>` element is always present, even when it contains no
+attributes, because it contains an `<a:tableStyleId>` element, even when the
+table style is set to none using the UI.
 
 
 API requirements
@@ -216,14 +159,6 @@ overall table height adjusted to the sum of row heights when a row's height is
 specified.
 
 
-Discovery protocol
-------------------
-
-* (/) Review MS API documentation
-* (/) Inspect minimal XML produced by PowerPoint® client
-* (.) Review and document relevant schema elements
-
-
 MS API Analysis
 ---------------
 
@@ -231,24 +166,24 @@ MS API method to add a table is::
 
     Shapes.AddTable(NumRows, NumColumns, Left, Top, Width, Height)
 
-There is a HasTable property on Shape to indicate the shape "has" a table.
-Seems like "is" a table would be more apt, but I'm still looking :)
+There is a `Shape.HasTable` property which is true when a (`GraphicFrame`)
+shape contains a table.
 
-From the `Table Members`_ page on MSDN.
+Most interesting `Table` members:
 
-Most interesting ``Table`` members:
-
-* ``Cell(row, col)`` method to access individual cells.
-* ``Columns`` collection reference, with ``Add`` method (``Delete`` method is
-  on ``Column`` object)
-* ``Rows`` collection reference
-* FirstCol and FirstRow boolean properties that indicate whether to apply
+* `Cell(row, col)` method to access individual cells.
+* `Columns` collection reference, with `Add` method (`Delete` method is
+  on `Column` object)
+* `Rows` collection reference
+* `FirstCol` and `FirstRow` boolean properties that indicate whether to apply
   special formatting from theme or whatever to first column/row.
-* LastCol, LastRow, and HorizBanding, all also boolean with similar behaviors
-* TableStyle read-only to table style in theme. Table.ApplyStyle() method is
-  used to set table style.
+* `LastCol`, `LastRow`, and `HorizBanding`, all also boolean with similar
+  behaviors.
+* `TableStyle` read-only to table style in theme. `Table.ApplyStyle()` method
+  is used to set table style.
 
-Columns collection and Rows collection both have an Add() method
+* `Columns.Add()`
+* `Rows.Add()`
 
 `Column Members`_ page on MSDN.
 
@@ -267,23 +202,20 @@ Columns collection and Rows collection both have an Add() method
 * Weight
 
 
-XML produced by PowerPoint® application
----------------------------------------
+XML Semantics
+-------------
 
-Inspection Notes
-~~~~~~~~~~~~~~~~
-
-A ``tableStyles.xml`` part is fleshed out substantially; looks like it's
-populated from built-in defaults "Medium Style 2 - Accent 1". It appears to
-specify colors indirectly by reference to theme-specified values.
+A `tableStyles.xml` part is present in default document, containing the
+single (default) style "Medium Style 2 - Accent 1". Colors are specified
+indirectly by reference to theme-specified values.
 
 
-XML produced by PowerPoint® client
+Specimen XML
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. highlight:: xml
 
-::
+Default table produced by PowerPoint::
 
     <p:graphicFrame>
       <p:nvGraphicFramePr>
@@ -355,32 +287,6 @@ XML produced by PowerPoint® client
         </a:graphicData>
       </a:graphic>
     </p:graphicFrame>
-
-
-
-Resources
----------
-
-`Table.FirstCol Property page on MSDN`_
-
-.. _Table.FirstCol Property page on MSDN:
-   http://msdn.microsoft.com/en-us/library/office/ff744530.aspx
-
-* ISO-IEC-29500-1, Section 21.1.3 (DrawingML) Tables, pp3331
-* ISO-IEC-29500-1, Section 21.1.3.13 tbl (Table), pp3344
-
-
-.. _Table Members:
-   http://msdn.microsoft.com/en-us/library/office/ff745711(v=office.14).aspx
-
-.. _Column Members:
-   http://msdn.microsoft.com/en-us/library/office/ff746286(v=office.14).aspx
-
-.. _Cell Members:
-   http://msdn.microsoft.com/en-us/library/office/ff744136(v=office.14).aspx
-
-.. _LineFormat Members:
-   http://msdn.microsoft.com/en-us/library/office/ff745240(v=office.14).aspx
 
 
 Schema excerpt
@@ -498,3 +404,28 @@ Schema excerpt
       <xsd:pattern value="-?[0-9]+(\.[0-9]+)?(mm|cm|in|pt|pc|pi)"/>
     </xsd:restriction>
   </xsd:simpleType>
+
+
+Resources
+---------
+
+`Table.FirstCol Property page on MSDN`_
+
+.. _Table.FirstCol Property page on MSDN:
+   http://msdn.microsoft.com/en-us/library/office/ff744530.aspx
+
+* ISO-IEC-29500-1, Section 21.1.3 (DrawingML) Tables, pp3331
+* ISO-IEC-29500-1, Section 21.1.3.13 tbl (Table), pp3344
+
+
+.. _Table Members:
+   http://msdn.microsoft.com/en-us/library/office/ff745711(v=office.14).aspx
+
+.. _Column Members:
+   http://msdn.microsoft.com/en-us/library/office/ff746286(v=office.14).aspx
+
+.. _Cell Members:
+   http://msdn.microsoft.com/en-us/library/office/ff744136(v=office.14).aspx
+
+.. _LineFormat Members:
+   http://msdn.microsoft.com/en-us/library/office/ff745240(v=office.14).aspx

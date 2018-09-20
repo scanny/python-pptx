@@ -70,6 +70,7 @@ Table
 .. toctree::
    :titlesonly:
 
+   tbl-merge
    shp-table
    tbl-table-style
 
