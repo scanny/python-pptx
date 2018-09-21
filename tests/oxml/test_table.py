@@ -58,6 +58,15 @@ class DescribeCT_Table(object):
 
 class DescribeTcRange(object):
 
+    def it_knows_when_the_range_contains_a_merged_cell(
+            self, contains_merge_fixture):
+        tc, other_tc, expected_value = contains_merge_fixture
+        tc_range = TcRange(tc, other_tc)
+
+        contains_merged_cell = tc_range.contains_merged_cell
+
+        assert contains_merged_cell is expected_value
+
     def it_knows_when_tcs_are_in_the_same_tbl(self, in_same_table_fixture):
         tc, other_tc, expected_value = in_same_table_fixture
         tc_range = TcRange(tc, other_tc)
@@ -67,6 +76,19 @@ class DescribeTcRange(object):
         assert in_same_table is expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('a:tbl/a:tr/(a:tc,a:tc)', False),
+        ('a:tbl/a:tr/(a:tc{gridSpan=1},a:tc{hMerge=false})', False),
+        ('a:tbl/a:tr/(a:tc{gridSpan=2},a:tc{hMerge=1})', True),
+        ('a:tbl/(a:tr/a:tc,a:tr/a:tc)', False),
+        ('a:tbl/(a:tr/a:tc{rowSpan=1},a:tr/a:tc{vMerge=false})', False),
+        ('a:tbl/(a:tr/a:tc{rowSpan=2},a:tr/a:tc{vMerge=true})', True),
+    ])
+    def contains_merge_fixture(self, request):
+        tbl_cxml, expected_value = request.param
+        tcs = element(tbl_cxml).xpath('//a:tc')
+        return tcs[0], tcs[1], expected_value
 
     @pytest.fixture(params=[True, False])
     def in_same_table_fixture(self, request):

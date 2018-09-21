@@ -198,6 +198,12 @@ class CT_TableCell(BaseOxmlElement):
         tcPr.anchor = anchor_enum_idx
 
     @property
+    def col_idx(self):
+        """Offset of this cell's column in its table."""
+        # ---tc elements come before any others in `a:tr` element---
+        return self.getparent().index(self)
+
+    @property
     def is_merge_origin(self):
         """True if cell is top-left in merged cell range."""
         if self.gridSpan > 1 and not self.vMerge:
@@ -263,12 +269,15 @@ class CT_TableCell(BaseOxmlElement):
 
     @classmethod
     def new(cls):
-        """
-        Return a new ``<a:tc>`` element tree.
-        """
+        """Return a new `a:tc` element subtree."""
         xml = cls._tc_tmpl()
         tc = parse_xml(xml)
         return tc
+
+    @property
+    def row_idx(self):
+        """Offset of this cell's row in its table."""
+        return self.getparent().row_idx
 
     @property
     def tbl(self):
@@ -376,6 +385,11 @@ class CT_TableRow(BaseOxmlElement):
         """
         return self._add_tc()
 
+    @property
+    def row_idx(self):
+        """Offset of this row in its table."""
+        return self.getparent().tr_lst.index(self)
+
     def _new_tc(self):
         return CT_TableCell.new()
 
@@ -399,7 +413,16 @@ class TcRange(object):
     @lazyproperty
     def contains_merged_cell(self):
         """True if one or more cells in range are part of a merged cell."""
-        raise NotImplementedError
+        for tc in self.iter_tcs():
+            if tc.gridSpan > 1:
+                return True
+            if tc.rowSpan > 1:
+                return True
+            if tc.hMerge:
+                return True
+            if tc.vMerge:
+                return True
+        return False
 
     @lazyproperty
     def dimensions(self):
@@ -425,6 +448,17 @@ class TcRange(object):
         """Generate each `a:tc` element in leftmost column of range."""
         raise NotImplementedError
 
+    def iter_tcs(self):
+        """Generate each `a:tc` element in this range.
+
+        Cell elements are generated left-to-right, top-to-bottom.
+        """
+        return (
+            tc
+            for tr in self._tbl.tr_lst[self._top:self._bottom]
+            for tc in tr.tc_lst[self._left:self._right]
+        )
+
     def iter_top_row_tcs(self):
         """Generate each `a:tc` element in topmost row of range."""
         raise NotImplementedError
@@ -432,3 +466,52 @@ class TcRange(object):
     def move_content_to_origin(self):
         """Move all paragraphs in range to origin cell."""
         raise NotImplementedError
+
+    @lazyproperty
+    def _bottom(self):
+        """Index of row following last row of range"""
+        _, top, _, height = self._extents
+        return top + height
+
+    @lazyproperty
+    def _extents(self):
+        """A (left, top, width, height) tuple describing range extents.
+
+        Note this is normalized to accommodate the various orderings of the
+        corner cells provided on construction, which may be in any of four
+        configurations such as (top-left, bottom-right),
+        (bottom-left, top-right), etc.
+        """
+        def start_and_size(idx, other_idx):
+            """Return beginning and length of range based on two indexes."""
+            return min(idx, other_idx), abs(idx - other_idx) + 1
+
+        tc, other_tc = self._tc, self._other_tc
+
+        left, width = start_and_size(tc.col_idx, other_tc.col_idx)
+        top, height = start_and_size(tc.row_idx, other_tc.row_idx)
+
+        return left, top, width, height
+
+    @lazyproperty
+    def _left(self):
+        """Index of leftmost column in range"""
+        left, _, _, _ = self._extents
+        return left
+
+    @lazyproperty
+    def _right(self):
+        """Index of column following the last column in range"""
+        left, _, width, _ = self._extents
+        return left + width
+
+    @lazyproperty
+    def _tbl(self):
+        """`a:tbl` element containing this cell range"""
+        return self._tc.tbl
+
+    @lazyproperty
+    def _top(self):
+        """Index of topmost row in range"""
+        _, top, _, _ = self._extents
+        return top
