@@ -246,6 +246,17 @@ class _Cell(Subshape):
         self._validate_margin_value(margin_bottom)
         self._tc.marB = margin_bottom
 
+    @property
+    def span_height(self):
+        """int count of rows spanned by this cell.
+
+        The value of this property may be misleading (often 1) on cells where
+        `.is_merge_origin` is not |True|, since only a merge-origin cell
+        contains complete span information. This property should only be used
+        on cells known to be a merge origin by testing `.is_merge_origin`.
+        """
+        return self._tc.rowSpan
+
     def text(self, text):
         """
         Replace all text in cell with single run containing *text*

@@ -221,6 +221,12 @@ class Describe_Cell(object):
         with pytest.raises(TypeError):
             setattr(cell, margin_attr_name, val_of_invalid_type)
 
+    def it_knows_how_many_rows_the_merge_spans(self, height_fixture):
+        tc, expected_value = height_fixture
+        cell = _Cell(tc, None)
+        span_height = cell.span_height
+        assert span_height == expected_value
+
     def it_knows_its_vertical_anchor_setting(self, anchor_get_fixture):
         cell, expected_value = anchor_get_fixture
         assert cell.vertical_anchor == expected_value
@@ -268,6 +274,16 @@ class Describe_Cell(object):
     @pytest.fixture
     def fill_fixture(self, cell):
         return cell
+
+    @pytest.fixture(params=[
+        ('a:tc', 1),
+        ('a:tc{gridSpan=2}', 1),
+        ('a:tc{rowSpan=42}', 42),
+    ])
+    def height_fixture(self, request):
+        tc_cxml, expected_value = request.param
+        tc = element(tc_cxml)
+        return tc, expected_value
 
     @pytest.fixture(params=[
         ('a:tc/a:tcPr{marL=82296}', 'margin_left',   Inches(0.09)),
