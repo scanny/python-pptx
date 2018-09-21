@@ -54,7 +54,6 @@ Feature: Table cell proxy objects
       | bottom | Inches(0.3) | Inches(0.3)  |
 
 
-  @wip
   Scenario: Merged cell size
     Given a 2x3 _MergeOriginCell object as cell
      Then cell.span_height == 2

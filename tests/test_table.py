@@ -227,6 +227,12 @@ class Describe_Cell(object):
         span_height = cell.span_height
         assert span_height == expected_value
 
+    def it_knows_how_many_columns_the_merge_spans(self, width_fixture):
+        tc, expected_value = width_fixture
+        cell = _Cell(tc, None)
+        span_width = cell.span_width
+        assert span_width == expected_value
+
     def it_knows_its_vertical_anchor_setting(self, anchor_get_fixture):
         cell, expected_value = anchor_get_fixture
         assert cell.vertical_anchor == expected_value
@@ -362,6 +368,16 @@ class Describe_Cell(object):
         cell = _Cell(element(tc_cxml), None)
         expected_xml = xml(expected_cxml)
         return cell, new_text, expected_xml
+
+    @pytest.fixture(params=[
+        ('a:tc', 1),
+        ('a:tc{rowSpan=2}', 1),
+        ('a:tc{gridSpan=24}', 24),
+    ])
+    def width_fixture(self, request):
+        tc_cxml, expected_value = request.param
+        tc = element(tc_cxml)
+        return tc, expected_value
 
     # fixture components ---------------------------------------------
 
