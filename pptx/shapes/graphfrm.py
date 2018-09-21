@@ -12,7 +12,7 @@ from __future__ import (
 
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
-from pptx.shapes.table import Table
+from pptx.table import Table
 
 
 class GraphicFrame(BaseShape):

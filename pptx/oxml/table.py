@@ -20,12 +20,13 @@ from pptx.util import Emu
 
 
 class CT_Table(BaseOxmlElement):
-    """
-    ``<a:tbl>`` custom element class
-    """
-    tblPr = ZeroOrOne('a:tblPr', successors=('a:tblGrid', 'a:tr'))
+    """`a:tbl` custom element class"""
+
+    _tag_seq = ('a:tblPr', 'a:tblGrid', 'a:tr')
+    tblPr = ZeroOrOne('a:tblPr', successors=_tag_seq[1:])
     tblGrid = OneAndOnlyOne('a:tblGrid')
-    tr = ZeroOrMore('a:tr', successors=())
+    tr = ZeroOrMore('a:tr', successors=_tag_seq[3:])
+    del _tag_seq
 
     def add_tr(self, height):
         """
@@ -82,6 +83,36 @@ class CT_Table(BaseOxmlElement):
     def lastRow(self, value):
         self._set_boolean_property('lastRow', value)
 
+    @classmethod
+    def new_tbl(cls, rows, cols, width, height, tableStyleId=None):
+        """Return a new ``<p:tbl>`` element tree."""
+        # working hypothesis is this is the default table style GUID
+        if tableStyleId is None:
+            tableStyleId = '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}'
+
+        xml = cls._tbl_tmpl() % (tableStyleId)
+        tbl = parse_xml(xml)
+
+        # add specified number of rows and columns
+        rowheight = height//rows
+        colwidth = width//cols
+
+        for col in range(cols):
+            # adjust width of last col to absorb any div error
+            if col == cols-1:
+                colwidth = width - ((cols-1) * colwidth)
+            tbl.tblGrid.add_gridCol(width=colwidth)
+
+        for row in range(rows):
+            # adjust height of last row to absorb any div error
+            if row == rows-1:
+                rowheight = height - ((rows-1) * rowheight)
+            tr = tbl.add_tr(height=rowheight)
+            for col in range(cols):
+                tr.add_tc()
+
+        return tbl
+
     def _get_boolean_property(self, propname):
         """
         Generalized getter for the boolean properties on the ``<a:tblPr>``
@@ -114,38 +145,6 @@ class CT_Table(BaseOxmlElement):
             )
         tblPr = self.get_or_add_tblPr()
         setattr(tblPr, propname, value)
-
-    @classmethod
-    def new_tbl(cls, rows, cols, width, height, tableStyleId=None):
-        """
-        Return a new ``<p:tbl>`` element tree
-        """
-        # working hypothesis is this is the default table style GUID
-        if tableStyleId is None:
-            tableStyleId = '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}'
-
-        xml = cls._tbl_tmpl() % (tableStyleId)
-        tbl = parse_xml(xml)
-
-        # add specified number of rows and columns
-        rowheight = height//rows
-        colwidth = width//cols
-
-        for col in range(cols):
-            # adjust width of last col to absorb any div error
-            if col == cols-1:
-                colwidth = width - ((cols-1) * colwidth)
-            tbl.tblGrid.add_gridCol(width=colwidth)
-
-        for row in range(rows):
-            # adjust height of last row to absorb any div error
-            if row == rows-1:
-                rowheight = height - ((rows-1) * rowheight)
-            tr = tbl.add_tr(height=rowheight)
-            for col in range(cols):
-                tr.add_tc()
-
-        return tbl
 
     @classmethod
     def _tbl_tmpl(cls):

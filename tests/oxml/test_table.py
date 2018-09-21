@@ -1,13 +1,13 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.oxml.table module.
-"""
+"""Unit-test suite for pptx.oxml.table module"""
 
-from __future__ import absolute_import, print_function
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.shapes.table import CT_Table
+from pptx.oxml.table import CT_Table
 
 
 class DescribeCT_Table(object):

@@ -1,10 +1,10 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.table module.
-"""
+"""Unit-test suite for pptx.table module"""
 
-from __future__ import absolute_import, print_function
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 import pytest
 
@@ -12,14 +12,14 @@ from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml.ns import qn
 from pptx.shapes.graphfrm import GraphicFrame
-from pptx.shapes.table import (
+from pptx.table import (
     _Cell, _CellCollection, _Column, _ColumnCollection, _Row, _RowCollection,
     Table
 )
 from pptx.util import Inches, Length, Pt
 
-from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock
+from .unitutil.cxml import element, xml
+from .unitutil.mock import class_mock, instance_mock
 
 
 class DescribeTable(object):
@@ -514,7 +514,7 @@ class Describe_Row(object):
     @pytest.fixture
     def _CellCollection_(self, request, cells_):
         return class_mock(
-            request, 'pptx.shapes.table._CellCollection', return_value=cells_
+            request, 'pptx.table._CellCollection', return_value=cells_
         )
 
     @pytest.fixture

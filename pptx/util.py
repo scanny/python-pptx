@@ -1,11 +1,10 @@
 # encoding: utf-8
 
-"""
-Utility functions and classes that come in handy when working with PowerPoint
-and Open XML.
-"""
+"""Utility functions and classes."""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 
 class Length(int):

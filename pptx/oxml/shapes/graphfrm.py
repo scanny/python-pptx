@@ -12,7 +12,7 @@ from ..ns import nsdecls
 from .shared import BaseShapeElement
 from ..simpletypes import XsdString
 from ...spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
-from .table import CT_Table
+from ..table import CT_Table
 from ..xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
 )

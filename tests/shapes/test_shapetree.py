@@ -40,8 +40,8 @@ from pptx.shapes.shapetree import (
     NotesSlideShapes, _SlidePlaceholderFactory, SlidePlaceholders,
     SlideShapeFactory, SlideShapes
 )
-from pptx.shapes.table import Table
 from pptx.slide import SlideLayout, SlideMaster
+from pptx.table import Table
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..unitutil.cxml import element, xml

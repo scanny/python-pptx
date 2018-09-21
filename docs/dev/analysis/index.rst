@@ -71,7 +71,7 @@ Table
    :titlesonly:
 
    tbl-merge
-   shp-table
+   tbl-table
    tbl-table-style
 
 

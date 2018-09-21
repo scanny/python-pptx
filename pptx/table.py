@@ -1,23 +1,25 @@
 # encoding: utf-8
 
-"""
-Table-related objects such as Table and Cell.
-"""
+"""Table-related objects such as Table and Cell."""
 
-from __future__ import absolute_import, print_function
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
-from . import Subshape
-from ..compat import is_integer, to_unicode
-from ..dml.fill import FillFormat
-from ..text.text import TextFrame
-from ..util import lazyproperty
+from pptx.compat import is_integer, to_unicode
+from pptx.dml.fill import FillFormat
+from pptx.shapes import Subshape
+from pptx.text.text import TextFrame
+from pptx.util import lazyproperty
 
 
 class Table(object):
-    """
-    A table shape. Not intended to be constructed directly, use
+    """A DrawingML table object.
+
+    Not intended to be constructed directly, use
     :meth:`.Slide.shapes.add_table` to add a table to a slide.
     """
+
     def __init__(self, tbl, graphic_frame):
         super(Table, self).__init__()
         self._tbl = tbl
@@ -150,9 +152,8 @@ class Table(object):
 
 
 class _Cell(Subshape):
-    """
-    Table cell
-    """
+    """Table cell"""
+
     def __init__(self, tc, parent):
         super(_Cell, self).__init__(parent)
         self._tc = tc
@@ -268,9 +269,8 @@ class _Cell(Subshape):
 
 
 class _Column(Subshape):
-    """
-    Table column
-    """
+    """Table column"""
+
     def __init__(self, gridCol, parent):
         super(_Column, self).__init__(parent)
         self._gridCol = gridCol
@@ -289,9 +289,8 @@ class _Column(Subshape):
 
 
 class _Row(Subshape):
-    """
-    Table row
-    """
+    """Table row"""
+
     def __init__(self, tr, parent):
         super(_Row, self).__init__(parent)
         self._tr = tr
@@ -318,9 +317,8 @@ class _Row(Subshape):
 
 
 class _CellCollection(Subshape):
-    """
-    "Horizontal" sequence of row cells
-    """
+    """Horizontal sequence of row cells"""
+
     def __init__(self, tr, parent):
         super(_CellCollection, self).__init__(parent)
         self._tr = tr
@@ -342,9 +340,8 @@ class _CellCollection(Subshape):
 
 
 class _ColumnCollection(Subshape):
-    """
-    Sequence of table columns.
-    """
+    """Sequence of table columns."""
+
     def __init__(self, tbl, parent):
         super(_ColumnCollection, self).__init__(parent)
         self._tbl = tbl
@@ -372,9 +369,8 @@ class _ColumnCollection(Subshape):
 
 
 class _RowCollection(Subshape):
-    """
-    Sequence of table rows.
-    """
+    """Sequence of table rows"""
+
     def __init__(self, tbl, parent):
         super(_RowCollection, self).__init__(parent)
         self._tbl = tbl

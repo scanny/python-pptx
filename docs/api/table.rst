@@ -4,7 +4,7 @@ Table-related objects
 =====================
 
 
-.. currentmodule:: pptx.shapes.table
+.. currentmodule:: pptx.table
 
 
 |Table| objects

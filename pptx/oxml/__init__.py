@@ -306,19 +306,6 @@ register_element_cls('p:spPr',  CT_ShapeProperties)
 register_element_cls('p:xfrm',  CT_Transform2D)
 
 
-from .shapes.table import (  # noqa: E402
-    CT_Table, CT_TableCell, CT_TableCellProperties, CT_TableCol,
-    CT_TableGrid, CT_TableProperties, CT_TableRow
-)
-register_element_cls('a:gridCol', CT_TableCol)
-register_element_cls('a:tbl',     CT_Table)
-register_element_cls('a:tblGrid', CT_TableGrid)
-register_element_cls('a:tblPr',   CT_TableProperties)
-register_element_cls('a:tc',      CT_TableCell)
-register_element_cls('a:tcPr',    CT_TableCellProperties)
-register_element_cls('a:tr',      CT_TableRow)
-
-
 from .slide import (  # noqa: E402
     CT_Background, CT_BackgroundProperties, CT_CommonSlideData,
     CT_NotesMaster, CT_NotesSlide, CT_Slide, CT_SlideLayout,
@@ -338,6 +325,19 @@ register_element_cls('p:sldLayoutIdLst', CT_SlideLayoutIdList)
 register_element_cls('p:sldMaster',      CT_SlideMaster)
 register_element_cls('p:timing',         CT_SlideTiming)
 register_element_cls('p:video',          CT_TLMediaNodeVideo)
+
+
+from .table import (  # noqa: E402
+    CT_Table, CT_TableCell, CT_TableCellProperties, CT_TableCol,
+    CT_TableGrid, CT_TableProperties, CT_TableRow
+)
+register_element_cls('a:gridCol', CT_TableCol)
+register_element_cls('a:tbl',     CT_Table)
+register_element_cls('a:tblGrid', CT_TableGrid)
+register_element_cls('a:tblPr',   CT_TableProperties)
+register_element_cls('a:tc',      CT_TableCell)
+register_element_cls('a:tcPr',    CT_TableCellProperties)
+register_element_cls('a:tr',      CT_TableRow)
 
 
 from .text import (  # noqa: E402
