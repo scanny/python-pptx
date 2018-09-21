@@ -270,6 +270,11 @@ class CT_TableCell(BaseOxmlElement):
         tc = parse_xml(xml)
         return tc
 
+    @property
+    def tbl(self):
+        """Table element this cell belongs to."""
+        return self.xpath('ancestor::a:tbl')[0]
+
     def _get_marX(self, attr_name, default):
         """
         Generalized method to get margin values.
@@ -404,7 +409,9 @@ class TcRange(object):
     @lazyproperty
     def in_same_table(self):
         """True if both cells provided to constructor are in same table."""
-        raise NotImplementedError
+        if self._tc.tbl is self._other_tc.tbl:
+            return True
+        return False
 
     def iter_except_left_col_tcs(self):
         """Generate each `a:tc` element not in leftmost column of range."""

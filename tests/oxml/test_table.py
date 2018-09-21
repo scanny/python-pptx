@@ -6,8 +6,10 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
+import pytest
+
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.table import CT_Table
+from pptx.oxml.table import CT_Table, TcRange
 
 from ..unitutil.cxml import element
 
@@ -52,3 +54,28 @@ class DescribeCT_Table(object):
         assert tbl.tc(0, 1) is tcs[1]
         assert tbl.tc(1, 0) is tcs[2]
         assert tbl.tc(1, 1) is tcs[3]
+
+
+class DescribeTcRange(object):
+
+    def it_knows_when_tcs_are_in_the_same_tbl(self, in_same_table_fixture):
+        tc, other_tc, expected_value = in_same_table_fixture
+        tc_range = TcRange(tc, other_tc)
+
+        in_same_table = tc_range.in_same_table
+
+        assert in_same_table is expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[True, False])
+    def in_same_table_fixture(self, request):
+        expected_value = request.param
+        tbl = element('a:tbl/a:tr/(a:tc,a:tc)')
+        other_tbl = element('a:tbl/a:tr/(a:tc,a:tc)')
+        tc = tbl.xpath('//a:tc')[0]
+        other_tc = (
+            tbl.xpath('//a:tc')[1] if expected_value
+            else other_tbl.xpath('//a:tc')[1]
+        )
+        return tc, other_tc, expected_value
