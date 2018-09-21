@@ -30,10 +30,23 @@ def given_a_2x3_MergeOriginCell_object_as_cell(context):
     context.cell = prs.slides[1].shapes[1].table.cell(0, 0)
 
 
+@given('a 3x3 Table object with cells a to i as table')
+def given_a_3x3_table_with_cells_a_to_i_as_table(context):
+    prs = Presentation(test_pptx('tbl-cell'))
+    # ---context.table is used by Behave for some odd reason---
+    context.table_ = prs.slides[2].shapes[0].table
+
+
 @given('a _Cell object as cell')
 def given_a_Cell_object_as_cell(context):
     prs = Presentation(test_pptx('shp-shapes'))
     context.cell = prs.slides[0].shapes[3].table.cell(0, 0)
+
+
+@given('a _Cell object containing "unladen swallows" as cell')
+def given_a_Cell_object_containing_unladen_swallows_as_cell(context):
+    prs = Presentation(test_pptx('tbl-cell'))
+    context.cell = prs.slides[0].shapes[0].table.cell(1, 0)
 
 
 @given('a _Cell object with known margins as cell')
@@ -97,6 +110,21 @@ def when_I_assign_cell_vertical_anchor_eq_value(context, value):
     context.cell.vertical_anchor = eval(value)
 
 
+@when('I assign origin_cell = table.cell(0, 0)')
+def when_I_assign_origin_cell_eq_table_cell_0_0(context):
+    context.origin_cell = context.table_.cell(0, 0)
+
+
+@when('I assign other_cell = table.cell(1, 1)')
+def when_I_assign_other_cell_eq_table_cell_1_1(context):
+    context.other_cell = context.table_.cell(1, 1)
+
+
+@when('I call origin_cell.merge(other_cell)')
+def when_I_call_origin_cell_merge_other_cell(context):
+    context.origin_cell.merge(context.other_cell)
+
+
 @when("I set the first_col property to True")
 def when_set_first_col_property_to_true(context):
     context.table_.first_col = True
@@ -155,18 +183,29 @@ def then_cell_margin_side_eq_Inches_num(context, side, num_lit):
     assert actual == expected, 'cell.margin_%s == %s' % (side, actual.inches)
 
 
-@then('cell.is_merge_origin is {bool_lit}')
-def then_cell_is_merge_origin_is(context, bool_lit):
+@then('{cell_ref}.is_merge_origin is {bool_lit}')
+def then_cell_ref_is_merge_origin_is(context, cell_ref, bool_lit):
     expected = eval(bool_lit)
-    actual = context.cell.is_merge_origin
-    assert actual is expected, 'cell.is_merge_origin is %s' % actual
+    actual = getattr(context, cell_ref).is_merge_origin
+    assert actual is expected, (
+        '%s.is_merge_origin is %s' % (cell_ref, actual)
+    )
 
 
-@then('cell.is_spanned is {bool_lit}')
-def then_cell_is_spanned_is(context, bool_lit):
+@then('{cell_ref}.is_spanned is {bool_lit}')
+def then_cell_is_spanned_is(context, cell_ref, bool_lit):
     expected = eval(bool_lit)
-    actual = context.cell.is_spanned
-    assert actual is expected, 'cell.is_spanned is %s' % actual
+    actual = getattr(context, cell_ref).is_spanned
+    assert actual is expected, (
+        '%s.is_spanned is %s' % (cell_ref, actual)
+    )
+
+
+@then('{cell_ref}.text == {value}')
+def then_cell_ref_text_eq_value(context, cell_ref, value):
+    actual = getattr(context, cell_ref).text
+    expected = eval(value)
+    assert actual == expected, '%s.text == %s' % (cell_ref, actual)
 
 
 @then('cell.span_height == {int_lit}')
@@ -181,13 +220,6 @@ def then_cell_span_width_eq(context, int_lit):
     expected = int(int_lit)
     actual = context.cell.span_width
     assert actual is expected, 'cell.span_width == %s' % actual
-
-
-@then('cell.text_frame.text == "test text"')
-def then_cell_text_frame_text_eq_test_text(context):
-    actual = context.cell.text_frame.text
-    expected = 'test text'
-    assert actual == expected, 'cell.text_frame.text == %s' % actual
 
 
 @then('cell.vertical_anchor == {value}')

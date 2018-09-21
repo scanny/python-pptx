@@ -54,16 +54,35 @@ Feature: Table cell proxy objects
       | bottom | Inches(0.3) | Inches(0.3)  |
 
 
+  @wip
+  Scenario: _Cell.merge()
+    Given a 3x3 Table object with cells a to i as table
+     When I assign origin_cell = table.cell(0, 0)
+      And I assign other_cell = table.cell(1, 1)
+      And I call origin_cell.merge(other_cell)
+     Then origin_cell.is_merge_origin is True
+      And other_cell.is_spanned is True
+      And origin_cell.text == "a\nb\nd\ne"
+      And other_cell.text == ""
+
+
   Scenario: Merged cell size
     Given a 2x3 _MergeOriginCell object as cell
      Then cell.span_height == 2
       And cell.span_width == 3
 
 
+  @wip
+  Scenario: _Cell.text getter
+    Given a _Cell object containing "unladen swallows" as cell
+     Then cell.text == "unladen swallows"
+
+
+  @wip
   Scenario: _Cell.text setter
     Given a _Cell object as cell
      When I assign cell.text = "test text"
-     Then cell.text_frame.text == "test text"
+     Then cell.text == "test text"
 
 
   Scenario Outline: _Cell.vertical_anchor getter
