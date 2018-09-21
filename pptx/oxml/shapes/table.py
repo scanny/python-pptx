@@ -16,6 +16,7 @@ from pptx.oxml.xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
 )
+from pptx.util import Emu
 
 
 class CT_Table(BaseOxmlElement):
@@ -249,8 +250,8 @@ class CT_TableCell(BaseOxmlElement):
         Generalized method to get margin values.
         """
         if self.tcPr is None:
-            return default
-        return int(self.tcPr.get(attr_name, default))
+            return Emu(default)
+        return Emu(int(self.tcPr.get(attr_name, default)))
 
     def _new_txBody(self):
         return CT_TextBody.new_a_txBody()
