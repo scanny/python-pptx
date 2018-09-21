@@ -11,7 +11,7 @@ import pytest
 from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml.ns import qn
-from pptx.oxml.table import CT_Table, CT_TableCell
+from pptx.oxml.table import CT_Table, CT_TableCell, TcRange
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.table import (
     _Cell, _CellCollection, _Column, _ColumnCollection, _Row, _RowCollection,
@@ -221,6 +221,52 @@ class Describe_Cell(object):
         with pytest.raises(TypeError):
             setattr(cell, margin_attr_name, val_of_invalid_type)
 
+    def it_can_merge_a_range_of_cells(self, TcRange_, tc_range_):
+        tbl = element('a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))')
+        tc, other_tc = tbl.tc(0, 0), tbl.tc(1, 1)
+        TcRange_.return_value = tc_range_
+        tc_range_.contains_merged_cell = False
+        tc_range_.dimensions = 2, 2
+
+        def tcs(*rowcols):
+            return (tbl.tc(*rowcol) for rowcol in rowcols)
+
+        tc_range_.iter_top_row_tcs.return_value = tcs((0, 0), (0, 1))
+        tc_range_.iter_left_col_tcs.return_value = tcs((0, 0), (1, 0))
+        tc_range_.iter_except_left_col_tcs.return_value = tcs((0, 1), (1, 1))
+        tc_range_.iter_except_top_row_tcs.return_value = tcs((1, 0), (1, 1))
+        expected_xml = xml(
+            'a:tbl/(a:tr/(a:tc{gridSpan=2,rowSpan=2},a:tc{rowSpan=2,hMerge=1'
+            '}),a:tr/(a:tc{gridSpan=2,vMerge=1},a:tc{hMerge=1,vMerge=1}))'
+        )
+        cell, other_cell = _Cell(tc, None), _Cell(other_tc, None)
+
+        cell.merge(other_cell)
+
+        TcRange_.assert_called_once_with(tc, other_tc)
+        tc_range_.move_content_to_origin.assert_called_once_with()
+        assert tbl.xml == expected_xml
+
+    def but_it_raises_when_cells_are_from_different_tables(
+            self, TcRange_, tc_range_):
+        TcRange_.return_value = tc_range_
+        tc_range_.in_same_table = False
+        cell, other_cell = _Cell(None, None), _Cell(None, None)
+
+        with pytest.raises(ValueError) as e:
+            cell.merge(other_cell)
+        assert 'different table' in str(e.value)
+
+    def and_it_raises_when_range_contains_merged_cell(
+            self, TcRange_, tc_range_):
+        TcRange_.return_value = tc_range_
+        tc_range_.contains_merged_cell = True
+        cell, other_cell = _Cell(None, None), _Cell(None, None)
+
+        with pytest.raises(ValueError) as e:
+            cell.merge(other_cell)
+        assert 'contains one or more merged cells' in str(e.value)
+
     def it_knows_how_many_rows_the_merge_spans(self, height_fixture):
         tc, expected_value = height_fixture
         cell = _Cell(tc, None)
@@ -384,6 +430,14 @@ class Describe_Cell(object):
     @pytest.fixture
     def cell(self):
         return _Cell(element('a:tc'), None)
+
+    @pytest.fixture
+    def TcRange_(self, request):
+        return class_mock(request, 'pptx.table.TcRange')
+
+    @pytest.fixture
+    def tc_range_(self, request):
+        return instance_mock(request, TcRange)
 
 
 class Describe_CellCollection(object):

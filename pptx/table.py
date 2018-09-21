@@ -8,6 +8,7 @@ from __future__ import (
 
 from pptx.compat import is_integer, to_unicode
 from pptx.dml.fill import FillFormat
+from pptx.oxml.table import TcRange
 from pptx.shapes import Subshape
 from pptx.text.text import TextFrame
 from pptx.util import lazyproperty
@@ -245,6 +246,37 @@ class _Cell(Subshape):
     def margin_bottom(self, margin_bottom):
         self._validate_margin_value(margin_bottom)
         self._tc.marB = margin_bottom
+
+    def merge(self, other_cell):
+        """Create merged cell from this cell to *other_cell*.
+
+        This cell and *other_cell* specify opposite corners of the merged
+        cell range. Either diagonal of the cell region may be specified in
+        either order, e.g. self=bottom-right, other_cell=top-left, etc.
+
+        Raises |ValueError| if the specified range already contains merged
+        cells anywhere within its extents or if *other_cell* is not in the
+        same table as *self*.
+        """
+        tc_range = TcRange(self._tc, other_cell._tc)
+
+        if not tc_range.in_same_table:
+            raise ValueError('other_cell from different table')
+        if tc_range.contains_merged_cell:
+            raise ValueError('range contains one or more merged cells')
+
+        tc_range.move_content_to_origin()
+
+        row_count, col_count = tc_range.dimensions
+
+        for tc in tc_range.iter_top_row_tcs():
+            tc.rowSpan = row_count
+        for tc in tc_range.iter_left_col_tcs():
+            tc.gridSpan = col_count
+        for tc in tc_range.iter_except_left_col_tcs():
+            tc.hMerge = True
+        for tc in tc_range.iter_except_top_row_tcs():
+            tc.vMerge = True
 
     @property
     def span_height(self):

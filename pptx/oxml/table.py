@@ -18,7 +18,7 @@ from pptx.oxml.xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OptionalAttribute,
     RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
 )
-from pptx.util import Emu
+from pptx.util import Emu, lazyproperty
 
 
 class CT_Table(BaseOxmlElement):
@@ -373,3 +373,55 @@ class CT_TableRow(BaseOxmlElement):
 
     def _new_tc(self):
         return CT_TableCell.new()
+
+
+class TcRange(object):
+    """A 2D block of `a:tc` cell elements in a table.
+
+    This object assumes the structure of the underlying table does not change
+    during its lifetime. Structural changes in this context would be
+    insertion or removal of rows or columns.
+
+    The client is expected to create, use, and then abandon an instance in
+    the context of a single user operation that is known to have no
+    structural side-effects of this type.
+    """
+
+    def __init__(self, tc, other_tc):
+        self._tc = tc
+        self._other_tc = other_tc
+
+    @lazyproperty
+    def contains_merged_cell(self):
+        """True if one or more cells in range are part of a merged cell."""
+        raise NotImplementedError
+
+    @lazyproperty
+    def dimensions(self):
+        """(row_count, col_count) pair describing size of range."""
+        raise NotImplementedError
+
+    @lazyproperty
+    def in_same_table(self):
+        """True if both cells provided to constructor are in same table."""
+        raise NotImplementedError
+
+    def iter_except_left_col_tcs(self):
+        """Generate each `a:tc` element not in leftmost column of range."""
+        raise NotImplementedError
+
+    def iter_except_top_row_tcs(self):
+        """Generate each `a:tc` element in non-first rows of range."""
+        raise NotImplementedError
+
+    def iter_left_col_tcs(self):
+        """Generate each `a:tc` element in leftmost column of range."""
+        raise NotImplementedError
+
+    def iter_top_row_tcs(self):
+        """Generate each `a:tc` element in topmost row of range."""
+        raise NotImplementedError
+
+    def move_content_to_origin(self):
+        """Move all paragraphs in range to origin cell."""
+        raise NotImplementedError
