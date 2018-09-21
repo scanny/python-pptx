@@ -158,6 +158,21 @@ class _Cell(Subshape):
         super(_Cell, self).__init__(parent)
         self._tc = tc
 
+    def __eq__(self, other):
+        """|True| if this object proxies the same element as *other*.
+
+        Equality for proxy objects is defined as referring to the same XML
+        element, whether or not they are the same proxy object instance.
+        """
+        if not isinstance(other, type(self)):
+            return False
+        return self._tc is other._tc
+
+    def __ne__(self, other):
+        if not isinstance(other, type(self)):
+            return True
+        return self._tc is not other._tc
+
     @lazyproperty
     def fill(self):
         """

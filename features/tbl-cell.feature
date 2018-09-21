@@ -4,7 +4,6 @@ Feature: Table cell proxy objects
   I need properties and methods on cell objects
 
 
-  @wip
   Scenario Outline: Cell objects proxying same a:tc element compare equal
     Given a <role> _Cell object as cell
       And a second proxy instance for that cell as other_cell

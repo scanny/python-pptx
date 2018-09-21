@@ -175,6 +175,16 @@ class DescribeTableBooleanProperties(object):
 
 class Describe_Cell(object):
 
+    def it_is_equal_to_other_instance_having_same_tc(self):
+        tc = element('a:tc')
+        other_tc = element('a:tc')
+        cell = _Cell(tc, None)
+        cell_with_same_tc = _Cell(tc, None)
+        cell_with_other_tc = _Cell(other_tc, None)
+
+        assert cell == cell_with_same_tc
+        assert cell != cell_with_other_tc
+
     def it_has_a_fill(self, fill_fixture):
         cell = fill_fixture
         assert isinstance(cell.fill, FillFormat)
