@@ -24,6 +24,12 @@ def given_a_2x2_table(context):
     context.table_ = prs.slides[0].shapes[3].table
 
 
+@given('a 2x3 _MergeOriginCell object as cell')
+def given_a_2x3_MergeOriginCell_object_as_cell(context):
+    prs = Presentation(test_pptx('tbl-cell'))
+    context.cell = prs.slides[1].shapes[1].table.cell(0, 0)
+
+
 @given('a _Cell object as cell')
 def given_a_Cell_object_as_cell(context):
     prs = Presentation(test_pptx('shp-shapes'))
@@ -45,6 +51,25 @@ def given_a_Cell_object_with_setting_vertical_alignment(context, setting):
     }[setting]
     prs = Presentation(test_pptx('tbl-cell'))
     context.cell = prs.slides[0].shapes[0].table.cell(*cell_coordinates)
+
+
+@given('a {role} _Cell object as cell')
+def given_a_role_Cell_object_as_cell(context, role):
+    coordinates = {
+        'merge-origin': (0, 0),
+        'spanned': (0, 1),
+        'unmerged': (2, 2),
+    }[role]
+    table = Presentation(test_pptx('tbl-cell')).slides[1].shapes[0].table
+    # ---create other_cell here where we know the coordinates---
+    context.cell = table.cell(*coordinates)
+    context.other_cell = table.cell(*coordinates)
+
+
+@given('a second proxy instance for that cell as other_cell')
+def given_a_second_proxy_instance_for_that_cell_as_other_cell(context):
+    # ---other_cell is actually produced by prior step---
+    assert context.other_cell
 
 
 # when ====================================================
@@ -110,6 +135,12 @@ def when_set_table_column_widths(context):
 
 # then ====================================================
 
+@then('cell == other_cell')
+def then_cell_eq_other_cell(context):
+    cell, other_cell = context.cell, context.other_cell
+    assert cell == other_cell, 'cell != other_cell'
+
+
 @then('cell.fill is a FillFormat object')
 def then_cell_fill_is_a_FillFormat_object(context):
     actual = type(context.cell.fill).__name__
@@ -122,6 +153,34 @@ def then_cell_margin_side_eq_Inches_num(context, side, num_lit):
     actual = getattr(context.cell, 'margin_%s' % side)
     expected = Inches(float(num_lit))
     assert actual == expected, 'cell.margin_%s == %s' % (side, actual.inches)
+
+
+@then('cell.is_merge_origin is {bool_lit}')
+def then_cell_is_merge_origin_is(context, bool_lit):
+    expected = eval(bool_lit)
+    actual = context.cell.is_merge_origin
+    assert actual is expected, 'cell.is_merge_origin is %s' % actual
+
+
+@then('cell.is_spanned is {bool_lit}')
+def then_cell_is_spanned_is(context, bool_lit):
+    expected = eval(bool_lit)
+    actual = context.cell.is_spanned
+    assert actual is expected, 'cell.is_spanned is %s' % actual
+
+
+@then('cell.span_height == {int_lit}')
+def then_cell_span_height_eq(context, int_lit):
+    expected = int(int_lit)
+    actual = context.cell.span_height
+    assert actual is expected, 'cell.span_height == %s' % actual
+
+
+@then('cell.span_width == {int_lit}')
+def then_cell_span_width_eq(context, int_lit):
+    expected = int(int_lit)
+    actual = context.cell.span_width
+    assert actual is expected, 'cell.span_width == %s' % actual
 
 
 @then('cell.text_frame.text == "test text"')

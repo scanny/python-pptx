@@ -4,9 +4,35 @@ Feature: Table cell proxy objects
   I need properties and methods on cell objects
 
 
+  @wip
+  Scenario Outline: Cell objects proxying same a:tc element compare equal
+    Given a <role> _Cell object as cell
+      And a second proxy instance for that cell as other_cell
+     Then cell == other_cell
+
+    Examples: merged cell roles
+      | role         |
+      | merge-origin |
+      | spanned      |
+      | unmerged     |
+
+
   Scenario: _Cell.fill
     Given a _Cell object as cell
      Then cell.fill is a FillFormat object
+
+
+  @wip
+  Scenario Outline: Cell role discovery
+    Given a <role> _Cell object as cell
+     Then cell.is_merge_origin is <is_merge_origin>
+      And cell.is_spanned is <is_spanned>
+
+    Examples: merged cell roles
+      | role         | is_merge_origin | is_spanned |
+      | merge-origin | True            | False      |
+      | spanned      | False           | True       |
+      | unmerged     | False           | False      |
 
 
   Scenario: _Cell.margin_{x} getters
@@ -28,6 +54,13 @@ Feature: Table cell proxy objects
       | top    | None        | Inches(0.05) |
       | right  | None        | Inches(0.1)  |
       | bottom | Inches(0.3) | Inches(0.3)  |
+
+
+  @wip
+  Scenario: Merged cell size
+    Given a 2x3 _MergeOriginCell object as cell
+     Then cell.span_height == 2
+      And cell.span_width == 3
 
 
   Scenario: _Cell.text setter
