@@ -71,7 +71,6 @@ Feature: Table cell proxy objects
       And cell.span_width == 3
 
 
-  @wip
   Scenario: _Cell.split()
     Given a merge-origin _Cell object as cell
      When I call cell.split()

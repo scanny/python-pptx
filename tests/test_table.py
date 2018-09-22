@@ -279,6 +279,25 @@ class Describe_Cell(object):
         span_width = cell.span_width
         assert span_width == expected_value
 
+    def it_can_split_a_merged_cell(self, split_fixture):
+        origin_tc, range_tcs = split_fixture
+        cell = _Cell(origin_tc, None)
+
+        cell.split()
+
+        assert all(tc.gridSpan == 1 for tc in range_tcs)
+        assert all(tc.rowSpan == 1 for tc in range_tcs)
+        assert all(not tc.hMerge for tc in range_tcs)
+        assert all(not tc.vMerge for tc in range_tcs)
+
+    def but_it_raises_when_cell_to_be_split_is_not_merge_origin(self):
+        tc = element('a:tbl/a:tr/a:tc').xpath('//a:tc')[0]
+        cell = _Cell(tc, None)
+
+        with pytest.raises(ValueError) as e:
+            cell.split()
+        assert 'not a merge-origin cell' in str(e.value)
+
     def it_knows_what_text_it_contains(self, text_get_fixture):
         cell, expected_value = text_get_fixture
         text = cell.text
@@ -407,6 +426,22 @@ class Describe_Cell(object):
         tc_cxml, expected_value = request.param
         tc = element(tc_cxml)
         return tc, expected_value
+
+    @pytest.fixture(params=[
+        ('a:tbl/(a:tr/(a:tc{gridSpan=2},a:tc{hMerge=1}),a:tr/(a:tc,a:tc))',
+         0, [0, 1]),
+        ('a:tbl/(a:tr/(a:tc{rowSpan=2},a:tc),a:tr/(a:tc{vMerge=1},a:tc))',
+         0, [0, 2]),
+        ('a:tbl/(a:tr/(a:tc{gridSpan=2,rowSpan=2},a:tc{hMerge=1,rowSpan=2}),'
+         'a:tr/(a:tc{gridSpan=2,vMerge=1},a:tc{hMerge=1,vMerge=1}))',
+         0, [0, 1, 2, 3]),
+    ])
+    def split_fixture(self, request):
+        tbl_cxml, origin_tc_idx, range_tc_idxs = request.param
+        tcs = element(tbl_cxml).xpath('//a:tc')
+        origin_tc = tcs[origin_tc_idx]
+        range_tcs = tuple(tcs[idx] for idx in range_tc_idxs)
+        return origin_tc, range_tcs
 
     @pytest.fixture(params=[
         ('a:tc',

@@ -445,6 +445,15 @@ class TcRange(object):
         self._tc = tc
         self._other_tc = other_tc
 
+    @classmethod
+    def from_merge_origin(cls, tc):
+        """Return instance created from merge-origin tc element."""
+        other_tc = tc.tbl.tc(
+            tc.row_idx + tc.rowSpan - 1,  # ---other_row_idx
+            tc.col_idx + tc.gridSpan - 1  # ---other_col_idx
+        )
+        return cls(tc, other_tc)
+
     @lazyproperty
     def contains_merged_cell(self):
         """True if one or more cells in range are part of a merged cell."""

@@ -300,6 +300,28 @@ class _Cell(Subshape):
         """
         return self._tc.gridSpan
 
+    def split(self):
+        """Remove merge from this (merge-origin) cell.
+
+        The merged cell represented by this object will be "unmerged",
+        yielding a separate unmerged cell for each grid cell previously
+        spanned by this merge.
+
+        Raises |ValueError| when this cell is not a merge-origin cell. Test
+        with `.is_merge_origin` before calling.
+        """
+        if not self.is_merge_origin:
+            raise ValueError(
+                'not a merge-origin cell; only a merge-origin cell can be sp'
+                'lit'
+            )
+
+        tc_range = TcRange.from_merge_origin(self._tc)
+
+        for tc in tc_range.iter_tcs():
+            tc.rowSpan = tc.gridSpan = 1
+            tc.hMerge = tc.vMerge = False
+
     @property
     def text(self):
         """str representation of cell contents.
