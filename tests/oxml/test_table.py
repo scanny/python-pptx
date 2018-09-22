@@ -75,6 +75,15 @@ class DescribeTcRange(object):
 
         assert in_same_table is expected_value
 
+    def it_can_migrate_range_content_to_origin_cell(self, move_fixture):
+        tc, other_tc, expected_text = move_fixture
+        tc_range = TcRange(tc, other_tc)
+
+        tc_range.move_content_to_origin()
+
+        assert tc.text == expected_text
+        assert other_tc.text == ''
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -101,3 +110,19 @@ class DescribeTcRange(object):
             else other_tbl.xpath('//a:tc')[1]
         )
         return tc, other_tc, expected_value
+
+    @pytest.fixture(params=[
+        ('a:tbl/a:tr/(a:tc/a:txBody/a:p,a:tc/a:txBody/a:p)', ''),
+        ('a:tbl/a:tr/(a:tc/a:txBody/a:p,a:tc/a:txBody/a:p/a:r/a:t"b")', 'b'),
+        ('a:tbl/a:tr/(a:tc/a:txBody/a:p/a:r/a:t"a",a:tc/a:txBody/a:p)', 'a'),
+        ('a:tbl/a:tr/(a:tc/a:txBody/a:p/a:r/a:t"a",a:tc/a:txBody/a:p/a:r/a:t'
+         '"b")', 'a\nb'),
+        ('a:tbl/a:tr/(a:tc/a:txBody/a:p/a:r/a:t"a",a:tc/a:txBody/(a:p,a:p))',
+         'a\n\n'),
+        ('a:tbl/a:tr/(a:tc/a:txBody/(a:p,a:p),a:tc/a:txBody/a:p/a:r/a:t"b")',
+         '\n\nb'),
+    ])
+    def move_fixture(self, request):
+        tbl_cxml, expected_text = request.param
+        tcs = element(tbl_cxml).xpath('//a:tc')
+        return tcs[0], tcs[1], expected_text

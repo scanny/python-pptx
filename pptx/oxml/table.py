@@ -197,6 +197,32 @@ class CT_TableCell(BaseOxmlElement):
         tcPr = self.get_or_add_tcPr()
         tcPr.anchor = anchor_enum_idx
 
+    def append_ps_from(self, spanned_tc):
+        """Append `a:p` elements taken from *spanned_tc*.
+
+        Any non-empty paragraph elements in *spanned_tc* are removed and
+        appended to the text-frame of this cell. If *spanned_tc* is left with
+        no content after this process, a single empty `a:p` element is added
+        to ensure the cell is compliant with the spec.
+        """
+        source_txBody = spanned_tc.get_or_add_txBody()
+        target_txBody = self.get_or_add_txBody()
+
+        # ---if source is empty, there's nothing to do---
+        if source_txBody.is_empty:
+            return
+
+        # ---a single empty paragraph in target is overwritten---
+        if target_txBody.is_empty:
+            target_txBody.clear_content()
+
+        for p in source_txBody.p_lst:
+            target_txBody.append(p)
+
+        # ---neither source nor target can be left without ps---
+        source_txBody.unclear_content()
+        target_txBody.unclear_content()
+
     @property
     def col_idx(self):
         """Offset of this cell's column in its table."""
@@ -283,6 +309,15 @@ class CT_TableCell(BaseOxmlElement):
     def tbl(self):
         """Table element this cell belongs to."""
         return self.xpath('ancestor::a:tbl')[0]
+
+    @property
+    def text(self):
+        """str text contained in cell"""
+        # ---note this shadows lxml _Element.text---
+        txBody = self.txBody
+        if txBody is None:
+            return ''
+        return '\n'.join([p.text for p in txBody.p_lst])
 
     def _get_marX(self, attr_name, default):
         """
@@ -465,7 +500,10 @@ class TcRange(object):
 
     def move_content_to_origin(self):
         """Move all paragraphs in range to origin cell."""
-        raise NotImplementedError
+        tcs = list(self.iter_tcs())
+        origin_tc = tcs[0]
+        for spanned_tc in tcs[1:]:
+            origin_tc.append_ps_from(spanned_tc)
 
     @lazyproperty
     def _bottom(self):

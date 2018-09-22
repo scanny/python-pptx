@@ -12,6 +12,7 @@ from pptx.enum.text import (
     MSO_AUTO_SIZE, MSO_TEXT_UNDERLINE_TYPE, MSO_VERTICAL_ANCHOR,
     PP_PARAGRAPH_ALIGNMENT
 )
+from pptx.exc import InvalidXmlError
 from pptx.oxml import parse_xml
 from pptx.oxml.dml.fill import CT_GradientFillProperties
 from pptx.oxml.ns import nsdecls
@@ -28,29 +29,35 @@ from pptx.util import Emu, Length
 
 
 class CT_RegularTextRun(BaseOxmlElement):
-    """
-    Custom element class for <a:r> elements.
-    """
+    """`a:r` custom element class"""
+
     rPr = ZeroOrOne('a:rPr', successors=('a:t',))
     t = OneAndOnlyOne('a:t')
 
     @property
     def text(self):
-        """
-        The text of the ``<a:t>`` child element.
-        """
+        """(unicode) str containing text of (required) `a:t` child"""
         text = self.t.text
         # t.text is None when t element is empty, e.g. '<a:t/>'
         return to_unicode(text) if text is not None else u''
 
 
 class CT_TextBody(BaseOxmlElement):
+    """`p:txBody` custom element class.
+
+    Also used for `c:txPr` in charts and perhaps other elements.
     """
-    ``<p:txBody>`` custom element class, also used for ``<c:txPr>`` in
-    charts and perhaps other elements.
-    """
+
     bodyPr = OneAndOnlyOne('a:bodyPr')
     p = OneOrMore('a:p')
+
+    def clear_content(self):
+        """Remove all `a:p` children, but leave any others.
+
+        cf. lxml `_Element.clear()` method which removes all children.
+        """
+        for p in self.p_lst:
+            self.remove(p)
 
     @property
     def defRPr(self):
@@ -64,6 +71,20 @@ class CT_TextBody(BaseOxmlElement):
         pPr = p.get_or_add_pPr()
         defRPr = pPr.get_or_add_defRPr()
         return defRPr
+
+    @property
+    def is_empty(self):
+        """True if only a single empty `a:p` element is present."""
+        ps = self.p_lst
+        if len(ps) > 1:
+            return False
+
+        if not ps:
+            raise InvalidXmlError('p:txBody must have at least one a:p')
+
+        if ps[0].text != '':
+            return False
+        return True
 
     @classmethod
     def new(cls):
@@ -112,6 +133,16 @@ class CT_TextBody(BaseOxmlElement):
         ) % nsdecls('c', 'a')
         txPr = parse_xml(xml)
         return txPr
+
+    def unclear_content(self):
+        """Ensure p:txBody has at least one a:p child.
+
+        Intuitively, reverse a ".clear_content()" operation to minimum
+        conformance with spec (single empty paragraph).
+        """
+        if len(self.p_lst) > 0:
+            return
+        self.add_p()
 
     @classmethod
     def _a_txBody_tmpl(cls):
@@ -283,9 +314,8 @@ class CT_TextNormalAutofit(BaseOxmlElement):
 
 
 class CT_TextParagraph(BaseOxmlElement):
-    """
-    <a:p> custom element class
-    """
+    """`a:p` custom element class"""
+
     pPr = ZeroOrOne('a:pPr', successors=(
         'a:r', 'a:br', 'a:fld', 'a:endParaRPr'
     ))
@@ -321,8 +351,14 @@ class CT_TextParagraph(BaseOxmlElement):
         A sequence containing the text-container child elements of this
         ``<a:p>`` element, i.e. (a:r|a:br|a:fld).
         """
-        text_types = (CT_RegularTextRun, CT_TextLineBreak, CT_TextField)
-        return tuple(elm for elm in self if isinstance(elm, text_types))
+        text_types = {CT_RegularTextRun, CT_TextLineBreak, CT_TextField}
+        return tuple(elm for elm in self if type(elm) in text_types)
+
+    @property
+    def text(self):
+        """str text contained in this paragraph."""
+        # ---note this shadows the lxml _Element.text---
+        return ''.join([child.text for child in self.content_children])
 
     def _new_r(self):
         r_xml = '<a:r %s><a:t/></a:r>' % nsdecls('a')
