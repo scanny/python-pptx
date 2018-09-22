@@ -83,6 +83,14 @@ class DescribeTcRange(object):
 
         assert in_same_table is expected_value
 
+    def it_can_iterate_top_row_of_range_tcs(self, top_row_fixture):
+        tc, other_tc, expected_value = top_row_fixture
+        tc_range = TcRange(tc, other_tc)
+
+        tcs = list(tc_range.iter_top_row_tcs())
+
+        assert tcs == expected_value
+
     def it_can_migrate_range_content_to_origin_cell(self, move_fixture):
         tc, other_tc, expected_text = move_fixture
         tc_range = TcRange(tc, other_tc)
@@ -144,3 +152,17 @@ class DescribeTcRange(object):
         tbl_cxml, expected_text = request.param
         tcs = element(tbl_cxml).xpath('//a:tc')
         return tcs[0], tcs[1], expected_text
+
+    @pytest.fixture(params=[
+        ('a:tbl/a:tr/(a:tc,a:tc)', (0, 1), (0, 1)),
+        ('a:tbl/(a:tr/a:tc,a:tr/a:tc)', (0, 1), (0,)),
+        ('a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))', (2, 1), (0, 1)),
+        ('a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc'
+         ',a:tc))', (4, 8), (4, 5)),
+    ])
+    def top_row_fixture(self, request):
+        tbl_cxml, tc_idxs, expected_tc_idxs = request.param
+        tcs = element(tbl_cxml).xpath('//a:tc')
+        tc, other_tc = tcs[tc_idxs[0]], tcs[tc_idxs[1]]
+        expected_value = [tcs[idx] for idx in expected_tc_idxs]
+        return tc, other_tc, expected_value
