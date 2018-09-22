@@ -10,7 +10,9 @@ from pptx.enum.text import MSO_VERTICAL_ANCHOR
 from pptx.oxml import parse_xml
 from pptx.oxml.dml.fill import CT_GradientFillProperties
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.simpletypes import ST_Coordinate, ST_Coordinate32, XsdBoolean
+from pptx.oxml.simpletypes import (
+    ST_Coordinate, ST_Coordinate32, XsdBoolean, XsdInt
+)
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement, Choice, OneAndOnlyOne, OptionalAttribute,
@@ -163,11 +165,17 @@ class CT_Table(BaseOxmlElement):
 
 
 class CT_TableCell(BaseOxmlElement):
-    """
-    ``<a:tc>`` custom element class
-    """
-    txBody = ZeroOrOne('a:txBody', successors=('a:tcPr', 'a:extLst',))
-    tcPr = ZeroOrOne('a:tcPr', successors=('a:extLst',))
+    """`a:tc` custom element class"""
+
+    _tag_seq = ('a:txBody', 'a:tcPr', 'a:extLst')
+    txBody = ZeroOrOne('a:txBody', successors=_tag_seq[1:])
+    tcPr = ZeroOrOne('a:tcPr', successors=_tag_seq[2:])
+    del _tag_seq
+
+    gridSpan = OptionalAttribute('gridSpan', XsdInt, default=1)
+    rowSpan = OptionalAttribute('rowSpan', XsdInt, default=1)
+    hMerge = OptionalAttribute('hMerge', XsdBoolean, default=False)
+    vMerge = OptionalAttribute('vMerge', XsdBoolean, default=False)
 
     @property
     def anchor(self):
@@ -188,6 +196,15 @@ class CT_TableCell(BaseOxmlElement):
             return
         tcPr = self.get_or_add_tcPr()
         tcPr.anchor = anchor_enum_idx
+
+    @property
+    def is_merge_origin(self):
+        """True if cell is top-left in merged cell range."""
+        if self.gridSpan > 1 and not self.vMerge:
+            return True
+        if self.rowSpan > 1 and not self.hMerge:
+            return True
+        return False
 
     @property
     def marT(self):

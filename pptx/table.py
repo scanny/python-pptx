@@ -183,6 +183,11 @@ class _Cell(Subshape):
         return FillFormat.from_fill_parent(tcPr)
 
     @property
+    def is_merge_origin(self):
+        """True if this cell is the top-left grid cell in a merged cell."""
+        return self._tc.is_merge_origin
+
+    @property
     def margin_left(self):
         """
         Read/write integer value of left margin of cell as a |Length| value

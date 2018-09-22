@@ -189,6 +189,14 @@ class Describe_Cell(object):
         cell = fill_fixture
         assert isinstance(cell.fill, FillFormat)
 
+    def it_knows_whether_it_is_merge_origin_cell(self, origin_fixture):
+        tc, expected_value = origin_fixture
+        cell = _Cell(tc, None)
+
+        is_merge_origin = cell.is_merge_origin
+
+        assert is_merge_origin is expected_value
+
     def it_knows_its_margin_settings(self, margin_get_fixture):
         cell, margin_prop_name, expected_value = margin_get_fixture
         margin_value = getattr(cell, margin_prop_name)
@@ -291,6 +299,20 @@ class Describe_Cell(object):
         cell = _Cell(element('a:tc'), None)
         val_of_invalid_type = 'foobar'
         return cell, margin_prop_name, val_of_invalid_type
+
+    @pytest.fixture(params=[
+        ('a:tc', False),
+        ('a:tc{gridSpan=1}', False),
+        ('a:tc{hMerge=1}', False),
+        ('a:tc{gridSpan=2,vMerge=1}', False),
+        ('a:tc{gridSpan=2}', True),
+        ('a:tc{rowSpan=2}', True),
+        ('a:tc{gridSpan=2,rowSpan=3}', True),
+    ])
+    def origin_fixture(self, request):
+        tc_cxml, expected_value = request.param
+        tc = element(tc_cxml)
+        return tc, expected_value
 
     @pytest.fixture(params=[
         ('a:tc', 'foobar',
