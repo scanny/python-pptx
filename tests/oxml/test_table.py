@@ -83,6 +83,14 @@ class DescribeTcRange(object):
 
         assert in_same_table is expected_value
 
+    def it_can_iterate_tcs_not_in_left_col_of_range(self, except_left_fixture):
+        tc, other_tc, expected_value = except_left_fixture
+        tc_range = TcRange(tc, other_tc)
+
+        tcs = list(tc_range.iter_except_left_col_tcs())
+
+        assert tcs == expected_value
+
     def it_can_iterate_left_col_of_range_tcs(self, left_col_fixture):
         tc, other_tc, expected_value = left_col_fixture
         tc_range = TcRange(tc, other_tc)
@@ -132,6 +140,20 @@ class DescribeTcRange(object):
         tbl_cxml, expected_value = request.param
         tcs = element(tbl_cxml).xpath('//a:tc')
         return tcs[0], tcs[-1], expected_value
+
+    @pytest.fixture(params=[
+        ('a:tbl/a:tr/(a:tc,a:tc)', [0, 1], [1]),
+        ('a:tbl/(a:tr/a:tc,a:tr/a:tc)', [0, 1], []),
+        ('a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))', [2, 1], [1, 3]),
+        ('a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc'
+         ',a:tc))', [0, 8], [1, 2, 4, 5, 7, 8]),
+    ])
+    def except_left_fixture(self, request):
+        tbl_cxml, tc_idxs, expected_tc_idxs = request.param
+        tcs = element(tbl_cxml).xpath('//a:tc')
+        tc, other_tc = tcs[tc_idxs[0]], tcs[tc_idxs[1]]
+        expected_value = [tcs[idx] for idx in expected_tc_idxs]
+        return tc, other_tc, expected_value
 
     @pytest.fixture(params=[True, False])
     def in_same_table_fixture(self, request):
