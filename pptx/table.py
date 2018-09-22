@@ -188,6 +188,15 @@ class _Cell(Subshape):
         return self._tc.is_merge_origin
 
     @property
+    def is_spanned(self):
+        """True if this cell is spanned by a merge-origin cell.
+
+        A merge-origin cell "spans" the other grid cells in its merge range,
+        consuming their area and "shadowing" the spanned grid cells.
+        """
+        return self._tc.is_spanned
+
+    @property
     def margin_left(self):
         """
         Read/write integer value of left margin of cell as a |Length| value

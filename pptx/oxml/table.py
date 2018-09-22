@@ -207,6 +207,11 @@ class CT_TableCell(BaseOxmlElement):
         return False
 
     @property
+    def is_spanned(self):
+        """True if cell is in merged cell range but not merge origin cell."""
+        return self.hMerge or self.vMerge
+
+    @property
     def marT(self):
         """
         Read/write integer top margin value represented in ``marT`` attribute

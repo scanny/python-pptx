@@ -21,7 +21,6 @@ Feature: Table cell proxy objects
      Then cell.fill is a FillFormat object
 
 
-  @wip
   Scenario Outline: Cell role discovery
     Given a <role> _Cell object as cell
      Then cell.is_merge_origin is <is_merge_origin>

@@ -197,6 +197,14 @@ class Describe_Cell(object):
 
         assert is_merge_origin is expected_value
 
+    def it_knows_whether_it_is_spanned(self, spanned_fixture):
+        tc, expected_value = spanned_fixture
+        cell = _Cell(tc, None)
+
+        is_spanned = cell.is_spanned
+
+        assert is_spanned is expected_value
+
     def it_knows_its_margin_settings(self, margin_get_fixture):
         cell, margin_prop_name, expected_value = margin_get_fixture
         margin_value = getattr(cell, margin_prop_name)
@@ -310,6 +318,19 @@ class Describe_Cell(object):
         ('a:tc{gridSpan=2,rowSpan=3}', True),
     ])
     def origin_fixture(self, request):
+        tc_cxml, expected_value = request.param
+        tc = element(tc_cxml)
+        return tc, expected_value
+
+    @pytest.fixture(params=[
+        ('a:tc', False),
+        ('a:tc{gridSpan=2}', False),
+        ('a:tc{hMerge=1}', True),
+        ('a:tc{gridSpan=2,vMerge=1}', True),
+        ('a:tc{rowSpan=2,hMerge=true}', True),
+        ('a:tc{gridSpan=2,rowSpan=3}', False),
+    ])
+    def spanned_fixture(self, request):
         tc_cxml, expected_value = request.param
         tc = element(tc_cxml)
         return tc, expected_value
