@@ -480,7 +480,9 @@ class TcRange(object):
 
     def iter_except_top_row_tcs(self):
         """Generate each `a:tc` element in non-first rows of range."""
-        raise NotImplementedError
+        for tr in self._tbl.tr_lst[self._top + 1:self._bottom]:
+            for tc in tr.tc_lst[self._left:self._right]:
+                yield tc
 
     def iter_left_col_tcs(self):
         """Generate each `a:tc` element in leftmost column of range."""
