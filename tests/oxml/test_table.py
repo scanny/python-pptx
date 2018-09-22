@@ -67,6 +67,14 @@ class DescribeTcRange(object):
 
         assert contains_merged_cell is expected_value
 
+    def it_knows_how_big_the_merge_range_is(self, dimensions_fixture):
+        tc, other_tc, expected_value = dimensions_fixture
+        tc_range = TcRange(tc, other_tc)
+
+        dimensions = tc_range.dimensions
+
+        assert dimensions == expected_value
+
     def it_knows_when_tcs_are_in_the_same_tbl(self, in_same_table_fixture):
         tc, other_tc, expected_value = in_same_table_fixture
         tc_range = TcRange(tc, other_tc)
@@ -98,6 +106,16 @@ class DescribeTcRange(object):
         tbl_cxml, expected_value = request.param
         tcs = element(tbl_cxml).xpath('//a:tc')
         return tcs[0], tcs[1], expected_value
+
+    @pytest.fixture(params=[
+        ('a:tbl/a:tr/(a:tc,a:tc)', (1, 2)),
+        ('a:tbl/(a:tr/a:tc,a:tr/a:tc)', (2, 1)),
+        ('a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))', (2, 2)),
+    ])
+    def dimensions_fixture(self, request):
+        tbl_cxml, expected_value = request.param
+        tcs = element(tbl_cxml).xpath('//a:tc')
+        return tcs[0], tcs[-1], expected_value
 
     @pytest.fixture(params=[True, False])
     def in_same_table_fixture(self, request):
