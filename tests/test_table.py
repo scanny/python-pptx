@@ -279,6 +279,16 @@ class Describe_Cell(object):
         span_width = cell.span_width
         assert span_width == expected_value
 
+    def it_knows_what_text_it_contains(self, text_get_fixture):
+        cell, expected_value = text_get_fixture
+        text = cell.text
+        assert text == expected_value
+
+    def it_can_replace_its_text_with_a_string(self, text_set_fixture):
+        cell, text, expected_xml = text_set_fixture
+        cell.text = text
+        assert cell._tc.xml == expected_xml
+
     def it_knows_its_vertical_anchor_setting(self, anchor_get_fixture):
         cell, expected_value = anchor_get_fixture
         assert cell.vertical_anchor == expected_value
@@ -286,11 +296,6 @@ class Describe_Cell(object):
     def it_can_change_its_vertical_anchor(self, anchor_set_fixture):
         cell, new_value, expected_xml = anchor_set_fixture
         cell.vertical_anchor = new_value
-        assert cell._tc.xml == expected_xml
-
-    def it_can_replace_its_contents_with_a_string(self, text_set_fixture):
-        cell, text, expected_xml = text_set_fixture
-        cell.text = text
         assert cell._tc.xml == expected_xml
 
     # fixtures -------------------------------------------------------
@@ -404,10 +409,27 @@ class Describe_Cell(object):
         return tc, expected_value
 
     @pytest.fixture(params=[
+        ('a:tc',
+         ''),
+        ('a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")',
+         'foobar'),
+        ('a:tc/a:txBody/(a:bodyPr,a:p/(a:r/a:t"foo",a:br,a:r/a:t"bar"))',
+         'foo\nbar'),
+        ('a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',
+         'foo\nbar'),
+    ])
+    def text_get_fixture(self, request):
+        tc_cxml, expected_value = request.param
+        cell = _Cell(element(tc_cxml), None)
+        return cell, expected_value
+
+    @pytest.fixture(params=[
         ('a:tc', 'foobar',
          'a:tc/a:txBody/(a:bodyPr, a:p/a:r/a:t"foobar")'),
         ('a:tc/a:txBody/(a:bodyPr, a:p/a:r/(a:br,a:t"bar"))', 'foobar',
          'a:tc/a:txBody/(a:bodyPr, a:p/a:r/a:t"foobar")'),
+        ('a:tc/a:txBody/(a:bodyPr, a:p/a:r/a:t"foobar")', 'bar\nfoo',
+         'a:tc/a:txBody/(a:bodyPr, a:p/(a:r/a:t"bar",a:br,a:r/a:t"foo"))'),
     ])
     def text_set_fixture(self, request):
         tc_cxml, new_text, expected_cxml = request.param

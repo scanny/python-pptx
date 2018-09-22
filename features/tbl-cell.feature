@@ -54,7 +54,6 @@ Feature: Table cell proxy objects
       | bottom | Inches(0.3) | Inches(0.3)  |
 
 
-  @wip
   Scenario: _Cell.merge()
     Given a 3x3 Table object with cells a to i as table
      When I assign origin_cell = table.cell(0, 0)
@@ -72,13 +71,11 @@ Feature: Table cell proxy objects
       And cell.span_width == 3
 
 
-  @wip
   Scenario: _Cell.text getter
     Given a _Cell object containing "unladen swallows" as cell
      Then cell.text == "unladen swallows"
 
 
-  @wip
   Scenario: _Cell.text setter
     Given a _Cell object as cell
      When I assign cell.text = "test text"

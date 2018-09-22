@@ -601,16 +601,16 @@ class _Paragraph(Subshape):
 
     @property
     def text(self):
-        """
-        Read/write. A single unicode string containing all the text in this
-        paragraph. Formed by concatenating the text in each run and field
-        making up the paragraph, adding a line feed character ('\\\\n') for
-        each line break element encountered. Assignment causes all content in
-        the paragraph to be replaced by a single run containing the assigned
-        text. Each line feed character in the assigned text is replaced
-        with a line break. The assigned value can be a 7-bit ASCII string,
-        a UTF-8 encoded 8-bit string, or unicode. String values are converted
-        to unicode assuming UTF-8 encoding.
+        """str (unicode) representation of paragraph contents.
+
+        Read/write. This value is formed by concatenating the text in each
+        run and field making up the paragraph, adding a line feed character
+        ('\\\\n') for each line break element encountered. Assignment causes
+        all content in the paragraph to be replaced, with each line feed
+        character in the assigned text replaced with a line break. The
+        assigned value can be a 7-bit ASCII string, a UTF-8 encoded 8-bit
+        string, or unicode. String values are converted to unicode assuming
+        UTF-8 encoding.
         """
         return ''.join(elm.text for elm in self._element.content_children)
 

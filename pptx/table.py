@@ -300,18 +300,21 @@ class _Cell(Subshape):
         """
         return self._tc.gridSpan
 
-    def text(self, text):
-        """
-        Replace all text in cell with single run containing *text*
-        """
-        self.text_frame.text = to_unicode(text)
+    @property
+    def text(self):
+        """str representation of cell contents.
 
-    #: Write-only. Assignment to *text* replaces all text currently contained
-    #: in the cell, resulting in a text frame containing exactly one
-    #: paragraph, itself containing a single run. The assigned value can be a
-    #: 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. String
-    #: values are converted to unicode assuming UTF-8 encoding.
-    text = property(None, text)
+        Assignment to *text* replaces all text currently contained in the
+        cell, resulting in a text frame containing exactly one paragraph,
+        itself containing a single run. The assigned value can be a 7-bit
+        ASCII string, a UTF-8 encoded 8-bit string, or unicode. String values
+        are converted to unicode assuming UTF-8 encoding.
+        """
+        return self.text_frame.text
+
+    @text.setter
+    def text(self, text):
+        self.text_frame.text = to_unicode(text)
 
     @property
     def text_frame(self):
