@@ -339,11 +339,18 @@ class CT_TextParagraph(BaseOxmlElement):
         return r
 
     def append_text(self, text):
+        """Append `a:r` and `a:br` elements to *p* based on *text*.
+
+        Any `\n` characters in *text* delimit `a:r` (run) elements and
+        themselves are translated to `a:br` (line-break) elements.
         """
-        Add *text* at the end of this paragraph element, translating line
-        feed characters ('\n') into ``<a:br>`` elements.
-        """
-        _ParagraphTextAppender.append_to_p_from_text(self, text)
+        for idx, r_str in enumerate(text.split('\n')):
+            # ---breaks are only added *between* items, not at start---
+            if idx > 0:
+                self.add_br()
+            # ---runs that would be empty are not added---
+            if r_str:
+                self.add_r(r_str)
 
     @property
     def content_children(self):
@@ -491,55 +498,3 @@ class CT_TextSpacingPoint(BaseOxmlElement):
     attribute.
     """
     val = RequiredAttribute('val', ST_TextSpacingPoint)
-
-
-class _ParagraphTextAppender(object):
-    """
-    Service object that knows how to translate a Python string into run and
-    line break elements appended to a specified ``<a:p>`` element. Contiguous
-    sequences of regular characters are appended in a single ``<a:r>``
-    element. A newline character ('\n') causes a ``<a:br>`` element to be
-    appended.
-    """
-    def __init__(self, p):
-        self._p = p
-        self._bfr = []
-
-    @classmethod
-    def append_to_p_from_text(cls, p, text):
-        """
-        Create a "one-shot" ``_ParagraphTextAppender`` instance and use it to
-        append ``<a:r>`` and ``<a:br>`` elements to *p* that correspond to
-        the contents of *text*.
-        """
-        appender = cls(p)
-        appender._add_text(text)
-
-    def _add_text(self, text):
-        """
-        Append the paragraph content elements corresponding to *text* to the
-        ``<a:p>`` element of this instance.
-        """
-        for char in text:
-            self._add_char(char)
-        self._flush()
-
-    def _add_char(self, char):
-        """
-        Process the next character of input through the translation finite
-        state maching (FSM). There are two possible states, buffer pending
-        and not pending, but those are hidden behind the ``.flush()`` method
-        which must be called at the end of text to ensure any pending
-        ``<a:r>`` element is written.
-        """
-        if char == '\n':
-            self._flush()
-            self._p.add_br()
-        else:
-            self._bfr.append(char)
-
-    def _flush(self):
-        text = ''.join(self._bfr)
-        if text:
-            self._p.add_r(text)
-        del self._bfr[:]
