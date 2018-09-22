@@ -71,6 +71,15 @@ Feature: Table cell proxy objects
       And cell.span_width == 3
 
 
+  @wip
+  Scenario: _Cell.split()
+    Given a merge-origin _Cell object as cell
+     When I call cell.split()
+     Then cell.is_merge_origin is False
+      And cell.span_height == 1
+      And cell.span_width == 1
+
+
   Scenario: _Cell.text getter
     Given a _Cell object containing "unladen swallows" as cell
      Then cell.text == "unladen swallows"

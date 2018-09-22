@@ -120,6 +120,11 @@ def when_I_assign_other_cell_eq_table_cell_1_1(context):
     context.other_cell = context.table_.cell(1, 1)
 
 
+@when('I call cell.split()')
+def when_I_call_cell_split_other_cell(context):
+    context.cell.split()
+
+
 @when('I call origin_cell.merge(other_cell)')
 def when_I_call_origin_cell_merge_other_cell(context):
     context.origin_cell.merge(context.other_cell)
