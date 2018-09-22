@@ -26,12 +26,12 @@ class Table(object):
         self._graphic_frame = graphic_frame
 
     def cell(self, row_idx, col_idx):
+        """Return cell at *row_idx*, *col_idx*.
+
+        Return value is an instance of |_Cell|. *row_idx* and *col_idx* are
+        zero-based, e.g. cell(0, 0) is the top, left cell in the table.
         """
-        Return table cell at *row_idx*, *col_idx* location. Indexes are
-        zero-based, e.g. cell(0, 0) is the top, left cell.
-        """
-        row = self.rows[row_idx]
-        return row.cells[col_idx]
+        return _Cell(self._tbl.tc(row_idx, col_idx), self)
 
     @lazyproperty
     def columns(self):
@@ -324,18 +324,18 @@ class _CellCollection(Subshape):
         self._tr = tr
 
     def __getitem__(self, idx):
-        """
-        Provides indexed access, (e.g. 'cells[0]').
-        """
+        """Provides indexed access, (e.g. 'cells[0]')."""
         if idx < 0 or idx >= len(self._tr.tc_lst):
             msg = "cell index [%d] out of range" % idx
             raise IndexError(msg)
         return _Cell(self._tr.tc_lst[idx], self)
 
+    def __iter__(self):
+        """Provides iterability."""
+        return (_Cell(tc, self) for tc in self._tr.tc_lst)
+
     def __len__(self):
-        """
-        Supports len() function (e.g. 'len(cells) == 1').
-        """
+        """Supports len() function (e.g. 'len(cells) == 1')."""
         return len(self._tr.tc_lst)
 
 

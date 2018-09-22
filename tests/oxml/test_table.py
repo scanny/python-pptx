@@ -9,6 +9,8 @@ from __future__ import (
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.table import CT_Table
 
+from ..unitutil.cxml import element
+
 
 class DescribeCT_Table(object):
 
@@ -40,3 +42,13 @@ class DescribeCT_Table(object):
         )
         tbl = CT_Table.new_tbl(2, 3, 334, 445)
         assert tbl.xml == expected_xml
+
+    def it_provides_access_to_its_tc_elements(self):
+        tbl_cxml = 'a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))'
+        tbl = element(tbl_cxml)
+        tcs = tbl.xpath('.//a:tc')
+
+        assert tbl.tc(0, 0) is tcs[0]
+        assert tbl.tc(0, 1) is tcs[1]
+        assert tbl.tc(1, 0) is tcs[2]
+        assert tbl.tc(1, 1) is tcs[3]

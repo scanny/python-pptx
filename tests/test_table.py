@@ -11,6 +11,7 @@ import pytest
 from pptx.dml.fill import FillFormat
 from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml.ns import qn
+from pptx.oxml.table import CT_Table, CT_TableCell
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.table import (
     _Cell, _CellCollection, _Column, _ColumnCollection, _Row, _RowCollection,
@@ -19,15 +20,22 @@ from pptx.table import (
 from pptx.util import Inches, Length, Pt
 
 from .unitutil.cxml import element, xml
-from .unitutil.mock import class_mock, instance_mock
+from .unitutil.mock import call, class_mock, instance_mock
 
 
 class DescribeTable(object):
 
-    def it_provides_access_to_its_cells(self, cell_fixture):
-        table, row_idx, col_idx, expected_cell_ = cell_fixture
+    def it_provides_access_to_its_cells(self, tbl_, tc_, _Cell_, cell_):
+        row_idx, col_idx = 4, 2
+        tbl_.tc.return_value = tc_
+        _Cell_.return_value = cell_
+        table = Table(tbl_, None)
+
         cell = table.cell(row_idx, col_idx)
-        assert cell is expected_cell_
+
+        tbl_.tc.assert_called_once_with(row_idx, col_idx)
+        _Cell_.assert_called_once_with(tc_, table)
+        assert cell is cell_
 
     def it_provides_access_to_its_rows(self, rows_fixture):
         table, expected_rows_ = rows_fixture
@@ -48,13 +56,6 @@ class DescribeTable(object):
         assert table._graphic_frame.height == expected_height
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def cell_fixture(self, table, row_, cell_):
-        table._rows = [row_]
-        row_.cells = [cell_]
-        row_idx = col_idx = 0
-        return table, row_idx, col_idx, cell_
 
     @pytest.fixture
     def columns_fixture(self, table, columns_):
@@ -83,6 +84,10 @@ class DescribeTable(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def _Cell_(self, request):
+        return class_mock(request, 'pptx.table._Cell')
+
+    @pytest.fixture
     def cell_(self, request):
         return instance_mock(request, _Cell)
 
@@ -95,16 +100,20 @@ class DescribeTable(object):
         return instance_mock(request, GraphicFrame)
 
     @pytest.fixture
-    def row_(self, request):
-        return instance_mock(request, _Row)
-
-    @pytest.fixture
     def rows_(self, request):
         return instance_mock(request, _RowCollection)
 
     @pytest.fixture
     def table(self):
         return Table(element('a:tbl'), None)
+
+    @pytest.fixture
+    def tbl_(self, request):
+        return instance_mock(request, CT_Table)
+
+    @pytest.fixture
+    def tc_(self, request):
+        return instance_mock(request, CT_TableCell)
 
 
 class DescribeTableBooleanProperties(object):
@@ -299,20 +308,23 @@ class Describe_CellCollection(object):
         assert len(cells) == expected_count
 
     def it_can_iterate_over_the_cells_it_contains(self, iter_fixture):
-        cells, expected_tc_lst = iter_fixture
-        count = 0
-        for idx, cell in enumerate(cells):
-            assert isinstance(cell, _Cell)
-            assert cell._tc is expected_tc_lst[idx]
-            count += 1
-        assert count == len(expected_tc_lst)
+        cell_collection, _Cell_, calls, expected_cells = iter_fixture
 
-    def it_supports_indexed_access(self, getitem_fixture):
-        cells, expected_tc_lst = getitem_fixture
-        for idx, tc in enumerate(expected_tc_lst):
-            cell = cells[idx]
-            assert isinstance(cell, _Cell)
-            assert cell._tc is tc
+        cells = list(cell_collection)
+
+        assert _Cell_.call_args_list == calls
+        assert cells == expected_cells
+
+    def it_supports_indexed_access(self, _Cell_, cell_):
+        tr = element('a:tr/(a:tc, a:tc, a:tc)')
+        tcs = tr.xpath('//a:tc')
+        _Cell_.return_value = cell_
+        cell_collection = _CellCollection(tr, None)
+
+        cell = cell_collection[1]
+
+        _Cell_.assert_called_once_with(tcs[1], cell_collection)
+        assert cell is cell_
 
     def it_raises_on_indexed_access_out_of_range(self):
         cells = _CellCollection(element('a:tr/a:tc'), None)
@@ -326,22 +338,20 @@ class Describe_CellCollection(object):
     @pytest.fixture(params=[
         'a:tr', 'a:tr/a:tc', 'a:tr/(a:tc, a:tc, a:tc)',
     ])
-    def getitem_fixture(self, request):
+    def iter_fixture(self, request, _Cell_):
         tr_cxml = request.param
         tr = element(tr_cxml)
-        cells = _CellCollection(tr, None)
-        expected_cell_lst = tr.findall(qn('a:tc'))
-        return cells, expected_cell_lst
+        tcs = tr.xpath('//a:tc')
+        cell_collection = _CellCollection(tr, None)
 
-    @pytest.fixture(params=[
-        'a:tr', 'a:tr/a:tc', 'a:tr/(a:tc, a:tc, a:tc)',
-    ])
-    def iter_fixture(self, request):
-        tr_cxml = request.param
-        tr = element(tr_cxml)
-        cells = _CellCollection(tr, None)
-        expected_cell_lst = tr.findall(qn('a:tc'))
-        return cells, expected_cell_lst
+        expected_cells = [
+            instance_mock(request, _Cell, name='cell%d' % idx)
+            for idx in range(len(tcs))
+        ]
+        _Cell_.side_effect = expected_cells
+        calls = [call(tc, cell_collection) for tc in tcs]
+
+        return cell_collection, _Cell_, calls, expected_cells
 
     @pytest.fixture(params=[
         ('a:tr', 0), ('a:tr/a:tc', 1), ('a:tr/(a:tc, a:tc)', 2),
@@ -350,6 +360,16 @@ class Describe_CellCollection(object):
         tr_cxml, expected_len = request.param
         cells = _CellCollection(element(tr_cxml), None)
         return cells, expected_len
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def _Cell_(self, request):
+        return class_mock(request, 'pptx.table._Cell')
+
+    @pytest.fixture
+    def cell_(self, request):
+        return instance_mock(request, _Cell)
 
 
 class Describe_Column(object):
