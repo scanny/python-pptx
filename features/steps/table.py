@@ -12,15 +12,15 @@ from pptx import Presentation
 from pptx.enum.text import MSO_ANCHOR  # noqa
 from pptx.util import Inches
 
-from helpers import saved_pptx_path, test_pptx
+from helpers import test_pptx
 
 
 # given ===================================================
 
-@given('a 2x2 table')
-def given_a_2x2_table(context):
+@given('a Table object as table')
+@given('a 2x2 Table object as table')
+def given_a_2x2_Table_object_as_table(context):
     prs = Presentation(test_pptx('shp-shapes'))
-    context.prs = prs
     context.table_ = prs.slides[0].shapes[3].table
 
 
@@ -85,15 +85,13 @@ def given_a_second_proxy_instance_for_that_cell_as_other_cell(context):
     assert context.other_cell
 
 
+@given('a _Column object as column')
+def given_a_Column_object_as_column(context):
+    prs = Presentation(test_pptx('shp-shapes'))
+    context.column = prs.slides[0].shapes[3].table.columns[0]
+
+
 # when ====================================================
-
-@when("I add a table to the slide's shape collection")
-def when_I_add_a_table(context):
-    shapes = context.slide.shapes
-    x, y = (Inches(1.00), Inches(2.00))
-    cx, cy = (Inches(3.00), Inches(1.00))
-    shapes.add_table(2, 2, x, y, cx, cy)
-
 
 @when('I assign cell.margin_{side} = {value}')
 def when_I_assign_cell_margin_side_eq_value(context, value, side):
@@ -110,6 +108,11 @@ def when_I_assign_cell_vertical_anchor_eq_value(context, value):
     context.cell.vertical_anchor = eval(value)
 
 
+@when('I assign column.width = {value}')
+def when_I_assign_column_width_eq_value(context, value):
+    context.column.width = eval(value)
+
+
 @when('I assign origin_cell = table.cell(0, 0)')
 def when_I_assign_origin_cell_eq_table_cell_0_0(context):
     context.origin_cell = context.table_.cell(0, 0)
@@ -120,6 +123,36 @@ def when_I_assign_other_cell_eq_table_cell_1_1(context):
     context.other_cell = context.table_.cell(1, 1)
 
 
+@when("I assign table.first_col = True")
+def when_I_assign_table_first_col_eq_True(context):
+    context.table_.first_col = True
+
+
+@when("I assign table.first_row = True")
+def when_I_assign_table_first_row_eq_True(context):
+    context.table_.first_row = True
+
+
+@when("I assign table.horz_banding = True")
+def when_I_assign_table_horz_banding_eq_True(context):
+    context.table_.horz_banding = True
+
+
+@when("I assign table.last_col = True")
+def when_I_assign_table_last_col_eq_True(context):
+    context.table_.last_col = True
+
+
+@when("I assign table.last_row = True")
+def when_I_assign_table_last_row_eq_True(context):
+    context.table_.last_row = True
+
+
+@when("I assign table.vert_banding = True")
+def when_I_assign_table_vert_banding_eq_True(context):
+    context.table_.vert_banding = True
+
+
 @when('I call cell.split()')
 def when_I_call_cell_split_other_cell(context):
     context.cell.split()
@@ -128,42 +161,6 @@ def when_I_call_cell_split_other_cell(context):
 @when('I call origin_cell.merge(other_cell)')
 def when_I_call_origin_cell_merge_other_cell(context):
     context.origin_cell.merge(context.other_cell)
-
-
-@when("I set the first_col property to True")
-def when_set_first_col_property_to_true(context):
-    context.table_.first_col = True
-
-
-@when("I set the first_row property to True")
-def when_set_first_row_property_to_true(context):
-    context.table_.first_row = True
-
-
-@when("I set the horz_banding property to True")
-def when_set_horz_banding_property_to_true(context):
-    context.table_.horz_banding = True
-
-
-@when("I set the last_col property to True")
-def when_set_last_col_property_to_true(context):
-    context.table_.last_col = True
-
-
-@when("I set the last_row property to True")
-def when_set_last_row_property_to_true(context):
-    context.table_.last_row = True
-
-
-@when("I set the vert_banding property to True")
-def when_set_vert_banding_property_to_true(context):
-    context.table_.vert_banding = True
-
-
-@when("I set the width of the table's columns")
-def when_set_table_column_widths(context):
-    context.table_.columns[0].width = Inches(1.50)
-    context.table_.columns[1].width = Inches(3.00)
 
 
 # then ====================================================
@@ -234,52 +231,71 @@ def then_cell_vertical_anchor_eq_value(context, value):
     assert actual == expected, 'cell.vertical_anchor == %s' % actual
 
 
-@then('the columns of the table have alternating shading')
-def then_columns_of_table_have_alternating_shading(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
-    assert table.vert_banding is True
+@then('column.width.inches == {float_lit}')
+def then_column_width_inches_eq(context, float_lit):
+    actual = context.column.width.inches
+    expected = float(float_lit)
+    assert actual == expected, 'column.width.inches == %s' % actual
 
 
-@then('the first column of the table has special formatting')
-def then_first_column_of_table_has_special_formatting(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
-    assert table.first_col is True
+@then('table.cell(0, 0) is a {type_name} object')
+def then_table_cell_0_0_is_a_type_object(context, type_name):
+    actual = type(context.table_.cell(0, 0)).__name__
+    expected = type_name
+    assert actual == expected, 'table.cell(0, 0) is a %s object' % actual
 
 
-@then('the first row of the table has special formatting')
-def then_first_row_of_table_has_special_formatting(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
-    assert table.first_row is True
+@then('table.columns is a {type_name} object')
+def then_table_columns_is_a_type_object(context, type_name):
+    actual = type(context.table_.columns).__name__
+    expected = type_name
+    assert actual == expected, 'table.columns is a %s object' % actual
 
 
-@then('the last column of the table has special formatting')
-def then_last_column_of_table_has_special_formatting(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
-    assert table.last_col is True
+@then('table.first_col is {bool_lit}')
+def then_table_first_col_is_value(context, bool_lit):
+    actual = context.table_.first_col
+    expected = eval(bool_lit)
+    assert actual is expected, 'table.first_col is %s' % actual
 
 
-@then('the last row of the table has special formatting')
-def then_last_row_of_table_has_special_formatting(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
-    assert table.last_row is True
+@then('table.first_row is {bool_lit}')
+def then_table_first_row_is_value(context, bool_lit):
+    actual = context.table_.first_row
+    expected = eval(bool_lit)
+    assert actual is expected, 'table.first_row is %s' % actual
 
 
-@then('the rows of the table have alternating shading')
-def then_rows_of_table_have_alternating_shading(context):
-    table = Presentation(saved_pptx_path).slides[0].shapes[3].table
-    assert table.horz_banding is True
+@then('table.horz_banding is {bool_lit}')
+def then_table_horz_banding_is_value(context, bool_lit):
+    actual = context.table_.horz_banding
+    expected = eval(bool_lit)
+    assert actual is expected, 'table.horz_banding is %s' % actual
 
 
-@then('the table appears in the slide')
-def then_the_table_appears_in_the_slide(context):
-    prs = Presentation(saved_pptx_path)
-    expected_table_graphic_frame = prs.slides[0].shapes[0]
-    assert expected_table_graphic_frame.has_table
+@then('table.last_col is {bool_lit}')
+def then_table_last_col_is_value(context, bool_lit):
+    actual = context.table_.last_col
+    expected = eval(bool_lit)
+    assert actual is expected, 'table.last_col is %s' % actual
 
 
-@then('the table appears with the new column widths')
-def then_table_appears_with_new_col_widths(context):
-    prs = Presentation(saved_pptx_path)
-    table = prs.slides[0].shapes[3].table
-    assert table.columns[0].width == Inches(1.50)
-    assert table.columns[1].width == Inches(3.00)
+@then('table.last_row is {bool_lit}')
+def then_table_last_row_is_value(context, bool_lit):
+    actual = context.table_.last_row
+    expected = eval(bool_lit)
+    assert actual is expected, 'table.last_row is %s' % actual
+
+
+@then('table.rows is a {type_name} object')
+def then_table_rows_is_a_type_object(context, type_name):
+    actual = type(context.table_.rows).__name__
+    expected = type_name
+    assert actual == expected, 'table.rows is a %s object' % actual
+
+
+@then('table.vert_banding is {bool_lit}')
+def then_table_vert_banding_is_value(context, bool_lit):
+    actual = context.table_.vert_banding
+    expected = eval(bool_lit)
+    assert actual is expected, 'table.vert_banding is %s' % actual

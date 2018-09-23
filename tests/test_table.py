@@ -37,13 +37,13 @@ class DescribeTable(object):
         _Cell_.assert_called_once_with(tc_, table)
         assert cell is cell_
 
-    def it_provides_access_to_its_rows(self, rows_fixture):
-        table, expected_rows_ = rows_fixture
-        assert table.rows is expected_rows_
-
     def it_provides_access_to_its_columns(self, columns_fixture):
         table, expected_columns_ = columns_fixture
         assert table.columns is expected_columns_
+
+    def it_provides_access_to_its_rows(self, rows_fixture):
+        table, expected_rows_ = rows_fixture
+        assert table.rows is expected_rows_
 
     def it_updates_graphic_frame_width_on_width_change(self, dx_fixture):
         table, expected_width = dx_fixture

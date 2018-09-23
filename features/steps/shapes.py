@@ -15,7 +15,7 @@ from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, PP_PLACEHOLDER
 from pptx.shapes.base import BaseShape
 from pptx.util import Emu, Inches
 
-from helpers import test_file, test_image, test_pptx
+from helpers import saved_pptx_path, test_file, test_image, test_pptx
 
 
 # given ===================================================
@@ -114,6 +114,14 @@ def when_I_add_100_shapes(context):
     for i in range(100):
         x, y = next(corners)
         shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, CX, CY)
+
+
+@when("I add a table to the slide's shape collection")
+def when_I_call_shapes_add_table(context):
+    shapes = context.slide.shapes
+    x, y = (Inches(1.00), Inches(2.00))
+    cx, cy = (Inches(3.00), Inches(1.00))
+    shapes.add_table(2, 2, x, y, cx, cy)
 
 
 @when('I assign shapes.add_chart() to shape')
@@ -321,3 +329,10 @@ def then_shapes_title_is_the_title_placeholder(context):
 def then_shapes_turbo_add_enabled_is_False(context):
     shapes = context.shapes
     assert shapes.turbo_add_enabled is False
+
+
+@then('the table appears in the slide')
+def then_the_table_appears_in_the_slide(context):
+    prs = Presentation(saved_pptx_path)
+    expected_table_graphic_frame = prs.slides[0].shapes[0]
+    assert expected_table_graphic_frame.has_table
