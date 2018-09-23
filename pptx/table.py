@@ -201,6 +201,9 @@ class _Cell(Subshape):
 
         A merge-origin cell "spans" the other grid cells in its merge range,
         consuming their area and "shadowing" the spanned grid cells.
+
+        Note this value is |False| for a merge-origin cell. A merge-origin
+        cell spans other grid cells, but is not itself a spanned cell.
         """
         return self._tc.is_spanned
 
@@ -291,8 +294,9 @@ class _Cell(Subshape):
 
         The value of this property may be misleading (often 1) on cells where
         `.is_merge_origin` is not |True|, since only a merge-origin cell
-        contains complete span information. This property should only be used
-        on cells known to be a merge origin by testing `.is_merge_origin`.
+        contains complete span information. This property is only intended
+        for use on cells known to be a merge origin by testing
+        `.is_merge_origin`.
         """
         return self._tc.rowSpan
 
@@ -302,8 +306,9 @@ class _Cell(Subshape):
 
         The value of this property may be misleading (often 1) on cells where
         `.is_merge_origin` is not |True|, since only a merge-origin cell
-        contains complete span information. This property should only be used
-        on cells known to be a merge origin by testing `.is_merge_origin`.
+        contains complete span information. This property is only intended
+        for use on cells known to be a merge origin by testing
+        `.is_merge_origin`.
         """
         return self._tc.gridSpan
 
@@ -333,11 +338,16 @@ class _Cell(Subshape):
     def text(self):
         """str representation of cell contents.
 
+        The returned string will contain a newline character (``'\\n'``) for
+        each new paragraph (after the first) and line break in the cell.
+
         Assignment to *text* replaces all text currently contained in the
-        cell, resulting in a text frame containing exactly one paragraph,
-        itself containing a single run. The assigned value can be a 7-bit
-        ASCII string, a UTF-8 encoded 8-bit string, or unicode. String values
-        are converted to unicode assuming UTF-8 encoding.
+        cell, resulting in a text frame containing exactly one paragraph.
+        Each newline character in an assigned string will be
+        replaced with a line break in the resulting paragraph. The assigned
+        value can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or
+        unicode. String values are converted to unicode assuming UTF-8
+        encoding.
         """
         return self.text_frame.text
 
