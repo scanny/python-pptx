@@ -32,6 +32,12 @@ Feature: Table properties and methods
       Then table.horz_banding is True
 
 
+  @wip
+  Scenario: Table.iter_cells()
+    Given a 3x3 Table object as table
+     Then len(list(table.iter_cells())) == 9
+
+
   Scenario: Table.last_col setter
      Given a 2x2 Table object as table
       When I assign table.last_col = True

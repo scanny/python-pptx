@@ -30,6 +30,7 @@ def given_a_2x3_MergeOriginCell_object_as_cell(context):
     context.cell = prs.slides[1].shapes[1].table.cell(0, 0)
 
 
+@given('a 3x3 Table object as table')
 @given('a 3x3 Table object with cells a to i as table')
 def given_a_3x3_table_with_cells_a_to_i_as_table(context):
     prs = Presentation(test_pptx('tbl-cell'))
@@ -236,6 +237,13 @@ def then_column_width_inches_eq(context, float_lit):
     actual = context.column.width.inches
     expected = float(float_lit)
     assert actual == expected, 'column.width.inches == %s' % actual
+
+
+@then('len(list(table.iter_cells())) == {int_lit}')
+def then_len_list_table_iter_cells_eq(context, int_lit):
+    actual = len(list(context.table_.iter_cells()))
+    expected = int(int_lit)
+    assert actual is expected, 'len(list(table.iter_cells())) == %s' % actual
 
 
 @then('table.cell(0, 0) is a {type_name} object')
