@@ -2,8 +2,8 @@
 Working with charts
 ===================
 
-|pp| supports adding charts and modifying existing ones. So far, 2D bar and
-column, line, and pie charts are supported.
+|pp| supports adding charts and modifying existing ones. Most chart types
+other than 3D types are supported.
 
 
 Adding a chart
@@ -12,7 +12,7 @@ Adding a chart
 The following code adds a single-series column chart in a new presentation::
 
     from pptx import Presentation
-    from pptx.chart.data import ChartData
+    from pptx.chart.data import CategoryChartData
     from pptx.enum.chart import XL_CHART_TYPE
     from pptx.util import Inches
 
@@ -21,7 +21,7 @@ The following code adds a single-series column chart in a new presentation::
     slide = prs.slides.add_slide(prs.slide_layouts[5])
 
     # define chart data ---------------------
-    chart_data = ChartData()
+    chart_data = CategoryChartData()
     chart_data.categories = ['East', 'West', 'Midwest']
     chart_data.add_series('Series 1', (19.2, 21.4, 16.7))
 

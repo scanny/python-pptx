@@ -120,14 +120,21 @@ Use Cases
 Use Case: Interrogate table for merged cells::
 
     def iter_merge_origins(table):
+        """Generate each merge-origin cell in *table*.
+
+        Cell objects are ordered by their position in the table,
+        left-to-right, top-to-bottom.
+        """
         return (cell for cell in table.iter_cells() if cell.is_merge_origin)
 
     def merged_cell_report(cell):
+        """Return str summarizing position and size of merged *cell*."""
         return (
             'merged cell at row %d, col %d, %d cells high and %d cells wide'
             % (cell.row_idx, cell.col_idx, cell.span_height, cell.span_width)
         )
 
+    # ---Print a summary line for each merged cell in *table*.---
     for merge_origin_cell in iter_merge_origins(table):
         print(merged_cell_report(merge_origin_cell))
 
@@ -139,7 +146,7 @@ Use Case: Access only cells that display text (are not spanned)::
 Use Case: Determine whether table contains merged cells::
 
     def has_merged_cells(table):
-        for cell in table.iter_cells:
+        for cell in table.iter_cells():
             if cell.is_merge_origin:
                 return True
 

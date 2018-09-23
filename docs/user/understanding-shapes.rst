@@ -37,9 +37,8 @@ group shape
    In PowerPoint, a set of shapes can be *grouped*, allowing them to be
    selected, moved, resized, and even filled as a unit. When you group a set of
    shapes a group shape gets created to contain those member shapes. You can't
-   actually see these except by their bounding box when the group is selected,
-   and |pp| doesn't support these yet (other than to preserve ones that are
-   already there) so I won't say more about them for now.
+   actually see these except by their bounding box when the group is
+   selected.
 
 line/connector
    Lines are different from auto shapes because, well, they're linear. Some
@@ -64,9 +63,9 @@ As for real-life shapes, there are these nine types:
 * line/connector -- as described above
 * picture -- as described above
 * table -- that row and column thing
-* chart -- pie chart, line chart, etc. |pp| doesn't support creating these yet.
+* chart -- pie chart, line chart, etc.
 * smart art -- not supported yet, although preserved if present
-* media clip -- not supported yet, although preserved if present
+* media clip -- video or audio
 
 
 Accessing the shapes on a slide
