@@ -41,6 +41,22 @@ class DescribeTable(object):
         table, expected_columns_ = columns_fixture
         assert table.columns is expected_columns_
 
+    def it_can_iterate_its_grid_cells(self, request, _Cell_):
+        tbl = element('a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))')
+        expected_tcs = tbl.xpath('.//a:tc')
+        expected_cells = _Cell_.side_effect = [
+            instance_mock(request, _Cell, name='cell%d' % idx)
+            for idx in range(4)
+        ]
+        table = Table(tbl, None)
+
+        cells = list(table.iter_cells())
+
+        assert cells == expected_cells
+        assert _Cell_.call_args_list == [
+            call(tc, table) for tc in expected_tcs
+        ]
+
     def it_provides_access_to_its_rows(self, rows_fixture):
         table, expected_rows_ = rows_fixture
         assert table.rows is expected_rows_

@@ -80,6 +80,13 @@ class Table(object):
     def horz_banding(self, value):
         self._tbl.bandRow = value
 
+    def iter_cells(self):
+        """Generate _Cell object for each cell in this table.
+
+        Each grid cell is generated in left-to-right, top-to-bottom order.
+        """
+        return (_Cell(tc, self) for tc in self._tbl.iter_tcs())
+
     @property
     def last_col(self):
         """

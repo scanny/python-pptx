@@ -69,6 +69,13 @@ class CT_Table(BaseOxmlElement):
     def firstRow(self, value):
         self._set_boolean_property('firstRow', value)
 
+    def iter_tcs(self):
+        """Generate each `a:tc` element in this tbl.
+
+        tc elements are generated left-to-right, top-to-bottom.
+        """
+        return (tc for tr in self.tr_lst for tc in tr.tc_lst)
+
     @property
     def lastCol(self):
         return self._get_boolean_property('lastCol')
