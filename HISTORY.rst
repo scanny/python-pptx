@@ -3,6 +3,28 @@
 Release History
 ---------------
 
+0.6.15 (2018-09-24)
++++++++++++++++++++
+
+- Fix #436 ValueAxis._cross_xAx fails on c:dateAxis
+
+
+0.6.14 (2018-09-24)
++++++++++++++++++++
+
+- Add _Cell.merge()
+- Add _Cell.split()
+- Add _Cell.__eq__()
+- Add _Cell.is_merge_origin
+- Add _Cell.is_spanned
+- Add _Cell.span_height
+- Add _Cell.span_width
+- Add _Cell.text getter
+- Add Table.iter_cells()
+- Move pptx.shapes.table module to pptx.table
+- Add user documentation 'Working with tables'
+
+
 0.6.13 (2018-09-10)
 +++++++++++++++++++
 
