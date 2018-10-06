@@ -7,7 +7,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from behave import given, then, when
 
 from pptx import Presentation
-from pptx.enum.dml import MSO_LINE
+from pptx.enum.dml import MSO_ARROWHEAD, MSO_LINE
 from pptx.util import Length, Pt
 
 from helpers import test_pptx
@@ -26,6 +26,30 @@ def given_a_LineFormat_object_as_line(context):
 def given_a_LineFormat_object_as_line_having_dash_style(context, current):
     shape_idx = {"no explicit": 0, "solid": 1, "dashed": 2, "dash-dot": 3}[current]
     shape = Presentation(test_pptx("dml-line")).slides[3].shapes[shape_idx]
+    context.line = shape.line
+
+
+@given("a LineFormat object as line having {current} head end")
+def given_a_LineFormat_object_as_line_having_head_end(context, current):
+    shape_idx = {
+        "no explicit": 2,
+        "diamond":     3,
+        "triangle":    5,
+        "oval":        7,
+    }[current]
+    shape = Presentation(test_pptx("dml-line")).slides[4].shapes[shape_idx]
+    context.line = shape.line
+
+
+@given("a LineFormat object as line having {current} tail end")
+def given_a_LineFormat_object_as_line_having_tail_end(context, current):
+    shape_idx = {
+        "no explicit": 2,
+        "diamond":     3,
+        "triangle":    5,
+        "oval":        7,
+    }[current]
+    shape = Presentation(test_pptx("dml-line")).slides[4].shapes[shape_idx]
     context.line = shape.line
 
 
@@ -49,6 +73,28 @@ def when_I_assign_value_to_line_dash_style(context, value_key):
         "MSO_LINE.SOLID": MSO_LINE.SOLID,
     }[value_key]
     context.line.dash_style = value
+
+
+@when("I assign {value_key} to line.head_end")
+def when_I_assign_value_to_line_head_end(context, value_key):
+    value = {
+        "None":                   None,
+        "MSO_ARROWHEAD.DIAMOND":  MSO_ARROWHEAD.DIAMOND,
+        "MSO_ARROWHEAD.TRIANGLE": MSO_ARROWHEAD.TRIANGLE,
+        "MSO_ARROWHEAD.OVAL":     MSO_ARROWHEAD.OVAL,
+    }[value_key]
+    context.line.head_end = value
+
+
+@when("I assign {value_key} to line.tail_end")
+def when_I_assign_value_to_line_tail_end(context, value_key):
+    value = {
+        "None":                   None,
+        "MSO_ARROWHEAD.DIAMOND":  MSO_ARROWHEAD.DIAMOND,
+        "MSO_ARROWHEAD.TRIANGLE": MSO_ARROWHEAD.TRIANGLE,
+        "MSO_ARROWHEAD.OVAL":     MSO_ARROWHEAD.OVAL,
+    }[value_key]
+    context.line.tail_end = value
 
 
 @when("I assign {line_width} to line.width")
@@ -82,6 +128,34 @@ def then_line_dash_style_is_value(context, dash_style):
     assert actual_value == expected_value, "expected %s, got %s" % (
         expected_value,
         actual_value,
+    )
+
+
+@then("line.head_end is {head_end}")
+def then_line_head_end_is_value(context, head_end):
+    expected_value = {
+        "None":                   None,
+        "MSO_ARROWHEAD.DIAMOND":  MSO_ARROWHEAD.DIAMOND,
+        "MSO_ARROWHEAD.TRIANGLE": MSO_ARROWHEAD.TRIANGLE,
+        "MSO_ARROWHEAD.OVAL":     MSO_ARROWHEAD.OVAL,
+    }[head_end]
+    actual_value = context.line.head_end
+    assert actual_value == expected_value, (
+        "expected %s, got %s" % (expected_value, actual_value)
+    )
+
+
+@then("line.tail_end is {tail_end}")
+def then_line_tail_end_is_value(context, tail_end):
+    expected_value = {
+        "None":                   None,
+        "MSO_ARROWHEAD.DIAMOND":  MSO_ARROWHEAD.DIAMOND,
+        "MSO_ARROWHEAD.TRIANGLE": MSO_ARROWHEAD.TRIANGLE,
+        "MSO_ARROWHEAD.OVAL":     MSO_ARROWHEAD.OVAL,
+    }[tail_end]
+    actual_value = context.line.tail_end
+    assert actual_value == expected_value, (
+        "expected %s, got %s" % (expected_value, actual_value)
     )
 
 

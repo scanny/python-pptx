@@ -21,6 +21,28 @@ Feature: Get and change line properties
       | dash-dot    | MSO_LINE.DASH_DOT |
 
 
+  Scenario Outline: LineFormat.head_end getter
+    Given a LineFormat object as line having <current> head end
+     Then line.head_end is <head-end>
+     Examples: Line head ends
+      | current     | head-end                |
+      | no explicit | None                    |
+      | diamond     | MSO_ARROWHEAD.DIAMOND   |
+      | triangle    | MSO_ARROWHEAD.TRIANGLE  |
+      | oval        | MSO_ARROWHEAD.OVAL      |
+
+
+  Scenario Outline: LineFormat.tail_end getter
+    Given a LineFormat object as line having <current> tail end
+     Then line.tail_end is <tail-end>
+     Examples: Line tail ends
+      | current     | tail-end                |
+      | no explicit | None                    |
+      | diamond     | MSO_ARROWHEAD.DIAMOND   |
+      | triangle    | MSO_ARROWHEAD.TRIANGLE  |
+      | oval        | MSO_ARROWHEAD.OVAL      |
+
+
   Scenario Outline: LineFormat.width setter
     Given a LineFormat object as line having <current> dash style
      When I assign <dash-style> to line.dash_style
